@@ -1,0 +1,15 @@
+CXX = g++
+RM = rm -f
+
+TARGET	=  	mylib.so
+
+default:all
+
+all:$(TARGET)
+
+$(TARGET):
+	$(CXX) -std=c++11 -shared -fPIC -o mylib.so vm/lmylib.cpp -I. -I./leveldb/include -DHAVE_WORKING_BOOST_SLEEP
+	
+	
+clean:
+	$(RM) $(TARGET)

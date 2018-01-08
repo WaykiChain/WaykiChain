@@ -1,0 +1,5 @@
+*.o
+*.Po
+*.a
+*.dirstamp
+*.log
