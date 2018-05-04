@@ -449,7 +449,7 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTransactio
     vector<string> vInitPubKey = IniCfg().GetIntPubKey(type);
     vector<COperVoteFund> vOperVoteFund;
     for (size_t i = 0; i < vDelegatePubKey.size(); ++i) {
-        CVoteFund fund(IniCfg().GetCoinInitValue() * COIN  / 100 * (i+1), CPubKey(ParseHex(vDelegatePubKey[i].c_str())));
+        CVoteFund fund(IniCfg().GetCoinInitValue() * COIN  / 1000 * (i+1), CPubKey(ParseHex(vDelegatePubKey[i].c_str())));
         COperVoteFund operVoteFund(ADD_FUND, fund);
         vOperVoteFund.push_back(operVoteFund);
     }

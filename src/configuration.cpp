@@ -471,8 +471,8 @@ string G_CONFIG_TABLE::COIN_NAME = "WaykiChain";
 	//公钥-主网络
 vector<string> G_CONFIG_TABLE::intPubKey_mainNet =
 {
-	"02ab718ada52870b369a355d99df415bbb782be7de1ccd3b88fd66ffcb72e81d40",
-	"03639e92b0464c0b7fbd99ce9d087194178de43468b81ece92d7fd424b64aec4be"
+	"037671de4799dbf919effa034bbcaadd78c8a942adeebe7d71155304979a02802a",
+	"0226d8c242052560b3ec7c75d45ba3a8cb187ff2c21a9e96cb8755eeefd50bcdca"
 };
 	//公钥-测试网络
  vector<string> G_CONFIG_TABLE::initPubKey_testNet =
@@ -544,12 +544,12 @@ string G_CONFIG_TABLE::CheckPointPK_MainNet = "029e85b9822bb140d6934fe7e8cd82fb7
 string G_CONFIG_TABLE::CheckPointPK_TestNet = "0264afea20ebe6fe4c753f9c99bdce8293cf739efbc7543784873eb12f39469d46";
 
 //创世块HASH
-string G_CONFIG_TABLE::hashGenesisBlock_mainNet = "0xbc323bc02b8adae6d04f90806d519c6d1d68f31a4552160d369fa64ce1de03fd";
-string G_CONFIG_TABLE::hashGenesisBlock_testNet = "0x6a8604f54d913ae6813b27e14d6cecd12047be64d583960c9cbb13a976a69006";
-string G_CONFIG_TABLE::hashGenesisBlock_regTest = "0xcd2c150c0d1d3e6673cdeee908f5eaac7d290c26baab677069666fa430cf615f";
+string G_CONFIG_TABLE::hashGenesisBlock_mainNet = "0x8e00d6e5ba4f1f32212a98aa9875a42f7d2c4d50adc2fa95ebf0fe36974747c9";
+string G_CONFIG_TABLE::hashGenesisBlock_testNet = "0x5b5decb95c4326d843fd4bcab05e97b7216cedf7e960a182550a2cf05db7faea";
+string G_CONFIG_TABLE::hashGenesisBlock_regTest = "0x30526526a9ae7e11eb80006970f4707fddc657b52d41b103e9880877289b272d";
 
  //梅根HASH
-string G_CONFIG_TABLE::HashMerkleRoot = "0x9b8ca22168ff319114b1bdd80f9784ba585ba4d3c714a60b47b9a7a43e992be3";
+string G_CONFIG_TABLE::HashMerkleRoot = "0xce0322dd9d751f5ed62848cfe7223c49f2f41abc7db4cbe9030a0741dc1b455d";
 
 
 
@@ -579,7 +579,7 @@ string G_CONFIG_TABLE::HashMerkleRoot = "0x9b8ca22168ff319114b1bdd80f9784ba585ba
  unsigned int G_CONFIG_TABLE::nUIPort_testNet = 4246;
 
 //修改时间
- unsigned int G_CONFIG_TABLE::StartTime_mainNet = 1509601796;
+ unsigned int G_CONFIG_TABLE::StartTime_mainNet = 1525404897;
  unsigned int G_CONFIG_TABLE::StartTime_testNet = 1505401100;
  unsigned int G_CONFIG_TABLE::StartTime_regTest = 1504305600;
 
@@ -588,7 +588,7 @@ string G_CONFIG_TABLE::HashMerkleRoot = "0x9b8ca22168ff319114b1bdd80f9784ba585ba
  unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_regNet = 500;
 
 //修改发币初始值
- uint64_t G_CONFIG_TABLE::InitialCoin = 100000000;
+ uint64_t G_CONFIG_TABLE::InitialCoin = 210000000;
 
 //矿工费用
  uint64_t G_CONFIG_TABLE::DefaultFee = 15;

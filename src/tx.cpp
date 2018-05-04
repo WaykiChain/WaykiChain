@@ -1390,17 +1390,20 @@ bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const in
                 return ERRORMSG("DealDelegateVote() : CDelegateTransaction ExecuteTx AccountVoteOper revocation votes are not exist");
             }
         }
-        std::sort(voteFunds.begin(),voteFunds.end(),[](CVoteFund fund1, CVoteFund fund2) {
-                return fund1.value > fund2.value;
-        });
-        int64_t newTotalVotes = 0;
-        if(!voteFunds.empty())
-            newTotalVotes = voteFunds.begin()->value;
-        if(llValues + (uint64_t)totalVotes < (uint64_t)newTotalVotes ) {
-            return  ERRORMSG("DealDelegateVote() : delegate value exceed account value");
-        }
-        llValues += totalVotes - newTotalVotes;
+
     }
+
+    std::sort(voteFunds.begin(),voteFunds.end(),[](CVoteFund fund1, CVoteFund fund2) {
+            return fund1.value > fund2.value;
+    });
+    int64_t newTotalVotes = 0;
+    if(!voteFunds.empty())
+        newTotalVotes = voteFunds.begin()->value;
+    if(llValues + (uint64_t)totalVotes < (uint64_t)newTotalVotes ) {
+        return  ERRORMSG("DealDelegateVote() : delegate value exceed account value");
+    }
+    llValues += totalVotes - newTotalVotes;
+
     llValues += llProfit;
     LogPrint("profits", "receive profits:%lld\n", llProfit);
     return true;
