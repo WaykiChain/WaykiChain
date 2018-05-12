@@ -544,18 +544,18 @@ string G_CONFIG_TABLE::CheckPointPK_MainNet = "029e85b9822bb140d6934fe7e8cd82fb7
 string G_CONFIG_TABLE::CheckPointPK_TestNet = "0264afea20ebe6fe4c753f9c99bdce8293cf739efbc7543784873eb12f39469d46";
 
 //创世块HASH
-string G_CONFIG_TABLE::hashGenesisBlock_mainNet = "0x8e00d6e5ba4f1f32212a98aa9875a42f7d2c4d50adc2fa95ebf0fe36974747c9";
-string G_CONFIG_TABLE::hashGenesisBlock_testNet = "0x5b5decb95c4326d843fd4bcab05e97b7216cedf7e960a182550a2cf05db7faea";
-string G_CONFIG_TABLE::hashGenesisBlock_regTest = "0x30526526a9ae7e11eb80006970f4707fddc657b52d41b103e9880877289b272d";
+string G_CONFIG_TABLE::hashGenesisBlock_mainNet = "0xa00d5d179450975237482f20f5cd688cac689eb83bc2151d561bfe720185dc13";
+string G_CONFIG_TABLE::hashGenesisBlock_testNet = "0xf8aea423c73890eb982c77793cf2fff1dcc1c4d141f42a4c6841b1ffe87ac594";
+string G_CONFIG_TABLE::hashGenesisBlock_regTest = "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d";
 
  //梅根HASH
-string G_CONFIG_TABLE::HashMerkleRoot = "0xce0322dd9d751f5ed62848cfe7223c49f2f41abc7db4cbe9030a0741dc1b455d";
+string G_CONFIG_TABLE::HashMerkleRoot = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
 
 
 
 
 //IP地址
- vector<unsigned int> G_CONFIG_TABLE::pnSeed = { 0x446e682f, 0x898F5c2f, 0xcb163e74, 0x2b67642f, 0xa2084f78, 0x1cf6342f, 0x45ba4a2f, 0x5ecafe2f, 0x22b3592f, 0x69fb592f, 0xe75f5b2f};
+ vector<unsigned int> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0xDC36FB0D, 0x91A11C77, 0xFFFFE60D, 0x3D304B2F, 0xB21A4E75, 0x0C2AFE2F, 0xC246FE2F, 0x0947FE2F};
 
 
  //网络协议魔数

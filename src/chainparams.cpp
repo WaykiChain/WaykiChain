@@ -89,8 +89,9 @@ public:
 //		}
 		assert(hashGenesisBlock == IniCfg().GetIntHash(MAIN_NET));
 		assert(genesis.GetHashMerkleRoot() == IniCfg().GetHashMerkleRoot());
-//      vSeeds.push_back(CDNSSeedData("soypay.org.cn", "seed_cn_0.dspay.org"));
-//      vSeeds.push_back(CDNSSeedData("soypay.org.us", "seed_us_0.dspay.org"));
+
+        vSeeds.push_back(CDNSSeedData("seed1.waykichain.net", "n1.waykichain.net"));
+        vSeeds.push_back(CDNSSeedData("seed2.waykichain.net", "n2.waykichain.net"));
 
         base58Prefixes[PUBKEY_ADDRESS] = IniCfg().GetAddressPrefix(MAIN_NET,PUBKEY_ADDRESS);
 		base58Prefixes[SCRIPT_ADDRESS] = IniCfg().GetAddressPrefix(MAIN_NET,SCRIPT_ADDRESS);
@@ -449,7 +450,7 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTransactio
     vector<string> vInitPubKey = IniCfg().GetIntPubKey(type);
     vector<COperVoteFund> vOperVoteFund;
     for (size_t i = 0; i < vDelegatePubKey.size(); ++i) {
-        CVoteFund fund(IniCfg().GetCoinInitValue() * COIN  / 1000 * (i+1), CPubKey(ParseHex(vDelegatePubKey[i].c_str())));
+        CVoteFund fund(IniCfg().GetCoinInitValue() * COIN  / 100, CPubKey(ParseHex(vDelegatePubKey[i].c_str())));
         COperVoteFund operVoteFund(ADD_FUND, fund);
         vOperVoteFund.push_back(operVoteFund);
     }

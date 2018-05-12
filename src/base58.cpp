@@ -314,7 +314,7 @@ bool CCoinSecret::IsValid() const {
 }
 
 bool CCoinSecret::SetString(const char* pszSecret) {
-	return CBase58Data::SetString(pszSecret) /*&& IsValid()*/;
+	return CBase58Data::SetString(pszSecret) && IsValid();
 }
 
 bool CCoinSecret::SetString(const string& strSecret) {
