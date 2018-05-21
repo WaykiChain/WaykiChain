@@ -2103,7 +2103,7 @@ Value submittx(const Array& params, bool fHelp) {
 				+ "\nAs json rpc call\n"
 				+ HelpExampleRpc("submittx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
 	}
-	EnsureWalletIsUnlocked();
+	//EnsureWalletIsUnlocked();
 	vector<unsigned char> vch(ParseHex(params[0].get_str()));
 	CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
 
@@ -3029,6 +3029,9 @@ Value getdelegatelist(const Array& params, bool fHelp) {
                  + HelpExampleRpc("getdelegatelist","11"));
     }
     int nDelegateNum = params[0].get_int();
+    if (nDelegateNum < 1 || nDelegateNum > 11) {
+	throw runtime_error("getdelegatelist : param  in [1, 11]!\n");
+    }
     int nIndex = 0;
     CRegID redId(0,0);
     vector<unsigned char> vScriptData;

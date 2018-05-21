@@ -242,11 +242,15 @@ Value dumpprivkey(const Array& params, bool fHelp)
     if (!pwalletMain->GetKey(keyID, vchSecret))
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " + strAddress + " is not known");
     CKey minerkey;
+#if 0 //modified by shane @2018/5/17 此处不能抛异常
     if (!pwalletMain->GetKey(keyID, minerkey,true))
            throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " + strAddress + " is not known");
+#else
+	pwalletMain->GetKey(keyID, minerkey,true);
+#endif
     Object reply;
     	reply.push_back(Pair("privkey", CCoinSecret(vchSecret).ToString()));
-    if(minerkey.ToString() != vchSecret.ToString())
+    if(minerkey.IsValid() && minerkey.ToString() != vchSecret.ToString())
     	reply.push_back(Pair("minerkey", CCoinSecret(minerkey).ToString()));
     else
     	reply.push_back(Pair("minerkey", " "));
