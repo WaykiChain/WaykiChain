@@ -2041,48 +2041,49 @@ Value getscriptdbsize(const Array& params, bool fHelp) {
 
 Value registaccounttxraw(const Array& params, bool fHelp) {
 
-	if (fHelp || (params.size() < 2  || params.size() > 4)) {
-		throw runtime_error("registaccounttxraw \"fee\" \"publickey\" (\"minerpublickey\") (\"height\")\n"
+	if (fHelp || (params.size() < 3  || params.size() > 4)) {
+		throw runtime_error("registaccounttxraw \"fee\" \"height\" \"publickey\" (\"minerpublickey\") \n"
 				"\ncreate a register account transaction\n"
 				"\nArguments:\n"
 				"1.fee: (numeric, required) pay to miner\n"
-				"2.publickey: (string, required)\n"
-				"3.minerpublickey: (string,optional)\n"
-				"4.height: (numeric, optional) pay to miner\n"
+				"2.height: (numeric, required)\n"
+				"3.publickey: (string, required)\n"
+				"4.minerpublickey: (string,optional)\n"
 				"\nResult:\n"
 				"\"txhash\": (string)\n"
 				"\nExamples:\n"
-				+ HelpExampleCli("registaccounttxraw",  "10000 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\" 10 ")
+				+ HelpExampleCli("registaccounttxraw",  "10000  3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\"")
 				+ "\nAs json rpc call\n"
-				+ HelpExampleRpc("registaccounttxraw", " 10000 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\" 10"));
+				+ HelpExampleRpc("registaccounttxraw", " 10000 3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\""));
 	}
 	CUserID ukey;
 	CUserID uminerkey = CNullID();
 
 	int64_t Fee = AmountToRawValue(params[0]);
 
+	int hight = params[1].get_int();
+
 	CKeyID dummy;
-	CPubKey pubk = CPubKey(ParseHex(params[1].get_str()));
+	CPubKey pubk = CPubKey(ParseHex(params[2].get_str()));
 	if (!pubk.IsCompressed() || !pubk.IsFullyValid()) {
 		throw JSONRPCError(RPC_INVALID_PARAMS, "CPubKey err");
 	}
 	ukey = pubk;
 	dummy = pubk.GetKeyID();
 
-	if (params.size() > 2) {
-		CPubKey pubk = CPubKey(ParseHex(params[2].get_str()));
-		if (!pubk.IsCompressed() || !pubk.IsFullyValid()) {
+	if (params.size() > 3) {
+		CPubKey minerpubk = CPubKey(ParseHex(params[3].get_str()));
+		if (!minerpubk.IsCompressed() || !minerpubk.IsFullyValid()) {
 			throw JSONRPCError(RPC_INVALID_PARAMS, "CPubKey err");
 		}
-		uminerkey = pubk;
+		uminerkey = minerpubk;
 	}
 
-	int hight = chainActive.Tip()->nHeight;
-	if (params.size() > 3) {
-		hight = params[3].get_int();
-	}
-
+      EnsureWalletIsUnlocked();
 	std::shared_ptr<CRegisterAccountTx> tx = std::make_shared<CRegisterAccountTx>(ukey, uminerkey, Fee, hight);
+	if (!pwalletMain->Sign(pubk.GetKeyID(), tx->SignatureHash(), tx->signature)) {
+				throw JSONRPCError(RPC_INVALID_PARAMETER,  "Sign failed");
+	}
 	CDataStream ds(SER_DISK, CLIENT_VERSION);
 	std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
 	ds << pBaseTx;
