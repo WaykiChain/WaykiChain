@@ -327,6 +327,9 @@ Value gettransaction(const Array& params, bool fHelp) {
 	if(!findTx)
 	{
 		pBaseTx = mempool.lookup(txhash);
+		if(pBaseTx == nullptr) {
+			throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid txhash");
+		}
 		double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
 		obj.push_back(Pair("amount", dAmount));
 		obj.push_back(Pair("confirmations",0));
