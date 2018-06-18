@@ -85,7 +85,8 @@ bool CAccountViewCache::GetAccount(const CKeyID &keyId, CAccount &account) {
 			return false;
 	}
 	if (pBase->GetAccount(keyId, account)) {
-		cacheAccounts[keyId] = account;
+		cacheAccounts.insert(make_pair(keyId, account));
+	    //cacheAccounts[keyId] = account;
 		return true;
 	}
 	return false;
@@ -177,7 +178,8 @@ bool CAccountViewCache::GetKeyId(const vector<unsigned char> &accountId, CKeyID 
 		}
 	}
 	if(pBase->GetKeyId(accountId, keyId) ){
-		cacheKeyIds[accountId] = keyId;
+		cacheKeyIds.insert(make_pair(accountId, keyId));
+	    //cacheKeyIds[accountId] = keyId;
 		return true;
 	}
 	return false;

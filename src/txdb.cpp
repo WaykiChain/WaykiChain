@@ -160,7 +160,11 @@ bool CAccountViewDB::GetAccount(const CKeyID &keyId, CAccount &secureAccount) {
 }
 
 bool CAccountViewDB::SetAccount(const CKeyID &keyId, const CAccount &secureAccount) {
-	return db.Write(make_pair('k', keyId), secureAccount);
+    bool ret = db.Write(make_pair('k', keyId), secureAccount);
+    assert(!secureAccount.keyID.IsEmpty());
+    assert(!secureAccount.regID.IsEmpty());
+    assert(secureAccount.PublicKey.IsValid());
+	return ret;
 }
 
 bool CAccountViewDB::SetAccount(const vector<unsigned char> &accountId, const CAccount &secureAccount) {

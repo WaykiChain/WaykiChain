@@ -43,14 +43,14 @@ typedef struct tagdddd{
 	int64_t nMoney;
 }IPO_DATA;
 
-const int64_t totalSendMoney = 900000000000000000;   //
+const int64_t totalSendMoney = 1340000000;   //
 //const string g_strAppId = "2794-1";              //解冻周期每期10分钟应用
 const string g_strAppId = "2816-1";                  //解冻周期每期一周应用
 IPO_DATA arrayData[]=
 {
 	/*测试应用*/
-	//{"hWCrnRbRngVRu5SJKuo8SY352W5fwZpMnf",	10000000000000},
-	  {"hZetp3y5My69WtkpRU3MEGQSruVKZ6W7pR",    900000000000000000},
+	//  {"WYyZABrjmyCcGXbpWDSf7pzrfHWJtLDTQK",    30000000},
+	//  {"WSYh2s6YM5kyeTtBZrZNdNo6QoYYwidFTj",    30000000}
 };
 
 
