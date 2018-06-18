@@ -99,7 +99,7 @@ public:
 		base58Prefixes[EXT_PUBLIC_KEY] = IniCfg().GetAddressPrefix(MAIN_NET,EXT_PUBLIC_KEY);
 		base58Prefixes[EXT_SECRET_KEY] = IniCfg().GetAddressPrefix(MAIN_NET,EXT_SECRET_KEY);
 
-//        base58Prefixes[PUBKEY_ADDRESS] = G_CONFIG_TABLE::AddrPrefix_mainNet[PUBKEY_ADDRESS];
+//      base58Prefixes[PUBKEY_ADDRESS] = G_CONFIG_TABLE::AddrPrefix_mainNet[PUBKEY_ADDRESS];
 //		base58Prefixes[SCRIPT_ADDRESS] = G_CONFIG_TABLE::AddrPrefix_mainNet[SCRIPT_ADDRESS];
 //		base58Prefixes[SECRET_KEY] = G_CONFIG_TABLE::AddrPrefix_mainNet[SECRET_KEY];
 //		base58Prefixes[EXT_PUBLIC_KEY] = G_CONFIG_TABLE::AddrPrefix_mainNet[EXT_PUBLIC_KEY];
@@ -231,10 +231,10 @@ public:
 		strDataDir = "regtest";
 //		{
 //			CBigNum bnTarget;
-//			bnTarget.SetCompact(genesis.GetBits());
+////			bnTarget.SetCompact(genesis.GetBits());
 //			cout << "regtest bnTarget:" << bnTarget.getuint256().GetHex() << endl;
 //			cout << "regtest hashGenesisBlock:\r\n" << hashGenesisBlock.ToString() << endl;
-
+//
 //		}
 		assert(hashGenesisBlock == IniCfg().GetIntHash(REGTEST_NET));
 
