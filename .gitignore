@@ -1,5 +1,17 @@
+.DS_Store
 *.o
 *.Po
 *.a
 *.dirstamp
 *.log
+Makefile
+Makefile.in
+autom4te.cache/
+config.status
+configure
+src/.deps/
+src/Makefile.in
+src/coin-config.h.in
+src/ptest/Makefile.in
+src/stamp-h1
+src/test/Makefile.in
