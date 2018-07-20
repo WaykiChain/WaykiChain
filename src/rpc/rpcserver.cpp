@@ -819,7 +819,9 @@ void ServiceConnection(AcceptedConnection *conn)
 //            conn->stream() << HTTPReply(HTTP_UNAUTHORIZED, "", false) << flush;
 //            break;
 //        }
-        if (mapHeaders["connection"] == "close")
+
+// disable http keepalive for client-wallet connection to bypass connection threading bugs
+//        if (mapHeaders["connection"] == "close")
             fRun = false;
 
         JSONRequest jreq;
