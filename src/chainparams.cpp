@@ -180,6 +180,9 @@ public:
 		assert(hashGenesisBlock == IniCfg().GetIntHash(TEST_NET));
 //		vSeeds.clear();
 //		vSeeds.push_back(CDNSSeedData("bluematt.me", "testnet-seed.bluematt.me"));
+ 		vSeeds.push_back(CDNSSeedData("seed1.waykitest.net", "n1.waykitest.net"));
+        vSeeds.push_back(CDNSSeedData("seed2.waykitest.net", "n2.waykitest.net"));
+
         base58Prefixes[PUBKEY_ADDRESS] = IniCfg().GetAddressPrefix(TEST_NET,PUBKEY_ADDRESS);
 		base58Prefixes[SCRIPT_ADDRESS] = IniCfg().GetAddressPrefix(TEST_NET,SCRIPT_ADDRESS);
 		base58Prefixes[SECRET_KEY] = IniCfg().GetAddressPrefix(TEST_NET,SECRET_KEY);

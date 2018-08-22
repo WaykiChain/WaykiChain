@@ -1,8 +1,8 @@
 /*
  * configuration.h
  *
- *  Created on: 2016Äê9ÔÂ8ÈÕ
- *      Author: ranger.shi
+ *  Created on: 2016å¹´9æœˆ8æ—¥
+ *      Author: WaykiChain Core Developer 
  */
 
 #ifndef CONFIGURATION_H_
@@ -90,16 +90,16 @@ public:
 
 private:
 
-	//Ãû³Æ£º
+	//åç§°ï¼š
 	static string COIN_NAME ;
 
-	//¹«Ô¿
+	//å…¬é’¥
 	static  vector<string> intPubKey_mainNet;
 	static  vector<string> initPubKey_testNet;
 	static  vector<string> initPubkey_regTest;
 
 
-	//Í¶Æ±´ú±í
+	//æŠ•ç¥¨ä»£è¡¨
 	static vector<string> delegatePubKey_mainNet;
 	static vector<string> delegatePubKey_testNet;
 	static vector<string> delegatePubKey_regTest;
@@ -108,35 +108,35 @@ private:
 	static string delegateSignature_testNet;
     static string delegateSignature_regNet;
 
-	//´´ÊÀ¿éHASH
+	//åˆ›ä¸–å—HASH
 	static string hashGenesisBlock_mainNet;
 	static string hashGenesisBlock_testNet;
 	static string hashGenesisBlock_regTest;
 
 
-	//check point ¹«Ô¿
+	//check point å…¬é’¥
 	static string CheckPointPK_MainNet;
 	static string CheckPointPK_TestNet;
 
 
-	//Ã·¸ùHASH
+	//æ¢…æ ¹HASH
 	static string HashMerkleRoot;
 
-	//IPµØÖ·
+	//IPåœ°å€
 	static vector<unsigned int> pnSeed;
 
 
-	//ÍøÂçĞ­ÒéÄ§Êı
+	//ç½‘ç»œåè®®é­”æ•°
 	static unsigned char Message_mainNet[MESSAGE_START_SIZE];
 	static unsigned char Message_testNet[MESSAGE_START_SIZE];
 	static unsigned char Message_regTest[MESSAGE_START_SIZE];
 
-	//ĞŞ¸ÄµØÖ·Ç°×º
+	//ä¿®æ”¹åœ°å€å‰ç¼€
 	static  vector<unsigned char> AddrPrefix_mainNet[MAX_BASE58_TYPES];
 	static  vector<unsigned char> AddrPrefix_testNet[MAX_BASE58_TYPES];
 
 
-	//ÍøÂç¶Ë¿Ú
+	//ç½‘ç»œç«¯å£
 	static unsigned int nDefaultPort_mainNet ;
 	static unsigned int nDefaultPort_testNet ;
 	static unsigned int nDefaultPort_regTest;
@@ -147,23 +147,23 @@ private:
 	static unsigned int nUIPort_mainNet;
 	static unsigned int nUIPort_testNet;
 
-	//ĞŞ¸ÄÊ±¼ä
+	//ä¿®æ”¹æ—¶é—´
 	static unsigned int StartTime_mainNet;
 	static unsigned int StartTime_testNet;
 	static unsigned int StartTime_regTest;
 
-	//°ëË¥ÆÚ
+	//åŠè¡°æœŸ
 	static unsigned int nSubsidyHalvingInterval_mainNet;
 	static unsigned int nSubsidyHalvingInterval_regNet;
 
 
-	//ĞŞ¸Ä·¢±Ò×ÜÁ¿
+	//ä¿®æ”¹å‘å¸æ€»é‡
 	static uint64_t InitialCoin;
 
-	//¿ó¹¤·ÑÓÃ
+	//çŸ¿å·¥è´¹ç”¨
 	static uint64_t DefaultFee;
 
-	//¼ÇÕËÈËÊı
+	//è®°è´¦äººæ•°
 	static unsigned int  nDelegates;
 
 	static unsigned int ExpansionPecent;
