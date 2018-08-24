@@ -8,7 +8,7 @@
 | backupwallet | <destination> | Safely copies wallet.dat to destination, which can be a directory or a path with filename. | N |
 | createcontracttx | <userregid><appid><amount><contract><fee>[height  ,default = the tip block height] | create contract transaction | Y |
 | createcontracttxraw | <height><fee><amount><address><contract> | Create contract transaction from hex string | N |
-| dropprivkey | drop private key from wallet | Y | |
+| dropprivkey | | drop private key from wallet | Y |
 | dumpwallet | <filename> | Dumps all wallet keys in a human-readable format.And write to <filename> | Y |
 | dumpprivkey | <dacrsaddress> | Reveals the private key corresponding to <dacrsaddress> | Y |
 | encryptwallet | <passphrase> | Encrypts the wallet with <passphrase> | N |
@@ -28,7 +28,7 @@
 | getdacrsstate | <num> | Returns state data  about the recently num blocks | N |
 | getdifficulty | | Returns the proof-of-work difficulty as a multiple of the minimum difficulty | N |
 | getinfo | | Returns an object containing various state info | N |
-| getmininginfo | Returns an object containing mining-related information: <br> <ul>blocks</ul><ul>currentblocksize</ul><ul>currentblocktx</ul><ul>difficulty</ul><ul>errors</ul><ul>generate</ul><ul>genproclimit</ul><ul>hashespersec</ul><ul>pooledtx</ul><ul>testnet</ul> | N |
+| getmininginfo | | Returns an object containing mining-related information: <br> <ul>blocks</ul><ul>currentblocksize</ul><ul>currentblocktx</ul><ul>difficulty</ul><ul>errors</ul><ul>generate</ul><ul>genproclimit</ul><ul>hashespersec</ul><ul>pooledtx</ul><ul>testnet</ul> | N |
 | getnewaddress | [isminer] | Returns a new  address for receiving payments. If [isminer] is ture will create a miner key,otherwise will only return a new address. | Y |
 | getnetworkhashps | [blocks][height] | Returns the estimated network hashes per second based on the last n blocks.<br><li>.    blocks</li> (numeric, optional, default=120) The number of blocks, or -1 for blocks since last difficulty change</li><li>2.    height (numeric, optional, default=-1) To estimate at the time of the given height.</li>| N |
 | getnetworkinfo | Returns an object containing various state info regarding P2P network | N |
@@ -37,7 +37,7 @@
 | getscriptdata | <scriptid><pagsize or key>[index] | get the script data by given scripted. <br> < scriptid ><key>  or < scriptid >< pagsize >[index] | N |
 | getscriptvalidedata | <scriptid><pagsize><index> | get script valide data | N |
 | gettxdetail | <txhash> | Returns an object about the transaction  detail information by <txhash> | N |
-| getwalletinfo | Returns an object containing various wallet state info | N |
+| getwalletinfo | | Returns an object containing various wallet state info | N |
 | help | [command] | List commands, or get help for a command | N | 
 | importprivkey | <dacrsprivkey> [label] [rescan=true] | Adds a private key (as returned by dumpprivkey) to your wallet. This may take a while, as a rescan is done, looking for existing transactions. Note: There's no need to import public key, as in ECDSA (unlike RSA) this can be computed from private key. | Y |
 | importwallet | <filename> | Import keys from a wallet dump file (see dumpwallet). | Y |
@@ -67,6 +67,6 @@
 | walletlock | | Removes the wallet encryption key from memory, locking the wallet. After calling this method, you will need to call walletpassphrase again before being able to call any methods which require the wallet to be unlocked. | N |
 | walletpassphrase | <passphrase> <timeout> | Stores the wallet decryption key in memory for <timeout> seconds. | N | 
 | walletpassphrasechange | <oldpassphrase> <newpassphrase> | Changes the wallet passphrase from <oldpassphrase> to <newpassphrase> | N |
-| ping | Requests that a ping be sent to all other nodes, to measure ping time. | N | 
+| ping | | Requests that a ping be sent to all other nodes, to measure ping time. | N | 
 | validateaddress | <address> | check the address is valide | N | 
 | getalltxinfo | [nlimitCount] | if no input params, return all transactions in wallet include those confirmed and unconfirmed, else return the number of nlimitCount transaction relate. | N |
