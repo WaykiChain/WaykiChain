@@ -1,7 +1,6 @@
 ## WaykiChain Command Reference
 
-* "<>" : required
-* "[]" : optional
+* "<>" : required,  "[]" : optional
 
 |Command | Parameters| Description | Unlocked wallet required?|
 |---|---|---|---|
