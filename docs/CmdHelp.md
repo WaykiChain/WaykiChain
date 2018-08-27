@@ -11,7 +11,7 @@
 | dropprivkey | | drop private key from wallet | Y |
 | dumpwallet | ```<filename>``` | Dumps all wallet keys in a human-readable format.And write to ```<filename>``` | Y |
 | dumpprivkey | ```<dacrsaddress>``` | Reveals the private key corresponding to ```<dacrsaddress>``` | Y |
-| encryptwallet | ```<passphrase>``` | Encrypts the wallet with <passphrase> | N |
+| encryptwallet | ```<passphrase>``` | Encrypts the wallet with ```<passphrase>``` | N |
 | generateblock | ```<address>``` | cteate a block with the appointed address | N |
 | getaccountinfo | ```<address>``` | Returns the account information  with the given address | N |
 | getaddednodeinfo | ```<dns>``` [node] | Returns information about the given added node, or all added nodes. <br>(note that onetry addnodes are not listed here) If dns is false, only a list of added nodes will be provided, otherwise connected information will also be available. | N |
@@ -39,7 +39,7 @@
 | gettxdetail | ```<txhash>``` | Returns an object about the transaction  detail information by ```<txhash>``` | N |
 | getwalletinfo | | Returns an object containing various wallet state info | N |
 | help | ```[command]``` | List commands, or get help for a command | N | 
-| importprivkey | ```<dacrsprivkey> [label] [rescan=true]``` | Adds a private key (as returned by dumpprivkey) to your wallet. This may take a while, as a rescan is done, looking for existing transactions. Note: There's no need to import public key, as in ECDSA (unlike RSA) this can be computed from private key. | Y |
+| importprivkey | ```<dacrsprivkey> [label] [rescan=true]``` | Adds a private key (as returned by dumpprivkey) to your wallet. This may take a while, as a rescan is done, looking for existing transactions. Note: There's no need to import public key, as in ECDSA (unlike RSA), which can be computed from private key. | Y |
 | importwallet | ```<filename>``` | Import keys from a wallet dump file (see dumpwallet). | Y |
 | islocked | | Return an object about whether the wallet is being locked or unlocked | N |
 | listaddr | | return Array containing address,balance,haveminerkey,regid information | N |
@@ -69,4 +69,4 @@
 | walletpassphrasechange | ```<oldpassphrase> <newpassphrase>``` | Changes the wallet passphrase from <oldpassphrase> to <newpassphrase> | N |
 | ping | | Requests that a ping be sent to all other nodes, to measure ping time. | N | 
 | validateaddress | ```<address>``` | check the address is valide | N | 
-| getalltxinfo | [nlimitCount] | if no input params, return all transactions in wallet include those confirmed and unconfirmed, else return the number of nlimitCount transaction relate. | N |
+| getalltxinfo | ```[nlimitCount]``` | if no input params, return all transactions in wallet include those confirmed and unconfirmed, else return the number of nlimitCount transaction relate. | N |
