@@ -4,13 +4,13 @@
 
 |Command | Parameters| Description | Unlocked wallet required?|
 |---|---|---|---|
-| addnode | ```<node><add/remove/onetry>```| Attempts add or remove <node> from the addnode list or try a connection to <node> once.| N |
+| addnode | ```<node><add/remove/onetry>```| Attempts add or remove ```<node>``` from the addnode list or try a connection to ```<node>``` once.| N |
 | backupwallet | ```<destination>``` | Safely copies wallet.dat to destination, which can be a directory or a path with filename. | N |
 | createcontracttx | ```<userregid><appid><amount><contract><fee>[height  ,default = the tip block height]``` | create contract transaction | Y |
 | createcontracttxraw | ```<height><fee><amount><address><contract>``` | Create contract transaction from hex string | N |
 | dropprivkey | | drop private key from wallet | Y |
-| dumpwallet | ```<filename>``` | Dumps all wallet keys in a human-readable format.And write to <filename> | Y |
-| dumpprivkey | ```<dacrsaddress>``` | Reveals the private key corresponding to <dacrsaddress> | Y |
+| dumpwallet | ```<filename>``` | Dumps all wallet keys in a human-readable format.And write to ```<filename>``` | Y |
+| dumpprivkey | ```<dacrsaddress>``` | Reveals the private key corresponding to ```<dacrsaddress>``` | Y |
 | encryptwallet | ```<passphrase>``` | Encrypts the wallet with <passphrase> | N |
 | generateblock | ```<address>``` | cteate a block with the appointed address | N |
 | getaccountinfo | ```<address>``` | Returns the account information  with the given address | N |
@@ -22,7 +22,7 @@
 | getblock | ```<hash or index>[verbose]``` |Returns information about the block with the given hash or index.If verbose is true,return a json object, false return the hex encoded data | N |
 | getblockcount | | Returns the number of blocks in the longest block chain. | N |
 | getblockchaininfo | | Returns an object containing various state info regarding block chain processing. | N |
-| getblockhash | ```<index>``` | Returns hash of block in best-block-chain at <index>; index 0 is the genesis block | N |
+| getblockhash | ```<index>``` | Returns hash of block in best-block-chain at ```<index>```; index 0 is the genesis block | N |
 | getnettotals | | Returns information about network traffic, including bytes in, bytes out | N |
 | getconnectioncount | | Returns the number of connections to other nodes | N |
 | getdacrsstate | ```<num>``` | Returns state data  about the recently num blocks | N |
@@ -30,15 +30,15 @@
 | getinfo | | Returns an object containing various state info | N |
 | getmininginfo | | Returns an object containing mining-related information: <br> <ul>blocks</ul><ul>currentblocksize</ul><ul>currentblocktx</ul><ul>difficulty</ul><ul>errors</ul><ul>generate</ul><ul>genproclimit</ul><ul>hashespersec</ul><ul>pooledtx</ul><ul>testnet</ul> | N |
 | getnewaddress | ```[isminer]``` | Returns a new  address for receiving payments. If [isminer] is ture will create a miner key,otherwise will only return a new address. | Y |
-| getnetworkhashps | [blocks][height] | Returns the estimated network hashes per second based on the last n blocks.<br><li>.    blocks</li> (numeric, optional, default=120) The number of blocks, or -1 for blocks since last difficulty change</li><li>2.    height (numeric, optional, default=-1) To estimate at the time of the given height.</li>| N |
-| getnetworkinfo | Returns an object containing various state info regarding P2P network | N |
+| getnetworkhashps | ```[blocks][height]``` | Returns the estimated network hashes per second based on the last n blocks.<br><li>.    blocks</li> (numeric, optional, default=120) The number of blocks, or -1 for blocks since last difficulty change</li><li>2.    height (numeric, optional, default=-1) To estimate at the time of the given height.</li>| N |
+| getnetworkinfo | | Returns an object containing various state info regarding P2P network | N |
 | getpeerinfo | Returns data about each connected node | N |
 | getrawmempool | ```[verbose]``` | Returns all transaction ids in memory pool.If verbose is true,return  a json object, false return array of transaction ids. | N |
 | getscriptdata | ```<scriptid><pagsize or key>[index]``` | get the script data by given scripted. <br> ```< scriptid ><key>  or < scriptid >< pagsize >[index]``` | N |
 | getscriptvalidedata | ```<scriptid><pagsize><index>``` | get script valide data | N |
 | gettxdetail | ```<txhash>``` | Returns an object about the transaction  detail information by ```<txhash>``` | N |
 | getwalletinfo | | Returns an object containing various wallet state info | N |
-| help | [command] | List commands, or get help for a command | N | 
+| help | ```[command]``` | List commands, or get help for a command | N | 
 | importprivkey | ```<dacrsprivkey> [label] [rescan=true]``` | Adds a private key (as returned by dumpprivkey) to your wallet. This may take a while, as a rescan is done, looking for existing transactions. Note: There's no need to import public key, as in ECDSA (unlike RSA) this can be computed from private key. | Y |
 | importwallet | ```<filename>``` | Import keys from a wallet dump file (see dumpwallet). | Y |
 | islocked | | Return an object about whether the wallet is being locked or unlocked | N |
@@ -63,7 +63,7 @@
 | submitblock | ```<hexdata>``` [optional-params-obj] | Attempts to submit new block to network <br> 1. hexdata (string, required) the hex-encoded block data to submit | N |
 | submittx | ```<transaction>``` | submit transaction | Y |
 | verifymessage | ```<dacrsaddress>``` <signature> <message> | Verify a signed message. | N | 
-| verifychain | [checklevel][numblocks] | Verifies blockchain database: <br>1.    checklevel (numeric, optional, 0-4, default=3), How thorough the block verification is.<br>2.    numblocks (numeric, optional, default=288, 0=all) The number of blocks to check. | N |
+| verifychain | ```[checklevel][numblocks]``` | Verifies blockchain database: <br>1.    checklevel (numeric, optional, 0-4, default=3), How thorough the block verification is.<br>2.    numblocks (numeric, optional, default=288, 0=all) The number of blocks to check. | N |
 | walletlock | | Removes the wallet encryption key from memory, locking the wallet. After calling this method, you will need to call walletpassphrase again before being able to call any methods which require the wallet to be unlocked. | N |
 | walletpassphrase | ```<passphrase> <timeout>``` | Stores the wallet decryption key in memory for <timeout> seconds. | N | 
 | walletpassphrasechange | ```<oldpassphrase> <newpassphrase>``` | Changes the wallet passphrase from <oldpassphrase> to <newpassphrase> | N |
