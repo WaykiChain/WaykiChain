@@ -1,19 +1,25 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2018 The WaykiChain developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 #ifndef TX_H
 #define TX_H
 
-#include "serialize.h"
 #include <memory>
-#include "uint256.h"
-#include "key.h"
-#include "hash.h"
 #include <vector>
 #include <string>
 #include <boost/variant.hpp>
+
+#include "serialize.h"
+#include "uint256.h"
+#include "key.h"
+#include "hash.h"
 #include "chainparams.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
-using namespace json_spirit;
 
+using namespace json_spirit;
 using namespace std;
 
 class CTxUndo;
@@ -29,21 +35,21 @@ class CAccountLog;
 class COperVoteFund;
 class CVoteFund;
 
-static const int nTxVersion1 = 1;    //交易初始版本。
-static const int nTxVersion2 = 2;    //交易初始版本。
+static const int nTxVersion1 = 1;    //浜ゆ槗鍒濆鐗堟湰
+static const int nTxVersion2 = 2;    //浜ゆ槗鍒濆鐗堟湰
 
 typedef vector<unsigned char> vector_unsigned_char;
 
 #define SCRIPT_ID_SIZE (6)
 
 enum TxType {
-	REWARD_TX = 1,    //!< reward tx
-	REG_ACCT_TX = 2,  //!< tx that used to register account
-	COMMON_TX = 3,    //!< transfer money from one account to another
-	CONTRACT_TX = 4,  //!< contract tx
-	REG_APP_TX = 5,   //!< register app
-	DELEGATE_TX = 6, //!< delegate tx
-	NULL_TX,          //!< NULL_TX
+	REWARD_TX 	= 1,   	//!< reward tx
+	REG_ACCT_TX = 2,  	//!< tx that used to register account
+	COMMON_TX 	= 3,    //!< transfer coin from one account to another
+	CONTRACT_TX = 4,  	//!< contract tx
+	REG_APP_TX 	= 5,   	//!< register app
+	DELEGATE_TX = 6,  	//!< delegate tx
+	NULL_TX,          	//!< NULL_TX
 };
 
 /**
@@ -74,7 +80,8 @@ public:
 };
 
 typedef boost::variant<CNullID, CRegID, CKeyID, CPubKey> CUserID;
-/*CRegID 是地址激活后，分配的账户ID*/
+
+/*CRegID 鏄湴鍧�婵�娲诲悗锛屽垎閰嶇殑璐︽埛ID*/
 class CRegID {
 private:
 	uint32_t nHeight;
@@ -121,7 +128,8 @@ public:
 	)
 
 };
-/*CID是一个vector 存放CRegID,CKeyID,CPubKey*/
+
+/*CID鏄竴涓獀ector 瀛樻斁CRegID,CKeyID,CPubKey*/
 class CID {
 private:
 	vector_unsigned_char vchData;

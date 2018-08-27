@@ -1,19 +1,19 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2014-2015 The Dacrs developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2017-2018 The WaykiChain developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 #ifndef COIN_CHAIN_PARAMS_H
 #define COIN_CHAIN_PARAMS_H
 #include <memory>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <vector>
+
 #include "bignum.h"
 #include "uint256.h"
 #include "arith_uint256.h"
 #include "util.h"
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <vector>
 
 using namespace std;
 
@@ -70,15 +70,15 @@ protected:
 	mutable bool fTxIndex;
 	mutable int64_t nTimeBestReceived;
 	mutable int64_t paytxfee;
-	int64_t nTargetSpacing;   //ÓÃÓÚÏÞÖÆÒ»¸ö¿é²úÉúµÄÊ±¼ä
+	int64_t nTargetSpacing;   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
 	int64_t nTargetTimespan;
 	mutable unsigned int nScriptCheckThreads;
 	mutable int64_t nViewCacheSize;
 	mutable int nTxCacheHeight;
-	mutable int nIntervalPos; //ÓÃÓÚÏÞÖÆ¿ó¹¤ ÍÚ¿óµÄ ¿é¼ä¸ô
-	int nLogmaxsize; // byte  ÓÃÓÚÏÞÖÆÈÕÖ¾ÎÄ¼þµÄ×î´ó³¤¶È
-	bool bOutPut;    //ÊÇ·ñ±£´æºÏÔ¼½Å±¾²Ù×÷ÕË»§ÈÕÖ¾
-	bool bAddressToTx;//ÊÇ·ñ±£´æµØÖ·Óë½»Ò×µÄ¶ÔÓ¦
+	mutable int nIntervalPos; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¿ï¿½ ï¿½Ú¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	int nLogmaxsize; // byte  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ó³¤¶ï¿½
+	bool bOutPut;    //ï¿½Ç·ñ±£´ï¿½ï¿½Ô¼ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë»ï¿½ï¿½ï¿½Ö¾
+	bool bAddressToTx;//ï¿½Ç·ñ±£´ï¿½ï¿½Ö·ï¿½ë½»ï¿½×µÄ¶ï¿½Ó¦
 
 
 public:
