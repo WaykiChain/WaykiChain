@@ -32,7 +32,7 @@
 | getnewaddress | ```[isminer]``` | Returns a new  address for receiving payments. If [isminer] is ture will create a miner key,otherwise will only return a new address. | Y |
 | getnetworkhashps | ```[blocks][height]``` | Returns the estimated network hashes per second based on the last n blocks.<br><li>.    blocks</li> (numeric, optional, default=120) The number of blocks, or -1 for blocks since last difficulty change</li><li>2.    height (numeric, optional, default=-1) To estimate at the time of the given height.</li>| N |
 | getnetworkinfo | | Returns an object containing various state info regarding P2P network | N |
-| getpeerinfo | Returns data about each connected node | N |
+| getpeerinfo | | Returns data about each connected node | N |
 | getrawmempool | ```[verbose]``` | Returns all transaction ids in memory pool.If verbose is true,return  a json object, false return array of transaction ids. | N |
 | getscriptdata | ```<scriptid><pagsize or key>[index]``` | get the script data by given scripted. <br> ```< scriptid ><key>  or < scriptid >< pagsize >[index]``` | N |
 | getscriptvalidedata | ```<scriptid><pagsize><index>``` | get script valide data | N |
