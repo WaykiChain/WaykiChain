@@ -1,9 +1,8 @@
-/*
- * rpctx.cpp
- *
- *  Created on: Aug 26, 2014
- *      Author: leo
- */
+// Copyright (c) 2010 Satoshi Nakamoto
+// Copyright (c) 2014-2015 The Dacrs developers
+// Copyright (c) 2017-2018 WaykiChain Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 #include "txdb.h"
 
@@ -188,7 +187,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
 			obj.push_back(Pair("contract", HexStr(ptx->vContract)));
 		}
 
-		obj.push_back(Pair("address", /*vKeyIdSet.begin()->ToAddress()*/RecvKeyID.ToAddress()));
+		obj.push_back(Pair("address", /*vKeyIdSet.begin()->ToAddress()*/SendKeyID.ToAddress()));
 		obj.push_back(Pair("category", "send"));
 		double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
 		obj.push_back(Pair("amount", -dAmount));
@@ -589,7 +588,7 @@ Value registerapptx(const Array& params, bool fHelp) {
 	lSize = ftell(file);
 	rewind(file);
 
-	if(lSize <= 0 || lSize > 65536) //½Å±¾ÎÄ¼ş´óĞ¡ÅĞ¶Ï
+	if(lSize <= 0 || lSize > 65536) //è„šæœ¬æ–‡ä»¶å¤§å°åˆ¤æ–­
 	{
 		fclose(file);
 		throw JSONRPCError(RPC_INVALID_PARAMS, "File size exceeds limit.");
@@ -598,17 +597,17 @@ Value registerapptx(const Array& params, bool fHelp) {
 	// allocate memory to contain the whole file:
 	char *buffer = (char*) malloc(sizeof(char) * lSize);
 	if (buffer == NULL) {
-		fclose(file); //¼°Ê±¹Ø±Õ
+		fclose(file); //åŠæ—¶å…³é—­
 		throw runtime_error("allocate memory failed");
 	}
 	if (fread(buffer, 1, lSize, file) != (size_t) lSize) {
-		free(buffer);  //¼°Ê±ÊÍ·Å
-		fclose(file);  //¼°Ê±¹Ø±Õ
+		free(buffer);  //åŠæ—¶é‡Šæ”¾
+		fclose(file);  //åŠæ—¶å…³é—­
 		throw runtime_error("read script file error");
 	}
 	else
 	{
-		fclose(file); //Ê¹ÓÃÍê¹Ø±ÕÎÄ¼ş
+		fclose(file); //ä½¿ç”¨å®Œå…³é—­æ–‡ä»¶
 	}
 
 	vmScript.Rom.insert(vmScript.Rom.end(), buffer, buffer + lSize);
@@ -2237,13 +2236,13 @@ Value registerscripttxraw(const Array& params, bool fHelp) {
 		// allocate memory to contain the whole file:
 		char *buffer = (char*) malloc(sizeof(char) * lSize);
 		if (buffer == NULL) {
-			fclose(file);//¼°Ê±¹Ø±Õ
+			fclose(file);//åŠæ—¶å…³é—­
 			throw runtime_error("allocate memory failed");
 		}
 
 		if (fread(buffer, 1, lSize, file) != (size_t) lSize) {
 			free(buffer);
-			fclose(file);//¼°Ê±¹Ø±Õ
+			fclose(file);//åŠæ—¶å…³é—­
 			throw runtime_error("read script file error");
 		}
 		else
