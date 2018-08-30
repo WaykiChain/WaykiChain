@@ -1737,7 +1737,7 @@ Value getaddrbalance(const Array& params, bool fHelp) {
 Value generateblock(const Array& params, bool fHelp) {
 	if (fHelp || params.size() != 1) {
 		throw runtime_error("generateblock \"addr\"\n"
-				"\ncteate a block with the appointed address\n"
+				"\ncreate a block with the appointed address\n"
 				"\nArguments:\n"
 				"1.\"addr\": (string, required)\n"
 				"\nResult:\n"

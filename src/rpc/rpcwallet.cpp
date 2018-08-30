@@ -63,7 +63,7 @@ Value getnewaddress(const Array& params, bool fHelp)
             "getnewaddress  (\"IsMiner\")\n"
             "\nget a new address\n"
             "\nArguments:\n"
-        	"1. \"IsMiner\"  (bool, optional)  private key Is used for miner if true will create tow key ,another for miner.\n"
+        	"1. \"IsMiner\"  (bool, optional)  private key is used for miner if true will create two key ,another for miner.\n"
            "\nExamples:\n"
             + HelpExampleCli("getnewaddress", "")
             + HelpExampleCli("getnewaddress", "true")
