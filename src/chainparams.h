@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2017-2018 The WaykiChain developers
+// Copyright (c) 2017-2018 The WaykiChain Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
@@ -70,15 +70,15 @@ protected:
 	mutable bool fTxIndex;
 	mutable int64_t nTimeBestReceived;
 	mutable int64_t paytxfee;
-	int64_t nTargetSpacing;   //��������һ���������ʱ��
+	int64_t nTargetSpacing;   //to limit block creation time
 	int64_t nTargetTimespan;
 	mutable unsigned int nScriptCheckThreads;
 	mutable int64_t nViewCacheSize;
 	mutable int nTxCacheHeight;
-	mutable int nIntervalPos; //�������ƿ� �ڿ�� ����
-	int nLogmaxsize; // byte  ����������־�ļ�����󳤶�
-	bool bOutPut;    //�Ƿ񱣴��Լ�ű������˻���־
-	bool bAddressToTx;//�Ƿ񱣴��ַ�뽻�׵Ķ�Ӧ
+	mutable int nIntervalPos; //to limit block interval within block mining process
+	int nLogmaxsize; // to limit the maximum log file size in bytes
+	bool bOutPut;    // whether to save contract script operation account log
+	bool bAddressToTx; // whether to save the mapping of address to Tx
 
 
 public:
