@@ -316,7 +316,7 @@ string HelpMessage(HelpMessageMode hmm)
     }
     strUsage += "  -mintxfee=<amt>        " + _("Fees smaller than this are considered zero fee (for transaction creation) (default:") + " " + FormatMoney(CTransaction::nMinTxFee) + ")" + "\n";
     strUsage += "  -minrelaytxfee=<amt>   " + _("Fees smaller than this are considered zero fee (for relaying) (default:") + " " + FormatMoney(CTransaction::nMinRelayTxFee) + ")" + "\n";
-    strUsage += "  -printtoconsole        " + _("Send trace/debug info to console instead of debug.log file") + "\n";
+    strUsage += "  -printlogtoconsole        " + _("Send trace/debug info to console instead of debug.log file") + "\n";
     if (SysCfg().GetBoolArg("-help-debug", false))
     {
         strUsage += "  -printblock=<hash>     " + _("Print block on startup, if found in block index") + "\n";
@@ -561,7 +561,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
 
 //    fServer = GetBoolArg("-server", false);
-//    fPrintToConsole = GetBoolArg("-printtoconsole", false);
+//    fPrintLogToConsole = GetBoolArg("-printlogtoconsole", false);
 //    fLogTimestamps = GetBoolArg("-logtimestamps", true);
     setvbuf(stdout, NULL, _IOLBF, 0);
 

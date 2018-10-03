@@ -59,8 +59,8 @@ class CBaseParams {
 protected:
 	mutable bool fDebugAll;
 	mutable bool fDebug;
-	mutable bool fPrintToConsole;
-	mutable bool fPrintToToFile;
+	mutable bool fPrintLogToConsole;
+	mutable bool fPrintLogToFile;
 	mutable bool fLogTimestamps;
 	mutable bool fLogPrintFileLine;
 	mutable bool fServer;
@@ -96,9 +96,9 @@ public:
 		fDebug = !m_mapMultiArgs["-debug"].empty();
 		if (fDebug) {
 			fDebugAll = GetBoolArg("-logprintall", false);
-			fPrintToConsole = GetBoolArg("-printtoconsole", false);
+			fPrintLogToConsole = GetBoolArg("-logprinttoconsole", false);
 			fLogTimestamps = GetBoolArg("-logtimestamps", true);
-			fPrintToToFile = GetBoolArg("-logprintfofile", false);
+			fPrintLogToFile = GetBoolArg("-logprinttofile", false);
 			fLogPrintFileLine = GetBoolArg("-logprintfileline", false);
 		}
 		int64_t nTransactionFee ;
@@ -125,8 +125,8 @@ public:
 		}
 		te += strprintf("fDebugAll:%s\n",fDebugAll);
 		te += strprintf("fDebug:%s\n",fDebug);
-		te += strprintf("fPrintToConsole:%d\n",fPrintToConsole);
-		te += strprintf("fPrintToToFile:%d\n",fPrintToToFile);
+		te += strprintf("fPrintLogToConsole:%d\n",fPrintLogToConsole);
+		te += strprintf("fPrintLogToFile:%d\n",fPrintLogToFile);
 		te += strprintf("fLogTimestamps:%d\n",fLogTimestamps);
 		te += strprintf("fLogPrintFileLine:%d\n",fLogPrintFileLine);
 		te += strprintf("fServer:%d\n",fServer);
@@ -195,14 +195,14 @@ public:
 	bool IsDebugAll() const {
 		return fDebugAll;
 	}
-	bool IsPrint2Console() const {
-		return fPrintToConsole;
+	bool IsPrintLogToConsole() const {
+		return fPrintLogToConsole;
 	}
-	bool IsPrintToFile() const {
-		return fPrintToToFile;
+	bool IsPrintLogToFile() const {
+		return fPrintLogToFile;
 	}
 	bool IsLogTimestamps() const {
-		return fPrintToToFile;
+		return fPrintLogToFile;
 	}
 	bool IsLogPrintLine() const {
 		return fLogPrintFileLine;

@@ -506,8 +506,8 @@ CBaseParams::CBaseParams() {
 	nSubsidyHalvingInterval = 0;
 	paytxfee = 10000;
 	nDefaultPort = 0;
-	fPrintToConsole= 0;
-	fPrintToToFile = 0;
+	fPrintLogToConsole= 0;
+	fPrintLogToFile = 0;
 	fLogTimestamps = 0;
 	fLogPrintFileLine = 0;
 	fDebug = 0;

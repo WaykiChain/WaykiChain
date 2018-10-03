@@ -61,7 +61,22 @@
 #include <shlobj.h>
 #endif
 
-#include <boost/algorithm/string/case_conv.hpp> // for to_lower()#include <boost/algorithm/string/join.hpp>#include <boost/algorithm/string/predicate.hpp> // for startswith() and endswith()#include <boost/filesystem.hpp>#include <boost/filesystem/fstream.hpp>#include <boost/program_options/detail/config_file.hpp>#include <boost/program_options/parsers.hpp>#include <openssl/crypto.h>#include <openssl/rand.h>// Work around clang compilation problem in Boost 1.46:// /usr/include/boost/program_options/detail/config_file.hpp:163:17: error: call to function 'to_internal' that is neither visible in the template definition nor found by argument-dependent lookup// See also: http://stackoverflow.com/questions/10020179/compilation-fail-in-boost-librairies-program-options//           http://clang.debian.net/status.php?version=3.0&key=CANNOT_FIND_FUNCTIONnamespace boost {namespace program_options {string to_internal(const string&);
+#include <boost/algorithm/string/case_conv.hpp> // for to_lower()
+#include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/predicate.hpp> // for startswith() and endswith()
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/program_options/detail/config_file.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <openssl/crypto.h>
+#include <openssl/rand.h>
+// Work around clang compilation problem in Boost 1.46:
+// /usr/include/boost/program_options/detail/config_file.hpp:163:17: error: call to function 'to_internal' that is neither visible in the template definition nor found by argument-dependent lookup
+// See also: http://stackoverflow.com/questions/10020179/compilation-fail-in-boost-librairies-program-options
+//           http://clang.debian.net/status.php?version=3.0&key=CANNOT_FIND_FUNCTION
+namespace boost {
+namespace program_options {
+string to_internal(const string&);
 }
 }
 
@@ -274,11 +289,11 @@ string GetLogHead(int line, const char* file, const char* category) {
 	return string("");
 }
 /**
- *  »’÷æŒƒº˛‘§¥¶¿Ì°£–¥»’÷æŒƒº˛«∞±ªµ˜”√£¨ºÏ≤‚Œƒº˛A «∑Ò≥¨≥§°£
- *  µ±≥¨≥§‘Úœ»Ω´‘≠Œƒº˛A÷ÿ√¸√˚Œ™Abak£¨‘Ÿ¥Úø™≤¢¥¥Ω®AŒƒº˛£¨…æ≥˝÷ÿ√¸√˚Œƒº˛Abak£¨∑µªÿ°£
- * @param path  Œƒº˛¬∑æ∂
- * @param len  –¥»Î ˝æ›µƒ≥§∂»
- * @param stream  Œƒº˛µƒæ‰±˙
+ *  Êó•ÂøóÊñá‰ª∂È¢ÑÂ§ÑÁêÜ„ÄÇÂÜôÊó•ÂøóÊñá‰ª∂ÂâçË¢´Ë∞ÉÁî®ÔºåÊ£ÄÊµãÊñá‰ª∂AÊòØÂê¶Ë∂ÖÈïø
+ *  ÂΩìË∂ÖÈïøÂàôÂÖàÂ∞ÜÂéüÊñá‰ª∂AÈáçÂëΩÂêç‰∏∫AbakÔºåÂÜçÊâìÂºÄÂπ∂ÂàõÂª∫AÊñá‰ª∂ÔºåÂà†Èô§ÈáçÂëΩÂêçÊñá‰ª∂AbakÔºåËøîÂõû„ÄÇ
+ * @param path  	Êñá‰ª∂Ë∑ØÂæÑ
+ * @param len  		ÂÜôÂÖ•Êï∞ÊçÆÁöÑÈïøÂ∫¶
+ * @param stream  	Êñá‰ª∂ÁöÑÂè•ÊüÑ
  * @return
  */
 int LogFilePreProcess(const char *path,size_t len, FILE** stream)
@@ -288,20 +303,20 @@ int LogFilePreProcess(const char *path,size_t len, FILE** stream)
 //    	assert(0);
     	return -1;
     }
-    int lSize = ftell(*stream); //µ±«∞Œƒº˛≥§∂»
+    int lSize = ftell(*stream); // ÂΩìÂâçÊñá‰ª∂ÈïøÂ∫¶
     if(lSize + len > (size_t)SysCfg().GetLogMaxSize())
-    {   //Œƒº˛≥¨≥§£¨πÿ±’£¨…æ≥˝£¨‘Ÿ¥¥Ω®
+    {   // Êñá‰ª∂Ë∂ÖÈïøÔºåÂÖ≥Èó≠ÔºåÂà†Èô§ÔºåÂÜçÂàõÂª∫
         FILE *fileout = NULL;
 //      cout<<"file name:" << path <<"free point:"<< static_cast<const void*>(*stream)<< "lSize: "<< lSize << "len: " << len<<endl;
         fclose(*stream);
 
         string bkFile = strprintf("%sbak", path);
-        rename(path, bkFile.c_str());  //‘≠Œƒº˛÷ÿ√¸√˚
-		fileout = fopen(path, "a+");   //÷ÿ–¬¥Úø™£¨ ¿‡À∆”⁄…æ≥˝Œƒº˛.
+        rename(path, bkFile.c_str());  // ÂéüÊñá‰ª∂ÈáçÂëΩÂêç
+		fileout = fopen(path, "a+");   // ÈáçÊñ∞ÊâìÂºÄÔºå Á±ª‰ºº‰∫éÂà†Èô§Êñá‰ª∂.
 		if (fileout) {
 //		    cout << "file new:" <<static_cast<const void*>(fileout) << endl;
 			*stream = fileout;
-			 if(remove(bkFile.c_str()) != 0)   //…æ≥˝÷ÿ√¸√˚Œƒº˛
+			 if(remove(bkFile.c_str()) != 0)   // Âà†Èô§ÈáçÂëΩÂêçÊñá‰ª∂
 			 {
 //				 assert(0);
 				 return -1;
@@ -340,11 +355,11 @@ int LogPrintStr(const char* category, const string &str) {
 		}
 	}
 
-	if (SysCfg().IsPrint2Console()) {
+	if (SysCfg().IsPrintLogToConsole()) {
 		// print to console
 		ret = fwrite(str.data(), 1, str.size(), stdout);
 	}
-	if (SysCfg().IsPrintToFile()) {
+	if (SysCfg().IsPrintLogToFile()) {
 		DebugLogFile& log = it->second;
 		boost::mutex::scoped_lock scoped_lock(*log.m_mutexDebugLog);
 
@@ -1312,6 +1327,21 @@ try
 {
 #if BOOST_FILESYSTEM_VERSION == 3
 	boost::filesystem::path::codecvt(); // Raises runtime error if current locale is invalid
-#else				          // boost filesystem v2		locale();// Raises runtime error if current locale is invalid#endif} catch(runtime_error &e)	{	setenv("LC_ALL", "C", 1);// Force C locale}#endif}	string DateTimeStrFormat(const char* pszFormat, int64_t nTime) {// locale takes ownership of the pointer	locale loc(locale::classic(), new boost::posix_time::time_facet(pszFormat));	stringstream ss;	ss.imbue(loc);	ss << boost::posix_time::from_time_t(nTime);
+#else				          // boost filesystem v2
+		locale();// Raises runtime error if current locale is invalid
+#endif
+} catch(runtime_error &e)
+	{
+	setenv("LC_ALL", "C", 1);// Force C locale
+}
+#endif
+}
+
+	string DateTimeStrFormat(const char* pszFormat, int64_t nTime) {
+// locale takes ownership of the pointer
+	locale loc(locale::classic(), new boost::posix_time::time_facet(pszFormat));
+	stringstream ss;
+	ss.imbue(loc);
+	ss << boost::posix_time::from_time_t(nTime);
 	return ss.str();
 }
