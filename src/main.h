@@ -104,14 +104,14 @@ extern const string strMessageMagic;
 // Minimum disk space required - used in CheckDiskSpace()
 static const uint64_t nMinDiskSpace = 52428800;
 
-static const int nBurnRateForkHeight = 45000;    //ĞŞ¸ÄÈ¼ÉÕ·ÑÂÊËã·¨
-static const int nTwelveForwardLimits = 28000;   //ĞŞ¸ÄÏŞÖÆblockÊ±¼ä²»ÄÜ³¬¹ı±¾µØÊ±¼ä12·ÖÖÓ
-static const int nFixedDifficulty = 35001;    //´Ë¸ß¶ÈÇ°µÄblock²»¼ì²éÄÑ¶È£¬Í¨¹ıcheckpoint±£Ö¤
-static const int nNextWorkRequired = 85000;      //ĞŞ¸ÄÄÑ¶ÈĞ£ÑéËã·¨
+static const int nBurnRateForkHeight = 45000;    //ä¿®æ”¹ç‡ƒçƒ§è´¹ç‡ç®—æ³•
+static const int nTwelveForwardLimits = 28000;   //ä¿®æ”¹é™åˆ¶blockæ—¶é—´ä¸èƒ½è¶…è¿‡æœ¬åœ°æ—¶é—´12åˆ†é’Ÿ
+static const int nFixedDifficulty = 35001;    //æ­¤é«˜åº¦å‰çš„blockä¸æ£€æŸ¥éš¾åº¦ï¼Œé€šè¿‡checkpointä¿è¯
+static const int nNextWorkRequired = 85000;      //ä¿®æ”¹éš¾åº¦æ ¡éªŒç®—æ³•
 static const int nFreezeBlackAcctHeight = 99854;
 static const int nLimiteAppHeight = 189000;
-static const int nUpdateTxVersion2Height = 196000;  //Ö÷Á´ÔÚ´Ë¸ß¶Èºó²»ÔÙ½ÓÊÜ½»Ò×°æ±¾ÎªnTxVersion1µÄ½»Ò×
-static const int nUpdateBlockVersionHeight = 209000;   //Ö÷Á´ÔÚ´Ë¸ß¶Èºó£¬block°æ±¾Éı¼¶
+static const int nUpdateTxVersion2Height = 196000;  //ä¸»é“¾åœ¨æ­¤é«˜åº¦åä¸å†æ¥å—äº¤æ˜“ç‰ˆæœ¬ä¸ºnTxVersion1çš„äº¤æ˜“
+static const int nUpdateBlockVersionHeight = 209000;   //ä¸»é“¾åœ¨æ­¤é«˜åº¦åï¼Œblockç‰ˆæœ¬å‡çº§
 class CCoinsDB;
 class CBlockTreeDB;
 struct CDiskBlockPos;
