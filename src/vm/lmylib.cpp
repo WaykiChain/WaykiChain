@@ -28,14 +28,14 @@
 #include "vmrunevn.h"
 #include "SafeInt3.hpp"
 
-#define LUA_C_BUFFER_SIZE  500  //´«µİÖµ£¬×î´ó×Ö½Ú·ÀÖ¹Õ»Òç³ö
+#define LUA_C_BUFFER_SIZE  500  //ä¼ é€’å€¼ï¼Œæœ€å¤§å­—èŠ‚é˜²æ­¢æ ˆæº¢å‡º
 
 #if 0
 static void setfield(lua_State *L,char * key,double value){
-	 //Ä¬ÈÏÕ»¶¥ÊÇtable
+	 //é»˜è®¤æ ˆé¡¶æ˜¯table
 	lua_pushstring(L,key);
 	lua_pushnumber(L,value);
-	lua_settable(L,-3);	//½«ÕâÒ»¶Ô¼üÖµÉè³ÉÔªËØ
+	lua_settable(L,-3);	//å°†è¿™ä¸€å¯¹é”®å€¼è®¾æˆå…ƒç´ 
 }
 static void stackDump(lua_State *L){
 	int i;
@@ -63,14 +63,14 @@ static void stackDump(lua_State *L){
 }
 #endif
 /*
- *  //3.Íùº¯ÊıË½ÓĞÕ»Àï´æÔËËãºóµÄ½á¹û*/
+ *  //3.å¾€å‡½æ•°ç§æœ‰æ ˆé‡Œå­˜è¿ç®—åçš„ç»“æœ*/
 static inline int RetRstToLua(lua_State *L,const vector<unsigned char> &ResultData )
 {
 	int len = ResultData.size();
 
 	len = len > LUA_C_BUFFER_SIZE ? LUA_C_BUFFER_SIZE : len;
     if(len > 0)
-    {	//¼ì²âÕ»¿Õ¼äÊÇ·ñ¹»
+    {	//æ£€æµ‹æ ˆç©ºé—´æ˜¯å¦å¤Ÿ
     	if(lua_checkstack(L,len)){
 //			LogPrint("vm", "RetRstToLua value:%s\n",HexStr(ResultData).c_str());
 			for(int i = 0;i < len;i++){
@@ -86,10 +86,10 @@ static inline int RetRstToLua(lua_State *L,const vector<unsigned char> &ResultDa
     return  0;
 }
 /*
- *  //3.Íùº¯ÊıË½ÓĞÕ»Àï´æ²¼¶ûÀàĞÍ·µ»ØÖµ*/
+ *  //3.å¾€å‡½æ•°ç§æœ‰æ ˆé‡Œå­˜å¸ƒå°”ç±»å‹è¿”å›å€¼*/
 static inline int RetRstBooleanToLua(lua_State *L,bool flag)
 {
-	//¼ì²âÕ»¿Õ¼äÊÇ·ñ¹»
+	//æ£€æµ‹æ ˆç©ºé—´æ˜¯å¦å¤Ÿ
    if(lua_checkstack(L,sizeof(int)))
    {
 //      LogPrint("vm", "RetRstBooleanToLua value:%d\n",flag);
@@ -142,7 +142,7 @@ static bool GetKeyId(const CAccountViewCache &view, vector<unsigned char> &ret,
 	return true;
 }
 static bool GetArray(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
-	//´ÓÕ»ÀïÈ¡±ä³¤µÄÊı×é
+	//ä»æ ˆé‡Œå–å˜é•¿çš„æ•°ç»„
 	int totallen = lua_gettop(L);
 	if((totallen <= 0) || (totallen > LUA_C_BUFFER_SIZE))
 	{
@@ -167,7 +167,7 @@ static bool GetArray(lua_State *L, vector<std::shared_ptr < std::vector<unsigned
 	return true;
 }
 static bool GetDataInt(lua_State *L,int &intValue) {
-	//´ÓÕ»ÀïÈ¡int ¸ß¶È
+	//ä»æ ˆé‡Œå–int é«˜åº¦
 	if(!lua_isinteger(L,-1 - 0))
 	{
 		LogPrint("vm","%s\r\n","data is not integer");
@@ -180,7 +180,7 @@ static bool GetDataInt(lua_State *L,int &intValue) {
 	}
 }
 static bool GetDataString(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
-	//´ÓÕ»ÀïÈ¡Ò»´®×Ö·û´®
+	//ä»æ ˆé‡Œå–ä¸€ä¸²å­—ç¬¦ä¸²
 	if(!lua_isstring(L,-1 - 0))
 	{
 		LogPrint("vm","%s\r\n","data is not string");
@@ -203,31 +203,31 @@ static bool GetDataString(lua_State *L, vector<std::shared_ptr < std::vector<uns
 	}
 }
 static bool getNumberInTable(lua_State *L,char * pKey, double &ret){
-	// ÔÚtableÀï£¬È¡Ö¸¶¨pKey¶ÔÓ¦µÄÒ»¸önumberÖµ
+	// åœ¨tableé‡Œï¼Œå–æŒ‡å®špKeyå¯¹åº”çš„ä¸€ä¸ªnumberå€¼
 
-    //Ä¬ÈÏÕ»¶¥ÊÇtable£¬½«pKeyÈëÕ»
+    //é»˜è®¤æ ˆé¡¶æ˜¯tableï¼Œå°†pKeyå…¥æ ˆ
     lua_pushstring(L,pKey);
-    lua_gettable(L,-2);  //²éÕÒ¼üÖµÎªkeyµÄÔªËØ£¬ÖÃÓÚÕ»¶¥
+    lua_gettable(L,-2);  //æŸ¥æ‰¾é”®å€¼ä¸ºkeyçš„å…ƒç´ ï¼Œç½®äºæ ˆé¡¶
     if(!lua_isnumber(L,-1))
     {
     	LogPrint("vm","num get error! %s\n",lua_tostring(L,-1));
-    	lua_pop(L,1); //É¾µô²úÉúµÄ²éÕÒ½á¹û
+    	lua_pop(L,1); //åˆ æ‰äº§ç”Ÿçš„æŸ¥æ‰¾ç»“æœ
     	return false;
     }else{
     	ret = lua_tonumber(L,-1);
 //    	LogPrint("vm", "getNumberInTable:%d\n", ret);
-		lua_pop(L,1); //É¾µô²úÉúµÄ²éÕÒ½á¹û
+		lua_pop(L,1); //åˆ æ‰äº§ç”Ÿçš„æŸ¥æ‰¾ç»“æœ
 		return true;
     }
 }
 
 static bool getStringInTable(lua_State *L,char * pKey, string &strValue){
-	// ÔÚtableÀï£¬È¡Ö¸¶¨pKey¶ÔÓ¦µÄstringÖµ
+	// åœ¨tableé‡Œï¼Œå–æŒ‡å®špKeyå¯¹åº”çš„stringå€¼
 
     const char *pStr = NULL;
-    //Ä¬ÈÏÕ»¶¥ÊÇtable£¬½«pKeyÈëÕ»
+    //é»˜è®¤æ ˆé¡¶æ˜¯tableï¼Œå°†pKeyå…¥æ ˆ
     lua_pushstring(L,pKey);
-    lua_gettable(L,-2);  //²éÕÒ¼üÖµÎªkeyµÄÔªËØ£¬ÖÃÓÚÕ»¶¥
+    lua_gettable(L,-2);  //æŸ¥æ‰¾é”®å€¼ä¸ºkeyçš„å…ƒç´ ï¼Œç½®äºæ ˆé¡¶
     if(!lua_isstring(L,-1))
     {
     	LogPrint("vm","string get error! %s\n",lua_tostring(L,-1));
@@ -237,18 +237,18 @@ static bool getStringInTable(lua_State *L,char * pKey, string &strValue){
 			string res(pStr);
 			strValue = res;
 //    		LogPrint("vm", "getStringInTable:%s\n", pStr);
-			lua_pop(L,1); //É¾µô²úÉúµÄ²éÕÒ½á¹û
+			lua_pop(L,1); //åˆ æ‰äº§ç”Ÿçš„æŸ¥æ‰¾ç»“æœ
 			return true;
     	}else{
     		LogPrint("vm","%s\r\n","lua_tostring get fail");
     	}
     }
-    lua_pop(L,1); //É¾µô²úÉúµÄ²éÕÒ½á¹û
+    lua_pop(L,1); //åˆ æ‰äº§ç”Ÿçš„æŸ¥æ‰¾ç»“æœ
     return false;
 }
 
 static bool getArrayInTable(lua_State *L,char * pKey,unsigned short usLen,vector<unsigned char> &vOut){
-	// ÔÚtableÀï£¬È¡Ö¸¶¨pKey¶ÔÓ¦µÄÊı×é
+	// åœ¨tableé‡Œï¼Œå–æŒ‡å®špKeyå¯¹åº”çš„æ•°ç»„
 
     if((usLen <= 0) || (usLen > LUA_C_BUFFER_SIZE)){
     	LogPrint("vm","usLen error\r\n");
@@ -256,7 +256,7 @@ static bool getArrayInTable(lua_State *L,char * pKey,unsigned short usLen,vector
     }
     unsigned char value = 0;
     vOut.clear();
-	//Ä¬ÈÏÕ»¶¥ÊÇtable£¬½«keyÈëÕ»
+	//é»˜è®¤æ ˆé¡¶æ˜¯tableï¼Œå°†keyå…¥æ ˆ
     lua_pushstring(L,pKey);
     lua_gettable(L,1);
     if(!lua_istable(L,-1))
@@ -266,7 +266,7 @@ static bool getArrayInTable(lua_State *L,char * pKey,unsigned short usLen,vector
     }
 	for (int i = 0; i < usLen; ++i)
 	{
-		lua_pushnumber(L, i+1); //½«Ë÷ÒıÈëÕ»
+		lua_pushnumber(L, i+1); //å°†ç´¢å¼•å…¥æ ˆ
 		lua_gettable(L, -2);
 		if(!lua_isnumber(L,-1))
 		{
@@ -278,19 +278,19 @@ static bool getArrayInTable(lua_State *L,char * pKey,unsigned short usLen,vector
 		vOut.insert(vOut.end(),value);
 		lua_pop(L, 1);
 	}
-    lua_pop(L,1); //É¾µô²úÉúµÄ²éÕÒ½á¹û
+    lua_pop(L,1); //åˆ æ‰äº§ç”Ÿçš„æŸ¥æ‰¾ç»“æœ
     return true;
 }
 static bool getStringLogPrint(lua_State *L,char * pKey,unsigned short usLen,vector<unsigned char> &vOut){
-	//´ÓÕ»ÀïÈ¡ tableµÄÖµÊÇÒ»´®×Ö·û´®
-	//¸Ãº¯Êı×¨ÓÃÓÚĞ´ÈÕÖ¾º¯ÊıGetDataTableLogPrint£¬
+	//ä»æ ˆé‡Œå– tableçš„å€¼æ˜¯ä¸€ä¸²å­—ç¬¦ä¸²
+	//è¯¥å‡½æ•°ä¸“ç”¨äºå†™æ—¥å¿—å‡½æ•°GetDataTableLogPrintï¼Œ
     if((usLen <= 0) || (usLen > LUA_C_BUFFER_SIZE)){
     	LogPrint("vm","usLen error\r\n");
 		return false;
     }
 
 
-	//Ä¬ÈÏÕ»¶¥ÊÇtable£¬½«keyÈëÕ»
+	//é»˜è®¤æ ˆé¡¶æ˜¯tableï¼Œå°†keyå…¥æ ˆ
     lua_pushstring(L,pKey);
     lua_gettable(L,1);
 
@@ -309,16 +309,16 @@ static bool getStringLogPrint(lua_State *L,char * pKey,unsigned short usLen,vect
 			vOut.insert(vOut.end(),pStr[i]);
 		}
 //		LogPrint("vm", "getfieldTableString:%s\n", pStr);
-		lua_pop(L,1); //É¾µô²úÉúµÄ²éÕÒ½á¹û
+		lua_pop(L,1); //åˆ æ‰äº§ç”Ÿçš„æŸ¥æ‰¾ç»“æœ
 		return true;
 	}else{
 		LogPrint("vm","%s\r\n","getStringLogPrint get fail");
-		lua_pop(L, 1); //É¾µô²úÉúµÄ²éÕÒ½á¹û
+		lua_pop(L, 1); //åˆ æ‰äº§ç”Ÿçš„æŸ¥æ‰¾ç»“æœ
 		return false;
 	}
 }
 static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
-	//È¡ÈÕÖ¾µÄkey value
+	//å–æ—¥å¿—çš„key value
     if(!lua_istable(L,-1))
     {
     	LogPrint("vm","GetDataTableLogPrint is not table\n");
@@ -326,7 +326,7 @@ static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr < std::vec
     }
     unsigned short len = 0;
     vector<unsigned char> vBuf ;
-    //È¡key
+    //å–key
     int key = 0;
     double doubleValue = 0;
     if(!(getNumberInTable(L,(char *)"key",doubleValue))){
@@ -339,7 +339,7 @@ static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr < std::vec
 	vBuf.insert(vBuf.end(),key);
     ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
 
-    //È¡valueµÄ³¤¶È
+    //å–valueçš„é•¿åº¦
     if(!(getNumberInTable(L,(char *)"length",doubleValue))){
     	LogPrint("vm", "length get fail\n");
     	return false;
@@ -623,8 +623,8 @@ static int ExInt64DivFunc(lua_State *L) {
 
 /**
  *bool SHA256(void const* pfrist, const unsigned short len, void * const pout)
- * Õâ¸öº¯ÊıÊ½´ÓÖĞ¼ä²ã´«ÁËÒ»¸ö²ÎÊı¹ıÀ´:
- * 1.µÚÒ»¸öÊÇÒª±»¼ÆËãhashÖµµÄ×Ö·û´®
+ * è¿™ä¸ªå‡½æ•°å¼ä»ä¸­é—´å±‚ä¼ äº†ä¸€ä¸ªå‚æ•°è¿‡æ¥:
+ * 1.ç¬¬ä¸€ä¸ªæ˜¯è¦è¢«è®¡ç®—hashå€¼çš„å­—ç¬¦ä¸²
  */
 static int ExSha256Func(lua_State *L) {
 	vector<std::shared_ptr < vector<unsigned char> > > retdata;
@@ -644,10 +644,10 @@ static int ExSha256Func(lua_State *L) {
 
 /**
  *unsigned short Des(void const* pdata, unsigned short len, void const* pkey, unsigned short keylen, bool IsEn, void * const pOut,unsigned short poutlen)
- * Õâ¸öº¯ÊıÊ½´ÓÖĞ¼ä²ã´«ÁËÈı¸ö¸ö²ÎÊı¹ıÀ´:
- * 1.µÚÒ»¸öÊÇÒª±»¼ÓÃÜÊı¾İ»òÕß½âÃÜÊı¾İ
- * 2.µÚ¶ş¸ñÊ½¼ÓÃÜ»òÕß½âÃÜµÄkeyÖµ
- * 3.µÚÈıÊÇ±êÊ¶·û£¬ÊÇ¼ÓÃÜ»¹ÊÇ½âÃÜ
+ * è¿™ä¸ªå‡½æ•°å¼ä»ä¸­é—´å±‚ä¼ äº†ä¸‰ä¸ªä¸ªå‚æ•°è¿‡æ¥:
+ * 1.ç¬¬ä¸€ä¸ªæ˜¯è¦è¢«åŠ å¯†æ•°æ®æˆ–è€…è§£å¯†æ•°æ®
+ * 2.ç¬¬äºŒæ ¼å¼åŠ å¯†æˆ–è€…è§£å¯†çš„keyå€¼
+ * 3.ç¬¬ä¸‰æ˜¯æ ‡è¯†ç¬¦ï¼Œæ˜¯åŠ å¯†è¿˜æ˜¯è§£å¯†
  *
  * {
  * 	dataLen = 0,
@@ -745,10 +745,10 @@ static int ExDesFunc(lua_State *L) {
 /**
  *bool SignatureVerify(void const* data, unsigned short datalen, void const* key, unsigned short keylen,
 		void const* phash, unsigned short hashlen)
- * Õâ¸öº¯ÊıÊ½´ÓÖĞ¼ä²ã´«ÁËÈı¸ö¸ö²ÎÊı¹ıÀ´:
- * 1.µÚÒ»¸öÊÇÇ©ÃûµÄÊı¾İ
- * 2.µÚ¶ş¸öÊÇÓÃµÄÇ©ÃûµÄpublickey
- * 3.µÚÈıÊÇÇ©ÃûÖ®Ç°µÄhashÖµ
+ * è¿™ä¸ªå‡½æ•°å¼ä»ä¸­é—´å±‚ä¼ äº†ä¸‰ä¸ªä¸ªå‚æ•°è¿‡æ¥:
+ * 1.ç¬¬ä¸€ä¸ªæ˜¯ç­¾åçš„æ•°æ®
+ * 2.ç¬¬äºŒä¸ªæ˜¯ç”¨çš„ç­¾åçš„publickey
+ * 3.ç¬¬ä¸‰æ˜¯ç­¾åä¹‹å‰çš„hashå€¼
  *
  *{
  * 	dataLen = 0,
@@ -812,9 +812,9 @@ static int ExGetTxContractsFunc(lua_State *L) {
 
 /**
  *void LogPrint(const void *pdata, const unsigned short datalen,PRINT_FORMAT flag )
- * Õâ¸öº¯ÊıÊ½´ÓÖĞ¼ä²ã´«ÁËÁ½¸ö¸ö²ÎÊı¹ıÀ´:
- * 1.µÚÒ»¸öÊÇ´òÓ¡Êı¾İµÄ±íÊ¾·ûºÅ£¬trueÊÇÒ»Ê®Áù½øÖÆ´òÓ¡,·ñÔòÒÔ×Ö·û´®µÄ¸ñÊ½´òÓ¡
- * 2.µÚ¶ş¸öÊÇ´òÓ¡µÄ×Ö·û´®
+ * è¿™ä¸ªå‡½æ•°å¼ä»ä¸­é—´å±‚ä¼ äº†ä¸¤ä¸ªä¸ªå‚æ•°è¿‡æ¥:
+ * 1.ç¬¬ä¸€ä¸ªæ˜¯æ‰“å°æ•°æ®çš„è¡¨ç¤ºç¬¦å·ï¼Œtrueæ˜¯ä¸€åå…­è¿›åˆ¶æ‰“å°,å¦åˆ™ä»¥å­—ç¬¦ä¸²çš„æ ¼å¼æ‰“å°
+ * 2.ç¬¬äºŒä¸ªæ˜¯æ‰“å°çš„å­—ç¬¦ä¸²
  */
 static int ExLogPrintFunc(lua_State *L) {
 	vector<std::shared_ptr < vector<unsigned char> > > retdata;
@@ -840,8 +840,8 @@ static int ExLogPrintFunc(lua_State *L) {
 
 /**
  *unsigned short GetAccounts(const unsigned char *txhash,void* const paccoutn,unsigned short maxlen)
- * Õâ¸öº¯ÊıÊ½´ÓÖĞ¼ä²ã´«ÁËÒ»¸ö²ÎÊı¹ıÀ´:
- * 1.µÚÒ»¸öÊÇ hash
+ * è¿™ä¸ªå‡½æ•°å¼ä»ä¸­é—´å±‚ä¼ äº†ä¸€ä¸ªå‚æ•°è¿‡æ¥:
+ * 1.ç¬¬ä¸€ä¸ªæ˜¯ hash
  */
 static int ExGetTxAccountsFunc(lua_State *L) {
 	vector<std::shared_ptr<vector<unsigned char> > > retdata;
@@ -876,14 +876,14 @@ static int ExGetTxAccountsFunc(lua_State *L) {
 }
 
 static int ExByteToIntegerFunc(lua_State *L) {
-	//°Ñ×Ö½ÚÁ÷×éºÏ³Éinteger
+	//æŠŠå­—èŠ‚æµç»„åˆæˆinteger
 	vector<std::shared_ptr<vector<unsigned char> > > retdata;
     if(!GetArray(L,retdata) ||retdata.size() != 1|| ((retdata.at(0).get()->size() != 4) && (retdata.at(0).get()->size() != 8)))
     {
     	return RetFalse("ExGetTxAccountsFunc para err1");
     }
 
-    //½«Êı¾İ·´Ïò
+    //å°†æ•°æ®åå‘
     vector<unsigned char>  vValue(retdata.at(0).get()->begin(), retdata.at(0).get()->end());
     CDataStream tep1(vValue, SER_DISK, CLIENT_VERSION);
 
@@ -913,7 +913,7 @@ static int ExByteToIntegerFunc(lua_State *L) {
 }
 
 static int ExIntegerToByte4Func(lua_State *L) {
-	//°Ñinteger×ª»»³É4×Ö½ÚÊı×é
+	//æŠŠintegerè½¬æ¢æˆ4å­—èŠ‚æ•°ç»„
 	int height = 0;
     if(!GetDataInt(L,height)){
     	return RetFalse("ExGetBlockHashFunc para err1");
@@ -924,7 +924,7 @@ static int ExIntegerToByte4Func(lua_State *L) {
     return RetRstToLua(L,TMP);
 }
 static int ExIntegerToByte8Func(lua_State *L) {
-	//°Ñinteger×ª»»³É8×Ö½ÚÊı×é
+	//æŠŠintegerè½¬æ¢æˆ8å­—èŠ‚æ•°ç»„
 	int64_t llValue = 0;
 	if(!lua_isinteger(L,-1 - 0))
 	{
@@ -942,8 +942,8 @@ static int ExIntegerToByte8Func(lua_State *L) {
 }
 /**
  *unsigned short GetAccountPublickey(const void* const accounid,void * const pubkey,const unsigned short maxlength)
- * Õâ¸öº¯ÊıÊ½´ÓÖĞ¼ä²ã´«ÁËÒ»¸ö²ÎÊı¹ıÀ´:
- * 1.µÚÒ»¸öÊÇ ÕË»§id,Áù¸ö×Ö½Ú
+ * è¿™ä¸ªå‡½æ•°å¼ä»ä¸­é—´å±‚ä¼ äº†ä¸€ä¸ªå‚æ•°è¿‡æ¥:
+ * 1.ç¬¬ä¸€ä¸ªæ˜¯ è´¦æˆ·id,å…­ä¸ªå­—èŠ‚
  */
 static int ExGetAccountPublickeyFunc(lua_State *L) {
 	vector<std::shared_ptr<vector<unsigned char> > > retdata;
@@ -982,8 +982,8 @@ static int ExGetAccountPublickeyFunc(lua_State *L) {
 
 /**
  *bool QueryAccountBalance(const unsigned char* const account,Int64* const pBalance)
- * Õâ¸öº¯ÊıÊ½´ÓÖĞ¼ä²ã´«ÁËÒ»¸ö²ÎÊı¹ıÀ´:
- * 1.µÚÒ»¸öÊÇ ÕË»§id,Áù¸ö×Ö½Ú
+ * è¿™ä¸ªå‡½æ•°å¼ä»ä¸­é—´å±‚ä¼ äº†ä¸€ä¸ªå‚æ•°è¿‡æ¥:
+ * 1.ç¬¬ä¸€ä¸ªæ˜¯ è´¦æˆ·id,å…­ä¸ªå­—èŠ‚
  */
 static int ExQueryAccountBalanceFunc(lua_State *L) {
 	vector<std::shared_ptr < vector<unsigned char> > > retdata;
@@ -1023,8 +1023,8 @@ static int ExQueryAccountBalanceFunc(lua_State *L) {
 
 /**
  *unsigned long GetTxConFirmHeight(const void * const txhash)
- * Õâ¸öº¯ÊıÊ½´ÓÖĞ¼ä²ã´«ÁËÒ»¸ö²ÎÊı¹ıÀ´:
- * 1.µÚÒ»¸öÈë²Î: hash,32¸ö×Ö½Ú
+ * è¿™ä¸ªå‡½æ•°å¼ä»ä¸­é—´å±‚ä¼ äº†ä¸€ä¸ªå‚æ•°è¿‡æ¥:
+ * 1.ç¬¬ä¸€ä¸ªå…¥å‚: hash,32ä¸ªå­—èŠ‚
  */
 static int ExGetTxConFirmHeightFunc(lua_State *L) {
 	vector<std::shared_ptr < vector<unsigned char> > > retdata;
@@ -1060,8 +1060,8 @@ static int ExGetTxConFirmHeightFunc(lua_State *L) {
 
 /**
  *bool GetBlockHash(const unsigned long height,void * const pblochHash)
- * Õâ¸öº¯ÊıÊ½´ÓÖĞ¼ä²ã´«ÁËÒ»¸ö²ÎÊı¹ıÀ´:
- * 1.µÚÒ»¸öÊÇ intÀàĞÍµÄ²ÎÊı
+ * è¿™ä¸ªå‡½æ•°å¼ä»ä¸­é—´å±‚ä¼ äº†ä¸€ä¸ªå‚æ•°è¿‡æ¥:
+ * 1.ç¬¬ä¸€ä¸ªæ˜¯ intç±»å‹çš„å‚æ•°
  */
 static int ExGetBlockHashFunc(lua_State *L) {
 	int height = 0;
@@ -1075,12 +1075,12 @@ static int ExGetBlockHashFunc(lua_State *L) {
     	return RetFalse("pVmRunEvn is NULL");
     }
 
-	if (height <= 0 || height >= pVmRunEvn->GetComfirHeight()) //µ±Ç°block ÊÇ²»¿ÉÒÔ»ñÈ¡hashµÄ
+	if (height <= 0 || height >= pVmRunEvn->GetComfirHeight()) //å½“å‰block æ˜¯ä¸å¯ä»¥è·å–hashçš„
 	{
 		return RetFalse("ExGetBlockHashFunc para err2");
 	}
 
-	if(chainActive.Height() < height){	         //»ñÈ¡±Èµ±Ç°¸ß¶È¸ßµÄÊı¾İÊÇ²»¿ÉÒÔµÄ
+	if(chainActive.Height() < height){	         //è·å–æ¯”å½“å‰é«˜åº¦é«˜çš„æ•°æ®æ˜¯ä¸å¯ä»¥çš„
 		return RetFalse("ExGetBlockHashFunc para err3");
 	}
 	CBlockIndex *pindex = chainActive[height];
@@ -1102,7 +1102,7 @@ static int ExGetCurRunEnvHeightFunc(lua_State *L) {
 
 	int height = pVmRunEvn->GetComfirHeight();
 
-	//¼ì²âÕ»¿Õ¼äÊÇ·ñ¹»
+	//æ£€æµ‹æ ˆç©ºé—´æ˜¯å¦å¤Ÿ
    if(height > 0)
    {
 	   //lua_Integer
@@ -1127,7 +1127,7 @@ static int ExGetCurRunEnvHeightFunc(lua_State *L) {
 }
 
 static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
-	//È¡Ğ´Êı¾İ¿âµÄkey value
+	//å–å†™æ•°æ®åº“çš„key value
     if(!lua_istable(L,-1))
     {
     	LogPrint("vm","GetDataTableWriteOutput is not table\n");
@@ -1135,7 +1135,7 @@ static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr < std::
     }
 	unsigned short len = 0;
     vector<unsigned char> vBuf ;
-    //È¡key
+    //å–key
     string key = "";
     if(!(getStringInTable(L,(char *)"key",key))){
     	LogPrint("vm","key get fail\n");
@@ -1150,7 +1150,7 @@ static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr < std::
 	}
     ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
 
-    //È¡valueµÄ³¤¶È
+    //å–valueçš„é•¿åº¦
     double doubleValue = 0;
     if(!(getNumberInTable(L,(char *)"length",doubleValue))){
     	LogPrint("vm", "length get fail\n");
@@ -1178,9 +1178,9 @@ static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr < std::
 
 /**
  *bool WriteDataDB(const void* const key,const unsigned char keylen,const void * const value,const unsigned short valuelen,const unsigned long time)
- * Õâ¸öº¯ÊıÊ½´ÓÖĞ¼ä²ã´«ÁËÈı¸ö¸ö²ÎÊı¹ıÀ´:
- * 1.µÚÒ»¸öÊÇ keyÖµ
- * 2.µÚ¶ş¸öÊÇvalueÖµ
+ * è¿™ä¸ªå‡½æ•°å¼ä»ä¸­é—´å±‚ä¼ äº†ä¸‰ä¸ªä¸ªå‚æ•°è¿‡æ¥:
+ * 1.ç¬¬ä¸€ä¸ªæ˜¯ keyå€¼
+ * 2.ç¬¬äºŒä¸ªæ˜¯valueå€¼
  */
 static int ExWriteDataDBFunc(lua_State *L) {
 	vector<std::shared_ptr < vector<unsigned char> > > retdata;
@@ -1213,8 +1213,8 @@ static int ExWriteDataDBFunc(lua_State *L) {
 
 /**
  *bool DeleteDataDB(const void* const key,const unsigned char keylen)
- * Õâ¸öº¯ÊıÊ½´ÓÖĞ¼ä²ã´«ÁËÒ»¸ö²ÎÊı¹ıÀ´:
- * 1.µÚÒ»¸öÊÇ keyÖµ
+ * è¿™ä¸ªå‡½æ•°å¼ä»ä¸­é—´å±‚ä¼ äº†ä¸€ä¸ªå‚æ•°è¿‡æ¥:
+ * 1.ç¬¬ä¸€ä¸ªæ˜¯ keyå€¼
  */
 static int ExDeleteDataDBFunc(lua_State *L) {
 	vector<std::shared_ptr < vector<unsigned char> > > retdata;
@@ -1238,7 +1238,7 @@ static int ExDeleteDataDBFunc(lua_State *L) {
 	int64_t nstep = 0;
 	vector<unsigned char> vValue;
 	if(scriptDB->GetScriptData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vValue)){
-		nstep = nstep - (int64_t)(vValue.size()+1);//É¾³ıÊı¾İ½±Àøstep
+		nstep = nstep - (int64_t)(vValue.size()+1);//åˆ é™¤æ•°æ®å¥–åŠ±step
 	}
 	if (!scriptDB->EraseScriptData(scriptid, *retdata.at(0), operlog)) {
 		LogPrint("vm", "ExDeleteDataDBFunc error key:%s!\n",HexStr(*retdata.at(0)));
@@ -1252,8 +1252,8 @@ static int ExDeleteDataDBFunc(lua_State *L) {
 
 /**
  *unsigned short ReadDataValueDB(const void* const key,const unsigned char keylen, void* const value,unsigned short const maxbuffer)
- * Õâ¸öº¯ÊıÊ½´ÓÖĞ¼ä²ã´«ÁËÒ»¸ö²ÎÊı¹ıÀ´:
- * 1.µÚÒ»¸öÊÇ keyÖµ
+ * è¿™ä¸ªå‡½æ•°å¼ä»ä¸­é—´å±‚ä¼ äº†ä¸€ä¸ªå‚æ•°è¿‡æ¥:
+ * 1.ç¬¬ä¸€ä¸ªæ˜¯ keyå€¼
  */
 static int ExReadDataValueDBFunc(lua_State *L) {
 	vector<std::shared_ptr < vector<unsigned char> > > retdata;
@@ -1309,11 +1309,11 @@ static int ExGetDBSizeFunc(lua_State *L) {
 
 /**
  *bool GetDBValue(const unsigned long index,void* const key,unsigned char * const keylen,unsigned short maxkeylen,void* const value,unsigned short* const maxbuffer, unsigned long* const ptime)
- * µ±´«µÄµÚÒ»¸ö²ÎÊıindex == 0£¬Ôò´«ÁËÒ»¸ö²ÎÊı¹ıÀ´
- * 1.µÚÒ»¸öÊÇ indexÖµ
- * µ±´«µÄµÚÒ»¸ö²ÎÊıindex == 1£¬Ôò´«ÁËÁ½¸ö¸ö²ÎÊı¹ıÀ´
- * 1.µÚÒ»¸öÊÇ indexÖµ
- * 2.µÚ¶şÊÇkeyÖµ
+ * å½“ä¼ çš„ç¬¬ä¸€ä¸ªå‚æ•°index == 0ï¼Œåˆ™ä¼ äº†ä¸€ä¸ªå‚æ•°è¿‡æ¥
+ * 1.ç¬¬ä¸€ä¸ªæ˜¯ indexå€¼
+ * å½“ä¼ çš„ç¬¬ä¸€ä¸ªå‚æ•°index == 1ï¼Œåˆ™ä¼ äº†ä¸¤ä¸ªä¸ªå‚æ•°è¿‡æ¥
+ * 1.ç¬¬ä¸€ä¸ªæ˜¯ indexå€¼
+ * 2.ç¬¬äºŒæ˜¯keyå€¼
  */
 static int ExGetDBValueFunc(lua_State *L) {
 
@@ -1369,9 +1369,9 @@ static int ExGetCurTxHash(lua_State *L) {
 
 /**
  *bool ModifyDataDBVavle(const void* const key,const unsigned char keylen, const void* const pvalue,const unsigned short valuelen)
- * ÖĞ¼ä²ã´«ÁËÁ½¸ö²ÎÊı
- * 1.µÚÒ»¸öÊÇ key
- * 2.µÚ¶ş¸öÊÇ value
+ * ä¸­é—´å±‚ä¼ äº†ä¸¤ä¸ªå‚æ•°
+ * 1.ç¬¬ä¸€ä¸ªæ˜¯ key
+ * 2.ç¬¬äºŒä¸ªæ˜¯ value
  */
 static int ExModifyDataDBValueFunc(lua_State *L)
 {
@@ -1469,8 +1469,8 @@ static bool GetDataTableWriteOutput(lua_State *L, vector<std::shared_ptr < std::
 }
 /**
  *bool WriteOutput( const VM_OPERATE* data, const unsigned short conter)
- * ÖĞ¼ä²ã´«ÁËÒ»¸ö²ÎÊı ,Ğ´ CVmOperate²Ù×÷½á¹û
- * 1.µÚÒ»¸öÊÇÊä³öÖ¸Áî
+ * ä¸­é—´å±‚ä¼ äº†ä¸€ä¸ªå‚æ•° ,å†™ CVmOperateæ“ä½œç»“æœ
+ * 1.ç¬¬ä¸€ä¸ªæ˜¯è¾“å‡ºæŒ‡ä»¤
  */
 static int ExWriteOutputFunc(lua_State *L)
 {
@@ -1506,7 +1506,7 @@ static int ExWriteOutputFunc(lua_State *L)
 		 return RetFalse("InsertOutput err");
 	}else{
 		/*
-		* Ã¿¸öº¯ÊıÀïµÄLuaÕ»ÊÇË½ÓĞµÄ,µ±°Ñ·µ»ØÖµÑ¹ÈëLuaÕ»ÒÔºó£¬¸ÃÕ»»á×Ô¶¯±»Çå¿Õ*/
+		* æ¯ä¸ªå‡½æ•°é‡Œçš„Luaæ ˆæ˜¯ç§æœ‰çš„,å½“æŠŠè¿”å›å€¼å‹å…¥Luaæ ˆä»¥åï¼Œè¯¥æ ˆä¼šè‡ªåŠ¨è¢«æ¸…ç©º*/
 		return RetRstBooleanToLua(L,true);
 	}
 }
@@ -1519,7 +1519,7 @@ static bool GetDataTableGetScriptData(lua_State *L, vector<std::shared_ptr < std
     	return false;
     }
     vector<unsigned char> vBuf ;
-    //È¡½Å±¾id
+    //å–è„šæœ¬id
     if(!getArrayInTable(L,(char *)"id",6,vBuf))
     {
     	LogPrint("vm","idTbl not table\n");
@@ -1528,7 +1528,7 @@ static bool GetDataTableGetScriptData(lua_State *L, vector<std::shared_ptr < std
        ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
     }
 
-    //È¡key
+    //å–key
     string key = "";
     if(!(getStringInTable(L,(char *)"key",key))){
     	LogPrint("vm","key get fail\n");
@@ -1548,9 +1548,9 @@ static bool GetDataTableGetScriptData(lua_State *L, vector<std::shared_ptr < std
 
 /**
  *bool GetScriptData(const void* const scriptID,void* const pkey,short len,void* const pvalve,short maxlen)
- * ÖĞ¼ä²ã´«ÁËÁ½¸ö¸ö²ÎÊı
- * 1.½Å±¾µÄidºÅ
- * 2.Êı¾İ¿âµÄkeyÖµ
+ * ä¸­é—´å±‚ä¼ äº†ä¸¤ä¸ªä¸ªå‚æ•°
+ * 1.è„šæœ¬çš„idå·
+ * 2.æ•°æ®åº“çš„keyå€¼
  */
 static int ExGetScriptDataFunc(lua_State *L)
 {
@@ -1576,18 +1576,18 @@ static int ExGetScriptDataFunc(lua_State *L)
 	}
 	else
 	{
-	   //3.Íùº¯ÊıË½ÓĞÕ»Àï´æÔËËãºóµÄ½á¹û
+	   //3.å¾€å‡½æ•°ç§æœ‰æ ˆé‡Œå­˜è¿ç®—åçš„ç»“æœ
 		len = RetRstToLua(L,vValue);
 	}
    /*
-	* Ã¿¸öº¯ÊıÀïµÄLuaÕ»ÊÇË½ÓĞµÄ,µ±°Ñ·µ»ØÖµÑ¹ÈëLuaÕ»ÒÔºó£¬¸ÃÕ»»á×Ô¶¯±»Çå¿Õ*/
+	* æ¯ä¸ªå‡½æ•°é‡Œçš„Luaæ ˆæ˜¯ç§æœ‰çš„,å½“æŠŠè¿”å›å€¼å‹å…¥Luaæ ˆä»¥åï¼Œè¯¥æ ˆä¼šè‡ªåŠ¨è¢«æ¸…ç©º*/
 	return len;
 }
 
 
 
 /**
- * È¡Ä¿µÄÕË»§ID
+ * å–ç›®çš„è´¦æˆ·ID
  * @param ipara
  * @param pVmEvn
  * @return
@@ -1599,14 +1599,14 @@ static int ExGetScriptIDFunc(lua_State *L)
     {
     	return RetFalse("pVmRunEvn is NULL");
     }
-   //1.´ÓluaÈ¡²ÎÊı
-   //2.µ÷ÓÃC++¿âº¯Êı Ö´ĞĞÔËËã
+   //1.ä»luaå–å‚æ•°
+   //2.è°ƒç”¨C++åº“å‡½æ•° æ‰§è¡Œè¿ç®—
 	vector_unsigned_char scriptid = pVmRunEvn->GetScriptRegID().GetVec6();
-   //3.Íùº¯ÊıË½ÓĞÕ»Àï´æÔËËãºóµÄ½á¹û
+   //3.å¾€å‡½æ•°ç§æœ‰æ ˆé‡Œå­˜è¿ç®—åçš„ç»“æœ
 	int len = RetRstToLua(L,scriptid);
    /*
-	* Ã¿¸öº¯ÊıÀïµÄLuaÕ»ÊÇË½ÓĞµÄ,µ±°Ñ·µ»ØÖµÑ¹ÈëLuaÕ»ÒÔºó£¬¸ÃÕ»»á×Ô¶¯±»Çå¿Õ*/
-	return len; //number of results ¸æËßLua·µ»ØÁË¼¸¸ö·µ»ØÖµ
+	* æ¯ä¸ªå‡½æ•°é‡Œçš„Luaæ ˆæ˜¯ç§æœ‰çš„,å½“æŠŠè¿”å›å€¼å‹å…¥Luaæ ˆä»¥åï¼Œè¯¥æ ˆä¼šè‡ªåŠ¨è¢«æ¸…ç©º*/
+	return len; //number of results å‘Šè¯‰Luaè¿”å›äº†å‡ ä¸ªè¿”å›å€¼
 }
 static int ExGetCurTxAccountFunc(lua_State *L)
 {
@@ -1615,15 +1615,15 @@ static int ExGetCurTxAccountFunc(lua_State *L)
     {
     	return RetFalse("pVmRunEvn is NULL");
     }
-   //1.´ÓluaÈ¡²ÎÊı
-   //2.µ÷ÓÃC++¿âº¯Êı Ö´ĞĞÔËËã
+   //1.ä»luaå–å‚æ•°
+   //2.è°ƒç”¨C++åº“å‡½æ•° æ‰§è¡Œè¿ç®—
 	vector_unsigned_char vUserId =pVmRunEvn->GetTxAccount().GetVec6();
 
-   //3.Íùº¯ÊıË½ÓĞÕ»Àï´æÔËËãºóµÄ½á¹û
+   //3.å¾€å‡½æ•°ç§æœ‰æ ˆé‡Œå­˜è¿ç®—åçš„ç»“æœ
 	int len = RetRstToLua(L,vUserId);
    /*
-    * Ã¿¸öº¯ÊıÀïµÄLuaÕ»ÊÇË½ÓĞµÄ,µ±°Ñ·µ»ØÖµÑ¹ÈëLuaÕ»ÒÔºó£¬¸ÃÕ»»á×Ô¶¯±»Çå¿Õ*/
-	return len; //number of results ¸æËßLua·µ»ØÁË¼¸¸ö·µ»ØÖµ
+    * æ¯ä¸ªå‡½æ•°é‡Œçš„Luaæ ˆæ˜¯ç§æœ‰çš„,å½“æŠŠè¿”å›å€¼å‹å…¥Luaæ ˆä»¥åï¼Œè¯¥æ ˆä¼šè‡ªåŠ¨è¢«æ¸…ç©º*/
+	return len; //number of results å‘Šè¯‰Luaè¿”å›äº†å‡ ä¸ªè¿”å›å€¼
 }
 
 static int GetCurTxPayAmountFunc(lua_State *L){
@@ -1640,8 +1640,8 @@ static int GetCurTxPayAmountFunc(lua_State *L){
     vector<unsigned char> tep1(tep.begin(),tep.end());
     int len = RetRstToLua(L,tep1);
     /*
-    * Ã¿¸öº¯ÊıÀïµÄLuaÕ»ÊÇË½ÓĞµÄ,µ±°Ñ·µ»ØÖµÑ¹ÈëLuaÕ»ÒÔºó£¬¸ÃÕ»»á×Ô¶¯±»Çå¿Õ*/
-   	return len; //number of results ¸æËßLua·µ»ØÁË¼¸¸ö·µ»ØÖµ
+    * æ¯ä¸ªå‡½æ•°é‡Œçš„Luaæ ˆæ˜¯ç§æœ‰çš„,å½“æŠŠè¿”å›å€¼å‹å…¥Luaæ ˆä»¥åï¼Œè¯¥æ ˆä¼šè‡ªåŠ¨è¢«æ¸…ç©º*/
+   	return len; //number of results å‘Šè¯‰Luaè¿”å›äº†å‡ ä¸ªè¿”å›å€¼
 }
 
 struct S_APP_ID
@@ -1874,7 +1874,7 @@ static bool GetDataTableAssetOperate(lua_State *L, int nIndex, vector<std::share
 }
 
 /**
- *   Ğ´ Ó¦ÓÃ²Ù×÷Êä³öµ½ pVmRunEvn->MapAppOperate[0]
+ *   å†™ åº”ç”¨æ“ä½œè¾“å‡ºåˆ° pVmRunEvn->MapAppOperate[0]
  * @param ipara
  * @param pVmEvn
  * @return
@@ -1904,7 +1904,7 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
 	while(count--)
 	{
 		ss >> temp;
-		if(pVmRunEvn->GetComfirHeight() > nFreezeBlackAcctHeight && temp.mMoney < 0) //²»ÄÜĞ¡ÓÚ0,·ÀÖ¹ ÉÏ²ã´«´í½ğ¶îĞ¡ÓÚ20150904
+		if(pVmRunEvn->GetComfirHeight() > nFreezeBlackAcctHeight && temp.mMoney < 0) //ä¸èƒ½å°äº0,é˜²æ­¢ ä¸Šå±‚ä¼ é”™é‡‘é¢å°äº20150904
 		{
 			return RetFalse("ExWriteOutAppOperateFunc para err2");
 		}
@@ -1913,7 +1913,7 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
 	}
 
 	/*
-	* Ã¿¸öº¯ÊıÀïµÄLuaÕ»ÊÇË½ÓĞµÄ,µ±°Ñ·µ»ØÖµÑ¹ÈëLuaÕ»ÒÔºó£¬¸ÃÕ»»á×Ô¶¯±»Çå¿Õ*/
+	* æ¯ä¸ªå‡½æ•°é‡Œçš„Luaæ ˆæ˜¯ç§æœ‰çš„,å½“æŠŠè¿”å›å€¼å‹å…¥Luaæ ˆä»¥åï¼Œè¯¥æ ˆä¼šè‡ªåŠ¨è¢«æ¸…ç©º*/
 	return RetRstBooleanToLua(L,true);
 }
 static int ExGetBase58AddrFunc(lua_State *L){
@@ -2226,14 +2226,14 @@ static const luaL_Reg mylib[] = { //
 		};
 
 /*
- * ×¢²áÒ»¸öĞÂLuaÄ£¿é*/
+ * æ³¨å†Œä¸€ä¸ªæ–°Luaæ¨¡å—*/
 #ifdef WIN_DLL
 extern "C" __declspec(dllexport)int luaopen_mylib(lua_State *L)
 #else
 LUAMOD_API int luaopen_mylib(lua_State *L)
 #endif
 {
-	luaL_newlib(L,mylib);//Éú³ÉÒ»¸ötable,°ÑmylibsËùÓĞº¯ÊıÌî³ä½øÈ¥
+	luaL_newlib(L,mylib);//ç”Ÿæˆä¸€ä¸ªtable,æŠŠmylibsæ‰€æœ‰å‡½æ•°å¡«å……è¿›å»
 	return 1;
 }
 

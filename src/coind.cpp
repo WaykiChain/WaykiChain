@@ -65,9 +65,9 @@ bool AppInit(int argc, char* argv[],boost::thread_group &threadGroup) {
 		SysCfg().InitalConfig();
 
 		if (SysCfg().IsArgCount("-?") || SysCfg().IsArgCount("--help")) {
-			// First part of help message is specific to Dacrsd / RPC client
+			// First part of help message is specific to coind / RPC client
 			std::string strUsage = _("Coin Core Daemon") + " " + _("version") + " " + FormatFullVersion() + "\n\n"
-					+ _("Usage:") + "\n" + "  Dacrsd [options]                     " + _("Start Coin Core Daemon")
+					+ _("Usage:") + "\n" + "  coind [options]                     " + _("Start Coin Core Daemon")
 					+ "\n" + _("Usage (deprecated, use Coin-cli):") + "\n"
 					+ "  coin [options] <command> [params]  " + _("Send command to Coin Core") + "\n"
 					+ "  coin [options] help                " + _("List commands") + "\n"
@@ -137,7 +137,7 @@ std::tuple<bool, boost::thread*> RunCoin(int argc, char* argv[])
 
 	bool fRet = false;
 
-	// Connect Dacrsd signal handlers
+	// Connect coind signal handlers
 	noui_connect();
 
 	fRet = AppInit(argc, argv,threadGroup);

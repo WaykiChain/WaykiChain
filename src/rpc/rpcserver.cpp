@@ -528,7 +528,7 @@ void StartRPCThreads()
     {
         unsigned char rand_pwd[32];
         RAND_bytes(rand_pwd, 32);
-        string strWhatAmI = "To use Dacrsd";
+        string strWhatAmI = "To use coind";
         if (SysCfg().IsArgCount("-server"))
             strWhatAmI = strprintf(_("To use the %s option"), "\"-server\"");
         else if (SysCfg().IsArgCount("-daemon"))

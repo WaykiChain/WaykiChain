@@ -21,7 +21,7 @@ json_spirit::Array RPCConvertValues(const std::string &strMethod, const std::vec
  * The mainProgram argument is used to determine whether to show this message as main program
  * (and include some common options) or as sub-header of another help message.
  *
- * @note the argument can be removed once coin-cli functionality is removed from Dacrsd
+ * @note the argument can be removed once coin-cli functionality is removed from coind
  */
 std::string HelpMessageCli(bool mainProgram);
 

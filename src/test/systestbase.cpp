@@ -132,7 +132,7 @@ std::tuple<bool, boost::thread*> RunCoin(int argc, char* argv[]) {
 
 	bool fRet = false;
 
-	// Connect Dacrsd signal handlers
+	// Connect coind signal handlers
 	noui_connect();
 
 	fRet = AppInit(argc, argv, threadGroup);
@@ -618,7 +618,7 @@ bool SysTestBase::DisConnectBlock(int nNum) {
 
 void SysTestBase::StartServer(int argc,const char* argv[]) {
 //		int argc = 2;
-//		char* argv[] = {"D:\\cppwork\\Coin\\src\\Dacrsd.exe","-datadir=d:\\bitcoin" };
+//		char* argv[] = {"D:\\cppwork\\Coin\\src\\coind.exe","-datadir=d:\\bitcoin" };
 	assert(pThreadShutdown == NULL);
 	{
 	std::tuple<bool, boost::thread*> ret = RunCoin(argc, const_cast<char **>(argv));
