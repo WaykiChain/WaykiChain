@@ -39,27 +39,27 @@ bool PrintTestNotSetPara()
 	string strconnect = SysCfg().GetArg("-connect",str);
 	if (str != strconnect)
 	{
-		cout<<"Waring the test of the config file the connect param must be false"<<endl;
+		cout<<"Warning: the test of the config file the connect param must be false"<<endl;
 		MilliSleep(500);
 		exit(0);
 
 	}
 	if(SysCfg().GetArg("-iscutmine",flag))
 	{
-		cout<<"Waring the test of config file the iscutmine param must be false"<<endl;
+		cout<<"Warning: the test of config file the iscutmine param must be false"<<endl;
 		MilliSleep(500);
 		exit(0);
 	}
 	if(!SysCfg().GetArg("-isdbtraversal",flag))
 	{
-		cout<<"Waring the test of config file the isdbtraversal param must be true"<<endl;
+		cout<<"Warning: the test of config file the isdbtraversal param must be true"<<endl;
 		MilliSleep(500);
 		exit(0);
 	}
 
 	if(!SysCfg().GetArg("-regtest",flag))
 	{
-		cout<<"Waring the test of config file the regtest param must be 1"<<endl;
+		cout<<"Warning: the test of config file the regtest param must be 1"<<endl;
 		MilliSleep(500);
 		exit(0);
 	}
@@ -87,13 +87,13 @@ bool AppInit(int argc, char* argv[],boost::thread_group &threadGroup) {
 		PrintTestNotSetPara();
 
 		if (SysCfg().IsArgCount("-?") || SysCfg().IsArgCount("--help")) {
-			// First part of help message is specific to Dacrsd / RPC client
-			std::string strUsage = _("Bitcoin Core Daemon") + " " + _("version") + " " + FormatFullVersion() + "\n\n"
-					+ _("Usage:") + "\n" + "  Dacrsd [options]                     " + _("Start Bitcoin Core Daemon")
+			// First part of help message is specific to waykicoind / RPC client
+			std::string strUsage = _("WaykiCoin Core Daemon") + " " + _("version") + " " + FormatFullVersion() + "\n\n"
+					+ _("Usage:") + "\n" + "  waykicoind [options]                     " + _("Start WaykiCoin Core Daemon")
 					+ "\n" + _("Usage (deprecated, use Coin-cli):") + "\n"
-					+ "  Dacrsd [options] <command> [params]  " + _("Send command to Bitcoin Core") + "\n"
-					+ "  Dacrsd [options] help                " + _("List commands") + "\n"
-					+ "  Dacrsd [options] help <command>      " + _("Get help for a command") + "\n";
+					+ "  waykicoind [options] <command> [params]  " + _("Send command to WaykiCoin Core") + "\n"
+					+ "  waykicoind [options] help                " + _("List commands") + "\n"
+					+ "  waykicoind [options] help <command>      " + _("Get help for a command") + "\n";
 
 			strUsage += "\n" + HelpMessage(HMM_BITCOIND);
 			strUsage += "\n" + HelpMessageCli(false);
