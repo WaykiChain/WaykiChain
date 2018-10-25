@@ -198,6 +198,10 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if(strMethod == "createdelegatetx"       && n > 2) ConvertTo<int64_t>(params[2]);
     if(strMethod == "createdelegatetx"       && n > 3) ConvertTo<int>(params[3]);
 
+    if(strMethod == "createdelegatetxraw"       && n > 1) ConvertTo<Array>(params[1]);
+    if(strMethod == "createdelegatetxraw"       && n > 2) ConvertTo<int64_t>(params[2]);
+    if(strMethod == "createdelegatetxraw"       && n > 3) ConvertTo<int>(params[3]);
+
     if (strMethod == "registerapptx"          && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "registerapptx"          && n > 3) ConvertTo<int>(params[3]);
 

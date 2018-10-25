@@ -26,6 +26,7 @@ extern Value signcontracttx(const Array& params, bool fHelp);
 extern Value createfreezetx(const Array& params, bool fHelp);
 extern Value registerapptx(const Array& params, bool fHelp);
 extern Value createdelegatetx(const Array& params, bool fHelp);
+extern Value createdelegatetxraw(const Array& params, bool fHelp);
 
 extern Value listaddr(const Array& params, bool fHelp);
 extern Value listtx(const Array& params, bool fHelp);
