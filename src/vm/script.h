@@ -32,7 +32,7 @@ public:
 			return false;
 
 		if (!memcmp(&Rom[0], "mylib = require", strlen("mylib = require"))) {
-			return true;	//lua½Å±¾£¬Ö±½Ó·µ»Ø
+			return true;	//luaè„šæœ¬ï¼Œç›´æŽ¥è¿”å›ž
 		}
 		return false;
 	}

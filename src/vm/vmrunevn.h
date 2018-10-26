@@ -25,7 +25,7 @@ class CVmRunEvn {
 	 * Run the script object
 	 */
 
-	shared_ptr<CVmlua> pLua;  //Ö´ĞĞlua½Å±¾
+	shared_ptr<CVmlua> pLua;  //æ‰§è¡Œluaè„šæœ¬
 	/**
 	 * vm before the account state
 	 */
@@ -56,10 +56,10 @@ class CVmRunEvn {
 	vector<shared_ptr<CAppUserAccout>> NewAppUserAccout;
 	CScriptDBViewCache *m_ScriptDBTip;
 	CAccountViewCache *m_view;
-	vector<CVmOperate> m_output;   //±£´æ²Ù×÷½á¹û
-    bool  isCheckAccount;  //Ğ£ÑéÕË»§Æ½ºâ¿ª¹Ø
+	vector<CVmOperate> m_output;   //ä¿å­˜æ“ä½œç»“æœ
+    bool  isCheckAccount;  //æ ¡éªŒè´¦æˆ·å¹³è¡¡å¼€å…³
 
-	map<vector<unsigned char >,vector<CAppFundOperate> > MapAppOperate;  //vector<unsigned char > ´æµÄÊÇaccountId
+	map<vector<unsigned char >,vector<CAppFundOperate> > MapAppOperate;  //vector<unsigned char > å­˜çš„æ˜¯accountId
 	shared_ptr<vector<CScriptDBOperLog> > m_dblog;
 
 
@@ -195,5 +195,5 @@ public:
 
 };
 
-//extern CVmRunEvn *pVmRunEvn; //Ìá¹©¸ølmylib.cpp¿âÊ¹ÓÃ
+//extern CVmRunEvn *pVmRunEvn; //æä¾›ç»™lmylib.cppåº“ä½¿ç”¨
 #endif /* SCRIPTCHECK_H_ */

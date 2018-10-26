@@ -6,7 +6,7 @@
 *                                                                            *
 *  @email                                                                    *
 *  @version                                                                  *
-*  @time    ÏÂÎç2:34:24                                                       *
+*  @time    ä¸‹åˆ2:34:24                                                       *
 *  @license                                                                  *
 *                                                                            *
 *----------------------------------------------------------------------------*
@@ -15,7 +15,7 @@
 *  Change History :                                                          *
 *  <Date>     | <Version> | <Author>       | <Description>                   *
 *----------------------------------------------------------------------------*
-*  2017Äê11ÔÂ6ÈÕ    |           |                 | Create file                  *
+*  2017å¹´11æœˆ6æ—¥    |           |                 | Create file                  *
 *----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
@@ -102,7 +102,7 @@ bool GetAccountProfits(const Value & account, const int &current_height, uint64_
     return true;
 }
 
-//µ±valueĞ¡ÓÚÁãµÄÊ±ºò£¬´ú±í³·»Ø¶ÔÄ³¸öºòÑ¡ÈËµÄÍ¶Æ±
+//å½“valueå°äºé›¶çš„æ—¶å€™ï¼Œä»£è¡¨æ’¤å›å¯¹æŸä¸ªå€™é€‰äººçš„æŠ•ç¥¨
 bool OperAccountDelegateVote(const string &send_addr, const string &receive_vote_addr, const int64_t &value) {
     SysTestBase basetest;
     string sendTxAddr = send_addr;
@@ -125,14 +125,14 @@ bool OperAccountDelegateVote(const string &send_addr, const string &receive_vote
         send_addr_balance = item_value.get_int64();
     }
 
-    //»ñÈ¡Í¶Æ±Ç°£¬ºòÑ¡ÈËÁĞ±íÖĞ×î´óÍ¶Æ±Êı
+    //è·å–æŠ•ç¥¨å‰ï¼Œå€™é€‰äººåˆ—è¡¨ä¸­æœ€å¤§æŠ•ç¥¨æ•°
     BOOST_CHECK(GetMaxDelegateVote(send_account_info, max_send_delegate_addr, max_send_delegate_vote));
-    //Í¶Æ±Ç°£¬Í¶Æ±ÈËµÄÍ¶Æ±ÁĞ±íÖĞ¶ÔÓ¦ºòÑ¡ÈËÒÑÍ¶Æ±ÊıÁ¿
+    //æŠ•ç¥¨å‰ï¼ŒæŠ•ç¥¨äººçš„æŠ•ç¥¨åˆ—è¡¨ä¸­å¯¹åº”å€™é€‰äººå·²æŠ•ç¥¨æ•°é‡
     BOOST_CHECK(GetAccountDelegateVote(send_account_info, delegate_addr, send_delegate_vote));
-    //Í¶Æ±Ç°£¬»ñÈ¡Í¶Æ±ÈË¿ÉÓÃÓà¶î
+    //æŠ•ç¥¨å‰ï¼Œè·å–æŠ•ç¥¨äººå¯ç”¨ä½™é¢
     BOOST_CHECK(GetAccountBalance(send_account_info, send_addr_balance));
     Value receive_account_info = basetest.GetAccountInfo(delegate_addr);
-    //Í¶Æ±Ç°£¬ºòÑ¡ÈË»ñµÃÆ±Êı
+    //æŠ•ç¥¨å‰ï¼Œå€™é€‰äººè·å¾—ç¥¨æ•°
     BOOST_CHECK(GetAccountReceiveVote(receive_account_info, receive_delegate_vote));
 
     voteFund.clear();
@@ -143,7 +143,7 @@ bool OperAccountDelegateVote(const string &send_addr, const string &receive_vote
     string strHash;
     BOOST_CHECK(basetest.GetHashFromCreatedTx(retValue, strHash));
 
-    //»ñÈ¡Í¶Æ±Ç°,µ±Ç°Çø¿é¸ß¶È
+    //è·å–æŠ•ç¥¨å‰,å½“å‰åŒºå—é«˜åº¦
     BOOST_CHECK(basetest.GetBlockHeight(current_block_height));
     GetAccountProfits(send_account_info, current_block_height+1, send_profits);
 
@@ -165,24 +165,24 @@ bool OperAccountDelegateVote(const string &send_addr, const string &receive_vote
     string max_send_delegate_addr_new = "";
 
     send_account_info = basetest.GetAccountInfo(sendTxAddr);
-    //»ñÈ¡Í¶Æ±ºó£¬ºòÑ¡ÈËÁĞ±íÖĞ×î´óÍ¶Æ±Êı
+    //è·å–æŠ•ç¥¨åï¼Œå€™é€‰äººåˆ—è¡¨ä¸­æœ€å¤§æŠ•ç¥¨æ•°
      BOOST_CHECK(GetMaxDelegateVote(send_account_info, max_send_delegate_addr_new, max_send_delegate_vote_new));
-    //Í¶Æ±ºó£¬Í¶Æ±ÈËµÄÍ¶Æ±ÁĞ±íÖĞºòÑ¡ÈËµÄ×îĞÂÍ¶Æ±Êı
+    //æŠ•ç¥¨åï¼ŒæŠ•ç¥¨äººçš„æŠ•ç¥¨åˆ—è¡¨ä¸­å€™é€‰äººçš„æœ€æ–°æŠ•ç¥¨æ•°
     BOOST_CHECK(GetAccountDelegateVote(send_account_info, delegate_addr, send_delegate_vote_new));
     BOOST_CHECK(GetAccountBalance(send_account_info, send_addr_balance_new));
     receive_account_info = basetest.GetAccountInfo(delegate_addr);
     BOOST_CHECK(GetAccountReceiveVote(receive_account_info, receive_delegate_vote_new));
-    //Í¶Æ±ºó£¬Í¶Æ±ÈËÍ¶Æ±ÁĞ±íÍ¶Æ±Ïî¼õÈ¥Í¶Æ±Ç°Í¶Æ±ÏîµÄÖµÎªÍ¶Æ±Êı
+    //æŠ•ç¥¨åï¼ŒæŠ•ç¥¨äººæŠ•ç¥¨åˆ—è¡¨æŠ•ç¥¨é¡¹å‡å»æŠ•ç¥¨å‰æŠ•ç¥¨é¡¹çš„å€¼ä¸ºæŠ•ç¥¨æ•°
     BOOST_CHECK((int64_t)send_delegate_vote_new - (int64_t)send_delegate_vote == value);
 //    cout <<  "send_delegate_vote_new:" << send_delegate_vote_new
 //           << "       send_delegate_vote:" << send_delegate_vote
 //           << "       value:" << value
 //           <<"\n#################################################" << endl;
-    //Í¶Æ±ºó£¬ºòÑ¡ÈË»ñµÃÍ¶Æ±ÊıÍ¶Æ±Ç°ºó²îµÈÓÚÍ¶Æ±Êı
+    //æŠ•ç¥¨åï¼Œå€™é€‰äººè·å¾—æŠ•ç¥¨æ•°æŠ•ç¥¨å‰åå·®ç­‰äºæŠ•ç¥¨æ•°
     BOOST_CHECK((int64_t)receive_delegate_vote_new - (int64_t)receive_delegate_vote == value);
-    //Í¶Æ±ºó£¬¼ì²éÍ¶Æ±ÈË×î´óÍ¶Æ±ÊıµÄ±ä»¯ºÍ¿ÉÓÃÓà¶îÊÇ·ñÕıÈ·
+    //æŠ•ç¥¨åï¼Œæ£€æŸ¥æŠ•ç¥¨äººæœ€å¤§æŠ•ç¥¨æ•°çš„å˜åŒ–å’Œå¯ç”¨ä½™é¢æ˜¯å¦æ­£ç¡®
     int64_t max_vote_differ = max_send_delegate_vote - max_send_delegate_vote_new;
-    //Í¶Æ±ºó£¬ĞÂµÄÕË»§Óà¶î+ÀûÏ¢-¶³½á±ä»¯Óà¶î==Í¶Æ±Ç°ÕË»§Óà¶î
+    //æŠ•ç¥¨åï¼Œæ–°çš„è´¦æˆ·ä½™é¢+åˆ©æ¯-å†»ç»“å˜åŒ–ä½™é¢==æŠ•ç¥¨å‰è´¦æˆ·ä½™é¢
     cout <<  "send_addr_balance_new:" << send_addr_balance_new
         << "       send_profits:" << send_profits
         << "\nmax_vote_differ:" << max_vote_differ
@@ -195,7 +195,7 @@ bool OperAccountDelegateVote(const string &send_addr, const string &receive_vote
 
 
 BOOST_AUTO_TEST_SUITE(Delegatetx_tests)
-//²âÊÔÒ»´´½¨12¸öÍ¶Æ±½»Ò×
+//æµ‹è¯•ä¸€åˆ›å»º12ä¸ªæŠ•ç¥¨äº¤æ˜“
 BOOST_AUTO_TEST_CASE(excced_fund) {
     SysTestBase basetest;
     string sendTxAddr = "wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4";
@@ -254,7 +254,7 @@ BOOST_AUTO_TEST_CASE(excced_fund) {
     BOOST_CHECK(!basetest.GetHashFromCreatedTx(retValue, strHash));
 }
 
-//´´½¨ÖØ¸´µÄÍ¶Æ±Ñ¡Ïî
+//åˆ›å»ºé‡å¤çš„æŠ•ç¥¨é€‰é¡¹
 BOOST_AUTO_TEST_CASE(duplication_fund) {
     SysTestBase basetest;
     string sendTxAddr = "wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4";
@@ -274,9 +274,9 @@ BOOST_AUTO_TEST_CASE(duplication_fund) {
     BOOST_CHECK(!basetest.GetHashFromCreatedTx(retValue, strHash));
 }
 
-//²âÊÔÍ¶Æ±,Í¶Æ±ÈËÔöÁ¿Í¶Æ±Ä³ºòÑ¡ÈË
+//æµ‹è¯•æŠ•ç¥¨,æŠ•ç¥¨äººå¢é‡æŠ•ç¥¨æŸå€™é€‰äºº
 BOOST_AUTO_TEST_CASE(oper_fund) {
-    //Ôö¼Ó¶ÔºòÑ¡ÈËÆ±Êı
+    //å¢åŠ å¯¹å€™é€‰äººç¥¨æ•°
     string sendTxAddr = "wQewSbKL5kAfpwnrivSiCcaiFffgNva4uB";
 //    string delegate_addr = "wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t";
     string delegate_addr = "wRQwgYkPNe1oX9Ts3cfuQ4KerqiV2e8gqM";

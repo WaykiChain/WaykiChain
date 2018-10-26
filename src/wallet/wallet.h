@@ -57,8 +57,8 @@ private:
 public:
 	CPubKey vchDefaultKey ;
 
-	bool fFileBacked;         //³õÊ¼»¯Ç®°üÎÄ¼şÃû£¬Îªtrue
-	string strWalletFile;     //Ç®°üÎÄ¼şÃû
+	bool fFileBacked;         //åˆå§‹åŒ–é’±åŒ…æ–‡ä»¶åï¼Œä¸ºtrue
+	string strWalletFile;     //é’±åŒ…æ–‡ä»¶å
 
 	map<uint256, CAccountTx> mapInBlockTx;
 	map<uint256, std::shared_ptr<CBaseTransaction> > UnConfirmTx;
@@ -69,7 +69,7 @@ public:
 	MasterKeyMap mapMasterKeys;
 	unsigned int nMasterKeyMaxID;
 
-	static string defaultFilename;    //Ä¬ÈÏÇ®°üÎÄ¼şÃû  wallet.dat
+	static string defaultFilename;    //é»˜è®¤é’±åŒ…æ–‡ä»¶å  wallet.dat
 public:
 
 	IMPLEMENT_SERIALIZE

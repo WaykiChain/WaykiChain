@@ -1,7 +1,7 @@
 /*
  * appuseraccout.cpp
  *
- *  Created on: 2015Äê3ÔÂ30ÈÕ
+ *  Created on: 2015å¹´3æœˆ30æ—¥
  *      Author: ranger.shi
  */
 
@@ -93,14 +93,14 @@ bool CAppUserAccout::GetAppCFund(CAppCFund& outFound, const vector<unsigned char
 }
 
 bool CAppUserAccout::AddAppCFund(const CAppCFund& inFound) {
-	//ÐèÒªÕÒµ½³¬Ê±¸ß¶ÈºÍtag ¶¼ÏàÍ¬µÄ²Å¿ÉÒÔºÏ²¢
+	//éœ€è¦æ‰¾åˆ°è¶…æ—¶é«˜åº¦å’Œtag éƒ½ç›¸åŒçš„æ‰å¯ä»¥åˆå¹¶
 	auto it = find_if(vFreezedFund.begin(), vFreezedFund.end(), [&](const CAppCFund& CfundIn) {
 		return CfundIn.GetTag()== inFound.GetTag() && CfundIn.getheight() ==inFound.getheight() ;});
-	if (it != vFreezedFund.end()) { //Èç¹ûÕÒµ½ÁË
+	if (it != vFreezedFund.end()) { //å¦‚æžœæ‰¾åˆ°äº†
 		return it->MergeCFund(inFound);
 		//return true;
 	}
-	//Ã»ÓÐÕÒµ½¾Í¼ÓÒ»¸öÐÂµÄ
+	//æ²¡æœ‰æ‰¾åˆ°å°±åŠ ä¸€ä¸ªæ–°çš„
 	vFreezedFund.insert(vFreezedFund.end(),inFound);
 	return true;
 
@@ -140,11 +140,11 @@ bool CAppUserAccout::AutoMergeFreezeToFree(int hight) {
 }
 
 bool CAppUserAccout::ChangeAppCFund(const CAppCFund& inFound) {
-	//ÐèÒªÕÒµ½³¬Ê±¸ß¶ÈºÍtag ¶¼ÏàÍ¬µÄ²Å¿ÉÒÔºÏ²¢
+	//éœ€è¦æ‰¾åˆ°è¶…æ—¶é«˜åº¦å’Œtag éƒ½ç›¸åŒçš„æ‰å¯ä»¥åˆå¹¶
 	assert(inFound.getheight() > 0);
 	auto it = find_if(vFreezedFund.begin(), vFreezedFund.end(), [&](const CAppCFund& CfundIn) {
 		return CfundIn.GetTag()== inFound.GetTag() && CfundIn.getheight() ==inFound.getheight() ;});
-	if (it != vFreezedFund.end()) { //Èç¹ûÕÒµ½ÁË
+	if (it != vFreezedFund.end()) { //å¦‚æžœæ‰¾åˆ°äº†
 		*it= inFound;
 		return true;
 	}
@@ -156,7 +156,7 @@ bool CAppUserAccout::MinusAppCFund(const CAppCFund& inFound) {
 	assert(inFound.getheight() > 0);
 	auto it = find_if(vFreezedFund.begin(), vFreezedFund.end(), [&](const CAppCFund& CfundIn) {
 		return CfundIn.GetTag()== inFound.GetTag() && CfundIn.getheight() ==inFound.getheight() ;});
-	if (it != vFreezedFund.end()) { //Èç¹ûÕÒµ½ÁË
+	if (it != vFreezedFund.end()) { //å¦‚æžœæ‰¾åˆ°äº†
 		if(it->getvalue() >= inFound.getvalue())
 			{
 			 if(it->getvalue() == inFound.getvalue())

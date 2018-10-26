@@ -22,20 +22,20 @@
 
 #if 0
 typedef struct NumArray{
-	int size;          // Êı×é´óĞ¡
-	double values[1];  //Êı×é»º³åÇø
+	int size;          // æ•°ç»„å¤§å°
+	double values[1];  //æ•°ç»„ç¼“å†²åŒº
 }NumArray;
 
 /*
- * »ñÈ¡userdatum*/
+ * è·å–userdatum*/
 static NumArray *checkarray(lua_State *L){
-	//¼ì²éÔÚÕ»ÖĞÖ¸¶¨Î»ÖÃµÄ¶ÔÏóÊÇ·ñÎª´øÓĞ¸ø¶¨Ãû×ÖµÄmetatableµÄuserdatum
+	//æ£€æŸ¥åœ¨æ ˆä¸­æŒ‡å®šä½ç½®çš„å¯¹è±¡æ˜¯å¦ä¸ºå¸¦æœ‰ç»™å®šåå­—çš„metatableçš„userdatum
     void *ud = luaL_checkudata(L,1,"LuaBook.array");
     luaL_argcheck(L,ud != NULL,1,"'array' expected");
     return (NumArray *)ud;
 }
 /*
- * »ñÈ¡Ë÷Òı´¦µÄÖ¸Õë*/
+ * è·å–ç´¢å¼•å¤„çš„æŒ‡é’ˆ*/
 static double *getelem(lua_State *L){
     NumArray *a = checkarray(L);
     int index = luaL_checkint(L,2);
@@ -44,21 +44,21 @@ static double *getelem(lua_State *L){
     return &a->values[index - 1];
 }
 /*
- * ´´½¨ĞÂÊı×é*/
+ * åˆ›å»ºæ–°æ•°ç»„*/
 int newarray(lua_State *L){
-   int n = luaL_checkint(L,1);   //¼ì²éÖ¤ÊµµÄluaL_checknumberµÄ±äÌå
+   int n = luaL_checkint(L,1);   //æ£€æŸ¥è¯å®çš„luaL_checknumberçš„å˜ä½“
    size_t nbytes = sizeof(NumArray) + (n -1) * sizeof(double);
 
-	/*Ò»¸öuserdatum Ìá¹©Ò»¸öÔÚLuaÖĞÃ»ÓĞÔ¤¶¨Òå²Ù×÷µÄrawÄÚ´æÇøÓò£»
-          °´ÕÕÖ¸¶¨µÄ´óĞ¡·ÖÅäÒ»¿éÄÚ´æ£¬½«¶ÔÓ¦µÄuserdatum·Åµ½Õ»ÄÚ,²¢·µ»ØÄÚ´æ¿éµÄµØÖ·*/
+	/*ä¸€ä¸ªuserdatum æä¾›ä¸€ä¸ªåœ¨Luaä¸­æ²¡æœ‰é¢„å®šä¹‰æ“ä½œçš„rawå†…å­˜åŒºåŸŸï¼›
+          æŒ‰ç…§æŒ‡å®šçš„å¤§å°åˆ†é…ä¸€å—å†…å­˜ï¼Œå°†å¯¹åº”çš„userdatumæ”¾åˆ°æ ˆå†…,å¹¶è¿”å›å†…å­˜å—çš„åœ°å€*/
    NumArray *a = (NumArray *)lua_newuserdata(L,nbytes);
-   luaL_getmetatable(L,"LuaBook.array");   //»ñÈ¡registryÖĞµÄtname¶ÔÓ¦µÄmetatable
-   lua_setmetatable(L,-2);   //½«±í³öÕ»²¢½«ÆäÉèÖÃÎª¸ø¶¨Î»ÖÃµÄ¶ÔÏóµÄmetatable  ¾ÍÊÇĞÂµÄuserdatum
+   luaL_getmetatable(L,"LuaBook.array");   //è·å–registryä¸­çš„tnameå¯¹åº”çš„metatable
+   lua_setmetatable(L,-2);   //å°†è¡¨å‡ºæ ˆå¹¶å°†å…¶è®¾ç½®ä¸ºç»™å®šä½ç½®çš„å¯¹è±¡çš„metatable  å°±æ˜¯æ–°çš„userdatum
    a->size = n;
    return 1; /*new userdatnum is already on the statck*/
 }
 /*
- * ´æ´¢ÔªËØ,array.set(array,index,value)*/
+ * å­˜å‚¨å…ƒç´ ,array.set(array,index,value)*/
 int setarray(lua_State *L){
 #if 0
 	NumArray *a = (NumArray *)lua_touserdata(L,1);
@@ -75,7 +75,7 @@ int setarray(lua_State *L){
 	return 0;
 }
 /*
- * »ñÈ¡Ò»¸öÊı×éÔªËØ*/
+ * è·å–ä¸€ä¸ªæ•°ç»„å…ƒç´ */
 int getarray(lua_State *L){
 #if 0
 	NumArray *a = (NumArray *)lua_touserdata(L,1);
@@ -90,7 +90,7 @@ int getarray(lua_State *L){
     return 1;
 }
 /*
- * »ñÈ¡Êı×éµÄ´óĞ¡*/
+ * è·å–æ•°ç»„çš„å¤§å°*/
 int getsize(lua_State *L){
 #if 0
 	NumArray *a = (NumArray *)lua_touserdata(L,1);
@@ -109,7 +109,7 @@ static const struct luaL_Reg arraylib[] = {
 		{NULL,NULL}
 };
 static int luaopen_array(lua_State *L){
-	/*´´½¨Êı×éuserdata½«ÒªÓÃµ½µÄmetatable*/
+	/*åˆ›å»ºæ•°ç»„userdataå°†è¦ç”¨åˆ°çš„metatable*/
 	luaL_newmetatable(L,"LuaBook.array");
 	luaL_openlib(L,"array",arraylib,0);
 
@@ -137,7 +137,7 @@ static int luaopen_array(lua_State *L){
 //////////////////////////////////////////////////////////////////////
 CVmlua::CVmlua(const vector<unsigned char> & vRom, const vector<unsigned char> &InputData){
 	unsigned long len = 0;
-	/*vRom ÊäÈëµÄÊÇscript,InputData ÊäÈëµÄÊÇcontract*/
+	/*vRom è¾“å…¥çš„æ˜¯script,InputData è¾“å…¥çš„æ˜¯contract*/
     memset(m_ExRam,0,sizeof(m_ExRam));
     memset(m_ExeFile,0,sizeof(m_ExeFile));
 
@@ -146,7 +146,7 @@ CVmlua::CVmlua(const vector<unsigned char> & vRom, const vector<unsigned char> &
     	throw runtime_error("CVmlua::CVmlua() length of vRom exceptions");
     }
 	memcpy(m_ExeFile, &vRom[0], len);
-	unsigned short count = InputData.size();//ÍâÃæÒÑÏŞÖÆĞ¡ÓÚ4096×Ö½Ú
+	unsigned short count = InputData.size();//å¤–é¢å·²é™åˆ¶å°äº4096å­—èŠ‚
 	if(count > sizeof(m_ExRam) - 2){
 		throw runtime_error("CVmlua::CVmlua() length of contract > 4094");
 	}
@@ -187,7 +187,7 @@ void vm_openlibs (lua_State *L) {
 }
 
 tuple<bool,string> CVmlua::syntaxcheck(const char* filePath) {
-	//1.´´½¨LuaÔËĞĞ»·¾³
+	//1.åˆ›å»ºLuaè¿è¡Œç¯å¢ƒ
 	lua_State *lua_state = luaL_newstate();
 	if (NULL == lua_state) {
 		LogPrint("vm", "luaL_newstate error\n");
@@ -195,7 +195,7 @@ tuple<bool,string> CVmlua::syntaxcheck(const char* filePath) {
 	}
 
 	vm_openlibs(lua_state);
-	//3.×¢²á×Ô¶¨ÒåÄ£¿é
+	//3.æ³¨å†Œè‡ªå®šä¹‰æ¨¡å—
 	luaL_requiref(lua_state, "mylib", luaopen_mylib, 1);
 
 	int nRet = luaL_loadfile(lua_state, filePath);
@@ -218,14 +218,14 @@ tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun) {
 		return std::make_tuple (-1, string("maxstep == 0\n"));
 	}
 
-	//1.´´½¨LuaÔËĞĞ»·¾³
+	//1.åˆ›å»ºLuaè¿è¡Œç¯å¢ƒ
    lua_State *lua_state = luaL_newstate();
    if(NULL == lua_state){
 	   LogPrint("vm", "luaL_newstate error\n");
 	   return std::make_tuple (-1, string("luaL_newstate error\n"));
    }
 /*
-   //2.ÉèÖÃ´ı×¢²áµÄLua±ê×¼¿â
+   //2.è®¾ç½®å¾…æ³¨å†Œçš„Luaæ ‡å‡†åº“
    static const luaL_Reg lualibs[] =
    {
 	   {"base",luaopen_base},
@@ -240,7 +240,7 @@ tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun) {
 //	   {LUA_DBLIBNAME, luaopen_debug},
 	   {NULL,NULL}
    };
-   //3.×¢²áLua±ê×¼¿â²¢Çå¿ÕÕ»
+   //3.æ³¨å†ŒLuaæ ‡å‡†åº“å¹¶æ¸…ç©ºæ ˆ
 
    const luaL_Reg *lib = lualibs;
    for(;lib->func != NULL;lib++)
@@ -249,32 +249,32 @@ tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun) {
 	   lua_settop(lua_state,0);
    }
 
-   //´ò¿ªĞèÒªµÄ¿â
+   //æ‰“å¼€éœ€è¦çš„åº“
    //luaL_openlibs(lua_state);
 */
    vm_openlibs(lua_state);
-   //3.×¢²á×Ô¶¨ÒåÄ£¿é
+   //3.æ³¨å†Œè‡ªå®šä¹‰æ¨¡å—
    luaL_requiref(lua_state,"mylib",luaopen_mylib,1);
 
-   //4.Íùlua½Å±¾´«µİºÏÔ¼ÄÚÈİ
-	lua_newtable(lua_state);    //ĞÂ½¨Ò»¸ö±í,Ñ¹ÈëÕ»¶¥
+   //4.å¾€luaè„šæœ¬ä¼ é€’åˆçº¦å†…å®¹
+	lua_newtable(lua_state);    //æ–°å»ºä¸€ä¸ªè¡¨,å‹å…¥æ ˆé¡¶
 	lua_pushnumber(lua_state,-1);
 	lua_rawseti(lua_state,-2,0);
-	memcpy(&count,m_ExRam,  2);//ÍâÃæÒÑÏŞÖÆ£¬ºÏÔ¼ÄÚÈİĞ¡ÓÚ4096×Ö½Ú
+	memcpy(&count,m_ExRam,  2);//å¤–é¢å·²é™åˆ¶ï¼Œåˆçº¦å†…å®¹å°äº4096å­—èŠ‚
     for(unsigned short n = 0;n < count;n++)
     {
-        lua_pushinteger(lua_state,m_ExRam[2 + n]);// valueÖµ·ÅÈë
+        lua_pushinteger(lua_state,m_ExRam[2 + n]);// valueå€¼æ”¾å…¥
         lua_rawseti(lua_state,-2,n+1);  //set table at key 'n + 1'
     }
     lua_setglobal(lua_state,"contract");
 
-    //´«µİpVmScriptRunÖ¸Õë£¬ÒÔ±ãºóÃæ´úÂëÒıÓÃ£¬È¥µôÁËÊ¹ÓÃÈ«¾Ö±äÁ¿±£´æ¸ÃÖ¸Õë
+    //ä¼ é€’pVmScriptRunæŒ‡é’ˆï¼Œä»¥ä¾¿åé¢ä»£ç å¼•ç”¨ï¼Œå»æ‰äº†ä½¿ç”¨å…¨å±€å˜é‡ä¿å­˜è¯¥æŒ‡é’ˆ
     lua_pushlightuserdata(lua_state, pVmScriptRun);
     lua_setglobal(lua_state,"VmScriptRun");
 
     LogPrint("vm", "pVmScriptRun=%p\n",pVmScriptRun);
 
-   //5.¼ÓÔØ½Å±¾
+   //5.åŠ è½½è„šæœ¬
     step = maxstep;
 
     if(luaL_loadbuffer(lua_state,(char *)m_ExeFile,strlen((char *)m_ExeFile),"line") || lua_pcallk(lua_state,0,0,0,0,NULL,&step))
@@ -289,7 +289,7 @@ tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun) {
 	   return std::make_tuple (step, strError);
     }
 
-    //6.Æ½ºâ¼ì²éÉèÖÃ£¬Ä¬ÈÏ¹Ø±Õ£¬Èç¹û½Å±¾Ã»ÉèÖÃ¸Ã±äÁ¿
+    //6.å¹³è¡¡æ£€æŸ¥è®¾ç½®ï¼Œé»˜è®¤å…³é—­ï¼Œå¦‚æœè„šæœ¬æ²¡è®¾ç½®è¯¥å˜é‡
 	pVmScriptRun->SetCheckAccount(false);
 	int res = lua_getglobal(lua_state, "gCheckAccount");
 	LogPrint("vm", "lua_getglobal:%d\n", res);
@@ -306,7 +306,7 @@ tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun) {
     lua_pop(lua_state, 1);
 
 
-    //7.¹Ø±ÕLuaĞéÄâ»ú
+    //7.å…³é—­Luaè™šæ‹Ÿæœº
 	lua_close(lua_state);
 	LogPrint("vm", "run step=%ld\n",step);
 

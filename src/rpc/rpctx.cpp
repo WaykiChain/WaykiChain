@@ -701,8 +701,8 @@ Value registerapptx(const Array& params, bool fHelp) {
 //create a delegate transaction
 Value createdelegatetx(const Array& params, bool fHelp) {
     if (fHelp || params.size() <  3  || params.size() > 4) {
-            throw runtime_error("registerapptx \"addr\" \"filepath\"\"fee\" (\"height\") (\"scriptdescription\")\n"
-                    "\ncreate a register script transaction\n"
+            throw runtime_error("createdelegatetx \"addr\" \"opervotes\"\"fee\" (\"height\") \n"
+                    "\ncreate a delegate vote transaction\n"
                     "\nArguments:\n"
                     "1.\"addr\": (string required) send delegate transaction address\n"
                     "2. \"opervotes\"    (string, required) A json array of json oper vote to delegates\n"
