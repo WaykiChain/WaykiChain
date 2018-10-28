@@ -847,8 +847,8 @@ Value createdelegatetxraw(const Array& params, bool fHelp) {
     //get keyid
     CKeyID keyid;
     if (!GetKeyId(sendAddr, keyid)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in createdelegatetxraw :address err");
-    }
+		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in createdelegatetxraw Error: Send tx address error.");
+	}
     CDelegateTransaction delegateTx;
     assert(pwalletMain != NULL);
     {
@@ -859,8 +859,8 @@ Value createdelegatetxraw(const Array& params, bool fHelp) {
 
         CUserID userId = keyid;
         if (!view.GetAccount(userId, account)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in createdelegatetxraw Error: Account balance is insufficient.");
-        }
+			throw JSONRPCError(RPC_WALLET_ERROR, "in createdelegatetxraw Error: Account is not exist.");
+		}
 
         if (!account.IsRegister()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in createdelegatetxraw Error: Account is not registered.");
@@ -889,16 +889,16 @@ Value createdelegatetxraw(const Array& params, bool fHelp) {
             const Value& delegateAddress = find_value(operVote.get_obj(), "delegate");
             const Value& delegateVotes = find_value(operVote.get_obj(),  "votes");
             if(delegateAddress.type() == null_type || delegateVotes == null_type) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "in createdelegatetxraw :vote fund address error or fund value error.");
-            }
+				throw JSONRPCError(RPC_INVALID_PARAMETER, "in createdelegatetxraw Error: Voted delegator's address type error or vote value error.");
+			}
             CKeyID delegateKeyId;
             if (!GetKeyId(delegateAddress.get_str(), delegateKeyId)) {
-                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in createdelegatetxraw :address error.");
-            }
+				throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in createdelegatetxraw Error: Voted delegator's address error.");
+			}
             CAccount delegateAcct;
             if (!view.GetAccount(CUserID(delegateKeyId), delegateAcct)) {
-                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in createdelegatetxraw Error: delegate address is not registered.");
-            }
+				throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in createdelegatetxraw Error: Voted delegator's address is not registered.");
+			}
             operVoteFund.fund.pubKey = delegateAcct.PublicKey;
             operVoteFund.fund.value = (uint64_t)abs(delegateVotes.get_int64());
             if(delegateVotes.get_int64() > 0 ) {
@@ -908,10 +908,6 @@ Value createdelegatetxraw(const Array& params, bool fHelp) {
                 operVoteFund.operType = MINUS_FUND;
             }
             delegateTx.operVoteFunds.push_back(operVoteFund);
-        }
-
-        if (!pwalletMain->Sign(keyid, delegateTx.SignatureHash(), delegateTx.signature)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in createdelegatetxraw Error: Sign failed.");
         }
     }
 
@@ -2649,7 +2645,7 @@ Value listasset(const Array& params, bool fHelp) {
 	}
 
 	CRegID script(params[0].get_str());
-	
+
 	Array retArry;
 	assert(pwalletMain != NULL);
 	{
@@ -3164,12 +3160,12 @@ Value getdelegatelist(const Array& params, bool fHelp) {
           char *stopstring;
           llVotes = strtoul(strVoltes.c_str(), &stopstring, 16);
 		  */
-		  
+
 		  stringstream strValue;
 		  strValue.flags(ios::hex);
 		  strValue << strVoltes;
 		  strValue >> llVotes;
-	
+
           vector<unsigned char> vAcctRegId(iterVotes+26, vScriptKey.end());
           CRegID acctRegId(vAcctRegId);
           CAccount account;
