@@ -654,7 +654,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransact
     	return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s has been confirmed\n", hash.GetHex()), REJECT_INVALID, "tx-duplicate-confirmed");
 
     if (pBaseTx->IsCoinBase())
-    	return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s is coin base tx,can't put into mempool", hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
+    	return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s is coin base tx, can't put into mempool", hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
 	// is it in valid height
 	if (!pBaseTx->IsValidHeight(chainActive.Tip()->nHeight, SysCfg().GetTxCacheHeight())) {
 		return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txhash=%s beyond the scope of valid height\n ", hash.GetHex()),
