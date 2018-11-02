@@ -2504,6 +2504,17 @@ Value sigstr(const Array& params, bool fHelp) {
 		obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
 	}
 		break;
+	case DELEGATE_TX: {
+		std::shared_ptr<CDelegateTransaction> tx = std::make_shared<CDelegateTransaction>(pBaseTx.get());
+		if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature)) {
+			throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
+		}
+		CDataStream ds(SER_DISK, CLIENT_VERSION);
+		std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+		ds << pBaseTx;
+		obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+	}
+		break;
 	default:
 //		assert(0);
 		break;
