@@ -3124,7 +3124,7 @@ Value getrawtx(const Array& params, bool fHelp) {
         streamRawTx << pDelegateTx->signature;
     }
 	else {
-		 throw runtime_error("seiralize tx type value error, must be ranger(1...5)\n");
+		 throw runtime_error("seiralize tx type value error, must be ranger(1...6)\n");
 	}
 	vector<unsigned char> vRetCh(streamRawTx.begin(), streamRawTx.end());
 	Object obj;
