@@ -524,8 +524,12 @@ static void RPCAcceptHandler(std::shared_ptr< basic_socket_acceptor<Protocol, So
 void StartRPCThreads()
 {
     strRPCUserColonPass = SysCfg().GetArg("-rpcuser", "") + ":" + SysCfg().GetArg("-rpcpassword", "");
-    if (((SysCfg().GetArg("-rpcpassword", "") == "") ||
-         (SysCfg().GetArg("-rpcuser", "") == SysCfg().GetArg("-rpcpassword", ""))) && SysCfg().RequireRPCPassword())
+    
+    string rpcuser = SysCfg().GetArg("-rpcuser", "");
+    string rpcpassword = SysCfg().GetArg("-rpcpassword", "");
+    // RPC user/password required but empty or equal to each other
+    if (  SysCfg().RequireRPCPassword() &&
+        ( rpcuser == "" || rpcpassword == "" || rpcuser == rpcpassword ))
     {
         unsigned char rand_pwd[32];
         RAND_bytes(rand_pwd, 32);
@@ -534,6 +538,7 @@ void StartRPCThreads()
             strWhatAmI = strprintf(_("To use the %s option"), "\"-server\"");
         else if (SysCfg().IsArgCount("-daemon"))
             strWhatAmI = strprintf(_("To use the %s option"), "\"-daemon\"");
+
         uiInterface.ThreadSafeMessageBox(strprintf(
             _("%s, you must set a rpcpassword in the configuration file:\n"
               "%s\n"

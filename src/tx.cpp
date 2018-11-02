@@ -459,7 +459,7 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
 
 	uint64_t addValue = llValues;
 	if(!view.GetAccount(desUserId, desAcct)) {
-		if((COMMON_TX == nTxType) && (desUserId.type() == typeid(CKeyID))) {  //Ä¿µÄµØÖ·ÕË»§²»´æÔÚ
+		if((COMMON_TX == nTxType) && (desUserId.type() == typeid(CKeyID))) {  //Ä¿ï¿½Äµï¿½Ö·ï¿½Ë»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			desAcct.keyID = boost::get<CKeyID>(desUserId);
 			desAcctLog.keyID = desAcct.keyID;
 		}
@@ -501,12 +501,12 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
 				GetHash().GetHex());
 		set<CKeyID> vAddress;
 		vector<std::shared_ptr<CAccount> > &vAccount = vmRunEvn.GetNewAccont();
-		for (auto & itemAccount : vAccount) {  //¸üÐÂ¶ÔÓ¦µÄºÏÔ¼½»Ò×µÄÕË»§ÐÅÏ¢
+		for (auto & itemAccount : vAccount) {  //ï¿½ï¿½ï¿½Â¶ï¿½Ó¦ï¿½Äºï¿½Ô¼ï¿½ï¿½ï¿½×µï¿½ï¿½Ë»ï¿½ï¿½ï¿½Ï¢
 			vAddress.insert(itemAccount->keyID);
 			userId = itemAccount->keyID;
 			CAccount oldAcct;
 			if(!view.GetAccount(userId, oldAcct)) {
-				if(!itemAccount->keyID.IsNull()) {  //ºÏÔ¼ÍùÎ´·¢Éú¹ý×ªÕË¼ÇÂ¼µØÖ·×ª±Ò
+				if(!itemAccount->keyID.IsNull()) {  //ï¿½ï¿½Ô¼ï¿½ï¿½Î´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½Ë¼ï¿½Â¼ï¿½ï¿½Ö·×ªï¿½ï¿½
 					oldAcct.keyID = itemAccount->keyID;
 				}else {
 				return state.DoS(100,
@@ -1089,7 +1089,7 @@ Object CDelegateTransaction::ToJSON(const CAccountViewCache &AccountView) const 
     result.push_back(Pair("regid", boost::get<CRegID>(userId).ToString()));
     view.GetKeyId(userId, keyid);
     result.push_back(Pair("addr", keyid.ToAddress()));
-    result.push_back(Pair("Fees", llFees));
+    result.push_back(Pair("fees", llFees));
     Array operVoteFundArray;
     for(auto item = operVoteFunds.begin(); item != operVoteFunds.end(); ++item) {
         operVoteFundArray.push_back(item->ToJson(true));
