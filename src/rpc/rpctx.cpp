@@ -2504,6 +2504,17 @@ Value sigstr(const Array& params, bool fHelp) {
 		obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
 	}
 		break;
+	case DELEGATE_TX: {
+		std::shared_ptr<CDelegateTransaction> tx = std::make_shared<CDelegateTransaction>(pBaseTx.get());
+		if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature)) {
+			throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
+		}
+		CDataStream ds(SER_DISK, CLIENT_VERSION);
+		std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+		ds << pBaseTx;
+		obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+	}
+		break;
 	default:
 //		assert(0);
 		break;
@@ -3113,7 +3124,7 @@ Value getrawtx(const Array& params, bool fHelp) {
         streamRawTx << pDelegateTx->signature;
     }
 	else {
-		 throw runtime_error("seiralize tx type value error, must be ranger(1...5)\n");
+		 throw runtime_error("seiralize tx type value error, must be ranger(1...6)\n");
 	}
 	vector<unsigned char> vRetCh(streamRawTx.begin(), streamRawTx.end());
 	Object obj;
