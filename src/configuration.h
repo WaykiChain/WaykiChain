@@ -72,21 +72,22 @@ public:
 	const vector<string> GetIntPubKey(NET_TYPE type) const;
 	const uint256 GetIntHash(NET_TYPE type) const;
 	const string GetCheckPointPkey(NET_TYPE type) const;
-	 const uint256 GetHashMerkleRoot() const;
-	 vector<unsigned int> GetSeedNodeIP() const;
-	 unsigned char* GetMagicNumber(NET_TYPE type) const;
-	 vector<unsigned char> GetAddressPrefix(NET_TYPE type,Base58Type BaseType) const;
-	 unsigned int GetnDefaultPort(NET_TYPE type) const;
-	 unsigned int GetnRPCPort(NET_TYPE type) const;
-	 unsigned int GetnUIPort(NET_TYPE type) const;
-	 unsigned int GetStartTimeInit(NET_TYPE type) const;
-	 unsigned int GetHalvingInterval(NET_TYPE type) const;
-	 uint64_t GetCoinInitValue() const;
-	 uint64_t GetBlockSubsidyCfg(int nHeight) const;
-	 uint64_t GetDelegatesCfg() const;
-	 uint32_t GetExpansionPecentCfg() const;
-	 string GetDelegateSignature(NET_TYPE type) const;
-	 const vector<string> GetDelegatePubKey(NET_TYPE type) const;
+	const uint256 GetHashMerkleRoot() const;
+	vector<unsigned int> GetSeedNodeIP() const;
+	unsigned char* GetMagicNumber(NET_TYPE type) const;
+	vector<unsigned char> GetAddressPrefix(NET_TYPE type,Base58Type BaseType) const;
+	unsigned int GetnDefaultPort(NET_TYPE type) const;
+	unsigned int GetnRPCPort(NET_TYPE type) const;
+	unsigned int GetnUIPort(NET_TYPE type) const;
+	unsigned int GetStartTimeInit(NET_TYPE type) const;
+	unsigned int GetHalvingInterval(NET_TYPE type) const;
+	uint64_t GetCoinInitValue() const;
+	uint64_t GetBlockSubsidyCfg(int nHeight) const;
+	int GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const;
+	uint64_t GetDelegatesCfg() const;
+	uint32_t GetExpansionPecentCfg() const;
+	string GetDelegateSignature(NET_TYPE type) const;
+	const vector<string> GetDelegatePubKey(NET_TYPE type) const;
 
 private:
 
@@ -167,6 +168,11 @@ private:
 	static unsigned int  nDelegates;
 
 	static unsigned int ExpansionPecent;
+
+	//投票初始分红率
+	static uint64_t nInitialSubsidy;
+	//投票固定分红率
+	static uint64_t nFixedSubsidy;
 
 };
 

@@ -415,18 +415,31 @@ uint64_t G_CONFIG_TABLE::GetCoinInitValue() const{
     return InitialCoin;
 }
 
-uint64_t G_CONFIG_TABLE::GetBlockSubsidyCfg(int nHeight) const{
-    uint64_t nSubsidy = 5;
-    uint64_t nFixedValue = 1;
-     int halvings = nHeight / SysCfg().GetSubsidyHalvingInterval();
-     // Force block reward to fixed value when right shift is more than 3.
-     if (halvings > 4) {
-        return nFixedValue;
-     }else {
-        // Subsidy is cut 1 percent every 2,102,400 blocks which will occur approximately every 1 years and the profit will be 1 percent
-        nSubsidy -= halvings;
-     }
-     return nSubsidy;
+uint64_t G_CONFIG_TABLE::GetBlockSubsidyCfg(int nHeight) const {
+    uint64_t nSubsidy = nInitialSubsidy;
+    int nHalvings = nHeight / SysCfg().GetSubsidyHalvingInterval();
+    // Force block reward to fixed value when right shift is more than 3.
+    if (nHalvings > 4) {
+        return nFixedSubsidy;
+    } else {
+    // Subsidy is cut 1 percent every 2,102,400 blocks which will occur approximately every 1 years and the profit will be 1 percent
+        nSubsidy -= nHalvings;
+    }
+    return nSubsidy;
+}
+
+int G_CONFIG_TABLE::GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const {
+    assert(nSubsidyValue >= nFixedSubsidy && nSubsidyValue <= nInitialSubsidy);
+    uint64_t nSubsidy = nInitialSubsidy;
+    int nHalvings = 0;
+    map<uint64_t/*subsidy*/, int/*height*/> mSubsidyHeight;
+    while (nSubsidy >= nFixedSubsidy) {
+        mSubsidyHeight[nSubsidy] = nHalvings * SysCfg().GetSubsidyHalvingInterval();
+        nHalvings += 1;
+        nSubsidy -= 1;
+    }
+
+    return mSubsidyHeight[nSubsidyValue];
 }
 
 uint64_t G_CONFIG_TABLE::GetDelegatesCfg() const {
@@ -544,9 +557,6 @@ string G_CONFIG_TABLE::hashGenesisBlock_regTest = "0xab8d8b1d11784098108df399b24
  //梅根HASH
 string G_CONFIG_TABLE::HashMerkleRoot = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
 
-
-
-
 //IP地址
  vector<unsigned int> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0xDC36FB0D, 0x91A11C77, 0xFFFFE60D, 0x3D304B2F, 0xB21A4E75, 0x0C2AFE2F, 0xC246FE2F, 0x0947FE2F};
 
@@ -590,3 +600,7 @@ unsigned int G_CONFIG_TABLE::nDelegates = 11;
 
 unsigned int G_CONFIG_TABLE::ExpansionPecent = 5;
 
+//投票初始分红率
+uint64_t G_CONFIG_TABLE::nInitialSubsidy = 5;
+//投票固定分红率
+uint64_t G_CONFIG_TABLE::nFixedSubsidy = 1;
