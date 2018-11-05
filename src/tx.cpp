@@ -1255,7 +1255,9 @@ uint64_t CAccount::GetAccountProfit(int nCurHeight) {
     auto calculateProfit = [](uint64_t nValue, uint64_t nSubsidy, int nBeginHeight, int nEndHeight) -> uint64_t {
         int64_t nHoldHeight = (int64_t)nEndHeight - (int64_t)nBeginHeight;
         int64_t nDayHeight = 24 * 60 * 60 / SysCfg().GetTargetSpacing();
-        uint64_t llProfits =  nValue * nHoldHeight * nSubsidy * 10000 / nDayHeight / 365 / 100 / 10000;
+        // uint64_t llProfits =  nValue * nHoldHeight * nSubsidy * 10000 / nDayHeight / 365 / 100 / 10000;
+        // 为了避免 nValue * hHoldHeight * nSubsidy * 10000 > max(uint64_t) 造成溢出，对原始公式进行变换
+        uint64_t llProfits =  (uint64_t)(nValue * ((long double)nHoldHeight * nSubsidy / nDayHeight / 365 / 100));
 
     	LogPrint("profits", "nValue:%lld nSubsidy:%lld nBeginHeight:%d nEndHeight:%d llProfits:%lld\n", nValue, nSubsidy, nBeginHeight, nEndHeight, llProfits);
 
