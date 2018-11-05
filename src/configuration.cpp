@@ -587,7 +587,8 @@ string G_CONFIG_TABLE::HashMerkleRoot = "0x16b211137976871bb062e211f08b2f70a60fa
  unsigned int G_CONFIG_TABLE::StartTime_regTest = 1504305600;
 
 //半衰期
- unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = 2102400; // one year
+// 365 * 24 * 60 * 60 / 10 = 3153600
+ unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = 3153600; // one year
  unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_regNet = 500;
 
 //修改发币初始值
