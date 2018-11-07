@@ -1238,25 +1238,47 @@ bool CAccount::UndoOperateAccount(const CAccountLog & accountLog) {
 	return true;
 }
 
-uint64_t CAccount::GetAccountProfit(int nCurHeight){
-    uint64_t llProfits = 0;
-    if(nCurHeight < nHeight) {
-            return 0;
-    }
-    else if(nCurHeight == nHeight) {
+uint64_t CAccount::GetAccountProfit(int nCurHeight) {
+    // 过滤无分红情况
+    if (voteFunds.empty() || nCurHeight <= nHeight) {
         return 0;
     }
-    else{
-        int64_t nHoldHeight = (int64_t)nCurHeight-(int64_t)nHeight;
+    // 先判断计算分红的上下限区块高度是否落在同一个分红率区间
+    int nBeginHeight = nHeight;
+    int nEndHeight = nCurHeight;
+    uint64_t nBeginSubsidy = IniCfg().GetBlockSubsidyCfg(nHeight);
+    uint64_t nEndSubsidy = IniCfg().GetBlockSubsidyCfg(nCurHeight);
+    uint64_t nValue = voteFunds.begin()->value;
+	LogPrint("profits", "nBeginSubsidy:%lld nEndSubsidy:%lld nBeginHeight:%d nEndHeight:%d\n", nBeginSubsidy, nEndSubsidy, nBeginHeight, nEndHeight);
+
+	// 计算分红
+    auto calculateProfit = [](uint64_t nValue, uint64_t nSubsidy, int nBeginHeight, int nEndHeight) -> uint64_t {
+        int64_t nHoldHeight = (int64_t)nEndHeight - (int64_t)nBeginHeight;
         int64_t nDayHeight = 24 * 60 * 60 / SysCfg().GetTargetSpacing();
-        if(!voteFunds.empty()) {
-            llProfits = voteFunds.begin()->value * nHoldHeight * IniCfg().GetBlockSubsidyCfg(nCurHeight) * 10000 / nDayHeight / 365  / 100 / 10000;
-            LogPrint("profits", "updateHeight:%d curHeight:%d freeze value:%lld\n", nHeight, nCurHeight, voteFunds.begin()->value);
-            nHeight = nCurHeight;
-        }
+        // uint64_t llProfits =  nValue * nHoldHeight * nSubsidy * 10000 / nDayHeight / 365 / 100 / 10000;
+        // 为了避免 nValue * hHoldHeight * nSubsidy * 10000 > max(uint64_t) 造成溢出，对原始公式进行变换
+        uint64_t llProfits =  (uint64_t)(nValue * ((long double)nHoldHeight * nSubsidy / nDayHeight / 365 / 100));
+
+    	LogPrint("profits", "nValue:%lld nSubsidy:%lld nBeginHeight:%d nEndHeight:%d llProfits:%lld\n", nValue, nSubsidy, nBeginHeight, nEndHeight, llProfits);
+
         return llProfits;
-    }
-	return 0;
+    };
+
+    // 如果属于同一个分红率区间，分红=区块高度差（持有高度）* 分红率；如果不属于同一个分红率区间，则需要根据分段函数累加每一段的分红
+    uint64_t llProfits = 0;
+    uint64_t nSubsidy = nBeginSubsidy;
+	while (nSubsidy != nEndSubsidy) {
+		int nJumpHeight = IniCfg().GetBlockSubsidyJumpHeight(nSubsidy - 1);
+		llProfits += calculateProfit(nValue, nSubsidy, nBeginHeight, nJumpHeight);
+		nBeginHeight = nJumpHeight;
+		nSubsidy -= 1;
+	}
+
+	llProfits += calculateProfit(nValue, nSubsidy, nBeginHeight, nEndHeight);
+    LogPrint("profits", "updateHeight:%d curHeight:%d freeze value:%lld\n", nHeight, nCurHeight, voteFunds.begin()->value);
+    nHeight = nCurHeight;
+
+    return llProfits;
 }
 
 uint64_t CAccount::GetRawBalance() {
