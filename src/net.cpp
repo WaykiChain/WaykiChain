@@ -67,7 +67,7 @@ CCriticalSection cs_vNodes;
 map<CInv, CDataStream> mapRelay;
 deque<pair<int64_t, CInv> > vRelayExpiration;
 CCriticalSection cs_mapRelay;
-limitedmap<CInv, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);   //´æ·Å·¢ËÍÇëÇóµÄ MSG_TX £¬int64_tÊÇ the earliest time the request can be sent£¬ÊÕµ½¶ÔÓ¦½»Ò×Ö´ĞĞerase
+limitedmap<CInv, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);   //å­˜æ”¾å‘é€è¯·æ±‚çš„ MSG_TX ï¼Œint64_tæ˜¯ the earliest time the request can be sentï¼Œæ”¶åˆ°å¯¹åº”äº¤æ˜“æ‰§è¡Œerase
 
 static deque<string> vOneShots;
 CCriticalSection cs_vOneShots;
@@ -360,7 +360,6 @@ bool GetMyExternalIP(CNetAddr& ipRet)
     string strszGet;
 //    const char* pszGet;
     const char* pszKeyword;
-
     for (int nLookup = 0; nLookup <= 1; nLookup++)
     for (int nHost = 1; nHost <= 2; nHost++)
     {
@@ -371,13 +370,13 @@ bool GetMyExternalIP(CNetAddr& ipRet)
 
     	if (nHost == 1)
         {
-            addrConnect = CService("91.198.22.70", 80); // checkip.dyndns.org
+            addrConnect = CService("91.198.22.70", 80); // checkip.dyndns.org blocked in CN though
             strszGet = string("GET / HTTP/1.1\r\n"
             					 "Host: 91.198.22.70\r\n"
             					 "User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)\r\n"
             					 "Connection: close\r\n"
             					 "\r\n");
-            if (nLookup == 1)
+            if (nLookup == 1) //2nd-time lookup
             {
                 CService addrIP("checkip.dyndns.org", 80, true);
                 if (addrIP.IsValid())
@@ -385,23 +384,21 @@ bool GetMyExternalIP(CNetAddr& ipRet)
                 strszGet.replace(strszGet.find("91.198.22.70"), sizeof("91.198.22.70"), "checkip.dyndns.org");
             }
             pszKeyword = "Address:";
-        }
-        else if (nHost == 2)
-        {
-            addrConnect = CService("74.208.43.192", 80); // www.showmyip.com
+        } else if (nHost == 2) {
+            addrConnect = CService("216.146.43.71", 80); // www.showmyip.com blocked in CN though
 
             strszGet = string("GET /simple/ HTTP/1.1\r\n"
-                     	 "Host: 74.208.43.192\r\n"
+                     	 "Host: 216.146.43.71\r\n"
                      	 "User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)\r\n"
                      	 "Connection: close\r\n"
                      	 "\r\n");
 
-            if (nLookup == 1)
+            if (nLookup == 1) //2nd-time lookup
             {
                 CService addrIP("www.showmyip.com", 80, true);
                 if (addrIP.IsValid())
                     addrConnect = addrIP;
-                strszGet.replace(strszGet.find("74.208.43.192"), sizeof("74.208.43.192"), "www.showmyip.com");
+                strszGet.replace(strszGet.find("216.146.43.71"), sizeof("216.146.43.71"), "www.showmyip.com");
             }
             pszKeyword = NULL; // Returns just IP address
         }
