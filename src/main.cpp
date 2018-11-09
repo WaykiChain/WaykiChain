@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2014-2015 The Dacrs developers
+// Copyright (c) 2014-2015 The WaykiChain Core developers
 // Copyright (c) 2016 The Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -49,13 +49,13 @@ using namespace boost;
 
 CCriticalSection cs_main;
 
-CTxMemPool mempool;  //´æ·ÅÊÕµ½µÄÎ´±»Ö´ĞĞ,Î´ÊÕ¼¯µ½¿éµÄ½»Ò×
+CTxMemPool mempool;  //å­˜æ”¾æ”¶åˆ°çš„æœªè¢«æ‰§è¡Œ,æœªæ”¶é›†åˆ°å—çš„äº¤æ˜“
 
 //static const unsigned int nStakeTargetSpacing = 60;  // 60 sec block spacing
 map<uint256, CBlockIndex*> mapBlockIndex;
 CChain chainActive;
 CChain chainMostWork;
-int g_nSyncTipHeight(0);  //Í¬²½Ê± ,chainActive.Tip()->nHeight
+int g_nSyncTipHeight(0);  //åŒæ­¥æ—¶ ,chainActive.Tip()->nHeight
 
 map<uint256, std::tuple<std::shared_ptr<CAccountViewCache>, std::shared_ptr<CTransactionDBCache>, std::shared_ptr<CScriptDBViewCache> > > mapCache;
 
@@ -74,8 +74,8 @@ struct COrphanBlock {
     int     height;
     vector<unsigned char> vchBlock;
 };
-map<uint256, COrphanBlock*> mapOrphanBlocks;  //´æ·ÅÒòÍøÂçÑÓ³ÙµÈÔ­Òò£¬ÊÕµ½µÄ¹Â¶ù¿é
-multimap<uint256, COrphanBlock*> mapOrphanBlocksByPrev;  //´æ·Å¹Â¶ù¿éµÄÉÏÒ»¸ö¿éHash¼°¿é(pblock2->hashPrev, pblock2)
+map<uint256, COrphanBlock*> mapOrphanBlocks;  //å­˜æ”¾å› ç½‘ç»œå»¶è¿Ÿç­‰åŸå› ï¼Œæ”¶åˆ°çš„å­¤å„¿å—
+multimap<uint256, COrphanBlock*> mapOrphanBlocksByPrev;  //å­˜æ”¾å­¤å„¿å—çš„ä¸Šä¸€ä¸ªå—HashåŠå—(pblock2->hashPrev, pblock2)
 
 map<uint256, std::shared_ptr<CBaseTransaction> > mapOrphanTransactions;
 map<uint256, set<uint256> > mapOrphanTransactionsByPrev;
@@ -111,7 +111,7 @@ namespace {
 
     CBlockIndex *pindexBestInvalid;
     // may contain all CBlockIndex*'s that have validness >=BLOCK_VALID_TRANSACTIONS, and must contain those who aren't failed
-    set<CBlockIndex*, CBlockIndexWorkComparator> setBlockIndexValid;//¸ù¾İ¸ß¶ÈÅÅĞòµÄÓĞĞò¼¯ºÏ
+    set<CBlockIndex*, CBlockIndexWorkComparator> setBlockIndexValid;//æ ¹æ®é«˜åº¦æ’åºçš„æœ‰åºé›†åˆ
 
 
     struct COrphanBlockComparator
@@ -122,7 +122,7 @@ namespace {
     		return false;
     	}
     };
-    set<COrphanBlock*, COrphanBlockComparator> setOrphanBlock; //´æµÄ¹ÂÁ¢¿é
+    set<COrphanBlock*, COrphanBlockComparator> setOrphanBlock; //å­˜çš„å­¤ç«‹å—
 
     CCriticalSection cs_LastBlockFile;
     CBlockFileInfo infoLastBlockFile;
@@ -146,7 +146,7 @@ namespace {
         int nQueuedBefore;  // Number of blocks in flight at the time of request.
     };
     map<uint256, pair<NodeId, list<QueuedBlock>::iterator> > mapBlocksInFlight;
-    map<uint256, pair<NodeId, list<uint256>::iterator> > mapBlocksToDownload; //´æ·Å´ıÏÂÔØµ½µÄ¿é£¬ÏÂÔØºóÖ´ĞĞerase
+    map<uint256, pair<NodeId, list<uint256>::iterator> > mapBlocksToDownload; //å­˜æ”¾å¾…ä¸‹è½½åˆ°çš„å—ï¼Œä¸‹è½½åæ‰§è¡Œerase
 
 }
 
@@ -297,11 +297,11 @@ struct CNodeState {
     // List of asynchronously-determined block rejections to notify this peer about.
     vector<CBlockReject> rejects;
     list<QueuedBlock> vBlocksInFlight;
-    int nBlocksInFlight;              //Ã¿¸ö½Úµã,µ¥¶ÀÄÜÏÂÔØµÄ×î´ó¿éÊıÁ¿   MAX_BLOCKS_IN_TRANSIT_PER_PEER
-    list<uint256> vBlocksToDownload;  //´ıÏÂÔØµÄ¿é
-    int nBlocksToDownload;            //´ıÏÂÔØµÄ¿é¸öÊı
-    int64_t nLastBlockReceive;   //ÉÏÒ»´ÎÊÕµ½¿éµÄÊ±¼ä
-    int64_t nLastBlockProcess;   //ÊÕµ½¿é£¬´¦ÀíÏûÏ¢Ê±µÄÊ±¼ä
+    int nBlocksInFlight;              //æ¯ä¸ªèŠ‚ç‚¹,å•ç‹¬èƒ½ä¸‹è½½çš„æœ€å¤§å—æ•°é‡   MAX_BLOCKS_IN_TRANSIT_PER_PEER
+    list<uint256> vBlocksToDownload;  //å¾…ä¸‹è½½çš„å—
+    int nBlocksToDownload;            //å¾…ä¸‹è½½çš„å—ä¸ªæ•°
+    int64_t nLastBlockReceive;   //ä¸Šä¸€æ¬¡æ”¶åˆ°å—çš„æ—¶é—´
+    int64_t nLastBlockProcess;   //æ”¶åˆ°å—ï¼Œå¤„ç†æ¶ˆæ¯æ—¶çš„æ—¶é—´
 
     CNodeState() {
         nMisbehavior = 0;
@@ -1583,7 +1583,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
 	    assert(0);
 	}
 	LogPrint("INFO", "miner address=%s\n", minerAcct.keyID.ToAddress());
-	//Ğ£Ñéreward
+	//æ ¡éªŒreward
 	uint64_t llValidReward = block.GetFee() - block.GetFuel();
 	if (pRewardTx->rewardValue != llValidReward) {
 		LogPrint("INFO", "block fee:%lld, block fuel:%lld\n", block.GetFee(), block.GetFuel());
@@ -2203,7 +2203,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock& block, CBlockIndex *pPreBlockI
 				CBlock block;
 				if (!ReadBlockFromDisk(block, pPreBlockIndex))
 					return state.Abort(_("Failed to read block"));
-				vPreBlocks.push_back(block);                   //½«Ö§Á´µÄblock±£´æÆğÀ´
+				vPreBlocks.push_back(block);                   //å°†æ”¯é“¾çš„blockä¿å­˜èµ·æ¥
 			}
 			pPreBlockIndex = pPreBlockIndex->pprev;
 			if(chainActive.Tip()->nHeight - pPreBlockIndex->nHeight > SysCfg().GetIntervalPos()) {
@@ -2212,7 +2212,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock& block, CBlockIndex *pPreBlockI
 			map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(pPreBlockIndex->GetBlockHash());
 			if (mi == mapBlockIndex.end())
 				return state.DoS(10, ERRORMSG("CheckBlockProofWorkWithCoinDay() : prev block not found"), 0, "bad-prevblk");
-		}//Èç¹û½øÀ´µÄpreblock hash²»ÎªtipµÄhash,ÕÒµ½Ö÷Á´ÖĞ·Ö²æ´¦
+		}//å¦‚æœè¿›æ¥çš„preblock hashä¸ä¸ºtipçš„hash,æ‰¾åˆ°ä¸»é“¾ä¸­åˆ†å‰å¤„
 
 		int64_t tempTime = GetTimeMillis();
 		if (mapCache.count(pPreBlockIndex->GetBlockHash()) > 0 ) {
@@ -2222,7 +2222,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock& block, CBlockIndex *pPreBlockI
 			pScriptDBCache = std::get<2>(mapCache[pPreBlockIndex->GetBlockHash()]);
 		} else {
 			CBlockIndex *pBlockIndex = chainActive.Tip();
-			while (pPreBlockIndex != pBlockIndex) {       //Êı¾İ¿â×´Ì¬»Ø¹öµ½Ö÷Á´·Ö²æ´¦
+			while (pPreBlockIndex != pBlockIndex) {       //æ•°æ®åº“çŠ¶æ€å›æ»šåˆ°ä¸»é“¾åˆ†å‰å¤„
 				LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() DisconnectBlock block nHieght=%d hash=%s\n",
 						pBlockIndex->nHeight, pBlockIndex->GetBlockHash().GetHex());
 				CBlock block;
@@ -2264,7 +2264,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock& block, CBlockIndex *pPreBlockI
 		LogPrint("INFO", "view best block hash:%s height:%d\n", pForkAcctViewCache->GetBestBlock().GetHex(), mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight);
 
 		vector<CBlock>::reverse_iterator rIter = vPreBlocks.rbegin();
-		for(; rIter != vPreBlocks.rend(); ++rIter) { //Á¬½ÓÖ§Á´µÄblock
+		for(; rIter != vPreBlocks.rend(); ++rIter) { //è¿æ¥æ”¯é“¾çš„block
 			LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() ConnectBlock block nHieght=%d hash=%s\n",
 					rIter->GetHeight(), rIter->GetHash().GetHex());
 			if (!ConnectBlock(*rIter, state, *pForkAcctViewCache, mapBlockIndex[rIter->GetHash()], *pForkTxCache, *pForkScriptDBCache, false))
@@ -2274,14 +2274,14 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock& block, CBlockIndex *pPreBlockI
 				pConnBlockIndex->nStatus = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
 		}
 
-		//Ğ£Ñépos½»Ò×
+		//æ ¡éªŒposäº¤æ˜“
 		if (!VerifyPosTx(&block, *pForkAcctViewCache, *pForkTxCache, *pForkScriptDBCache, true)) {
 			return state.DoS(100,
 					ERRORMSG("CheckBlockProofWorkWithCoinDay() : the block Hash=%s check pos tx error", block.GetHash().GetHex()),
 					REJECT_INVALID, "bad-pos-tx");
 		}
 
-		//Ğ£ÑéÀûÏ¢ÊÇ·ñÕı³£
+		//æ ¡éªŒåˆ©æ¯æ˜¯å¦æ­£å¸¸
 		std::shared_ptr<CRewardTransaction> pRewardTx = dynamic_pointer_cast<CRewardTransaction>(block.vptx[0]);
 		uint64_t llValidReward = block.GetFee() - block.GetFuel();
 		if(pRewardTx->rewardValue !=  llValidReward )
@@ -2290,13 +2290,13 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock& block, CBlockIndex *pPreBlockI
 									   REJECT_INVALID, "bad-cb-amount");
 
 		for(auto & item : block.vptx) {
-			//Ğ£Ñé½»Ò×ÊÇ·ñÔÚÓĞĞ§¸ß¶È
+			//æ ¡éªŒäº¤æ˜“æ˜¯å¦åœ¨æœ‰æ•ˆé«˜åº¦
 			if (!item->IsValidHeight(mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight, SysCfg().GetTxCacheHeight())) {
 				return state.DoS(100,
 						ERRORMSG("CheckBlockProofWorkWithCoinDay() : txhash=%s beyond the scope of valid height\n ",
 								item->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
 			}
-			//Ğ£ÑéÊÇ·ñÓĞÖØ¸´È·ÈÏ½»Ò×
+			//æ ¡éªŒæ˜¯å¦æœ‰é‡å¤ç¡®è®¤äº¤æ˜“
 			if(uint256() != pForkTxCache->IsContainTx(item->GetHash()))
 				return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : tx hash %s has been confirmed\n", item->GetHash().GetHex()), REJECT_INVALID, "bad-txns-oversize");
 		}
@@ -2501,7 +2501,7 @@ int64_t CBlockIndex::GetMedianTime() const
 }
 
 void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd)
-{   // Ask this guy to fill in what we're missing ,ÒªÇó´ÓÍøÂçÉÏÍ¬²½£¬´ÓpindexBegin ¿ªÊ¼,hashEndÖµ½áÊøµÄ¿é
+{   // Ask this guy to fill in what we're missing ,è¦æ±‚ä»ç½‘ç»œä¸ŠåŒæ­¥ï¼Œä»pindexBegin å¼€å§‹,hashEndå€¼ç»“æŸçš„å—
     AssertLockHeld(cs_main);
     // Filter out duplicate requests
     if (pindexBegin == pnode->pindexLastGetBlocksBegin && hashEnd == pnode->hashLastGetBlocksEnd){
@@ -2564,7 +2564,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
 
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (!pblock->GetHashPrevBlock().IsNull() && !mapBlockIndex.count(pblock->GetHashPrevBlock()))
-    {   /* ÍøÂçÓĞÑÓ³Ù,»á´æÔÚ*/
+    {   /* ç½‘ç»œæœ‰å»¶è¿Ÿ,ä¼šå­˜åœ¨*/
 //      LogPrint("INFO","ProcessBlock: ORPHAN BLOCK %lu height=%d hash=%s, prev=%s\n", (unsigned long)mapOrphanBlocks.size(), pblock->nHeight, pblock->GetHash().GetHex(), pblock->hashPrevBlock.ToString());
 
         if (pblock->GetHeight() > (unsigned int)g_nSyncTipHeight)
@@ -2581,7 +2581,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
 				pblock2->hashBlock = hash;
 				pblock2->hashPrev = pblock->GetHashPrevBlock();
 				pblock2->height   = pblock->GetHeight();
-				mapOrphanBlocks.insert(make_pair(hash, pblock2));                 //±£´æÒòÍøÂçÑÓ³Ù£¬ÊÕµ½µÄ¹ÂÁ¢¿é
+				mapOrphanBlocks.insert(make_pair(hash, pblock2));                 //ä¿å­˜å› ç½‘ç»œå»¶è¿Ÿï¼Œæ”¶åˆ°çš„å­¤ç«‹å—
 				mapOrphanBlocksByPrev.insert(make_pair(pblock2->hashPrev, pblock2));
 				setOrphanBlock.insert(pblock2);
 				LogPrint("INFO", "ProcessBlock: ORPHAN BLOCK %lu insert height=%d hash=%s, prev=%s\n", (unsigned long)mapOrphanBlocks.size(), pblock->GetHeight(), pblock->GetHash().GetHex(), pblock->GetHashPrevBlock().ToString());
@@ -2603,7 +2603,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
 //    LogPrint("INFO", "AcceptBlock() elapse time:%lld ms\n", GetTimeMillis() - llAcceptBlockTime);
 
 
-    // Recursively process any orphan blocks that depended on this one  µİ¹é´¦Àí
+    // Recursively process any orphan blocks that depended on this one  é€’å½’å¤„ç†
     vector<uint256> vWorkQueue;
     vWorkQueue.push_back(hash);
     for (unsigned int i = 0; i < vWorkQueue.size(); i++)
@@ -3871,7 +3871,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         	if(NULL == pStopIndex || pStopIndex->nHeight > pContinueIndex->nHeight)
         		pindex = pContinueIndex;
         }
-        // Send the rest of the chain; ÏòÍøÂçÉÏ·¢ËÍÇëÇó£¬(´Ó½ÚµãµÄÁ´ÓëÆäËû½ÚµãµÄÁ´·Ö²æµÄ¿é)
+        // Send the rest of the chain; å‘ç½‘ç»œä¸Šå‘é€è¯·æ±‚ï¼Œ(ä»èŠ‚ç‚¹çš„é“¾ä¸å…¶ä»–èŠ‚ç‚¹çš„é“¾åˆ†å‰çš„å—)
         if (pindex)
             pindex = chainActive.Next(pindex);
         int nLimit = 500;
