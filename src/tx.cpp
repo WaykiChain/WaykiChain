@@ -241,12 +241,35 @@ bool CBaseTransaction::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValid
 			}
 		}
 	}
-	vector<CScriptDBOperLog>::reverse_iterator rIterScriptDBLog = txundo.vScriptOperLog.rbegin();
-	for (; rIterScriptDBLog != txundo.vScriptOperLog.rend(); ++rIterScriptDBLog) {
-		if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
-			return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, undo scriptdb data error"), UPDATE_ACCOUNT_FAIL,
-					"bad-save-scriptdb");
+	if (DELEGATE_TX == nTxType) {
+		vector<CScriptDBOperLog>::reverse_iterator rIterScriptDBLog = txundo.vScriptOperLog.rbegin();
+		if (SysCfg().GetAddressToTxFlag() && txundo.vScriptOperLog.size() > 0) {
+			if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
+				return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, undo scriptdb data error"), UPDATE_ACCOUNT_FAIL,
+								 "bad-save-scriptdb");
+			++rIterScriptDBLog;
+		}
+
+		for (; rIterScriptDBLog != txundo.vScriptOperLog.rend(); ++rIterScriptDBLog) {
+			// recover the old value and erase the new value
+			if (!scriptDB.SetDelegateData(rIterScriptDBLog->vKey))
+				return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, set delegate data error"), UPDATE_ACCOUNT_FAIL,
+								 "bad-save-scriptdb");
+
+			++rIterScriptDBLog;
+			if (!scriptDB.EraseDelegateData(rIterScriptDBLog->vKey))
+				return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, erase delegate data error"), UPDATE_ACCOUNT_FAIL,
+								 "bad-save-scriptdb");
+		}
+	} else {
+		vector<CScriptDBOperLog>::reverse_iterator rIterScriptDBLog = txundo.vScriptOperLog.rbegin();
+		for (; rIterScriptDBLog != txundo.vScriptOperLog.rend(); ++rIterScriptDBLog) {
+			if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
+				return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, undo scriptdb data error"), UPDATE_ACCOUNT_FAIL,
+								 "bad-save-scriptdb");
+		}
 	}
+
 	if(CONTRACT_TX == nTxType) {
 		if (!scriptDB.EraseTxRelAccout(GetHash()))
 			return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, erase tx rel account error"), UPDATE_ACCOUNT_FAIL,
@@ -1019,46 +1042,46 @@ bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValid
 
 
     for(auto iter = operVoteFunds.begin(); iter != operVoteFunds.end(); ++iter) {
-         CAccount delegate;
-         if (!view.GetAccount(CUserID(iter->fund.pubKey), delegate)) {
-                return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, read regist addr %s account info error", iter->fund.pubKey.GetKeyID().ToAddress()),
-                       UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-         }
-         CAccount delegateAcctLog(delegate);
-         if(!delegate.OperateVote(VoteOperType(iter->operType), iter->fund.value)) {
-                return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate delegate address %s vote fund error", iter->fund.pubKey.GetKeyID().ToAddress()),
-                                         UPDATE_ACCOUNT_FAIL, "operate-vote-error");
-         }
-         txundo.vAccountLog.push_back(delegateAcctLog);
-         CScriptDBOperLog operDbLog;
-         if(!scriptDB.SetDelegateData(delegate, operDbLog)) {
-             return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, erase account id %s vote info error", delegate.regID.ToString()),
-                                     UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
-         }
-         txundo.vScriptOperLog.push_back(operDbLog);
+		CAccount delegate;
+		if (!view.GetAccount(CUserID(iter->fund.pubKey), delegate)) {
+			return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, read regist addr %s account info error", iter->fund.pubKey.GetKeyID().ToAddress()),
+					UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+		}
+		CAccount delegateAcctLog(delegate);
+		if(!delegate.OperateVote(VoteOperType(iter->operType), iter->fund.value)) {
+			return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate delegate address %s vote fund error", iter->fund.pubKey.GetKeyID().ToAddress()),
+										UPDATE_ACCOUNT_FAIL, "operate-vote-error");
+		}
+		txundo.vAccountLog.push_back(delegateAcctLog);
+		// set the new value and erase the old value
+		CScriptDBOperLog operDbLog;
+		if(!scriptDB.SetDelegateData(delegate, operDbLog)) {
+			return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, erase account id %s vote info error", delegate.regID.ToString()),
+									UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+		}
+		txundo.vScriptOperLog.push_back(operDbLog);
 
-         if(delegateAcctLog.llVotes > 0) {
-             CScriptDBOperLog eraseDbLog;
-             if(!scriptDB.EraseDelegateData(delegateAcctLog, eraseDbLog)) {
-                 return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, erase account id %s vote info error", delegateAcctLog.regID.ToString()),
-                         UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
-             }
-             txundo.vScriptOperLog.push_back(eraseDbLog);
-         }
+		CScriptDBOperLog eraseDbLog;
+		if(delegateAcctLog.llVotes > 0) {
+			if(!scriptDB.EraseDelegateData(delegateAcctLog, eraseDbLog)) {
+				return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, erase account id %s vote info error", delegateAcctLog.regID.ToString()),
+						UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+			}
+		}
+		txundo.vScriptOperLog.push_back(eraseDbLog);
 
-         if (!view.SaveAccountInfo(delegate.regID, delegate.keyID, delegate)) {
-                 return state.DoS(100,
-                         ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx create new account script id %s script info error",
-                                 acctInfo.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
-         }
-
+		if (!view.SaveAccountInfo(delegate.regID, delegate.keyID, delegate)) {
+				return state.DoS(100,
+						ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx create new account script id %s script info error",
+								acctInfo.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+		}
     }
 
     if(SysCfg().GetAddressToTxFlag()) {
         CScriptDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
         if(!view.GetKeyId(userId, sendKeyId)) {
-            return ERRORMSG("ExecuteTx() : CRewardTransaction ExecuteTx, get regAcctId by account error!");
+            return ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, get regAcctId by account error!");
         }
         if(!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
             return false;

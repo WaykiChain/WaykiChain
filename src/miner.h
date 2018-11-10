@@ -68,6 +68,7 @@ void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash
 bool CreatePosTx(const uint64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock);
 
 bool GetDelegatesAcctList(vector<CAccount> & vDelegatesAcctList);
+bool GetDelegatesAcctList(vector<CAccount> & vDelegatesAcctList, CAccountViewCache &accViewIn, CTransactionDBCache &txCacheIn, CScriptDBViewCache &scriptCacheIn);
 
 void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList);
 

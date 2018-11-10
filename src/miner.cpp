@@ -188,55 +188,56 @@ uint256 GetAdjustHash(const uint256 TargetHash, const uint64_t nPos, const int n
 	return std::move(ArithToUint256(adjusthash));
 }
 
-bool GetDelegatesAcctList(vector<CAccount> & vDelegatesAcctList) {
-
+bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCache &accViewIn, CTransactionDBCache &txCacheIn, CScriptDBViewCache &scriptCacheIn) {
     LOCK(cs_main);
-    CAccountViewCache accview(*pAccountViewTip, true);
-    CTransactionDBCache txCache(*pTxCacheTip, true);
-    CScriptDBViewCache scriptCache(*pScriptDBTip, true);
+    CAccountViewCache accview(accViewIn, true);
+    CTransactionDBCache txCache(txCacheIn, true);
+    CScriptDBViewCache scriptCache(scriptCacheIn, true);
 
     int nDelegateNum = IniCfg().GetDelegatesCfg();
     int nIndex = 0;
-    CRegID redId(0,0);
     vector<unsigned char> vScriptData;
-    vector<unsigned char> vScriptKey = {'d','e','l','e','g','a','t','e','_'};
+    vector<unsigned char> vScriptKey = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
     vector<unsigned char> vDelegatePrdfix = vScriptKey;
     const int SCRIPT_KEY_PREFIX_LENGTH = 9;
     const int VOTES_STRING_SIZE = 16;
-    while(--nDelegateNum >= 0) {
-      CRegID regId(0,0);
-     if(scriptCache.GetScriptData(0, redId, nIndex, vScriptKey, vScriptData)) {
-         nIndex = 1;
-         vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrdfix.begin(), vDelegatePrdfix.end());
-         string strVoltes(iterVotes + SCRIPT_KEY_PREFIX_LENGTH, iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE);
-         uint64_t llVotes = 0;
-         char *stopstring;
-         llVotes = strtoull(strVoltes.c_str(), &stopstring, VOTES_STRING_SIZE);
-         vector<unsigned char> vAcctRegId(iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE + 1, vScriptKey.end());
-         CRegID acctRegId(vAcctRegId);
-         CAccount account;
-         if(!accview.GetAccount(acctRegId,account)) {
-             LogPrint("ERROR", "GetAccount Error, acctRegId:%s\n",acctRegId.ToString());
-             //assert(0);
-             //StartShutdown();
-             return false;
-         }
-         uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
-         if((maxNum-llVotes) != account.llVotes) {
-             LogPrint("ERROR", "acctRegId:%s, llVotes:%lld, account:%s\n",acctRegId.ToString(), maxNum-llVotes, account.ToString());
-             LogPrint("ERROR", "scriptkey:%s, scriptvalue:%s\n", HexStr(vScriptKey.begin(), vScriptKey.end()), HexStr(vScriptData.begin(), vScriptData.end()));
-             //StartShutdown();
-             return false;
-         }
-         vDelegatesAcctList.push_back(account);
-     }
-     else {
-         StartShutdown();
-         return false;
-         //assert(0);
-     }
+    while (--nDelegateNum >= 0) {
+        CRegID regId(0, 0);
+        if (scriptCache.GetScriptData(0, regId, nIndex, vScriptKey, vScriptData)) {
+            nIndex = 1;
+            vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrdfix.begin(), vDelegatePrdfix.end());
+            string strVoltes(iterVotes + SCRIPT_KEY_PREFIX_LENGTH, iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE);
+            uint64_t llVotes = 0;
+            char *stopstring;
+            llVotes = strtoull(strVoltes.c_str(), &stopstring, VOTES_STRING_SIZE);
+            vector<unsigned char> vAcctRegId(iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE + 1, vScriptKey.end());
+            CRegID acctRegId(vAcctRegId);
+            CAccount account;
+            if (!accview.GetAccount(acctRegId, account)) {
+                LogPrint("ERROR", "GetAccount Error, acctRegId:%s\n", acctRegId.ToString());
+                //assert(0);
+                //StartShutdown();
+                return false;
+            }
+            uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
+            if ((maxNum - llVotes) != account.llVotes) {
+                LogPrint("ERROR", "acctRegId:%s, llVotes:%lld, account:%s\n", acctRegId.ToString(), maxNum - llVotes, account.ToString());
+                LogPrint("ERROR", "scriptkey:%s, scriptvalue:%s\n", HexStr(vScriptKey.begin(), vScriptKey.end()), HexStr(vScriptData.begin(), vScriptData.end()));
+                //StartShutdown();
+                return false;
+            }
+            vDelegatesAcctList.push_back(account);
+        } else {
+            StartShutdown();
+            return false;
+            //assert(0);
+        }
     }
     return true;
+}
+
+bool GetDelegatesAcctList(vector<CAccount> & vDelegatesAcctList) {
+    return GetDelegatesAcctList(vDelegatesAcctList, *pAccountViewTip, *pTxCacheTip, *pScriptDBTip);
 }
 
 bool GetCurrentDelegate(const int64_t currentTime,  const vector<CAccount> & vDelegatesAcctList, CAccount &delegateAcct) {
@@ -312,8 +313,8 @@ bool VerifyPosTx( const CBlock *pBlock, CAccountViewCache &accView, CTransaction
 	uint64_t maxNonce = SysCfg().GetBlockMaxNonce(); //cacul times
 	vector<CAccount> vDelegatesAcctList;
 
-	if(!GetDelegatesAcctList(vDelegatesAcctList))
-	    return false;
+	if (!GetDelegatesAcctList(vDelegatesAcctList, accView, txCache, scriptCache))
+		return false;
 
 	ShuffleDelegates(pBlock->GetHeight(), vDelegatesAcctList);
 
@@ -704,11 +705,11 @@ void static CoinMiner(CWallet *pwallet,int targetConter) {
 					GetTimeMillis() - lasttime1);
 			CBlock *pblock = &pblocktemplate.get()->block;
 			MiningBlock(pblock, pwallet, pindexPrev, LastTrsa, accview, txCache, ScriptDbTemp);
-			
+
 			if (SysCfg().NetworkID() != MAIN_NET)
 				if(targetConter <= getcurhigh())	{
 						throw boost::thread_interrupted();
-				}	
+				}
 		}
 	} catch (...) {
 		LogPrint("INFO","CoinMiner  terminated\n");
@@ -741,4 +742,3 @@ void GenerateCoinBlock(bool fGenerate, CWallet* pwallet, int targetHigh) {
 
 //	minerThreads->join_all();
 }
-

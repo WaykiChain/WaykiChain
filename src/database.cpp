@@ -1468,11 +1468,24 @@ bool CScriptDBViewCache::SetDelegateData(const CAccount &delegateAcct, CScriptDB
     vVoteKey.insert(vVoteKey.end(), delegateAcct.regID.GetVec6().begin(), delegateAcct.regID.GetVec6().end());
     vector<unsigned char> vVoteValue;
     vVoteValue.push_back(1);
-    if(!SetScriptData(regId, vVoteKey, vVoteValue, operLog)){
-     return false;
+    if(!SetScriptData(regId, vVoteKey, vVoteValue, operLog)) {
+        return false;
     }
     return true;
 }
+
+bool CScriptDBViewCache::SetDelegateData(const vector<unsigned char> &vKey) {
+    if (vKey.empty()) {
+        return true;
+    }
+    vector<unsigned char> vValue;
+    vValue.push_back(1);
+    if(!SetData(vKey, vValue)) {
+        return false;
+    }
+    return true;
+}
+
 bool CScriptDBViewCache::EraseDelegateData(const CAccount &delegateAcct, CScriptDBOperLog &operLog) {
     CRegID regId(0,0);
     vector<unsigned char> vVoteOldKey = {'d','e','l','e','g','a','t','e','_'};
@@ -1482,6 +1495,13 @@ bool CScriptDBViewCache::EraseDelegateData(const CAccount &delegateAcct, CScript
     vVoteOldKey.push_back('_');
     vVoteOldKey.insert(vVoteOldKey.end(), delegateAcct.regID.GetVec6().begin(), delegateAcct.regID.GetVec6().end());
     if(!EraseScriptData(regId, vVoteOldKey, operLog)) {
+        return false;
+    }
+    return true;
+}
+
+bool CScriptDBViewCache::EraseDelegateData(const vector<unsigned char> &vKey) {
+    if(!EraseKey(vKey)) {
         return false;
     }
     return true;
