@@ -396,7 +396,7 @@ bool CScriptDB::GetScript(const int &nIndex, vector<unsigned char> &vScriptId, v
 		vector<char> vId(vScriptId.begin(), vScriptId.end());
 		ssKeySet.insert(ssKeySet.end(), vId.begin(), vId.end());
 		vector<unsigned char> vKey(ssKeySet.begin(), ssKeySet.end());
-		if(HaveData(vKey)) {   //判断传过来的key,数据库中是否已经存在
+		if(HaveData(vKey)) {   //鍒ゆ柇浼犺繃鏉ョ殑key,鏁版嵁搴撲腑鏄惁宸茬粡瀛樺湪
 			pcursor->Seek(ssKeySet.str());
 			i = nIndex;
 		}
@@ -460,7 +460,7 @@ bool CScriptDB::GetScriptData(const int curBlockHeight, const vector<unsigned ch
 		vector<char> vsKey(vScriptKey.begin(), vScriptKey.end());
 		ssKeySet.insert(ssKeySet.end(), vsKey.begin(), vsKey.end());
 		vector<unsigned char> vKey(ssKeySet.begin(), ssKeySet.end());
-		if(HaveData(vKey)) {   //判断传过来的key,数据库中是否已经存在
+		if(HaveData(vKey)) {   //鍒ゆ柇浼犺繃鏉ョ殑key,鏁版嵁搴撲腑鏄惁宸茬粡瀛樺湪
 			pcursor->Seek(ssKeySet.str());
 			i = nIndex;
 		}
