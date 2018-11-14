@@ -150,7 +150,6 @@ static bool GetArray(lua_State *L, vector<std::shared_ptr < std::vector<unsigned
 		return false;
 	}
 
-	printf("len = %d", totallen);
     vector<unsigned char> vBuf;
 	vBuf.clear();
 	for(int i = 0;i < totallen;i++)
