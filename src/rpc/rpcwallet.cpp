@@ -173,7 +173,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
 
 	EnsureWalletIsUnlocked();
 	CKeyID sendKeyId;
-	CKeyID RevKeyId;
+	CKeyID recvKeyId;
 
 	auto GetKeyId = [](string const &addr,CKeyID &KeyId) {
 		if (!CRegID::GetKeyID(addr, KeyId)) {
@@ -184,26 +184,24 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
 		return true;
 	};
 
-	// Amount
 	int64_t nAmount = 0;
 	int64_t nFee = 0;
-	//// from address to addreww
 	if (size == 4) {
 
 		if (!GetKeyId(params[0].get_str(), sendKeyId)) {
 			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "FROM Invalid  address");
 		}
-		if (!GetKeyId(params[1].get_str(), RevKeyId)) {
+		if (!GetKeyId(params[1].get_str(), recvKeyId)) {
 			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to Invalid  address");
 		}
 
 		nAmount = AmountToRawValue(params[2]);
-		if (pAccountViewTip->GetRawBalance(sendKeyId) <= nAmount + SysCfg().GetTxFee()) {
+		nFee = AmountToRawValue(params[3]);
+		if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + max(SysCfg().GetTxFee(), nFee)) {
 			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "FROM address not enough coins");
 		}
-		nFee = AmountToRawValue(params[3]);
 	} else {
-		if (!GetKeyId(params[0].get_str(), RevKeyId)) {
+		if (!GetKeyId(params[0].get_str(), recvKeyId)) {
 			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to address Invalid  ");
 		}
 
@@ -211,7 +209,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
 		set<CKeyID> sKeyid;
 		sKeyid.clear();
 		pwalletMain->GetKeys(sKeyid);
-		if (sKeyid.empty()) //get addrs
+		if (sKeyid.empty())
 		{
 			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No Key In wallet \n");
 		}
@@ -235,8 +233,9 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
 		tx.llValues = nValue;
 		if (0 == nFee) {
 			tx.llFees = SysCfg().GetTxFee();
-		} else
-		tx.llFees = nFee;
+		} else {
+			tx.llFees = nFee;
+		}
 		tx.nValidHeight = chainActive.Tip()->nHeight;
 
 		CKeyID keID;
@@ -255,22 +254,18 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
 		return std::make_tuple (falg,te.c_str());
 	};
 
-
 	CRegID sendreg;
 	CRegID revreg;
-
 
 	if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendreg)) {
 		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
 	}
 
 	std::tuple<bool,string> ret;
-	if (pAccountViewTip->GetRegId(CUserID(RevKeyId), revreg)) {
+	if (pAccountViewTip->GetRegId(CUserID(recvKeyId), revreg)) {
 		ret = SendMoney(sendreg, revreg, nAmount, nFee);
 	} else {
-
-
-		ret = SendMoney(sendreg, CUserID(RevKeyId), nAmount, nFee);
+		ret = SendMoney(sendreg, CUserID(recvKeyId), nAmount, nFee);
 	}
 
 	Object obj;
@@ -305,7 +300,7 @@ Value sendtoaddressraw(const Array& params, bool fHelp)
 						+ HelpExampleCli("sendtoaddressraw", "100 1000 \"00000000000000000005\" \"0-6\"10 ")));
 
 	CKeyID sendKeyId;
-	CKeyID RevKeyId;
+	CKeyID recvKeyId;
 
 	auto GetUserID = [](string const &addr,CUserID &userid) {
 		CRegID te(addr);
@@ -422,7 +417,7 @@ Value notionalpoolingasset(const Array& params, bool fHelp)
 	if(3 == params.size())
 		nAmount = params[2].get_real() * COIN;
 
-	CKeyID RevKeyId;
+	CKeyID recvKeyId;
 
 	auto GetKeyId = [](string const &addr,CKeyID &KeyId) {
 		if (!CRegID::GetKeyID(addr, KeyId)) {
@@ -435,11 +430,11 @@ Value notionalpoolingasset(const Array& params, bool fHelp)
 
 	Object retObj;
 	string strRevAddr = params[1].get_str();
-	if (!GetKeyId(strRevAddr, RevKeyId)) {
+	if (!GetKeyId(strRevAddr, recvKeyId)) {
 		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to address Invalid  ");
 	}
 
-	if(!pwalletMain->HaveKey(RevKeyId)) {
+	if(!pwalletMain->HaveKey(recvKeyId)) {
 		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to address Invalid  ");
 	}
 
@@ -451,7 +446,7 @@ Value notionalpoolingasset(const Array& params, bool fHelp)
 	}
 	set<CKeyID> sResultKeyid;
 	for (auto &te : sKeyid) {
-		if(te.ToString() == RevKeyId.ToString())
+		if(te.ToString() == recvKeyId.ToString())
 			continue;
 		if (pAccountViewTip->GetRawBalance(te) >= nAmount)
 			sResultKeyid.insert(te);
@@ -608,7 +603,7 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
 						"\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""));
 	EnsureWalletIsUnlocked();
 	CKeyID sendKeyId;
-	CKeyID RevKeyId;
+	CKeyID recvKeyId;
 
 	auto GetKeyId = [](string const &addr,CKeyID &KeyId) {
 		if (!CRegID::GetKeyID(addr, KeyId)) {
@@ -624,11 +619,11 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
 	CRegID sendreg;
 	//// from address to address
 
-	if (!GetKeyId(params[0].get_str(), RevKeyId)) {
+	if (!GetKeyId(params[0].get_str(), recvKeyId)) {
 		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to address Invalid  ");
 	}
 
-	if(!pwalletMain->HaveKey(RevKeyId)) {
+	if(!pwalletMain->HaveKey(recvKeyId)) {
 		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to address Invalid  ");
 	}
 /*
@@ -649,7 +644,7 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
 	}
 	set<CKeyID> sResultKeyid;
 	for (auto &te : sKeyid) {
-		if(te.ToString() == RevKeyId.ToString())
+		if(te.ToString() == recvKeyId.ToString())
 			continue;
 		if (pAccountViewTip->GetRawBalance(te) > (nAmount + SysCfg().GetTxFee())) {
 			if (pAccountViewTip->GetRegId(CUserID(te), sendreg)) {
@@ -677,10 +672,10 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
     		continue;
     	}
 
-    	if (pAccountViewTip->GetRegId(CUserID(RevKeyId), revreg)) {
+    	if (pAccountViewTip->GetRegId(CUserID(recvKeyId), revreg)) {
     		rev = revreg;
     	} else {
-    		rev = RevKeyId;
+    		rev = recvKeyId;
     	}
 
     	CTransaction tx(sendreg, rev, SysCfg().GetTxFee(), pAccountViewTip->GetRawBalance(sendreg) - SysCfg().GetTxFee() - nAmount , chainActive.Height());
@@ -760,26 +755,26 @@ Value dispersebalance(const Array& params, bool fHelp)
 	Array arrayTxIds;
 	Object retObj;
     set<CKeyID>::iterator it;
-    CKeyID RevKeyId;
+    CKeyID recvKeyId;
 
     for(it=sKeyid.begin();it!=sKeyid.end();it++)
     {
-    	RevKeyId = *it;
+    	recvKeyId = *it;
 
-    	if (RevKeyId.IsNull()) {
+    	if (recvKeyId.IsNull()) {
     		continue;
     	}
 
-    	if(sendKeyId.ToString() == RevKeyId.ToString())
+    	if(sendKeyId.ToString() == recvKeyId.ToString())
     		continue;
 
     	CRegID revreg;
     	CUserID rev;
 
-    	if (pAccountViewTip->GetRegId(CUserID(RevKeyId), revreg)) {
+    	if (pAccountViewTip->GetRegId(CUserID(recvKeyId), revreg)) {
     		rev = revreg;
     	} else {
-    		rev = RevKeyId;
+    		rev = recvKeyId;
     	}
 
     	if(pAccountViewTip->GetRawBalance(sendreg) < nAmount + SysCfg().GetTxFee())
@@ -830,7 +825,7 @@ Value sendtoaddress(const Array& params, bool fHelp)
 
 	EnsureWalletIsUnlocked();
 	CKeyID sendKeyId;
-	CKeyID RevKeyId;
+	CKeyID recvKeyId;
 
 	auto GetKeyId = [](string const &addr,CKeyID &KeyId) {
 		if (!CRegID::GetKeyID(addr, KeyId)) {
@@ -841,32 +836,30 @@ Value sendtoaddress(const Array& params, bool fHelp)
 		return true;
 	};
 
-	// Amount
 	int64_t nAmount = 0;
 	CRegID sendreg;
-	//// from address to addreww
 	if (size == 3) {
 
 		if (!GetKeyId(params[0].get_str(), sendKeyId)) {
 			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "FROM Invalid  address");
 		}
-		if (!GetKeyId(params[1].get_str(), RevKeyId)) {
+		if (!GetKeyId(params[1].get_str(), recvKeyId)) {
 			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to Invalid  address");
 		}
 
 		nAmount = AmountToRawValue(params[2]);
-		if (pAccountViewTip->GetRawBalance(sendKeyId) <= nAmount + SysCfg().GetTxFee()) {
+		if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + SysCfg().GetTxFee()) {
 			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "FROM address not enough coins");
 		}
 	} else {
-		if (!GetKeyId(params[0].get_str(), RevKeyId)) {
+		if (!GetKeyId(params[0].get_str(), recvKeyId)) {
 			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to address Invalid  ");
 		}
 
 		nAmount = AmountToRawValue(params[1]);
 		set<CKeyID> sKeyid;
 		sKeyid.clear();
-		pwalletMain->GetKeys(sKeyid); //get addrs
+		pwalletMain->GetKeys(sKeyid);
 		if(sKeyid.empty())
 		{
 			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No Key In wallet \n");
@@ -892,10 +885,10 @@ Value sendtoaddress(const Array& params, bool fHelp)
 		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
 	}
 
-	if (pAccountViewTip->GetRegId(CUserID(RevKeyId), revreg)) {
+	if (pAccountViewTip->GetRegId(CUserID(recvKeyId), revreg)) {
 		rev = revreg;
 	} else {
-		rev = RevKeyId;
+		rev = recvKeyId;
 	}
 
 	CTransaction tx(sendreg, rev, SysCfg().GetTxFee(), nAmount, chainActive.Height());
