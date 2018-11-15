@@ -375,7 +375,7 @@ Value sendtoaddressraw(const Array& params, bool fHelp)
 typedef struct {
 	unsigned char systype;
 	unsigned char type;
-	unsigned char address[34]; // 转账地址
+	unsigned char address[34];	// ????
 
 	IMPLEMENT_SERIALIZE
 	(
