@@ -202,7 +202,7 @@ public:
     deque<CSerializeData> vSendMsg;
     CCriticalSection cs_vSend;
 
-    deque<CInv> vRecvGetData;   // strCommand == "getdata ±£´æµÄinv
+    deque<CInv> vRecvGetData;   // strCommand == "getdata ä¿å­˜çš„inv
     deque<CNetMessage> vRecvMsg;
     CCriticalSection cs_vRecvMsg;
     uint64_t nRecvBytes;
@@ -248,9 +248,9 @@ protected:
     void Fuzz(int nChance); // modifies ssSend
 
 public:
-    uint256 hashContinue;                    //getblocks the next batch of inventoryÏÂÒ»´Î ÅÌµãµÄ¿é
-    CBlockIndex* pindexLastGetBlocksBegin;   //ÉÏ´Î¿ªÊ¼µÄ¿é  ±¾µØ½ÚµãÓĞµÄ¿échainActive.Tip()
-    uint256 hashLastGetBlocksEnd;            // ±¾µØ½Úµã±£´æµÄ¹Â¶ù¿éµÄ¸ù¿é hash GetOrphanRoot(hash)
+    uint256 hashContinue;                    //getblocks the next batch of inventoryä¸‹ä¸€æ¬¡ ç›˜ç‚¹çš„å—
+    CBlockIndex* pindexLastGetBlocksBegin;   //ä¸Šæ¬¡å¼€å§‹çš„å—  æœ¬åœ°èŠ‚ç‚¹æœ‰çš„å—chainActive.Tip()
+    uint256 hashLastGetBlocksEnd;            // æœ¬åœ°èŠ‚ç‚¹ä¿å­˜çš„å­¤å„¿å—çš„æ ¹å— hash GetOrphanRoot(hash)
     int nStartingHeight;   //  Start block sync,currHegiht
     bool fStartSync;
 
@@ -258,14 +258,14 @@ public:
     vector<CAddress> vAddrToSend;
     mruset<CAddress> setAddrKnown;
     bool fGetAddr;
-    set<uint256> setKnown;             // ´æµÄÊÇ alertHash
-    std::set<int> setcheckPointKnown;  // checkPoint µÄheight
+    set<uint256> setKnown;             // å­˜çš„æ˜¯ alertHash
+    std::set<int> setcheckPointKnown;  // checkPoint çš„height
 
     // inventory based relay
-    mruset<CInv> setInventoryKnown;   //´æ·ÅÒÑÊÕµ½µÄinv
-    vector<CInv> vInventoryToSend;    //´ı·¢ËÍµÄinv
+    mruset<CInv> setInventoryKnown;   //å­˜æ”¾å·²æ”¶åˆ°çš„inv
+    vector<CInv> vInventoryToSend;    //å¾…å‘é€çš„inv
     CCriticalSection cs_inventory;
-    multimap<int64_t, CInv> mapAskFor;   //ÏòÍøÂçÇëÇó½»Ò× µÄ Ê±¼ä, a priority queue
+    multimap<int64_t, CInv> mapAskFor;   //å‘ç½‘ç»œè¯·æ±‚äº¤æ˜“ çš„ æ—¶é—´, a priority queue
 
     // Ping time measurement
     uint64_t nPingNonceSent;

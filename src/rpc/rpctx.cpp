@@ -1372,7 +1372,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
 				"\nExamples:\n"
 				+ HelpExampleCli("getaccountinfo", "000000000500\n")
 				+ "\nAs json rpc call\n"
-				+ HelpExampleRpc("getaccountinfo", "5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\n")
+				+ HelpExampleRpc("getaccountinfo", "WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\n")
 		   );
 	}
 	RPCTypeCheck(params, list_of(str_type));
