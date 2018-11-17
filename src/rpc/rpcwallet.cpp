@@ -154,10 +154,10 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
 						"sendtoaddresswithfee (\"sendaddress\") \"recvaddress\" \"amount\" (fee)\n"
 						"\nSend an amount to a given address with fee. The amount is a real and is rounded to the nearest 0.00000001\n"
 						"\nArguments:\n"
-						"1. \"sendaddress\"  (string, optional) The Coin address to send to.\n"
-						"2. \"recvaddress\" (string, required) The Coin address to receive.\n"
-						"3.\"amount\"   (string,required) \n"
-						"4.\"fee\"      (string,required) \n"
+						"1.\"sendaddress\"  (string, optional) The Coin address to send to.\n"
+						"2.\"recvaddress\"  (string, required) The Coin address to receive.\n"
+						"3.\"amount\"       (string,required) \n"
+						"4.\"fee\"          (string,required) \n"
 						"\nResult:\n"
 						"\"transactionid\"  (string) The transaction id.\n"
 						"\nExamples:\n"
@@ -215,7 +215,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
 		}
 		nFee = AmountToRawValue(params[2]);
 		for (auto &te : sKeyid) {
-			if (pAccountViewTip->GetRawBalance(te) >= nAmount + SysCfg().GetTxFee()) {
+			if (pAccountViewTip->GetRawBalance(te) >= nAmount + max(SysCfg().GetTxFee(), nFee)) {
 				sendKeyId = te;
 				break;
 			}
@@ -375,7 +375,7 @@ Value sendtoaddressraw(const Array& params, bool fHelp)
 typedef struct {
 	unsigned char systype;
 	unsigned char type;
-	unsigned char address[34]; //  转账地址
+	unsigned char address[34]; // 转账地址
 
 	IMPLEMENT_SERIALIZE
 	(
