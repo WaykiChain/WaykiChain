@@ -145,23 +145,23 @@ public:
 
 	void CheckRollBack()
 	{
-		CreateContactTx(6);    //ĞÂÔö½Å±¾Êı¾İ
+		CreateContactTx(6);    //æ–°å¢è„šæœ¬æ•°æ®
 		//cout<<6<<endl;
-		CreateContactTx(7);;   //ĞŞ¸Ä½Å±¾Êı¾İ
+		CreateContactTx(7);;   //ä¿®æ”¹è„šæœ¬æ•°æ®
 		//cout<<7<<endl;
-		CreateContactTx(8);    //É¾³ı½Å±¾Êı¾İ
+		CreateContactTx(8);    //åˆ é™¤è„šæœ¬æ•°æ®
 //		cout<<8<<endl;
-//		DisConnectBlock(1);           //É¾³ı1¸öblock
+//		DisConnectBlock(1);           //åˆ é™¤1ä¸ªblock
 //		mempool.mapTx.clear();
-//		CreateContactTx(9);    //checkÉ¾³ıµÄ½Å±¾ÊÇ·ñ»Ö¸´
+//		CreateContactTx(9);    //checkåˆ é™¤çš„è„šæœ¬æ˜¯å¦æ¢å¤
 //	//	cout<<9<<endl;
 //		DisConnectBlock(2);
 //		mempool.mapTx.clear();
-//		CreateContactTx(10);    //checkĞŞ¸ÄµÄ½Å±¾Êı¾İÊÇ·ñ»Ö¸´
+//		CreateContactTx(10);    //checkä¿®æ”¹çš„è„šæœ¬æ•°æ®æ˜¯å¦æ¢å¤
 ////		cout<<10<<endl;
 //		DisConnectBlock(2);
 //		mempool.mapTx.clear();
-//		CreateContactTx(11);   //checkĞÂÔöµÄ½Å±¾Êı¾İÊÇ·ñ»Ö¸´
+//		CreateContactTx(11);   //checkæ–°å¢çš„è„šæœ¬æ•°æ®æ˜¯å¦æ¢å¤
 	}
 	bool CheckScriptid(Value val,string scriptid)
 	{
@@ -223,10 +223,10 @@ public:
 
 	void CheckScriptAccount()
 	{
-		// ¼ì²é½Å±¾ÕË»§´´½¨µÄºÏ·¨ĞÔ
+		// æ£€æŸ¥è„šæœ¬è´¦æˆ·åˆ›å»ºçš„åˆæ³•æ€§
 		BOOST_CHECK_EQUAL(CreateScriptAndCheck(),true);
 
-		//// ¸ø½Å±¾ÕË»§´òÇ®
+		//// ç»™è„šæœ¬è´¦æˆ·æ‰“é’±
 		string accountid = "010000000100";
 		int param = 13;
 		string temp = "";
@@ -240,7 +240,7 @@ public:
 		BOOST_CHECK_EQUAL(GetValue(temp1,"Balance"),99999999899990000);
 
 
-		/// ½Å±¾ÕË»§¸øÆÕÍ¨ÕË»§´òÇ®
+		/// è„šæœ¬è´¦æˆ·ç»™æ™®é€šè´¦æˆ·æ‰“é’±
 		param = 14;
 		temp = "";
 		temp += tinyformat::format("%02x%s",param,accountid);
@@ -253,7 +253,7 @@ public:
 		temp1 = GetAccountInfo("dsGb9GyDGYnnHdjSvRfYbj9ox2zPbtgtpo");
 		BOOST_CHECK_EQUAL(GetValue(temp1,"Balance"),99999999800000000);
 
-		//²âÊÔ²»ÄÜ´ÓÆäËû½Å±¾´òÇ®µ½±¾APP½Å±¾ÕË»§ÖĞ
+		//æµ‹è¯•ä¸èƒ½ä»å…¶ä»–è„šæœ¬æ‰“é’±åˆ°æœ¬APPè„šæœ¬è´¦æˆ·ä¸­
 		accountid = "020000000100";
 		param = 19;
 		temp = "";
@@ -433,7 +433,7 @@ public:
 		string scriptid =  CreatWriteTx(writetxhash);
 		int height = chainActive.Height();
 
-		///// ĞŞ¸ÄÉ¾³ı°ü
+		///// ä¿®æ”¹åˆ é™¤åŒ…
 		int param =17;
 		string temp = "";
 		temp += tinyformat::format("%02x%02x",param,11);
@@ -446,7 +446,7 @@ public:
 		int modHeight = chainActive.Height();
 
 	//	cout<<"end:"<<endl;
-		//// ±éÀú
+		//// éå†
 		int count = 15;
         while(count > 1)
         {
@@ -460,7 +460,7 @@ public:
         	count--;
         }
 
-      /// »Ø¹ö
+      /// å›æ»š
 		while(true)
 		{
 			DisConnectBlock(1);
@@ -557,7 +557,7 @@ BOOST_FIXTURE_TEST_CASE(script_test,CSysScriptTest)
 	testdeletmodifydb();
 }
 
-// ²âÊÔ¸÷ÖÖµØÖ·ÍÚ¿ó
+// æµ‹è¯•å„ç§åœ°å€æŒ–çŸ¿
 BOOST_FIXTURE_TEST_CASE(minier,CSysScriptTest)
 {
 	ResetEnv();
