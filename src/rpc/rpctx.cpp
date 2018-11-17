@@ -701,7 +701,7 @@ Value registerapptx(const Array& params, bool fHelp) {
 //create a delegate transaction
 Value createdelegatetx(const Array& params, bool fHelp) {
     if (fHelp || params.size() <  3  || params.size() > 4) {
-            throw runtime_error("createdelegatetx \"addr\" \"opervotes\"\"fee\" (\"height\") \n"
+            throw runtime_error("createdelegatetx \"addr\" \"opervotes\" \"fee\" (\"height\") \n"
                     "\ncreate a delegate vote transaction\n"
                     "\nArguments:\n"
                     "1.\"addr\": (string required) send delegate transaction address\n"
@@ -1215,11 +1215,11 @@ Value listcontracttx(const Array& params, bool fHelp)
 	string strRegId = params[0].get_str();
 	CRegID regid(strRegId);
 	if (regid.IsEmpty() == true) {
-		throw runtime_error("in listcontracttx :scriptid size is error!\n");
+		throw runtime_error("in listcontracttx: scriptid size error!\n");
 	}
 
 	if (!pScriptDBTip->HaveScript(regid)) {
-		throw runtime_error("in listcontracttx :scriptid  is not exist!\n");
+		throw runtime_error("in listcontracttx: scriptid does not exist!\n");
 	}
 
 
@@ -1300,7 +1300,7 @@ Value listtx(const Array& params, bool fHelp) {
 if (fHelp || params.size() > 2) {
 		throw runtime_error(
 				 "listtx\n"
-				 "\nget all confirm transactions and all unconfirm transactions from wallet.\n"
+				 "\nget all confirmed transactions and all unconfirmed transactions from wallet.\n"
 				 "\nArguments:\n"
 				 "1. count          (numeric, optional, default=10) The number of transactions to return\n"
 			     "2. from           (numeric, optional, default=0) The number of transactions to skip\n"    "\nExamples:\n"
