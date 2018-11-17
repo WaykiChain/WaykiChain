@@ -68,8 +68,8 @@ public:
 	}
 
 	void print() const {
-		LogPrint("INFO","COrphan(hash=%s, dPriority=%.1f, dFeePerKb=%.1f)\n", ptx->GetHash().ToString(), dPriority,
-				dFeePerKb);
+		LogPrint("INFO", "COrphan(hash=%s, dPriority=%.1f, dFeePerKb=%.1f)\n", 
+				ptx->GetHash().ToString(), dPriority, dFeePerKb);
 		for (const auto& hash : setDependsOn)
 			LogPrint("INFO", "   setDependsOn %s\n", hash.ToString());
 	}

@@ -33,7 +33,7 @@ bool GetAccountDelegateVote(const Value &account, const string &delegate_addr, u
      for(auto item : oper_vote_list) {
          Value test_delegate_addr = find_value(item.get_obj(), "address");
          if(test_delegate_addr.type() != null_type && delegate_addr == test_delegate_addr.get_str()) {
-             Value test_delegate_value = find_value(item.get_obj(), "value");
+             Value test_delegate_value = find_value(item.get_obj(), "votes");
              if(test_delegate_value.type() != null_type) {
                  delegate_vote_value = test_delegate_value.get_uint64();
              }
@@ -48,10 +48,10 @@ bool GetMaxDelegateVote(const Value &account, string &max_delegate_addr, uint64_
       for(auto item : oper_vote_list) {
           Value test_delegate_addr = find_value(item.get_obj(), "address");
           if(test_delegate_addr.type() != null_type) {
-              Value test_delegate_value = find_value(item.get_obj(), "value");
-              if(test_delegate_value.type() != null_type) {
-                  if(test_delegate_value.get_uint64() > max_delegate_vote_value) {
-                      max_delegate_vote_value = test_delegate_value.get_uint64();
+              Value test_delegate_votes = find_value(item.get_obj(), "votes");
+              if(test_delegate_votes.type() != null_type) {
+                  if(test_delegate_votes.get_uint64() > max_delegate_vote_value) {
+                      max_delegate_vote_value = test_delegate_votes.get_uint64();
                       max_delegate_addr = test_delegate_addr.get_str();
                       cout << "max_delegate_vote_value:" << max_delegate_vote_value
                            << "     max_delegate_addr:" << max_delegate_addr
