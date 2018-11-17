@@ -25,18 +25,18 @@ BOOST_FIXTURE_TEST_CASE(transfer_test, CSysAccountTest)
 {
 	ResetEnv();
 	BOOST_CHECK(0==chainActive.Height());
-	//×ªÕË
+	//è½¬è´¦
 	string strRegAddr = "t7yXQfSAzsypLJvwnhuehAp3nbKYhv27qW";
 	string strSrcRegID = "000000000100";
 	uint64_t nMoney = 10000000;
 	BOOST_CHECK(SendMoney(strSrcRegID,strRegAddr,nMoney));
 	BOOST_CHECK(GenerateOneBlock());
 
-	//È·ÈÏ×ªÕË³É¹¦
+	//ç¡®è®¤è½¬è´¦æˆåŠŸ
 	uint64_t nFreeMoney = GetBalance(strRegAddr);
 	BOOST_CHECK(nFreeMoney == nMoney);
 
-	//Ê¹ÓÃÒ»¸öÃ»ÓĞ×¢²á¹ıµÄkeyIDµØÖ·²âÊÔ£¬¿´ÊÇÄÜ¹»×¢²á£¬ÓÃgetaccountinfo ¼ì²éregidÊÇ·ñ´æÔÚ
+	//ä½¿ç”¨ä¸€ä¸ªæ²¡æœ‰æ³¨å†Œè¿‡çš„keyIDåœ°å€æµ‹è¯•ï¼Œçœ‹æ˜¯èƒ½å¤Ÿæ³¨å†Œï¼Œç”¨getaccountinfo æ£€æŸ¥regidæ˜¯å¦å­˜åœ¨
 	string strTxHash;
 	CRegID regID;
 	BOOST_CHECK(RegisterAccount(strRegAddr,10000,strTxHash));
@@ -44,22 +44,22 @@ BOOST_FIXTURE_TEST_CASE(transfer_test, CSysAccountTest)
 	BOOST_CHECK(GetRegID(strRegAddr,regID));
 	BOOST_CHECK(false == regID.IsEmpty());
 
-	//Ê¹ÓÃÒ»¸ö×¢²á¹ıµÄkeyIDµØÖ·²âÊÔ£¬¿´ÊÇ·ñÄÜ¹»×¢²á³É¹¦
+	//ä½¿ç”¨ä¸€ä¸ªæ³¨å†Œè¿‡çš„keyIDåœ°å€æµ‹è¯•ï¼Œçœ‹æ˜¯å¦èƒ½å¤Ÿæ³¨å†ŒæˆåŠŸ
 	string strResigterd("tQCmxQDFQdHmAZw1j3dteB4CTro2Ph5TYP");
 	BOOST_CHECK(!RegisterAccount(strRegAddr,10000,strTxHash));
 
-	//ÓÃgetnewaddress»ñÈ¡Ò»¸öÃ»ÓĞÉèÖÃÍÚ¿ÓµÄ¹«Ô¿µØÖ·£¬×¢²áÕË»§×îºóÒ»¸ö²ÎÊıÊÇtrue£¬¿´´ËµØÖ·ÊÇ·ñÄÜ¹»×¢²á³É¹¦
+	//ç”¨getnewaddressè·å–ä¸€ä¸ªæ²¡æœ‰è®¾ç½®æŒ–å‘çš„å…¬é’¥åœ°å€ï¼Œæ³¨å†Œè´¦æˆ·æœ€åä¸€ä¸ªå‚æ•°æ˜¯trueï¼Œçœ‹æ­¤åœ°å€æ˜¯å¦èƒ½å¤Ÿæ³¨å†ŒæˆåŠŸ
 	string strNewKeyID;
 	BOOST_CHECK(GetNewAddr(strNewKeyID,true));
 
-	//ÓÃÒ»¸ö×¢²áµÄµØÖ·ºÍÒ»¸öÎ´×¢²áµÄµØÖ·À´·¢Ò»¸ö½»Ò×£¬¿´ÊÇ·ñÄÜ¹»·¢ËÍ³É¹¦
+	//ç”¨ä¸€ä¸ªæ³¨å†Œçš„åœ°å€å’Œä¸€ä¸ªæœªæ³¨å†Œçš„åœ°å€æ¥å‘ä¸€ä¸ªäº¤æ˜“ï¼Œçœ‹æ˜¯å¦èƒ½å¤Ÿå‘é€æˆåŠŸ
 	string strUnRegister("tNGvponTbhkomLUkMVHXQFtZ4Sho8wUonE");
 	vector<unsigned char> vRegID = regID.GetVec6();
 	nMoney = nMoney/10;
 	BOOST_CHECK(SendMoney(HexStr(vRegID),strUnRegister,nMoney, 10000));
 	BOOST_CHECK(GenerateOneBlock());
 
-	//È·ÈÏ×ªÕË³É¹¦
+	//ç¡®è®¤è½¬è´¦æˆåŠŸ
 	nFreeMoney = GetBalance(strUnRegister);
 	BOOST_CHECK(nFreeMoney == nMoney);
 }
@@ -76,61 +76,61 @@ BOOST_FIXTURE_TEST_CASE(register_test,CSysAccountTest)
 	uint64_t nFee = 10000;
 	vector<string> vFailedTxHash;
 
-	//Óà¶î²»¹»
+	//ä½™é¢ä¸å¤Ÿ
 	BOOST_CHECK(!RegisterAccount(strRegAddr1, nFee, strTxHash));
 	vFailedTxHash.push_back(strTxHash);
 
-	//ÎŞ·¨¶ÁÈ¡µÄÕËºÅµØÖ·
+	//æ— æ³•è¯»å–çš„è´¦å·åœ°å€
 	string strInvalidAddr("fjsofeoifdsfdsfdsafafafafafafafa");
 	BOOST_CHECK(!RegisterAccount(strInvalidAddr, nFee, strTxHash));
 	vFailedTxHash.push_back(strTxHash);
 
-//	//²»Ç©Ãû
+//	//ä¸ç­¾å
 //	BOOST_CHECK(!RegisterAccount(strRegAddr1, nFee, strTxHash,nInValidHeight,false));
 //	vFailedTxHash.push_back(strTxHash);
 
-	//ÊÖĞø·Ñ³¬¹ı×î´óÖµ
+	//æ‰‹ç»­è´¹è¶…è¿‡æœ€å¤§å€¼
 	BOOST_CHECK(!RegisterAccount(strRegAddr1, nFee+GetMaxMoney(), strTxHash));
 	vFailedTxHash.push_back(strTxHash);
 
-	//ÖØ¸´×¢²áµÄµØÖ·
+	//é‡å¤æ³¨å†Œçš„åœ°å€
 	string strReRegisrerAddr("tQCmxQDFQdHmAZw1j3dteB4CTro2Ph5TYP");
 	BOOST_CHECK(!RegisterAccount(strReRegisrerAddr, nFee, strTxHash));
 	vFailedTxHash.push_back(strTxHash);
 
-	//ÕË»§ÉÏÃ»ÓĞÓà¶îµÄÎ´×¢²áµØÖ·
+	//è´¦æˆ·ä¸Šæ²¡æœ‰ä½™é¢çš„æœªæ³¨å†Œåœ°å€
 	BOOST_CHECK(!RegisterAccount(strRegAddr2, nFee, strTxHash));
 	vFailedTxHash.push_back(strTxHash);
 
-//	//¼ì²éÊ§°ÜµÄ½»Ò×ÊÇ·ñÔÚmemorypoolÖĞ
+//	//æ£€æŸ¥å¤±è´¥çš„äº¤æ˜“æ˜¯å¦åœ¨memorypoolä¸­
 //	for (const auto& item : vFailedTxHash) {
 //		uint256 txHash(item);
 //		BOOST_CHECK(!IsTxInMemorypool(txHash));
 //		BOOST_CHECK(!IsTxUnConfirmdInWallet(txHash));
 //	}
 
-	//¸øÃ»ÓĞÓà¶îµÄÕË»§×ªÕË
+	//ç»™æ²¡æœ‰ä½™é¢çš„è´¦æˆ·è½¬è´¦
 	string strSrcRegID = "000000000100";
 	uint64_t nMoney = 10000000;
 	BOOST_CHECK(SendMoney(strSrcRegID, strRegAddr2, nMoney));
 	BOOST_CHECK(GenerateOneBlock());
 
-	//È·ÈÏ×ªÕË³É¹¦
+	//ç¡®è®¤è½¬è´¦æˆåŠŸ
 	uint64_t nFreeMoney = GetBalance(strRegAddr2);
 	BOOST_CHECK(nFreeMoney == nMoney);
 
-	//ÔÙ´Î¼ì²éÊ§°ÜµÄ½»Ò×ÊÇ·ñÔÚmemorypoolÖĞ
+	//å†æ¬¡æ£€æŸ¥å¤±è´¥çš„äº¤æ˜“æ˜¯å¦åœ¨memorypoolä¸­
 	for (const auto& item : vFailedTxHash) {
 		uint256 txHash(uint256S(item));
 		BOOST_CHECK(!IsTxInMemorypool(txHash));
 		BOOST_CHECK(!IsTxUnConfirmdInWallet(txHash));
 	}
 
-	//¸øµØÖ·Îª£ºdkJwhBs2P2SjbQWt5Bz6vzjqUhXTymvsGr µÄÕË»§×ªÕË
+	//ç»™åœ°å€ä¸ºï¼šdkJwhBs2P2SjbQWt5Bz6vzjqUhXTymvsGr çš„è´¦æˆ·è½¬è´¦
 	BOOST_CHECK(SendMoney(strSrcRegID, strRegAddr1, nMoney));
 	BOOST_CHECK(GenerateOneBlock());
 
-	//È·ÈÏ×ªÕË³É¹¦
+	//ç¡®è®¤è½¬è´¦æˆåŠŸ
 	nFreeMoney = GetBalance(strRegAddr1);
 	BOOST_CHECK(nFreeMoney == nMoney);
 
@@ -139,20 +139,20 @@ BOOST_FIXTURE_TEST_CASE(register_test,CSysAccountTest)
 	BOOST_CHECK(IsTxInMemorypool(uint256(uint256S(strSpecial))));
 	BOOST_CHECK(IsTxUnConfirmdInWallet(uint256(uint256S(strSpecial))));
 
-	//½»Ò×ÒÑ¾­ÔÚmemorypoolÖĞ
+	//äº¤æ˜“å·²ç»åœ¨memorypoolä¸­
 	BOOST_CHECK(!RegisterAccount(strRegAddr1, nFee, strTxHash,false));
 	BOOST_CHECK(!IsTxInMemorypool(uint256(uint256S(strTxHash))));
 	BOOST_CHECK(!IsTxUnConfirmdInWallet(uint256(uint256S(strTxHash))));
 
 	BOOST_CHECK(GenerateOneBlock());
 
-	//È·ÈÏ×¢²á³É¹¦µÄ½»Ò×ÔÚtipÖĞ
+	//ç¡®è®¤æ³¨å†ŒæˆåŠŸçš„äº¤æ˜“åœ¨tipä¸­
 	BOOST_CHECK(IsTxInTipBlock(uint256(uint256S(strSpecial))));
 
 	vector<CAccountLog> vLog;
 	BOOST_CHECK(GetTxOperateLog(uint256(uint256S(strSpecial)),vLog));
 
-	//¼ì²éÈÕÖ¾¼ÇÂ¼ÊÇ·ñÕıÈ·
+	//æ£€æŸ¥æ—¥å¿—è®°å½•æ˜¯å¦æ­£ç¡®
 //	BOOST_CHECK(1 == vLog.size() && 1 == vLog[0].vOperFund.size() && 1 == vLog[0].vOperFund[0].vFund.size());
 	BOOST_CHECK(strRegAddr1 == vLog[0].keyID.ToAddress());
 //	BOOST_CHECK(vLog[0].vOperFund[0].operType == MINUS_FREE && vLog[0].vOperFund[0].vFund[0].value == nFee);
