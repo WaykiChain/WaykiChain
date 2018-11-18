@@ -939,7 +939,7 @@ bool static PruneOrphanBlocks(int nHeight)
 //            break;
 //        it = it2;
 //    } while(1);
-	//for debug test, release version drop it 
+	//for debug test, release version drop it
 	LogPrint("OrphanBlock", "\n\n\n mapOrphanBlocks size:%d\n", mapOrphanBlocks.size());
 	LogPrint("OrphanBlock", "OrphanBlock set size:%d\n", setOrphanBlock.size());
 	set<COrphanBlock*, COrphanBlockComparator>::reverse_iterator it1 = setOrphanBlock.rbegin();
@@ -948,7 +948,7 @@ bool static PruneOrphanBlocks(int nHeight)
 	{
 		LogPrint("OrphanBlock", "OrphanBlock %d height=%d hash=%s\n", nSize--, (*it1)->height, (*it1)->hashBlock.GetHex());
 	}
-	
+
     set<COrphanBlock*, COrphanBlockComparator>::reverse_iterator it = setOrphanBlock.rbegin();
 	COrphanBlock *pOrphanBlock = *it;
 	if(pOrphanBlock->height <= nHeight)
@@ -1509,8 +1509,12 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
 		return true;
 	}
 
-    CBlockUndo blockundo;
+	if (!VerifyPosTx(&block, view, txCache, scriptDBCache, false)) {
+		return state.DoS(100, ERRORMSG("ConnectBlock() : the block Hash=%s check pos tx error", block.GetHash().GetHex()),
+				REJECT_INVALID, "bad-pos-tx");
+	}
 
+    CBlockUndo blockundo;
     int64_t nStart = GetTimeMicros();
     CDiskTxPos pos(pindex->GetBlockPos(), GetSizeOfCompactSize(block.vptx.size()));
     std::vector<pair<uint256, CDiskTxPos> > vPos;
@@ -1571,11 +1575,6 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
 			return ERRORMSG("fuel value at block header calculate error(actual fuel:%ld vs block fuel:%ld)", nTotalFuel, block.GetFuel());
 		}
     }
-
-	if (!VerifyPosTx(&block, view, txCache, scriptDBCache, false)) {
-		return state.DoS(100, ERRORMSG("ConnectBlock() : the block Hash=%s check pos tx error", block.GetHash().GetHex()),
-				REJECT_INVALID, "bad-pos-tx");
-	}
 
 	std::shared_ptr<CRewardTransaction> pRewardTx = dynamic_pointer_cast<CRewardTransaction>(block.vptx[0]);
 	CAccount minerAcct;
@@ -1780,7 +1779,7 @@ bool static DisconnectTip(CValidationState &state) {
 //	}
 
 	// Update chainActive and related variables.
-    UpdateTip(pindexDelete->pprev, block);  
+    UpdateTip(pindexDelete->pprev, block);
     // Resurrect mempool transactions from the disconnected block.
 	for (const auto &ptx : block.vptx) {
 		list<std::shared_ptr<CBaseTransaction> > removed;
@@ -1994,7 +1993,7 @@ bool ActivateBestChain(CValidationState &state) {
                     return false;
                 }
             }
-            
+
             if(chainActive.Contains(chainMostWork.Tip())) {
 				mempool.ReScanMemPoolTx(pAccountViewTip, pScriptDBTip);
             }

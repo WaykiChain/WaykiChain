@@ -184,8 +184,9 @@ public:
 	bool SetScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
 				const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog);
 	bool SetDelegateData(const CAccount &delegateAcct, CScriptDBOperLog &operLog);
+	bool SetDelegateData(const vector<unsigned char> &vKey);
 	bool EraseDelegateData(const CAccount &delegateAcct, CScriptDBOperLog &operLog);
-
+	bool EraseDelegateData(const vector<unsigned char> &vKey);
 	bool UndoScriptData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
 	/**
 	 * @brief Get all number of scripts in scriptdb
@@ -215,6 +216,7 @@ public:
 	bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash);
 	bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string & strTxHash, CScriptDBOperLog &operLog);
 	bool GetAllScriptAcc(const CRegID& scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc);
+
 private:
 	bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue);
 	bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
