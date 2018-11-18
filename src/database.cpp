@@ -207,17 +207,17 @@ bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAcco
 		if(keyId != uint160()) {
 			if(cacheAccounts.count(keyId)){
 				account = cacheAccounts[keyId];
-				if(account.keyID != uint160()) {  // ÅĞ¶Ï´ËÕÊ»§ÊÇ·ñ±»É¾³ıÁË
+				if(account.keyID != uint160()) {  // åˆ¤æ–­æ­¤å¸æˆ·æ˜¯å¦è¢«åˆ é™¤äº†
 					return true;
 				}else {
-					return false;   //ÒÑÉ¾³ı·µ»Øfalse
+					return false;   //å·²åˆ é™¤è¿”å›false
 				}
 			}else {
-				return pBase->GetAccount(keyId, account); //»º´æmapÖĞÃ»ÓĞ£¬´ÓÉÏ¼¶´æÈ¡
+				return pBase->GetAccount(keyId, account); //ç¼“å­˜mapä¸­æ²¡æœ‰ï¼Œä»ä¸Šçº§å­˜å–
 			}
 		}
 		else {
-			return false;  //accountIdÒÑÉ¾³ıËµÃ÷ÕË»§ĞÅÏ¢Ò²ÒÑÉ¾³ı
+			return false;  //accountIdå·²åˆ é™¤è¯´æ˜è´¦æˆ·ä¿¡æ¯ä¹Ÿå·²åˆ é™¤
 		}
 	}else {
 		CKeyID keyId;
@@ -225,10 +225,10 @@ bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAcco
 			cacheKeyIds[accountId] = keyId;
 			if (cacheAccounts.count(keyId) > 0 ) {
 				account = cacheAccounts[keyId];
-				if (account.keyID != uint160()) { // ÅĞ¶Ï´ËÕÊ»§ÊÇ·ñ±»É¾³ıÁË
+				if (account.keyID != uint160()) { // åˆ¤æ–­æ­¤å¸æˆ·æ˜¯å¦è¢«åˆ é™¤äº†
 					return true;
 				} else {
-					return false;   //ÒÑÉ¾³ı·µ»Øfalse
+					return false;   //å·²åˆ é™¤è¿”å›false
 				}
 			}
 			bool ret = pBase->GetAccount(keyId, account);
@@ -483,7 +483,7 @@ bool CScriptDBViewCache::UndoScriptData(const vector<unsigned char> &vKey, const
 		CDataStream ds(SER_DISK, CLIENT_VERSION);
 
 		int nCount(0);
-		if (vValue.empty()) {   //keyËù¶ÔÓ¦µÄÖµÓÉ·Ç¿ÕÉèÖÃÎª¿Õ£¬¼ÆÊı¼õ1
+		if (vValue.empty()) {   //keyæ‰€å¯¹åº”çš„å€¼ç”±éç©ºè®¾ç½®ä¸ºç©ºï¼Œè®¡æ•°å‡1
 			if (!vOldValue.empty()) {
 				if (!GetScriptDataCount(vScriptId, nCount))
 					return false;
@@ -491,7 +491,7 @@ bool CScriptDBViewCache::UndoScriptData(const vector<unsigned char> &vKey, const
 				if (!SetScriptDataCount(vScriptId, nCount))
 					return false;
 			}
-		} else {    //keyËù¶ÔÓ¦µÄÖµÓÉ¿ÕÉèÖÃÎª·Ç¿Õ£¬¼ÆÊı¼Ó1
+		} else {    //keyæ‰€å¯¹åº”çš„å€¼ç”±ç©ºè®¾ç½®ä¸ºéç©ºï¼Œè®¡æ•°åŠ 1
 			if (vOldValue.empty()) {
 				GetScriptDataCount(vScriptId, nCount);
 				++nCount;
@@ -540,7 +540,7 @@ bool CScriptDBViewCache::GetScript(const int nIndex, vector<unsigned char> &vScr
 		vector<unsigned char> vDataValue;
 		vDataKey.clear();
 		vDataValue.clear();
-		for (auto &item : mapDatas) {   //±éÀú±¾¼¶»º´æÊı¾İ£¬ÕÒ³öºÏ·¨µÄ×îĞ¡µÄkeyÖµ
+		for (auto &item : mapDatas) {   //éå†æœ¬çº§ç¼“å­˜æ•°æ®ï¼Œæ‰¾å‡ºåˆæ³•çš„æœ€å°çš„keyå€¼
 			vector<unsigned char> vTemp(item.first.begin(), item.first.begin() + 3);
 			if (scriptKey == vTemp) {
 				if (item.second.empty()) {
@@ -551,30 +551,30 @@ bool CScriptDBViewCache::GetScript(const int nIndex, vector<unsigned char> &vScr
 				break;
 			}
 		}
-		if (!pBase->GetScript(nIndex, vScriptId, vValue)) { //ÉÏ¼¶Ã»ÓĞ»ñÈ¡·ûºÏÌõ¼şµÄkeyÖµ
+		if (!pBase->GetScript(nIndex, vScriptId, vValue)) { //ä¸Šçº§æ²¡æœ‰è·å–ç¬¦åˆæ¡ä»¶çš„keyå€¼
 			if (vDataKey.empty())
 				return false;
-			else {//·µ»Ø±¾¼¶»º´æµÄ²éÑ¯½á¹û
+			else {//è¿”å›æœ¬çº§ç¼“å­˜çš„æŸ¥è¯¢ç»“æœ
 				vScriptId.clear();
 				vValue.clear();
 				vScriptId.assign(vDataKey.begin()+3, vDataKey.end());
 				vValue = vDataValue;
 				return true;
 			}
-		} else { //ÉÏ¼¶»ñÈ¡µ½·ûºÏÌõ¼şµÄkeyÖµ
-			if (vDataKey.empty()) {  //»º´æÖĞÃ»ÓĞ·ûºÏÌõ¼şµÄkey£¬Ö±½Ó·µ»ØÉÏ¼¶µÄ²éÑ¯½á¹û
+		} else { //ä¸Šçº§è·å–åˆ°ç¬¦åˆæ¡ä»¶çš„keyå€¼
+			if (vDataKey.empty()) {  //ç¼“å­˜ä¸­æ²¡æœ‰ç¬¦åˆæ¡ä»¶çš„keyï¼Œç›´æ¥è¿”å›ä¸Šçº§çš„æŸ¥è¯¢ç»“æœ
 				return true;
 			}
 			vector<unsigned char> dataKeyTemp = {'d', 'e', 'f'};
-			dataKeyTemp.insert(dataKeyTemp.end(), vScriptId.begin(), vScriptId.end()); //ÉÏ¼¶µÃµ½µÄkeyÖµ
-			if (dataKeyTemp < vDataKey) {  //ÈôÉÏ¼¶²éÑ¯µÄkeyĞ¡ÓÚ±¾¼¶»º´æµÄkey,ÇÒ´ËkeyÔÚ»º´æÖĞÃ»ÓĞ£¬ÔòÖ±½Ó·µ»ØÊı¾İ¿âÖĞ²éÑ¯µÄ½á¹û
+			dataKeyTemp.insert(dataKeyTemp.end(), vScriptId.begin(), vScriptId.end()); //ä¸Šçº§å¾—åˆ°çš„keyå€¼
+			if (dataKeyTemp < vDataKey) {  //è‹¥ä¸Šçº§æŸ¥è¯¢çš„keyå°äºæœ¬çº§ç¼“å­˜çš„key,ä¸”æ­¤keyåœ¨ç¼“å­˜ä¸­æ²¡æœ‰ï¼Œåˆ™ç›´æ¥è¿”å›æ•°æ®åº“ä¸­æŸ¥è¯¢çš„ç»“æœ
 				if (mapDatas.count(dataKeyTemp) == 0)
 					return true;
 				else {
-					mapDatas[dataKeyTemp].clear();  //ÔÚ»º´æÖĞdataKeyTempÒÑ¾­±»É¾³ı¹ıÁË£¬ÖØĞÂ½«´Ëkey¶ÔÓ¦µÄvalueÇå³ı
-					return GetScript(nIndex, vScriptId, vValue); //ÖØĞÂ´ÓÊı¾İ¿âÖĞ»ñÈ¡ÏÂÒ»ÌõÊı¾İ
+					mapDatas[dataKeyTemp].clear();  //åœ¨ç¼“å­˜ä¸­dataKeyTempå·²ç»è¢«åˆ é™¤è¿‡äº†ï¼Œé‡æ–°å°†æ­¤keyå¯¹åº”çš„valueæ¸…é™¤
+					return GetScript(nIndex, vScriptId, vValue); //é‡æ–°ä»æ•°æ®åº“ä¸­è·å–ä¸‹ä¸€æ¡æ•°æ®
 				}
-			} else {  //ÈôÉÏ¼¶²éÑ¯µÄkey´óÓÚµÈÓÚ±¾¼¶»º´æµÄkey,·µ»Ø±¾¼¶µÄÊı¾İ
+			} else {  //è‹¥ä¸Šçº§æŸ¥è¯¢çš„keyå¤§äºç­‰äºæœ¬çº§ç¼“å­˜çš„key,è¿”å›æœ¬çº§çš„æ•°æ®
 				vScriptId.clear();
 				vValue.clear();
 				vScriptId.assign(vDataKey.begin()+3, vDataKey.end());
@@ -608,7 +608,7 @@ bool CScriptDBViewCache::GetScript(const int nIndex, vector<unsigned char> &vScr
 				++iterFindKey;
 			}
 		}
-		if (!pBase->GetScript(nIndex, vScriptId, vValue)) { //´ÓBASE»ñÈ¡Ö¸¶¨¼üÖµÖ®ºóµÄÏÂÒ»¸öÖµ
+		if (!pBase->GetScript(nIndex, vScriptId, vValue)) { //ä»BASEè·å–æŒ‡å®šé”®å€¼ä¹‹åçš„ä¸‹ä¸€ä¸ªå€¼
 			if (vDataKey.empty())
 				return false;
 			else {
@@ -619,18 +619,18 @@ bool CScriptDBViewCache::GetScript(const int nIndex, vector<unsigned char> &vScr
 				return true;
 			}
 		} else {
-			if (vDataKey.empty())    //»º´æÖĞÃ»ÓĞ·ûºÏÌõ¼şµÄkey£¬Ö±½Ó·µ»ØÉÏ¼¶µÄ²éÑ¯½á¹û
+			if (vDataKey.empty())    //ç¼“å­˜ä¸­æ²¡æœ‰ç¬¦åˆæ¡ä»¶çš„keyï¼Œç›´æ¥è¿”å›ä¸Šçº§çš„æŸ¥è¯¢ç»“æœ
 				return true;
 			vector<unsigned char> dataKeyTemp = {'d', 'e', 'f'};
-			dataKeyTemp.insert(dataKeyTemp.end(), vScriptId.begin(), vScriptId.end()); //ÉÏ¼¶µÃµ½µÄkeyÖµ
+			dataKeyTemp.insert(dataKeyTemp.end(), vScriptId.begin(), vScriptId.end()); //ä¸Šçº§å¾—åˆ°çš„keyå€¼
 			if (dataKeyTemp < vDataKey) {
 				if (mapDatas.count(dataKeyTemp) == 0)
 						return true;
 				else {
-					mapDatas[dataKeyTemp].clear();  //ÔÚ»º´æÖĞdataKeyTempÒÑ¾­±»É¾³ı¹ıÁË£¬ÖØĞÂ½«´Ëkey¶ÔÓ¦µÄvalueÇå³ı
-					return GetScript(nIndex, vScriptId, vValue); //ÖØĞÂ´ÓÊı¾İ¿âÖĞ»ñÈ¡ÏÂÒ»ÌõÊı¾İ
+					mapDatas[dataKeyTemp].clear();  //åœ¨ç¼“å­˜ä¸­dataKeyTempå·²ç»è¢«åˆ é™¤è¿‡äº†ï¼Œé‡æ–°å°†æ­¤keyå¯¹åº”çš„valueæ¸…é™¤
+					return GetScript(nIndex, vScriptId, vValue); //é‡æ–°ä»æ•°æ®åº“ä¸­è·å–ä¸‹ä¸€æ¡æ•°æ®
 				}
-			} else { //ÈôÉÏ¼¶²éÑ¯µÄkey´óÓÚµÈÓÚ±¾¼¶»º´æµÄkey,·µ»Ø±¾¼¶µÄÊı¾İ
+			} else { //è‹¥ä¸Šçº§æŸ¥è¯¢çš„keyå¤§äºç­‰äºæœ¬çº§ç¼“å­˜çš„key,è¿”å›æœ¬çº§çš„æ•°æ®
 				vScriptId.clear();
 				vValue.clear();
 				vScriptId.assign(vDataKey.begin()+3, vDataKey.end());
@@ -852,11 +852,11 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 			vector<unsigned char> dataKeyTemp(vKey.begin(), vKey.end());
 			dataKeyTemp.insert(dataKeyTemp.end(), vScriptKey.begin(), vScriptKey.end());
 //			LogPrint("INFO", "dataKeyTemp:%s\n vDataKey:%s\n", HexStr(dataKeyTemp), HexStr(vDataKey));
-//			if(mapDatas.count(dataKeyTemp) > 0) {//±¾¼¶»º´æ°üº¬ÉÏ¼¶²éÑ¯½á¹ûµÄkey
-//				if(dataKeyTemp != vDataKey) {  //±¾¼¶ºÍÉÏ¼¶²éÕÒkey²»Í¬£¬ËµÃ÷ÉÏ¼¶»ñÈ¡µÄÊı¾İÔÚ±¾¼¶ÒÑ±»É¾³ı
+//			if(mapDatas.count(dataKeyTemp) > 0) {//æœ¬çº§ç¼“å­˜åŒ…å«ä¸Šçº§æŸ¥è¯¢ç»“æœçš„key
+//				if(dataKeyTemp != vDataKey) {  //æœ¬çº§å’Œä¸Šçº§æŸ¥æ‰¾keyä¸åŒï¼Œè¯´æ˜ä¸Šçº§è·å–çš„æ•°æ®åœ¨æœ¬çº§å·²è¢«åˆ é™¤
 //					continue;
 //				} else {
-//					if(vDataValue.empty()) { //±¾¼¶ºÍÉÏ¼¶Êı¾İkeyÏàÍ¬,ÇÒ±¾¼¶Êı¾İÒÑ¾­É¾³ı£¬ÖØĞÂ´ÓÉÏ¼¶»ñÈ¡ÏÂÒ»ÌõÊı¾İ
+//					if(vDataValue.empty()) { //æœ¬çº§å’Œä¸Šçº§æ•°æ®keyç›¸åŒ,ä¸”æœ¬çº§æ•°æ®å·²ç»åˆ é™¤ï¼Œé‡æ–°ä»ä¸Šçº§è·å–ä¸‹ä¸€æ¡æ•°æ®
 //						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getscriptdata()\n");
 //						continue;
 //					}
@@ -868,10 +868,10 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 //					ds >> vScriptData;
 //					return true;
 //				}
-//			} else {//±¾¼¶»º´æ²»°üº¬ÉÏ¼¶²éÑ¯½á¹ûkey
-//				if (dataKeyTemp < vDataKey) { //ÉÏ¼¶»ñÈ¡keyÖµĞ¡
-//					return true;      //·µ»ØÉÏ¼¶µÄ²éÑ¯½á¹û
-//				} else {              //±¾¼¶²éÑ¯½á¹ûKeyÖµĞ¡£¬·µ»Ø±¾¼¶²éÑ¯½á¹û
+//			} else {//æœ¬çº§ç¼“å­˜ä¸åŒ…å«ä¸Šçº§æŸ¥è¯¢ç»“æœkey
+//				if (dataKeyTemp < vDataKey) { //ä¸Šçº§è·å–keyå€¼å°
+//					return true;      //è¿”å›ä¸Šçº§çš„æŸ¥è¯¢ç»“æœ
+//				} else {              //æœ¬çº§æŸ¥è¯¢ç»“æœKeyå€¼å°ï¼Œè¿”å›æœ¬çº§æŸ¥è¯¢ç»“æœ
 //					vScriptKey.clear();
 //					vScriptData.clear();
 //					vScriptKey.insert(vScriptKey.end(), vDataKey.begin() + 11, vDataKey.end());
@@ -881,7 +881,7 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 //					return true;
 //				}
 //			}
-			if (vDataKey.empty()) {   //»º´æÖĞÃ»ÓĞ·ûºÏÌõ¼şµÄkey£¬Ö±½Ó·µ»ØÉÏ¼¶µÄ²éÑ¯½á¹û
+			if (vDataKey.empty()) {   //ç¼“å­˜ä¸­æ²¡æœ‰ç¬¦åˆæ¡ä»¶çš„keyï¼Œç›´æ¥è¿”å›ä¸Šçº§çš„æŸ¥è¯¢ç»“æœ
 				if(mapDatas.count(dataKeyTemp) <= 0) {
 //					CDataStream ds(vScriptData, SER_DISK, CLIENT_VERSION);
 //					ds >> vScriptData;
@@ -889,7 +889,7 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 				}
 				else {
 //					LogPrint("INFO", "local level contains dataKeyTemp,but the value is empty,need redo getscriptdata()\n");
-					continue;			 //ÖØĞÂ´ÓÊı¾İ¿âÖĞ»ñÈ¡ÏÂÒ»ÌõÊı¾İ
+					continue;			 //é‡æ–°ä»æ•°æ®åº“ä¸­è·å–ä¸‹ä¸€æ¡æ•°æ®
 				}
 			}
 			else {
@@ -899,10 +899,10 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 					}
 					else {
 //						LogPrint("INFO", "dataKeyTemp less than vDataKey and vDataValue empty redo getscriptdata()\n");
-						continue;			 //ÖØĞÂ´ÓÊı¾İ¿âÖĞ»ñÈ¡ÏÂÒ»ÌõÊı¾İ
+						continue;			 //é‡æ–°ä»æ•°æ®åº“ä¸­è·å–ä¸‹ä¸€æ¡æ•°æ®
 					}
 				} else {
-					if(vDataValue.empty()) { //±¾¼¶ºÍÉÏ¼¶Êı¾İkeyÏàÍ¬,ÇÒ±¾¼¶Êı¾İÒÑ¾­É¾³ı£¬ÖØĞÂ´ÓÉÏ¼¶»ñÈ¡ÏÂÒ»ÌõÊı¾İ
+					if(vDataValue.empty()) { //æœ¬çº§å’Œä¸Šçº§æ•°æ®keyç›¸åŒ,ä¸”æœ¬çº§æ•°æ®å·²ç»åˆ é™¤ï¼Œé‡æ–°ä»ä¸Šçº§è·å–ä¸‹ä¸€æ¡æ•°æ®
 //						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getscriptdata()\n");
 						continue;
 					}
@@ -968,11 +968,11 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 			vector<unsigned char> dataKeyTemp(vKey.begin(), vKey.end());
 			dataKeyTemp.insert(dataKeyTemp.end(), vScriptKey.begin(), vScriptKey.end());
 //			LogPrint("INFO", "dataKeyTemp:%s\n vDataKey:%s\n", HexStr(dataKeyTemp), HexStr(vDataKey));
-//			if(mapDatas.count(dataKeyTemp) > 0) {//±¾¼¶»º´æ°üº¬ÉÏ¼¶²éÑ¯½á¹ûµÄkey
-//				if(dataKeyTemp != vDataKey) {  //±¾¼¶ºÍÉÏ¼¶²éÕÒkey²»Í¬£¬ËµÃ÷ÉÏ¼¶»ñÈ¡µÄÊı¾İÔÚ±¾¼¶ÒÑ±»É¾³ı
+//			if(mapDatas.count(dataKeyTemp) > 0) {//æœ¬çº§ç¼“å­˜åŒ…å«ä¸Šçº§æŸ¥è¯¢ç»“æœçš„key
+//				if(dataKeyTemp != vDataKey) {  //æœ¬çº§å’Œä¸Šçº§æŸ¥æ‰¾keyä¸åŒï¼Œè¯´æ˜ä¸Šçº§è·å–çš„æ•°æ®åœ¨æœ¬çº§å·²è¢«åˆ é™¤
 //					continue;
 //				} else {
-//					if(vDataValue.empty()) { //±¾¼¶ºÍÉÏ¼¶Êı¾İkeyÏàÍ¬,ÇÒ±¾¼¶Êı¾İÒÑ¾­É¾³ı£¬ÖØĞÂ´ÓÉÏ¼¶»ñÈ¡ÏÂÒ»ÌõÊı¾İ
+//					if(vDataValue.empty()) { //æœ¬çº§å’Œä¸Šçº§æ•°æ®keyç›¸åŒ,ä¸”æœ¬çº§æ•°æ®å·²ç»åˆ é™¤ï¼Œé‡æ–°ä»ä¸Šçº§è·å–ä¸‹ä¸€æ¡æ•°æ®
 //						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getscriptdata()\n");
 //						continue;
 //					}
@@ -984,10 +984,10 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 //					ds >> vScriptData;
 //					return true;
 //				}
-//			} else {//±¾¼¶»º´æ²»°üº¬ÉÏ¼¶²éÑ¯½á¹ûkey
-//				if (dataKeyTemp < vDataKey) { //ÉÏ¼¶»ñÈ¡keyÖµĞ¡
-//					return true;      //·µ»ØÉÏ¼¶µÄ²éÑ¯½á¹û
-//				} else {              //±¾¼¶²éÑ¯½á¹ûKeyÖµĞ¡£¬·µ»Ø±¾¼¶²éÑ¯½á¹û
+//			} else {//æœ¬çº§ç¼“å­˜ä¸åŒ…å«ä¸Šçº§æŸ¥è¯¢ç»“æœkey
+//				if (dataKeyTemp < vDataKey) { //ä¸Šçº§è·å–keyå€¼å°
+//					return true;      //è¿”å›ä¸Šçº§çš„æŸ¥è¯¢ç»“æœ
+//				} else {              //æœ¬çº§æŸ¥è¯¢ç»“æœKeyå€¼å°ï¼Œè¿”å›æœ¬çº§æŸ¥è¯¢ç»“æœ
 //					vScriptKey.clear();
 //					vScriptData.clear();
 //					vScriptKey.insert(vScriptKey.end(), vDataKey.begin() + 11, vDataKey.end());
@@ -997,7 +997,7 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 //					return true;
 //				}
 //			}
-			if (vDataKey.empty()) {   //»º´æÖĞÃ»ÓĞ·ûºÏÌõ¼şµÄkey£¬Ö±½Ó·µ»ØÉÏ¼¶µÄ²éÑ¯½á¹û
+			if (vDataKey.empty()) {   //ç¼“å­˜ä¸­æ²¡æœ‰ç¬¦åˆæ¡ä»¶çš„keyï¼Œç›´æ¥è¿”å›ä¸Šçº§çš„æŸ¥è¯¢ç»“æœ
 				if(mapDatas.count(dataKeyTemp) <= 0) {
 //					CDataStream ds(vScriptData, SER_DISK, CLIENT_VERSION);
 //					ds >> vScriptData;
@@ -1005,7 +1005,7 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 				}
 				else {
 //					LogPrint("INFO", "local level contains dataKeyTemp,but the value is empty,need redo getscriptdata()\n");
-					continue;			 //ÖØĞÂ´ÓÊı¾İ¿âÖĞ»ñÈ¡ÏÂÒ»ÌõÊı¾İ
+					continue;			 //é‡æ–°ä»æ•°æ®åº“ä¸­è·å–ä¸‹ä¸€æ¡æ•°æ®
 				}
 			}
 			else {
@@ -1014,10 +1014,10 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 						return true;
 					else {
 //						LogPrint("INFO", "dataKeyTemp less than vDataKey and vDataValue empty redo getscriptdata()\n");
-						continue;			//ÔÚ»º´æÖĞdataKeyTempÒÑ¾­±»É¾³ı¹ıÁË£¬ÖØĞÂ´ÓÊı¾İ¿âÖĞ»ñÈ¡ÏÂÒ»ÌõÊı¾İ
+						continue;			//åœ¨ç¼“å­˜ä¸­dataKeyTempå·²ç»è¢«åˆ é™¤è¿‡äº†ï¼Œé‡æ–°ä»æ•°æ®åº“ä¸­è·å–ä¸‹ä¸€æ¡æ•°æ®
 					}
 				} else {
-					if(vDataValue.empty()) { //±¾¼¶ºÍÉÏ¼¶Êı¾İkeyÏàÍ¬,ÇÒ±¾¼¶Êı¾İÒÑ¾­É¾³ı£¬ÖØĞÂ´ÓÉÏ¼¶»ñÈ¡ÏÂÒ»ÌõÊı¾İ
+					if(vDataValue.empty()) { //æœ¬çº§å’Œä¸Šçº§æ•°æ®keyç›¸åŒ,ä¸”æœ¬çº§æ•°æ®å·²ç»åˆ é™¤ï¼Œé‡æ–°ä»ä¸Šçº§è·å–ä¸‹ä¸€æ¡æ•°æ®
 //						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getscriptdata()\n");
 						continue;
 					}
@@ -1060,7 +1060,7 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 //	if(0 == nIndex) {
 //		vDataKey.clear();
 //		vDataValue.clear();
-//		for (auto &item : mapDatas) {   //±éÀú±¾¼¶»º´æÊı¾İ£¬ÕÒ³öºÏ·¨µÄ×îĞ¡µÄkeyÖµ
+//		for (auto &item : mapDatas) {   //éå†æœ¬çº§ç¼“å­˜æ•°æ®ï¼Œæ‰¾å‡ºåˆæ³•çš„æœ€å°çš„keyå€¼
 //			vector<unsigned char> vTemp(item.first.begin(),item.first.begin()+vScriptId.size()+5);
 //			if(vKey == vTemp) {
 //				if(item.second.empty()) {
@@ -1070,7 +1070,7 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 //				vDataValue = item.second;
 //				CDataStream ds(vDataValue, SER_DISK, CLIENT_VERSION);
 //				ds >> nHeight;
-//				if(nHeight <= nCurBlockHeight) { //ÈôÕÒµ½µÄkey¶ÔÓ¦µÄÊı¾İ±£´æÊ±¼äÒÑ¾­³¬Ê±£¬ÔòĞèÒªÉ¾³ı¸ÃÊı¾İÏî£¬¼ÌĞøÕÒÏÂÒ»¸ö·ûºÏÌõ¼şµÄkey
+//				if(nHeight <= nCurBlockHeight) { //è‹¥æ‰¾åˆ°çš„keyå¯¹åº”çš„æ•°æ®ä¿å­˜æ—¶é—´å·²ç»è¶…æ—¶ï¼Œåˆ™éœ€è¦åˆ é™¤è¯¥æ•°æ®é¡¹ï¼Œç»§ç»­æ‰¾ä¸‹ä¸€ä¸ªç¬¦åˆæ¡ä»¶çš„key
 //					CScriptDBOperLog operLog(vDataKey, vDataValue);
 //					vDataKey.clear();
 //					vDataValue.clear();
@@ -1099,7 +1099,7 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 //					vDataValue = iterFindKey->second;
 //					CDataStream ds(vDataValue, SER_DISK, CLIENT_VERSION);
 //					ds >> nHeight;
-//					if (nHeight <= nCurBlockHeight) { //ÈôÕÒµ½µÄkey¶ÔÓ¦µÄÊı¾İ±£´æÊ±¼äÒÑ¾­³¬Ê±£¬ÔòĞèÒªÉ¾³ı¸ÃÊı¾İÏî£¬¼ÌĞøÕÒÏÂÒ»¸ö·ûºÏÌõ¼şµÄkey
+//					if (nHeight <= nCurBlockHeight) { //è‹¥æ‰¾åˆ°çš„keyå¯¹åº”çš„æ•°æ®ä¿å­˜æ—¶é—´å·²ç»è¶…æ—¶ï¼Œåˆ™éœ€è¦åˆ é™¤è¯¥æ•°æ®é¡¹ï¼Œç»§ç»­æ‰¾ä¸‹ä¸€ä¸ªç¬¦åˆæ¡ä»¶çš„key
 //						CScriptDBOperLog operLog(vDataKey, iterFindKey->second);
 //						vDataKey.clear();
 //						vDataValue.clear();
@@ -1131,7 +1131,7 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 //			}
 //		}
 //		set<CScriptDBOperLog>::iterator iterOperLog = setOperLog.begin();
-//		for (; iterOperLog != setOperLog.end();) { //·ÀÖ¹ÓÉÓÚÃ»ÓĞflush cache£¬¶ÔÊı¾İ¿âÖĞ³¬Ê±µÄ½Å±¾Êı¾İÏî£¬ÔÚcacheÖĞ¶à´ÎÉ¾³ı£¬ÒıÆğÉ¾³ıÊ§°Ü
+//		for (; iterOperLog != setOperLog.end();) { //é˜²æ­¢ç”±äºæ²¡æœ‰flush cacheï¼Œå¯¹æ•°æ®åº“ä¸­è¶…æ—¶çš„è„šæœ¬æ•°æ®é¡¹ï¼Œåœ¨cacheä¸­å¤šæ¬¡åˆ é™¤ï¼Œå¼•èµ·åˆ é™¤å¤±è´¥
 //			if (mapDatas.count(iterOperLog->vKey) > 0 && mapDatas[iterOperLog->vKey].empty()) {
 //				LogPrint("INFO", "DeleteData key:%s\n", HexStr(iterOperLog->vKey));
 //				setOperLog.erase(iterOperLog++);
@@ -1142,12 +1142,12 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 //		vector<unsigned char> dataKeyTemp(vKey.begin(), vKey.end());
 //		dataKeyTemp.insert(dataKeyTemp.end(), vScriptKey.begin(), vScriptKey.end());
 //		LogPrint("INFO", "dataKeyTemp:%s\n vDataKey:%s\n", HexStr(dataKeyTemp), HexStr(vDataKey));
-//		if(mapDatas.count(dataKeyTemp) > 0) {//±¾¼¶»º´æ°üº¬ÉÏ¼¶²éÑ¯½á¹ûµÄkey
-//			if(dataKeyTemp != vDataKey) {  //±¾¼¶ºÍÉÏ¼¶²éÕÒkey²»Í¬£¬ËµÃ÷ÉÏ¼¶»ñÈ¡µÄÊı¾İÔÚ±¾¼¶ÒÑ±»É¾³ı
+//		if(mapDatas.count(dataKeyTemp) > 0) {//æœ¬çº§ç¼“å­˜åŒ…å«ä¸Šçº§æŸ¥è¯¢ç»“æœçš„key
+//			if(dataKeyTemp != vDataKey) {  //æœ¬çº§å’Œä¸Šçº§æŸ¥æ‰¾keyä¸åŒï¼Œè¯´æ˜ä¸Šçº§è·å–çš„æ•°æ®åœ¨æœ¬çº§å·²è¢«åˆ é™¤
 //				LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getscriptdata()\n");
 //				continue;
 //			} else {
-//				if(vDataValue.empty()) { //±¾¼¶ºÍÉÏ¼¶Êı¾İkeyÏàÍ¬,ÇÒ±¾¼¶Êı¾İÒÑ¾­É¾³ı£¬ÖØĞÂ´ÓÉÏ¼¶»ñÈ¡ÏÂÒ»ÌõÊı¾İ
+//				if(vDataValue.empty()) { //æœ¬çº§å’Œä¸Šçº§æ•°æ®keyç›¸åŒ,ä¸”æœ¬çº§æ•°æ®å·²ç»åˆ é™¤ï¼Œé‡æ–°ä»ä¸Šçº§è·å–ä¸‹ä¸€æ¡æ•°æ®
 //					LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getscriptdata()\n");
 //					continue;
 //				}
@@ -1159,10 +1159,10 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 //				ds >> vScriptData;
 //				return true;
 //			}
-//		} else {//±¾¼¶»º´æ²»°üº¬ÉÏ¼¶²éÑ¯½á¹ûkey
-//			if (dataKeyTemp < vDataKey) { //ÉÏ¼¶»ñÈ¡keyÖµĞ¡
-//				return true;      //·µ»ØÉÏ¼¶µÄ²éÑ¯½á¹û
-//			} else {              //±¾¼¶²éÑ¯½á¹ûKeyÖµĞ¡£¬·µ»Ø±¾¼¶²éÑ¯½á¹û
+//		} else {//æœ¬çº§ç¼“å­˜ä¸åŒ…å«ä¸Šçº§æŸ¥è¯¢ç»“æœkey
+//			if (dataKeyTemp < vDataKey) { //ä¸Šçº§è·å–keyå€¼å°
+//				return true;      //è¿”å›ä¸Šçº§çš„æŸ¥è¯¢ç»“æœ
+//			} else {              //æœ¬çº§æŸ¥è¯¢ç»“æœKeyå€¼å°ï¼Œè¿”å›æœ¬çº§æŸ¥è¯¢ç»“æœ
 //				vScriptKey.clear();
 //				vScriptData.clear();
 //				vScriptKey.insert(vScriptKey.end(), vDataKey.begin() + 11, vDataKey.end());
@@ -1174,7 +1174,7 @@ bool CScriptDBViewCache::GetScriptData(const int nCurBlockHeight, const vector<u
 //		}
 //		if(!bUpLevelRet) {
 //			set<CScriptDBOperLog>::iterator iterOperLog = setOperLog.begin();
-//			for (; iterOperLog != setOperLog.end();) { //·ÀÖ¹ÓÉÓÚÃ»ÓĞflush cache£¬¶ÔÊı¾İ¿âÖĞ³¬Ê±µÄ½Å±¾Êı¾İÏî£¬ÔÚcacheÖĞ¶à´ÎÉ¾³ı£¬ÒıÆğÉ¾³ıÊ§°Ü
+//			for (; iterOperLog != setOperLog.end();) { //é˜²æ­¢ç”±äºæ²¡æœ‰flush cacheï¼Œå¯¹æ•°æ®åº“ä¸­è¶…æ—¶çš„è„šæœ¬æ•°æ®é¡¹ï¼Œåœ¨cacheä¸­å¤šæ¬¡åˆ é™¤ï¼Œå¼•èµ·åˆ é™¤å¤±è´¥
 //				if (mapDatas.count(iterOperLog->vKey) > 0 && mapDatas[iterOperLog->vKey].empty()) {
 //					LogPrint("INFO", "DeleteData key:%s\n", HexStr(iterOperLog->vKey));
 //					setOperLog.erase(iterOperLog++);
@@ -1462,8 +1462,8 @@ bool CScriptDBViewCache::SetDelegateData(const CAccount &delegateAcct, CScriptDB
     CRegID regId(0,0);
     vector<unsigned char> vVoteKey = {'d','e','l','e','g','a','t','e','_'};
     uint64_t nMaxNumber = 0xFFFFFFFFFFFFFFFF;
-    string strVoltes = strprintf("%016x",  nMaxNumber-delegateAcct.llVotes);
-    vVoteKey.insert(vVoteKey.end(), strVoltes.begin(), strVoltes.end());
+    string strVotes = strprintf("%016x",  nMaxNumber-delegateAcct.llVotes);
+    vVoteKey.insert(vVoteKey.end(), strVotes.begin(), strVotes.end());
     vVoteKey.push_back('_');
     vVoteKey.insert(vVoteKey.end(), delegateAcct.regID.GetVec6().begin(), delegateAcct.regID.GetVec6().end());
     vector<unsigned char> vVoteValue;
@@ -1589,7 +1589,7 @@ uint256 CTransactionDBCache::IsContainTx(const uint256 & txHash) {
 		}
 	}
 	uint256 blockHash = pBase->IsContainTx(txHash);
-	if(IsInMap(mapTxHashByBlockHash,blockHash)){//mapTxHashByBlockHash[blockHash].empty()) { // [] ÔËËã·û·ÀÖ¹²»Ğ¡ĞÄ¼ÓÈëÁËÀ¬»øÊı¾İ
+	if(IsInMap(mapTxHashByBlockHash,blockHash)){//mapTxHashByBlockHash[blockHash].empty()) { // [] è¿ç®—ç¬¦é˜²æ­¢ä¸å°å¿ƒåŠ å…¥äº†åƒåœ¾æ•°æ®
 		return std::move(blockHash);
 	}
 	return std::move(uint256());
