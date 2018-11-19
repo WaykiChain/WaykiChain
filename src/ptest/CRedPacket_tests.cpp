@@ -29,7 +29,7 @@ typedef struct {
 
 typedef struct {
 	unsigned char systype;               //0xff
-	unsigned char type;            // 0x01 ÌáÏÖ
+	unsigned char type;            // 0x01 æç°
 	unsigned char typeaddr;            // 0x01 regid 0x02 base58
 	IMPLEMENT_SERIALIZE
 	(
@@ -169,7 +169,7 @@ bool CRedPacketTest::WithDraw()
 	APPACC accdata;
 	memset(&accdata,0,sizeof(APPACC));
 	accdata.systype = 0xff;
-	accdata.type = 0x02;  /// 0xff ±íÊ¾ÌáÏÖ »òÕß³äÖµ 0x01 ÌáÏÖ 0x02 ³äÖµ
+	accdata.type = 0x02;  /// 0xff è¡¨ç¤ºæç° æˆ–è€…å……å€¼ 0x01 æç° 0x02 å……å€¼
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
 	scriptData << accdata;
 	string sendcontract = HexStr(scriptData);

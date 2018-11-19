@@ -44,11 +44,11 @@ typedef struct tagdddd{
 }IPO_DATA;
 
 const int64_t totalSendMoney = 1340000000;   //
-//const string g_strAppId = "2794-1";              //½â¶³ÖÜÆÚÃ¿ÆÚ10·ÖÖÓÓ¦ÓÃ
-const string g_strAppId = "2816-1";                  //½â¶³ÖÜÆÚÃ¿ÆÚÒ»ÖÜÓ¦ÓÃ
+//const string g_strAppId = "2794-1";              //è§£å†»å‘¨æœŸæ¯æœŸ10åˆ†é’Ÿåº”ç”¨
+const string g_strAppId = "2816-1";                  //è§£å†»å‘¨æœŸæ¯æœŸä¸€å‘¨åº”ç”¨
 IPO_DATA arrayData[]=
 {
-	/*²âÊÔÓ¦ÓÃ*/
+	/*æµ‹è¯•åº”ç”¨*/
 	//  {"WYyZABrjmyCcGXbpWDSf7pzrfHWJtLDTQK",    30000000},
 	//  {"WSYh2s6YM5kyeTtBZrZNdNo6QoYYwidFTj",    30000000}
 };
@@ -67,14 +67,14 @@ TEST_STATE CIpoTest::Run(){
 
 	int64_t nMoneySend(0);
 	size_t t_num = sizeof(arrayData) / sizeof(arrayData[0]);
-	BOOST_CHECK(t_num <= max_user);         //·ÀÖ¹Ô½½ç
-	//³õÊ¼»¯µØÖ·±í
+	BOOST_CHECK(t_num <= max_user);         //é˜²æ­¢è¶Šç•Œ
+	//åˆå§‹åŒ–åœ°å€è¡¨
 	for (size_t i = 0; i < t_num; i++) {
 		memcpy((char*)userarray[i].address,(char*)arrayData[i].pAddress,sizeof(userarray[i].address));
 		userarray[i].money = arrayData[i].nMoney;
 		userarray[i].freeMothmoney = arrayData[i].nMoney / freeze_month_num;
 		userarray[i].freemoney = userarray[i].money - userarray[i].freeMothmoney * (freeze_month_num - 1);
-		nMoneySend += userarray[i].money;  //Í³¼Æ×Ü½ğ¶î
+		nMoneySend += userarray[i].money;  //ç»Ÿè®¡æ€»é‡‘é¢
 
 		cout<<"newaddr"<<i<<"address="<<userarray[i].address<<endl;
 		cout<<"newaddr"<<i<<"money="<<userarray[i].money<<endl;
@@ -84,10 +84,10 @@ TEST_STATE CIpoTest::Run(){
 	BOOST_CHECK(nMoneySend == totalSendMoney);
 
 #if 0
-    // ×¢²áipo½Å±¾
+    // æ³¨å†Œipoè„šæœ¬
 	RegistScript();
 
-	/// µÈ´ıipo½Å±¾±»È·ÈÏµ½blockÖĞ
+	/// ç­‰å¾…ipoè„šæœ¬è¢«ç¡®è®¤åˆ°blockä¸­
 	while(true)
 	{
 		if(WaitComfirmed(strTxHash, strAppRegId)) {
@@ -106,8 +106,8 @@ TEST_STATE CIpoTest::Run(){
 void CIpoTest::RunIpo(unsigned char type){
 	int64_t nMoneySend(0);
 	size_t t_num = sizeof(arrayData) / sizeof(arrayData[0]);
-	BOOST_CHECK(t_num <= max_user);         //·ÀÖ¹Ô½½ç
-	//³õÊ¼»¯µØÖ·±í
+	BOOST_CHECK(t_num <= max_user);         //é˜²æ­¢è¶Šç•Œ
+	//åˆå§‹åŒ–åœ°å€è¡¨
 	for (size_t i = 0; i < t_num; i++) {
 		memcpy((char*)userarray[i].address,(char*)arrayData[i].pAddress,sizeof(userarray[i].address));
 		if(!strcmp((char *)userarray[i].address,"DnKUZMvwXfprFCKhnsWRsbJTNnRZg88T2F") ||
@@ -116,7 +116,7 @@ void CIpoTest::RunIpo(unsigned char type){
 			!strcmp((char *)userarray[i].address, "Dpjs5pvXmZbVt3uDEfBrMNbCsWjJzjm8XA") ||
 			!strcmp((char *)userarray[i].address, "DZYDEn8CZuwgJ6YS6Zm7VvKaFc6E6tGstz") ||
 			!strcmp((char *)userarray[i].address, "DcyumTafQsSh4hJo4V6DaS23Dd2QnpMXKH")) {
-			userarray[i].freemoney = 0;  //×ÔÓÉ½ğ¶îÒÑÁì
+			userarray[i].freemoney = 0;  //è‡ªç”±é‡‘é¢å·²é¢†
 		}
 		else {
 			userarray[i].freemoney = arrayData[i].nMoney;
@@ -124,21 +124,21 @@ void CIpoTest::RunIpo(unsigned char type){
 		 //16696666666666610
 		userarray[i].freeMothmoney = arrayData[i].nMoney;
 		if(type == 1)
-		{  //¶³½á1´Î
+		{  //å†»ç»“1æ¬¡
 			userarray[i].money = arrayData[i].nMoney;
-		}else{ // ¶³½á11´Î ¸ÄÎª¶³½á10´Î
+		}else{ // å†»ç»“11æ¬¡ æ”¹ä¸ºå†»ç»“10æ¬¡
 			userarray[i].money = userarray[i].freeMothmoney * 10 + userarray[i].freemoney;
 		}
-		nMoneySend += userarray[i].money;  //Í³¼Æ×Ü½ğ¶î
+		nMoneySend += userarray[i].money;  //ç»Ÿè®¡æ€»é‡‘é¢
 
 	}
 	BOOST_CHECK(nMoneySend == totalSendMoney);
 
-//	//// mainÍøÂç²»ÓÃ
-//	/// ¸øÃ¿¸öµØÖ·×ªÒ»¶¨µÄ½ğ¶î
+//	//// mainç½‘ç»œä¸ç”¨
+//	/// ç»™æ¯ä¸ªåœ°å€è½¬ä¸€å®šçš„é‡‘é¢
 //	int64_t money = COIN;
 //	t_num = sizeof(arrayData) / sizeof(arrayData[0]);
-//	BOOST_CHECK(t_num <= max_user);         //·ÀÖ¹Ô½½ç
+//	BOOST_CHECK(t_num <= max_user);         //é˜²æ­¢è¶Šç•Œ
 //	for(int i=0;i <t_num;i++)
 //	{
 //		string des =strprintf("%s", userarray[i].address);
@@ -200,7 +200,7 @@ bool CIpoTest::SendIpoTx(unsigned char type)
 {
 	strAppRegId = g_strAppId;
 
-	// ´´½¨×ªÕË½»Ò×²¢ÇÒ±£´æ×ªÕË½»Ò×µÄhash
+	// åˆ›å»ºè½¬è´¦äº¤æ˜“å¹¶ä¸”ä¿å­˜è½¬è´¦äº¤æ˜“çš„hash
 	Object objRet;
 	Array SucceedArray;
 	Array UnSucceedArray;
@@ -210,11 +210,11 @@ bool CIpoTest::SendIpoTx(unsigned char type)
 
 	map<string, string> mapTxHash;
 	size_t t_num = sizeof(arrayData) / sizeof(arrayData[0]);
-	BOOST_CHECK(t_num <= max_user);         //·ÀÖ¹Ô½½ç
+	BOOST_CHECK(t_num <= max_user);         //é˜²æ­¢è¶Šç•Œ
 	for(size_t i =0;i <t_num;i++)
 	{
 		string des = strprintf("%s", userarray[i].address);
-		int64_t nMoney = userarray[i].money;   //Áì±ÒµÄ×Ü½ğ¶î
+		int64_t nMoney = userarray[i].money;   //é¢†å¸çš„æ€»é‡‘é¢
 		Object obj;
 
 		CDataStream scriptData(SER_DISK, CLIENT_VERSION);
@@ -240,7 +240,7 @@ bool CIpoTest::SendIpoTx(unsigned char type)
 	file.close();
 
 	 cout<<"SendIpoTx wait tx is confirmed"<<endl;
-	//È·±£Ã¿¸ö×ªÕË½»Ò×±»È·ÈÏÔÚblockÖĞ²ÅÍË³ö
+	//ç¡®ä¿æ¯ä¸ªè½¬è´¦äº¤æ˜“è¢«ç¡®è®¤åœ¨blockä¸­æ‰é€€å‡º
 	while(mapTxHash.size() != 0)
 	{
 		map<string, string>::iterator it = mapTxHash.begin();
@@ -258,14 +258,14 @@ bool CIpoTest::SendIpoTx(unsigned char type)
 	}
 
 	cout<<"after SendIpoTx,check the balance of every address "<<endl;
-	//Ğ£Ñé·¢±Òºó£¬¸÷¸öµØÖ·µÄÕË»§½ğ¶îºÍ¶³½á½ğ¶î
+	//æ ¡éªŒå‘å¸åï¼Œå„ä¸ªåœ°å€çš„è´¦æˆ·é‡‘é¢å’Œå†»ç»“é‡‘é¢
 	for (size_t i = 0; i < t_num; ++i) {
 
 		uint64_t acctValue = basetest.GetBalance(arrayData[i].pAddress);
 		cout<<"SendIpoTx addr:"<< arrayData[i].pAddress<<" balance="<<acctValue<<" freemoney="<<userarray[i].freemoney<<endl;
 		BOOST_CHECK(acctValue >= (uint64_t)userarray[i].freemoney);
 
-		// Ğ£ÑéÃ¿¸öÔÂµÄ¶³½á½ğ¶î
+		// æ ¡éªŒæ¯ä¸ªæœˆçš„å†»ç»“é‡‘é¢
 		Value  retValue = basetest.GetAppAccountInfo(strAppRegId,arrayData[i].pAddress);
 		Value  result = find_value(retValue.get_obj(), "vFreezedFund");
 		Array array = result.get_array();
@@ -280,10 +280,10 @@ bool CIpoTest::SendIpoTx(unsigned char type)
 //        	nMoneySend += freedmoney;
         }
 		if(type == 1)
-		{  //¶³½á1´Î
+		{  //å†»ç»“1æ¬¡
 
 		}else{
-//            BOOST_CHECK(j == (12 - 1)); //11¸ö¶³½á½ğ¶î
+//            BOOST_CHECK(j == (12 - 1)); //11ä¸ªå†»ç»“é‡‘é¢
 			  BOOST_CHECK(j == (freeze_month_num - 1));
 		}
 	}
@@ -292,7 +292,7 @@ bool CIpoTest::SendIpoTx(unsigned char type)
 }
 
 void CIpoTest::SendErrorIopTx()
-{   /*ÀûÓÃÒ»¸öµØÖ·¸ø×Ô¼ºÕË»§³äÖµ£¬´Ó½Å±¾ÕË»§ 50725-1 °ÑÇ®È¡³öÀ´*/
+{   /*åˆ©ç”¨ä¸€ä¸ªåœ°å€ç»™è‡ªå·±è´¦æˆ·å……å€¼ï¼Œä»è„šæœ¬è´¦æˆ· 50725-1 æŠŠé’±å–å‡ºæ¥*/
 	strAppRegId = "50725-1";
 	IPO_USER useripo;
 	char *dess = "DhxrQ9hsvo3fVVSy6By8bePt8cmPtts88R";
@@ -316,8 +316,8 @@ BOOST_FIXTURE_TEST_SUITE(CreateIpoTxTest,CIpoTest)
 BOOST_FIXTURE_TEST_CASE(Test,CIpoTest)
 {
 	Run();
-//	RunIpo(0); //¶³½á11´Î
-//	RunIpo(1); //¶³½á1´Î
+//	RunIpo(0); //å†»ç»“11æ¬¡
+//	RunIpo(1); //å†»ç»“1æ¬¡
 	//SendErrorIopTx();
 }
 
@@ -330,7 +330,7 @@ typedef struct _IPOCON{
 BOOST_FIXTURE_TEST_CASE(get_coin,CIpoTest)
 {
 
-	// ´´½¨×ªÕË½»Ò×²¢ÇÒ±£´æ×ªÕË½»Ò×µÄhash
+	// åˆ›å»ºè½¬è´¦äº¤æ˜“å¹¶ä¸”ä¿å­˜è½¬è´¦äº¤æ˜“çš„hash
 	Object objRet;
 	Array SucceedArray;
 	Array UnSucceedArray;
@@ -368,7 +368,7 @@ BOOST_FIXTURE_TEST_CASE(get_coin,CIpoTest)
 	file << json_spirit::write_string(Value(objRet), true).c_str();
 	file.close();
 
-	//È·±£Ã¿¸ö×ªÕË½»Ò×±»È·ÈÏÔÚblockÖĞ²ÅÍË³ö
+	//ç¡®ä¿æ¯ä¸ªè½¬è´¦äº¤æ˜“è¢«ç¡®è®¤åœ¨blockä¸­æ‰é€€å‡º
 	while(mapTxHash.size() != 0)
 	{
 		map<string, string>::iterator it = mapTxHash.begin();
@@ -404,8 +404,8 @@ BOOST_FIXTURE_TEST_CASE(check_money,CIpoTest) {
 	int64_t data1(0);
 	int64_t total(0);
 	size_t t_num = sizeof(arrayData) / sizeof(arrayData[0]);
-	BOOST_CHECK(t_num <= max_user);         //·ÀÖ¹Ô½½ç
-	//³õÊ¼»¯µØÖ·±í
+	BOOST_CHECK(t_num <= max_user);         //é˜²æ­¢è¶Šç•Œ
+	//åˆå§‹åŒ–åœ°å€è¡¨
 	for (size_t i = 0; i < t_num; i++) {
 		if(!strcmp((char *)arrayData[i].pAddress,"DnKUZMvwXfprFCKhnsWRsbJTNnRZg88T2F") ||
 					!strcmp((char *)arrayData[i].pAddress, "DftLSeJrMjJJ3UPeehNgArhcoAuDN5422E") ||
@@ -425,8 +425,8 @@ BOOST_FIXTURE_TEST_CASE(check_recharge,CIpoTest) {
 
 	int64_t nMoneySend(0);
 	size_t t_num = sizeof(arrayData) / sizeof(arrayData[0]);
-	BOOST_CHECK(t_num <= max_user);         //·ÀÖ¹Ô½½ç
-	//³õÊ¼»¯µØÖ·±í
+	BOOST_CHECK(t_num <= max_user);         //é˜²æ­¢è¶Šç•Œ
+	//åˆå§‹åŒ–åœ°å€è¡¨
 	for (size_t i = 0; i < 1; i++) {
 		memcpy((char*)userarray[i].address,(char*)arrayData[i].pAddress,sizeof(userarray[i].address));
 		userarray[i].freemoney = arrayData[i].nMoney;
