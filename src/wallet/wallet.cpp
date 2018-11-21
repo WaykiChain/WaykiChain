@@ -692,7 +692,7 @@ CWallet* CWallet::getinstance() {
 
 }
 
-Object CAccountTx::ToJosnObj(CKeyID const  &key) const {
+Object CAccountTx::ToJsonObj(CKeyID const  &key) const {
 
 	Object obj;
 	obj.push_back(Pair("blockHash",  blockHash.ToString()));

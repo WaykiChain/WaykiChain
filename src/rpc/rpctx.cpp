@@ -1401,7 +1401,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
 					}
 				}
 			}
-			obj = std::move(account.ToJosnObj(true));
+			obj = std::move(account.ToJsonObj(true));
 			obj.push_back(Pair("postion", "inblock"));
 		} else {
 			CPubKey pk;
@@ -1413,7 +1413,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
 				if (minerpk != pk) {
 					account.MinerPKey = minerpk;
 				}
-				obj = std::move(account.ToJosnObj(true));
+				obj = std::move(account.ToJsonObj(true));
 				obj.push_back(Pair("postion", "inwallet"));
 			}
 		}
@@ -3187,7 +3187,7 @@ Value getdelegatelist(const Array& params, bool fHelp) {
               LogPrint("INFO", "llVotes:%lld, account:%s",maxNum-llVotes, account.ToString());
               assert(0);
           }
-          delegateArray.push_back(account.ToJosnObj());
+          delegateArray.push_back(account.ToJsonObj());
       }
       else {
           assert(0);

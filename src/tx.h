@@ -763,7 +763,7 @@ public:
         return str;
 	}
 
-	Object ToJosn(bool isAddress=false) const;
+	Object ToJson(bool isAddress=false) const;
 };
 
 class CScriptDBOperLog {
@@ -944,7 +944,7 @@ public:
 //	void ClearAccPos(int nCurHeight);
 	uint64_t GetAccountProfit(int prevBlockHeight);
 	string ToString(bool isAddress = false) const;
-	Object ToJosnObj(bool isAddress = false) const;
+	Object ToJsonObj(bool isAddress = false) const;
 	bool IsEmptyValue() const {
 		return !(llValues > 0);
 	}

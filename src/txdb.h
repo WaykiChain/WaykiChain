@@ -83,7 +83,7 @@ public:
 	{
 		return db.GetDbCount();
 	}
-	Object ToJosnObj(char Prefix);
+	Object ToJsonObj(char Prefix);
 };
 
 class CTransactionDB: public CTransactionDBView{
@@ -129,7 +129,7 @@ public:
 		return db.GetDbCount();
 	}
 	bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash);
-	Object ToJosnObj(string Prefix);
+	Object ToJsonObj(string Prefix);
 	bool GetAllScriptAcc(const CRegID& scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc);
 };
 

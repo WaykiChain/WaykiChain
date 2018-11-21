@@ -411,7 +411,7 @@ public:
 		return CWalletDB(pWallet->strWalletFile).WriteBlockTx(blockHash, *this);
 	}
 
-	Object ToJosnObj(CKeyID const &key = CKeyID()) const;
+	Object ToJsonObj(CKeyID const &key = CKeyID()) const;
 
 
 	IMPLEMENT_SERIALIZE

@@ -574,7 +574,7 @@ bool CScriptDB::GetAllScriptAcc(const CRegID& scriptId, map<vector<unsigned char
 }
 
 
-Object CScriptDB::ToJosnObj(string Prefix) {
+Object CScriptDB::ToJsonObj(string Prefix) {
 
 	Object obj;
 	Array arrayObj;
@@ -626,7 +626,7 @@ Object CScriptDB::ToJosnObj(string Prefix) {
 	return obj;
 }
 
-Object CAccountViewDB::ToJosnObj(char Prefix) {
+Object CAccountViewDB::ToJsonObj(char Prefix) {
 		Object obj;
 		Array arrayObj;
 		leveldb::Iterator *pcursor =db.NewIterator();
@@ -658,7 +658,7 @@ Object CAccountViewDB::ToJosnObj(char Prefix) {
 						obj.push_back(Pair("keyid:", HexStr(ssKey)));
 						CAccount account;
 						ssValue >> account;
-						obj.push_back(Pair("account", account.ToJosnObj()));
+						obj.push_back(Pair("account", account.ToJsonObj()));
 					}
 					arrayObj.push_back(obj);
 					pcursor->Next();

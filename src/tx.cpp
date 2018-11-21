@@ -1324,7 +1324,7 @@ uint64_t CAccount::GetFrozenBalance() {
     return votes;
 }
 
-Object CAccount::ToJosnObj(bool isAddress) const
+Object CAccount::ToJsonObj(bool isAddress) const
 {
 	Object obj;
 	obj.push_back(Pair("Address",     keyID.ToAddress()));
@@ -1337,7 +1337,7 @@ Object CAccount::ToJosnObj(bool isAddress) const
 	obj.push_back(Pair("UpdateHeight", nHeight));
     Array voteFundArray;
     for(auto & fund : voteFunds) {
-        voteFundArray.push_back(fund.ToJosn(true));
+        voteFundArray.push_back(fund.ToJson(true));
     }
     obj.push_back(Pair("voteFundList", voteFundArray));
 	return obj;
@@ -1481,11 +1481,11 @@ string COperVoteFund::ToString(bool isAddress) const {
 Object COperVoteFund::ToJson(bool isAddress) const {
     Object obj;
     obj.push_back(Pair("operType",voteOperTypeArray[operType]));
-    obj.push_back(Pair("voteFund", fund.ToJosn(isAddress)));
+    obj.push_back(Pair("voteFund", fund.ToJson(isAddress)));
     return obj;
 }
 
-Object CVoteFund::ToJosn(bool isAddress) const{
+Object CVoteFund::ToJson(bool isAddress) const{
     Object obj;
     if(isAddress) {
         obj.push_back(Pair("address", pubKey.GetKeyID().ToAddress()));
