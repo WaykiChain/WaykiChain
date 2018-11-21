@@ -600,7 +600,7 @@ bool CheckTransaction(CBaseTransaction *ptx, CValidationState &state, CAccountVi
 	if (::GetSerializeSize(ptx->GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
 		return state.DoS(100, ERRORMSG("CheckTransaction() : size limits failed"), REJECT_INVALID, "bad-txns-oversize");
 
-	if(!ptx->CheckTransction(state, view, scriptDB))
+	if(!ptx->CheckTransaction(state, view, scriptDB))
 		return false;
 
 	return true;

@@ -372,7 +372,7 @@ bool VerifyPosTx( const CBlock *pBlock, CAccountViewCache &accView, CTransaction
 	}
 
 	if (prtx->nVersion != nTxVersion1) {
-		return ERRORMSG("CTransaction CheckTransction,tx version is not equal current version, (tx version %d: vs current %d)",
+		return ERRORMSG("CTransaction CheckTransaction,tx version is not equal current version, (tx version %d: vs current %d)",
 				prtx->nVersion, nTxVersion1);
 	}
 

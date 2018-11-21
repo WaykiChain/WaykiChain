@@ -418,7 +418,7 @@ Object CRegisterAccountTx::ToJSON(const CAccountViewCache &AccountView) const{
 	result.push_back(Pair("height", nValidHeight));
    return result;
 }
-bool CRegisterAccountTx::CheckTransction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CRegisterAccountTx::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 
 	if (userId.type() != typeid(CPubKey)) {
 		return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAppTx userId must be CPubKey"), REJECT_INVALID,
@@ -432,19 +432,19 @@ bool CRegisterAccountTx::CheckTransction(CValidationState &state, CAccountViewCa
 
 	//check pubKey valid
 	if (!boost::get<CPubKey>(userId).IsFullyValid()) {
-		return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransction, register tx public key is invalid"), REJECT_INVALID,
+		return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransaction, register tx public key is invalid"), REJECT_INVALID,
 				"bad-regtx-publickey");
 	}
 
 	//check signature script
 	uint256 sighash = SignatureHash();
 	if(!CheckSignScript(sighash, signature, boost::get<CPubKey>(userId))) {
-		return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransction, register tx signature error "), REJECT_INVALID,
+		return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransaction, register tx signature error "), REJECT_INVALID,
 				"bad-regtx-signature");
 	}
 
 	if (!MoneyRange(llFees))
-		return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransction, register tx fee out of range"), REJECT_INVALID,
+		return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransaction, register tx fee out of range"), REJECT_INVALID,
 				"bad-regtx-fee-toolarge");
 	return true;
 }
@@ -666,7 +666,7 @@ Object CTransaction::ToJSON(const CAccountViewCache &AccountView) const{
 	result.push_back(Pair("Contract", HexStr(vContract)));
     return result;
 }
-bool CTransaction::CheckTransction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 
 	if(srcRegId.type() != typeid(CRegID)) {
 		return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction srcRegId must be CRegID"), REJECT_INVALID, "srcaddr-type-error");
@@ -677,22 +677,22 @@ bool CTransaction::CheckTransction(CValidationState &state, CAccountViewCache &v
 	}
 
 	if (!MoneyRange(llFees)) {
-		return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction CheckTransction, appeal tx fee out of range"), REJECT_INVALID,
+		return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction CheckTransaction, appeal tx fee out of range"), REJECT_INVALID,
 				"bad-appeal-fee-toolarge");
 	}
 
 	CAccount acctInfo;
 	if (!view.GetAccount(boost::get<CRegID>(srcRegId), acctInfo)) {
-		return state.DoS(100, ERRORMSG("CheckTransaction() :CTransaction CheckTransction, read account falied, regid=%s", boost::get<CRegID>(srcRegId).ToString()), REJECT_INVALID, "bad-getaccount");
+		return state.DoS(100, ERRORMSG("CheckTransaction() :CTransaction CheckTransaction, read account falied, regid=%s", boost::get<CRegID>(srcRegId).ToString()), REJECT_INVALID, "bad-getaccount");
 	}
 	if (!acctInfo.IsRegister()) {
-		return state.DoS(100, ERRORMSG("CheckTransaction(): CTransaction CheckTransction, account have not registed public key"), REJECT_INVALID,
+		return state.DoS(100, ERRORMSG("CheckTransaction(): CTransaction CheckTransaction, account have not registed public key"), REJECT_INVALID,
 				"bad-no-pubkey");
 	}
 
 	uint256 sighash = SignatureHash();
 	if (!CheckSignScript(sighash, signature, acctInfo.PublicKey)) {
-		return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction CheckTransction, CheckSignScript failed"), REJECT_INVALID,
+		return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction CheckTransaction, CheckSignScript failed"), REJECT_INVALID,
 				"bad-signscript-check");
 	}
 
@@ -799,7 +799,7 @@ Object CRewardTransaction::ToJSON(const CAccountViewCache &AccountView) const{
 	result.push_back(Pair("height", nHeight));
 	return std::move(result);
 }
-bool CRewardTransaction::CheckTransction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CRewardTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 	return true;
 }
 uint256 CRewardTransaction::GetHash() const
@@ -965,7 +965,7 @@ Object CRegisterAppTx::ToJSON(const CAccountViewCache &AccountView) const{
 	result.push_back(Pair("height", nValidHeight));
 	return result;
 }
-bool CRegisterAppTx::CheckTransction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CRegisterAppTx::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 
 	if (regAcctId.type() != typeid(CRegID)) {
 		return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAppTx regAcctId must be CRegID"), REJECT_INVALID,
@@ -973,7 +973,7 @@ bool CRegisterAppTx::CheckTransction(CValidationState &state, CAccountViewCache 
 	}
 
 	if (!MoneyRange(llFees)) {
-			return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAppTx CheckTransction, tx fee out of range"), REJECT_INVALID,
+			return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAppTx CheckTransaction, tx fee out of range"), REJECT_INVALID,
 					"fee-too-large");
 	}
 
@@ -983,21 +983,21 @@ bool CRegisterAppTx::CheckTransction(CValidationState &state, CAccountViewCache 
 	}
 
 	if( llFees < llFuel) {
-		return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAppTx CheckTransction, register app tx fee too litter (actual:%lld vs need:%lld)", llFees, llFuel), REJECT_INVALID,
+		return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAppTx CheckTransaction, register app tx fee too litter (actual:%lld vs need:%lld)", llFees, llFuel), REJECT_INVALID,
 							"fee-too-litter");
 	}
 
 	CAccount acctInfo;
 	if (!view.GetAccount(boost::get<CRegID>(regAcctId), acctInfo)) {
-		return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAppTx CheckTransction, get account falied"), REJECT_INVALID, "bad-getaccount");
+		return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAppTx CheckTransaction, get account falied"), REJECT_INVALID, "bad-getaccount");
 	}
 	if (!acctInfo.IsRegister()) {
-		return state.DoS(100, ERRORMSG("CheckTransaction(): CRegisterAppTx CheckTransction, account have not registed public key"), REJECT_INVALID,
+		return state.DoS(100, ERRORMSG("CheckTransaction(): CRegisterAppTx CheckTransaction, account have not registed public key"), REJECT_INVALID,
 				"bad-no-pubkey");
 	}
 	uint256 signhash = SignatureHash();
 	if (!CheckSignScript(signhash, signature, acctInfo.PublicKey)) {
-		return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAppTx CheckTransction, CheckSignScript failed"), REJECT_INVALID,
+		return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAppTx CheckTransaction, CheckSignScript failed"), REJECT_INVALID,
 				"bad-signscript-check");
 	}
 	return true;
@@ -1121,7 +1121,7 @@ Object CDelegateTransaction::ToJSON(const CAccountViewCache &AccountView) const 
     return std::move(result);
 }
 
-bool CDelegateTransaction::CheckTransction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     CID id(userId);
     if(userId.type() != typeid(CRegID)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction send account is not CRegID type"), REJECT_INVALID, "deletegate-tx-error");
@@ -1135,16 +1135,16 @@ bool CDelegateTransaction::CheckTransction(CValidationState &state, CAccountView
                     "deletegates-number-error");
     }
     if (!MoneyRange(llFees))
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction CheckTransction, delegate tx fee out of range"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction CheckTransaction, delegate tx fee out of range"), REJECT_INVALID,
                 "bad-regtx-fee-toolarge");
     CKeyID sendTxKeyID;
     if(!view.GetKeyId(userId, sendTxKeyID)) {
-        return state.DoS(100, ERRORMSG("CheckTransction() : CDelegateTransaction get keyId error by CUserID =%s", HexStr(id.GetID())), REJECT_INVALID, "");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction get keyId error by CUserID =%s", HexStr(id.GetID())), REJECT_INVALID, "");
     }
 
     CAccount sendAcctInfo;
     if (!view.GetAccount(userId, sendAcctInfo)) {
-     return state.DoS(100, ERRORMSG("CheckTransction() : CDelegateTransaction get account info error, userid=%s", HexStr(id.GetID())),
+     return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction get account info error, userid=%s", HexStr(id.GetID())),
              REJECT_INVALID, "bad-read-accountdb");
     }
 
@@ -1164,7 +1164,7 @@ bool CDelegateTransaction::CheckTransction(CValidationState &state, CAccountView
         setTotalOperVoteKeyID.insert(item->fund.pubKey.GetKeyID());
         CAccount acctInfo;
         if (!view.GetAccount(CUserID(item->fund.pubKey), acctInfo)) {
-            return state.DoS(100, ERRORMSG("CheckTransction() : CDelegateTransaction get account info error, address=%s", item->fund.pubKey.GetKeyID().ToAddress()),
+            return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction get account info error, address=%s", item->fund.pubKey.GetKeyID().ToAddress()),
                     REJECT_INVALID, "bad-read-accountdb");
         }
         if(item->fund.value > totalVotes)
@@ -1181,7 +1181,7 @@ bool CDelegateTransaction::CheckTransction(CValidationState &state, CAccountView
                            "deletegates-duplication fund-error");
     }
     if(totalVotes > sendAcctInfo.llValues) {
-       return state.DoS(100, ERRORMSG("CheckTransction() : CDelegateTransaction delegate votes exceeds than account balance, userid=%s", HexStr(id.GetID())),
+       return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction delegate votes exceeds than account balance, userid=%s", HexStr(id.GetID())),
                       REJECT_INVALID, "deletegates-number-error");
     }
     return true;
