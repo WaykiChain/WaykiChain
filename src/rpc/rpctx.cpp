@@ -3158,12 +3158,12 @@ Value getdelegatelist(const Array& params, bool fHelp) {
     Object obj;
     Array delegateArray;
     vector<unsigned char> vScriptKey = {'d','e','l','e','g','a','t','e','_'};
-    vector<unsigned char> vDelegatePrdfix = vScriptKey;
+    vector<unsigned char> vDelegatePrefix = vScriptKey;
     while(--nDelegateNum >= 0) {
        CRegID regId(0,0);
       if(contractScriptTemp.GetScriptData(0, redId, nIndex, vScriptKey, vScriptData)) {
           nIndex = 1;
-          vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrdfix.begin(), vDelegatePrdfix.end());
+          vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrefix.begin(), vDelegatePrefix.end());
           string strVoltes(iterVotes+9, iterVotes+25);
           uint64_t llVotes = 0;
 		  /*
