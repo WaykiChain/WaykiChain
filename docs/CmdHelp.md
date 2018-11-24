@@ -25,7 +25,7 @@
 | getblockhash | ```<index>``` | Returns hash of block in best-block-chain at ```<index>```; index 0 is the genesis block | N |
 | getnettotals | | Returns information about network traffic, including bytes in, bytes out | N |
 | getconnectioncount | | Returns the number of connections to other nodes | N |
-| getwiccstate | ```<num>``` | Returns state data  about the recent num blocks | N |
+| getchainstate | ```<num>``` | Returns chain state by retrieving the recent num of blocks | N |
 | getdifficulty | | Returns the proof-of-work difficulty as a multiple of the minimum difficulty | N |
 | getinfo | | Returns an object containing various state info | N |
 | getmininginfo | | Returns an object containing mining-related information: <br> <ul>blocks</ul><ul>currentblocksize</ul><ul>currentblocktx</ul><ul>difficulty</ul><ul>errors</ul><ul>generate</ul><ul>genproclimit</ul><ul>hashespersec</ul><ul>pooledtx</ul><ul>testnet</ul> | N |

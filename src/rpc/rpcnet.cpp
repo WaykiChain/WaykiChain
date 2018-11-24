@@ -387,15 +387,15 @@ Value getnetworkinfo(const Array& params, bool fHelp)
     return obj;
 }
 /*
- *   获取最近 N个块状态信息: getcoinstate  param
+ *   获取最近 N个块状态信息: getchainstate  param
  *
  * */
-Value getcoinstate(const Array& params, bool fHelp)
+Value getchainstate(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "getcoinstate \"num\"\n"
-			"\nget state data about the recently blocks.\n"
+            "getchainstate \"num\"\n"
+			"\nget the chain state by the most recent blocks.\n"
             "\nArguments:\n"
             "1.num   (numeric,required, > 0) The number of the recently blocks.\n"
             "\nResult:\n"
@@ -407,8 +407,8 @@ Value getcoinstate(const Array& params, bool fHelp)
             "  \"blockminer\": n, (numeric)get the miner of each block\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("getcoinstate", "\"5\"")
-            + HelpExampleRpc("getcoinstate", "\"5\"")
+            + HelpExampleCli("getchainstate", "\"5\"")
+            + HelpExampleRpc("getchainstate", "\"5\"")
        );
 
 	int i = 0,nHeight = 0;
