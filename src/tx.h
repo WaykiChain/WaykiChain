@@ -244,7 +244,7 @@ public:
 	virtual bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
 			int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
 
-	virtual bool CheckTransction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) = 0;
+	virtual bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) = 0;
 
 	virtual uint64_t GetFuel(int nfuelRate);
 
@@ -329,7 +329,7 @@ public:
 	bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
 			CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
 
-	bool CheckTransction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+	bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
 class CTransaction : public CBaseTransaction {
@@ -441,7 +441,7 @@ public:
 	bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
 			CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
 
-	bool CheckTransction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+	bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 
 };
 
@@ -516,7 +516,7 @@ public:
 	bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
 			CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
 
-	bool CheckTransction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+	bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
 class CRegisterAppTx: public CBaseTransaction {
@@ -584,7 +584,7 @@ public:
 	bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
 			CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
 
-	bool CheckTransction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+	bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
 class CDelegateTransaction: public CBaseTransaction {
@@ -678,7 +678,7 @@ public:
     bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
             CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
 
-    bool CheckTransction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+    bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 
     uint64_t GetValue() const {return 0;}
 };
@@ -763,7 +763,7 @@ public:
         return str;
 	}
 
-	Object ToJosn(bool isAddress=false) const;
+	Object ToJson(bool isAddress=false) const;
 };
 
 class CScriptDBOperLog {
@@ -944,7 +944,7 @@ public:
 //	void ClearAccPos(int nCurHeight);
 	uint64_t GetAccountProfit(int prevBlockHeight);
 	string ToString(bool isAddress = false) const;
-	Object ToJosnObj(bool isAddress = false) const;
+	Object ToJsonObj(bool isAddress = false) const;
 	bool IsEmptyValue() const {
 		return !(llValues > 0);
 	}

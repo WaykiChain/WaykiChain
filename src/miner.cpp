@@ -198,14 +198,14 @@ bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCach
     int nIndex = 0;
     vector<unsigned char> vScriptData;
     vector<unsigned char> vScriptKey = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
-    vector<unsigned char> vDelegatePrdfix = vScriptKey;
+    vector<unsigned char> vDelegatePrefix = vScriptKey;
     const int SCRIPT_KEY_PREFIX_LENGTH = 9;
     const int VOTES_STRING_SIZE = 16;
     while (--nDelegateNum >= 0) {
         CRegID regId(0, 0);
         if (scriptCache.GetScriptData(0, regId, nIndex, vScriptKey, vScriptData)) {
             nIndex = 1;
-            vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrdfix.begin(), vDelegatePrdfix.end());
+            vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrefix.begin(), vDelegatePrefix.end());
             string strVoltes(iterVotes + SCRIPT_KEY_PREFIX_LENGTH, iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE);
             uint64_t llVotes = 0;
             char *stopstring;
@@ -372,7 +372,7 @@ bool VerifyPosTx( const CBlock *pBlock, CAccountViewCache &accView, CTransaction
 	}
 
 	if (prtx->nVersion != nTxVersion1) {
-		return ERRORMSG("CTransaction CheckTransction,tx version is not equal current version, (tx version %d: vs current %d)",
+		return ERRORMSG("CTransaction CheckTransaction,tx version is not equal current version, (tx version %d: vs current %d)",
 				prtx->nVersion, nTxVersion1);
 	}
 
