@@ -1,4 +1,4 @@
-// Copyright (c) 2014 The Dacrs developers
+// Copyright (c) 2014 The WaykiChain developers
 // Copyright (c) 2016 The Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -191,11 +191,12 @@ int CBase58Data::CompareTo(const CBase58Data& b58) const {
 }
 
 namespace {
-class CDacrsAddressVisitor: public boost::static_visitor<bool> {
+
+class CWICCAddressVisitor: public boost::static_visitor<bool> {
 private:
 	CCoinAddress *addr;
 public:
-	CDacrsAddressVisitor(CCoinAddress *addrIn) :
+	CWICCAddressVisitor(CCoinAddress *addrIn) :
 			addr(addrIn) {
 	}
 
@@ -207,18 +208,16 @@ public:
 		return false;
 	}
 };
-}
-;
+
+};
 
 bool CCoinAddress::Set(const CKeyID &id) {
 	SetData(SysCfg().Base58Prefix(PUBKEY_ADDRESS), &id, 20);
 	return true;
 }
 
-
-
 bool CCoinAddress::Set(const CTxDestination &dest) {
-	return boost::apply_visitor(CDacrsAddressVisitor(this), dest);
+	return boost::apply_visitor(CWICCAddressVisitor(this), dest);
 }
 
 bool CCoinAddress::IsValid() const {

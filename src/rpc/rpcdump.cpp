@@ -1,4 +1,4 @@
-// Copyright (c) 2009-2014 The Dacrs developers
+// Copyright (c) 2009-2014 The WaykiChain developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -95,10 +95,10 @@ Value importprivkey(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 3)
         throw runtime_error(
-            "importprivkey \"Dacrsprivkey\" ( \"label\" rescan )\n"
+            "importprivkey \"WICC privkey\" ( \"label\" rescan )\n"
             "\nAdds a private key (as returned by dumpprivkey) to your wallet.\n"
             "\nArguments:\n"
-            "1. \"Dacrsprivkey\"   (string, required) The private key (see dumpprivkey)\n"
+            "1. \"WICC privkey\"   (string, required) The private key (see dumpprivkey)\n"
             "2. \"label\"            (string, optional) an optional label\n"
             "3. rescan               (boolean, optional, default=true) Rescan the wallet for transactions\n"
             "\nExamples:\n"
@@ -216,8 +216,8 @@ Value dumpprivkey(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "dumpprivkey \"Dacrsaddress\"\n"
-            "\nReveals the private key corresponding to 'Dacrsaddress'.\n"
+            "dumpprivkey \"WICC address\"\n"
+            "\nReveals the private key corresponding to 'WICC address'.\n"
             "Then the importprivkey can be used with this output\n"
             "\nArguments:\n"
             "1. \"Coinaddress\"   (string, required) The Coin address for the private key\n"
@@ -242,7 +242,7 @@ Value dumpprivkey(const Array& params, bool fHelp)
     if (!pwalletMain->GetKey(keyID, vchSecret))
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " + strAddress + " is not known");
     CKey minerkey;
-#if 0 //modified by shane @2018/5/17 ´Ë´¦²»ÄÜÅ×Òì³£
+#if 0 //modified by shane @2018/5/17 æ­¤å¤„ä¸èƒ½æŠ›å¼‚å¸¸
     if (!pwalletMain->GetKey(keyID, minerkey,true))
            throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " + strAddress + " is not known");
 #else

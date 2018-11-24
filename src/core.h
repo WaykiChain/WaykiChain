@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2014-2015 The Dacrs developers
+// Copyright (c) 2014-2015 The WaykiChain developers
 // Copyright (c) 2016 The Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -170,7 +170,7 @@ public:
     vector<std::shared_ptr<CBaseTransaction> > vptx;
 
     // memory only
-    mutable vector<uint256> vMerkleTree;  //块中所有交易的交易hash集合
+    mutable vector<uint256> vMerkleTree;  //鍧椾腑鎵�鏈変氦鏄撶殑浜ゆ槗hash闆嗗悎
 
     CBlock()
     {

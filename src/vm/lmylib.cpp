@@ -1945,10 +1945,10 @@ static int ExGetBase58AddrFunc(lua_State *L){
 	 if (!GetKeyId(*pVmRunEvn->GetCatchView(),*retdata.at(0).get(), addrKeyId)) {
 		    return RetFalse("ExGetBase58AddrFunc para err1");
 	 }
-	 string dacrsaddr = addrKeyId.ToAddress();
+	 string wiccaddr = addrKeyId.ToAddress();
 
 	 vector<unsigned char> vTemp;
-	 vTemp.assign(dacrsaddr.c_str(),dacrsaddr.c_str()+dacrsaddr.length());
+	 vTemp.assign(wiccaddr.c_str(), wiccaddr.c_str()+wiccaddr.length());
 	 return RetRstToLua(L,vTemp);
 }
 

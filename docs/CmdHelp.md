@@ -10,7 +10,7 @@
 | createcontracttxraw | ```<height><fee><amount><address><contract>``` | Create contract transaction from hex string | N |
 | dropprivkey | | drop private key from wallet | Y |
 | dumpwallet | ```<filename>``` | Dumps all wallet keys in a human-readable format.And write to ```<filename>``` | Y |
-| dumpprivkey | ```<dacrsaddress>``` | Reveals the private key corresponding to ```<dacrsaddress>``` | Y |
+| dumpprivkey | ```<wiccaddress>``` | Reveals the private key corresponding to ```<wiccaddress>``` | Y |
 | encryptwallet | ```<passphrase>``` | Encrypts the wallet with ```<passphrase>``` | N |
 | generateblock | ```<address>``` | create a block with the appointed address | N |
 | getaccountinfo | ```<address>``` | Returns the account information  with the given address | N |
@@ -25,7 +25,7 @@
 | getblockhash | ```<index>``` | Returns hash of block in best-block-chain at ```<index>```; index 0 is the genesis block | N |
 | getnettotals | | Returns information about network traffic, including bytes in, bytes out | N |
 | getconnectioncount | | Returns the number of connections to other nodes | N |
-| getdacrsstate | ```<num>``` | Returns state data  about the recently num blocks | N |
+| getwiccstate | ```<num>``` | Returns state data  about the recent num blocks | N |
 | getdifficulty | | Returns the proof-of-work difficulty as a multiple of the minimum difficulty | N |
 | getinfo | | Returns an object containing various state info | N |
 | getmininginfo | | Returns an object containing mining-related information: <br> <ul>blocks</ul><ul>currentblocksize</ul><ul>currentblocktx</ul><ul>difficulty</ul><ul>errors</ul><ul>generate</ul><ul>genproclimit</ul><ul>hashespersec</ul><ul>pooledtx</ul><ul>testnet</ul> | N |
@@ -39,7 +39,7 @@
 | gettxdetail | ```<txhash>``` | Returns an object about the transaction  detail information by ```<txhash>``` | N |
 | getwalletinfo | | Returns an object containing various wallet state info | N |
 | help | ```[command]``` | List commands, or get help for a command | N | 
-| importprivkey | ```<dacrsprivkey> [label] [rescan=true]``` | Adds a private key (as returned by dumpprivkey) to your wallet. This may take a while, as a rescan is done, looking for existing transactions. Note: There's no need to import public key, as in ECDSA (unlike RSA), which can be computed from private key. | Y |
+| importprivkey | ```<wiccprivkey> [label] [rescan=true]``` | Adds a private key (as returned by dumpprivkey) to your wallet. This may take a while, as a rescan is done, looking for existing transactions. Note: There's no need to import public key, as in ECDSA (unlike RSA), which can be computed from private key. | Y |
 | importwallet | ```<filename>``` | Import keys from a wallet dump file (see dumpwallet). | Y |
 | islocked | | Return an object about whether the wallet is being locked or unlocked | N |
 | listaddr | | return Array containing address,balance,haveminerkey,regid information | N |
@@ -52,17 +52,17 @@
 | registaccounttxraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account transaction | N |
 | registerapptx | ```<address><filepath><fee>[height][scriptdescription]``` | create a register script transaction | Y |
 | registerscripttxraw | ```<height><fee><address><flag><script or scriptid><script description>``` | Register script: <br>1.    Height(numeric required) :valod height<br> 2.    Fee: (numeric required) pay to miner<br>3.    address: (string required)for send<br>4.    flag: (numeric, required) 0-1<br>5.    script or scriptid: (string required), if flag=0 is script's file path, else if flag=1 scriptid<br>6.    script description:(string optional) new script description.<br>| N |
-| sendtoaddress | ```[dacrsaddress]<[receive address><amount>``` | Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001. Returns the transaction ID <txhash> if successful | Y |
+| sendtoaddress | ```[wiccaddress]<[receive address><amount>``` | Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001. Returns the transaction ID <txhash> if successful | Y |
 | sendtoaddressraw | ```<height><fee><amount><srcaddress><recvaddress>``` | create normal transaction by height,fee,amount,srcaddress, recvaddress | N |
 | sendtoaddresswithfee | [sendaddress]<recvaddress><amount><fee> | Send an amount to a given address with fee. The amount is a real and is rounded to the nearest 0.00000001 (Sendaddress is optional) | Y |
 | setgenerate | ```<generate>``` [genproclimit] | <generate> is true or false to turn generation on or off. Generation is limited to [genproclimit] processors, -1 is unlimited. | N |
 | settxfee | ```<amount>``` | ```<amount>``` is a real and is rounded to the nearest 0.00000001 | N |
-| signmessage | ```<dacrsaddress> <message>``` | Sign a message with the private key of an address. | Y | 
+| signmessage | ```<wiccaddress> <message>``` | Sign a message with the private key of an address. | Y | 
 | sigstr | ```<transaction><address>``` | signature transaction | N |
-| stop | | Stop  Dacrs server | N |
+| stop | | Stop  WaykiCoind server | N |
 | submitblock | ```<hexdata>``` [optional-params-obj] | Attempts to submit new block to network <br> 1. hexdata (string, required) the hex-encoded block data to submit | N |
 | submittx | ```<transaction>``` | submit transaction | Y |
-| verifymessage | ```<dacrsaddress>``` <signature> <message> | Verify a signed message. | N | 
+| verifymessage | ```<wiccaddress>``` <signature> <message> | Verify a signed message. | N | 
 | verifychain | ```[checklevel][numblocks]``` | Verifies blockchain database: <br>1.    checklevel (numeric, optional, 0-4, default=3), How thorough the block verification is.<br>2.    numblocks (numeric, optional, default=288, 0=all) The number of blocks to check. | N |
 | walletlock | | Removes the wallet encryption key from memory, locking the wallet. After calling this method, you will need to call walletpassphrase again before being able to call any methods which require the wallet to be unlocked. | N |
 | walletpassphrase | ```<passphrase> <timeout>``` | Stores the wallet decryption key in memory for <timeout> seconds. | N | 

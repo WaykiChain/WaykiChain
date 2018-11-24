@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2013 The Dacrs developers
+// Copyright (c) 2009-2013 The WaykiChain developers
 // Copyright (c) 2016 The Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -21,8 +21,8 @@
  *
  * \section intro_sec Introduction
  *
- * This is the developer documentation of the reference client for an experimental new digital currency called Dacrs (http://www.coinbi.net/),
- * which enables instant payments to anyone, anywhere in the world. Coin uses peer-to-peer technology to operate
+ * This is the developer documentation of the reference client for a new crypto currency called WICC (http://www.waykichain.com),
+ * which enables instant payments to anyone, anywhere in the world. WICC uses peer-to-peer technology to operate
  * with no central authority: managing transactions and issuing money are carried out collectively by the network.
  *
  * The software is a community-driven open source project, released under the MIT license.

@@ -1,5 +1,5 @@
 // Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2013 The Dacrs developers
+// Copyright (c) 2009-2013 The WaykiChain developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -193,7 +193,7 @@ Value setgenerate(const Array& params, bool fHelp)
 		 return obj;
 	}
 
-	GenerateCoinBlock(true, pwalletMain, nGenProcLimit);//ÅÜÍêÖ®ºóĞèÒªÍË³ö
+	GenerateCoinBlock(true, pwalletMain, nGenProcLimit);//è·‘å®Œä¹‹åéœ€è¦é€€å‡º
 	obj.push_back(Pair("msg","in  mining"));
 	return obj;
 

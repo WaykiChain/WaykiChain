@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The Dacrs developers
+// Copyright (c) 2009-2014 The WaykiChain developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -391,7 +391,7 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate) {
 void CWallet::ResendWalletTransactions() {
 	vector<uint256> erase;
 	for (auto &te : UnConfirmTx) {
-		if(mempool.exists(te.first)){ //Èç¹ûÒÑ¾­´æÔÚmempool ÁËÄÇ¾Í²»ÒªÔÙÌá½»ÁË
+		if(mempool.exists(te.first)){ //å¦‚æœå·²ç»å­˜åœ¨mempool äº†é‚£å°±ä¸è¦å†æäº¤äº†
 			continue;
 		}
 		std::shared_ptr<CBaseTransaction> pBaseTx = te.second->GetNewInstance();

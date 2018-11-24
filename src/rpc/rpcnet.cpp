@@ -1,4 +1,4 @@
-// Copyright (c) 2009-2014 The Dacrs developers
+// Copyright (c) 2009-2014 The WaykiChain developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -387,7 +387,7 @@ Value getnetworkinfo(const Array& params, bool fHelp)
     return obj;
 }
 /*
- *   »ñÈ¡×î½ü N¸ö¿é×´Ì¬ĞÅÏ¢: getcoinstate  param
+ *   è·å–æœ€è¿‘ Nä¸ªå—çŠ¶æ€ä¿¡æ¯: getcoinstate  param
  *
  * */
 Value getcoinstate(const Array& params, bool fHelp)
@@ -417,7 +417,7 @@ Value getcoinstate(const Array& params, bool fHelp)
 		if(nHeight < 1)
 			throw runtime_error("Block number out of range.");
 	    if(nHeight > chainActive.Height())
-	    {   //·ÀÖ¹³¬¹ı×î´ó¸ß¶È
+	    {   //é˜²æ­¢è¶…è¿‡æœ€å¤§é«˜åº¦
 	    	nHeight = chainActive.Height();
 	    }
 	}
