@@ -195,7 +195,7 @@ public:
         return pdb->NewIterator(iteroptions);
     }
     int64_t GetDbCount();
-   // Object ToJosnObj();
+   // Object ToJsonObj();
 };
 
 #endif // COIN_LEVELDBWRAPPER_H

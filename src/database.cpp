@@ -23,7 +23,7 @@ bool CAccountView::EraseKeyId(const vector<unsigned char> &accountId){
 	return false;
 }
 bool CAccountView::SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account) {return false;}
-Object CAccountView::ToJosnObj(char Prefix){
+Object CAccountView::ToJsonObj(char Prefix){
 	Object obj;
 	return obj;
 }
@@ -370,12 +370,12 @@ unsigned int CAccountViewCache::GetCacheSize(){
 	return ::GetSerializeSize(cacheAccounts, SER_DISK, CLIENT_VERSION) + ::GetSerializeSize(cacheKeyIds, SER_DISK, CLIENT_VERSION);
 }
 
-Object CAccountViewCache::ToJosnObj() const {
+Object CAccountViewCache::ToJsonObj() const {
 	Object obj;
 	Array arrayObj;
 	obj.push_back(Pair("hashBlock", hashBlock.ToString()));
-	arrayObj.push_back(pBase->ToJosnObj('a'));
-	arrayObj.push_back(pBase->ToJosnObj('k'));
+	arrayObj.push_back(pBase->ToJsonObj('a'));
+	arrayObj.push_back(pBase->ToJsonObj('k'));
 	obj.push_back(Pair("cacheView", arrayObj));
 //	Array arrayObj;
 //	for (auto& item : cacheAccounts) {
@@ -418,7 +418,7 @@ bool CScriptDBView::ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutpu
 bool CScriptDBView::GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &vTxHash) { return false;}
 bool CScriptDBView::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string & strTxHash, CScriptDBOperLog &operLog){return false;}
 bool CScriptDBView::GetAllScriptAcc(const CRegID& scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) {return false;}
-Object CScriptDBView:: ToJosnObj(string Prefix){
+Object CScriptDBView:: ToJsonObj(string Prefix){
 	Object obj;
 	return obj;
 }
@@ -1428,7 +1428,7 @@ bool CScriptDBViewCache::EraseTxRelAccout(const uint256 &txHash) {
 	SetData(vKey, vValue);
 	return true;
 }
-Object CScriptDBViewCache::ToJosnObj() const {
+Object CScriptDBViewCache::ToJsonObj() const {
 	Object obj;
 	Array arrayObj;
 //	for (auto& item : mapDatas) {
@@ -1438,9 +1438,9 @@ Object CScriptDBViewCache::ToJosnObj() const {
 //		arrayObj.push_back(obj);
 //	}
 //	obj.push_back(Pair("mapDatas", arrayObj));
-	arrayObj.push_back(pBase->ToJosnObj("def"));
-	arrayObj.push_back(pBase->ToJosnObj("data"));
-	arrayObj.push_back(pBase->ToJosnObj("author"));
+	arrayObj.push_back(pBase->ToJsonObj("def"));
+	arrayObj.push_back(pBase->ToJsonObj("data"));
+	arrayObj.push_back(pBase->ToJsonObj("author"));
 	obj.push_back(Pair("mapDatas", arrayObj));
 	return obj;
 }
@@ -1646,7 +1646,7 @@ bool CTransactionDBCache::IsInMap(const map<uint256, vector<uint256> >& mMap, co
 
 	return false;
 }
-Object CTransactionDBCache::ToJosnObj() const {
+Object CTransactionDBCache::ToJsonObj() const {
 	Array deletedobjArray;
 	Array InobjArray;
 	for (auto& item : mapTxHashByBlockHash) {

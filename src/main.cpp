@@ -202,21 +202,21 @@ bool WriteBlockLog(bool falg, string suffix) {
 	file.open(strScriptLog);
 	if (!file.is_open())
 		return false;
-	file << write_string(Value(pScriptDBTip->ToJosnObj()), true);
+	file << write_string(Value(pScriptDBTip->ToJsonObj()), true);
 	file.close();
 
 	string strAccountViewLog = strLogFilePath +"_AccountView_"+ suffix +".txt";
 	file.open(strAccountViewLog);
 	if (!file.is_open())
 		return false;
-	file << write_string(Value(pAccountViewTip->ToJosnObj()), true);
+	file << write_string(Value(pAccountViewTip->ToJsonObj()), true);
 	file.close();
 
 	string strCacheLog = strLogFilePath + "_Cache_" + suffix +".txt";
 	file.open(strCacheLog);
 	if (!file.is_open())
 		return false;
-	file << write_string(Value(pTxCacheTip->ToJosnObj()), true);
+	file << write_string(Value(pTxCacheTip->ToJsonObj()), true);
 	file.close();
 
 	string strundoLog = strLogFilePath +"_undo.txt";
@@ -600,7 +600,7 @@ bool CheckTransaction(CBaseTransaction *ptx, CValidationState &state, CAccountVi
 	if (::GetSerializeSize(ptx->GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
 		return state.DoS(100, ERRORMSG("CheckTransaction() : size limits failed"), REJECT_INVALID, "bad-txns-oversize");
 
-	if(!ptx->CheckTransction(state, view, scriptDB))
+	if(!ptx->CheckTransaction(state, view, scriptDB))
 		return false;
 
 	return true;
