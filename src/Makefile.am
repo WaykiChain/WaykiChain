@@ -165,7 +165,7 @@ libcoin_wallet_a_SOURCES = \
   crypter.cpp \
   rpc/rpcdump.cpp \
   rpc/rpcwallet.cpp \
-  keystore.cpp \ 
+  keystore.cpp \
   wallet/wallet.cpp \
   wallet/walletdb.cpp \
   rpc/rpctx.cpp \
