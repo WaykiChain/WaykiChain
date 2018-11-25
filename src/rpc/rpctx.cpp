@@ -2904,14 +2904,14 @@ Value validateaddress(const Array& params, bool fHelp)
 	if(fHelp || params.size() != 1)
 		{
 			throw runtime_error(
-					 "isvalideaddess \"wicc address\"\n"
+					 "validateaddess \"wicc address\"\n"
 					 "\ncheck address is valid\n"
 					 "\nArguments:\n"
 					 "1. \"wicc address\"  (string, required) wicc coin address\n"
 					 "\nResult:\n"
 					 "\nExamples:\n"
-			         + HelpExampleCli("isvalideaddress", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\"")
-			         + HelpExampleRpc("isvalideaddress", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\""));
+			         + HelpExampleCli("validateaddress", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\"")
+			         + HelpExampleRpc("validateaddress", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\""));
 		}
 	{
 		Object obj;
