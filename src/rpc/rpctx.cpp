@@ -2904,10 +2904,10 @@ Value validateaddress(const Array& params, bool fHelp)
 	if(fHelp || params.size() != 1)
 		{
 			throw runtime_error(
-					 "isvalideaddess \"coin address\"\n"
-					 "\ncheck address is valide\n"
+					 "isvalideaddess \"wicc address\"\n"
+					 "\ncheck address is valid\n"
 					 "\nArguments:\n"
-					 "1. \"coin address\"  (string, required) coin address\n"
+					 "1. \"wicc address\"  (string, required) wicc coin address\n"
 					 "\nResult:\n"
 					 "\nExamples:\n"
 			         + HelpExampleCli("isvalideaddress", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\"")
