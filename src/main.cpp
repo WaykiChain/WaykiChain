@@ -382,7 +382,7 @@ bool AddBlockToQueue(NodeId nodeid, const uint256 &hash) {
     list<uint256>::iterator it = state->vBlocksToDownload.insert(state->vBlocksToDownload.end(), hash);
     state->nBlocksToDownload++;
     if (state->nBlocksToDownload > 5000) {
-    	LogPrint("INFO", "Misbehaving,AddBlockToQueue download to many times, nMisbehavior add 10\n");
+    	LogPrint("INFO", "Misbehaving: AddBlockToQueue download too many times, nMisbehavior add 10\n");
     	Misbehaving(nodeid, 10);
     }
     mapBlocksToDownload[hash] = make_pair(nodeid, it);
@@ -1294,7 +1294,7 @@ void static InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state
             CBlockReject reject = {state.GetRejectCode(), state.GetRejectReason(), pindex->GetBlockHash()};
             State(it->second)->rejects.push_back(reject);
             if (nDoS > 0) {
-            	LogPrint("INFO", "Misebehaving, find invalid block, hash:%s, Misbehavior add %d", it->first.GetHex(), nDoS);
+            	LogPrint("INFO", "Misebehaving: found invalid block, hash:%s, Misbehavior add %d", it->first.GetHex(), nDoS);
                 Misbehaving(it->second, nDoS);
             }
         }
@@ -3592,7 +3592,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         if (pfrom->nVersion != 0)
         {
             pfrom->PushMessage("reject", strCommand, REJECT_DUPLICATE, string("Duplicate version message"));
-            LogPrint("INFO", "Misbehaving, Duplicate version message, nMisbehavior add 1\n");
+            LogPrint("INFO", "Misbehaving: Duplicated version message, nMisbehavior add 1\n");
             Misbehaving(pfrom->GetId(), 1);
             return false;
         }
@@ -4168,7 +4168,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         vRecv >> filter;
 
         if (!filter.IsWithinSizeConstraints()) {
-        	LogPrint("INFO", "Misebehaving, filter is not with in size constraints, Misbehavior add 100");
+        	LogPrint("INFO", "Misebehaving: filter is not within size constraints, Misbehavior add 100");
         	// There is no excuse for sending a too-large filter
             Misbehaving(pfrom->GetId(), 100);
         }
@@ -4192,14 +4192,14 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         // and thus, the maximum size any matched object can have) in a filteradd message
         if (vData.size() > 520)//MAX_SCRIPT_ELEMENT_SIZE)
         {
-        	LogPrint("INFO", "Misebehaving, send a data item > 520 bytes, Misbehavior add 100");
+        	LogPrint("INFO", "Misbehaving: send a data item > 520 bytes, Misbehavior add 100");
             Misbehaving(pfrom->GetId(), 100);
         } else {
             LOCK(pfrom->cs_filter);
             if (pfrom->pfilter)
                 pfrom->pfilter->insert(vData);
             else {
-            	LogPrint("INFO", "Misebehaving, filter error, Misbehavior add 100");
+            	LogPrint("INFO", "Misbehaving: filter error, Misbehavior add 100");
                 Misbehaving(pfrom->GetId(), 100);
             }
         }
