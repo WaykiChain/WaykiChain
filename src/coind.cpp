@@ -66,7 +66,7 @@ bool AppInit(int argc, char* argv[],boost::thread_group &threadGroup) {
 
 		if (SysCfg().IsArgCount("-?") || SysCfg().IsArgCount("--help")) {
 			// First part of help message is specific to coind / RPC client
-			std::string strUsage = _("Coin Core Daemon") + " " + _("version") + " " + FormatFullVersion() + "\n\n"
+			std::string strUsage = _("WaykiChain Coin Daemon") + " " + _("version") + " " + FormatFullVersion() + "\n\n"
 					+ _("Usage:") + "\n" + "  coind [options]                     " + _("Start Coin Core Daemon")
 					+ "\n" + _("Usage (deprecated, use Coin-cli):") + "\n"
 					+ "  coin [options] <command> [params]  " + _("Send command to Coin Core") + "\n"
