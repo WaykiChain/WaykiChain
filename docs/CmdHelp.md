@@ -34,7 +34,7 @@
 | getnetworkinfo | | Returns an object containing various state info regarding P2P network | N |
 | getpeerinfo | | Returns data about each connected node | N |
 | getrawmempool | ```[verbose]``` | Returns all transaction ids in memory pool.If verbose is true,return  a json object, false return array of transaction ids. | N |
-| getscriptdata | ```<scriptid><pagsize or key>[index]``` | get the script data by given scripted. <br> ```< scriptid ><key>  or < scriptid >< pagsize >[index]``` | N |
+| getscriptdata | ```<scriptid><pagsize or key>[index]``` | get the script data by given scriptid. <br> ```< scriptid ><key>  or < scriptid >< pagsize >[index]``` | N |
 | getscriptvalidedata | ```<scriptid><pagsize><index>``` | get script valide data | N |
 | gettxdetail | ```<txhash>``` | Returns an object about the transaction  detail information by ```<txhash>``` | N |
 | getwalletinfo | | Returns an object containing various wallet state info | N |
