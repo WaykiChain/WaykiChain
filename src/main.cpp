@@ -648,7 +648,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransact
     // is it already in the memory pool?
     uint256 hash = pBaseTx->GetHash();
     if (pool.exists(hash))
-        return false;
+    	return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s already in mempool\n", hash.GetHex()), REJECT_INVALID, "tx-already-in-mempool");
     // is it already confirmed in block
     if(uint256() != pTxCacheTip->IsContainTx(hash))
     	return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s has been confirmed\n", hash.GetHex()), REJECT_INVALID, "tx-duplicate-confirmed");
@@ -657,7 +657,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransact
     	return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s is coin base tx, can't put into mempool", hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
 	// is it in valid height
 	if (!pBaseTx->IsValidHeight(chainActive.Tip()->nHeight, SysCfg().GetTxCacheHeight())) {
-		return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txhash=%s beyond the scope of valid height\n ", hash.GetHex()),
+		return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s beyond the scope of valid height\n ", hash.GetHex()),
 				REJECT_INVALID, "tx-invalid-height");
 	}
 
