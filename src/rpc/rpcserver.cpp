@@ -911,7 +911,7 @@ json_spirit::Value CRPCTable::execute(const string &strMethod, const json_spirit
 }
 
 string HelpExampleCli(string methodname, string args){
-    return "> ./waykicoind " + methodname + " " + args + "\n";
+    return "> ./coind " + methodname + " " + args + "\n";
 }
 
 string HelpExampleRpc(string methodname, string args){
