@@ -263,7 +263,7 @@ bool CreatePosTx(const uint64_t currentTime, const CAccount &delegate, CAccountV
         }
         if(pBlock->GetBlockTime()-preBlock.GetBlockTime() < SysCfg().GetTargetSpacing()) {
             if(preDelegate.regID == delegate.regID) {
-                return ERRORMSG("one delegate can't produce more than one block at the same solt");
+                return ERRORMSG("one delegate can't produce more than one block at the same slot");
             }
         }
     }
@@ -347,7 +347,7 @@ bool VerifyPosTx( const CBlock *pBlock, CAccountViewCache &accView, CTransaction
         }
         if(pBlock->GetBlockTime()-preBlock.GetBlockTime() < SysCfg().GetTargetSpacing()) {
              if(preDelegate.regID == curDelegate.regID) {
-                return ERRORMSG("one delegate can't produce more than one block at the same solt");
+                return ERRORMSG("one delegate can't produce more than one block at the same slot");
              }
         }
 	}
