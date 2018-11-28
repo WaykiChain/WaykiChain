@@ -132,6 +132,7 @@ autoreconf --install --force
 CPPFLAGS="-std=c++11" \
 ./configure \
 --disable-upnp-default \
+--enable-debug
 --without-gui \
 $flag1 \
 $flag2 \
