@@ -3,7 +3,7 @@ set -e
 
 if [ $# = 0 ]; then	
   	echo -e "\033[40;33m"
-		echo warming  your had not inputed assemble model
+		echo Warning:  your did not input assemble model
 		echo "$PWD"
 		echo autogen-coin-man [MODEL NAME]
 		echo
@@ -25,7 +25,7 @@ elif [ $# = 1 ]; then
 		;;
 		*)
 		echo -e "\033[40;32m"
-		echo warming:error para!
+		echo Warning: error in param!
 		echo -e "\033[40;37m"
 		exit 1
 		;;
@@ -43,7 +43,7 @@ elif [ $# = 2 ]; then
 		;;
 		*)
 		echo -e "\033[40;32m"
-		echo warming:error para!
+		echo Warning: error in param!
 		echo -e "\033[40;37m"
 		exit 1
 		;;
@@ -60,7 +60,7 @@ elif [ $# = 2 ]; then
 		;;
 		*)
 		echo -e "\033[40;32m"
-		echo warming:error para!
+		echo Warning: error in param!
 		echo -e "\033[40;37m"
 		exit 1
 		;;
@@ -78,7 +78,7 @@ elif [ $# = 3 ]; then
 		;;
 		*)
 		echo -e "\033[40;32m"
-		echo warming:error para!
+		echo Warning: error in param!
 		echo -e "\033[40;37m"
 		exit 1
 		;;
@@ -95,7 +95,7 @@ elif [ $# = 3 ]; then
 		;;
 		*)
 		echo -e "\033[40;32m"
-		echo warming:error para!
+		echo Warning: error in param!
 		echo -e "\033[40;37m"
 		exit 1
 		;;
@@ -119,8 +119,8 @@ elif [ $# = 3 ]; then
 	esac
 else
 	echo -e "\033[40;32m"
-	echo warming  your had inputed illegal params
-   	echo please insure the params in [coin|coin-test|coin-ptest]
+	echo Warning:  You input an illegal param value
+   	echo Please ensure the param is of the following values: [coin|coin-test|coin-ptest]
 	echo -e "\033[40;37m" 
 	exit 1
 fi
