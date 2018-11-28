@@ -1959,10 +1959,10 @@ static int getDataFromSriptData(CScriptDBViewCache &cache, const CRegID &regid, 
 Value getscriptdata(const Array& params, bool fHelp) {
 	if (fHelp || params.size() < 2 || params.size() > 3) {
 		throw runtime_error("getscriptdata \"scriptid\" \"[pagesize or key]\" (\"index\")\n"
-				"\nget the script data by given scriptID\n"
+				"\nget the script data by given script ID\n"
 				"\nArguments:\n"
 				"1.\"scriptid\": (string, required)\n"
-				"2.[pagesize or key]: (pagesize int, required),if only two param,it is key,otherwise it is pagesize\n"
+				"2.[pagesize or key]: (pagesize int, required),if only two params,it is key,otherwise it is pagesize\n"
 				"3.\"index\": (int optional)\n"
 				"\nResult:\n"
 				"\nExamples:\n"
@@ -1974,11 +1974,11 @@ Value getscriptdata(const Array& params, bool fHelp) {
 //	vector<unsigned char> vscriptid = ParseHex(params[0].get_str());
 	CRegID regid(params[0].get_str());
 	if (regid.IsEmpty() == true) {
-		throw runtime_error("in getscriptdata :vscriptid size is error!\n");
+		throw runtime_error("getscriptdata : scriptid not found!\n");
 	}
 
 	if (!pScriptDBTip->HaveScript(regid)) {
-		throw runtime_error("in getscriptdata :vscriptid id is exist!\n");
+		throw runtime_error("getscriptdata : scriptid NOT exist!\n");
 	}
 	Object script;
 
@@ -1987,7 +1987,7 @@ Value getscriptdata(const Array& params, bool fHelp) {
 		vector<unsigned char> key = ParseHex(params[1].get_str());
 		vector<unsigned char> value;
 		if (!contractScriptTemp.GetScriptData(height, regid, key, value)) {
-			throw runtime_error("in getscriptdata :the key not exist!\n");
+			throw runtime_error("in getscriptdata :the key NOT exist!\n");
 		}
 		script.push_back(Pair("scritpid", params[0].get_str()));
 		script.push_back(Pair("key", HexStr(key)));
@@ -1998,7 +1998,7 @@ Value getscriptdata(const Array& params, bool fHelp) {
 		int dbsize;
 		contractScriptTemp.GetScriptDataCount(regid, dbsize);
 		if (0 == dbsize) {
-			throw runtime_error("in getscriptdata :the scirptid database not data!\n");
+			throw runtime_error("in getscriptdata :the scirptid database has NO data!\n");
 		}
 		int pagesize = params[1].get_int();
 		int index = params[2].get_int();
@@ -2020,10 +2020,10 @@ Value getscriptdata(const Array& params, bool fHelp) {
 	return script;
 }
 
-Value getscriptvalidedata(const Array& params, bool fHelp) {
+Value getscriptvaliddata(const Array& params, bool fHelp) {
 	if (fHelp || (params.size() != 3 && params.size() !=4)) {
-		throw runtime_error("getscriptvalidedata \"scriptid\" \"pagesize\" \"index\"\n"
-					"\nget script valide data\n"
+		throw runtime_error("getscriptvaliddata \"scriptid\" \"pagesize\" \"index\"\n"
+					"\nget script valid data\n"
 					"\nArguments:\n"
 					"1.\"scriptid\": (string, required)\n"
 					"2.\"pagesize\": (int, required)\n"
@@ -2031,8 +2031,8 @@ Value getscriptvalidedata(const Array& params, bool fHelp) {
 					"4.\"minconf\":  (numeric, optional, default=1) Only include contract transactions confirmed \n"
 				    "\nResult:\n"
 				    "\nExamples:\n"
-				    + HelpExampleCli("getscriptvalidedata", "\"123456789012\" \"1\"  \"1\"")
-				    + HelpExampleRpc("getscriptvalidedata", "\"123456789012\" \"1\"  \"1\""));
+				    + HelpExampleCli("getscriptvaliddata", "\"123456789012\" \"1\"  \"1\"")
+				    + HelpExampleRpc("getscriptvaliddata", "\"123456789012\" \"1\"  \"1\""));
 	}
 	std::shared_ptr<CScriptDBViewCache> pAccountViewCache;
 	if(4 == params.size() && 0==params[3].get_int()) {
@@ -2044,11 +2044,11 @@ Value getscriptvalidedata(const Array& params, bool fHelp) {
 	RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
 	CRegID regid(params[0].get_str());
 	if (regid.IsEmpty() == true) {
-		throw runtime_error("in getscriptdata :vscriptid size is error!\n");
+		throw runtime_error("getscriptdata :scriptid NOT found!\n");
 	}
 
 	if (!pAccountViewCache->HaveScript(regid)) {
-		throw runtime_error("in getscriptdata :vscriptid id is exist!\n");
+		throw runtime_error("getscriptdata :scriptid NOT exist!\n");
 	}
 	Object obj;
 	int pagesize = params[1].get_int();

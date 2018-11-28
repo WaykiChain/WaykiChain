@@ -302,7 +302,7 @@ static const CRPCCommand vRPCCommands[] =
 	{ "generateblock",          &generateblock, 		 true,      true,       true },
 	{ "listtxcache",            &listtxcache,            true,      false,      true },
 	{ "getscriptdata",          &getscriptdata,          true,      false,      true },
-	{ "getscriptvalidedata",    &getscriptvalidedata,    true,      false,      true },
+	{ "getscriptvaliddata",     &getscriptvaliddata,     true,      false,      true },
 	{ "signmessage",            &signmessage,            false,     false,      true },
 	{ "sendtoaddress",          &sendtoaddress,          false,     false,      true },
 	{ "sendtoaddresswithfee",   &sendtoaddresswithfee,   false,     false,      true },
