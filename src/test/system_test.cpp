@@ -218,8 +218,8 @@ protected:
 	string strAddr1;
 };
 /*
- * ²âÊÔ½Å±¾ÕË»§Ò»ÇĞÔÚÏµÍ³ÖĞµÄÁ÷³Ì
- * ÔİÊ±ÎŞ·¨²âÊÔ£¬ĞèÒªunit_test.bin
+ * æµ‹è¯•è„šæœ¬è´¦æˆ·ä¸€åˆ‡åœ¨ç³»ç»Ÿä¸­çš„æµç¨‹
+ * æš‚æ—¶æ— æ³•æµ‹è¯•ï¼Œéœ€è¦unit_test.bin
  */
 BOOST_FIXTURE_TEST_SUITE(system_test,CSystemTest)
 BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
@@ -228,33 +228,33 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 	vector<map<int,string> >vDataInfo;
 	vector<CAccountLog> vLog;
 	for (int i = 0; i < nTimeOutHeight; i++) {
-		//0:²úÉú×¢²á½Å±¾½»Ò×
+		//0:äº§ç”Ÿæ³¨å†Œè„šæœ¬äº¤æ˜“
 		Value valueRes = RegisterAppTx(strAddr1,strFileName , nTimeOutHeight, nFee);
 		BOOST_CHECK(GetHashFromCreatedTx(valueRes,strTxHash));
 
-		//1:ÍÚ¿ó
+		//1:æŒ–çŸ¿
 		nOldMoney = GetBalance(strAddr1);
 		BOOST_CHECK(GenerateOneBlock());
 		SysTestBase::GetBlockHeight(nNewBlockHeight);
 
-		//2:È·ÈÏÇ®ÒÑ¾­¿Û³ı
+		//2:ç¡®è®¤é’±å·²ç»æ‰£é™¤
 		nNewMoney = GetBalance(strAddr1);
 		BOOST_CHECK(nNewMoney == nOldMoney - nFee);
 
-		//3:È·ÈÏ½Å±¾ÕËºÅÒÑ¾­Éú³É
+		//3:ç¡®è®¤è„šæœ¬è´¦å·å·²ç»ç”Ÿæˆ
 		int nIndex = 0;
 		BOOST_CHECK(GetTxIndexInBlock(uint256(uint256S(strTxHash)), nIndex));
 		CRegID regID(nNewBlockHeight, nIndex);
 		BOOST_CHECK(IsScriptAccCreated(HexStr(regID.GetVec6())));
 
-		//4:¼ì²éÇ®°üÀïµÄÒÑÈ·ÈÏ½»Ò×ÀïÊÇ·ñÓĞ´Ë±Ê½»Ò×
+		//4:æ£€æŸ¥é’±åŒ…é‡Œçš„å·²ç¡®è®¤äº¤æ˜“é‡Œæ˜¯å¦æœ‰æ­¤ç¬”äº¤æ˜“
 		BOOST_CHECK(IsTxConfirmdInWallet(nNewBlockHeight, uint256(uint256S(strTxHash))));
 
-		//5:Í¨¹ılistregscript »ñÈ¡Ïà¹ØĞÅÏ¢£¬Ò»Ò»ºË¶Ô£¬¿´ÊÇ·ñºÍÊäÈëµÄÒ»ÖÂ
+		//5:é€šè¿‡listregscript è·å–ç›¸å…³ä¿¡æ¯ï¼Œä¸€ä¸€æ ¸å¯¹ï¼Œçœ‹æ˜¯å¦å’Œè¾“å…¥çš„ä¸€è‡´
 		string strPath = SysCfg().GetDefaultTestDataPath() + strFileName;
 		BOOST_CHECK(CheckRegScript(HexStr(regID.GetVec6()), strPath));
 
-		//6:Gettxoperationlog »ñÈ¡½»Ò×log£¬²é¿´ÊÇ·ñÕıÈ·
+		//6:Gettxoperationlog è·å–äº¤æ˜“logï¼ŒæŸ¥çœ‹æ˜¯å¦æ­£ç¡®
 		BOOST_CHECK(GetTxOperateLog(uint256(uint256S(strTxHash)), vLog));
 //		BOOST_CHECK(1 == vLog.size() && 1 == vLog[0].vOperFund.size() && 1 == vLog[0].vOperFund[0].vFund.size());
 		BOOST_CHECK(strAddr1 == vLog[0].keyID.ToAddress());
@@ -278,30 +278,30 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 		SysTestBase::GetBlockHeight(nOldBlockHeight);
 		nOldMoney = GetBalance(strAddr1);
 
-		//8:»Ø¹ö
+		//8:å›æ»š
 		BOOST_CHECK(DisConnectBlock(1));
 
-		//9.1:¼ì²éÕË»§ÊÖĞø·ÑÊÇ·ñ»ØÍË
+		//9.1:æ£€æŸ¥è´¦æˆ·æ‰‹ç»­è´¹æ˜¯å¦å›é€€
 		nNewMoney = GetBalance(strAddr1);
 		SysTestBase::GetBlockHeight(nNewBlockHeight);
 		BOOST_CHECK(nOldBlockHeight - 1 == nNewBlockHeight);
 		BOOST_CHECK(nNewMoney-nFee == nOldMoney);
 
-		//9.2:¼ì²â½Å±¾ÕË»§ÊÇ·ñÉ¾³ı
+		//9.2:æ£€æµ‹è„šæœ¬è´¦æˆ·æ˜¯å¦åˆ é™¤
 		CRegID regID(nOldBlockHeight, mapData.begin()->first);
 		BOOST_CHECK(!IsScriptAccCreated(HexStr(regID.GetVec6())));
 
-		//9.3:½»Ò×ÊÇ·ñÒÑ¾­ÒÑ¾­·Åµ½Ç®°üµÄÎ´È·ÈÏ½»Ò×Àï
+		//9.3:äº¤æ˜“æ˜¯å¦å·²ç»å·²ç»æ”¾åˆ°é’±åŒ…çš„æœªç¡®è®¤äº¤æ˜“é‡Œ
 		BOOST_CHECK(IsTxUnConfirmdInWallet(txHash));
 
-		//9.4:¼ì²é½»Ò×ÊÇ·ñÔÚmempoolÀï
+		//9.4:æ£€æŸ¥äº¤æ˜“æ˜¯å¦åœ¨mempoolé‡Œ
 		BOOST_CHECK(IsTxInMemorypool(txHash));
 
-		//9.5:¼ì²éoperationlog ÊÇ·ñ¿ÉÒÔÖØĞÂ»ñÈ¡
+		//9.5:æ£€æŸ¥operationlog æ˜¯å¦å¯ä»¥é‡æ–°è·å–
 		BOOST_CHECK(!GetTxOperateLog(txHash, vLog));
 	}
 
-	//Çå¿Õ»·¾³
+	//æ¸…ç©ºç¯å¢ƒ
 	ResetEnv();
 	SysTestBase::GetBlockHeight(nNewBlockHeight);
 	BOOST_CHECK(0 == nNewBlockHeight);
