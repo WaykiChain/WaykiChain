@@ -64,7 +64,7 @@ class CAccountViewCache : public CAccountViewBacked
 public:
 	uint256 hashBlock;
     map<CKeyID, CAccount> cacheAccounts;
-	map<vector<unsigned char>, CKeyID> cacheKeyIds; // vector ´æµÄ ÊÇaccountId
+	map<vector<unsigned char>, CKeyID> cacheKeyIds; // vector ï¿½ï¿½ï¿½ ï¿½ï¿½accountId
 
 private:
 	bool GetAccount(const CKeyID &keyId, CAccount &account);
@@ -117,7 +117,7 @@ public:
 	virtual bool EraseKey(const vector<unsigned char> &vKey);
 	virtual bool HaveData(const vector<unsigned char> &vKey);
 	virtual bool GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);
-	virtual bool GetScriptData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
+	virtual bool GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
 			vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
 	virtual Object ToJsonObj(string Prefix);
 	virtual bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
@@ -141,7 +141,7 @@ public:
 	bool EraseKey(const vector<unsigned char> &vKey);
 	bool HaveData(const vector<unsigned char> &vKey);
 	bool GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);
-	bool GetScriptData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
+	bool GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
 			vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
 	bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
 	bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB);
@@ -155,12 +155,12 @@ public:
 class CScriptDBViewCache : public CScriptDBViewBacked {
 public:
 	map<vector<unsigned char>, vector<unsigned char> > mapDatas;
-    /*È¡½Å±¾ Ê± µÚÒ»¸övector ÊÇscriptKey = "def" + "scriptid";
-      È¡Ó¦ÓÃÕË»§Ê±µÚÒ»¸övectorÊÇscriptKey = "acct" + "scriptid"+"_" + "accUserId";
-      È¡½Å±¾×ÜÌõÊýÊ±µÚÒ»¸övectorÊÇscriptKey ="snum",
-      È¡½Å±¾Êý¾Ý×ÜÌõÊýÊ±µÚÒ»¸övectorÊÇscriptKey ="sdnum";
-      È¡½Å±¾Êý¾ÝÊ±µÚÒ»¸övectorÊÇscriptKey ="data" + "vScriptId" + "_" + "vScriptKey"
-      È¡½»Ò×¹ØÁªÕË»§Ê±µÚÒ»¸övectorÊÇscriptKey ="tx" + "txHash"
+    /*È¡ï¿½Å±ï¿½ Ê± ï¿½ï¿½Ò»ï¿½ï¿½vector ï¿½ï¿½scriptKey = "def" + "scriptid";
+      È¡Ó¦ï¿½ï¿½ï¿½Ë»ï¿½Ê±ï¿½ï¿½Ò»ï¿½ï¿½vectorï¿½ï¿½scriptKey = "acct" + "scriptid"+"_" + "accUserId";
+      È¡ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ò»ï¿½ï¿½vectorï¿½ï¿½scriptKey ="snum",
+      È¡ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ò»ï¿½ï¿½vectorï¿½ï¿½scriptKey ="sdnum";
+      È¡ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ò»ï¿½ï¿½vectorï¿½ï¿½scriptKey ="data" + "vScriptId" + "_" + "vScriptKey"
+      È¡ï¿½ï¿½ï¿½×¹ï¿½ï¿½ï¿½ï¿½Ë»ï¿½Ê±ï¿½ï¿½Ò»ï¿½ï¿½vectorï¿½ï¿½scriptKey ="tx" + "txHash"
      * */
 public:
 	CScriptDBViewCache(CScriptDBView &base, bool fDummy = false);
@@ -174,14 +174,14 @@ public:
 	bool SetScript(const CRegID &scriptId, const vector<unsigned char> &vValue);
 	bool HaveScript(const CRegID &scriptId);
 	bool EraseScript(const CRegID &scriptId);
-	bool GetScriptDataCount(const CRegID &scriptId, int &nCount);
+	bool GetContractDataCount(const CRegID &scriptId, int &nCount);
 	bool EraseScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog);
 	bool HaveScriptData(const CRegID &scriptId, const vector<unsigned char > &vScriptKey);
-	bool GetScriptData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
+	bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
 			vector<unsigned char> &vScriptData);
-	bool GetScriptData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
+	bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
 			vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
-	bool SetScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
+	bool SetContractData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
 				const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog);
 	bool SetDelegateData(const CAccount &delegateAcct, CScriptDBOperLog &operLog);
 	bool SetDelegateData(const vector<unsigned char> &vKey);
@@ -265,19 +265,19 @@ private:
 	 */
 	bool EraseScript(const vector<unsigned char> &vScriptId);
 	/**
-	 * @brief Get all numbers of script data in script db
+	 * @brief Get total number of contract data elements in contract db
 	 * @param vScriptId
 	 * @param nCount
 	 * @return true if get succeed, otherwise false
 	 */
-	bool GetScriptDataCount(const vector<unsigned char> &vScriptId, int &nCount);
+	bool GetContractDataCount(const vector<unsigned char> &vScriptId, int &nCount);
 	/**
-	 * @brief Save count of the script's data into script db
+	 * @brief Save count of the Contract's data into contract db
 	 * @param vScriptId
 	 * @param nCount
 	 * @return true if save succeed, otherwise false
 	 */
-	bool SetScriptDataCount(const vector<unsigned char> &vScriptId, int nCount);
+	bool SetContractDataCount(const vector<unsigned char> &vScriptId, int nCount);
 	/**
 	 * @brief Delete the item of the scirpt's data by scriptId and scriptKey
 	 * @param vScriptId
@@ -302,7 +302,7 @@ private:
 	 * @param nHeight valide height of script data
 	 * @return true if get succeed, otherwise false
 	 */
-	bool GetScriptData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
+	bool GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
 			vector<unsigned char> &vScriptData);
 	/**
 	 * @brief Get script data and valide height by scriptid and nIndex
@@ -313,7 +313,7 @@ private:
 	 * @param nHeight valide height of script data
 	 * @return true if get succeed, otherwise false
 	 */
-	bool GetScriptData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
+	bool GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
 	/**
 	 * @brief Save script data and valide height into script db
 	 * @param vScriptId
@@ -322,7 +322,7 @@ private:
 	 * @param nHeight valide height of script data
 	 * @return true if save succeed, otherwise false
 	 */
-	bool SetScriptData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
+	bool SetContractData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
 			const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog);
 
 };

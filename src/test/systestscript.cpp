@@ -263,7 +263,7 @@ public:
 
 	}
 
-	void GetScriptDataSize() {
+	void GetContractDataSize() {
 		const char *param[] = { "rpctest",
 					"getscriptdbsize",
 					"010000000100"};
@@ -288,7 +288,7 @@ public:
 			return false;
 		}
 		int dbsize;
-		contractScriptTemp.GetScriptDataCount(regid, dbsize);
+		contractScriptTemp.GetContractDataCount(regid, dbsize);
 		if(curtiph <nheigh)
 		{
 			BOOST_CHECK(0==dbsize);
@@ -300,7 +300,7 @@ public:
 		vector<unsigned char> value;
 		vector<unsigned char> vScriptKey;
 
-		if (!contractScriptTemp.GetScriptData(curtiph,regid, 0, vScriptKey, value)) {
+		if (!contractScriptTemp.GetContractData(curtiph,regid, 0, vScriptKey, value)) {
 			return false;
 		}
 		uint256 hash1(value);
@@ -315,7 +315,7 @@ public:
 
 		int count = dbsize - 1;
 		while (count--) {
-			if (!contractScriptTemp.GetScriptData(curtiph, regid, 1, vScriptKey, value)) {
+			if (!contractScriptTemp.GetContractData(curtiph, regid, 1, vScriptKey, value)) {
 				return false;
 			}
 			uint256 hash3(value);
@@ -338,7 +338,7 @@ public:
 		BOOST_CHECK(GenerateOneBlock());
 		return ;
 	}
-	bool GetScriptData(string srcipt,vector<unsigned char> key)
+	bool GetContractData(string srcipt,vector<unsigned char> key)
 	{
 		CRegID regid(srcipt);
 			if (regid.IsEmpty() == true) {
@@ -351,7 +351,7 @@ public:
 			vector<unsigned char> value;
 			int tipH = chainActive.Height();
 			CScriptDBOperLog operLog;
-			if (!contractScriptTemp.GetScriptData(tipH,regid,key, value)) {
+			if (!contractScriptTemp.GetContractData(tipH,regid,key, value)) {
 				return false;
 			}
 			return true;
@@ -367,7 +367,7 @@ public:
 				return 0;
 			}
 			int dbsize;
-			pScriptDBTip->GetScriptDataCount(regid, dbsize);
+			pScriptDBTip->GetContractDataCount(regid, dbsize);
 			return dbsize;
 	}
 	string CreatWriteTx(string &hash)
@@ -410,7 +410,7 @@ public:
 				vector<unsigned char> key;
 				const char *key1="2_error";
 				key.insert(key.begin(),key1, key1 + strlen(key1) +1);
-				BOOST_CHECK(!GetScriptData(scriptid,key));
+				BOOST_CHECK(!GetContractData(scriptid,key));
 
 				CheckScriptDB((height),scriptid,phash,false);
 				count--;
@@ -441,7 +441,7 @@ public:
 		vector<unsigned char> key;
 		const char *key1="3_error";
 		key.insert(key.begin(),key1, key1 + strlen(key1) +1);
-		BOOST_CHECK(!GetScriptData(scriptid,key));
+		BOOST_CHECK(!GetContractData(scriptid,key));
 		CheckScriptDB(height,scriptid,writetxhash,true);
 		int modHeight = chainActive.Height();
 

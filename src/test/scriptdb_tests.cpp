@@ -22,7 +22,7 @@ int nCount = 0;
 void init() {
 	 pTestDB = new CScriptDB("testdb",size_t(4<<20), false , true);
 	 pTestView =  new CScriptDBViewCache(*pTestDB, false);
-	 //Çî¾ÙÊý¾Ý·Ö±ðÎ»ÓÚscriptDBView pTestView, pTestDB Èý¼¶·Ö²¼Êý¾Ý²âÊÔÊý¾Ý¿âÖÐ
+	 //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý·Ö±ï¿½Î»ï¿½ï¿½scriptDBView pTestView, pTestDB ï¿½ï¿½ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ï¿½ï¿½Ý²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½
 	 pscriptDBView = new CScriptDBViewCache(*pTestView, true);
 
 	 arrKey.push_back(vKey1);
@@ -95,14 +95,14 @@ void settodb(int nType, vector<unsigned char> &vKey, vector<unsigned char> &vScr
 	CScriptDBOperLog operlog;
 	CRegID regScriptId(vScriptId);
 	if(0==nType) {
-		BOOST_CHECK(pscriptDBView->SetScriptData(regScriptId, vKey, vScriptData, operlog));
+		BOOST_CHECK(pscriptDBView->SetContractData(regScriptId, vKey, vScriptData, operlog));
 		BOOST_CHECK(pscriptDBView->Flush());
 		BOOST_CHECK(pTestView->Flush());
 	}else if(1==nType) {
-		BOOST_CHECK(pscriptDBView->SetScriptData(regScriptId, vKey, vScriptData, operlog));
+		BOOST_CHECK(pscriptDBView->SetContractData(regScriptId, vKey, vScriptData, operlog));
 		BOOST_CHECK(pscriptDBView->Flush());
 	}else {
-		BOOST_CHECK(pscriptDBView->SetScriptData(regScriptId, vKey, vScriptData,  operlog));
+		BOOST_CHECK(pscriptDBView->SetContractData(regScriptId, vKey, vScriptData,  operlog));
 	}
 }
 
@@ -132,7 +132,7 @@ void traversaldb(CScriptDBViewCache *pScriptDB, bool needEqual) {
 //	int nValidHeight(0);
 	vector<unsigned char> vScriptId = {0x01,0x00,0x00,0x00,0x02,0x00};
 	CRegID regScriptId(vScriptId);
-	bool ret = pScriptDB->GetScriptData(curheight,regScriptId, 0, vKey, vScript);
+	bool ret = pScriptDB->GetContractData(curheight,regScriptId, 0, vKey, vScript);
 //	int nType(0);
 	if(ret)  {
 		traversalKey.push_back(vKey);
@@ -151,7 +151,7 @@ void traversaldb(CScriptDBViewCache *pScriptDB, bool needEqual) {
 	}
 
 	while(ret) {
-		ret = pScriptDB->GetScriptData(curheight,regScriptId, 1, vKey, vScript);
+		ret = pScriptDB->GetContractData(curheight,regScriptId, 1, vKey, vScript);
 		if(ret) {
 			vector<unsigned char> dataKey = { 'd', 'a', 't', 'a' };
 			dataKey.insert(dataKey.end(), regScriptId.GetVec6().begin(), regScriptId.GetVec6().end());
@@ -187,14 +187,14 @@ void testscriptdatadb() {
 	CScriptDBOperLog operlog;
 	CRegID regScriptId(vScriptId);
 
-	//²âÊÔÊý¾Ý¿âÖÐÓÐvScriptKey1£¬ vScriptKey3£¬ÔÚ»º´æÖÐÓÐvScriptKey£¬ vScriptKey2£¬ÊÇ·ñÄÜÕýÈ·±éÀú½Å±¾Êý¾Ý¿â
-	BOOST_CHECK(pTestView->SetScriptData(regScriptId, vScriptKey1, vScriptData,operlog));
-	BOOST_CHECK(pTestView->SetScriptData(regScriptId, vScriptKey3, vScriptData, operlog));
-	BOOST_CHECK(pTestView->SetScriptData(regScriptId, vScriptKey5, vScriptData,operlog));
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½ï¿½vScriptKey1ï¿½ï¿½ vScriptKey3ï¿½ï¿½ï¿½Ú»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½vScriptKeyï¿½ï¿½ vScriptKey2ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½È·ï¿½ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey1, vScriptData,operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey3, vScriptData, operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey5, vScriptData,operlog));
 	BOOST_CHECK(pTestView->Flush());
-	BOOST_CHECK(pTestView->SetScriptData(regScriptId, vScriptKey, vScriptData,  operlog));
-	BOOST_CHECK(pTestView->SetScriptData(regScriptId, vScriptKey2, vScriptData,  operlog));
-	BOOST_CHECK(pTestView->SetScriptData(regScriptId, vScriptKey4, vScriptData,  operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey, vScriptData,  operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey2, vScriptData,  operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey4, vScriptData,  operlog));
 	BOOST_CHECK(pTestView->EraseScriptData(regScriptId, vScriptKey3, operlog));
 	BOOST_CHECK(pTestView->EraseScriptData(regScriptId, vScriptKey2, operlog));
 
@@ -273,51 +273,51 @@ void testscriptdatadb() {
 	set<CScriptDBOperLog> setOperLog;
 
 
-	BOOST_CHECK(pTestView->SetScriptData(regScriptId, vScriptKey, vScriptData,  operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey, vScriptData,  operlog));
 //	int height = 0;
 //	int curheight = 0;
-	BOOST_CHECK(pTestView->GetScriptData(curheight,regScriptId,vScriptKey,vScriptData));
+	BOOST_CHECK(pTestView->GetContractData(curheight,regScriptId,vScriptKey,vScriptData));
 	pTestView->GetScriptCount(height);
 
-	BOOST_CHECK(pTestView->GetScriptData(curheight,regScriptId, 0, vScriptKey, vScriptData));
-	BOOST_CHECK(pTestView->SetScriptData(regScriptId, vScriptKey, vScriptData, operlog));
+	BOOST_CHECK(pTestView->GetContractData(curheight,regScriptId, 0, vScriptKey, vScriptData));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey, vScriptData, operlog));
 
 	//write script data to db
-	BOOST_CHECK(pTestView->SetScriptData(regScriptId, vScriptKey, vScriptData,  operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey, vScriptData,  operlog));
 	//write all data in caches to db
 	BOOST_CHECK(pTestView->Flush());
-	BOOST_CHECK(pTestView->SetScriptData(regScriptId, vScriptKey1, vScriptData1, operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey1, vScriptData1, operlog));
 	//test if the script id is exist in db
 	BOOST_CHECK(pTestView->HaveScriptData(regScriptId, vScriptKey));
 	vScript.clear();
 
 
 	//read script content from db by scriptId
-	BOOST_CHECK(pTestView->GetScriptData(curheight,regScriptId, vScriptKey, vScript));
+	BOOST_CHECK(pTestView->GetContractData(curheight,regScriptId, vScriptKey, vScript));
 	// if the readed script content equals with original
 	BOOST_CHECK(vScriptData == vScript);
 	int nCount;
 	//get script numbers from db
-	BOOST_CHECK(pTestView->GetScriptDataCount(regScriptId, nCount));
+	BOOST_CHECK(pTestView->GetContractDataCount(regScriptId, nCount));
 	//if the number is one
 	BOOST_CHECK_EQUAL(nCount, 2);
 	//get index 0 script from db
 	vScript.clear();
 	vKey.clear();
-	BOOST_CHECK(pTestView->GetScriptData(curheight,regScriptId, 0, vKey, vScript));
+	BOOST_CHECK(pTestView->GetContractData(curheight,regScriptId, 0, vKey, vScript));
 	BOOST_CHECK(vKey == vScriptKey);
 	BOOST_CHECK(vScript == vScriptData);
-	BOOST_CHECK(pTestView->GetScriptData(curheight,regScriptId, 1, vKey, vScript));
+	BOOST_CHECK(pTestView->GetContractData(curheight,regScriptId, 1, vKey, vScript));
 	BOOST_CHECK(vKey == vScriptKey1);
 	BOOST_CHECK(vScript == vScriptData1);
 	//delete script from db
 	BOOST_CHECK(pTestView->EraseScriptData(regScriptId, vScriptKey, operlog));
 	vKey.clear();
 	vScript.clear();
-	BOOST_CHECK(pTestView->GetScriptData(curheight,regScriptId, 0, vKey, vScript));
+	BOOST_CHECK(pTestView->GetContractData(curheight,regScriptId, 0, vKey, vScript));
 	BOOST_CHECK(vKey == vScriptKey1);
 	BOOST_CHECK(vScript == vScriptData1);
-	BOOST_CHECK(pTestView->GetScriptDataCount(regScriptId, nCount));
+	BOOST_CHECK(pTestView->GetContractDataCount(regScriptId, nCount));
 	BOOST_CHECK_EQUAL(nCount, 1);
 	//write all data in caches to db
 	BOOST_CHECK(pTestView->Flush());

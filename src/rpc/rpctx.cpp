@@ -1928,22 +1928,22 @@ static int getDataFromSriptData(CScriptDBViewCache &cache, const CRegID &regid, 
 		vector<std::tuple<vector<unsigned char>, vector<unsigned char> > >&ret) {
 	int dbsize;
 	int height = chainActive.Height();
-	cache.GetScriptDataCount(regid, dbsize);
+	cache.GetContractDataCount(regid, dbsize);
 	if (0 == dbsize) {
-		throw runtime_error("in getscriptdata :the scirptid database not data!\n");
+		throw runtime_error("in getcontractdata :the scirptid database not data!\n");
 	}
 	vector<unsigned char> value;
 	vector<unsigned char> vScriptKey;
 
-	if (!cache.GetScriptData(height, regid, 0, vScriptKey, value)) {
-		throw runtime_error("in getscriptdata :the scirptid get data failed!\n");
+	if (!cache.GetContractData(height, regid, 0, vScriptKey, value)) {
+		throw runtime_error("in getcontractdata :the scirptid get data failed!\n");
 	}
 	if (index == 1) {
 		ret.push_back(std::make_tuple(vScriptKey, value));
 	}
 	int readCount(1);
 	while (--dbsize) {
-		if (cache.GetScriptData(height, regid, 1, vScriptKey, value)) {
+		if (cache.GetContractData(height, regid, 1, vScriptKey, value)) {
 			++readCount;
 			if (readCount > pagesize * (index - 1)) {
 				ret.push_back(std::make_tuple(vScriptKey, value));
@@ -1956,29 +1956,29 @@ static int getDataFromSriptData(CScriptDBViewCache &cache, const CRegID &regid, 
 	return ret.size();
 }
 
-Value getscriptdata(const Array& params, bool fHelp) {
+Value getcontractdata(const Array& params, bool fHelp) {
 	if (fHelp || params.size() < 2 || params.size() > 3) {
-		throw runtime_error("getscriptdata \"scriptid\" \"[pagesize or key]\" (\"index\")\n"
-				"\nget the script data by given script ID\n"
+		throw runtime_error("getcontractdata \"scriptid\" \"[pagesize or key]\" (\"index\")\n"
+				"\nget the contract data by given script ID\n"
 				"\nArguments:\n"
 				"1.\"scriptid\": (string, required)\n"
 				"2.[pagesize or key]: (pagesize int, required),if only two params,it is key,otherwise it is pagesize\n"
 				"3.\"index\": (int optional)\n"
 				"\nResult:\n"
 				"\nExamples:\n"
-				+ HelpExampleCli("getscriptdata", "\"123456789012\"")
-				+ HelpExampleRpc("getscriptdata", "\"123456789012\""));
+				+ HelpExampleCli("getcontractdata", "\"123456789012\"")
+				+ HelpExampleRpc("getcontractdata", "\"123456789012\""));
 	}
 	int height = chainActive.Height();
 //	//RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
 //	vector<unsigned char> vscriptid = ParseHex(params[0].get_str());
 	CRegID regid(params[0].get_str());
 	if (regid.IsEmpty() == true) {
-		throw runtime_error("getscriptdata : scriptid not found!\n");
+		throw runtime_error("getcontractdata : scriptid not found!\n");
 	}
 
 	if (!pScriptDBTip->HaveScript(regid)) {
-		throw runtime_error("getscriptdata : scriptid NOT exist!\n");
+		throw runtime_error("getcontractdata : scriptid NOT exist!\n");
 	}
 	Object script;
 
@@ -1986,8 +1986,8 @@ Value getscriptdata(const Array& params, bool fHelp) {
 	if (params.size() == 2) {
 		vector<unsigned char> key = ParseHex(params[1].get_str());
 		vector<unsigned char> value;
-		if (!contractScriptTemp.GetScriptData(height, regid, key, value)) {
-			throw runtime_error("in getscriptdata :the key NOT exist!\n");
+		if (!contractScriptTemp.GetContractData(height, regid, key, value)) {
+			throw runtime_error("in getcontractdata :the key NOT exist!\n");
 		}
 		script.push_back(Pair("scritpid", params[0].get_str()));
 		script.push_back(Pair("key", HexStr(key)));
@@ -1996,9 +1996,9 @@ Value getscriptdata(const Array& params, bool fHelp) {
 
 	} else {
 		int dbsize;
-		contractScriptTemp.GetScriptDataCount(regid, dbsize);
+		contractScriptTemp.GetContractDataCount(regid, dbsize);
 		if (0 == dbsize) {
-			throw runtime_error("in getscriptdata :the scirptid database has NO data!\n");
+			throw runtime_error("in getcontractdata :the scirptid database has NO data!\n");
 		}
 		int pagesize = params[1].get_int();
 		int index = params[2].get_int();
@@ -2044,11 +2044,11 @@ Value getscriptvaliddata(const Array& params, bool fHelp) {
 	RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
 	CRegID regid(params[0].get_str());
 	if (regid.IsEmpty() == true) {
-		throw runtime_error("getscriptdata :scriptid NOT found!\n");
+		throw runtime_error("getcontractdata :scriptid NOT found!\n");
 	}
 
 	if (!pAccountViewCache->HaveScript(regid)) {
-		throw runtime_error("getscriptdata :scriptid NOT exist!\n");
+		throw runtime_error("getcontractdata :scriptid NOT exist!\n");
 	}
 	Object obj;
 	int pagesize = params[1].get_int();
@@ -2061,7 +2061,7 @@ Value getscriptvaliddata(const Array& params, bool fHelp) {
 	std::vector<unsigned char> vValue;
 	Array retArray;
 	int nReadCount = 0;
-	while (pAccountViewCache->GetScriptData(height, regid, 1, vScriptKey, vValue)) {
+	while (pAccountViewCache->GetContractData(height, regid, 1, vScriptKey, vValue)) {
 		Object item;
 		++nReadCount;
 		if (nReadCount > pagesize * (nIndex - 1)) {
@@ -2132,15 +2132,15 @@ Value getscriptdbsize(const Array& params, bool fHelp) {
 	}
 	CRegID regid(params[0].get_str());
 	if (regid.IsEmpty() == true) {
-		throw runtime_error("in getscriptdata :vscriptid is error!\n");
+		throw runtime_error("in getcontractdata :vscriptid is error!\n");
 	}
 
 	if (!pScriptDBTip->HaveScript(regid)) {
-		throw runtime_error("in getscriptdata :vscriptid id is not exist!\n");
+		throw runtime_error("in getcontractdata :vscriptid id is not exist!\n");
 	}
 	int nDataCount = 0;
-	if (!pScriptDBTip->GetScriptDataCount(regid, nDataCount)) {
-		throw runtime_error("GetScriptDataCount error!");
+	if (!pScriptDBTip->GetContractDataCount(regid, nDataCount)) {
+		throw runtime_error("GetContractDataCount error!");
 	}
 	return nDataCount;
 }
@@ -2747,7 +2747,7 @@ Value getappkeyvalue(const Array& params, bool fHelp) {
 		key.insert(key.begin(), txhash.begin(), txhash.end());
 		vector<unsigned char> value;
 		Object obj;
-		if (!contractScriptTemp.GetScriptData(height, scriptid, key, value)) {
+		if (!contractScriptTemp.GetContractData(height, scriptid, key, value)) {
 			obj.push_back(Pair("key", array[i].get_str()));
 			obj.push_back(Pair("value", HexStr(value)));
 		} else {
@@ -3161,7 +3161,7 @@ Value getdelegatelist(const Array& params, bool fHelp) {
     vector<unsigned char> vDelegatePrefix = vScriptKey;
     while(--nDelegateNum >= 0) {
        CRegID regId(0,0);
-      if(contractScriptTemp.GetScriptData(0, redId, nIndex, vScriptKey, vScriptData)) {
+      if(contractScriptTemp.GetContractData(0, redId, nIndex, vScriptKey, vScriptData)) {
           nIndex = 1;
           vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrefix.begin(), vDelegatePrefix.end());
           string strVoltes(iterVotes+9, iterVotes+25);
