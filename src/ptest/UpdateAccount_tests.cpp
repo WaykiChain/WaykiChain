@@ -46,7 +46,7 @@ int TestCallRPC(std::string strMethod, const std::vector<std::string> &vParams, 
 static void CreateRegisterTx() {
 	//cout <<"CreateRegisterTx" << endl;
 	int argc = 5;
-	const char *argv[5] = { "rpctest", "registaccounttx", "dkJwhBs2P2SjbQWt5Bz6vzjqUhXTymvsGr", "0", "10" };
+	const char *argv[5] = { "rpctest", "registeraccounttx", "dkJwhBs2P2SjbQWt5Bz6vzjqUhXTymvsGr", "0", "10" };
 	CommandLineRPC(argc, const_cast<char**>(argv));
 }
 
@@ -384,7 +384,7 @@ BOOST_AUTO_TEST_CASE(test) {
 
 }
 /**
- * 测试交易同步准确性与及时性
+ * 锟斤拷锟皆斤拷锟斤拷同锟斤拷准确锟斤拷锟诫及时锟斤拷
  */
 BOOST_AUTO_TEST_CASE(test1) {
 	int nIndex = 10000;

@@ -353,7 +353,7 @@ public:
 		return false;
 	}
 
-	bool registaccounttx(const std::string &addr,const int nHeight)
+	bool registeraccounttx(const std::string &addr,const int nHeight)
 	{
 		//CommanRpc
 		char caddr[64] = { 0 };
@@ -368,7 +368,7 @@ public:
 		sprintf(height,"%d",nHeight);
 
 
-		const char *argv[] = { "rpctest", "registaccounttx", caddr, fee, height};
+		const char *argv[] = { "rpctest", "registeraccounttx", caddr, fee, height};
 		int argc = sizeof(argv)/sizeof(char*);
 
 		Value value;
@@ -674,7 +674,7 @@ BOOST_FIXTURE_TEST_CASE(block_normaltx_and_regaccounttx,CMinerTest)
 	//test reg account
 	{
 		nCurHeight = height;
-		BOOST_REQUIRE(registaccounttx(destaddr, height));
+		BOOST_REQUIRE(registeraccounttx(destaddr, height));
 		{
 			AccOperLog &operlog1 = mapAccOperLog[destaddr];
 			AccState acc1(0, -nCurFee, 0);

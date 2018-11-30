@@ -30,7 +30,7 @@ vector<pair<string, uint64_t> > vSendFee;
 std::string regScriptId("");
 
 /**
- * »ñÈ¡Ëæ»úÕË»§µØÖ·
+ * è·å–éšæœºè´¦æˆ·åœ°å€
  */
 map<string, string>::iterator GetRandAddress() {
 //	srand(time(NULL));
@@ -45,7 +45,7 @@ map<string, string>::iterator GetRandAddress() {
 }
 
 /**
- * »ñÈ¡Ëæ»úµÄ½»Ò×ÀàĞÍ
+ * è·å–éšæœºçš„äº¤æ˜“ç±»å‹
  */
 int GetRandTxType() {
 	unsigned char cType;
@@ -84,7 +84,7 @@ public:
 	}
 
 	/**
-	 * ´´½¨ÆÕÍ¨½»Ò×
+	 * åˆ›å»ºæ™®é€šäº¤æ˜“
 	 * @return
 	 */
 	bool CreateCommonTx(string srcAddr, string desAddr) {
@@ -114,12 +114,12 @@ public:
 		return true;
 	}
 	/**
-	 * ´´½¨×¢²áÕË»§½»Ò×
+	 * åˆ›å»ºæ³¨å†Œè´¦æˆ·äº¤æ˜“
 	 * @param addr
 	 * @return
 	 */
 	bool CreateRegAcctTx() {
-		//»ñÈ¡Ò»¸öĞÂµÄµØÖ·
+		//è·å–ä¸€ä¸ªæ–°çš„åœ°å€
 		const char *argv[] = {"rpctest", "getnewaddress"};
 		int argc = sizeof(argv) /sizeof(char *);
 		Value value;
@@ -133,12 +133,12 @@ public:
 		}
 		string newAddress = retNewAddr.get_str();
 		map<string, string>::iterator iterSrcAddr = GetRandAddress();
-		//ÏòĞÂ²úÉúµØÖ··¢ËÍÒ»±ÊÇ®
+		//å‘æ–°äº§ç”Ÿåœ°å€å‘é€ä¸€ç¬”é’±
 		if(!CreateCommonTx(iterSrcAddr->second, newAddress))
 			return false;
 
 		int nfee = GetRandomFee() + 100000000;
-		Value result = RegistAccountTx(newAddress, nfee);
+		Value result = RegisterAccountTx(newAddress, nfee);
 		string txHash = "";
 		BOOST_CHECK(GetHashFromCreatedTx(value, txHash));
 
@@ -152,7 +152,7 @@ public:
 	}
 
 	/**
-	 * ´´½¨ºÏÔ¼½»Ò×
+	 * åˆ›å»ºåˆçº¦äº¤æ˜“
 	 */
 	bool CreateContractTx() {
 		map<string, string>::iterator iterSrcAddr = GetRandAddress();
@@ -200,7 +200,7 @@ public:
 		return true;
 	}
 
-	//Ëæ»ú´´½¨6000¸ö½»Ò×
+	//éšæœºåˆ›å»º6000ä¸ªäº¤æ˜“
 	void CreateRandTx(int txCount) {
 		for (int i = 0; i < txCount; ++i) {
 			int nTxType = GetRandTxType();
@@ -238,7 +238,7 @@ public:
 				assert(0);
 			}
 //			cout << "create tx order:" << i << "type:" <<nTxType << endl;
-			//putchar('\b');	//½«µ±Ç°ĞĞÈ«²¿Çå¿Õ£¬ÓÃÒÔÏÔÊ¾×îĞÂµÄ½ø¶ÈÌõ×´Ì¬
+			//putchar('\b');	//å°†å½“å‰è¡Œå…¨éƒ¨æ¸…ç©ºï¼Œç”¨ä»¥æ˜¾ç¤ºæœ€æ–°çš„è¿›åº¦æ¡çŠ¶æ€
 			if(0 != i) {
 				ShowProgress("create tx progress: ",(int)(((i+1)/(float)txCount) * 100));
 			}
@@ -296,7 +296,7 @@ public:
 			dFee.pop_front();
 			dFuel.pop_front();
 		}
-		//¼ì²é×ÜÕËÆ½ºâ
+		//æ£€æŸ¥æ€»è´¦å¹³è¡¡
 		BOOST_CHECK(totalValue + llTotalFee == (3000000000 * COIN + uTotalRewardValue));
 		return true;
 	}
@@ -308,24 +308,24 @@ public:
 	}
 };
 
-//ÔİÊ±ÎŞ·¨²âÊÔ£¬ĞèÒªunit_test.bin
+//æš‚æ—¶æ— æ³•æµ‹è¯•ï¼Œéœ€è¦unit_test.bin
 BOOST_FIXTURE_TEST_SUITE(pressure_tests, PressureTest)
 BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 {
-	//³õÊ¼»¯»·¾³,×¢²áÒ»¸öºÏÔ¼½Å±¾£¬²¢ÇÒÍÚ¿óÈ·ÈÏ
+	//åˆå§‹åŒ–ç¯å¢ƒ,æ³¨å†Œä¸€ä¸ªåˆçº¦è„šæœ¬ï¼Œå¹¶ä¸”æŒ–çŸ¿ç¡®è®¤
 	InitRegScript();
 //	BOOST_CHECK(DetectionAccount(1*COIN));
 	for(int i=0; i<1; ++i) {
-		//Ëæ»ú´´½¨6000¸ö½»Ò×
+		//éšæœºåˆ›å»º6000ä¸ªäº¤æ˜“
 
 		CreateRandTx(iTxCount);
-		//¼ì²âmempoolÖĞÊÇ·ñÓĞ6000¸ö½»Ò×
+		//æ£€æµ‹mempoolä¸­æ˜¯å¦æœ‰6000ä¸ªäº¤æ˜“
 		BOOST_CHECK(vTransactions.size()==iTxCount);
 		{
 			//LOCK(pwalletMain->cs_wallet);
-			//¼ì²âÇ®°üÎ´È·ÈÏ½»Ò×ÊıÁ¿ÊÇ·ñÕıÈ·
+			//æ£€æµ‹é’±åŒ…æœªç¡®è®¤äº¤æ˜“æ•°é‡æ˜¯å¦æ­£ç¡®
 			BOOST_CHECK(pwalletMain->UnConfirmTx.size() == iTxCount);
-			//¼ì²âÇ®°üÎ´È·ÈÏ½»Ò×hashÊÇ·ñÕıÈ·
+			//æ£€æµ‹é’±åŒ…æœªç¡®è®¤äº¤æ˜“hashæ˜¯å¦æ­£ç¡®
 			for(auto &item : vTransactionHash) {
 				BOOST_CHECK(pwalletMain->UnConfirmTx.count(uint256(uint256S(item))) > 0);
 			}
@@ -338,7 +338,7 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 		uint64_t llSendValue(0);
 		uint64_t llFuelValue(0);
 		while (nSize) {
-			//ÍÚ¿ó
+			//æŒ–çŸ¿
 			map<string, string>::const_iterator iterAddr = GetRandAddress();
 			BOOST_CHECK(SetBlockGenerte(iterAddr->second.c_str()));
 			CBlock block;
@@ -352,27 +352,27 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 			for(auto &item : block.vptx) {
 				{
 					LOCK2(cs_main, pwalletMain->cs_wallet);
-					//¼ì²âÇ®°üÎ´È·ÈÏÁĞ±íÖĞÃ»ÓĞblockÖĞ½»Ò×
+					//æ£€æµ‹é’±åŒ…æœªç¡®è®¤åˆ—è¡¨ä¸­æ²¡æœ‰blockä¸­äº¤æ˜“
 					BOOST_CHECK(!pwalletMain->UnConfirmTx.count(item->GetHash()) > 0);
-					//¼ì²âblockÖĞ½»Ò×ÊÇ·ñ¶¼ÔÚÇ®°üÒÑÈ·ÈÏÁĞ±íÖĞ
+					//æ£€æµ‹blockä¸­äº¤æ˜“æ˜¯å¦éƒ½åœ¨é’±åŒ…å·²ç¡®è®¤åˆ—è¡¨ä¸­
 					BOOST_CHECK(pwalletMain->mapInBlockTx[block.GetHash()].mapAccountTx.count(item->GetHash())>0);
-					//¼ì²âmempoolÖĞÃ»ÓĞÁËblockÒÑÈ·ÈÏ½»Ò×
+					//æ£€æµ‹mempoolä¸­æ²¡æœ‰äº†blockå·²ç¡®è®¤äº¤æ˜“
 					BOOST_CHECK(!mempool.mapTx.count(item->GetHash()) > 0);
 				}
 
 			}
 			{
 				LOCK2(cs_main, pwalletMain->cs_wallet);
-				//¼ì²âblockÖĞ½»Ò××ÜÊıºÍÇ®°üÒÑÈ·ÈÏÁĞ±íÖĞ×ÜÊıÏàµÈ
+				//æ£€æµ‹blockä¸­äº¤æ˜“æ€»æ•°å’Œé’±åŒ…å·²ç¡®è®¤åˆ—è¡¨ä¸­æ€»æ•°ç›¸ç­‰
 				BOOST_CHECK(pwalletMain->mapInBlockTx[block.GetHash()].mapAccountTx.size() == block.vptx.size());
 				nConfirmTxCount += block.vptx.size() - 1;
-				//¼ì²âÊ£ÓàmempoolÖĞ½»Ò××ÜÊıÓëÒÑÈ·ÈÏ½»Ò×ºÍµÈÓÚ×ÜµÄ²úÉúµÄ½»Ò×Êı
+				//æ£€æµ‹å‰©ä½™mempoolä¸­äº¤æ˜“æ€»æ•°ä¸å·²ç¡®è®¤äº¤æ˜“å’Œç­‰äºæ€»çš„äº§ç”Ÿçš„äº¤æ˜“æ•°
 				nSize = mempool.mapTx.size();
 				BOOST_CHECK((nSize + nConfirmTxCount) == vTransactions.size());
-				//¼ì²âÇ®°üÖĞunconfirm½»Ò×ºÍmempoolÖĞµÄÏàÍ¬
+				//æ£€æµ‹é’±åŒ…ä¸­unconfirmäº¤æ˜“å’Œmempoolä¸­çš„ç›¸åŒ
 				BOOST_CHECK((nSize == pwalletMain->UnConfirmTx.size()));
 			}
-			//¼ì²âBlock×î´óÖµ
+			//æ£€æµ‹Blockæœ€å¤§å€¼
 			BOOST_CHECK(block.GetSerializeSize(SER_DISK, CLIENT_VERSION) <= MAX_BLOCK_SIZE);
 			for(auto & ptx : block.vptx) {
 				if(ptx->IsCoinBase()) {
@@ -389,14 +389,14 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 			}
 			llSendValue -= llRegAcctFee;
 			llSendValue += block.GetFee();
-			//¼ì²âÈ·ÈÏ½»Ò×ºó×ÜÕËÊÇ·ñÆ½ºâ
+			//æ£€æµ‹ç¡®è®¤äº¤æ˜“åæ€»è´¦æ˜¯å¦å¹³è¡¡
 			BOOST_CHECK(DetectionAccount(llFuelValue, block.GetFee()));
 		}
 		uint64_t totalFee(0);
 		for(auto &item : vSendFee) {
 			totalFee += item.second;
 		}
-		//Ğ£Ñé×ÜµÄÊÖĞø·ÑÊÇ·ñÕıÈ·
+		//æ ¡éªŒæ€»çš„æ‰‹ç»­è´¹æ˜¯å¦æ­£ç¡®
 		BOOST_CHECK(totalFee == llSendValue);
 
 		vTransactions.clear();

@@ -191,8 +191,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "getnewaddress"          && n > 0) ConvertTo<bool>(params[0]);
 
-    if (strMethod == "registaccounttx"        && n > 1) ConvertTo<int64_t>(params[1]);
- //   if (strMethod == "registaccounttx"          && n > 2) ConvertTo<bool>(params[2]);
+    if (strMethod == "registeraccounttx"        && n > 1) ConvertTo<int64_t>(params[1]);
+ //   if (strMethod == "registeraccounttx"          && n > 2) ConvertTo<bool>(params[2]);
 
     if(strMethod == "createdelegatetx"        && n > 1) ConvertTo<Array>(params[1]);
     if(strMethod == "createdelegatetx"        && n > 2) ConvertTo<int64_t>(params[2]);
@@ -234,8 +234,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "sendtoaddressraw"       && n>1)ConvertTo<double>(params[1]);
     if (strMethod == "sendtoaddressraw"       && n >4)ConvertTo<int>(params[4]);
 
-    if (strMethod == "registaccounttxraw"     && n >0)ConvertTo<double>(params[0]);
-    if (strMethod == "registaccounttxraw"     && n >1)ConvertTo<int>(params[1]);
+    if (strMethod == "registeraccounttxraw"     && n >0)ConvertTo<double>(params[0]);
+    if (strMethod == "registeraccounttxraw"     && n >1)ConvertTo<int>(params[1]);
 
     if (strMethod == "createcontracttxraw"    && n >0)ConvertTo<double>(params[0]);
     if (strMethod == "createcontracttxraw"    && n >1)ConvertTo<double>(params[1]);

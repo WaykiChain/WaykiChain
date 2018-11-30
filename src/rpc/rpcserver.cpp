@@ -263,7 +263,7 @@ static const CRPCCommand vRPCCommands[] =
 
     /* Raw transactions */
     { "sendtoaddressraw",       &sendtoaddressraw,       false,     false,      false },
-    { "registaccounttxraw",     &registaccounttxraw,     false,     false,      false },
+    { "registeraccounttxraw",   &registeraccounttxraw,   false,     false,      false },
     { "createcontracttxraw",    &createcontracttxraw,    true,      false,      false },
     { "registerscripttxraw",    &registerscripttxraw,    true,      false,      false },
 
@@ -287,7 +287,7 @@ static const CRPCCommand vRPCCommands[] =
     { "listtx",                 &listtx,       	         true,      false,      true },
     { "listcontracttx",         &listcontracttx,       	 true,      false,      true },
     { "gettransaction",         &gettransaction,         true,      false,      true },
-    { "registaccounttx",        &registaccounttx,      	 true,      false,      true },
+    { "registeraccounttx",      &registeraccounttx,      true,      false,      true },
 	{ "createcontracttx",       &createcontracttx,       true,      false,      true },
 	{ "createdelegatetx",       &createdelegatetx,       true,      false,      true },
     { "createdelegatetxraw",    &createdelegatetxraw,    true,      false,      true },

@@ -57,7 +57,7 @@ TEST_STATE CCreateTxTest::Run() {
 					nStep = 0;
 					vAccount.clear();
 				} else {
-					nStep = 1; //µÈ´ýÈ·ÈÏÍê³É ºó´ÓÐÂ´´½¨£¬µ«²»ÊÇ³õÊ¼»¯
+					nStep = 1; //ï¿½È´ï¿½È·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Â´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç³ï¿½Ê¼ï¿½ï¿½
 				}
 			}
 			break;
@@ -100,7 +100,7 @@ bool CCreateTxTest::CreateTx(int nTxType)
 	}
 	case 2:
 	{
-		Value value = basetest.RegistAccountTx(newAddr, 100000);
+		Value value = basetest.RegisterAccountTx(newAddr, 100000);
 		cout << "register address:" << newAddr << endl;
 		if (basetest.GetHashFromCreatedTx(value, sendhash)) {
 			cout << "register address:" << newAddr << " create regist account step 2 tx hash:" << sendhash <<endl;

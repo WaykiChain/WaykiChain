@@ -360,10 +360,10 @@ Value gettxdetail(const Array& params, bool fHelp) {
 }
 
 //create a register account tx
-Value registaccounttx(const Array& params, bool fHelp) {
+Value registeraccounttx(const Array& params, bool fHelp) {
 	if (fHelp || params.size() != 2) {
 	       throw runtime_error(
-	            "registaccounttx \"addr\" \"fee\"\n"
+	            "registeraccounttx \"addr\" \"fee\"\n"
 				"\nregister secure account\n"
 				"\nArguments:\n"
 				"1.addr: (string, required)\n"
@@ -371,9 +371,9 @@ Value registaccounttx(const Array& params, bool fHelp) {
 	            "\nResult:\n"
 	    		"\"txhash\": (string)\n"
 	    		"\nExamples:\n"
-	            + HelpExampleCli("registaccounttx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 ")
+	            + HelpExampleCli("registeraccounttx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 ")
 	            + "\nAs json rpc call\n"
-	            + HelpExampleRpc("registaccounttx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 "));
+	            + HelpExampleRpc("registeraccounttx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 "));
 
 	}
 
@@ -383,7 +383,7 @@ Value registaccounttx(const Array& params, bool fHelp) {
 	//get keyid
 	CKeyID keyid;
 	if (!GetKeyId(addr, keyid)) {
-		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in registaccounttx :address err");
+		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in registeraccounttx :address err");
 	}
 	CRegisterAccountTx rtx;
 	assert(pwalletMain != NULL);
@@ -397,20 +397,20 @@ Value registaccounttx(const Array& params, bool fHelp) {
 
 		CUserID userId = keyid;
 		if (!view.GetAccount(userId, account)) {
-			throw JSONRPCError(RPC_WALLET_ERROR, "in registaccounttx Error: Account balance is insufficient.");
+			throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account balance is insufficient.");
 		}
 
 		if (account.IsRegister()) {
-			throw JSONRPCError(RPC_WALLET_ERROR, "in registaccounttx Error: Account is already registered");
+			throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account is already registered");
 		}
 		uint64_t balance = account.GetRawBalance();
 		if (balance < fee) {
-			throw JSONRPCError(RPC_WALLET_ERROR, "in registaccounttx Error: Account balance is insufficient.");
+			throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account balance is insufficient.");
 		}
 
 		CPubKey pubkey;
 		if (!pwalletMain->GetPubKey(keyid, pubkey)) {
-			throw JSONRPCError(RPC_WALLET_ERROR, "in registaccounttx Error: not find key.");
+			throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: not find key.");
 		}
 
 		CPubKey MinerPKey;
@@ -425,7 +425,7 @@ Value registaccounttx(const Array& params, bool fHelp) {
 		rtx.nValidHeight = chainActive.Tip()->nHeight;
 
 		if (!pwalletMain->Sign(keyid, rtx.SignatureHash(), rtx.signature)) {
-			throw JSONRPCError(RPC_WALLET_ERROR, "in registaccounttx Error: Sign failed.");
+			throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Sign failed.");
 		}
 
 	}
@@ -433,7 +433,7 @@ Value registaccounttx(const Array& params, bool fHelp) {
 	std::tuple<bool, string> ret;
 	ret = pwalletMain->CommitTransaction((CBaseTransaction *) &rtx);
 	if (!std::get<0>(ret)) {
-		throw JSONRPCError(RPC_WALLET_ERROR, "registaccounttx Error:" + std::get<1>(ret));
+		throw JSONRPCError(RPC_WALLET_ERROR, "registeraccounttx Error:" + std::get<1>(ret));
 	}
 	Object obj;
 	obj.push_back(Pair("hash", std::get<1>(ret)));
@@ -1305,7 +1305,7 @@ if (fHelp || params.size() > 2) {
 			     "2. from           (numeric, optional, default=0) The number of transactions to skip\n"    "\nExamples:\n"
 				 "\nResult:\n"
 				 "\nExamples:\n"
-				 "\nList the most recent 10 transactions in the systems\n"
+				 "\nList the most recent 10 transactions in the system\n"
 				  + HelpExampleCli("listtx", "") +
 				  "\nList transactions 100 to 120\n"
 				  + HelpExampleCli("listtx",  "20 100")
@@ -2145,10 +2145,10 @@ Value getscriptdbsize(const Array& params, bool fHelp) {
 	return nDataCount;
 }
 
-Value registaccounttxraw(const Array& params, bool fHelp) {
+Value registeraccounttxraw(const Array& params, bool fHelp) {
 
 	if (fHelp || (params.size() < 3  || params.size() > 4)) {
-		throw runtime_error("registaccounttxraw \"fee\" \"height\" \"publickey\" (\"minerpublickey\") \n"
+		throw runtime_error("registeraccounttxraw \"fee\" \"height\" \"publickey\" (\"minerpublickey\") \n"
 				"\ncreate a register account transaction\n"
 				"\nArguments:\n"
 				"1.fee: (numeric, required) pay to miner\n"
@@ -2158,9 +2158,9 @@ Value registaccounttxraw(const Array& params, bool fHelp) {
 				"\nResult:\n"
 				"\"txhash\": (string)\n"
 				"\nExamples:\n"
-				+ HelpExampleCli("registaccounttxraw",  "10000  3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\"")
+				+ HelpExampleCli("registeraccounttxraw",  "10000  3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\"")
 				+ "\nAs json rpc call\n"
-				+ HelpExampleRpc("registaccounttxraw", " 10000 3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\""));
+				+ HelpExampleRpc("registeraccounttxraw", " 10000 3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\""));
 	}
 	CUserID ukey;
 	CUserID uminerkey = CNullID();

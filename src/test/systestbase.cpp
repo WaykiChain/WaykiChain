@@ -445,7 +445,7 @@ Value SysTestBase::CreateNormalTx(const std::string &desAddr,uint64_t nMoney){
 	return value;
 }
 
-Value SysTestBase::RegistAccountTx(const std::string &addr, const int nfee) {
+Value SysTestBase::RegisterAccountTx(const std::string &addr, const int nfee) {
 	//CommanRpc
 	char caddr[64] = { 0 };
 	strncpy(caddr, addr.c_str(), sizeof(caddr) - 1);
@@ -455,7 +455,7 @@ Value SysTestBase::RegistAccountTx(const std::string &addr, const int nfee) {
 		nCurFee = GetRandomFee();;
 	string fee =strprintf("%ld", nCurFee);
 
-	const char *argv[] = { "rpctest", "registaccounttx", caddr, (char*)fee.c_str()};
+	const char *argv[] = { "rpctest", "registeraccounttx", caddr, (char*)fee.c_str()};
 	int argc = sizeof(argv) / sizeof(char*);
 
 	Value value;

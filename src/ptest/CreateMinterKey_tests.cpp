@@ -1,8 +1,8 @@
 /*
  * createminterkey.cpp
  *
- *  Created on: 2015Äê4ÔÂ13ÈÕ
- *      Author: ranger.shi
+ *  Created on: 2015
+ *  
  */
 #include <stdlib.h>
 #include <time.h>
@@ -120,7 +120,7 @@ void CCreateMinerkey::CreateAccount() {
 
 	for(size_t i=0; i < vNewAddress.size(); i++) {
 		int nfee = GetRandomFee();
-		Value value1 = RegistAccountTx(vNewAddress[i], nfee);
+		Value value1 = RegisterAccountTx(vNewAddress[i], nfee);
 		BOOST_CHECK(GetHashFromCreatedTx(value1,hash));
 	}
 

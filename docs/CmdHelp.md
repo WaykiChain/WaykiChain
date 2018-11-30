@@ -44,12 +44,12 @@
 | islocked | | Return an object about whether the wallet is being locked or unlocked | N |
 | listaddr | | return Array containing address,balance,haveminerkey,regid information | N |
 | listapp | ```<showDetail>``` | get the list register script: <br>1. showDetail  (boolean, required)true to show scriptContent,otherwise to not show it. | N |
-| listcheckpoint | | Returns the list of checkpoint | N |
+| listcheckpoint | | Returns the list of checkpoints | N |
 | listtx | | get all confirm transactions and all unconfirm transactions from wallet | N |
-| listtxcache | | get all transactions in cahce | N |
-| listunconfirmedtx | | get the list  of unconfirmedtx | N |
-| registaccounttx | ```<address><fee>``` | register secure account | Y |
-| registaccounttxraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account transaction | N |
+| listtxcache | | get all transactions in cache | N |
+| listunconfirmedtx | | get the list of unconfirmedtx | N |
+| registeraccounttx | ```<address><fee>``` | register secure account | Y |
+| registeraccounttxraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account transaction | N |
 | registerapptx | ```<address><filepath><fee>[height][scriptdescription]``` | create a register script transaction | Y |
 | registerscripttxraw | ```<height><fee><address><flag><script or scriptid><script description>``` | Register script: <br>1.    Height(numeric required) :valod height<br> 2.    Fee: (numeric required) pay to miner<br>3.    address: (string required)for send<br>4.    flag: (numeric, required) 0-1<br>5.    script or scriptid: (string required), if flag=0 is script's file path, else if flag=1 scriptid<br>6.    script description:(string optional) new script description.<br>| N |
 | sendtoaddress | ```[wiccaddress]<[receive address><amount>``` | Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001. Returns the transaction ID <txhash> if successful | Y |

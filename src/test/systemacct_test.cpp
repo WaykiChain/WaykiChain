@@ -8,7 +8,7 @@ class CSysAccountTest:public SysTestBase {
 public:
 
 	bool RegisterAccount(const string& strAddr, uint64_t nFee,string& strTxHash,bool bSign = false) {
-		Value value = RegistAccountTx(strAddr,nFee);
+		Value value = RegisterAccountTx(strAddr,nFee);
 		return GetHashFromCreatedTx(value,strTxHash);
 	}
 
