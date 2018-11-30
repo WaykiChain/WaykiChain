@@ -392,7 +392,7 @@ Value getscriptid(const Array& params, bool fHelp)
 	uint256 txhash(uint256S(params[0].get_str()));
 
 	int nIndex = 0;
-	int BlockHeight =GetTxComfirmHigh(txhash, *pScriptDBTip) ;
+	int BlockHeight = GetTxConfirmHeight(txhash, *pScriptDBTip) ;
 	if(BlockHeight > chainActive.Height())
 	{
 		throw runtime_error("height larger than tip block \n");

@@ -203,7 +203,7 @@ bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCach
     const int VOTES_STRING_SIZE = 16;
     while (--nDelegateNum >= 0) {
         CRegID regId(0, 0);
-        if (scriptCache.GetContractData(0, regId, nIndex, vScriptKey, vScriptData)) {
+        if (scriptCache.GetAppData(0, regId, nIndex, vScriptKey, vScriptData)) {
             nIndex = 1;
             vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrefix.begin(), vDelegatePrefix.end());
             string strVoltes(iterVotes + SCRIPT_KEY_PREFIX_LENGTH, iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE);

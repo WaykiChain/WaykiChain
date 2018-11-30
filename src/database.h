@@ -117,7 +117,7 @@ public:
 	virtual bool EraseKey(const vector<unsigned char> &vKey);
 	virtual bool HaveData(const vector<unsigned char> &vKey);
 	virtual bool GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);
-	virtual bool GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
+	virtual bool GetAppData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
 			vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
 	virtual Object ToJsonObj(string Prefix);
 	virtual bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
@@ -141,7 +141,7 @@ public:
 	bool EraseKey(const vector<unsigned char> &vKey);
 	bool HaveData(const vector<unsigned char> &vKey);
 	bool GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);
-	bool GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
+	bool GetAppData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
 			vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
 	bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
 	bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB);
@@ -174,12 +174,12 @@ public:
 	bool SetScript(const CRegID &scriptId, const vector<unsigned char> &vValue);
 	bool HaveScript(const CRegID &scriptId);
 	bool EraseScript(const CRegID &scriptId);
-	bool GetContractDataCount(const CRegID &scriptId, int &nCount);
+	bool GetAppDataItemCount(const CRegID &scriptId, int &nCount);
 	bool EraseScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog);
 	bool HaveScriptData(const CRegID &scriptId, const vector<unsigned char > &vScriptKey);
-	bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
+	bool GetAppData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
 			vector<unsigned char> &vScriptData);
-	bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
+	bool GetAppData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
 			vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
 	bool SetContractData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
 				const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog);
@@ -270,14 +270,14 @@ private:
 	 * @param nCount
 	 * @return true if get succeed, otherwise false
 	 */
-	bool GetContractDataCount(const vector<unsigned char> &vScriptId, int &nCount);
+	bool GetAppDataItemCount(const vector<unsigned char> &vScriptId, int &nCount);
 	/**
 	 * @brief Save count of the Contract's data into contract db
 	 * @param vScriptId
 	 * @param nCount
 	 * @return true if save succeed, otherwise false
 	 */
-	bool SetContractDataCount(const vector<unsigned char> &vScriptId, int nCount);
+	bool SetAppDataItemCount(const vector<unsigned char> &vScriptId, int nCount);
 	/**
 	 * @brief Delete the item of the scirpt's data by scriptId and scriptKey
 	 * @param vScriptId
@@ -295,34 +295,34 @@ private:
 	 */
 	bool HaveScriptData(const vector<unsigned char> &vScriptId, const vector<unsigned char > &vScriptKey);
 	/**
-	 * @brief Get script data and valide height by scriptid and scriptkey
+	 * @brief Get smart contract App data and valid height by scriptid and scriptkey
 	 * @param vScriptId
 	 * @param vScriptKey must be 8 bytes
 	 * @param vScriptData
 	 * @param nHeight valide height of script data
 	 * @return true if get succeed, otherwise false
 	 */
-	bool GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
+	bool GetAppData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
 			vector<unsigned char> &vScriptData);
 	/**
-	 * @brief Get script data and valide height by scriptid and nIndex
+	 * @brief Get smart contract app data and valid height by scriptid and nIndex
 	 * @param vScriptId
 	 * @param nIndex get first script data will be 0, otherwise be 1
 	 * @param vScriptKey must be 8 bytes, get first script data will be empty, otherwise get next scirpt data will be previous script key
 	 * @param vScriptData
-	 * @param nHeight valide height of script data
+	 * @param nHeight valid height of script data
 	 * @return true if get succeed, otherwise false
 	 */
-	bool GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
+	bool GetAppData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
 	/**
-	 * @brief Save script data and valide height into script db
+	 * @brief Save script data and valid height into script db
 	 * @param vScriptId
 	 * @param vScriptKey must be 8 bytes
 	 * @param vScriptData
 	 * @param nHeight valide height of script data
 	 * @return true if save succeed, otherwise false
 	 */
-	bool SetContractData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
+	bool SetAppData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
 			const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog);
 
 };

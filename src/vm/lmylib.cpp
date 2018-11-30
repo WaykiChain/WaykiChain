@@ -1040,7 +1040,7 @@ static int ExGetTxConFirmHeightFunc(lua_State *L) {
     	return RetFalse("pVmRunEvn is NULL");
     }
 
-	int nHeight = GetTxComfirmHigh(hash1, *pVmRunEvn->GetScriptDB());
+	int nHeight = GetTxConfirmHeight(hash1, *pVmRunEvn->GetScriptDB());
 	if(-1 == nHeight)
 	{
 		return RetFalse("ExGetTxConFirmHeightFunc para err2");
@@ -1236,7 +1236,7 @@ static int ExDeleteDataDBFunc(lua_State *L) {
 	CScriptDBOperLog operlog;
 	int64_t nstep = 0;
 	vector<unsigned char> vValue;
-	if(scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vValue)){
+	if(scriptDB->GetAppData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vValue)){
 		nstep = nstep - (int64_t)(vValue.size()+1);//删除数据奖励step
 	}
 	if (!scriptDB->EraseScriptData(scriptid, *retdata.at(0), operlog)) {
@@ -1273,7 +1273,7 @@ static int ExReadDataValueDBFunc(lua_State *L) {
 	vector_unsigned_char vValue;
 	CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
 	int len = 0;
-	if(!scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vValue))
+	if(!scriptDB->GetAppData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vValue))
 	{
 		len = 0;
 	}
@@ -1290,7 +1290,7 @@ static int ExGetDBSizeFunc(lua_State *L) {
 	CRegID scriptid = pVmRunEvn->GetScriptRegID();
 	int count = 0;
 	CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
-	if(!scriptDB->GetContractDataCount(scriptid,count))
+	if(!scriptDB->GetAppDataItemCount(scriptid,count))
 	{
 		return RetFalse("ExGetDBSizeFunc can't use");
 	}
@@ -1342,7 +1342,7 @@ static int ExGetDBValueFunc(lua_State *L) {
 	}
 
 	CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
-	flag = scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(),scriptid,index,vScriptKey,vValue);
+	flag = scriptDB->GetAppData(pVmRunEvn->GetComfirHeight(),scriptid,index,vScriptKey,vValue);
     int len = 0;
 	if(flag){
 	    len = RetRstToLua(L,vScriptKey) + RetRstToLua(L,vValue);
@@ -1392,7 +1392,7 @@ static int ExModifyDataDBValueFunc(lua_State *L)
 //	int64_t step = 0;
 	CScriptDBOperLog operlog;
 	vector_unsigned_char vTemp;
-	if(scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vTemp)) {
+	if(scriptDB->GetAppData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vTemp)) {
 		if(scriptDB->SetContractData(scriptid,*retdata.at(0),*retdata.at(1).get(),operlog))
 		{
 			shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEvn->GetDbLog();
@@ -1511,10 +1511,10 @@ static int ExWriteOutputFunc(lua_State *L)
 }
 
 
-static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
+static bool GetDataTableGetAppData(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
     if(!lua_istable(L,-1))
     {
-    	LogPrint("vm", "GetDataTableGetContractData is not table\n");
+    	LogPrint("vm", "GetDataTableGetAppData is not table\n");
     	return false;
     }
     vector<unsigned char> vBuf ;
@@ -1546,18 +1546,18 @@ static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr < s
 }
 
 /**
- *bool GetContractData(const void* const scriptID,void* const pkey,short len,void* const pvalve,short maxlen)
+ *bool GetAppData(const void* const scriptID,void* const pkey,short len,void* const pvalve,short maxlen)
  * 中间层传了两个个参数
  * 1.脚本的id号
  * 2.数据库的key值
  */
-static int ExGetContractDataFunc(lua_State *L)
+static int ExGetAppDataFunc(lua_State *L)
 {
 	vector<std::shared_ptr < vector<unsigned char> > > retdata;
 
-    if(!GetDataTableGetContractData(L,retdata) ||retdata.size() != 2 || retdata.at(0).get()->size() != 6)
+    if(!GetDataTableGetAppData(L,retdata) ||retdata.size() != 2 || retdata.at(0).get()->size() != 6)
     {
-    	return RetFalse("ExGetContractDataFunc tep1 err1");
+    	return RetFalse("ExGetAppDataFunc tep1 err1");
     }
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
     if(NULL == pVmRunEvn)
@@ -1569,7 +1569,7 @@ static int ExGetContractDataFunc(lua_State *L)
 	CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
 	CRegID scriptid(*retdata.at(0));
     int len = 0;
-	if(!scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(), scriptid, *retdata.at(1), vValue))
+	if(!scriptDB->GetAppData(pVmRunEvn->GetComfirHeight(), scriptid, *retdata.at(1), vValue))
 	{
 		len = 0;
 	}
@@ -2204,7 +2204,7 @@ static const luaL_Reg mylib[] = { //
 		{"ModifyData",ExModifyDataDBValueFunc},
 
 		{"WriteOutput",ExWriteOutputFunc},
-		{"GetContractData",ExGetContractDataFunc},
+		{"GetAppData",ExGetAppDataFunc},
 		{"GetScriptID",ExGetScriptIDFunc},
 		{"GetCurTxAccount",ExGetCurTxAccountFunc},
 		{"GetCurTxPayAmount",GetCurTxPayAmountFunc},

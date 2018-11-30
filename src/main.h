@@ -180,8 +180,8 @@ bool IsInitialBlockDownload();
 string GetWarnings(string strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
 bool GetTransaction(std::shared_ptr<CBaseTransaction> &pBaseTx, const uint256 &hash, CScriptDBViewCache& scriptDBCache, bool bSearchMempool=true);
-/** Retrieve a transaction high comfirmed in block*/
-int GetTxComfirmHigh(const uint256 &hash, CScriptDBViewCache &scriptDBCache);
+/** Retrieve a transaction height comfirmed in block*/
+int GetTxConfirmHeight(const uint256 &hash, CScriptDBViewCache &scriptDBCache);
 
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState &state);
