@@ -563,9 +563,9 @@ Value registerapptx(const Array& params, bool fHelp) {
 				"\"txhash\": (string)\n"
 				"\nExamples:\n"
 				+ HelpExampleCli("registerapptx",
-						"\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"run.exe\" \"010203040506\" \"100000\" (\"scriptdescription\")") + "\nAs json rpc call\n"
+						"\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"myapp.lua\" \"010203040506\" \"100000\" (\"scriptdescription\")") + "\nAs json rpc call\n"
 				+ HelpExampleRpc("registerapptx",
-						"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG \"run.exe\" \"010203040506\" \"100000\" (\"scriptdescription\")"));
+						"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG \"myapp.lua\" \"010203040506\" \"100000\" (\"scriptdescription\")"));
 	}
 
 	RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
