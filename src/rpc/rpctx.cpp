@@ -1365,11 +1365,11 @@ Value getaccountinfo(const Array& params, bool fHelp) {
 				"getaccountinfo \"addr\"\n"
 				"\nget account information\n"
 				"\nArguments:\n"
-				"1.\"addr\": (string, required)"
-				"Returns an object containing various account info.\n"
+				"1.\"addr\": (string, required) account address"
+				"Returns a json string containing account details.\n"
 				"\nResult:\n"
 				"\nExamples:\n"
-				+ HelpExampleCli("getaccountinfo", "000000000500\n")
+				+ HelpExampleCli("getaccountinfo", "WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\n")
 				+ "\nAs json rpc call\n"
 				+ HelpExampleRpc("getaccountinfo", "WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\n")
 		   );
@@ -1379,7 +1379,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
 	CUserID userId;
 	string addr = params[0].get_str();
 	if (!GetKeyId(addr, keyid)) {
-		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
+		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
 	}
 
 	userId = keyid;
