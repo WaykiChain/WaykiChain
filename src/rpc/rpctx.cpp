@@ -1366,7 +1366,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
 				"\nget account information\n"
 				"\nArguments:\n"
 				"1.\"addr\": (string, required) account address"
-				"Returns a json string containing account details.\n"
+				"Returns account details.\n"
 				"\nResult:\n"
 				"\nExamples:\n"
 				+ HelpExampleCli("getaccountinfo", "WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\n")
