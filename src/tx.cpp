@@ -205,16 +205,17 @@ void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn) {
 }
 
 
-bool CBaseTransaction::IsValidHeight(int nCurHeight, int nTxCacheHeight) const
+bool CBaseTransaction::IsValidHeight(int nCurrHeight, int nTxCacheHeight) const
 {
 	if(REWARD_TX == nTxType)
 		return true;
-	if (nValidHeight > nCurHeight + nTxCacheHeight / 2)
+	if (nValidHeight > nCurrHeight + nTxCacheHeight / 2)
 			return false;
-	if (nValidHeight < nCurHeight - nTxCacheHeight / 2)
+	if (nValidHeight < nCurrHeight - nTxCacheHeight / 2)
 			return false;
 	return true;
 }
+
 bool CBaseTransaction::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
 		int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
 	vector<CAccountLog>::reverse_iterator rIterAccountLog = txundo.vAccountLog.rbegin();

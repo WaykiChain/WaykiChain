@@ -572,7 +572,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet) {
 	return true;
 }
 
-bool static MiningBlock(CBlock *pblock, CWallet *pwallet,CBlockIndex* pindexPrev,unsigned int nTransactionsUpdatedLast,CAccountViewCache &view, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache){
+bool static MineBlock(CBlock *pblock, CWallet *pwallet,CBlockIndex* pindexPrev,unsigned int nTransactionsUpdatedLast,CAccountViewCache &view, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache){
 
 	int64_t nStart = GetTime();
 
@@ -649,7 +649,7 @@ bool static MiningBlock(CBlock *pblock, CWallet *pwallet,CBlockIndex* pindexPrev
 }
 
 void static CoinMiner(CWallet *pwallet,int targetConter) {
-	LogPrint("INFO","Miner started\n");
+	LogPrint("INFO","CoinMiner started.\n");
 
 	SetThreadPriority(THREAD_PRIORITY_LOWEST);
 	RenameThread("Coin-miner");
@@ -660,22 +660,20 @@ void static CoinMiner(CWallet *pwallet,int targetConter) {
 			setMineKey.clear();
 			pwalletMain->GetKeys(setMineKey, true);
 			return !setMineKey.empty();
-		};
-
+	};
 
 	if (!CheckIsHaveMinerKey()) {
-			LogPrint("INFO", "CoinMiner  terminated\n");
-			ERRORMSG("ERROR:%s ", "no key for minering\n");
+			LogPrint("INFO", "CoinMiner terminated.\n");
+			ERRORMSG("ERROR:%s ", "no key for mining\n");
             return ;
-		}
+	}
 
-	auto getcurhigh = [&]() {
+	auto getCurrHeight = [&]() {
 		LOCK(cs_main);
 		return chainActive.Height();
 	};
 
-	targetConter = targetConter+getcurhigh();
-
+	targetConter += getCurrHeight();
 
 	try {
 	       SetMinerStatus(true);
@@ -704,10 +702,10 @@ void static CoinMiner(CWallet *pwallet,int targetConter) {
 			LogPrint("MINER", "CreateNewBlock tx count:%d used time :%d ms\n", pblocktemplate.get()->block.vptx.size(),
 					GetTimeMillis() - lasttime1);
 			CBlock *pblock = &pblocktemplate.get()->block;
-			MiningBlock(pblock, pwallet, pindexPrev, LastTrsa, accview, txCache, ScriptDbTemp);
+			MineBlock(pblock, pwallet, pindexPrev, LastTrsa, accview, txCache, ScriptDbTemp);
 
 			if (SysCfg().NetworkID() != MAIN_NET)
-				if(targetConter <= getcurhigh())	{
+				if(targetConter <= getCurrHeight())	{
 						throw boost::thread_interrupted();
 				}
 		}

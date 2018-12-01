@@ -34,8 +34,8 @@
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_writer_template.h"
-using namespace json_spirit;
 
+using namespace json_spirit;
 using namespace std;
 using namespace boost;
 
@@ -655,9 +655,13 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransact
 
     if (pBaseTx->IsCoinBase())
     	return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s is coin base tx, can't put into mempool", hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
-	// is it in valid height
-	if (!pBaseTx->IsValidHeight(chainActive.Tip()->nHeight, SysCfg().GetTxCacheHeight())) {
-		return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s beyond the scope of valid height\n ", hash.GetHex()),
+	
+    // is it within valid height?
+    unsigned int currHeight = chainActive.Tip()->nHeight;
+    int txCacheHeight = SysCfg().GetTxCacheHeight();
+	if (!pBaseTx->IsValidHeight(currHeight, txCacheHeight)) {
+		return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s beyond the scope of valid height: %d\n ",
+                hash.GetHex(), currHeight),
 				REJECT_INVALID, "tx-invalid-height");
 	}
 
@@ -2392,12 +2396,12 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp) {
 	uint256 hash = block.GetHash();
 	LogPrint("INFO", "AcceptBlcok hash:%s height:%d\n", hash.GetHex(), block.GetHeight());
 	if (mapBlockIndex.count(hash))
-		return state.Invalid(ERRORMSG("AcceptBlock() : block already in mapBlockIndex"), 0, "duplicate");
+		return state.Invalid(ERRORMSG("AcceptBlock() : block already in mapBlockIndex"), 0, "duplicated");
 
 	assert(block.GetHash() == SysCfg().HashGenesisBlock() || mapBlockIndex.count(block.GetHashPrevBlock()));
-	if(block.GetHash() != SysCfg().HashGenesisBlock() && block.GetFuelRate() != GetElementForBurn(mapBlockIndex[block.GetHashPrevBlock()]))
+	if(block.GetHash() != SysCfg().HashGenesisBlock() && 
+       block.GetFuelRate() != GetElementForBurn(mapBlockIndex[block.GetHashPrevBlock()]))
     	return state.DoS(100, ERRORMSG("CheckBlock() : block fuel rate dismatched"), REJECT_INVALID, "fuel-rate-dismatch");
-
 
 	// Get prev block index
 	CBlockIndex* pindexPrev = NULL;
