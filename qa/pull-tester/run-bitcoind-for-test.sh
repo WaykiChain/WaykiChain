@@ -3,14 +3,14 @@
 # Distributed under the MIT/X11 software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #
-DATADIR="/d/core/wiki/.bitcoin"
+DATADIR="/opt/src/WaykiChain/.bitcoin"
 rm -rf "$DATADIR"
 mkdir -p "$DATADIR"/regtest
 touch "$DATADIR/regtest/debug.log"
 tail -q -n 1 -F "$DATADIR/regtest/debug.log" | grep -m 1 -q "Done loading" &
 WAITER=$!
 PORT=`expr $BASHPID + 10000`
-"/d/core/wiki/src/bitcoind.exe" -connect=0.0.0.0 -datadir="$DATADIR" -rpcuser=user -rpcpassword=pass -listen -keypool=3 -debug -debug=net -logtimestamps -port=$PORT -regtest -rpcport=`expr $PORT + 1` &
+"/opt/src/WaykiChain/src/bitcoind" -connect=0.0.0.0 -datadir="$DATADIR" -rpcuser=user -rpcpassword=pass -listen -keypool=3 -debug -debug=net -logtimestamps -port=$PORT -regtest -rpcport=`expr $PORT + 1` &
 BITCOIND=$!
 
 #Install a watchdog.

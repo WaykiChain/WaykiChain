@@ -264,7 +264,7 @@ Value SysTestBase::GetAccountInfo(const string& strID) {
 
 Value SysTestBase::GetAppAccountInfo(const string& scriptId,const string& strAddr)
 {
-	const char *argv[] = { "rpctest", "getappaccinfo", (char*) scriptId.c_str(), (char*) strAddr.c_str()};
+	const char *argv[] = { "rpctest", "getappaccountinfo", (char*) scriptId.c_str(), (char*) strAddr.c_str()};
 	int argc = sizeof(argv) / sizeof(char*);
 
 	Value value;

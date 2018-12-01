@@ -1928,7 +1928,7 @@ static int getDataFromSriptData(CScriptDBViewCache &cache, const CRegID &regid, 
 		vector<std::tuple<vector<unsigned char>, vector<unsigned char> > >&ret) {
 	int dbsize;
 	int height = chainActive.Height();
-	cache.GetAppDataItemCount(regid, dbsize);
+	cache.GetAppItemCount(regid, dbsize);
 	if (0 == dbsize) {
 		throw runtime_error("getappdata :the app has NO data!\n");
 	}
@@ -1996,7 +1996,7 @@ Value getappdata(const Array& params, bool fHelp) {
 
 	} else {
 		int dbsize;
-		contractScriptTemp.GetAppDataItemCount(regid, dbsize);
+		contractScriptTemp.GetAppItemCount(regid, dbsize);
 		if (0 == dbsize) {
 			throw runtime_error("getappdata :the app has NO data!\n");
 		}
@@ -2138,11 +2138,11 @@ Value getscriptdbsize(const Array& params, bool fHelp) {
 	if (!pScriptDBTip->HaveScript(regid)) {
 		throw runtime_error("getappdata :appregid does NOT exist!\n");
 	}
-	int nDataCount = 0;
-	if (!pScriptDBTip->GetAppDataItemCount(regid, nDataCount)) {
-		throw runtime_error("GetAppDataItemCount error!");
+	int nItemCount = 0;
+	if (!pScriptDBTip->GetAppItemCount(regid, nItemCount)) {
+		throw runtime_error("GetAppItemCount error!");
 	}
-	return nDataCount;
+	return nItemCount;
 }
 
 Value registeraccounttxraw(const Array& params, bool fHelp) {
@@ -2593,18 +2593,18 @@ Value printblokdbinfo(const Array& params, bool fHelp) {
 	return Value::null;
 }
 
-Value getappaccinfo(const Array& params, bool fHelp) {
+Value getappaccountinfo(const Array& params, bool fHelp) {
 	if (fHelp || (params.size() != 2 && params.size() != 3)) {
-		throw runtime_error("getappaccinfo  \"scriptid\" \"address\""
+		throw runtime_error("getappaccountinfo  \"App RegId\" \"address\""
 				"\nget appaccount info\n"
 				"\nArguments:\n"
-				"1.\"app regid\":(string, required) app RegId\n"
-				"2.\"account address\": (string, required) specified account address \n"
+				"1.\"app regid\":(string, required) App RegId\n"
+				"2.\"account address\": (string, required) App-managed account address\n"
 				"3.\"minconf\"  (numeric, optional, default=1) Only include contract transactions confirmed \n"
 				"\nExamples:\n"
-				+ HelpExampleCli("getappaccinfo", "\"452974-3\" \"WUZBQZZqyWgJLvEEsHrXL5vg5qaUwgfjco\"")
+				+ HelpExampleCli("getappaccountinfo", "\"452974-3\" \"WUZBQZZqyWgJLvEEsHrXL5vg5qaUwgfjco\"")
 				+ "\nAs json rpc call\n"
-				+ HelpExampleRpc("getappaccinfo", "\"452974-3\" \"WUZBQZZqyWgJLvEEsHrXL5vg5qaUwgfjco\""));
+				+ HelpExampleRpc("getappaccountinfo", "\"452974-3\" \"WUZBQZZqyWgJLvEEsHrXL5vg5qaUwgfjco\""));
 	}
 
 

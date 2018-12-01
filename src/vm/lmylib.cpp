@@ -1201,7 +1201,7 @@ static int ExWriteDataDBFunc(lua_State *L) {
 
 	CScriptDBOperLog operlog;
 //	int64_t step = (*retdata.at(1)).size() -1;
-	if (!scriptDB->SetContractData(scriptid, *retdata.at(0), *retdata.at(1),operlog)) {
+	if (!scriptDB->SetAppData(scriptid, *retdata.at(0), *retdata.at(1),operlog)) {
 		flag = false;
 	} else {
 		shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEvn->GetDbLog();
@@ -1239,7 +1239,7 @@ static int ExDeleteDataDBFunc(lua_State *L) {
 	if(scriptDB->GetAppData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vValue)){
 		nstep = nstep - (int64_t)(vValue.size()+1);//删除数据奖励step
 	}
-	if (!scriptDB->EraseScriptData(scriptid, *retdata.at(0), operlog)) {
+	if (!scriptDB->EraseAppData(scriptid, *retdata.at(0), operlog)) {
 		LogPrint("vm", "ExDeleteDataDBFunc error key:%s!\n",HexStr(*retdata.at(0)));
 		flag = false;
 	} else {
@@ -1290,7 +1290,7 @@ static int ExGetDBSizeFunc(lua_State *L) {
 	CRegID scriptid = pVmRunEvn->GetScriptRegID();
 	int count = 0;
 	CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
-	if(!scriptDB->GetAppDataItemCount(scriptid,count))
+	if(!scriptDB->GetAppItemCount(scriptid,count))
 	{
 		return RetFalse("ExGetDBSizeFunc can't use");
 	}
@@ -1393,7 +1393,7 @@ static int ExModifyDataDBValueFunc(lua_State *L)
 	CScriptDBOperLog operlog;
 	vector_unsigned_char vTemp;
 	if(scriptDB->GetAppData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vTemp)) {
-		if(scriptDB->SetContractData(scriptid,*retdata.at(0),*retdata.at(1).get(),operlog))
+		if(scriptDB->SetAppData(scriptid,*retdata.at(0),*retdata.at(1).get(),operlog))
 		{
 			shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEvn->GetDbLog();
 			m_dblog.get()->push_back(operlog);

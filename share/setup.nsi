@@ -1,4 +1,4 @@
-Name "Coin Core (32-bit)"
+Name "Coin Core (-bit)"
 
 RequestExecutionLevel highest
 SetCompressor /SOLID lzma
@@ -10,11 +10,11 @@ SetCompressor /SOLID lzma
 !define URL http://www.bitcoin.org/
 
 # MUI Symbol Definitions
-!define MUI_ICON "/d/core/wiki/share/pixmaps/bitcoin.ico"
-!define MUI_WELCOMEFINISHPAGE_BITMAP "/d/core/wiki/share/pixmaps/nsis-wizard.bmp"
+!define MUI_ICON "/opt/src/WaykiChain/share/pixmaps/bitcoin.ico"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "/opt/src/WaykiChain/share/pixmaps/nsis-wizard.bmp"
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_RIGHT
-!define MUI_HEADERIMAGE_BITMAP "/d/core/wiki/share/pixmaps/nsis-header.bmp"
+!define MUI_HEADERIMAGE_BITMAP "/opt/src/WaykiChain/share/pixmaps/nsis-header.bmp"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_REGISTRY_KEY ${REGKEY}
@@ -22,13 +22,13 @@ SetCompressor /SOLID lzma
 !define MUI_STARTMENUPAGE_DEFAULTFOLDER "Coin Core"
 !define MUI_FINISHPAGE_RUN $INSTDIR\bitcoin-qt.exe
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
-!define MUI_UNWELCOMEFINISHPAGE_BITMAP "/d/core/wiki/share/pixmaps/nsis-wizard.bmp"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "/opt/src/WaykiChain/share/pixmaps/nsis-wizard.bmp"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 
 # Included files
 !include Sections.nsh
 !include MUI2.nsh
-!if "32" == "64"
+!if "" == "64"
 !include x64.nsh
 !endif
 
@@ -48,8 +48,8 @@ Var StartMenuGroup
 !insertmacro MUI_LANGUAGE English
 
 # Installer attributes
-OutFile /d/core/wiki/bitcoin-${VERSION}-win32-setup.exe
-!if "32" == "64"
+OutFile /opt/src/WaykiChain/bitcoin-${VERSION}-win-setup.exe
+!if "" == "64"
 InstallDir $PROGRAMFILES64\Bitcoin
 !else
 InstallDir $PROGRAMFILES\Bitcoin
@@ -58,7 +58,7 @@ CRCCheck on
 XPStyle on
 BrandingText " "
 ShowInstDetails show
-VIProductVersion ${VERSION}.9
+VIProductVersion ${VERSION}.1
 VIAddVersionKey ProductName "Bitcoin Core"
 VIAddVersionKey ProductVersion "${VERSION}"
 VIAddVersionKey CompanyName "${COMPANY}"
@@ -73,14 +73,14 @@ ShowUninstDetails show
 Section -Main SEC0000
     SetOutPath $INSTDIR
     SetOverwrite on
-    File /d/core/wiki/release/bitcoin-qt.exe
-    File /oname=COPYING.txt /d/core/wiki/COPYING
-    File /oname=readme.txt /d/core/wiki/doc/README_windows.txt
+    File /opt/src/WaykiChain/release/bitcoin-qt.exe
+    File /oname=COPYING.txt /opt/src/WaykiChain/COPYING
+    File /oname=readme.txt /opt/src/WaykiChain/doc/README_windows.txt
     SetOutPath $INSTDIR\daemon
-    File /d/core/wiki/release/bitcoind.exe
-    File /d/core/wiki/release/bitcoin-cli.exe
+    File /opt/src/WaykiChain/release/bitcoind.exe
+    File /opt/src/WaykiChain/release/bitcoin-cli.exe
     SetOutPath $INSTDIR\doc
-    File /r /d/core/wiki/doc\*.*
+    File /r /opt/src/WaykiChain/doc\*.*
     SetOutPath $INSTDIR
     WriteRegStr HKCU "${REGKEY}\Components" Main 1
 
@@ -160,7 +160,7 @@ SectionEnd
 # Installer functions
 Function .onInit
     InitPluginsDir
-!if "32" == "64"
+!if "" == "64"
     ${If} ${RunningX64}
       ; disable registry redirection (enable access to 64-bit portion of registry)
       SetRegView 64

@@ -837,7 +837,7 @@ bool CWallet::AddKey(const CKey& key)
 bool CWallet::IsReadyForCoolMiner(const CAccountViewCache& view) const {
 	CRegID regId;
 	for (auto const &item : mapKeys) {
-		if (item.second.IsContainMinerKey()&&view.GetRegId(item.first,regId)) {
+		if (item.second.IsContainMinerKey() && view.GetRegId(item.first,regId)) {
 			return true;
 		}
 	}

@@ -37,8 +37,8 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getaccountinfo 182808-1
 
 ### 3. check assert:
 
-* 使用getappaccinfo 命令， 根据智能合约regid 和 账号地址 查询账号地址对于的该智能合约余额
-```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getappaccinfo 182808-1 WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH
+* 使用getappaccountinfo 命令， 根据智能合约regid 和 账号地址 查询账号地址对于的该智能合约余额
+```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getappaccountinfo 182808-1 WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH
 {
     "mAccUserID" : "57695a7836727273426e3973486a7770766477744d4e4e58326f3331733344454848",
     "FreeValues" : 0,
@@ -66,7 +66,7 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getaccountinfo 182808-1
 ### 6. check assert again:
 
 * 再次检查资产，可以判定转账是否成功
-```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getappaccinfo 182808-1 WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH
+```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getappaccountinfo 182808-1 WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH
 {
     "mAccUserID" : "57695a7836727273426e3973486a7770766477744d4e4e58326f3331733344454848",
     "FreeValues" : 2099000000000000000,
@@ -76,7 +76,7 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getaccountinfo 182808-1
 ```
 
 ```
-root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getappaccinfo 182808-1 WUwJn1CFWKMdbmf89DrCnP2wkC6AKrEBhH
+root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getappaccountinfo 182808-1 WUwJn1CFWKMdbmf89DrCnP2wkC6AKrEBhH
 {
     "mAccUserID" : "5755774a6e314346574b4d64626d6638394472436e5032776b4336414b7245426848",
     "FreeValues" : 1000000000000000,

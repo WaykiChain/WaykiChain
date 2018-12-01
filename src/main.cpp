@@ -1818,14 +1818,14 @@ void PrintInfo(const uint256 &hash, const int &nCurHeight, CScriptDBViewCache &s
 	set<CScriptDBOperLog> setOperLog;
 	CRegID regId(scriptId);
 	int nCount(0);
-	scriptDBView.GetAppDataItemCount(scriptId, nCount);
+	scriptDBView.GetAppItemCount(scriptId, nCount);
 	bool ret = scriptDBView.GetAppData(nCurHeight, regId, 0, vScriptKey, vScriptData);
 	LogPrint("scriptdbview","\n\n\n");
 	LogPrint("scriptdbview","blockhash=%s,curHeight=%d\n",hash.GetHex(), nCurHeight);
 	LogPrint("scriptdbview", "app script ID:%s key:%s value:%s height:%d, nCount:%d\n", scriptId.c_str(), HexStr(vScriptKey), HexStr(vScriptData), nHeight, nCount);
 	while(ret) {
 		ret = scriptDBView.GetAppData(nCurHeight, regId, 1, vScriptKey, vScriptData);
-		scriptDBView.GetAppDataItemCount(scriptId, nCount);
+		scriptDBView.GetAppItemCount(scriptId, nCount);
 		if(ret)
 			LogPrint("scriptdbview", "app script ID:%s key:%s value:%s height:%d, nCount:%d\n", scriptId.c_str(), HexStr(vScriptKey), HexStr(vScriptData), nHeight, nCount);
 	}

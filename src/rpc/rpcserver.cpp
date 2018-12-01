@@ -315,7 +315,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submittx",      			&submittx,       	 	 true,      false,      false},
 
     { "sigstr",    				&sigstr,    			 true,      false,      true },
-    { "getappaccinfo",    		&getappaccinfo,    		 true,      false,      true },
+    { "getappaccountinfo",    	&getappaccountinfo,    	 true,      false,      true },
     { "getappkeyvalue",    		&getappkeyvalue,    	 true,      false,      true },
     { "islocked",               &islocked,               true,      false,      true },
     { "getsignature",           &getsignature,           true,      false,      true },

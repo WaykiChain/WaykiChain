@@ -56,7 +56,7 @@ extern Value saveblocktofile(const Array& params, bool fHelp);
 extern Value getscriptdbsize(const Array& params, bool fHelp);
 extern Value getalltxinfo(const Array& params, bool fHelp);
 extern Value listauthor(const Array& params, bool fHelp);
-extern Value  getappaccinfo(const Array& params, bool fHelp);
+extern Value  getappaccountinfo(const Array& params, bool fHelp);
 extern Value  gethash(const Array& params, bool fHelp);
 extern Value  getappkeyvalue(const Array& params, bool fHelp);
 extern Value  gencheckpoint(const Array& params, bool fHelp);

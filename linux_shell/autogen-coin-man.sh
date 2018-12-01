@@ -3,7 +3,7 @@ set -e
 
 if [ $# = 0 ]; then	
   	echo -e "\033[40;33m"
-		echo warming  your had not inputed assemble model
+		echo Warning: You have not input a code assembling model
 		echo "$PWD"
 		echo autogen-coin-man [MODEL NAME]
 		echo
@@ -25,7 +25,7 @@ elif [ $# = 1 ]; then
 		;;
 		*)
 		echo -e "\033[40;32m"
-		echo warming:error para!
+		echo Warning: Wrong params!
 		echo -e "\033[40;37m"
 		exit 1
 		;;
@@ -60,7 +60,7 @@ elif [ $# = 2 ]; then
 		;;
 		*)
 		echo -e "\033[40;32m"
-		echo warming:error para!
+		echo Warning: Wrong params!
 		echo -e "\033[40;37m"
 		exit 1
 		;;
@@ -78,7 +78,7 @@ elif [ $# = 3 ]; then
 		;;
 		*)
 		echo -e "\033[40;32m"
-		echo warming:error para!
+		echo Warning: Wrong params!
 		echo -e "\033[40;37m"
 		exit 1
 		;;
@@ -95,7 +95,7 @@ elif [ $# = 3 ]; then
 		;;
 		*)
 		echo -e "\033[40;32m"
-		echo warming:error para!
+		echo Warning: Wrong params!
 		echo -e "\033[40;37m"
 		exit 1
 		;;
@@ -112,15 +112,15 @@ elif [ $# = 3 ]; then
 		;;
 		*)
 		echo -e "\033[40;32m"
-		echo warming:error para!
+		echo Warning: Wrong params!
 		echo -e "\033[40;37m"
 		exit 1
 		;;
 	esac
 else
 	echo -e "\033[40;32m"
-	echo warming  your had inputed illegal params
-   	echo please insure the params in [coin|coin-test|coin-ptest]
+	echo Warning:  You input illegal params
+   	echo Please ensure the params are of [coin|coin-test|coin-ptest]
 	echo -e "\033[40;37m" 
 	exit 1
 fi
@@ -132,7 +132,7 @@ autoreconf --install --force
 CPPFLAGS="-std=c++11" \
 ./configure \
 --disable-upnp-default \
---enable-debug
+--enable-debug \
 --without-gui \
 $flag1 \
 $flag2 \

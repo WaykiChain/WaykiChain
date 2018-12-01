@@ -155,13 +155,13 @@ public:
 class CScriptDBViewCache : public CScriptDBViewBacked {
 public:
 	map<vector<unsigned char>, vector<unsigned char> > mapDatas;
-    /*ȡ�ű� ʱ ��һ��vector ��scriptKey = "def" + "scriptid";
-      ȡӦ���˻�ʱ��һ��vector��scriptKey = "acct" + "scriptid"+"_" + "accUserId";
-      ȡ�ű�������ʱ��һ��vector��scriptKey ="snum",
-      ȡ�ű�����������ʱ��һ��vector��scriptKey ="sdnum";
-      ȡ�ű�����ʱ��һ��vector��scriptKey ="data" + "vScriptId" + "_" + "vScriptKey"
-      ȡ���׹����˻�ʱ��һ��vector��scriptKey ="tx" + "txHash"
-     * */
+    /*取脚本 时 第一个vector 是scriptKey = "def" + "scriptid";
+      取应用账户时第一个vector是scriptKey = "acct" + "scriptid"+"_" + "accUserId";
+      取脚本总条数时第一个vector是scriptKey ="snum",
+      取脚本数据总条数时第一个vector是scriptKey ="sdnum";
+      取脚本数据时第一个vector是scriptKey ="data" + "vScriptId" + "_" + "vScriptKey"
+      取交易关联账户时第一个vector是scriptKey ="tx" + "txHash"
+	*/ 
 public:
 	CScriptDBViewCache(CScriptDBView &base, bool fDummy = false);
 	bool GetScript(const CRegID &scriptId, vector<unsigned char> &vValue);
@@ -174,14 +174,14 @@ public:
 	bool SetScript(const CRegID &scriptId, const vector<unsigned char> &vValue);
 	bool HaveScript(const CRegID &scriptId);
 	bool EraseScript(const CRegID &scriptId);
-	bool GetAppDataItemCount(const CRegID &scriptId, int &nCount);
-	bool EraseScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog);
+	bool GetAppItemCount(const CRegID &scriptId, int &nCount);
+	bool EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog);
 	bool HaveScriptData(const CRegID &scriptId, const vector<unsigned char > &vScriptKey);
 	bool GetAppData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
 			vector<unsigned char> &vScriptData);
 	bool GetAppData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
 			vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
-	bool SetContractData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
+	bool SetAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
 				const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog);
 	bool SetDelegateData(const CAccount &delegateAcct, CScriptDBOperLog &operLog);
 	bool SetDelegateData(const vector<unsigned char> &vKey);
@@ -270,23 +270,23 @@ private:
 	 * @param nCount
 	 * @return true if get succeed, otherwise false
 	 */
-	bool GetAppDataItemCount(const vector<unsigned char> &vScriptId, int &nCount);
+	bool GetAppItemCount(const vector<unsigned char> &vScriptId, int &nCount);
 	/**
 	 * @brief Save count of the Contract's data into contract db
 	 * @param vScriptId
 	 * @param nCount
 	 * @return true if save succeed, otherwise false
 	 */
-	bool SetAppDataItemCount(const vector<unsigned char> &vScriptId, int nCount);
+	bool SetAppItemCount(const vector<unsigned char> &vScriptId, int nCount);
 	/**
 	 * @brief Delete the item of the scirpt's data by scriptId and scriptKey
 	 * @param vScriptId
 	 * @param vScriptKey must be 8 bytes
 	 * @return true if delete succeed, otherwise false
 	 */
-	bool EraseScriptData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog);
+	bool EraseAppData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog);
 
-	bool EraseScriptData(const vector<unsigned char> &vKey);
+	bool EraseAppData(const vector<unsigned char> &vKey);
 	/**
 	 * @brief Detect if scriptdb contains the item of script's data by scriptid and scriptkey
 	 * @param vScriptId
