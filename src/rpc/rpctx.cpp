@@ -548,24 +548,24 @@ Value createcontracttx(const Array& params, bool fHelp) {
 
 }
 
-//create a register script tx
+// register a contract app tx
 Value registerapptx(const Array& params, bool fHelp) {
 	if (fHelp || params.size() < 3 || params.size() > 5) {
-		throw runtime_error("registerapptx \"addr\" \"filepath\"\"fee\" (\"height\") (\"scriptdescription\")\n"
-				"\ncreate a register script transaction\n"
+		throw runtime_error("registerapptx \"addr\" \"filepath\"\"fee\" (\"height\") (\"appdesc\")\n"
+				"\ncreate a transaction of registering a contract app\n"
 				"\nArguments:\n"
-				"1.\"addr\": (string required)\n"
-				"2.\"filepath\": (string required),app's file path\n"
-				"3.\"fee\": (numeric required) pay to miner\n"
-				"4.\"height\": (numeric optional)valid height,If not provide, use the tip block hegiht in chainActive\n"
-				"5.\"scriptdescription\":(string optional) new script description\n"
+				"1.\"addr\": (string required) contract owner address from this wallet\n"
+				"2.\"filepath\": (string required), file path of the app script\n"
+				"3.\"fee\": (numeric required) pay to miner (the larger the size of script, the bigger fees are required)\n"
+				"4.\"height\": (numeric optional)valid height, when not specified, the tip block hegiht in chainActive will be used\n"
+				"5.\"appdesc\":(string optional) new app description\n"
 				"\nResult:\n"
 				"\"txhash\": (string)\n"
 				"\nExamples:\n"
 				+ HelpExampleCli("registerapptx",
-						"\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"myapp.lua\" \"010203040506\" \"100000\" (\"scriptdescription\")") + "\nAs json rpc call\n"
+						"\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"myapp.lua\" \"010203040506\" \"100000\" (\"appdesc\")") + "\nAs json rpc call\n"
 				+ HelpExampleRpc("registerapptx",
-						"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG \"myapp.lua\" \"010203040506\" \"100000\" (\"scriptdescription\")"));
+						"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH \"myapp.lua\" \"010203040506\" \"100000\" (\"appdesc\")"));
 	}
 
 	RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
