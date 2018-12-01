@@ -2020,19 +2020,19 @@ Value getappdata(const Array& params, bool fHelp) {
 	return script;
 }
 
-Value getscriptvaliddata(const Array& params, bool fHelp) {
+Value getappconfirmdata(const Array& params, bool fHelp) {
 	if (fHelp || (params.size() != 3 && params.size() !=4)) {
-		throw runtime_error("getscriptvaliddata \"scriptid\" \"pagesize\" \"index\"\n"
+		throw runtime_error("getappconfirmdata \"regid\" \"pagesize\" \"index\"\n"
 					"\nget script valid data\n"
 					"\nArguments:\n"
-					"1.\"scriptid\": (string, required) app RegId\n"
+					"1.\"regid\": (string, required) app RegId\n"
 					"2.\"pagesize\": (int, required)\n"
 					"3.\"index\": (int, required )\n"
 					"4.\"minconf\":  (numeric, optional, default=1) Only include contract transactions confirmed \n"
 				    "\nResult:\n"
 				    "\nExamples:\n"
-				    + HelpExampleCli("getscriptvaliddata", "\"123456789012\" \"1\"  \"1\"")
-				    + HelpExampleRpc("getscriptvaliddata", "\"123456789012\" \"1\"  \"1\""));
+				    + HelpExampleCli("getappconfirmdata", "\"123456789012\" \"1\"  \"1\"")
+				    + HelpExampleRpc("getappconfirmdata", "\"123456789012\" \"1\"  \"1\""));
 	}
 	std::shared_ptr<CScriptDBViewCache> pAccountViewCache;
 	if(4 == params.size() && 0==params[3].get_int()) {
