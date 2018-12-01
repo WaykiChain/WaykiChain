@@ -5,6 +5,8 @@
 *.a
 *.dirstamp
 *.log
+.cproject
+.dirstamp
 Makefile
 Makefile.in
 autom4te.cache/
