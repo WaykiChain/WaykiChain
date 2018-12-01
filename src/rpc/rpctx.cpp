@@ -1959,26 +1959,26 @@ static int getDataFromSriptData(CScriptDBViewCache &cache, const CRegID &regid, 
 Value getappdata(const Array& params, bool fHelp) {
 	if (fHelp || params.size() < 2 || params.size() > 3) {
 		throw runtime_error("getappdata \"appregid\" \"[pagesize or key]\" (\"index\")\n"
-				"\nget the contract data by given app RegID\n"
+				"\nget the contract data by a given app RegID\n"
 				"\nArguments:\n"
-				"1.\"appregid\": (string, required) app RegId\n"
+				"1.\"regid\": (string, required) App RegId\n"
 				"2.[pagesize or key]: (pagesize int, required),if only two params,it is key,otherwise it is pagesize\n"
 				"3.\"index\": (int optional)\n"
 				"\nResult:\n"
 				"\nExamples:\n"
-				+ HelpExampleCli("getappdata", "\"13977-1\"")
-				+ HelpExampleRpc("getappdata", "\"13977-1\""));
+				+ HelpExampleCli("getappdata", "\"1304166-1\"", "key")
+				+ HelpExampleRpc("getappdata", "\"1304166-1\"", "key"));
 	}
 	int height = chainActive.Height();
 //	//RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
 //	vector<unsigned char> vscriptid = ParseHex(params[0].get_str());
 	CRegID regid(params[0].get_str());
 	if (regid.IsEmpty() == true) {
-		throw runtime_error("getappdata : appregid not found!\n");
+		throw runtime_error("getappdata : app regid not supplied!\n");
 	}
 
 	if (!pScriptDBTip->HaveScript(regid)) {
-		throw runtime_error("getappdata : appregid NOT exist!\n");
+		throw runtime_error("getappdata : app regid NOT exist!\n");
 	}
 	Object script;
 
@@ -1989,7 +1989,7 @@ Value getappdata(const Array& params, bool fHelp) {
 		if (!contractScriptTemp.GetAppData(height, regid, key, value)) {
 			throw runtime_error("getappdata :the key does NOT exist!\n");
 		}
-		script.push_back(Pair("scritpid", params[0].get_str()));
+		script.push_back(Pair("regid", params[0].get_str()));
 		script.push_back(Pair("key", HexStr(key)));
 		script.push_back(Pair("value", HexStr(value)));
 		return script;
