@@ -51,6 +51,7 @@ extern Value generateblock(const Array& params, bool fHelp);
 extern Value listtxcache(const Array& params, bool fHelp);
 extern Value reloadtxcache(const Array& params, bool fHelp);
 extern Value getappdata(const Array& params, bool fHelp);
+extern Value getappdataraw(const Array& params, bool fHelp);
 extern Value getappconfirmdata(const Array& params, bool fHelp);
 extern Value saveblocktofile(const Array& params, bool fHelp);
 extern Value getscriptdbsize(const Array& params, bool fHelp);

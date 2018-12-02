@@ -1924,19 +1924,19 @@ Value reloadtxcache(const Array& params, bool fHelp) {
 	return obj;
 }
 
-static int getDataFromSriptData(CScriptDBViewCache &cache, const CRegID &regid, int pagesize, int index,
+static int getDataFromAppDb(CScriptDBViewCache &cache, const CRegID &regid, int pagesize, int index,
 		vector<std::tuple<vector<unsigned char>, vector<unsigned char> > >&ret) {
 	int dbsize;
 	int height = chainActive.Height();
 	cache.GetAppItemCount(regid, dbsize);
 	if (0 == dbsize) {
-		throw runtime_error("getappdata :the app has NO data!\n");
+		throw runtime_error("getDataFromAppDb :the app has NO data!\n");
 	}
 	vector<unsigned char> value;
 	vector<unsigned char> vScriptKey;
 
 	if (!cache.GetAppData(height, regid, 0, vScriptKey, value)) {
-		throw runtime_error("getappdata :the app getting data failed!\n");
+		throw runtime_error("GetAppData :the app data retrieval failed!\n");
 	}
 	if (index == 1) {
 		ret.push_back(std::make_tuple(vScriptKey, value));
@@ -1962,12 +1962,12 @@ Value getappdata(const Array& params, bool fHelp) {
 				"\nget the contract data by a given app RegID\n"
 				"\nArguments:\n"
 				"1.\"regid\": (string, required) App RegId\n"
-				"2.[pagesize or key]: (pagesize int, required),if only two params,it is key,otherwise it is pagesize\n"
+				"2.[pagesize or key]: (pagesize int, required),if only two params,it is key, otherwise it is pagesize\n"
 				"3.\"index\": (int optional)\n"
 				"\nResult:\n"
 				"\nExamples:\n"
-				+ HelpExampleCli("getappdata", "\"1304166-1\"", "key")
-				+ HelpExampleRpc("getappdata", "\"1304166-1\"", "key"));
+				+ HelpExampleCli("getappdata", "\"1304166-1\" \"key\"")
+				+ HelpExampleRpc("getappdata", "\"1304166-1\" \"key\""));
 	}
 	int height = chainActive.Height();
 //	//RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
@@ -2004,15 +2004,87 @@ Value getappdata(const Array& params, bool fHelp) {
 		int index = params[2].get_int();
 
 		vector<std::tuple<vector<unsigned char>, vector<unsigned char> > > ret;
-		getDataFromSriptData(contractScriptTemp, regid, pagesize, index, ret);
+		getDataFromAppDb(contractScriptTemp, regid, pagesize, index, ret);
 		Array retArray;
 		for (auto te : ret) {
 			vector<unsigned char> key = std::get<0>(te);
-			vector<unsigned char> valvue = std::get<1>(te);
+			vector<unsigned char> value = std::get<1>(te);
 			Object firt;
 			firt.push_back(Pair("key", HexStr(key)));
-			firt.push_back(Pair("value", HexStr(valvue)));
+			firt.push_back(Pair("value", HexStr(value)));
 			retArray.push_back(firt);
+		}
+		return retArray;
+	}
+
+	return script;
+}
+
+Value getappdataraw(const Array& params, bool fHelp) {
+	if (fHelp || params.size() < 2 || params.size() > 3) {
+		throw runtime_error("getappdataraw \"appregid\" \"[pagesize or key]\" (\"index\")\n"
+				"\nget the contract data by a given app RegID\n"
+				"\nArguments:\n"
+				"1.\"regid\": (string, required) App RegId\n"
+				"2.[pagesize or key]: (pagesize int, required),if only two params,it is key, otherwise it is pagesize\n"
+				"3.\"index\": (int optional)\n"
+				"\nResult:\n"
+				"\nExamples:\n"
+				+ HelpExampleCli("getappdataraw", "\"1304166-1\" \"key\"")
+				+ HelpExampleRpc("getappdataraw", "\"1304166-1\" \"key\""));
+	}
+	int height = chainActive.Height();
+//	//RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
+//	vector<unsigned char> vscriptid = ParseHex(params[0].get_str());
+	CRegID regid(params[0].get_str());
+	if (regid.IsEmpty() == true) {
+		throw runtime_error("getappdataraw : app regid NOT supplied!\n");
+	}
+
+	if (!pScriptDBTip->HaveScript(regid)) {
+		throw runtime_error("getappdataraw : app regid NOT exist!\n");
+	}
+	Object script;
+
+	CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
+	if (params.size() == 2) {
+		string strKey = params[1].get_str();
+		vector<unsigned char> key (strKey.length());
+		std::copy(strKey.begin(), strKey.end(), key.begin());
+
+		vector<unsigned char> value;
+		if (!contractScriptTemp.GetAppData(height, regid, key, value)) {
+			throw runtime_error("GetAppData :the key does NOT exist!\n");
+		}
+		string strValue (value.begin(), value.end());
+		script.push_back( Pair("regid", params[0].get_str()) );
+		script.push_back( Pair("key", strKey) );
+		script.push_back( Pair("value", strValue) );
+		return script;
+
+	} else {
+		int dbsize;
+		contractScriptTemp.GetAppItemCount(regid, dbsize);
+		if (0 == dbsize) {
+			throw runtime_error("GetAppItemCount :the app has NO data!\n");
+		}
+		int pagesize = params[1].get_int();
+		int index = params[2].get_int();
+
+		vector<std::tuple<vector<unsigned char>, vector<unsigned char> > > ret;
+		getDataFromAppDb(contractScriptTemp, regid, pagesize, index, ret);
+		Array retArray;
+		for (auto te : ret) {
+			vector<unsigned char> key = std::get<0>(te);
+			vector<unsigned char> value = std::get<1>(te);
+			string sKey (key.begin(), key.end());
+			string sValue (value.begin(), value.end());
+
+			Object retObj;
+			retObj.push_back( Pair("key", sKey) );
+			retObj.push_back( Pair("value", sValue) );
+
+			retArray.push_back(retObj);
 		}
 		return retArray;
 	}
@@ -2031,8 +2103,8 @@ Value getappconfirmdata(const Array& params, bool fHelp) {
 					"4.\"minconf\":  (numeric, optional, default=1) Only include contract transactions confirmed \n"
 				    "\nResult:\n"
 				    "\nExamples:\n"
-				    + HelpExampleCli("getappconfirmdata", "\"123456789012\" \"1\"  \"1\"")
-				    + HelpExampleRpc("getappconfirmdata", "\"123456789012\" \"1\"  \"1\""));
+				    + HelpExampleCli("getappconfirmdata", "\"1304166-1\" \"1\"  \"1\"")
+				    + HelpExampleRpc("getappconfirmdata", "\"1304166-1\" \"1\"  \"1\""));
 	}
 	std::shared_ptr<CScriptDBViewCache> pAccountViewCache;
 	if(4 == params.size() && 0==params[3].get_int()) {
