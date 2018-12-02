@@ -1974,11 +1974,11 @@ Value getappdata(const Array& params, bool fHelp) {
 //	vector<unsigned char> vscriptid = ParseHex(params[0].get_str());
 	CRegID regid(params[0].get_str());
 	if (regid.IsEmpty() == true) {
-		throw runtime_error("getappdata : app regid not supplied!\n");
+		throw runtime_error("getappdata : app regid not supplied!");
 	}
 
 	if (!pScriptDBTip->HaveScript(regid)) {
-		throw runtime_error("getappdata : app regid NOT exist!\n");
+		throw runtime_error("getappdata : app regid does NOT exist!");
 	}
 	Object script;
 
@@ -1987,7 +1987,7 @@ Value getappdata(const Array& params, bool fHelp) {
 		vector<unsigned char> key = ParseHex(params[1].get_str());
 		vector<unsigned char> value;
 		if (!contractScriptTemp.GetAppData(height, regid, key, value)) {
-			throw runtime_error("getappdata :the key does NOT exist!\n");
+			throw runtime_error("getappdata :the key does NOT exist!");
 		}
 		script.push_back(Pair("regid", params[0].get_str()));
 		script.push_back(Pair("key", HexStr(key)));
@@ -1998,7 +1998,7 @@ Value getappdata(const Array& params, bool fHelp) {
 		int dbsize;
 		contractScriptTemp.GetAppItemCount(regid, dbsize);
 		if (0 == dbsize) {
-			throw runtime_error("getappdata :the app has NO data!\n");
+			throw runtime_error("getappdata :the app has NO data!");
 		}
 		int pagesize = params[1].get_int();
 		int index = params[2].get_int();
@@ -2038,11 +2038,11 @@ Value getappdataraw(const Array& params, bool fHelp) {
 //	vector<unsigned char> vscriptid = ParseHex(params[0].get_str());
 	CRegID regid(params[0].get_str());
 	if (regid.IsEmpty() == true) {
-		throw runtime_error("getappdataraw : app regid NOT supplied!\n");
+		throw runtime_error("getappdataraw : app regid NOT supplied!");
 	}
 
 	if (!pScriptDBTip->HaveScript(regid)) {
-		throw runtime_error("getappdataraw : app regid NOT exist!\n");
+		throw runtime_error("getappdataraw : app regid NOT exist!");
 	}
 	Object script;
 
@@ -2054,7 +2054,7 @@ Value getappdataraw(const Array& params, bool fHelp) {
 
 		vector<unsigned char> value;
 		if (!contractScriptTemp.GetAppData(height, regid, key, value)) {
-			throw runtime_error("GetAppData :the key does NOT exist!\n");
+			throw runtime_error("GetAppData :the key does NOT exist!");
 		}
 		string strValue (value.begin(), value.end());
 		script.push_back( Pair("regid", params[0].get_str()) );
@@ -2066,7 +2066,7 @@ Value getappdataraw(const Array& params, bool fHelp) {
 		int dbsize;
 		contractScriptTemp.GetAppItemCount(regid, dbsize);
 		if (0 == dbsize) {
-			throw runtime_error("GetAppItemCount :the app has NO data!\n");
+			throw runtime_error("GetAppItemCount :the app has NO data!");
 		}
 		int pagesize = params[1].get_int();
 		int index = params[2].get_int();
@@ -2116,11 +2116,11 @@ Value getappconfirmdata(const Array& params, bool fHelp) {
 	RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
 	CRegID regid(params[0].get_str());
 	if (regid.IsEmpty() == true) {
-		throw runtime_error("getappdata :appregid NOT found!\n");
+		throw runtime_error("getappdata :appregid NOT found!");
 	}
 
 	if (!pAccountViewCache->HaveScript(regid)) {
-		throw runtime_error("getappdata :appregid does NOT exist!\n");
+		throw runtime_error("getappdata :appregid does NOT exist!");
 	}
 	Object obj;
 	int pagesize = params[1].get_int();
@@ -2208,7 +2208,7 @@ Value getscriptdbsize(const Array& params, bool fHelp) {
 	}
 
 	if (!pScriptDBTip->HaveScript(regid)) {
-		throw runtime_error("getappdata :appregid does NOT exist!\n");
+		throw runtime_error("getappdata :appregid does NOT exist!");
 	}
 	int nItemCount = 0;
 	if (!pScriptDBTip->GetAppItemCount(regid, nItemCount)) {
