@@ -2204,7 +2204,7 @@ Value getscriptdbsize(const Array& params, bool fHelp) {
 	}
 	CRegID regid(params[0].get_str());
 	if (regid.IsEmpty() == true) {
-		throw runtime_error("getappdata :appregid error!\n");
+		throw runtime_error("getappdata :appregid error!");
 	}
 
 	if (!pScriptDBTip->HaveScript(regid)) {
