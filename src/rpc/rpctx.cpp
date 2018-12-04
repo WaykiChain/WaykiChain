@@ -445,25 +445,25 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 Value createcontracttx(const Array& params, bool fHelp) {
 	if (fHelp || params.size() < 5 || params.size() > 6) {
 	   throw runtime_error(
-			"createcontracttx \"userregid[\"addr\"]\" \"appid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
+			"createcontracttx \"useraddr\"]\" \"appid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
 			"\ncreate contract transaction\n"
 			"\nArguments:\n"
-			"1.\"userregid\": (string, required)\n the address for send"
-			"2.\"appid\":(string, required) the appID (for example: Ipo.bin)\n"
-			"3.\"amount\":(numeric, required)\n"
+			"1.\"useraddr\": (string, required)\n tx sender's base58 addr\n"
+			"2.\"appid\":(string, required) the app or script's RegId\n"
+			"3.\"amount\":(numeric, required)\n amount of WICC to be sent to the app account"
 			"4.\"contract\": (string, required)\n"
 			"5.\"fee\": (numeric, required) pay to miner\n"
 			"6.\"height\": (numeric, optional)create height,If not provide use the tip block hegiht in chainActive\n"
 			"\nResult:\n"
 			"\"contract tx str\": (string)\n"
 			"\nExamples:\n"
-			+ HelpExampleCli("createcontracttx", "000000000100 [\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\"] "
-					"\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\""
-					"100000 "
+			+ HelpExampleCli("createcontracttx", "wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6 [\"411994-1\"] "
+					"\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\""
+					"411994-1"
 					"\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\" "
 					"01020304 "
 					"1") + "\nAs json rpc call\n"
-			+ HelpExampleRpc("createcontracttx", "000000000100 [\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\"] "
+			+ HelpExampleRpc("createcontracttx", "wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6 [\"411994-1\"] "
 					"\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\""
 					"100000 "
 					"\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\" "
@@ -473,34 +473,41 @@ Value createcontracttx(const Array& params, bool fHelp) {
 
 	RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(str_type)(int_type)(int_type));
 
+	//argument-1: sender's base58 addr  
 	CRegID userId(params[0].get_str());
 	CKeyID srckeyid;
 	if (userId.IsEmpty()) {
 		if (!GetKeyId(params[0].get_str(), srckeyid)) {
-			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Source Invalid  address");
+			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender's Base58 Addr is invalid");
 		}
-		if(!pAccountViewTip->GetRegId(CUserID(srckeyid),userId))
-		{
-			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "address not regist");
+		if(!pAccountViewTip->GetRegId(CUserID(srckeyid), userId)) {
+			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender has NO RegId");
 		}
-
 	}
 
-	CRegID appId(params[1].get_str());
-	uint64_t amount = params[2].get_uint64();
-	vector<unsigned char> vcontract = ParseHex(params[3].get_str());
-	uint64_t fee = params[4].get_uint64();
-	uint32_t height(0);
-	if (params.size() > 5)
-		height = params[5].get_int();
+	//argument-2: App RegId
+	CRegID appId(params[1].get_str()); //App RegId
+	if (appId.IsEmpty()) {
+		throw runtime_error("in createcontracttx :addresss is error!\n");
+	}
 
+	//argument-3: amount to be sent to the app account
+	uint64_t amount = params[2].get_uint64();
+
+	//argument-4: contract (Hex input)
+	vector<unsigned char> vcontract = ParseHex(params[3].get_str());
+
+	//argument-5: fee
+	uint64_t fee = params[4].get_uint64();
 	if (fee > 0 && fee < CTransaction::nMinTxFee) {
 		throw runtime_error("in createcontracttx :fee is smaller than nMinTxFee\n");
 	}
 
-	if (appId.IsEmpty()) {
-		throw runtime_error("in createcontracttx :addresss is error!\n");
-	}
+	//argument-6: height
+	uint32_t height(0);
+	if (params.size() > 5)
+		height = params[5].get_int();
+
 	EnsureWalletIsUnlocked();
 	std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>();
 	{
