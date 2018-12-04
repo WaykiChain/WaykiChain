@@ -67,7 +67,7 @@ public:
 
 	string PutDataIntoString(char* pData, int nDateLen);
 	bool VerifyTxInBlock(const string& strTxHash,bool bTryForever = false);
-	//bool GetScriptID(const string& strTxHash, string& strScriptID);
+	//bool GetAppRegID(const string& strTxHash, string& strAppRegID);
 
 	void PacketFirstContract(const char*pBuyID, const char* pSellID, const char* pArID, int nHeight, int nFine,
 			int nPay, int nFee, int ndeposit, FIRST_TRADE_CONTRACT* pContract);

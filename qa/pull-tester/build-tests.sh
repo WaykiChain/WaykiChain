@@ -22,7 +22,7 @@ if [ $# -lt 2 ]; then
   exit 1
 fi
 
-DISTDIR=Coin-1.0.0
+DISTDIR=Coin-1.1.0
 
 # Cross-compile for windows first (breaking the mingw/windows build is most common)
 cd /opt/src/WaykiChain

@@ -1591,7 +1591,7 @@ static int ExGetAppDataFunc(lua_State *L)
  * @param pVmEvn
  * @return
  */
-static int ExGetScriptIDFunc(lua_State *L)
+static int ExGetAppRegIDFunc(lua_State *L)
 {
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
     if(NULL == pVmRunEvn)
@@ -2195,7 +2195,6 @@ static const luaL_Reg mylib[] = { //
 		{"GetTxConFirmHeight",ExGetTxConFirmHeightFunc},
 		{"GetBlockHash",ExGetBlockHashFunc},
 
-
 		{"GetCurRunEnvHeight",ExGetCurRunEnvHeightFunc},
 		{"WriteData",ExWriteDataDBFunc},
 		{"DeleteData",ExDeleteDataDBFunc},
@@ -2205,7 +2204,7 @@ static const luaL_Reg mylib[] = { //
 
 		{"WriteOutput",ExWriteOutputFunc},
 		{"GetAppData",ExGetAppDataFunc},
-		{"GetScriptID",ExGetScriptIDFunc},
+		{"GetAppRegID",ExGetAppRegIDFunc},
 		{"GetCurTxAccount",ExGetCurTxAccountFunc},
 		{"GetCurTxPayAmount",GetCurTxPayAmountFunc},
 

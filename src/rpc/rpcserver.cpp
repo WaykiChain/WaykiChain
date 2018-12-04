@@ -328,7 +328,7 @@ static const CRPCCommand vRPCCommands[] =
     { "resetclient",            &resetclient,            true,      false,      false },
     { "reloadtxcache",          &reloadtxcache,          true,      false,      true },
     { "listsetblockindexvalid", &listsetblockindexvalid, true,      false,      false},
-    { "getscriptid",  			&getscriptid,            true,      false,      false},
+    { "getappregid",  			&getappregid,            true,      false,      false},
     { "getscriptdbsize",        &getscriptdbsize,        true,      false,      false},
     { "printblokdbinfo",        &printblokdbinfo,        true,      false,      false},
     { "getalltxinfo",			&getalltxinfo,			 true,      false,      true },

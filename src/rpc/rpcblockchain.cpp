@@ -376,17 +376,17 @@ Value listsetblockindexvalid(const Array& params, bool fHelp)
 	return ListSetBlockIndexValid();
 }
 
-Value getscriptid(const Array& params, bool fHelp)
+Value getappregid(const Array& params, bool fHelp)
 {
 	if (fHelp || params.size() != 1) {
-		throw runtime_error("getscriptid \n"
+		throw runtime_error("getappregid \n"
 							"\nreturn an object containing regid and script\n"
 							"\nArguments:\n"
-							"1. txhash   (string, required) the transaction hash.\n"
+							"1. txhash   (string, required) the App Script publishing transaction hash.\n"
 							"\nResult:\n"
 							"\nExamples:\n"
-							+ HelpExampleCli("getscriptid", "5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG")
-							+ HelpExampleRpc("getscriptid","5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG"));
+							+ HelpExampleCli("getappregid", "5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG")
+							+ HelpExampleRpc("getappregid","5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG"));
 	}
 
 	uint256 txhash(uint256S(params[0].get_str()));

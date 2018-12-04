@@ -144,7 +144,7 @@ public:
 
 	bool GetTxConfirmedRegID(const string& haseh,string& strRegID)
 	{
-		const char *argv[] = { "rpctest", "getscriptid", (char*) haseh.c_str() };
+		const char *argv[] = { "rpctest", "getappregid", (char*) haseh.c_str() };
 
 		Value value;
 		if (!CommandLineRPC_GetValue(sizeof(argv) / sizeof(argv[0]), argv, value)) {
