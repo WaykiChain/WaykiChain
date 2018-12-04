@@ -1598,7 +1598,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
 	LogPrint("op_account", "tx index:%d tx hash:%s\n", 0, block.vptx[0]->GetHash().GetHex());
     CTxUndo txundo;
     if(!block.vptx[0]->ExecuteTx(0, view, state, txundo, pindex->nHeight, txCache, scriptDBCache))
-    	return ERRORMSG("ConnectBlock() : execure reward tx error!");
+    	return ERRORMSG("ConnectBlock() : execute reward tx error!");
 	blockundo.vtxundo.push_back(txundo);
 
 	if (pindex->nHeight - COINBASE_MATURITY > 0) {
@@ -1615,7 +1615,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
 						"bad-read-block");
 			}
 			if (!matureBlock.vptx[0]->ExecuteTx(-1, view, state, txundo, pindex->nHeight, txCache, scriptDBCache))
-				return ERRORMSG("ConnectBlock() : execure mature block reward tx error!");
+				return ERRORMSG("ConnectBlock() : execute mature block reward tx error!");
 		}
 		blockundo.vtxundo.push_back(txundo);
 	}
