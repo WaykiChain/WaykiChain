@@ -445,30 +445,29 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 Value createcontracttx(const Array& params, bool fHelp) {
 	if (fHelp || params.size() < 5 || params.size() > 6) {
 	   throw runtime_error(
-			"createcontracttx \"useraddr\"]\" \"appid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
+			"createcontracttx \"senderaddr\" \"appid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
 			"\ncreate contract transaction\n"
 			"\nArguments:\n"
-			"1.\"useraddr\": (string, required)\n tx sender's base58 addr\n"
+			"1.\"senderaddr\": (string, required)\n tx sender's base58 addr\n"
 			"2.\"appid\":(string, required) the app or script's RegId\n"
 			"3.\"amount\":(numeric, required)\n amount of WICC to be sent to the app account"
-			"4.\"contract\": (string, required)\n"
+			"4.\"contract\": (string, required) contract method invoke content (Hex encode required)\n"
 			"5.\"fee\": (numeric, required) pay to miner\n"
 			"6.\"height\": (numeric, optional)create height,If not provide use the tip block hegiht in chainActive\n"
 			"\nResult:\n"
 			"\"contract tx str\": (string)\n"
 			"\nExamples:\n"
-			+ HelpExampleCli("createcontracttx", "wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6 [\"411994-1\"] "
+			+ HelpExampleCli("createcontracttx",
 					"\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\""
 					"411994-1"
-					"\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\" "
 					"01020304 "
 					"1") + "\nAs json rpc call\n"
-			+ HelpExampleRpc("createcontracttx", "wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6 [\"411994-1\"] "
+			+ HelpExampleRpc("createcontracttx", 
+					"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6 [\"411994-1\"] "
 					"\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\""
 					"100000 "
-					"\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\" "
-					"01020304 "
-					"1"));
+					"\"01020304 \""
+					"1") );
 	}
 
 	RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(str_type)(int_type)(int_type));
@@ -562,7 +561,7 @@ Value registerapptx(const Array& params, bool fHelp) {
 				"\ncreate a transaction of registering a contract app\n"
 				"\nArguments:\n"
 				"1.\"addr\": (string required) contract owner address from this wallet\n"
-				"2.\"filepath\": (string required), file path of the app script\n"
+				"2.\"filepath\": (string required), the file path of the app script\n"
 				"3.\"fee\": (numeric required) pay to miner (the larger the size of script, the bigger fees are required)\n"
 				"4.\"height\": (numeric optional)valid height, when not specified, the tip block hegiht in chainActive will be used\n"
 				"5.\"appdesc\":(string optional) new app description\n"
@@ -594,7 +593,7 @@ Value registerapptx(const Array& params, bool fHelp) {
 	lSize = ftell(file);
 	rewind(file);
 
-	if(lSize <= 0 || lSize > 65536) //脚本文件大小判断
+	if(lSize <= 0 || lSize > 65536) //脚本文件大小判断 (must be <= 64KB)
 	{
 		fclose(file);
 		throw JSONRPCError(RPC_INVALID_PARAMS, "File size exceeds limit.");

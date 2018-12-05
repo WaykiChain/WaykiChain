@@ -107,7 +107,7 @@ bool readblock(const string &filePath)
 
 class CMiningTest {
 public:
-	//初始化运行环境，导入Block信息
+	//????????л?????????Block???
 	CMiningTest() {
 
 	}
@@ -141,7 +141,7 @@ public:
 		//string strSendValue = HexStr(temp);
 		vContranct.insert(vContranct.end(), temp.begin(), temp.end());
 	}
-	//nIndex 取值范围1~5，表示1~5个客户端
+	//nIndex ????Χ1~5?????1~5???????
 	static CSendItem GetRandomSendItem(int nIndex) {
 		int randAddr = std::rand() % 9;
 		int randSendValue = std::rand() % 10;
@@ -172,13 +172,13 @@ public:
 
 };
 /**
- *构建普通交易
+ *???????????
  * @param param
- * param[0]:源地址
- * param[1]:目的地址
- * param[2]:转账金额
- * param[3]:手续费
- * param[4]:有效期高度
+ * param[0]:????
+ * param[1]:?????
+ * param[2]:?????
+ * param[3]:??????
+ * param[4]:??Ч????
  */
 void CreateNormalTx(vector<string> &param) {
 	if(3 != param.size())
@@ -193,13 +193,13 @@ void CreateNormalTx(vector<string> &param) {
 }
 
 /**
- * 构建合约交易
+ * ???????????
  * @param param
- * param[0]:脚本注册ID
- * param[1]:账户地址列表,json的数组格式
- * param[2]:合约内容
- * param[3]:手续费
- * param[4]:有效期高度
+ * param[0]:??????ID
+ * param[1]:???????б?,json????????
+ * param[2]:???????
+ * param[3]:??????
+ * param[4]:??Ч????
  */
 void CreateContractTx(vector<string> &param) {
 	if(5 != param.size())
@@ -215,19 +215,19 @@ void CreateContractTx(vector<string> &param) {
 
 
 /**
- * 构建注册脚本交易
+ * ?????????????
  * @param param
- * param[0]:注册脚本的账户地址
- * param[1]:注册脚本标识位，0-标识脚本内容的文件路径，1-已注册脚本ID
- * param[2]:文件路径或注册脚本ID
- * param[3]:手续费
- * param[4]:有效期高度
- * param[5]:脚本描述 （针对新注册脚本,可选）
- * param[6]:脚本授权时间 （可选）
- * param[7]:授权脚本每次从账户中扣减金额上限 （可选）
- * param[8]:授权脚本总共扣钱金额上限 （可选）
- * param[9]:授权脚本每天扣钱金额上限 （可选）
- * param[10]:用户自定义数据
+ * param[0]:?????????????
+ * param[1]:????????λ??0-??????????????·????1-???????ID
+ * param[2]:???·?????????ID
+ * param[3]:??????
+ * param[4]:??Ч????
+ * param[5]:??????? ????????????,?????
+ * param[6]:????????? ???????
+ * param[7]:????????δ?????п????????? ???????
+ * param[8]:??????????????????? ???????
+ * param[9]:?????????????????? ???????
+ * param[10]:????????????
  *
  */
 void CreateRegScriptTx(vector<string> &param) {
@@ -243,8 +243,8 @@ void CreateRegScriptTx(vector<string> &param) {
 	CommandLineRPC(param.size(), argv);
 }
 
-time_t sleepTime = 500;     //每隔1秒发送一个交易
-int64_t llTime = 24*60*60;   //测试24小时
+time_t sleepTime = 500;     //???1???????????
+int64_t llTime = 24*60*60;   //????24С?
 
 time_t string2time(const char * str,const char * formatStr)
 {
@@ -261,7 +261,7 @@ time_t string2time(const char * str,const char * formatStr)
 }
 BOOST_FIXTURE_TEST_SUITE(auto_mining_test, CSendItem)
 BOOST_FIXTURE_TEST_CASE(regscript,CSendItem) {
-	//注册脚本交易
+	//?????????
 	SysTestBase::RegisterAppTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem","unit_test.bin",0);
 }
 BOOST_FIXTURE_TEST_CASE(test1, CSendItem)
@@ -280,16 +280,16 @@ BOOST_FIXTURE_TEST_CASE(test1, CSendItem)
 	int64_t runTime = GetTime()+llTime;
 	vector<string> param;
 	while(GetTime()<runTime) {
-		//创建客户端1->客户端2的普通交易
+		//?????????1->?????2?????????
 		CSendItem sendItem = CSendItem::GetRandomSendItem(1);
 		CSendItem recItem = CSendItem::GetRandomSendItem(2);
-		CreateNormalTx(sendItem.GetAddress(),recItem.GetAddress(),recItem.GetSendValue());                          //创建普通交易
+		CreateNormalTx(sendItem.GetAddress(),recItem.GetAddress(),recItem.GetSendValue());                          //???????????
 		MilliSleep(sleepTime);
 
-		//创建客户端1->客户端2的合约交易
+		//?????????1->?????2????????
 		CSendItem sendItem1 = CSendItem::GetRandomSendItem(1);
 
-		CreateContractTx(scriptid,sendItem1.GetAddress(),"01",0);                        //创建合约交易
+		CreateContractTx(scriptid,sendItem1.GetAddress(),"01",0);                        //???????????
 		MilliSleep(sleepTime);
 	}
 }
@@ -306,15 +306,15 @@ BOOST_AUTO_TEST_CASE(test2)
 	BOOST_CHECK(GetTxConfirmedRegID(scripthash,scriptid));
 
 	while(GetTime()<runTime) {
-		//创建客户端2->客户端3的普通交易
+		//?????????2->?????3?????????
 		CSendItem sendItem = CSendItem::GetRandomSendItem(2);
 		CSendItem recItem = CSendItem::GetRandomSendItem(3);
 		CreateNormalTx(sendItem.GetAddress(),recItem.GetAddress(),recItem.GetSendValue());
 		MilliSleep(sleepTime);
 
-		//创建客户端2->客户端3的合约交易
+		//?????????2->?????3????????
 		CSendItem sendItem1 = CSendItem::GetRandomSendItem(2);
-		CreateContractTx(scriptid,sendItem1.GetAddress(),"01",0);                        //创建合约交易
+		CreateContractTx(scriptid,sendItem1.GetAddress(),"01",0);                        //???????????
 		MilliSleep(sleepTime);
 	}
 
@@ -332,13 +332,13 @@ BOOST_AUTO_TEST_CASE(test3)
 	string scriptid = "";
 	BOOST_CHECK(GetTxConfirmedRegID(scripthash,scriptid));
 	while(GetTime()<runTime) {
-		//创建客户端3->客户端4的普通交易
+		//?????????3->?????4?????????
 		CSendItem sendItem = CSendItem::GetRandomSendItem(3);
 		CSendItem recItem = CSendItem::GetRandomSendItem(4);
 		CreateNormalTx(sendItem.GetAddress(),recItem.GetAddress(),recItem.GetSendValue());
 		MilliSleep(sleepTime);
 
-		//创建客户端3->客户端4的合约交易
+		//?????????3->?????4????????
 		CSendItem sendItem1 = CSendItem::GetRandomSendItem(3);
 		CreateContractTx(scriptid,sendItem1.GetAddress(),"01",0);
 		MilliSleep(sleepTime);
@@ -359,13 +359,13 @@ BOOST_AUTO_TEST_CASE(test4)
 	string scriptid = "";
 	BOOST_CHECK(GetTxConfirmedRegID(scripthash,scriptid));
 	while(GetTime()<runTime) {
-		//创建客户端4->客户端5的普通交易
+		//?????????4->?????5?????????
 		CSendItem sendItem = CSendItem::GetRandomSendItem(4);
 		CSendItem recItem = CSendItem::GetRandomSendItem(5);
-		CreateNormalTx(sendItem.GetAddress(),recItem.GetAddress(),recItem.GetSendValue());                     //创建普通交易
+		CreateNormalTx(sendItem.GetAddress(),recItem.GetAddress(),recItem.GetSendValue());                     //???????????
 		MilliSleep(sleepTime);
 
-		//创建客户端4->客户端5的合约交易
+		//?????????4->?????5????????
 		CSendItem sendItem1 = CSendItem::GetRandomSendItem(4);
 		CreateContractTx(scriptid,sendItem1.GetAddress(),"01",0);
 		MilliSleep(sleepTime);
@@ -385,13 +385,13 @@ BOOST_AUTO_TEST_CASE(test5)
 	string scriptid = "";
 	BOOST_CHECK(GetTxConfirmedRegID(scripthash,scriptid));
 	while(GetTime()<runTime) {
-		//创建客户端5->客户端1的普通交易
+		//?????????5->?????1?????????
 		CSendItem sendItem = CSendItem::GetRandomSendItem(5);
 		CSendItem recItem = CSendItem::GetRandomSendItem(1);
 		CreateNormalTx(sendItem.GetAddress(),recItem.GetAddress(),recItem.GetSendValue());
 		MilliSleep(sleepTime);
 
-		//创建客户端5->客户端1的合约交易
+		//?????????5->?????1????????
 		CSendItem sendItem1 = CSendItem::GetRandomSendItem(5);
 		CreateContractTx(scriptid,sendItem1.GetAddress(),"01",0);
 		MilliSleep(sleepTime);

@@ -886,8 +886,7 @@ static int ExByteToIntegerFunc(lua_State *L) {
     vector<unsigned char>  vValue(retdata.at(0).get()->begin(), retdata.at(0).get()->end());
     CDataStream tep1(vValue, SER_DISK, CLIENT_VERSION);
 
-    if(retdata.at(0).get()->size() == 4)
-    {
+    if(retdata.at(0).get()->size() == 4) {
 		unsigned int height;
 		tep1 >>height;
 
@@ -898,14 +897,14 @@ static int ExByteToIntegerFunc(lua_State *L) {
 	   }else{
 			return RetFalse("ExGetTxAccountsFunc stack overflow");
 	   }
-    }else{
+    } else {
 		int64_t llValue = 0;
 		tep1 >>llValue;
 //		LogPrint("vm","%lld\r\n", llValue);
-	   if(lua_checkstack(L,sizeof(lua_Integer))){
+	   if (lua_checkstack(L,sizeof(lua_Integer))) {
 			lua_pushinteger(L,(lua_Integer)llValue);
 			return 1 ;
-	   }else{
+	   } else {
 			return RetFalse("ExGetTxAccountsFunc stack overflow");
 	   }
     }
