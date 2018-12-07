@@ -2673,10 +2673,10 @@ Value printblokdbinfo(const Array& params, bool fHelp) {
 
 Value getappaccountinfo(const Array& params, bool fHelp) {
 	if (fHelp || (params.size() != 2 && params.size() != 3)) {
-		throw runtime_error("getappaccountinfo  \"App RegId\" \"address\""
+		throw runtime_error("getappaccountinfo  \"appregid\" \"address\""
 				"\nget appaccount info\n"
 				"\nArguments:\n"
-				"1.\"app regid\":(string, required) App RegId\n"
+				"1.\"appregid\":(string, required) App RegId\n"
 				"2.\"account address\": (string, required) App-managed account address\n"
 				"3.\"minconf\"  (numeric, optional, default=1) Only include contract transactions confirmed \n"
 				"\nExamples:\n"
