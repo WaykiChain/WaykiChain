@@ -876,14 +876,14 @@ static int ExGetTxAccountsFunc(lua_State *L) {
 
 static int ExByteToIntegerFunc(lua_State *L) {
 	//把字节流组合成integer
-	vector<std::shared_ptr<vector<unsigned char> > > retdata;
-    if(!GetArray(L,retdata) ||retdata.size() != 1|| ((retdata.at(0).get()->size() != 4) && (retdata.at(0).get()->size() != 8)))
-    {
-    	return RetFalse("ExGetTxAccountsFunc para err1");
+	vector< std::shared_ptr<vector<unsigned char>> > retdata;
+    if( !GetArray(L, retdata) ||retdata.size() != 1 || 
+		((retdata.at(0).get()->size() != 4) && (retdata.at(0).get()->size() != 8)) ) {
+    	return RetFalse("ExByteToIntegerFunc para err1");
     }
 
     //将数据反向
-    vector<unsigned char>  vValue(retdata.at(0).get()->begin(), retdata.at(0).get()->end());
+    vector<unsigned char> vValue(retdata.at(0).get()->begin(), retdata.at(0).get()->end());
     CDataStream tep1(vValue, SER_DISK, CLIENT_VERSION);
 
     if(retdata.at(0).get()->size() == 4) {
@@ -895,17 +895,17 @@ static int ExByteToIntegerFunc(lua_State *L) {
 			lua_pushinteger(L,(lua_Integer)height);
 			return 1 ;
 	   }else{
-			return RetFalse("ExGetTxAccountsFunc stack overflow");
+			return RetFalse("ExByteToIntegerFunc stack overflow");
 	   }
     } else {
 		int64_t llValue = 0;
 		tep1 >>llValue;
 //		LogPrint("vm","%lld\r\n", llValue);
-	   if (lua_checkstack(L,sizeof(lua_Integer))) {
-			lua_pushinteger(L,(lua_Integer)llValue);
+	   if (lua_checkstack(L, sizeof(lua_Integer))) {
+			lua_pushinteger(L, (lua_Integer)llValue);
 			return 1 ;
 	   } else {
-			return RetFalse("ExGetTxAccountsFunc stack overflow");
+			return RetFalse("ExByteToIntegerFunc stack overflow");
 	   }
     }
 }
