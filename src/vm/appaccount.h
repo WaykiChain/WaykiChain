@@ -1,7 +1,7 @@
 /*
  * appuseraccout.h
  *
- *  Created on: 2015Äê3ÔÂ30ÈÕ
+ *  Created on: 2015å¹´3æœˆ30æ—¥
  *      Author: ranger.shi
  */
 
@@ -211,7 +211,7 @@ public:
 	bool ChangeAppCFund(const CAppCFund &inFound);
 	bool Operate(const CAppFundOperate &Op);
 private:
-	uint64_t llValues;       //×ÔÓÉ½ğ¶î
+	uint64_t llValues;       //è‡ªç”±é‡‘é¢
 	vector<unsigned char>  mAccUserID;
 	vector<CAppCFund> vFreezedFund;
 };

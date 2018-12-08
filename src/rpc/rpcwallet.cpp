@@ -804,14 +804,14 @@ Value sendtoaddress(const Array& params, bool fHelp)
 	int size = params.size();
 	if (fHelp || (!(size == 2 || size == 3)))
 		throw runtime_error(
-						"sendtoaddress (\"WICC address\") \"receive address\" \"amount\"\n"
+						"sendtoaddress (\"sendaddress\") \"recvaddress\" \"amount\"\n"
 						"\nSend an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001\n"
 						+ HelpRequiringPassphrase() + "\nArguments:\n"
-						"1. \"WICC address\"  (string, optional) The Coin address to send to.\n"
-						"2. receive address   (string, required) The Coin address to receive\n"
-						"3.\"amount\"   (string, required) \n"
+						"1. \"sendaddress\" (string, optional) The address where coins are sent from.\n"
+						"2. \"recvaddress\" (string, required) The address where coins are received.\n"
+						"3.\"amount\" (string, required) \n"
 						"\nResult:\n"
-						"\"transactionid\"  (string) The transaction id.\n"
+						"\"transactionid\" (string) The transaction id.\n"
 						"\nExamples:\n"
 						+ HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
 						+ HelpExampleCli("sendtoaddress",
@@ -819,9 +819,9 @@ Value sendtoaddress(const Array& params, bool fHelp)
 						+ HelpExampleRpc("sendtoaddress",
 						"\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""
 						+ HelpExampleCli("sendtoaddress", "\"0-6\" 10 ")
-						+ HelpExampleCli("sendtoaddress", "\"00000000000000000005\" 10 ")
+						+ HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 10 ")
 						+ HelpExampleCli("sendtoaddress", "\"0-6\" \"0-5\" 10 ")
-						+ HelpExampleCli("sendtoaddress", "\"00000000000000000005\" \"0-6\"10 ")));
+						+ HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" \"0-6\"10 ")));
 
 	EnsureWalletIsUnlocked();
 	CKeyID sendKeyId;
@@ -841,19 +841,19 @@ Value sendtoaddress(const Array& params, bool fHelp)
 	if (size == 3) {
 
 		if (!GetKeyId(params[0].get_str(), sendKeyId)) {
-			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "FROM Invalid  address");
+			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "FROM Address Invalid");
 		}
 		if (!GetKeyId(params[1].get_str(), recvKeyId)) {
-			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to Invalid  address");
+			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "TO Address Invalid");
 		}
 
 		nAmount = AmountToRawValue(params[2]);
 		if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + SysCfg().GetTxFee()) {
-			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "FROM address not enough coins");
+			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "FROM Address does not have enough coins");
 		}
 	} else {
 		if (!GetKeyId(params[0].get_str(), recvKeyId)) {
-			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to address Invalid  ");
+			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "TO Address Invalid");
 		}
 
 		nAmount = AmountToRawValue(params[1]);
@@ -874,7 +874,7 @@ Value sendtoaddress(const Array& params, bool fHelp)
 		}
 
 		if (sendKeyId.IsNull()) {
-			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "not find enough moeny account ");
+			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "not find enough money account ");
 		}
 	}
 
