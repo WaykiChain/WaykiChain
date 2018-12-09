@@ -876,7 +876,7 @@ bool CRegisterAppTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidationSt
 		CScriptDBOperLog operAddressToTxLog;
 		CKeyID sendKeyId;
 		if(!view.GetKeyId(regAcctId, sendKeyId)) {
-			return ERRORMSG("ExecuteTx() : CRewardTransaction ExecuteTx, get regAcctId by account error!");
+			return ERRORMSG("ExecuteTx() : CRegisterAppTx ExecuteTx, get regAcctId by account error!");
 		}
 		if(!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
 			return false;
