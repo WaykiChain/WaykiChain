@@ -87,7 +87,7 @@ bool CVmRunEvn::intial(shared_ptr<CBaseTransaction> & Tx, CAccountViewCache& vie
 		return false;
 	}
 
-	//pVmRunEvn = this; //´«CVmRunEvn¶ÔÏóÖ¸Õë¸ølmylib.cpp¿âÊ¹ÓÃ
+	//pVmRunEvn = this; //ï¿½ï¿½CVmRunEvnï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½lmylib.cppï¿½ï¿½Ê¹ï¿½ï¿½
 	LogPrint("vm", "%s\r\n", "CVmScriptRun::intial() LUA");
 
 	return true;
@@ -107,8 +107,8 @@ tuple<bool, uint64_t, string> CVmRunEvn::run(shared_ptr<CBaseTransaction>& Tx, C
 	m_ScriptDBTip = &VmDB;
 
 	CTransaction* tx = static_cast<CTransaction*>(Tx.get());
-	if(tx->llFees <= CBaseTransaction::nMinTxFee) {
-		return std::make_tuple (false, 0, string("vm run evn fee too litter\n"));
+	if(tx->llFees < CBaseTransaction::nMinTxFee) {
+		return std::make_tuple (false, 0, string("CVmRunEvn: Contract Tx fee too small\n"));
 	}
 	uint64_t maxstep = ((tx->llFees-CBaseTransaction::nMinTxFee)/ nBurnFactor) * 100;
 	
@@ -289,7 +289,7 @@ bool CVmRunEvn::CheckOperate(const vector<CVmOperate> &listoperate) {
 		}
 		else{
 //			Assert(0);
-			return false; // ÊäÈëÊý¾Ý´í
+			return false; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý´ï¿½
 		}
 
 		//vector<unsigned char> accountid(it.accountid, it.accountid + sizeof(it.accountid));
@@ -431,7 +431,7 @@ bool CVmRunEvn::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
 		if(accountid.size() == 6){
 			userregId.SetRegID(accountid);
 			if(!view.GetAccount(CUserID(userregId), *tem.get())){
-				return false;                                           /// ÕË»§²»´æÔÚ
+				return false;                                           /// ï¿½Ë»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			}
 		}else{
 			string popaddr(accountid.begin(), accountid.end());
@@ -439,7 +439,7 @@ bool CVmRunEvn::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
 			 if(!view.GetAccount(CUserID(userkeyid), *tem.get()))
 			 {
 				 tem->keyID = userkeyid;
-				//return false;                                           /// Î´²úÉú¹ý½»Ò×¼ÇÂ¼µÄÕË»§
+				//return false;                                           /// Î´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¼ï¿½Â¼ï¿½ï¿½ï¿½Ë»ï¿½
 			 }
 		}
 
@@ -473,7 +473,7 @@ bool CVmRunEvn::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
 }
 
 const CRegID& CVmRunEvn::GetScriptRegID()
-{   //»ñÈ¡Ä¿µÄÕË»§ID
+{   //ï¿½ï¿½È¡Ä¿ï¿½ï¿½ï¿½Ë»ï¿½ID
 	CTransaction* tx = static_cast<CTransaction*>(listTx.get());
 	return boost::get<CRegID>(tx->desUserId);
 }
@@ -534,8 +534,8 @@ shared_ptr<vector<CScriptDBOperLog> > CVmRunEvn::GetDbLog()
 }
 
 /**
- * ´Ó½Å±¾Êý¾Ý¿âÖÐ£¬È¡Ö¸¶¨ÕË»§µÄ Ó¦ÓÃÕË»§ÐÅÏ¢,Í¬Ê±½â¶³¶³½á½ð¶îµ½×ÔÓÉ½ð¶î
- * @param vAppUserId   ÕË»§µØÖ·»òregId
+ * ï¿½Ó½Å±ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½Ð£ï¿½È¡Ö¸ï¿½ï¿½ï¿½Ë»ï¿½ï¿½ï¿½ Ó¦ï¿½ï¿½ï¿½Ë»ï¿½ï¿½ï¿½Ï¢,Í¬Ê±ï¿½â¶³ï¿½ï¿½ï¿½ï¿½ï¿½îµ½ï¿½ï¿½ï¿½É½ï¿½ï¿½
+ * @param vAppUserId   ï¿½Ë»ï¿½ï¿½ï¿½Ö·ï¿½ï¿½regId
  * @param sptrAcc
  * @return
  */

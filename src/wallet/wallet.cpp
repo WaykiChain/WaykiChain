@@ -318,7 +318,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTransaction*pTx, const C
 	}
 	else if (pTx != NULL)
 	{
-		LogPrint("todo","acept in mempool tx %s\r\n",pTx->GetHash().ToString());
+		LogPrint("TOTO","accept in mempool tx %s\r\n",pTx->GetHash().ToString());
     }
 
 
@@ -341,7 +341,7 @@ void CWallet::EraseFromWallet(const uint256 &hash) {
 // exist in the wallet will be updated.
 int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate) {
 
-	LogPrint("todo","todo list by ranger.shi");
+	LogPrint("TODO","todo list by ranger.shi");
 //	int ret = 0;
 //	int64_t nNow = GetTime();
 //
@@ -398,7 +398,7 @@ void CWallet::ResendWalletTransactions() {
 		auto ret = CommitTransaction(&(*pBaseTx.get()));
 		if (!std::get<0>(ret)) {
 			erase.push_back(te.first);
-			LogPrint("CWallet","abort inavlibal tx %s reason:%s\r\n",te.second.get()->ToString(*pAccountViewTip),std::get<1>(ret));
+			LogPrint("CWallet","abort invalid tx %s reason:%s\r\n",te.second.get()->ToString(*pAccountViewTip),std::get<1>(ret));
 		}
 	}
 	for (auto const & tee : erase) {

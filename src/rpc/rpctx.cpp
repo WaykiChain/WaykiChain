@@ -1371,7 +1371,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
 				"getaccountinfo \"addr\"\n"
 				"\nget account information\n"
 				"\nArguments:\n"
-				"1.\"addr\": (string, required) account address"
+				"1.\"addr\": (string, required) account base58 address"
 				"Returns account details.\n"
 				"\nResult:\n"
 				"\nExamples:\n"
