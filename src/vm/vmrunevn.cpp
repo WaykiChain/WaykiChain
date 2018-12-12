@@ -87,7 +87,7 @@ bool CVmRunEvn::intial(shared_ptr<CBaseTransaction> & Tx, CAccountViewCache& vie
 		return false;
 	}
 
-	//pVmRunEvn = this; //��CVmRunEvn����ָ���lmylib.cpp��ʹ��
+	//pVmRunEvn = this; //传CVmRunEvn对象指针给lmylib.cpp库使用
 	LogPrint("vm", "%s\r\n", "CVmScriptRun::intial() LUA");
 
 	return true;
@@ -289,7 +289,7 @@ bool CVmRunEvn::CheckOperate(const vector<CVmOperate> &listoperate) {
 		}
 		else{
 //			Assert(0);
-			return false; // �������ݴ�
+			return false; // 输入数据错误
 		}
 
 		//vector<unsigned char> accountid(it.accountid, it.accountid + sizeof(it.accountid));
@@ -431,7 +431,7 @@ bool CVmRunEvn::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
 		if(accountid.size() == 6){
 			userregId.SetRegID(accountid);
 			if(!view.GetAccount(CUserID(userregId), *tem.get())){
-				return false;                                           /// �˻�������
+				return false;                                           /// 账户不存在
 			}
 		}else{
 			string popaddr(accountid.begin(), accountid.end());
@@ -439,7 +439,7 @@ bool CVmRunEvn::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
 			 if(!view.GetAccount(CUserID(userkeyid), *tem.get()))
 			 {
 				 tem->keyID = userkeyid;
-				//return false;                                           /// δ���������׼�¼���˻�
+				//return false;                                           /// 未产生过交易记录的账户
 			 }
 		}
 
@@ -473,7 +473,7 @@ bool CVmRunEvn::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
 }
 
 const CRegID& CVmRunEvn::GetScriptRegID()
-{   //��ȡĿ���˻�ID
+{   // 获取目的账户ID
 	CTransaction* tx = static_cast<CTransaction*>(listTx.get());
 	return boost::get<CRegID>(tx->desUserId);
 }
@@ -534,8 +534,8 @@ shared_ptr<vector<CScriptDBOperLog> > CVmRunEvn::GetDbLog()
 }
 
 /**
- * �ӽű����ݿ��У�ȡָ���˻��� Ӧ���˻���Ϣ,ͬʱ�ⶳ��������ɽ��
- * @param vAppUserId   �˻���ַ��regId
+ * 从脚本数据库中，取指定账户的 应用账户信息,同时解冻冻结金额到自由金额
+ * @param vAppUserId   账户地址或regId
  * @param sptrAcc
  * @return
  */
