@@ -445,12 +445,12 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 Value createcontracttx(const Array& params, bool fHelp) {
 	if (fHelp || params.size() < 5 || params.size() > 6) {
 	   throw runtime_error(
-			"createcontracttx \"senderaddr\" \"appid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
+			"createcontracttx \"senderaddr\" \"appregid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
 			"\ncreate contract transaction\n"
 			"\nArguments:\n"
 			"1.\"senderaddr\": (string, required)\n tx sender's base58 addr\n"
-			"2.\"appid\":(string, required) the app or script's RegId\n"
-			"3.\"amount\":(numeric, required)\n amount of WICC to be sent to the app account"
+			"2.\"appregid\":(string, required) the app RegId\n"
+			"3.\"amount\":(numeric, required)\n amount of WICC to be sent to the app account\n"
 			"4.\"contract\": (string, required) contract method invoke content (Hex encode required)\n"
 			"5.\"fee\": (numeric, required) pay to miner\n"
 			"6.\"height\": (numeric, optional)create height,If not provide use the tip block hegiht in chainActive\n"

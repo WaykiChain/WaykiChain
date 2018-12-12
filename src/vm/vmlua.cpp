@@ -312,7 +312,7 @@ tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun) {
 
 	if(step < 0)
 	{
-		return std::make_tuple (step, string("execure tx contranct run step exceed the max step limit\n"));
+		return std::make_tuple (step, string("execure tx contract run step exceed the max step limit\n"));
 	}
 
 	return std::make_tuple (step, string("script run ok"));
