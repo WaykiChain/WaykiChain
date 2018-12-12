@@ -2202,8 +2202,8 @@ static const luaL_Reg mylib[] = { //
 		{"ModifyData",ExModifyDataDBValueFunc},
 
 		{"WriteOutput",ExWriteOutputFunc},
-		{"GetAppData",ExGetAppDataFunc},
-		{"GetAppRegID",ExGetAppRegIDFunc},
+		{"GetScriptData",ExGetAppDataFunc},
+		{"GetScriptID",ExGetAppRegIDFunc},
 		{"GetCurTxAccount",ExGetCurTxAccountFunc},
 		{"GetCurTxPayAmount",GetCurTxPayAmountFunc},
 
