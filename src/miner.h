@@ -65,14 +65,14 @@ void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& 
 /** Do mining precalculation */
 void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash1);
 
-bool CreatePosTx(const uint64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock);
+bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock);
 
 bool GetDelegatesAcctList(vector<CAccount> & vDelegatesAcctList);
 bool GetDelegatesAcctList(vector<CAccount> & vDelegatesAcctList, CAccountViewCache &accViewIn, CTransactionDBCache &txCacheIn, CScriptDBViewCache &scriptCacheIn);
 
 void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList);
 
-bool GetCurrentDelegate(const vector<CAccount> & vDelegatesAcctList, const int64_t currentTime, CAccount &delegateAcct);
+bool GetCurrentDelegate(const int64_t currentTime,  const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct);
 
 bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache, bool bNeedRunTx = false);
 /** Check mined block */
