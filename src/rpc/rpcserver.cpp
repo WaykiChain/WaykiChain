@@ -917,7 +917,7 @@ string HelpExampleCli(string methodname, string args){
 
 string HelpExampleRpc(string methodname, string args){
     return "> curl --user myusername -d '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", "
-        "\"method\": \"" + methodname + "\", \"params\": [" + args + "] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n";
+        "\"method\": \"" + methodname + "\", \"params\": [" + args + "] }' -H 'Content-Type: application/json;' http://127.0.0.1:8332/\n";
 }
 
 const CRPCTable tableRPC;
