@@ -75,8 +75,8 @@ public:
 	}
 };
 
-uint64_t nLastBlockTx = 0;    // ¿éÖÐ½»Ò×µÄ×Ü±ÊÊý,²»º¬coinbase
-uint64_t nLastBlockSize = 0;  //±»´´½¨µÄ¿é ³ß´ç
+uint64_t nLastBlockTx = 0;    // ï¿½ï¿½ï¿½Ð½ï¿½ï¿½×µï¿½ï¿½Ü±ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½coinbase
+uint64_t nLastBlockSize = 0;  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ ï¿½ß´ï¿½
 
 //base on the last 50 blocks
 int GetElementForBurn(CBlockIndex* pindex)
@@ -270,7 +270,7 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
 
     pBlock->SetNonce(nNonce);
     CRewardTransaction *prtx = (CRewardTransaction *) pBlock->vptx[0].get();
-    prtx->account = delegate.regID;                                   //¼ÇÕËÈËÕË»§ID
+    prtx->account = delegate.regID;                                   //è®°è´¦äººè´¦æˆ·ID
     prtx->nHeight = pBlock->GetHeight();
     pBlock->SetHashMerkleRoot(pBlock->BuildMerkleTree());
     pBlock->SetTime(currentTime);
@@ -587,7 +587,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet,CBlockIndex* pindexPrev,u
 		if (pindexPrev != chainActive.Tip())
 			return false;
 
-		//»ñÈ¡Ê±¼ä, Í¬Ê±µÈ´ýÏÂ´ÎÊ±¼äµ½
+		//èŽ·å–æ—¶é—´ åŒæ—¶ç­‰å¾…ä¸‹æ¬¡æ—¶é—´åˆ°
 		auto GetNextTimeAndSleep = [&]() {
 			while(GetTime() == lasttime  || (GetTime() - pindexPrev->GetBlockTime()) < SysCfg().GetTargetSpacing())
 			{
