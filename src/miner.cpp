@@ -75,8 +75,8 @@ public:
 	}
 };
 
-uint64_t nLastBlockTx = 0;    // Âùó‰∏≠‰∫§ÊòìÁöÑÊÄªÁ¨îÊï∞,‰∏çÂê´coinbase
-uint64_t nLastBlockSize = 0;  //Ë¢´ÂàõÂª∫ÁöÑÂùó Â∞∫ÂØ∏
+uint64_t nLastBlockTx = 0;    // øÈ÷–Ωª“◊µƒ◊‹±  ˝,≤ª∫¨coinbase
+uint64_t nLastBlockSize = 0;  //±ª¥¥Ω®µƒøÈ ≥ﬂ¥Á
 
 //base on the last 50 blocks
 int GetElementForBurn(CBlockIndex* pindex)
@@ -240,7 +240,7 @@ bool GetDelegatesAcctList(vector<CAccount> & vDelegatesAcctList) {
     return GetDelegatesAcctList(vDelegatesAcctList, *pAccountViewTip, *pTxCacheTip, *pScriptDBTip);
 }
 
-bool GetCurrentDelegate(const int64_t currentTime,  const vector<CAccount> & vDelegatesAcctList, CAccount &delegateAcct) {
+bool GetCurrentDelegate(const int64_t currentTime,  const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct) {
     int64_t snot =  currentTime / SysCfg().GetTargetSpacing();
     int miner = snot % IniCfg().GetDelegatesCfg();
     delegateAcct = vDelegatesAcctList[miner];
@@ -248,7 +248,7 @@ bool GetCurrentDelegate(const int64_t currentTime,  const vector<CAccount> & vDe
     return true;
 }
 
-bool CreatePosTx(const uint64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock) {
+bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock) {
     unsigned int nNonce = GetRand(SysCfg().GetBlockMaxNonce());
     CBlock preBlock;
     CBlockIndex* pblockindex = mapBlockIndex[pBlock->GetHashPrevBlock()];
@@ -261,7 +261,7 @@ bool CreatePosTx(const uint64_t currentTime, const CAccount &delegate, CAccountV
         if(!view.GetAccount(preBlockRewardTx->account, preDelegate)) {
             return ERRORMSG("get preblock delegate account info error");
         }
-        if(pBlock->GetBlockTime()-preBlock.GetBlockTime() < SysCfg().GetTargetSpacing()) {
+        if(currentTime - preBlock.GetBlockTime() < SysCfg().GetTargetSpacing()) {
             if(preDelegate.regID == delegate.regID) {
                 return ERRORMSG("one delegate can't produce more than one block at the same slot");
             }
@@ -270,7 +270,7 @@ bool CreatePosTx(const uint64_t currentTime, const CAccount &delegate, CAccountV
 
     pBlock->SetNonce(nNonce);
     CRewardTransaction *prtx = (CRewardTransaction *) pBlock->vptx[0].get();
-    prtx->account = delegate.regID;                                   //ËÆ∞Ë¥¶‰∫∫Ë¥¶Êà∑ID
+    prtx->account = delegate.regID;                                   //º«’À»À’ÀªßID
     prtx->nHeight = pBlock->GetHeight();
     pBlock->SetHashMerkleRoot(pBlock->BuildMerkleTree());
     pBlock->SetTime(currentTime);
@@ -308,7 +308,7 @@ void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
 
 }
 
-bool VerifyPosTx( const CBlock *pBlock, CAccountViewCache &accView, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache, bool bNeedRunTx) {
+bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache, bool bNeedRunTx) {
 
 	uint64_t maxNonce = SysCfg().GetBlockMaxNonce(); //cacul times
 	vector<CAccount> vDelegatesAcctList;
@@ -587,9 +587,9 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet,CBlockIndex* pindexPrev,u
 		if (pindexPrev != chainActive.Tip())
 			return false;
 
-		//Ëé∑ÂèñÊó∂Èó¥ ÂêåÊó∂Á≠âÂæÖ‰∏ãÊ¨°Êó∂Èó¥Âà∞
+		//ªÒ»° ±º‰, Õ¨ ±µ»¥˝œ¬¥Œ ±º‰µΩ
 		auto GetNextTimeAndSleep = [&]() {
-			while(GetTime() == lasttime  || (GetTime()-pindexPrev->GetBlockTime()) < SysCfg().GetTargetSpacing())
+			while(GetTime() == lasttime  || (GetTime() - pindexPrev->GetBlockTime()) < SysCfg().GetTargetSpacing())
 			{
 				::MilliSleep(100);
 			}
@@ -611,7 +611,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet,CBlockIndex* pindexPrev,u
         for(auto & acct : vDelegatesAcctList) {
             LogPrint("shuffle","after shuffle index=%d, address=%s\n", nIndex++, acct.keyID.ToAddress());
         }
-        uint64_t currentTime = GetTime();
+        int64_t currentTime = GetTime();
         CAccount minerAcct;
         if(!GetCurrentDelegate(currentTime, vDelegatesAcctList, minerAcct)) {
             return false;
@@ -619,6 +619,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet,CBlockIndex* pindexPrev,u
 
 //        LogPrint("INFO", "Current charger delegate address=%s\n", minerAcct.keyID.ToAddress());
         bool increatedfalg = false;
+        int64_t lasttime1;
         {
             LOCK2(cs_main, pwalletMain->cs_wallet);
             if((unsigned int)(chainActive.Tip()->nHeight + 1) !=  pblock->GetHeight())
@@ -626,16 +627,17 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet,CBlockIndex* pindexPrev,u
             CKey acctKey;
             if(pwalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey, true) ||
                     pwalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey)) {
+                lasttime1 = GetTimeMillis();
                 increatedfalg = CreatePosTx(currentTime, minerAcct, view, pblock);
             }
         }
 		if (increatedfalg == true) {
-		    LogPrint("MINER","CreatePosTx used time :%d ms, miner address=%s\n", GetTimeMillis() - lasttime, minerAcct.keyID.ToAddress());
+		    LogPrint("MINER","CreatePosTx used time:%d ms, miner address=%s\n", GetTimeMillis() - lasttime1, minerAcct.keyID.ToAddress());
 			SetThreadPriority(THREAD_PRIORITY_NORMAL);
 			{
-			int64_t lasttime1 = GetTimeMillis();
-			CheckWork(pblock, *pwallet);
-		    LogPrint("MINER","CheckWork used time :%d ms\n",   GetTimeMillis() - lasttime1);
+				lasttime1 = GetTimeMillis();
+				CheckWork(pblock, *pwallet);
+				LogPrint("MINER","CheckWork used time:%d ms\n",   GetTimeMillis() - lasttime1);
 			}
 			SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
@@ -716,7 +718,7 @@ void static CoinMiner(CWallet *pwallet,int targetConter) {
 	}
 }
 
-void GenerateCoinBlock(bool fGenerate, CWallet* pwallet, int targetHigh) {
+void GenerateCoinBlock(bool fGenerate, CWallet* pwallet, int targetHeight) {
 	static boost::thread_group* minerThreads = NULL;
 
 	if (minerThreads != NULL) {
@@ -726,17 +728,17 @@ void GenerateCoinBlock(bool fGenerate, CWallet* pwallet, int targetHigh) {
 		minerThreads = NULL;
 	}
 
-	if(targetHigh <= 0 && fGenerate == true)
+	if(targetHeight <= 0 && fGenerate == true)
 	{
 //		assert(0);
-		ERRORMSG("targetHigh, fGenerate value error");
+		ERRORMSG("targetHeight, fGenerate value error");
 		return ;
 	}
 	if (!fGenerate)
 		return;
 	//in pos system one thread is enough  marked by ranger.shi
 	minerThreads = new boost::thread_group();
-	minerThreads->create_thread(boost::bind(&CoinMiner, pwallet,targetHigh));
+	minerThreads->create_thread(boost::bind(&CoinMiner, pwallet, targetHeight));
 
 //	minerThreads->join_all();
 }
