@@ -244,7 +244,7 @@ bool GetCurrentDelegate(const int64_t currentTime,  const vector<CAccount> & vDe
     int64_t snot =  currentTime / SysCfg().GetTargetSpacing();
     int miner = snot % IniCfg().GetDelegatesCfg();
     delegateAcct = vDelegatesAcctList[miner];
-//  LogPrint("INFO", "currentTime=%lld, snot=%d, miner=%d\n", currentTime, snot, miner);
+    LogPrint("INFO", "currentTime=%lld, snot=%d, miner=%d\n", currentTime, snot, miner);
     return true;
 }
 

@@ -395,7 +395,7 @@ void MarkBlockAsInFlight(NodeId nodeid, const uint256 &hash) {
     assert(state != NULL);
 
     // Make sure it's not listed somewhere already.
-    MarkBlockAsReceived(hash);
+    MarkBlockAsReceived(hash, nodeid);
 
     QueuedBlock newentry = {hash, GetTimeMicros(), state->nBlocksInFlight};
     if (state->nBlocksInFlight == 0)
@@ -2591,11 +2591,12 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
 				LogPrint("INFO", "ProcessBlock: ORPHAN BLOCK %lu abandon height=%d hash=%s, prev=%s\n", (unsigned long)mapOrphanBlocks.size(), pblock->GetHeight(), pblock->GetHash().GetHex(), pblock->GetHashPrevBlock().ToString());
 			}
             // Ask this guy to fill in what we're missing
-			LogPrint("net", "receive orphanblocks heignt=%d hash=%s lead to getblocks\n", pblock->GetHeight(), pblock->GetHash().GetHex());
+			LogPrint("net", "receive orphanblocks height=%d hash=%s lead to getblocks\n", pblock->GetHeight(), pblock->GetHash().GetHex());
             PushGetBlocks(pfrom, chainActive.Tip(), GetOrphanRoot(hash));
         }
         return true;
     }
+
     int64_t llAcceptBlockTime = GetTimeMillis();
     // Store to disk
     if (!AcceptBlock(*pblock, state, dbp)) {
@@ -2603,7 +2604,6 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     	 return ERRORMSG("ProcessBlock() : AcceptBlock FAILED");
     }
 //    LogPrint("INFO", "AcceptBlock() elapse time:%lld ms\n", GetTimeMillis() - llAcceptBlockTime);
-
 
     // Recursively process any orphan blocks that depended on this one  递归处理
     vector<uint256> vWorkQueue;
@@ -3820,7 +3820,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                 }
             } else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash)) {
             	COrphanBlock * pOrphanBlock = mapOrphanBlocks[inv.hash];
-            	LogPrint("net", "receive orphan block inv heignt=%d hash=%s lead to getblocks\n", pOrphanBlock->height, inv.hash.GetHex());
+            	LogPrint("net", "receive orphan block inv height=%d hash=%s lead to getblocks\n", pOrphanBlock->height, inv.hash.GetHex());
             	PushGetBlocks(pfrom, chainActive.Tip(), GetOrphanRoot(inv.hash));
             }
 
@@ -4533,6 +4533,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             if (pto->addr.IsLocal())
                 LogPrint("INFO","Warning: not banning local node %s!\n", pto->addr.ToString());
             else {
+                LogPrint("INFO","Warning: banned a remote node %s!\n", pto->addr.ToString());
                 pto->fDisconnect = true;
                 CNode::Ban(pto->addr);
             }
