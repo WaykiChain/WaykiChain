@@ -220,10 +220,10 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("fuel", chainActive.Tip()->nFuel));
     obj.push_back(Pair("data directory",GetDataDir().string().c_str()));
 //    obj.push_back(Pair("block high",    chainActive.Tip()->nHeight));
-    obj.push_back(Pair("connections",   (int)vNodes.size()));
-    obj.push_back(Pair("received blocks", (int) chainActive.Height()));
-    obj.push_back(Pair("sync tip blocks", g_nSyncTipHeight));
     obj.push_back(Pair("tip block hash", chainActive.Tip()->GetBlockHash().ToString()));
+	obj.push_back(Pair("sync tip blocks", g_nSyncTipHeight));
+	obj.push_back(Pair("received blocks", (int) chainActive.Height()));
+	obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     return obj;
 }

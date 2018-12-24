@@ -1856,7 +1856,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
         assert(view.Flush() && scriptDBView.Flush());
         CAccountViewCache viewtemp(*pAccountViewTip, true);
         uint256 uBestblockHash = viewtemp.GetBestBlock();
-        LogPrint("INFO","uBestBlockHash: %s\n",uBestblockHash.GetHex() );
+        LogPrint("INFO","uBestBlockHash[%d]: %s\n", g_nSyncTipHeight, uBestblockHash.GetHex() );
     }
     if (SysCfg().IsBenchmark())
         LogPrint("INFO","- Connect: %.2fms\n", (GetTimeMicros() - nStart) * 0.001);
@@ -2394,7 +2394,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp) {
 	AssertLockHeld(cs_main);
 	// Check for duplicate
 	uint256 hash = block.GetHash();
-	LogPrint("INFO", "AcceptBlcok hash:%s height:%d\n", hash.GetHex(), block.GetHeight());
+	LogPrint("INFO", "AcceptBlcok[%d] :%s\n", block.GetHeight(), hash.GetHex());
 	if (mapBlockIndex.count(hash))
 		return state.Invalid(ERRORMSG("AcceptBlock() : block already in mapBlockIndex"), 0, "duplicated");
 
