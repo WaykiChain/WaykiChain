@@ -1096,7 +1096,9 @@ static int ExGetBlockHashFunc(lua_State *L) {
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << blockHash;
     vector<unsigned char> TMP(tep.begin(),tep.end());
-    return RetRstToLua(L,TMP);
+    // reverse hash value
+	vector<unsigned char> TMP2(TMP.rbegin(),TMP.rend());
+    return RetRstToLua(L,TMP2);
 }
 
 static int ExGetCurRunEnvHeightFunc(lua_State *L) {
