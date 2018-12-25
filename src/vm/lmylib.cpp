@@ -1029,10 +1029,18 @@ static int ExGetTxConFirmHeightFunc(lua_State *L) {
 
     if(!GetArray(L,retdata) ||retdata.size() != 1|| retdata.at(0).get()->size() != 32)
     {
-    	return RetFalse("ExGetTxConFirmHeightFunc para err1");
+    	return RetFalse("ExGetTxConfirmHeightFunc para err1");
     }
-	uint256 hash1(*retdata.at(0));
-//	LogPrint("vm","ExGetTxContractsFunc1:%s",hash1.GetHex().c_str());
+
+	// uint256 hash1(*retdata.at(0));
+	// LogPrint("vm","ExGetTxContractsFunc1:%s",hash1.GetHex().c_str());
+
+	// reverse hash value
+ 	vector<unsigned char> vec_hash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
+	CDataStream tep1(vec_hash, SER_DISK, CLIENT_VERSION);
+	uint256 hash1;
+	tep1 >>hash1;
+
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
     if(NULL == pVmRunEvn)
     {
@@ -1042,7 +1050,7 @@ static int ExGetTxConFirmHeightFunc(lua_State *L) {
 	int nHeight = GetTxConfirmHeight(hash1, *pVmRunEvn->GetScriptDB());
 	if(-1 == nHeight)
 	{
-		return RetFalse("ExGetTxConFirmHeightFunc para err2");
+		return RetFalse("ExGetTxConfirmHeightFunc para err2");
 	}
 	else{
 	   if(lua_checkstack(L,sizeof(lua_Number))){
@@ -2192,6 +2200,7 @@ static const luaL_Reg mylib[] = { //
 		{"GetAccountPublickey",ExGetAccountPublickeyFunc},
 		{"QueryAccountBalance",ExQueryAccountBalanceFunc},
 		{"GetTxConFirmHeight",ExGetTxConFirmHeightFunc},
+		{"GetTxConfirmHeight",ExGetTxConFirmHeightFunc},
 		{"GetBlockHash",ExGetBlockHashFunc},
 
 		{"GetCurRunEnvHeight",ExGetCurRunEnvHeightFunc},
