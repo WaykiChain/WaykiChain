@@ -1056,8 +1056,6 @@ void ThreadSocketHandler()
             for (auto pnode : vNodesCopy)
                 pnode->Release();
         }
-
-        MilliSleep(10);
     }
 }
 
