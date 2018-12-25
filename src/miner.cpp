@@ -75,8 +75,8 @@ public:
 	}
 };
 
-uint64_t nLastBlockTx = 0;    // ���н��׵��ܱ���,����coinbase
-uint64_t nLastBlockSize = 0;  //�������Ŀ� �ߴ�
+uint64_t nLastBlockTx = 0;    // 块中交易的总笔数,不含coinbase
+uint64_t nLastBlockSize = 0;  // 被创建的块的尺寸
 
 //base on the last 50 blocks
 int GetElementForBurn(CBlockIndex* pindex)
