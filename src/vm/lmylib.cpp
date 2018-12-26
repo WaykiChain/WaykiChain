@@ -1024,7 +1024,7 @@ static int ExQueryAccountBalanceFunc(lua_State *L) {
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个入参: hash,32个字节
  */
-static int ExGetTxConFirmHeightFunc(lua_State *L) {
+static int ExGetTxConfirmHeightFunc(lua_State *L) {
 	vector<std::shared_ptr < vector<unsigned char> > > retdata;
 
     if(!GetArray(L,retdata) ||retdata.size() != 1|| retdata.at(0).get()->size() != 32)
@@ -2201,8 +2201,7 @@ static const luaL_Reg mylib[] = { //
 		{"GetTxAccounts",ExGetTxAccountsFunc},
 		{"GetAccountPublickey",ExGetAccountPublickeyFunc},
 		{"QueryAccountBalance",ExQueryAccountBalanceFunc},
-		{"GetTxConFirmHeight",ExGetTxConFirmHeightFunc},
-		{"GetTxConfirmHeight",ExGetTxConFirmHeightFunc},
+		{"GetTxConfirmHeight",ExGetTxConfirmHeightFunc},
 		{"GetBlockHash",ExGetBlockHashFunc},
 
 		{"GetCurRunEnvHeight",ExGetCurRunEnvHeightFunc},
