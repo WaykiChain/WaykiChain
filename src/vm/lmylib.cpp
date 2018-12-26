@@ -1024,15 +1024,23 @@ static int ExQueryAccountBalanceFunc(lua_State *L) {
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个入参: hash,32个字节
  */
-static int ExGetTxConFirmHeightFunc(lua_State *L) {
+static int ExGetTxConfirmHeightFunc(lua_State *L) {
 	vector<std::shared_ptr < vector<unsigned char> > > retdata;
 
     if(!GetArray(L,retdata) ||retdata.size() != 1|| retdata.at(0).get()->size() != 32)
     {
-    	return RetFalse("ExGetTxConFirmHeightFunc para err1");
+    	return RetFalse("ExGetTxConfirmHeightFunc para err1");
     }
-	uint256 hash1(*retdata.at(0));
-//	LogPrint("vm","ExGetTxContractsFunc1:%s",hash1.GetHex().c_str());
+
+	// uint256 hash1(*retdata.at(0));
+	// LogPrint("vm","ExGetTxContractsFunc1:%s",hash1.GetHex().c_str());
+
+	// reverse hash value
+ 	vector<unsigned char> vec_hash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
+	CDataStream tep1(vec_hash, SER_DISK, CLIENT_VERSION);
+	uint256 hash1;
+	tep1 >>hash1;
+
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
     if(NULL == pVmRunEvn)
     {
@@ -1042,7 +1050,7 @@ static int ExGetTxConFirmHeightFunc(lua_State *L) {
 	int nHeight = GetTxConfirmHeight(hash1, *pVmRunEvn->GetScriptDB());
 	if(-1 == nHeight)
 	{
-		return RetFalse("ExGetTxConFirmHeightFunc para err2");
+		return RetFalse("ExGetTxConfirmHeightFunc para err2");
 	}
 	else{
 	   if(lua_checkstack(L,sizeof(lua_Number))){
@@ -1088,7 +1096,9 @@ static int ExGetBlockHashFunc(lua_State *L) {
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << blockHash;
     vector<unsigned char> TMP(tep.begin(),tep.end());
-    return RetRstToLua(L,TMP);
+    // reverse hash value
+	vector<unsigned char> TMP2(TMP.rbegin(),TMP.rend());
+    return RetRstToLua(L,TMP2);
 }
 
 static int ExGetCurRunEnvHeightFunc(lua_State *L) {
@@ -2191,7 +2201,7 @@ static const luaL_Reg mylib[] = { //
 		{"GetTxAccounts",ExGetTxAccountsFunc},
 		{"GetAccountPublickey",ExGetAccountPublickeyFunc},
 		{"QueryAccountBalance",ExQueryAccountBalanceFunc},
-		{"GetTxConFirmHeight",ExGetTxConFirmHeightFunc},
+		{"GetTxConfirmHeight",ExGetTxConfirmHeightFunc},
 		{"GetBlockHash",ExGetBlockHashFunc},
 
 		{"GetCurRunEnvHeight",ExGetCurRunEnvHeightFunc},
