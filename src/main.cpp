@@ -78,7 +78,6 @@ map<uint256, COrphanBlock*> mapOrphanBlocks;  //存放因网络延迟等原因�
 multimap<uint256, COrphanBlock*> mapOrphanBlocksByPrev;  //存放孤儿块的上一个块Hash及块(pblock2->hashPrev, pblock2)
 
 map<uint256, std::shared_ptr<CBaseTransaction> > mapOrphanTransactions;
-map<uint256, set<uint256> > mapOrphanTransactionsByPrev;
 
 //map<string, CContractScript> mapScript;
 // Constant stuff for coinbase transactions we create:
