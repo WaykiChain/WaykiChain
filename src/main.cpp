@@ -3819,7 +3819,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
             if (pfrom->nSendSize > (SendBufferSize() * 2)) {
                 Misbehaving(pfrom->GetId(), 50);
-                return error("send buffer size() = %u", pfrom->nSendSize);
+                return ERRORMSG("send buffer size() = %u", pfrom->nSendSize);
             }
 
             // Track requests for our stuff
