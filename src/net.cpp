@@ -1187,6 +1187,18 @@ void MapPort(bool)
 
 void ThreadDNSAddressSeed()
 {
+    // goal: only query DNS seeds if address need is acute
+    if ((addrman.size() > 0) &&
+        (!SysCfg().GetBoolArg("-forcednsseed", false))) {
+        MilliSleep(11 * 1000);
+
+        LOCK(cs_vNodes);
+        if (vNodes.size() >= 2) {
+            LogPrint("INFO", "P2P peers available. Skipped DNS seeding.\n");
+            return;
+        }
+    }
+
     const vector<CDNSSeedData> &vSeeds = SysCfg().DNSSeeds();
     int found = 0;
 
