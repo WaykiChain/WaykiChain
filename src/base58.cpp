@@ -115,12 +115,10 @@ string EncodeBase58Check(const vector<unsigned char>& vchIn) {
 }
 
 bool DecodeBase58Check(const char* psz, vector<unsigned char>& vchRet) {
-	if (!DecodeBase58(psz, vchRet))
-		return false;
-	if (vchRet.size() < 4) {
-		vchRet.clear();
-		return false;
-	}
+    if (!DecodeBase58(psz, vchRet) || (vchRet.size() < 4)) {
+        vchRet.clear();
+        return false;
+    }
 	// re-calculate the checksum, insure it matches the included 4-byte checksum
 	uint256 hash = Hash(vchRet.begin(), vchRet.end() - 4);
 	if (memcmp(&hash, &vchRet.end()[-4], 4) != 0) {
