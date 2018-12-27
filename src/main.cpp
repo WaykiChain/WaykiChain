@@ -1131,12 +1131,6 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 	return true;
 }
 
-// Return maximum amount of blocks that other nodes claim to have
-int GetNumBlocksOfPeers()
-{
-    return max(cPeerBlockCounts.median(), Checkpoints::GetTotalBlocksEstimate());
-}
-
 bool IsInitialBlockDownload()
 {
     LOCK(cs_main);
