@@ -2533,10 +2533,6 @@ Value sigstr(const Array& params, bool fHelp) {
 	switch (pBaseTx.get()->nTxType) {
 	case COMMON_TX: {
 		std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(pBaseTx.get());
-		CKeyID keyid;
-		if (!view.GetKeyId(tx.get()->srcRegId, keyid)) {
-			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "vaccountid have no key id");
-		}
 		if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature)) {
 			throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
 		}
