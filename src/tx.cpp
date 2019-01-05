@@ -664,7 +664,7 @@ Object CTransaction::ToJSON(const CAccountViewCache &AccountView) const{
 	result.push_back(Pair("money", llValues));
 	result.push_back(Pair("fees", llFees));
 	result.push_back(Pair("height", nValidHeight));
-	result.push_back(Pair("Contract", HexStr(vContract)));
+	result.push_back(Pair("contract", HexStr(vContract)));
     return result;
 }
 bool CTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {

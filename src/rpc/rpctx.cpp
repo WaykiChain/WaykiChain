@@ -462,7 +462,7 @@ Value createcontracttx(const Array& params, bool fHelp) {
 					"411994-1"
 					"01020304 "
 					"1") + "\nAs json rpc call\n"
-			+ HelpExampleRpc("createcontracttx", 
+			+ HelpExampleRpc("createcontracttx",
 					"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6 [\"411994-1\"] "
 					"\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\""
 					"100000 "
@@ -472,7 +472,7 @@ Value createcontracttx(const Array& params, bool fHelp) {
 
 	RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(str_type)(int_type)(int_type));
 
-	//argument-1: sender's base58 addr  
+	//argument-1: sender's base58 addr
 	CRegID userId(params[0].get_str());
 	CKeyID srckeyid;
 	if (userId.IsEmpty()) {
@@ -1291,7 +1291,7 @@ Value listcontracttx(const Array& params, bool fHelp)
 				obj.push_back(Pair("money", ptx->llValues));
 				obj.push_back(Pair("fees", ptx->llFees));
 				obj.push_back(Pair("height", ptx->nValidHeight));
-				obj.push_back(Pair("Contract", HexStr(ptx->vContract)));
+				obj.push_back(Pair("contract", HexStr(ptx->vContract)));
 				arrayData.push_back(obj);
 
 				txnCount++;
