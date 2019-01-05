@@ -397,11 +397,11 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 
 		CUserID userId = keyid;
 		if (!view.GetAccount(userId, account)) {
-			throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account is not exist.");
+			throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account does not exist.");
 		}
 
 		if (account.IsRegister()) {
-			throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account is already registered");
+			throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account is already registered.");
 		}
 		uint64_t balance = account.GetRawBalance();
 		if (balance < fee) {
@@ -751,7 +751,7 @@ Value createdelegatetx(const Array& params, bool fHelp) {
 
         CUserID userId = keyid;
         if (!view.GetAccount(userId, account)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in createdelegatetx Error: Account is not exist.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in createdelegatetx Error: Account does not exist.");
         }
 
         if (!account.IsRegister()) {
@@ -864,7 +864,7 @@ Value createdelegatetxraw(const Array& params, bool fHelp) {
 
         CUserID userId = keyid;
         if (!view.GetAccount(userId, account)) {
-			throw JSONRPCError(RPC_WALLET_ERROR, "in createdelegatetxraw Error: Account is not exist.");
+			throw JSONRPCError(RPC_WALLET_ERROR, "in createdelegatetxraw Error: Account does not exist.");
 		}
 
         if (!account.IsRegister()) {
@@ -2464,7 +2464,7 @@ Value registerscripttxraw(const Array& params, bool fHelp) {
 
 	CUserID userId = keyid;
 	if (!view.GetAccount(userId, account)) {
-		throw JSONRPCError(RPC_WALLET_ERROR, "in registerscripttxraw Error: Account is not exist.");
+		throw JSONRPCError(RPC_WALLET_ERROR, "in registerscripttxraw Error: Account does not exist.");
 	}
 
 	if (!account.IsRegister()) {
