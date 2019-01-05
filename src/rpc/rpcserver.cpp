@@ -321,11 +321,12 @@ static const CRPCCommand vRPCCommands[] =
     { "islocked",               &islocked,               true,      false,      true },
     { "getsignature",           &getsignature,           true,      false,      true },
     { "getdelegatelist",        &getdelegatelist,        true,      false,      true },
+    { "decoderawtransaction",   &decoderawtransaction,   false,     false,      false},
 
 //for test code
-	{ "gettxoperationlog",      &gettxoperationlog,      false,     false,      false },
+	{ "gettxoperationlog",      &gettxoperationlog,      false,     false,      false},
     { "disconnectblock",        &disconnectblock,        true,      false,      true },
-    { "resetclient",            &resetclient,            true,      false,      false },
+    { "resetclient",            &resetclient,            true,      false,      false},
     { "reloadtxcache",          &reloadtxcache,          true,      false,      true },
     { "listsetblockindexvalid", &listsetblockindexvalid, true,      false,      false},
     { "getappregid",  			&getappregid,            true,      false,      false},
@@ -525,7 +526,7 @@ static void RPCAcceptHandler(std::shared_ptr< basic_socket_acceptor<Protocol, So
 void StartRPCThreads()
 {
     strRPCUserColonPass = SysCfg().GetArg("-rpcuser", "") + ":" + SysCfg().GetArg("-rpcpassword", "");
-    
+
     string rpcuser = SysCfg().GetArg("-rpcuser", "");
     string rpcpassword = SysCfg().GetArg("-rpcpassword", "");
     // RPC user/password required but empty or equal to each other

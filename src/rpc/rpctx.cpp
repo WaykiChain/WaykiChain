@@ -2595,6 +2595,61 @@ Value sigstr(const Array& params, bool fHelp) {
 	return obj;
 }
 
+Value decoderawtransaction(const Array& params, bool fHelp) {
+	if (fHelp || params.size() != 1) {
+		throw runtime_error("decoderawtransaction \"hexstring\"\n"
+				"\ndecode transaction\n"
+				"\nArguments:\n"
+				"1.\"str\": (string, required) hexstring\n"
+				"\nExamples:\n"
+				+ HelpExampleCli("decoderawtransaction", "\"03015f020001025a0164cd10004630440220664de5ec373f44d2756a23d5267ab25f22af6162d166b1cca6c76631701cbeb5022041959ff75f7c7dd39c1f9f6ef9a237a6ea467d02d2d2c3db62a1addaa8009ccd\"")
+				+ "\nAs json rpc call\n"
+				+ HelpExampleRpc("decoderawtransaction", "\"03015f020001025a0164cd10004630440220664de5ec373f44d2756a23d5267ab25f22af6162d166b1cca6c76631701cbeb5022041959ff75f7c7dd39c1f9f6ef9a237a6ea467d02d2d2c3db62a1addaa8009ccd\""));
+	}
+	vector<unsigned char> vch(ParseHex(params[0].get_str()));
+	Object obj;
+	CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
+	std::shared_ptr<CBaseTransaction> pBaseTx;
+	stream >> pBaseTx;
+	if (!pBaseTx.get()) {
+		return obj;
+	}
+	CAccountViewCache view(*pAccountViewTip, true);
+	switch (pBaseTx.get()->nTxType) {
+	case COMMON_TX: {
+		std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(pBaseTx.get());
+		obj = tx->ToJSON(view);
+	}
+		break;
+	case REG_ACCT_TX: {
+		std::shared_ptr<CRegisterAccountTx> tx = std::make_shared<CRegisterAccountTx>(pBaseTx.get());
+		obj = tx->ToJSON(view);
+	}
+		break;
+	case CONTRACT_TX: {
+		std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(pBaseTx.get());
+		obj = tx->ToJSON(view);
+	}
+		break;
+	case REWARD_TX:
+		break;
+	case REG_APP_TX: {
+		std::shared_ptr<CRegisterAppTx> tx = std::make_shared<CRegisterAppTx>(pBaseTx.get());
+		obj = tx->ToJSON(view);
+	}
+		break;
+	case DELEGATE_TX: {
+		std::shared_ptr<CDelegateTransaction> tx = std::make_shared<CDelegateTransaction>(pBaseTx.get());
+		obj = tx->ToJSON(view);
+	}
+		break;
+	default:
+//		assert(0);
+		break;
+	}
+	return obj;
+}
+
 Value getalltxinfo(const Array& params, bool fHelp) {
 	if (fHelp || (params.size() != 0 && params.size() != 1)) {
 		throw runtime_error("getalltxinfo \n"
