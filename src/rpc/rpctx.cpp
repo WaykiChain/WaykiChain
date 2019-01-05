@@ -383,7 +383,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 	//get keyid
 	CKeyID keyid;
 	if (!GetKeyId(addr, keyid)) {
-		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in registeraccounttx: Address err");
+		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in registeraccounttx: Address err.");
 	}
 	CRegisterAccountTx rtx;
 	assert(pwalletMain != NULL);
@@ -739,7 +739,7 @@ Value createdelegatetx(const Array& params, bool fHelp) {
     //get keyid
     CKeyID keyid;
     if (!GetKeyId(sendAddr, keyid)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in createdelegatetx: Address err");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in createdelegatetx: Address err.");
     }
     CDelegateTransaction delegateTx;
     assert(pwalletMain != NULL);
