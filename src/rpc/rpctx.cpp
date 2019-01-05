@@ -383,7 +383,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 	//get keyid
 	CKeyID keyid;
 	if (!GetKeyId(addr, keyid)) {
-		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in registeraccounttx :address err");
+		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in registeraccounttx: Address err");
 	}
 	CRegisterAccountTx rtx;
 	assert(pwalletMain != NULL);
@@ -397,7 +397,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 
 		CUserID userId = keyid;
 		if (!view.GetAccount(userId, account)) {
-			throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account balance is insufficient.");
+			throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account is not exist.");
 		}
 
 		if (account.IsRegister()) {
@@ -433,7 +433,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 	std::tuple<bool, string> ret;
 	ret = pwalletMain->CommitTransaction((CBaseTransaction *) &rtx);
 	if (!std::get<0>(ret)) {
-		throw JSONRPCError(RPC_WALLET_ERROR, "registeraccounttx Error:" + std::get<1>(ret));
+		throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: " + std::get<1>(ret));
 	}
 	Object obj;
 	obj.push_back(Pair("hash", std::get<1>(ret)));
@@ -462,7 +462,7 @@ Value createcontracttx(const Array& params, bool fHelp) {
 					"411994-1"
 					"01020304 "
 					"1") + "\nAs json rpc call\n"
-			+ HelpExampleRpc("createcontracttx", 
+			+ HelpExampleRpc("createcontracttx",
 					"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6 [\"411994-1\"] "
 					"\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\""
 					"100000 "
@@ -472,7 +472,7 @@ Value createcontracttx(const Array& params, bool fHelp) {
 
 	RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(str_type)(int_type)(int_type));
 
-	//argument-1: sender's base58 addr  
+	//argument-1: sender's base58 addr
 	CRegID userId(params[0].get_str());
 	CKeyID srckeyid;
 	if (userId.IsEmpty()) {
@@ -739,7 +739,7 @@ Value createdelegatetx(const Array& params, bool fHelp) {
     //get keyid
     CKeyID keyid;
     if (!GetKeyId(sendAddr, keyid)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in createdelegatetx :address err");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in createdelegatetx: Address err");
     }
     CDelegateTransaction delegateTx;
     assert(pwalletMain != NULL);
@@ -751,7 +751,7 @@ Value createdelegatetx(const Array& params, bool fHelp) {
 
         CUserID userId = keyid;
         if (!view.GetAccount(userId, account)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in createdelegatetx Error: Account balance is insufficient.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in createdelegatetx Error: Account is not exist.");
         }
 
         if (!account.IsRegister()) {
