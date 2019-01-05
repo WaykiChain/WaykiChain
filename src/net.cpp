@@ -361,7 +361,7 @@ bool GetMyExternalIP(CNetAddr& ipRet)
 //    const char* pszGet;
     const char* pszKeyword;
     for (int nLookup = 0; nLookup <= 1; nLookup++)
-    for (int nHost = 1; nHost <= 2; nHost++)
+    for (int nHost = 1; nHost <= 1; nHost++)
     {
         // We should be phasing out our use of sites like these. If we need
         // replacements, we should ask for volunteers to put this simple
@@ -384,23 +384,6 @@ bool GetMyExternalIP(CNetAddr& ipRet)
                 strszGet.replace(strszGet.find("91.198.22.70"), sizeof("91.198.22.70"), "checkip.dyndns.org");
             }
             pszKeyword = "Address:";
-        } else if (nHost == 2) {
-            addrConnect = CService("216.146.43.71", 80); // www.showmyip.com blocked in CN though
-
-            strszGet = string("GET /simple/ HTTP/1.1\r\n"
-                     	 "Host: 216.146.43.71\r\n"
-                     	 "User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)\r\n"
-                     	 "Connection: close\r\n"
-                     	 "\r\n");
-
-            if (nLookup == 1) //2nd-time lookup
-            {
-                CService addrIP("www.showmyip.com", 80, true);
-                if (addrIP.IsValid())
-                    addrConnect = addrIP;
-                strszGet.replace(strszGet.find("216.146.43.71"), sizeof("216.146.43.71"), "www.showmyip.com");
-            }
-            pszKeyword = NULL; // Returns just IP address
         }
 
         if (GetMyExternalIP2(addrConnect, strszGet.c_str(), pszKeyword, ipRet))
