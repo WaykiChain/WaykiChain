@@ -2523,15 +2523,15 @@ Value sigstr(const Array& params, bool fHelp) {
 	string addr = params[1].get_str();
 	CKeyID keyid;
 	if (!GetKeyId(params[1].get_str(), keyid)) {
-		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to address Invalid  ");
+		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address invalid");
 	}
-	Object obj;
 	CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
 	std::shared_ptr<CBaseTransaction> pBaseTx;
 	stream >> pBaseTx;
 	if (!pBaseTx.get()) {
-		return obj;
+		return Value::null;
 	}
+	Object obj;
 	switch (pBaseTx.get()->nTxType) {
 	case COMMON_TX: {
 		std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(pBaseTx.get());
