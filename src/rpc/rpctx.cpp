@@ -383,7 +383,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 	//get keyid
 	CKeyID keyid;
 	if (!GetKeyId(addr, keyid)) {
-		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in registeraccounttx :address err");
+		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in registeraccounttx: Address err.");
 	}
 	CRegisterAccountTx rtx;
 	assert(pwalletMain != NULL);
@@ -397,11 +397,11 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 
 		CUserID userId = keyid;
 		if (!view.GetAccount(userId, account)) {
-			throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account balance is insufficient.");
+			throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account does not exist.");
 		}
 
 		if (account.IsRegister()) {
-			throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account is already registered");
+			throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account is already registered.");
 		}
 		uint64_t balance = account.GetRawBalance();
 		if (balance < fee) {
@@ -433,7 +433,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 	std::tuple<bool, string> ret;
 	ret = pwalletMain->CommitTransaction((CBaseTransaction *) &rtx);
 	if (!std::get<0>(ret)) {
-		throw JSONRPCError(RPC_WALLET_ERROR, "registeraccounttx Error:" + std::get<1>(ret));
+		throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: " + std::get<1>(ret));
 	}
 	Object obj;
 	obj.push_back(Pair("hash", std::get<1>(ret)));
@@ -739,7 +739,7 @@ Value createdelegatetx(const Array& params, bool fHelp) {
     //get keyid
     CKeyID keyid;
     if (!GetKeyId(sendAddr, keyid)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in createdelegatetx :address err");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in createdelegatetx: Address err.");
     }
     CDelegateTransaction delegateTx;
     assert(pwalletMain != NULL);
@@ -751,7 +751,7 @@ Value createdelegatetx(const Array& params, bool fHelp) {
 
         CUserID userId = keyid;
         if (!view.GetAccount(userId, account)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in createdelegatetx Error: Account balance is insufficient.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in createdelegatetx Error: Account does not exist.");
         }
 
         if (!account.IsRegister()) {
@@ -864,7 +864,7 @@ Value createdelegatetxraw(const Array& params, bool fHelp) {
 
         CUserID userId = keyid;
         if (!view.GetAccount(userId, account)) {
-			throw JSONRPCError(RPC_WALLET_ERROR, "in createdelegatetxraw Error: Account is not exist.");
+			throw JSONRPCError(RPC_WALLET_ERROR, "in createdelegatetxraw Error: Account does not exist.");
 		}
 
         if (!account.IsRegister()) {
@@ -2464,7 +2464,7 @@ Value registerscripttxraw(const Array& params, bool fHelp) {
 
 	CUserID userId = keyid;
 	if (!view.GetAccount(userId, account)) {
-		throw JSONRPCError(RPC_WALLET_ERROR, "in registerscripttxraw Error: Account is not exist.");
+		throw JSONRPCError(RPC_WALLET_ERROR, "in registerscripttxraw Error: Account does not exist.");
 	}
 
 	if (!account.IsRegister()) {
