@@ -68,7 +68,7 @@ public:
 	}
 
 	void print() const {
-		LogPrint("INFO", "COrphan(hash=%s, dPriority=%.1f, dFeePerKb=%.1f)\n", 
+		LogPrint("INFO", "COrphan(hash=%s, dPriority=%.1f, dFeePerKb=%.1f)\n",
 				ptx->GetHash().ToString(), dPriority, dFeePerKb);
 		for (const auto& hash : setDependsOn)
 			LogPrint("INFO", "   setDependsOn %s\n", hash.ToString());
@@ -618,7 +618,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet,CBlockIndex* pindexPrev,u
         }
 
 //        LogPrint("INFO", "Current charger delegate address=%s\n", minerAcct.keyID.ToAddress());
-        bool increatedfalg = false;
+        bool createdFlag = false;
         int64_t lasttime1;
         {
             LOCK2(cs_main, pwalletMain->cs_wallet);
@@ -628,16 +628,16 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet,CBlockIndex* pindexPrev,u
             if(pwalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey, true) ||
                     pwalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey)) {
                 lasttime1 = GetTimeMillis();
-                increatedfalg = CreatePosTx(currentTime, minerAcct, view, pblock);
-            }
+                createdFlag = CreatePosTx(currentTime, minerAcct, view, pblock);
+				LogPrint("MINER", "CreatePosTx %s, used time:%d ms, miner address=%s\n", createdFlag ? "success" : "failure", GetTimeMillis() - lasttime1, minerAcct.keyID.ToAddress());
+			}
         }
-		if (increatedfalg == true) {
-		    LogPrint("MINER","CreatePosTx used time:%d ms, miner address=%s\n", GetTimeMillis() - lasttime1, minerAcct.keyID.ToAddress());
+		if (createdFlag == true) {
 			SetThreadPriority(THREAD_PRIORITY_NORMAL);
 			{
 				lasttime1 = GetTimeMillis();
 				CheckWork(pblock, *pwallet);
-				LogPrint("MINER","CheckWork used time:%d ms\n",   GetTimeMillis() - lasttime1);
+				LogPrint("MINER", "CheckWork used time:%d ms\n",   GetTimeMillis() - lasttime1);
 			}
 			SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
