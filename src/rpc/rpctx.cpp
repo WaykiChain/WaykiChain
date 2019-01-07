@@ -2523,12 +2523,14 @@ Value sigstr(const Array& params, bool fHelp) {
 	string addr = params[1].get_str();
 	CKeyID keyid;
 	if (!GetKeyId(params[1].get_str(), keyid)) {
-		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to address Invalid  ");
+		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address invalid");
 	}
 	CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
 	std::shared_ptr<CBaseTransaction> pBaseTx;
 	stream >> pBaseTx;
-	CAccountViewCache view(*pAccountViewTip, true);
+	if (!pBaseTx.get()) {
+		return Value::null;
+	}
 	Object obj;
 	switch (pBaseTx.get()->nTxType) {
 	case COMMON_TX: {
