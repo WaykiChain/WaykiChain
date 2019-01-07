@@ -21,37 +21,37 @@ extern void SetMinerStatus(bool bstatue );
 //
 
 //int static FormatHashBlocks(void* pbuffer, unsigned int len) {
-//	unsigned char* pdata = (unsigned char*) pbuffer;
-//	unsigned int blocks = 1 + ((len + 8) / 64);
-//	unsigned char* pend = pdata + 64 * blocks;
-//	memset(pdata + len, 0, 64 * blocks - len);
-//	pdata[len] = 0x80;
-//	unsigned int bits = len * 8;
-//	pend[-1] = (bits >> 0) & 0xff;
-//	pend[-2] = (bits >> 8) & 0xff;
-//	pend[-3] = (bits >> 16) & 0xff;
-//	pend[-4] = (bits >> 24) & 0xff;
-//	return blocks;
+//  unsigned char* pdata = (unsigned char*) pbuffer;
+//  unsigned int blocks = 1 + ((len + 8) / 64);
+//  unsigned char* pend = pdata + 64 * blocks;
+//  memset(pdata + len, 0, 64 * blocks - len);
+//  pdata[len] = 0x80;
+//  unsigned int bits = len * 8;
+//  pend[-1] = (bits >> 0) & 0xff;
+//  pend[-2] = (bits >> 8) & 0xff;
+//  pend[-3] = (bits >> 16) & 0xff;
+//  pend[-4] = (bits >> 24) & 0xff;
+//  return blocks;
 //}
 
 static const unsigned int pSHA256InitState[8] = { 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f,
         0x9b05688c, 0x1f83d9ab, 0x5be0cd19 };
 
 //void SHA256Transform(void* pstate, void* pinput, const void* pinit) {
-//	SHA256_CTX ctx;
-//	unsigned char data[64];
+//  SHA256_CTX ctx;
+//  unsigned char data[64];
 //
-//	SHA256_Init(&ctx);
+//  SHA256_Init(&ctx);
 //
-//	for (int i = 0; i < 16; i++)
-//		((uint32_t*) data)[i] = ByteReverse(((uint32_t*) pinput)[i]);
+//  for (int i = 0; i < 16; i++)
+//      ((uint32_t*) data)[i] = ByteReverse(((uint32_t*) pinput)[i]);
 //
-//	for (int i = 0; i < 8; i++)
-//		ctx.h[i] = ((uint32_t*) pinit)[i];
+//  for (int i = 0; i < 8; i++)
+//      ctx.h[i] = ((uint32_t*) pinit)[i];
 //
-//	SHA256_Update(&ctx, data, sizeof(data));
-//	for (int i = 0; i < 8; i++)
-//		((uint32_t*) pstate)[i] = ctx.h[i];
+//  SHA256_Update(&ctx, data, sizeof(data));
+//  for (int i = 0; i < 8; i++)
+//      ((uint32_t*) pstate)[i] = ctx.h[i];
 //}
 
 // Some explaining would be appreciated
@@ -141,7 +141,7 @@ void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& 
         hashPrevBlock = pblock->GetHashPrevBlock();
     }
     ++nExtraNonce;
-//	unsigned int nHeight = pindexPrev->nHeight + 1; // Height first in coinbase required for block.version=2
+//  unsigned int nHeight = pindexPrev->nHeight + 1; // Height first in coinbase required for block.version=2
 //    pblock->vtx[0].vin[0].scriptSig = (CScript() << nHeight << CBigNum(nExtraNonce)) + COINBASE_FLAGS;
 //    assert(pblock->vtx[0].vin[0].scriptSig.size() <= 100);
 
@@ -361,9 +361,9 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
 
         if(!CheckSignScript(pBlock->SignatureHash(), pBlock->GetSignature(), account.PublicKey)) {
             if (!CheckSignScript(pBlock->SignatureHash(), pBlock->GetSignature(), account.MinerPKey)) {
-//				LogPrint("ERROR", "block verify fail\r\n");
-//				LogPrint("ERROR", "block hash:%s\n", pBlock->GetHash().GetHex());
-//				LogPrint("ERROR", "signature block:%s\n", HexStr(pBlock->vSignature.begin(), pBlock->vSignature.end()));
+//              LogPrint("ERROR", "block verify fail\r\n");
+//              LogPrint("ERROR", "block hash:%s\n", pBlock->GetHash().GetHex());
+//              LogPrint("ERROR", "signature block:%s\n", HexStr(pBlock->vSignature.begin(), pBlock->vSignature.end()));
                 return ERRORMSG("Verify miner publickey signature error");
             }
         }
@@ -496,7 +496,7 @@ CBlockTemplate* CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
                 CValidationState state;
                 if(pBaseTx->IsCoinBase()){
                     ERRORMSG("TX type is coin base tx error......");
-            //		assert(0); //never come here
+            //      assert(0); //never come here
                 }
                 if (CONTRACT_TX == pBaseTx->nTxType) {
                     LogPrint("vm", "tx hash=%s CreateNewBlock run contract\n", pBaseTx->GetHash().GetHex());
@@ -544,7 +544,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet) {
 
 
     //// debug print
-//	LogPrint("INFO","proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex(), hashTarget.GetHex());
+//  LogPrint("INFO","proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex(), hashTarget.GetHex());
     pblock->print(*pAccountViewTip);
     // LogPrint("INFO","generated %s\n", FormatMoney(pblock->vtx[0].vout[0].nValue));
 
@@ -555,13 +555,13 @@ bool CheckWork(CBlock* pblock, CWallet& wallet) {
             return ERRORMSG("CoinMiner : generated block is stale");
 
         // Remove key from key pool
-    //	reservekey.KeepKey();
+    //  reservekey.KeepKey();
 
         // Track how many getdata requests this block gets
-//		{
-//			LOCK(wallet.cs_wallet);
-//			wallet.mapRequestCount[pblock->GetHash()] = 0;
-//		}
+//      {
+//          LOCK(wallet.cs_wallet);
+//          wallet.mapRequestCount[pblock->GetHash()] = 0;
+//      }
 
         // Process this block the same as if we had received it from another node
         CValidationState state;
@@ -596,7 +596,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet,CBlockIndex* pindexPrev,u
             return (lasttime = GetTime());
         };
 
-        GetNextTimeAndSleep();	// max(pindexPrev->GetMedianTimePast() + 1, GetAdjustedTime());
+        GetNextTimeAndSleep();  // max(pindexPrev->GetMedianTimePast() + 1, GetAdjustedTime());
 
         vector<CAccount> vDelegatesAcctList;
         if(!GetDelegatesAcctList(vDelegatesAcctList)) {
@@ -670,7 +670,7 @@ void static CoinMiner(CWallet *pwallet,int targetConter) {
             return ;
     }
 
-	auto getCurrHeight = [&]() {
+    auto getCurrHeight = [&]() {
         LOCK(cs_main);
         return chainActive.Height();
     };
@@ -707,7 +707,7 @@ void static CoinMiner(CWallet *pwallet,int targetConter) {
             MineBlock(pblock, pwallet, pindexPrev, LastTrsa, accview, txCache, ScriptDbTemp);
 
             if (SysCfg().NetworkID() != MAIN_NET)
-                if(targetConter <= getCurrHeight())	{
+                if(targetConter <= getCurrHeight()) {
                         throw boost::thread_interrupted();
                 }
         }
@@ -723,14 +723,14 @@ void GenerateCoinBlock(bool fGenerate, CWallet* pwallet, int targetHeight) {
 
     if (minerThreads != NULL) {
         minerThreads->interrupt_all();
-//		minerThreads->join_all();
+//      minerThreads->join_all();
         delete minerThreads;
         minerThreads = NULL;
     }
 
     if(targetHeight <= 0 && fGenerate == true)
     {
-//		assert(0);
+//      assert(0);
         ERRORMSG("targetHeight, fGenerate value error");
         return ;
     }
@@ -740,5 +740,5 @@ void GenerateCoinBlock(bool fGenerate, CWallet* pwallet, int targetHeight) {
     minerThreads = new boost::thread_group();
     minerThreads->create_thread(boost::bind(&CoinMiner, pwallet, targetHeight));
 
-//	minerThreads->join_all();
+//  minerThreads->join_all();
 }
