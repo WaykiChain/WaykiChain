@@ -208,7 +208,7 @@ bool CheckSignScript(const uint256 & sigHash, const std::vector<unsigned char> s
 
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransaction *pBaseTx,
-		  bool fLimitFree, bool fRejectInsaneFee=false);
+          bool fLimitFree, bool fRejectInsaneFee=false);
 
 /** get transaction relate keyid **/
 
@@ -295,7 +295,7 @@ inline bool AllowFree(double dPriority)
     // Large (in bytes) low-priority (new, small-coin) transactions
     // need a fee.
    // return dPriority > COIN * 144 / 250;
-	return true;
+    return true;
 }
 
 // Context-independent validity checks
@@ -741,10 +741,10 @@ public:
 
         int64_t nTxSize(0);
         for(auto & pTx : block.vptx) {
-        	nTxSize += pTx->GetSerializeSize(SER_DISK, PROTOCOL_VERSION);
+            nTxSize += pTx->GetSerializeSize(SER_DISK, PROTOCOL_VERSION);
         }
 
-		dFeePerKb = double((nblockfee - block.GetFuel())) / (double(nTxSize / 1000.0));
+        dFeePerKb = double((nblockfee - block.GetFuel())) / (double(nTxSize / 1000.0));
 
         nVersion       = block.GetVersion();
         hashMerkleRoot = block.GetHashMerkleRoot();
@@ -778,7 +778,7 @@ public:
         CBlockHeader block;
         block.SetVersion(nVersion);
         if (pprev)
-        	block.SetHashPrevBlock(pprev->GetBlockHash());
+            block.SetHashPrevBlock(pprev->GetBlockHash());
         block.SetHashMerkleRoot(hashMerkleRoot);
         block.SetTime(nTime);
         block.SetNonce(nNonce);
@@ -788,8 +788,8 @@ public:
     }
 
     int64_t GetBlockFee() const {
-    		return nblockfee;
-    	}
+            return nblockfee;
+        }
 
     uint256 GetBlockHash() const
     {
@@ -870,7 +870,7 @@ public:
         if (!(nType & SER_GETHASH))
             READWRITE(VARINT(nVersion));
 
-    	READWRITE(nblockfee);
+        READWRITE(nblockfee);
         READWRITE(VARINT(nHeight));
         READWRITE(VARINT(nStatus));
         READWRITE(VARINT(nTx));
