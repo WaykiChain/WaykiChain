@@ -34,11 +34,11 @@
 #include <miniupnpc/upnperrors.h>
 
 #ifndef MINIUPNPC_VERSION
-#define MINIUPNPC_VERSION	"1.9"
+#define MINIUPNPC_VERSION   "1.9"
 #endif
 
 #ifndef MINIUPNPC_API_VERSION
-#define MINIUPNPC_API_VERSION	10
+#define MINIUPNPC_API_VERSION   10
 #endif
 
 #endif
@@ -148,20 +148,20 @@ void Shutdown()
 
         if (pwalletMain) {
             pwalletMain->SetBestChain(chainActive.GetLocator());
-        	bitdb.Flush(true);
+            bitdb.Flush(true);
         }
 
         if (pblocktree)
             pblocktree->Flush();
 
         if(pAccountViewTip)
-        	pAccountViewTip->Flush();
+            pAccountViewTip->Flush();
 
         if(pTxCacheTip)
-        	pTxCacheTip->Flush();
+            pTxCacheTip->Flush();
 
         if(pScriptDBTip)
-        	pScriptDBTip->Flush();
+            pScriptDBTip->Flush();
         delete pAccountViewTip; pAccountViewTip = NULL;
         delete pAccountViewDB; pAccountViewDB = NULL;
         delete pblocktree; pblocktree = NULL;
@@ -251,7 +251,8 @@ string HelpMessage(HelpMessageMode hmm)
     strUsage += "  -connect=<ip>          " + _("Connect only to the specified node(s)") + "\n";
     strUsage += "  -discover              " + _("Discover own IP address (default: 1 when listening and no -externalip)") + "\n";
     strUsage += "  -dns                   " + _("Allow DNS lookups for -addnode, -seednode and -connect") + " " + _("(default: 1)") + "\n";
-    strUsage += "  -dnsseed               " + _("Find peers using DNS lookup (default: 1 unless -connect)") + "\n";
+    strUsage += "  -dnsseed               " + _("Query for peer addresses via DNS lookup, if low on addresses (default: 1 unless -connect)") + "\n";
+    strUsage += "  -forcednsseed          " + _("Always query for peer addresses via DNS lookup (default: 0)") + "\n";
     strUsage += "  -externalip=<ip>       " + _("Specify your own public address") + "\n";
     strUsage += "  -listen                " + _("Accept connections from outside (default: 1 if no -proxy or -connect)") + "\n";
     strUsage += "  -maxconnections=<n>    " + _("Maintain at most <n> connections to peers (default: 125)") + "\n";
@@ -362,8 +363,8 @@ struct CImportingNow
     }
 
     ~CImportingNow() {
-    	assert(SysCfg().IsImporting() == true);
-    	SysCfg().SetImporting(false);
+        assert(SysCfg().IsImporting() == true);
+        SysCfg().SetImporting(false);
     }
 };
 
@@ -407,16 +408,16 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles)
     }
 
     // -loadblock=
-	for (const auto &path : vImportFiles) {
-		FILE *file = fopen(path.string().c_str(), "rb");
-		if (file) {
-			CImportingNow imp;
-			LogPrint("INFO", "Importing blocks file %s...\n", path.string());
-			LoadExternalBlockFile(file);
-		} else {
-			LogPrint("INFO", "Warning: Could not open blocks file %s\n", path.string());
-		}
-	}
+    for (const auto &path : vImportFiles) {
+        FILE *file = fopen(path.string().c_str(), "rb");
+        if (file) {
+            CImportingNow imp;
+            LogPrint("INFO", "Importing blocks file %s...\n", path.string());
+            LoadExternalBlockFile(file);
+        } else {
+            LogPrint("INFO", "Warning: Could not open blocks file %s\n", path.string());
+        }
+    }
 }
 
 
@@ -483,7 +484,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     CUIServer::StartServer();
 
     if(SysCfg().GetBoolArg("-ui", false)) {
-    	threadGroup.create_thread(ThreadSendMessageToUI);
+        threadGroup.create_thread(ThreadSendMessageToUI);
     }
     // ********************************************************* Step 2: parameter interactions
 
@@ -542,11 +543,11 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (nFD < MIN_CORE_FILEDESCRIPTORS)
         return InitError(_("Not enough file descriptors available."));
     if (nFD - MIN_CORE_FILEDESCRIPTORS < nMaxConnections)
-		nMaxConnections = nFD - MIN_CORE_FILEDESCRIPTORS;
+        nMaxConnections = nFD - MIN_CORE_FILEDESCRIPTORS;
 
     // ********************************************************* Step 3: parameter-to-internal-flags
 
-//	fDebug = !mapMultiArgs["-debug"].empty();
+//  fDebug = !mapMultiArgs["-debug"].empty();
 //    // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
 //    const vector<string>& categories = mapMultiArgs["-debug"];
 //    if (GetBoolArg("-nodebug", false) || find(categories.begin(), categories.end(), string("0")) != categories.end())
@@ -657,7 +658,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     LogPrint("INFO","Using data directory %s\n", strDataDir);
     printf("Using data directory %s\n", strDataDir.c_str());
     LogPrint("INFO","Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
-    printf("Using at most %i connections (		%i file descriptors available)\n", nMaxConnections, nFD);
+    printf("Using at most %i connections (      %i file descriptors available)\n", nMaxConnections, nFD);
     ostringstream strErrors;
 
 
@@ -674,58 +675,58 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (nSocksVersion != 4 && nSocksVersion != 5)
         return InitError(strprintf(_("Unknown -socks proxy version requested: %i"), nSocksVersion));
 
-	if (SysCfg().IsArgCount("-onlynet")) {
-		set<enum Network> nets;
-		vector<string> tmp = SysCfg().GetMultiArgs("-onlynet");
-		for (auto& snet : tmp) {
-			enum Network net = ParseNetwork(snet);
-			if (net == NET_UNROUTABLE)
-				return InitError(strprintf(_("Unknown network specified in -onlynet: '%s'"), snet));
-			nets.insert(net);
-		}
-		for (int n = 0; n < NET_MAX; n++) {
-			enum Network net = (enum Network) n;
-			if (!nets.count(net))
-				SetLimited(net);
-		}
-	}
+    if (SysCfg().IsArgCount("-onlynet")) {
+        set<enum Network> nets;
+        vector<string> tmp = SysCfg().GetMultiArgs("-onlynet");
+        for (auto& snet : tmp) {
+            enum Network net = ParseNetwork(snet);
+            if (net == NET_UNROUTABLE)
+                return InitError(strprintf(_("Unknown network specified in -onlynet: '%s'"), snet));
+            nets.insert(net);
+        }
+        for (int n = 0; n < NET_MAX; n++) {
+            enum Network net = (enum Network) n;
+            if (!nets.count(net))
+                SetLimited(net);
+        }
+    }
 
     CService addrProxy;
     bool fProxy = false;
-	if (SysCfg().IsArgCount("-proxy")) {
-		addrProxy = CService(SysCfg().GetArg("-proxy", ""), 9050);
-		if (!addrProxy.IsValid())
-			return InitError(strprintf(_("Invalid -proxy address: '%s'"), SysCfg().GetArg("-proxy", "")));
+    if (SysCfg().IsArgCount("-proxy")) {
+        addrProxy = CService(SysCfg().GetArg("-proxy", ""), 9050);
+        if (!addrProxy.IsValid())
+            return InitError(strprintf(_("Invalid -proxy address: '%s'"), SysCfg().GetArg("-proxy", "")));
 
-		if (!IsLimited(NET_IPV4))
-			SetProxy(NET_IPV4, addrProxy, nSocksVersion);
-		if (nSocksVersion > 4) {
-			if (!IsLimited(NET_IPV6))
-				SetProxy(NET_IPV6, addrProxy, nSocksVersion);
-			SetNameProxy(addrProxy, nSocksVersion);
-		}
-		fProxy = true;
-	}
+        if (!IsLimited(NET_IPV4))
+            SetProxy(NET_IPV4, addrProxy, nSocksVersion);
+        if (nSocksVersion > 4) {
+            if (!IsLimited(NET_IPV6))
+                SetProxy(NET_IPV6, addrProxy, nSocksVersion);
+            SetNameProxy(addrProxy, nSocksVersion);
+        }
+        fProxy = true;
+    }
 
     // -onion can override normal proxy, -noonion disables tor entirely
     // -tor here is a temporary backwards compatibility measure
-	if (SysCfg().IsArgCount("-tor"))
-		LogPrint("INFO", "Notice: option -tor has been replaced with -onion and will be removed in a later version.\n");
-	if (!(SysCfg().GetArg("-onion", "") == "0") && !(SysCfg().GetArg("-tor", "") == "0")
-			&& (fProxy || SysCfg().IsArgCount("-onion") || SysCfg().IsArgCount("-tor"))) {
-		CService addrOnion;
-		if (!SysCfg().IsArgCount("-onion") && !SysCfg().IsArgCount("-tor"))
-			addrOnion = addrProxy;
-		else
-			addrOnion =
-					SysCfg().IsArgCount("-onion") ?
-							CService(SysCfg().GetArg("-onion", ""), 9050) :
-							CService(SysCfg().GetArg("-tor", ""), 9050);
-		if (!addrOnion.IsValid())
-			return InitError(strprintf(_("Invalid -onion address: '%s'"), SysCfg().IsArgCount("-onion")?SysCfg().GetArg("-onion", ""):SysCfg().GetArg("-tor", "")));
-		SetProxy(NET_TOR, addrOnion, 5);
-		SetReachable(NET_TOR);
-	}
+    if (SysCfg().IsArgCount("-tor"))
+        LogPrint("INFO", "Notice: option -tor has been replaced with -onion and will be removed in a later version.\n");
+    if (!(SysCfg().GetArg("-onion", "") == "0") && !(SysCfg().GetArg("-tor", "") == "0")
+            && (fProxy || SysCfg().IsArgCount("-onion") || SysCfg().IsArgCount("-tor"))) {
+        CService addrOnion;
+        if (!SysCfg().IsArgCount("-onion") && !SysCfg().IsArgCount("-tor"))
+            addrOnion = addrProxy;
+        else
+            addrOnion =
+                    SysCfg().IsArgCount("-onion") ?
+                            CService(SysCfg().GetArg("-onion", ""), 9050) :
+                            CService(SysCfg().GetArg("-tor", ""), 9050);
+        if (!addrOnion.IsValid())
+            return InitError(strprintf(_("Invalid -onion address: '%s'"), SysCfg().IsArgCount("-onion")?SysCfg().GetArg("-onion", ""):SysCfg().GetArg("-tor", "")));
+        SetProxy(NET_TOR, addrOnion, 5);
+        SetReachable(NET_TOR);
+    }
 
     // see Step 2: parameter interactions for more information about these
     fNoListen = !SysCfg().GetBoolArg("-listen", true);
@@ -734,15 +735,15 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     bool fBound = false;
     if (!fNoListen) {
-		if (SysCfg().IsArgCount("-bind")) {
-			vector<string> tmp = SysCfg().GetMultiArgs("-bind");
-			for (const auto& strBind : tmp) {
-				CService addrBind;
-				if (!Lookup(strBind.c_str(), addrBind, GetListenPort(), false))
-					return InitError(strprintf(_("Cannot resolve -bind address: '%s'"), strBind));
-				fBound |= Bind(addrBind, (BF_EXPLICIT | BF_REPORT_ERROR));
-			}
-		}
+        if (SysCfg().IsArgCount("-bind")) {
+            vector<string> tmp = SysCfg().GetMultiArgs("-bind");
+            for (const auto& strBind : tmp) {
+                CService addrBind;
+                if (!Lookup(strBind.c_str(), addrBind, GetListenPort(), false))
+                    return InitError(strprintf(_("Cannot resolve -bind address: '%s'"), strBind));
+                fBound |= Bind(addrBind, (BF_EXPLICIT | BF_REPORT_ERROR));
+            }
+        }
         else {
             struct in_addr inaddr_any;
             inaddr_any.s_addr = INADDR_ANY;
@@ -753,21 +754,21 @@ bool AppInit2(boost::thread_group& threadGroup)
             return InitError(_("Failed to listen on any port. Use -listen=0 if you want this."));
     }
 
-	if (SysCfg().IsArgCount("-externalip")) {
-		vector<string> tmp = SysCfg().GetMultiArgs("-externalip");
-		for (const auto& strAddr : tmp) {
-			CService addrLocal(strAddr, GetListenPort(), fNameLookup);
-			if (!addrLocal.IsValid())
-				return InitError(strprintf(_("Cannot resolve -externalip address: '%s'"), strAddr));
-			AddLocal(CService(strAddr, GetListenPort(), fNameLookup), LOCAL_MANUAL);
-		}
-	}
+    if (SysCfg().IsArgCount("-externalip")) {
+        vector<string> tmp = SysCfg().GetMultiArgs("-externalip");
+        for (const auto& strAddr : tmp) {
+            CService addrLocal(strAddr, GetListenPort(), fNameLookup);
+            if (!addrLocal.IsValid())
+                return InitError(strprintf(_("Cannot resolve -externalip address: '%s'"), strAddr));
+            AddLocal(CService(strAddr, GetListenPort(), fNameLookup), LOCAL_MANUAL);
+        }
+    }
 
-	{
-		vector<string> tmp = SysCfg().GetMultiArgs("-seednode");
-		for (auto strDest : tmp)
-			AddOneShot(strDest);
-	}
+    {
+        vector<string> tmp = SysCfg().GetMultiArgs("-seednode");
+        for (auto strDest : tmp)
+            AddOneShot(strDest);
+    }
 
     // ********************************************************* Step 7: load block chain
 
@@ -796,7 +797,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 //        }
 //        if (linked)
 //        {
-//        	SysCfg().SetReIndex(true);
+//          SysCfg().SetReIndex(true);
 //        }
     }
 
@@ -823,18 +824,18 @@ bool AppInit2(boost::thread_group& threadGroup)
         RegisterWallet(pwalletMain);
 //      DBErrors nLoadWalletRet = pwalletMain->LoadWallet(false);
         pwalletMain->LoadWallet(false);
-    	} catch (std::exception &e) {
-    		cout<< "load wallet failed:"<<  e.what() << endl;
-    	}
+        } catch (std::exception &e) {
+            cout<< "load wallet failed:"<<  e.what() << endl;
+        }
 
     //load checkpoint
     SyncData::CSyncDataDb db;
-	if (db.InitializeSyncDataDb(GetDataDir() / "syncdata")) {
-		if (!Checkpoints::LoadCheckpoint()) {
-			LogPrint("INFO", "load check point error!\n");
-			return false;
-		}
-	}
+    if (db.InitializeSyncDataDb(GetDataDir() / "syncdata")) {
+        if (!Checkpoints::LoadCheckpoint()) {
+            LogPrint("INFO", "load check point error!\n");
+            return false;
+        }
+    }
 
     bool fLoaded = false;
     while (!fLoaded) {
@@ -868,8 +869,8 @@ bool AppInit2(boost::thread_group& threadGroup)
                 if (SysCfg().IsReindex())
                     pblocktree->WriteReindexing(true);
 
-				mempool.SetAccountViewDB(pAccountViewTip);
-				mempool.SetScriptDBViewDB(pScriptDBTip);
+                mempool.SetAccountViewDB(pAccountViewTip);
+                mempool.SetScriptDBViewDB(pScriptDBTip);
 
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");
@@ -894,13 +895,13 @@ bool AppInit2(boost::thread_group& threadGroup)
                     break;
                 }
 
-				if (!pTxCacheTip->LoadTransaction()) {
-					strLoadError = _("Error loading transaction cache database");
-				}
+                if (!pTxCacheTip->LoadTransaction()) {
+                    strLoadError = _("Error loading transaction cache database");
+                }
 
                 uiInterface.InitMessage(_("Verifying blocks..."));
                 if (!VerifyDB(SysCfg().GetArg("-checklevel", 3),
-                		SysCfg().GetArg("-checkblocks", 288))) {
+                        SysCfg().GetArg("-checkblocks", 288))) {
                     strLoadError = _("Corrupted block database detected");
                     break;
                 }
@@ -923,7 +924,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                     strLoadError + ".\n\n" + _("Do you want to rebuild the block database now?"),
                     "", CClientUIInterface::MSG_ERROR | CClientUIInterface::BTN_ABORT);
                 if (fRet) {
-                	SysCfg().SetReIndex(true);
+                    SysCfg().SetReIndex(true);
                     fRequestShutdown = false;
                 } else {
                     LogPrint("INFO","Aborted block database rebuild. Exiting.\n");
@@ -988,15 +989,15 @@ bool AppInit2(boost::thread_group& threadGroup)
     // check current chain according to checkpoint
     CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
     if(NULL != pcheckpoint)
-    	CheckActiveChain(pcheckpoint->nHeight, pcheckpoint->GetBlockHash());
+        CheckActiveChain(pcheckpoint->nHeight, pcheckpoint->GetBlockHash());
 
     vector<boost::filesystem::path> vImportFiles;
     if (SysCfg().IsArgCount("-loadblock"))
-	{
-		vector<string>tmp = SysCfg().GetMultiArgs("-loadblock");
-		for(auto strFile:tmp)
-			vImportFiles.push_back(strFile);
-	}
+    {
+        vector<string>tmp = SysCfg().GetMultiArgs("-loadblock");
+        for(auto strFile:tmp)
+            vImportFiles.push_back(strFile);
+    }
     threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles));
 
     // ********************************************************* Step 10: load peers
@@ -1032,19 +1033,19 @@ bool AppInit2(boost::thread_group& threadGroup)
     StartNode(threadGroup);
     // InitRPCMining is needed here so getwork/getblocktemplate in the GUI debug console works properly.
     InitRPCMining();
-	if (SysCfg().IsServer())
+    if (SysCfg().IsServer())
         StartRPCThreads();
 
 
     // Generate coins in the background
-	if (pwalletMain) {
-		GenerateCoinBlock(SysCfg().GetBoolArg("-gen", false), pwalletMain, SysCfg().GetArg("-genproclimit", -1));
-		pwalletMain->ResendWalletTransactions();
+    if (pwalletMain) {
+        GenerateCoinBlock(SysCfg().GetBoolArg("-gen", false), pwalletMain, SysCfg().GetArg("-genproclimit", -1));
+        pwalletMain->ResendWalletTransactions();
         threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pwalletMain->strWalletFile)));
 
        //resend unconfirmed tx
        threadGroup.create_thread(boost::bind(&ThreadRelayTx, pwalletMain));
-	}
+    }
     // ********************************************************* Step 12: finished
 
     uiInterface.InitMessage("initialize end");

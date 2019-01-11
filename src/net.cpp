@@ -301,7 +301,7 @@ bool IsReachable(const CNetAddr& addr)
 
 bool GetMyExternalIP2(const CService& addrConnect, const char* pszGet, const char* pszKeyword, CNetAddr& ipRet)
 {
-	LogPrint("GETMYIP", "GetMyExternalIP2 addrConnect:%s \n", addrConnect.ToString());
+    LogPrint("GETMYIP", "GetMyExternalIP2 addrConnect:%s \n", addrConnect.ToString());
     SOCKET hSocket;
     if (!ConnectSocket(addrConnect, hSocket))
         return ERRORMSG("GetMyExternalIP() : connection to %s failed", addrConnect.ToString());
@@ -368,14 +368,14 @@ bool GetMyExternalIP(CNetAddr& ipRet)
         // php file on their web server that prints the client IP:
         //  <?php echo $_SERVER["REMOTE_ADDR"]; ?>
 
-    	if (nHost == 1)
+        if (nHost == 1)
         {
             addrConnect = CService("91.198.22.70", 80); // checkip.dyndns.org blocked in CN though
             strszGet = string("GET / HTTP/1.1\r\n"
-            					 "Host: 91.198.22.70\r\n"
-            					 "User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)\r\n"
-            					 "Connection: close\r\n"
-            					 "\r\n");
+                                 "Host: 91.198.22.70\r\n"
+                                 "User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)\r\n"
+                                 "Connection: close\r\n"
+                                 "\r\n");
             if (nLookup == 1) //2nd-time lookup
             {
                 CService addrIP("checkip.dyndns.org", 80, true);
@@ -424,9 +424,9 @@ CCriticalSection CNode::cs_totalBytesSent;
 CNode* FindNode(const CNetAddr& ip)
 {
     LOCK(cs_vNodes);
-	for (auto pnode : vNodes)
-		if ((CNetAddr) pnode->addr == ip)
-			return (pnode);
+    for (auto pnode : vNodes)
+        if ((CNetAddr) pnode->addr == ip)
+            return (pnode);
     return NULL;
 }
 
@@ -534,11 +534,11 @@ void CNode::PushVersion()
 {
     int nBestHeight = g_signals.GetHeight().get_value_or(0);
 
-	#ifdef WIN32
-    	string os("windows");
-	#else
-    	string os("linux");
-	#endif
+    #ifdef WIN32
+        string os("windows");
+    #else
+        string os("linux");
+    #endif
     vector<string> comments;
     comments.push_back(os);
     /// when NTP implemented, change to just nTime = GetAdjustedTime()
@@ -840,11 +840,11 @@ void ThreadSocketHandler()
         SOCKET hSocketMax = 0;
         bool have_fds = false;
 
-		for (auto hListenSocket : vhListenSocket) {
-			FD_SET(hListenSocket, &fdsetRecv);
-			hSocketMax = max(hSocketMax, hListenSocket);
-			have_fds = true;
-		}
+        for (auto hListenSocket : vhListenSocket) {
+            FD_SET(hListenSocket, &fdsetRecv);
+            hSocketMax = max(hSocketMax, hListenSocket);
+            have_fds = true;
+        }
         {
             LOCK(cs_vNodes);
             for (auto pnode : vNodes)
@@ -1056,8 +1056,6 @@ void ThreadSocketHandler()
             for (auto pnode : vNodesCopy)
                 pnode->Release();
         }
-
-        MilliSleep(10);
     }
 }
 
@@ -1087,7 +1085,7 @@ void ThreadMapPort()
 #ifdef MAC_OSX
     devlist = upnpDiscover(2000, multicastif, minissdpdpath, 0, 0, 0, &error);
 #else
-	devlist = upnpDiscover(2000, multicastif, minissdpdpath, 0, 0, &error);
+    devlist = upnpDiscover(2000, multicastif, minissdpdpath, 0, 0, &error);
 #endif
 #endif
 
@@ -1189,6 +1187,18 @@ void MapPort(bool)
 
 void ThreadDNSAddressSeed()
 {
+    // goal: only query DNS seeds if address need is acute
+    if ((addrman.size() > 0) &&
+        (!SysCfg().GetBoolArg("-forcednsseed", false))) {
+        MilliSleep(11 * 1000);
+
+        LOCK(cs_vNodes);
+        if (vNodes.size() >= 2) {
+            LogPrint("INFO", "P2P peers available. Skipped DNS seeding.\n");
+            return;
+        }
+    }
+
     const vector<CDNSSeedData> &vSeeds = SysCfg().DNSSeeds();
     int found = 0;
 
