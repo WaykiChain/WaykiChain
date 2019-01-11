@@ -141,6 +141,7 @@ void RegisterNodeSignals(CNodeSignals& nodeSignals);
 void UnregisterNodeSignals(CNodeSignals& nodeSignals);
 
 void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd);
+void PushGetBlocksWithCondition(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd);
 
 /** Process an incoming block */
 bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBlockPos *dbp = NULL);
@@ -1042,6 +1043,7 @@ public:
 
     /** Return a CBlockLocator that refers to a block in this chain (by default the tip). */
     CBlockLocator GetLocator(const CBlockIndex *pindex = NULL) const;
+    CBlockLocator GetPrunedLocator(const CBlockIndex *pindex = NULL) const;
 
     /** Find the last common block between this chain and a locator. */
     CBlockIndex *FindFork(const CBlockLocator &locator) const;
