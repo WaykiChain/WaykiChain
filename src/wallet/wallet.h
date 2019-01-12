@@ -377,28 +377,6 @@ public:
 		return mapAccountTx.size();
 	}
 
-	bool AcceptToMemoryPool() {
-
-		vector<uint256> vhash;
-		for (auto& item : mapAccountTx) {
-//			const uint256& txid = item.first;
-			CValidationState state;
-			if (item.second->nTxType != REWARD_TX) {
-				if (!::AcceptToMemoryPool(mempool, state, const_cast<CBaseTransaction*>(item.second.get()), false,
-						false)) {
-					vhash.push_back(item.first);
-				}
-			} else {
-				vhash.push_back(item.first);
-			}
-		}
-
-		for (auto hash : vhash) {
-			mapAccountTx.erase(hash);
-		}
-		return true;
-	}
-
 	void RelayWalletTransaction() {
 		for (auto& item : mapAccountTx) {
 			if (item.second->nTxType != REWARD_TX) {

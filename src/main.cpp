@@ -790,12 +790,6 @@ int CMerkleTx::GetBlocksToMaturity() const
 }
 
 
-bool CMerkleTx::AcceptToMemoryPool(bool fLimitFree)
-{
-    CValidationState state;
-    return ::AcceptToMemoryPool(mempool, state, pTx.get(), fLimitFree, NULL);
-}
-
 int GetTxConfirmHeight(const uint256 &hash, CScriptDBViewCache &scriptDBCache) {
     if (SysCfg().IsTxIndex()) {
         CDiskTxPos postx;
@@ -1748,7 +1742,7 @@ bool static DisconnectTip(CValidationState &state) {
         list<std::shared_ptr<CBaseTransaction> > removed;
         CValidationState stateDummy;
         if (!ptx->IsCoinBase()) {
-            if (!AcceptToMemoryPool(mempool, stateDummy, ptx.get(), false, NULL)) {
+            if (!AcceptToMemoryPool(mempool, stateDummy, ptx.get(), false)) {
                 mempool.remove(ptx.get(), removed, true);
             } else
                 uiInterface.ReleaseTransaction(ptx->GetHash());
