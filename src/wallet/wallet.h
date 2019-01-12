@@ -377,14 +377,6 @@ public:
 		return mapAccountTx.size();
 	}
 
-	void RelayWalletTransaction() {
-		for (auto& item : mapAccountTx) {
-			if (item.second->nTxType != REWARD_TX) {
-				::RelayTransaction(const_cast<CBaseTransaction*>(item.second.get()), item.first);
-			}
-		}
-	}
-
 	bool WriteToDisk() {
 		return CWalletDB(pWallet->strWalletFile).WriteBlockTx(blockHash, *this);
 	}
