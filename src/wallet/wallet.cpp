@@ -415,7 +415,7 @@ std::tuple<bool, string> CWallet::CommitTransaction(CBaseTransaction *pTx) {
 	LogPrint("INFO", "CommitTransaction:\n%s", pTx->ToString(*pAccountViewTip));
 	{
 		CValidationState state;
-		if (!::AcceptToMemoryPool(mempool, state, pTx, true, NULL)) {
+		if (!::AcceptToMemoryPool(mempool, state, pTx, true)) {
 			// This must not fail. The transaction has already been signed and recorded.
 			LogPrint("INFO", "CommitTransaction() : Error: Transaction not valid %s \n",state.GetRejectReason());
 			return std::make_tuple (false,state.GetRejectReason());
