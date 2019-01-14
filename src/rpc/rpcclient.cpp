@@ -191,7 +191,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "getnewaddress"          && n > 0) ConvertTo<bool>(params[0]);
 
-    if (strMethod == "registeraccounttx"        && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "registaccounttx"        && n > 1) ConvertTo<int64_t>(params[1]); //for backward compatibility
+    if (strMethod == "registeraccounttx"      && n > 1) ConvertTo<int64_t>(params[1]);
  //   if (strMethod == "registeraccounttx"          && n > 2) ConvertTo<bool>(params[2]);
 
     if(strMethod == "createdelegatetx"        && n > 1) ConvertTo<Array>(params[1]);
