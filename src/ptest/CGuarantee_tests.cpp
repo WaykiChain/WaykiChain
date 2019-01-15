@@ -312,9 +312,9 @@ bool CGuaranteeTest::Register(unsigned char type)
     }
 	senddata.arbiterMoneyX = ARBITER_arbiterMoneyX;
 	senddata.overtimeMoneyYmax = ARBITER_overtimeMoneyYmax;
-	senddata.configMoneyZ = ARBITER_configMoneyZ;//0x8234567812345678
+	senddata.configMoneyZ = ARBITER_configMoneyZ; //0x8234567812345678
 	senddata.overtimeheightT = ARBITER_overtimeheightT;
-    strcpy(senddata.comment,"联系电话:13418656754");
+    strcpy(senddata.comment,"联系电话: 188888888888");
 
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
 	scriptData << senddata;
@@ -438,7 +438,7 @@ bool CGuaranteeTest::SendStartTrade()
 	senddata.moneyM = SEND_moneyM;
 	senddata.height = SEND_height;
 	strcpy(senddata.goods,"小米3手机");
-	strcpy(senddata.comment,"1个币买.联系电话:13418656754");
+	strcpy(senddata.comment,"联系电话: 188888888888");
 
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
 	scriptData << senddata;
