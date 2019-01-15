@@ -1020,7 +1020,7 @@ static int ExQueryAccountBalanceFunc(lua_State *L) {
 }
 
 /**
- *unsigned long GetTxConFirmHeight(const void * const txhash)
+ *unsigned long GetTxConfirmHeight(const void * const txhash)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个入参: hash,32个字节
  */
@@ -2202,6 +2202,7 @@ static const luaL_Reg mylib[] = { //
 		{"GetAccountPublickey",ExGetAccountPublickeyFunc},
 		{"QueryAccountBalance",ExQueryAccountBalanceFunc},
 		{"GetTxConfirmHeight",ExGetTxConfirmHeightFunc},
+		{"GetTxConFirmHeight",ExGetTxConfirmHeightFunc}, //for backward compatibility
 		{"GetBlockHash",ExGetBlockHashFunc},
 
 		{"GetCurRunEnvHeight",ExGetCurRunEnvHeightFunc},

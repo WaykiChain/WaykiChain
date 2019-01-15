@@ -195,7 +195,7 @@ Value getinfo(const Array& params, bool fHelp)
 
     Object obj;
     obj.push_back(Pair("version",       (int)CLIENT_VERSION));
-    string fullersion =strprintf("%s (%s)", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
+    string fullersion = strprintf("%s (%s)", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
     obj.push_back(Pair("fullversion",fullersion));
     obj.push_back(Pair("protocolversion",(int)PROTOCOL_VERSION));
 
@@ -221,8 +221,8 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("data directory",GetDataDir().string().c_str()));
 //    obj.push_back(Pair("block high",    chainActive.Tip()->nHeight));
     obj.push_back(Pair("tip block hash", chainActive.Tip()->GetBlockHash().ToString()));
-	obj.push_back(Pair("sync tip blocks", g_nSyncTipHeight));
-	obj.push_back(Pair("received blocks", (int) chainActive.Height()));
+	obj.push_back(Pair("syncheight", g_nSyncTipHeight));
+	obj.push_back(Pair("blocks", (int) chainActive.Height()));
 	obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     return obj;
