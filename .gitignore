@@ -5,6 +5,7 @@
 *.a
 *.dirstamp
 *.log
+*/.deps/
 .cproject
 .dirstamp
 Makefile
@@ -12,13 +13,15 @@ Makefile.in
 autom4te.cache/
 config.status
 configure
+qa/pull-tester/build-tests.sh
 src/coind
-*/.deps/
 src/obj/
 src/Makefile.in
+src/coin-config.h
 src/coin-config.h.in
-src/coin-config.h.in~
 src/ptest/Makefile.in
 src/stamp-h1
 src/test/Makefile.in
+share/qt/Info.plist
+share/setup.nsi
 autogen-coin-man.sh
