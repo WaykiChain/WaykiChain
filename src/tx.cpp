@@ -180,10 +180,8 @@ CRegID::CRegID(uint32_t nHeightIn, uint16_t nIndexIn) {
     vRegID.insert(vRegID.end(), BEGIN(nIndexIn), END(nIndexIn));
 }
 string CRegID::ToString() const {
-//  if(!IsEmpty())
-//  return ::HexStr(vRegID);
     if(!IsEmpty())
-      return  strprintf("%d-%d",nHeight,nIndex);
+      return  strprintf("%d-%d", nHeight, nIndex);
     return string(" ");
 }
 CKeyID CRegID::getKeyID(const CAccountViewCache &view)const
@@ -203,7 +201,6 @@ void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn) {
         clean();
     }
 }
-
 
 bool CBaseTransaction::IsValidHeight(int nCurrHeight, int nTxCacheHeight) const
 {

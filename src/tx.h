@@ -95,7 +95,7 @@ public:
 	CRegID(const vector<unsigned char> &vIn) ;
 	CRegID(uint32_t nHeight = 0, uint16_t nIndex = 0);
 
-	const vector<unsigned char> &GetVec6() const {assert(vRegID.size() ==6);return vRegID;}
+	const vector<unsigned char> &GetVec6() const {assert(vRegID.size() == 6); return vRegID;}
 	void SetRegID(const vector<unsigned char> &vIn) ;
     CKeyID getKeyID(const CAccountViewCache &view)const;
     uint32_t getHight()const { return nHeight;};

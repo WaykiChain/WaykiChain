@@ -66,29 +66,29 @@ bool CVmRunEvn::intial(shared_ptr<CBaseTransaction> & Tx, CAccountViewCache& vie
 	try {
 		stream >> vmScript;
 	} catch (exception& e) {
-		LogPrint("ERROR", "%s\r\n", "CVmScriptRun::intial() Unserialize to vmScript error");
+		LogPrint("ERROR", "%s\r\n", "CVmScriptRun::intial() Unserialize to vmScript error\n");
 		throw runtime_error("CVmScriptRun::intial() Unserialize to vmScript error:" + string(e.what()));
 	}
 
 	if (vmScript.IsValid() == false){
-		LogPrint("ERROR", "%s\r\n", "CVmScriptRun::intial() vmScript.IsValid error");
+		LogPrint("ERROR", "%s\r\n", "CVmScriptRun::intial() vmScript.IsValid error\n");
 		return false;
 	}
 	isCheckAccount = vmScript.IsCheckAccount();
 	if(secure->vContract.size() >=4*1024 ){
-		LogPrint("ERROR", "%s\r\n", "CVmScriptRun::intial() vContract context size lager 4096");
+		LogPrint("ERROR", "%s\r\n", "CVmScriptRun::intial() vContract context size lager 4096\n");
 		return false;
 	}
 
 	try {
 		pLua = std::make_shared<CVmlua>(vmScript.Rom, secure->vContract);
 	} catch (exception& e) {
-		LogPrint("ERROR", "%s\r\n", "CVmScriptRun::intial() CVmlua init error");
+		LogPrint("ERROR", "%s\r\n", "CVmScriptRun::intial() CVmlua init error\n");
 		return false;
 	}
 
 	//pVmRunEvn = this; //传CVmRunEvn对象指针给lmylib.cpp库使用
-	LogPrint("vm", "%s\r\n", "CVmScriptRun::intial() LUA");
+	LogPrint("vm", "%s\r\n", "CVmScriptRun::intial() LUA\n");
 
 	return true;
 }
@@ -111,7 +111,7 @@ tuple<bool, uint64_t, string> CVmRunEvn::run(shared_ptr<CBaseTransaction>& Tx, C
 		return std::make_tuple (false, 0, string("CVmRunEvn: Contract Tx fee too small\n"));
 	}
 	uint64_t maxstep = ((tx->llFees-CBaseTransaction::nMinTxFee)/ nBurnFactor) * 100;
-	
+
 	if(maxstep > MAX_BLOCK_RUN_STEP){
 		maxstep = MAX_BLOCK_RUN_STEP;
 	}
