@@ -123,8 +123,8 @@ static bool noui_SyncTx()
 				objTx.push_back(Pair("confirmHeight", pStartBlockIndex->nHeight));
 				objTx.push_back(Pair("confirmedtime", (int)pStartBlockIndex->nTime));
 				Object obj;
-				obj.push_back(Pair("type",     "SyncTx"));
-				obj.push_back(Pair("msg",  objTx));
+				obj.push_back(Pair("type", "SyncTx"));
+				obj.push_back(Pair("msg", objTx));
 				AddMessageToDeque(write_string(Value(std::move(obj)),true));
 			}
 		}
@@ -161,8 +161,8 @@ static bool noui_SyncTx()
 		arrayObj.push_back(objTx);
 
 		Object obj;
-		obj.push_back(Pair("type",     "SyncTx"));
-		obj.push_back(Pair("msg",   objTx));
+		obj.push_back(Pair("type", "SyncTx"));
+		obj.push_back(Pair("msg", objTx));
 		AddMessageToDeque(write_string(Value(std::move(obj)),true));
 	}
 	return true;
@@ -202,20 +202,20 @@ extern Object GetTxDetailJSON(const uint256& txhash);
 
 static bool noui_RevTransaction(const uint256 &hash){
 	Object obj;
-	obj.push_back(Pair("type",     "revtransaction"));
-	obj.push_back(Pair("transation",     GetTxDetailJSON(hash)));
+	obj.push_back(Pair("type", "revtransaction"));
+	obj.push_back(Pair("transaction",     GetTxDetailJSON(hash)));
 	AddMessageToDeque(write_string(Value(std::move(obj)),true));
 	return true;
 }
 
 static bool noui_RevAppTransaction(const CBlock *pBlock ,int nIndex){
 	Object obj;
-	obj.push_back(Pair("type",     "rev_app_transaction"));
+	obj.push_back(Pair("type", "rev_app_transaction"));
 	Object objTx = pBlock->vptx[nIndex].get()->ToJSON(*pAccountViewTip);
 	objTx.push_back(Pair("blockhash", pBlock->GetHash().GetHex()));
 	objTx.push_back(Pair("confirmHeight", (int) pBlock->GetHeight()));
 	objTx.push_back(Pair("confirmedtime", (int) pBlock->GetTime()));
-	obj.push_back(Pair("transation",     objTx));
+	obj.push_back(Pair("transaction", objTx));
 	AddMessageToDeque(write_string(Value(std::move(obj)),true));
 	return true;
 }

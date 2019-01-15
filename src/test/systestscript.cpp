@@ -495,7 +495,7 @@ public:
 		while (!IsMemoryPoolEmpty()) {
 			BOOST_CHECK(GenerateOneBlock());
 		}
-		cout << "new transation have been confirmed, current height:" << chainActive.Height() << endl;
+		cout << "new transaction have been confirmed, current height:" << chainActive.Height() << endl;
 		for(size_t i=0; i < vNewAddress.size(); i++) {
 			int nfee = GetRandomFee();
 			Value value1 = RegisterAccountTx(vNewAddress[i], nfee);

@@ -19,6 +19,8 @@ src/obj/
 src/Makefile.in
 src/coin-config.h
 src/coin-config.h.in
+src/coin-config.h.in~
+src/ptest/CGuarantee_tests.cpp
 src/ptest/Makefile.in
 src/stamp-h1
 src/test/Makefile.in

@@ -31,7 +31,7 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getaccountinfo 182808-1
     "UpdateHeight" : 0,
     "voteFundList" : [
     ],
-    "postion" : "inblock"
+    "position" : "inblock"
 }
 ```
 

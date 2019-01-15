@@ -18,7 +18,7 @@ using namespace json_spirit;
 
 
 /*
- * ≤‚ ‘µÿ÷∑º∞”‡∂Ó
+ * ÊµãËØïÂú∞ÂùÄÂèä‰ΩôÈ¢ù
  * */
 #if 0
 {
@@ -31,7 +31,7 @@ using namespace json_spirit;
     "CoinDays" : 0,
     "UpdateHeight" : 45433,
     "CurCoinDays" : 1457,
-    "postion" : "inblock"
+    "position" : "inblock"
 }
 {
     "Address" : "dcmWdcfxEjRXUHk8LpygtgDHTpixoo3kbd",
@@ -43,7 +43,7 @@ using namespace json_spirit;
     "CoinDays" : 0,
     "UpdateHeight" : 46859,
     "CurCoinDays" : 169,
-    "postion" : "inblock"
+    "position" : "inblock"
 }
 {
     "Address" : "dcnGLkGud6c5bZJSUghzxvCqV45SJEwRcH",
@@ -55,31 +55,31 @@ using namespace json_spirit;
     "CoinDays" : 0,
     "UpdateHeight" : 45130,
     "CurCoinDays" : 1691,
-    "postion" : "inblock"
+    "position" : "inblock"
 }
 #endif
 
 
 
-#define ADDR_SEND_A        "dcmCbKbAfKrofNz35MSFupxrx4Uwn3vgjL"  //π“µ•’ﬂA  220700009d05 ¬Úº“
+#define ADDR_SEND_A        "dcmCbKbAfKrofNz35MSFupxrx4Uwn3vgjL"  //ÊåÇÂçïËÄÖA  220700009d05 ‰π∞ÂÆ∂
 // 1826-1437
 
-#define ADDR_ACCEPT_B      "dcmWdcfxEjRXUHk8LpygtgDHTpixoo3kbd"  //Ω”µ•’ﬂB  220700000505 ¬Ùº“
+#define ADDR_ACCEPT_B      "dcmWdcfxEjRXUHk8LpygtgDHTpixoo3kbd"  //Êé•ÂçïËÄÖB  220700000505 ÂçñÂÆ∂
 // 1826-1285
 
-#define ADDR_ARBITRATION_C "dcnGLkGud6c5bZJSUghzxvCqV45SJEwRcH"  //÷Ÿ≤√’ﬂC   220700003904
+#define ADDR_ARBITRATION_C "dcnGLkGud6c5bZJSUghzxvCqV45SJEwRcH"  //‰ª≤Ë£ÅËÄÖC   220700003904
 // 1826-1081
 
-//const static char DeveloperAccount[6]="\x00\x00\x00\x00\x14\x00";//!<ø™∑¢’ﬂµÿ÷∑ID
+//const static char DeveloperAccount[6]="\x00\x00\x00\x00\x14\x00";//!<ÂºÄÂèëËÄÖÂú∞ÂùÄID
 //#define ADDR_DeveloperAccount   "dk2NNjraSvquD9b4SQbysVRQeFikA55HLi"   //RegID = "0-20"
 #define ADDR_DeveloperAccount   "DsSyKYzYBSgyEggq8o6SVD4DnPzETVbaUe"   //RegID = "86720-1"
 
 
-//#define ID_strAppRegId  "47301-1"    //Ω≈±æ”¶”√ID ¥˝ÃÓ
-//#define ID_strAppRegId  "47322-1"    //Ω≈±æ”¶”√ID ¥˝ÃÓ  47323
-//#define ID_strAppRegId  "47323-1"    //Ω≈±æ”¶”√ID ¥˝ÃÓ  47323
+//#define ID_strAppRegId  "47301-1"    //ËÑöÊú¨Â∫îÁî®ID ÂæÖÂ°´
+//#define ID_strAppRegId  "47322-1"    //ËÑöÊú¨Â∫îÁî®ID ÂæÖÂ°´  47323
+//#define ID_strAppRegId  "47323-1"    //ËÑöÊú¨Â∫îÁî®ID ÂæÖÂ°´  47323
 #define ID_strAppRegId  "47018-1"    //
-//#define HASH_sendhash     "7de1faafc2c9f14be5294f5f2b1082eaf92c7d66da5d42be1016e0988143318d"  //π“µ•Ωª“◊hash ¥˝ÃÓ
+//#define HASH_sendhash     "7de1faafc2c9f14be5294f5f2b1082eaf92c7d66da5d42be1016e0988143318d"  //ÊåÇÂçï‰∫§Êòìhash ÂæÖÂ°´
 static const unsigned char HASH_sendhash[] ={
 		0x14,0x96,0xb5,0xc0,0x3e,0xa9,0xa2,0x09,
 		0xf3,0x97,0x05,0x3a,0x4d,0x32,0xdc,0x4a,
@@ -89,18 +89,18 @@ static const unsigned char HASH_sendhash[] ={
 
 
 
-//!<÷Ÿ≤√’ﬂCµƒ≈‰÷√–≈œ¢
-#define ARBITER_arbiterMoneyX      (2 * 1000000)      //!<÷Ÿ≤√∑—”√X
-#define ARBITER_overtimeMoneyYmax  (1 * 100000000) //!<≥¨ ±Œ¥≈–æˆµƒ◊Ó¥Û≈‚≥•∑—”√Y
-#define ARBITER_configMoneyZ       (1 * 1000000)       //!<Œﬁ’˘“È≤√æˆ∑—”√Z
-#define ARBITER_overtimeheightT    (1 * 1440)  //!<≈–æˆ∆⁄œﬁ ±º‰T
+//!<‰ª≤Ë£ÅËÄÖCÁöÑÈÖçÁΩÆ‰ø°ÊÅØ
+#define ARBITER_arbiterMoneyX      (2 * 1000000)      //!<‰ª≤Ë£ÅË¥πÁî®X
+#define ARBITER_overtimeMoneyYmax  (1 * 100000000) //!<Ë∂ÖÊó∂Êú™Âà§ÂÜ≥ÁöÑÊúÄÂ§ßËµîÂÅøË¥πÁî®Y
+#define ARBITER_configMoneyZ       (1 * 1000000)       //!<Êó†‰∫âËÆÆË£ÅÂÜ≥Ë¥πÁî®Z
+#define ARBITER_overtimeheightT    (1 * 1440)  //!<Âà§ÂÜ≥ÊúüÈôêÊó∂Èó¥T
 
-//!<π“µ•’ﬂµƒ≈‰÷√–≈œ¢
-#define SEND_moneyM     (2 * 100000000)    //!<Ωª“◊Ω∂Ó
-#define SEND_height     (2 * 1440)       //!<√ø∏ˆΩª“◊ª∑Ω⁄µƒ≥¨ ±∏ﬂ∂»
+//!<ÊåÇÂçïËÄÖÁöÑÈÖçÁΩÆ‰ø°ÊÅØ
+#define SEND_moneyM     (2 * 100000000)    //!<‰∫§ÊòìÈáëÈ¢ù
+#define SEND_height     (2 * 1440)       //!<ÊØè‰∏™‰∫§ÊòìÁéØËäÇÁöÑË∂ÖÊó∂È´òÂ∫¶
 
-//#define  ARBITER_winnerMoney  (1 * 100000000) //!<≤√æˆ∫Û£¨”Æº“∑÷≈‰Ω∂Ó
-#define  ARBITER_winnerMoney  (198000000) //!<≤√æˆ∫Û£¨”Æº“∑÷≈‰Ω∂Ó
+//#define  ARBITER_winnerMoney  (1 * 100000000) //!<Ë£ÅÂÜ≥ÂêéÔºåËµ¢ÂÆ∂ÂàÜÈÖçÈáëÈ¢ù
+#define  ARBITER_winnerMoney  (198000000) //!<Ë£ÅÂÜ≥ÂêéÔºåËµ¢ÂÆ∂ÂàÜÈÖçÈáëÈ¢ù
 
 CGuaranteeTest::CGuaranteeTest():nNum(0), nStep(0), strTxHash(""), strAppRegId(ID_strAppRegId) {
 
@@ -111,13 +111,13 @@ TEST_STATE CGuaranteeTest::Run(){
 
 	cout<<"CGuaranteeTest run start"<<endl;
 #if 0
-    // ◊¢≤·ipoΩ≈±æ
+    // Ê≥®ÂÜåipoËÑöÊú¨
 	if(!RegistScript()){
 		cout<<"CGuaranteeTest RegistScript err"<<endl;
 		return end_state;
 	}
 
-	/// µ»¥˝ipoΩ≈±æ±ª»∑»œµΩblock÷–
+	/// Á≠âÂæÖipoËÑöÊú¨Ë¢´Á°ÆËÆ§Âà∞block‰∏≠
 	while(true)
 	{
 		if(WaitComfirmed(strTxHash, strAppRegId)) {
@@ -202,7 +202,7 @@ bool CGuaranteeTest::Recharge()
 	}
 
 #if 1
-	/// µ»¥˝Ωª“◊±ª»∑»œµΩblock÷–
+	/// Á≠âÂæÖ‰∫§ÊòìË¢´Á°ÆËÆ§Âà∞block‰∏≠
 	while(true)
 	{
 		if(WaitComfirmed(strTxHash, strAppRegId)) {
@@ -240,7 +240,7 @@ bool CGuaranteeTest::Withdraw()
     }
 
 #if 1
-/// µ»¥˝Ωª“◊±ª»∑»œµΩblock÷–
+/// Á≠âÂæÖ‰∫§ÊòìË¢´Á°ÆËÆ§Âà∞block‰∏≠
 while(true)
 {
 	if(WaitComfirmed(strTxHash, strAppRegId)) {
@@ -281,7 +281,7 @@ bool CGuaranteeTest::WithdrawSomemoney()
     }
 
 #if 1
-	/// µ»¥˝Ωª“◊±ª»∑»œµΩblock÷–
+	/// Á≠âÂæÖ‰∫§ÊòìË¢´Á°ÆËÆ§Âà∞block‰∏≠
 	while(true)
 	{
 		if(WaitComfirmed(strTxHash, strAppRegId)) {
@@ -314,7 +314,7 @@ bool CGuaranteeTest::Register(unsigned char type)
 	senddata.overtimeMoneyYmax = ARBITER_overtimeMoneyYmax;
 	senddata.configMoneyZ = ARBITER_configMoneyZ;//0x8234567812345678
 	senddata.overtimeheightT = ARBITER_overtimeheightT;
-    strcpy(senddata.comment,"¡™œµµÁª∞:13418656754");
+    strcpy(senddata.comment,"ËÅîÁ≥ªÁîµËØù:13418656754");
 
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
 	scriptData << senddata;
@@ -334,7 +334,7 @@ bool CGuaranteeTest::Register(unsigned char type)
 	    return false;
 	}
 #if 1
-	/// µ»¥˝Ωª“◊±ª»∑»œµΩblock÷–
+	/// Á≠âÂæÖ‰∫§ÊòìË¢´Á°ÆËÆ§Âà∞block‰∏≠
 	while(true)
 	{
 		if(WaitComfirmed(strTxHash, strAppRegId)) {
@@ -368,7 +368,7 @@ bool CGuaranteeTest::UnRegister()
 	    return false;
 	}
 #if 1
-	/// µ»¥˝Ωª“◊±ª»∑»œµΩblock÷–
+	/// Á≠âÂæÖ‰∫§ÊòìË¢´Á°ÆËÆ§Âà∞block‰∏≠
 	while(true)
 	{
 		if(WaitComfirmed(strTxHash, strAppRegId)) {
@@ -406,7 +406,7 @@ bool CGuaranteeTest::ArbitONOrOFF(unsigned char type)
 	    return false;
 	}
 #if 1
-	/// µ»¥˝Ωª“◊±ª»∑»œµΩblock÷–
+	/// Á≠âÂæÖ‰∫§ÊòìË¢´Á°ÆËÆ§Âà∞block‰∏≠
 	while(true)
 	{
 		if(WaitComfirmed(strTxHash, strAppRegId)) {
@@ -426,19 +426,19 @@ bool CGuaranteeTest::SendStartTrade()
 	TX_SNED_CONTRACT senddata;
 	memset(&senddata,0,sizeof(senddata));
 	senddata.type = TX_SEND;
-//	senddata.sendType = SEND_TYPE_BUY;   //¥˝–ﬁ∏ƒ π“µ•¿‡–Õ
-	senddata.sendType = SEND_TYPE_SELL;   //¥˝–ﬁ∏ƒ π“µ•¿‡–Õ
+//	senddata.sendType = SEND_TYPE_BUY;   //ÂæÖ‰øÆÊîπ ÊåÇÂçïÁ±ªÂûã
+	senddata.sendType = SEND_TYPE_SELL;   //ÂæÖ‰øÆÊîπ ÊåÇÂçïÁ±ªÂûã
 
 //	string arbitationID = "47046-1";
-	unsigned int height = 1826;   //¥˝ÃÓ   ÷Ÿ≤√’ﬂID arbiterAddr_C
+	unsigned int height = 1826;   //ÂæÖÂ°´   ‰ª≤Ë£ÅËÄÖID arbiterAddr_C
 	unsigned short index = 1081;
 
 	memcpy(&senddata.arbitationID[0],&height,4);
     memcpy(&senddata.arbitationID[4],&index,2);
 	senddata.moneyM = SEND_moneyM;
 	senddata.height = SEND_height;
-	strcpy(senddata.goods,"–°√◊3 ÷ª˙");
-	strcpy(senddata.comment,"1∏ˆ±“¬Ú.¡™œµµÁª∞:13418656754");
+	strcpy(senddata.goods,"Â∞èÁ±≥3ÊâãÊú∫");
+	strcpy(senddata.comment,"1‰∏™Â∏Å‰π∞.ËÅîÁ≥ªÁîµËØù:13418656754");
 
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
 	scriptData << senddata;
@@ -448,9 +448,9 @@ bool CGuaranteeTest::SendStartTrade()
 	Value sendret;
     if(senddata.sendType == SEND_TYPE_BUY)
     {
-    	sendret= basetest.CreateContractTx(strAppRegId,ADDR_SEND_A,sendcontract,0,0,nTempSend); // ¥˝ÃÓ–¥
+    	sendret= basetest.CreateContractTx(strAppRegId,ADDR_SEND_A,sendcontract,0,0,nTempSend); // ÂæÖÂ°´ÂÜô
     }else{
-    	sendret= basetest.CreateContractTx(strAppRegId,ADDR_ACCEPT_B,sendcontract,0,0,nTempSend); // ¥˝ÃÓ–¥
+    	sendret= basetest.CreateContractTx(strAppRegId,ADDR_ACCEPT_B,sendcontract,0,0,nTempSend); // ÂæÖÂ°´ÂÜô
     }
 
 	if (basetest.GetHashFromCreatedTx(sendret, strTxHash)) {
@@ -462,7 +462,7 @@ bool CGuaranteeTest::SendStartTrade()
 		return false;
 	}
 #if 1
-		/// µ»¥˝Ωª“◊±ª»∑»œµΩblock÷–
+		/// Á≠âÂæÖ‰∫§ÊòìË¢´Á°ÆËÆ§Âà∞block‰∏≠
 		while(true)
 		{
 			if(WaitComfirmed(strTxHash, strAppRegId)) {
@@ -481,8 +481,8 @@ bool CGuaranteeTest::SendCancelTrade()
 	TX_CONTRACT senddata;
 	memset(&senddata,0,sizeof(senddata));
 	senddata.type = TX_CANCEL;
-//	memcpy(senddata.txhash, uint256S(HASH_sendhash).begin(), sizeof(senddata.txhash)); //¥˝ÃÓΩª“◊HASH
-	memcpy(senddata.txhash,HASH_sendhash, sizeof(senddata.txhash)); //¥˝ÃÓΩª“◊HASH
+//	memcpy(senddata.txhash, uint256S(HASH_sendhash).begin(), sizeof(senddata.txhash)); //ÂæÖÂ°´‰∫§ÊòìHASH
+	memcpy(senddata.txhash,HASH_sendhash, sizeof(senddata.txhash)); //ÂæÖÂ°´‰∫§ÊòìHASH
 	senddata.height = SEND_height;
 
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
@@ -490,8 +490,8 @@ bool CGuaranteeTest::SendCancelTrade()
 	string sendcontract = HexStr(scriptData);
 	uint64_t nTempSend = 0;
 	cout<<"SendCancelTrade data:"<<sendcontract.c_str()<<endl;
-	Value  sendret= basetest.CreateContractTx(strAppRegId,ADDR_SEND_A,sendcontract,0,0,nTempSend); // »°œ˚π“¬Úµ•
-//    Value  sendret= basetest.CreateContractTx(strAppRegId,ADDR_ACCEPT_B,sendcontract,0,0,nTempSend); //»°œ˚π“¬Ùµ•
+	Value  sendret= basetest.CreateContractTx(strAppRegId,ADDR_SEND_A,sendcontract,0,0,nTempSend); // ÂèñÊ∂àÊåÇ‰π∞Âçï
+//    Value  sendret= basetest.CreateContractTx(strAppRegId,ADDR_ACCEPT_B,sendcontract,0,0,nTempSend); //ÂèñÊ∂àÊåÇÂçñÂçï
 	if (basetest.GetHashFromCreatedTx(sendret, strTxHash)) {
 		nStep++;
 	}
@@ -500,7 +500,7 @@ bool CGuaranteeTest::SendCancelTrade()
 		return false;
 	}
 #if 1
-		/// µ»¥˝Ωª“◊±ª»∑»œµΩblock÷–
+		/// Á≠âÂæÖ‰∫§ÊòìË¢´Á°ÆËÆ§Âà∞block‰∏≠
 		while(true)
 		{
 			if(WaitComfirmed(strTxHash, strAppRegId)) {
@@ -519,7 +519,7 @@ bool CGuaranteeTest::AcceptTrade()
 	TX_CONTRACT senddata;
 	memset(&senddata,0,sizeof(senddata));
 	senddata.type = TX_ACCEPT;
-	memcpy(senddata.txhash,HASH_sendhash, sizeof(senddata.txhash)); //¥˝ÃÓΩª“◊HASH
+	memcpy(senddata.txhash,HASH_sendhash, sizeof(senddata.txhash)); //ÂæÖÂ°´‰∫§ÊòìHASH
 	senddata.height = SEND_height;
 
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
@@ -527,8 +527,8 @@ bool CGuaranteeTest::AcceptTrade()
 	string sendcontract = HexStr(scriptData);
 	uint64_t nTempSend = 0;
 	cout<<"AcceptTrade data:"<<sendcontract.c_str()<<endl;
-//	Value  sendret= basetest.CreateContractTx(strAppRegId,ADDR_ACCEPT_B,sendcontract,0,0,nTempSend);//¬Ùº“Ω”µ•
-	Value  sendret= basetest.CreateContractTx(strAppRegId,ADDR_SEND_A,sendcontract,0,0,nTempSend);//¬Úº“Ω”µ•
+//	Value  sendret= basetest.CreateContractTx(strAppRegId,ADDR_ACCEPT_B,sendcontract,0,0,nTempSend);//ÂçñÂÆ∂Êé•Âçï
+	Value  sendret= basetest.CreateContractTx(strAppRegId,ADDR_SEND_A,sendcontract,0,0,nTempSend);//‰π∞ÂÆ∂Êé•Âçï
 
 	if (basetest.GetHashFromCreatedTx(sendret, strTxHash)) {
 		nStep++;
@@ -538,7 +538,7 @@ bool CGuaranteeTest::AcceptTrade()
 		return false;
 	}
 #if 1
-		/// µ»¥˝Ωª“◊±ª»∑»œµΩblock÷–
+		/// Á≠âÂæÖ‰∫§ÊòìË¢´Á°ÆËÆ§Âà∞block‰∏≠
 		while(true)
 		{
 			if(WaitComfirmed(strTxHash, strAppRegId)) {
@@ -556,7 +556,7 @@ bool  CGuaranteeTest::DeliveryTrade(){
 		TX_CONTRACT senddata;
 		memset(&senddata,0,sizeof(senddata));
 		senddata.type = TX_DELIVERY;
-		memcpy(senddata.txhash,HASH_sendhash, sizeof(senddata.txhash)); //¥˝ÃÓΩª“◊HASH
+		memcpy(senddata.txhash,HASH_sendhash, sizeof(senddata.txhash)); //ÂæÖÂ°´‰∫§ÊòìHASH
 		senddata.height = SEND_height;
 
 		CDataStream scriptData(SER_DISK, CLIENT_VERSION);
@@ -564,7 +564,7 @@ bool  CGuaranteeTest::DeliveryTrade(){
 		string sendcontract = HexStr(scriptData);
 		uint64_t nTempSend = 0;
 		cout<<"DeliveryTrade data:"<<sendcontract.c_str()<<endl;
-		Value  sendret= basetest.CreateContractTx(strAppRegId,ADDR_ACCEPT_B,sendcontract,0,0,nTempSend);//¬Ùº“∑¢ªı
+		Value  sendret= basetest.CreateContractTx(strAppRegId,ADDR_ACCEPT_B,sendcontract,0,0,nTempSend);//ÂçñÂÆ∂ÂèëË¥ß
 
 		if (basetest.GetHashFromCreatedTx(sendret, strTxHash)) {
 			nStep++;
@@ -574,7 +574,7 @@ bool  CGuaranteeTest::DeliveryTrade(){
 			return false;
 		}
 	#if 1
-			/// µ»¥˝Ωª“◊±ª»∑»œµΩblock÷–
+			/// Á≠âÂæÖ‰∫§ÊòìË¢´Á°ÆËÆ§Âà∞block‰∏≠
 			while(true)
 			{
 				if(WaitComfirmed(strTxHash, strAppRegId)) {
@@ -593,7 +593,7 @@ bool CGuaranteeTest::BuyerConfirm()
 	TX_CONTRACT senddata;
 	memset(&senddata,0,sizeof(senddata));
 	senddata.type = TX_BUYERCONFIRM;
-	memcpy(senddata.txhash,HASH_sendhash, sizeof(senddata.txhash)); //¥˝ÃÓΩª“◊HASH
+	memcpy(senddata.txhash,HASH_sendhash, sizeof(senddata.txhash)); //ÂæÖÂ°´‰∫§ÊòìHASH
 	senddata.height = SEND_height;
 
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
@@ -601,7 +601,7 @@ bool CGuaranteeTest::BuyerConfirm()
 	string sendcontract = HexStr(scriptData);
 	uint64_t nTempSend = 0;
 	cout<<"BuyerConfirm data:"<<sendcontract.c_str()<<endl;
-	Value  sendret= basetest.CreateContractTx(strAppRegId,ADDR_SEND_A,sendcontract,0,0,nTempSend); //¥˝ÃÓ–¥
+	Value  sendret= basetest.CreateContractTx(strAppRegId,ADDR_SEND_A,sendcontract,0,0,nTempSend); //ÂæÖÂ°´ÂÜô
 
 	if (basetest.GetHashFromCreatedTx(sendret, strTxHash)) {
 		nStep++;
@@ -611,7 +611,7 @@ bool CGuaranteeTest::BuyerConfirm()
 		return false;
 	}
 #if 1
-		/// µ»¥˝Ωª“◊±ª»∑»œµΩblock÷–
+		/// Á≠âÂæÖ‰∫§ÊòìË¢´Á°ÆËÆ§Âà∞block‰∏≠
 		while(true)
 		{
 			if(WaitComfirmed(strTxHash, strAppRegId)) {
@@ -631,10 +631,10 @@ bool CGuaranteeTest::Arbitration()
    TX_Arbitration senddata;
 	memset(&senddata,0,sizeof(senddata));
 	senddata.type = TX_ARBITRATION;
-	memcpy(senddata.txhash,HASH_sendhash, sizeof(senddata.txhash)); //¥˝ÃÓΩª“◊HASH
+	memcpy(senddata.txhash,HASH_sendhash, sizeof(senddata.txhash)); //ÂæÖÂ°´‰∫§ÊòìHASH
 	senddata.height = SEND_height;
 //	string arbitationID = "47046-1";
-	unsigned int height = 1826;   //¥˝ÃÓ   ÷Ÿ≤√’ﬂID arbiterAddr_C
+	unsigned int height = 1826;   //ÂæÖÂ°´   ‰ª≤Ë£ÅËÄÖID arbiterAddr_C
 	unsigned short index = 1081;
 
 	memcpy(&senddata.arbitationID[0],&height,4);
@@ -646,7 +646,7 @@ bool CGuaranteeTest::Arbitration()
 	string sendcontract = HexStr(scriptData);
 	uint64_t nTempSend = 0;
 	cout<<"Arbitration data:"<<sendcontract.c_str()<<endl;
-	Value  sendret= basetest.CreateContractTx(strAppRegId,ADDR_SEND_A,sendcontract,0,0,nTempSend);// ¥˝ÃÓ–¥ ADDR_ARBITRATION_C
+	Value  sendret= basetest.CreateContractTx(strAppRegId,ADDR_SEND_A,sendcontract,0,0,nTempSend);// ÂæÖÂ°´ÂÜô ADDR_ARBITRATION_C
 
 	if (basetest.GetHashFromCreatedTx(sendret, strTxHash)) {
 		nStep++;
@@ -657,7 +657,7 @@ bool CGuaranteeTest::Arbitration()
 		return false;
 	}
 #if 1
-		/// µ»¥˝Ωª“◊±ª»∑»œµΩblock÷–
+		/// Á≠âÂæÖ‰∫§ÊòìË¢´Á°ÆËÆ§Âà∞block‰∏≠
 		while(true)
 		{
 			if(WaitComfirmed(strTxHash, strAppRegId)) {
@@ -675,11 +675,11 @@ bool CGuaranteeTest::RunFinalResult()
 	TX_FINALRESULT_CONTRACT senddata;
 	memset(&senddata,0,sizeof(senddata));
 	senddata.type = TX_FINALRESULT;
-	memcpy(senddata.arbitHash, HASH_sendhash, sizeof(senddata.arbitHash)); //¥˝ÃÓΩª“◊HASH
+	memcpy(senddata.arbitHash, HASH_sendhash, sizeof(senddata.arbitHash)); //ÂæÖÂ°´‰∫§ÊòìHASH
 	senddata.overtimeheightT = ARBITER_overtimeheightT;
 
 //	string buyId = "1826-1437";
-	unsigned int height = 1826;   //¥˝ÃÓ   ”Æº“ ID ¬Úº“ ”Æ
+	unsigned int height = 1826;   //ÂæÖÂ°´   Ëµ¢ÂÆ∂ ID ‰π∞ÂÆ∂ Ëµ¢
 	unsigned short index = 1285;  //1437
 
     memcpy(&senddata.winner[0],&height,4);
@@ -687,11 +687,11 @@ bool CGuaranteeTest::RunFinalResult()
 	senddata.winnerMoney = ARBITER_winnerMoney;
 
 //	string sellerId = "1826-1285";
-	height = 1826;  //¥˝ÃÓ    ‰º“ID
+	height = 1826;  //ÂæÖÂ°´   ËæìÂÆ∂ID
 	index = 1437;  //1285
     memcpy(&senddata.loser[0],&height,4);
     memcpy(&senddata.loser[4],&index,2);
-	senddata.loserMoney = SEND_moneyM - ARBITER_winnerMoney;  //  Ωª“◊Ω∂ÓM - ”Æº“∑÷≈‰µƒ«Æ  ¥˝ÃÓ–¥
+	senddata.loserMoney = SEND_moneyM - ARBITER_winnerMoney;  //  ‰∫§ÊòìÈáëÈ¢ùM - Ëµ¢ÂÆ∂ÂàÜÈÖçÁöÑÈí±  ÂæÖÂ°´ÂÜô
 
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
 	scriptData << senddata;
@@ -709,7 +709,7 @@ bool CGuaranteeTest::RunFinalResult()
 		return false;
 	}
 #if 1
-		/// µ»¥˝Ωª“◊±ª»∑»œµΩblock÷–
+		/// Á≠âÂæÖ‰∫§ÊòìË¢´Á°ÆËÆ§Âà∞block‰∏≠
 		while(true)
 		{
 			if(WaitComfirmed(strTxHash, strAppRegId)) {
