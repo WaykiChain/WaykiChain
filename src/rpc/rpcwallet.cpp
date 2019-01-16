@@ -278,13 +278,13 @@ Value sendtoaddressraw(const Array& params, bool fHelp)
 	int size = params.size();
 	if (fHelp || size < 4 || size > 5 )
 		throw runtime_error(
-						"sendtoaddressraw \"height\" \"fee\" \"amount\" \"srcaddress\" \"recvaddress\"\n"
-						"\n create normal transaction by hegiht,fee,amount,srcaddress, recvaddress.\n"
+						"sendtoaddressraw \"fee\" \"amount\" \"src_address\" \"recv_address\" \"height\"\n"
+						"\n create common transaction by height: fee, amount, src_address, recv_address\n"
 						+ HelpRequiringPassphrase() + "\nArguments:\n"
 						"1. \"fee\"     (numeric, required)  \n"
 						"2. \"amount\"  (numeric, required)  \n"
-						"3. \"srcaddress\"  (string, required) The Coin address to send to.\n"
-						"4. \"recvaddress\"  (string, required) The Coin address to receive.\n"
+						"3. \"src_address\"  (string, required) The Coin address to send to.\n"
+						"4. \"recv_address\"  (string, required) The Coin address to receive.\n"
 						"5. \"height\"  (int, optional) \n"
 						"\nResult:\n"
 						"\"transactionid\"  (string) The transaction id.\n"

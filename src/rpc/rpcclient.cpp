@@ -216,17 +216,17 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "testnormaltx"           && n > 2) ConvertTo<int>(params[2]);
     if (strMethod == "testminer"              && n > 0) ConvertTo<int>(params[0]);
-    if (strMethod == "disconnectblock"        && n >0 ) ConvertTo<int>(params[0]);
+    if (strMethod == "disconnectblock"        && n > 0) ConvertTo<int>(params[0]);
 
     if (strMethod == "getoneaddr"             && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "getoneaddr"             && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "getoneaddr"             && n > 1) ConvertTo<bool>(params[1]);
-    if (strMethod == "getappdata"             && n ==3) ConvertTo<int>(params[1]);
+    if (strMethod == "getappdata"             && n == 3) ConvertTo<int>(params[1]);
     if (strMethod == "getappdata"             && n == 3) ConvertTo<int>(params[2]);
-    if (strMethod == "getappdataraw"          && n ==3) ConvertTo<int>(params[1]);
+    if (strMethod == "getappdataraw"          && n == 3) ConvertTo<int>(params[1]);
     if (strMethod == "getappdataraw"          && n == 3) ConvertTo<int>(params[2]);
-    if (strMethod == "getappconfirmdata"      && n>1) ConvertTo<int>(params[1]);
-    if (strMethod == "getappconfirmdata"      && n>2) ConvertTo<int>(params[2]);
+    if (strMethod == "getappconfirmdata"      && n > 1) ConvertTo<int>(params[1]);
+    if (strMethod == "getappconfirmdata"      && n > 2) ConvertTo<int>(params[2]);
     if (strMethod == "getp2pbetdata"          && n == 3) ConvertTo<int>(params[1]);
     if (strMethod == "getp2pbetdata"          && n == 3) ConvertTo<int>(params[2]);
 
@@ -234,15 +234,15 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "getblock"               && n > 0){ if(params[0].get_str().size()<32) ConvertTo<int>(params[0]);}
 
     if (strMethod == "sendtoaddressraw"       && n > 0)ConvertTo<double>(params[0]);
-    if (strMethod == "sendtoaddressraw"       && n>1)ConvertTo<double>(params[1]);
-    if (strMethod == "sendtoaddressraw"       && n >4)ConvertTo<int>(params[4]);
+    if (strMethod == "sendtoaddressraw"       && n > 1)ConvertTo<double>(params[1]);
+    if (strMethod == "sendtoaddressraw"       && n > 4)ConvertTo<int>(params[4]);
 
-    if (strMethod == "registeraccounttxraw"     && n >0)ConvertTo<double>(params[0]);
-    if (strMethod == "registeraccounttxraw"     && n >1)ConvertTo<int>(params[1]);
+    if (strMethod == "registeraccounttxraw"   && n > 0)ConvertTo<double>(params[0]);
+    if (strMethod == "registeraccounttxraw"   && n > 1)ConvertTo<int>(params[1]);
 
-    if (strMethod == "createcontracttxraw"    && n >0)ConvertTo<double>(params[0]);
-    if (strMethod == "createcontracttxraw"    && n >1)ConvertTo<double>(params[1]);
-    if (strMethod == "createcontracttxraw"    && n >5) ConvertTo<int>(params[5]);
+    if (strMethod == "createcontracttxraw"    && n > 0)ConvertTo<double>(params[0]);
+    if (strMethod == "createcontracttxraw"    && n > 1)ConvertTo<double>(params[1]);
+    if (strMethod == "createcontracttxraw"    && n > 5) ConvertTo<int>(params[5]);
 
     if (strMethod == "registerscripttxraw"    && n > 0)ConvertTo<double>(params[0]);
     if (strMethod == "registerscripttxraw"    && n > 2)ConvertTo<bool>(params[2]);
