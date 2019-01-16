@@ -141,7 +141,7 @@ Value importprivkey(const Array& params, bool fHelp)
 
     }
     Object reply2;
-    reply2.push_back(Pair("imorpt key address",pubkey.GetKeyID().ToAddress()));
+    reply2.push_back(Pair("imported_key_address",pubkey.GetKeyID().ToAddress()));
     return reply2;
 }
 
@@ -206,7 +206,7 @@ Value importwallet(const Array& params, bool fHelp)
 
 
     Object reply2;
-    reply2.push_back(Pair("imorpt key size",inmsizeport));
+    reply2.push_back(Pair("imported_key_size",inmsizeport));
     return reply2;
 
 

@@ -838,7 +838,7 @@ static int ExLogPrintFunc(lua_State *L) {
 
 
 /**
- *unsigned short GetAccounts(const unsigned char *txhash,void* const paccoutn,unsigned short maxlen)
+ *unsigned short GetAccounts(const unsigned char *txhash, void* const paccount, unsigned short maxlen)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 hash
  */
