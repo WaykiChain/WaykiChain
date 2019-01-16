@@ -67,20 +67,19 @@ static void stackDump(lua_State *L){
 static inline int RetRstToLua(lua_State *L,const vector<unsigned char> &ResultData )
 {
 	int len = ResultData.size();
-
 	len = len > LUA_C_BUFFER_SIZE ? LUA_C_BUFFER_SIZE : len;
-    if(len > 0)
-    {	//检测栈空间是否够
+	
+    if(len > 0) {	//检测栈空间是否够
     	if(lua_checkstack(L,len)){
 //			LogPrint("vm", "RetRstToLua value:%s\n",HexStr(ResultData).c_str());
 			for(int i = 0;i < len;i++){
-				lua_pushinteger(L,(lua_Integer)ResultData[i]);
+				lua_pushinteger(L, (lua_Integer) ResultData[i]);
 			}
 			return len ;
     	}else{
     		LogPrint("vm","%s\r\n", "RetRstToLua stack overflow");
     	}
-    }else{
+    } else {
     	LogPrint("vm","RetRstToLua err len = %d\r\n", len);
     }
     return  0;
@@ -90,12 +89,11 @@ static inline int RetRstToLua(lua_State *L,const vector<unsigned char> &ResultDa
 static inline int RetRstBooleanToLua(lua_State *L,bool flag)
 {
 	//检测栈空间是否够
-   if(lua_checkstack(L,sizeof(int)))
-   {
+   if (lua_checkstack(L,sizeof(int))) {
 //      LogPrint("vm", "RetRstBooleanToLua value:%d\n",flag);
 		lua_pushboolean(L,(int)flag);
 		return 1 ;
-   }else{
+   } else {
 	    LogPrint("vm","%s\r\n", "RetRstBooleanToLua stack overflow");
 		return 0;
    }
@@ -844,14 +842,12 @@ static int ExLogPrintFunc(lua_State *L) {
  */
 static int ExGetTxAccountsFunc(lua_State *L) {
 	vector<std::shared_ptr<vector<unsigned char> > > retdata;
-    if(!GetArray(L,retdata) ||retdata.size() != 1|| retdata.at(0).get()->size() != 32)
-    {
+    if (!GetArray(L,retdata) ||retdata.size() != 1|| retdata.at(0).get()->size() != 32) {
     	return RetFalse("ExGetTxAccountsFunc para err1");
     }
 
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-    {
+    if (NULL == pVmRunEvn) {
     	return RetFalse("pVmRunEvn is NULL");
     }
 
@@ -866,10 +862,10 @@ static int ExGetTxAccountsFunc(lua_State *L) {
 
 //	auto tem = make_shared<std::vector<vector<unsigned char> > >();
     int len = 0;
-	if (GetTransaction(pBaseTx, hash1, *pVmRunEvn->GetScriptDB(), false)) {
+	if ( GetTransaction(pBaseTx, hash1, *pVmRunEvn->GetScriptDB(), false) ) {
 		CTransaction *tx = static_cast<CTransaction*>(pBaseTx.get());
 		vector<unsigned char> item = boost::get<CRegID>(tx->srcRegId).GetVec6();
-		len = RetRstToLua(L,item);
+		len = RetRstToLua(L, item);
 	}
 	return len;
 }
