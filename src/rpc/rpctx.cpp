@@ -1063,9 +1063,9 @@ Value listtransactions(const Array& params, bool fHelp) {
 						double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
 						obj.push_back(Pair("amount", -dAmount));
 
-						obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockhigh));
-						obj.push_back(Pair("blockhash", (chainActive[accountTx.blockhigh]->GetBlockHash().GetHex())));
-						obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockhigh]->nTime)));
+						obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockHeight));
+						obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
+						obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
 						obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
 
 						if(item.second->nTxType == CONTRACT_TX) {
@@ -1089,9 +1089,9 @@ Value listtransactions(const Array& params, bool fHelp) {
 						double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
 						obj.push_back(Pair("amount", dAmount));
 
-						obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockhigh));
-						obj.push_back(Pair("blockhash", (chainActive[accountTx.blockhigh]->GetBlockHash().GetHex())));
-						obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockhigh]->nTime)));
+						obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockHeight));
+						obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
+						obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
 						obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
 
 						if(item.second->nTxType == CONTRACT_TX) {
@@ -1186,9 +1186,9 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
 
 				double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
 				obj.push_back(Pair("amount", dAmount));
-				obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - wtx.second.blockhigh));
-				obj.push_back(Pair("blockhash", (chainActive[wtx.second.blockhigh]->GetBlockHash().GetHex())));
-				obj.push_back(Pair("blocktime", (int64_t)(chainActive[wtx.second.blockhigh]->nTime)));
+				obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - wtx.second.blockHeight));
+				obj.push_back(Pair("blockhash", (chainActive[wtx.second.blockHeight]->GetBlockHash().GetHex())));
+				obj.push_back(Pair("blocktime", (int64_t)(chainActive[wtx.second.blockHeight]->nTime)));
 				obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
 				arrayData.push_back(obj);
 			}

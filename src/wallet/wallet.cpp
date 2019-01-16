@@ -695,25 +695,12 @@ CWallet* CWallet::getinstance() {
 Object CAccountTx::ToJsonObj(CKeyID const  &key) const {
 
 	Object obj;
-	obj.push_back(Pair("blockHash",  blockHash.ToString()));
-	obj.push_back(Pair("blockhigh",  blockhigh));
+	obj.push_back(Pair("blockHash", blockHash.ToString()));
+	obj.push_back(Pair("blockHeight", blockHeight));
 	Array Tx;
 	CAccountViewCache view(*pAccountViewTip, true);
 	for (auto const &re : mapAccountTx) {
-//		if (!key.IsEmpty()) {
-//			auto find = mapOperLog.find(re.first);
-//			if (find != mapOperLog.end()) {
-//				vector<CAccountOperLog>  rep = find->second;
-//				for (auto &te : rep) {
-//					if (te.keyID == key) {
-//						Tx.push_back(re.second.get()->ToString(view));
-//					}
-//				}
-//			}
-//		} else			//default add all tx to obj
-		{
-			Tx.push_back(re.second.get()->ToString(view));
-		}
+		Tx.push_back(re.second.get()->ToString(view));
 	}
 	obj.push_back(Pair("Tx", Tx));
 

@@ -314,18 +314,14 @@ private:
 
 public:
 	uint256 blockHash;
-	int blockhigh;
-//	set<uint256> Txhash;
-
-
-
+	int blockHeight;
 	map<uint256, std::shared_ptr<CBaseTransaction> > mapAccountTx;
 public:
-	CAccountTx(CWallet* pwallet = NULL, uint256 hash = uint256(),int high = 0) {
+	CAccountTx(CWallet* pwallet = NULL, uint256 hash = uint256(), int height = 0) {
 		pWallet = pwallet;
 		blockHash = hash;
 		mapAccountTx.clear();
-		blockhigh = high;
+		blockHeight = height;
 	}
 
 	~CAccountTx() {
@@ -339,8 +335,8 @@ public:
 		}
 	}
 
-	bool AddTx(const uint256 &hash, const CBaseTransaction*pTx) {
-		switch (pTx->nTxType) {
+    bool AddTx(const uint256 &hash, const CBaseTransaction *pTx) {
+        switch (pTx->nTxType) {
 		case COMMON_TX:
 		case CONTRACT_TX:
 			mapAccountTx[hash] = std::make_shared<CTransaction>(pTx);
@@ -387,7 +383,7 @@ public:
 	IMPLEMENT_SERIALIZE
 	(
 			READWRITE(blockHash);
-			READWRITE(blockhigh);
+			READWRITE(blockHeight);
 			READWRITE(mapAccountTx);
 	)
 
