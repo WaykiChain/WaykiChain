@@ -810,24 +810,24 @@ void ServiceConnection(AcceptedConnection *conn)
             break;
         }
 
-//        // Check authorization
-//        if (mapHeaders.count("authorization") == 0)
-//        {
-//            conn->stream() << HTTPReply(HTTP_UNAUTHORIZED, "", false) << flush;
-//            break;
-//        }
-//        if (!HTTPAuthorized(mapHeaders))
-//        {
-//            LogPrint("INFO","ThreadRPCServer incorrect password attempt from %s\n", conn->peer_address_to_string());
-//            /* Deter brute-forcing short passwords.
-//               If this results in a DoS the user really
-//               shouldn't have their RPC port exposed. */
-//            if (SysCfg().GetArg("-rpcpassword", "").size() < 20)
-//                MilliSleep(250);
-//
-//            conn->stream() << HTTPReply(HTTP_UNAUTHORIZED, "", false) << flush;
-//            break;
-//        }
+       // Check authorization
+       if (mapHeaders.count("authorization") == 0)
+       {
+           conn->stream() << HTTPReply(HTTP_UNAUTHORIZED, "", false) << flush;
+           break;
+       }
+       if (!HTTPAuthorized(mapHeaders))
+       {
+           LogPrint("INFO","ThreadRPCServer incorrect password attempt from %s\n", conn->peer_address_to_string());
+           /* Deter brute-forcing short passwords.
+              If this results in a DoS the user really
+              shouldn't have their RPC port exposed. */
+           if (SysCfg().GetArg("-rpcpassword", "").size() < 20)
+               MilliSleep(250);
+
+           conn->stream() << HTTPReply(HTTP_UNAUTHORIZED, "", false) << flush;
+           break;
+       }
 
 // disable http keepalive for client-wallet connection to bypass connection threading bugs
 //        if (mapHeaders["connection"] == "close")
