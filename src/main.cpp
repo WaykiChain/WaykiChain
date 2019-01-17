@@ -443,7 +443,6 @@ CBlockIndex *CChain::SetTip(CBlockIndex *pindex) {
     while (pindex && vChain[pindex->nHeight] != pindex) {
         vChain[pindex->nHeight] = pindex;
         pindex = pindex->pprev;
-
     }
     return pindex;
 }
@@ -655,10 +654,10 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransact
     // is it already in the memory pool?
     uint256 hash = pBaseTx->GetHash();
     if (pool.exists(hash))
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s already in mempool\n", hash.GetHex()), REJECT_INVALID, "tx-already-in-mempool");
+        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s already in mempool", hash.GetHex()), REJECT_INVALID, "tx-already-in-mempool");
     // is it already confirmed in block
     if(uint256() != pTxCacheTip->IsContainTx(hash))
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s has been confirmed\n", hash.GetHex()), REJECT_INVALID, "tx-duplicate-confirmed");
+        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s has been confirmed", hash.GetHex()), REJECT_INVALID, "tx-duplicate-confirmed");
 
     if (pBaseTx->IsCoinBase())
         return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s is coin base tx, can't put into mempool", hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
@@ -1354,10 +1353,10 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &
 
     //load a block tx into cache transaction
     if (pindex->nHeight - SysCfg().GetTxCacheHeight() > 0) {
-        CBlockIndex *pReLoadBlockIndex = NULL;
+        CBlockIndex *pReLoadBlockIndex = pindex;
         int nCacheHeight = SysCfg().GetTxCacheHeight();
-        while (pindex && nCacheHeight -- > 0) {
-            pReLoadBlockIndex = pindex->pprev;
+        while (pReLoadBlockIndex && nCacheHeight -- > 0) {
+            pReLoadBlockIndex = pReLoadBlockIndex->pprev;
         }
         CBlock reLoadblock;
         if (!ReadBlockFromDisk(reLoadblock, pReLoadBlockIndex))
@@ -1627,11 +1626,11 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
 
     if (!txCache.AddBlockToCache(block))
             return state.Abort(_("Connect tip block failed add block tx to txcache"));
-    if(pindex->nHeight-SysCfg().GetTxCacheHeight() > 0) {
-        CBlockIndex *pDeleteBlockIndex = NULL;
+    if(pindex->nHeight - SysCfg().GetTxCacheHeight() > 0) {
+        CBlockIndex *pDeleteBlockIndex = pindex;
         int nCacheHeight = SysCfg().GetTxCacheHeight();
-        while (pindex && nCacheHeight -- > 0) {
-            pDeleteBlockIndex = pindex->pprev;
+        while (pDeleteBlockIndex && nCacheHeight -- > 0) {
+            pDeleteBlockIndex = pDeleteBlockIndex->pprev;
         }
         CBlock deleteBlock;
         if (!ReadBlockFromDisk(deleteBlock, pDeleteBlockIndex))
