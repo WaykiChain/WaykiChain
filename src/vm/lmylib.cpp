@@ -839,15 +839,15 @@ static int ExLogPrintFunc(lua_State *L) {
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 hash
  */
-static int ExGetTxAccountsFunc(lua_State *L) {
+static int ExGetTxRegIDFunc(lua_State *L) {
     vector<std::shared_ptr<vector<unsigned char> > > retdata;
     if (!GetArray(L, retdata) || retdata.size() != 1 || retdata.at(0).get()->size() != 32) {
-        return RetFalse("ExGetTxAccountsFunc, para error");
+        return RetFalse("ExGetTxRegIDFunc, para error");
     }
 
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
     if (NULL == pVmRunEvn) {
-        return RetFalse("ExGetTxAccountsFunc, pVmRunEvn is NULL");
+        return RetFalse("ExGetTxRegIDFunc, pVmRunEvn is NULL");
     }
 
     vector<unsigned char> vHash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
@@ -856,7 +856,7 @@ static int ExGetTxAccountsFunc(lua_State *L) {
     uint256 hash;
     ds >> hash;
 
-    LogPrint("vm","ExGetTxAccountsFunc, hash: %s\n", hash.GetHex().c_str());
+    LogPrint("vm","ExGetTxRegIDFunc, hash: %s\n", hash.GetHex().c_str());
     std::shared_ptr<CBaseTransaction> pBaseTx;
 
     int len = 0;
@@ -866,7 +866,7 @@ static int ExGetTxAccountsFunc(lua_State *L) {
             vector<unsigned char> item = boost::get<CRegID>(tx->srcRegId).GetVec6();
             len = RetRstToLua(L, item);
         } else {
-            return RetFalse("ExGetTxAccountsFunc, tx type error");
+            return RetFalse("ExGetTxRegIDFunc, tx type error");
         }
     }
 
@@ -2197,7 +2197,7 @@ static const luaL_Reg mylib[] = {
     {"VerifySignature", ExVerifySignatureFunc},
     {"LogPrint", ExLogPrintFunc},
     {"GetTxContracts", ExGetTxContractsFunc},
-    {"GetTxAccounts", ExGetTxAccountsFunc},
+    {"GetTxRegID", ExGetTxRegIDFunc},
     {"GetAccountPublickey", ExGetAccountPublickeyFunc},
     {"QueryAccountBalance", ExQueryAccountBalanceFunc},
     {"GetTxConfirmHeight", ExGetTxConfirmHeightFunc},
