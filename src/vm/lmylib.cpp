@@ -68,7 +68,7 @@ static inline int RetRstToLua(lua_State *L,const vector<unsigned char> &ResultDa
 {
 	int len = ResultData.size();
 	len = len > LUA_C_BUFFER_SIZE ? LUA_C_BUFFER_SIZE : len;
-	
+
     if(len > 0) {	//检测栈空间是否够
     	if(lua_checkstack(L,len)){
 //			LogPrint("vm", "RetRstToLua value:%s\n",HexStr(ResultData).c_str());
@@ -2194,6 +2194,7 @@ static const luaL_Reg mylib[] = { //
 		{"VerifySignature", ExVerifySignatureFunc },   //
 		{"LogPrint", ExLogPrintFunc },         //
 		{"GetTxContracts",ExGetTxContractsFunc},            //
+		
 		{"GetTxAccounts",ExGetTxAccountsFunc},
 		{"GetAccountPublickey",ExGetAccountPublickeyFunc},
 		{"QueryAccountBalance",ExQueryAccountBalanceFunc},

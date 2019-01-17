@@ -693,7 +693,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransact
             CTransaction *pTx = (CTransaction *) pBaseTx;
             if (pTx->llValues < CBaseTransaction::nMinTxFee) {
                 return state.DoS(0,
-                        ERRORMSG("AcceptToMemoryPool : tx %d transfer amount(%d) very small, you must send a min (%d)",
+                        ERRORMSG("AcceptToMemoryPool : tx %d transfer amount(%d) too small, you must send a min (%d)",
                                 hash.ToString(), pTx->llValues, CBaseTransaction::nMinTxFee), REJECT_DUST, "dust amount");
             }
         }
