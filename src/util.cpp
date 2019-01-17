@@ -1194,8 +1194,8 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime) {
 		}
 		if (SysCfg().IsDebug()) {
 			for (int64_t n : vSorted)
-				LogPrint("INFO", "%+d  ", n);
-			LogPrint("INFO", "|  ");
+				LogPrint("DEBUG", "%+d  ", n);
+			LogPrint("DEBUG", "|  ");
 		}
 		LogPrint("INFO", "nTimeOffset = %+d  (%+d minutes)\n", nTimeOffset, nTimeOffset / 60);
 	}
