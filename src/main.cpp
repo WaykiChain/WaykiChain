@@ -1551,7 +1551,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
     if(!view.GetAccount(pRewardTx->account, minerAcct)) {
         assert(0);
     }
-    LogPrint("INFO", "miner address=%s\n", minerAcct.keyID.ToAddress());
+    // LogPrint("INFO", "miner address=%s\n", minerAcct.keyID.ToAddress());
     //校验reward
     uint64_t llValidReward = block.GetFee() - block.GetFuel();
     if (pRewardTx->rewardValue != llValidReward) {

@@ -241,10 +241,11 @@ bool GetDelegatesAcctList(vector<CAccount> & vDelegatesAcctList) {
 }
 
 bool GetCurrentDelegate(const int64_t currentTime,  const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct) {
-    int64_t snot =  currentTime / SysCfg().GetTargetSpacing();
-    int miner = snot % IniCfg().GetDelegatesCfg();
+    int64_t slot =  currentTime / SysCfg().GetTargetSpacing();
+    int miner = slot % IniCfg().GetDelegatesCfg();
     delegateAcct = vDelegatesAcctList[miner];
-    LogPrint("INFO", "currentTime=%lld, snot=%d, miner=%d\n", currentTime, snot, miner);
+    LogPrint("DEBUG", "currentTime=%lld, slot=%d, miner=%d, minderAddr=%s\n", 
+        currentTime, slot, miner, delegateAcct.keyID.ToAddress());
     return true;
 }
 
