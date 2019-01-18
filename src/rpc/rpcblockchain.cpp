@@ -382,9 +382,9 @@ Value getappregid(const Array& params, bool fHelp)
 {
 	if (fHelp || params.size() != 1) {
 		throw runtime_error("getappregid \n"
-							"\nreturn an object containing regid and script\n"
+							"\nreturn an object with regid\n"
 							"\nArguments:\n"
-							"1. txhash   (string, required) the App Script publishing transaction hash.\n"
+							"1. txhash   (string, required) the App Script txid.\n"
 							"\nResult:\n"
 							"\nExamples:\n"
 							+ HelpExampleCli("getappregid", "5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG")
@@ -415,11 +415,11 @@ Value getappregid(const Array& params, bool fHelp)
 
 	nIndex = std::get<1>(ret);
 
-	CRegID striptID(BlockHeight, nIndex);
+	CRegID regID(BlockHeight, nIndex);
 
 	Object result;
-	result.push_back(Pair("regid:", striptID.ToString()));
-	result.push_back(Pair("script", HexStr(striptID.GetVec6())));
+	result.push_back(Pair("regid", regID.ToString()));
+	// result.push_back(Pair("script", HexStr(regID.GetVec6()))); 
 	return result;
 }
 
