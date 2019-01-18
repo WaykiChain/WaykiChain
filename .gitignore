@@ -14,6 +14,7 @@ autom4te.cache/
 config.status
 configure
 qa/pull-tester/build-tests.sh
+qa/pull-tester/run-bitcoind-for-test.sh
 src/coind
 src/obj/
 src/Makefile.in

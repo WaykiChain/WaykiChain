@@ -410,7 +410,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 
         CPubKey pubkey;
         if (!pwalletMain->GetPubKey(keyid, pubkey)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: not find key.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: local wallet key not found.");
         }
 
         CPubKey MinerPKey;
