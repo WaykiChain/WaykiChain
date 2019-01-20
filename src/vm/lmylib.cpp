@@ -777,15 +777,15 @@ static int ExVerifySignatureFunc(lua_State *L) {
     return RetRstBooleanToLua(L, rlt);
 }
 
-static int ExGetTxContractsFunc(lua_State *L) {
+static int ExGetTxContractFunc(lua_State *L) {
     vector<std::shared_ptr<vector<unsigned char> > > retdata;
     if (!GetArray(L, retdata) || retdata.size() != 1 || retdata.at(0).get()->size() != 32) {
-        return RetFalse("ExGetTxContractsFunc, para error");
+        return RetFalse("ExGetTxContractFunc, para error");
     }
 
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
     if (NULL == pVmRunEvn) {
-        return RetFalse("ExGetTxContractsFunc, pVmRunEvn is NULL");
+        return RetFalse("ExGetTxContractFunc, pVmRunEvn is NULL");
     }
 
     vector<unsigned char> vHash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
@@ -793,7 +793,7 @@ static int ExGetTxContractsFunc(lua_State *L) {
     uint256 hash;
     ds >> hash;
 
-    LogPrint("vm", "ExGetTxContractsFunc, hash: %s\n", hash.GetHex().c_str());
+    LogPrint("vm", "ExGetTxContractFunc, hash: %s\n", hash.GetHex().c_str());
 
     std::shared_ptr<CBaseTransaction> pBaseTx;
     int len = 0;
@@ -802,7 +802,7 @@ static int ExGetTxContractsFunc(lua_State *L) {
             CTransaction *tx = static_cast<CTransaction *>(pBaseTx.get());
             len = RetRstToLua(L, tx->vContract);
         } else {
-            return RetFalse("ExGetTxContractsFunc, tx type error");
+            return RetFalse("ExGetTxContractFunc, tx type error");
         }
     }
 
@@ -2196,7 +2196,7 @@ static const luaL_Reg mylib[] = {
     {"Des", ExDesFunc},
     {"VerifySignature", ExVerifySignatureFunc},
     {"LogPrint", ExLogPrintFunc},
-    {"GetTxContracts", ExGetTxContractsFunc},
+    {"GetTxContract", ExGetTxContractFunc},
     {"GetTxRegID", ExGetTxRegIDFunc},
     {"GetAccountPublickey", ExGetAccountPublickeyFunc},
     {"QueryAccountBalance", ExQueryAccountBalanceFunc},
