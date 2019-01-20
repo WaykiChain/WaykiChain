@@ -152,7 +152,7 @@ public:
 		return 1000;
 	}
     int64_t GetTxFee()const;
-    int64_t SetDeflautTxFee(int64_t fee)const;
+    int64_t SetDefaultTxFee(int64_t fee)const;
 	virtual string GetDefaultTestDataPath() const
 	{
 		char findchar;

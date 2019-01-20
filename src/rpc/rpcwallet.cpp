@@ -1130,9 +1130,9 @@ Value settxfee(const Array& params, bool fHelp)
     if (fHelp || params.size() < 1 || params.size() > 1)
         throw runtime_error(
             "settxfee \"amount\"\n"
-            "\nSet the transaction fee per kB.\n"
+            "\nSet the default transaction fee per kB.\n"
             "\nArguments:\n"
-            "1. amount         (numeric, required) The transaction fee in BTC/kB rounded to the nearest 0.00000001\n"
+            "1. amount         (numeric, required) The transaction fee in WICC/kB rounded to the nearest 0.00000001\n"
             "\nResult\n"
             "true|false        (boolean) Returns true if successful\n"
             "\nExamples:\n"
@@ -1145,7 +1145,7 @@ Value settxfee(const Array& params, bool fHelp)
     if (params[0].get_real() != 0.0)
     {
        nAmount = AmountToRawValue(params[0]);        // rejects 0.0 amounts
-       SysCfg().SetDeflautTxFee(nAmount);
+       SysCfg().SetDefaultTxFee(nAmount);
     }
 
     return true;
