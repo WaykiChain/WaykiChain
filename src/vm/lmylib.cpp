@@ -777,34 +777,36 @@ static int ExVerifySignatureFunc(lua_State *L) {
     return RetRstBooleanToLua(L, rlt);
 }
 
-
 static int ExGetTxContractsFunc(lua_State *L) {
-
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
-    if(!GetArray(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != 32)
-    {
-        return RetFalse(string(__FUNCTION__)+"para  err !");
+    vector<std::shared_ptr<vector<unsigned char> > > retdata;
+    if (!GetArray(L, retdata) || retdata.size() != 1 || retdata.at(0).get()->size() != 32) {
+        return RetFalse("ExGetTxContractsFunc, para error");
     }
 
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-    {
-        return RetFalse("pVmRunEvn is NULL");
+    if (NULL == pVmRunEvn) {
+        return RetFalse("ExGetTxContractsFunc, pVmRunEvn is NULL");
     }
 
-    vector<unsigned char> vec_hash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
-    CDataStream tep1(vec_hash, SER_DISK, CLIENT_VERSION);
-    uint256 hash1;
-    tep1 >>hash1;
+    vector<unsigned char> vHash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
+    CDataStream ds(vHash, SER_DISK, CLIENT_VERSION);
+    uint256 hash;
+    ds >> hash;
+
+    LogPrint("vm", "ExGetTxContractsFunc, hash: %s\n", hash.GetHex().c_str());
 
     std::shared_ptr<CBaseTransaction> pBaseTx;
-
-    if (GetTransaction(pBaseTx, hash1, *pVmRunEvn->GetScriptDB(), false)) {
-        CTransaction *tx = static_cast<CTransaction*>(pBaseTx.get());
-         return RetRstToLua(L, tx->vContract);
+    int len = 0;
+    if (GetTransaction(pBaseTx, hash, *pVmRunEvn->GetScriptDB(), false)) {
+        if (pBaseTx->nTxType == CONTRACT_TX) {
+            CTransaction *tx = static_cast<CTransaction *>(pBaseTx.get());
+            len = RetRstToLua(L, tx->vContract);
+        } else {
+            return RetFalse("ExGetTxContractsFunc, tx type error");
+        }
     }
 
-    return 0;
+    return len;
 }
 
 /**
@@ -855,8 +857,8 @@ static int ExGetTxRegIDFunc(lua_State *L) {
     ds >> hash;
 
     LogPrint("vm","ExGetTxRegIDFunc, hash: %s\n", hash.GetHex().c_str());
-    std::shared_ptr<CBaseTransaction> pBaseTx;
 
+    std::shared_ptr<CBaseTransaction> pBaseTx;
     int len = 0;
     if (GetTransaction(pBaseTx, hash, *pVmRunEvn->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == COMMON_TX || pBaseTx->nTxType == CONTRACT_TX) {
