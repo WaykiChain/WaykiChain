@@ -167,7 +167,7 @@ Value getinfo(const Array& params, bool fHelp)
         	"  \"fullversion\": xxxxx,       (string) the server fullversion\n"
             "  \"protocolversion\": xxxxx,   (numeric) the protocol version\n"
             "  \"walletversion\": xxxxx,     (numeric) the wallet version\n"
-            "  \"balance\": xxxxxxx,         (numeric) the total Coin balance of the wallet\n"
+            "  \"balance\": xxxxxxx,         (numeric) the total coin balance of the wallet\n"
             "  \"blocks\": xxxxxx,           (numeric) the current number of blocks processed in the server\n"
             "  \"timeoffset\": xxxxx,        (numeric) the time offset\n"
             "  \"connections\": xxxxx,       (numeric) the number of connections\n"
@@ -209,11 +209,14 @@ Value getinfo(const Array& params, bool fHelp)
    
     obj.push_back(Pair("proxy",         (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
     obj.push_back(Pair("nettype",       name[SysCfg().NetworkID()]));
+	obj.push_back(Pair("genblock", 		SysCfg().GetArg("-gen", 0)));
     obj.push_back(Pair("chainwork", 	chainActive.Tip()->nChainWork.GetHex()));
     obj.push_back(Pair("tipblocktime", 	(int)chainActive.Tip()->nTime));
+
     if (pwalletMain && pwalletMain->IsCrypted())
 	 obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
-	 obj.push_back(Pair("paytxfee",      ValueFromAmount(SysCfg().GetTxFee())));
+	
+	obj.push_back(Pair("paytxfee",      ValueFromAmount(SysCfg().GetTxFee())));
 
     obj.push_back(Pair("relayfee",      ValueFromAmount(CTransaction::nMinRelayTxFee)));
     obj.push_back(Pair("fuelrate",     chainActive.Tip()->nFuelRate));
