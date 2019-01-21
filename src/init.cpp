@@ -104,7 +104,7 @@ enum BindFlags {
 // threads that should only be stopped after the main network-processing
 // threads have exited.
 //
-// Note that if running -daemon the parent process returns from AppInit2
+// Note that if running -daemon the parent process returns from AppInit
 // before adding any threads to the threadGroup, so .join_all() returns
 // immediately and the parent exits from main().
 //
@@ -424,7 +424,7 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles)
 /** Initialize Coin.
  *  @pre Parameters should be parsed and config file should be read.
  */
-bool AppInit2(boost::thread_group& threadGroup)
+bool AppInit(boost::thread_group& threadGroup)
 {
     // ********************************************************* Step 1: setup
 #ifdef _MSC_VER
@@ -492,47 +492,47 @@ bool AppInit2(boost::thread_group& threadGroup)
         // when specifying an explicit binding address, you want to listen on it
         // even when -connect or -proxy is specified
         if (SysCfg().SoftSetBoolArg("-listen", true))
-            LogPrint("INFO","AppInit2 : parameter interaction: -bind set -> setting -listen=1\n");
+            LogPrint("INFO","AppInit : parameter interaction: -bind set -> setting -listen=1\n");
     }
 
     if (SysCfg().IsArgCount("-connect") && SysCfg().GetMultiArgs("-connect").size() > 0) {
         // when only connecting to trusted nodes, do not seed via DNS, or listen by default
         if (SysCfg().SoftSetBoolArg("-dnsseed", false))
-            LogPrint("INFO","AppInit2 : parameter interaction: -connect set -> setting -dnsseed=0\n");
+            LogPrint("INFO","AppInit : parameter interaction: -connect set -> setting -dnsseed=0\n");
         if (SysCfg().SoftSetBoolArg("-listen", false))
-            LogPrint("INFO","AppInit2 : parameter interaction: -connect set -> setting -listen=0\n");
+            LogPrint("INFO","AppInit : parameter interaction: -connect set -> setting -listen=0\n");
     }
 
     if (SysCfg().IsArgCount("-proxy")) {
         // to protect privacy, do not listen by default if a default proxy server is specified
         if (SysCfg().SoftSetBoolArg("-listen", false))
-            LogPrint("INFO","AppInit2 : parameter interaction: -proxy set -> setting -listen=0\n");
+            LogPrint("INFO","AppInit : parameter interaction: -proxy set -> setting -listen=0\n");
     }
 
     if (!SysCfg().GetBoolArg("-listen", true)) {
         // do not map ports or try to retrieve public IP when not listening (pointless)
         if (SysCfg().SoftSetBoolArg("-upnp", false))
-            LogPrint("INFO","AppInit2 : parameter interaction: -listen=0 -> setting -upnp=0\n");
+            LogPrint("INFO","AppInit : parameter interaction: -listen=0 -> setting -upnp=0\n");
         if (SysCfg().SoftSetBoolArg("-discover", false))
-            LogPrint("INFO","AppInit2 : parameter interaction: -listen=0 -> setting -discover=0\n");
+            LogPrint("INFO","AppInit : parameter interaction: -listen=0 -> setting -discover=0\n");
     }
 
     if (SysCfg().IsArgCount("-externalip")) {
         // if an explicit public IP is specified, do not try to find others
         if (SysCfg().SoftSetBoolArg("-discover", false))
-            LogPrint("INFO","AppInit2 : parameter interaction: -externalip set -> setting -discover=0\n");
+            LogPrint("INFO","AppInit : parameter interaction: -externalip set -> setting -discover=0\n");
     }
 
     if (SysCfg().GetBoolArg("-salvagewallet", false)) {
         // Rewrite just private keys: rescan to find transactions
         if (SysCfg().SoftSetBoolArg("-rescan", true))
-            LogPrint("INFO","AppInit2 : parameter interaction: -salvagewallet=1 -> setting -rescan=1\n");
+            LogPrint("INFO","AppInit : parameter interaction: -salvagewallet=1 -> setting -rescan=1\n");
     }
 
     // -zapwallettx implies a rescan
     if (SysCfg().GetBoolArg("-zapwallettxes", false)) {
         if (SysCfg().SoftSetBoolArg("-rescan", true))
-            LogPrint("INFO","AppInit2 : parameter interaction: -zapwallettxes=1 -> setting -rescan=1\n");
+            LogPrint("INFO","AppInit : parameter interaction: -zapwallettxes=1 -> setting -rescan=1\n");
     }
 
     // Make sure enough file descriptors are available

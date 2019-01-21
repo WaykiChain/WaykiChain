@@ -115,7 +115,7 @@ bool AppInit(int argc, char* argv[],boost::thread_group &threadGroup) {
 
 		SysCfg().SoftSetBoolArg("-server", true);
 
-		fRet = AppInit2(threadGroup);
+		fRet = AppInit(threadGroup);
 	} catch (std::exception& e) {
 		PrintExceptionContinue(&e, "AppInit()");
 	} catch (...) {
