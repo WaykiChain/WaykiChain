@@ -95,7 +95,7 @@ bool AppInit(int argc, char* argv[],boost::thread_group &threadGroup) {
 					+ "  waykicoind [options] help                " + _("List commands") + "\n"
 					+ "  waykicoind [options] help <command>      " + _("Get help for a command") + "\n";
 
-			strUsage += "\n" + HelpMessage(HMM_BITCOIND);
+			strUsage += "\n" + HelpMessage();
 			strUsage += "\n" + HelpMessageCli(false);
 
 			fprintf(stdout, "%s", strUsage.c_str());
