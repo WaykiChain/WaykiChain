@@ -1728,20 +1728,22 @@ Value resetclient(const Array& params, bool fHelp) {
 
 Value listapp(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error("listapp \"showDetail\" \n"
+        throw runtime_error("listapp \"showDetail\"\n"
                 "\nget the list register script\n"
                 "\nArguments:\n"
-                "1. showDetail  (boolean, required)true to show scriptContent,otherwise to not show it.\n"
+                "1. showDetail  (boolean, required) true to show scriptContent, otherwise to not show it.\n"
                 "\nResult an object contain many script data\n"
                 "\nResult:\n"
-                "\nExamples:\n" + HelpExampleCli("listapp", "true") + HelpExampleRpc("listapp", "true"));
+                "\nExamples:\n"
+                + HelpExampleCli("listapp", "true")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("listapp", "true"));
     }
     bool showDetail = false;
     showDetail = params[0].get_bool();
     Object obj;
     Array arrayScript;
 
-//  CAccountViewCache view(*pAccountViewTip, true);
     if (pScriptDBTip != NULL) {
         int nCount(0);
         if (!pScriptDBTip->GetScriptCount(nCount))
@@ -1785,18 +1787,21 @@ Value getappinfo(const Array& params, bool fHelp) {
                 "getappinfo ( \"scriptid\" )\n"
                 "\nget app information.\n"
                 "\nArguments:\n"
-                "1. \"scriptid\"    (string). The script ID. \n"
+                "1. \"scriptid\"    (string, required) the script ID. \n"
                 "\nget app information in the systems\n"
-                "\nExamples:\n" + HelpExampleCli("getappinfo", "123-1") + HelpExampleRpc("getappinfo", "123-1"));
+                "\nExamples:\n"
+                + HelpExampleCli("getappinfo", "123-1")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("getappinfo", "123-1"));
 
     string strRegId = params[0].get_str();
     CRegID regid(strRegId);
     if (regid.IsEmpty() == true) {
-        throw runtime_error("in getappinfo :scriptid size is error!\n");
+        throw runtime_error("in getappinfo: scriptid size is error!\n");
     }
 
     if (!pScriptDBTip->HaveScript(regid)) {
-        throw runtime_error("in getappinfo :scriptid  is not exist!\n");
+        throw runtime_error("in getappinfo: scriptid  is not exist!\n");
     }
 
     vector<unsigned char> vScript;
