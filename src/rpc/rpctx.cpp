@@ -1752,7 +1752,6 @@ Value listapp(const Array& params, bool fHelp) {
         if (!pScriptDBTip->GetScript(0, regId, vScript))
             throw JSONRPCError(RPC_DATABASE_ERROR, "get script error: cannot get registered script.");
         script.push_back(Pair("scriptId", regId.ToString()));
-        script.push_back(Pair("scriptId2", HexStr(regId.GetVec6())));
         CDataStream ds(vScript, SER_DISK, CLIENT_VERSION);
         CVmScript vmScript;
         ds >> vmScript;
@@ -1765,7 +1764,6 @@ Value listapp(const Array& params, bool fHelp) {
         while (pScriptDBTip->GetScript(1, regId, vScript)) {
             Object obj;
             obj.push_back(Pair("scriptId", regId.ToString()));
-            obj.push_back(Pair("scriptId2", HexStr(regId.GetVec6())));
             CDataStream ds(vScript, SER_DISK, CLIENT_VERSION);
             CVmScript vmScript;
             ds >> vmScript;
@@ -1808,7 +1806,6 @@ Value getappinfo(const Array& params, bool fHelp) {
 
     Object obj;
     obj.push_back(Pair("scriptId", regid.ToString()));
-    obj.push_back(Pair("scriptId2", HexStr(regid.GetVec6())));
     CDataStream ds(vScript, SER_DISK, CLIENT_VERSION);
     CVmScript vmScript;
     ds >> vmScript;
