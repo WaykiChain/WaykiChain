@@ -627,7 +627,6 @@ bool AppInit(boost::thread_group& threadGroup)
 //    if (GetBoolArg("-shrinkdebugfile", !fDebug))
 //        ShrinkDebugFile();
 
-    LogPrint("INFO","\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     LogPrint("INFO","%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE);
     printf("%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE.c_str());
     LogPrint("INFO","Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));

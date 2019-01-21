@@ -1618,7 +1618,6 @@ Value gettxoperationlog(const Array& params, bool fHelp) {
 }
 
 static Value TestDisconnectBlock(int number) {
-//      CBlockIndex* pindex = chainActive.Tip();
     CBlock block;
     Object obj;
 
@@ -1628,9 +1627,8 @@ static Value TestDisconnectBlock(int number) {
     }
     if (number > 0) {
         do {
-            // check level 0: read from disk
             CBlockIndex * pTipIndex = chainActive.Tip();
-            LogPrint("vm", "current height:%d\n", pTipIndex->nHeight);
+            LogPrint("debug", "current height:%d\n", pTipIndex->nHeight);
             if (!DisconnectBlockFromTip(state))
                 return false;
             chainMostWork.SetTip(pTipIndex->pprev);
@@ -1665,7 +1663,7 @@ static Value TestDisconnectBlock(int number) {
 
 Value disconnectblock(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error("disconnectblock \"numbers\" \n"
+        throw runtime_error("disconnectblock \"numbers\"\n"
                 "\ndisconnect block\n"
                 "\nArguments:\n"
                 "1. \"numbers \"  (numeric, required) the block numbers.\n"
@@ -1673,7 +1671,8 @@ Value disconnectblock(const Array& params, bool fHelp) {
                 "\"disconnect result\"  (bool) \n"
                 "\nExamples:\n"
                 + HelpExampleCli("disconnectblock", "\"1\"")
-                + HelpExampleRpc("gettxoperationlog","\"1\""));
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("disconnectblock", "\"1\""));
     }
     int number = params[0].get_int();
 
@@ -1690,8 +1689,9 @@ Value resetclient(const Array& params, bool fHelp) {
                         "\nResult:\n"
                         "\nExamples:\n"
                         + HelpExampleCli("resetclient", "")
-                        + HelpExampleRpc("resetclient",""));
-        }
+                        + "\nAs json rpc call\n"
+                        + HelpExampleRpc("resetclient", ""));
+    }
     Value te = TestDisconnectBlock(chainActive.Tip()->nHeight);
 
     if (chainActive.Tip()->nHeight == 0) {
@@ -1732,7 +1732,7 @@ Value listapp(const Array& params, bool fHelp) {
                 "\nget the list register script\n"
                 "\nArguments:\n"
                 "1. showDetail  (boolean, required) true to show scriptContent, otherwise to not show it.\n"
-                "\nResult an object contain many script data\n"
+                "\nReturn an object contain many script data\n"
                 "\nResult:\n"
                 "\nExamples:\n"
                 + HelpExampleCli("listapp", "true")

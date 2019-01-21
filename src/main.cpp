@@ -51,7 +51,6 @@ CCriticalSection cs_main;
 
 CTxMemPool mempool;  //存放收到的未被执行,未收集到块的交易
 
-//static const unsigned int nStakeTargetSpacing = 60;  // 60 sec block spacing
 map<uint256, CBlockIndex*> mapBlockIndex;
 CChain chainActive;
 CChain chainMostWork;
