@@ -134,7 +134,6 @@ Value signmessage(const Array& params, bool fHelp)
     string strAddress = params[0].get_str();
     string strMessage = params[1].get_str();
 
-
     CKeyID keyID(strAddress);
     if (keyID.IsEmpty())
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
@@ -159,24 +158,24 @@ Value sendtoaddress(const Array& params, bool fHelp)
 	int size = params.size();
 	if (fHelp || (size != 2 && size != 3))
 		throw runtime_error(
-						"sendtoaddress (\"sendaddress\") \"recvaddress\" \"amount\"\n"
-						"\nSend an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001\n"
-						+ HelpRequiringPassphrase() + "\nArguments:\n"
-						"1. \"sendaddress\" (string, optional) The address where coins are sent from.\n"
-						"2. \"recvaddress\" (string, required) The address where coins are received.\n"
-						"3.\"amount\" (string, required) \n"
-						"\nResult:\n"
-						"\"transactionid\" (string) The transaction id.\n"
-						"\nExamples:\n"
-						+ HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
-						+ HelpExampleCli("sendtoaddress",
-						"\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"")
-						+ HelpExampleRpc("sendtoaddress",
-						"\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""
-						+ HelpExampleCli("sendtoaddress", "\"0-6\" 10 ")
-						+ HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 10 ")
-						+ HelpExampleCli("sendtoaddress", "\"0-6\" \"0-5\" 10 ")
-						+ HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" \"0-6\"10 ")));
+				"sendtoaddress (\"sendaddress\") \"recvaddress\" \"amount\"\n"
+				"\nSend an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001\n"
+				+ HelpRequiringPassphrase() + "\nArguments:\n"
+				"1. \"sendaddress\" (string, optional) The address where coins are sent from.\n"
+				"2. \"recvaddress\" (string, required) The address where coins are received.\n"
+				"3.\"amount\" (string, required) \n"
+				"\nResult:\n"
+				"\"transactionid\" (string) The transaction id.\n"
+				"\nExamples:\n"
+				+ HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
+				+ HelpExampleCli("sendtoaddress",
+				"\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"")
+				+ HelpExampleRpc("sendtoaddress",
+				"\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""
+				+ HelpExampleCli("sendtoaddress", "\"0-6\" 10 ")
+				+ HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 10 ")
+				+ HelpExampleCli("sendtoaddress", "\"0-6\" \"0-5\" 10 ")
+				+ HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" \"0-6\"10 ")));
 
 	EnsureWalletIsUnlocked();
 
@@ -241,25 +240,25 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
 	int size = params.size();
 	if (fHelp || (size != 3 && size != 4))
 		throw runtime_error(
-						"sendtoaddresswithfee (\"sendaddress\") \"recvaddress\" \"amount\" (fee)\n"
-						"\nSend an amount to a given address with fee. The amount is a real and is rounded to the nearest 0.00000001\n"
-						"\nArguments:\n"
-						"1.\"sendaddress\"  (string, optional) The Coin address to send to.\n"
-						"2.\"recvaddress\"  (string, required) The Coin address to receive.\n"
-						"3.\"amount\"       (string,required) \n"
-						"4.\"fee\"          (string,required) \n"
-						"\nResult:\n"
-						"\"transactionid\"  (string) The transaction id.\n"
-						"\nExamples:\n"
-						+ HelpExampleCli("sendtoaddresswithfee", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 10000000 1000")
-						+ HelpExampleCli("sendtoaddresswithfee",
-						"\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"")
-						+ HelpExampleRpc("sendtoaddresswithfee",
-						"\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""
-						+ HelpExampleCli("sendtoaddresswithfee", "\"0-6\" 10 ")
-						+ HelpExampleCli("sendtoaddresswithfee", "\"00000000000000000005\" 10 ")
-						+ HelpExampleCli("sendtoaddresswithfee", "\"0-6\" \"0-5\" 10 ")
-						+ HelpExampleCli("sendtoaddresswithfee", "\"00000000000000000005\" \"0-6\"10 ")));
+				"sendtoaddresswithfee (\"sendaddress\") \"recvaddress\" \"amount\" (fee)\n"
+				"\nSend an amount to a given address with fee. The amount is a real and is rounded to the nearest 0.00000001\n"
+				"\nArguments:\n"
+				"1.\"sendaddress\"  (string, optional) The Coin address to send to.\n"
+				"2.\"recvaddress\"  (string, required) The Coin address to receive.\n"
+				"3.\"amount\"       (string,required) \n"
+				"4.\"fee\"          (string,required) \n"
+				"\nResult:\n"
+				"\"transactionid\"  (string) The transaction id.\n"
+				"\nExamples:\n"
+				+ HelpExampleCli("sendtoaddresswithfee", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 10000000 1000")
+				+ HelpExampleCli("sendtoaddresswithfee",
+				"\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"")
+				+ HelpExampleRpc("sendtoaddresswithfee",
+				"\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""
+				+ HelpExampleCli("sendtoaddresswithfee", "\"0-6\" 10 ")
+				+ HelpExampleCli("sendtoaddresswithfee", "\"00000000000000000005\" 10 ")
+				+ HelpExampleCli("sendtoaddresswithfee", "\"0-6\" \"0-5\" 10 ")
+				+ HelpExampleCli("sendtoaddresswithfee", "\"00000000000000000005\" \"0-6\"10 ")));
 
 	EnsureWalletIsUnlocked();
 
@@ -361,29 +360,28 @@ Value sendtoaddressraw(const Array& params, bool fHelp)
 	int size = params.size();
 	if (fHelp || size < 4 || size > 5 )
 		throw runtime_error(
-						"sendtoaddressraw \"fee\" \"amount\" \"src_address\" \"recv_address\" \"height\"\n"
-						"\n create common transaction by height: fee, amount, src_address, recv_address\n"
-						+ HelpRequiringPassphrase() + "\nArguments:\n"
-						"1. \"fee\"     (numeric, required)  \n"
-						"2. \"amount\"  (numeric, required)  \n"
-						"3. \"src_address\"  (string, required) The Coin address to send to.\n"
-						"4. \"recv_address\"  (string, required) The Coin address to receive.\n"
-						"5. \"height\"  (int, optional) \n"
-						"\nResult:\n"
-						"\"transactionid\"  (string) The transaction id.\n"
-						"\nExamples:\n"
-						+ HelpExampleCli("sendtoaddressraw", "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
-						+ HelpExampleCli("sendtoaddressraw",
-						"100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"")
-						+ HelpExampleRpc("sendtoaddressraw",
-						"100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""
-						+ HelpExampleCli("sendtoaddressraw", "\"0-6\" 10 ")
-						+ HelpExampleCli("sendtoaddressraw", "100 1000 \"00000000000000000005\" 10 ")
-						+ HelpExampleCli("sendtoaddressraw", "100 1000 \"0-6\" \"0-5\" 10 ")
-						+ HelpExampleCli("sendtoaddressraw", "100 1000 \"00000000000000000005\" \"0-6\"10 ")));
+				"sendtoaddressraw \"fee\" \"amount\" \"src_address\" \"recv_address\" \"height\"\n"
+				"\n create common transaction by height: fee, amount, src_address, recv_address\n"
+				+ HelpRequiringPassphrase() + "\nArguments:\n"
+				"1. \"fee\"     (numeric, required)  \n"
+				"2. \"amount\"  (numeric, required)  \n"
+				"3. \"src_address\"  (string, required) The Coin address to send to.\n"
+				"4. \"recv_address\"  (string, required) The Coin address to receive.\n"
+				"5. \"height\"  (int, optional) \n"
+				"\nResult:\n"
+				"\"transactionid\"  (string) The transaction id.\n"
+				"\nExamples:\n"
+				+ HelpExampleCli("sendtoaddressraw", "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
+				+ HelpExampleCli("sendtoaddressraw",
+				"100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"")
+				+ HelpExampleRpc("sendtoaddressraw",
+				"100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""
+				+ HelpExampleCli("sendtoaddressraw", "\"0-6\" 10 ")
+				+ HelpExampleCli("sendtoaddressraw", "100 1000 \"00000000000000000005\" 10 ")
+				+ HelpExampleCli("sendtoaddressraw", "100 1000 \"0-6\" \"0-5\" 10 ")
+				+ HelpExampleCli("sendtoaddressraw", "100 1000 \"00000000000000000005\" \"0-6\"10 ")));
 
-	CKeyID sendKeyId;
-	CKeyID recvKeyId;
+	CKeyID sendKeyId, recvKeyId;
 
 	auto GetUserID = [](string const &addr, CUserID &userId) {
 		CRegID regId(addr);

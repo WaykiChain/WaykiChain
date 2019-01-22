@@ -329,8 +329,7 @@ int CommandLineRPC(int argc, char *argv[])
 string HelpMessageCli(bool mainProgram)
 {
     string strUsage;
-    if(mainProgram)
-    {
+    if (mainProgram) {
         strUsage += _("Options:") + "\n";
         strUsage += "  -?                     " + _("This help message") + "\n";
         strUsage += "  -conf=<file>           " + _("Specify configuration file (default: ")+IniCfg().GetCoinName()+".conf)" + "\n";
@@ -346,8 +345,7 @@ string HelpMessageCli(bool mainProgram)
     strUsage += "  -rpcport=<port>        " + _("Connect to JSON-RPC on <port> (default: 8332 or testnet: 18332)") + "\n";
     strUsage += "  -rpcwait               " + _("Wait for RPC server to start") + "\n";
 
-    if(mainProgram)
-    {
+    if (mainProgram) {
         strUsage += "  -rpcuser=<user>        " + _("Username for JSON-RPC connections") + "\n";
         strUsage += "  -rpcpassword=<pw>      " + _("Password for JSON-RPC connections") + "\n";
 

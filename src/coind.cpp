@@ -52,7 +52,7 @@ void DetectShutdownThread(boost::thread_group* threadGroup) {
 //
 // Start
 //
-bool AppInit(int argc, char* argv[],boost::thread_group &threadGroup) {
+bool AppInit(int argc, char* argv[], boost::thread_group &threadGroup) {
 //	boost::thread* detectShutdownThread = NULL;
 
 	bool fRet = false;
@@ -73,7 +73,7 @@ bool AppInit(int argc, char* argv[],boost::thread_group &threadGroup) {
 					+ "  coin [options] help                " + _("List commands") + "\n"
 					+ "  coin [options] help <command>      " + _("Get help for a command") + "\n";
 
-			strUsage += "\n" + HelpMessage(HMM_BITCOIND);
+			strUsage += "\n" + HelpMessage();
 			strUsage += "\n" + HelpMessageCli(false);
 
 			fprintf(stdout, "%s", strUsage.c_str());
@@ -117,15 +117,12 @@ bool AppInit(int argc, char* argv[],boost::thread_group &threadGroup) {
 #endif
 		SysCfg().SoftSetBoolArg("-server", true);
 
-
-		fRet = AppInit2(threadGroup);
+		fRet = AppInit(threadGroup);
 	} catch (std::exception& e) {
 		PrintExceptionContinue(&e, "AppInit()");
 	} catch (...) {
 		PrintExceptionContinue(NULL, "AppInit()");
 	}
-
-
 
 	return fRet;
 }
