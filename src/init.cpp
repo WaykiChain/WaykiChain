@@ -861,7 +861,6 @@ bool AppInit(boost::thread_group& threadGroup)
                 pTxCacheDB = new CTransactionDB(nTxCacheSize, false, SysCfg().IsReindex());
                 pTxCacheTip = new CTransactionDBCache(*pTxCacheDB,true);
                 pScriptDB = new CScriptDB(nScriptCacheSize, false , SysCfg().IsReindex());
-//                cout <<pScriptDB->GetDbCount() <<endl;
                 pScriptDBTip = new CScriptDBViewCache(*pScriptDB,true);
 
 

@@ -93,15 +93,15 @@ void CBlock::print(CAccountViewCache &view) const
         nTime,
         nNonce,
         vptx.size(), nFuel, nFuelRate);
-//	LogPrint("INFO","list transactions: \n");
-//    for (unsigned int i = 0; i < vptx.size(); i++)
-//    {
-//    	LogPrint("INFO","%s ", vptx[i]->ToString(view));
-//    }
-//    LogPrint("INFO","  vMerkleTree: ");
-//    for (unsigned int i = 0; i < vMerkleTree.size(); i++)
-//    	LogPrint("INFO","%s ", vMerkleTree[i].ToString());
-    LogPrint("INFO","\n");
+    // LogPrint("INFO", "list transactions:\n");
+    // for (unsigned int i = 0; i < vptx.size(); i++) {
+    //     LogPrint("INFO", "%s ", vptx[i]->ToString(view));
+    // }
+    // LogPrint("INFO", "  vMerkleTree: ");
+    // for (unsigned int i = 0; i < vMerkleTree.size(); i++) {
+    //     LogPrint("INFO", "%s ", vMerkleTree[i].ToString());
+    // }
+    // LogPrint("INFO","\n");
 }
 
 std::tuple<bool, int> CBlock::GetTxIndex(const uint256& txHash) const {
