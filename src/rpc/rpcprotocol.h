@@ -45,6 +45,7 @@ enum RPCErrorCode
     RPC_MISC_ERROR                  = -1,  // exception thrown in command handling
     RPC_FORBIDDEN_BY_SAFE_MODE      = -2,  // Server is in safe mode, and command is not allowed in safe mode
     RPC_TYPE_ERROR                  = -3,  // Unexpected type was passed as parameter
+    RPC_INSUFFICIENT_FEE            = -4,  // Fee less than Default Transaction Fee (E.g. 10000)
     RPC_INVALID_ADDRESS_OR_KEY      = -5,  // Invalid address or key
     RPC_OUT_OF_MEMORY               = -7,  // Ran out of memory during operation
     RPC_INVALID_PARAMETER           = -8,  // Invalid, missing or duplicate parameter
