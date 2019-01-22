@@ -299,12 +299,12 @@ LUA_API int (lua_isyieldable) (lua_State *L);
 ** garbage-collection function and options
 */
 
-#define LUA_GCSTOP      0
+#define LUA_GCSTOP          0
 #define LUA_GCRESTART       1
 #define LUA_GCCOLLECT       2
-#define LUA_GCCOUNT     3
+#define LUA_GCCOUNT         3
 #define LUA_GCCOUNTB        4
-#define LUA_GCSTEP      5
+#define LUA_GCSTEP          5
 #define LUA_GCSETPAUSE      6
 #define LUA_GCSETSTEPMUL    7
 #define LUA_GCISRUNNING     9
@@ -399,18 +399,18 @@ LUA_API void      (lua_setallocf) (lua_State *L, lua_Alloc f, void *ud);
 /*
 ** Event codes
 */
-#define LUA_HOOKCALL    0
-#define LUA_HOOKRET 1
-#define LUA_HOOKLINE    2
-#define LUA_HOOKCOUNT   3
-#define LUA_HOOKTAILCALL 4
+#define LUA_HOOKCALL        0
+#define LUA_HOOKRET         1
+#define LUA_HOOKLINE        2
+#define LUA_HOOKCOUNT       3
+#define LUA_HOOKTAILCALL    4
 
 
 /*
 ** Event masks
 */
 #define LUA_MASKCALL    (1 << LUA_HOOKCALL)
-#define LUA_MASKRET (1 << LUA_HOOKRET)
+#define LUA_MASKRET     (1 << LUA_HOOKRET)
 #define LUA_MASKLINE    (1 << LUA_HOOKLINE)
 #define LUA_MASKCOUNT   (1 << LUA_HOOKCOUNT)
 
@@ -440,20 +440,20 @@ LUA_API int (lua_gethookcount) (lua_State *L);
 
 struct lua_Debug {
   int event;
-  const char *name; /* (n) */
-  const char *namewhat; /* (n) 'global', 'local', 'field', 'method' */
-  const char *what; /* (S) 'Lua', 'C', 'main', 'tail' */
-  const char *source;   /* (S) */
-  int currentline;  /* (l) */
-  int linedefined;  /* (S) */
-  int lastlinedefined;  /* (S) */
-  unsigned char nups;   /* (u) number of upvalues */
-  unsigned char nparams;/* (u) number of parameters */
-  char isvararg;        /* (u) */
-  char istailcall;  /* (t) */
-  char short_src[LUA_IDSIZE]; /* (S) */
+  const char *name;             /* (n) */
+  const char *namewhat;         /* (n) 'global', 'local', 'field', 'method' */
+  const char *what;             /* (S) 'Lua', 'C', 'main', 'tail' */
+  const char *source;           /* (S) */
+  int currentline;              /* (l) */
+  int linedefined;              /* (S) */
+  int lastlinedefined;          /* (S) */
+  unsigned char nups;           /* (u) number of upvalues */
+  unsigned char nparams;        /* (u) number of parameters */
+  char isvararg;                /* (u) */
+  char istailcall;              /* (t) */
+  char short_src[LUA_IDSIZE];   /* (S) */
   /* private part */
-  struct CallInfo *i_ci;  /* active function */
+  struct CallInfo *i_ci;        /* active function */
 };
 
 /* }====================================================================== */
