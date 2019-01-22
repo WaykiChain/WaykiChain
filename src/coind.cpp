@@ -52,7 +52,7 @@ void DetectShutdownThread(boost::thread_group* threadGroup) {
 //
 // Start
 //
-bool AppInit(int argc, char* argv[],boost::thread_group &threadGroup) {
+bool AppInit(int argc, char* argv[], boost::thread_group &threadGroup) {
 //	boost::thread* detectShutdownThread = NULL;
 
 	bool fRet = false;
@@ -117,15 +117,12 @@ bool AppInit(int argc, char* argv[],boost::thread_group &threadGroup) {
 #endif
 		SysCfg().SoftSetBoolArg("-server", true);
 
-
 		fRet = AppInit(threadGroup);
 	} catch (std::exception& e) {
 		PrintExceptionContinue(&e, "AppInit()");
 	} catch (...) {
 		PrintExceptionContinue(NULL, "AppInit()");
 	}
-
-
 
 	return fRet;
 }
