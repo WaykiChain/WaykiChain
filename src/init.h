@@ -22,13 +22,6 @@ bool ShutdownRequested();
 void Shutdown();
 bool AppInit(boost::thread_group& threadGroup);
 
-/* The help message mode determines what help message to show */
-enum HelpMessageMode
-{
-    HMM_BITCOIND,
-    HMM_BITCOIN_QT
-};
-
-string HelpMessage(HelpMessageMode mode);
+string HelpMessage();
 
 #endif
