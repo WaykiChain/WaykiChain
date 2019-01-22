@@ -346,7 +346,8 @@ public:
         assert(CONTRACT_TX == pBaseTx->nTxType || COMMON_TX == pBaseTx->nTxType);
         *this = *(CTransaction *) pBaseTx;
     }
-    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee, uint64_t Value, int high, vector_unsigned_char& pContract)
+    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee, 
+        uint64_t Value, int height, vector_unsigned_char& pContract)
     {
         if (in_UserRegId.type() == typeid(CRegID)) {
             assert(!boost::get<CRegID>(in_UserRegId).IsEmpty());
@@ -358,12 +359,13 @@ public:
         srcRegId = in_UserRegId;
         desUserId = in_desUserId;
         vContract = pContract;
-        nValidHeight = high;
+        nValidHeight = height;
         llFees = Fee;
         llValues = Value;
         signature.clear();
     }
-    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee, uint64_t Value, int high)
+    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee, 
+        uint64_t Value, int height)
     {
         nTxType = COMMON_TX;
         if (in_UserRegId.type() == typeid(CRegID)) {
@@ -374,7 +376,7 @@ public:
         }
         srcRegId = in_UserRegId;
         desUserId = in_desUserId;
-        nValidHeight = high;
+        nValidHeight = height;
         llFees = Fee;
         llValues = Value;
         signature.clear();

@@ -102,8 +102,8 @@ public:
 			fLogPrintFileLine = GetBoolArg("-logprintfileline", false);
 		}
 		int64_t nTransactionFee ;
-		if(ParseMoney(GetArg("-paytxfee", ""), nTransactionFee) && nTransactionFee > 0){
-		paytxfee = nTransactionFee;
+		if (ParseMoney(GetArg("-paytxfee", ""), nTransactionFee) && nTransactionFee > 0) {
+			paytxfee = nTransactionFee;
 		}
 
 	   nIntervalPos = GetArg("-intervalpos", 1440);

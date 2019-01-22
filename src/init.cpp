@@ -104,7 +104,7 @@ enum BindFlags {
 // threads that should only be stopped after the main network-processing
 // threads have exited.
 //
-// Note that if running -daemon the parent process returns from AppInit2
+// Note that if running -daemon the parent process returns from AppInit
 // before adding any threads to the threadGroup, so .join_all() returns
 // immediately and the parent exits from main().
 //
@@ -220,21 +220,17 @@ bool static Bind(const CService &addr, unsigned int flags) {
 }
 
 // Core-specific options shared between UI, daemon and RPC client
-string HelpMessage(HelpMessageMode hmm)
-{
+string HelpMessage() {
     string strUsage = _("Options:") + "\n";
     strUsage += "  -?                     " + _("This help message") + "\n";
     strUsage += "  -alertnotify=<cmd>     " + _("Execute command when a relevant alert is received or we see a really long fork (%s in cmd is replaced by message)") + "\n";
     strUsage += "  -blocknotify=<cmd>     " + _("Execute command when the best block changes (%s in cmd is replaced by block hash)") + "\n";
     strUsage += "  -checkblocks=<n>       " + _("How many blocks to check at startup (default: 288, 0 = all)") + "\n";
     strUsage += "  -checklevel=<n>        " + _("How thorough the block verification of -checkblocks is (0-4, default: 3)") + "\n";
-    strUsage += "  -conf=<file>           " + _("Specify configuration file (default: ")+IniCfg().GetCoinName()+".conf)" + "\n";
-    if (hmm == HMM_BITCOIND)
-    {
+    strUsage += "  -conf=<file>           " + _("Specify configuration file (default: ") + IniCfg().GetCoinName()+".conf)" + "\n";
 #if !defined(WIN32)
-        strUsage += "  -daemon                " + _("Run in the background as a daemon and accept commands") + "\n";
+    strUsage += "  -daemon                " + _("Run in the background as a daemon and accept commands") + "\n";
 #endif
-    }
     strUsage += "  -datadir=<dir>         " + _("Specify data directory") + "\n";
     strUsage += "  -dbcache=<n>           " + strprintf(_("Set database cache size in megabytes (%d to %d, default: %d)"), nMinDbCache, nMaxDbCache, nDefaultDbCache) + "\n";
     strUsage += "  -loadblock=<file>      " + _("Imports blocks from external blk000??.dat file") + " " + _("on startup") + "\n";
@@ -288,8 +284,7 @@ string HelpMessage(HelpMessageMode hmm)
 #endif
 
     strUsage += "\n" + _("Debugging/Testing options:") + "\n";
-    if (SysCfg().GetBoolArg("-help-debug", false))
-    {
+    if (SysCfg().GetBoolArg("-help-debug", false)) {
         strUsage += "  -benchmark             " + _("Show benchmark information (default: 0)") + "\n";
         strUsage += "  -checkpoints           " + _("Only accept block chain matching built-in checkpoints (default: 1)") + "\n";
         strUsage += "  -dblogsize=<n>         " + _("Flush database activity from memory pool to disk log every <n> megabytes (default: 100)") + "\n";
@@ -302,26 +297,21 @@ string HelpMessage(HelpMessageMode hmm)
     strUsage += "  -debug=<category>      " + _("Output debugging information (default: 0, supplying <category> is optional)") + "\n";
     strUsage += "                         " + _("If <category> is not supplied, output all debugging information.") + "\n";
     strUsage += "                         " + _("<category> can be:");
-    strUsage +=                                 " addrman, alert, coindb, db, lock, rand, rpc, selectcoins, mempool, net"; // Don't translate these and qt below
-    if (hmm == HMM_BITCOIN_QT)
-        strUsage += ", qt";
-    strUsage += ".\n";
+    strUsage +=                                 " addrman, alert, coindb, db, lock, rand, rpc, selectcoins, mempool, net";
 #ifdef ENABLE_WALLET
     strUsage += "  -gen                   " + _("Generate coins (default: 0)") + "\n";
     strUsage += "  -genproclimit=<n>      " + _("Set the processor limit for when generation is on (-1 = unlimited, default: -1)") + "\n";
 #endif
     strUsage += "  -help-debug            " + _("Show all debugging options (usage: --help -help-debug)") + "\n";
     strUsage += "  -logtimestamps         " + _("Prepend debug output with timestamp (default: 1)") + "\n";
-    if (SysCfg().GetBoolArg("-help-debug", false))
-    {
+    if (SysCfg().GetBoolArg("-help-debug", false)) {
         strUsage += "  -limitfreerelay=<n>    " + _("Continuously rate-limit free transactions to <n>*1000 bytes per minute (default:15)") + "\n";
         strUsage += "  -maxsigcachesize=<n>   " + _("Limit size of signature cache to <n> entries (default: 50000)") + "\n";
     }
     strUsage += "  -mintxfee=<amt>        " + _("Fees smaller than this are considered zero fee (for transaction creation) (default:") + " " + FormatMoney(CTransaction::nMinTxFee) + ")" + "\n";
     strUsage += "  -minrelaytxfee=<amt>   " + _("Fees smaller than this are considered zero fee (for relaying) (default:") + " " + FormatMoney(CTransaction::nMinRelayTxFee) + ")" + "\n";
     strUsage += "  -logprinttoconsole     " + _("Send trace/debug info to console instead of debug.log file") + "\n";
-    if (SysCfg().GetBoolArg("-help-debug", false))
-    {
+    if (SysCfg().GetBoolArg("-help-debug", false)) {
         strUsage += "  -printblock=<hash>     " + _("Print block on startup, if found in block index") + "\n";
         strUsage += "  -printblocktree        " + _("Print block tree on startup (default: 0)") + "\n";
         strUsage += "  -printpriority         " + _("Log transaction priority and fee per kB when mining blocks (default: 0)") + "\n";
@@ -424,7 +414,7 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles)
 /** Initialize Coin.
  *  @pre Parameters should be parsed and config file should be read.
  */
-bool AppInit2(boost::thread_group& threadGroup)
+bool AppInit(boost::thread_group& threadGroup)
 {
     // ********************************************************* Step 1: setup
 #ifdef _MSC_VER
@@ -492,47 +482,47 @@ bool AppInit2(boost::thread_group& threadGroup)
         // when specifying an explicit binding address, you want to listen on it
         // even when -connect or -proxy is specified
         if (SysCfg().SoftSetBoolArg("-listen", true))
-            LogPrint("INFO","AppInit2 : parameter interaction: -bind set -> setting -listen=1\n");
+            LogPrint("INFO","AppInit : parameter interaction: -bind set -> setting -listen=1\n");
     }
 
     if (SysCfg().IsArgCount("-connect") && SysCfg().GetMultiArgs("-connect").size() > 0) {
         // when only connecting to trusted nodes, do not seed via DNS, or listen by default
         if (SysCfg().SoftSetBoolArg("-dnsseed", false))
-            LogPrint("INFO","AppInit2 : parameter interaction: -connect set -> setting -dnsseed=0\n");
+            LogPrint("INFO","AppInit : parameter interaction: -connect set -> setting -dnsseed=0\n");
         if (SysCfg().SoftSetBoolArg("-listen", false))
-            LogPrint("INFO","AppInit2 : parameter interaction: -connect set -> setting -listen=0\n");
+            LogPrint("INFO","AppInit : parameter interaction: -connect set -> setting -listen=0\n");
     }
 
     if (SysCfg().IsArgCount("-proxy")) {
         // to protect privacy, do not listen by default if a default proxy server is specified
         if (SysCfg().SoftSetBoolArg("-listen", false))
-            LogPrint("INFO","AppInit2 : parameter interaction: -proxy set -> setting -listen=0\n");
+            LogPrint("INFO","AppInit : parameter interaction: -proxy set -> setting -listen=0\n");
     }
 
     if (!SysCfg().GetBoolArg("-listen", true)) {
         // do not map ports or try to retrieve public IP when not listening (pointless)
         if (SysCfg().SoftSetBoolArg("-upnp", false))
-            LogPrint("INFO","AppInit2 : parameter interaction: -listen=0 -> setting -upnp=0\n");
+            LogPrint("INFO","AppInit : parameter interaction: -listen=0 -> setting -upnp=0\n");
         if (SysCfg().SoftSetBoolArg("-discover", false))
-            LogPrint("INFO","AppInit2 : parameter interaction: -listen=0 -> setting -discover=0\n");
+            LogPrint("INFO","AppInit : parameter interaction: -listen=0 -> setting -discover=0\n");
     }
 
     if (SysCfg().IsArgCount("-externalip")) {
         // if an explicit public IP is specified, do not try to find others
         if (SysCfg().SoftSetBoolArg("-discover", false))
-            LogPrint("INFO","AppInit2 : parameter interaction: -externalip set -> setting -discover=0\n");
+            LogPrint("INFO","AppInit : parameter interaction: -externalip set -> setting -discover=0\n");
     }
 
     if (SysCfg().GetBoolArg("-salvagewallet", false)) {
         // Rewrite just private keys: rescan to find transactions
         if (SysCfg().SoftSetBoolArg("-rescan", true))
-            LogPrint("INFO","AppInit2 : parameter interaction: -salvagewallet=1 -> setting -rescan=1\n");
+            LogPrint("INFO","AppInit : parameter interaction: -salvagewallet=1 -> setting -rescan=1\n");
     }
 
     // -zapwallettx implies a rescan
     if (SysCfg().GetBoolArg("-zapwallettxes", false)) {
         if (SysCfg().SoftSetBoolArg("-rescan", true))
-            LogPrint("INFO","AppInit2 : parameter interaction: -zapwallettxes=1 -> setting -rescan=1\n");
+            LogPrint("INFO","AppInit : parameter interaction: -zapwallettxes=1 -> setting -rescan=1\n");
     }
 
     // Make sure enough file descriptors are available
@@ -627,7 +617,6 @@ bool AppInit2(boost::thread_group& threadGroup)
 //    if (GetBoolArg("-shrinkdebugfile", !fDebug))
 //        ShrinkDebugFile();
 
-    LogPrint("INFO","\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     LogPrint("INFO","%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE);
     printf("%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE.c_str());
     LogPrint("INFO","Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
@@ -862,7 +851,6 @@ bool AppInit2(boost::thread_group& threadGroup)
                 pTxCacheDB = new CTransactionDB(nTxCacheSize, false, SysCfg().IsReindex());
                 pTxCacheTip = new CTransactionDBCache(*pTxCacheDB,true);
                 pScriptDB = new CScriptDB(nScriptCacheSize, false , SysCfg().IsReindex());
-//                cout <<pScriptDB->GetDbCount() <<endl;
                 pScriptDBTip = new CScriptDBViewCache(*pScriptDB,true);
 
 
