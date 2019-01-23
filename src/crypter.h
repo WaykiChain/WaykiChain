@@ -144,14 +144,14 @@ public:
     {
     }
 
-    bool IsCrypted() const
+    bool IsEncrypted() const
     {
         return fUseCrypto;
     }
 
     bool IsLocked() const
     {
-        if (!IsCrypted())
+        if (!IsEncrypted())
             return false;
         bool result;
         {
@@ -172,7 +172,7 @@ public:
     {
         {
             LOCK(cs_KeyStore);
-            if (!IsCrypted())
+            if (!IsEncrypted())
                 return CBasicKeyStore::HaveKey(address);
             return mapCryptedKeys.count(address) > 0;
         }
@@ -182,7 +182,7 @@ public:
     bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut, bool IsMine=false) const;
     void GetKeys(set<CKeyID> &setAddress, bool bFlag=false) const
     {
-        if (!IsCrypted())
+        if (!IsEncrypted())
         {
             CBasicKeyStore::GetKeys(setAddress, bFlag);
             return;

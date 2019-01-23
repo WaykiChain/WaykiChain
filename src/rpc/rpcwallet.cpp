@@ -29,7 +29,7 @@ static CCriticalSection cs_nWalletUnlockTime;
 
 string HelpRequiringPassphrase()
 {
-    return pwalletMain && pwalletMain->IsCrypted()
+    return pwalletMain && pwalletMain->IsEncrypted()
         ? "\nRequires wallet passphrase to be set with walletpassphrase call."
         : "";
 }
@@ -45,7 +45,7 @@ Value islocked(const Array& params,  bool fHelp)
     if(fHelp)
         return true;
     Object obj;
-    if(!pwalletMain->IsCrypted()) {        //decrypted
+    if(!pwalletMain->IsEncrypted()) {        //decrypted
         obj.push_back(Pair("islock", 0));
     }
     else if (!pwalletMain->IsLocked()) {   //encryped and unlocked
@@ -878,7 +878,7 @@ static void LockWallet(CWallet* pWallet)
 
 Value walletpassphrase(const Array& params, bool fHelp)
 {
-    if (pwalletMain->IsCrypted() && (fHelp || params.size() != 2))
+    if (pwalletMain->IsEncrypted() && (fHelp || params.size() != 2))
         throw runtime_error(
             "walletpassphrase \"passphrase\" timeout\n"
             "\nStores the wallet decryption key in memory for 'timeout' seconds.\n"
@@ -902,7 +902,7 @@ Value walletpassphrase(const Array& params, bool fHelp)
 
     if (fHelp)
         return true;
-    if (!pwalletMain->IsCrypted())
+    if (!pwalletMain->IsEncrypted())
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: running with an unencrypted wallet, but walletpassphrase was called.");
 
     // Note that the walletpassphrase is stored in params[0] which is not mlock()ed
@@ -933,7 +933,7 @@ Value walletpassphrase(const Array& params, bool fHelp)
 
 Value walletpassphrasechange(const Array& params, bool fHelp)
 {
-    if (pwalletMain->IsCrypted() && (fHelp || params.size() != 2))
+    if (pwalletMain->IsEncrypted() && (fHelp || params.size() != 2))
         throw runtime_error(
             "walletpassphrasechange \"oldpassphrase\" \"newpassphrase\"\n"
             "\nChanges the wallet passphrase from 'oldpassphrase' to 'newpassphrase'.\n"
@@ -947,7 +947,7 @@ Value walletpassphrasechange(const Array& params, bool fHelp)
 
     if (fHelp)
         return true;
-    if (!pwalletMain->IsCrypted())
+    if (!pwalletMain->IsEncrypted())
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: running with an unencrypted wallet, but walletpassphrasechange was called.");
 
     // TODO: get rid of these .c_str() calls by implementing SecureString::operator=(string)
@@ -974,7 +974,7 @@ Value walletpassphrasechange(const Array& params, bool fHelp)
 
 Value walletlock(const Array& params, bool fHelp)
 {
-    if (pwalletMain->IsCrypted() && (fHelp || params.size() != 0))
+    if (pwalletMain->IsEncrypted() && (fHelp || params.size() != 0))
         throw runtime_error(
             "walletlock\n"
             "\nRemoves the wallet encryption key from memory, locking the wallet.\n"
@@ -993,7 +993,7 @@ Value walletlock(const Array& params, bool fHelp)
 
     if (fHelp)
         return true;
-    if (!pwalletMain->IsCrypted())
+    if (!pwalletMain->IsEncrypted())
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: running with an unencrypted wallet, but walletlock was called.");
     {
         LOCK(cs_nWalletUnlockTime);
@@ -1007,7 +1007,7 @@ Value walletlock(const Array& params, bool fHelp)
 
 Value encryptwallet(const Array& params, bool fHelp)
 {
-    if (!pwalletMain->IsCrypted() && (fHelp || params.size() != 1))
+    if (!pwalletMain->IsEncrypted() && (fHelp || params.size() != 1))
         throw runtime_error(
             "encryptwallet \"passphrase\"\n"
             "\nEncrypts the wallet with 'passphrase'. This is for first time encryption.\n"
@@ -1034,7 +1034,7 @@ Value encryptwallet(const Array& params, bool fHelp)
 
     if (fHelp)
         return true;
-    if (pwalletMain->IsCrypted())
+    if (pwalletMain->IsEncrypted())
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: running with an encrypted wallet, but encryptwallet was called.");
 
     // TODO: get rid of this .c_str() by implementing SecureString::operator=(string)
@@ -1073,9 +1073,9 @@ Value settxfee(const Array& params, bool fHelp)
     if (fHelp || params.size() < 1 || params.size() > 1)
         throw runtime_error(
             "settxfee \"amount\"\n"
-            "\nSet the transaction fee per kB.\n"
+            "\nSet the default transaction fee per kB.\n"
             "\nArguments:\n"
-            "1. amount         (numeric, required) The transaction fee in BTC/kB rounded to the nearest 0.00000001\n"
+            "1. amount         (numeric, required) The transaction fee in WICC/kB rounded to the nearest 0.00000001\n"
             "\nResult\n"
             "true|false        (boolean) Returns true if successful\n"
             "\nExamples:\n"
@@ -1118,7 +1118,7 @@ Value getwalletinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetRawBalance())));
     obj.push_back(Pair("Inblocktx",       (int)pwalletMain->mapInBlockTx.size()));
     obj.push_back(Pair("unconfirmtx", (int)pwalletMain->UnConfirmTx.size()));
-    if (pwalletMain->IsCrypted())
+    if (pwalletMain->IsEncrypted())
         obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
     return obj;
 }

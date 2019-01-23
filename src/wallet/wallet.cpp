@@ -93,7 +93,7 @@ string CWallet:: defaultFilename("");
 //  if (!fFileBacked)
 //      return true;
 //
-//  if (!IsCrypted()) {
+//  if (!IsEncrypted()) {
 //      mKeyPool[tem.GetCKeyID()] = tem;
 //      return CWalletDB(strWalletFile).WriteKeyStoreValue(tem.GetCKeyID(),tem);
 //  }
@@ -110,7 +110,7 @@ string CWallet:: defaultFilename("");
 //  }
 //  if (!fFileBacked)
 //      return true;
-//  if (!IsCrypted()) {
+//  if (!IsEncrypted()) {
 //      return CWalletDB(strWalletFile).WriteKeyStoreValue(Pk.GetKeyID(),keyCombi);
 //  } else {
 //      assert(0 && "fix me");
@@ -127,7 +127,7 @@ string CWallet:: defaultFilename("");
 //       return false;
 //      }
 //
-//  if (!IsCrypted()) {
+//  if (!IsEncrypted()) {
 //      mKeyPool[tem.GetCKeyID()] = tem;
 //      return CWalletDB(strWalletFile).WriteKeyStoreValue(tem.GetCKeyID(),tem);
 //  }
@@ -488,7 +488,7 @@ int64_t CWallet::GetRawBalance(bool IsConfirmed) const
 
 bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
 {
-    if (IsCrypted())
+    if (IsEncrypted())
         return false;
 
     CKeyingMaterial vMasterKey;
@@ -742,7 +742,7 @@ bool CWallet::CleanAll() {
 
     bestBlock.SetNull();
 
-    if(!IsCrypted()) {
+    if(!IsEncrypted()) {
         for_each(mapKeys.begin(), mapKeys.end(), [&](std::map<CKeyID, CKeyCombi> ::reference item) {
             CWalletDB(strWalletFile).EraseKeyStoreValue(item.first);
         });
