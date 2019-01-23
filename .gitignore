@@ -8,6 +8,7 @@
 */.deps/
 .cproject
 .dirstamp
+.project
 Makefile
 Makefile.in
 autom4te.cache/
