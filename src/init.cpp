@@ -568,7 +568,7 @@ bool AppInit(boost::thread_group& threadGroup)
     }
     if (SysCfg().IsArgCount("-minrelaytxfee")) {
         int64_t n = 0;
-        if (ParseMoney(SysCfg().GetArg("-minrelaytxfee", ""), n) && n > 0){
+        if (ParseMoney(SysCfg().GetArg("-minrelaytxfee", ""), n) && n > 0) {
             CTransaction::nMinRelayTxFee = n;
         } else {
             return InitError(strprintf(_("Invalid amount for -minrelaytxfee=<amount>: '%s'"), SysCfg().GetArg("-minrelaytxfee", "")));
