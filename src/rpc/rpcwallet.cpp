@@ -1035,7 +1035,7 @@ Value encryptwallet(const Array& params, bool fHelp)
     if (fHelp)
         return true;
     if (pwalletMain->IsEncrypted())
-        throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: running with an encrypted wallet, but encryptwallet was called.");
+        throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: Wallet was already encrypted and shall not be encrypted again.");
 
     // TODO: get rid of this .c_str() by implementing SecureString::operator=(string)
     // Alternately, find a way to make params[0] mlock()'d to begin with.
