@@ -182,7 +182,7 @@ bool CCryptoKeyStore::AddKeyCombi(const CKeyID & keyId, const CKeyCombi &keyComb
 	 {
 		LOCK(cs_KeyStore);
 
-		if (!IsCrypted())
+		if (!IsEncrypted())
 			return CBasicKeyStore::AddKeyCombi(keyId, keyCombi);
 
 		if (IsLocked())
@@ -227,7 +227,7 @@ bool CCryptoKeyStore::GetKey(const CKeyID &address, CKey& keyOut, bool IsMine) c
         	 return CBasicKeyStore::GetKey(address, keyOut, IsMine);
         }
         else {
-			if (!IsCrypted())
+			if (!IsEncrypted())
 				return CBasicKeyStore::GetKey(address, keyOut);
 
 			CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address);
@@ -255,7 +255,7 @@ bool CCryptoKeyStore::GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut, bo
         if(IsMine) {
         	return CKeyStore::GetPubKey(address, vchPubKeyOut, IsMine);
         }else {
-			if (!IsCrypted())
+			if (!IsEncrypted())
 				return CKeyStore::GetPubKey(address, vchPubKeyOut, IsMine);
 
 			CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address);
@@ -272,7 +272,7 @@ bool CCryptoKeyStore::GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut, bo
 bool CCryptoKeyStore::GetKeyCombi(const CKeyID & address, CKeyCombi & keyCombiOut) const
 {
 	 CBasicKeyStore::GetKeyCombi(address, keyCombiOut);
-	 if(!IsCrypted())
+	 if(!IsEncrypted())
 		 return true;
 	 CKey keyOut;
 	 if(!IsLocked()) {
@@ -287,7 +287,7 @@ bool CCryptoKeyStore::EncryptKeys(CKeyingMaterial& vMasterKeyIn)
 {
     {
         LOCK(cs_KeyStore);
-        if (!mapCryptedKeys.empty() || IsCrypted())
+        if (!mapCryptedKeys.empty() || IsEncrypted())
             return false;
         fUseCrypto = true;
         for(auto& mKey : mapKeys)

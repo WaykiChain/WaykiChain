@@ -213,7 +213,7 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("chainwork", 	chainActive.Tip()->nChainWork.GetHex()));
     obj.push_back(Pair("tipblocktime", 	(int)chainActive.Tip()->nTime));
 
-    if (pwalletMain && pwalletMain->IsCrypted())
+    if (pwalletMain && pwalletMain->IsEncrypted())
 	 obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
 	
 	obj.push_back(Pair("paytxfee",      ValueFromAmount(SysCfg().GetTxFee())));
