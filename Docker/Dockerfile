@@ -1,5 +1,5 @@
 FROM phusion/baseimage:0.9.18
-MAINTAINER WaykiChain Core Dev
+MAINTAINER coredev@waykichainhk.com
 ARG branch=release
 
 # Install prrequisite components
