@@ -482,11 +482,10 @@ bool CBaseParams::IntialParams(int argc, const char* const argv[]) {
 }
 
 int64_t CBaseParams::GetTxFee() const{
-     return paytxfee;
+    return paytxfee;
 }
-int64_t CBaseParams::SetDeflautTxFee(int64_t fee)const{
+int64_t CBaseParams::SetDefaultTxFee(int64_t fee)const{
 	paytxfee = fee;
-
 	return fee;
 }
 

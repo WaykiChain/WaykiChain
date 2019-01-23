@@ -410,7 +410,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 
         CPubKey pubkey;
         if (!pwalletMain->GetPubKey(keyid, pubkey)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: not find key.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: local wallet key not found.");
         }
 
         CPubKey MinerPKey;
@@ -1618,7 +1618,6 @@ Value gettxoperationlog(const Array& params, bool fHelp) {
 }
 
 static Value TestDisconnectBlock(int number) {
-//      CBlockIndex* pindex = chainActive.Tip();
     CBlock block;
     Object obj;
 
@@ -1628,9 +1627,8 @@ static Value TestDisconnectBlock(int number) {
     }
     if (number > 0) {
         do {
-            // check level 0: read from disk
             CBlockIndex * pTipIndex = chainActive.Tip();
-            LogPrint("vm", "current height:%d\n", pTipIndex->nHeight);
+            LogPrint("debug", "current height:%d\n", pTipIndex->nHeight);
             if (!DisconnectBlockFromTip(state))
                 return false;
             chainMostWork.SetTip(pTipIndex->pprev);
@@ -1665,7 +1663,7 @@ static Value TestDisconnectBlock(int number) {
 
 Value disconnectblock(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error("disconnectblock \"numbers\" \n"
+        throw runtime_error("disconnectblock \"numbers\"\n"
                 "\ndisconnect block\n"
                 "\nArguments:\n"
                 "1. \"numbers \"  (numeric, required) the block numbers.\n"
@@ -1673,7 +1671,8 @@ Value disconnectblock(const Array& params, bool fHelp) {
                 "\"disconnect result\"  (bool) \n"
                 "\nExamples:\n"
                 + HelpExampleCli("disconnectblock", "\"1\"")
-                + HelpExampleRpc("gettxoperationlog","\"1\""));
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("disconnectblock", "\"1\""));
     }
     int number = params[0].get_int();
 
@@ -1690,8 +1689,9 @@ Value resetclient(const Array& params, bool fHelp) {
                         "\nResult:\n"
                         "\nExamples:\n"
                         + HelpExampleCli("resetclient", "")
-                        + HelpExampleRpc("resetclient",""));
-        }
+                        + "\nAs json rpc call\n"
+                        + HelpExampleRpc("resetclient", ""));
+    }
     Value te = TestDisconnectBlock(chainActive.Tip()->nHeight);
 
     if (chainActive.Tip()->nHeight == 0) {
@@ -1728,20 +1728,22 @@ Value resetclient(const Array& params, bool fHelp) {
 
 Value listapp(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error("listapp \"showDetail\" \n"
+        throw runtime_error("listapp \"showDetail\"\n"
                 "\nget the list register script\n"
                 "\nArguments:\n"
-                "1. showDetail  (boolean, required)true to show scriptContent,otherwise to not show it.\n"
-                "\nResult an object contain many script data\n"
+                "1. showDetail  (boolean, required) true to show scriptContent, otherwise to not show it.\n"
+                "\nReturn an object contain many script data\n"
                 "\nResult:\n"
-                "\nExamples:\n" + HelpExampleCli("listapp", "true") + HelpExampleRpc("listapp", "true"));
+                "\nExamples:\n"
+                + HelpExampleCli("listapp", "true")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("listapp", "true"));
     }
     bool showDetail = false;
     showDetail = params[0].get_bool();
     Object obj;
     Array arrayScript;
 
-//  CAccountViewCache view(*pAccountViewTip, true);
     if (pScriptDBTip != NULL) {
         int nCount(0);
         if (!pScriptDBTip->GetScriptCount(nCount))
@@ -1752,7 +1754,6 @@ Value listapp(const Array& params, bool fHelp) {
         if (!pScriptDBTip->GetScript(0, regId, vScript))
             throw JSONRPCError(RPC_DATABASE_ERROR, "get script error: cannot get registered script.");
         script.push_back(Pair("scriptId", regId.ToString()));
-        script.push_back(Pair("scriptId2", HexStr(regId.GetVec6())));
         CDataStream ds(vScript, SER_DISK, CLIENT_VERSION);
         CVmScript vmScript;
         ds >> vmScript;
@@ -1765,7 +1766,6 @@ Value listapp(const Array& params, bool fHelp) {
         while (pScriptDBTip->GetScript(1, regId, vScript)) {
             Object obj;
             obj.push_back(Pair("scriptId", regId.ToString()));
-            obj.push_back(Pair("scriptId2", HexStr(regId.GetVec6())));
             CDataStream ds(vScript, SER_DISK, CLIENT_VERSION);
             CVmScript vmScript;
             ds >> vmScript;
@@ -1787,18 +1787,21 @@ Value getappinfo(const Array& params, bool fHelp) {
                 "getappinfo ( \"scriptid\" )\n"
                 "\nget app information.\n"
                 "\nArguments:\n"
-                "1. \"scriptid\"    (string). The script ID. \n"
+                "1. \"scriptid\"    (string, required) the script ID. \n"
                 "\nget app information in the systems\n"
-                "\nExamples:\n" + HelpExampleCli("getappinfo", "123-1") + HelpExampleRpc("getappinfo", "123-1"));
+                "\nExamples:\n"
+                + HelpExampleCli("getappinfo", "123-1")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("getappinfo", "123-1"));
 
     string strRegId = params[0].get_str();
     CRegID regid(strRegId);
     if (regid.IsEmpty() == true) {
-        throw runtime_error("in getappinfo :scriptid size is error!\n");
+        throw runtime_error("in getappinfo: scriptid size is error!\n");
     }
 
     if (!pScriptDBTip->HaveScript(regid)) {
-        throw runtime_error("in getappinfo :scriptid  is not exist!\n");
+        throw runtime_error("in getappinfo: scriptid  is not exist!\n");
     }
 
     vector<unsigned char> vScript;
@@ -1808,7 +1811,6 @@ Value getappinfo(const Array& params, bool fHelp) {
 
     Object obj;
     obj.push_back(Pair("scriptId", regid.ToString()));
-    obj.push_back(Pair("scriptId2", HexStr(regid.GetVec6())));
     CDataStream ds(vScript, SER_DISK, CLIENT_VERSION);
     CVmScript vmScript;
     ds >> vmScript;
