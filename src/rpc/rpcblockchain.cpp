@@ -233,7 +233,7 @@ Value getblock(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw runtime_error(
-            "getblock \"hash\" ( verbose )\n"
+            "getblock \"hash or height\" ( verbose )\n"
             "\nIf verbose is false, returns a string that is serialized, hex-encoded data for block 'hash'.\n"
             "If verbose is true, returns an Object with information about block <hash>.\n"
             "\nArguments:\n"
@@ -260,23 +260,20 @@ Value getblock(const Array& params, bool fHelp)
             "}\n"
             "\nResult (for verbose=false):\n"
             "\"data\"             (string) A string that is serialized, hex-encoded data for block 'hash'.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
-            + HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"") + HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\""));
 
     std::string strHash;
-   if(int_type == params[0].type())
-   {
-	   int nHeight = params[0].get_int();
-	   if (nHeight < 0 || nHeight > chainActive.Height())
-        throw runtime_error("Block number out of range.");
+    if(int_type == params[0].type()) {
+        int nHeight = params[0].get_int();
+        if (nHeight < 0 || nHeight > chainActive.Height())
+            throw runtime_error("Block number out of range.");
 
-    CBlockIndex* pblockindex = chainActive[nHeight];
-    strHash= pblockindex->GetBlockHash().GetHex();
-   }else{
-	   strHash = params[0].get_str();
-   }
+        CBlockIndex* pblockindex = chainActive[nHeight];
+        strHash= pblockindex->GetBlockHash().GetHex();
+    } else {
+        strHash = params[0].get_str();
+    }
     uint256 hash(uint256S(strHash));
 
     bool fVerbose = true;
@@ -419,7 +416,7 @@ Value getappregid(const Array& params, bool fHelp)
 
 	Object result;
 	result.push_back(Pair("regid", regID.ToString()));
-	// result.push_back(Pair("script", HexStr(regID.GetVec6()))); 
+	// result.push_back(Pair("script", HexStr(regID.GetVec6())));
 	return result;
 }
 
@@ -445,4 +442,53 @@ Value listcheckpoint(const Array& params, bool fHelp)
 		result.push_back(Pair(tfm::format("%d", iterCheck->first).c_str(), iterCheck->second.GetHex()));
 	}
 	return result;
+}
+
+Value invalidateblock(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "invalidateblock \"hash or height\"\n"
+            "\nPermanently marks a block as invalid, as if it violated a consensus rule.\n"
+            "\nArguments:\n"
+            "1. \"hash or height\"(string or numeric, required) string for The block hash, numeric for the block height\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("invalidateblock", "\"hash or height\"")
+            + HelpExampleRpc("invalidateblock", "\"hash or height\""));
+
+    std::string strHash;
+    if (int_type == params[0].type()) {
+        int nHeight = params[0].get_int();
+        if (nHeight < 0 || nHeight > chainActive.Height())
+            throw runtime_error("Block number out of range.");
+
+        CBlockIndex *pblockindex = chainActive[nHeight];
+        strHash = pblockindex->GetBlockHash().GetHex();
+    } else {
+        strHash = params[0].get_str();
+    }
+
+    uint256 hash(uint256S(strHash));
+    CValidationState state;
+
+    {
+        LOCK(cs_main);
+        if (mapBlockIndex.count(hash) == 0)
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
+
+        CBlockIndex* pblockindex = mapBlockIndex[hash];
+        InvalidateBlockManuel(state, pblockindex);
+    }
+
+    if (state.IsValid()) {
+        ActivateBestChain(state);
+    }
+
+    if (!state.IsValid()) {
+        throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
+    }
+
+    Object obj;
+    obj.push_back(Pair("msg", "success"));
+    return obj;
 }
