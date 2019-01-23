@@ -211,8 +211,8 @@ bool CheckSignScript(const uint256 & sigHash, const std::vector<unsigned char> s
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransaction *pBaseTx,
           bool fLimitFree, bool fRejectInsaneFee=false);
 
-/** get transaction relate keyid **/
-
+/** Mark a block as invalid. */
+bool InvalidateBlock(CValidationState& state, CBlockIndex *pindex);
 
 std::shared_ptr<CBaseTransaction> CreateNewEmptyTransaction(unsigned char uType);
 
@@ -1076,7 +1076,7 @@ extern CTransactionDBCache *pTxCacheTip;
 extern CScriptDBViewCache *pScriptDBTip;
 
 /** nSyncTipHight  */
-extern int g_nSyncTipHeight;
+extern int nSyncTipHeight;
 
 extern std::tuple<bool, boost::thread*> RunCoin(int argc, char* argv[]);
 extern bool WriteBlockLog(bool falg, string suffix);

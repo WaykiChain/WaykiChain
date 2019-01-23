@@ -27,129 +27,129 @@ using namespace boost::assign;
 using namespace json_spirit;
 
 static  bool GetKeyId(string const &addr,CKeyID &KeyId) {
-	if (!CRegID::GetKeyID(addr, KeyId)) {
-		KeyId=CKeyID(addr);
-		if (KeyId.IsEmpty())
-		return false;
-	}
-	return true;
+    if (!CRegID::GetKeyID(addr, KeyId)) {
+        KeyId=CKeyID(addr);
+        if (KeyId.IsEmpty())
+        return false;
+    }
+    return true;
 };
 
 Value getbalance(const Array& params, bool fHelp)
 {
-	int size = params.size();
-	if (fHelp || params.size() > 2) {
-			string msg = "getbalance ( \"address\" minconf )\n"
-					"\nIf account is not specified, returns the server's total available balance.\n"
-					"If account is specified (DEPRECATED), returns the balance in the account.\n"
-					"\nArguments:\n"
-					 "1. \"address\"      (string, optional) DEPRECATED. The selected account or \"*\" for entire wallet.\n"
-					 "2.  minconf         (numeric, optional, default=1) Only include transactions confirmed\n"
-					 "\nExamples:\n"
-					+ HelpExampleCli("getbalance", "de3nGsPR6i9qpQTNnpC9ASMpFKbKzzFLYF 0")
-					+ "\nAs json rpc call\n"
-					+ HelpExampleRpc("getbalance", "de3nGsPR6i9qpQTNnpC9ASMpFKbKzzFLYF 0");
-			throw runtime_error(msg);
-	}
-	Object obj;
-	if (size == 0) {
-		obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance())));
-		return std::move(obj);
-	} else if (size == 1) {
-		string addr = params[0].get_str();
-		if (addr == "*") {
-			obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance())));
-			return std::move(obj);
-		} else {
-			CKeyID keyid;
-			if (!GetKeyId(addr, keyid)) {
-				throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
-			}
-			if (pwalletMain->HaveKey(keyid)) {
-				CAccount account;
-				CAccountViewCache accView(*pAccountViewTip, true);
-				if (accView.GetAccount(CUserID(keyid), account)) {
-					obj.push_back(Pair("balance", ValueFromAmount(account.GetRawBalance())));
-					return std::move(obj);
-				}
-			} else {
-				throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "address not inwallet");
-			}
-		}
-	} else if (size == 2) {
-		string addr = params[0].get_str();
-		int nConf = params[1].get_int();
-		int nMaxConf = SysCfg().GetArg("-maxconf", 30);
-		if(nConf > nMaxConf) {
-			throw JSONRPCError(RPC_INVALID_PARAMETER, "parameter minconf exceed maxconfed");
-		}
-		if (addr == "*") {
-			if (0 != nConf) {
-				CBlockIndex *pBlockIndex = chainActive.Tip();
-				int64_t nValue(0);
-				while (nConf) {
-					if (pwalletMain->mapInBlockTx.count(pBlockIndex->GetBlockHash()) > 0) {
-						map<uint256, std::shared_ptr<CBaseTransaction> > mapTx = pwalletMain->mapInBlockTx[pBlockIndex->GetBlockHash()].mapAccountTx;
-						for (auto &item : mapTx) {
-							if (COMMON_TX == item.second->nTxType) {
-								CTransaction *pTx = (CTransaction *) item.second.get();
-								CKeyID srcKeyId, desKeyId;
-								pAccountViewTip->GetKeyId(pTx->srcRegId, srcKeyId);
-								pAccountViewTip->GetKeyId(pTx->desUserId, desKeyId);
-								if (!pwalletMain->HaveKey(srcKeyId) && pwalletMain->HaveKey(desKeyId)) {
-									nValue = pTx->llValues;
-								}
-							}
-						}
-					}
-					pBlockIndex = pBlockIndex->pprev;
-					--nConf;
-				}
-				obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance() - nValue)));
-				return std::move(obj);
-			} else {
-				obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance(false))));
-				return std::move(obj);
-			}
-		} else {
-			CKeyID keyid;
-			if (!GetKeyId(addr, keyid)) {
-				throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
-			}
-			if (pwalletMain->HaveKey(keyid)) {
-				if (0 != nConf) {
-					CBlockIndex *pBlockIndex = chainActive.Tip();
-					int64_t nValue(0);
-					while (nConf) {
-						if (pwalletMain->mapInBlockTx.count(pBlockIndex->GetBlockHash()) > 0) {
-							map<uint256, std::shared_ptr<CBaseTransaction> > mapTx = pwalletMain->mapInBlockTx[pBlockIndex->GetBlockHash()].mapAccountTx;
-							for (auto &item : mapTx) {
-								if (COMMON_TX == item.second->nTxType) {
-									CTransaction *pTx = (CTransaction *) item.second.get();
-									CKeyID srcKeyId, desKeyId;
-									pAccountViewTip->GetKeyId(pTx->desUserId, desKeyId);
-									if (keyid == desKeyId) {
-										nValue = pTx->llValues;
-									}
-								}
-							}
-						}
-						pBlockIndex = pBlockIndex->pprev;
-						--nConf;
-					}
-					obj.push_back(Pair("balance", ValueFromAmount(pAccountViewTip->GetRawBalance(keyid) - nValue)));
-					return std::move(obj);
-				} else {
-					obj.push_back(Pair("balance", ValueFromAmount(mempool.pAccountViewCache->GetRawBalance(keyid))));
-					return std::move(obj);
-				}
-			} else {
-				throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "address not inwallet");
-			}
-		}
-	}
+    int size = params.size();
+    if (fHelp || params.size() > 2) {
+            string msg = "getbalance ( \"address\" minconf )\n"
+                    "\nIf account is not specified, returns the server's total available balance.\n"
+                    "If account is specified (DEPRECATED), returns the balance in the account.\n"
+                    "\nArguments:\n"
+                     "1. \"address\"      (string, optional) DEPRECATED. The selected account or \"*\" for entire wallet.\n"
+                     "2.  minconf         (numeric, optional, default=1) Only include transactions confirmed\n"
+                     "\nExamples:\n"
+                    + HelpExampleCli("getbalance", "de3nGsPR6i9qpQTNnpC9ASMpFKbKzzFLYF 0")
+                    + "\nAs json rpc call\n"
+                    + HelpExampleRpc("getbalance", "de3nGsPR6i9qpQTNnpC9ASMpFKbKzzFLYF 0");
+            throw runtime_error(msg);
+    }
+    Object obj;
+    if (size == 0) {
+        obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance())));
+        return std::move(obj);
+    } else if (size == 1) {
+        string addr = params[0].get_str();
+        if (addr == "*") {
+            obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance())));
+            return std::move(obj);
+        } else {
+            CKeyID keyid;
+            if (!GetKeyId(addr, keyid)) {
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
+            }
+            if (pwalletMain->HaveKey(keyid)) {
+                CAccount account;
+                CAccountViewCache accView(*pAccountViewTip, true);
+                if (accView.GetAccount(CUserID(keyid), account)) {
+                    obj.push_back(Pair("balance", ValueFromAmount(account.GetRawBalance())));
+                    return std::move(obj);
+                }
+            } else {
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "address not inwallet");
+            }
+        }
+    } else if (size == 2) {
+        string addr = params[0].get_str();
+        int nConf = params[1].get_int();
+        int nMaxConf = SysCfg().GetArg("-maxconf", 30);
+        if(nConf > nMaxConf) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "parameter minconf exceed maxconfed");
+        }
+        if (addr == "*") {
+            if (0 != nConf) {
+                CBlockIndex *pBlockIndex = chainActive.Tip();
+                int64_t nValue(0);
+                while (nConf) {
+                    if (pwalletMain->mapInBlockTx.count(pBlockIndex->GetBlockHash()) > 0) {
+                        map<uint256, std::shared_ptr<CBaseTransaction> > mapTx = pwalletMain->mapInBlockTx[pBlockIndex->GetBlockHash()].mapAccountTx;
+                        for (auto &item : mapTx) {
+                            if (COMMON_TX == item.second->nTxType) {
+                                CTransaction *pTx = (CTransaction *) item.second.get();
+                                CKeyID srcKeyId, desKeyId;
+                                pAccountViewTip->GetKeyId(pTx->srcRegId, srcKeyId);
+                                pAccountViewTip->GetKeyId(pTx->desUserId, desKeyId);
+                                if (!pwalletMain->HaveKey(srcKeyId) && pwalletMain->HaveKey(desKeyId)) {
+                                    nValue = pTx->llValues;
+                                }
+                            }
+                        }
+                    }
+                    pBlockIndex = pBlockIndex->pprev;
+                    --nConf;
+                }
+                obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance() - nValue)));
+                return std::move(obj);
+            } else {
+                obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance(false))));
+                return std::move(obj);
+            }
+        } else {
+            CKeyID keyid;
+            if (!GetKeyId(addr, keyid)) {
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
+            }
+            if (pwalletMain->HaveKey(keyid)) {
+                if (0 != nConf) {
+                    CBlockIndex *pBlockIndex = chainActive.Tip();
+                    int64_t nValue(0);
+                    while (nConf) {
+                        if (pwalletMain->mapInBlockTx.count(pBlockIndex->GetBlockHash()) > 0) {
+                            map<uint256, std::shared_ptr<CBaseTransaction> > mapTx = pwalletMain->mapInBlockTx[pBlockIndex->GetBlockHash()].mapAccountTx;
+                            for (auto &item : mapTx) {
+                                if (COMMON_TX == item.second->nTxType) {
+                                    CTransaction *pTx = (CTransaction *) item.second.get();
+                                    CKeyID srcKeyId, desKeyId;
+                                    pAccountViewTip->GetKeyId(pTx->desUserId, desKeyId);
+                                    if (keyid == desKeyId) {
+                                        nValue = pTx->llValues;
+                                    }
+                                }
+                            }
+                        }
+                        pBlockIndex = pBlockIndex->pprev;
+                        --nConf;
+                    }
+                    obj.push_back(Pair("balance", ValueFromAmount(pAccountViewTip->GetRawBalance(keyid) - nValue)));
+                    return std::move(obj);
+                } else {
+                    obj.push_back(Pair("balance", ValueFromAmount(mempool.pAccountViewCache->GetRawBalance(keyid))));
+                    return std::move(obj);
+                }
+            } else {
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "address not inwallet");
+            }
+        }
+    }
 
-	throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
+    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
 
 }
 
@@ -159,12 +159,12 @@ Value getinfo(const Array& params, bool fHelp)
         throw runtime_error(
             "getinfo\n"
             "\nget various state information.\n"
-			"\nArguments:\n"
+            "\nArguments:\n"
             "Returns an object containing various state info.\n"
             "\nResult:\n"
             "{\n"
             "  \"version\": xxxxx,           (numeric) the server version\n"
-        	"  \"fullversion\": xxxxx,       (string) the server fullversion\n"
+            "  \"fullversion\": xxxxx,       (string) the server fullversion\n"
             "  \"protocolversion\": xxxxx,   (numeric) the protocol version\n"
             "  \"walletversion\": xxxxx,     (numeric) the wallet version\n"
             "  \"balance\": xxxxxxx,         (numeric) the total coin balance of the wallet\n"
@@ -173,16 +173,16 @@ Value getinfo(const Array& params, bool fHelp)
             "  \"connections\": xxxxx,       (numeric) the number of connections\n"
             "  \"proxy\": \"host:port\",     (string, optional) the proxy used by the server\n"
             "  \"difficulty\": xxxxxx,       (numeric) the current difficulty\n"
-        	"  \"nettype\": xxxxx,           (string) the net type\n"
+            "  \"nettype\": xxxxx,           (string) the net type\n"
             "  \"chainwork\": xxxxxx,        (string) the  chainwork of the tip block in chainActive\n"
             "  \"tipblocktime\": xxxx,       (numeric) the  nTime of the tip block in chainActive\n"
             "  \"unlocked_until\": ttt,      (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
             "  \"paytxfee\": x.xxxx,         (numeric) the transaction fee set in btc/kb\n"
             "  \"relayfee\": x.xxxx,         (numeric) minimum relay fee for non-free transactions in btc/kb\n"
-        	"  \"fuelrate\": xxxxx,          (numeric) the  fuelrate of the tip block in chainActive\n"
-        	"  \"fuel\": xxxxx,              (numeric) the  fuel of the tip block in chainActive\n"
-        	"  \"data directory\": xxxxx,    (string) the data directory\n"
-			"  \"tip block hash\": xxxxx,    (string) the tip block hash\n"
+            "  \"fuelrate\": xxxxx,          (numeric) the  fuelrate of the tip block in chainActive\n"
+            "  \"fuel\": xxxxx,              (numeric) the  fuel of the tip block in chainActive\n"
+            "  \"data directory\": xxxxx,    (string) the data directory\n"
+            "  \"tip block hash\": xxxxx,    (string) the tip block hash\n"
             "  \"errors\": \"...\"           (string) any error messages\n"
             "}\n"
             "\nExamples:\n"
@@ -204,29 +204,25 @@ Value getinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetRawBalance())));
     }
     static const string name[] = {"MAIN_NET", "TEST_NET", "REGTEST_NET"};
-    
+
     obj.push_back(Pair("timeoffset",    GetTimeOffset()));
-   
     obj.push_back(Pair("proxy",         (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
     obj.push_back(Pair("nettype",       name[SysCfg().NetworkID()]));
-	obj.push_back(Pair("genblock", 		SysCfg().GetArg("-gen", 0)));
+    obj.push_back(Pair("genblock", 		SysCfg().GetArg("-gen", 0)));
     obj.push_back(Pair("chainwork", 	chainActive.Tip()->nChainWork.GetHex()));
     obj.push_back(Pair("tipblocktime", 	(int)chainActive.Tip()->nTime));
 
     if (pwalletMain && pwalletMain->IsEncrypted())
-	 obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
-	
-	obj.push_back(Pair("paytxfee",      ValueFromAmount(SysCfg().GetTxFee())));
-
+    	 obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
+    obj.push_back(Pair("paytxfee",      ValueFromAmount(SysCfg().GetTxFee())));
     obj.push_back(Pair("relayfee",      ValueFromAmount(CTransaction::nMinRelayTxFee)));
-    obj.push_back(Pair("fuelrate",     chainActive.Tip()->nFuelRate));
-    obj.push_back(Pair("fuel", chainActive.Tip()->nFuel));
+    obj.push_back(Pair("fuelrate",     	chainActive.Tip()->nFuelRate));
+    obj.push_back(Pair("fuel", 			chainActive.Tip()->nFuel));
     obj.push_back(Pair("data directory",GetDataDir().string().c_str()));
-//    obj.push_back(Pair("block high",    chainActive.Tip()->nHeight));
-    obj.push_back(Pair("tip block hash", chainActive.Tip()->GetBlockHash().ToString()));
-	obj.push_back(Pair("syncheight", g_nSyncTipHeight));
-	obj.push_back(Pair("blocks", (int) chainActive.Height()));
-	obj.push_back(Pair("connections",   (int)vNodes.size()));
+    obj.push_back(Pair("tip block hash",chainActive.Tip()->GetBlockHash().ToString()));
+    obj.push_back(Pair("syncheight", 	nSyncTipHeight));
+    obj.push_back(Pair("blocks", 		(int)chainActive.Height()));
+    obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     return obj;
 }
