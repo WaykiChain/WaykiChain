@@ -2729,19 +2729,18 @@ Value printblokdbinfo(const Array& params, bool fHelp) {
 Value getappaccountinfo(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 2 && params.size() != 3)) {
         throw runtime_error("getappaccountinfo  \"appregid\" \"address\""
-                "\nget appaccount info\n"
-                "\nArguments:\n"
-                "1.\"appregid\":(string, required) App RegId\n"
-                "2.\"account address\": (string, required) App-managed account address\n"
-                "3.\"minconf\"  (numeric, optional, default=1) Only include contract transactions confirmed \n"
-                "\nExamples:\n"
-                + HelpExampleCli("getappaccountinfo", "\"452974-3\" \"WUZBQZZqyWgJLvEEsHrXL5vg5qaUwgfjco\"")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("getappaccountinfo", "\"452974-3\" \"WUZBQZZqyWgJLvEEsHrXL5vg5qaUwgfjco\""));
+            "\nget appaccount info\n"
+            "\nArguments:\n"
+            "1.\"app regid\":(string, required) App RegId\n"
+            "2.\"account address\": (string, required) App-managed account address\n"
+            "3.\"minconf\"  (numeric, optional, default=1) Only include contract transactions confirmed \n"
+            "\nExamples:\n"
+            + HelpExampleCli("getappaccountinfo", "\"452974-3\" \"WUZBQZZqyWgJLvEEsHrXL5vg5qaUwgfjco\"")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getappaccountinfo", "\"452974-3\" \"WUZBQZZqyWgJLvEEsHrXL5vg5qaUwgfjco\""));
     }
 
-
-    CRegID script(params[0].get_str());
+    CRegID appRegId(params[0].get_str());
     vector<unsigned char> key;
 
     if (CRegID::IsSimpleRegIdStr(params[1].get_str())) {
@@ -2752,20 +2751,17 @@ Value getappaccountinfo(const Array& params, bool fHelp) {
         key.assign(addr.c_str(), addr.c_str() + addr.length());
     }
     std::shared_ptr<CAppUserAccout> tem = std::make_shared<CAppUserAccout>();
-    if(params.size() == 3 && 0 == params[2].get_int())
-    {
-
+    if (params.size() == 3 && 0 == params[2].get_int()) {
         CScriptDBViewCache contractScriptTemp(*mempool.pScriptDBViewCache, true);
-        if (!contractScriptTemp.GetScriptAcc(script, key, *tem.get())) {
+        if (!contractScriptTemp.GetScriptAcc(appRegId, key, *tem.get())) {
             tem = std::make_shared<CAppUserAccout>(key);
         }
     }else {
         CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
-        if (!contractScriptTemp.GetScriptAcc(script, key, *tem.get())) {
+        if (!contractScriptTemp.GetScriptAcc(appRegId, key, *tem.get())) {
             tem = std::make_shared<CAppUserAccout>(key);
         }
     }
-
     tem.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
     return Value(tem.get()->toJSON());
 }
