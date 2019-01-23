@@ -1,3 +1,5 @@
+#!/bin/bash
+
 cd /opt/docker-instances/waykicoind-test \
 && docker run --name waykicoind-test -p18920:18920 -p 6967:6968 \
        -v `pwd`/conf/WaykiChain.conf:/root/.WaykiChain/WaykiChain.conf \
