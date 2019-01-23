@@ -213,7 +213,7 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("tipblocktime", 	(int)chainActive.Tip()->nTime));
 
     if (pwalletMain && pwalletMain->IsEncrypted())
-    	 obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
+    	obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
     obj.push_back(Pair("paytxfee",      ValueFromAmount(SysCfg().GetTxFee())));
     obj.push_back(Pair("relayfee",      ValueFromAmount(CTransaction::nMinRelayTxFee)));
     obj.push_back(Pair("fuelrate",     	chainActive.Tip()->nFuelRate));
