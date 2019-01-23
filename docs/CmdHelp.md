@@ -39,9 +39,10 @@
 | getappconfirmdata | ```<scriptid><pagsize><index>``` | get app data confirmed | N |
 | gettxdetail | ```<txhash>``` | Returns an object about the transaction  detail information by ```<txhash>``` | N |
 | getwalletinfo | | Returns an object containing various wallet state info | N |
-| help | ```[command]``` | List commands, or get help for a command | N | 
+| help | ```[command]``` | List commands, or get help for a command | N |
 | importprivkey | ```<wiccprivkey> [label] [rescan=true]``` | Adds a private key (as returned by dumpprivkey) to your wallet. This may take a while, as a rescan is done, looking for existing transactions. Note: There's no need to import public key, as in ECDSA (unlike RSA), which can be computed from private key. | Y |
 | importwallet | ```<filename>``` | Import keys from a wallet dump file (see dumpwallet). | Y |
+| invalidateblock | ```<hash or height>``` | Mark a block as invalid. | N |
 | islocked | | Return an object about whether the wallet is being locked or unlocked | N |
 | listaddr | | return Array containing address,balance,haveminerkey,regid information | N |
 | listapp | ```<showDetail>``` | get the list register script: <br>1. showDetail  (boolean, required)true to show scriptContent,otherwise to not show it. | N |
@@ -58,16 +59,16 @@
 | sendtoaddresswithfee | [sendaddress]<recvaddress><amount><fee> | Send an amount to a given address with fee. The amount is a real and is rounded to the nearest 0.00000001 (Sendaddress is optional) | Y |
 | setgenerate | ```<generate>``` [genproclimit] | <generate> is true or false to turn generation on or off. Generation is limited to [genproclimit] processors, -1 is unlimited. | N |
 | settxfee | ```<amount>``` | ```<amount>``` is a real and is rounded to the nearest 0.00000001 | N |
-| signmessage | ```<wiccaddress> <message>``` | Sign a message with the private key of an address. | Y | 
+| signmessage | ```<wiccaddress> <message>``` | Sign a message with the private key of an address. | Y |
 | sigstr | ```<transaction><address>``` | signature transaction | N |
 | stop | | Stop  WaykiCoind server | N |
 | submitblock | ```<hexdata>``` [optional-params-obj] | Attempts to submit new block to network <br> 1. hexdata (string, required) the hex-encoded block data to submit | N |
 | submittx | ```<transaction>``` | submit transaction | Y |
-| verifymessage | ```<wiccaddress>``` <signature> <message> | Verify a signed message. | N | 
+| verifymessage | ```<wiccaddress>``` <signature> <message> | Verify a signed message. | N |
 | verifychain | ```[checklevel][numblocks]``` | Verifies blockchain database: <br>1.    checklevel (numeric, optional, 0-4, default=3), How thorough the block verification is.<br>2.    numblocks (numeric, optional, default=288, 0=all) The number of blocks to check. | N |
 | walletlock | | Removes the wallet encryption key from memory, locking the wallet. After calling this method, you will need to call walletpassphrase again before being able to call any methods which require the wallet to be unlocked. | N |
-| walletpassphrase | ```<passphrase> <timeout>``` | Stores the wallet decryption key in memory for <timeout> seconds. | N | 
+| walletpassphrase | ```<passphrase> <timeout>``` | Stores the wallet decryption key in memory for <timeout> seconds. | N |
 | walletpassphrasechange | ```<oldpassphrase> <newpassphrase>``` | Changes the wallet passphrase from <oldpassphrase> to <newpassphrase> | N |
-| ping | | Requests that a ping be sent to all other nodes, to measure ping time. | N | 
-| validateaddress | ```<address>``` | check the address is valide | N | 
+| ping | | Requests that a ping be sent to all other nodes, to measure ping time. | N |
+| validateaddress | ```<address>``` | check the address is valide | N |
 | getalltxinfo | ```[nlimitCount]``` | if no input params, return all transactions in wallet include those confirmed and unconfirmed, else return the number of nlimitCount transaction relate. | N |
