@@ -1290,6 +1290,7 @@ bool InvalidateBlock(CValidationState& state, CBlockIndex *pindex) {
     while (chainActive.Contains(pindex)) {
         CBlockIndex *pindexWalk = chainActive.Tip();
         pindexWalk->nStatus |= BLOCK_FAILED_CHILD;
+        pblocktree->WriteBlockIndex(CDiskBlockIndex(pindexWalk));
         setBlockIndexValid.erase(pindexWalk);
 
         LogPrint("INFO", "Invalidate block[%d]: %s BLOCK_FAILED_CHILD\n", pindexWalk->nHeight, pindexWalk->GetBlockHash().ToString());
