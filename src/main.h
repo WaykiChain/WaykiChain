@@ -212,7 +212,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransact
           bool fLimitFree, bool fRejectInsaneFee=false);
 
 /** Mark a block as invalid. */
-bool InvalidateBlockManuel(CValidationState& state, CBlockIndex *pindex);
+bool InvalidateBlock(CValidationState& state, CBlockIndex *pindex);
 
 std::shared_ptr<CBaseTransaction> CreateNewEmptyTransaction(unsigned char uType);
 

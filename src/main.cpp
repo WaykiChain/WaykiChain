@@ -1277,7 +1277,7 @@ void static InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state
     }
 }
 
-bool InvalidateBlockManuel(CValidationState& state, CBlockIndex *pindex) {
+bool InvalidateBlock(CValidationState& state, CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
 
     // Mark the block itself as invalid.
