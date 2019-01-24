@@ -289,8 +289,7 @@ Value getblock(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
     }
 
-    if (!fVerbose)
-    {
+    if (!fVerbose) {
         CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION);
         ssBlock << block;
         std::string strHex = HexStr(ssBlock.begin(), ssBlock.end());
@@ -328,7 +327,7 @@ Value verifychain(const Array& params, bool fHelp)
 
 Value getblockchaininfo(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
+    if (fHelp || params.size() != 0) {
         throw runtime_error(
             "getblockchaininfo\n"
             "Returns an object containing various state info regarding block chain processing.\n"
@@ -345,14 +344,14 @@ Value getblockchaininfo(const Array& params, bool fHelp)
             + HelpExampleCli("getblockchaininfo", "")
             + HelpExampleRpc("getblockchaininfo", "")
         );
+    }
 
     proxyType proxy;
     GetProxy(NET_IPV4, proxy);
 
     Object obj;
     std::string chain = SysCfg().DataDir();
-    if(chain.empty())
-        chain = "main";
+    if(chain.empty()) chain = "main";
     obj.push_back(Pair("chain",         chain));
     obj.push_back(Pair("blocks",        (int)chainActive.Height()));
     obj.push_back(Pair("bestblockhash", chainActive.Tip()->GetBlockHash().GetHex()));
@@ -364,13 +363,14 @@ Value getblockchaininfo(const Array& params, bool fHelp)
 Value listsetblockindexvalid(const Array& params, bool fHelp)
 {
 	if (fHelp || params.size() != 0) {
-		throw runtime_error("listsetblockindexvalid \n"
-							"\ncall ListSetBlockIndexValid function\n"
-							"\nArguments:\n"
-							"\nResult:\n"
-							"\nExamples:\n"
-							+ HelpExampleCli("listsetblockindexvalid", "")
-							+ HelpExampleRpc("listsetblockindexvalid",""));
+		throw runtime_error(
+            "listsetblockindexvalid \n"
+            "\ncall ListSetBlockIndexValid function\n"
+            "\nArguments:\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("listsetblockindexvalid", "")
+            + HelpExampleRpc("listsetblockindexvalid",""));
 	}
 	return ListSetBlockIndexValid();
 }
@@ -391,12 +391,10 @@ Value getappregid(const Array& params, bool fHelp)
 	uint256 txhash(uint256S(params[0].get_str()));
 
 	int nIndex = 0;
-	int BlockHeight = GetTxConfirmHeight(txhash, *pScriptDBTip) ;
-	if(BlockHeight > chainActive.Height())
-	{
+	int BlockHeight = GetTxConfirmHeight(txhash, *pScriptDBTip);
+	if (BlockHeight > chainActive.Height()) {
 		throw runtime_error("height larger than tip block \n");
-	}
-	else if(BlockHeight == -1){
+	} else if (-1 == blockHeight) {
 		throw runtime_error("tx hash unconfirmed \n");
 	}
 	CBlockIndex* pindex = chainActive[BlockHeight];
@@ -407,16 +405,14 @@ Value getappregid(const Array& params, bool fHelp)
 	block.BuildMerkleTree();
 	std::tuple<bool,int> ret = block.GetTxIndex(txhash);
 	if (!std::get<0>(ret)) {
-		 throw runtime_error("tx not exit in block");
+		throw runtime_error("tx not exit in block");
 	}
 
 	nIndex = std::get<1>(ret);
-
 	CRegID regID(BlockHeight, nIndex);
-
 	Object result;
 	result.push_back(Pair("regid", regID.ToString()));
-	// result.push_back(Pair("script", HexStr(regID.GetVec6())));
+	result.push_back(Pair("regid_hex", HexStr(regID.GetVec6())));
 	return result;
 }
 
