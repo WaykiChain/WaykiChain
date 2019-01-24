@@ -450,7 +450,7 @@ Value invalidateblock(const Array& params, bool fHelp) {
             "invalidateblock \"hash\"\n"
             "\nPermanently marks a block as invalid, as if it violated a consensus rule.\n"
             "\nArguments:\n"
-            "1. hash   (string, required) the hash of the block to mark as invalid\n"
+            "1. \"hash\"         (string, required) the hash of the block to mark as invalid\n"
             "\nResult:\n"
             "\nExamples:\n"
             + HelpExampleCli("invalidateblock", "\"hash\"")
