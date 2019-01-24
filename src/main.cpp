@@ -2478,7 +2478,7 @@ void PushGetBlocksWithCondition(CNode* pnode, CBlockIndex* pindexBegin, uint256 
         string key = to_string(pnode->id) + ":" + to_string((GetTime() / 2));
         if (!filter.contains(vector<unsigned char>(key.begin(), key.end()))) {
             filter.insert(vector<unsigned char>(key.begin(), key.end()));
-
+            ++ count;
             pnode->pindexLastGetBlocksBegin = pindexBegin;
             pnode->hashLastGetBlocksEnd = hashEnd;
             CBlockLocator blockLocator = chainActive.GetPrunedLocator(pindexBegin);
