@@ -2740,6 +2740,7 @@ Value getappaccountinfo(const Array& params, bool fHelp) {
             + HelpExampleRpc("getappaccountinfo", "\"452974-3\" \"WUZBQZZqyWgJLvEEsHrXL5vg5qaUwgfjco\""));
     }
 
+    LogPrint("debug", "%s", params[0].get_str());
     CRegID appRegId(params[0].get_str());
     vector<unsigned char> key;
 

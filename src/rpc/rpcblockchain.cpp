@@ -391,13 +391,13 @@ Value getappregid(const Array& params, bool fHelp)
 	uint256 txhash(uint256S(params[0].get_str()));
 
 	int nIndex = 0;
-	int BlockHeight = GetTxConfirmHeight(txhash, *pScriptDBTip);
-	if (BlockHeight > chainActive.Height()) {
+	int nBlockHeight = GetTxConfirmHeight(txhash, *pScriptDBTip);
+	if (nBlockHeight > chainActive.Height()) {
 		throw runtime_error("height larger than tip block \n");
-	} else if (-1 == blockHeight) {
+	} else if (-1 == nBlockHeight) {
 		throw runtime_error("tx hash unconfirmed \n");
 	}
-	CBlockIndex* pindex = chainActive[BlockHeight];
+	CBlockIndex* pindex = chainActive[nBlockHeight];
 	CBlock block;
 	if (!ReadBlockFromDisk(block, pindex))
 		return false;
@@ -409,7 +409,7 @@ Value getappregid(const Array& params, bool fHelp)
 	}
 
 	nIndex = std::get<1>(ret);
-	CRegID regID(BlockHeight, nIndex);
+	CRegID regID(nBlockHeight, nIndex);
 	Object result;
 	result.push_back(Pair("regid", regID.ToString()));
 	result.push_back(Pair("regid_hex", HexStr(regID.GetVec6())));
