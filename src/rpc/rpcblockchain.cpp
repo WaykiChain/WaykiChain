@@ -447,27 +447,16 @@ Value listcheckpoint(const Array& params, bool fHelp)
 Value invalidateblock(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "invalidateblock \"hash or height\"\n"
+            "invalidateblock \"hash\"\n"
             "\nPermanently marks a block as invalid, as if it violated a consensus rule.\n"
             "\nArguments:\n"
-            "1. \"hash or height\"(string or numeric, required) string for The block hash, numeric for the block height\n"
+            "1. hash   (string, required) the hash of the block to mark as invalid\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("invalidateblock", "\"hash or height\"")
-            + HelpExampleRpc("invalidateblock", "\"hash or height\""));
+            + HelpExampleCli("invalidateblock", "\"hash\"")
+            + HelpExampleRpc("invalidateblock", "\"hash\""));
 
-    std::string strHash;
-    if (int_type == params[0].type()) {
-        int nHeight = params[0].get_int();
-        if (nHeight < 0 || nHeight > chainActive.Height())
-            throw runtime_error("Block number out of range.");
-
-        CBlockIndex *pblockindex = chainActive[nHeight];
-        strHash = pblockindex->GetBlockHash().GetHex();
-    } else {
-        strHash = params[0].get_str();
-    }
-
+    std::string strHash = params[0].get_str();
     uint256 hash(uint256S(strHash));
     CValidationState state;
 

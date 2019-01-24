@@ -251,8 +251,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "notionalpoolingasset"   && n > 2) ConvertTo<double>(params[2]);
     if (strMethod == "getdelegatelist"        && n > 0) ConvertTo<int>(params[0]);
 
-    if (strMethod == "invalidateblock"        && n > 0) { if (params[0].get_str().size() < 32) ConvertTo<int>(params[0]); }
-
     return params;
 }
 
