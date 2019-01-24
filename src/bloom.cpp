@@ -168,3 +168,9 @@ void CBloomFilter::UpdateEmptyFull()
     isFull = full;
     isEmpty = empty;
 }
+
+void CBloomFilter::Clear() {
+    vData.assign(vData.size(), 0);
+    isFull = false;
+    isEmpty = true;
+}
