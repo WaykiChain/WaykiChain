@@ -379,11 +379,16 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 
     string addr = params[0].get_str();
     uint64_t fee = params[1].get_uint64();
+    uint64_t nDefaultFee = SysCfg().GetTxFee();
+
+    if (fee < nDefaultFee) {
+        throw JSONRPCError(RPC_INSUFFICIENT_FEE, "input fee smaller than min tx fee: " + std::to_string(nDefaultFee));  
+    }
 
     //get keyid
     CKeyID keyid;
     if (!GetKeyId(addr, keyid)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in registeraccounttx: Address err.");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in registeraccounttx: Address invalid.");
     }
     CRegisterAccountTx rtx;
     assert(pwalletMain != NULL);
@@ -401,7 +406,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         }
 
         if (account.IsRegister()) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account is already registered.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account was already registered.");
         }
         uint64_t balance = account.GetRawBalance();
         if (balance < fee) {
