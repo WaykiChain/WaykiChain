@@ -893,7 +893,7 @@ public:
         voteFunds.clear();
         llVotes = 0;
     }
-    CAccount() :keyID(uint160()), llValues(0) {
+    CAccount(): keyID(uint160()), llValues(0) {
         PublicKey = CPubKey();
         MinerPKey =  CPubKey();
         nHeight = 0;

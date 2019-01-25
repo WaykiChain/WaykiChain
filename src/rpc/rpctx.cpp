@@ -2728,11 +2728,11 @@ Value printblokdbinfo(const Array& params, bool fHelp) {
 
 Value getappaccountinfo(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 2 && params.size() != 3)) {
-        throw runtime_error("getappaccountinfo  \"appregid\" \"address\""
-            "\nget appaccount info\n"
+        throw runtime_error("getappaccountinfo  \"app_regid\" \"account_address | account_regid\""
+            "\nget app account info\n"
             "\nArguments:\n"
             "1.\"app regid\":(string, required) App RegId\n"
-            "2.\"account address\": (string, required) App-managed account address\n"
+            "2.\"account address or regid\": (string, required) App-managed account address or its regid\n"
             "3.\"minconf\"  (numeric, optional, default=1) Only include contract transactions confirmed \n"
             "\nExamples:\n"
             + HelpExampleCli("getappaccountinfo", "\"452974-3\" \"WUZBQZZqyWgJLvEEsHrXL5vg5qaUwgfjco\"")
@@ -2740,27 +2740,31 @@ Value getappaccountinfo(const Array& params, bool fHelp) {
             + HelpExampleRpc("getappaccountinfo", "\"452974-3\" \"WUZBQZZqyWgJLvEEsHrXL5vg5qaUwgfjco\""));
     }
 
-    LogPrint("debug", "%s", params[0].get_str());
-    CRegID appRegId(params[0].get_str());
-    vector<unsigned char> key;
-
-    if (CRegID::IsSimpleRegIdStr(params[1].get_str())) {
-        CRegID reg(params[1].get_str());
-        key.insert(key.begin(), reg.GetVec6().begin(), reg.GetVec6().end());
-    } else {
-        string addr = params[1].get_str();
-        key.assign(addr.c_str(), addr.c_str() + addr.length());
+    string strAppRegId = params[0].get_str();
+    if (!CRegID::IsSimpleRegIdStr(strAppRegId)) {
+        throw runtime_error("getappaccountinfo: input wrong app regid: " + strAppRegId);
     }
+
+    CRegID appRegId(strAppRegId);
+    vector<unsigned char> acctKey;
+    if (CRegID::IsSimpleRegIdStr(params[1].get_str())) {
+        CRegID acctRegId(params[1].get_str());
+        acctKey.insert(acctKey.begin(), acctRegId.GetVec6().begin(), acctRegId.GetVec6().end());
+    } else { //in wicc address format
+        string acctAddr = params[1].get_str();
+        acctKey.assign(acctAddr.c_str(), acctAddr.c_str() + acctAddr.length());
+    }
+
     std::shared_ptr<CAppUserAccout> tem = std::make_shared<CAppUserAccout>();
-    if (params.size() == 3 && 0 == params[2].get_int()) {
+    if (params.size() == 3 && params[2].get_int() == 0) {
         CScriptDBViewCache contractScriptTemp(*mempool.pScriptDBViewCache, true);
-        if (!contractScriptTemp.GetScriptAcc(appRegId, key, *tem.get())) {
-            tem = std::make_shared<CAppUserAccout>(key);
+        if (!contractScriptTemp.GetScriptAcc(appRegId, acctKey, *tem.get())) {
+            tem = std::make_shared<CAppUserAccout>(acctKey);
         }
     }else {
         CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
-        if (!contractScriptTemp.GetScriptAcc(appRegId, key, *tem.get())) {
-            tem = std::make_shared<CAppUserAccout>(key);
+        if (!contractScriptTemp.GetScriptAcc(appRegId, acctKey, *tem.get())) {
+            tem = std::make_shared<CAppUserAccout>(acctKey);
         }
     }
     tem.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
