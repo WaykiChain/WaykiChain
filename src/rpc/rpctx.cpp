@@ -382,7 +382,9 @@ Value registeraccounttx(const Array& params, bool fHelp) {
     uint64_t nDefaultFee = SysCfg().GetTxFee();
 
     if (fee < nDefaultFee) {
-        throw JSONRPCError(RPC_INSUFFICIENT_FEE, "input fee smaller than min tx fee: " + std::to_string(nDefaultFee));  
+        char errorMsg[100] = {'\0'};
+        sprintf (errorMsg, "input fee smaller than mintxfee: %ld sawi", nDefaultFee);
+        throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);  
     }
 
     //get keyid
