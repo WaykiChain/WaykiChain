@@ -2742,7 +2742,7 @@ Value getappaccountinfo(const Array& params, bool fHelp) {
 
     string strAppRegId = params[0].get_str();
     if (!CRegID::IsSimpleRegIdStr(strAppRegId)) {
-        throw runtime_error("getappaccountinfo: input wrong app regid: " + strAppRegId);
+        throw runtime_error("getappaccountinfo: invalid app regid: " + strAppRegId);
     }
 
     CRegID appRegId(strAppRegId);
