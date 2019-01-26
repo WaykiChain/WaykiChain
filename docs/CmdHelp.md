@@ -42,7 +42,7 @@
 | help | ```[command]``` | List commands, or get help for a command | N |
 | importprivkey | ```<wiccprivkey> [label] [rescan=true]``` | Adds a private key (as returned by dumpprivkey) to your wallet. This may take a while, as a rescan is done, looking for existing transactions. Note: There's no need to import public key, as in ECDSA (unlike RSA), which can be computed from private key. | Y |
 | importwallet | ```<filename>``` | Import keys from a wallet dump file (see dumpwallet). | Y |
-| invalidateblock | ```<hash or height>``` | Mark a block as invalid. | N |
+| invalidateblock | ```<hash>``` | Mark a block as invalid. | N |
 | islocked | | Return an object about whether the wallet is being locked or unlocked | N |
 | listaddr | | return Array containing address,balance,haveminerkey,regid information | N |
 | listapp | ```<showDetail>``` | get the list register script: <br>1. showDetail  (boolean, required)true to show scriptContent,otherwise to not show it. | N |
