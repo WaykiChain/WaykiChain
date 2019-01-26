@@ -2444,7 +2444,7 @@ void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd) {
 }
 
 void PushGetBlocksWithCondition(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd) {
-    // Ask this guy to fill in what we're missing ,要求从网络上同步，从pindexBegin 开始,hashEnd值结束的块
+    // Ask this guy to fill in what we're missing
     AssertLockHeld(cs_main);
     // Filter out duplicate requests
     if (pindexBegin == pnode->pindexLastGetBlocksBegin && hashEnd == pnode->hashLastGetBlocksEnd) {
@@ -2454,23 +2454,21 @@ void PushGetBlocksWithCondition(CNode* pnode, CBlockIndex* pindexBegin, uint256 
         string key = to_string(pnode->id) + ":" + to_string((GetTime() / 2));
         if (!filter.contains(vector<unsigned char>(key.begin(), key.end()))) {
             filter.insert(vector<unsigned char>(key.begin(), key.end()));
-
+            ++ count;
             pnode->pindexLastGetBlocksBegin = pindexBegin;
             pnode->hashLastGetBlocksEnd = hashEnd;
-            //因为比对端的链短，所以不需要传递多余的链节点信息
             CBlockLocator blockLocator = chainActive.GetPrunedLocator(pindexBegin);
             pnode->PushMessage("getblocks", blockLocator, hashEnd);
             LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pnode->addr.ToString(), hashEnd.GetHex());
         } else {
             if (count >= 5000) {
                 count = 0;
-                filter = CBloomFilter(5000, 0.0001, 0, BLOOM_UPDATE_NONE);
+                filter.Clear();
             }
         }
     } else {
         pnode->pindexLastGetBlocksBegin = pindexBegin;
         pnode->hashLastGetBlocksEnd = hashEnd;
-        //因为比对端的链短，所以不需要传递多余的链节点信息
         CBlockLocator blockLocator = chainActive.GetPrunedLocator(pindexBegin);
         pnode->PushMessage("getblocks", blockLocator, hashEnd);
         LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pnode->addr.ToString(), hashEnd.GetHex());
