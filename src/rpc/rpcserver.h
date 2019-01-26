@@ -186,5 +186,6 @@ extern json_spirit::Value listsetblockindexvalid(const json_spirit::Array& param
 extern json_spirit::Value getappregid(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listcheckpoint(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value invalidateblock(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value reconsiderblock(const json_spirit::Array& params, bool fHelp);
 
 #endif

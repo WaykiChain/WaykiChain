@@ -70,7 +70,7 @@ public:
     void SetNull();
 
     string ToString() const;
-    void print() const;
+    void Print() const;
 };
 
 /** An alert is a combination of a serialized CUnsignedAlert and a signature. */
