@@ -611,33 +611,17 @@ bool CheckTransaction(CBaseTransaction *ptx, CValidationState &state, CAccountVi
     return true;
 }
 
-int64_t GetMinFee(const CBaseTransaction *pBaseTx, unsigned int nBytes, bool fAllowFree, enum GetMinFee_mode mode)
-{
-    // Base fee is either nMinTxFee or nMinRelayTxFee
-    int64_t nBaseFee = (mode == GMF_RELAY) ? pBaseTx->nMinRelayTxFee : pBaseTx->nMinTxFee;
-
+int64_t GetMinRelayFee(const CBaseTransaction *pBaseTx, unsigned int nBytes, bool fAllowFree) {
+    int64_t nBaseFee = pBaseTx->nMinRelayTxFee;
     int64_t nMinFee = (1 + (int64_t)nBytes / 1000) * nBaseFee;
 
-    if (fAllowFree)
-    {
+    if (fAllowFree) {
         // There is a free transaction area in blocks created by most miners,
         // * If we are relaying we allow transactions up to DEFAULT_BLOCK_PRIORITY_SIZE - 1000
         //   to be considered to fall into this category. We don't want to encourage sending
         //   multiple transactions instead of one big transaction to avoid fees.
-        // * If we are creating a transaction we allow transactions up to 1,000 bytes
-        //   to be considered safe and assume they can likely make it into this section.
-        if (nBytes < (mode == GMF_SEND ? 1000 : (DEFAULT_BLOCK_PRIORITY_SIZE - 1000)))
+        if (nBytes < (DEFAULT_BLOCK_PRIORITY_SIZE - 1000))
             nMinFee = 0;
-    }
-
-    // This code can be removed after enough miners have upgraded to version 0.9.
-    // Until then, be safe when sending and require a fee if any output
-    // is less than CENT:
-    if (nMinFee < nBaseFee && mode == GMF_SEND)
-    {
-//        BOOST_FOREACH(const CTxOut& txout, tx.vout)
-//            if (txout.nValue < CENT)
-//                nMinFee = nBaseFee;
     }
 
     if (!MoneyRange(nMinFee))
@@ -645,9 +629,7 @@ int64_t GetMinFee(const CBaseTransaction *pBaseTx, unsigned int nBytes, bool fAl
     return nMinFee;
 }
 
-bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransaction *pBaseTx,
-          bool fLimitFree, bool fRejectInsaneFee)
-{
+bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransaction *pBaseTx, bool fLimitFree, bool fRejectInsaneFee) {
     AssertLockHeld(cs_main);
 
     // is it already in the memory pool?
@@ -670,16 +652,13 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransact
                 REJECT_INVALID, "tx-invalid-height");
     }
 
-//  CAccountViewCache view(*pAccountViewTip, true);
     if (!CheckTransaction(pBaseTx, state, *pool.pAccountViewCache, *pool.pScriptDBViewCache))
         return ERRORMSG("AcceptToMemoryPool: : CheckTransaction failed");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     string reason;
     if (SysCfg().NetworkID() == MAIN_NET && !IsStandardTx(pBaseTx, reason))
-        return state.DoS(0,
-                         ERRORMSG("AcceptToMemoryPool : nonstandard transaction: %s", reason),
-                         REJECT_NONSTANDARD, reason);
+        return state.DoS(0, ERRORMSG("AcceptToMemoryPool : nonstandard transaction: %s", reason), REJECT_NONSTANDARD, reason);
     {
         double dPriority = pBaseTx->GetPriority();
         int64_t nFees = pBaseTx->GetFee();
@@ -687,9 +666,8 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransact
         CTxMemPoolEntry entry(pBaseTx, nFees, GetTime(), dPriority, chainActive.Height());
         unsigned int nSize = entry.GetTxSize();
 
-        if(pBaseTx->nTxType == COMMON_TX)
-        {
-            CTransaction *pTx = (CTransaction *) pBaseTx;
+        if (pBaseTx->nTxType == COMMON_TX) {
+            CTransaction *pTx = static_cast<CTransaction*>(pBaseTx);
             if (pTx->llValues < CBaseTransaction::nMinTxFee) {
                 return state.DoS(0,
                         ERRORMSG("AcceptToMemoryPool : tx %d transfer amount(%d) too small, you must send a min (%d)",
@@ -698,29 +676,27 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransact
         }
 
         // Don't accept it if it can't get into a block
-        int64_t txMinFee = GetMinFee(pBaseTx, nSize, true, GMF_RELAY);
+        int64_t txMinFee = GetMinRelayFee(pBaseTx, nSize, true);
         if (fLimitFree && nFees < txMinFee)
-            return state.DoS(0, ERRORMSG("AcceptToMemoryPool : not enough fees %s, %d < %d",
-                                      hash.ToString(), nFees, txMinFee),
+            return state.DoS(0, ERRORMSG("AcceptToMemoryPool : not enough fees %s, %d < %d", hash.ToString(), nFees, txMinFee),
                              REJECT_INSUFFICIENTFEE, "insufficient fee");
 
         // Continuously rate-limit free transactions
         // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
         // be annoying or make others' transactions take longer to confirm.
-        if (fLimitFree && nFees < CTransaction::nMinRelayTxFee)
-        {
+        if (fLimitFree && nFees < CTransaction::nMinRelayTxFee) {
             static CCriticalSection csFreeLimiter;
             static double dFreeCount;
             static int64_t nLastTime;
             int64_t nNow = GetTime();
 
             LOCK(csFreeLimiter);
-            // Use an exponentially decaying ~10-minute window:
-            dFreeCount *= pow(1.0 - 1.0/600.0, (double)(nNow - nLastTime));
+            // Use an exponentially decaying ~10-second window:
+            dFreeCount *= pow(1.0 - 1.0/10.0, (double)(nNow - nLastTime));
             nLastTime = nNow;
             // -limitfreerelay unit is thousand-bytes-per-minute
             // At default rate it would take over a month to fill 1GB
-            if (dFreeCount >= SysCfg().GetArg("-limitfreerelay", 15)*10*1000)
+            if (dFreeCount >= SysCfg().GetArg("-limitfreerelay", 15)*10*1000/60)
                 return state.DoS(0, ERRORMSG("AcceptToMemoryPool : free transaction rejected by rate limiter"),
                                  REJECT_INSUFFICIENTFEE, "insufficient priority");
             LogPrint("INFO", "Rate limit dFreeCount: %g => %g\n", dFreeCount, dFreeCount+nSize);
@@ -733,7 +709,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransact
                          nFees, SysCfg().GetMaxFee());
 
         // Store transaction in memory
-         if(!pool.addUnchecked(hash, entry, state))
+         if (!pool.addUnchecked(hash, entry, state))
              return ERRORMSG("AcceptToMemoryPool: : addUnchecked failed hash:%s \r\n",
                      hash.ToString());
     }

@@ -275,13 +275,7 @@ struct CDiskTxPos : public CDiskBlockPos
 
 
 
-enum GetMinFee_mode
-{
-    GMF_RELAY,
-    GMF_SEND,
-};
-
-int64_t GetMinFee(const CBaseTransaction *pBaseTx, unsigned int nBytes, bool fAllowFree, enum GetMinFee_mode mode);
+int64_t GetMinRelayFee(const CBaseTransaction *pBaseTx, unsigned int nBytes, bool fAllowFree);
 
 
 /** Count ECDSA signature operations the old-fashioned (pre-0.6) way
