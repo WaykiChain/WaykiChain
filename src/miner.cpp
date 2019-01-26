@@ -67,7 +67,7 @@ public:
         dPriority = dFeePerKb = 0;
     }
 
-    void print() const {
+    void Print() const {
         LogPrint("INFO", "COrphan(hash=%s, dPriority=%.1f, dFeePerKb=%.1f)\n",
                 ptx->GetHash().ToString(), dPriority, dFeePerKb);
         for (const auto& hash : setDependsOn)
@@ -244,7 +244,7 @@ bool GetCurrentDelegate(const int64_t currentTime,  const vector<CAccount> &vDel
     int64_t slot =  currentTime / SysCfg().GetTargetSpacing();
     int miner = slot % IniCfg().GetDelegatesCfg();
     delegateAcct = vDelegatesAcctList[miner];
-    LogPrint("DEBUG", "currentTime=%lld, slot=%d, miner=%d, minderAddr=%s\n", 
+    LogPrint("DEBUG", "currentTime=%lld, slot=%d, miner=%d, minderAddr=%s\n",
         currentTime, slot, miner, delegateAcct.keyID.ToAddress());
     return true;
 }

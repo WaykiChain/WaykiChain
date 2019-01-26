@@ -45,11 +45,12 @@
 | invalidateblock | ```<hash>``` | Mark a block as invalid. | N |
 | islocked | | Return an object about whether the wallet is being locked or unlocked | N |
 | listaddr | | return Array containing address,balance,haveminerkey,regid information | N |
-| listapp | ```<showDetail>``` | get the list register script: <br>1. showDetail  (boolean, required)true to show scriptContent,otherwise to not show it. | N |
+| listapp | ```<showDetail>``` | get the list register script: <br>1. showDetail  (boolean, required)true to show scriptContent, otherwise to not show it. | N |
 | listcheckpoint | | Returns the list of checkpoints | N |
 | listtx | | get all confirm transactions and all unconfirm transactions from wallet | N |
 | listtxcache | | get all transactions in cache | N |
 | listunconfirmedtx | | get the list of unconfirmedtx | N |
+| reconsiderblock | ```<hash>``` | Removes invalidity status of a block and its descendants, reconsider them for activation. | N |
 | registeraccounttx | ```<address><fee>``` | register secure account | Y |
 | registeraccounttxraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account transaction | N |
 | registerapptx | ```<address><filepath><fee>[height][scriptdescription]``` | create a register script transaction | Y |
