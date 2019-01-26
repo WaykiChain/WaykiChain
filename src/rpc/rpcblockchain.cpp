@@ -487,8 +487,8 @@ Value reconsiderblock(const Array& params, bool fHelp) {
             "1. hash   (string, required) the hash of the block to reconsider\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("reconsiderblock", "\"blockhash\"")
-            + HelpExampleRpc("reconsiderblock", "\"blockhash\"")
+            + HelpExampleCli("reconsiderblock", "\"hash\"")
+            + HelpExampleRpc("reconsiderblock", "\"hash\"")
         );
 
     std::string strHash = params[0].get_str();
