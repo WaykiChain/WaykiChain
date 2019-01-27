@@ -712,13 +712,14 @@ void GenerateCoinBlock(bool fGenerate, CWallet* pwallet, int targetHeight) {
         minerThreads = NULL;
     }
 
-    if (targetHeight <= 0 && fGenerate == true) {
-        ERRORMSG("targetHeight, fGenerate value error");
-        return ;
-    }
-
     if (!fGenerate)
         return;
+
+    // In mainnet, coin miner should generate blocks continuously regardless of target height.
+    if (SysCfg().NetworkID() != MAIN_NET && targetHeight <= 0) {
+        ERRORMSG("targetHeight, fGenerate value error");
+        return;
+    }
 
     minerThreads = new boost::thread_group();
     minerThreads->create_thread(boost::bind(&CoinMiner, pwallet, targetHeight));
