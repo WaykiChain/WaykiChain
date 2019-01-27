@@ -186,12 +186,12 @@ Value setgenerate(const Array& params, bool fHelp)
     if (fGenerate == false){
         GenerateCoinBlock(false, pwalletMain, 1);
 
-        obj.push_back(Pair("msg","stoping  mining"));
+        obj.push_back(Pair("msg", "stoping  mining"));
         return obj;
     }
 
-    GenerateCoinBlock(true, pwalletMain, nGenProcLimit);//跑完之后需要退出
-    obj.push_back(Pair("msg","in  mining"));
+    GenerateCoinBlock(true, pwalletMain, nGenProcLimit);
+    obj.push_back(Pair("msg", "in  mining"));
     return obj;
 }
 
