@@ -1126,7 +1126,7 @@ Value getwalletinfo(const Array& params, bool fHelp)
 Value getsignature(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2)
            throw runtime_error(
-               "getwalletinfo\n"
+               "getsignature\n"
                "Returns an object containing various wallet state info.\n"
                "\nArguments:\n"
                 "1. \"private key\"  (string, required) The private key base58 encode string, used to sign hash.\n"
