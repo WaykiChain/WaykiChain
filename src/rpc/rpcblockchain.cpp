@@ -374,17 +374,18 @@ Value listsetblockindexvalid(const Array& params, bool fHelp)
     return ListSetBlockIndexValid();
 }
 
-Value getappregid(const Array& params, bool fHelp)
+Value getcontractregid(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1) {
-        throw runtime_error("getappregid \n"
-                            "\nreturn an object with regid\n"
-                            "\nArguments:\n"
-                            "1. txhash   (string, required) the App Script txid.\n"
-                            "\nResult:\n"
-                            "\nExamples:\n"
-                            + HelpExampleCli("getappregid", "5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG")
-                            + HelpExampleRpc("getappregid","5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG"));
+        throw runtime_error(
+            "getcontractregid \n"
+            "\nreturn an object with regid\n"
+            "\nArguments:\n"
+            "1. txhash   (string, required) the contract registration txid.\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getcontractregid", "5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG")
+            + HelpExampleRpc("getcontractregid","5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG"));
     }
 
     uint256 txhash(uint256S(params[0].get_str()));
@@ -392,7 +393,7 @@ Value getappregid(const Array& params, bool fHelp)
     int nIndex = 0;
     int nBlockHeight = GetTxConfirmHeight(txhash, *pScriptDBTip);
     if (nBlockHeight > chainActive.Height()) {
-        throw runtime_error("height larger than tip block \n");
+        throw runtime_error("height bigger than tip block \n");
     } else if (-1 == nBlockHeight) {
         throw runtime_error("tx hash unconfirmed \n");
     }

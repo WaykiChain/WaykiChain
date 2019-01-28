@@ -10,7 +10,7 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur registercontracttx WiZx6rrsB
 
 * 根据上一步得到的hash， 可以查询出部署好的智能合约信息：
 ```
-root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getappregid c2cb6f9ef2d72e77e1cdeb12dff74ece62c576f88e26e8bbd82a671656a77bb9
+root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getcontractregid c2cb6f9ef2d72e77e1cdeb12dff74ece62c576f88e26e8bbd82a671656a77bb9
 {
     "regid:" : "182808-1",
     "script" : "18ca02000100"

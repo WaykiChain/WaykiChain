@@ -1948,15 +1948,15 @@ static int getDataFromAppDb(CScriptDBViewCache &cache, const CRegID &regid, int 
     vector<unsigned char> value;
     vector<unsigned char> vScriptKey;
 
-    if (!cache.GetAppData(height, regid, 0, vScriptKey, value)) {
-        throw runtime_error("GetAppData :the app data retrieval failed!\n");
+    if (!cache.GetContractData(height, regid, 0, vScriptKey, value)) {
+        throw runtime_error("GetContractData :the app data retrieval failed!\n");
     }
     if (index == 1) {
         ret.push_back(std::make_tuple(vScriptKey, value));
     }
     int readCount(1);
     while (--dbsize) {
-        if (cache.GetAppData(height, regid, 1, vScriptKey, value)) {
+        if (cache.GetContractData(height, regid, 1, vScriptKey, value)) {
             ++readCount;
             if (readCount > pagesize * (index - 1)) {
                 ret.push_back(std::make_tuple(vScriptKey, value));
@@ -1969,29 +1969,29 @@ static int getDataFromAppDb(CScriptDBViewCache &cache, const CRegID &regid, int 
     return ret.size();
 }
 
-Value getappdata(const Array& params, bool fHelp) {
+Value getcontractdata(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
-        throw runtime_error("getappdata \"appregid\" \"[pagesize or key]\" (\"index\")\n"
+        throw runtime_error("getcontractdata \"contract_regid\" \"[pagesize or key]\" (\"index\")\n"
                 "\nget the contract data by a given app RegID\n"
                 "\nArguments:\n"
-                "1.\"regid\": (string, required) App RegId\n"
+                "1.\"contract_regid\": (string, required) App RegId\n"
                 "2.[pagesize or key]: (pagesize int, required),if only two params,it is key, otherwise it is pagesize\n"
                 "3.\"index\": (int optional)\n"
                 "\nResult:\n"
                 "\nExamples:\n"
-                + HelpExampleCli("getappdata", "\"1304166-1\" \"key\"")
-                + HelpExampleRpc("getappdata", "\"1304166-1\" \"key\""));
+                + HelpExampleCli("getcontractdata", "\"1304166-1\" \"key\"")
+                + HelpExampleRpc("getcontractdata", "\"1304166-1\" \"key\""));
     }
     int height = chainActive.Height();
 //  //RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
 //  vector<unsigned char> vscriptid = ParseHex(params[0].get_str());
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true) {
-        throw runtime_error("getappdata : app regid not supplied!");
+        throw runtime_error("getcontractdata : app regid not supplied!");
     }
 
     if (!pScriptDBTip->HaveScript(regid)) {
-        throw runtime_error("getappdata : app regid does NOT exist!");
+        throw runtime_error("getcontractdata : app regid does NOT exist!");
     }
     Object script;
 
@@ -1999,8 +1999,8 @@ Value getappdata(const Array& params, bool fHelp) {
     if (params.size() == 2) {
         vector<unsigned char> key = ParseHex(params[1].get_str());
         vector<unsigned char> value;
-        if (!contractScriptTemp.GetAppData(height, regid, key, value)) {
-            throw runtime_error("getappdata :the key does NOT exist!");
+        if (!contractScriptTemp.GetContractData(height, regid, key, value)) {
+            throw runtime_error("getcontractdata :the key does NOT exist!");
         }
         script.push_back(Pair("regid", params[0].get_str()));
         script.push_back(Pair("key", HexStr(key)));
@@ -2011,7 +2011,7 @@ Value getappdata(const Array& params, bool fHelp) {
         int dbsize;
         contractScriptTemp.GetAppItemCount(regid, dbsize);
         if (0 == dbsize) {
-            throw runtime_error("getappdata :the app has NO data!");
+            throw runtime_error("getcontractdata :the app has NO data!");
         }
         int pagesize = params[1].get_int();
         int index = params[2].get_int();
@@ -2033,29 +2033,29 @@ Value getappdata(const Array& params, bool fHelp) {
     return script;
 }
 
-Value getappdataraw(const Array& params, bool fHelp) {
+Value getcontractdataraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
-        throw runtime_error("getappdataraw \"appregid\" \"[pagesize or key]\" (\"index\")\n"
-                "\nget the contract data by a given app RegID\n"
+        throw runtime_error("getcontractdataraw \"contract_regid\" \"[pagesize or key]\" (\"index\")\n"
+                "\nget the contract data by a given contract RegID\n"
                 "\nArguments:\n"
-                "1.\"regid\": (string, required) App RegId\n"
+                "1.\"contract_regid\": (string, required) Contract RegId\n"
                 "2.[pagesize or key]: (pagesize int, required),if only two params,it is key, otherwise it is pagesize\n"
                 "3.\"index\": (int optional)\n"
                 "\nResult:\n"
                 "\nExamples:\n"
-                + HelpExampleCli("getappdataraw", "\"1304166-1\" \"key\"")
-                + HelpExampleRpc("getappdataraw", "\"1304166-1\" \"key\""));
+                + HelpExampleCli("getcontractdataraw", "\"1304166-1\" \"key\"")
+                + HelpExampleRpc("getcontractdataraw", "\"1304166-1\" \"key\""));
     }
     int height = chainActive.Height();
 //  //RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
 //  vector<unsigned char> vscriptid = ParseHex(params[0].get_str());
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true) {
-        throw runtime_error("getappdataraw : app regid NOT supplied!");
+        throw runtime_error("getcontractdataraw : app regid NOT supplied!");
     }
 
     if (!pScriptDBTip->HaveScript(regid)) {
-        throw runtime_error("getappdataraw : app regid NOT exist!");
+        throw runtime_error("getcontractdataraw : app regid NOT exist!");
     }
     Object script;
 
@@ -2066,8 +2066,8 @@ Value getappdataraw(const Array& params, bool fHelp) {
         std::copy(strKey.begin(), strKey.end(), key.begin());
 
         vector<unsigned char> value;
-        if (!contractScriptTemp.GetAppData(height, regid, key, value)) {
-            throw runtime_error("GetAppData :the key does NOT exist!");
+        if (!contractScriptTemp.GetContractData(height, regid, key, value)) {
+            throw runtime_error("GetContractData :the key does NOT exist!");
         }
         string strValue (value.begin(), value.end());
         script.push_back( Pair("regid", params[0].get_str()) );
@@ -2129,11 +2129,11 @@ Value getappconfirmdata(const Array& params, bool fHelp) {
     RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true) {
-        throw runtime_error("getappdata :appregid NOT found!");
+        throw runtime_error("getcontractdata :appregid NOT found!");
     }
 
     if (!pAccountViewCache->HaveScript(regid)) {
-        throw runtime_error("getappdata :appregid does NOT exist!");
+        throw runtime_error("getcontractdata :appregid does NOT exist!");
     }
     Object obj;
     int pagesize = params[1].get_int();
@@ -2146,7 +2146,7 @@ Value getappconfirmdata(const Array& params, bool fHelp) {
     std::vector<unsigned char> vValue;
     Array retArray;
     int nReadCount = 0;
-    while (pAccountViewCache->GetAppData(height, regid, 1, vScriptKey, vValue)) {
+    while (pAccountViewCache->GetContractData(height, regid, 1, vScriptKey, vValue)) {
         Object item;
         ++nReadCount;
         if (nReadCount > pagesize * (nIndex - 1)) {
@@ -2897,7 +2897,7 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
         key.insert(key.begin(), txhash.begin(), txhash.end());
         vector<unsigned char> value;
         Object obj;
-        if (!contractScriptTemp.GetAppData(height, scriptid, key, value)) {
+        if (!contractScriptTemp.GetContractData(height, scriptid, key, value)) {
             obj.push_back(Pair("key", array[i].get_str()));
             obj.push_back(Pair("value", HexStr(value)));
         } else {
@@ -3311,7 +3311,7 @@ Value getdelegatelist(const Array& params, bool fHelp) {
     vector<unsigned char> vDelegatePrefix = vScriptKey;
     while(--nDelegateNum >= 0) {
        CRegID regId(0,0);
-      if(contractScriptTemp.GetAppData(0, redId, nIndex, vScriptKey, vScriptData)) {
+      if(contractScriptTemp.GetContractData(0, redId, nIndex, vScriptKey, vScriptData)) {
           nIndex = 1;
           vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrefix.begin(), vDelegatePrefix.end());
           string strVoltes(iterVotes+9, iterVotes+25);

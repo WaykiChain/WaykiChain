@@ -34,8 +34,8 @@
 | getnetworkinfo | | Returns an object containing various state info regarding P2P network | N |
 | getpeerinfo | | Returns data about each connected node | N |
 | getrawmempool | ```[verbose]``` | Returns all transaction ids in memory pool.If verbose is true,return  a json object, false return array of transaction ids. | N |
-| getappdata | ```<scriptid><pagsize or key>[index]``` | get app managed data by given app regid. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
-| getappdataraw | ```<scriptid><pagsize or key>[index]``` | get app managed raw data by given app regid. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
+| getcontractdata | ```<scriptid><pagsize or key>[index]``` | get contract managed data by given regid. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
+| getcontractdataraw | ```<scriptid><pagsize or key>[index]``` | get contract managed raw data by given app regid. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
 | getappconfirmdata | ```<scriptid><pagsize><index>``` | get app data confirmed | N |
 | gettxdetail | ```<txhash>``` | Returns an object about the transaction  detail information by ```<txhash>``` | N |
 | getwalletinfo | | Returns an object containing various wallet state info | N |

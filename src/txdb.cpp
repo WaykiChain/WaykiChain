@@ -438,7 +438,7 @@ bool CScriptDB::GetScript(const int &nIndex, vector<unsigned char> &vScriptId, v
 		return false;
 	return true;
 }
-bool CScriptDB::GetAppData(const int curBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
+bool CScriptDB::GetContractData(const int curBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
 		vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
 	const int iPrefixLen = 4;
 	const int iScriptIdLen = 6;
@@ -455,7 +455,7 @@ bool CScriptDB::GetAppData(const int curBlockHeight, const vector<unsigned char>
 	int i(0);
 	if (1 == nIndex) {
 		if(vScriptKey.empty()) {
-			return ERRORMSG("GetAppData() : nIndex is 1, and vScriptKey is empty");
+			return ERRORMSG("GetContractData() : nIndex is 1, and vScriptKey is empty");
 		}
 		vector<char> vsKey(vScriptKey.begin(), vScriptKey.end());
 		ssKeySet.insert(ssKeySet.end(), vsKey.begin(), vsKey.end());

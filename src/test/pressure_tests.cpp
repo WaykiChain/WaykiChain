@@ -58,7 +58,7 @@ int GetRandTxType() {
 
 class PressureTest: public SysTestBase {
 public:
-	bool GetAppData(string regId, vector<unsigned char> &vContract) {
+	bool GetContractData(string regId, vector<unsigned char> &vContract) {
 		for(auto &addr : mapAddress) {
 			if(addr.first == regId)
 				continue;

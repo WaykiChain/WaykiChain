@@ -157,11 +157,14 @@ extern json_spirit::Value notionalpoolingasset(const json_spirit:: Array& params
 extern json_spirit::Value getassets(const json_spirit:: Array& params, bool fHelp);
 extern json_spirit::Value sendtoaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendtoaddresswithfee(const json_spirit::Array& params, bool fHelp);
+
 extern json_spirit::Value getsendtoaddresstxraw(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getregistercontracttxraw(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getregisteraccounttxraw(const json_spirit::Array& params, bool fHelp);
+
 extern json_spirit::Value submittx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getcallcontracttxraw(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getregistercontracttxraw(const json_spirit::Array& params, bool fHelp);
+
 extern json_spirit::Value sigstr(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value decoderawtransaction(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value printblockdbinfo(const json_spirit::Array& params, bool fHelp);
@@ -176,7 +179,7 @@ extern json_spirit::Value getblock(const json_spirit::Array& params, bool fHelp)
 extern json_spirit::Value gettxoutsetinfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value verifychain(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listsetblockindexvalid(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getappregid(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getcontractregid(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listcheckpoint(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value invalidateblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value reconsiderblock(const json_spirit::Array& params, bool fHelp);

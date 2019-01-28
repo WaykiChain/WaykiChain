@@ -19,7 +19,7 @@ public:
 	void Flush(CScriptDBViewCache* pViewCache1,CScriptDBViewCache* pViewCache2,CScriptDBViewCache* pViewCache3);
 	void Flush(CScriptDBViewCache* pViewCache);
 	void EraseData(CScriptDBViewCache* pViewCache);
-	void GetAppData(CScriptDBViewCache* pViewCache);
+	void GetContractData(CScriptDBViewCache* pViewCache);
 protected:
 	static const int TEST_SIZE=10000;
 	CScriptDB* pTestDB;
@@ -112,7 +112,7 @@ void CScriptDBTest::EraseData(CScriptDBViewCache* pViewCache) {
 	}
 }
 
-void CScriptDBTest::GetAppData(CScriptDBViewCache* pViewCache) {
+void CScriptDBTest::GetContractData(CScriptDBViewCache* pViewCache) {
 	BOOST_CHECK(pViewCache);
 	int nCount = 0;
 //	int nHeight = 0;
@@ -124,13 +124,13 @@ void CScriptDBTest::GetAppData(CScriptDBViewCache* pViewCache) {
 	BOOST_CHECK(it != mapScript.end());
 
 	BOOST_CHECK(pViewCache->GetAppItemCount(CRegID(it->first), nCount));
-	bool ret = pViewCache->GetAppData(nCurHeight, CRegID(it->first), 0, vScriptKey, vScriptData);
+	bool ret = pViewCache->GetContractData(nCurHeight, CRegID(it->first), 0, vScriptKey, vScriptData);
 
 	while (ret) {
 		if (++it == mapScript.end()) {
 			break;
 		}
-		ret = pViewCache->GetAppData(nCurHeight, CRegID(it->first), 1, vScriptKey, vScriptData);
+		ret = pViewCache->GetContractData(nCurHeight, CRegID(it->first), 1, vScriptKey, vScriptData);
 		pViewCache->GetAppItemCount(CRegID(it->first), nCount);
 	}
 }
@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE(overtime)
 //
 //	Flush(&cache3,&cache2,pTestView);
 //
-//	GetAppData(&cache3);
+//	GetContractData(&cache3);
 //
 //	Flush(&cache3,&cache2,pTestView);
 //
