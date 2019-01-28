@@ -161,12 +161,12 @@ extern json_spirit::Value notionalpoolingasset(const json_spirit:: Array& params
 extern json_spirit::Value getassets(const json_spirit:: Array& params, bool fHelp);
 extern json_spirit::Value sendtoaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendtoaddresswithfee(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getsendtoaddressraw(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getsendtoaddresstxraw(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getregisteraccounttxraw(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submittx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value createcontracttxraw(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value createfreezetxraw(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value registerscripttxraw(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getregisterapptxraw(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sigstr(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value decoderawtransaction(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value printblokdbinfo(const json_spirit::Array& params, bool fHelp);

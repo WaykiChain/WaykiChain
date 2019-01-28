@@ -263,11 +263,11 @@ static const CRPCCommand vRPCCommands[] =
     { "sendtoaddressraw",       &getsendtoaddresstxraw,  false,     false,      false },  /* deprecated */
     { "getsendtoaddresstxraw",  &getsendtoaddresstxraw,  false,     false,      false },
 
-    { "registeraccountraw",     &getregisteraccountraw,  false,     false,      false },  /* deprecated */
-    { "getregisteraccountraw",  &getregisteraccountraw,  false,     false,      false },
+    { "registeraccountraw",     &getregisteraccountxraw,  false,     false,      false },  /* deprecated */
+    { "getregisteraccountxraw", &getregisteraccountxraw,  false,     false,      false },
 
-    { "getcontracttxraw",       &createcontracttxraw,   true,      false,      false },
-    { "registerscripttxraw",    &registerscripttxraw,   true,      false,      false },
+    { "getcontracttxraw",       &getregisterapptxraw,   true,      false,      false },
+    { "getregisterapptxraw",    &getregisterapptxraw,   true,      false,      false },
 
     /* uses wallet if enabled */
     { "backupwallet",           &backupwallet,           true,      false,      true },
@@ -318,12 +318,12 @@ static const CRPCCommand vRPCCommands[] =
     { "dispersebalance",        &dispersebalance,        false,     false,      true },
     { "notionalpoolingasset",   &notionalpoolingasset,   false,     false,      true },
     { "getassets",              &getassets,              false,     false,      true },
-    { "listasset",              &listasset,              false,     false,      true },
+    { "listcontractasset",      &listcontractasset,      false,     false,      true },
     { "submittx",               &submittx,               true,      false,      false},
 
     { "sigstr",                 &sigstr,                 true,      false,      true },
-    { "getappaccountinfo",      &getappaccountinfo,      true,      false,      true },
-    { "getappkeyvalue",         &getappkeyvalue,         true,      false,      true },
+    { "getcontractaccountinfo", &getcontractaccountinfo, true,      false,      true },
+    { "getcontractkeyvalue",    &getcontractkeyvalue,    true,      false,      true },
     { "islocked",               &islocked,               true,      false,      true },
     { "getsignature",           &getsignature,           true,      false,      true },
     { "getdelegatelist",        &getdelegatelist,        true,      false,      true },

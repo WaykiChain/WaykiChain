@@ -206,7 +206,7 @@ public:
 	bool GetOneScriptId(std::string &regscriptid)
 	{
 		//CommanRpc
-		const char *argv[] = {"rpctest", "listscriptregid"};
+		const char *argv[] = {"rpctest", "listcontractregid"};
 		int argc = sizeof(argv)/sizeof(char*);
 
 		Value value;
@@ -415,7 +415,7 @@ public:
 		return false;
 	}
 
-	bool RegisterAppTx(const std::string &addr, const std::string &script, const int nHeight)
+	bool RegisterContractTx(const std::string &addr, const std::string &script, const int nHeight)
 	{
 		//CommanRpc
 		char caddr[64] = { 0 };

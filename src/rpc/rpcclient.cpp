@@ -169,9 +169,9 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     // if (strMethod == "getrawtransaction"      && n > 1) ConvertTo<int64_t>(params[1]);
     // if (strMethod == "createrawtransaction"   && n > 0) ConvertTo<Array>(params[0]);
     // if (strMethod == "createrawtransaction"   && n > 1) ConvertTo<Object>(params[1]);
-    if (strMethod == "signrawtransaction"     && n > 1) ConvertTo<Array>(params[1], true);
-    if (strMethod == "signrawtransaction"     && n > 2) ConvertTo<Array>(params[2], true);
-    if (strMethod == "sendrawtransaction"     && n > 1) ConvertTo<bool>(params[1], true);
+    // if (strMethod == "signrawtransaction"     && n > 1) ConvertTo<Array>(params[1], true);
+    // if (strMethod == "signrawtransaction"     && n > 2) ConvertTo<Array>(params[2], true);
+    // if (strMethod == "sendrawtransaction"     && n > 1) ConvertTo<bool>(params[1], true);
     if (strMethod == "gettxout"               && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "gettxout"               && n > 2) ConvertTo<bool>(params[2]);
     if (strMethod == "lockunspent"            && n > 0) ConvertTo<bool>(params[0]);
@@ -182,7 +182,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "keypoolrefill"          && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "getrawmempool"          && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getalltxinfo"           && n > 0) ConvertTo<int>(params[0]);
-
     if (strMethod == "getnewaddress"          && n > 0) ConvertTo<bool>(params[0]);
 
     if (strMethod == "registaccounttx"        && n > 1) ConvertTo<int64_t>(params[1]); //for backward compatibility
@@ -192,24 +191,23 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if(strMethod == "createdelegatetx"        && n > 2) ConvertTo<int64_t>(params[2]);
     if(strMethod == "createdelegatetx"        && n > 3) ConvertTo<int>(params[3]);
 
+    if (strMethod == "registercontracttx"     && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "registercontracttx"     && n > 3) ConvertTo<int>(params[3]);
 
+    if (strMethod == "createcontracttx"       && n > 2) ConvertTo<int64_t>(params[2]);  /** deprecated */
+    if (strMethod == "createcontracttx"       && n > 4) ConvertTo<int64_t>(params[4]);  /** deprecated */
+    if (strMethod == "createcontracttx"       && n > 5) ConvertTo<int>(params[5]);      /** deprecated */
 
-    if (strMethod == "registerapptx"          && n > 2) ConvertTo<int64_t>(params[2]);
-    if (strMethod == "registerapptx"          && n > 3) ConvertTo<int>(params[3]);
+    if (strMethod == "callcontracttx"         && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "callcontracttx"         && n > 4) ConvertTo<int64_t>(params[4]);
+    if (strMethod == "callcontracttx"         && n > 5) ConvertTo<int>(params[5]);
 
-    if (strMethod == "createcontracttx"       && n > 2) ConvertTo<int64_t>(params[2]);
-    if (strMethod == "createcontracttx"       && n > 4) ConvertTo<int64_t>(params[4]);
-    if (strMethod == "createcontracttx"       && n > 5) ConvertTo<int>(params[5]);
-    if (strMethod == "invokeapptx"            && n > 2) ConvertTo<int64_t>(params[2]);
-    if (strMethod == "invokeapptx"            && n > 4) ConvertTo<int64_t>(params[4]);
-    if (strMethod == "invokeapptx"            && n > 5) ConvertTo<int>(params[5]);
-
-    if (strMethod == "listaddrtx"             && n > 1) ConvertTo<bool>(params[1]);
+    if (strMethod == "listaddr"               && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "listunconfirmedtx"      && n > 0) ConvertTo<bool>(params[0]);
-    if (strMethod == "listscriptregid"        && n > 0) ConvertTo<bool>(params[0]);
+    // if (strMethod == "listcontractregid"      && n > 0) ConvertTo<bool>(params[0]);
 
-    if (strMethod == "testnormaltx"           && n > 2) ConvertTo<int>(params[2]);
-    if (strMethod == "testminer"              && n > 0) ConvertTo<int>(params[0]);
+    // if (strMethod == "testnormaltx"           && n > 2) ConvertTo<int>(params[2]);
+    // if (strMethod == "testminer"              && n > 0) ConvertTo<int>(params[0]);
     if (strMethod == "disconnectblock"        && n > 0) ConvertTo<int>(params[0]);
 
     if (strMethod == "getoneaddr"             && n > 0) ConvertTo<int64_t>(params[0]);
@@ -228,36 +226,38 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "getblock"               && n > 0) { if (params[0].get_str().size()<32) ConvertTo<int>(params[0]);}
     
     /****** generate a digitally signed raw transaction and can be later submitted to network via submittx  **********/
-    if (strMethod == "genregisteraccounttxraw"  && n > 0) ConvertTo<double>(params[0]);
-    if (strMethod == "genregisteraccounttxraw"  && n > 1) ConvertTo<int>(params[1]);
+    if (strMethod == "getregisteraccounttxraw"  && n > 0) ConvertTo<double>(params[0]);
+    if (strMethod == "getregisteraccounttxraw"  && n > 1) ConvertTo<int>(params[1]);
 
-    if (strMethod == "gensendtoaddresstxraw"    && n > 0) ConvertTo<double>(params[0]);
-    if (strMethod == "gensendtoaddresstxraw"    && n > 1) ConvertTo<double>(params[1]);
-    if (strMethod == "gensendtoaddresstxraw"    && n > 4) ConvertTo<int>(params[4]);
+    if (strMethod == "getsendtoaddresstxraw"    && n > 0) ConvertTo<double>(params[0]);
+    if (strMethod == "getsendtoaddresstxraw"    && n > 1) ConvertTo<double>(params[1]);
+    if (strMethod == "getsendtoaddresstxraw"    && n > 4) ConvertTo<int>(params[4]);
 
-    if (strMethod == "genregisterapptxraw"      && n > 0) ConvertTo<double>(params[0]);
-    if (strMethod == "genregisterapptxraw"      && n > 2) ConvertTo<bool>(params[2]);
-    if (strMethod == "genregisterapptxraw"      && n > 4) ConvertTo<int>(params[4]);
+    if (strMethod == "getregisterapptxraw"      && n > 0) ConvertTo<double>(params[0]);
+    if (strMethod == "getregisterapptxraw"      && n > 2) ConvertTo<bool>(params[2]);
+    if (strMethod == "getregisterapptxraw"      && n > 4) ConvertTo<int>(params[4]);
 
-    if (strMethod == "geninvokeapptxraw"        && n > 0) ConvertTo<double>(params[0]);
-    if (strMethod == "geninvokeapptxraw"        && n > 1) ConvertTo<double>(params[1]);
-    if (strMethod == "geninvokeapptxraw"        && n > 5) ConvertTo<int>(params[5]);
+    if (strMethod == "getcallcontracttxraw"     && n > 0) ConvertTo<double>(params[0]);
+    if (strMethod == "gencallcontracttxraw"     && n > 1) ConvertTo<double>(params[1]);
+    if (strMethod == "gencallcontracttxraw"     && n > 5) ConvertTo<int>(params[5]);
 
-    if(strMethod == "gendelegatetxraw"          && n > 1) ConvertTo<Array>(params[1]);
-    if(strMethod == "gendelegatetxraw"          && n > 2) ConvertTo<int64_t>(params[2]);
-    if(strMethod == "gendelegatetxraw"          && n > 3) ConvertTo<int>(params[3]);
+    if(strMethod == "getdelegatetxraw"          && n > 1) ConvertTo<Array>(params[1]);
+    if(strMethod == "getdelegatetxraw"          && n > 2) ConvertTo<int64_t>(params[2]);
+    if(strMethod == "getdelegatetxraw"          && n > 3) ConvertTo<int>(params[3]);
     /********************************************************************************************************************/
 
     if (strMethod == "gettxhashbyaddress"     && n > 1) ConvertTo<int>(params[1]);
     if (strMethod == "listtx"                 && n > 0) ConvertTo<int>(params[0]);
     if (strMethod == "listtx"                 && n > 1) ConvertTo<int>(params[1]);
-    if (strMethod == "getappkeyvalue"         && n > 1) ConvertTo<Array>(params[1]);
+    if (strMethod == "getcontractkeyvalue"    && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "listtransactions"       && n > 1) ConvertTo<int>(params[1]);
     if (strMethod == "listtransactions"       && n > 2) ConvertTo<int>(params[2]);
     if (strMethod == "listtransactionsv2"     && n > 1) ConvertTo<int>(params[1]);
     if (strMethod == "listtransactionsv2"     && n > 2) ConvertTo<int>(params[2]);
     if (strMethod == "notionalpoolingasset"   && n > 2) ConvertTo<double>(params[2]);
     if (strMethod == "getdelegatelist"        && n > 0) ConvertTo<int>(params[0]);
+
+    if (strMethod == "invalidateblock"        && n > 0) { if (params[0].get_str().size() < 32) ConvertTo<int>(params[0]); }
 
     return params;
 }
