@@ -63,7 +63,6 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("txnumber", (int)block.vptx.size()));
     Array txs;
     for (const auto& ptx : block.vptx)
-//    	txs.push_back(TxToJSON(ptx.get()));
         txs.push_back(ptx->GetHash().GetHex());
     result.push_back(Pair("tx", txs));
     result.push_back(Pair("time", block.GetBlockTime()));
@@ -362,8 +361,8 @@ Value getblockchaininfo(const Array& params, bool fHelp)
 
 Value listsetblockindexvalid(const Array& params, bool fHelp)
 {
-	if (fHelp || params.size() != 0) {
-		throw runtime_error(
+    if (fHelp || params.size() != 0) {
+        throw runtime_error(
             "listsetblockindexvalid \n"
             "\ncall ListSetBlockIndexValid function\n"
             "\nArguments:\n"
@@ -371,99 +370,88 @@ Value listsetblockindexvalid(const Array& params, bool fHelp)
             "\nExamples:\n"
             + HelpExampleCli("listsetblockindexvalid", "")
             + HelpExampleRpc("listsetblockindexvalid",""));
-	}
-	return ListSetBlockIndexValid();
+    }
+    return ListSetBlockIndexValid();
 }
 
 Value getappregid(const Array& params, bool fHelp)
 {
-	if (fHelp || params.size() != 1) {
-		throw runtime_error("getappregid \n"
-							"\nreturn an object with regid\n"
-							"\nArguments:\n"
-							"1. txhash   (string, required) the App Script txid.\n"
-							"\nResult:\n"
-							"\nExamples:\n"
-							+ HelpExampleCli("getappregid", "5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG")
-							+ HelpExampleRpc("getappregid","5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG"));
-	}
+    if (fHelp || params.size() != 1) {
+        throw runtime_error("getappregid \n"
+                            "\nreturn an object with regid\n"
+                            "\nArguments:\n"
+                            "1. txhash   (string, required) the App Script txid.\n"
+                            "\nResult:\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("getappregid", "5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG")
+                            + HelpExampleRpc("getappregid","5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG"));
+    }
 
-	uint256 txhash(uint256S(params[0].get_str()));
+    uint256 txhash(uint256S(params[0].get_str()));
 
-	int nIndex = 0;
-	int nBlockHeight = GetTxConfirmHeight(txhash, *pScriptDBTip);
-	if (nBlockHeight > chainActive.Height()) {
-		throw runtime_error("height larger than tip block \n");
-	} else if (-1 == nBlockHeight) {
-		throw runtime_error("tx hash unconfirmed \n");
-	}
-	CBlockIndex* pindex = chainActive[nBlockHeight];
-	CBlock block;
-	if (!ReadBlockFromDisk(block, pindex))
-		return false;
+    int nIndex = 0;
+    int nBlockHeight = GetTxConfirmHeight(txhash, *pScriptDBTip);
+    if (nBlockHeight > chainActive.Height()) {
+        throw runtime_error("height larger than tip block \n");
+    } else if (-1 == nBlockHeight) {
+        throw runtime_error("tx hash unconfirmed \n");
+    }
+    CBlockIndex* pindex = chainActive[nBlockHeight];
+    CBlock block;
+    if (!ReadBlockFromDisk(block, pindex))
+        return false;
 
-	block.BuildMerkleTree();
-	std::tuple<bool,int> ret = block.GetTxIndex(txhash);
-	if (!std::get<0>(ret)) {
-		throw runtime_error("tx not exit in block");
-	}
+    block.BuildMerkleTree();
+    std::tuple<bool,int> ret = block.GetTxIndex(txhash);
+    if (!std::get<0>(ret)) {
+        throw runtime_error("tx not exit in block");
+    }
 
-	nIndex = std::get<1>(ret);
-	CRegID regID(nBlockHeight, nIndex);
-	Object result;
-	result.push_back(Pair("regid", regID.ToString()));
-	result.push_back(Pair("regid_hex", HexStr(regID.GetVec6())));
-	return result;
+    nIndex = std::get<1>(ret);
+    CRegID regID(nBlockHeight, nIndex);
+    Object result;
+    result.push_back(Pair("regid", regID.ToString()));
+    result.push_back(Pair("regid_hex", HexStr(regID.GetVec6())));
+    return result;
 }
 
 Value listcheckpoint(const Array& params, bool fHelp)
 {
-	if (fHelp || params.size() != 0) {
-			throw runtime_error(
-				"listcheckpoint index\n"
-				"\nget the list of checkpoint.\n"
-			    "\nResult a object  contain checkpoint\n"
-//				"\nResult:\n"
-//				"\"hash\"         (string) The block hash\n"
-				"\nExamples:\n"
-				+ HelpExampleCli("listcheckpoint", "")
-				+ HelpExampleRpc("listcheckpoint", "")
-			);
-		}
+    if (fHelp || params.size() != 0) {
+            throw runtime_error(
+                "listcheckpoint index\n"
+                "\nget the list of checkpoint.\n"
+                "\nResult a object  contain checkpoint\n"
+//              "\nResult:\n"
+//              "\"hash\"         (string) The block hash\n"
+                "\nExamples:\n"
+                + HelpExampleCli("listcheckpoint", "")
+                + HelpExampleRpc("listcheckpoint", "")
+            );
+        }
 
-	Object result;
-	std::map<int, uint256> checkpointMap;
-	Checkpoints::GetCheckpointMap(checkpointMap);
-	for(std::map<int, uint256>::iterator iterCheck = checkpointMap.begin(); iterCheck != checkpointMap.end(); ++iterCheck){
-		result.push_back(Pair(tfm::format("%d", iterCheck->first).c_str(), iterCheck->second.GetHex()));
-	}
-	return result;
+    Object result;
+    std::map<int, uint256> checkpointMap;
+    Checkpoints::GetCheckpointMap(checkpointMap);
+    for(std::map<int, uint256>::iterator iterCheck = checkpointMap.begin(); iterCheck != checkpointMap.end(); ++iterCheck){
+        result.push_back(Pair(tfm::format("%d", iterCheck->first).c_str(), iterCheck->second.GetHex()));
+    }
+    return result;
 }
 
 Value invalidateblock(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "invalidateblock \"hash or height\"\n"
+            "invalidateblock \"hash\"\n"
             "\nPermanently marks a block as invalid, as if it violated a consensus rule.\n"
             "\nArguments:\n"
-            "1. \"hash or height\"(string or numeric, required) string for The block hash, numeric for the block height\n"
+            "1. \"hash\"         (string, required) the hash of the block to mark as invalid\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("invalidateblock", "\"hash or height\"")
-            + HelpExampleRpc("invalidateblock", "\"hash or height\""));
+            + HelpExampleCli("invalidateblock", "\"hash\"")
+            + HelpExampleRpc("invalidateblock", "\"hash\""));
 
-    std::string strHash;
-    if (int_type == params[0].type()) {
-        int nHeight = params[0].get_int();
-        if (nHeight < 0 || nHeight > chainActive.Height())
-            throw runtime_error("Block number out of range.");
-
-        CBlockIndex *pblockindex = chainActive[nHeight];
-        strHash = pblockindex->GetBlockHash().GetHex();
-    } else {
-        strHash = params[0].get_str();
-    }
-
+    std::string strHash = params[0].get_str();
     uint256 hash(uint256S(strHash));
     CValidationState state;
 
@@ -474,6 +462,46 @@ Value invalidateblock(const Array& params, bool fHelp) {
 
         CBlockIndex* pblockindex = mapBlockIndex[hash];
         InvalidateBlock(state, pblockindex);
+    }
+
+    if (state.IsValid()) {
+        ActivateBestChain(state);
+    }
+
+    if (!state.IsValid()) {
+        throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
+    }
+
+    Object obj;
+    obj.push_back(Pair("msg", "success"));
+    return obj;
+}
+
+Value reconsiderblock(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "reconsiderblock \"hash\"\n"
+            "\nRemoves invalidity status of a block and its descendants, reconsider them for activation.\n"
+            "This can be used to undo the effects of invalidateblock.\n"
+            "\nArguments:\n"
+            "1. hash   (string, required) the hash of the block to reconsider\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("reconsiderblock", "\"hash\"")
+            + HelpExampleRpc("reconsiderblock", "\"hash\"")
+        );
+
+    std::string strHash = params[0].get_str();
+    uint256 hash(uint256S(strHash));
+    CValidationState state;
+
+    {
+        LOCK(cs_main);
+        if (mapBlockIndex.count(hash) == 0)
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
+
+        CBlockIndex* pblockindex = mapBlockIndex[hash];
+        ReconsiderBlock(state, pblockindex);
     }
 
     if (state.IsValid()) {

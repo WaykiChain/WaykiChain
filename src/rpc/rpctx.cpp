@@ -379,7 +379,6 @@ Value registeraccounttx(const Array& params, bool fHelp) {
     string addr = params[0].get_str();
     uint64_t fee = 0;
     uint64_t nDefaultFee = SysCfg().GetTxFee();
-
     if (params.size() > 1) {
         fee = params[1].get_uint64();
         if (fee < nDefaultFee) {

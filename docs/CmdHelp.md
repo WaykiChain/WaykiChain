@@ -42,16 +42,17 @@
 | help | ```[command]``` | List commands, or get help for a command | N |
 | importprivkey | ```<wiccprivkey> [label] [rescan=true]``` | Adds a private key (as returned by dumpprivkey) to your wallet. This may take a while, as a rescan is done, looking for existing transactions. Note: There's no need to import public key, as in ECDSA (unlike RSA), which can be computed from private key. | Y |
 | importwallet | ```<filename>``` | Import keys from a wallet dump file (see dumpwallet). | Y |
-| invalidateblock | ```<hash or height>``` | Mark a block as invalid. | N |
+| invalidateblock | ```<hash>``` | Mark a block as invalid. | N |
 | islocked | | Return an object about whether the wallet is being locked or unlocked | N |
 | listaddr | | return Array containing address,balance,haveminerkey,regid information | N |
-| listapp | ```<showDetail>``` | get the list register script: <br>1. showDetail  (boolean, required)true to show scriptContent,otherwise to not show it. | N |
+| listapp | ```<showDetail>``` | get the list register script: <br>1. showDetail  (boolean, required)true to show scriptContent, otherwise to not show it. | N |
 | listcheckpoint | | Returns the list of checkpoints | N |
 | listtx | | get all confirm transactions and all unconfirm transactions from wallet | N |
 | listtxcache | | get all transactions in cache | N |
 | listunconfirmedtx | | get the list of unconfirmedtx | N |
 | registeraccounttx | ```<address><fee>``` | register a local account | Y |
 | registeraccounttxraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account raw transaction | N |
+| reconsiderblock | ```<hash>``` | Removes invalidity status of a block and its descendants, reconsider them for activation. | N |
 | registerapptx | ```<address><filepath><fee>[height][scriptdescription]``` | create a register script transaction | Y |
 | registerscripttxraw | ```<height><fee><address><flag><script or scriptid><script description>``` | Register script: <br>1.    Height(numeric required) :valod height<br> 2.    Fee: (numeric required) pay to miner<br>3.    address: (string required)for send<br>4.    flag: (numeric, required) 0-1<br>5.    script or scriptid: (string required), if flag=0 is script's file path, else if flag=1 scriptid<br>6.    script description:(string optional) new script description.<br>| N |
 | sendtoaddress | ```[wiccaddress]<[receive address><amount>``` | Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001. Returns the transaction ID <txhash> if successful | Y |
