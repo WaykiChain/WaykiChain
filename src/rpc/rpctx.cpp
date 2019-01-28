@@ -2251,7 +2251,7 @@ Value registeraccounttxraw(const Array& params, bool fHelp) {
     CUserID ukey;
     CUserID uminerkey = CNullID();
 
-    int64_t Fee = AmountToRawValue(params[0]);
+    int64_t fee = AmountToRawValue(params[0]);
     uint64_t nDefaultFee = SysCfg().GetTxFee();
 
     if (fee < nDefaultFee) {
@@ -2259,7 +2259,6 @@ Value registeraccounttxraw(const Array& params, bool fHelp) {
         sprintf(errorMsg, "input fee smaller than mintxfee: %ld sawi", nDefaultFee);
         throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);  
     }
-
 
     int hight = params[1].get_int();
 
