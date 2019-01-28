@@ -150,11 +150,6 @@ extern json_spirit::Value getwalletinfo(const json_spirit::Array& params, bool f
 extern json_spirit::Value getblockchaininfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getnetworkinfo(const json_spirit::Array& params, bool fHelp);
 
-extern json_spirit::Value getrawtransaction(const json_spirit::Array& params, bool fHelp); // in rcprawtransaction.cpp
-extern json_spirit::Value createrawtransaction(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value decoderawtransaction(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value signrawtransaction(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value sendrawtransaction(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value signmessage(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value notionalpoolingbalance(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value dispersebalance(const json_spirit::Array& params, bool fHelp);
@@ -162,16 +157,17 @@ extern json_spirit::Value notionalpoolingasset(const json_spirit:: Array& params
 extern json_spirit::Value getassets(const json_spirit:: Array& params, bool fHelp);
 extern json_spirit::Value sendtoaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendtoaddresswithfee(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value sendtoaddressraw(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value registeraccounttxraw(const json_spirit::Array& params, bool fHelp);
+
+extern json_spirit::Value getsendtoaddresstxraw(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getregistercontracttxraw(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getregisteraccounttxraw(const json_spirit::Array& params, bool fHelp);
+
 extern json_spirit::Value submittx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value createcontracttxraw(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value createfreezetxraw(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value registerscripttxraw(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getcallcontracttxraw(const json_spirit::Array& params, bool fHelp);
+
 extern json_spirit::Value sigstr(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value decoderawtransaction(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value printblokdbinfo(const json_spirit::Array& params, bool fHelp);
-
+extern json_spirit::Value printblockdbinfo(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value getblockcount(const json_spirit::Array& params, bool fHelp); // in rpcblockchain.cpp
 extern json_spirit::Value getbestblockhash(const json_spirit::Array& params, bool fHelp);
@@ -183,8 +179,9 @@ extern json_spirit::Value getblock(const json_spirit::Array& params, bool fHelp)
 extern json_spirit::Value gettxoutsetinfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value verifychain(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listsetblockindexvalid(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getappregid(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getcontractregid(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listcheckpoint(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value invalidateblock(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value reconsiderblock(const json_spirit::Array& params, bool fHelp);
 
 #endif

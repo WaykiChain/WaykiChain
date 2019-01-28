@@ -138,7 +138,7 @@ bool CRedPacketTest::RegistScript()
 		return false;
 
 	//reg anony app
-	Value regscript = basetest.RegisterAppTx(regAddr, strFileName, nCurHight, nFee+20*COIN);
+	Value regscript = basetest.RegisterContractTx(regAddr, strFileName, nCurHight, nFee+20*COIN);
 	if(basetest.GetHashFromCreatedTx(regscript, TxHash)){
 		nStep++;
 		return true;

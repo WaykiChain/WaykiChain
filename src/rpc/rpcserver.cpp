@@ -12,8 +12,6 @@
 #include "ui_interface.h"
 #include "util.h"
 
-
-
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
@@ -250,22 +248,26 @@ static const CRPCCommand vRPCCommands[] =
     { "getrawmempool",          &getrawmempool,          true,      false,      false },
     { "listcheckpoint",         &listcheckpoint,         true,      false,      false },
     { "verifychain",            &verifychain,            true,      false,      false },
-    { "verifymessage",          &verifymessage,          false,     false,      false },
+    
     { "gettotalcoin",           &gettotalcoin,           false,     false,      false },
     { "gettotalassets",         &gettotalassets,         false,     false,      false },
     { "invalidateblock",        &invalidateblock,        true,      true,       false },
+    { "reconsiderblock",        &reconsiderblock,        true,      true,       false },
 
     /* Mining */
     { "getmininginfo",          &getmininginfo,          true,      false,      false },
     { "getnetworkhashps",       &getnetworkhashps,       true,      false,      false },
     { "submitblock",            &submitblock,            true,      false,      false },
 
-
     /* Raw transactions */
-    { "sendtoaddressraw",       &sendtoaddressraw,       false,     false,      false },
-    { "registeraccounttxraw",   &registeraccounttxraw,   false,     false,      false },
-    { "createcontracttxraw",    &createcontracttxraw,    true,      false,      false },
-    { "registerscripttxraw",    &registerscripttxraw,    true,      false,      false },
+    { "sendtoaddressraw",       &getsendtoaddresstxraw,  false,     false,      false },  /* deprecated */
+    { "getsendtoaddresstxraw",  &getsendtoaddresstxraw,  false,     false,      false },
+
+    { "registeraccountraw",     &getregisteraccounttxraw,  false,     false,      false },  /* deprecated */
+    { "getregisteraccounttxraw", &getregisteraccounttxraw,  false,     false,      false },
+    { "getregistercontracttxraw", &getregistercontracttxraw,  true,      false,      false },
+    { "getcallcontracttxraw",   &getcallcontracttxraw,    true,      false,      false },
+    { "getvotedelegatetxraw",   &getvotedelegatetxraw,    true,      false,      true },
 
     /* uses wallet if enabled */
     { "backupwallet",           &backupwallet,           true,      false,      true },
@@ -287,12 +289,13 @@ static const CRPCCommand vRPCCommands[] =
     { "listtx",                 &listtx,                 true,      false,      true },
     { "listcontracttx",         &listcontracttx,         true,      false,      true },
     { "gettransaction",         &gettransaction,         true,      false,      true },
-    { "registaccounttx",        &registeraccounttx,      true,      false,      true },
+
+    { "registaccounttx",        &registeraccounttx,      true,      false,      true }, /** deprecated */
     { "registeraccounttx",      &registeraccounttx,      true,      false,      true },
-    { "createcontracttx",       &createcontracttx,       true,      false,      true },
-    { "createdelegatetx",       &createdelegatetx,       true,      false,      true },
-    { "createdelegatetxraw",    &createdelegatetxraw,    true,      false,      true },
-    { "registerapptx",          &registerapptx,          true,      false,      true },
+    { "registercontracttx",     &registercontracttx,     true,      false,      true },
+    { "callcontracttx",         &callcontracttx,         true,      false,      true },
+    { "votedelegatetx",         &votedelegatetx,         true,      false,      true },
+    
     { "settxfee",               &settxfee,               false,     false,      true },
     { "walletlock",             &walletlock,             true,      false,      true },
     { "walletpassphrasechange", &walletpassphrasechange, false,     false,      true },
@@ -302,10 +305,11 @@ static const CRPCCommand vRPCCommands[] =
     { "getappinfo",             &getappinfo,             true,      false,      true },
     { "generateblock",          &generateblock,          true,      true,       true },
     { "listtxcache",            &listtxcache,            true,      false,      true },
-    { "getappdata",             &getappdata,             true,      false,      true },
-    { "getappdataraw",          &getappdataraw,          true,      false,      true },
+    { "getcontractdata",        &getcontractdata,        true,      false,      true },
+    { "getcontractdataraw",     &getcontractdataraw,     true,      false,      true },
     { "getappconfirmdata",      &getappconfirmdata,      true,      false,      true },
     { "signmessage",            &signmessage,            false,     false,      true },
+    { "verifymessage",          &verifymessage,          false,     false,      false },
     { "sendtoaddress",          &sendtoaddress,          false,     false,      true },
     { "sendtoaddresswithfee",   &sendtoaddresswithfee,   false,     false,      true },
     { "getbalance",             &getbalance,             false,     false,      true },
@@ -313,12 +317,12 @@ static const CRPCCommand vRPCCommands[] =
     { "dispersebalance",        &dispersebalance,        false,     false,      true },
     { "notionalpoolingasset",   &notionalpoolingasset,   false,     false,      true },
     { "getassets",              &getassets,              false,     false,      true },
-    { "listasset",              &listasset,              false,     false,      true },
+    { "listcontractasset",      &listcontractasset,      false,     false,      true },
     { "submittx",               &submittx,               true,      false,      false},
 
     { "sigstr",                 &sigstr,                 true,      false,      true },
-    { "getappaccountinfo",      &getappaccountinfo,      true,      false,      true },
-    { "getappkeyvalue",         &getappkeyvalue,         true,      false,      true },
+    { "getcontractaccountinfo", &getcontractaccountinfo, true,      false,      true },
+    { "getcontractkeyvalue",    &getcontractkeyvalue,    true,      false,      true },
     { "islocked",               &islocked,               true,      false,      true },
     { "getsignature",           &getsignature,           true,      false,      true },
     { "getdelegatelist",        &getdelegatelist,        true,      false,      true },
@@ -330,9 +334,10 @@ static const CRPCCommand vRPCCommands[] =
     { "resetclient",            &resetclient,            true,      false,      false},
     { "reloadtxcache",          &reloadtxcache,          true,      false,      true },
     { "listsetblockindexvalid", &listsetblockindexvalid, true,      false,      false},
-    { "getappregid",            &getappregid,            true,      false,      false},
-    { "getscriptdbsize",        &getscriptdbsize,        true,      false,      false},
-    { "printblokdbinfo",        &printblokdbinfo,        true,      false,      false},
+    { "getcontractregid",       &getcontractregid,       true,      false,      false},
+    { "getscriptdbsize",        &getappdbsize,           true,      false,      false}, //deprecated
+    { "getappdbsize",           &getappdbsize,           true,      false,      false},
+    { "printblockdbinfo",       &printblockdbinfo,       true,      false,      false},
     { "getalltxinfo",           &getalltxinfo,           true,      false,      true },
     { "saveblocktofile",        &saveblocktofile,        true,      false,      true },
     { "gethash",                &gethash,                true,      false,      true },

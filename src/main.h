@@ -214,6 +214,9 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransact
 /** Mark a block as invalid. */
 bool InvalidateBlock(CValidationState& state, CBlockIndex *pindex);
 
+/** Remove invalidity status from a block and its descendants. */
+bool ReconsiderBlock(CValidationState& state, CBlockIndex *pindex);
+
 std::shared_ptr<CBaseTransaction> CreateNewEmptyTransaction(unsigned char uType);
 
 struct CNodeStateStats {
@@ -627,11 +630,11 @@ enum BlockStatus {
 
     BLOCK_HAVE_DATA          =    8, // full block available in blk*.dat           0000 1000
     BLOCK_HAVE_UNDO          =   16, // undo data available in rev*.dat            0001 0000
-    BLOCK_HAVE_MASK          =   24, //                                            0001 1000
+    BLOCK_HAVE_MASK          =   24, // BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO          0001 1000
 
     BLOCK_FAILED_VALID       =   32, // stage after last reached validness failed  0010 0000
     BLOCK_FAILED_CHILD       =   64, // descends from failed block                 0100 0000
-    BLOCK_FAILED_MASK        =   96  //                                            0110 0000
+    BLOCK_FAILED_MASK        =   96  // BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD    0110 0000
 };
 
 /** The block chain is a tree shaped structure starting with the
@@ -845,7 +848,7 @@ public:
             pprev, nHeight, hashMerkleRoot.ToString().c_str(), GetBlockHash().ToString().c_str(), nblockfee, nChainWork.ToString().c_str(), dFeePerKb);
     }
 
-    void print() const
+    void Print() const
     {
         LogPrint("INFO","%s\n", ToString().c_str());
     }
@@ -927,7 +930,7 @@ public:
         return str;
     }
 
-    void print() const
+    void Print() const
     {
         LogPrint("INFO","%s\n", ToString().c_str());
     }

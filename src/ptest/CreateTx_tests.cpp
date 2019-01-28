@@ -114,7 +114,7 @@ bool CCreateTxTest::CreateTx(int nTxType)
 		if(!SelectOneAccount(regAddress))
 			return false;
 		uint64_t nFee = basetest.GetRandomFee() + 1 * COIN;
-		Value value = basetest.RegisterAppTx(regAddress, "unit_test.bin", 0, nFee);
+		Value value = basetest.RegisterContractTx(regAddress, "unit_test.bin", 0, nFee);
 		if (basetest.GetHashFromCreatedTx(value, sendhash)) {
 			cout << "regid "<< regAddress <<" create regist app tx hash:" << sendhash << endl;
 			return true;

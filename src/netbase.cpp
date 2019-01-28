@@ -887,7 +887,7 @@ uint64_t CNetAddr::GetHash() const
     return nRet;
 }
 
-void CNetAddr::print() const
+void CNetAddr::Print() const
 {
     LogPrint("INFO","CNetAddr(%s)\n", ToString());
 }
@@ -1120,7 +1120,7 @@ string CService::ToString() const
     return ToStringIPPort();
 }
 
-void CService::print() const
+void CService::Print() const
 {
     LogPrint("INFO","CService(%s)\n", ToString());
 }

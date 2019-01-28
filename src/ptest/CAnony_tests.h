@@ -19,9 +19,9 @@ using namespace json_spirit;
 
 
 typedef struct  {
-	unsigned char Sender[6];						//!<×ªÕËÈËID£¨²ÉÓÃ6×Ö½ÚµÄÕË»§ID£©
-	int64_t nPayMoney;								//!<×ªÕËµÄÈËÖ§¸¶µÄ½ğ¶î
-	unsigned short len;             		        //!<½ÓÊÜÇ®ÕË»§ĞÅÏ¢³¤¶È
+	unsigned char Sender[6];						//!<×ªï¿½ï¿½ï¿½ï¿½IDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½6ï¿½Ö½Úµï¿½ï¿½Ë»ï¿½IDï¿½ï¿½
+	int64_t nPayMoney;								//!<×ªï¿½Ëµï¿½ï¿½ï¿½Ö§ï¿½ï¿½ï¿½Ä½ï¿½ï¿½
+	unsigned short len;             		        //!<ï¿½ï¿½ï¿½ï¿½Ç®ï¿½Ë»ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½
 	IMPLEMENT_SERIALIZE
 	(
 			for(int i = 0;i < 6;i++)
@@ -32,8 +32,8 @@ typedef struct  {
 }CONTRACT;
 
 typedef struct  {
-	char  account[6];						    	//!<½ÓÊÜÇ®µÄID£¨²ÉÓÃ6×Ö½ÚµÄÕË»§ID£©
-	int64_t nReciMoney;						    	//!<	ÊÕµ½Ç®µÄ½ğ¶î
+	char  account[6];						    	//!<ï¿½ï¿½ï¿½ï¿½Ç®ï¿½ï¿½IDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½6ï¿½Ö½Úµï¿½ï¿½Ë»ï¿½IDï¿½ï¿½
+	int64_t nReciMoney;						    	//!<	ï¿½Õµï¿½Ç®ï¿½Ä½ï¿½ï¿½
 	IMPLEMENT_SERIALIZE
 	(
 			for(int i = 0;i < 6;i++)
@@ -53,7 +53,7 @@ public:
 	CAnonyTest();
 	~CAnonyTest(){};
 	virtual TEST_STATE Run() ;
-	bool RegistScript();
+	bool RegistContract();
 	bool CreateAnonyTx();
 	void Initialize();
 };

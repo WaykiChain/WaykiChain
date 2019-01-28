@@ -240,7 +240,7 @@ Value SysTestBase::CreateRegAppTx(const string& strAddress, const string& strScr
 	string strFee = strprintf("%d",nFee);
 	string strHeight = strprintf("%d",nHeight);
 
-	const char *argv[] = { "rpctest", "registerapptx", (char*) strAddress.c_str(), (char*) filepath.c_str(), (char*) strFee.c_str(),(char*) strHeight.c_str(),"this is description"};
+	const char *argv[] = { "rpctest", "registercontracttx", (char*) strAddress.c_str(), (char*) filepath.c_str(), (char*) strFee.c_str(),(char*) strHeight.c_str(),"this is description"};
 	int argc = sizeof(argv) / sizeof(char*);
 
 	Value value;
@@ -262,14 +262,14 @@ Value SysTestBase::GetAccountInfo(const string& strID) {
 	return value;
 }
 
-Value SysTestBase::GetAppAccountInfo(const string& scriptId,const string& strAddr)
+Value SysTestBase::GetContractAccountInfo(const string& scriptId,const string& strAddr)
 {
-	const char *argv[] = { "rpctest", "getappaccountinfo", (char*) scriptId.c_str(), (char*) strAddr.c_str()};
+	const char *argv[] = { "rpctest", "getcontractaccountinfo", (char*) scriptId.c_str(), (char*) strAddr.c_str()};
 	int argc = sizeof(argv) / sizeof(char*);
 
 	Value value;
 	if (CommandLineRPC_GetValue(argc, argv, value)) {
-		LogPrint("test_miners", "GetAppAccountInfo:%s\r\n", write_string(value, true));
+		LogPrint("test_miners", "GetContractAccountInfo:%s\r\n", write_string(value, true));
 		return value;
 	}
 	return value;
@@ -493,7 +493,7 @@ Value SysTestBase::CreateContractTx(const std::string &scriptid, const std::stri
 	return value;
 }
 
-Value SysTestBase::RegisterAppTx(const string& strAddress, const string& strScript, int nHeight, int nFee) {
+Value SysTestBase::RegisterContractTx(const string& strAddress, const string& strScript, int nHeight, int nFee) {
 	return CreateRegAppTx(strAddress, strScript, true, nFee, nHeight);
 }
 
@@ -756,7 +756,7 @@ bool SysTestBase::GetTxOperateLog(const uint256& txHash, vector<CAccountLog>& vL
 	}
 
 bool SysTestBase::PrintLog(){
-	const char *argv2[] = { "rpctest", "printblokdbinfo"};
+	const char *argv2[] = { "rpctest", "printblockdbinfo"};
 
 		Value value;
 		if (!CommandLineRPC_GetValue(sizeof(argv2) / sizeof(argv2[0]), argv2, value)) {

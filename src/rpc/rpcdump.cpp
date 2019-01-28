@@ -73,7 +73,7 @@ string DecodeDumpString(const string &str) {
 Value dropprivkey(const Array& params, bool fHelp){
 	if (fHelp || params.size() != 0)
 		throw runtime_error("dropprivkey \n"
-			    "\ndrop private key.\n"
+			    "\ndrop all wallet private key(s).\n"
 			    "\nResult:\n"
 			    "\nExamples:\n"
 			    + HelpExampleCli("dropprivkey", "")

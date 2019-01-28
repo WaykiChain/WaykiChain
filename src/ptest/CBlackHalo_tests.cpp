@@ -1,7 +1,7 @@
 /*
  * CBlackHalo_tests.cpp
  *
- *  Created on: 2014Äê12ÔÂ30ÈÕ
+ *  Created on: 2014ï¿½ï¿½12ï¿½ï¿½30ï¿½ï¿½
  *      Author: ranger.shi
  */
 
@@ -65,8 +65,8 @@ bool CBlackHalo::RegistScript(){
 	int nFee = GetRandomFee();
 	int nCurHight;
 	basetest.GetBlockHeight(nCurHight);
-	//×¢²á¶Ô¶Ä½Å±¾
-	Value regscript = basetest.RegisterAppTx(BUYER_A, strFileName, nCurHight, nFee+COIN);
+	//×¢ï¿½ï¿½Ô¶Ä½Å±ï¿½
+	Value regscript = basetest.RegisterContractTx(BUYER_A, strFileName, nCurHight, nFee+COIN);
 	if(basetest.GetHashFromCreatedTx(regscript, sritpthash)){
 		step++;
 		return true;

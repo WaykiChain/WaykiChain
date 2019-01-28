@@ -1,7 +1,7 @@
 /*
  * CycleP2PBet_test.cpp
  *
- *  Created on: 2015Äê1ÔÂ15ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½15ï¿½ï¿½
  *      Author: spark.huang
  */
 
@@ -72,8 +72,8 @@ bool CTestBetTx::RegScript(void) {
 	string strFileName("p2pbet.bin");
 	int nCurHight;
 	GetBlockHeight(nCurHight);
-	//×¢²á¶Ô¶Ä½Å±¾
-	Value valueRes = RegisterAppTx(ADDR_A, strFileName, nCurHight, 200000000);
+	//×¢ï¿½ï¿½Ô¶Ä½Å±ï¿½
+	Value valueRes = RegisterContractTx(ADDR_A, strFileName, nCurHight, 200000000);
 	//BOOST_CHECK(GetHashFromCreatedTx(valueRes, strRegScriptHash));
 	if(GetHashFromCreatedTx(valueRes, strRegScriptHash)){
 		mCurStep++;

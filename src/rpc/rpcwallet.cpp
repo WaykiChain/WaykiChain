@@ -114,7 +114,7 @@ Value signmessage(const Array& params, bool fHelp)
             "\nSign a message with the private key of an address"
             + HelpRequiringPassphrase() + "\n"
             "\nArguments:\n"
-            "1. \"WICC address\"  (string, required) The Coin address to use for the private key.\n"
+            "1. \"WICC address\"  (string, required) The Coin address associated with the private key to sign.\n"
             "2. \"message\"         (string, required) The message to create a signature of.\n"
             "\nResult:\n"
             "\"signature\"          (string) The signature of the message encoded in base 64\n"
@@ -358,31 +358,31 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
     return obj;
 }
 
-Value sendtoaddressraw(const Array& params, bool fHelp)
+Value getsendtoaddresstxraw(const Array& params, bool fHelp)
 {
     int size = params.size();
     if (fHelp || size < 4 || size > 5 )
         throw runtime_error(
-                "sendtoaddressraw \"fee\" \"amount\" \"src_address\" \"recv_address\" \"height\"\n"
-                "\n create common transaction by height: fee, amount, src_address, recv_address\n"
+                "getsendtoaddresstxraw \"fee\" \"amount\" \"sendaddress\" \"recvaddress\" \"height\"\n"
+                "\n create common transaction by height: fee, amount, sendaddress, recvaddress\n"
                 + HelpRequiringPassphrase() + "\nArguments:\n"
                 "1. \"fee\"     (numeric, required)  \n"
                 "2. \"amount\"  (numeric, required)  \n"
-                "3. \"src_address\"  (string, required) The Coin address to send to.\n"
-                "4. \"recv_address\"  (string, required) The Coin address to receive.\n"
+                "3. \"sendaddress\"  (string, required) The Coin address to send to.\n"
+                "4. \"recvaddress\"  (string, required) The Coin address to receive.\n"
                 "5. \"height\"  (int, optional) \n"
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
                 "\nExamples:\n"
-                + HelpExampleCli("sendtoaddressraw", "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
-                + HelpExampleCli("sendtoaddressraw",
+                + HelpExampleCli("getsendtoaddresstxraw", "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
+                + HelpExampleCli("getsendtoaddresstxraw",
                 "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"")
-                + HelpExampleRpc("sendtoaddressraw",
+                + HelpExampleRpc("getsendtoaddresstxraw",
                 "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""
-                + HelpExampleCli("sendtoaddressraw", "\"0-6\" 10 ")
-                + HelpExampleCli("sendtoaddressraw", "100 1000 \"00000000000000000005\" 10 ")
-                + HelpExampleCli("sendtoaddressraw", "100 1000 \"0-6\" \"0-5\" 10 ")
-                + HelpExampleCli("sendtoaddressraw", "100 1000 \"00000000000000000005\" \"0-6\"10 ")));
+                + HelpExampleCli("getsendtoaddresstxraw", "\"0-6\" 10 ")
+                + HelpExampleCli("getsendtoaddresstxraw", "100 1000 \"00000000000000000005\" 10 ")
+                + HelpExampleCli("getsendtoaddresstxraw", "100 1000 \"0-6\" \"0-5\" 10 ")
+                + HelpExampleCli("getsendtoaddresstxraw", "100 1000 \"00000000000000000005\" \"0-6\"10 ")));
 
     CKeyID sendKeyId, recvKeyId;
 
@@ -1126,11 +1126,11 @@ Value getwalletinfo(const Array& params, bool fHelp)
 Value getsignature(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2)
            throw runtime_error(
-               "getwalletinfo\n"
-               "Returns an object containing various wallet state info.\n"
+               "getsignature\n"
+               "Returns an object containing a signature signed by the private key.\n"
                "\nArguments:\n"
-                "1. \"private key\"  (string, required) The private key base58 encode string, used to sign hash.\n"
-                "2. \"hash\" (string, required) hash needed sign by private key.\n"
+                "1. \"private key\"   (string, required) The private key base58 encode string, used to sign hash.\n"
+                "2. \"hash\"          (string, required) hash needed sign by private key.\n"
                "\nResult:\n"
                "{\n"
                "  \"signature\": xxxxx,     (string) private key signature\n"
@@ -1154,6 +1154,6 @@ Value getsignature(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Private key sign hash failed");
 
        Object obj;
-       obj.push_back(Pair("signature",HexStr(signature.begin(), signature.end())));
+       obj.push_back(Pair("signature", HexStr(signature.begin(), signature.end())));
        return obj;
 }

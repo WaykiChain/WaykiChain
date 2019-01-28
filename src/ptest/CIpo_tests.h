@@ -26,7 +26,7 @@ class CIpoTest: public CycleTestBase {
 	int nNum;
 	int nStep;
 	string strTxHash;
-	string strAppRegId;//注册应用后的Id
+	string strAppRegId;//娉ㄥ唽搴旂敤鍚庣殑Id
 public:
 	CIpoTest();
 	~CIpoTest(){};

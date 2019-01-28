@@ -126,7 +126,7 @@ public:
 		int nFee = 1*COIN + 10000000;
 		string strTxHash;
 		string strFileName(sourceCode);
-		Value valueRes = RegisterAppTx(strAddr,strFileName , 100, nFee);
+		Value valueRes = RegisterContractTx(strAddr,strFileName , 100, nFee);
 		BOOST_CHECK(GetHashFromCreatedTx(valueRes,strTxHash));
 		BOOST_CHECK(GenerateOneBlock());
 		return strTxHash;
@@ -300,7 +300,7 @@ public:
 		vector<unsigned char> value;
 		vector<unsigned char> vScriptKey;
 
-		if (!contractScriptTemp.GetAppData(curtiph,regid, 0, vScriptKey, value)) {
+		if (!contractScriptTemp.GetContractData(curtiph,regid, 0, vScriptKey, value)) {
 			return false;
 		}
 		uint256 hash1(value);
@@ -315,7 +315,7 @@ public:
 
 		int count = dbsize - 1;
 		while (count--) {
-			if (!contractScriptTemp.GetAppData(curtiph, regid, 1, vScriptKey, value)) {
+			if (!contractScriptTemp.GetContractData(curtiph, regid, 1, vScriptKey, value)) {
 				return false;
 			}
 			uint256 hash3(value);
@@ -338,7 +338,7 @@ public:
 		BOOST_CHECK(GenerateOneBlock());
 		return ;
 	}
-	bool GetAppData(string srcipt,vector<unsigned char> key)
+	bool GetContractData(string srcipt,vector<unsigned char> key)
 	{
 		CRegID regid(srcipt);
 			if (regid.IsEmpty() == true) {
@@ -351,7 +351,7 @@ public:
 			vector<unsigned char> value;
 			int tipH = chainActive.Height();
 			CScriptDBOperLog operLog;
-			if (!contractScriptTemp.GetAppData(tipH,regid,key, value)) {
+			if (!contractScriptTemp.GetContractData(tipH,regid,key, value)) {
 				return false;
 			}
 			return true;
@@ -410,7 +410,7 @@ public:
 				vector<unsigned char> key;
 				const char *key1="2_error";
 				key.insert(key.begin(),key1, key1 + strlen(key1) +1);
-				BOOST_CHECK(!GetAppData(scriptid,key));
+				BOOST_CHECK(!GetContractData(scriptid,key));
 
 				CheckScriptDB((height),scriptid,phash,false);
 				count--;
@@ -441,7 +441,7 @@ public:
 		vector<unsigned char> key;
 		const char *key1="3_error";
 		key.insert(key.begin(),key1, key1 + strlen(key1) +1);
-		BOOST_CHECK(!GetAppData(scriptid,key));
+		BOOST_CHECK(!GetContractData(scriptid,key));
 		CheckScriptDB(height,scriptid,writetxhash,true);
 		int modHeight = chainActive.Height();
 

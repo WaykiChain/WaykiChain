@@ -1,6 +1,6 @@
 ## 1. Publish a smart contract
 ```
-root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur registerapptx WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH  lotteryV3.lua 110000000
+root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur registercontracttx WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH  lotteryV3.lua 110000000
 {
     "hash" : "c2cb6f9ef2d72e77e1cdeb12dff74ece62c576f88e26e8bbd82a671656a77bb9"
 }
@@ -10,7 +10,7 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur registerapptx WiZx6rrsBn9sHj
 
 * 根据上一步得到的hash， 可以查询出部署好的智能合约信息：
 ```
-root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getappregid c2cb6f9ef2d72e77e1cdeb12dff74ece62c576f88e26e8bbd82a671656a77bb9
+root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getcontractregid c2cb6f9ef2d72e77e1cdeb12dff74ece62c576f88e26e8bbd82a671656a77bb9
 {
     "regid:" : "182808-1",
     "script" : "18ca02000100"
@@ -37,8 +37,8 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getaccountinfo 182808-1
 
 ### 3. check assert:
 
-* 使用getappaccountinfo 命令， 根据智能合约regid 和 账号地址 查询账号地址对于的该智能合约余额
-```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getappaccountinfo 182808-1 WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH
+* 使用getcontractaccountinfo 命令， 根据智能合约regid 和 账号地址 查询账号地址对于的该智能合约余额
+```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getcontractaccountinfo 182808-1 WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH
 {
     "mAccUserID" : "57695a7836727273426e3973486a7770766477744d4e4e58326f3331733344454848",
     "FreeValues" : 0,
@@ -48,8 +48,8 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getaccountinfo 182808-1
 ```
 ### 4. publish assert:
 
-* 使用createcontracttx 命令发行资产， 具体字符串字段需要根据每个智能合约的定义来组装。
-```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur createcontracttx 18247-1 182808-1 0 f00657695a7836727273426e3973486a7770766477744d4e4e58326f3331733344454848000052acdfb2241d000052acdfb2241d0100000001000000 100000 0
+* 使用callcontracttx 命令发行资产， 具体字符串字段需要根据每个智能合约的定义来组装。
+```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur callcontracttx 18247-1 182808-1 0 f00657695a7836727273426e3973486a7770766477744d4e4e58326f3331733344454848000052acdfb2241d000052acdfb2241d0100000001000000 100000 0
 {
     "hash" : "6f0033b27c0c531d33f61fdae125f6c265b0d7daacd1990f56b25b8a453ef869"
 }
@@ -66,7 +66,7 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getaccountinfo 182808-1
 ### 6. check assert again:
 
 * 再次检查资产，可以判定转账是否成功
-```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getappaccountinfo 182808-1 WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH
+```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getcontractaccountinfo 182808-1 WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH
 {
     "mAccUserID" : "57695a7836727273426e3973486a7770766477744d4e4e58326f3331733344454848",
     "FreeValues" : 2099000000000000000,
@@ -76,7 +76,7 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getaccountinfo 182808-1
 ```
 
 ```
-root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getappaccountinfo 182808-1 WUwJn1CFWKMdbmf89DrCnP2wkC6AKrEBhH
+root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getcontractaccountinfo 182808-1 WUwJn1CFWKMdbmf89DrCnP2wkC6AKrEBhH
 {
     "mAccUserID" : "5755774a6e314346574b4d64626d6638394472436e5032776b4336414b7245426848",
     "FreeValues" : 1000000000000000,

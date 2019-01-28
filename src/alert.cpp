@@ -45,11 +45,11 @@ string CUnsignedAlert::ToString() const
 {
     string strSetCancel;
     for(auto n:setCancel)
-    	strSetCancel += strprintf("%d ", n);
+        strSetCancel += strprintf("%d ", n);
 
     string strSetSubVer;
     for(auto str:setSubVer)
-    	strSetSubVer += "\"" + str + "\" ";
+        strSetSubVer += "\"" + str + "\" ";
 
     return strprintf(
         "CAlert(\n"
@@ -80,9 +80,9 @@ string CUnsignedAlert::ToString() const
         strStatusBar);
 }
 
-void CUnsignedAlert::print() const
+void CUnsignedAlert::Print() const
 {
-	LogPrint("INFO","%s", ToString());
+    LogPrint("INFO","%s", ToString());
 }
 
 void CAlert::SetNull()
@@ -221,13 +221,13 @@ bool CAlert::ProcessAlert(bool fThread)
         }
 
         // Check if this alert has been cancelled
-		for (const auto &item : mapAlerts) {
-			const CAlert& alert = item.second;
-			if (alert.Cancels(*this)) {
-				LogPrint("alert", "alert already cancelled by %d\n", alert.nID);
-				return false;
-			}
-		}
+        for (const auto &item : mapAlerts) {
+            const CAlert& alert = item.second;
+            if (alert.Cancels(*this)) {
+                LogPrint("alert", "alert already cancelled by %d\n", alert.nID);
+                return false;
+            }
+        }
 
         // Add to mapAlerts
         mapAlerts.insert(make_pair(GetHash(), *this));
