@@ -384,7 +384,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
     if (fee < nDefaultFee) {
         char errorMsg[100] = {'\0'};
         sprintf (errorMsg, "input fee smaller than mintxfee: %ld sawi", nDefaultFee);
-        throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);  
+        throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);
     }
 
     //get keyid

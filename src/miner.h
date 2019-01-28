@@ -55,10 +55,7 @@ public:
 
 /** Run the miner threads */
 void GenerateCoinBlock(bool fGenerate, CWallet* pwallet, int nThreads);
-/** Generate a new block, without valid proof-of-work */
-//CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn);
-//CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey);
-
+/** Generate a new block */
 CBlockTemplate* CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache);
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
@@ -83,8 +80,6 @@ void SHA256Transform(void* pstate, void* pinput, const void* pinit);
 int GetElementForBurn(CBlockIndex *pindex);
 
 void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate);
-//extern double dHashesPerSec;
-//extern int64_t nHPSTimerStart;
 
 extern uint256 CreateBlockWithAppointedAddr(CKeyID const &keyID);
 
