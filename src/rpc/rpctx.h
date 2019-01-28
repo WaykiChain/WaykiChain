@@ -20,7 +20,7 @@ using namespace json_spirit;
 class CBaseTransaction;
 
 extern Value registeraccounttx(const Array& params, bool fHelp);
-extern Value getsendtoaddressraw(const Array& params, bool fHelp);
+extern Value getsendtoaddresstxraw(const Array& params, bool fHelp);
 extern Value createcontracttx(const Array& params, bool fHelp);
 extern Value signcontracttx(const Array& params, bool fHelp);
 extern Value createfreezetx(const Array& params, bool fHelp);

@@ -260,8 +260,8 @@ static const CRPCCommand vRPCCommands[] =
     { "submitblock",            &submitblock,            true,      false,      false },
 
     /* Raw transactions */
-    { "sendtoaddressraw",       &getsendtoaddressraw,   false,     false,      false },  /* deprecated */
-    { "getsendtoaddressraw",    &getsendtoaddressraw,   false,     false,      false },
+    { "sendtoaddressraw",       &getsendtoaddresstxraw,  false,     false,      false },  /* deprecated */
+    { "getsendtoaddresstxraw",  &getsendtoaddresstxraw,  false,     false,      false },
 
     { "registeraccountraw",     &getregisteraccountraw,  false,     false,      false },  /* deprecated */
     { "getregisteraccountraw",  &getregisteraccountraw,  false,     false,      false },
