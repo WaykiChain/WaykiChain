@@ -651,7 +651,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
 
     if (!CheckIsHaveMinerKey()) {
         LogPrint("INFO", "CoinMiner terminated.\n");
-        ERRORMSG("ERROR:%s ", "No key for mining\n");
+        ERRORMSG("No key for mining");
         return;
     }
 
