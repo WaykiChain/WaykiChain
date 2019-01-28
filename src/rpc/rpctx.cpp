@@ -3281,24 +3281,25 @@ Value getrawtx(const Array& params, bool fHelp) {
 }
 
 Value getdelegatelist(const Array& params, bool fHelp) {
-    if(fHelp || params.size() != 1)
-    {
+    if (fHelp || params.size() > 1) {
         throw runtime_error(
-                 "getdelegatelist \n"
-                 "\nreturns the specified number delegates by reversed order voting number\n"
-                 "\nArguments:\n"
-                 "\nResult:\n"
-                 "\ndelegates: [\n"
-                  "account: (CAccount),\n"
-                "]\": (Array)\n"
+                "getdelegatelist \n"
+                "\nreturns the specified number delegates by reversed order voting number.\n"
+                "\nArguments:\n"
+                "1. number           (number, optional) the number of the delegates, default to all delegates.\n"
+                "\nResult:\n"
                 "\nExamples:\n"
-                 + HelpExampleCli("getdelegatelist","11")
-                 + HelpExampleRpc("getdelegatelist","11"));
+                + HelpExampleCli("getdelegatelist", "11")
+                + HelpExampleRpc("getdelegatelist", "11"));
     }
-    int nDelegateNum = params[0].get_int();
+
+    int nDelegateNum = (params.size() == 1) ? params[0].get_int() : IniCfg().GetDelegatesCfg();
     if (nDelegateNum < 1 || nDelegateNum > 11) {
-    throw runtime_error("getdelegatelist : param  in [1, 11]!\n");
+        char errorMsg[100] = {'\0'};
+        sprintf(errorMsg, "input delegate number not between 1 and %ld", IniCfg().GetDelegatesCfg());
+        throw JSONRPCError(RPC_INVALID_PARAMS, errorMsg);
     }
+
     int nIndex = 0;
     CRegID redId(0,0);
     vector<unsigned char> vScriptData;
