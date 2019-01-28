@@ -1732,18 +1732,18 @@ Value resetclient(const Array& params, bool fHelp) {
 
 }
 
-Value listapp(const Array& params, bool fHelp) {
+Value listcontracts(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error("listapp \"showDetail\"\n"
-                "\nget the list register script\n"
+        throw runtime_error("listcontracts \"showDetail\"\n"
+                "\nget the list of all registered contracts\n"
                 "\nArguments:\n"
                 "1. showDetail  (boolean, required) true to show scriptContent, otherwise to not show it.\n"
                 "\nReturn an object contain many script data\n"
                 "\nResult:\n"
                 "\nExamples:\n"
-                + HelpExampleCli("listapp", "true")
+                + HelpExampleCli("listcontracts", "true")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("listapp", "true"));
+                + HelpExampleRpc("listcontracts", "true"));
     }
     bool showDetail = false;
     showDetail = params[0].get_bool();
