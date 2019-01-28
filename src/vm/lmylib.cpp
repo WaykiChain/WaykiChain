@@ -1209,7 +1209,7 @@ static int ExWriteDataDBFunc(lua_State *L) {
 
     CScriptDBOperLog operlog;
 //  int64_t step = (*retdata.at(1)).size() -1;
-    if (!scriptDB->SetAppData(scriptid, *retdata.at(0), *retdata.at(1),operlog)) {
+    if (!scriptDB->SetContractData(scriptid, *retdata.at(0), *retdata.at(1),operlog)) {
         flag = false;
     } else {
         shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEvn->GetDbLog();
@@ -1401,7 +1401,7 @@ static int ExModifyDataDBValueFunc(lua_State *L)
     CScriptDBOperLog operlog;
     vector_unsigned_char vTemp;
     if(scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vTemp)) {
-        if(scriptDB->SetAppData(scriptid,*retdata.at(0),*retdata.at(1).get(),operlog))
+        if(scriptDB->SetContractData(scriptid,*retdata.at(0),*retdata.at(1).get(),operlog))
         {
             shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEvn->GetDbLog();
             m_dblog.get()->push_back(operlog);

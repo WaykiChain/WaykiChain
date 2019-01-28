@@ -1200,7 +1200,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 //	}
 	return true;
 }
-bool CScriptDBViewCache::SetAppData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
+bool CScriptDBViewCache::SetContractData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
 		const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog) {
 	vector<unsigned char> vKey = { 'd', 'a', 't', 'a' };
 	vKey.insert(vKey.end(), vScriptId.begin(), vScriptId.end());
@@ -1388,9 +1388,9 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const CRegID
 {
 	return GetContractData(nCurBlockHeight, scriptId.GetVec6(), nIndex, vScriptKey, vScriptData);
 }
-bool CScriptDBViewCache::SetAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
+bool CScriptDBViewCache::SetContractData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
 			const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog) {
-	return 	SetAppData(scriptId.GetVec6(), vScriptKey, vScriptData, operLog);
+	return 	SetContractData(scriptId.GetVec6(), vScriptKey, vScriptData, operLog);
 }
 bool CScriptDBViewCache::SetTxRelAccout(const uint256 &txHash, const set<CKeyID> &relAccount) {
 	vector<unsigned char> vKey = {'t','x'};
@@ -1468,7 +1468,7 @@ bool CScriptDBViewCache::SetDelegateData(const CAccount &delegateAcct, CScriptDB
     vVoteKey.insert(vVoteKey.end(), delegateAcct.regID.GetVec6().begin(), delegateAcct.regID.GetVec6().end());
     vector<unsigned char> vVoteValue;
     vVoteValue.push_back(1);
-    if(!SetAppData(regId, vVoteKey, vVoteValue, operLog)) {
+    if(!SetContractData(regId, vVoteKey, vVoteValue, operLog)) {
         return false;
     }
     return true;

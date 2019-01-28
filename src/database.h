@@ -181,7 +181,7 @@ public:
 			vector<unsigned char> &vScriptData);
 	bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
 			vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
-	bool SetAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
+	bool SetContractData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
 				const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog);
 	bool SetDelegateData(const CAccount &delegateAcct, CScriptDBOperLog &operLog);
 	bool SetDelegateData(const vector<unsigned char> &vKey);
