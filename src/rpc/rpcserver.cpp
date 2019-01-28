@@ -12,8 +12,6 @@
 #include "ui_interface.h"
 #include "util.h"
 
-
-
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
@@ -250,7 +248,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getrawmempool",          &getrawmempool,          true,      false,      false },
     { "listcheckpoint",         &listcheckpoint,         true,      false,      false },
     { "verifychain",            &verifychain,            true,      false,      false },
-    { "verifymessage",          &verifymessage,          false,     false,      false },
+    
     { "gettotalcoin",           &gettotalcoin,           false,     false,      false },
     { "gettotalassets",         &gettotalassets,         false,     false,      false },
     { "invalidateblock",        &invalidateblock,        true,      true,       false },
@@ -260,12 +258,15 @@ static const CRPCCommand vRPCCommands[] =
     { "getnetworkhashps",       &getnetworkhashps,       true,      false,      false },
     { "submitblock",            &submitblock,            true,      false,      false },
 
-
     /* Raw transactions */
-    { "sendtoaddressraw",       &sendtoaddressraw,       false,     false,      false },
-    { "registeraccounttxraw",   &registeraccounttxraw,   false,     false,      false },
-    { "createcontracttxraw",    &createcontracttxraw,    true,      false,      false },
-    { "registerscripttxraw",    &registerscripttxraw,    true,      false,      false },
+    { "sendtoaddressraw",       &getsendtoaddressraw,   false,     false,      false },  /* deprecated */
+    { "getsendtoaddressraw",    &getsendtoaddressraw,   false,     false,      false },
+
+    { "registeraccountraw",     &getregisteraccountraw,  false,     false,      false },  /* deprecated */
+    { "getregisteraccountraw",  &getregisteraccountraw,  false,     false,      false },
+
+    { "getcontracttxraw",       &createcontracttxraw,   true,      false,      false },
+    { "registerscripttxraw",    &registerscripttxraw,   true,      false,      false },
 
     /* uses wallet if enabled */
     { "backupwallet",           &backupwallet,           true,      false,      true },
@@ -287,8 +288,10 @@ static const CRPCCommand vRPCCommands[] =
     { "listtx",                 &listtx,                 true,      false,      true },
     { "listcontracttx",         &listcontracttx,         true,      false,      true },
     { "gettransaction",         &gettransaction,         true,      false,      true },
+
     { "registaccounttx",        &registeraccounttx,      true,      false,      true },
     { "registeraccounttx",      &registeraccounttx,      true,      false,      true },
+    
     { "createcontracttx",       &createcontracttx,       true,      false,      true },
     { "createdelegatetx",       &createdelegatetx,       true,      false,      true },
     { "createdelegatetxraw",    &createdelegatetxraw,    true,      false,      true },
@@ -306,6 +309,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getappdataraw",          &getappdataraw,          true,      false,      true },
     { "getappconfirmdata",      &getappconfirmdata,      true,      false,      true },
     { "signmessage",            &signmessage,            false,     false,      true },
+    { "verifymessage",          &verifymessage,          false,     false,      false },
     { "sendtoaddress",          &sendtoaddress,          false,     false,      true },
     { "sendtoaddresswithfee",   &sendtoaddresswithfee,   false,     false,      true },
     { "getbalance",             &getbalance,             false,     false,      true },
@@ -331,7 +335,8 @@ static const CRPCCommand vRPCCommands[] =
     { "reloadtxcache",          &reloadtxcache,          true,      false,      true },
     { "listsetblockindexvalid", &listsetblockindexvalid, true,      false,      false},
     { "getappregid",            &getappregid,            true,      false,      false},
-    { "getscriptdbsize",        &getscriptdbsize,        true,      false,      false},
+    { "getscriptdbsize",        &getappdbsize,           true,      false,      false}, //deprecated
+    { "getappdbsize",           &getappdbsize,           true,      false,      false},
     { "printblokdbinfo",        &printblokdbinfo,        true,      false,      false},
     { "getalltxinfo",           &getalltxinfo,           true,      false,      true },
     { "saveblocktofile",        &saveblocktofile,        true,      false,      true },

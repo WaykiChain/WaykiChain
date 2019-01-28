@@ -252,7 +252,7 @@ Value verifymessage(const Array& params, bool fHelp)
             "verifymessage \"WICC address\" \"signature\" \"message\"\n"
             "\nVerify a signed message\n"
             "\nArguments:\n"
-            "1. \"Coinaddress\"  (string, required) The Coin address to use for the signature.\n"
+            "1. \"wiccaddress\"  (string, required) The Coin address to use for the signature.\n"
             "2. \"signature\"       (string, required) The signature provided by the signer in base 64 encoding (see signmessage).\n"
             "3. \"message\"         (string, required) The message that was signed.\n"
             "\nResult:\n"

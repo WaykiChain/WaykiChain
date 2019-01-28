@@ -114,7 +114,7 @@ Value signmessage(const Array& params, bool fHelp)
             "\nSign a message with the private key of an address"
             + HelpRequiringPassphrase() + "\n"
             "\nArguments:\n"
-            "1. \"WICC address\"  (string, required) The Coin address to use for the private key.\n"
+            "1. \"WICC address\"  (string, required) The Coin address associated with the private key to sign.\n"
             "2. \"message\"         (string, required) The message to create a signature of.\n"
             "\nResult:\n"
             "\"signature\"          (string) The signature of the message encoded in base 64\n"

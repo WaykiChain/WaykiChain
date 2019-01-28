@@ -46,7 +46,7 @@ int TestCallRPC(std::string strMethod, const std::vector<std::string> &vParams, 
 static void CreateRegisterTx() {
 	//cout <<"CreateRegisterTx" << endl;
 	int argc = 5;
-	const char *argv[5] = { "rpctest", "registeraccounttx", "dkJwhBs2P2SjbQWt5Bz6vzjqUhXTymvsGr", "0", "10" };
+	const char *argv[5] = { "rpctest", "registeraccount", "dkJwhBs2P2SjbQWt5Bz6vzjqUhXTymvsGr", "0", "10" };
 	CommandLineRPC(argc, const_cast<char**>(argv));
 }
 

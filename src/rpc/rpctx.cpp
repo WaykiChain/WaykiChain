@@ -367,24 +367,26 @@ Value registeraccounttx(const Array& params, bool fHelp) {
                 "\nregister secure account\n"
                 "\nArguments:\n"
                 "1.addr: (string, required)\n"
-                "2.fee: (numeric, required) pay to miner\n"
+                "2.fee: (numeric, optional) pay tx fees to miner\n"
                 "\nResult:\n"
                 "\"txhash\": (string)\n"
                 "\nExamples:\n"
                 + HelpExampleCli("registeraccounttx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 ")
                 + "\nAs json rpc call\n"
                 + HelpExampleRpc("registeraccounttx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 "));
-
     }
 
     string addr = params[0].get_str();
-    uint64_t fee = params[1].get_uint64();
+    uint64_t fee = 0;
     uint64_t nDefaultFee = SysCfg().GetTxFee();
 
-    if (fee < nDefaultFee) {
-        char errorMsg[100] = {'\0'};
-        sprintf (errorMsg, "input fee smaller than mintxfee: %ld sawi", nDefaultFee);
-        throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);  
+    if (params.size() > 1) {
+        fee = params[1].get_uint64();
+        if (fee < nDefaultFee) {
+            char errorMsg[100] = {'\0'};
+            sprintf(errorMsg, "input fee smaller than mintxfee: %ld sawi", nDefaultFee);
+            throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);  
+        }
     }
 
     //get keyid
@@ -434,7 +436,6 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         if (!pwalletMain->Sign(keyid, rtx.SignatureHash(), rtx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Sign failed.");
         }
-
     }
 
     std::tuple<bool, string> ret;
@@ -445,7 +446,6 @@ Value registeraccounttx(const Array& params, bool fHelp) {
     Object obj;
     obj.push_back(Pair("hash", std::get<1>(ret)));
     return obj;
-
 }
 
 //create a contract tx
@@ -2206,28 +2206,29 @@ Value saveblocktofile(const Array& params, bool fHelp) {
     return "save succeed";
 }
 
-Value getscriptdbsize(const Array& params, bool fHelp) {
+Value getappdbsize(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error("getscriptdbsize \"appregid\"\n"
-                            "\nget app data item count\n"
-                            "\nArguments:\n"
-                            "1.\"appregid\": (string, required) App RegId\n"
-                            "\nResult:\n"
-                            "\nExamples:\n"
-                            + HelpExampleCli("getscriptdbsize", "\"258988-1\"")
-                            + HelpExampleRpc("getscriptdbsize","\"258988-1\""));
+        throw runtime_error(
+            "getappdbsize \"appregid\"\n"
+            "\nget app data item count\n"
+            "\nArguments:\n"
+            "1.\"appregid\": (string, required) App RegId\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getappdbsize", "\"258988-1\"")
+            + HelpExampleRpc("getappdbsize","\"258988-1\"")
+        );
     }
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true) {
-        throw runtime_error("getappdata :appregid error!");
+        throw runtime_error("getappdbsize :appregid error!");
     }
-
     if (!pScriptDBTip->HaveScript(regid)) {
-        throw runtime_error("getappdata :appregid does NOT exist!");
+        throw runtime_error("getappdbsize :appregid does NOT exist!");
     }
     int nItemCount = 0;
     if (!pScriptDBTip->GetAppItemCount(regid, nItemCount)) {
-        throw runtime_error("GetAppItemCount error!");
+        throw runtime_error("getappdbsize: GetAppItemCount error!");
     }
     return nItemCount;
 }
@@ -2253,6 +2254,14 @@ Value registeraccounttxraw(const Array& params, bool fHelp) {
     CUserID uminerkey = CNullID();
 
     int64_t Fee = AmountToRawValue(params[0]);
+    uint64_t nDefaultFee = SysCfg().GetTxFee();
+
+    if (fee < nDefaultFee) {
+        char errorMsg[100] = {'\0'};
+        sprintf(errorMsg, "input fee smaller than mintxfee: %ld sawi", nDefaultFee);
+        throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);  
+    }
+
 
     int hight = params[1].get_int();
 

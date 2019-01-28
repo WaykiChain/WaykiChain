@@ -39,29 +39,26 @@ extern Value gettxdetail(const Array& params, bool fHelp);
 extern Value listregid(const Array& params, bool fHelp);
 extern Value sign(const Array& params, bool fHelp);
 extern Value getaccountinfo(const Array& params, bool fHelp);
-
-
 extern Value disconnectblock(const Array& params, bool fHelp);
 extern Value listapp(const Array& params, bool fHelp);
-extern Value getappinfo(const Array& params, bool fHelp);
-
 extern Value getaddrbalance(const Array& params, bool fHelp);
 extern Value generateblock(const Array& params, bool fHelp);
 //extern Value getpublickey(const Array& params, bool fHelp);
 extern Value listtxcache(const Array& params, bool fHelp);
 extern Value reloadtxcache(const Array& params, bool fHelp);
+extern Value getappinfo(const Array& params, bool fHelp);
 extern Value getappdata(const Array& params, bool fHelp);
 extern Value getappdataraw(const Array& params, bool fHelp);
 extern Value getappconfirmdata(const Array& params, bool fHelp);
 extern Value saveblocktofile(const Array& params, bool fHelp);
-extern Value getscriptdbsize(const Array& params, bool fHelp);
+extern Value getappdbsize(const Array& params, bool fHelp);
 extern Value getalltxinfo(const Array& params, bool fHelp);
 extern Value listauthor(const Array& params, bool fHelp);
-extern Value  getappaccountinfo(const Array& params, bool fHelp);
-extern Value  gethash(const Array& params, bool fHelp);
-extern Value  getappkeyvalue(const Array& params, bool fHelp);
-extern Value  gencheckpoint(const Array& params, bool fHelp);
-extern Value  setcheckpoint(const Array& params, bool fHelp);
+extern Value getappaccountinfo(const Array& params, bool fHelp);
+extern Value gethash(const Array& params, bool fHelp);
+extern Value getappkeyvalue(const Array& params, bool fHelp);
+extern Value gencheckpoint(const Array& params, bool fHelp);
+extern Value setcheckpoint(const Array& params, bool fHelp);
 extern Value validateaddress(const Array& params, bool fHelp);
 extern Object TxToJSON(CBaseTransaction *pTx);
 extern Value gettotalcoin(const Array& params, bool fHelp);

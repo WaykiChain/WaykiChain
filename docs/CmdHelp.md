@@ -50,8 +50,8 @@
 | listtx | | get all confirm transactions and all unconfirm transactions from wallet | N |
 | listtxcache | | get all transactions in cache | N |
 | listunconfirmedtx | | get the list of unconfirmedtx | N |
-| registeraccounttx | ```<address><fee>``` | register secure account | Y |
-| registeraccounttxraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account transaction | N |
+| registeraccounttx | ```<address><fee>``` | register a local account | Y |
+| registeraccounttxraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account raw transaction | N |
 | registerapptx | ```<address><filepath><fee>[height][scriptdescription]``` | create a register script transaction | Y |
 | registerscripttxraw | ```<height><fee><address><flag><script or scriptid><script description>``` | Register script: <br>1.    Height(numeric required) :valod height<br> 2.    Fee: (numeric required) pay to miner<br>3.    address: (string required)for send<br>4.    flag: (numeric, required) 0-1<br>5.    script or scriptid: (string required), if flag=0 is script's file path, else if flag=1 scriptid<br>6.    script description:(string optional) new script description.<br>| N |
 | sendtoaddress | ```[wiccaddress]<[receive address><amount>``` | Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001. Returns the transaction ID <txhash> if successful | Y |
@@ -63,7 +63,7 @@
 | sigstr | ```<transaction><address>``` | signature transaction | N |
 | stop | | Stop  WaykiCoind server | N |
 | submitblock | ```<hexdata>``` [optional-params-obj] | Attempts to submit new block to network <br> 1. hexdata (string, required) the hex-encoded block data to submit | N |
-| submittx | ```<transaction>``` | submit transaction | Y |
+| submittx | ```<transaction>``` | submit transaction | N |
 | verifymessage | ```<wiccaddress>``` <signature> <message> | Verify a signed message. | N |
 | verifychain | ```[checklevel][numblocks]``` | Verifies blockchain database: <br>1.    checklevel (numeric, optional, 0-4, default=3), How thorough the block verification is.<br>2.    numblocks (numeric, optional, default=288, 0=all) The number of blocks to check. | N |
 | walletlock | | Removes the wallet encryption key from memory, locking the wallet. After calling this method, you will need to call walletpassphrase again before being able to call any methods which require the wallet to be unlocked. | N |
