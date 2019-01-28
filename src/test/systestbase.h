@@ -188,10 +188,10 @@ public:
 
 	Value RegisterAccountTx(const std::string &addr, const int nfee =0);
 
-	Value CreateContractTx(const std::string &scriptid, const std::string &addrs, const std::string &contract,
+	Value CallContractTx(const std::string &scriptid, const std::string &addrs, const std::string &contract,
 			int nHeight,int nFee = 0,uint64_t nMoney = 0);
 
-	Value RegisterAppTx(const string& strAddress, const string& strScript, int nHeight, int nFee = 100000000);
+	Value RegisterContractTx(const string& strAddress, const string& strScript, int nHeight, int nFee = 100000000);
 
 	Value SignSecureTx(const string &securetx);
 

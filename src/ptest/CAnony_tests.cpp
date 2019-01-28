@@ -43,7 +43,7 @@ TEST_STATE CAnonyTest::Run(){
 	return next_state;
 }
 
-bool CAnonyTest::RegistScript(){
+bool CAnonyTest::RegistContract(){
 	string strFileName("anony.bin");
 	int nFee = basetest.GetRandomFee();
 	int nCurHight;
@@ -52,7 +52,7 @@ bool CAnonyTest::RegistScript(){
 	if(!SelectOneAccount(regAddr))
 		return false;
 	//reg anony app
-	Value regscript = basetest.RegisterAppTx(regAddr, strFileName, nCurHight, nFee+20*COIN);
+	Value regscript = basetest.CRegisterContractTx(regAddr, strFileName, nCurHight, nFee+20*COIN);
 	if(basetest.GetHashFromCreatedTx(regscript, strTxHash)){
 		return true;
 	}

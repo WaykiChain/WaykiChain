@@ -185,7 +185,7 @@ public:
 			regAddress = iterSrcAddr->second;
 		}
 		uint64_t nFee = GetRandomFee() + 1 * COIN;
-		Value ret = RegisterAppTx(regAddress, "unit_test.bin", 100, nFee);
+		Value ret = RegisterContractTx(regAddress, "unit_test.bin", 100, nFee);
 		BOOST_CHECK(GetHashFromCreatedTx(ret,hash));
 
 		if(fFlag) {

@@ -265,9 +265,9 @@ static const CRPCCommand vRPCCommands[] =
 
     { "registeraccountraw",     &getregisteraccountxraw,  false,     false,      false },  /* deprecated */
     { "getregisteraccountxraw", &getregisteraccountxraw,  false,     false,      false },
-
-    { "getcontracttxraw",       &getregisterapptxraw,   true,      false,      false },
-    { "getregisterapptxraw",    &getregisterapptxraw,   true,      false,      false },
+    { "getregistercontracttxraw", &getregistercontracttxraw,  true,      false,      false },
+    { "getcallcontracttxraw",   &getcallcontracttxraw,    true,      false,      false },
+    { "getvotedelegatetxraw",   &getvotedelegatetxraw,    true,      false,      true },
 
     /* uses wallet if enabled */
     { "backupwallet",           &backupwallet,           true,      false,      true },
@@ -290,13 +290,13 @@ static const CRPCCommand vRPCCommands[] =
     { "listcontracttx",         &listcontracttx,         true,      false,      true },
     { "gettransaction",         &gettransaction,         true,      false,      true },
 
-    { "registaccounttx",        &registeraccounttx,      true,      false,      true },
+    { "registaccounttx",        &registeraccounttx,      true,      false,      true }, /** deprecated */
     { "registeraccounttx",      &registeraccounttx,      true,      false,      true },
+    { "registercontracttx",     &registercontracttx,     true,      false,      true },
+    { "callcontracttx",         &callcontracttx,         true,      false,      true },
+    { "votedelegatetx",         &createdelegatetx,       true,      false,      true },
     
-    { "createcontracttx",       &createcontracttx,       true,      false,      true },
-    { "createdelegatetx",       &createdelegatetx,       true,      false,      true },
-    { "createdelegatetxraw",    &createdelegatetxraw,    true,      false,      true },
-    { "registerapptx",          &registerapptx,          true,      false,      true },
+  
     { "settxfee",               &settxfee,               false,     false,      true },
     { "walletlock",             &walletlock,             true,      false,      true },
     { "walletpassphrasechange", &walletpassphrasechange, false,     false,      true },
@@ -338,7 +338,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getappregid",            &getappregid,            true,      false,      false},
     { "getscriptdbsize",        &getappdbsize,           true,      false,      false}, //deprecated
     { "getappdbsize",           &getappdbsize,           true,      false,      false},
-    { "printblokdbinfo",        &printblokdbinfo,        true,      false,      false},
+    { "printblockdbinfo",       &printblockdbinfo,       true,      false,      false},
     { "getalltxinfo",           &getalltxinfo,           true,      false,      true },
     { "saveblocktofile",        &saveblocktofile,        true,      false,      true },
     { "gethash",                &gethash,                true,      false,      true },

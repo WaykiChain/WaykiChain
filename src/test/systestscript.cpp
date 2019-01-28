@@ -126,7 +126,7 @@ public:
 		int nFee = 1*COIN + 10000000;
 		string strTxHash;
 		string strFileName(sourceCode);
-		Value valueRes = RegisterAppTx(strAddr,strFileName , 100, nFee);
+		Value valueRes = RegisterContractTx(strAddr,strFileName , 100, nFee);
 		BOOST_CHECK(GetHashFromCreatedTx(valueRes,strTxHash));
 		BOOST_CHECK(GenerateOneBlock());
 		return strTxHash;

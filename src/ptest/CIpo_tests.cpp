@@ -176,7 +176,7 @@ bool CIpoTest::RegistScript(){
 	string regAddr="dk2NNjraSvquD9b4SQbysVRQeFikA55HLi";
 
 	//reg anony app
-	Value regscript = basetest.RegisterAppTx(regAddr, strFileName, nCurHight, nFee+1*COIN);//20
+	Value regscript = basetest.RegisterContractTx(regAddr, strFileName, nCurHight, nFee+1*COIN);//20
 	if(basetest.GetHashFromCreatedTx(regscript, strTxHash)){
 		return true;
 	}
@@ -266,7 +266,7 @@ bool CIpoTest::SendIpoTx(unsigned char type)
 		BOOST_CHECK(acctValue >= (uint64_t)userarray[i].freemoney);
 
 		// 校验每个月的冻结金额
-		Value  retValue = basetest.GetAppAccountInfo(strAppRegId,arrayData[i].pAddress);
+		Value  retValue = basetest.GetContractAccountInfo(strAppRegId,arrayData[i].pAddress);
 		Value  result = find_value(retValue.get_obj(), "vFreezedFund");
 		Array array = result.get_array();
 //		int64_t nMoneySend(0);

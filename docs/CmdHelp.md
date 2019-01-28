@@ -6,8 +6,8 @@
 |---|---|---|---|
 | addnode | ```<node><add/remove/onetry>```| Attempts add or remove ```<node>``` from the addnode list or try a connection to ```<node>``` once.| N |
 | backupwallet | ```<destination>``` | Safely copies wallet.dat to destination, which can be a directory or a path with filename. | N |
-| createcontracttx | ```<userregid><appid><amount><contract><fee>[height  ,default = the tip block height]``` | create contract transaction | Y |
-| createcontracttxraw | ```<height><fee><amount><address><contract>``` | Create contract transaction from hex string | N |
+| callcontracttx | ```<userregid><appid><amount><contract><fee>[height, default = the tip block height]``` | create contract transaction | Y |
+| getcallcontracttxraw | ```<height><fee><amount><address><contract>``` | get call contract raw transaction | N |
 | dropprivkey | | drop private key from wallet | Y |
 | dumpwallet | ```<filename>``` | Dumps all wallet keys in a human-readable format.And write to ```<filename>``` | Y |
 | dumpprivkey | ```<wiccaddress>``` | Reveals the private key corresponding to ```<wiccaddress>``` | Y |
@@ -45,7 +45,7 @@
 | invalidateblock | ```<hash>``` | Mark a block as invalid. | N |
 | islocked | | Return an object about whether the wallet is being locked or unlocked | N |
 | listaddr | | return Array containing address,balance,haveminerkey,regid information | N |
-| listapp | ```<showDetail>``` | get the list register script: <br>1. showDetail  (boolean, required)true to show scriptContent, otherwise to not show it. | N |
+| listcontracts | ```<showDetail>``` | get all registered contracts: <br>1. showDetail: 0 | 1  (boolean, required) 1 to show scriptContent, otherwise not show it. | N |
 | listcheckpoint | | Returns the list of checkpoints | N |
 | listtx | | get all confirm transactions and all unconfirm transactions from wallet | N |
 | listtxcache | | get all transactions in cache | N |
@@ -53,7 +53,7 @@
 | registeraccounttx | ```<address><fee>``` | register an account from the local wallet node | Y |
 | getregisteraccounttxraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account raw transaction | N |
 | reconsiderblock | ```<hash>``` | Removes invalidity status of a block and its descendants, reconsider them for activation. | N |
-| registerapptx | ```<address><filepath><fee>[height][appdescription]``` | register a contract app | Y |
+| registercontracttx | ```<address><filepath><fee>[height][contract_description]``` | register a contract app | Y |
 | getregistercontracttxraw | ```<height><fee><address><flag><contract or contract RegId><contract description>``` | get Contract Registration Tx Raw: <br>1.    Height(numeric required) :valod height<br> 2.    Fee: (numeric required) pay to miner<br>3.    address: (string required)for send<br>4.    flag: (numeric, required) 0-1<br>5.    app or appregid: (string required), if flag=0 is script's file path, else if flag=1 scriptid<br>6.    script description:(string optional) new script description.<br>| N |
 | sendtoaddress | ```[wiccaddress]<[recvaddress><amount>``` | Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001. Returns the transaction ID <txhash> if successful | Y |
 | getsendtoaddresstxraw | ```<fee><amount><sendaddress><recvaddress><height>``` | generate a signed raw tx with height,fee,amount,sendaddress, recvaddress | N |
