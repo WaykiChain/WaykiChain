@@ -56,7 +56,7 @@
 | registerapptx | ```<address><filepath><fee>[height][scriptdescription]``` | create a register script transaction | Y |
 | registerscripttxraw | ```<height><fee><address><flag><script or scriptid><script description>``` | Register script: <br>1.    Height(numeric required) :valod height<br> 2.    Fee: (numeric required) pay to miner<br>3.    address: (string required)for send<br>4.    flag: (numeric, required) 0-1<br>5.    script or scriptid: (string required), if flag=0 is script's file path, else if flag=1 scriptid<br>6.    script description:(string optional) new script description.<br>| N |
 | sendtoaddress | ```[wiccaddress]<[receive address><amount>``` | Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001. Returns the transaction ID <txhash> if successful | Y |
-| sendtoaddressraw | ```<fee><amount><src_address><recv_address><height>``` | create normal transaction by height,fee,amount,srcaddress, recvaddress | N |
+| getsendtoaddressraw | ```<fee><amount><src_address><recv_address><height>``` | create normal transaction by height,fee,amount,srcaddress, recvaddress | N |
 | sendtoaddresswithfee | [sendaddress]<recvaddress><amount><fee> | Send an amount to a given address with fee. The amount is a real and is rounded to the nearest 0.00000001 (Sendaddress is optional) | Y |
 | setgenerate | ```<generate>``` [genproclimit] | <generate> is true or false to turn generation on or off. Generation is limited to [genproclimit] processors, -1 is unlimited. | N |
 | settxfee | ```<amount>``` | ```<amount>``` is a real and is rounded to the nearest 0.00000001 | N |

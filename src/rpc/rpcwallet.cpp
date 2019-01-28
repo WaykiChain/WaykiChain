@@ -358,31 +358,31 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
     return obj;
 }
 
-Value sendtoaddressraw(const Array& params, bool fHelp)
+Value getsendtoaddressraw(const Array& params, bool fHelp)
 {
     int size = params.size();
     if (fHelp || size < 4 || size > 5 )
         throw runtime_error(
-                "sendtoaddressraw \"fee\" \"amount\" \"src_address\" \"recv_address\" \"height\"\n"
-                "\n create common transaction by height: fee, amount, src_address, recv_address\n"
+                "getsendtoaddressraw \"fee\" \"amount\" \"sendaddress\" \"recvaddress\" \"height\"\n"
+                "\n create common transaction by height: fee, amount, sendaddress, recvaddress\n"
                 + HelpRequiringPassphrase() + "\nArguments:\n"
                 "1. \"fee\"     (numeric, required)  \n"
                 "2. \"amount\"  (numeric, required)  \n"
-                "3. \"src_address\"  (string, required) The Coin address to send to.\n"
-                "4. \"recv_address\"  (string, required) The Coin address to receive.\n"
+                "3. \"sendaddress\"  (string, required) The Coin address to send to.\n"
+                "4. \"recvaddress\"  (string, required) The Coin address to receive.\n"
                 "5. \"height\"  (int, optional) \n"
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
                 "\nExamples:\n"
-                + HelpExampleCli("sendtoaddressraw", "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
-                + HelpExampleCli("sendtoaddressraw",
+                + HelpExampleCli("getsendtoaddressraw", "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
+                + HelpExampleCli("getsendtoaddressraw",
                 "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"")
-                + HelpExampleRpc("sendtoaddressraw",
+                + HelpExampleRpc("getsendtoaddressraw",
                 "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""
-                + HelpExampleCli("sendtoaddressraw", "\"0-6\" 10 ")
-                + HelpExampleCli("sendtoaddressraw", "100 1000 \"00000000000000000005\" 10 ")
-                + HelpExampleCli("sendtoaddressraw", "100 1000 \"0-6\" \"0-5\" 10 ")
-                + HelpExampleCli("sendtoaddressraw", "100 1000 \"00000000000000000005\" \"0-6\"10 ")));
+                + HelpExampleCli("getsendtoaddressraw", "\"0-6\" 10 ")
+                + HelpExampleCli("getsendtoaddressraw", "100 1000 \"00000000000000000005\" 10 ")
+                + HelpExampleCli("getsendtoaddressraw", "100 1000 \"0-6\" \"0-5\" 10 ")
+                + HelpExampleCli("getsendtoaddressraw", "100 1000 \"00000000000000000005\" \"0-6\"10 ")));
 
     CKeyID sendKeyId, recvKeyId;
 
