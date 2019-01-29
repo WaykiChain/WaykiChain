@@ -185,7 +185,6 @@ int GetTxConfirmHeight(const uint256 &hash, CScriptDBViewCache &scriptDBCache);
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState &state);
 int64_t GetBlockValue(int nHeight, int64_t nFees);
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock);
 
 /*calutate difficulty */
 double CaculateDifficulty(unsigned int nBits);
