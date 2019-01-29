@@ -301,7 +301,7 @@ static const CRPCCommand vRPCCommands[] =
     { "walletpassphrasechange", &walletpassphrasechange, false,     false,      true },
     { "walletpassphrase",       &walletpassphrase,       true,      false,      true },
     { "setgenerate",            &setgenerate,            true,      true,       false},
-    { "listapp",                &listapp,                true,      false,      true },
+    { "listcontracts",          &listcontracts,                true,      false,      true },
     { "getappinfo",             &getappinfo,             true,      false,      true },
     { "generateblock",          &generateblock,          true,      true,       true },
     { "listtxcache",            &listtxcache,            true,      false,      true },
