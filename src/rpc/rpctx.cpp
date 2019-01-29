@@ -3087,7 +3087,7 @@ Value gettotalcoin(const Array& params, bool fHelp) {
                  + HelpExampleCli("gettotalcoin", "")
                  + HelpExampleRpc("gettotalcoin", ""));
     }
-    
+
     Object obj;
     {
         CAccountViewCache view(*pAccountViewTip, true);
@@ -3102,9 +3102,9 @@ Value gettotalassets(const Array& params, bool fHelp) {
     {
         throw runtime_error(
                  "gettotalassets \n"
-                 "\nget all assets\n"
+                 "\nget all assets belonging to a contract\n"
                  "\nArguments:\n"
-                 "1.\"scriptid\": (string, required)\n"
+                 "1.\"contract_regid\": (string, required)\n"
                  "\nResult:\n"
                  "\nExamples:\n"
                  + HelpExampleCli("gettotalassets", "11-1")
@@ -3112,11 +3112,11 @@ Value gettotalassets(const Array& params, bool fHelp) {
     }
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true) {
-        throw runtime_error("in gettotalassets :scriptid size is error!\n");
+        throw runtime_error("in gettotalassets: contract_regid size invalid!\n");
     }
 
     if (!pScriptDBTip->HaveScript(regid)) {
-        throw runtime_error("in gettotalassets :scriptid  is not exist!\n");
+        throw runtime_error("in gettotalassets: contract_regid not exist!\n");
     }
 
     CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
@@ -3124,8 +3124,7 @@ Value gettotalassets(const Array& params, bool fHelp) {
     {
         map<vector<unsigned char>, vector<unsigned char> > mapAcc;
         bool bRet = contractScriptTemp.GetAllScriptAcc(regid, mapAcc);
-        if(bRet)
-        {
+        if (bRet) {
             uint64_t totalassets = 0;
             map<vector<unsigned char>, vector<unsigned char>>::iterator it;
             for(it = mapAcc.begin(); it != mapAcc.end();++it)
@@ -3141,13 +3140,10 @@ Value gettotalassets(const Array& params, bool fHelp) {
                 totalassets += appAccOut.GetAllFreezedValues();
             }
 
-            obj.push_back(Pair("TotalAssets", ValueFromAmount(totalassets)));
+            obj.push_back(Pair("total_assets", ValueFromAmount(totalassets)));
+        } else {
+            throw runtime_error("in gettotalassets: failed to find contract account!\n");
         }
-        else
-        {
-            throw runtime_error("in gettotalassets :find script account failed!\n");
-        }
-
     }
     return obj;
 }
