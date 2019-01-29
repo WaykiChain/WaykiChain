@@ -1298,12 +1298,9 @@ static int ExGetDBSizeFunc(lua_State *L) {
     CRegID scriptid = pVmRunEvn->GetScriptRegID();
     int count = 0;
     CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
-    if(!scriptDB->GetAppItemCount(scriptid,count))
-    {
+    if (!scriptDB->GetContractItemCount(scriptid,count)) {
         return RetFalse("ExGetDBSizeFunc can't use");
-    }
-    else
-    {
+    } else {
 //      CDataStream tep(SER_DISK, CLIENT_VERSION);
 //      tep << count;
 //      vector<unsigned char> tep1(tep.begin(),tep.end());

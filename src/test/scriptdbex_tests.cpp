@@ -123,7 +123,7 @@ void CScriptDBTest::GetContractData(CScriptDBViewCache* pViewCache) {
 	auto it = mapScript.begin();
 	BOOST_CHECK(it != mapScript.end());
 
-	BOOST_CHECK(pViewCache->GetAppItemCount(CRegID(it->first), nCount));
+	BOOST_CHECK(pViewCache->GetContractItemCount(CRegID(it->first), nCount));
 	bool ret = pViewCache->GetContractData(nCurHeight, CRegID(it->first), 0, vScriptKey, vScriptData);
 
 	while (ret) {
@@ -131,7 +131,7 @@ void CScriptDBTest::GetContractData(CScriptDBViewCache* pViewCache) {
 			break;
 		}
 		ret = pViewCache->GetContractData(nCurHeight, CRegID(it->first), 1, vScriptKey, vScriptData);
-		pViewCache->GetAppItemCount(CRegID(it->first), nCount);
+		pViewCache->GetContractItemCount(CRegID(it->first), nCount);
 	}
 }
 

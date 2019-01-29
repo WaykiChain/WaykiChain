@@ -288,7 +288,7 @@ public:
 			return false;
 		}
 		int dbsize;
-		contractScriptTemp.GetAppItemCount(regid, dbsize);
+		contractScriptTemp.GetContractItemCount(regid, dbsize);
 		if(curtiph <nheigh)
 		{
 			BOOST_CHECK(0==dbsize);
@@ -367,7 +367,7 @@ public:
 				return 0;
 			}
 			int dbsize;
-			pScriptDBTip->GetAppItemCount(regid, dbsize);
+			pScriptDBTip->GetContractItemCount(regid, dbsize);
 			return dbsize;
 	}
 	string CreatWriteTx(string &hash)

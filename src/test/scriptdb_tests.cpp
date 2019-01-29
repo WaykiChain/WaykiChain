@@ -298,7 +298,7 @@ void testscriptdatadb() {
 	BOOST_CHECK(vScriptData == vScript);
 	int nCount;
 	//get app item count from db
-	BOOST_CHECK(pTestView->GetAppItemCount(regScriptId, nCount));
+	BOOST_CHECK(pTestView->GetContractItemCount(regScriptId, nCount));
 	//if the number is one
 	BOOST_CHECK_EQUAL(nCount, 2);
 	//get index 0 script from db
@@ -317,7 +317,7 @@ void testscriptdatadb() {
 	BOOST_CHECK(pTestView->GetContractData(curheight,regScriptId, 0, vKey, vScript));
 	BOOST_CHECK(vKey == vScriptKey1);
 	BOOST_CHECK(vScript == vScriptData1);
-	BOOST_CHECK(pTestView->GetAppItemCount(regScriptId, nCount));
+	BOOST_CHECK(pTestView->GetContractItemCount(regScriptId, nCount));
 	BOOST_CHECK_EQUAL(nCount, 1);
 	//write all data in caches to db
 	BOOST_CHECK(pTestView->Flush());

@@ -174,7 +174,7 @@ public:
 	bool SetScript(const CRegID &scriptId, const vector<unsigned char> &vValue);
 	bool HaveScript(const CRegID &scriptId);
 	bool EraseScript(const CRegID &scriptId);
-	bool GetAppItemCount(const CRegID &scriptId, int &nCount);
+	bool GetContractItemCount(const CRegID &scriptId, int &nCount);
 	bool EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog);
 	bool HaveScriptData(const CRegID &scriptId, const vector<unsigned char > &vScriptKey);
 	bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
@@ -270,14 +270,14 @@ private:
 	 * @param nCount
 	 * @return true if get succeed, otherwise false
 	 */
-	bool GetAppItemCount(const vector<unsigned char> &vScriptId, int &nCount);
+	bool GetContractItemCount(const vector<unsigned char> &vScriptId, int &nCount);
 	/**
 	 * @brief Save count of the Contract's data into contract db
 	 * @param vScriptId
 	 * @param nCount
 	 * @return true if save succeed, otherwise false
 	 */
-	bool SetAppItemCount(const vector<unsigned char> &vScriptId, int nCount);
+	bool SetContractItemCount(const vector<unsigned char> &vScriptId, int nCount);
 	/**
 	 * @brief Delete the item of the scirpt's data by scriptId and scriptKey
 	 * @param vScriptId

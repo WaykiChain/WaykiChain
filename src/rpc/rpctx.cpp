@@ -1940,7 +1940,7 @@ static int getDataFromAppDb(CScriptDBViewCache &cache, const CRegID &regid, int 
         vector<std::tuple<vector<unsigned char>, vector<unsigned char> > >&ret) {
     int dbsize;
     int height = chainActive.Height();
-    cache.GetAppItemCount(regid, dbsize);
+    cache.GetContractItemCount(regid, dbsize);
     if (0 == dbsize) {
         throw runtime_error("getDataFromAppDb :the app has NO data!\n");
     }
@@ -2008,7 +2008,7 @@ Value getcontractdata(const Array& params, bool fHelp) {
 
     } else {
         int dbsize;
-        contractScriptTemp.GetAppItemCount(regid, dbsize);
+        contractScriptTemp.GetContractItemCount(regid, dbsize);
         if (0 == dbsize) {
             throw runtime_error("getcontractdata :the app has NO data!");
         }
@@ -2076,9 +2076,9 @@ Value getcontractdataraw(const Array& params, bool fHelp) {
 
     } else {
         int dbsize;
-        contractScriptTemp.GetAppItemCount(regid, dbsize);
+        contractScriptTemp.GetContractItemCount(regid, dbsize);
         if (0 == dbsize) {
-            throw runtime_error("GetAppItemCount :the app has NO data!");
+            throw runtime_error("GetContractItemCount :the contract has NO data!");
         }
         int pagesize = params[1].get_int();
         int index = params[2].get_int();
@@ -2224,8 +2224,8 @@ Value getcontractdbsize(const Array& params, bool fHelp) {
         throw runtime_error("getcontractdbsize :appregid does NOT exist!");
     }
     int nItemCount = 0;
-    if (!pScriptDBTip->GetAppItemCount(regid, nItemCount)) {
-        throw runtime_error("getcontractdbsize: GetAppItemCount error!");
+    if (!pScriptDBTip->GetContractItemCount(regid, nItemCount)) {
+        throw runtime_error("getcontractdbsize: GetContractItemCount error!");
     }
     return nItemCount;
 }
