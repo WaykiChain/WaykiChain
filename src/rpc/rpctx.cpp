@@ -2294,14 +2294,15 @@ Value getregisteraccounttxraw(const Array& params, bool fHelp) {
 
 Value submittx(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error("submittx \"transaction\" \n"
-                "\nsubmit transaction\n"
-                "\nArguments:\n"
-                "1.\"transaction\": (string, required)\n"
-                "\nExamples:\n"
-                + HelpExampleCli("submittx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\"")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("submittx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
+        throw runtime_error(
+            "submittx \"transaction\" \n"
+            "\nsubmit transaction\n"
+            "\nArguments:\n"
+            "1.\"transaction\": (string, required)\n"
+            "\nExamples:\n"
+            + HelpExampleCli("submittx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\"")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("submittx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
     }
     //EnsureWalletIsUnlocked();
     vector<unsigned char> vch(ParseHex(params[0].get_str()));
@@ -2442,9 +2443,7 @@ Value getregistercontracttxraw(const Array& params, bool fHelp) {
             free(buffer);
             fclose(file);//及时关闭
             throw runtime_error("read script file error");
-        }
-        else
-        {
+        } else {
             fclose(file);
         }
         vmScript.Rom.insert(vmScript.Rom.end(), buffer, buffer + lSize);
@@ -2454,8 +2453,6 @@ Value getregistercontracttxraw(const Array& params, bool fHelp) {
         ds << vmScript;
 
         vscript.assign(ds.begin(), ds.end());
-
-
     } else if (1 == flag) {
         vscript = ParseHex(params[3].get_str());
     }
@@ -2520,7 +2517,6 @@ Value getregistercontracttxraw(const Array& params, bool fHelp) {
     Object obj;
     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
     return obj;
-
 }
 
 Value sigstr(const Array& params, bool fHelp) {
@@ -3149,8 +3145,7 @@ Value gettotalassets(const Array& params, bool fHelp) {
 }
 
 Value gettxhashbyaddress(const Array& params, bool fHelp) {
-    if(fHelp || params.size() != 2)
-    {
+    if(fHelp || params.size() != 2) {
         throw runtime_error(
                  "gettxbyaddress \n"
                  "\nget all tx hash by addresss\n"
@@ -3202,14 +3197,15 @@ Value gettxhashbyaddress(const Array& params, bool fHelp) {
 
 Value getrawtx(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error("submittx \"transaction\" \n"
-                "\nsubmit transaction\n"
-                "\nArguments:\n"
-                "1.\"transaction\": (string, required)\n"
-                "\nExamples:\n"
-                + HelpExampleCli("submittx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\"")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("submittx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
+        throw runtime_error(
+            "getrawtx \"transaction\" \n"
+            "\get transaction raw string\n"
+            "\nArguments:\n"
+            "1.\"transaction\": (string, required)\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getrawtx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\"")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getrawtx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
     }
     EnsureWalletIsUnlocked();
     vector<unsigned char> vch(ParseHex(params[0].get_str()));
@@ -3229,6 +3225,7 @@ Value getrawtx(const Array& params, bool fHelp) {
         streamRawTx << mMinerid;
         streamRawTx << pRegAcctTx->llFees;
         streamRawTx << pRegAcctTx->signature;
+
     } else if (pa->nTxType == COMMON_TX || pa->nTxType == CONTRACT_TX) {
         CTransaction * pTx = (CTransaction *) pa.get();
         streamRawTx << pTx->nVersion;
@@ -3241,6 +3238,7 @@ Value getrawtx(const Array& params, bool fHelp) {
         streamRawTx << pTx->llValues;
         streamRawTx << pTx->vContract;
         streamRawTx << pTx->signature;
+
     }  else if (pa->nTxType == REWARD_TX) {
         CRewardTransaction * pRewardTx = (CRewardTransaction *) pa.get();
         streamRawTx << pRewardTx->nVersion;
@@ -3248,6 +3246,7 @@ Value getrawtx(const Array& params, bool fHelp) {
         streamRawTx << acctId;
         streamRawTx << pRewardTx->rewardValue;
         streamRawTx << pRewardTx->nHeight;
+
     } else if (pa->nTxType == REG_CONTRACT_TX) {
         CRegisterContractTx * pRegAppTx = (CRegisterContractTx *) pa.get();
         streamRawTx << pRegAppTx->nVersion;
@@ -3267,9 +3266,9 @@ Value getrawtx(const Array& params, bool fHelp) {
         streamRawTx << pDelegateTx->operVoteFunds;
         streamRawTx << pDelegateTx->llFees;
         streamRawTx << pDelegateTx->signature;
-    }
-    else {
-         throw runtime_error("seiralize tx type value error, must be ranger(1...6)\n");
+
+    } else {
+         throw runtime_error("serialize tx type value error, must be within range of (1...6)\n");
     }
     vector<unsigned char> vRetCh(streamRawTx.begin(), streamRawTx.end());
     Object obj;
