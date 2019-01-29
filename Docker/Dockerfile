@@ -13,7 +13,7 @@ libboost-test-dev libboost-thread-dev software-properties-common libdb4.8-dev li
 
 # Build Waykichain source on its release branch
 RUN mkdir -p /opt/src /opt/wicc && cd /opt/src \
-&& git clone -b $branch https://github.com/WaykiChain/WaykiChain.git --recursive \
+&& git clone -b $branch git@github.com:WaykiChain/WaykiChain.git --recursive \
 && cd /opt/src/WaykiChain/linuxshell && sh ./linux.sh \
 && cd .. && sed -i '/enable-debug/d' ./autogen-coin-man.sh && sh ./autogen-coin-man.sh coin \
 && cd /opt/src/WaykiChain/ && chmod +x ./share/genbuild.sh && make \
