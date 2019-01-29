@@ -2231,7 +2231,7 @@ Value getappdbsize(const Array& params, bool fHelp) {
     return nItemCount;
 }
 
-Value registeraccounttxraw(const Array& params, bool fHelp) {
+Value getregisteraccounttxraw(const Array& params, bool fHelp) {
 
     if (fHelp || (params.size() < 3  || params.size() > 4)) {
         throw runtime_error("registeraccounttxraw \"fee\" \"height\" \"publickey\" (\"minerpublickey\") \n"
@@ -2393,23 +2393,24 @@ Value getcallcontracttxraw(const Array& params, bool fHelp) {
 
 Value getregistercontracttxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4) {
-        throw runtime_error("getregistercontracttxraw \"height\" \"fee\" \"addr\" \"flag\" \"script or scriptid\" (\"script description\")\n"
-                        "\nregister script\n"
-                        "\nArguments:\n"
-                        "1.\"fee\": (numeric required) pay to miner\n"
-                        "2.\"addr\": (string required)\nfor send"
-                        "3.\"flag\": (bool, required) 0-1\n"
-                        "4.\"script or scriptid\": (string required), if flag=0 is script's file path, else if flag=1 scriptid\n"
-                        "5.\"height\": (int required)valid height\n"
-                        "6.\"script description\":(string optional) new script description\n"
-                        "\nResult:\n"
-                        "\"txhash\": (string)\n"
-                        "\nExamples:\n"
-                        + HelpExampleCli("getregistercontracttxraw",
-                                "\"10\" \"10000\" \"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"1\" \"010203040506\" ")
-                        + "\nAs json rpc call\n"
-                        + HelpExampleRpc("getregistercontracttxraw",
-                                "\"10\" \"10000\" \"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"1\" \"010203040506\" "));
+        throw runtime_error(
+            "getregistercontracttxraw \"height\" \"fee\" \"addr\" \"flag\" \"script or scriptid\" (\"script description\")\n"
+            "\nregister script\n"
+            "\nArguments:\n"
+            "1.\"fee\": (numeric required) pay to miner\n"
+            "2.\"addr\": (string required)\nfor send"
+            "3.\"flag\": (bool, required) 0-1\n"
+            "4.\"script or scriptid\": (string required), if flag=0 is script's file path, else if flag=1 scriptid\n"
+            "5.\"height\": (int required)valid height\n"
+            "6.\"script description\":(string optional) new script description\n"
+            "\nResult:\n"
+            "\"txhash\": (string)\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getregistercontracttxraw",
+                    "\"10\" \"10000\" \"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"1\" \"010203040506\" ")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getregistercontracttxraw",
+                    "\"10\" \"10000\" \"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"1\" \"010203040506\" "));
     }
 
     RPCTypeCheck(params, list_of(real_type)(str_type)(int_type)(str_type)(int_type)(str_type));
