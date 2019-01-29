@@ -361,7 +361,7 @@ Value gettxdetail(const Array& params, bool fHelp) {
 
 //create a register account tx
 Value registeraccounttx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 2) {
+    if (fHelp || params.size() == 0) {
            throw runtime_error(
                 "registeraccounttx \"addr\" (\"fee\")\n"
                 "\nregister secure account\n"
