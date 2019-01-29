@@ -2252,7 +2252,7 @@ Value registeraccounttxraw(const Array& params, bool fHelp) {
     CUserID uminerkey = CNullID();
 
     int64_t fee = AmountToRawValue(params[0]);
-    uint64_t nDefaultFee = SysCfg().GetTxFee();
+    int64_t nDefaultFee = SysCfg().GetTxFee();
 
     if (fee < nDefaultFee) {
         char errorMsg[100] = {'\0'};
