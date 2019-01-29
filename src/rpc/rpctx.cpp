@@ -721,7 +721,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
                 " [\n"
                     "   {\n"
                     "      \"delegate\":\"address\", (string, required) The delegate address where votes are recevied\n"
-                    "      \"votes\": n (numeric, required) votes\n"
+                    "      \"votes\": n (numeric, required) votes, increase votes when positive or reduce votes when negative\n"
                     "   }\n"
                     "       ,...\n"
                 " ]\n"

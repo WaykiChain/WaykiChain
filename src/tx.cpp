@@ -122,14 +122,16 @@ bool CRegID::IsSimpleRegIdStr(const string & str)
     }
     return false;
 }
+
 bool CRegID::GetKeyID(const string & str,CKeyID &keyId)
 {
-    CRegID te(str);
-    if(te.IsEmpty())
+    CRegID regId(str);
+    if (regId.IsEmpty())
         return false;
-    keyId = te.getKeyID(*pAccountViewTip);
+    keyId = regId.getKeyID(*pAccountViewTip);
     return !keyId.IsEmpty();
 }
+
 bool CRegID::IsRegIdStr(const string & str)
  {
     if(IsSimpleRegIdStr(str)){
