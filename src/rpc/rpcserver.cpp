@@ -335,8 +335,8 @@ static const CRPCCommand vRPCCommands[] =
     { "reloadtxcache",          &reloadtxcache,          true,      false,      true },
     { "listsetblockindexvalid", &listsetblockindexvalid, true,      false,      false},
     { "getcontractregid",       &getcontractregid,       true,      false,      false},
-    { "getscriptdbsize",        &getappdbsize,           true,      false,      false}, //deprecated
-    { "getappdbsize",           &getappdbsize,           true,      false,      false},
+    { "getscriptdbsize",        &getcontractdbsize,      true,      false,      false}, //deprecated
+    { "getcontractdbsize",      &getcontractdbsize,      true,      false,      false},
     { "printblockdbinfo",       &printblockdbinfo,       true,      false,      false},
     { "getalltxinfo",           &getalltxinfo,           true,      false,      true },
     { "saveblocktofile",        &saveblocktofile,        true,      false,      true },

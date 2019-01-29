@@ -2203,29 +2203,29 @@ Value saveblocktofile(const Array& params, bool fHelp) {
     return "save succeed";
 }
 
-Value getappdbsize(const Array& params, bool fHelp) {
+Value getcontractdbsize(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(
-            "getappdbsize \"appregid\"\n"
-            "\nget app data item count\n"
+            "getcontractdbsize \"contract_regid\"\n"
+            "\nget contract data item count\n"
             "\nArguments:\n"
-            "1.\"appregid\": (string, required) App RegId\n"
+            "1.\"contract_regid\": (string, required) Contract RegId\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("getappdbsize", "\"258988-1\"")
-            + HelpExampleRpc("getappdbsize","\"258988-1\"")
+            + HelpExampleCli("getcontractdbsize", "\"258988-1\"")
+            + HelpExampleRpc("getcontractdbsize","\"258988-1\"")
         );
     }
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true) {
-        throw runtime_error("getappdbsize :appregid error!");
+        throw runtime_error("getcontractdbsize :appregid error!");
     }
     if (!pScriptDBTip->HaveScript(regid)) {
-        throw runtime_error("getappdbsize :appregid does NOT exist!");
+        throw runtime_error("getcontractdbsize :appregid does NOT exist!");
     }
     int nItemCount = 0;
     if (!pScriptDBTip->GetAppItemCount(regid, nItemCount)) {
-        throw runtime_error("getappdbsize: GetAppItemCount error!");
+        throw runtime_error("getcontractdbsize: GetAppItemCount error!");
     }
     return nItemCount;
 }
