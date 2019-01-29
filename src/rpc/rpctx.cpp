@@ -1785,27 +1785,27 @@ Value listcontracts(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value getappinfo(const Array& params, bool fHelp) {
+Value getcontractinfo(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
             throw runtime_error(
-                "getappinfo ( \"scriptid\" )\n"
+                "getcontractinfo ( \"scriptid\" )\n"
                 "\nget app information.\n"
                 "\nArguments:\n"
                 "1. \"scriptid\"    (string, required) the script ID. \n"
                 "\nget app information in the systems\n"
                 "\nExamples:\n"
-                + HelpExampleCli("getappinfo", "123-1")
+                + HelpExampleCli("getcontractinfo", "123-1")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("getappinfo", "123-1"));
+                + HelpExampleRpc("getcontractinfo", "123-1"));
 
     string strRegId = params[0].get_str();
     CRegID regid(strRegId);
     if (regid.IsEmpty() == true) {
-        throw runtime_error("in getappinfo: scriptid size is error!\n");
+        throw runtime_error("in getcontractinfo: contract regid size invalid!\n");
     }
 
     if (!pScriptDBTip->HaveScript(regid)) {
-        throw runtime_error("in getappinfo: scriptid  is not exist!\n");
+        throw runtime_error("in getcontractinfo: contract regid not exist!\n");
     }
 
     vector<unsigned char> vScript;
@@ -1814,12 +1814,12 @@ Value getappinfo(const Array& params, bool fHelp) {
     }
 
     Object obj;
-    obj.push_back(Pair("scriptId", regid.ToString()));
+    obj.push_back(Pair("contract_regid", regid.ToString()));
     CDataStream ds(vScript, SER_DISK, CLIENT_VERSION);
     CVmScript vmScript;
     ds >> vmScript;
     obj.push_back(Pair("description", HexStr(vmScript.ScriptExplain)));
-    obj.push_back(Pair("scriptContent", HexStr(vmScript.Rom.begin(), vmScript.Rom.end())));
+    obj.push_back(Pair("contract_content", HexStr(vmScript.Rom.begin(), vmScript.Rom.end())));
     return obj;
 }
 
@@ -2104,9 +2104,9 @@ Value getcontractdataraw(const Array& params, bool fHelp) {
     return script;
 }
 
-Value getappconfirmdata(const Array& params, bool fHelp) {
+Value getcontractconfirmdata(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 3 && params.size() !=4)) {
-        throw runtime_error("getappconfirmdata \"regid\" \"pagesize\" \"index\"\n"
+        throw runtime_error("getcontractconfirmdata \"regid\" \"pagesize\" \"index\"\n"
                     "\nget script valid data\n"
                     "\nArguments:\n"
                     "1.\"regid\": (string, required) app RegId\n"
@@ -2115,8 +2115,8 @@ Value getappconfirmdata(const Array& params, bool fHelp) {
                     "4.\"minconf\":  (numeric, optional, default=1) Only include contract transactions confirmed \n"
                     "\nResult:\n"
                     "\nExamples:\n"
-                    + HelpExampleCli("getappconfirmdata", "\"1304166-1\" \"1\"  \"1\"")
-                    + HelpExampleRpc("getappconfirmdata", "\"1304166-1\" \"1\"  \"1\""));
+                    + HelpExampleCli("getcontractconfirmdata", "\"1304166-1\" \"1\"  \"1\"")
+                    + HelpExampleRpc("getcontractconfirmdata", "\"1304166-1\" \"1\"  \"1\""));
     }
     std::shared_ptr<CScriptDBViewCache> pAccountViewCache;
     if(4 == params.size() && 0==params[3].get_int()) {

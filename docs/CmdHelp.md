@@ -36,7 +36,7 @@
 | getrawmempool | ```[verbose]``` | Returns all transaction ids in memory pool.If verbose is true,return  a json object, false return array of transaction ids. | N |
 | getcontractdata | ```<scriptid><pagsize or key>[index]``` | get contract managed data by given regid. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
 | getcontractdataraw | ```<scriptid><pagsize or key>[index]``` | get contract managed raw data by given app regid. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
-| getappconfirmdata | ```<scriptid><pagsize><index>``` | get app data confirmed | N |
+| getcontractconfirmdata | ```<scriptid><pagsize><index>``` | get contract data confirmed | N |
 | gettxdetail | ```<txhash>``` | Returns an object about the transaction  detail information by ```<txhash>``` | N |
 | getwalletinfo | | Returns an object containing various wallet state info | N |
 | help | ```[command]``` | List commands, or get help for a command | N |
