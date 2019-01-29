@@ -363,7 +363,7 @@ Value gettxdetail(const Array& params, bool fHelp) {
 Value registeraccounttx(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
            throw runtime_error(
-                "registeraccounttx \"addr\" \"fee\"\n"
+                "registeraccounttx \"addr\" (\"fee\")\n"
                 "\nregister secure account\n"
                 "\nArguments:\n"
                 "1.addr: (string, required)\n"

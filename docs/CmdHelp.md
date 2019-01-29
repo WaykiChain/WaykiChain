@@ -50,7 +50,7 @@
 | listtx | | get all confirm transactions and all unconfirm transactions from wallet | N |
 | listtxcache | | get all transactions in cache | N |
 | listunconfirmedtx | | get the list of unconfirmedtx | N |
-| registeraccounttx | ```<address><fee>``` | register an account from the local wallet node | Y |
+| registeraccounttx | ```<address> [fee]``` | register an account from the local wallet node | Y |
 | getregisteraccounttxraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account raw transaction | N |
 | reconsiderblock | ```<hash>``` | Removes invalidity status of a block and its descendants, reconsider them for activation. | N |
 | registercontracttx | ```<address><filepath><fee>[height][contract_description]``` | register a contract app | Y |
