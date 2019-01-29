@@ -2278,8 +2278,8 @@ Value registeraccounttxraw(const Array& params, bool fHelp) {
         uminerkey = minerpubk;
     }
 
-      EnsureWalletIsUnlocked();
-    std::shared_ptr<CRegisterAccountTx> tx = std::make_shared<CRegisterAccountTx>(ukey, uminerkey, Fee, hight);
+    EnsureWalletIsUnlocked();
+    std::shared_ptr<CRegisterAccountTx> tx = std::make_shared<CRegisterAccountTx>(ukey, uminerkey, fee, hight);
     if (!pwalletMain->Sign(pubk.GetKeyID(), tx->SignatureHash(), tx->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,  "Sign failed");
     }
