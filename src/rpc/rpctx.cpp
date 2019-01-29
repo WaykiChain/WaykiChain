@@ -448,10 +448,10 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 }
 
 //create a contract tx
-Value createcontracttx(const Array& params, bool fHelp) {
+Value callcontracttx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
        throw runtime_error(
-            "createcontracttx \"senderaddr\" \"appregid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
+            "callcontracttx \"senderaddr\" \"appregid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
             "\ncreate contract transaction\n"
             "\nArguments:\n"
             "1.\"senderaddr\": (string, required)\n tx sender's base58 addr\n"
@@ -463,12 +463,12 @@ Value createcontracttx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"contract tx str\": (string)\n"
             "\nExamples:\n"
-            + HelpExampleCli("createcontracttx",
+            + HelpExampleCli("callcontracttx",
                     "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\""
                     "411994-1"
                     "01020304 "
                     "1") + "\nAs json rpc call\n"
-            + HelpExampleRpc("createcontracttx",
+            + HelpExampleRpc("callcontracttx",
                     "wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6 [\"411994-1\"] "
                     "\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\""
                     "100000 "
@@ -493,7 +493,7 @@ Value createcontracttx(const Array& params, bool fHelp) {
     //argument-2: App RegId
     CRegID appId(params[1].get_str()); //App RegId
     if (appId.IsEmpty()) {
-        throw runtime_error("in createcontracttx :addresss is error!\n");
+        throw runtime_error("in callcontracttx :addresss is error!\n");
     }
 
     //argument-3: amount to be sent to the app account
@@ -505,7 +505,7 @@ Value createcontracttx(const Array& params, bool fHelp) {
     //argument-5: fee
     uint64_t fee = params[4].get_uint64();
     if (fee > 0 && fee < CTransaction::nMinTxFee) {
-        throw runtime_error("in createcontracttx :fee is smaller than nMinTxFee\n");
+        throw runtime_error("in callcontracttx :fee is smaller than nMinTxFee\n");
     }
 
     //argument-6: height
@@ -521,7 +521,7 @@ Value createcontracttx(const Array& params, bool fHelp) {
         CAccount secureAcc;
 
         if (!pScriptDBTip->HaveScript(appId)) {
-            throw runtime_error(tinyformat::format("createcontracttx :script id %s is not exist\n", appId.ToString()));
+            throw runtime_error(tinyformat::format("callcontracttx :regid %s not exist\n", appId.ToString()));
         }
         tx.get()->nTxType = CONTRACT_TX;
         tx.get()->srcRegId = userId;
@@ -538,14 +538,14 @@ Value createcontracttx(const Array& params, bool fHelp) {
         CKeyID keyid;
         if (!view.GetKeyId(userId, keyid)) {
             CID id(userId);
-            LogPrint("INFO", "vaccountid:%s have no key id\r\n", HexStr(id.GetID()).c_str());
+            LogPrint("INFO", "callcontracttx: %s no key id\r\n", HexStr(id.GetID()).c_str());
 //          assert(0);
-            throw JSONRPCError(RPC_WALLET_ERROR, "createcontracttx Error: have no key id.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "callcontracttx Error: no key id.");
         }
 
         vector<unsigned char> signature;
         if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "createcontracttx Error: Sign failed.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "callcontracttx Error: Sign failed.");
         }
     }
 
@@ -557,7 +557,6 @@ Value createcontracttx(const Array& params, bool fHelp) {
     Object obj;
     obj.push_back(Pair("hash", std::get<1>(ret)));
     return obj;
-
 }
 
 // register a contract app tx
