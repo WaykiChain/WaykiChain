@@ -62,7 +62,6 @@ extern Object TxToJSON(CBaseTransaction *pTx);
 extern Value gettotalcoin(const Array& params, bool fHelp);
 extern Value gettotalassets(const Array& params, bool fHelp);
 extern Value gettxhashbyaddress(const Array& params, bool fHelp);
-extern Value getrawtx(const Array& params, bool fHelp);
 extern Value listtransactions(const Array& params, bool fHelp);
 extern Value listtransactionsv2(const Array& params, bool fHelp);
 extern Value gettransaction(const Array& params, bool fHelp);

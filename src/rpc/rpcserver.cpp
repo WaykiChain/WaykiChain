@@ -341,7 +341,6 @@ static const CRPCCommand vRPCCommands[] =
     { "getalltxinfo",           &getalltxinfo,           true,      false,      true },
     { "saveblocktofile",        &saveblocktofile,        true,      false,      true },
     { "gethash",                &gethash,                true,      false,      true },
-    { "getrawtx",               &getrawtx,               true,      false,      true },
 };
 
 CRPCTable::CRPCTable() {

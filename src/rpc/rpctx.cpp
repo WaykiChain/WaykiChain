@@ -3195,86 +3195,86 @@ Value gettxhashbyaddress(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value getrawtx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1) {
-        throw runtime_error(
-            "getrawtx \"transaction\" \n"
-            "\get transaction raw string\n"
-            "\nArguments:\n"
-            "1.\"transaction\": (string, required)\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getrawtx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\"")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("getrawtx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
-    }
-    EnsureWalletIsUnlocked();
-    vector<unsigned char> vch(ParseHex(params[0].get_str()));
-    CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
-    CDataStream streamRawTx(SER_DISK, CLIENT_VERSION);
+// Value getrawtx(const Array& params, bool fHelp) {
+//     if (fHelp || params.size() != 1) {
+//         throw runtime_error(
+//             "getrawtx \"transaction\" \n"
+//             "\get transaction raw string\n"
+//             "\nArguments:\n"
+//             "1.\"transaction\": (string, required)\n"
+//             "\nExamples:\n"
+//             + HelpExampleCli("getrawtx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\"")
+//             + "\nAs json rpc call\n"
+//             + HelpExampleRpc("getrawtx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
+//     }
+//     EnsureWalletIsUnlocked();
+//     vector<unsigned char> vch(ParseHex(params[0].get_str()));
+//     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
+//     CDataStream streamRawTx(SER_DISK, CLIENT_VERSION);
 
-    std::shared_ptr<CBaseTransaction> pa;
-    stream >> pa;
-    streamRawTx << pa->nTxType;
-    if (pa->nTxType == REG_ACCT_TX) {
-        CRegisterAccountTx *pRegAcctTx = (CRegisterAccountTx *) pa.get();
-        streamRawTx << pRegAcctTx->nVersion;
-        streamRawTx << pRegAcctTx->nValidHeight;
-        CID id(pRegAcctTx->userId);
-        streamRawTx << id;
-        CID mMinerid(pRegAcctTx->minerId);
-        streamRawTx << mMinerid;
-        streamRawTx << pRegAcctTx->llFees;
-        streamRawTx << pRegAcctTx->signature;
+//     std::shared_ptr<CBaseTransaction> pa;
+//     stream >> pa;
+//     streamRawTx << pa->nTxType;
+//     if (pa->nTxType == REG_ACCT_TX) {
+//         CRegisterAccountTx *pRegAcctTx = (CRegisterAccountTx *) pa.get();
+//         streamRawTx << pRegAcctTx->nVersion;
+//         streamRawTx << pRegAcctTx->nValidHeight;
+//         CID id(pRegAcctTx->userId);
+//         streamRawTx << id;
+//         CID mMinerid(pRegAcctTx->minerId);
+//         streamRawTx << mMinerid;
+//         streamRawTx << pRegAcctTx->llFees;
+//         streamRawTx << pRegAcctTx->signature;
 
-    } else if (pa->nTxType == COMMON_TX || pa->nTxType == CONTRACT_TX) {
-        CTransaction * pTx = (CTransaction *) pa.get();
-        streamRawTx << pTx->nVersion;
-        streamRawTx << pTx->nValidHeight;
-        CID srcId(pTx->srcRegId);
-        streamRawTx << srcId;
-        CID desId(pTx->desUserId);
-        streamRawTx << desId;
-        streamRawTx << pTx->llFees;
-        streamRawTx << pTx->llValues;
-        streamRawTx << pTx->vContract;
-        streamRawTx << pTx->signature;
+//     } else if (pa->nTxType == COMMON_TX || pa->nTxType == CONTRACT_TX) {
+//         CTransaction * pTx = (CTransaction *) pa.get();
+//         streamRawTx << pTx->nVersion;
+//         streamRawTx << pTx->nValidHeight;
+//         CID srcId(pTx->srcRegId);
+//         streamRawTx << srcId;
+//         CID desId(pTx->desUserId);
+//         streamRawTx << desId;
+//         streamRawTx << pTx->llFees;
+//         streamRawTx << pTx->llValues;
+//         streamRawTx << pTx->vContract;
+//         streamRawTx << pTx->signature;
 
-    }  else if (pa->nTxType == REWARD_TX) {
-        CRewardTransaction * pRewardTx = (CRewardTransaction *) pa.get();
-        streamRawTx << pRewardTx->nVersion;
-        CID acctId(pRewardTx->account);
-        streamRawTx << acctId;
-        streamRawTx << pRewardTx->rewardValue;
-        streamRawTx << pRewardTx->nHeight;
+//     }  else if (pa->nTxType == REWARD_TX) {
+//         CRewardTransaction * pRewardTx = (CRewardTransaction *) pa.get();
+//         streamRawTx << pRewardTx->nVersion;
+//         CID acctId(pRewardTx->account);
+//         streamRawTx << acctId;
+//         streamRawTx << pRewardTx->rewardValue;
+//         streamRawTx << pRewardTx->nHeight;
 
-    } else if (pa->nTxType == REG_CONTRACT_TX) {
-        CRegisterContractTx * pRegAppTx = (CRegisterContractTx *) pa.get();
-        streamRawTx << pRegAppTx->nVersion;
-        streamRawTx << pRegAppTx->nValidHeight;
-        CID regId(pRegAppTx->regAcctId);
-        streamRawTx << regId;
-        streamRawTx << pRegAppTx->script;
-        streamRawTx << pRegAppTx->llFees;
-        streamRawTx << pRegAppTx->signature;
+//     } else if (pa->nTxType == REG_CONTRACT_TX) {
+//         CRegisterContractTx * pRegAppTx = (CRegisterContractTx *) pa.get();
+//         streamRawTx << pRegAppTx->nVersion;
+//         streamRawTx << pRegAppTx->nValidHeight;
+//         CID regId(pRegAppTx->regAcctId);
+//         streamRawTx << regId;
+//         streamRawTx << pRegAppTx->script;
+//         streamRawTx << pRegAppTx->llFees;
+//         streamRawTx << pRegAppTx->signature;
 
-    } else if(pa->nTxType == DELEGATE_TX) {
-        CDelegateTransaction * pDelegateTx = (CDelegateTransaction *) pa.get();
-        streamRawTx << pDelegateTx->nVersion;
-        streamRawTx << pDelegateTx->nValidHeight;
-        CID regId(pDelegateTx->userId);
-        streamRawTx << regId;
-        streamRawTx << pDelegateTx->operVoteFunds;
-        streamRawTx << pDelegateTx->llFees;
-        streamRawTx << pDelegateTx->signature;
+//     } else if(pa->nTxType == DELEGATE_TX) {
+//         CDelegateTransaction * pDelegateTx = (CDelegateTransaction *) pa.get();
+//         streamRawTx << pDelegateTx->nVersion;
+//         streamRawTx << pDelegateTx->nValidHeight;
+//         CID regId(pDelegateTx->userId);
+//         streamRawTx << regId;
+//         streamRawTx << pDelegateTx->operVoteFunds;
+//         streamRawTx << pDelegateTx->llFees;
+//         streamRawTx << pDelegateTx->signature;
 
-    } else {
-         throw runtime_error("serialize tx type value error, must be within range of (1...6)\n");
-    }
-    vector<unsigned char> vRetCh(streamRawTx.begin(), streamRawTx.end());
-    Object obj;
-    obj.push_back(Pair("txraw", HexStr(vRetCh)));
-    return obj;
-}
+//     } else {
+//          throw runtime_error("serialize tx type value error, must be within range of (1...6)\n");
+//     }
+//     vector<unsigned char> vRetCh(streamRawTx.begin(), streamRawTx.end());
+//     Object obj;
+//     obj.push_back(Pair("txraw", HexStr(vRetCh)));
+//     return obj;
+// }
 
 Value getdelegatelist(const Array& params, bool fHelp) {
     if (fHelp || params.size() > 1) {
