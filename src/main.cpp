@@ -1018,42 +1018,6 @@ double CaculateDifficulty(unsigned int nBits) {
     return dDiff;
 }
 
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock) {
-    if (pindexLast == NULL) {
-        return SysCfg().ProofOfWorkLimit().GetCompact(); // genesis block
-    }
-
-    const CBlockIndex* pindexPrev = pindexLast;
-    if (pindexPrev->pprev == NULL) {
-        return SysCfg().ProofOfWorkLimit().GetCompact(); // first block
-    }
-
-    const CBlockIndex* pindexPrevPrev = pindexPrev->pprev;
-    if (pindexPrevPrev->pprev == NULL) {
-        return SysCfg().ProofOfWorkLimit().GetCompact(); // second block
-    }
-
-    int64_t nTargetSpacing = SysCfg().GetTargetSpacing();  //nStakeTargetSpacing;
-    int64_t nInterval = SysCfg().GetTargetTimespan() / nTargetSpacing;
-
-    arith_uint256 bnNew;
-    bnNew.SetCompact(pindexPrev->nBits);
-    int64_t nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
-    int64_t nTotalSpacing = ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
-    if(nTotalSpacing < 0) {
-        return bnNew.GetCompact();
-    }
-    bnNew *= nTotalSpacing;
-    bnNew /= ((nInterval + 1) * nTargetSpacing);
-    if (bnNew > SysCfg().ProofOfWorkLimit()) {
-        LogPrint("INFO", "bnNew:%s\n", bnNew.GetHex());
-        bnNew = SysCfg().ProofOfWorkLimit();
-    }
-    // LogPrint("INFO", "bnNew=%s difficulty=%.8lf\n", bnNew.GetHex(), CaculateDifficulty(bnNew.GetCompact()));
-    return bnNew.GetCompact();
-
-}
-
 bool CheckProofOfWork(uint256 hash, unsigned int nBits) {
     // bool fNegative;
     // bool fOverflow;

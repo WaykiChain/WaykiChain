@@ -472,7 +472,7 @@ bool IsProxy(const CNetAddr &addr) {
 
 int GetConnectTime()
 {
-	return SysCfg().getConnectTimeOut();
+	return SysCfg().GetConnectTimeOut();
 }
 
 bool ConnectSocket(const CService &addrDest, SOCKET& hSocketRet, int nTimeout)
