@@ -936,8 +936,8 @@ public:
     }
 
     bool IsRegistered() const { return (PublicKey.IsFullyValid() && PublicKey.GetKeyID() == keyID); }
-    bool SetRegId(const CRegID &regID){this->regID = regID;return true;};
-    bool GetRegId(CRegID &regID)const {regID = this->regID;return !regID.IsEmpty();};
+    bool SetRegId(const CRegID &regID) { this->regID = regID;return true; };
+    bool GetRegId(CRegID &regID) const { regID = this->regID;return !regID.IsEmpty(); };
     uint64_t GetRawBalance();
     uint64_t GetTotalBalance();
     uint64_t GetFrozenBalance();

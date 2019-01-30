@@ -677,15 +677,15 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
 
     // Amount
     Object retObj;
-    CRegID sendreg;
+    CRegID sendRegId;
     //// from address to address
 
     if (!GetKeyId(params[0].get_str(), recvKeyId)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to address Invalid  ");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "recvaddress invalid!");
     }
 
     if(!pwalletMain->HaveKey(recvKeyId)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to address Invalid  ");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "recvaddress invalid!");
     }
 /*
     nAmount = params[1].get_real() * COIN;
@@ -707,7 +707,7 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
         if(te.ToString() == recvKeyId.ToString())
             continue;
         if (pAccountViewTip->GetRawBalance(te) > (nAmount + SysCfg().GetTxFee())) {
-            if (pAccountViewTip->GetRegId(CUserID(te), sendreg)) {
+            if (pAccountViewTip->GetRegId(CUserID(te), sendRegId)) {
                 sResultKeyid.insert(te);
             }
         }
@@ -722,15 +722,20 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
             continue;
         }
 
-        CRegID recvRegId;
-        CUserID recvUserId;
-
-        if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendreg)) {
+        if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId)) {
             continue;
         }
-        recvUserId = pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) ? recvRegId : recvKeyId;
-        CTransaction tx(sendreg, recvUserId, SysCfg().GetTxFee(), 
-            pAccountViewTip->GetRawBalance(sendreg) - SysCfg().GetTxFee() - nAmount,
+
+        CRegID recvRegId;
+        CUserID recvUserId;
+        if ( pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) ) {
+            recvUserId = recvRegId;
+        } else {
+            recvUserId = recvKeyId;
+        }
+
+        CTransaction tx(sendRegId, recvUserId, SysCfg().GetTxFee(), 
+            pAccountViewTip->GetRawBalance(sendRegId) - SysCfg().GetTxFee() - nAmount,
             chainActive.Height());
 
         if (!pwalletMain->Sign(sendKeyId, tx.SignatureHash(), tx.signature)) {
