@@ -598,10 +598,9 @@ Value registercontracttx(const Array& params, bool fHelp) {
     lSize = ftell(file);
     rewind(file);
 
-    if(lSize <= 0 || lSize > 65536) //脚本文件大小判断 (must be <= 64KB)
-    {
+    if(lSize <= 0 || lSize > 65536) { //脚本文件大小判断 (must be <= 64KB)
         fclose(file);
-        throw JSONRPCError(RPC_INVALID_PARAMS, "File size exceeds limit.");
+        throw JSONRPCError(RPC_INVALID_PARAMS, "File size exceeds 64KB limit.");
     }
 
     // allocate memory to contain the whole file:
@@ -614,9 +613,7 @@ Value registercontracttx(const Array& params, bool fHelp) {
         free(buffer);  //及时释放
         fclose(file);  //及时关闭
         throw runtime_error("read script file error");
-    }
-    else
-    {
+    } else {
         fclose(file); //使用完关闭文件
     }
 
