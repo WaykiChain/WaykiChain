@@ -466,7 +466,7 @@ Value SysTestBase::RegisterAccountTx(const std::string &addr, const int nfee) {
 	return value;
 }
 
-Value SysTestBase::CreateContractTx(const std::string &scriptid, const std::string &addrs, const std::string &contract,
+Value SysTestBase::CallContractTx(const std::string &scriptid, const std::string &addrs, const std::string &contract,
 		int nHeight,int nFee,uint64_t nMoney ) {
 
 	if (0 == nFee) {
@@ -482,7 +482,7 @@ Value SysTestBase::CreateContractTx(const std::string &scriptid, const std::stri
 
 	string pmoney = strprintf("%ld", nMoney);
 
-	const char *argv[] = { "rpctest", "createcontracttx",(char *) (addrs.c_str()), (char *) (scriptid.c_str()), (char *)pmoney.c_str(),
+	const char *argv[] = { "rpctest", "callcontracttx",(char *) (addrs.c_str()), (char *) (scriptid.c_str()), (char *)pmoney.c_str(),
 			(char *) (contract.c_str()), (char*)strFee.c_str(), (char*)height.c_str() };
 	int argc = sizeof(argv) / sizeof(char*);
 

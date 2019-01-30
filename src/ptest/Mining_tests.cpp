@@ -202,10 +202,10 @@ void CreateNormalTx(vector<string> &param) {
  * param[3]:手续费
  * param[4]:有效期高度
  */
-void CreateContractTx(vector<string> &param) {
+void CallContractTx(vector<string> &param) {
 	if(5 != param.size())
 		return;
-	param.insert(param.begin(), "createcontracttx");
+	param.insert(param.begin(), "CallContractTx");
 	param.insert(param.begin(), "rpctest");
 	char *argv[param.size()];
 	for(size_t i=0; i<param.size();++i) {
@@ -290,7 +290,7 @@ BOOST_FIXTURE_TEST_CASE(test1, CSendItem)
 		//创建客户端1->客户端2的合约交易
 		CSendItem sendItem1 = CSendItem::GetRandomSendItem(1);
 
-		CreateContractTx(scriptid,sendItem1.GetAddress(),"01",0);  //创建合约交易
+		CallContractTx(scriptid,sendItem1.GetAddress(),"01",0);  //创建合约交易
 		MilliSleep(sleepTime);
 	}
 }
@@ -315,7 +315,7 @@ BOOST_AUTO_TEST_CASE(test2)
 
 		//创建客户端2->客户端3的合约交易
 		CSendItem sendItem1 = CSendItem::GetRandomSendItem(2);
-		CreateContractTx(scriptid,sendItem1.GetAddress(),"01",0); //创建合约交易
+		CallContractTx(scriptid,sendItem1.GetAddress(),"01",0); //创建合约交易
 		MilliSleep(sleepTime);
 	}
 }
@@ -341,7 +341,7 @@ BOOST_AUTO_TEST_CASE(test3)
 
 		//创建客户端3->客户端4的合约交易
 		CSendItem sendItem1 = CSendItem::GetRandomSendItem(3);
-		CreateContractTx(scriptid,sendItem1.GetAddress(),"01",0);
+		CallContractTx(scriptid,sendItem1.GetAddress(),"01",0);
 		MilliSleep(sleepTime);
 	}
 }
@@ -368,7 +368,7 @@ BOOST_AUTO_TEST_CASE(test4)
 
 		//创建客户端4->客户端5的合约交易
 		CSendItem sendItem1 = CSendItem::GetRandomSendItem(4);
-		CreateContractTx(scriptid,sendItem1.GetAddress(),"01",0);
+		CallContractTx(scriptid,sendItem1.GetAddress(),"01",0);
 		MilliSleep(sleepTime);
 	}
 }
@@ -394,7 +394,7 @@ BOOST_AUTO_TEST_CASE(test5)
 
 		//创建客户端5->客户端1的合约交易
 		CSendItem sendItem1 = CSendItem::GetRandomSendItem(5);
-		CreateContractTx(scriptid,sendItem1.GetAddress(),"01",0);
+		CallContractTx(scriptid,sendItem1.GetAddress(),"01",0);
 		MilliSleep(sleepTime);
 	}
 

@@ -98,7 +98,7 @@ bool CBlackHalo::SendBuyerPackage(){
 		string sendcontract = HexStr(scriptData);
 //		cout <<sendcontract<<endl;
 		sendmonye = GetPayMoney();
-		Value  buyerpack= basetest.CreateContractTx(scriptid,BUYER_A,sendcontract,0,0,sendmonye);
+		Value  buyerpack= basetest.CallContractTx(scriptid,BUYER_A,sendcontract,0,0,sendmonye);
 
 		if(basetest.GetHashFromCreatedTx(buyerpack, buyerhash)){
 			step++;
@@ -129,7 +129,7 @@ bool CBlackHalo::SendSellerPackage(){
 	string sendcontract = HexStr(scriptData);
 //	cout<<"size:"<<Size<<" " <<sendcontract<<endl;
 
-	Value  Sellerpack= basetest.CreateContractTx(scriptid,SELLER_B,sendcontract,0,0,sendmonye/2);
+	Value  Sellerpack= basetest.CallContractTx(scriptid,SELLER_B,sendcontract,0,0,sendmonye/2);
 
 	if(basetest.GetHashFromCreatedTx(Sellerpack, sellerhash)){
 		step++;
@@ -158,7 +158,7 @@ bool CBlackHalo::SendBuyerConfirmedPackage(){
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
 	scriptData << Seller;
 	string sendcontract = HexStr(scriptData);
-	Value  Sellerpack= basetest.CreateContractTx(scriptid,BUYER_A,sendcontract,0);
+	Value  Sellerpack= basetest.CallContractTx(scriptid,BUYER_A,sendcontract,0);
 
 	if(basetest.GetHashFromCreatedTx(Sellerpack, buyerconfiredhash)){
 		step++;
@@ -188,7 +188,7 @@ bool CBlackHalo::SendBuyerCancelPackage(){
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
 	scriptData << Seller;
 	string sendcontract = HexStr(scriptData);
-	Value  Sellerpack= basetest.CreateContractTx(scriptid,BUYER_A,sendcontract,0);
+	Value  Sellerpack= basetest.CallContractTx(scriptid,BUYER_A,sendcontract,0);
 
 	if(basetest.GetHashFromCreatedTx(Sellerpack, buyercancelhash)){
 		step++;

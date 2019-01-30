@@ -95,14 +95,14 @@ void settodb(int nType, vector<unsigned char> &vKey, vector<unsigned char> &vScr
 	CScriptDBOperLog operlog;
 	CRegID regScriptId(vScriptId);
 	if(0==nType) {
-		BOOST_CHECK(pscriptDBView->SetAppData(regScriptId, vKey, vScriptData, operlog));
+		BOOST_CHECK(pscriptDBView->SetContractData(regScriptId, vKey, vScriptData, operlog));
 		BOOST_CHECK(pscriptDBView->Flush());
 		BOOST_CHECK(pTestView->Flush());
 	}else if(1==nType) {
-		BOOST_CHECK(pscriptDBView->SetAppData(regScriptId, vKey, vScriptData, operlog));
+		BOOST_CHECK(pscriptDBView->SetContractData(regScriptId, vKey, vScriptData, operlog));
 		BOOST_CHECK(pscriptDBView->Flush());
 	}else {
-		BOOST_CHECK(pscriptDBView->SetAppData(regScriptId, vKey, vScriptData,  operlog));
+		BOOST_CHECK(pscriptDBView->SetContractData(regScriptId, vKey, vScriptData,  operlog));
 	}
 }
 
@@ -188,13 +188,13 @@ void testscriptdatadb() {
 	CRegID regScriptId(vScriptId);
 
 	//测试数据库中有vScriptKey1， vScriptKey3，在缓存中有vScriptKey， vScriptKey2，是否能正确遍历脚本数据库
-	BOOST_CHECK(pTestView->SetAppData(regScriptId, vScriptKey1, vScriptData,operlog));
-	BOOST_CHECK(pTestView->SetAppData(regScriptId, vScriptKey3, vScriptData, operlog));
-	BOOST_CHECK(pTestView->SetAppData(regScriptId, vScriptKey5, vScriptData,operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey1, vScriptData,operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey3, vScriptData, operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey5, vScriptData,operlog));
 	BOOST_CHECK(pTestView->Flush());
-	BOOST_CHECK(pTestView->SetAppData(regScriptId, vScriptKey, vScriptData,  operlog));
-	BOOST_CHECK(pTestView->SetAppData(regScriptId, vScriptKey2, vScriptData,  operlog));
-	BOOST_CHECK(pTestView->SetAppData(regScriptId, vScriptKey4, vScriptData,  operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey, vScriptData,  operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey2, vScriptData,  operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey4, vScriptData,  operlog));
 	BOOST_CHECK(pTestView->EraseAppData(regScriptId, vScriptKey3, operlog));
 	BOOST_CHECK(pTestView->EraseAppData(regScriptId, vScriptKey2, operlog));
 
@@ -273,7 +273,7 @@ void testscriptdatadb() {
 	set<CScriptDBOperLog> setOperLog;
 
 
-	BOOST_CHECK(pTestView->SetAppData(regScriptId, vScriptKey, vScriptData,  operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey, vScriptData,  operlog));
 //	int height = 0;
 //	int curheight = 0;
 	BOOST_CHECK(pTestView->GetContractData(curheight,regScriptId,vScriptKey,vScriptData));
@@ -283,10 +283,10 @@ void testscriptdatadb() {
 	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey, vScriptData, operlog));
 
 	//write script data to db
-	BOOST_CHECK(pTestView->SetAppData(regScriptId, vScriptKey, vScriptData,  operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey, vScriptData,  operlog));
 	//write all data in caches to db
 	BOOST_CHECK(pTestView->Flush());
-	BOOST_CHECK(pTestView->SetAppData(regScriptId, vScriptKey1, vScriptData1, operlog));
+	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey1, vScriptData1, operlog));
 	//test if the script id is exist in db
 	BOOST_CHECK(pTestView->HaveScriptData(regScriptId, vScriptKey));
 	vScript.clear();

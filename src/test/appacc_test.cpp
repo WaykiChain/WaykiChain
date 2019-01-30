@@ -1,7 +1,7 @@
 /*
  * appacc_test.cpp
  *
- *  Created on: 2015Äê3ÔÂ29ÈÕ
+ *  Created on: 2015å¹´3æœˆ29æ—¥
  *      Author: ranger.shi
  */
 
@@ -21,226 +21,226 @@
 using namespace std;
 
 int64_t opValue[8][8] = {
-						{100*COIN, 10*COIN, 10*COIN, 30*COIN, 40*COIN, 30*COIN ,30*COIN, 20*COIN},    //false
-						{1000*COIN, 200*COIN, 20*COIN, 30*COIN, 40*COIN, 20*COIN, 10*COIN, 20*COIN},  //false
-						{500*COIN, 200*COIN, 20*COIN, 100*COIN, 200*COIN, 100*COIN, 300*COIN, 100*COIN}, //false
-						{100*COIN, 10*COIN, 20*COIN, 50*COIN, 50*COIN, 10*COIN, 20*COIN, 30*COIN}, //false
-						{200*COIN, 20*COIN, 30*COIN, 40*COIN, 30*COIN, 30*COIN, 40*COIN, 40*COIN},  //false
-						{1000*COIN, 200*COIN, 20*COIN, 500*COIN, 800*COIN, 400*COIN, 200*COIN, 100*COIN}, //true
-						{500*COIN, 200*COIN, 200*COIN, 300*COIN, 200*COIN, 50*COIN, 100*COIN, 50*COIN}, //true
-						{600*COIN, 200*COIN, 20*COIN, 30*COIN, 50*COIN, 60*COIN, 70*COIN, 20*COIN}  //false
-						};
+    {100 * COIN, 10 * COIN, 10 * COIN, 30 * COIN, 40 * COIN, 30 * COIN, 30 * COIN, 20 * COIN},        //false
+    {1000 * COIN, 200 * COIN, 20 * COIN, 30 * COIN, 40 * COIN, 20 * COIN, 10 * COIN, 20 * COIN},      //false
+    {500 * COIN, 200 * COIN, 20 * COIN, 100 * COIN, 200 * COIN, 100 * COIN, 300 * COIN, 100 * COIN},  //false
+    {100 * COIN, 10 * COIN, 20 * COIN, 50 * COIN, 50 * COIN, 10 * COIN, 20 * COIN, 30 * COIN},        //false
+    {200 * COIN, 20 * COIN, 30 * COIN, 40 * COIN, 30 * COIN, 30 * COIN, 40 * COIN, 40 * COIN},        //false
+    {1000 * COIN, 200 * COIN, 20 * COIN, 500 * COIN, 800 * COIN, 400 * COIN, 200 * COIN, 100 * COIN}, //true
+    {500 * COIN, 200 * COIN, 200 * COIN, 300 * COIN, 200 * COIN, 50 * COIN, 100 * COIN, 50 * COIN},   //true
+    {600 * COIN, 200 * COIN, 20 * COIN, 30 * COIN, 50 * COIN, 60 * COIN, 70 * COIN, 20 * COIN}        //false
+};
 
 // appacc_tests/key_test1
 
 
 bool CheckAppAcct(int64_t opValue[]) {
-	CRegID srcRegId(100,1);
-	CRegID desRegId(100,2);
-	CRegID desUser1RegId(100,3);
-	CRegID desUser2RegId(100,4);
-	CAccount contractAcct;
-	contractAcct.llValues = 100 * COIN;  //ÕâÀï½«TXÖĞ100 COINÏÈ³äÖµµ½ºÏÔ¼ÕË»§ÖĞ£¬°çÑİÏµÍ³²Ù×÷ÕË»§½ÇÉ«
-	contractAcct.regID = desRegId;
+    CRegID srcRegId(100,1);
+    CRegID desRegId(100,2);
+    CRegID desUser1RegId(100,3);
+    CRegID desUser2RegId(100,4);
+    CAccount contractAcct;
+    contractAcct.llValues = 100 * COIN;  //è¿™é‡Œå°†TXä¸­100 COINå…ˆå……å€¼åˆ°åˆçº¦è´¦æˆ·ä¸­ï¼Œæ‰®æ¼”ç³»ç»Ÿæ“ä½œè´¦æˆ·è§’è‰²
+    contractAcct.regID = desRegId;
 
-	CUserID srcUserId= srcRegId;
-	CUserID desUserId = desRegId;
-	vector_unsigned_char pContract;
-	CTransaction tx(srcUserId, desRegId, 10000, opValue[0], 1, pContract); //100 * COIN
+    CUserID srcUserId= srcRegId;
+    CUserID desUserId = desRegId;
+    vector_unsigned_char pContract;
+    CTransaction tx(srcUserId, desRegId, 10000, opValue[0], 1, pContract); //100 * COIN
 
-	CVmRunEvn vmRunEvn;
-	vector<CVmOperate> vAcctOper;
+    CVmRunEvn vmRunEvn;
+    vector<CVmOperate> vAcctOper;
 
-	vector_unsigned_char vDesUser1RegId = desUser1RegId.GetVec6();
-	int64_t temp = opValue[1];  //10 * COIN
-	CVmOperate acctAddOper;
-	acctAddOper.nacctype = regid;
-	acctAddOper.opeatortype = ADD_FREE;
-	memcpy(acctAddOper.accountid, &vDesUser1RegId[0], 6);
-	memcpy(acctAddOper.money, &temp, sizeof(temp));
-	vAcctOper.push_back(acctAddOper);
+    vector_unsigned_char vDesUser1RegId = desUser1RegId.GetVec6();
+    int64_t temp = opValue[1];  //10 * COIN
+    CVmOperate acctAddOper;
+    acctAddOper.nacctype = regid;
+    acctAddOper.opeatortype = ADD_FREE;
+    memcpy(acctAddOper.accountid, &vDesUser1RegId[0], 6);
+    memcpy(acctAddOper.money, &temp, sizeof(temp));
+    vAcctOper.push_back(acctAddOper);
 
-	vector_unsigned_char vDesUser2RegId = desUser2RegId.GetVec6();
-	temp = opValue[2];   //20 * COIN
-	acctAddOper.nacctype = regid;
-	acctAddOper.opeatortype = ADD_FREE;
-	memcpy(acctAddOper.accountid, &vDesUser2RegId[0], 6);
-	memcpy(acctAddOper.money, &temp, sizeof(temp));
-	vAcctOper.push_back(acctAddOper);
+    vector_unsigned_char vDesUser2RegId = desUser2RegId.GetVec6();
+    temp = opValue[2];   //20 * COIN
+    acctAddOper.nacctype = regid;
+    acctAddOper.opeatortype = ADD_FREE;
+    memcpy(acctAddOper.accountid, &vDesUser2RegId[0], 6);
+    memcpy(acctAddOper.money, &temp, sizeof(temp));
+    vAcctOper.push_back(acctAddOper);
 
-	vector_unsigned_char vDesRegId = desRegId.GetVec6();
-	temp = opValue[3];  //30 * COIN
-	acctAddOper.nacctype = regid;
-	acctAddOper.opeatortype = MINUS_FREE;
-	memcpy(acctAddOper.accountid, &vDesRegId[0], 6);
-	memcpy(acctAddOper.money, &temp, sizeof(temp));
-	vAcctOper.push_back(acctAddOper);
-	vmRunEvn.InsertOutputData(vAcctOper);
+    vector_unsigned_char vDesRegId = desRegId.GetVec6();
+    temp = opValue[3];  //30 * COIN
+    acctAddOper.nacctype = regid;
+    acctAddOper.opeatortype = MINUS_FREE;
+    memcpy(acctAddOper.accountid, &vDesRegId[0], 6);
+    memcpy(acctAddOper.money, &temp, sizeof(temp));
+    vAcctOper.push_back(acctAddOper);
+    vmRunEvn.InsertOutputData(vAcctOper);
 
-	CAppFundOperate appFundOper;
-	appFundOper.opeatortype = ADD_FREE_OP;
-	appFundOper.mMoney = opValue[4];       //20 * COIN
-	appFundOper.appuserIDlen = 6;
-	memcpy(appFundOper.vAppuser,  &vDesUser1RegId[0], 6);
-	appFundOper.FundTaglen = 6;
-	memcpy(appFundOper.vFundTag, &vDesUser1RegId[0], 6);
-	vmRunEvn.InsertOutAPPOperte(vDesUser1RegId, appFundOper);
+    CAppFundOperate appFundOper;
+    appFundOper.opeatortype = ADD_FREE_OP;
+    appFundOper.mMoney = opValue[4];       //20 * COIN
+    appFundOper.appuserIDlen = 6;
+    memcpy(appFundOper.vAppuser,  &vDesUser1RegId[0], 6);
+    appFundOper.FundTaglen = 6;
+    memcpy(appFundOper.vFundTag, &vDesUser1RegId[0], 6);
+    vmRunEvn.InsertOutAPPOperte(vDesUser1RegId, appFundOper);
 
-	appFundOper.opeatortype = SUB_FREE_OP;
-	appFundOper.mMoney = opValue[5];      //90 * COIN
-	appFundOper.appuserIDlen = 6;
-	memcpy(appFundOper.vAppuser,  &vDesUser2RegId[0], 6);
-	appFundOper.FundTaglen = 6;
-	memcpy(appFundOper.vFundTag, &vDesUser2RegId[0], 6);
-	vmRunEvn.InsertOutAPPOperte(vDesUser2RegId, appFundOper);
+    appFundOper.opeatortype = SUB_FREE_OP;
+    appFundOper.mMoney = opValue[5];      //90 * COIN
+    appFundOper.appuserIDlen = 6;
+    memcpy(appFundOper.vAppuser,  &vDesUser2RegId[0], 6);
+    appFundOper.FundTaglen = 6;
+    memcpy(appFundOper.vFundTag, &vDesUser2RegId[0], 6);
+    vmRunEvn.InsertOutAPPOperte(vDesUser2RegId, appFundOper);
 
-	appFundOper.opeatortype = ADD_TAG_OP;
-	appFundOper.mMoney = opValue[6];     // 90 * COIN
-	appFundOper.appuserIDlen = 6;
-	memcpy(appFundOper.vAppuser,  &vDesUser2RegId[0], 6);
-	appFundOper.FundTaglen = 6;
-	memcpy(appFundOper.vFundTag, &vDesUser2RegId[0], 6);
-	vmRunEvn.InsertOutAPPOperte(vDesUser2RegId, appFundOper);
+    appFundOper.opeatortype = ADD_TAG_OP;
+    appFundOper.mMoney = opValue[6];     // 90 * COIN
+    appFundOper.appuserIDlen = 6;
+    memcpy(appFundOper.vAppuser,  &vDesUser2RegId[0], 6);
+    appFundOper.FundTaglen = 6;
+    memcpy(appFundOper.vFundTag, &vDesUser2RegId[0], 6);
+    vmRunEvn.InsertOutAPPOperte(vDesUser2RegId, appFundOper);
 
-	appFundOper.opeatortype = SUB_TAG_OP;
-	appFundOper.mMoney = opValue[7];  // 80 * COIN
-	appFundOper.appuserIDlen = 6;
-	memcpy(appFundOper.vAppuser,  &vDesUser1RegId[0], 6);
-	appFundOper.FundTaglen = 6;
-	memcpy(appFundOper.vFundTag, &vDesUser1RegId[0], 6);
-	vmRunEvn.InsertOutAPPOperte(vDesUser1RegId, appFundOper);
+    appFundOper.opeatortype = SUB_TAG_OP;
+    appFundOper.mMoney = opValue[7];  // 80 * COIN
+    appFundOper.appuserIDlen = 6;
+    memcpy(appFundOper.vAppuser,  &vDesUser1RegId[0], 6);
+    appFundOper.FundTaglen = 6;
+    memcpy(appFundOper.vFundTag, &vDesUser1RegId[0], 6);
+    vmRunEvn.InsertOutAPPOperte(vDesUser1RegId, appFundOper);
 
-	return vmRunEvn.CheckAppAcctOperate(&tx);
+    return vmRunEvn.CheckAppAcctOperate(&tx);
 }
 
 BOOST_AUTO_TEST_SUITE(appacc_tests)
 
 BOOST_AUTO_TEST_CASE(key_test1)
  {
-	auto StrTVector = [&](string tag)
-	{
-		return vector<unsigned char>(tag.begin(),tag.end());
-	};
+    auto StrTVector = [&](string tag)
+    {
+        return vector<unsigned char>(tag.begin(),tag.end());
+    };
 
-	srand((int) time(NULL));
+    srand((int) time(NULL));
 
-	vector<unsigned char> AppuserId = StrTVector("test1");
-	vector<unsigned char> fundtag = StrTVector("foundtag");
-	vector<unsigned char> fundtag2 = StrTVector("foundtag2");
+    vector<unsigned char> AppuserId = StrTVector("test1");
+    vector<unsigned char> fundtag = StrTVector("foundtag");
+    vector<unsigned char> fundtag2 = StrTVector("foundtag2");
 
-	CAppFundOperate opTe(AppuserId,fundtag, ADD_TAG_OP, 500, 800000);
-	BOOST_CHECK(opTe.GetFundTagV() == fundtag);
-	BOOST_CHECK(opTe.GetUint64Value()== 800000);
-	BOOST_CHECK(opTe.getopeatortype()== ADD_TAG_OP);
+    CAppFundOperate opTe(AppuserId,fundtag, ADD_TAG_OP, 500, 800000);
+    BOOST_CHECK(opTe.GetFundTagV() == fundtag);
+    BOOST_CHECK(opTe.GetUint64Value()== 800000);
+    BOOST_CHECK(opTe.getopeatortype()== ADD_TAG_OP);
 
 
-	vector<CAppFundOperate> OpArry;
-	uint64_t allmony = 0;
+    vector<CAppFundOperate> OpArry;
+    uint64_t allmony = 0;
 
-	int timeout = (rand() % 15000) + 51;
-	int loop = 500;
+    int timeout = (rand() % 15000) + 51;
+    int loop = 500;
 
-	int maxtimeout = timeout + loop+1;
-	for (int i = 0; i < loop; i++) {
-		int64_t temp = ((rand() * rand()) % 15000000) + 20;
-		if(temp < 0)
-		{
-			temp = 20;
-			continue;
-		}
-		allmony += temp;
-		CAppFundOperate op(AppuserId,fundtag, ADD_TAG_OP, timeout + i, temp);
-		OpArry.insert(OpArry.end(), op);
-	}
+    int maxtimeout = timeout + loop+1;
+    for (int i = 0; i < loop; i++) {
+        int64_t temp = ((rand() * rand()) % 15000000) + 20;
+        if(temp < 0)
+        {
+            temp = 20;
+            continue;
+        }
+        allmony += temp;
+        CAppFundOperate op(AppuserId,fundtag, ADD_TAG_OP, timeout + i, temp);
+        OpArry.insert(OpArry.end(), op);
+    }
 
-	CAppUserAccout AccCount(AppuserId);
-	BOOST_CHECK(AccCount.getaccUserId() == AppuserId);      //³õÊ¼»¯µÄID ±ØĞëÊÇ
-	BOOST_CHECK(AccCount.Operate(OpArry));               //Ö´ĞĞËùÓĞµÄ²Ù×÷·ûºÏ
-	BOOST_CHECK(AccCount.getllValues() == 0);            //ÒòÎª²Ù×÷·ûÈ«ÊÇ¼Ó¶³½áµÄÇ®ËùÒÔ×ÔÓÉ½ğ¶î±ØĞëÊÇ0
+    CAppUserAccout AccCount(AppuserId);
+    BOOST_CHECK(AccCount.getaccUserId() == AppuserId);      //åˆå§‹åŒ–çš„ID å¿…é¡»æ˜¯
+    BOOST_CHECK(AccCount.Operate(OpArry));               //æ‰§è¡Œæ‰€æœ‰çš„æ“ä½œç¬¦åˆ
+    BOOST_CHECK(AccCount.getllValues() == 0);            //å› ä¸ºæ“ä½œç¬¦å…¨æ˜¯åŠ å†»ç»“çš„é’±æ‰€ä»¥è‡ªç”±é‡‘é¢å¿…é¡»æ˜¯0
 
-	{
-		CAppCFund tep;
-		BOOST_CHECK(AccCount.GetAppCFund(tep, fundtag, timeout)); //»ñÈ¡ÏàÓ¦µÄ¶³½áÏî
-		BOOST_CHECK(tep.getvalue() == OpArry[0].GetUint64Value());                    //¶³½áµÄ½ğ¶îĞèÒªÃ»ÓĞÎÊÌâ
-		CAppCFund tep2;
-		BOOST_CHECK(AccCount.GetAppCFund(tep2, fundtag, maxtimeout + 5) == false); //»ñÈ¡ÏàÓ¦µÄ¶³½áÏî ³¬Ê±Ê±¼ä²»Í¬ ±ØĞë»ñÈ¡²»µ½
+    {
+        CAppCFund tep;
+        BOOST_CHECK(AccCount.GetAppCFund(tep, fundtag, timeout)); //è·å–ç›¸åº”çš„å†»ç»“é¡¹
+        BOOST_CHECK(tep.getvalue() == OpArry[0].GetUint64Value());                    //å†»ç»“çš„é‡‘é¢éœ€è¦æ²¡æœ‰é—®é¢˜
+        CAppCFund tep2;
+        BOOST_CHECK(AccCount.GetAppCFund(tep2, fundtag, maxtimeout + 5) == false); //è·å–ç›¸åº”çš„å†»ç»“é¡¹ è¶…æ—¶æ—¶é—´ä¸åŒ å¿…é¡»è·å–ä¸åˆ°
 
-		AccCount.AutoMergeFreezeToFree(timeout - 1);               	   //×Ô¶¯ºÏ²¢ ³¬Ê±¸ß¶ÈÃ»ÓĞµ½  ÕâÀïµÄ 50 ÊÇÎªÁËÅäºÏÇ©Ãû time out de 51
-		BOOST_CHECK(AccCount.GetAppCFund(tep, fundtag, timeout));			 //Ã»ÓĞºÏ²¢±ØĞë½ğ¶î»¹ÊÇÃ»ÓĞ±ä¶¯
-		BOOST_CHECK(tep.getvalue() == OpArry[0].GetUint64Value());         	//Ã»ÓĞºÏ²¢±ØĞë½ğ¶î»¹ÊÇÃ»ÓĞ±ä¶¯
-	}
+        AccCount.AutoMergeFreezeToFree(timeout - 1);                   //è‡ªåŠ¨åˆå¹¶ è¶…æ—¶é«˜åº¦æ²¡æœ‰åˆ°  è¿™é‡Œçš„ 50 æ˜¯ä¸ºäº†é…åˆç­¾å time out de 51
+        BOOST_CHECK(AccCount.GetAppCFund(tep, fundtag, timeout));            //æ²¡æœ‰åˆå¹¶å¿…é¡»é‡‘é¢è¿˜æ˜¯æ²¡æœ‰å˜åŠ¨
+        BOOST_CHECK(tep.getvalue() == OpArry[0].GetUint64Value());          //æ²¡æœ‰åˆå¹¶å¿…é¡»é‡‘é¢è¿˜æ˜¯æ²¡æœ‰å˜åŠ¨
+    }
 
-	{
-		vector<CAppFundOperate> OpArry2;
-		CAppFundOperate subfreexeop(AppuserId,fundtag, SUB_TAG_OP, timeout, 8);
-		OpArry2.insert(OpArry2.end(), subfreexeop);
-		BOOST_CHECK(AccCount.Operate(OpArry2));               //Ö´ĞĞËùÓĞµÄ²Ù×÷·ûºÏ
-	}
+    {
+        vector<CAppFundOperate> OpArry2;
+        CAppFundOperate subfreexeop(AppuserId,fundtag, SUB_TAG_OP, timeout, 8);
+        OpArry2.insert(OpArry2.end(), subfreexeop);
+        BOOST_CHECK(AccCount.Operate(OpArry2));               //æ‰§è¡Œæ‰€æœ‰çš„æ“ä½œç¬¦åˆ
+    }
 
-	{
-		CAppCFund subtemptep;
-		BOOST_CHECK(AccCount.GetAppCFund(subtemptep, fundtag, timeout));        //»ñÈ¡ÏàÓ¦µÄ¶³½áÏî
-		BOOST_CHECK(subtemptep.getvalue() == (OpArry[0].GetUint64Value() - 8));    //ÉÏÃæ¼õÈ¥ÁË8  ¼ì²éÊÇ·ñ¶Ô
-	}
+    {
+        CAppCFund subtemptep;
+        BOOST_CHECK(AccCount.GetAppCFund(subtemptep, fundtag, timeout));        //è·å–ç›¸åº”çš„å†»ç»“é¡¹
+        BOOST_CHECK(subtemptep.getvalue() == (OpArry[0].GetUint64Value() - 8));    //ä¸Šé¢å‡å»äº†8  æ£€æŸ¥æ˜¯å¦å¯¹
+    }
 
-	{
-		vector<CAppFundOperate> OpArry2;
-		CAppFundOperate revertfreexeop(AppuserId,fundtag, ADD_TAG_OP, timeout, 8);
-		OpArry2.clear();
-		OpArry2.insert(OpArry2.end(), revertfreexeop);
-		BOOST_CHECK(AccCount.Operate(OpArry2));               //Ö´ĞĞËùÓĞµÄ²Ù×÷·ûºÏ
-	}
+    {
+        vector<CAppFundOperate> OpArry2;
+        CAppFundOperate revertfreexeop(AppuserId,fundtag, ADD_TAG_OP, timeout, 8);
+        OpArry2.clear();
+        OpArry2.insert(OpArry2.end(), revertfreexeop);
+        BOOST_CHECK(AccCount.Operate(OpArry2));               //æ‰§è¡Œæ‰€æœ‰çš„æ“ä½œç¬¦åˆ
+    }
 
-	{
-		CAppCFund reverttemptep;
-		BOOST_CHECK(AccCount.GetAppCFund(reverttemptep, fundtag, timeout));			 //Ã»ÓĞºÏ²¢±ØĞë½ğ¶î»¹ÊÇÃ»ÓĞ±ä¶¯
-		BOOST_CHECK(reverttemptep.getvalue() == OpArry[0].GetUint64Value());         	//Ã»ÓĞºÏ²¢±ØĞë½ğ¶î»¹ÊÇÃ»ÓĞ±ä¶¯
-	}
+    {
+        CAppCFund reverttemptep;
+        BOOST_CHECK(AccCount.GetAppCFund(reverttemptep, fundtag, timeout));          //æ²¡æœ‰åˆå¹¶å¿…é¡»é‡‘é¢è¿˜æ˜¯æ²¡æœ‰å˜åŠ¨
+        BOOST_CHECK(reverttemptep.getvalue() == OpArry[0].GetUint64Value());            //æ²¡æœ‰åˆå¹¶å¿…é¡»é‡‘é¢è¿˜æ˜¯æ²¡æœ‰å˜åŠ¨
+    }
 
-	{         	//ºÏ²¢µÚÒ»¸ö
-		CAppCFund tep;
-		AccCount.AutoMergeFreezeToFree(timeout);                  				//×Ô¶¯ºÏ²¢ µÚ0¸ö
-		BOOST_CHECK(AccCount.GetAppCFund(tep, fundtag, timeout) == false); 		//±ØĞëÕÒ²»µ½Êı¾İ
-		BOOST_CHECK(AccCount.getllValues() == OpArry[0].GetUint64Value());;          				//ºÏ²¢ºó×ÔÓÉ½ğ¶î±ØĞëÃ»ÓĞÎÊÌâ
-	}
+    {           //åˆå¹¶ç¬¬ä¸€ä¸ª
+        CAppCFund tep;
+        AccCount.AutoMergeFreezeToFree(timeout);                                //è‡ªåŠ¨åˆå¹¶ ç¬¬0ä¸ª
+        BOOST_CHECK(AccCount.GetAppCFund(tep, fundtag, timeout) == false);      //å¿…é¡»æ‰¾ä¸åˆ°æ•°æ®
+        BOOST_CHECK(AccCount.getllValues() == OpArry[0].GetUint64Value());;                         //åˆå¹¶åè‡ªç”±é‡‘é¢å¿…é¡»æ²¡æœ‰é—®é¢˜
+    }
 
-	{          				//¼õÈ¥È«²¿
-		CAppFundOperate subfreeop(AppuserId,fundtag, SUB_FREE_OP, timeout, OpArry[0].GetUint64Value());
-		vector<CAppFundOperate> OpArry2;
-		OpArry2.insert(OpArry2.end(), subfreeop);
-		BOOST_CHECK(AccCount.Operate(OpArry2));               				//Ö´ĞĞËùÓĞµÄ²Ù×÷·ûºÏ
-		BOOST_CHECK(AccCount.getllValues() == 0);;                           //Ç®±ØĞë¿ÉÒÔºË¶Ô
-	}
+    {                       //å‡å»å…¨éƒ¨
+        CAppFundOperate subfreeop(AppuserId,fundtag, SUB_FREE_OP, timeout, OpArry[0].GetUint64Value());
+        vector<CAppFundOperate> OpArry2;
+        OpArry2.insert(OpArry2.end(), subfreeop);
+        BOOST_CHECK(AccCount.Operate(OpArry2));                             //æ‰§è¡Œæ‰€æœ‰çš„æ“ä½œç¬¦åˆ
+        BOOST_CHECK(AccCount.getllValues() == 0);;                           //é’±å¿…é¡»å¯ä»¥æ ¸å¯¹
+    }
 
-	{
-		vector<CAppFundOperate> OpArry2;
-		CAppFundOperate addfreeop(AppuserId,fundtag, ADD_FREE_OP, timeout, OpArry[0].GetUint64Value());    //ÔÙ´Î°ÑÊı¾İ¼Ó½øÈ¥
-		OpArry2.clear();
-		OpArry2.insert(OpArry2.end(), addfreeop);
-		BOOST_CHECK(AccCount.Operate(OpArry2));               				//Ö´ĞĞËùÓĞµÄ²Ù×÷·ûºÏ
-		BOOST_CHECK(AccCount.getllValues() == OpArry[0].GetUint64Value());                //¼ÓÉÏºó ¾Í»ØÀ´ÁË
-	}
+    {
+        vector<CAppFundOperate> OpArry2;
+        CAppFundOperate addfreeop(AppuserId,fundtag, ADD_FREE_OP, timeout, OpArry[0].GetUint64Value());    //å†æ¬¡æŠŠæ•°æ®åŠ è¿›å»
+        OpArry2.clear();
+        OpArry2.insert(OpArry2.end(), addfreeop);
+        BOOST_CHECK(AccCount.Operate(OpArry2));                             //æ‰§è¡Œæ‰€æœ‰çš„æ“ä½œç¬¦åˆ
+        BOOST_CHECK(AccCount.getllValues() == OpArry[0].GetUint64Value());                //åŠ ä¸Šå å°±å›æ¥äº†
+    }
 
-	AccCount.AutoMergeFreezeToFree(maxtimeout);     				//È«²¿ºÏ²¢
-	printf("%llu,%llu\n", AccCount.getllValues(), allmony);
-	BOOST_CHECK(AccCount.getllValues() == allmony);                //Óà¶îÆ½ÕË
+    AccCount.AutoMergeFreezeToFree(maxtimeout);                     //å…¨éƒ¨åˆå¹¶
+    printf("%lu, %lu\n", AccCount.getllValues(), allmony);
+    BOOST_CHECK(AccCount.getllValues() == allmony);                //ä½™é¢å¹³è´¦
 
 }
 
 BOOST_AUTO_TEST_CASE(checkappacct_test) {
-	for(int j=0; j <8; ++j) {
-		for(int i=0; i<8; ++i) {
-			cout << opValue[j][i] <<" ";
-		}
-		cout << endl;
-		int64_t txValue = opValue[j][0];
-		int64_t acctMinusValue = opValue[j][3];
-		int64_t acctSum = txValue - acctMinusValue;
-		int64_t appAcctSum = opValue[j][4] - opValue[j][5] + opValue[j][6] - opValue[j][7];
-		bool isCheck = (acctSum == appAcctSum);
-		cout << "ischeck:" << isCheck << endl;
-		BOOST_CHECK(CheckAppAcct(opValue[j]) == isCheck);
-	}
+    for(int j=0; j <8; ++j) {
+        for(int i=0; i<8; ++i) {
+            cout << opValue[j][i] <<" ";
+        }
+        cout << endl;
+        int64_t txValue = opValue[j][0];
+        int64_t acctMinusValue = opValue[j][3];
+        int64_t acctSum = txValue - acctMinusValue;
+        int64_t appAcctSum = opValue[j][4] - opValue[j][5] + opValue[j][6] - opValue[j][7];
+        bool isCheck = (acctSum == appAcctSum);
+        cout << "ischeck:" << isCheck << endl;
+        BOOST_CHECK(CheckAppAcct(opValue[j]) == isCheck);
+    }
 
 }
 BOOST_AUTO_TEST_SUITE_END()

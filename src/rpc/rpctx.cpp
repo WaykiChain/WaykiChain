@@ -384,7 +384,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         if (fee < nDefaultFee) {
             char errorMsg[100] = {'\0'};
             sprintf(errorMsg, "input fee smaller than mintxfee: %ld sawi", nDefaultFee);
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);  
+            throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);
         }
     }
 
@@ -2257,7 +2257,7 @@ Value getregisteraccounttxraw(const Array& params, bool fHelp) {
     if (fee < nDefaultFee) {
         char errorMsg[100] = {'\0'};
         sprintf(errorMsg, "input fee smaller than mintxfee: %ld sawi", nDefaultFee);
-        throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);  
+        throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);
     }
 
     int hight = params[1].get_int();
@@ -2373,8 +2373,7 @@ Value getcallcontracttxraw(const Array& params, bool fHelp) {
     if (!view.GetKeyId(userid, keyid)) {
         CID id(userid);
         LogPrint("INFO", "vaccountid:%s have no key id\r\n", HexStr(id.GetID()).c_str());
-//      assert(0);
-        throw runtime_error(tinyformat::format("createcontracttx :vaccountid:%s have no key id\r\n", HexStr(id.GetID()).c_str()));
+        throw runtime_error(tinyformat::format("getcallcontracttxraw :vaccountid:%s have no key id\r\n", HexStr(id.GetID()).c_str()));
     }
 
     int height = chainActive.Tip()->nHeight;
