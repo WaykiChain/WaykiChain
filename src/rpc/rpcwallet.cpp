@@ -37,7 +37,8 @@ string HelpRequiringPassphrase()
 void EnsureWalletIsUnlocked()
 {
     if (pwalletMain->IsLocked())
-        throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Please enter the wallet passphrase with walletpassphrase first.");
+        throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, 
+            "Error: Please enter the wallet passphrase with walletpassphrase first.");
 }
 
 Value islocked(const Array& params,  bool fHelp)
