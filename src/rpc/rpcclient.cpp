@@ -137,12 +137,12 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "notionalpoolingbalance" && n > 1) ConvertTo<double>(params[1]);
     // if (strMethod == "dispersebalance"        && n > 1) ConvertTo<double>(params[1]);
     if (strMethod == "settxfee"               && n > 0) ConvertTo<double>(params[0]);
-    if (strMethod == "getreceivedbyaddress"   && n > 1) ConvertTo<int64_t>(params[1]);
-    if (strMethod == "getreceivedbyaccount"   && n > 1) ConvertTo<int64_t>(params[1]);
+    // if (strMethod == "getreceivedbyaddress"   && n > 1) ConvertTo<int64_t>(params[1]);
+    // if (strMethod == "getreceivedbyaccount"   && n > 1) ConvertTo<int64_t>(params[1]);
     // if (strMethod == "listreceivedbyaddress"  && n > 0) ConvertTo<int64_t>(params[0]);
     // if (strMethod == "listreceivedbyaddress"  && n > 1) ConvertTo<bool>(params[1]);
-    if (strMethod == "listreceivedbyaccount"  && n > 0) ConvertTo<int64_t>(params[0]);
-    if (strMethod == "listreceivedbyaccount"  && n > 1) ConvertTo<bool>(params[1]);
+    // if (strMethod == "listreceivedbyaccount"  && n > 0) ConvertTo<int64_t>(params[0]);
+    // if (strMethod == "listreceivedbyaccount"  && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "getbalance"             && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getblockhash"           && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "move"                   && n > 2) ConvertTo<double>(params[2]);
@@ -174,12 +174,12 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     // if (strMethod == "sendrawtransaction"     && n > 1) ConvertTo<bool>(params[1], true);
     if (strMethod == "gettxout"               && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "gettxout"               && n > 2) ConvertTo<bool>(params[2]);
-    if (strMethod == "lockunspent"            && n > 0) ConvertTo<bool>(params[0]);
-    if (strMethod == "lockunspent"            && n > 1) ConvertTo<Array>(params[1]);
+    // if (strMethod == "lockunspent"            && n > 0) ConvertTo<bool>(params[0]);
+    // if (strMethod == "lockunspent"            && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "importprivkey"          && n > 2) ConvertTo<bool>(params[2]);
     if (strMethod == "verifychain"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "verifychain"            && n > 1) ConvertTo<int64_t>(params[1]);
-    if (strMethod == "keypoolrefill"          && n > 0) ConvertTo<int64_t>(params[0]);
+    // if (strMethod == "keypoolrefill"          && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "getrawmempool"          && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getalltxinfo"           && n > 0) ConvertTo<int>(params[0]);
     if (strMethod == "getnewaddress"          && n > 0) ConvertTo<bool>(params[0]);
@@ -187,9 +187,9 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "registaccounttx"        && n > 1) ConvertTo<int64_t>(params[1]); //for backward compatibility
     if (strMethod == "registeraccounttx"      && n > 1) ConvertTo<int64_t>(params[1]);
 
-    if(strMethod == "createdelegatetx"        && n > 1) ConvertTo<Array>(params[1]);
-    if(strMethod == "createdelegatetx"        && n > 2) ConvertTo<int64_t>(params[2]);
-    if(strMethod == "createdelegatetx"        && n > 3) ConvertTo<int>(params[3]);
+    if(strMethod == "votedelegatetx"          && n > 1) ConvertTo<Array>(params[1]);
+    if(strMethod == "votedelegatetx"          && n > 2) ConvertTo<int64_t>(params[2]);
+    if(strMethod == "votedelegatetx"          && n > 3) ConvertTo<int>(params[3]);
 
     if (strMethod == "registercontracttx"     && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "registercontracttx"     && n > 3) ConvertTo<int>(params[3]);
@@ -206,9 +206,9 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     // if (strMethod == "testminer"              && n > 0) ConvertTo<int>(params[0]);
     if (strMethod == "disconnectblock"        && n > 0) ConvertTo<int>(params[0]);
 
-    if (strMethod == "getoneaddr"             && n > 0) ConvertTo<int64_t>(params[0]);
-    if (strMethod == "getoneaddr"             && n > 1) ConvertTo<bool>(params[1]);
-    if (strMethod == "getoneaddr"             && n > 1) ConvertTo<bool>(params[1]);
+    // if (strMethod == "getoneaddr"             && n > 0) ConvertTo<int64_t>(params[0]);
+    // if (strMethod == "getoneaddr"             && n > 1) ConvertTo<bool>(params[1]);
+    // if (strMethod == "getoneaddr"             && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "getcontractdata"        && n == 3) ConvertTo<int>(params[1]);
     if (strMethod == "getcontractdata"        && n == 3) ConvertTo<int>(params[2]);
     if (strMethod == "getcontractdataraw"     && n == 3) ConvertTo<int>(params[1]);

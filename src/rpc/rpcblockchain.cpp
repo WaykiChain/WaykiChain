@@ -302,13 +302,13 @@ Value verifychain(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 2)
         throw runtime_error(
-            "verifychain ( checklevel numblocks )\n"
+            "verifychain ( checklevel numofblocks )\n"
             "\nVerifies blockchain database.\n"
             "\nArguments:\n"
             "1. checklevel   (numeric, optional, 0-4, default=3) How thorough the block verification is.\n"
-            "2. numblocks    (numeric, optional, default=288, 0=all) The number of blocks to check.\n"
+            "2. numofblocks    (numeric, optional, default=288, 0=all) The number of blocks to check.\n"
             "\nResult:\n"
-            "true|false       (boolean) Verified or not\n"
+            "true|false       (boolean) Verified Okay or not\n"
             "\nExamples:\n"
             + HelpExampleCli("verifychain", "( checklevel numblocks )")
             + HelpExampleRpc("verifychain", "( checklevel numblocks )")
