@@ -168,12 +168,12 @@ public:
     }
     virtual bool AddCryptedKey(const CPubKey &vchPubKey, const vector<unsigned char> &vchCryptedSecret);
     bool AddKeyCombi(const CKeyID & keyId, const CKeyCombi &keyCombi);
-    bool HaveKey(const CKeyID &address) const
+    bool HasKey(const CKeyID &address) const
     {
         {
             LOCK(cs_KeyStore);
             if (!IsEncrypted())
-                return CBasicKeyStore::HaveKey(address);
+                return CBasicKeyStore::HasKey(address);
             return mapCryptedKeys.count(address) > 0;
         }
         return false;

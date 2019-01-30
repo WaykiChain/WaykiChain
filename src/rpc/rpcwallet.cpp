@@ -513,7 +513,7 @@ Value notionalpoolingasset(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to address Invalid  ");
     }
 
-    if(!pwalletMain->HaveKey(recvKeyId)) {
+    if(!pwalletMain->HasKey(recvKeyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "to address Invalid  ");
     }
 
@@ -684,7 +684,7 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "recvaddress invalid!");
     }
 
-    if(!pwalletMain->HaveKey(recvKeyId)) {
+    if(!pwalletMain->HasKey(recvKeyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "recvaddress invalid!");
     }
 /*
@@ -777,7 +777,7 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
 //     if (!GetKeyId(params[0].get_str(), sendKeyId)) {
 //         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "send address Invalid  ");
 //     }
-//     if(!pwalletMain->HaveKey(sendKeyId)) {
+//     if(!pwalletMain->HasKey(sendKeyId)) {
 //         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "send address Invalid  ");
 //     }
 

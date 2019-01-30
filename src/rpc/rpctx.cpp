@@ -662,7 +662,7 @@ Value registercontracttx(const Array& params, bool fHelp) {
         if (!account.IsRegistered()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in registercontracttx Error: Account is not registered.");
         }
-        if (!pwalletMain->HaveKey(keyid)) {
+        if (!pwalletMain->HasKey(keyid)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in registercontracttx Error: WALLET file is not correct.");
         }
         if (balance < fee) {
@@ -763,7 +763,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in votedelegatetx Error: Account balance is insufficient.");
         }
 
-        if (!pwalletMain->HaveKey(keyid)) {
+        if (!pwalletMain->HasKey(keyid)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in votedelegatetx Error: Send tx address is not in wallet file.");
         }
 
@@ -875,7 +875,7 @@ Value getvotedelegatetxraw(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in getvotedelegatetxraw Error: Account balance is insufficient.");
         }
 
-        if (!pwalletMain->HaveKey(keyid)) {
+        if (!pwalletMain->HasKey(keyid)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in getvotedelegatetxraw Error: Send tx address is not in wallet file.");
         }
 
@@ -1055,7 +1055,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                 }
 
                 if(bSend) {
-                    if(pwalletMain->HaveKey(SendKeyID)) {
+                    if(pwalletMain->HasKey(SendKeyID)) {
                         Object obj;
                         obj.push_back(Pair("address", RecvKeyID.ToAddress()));
                         obj.push_back(Pair("category", "send"));
@@ -1080,7 +1080,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                 }
 
                 if(bRecv) {
-                    if(pwalletMain->HaveKey(RecvKeyID)) {
+                    if(pwalletMain->HasKey(RecvKeyID)) {
                         Object obj;
                         obj.push_back(Pair("srcaddr", SendKeyID.ToAddress()));
                         obj.push_back(Pair("address", RecvKeyID.ToAddress()));

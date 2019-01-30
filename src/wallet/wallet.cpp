@@ -720,7 +720,7 @@ bool CWallet::IsMine(CBaseTransaction* pTx) const{
         return false;
     }
     for (auto &keyid : vaddr) {
-        if (HaveKey(keyid) > 0) {
+        if (HasKey(keyid) > 0) {
             return true;
         }
     }

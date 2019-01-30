@@ -65,7 +65,7 @@ Value getbalance(const Array& params, bool fHelp)
             if (!GetKeyId(addr, keyid)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
             }
-            if (pwalletMain->HaveKey(keyid)) {
+            if (pwalletMain->HasKey(keyid)) {
                 CAccount account;
                 CAccountViewCache accView(*pAccountViewTip, true);
                 if (accView.GetAccount(CUserID(keyid), account)) {
@@ -96,7 +96,7 @@ Value getbalance(const Array& params, bool fHelp)
                                 CKeyID srcKeyId, desKeyId;
                                 pAccountViewTip->GetKeyId(pTx->srcRegId, srcKeyId);
                                 pAccountViewTip->GetKeyId(pTx->desUserId, desKeyId);
-                                if (!pwalletMain->HaveKey(srcKeyId) && pwalletMain->HaveKey(desKeyId)) {
+                                if (!pwalletMain->HasKey(srcKeyId) && pwalletMain->HasKey(desKeyId)) {
                                     nValue = pTx->llValues;
                                 }
                             }
@@ -116,7 +116,7 @@ Value getbalance(const Array& params, bool fHelp)
             if (!GetKeyId(addr, keyid)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
             }
-            if (pwalletMain->HaveKey(keyid)) {
+            if (pwalletMain->HasKey(keyid)) {
                 if (0 != nConf) {
                     CBlockIndex *pBlockIndex = chainActive.Tip();
                     int64_t nValue(0);

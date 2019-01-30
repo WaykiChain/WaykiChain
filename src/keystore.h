@@ -76,7 +76,7 @@ public:
 //    virtual bool AddKey(const CKey &key);
 
     // Check whether a key corresponding to a given address is present in the store.
-    virtual bool HaveKey(const CKeyID &address) const =0;
+    virtual bool HasKey(const CKeyID &address) const =0;
     virtual bool GetKey(const CKeyID &address, CKey& keyOut, bool IsMine) const =0;
     virtual void GetKeys(set<CKeyID> &setAddress, bool bFlag) const =0;
     virtual bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut, bool IsMine) const;
@@ -99,7 +99,7 @@ protected:
 
 public:
     bool AddKeyCombi(const CKeyID & keyId, const CKeyCombi &keyCombi);
-    bool HaveKey(const CKeyID &address) const
+    bool HasKey(const CKeyID &address) const
     {
         bool result;
         {
