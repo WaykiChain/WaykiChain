@@ -89,7 +89,8 @@ Value getnewaddress(const Array& params, bool fHelp)
     userkey.MakeNewKey();
 
     Key minerKey;
-    string minerPubKey = "no";
+    string minerPubKey = "null";
+
     if (IsForMiner) {
         minerKey.MakeNewKey();
         if (!pwalletMain->AddKey(userkey, minerKey)) {
@@ -104,7 +105,7 @@ Value getnewaddress(const Array& params, bool fHelp)
     CKeyID userKeyID = userPubKey.GetKeyID();
     Object obj;
     obj.push_back( Pair("addr", userKeyID.ToAddress()) );
-    obj.push_back( Pair("minerpubkey", minerPubKey) );
+    obj.push_back( Pair("minerpubkey", minerPubKey) ); // "null" for non-miner address
     return obj;
 }
 
