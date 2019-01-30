@@ -685,7 +685,7 @@ bool CTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &
     if (!view.GetAccount(boost::get<CRegID>(srcRegId), acctInfo)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() :CTransaction CheckTransaction, read account falied, regid=%s", boost::get<CRegID>(srcRegId).ToString()), REJECT_INVALID, "bad-getaccount");
     }
-    if (!acctInfo.IsRegister()) {
+    if (!acctInfo.IsRegistered()) {
         return state.DoS(100, ERRORMSG("CheckTransaction(): CTransaction CheckTransaction, account have not registed public key"), REJECT_INVALID,
                 "bad-no-pubkey");
     }
@@ -991,7 +991,7 @@ bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountView
     if (!view.GetAccount(boost::get<CRegID>(regAcctId), acctInfo)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, get account falied"), REJECT_INVALID, "bad-getaccount");
     }
-    if (!acctInfo.IsRegister()) {
+    if (!acctInfo.IsRegistered()) {
         return state.DoS(100, ERRORMSG("CheckTransaction(): CRegisterContractTx CheckTransaction, account have not registed public key"), REJECT_INVALID,
                 "bad-no-pubkey");
     }

@@ -137,7 +137,7 @@ bool CAccountViewCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, con
 }
 bool CAccountViewCache::BatchWrite(const vector<CAccount> &vAccounts) {
 	for (vector<CAccount>::const_iterator it = vAccounts.begin(); it != vAccounts.end(); ++it) {
-		if (it->IsEmptyValue() && !it->IsRegister()) {
+		if (it->IsEmptyValue() && !it->IsRegistered()) {
 			cacheAccounts[it->keyID] = *it;
 			cacheAccounts[it->keyID].keyID = uint160();
 		} else {

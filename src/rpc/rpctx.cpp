@@ -408,7 +408,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account does not exist.");
         }
 
-        if (account.IsRegister()) {
+        if (account.IsRegistered()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account was already registered.");
         }
         uint64_t balance = account.GetRawBalance();
@@ -659,14 +659,12 @@ Value registercontracttx(const Array& params, bool fHelp) {
             balance = account.GetRawBalance();
         }
 
-        if (!account.IsRegister()) {
+        if (!account.IsRegistered()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in registercontracttx Error: Account is not registered.");
         }
-
         if (!pwalletMain->HaveKey(keyid)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in registercontracttx Error: WALLET file is not correct.");
         }
-
         if (balance < fee) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in registercontracttx Error: Account balance is insufficient.");
         }
@@ -703,7 +701,6 @@ Value registercontracttx(const Array& params, bool fHelp) {
     Object obj;
     obj.push_back(Pair("hash", std::get<1>(ret)));
     return obj;
-
 }
 
 //vote a delegate transaction
@@ -757,7 +754,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in votedelegatetx Error: Account does not exist.");
         }
 
-        if (!account.IsRegister()) {
+        if (!account.IsRegistered()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in votedelegatetx Error: Account is not registered.");
         }
 
@@ -869,7 +866,7 @@ Value getvotedelegatetxraw(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in getvotedelegatetxraw Error: Account does not exist.");
         }
 
-        if (!account.IsRegister()) {
+        if (!account.IsRegistered()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in getvotedelegatetxraw Error: Account is not registered.");
         }
 
@@ -2476,7 +2473,7 @@ Value getregistercontracttxraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_WALLET_ERROR, "in getregistercontracttxraw Error: Account does not exist.");
     }
 
-    if (!account.IsRegister()) {
+    if (!account.IsRegistered()) {
         throw JSONRPCError(RPC_WALLET_ERROR, "in getregistercontracttxraw Error: Account is not registered.");
     }
 
