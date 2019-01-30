@@ -88,7 +88,7 @@ Value getnewaddress(const Array& params, bool fHelp)
     CKey userkey;
     userkey.MakeNewKey();
 
-    Key minerKey;
+    CKey minerKey;
     string minerPubKey = "null";
 
     if (IsForMiner) {
