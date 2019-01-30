@@ -104,7 +104,7 @@ bool CAnonyTest::CreateAnonyTx(){
 		ds<<pAccountInfo[i-1];
 
 	string contract = HexStr(ds);
-	Value  retValue = basetest.CreateContractTx(strAppRegId, vRegId[0], contract, 0, 0, llSendTotal);
+	Value  retValue = basetest.CallContractTx(strAppRegId, vRegId[0], contract, 0, 0, llSendTotal);
 	if(basetest.GetHashFromCreatedTx(retValue, strTxHash)){
 			return true;
 	}

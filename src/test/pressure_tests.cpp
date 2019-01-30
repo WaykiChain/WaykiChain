@@ -154,7 +154,7 @@ public:
 	/**
 	 * 创建合约交易
 	 */
-	bool CreateContractTx() {
+	bool CallContractTx() {
 		map<string, string>::iterator iterSrcAddr = GetRandAddress();
 		string srcAddr(iterSrcAddr->second);
 
@@ -166,7 +166,7 @@ public:
 
 		int nfee = GetRandomFee() + 100000;
 		uint64_t llmoney = GetRandomMoney() * COIN;
-		Value value = SysTestBase::CreateContractTx(regScriptId,srcAddr, contact,0,nfee, llmoney);
+		Value value = SysTestBase::CallContractTx(regScriptId,srcAddr, contact,0,nfee, llmoney);
 		string txHash = "";
 		BOOST_CHECK(GetHashFromCreatedTx(value,txHash));
 
@@ -224,7 +224,7 @@ public:
 				break;
 			case 3:
 				{
-					BOOST_CHECK(CreateContractTx());
+					BOOST_CHECK(CallContractTx());
 				}
 				break;
 			case 4:

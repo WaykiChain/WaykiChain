@@ -97,26 +97,26 @@ public:
 	void CheckSdk()
 	{
 		string param ="01";
-		Value resut =CreateContractTx("010000000100", "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param, 10, 10000000);
+		Value resut =CallContractTx("010000000100", "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param, 10, 10000000);
 		BOOST_CHECK(GetHashFromCreatedTx(resut,TxHash));
 		BOOST_CHECK(GenerateOneBlock());
 		uint256 hash(uint256S(TxHash.c_str()));
 		param ="02";
 		param += HexStr(hash);
 		string temp;
-		resut =CreateContractTx("010000000100", "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param, 10, 10000000);
+		resut =CallContractTx("010000000100", "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param, 10, 10000000);
 		BOOST_CHECK(GetHashFromCreatedTx(resut,temp));
 		BOOST_CHECK(GenerateOneBlock());
 
 		param ="03";
-		resut =CreateContractTx("010000000100", "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param, 10, 10000000);
+		resut =CallContractTx("010000000100", "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param, 10, 10000000);
 		BOOST_CHECK(GetHashFromCreatedTx(resut,temp));
 		BOOST_CHECK(GenerateOneBlock());
 
 		param ="05";
 		param += HexStr(hash);
 
-		resut =CreateContractTx("010000000100", "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param, 10, 10000000);
+		resut =CallContractTx("010000000100", "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param, 10, 10000000);
 		BOOST_CHECK(GetHashFromCreatedTx(resut,temp));
 		BOOST_CHECK(GenerateOneBlock());
 	}
@@ -136,8 +136,8 @@ public:
 		char buffer[3] = {0};
 		sprintf(buffer,"%02x",param);
 		string temp;
-		//Value resut =CreateContractTx("010000000100", "5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d", buffer,10);
-		Value resut =CreateContractTx("010000000100", "ddMuEBkAwhcb5K5QJ83MqQHrgHRn4EbRdh", buffer, 10, 1*COIN);
+		//Value resut =CallContractTx("010000000100", "5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d", buffer,10);
+		Value resut =CallContractTx("010000000100", "ddMuEBkAwhcb5K5QJ83MqQHrgHRn4EbRdh", buffer, 10, 1*COIN);
 		BOOST_CHECK(GetHashFromCreatedTx(resut,temp));
 		BOOST_CHECK(GenerateOneBlock());
 		return temp;
@@ -231,7 +231,7 @@ public:
 		int param = 13;
 		string temp = "";
 		temp += tinyformat::format("%02x%s",param,accountid);
-		Value resut =CreateContractTx("010000000100", "dsGb9GyDGYnnHdjSvRfYbj9ox2zPbtgtpo", temp,10,100000000,10000);
+		Value resut =CallContractTx("010000000100", "dsGb9GyDGYnnHdjSvRfYbj9ox2zPbtgtpo", temp,10,100000000,10000);
 		BOOST_CHECK(GetHashFromCreatedTx(resut,temp));
 
 		BOOST_CHECK(SetAddrGenerteBlock("dggsWmQ7jH46dgtA5dEZ9bhFSAK1LASALw"));
@@ -244,7 +244,7 @@ public:
 		param = 14;
 		temp = "";
 		temp += tinyformat::format("%02x%s",param,accountid);
-		resut =CreateContractTx("010000000100", "dsGb9GyDGYnnHdjSvRfYbj9ox2zPbtgtpo", temp,10,100000000);
+		resut =CallContractTx("010000000100", "dsGb9GyDGYnnHdjSvRfYbj9ox2zPbtgtpo", temp,10,100000000);
 		BOOST_CHECK(GetHashFromCreatedTx(resut,temp));
 
 		BOOST_CHECK(SetAddrGenerteBlock("dps9hqUmBAVGVg7ijLGPcD9CJz9HHiTw6H"));
@@ -258,7 +258,7 @@ public:
 		param = 19;
 		temp = "";
 		temp += tinyformat::format("%02x%s",param,accountid);
-		resut =CreateContractTx("010000000100", "dsGb9GyDGYnnHdjSvRfYbj9ox2zPbtgtpo", temp,10);
+		resut =CallContractTx("010000000100", "dsGb9GyDGYnnHdjSvRfYbj9ox2zPbtgtpo", temp,10);
 		BOOST_CHECK(!GetHashFromCreatedTx(resut,temp));
 
 	}
@@ -332,7 +332,7 @@ public:
 	void CreateTx(string pcontact,string addr)
 	{
 		string temp =addr;
-		Value resut =CreateContractTx("010000000100", temp, pcontact, 10, 1*COIN);
+		Value resut =CallContractTx("010000000100", temp, pcontact, 10, 1*COIN);
 		string strReturn;
 		BOOST_CHECK(GetHashFromCreatedTx(resut,strReturn));
 		BOOST_CHECK(GenerateOneBlock());
@@ -578,7 +578,7 @@ BOOST_FIXTURE_TEST_CASE(appacc,CSysScriptTest){
 	string param = strprintf("%02x",temp);
 	string hash ="";
 	uint64_t nMoney = 1000000000;
-	Value resut =CreateContractTx(sriptid, "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param,10,10000000,nMoney);
+	Value resut =CallContractTx(sriptid, "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param,10,10000000,nMoney);
 	BOOST_CHECK(GetHashFromCreatedTx(resut,hash));
 	BOOST_CHECK(GenerateOneBlock());
 
@@ -589,20 +589,20 @@ BOOST_FIXTURE_TEST_CASE(appacc,CSysScriptTest){
 		temp += 1;
 		param = strprintf("%02x%s",temp,HexStr(vtemp));
 		//cout<<i<<endl;
-		resut =CreateContractTx(sriptid, "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param,10,10000000,0);
+		resut =CallContractTx(sriptid, "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param,10,10000000,0);
 		BOOST_CHECK(GetHashFromCreatedTx(resut,hash));
 		BOOST_CHECK(GenerateOneBlock());
 	}
 
 	temp += 1;
 	param = strprintf("%02x%s",temp,HexStr(vtemp));
-	resut =CreateContractTx(sriptid, "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param,10,10000000,0);
+	resut =CallContractTx(sriptid, "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param,10,10000000,0);
 	BOOST_CHECK(GetHashFromCreatedTx(resut,hash));
 	BOOST_CHECK(GenerateOneBlock());
 
 	temp += 1;
 	param = strprintf("%02x%s",temp,HexStr(vtemp));
-	resut =CreateContractTx(sriptid, "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param,10,10000000,0);
+	resut =CallContractTx(sriptid, "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param,10,10000000,0);
 	BOOST_CHECK(!GetHashFromCreatedTx(resut,hash));
 
 

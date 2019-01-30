@@ -190,7 +190,7 @@ bool CIpoTest::CreateIpoTx(string contact,int64_t llSendTotal){
 
 	buffer += contact;
 
-	Value  retValue = basetest.CreateContractTx(strAppRegId, SEND_A, buffer, 0, COIN, llSendTotal);
+	Value  retValue = basetest.CallContractTx(strAppRegId, SEND_A, buffer, 0, COIN, llSendTotal);
 	if(basetest.GetHashFromCreatedTx(retValue, strTxHash)){
 			return true;
 	}

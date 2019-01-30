@@ -179,7 +179,7 @@ bool CRedPacketTest::WithDraw()
 
 	rchangeaddr = appaddr;
 	uint64_t money = 100000000000;
-	Value  darwpack= basetest.CreateContractTx(strAppRegId,appaddr,sendcontract,0,100000000,money);
+	Value  darwpack= basetest.CallContractTx(strAppRegId,appaddr,sendcontract,0,100000000,money);
 
 	if(basetest.GetHashFromCreatedTx(darwpack, TxHash)){
 		nStep++;
@@ -202,7 +202,7 @@ bool CRedPacketTest::SendRedPacketTx(){
 	string sendcontract = HexStr(scriptData);
 
 
-	Value  buyerpack= basetest.CreateContractTx(strAppRegId,appaddr,sendcontract,0,100000000,redpacket.money);
+	Value  buyerpack= basetest.CallContractTx(strAppRegId,appaddr,sendcontract,0,100000000,redpacket.money);
 
 	if(basetest.GetHashFromCreatedTx(buyerpack, redHash)){
 		nStep++;
@@ -227,7 +227,7 @@ bool CRedPacketTest::AcceptRedPacketTx(){
 	if(!SelectOneAccount(regAddr))
 		return false;
 
-	Value  buyerpack= basetest.CreateContractTx(strAppRegId,regAddr,sendcontract,0,100000000,0);
+	Value  buyerpack= basetest.CallContractTx(strAppRegId,regAddr,sendcontract,0,100000000,0);
 
 	if(basetest.GetHashFromCreatedTx(buyerpack, TxHash)){
 		nStep++;
@@ -265,7 +265,7 @@ bool CRedPacketTest::SendSpecailRedPacketTx()
 	string sendcontract = HexStr(scriptData);
 
 
-	Value  Specailbuyerpack= basetest.CreateContractTx(strAppRegId,appaddr,sendcontract,0,100000000,redpacket.money);
+	Value  Specailbuyerpack= basetest.CallContractTx(strAppRegId,appaddr,sendcontract,0,100000000,redpacket.money);
 
 	if(basetest.GetHashFromCreatedTx(Specailbuyerpack, redHash)){
 		nStep++;
@@ -288,7 +288,7 @@ bool CRedPacketTest::AcceptSpecailRedPacketTx()
 		scriptData << Acceptredpacket;
 		string sendcontract = HexStr(scriptData);
 
-		Value  buyerpack= basetest.CreateContractTx(strAppRegId,rchangeaddr,sendcontract,0,1000000000,0);
+		Value  buyerpack= basetest.CallContractTx(strAppRegId,rchangeaddr,sendcontract,0,1000000000,0);
 
 		if(basetest.GetHashFromCreatedTx(buyerpack, TxHash)){
 			nStep++;

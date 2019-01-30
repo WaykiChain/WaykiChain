@@ -56,8 +56,8 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getaccountinfo 182808-1
 ```
 ### 5. transfer assert:
 
-* 使用createcontracttx 命令发行资产，具体字符串字段需要根据每个智能合约的定义来组装。
-```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur createcontracttx 18247-1 182808-1 0 f0075755774a6e314346574b4d64626d6638394472436e5032776b4336414b72454268480080c6a47e8d0300 100000 0
+* 使用callcontracttx 命令发行资产，具体字符串字段需要根据每个智能合约的定义来组装。
+```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur callcontracttx 18247-1 182808-1 0 f0075755774a6e314346574b4d64626d6638394472436e5032776b4336414b72454268480080c6a47e8d0300 100000 0
 {
     "hash" : "93a89951ef71645f9910f2cb5c562389468416cb3921d69f931f904c6e653034"
 }

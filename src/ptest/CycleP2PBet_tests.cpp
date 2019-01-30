@@ -125,7 +125,7 @@ bool CTestBetTx::ASendP2PBet() {
 		}else{
 			nTempSend = betamount;
 		}
-		Value  sendret= CreateContractTx(scriptid,ADDR_A,sendcontract,0,0,nTempSend);
+		Value  sendret= CallContractTx(scriptid,ADDR_A,sendcontract,0,0,nTempSend);
 
 	if (GetHashFromCreatedTx(sendret, strAsendHash)) {
 		mCurStep++;
@@ -165,7 +165,7 @@ bool CTestBetTx::BAcceptP2PBet(void) {
 		}else{
 			nTempSend = betamount;
 		}
-		Value vaccept = CreateContractTx(scriptid, ADDR_B, acceptcontract, nCurHight, 0,nTempSend);
+		Value vaccept = CallContractTx(scriptid, ADDR_B, acceptcontract, nCurHight, 0,nTempSend);
 		string hash = "";
 //		cout<<"type"<<(int)acceptdata.noperateType<<endl;
 /*		if((int)acceptdata.noperateType == 0x01){
@@ -209,7 +209,7 @@ bool CTestBetTx::AOpenP2PBet(void) {
 
 		int nCurHight;
 		GetBlockHeight(nCurHight);
-		Value vopenA = CreateContractTx(scriptid, ADDR_A, openAcontract, nCurHight, 0);
+		Value vopenA = CallContractTx(scriptid, ADDR_A, openAcontract, nCurHight, 0);
 		if(GetHashFromCreatedTx(vopenA, strAopenHash)){
 			mCurStep++;
 				return true;

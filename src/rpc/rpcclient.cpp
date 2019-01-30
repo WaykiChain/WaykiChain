@@ -194,10 +194,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "registercontracttx"     && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "registercontracttx"     && n > 3) ConvertTo<int>(params[3]);
 
-    if (strMethod == "createcontracttx"       && n > 2) ConvertTo<int64_t>(params[2]);  /** deprecated */
-    if (strMethod == "createcontracttx"       && n > 4) ConvertTo<int64_t>(params[4]);  /** deprecated */
-    if (strMethod == "createcontracttx"       && n > 5) ConvertTo<int>(params[5]);      /** deprecated */
-
     if (strMethod == "callcontracttx"         && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "callcontracttx"         && n > 4) ConvertTo<int64_t>(params[4]);
     if (strMethod == "callcontracttx"         && n > 5) ConvertTo<int>(params[5]);
@@ -223,7 +219,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     // if (strMethod == "getp2pbetdata"          && n == 3) ConvertTo<int>(params[2]);
     if (strMethod == "listcontracts"          && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getblock"               && n > 0) { if (params[0].get_str().size()<32) ConvertTo<int>(params[0]);}
-    
+
     /****** generate a digitally signed raw transaction and can be later submitted to network via submittx  **********/
     if (strMethod == "getregisteraccounttxraw"  && n > 0) ConvertTo<double>(params[0]);
     if (strMethod == "getregisteraccounttxraw"  && n > 1) ConvertTo<int>(params[1]);
