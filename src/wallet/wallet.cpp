@@ -756,9 +756,8 @@ bool CWallet::CleanAll() {
 
 bool CWallet::Sign(const CKeyID& keyId, const uint256& hash, vector<unsigned char> &signature,bool IsMiner)const {
     CKey key;
-    if(GetKey(keyId, key, IsMiner)){
-        if(IsMiner == true)
-        {
+    if (GetKey(keyId, key, IsMiner)) {
+        if(IsMiner == true) {
 //          cout <<"Sign miner key PubKey:"<< key.GetPubKey().ToString()<< endl;
 //          cout <<"Sign miner hash:"<< hash.ToString()<< endl;
         }

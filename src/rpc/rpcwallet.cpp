@@ -72,37 +72,39 @@ Value getnewaddress(const Array& params, bool fHelp)
             "getnewaddress  (\"IsMiner\")\n"
             "\nget a new address\n"
             "\nArguments:\n"
-            "1. \"IsMiner\"  (bool, optional)  If true, it creates two set of key-pairs, one of which for miner.\n"
+            "1. \"IsMiner\" (bool, optional)  If true, it creates two sets of key-pairs, one of which is for miner.\n"
            "\nExamples:\n"
             + HelpExampleCli("getnewaddress", "")
             + HelpExampleCli("getnewaddress", "true")
         );
     EnsureWalletIsUnlocked();
 
-    CKey  mCkey;
-    mCkey.MakeNewKey();
-
-    CKey  Minter;
     bool IsForMiner = false;
     if (params.size() == 1) {
         RPCTypeCheck(params, list_of(bool_type));
-        Minter.MakeNewKey();
         IsForMiner = params[0].get_bool();
     }
 
-    CPubKey newKey = mCkey.GetPubKey();
-    CKeyID keyID = newKey.GetKeyID();
+    CKey userkey;
+    userkey.MakeNewKey();
 
+    Key minerKey;
+    string minerPubKey = "no";
     if (IsForMiner) {
-        if (!pwalletMain->AddKey(mCkey, Minter))
-            throw runtime_error("add key failed ");
+        minerKey.MakeNewKey();
+        if (!pwalletMain->AddKey(userkey, minerKey)) {
+            throw runtime_error("add miner key failed ");
+        }
+        minerPubKey = minerKey.GetPubKey().ToString();
+    } else if (!pwalletMain->AddKey(userkey)) {
+        throw runtime_error("add user key failed ");
     }
-    else if (!pwalletMain->AddKey(mCkey)) {
-        throw runtime_error("add key failed ");
-    }
+
+    CPubKey userPubKey = userkey.GetPubKey();
+    CKeyID userKeyID = userPubKey.GetKeyID();
     Object obj;
-    obj.push_back(Pair("addr", keyID.ToAddress()));
-    obj.push_back(Pair("minerpubkey", IsForMiner?Minter.GetPubKey().ToString(): "no"));
+    obj.push_back( Pair("addr", userKeyID.ToAddress()) );
+    obj.push_back( Pair("minerpubkey", minerPubKey) );
     return obj;
 }
 
