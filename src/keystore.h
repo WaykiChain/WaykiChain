@@ -21,9 +21,11 @@ using namespace json_spirit;
 class CKeyCombi {
 private:
 	CPubKey mMainPKey;
-	CPubKey mMinerPKey;
 	CKey  mMainCkey;
-	CKey  mMinerCkey; //only used for miner
+
+    CPubKey mMinerPKey;
+	CKey  mMinerCkey; //only used for mining/block-creation
+    
 	int64_t nCreationTime;
 
 public:

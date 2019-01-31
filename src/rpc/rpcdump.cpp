@@ -85,7 +85,7 @@ Value dropprivkey(const Array& params, bool fHelp)
 
 	EnsureWalletIsUnlocked();
 	if (!pwalletMain->IsReadyForCoolMiner(*pAccountViewTip)) {
-		throw runtime_error("there is no cool miner key  or miner key not registered yet\n");
+		throw runtime_error("there is no cool miner key  or miner key not registered yet");
 	}
 
 	pwalletMain->ClearAllCkeyForCoolMiner();

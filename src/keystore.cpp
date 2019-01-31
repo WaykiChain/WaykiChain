@@ -56,9 +56,11 @@ bool CKeyCombi::UnSersailFromJson(const Object& obj){
 
 bool CKeyCombi::CleanAll() {
 	mMainCkey.Clear();
-	mMinerCkey.Clear();
 	mMainPKey = CPubKey();
+
+	mMinerCkey.Clear();
 	mMinerPKey = CPubKey();
+	
 	nCreationTime = 0 ;
     return true;
 }
@@ -109,7 +111,7 @@ string CKeyCombi::ToString() const{
 	if(mMinerCkey.IsValid()) {
 		str += strprintf(" MinerPKey:%s MinerKey:%s",mMinerCkey.GetPubKey().ToString(), mMinerCkey.ToString());
 	}
-	 str += strprintf(" CreationTime:%d",  nCreationTime);
+	str += strprintf(" CreationTime:%d",  nCreationTime);
 	return str;
 }
 
