@@ -131,7 +131,7 @@ Value getrawmempool(const Array& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw runtime_error(
             "getrawmempool ( verbose )\n"
-            "\nReturns all transaction ids in memory pool as a json array of string transaction ids.\n"
+            "\nReturns all transaction ids in memory pool as a json or an array of string transaction ids.\n"
             "\nArguments:\n"
             "1. verbose           (boolean, optional, default=false) true for a json object, false for array of transaction ids\n"
             "\nResult: (for verbose = false):\n"
@@ -154,7 +154,8 @@ Value getrawmempool(const Array& params, bool fHelp)
             "  }, ...\n"
             "]\n"
             "\nExamples\n"
-            + HelpExampleCli("getrawmempool", "true")
+            + HelpExampleCli("getrawmempool", "")
+            + HelpExampleCli("getrawmempool", "false")
             + HelpExampleRpc("getrawmempool", "true")
         );
 
@@ -162,12 +163,10 @@ Value getrawmempool(const Array& params, bool fHelp)
     if (params.size() > 0)
         fVerbose = params[0].get_bool();
 
-    if (fVerbose)
-    {
+    if (fVerbose) {
         LOCK(mempool.cs);
         Object o;
-        for (const auto& entry : mempool.mapTx)
-        {
+        for (const auto& entry : mempool.mapTx) {
             const uint256& hash = entry.first;
             const CTxMemPoolEntry& e = entry.second;
             Object info;
@@ -189,9 +188,7 @@ Value getrawmempool(const Array& params, bool fHelp)
             o.push_back(Pair(hash.ToString(), info));
         }
         return o;
-    }
-    else
-    {
+    } else {
         vector<uint256> vtxid;
         mempool.queryHashes(vtxid);
 
@@ -205,22 +202,20 @@ Value getrawmempool(const Array& params, bool fHelp)
 
 Value getblockhash(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
-            "getblockhash index\n"
+    if (fHelp || params.size() != 1) {
+        throw runtime_error("getblockhash index\n"
             "\nReturns hash of block in best-block-chain at index provided.\n"
             "\nArguments:\n"
             "1. height         (numeric, required) The block height\n"
             "\nResult:\n"
             "\"hash\"         (string) The block hash\n"
             "\nExamples:\n"
-            + HelpExampleCli("getblockhash", "1000")
-            + HelpExampleRpc("getblockhash", "1000")
-        );
+            + HelpExampleRpc("getblockhash", "1000"));
+    }
 
     int nHeight = params[0].get_int();
     if (nHeight < 0 || nHeight > chainActive.Height())
-        throw runtime_error("Block number out of range.");
+        throw runtime_error("Block number out of range");
 
     CBlockIndex* pblockindex = chainActive[nHeight];
     Object result;
@@ -230,9 +225,8 @@ Value getblockhash(const Array& params, bool fHelp)
 
 Value getblock(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
-            "getblock \"hash or height\" ( verbose )\n"
+    if (fHelp || params.size() < 1 || params.size() > 2) {
+        throw runtime_error("getblock \"hash or height\" ( verbose )\n"
             "\nIf verbose is false, returns a string that is serialized, hex-encoded data for block 'hash'.\n"
             "If verbose is true, returns an Object with information about block <hash>.\n"
             "\nArguments:\n"
@@ -259,8 +253,10 @@ Value getblock(const Array& params, bool fHelp)
             "}\n"
             "\nResult (for verbose=false):\n"
             "\"data\"             (string) A string that is serialized, hex-encoded data for block 'hash'.\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"") + HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\""));
+            "\nExamples:\n" 
+            + HelpExampleCli("getblock", "\"1000\"") 
+            + HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\""));
+    }
 
     std::string strHash;
     if(int_type == params[0].type()) {
@@ -300,22 +296,22 @@ Value getblock(const Array& params, bool fHelp)
 
 Value verifychain(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() > 2)
+    if (fHelp || params.size() > 2) {
         throw runtime_error(
             "verifychain ( checklevel numofblocks )\n"
             "\nVerifies blockchain database.\n"
             "\nArguments:\n"
             "1. checklevel   (numeric, optional, 0-4, default=3) How thorough the block verification is.\n"
-            "2. numofblocks    (numeric, optional, default=288, 0=all) The number of blocks to check.\n"
+            "2. numofblocks    (numeric, optional, default=1288, 0=all) The number of blocks to check.\n"
             "\nResult:\n"
             "true|false       (boolean) Verified Okay or not\n"
             "\nExamples:\n"
-            + HelpExampleCli("verifychain", "( checklevel numblocks )")
-            + HelpExampleRpc("verifychain", "( checklevel numblocks )")
-        );
+            + HelpExampleCli("verifychain", "")
+            + HelpExampleRpc("verifychain", "( 4 10000 )"));
+    }
 
     int nCheckLevel = SysCfg().GetArg("-checklevel", 3);
-    int nCheckDepth = SysCfg().GetArg("-checkblocks", 288);
+    int nCheckDepth = SysCfg().GetArg("-checkblocks", 1288);
     if (params.size() > 0)
         nCheckLevel = params[0].get_int();
     if (params.size() > 1)
@@ -327,8 +323,7 @@ Value verifychain(const Array& params, bool fHelp)
 Value getblockchaininfo(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0) {
-        throw runtime_error(
-            "getblockchaininfo\n"
+        throw runtime_error("getblockchaininfo\n"
             "Returns an object containing various state info regarding block chain processing.\n"
             "\nResult:\n"
             "{\n"
@@ -340,9 +335,7 @@ Value getblockchaininfo(const Array& params, bool fHelp)
             "  \"chainwork\": \"xxxx\"     (string) total amount of work in active chain, in hexadecimal\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("getblockchaininfo", "")
-            + HelpExampleRpc("getblockchaininfo", "")
-        );
+            + HelpExampleRpc("getblockchaininfo", ""));
     }
 
     proxyType proxy;
@@ -362,30 +355,28 @@ Value getblockchaininfo(const Array& params, bool fHelp)
 Value listsetblockindexvalid(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0) {
-        throw runtime_error(
-            "listsetblockindexvalid \n"
+        throw runtime_error("listsetblockindexvalid \n"
             "\ncall ListSetBlockIndexValid function\n"
             "\nArguments:\n"
             "\nResult:\n"
             "\nExamples:\n"
             + HelpExampleCli("listsetblockindexvalid", "")
-            + HelpExampleRpc("listsetblockindexvalid",""));
+            + HelpExampleRpc("listsetblockindexvalid", ""));
     }
+    
     return ListSetBlockIndexValid();
 }
 
 Value getcontractregid(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1) {
-        throw runtime_error(
-            "getcontractregid \n"
+        throw runtime_error("getcontractregid \n"
             "\nreturn an object with regid\n"
             "\nArguments:\n"
             "1. txhash   (string, required) the contract registration txid.\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("getcontractregid", "5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG")
-            + HelpExampleRpc("getcontractregid","5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG"));
+            + HelpExampleRpc("getcontractregid", "5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG"));
     }
 
     uint256 txhash(uint256S(params[0].get_str()));
@@ -419,17 +410,15 @@ Value getcontractregid(const Array& params, bool fHelp)
 Value listcheckpoint(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0) {
-            throw runtime_error(
-                "listcheckpoint index\n"
-                "\nget the list of checkpoint.\n"
-                "\nResult a object  contain checkpoint\n"
-//              "\nResult:\n"
-//              "\"hash\"         (string) The block hash\n"
-                "\nExamples:\n"
-                + HelpExampleCli("listcheckpoint", "")
-                + HelpExampleRpc("listcheckpoint", "")
-            );
-        }
+        throw runtime_error(
+            "listcheckpoint index\n"
+            "\nget the list of checkpoint.\n"
+            "\nResult:\n"
+            "\nAn object containing checkpoint\n"
+            "\nExamples:\n"
+            + HelpExampleCli("listcheckpoint", "")
+            + HelpExampleRpc("listcheckpoint", ""));
+    }
 
     Object result;
     std::map<int, uint256> checkpointMap;
@@ -441,7 +430,7 @@ Value listcheckpoint(const Array& params, bool fHelp)
 }
 
 Value invalidateblock(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1)
+    if (fHelp || params.size() != 1) {
         throw runtime_error(
             "invalidateblock \"hash\"\n"
             "\nPermanently marks a block as invalid, as if it violated a consensus rule.\n"
@@ -449,8 +438,8 @@ Value invalidateblock(const Array& params, bool fHelp) {
             "1. \"hash\"         (string, required) the hash of the block to mark as invalid\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("invalidateblock", "\"hash\"")
             + HelpExampleRpc("invalidateblock", "\"hash\""));
+    }
 
     std::string strHash = params[0].get_str();
     uint256 hash(uint256S(strHash));
@@ -479,7 +468,7 @@ Value invalidateblock(const Array& params, bool fHelp) {
 }
 
 Value reconsiderblock(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1)
+    if (fHelp || params.size() != 1) {
         throw runtime_error(
             "reconsiderblock \"hash\"\n"
             "\nRemoves invalidity status of a block and its descendants, reconsider them for activation.\n"
@@ -488,9 +477,8 @@ Value reconsiderblock(const Array& params, bool fHelp) {
             "1. hash   (string, required) the hash of the block to reconsider\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("reconsiderblock", "\"hash\"")
-            + HelpExampleRpc("reconsiderblock", "\"hash\"")
-        );
+            + HelpExampleRpc("reconsiderblock", "\"hash\""));
+    }
 
     std::string strHash = params[0].get_str();
     uint256 hash(uint256S(strHash));

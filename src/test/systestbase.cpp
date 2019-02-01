@@ -739,7 +739,7 @@ bool SysTestBase::GetRegID(string& strAddr,CRegID& regID) {
 	if (!accView.GetAccount(userId, account)) {
 		return false;
 	}
-	if((!account.IsRegistered())||account.regID.IsEmpty()) {
+	if ((!account.IsRegistered()) || account.regID.IsEmpty()) {
 		return false;
 	}
 

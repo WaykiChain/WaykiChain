@@ -727,11 +727,11 @@ bool CWallet::IsMine(CBaseTransaction* pTx) const{
     return false;
 }
 
-bool CWallet::CleanAll() {
-
+bool CWallet::CleanAll() 
+{
     for_each(UnConfirmTx.begin(), UnConfirmTx.end(),
             [&](std::map<uint256, std::shared_ptr<CBaseTransaction> >::reference a) {
-        CWalletDB(strWalletFile).EraseUnComFirmedTx(a.first);
+                CWalletDB(strWalletFile).EraseUnComFirmedTx(a.first);
             });
     UnConfirmTx.clear();
 
@@ -747,20 +747,20 @@ bool CWallet::CleanAll() {
             CWalletDB(strWalletFile).EraseKeyStoreValue(item.first);
         });
         mapKeys.clear();
-    }
-    else {
-        return ERRORMSG("wallet encrypt forbid clear data failed!");
+    } else {
+        return ERRORMSG("wallet is encrypted hence clear data forbidden!");
     }
     return true;
 }
 
-bool CWallet::Sign(const CKeyID& keyId, const uint256& hash, vector<unsigned char> &signature,bool IsMiner)const {
+bool CWallet::Sign(const CKeyID& keyId, const uint256& hash, vector<unsigned char> &signature,bool IsMiner)const 
+{
     CKey key;
     if (GetKey(keyId, key, IsMiner)) {
-        if(IsMiner == true) {
-//          cout <<"Sign miner key PubKey:"<< key.GetPubKey().ToString()<< endl;
-//          cout <<"Sign miner hash:"<< hash.ToString()<< endl;
-        }
+        // if(IsMiner == true) {
+        //     cout <<"Sign miner key PubKey:"<< key.GetPubKey().ToString()<< endl;
+        //     cout <<"Sign miner hash:"<< hash.ToString()<< endl;
+        // }
         return(key.Sign(hash, signature));
     }
     return false;
