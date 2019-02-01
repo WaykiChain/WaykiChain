@@ -293,7 +293,7 @@ static const CRPCCommand vRPCCommands[] =
     { "registaccounttx",        &registeraccounttx,      true,      false,      true }, /** deprecated */
     { "registeraccounttx",      &registeraccounttx,      true,      false,      true },
     { "registercontracttx",     &registercontracttx,     true,      false,      true },
-    { "createcontracttx",       &createcontracttx,       true,      false,      true }, /** deprecated */
+    { "createcontracttx",       &callcontracttx,         true,      false,      true }, /** deprecated */
     { "callcontracttx",         &callcontracttx,         true,      false,      true },
     { "votedelegatetx",         &votedelegatetx,         true,      false,      true },
     
