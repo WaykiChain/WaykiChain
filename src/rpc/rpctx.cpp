@@ -707,10 +707,10 @@ Value registercontracttx(const Array& params, bool fHelp) {
 Value votedelegatetx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 4) {
             throw runtime_error(
-                "votedelegatetx \"addr\" \"opervotes\" \"fee\" (\"height\") \n"
+                "votedelegatetx \"sendaddr\" \"opervotes\" \"fee\" (\"height\") \n"
                 "\ncreate a delegate vote transaction\n"
                 "\nArguments:\n"
-                "1.\"addr\": (string required) The address from which votes are sent to other delegate addresses\n"
+                "1.\"sendaddr\": (string required) The address from which votes are sent to other delegate addresses\n"
                 "2. \"opervotes\"    (string, required) A json array of oper votes to corresponding delegates\n"
                 " [\n"
                     "   {\n"
@@ -720,7 +720,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
                     "       ,...\n"
                 " ]\n"
                 "3.\"fee\": (numeric required) pay to miner\n"
-                "4.\"height\": (numeric optional) valid height. When not supplied, the tip block hegiht in chainActive will be used.\n"
+                "4.\"height\": (numeric optional) valid height. When not supplied, the tip block height in chainActive will be used.\n"
                 "\nResult:\n"
                 "\"txhash\": (string)\n"
                 "\nExamples:\n"
