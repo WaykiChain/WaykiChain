@@ -55,35 +55,38 @@ bool CID::Set(const CNullID &id) {
 bool CID::Set(const CUserID &userid) {
     return boost::apply_visitor(CIDVisitor(this), userid);
 }
-CUserID CID::GetUserId() {
-    if (1< vchData.size() && vchData.size() <= 10) {
+
+CUserID CID::GetUserId() 
+{
+    unsigned long len = vchData.size();
+    if (1 < len && len <= 10) {
         CRegID regId;
         regId.SetRegIDByCompact(vchData);
         return CUserID(regId);
-    } else if (vchData.size() == 33) {
+    } else if (len == 33) {
         CPubKey pubKey(vchData);
         return CUserID(pubKey);
-    } else if (vchData.size() == 20) {
+    } else if (len == 20) {
         uint160 data = uint160(vchData);
         CKeyID keyId(data);
         return CUserID(keyId);
     } else if(vchData.empty()) {
         return CNullID();
-    }
-    else {
-        LogPrint("ERROR", "vchData:%s, len:%d\n", HexStr(vchData).c_str(), vchData.size());
+    } else {
+        LogPrint("ERROR", "vchData:%s, len:%d\n", HexStr(vchData).c_str(), len);
         throw ios_base::failure("GetUserId error from CID");
     }
     return CNullID();
 }
 
-
-bool CRegID::clean()  {
+bool CRegID::clean()  
+{
     nHeight = 0 ;
     nIndex = 0 ;
     vRegID.clear();
     return true;
 }
+
 CRegID::CRegID(const vector<unsigned char>& vIn) {
     assert(vIn.size() == 6);
     vRegID = vIn;
@@ -93,6 +96,7 @@ CRegID::CRegID(const vector<unsigned char>& vIn) {
     ds >> nHeight;
     ds >> nIndex;
 }
+
 bool CRegID::IsSimpleRegIdStr(const string & str)
 {
     int len = str.length();
@@ -133,7 +137,7 @@ bool CRegID::GetKeyID(const string & str,CKeyID &keyId)
 }
 
 bool CRegID::IsRegIdStr(const string & str)
- {
+{
     if(IsSimpleRegIdStr(str)){
         return true;
     }
@@ -142,13 +146,14 @@ bool CRegID::IsRegIdStr(const string & str)
     }
     return false;
 }
-void CRegID::SetRegID(string strRegID){
+
+void CRegID::SetRegID(string strRegID)
+{
     nHeight = 0;
     nIndex = 0;
     vRegID.clear();
 
-    if(IsSimpleRegIdStr(strRegID))
-    {
+    if (IsSimpleRegIdStr(strRegID)) {
         int pos = strRegID.find('-');
         nHeight = atoi(strRegID.substr(0, pos).c_str());
         nIndex = atoi(strRegID.substr(pos+1).c_str());
@@ -156,50 +161,56 @@ void CRegID::SetRegID(string strRegID){
         vRegID.insert(vRegID.end(), BEGIN(nIndex), END(nIndex));
 //      memcpy(&vRegID.at(0),&nHeight,sizeof(nHeight));
 //      memcpy(&vRegID[sizeof(nHeight)],&nIndex,sizeof(nIndex));
-    }
-    else if(strRegID.length()==12)
-    {
+    } else if(strRegID.length() == 12) {
         vRegID = ::ParseHex(strRegID);
         memcpy(&nHeight,&vRegID[0],sizeof(nHeight));
         memcpy(&nIndex,&vRegID[sizeof(nHeight)],sizeof(nIndex));
     }
 }
-void CRegID::SetRegID(const vector<unsigned char>& vIn) {
+
+void CRegID::SetRegID(const vector<unsigned char>& vIn) 
+{
     assert(vIn.size() == 6);
     vRegID = vIn;
     CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);
     ds >> nHeight;
     ds >> nIndex;
 }
-CRegID::CRegID(string strRegID) {
+
+CRegID::CRegID(string strRegID) 
+{
     SetRegID(strRegID);
 }
-CRegID::CRegID(uint32_t nHeightIn, uint16_t nIndexIn) {
+
+CRegID::CRegID(uint32_t nHeightIn, uint16_t nIndexIn) 
+{
     nHeight = nHeightIn;
     nIndex = nIndexIn;
     vRegID.clear();
     vRegID.insert(vRegID.end(), BEGIN(nHeightIn), END(nHeightIn));
     vRegID.insert(vRegID.end(), BEGIN(nIndexIn), END(nIndexIn));
 }
-string CRegID::ToString() const {
+
+string CRegID::ToString() const 
+{
     if(!IsEmpty())
       return  strprintf("%d-%d", nHeight, nIndex);
     return string(" ");
 }
+
 CKeyID CRegID::getKeyID(const CAccountViewCache &view)const
 {
     CKeyID ret;
     CAccountViewCache(view).GetKeyId(*this,ret);
     return ret;
 }
-void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn) {
-    if(vIn.size()>0)
-    {
+
+void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn) 
+{
+    if (vIn.size() > 0) {
         CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);
         ds >> *this;
-    }
-    else
-    {
+    } else {
         clean();
     }
 }

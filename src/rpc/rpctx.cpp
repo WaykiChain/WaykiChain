@@ -2602,7 +2602,8 @@ Value sigstr(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value decoderawtransaction(const Array& params, bool fHelp) {
+Value decoderawtransaction(const Array& params, bool fHelp) 
+{
     if (fHelp || params.size() != 1) {
         throw runtime_error("decoderawtransaction \"hexstring\"\n"
                 "\ndecode transaction\n"
@@ -2690,7 +2691,7 @@ Value getalltxinfo(const Array& params, bool fHelp) {
             UnComfirmTx.push_back(objtx);
         }
         retObj.push_back(Pair("UnConfirmed", UnComfirmTx));
-    }else {
+    } else {
         Array ComfirmTx;
         multimap<int, Object, std::greater<int> > mapTx;
         for (auto const &wtx : pwalletMain->mapInBlockTx) {

@@ -194,15 +194,15 @@ public:
 		WriteCompactSize(s, len);
 		s.write((char*) vch, len);
 	}
+
 	template<typename Stream> void Unserialize(Stream &s, int nType, int nVersion) {
 		unsigned int len = ReadCompactSize(s);
 		if ( len == 33 ) {
 			s.read((char*) vch, 33);
-		} else if(len == 0){
+		} else if (len == 0) {
 			Invalidate();
-		}
-		else{
-			ERRORMSG("Unserialize......");
+		} else {
+			throw ERRORMSG("Unserializable......len=%d", len);
 //	        assert(0); //never come here
 		}
 	}

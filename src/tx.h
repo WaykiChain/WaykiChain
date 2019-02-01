@@ -1081,10 +1081,10 @@ void Unserialize(Stream& is, std::shared_ptr<CBaseTransaction> &pa, int nType, i
         Unserialize(is, *((CRegisterContractTx *) (pa.get())), nType, nVersion);
     }
     else if (nTxType == DELEGATE_TX) {
+        LogPrint("ERROR", "Unserialize delegate tx");
         pa = std::make_shared<CDelegateTransaction>();
         Unserialize(is, *((CDelegateTransaction *) (pa.get())), nType, nVersion);
-    }
-    else {
+    } else {
         throw ios_base::failure("unseiralize tx type value error, must be within range(1...6)");
     }
     pa->nTxType = nTxType;
