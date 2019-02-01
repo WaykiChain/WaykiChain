@@ -47,7 +47,7 @@ enum TxType {
     REG_ACCT_TX = 2,    //!< tx that used to register account
     COMMON_TX   = 3,    //!< transfer coin from one account to another
     CONTRACT_TX = 4,    //!< contract tx
-    REG_CONTRACT_TX  = 5,    //!< register contract
+    REG_CONT_TX = 5,    //!< register contract
     DELEGATE_TX = 6,    //!< delegate tx
     NULL_TX,            //!< NULL_TX
 };
@@ -530,12 +530,12 @@ public:
     vector_unsigned_char signature;
 public:
     CRegisterContractTx(const CBaseTransaction *pBaseTx) {
-        assert(REG_CONTRACT_TX == pBaseTx->nTxType);
+        assert(REG_CONT_TX == pBaseTx->nTxType);
         *this = *(CRegisterContractTx*) pBaseTx;
     }
 
     CRegisterContractTx() {
-        nTxType = REG_CONTRACT_TX;
+        nTxType = REG_CONT_TX;
         llFees = 0;
         nValidHeight = 0;
     }
@@ -1044,7 +1044,7 @@ void Serialize(Stream& os, const std::shared_ptr<CBaseTransaction> &pa, int nTyp
     else if (pa->nTxType == REWARD_TX) {
         Serialize(os, *((CRewardTransaction *) (pa.get())), nType, nVersion);
     }
-    else if (pa->nTxType == REG_CONTRACT_TX) {
+    else if (pa->nTxType == REG_CONT_TX) {
         Serialize(os, *((CRegisterContractTx *) (pa.get())), nType, nVersion);
     }
     else if (pa->nTxType == DELEGATE_TX) {
@@ -1076,7 +1076,7 @@ void Unserialize(Stream& is, std::shared_ptr<CBaseTransaction> &pa, int nType, i
         pa = std::make_shared<CRewardTransaction>();
         Unserialize(is, *((CRewardTransaction *) (pa.get())), nType, nVersion);
     }
-    else if (nTxType == REG_CONTRACT_TX) {
+    else if (nTxType == REG_CONT_TX) {
         pa = std::make_shared<CRegisterContractTx>();
         Unserialize(is, *((CRegisterContractTx *) (pa.get())), nType, nVersion);
     }

@@ -347,7 +347,7 @@ public:
         case REWARD_TX:
             mapAccountTx[hash] = std::make_shared<CRewardTransaction>(pTx);
             break;
-        case REG_CONTRACT_TX:
+        case REG_CONT_TX:
             mapAccountTx[hash] = std::make_shared<CRegisterContractTx>(pTx);
             break;
         case DELEGATE_TX:

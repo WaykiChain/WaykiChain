@@ -279,7 +279,7 @@ bool CBaseTransaction::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValid
 }
 uint64_t CBaseTransaction::GetFuel(int nfuelRate) {
     uint64_t llFuel = ceil(nRunStep/100.0f) * nfuelRate;
-    if(REG_CONTRACT_TX == nTxType) {
+    if (REG_CONT_TX == nTxType) {
         if (llFuel < 1 * COIN) {
             llFuel = 1 * COIN;
         }
@@ -287,7 +287,7 @@ uint64_t CBaseTransaction::GetFuel(int nfuelRate) {
     return llFuel;
 }
 
-string CBaseTransaction::txTypeArray[7] = { "NULL_TXTYPE", "REWARD_TX", "REG_ACCT_TX", "COMMON_TX", "CONTRACT_TX", "REG_CONTRACT_TX", "DELEGATE_TX"};
+string CBaseTransaction::txTypeArray[7] = { "NULL_TXTYPE", "REWARD_TX", "REG_ACCT_TX", "COMMON_TX", "CONTRACT_TX", "REG_CONT_TX", "DELEGATE_TX"};
 
 string COperVoteFund::voteOperTypeArray[3] = {"NULL_OPER", "ADD_FUND", "MINUS_FUND"};
 
@@ -983,22 +983,23 @@ bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountView
     }
 
     if( llFees < llFuel) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, register app tx fee too litter (actual:%lld vs need:%lld)", llFees, llFuel), REJECT_INVALID,
-                            "fee-too-litter");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, register app tx fee too litter (actual:%lld vs need:%lld)", llFees, llFuel), 
+                REJECT_INVALID, "fee-too-litter");
     }
 
     CAccount acctInfo;
     if (!view.GetAccount(boost::get<CRegID>(regAcctId), acctInfo)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, get account falied"), REJECT_INVALID, "bad-getaccount");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, get account falied"), 
+                REJECT_INVALID, "bad-getaccount");
     }
     if (!acctInfo.IsRegistered()) {
-        return state.DoS(100, ERRORMSG("CheckTransaction(): CRegisterContractTx CheckTransaction, account have not registed public key"), REJECT_INVALID,
-                "bad-no-pubkey");
+        return state.DoS(100, ERRORMSG("CheckTransaction(): CRegisterContractTx CheckTransaction, account have not registed public key"), 
+                REJECT_INVALID, "bad-no-pubkey");
     }
     uint256 signhash = SignatureHash();
     if (!CheckSignScript(signhash, signature, acctInfo.PublicKey)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, CheckSignScript failed"), REJECT_INVALID,
-                "bad-signscript-check");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, CheckSignScript failed"), 
+                REJECT_INVALID, "bad-signscript-check");
     }
     return true;
 }
@@ -1033,36 +1034,34 @@ bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValid
                     UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }
     if (!view.SaveAccountInfo(acctInfo.regID, acctInfo.keyID, acctInfo)) {
-            return state.DoS(100,
-                    ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx create new account script id %s script info error",
-                            acctInfo.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+            return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx create new account script id %s script info error", acctInfo.regID.ToString()), 
+                    UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
     txundo.vAccountLog.push_back(acctInfoLog);
     txundo.txHash = GetHash();
 
-
-    for(auto iter = operVoteFunds.begin(); iter != operVoteFunds.end(); ++iter) {
+    for (auto iter = operVoteFunds.begin(); iter != operVoteFunds.end(); ++iter) {
         CAccount delegate;
         if (!view.GetAccount(CUserID(iter->fund.pubKey), delegate)) {
-            return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, read regist addr %s account info error", iter->fund.pubKey.GetKeyID().ToAddress()),
+            return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, read regist addr %s account info error", iter->fund.pubKey.GetKeyID().ToAddress()), 
                     UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         CAccount delegateAcctLog(delegate);
-        if(!delegate.OperateVote(VoteOperType(iter->operType), iter->fund.value)) {
-            return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate delegate address %s vote fund error", iter->fund.pubKey.GetKeyID().ToAddress()),
-                                        UPDATE_ACCOUNT_FAIL, "operate-vote-error");
+        if (!delegate.OperateVote(VoteOperType(iter->operType), iter->fund.value)) {
+            return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate delegate address %s vote fund error", iter->fund.pubKey.GetKeyID().ToAddress()), 
+                    UPDATE_ACCOUNT_FAIL, "operate-vote-error");
         }
         txundo.vAccountLog.push_back(delegateAcctLog);
         // set the new value and erase the old value
         CScriptDBOperLog operDbLog;
-        if(!scriptDB.SetDelegateData(delegate, operDbLog)) {
+        if (!scriptDB.SetDelegateData(delegate, operDbLog)) {
             return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, erase account id %s vote info error", delegate.regID.ToString()),
-                                    UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+                    UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
         txundo.vScriptOperLog.push_back(operDbLog);
 
         CScriptDBOperLog eraseDbLog;
-        if(delegateAcctLog.llVotes > 0) {
+        if (delegateAcctLog.llVotes > 0) {
             if(!scriptDB.EraseDelegateData(delegateAcctLog, eraseDbLog)) {
                 return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, erase account id %s vote info error", delegateAcctLog.regID.ToString()),
                         UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
@@ -1071,9 +1070,8 @@ bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValid
         txundo.vScriptOperLog.push_back(eraseDbLog);
 
         if (!view.SaveAccountInfo(delegate.regID, delegate.keyID, delegate)) {
-                return state.DoS(100,
-                        ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx create new account script id %s script info error",
-                                acctInfo.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+                return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx create new account script id %s script info error", acctInfo.regID.ToString()), 
+                        UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
     }
 
@@ -1389,20 +1387,22 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const int nC
     return true;
 }
 
-bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const int nCurHeight) {
+bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const int nCurHeight) 
+{
     int64_t totalVotes = 0;
     if(!voteFunds.empty()) {
         totalVotes = (int64_t)voteFunds.begin()->value;
     }
     uint64_t llProfit = GetAccountProfit(nCurHeight);
-    if (!IsMoneyOverflow(llProfit))
-          return false;
-    for(auto operVote = operVoteFunds.begin(); operVote != operVoteFunds.end(); ++operVote) {
+    if (!IsMoneyOverflow(llProfit)) return false;
+    for (auto operVote = operVoteFunds.begin(); operVote != operVoteFunds.end(); ++operVote) {
         CPubKey pubKey = operVote->fund.pubKey;
-        vector<CVoteFund>::iterator itfund = find_if(voteFunds.begin(), voteFunds.end(), [pubKey](CVoteFund fund){
-                return fund.pubKey == pubKey;});
-        if(ADD_FUND == VoteOperType(operVote->operType)) {
-            if(itfund != voteFunds.end()) {
+        vector<CVoteFund>::iterator itfund = find_if(voteFunds.begin(), voteFunds.end(), 
+            [pubKey](CVoteFund fund){ return fund.pubKey == pubKey; });
+
+        int voteType = VoteOperType(operVote->operType);
+        if (ADD_FUND == voteType) {
+            if (itfund != voteFunds.end()) {
                 if (!IsMoneyOverflow(operVote->fund.value))
                      return ERRORMSG("DealDelegateVote() : oper fund value exceed maximum ");
 //                if (operVote->fund.value > llValues) {
@@ -1410,16 +1410,14 @@ bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const in
 //                }
                 itfund->value += operVote->fund.value;
                 if (!IsMoneyOverflow(itfund->value))
-                     return ERRORMSG("DealDelegateVote() : fund value exceed maximum");
-                }
-            else {
+                     return ERRORMSG("DealDelegateVote() : fund value exceeds maximum");
+            } else {
                voteFunds.push_back(operVote->fund);
                if(voteFunds.size() > IniCfg().GetDelegatesCfg()) {
-                   return ERRORMSG("DealDelegateVote() : fund number exceed maximum");
+                   return ERRORMSG("DealDelegateVote() : fund number exceeds maximum");
                }
             }
-        }
-        else if(MINUS_FUND == VoteOperType(operVote->operType)) {
+        } else if(MINUS_FUND == voteType) {
             if  (itfund != voteFunds.end()) {
                 if (!IsMoneyOverflow(operVote->fund.value))
                     return ERRORMSG("DealDelegateVote() : oper fund value exceed maximum ");
@@ -1430,12 +1428,12 @@ bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const in
                 if(0 == itfund->value) {
                     voteFunds.erase(itfund);
                 }
-            }
-            else {
+            } else {
                 return ERRORMSG("DealDelegateVote() : CDelegateTransaction ExecuteTx AccountVoteOper revocation votes are not exist");
             }
+        } else {
+            return ERRORMSG("DealDelegateVote() : operType: %d invalid", voteType);
         }
-
     }
 
     std::sort(voteFunds.begin(),voteFunds.end(),[](CVoteFund fund1, CVoteFund fund2) {
@@ -1448,7 +1446,6 @@ bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const in
         return  ERRORMSG("DealDelegateVote() : delegate value exceed account value");
     }
     llValues += totalVotes - newTotalVotes;
-
     llValues += llProfit;
     LogPrint("profits", "receive profits:%lld\n", llProfit);
     return true;

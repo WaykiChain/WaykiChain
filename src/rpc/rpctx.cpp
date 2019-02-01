@@ -236,7 +236,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
         }
         break;
     }
-    case REG_CONTRACT_TX:
+    case REG_CONT_TX:
     case DELEGATE_TX:
         if(!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
         {
@@ -246,8 +246,8 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
         obj.push_back(Pair("category", "send"));
         double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
         obj.push_back(Pair("amount", -dAmount));
-        if(pBaseTx->nTxType == REG_CONTRACT_TX)
-            obj.push_back(Pair("txtype", "REG_CONTRACT_TX"));
+        if(pBaseTx->nTxType == REG_CONT_TX)
+            obj.push_back(Pair("txtype", "REG_CONT_TX"));
         else if(pBaseTx->nTxType == DELEGATE_TX)
             obj.push_back(Pair("txtype", "DELEGATE_TX"));
         arrayDetail.push_back(obj);
@@ -2573,7 +2573,7 @@ Value sigstr(const Array& params, bool fHelp) {
         break;
     case REWARD_TX:
         break;
-    case REG_CONTRACT_TX: {
+    case REG_CONT_TX: {
         std::shared_ptr<CRegisterContractTx> tx = std::make_shared<CRegisterContractTx>(pBaseTx.get());
         if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
@@ -2640,7 +2640,7 @@ Value decoderawtransaction(const Array& params, bool fHelp) {
         break;
     case REWARD_TX:
         break;
-    case REG_CONTRACT_TX: {
+    case REG_CONT_TX: {
         std::shared_ptr<CRegisterContractTx> tx = std::make_shared<CRegisterContractTx>(pBaseTx.get());
         obj = tx->ToJSON(view);
     }
@@ -3240,7 +3240,7 @@ Value gettxhashbyaddress(const Array& params, bool fHelp) {
 //         streamRawTx << pRewardTx->rewardValue;
 //         streamRawTx << pRewardTx->nHeight;
 
-//     } else if (pa->nTxType == REG_CONTRACT_TX) {
+//     } else if (pa->nTxType == REG_CONT_TX) {
 //         CRegisterContractTx * pRegAppTx = (CRegisterContractTx *) pa.get();
 //         streamRawTx << pRegAppTx->nVersion;
 //         streamRawTx << pRegAppTx->nValidHeight;

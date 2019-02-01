@@ -1502,7 +1502,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
                         REJECT_INVALID, "exeed-max_step");
             }
             uint64_t llFuel = ceil(pBaseTx->nRunStep / 100.f) * block.GetFuelRate();
-            if(REG_CONTRACT_TX == pBaseTx->nTxType) {
+            if(REG_CONT_TX == pBaseTx->nTxType) {
                 if(llFuel < 1 * COIN){
                     llFuel = 1 * COIN;
                 }
@@ -3482,7 +3482,7 @@ void static ProcessGetData(CNode* pfrom)
                         else if(REG_ACCT_TX == pBaseTx->nTxType) {
                             ss << *((CRegisterAccountTx *)pBaseTx.get());
                         }
-                        else if(REG_CONTRACT_TX == pBaseTx->nTxType) {
+                        else if(REG_CONT_TX == pBaseTx->nTxType) {
                             ss << *((CRegisterContractTx *)pBaseTx.get());
                         }
                         else if(DELEGATE_TX == pBaseTx->nTxType) {
@@ -4628,7 +4628,7 @@ std::shared_ptr<CBaseTransaction> CreateNewEmptyTransaction(unsigned char uType)
         return std::make_shared<CRegisterAccountTx>();
     case REWARD_TX:
         return std::make_shared<CRewardTransaction>();
-    case REG_CONTRACT_TX:
+    case REG_CONT_TX:
         return std::make_shared<CRegisterContractTx>();
     case DELEGATE_TX:
             return std::make_shared<CDelegateTransaction>();

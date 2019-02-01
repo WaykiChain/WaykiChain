@@ -3,7 +3,7 @@ MAINTAINER coredev@waykichainhk.com
 ARG branch=release
 
 # Install prrequisite components
-COPY ./Docker/sources.list /etc/apt
+COPY ./sources.list /etc/apt
 RUN echo exit 0 > /usr/sbin/policy-rc.d
 RUN add-apt-repository ppa:bitcoin/bitcoin -y && apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential libtool autotools-dev automake \
