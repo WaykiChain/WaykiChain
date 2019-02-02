@@ -933,8 +933,8 @@ public:
     }
 
     bool IsRegistered() const { return (PublicKey.IsFullyValid() && PublicKey.GetKeyID() == keyID); }
-    bool SetRegId(const CRegID &regID) { this->regID = regID;return true; };
-    bool GetRegId(CRegID &regID) const { regID = this->regID;return !regID.IsEmpty(); };
+    bool SetRegId(const CRegID &regID) { this->regID = regID; return true; };
+    bool GetRegId(CRegID &regID) const { regID = this->regID; return !regID.IsEmpty(); };
     uint64_t GetRawBalance();
     uint64_t GetTotalBalance();
     uint64_t GetFrozenBalance();
@@ -1076,7 +1076,8 @@ void Unserialize(Stream& is, std::shared_ptr<CBaseTransaction> &pa, int nType, i
         pa = std::make_shared<CDelegateTransaction>();
         Unserialize(is, *((CDelegateTransaction *) (pa.get())), nType, nVersion);
     } else {
-        throw ios_base::failure("unseiralize tx type value error, must be within range(1...6)");
+        string sTxType(1, nTxType);
+        throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error, must be within range (1...6)");
     }
     pa->nTxType = nTxType;
 }

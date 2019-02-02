@@ -179,7 +179,7 @@ public:
         return false;
     }
     bool GetKey(const CKeyID &address, CKey& keyOut, bool IsMine=false) const;
-    bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut, bool IsMine=false) const;
+    bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut, bool IsMiner=false) const;
     void GetKeys(set<CKeyID> &setAddress, bool bFlag=false) const
     {
         if (!IsEncrypted())

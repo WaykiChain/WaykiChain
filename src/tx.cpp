@@ -1330,20 +1330,18 @@ uint64_t CAccount::GetFrozenBalance() {
 
 Object CAccount::ToJsonObj(bool isAddress) const
 {
-    Object obj;
-    obj.push_back(Pair("Address",     keyID.ToAddress()));
-    obj.push_back(Pair("KeyID",     keyID.ToString()));
-    obj.push_back(Pair("RegID",     regID.ToString()));
-    obj.push_back(Pair("PublicKey",  PublicKey.ToString()));
-    obj.push_back(Pair("MinerPKey",  MinerPKey.ToString()));
-    obj.push_back(Pair("Balance",     llValues));
-    obj.push_back(Pair("Votes", llVotes));
-    obj.push_back(Pair("UpdateHeight", nHeight));
     Array voteFundArray;
-    for(auto & fund : voteFunds) {
-        voteFundArray.push_back(fund.ToJson(true));
-    }
-    obj.push_back(Pair("voteFundList", voteFundArray));
+    for(auto & fund : voteFunds) { voteFundArray.push_back(fund.ToJson(true)); }
+    Object obj;
+    obj.push_back(Pair("Address",       keyID.ToAddress()));
+    obj.push_back(Pair("KeyID",         keyID.ToString()));
+    obj.push_back(Pair("PublicKey",     PublicKey.ToString()));
+    obj.push_back(Pair("MinerPKey",     MinerPKey.ToString()));
+    obj.push_back(Pair("RegID",         regID.ToString()));
+    obj.push_back(Pair("Balance",       llValues));
+    obj.push_back(Pair("UpdateHeight",  nHeight));
+    obj.push_back(Pair("Votes",         llVotes));
+    obj.push_back(Pair("voteFundList",  voteFundArray));
     return obj;
 }
 

@@ -115,8 +115,8 @@ string CKeyCombi::ToString() const{
 	return str;
 }
 
-bool CKeyCombi::GetCKey(CKey& keyOut, bool IsMine) const {
-	if(IsMine) {
+bool CKeyCombi::GetCKey(CKey& keyOut, bool IsMiner) const {
+	if(IsMiner) {
 		keyOut = mMinerCkey;
 	} else {
 		keyOut = mMainCkey;

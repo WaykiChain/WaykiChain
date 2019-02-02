@@ -38,9 +38,9 @@ public:
 	Object ToJsonObj()const;
 	bool UnSersailFromJson(const Object&);
 	int64_t GetBirthDay()const;
-	bool GetCKey(CKey& keyOut,bool IsMine = false) const ;
+	bool GetCKey(CKey& keyOut,bool IsMiner = false) const ;
 	bool CreateANewKey();
-	bool GetPubKey(CPubKey &mOutKey,bool IsMine = false) const;
+	bool GetPubKey(CPubKey &mOutKey,bool IsMiner = false) const;
     bool CleanMainKey();
     bool CleanAll();
 	bool IsContainMinerKey()const;

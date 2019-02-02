@@ -1391,7 +1391,6 @@ Value getaccountinfo(const Array& params, bool fHelp) {
     Object obj;
     {
         CAccount account;
-
         CAccountViewCache accView(*pAccountViewTip, true);
         if (accView.GetAccount(userId, account)) {
             if (!account.PublicKey.IsValid()) {
@@ -1407,7 +1406,12 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 }
             }
             obj = std::move(account.ToJsonObj(true));
-            obj.push_back(Pair("postion", "inblock"));
+            CRegID regId;
+            if (!account.GetRegId(regId)) { //unregistered
+                obj.push_back(Pair("postion", "inwallet"));
+            } else {
+                obj.push_back(Pair("postion", "inblock"));
+            }
         } else {
             CPubKey pk;
             CPubKey minerpk;
@@ -1422,7 +1426,6 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 obj.push_back(Pair("postion", "inwallet"));
             }
         }
-
     }
     return obj;
 }
