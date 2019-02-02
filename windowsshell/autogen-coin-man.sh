@@ -4,7 +4,7 @@ set -e
 ShowHelp() {
     echo "\033[40;33m"
     echo "USAGE:"
-    echo 
+    echo
     echo "  autogen-coin-man [MODULE NAME]"
     echo
     echo "EXAMPLE:"
