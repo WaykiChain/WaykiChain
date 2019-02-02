@@ -1483,7 +1483,14 @@ string COperVoteFund::ToString(bool isAddress) const {
 
 Object COperVoteFund::ToJson(bool isAddress) const {
     Object obj;
-    obj.push_back(Pair("operType", (operType > 0 && operType < 3) ? voteOperTypeArray[operType] : "INVALID_OPER_TYPE"));
+    string sOperType;
+    if (operType >= 3) {
+        sOperType = "INVALID_OPER_TYPE";
+        LogPrint("ERROR", "Delegate Vote Tx Contains invalid operType: %d", operType);
+    } else {
+        sOperType = voteOperTypeArray[operType];
+    }
+    obj.push_back(Pair("operType", sOperType));
     obj.push_back(Pair("voteFund", fund.ToJson(isAddress)));
     return obj;
 }

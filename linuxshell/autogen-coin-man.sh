@@ -45,7 +45,5 @@ done
 
 srcdir="$(dirname $0)"
 cd "$srcdir"
-echo "srcdir=$srcdir"
 autoreconf --install --force
-
 CPPFLAGS="-std=c++11" ./configure --disable-upnp-default --without-gui --with-incompatible-bdb $Modules
