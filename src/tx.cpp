@@ -1483,7 +1483,7 @@ string COperVoteFund::ToString(bool isAddress) const {
 
 Object COperVoteFund::ToJson(bool isAddress) const {
     Object obj;
-    obj.push_back(Pair("operType",voteOperTypeArray[operType]));
+    obj.push_back(Pair("operType", voteOperTypeArray[operType]));
     obj.push_back(Pair("voteFund", fund.ToJson(isAddress)));
     return obj;
 }
@@ -1492,8 +1492,7 @@ Object CVoteFund::ToJson(bool isAddress) const{
     Object obj;
     if(isAddress) {
         obj.push_back(Pair("address", pubKey.GetKeyID().ToAddress()));
-    }
-    else {
+    } else {
         obj.push_back(Pair("pubkey", pubKey.ToString()));
     }
     obj.push_back(Pair("value", value));

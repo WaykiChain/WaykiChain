@@ -197,9 +197,8 @@ Value setgenerate(const Array& params, bool fHelp)
 
 Value getmininginfo(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
-            "getmininginfo\n"
+    if (fHelp || params.size() != 0) {
+        throw runtime_error("getmininginfo\n"
             "\nReturns a json object containing mining-related information."
             "\nResult:\n"
             "{\n"
@@ -218,6 +217,9 @@ Value getmininginfo(const Array& params, bool fHelp)
             + HelpExampleCli("getmininginfo", "")
             + HelpExampleRpc("getmininginfo", "")
         );
+    }
+
+    static const string NetTypes[] = { "MAIN_NET", "TEST_NET", "REGTEST_NET" };
 
     Object obj;
     obj.push_back(Pair("blocks",           (int)chainActive.Height()));
@@ -227,19 +229,16 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("genproclimit",     1));
     obj.push_back(Pair("networkhashps",    getnetworkhashps(params, false)));
     obj.push_back(Pair("pooledtx",         (uint64_t)mempool.size()));
-    static const string name[] = {"MAIN_NET", "TEST_NET", "REGTEST_NET"};
-    obj.push_back(Pair("nettype",          name[SysCfg().NetworkID()]));
+    obj.push_back(Pair("nettype",          NetTypes[SysCfg().NetworkID()]));
     obj.push_back(Pair("posmaxnonce",      SysCfg().GetBlockMaxNonce()));
-
-    obj.push_back(Pair("generate",        getMiningInfo()));
+    obj.push_back(Pair("generate",         getMiningInfo()));
     return obj;
 }
 
 Value submitblock(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
-            "submitblock \"hexdata\" ( \"jsonparametersobject\" )\n"
+        throw runtime_error("submitblock \"hexdata\" ( \"jsonparametersobject\" )\n"
             "\nAttempts to submit new block to network.\n"
             "The 'jsonparametersobject' parameter is currently ignored.\n"
             "See https://en.bitcoin.it/wiki/BIP_0022 for full specification.\n"

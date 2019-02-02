@@ -196,13 +196,14 @@ public:
 	}
 
 	template<typename Stream> void Unserialize(Stream &s, int nType, int nVersion) {
+		
 		unsigned int len = ReadCompactSize(s);
 		if ( len == 33 ) {
 			s.read((char*) vch, 33);
 		} else if (len == 0) {
 			Invalidate();
 		} else {
-			ERRORMSG("Unserializable......len=%d", len);
+			ERRORMSG("Unserializable: len=%d", len);
 		}
 	}
 

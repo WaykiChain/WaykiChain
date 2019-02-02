@@ -828,10 +828,7 @@ public:
     }
 
     string ToString(bool isAddress=false) const;
-
     Object ToJson(bool isAddress=false) const;
-
-
 };
 
 class CTxUndo {
