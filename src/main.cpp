@@ -4642,18 +4642,21 @@ std::shared_ptr<CBaseTransaction> CreateNewEmptyTransaction(unsigned char uType)
 string CBlockUndo::ToString() const {
     vector<CTxUndo>::const_iterator iterUndo = vtxundo.begin();
     string str("");
-    LogPrint("INFO","list txundo:\n");
+    LogPrint("DEBUG","list txundo:\n");
     for(; iterUndo != vtxundo.end(); ++iterUndo) {
         str += iterUndo->ToString();
     }
     return str;
 }
 
-bool DisconnectBlockFromTip(CValidationState &state) {
+bool DisconnectBlockFromTip(CValidationState &state) 
+{
     return DisconnectTip(state);
 }
-bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &vAccountLog) {
-if (SysCfg().IsTxIndex()) {
+
+bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &vAccountLog) 
+{
+    if (SysCfg().IsTxIndex()) {
         CDiskTxPos postx;
         if (pScriptDBTip->ReadTxIndex(txHash, postx)) {
             CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
@@ -4678,7 +4681,6 @@ if (SysCfg().IsTxIndex()) {
                         vAccountLog = txUndo.vAccountLog;
                         return true;
                     }
-
                 }
             }
         }
@@ -4686,7 +4688,8 @@ if (SysCfg().IsTxIndex()) {
     return false;
 }
 
-Value ListSetBlockIndexValid() {
+Value ListSetBlockIndexValid() 
+{
     Object result;
     std::set<CBlockIndex*, CBlockIndexWorkComparator>::reverse_iterator it = setBlockIndexValid.rbegin();
     for (; it != setBlockIndexValid.rend(); ++it) {
@@ -4702,7 +4705,8 @@ Value ListSetBlockIndexValid() {
 }
 
 
-bool EraseBlockIndexFromSet(CBlockIndex *pIndex) {
+bool EraseBlockIndexFromSet(CBlockIndex *pIndex) 
+{
     AssertLockHeld(cs_main);
     return setBlockIndexValid.erase(pIndex)>0;
 }
@@ -4724,7 +4728,6 @@ uint64_t GetBlockSubsidy(int nHeight)
     return nSubsidy;
     */
 //  return 15 * COIN;
-
 
     return IniCfg().GetBlockSubsidyCfg(nHeight);
 }

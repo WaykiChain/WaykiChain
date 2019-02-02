@@ -24,17 +24,19 @@ for Option in $@
 do
     case $Option in
         coin)
-        Modules=$Modules" --with-daemon"
+        Modules="$Modules --with-daemon"
+        ;;
+        coin-debug)
+        Modules="$Modules --with-daemon --enable-debug"
         ;;
         coin-test)
-        Modules=$Modules" --enable-tests"
+        Modules="$Modules --enable-tests"
         ;;
         coin-ptest)
-        Modules=$Modules" --enable-ptests"
+        Modules="$Modules --enable-ptests"
         ;;
         *)
         echo "\033[40;31mERROR: Unsupported Module Name!\033[0m"
-
         ShowHelp
         exit 1
         ;;
@@ -43,6 +45,7 @@ done
 
 srcdir="$(dirname $0)"
 cd "$srcdir"
+echo "srcdir=$srcdir"
 autoreconf --install --force
 
-CPPFLAGS="-std=c++11" ./configure --disable-upnp-default --enable-debug --without-gui --with-incompatible-bdb $Modules
+CPPFLAGS="-std=c++11" ./configure --disable-upnp-default --without-gui --with-incompatible-bdb $Modules
