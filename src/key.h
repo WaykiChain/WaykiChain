@@ -202,8 +202,7 @@ public:
 		} else if (len == 0) {
 			Invalidate();
 		} else {
-			throw ERRORMSG("Unserializable......len=%d", len);
-//	        assert(0); //never come here
+			ERRORMSG("Unserializable......len=%d", len);
 		}
 	}
 
@@ -286,7 +285,7 @@ public:
 	}
 
 	// Construct an invalid private key.
-	CKey(): fValid(false) 
+	CKey(): fValid(false)
 	{
 		LockObject(vch);
 		fCompressed = false;
@@ -300,14 +299,14 @@ public:
 	}
 
 	// Copy constructor. This is necessary because of memlocking.
-	CKey(const CKey &secret): fValid(secret.fValid), fCompressed(secret.fCompressed) 
+	CKey(const CKey &secret): fValid(secret.fValid), fCompressed(secret.fCompressed)
 	{
 		LockObject(vch);
 		memcpy(vch, secret.vch, sizeof(vch));
 	}
 
 	// Destructor (again necessary because of memlocking).
-	~CKey() 
+	~CKey()
 	{
 		UnlockObject(vch);
 	}

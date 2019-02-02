@@ -346,7 +346,7 @@ public:
         assert(CONTRACT_TX == pBaseTx->nTxType || COMMON_TX == pBaseTx->nTxType);
         *this = *(CTransaction *) pBaseTx;
     }
-    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee, 
+    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee,
         uint64_t Value, int height, vector_unsigned_char& pContract)
     {
         if (in_UserRegId.type() == typeid(CRegID)) {
@@ -364,7 +364,7 @@ public:
         llValues = Value;
         signature.clear();
     }
-    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee, 
+    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee,
         uint64_t Value, int height)
     {
         nTxType = COMMON_TX;
@@ -1063,25 +1063,19 @@ void Unserialize(Stream& is, std::shared_ptr<CBaseTransaction> &pa, int nType, i
     if (nTxType == REG_ACCT_TX) {
         pa = std::make_shared<CRegisterAccountTx>();
         Unserialize(is, *((CRegisterAccountTx *) (pa.get())), nType, nVersion);
-    }
-    else if (nTxType == COMMON_TX) {
+    } else if (nTxType == COMMON_TX) {
         pa = std::make_shared<CTransaction>();
         Unserialize(is, *((CTransaction *) (pa.get())), nType, nVersion);
-    }
-    else if (nTxType == CONTRACT_TX) {
+    } else if (nTxType == CONTRACT_TX) {
         pa = std::make_shared<CTransaction>();
         Unserialize(is, *((CTransaction *) (pa.get())), nType, nVersion);
-    }
-    else if (nTxType == REWARD_TX) {
+    } else if (nTxType == REWARD_TX) {
         pa = std::make_shared<CRewardTransaction>();
         Unserialize(is, *((CRewardTransaction *) (pa.get())), nType, nVersion);
-    }
-    else if (nTxType == REG_CONT_TX) {
+    } else if (nTxType == REG_CONT_TX) {
         pa = std::make_shared<CRegisterContractTx>();
         Unserialize(is, *((CRegisterContractTx *) (pa.get())), nType, nVersion);
-    }
-    else if (nTxType == DELEGATE_TX) {
-        LogPrint("ERROR", "Unserialize delegate tx");
+    } else if (nTxType == DELEGATE_TX) {
         pa = std::make_shared<CDelegateTransaction>();
         Unserialize(is, *((CDelegateTransaction *) (pa.get())), nType, nVersion);
     } else {
