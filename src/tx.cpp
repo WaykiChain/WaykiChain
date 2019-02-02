@@ -56,7 +56,7 @@ bool CID::Set(const CUserID &userid) {
     return boost::apply_visitor(CIDVisitor(this), userid);
 }
 
-CUserID CID::GetUserId() 
+CUserID CID::GetUserId()
 {
     unsigned long len = vchData.size();
     if (1 < len && len <= 10) {
@@ -79,7 +79,7 @@ CUserID CID::GetUserId()
     return CNullID();
 }
 
-bool CRegID::clean()  
+bool CRegID::clean()
 {
     nHeight = 0 ;
     nIndex = 0 ;
@@ -168,7 +168,7 @@ void CRegID::SetRegID(string strRegID)
     }
 }
 
-void CRegID::SetRegID(const vector<unsigned char>& vIn) 
+void CRegID::SetRegID(const vector<unsigned char>& vIn)
 {
     assert(vIn.size() == 6);
     vRegID = vIn;
@@ -177,12 +177,12 @@ void CRegID::SetRegID(const vector<unsigned char>& vIn)
     ds >> nIndex;
 }
 
-CRegID::CRegID(string strRegID) 
+CRegID::CRegID(string strRegID)
 {
     SetRegID(strRegID);
 }
 
-CRegID::CRegID(uint32_t nHeightIn, uint16_t nIndexIn) 
+CRegID::CRegID(uint32_t nHeightIn, uint16_t nIndexIn)
 {
     nHeight = nHeightIn;
     nIndex = nIndexIn;
@@ -191,7 +191,7 @@ CRegID::CRegID(uint32_t nHeightIn, uint16_t nIndexIn)
     vRegID.insert(vRegID.end(), BEGIN(nIndexIn), END(nIndexIn));
 }
 
-string CRegID::ToString() const 
+string CRegID::ToString() const
 {
     if(!IsEmpty())
       return  strprintf("%d-%d", nHeight, nIndex);
@@ -205,7 +205,7 @@ CKeyID CRegID::getKeyID(const CAccountViewCache &view)const
     return ret;
 }
 
-void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn) 
+void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn)
 {
     if (vIn.size() > 0) {
         CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);
@@ -432,30 +432,30 @@ Object CRegisterAccountTx::ToJSON(const CAccountViewCache &AccountView) const{
 bool CRegisterAccountTx::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 
     if (userId.type() != typeid(CPubKey)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx userId must be CPubKey"), 
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx userId must be CPubKey"),
                 REJECT_INVALID, "userid-type-error");
     }
 
     if ((minerId.type() != typeid(CPubKey)) && (minerId.type() != typeid(CNullID))) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx minerId must be CPubKey or CNullID"), 
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx minerId must be CPubKey or CNullID"),
                 REJECT_INVALID, "minerid-type-error");
     }
 
     //check pubKey valid
     if (!boost::get<CPubKey>(userId).IsFullyValid()) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransaction, register tx public key is invalid"), 
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransaction, register tx public key is invalid"),
                 REJECT_INVALID, "bad-regtx-publickey");
     }
 
     //check signature script
     uint256 sighash = SignatureHash();
     if(!CheckSignScript(sighash, signature, boost::get<CPubKey>(userId))) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransaction, register tx signature error "), 
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransaction, register tx signature error "),
                 REJECT_INVALID, "bad-regtx-signature");
     }
 
     if (!MoneyRange(llFees))
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransaction, register tx fee out of range"), 
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransaction, register tx fee out of range"),
                 REJECT_INVALID, "bad-regtx-fee-toolarge");
     return true;
 }
@@ -482,7 +482,7 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
                 UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     CAccountLog srcAcctLog(srcAcct);
     if (!srcAcct.OperateAccount(MINUS_FREE, minusValue, nHeight))
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CTransaction ExecuteTx, accounts insufficient funds"), 
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CTransaction ExecuteTx, accounts insufficient funds"),
                 UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     CUserID userId = srcAcct.keyID;
     if(!view.SetAccount(userId, srcAcct)){
@@ -497,7 +497,7 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
             desAcctLog.keyID = desAcct.keyID;
         }
         else {
-            return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, get account info failed by regid:%s", boost::get<CRegID>(desUserId).ToString()), 
+            return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, get account info failed by regid:%s", boost::get<CRegID>(desUserId).ToString()),
                     UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
     }
@@ -505,7 +505,7 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
         desAcctLog.SetValue(desAcct);
     }
     if (!desAcct.OperateAccount(ADD_FREE, addValue, nHeight)) {
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CTransaction ExecuteTx, operate accounts error"), 
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CTransaction ExecuteTx, operate accounts error"),
                 UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
     if (!view.SetAccount(desUserId, desAcct)) {
@@ -528,7 +528,7 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
         int64_t llTime = GetTimeMillis();
         tuple<bool, uint64_t, string> ret = vmRunEvn.run(pTx, view, scriptDB, nHeight, el, nRunStep);
         if (!std::get<0>(ret))
-            return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, txhash=%s run script error:%s", GetHash().GetHex(), std::get<2>(ret)), 
+            return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, txhash=%s run script error:%s", GetHash().GetHex(), std::get<2>(ret)),
                     UPDATE_ACCOUNT_FAIL, "run-script-error:" + std::get<2>(ret));
         LogPrint("CONTRACT_TX", "execute contract elapse:%lld, txhash=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
         set<CKeyID> vAddress;
@@ -989,22 +989,22 @@ bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountView
     }
 
     if( llFees < llFuel) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, register app tx fee too litter (actual:%lld vs need:%lld)", llFees, llFuel), 
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, register app tx fee too litter (actual:%lld vs need:%lld)", llFees, llFuel),
                 REJECT_INVALID, "fee-too-litter");
     }
 
     CAccount acctInfo;
     if (!view.GetAccount(boost::get<CRegID>(regAcctId), acctInfo)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, get account falied"), 
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, get account falied"),
                 REJECT_INVALID, "bad-getaccount");
     }
     if (!acctInfo.IsRegistered()) {
-        return state.DoS(100, ERRORMSG("CheckTransaction(): CRegisterContractTx CheckTransaction, account have not registed public key"), 
+        return state.DoS(100, ERRORMSG("CheckTransaction(): CRegisterContractTx CheckTransaction, account have not registed public key"),
                 REJECT_INVALID, "bad-no-pubkey");
     }
     uint256 signhash = SignatureHash();
     if (!CheckSignScript(signhash, signature, acctInfo.PublicKey)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, CheckSignScript failed"), 
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, CheckSignScript failed"),
                 REJECT_INVALID, "bad-signscript-check");
     }
     return true;
@@ -1040,7 +1040,7 @@ bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValid
                     UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }
     if (!view.SaveAccountInfo(acctInfo.regID, acctInfo.keyID, acctInfo)) {
-            return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx create new account script id %s script info error", acctInfo.regID.ToString()), 
+            return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx create new account script id %s script info error", acctInfo.regID.ToString()),
                     UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
     txundo.vAccountLog.push_back(acctInfoLog);
@@ -1049,12 +1049,12 @@ bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValid
     for (auto iter = operVoteFunds.begin(); iter != operVoteFunds.end(); ++iter) {
         CAccount delegate;
         if (!view.GetAccount(CUserID(iter->fund.pubKey), delegate)) {
-            return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, read regist addr %s account info error", iter->fund.pubKey.GetKeyID().ToAddress()), 
+            return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, read regist addr %s account info error", iter->fund.pubKey.GetKeyID().ToAddress()),
                     UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         CAccount delegateAcctLog(delegate);
         if (!delegate.OperateVote(VoteOperType(iter->operType), iter->fund.value)) {
-            return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate delegate address %s vote fund error", iter->fund.pubKey.GetKeyID().ToAddress()), 
+            return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate delegate address %s vote fund error", iter->fund.pubKey.GetKeyID().ToAddress()),
                     UPDATE_ACCOUNT_FAIL, "operate-vote-error");
         }
         txundo.vAccountLog.push_back(delegateAcctLog);
@@ -1076,7 +1076,7 @@ bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValid
         txundo.vScriptOperLog.push_back(eraseDbLog);
 
         if (!view.SaveAccountInfo(delegate.regID, delegate.keyID, delegate)) {
-                return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx create new account script id %s script info error", acctInfo.regID.ToString()), 
+                return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx create new account script id %s script info error", acctInfo.regID.ToString()),
                         UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
     }
@@ -1393,7 +1393,7 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const int nC
     return true;
 }
 
-bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const int nCurHeight) 
+bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const int nCurHeight)
 {
     int64_t totalVotes = 0;
     if(!voteFunds.empty()) {
@@ -1403,7 +1403,7 @@ bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const in
     if (!IsMoneyOverflow(llProfit)) return false;
     for (auto operVote = operVoteFunds.begin(); operVote != operVoteFunds.end(); ++operVote) {
         CPubKey pubKey = operVote->fund.pubKey;
-        vector<CVoteFund>::iterator itfund = find_if(voteFunds.begin(), voteFunds.end(), 
+        vector<CVoteFund>::iterator itfund = find_if(voteFunds.begin(), voteFunds.end(),
             [pubKey](CVoteFund fund){ return fund.pubKey == pubKey; });
 
         int voteType = VoteOperType(operVote->operType);
@@ -1483,7 +1483,7 @@ string COperVoteFund::ToString(bool isAddress) const {
 
 Object COperVoteFund::ToJson(bool isAddress) const {
     Object obj;
-    obj.push_back(Pair("operType", voteOperTypeArray[operType]));
+    obj.push_back(Pair("operType", (operType > 0 && operType < 3) ? voteOperTypeArray[operType] : "INVALID_OPER_TYPE"));
     obj.push_back(Pair("voteFund", fund.ToJson(isAddress)));
     return obj;
 }

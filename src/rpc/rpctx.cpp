@@ -2602,7 +2602,7 @@ Value sigstr(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value decoderawtransaction(const Array& params, bool fHelp) 
+Value decoderawtransaction(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1) {
         throw runtime_error("decoderawtransaction \"hexstring\"\n"
@@ -2627,33 +2627,42 @@ Value decoderawtransaction(const Array& params, bool fHelp)
     switch (pBaseTx.get()->nTxType) {
     case COMMON_TX: {
         std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(pBaseTx.get());
-        obj = tx->ToJSON(view);
+        if (tx.get()) {
+            obj = tx->ToJSON(view);
+        }
     }
         break;
     case REG_ACCT_TX: {
         std::shared_ptr<CRegisterAccountTx> tx = std::make_shared<CRegisterAccountTx>(pBaseTx.get());
-        obj = tx->ToJSON(view);
+        if (tx.get()) {
+            obj = tx->ToJSON(view);
+        }
     }
         break;
     case CONTRACT_TX: {
         std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(pBaseTx.get());
-        obj = tx->ToJSON(view);
+        if (tx.get()) {
+            obj = tx->ToJSON(view);
+        }
     }
         break;
     case REWARD_TX:
         break;
     case REG_CONT_TX: {
         std::shared_ptr<CRegisterContractTx> tx = std::make_shared<CRegisterContractTx>(pBaseTx.get());
-        obj = tx->ToJSON(view);
+        if (tx.get()) {
+            obj = tx->ToJSON(view);
+        }
     }
         break;
     case DELEGATE_TX: {
         std::shared_ptr<CDelegateTransaction> tx = std::make_shared<CDelegateTransaction>(pBaseTx.get());
-        obj = tx->ToJSON(view);
+        if (tx.get()) {
+            obj = tx->ToJSON(view);
+        }
     }
         break;
     default:
-//      assert(0);
         break;
     }
     return obj;
