@@ -817,9 +817,9 @@ Value votedelegatetx(const Array& params, bool fHelp) {
 }
 
 //create a vote delegate raw transaction
-Value getvotedelegatetxraw(const Array& params, bool fHelp) {
+Value genvotedelegatetxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() <  3  || params.size() > 4) {
-            throw runtime_error("getvotedelegatetxraw \"addr\" \"opervotes\" \"fee\" \"height\"\n"
+            throw runtime_error("genvotedelegatetxraw \"addr\" \"opervotes\" \"fee\" \"height\"\n"
                     "\nget a vote delegate transaction raw transaction\n"
                     "\nArguments:\n"
                     "1.\"addr\": (string required) send delegate transaction address\n"
@@ -836,8 +836,8 @@ Value getvotedelegatetxraw(const Array& params, bool fHelp) {
                     "\nResult:\n"
                     "\"txhash\": (string)\n"
                     "\nExamples:\n"
-                    + HelpExampleCli("getvotedelegatetxraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000") + "\nAs json rpc call\n"
-                    + HelpExampleRpc("getvotedelegatetxraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000"));
+                    + HelpExampleCli("genvotedelegatetxraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000") + "\nAs json rpc call\n"
+                    + HelpExampleRpc("genvotedelegatetxraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000"));
     }
     RPCTypeCheck(params, list_of(str_type)(array_type)(int_type)(int_type));
     string sendAddr = params[0].get_str();
@@ -851,7 +851,7 @@ Value getvotedelegatetxraw(const Array& params, bool fHelp) {
     //get keyid
     CKeyID keyid;
     if (!GetKeyId(sendAddr, keyid)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in getvotedelegatetxraw Error: Send tx address error.");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in genvotedelegatetxraw Error: Send tx address error.");
     }
     CDelegateTransaction delegateTx;
     assert(pwalletMain != NULL);
@@ -863,20 +863,20 @@ Value getvotedelegatetxraw(const Array& params, bool fHelp) {
 
         CUserID userId = keyid;
         if (!view.GetAccount(userId, account)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in getvotedelegatetxraw Error: Account does not exist.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in genvotedelegatetxraw Error: Account does not exist.");
         }
 
         if (!account.IsRegistered()) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in getvotedelegatetxraw Error: Account is not registered.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in genvotedelegatetxraw Error: Account is not registered.");
         }
 
         uint64_t balance = account.GetRawBalance();
         if (balance < fee) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in getvotedelegatetxraw Error: Account balance is insufficient.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in genvotedelegatetxraw Error: Account balance is insufficient.");
         }
 
         if (!pwalletMain->HasKey(keyid)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in getvotedelegatetxraw Error: Send tx address is not in wallet file.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in genvotedelegatetxraw Error: Send tx address is not in wallet file.");
         }
 
         delegateTx.llFees = fee;
@@ -893,15 +893,15 @@ Value getvotedelegatetxraw(const Array& params, bool fHelp) {
             const Value& delegateAddress = find_value(operVote.get_obj(), "delegate");
             const Value& delegateVotes = find_value(operVote.get_obj(),  "votes");
             if(delegateAddress.type() == null_type || delegateVotes == null_type) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "in getvotedelegatetxraw Error: Voted delegator's address type error or vote value error.");
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "in genvotedelegatetxraw Error: Voted delegator's address type error or vote value error.");
             }
             CKeyID delegateKeyId;
             if (!GetKeyId(delegateAddress.get_str(), delegateKeyId)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in createdelegatetxraw Error: Voted delegator's address error.");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in genvotedelegatetxraw Error: Voted delegator's address error.");
             }
             CAccount delegateAcct;
             if (!view.GetAccount(CUserID(delegateKeyId), delegateAcct)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in createdelegatetxraw Error: Voted delegator's address is not registered.");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in genvotedelegatetxraw Error: Voted delegator's address is not registered.");
             }
             operVoteFund.fund.pubKey = delegateAcct.PublicKey;
             operVoteFund.fund.value = (uint64_t)abs(delegateVotes.get_int64());
@@ -1963,29 +1963,29 @@ static int getDataFromAppDb(CScriptDBViewCache &cache, const CRegID &regid, int 
     return ret.size();
 }
 
-Value getcontractdata(const Array& params, bool fHelp) {
+Value getcontractdataraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
-        throw runtime_error("getcontractdata \"contract_regid\" \"[pagesize or key]\" (\"index\")\n"
-                "\nget the contract data by a given app RegID\n"
+        throw runtime_error("getcontractdataraw \"contract_regid\" \"[pagesize or key]\" (\"index\")\n"
+                "\nget the contract data (hexadecimal format) by a given app RegID\n"
                 "\nArguments:\n"
                 "1.\"contract_regid\": (string, required) App RegId\n"
                 "2.[pagesize or key]: (pagesize int, required),if only two params,it is key, otherwise it is pagesize\n"
                 "3.\"index\": (int optional)\n"
                 "\nResult:\n"
                 "\nExamples:\n"
-                + HelpExampleCli("getcontractdata", "\"1304166-1\" \"key\"")
-                + HelpExampleRpc("getcontractdata", "\"1304166-1\" \"key\""));
+                + HelpExampleCli("getcontractdataraw", "\"1304166-1\" \"key\"")
+                + HelpExampleRpc("getcontractdataraw", "\"1304166-1\" \"key\""));
     }
     int height = chainActive.Height();
 //  //RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
 //  vector<unsigned char> vscriptid = ParseHex(params[0].get_str());
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true) {
-        throw runtime_error("getcontractdata : app regid not supplied!");
+        throw runtime_error("getcontractdataraw : app regid not supplied!");
     }
 
     if (!pScriptDBTip->HaveScript(regid)) {
-        throw runtime_error("getcontractdata : app regid does NOT exist!");
+        throw runtime_error("getcontractdataraw : app regid does NOT exist!");
     }
     Object script;
 
@@ -1994,7 +1994,7 @@ Value getcontractdata(const Array& params, bool fHelp) {
         vector<unsigned char> key = ParseHex(params[1].get_str());
         vector<unsigned char> value;
         if (!contractScriptTemp.GetContractData(height, regid, key, value)) {
-            throw runtime_error("getcontractdata :the key does NOT exist!");
+            throw runtime_error("getcontractdataraw :the key does NOT exist!");
         }
         script.push_back(Pair("regid", params[0].get_str()));
         script.push_back(Pair("key", HexStr(key)));
@@ -2005,7 +2005,7 @@ Value getcontractdata(const Array& params, bool fHelp) {
         int dbsize;
         contractScriptTemp.GetContractItemCount(regid, dbsize);
         if (0 == dbsize) {
-            throw runtime_error("getcontractdata :the app has NO data!");
+            throw runtime_error("getcontractdataraw :the contract has NO data!");
         }
         int pagesize = params[1].get_int();
         int index = params[2].get_int();
@@ -2023,33 +2023,32 @@ Value getcontractdata(const Array& params, bool fHelp) {
         }
         return retArray;
     }
-
     return script;
 }
 
-Value getcontractdataraw(const Array& params, bool fHelp) {
+Value getcontractdata(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
-        throw runtime_error("getcontractdataraw \"contract_regid\" \"[pagesize or key]\" (\"index\")\n"
-                "\nget the contract data by a given contract RegID\n"
+        throw runtime_error("getcontractdata \"contract_regid\" \"[pagesize or key]\" (\"index\")\n"
+                "\nget the contract data (original input format) by a given contract RegID\n"
                 "\nArguments:\n"
                 "1.\"contract_regid\": (string, required) Contract RegId\n"
                 "2.[pagesize or key]: (pagesize int, required),if only two params,it is key, otherwise it is pagesize\n"
                 "3.\"index\": (int optional)\n"
                 "\nResult:\n"
                 "\nExamples:\n"
-                + HelpExampleCli("getcontractdataraw", "\"1304166-1\" \"key\"")
-                + HelpExampleRpc("getcontractdataraw", "\"1304166-1\" \"key\""));
+                + HelpExampleCli("getcontractdata", "\"1304166-1\" \"key\"")
+                + HelpExampleRpc("getcontractdata", "\"1304166-1\" \"key\""));
     }
     int height = chainActive.Height();
 //  //RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
 //  vector<unsigned char> vscriptid = ParseHex(params[0].get_str());
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true) {
-        throw runtime_error("getcontractdataraw : app regid NOT supplied!");
+        throw runtime_error("getcontractdata : contract regid NOT supplied!");
     }
 
     if (!pScriptDBTip->HaveScript(regid)) {
-        throw runtime_error("getcontractdataraw : app regid NOT exist!");
+        throw runtime_error("getcontractdata : contract regid NOT exist!");
     }
     Object script;
 
@@ -2095,23 +2094,22 @@ Value getcontractdataraw(const Array& params, bool fHelp) {
         }
         return retArray;
     }
-
     return script;
 }
 
 Value getcontractconfirmdata(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 3 && params.size() !=4)) {
         throw runtime_error("getcontractconfirmdata \"regid\" \"pagesize\" \"index\"\n"
-                    "\nget script valid data\n"
-                    "\nArguments:\n"
-                    "1.\"regid\": (string, required) app RegId\n"
-                    "2.\"pagesize\": (int, required)\n"
-                    "3.\"index\": (int, required )\n"
-                    "4.\"minconf\":  (numeric, optional, default=1) Only include contract transactions confirmed \n"
-                    "\nResult:\n"
-                    "\nExamples:\n"
-                    + HelpExampleCli("getcontractconfirmdata", "\"1304166-1\" \"1\"  \"1\"")
-                    + HelpExampleRpc("getcontractconfirmdata", "\"1304166-1\" \"1\"  \"1\""));
+                "\nget script valid data\n"
+                "\nArguments:\n"
+                "1.\"regid\": (string, required) app RegId\n"
+                "2.\"pagesize\": (int, required)\n"
+                "3.\"index\": (int, required )\n"
+                "4.\"minconf\":  (numeric, optional, default=1) Only include contract transactions confirmed \n"
+                "\nResult:\n"
+                "\nExamples:\n"
+                + HelpExampleCli("getcontractconfirmdata", "\"1304166-1\" \"1\"  \"1\"")
+                + HelpExampleRpc("getcontractconfirmdata", "\"1304166-1\" \"1\"  \"1\""));
     }
     std::shared_ptr<CScriptDBViewCache> pAccountViewCache;
     if(4 == params.size() && 0==params[3].get_int()) {
@@ -2225,10 +2223,10 @@ Value getcontractdbsize(const Array& params, bool fHelp) {
     return nItemCount;
 }
 
-Value getregisteraccounttxraw(const Array& params, bool fHelp) {
+Value genregisteraccounttxraw(const Array& params, bool fHelp) {
 
     if (fHelp || (params.size() < 3  || params.size() > 4)) {
-        throw runtime_error("registeraccounttxraw \"fee\" \"height\" \"publickey\" (\"minerpublickey\") \n"
+        throw runtime_error("genregisteraccounttxraw \"fee\" \"height\" \"publickey\" (\"minerpublickey\") \n"
                 "\ncreate a register account transaction\n"
                 "\nArguments:\n"
                 "1.fee: (numeric, required) pay to miner\n"
@@ -2238,9 +2236,9 @@ Value getregisteraccounttxraw(const Array& params, bool fHelp) {
                 "\nResult:\n"
                 "\"txhash\": (string)\n"
                 "\nExamples:\n"
-                + HelpExampleCli("registeraccounttxraw",  "10000  3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\"")
+                + HelpExampleCli("genregisteraccounttxraw",  "10000  3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\"")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("registeraccounttxraw", " 10000 3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\""));
+                + HelpExampleRpc("genregisteraccounttxraw", " 10000 3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\""));
     }
     CUserID ukey;
     CUserID uminerkey = CNullID();
@@ -2283,7 +2281,6 @@ Value getregisteraccounttxraw(const Array& params, bool fHelp) {
     Object obj;
     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
     return obj;
-
 }
 
 Value submittx(const Array& params, bool fHelp) {
@@ -2314,9 +2311,9 @@ Value submittx(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value getcallcontracttxraw(const Array& params, bool fHelp) {
+Value gencallcontracttxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
-        throw runtime_error("getcallcontracttxraw \"height\" \"fee\" \"amount\" \"addr\" \"contract\" \n"
+        throw runtime_error("gencallcontracttxraw \"height\" \"fee\" \"amount\" \"addr\" \"contract\" \n"
                 "\ncreate contract\n"
                 "\nArguments:\n"
                 "1.\"fee\": (numeric, required) pay to miner\n"
@@ -2328,11 +2325,11 @@ Value getcallcontracttxraw(const Array& params, bool fHelp) {
                 "\nResult:\n"
                 "\"contract tx str\": (string)\n"
                 "\nExamples:\n"
-                + HelpExampleCli("getcallcontracttxraw",
+                + HelpExampleCli("gencallcontracttxraw",
                         "1000 01020304 000000000100 [\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\"] "
                                 "[\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\","
                                 "\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\"] 10") + "\nAs json rpc call\n"
-                + HelpExampleRpc("getcallcontracttxraw",
+                + HelpExampleRpc("gencallcontracttxraw",
                         "1000 01020304 000000000100 000000000100 [\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\"] "
                                 "[\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\","
                                 "\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\"] 10"));
@@ -2349,25 +2346,25 @@ Value getcallcontracttxraw(const Array& params, bool fHelp) {
     vector<unsigned char> vcontract = ParseHex(params[4].get_str());
 
     if (fee > 0 && fee < CTransaction::nMinTxFee) {
-        throw runtime_error("in getcallcontracttxraw: fee is smaller than nMinTxFee\n");
+        throw runtime_error("in gencallcontracttxraw: fee is smaller than nMinTxFee\n");
     }
 
     if (appid.IsEmpty()) {
-        throw runtime_error("in getcallcontracttxraw: addresss is error!\n");
+        throw runtime_error("in gencallcontracttxraw: addresss is error!\n");
     }
 
     CAccountViewCache view(*pAccountViewTip, true);
     CAccount secureAcc;
 
     if (!pScriptDBTip->HaveScript(appid)) {
-        throw runtime_error(tinyformat::format("getcallcontracttxraw :regid %s is not exist\n", appid.ToString()));
+        throw runtime_error(tinyformat::format("gencallcontracttxraw :regid %s is not exist\n", appid.ToString()));
     }
 
     CKeyID keyid;
     if (!view.GetKeyId(userid, keyid)) {
         CID id(userid);
         LogPrint("INFO", "vaccountid:%s have no key id\r\n", HexStr(id.GetID()).c_str());
-        throw runtime_error(tinyformat::format("getcallcontracttxraw :vaccountid:%s have no key id\r\n", HexStr(id.GetID()).c_str()));
+        throw runtime_error(tinyformat::format("gencallcontracttxraw :vaccountid:%s have no key id\r\n", HexStr(id.GetID()).c_str()));
     }
 
     int height = chainActive.Tip()->nHeight;
@@ -2385,10 +2382,10 @@ Value getcallcontracttxraw(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value getregistercontracttxraw(const Array& params, bool fHelp) {
+Value genregistercontracttxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4) {
         throw runtime_error(
-            "getregistercontracttxraw \"height\" \"fee\" \"addr\" \"flag\" \"script or scriptid\" (\"script description\")\n"
+            "genregistercontracttxraw \"height\" \"fee\" \"addr\" \"flag\" \"script or scriptid\" (\"script description\")\n"
             "\nregister script\n"
             "\nArguments:\n"
             "1.\"fee\": (numeric required) pay to miner\n"
@@ -2400,10 +2397,10 @@ Value getregistercontracttxraw(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txhash\": (string)\n"
             "\nExamples:\n"
-            + HelpExampleCli("getregistercontracttxraw",
+            + HelpExampleCli("genregistercontracttxraw",
                     "\"10\" \"10000\" \"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"1\" \"010203040506\" ")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getregistercontracttxraw",
+            + HelpExampleRpc("genregistercontracttxraw",
                     "\"10\" \"10000\" \"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"1\" \"010203040506\" "));
     }
 
@@ -2418,7 +2415,7 @@ Value getregistercontracttxraw(const Array& params, bool fHelp) {
         string path = params[3].get_str();
         FILE* file = fopen(path.c_str(), "rb+");
         if (!file) {
-            throw runtime_error("getregistercontracttxraw open App Lua Script file" + path + "error");
+            throw runtime_error("genregistercontracttxraw open App Lua Script file" + path + "error");
         }
         long lSize;
         fseek(file, 0, SEEK_END);
@@ -2435,7 +2432,7 @@ Value getregistercontracttxraw(const Array& params, bool fHelp) {
         if (fread(buffer, 1, lSize, file) != (size_t) lSize) {
             free(buffer);
             fclose(file);//及时关闭
-            throw runtime_error("read script file error");
+            throw runtime_error("read contract script file error");
         } else {
             fclose(file);
         }
@@ -2456,12 +2453,12 @@ Value getregistercontracttxraw(const Array& params, bool fHelp) {
     }
 
     if (fee > 0 && fee < CTransaction::nMinTxFee) {
-        throw runtime_error("in getregistercontracttxraw :fee is smaller than nMinTxFee\n");
+        throw runtime_error("in genregistercontracttxraw :fee is smaller than nMinTxFee\n");
     }
     //get keyid
     CKeyID keyid;
     if (!GetKeyId(params[2].get_str(), keyid)) {
-        throw runtime_error("in getregistercontracttxraw :send address err\n");
+        throw runtime_error("in genregistercontracttxraw :send address err\n");
     }
 
     //balance
@@ -2470,11 +2467,11 @@ Value getregistercontracttxraw(const Array& params, bool fHelp) {
 
     CUserID userId = keyid;
     if (!view.GetAccount(userId, account)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "in getregistercontracttxraw Error: Account does not exist.");
+        throw JSONRPCError(RPC_WALLET_ERROR, "in genregistercontracttxraw Error: Account does not exist.");
     }
 
     if (!account.IsRegistered()) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "in getregistercontracttxraw Error: Account is not registered.");
+        throw JSONRPCError(RPC_WALLET_ERROR, "in genregistercontracttxraw Error: Account is not registered.");
     }
 
     if (flag) {
@@ -2491,7 +2488,7 @@ Value getregistercontracttxraw(const Array& params, bool fHelp) {
             return acct.regID;
         }
         throw runtime_error(
-                tinyformat::format("getregistercontracttxraw :account id %s is not exist\n", mkeyId.ToAddress()));
+                tinyformat::format("genregistercontracttxraw :account id %s not exist\n", mkeyId.ToAddress()));
     };
     std::shared_ptr<CRegisterContractTx> tx = std::make_shared<CRegisterContractTx>();
     tx.get()->regAcctId = GetUserId(keyid);

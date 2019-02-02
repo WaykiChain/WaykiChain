@@ -20,13 +20,18 @@ using namespace json_spirit;
 class CBaseTransaction;
 
 extern Value registeraccounttx(const Array& params, bool fHelp);
-extern Value getsendtoaddresstxraw(const Array& params, bool fHelp);
+
 extern Value callcontracttx(const Array& params, bool fHelp);
 extern Value signcontracttx(const Array& params, bool fHelp);
 extern Value createfreezetx(const Array& params, bool fHelp);
 extern Value registercontracttx(const Array& params, bool fHelp);
 extern Value votedelegatetx(const Array& params, bool fHelp);
-extern Value getvotedelegatetxraw(const Array& params, bool fHelp);
+
+extern Value gensendtoaddresstxraw(const Array& params, bool fHelp);
+extern Value genregisteraccounttxraw(const Array& params, bool fHelp);
+extern Value genregistercontracttxraw(const Array& params, bool fHelp);
+extern Value gencallcontracttxraw(const Array& params, bool fHelp);
+extern Value genvotedelegatetxraw(const Array& params, bool fHelp);
 
 extern Value listaddr(const Array& params, bool fHelp);
 extern Value listtx(const Array& params, bool fHelp);

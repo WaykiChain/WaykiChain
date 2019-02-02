@@ -7,7 +7,7 @@
 | addnode | ```<node><add/remove/onetry>```| Attempts add or remove ```<node>``` from the addnode list or try a connection to ```<node>``` once.| N |
 | backupwallet | ```<destination>``` | Safely copies wallet.dat to destination, which can be a directory or a path with filename. | N |
 | callcontracttx | ```<userregid><appid><amount><contract><fee>[height, default = the tip block height]``` | create contract transaction | Y |
-| getcallcontracttxraw | ```<height><fee><amount><address><contract>``` | get call contract raw transaction | N |
+| gencallcontracttxraw | ```<height><fee><amount><address><contract>``` | get call contract raw transaction | N |
 | dropprivkey | | drop private key from wallet | Y |
 | dumpwallet | ```<filename>``` | Dumps all wallet keys in a human-readable format.And write to ```<filename>``` | Y |
 | dumpprivkey | ```<wiccaddress>``` | Reveals the private key corresponding to ```<wiccaddress>``` | Y |
@@ -34,8 +34,8 @@
 | getnetworkinfo | | Returns an object containing various state info regarding P2P network | N |
 | getpeerinfo | | Returns data about each connected node | N |
 | getrawmempool | ```[verbose]``` | Returns all transaction ids in memory pool.If verbose is true,return  a json object, false return array of transaction ids. | N |
-| getcontractdata | ```<scriptid><pagsize or key>[index]``` | get contract managed data by given regid. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
-| getcontractdataraw | ```<scriptid><pagsize or key>[index]``` | get contract managed raw data by given app regid. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
+| getcontractdata | ```<scriptid><pagsize or key>[index]``` | get contract managed data by given regid in plaintext form. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
+| getcontractdataraw | ```<scriptid><pagsize or key>[index]``` | get contract data by given app regid in hexdigit format. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
 | getcontractconfirmdata | ```<scriptid><pagsize><index>``` | get contract data confirmed | N |
 | gettxdetail | ```<txhash>``` | Returns an object about the transaction  detail information by ```<txhash>``` | N |
 | getwalletinfo | | Returns an object containing various wallet state info | N |
@@ -51,12 +51,12 @@
 | listtxcache | | get all transactions in cache | N |
 | listunconfirmedtx | | get the list of unconfirmedtx | N |
 | registeraccounttx | ```<address> [fee]``` | register an account from the local wallet node | Y |
-| getregisteraccounttxraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account raw transaction | N |
+| genregisteraccounttxraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account raw transaction | N |
 | reconsiderblock | ```<hash>``` | Removes invalidity status of a block and its descendants, reconsider them for activation. | N |
 | registercontracttx | ```<address><filepath><fee>[height][contract_description]``` | register a contract app | Y |
-| getregistercontracttxraw | ```<height><fee><address><flag><contract or contract RegId><contract description>``` | get Contract Registration Tx Raw: <br>1.    Height(numeric required) :valod height<br> 2.    Fee: (numeric required) pay to miner<br>3.    address: (string required)for send<br>4.    flag: (numeric, required) 0-1<br>5.    app or appregid: (string required), if flag=0 is script's file path, else if flag=1 scriptid<br>6.    script description:(string optional) new script description.<br>| N |
+| genregistercontracttxraw | ```<height><fee><address><flag><contract or contract RegId><contract description>``` | get Contract Registration Tx Raw: <br>1.    Height(numeric required) :valod height<br> 2.    Fee: (numeric required) pay to miner<br>3.    address: (string required)for send<br>4.    flag: (numeric, required) 0-1<br>5.    app or appregid: (string required), if flag=0 is script's file path, else if flag=1 scriptid<br>6.    script description:(string optional) new script description.<br>| N |
 | sendtoaddress | ```[wiccaddress]<[recvaddress><amount>``` | Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001. Returns the transaction ID <txhash> if successful | Y |
-| getsendtoaddresstxraw | ```<fee><amount><sendaddress><recvaddress><height>``` | generate a signed raw tx with height,fee,amount,sendaddress, recvaddress | N |
+| gensendtoaddresstxraw | ```<fee><amount><sendaddress><recvaddress><height>``` | generate a signed raw tx with height,fee,amount,sendaddress, recvaddress | N |
 | sendtoaddresswithfee | [sendaddress]<recvaddress><amount><fee> | Send an amount to a given address with fee. The amount is a real and is rounded to the nearest 0.00000001 (Sendaddress is optional) | Y |
 | setgenerate | ```<generate>``` [genproclimit] | <generate> is true or false to turn generation on or off. Generation is limited to [genproclimit] processors, -1 is unlimited. | N |
 | settxfee | ```<amount>``` | ```<amount>``` is a real and is rounded to the nearest 0.00000001 | N |

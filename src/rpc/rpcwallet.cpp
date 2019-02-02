@@ -365,12 +365,12 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
     return obj;
 }
 
-Value getsendtoaddresstxraw(const Array& params, bool fHelp)
+Value gensendtoaddresstxraw(const Array& params, bool fHelp)
 {
     int size = params.size();
     if (fHelp || size < 4 || size > 5 ) {
         throw runtime_error(
-                "getsendtoaddresstxraw \"fee\" \"amount\" \"sendaddress\" \"recvaddress\" \"height\"\n"
+                "gensendtoaddresstxraw \"fee\" \"amount\" \"sendaddress\" \"recvaddress\" \"height\"\n"
                 "\n create common transaction by height: fee, amount, sendaddress, recvaddress\n"
                 + HelpRequiringPassphrase() + "\nArguments:\n"
                 "1. \"fee\"     (numeric, required)  \n"
@@ -381,15 +381,15 @@ Value getsendtoaddresstxraw(const Array& params, bool fHelp)
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
                 "\nExamples:\n"
-                + HelpExampleCli("getsendtoaddresstxraw", "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
-                + HelpExampleCli("getsendtoaddresstxraw",
+                + HelpExampleCli("gensendtoaddresstxraw", "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
+                + HelpExampleCli("gensendtoaddresstxraw",
                 "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"")
-                + HelpExampleRpc("getsendtoaddresstxraw",
+                + HelpExampleRpc("gensendtoaddresstxraw",
                 "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""
-                + HelpExampleCli("getsendtoaddresstxraw", "\"0-6\" 10 ")
-                + HelpExampleCli("getsendtoaddresstxraw", "100 1000 \"00000000000000000005\" 10 ")
-                + HelpExampleCli("getsendtoaddresstxraw", "100 1000 \"0-6\" \"0-5\" 10 ")
-                + HelpExampleCli("getsendtoaddresstxraw", "100 1000 \"00000000000000000005\" \"0-6\"10 ")));
+                + HelpExampleCli("gensendtoaddresstxraw", "\"0-6\" 10 ")
+                + HelpExampleCli("gensendtoaddresstxraw", "100 1000 \"00000000000000000005\" 10 ")
+                + HelpExampleCli("gensendtoaddresstxraw", "100 1000 \"0-6\" \"0-5\" 10 ")
+                + HelpExampleCli("gensendtoaddresstxraw", "100 1000 \"00000000000000000005\" \"0-6\"10 ")));
     }
 
     CKeyID sendKeyId, recvKeyId;
