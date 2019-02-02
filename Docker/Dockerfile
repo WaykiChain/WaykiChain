@@ -6,7 +6,7 @@ ARG debug='-debug'
 # Install prrequisite components
 #COPY ./sources.list /etc/apt
 RUN echo exit 0 > /usr/sbin/policy-rc.d
-RUN add-apt-repository ppa:bitcoin/bitcoin -y --force-yes && apt-get update
+RUN add-apt-repository ppa:bitcoin/bitcoin -y && apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes build-essential libtool autotools-dev automake \
 pkg-config libssl-dev libevent-dev bsdmainutils python3 libprotobuf-dev protobuf-compiler \
 libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev \
