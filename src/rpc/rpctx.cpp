@@ -362,8 +362,7 @@ Value gettxdetail(const Array& params, bool fHelp) {
 //create a register account tx
 Value registeraccounttx(const Array& params, bool fHelp) {
     if (fHelp || params.size() == 0) {
-           throw runtime_error(
-                "registeraccounttx \"addr\" (\"fee\")\n"
+           throw runtime_error("registeraccounttx \"addr\" (\"fee\")\n"
                 "\nregister secure account\n"
                 "\nArguments:\n"
                 "1.addr: (string, required)\n"
@@ -450,8 +449,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 //create a contract tx
 Value callcontracttx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
-       throw runtime_error(
-            "callcontracttx \"senderaddr\" \"appregid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
+       throw runtime_error("callcontracttx \"senderaddr\" \"appregid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
             "\ncreate contract transaction\n"
             "\nArguments:\n"
             "1.\"senderaddr\": (string, required)\n tx sender's base58 addr\n"

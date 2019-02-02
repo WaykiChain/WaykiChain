@@ -257,8 +257,7 @@ bool CCryptoKeyStore::GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut, bo
 				return CKeyStore::GetPubKey(address, vchPubKeyOut, IsMiner);
 
 			CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address);
-			if (mi != mapCryptedKeys.end())
-			{
+			if (mi != mapCryptedKeys.end()) {
 				vchPubKeyOut = (*mi).second.first;
 				return true;
 			}
