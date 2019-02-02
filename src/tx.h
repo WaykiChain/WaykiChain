@@ -346,7 +346,7 @@ public:
         assert(CONTRACT_TX == pBaseTx->nTxType || COMMON_TX == pBaseTx->nTxType);
         *this = *(CTransaction *) pBaseTx;
     }
-    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee, 
+    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee,
         uint64_t Value, int height, vector_unsigned_char& pContract)
     {
         if (in_UserRegId.type() == typeid(CRegID)) {
@@ -364,7 +364,7 @@ public:
         llValues = Value;
         signature.clear();
     }
-    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee, 
+    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee,
         uint64_t Value, int height)
     {
         nTxType = COMMON_TX;
@@ -1081,7 +1081,6 @@ void Unserialize(Stream& is, std::shared_ptr<CBaseTransaction> &pa, int nType, i
         Unserialize(is, *((CRegisterContractTx *) (pa.get())), nType, nVersion);
     }
     else if (nTxType == DELEGATE_TX) {
-        LogPrint("ERROR", "Unserialize delegate tx");
         pa = std::make_shared<CDelegateTransaction>();
         Unserialize(is, *((CDelegateTransaction *) (pa.get())), nType, nVersion);
     } else {
