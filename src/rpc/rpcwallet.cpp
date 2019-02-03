@@ -250,6 +250,10 @@ Value sendtoaddress(const Array& params, bool fHelp)
         }
     }
 
+    if (sendKeyId == recvKeyId) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "recvadress shall not the same as sendaddress");
+    }
+
     if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendadress not registered or invalid");
     }
@@ -261,7 +265,7 @@ Value sendtoaddress(const Array& params, bool fHelp)
         ret = SendMoney(sendRegId, CUserID(recvKeyId), nAmount, nDefaultFee);
     }
     Object obj;
-    obj.push_back(Pair(std::get<0>(ret) ? "hash" : "error code", std::get<1>(ret)));
+    obj.push_back(Pair(std::get<0>(ret) ? "hash" : "error_code", std::get<1>(ret)));
     return obj;
 }
 
