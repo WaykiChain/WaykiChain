@@ -725,9 +725,9 @@ Value votedelegatetx(const Array& params, bool fHelp) {
                 + HelpExampleCli("votedelegatetx"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" ") + "\nAs json rpc call\n"
                 + HelpExampleRpc("votedelegatetx"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" "));
     }
-    RPCTypeCheck(params, list_of(str_type)(array_type)(int_type)(int_type));
+    RPCTypeCheck(params, list_of(str_type)(array_type)(real_type)(int_type));
     string sendAddr = params[0].get_str();
-    uint64_t fee = params[2].get_uint64();
+    uint64_t fee = params[2].get_uint64(); //real type
     int nHeight = 0;
     if(params.size() > 3) {
         nHeight = params[3].get_int();
@@ -837,9 +837,9 @@ Value genvotedelegatetxraw(const Array& params, bool fHelp) {
                     + HelpExampleCli("genvotedelegatetxraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000") + "\nAs json rpc call\n"
                     + HelpExampleRpc("genvotedelegatetxraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000"));
     }
-    RPCTypeCheck(params, list_of(str_type)(array_type)(int_type)(int_type));
+    RPCTypeCheck(params, list_of(str_type)(array_type)(real_type)(int_type));
     string sendAddr = params[0].get_str();
-    uint64_t fee = params[2].get_uint64();
+    uint64_t fee = params[2].get_uint64(); //real type
     int nHeight = 0;
     if(params.size() > 3) {
         nHeight = params[3].get_int();
@@ -1684,13 +1684,13 @@ Value disconnectblock(const Array& params, bool fHelp) {
 Value resetclient(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
         throw runtime_error("resetclient \n"
-                        "\nreset client\n"
-                        "\nArguments:\n"
-                        "\nResult:\n"
-                        "\nExamples:\n"
-                        + HelpExampleCli("resetclient", "")
-                        + "\nAs json rpc call\n"
-                        + HelpExampleRpc("resetclient", ""));
+            "\nreset client\n"
+            "\nArguments:\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("resetclient", "")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("resetclient", ""));
     }
     Value te = TestDisconnectBlock(chainActive.Tip()->nHeight);
 
@@ -2315,13 +2315,13 @@ Value submittx(const Array& params, bool fHelp) {
 // cold-wallet feature
 Value gencallcontracttxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
-        throw runtime_error("gencallcontracttxraw \"height\" \"fee\" \"amount\" \"addr\" \"contract\" \n"
+        throw runtime_error("gencallcontracttxraw \"height\" \"fee\" \"amount\" \"user_regid\" \"contract_regid\" \"contract\" \n"
                 "\ngenerate contract invocation rawtx\n"
                 "\nArguments:\n"
                 "1.\"fee\": (numeric, required) fee paid to miner\n"
                 "2.\"amount\": (numeric, required) amount of coins transfered to the contract (could be 0)\n"
-                "3.\"addr\": (string, required) from address that calls the contract\n"
-                "4.\"regid\": (string required) contract RegId\n"
+                "3.\"user_regid\": (string, required) contract callee regid\n"
+                "4.\"contract_regid\": (string required) contract regid\n"
                 "5.\"contract\": (string, required) contract arguments encoded as one hex string\n"
                 "6.\"height\": (int, optional) a valid block height (current tip height when omitted)\n"
                 "\nResult:\n"
@@ -2341,8 +2341,16 @@ Value gencallcontracttxraw(const Array& params, bool fHelp) {
 
     uint64_t fee = AmountToRawValue(params[0]);
     uint64_t amount = AmountToRawValue(params[1]);
-    CRegID userRegId(params[2].get_str());
-    CRegID conRegId(params[3].get_str());
+    string sUserRegId = params[2].get_str();
+    CRegID userRegId(sUserRegId);
+    if (userRegId.isEmpty()) {
+        throw runtime_error("in gencallcontracttxraw: invalid user_regid: %s\n", sUserRegId);
+    }
+    string sConRegId = params[3].get_str();
+    CRegID conRegId(sConRegId);
+    if (conRegId.isEmpty()) {
+        throw runtime_error("in gencallcontracttxraw: invalid contract_regid: %s\n", sUserRegId);
+    }
     vector<unsigned char> vcontract = ParseHex(params[4].get_str());
     int height = (params.size() == 6) ? params[5].get_int() : chainActive.Tip()->nHeight;
 
