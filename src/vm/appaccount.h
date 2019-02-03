@@ -184,15 +184,15 @@ public:
 	}
 
 	vector<CAppCFund>& getFreezedFund() {
-		return vFreezedFund;
+		return vFrozenFunds;
 	}
 
 	void setFreezedFund(const vector<CAppCFund>& vtmp)
 	{
-		vFreezedFund.clear();
+		vFrozenFunds.clear();
 		for(int i = 0; i < (int)vtmp.size(); i++)
 		{
-			vFreezedFund.push_back(vtmp[i]);
+			vFrozenFunds.push_back(vtmp[i]);
 		}
 	}
 
@@ -201,7 +201,7 @@ public:
 	(
 		READWRITE(VARINT(llValues));
 		READWRITE(mAccUserID);
-		READWRITE(vFreezedFund);
+		READWRITE(vFrozenFunds);
 	)
 
 	bool MinusAppCFund(const vector<unsigned char> &vtag,uint64_t val,int nhight);
@@ -213,7 +213,7 @@ public:
 private:
 	uint64_t llValues;       //自由金额
 	vector<unsigned char>  mAccUserID;
-	vector<CAppCFund> vFreezedFund;
+	vector<CAppCFund> vFrozenFunds;
 };
 
 class CAssetOperate

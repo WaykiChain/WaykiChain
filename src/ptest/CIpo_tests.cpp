@@ -267,7 +267,7 @@ bool CIpoTest::SendIpoTx(unsigned char type)
 
 		// 校验每个月的冻结金额
 		Value  retValue = basetest.GetContractAccountInfo(strAppRegId,arrayData[i].pAddress);
-		Value  result = find_value(retValue.get_obj(), "vFreezedFund");
+		Value  result = find_value(retValue.get_obj(), "vFrozenFunds");
 		Array array = result.get_array();
 //		int64_t nMoneySend(0);
 		size_t j = 0;

@@ -42,7 +42,7 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getaccountinfo 182808-1
 {
     "mAccUserID" : "57695a7836727273426e3973486a7770766477744d4e4e58326f3331733344454848",
     "FreeValues" : 0,
-    "vFreezedFund" : [
+    "FrozenFunds" : [
     ]
 }
 ```
@@ -70,7 +70,7 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getaccountinfo 182808-1
 {
     "mAccUserID" : "57695a7836727273426e3973486a7770766477744d4e4e58326f3331733344454848",
     "FreeValues" : 2099000000000000000,
-    "vFreezedFund" : [
+    "FrozenFunds" : [
     ]
 }
 ```
@@ -80,7 +80,7 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getcontractaccountinfo 18280
 {
     "mAccUserID" : "5755774a6e314346574b4d64626d6638394472436e5032776b4336414b7245426848",
     "FreeValues" : 1000000000000000,
-    "vFreezedFund" : [
+    "FrozenFunds" : [
     ]
 }
 ```
