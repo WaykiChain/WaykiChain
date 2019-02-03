@@ -989,6 +989,7 @@ Value encryptwallet(const Array& params, bool fHelp)
             "\nAs a json rpc call\n"
             + HelpExampleRpc("encryptwallet", "\"my pass phrase\"")
         );
+    }
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
     if (pwalletMain->IsEncrypted())
@@ -1028,8 +1029,7 @@ Value encryptwallet(const Array& params, bool fHelp)
 Value walletlock(const Array& params, bool fHelp)
 {
     if (fHelp || (pwalletMain->IsEncrypted() && params.size() != 0)) {
-        throw runtime_error(
-            "walletlock\n"
+        throw runtime_error("walletlock\n"
             "\nRemoves the wallet encryption key from memory, hence locking the wallet.\n"
             "After calling this method, you will need to call walletpassphrase again\n"
             "before being able to call any methods which require the wallet to be unlocked first.\n"
@@ -1041,8 +1041,7 @@ Value walletlock(const Array& params, bool fHelp)
             "\nClear the passphrase since we are done before 2 minutes is up\n"
             + HelpExampleCli("walletlock", "") +
             "\nAs json rpc call\n"
-            + HelpExampleRpc("walletlock", "")
-        );
+            + HelpExampleRpc("walletlock", ""));
     }
 
     if (!pwalletMain->IsEncrypted()) {
