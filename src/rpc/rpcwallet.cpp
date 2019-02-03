@@ -964,42 +964,9 @@ Value walletpassphrasechange(const Array& params, bool fHelp)
     return retObj;
 }
 
-Value walletlock(const Array& params, bool fHelp)
-{
-    if (pwalletMain->IsEncrypted() && (fHelp || params.size() != 0))
-        throw runtime_error(
-            "walletlock\n"
-            "\nRemoves the wallet encryption key from memory, locking the wallet.\n"
-            "After calling this method, you will need to call walletpassphrase again\n"
-            "before being able to call any methods which require the wallet to be unlocked.\n"
-            "\nExamples:\n"
-            "\nSet the passphrase for 2 minutes to perform a transaction\n"
-            + HelpExampleCli("walletpassphrase", "\"my pass phrase\" 120") +
-            "\nPerform a send (requires passphrase set)\n"
-            + HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 1.0") +
-            "\nClear the passphrase since we are done before 2 minutes is up\n"
-            + HelpExampleCli("walletlock", "") +
-            "\nAs json rpc call\n"
-            + HelpExampleRpc("walletlock", "")
-        );
-
-    if (fHelp)
-        return true;
-    if (!pwalletMain->IsEncrypted())
-        throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: running with an unencrypted wallet, but walletlock was called.");
-    {
-        LOCK(cs_nWalletUnlockTime);
-        pwalletMain->Lock();
-        nWalletUnlockTime = 0;
-    }
-    Object retObj;
-    retObj.push_back(Pair("walletlock", true));
-    return retObj;
-}
-
 Value encryptwallet(const Array& params, bool fHelp)
 {
-    if (!pwalletMain->IsEncrypted() && (fHelp || params.size() != 1))
+    if (fHelp || (!pwalletMain->IsEncrypted() && params.size() != 1)) {
         throw runtime_error(
             "encryptwallet \"passphrase\"\n"
             "\nEncrypts the wallet with 'passphrase'. This is for first time encryption.\n"
@@ -1024,8 +991,6 @@ Value encryptwallet(const Array& params, bool fHelp)
         );
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
-    if (fHelp)
-        return true;
     if (pwalletMain->IsEncrypted())
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: Wallet was already encrypted and shall not be encrypted again.");
 
@@ -1035,10 +1000,11 @@ Value encryptwallet(const Array& params, bool fHelp)
     strWalletPass.reserve(100);
     strWalletPass = params[0].get_str().c_str();
 
-    if (strWalletPass.length() < 1)
+    if (strWalletPass.length() < 1) {
         throw runtime_error(
             "encryptwallet <passphrase>\n"
             "Encrypts the wallet with <passphrase>.");
+    }
 
     if (!pwalletMain->EncryptWallet(strWalletPass))
         throw JSONRPCError(RPC_WALLET_ENCRYPTION_FAILED, "Error: Failed to encrypt the wallet.");
@@ -1055,16 +1021,50 @@ Value encryptwallet(const Array& params, bool fHelp)
 //    boost::filesystem::rename(GetDataDir() / strFileCopy, GetDataDir() / defaultFilename);
 
     Object retObj;
-    retObj.push_back(Pair("encrypt", true));
+    retObj.push_back( Pair("wallet_encrypted", true) );
     return retObj;
-    //return "wallet encrypted; Coin server stopping, restart to run with encrypted wallet. The keypool has been flushed, you need to make a new backup.";
+}
+
+Value walletlock(const Array& params, bool fHelp)
+{
+    if (fHelp || (pwalletMain->IsEncrypted() && params.size() != 0)) {
+        throw runtime_error(
+            "walletlock\n"
+            "\nRemoves the wallet encryption key from memory, hence locking the wallet.\n"
+            "After calling this method, you will need to call walletpassphrase again\n"
+            "before being able to call any methods which require the wallet to be unlocked first.\n"
+            "\nExamples:\n"
+            "\nSet the passphrase for 2 minutes to perform a transaction\n"
+            + HelpExampleCli("walletpassphrase", "\"my pass phrase\" 120") +
+            "\nPerform a send (requires passphrase set)\n"
+            + HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 1.0") +
+            "\nClear the passphrase since we are done before 2 minutes is up\n"
+            + HelpExampleCli("walletlock", "") +
+            "\nAs json rpc call\n"
+            + HelpExampleRpc("walletlock", "")
+        );
+    }
+
+    if (!pwalletMain->IsEncrypted()) {
+        throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, 
+            "Error: running with an unencrypted wallet, but walletlock was called.");
+    }
+
+    {
+        LOCK(cs_nWalletUnlockTime);
+        pwalletMain->Lock();
+        nWalletUnlockTime = 0;
+    }
+
+    Object retObj;
+    retObj.push_back( Pair("wallet_lock", true) );
+    return retObj;
 }
 
 Value settxfee(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() < 1 || params.size() > 1)
-        throw runtime_error(
-            "settxfee \"amount\"\n"
+    if (fHelp || params.size() < 1 || params.size() > 1) {
+        throw runtime_error("settxfee \"amount\"\n"
             "\nSet the default transaction fee per kB.\n"
             "\nArguments:\n"
             "1. amount         (numeric, required) The transaction fee in WICC/kB rounded to the nearest 0.00000001\n"
@@ -1074,23 +1074,21 @@ Value settxfee(const Array& params, bool fHelp)
             + HelpExampleCli("settxfee", "0.00001")
             + HelpExampleRpc("settxfee", "0.00001")
         );
+    }
 
     // Amount
     int64_t nAmount = 0;
-    if (params[0].get_real() != 0.0)
-    {
+    if (params[0].get_real() != 0.0) {
        nAmount = AmountToRawValue(params[0]);        // rejects 0.0 amounts
        SysCfg().SetDefaultTxFee(nAmount);
     }
-
     return true;
 }
 
 Value getwalletinfo(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
-            "getwalletinfo\n"
+    if (fHelp || params.size() != 0) {
+        throw runtime_error("getwalletinfo\n"
             "Returns an object containing various wallet state info.\n"
             "\nResult:\n"
             "{\n"
@@ -1104,6 +1102,7 @@ Value getwalletinfo(const Array& params, bool fHelp)
             + HelpExampleCli("getwalletinfo", "")
             + HelpExampleRpc("getwalletinfo", "")
         );
+    }
 
     Object obj;
     obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
