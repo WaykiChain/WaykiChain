@@ -919,7 +919,7 @@ Value walletpassphrase(const Array& params, bool fHelp)
     nWalletUnlockTime = GetTime() + nSleepTime;
     RPCRunLater("lockwallet", boost::bind(LockWallet, pwalletMain), nSleepTime);
     Object retObj;
-    retObj.push_back(Pair("passphrase", true));
+    retObj.push_back( Pair("wallet_unlocked", true) );
     return retObj;
 }
 
