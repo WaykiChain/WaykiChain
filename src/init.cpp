@@ -574,8 +574,6 @@ bool AppInit(boost::thread_group& threadGroup)
             return InitError(strprintf(_("Invalid amount for -minrelaytxfee=<amount>: '%s'"), SysCfg().GetArg("-minrelaytxfee", "")));
         }
     }
-
-
     if (SysCfg().GetTxFee() > nHighTransactionFeeWarning) {
        InitWarning(_("Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction."));
     }

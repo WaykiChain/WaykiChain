@@ -60,9 +60,9 @@ map<uint256, std::tuple<std::shared_ptr<CAccountViewCache>, std::shared_ptr<CTra
 
 CSignatureCache signatureCache;
 
-/** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
+/** Fees smaller than this (in sawi) are considered zero fee (for transaction creation) */
 uint64_t CBaseTransaction::nMinTxFee = 10000;  // Override with -mintxfee
-/** Fees smaller than this (in satoshi) are considered zero fee (for relaying and mining) */
+/** Fees smaller than this (in sawi) are considered zero fee (for relaying and mining) */
 int64_t CBaseTransaction::nMinRelayTxFee = 1000;
 
 static CMedianFilter<int> cPeerBlockCounts(8, 0); // Amount of blocks that other nodes claim to have
@@ -673,9 +673,8 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransact
         if (pBaseTx->nTxType == COMMON_TX) {
             CTransaction *pTx = static_cast<CTransaction*>(pBaseTx);
             if (pTx->llValues < CBaseTransaction::nMinTxFee) {
-                return state.DoS(0,
-                        ERRORMSG("AcceptToMemoryPool : tx %d transfer amount(%d) too small, you must send a min (%d)",
-                                hash.ToString(), pTx->llValues, CBaseTransaction::nMinTxFee), REJECT_DUST, "dust amount");
+                return state.DoS(0, ERRORMSG("AcceptToMemoryPool : tx %d transfer amount(%d) too small, you must send a min (%d)",
+                        hash.ToString(), pTx->llValues, CBaseTransaction::nMinTxFee), REJECT_DUST, "dust amount");
             }
         }
 
@@ -683,7 +682,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransact
         int64_t txMinFee = GetMinRelayFee(pBaseTx, nSize, true);
         if (fLimitFree && nFees < txMinFee)
             return state.DoS(0, ERRORMSG("AcceptToMemoryPool : not enough fees %s, %d < %d", hash.ToString(), nFees, txMinFee),
-                             REJECT_INSUFFICIENTFEE, "insufficient fee");
+                        REJECT_INSUFFICIENTFEE, "insufficient fee");
 
         // Continuously rate-limit free transactions
         // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
