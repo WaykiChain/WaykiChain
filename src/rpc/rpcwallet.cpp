@@ -251,7 +251,7 @@ Value sendtoaddress(const Array& params, bool fHelp)
     }
 
     if (sendKeyId == recvKeyId) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "recvadress shall not the same as sendaddress");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "recvadress shall not be the same as sendaddress");
     }
 
     if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId)) {
