@@ -2258,7 +2258,7 @@ Value genregisteraccounttxraw(const Array& params, bool fHelp) {
     CKeyID dummy;
     CPubKey pubk = CPubKey(ParseHex(params[2].get_str()));
     if (!pubk.IsCompressed() || !pubk.IsFullyValid()) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, "CPubKey err");
+        throw JSONRPCError(RPC_INVALID_PARAMS, "publickey invalid");
     }
     ukey = pubk;
     dummy = pubk.GetKeyID();
@@ -2266,7 +2266,7 @@ Value genregisteraccounttxraw(const Array& params, bool fHelp) {
     if (params.size() > 3) {
         CPubKey minerpubk = CPubKey(ParseHex(params[3].get_str()));
         if (!minerpubk.IsCompressed() || !minerpubk.IsFullyValid()) {
-            throw JSONRPCError(RPC_INVALID_PARAMS, "CPubKey err");
+            throw JSONRPCError(RPC_INVALID_PARAMS, "publickey invalid");
         }
         uminerkey = minerpubk;
     }
