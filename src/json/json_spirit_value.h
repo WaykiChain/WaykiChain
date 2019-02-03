@@ -338,8 +338,7 @@ namespace json_spirit
     template< class Config >
     void Value_impl< Config >::check_type( const Value_type vtype ) const
     {
-        if( type() != vtype ) 
-        {
+        if( type() != vtype ) {
             std::ostringstream os;
 
             ///// Coin: Tell the types by name instead of by number

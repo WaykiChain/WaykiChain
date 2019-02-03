@@ -2337,7 +2337,7 @@ Value gencallcontracttxraw(const Array& params, bool fHelp) {
                                 "\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\"] 10"));
     }
 
-    RPCTypeCheck(params, list_of(int_type)(real_type)(str_type)(str_type)(str_type)(int_type));
+    RPCTypeCheck(params, list_of(real_type)(real_type)(str_type)(str_type)(str_type)(int_type));
 
     uint64_t fee = AmountToRawValue(params[0]);
     uint64_t amount = AmountToRawValue(params[1]);
@@ -2360,7 +2360,7 @@ Value gencallcontracttxraw(const Array& params, bool fHelp) {
     if (!view.GetKeyId(userRegId, keyId)) {
         CID id(userRegId);
         string hexId = HexStr(id.GetID()).c_str();
-        LogPrint("INFO", "from address :%s has no keyid\r\n", hexId);
+        LogPrint("ERROR", "from address :%s has no keyid\r\n", hexId);
         throw runtime_error(tinyformat::format("gencallcontracttxraw :from address :%s has no keyId\r\n", hexId));
     }
 

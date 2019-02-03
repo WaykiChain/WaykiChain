@@ -43,16 +43,14 @@ void RPCTypeCheck(const Array& params,
                   bool fAllowNull)
 {
     unsigned int i = 0;
-    for (auto t : typesExpected)
-    {
+    for (auto t : typesExpected) {
         if (params.size() <= i)
             break;
 
         const Value& v = params[i];
-        if (!((v.type() == t) || (fAllowNull && (v.type() == null_type))))
-        {
-            string err = strprintf("Expected type %s, got %s",
-                                   Value_type_name[t], Value_type_name[v.type()]);
+        if (!((v.type() == t) || (fAllowNull && (v.type() == null_type)))) {
+            string err = strprintf("Expected type %s, got %s for params[%d]",
+                                   Value_type_name[t], Value_type_name[v.type()], i);
             throw JSONRPCError(RPC_TYPE_ERROR, err);
         }
         i++;
@@ -63,14 +61,12 @@ void RPCTypeCheck(const Object& o,
                   const map<string, Value_type>& typesExpected,
                   bool fAllowNull)
 {
-    for (const auto & t : typesExpected)
-    {
+    for (const auto & t : typesExpected) {
         const Value& v = find_value(o, t.first);
         if (!fAllowNull && v.type() == null_type)
             throw JSONRPCError(RPC_TYPE_ERROR, strprintf("Missing %s", t.first));
 
-        if (!((v.type() == t.second) || (fAllowNull && (v.type() == null_type))))
-        {
+        if (!((v.type() == t.second) || (fAllowNull && (v.type() == null_type)))) {
             string err = strprintf("Expected type %s for %s, got %s",
                                    Value_type_name[t.second], t.first, Value_type_name[v.type()]);
             throw JSONRPCError(RPC_TYPE_ERROR, err);
