@@ -2312,19 +2312,20 @@ Value submittx(const Array& params, bool fHelp) {
     return obj;
 }
 
+// cold-wallet feature
 Value gencallcontracttxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error("gencallcontracttxraw \"height\" \"fee\" \"amount\" \"addr\" \"contract\" \n"
-                "\ncreate contract\n"
+                "\ngenerate contract invocation rawtx\n"
                 "\nArguments:\n"
-                "1.\"fee\": (numeric, required) pay to miner\n"
-                "2.\"amount\": (numeric, required)\n"
-                "3.\"addr\": (string, required)\n"
-                "4.\"appid\": (string required)"
-                "5.\"contract\": (string, required)\n"
-                "6.\"height\": (int, optional)create height\n"
+                "1.\"fee\": (numeric, required) fee paid to miner\n"
+                "2.\"amount\": (numeric, required) amount of coins transfered to the contract (could be 0)\n"
+                "3.\"addr\": (string, required) from address that calls the contract\n"
+                "4.\"regid\": (string required) contract RegId\n"
+                "5.\"contract\": (string, required) contract arguments encoded as one hex string\n"
+                "6.\"height\": (int, optional) a valid block height (current tip height when omitted)\n"
                 "\nResult:\n"
-                "\"contract tx str\": (string)\n"
+                "\"contract invocation rawtx str\": (string)\n"
                 "\nExamples:\n"
                 + HelpExampleCli("gencallcontracttxraw",
                         "1000 01020304 000000000100 [\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\"] "
@@ -2336,50 +2337,41 @@ Value gencallcontracttxraw(const Array& params, bool fHelp) {
                                 "\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\"] 10"));
     }
 
-    RPCTypeCheck(params, list_of(int_type)(real_type)(real_type)(str_type)(str_type)(str_type));
-
+    RPCTypeCheck(params, list_of(int_type)(real_type)(str_type)(str_type)(str_type)(int_type));
 
     uint64_t fee = AmountToRawValue(params[0]);
     uint64_t amount = AmountToRawValue(params[1]);
-    CRegID userid(params[2].get_str());
-    CRegID appid(params[3].get_str());
-
+    CRegID userRegId(params[2].get_str());
+    CRegID conRegId(params[3].get_str());
     vector<unsigned char> vcontract = ParseHex(params[4].get_str());
+    int height = (params.size() == 6) ? params[5].get_int() : chainActive.Tip()->nHeight;
 
-    if (fee > 0 && fee < CTransaction::nMinTxFee) {
+    if (fee > 0 && fee < CTransaction::nMinTxFee)
         throw runtime_error("in gencallcontracttxraw: fee is smaller than nMinTxFee\n");
-    }
-
-    if (appid.IsEmpty()) {
-        throw runtime_error("in gencallcontracttxraw: addresss is error!\n");
-    }
+    if (conRegId.IsEmpty())
+        throw runtime_error("in gencallcontracttxraw: contract regid invalid!\n");
+    if (!pScriptDBTip->HaveScript(conRegId))
+        throw runtime_error(tinyformat::format("gencallcontracttxraw :regid %s not exist\n", conRegId.ToString()));
+    if (height < chainActive.Tip()->nHeight - 250 || height > chainActive.Tip()->nHeight + 250)
+        throw runtime_error("in gencallcontracttxraw: height is out of a valid range to the tip block height!\n");
 
     CAccountViewCache view(*pAccountViewTip, true);
-    CAccount secureAcc;
-
-    if (!pScriptDBTip->HaveScript(appid)) {
-        throw runtime_error(tinyformat::format("gencallcontracttxraw :regid %s is not exist\n", appid.ToString()));
+    CKeyID keyId;
+    if (!view.GetKeyId(userRegId, keyId)) {
+        CID id(userRegId);
+        string hexId = HexStr(id.GetID()).c_str();
+        LogPrint("INFO", "from address :%s has no keyid\r\n", hexId);
+        throw runtime_error(tinyformat::format("gencallcontracttxraw :from address :%s has no keyId\r\n", hexId));
     }
 
-    CKeyID keyid;
-    if (!view.GetKeyId(userid, keyid)) {
-        CID id(userid);
-        LogPrint("INFO", "vaccountid:%s have no key id\r\n", HexStr(id.GetID()).c_str());
-        throw runtime_error(tinyformat::format("gencallcontracttxraw :vaccountid:%s have no key id\r\n", HexStr(id.GetID()).c_str()));
-    }
-
-    int height = chainActive.Tip()->nHeight;
-    if (params.size() > 5) {
-        height = params[5].get_int();
-    }
-
-    std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(userid, appid, fee, amount, height, vcontract);
-
+    std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(
+        userRegId, conRegId, fee, amount, height, vcontract);
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
     ds << pBaseTx;
     Object obj;
-    obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+    string rawtx = HexStr(ds.begin(), ds.end());
+    obj.push_back( Pair("rawtx", rawtx) );
     return obj;
 }
 
@@ -2390,7 +2382,7 @@ Value genregistercontracttxraw(const Array& params, bool fHelp) {
             "\nregister script\n"
             "\nArguments:\n"
             "1.\"fee\": (numeric required) pay to miner\n"
-            "2.\"addr\": (string required)\nfor send"
+            "2.\"addr\": (string required)\n from address that registers the contract"
             "3.\"flag\": (bool, required) 0-1\n"
             "4.\"script or scriptid\": (string required), if flag=0 is script's file path, else if flag=1 scriptid\n"
             "5.\"height\": (int required)valid height\n"
@@ -2454,12 +2446,12 @@ Value genregistercontracttxraw(const Array& params, bool fHelp) {
     }
 
     if (fee > 0 && fee < CTransaction::nMinTxFee) {
-        throw runtime_error("in genregistercontracttxraw :fee is smaller than nMinTxFee\n");
+        throw runtime_error("in genregistercontracttxraw :fee smaller than nMinTxFee\n");
     }
     //get keyid
     CKeyID keyid;
     if (!GetKeyId(params[2].get_str(), keyid)) {
-        throw runtime_error("in genregistercontracttxraw :send address err\n");
+        throw runtime_error("in genregistercontracttxraw : from address invalid\n");
     }
 
     //balance
