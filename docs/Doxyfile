@@ -1,7 +1,7 @@
 # Doxyfile 1.7.4
 
 # !!! Invoke doxygen from project root using: 
-#    doxygen doc/Doxyfile
+#    doxygen docs/Doxyfile
 
 # This file describes the settings to be used by the documentation system
 # doxygen (www.doxygen.org) for a project

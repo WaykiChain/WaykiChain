@@ -225,7 +225,7 @@ Value sendtoaddress(const Array& params, bool fHelp)
         if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nDefaultFee) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress does not have enough coins");
         }
-    } else {
+    } else { // size == 2
         if (!GetKeyId(params[0].get_str(), recvKeyId)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
         }
@@ -239,7 +239,7 @@ Value sendtoaddress(const Array& params, bool fHelp)
         }
         bool sufficientFee = false;
         for (auto &keyId: sKeyIds) {
-            if (pAccountViewTip->GetRawBalance(keyId) >= nAmount + nDefaultFee) {
+            if (keyId != recvKeyId && pAccountViewTip->GetRawBalance(keyId) >= nAmount + nDefaultFee) {
                 sendKeyId = keyId;
                 sufficientFee = true;
                 break;
