@@ -3069,8 +3069,10 @@ Value gettotalcoins(const Array& params, bool fHelp) {
     Object obj;
     {
         CAccountViewCache view(*pAccountViewTip, true);
-        uint64_t totalcoins = view.TraverseAccount();
-        obj.push_back(Pair("total_coins", ValueFromAmount(totalcoins)));
+        uint64_t totalCoins(0), totalRegIds(0);
+        view.TraverseAccount(totalCoins, totalRegIds);
+        obj.push_back(Pair("total_coins", ValueFromAmount(totalCoins)));
+        obj.push_back(Pair("total_regids", ValueFromAmount(totalRegIds)));
     }
     return obj;
 }

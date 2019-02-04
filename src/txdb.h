@@ -78,7 +78,7 @@ public:
 	bool EraseKeyId(const vector<unsigned char> &accountId);
 	bool GetAccount(const vector<unsigned char> &accountId, CAccount &secureAccount);
 	bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &secureAccount);
-	uint64_t TraverseAccount();
+	bool TraverseAccount(uint64_t& totalCoins, uint64_t& totalRegIds);
 	int64_t GetDbCount()
 	{
 		return db.GetDbCount();

@@ -256,10 +256,9 @@ bool CAccountViewDB::SaveAccountInfo(const vector<unsigned char> &accountId, con
 	return db.WriteBatch(batch, false);
 }
 
-uint64_t CAccountViewDB::TraverseAccount() {
+bool CAccountViewDB::TraverseAccount(uint64_t& totalCoins, uint64_t& totalRegIds) {
 	leveldb::Iterator *pcursor = db.NewIterator();
 
-	uint64_t uTotalCoin(0);
 	CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
 	ssKeySet << make_pair('k', CKeyID());
 	pcursor->Seek(ssKeySet.str());
@@ -277,7 +276,10 @@ uint64_t CAccountViewDB::TraverseAccount() {
 				CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
 				CAccount account;
 				ssValue >> account;
-				uTotalCoin += account.llValues;
+				totalCoins += account.llValues;
+				CRegID regId;
+				if (account.GetRegId(regId))
+					totalRegIds++;
 				pcursor->Next();
 			} else {
 				break; // if shutdown requested or finished loading block index
@@ -287,7 +289,8 @@ uint64_t CAccountViewDB::TraverseAccount() {
 		}
 	}
 	delete pcursor;
-	return uTotalCoin;
+
+	return true;
 }
 
 CTransactionDB::CTransactionDB(size_t nCacheSize, bool fMemory, bool fWipe) :
