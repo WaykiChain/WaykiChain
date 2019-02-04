@@ -3054,23 +3054,23 @@ Value validateaddress(const Array& params, bool fHelp)
     }
 }
 
-Value gettotalcoin(const Array& params, bool fHelp) {
+Value gettotalcoins(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 0) {
         throw runtime_error(
-                 "gettotalcoin \n"
+                 "gettotalcoins \n"
                  "\nget the total circulating coin amount, excluding coins locked for votes\n"
                  "\nArguments:\n"
                  "\nResult:\n"
                  "\nExamples:\n"
-                 + HelpExampleCli("gettotalcoin", "")
-                 + HelpExampleRpc("gettotalcoin", ""));
+                 + HelpExampleCli("gettotalcoins", "")
+                 + HelpExampleRpc("gettotalcoins", ""));
     }
 
     Object obj;
     {
         CAccountViewCache view(*pAccountViewTip, true);
-        uint64_t totalcoin = view.TraverseAccount();
-        obj.push_back(Pair("total_coin_amount", ValueFromAmount(totalcoin)));
+        uint64_t totalcoins = view.TraverseAccount();
+        obj.push_back(Pair("total_coins", ValueFromAmount(totalcoins)));
     }
     return obj;
 }
