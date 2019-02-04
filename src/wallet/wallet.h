@@ -115,8 +115,6 @@ public:
     CWallet(string strWalletFileIn);
     void SetNull() ;
 
-
-
     bool LoadMinVersion(int nVersion);
 
     void SyncTransaction(const uint256 &hash, CBaseTransaction *pTx, const CBlock* pblock);
@@ -378,7 +376,6 @@ public:
     }
 
     Object ToJsonObj(CKeyID const &key = CKeyID()) const;
-
 
     IMPLEMENT_SERIALIZE
     (

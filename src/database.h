@@ -89,11 +89,13 @@ public:
 	 * @param regId
 	 * @return
 	 */
-	bool GetRegId(const CUserID &userId,CRegID &regId)const;
+	bool GetRegId(const CUserID &userId, CRegID &regId)const;
 	bool GetAccount(const CUserID &userId, CAccount &account);
 	bool SetAccount(const CUserID &userId, const CAccount &account);
 	bool GetKeyId(const CUserID &userId, CKeyID &keyId);
 	bool SetKeyId(const CUserID &userId, const CKeyID &keyId);
+	CUserID GetUserId (const string &addr);
+	CRegID GetRegId (const CKeyID &keyId);
 	bool EraseAccount(const CUserID &userId);
 	bool EraseId(const CUserID &userId);
 	bool HaveAccount(const CUserID &userId);

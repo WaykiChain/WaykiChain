@@ -238,8 +238,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
     }
     case REG_CONT_TX:
     case DELEGATE_TX:
-        if(!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
-        {
+        if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip)) {
             return arrayDetail;
         }
         obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
@@ -667,17 +666,7 @@ Value registercontracttx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in registercontracttx Error: Account balance is insufficient.");
         }
 
-        auto GetUserId =
-                [&](CKeyID &mkeyId)
-                {
-                    CAccount acct;
-                    if (view.GetAccount(CUserID(mkeyId), acct)) {
-                        return acct.regID;
-                    }
-                    throw runtime_error(tinyformat::format("registercontracttx :account id %s is not exist\n", mkeyId.ToAddress()));
-                };
-
-        tx.regAcctId = GetUserId(keyid);
+        tx.regAcctId = view.GetRegId(keyid);
         tx.script = vscript;
         tx.llFees = fee;
         tx.nRunStep = vscript.size();
@@ -2336,32 +2325,31 @@ Value gencallcontracttxraw(const Array& params, bool fHelp) {
                                 "[\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\","
                                 "\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\"] 10"));
     }
-
     RPCTypeCheck(params, list_of(real_type)(real_type)(str_type)(str_type)(str_type)(int_type));
 
     uint64_t fee = AmountToRawValue(params[0]);
     uint64_t amount = AmountToRawValue(params[1]);
     string sUserRegId = params[2].get_str();
     CRegID userRegId(sUserRegId);
-    if (userRegId.isEmpty()) {
-        throw runtime_error("in gencallcontracttxraw: invalid user_regid: %s\n", sUserRegId);
+    if (userRegId.IsEmpty()) {
+        throw runtime_error("in gencallcontracttxraw: invalid user_regid: " + sUserRegId);
     }
     string sConRegId = params[3].get_str();
     CRegID conRegId(sConRegId);
-    if (conRegId.isEmpty()) {
-        throw runtime_error("in gencallcontracttxraw: invalid contract_regid: %s\n", sUserRegId);
+    if (conRegId.IsEmpty()) {
+        throw runtime_error("in gencallcontracttxraw: invalid contract_regid: %s" + sUserRegId);
     }
     vector<unsigned char> vcontract = ParseHex(params[4].get_str());
     int height = (params.size() == 6) ? params[5].get_int() : chainActive.Tip()->nHeight;
 
     if (fee > 0 && fee < CTransaction::nMinTxFee)
-        throw runtime_error("in gencallcontracttxraw: fee is smaller than nMinTxFee\n");
+        throw runtime_error("input fee smaller than nMinTxFee");
     if (conRegId.IsEmpty())
-        throw runtime_error("in gencallcontracttxraw: contract regid invalid!\n");
+        throw runtime_error("contract regid invalid!\n");
     if (!pScriptDBTip->HaveScript(conRegId))
         throw runtime_error(tinyformat::format("gencallcontracttxraw :regid %s not exist\n", conRegId.ToString()));
     if (height < chainActive.Tip()->nHeight - 250 || height > chainActive.Tip()->nHeight + 250)
-        throw runtime_error("in gencallcontracttxraw: height is out of a valid range to the tip block height!\n");
+        throw runtime_error("height is out of a valid range to the tip block height!\n");
 
     CAccountViewCache view(*pAccountViewTip, true);
     CKeyID keyId;
@@ -2454,12 +2442,12 @@ Value genregistercontracttxraw(const Array& params, bool fHelp) {
     }
 
     if (fee > 0 && fee < CTransaction::nMinTxFee) {
-        throw runtime_error("in genregistercontracttxraw :fee smaller than nMinTxFee\n");
+        throw runtime_error("Error: fee smaller than nMinTxFee\n");
     }
     //get keyid
     CKeyID keyid;
     if (!GetKeyId(params[2].get_str(), keyid)) {
-        throw runtime_error("in genregistercontracttxraw : from address invalid\n");
+        throw runtime_error("Error: from address invalid\n");
     }
 
     //balance
@@ -2468,31 +2456,22 @@ Value genregistercontracttxraw(const Array& params, bool fHelp) {
 
     CUserID userId = keyid;
     if (!view.GetAccount(userId, account)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "in genregistercontracttxraw Error: Account does not exist.");
+        throw JSONRPCError(RPC_WALLET_ERROR, "Error: Account does not exist.");
     }
-
     if (!account.IsRegistered()) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "in genregistercontracttxraw Error: Account is not registered.");
+        throw JSONRPCError(RPC_WALLET_ERROR, "Error: Account not registered.");
     }
 
     if (flag) {
         vector<unsigned char> vscriptcontent;
         CRegID regid(params[2].get_str());
         if (!pScriptDBTip->GetScript(CRegID(vscript), vscriptcontent)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "contract RegId not exist");
+            throw JSONRPCError(RPC_WALLET_ERROR, "Error: contract RegId not exist");
         }
     }
-    auto GetUserId = [&](CKeyID &mkeyId)
-    {
-        CAccount acct;
-        if (view.GetAccount(CUserID(mkeyId), acct)) {
-            return acct.regID;
-        }
-        throw runtime_error(
-                tinyformat::format("genregistercontracttxraw :account id %s not exist\n", mkeyId.ToAddress()));
-    };
+   
     std::shared_ptr<CRegisterContractTx> tx = std::make_shared<CRegisterContractTx>();
-    tx.get()->regAcctId = GetUserId(keyid);
+    tx.get()->regAcctId = view.GetRegId(keyid);
     tx.get()->script = vscript;
     tx.get()->llFees = fee;
 

@@ -398,21 +398,7 @@ Value gensendtoaddresstxraw(const Array& params, bool fHelp)
 
     CKeyID sendKeyId, recvKeyId;
 
-    auto GetUserID = [](string const &addr, CUserID &userId) {
-        CRegID regId(addr);
-        if(!regId.IsEmpty()) {
-            userId = regId;
-            return true;
-        }
-
-        CKeyID keyId(addr);
-        if(!keyId.IsEmpty()) {
-            userId = keyId;
-            return true;
-        }
-
-        return false;
-    };
+    CAccountViewCache view(*pAccountViewTip, true);
 
     int64_t Fee = AmountToRawValue(params[0]);
     int64_t nAmount = AmountToRawValue(params[1]);
@@ -421,9 +407,8 @@ Value gensendtoaddresstxraw(const Array& params, bool fHelp)
     }
 
     CUserID  sendId, recvId;
-    if (!GetUserID(params[2].get_str(), sendId)){
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress invalid");
-    }
+    sendId = view.GetUserId(params[2].get_str());
+
     if (!pAccountViewTip->GetKeyId(sendId, sendKeyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Get CKeyID failed from CUserID");
     }
@@ -435,10 +420,7 @@ Value gensendtoaddresstxraw(const Array& params, bool fHelp)
         sendId = regId;
     }
 
-    if (!GetUserID(params[3].get_str(), recvId)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "recvaddress invalid");
-    }
-
+    recvId = view.GetUserId(params[3].get_str());
     if (recvId.type() == typeid(CKeyID)) {
         CRegID regId;
         if (pAccountViewTip->GetRegId(recvId, regId)) {

@@ -158,6 +158,7 @@ bool CAccountViewCache::EraseAccount(const CKeyID &keyId) {
 	}
 	return true;
 }
+
 bool CAccountViewCache::SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId) {
 	if(accountId.empty())
 		return false;
@@ -266,7 +267,9 @@ bool CAccountViewCache::GetAccount(const CUserID &userId, CAccount &account) {
 	}
 	return ret;
 }
-bool CAccountViewCache::GetKeyId(const CUserID &userId, CKeyID &keyId) {
+
+bool CAccountViewCache::GetKeyId(const CUserID &userId, CKeyID &keyId) 
+{
 	if (userId.type() == typeid(CRegID)) {
 		return GetKeyId(boost::get<CRegID>(userId).GetVec6(), keyId);
 	} else if (userId.type() == typeid(CPubKey)) {
@@ -280,6 +283,40 @@ bool CAccountViewCache::GetKeyId(const CUserID &userId, CKeyID &keyId) {
 	}
 	return ERRORMSG("GetKeyId input userid is unknow type");
 }
+
+bool CAccountViewCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
+	if (userId.type() == typeid(CRegID)) {
+		return SetKeyId(boost::get<CRegID>(userId).GetVec6(), keyId);
+	} else {
+//		assert(0);
+	}
+	return false;
+}
+
+CUserID CAccountViewCache::GetUserId(const string &addr) 
+{
+	CRegID regId(addr);
+	if(!regId.IsEmpty()) {
+		return regId;
+	}
+	CKeyID keyId(addr);
+	if(!keyId.IsEmpty()) {
+		return keyId;
+	}
+
+	throw ERRORMSG("GetUserId: addr %s invalid", addr);
+}
+
+CRegID CAccountViewCache::GetRegId(const CKeyID &keyId)
+{
+	CAccount acct;
+	if (CAccountViewCache::GetAccount(CUserID(keyId), acct)) {
+		return acct.regID;
+	} else {
+        throw runtime_error(tinyformat::format("GetRegId :account id %s not exist\n", keyId.ToAddress()));
+	}
+}
+
 bool CAccountViewCache::SetAccount(const CUserID &userId, const CAccount &account) {
 	if (userId.type() == typeid(CRegID)) {
 		return SetAccount(boost::get<CRegID>(userId).GetVec6(), account);
@@ -292,16 +329,7 @@ bool CAccountViewCache::SetAccount(const CUserID &userId, const CAccount &accoun
 	}
 	return ERRORMSG("SetAccount input userid is unknow type");
 }
-bool CAccountViewCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
-	if (userId.type() == typeid(CRegID)) {
-		return SetKeyId(boost::get<CRegID>(userId).GetVec6(), keyId);
-	} else {
-//		assert(0);
-	}
 
-	return false;
-
-}
 bool CAccountViewCache::EraseAccount(const CUserID &userId) {
 	if (userId.type() == typeid(CKeyID)) {
 		return EraseAccount(boost::get<CKeyID>(userId));

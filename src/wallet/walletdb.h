@@ -95,11 +95,7 @@ public:
     bool WriteVersion(const int version) ;
     bool WriteMinVersion(const int version) ;
     int GetMinVersion(void);
-
-
-
     int GetVersion(void);
-
 
     DBErrors LoadWallet(CWallet* pwallet);
     static unsigned int nWalletDBUpdated ;
