@@ -738,20 +738,20 @@ Value votedelegatetx(const Array& params, bool fHelp) {
 
         CUserID userId = keyid;
         if (!view.GetAccount(userId, account)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in votedelegatetx Error: Account does not exist.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "votedelegatetx Error: Account does not exist.");
         }
 
         if (!account.IsRegistered()) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in votedelegatetx Error: Account is not registered.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "votedelegatetx Error: Account is not registered.");
         }
 
         uint64_t balance = account.GetRawBalance();
         if (balance < fee) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in votedelegatetx Error: Account balance is insufficient.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "votedelegatetx Error: Account balance is insufficient.");
         }
 
         if (!pwalletMain->HasKey(keyid)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in votedelegatetx Error: Send tx address is not in wallet file.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "votedelegatetx Error: Send tx address is not in wallet file.");
         }
 
         delegateTx.llFees = fee;
@@ -796,7 +796,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     std::tuple<bool, string> ret;
     ret = pwalletMain->CommitTransaction((CBaseTransaction *) &delegateTx);
     if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "votedelegatetx Error:" + std::get<1>(ret));
+        throw JSONRPCError(RPC_WALLET_ERROR, "votedelegatetx Error: " + std::get<1>(ret));
     }
     Object obj;
     obj.push_back(Pair("hash", std::get<1>(ret)));

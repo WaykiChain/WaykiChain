@@ -1186,7 +1186,7 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
     }
     if(totalVotes > sendAcctInfo.llValues) {
        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction delegate votes exceeds than account balance, userid=%s", HexStr(id.GetID())),
-                      REJECT_INVALID, "deletegates-number-error");
+                      REJECT_INVALID, "insufficient balance for votes");
     }
     return true;
 }
