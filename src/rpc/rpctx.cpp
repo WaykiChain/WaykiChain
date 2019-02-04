@@ -3271,10 +3271,10 @@ Value getdelegatelist(const Array& params, bool fHelp) {
                 + HelpExampleRpc("getdelegatelist", "11"));
     }
 
-    int nDelegateNum = (params.size() == 1) ? params[0].get_int() : IniCfg().GetDelegatesCfg();
+    int nDelegateNum = (params.size() == 1) ? params[0].get_int() : IniCfg().GetDelegatesNum();
     if (nDelegateNum < 1 || nDelegateNum > 11) {
         char errorMsg[100] = {'\0'};
-        sprintf(errorMsg, "input delegate number not between 1 and %ld", IniCfg().GetDelegatesCfg());
+        sprintf(errorMsg, "input delegate number not between 1 and %ld", IniCfg().GetDelegatesNum());
         throw JSONRPCError(RPC_INVALID_PARAMS, errorMsg);
     }
 

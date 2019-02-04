@@ -84,7 +84,7 @@ public:
 	uint64_t GetCoinInitValue() const;
 	uint64_t GetBlockSubsidyCfg(int nHeight) const;
 	int GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const;
-	uint64_t GetDelegatesCfg() const;
+	uint64_t GetDelegatesNum() const;
 	uint32_t GetExpansionPecentCfg() const;
 	string GetDelegateSignature(NET_TYPE type) const;
 	const vector<string> GetDelegatePubKey(NET_TYPE type) const;

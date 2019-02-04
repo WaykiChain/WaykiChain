@@ -443,7 +443,7 @@ int G_CONFIG_TABLE::GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const {
     return mSubsidyHeight[nSubsidyValue];
 }
 
-uint64_t G_CONFIG_TABLE::GetDelegatesCfg() const {
+uint64_t G_CONFIG_TABLE::GetDelegatesNum() const {
     return nDelegates;
 }
 

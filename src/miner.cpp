@@ -194,7 +194,7 @@ bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCach
     CTransactionDBCache txCache(txCacheIn, true);
     CScriptDBViewCache scriptCache(scriptCacheIn, true);
 
-    int nDelegateNum = IniCfg().GetDelegatesCfg();
+    int nDelegateNum = IniCfg().GetDelegatesNum();
     int nIndex = 0;
     vector<unsigned char> vScriptData;
     vector<unsigned char> vScriptKey = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
@@ -242,7 +242,7 @@ bool GetDelegatesAcctList(vector<CAccount> & vDelegatesAcctList) {
 
 bool GetCurrentDelegate(const int64_t currentTime,  const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct) {
     int64_t slot =  currentTime / SysCfg().GetTargetSpacing();
-    int miner = slot % IniCfg().GetDelegatesCfg();
+    int miner = slot % IniCfg().GetDelegatesNum();
     delegateAcct = vDelegatesAcctList[miner];
     LogPrint("DEBUG", "currentTime=%lld, slot=%d, miner=%d, minderAddr=%s\n",
         currentTime, slot, miner, delegateAcct.keyID.ToAddress());
@@ -289,13 +289,13 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
 
 void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
 
-  int nDelegateCfg = IniCfg().GetDelegatesCfg();
+  int nDelegateNum = IniCfg().GetDelegatesNum();
   string seedSource = strprintf("%lld", nCurHeight / nDelegateCfg + (nCurHeight % nDelegateCfg > 0 ? 1 : 0));
   CHashWriter ss(SER_GETHASH, 0);
   ss << seedSource;
   uint256 currendSeed = ss.GetHash();
   uint64_t currendTemp(0);
-  for (int i = 0, delCount = nDelegateCfg; i < delCount; i++) {
+  for (int i = 0, delCount = nDelegateNum; i < delCount; i++) {
     for (int x = 0; x < 4 && i < delCount; i++, x++) {
       memcpy(&currendTemp, currendSeed.begin()+(x*8), 8);
       int newIndex = currendTemp % delCount;
@@ -306,7 +306,6 @@ void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
     ss << currendSeed;
     currendSeed = ss.GetHash();
   }
-
 }
 
 bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionDBCache &txCache,

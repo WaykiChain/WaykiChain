@@ -1134,7 +1134,7 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
         return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction the deletegate oper fund empty"), REJECT_INVALID,
                            "oper-fund-empty-error");
     }
-    if(operVoteFunds.size() > IniCfg().GetDelegatesCfg()) {
+    if(operVoteFunds.size() > IniCfg().GetDelegatesNum()) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction the deletegates number a transaction can't exceeds maximum"), REJECT_INVALID,
                     "deletegates-number-error");
     }
@@ -1175,7 +1175,7 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
             totalVotes = item->fund.value;
     }
 
-    if(setTotalOperVoteKeyID.size() > IniCfg().GetDelegatesCfg()) {
+    if(setTotalOperVoteKeyID.size() > IniCfg().GetDelegatesNum()) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction the delegates number of account can't exceeds maximum"), REJECT_INVALID,
                            "account-delegates-number-error");
     }
@@ -1417,7 +1417,7 @@ bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const in
                      return ERRORMSG("DealDelegateVote() : fund value exceeds maximum");
             } else {
                voteFunds.push_back(operVote->fund);
-               if(voteFunds.size() > IniCfg().GetDelegatesCfg()) {
+               if(voteFunds.size() > IniCfg().GetDelegatesNum()) {
                    return ERRORMSG("DealDelegateVote() : fund number exceeds maximum");
                }
             }
