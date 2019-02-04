@@ -289,13 +289,13 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
 
 void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
 
-  int nDelegateNum = IniCfg().GetDelegatesNum();
-  string seedSource = strprintf("%lld", nCurHeight / nDelegateCfg + (nCurHeight % nDelegateCfg > 0 ? 1 : 0));
+  int nDelegatesNum = IniCfg().GetDelegatesNum();
+  string seedSource = strprintf("%lld", nCurHeight / nDelegatesNum + (nCurHeight % nDelegatesNum > 0 ? 1 : 0));
   CHashWriter ss(SER_GETHASH, 0);
   ss << seedSource;
   uint256 currendSeed = ss.GetHash();
   uint64_t currendTemp(0);
-  for (int i = 0, delCount = nDelegateNum; i < delCount; i++) {
+  for (int i = 0, delCount = nDelegatesNum; i < delCount; i++) {
     for (int x = 0; x < 4 && i < delCount; i++, x++) {
       memcpy(&currendTemp, currendSeed.begin()+(x*8), 8);
       int newIndex = currendTemp % delCount;
