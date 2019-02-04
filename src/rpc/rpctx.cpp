@@ -2332,12 +2332,12 @@ Value gencallcontracttxraw(const Array& params, bool fHelp) {
     string sUserRegId = params[2].get_str();
     CRegID userRegId(sUserRegId);
     if (userRegId.IsEmpty()) {
-        throw runtime_error("in gencallcontracttxraw: invalid user_regid: " + sUserRegId);
+        throw runtime_error("invalid user_regid: " + sUserRegId);
     }
     string sConRegId = params[3].get_str();
     CRegID conRegId(sConRegId);
     if (conRegId.IsEmpty()) {
-        throw runtime_error("in gencallcontracttxraw: invalid contract_regid: %s" + sUserRegId);
+        throw runtime_error("invalid contract_regid: %s" + sUserRegId);
     }
     vector<unsigned char> vcontract = ParseHex(params[4].get_str());
     int height = (params.size() == 6) ? params[5].get_int() : chainActive.Tip()->nHeight;
@@ -2347,7 +2347,7 @@ Value gencallcontracttxraw(const Array& params, bool fHelp) {
     if (conRegId.IsEmpty())
         throw runtime_error("contract regid invalid!\n");
     if (!pScriptDBTip->HaveScript(conRegId))
-        throw runtime_error(tinyformat::format("gencallcontracttxraw :regid %s not exist\n", conRegId.ToString()));
+        throw runtime_error(tinyformat::format("regid %s not exist\n", conRegId.ToString()));
     if (height < chainActive.Tip()->nHeight - 250 || height > chainActive.Tip()->nHeight + 250)
         throw runtime_error("height is out of a valid range to the tip block height!\n");
 
@@ -2357,7 +2357,7 @@ Value gencallcontracttxraw(const Array& params, bool fHelp) {
         CID id(userRegId);
         string hexId = HexStr(id.GetID()).c_str();
         LogPrint("ERROR", "from address :%s has no keyid\r\n", hexId);
-        throw runtime_error(tinyformat::format("gencallcontracttxraw :from address :%s has no keyId\r\n", hexId));
+        throw runtime_error(tinyformat::format("from address :%s has no keyId\r\n", hexId));
     }
 
     std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(
