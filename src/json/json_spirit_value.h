@@ -39,15 +39,15 @@ namespace json_spirit
         typedef typename String_type::const_pointer Const_str_ptr;  // eg const char*
 
         Value_impl();  // creates null value
-        Value_impl( Const_str_ptr      value ); 
-        Value_impl( const String_type& value );
-        Value_impl( const Object&      value );
-        Value_impl( const Array&       value );
-        Value_impl( bool               value );
-        Value_impl( int                value );
-        Value_impl( int64_t     value );
-        Value_impl( uint64_t    value );
-        Value_impl( double             value );
+        Value_impl( Const_str_ptr       value ); 
+        Value_impl( const String_type&  value );
+        Value_impl( const Object&       value );
+        Value_impl( const Array&        value );
+        Value_impl( bool                value );
+        Value_impl( int                 value );
+        Value_impl( int64_t             value );
+        Value_impl( uint64_t            value );
+        Value_impl( double              value );
 
         Value_impl( const Value_impl& other );
 
@@ -60,14 +60,14 @@ namespace json_spirit
         bool is_uint64() const;
         bool is_null() const;
 
-        const String_type& get_str()    const;
-        const Object&      get_obj()    const;
-        const Array&       get_array()  const;
-        bool               get_bool()   const;
-        int                get_int()    const;
-        int64_t     get_int64()  const;
-        uint64_t    get_uint64() const;
-        double             get_real()   const;
+        const String_type&  get_str()    const;
+        const Object&       get_obj()    const;
+        const Array&        get_array()  const;
+        bool                get_bool()   const;
+        int                 get_int()    const;
+        int64_t             get_int64()  const;
+        uint64_t            get_uint64() const;
+        double              get_real()   const;
 
         Object& get_obj();
         Array&  get_array();

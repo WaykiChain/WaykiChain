@@ -706,15 +706,16 @@ Value votedelegatetx(const Array& params, bool fHelp) {
                     "   }\n"
                     "       ,...\n"
                 " ]\n"
-                "3.\"fee\": (numeric required) pay to miner\n"
+                "3.\"fee\": (numeric required) pay fee to miner\n"
                 "4.\"height\": (numeric optional) valid height. When not supplied, the tip block height in chainActive will be used.\n"
                 "\nResult:\n"
                 "\"txhash\": (string)\n"
                 "\nExamples:\n"
-                + HelpExampleCli("votedelegatetx"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" ") + "\nAs json rpc call\n"
-                + HelpExampleRpc("votedelegatetx"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" "));
+                + HelpExampleCli("votedelegatetx"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\", 10000 ") + "\nAs json rpc call\n"
+                + HelpExampleRpc("votedelegatetx"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\", 10000 "));
     }
-    RPCTypeCheck(params, list_of(str_type)(array_type)(real_type)(int_type));
+    RPCTypeCheck(params, list_of(str_type)(array_type)(int_type)(int_type));
+
     string sendAddr = params[0].get_str();
     uint64_t fee = params[2].get_uint64(); //real type
     int nHeight = 0;
@@ -723,10 +724,9 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     }
     Array operVoteArray = params[1].get_array();
 
-    //get keyid
     CKeyID keyid;
     if (!GetKeyId(sendAddr, keyid)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in votedelegatetx: Address err.");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "invalid Address: " + sendAddr);
     }
     CDelegateTransaction delegateTx;
     assert(pwalletMain != NULL);
@@ -809,7 +809,7 @@ Value genvotedelegatetxraw(const Array& params, bool fHelp) {
             throw runtime_error("genvotedelegatetxraw \"addr\" \"opervotes\" \"fee\" \"height\"\n"
                     "\nget a vote delegate transaction raw transaction\n"
                     "\nArguments:\n"
-                    "1.\"addr\": (string required) send delegate transaction address\n"
+                    "1.\"addr\": (string required) from address that votes delegate(s)\n"
                     "2. \"opervotes\"    (string, required) A json array of json oper vote to delegates\n"
                     " [\n"
                       " {\n"
@@ -826,7 +826,8 @@ Value genvotedelegatetxraw(const Array& params, bool fHelp) {
                     + HelpExampleCli("genvotedelegatetxraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000") + "\nAs json rpc call\n"
                     + HelpExampleRpc("genvotedelegatetxraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000"));
     }
-    RPCTypeCheck(params, list_of(str_type)(array_type)(real_type)(int_type));
+    RPCTypeCheck(params, list_of(str_type)(array_type)(int_type)(int_type));
+
     string sendAddr = params[0].get_str();
     uint64_t fee = params[2].get_uint64(); //real type
     int nHeight = 0;
@@ -838,7 +839,7 @@ Value genvotedelegatetxraw(const Array& params, bool fHelp) {
     //get keyid
     CKeyID keyid;
     if (!GetKeyId(sendAddr, keyid)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in genvotedelegatetxraw Error: Send tx address error.");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Send tx address error.");
     }
     CDelegateTransaction delegateTx;
     assert(pwalletMain != NULL);
