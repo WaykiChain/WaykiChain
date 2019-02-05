@@ -2189,27 +2189,27 @@ Value saveblocktofile(const Array& params, bool fHelp) {
 
 Value getcontractdbsize(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error(
-            "getcontractdbsize \"contract_regid\"\n"
-            "\nget contract data item count\n"
+        throw runtime_error("getcontractdbsize \"regid\"\n"
+            "\nget the total number of contract db K-V items\n"
             "\nArguments:\n"
-            "1.\"contract_regid\": (string, required) Contract RegId\n"
+            "1.\"regid\": (string, required) Contract RegId\n"
             "\nResult:\n"
             "\nExamples:\n"
             + HelpExampleCli("getcontractdbsize", "\"258988-1\"")
             + HelpExampleRpc("getcontractdbsize","\"258988-1\"")
         );
     }
-    CRegID regid(params[0].get_str());
-    if (regid.IsEmpty() == true) {
-        throw runtime_error("getcontractdbsize :appregid error!");
+    CRegID regId(params[0].get_str());
+    if (regId.IsEmpty() == true) {
+        throw runtime_error("contract RegId invalid!");
     }
     if (!pScriptDBTip->HaveScript(regid)) {
-        throw runtime_error("getcontractdbsize :appregid does NOT exist!");
+        throw runtime_error("contract with the RegId does NOT exist!");
     }
+
     int nItemCount = 0;
-    if (!pScriptDBTip->GetContractItemCount(regid, nItemCount)) {
-        throw runtime_error("getcontractdbsize: GetContractItemCount error!");
+    if (!pScriptDBTip->GetContractItemCount(regId, nItemCount)) {
+        throw runtime_error("GetContractItemCount error!");
     }
     return nItemCount;
 }
@@ -3032,10 +3032,10 @@ Value validateaddress(const Array& params, bool fHelp)
     if(fHelp || params.size() != 1)
         {
             throw runtime_error(
-                     "validateaddess \"wicc address\"\n"
-                     "\ncheck address is valid\n"
+                     "validateaddress \"wicc_address\"\n"
+                     "\ncheck whether address is valid or not\n"
                      "\nArguments:\n"
-                     "1. \"wicc address\"  (string, required) wicc coin address\n"
+                     "1. \"wicc_address\"  (string, required) wicc coin address\n"
                      "\nResult:\n"
                      "\nExamples:\n"
                      + HelpExampleCli("validateaddress", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\"")
