@@ -31,7 +31,7 @@ public:
 	virtual bool EraseKeyId(const vector<unsigned char> &accountId);
 	virtual bool GetAccount(const vector<unsigned char> &accountId, CAccount &account);
 	virtual bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account);
-	virtual uint64_t TraverseAccount();
+	virtual std::tuple<uint64_t, uint64_t> TraverseAccount();
 	virtual Object ToJsonObj(char Prefix);
 	virtual ~CAccountView(){};
 };
@@ -42,6 +42,7 @@ protected:
 	CAccountView * pBase;
 public:
 	CAccountViewBacked(CAccountView &accountView);
+
 	bool GetAccount(const CKeyID &keyId, CAccount &account);
 	bool SetAccount(const CKeyID &keyId, const CAccount &account);
 	bool SetAccount(const vector<unsigned char> &accountId, const CAccount &account);
@@ -56,7 +57,7 @@ public:
 	bool EraseKeyId(const vector<unsigned char> &accountId);
 	bool GetAccount(const vector<unsigned char> &accountId, CAccount &account);
 	bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account);
-	uint64_t TraverseAccount();
+	std::tuple<uint64_t, uint64_t> TraverseAccount();
 };
 
 class CAccountViewCache : public CAccountViewBacked
@@ -64,7 +65,7 @@ class CAccountViewCache : public CAccountViewBacked
 public:
 	uint256 hashBlock;
     map<CKeyID, CAccount> cacheAccounts;
-	map<vector<unsigned char>, CKeyID> cacheKeyIds; // vector ��� ��accountId
+	map<vector<unsigned char>, CKeyID> cacheKeyIds; // vector of account KeyIds
 
 private:
 	bool GetAccount(const CKeyID &keyId, CAccount &account);
@@ -79,6 +80,7 @@ private:
 
 public:
     CAccountViewCache(CAccountView &base, bool fDummy=false);
+
 	uint256 GetBestBlock();
 	bool SetBestBlock(const uint256 &hashBlock);
 	bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>, CKeyID> &mapKeyIds, const uint256 &hashBlock);
@@ -101,13 +103,10 @@ public:
 	bool HaveAccount(const CUserID &userId);
 	int64_t GetRawBalance(const CUserID &userId)const;
 	bool SaveAccountInfo(const CRegID &accountId, const CKeyID &keyId, const CAccount &account);
-	uint64_t TraverseAccount();
 	bool Flush();
 	unsigned int GetCacheSize();
 	Object ToJsonObj()const;
 	void SetBaseData(CAccountView * pBase);
-
-
 };
 
 class CScriptDBView

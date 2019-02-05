@@ -942,9 +942,7 @@ public:
     uint64_t GetAccountProfit(int prevBlockHeight);
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;
-    bool IsEmptyValue() const {
-        return !(llValues > 0);
-    }
+    bool IsEmptyValue() const { return !(llValues > 0); }
     uint256 GetHash(){
         CHashWriter ss(SER_GETHASH, 0);
         ss << regID << keyID << PublicKey << MinerPKey << VARINT(llValues)
@@ -968,9 +966,7 @@ public:
         READWRITE(llVotes);
     )
 
-    uint64_t GetReceiveVotes() const {
-        return llVotes;
-    }
+    uint64_t GetReceiveVotes() const { return llVotes; }
 private:
     bool IsMoneyOverflow(uint64_t nAddMoney);
 };

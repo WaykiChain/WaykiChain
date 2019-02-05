@@ -52,7 +52,6 @@ public:
     bool LoadBlockIndexGuts();
 };
 
-
 class CAccountViewDB : public CAccountView
 {
 private:
@@ -78,11 +77,8 @@ public:
 	bool EraseKeyId(const vector<unsigned char> &accountId);
 	bool GetAccount(const vector<unsigned char> &accountId, CAccount &secureAccount);
 	bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &secureAccount);
-	bool TraverseAccount(uint64_t& totalCoins, uint64_t& totalRegIds);
-	int64_t GetDbCount()
-	{
-		return db.GetDbCount();
-	}
+	std::tuple<uint64_t, uint64_t> TraverseAccount();
+	int64_t GetDbCount() { return db.GetDbCount(); }
 	Object ToJsonObj(char Prefix);
 };
 

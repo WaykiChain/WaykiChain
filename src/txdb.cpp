@@ -147,19 +147,18 @@ bool CBlockTreeDB::LoadBlockIndexGuts() {
 }
 
 CAccountViewDB::CAccountViewDB(size_t nCacheSize, bool fMemory, bool fWipe) :
-		db(GetDataDir() / "blocks" / "account", nCacheSize, fMemory, fWipe) {
+		db(GetDataDir() / "blocks" / "account", nCacheSize, fMemory, fWipe) {}
 
-}
 CAccountViewDB::CAccountViewDB(const string& name,size_t nCacheSize, bool fMemory, bool fWipe) :
-		db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {
+		db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {}
 
-}
-
-bool CAccountViewDB::GetAccount(const CKeyID &keyId, CAccount &secureAccount) {
+bool CAccountViewDB::GetAccount(const CKeyID &keyId, CAccount &secureAccount) 
+{
 	return db.Read(make_pair('k', keyId), secureAccount);
 }
 
-bool CAccountViewDB::SetAccount(const CKeyID &keyId, const CAccount &secureAccount) {
+bool CAccountViewDB::SetAccount(const CKeyID &keyId, const CAccount &secureAccount) 
+{
     bool ret = db.Write(make_pair('k', keyId), secureAccount);
     assert(!secureAccount.keyID.IsEmpty());
     assert(!secureAccount.regID.IsEmpty());
@@ -167,30 +166,36 @@ bool CAccountViewDB::SetAccount(const CKeyID &keyId, const CAccount &secureAccou
 	return ret;
 }
 
-bool CAccountViewDB::SetAccount(const vector<unsigned char> &accountId, const CAccount &secureAccount) {
+bool CAccountViewDB::SetAccount(const vector<unsigned char> &accountId, const CAccount &secureAccount) 
+{
 	CKeyID keyId;
 	if (db.Read(make_pair('a', accountId), keyId)) {
 		return db.Write(make_pair('k', keyId), secureAccount);
 	} else
 		return false;
 }
-bool CAccountViewDB::HaveAccount(const CKeyID &keyId) {
+
+bool CAccountViewDB::HaveAccount(const CKeyID &keyId) 
+{
 	return db.Exists(keyId);
 }
 
-uint256 CAccountViewDB::GetBestBlock() {
+uint256 CAccountViewDB::GetBestBlock() 
+{
 	uint256 hash;
 	if (!db.Read('B', hash))
 		return uint256();
 	return hash;
 }
 
-bool CAccountViewDB::SetBestBlock(const uint256 &hashBlock) {
+bool CAccountViewDB::SetBestBlock(const uint256 &hashBlock) 
+{
 	return db.Write('B', hashBlock);
 }
 
 bool CAccountViewDB::BatchWrite(const map<CKeyID, CAccount> &mapAccounts,
-		const map<vector<unsigned char>, CKeyID> &mapKeyIds, const uint256 &hashBlock) {
+		const map<vector<unsigned char>, CKeyID> &mapKeyIds, const uint256 &hashBlock) 
+{
 	CLevelDBBatch batch;
 	map<CKeyID, CAccount>::const_iterator iterAccount = mapAccounts.begin();
 	for (; iterAccount != mapAccounts.end(); ++iterAccount) {
@@ -215,7 +220,8 @@ bool CAccountViewDB::BatchWrite(const map<CKeyID, CAccount> &mapAccounts,
 	return db.WriteBatch(batch, true);
 }
 
-bool CAccountViewDB::BatchWrite(const vector<CAccount> &vAccounts) {
+bool CAccountViewDB::BatchWrite(const vector<CAccount> &vAccounts) 
+{
 	CLevelDBBatch batch;
 	vector<CAccount>::const_iterator iterAccount = vAccounts.begin();
 	for (; iterAccount != vAccounts.end(); ++iterAccount) {
@@ -224,23 +230,28 @@ bool CAccountViewDB::BatchWrite(const vector<CAccount> &vAccounts) {
 	return db.WriteBatch(batch, false);
 }
 
-bool CAccountViewDB::EraseAccount(const CKeyID &keyId) {
+bool CAccountViewDB::EraseAccount(const CKeyID &keyId) 
+{
 	return db.Erase(make_pair('k', keyId));
 }
 
-bool CAccountViewDB::SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId) {
+bool CAccountViewDB::SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId) 
+{
 	return db.Write(make_pair('a', accountId), keyId);
 }
 
-bool CAccountViewDB::GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId) {
+bool CAccountViewDB::GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId) 
+{
 	return db.Read(make_pair('a', accountId), keyId);
 }
 
-bool CAccountViewDB::EraseKeyId(const vector<unsigned char> &accountId) {
+bool CAccountViewDB::EraseKeyId(const vector<unsigned char> &accountId)
+{
 	return db.Erase(make_pair('a', accountId));
 }
 
-bool CAccountViewDB::GetAccount(const vector<unsigned char> &accountId, CAccount &secureAccount) {
+bool CAccountViewDB::GetAccount(const vector<unsigned char> &accountId, CAccount &secureAccount)
+{
 	CKeyID keyId;
 	if (db.Read(make_pair('a', accountId), keyId)) {
 		return db.Read(make_pair('k', keyId), secureAccount);
@@ -249,14 +260,19 @@ bool CAccountViewDB::GetAccount(const vector<unsigned char> &accountId, CAccount
 }
 
 bool CAccountViewDB::SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId,
-		const CAccount &secureAccount) {
+		const CAccount &secureAccount)
+{
 	CLevelDBBatch batch;
 	batch.Write(make_pair('a', accountId), keyId);
 	batch.Write(make_pair('k', keyId), secureAccount);
 	return db.WriteBatch(batch, false);
 }
 
-bool CAccountViewDB::TraverseAccount(uint64_t& totalCoins, uint64_t& totalRegIds) {
+std::tuple<uint64_t, uint64_t> CAccountViewDB::TraverseAccount()
+{
+	uint64_t totalCoins(0);
+	uint64_t totalRegIds(0);
+
 	leveldb::Iterator *pcursor = db.NewIterator();
 
 	CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
@@ -277,27 +293,31 @@ bool CAccountViewDB::TraverseAccount(uint64_t& totalCoins, uint64_t& totalRegIds
 				CAccount account;
 				ssValue >> account;
 				totalCoins += account.llValues;
+
 				CRegID regId;
-				if (account.GetRegId(regId))
+				if (account.GetRegId(regId)) {
+					// LogPrint("ERROR", "[%d] regId: %s\n", totalRegIds, regId.ToString());
 					totalRegIds++;
+				}
+
 				pcursor->Next();
 			} else {
 				break; // if shutdown requested or finished loading block index
 			}
 		} catch (std::exception &e) {
-			return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
+			throw runtime_error( "CAccountViewDB::TraverseAccount(): Deserialize or I/O error");
 		}
 	}
 	delete pcursor;
 
-	return true;
+	return std::make_tuple(totalCoins, totalRegIds);
 }
 
 CTransactionDB::CTransactionDB(size_t nCacheSize, bool fMemory, bool fWipe) :
-		db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {
-}
+		db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {}
 
-bool CTransactionDB::SetTxCache(const uint256 &blockHash, const vector<uint256> &vHashTx) {
+bool CTransactionDB::SetTxCache(const uint256 &blockHash, const vector<uint256> &vHashTx) 
+{
 	return db.Write(make_pair('h', blockHash), vHashTx);
 }
 

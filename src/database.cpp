@@ -27,9 +27,11 @@ Object CAccountView::ToJsonObj(char Prefix){
 	Object obj;
 	return obj;
 }
-uint64_t CAccountView::TraverseAccount(){return 0;}
+std::tuple<uint64_t, uint64_t> CAccountView::TraverseAccount() { return make_tuple(0, 0); }
+std::tuple<uint64_t, uint64_t> CAccountViewBacked::TraverseAccount() { return pBase->TraverseAccount(); }
 
-CAccountViewBacked::CAccountViewBacked(CAccountView &accountView):pBase(&accountView) {}
+CAccountViewBacked::CAccountViewBacked(CAccountView &accountView): pBase(&accountView) {}
+
 bool CAccountViewBacked::GetAccount(const CKeyID &keyId, CAccount &account) {
 	return pBase->GetAccount(keyId, account);
 }
@@ -73,9 +75,10 @@ bool CAccountViewBacked::SaveAccountInfo(const vector<unsigned char> &accountId,
 		const CAccount &account) {
 	return pBase->SaveAccountInfo(accountId, keyId, account);
 }
-uint64_t CAccountViewBacked::TraverseAccount(){return pBase->TraverseAccount();}
 
-CAccountViewCache::CAccountViewCache(CAccountView &accountView, bool fDummy):CAccountViewBacked(accountView), hashBlock(uint256()) {}
+CAccountViewCache::CAccountViewCache(CAccountView &accountView, bool fDummy) :
+	CAccountViewBacked(accountView), hashBlock(uint256()) {}
+
 bool CAccountViewCache::GetAccount(const CKeyID &keyId, CAccount &account) {
 	if (cacheAccounts.count(keyId)) {
 		if (cacheAccounts[keyId].keyID != uint160()) {
@@ -241,14 +244,11 @@ bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAcco
 	}
 	return false;
 }
+
 bool CAccountViewCache::SaveAccountInfo(const CRegID &regid, const CKeyID &keyId, const CAccount &account) {
 	cacheKeyIds[regid.GetVec6()] = keyId;
 	cacheAccounts[keyId] = account;
 	return true;
-}
-
-uint64_t CAccountViewCache::TraverseAccount() {
-	return pBase->TraverseAccount();
 }
 
 bool CAccountViewCache::GetAccount(const CUserID &userId, CAccount &account) {

@@ -3057,22 +3057,25 @@ Value validateaddress(const Array& params, bool fHelp)
 Value gettotalcoins(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 0) {
         throw runtime_error(
-                 "gettotalcoins \n"
-                 "\nget the total circulating coin amount, excluding coins locked for votes\n"
-                 "\nArguments:\n"
-                 "\nResult:\n"
-                 "\nExamples:\n"
-                 + HelpExampleCli("gettotalcoins", "")
-                 + HelpExampleRpc("gettotalcoins", ""));
+                "gettotalcoins \n"
+                "\nget the total number of circulating coins excluding those locked for votes\n"
+                "\nand the toal number of registered addresses\n"
+                "\nArguments:\n"
+                "\nResult:\n"
+                "\nExamples:\n"
+                + HelpExampleCli("gettotalcoins", "")
+                + HelpExampleRpc("gettotalcoins", ""));
     }
 
     Object obj;
     {
-        CAccountViewCache view(*pAccountViewTip, true);
-        uint64_t totalCoins(0), totalRegIds(0);
-        view.TraverseAccount(totalCoins, totalRegIds);
-        obj.push_back(Pair("total_coins", ValueFromAmount(totalCoins)));
-        obj.push_back(Pair("total_regids", ValueFromAmount(totalRegIds)));
+        CAccountViewCache view(*pAccountViewDB, true);
+        uint64_t totalCoins(0);
+        uint64_t totalRegIds(0);
+        std::tie(totalCoins, totalRegIds) = view.TraverseAccount();
+        // auto [totalCoins, totalRegIds] = view.TraverseAccount(); //C++17
+        obj.push_back( Pair("total_coins", ValueFromAmount(totalCoins)) );
+        obj.push_back( Pair("total_regids", totalRegIds) );
     }
     return obj;
 }
