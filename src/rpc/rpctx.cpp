@@ -3263,17 +3263,17 @@ Value gettxhashbyaddress(const Array& params, bool fHelp) {
 //     return obj;
 // }
 
-Value getdelegatelist(const Array& params, bool fHelp) {
+Value listdelegates(const Array& params, bool fHelp) {
     if (fHelp || params.size() > 1) {
         throw runtime_error(
-                "getdelegatelist \n"
+                "listdelegates \n"
                 "\nreturns the specified number delegates by reversed order voting number.\n"
                 "\nArguments:\n"
                 "1. number           (number, optional) the number of the delegates, default to all delegates.\n"
                 "\nResult:\n"
                 "\nExamples:\n"
-                + HelpExampleCli("getdelegatelist", "11")
-                + HelpExampleRpc("getdelegatelist", "11"));
+                + HelpExampleCli("listdelegates", "11")
+                + HelpExampleRpc("listdelegates", "11"));
     }
 
     int nDelegateNum = (params.size() == 1) ? params[0].get_int() : IniCfg().GetDelegatesNum();
