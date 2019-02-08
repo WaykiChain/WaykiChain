@@ -56,7 +56,8 @@ string static EncodeDumpTime(int64_t nTime) {
 //    return ret.str();
 //}
 
-string DecodeDumpString(const string &str) {
+string DecodeDumpString(const string &str) 
+{
     stringstream ret;
     for (unsigned int pos = 0; pos < str.length(); pos++) {
         unsigned char c = str[pos];
@@ -70,25 +71,27 @@ string DecodeDumpString(const string &str) {
     return ret.str();
 }
 
-Value dropprivkey(const Array& params, bool fHelp){
-	if (fHelp || params.size() != 0)
+Value dropprivkey(const Array& params, bool fHelp)
+{
+	if (fHelp || params.size() != 0) {
 		throw runtime_error("dropprivkey \n"
-			    "\ndrop private key.\n"
+			    "\ndrop all wallet private key(s).\n"
 			    "\nResult:\n"
 			    "\nExamples:\n"
 			    + HelpExampleCli("dropprivkey", "")
 			    + HelpExampleRpc("dropprivkey", "")
 		);
+    }
 
 	EnsureWalletIsUnlocked();
 	if (!pwalletMain->IsReadyForCoolMiner(*pAccountViewTip)) {
-		throw runtime_error("there is no cool miner key  or miner key in on regist to blockchain\n");
+		throw runtime_error("there is no cool miner key  or miner key not registered yet");
 	}
 
 	pwalletMain->ClearAllCkeyForCoolMiner();
-	Object reply2;
-	reply2.push_back(Pair("info", "wallet is ready for cool miner"));
-	return reply2;
+	Object ret;
+	ret.push_back( Pair("info", "wallet is ready for cool miner") );
+	return ret;
 }
 
 Value importprivkey(const Array& params, bool fHelp)

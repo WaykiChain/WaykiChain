@@ -17,34 +17,31 @@ using namespace std;
 using namespace boost;
 using namespace json_spirit;
 
-
-
-
-#define	TX_REGISTER   0x01   //×¢²áÖÙ²ÃÕË»§
-#define TX_MODIFYREGISTER  0x02 // ĞŞ¸ÄÖÙ²ÃÕß×¢²áĞÅÏ¢
-#define TX_ARBIT_ON     0x03 //ÖÙ²Ã¿ªÆô
-#define TX_ARBIT_OFF    0x04 //ÖÙ²ÃÔİÍ£
-#define	TX_UNREGISTER  0x05 //×¢ÏúÖÙ²ÃÕË»§
-#define	TX_SEND  0x06 //¹Òµ¥
-#define	TX_CANCEL  0x07 //È¡Ïû¹Òµ¥
-#define	TX_ACCEPT  0x08 //½Óµ¥
-#define TX_DELIVERY 0x09//·¢»õ
-#define	TX_BUYERCONFIRM  0x0a //Âò¼ÒÈ·ÈÏÊÕ»õ
-#define	TX_ARBITRATION  0x0b //ÉêÇëÖÙ²Ã
-#define	TX_FINALRESULT  0x0c //²Ã¾ö½á¹û
+#define	TX_REGISTER   0x01   //æ³¨å†Œä»²è£è´¦æˆ·
+#define TX_MODIFYREGISTER  0x02 // ä¿®æ”¹ä»²è£è€…æ³¨å†Œä¿¡æ¯
+#define TX_ARBIT_ON     0x03 //ä»²è£å¼€å¯
+#define TX_ARBIT_OFF    0x04 //ä»²è£æš‚åœ
+#define	TX_UNREGISTER  0x05 //æ³¨é”€ä»²è£è´¦æˆ·
+#define	TX_SEND  0x06 //æŒ‚å•
+#define	TX_CANCEL  0x07 //å–æ¶ˆæŒ‚å•
+#define	TX_ACCEPT  0x08 //æ¥å•
+#define TX_DELIVERY 0x09//å‘è´§
+#define	TX_BUYERCONFIRM  0x0a //ä¹°å®¶ç¡®è®¤æ”¶è´§
+#define	TX_ARBITRATION  0x0b //ç”³è¯·ä»²è£
+#define	TX_FINALRESULT  0x0c //è£å†³ç»“æœ
 
 
 
 
 
 
-#define	SEND_TYPE_BUY   0x00   //!<¹Òµ¥ Âò
-#define	SEND_TYPE_SELL  0x01  //!<¹Òµ¥ Âô
+#define	SEND_TYPE_BUY   0x00   //!<æŒ‚å• ä¹°
+#define	SEND_TYPE_SELL  0x01  //!<æŒ‚å• å–
 
 
 typedef struct {
 	unsigned char systype;               //0xff
-	unsigned char type;            // 0x01 Ìá¬¨?ÏÖ?  02 ³ä?Öµ¦Ì  03 Ìá¬¨?ÏÖ?Ò»?¶¨¡§µÄ?½ğe¶î?
+	unsigned char type;            // 0x01 æîƒƒ?ç°?  02 å……?å€¼Î¼  03 æîƒƒ?ç°?ä¸€?å®šÂ¨çš„?é‡‘eé¢?
 	unsigned char typeaddr;            // 0x01 regid 0x02 base58
 	uint64_t     money;
 
@@ -59,7 +56,7 @@ typedef struct {
 
 typedef struct {
 	unsigned char systype;               //0xff
-	unsigned char type;            // 0x01 Ìá¬¨?ÏÖ?  02 ³ä?Öµ¦Ì  03 Ìá¬¨?ÏÖ?Ò»?¶¨¡§µÄ?½ğe¶î?
+	unsigned char type;            // 0x01 æîƒƒ?ç°?  02 å……?å€¼Î¼  03 æîƒƒ?ç°?ä¸€?å®šÂ¨çš„?é‡‘eé¢?
 	unsigned char typeaddr;            // 0x01 regid 0x02 base58
 //	uint64_t     money;
 
@@ -80,12 +77,12 @@ enum GETDAWEL{
 
 
 typedef struct {
-	unsigned char type;            //!<½»Ò×ÀàĞÍ
-	uint64_t arbiterMoneyX;             //!<ÖÙ²Ã·ÑÓÃX
-	uint64_t overtimeMoneyYmax;  //!<³¬Ê±Î´ÅĞ¾öµÄ×î´óÅâ³¥·ÑÓÃY
-	uint64_t configMoneyZ;              //!<ÎŞÕùÒé²Ã¾ö·ÑÓÃZ
-	unsigned int  overtimeheightT;  //!<ÅĞ¾öÆÚÏŞÊ±¼äT
-	char  comment[220];             //!<±¸×¢ËµÃ÷ ×Ö·û´®ÒÔ\0½áÊø£¬³¤¶È²»×ãºó²¹0
+	unsigned char type;            //!<äº¤æ˜“ç±»å‹
+	uint64_t arbiterMoneyX;             //!<ä»²è£è´¹ç”¨X
+	uint64_t overtimeMoneyYmax;  //!<è¶…æ—¶æœªåˆ¤å†³çš„æœ€å¤§èµ”å¿è´¹ç”¨Y
+	uint64_t configMoneyZ;              //!<æ— äº‰è®®è£å†³è´¹ç”¨Z
+	unsigned int  overtimeheightT;  //!<åˆ¤å†³æœŸé™æ—¶é—´T
+	char  comment[220];             //!<å¤‡æ³¨è¯´æ˜ å­—ç¬¦ä¸²ä»¥\0ç»“æŸï¼Œé•¿åº¦ä¸è¶³åè¡¥0
 	IMPLEMENT_SERIALIZE
 	(
 			READWRITE(type);
@@ -99,17 +96,17 @@ typedef struct {
 			}
 	)
 
-}TX_REGISTER_CONTRACT;  //!<×¢²áÖÙ²ÃÕË»§
+}TX_REGISTER_CONTRACT;  //!<æ³¨å†Œä»²è£è´¦æˆ·
 
 typedef struct {
-	unsigned char type;            //!<½»Ò×ÀàĞÍ
-	unsigned char sendType;         //!<¹Òµ¥ÀàĞÍ:0 Âò  1Âô
-	char arbitationID[6];        //!<ÖÙ²ÃÕßID£¨²ÉÓÃ6×Ö½ÚµÄÕË»§ID£©
-	uint64_t moneyM;                   //!<½»Ò×½ğ¶î
-	unsigned int height;           //!<Ã¿¸ö½»Ò×»·½ÚµÄ³¬Ê±¸ß¶È
+	unsigned char type;            //!<äº¤æ˜“ç±»å‹
+	unsigned char sendType;         //!<æŒ‚å•ç±»å‹:0 ä¹°  1å–
+	char arbitationID[6];        //!<ä»²è£è€…IDï¼ˆé‡‡ç”¨6å­—èŠ‚çš„è´¦æˆ·IDï¼‰
+	uint64_t moneyM;                   //!<äº¤æ˜“é‡‘é¢
+	unsigned int height;           //!<æ¯ä¸ªäº¤æ˜“ç¯èŠ‚çš„è¶…æ—¶é«˜åº¦
 
-	char goods[20];               //!<ÉÌÆ·ĞÅÏ¢  ×Ö·û´®ÒÔ\0½áÊø£¬³¤¶È²»×ãºó²¹0
-	char  comment[200];             //!<±¸×¢ËµÃ÷ ×Ö·û´®ÒÔ\0½áÊø£¬³¤¶È²»×ãºó²¹0
+	char goods[20];               //!<å•†å“ä¿¡æ¯  å­—ç¬¦ä¸²ä»¥\0ç»“æŸï¼Œé•¿åº¦ä¸è¶³åè¡¥0
+	char  comment[200];             //!<å¤‡æ³¨è¯´æ˜ å­—ç¬¦ä¸²ä»¥\0ç»“æŸï¼Œé•¿åº¦ä¸è¶³åè¡¥0
 	IMPLEMENT_SERIALIZE
 	(
 			READWRITE(type);
@@ -129,12 +126,12 @@ typedef struct {
 				READWRITE(comment[i]);
 			}
 	)
-}TX_SNED_CONTRACT;                  //!<¹Òµ¥
+}TX_SNED_CONTRACT;                  //!<æŒ‚å•
 
 typedef struct {
-	unsigned char type;            //!<½»Ò×ÀàĞÍ
-	unsigned char txhash[32];       //!<¹Òµ¥µÄ½»Ò×hash
-	unsigned int height;          //!<Ã¿¸ö½»Ò×»·½ÚµÄ³¬Ê±¸ß¶È
+	unsigned char type;            //!<äº¤æ˜“ç±»å‹
+	unsigned char txhash[32];       //!<æŒ‚å•çš„äº¤æ˜“hash
+	unsigned int height;          //!<æ¯ä¸ªäº¤æ˜“ç¯èŠ‚çš„è¶…æ—¶é«˜åº¦
 	IMPLEMENT_SERIALIZE
 	(
 			READWRITE(type);
@@ -146,10 +143,10 @@ typedef struct {
 	)
 } TX_CONTRACT;
 typedef struct {
-	unsigned char type;            //!<½»Ò×ÀàĞÍ
-	unsigned char txhash[32];       //!<¹Òµ¥µÄ½»Ò×hash
-	unsigned int height;          //!<Ã¿¸ö½»Ò×»·½ÚµÄ³¬Ê±¸ß¶È
-	char  arbitationID[6];       //!<ÖÙ²ÃÕßID£¨²ÉÓÃ6×Ö½ÚµÄÕË»§ID£©
+	unsigned char type;            //!<äº¤æ˜“ç±»å‹
+	unsigned char txhash[32];       //!<æŒ‚å•çš„äº¤æ˜“hash
+	unsigned int height;          //!<æ¯ä¸ªäº¤æ˜“ç¯èŠ‚çš„è¶…æ—¶é«˜åº¦
+	char  arbitationID[6];       //!<ä»²è£è€…IDï¼ˆé‡‡ç”¨6å­—èŠ‚çš„è´¦æˆ·IDï¼‰
 	IMPLEMENT_SERIALIZE
 	(
 			READWRITE(type);
@@ -163,16 +160,16 @@ typedef struct {
 				READWRITE(arbitationID[i]);
 			}
 	)
-} TX_Arbitration;  //!<ÉêÇëÖÙ²Ã
+} TX_Arbitration;  //!<ç”³è¯·ä»²è£
 
 typedef struct {
-	unsigned char type;            //!<½»Ò×ÀàĞÍ
-	unsigned char arbitHash[32];      //!<ÉêÇëÖÙ²ÃµÄ½»Ò×hash
-	unsigned int overtimeheightT;//!<ÅĞ¾öÆÚÏŞÊ±¼äT
-	char 	winner[6];      	//!<Ó®¼ÒID£¨²ÉÓÃ6×Ö½ÚµÄÕË»§ID£©
-	uint64_t winnerMoney;            //!<×îÖÕ»ñµÃµÄ½ğ¶î
-	char  loser[6];       //!<Êä¼ÒID£¨²ÉÓÃ6×Ö½ÚµÄÕË»§ID£©
-	uint64_t loserMoney;            //!<×îÖÕ»ñµÃµÄ½ğ¶î
+	unsigned char type;            //!<äº¤æ˜“ç±»å‹
+	unsigned char arbitHash[32];      //!<ç”³è¯·ä»²è£çš„äº¤æ˜“hash
+	unsigned int overtimeheightT;//!<åˆ¤å†³æœŸé™æ—¶é—´T
+	char 	winner[6];      	//!<èµ¢å®¶IDï¼ˆé‡‡ç”¨6å­—èŠ‚çš„è´¦æˆ·IDï¼‰
+	uint64_t winnerMoney;            //!<æœ€ç»ˆè·å¾—çš„é‡‘é¢
+	char  loser[6];       //!<è¾“å®¶IDï¼ˆé‡‡ç”¨6å­—èŠ‚çš„è´¦æˆ·IDï¼‰
+	uint64_t loserMoney;            //!<æœ€ç»ˆè·å¾—çš„é‡‘é¢
 	IMPLEMENT_SERIALIZE
 	(
 		READWRITE(type);
@@ -192,14 +189,14 @@ typedef struct {
 		}
 		READWRITE(loserMoney);
 	)
-}TX_FINALRESULT_CONTRACT;        //!<×îÖÕ²Ã¾ö
+}TX_FINALRESULT_CONTRACT;        //!<æœ€ç»ˆè£å†³
 
 
 class CGuaranteeTest: public CycleTestBase {
 	int nNum;
 	int nStep;
 	string strTxHash;
-	string strAppRegId;//×¢²áÓ¦ÓÃºóµÄId
+	string strAppRegId;//æ³¨å†Œåº”ç”¨åçš„Id
 public:
 	CGuaranteeTest();
 	~CGuaranteeTest(){};

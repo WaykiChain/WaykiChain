@@ -6,8 +6,8 @@
 |---|---|---|---|
 | addnode | ```<node><add/remove/onetry>```| Attempts add or remove ```<node>``` from the addnode list or try a connection to ```<node>``` once.| N |
 | backupwallet | ```<destination>``` | Safely copies wallet.dat to destination, which can be a directory or a path with filename. | N |
-| createcontracttx | ```<userregid><appid><amount><contract><fee>[height  ,default = the tip block height]``` | create contract transaction | Y |
-| createcontracttxraw | ```<height><fee><amount><address><contract>``` | Create contract transaction from hex string | N |
+| callcontracttx | ```<userregid><appid><amount><contract><fee>[height, default = the tip block height]``` | create contract transaction | Y |
+| gencallcontracttxraw | ```<height><fee><amount><address><contract>``` | get call contract raw transaction | N |
 | dropprivkey | | drop private key from wallet | Y |
 | dumpwallet | ```<filename>``` | Dumps all wallet keys in a human-readable format.And write to ```<filename>``` | Y |
 | dumpprivkey | ```<wiccaddress>``` | Reveals the private key corresponding to ```<wiccaddress>``` | Y |
@@ -15,8 +15,8 @@
 | generateblock | ```<address>``` | create a block with the appointed address | N |
 | getaccountinfo | ```<address>``` | Returns the account information  with the given address | N |
 | getaddednodeinfo | ```<dns>``` [node] | Returns information about the given added node, or all added nodes. <br>(note that onetry addnodes are not listed here) If dns is false, only a list of added nodes will be provided, otherwise connected information will also be available. | N |
-| getappaccountinfo | ```<appregid><address>``` | get appaccount info | N |
-| getappkeyvalue | ```<appregid><array>``` | get application key value | N |
+| getcontractaccountinfo | ```<regid><address>``` | get contract account info | N |
+| getcontractkeyvalue | ```<regid><array>``` | get contract key value | N |
 | getbalance | ```[account] [minconf=1]``` | If [account] is not specified, returns the server's total available balance. <br>If [account] is specified, returns the balance in the account. <br>If [minconf] is 1; Only include transactions confirmed. Default max value is 30, can configure -maxconf parameter changer the max value.| N |
 | getbestblockhash | | Returns the hash of the best (tip) block in the longest block chain. | N |
 | getblock | ```<hash or index>[verbose]``` |Returns information about the block with the given hash or index.If verbose is true,return a json object, false return the hex encoded data | N |
@@ -34,40 +34,42 @@
 | getnetworkinfo | | Returns an object containing various state info regarding P2P network | N |
 | getpeerinfo | | Returns data about each connected node | N |
 | getrawmempool | ```[verbose]``` | Returns all transaction ids in memory pool.If verbose is true,return  a json object, false return array of transaction ids. | N |
-| getappdata | ```<scriptid><pagsize or key>[index]``` | get app managed data by given app regid. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
-| getappdataraw | ```<scriptid><pagsize or key>[index]``` | get app managed raw data by given app regid. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
-| getappconfirmdata | ```<scriptid><pagsize><index>``` | get app data confirmed | N |
+| getcontractdata | ```<scriptid><pagsize or key>[index]``` | get contract managed data by given regid in plaintext form. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
+| getcontractdataraw | ```<scriptid><pagsize or key>[index]``` | get contract data by given app regid in hexdigit format. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
+| getcontractconfirmdata | ```<scriptid><pagsize><index>``` | get contract data confirmed | N |
 | gettxdetail | ```<txhash>``` | Returns an object about the transaction  detail information by ```<txhash>``` | N |
 | getwalletinfo | | Returns an object containing various wallet state info | N |
-| help | ```[command]``` | List commands, or get help for a command | N | 
+| help | ```[command]``` | List commands, or get help for a command | N |
 | importprivkey | ```<wiccprivkey> [label] [rescan=true]``` | Adds a private key (as returned by dumpprivkey) to your wallet. This may take a while, as a rescan is done, looking for existing transactions. Note: There's no need to import public key, as in ECDSA (unlike RSA), which can be computed from private key. | Y |
 | importwallet | ```<filename>``` | Import keys from a wallet dump file (see dumpwallet). | Y |
+| invalidateblock | ```<hash>``` | Mark a block as invalid. | N |
 | islocked | | Return an object about whether the wallet is being locked or unlocked | N |
 | listaddr | | return Array containing address,balance,haveminerkey,regid information | N |
-| listapp | ```<showDetail>``` | get the list register script: <br>1. showDetail  (boolean, required)true to show scriptContent,otherwise to not show it. | N |
+| listcontracts | ```<showDetail>``` | get all registered contracts: <br>1. showDetail: 0 | 1  (boolean, required) 1 to show scriptContent, otherwise not show it. | N |
 | listcheckpoint | | Returns the list of checkpoints | N |
 | listtx | | get all confirm transactions and all unconfirm transactions from wallet | N |
 | listtxcache | | get all transactions in cache | N |
 | listunconfirmedtx | | get the list of unconfirmedtx | N |
-| registeraccounttx | ```<address><fee>``` | register secure account | Y |
-| registeraccounttxraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account transaction | N |
-| registerapptx | ```<address><filepath><fee>[height][scriptdescription]``` | create a register script transaction | Y |
-| registerscripttxraw | ```<height><fee><address><flag><script or scriptid><script description>``` | Register script: <br>1.    Height(numeric required) :valod height<br> 2.    Fee: (numeric required) pay to miner<br>3.    address: (string required)for send<br>4.    flag: (numeric, required) 0-1<br>5.    script or scriptid: (string required), if flag=0 is script's file path, else if flag=1 scriptid<br>6.    script description:(string optional) new script description.<br>| N |
-| sendtoaddress | ```[wiccaddress]<[receive address><amount>``` | Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001. Returns the transaction ID <txhash> if successful | Y |
-| sendtoaddressraw | ```<fee><amount><src_address><recv_address><height>``` | create normal transaction by height,fee,amount,srcaddress, recvaddress | N |
+| registeraccounttx | ```<address> [fee]``` | register an account from the local wallet node | Y |
+| genregisteraccounttxraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account raw transaction | N |
+| reconsiderblock | ```<hash>``` | Removes invalidity status of a block and its descendants, reconsider them for activation. | N |
+| registercontracttx | ```<address><filepath><fee>[height][contract_description]``` | register a contract app | Y |
+| genregistercontracttxraw | ```<height><fee><address><flag><contract or contract RegId><contract description>``` | get Contract Registration Tx Raw: <br>1.    Height(numeric required) :valod height<br> 2.    Fee: (numeric required) pay to miner<br>3.    address: (string required)for send<br>4.    flag: (numeric, required) 0-1<br>5.    app or appregid: (string required), if flag=0 is script's file path, else if flag=1 scriptid<br>6.    script description:(string optional) new script description.<br>| N |
+| sendtoaddress | ```[wiccaddress]<[recvaddress><amount>``` | Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001. Returns the transaction ID <txhash> if successful | Y |
+| gensendtoaddresstxraw | ```<fee><amount><sendaddress><recvaddress><height>``` | generate a signed raw tx with height,fee,amount,sendaddress, recvaddress | N |
 | sendtoaddresswithfee | [sendaddress]<recvaddress><amount><fee> | Send an amount to a given address with fee. The amount is a real and is rounded to the nearest 0.00000001 (Sendaddress is optional) | Y |
 | setgenerate | ```<generate>``` [genproclimit] | <generate> is true or false to turn generation on or off. Generation is limited to [genproclimit] processors, -1 is unlimited. | N |
 | settxfee | ```<amount>``` | ```<amount>``` is a real and is rounded to the nearest 0.00000001 | N |
-| signmessage | ```<wiccaddress> <message>``` | Sign a message with the private key of an address. | Y | 
+| signmessage | ```<wiccaddress> <message>``` | Sign a message with the private key of an address. | Y |
 | sigstr | ```<transaction><address>``` | signature transaction | N |
 | stop | | Stop  WaykiCoind server | N |
 | submitblock | ```<hexdata>``` [optional-params-obj] | Attempts to submit new block to network <br> 1. hexdata (string, required) the hex-encoded block data to submit | N |
-| submittx | ```<transaction>``` | submit transaction | Y |
-| verifymessage | ```<wiccaddress>``` <signature> <message> | Verify a signed message. | N | 
+| submittx | ```<transaction>``` | submit transaction | N |
+| verifymessage | ```<wiccaddress>``` <signature> <message> | Verify a signed message. | N |
 | verifychain | ```[checklevel][numblocks]``` | Verifies blockchain database: <br>1.    checklevel (numeric, optional, 0-4, default=3), How thorough the block verification is.<br>2.    numblocks (numeric, optional, default=288, 0=all) The number of blocks to check. | N |
 | walletlock | | Removes the wallet encryption key from memory, locking the wallet. After calling this method, you will need to call walletpassphrase again before being able to call any methods which require the wallet to be unlocked. | N |
-| walletpassphrase | ```<passphrase> <timeout>``` | Stores the wallet decryption key in memory for <timeout> seconds. | N | 
+| walletpassphrase | ```<passphrase> <timeout>``` | Stores the wallet decryption key in memory for <timeout> seconds. | N |
 | walletpassphrasechange | ```<oldpassphrase> <newpassphrase>``` | Changes the wallet passphrase from <oldpassphrase> to <newpassphrase> | N |
-| ping | | Requests that a ping be sent to all other nodes, to measure ping time. | N | 
-| validateaddress | ```<address>``` | check the address is valide | N | 
+| ping | | Requests that a ping be sent to all other nodes, to measure ping time. | N |
+| validateaddress | ```<address>``` | check whether the address is valid or not | N |
 | getalltxinfo | ```[nlimitCount]``` | if no input params, return all transactions in wallet include those confirmed and unconfirmed, else return the number of nlimitCount transaction relate. | N |

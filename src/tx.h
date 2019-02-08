@@ -47,7 +47,7 @@ enum TxType {
     REG_ACCT_TX = 2,    //!< tx that used to register account
     COMMON_TX   = 3,    //!< transfer coin from one account to another
     CONTRACT_TX = 4,    //!< contract tx
-    REG_APP_TX  = 5,    //!< register app
+    REG_CONT_TX = 5,    //!< register contract
     DELEGATE_TX = 6,    //!< delegate tx
     NULL_TX,            //!< NULL_TX
 };
@@ -92,10 +92,10 @@ private:
 public:
     friend class CID;
     CRegID(string strRegID);
-    CRegID(const vector<unsigned char> &vIn) ;
+    CRegID(const vector<unsigned char> &vIn);
     CRegID(uint32_t nHeight = 0, uint16_t nIndex = 0);
 
-    const vector<unsigned char> &GetVec6() const { assert(vRegID.size() ==6); return vRegID; }
+    const vector<unsigned char> &GetVec6() const { assert(vRegID.size() == 6); return vRegID; }
     void SetRegID(const vector<unsigned char> &vIn) ;
     CKeyID getKeyID(const CAccountViewCache &view)const;
     uint32_t getHight()const { return nHeight;};
@@ -346,7 +346,7 @@ public:
         assert(CONTRACT_TX == pBaseTx->nTxType || COMMON_TX == pBaseTx->nTxType);
         *this = *(CTransaction *) pBaseTx;
     }
-    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee, 
+    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee,
         uint64_t Value, int height, vector_unsigned_char& pContract)
     {
         if (in_UserRegId.type() == typeid(CRegID)) {
@@ -364,7 +364,7 @@ public:
         llValues = Value;
         signature.clear();
     }
-    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee, 
+    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee,
         uint64_t Value, int height)
     {
         nTxType = COMMON_TX;
@@ -521,7 +521,7 @@ public:
     bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
-class CRegisterAppTx: public CBaseTransaction {
+class CRegisterContractTx: public CBaseTransaction {
 
 public:
     mutable CUserID regAcctId;         //regid
@@ -529,18 +529,18 @@ public:
     uint64_t llFees;
     vector_unsigned_char signature;
 public:
-    CRegisterAppTx(const CBaseTransaction *pBaseTx) {
-        assert(REG_APP_TX == pBaseTx->nTxType);
-        *this = *(CRegisterAppTx*) pBaseTx;
+    CRegisterContractTx(const CBaseTransaction *pBaseTx) {
+        assert(REG_CONT_TX == pBaseTx->nTxType);
+        *this = *(CRegisterContractTx*) pBaseTx;
     }
 
-    CRegisterAppTx() {
-        nTxType = REG_APP_TX;
+    CRegisterContractTx() {
+        nTxType = REG_CONT_TX;
         llFees = 0;
         nValidHeight = 0;
     }
 
-    ~CRegisterAppTx() {
+    ~CRegisterContractTx() {
     }
 
     IMPLEMENT_SERIALIZE
@@ -561,7 +561,7 @@ public:
     uint256 GetHash() const;
 
     std::shared_ptr<CBaseTransaction> GetNewInstance() {
-        return std::make_shared<CRegisterAppTx>(this);
+        return std::make_shared<CRegisterContractTx>(this);
     }
 
     uint256 SignatureHash() const;
@@ -828,10 +828,7 @@ public:
     }
 
     string ToString(bool isAddress=false) const;
-
     Object ToJson(bool isAddress=false) const;
-
-
 };
 
 class CTxUndo {
@@ -893,7 +890,7 @@ public:
         voteFunds.clear();
         llVotes = 0;
     }
-    CAccount() :keyID(uint160()), llValues(0) {
+    CAccount(): keyID(uint160()), llValues(0) {
         PublicKey = CPubKey();
         MinerPKey =  CPubKey();
         nHeight = 0;
@@ -933,13 +930,11 @@ public:
 //          return true;
 //      return nCoinDay >= llValues * SysCfg().GetIntervalPos();
         return true;
+    }
 
-    }
-    bool IsRegister() const {
-        return (PublicKey.IsFullyValid() && PublicKey.GetKeyID() == keyID);
-    }
-    bool SetRegId(const CRegID &regID){this->regID = regID;return true;};
-    bool GetRegId(CRegID &regID)const {regID = this->regID;return !regID.IsEmpty();};
+    bool IsRegistered() const { return (PublicKey.IsFullyValid() && PublicKey.GetKeyID() == keyID); }
+    bool SetRegId(const CRegID &regID) { this->regID = regID; return true; };
+    bool GetRegId(CRegID &regID) const { regID = this->regID; return !regID.IsEmpty(); };
     uint64_t GetRawBalance();
     uint64_t GetTotalBalance();
     uint64_t GetFrozenBalance();
@@ -947,9 +942,7 @@ public:
     uint64_t GetAccountProfit(int prevBlockHeight);
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;
-    bool IsEmptyValue() const {
-        return !(llValues > 0);
-    }
+    bool IsEmptyValue() const { return !(llValues > 0); }
     uint256 GetHash(){
         CHashWriter ss(SER_GETHASH, 0);
         ss << regID << keyID << PublicKey << MinerPKey << VARINT(llValues)
@@ -973,9 +966,7 @@ public:
         READWRITE(llVotes);
     )
 
-    uint64_t GetReceiveVotes() const {
-        return llVotes;
-    }
+    uint64_t GetReceiveVotes() const { return llVotes; }
 private:
     bool IsMoneyOverflow(uint64_t nAddMoney);
 };
@@ -1046,8 +1037,8 @@ void Serialize(Stream& os, const std::shared_ptr<CBaseTransaction> &pa, int nTyp
     else if (pa->nTxType == REWARD_TX) {
         Serialize(os, *((CRewardTransaction *) (pa.get())), nType, nVersion);
     }
-    else if (pa->nTxType == REG_APP_TX) {
-        Serialize(os, *((CRegisterAppTx *) (pa.get())), nType, nVersion);
+    else if (pa->nTxType == REG_CONT_TX) {
+        Serialize(os, *((CRegisterContractTx *) (pa.get())), nType, nVersion);
     }
     else if (pa->nTxType == DELEGATE_TX) {
         Serialize(os, *((CDelegateTransaction *) (pa.get())), nType, nVersion);
@@ -1065,29 +1056,24 @@ void Unserialize(Stream& is, std::shared_ptr<CBaseTransaction> &pa, int nType, i
     if (nTxType == REG_ACCT_TX) {
         pa = std::make_shared<CRegisterAccountTx>();
         Unserialize(is, *((CRegisterAccountTx *) (pa.get())), nType, nVersion);
-    }
-    else if (nTxType == COMMON_TX) {
+    } else if (nTxType == COMMON_TX) {
         pa = std::make_shared<CTransaction>();
         Unserialize(is, *((CTransaction *) (pa.get())), nType, nVersion);
-    }
-    else if (nTxType == CONTRACT_TX) {
+    } else if (nTxType == CONTRACT_TX) {
         pa = std::make_shared<CTransaction>();
         Unserialize(is, *((CTransaction *) (pa.get())), nType, nVersion);
-    }
-    else if (nTxType == REWARD_TX) {
+    } else if (nTxType == REWARD_TX) {
         pa = std::make_shared<CRewardTransaction>();
         Unserialize(is, *((CRewardTransaction *) (pa.get())), nType, nVersion);
-    }
-    else if (nTxType == REG_APP_TX) {
-        pa = std::make_shared<CRegisterAppTx>();
-        Unserialize(is, *((CRegisterAppTx *) (pa.get())), nType, nVersion);
-    }
-    else if (nTxType == DELEGATE_TX) {
+    } else if (nTxType == REG_CONT_TX) {
+        pa = std::make_shared<CRegisterContractTx>();
+        Unserialize(is, *((CRegisterContractTx *) (pa.get())), nType, nVersion);
+    } else if (nTxType == DELEGATE_TX) {
         pa = std::make_shared<CDelegateTransaction>();
         Unserialize(is, *((CDelegateTransaction *) (pa.get())), nType, nVersion);
-    }
-    else {
-        throw ios_base::failure("unseiralize tx type value error, must be ranger(1...6)");
+    } else {
+        string sTxType(1, nTxType);
+        throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error, must be within range (1...6)");
     }
     pa->nTxType = nTxType;
 }

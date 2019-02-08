@@ -229,7 +229,7 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 	vector<CAccountLog> vLog;
 	for (int i = 0; i < nTimeOutHeight; i++) {
 		//0:产生注册脚本交易
-		Value valueRes = RegisterAppTx(strAddr1,strFileName , nTimeOutHeight, nFee);
+		Value valueRes = RegisterContractTx(strAddr1,strFileName , nTimeOutHeight, nFee);
 		BOOST_CHECK(GetHashFromCreatedTx(valueRes,strTxHash));
 
 		//1:挖矿

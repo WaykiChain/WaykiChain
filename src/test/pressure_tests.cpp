@@ -58,7 +58,7 @@ int GetRandTxType() {
 
 class PressureTest: public SysTestBase {
 public:
-	bool GetAppData(string regId, vector<unsigned char> &vContract) {
+	bool GetContractData(string regId, vector<unsigned char> &vContract) {
 		for(auto &addr : mapAddress) {
 			if(addr.first == regId)
 				continue;
@@ -154,7 +154,7 @@ public:
 	/**
 	 * 创建合约交易
 	 */
-	bool CreateContractTx() {
+	bool CallContractTx() {
 		map<string, string>::iterator iterSrcAddr = GetRandAddress();
 		string srcAddr(iterSrcAddr->second);
 
@@ -166,7 +166,7 @@ public:
 
 		int nfee = GetRandomFee() + 100000;
 		uint64_t llmoney = GetRandomMoney() * COIN;
-		Value value = SysTestBase::CreateContractTx(regScriptId,srcAddr, contact,0,nfee, llmoney);
+		Value value = SysTestBase::CallContractTx(regScriptId,srcAddr, contact,0,nfee, llmoney);
 		string txHash = "";
 		BOOST_CHECK(GetHashFromCreatedTx(value,txHash));
 
@@ -185,7 +185,7 @@ public:
 			regAddress = iterSrcAddr->second;
 		}
 		uint64_t nFee = GetRandomFee() + 1 * COIN;
-		Value ret = RegisterAppTx(regAddress, "unit_test.bin", 100, nFee);
+		Value ret = RegisterContractTx(regAddress, "unit_test.bin", 100, nFee);
 		BOOST_CHECK(GetHashFromCreatedTx(ret,hash));
 
 		if(fFlag) {
@@ -224,7 +224,7 @@ public:
 				break;
 			case 3:
 				{
-					BOOST_CHECK(CreateContractTx());
+					BOOST_CHECK(CallContractTx());
 				}
 				break;
 			case 4:

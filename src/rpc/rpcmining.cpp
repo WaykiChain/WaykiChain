@@ -48,7 +48,7 @@ void InitRPCMining()
     // getwork/getblocktemplate mining rewards paid here:
 //    pMiningKey = new CReserveKey(pwalletMain);
      //assert(0);
-	 LogPrint("TODO","InitRPCMining");
+     LogPrint("TODO","InitRPCMining");
 }
 
 void ShutdownRPCMining()
@@ -125,12 +125,12 @@ static bool IsMining = false;
 
 void SetMinerStatus(bool bstatue )
 {
-	IsMining =bstatue;
+    IsMining =bstatue;
 }
 
 static bool getMiningInfo()
 {
-	return IsMining;
+    return IsMining;
 }
 
 Value setgenerate(const Array& params, bool fHelp)
@@ -147,12 +147,11 @@ Value setgenerate(const Array& params, bool fHelp)
             "                    Note: in -regtest mode, genproclimit controls how many blocks are generated immediately.\n"
             "\nExamples:\n"
             "\nSet the generation on with a limit of one processor\n"
-            + HelpExampleCli("setgenerate", "true 1") +
-            "\nTurn off generation\n"
-            + HelpExampleCli("setgenerate", "false") +
-            "\nUsing json rpc\n"
+            + HelpExampleCli("setgenerate", "true 1")
             + HelpExampleRpc("setgenerate", "true, 1")
-        );
+            + "\nTurn off generation\n"
+            + HelpExampleCli("setgenerate", "false")
+            + HelpExampleRpc("setgenerate", "false"));
 
     static bool fGenerate = false;
 
@@ -161,49 +160,45 @@ Value setgenerate(const Array& params, bool fHelp)
     pwalletMain->GetKeys(setKeyId, true);
 
     bool bSetEmpty(true);
-    for(auto & keyId : setKeyId) {
-      	CUserID userId(keyId);
-      	CAccount acctInfo;
-      	if (pAccountViewTip->GetAccount(userId, acctInfo)) {
-      		bSetEmpty = false;
-      		break;
-      	}
+    for (auto & keyId : setKeyId) {
+        CUserID userId(keyId);
+        CAccount acctInfo;
+        if (pAccountViewTip->GetAccount(userId, acctInfo)) {
+            bSetEmpty = false;
+            break;
+        }
     }
 
-    if(bSetEmpty)
-    	throw JSONRPCError(RPC_INVALID_PARAMS, "no key for mining");
+    if (bSetEmpty)
+        throw JSONRPCError(RPC_INVALID_PARAMS, "no key for mining");
 
     if (params.size() > 0)
         fGenerate = params[0].get_bool();
 
     int nGenProcLimit = 1;
-    if (params.size() == 2)
-    {
+    if (params.size() == 2) {
         nGenProcLimit = params[1].get_int();
-        if(nGenProcLimit <= 0)
-        {
-        	throw JSONRPCError(RPC_INVALID_PARAMS, "limit conter err for mining");
+        if(nGenProcLimit <= 0) {
+            throw JSONRPCError(RPC_INVALID_PARAMS, "limit conter err for mining");
         }
     }
     Object obj;
-	if(fGenerate == false){
-		GenerateCoinBlock(false, pwalletMain, 1);
+    if (fGenerate == false){
+        GenerateCoinBlock(false, pwalletMain, 1);
 
-	    obj.push_back(Pair("msg","stoping  mining"));
-		 return obj;
-	}
+        obj.push_back(Pair("msg", "stoping  mining"));
+        return obj;
+    }
 
-	GenerateCoinBlock(true, pwalletMain, nGenProcLimit);//跑完之后需要退出
-	obj.push_back(Pair("msg","in  mining"));
-	return obj;
-
+    GenerateCoinBlock(true, pwalletMain, nGenProcLimit);
+    obj.push_back(Pair("msg", "in  mining"));
+    return obj;
 }
 
 Value getmininginfo(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
-            "getmininginfo\n"
+    if (fHelp || params.size() != 0) {
+        throw runtime_error("getmininginfo\n"
             "\nReturns a json object containing mining-related information."
             "\nResult:\n"
             "{\n"
@@ -222,6 +217,9 @@ Value getmininginfo(const Array& params, bool fHelp)
             + HelpExampleCli("getmininginfo", "")
             + HelpExampleRpc("getmininginfo", "")
         );
+    }
+
+    static const string NetTypes[] = { "MAIN_NET", "TEST_NET", "REGTEST_NET" };
 
     Object obj;
     obj.push_back(Pair("blocks",           (int)chainActive.Height()));
@@ -231,19 +229,16 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("genproclimit",     1));
     obj.push_back(Pair("networkhashps",    getnetworkhashps(params, false)));
     obj.push_back(Pair("pooledtx",         (uint64_t)mempool.size()));
-    static const string name[] = {"MAIN_NET", "TEST_NET", "REGTEST_NET"};
-    obj.push_back(Pair("nettype",          name[SysCfg().NetworkID()]));
+    obj.push_back(Pair("nettype",          NetTypes[SysCfg().NetworkID()]));
     obj.push_back(Pair("posmaxnonce",      SysCfg().GetBlockMaxNonce()));
-
-    obj.push_back(Pair("generate",        getMiningInfo()));
+    obj.push_back(Pair("generate",         getMiningInfo()));
     return obj;
 }
 
 Value submitblock(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
-            "submitblock \"hexdata\" ( \"jsonparametersobject\" )\n"
+        throw runtime_error("submitblock \"hexdata\" ( \"jsonparametersobject\" )\n"
             "\nAttempts to submit new block to network.\n"
             "The 'jsonparametersobject' parameter is currently ignored.\n"
             "See https://en.bitcoin.it/wiki/BIP_0022 for full specification.\n"
@@ -273,14 +268,14 @@ Value submitblock(const Array& params, bool fHelp)
     CValidationState state;
     bool fAccepted = ProcessBlock(state, NULL, &pblock);
     Object obj;
-	if (!fAccepted) {
-		obj.push_back(Pair("status", "rejected"));
-		obj.push_back(Pair("reject code", state.GetRejectCode()));
-		obj.push_back(Pair("info", state.GetRejectReason()));
-	} else {
+    if (!fAccepted) {
+        obj.push_back(Pair("status", "rejected"));
+        obj.push_back(Pair("reject code", state.GetRejectCode()));
+        obj.push_back(Pair("info", state.GetRejectReason()));
+    } else {
 
-		obj.push_back(Pair("status", "OK"));
-		obj.push_back(Pair("hash", pblock.GetHash().ToString()));
-	}
-	return obj;
+        obj.push_back(Pair("status", "OK"));
+        obj.push_back(Pair("hash", pblock.GetHash().ToString()));
+    }
+    return obj;
 }

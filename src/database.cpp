@@ -27,9 +27,11 @@ Object CAccountView::ToJsonObj(char Prefix){
 	Object obj;
 	return obj;
 }
-uint64_t CAccountView::TraverseAccount(){return 0;}
 
-CAccountViewBacked::CAccountViewBacked(CAccountView &accountView):pBase(&accountView) {}
+std::tuple<uint64_t, uint64_t> CAccountViewBacked::TraverseAccount() { return pBase->TraverseAccount(); }
+
+CAccountViewBacked::CAccountViewBacked(CAccountView &accountView): pBase(&accountView) {}
+
 bool CAccountViewBacked::GetAccount(const CKeyID &keyId, CAccount &account) {
 	return pBase->GetAccount(keyId, account);
 }
@@ -73,9 +75,10 @@ bool CAccountViewBacked::SaveAccountInfo(const vector<unsigned char> &accountId,
 		const CAccount &account) {
 	return pBase->SaveAccountInfo(accountId, keyId, account);
 }
-uint64_t CAccountViewBacked::TraverseAccount(){return pBase->TraverseAccount();}
 
-CAccountViewCache::CAccountViewCache(CAccountView &accountView, bool fDummy):CAccountViewBacked(accountView), hashBlock(uint256()) {}
+CAccountViewCache::CAccountViewCache(CAccountView &accountView, bool fDummy) :
+	CAccountViewBacked(accountView), hashBlock(uint256()) {}
+
 bool CAccountViewCache::GetAccount(const CKeyID &keyId, CAccount &account) {
 	if (cacheAccounts.count(keyId)) {
 		if (cacheAccounts[keyId].keyID != uint160()) {
@@ -137,7 +140,7 @@ bool CAccountViewCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, con
 }
 bool CAccountViewCache::BatchWrite(const vector<CAccount> &vAccounts) {
 	for (vector<CAccount>::const_iterator it = vAccounts.begin(); it != vAccounts.end(); ++it) {
-		if (it->IsEmptyValue() && !it->IsRegister()) {
+		if (it->IsEmptyValue() && !it->IsRegistered()) {
 			cacheAccounts[it->keyID] = *it;
 			cacheAccounts[it->keyID].keyID = uint160();
 		} else {
@@ -158,6 +161,7 @@ bool CAccountViewCache::EraseAccount(const CKeyID &keyId) {
 	}
 	return true;
 }
+
 bool CAccountViewCache::SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId) {
 	if(accountId.empty())
 		return false;
@@ -240,14 +244,11 @@ bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAcco
 	}
 	return false;
 }
+
 bool CAccountViewCache::SaveAccountInfo(const CRegID &regid, const CKeyID &keyId, const CAccount &account) {
 	cacheKeyIds[regid.GetVec6()] = keyId;
 	cacheAccounts[keyId] = account;
 	return true;
-}
-
-uint64_t CAccountViewCache::TraverseAccount() {
-	return pBase->TraverseAccount();
 }
 
 bool CAccountViewCache::GetAccount(const CUserID &userId, CAccount &account) {
@@ -266,7 +267,9 @@ bool CAccountViewCache::GetAccount(const CUserID &userId, CAccount &account) {
 	}
 	return ret;
 }
-bool CAccountViewCache::GetKeyId(const CUserID &userId, CKeyID &keyId) {
+
+bool CAccountViewCache::GetKeyId(const CUserID &userId, CKeyID &keyId) 
+{
 	if (userId.type() == typeid(CRegID)) {
 		return GetKeyId(boost::get<CRegID>(userId).GetVec6(), keyId);
 	} else if (userId.type() == typeid(CPubKey)) {
@@ -280,6 +283,40 @@ bool CAccountViewCache::GetKeyId(const CUserID &userId, CKeyID &keyId) {
 	}
 	return ERRORMSG("GetKeyId input userid is unknow type");
 }
+
+bool CAccountViewCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
+	if (userId.type() == typeid(CRegID)) {
+		return SetKeyId(boost::get<CRegID>(userId).GetVec6(), keyId);
+	} else {
+//		assert(0);
+	}
+	return false;
+}
+
+CUserID CAccountViewCache::GetUserId(const string &addr) 
+{
+	CRegID regId(addr);
+	if(!regId.IsEmpty()) {
+		return regId;
+	}
+	CKeyID keyId(addr);
+	if(!keyId.IsEmpty()) {
+		return keyId;
+	}
+
+	throw ERRORMSG("GetUserId: addr %s invalid", addr);
+}
+
+CRegID CAccountViewCache::GetRegId(const CKeyID &keyId)
+{
+	CAccount acct;
+	if (CAccountViewCache::GetAccount(CUserID(keyId), acct)) {
+		return acct.regID;
+	} else {
+        throw runtime_error(tinyformat::format("GetRegId :account id %s not exist\n", keyId.ToAddress()));
+	}
+}
+
 bool CAccountViewCache::SetAccount(const CUserID &userId, const CAccount &account) {
 	if (userId.type() == typeid(CRegID)) {
 		return SetAccount(boost::get<CRegID>(userId).GetVec6(), account);
@@ -292,16 +329,7 @@ bool CAccountViewCache::SetAccount(const CUserID &userId, const CAccount &accoun
 	}
 	return ERRORMSG("SetAccount input userid is unknow type");
 }
-bool CAccountViewCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
-	if (userId.type() == typeid(CRegID)) {
-		return SetKeyId(boost::get<CRegID>(userId).GetVec6(), keyId);
-	} else {
-//		assert(0);
-	}
 
-	return false;
-
-}
 bool CAccountViewCache::EraseAccount(const CUserID &userId) {
 	if (userId.type() == typeid(CKeyID)) {
 		return EraseAccount(boost::get<CKeyID>(userId));
@@ -407,7 +435,7 @@ bool CScriptDBView::BatchWrite(const map<vector<unsigned char>, vector<unsigned 
 bool CScriptDBView::EraseKey(const vector<unsigned char> &vKey) {return false;}
 bool CScriptDBView::HaveData(const vector<unsigned char> &vKey) {return false;}
 bool CScriptDBView::GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) {return false;}
-bool CScriptDBView::GetAppData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
+bool CScriptDBView::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
 		vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
 	return false;
 }
@@ -429,9 +457,9 @@ bool CScriptDBViewBacked::BatchWrite(const map<vector<unsigned char>, vector<uns
 bool CScriptDBViewBacked::EraseKey(const vector<unsigned char> &vKey) {return pBase->EraseKey(vKey);}
 bool CScriptDBViewBacked::HaveData(const vector<unsigned char> &vKey) {return pBase->HaveData(vKey);}
 bool CScriptDBViewBacked::GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) {return pBase->GetScript(nIndex, vScriptId, vValue);}
-bool CScriptDBViewBacked::GetAppData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
+bool CScriptDBViewBacked::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
 		const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
-	return pBase->GetAppData(nCurBlockHeight, vScriptId, nIndex, vScriptKey, vScriptData);
+	return pBase->GetContractData(nCurBlockHeight, vScriptId, nIndex, vScriptKey, vScriptData);
 }
 bool CScriptDBViewBacked::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos){return pBase->ReadTxIndex(txid, pos);}
 bool CScriptDBViewBacked::WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB){return pBase->WriteTxIndex(list, vTxIndexOperDB);}
@@ -485,17 +513,17 @@ bool CScriptDBViewCache::UndoScriptData(const vector<unsigned char> &vKey, const
 		int nCount(0);
 		if (vValue.empty()) {   //key所对应的值由非空设置为空，计数减1
 			if (!vOldValue.empty()) {
-				if (!GetAppItemCount(vScriptId, nCount))
+				if (!GetContractItemCount(vScriptId, nCount))
 					return false;
 				--nCount;
-				if (!SetAppItemCount(vScriptId, nCount))
+				if (!SetContractItemCount(vScriptId, nCount))
 					return false;
 			}
 		} else {    //key所对应的值由空设置为非空，计数加1
 			if (vOldValue.empty()) {
-				GetAppItemCount(vScriptId, nCount);
+				GetContractItemCount(vScriptId, nCount);
 				++nCount;
-				if (!SetAppItemCount(vScriptId, nCount))
+				if (!SetContractItemCount(vScriptId, nCount))
 					return false;
 			}
 		}
@@ -798,7 +826,7 @@ bool CScriptDBViewCache::GetScript(const CRegID &scriptId, vector<unsigned char>
 	return GetScript(scriptId.GetVec6(), vValue);
 }
 
-bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
+bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
 		const vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
 //	assert(vScriptKey.size() == 8);
 	vector<unsigned char> vKey = { 'd', 'a', 't', 'a' };
@@ -816,7 +844,7 @@ bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const vector<unsi
 //	ds >> vScriptData;
 	return true;
 }
-bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
+bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
 		const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
 	if(0 == nIndex) {
 		vector<unsigned char> vKey = { 'd', 'a', 't', 'a' };
@@ -845,7 +873,7 @@ bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const vector<unsi
 		}
 		bool bUpLevelRet(false);
 		int nIndexTemp = nIndex;
-		while((bUpLevelRet = pBase->GetAppData(nCurBlockHeight, vScriptId, nIndexTemp, vScriptKey, vScriptData))) {
+		while((bUpLevelRet = pBase->GetContractData(nCurBlockHeight, vScriptId, nIndexTemp, vScriptKey, vScriptData))) {
 //			LogPrint("INFO", "nCurBlockHeight:%d this addr:0x%x, nIndex:%d, count:%lld\n ScriptKey:%s\n nHeight:%d\n ScriptData:%s\n vDataKey:%s\n vDataValue:%s\n",
 //					nCurBlockHeight, this, nIndexTemp, ++llCount, HexStr(vScriptKey), nHeight, HexStr(vScriptData), HexStr(vDataKey), HexStr(vDataValue));
 			nIndexTemp = 1;
@@ -857,7 +885,7 @@ bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const vector<unsi
 //					continue;
 //				} else {
 //					if(vDataValue.empty()) { //本级和上级数据key相同,且本级数据已经删除，重新从上级获取下一条数据
-//						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getappdata()\n");
+//						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getcontractdata()\n");
 //						continue;
 //					}
 //					vScriptKey.clear();
@@ -888,7 +916,7 @@ bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const vector<unsi
 					return true;
 				}
 				else {
-//					LogPrint("INFO", "local level contains dataKeyTemp,but the value is empty,need redo getappdata()\n");
+//					LogPrint("INFO", "local level contains dataKeyTemp,but the value is empty,need redo getcontractdata()\n");
 					continue;			 //重新从数据库中获取下一条数据
 				}
 			}
@@ -898,12 +926,12 @@ bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const vector<unsi
 						return true;
 					}
 					else {
-//						LogPrint("INFO", "dataKeyTemp less than vDataKey and vDataValue empty redo getappdata()\n");
+//						LogPrint("INFO", "dataKeyTemp less than vDataKey and vDataValue empty redo getcontractdata()\n");
 						continue;			 //重新从数据库中获取下一条数据
 					}
 				} else {
 					if(vDataValue.empty()) { //本级和上级数据key相同,且本级数据已经删除，重新从上级获取下一条数据
-//						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getappdata()\n");
+//						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getcontractdata()\n");
 						continue;
 					}
 					vScriptKey.clear();
@@ -962,7 +990,7 @@ bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const vector<unsi
 			}
 		}
 		bool bUpLevelRet(false);
-		while((bUpLevelRet=pBase->GetAppData(nCurBlockHeight, vScriptId, nIndex, vScriptKey, vScriptData))) {
+		while((bUpLevelRet=pBase->GetContractData(nCurBlockHeight, vScriptId, nIndex, vScriptKey, vScriptData))) {
 //			LogPrint("INFO", "nCurBlockHeight:%d this addr:0x%x, nIndex:%d, count:%lld\n ScriptKey:%s\n nHeight:%d\n ScriptData:%s\n vDataKey:%s\n vDataValue:%s\n",
 //					nCurBlockHeight, this, nIndex, ++llCount, HexStr(vScriptKey), nHeight, HexStr(vScriptData), HexStr(vDataKey), HexStr(vDataValue));
 			vector<unsigned char> dataKeyTemp(vKey.begin(), vKey.end());
@@ -973,7 +1001,7 @@ bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const vector<unsi
 //					continue;
 //				} else {
 //					if(vDataValue.empty()) { //本级和上级数据key相同,且本级数据已经删除，重新从上级获取下一条数据
-//						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getappdata()\n");
+//						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getcontractdata()\n");
 //						continue;
 //					}
 //					vScriptKey.clear();
@@ -1004,7 +1032,7 @@ bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const vector<unsi
 					return true;
 				}
 				else {
-//					LogPrint("INFO", "local level contains dataKeyTemp,but the value is empty,need redo getappdata()\n");
+//					LogPrint("INFO", "local level contains dataKeyTemp,but the value is empty,need redo getcontractdata()\n");
 					continue;			 //重新从数据库中获取下一条数据
 				}
 			}
@@ -1013,12 +1041,12 @@ bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const vector<unsi
 					if(mapDatas.count(dataKeyTemp) == 0)
 						return true;
 					else {
-//						LogPrint("INFO", "dataKeyTemp less than vDataKey and vDataValue empty redo getappdata()\n");
+//						LogPrint("INFO", "dataKeyTemp less than vDataKey and vDataValue empty redo getcontractdata()\n");
 						continue;			//在缓存中dataKeyTemp已经被删除过了，重新从数据库中获取下一条数据
 					}
 				} else {
 					if(vDataValue.empty()) { //本级和上级数据key相同,且本级数据已经删除，重新从上级获取下一条数据
-//						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getappdata()\n");
+//						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getcontractdata()\n");
 						continue;
 					}
 					vScriptKey.clear();
@@ -1050,7 +1078,7 @@ bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const vector<unsi
 	}
 	else {
 //		assert(0);
-		return ERRORMSG("getappdata error");
+		return ERRORMSG("getcontractdata error");
 	}
 //	vector<unsigned char> vKey = { 'd', 'a', 't', 'a' };
 //	vKey.insert(vKey.end(), vScriptId.begin(), vScriptId.end());
@@ -1120,7 +1148,7 @@ bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const vector<unsi
 //	bool bUpLevelRet(false);
 //	unsigned long llCount(0);
 //	int nIndexTemp = nIndex;
-//	while((bUpLevelRet = pBase->getAppData(nCurBlockHeight, vScriptId, nIndexTemp, vScriptKey, vScriptData, nHeight, setOperLog))) {
+//	while((bUpLevelRet = pBase->getContractData(nCurBlockHeight, vScriptId, nIndexTemp, vScriptKey, vScriptData, nHeight, setOperLog))) {
 //		LogPrint("INFO", "nCurBlockHeight:%d this addr:%x, nIndex:%d, count:%lld\n ScriptKey:%s\n nHeight:%d\n ScriptData:%s\n vDataKey:%s\n vDataValue:%s\n",
 //				nCurBlockHeight, this, nIndexTemp, ++llCount, HexStr(vScriptKey), nHeight, HexStr(vScriptData), HexStr(vDataKey), HexStr(vDataValue));
 //		nIndexTemp = 1;
@@ -1144,11 +1172,11 @@ bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const vector<unsi
 //		LogPrint("INFO", "dataKeyTemp:%s\n vDataKey:%s\n", HexStr(dataKeyTemp), HexStr(vDataKey));
 //		if(mapDatas.count(dataKeyTemp) > 0) {//本级缓存包含上级查询结果的key
 //			if(dataKeyTemp != vDataKey) {  //本级和上级查找key不同，说明上级获取的数据在本级已被删除
-//				LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getappdata()\n");
+//				LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getcontractdata()\n");
 //				continue;
 //			} else {
 //				if(vDataValue.empty()) { //本级和上级数据key相同,且本级数据已经删除，重新从上级获取下一条数据
-//					LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getappdata()\n");
+//					LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getcontractdata()\n");
 //					continue;
 //				}
 //				vScriptKey.clear();
@@ -1200,7 +1228,7 @@ bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const vector<unsi
 //	}
 	return true;
 }
-bool CScriptDBViewCache::SetAppData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
+bool CScriptDBViewCache::SetContractData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
 		const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog) {
 	vector<unsigned char> vKey = { 'd', 'a', 't', 'a' };
 	vKey.insert(vKey.end(), vScriptId.begin(), vScriptId.end());
@@ -1212,9 +1240,9 @@ bool CScriptDBViewCache::SetAppData(const vector<unsigned char> &vScriptId, cons
 	vector<unsigned char> vValue(vScriptData.begin(), vScriptData.end());
 	if (!HaveScriptData(vScriptId, vScriptKey)) {
 		int nCount(0);
-		GetAppItemCount(vScriptId, nCount);
+		GetContractItemCount(vScriptId, nCount);
 		++nCount;
-		if (!SetAppItemCount(vScriptId, nCount))
+		if (!SetContractItemCount(vScriptId, nCount))
 			return false;
 	}
 	vector<unsigned char> oldValue;
@@ -1269,7 +1297,7 @@ bool CScriptDBViewCache::EraseScript(const vector<unsigned char> &vScriptId) {
 	}
 	return EraseKey(scriptKey);
 }
-bool CScriptDBViewCache::GetAppItemCount(const vector<unsigned char> &vScriptId, int &nCount) {
+bool CScriptDBViewCache::GetContractItemCount(const vector<unsigned char> &vScriptId, int &nCount) {
 	vector<unsigned char> scriptKey = { 's', 'd', 'n', 'u','m'};
 	scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
 	vector<unsigned char> vValue;
@@ -1279,7 +1307,7 @@ bool CScriptDBViewCache::GetAppItemCount(const vector<unsigned char> &vScriptId,
 	ds >> nCount;
 	return true;
 }
-bool CScriptDBViewCache::SetAppItemCount(const vector<unsigned char> &vScriptId, int nCount) {
+bool CScriptDBViewCache::SetContractItemCount(const vector<unsigned char> &vScriptId, int nCount) {
 	vector<unsigned char> scriptKey = { 's', 'd', 'n', 'u','m'};
 	scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
 	vector<unsigned char> vValue;
@@ -1289,9 +1317,7 @@ bool CScriptDBViewCache::SetAppItemCount(const vector<unsigned char> &vScriptId,
 		ds << nCount;
 		vValue.insert(vValue.end(), ds.begin(), ds.end());
 	}
-	else if (nCount < 0)
-	{
-//		assert(0);
+	else if (nCount < 0) {
 		return false;
 	}
 	if(!SetData(scriptKey, vValue))
@@ -1308,13 +1334,12 @@ bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId, co
 
 	if (HaveScriptData(vScriptId, vScriptKey)) {
 		int nCount(0);
-		if(!GetAppItemCount(vScriptId, nCount)) {
+		if(!GetContractItemCount(vScriptId, nCount)) {
 			return false;
 		}
-		if (!SetAppItemCount(vScriptId, --nCount)) {
+		if (!SetContractItemCount(vScriptId, --nCount)) {
 			return false;
 		}
-
 	}
 
 	vector<unsigned char> vValue;
@@ -1325,7 +1350,6 @@ bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId, co
 	operLog = CScriptDBOperLog(scriptKey, vValue);
 	if(!EraseKey(scriptKey))
 		return false;
-
 
 	return true;
 }
@@ -1371,8 +1395,8 @@ bool CScriptDBViewCache::HaveScript(const CRegID &scriptId) {
 bool CScriptDBViewCache::EraseScript(const CRegID &scriptId) {
 	return EraseScript(scriptId.GetVec6());
 }
-bool CScriptDBViewCache::GetAppItemCount(const CRegID &scriptId, int &nCount) {
-	return  GetAppItemCount(scriptId.GetVec6(), nCount);
+bool CScriptDBViewCache::GetContractItemCount(const CRegID &scriptId, int &nCount) {
+	return  GetContractItemCount(scriptId.GetVec6(), nCount);
 }
 bool CScriptDBViewCache::EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog) {
 	return EraseAppData(scriptId.GetVec6(), vScriptKey, operLog);
@@ -1380,17 +1404,17 @@ bool CScriptDBViewCache::EraseAppData(const CRegID &scriptId, const vector<unsig
 bool CScriptDBViewCache::HaveScriptData(const CRegID &scriptId, const vector<unsigned char > &vScriptKey) {
 	return HaveScriptData(scriptId.GetVec6(), vScriptKey);
 }
-bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
+bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
 			vector<unsigned char> &vScriptData) {
-	return GetAppData(nCurBlockHeight, scriptId.GetVec6(), vScriptKey, vScriptData);
+	return GetContractData(nCurBlockHeight, scriptId.GetVec6(), vScriptKey, vScriptData);
 }
-bool CScriptDBViewCache::GetAppData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData)
+bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData)
 {
-	return GetAppData(nCurBlockHeight, scriptId.GetVec6(), nIndex, vScriptKey, vScriptData);
+	return GetContractData(nCurBlockHeight, scriptId.GetVec6(), nIndex, vScriptKey, vScriptData);
 }
-bool CScriptDBViewCache::SetAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
+bool CScriptDBViewCache::SetContractData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
 			const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog) {
-	return 	SetAppData(scriptId.GetVec6(), vScriptKey, vScriptData, operLog);
+	return 	SetContractData(scriptId.GetVec6(), vScriptKey, vScriptData, operLog);
 }
 bool CScriptDBViewCache::SetTxRelAccout(const uint256 &txHash, const set<CKeyID> &relAccount) {
 	vector<unsigned char> vKey = {'t','x'};
@@ -1468,7 +1492,7 @@ bool CScriptDBViewCache::SetDelegateData(const CAccount &delegateAcct, CScriptDB
     vVoteKey.insert(vVoteKey.end(), delegateAcct.regID.GetVec6().begin(), delegateAcct.regID.GetVec6().end());
     vector<unsigned char> vVoteValue;
     vVoteValue.push_back(1);
-    if(!SetAppData(regId, vVoteKey, vVoteValue, operLog)) {
+    if(!SetContractData(regId, vVoteKey, vVoteValue, operLog)) {
         return false;
     }
     return true;

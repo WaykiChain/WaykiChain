@@ -8,8 +8,7 @@ SRC_DIR=$3
 
 [ -z "$NET" ] && NET=testnet
  
-docker run --name waykicoind \
-       -p8920:8920 -p6967:6967 -p6968:6968 \
+docker run --name build-waykicoind \
        -v $WORK_DIR/conf/WaykiChain.conf:/root/.WaykiChain/WaykiChain.conf \
        -v $WORK_DIR/data:/root/.WaykiChain/$NET \
        -v $WORK_DIR/bin:/opt/wicc/bin \

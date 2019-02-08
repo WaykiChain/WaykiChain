@@ -1,7 +1,7 @@
 /*
  * CBlackHalo_tests.cpp
  *
- *  Created on: 2014Äê12ÔÂ30ÈÕ
+ *  Created on: 2014ï¿½ï¿½12ï¿½ï¿½30ï¿½ï¿½
  *      Author: ranger.shi
  */
 
@@ -65,8 +65,8 @@ bool CBlackHalo::RegistScript(){
 	int nFee = GetRandomFee();
 	int nCurHight;
 	basetest.GetBlockHeight(nCurHight);
-	//×¢²á¶Ô¶Ä½Å±¾
-	Value regscript = basetest.RegisterAppTx(BUYER_A, strFileName, nCurHight, nFee+COIN);
+	//×¢ï¿½ï¿½Ô¶Ä½Å±ï¿½
+	Value regscript = basetest.RegisterContractTx(BUYER_A, strFileName, nCurHight, nFee+COIN);
 	if(basetest.GetHashFromCreatedTx(regscript, sritpthash)){
 		step++;
 		return true;
@@ -98,7 +98,7 @@ bool CBlackHalo::SendBuyerPackage(){
 		string sendcontract = HexStr(scriptData);
 //		cout <<sendcontract<<endl;
 		sendmonye = GetPayMoney();
-		Value  buyerpack= basetest.CreateContractTx(scriptid,BUYER_A,sendcontract,0,0,sendmonye);
+		Value  buyerpack= basetest.CallContractTx(scriptid,BUYER_A,sendcontract,0,0,sendmonye);
 
 		if(basetest.GetHashFromCreatedTx(buyerpack, buyerhash)){
 			step++;
@@ -129,7 +129,7 @@ bool CBlackHalo::SendSellerPackage(){
 	string sendcontract = HexStr(scriptData);
 //	cout<<"size:"<<Size<<" " <<sendcontract<<endl;
 
-	Value  Sellerpack= basetest.CreateContractTx(scriptid,SELLER_B,sendcontract,0,0,sendmonye/2);
+	Value  Sellerpack= basetest.CallContractTx(scriptid,SELLER_B,sendcontract,0,0,sendmonye/2);
 
 	if(basetest.GetHashFromCreatedTx(Sellerpack, sellerhash)){
 		step++;
@@ -158,7 +158,7 @@ bool CBlackHalo::SendBuyerConfirmedPackage(){
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
 	scriptData << Seller;
 	string sendcontract = HexStr(scriptData);
-	Value  Sellerpack= basetest.CreateContractTx(scriptid,BUYER_A,sendcontract,0);
+	Value  Sellerpack= basetest.CallContractTx(scriptid,BUYER_A,sendcontract,0);
 
 	if(basetest.GetHashFromCreatedTx(Sellerpack, buyerconfiredhash)){
 		step++;
@@ -188,7 +188,7 @@ bool CBlackHalo::SendBuyerCancelPackage(){
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
 	scriptData << Seller;
 	string sendcontract = HexStr(scriptData);
-	Value  Sellerpack= basetest.CreateContractTx(scriptid,BUYER_A,sendcontract,0);
+	Value  Sellerpack= basetest.CallContractTx(scriptid,BUYER_A,sendcontract,0);
 
 	if(basetest.GetHashFromCreatedTx(Sellerpack, buyercancelhash)){
 		step++;

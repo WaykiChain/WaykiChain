@@ -99,20 +99,18 @@ CVmRunEvn::~CVmRunEvn() {
 tuple<bool, uint64_t, string> CVmRunEvn::run(shared_ptr<CBaseTransaction>& Tx, CAccountViewCache& view, CScriptDBViewCache& VmDB, int nHeight,
         uint64_t nBurnFactor, uint64_t &uRunStep) {
 
-    if(nBurnFactor == 0)
-    {
+    if (nBurnFactor == 0) {
 //      assert(0);
         return std::make_tuple (false, 0, string("VmScript nBurnFactor == 0 \n"));
     }
     m_ScriptDBTip = &VmDB;
 
     CTransaction* tx = static_cast<CTransaction*>(Tx.get());
-    if(tx->llFees < CBaseTransaction::nMinTxFee) {
+    if (tx->llFees < CBaseTransaction::nMinTxFee) {
         return std::make_tuple (false, 0, string("CVmRunEvn: Contract Tx fee too small\n"));
     }
     uint64_t maxstep = ((tx->llFees-CBaseTransaction::nMinTxFee)/ nBurnFactor) * 100;
-
-    if(maxstep > MAX_BLOCK_RUN_STEP){
+    if (maxstep > MAX_BLOCK_RUN_STEP) {
         maxstep = MAX_BLOCK_RUN_STEP;
     }
     LogPrint("vm", "tx hash:%s fees=%lld fuelrate=%lld maxstep:%d\n", Tx->GetHash().GetHex(), tx->llFees, nBurnFactor, maxstep);

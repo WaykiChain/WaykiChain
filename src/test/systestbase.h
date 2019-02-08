@@ -144,7 +144,7 @@ public:
 
 	bool GetTxConfirmedRegID(const string& haseh,string& strRegID)
 	{
-		const char *argv[] = { "rpctest", "getappregid", (char*) haseh.c_str() };
+		const char *argv[] = { "rpctest", "getcontractregid", (char*) haseh.c_str() };
 
 		Value value;
 		if (!CommandLineRPC_GetValue(sizeof(argv) / sizeof(argv[0]), argv, value)) {
@@ -188,10 +188,10 @@ public:
 
 	Value RegisterAccountTx(const std::string &addr, const int nfee =0);
 
-	Value CreateContractTx(const std::string &scriptid, const std::string &addrs, const std::string &contract,
+	Value CallContractTx(const std::string &scriptid, const std::string &addrs, const std::string &contract,
 			int nHeight,int nFee = 0,uint64_t nMoney = 0);
 
-	Value RegisterAppTx(const string& strAddress, const string& strScript, int nHeight, int nFee = 100000000);
+	Value RegisterContractTx(const string& strAddress, const string& strScript, int nHeight, int nFee = 100000000);
 
 	Value SignSecureTx(const string &securetx);
 
@@ -248,7 +248,7 @@ public:
 
 	bool IsMemoryPoolEmpty();
 
-	Value GetAppAccountInfo(const string& scriptId,const string& strAddr);
+	Value GetContractAccountInfo(const string& scriptId,const string& strAddr);
 protected:
 	static boost::thread* pThreadShutdown ;
 	std::map<string, AccState> mapAccState;

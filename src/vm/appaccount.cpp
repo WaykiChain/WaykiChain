@@ -71,7 +71,7 @@ CAppUserAccout::CAppUserAccout() {
 	mAccUserID.clear();
 	llValues = 0;
 
-	vFreezedFund.clear();
+	vFrozenFunds.clear();
 }
 CAppUserAccout::CAppUserAccout(const vector<unsigned char> &userId)
 {
@@ -79,13 +79,13 @@ CAppUserAccout::CAppUserAccout(const vector<unsigned char> &userId)
 	mAccUserID = userId;
 	llValues = 0;
 
-	vFreezedFund.clear();
+	vFrozenFunds.clear();
 }
 bool CAppUserAccout::GetAppCFund(CAppCFund& outFound, const vector<unsigned char>& vtag , int hight) {
 
-	auto it = find_if(vFreezedFund.begin(), vFreezedFund.end(), [&](const CAppCFund& CfundIn) {
+	auto it = find_if(vFrozenFunds.begin(), vFrozenFunds.end(), [&](const CAppCFund& CfundIn) {
 		return hight ==CfundIn.getheight() && CfundIn.GetTag()== vtag  ;});
-	if (it != vFreezedFund.end()) {
+	if (it != vFrozenFunds.end()) {
 		outFound = *it;
 		return true;
 	}
@@ -94,22 +94,21 @@ bool CAppUserAccout::GetAppCFund(CAppCFund& outFound, const vector<unsigned char
 
 bool CAppUserAccout::AddAppCFund(const CAppCFund& inFound) {
 	//需要找到超时高度和tag 都相同的才可以合并
-	auto it = find_if(vFreezedFund.begin(), vFreezedFund.end(), [&](const CAppCFund& CfundIn) {
+	auto it = find_if(vFrozenFunds.begin(), vFrozenFunds.end(), [&](const CAppCFund& CfundIn) {
 		return CfundIn.GetTag()== inFound.GetTag() && CfundIn.getheight() ==inFound.getheight() ;});
-	if (it != vFreezedFund.end()) { //如果找到了
+	if (it != vFrozenFunds.end()) { //如果找到了
 		return it->MergeCFund(inFound);
 		//return true;
 	}
 	//没有找到就加一个新的
-	vFreezedFund.insert(vFreezedFund.end(),inFound);
+	vFrozenFunds.insert(vFrozenFunds.end(),inFound);
 	return true;
-
 }
 
 uint64_t CAppUserAccout::GetAllFreezedValues()
 {
 	uint64_t total = 0;
-	for (auto &Fund : vFreezedFund) {
+	for (auto &Fund : vFrozenFunds) {
 		total += Fund.getvalue();
 	}
 
@@ -119,7 +118,7 @@ uint64_t CAppUserAccout::GetAllFreezedValues()
 bool CAppUserAccout::AutoMergeFreezeToFree(int hight) {
 
 	bool isneedremvoe = false;
-	for (auto &Fund : vFreezedFund) {
+	for (auto &Fund : vFrozenFunds) {
 		if (Fund.getheight() <= hight) {
 			//llValues += Fund.getvalue();
 			uint64_t tempValue = 0;
@@ -132,8 +131,8 @@ bool CAppUserAccout::AutoMergeFreezeToFree(int hight) {
 		}
 	}
 	if (isneedremvoe) {
-		vFreezedFund.erase(remove_if(vFreezedFund.begin(), vFreezedFund.end(), [&](const CAppCFund& CfundIn) {
-			return (CfundIn.getheight() <= hight);}),vFreezedFund.end());
+		vFrozenFunds.erase(remove_if(vFrozenFunds.begin(), vFrozenFunds.end(), [&](const CAppCFund& CfundIn) {
+			return (CfundIn.getheight() <= hight);}), vFrozenFunds.end());
 	}
 	return true;
 
@@ -142,9 +141,9 @@ bool CAppUserAccout::AutoMergeFreezeToFree(int hight) {
 bool CAppUserAccout::ChangeAppCFund(const CAppCFund& inFound) {
 	//需要找到超时高度和tag 都相同的才可以合并
 	assert(inFound.getheight() > 0);
-	auto it = find_if(vFreezedFund.begin(), vFreezedFund.end(), [&](const CAppCFund& CfundIn) {
+	auto it = find_if(vFrozenFunds.begin(), vFrozenFunds.end(), [&](const CAppCFund& CfundIn) {
 		return CfundIn.GetTag()== inFound.GetTag() && CfundIn.getheight() ==inFound.getheight() ;});
-	if (it != vFreezedFund.end()) { //如果找到了
+	if (it != vFrozenFunds.end()) { //如果找到了
 		*it= inFound;
 		return true;
 	}
@@ -152,22 +151,21 @@ bool CAppUserAccout::ChangeAppCFund(const CAppCFund& inFound) {
 }
 
 bool CAppUserAccout::MinusAppCFund(const CAppCFund& inFound) {
-
 	assert(inFound.getheight() > 0);
-	auto it = find_if(vFreezedFund.begin(), vFreezedFund.end(), [&](const CAppCFund& CfundIn) {
+	auto it = find_if(vFrozenFunds.begin(), vFrozenFunds.end(), [&](const CAppCFund& CfundIn) {
 		return CfundIn.GetTag()== inFound.GetTag() && CfundIn.getheight() ==inFound.getheight() ;});
-	if (it != vFreezedFund.end()) { //如果找到了
-		if(it->getvalue() >= inFound.getvalue())
-			{
-			 if(it->getvalue() == inFound.getvalue())
-			 {
-				 vFreezedFund.erase(it);
-				 return true;
-			 }
-			  it->setValue(it->getvalue()  - inFound.getvalue());
-			  return true;
+
+	if (it != vFrozenFunds.end()) { //如果找到了
+		if (it->getvalue() >= inFound.getvalue()) {
+			if(it->getvalue() == inFound.getvalue()) {
+				vFrozenFunds.erase(it);
+				return true;
 			}
+			it->setValue(it->getvalue()  - inFound.getvalue());
+			return true;
+		}
 	}
+	
 	return false;
 }
 
@@ -251,11 +249,13 @@ Object CAppUserAccout::toJSON() const {
 	Object result;
 	result.push_back(Pair("mAccUserID", HexStr(mAccUserID)));
 	result.push_back(Pair("FreeValues", llValues));
+	
 	Array arry;
-	for (auto const te : vFreezedFund) {
+	for (auto const te : vFrozenFunds) {
 		arry.push_back(te.toJSON());
 	}
-	result.push_back(Pair("vFreezedFund", arry));
+	result.push_back(Pair("FrozenFunds", arry));
+	
 	return std::move(result);
 }
 

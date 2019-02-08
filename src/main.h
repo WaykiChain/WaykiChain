@@ -185,7 +185,6 @@ int GetTxConfirmHeight(const uint256 &hash, CScriptDBViewCache &scriptDBCache);
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState &state);
 int64_t GetBlockValue(int nHeight, int64_t nFees);
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock);
 
 /*calutate difficulty */
 double CaculateDifficulty(unsigned int nBits);
@@ -211,8 +210,11 @@ bool CheckSignScript(const uint256 & sigHash, const std::vector<unsigned char> s
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransaction *pBaseTx,
           bool fLimitFree, bool fRejectInsaneFee=false);
 
-/** get transaction relate keyid **/
+/** Mark a block as invalid. */
+bool InvalidateBlock(CValidationState& state, CBlockIndex *pindex);
 
+/** Remove invalidity status from a block and its descendants. */
+bool ReconsiderBlock(CValidationState& state, CBlockIndex *pindex);
 
 std::shared_ptr<CBaseTransaction> CreateNewEmptyTransaction(unsigned char uType);
 
@@ -275,13 +277,7 @@ struct CDiskTxPos : public CDiskBlockPos
 
 
 
-enum GetMinFee_mode
-{
-    GMF_RELAY,
-    GMF_SEND,
-};
-
-int64_t GetMinFee(const CBaseTransaction *pBaseTx, unsigned int nBytes, bool fAllowFree, enum GetMinFee_mode mode);
+int64_t GetMinRelayFee(const CBaseTransaction *pBaseTx, unsigned int nBytes, bool fAllowFree);
 
 
 /** Count ECDSA signature operations the old-fashioned (pre-0.6) way
@@ -633,11 +629,11 @@ enum BlockStatus {
 
     BLOCK_HAVE_DATA          =    8, // full block available in blk*.dat           0000 1000
     BLOCK_HAVE_UNDO          =   16, // undo data available in rev*.dat            0001 0000
-    BLOCK_HAVE_MASK          =   24, //                                            0001 1000
+    BLOCK_HAVE_MASK          =   24, // BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO          0001 1000
 
     BLOCK_FAILED_VALID       =   32, // stage after last reached validness failed  0010 0000
     BLOCK_FAILED_CHILD       =   64, // descends from failed block                 0100 0000
-    BLOCK_FAILED_MASK        =   96  //                                            0110 0000
+    BLOCK_FAILED_MASK        =   96  // BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD    0110 0000
 };
 
 /** The block chain is a tree shaped structure starting with the
@@ -653,6 +649,9 @@ public:
 
     // pointer to the index of the predecessor of this block
     CBlockIndex* pprev;
+
+    // pointer to the index of some further predecessor of this block
+    CBlockIndex* pskip;
 
     // height of the entry in the chain. The genesis block has height 0
     int nHeight;
@@ -701,6 +700,7 @@ public:
     {
         phashBlock = NULL;
         pprev = NULL;
+        pskip = NULL;
         nHeight = 0;
         nFile = 0;
         nDataPos = 0;
@@ -728,6 +728,7 @@ public:
     {
         phashBlock = NULL;
         pprev = NULL;
+        pskip = NULL;
         nHeight = 0;
         nFile = 0;
         nDataPos = 0;
@@ -846,10 +847,17 @@ public:
             pprev, nHeight, hashMerkleRoot.ToString().c_str(), GetBlockHash().ToString().c_str(), nblockfee, nChainWork.ToString().c_str(), dFeePerKb);
     }
 
-    void print() const
+    void Print() const
     {
         LogPrint("INFO","%s\n", ToString().c_str());
     }
+
+    // Build the skiplist pointer for this entry.
+    void BuildSkip();
+
+    // Efficiently find an ancestor of this block.
+    CBlockIndex* GetAncestor(int height);
+    const CBlockIndex* GetAncestor(int height) const;
 };
 
 
@@ -921,7 +929,7 @@ public:
         return str;
     }
 
-    void print() const
+    void Print() const
     {
         LogPrint("INFO","%s\n", ToString().c_str());
     }
@@ -1076,7 +1084,7 @@ extern CTransactionDBCache *pTxCacheTip;
 extern CScriptDBViewCache *pScriptDBTip;
 
 /** nSyncTipHight  */
-extern int g_nSyncTipHeight;
+extern int nSyncTipHeight;
 
 extern std::tuple<bool, boost::thread*> RunCoin(int argc, char* argv[]);
 extern bool WriteBlockLog(bool falg, string suffix);

@@ -206,7 +206,7 @@ public:
 	bool GetOneScriptId(std::string &regscriptid)
 	{
 		//CommanRpc
-		const char *argv[] = {"rpctest", "listscriptregid"};
+		const char *argv[] = {"rpctest", "listcontractregid"};
 		int argc = sizeof(argv)/sizeof(char*);
 
 		Value value;
@@ -381,7 +381,7 @@ public:
 		return false;
 	}
 
-	bool CreateContractTx(const std::string &scriptid, const std::string &addrs, const std::string &contract, const int nHeight)
+	bool CallContractTx(const std::string &scriptid, const std::string &addrs, const std::string &contract, const int nHeight)
 	{
 //		char cscriptid[1024] = { 0 };
 //		vector<char> te(scriptid.begin(),scriptid.end());
@@ -402,20 +402,20 @@ public:
 		char height[16] = {0};
 		sprintf(height,"%d",nHeight);
 
-		 const char *argv[] = { "rpctest", "createcontracttx", (char *)(scriptid.c_str()), (char *)(addrs.c_str()), (char *)(contract.c_str()), fee, height};
+		 const char *argv[] = { "rpctest", "CallContractTx", (char *)(scriptid.c_str()), (char *)(addrs.c_str()), (char *)(contract.c_str()), fee, height};
 		int argc = sizeof(argv)/sizeof(char*);
 
 		Value value;
 		int ret = CommandLineRPC_GetValue(argc, argv, value);
 		if (!ret)
 		{
-			LogPrint("test_miners","createcontracttx:%s\r\n",value.get_str().c_str());
+			LogPrint("test_miners","CallContractTx:%s\r\n",value.get_str().c_str());
 			return true;
 		}
 		return false;
 	}
 
-	bool RegisterAppTx(const std::string &addr, const std::string &script, const int nHeight)
+	bool RegisterContractTx(const std::string &addr, const std::string &script, const int nHeight)
 	{
 		//CommanRpc
 		char caddr[64] = { 0 };
@@ -433,7 +433,7 @@ public:
 		sprintf(height,"%d",nHeight);
 
 
-		const char *argv[] = { "rpctest", "registerapptx", caddr, csript, fee, height};
+		const char *argv[] = { "rpctest", "registercontracttx", caddr, csript, fee, height};
 		int argc = sizeof(argv)/sizeof(char*);
 
 		Value value;
@@ -724,7 +724,7 @@ BOOST_FIXTURE_TEST_CASE(block_regscripttx_and_contracttx,CMinerTest)
 	//test regscripttx
 	{
 		string script = "fd3e0102001d000000000022220000000000000000222202011112013512013a75d0007581bf750900750a0f020017250910af08f509400c150a8008f5094002150ad2af222509c582c0e0e50a34ffc583c0e0e509c3958224f910af0885830a858209800885830a858209d2afcef0a3e520f0a37808e608f0a3defaeff0a3e58124fbf8e608f0a3e608f0a30808e608f0a3e608f0a315811581d0e0fed0e0f815811581e8c0e0eec0e022850a83850982e0a3fee0a3f5207808e0a3f608dffae0a3ffe0a3c0e0e0a3c0e0e0a3c0e0e0a3c0e010af0885820985830a800885820985830ad2afd083d0822274f8120042e990fbfef01200087f010200a8c082c083ea90fbfef0eba3f012001202010cd083d0822274f812004274fe12002ceafeebff850982850a83eef0a3eff0aa09ab0a790112013d80ea79010200e80200142200";
-		BOOST_REQUIRE(RegisterAppTx(srcaddr, script, height));
+		BOOST_REQUIRE(RegisterContractTx(srcaddr, script, height));
 		AccOperLog &operlog1 = mapAccOperLog[srcaddr];
 		AccState acc1(0, -nCurFee, 0);
 		operlog1.Add(height,acc1);
@@ -774,7 +774,7 @@ BOOST_FIXTURE_TEST_CASE(block_regscripttx_and_contracttx,CMinerTest)
 		string scriptid;
 		BOOST_REQUIRE(GetOneScriptId(scriptid));
 
-		BOOST_REQUIRE(CreateContractTx(scriptid, vconaddr, "010203040506070809", height));
+		BOOST_REQUIRE(CallContractTx(scriptid, vconaddr, "010203040506070809", height));
 
 		AccOperLog &operlog1 = mapAccOperLog[conaddr];
 		AccState acc1(0, -nCurFee, 0);

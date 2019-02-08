@@ -93,7 +93,7 @@ string CWallet:: defaultFilename("");
 //  if (!fFileBacked)
 //      return true;
 //
-//  if (!IsCrypted()) {
+//  if (!IsEncrypted()) {
 //      mKeyPool[tem.GetCKeyID()] = tem;
 //      return CWalletDB(strWalletFile).WriteKeyStoreValue(tem.GetCKeyID(),tem);
 //  }
@@ -110,7 +110,7 @@ string CWallet:: defaultFilename("");
 //  }
 //  if (!fFileBacked)
 //      return true;
-//  if (!IsCrypted()) {
+//  if (!IsEncrypted()) {
 //      return CWalletDB(strWalletFile).WriteKeyStoreValue(Pk.GetKeyID(),keyCombi);
 //  } else {
 //      assert(0 && "fix me");
@@ -127,7 +127,7 @@ string CWallet:: defaultFilename("");
 //       return false;
 //      }
 //
-//  if (!IsCrypted()) {
+//  if (!IsEncrypted()) {
 //      mKeyPool[tem.GetCKeyID()] = tem;
 //      return CWalletDB(strWalletFile).WriteKeyStoreValue(tem.GetCKeyID(),tem);
 //  }
@@ -426,7 +426,6 @@ std::tuple<bool, string> CWallet::CommitTransaction(CBaseTransaction *pTx) {
     bool flag =  CWalletDB(strWalletFile).WriteUnComFirmedTx(txhash,UnConfirmTx[txhash]);
     ::RelayTransaction(pTx, txhash);
     return std::make_tuple (flag,txhash.ToString());
-
 }
 
 DBErrors CWallet::LoadWallet(bool fFirstRunRet) {
@@ -488,7 +487,7 @@ int64_t CWallet::GetRawBalance(bool IsConfirmed) const
 
 bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
 {
-    if (IsCrypted())
+    if (IsEncrypted())
         return false;
 
     CKeyingMaterial vMasterKey;
@@ -720,18 +719,18 @@ bool CWallet::IsMine(CBaseTransaction* pTx) const{
         return false;
     }
     for (auto &keyid : vaddr) {
-        if (HaveKey(keyid) > 0) {
+        if (HasKey(keyid) > 0) {
             return true;
         }
     }
     return false;
 }
 
-bool CWallet::CleanAll() {
-
+bool CWallet::CleanAll() 
+{
     for_each(UnConfirmTx.begin(), UnConfirmTx.end(),
             [&](std::map<uint256, std::shared_ptr<CBaseTransaction> >::reference a) {
-        CWalletDB(strWalletFile).EraseUnComFirmedTx(a.first);
+                CWalletDB(strWalletFile).EraseUnComFirmedTx(a.first);
             });
     UnConfirmTx.clear();
 
@@ -742,26 +741,25 @@ bool CWallet::CleanAll() {
 
     bestBlock.SetNull();
 
-    if(!IsCrypted()) {
+    if(!IsEncrypted()) {
         for_each(mapKeys.begin(), mapKeys.end(), [&](std::map<CKeyID, CKeyCombi> ::reference item) {
             CWalletDB(strWalletFile).EraseKeyStoreValue(item.first);
         });
         mapKeys.clear();
-    }
-    else {
-        return ERRORMSG("wallet encrypt forbid clear data failed!");
+    } else {
+        return ERRORMSG("wallet is encrypted hence clear data forbidden!");
     }
     return true;
 }
 
-bool CWallet::Sign(const CKeyID& keyId, const uint256& hash, vector<unsigned char> &signature,bool IsMiner)const {
+bool CWallet::Sign(const CKeyID& keyId, const uint256& hash, vector<unsigned char> &signature,bool IsMiner)const 
+{
     CKey key;
-    if(GetKey(keyId, key, IsMiner)){
-        if(IsMiner == true)
-        {
-//          cout <<"Sign miner key PubKey:"<< key.GetPubKey().ToString()<< endl;
-//          cout <<"Sign miner hash:"<< hash.ToString()<< endl;
-        }
+    if (GetKey(keyId, key, IsMiner)) {
+        // if(IsMiner == true) {
+        //     cout <<"Sign miner key PubKey:"<< key.GetPubKey().ToString()<< endl;
+        //     cout <<"Sign miner hash:"<< hash.ToString()<< endl;
+        // }
         return(key.Sign(hash, signature));
     }
     return false;
@@ -822,7 +820,7 @@ bool CWallet::AddKey(const CKey& key)
 bool CWallet::IsReadyForCoolMiner(const CAccountViewCache& view) const {
     CRegID regId;
     for (auto const &item : mapKeys) {
-        if (item.second.IsContainMinerKey() && view.GetRegId(item.first,regId)) {
+        if (item.second.IsContainMinerKey() && view.GetRegId(item.first, regId)) {
             return true;
         }
     }

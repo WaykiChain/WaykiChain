@@ -194,16 +194,16 @@ public:
 		WriteCompactSize(s, len);
 		s.write((char*) vch, len);
 	}
+
 	template<typename Stream> void Unserialize(Stream &s, int nType, int nVersion) {
+		
 		unsigned int len = ReadCompactSize(s);
 		if ( len == 33 ) {
 			s.read((char*) vch, 33);
-		} else if(len == 0){
+		} else if (len == 0) {
 			Invalidate();
-		}
-		else{
-			ERRORMSG("Unserialize......");
-//	        assert(0); //never come here
+		} else {
+			ERRORMSG("Unserializable: len=%d", len);
 		}
 	}
 
@@ -278,7 +278,7 @@ public:
 			READWRITE(fValid);
 	)
 
-   string ToString()const
+    string ToString()const
 	{
 		if(fValid)
 		return HexStr(begin(),end());
@@ -286,11 +286,12 @@ public:
 	}
 
 	// Construct an invalid private key.
-	CKey() :
-			fValid(false) {
+	CKey(): fValid(false)
+	{
 		LockObject(vch);
 		fCompressed = false;
 	}
+
 	bool Clear()
 	{
 		fValid = false;
@@ -299,14 +300,15 @@ public:
 	}
 
 	// Copy constructor. This is necessary because of memlocking.
-	CKey(const CKey &secret) :
-			fValid(secret.fValid), fCompressed(secret.fCompressed) {
+	CKey(const CKey &secret): fValid(secret.fValid), fCompressed(secret.fCompressed)
+	{
 		LockObject(vch);
 		memcpy(vch, secret.vch, sizeof(vch));
 	}
 
 	// Destructor (again necessary because of memlocking).
-	~CKey() {
+	~CKey()
+	{
 		UnlockObject(vch);
 	}
 

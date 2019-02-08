@@ -144,14 +144,14 @@ public:
     {
     }
 
-    bool IsCrypted() const
+    bool IsEncrypted() const
     {
         return fUseCrypto;
     }
 
     bool IsLocked() const
     {
-        if (!IsCrypted())
+        if (!IsEncrypted())
             return false;
         bool result;
         {
@@ -168,21 +168,21 @@ public:
     }
     virtual bool AddCryptedKey(const CPubKey &vchPubKey, const vector<unsigned char> &vchCryptedSecret);
     bool AddKeyCombi(const CKeyID & keyId, const CKeyCombi &keyCombi);
-    bool HaveKey(const CKeyID &address) const
+    bool HasKey(const CKeyID &address) const
     {
         {
             LOCK(cs_KeyStore);
-            if (!IsCrypted())
-                return CBasicKeyStore::HaveKey(address);
+            if (!IsEncrypted())
+                return CBasicKeyStore::HasKey(address);
             return mapCryptedKeys.count(address) > 0;
         }
         return false;
     }
     bool GetKey(const CKeyID &address, CKey& keyOut, bool IsMine=false) const;
-    bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut, bool IsMine=false) const;
+    bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut, bool IsMiner=false) const;
     void GetKeys(set<CKeyID> &setAddress, bool bFlag=false) const
     {
-        if (!IsCrypted())
+        if (!IsEncrypted())
         {
             CBasicKeyStore::GetKeys(setAddress, bFlag);
             return;

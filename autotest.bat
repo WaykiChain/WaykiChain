@@ -2,9 +2,9 @@
 
 set targetdir=d:\bitcoin
 set curdir=%cd%
-set sever=%cd%\soypayd.exe
-set autotestexe=%cd%\src\test\soypay_test.exe
-set autosevertestexe=%cd%\src\ptest\soypay_ptest.exe
+set sever=%cd%\waykicoind.exe
+set autotestexe=%cd%\src\test\waykicoind_test.exe
+set autosevertestexe=%cd%\src\ptest\waykicoind_ptest.exe
 set movefiles= %curdir%\src\test\data\*.bin
 
 
@@ -28,7 +28,7 @@ if /i "%choice%"=="3" goto s2
 exit /b 0
 
 :s0
-copy  %curdir%\src\test\data\coin.conf %targetdir%\coin.conf
+copy  %curdir%\src\test\data\WaykiChain.conf %targetdir%\WaykiChain.conf
 
 :s1
 call :ClrEnvironment
@@ -43,7 +43,7 @@ start  %autotestexe%  %1
 GOTO :EOF
 
 :CloseServer
-taskkill /f /im soypayd.exe
+taskkill /f /im waykicoind.exe
 GOTO :EOF
 
 :StartServer

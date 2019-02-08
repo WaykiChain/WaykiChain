@@ -400,11 +400,10 @@ Value getchainstate(const Array& params, bool fHelp)
             "1.num   (numeric,required, > 0) The number of the recently blocks.\n"
             "\nResult:\n"
             "{\n"
-            "  \"blocktime\": n,   (numeric)get the time of each block\n"
-            "  \"difficulty\": n,   (numeric)get the difficulty of each block\n"
-            "  \"transactions\": n, (numeric)get the transactions of each block\n"
-        	"  \"fuel\": n, (numeric)get fuel of each block\n"
-            "  \"blockminer\": n, (numeric)get the miner of each block\n"
+            "  \"blocktime\": n,   (numeric) the time of each block\n"
+            "  \"transactions\": n, (numeric) number of transactions within each block\n"
+        	"  \"fuel\": n, (numeric) fuel of each block\n"
+            "  \"miner\": n, (string) RegId of the miner of each block\n"
             "}\n"
             "\nExamples:\n"
             + HelpExampleCli("getchainstate", "\"5\"")
@@ -445,6 +444,6 @@ Value getchainstate(const Array& params, bool fHelp)
 	obj.push_back(Pair("blocktime", blocktime));
 	obj.push_back(Pair("transactions", transactions));
 	obj.push_back(Pair("fuel", fuel));
-	obj.push_back(Pair("blockminer",blockminer));
+	obj.push_back(Pair("miner",blockminer));
     return obj;
 }

@@ -52,7 +52,6 @@ public:
     bool LoadBlockIndexGuts();
 };
 
-
 class CAccountViewDB : public CAccountView
 {
 private:
@@ -78,11 +77,8 @@ public:
 	bool EraseKeyId(const vector<unsigned char> &accountId);
 	bool GetAccount(const vector<unsigned char> &accountId, CAccount &secureAccount);
 	bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &secureAccount);
-	uint64_t TraverseAccount();
-	int64_t GetDbCount()
-	{
-		return db.GetDbCount();
-	}
+	std::tuple<uint64_t, uint64_t> TraverseAccount();
+	int64_t GetDbCount() { return db.GetDbCount(); }
 	Object ToJsonObj(char Prefix);
 };
 
@@ -123,7 +119,7 @@ public:
 	bool EraseKey(const vector<unsigned char> &vKey);
 	bool HaveData(const vector<unsigned char> &vKey);
 	bool GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);
-	bool GetAppData(const int curBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
+	bool GetContractData(const int curBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
 	int64_t GetDbCount()
 	{
 		return db.GetDbCount();
