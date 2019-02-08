@@ -387,9 +387,9 @@ bool CScriptDB::GetData(const vector<unsigned char> &vKey, vector<unsigned char>
 bool CScriptDB::SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) {
 	return db.Write(vKey, vValue);
 }
-bool CScriptDB::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapDatas) {
+bool CScriptDB::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb) {
 	CLevelDBBatch batch;
-	for (auto & item : mapDatas) {
+	for (auto & item : mapContractDb) {
 		if (item.second.empty()) {
 			batch.Erase(item.first);
 		} else {

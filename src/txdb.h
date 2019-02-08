@@ -115,7 +115,7 @@ private:
 public:
 	bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue);
 	bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
-	bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapDatas);
+	bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb);
 	bool EraseKey(const vector<unsigned char> &vKey);
 	bool HaveData(const vector<unsigned char> &vKey);
 	bool GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);

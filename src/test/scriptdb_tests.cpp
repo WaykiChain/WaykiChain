@@ -140,9 +140,9 @@ void traversaldb(CScriptDBViewCache *pScriptDB, bool needEqual) {
 		dataKey.insert(dataKey.end(), regScriptId.GetVec6().begin(), regScriptId.GetVec6().end());
 		dataKey.push_back('_');
 		dataKey.insert(dataKey.end(), vKey.begin(), vKey.end());
-		if(pscriptDBView->mapDatas.count(dataKey)) {
+		if(pscriptDBView->mapContractDb.count(dataKey)) {
 //			nType = 0;
-		}else if(pTestView->mapDatas.count(dataKey)) {
+		}else if(pTestView->mapContractDb.count(dataKey)) {
 //			nType = 1;
 		}else {
 //			nType = 2;
@@ -157,9 +157,9 @@ void traversaldb(CScriptDBViewCache *pScriptDB, bool needEqual) {
 			dataKey.insert(dataKey.end(), regScriptId.GetVec6().begin(), regScriptId.GetVec6().end());
 			dataKey.push_back('_');
 			dataKey.insert(dataKey.end(), vKey.begin(), vKey.end());
-			if(pscriptDBView->mapDatas.count(dataKey)) {
+			if(pscriptDBView->mapContractDb.count(dataKey)) {
 //				nType = 0;
-			}else if(pTestView->mapDatas.count(dataKey)) {
+			}else if(pTestView->mapContractDb.count(dataKey)) {
 //				nType = 1;
 			}else {
 //				nType = 2;

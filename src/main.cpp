@@ -2096,7 +2096,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock& block, CBlockIndex *pPreBlockI
     pTxCache->SetCacheMap(pTxCacheTip->GetCacheMap());
 
     std::shared_ptr<CScriptDBViewCache> pScriptDBCache = std::make_shared<CScriptDBViewCache>(*pScriptDB, true);
-    pScriptDBCache->mapDatas = pScriptDBTip->mapDatas;
+    pScriptDBCache->mapContractDb = pScriptDBTip->mapContractDb;
 
     uint256 preBlockHash;
     bool bFindForkChainTip(false);
