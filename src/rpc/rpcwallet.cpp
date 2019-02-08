@@ -50,7 +50,7 @@ Value islocked(const Array& params,  bool fHelp)
             "\nArguments:\n"
             "\nExamples:\n"
             + HelpExampleCli("islocked", "")
-            + HelpExampleCli("islocked", "")
+            + HelpExampleRpc("islocked", "")
         );
 
     Object obj;
