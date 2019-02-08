@@ -220,9 +220,9 @@ bool CBaseTransaction::IsValidHeight(int nCurrHeight, int nTxCacheHeight) const
     if(REWARD_TX == nTxType)
         return true;
     if (nValidHeight > nCurrHeight + nTxCacheHeight / 2)
-            return false;
+        return false;
     if (nValidHeight < nCurrHeight - nTxCacheHeight / 2)
-            return false;
+        return false;
     return true;
 }
 
