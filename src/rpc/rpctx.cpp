@@ -1415,16 +1415,15 @@ Value getaccountinfo(const Array& params, bool fHelp) {
 //list unconfirmed transaction of mine
 Value listunconfirmedtx(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
-         throw runtime_error(
-                    "listunconfirmedtx \n"
-                    "\nget the list  of unconfirmedtx.\n"
-                    "\nArguments:\n"
-                    "\nResult a object about the unconfirm transaction\n"
-                    "\nResult:\n"
-                    "\nExamples:\n"
-                    + HelpExampleCli("listunconfirmedtx", "")
-                    + "\nAs json rpc call\n"
-                    + HelpExampleRpc("listunconfirmedtx", ""));
+         throw runtime_error("listunconfirmedtx \n"
+                "\nget the list  of unconfirmedtx.\n"
+                "\nArguments:\n"
+                "\nResult a object about the unconfirm transaction\n"
+                "\nResult:\n"
+                "\nExamples:\n"
+                + HelpExampleCli("listunconfirmedtx", "")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("listunconfirmedtx", ""));
     }
 
     Object retObj;
@@ -1434,54 +1433,54 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
         UnConfirmTxArry.push_back(wtx.second.get()->ToString(view));
     }
     retObj.push_back(Pair("UnConfirmTx", UnConfirmTxArry));
-
     return retObj;
 }
 
-//sign
-Value sign(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 2) {
-        string msg = "sign nrequired \"str\"\n"
-                "\nsign \"str\"\n"
-                "\nArguments:\n"
-                "1.\"str\": (string) \n"
-                "\nResult:\n"
-                "\"signhash\": (string)\n"
-                "\nExamples:\n"
-                + HelpExampleCli("sign",
-                        "0001a87352387b5b4d6d01299c0dc178ff044f42e016970b0dc7ea9c72c08e2e494a01020304100000")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("sign",
-                        "0001a87352387b5b4d6d01299c0dc178ff044f42e016970b0dc7ea9c72c08e2e494a01020304100000");
-        throw runtime_error(msg);
-    }
+// //sign
+// Value sign(const Array& params, bool fHelp) {
+//     if (fHelp || params.size() != 2) {
+//         throw runtime_error("sign \"addr\" \"str\"\n"
+//                 "\ndigitally sign \"str\" by the private key associated with \"address\"\n"
+//                 "\nArguments:\n"
+//                 "1.\"addr\": the signer address\n"
+//                 "2.\"str\": (string) \n"
+//                 "\nResult:\n"
+//                 "\"signhash\": (string)\n"
+//                 "\nExamples:\n"
+//                 + HelpExampleCli("sign",
+//                     "0001a87352387b5b4d6d01299c0dc178ff044f42e016970b0dc7ea9c72c08e2e494a01020304100000")
+//                 + "\nAs json rpc call\n"
+//                 + HelpExampleRpc("sign",
+//                     "0001a87352387b5b4d6d01299c0dc178ff044f42e016970b0dc7ea9c72c08e2e494a01020304100000"));
+//     }
 
-    vector<unsigned char> vch(ParseHex(params[1].get_str()));
+//     //get keyid
+//     CKeyID keyid;
+//     if (!GetKeyId(params[0].get_str(), keyid)) {
+//         throw runtime_error("in sign: send address err\n");
+//     }
+//     //get string to be signed
+//     vector<unsigned char> vchSignStr(ParseHex(params[1].get_str()));
 
-    //get keyid
-    CKeyID keyid;
-    if (!GetKeyId(params[0].get_str(), keyid)) {
-        throw runtime_error("in sign :send address err\n");
-    }
-    vector<unsigned char> vsign;
-    {
-        LOCK(pwalletMain->cs_wallet);
+//     vector<unsigned char> vsign;
+//     {
+//         LOCK(pwalletMain->cs_wallet);
 
-        CKey key;
-        if (!pwalletMain->GetKey(keyid, key)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "sign Error: cannot find key.");
-        }
+//         CKey key;
+//         if (!pwalletMain->GetKey(keyid, key)) {
+//             throw JSONRPCError(RPC_WALLET_ERROR, "sign Error: cannot find key.");
+//         }
 
-        uint256 hash = Hash(vch.begin(), vch.end());
-        if (!key.Sign(hash, vsign)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "sign Error: Sign failed.");
-        }
-    }
-    Object retObj;
-    retObj.push_back(Pair("signeddata", HexStr(vsign)));
-    return retObj;
-}
-//
+//         uint256 hash = Hash(vchSignStr.begin(), vchSignStr.end());
+//         if (!key.Sign(hash, vsign)) {
+//             throw JSONRPCError(RPC_WALLET_ERROR, "sign Error: Sign failed.");
+//         }
+//     }
+//     Object retObj;
+//     retObj.push_back(Pair("signeddata", HexStr(vsign)));
+//     return retObj;
+// }
+
 //Value getaccountinfo(const Array& params, bool fHelp) {
 //  if (fHelp || params.size() != 1) {
 //      throw runtime_error(
