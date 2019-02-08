@@ -52,7 +52,7 @@ extern Value getcontractdata(const Array& params, bool fHelp);
 extern Value getcontractdataraw(const Array& params, bool fHelp);
 extern Value getcontractconfirmdata(const Array& params, bool fHelp);
 extern Value saveblocktofile(const Array& params, bool fHelp);
-extern Value getcontractdbsize(const Array& params, bool fHelp);
+extern Value getcontractitemcount(const Array& params, bool fHelp);
 extern Value getalltxinfo(const Array& params, bool fHelp);
 
 extern Value getcontractaccountinfo(const Array& params, bool fHelp);

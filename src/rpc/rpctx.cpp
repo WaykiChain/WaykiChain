@@ -2180,23 +2180,23 @@ Value saveblocktofile(const Array& params, bool fHelp) {
     return "save succeed";
 }
 
-Value getcontractdbsize(const Array& params, bool fHelp) {
+Value getcontractitemcount(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error("getcontractdbsize \"regid\"\n"
+        throw runtime_error("getcontractitemcount \"regid\"\n"
             "\nget the total number of contract db K-V items\n"
             "\nArguments:\n"
             "1.\"regid\": (string, required) Contract RegId\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("getcontractdbsize", "\"258988-1\"")
-            + HelpExampleRpc("getcontractdbsize","\"258988-1\"")
+            + HelpExampleCli("getcontractitemcount", "\"258988-1\"")
+            + HelpExampleRpc("getcontractitemcount","\"258988-1\"")
         );
     }
     CRegID regId(params[0].get_str());
-    if (regId.IsEmpty() == true) {
+    if (regId.IsEmpty()) {
         throw runtime_error("contract RegId invalid!");
     }
-    if (!pScriptDBTip->HaveScript(regid)) {
+    if (!pScriptDBTip->HaveScript(regId)) {
         throw runtime_error("contract with the RegId does NOT exist!");
     }
 
