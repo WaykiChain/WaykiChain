@@ -239,7 +239,6 @@ void GetAccountInfo(const char *address) {
 	int argc = 3;
 	const char *argv[3] = { "rpctest", "getaccountinfo", address };
 	CommandLineRPC(argc, const_cast<char**>(argv));
-
 }
 
 void DisconnectBlock(int number) {

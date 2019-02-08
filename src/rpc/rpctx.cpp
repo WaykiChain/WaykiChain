@@ -1393,13 +1393,8 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 }
             }
             obj = std::move(account.ToJsonObj(true));
-            CRegID regId;
-            if (!account.GetRegId(regId)) { //unregistered
-                obj.push_back(Pair("postion", "inwallet"));
-            } else {
-                obj.push_back(Pair("postion", "inblock"));
-            }
-        } else {
+            obj.push_back(Pair("position", "inblock"));
+        } else { //unregistered keyid
             CPubKey pk;
             CPubKey minerpk;
             if (pwalletMain->GetPubKey(keyid, pk)) {
