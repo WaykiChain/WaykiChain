@@ -959,7 +959,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                 "listtransactions ( \"account\" count from includeWatchonly)\n"
                 "\nReturns up to 'count' most recent transactions skipping the first 'from' transactions for account 'account'.\n"
                 "\nArguments:\n"
-                "1. \"address\"    (string, optional) DEPRECATED. The account name. Should be \"*\".\n"
+                "1. \"address\"    (string, optional) DEPRECATED. The account name. Should be \"*\"\n"
                 "2. count          (numeric, optional, default=10) The number of transactions to return\n"
                 "3. from           (numeric, optional, default=0) The number of transactions to skip\n"    "\nExamples:\n"
                 "\nList the most recent 10 transactions in the systems\n"
@@ -973,7 +973,7 @@ Value listtransactions(const Array& params, bool fHelp) {
     string strAddress = "*";
     if (params.size() > 0)
         strAddress = params[0].get_str();
-    if("" == strAddress) {
+    if ("" == strAddress) {
         strAddress = "*";
     }
 
@@ -2755,21 +2755,21 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
     return Value(tem.get()->toJSON());
 }
 
-Value listcontractasset(const Array& params, bool fHelp) {
+Value listcontractassets(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(
-                 "listcontractasset regid\n"
+                 "listcontractassets regid\n"
                  "\nreturn Array containing address, asset information.\n"
                  "\nArguments: regid: Contract RegId\n"
                  "\nResult:\n"
                  "\nExamples:\n"
-                 + HelpExampleCli("listcontractasset", "1-1")
+                 + HelpExampleCli("listcontractassets", "1-1")
                  + "\nAs json rpc call\n"
-                 + HelpExampleRpc("listcontractasset", "1-1"));
+                 + HelpExampleRpc("listcontractassets", "1-1"));
     }
 
     if (!CRegID::IsSimpleRegIdStr(params[0].get_str())) {
-        throw runtime_error("in listcontractasset :regid is invalid!\n");
+        throw runtime_error("in listcontractassets :regid is invalid!\n");
     }
 
     CRegID script(params[0].get_str());
@@ -3016,18 +3016,17 @@ Value setcheckpoint(const Array& params, bool fHelp)
     return tfm::format("sendcheckpoint :%d\n", point.m_height);
 }
 
-Value validateaddress(const Array& params, bool fHelp)
+Value validateaddr(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1) {
-        throw runtime_error(
-                "validateaddress \"wicc_address\"\n"
+        throw runtime_error("validateaddr \"wicc_address\"\n"
                 "\ncheck whether address is valid or not\n"
                 "\nArguments:\n"
                 "1. \"wicc_address\"  (string, required) wicc coin address\n"
                 "\nResult:\n"
                 "\nExamples:\n"
-                + HelpExampleCli("validateaddress", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\"")
-                + HelpExampleRpc("validateaddress", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\""));
+                + HelpExampleCli("validateaddr", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\"")
+                + HelpExampleRpc("validateaddr", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\""));
     }
 
     Object obj;
@@ -3069,23 +3068,22 @@ Value gettotalcoins(const Array& params, bool fHelp) {
 
 Value gettotalassets(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 1) {
-        throw runtime_error(
-                 "gettotalassets \n"
-                 "\nget all assets belonging to a contract\n"
-                 "\nArguments:\n"
-                 "1.\"contract_regid\": (string, required)\n"
-                 "\nResult:\n"
-                 "\nExamples:\n"
-                 + HelpExampleCli("gettotalassets", "11-1")
-                 + HelpExampleRpc("gettotalassets", "11-1"));
+        throw runtime_error("gettotalassets \n"
+                "\nget all assets belonging to a contract\n"
+                "\nArguments:\n"
+                "1.\"contract_regid\": (string, required)\n"
+                "\nResult:\n"
+                "\nExamples:\n"
+                + HelpExampleCli("gettotalassets", "11-1")
+                + HelpExampleRpc("gettotalassets", "11-1"));
     }
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true) {
-        throw runtime_error("in gettotalassets: contract_regid size invalid!\n");
+        throw runtime_error("contract regid invalid!\n");
     }
 
     if (!pScriptDBTip->HaveScript(regid)) {
-        throw runtime_error("in gettotalassets: contract_regid not exist!\n");
+        throw runtime_error("contract regid not exist!\n");
     }
 
     CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
@@ -3111,26 +3109,24 @@ Value gettotalassets(const Array& params, bool fHelp) {
 
             obj.push_back(Pair("total_assets", ValueFromAmount(totalassets)));
         } else {
-            throw runtime_error("in gettotalassets: failed to find contract account!\n");
+            throw runtime_error("failed to find contract account!\n");
         }
     }
     return obj;
 }
 
-Value gettxhashbyaddress(const Array& params, bool fHelp) {
+Value listtxbyaddr(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 2) {
-        throw runtime_error(
-                 "gettxbyaddress \n"
-                 "\nget all tx hash by addresss\n"
-                 "\nArguments:\n"
+        throw runtime_error("listtxbyaddr \n"
+                "\nlist all transactions by their sender/receiver addresss\n"
                 "\nArguments:\n"
                 "1.\"address\": (string, required) \n"
                 "2.\"height\": (numeric, required) \n"
-                 "\nResult: tx relate tx hash as array\n"
+                 "\nResult: address related tx hash as array\n"
                 "\nExamples:\n"
-                + HelpExampleCli("gettxhashbyaddress", "\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"10023\"")
+                + HelpExampleCli("listtxbyaddr", "\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"10023\"")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("gettxhashbyaddress", "\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"10023\""));
+                + HelpExampleRpc("listtxbyaddr", "\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"10023\""));
     }
     string address = params[0].get_str();
     int height = params[1].get_int();
@@ -3142,10 +3138,9 @@ Value gettxhashbyaddress(const Array& params, bool fHelp) {
         vector<string> vTxArray;
         CKeyID keyId;
         if(!GetKeyId(address, keyId)) {
-             throw runtime_error("gettxhashbyaddress : input params address is invalide!\n");
+             throw runtime_error("listtxbyaddr : input address invalid!\n");
         }
-        if(!scriptDbView.GetTxHashByAddress(keyId, height, mapTxHash))
-        {
+        if(!scriptDbView.GetTxHashByAddress(keyId, height, mapTxHash)) {
              throw runtime_error("call GetTxHashByAddress failed!\n");;
         }
         obj.push_back(Pair("address", address));

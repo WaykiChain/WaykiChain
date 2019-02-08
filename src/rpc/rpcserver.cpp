@@ -221,8 +221,8 @@ static const CRPCCommand vRPCCommands[] =
     { "stop",                   &stop,                   true,      true,       false },
     { "gencheckpoint",          &gencheckpoint,          true,      true,       false },
     { "setcheckpoint",          &setcheckpoint,          true,      true,       false },
-    { "validateaddress",        &validateaddress,        true,      true,       false },
-    { "gettxhashbyaddress",     &gettxhashbyaddress,     true,      true,       false },
+    { "validateaddr",           &validateaddr,        true,      true,       false },
+    { "listtxbyaddr",           &listtxbyaddr,           true,      true,       false },
 
     /* P2P networking */
     { "getnetworkinfo",         &getnetworkinfo,         true,      false,      false },
@@ -313,7 +313,7 @@ static const CRPCCommand vRPCCommands[] =
     // { "dispersebalance",        &dispersebalance,        false,     false,      true },
     { "notionalpoolingasset",   &notionalpoolingasset,   false,     false,      true },
     { "getassets",              &getassets,              false,     false,      true },
-    { "listcontractasset",      &listcontractasset,      false,     false,      true },
+    { "listcontractassets",     &listcontractassets,      false,     false,      true },
     { "submittx",               &submittx,               true,      false,      false},
 
     { "sigstr",                 &sigstr,                 true,      false,      true },
