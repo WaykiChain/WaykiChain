@@ -1187,11 +1187,10 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
 Value listcontracttx(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 3 || params.size() < 1)
-            throw runtime_error(
-                "listcontracttx ( \"account\" count from )\n"
+            throw runtime_error("listcontracttx ( \"account\" count from )\n"
                 "\nReturns up to 'count' most recent transactions skipping the first 'from' transactions for account 'account'.\n"
                 "\nArguments:\n"
-                "1. \"scriptid\"    (string). The script ID. \n"
+                "1. \"account\"    (string). The contract RegId. \n"
                 "2. count          (numeric, optional, default=10) The number of transactions to return\n"
                 "3. from           (numeric, optional, default=0) The number of transactions to skip\n"    "\nExamples:\n"
                 "\nList the most recent 10 transactions in the systems\n"
@@ -1212,7 +1211,6 @@ Value listcontracttx(const Array& params, bool fHelp)
     if (!pScriptDBTip->HaveScript(regid)) {
         throw runtime_error("in listcontracttx: scriptid does not exist!\n");
     }
-
 
     Array arrayData;
     int nCount = -1;
@@ -1271,9 +1269,9 @@ Value listcontracttx(const Array& params, bool fHelp)
                 obj.push_back(Pair("regid",  getregidstring(ptx->srcRegId)));
                 accView.GetKeyId(ptx->srcRegId, keyid);
                 obj.push_back(Pair("addr",  keyid.ToAddress()));
-                obj.push_back(Pair("desregid", getregidstring(ptx->desUserId)));
+                obj.push_back(Pair("dest_regid", getregidstring(ptx->desUserId)));
                 accView.GetKeyId(ptx->desUserId, keyid);
-                obj.push_back(Pair("desaddr", keyid.ToAddress()));
+                obj.push_back(Pair("dest_addr", keyid.ToAddress()));
                 obj.push_back(Pair("money", ptx->llValues));
                 obj.push_back(Pair("fees", ptx->llFees));
                 obj.push_back(Pair("height", ptx->nValidHeight));

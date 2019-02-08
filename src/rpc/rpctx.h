@@ -68,7 +68,6 @@ extern Value gettotalassets(const Array& params, bool fHelp);
 extern Value gettransaction(const Array& params, bool fHelp);
 extern Value getsignature(const Array& params, bool fHelp);
 
-// extern Value listauthor(const Array& params, bool fHelp);
 extern Value listaddr(const Array& params, bool fHelp);
 extern Value listtx(const Array& params, bool fHelp);
 extern Value listtxbyaddr(const Array& params, bool fHelp);
