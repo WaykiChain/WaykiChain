@@ -56,11 +56,11 @@ Value islocked(const Array& params,  bool fHelp)
     Object obj;
     string lock_key = "wallet_status";
     if(!pwalletMain->IsEncrypted()) {       // decrypted
-        obj.push_back(Pair(lock_key, "unencrypted and unlocked"));
+        obj.push_back(Pair(lock_key, "unencrypted, unlocked"));
     } else if (!pwalletMain->IsLocked()) {  // encryped but unlocked
-        obj.push_back(Pair(lock_key, "encryped and unlocked"));
+        obj.push_back(Pair(lock_key, "encryped, unlocked"));
     } else {
-        obj.push_back(Pair(lock_key, "encryped and locked"));   // encryped and locked
+        obj.push_back(Pair(lock_key, "encryped, locked"));   // encryped and locked
     }
     return obj;
 }
