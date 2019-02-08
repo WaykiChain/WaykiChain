@@ -27,7 +27,7 @@ Object CAccountView::ToJsonObj(char Prefix){
 	Object obj;
 	return obj;
 }
-std::tuple<uint64_t, uint64_t> CAccountView::TraverseAccount() { return make_tuple(0, 0); }
+
 std::tuple<uint64_t, uint64_t> CAccountViewBacked::TraverseAccount() { return pBase->TraverseAccount(); }
 
 CAccountViewBacked::CAccountViewBacked(CAccountView &accountView): pBase(&accountView) {}

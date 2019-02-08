@@ -954,7 +954,6 @@ Value listaddr(const Array& params, bool fHelp) {
 
 
 Value listtransactions(const Array& params, bool fHelp) {
-
     if (fHelp || params.size() > 3)
             throw runtime_error(
                 "listtransactions ( \"account\" count from includeWatchonly)\n"
@@ -2215,7 +2214,6 @@ Value getcontractdbsize(const Array& params, bool fHelp) {
 }
 
 Value genregisteraccounttxraw(const Array& params, bool fHelp) {
-
     if (fHelp || (params.size() < 3  || params.size() > 4)) {
         throw runtime_error("genregisteraccounttxraw \"fee\" \"height\" \"publickey\" (\"minerpublickey\") \n"
                 "\ncreate a register account transaction\n"
@@ -2959,8 +2957,7 @@ Value gencheckpoint(const Array& params, bool fHelp)
     sstream << point;
     Object obj;
     if (data.Sign(key, std::vector<unsigned char>(sstream.begin(), sstream.end()))
-        && data.CheckSignature(SysCfg().GetCheckPointPKey()))
-    {
+        && data.CheckSignature(SysCfg().GetCheckPointPKey())) {
         obj.push_back(Pair("chenkpoint", data.ToJsonObj()));
         return obj;
     }
@@ -2969,8 +2966,7 @@ Value gencheckpoint(const Array& params, bool fHelp)
 
 Value setcheckpoint(const Array& params, bool fHelp)
 {
-    if(fHelp || params.size() != 1)
-    {
+    if (fHelp || params.size() != 1) {
         throw runtime_error(
                  "setcheckpoint \"filepath\"\n"
                  "\nadd new checkpoint and send it out.\n"
@@ -3029,29 +3025,27 @@ Value setcheckpoint(const Array& params, bool fHelp)
 
 Value validateaddress(const Array& params, bool fHelp)
 {
-    if(fHelp || params.size() != 1)
-        {
-            throw runtime_error(
-                     "validateaddress \"wicc_address\"\n"
-                     "\ncheck whether address is valid or not\n"
-                     "\nArguments:\n"
-                     "1. \"wicc_address\"  (string, required) wicc coin address\n"
-                     "\nResult:\n"
-                     "\nExamples:\n"
-                     + HelpExampleCli("validateaddress", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\"")
-                     + HelpExampleRpc("validateaddress", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\""));
-        }
-    {
-        Object obj;
-        CKeyID keyid;
-        string addr = params[0].get_str();
-        if (!GetKeyId(addr, keyid)) {
-            obj.push_back(Pair("ret" , false));
-        }else {
-            obj.push_back(Pair("ret" , true));
-        }
-        return obj;
+    if (fHelp || params.size() != 1) {
+        throw runtime_error(
+                "validateaddress \"wicc_address\"\n"
+                "\ncheck whether address is valid or not\n"
+                "\nArguments:\n"
+                "1. \"wicc_address\"  (string, required) wicc coin address\n"
+                "\nResult:\n"
+                "\nExamples:\n"
+                + HelpExampleCli("validateaddress", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\"")
+                + HelpExampleRpc("validateaddress", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\""));
     }
+
+    Object obj;
+    CKeyID keyid;
+    string addr = params[0].get_str();
+    if (!GetKeyId(addr, keyid)) {
+        obj.push_back(Pair("ret" , false));
+    } else {
+        obj.push_back(Pair("ret" , true));
+    }
+    return obj;
 }
 
 Value gettotalcoins(const Array& params, bool fHelp) {
@@ -3081,8 +3075,7 @@ Value gettotalcoins(const Array& params, bool fHelp) {
 }
 
 Value gettotalassets(const Array& params, bool fHelp) {
-    if(fHelp || params.size() != 1)
-    {
+    if(fHelp || params.size() != 1) {
         throw runtime_error(
                  "gettotalassets \n"
                  "\nget all assets belonging to a contract\n"
