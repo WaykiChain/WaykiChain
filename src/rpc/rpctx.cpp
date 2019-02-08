@@ -1289,19 +1289,19 @@ Value listcontracttx(const Array& params, bool fHelp)
 
 Value listtx(const Array& params, bool fHelp) {
 if (fHelp || params.size() > 2) {
-        throw runtime_error(
-                 "listtx\n"
-                 "\nget all confirmed transactions and all unconfirmed transactions from wallet.\n"
-                 "\nArguments:\n"
-                 "1. count          (numeric, optional, default=10) The number of transactions to return\n"
-                 "2. from           (numeric, optional, default=0) The number of transactions to skip\n"    "\nExamples:\n"
-                 "\nResult:\n"
-                 "\nExamples:\n"
-                 "\nList the most recent 10 transactions in the system\n"
-                  + HelpExampleCli("listtx", "") +
-                  "\nList transactions 100 to 120\n"
-                  + HelpExampleCli("listtx",  "20 100")
-                );
+        throw runtime_error("listtx\n"
+                "\nget all confirmed transactions and all unconfirmed transactions from wallet.\n"
+                "\nArguments:\n"
+                "1. count          (numeric, optional, default=10) The number of transactions to return\n"
+                "2. from           (numeric, optional, default=0) The number of transactions to skip\n"    
+                "\nExamples:\n"
+                "\nResult:\n"
+                "\nExamples:\n"
+                "\nList the most recent 10 transactions in the system\n"
+                + HelpExampleCli("listtx", "") +
+                "\nList transactions 100 to 120\n"
+                + HelpExampleCli("listtx", "20 100")
+            );
     }
 
     Object retObj;

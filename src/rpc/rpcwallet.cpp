@@ -41,30 +41,6 @@ void EnsureWalletIsUnlocked()
             "Error: Please enter the wallet passphrase with walletpassphrase first.");
 }
 
-Value islocked(const Array& params,  bool fHelp)
-{
-    if (fHelp)
-        throw runtime_error(
-            "islocked\n"
-            "\ncheck the wallet staus: encrypted or locked?\n"
-            "\nArguments:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("islocked", "")
-            + HelpExampleRpc("islocked", "")
-        );
-
-    Object obj;
-    string lock_key = "wallet_status";
-    if(!pwalletMain->IsEncrypted()) {       // decrypted
-        obj.push_back(Pair(lock_key, "unencrypted, unlocked"));
-    } else if (!pwalletMain->IsLocked()) {  // encryped but unlocked
-        obj.push_back(Pair(lock_key, "encryped, unlocked"));
-    } else {
-        obj.push_back(Pair(lock_key, "encryped, locked"));   // encryped and locked
-    }
-    return obj;
-}
-
 bool GetKeyId(string const &addr,CKeyID &KeyId)
 {
     if (!CRegID::GetKeyID(addr, KeyId)) {
@@ -1086,11 +1062,11 @@ Value getwalletinfo(const Array& params, bool fHelp)
             "Returns an object containing various wallet state info.\n"
             "\nResult:\n"
             "{\n"
-            "  \"walletversion\": xxxxx,     (numeric) the wallet version\n"
-            "  \"balance\": xxxxxxx,         (numeric) the total Coin balance of the wallet\n"
-            "  \"Inblocktx\": xxxxxxx,       (numeric) the size of transactions in the wallet\n"
-            "  \"uncomfirmedtx\": xxxxxx,    (numeric) the size of unconfirmtx transactions in the wallet\n"
-            "  \"unlocked_until\": ttt,      (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
+            "  \"wallet_version\": xxxxx,       (numeric) the wallet version\n"
+            "  \"balance\": xxxxxxx,            (numeric) the total Coin balance of the wallet\n"
+            "  \"coinfirmed_tx_num\": xxxxxxx,  (numeric) the number of confirmed tx in the wallet\n"
+            "  \"uncomfirmed_tx_num\": xxxxxx,  (numeric) the number of unconfirmed tx in the wallet\n"
+            "  \"unlocked_until\": ttt,         (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
             "}\n"
             "\nExamples:\n"
             + HelpExampleCli("getwalletinfo", "")
@@ -1099,19 +1075,19 @@ Value getwalletinfo(const Array& params, bool fHelp)
     }
 
     Object obj;
-    obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
-    obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetRawBalance())));
-    obj.push_back(Pair("Inblocktx",       (int)pwalletMain->mapInBlockTx.size()));
-    obj.push_back(Pair("unconfirmtx", (int)pwalletMain->UnConfirmTx.size()));
-    if (pwalletMain->IsEncrypted())
-        obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
+    obj.push_back(Pair("wallet_version",    pwalletMain->GetVersion()));
+    obj.push_back(Pair("wallet_balance",    ValueFromAmount(pwalletMain->GetRawBalance())));
+    obj.push_back(Pair("coinfirmed_tx_num", (int)pwalletMain->mapInBlockTx.size()));
+    obj.push_back(Pair("unconfirmed_tx_num",(int)pwalletMain->UnConfirmTx.size()));
+    obj.push_back(Pair("wallet_encrypted", pwalletMain->IsEncrypted()));
+    obj.push_back(Pair("wallet_locked", pwalletMain->IsLocked()));
+    obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
     return obj;
 }
 
 Value getsignature(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2)
-           throw runtime_error(
-               "getsignature\n"
+           throw runtime_error("getsignature\n"
                "Returns an object containing a signature signed by the private key.\n"
                "\nArguments:\n"
                 "1. \"private key\"   (string, required) The private key base58 encode string, used to sign hash.\n"

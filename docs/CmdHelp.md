@@ -38,12 +38,11 @@
 | getcontractdataraw | ```<scriptid><pagsize or key>[index]``` | get contract data by given app regid in hexdigit format. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
 | getcontractconfirmdata | ```<scriptid><pagsize><index>``` | get contract data confirmed | N |
 | gettxdetail | ```<txhash>``` | Returns an object about the transaction  detail information by ```<txhash>``` | N |
-| getwalletinfo | | Returns an object containing various wallet state info | N |
+| getwalletinfo | | Returns an object containing detaild wallet info | N |
 | help | ```[command]``` | List commands, or get help for a command | N |
 | importprivkey | ```<wiccprivkey> [label] [rescan=true]``` | Adds a private key (as returned by dumpprivkey) to your wallet. This may take a while, as a rescan is done, looking for existing transactions. Note: There's no need to import public key, as in ECDSA (unlike RSA), which can be computed from private key. | Y |
 | importwallet | ```<filename>``` | Import keys from a wallet dump file (see dumpwallet). | Y |
 | invalidateblock | ```<hash>``` | Mark a block as invalid. | N |
-| islocked | | Return an object about whether the wallet is being locked or unlocked | N |
 | listaddr | | return Array containing address,balance,haveminerkey,regid information | N |
 | listcontracts | ```<showDetail>``` | get all registered contracts: <br>1. showDetail: 0 | 1  (boolean, required) 1 to show scriptContent, otherwise not show it. | N |
 | listcheckpoint | | Returns the list of checkpoints | N |

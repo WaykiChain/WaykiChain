@@ -319,7 +319,6 @@ static const CRPCCommand vRPCCommands[] =
     { "sigstr",                 &sigstr,                 true,      false,      true },
     { "getcontractaccountinfo", &getcontractaccountinfo, true,      false,      true },
     { "getcontractkeyvalue",    &getcontractkeyvalue,    true,      false,      true },
-    { "islocked",               &islocked,               true,      false,      true },
     { "getsignature",           &getsignature,           true,      false,      true },
     { "listdelegates",          &listdelegates,          true,      false,      true },
     { "decoderawtransaction",   &decoderawtransaction,   false,     false,      false},
