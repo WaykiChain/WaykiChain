@@ -43,15 +43,24 @@ void EnsureWalletIsUnlocked()
 
 Value islocked(const Array& params,  bool fHelp)
 {
-    if(fHelp)
-        return true;
+    if (fHelp)
+        throw runtime_error(
+            "islocked\n"
+            "\ncheck the wallet staus: encrypted or locked?\n"
+            "\nArguments:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("islocked", "")
+            + HelpExampleCli("islocked", "")
+        );
+
     Object obj;
+    string lock_key = "wallet_status";
     if(!pwalletMain->IsEncrypted()) {       // decrypted
-        obj.push_back(Pair("islock", 0));
+        obj.push_back(Pair(lock_key, "unencrypted and unlocked"));
     } else if (!pwalletMain->IsLocked()) {  // encryped but unlocked
-        obj.push_back(Pair("islock", 1));
+        obj.push_back(Pair(lock_key, "encryped and unlocked"));
     } else {
-        obj.push_back(Pair("islock", 2));   // encryped and locked
+        obj.push_back(Pair(lock_key, "encryped and locked"));   // encryped and locked
     }
     return obj;
 }

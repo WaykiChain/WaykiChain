@@ -1960,19 +1960,17 @@ Value getcontractdataraw(const Array& params, bool fHelp) {
                 + HelpExampleCli("getcontractdataraw", "\"1304166-1\" \"key\"")
                 + HelpExampleRpc("getcontractdataraw", "\"1304166-1\" \"key\""));
     }
-    int height = chainActive.Height();
-//  //RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
-//  vector<unsigned char> vscriptid = ParseHex(params[0].get_str());
+    
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true) {
         throw runtime_error("getcontractdataraw : app regid not supplied!");
     }
-
     if (!pScriptDBTip->HaveScript(regid)) {
         throw runtime_error("getcontractdataraw : app regid does NOT exist!");
     }
-    Object script;
 
+    Object script;
+    int height = chainActive.Height();
     CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
     if (params.size() == 2) {
         vector<unsigned char> key = ParseHex(params[1].get_str());
@@ -2192,6 +2190,7 @@ Value getcontractitemcount(const Array& params, bool fHelp) {
             + HelpExampleRpc("getcontractitemcount","\"258988-1\"")
         );
     }
+
     CRegID regId(params[0].get_str());
     if (regId.IsEmpty()) {
         throw runtime_error("contract RegId invalid!");

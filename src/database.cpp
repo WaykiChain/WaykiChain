@@ -481,8 +481,8 @@ bool CScriptDBViewCache::GetData(const vector<unsigned char> &vKey, vector<unsig
 		} else {
 			return false;
 		}
-	}
-	if (!pBase->GetData(vKey, vValue)) {
+	} else if (!pBase->GetData(vKey, vValue)) {
+		LogPrint("ERROR", "pBase->GetData(vKey, vValue) failed\n");
 		return false;
 	}
 	mapContractDb[vKey] = vValue;
@@ -1301,9 +1301,12 @@ bool CScriptDBViewCache::EraseScript(const vector<unsigned char> &vScriptId) {
 bool CScriptDBViewCache::GetContractItemCount(const vector<unsigned char> &vScriptId, int &nCount) {
 	vector<unsigned char> scriptKey = { 's', 'd', 'n', 'u','m'};
 	scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
-	vector<unsigned char> vValue;
-	if(!GetData(scriptKey, vValue))
-		return false;
+	vector<unsigned char> vValue;	
+	if (!GetData(scriptKey, vValue)) {
+		nCount = 0;
+		return true;
+	}
+
 	CDataStream ds(vValue, SER_DISK, CLIENT_VERSION);
 	ds >> nCount;
 	return true;
