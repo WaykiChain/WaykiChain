@@ -3277,45 +3277,39 @@ Value listdelegates(const Array& params, bool fHelp) {
     }
 
     int nIndex = 0;
-    CRegID redId(0,0);
     vector<unsigned char> vScriptData;
     CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
     CAccountViewCache view(*pAccountViewTip, true);
     Object obj;
     Array delegateArray;
-    vector<unsigned char> vScriptKey = {'d','e','l','e','g','a','t','e','_'};
-    vector<unsigned char> vDelegatePrefix = vScriptKey;
-    while(--nDelegateNum >= 0) {
-       CRegID regId(0,0);
-      if(contractScriptTemp.GetContractData(0, redId, nIndex, vScriptKey, vScriptData)) {
-          nIndex = 1;
-          vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrefix.begin(), vDelegatePrefix.end());
-          string strVoltes(iterVotes+9, iterVotes+25);
-          uint64_t llVotes = 0;
-          /*
-          char *stopstring;
-          llVotes = strtoul(strVoltes.c_str(), &stopstring, 16);
-          */
+    vector<unsigned char> vDelegateKey = {'d','e','l','e','g','a','t','e','_'};
+    vector<unsigned char> vDelegatePrefix = vDelegateKey;
+    while (--nDelegateNum >= 0) {
+        CRegID regId(0,0);
+        if (contractScriptTemp.GetContractData(0, regId, nIndex, vDelegateKey, vScriptData)) {
+            nIndex = 1;
+            vector<unsigned char>::iterator iterVotes = find_first_of(vDelegateKey.begin(), vDelegateKey.end(), 
+                vDelegatePrefix.begin(), vDelegatePrefix.end());
+            string strVotes(iterVotes+9, iterVotes+25);
+            uint64_t llVotes = 0;
+            stringstream strValue;
+            strValue.flags(ios::hex);
+            strValue << strVotes;
+            strValue >> llVotes;
 
-          stringstream strValue;
-          strValue.flags(ios::hex);
-          strValue << strVoltes;
-          strValue >> llVotes;
-
-          vector<unsigned char> vAcctRegId(iterVotes+26, vScriptKey.end());
-          CRegID acctRegId(vAcctRegId);
-          CAccount account;
-          if(!view.GetAccount(acctRegId,account)) {
-              assert(0);
-          }
-          uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
-          if((maxNum-llVotes) != account.llVotes) {
-              LogPrint("INFO", "llVotes:%lld, account:%s",maxNum-llVotes, account.ToString());
-              assert(0);
-          }
-          delegateArray.push_back(account.ToJsonObj());
-      }
-      else {
+            vector<unsigned char> vAcctRegId(iterVotes+26, vDelegateKey.end());
+            CRegID acctRegId(vAcctRegId);
+            CAccount account;
+            if(!view.GetAccount(acctRegId, account)) {
+                assert(0);
+            }
+            uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
+            if ((maxNum - llVotes) != account.llVotes) {
+                LogPrint("INFO", "llVotes:%lld, account:%s", maxNum-llVotes, account.ToString());
+                assert(0);
+            }
+            delegateArray.push_back(account.ToJsonObj());
+      } else {
           assert(0);
       }
     }

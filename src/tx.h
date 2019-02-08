@@ -909,7 +909,7 @@ public:
         this->llVotes = other.llVotes;
     }
     CAccount &operator=(const CAccount & other) {
-        if(this == &other)
+        if (this == &other)
             return *this;
         this->regID = other.regID;
         this->keyID = other.keyID;
