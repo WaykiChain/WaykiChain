@@ -1609,7 +1609,7 @@ static Value TestDisconnectBlock(int number) {
     if (number > 0) {
         do {
             CBlockIndex * pTipIndex = chainActive.Tip();
-            LogPrint("debug", "current height:%d\n", pTipIndex->nHeight);
+            LogPrint("DEBUG", "current height:%d\n", pTipIndex->nHeight);
             if (!DisconnectBlockFromTip(state))
                 return false;
             chainMostWork.SetTip(pTipIndex->pprev);
@@ -1664,7 +1664,7 @@ Value disconnectblock(const Array& params, bool fHelp) {
 
 Value resetclient(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
-        throw runtime_error("resetclient \n"
+        throw runtime_error("resetclient\n"
             "\nreset client\n"
             "\nArguments:\n"
             "\nResult:\n"
@@ -1673,7 +1673,8 @@ Value resetclient(const Array& params, bool fHelp) {
             + "\nAs json rpc call\n"
             + HelpExampleRpc("resetclient", ""));
     }
-    Value te = TestDisconnectBlock(chainActive.Tip()->nHeight);
+    
+    Value ret = TestDisconnectBlock(chainActive.Tip()->nHeight);
 
     if (chainActive.Tip()->nHeight == 0) {
         pwalletMain->CleanAll();
@@ -1703,8 +1704,7 @@ Value resetclient(const Array& params, bool fHelp) {
     } else {
         throw JSONRPCError(RPC_WALLET_ERROR, "restclient Error: Sign failed.");
     }
-    return te;
-
+    return ret;
 }
 
 Value listcontracts(const Array& params, bool fHelp) {
