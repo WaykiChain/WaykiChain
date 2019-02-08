@@ -1062,11 +1062,13 @@ Value getwalletinfo(const Array& params, bool fHelp)
             "Returns an object containing various wallet state info.\n"
             "\nResult:\n"
             "{\n"
-            "  \"wallet_version\": xxxxx,       (numeric) the wallet version\n"
-            "  \"balance\": xxxxxxx,            (numeric) the total Coin balance of the wallet\n"
-            "  \"coinfirmed_tx_num\": xxxxxxx,  (numeric) the number of confirmed tx in the wallet\n"
-            "  \"uncomfirmed_tx_num\": xxxxxx,  (numeric) the number of unconfirmed tx in the wallet\n"
-            "  \"unlocked_until\": ttt,         (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
+            "  \"wallet_version\": xxxxx,        (numeric) the wallet version\n"
+            "  \"wallet_balance\": xxxxxxx,      (numeric) the total Coin balance of the wallet\n"
+            "  \"wallet_encrypted\": true|false, (boolean) whether the wallet is encrypted or not\n"
+            "  \"wallet_locked\":  true|false,   (boolean) whether the wallet is locked or not\n"
+            "  \"unlocked_until\": xxxxx,        (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
+            "  \"coinfirmed_tx_num\": xxxxxxx,   (numeric) the number of confirmed tx in the wallet\n"
+            "  \"uncomfirmed_tx_num\": xxxxxx,   (numeric) the number of unconfirmed tx in the wallet\n"
             "}\n"
             "\nExamples:\n"
             + HelpExampleCli("getwalletinfo", "")
@@ -1077,11 +1079,11 @@ Value getwalletinfo(const Array& params, bool fHelp)
     Object obj;
     obj.push_back(Pair("wallet_version",    pwalletMain->GetVersion()));
     obj.push_back(Pair("wallet_balance",    ValueFromAmount(pwalletMain->GetRawBalance())));
+    obj.push_back(Pair("wallet_encrypted",  pwalletMain->IsEncrypted()));
+    obj.push_back(Pair("wallet_locked",     pwalletMain->IsLocked()));
+    obj.push_back(Pair("unlocked_until",    nWalletUnlockTime));
     obj.push_back(Pair("coinfirmed_tx_num", (int)pwalletMain->mapInBlockTx.size()));
     obj.push_back(Pair("unconfirmed_tx_num",(int)pwalletMain->UnConfirmTx.size()));
-    obj.push_back(Pair("wallet_encrypted", pwalletMain->IsEncrypted()));
-    obj.push_back(Pair("wallet_locked", pwalletMain->IsLocked()));
-    obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
     return obj;
 }
 
