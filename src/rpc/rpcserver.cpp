@@ -221,8 +221,8 @@ static const CRPCCommand vRPCCommands[] =
     { "stop",                   &stop,                   true,      true,       false },
     { "gencheckpoint",          &gencheckpoint,          true,      true,       false },
     { "setcheckpoint",          &setcheckpoint,          true,      true,       false },
-    { "validateaddress",        &validateaddress,        true,      true,       false },
-    { "gettxhashbyaddress",     &gettxhashbyaddress,     true,      true,       false },
+    { "validateaddr",           &validateaddr,           true,      true,       false },
+    { "listtxbyaddr",           &listtxbyaddr,           true,      true,       false },
 
     /* P2P networking */
     { "getnetworkinfo",         &getnetworkinfo,         true,      false,      false },
@@ -313,13 +313,12 @@ static const CRPCCommand vRPCCommands[] =
     // { "dispersebalance",        &dispersebalance,        false,     false,      true },
     { "notionalpoolingasset",   &notionalpoolingasset,   false,     false,      true },
     { "getassets",              &getassets,              false,     false,      true },
-    { "listcontractasset",      &listcontractasset,      false,     false,      true },
+    { "listcontractassets",     &listcontractassets,      false,     false,      true },
     { "submittx",               &submittx,               true,      false,      false},
 
     { "sigstr",                 &sigstr,                 true,      false,      true },
     { "getcontractaccountinfo", &getcontractaccountinfo, true,      false,      true },
     { "getcontractkeyvalue",    &getcontractkeyvalue,    true,      false,      true },
-    { "islocked",               &islocked,               true,      false,      true },
     { "getsignature",           &getsignature,           true,      false,      true },
     { "listdelegates",          &listdelegates,          true,      false,      true },
     { "decoderawtransaction",   &decoderawtransaction,   false,     false,      false},
@@ -331,8 +330,7 @@ static const CRPCCommand vRPCCommands[] =
     { "reloadtxcache",          &reloadtxcache,          true,      false,      true },
     { "listsetblockindexvalid", &listsetblockindexvalid, true,      false,      false},
     { "getcontractregid",       &getcontractregid,       true,      false,      false},
-    { "getscriptdbsize",        &getcontractdbsize,      true,      false,      false}, //deprecated
-    { "getcontractdbsize",      &getcontractdbsize,      true,      false,      false},
+    { "getcontractitemcount",   &getcontractitemcount,   true,      false,      false},
     { "printblockdbinfo",       &printblockdbinfo,       true,      false,      false},
     { "getalltxinfo",           &getalltxinfo,           true,      false,      true },
     { "saveblocktofile",        &saveblocktofile,        true,      false,      true },

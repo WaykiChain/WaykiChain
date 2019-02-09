@@ -294,10 +294,10 @@ elif cmd == "stop":
     except:
         print "\n---An error occurred---\n"
 
-elif cmd == "validateaddress":
+elif cmd == "validateaddr":
     try:
         addr = raw_input("Address: ")
-        print access.validateaddress(addr)
+        print access.validateaddr(addr)
     except:
         print "\n---An error occurred---\n"
 

@@ -263,9 +263,9 @@ public:
 
 	}
 
-	void GetContractDbSize() {
+	void GetContractItemCount() {
 		const char *param[] = { "rpctest",
-					"getcontractdbsize",
+					"getcontractitemcount",
 					"010000000100"};
 //		CommandLineRPC(3, param);
 		Value dummy;

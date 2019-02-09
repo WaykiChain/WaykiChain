@@ -959,7 +959,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                 "listtransactions ( \"account\" count from includeWatchonly)\n"
                 "\nReturns up to 'count' most recent transactions skipping the first 'from' transactions for account 'account'.\n"
                 "\nArguments:\n"
-                "1. \"address\"    (string, optional) DEPRECATED. The account name. Should be \"*\".\n"
+                "1. \"address\"    (string, optional) DEPRECATED. The account name. Should be \"*\"\n"
                 "2. count          (numeric, optional, default=10) The number of transactions to return\n"
                 "3. from           (numeric, optional, default=0) The number of transactions to skip\n"    "\nExamples:\n"
                 "\nList the most recent 10 transactions in the systems\n"
@@ -973,7 +973,7 @@ Value listtransactions(const Array& params, bool fHelp) {
     string strAddress = "*";
     if (params.size() > 0)
         strAddress = params[0].get_str();
-    if("" == strAddress) {
+    if ("" == strAddress) {
         strAddress = "*";
     }
 
@@ -1187,11 +1187,10 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
 Value listcontracttx(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 3 || params.size() < 1)
-            throw runtime_error(
-                "listcontracttx ( \"account\" count from )\n"
+            throw runtime_error("listcontracttx ( \"account\" count from )\n"
                 "\nReturns up to 'count' most recent transactions skipping the first 'from' transactions for account 'account'.\n"
                 "\nArguments:\n"
-                "1. \"scriptid\"    (string). The script ID. \n"
+                "1. \"account\"    (string). The contract RegId. \n"
                 "2. count          (numeric, optional, default=10) The number of transactions to return\n"
                 "3. from           (numeric, optional, default=0) The number of transactions to skip\n"    "\nExamples:\n"
                 "\nList the most recent 10 transactions in the systems\n"
@@ -1212,7 +1211,6 @@ Value listcontracttx(const Array& params, bool fHelp)
     if (!pScriptDBTip->HaveScript(regid)) {
         throw runtime_error("in listcontracttx: scriptid does not exist!\n");
     }
-
 
     Array arrayData;
     int nCount = -1;
@@ -1271,9 +1269,9 @@ Value listcontracttx(const Array& params, bool fHelp)
                 obj.push_back(Pair("regid",  getregidstring(ptx->srcRegId)));
                 accView.GetKeyId(ptx->srcRegId, keyid);
                 obj.push_back(Pair("addr",  keyid.ToAddress()));
-                obj.push_back(Pair("desregid", getregidstring(ptx->desUserId)));
+                obj.push_back(Pair("dest_regid", getregidstring(ptx->desUserId)));
                 accView.GetKeyId(ptx->desUserId, keyid);
-                obj.push_back(Pair("desaddr", keyid.ToAddress()));
+                obj.push_back(Pair("dest_addr", keyid.ToAddress()));
                 obj.push_back(Pair("money", ptx->llValues));
                 obj.push_back(Pair("fees", ptx->llFees));
                 obj.push_back(Pair("height", ptx->nValidHeight));
@@ -1289,19 +1287,19 @@ Value listcontracttx(const Array& params, bool fHelp)
 
 Value listtx(const Array& params, bool fHelp) {
 if (fHelp || params.size() > 2) {
-        throw runtime_error(
-                 "listtx\n"
-                 "\nget all confirmed transactions and all unconfirmed transactions from wallet.\n"
-                 "\nArguments:\n"
-                 "1. count          (numeric, optional, default=10) The number of transactions to return\n"
-                 "2. from           (numeric, optional, default=0) The number of transactions to skip\n"    "\nExamples:\n"
-                 "\nResult:\n"
-                 "\nExamples:\n"
-                 "\nList the most recent 10 transactions in the system\n"
-                  + HelpExampleCli("listtx", "") +
-                  "\nList transactions 100 to 120\n"
-                  + HelpExampleCli("listtx",  "20 100")
-                );
+        throw runtime_error("listtx\n"
+                "\nget all confirmed transactions and all unconfirmed transactions from wallet.\n"
+                "\nArguments:\n"
+                "1. count          (numeric, optional, default=10) The number of transactions to return\n"
+                "2. from           (numeric, optional, default=0) The number of transactions to skip\n"    
+                "\nExamples:\n"
+                "\nResult:\n"
+                "\nExamples:\n"
+                "\nList the most recent 10 transactions in the system\n"
+                + HelpExampleCli("listtx", "") +
+                "\nList transactions 100 to 120\n"
+                + HelpExampleCli("listtx", "20 100")
+            );
     }
 
     Object retObj;
@@ -1393,13 +1391,8 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 }
             }
             obj = std::move(account.ToJsonObj(true));
-            CRegID regId;
-            if (!account.GetRegId(regId)) { //unregistered
-                obj.push_back(Pair("postion", "inwallet"));
-            } else {
-                obj.push_back(Pair("postion", "inblock"));
-            }
-        } else {
+            obj.push_back(Pair("position", "inblock"));
+        } else { //unregistered keyid
             CPubKey pk;
             CPubKey minerpk;
             if (pwalletMain->GetPubKey(keyid, pk)) {
@@ -1420,16 +1413,15 @@ Value getaccountinfo(const Array& params, bool fHelp) {
 //list unconfirmed transaction of mine
 Value listunconfirmedtx(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
-         throw runtime_error(
-                    "listunconfirmedtx \n"
-                    "\nget the list  of unconfirmedtx.\n"
-                    "\nArguments:\n"
-                    "\nResult a object about the unconfirm transaction\n"
-                    "\nResult:\n"
-                    "\nExamples:\n"
-                    + HelpExampleCli("listunconfirmedtx", "")
-                    + "\nAs json rpc call\n"
-                    + HelpExampleRpc("listunconfirmedtx", ""));
+         throw runtime_error("listunconfirmedtx \n"
+                "\nget the list  of unconfirmedtx.\n"
+                "\nArguments:\n"
+                "\nResult a object about the unconfirm transaction\n"
+                "\nResult:\n"
+                "\nExamples:\n"
+                + HelpExampleCli("listunconfirmedtx", "")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("listunconfirmedtx", ""));
     }
 
     Object retObj;
@@ -1439,54 +1431,54 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
         UnConfirmTxArry.push_back(wtx.second.get()->ToString(view));
     }
     retObj.push_back(Pair("UnConfirmTx", UnConfirmTxArry));
-
     return retObj;
 }
 
-//sign
-Value sign(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 2) {
-        string msg = "sign nrequired \"str\"\n"
-                "\nsign \"str\"\n"
-                "\nArguments:\n"
-                "1.\"str\": (string) \n"
-                "\nResult:\n"
-                "\"signhash\": (string)\n"
-                "\nExamples:\n"
-                + HelpExampleCli("sign",
-                        "0001a87352387b5b4d6d01299c0dc178ff044f42e016970b0dc7ea9c72c08e2e494a01020304100000")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("sign",
-                        "0001a87352387b5b4d6d01299c0dc178ff044f42e016970b0dc7ea9c72c08e2e494a01020304100000");
-        throw runtime_error(msg);
-    }
+// //sign
+// Value sign(const Array& params, bool fHelp) {
+//     if (fHelp || params.size() != 2) {
+//         throw runtime_error("sign \"addr\" \"str\"\n"
+//                 "\ndigitally sign \"str\" by the private key associated with \"address\"\n"
+//                 "\nArguments:\n"
+//                 "1.\"addr\": the signer address\n"
+//                 "2.\"str\": (string) \n"
+//                 "\nResult:\n"
+//                 "\"signhash\": (string)\n"
+//                 "\nExamples:\n"
+//                 + HelpExampleCli("sign",
+//                     "0001a87352387b5b4d6d01299c0dc178ff044f42e016970b0dc7ea9c72c08e2e494a01020304100000")
+//                 + "\nAs json rpc call\n"
+//                 + HelpExampleRpc("sign",
+//                     "0001a87352387b5b4d6d01299c0dc178ff044f42e016970b0dc7ea9c72c08e2e494a01020304100000"));
+//     }
 
-    vector<unsigned char> vch(ParseHex(params[1].get_str()));
+//     //get keyid
+//     CKeyID keyid;
+//     if (!GetKeyId(params[0].get_str(), keyid)) {
+//         throw runtime_error("in sign: send address err\n");
+//     }
+//     //get string to be signed
+//     vector<unsigned char> vchSignStr(ParseHex(params[1].get_str()));
 
-    //get keyid
-    CKeyID keyid;
-    if (!GetKeyId(params[0].get_str(), keyid)) {
-        throw runtime_error("in sign :send address err\n");
-    }
-    vector<unsigned char> vsign;
-    {
-        LOCK(pwalletMain->cs_wallet);
+//     vector<unsigned char> vsign;
+//     {
+//         LOCK(pwalletMain->cs_wallet);
 
-        CKey key;
-        if (!pwalletMain->GetKey(keyid, key)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "sign Error: cannot find key.");
-        }
+//         CKey key;
+//         if (!pwalletMain->GetKey(keyid, key)) {
+//             throw JSONRPCError(RPC_WALLET_ERROR, "sign Error: cannot find key.");
+//         }
 
-        uint256 hash = Hash(vch.begin(), vch.end());
-        if (!key.Sign(hash, vsign)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "sign Error: Sign failed.");
-        }
-    }
-    Object retObj;
-    retObj.push_back(Pair("signeddata", HexStr(vsign)));
-    return retObj;
-}
-//
+//         uint256 hash = Hash(vchSignStr.begin(), vchSignStr.end());
+//         if (!key.Sign(hash, vsign)) {
+//             throw JSONRPCError(RPC_WALLET_ERROR, "sign Error: Sign failed.");
+//         }
+//     }
+//     Object retObj;
+//     retObj.push_back(Pair("signeddata", HexStr(vsign)));
+//     return retObj;
+// }
+
 //Value getaccountinfo(const Array& params, bool fHelp) {
 //  if (fHelp || params.size() != 1) {
 //      throw runtime_error(
@@ -1617,7 +1609,7 @@ static Value TestDisconnectBlock(int number) {
     if (number > 0) {
         do {
             CBlockIndex * pTipIndex = chainActive.Tip();
-            LogPrint("debug", "current height:%d\n", pTipIndex->nHeight);
+            LogPrint("DEBUG", "current height:%d\n", pTipIndex->nHeight);
             if (!DisconnectBlockFromTip(state))
                 return false;
             chainMostWork.SetTip(pTipIndex->pprev);
@@ -1672,7 +1664,7 @@ Value disconnectblock(const Array& params, bool fHelp) {
 
 Value resetclient(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
-        throw runtime_error("resetclient \n"
+        throw runtime_error("resetclient\n"
             "\nreset client\n"
             "\nArguments:\n"
             "\nResult:\n"
@@ -1681,7 +1673,8 @@ Value resetclient(const Array& params, bool fHelp) {
             + "\nAs json rpc call\n"
             + HelpExampleRpc("resetclient", ""));
     }
-    Value te = TestDisconnectBlock(chainActive.Tip()->nHeight);
+    
+    Value ret = TestDisconnectBlock(chainActive.Tip()->nHeight);
 
     if (chainActive.Tip()->nHeight == 0) {
         pwalletMain->CleanAll();
@@ -1711,8 +1704,7 @@ Value resetclient(const Array& params, bool fHelp) {
     } else {
         throw JSONRPCError(RPC_WALLET_ERROR, "restclient Error: Sign failed.");
     }
-    return te;
-
+    return ret;
 }
 
 Value listcontracts(const Array& params, bool fHelp) {
@@ -1966,19 +1958,17 @@ Value getcontractdataraw(const Array& params, bool fHelp) {
                 + HelpExampleCli("getcontractdataraw", "\"1304166-1\" \"key\"")
                 + HelpExampleRpc("getcontractdataraw", "\"1304166-1\" \"key\""));
     }
-    int height = chainActive.Height();
-//  //RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
-//  vector<unsigned char> vscriptid = ParseHex(params[0].get_str());
+    
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true) {
         throw runtime_error("getcontractdataraw : app regid not supplied!");
     }
-
     if (!pScriptDBTip->HaveScript(regid)) {
         throw runtime_error("getcontractdataraw : app regid does NOT exist!");
     }
-    Object script;
 
+    Object script;
+    int height = chainActive.Height();
     CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
     if (params.size() == 2) {
         vector<unsigned char> key = ParseHex(params[1].get_str());
@@ -2186,23 +2176,24 @@ Value saveblocktofile(const Array& params, bool fHelp) {
     return "save succeed";
 }
 
-Value getcontractdbsize(const Array& params, bool fHelp) {
+Value getcontractitemcount(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error("getcontractdbsize \"regid\"\n"
+        throw runtime_error("getcontractitemcount \"regid\"\n"
             "\nget the total number of contract db K-V items\n"
             "\nArguments:\n"
             "1.\"regid\": (string, required) Contract RegId\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("getcontractdbsize", "\"258988-1\"")
-            + HelpExampleRpc("getcontractdbsize","\"258988-1\"")
+            + HelpExampleCli("getcontractitemcount", "\"258988-1\"")
+            + HelpExampleRpc("getcontractitemcount","\"258988-1\"")
         );
     }
+
     CRegID regId(params[0].get_str());
-    if (regId.IsEmpty() == true) {
+    if (regId.IsEmpty()) {
         throw runtime_error("contract RegId invalid!");
     }
-    if (!pScriptDBTip->HaveScript(regid)) {
+    if (!pScriptDBTip->HaveScript(regId)) {
         throw runtime_error("contract with the RegId does NOT exist!");
     }
 
@@ -2762,21 +2753,21 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
     return Value(tem.get()->toJSON());
 }
 
-Value listcontractasset(const Array& params, bool fHelp) {
+Value listcontractassets(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(
-                 "listcontractasset regid\n"
+                 "listcontractassets regid\n"
                  "\nreturn Array containing address, asset information.\n"
                  "\nArguments: regid: Contract RegId\n"
                  "\nResult:\n"
                  "\nExamples:\n"
-                 + HelpExampleCli("listcontractasset", "1-1")
+                 + HelpExampleCli("listcontractassets", "1-1")
                  + "\nAs json rpc call\n"
-                 + HelpExampleRpc("listcontractasset", "1-1"));
+                 + HelpExampleRpc("listcontractassets", "1-1"));
     }
 
     if (!CRegID::IsSimpleRegIdStr(params[0].get_str())) {
-        throw runtime_error("in listcontractasset :regid is invalid!\n");
+        throw runtime_error("in listcontractassets :regid is invalid!\n");
     }
 
     CRegID script(params[0].get_str());
@@ -3023,18 +3014,17 @@ Value setcheckpoint(const Array& params, bool fHelp)
     return tfm::format("sendcheckpoint :%d\n", point.m_height);
 }
 
-Value validateaddress(const Array& params, bool fHelp)
+Value validateaddr(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1) {
-        throw runtime_error(
-                "validateaddress \"wicc_address\"\n"
+        throw runtime_error("validateaddr \"wicc_address\"\n"
                 "\ncheck whether address is valid or not\n"
                 "\nArguments:\n"
                 "1. \"wicc_address\"  (string, required) wicc coin address\n"
                 "\nResult:\n"
                 "\nExamples:\n"
-                + HelpExampleCli("validateaddress", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\"")
-                + HelpExampleRpc("validateaddress", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\""));
+                + HelpExampleCli("validateaddr", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\"")
+                + HelpExampleRpc("validateaddr", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\""));
     }
 
     Object obj;
@@ -3076,23 +3066,22 @@ Value gettotalcoins(const Array& params, bool fHelp) {
 
 Value gettotalassets(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 1) {
-        throw runtime_error(
-                 "gettotalassets \n"
-                 "\nget all assets belonging to a contract\n"
-                 "\nArguments:\n"
-                 "1.\"contract_regid\": (string, required)\n"
-                 "\nResult:\n"
-                 "\nExamples:\n"
-                 + HelpExampleCli("gettotalassets", "11-1")
-                 + HelpExampleRpc("gettotalassets", "11-1"));
+        throw runtime_error("gettotalassets \n"
+                "\nget all assets belonging to a contract\n"
+                "\nArguments:\n"
+                "1.\"contract_regid\": (string, required)\n"
+                "\nResult:\n"
+                "\nExamples:\n"
+                + HelpExampleCli("gettotalassets", "11-1")
+                + HelpExampleRpc("gettotalassets", "11-1"));
     }
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true) {
-        throw runtime_error("in gettotalassets: contract_regid size invalid!\n");
+        throw runtime_error("contract regid invalid!\n");
     }
 
     if (!pScriptDBTip->HaveScript(regid)) {
-        throw runtime_error("in gettotalassets: contract_regid not exist!\n");
+        throw runtime_error("contract regid not exist!\n");
     }
 
     CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
@@ -3118,26 +3107,24 @@ Value gettotalassets(const Array& params, bool fHelp) {
 
             obj.push_back(Pair("total_assets", ValueFromAmount(totalassets)));
         } else {
-            throw runtime_error("in gettotalassets: failed to find contract account!\n");
+            throw runtime_error("failed to find contract account!\n");
         }
     }
     return obj;
 }
 
-Value gettxhashbyaddress(const Array& params, bool fHelp) {
+Value listtxbyaddr(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 2) {
-        throw runtime_error(
-                 "gettxbyaddress \n"
-                 "\nget all tx hash by addresss\n"
-                 "\nArguments:\n"
+        throw runtime_error("listtxbyaddr \n"
+                "\nlist all transactions by their sender/receiver addresss\n"
                 "\nArguments:\n"
                 "1.\"address\": (string, required) \n"
                 "2.\"height\": (numeric, required) \n"
-                 "\nResult: tx relate tx hash as array\n"
+                 "\nResult: address related tx hash as array\n"
                 "\nExamples:\n"
-                + HelpExampleCli("gettxhashbyaddress", "\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"10023\"")
+                + HelpExampleCli("listtxbyaddr", "\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"10023\"")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("gettxhashbyaddress", "\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"10023\""));
+                + HelpExampleRpc("listtxbyaddr", "\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"10023\""));
     }
     string address = params[0].get_str();
     int height = params[1].get_int();
@@ -3149,10 +3136,9 @@ Value gettxhashbyaddress(const Array& params, bool fHelp) {
         vector<string> vTxArray;
         CKeyID keyId;
         if(!GetKeyId(address, keyId)) {
-             throw runtime_error("gettxhashbyaddress : input params address is invalide!\n");
+             throw runtime_error("listtxbyaddr : input address invalid!\n");
         }
-        if(!scriptDbView.GetTxHashByAddress(keyId, height, mapTxHash))
-        {
+        if(!scriptDbView.GetTxHashByAddress(keyId, height, mapTxHash)) {
              throw runtime_error("call GetTxHashByAddress failed!\n");;
         }
         obj.push_back(Pair("address", address));
@@ -3277,45 +3263,39 @@ Value listdelegates(const Array& params, bool fHelp) {
     }
 
     int nIndex = 0;
-    CRegID redId(0,0);
     vector<unsigned char> vScriptData;
     CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
     CAccountViewCache view(*pAccountViewTip, true);
     Object obj;
     Array delegateArray;
-    vector<unsigned char> vScriptKey = {'d','e','l','e','g','a','t','e','_'};
-    vector<unsigned char> vDelegatePrefix = vScriptKey;
-    while(--nDelegateNum >= 0) {
-       CRegID regId(0,0);
-      if(contractScriptTemp.GetContractData(0, redId, nIndex, vScriptKey, vScriptData)) {
-          nIndex = 1;
-          vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrefix.begin(), vDelegatePrefix.end());
-          string strVoltes(iterVotes+9, iterVotes+25);
-          uint64_t llVotes = 0;
-          /*
-          char *stopstring;
-          llVotes = strtoul(strVoltes.c_str(), &stopstring, 16);
-          */
+    vector<unsigned char> vDelegateKey = {'d','e','l','e','g','a','t','e','_'};
+    vector<unsigned char> vDelegatePrefix = vDelegateKey;
+    while (--nDelegateNum >= 0) {
+        CRegID regId(0,0);
+        if (contractScriptTemp.GetContractData(0, regId, nIndex, vDelegateKey, vScriptData)) {
+            nIndex = 1;
+            vector<unsigned char>::iterator iterVotes = find_first_of(vDelegateKey.begin(), vDelegateKey.end(), 
+                vDelegatePrefix.begin(), vDelegatePrefix.end());
+            string strVotes(iterVotes+9, iterVotes+25);
+            uint64_t llVotes = 0;
+            stringstream strValue;
+            strValue.flags(ios::hex);
+            strValue << strVotes;
+            strValue >> llVotes;
 
-          stringstream strValue;
-          strValue.flags(ios::hex);
-          strValue << strVoltes;
-          strValue >> llVotes;
-
-          vector<unsigned char> vAcctRegId(iterVotes+26, vScriptKey.end());
-          CRegID acctRegId(vAcctRegId);
-          CAccount account;
-          if(!view.GetAccount(acctRegId,account)) {
-              assert(0);
-          }
-          uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
-          if((maxNum-llVotes) != account.llVotes) {
-              LogPrint("INFO", "llVotes:%lld, account:%s",maxNum-llVotes, account.ToString());
-              assert(0);
-          }
-          delegateArray.push_back(account.ToJsonObj());
-      }
-      else {
+            vector<unsigned char> vAcctRegId(iterVotes+26, vDelegateKey.end());
+            CRegID acctRegId(vAcctRegId);
+            CAccount account;
+            if(!view.GetAccount(acctRegId, account)) {
+                assert(0);
+            }
+            uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
+            if ((maxNum - llVotes) != account.llVotes) {
+                LogPrint("INFO", "llVotes:%lld, account:%s", maxNum-llVotes, account.ToString());
+                assert(0);
+            }
+            delegateArray.push_back(account.ToJsonObj());
+      } else {
           assert(0);
       }
     }

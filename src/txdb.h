@@ -95,11 +95,7 @@ public:
 	bool GetTxCache(const uint256 &hashblock, vector<uint256> &hashTx);
 	bool LoadTransaction(map<uint256, vector<uint256> > &mapTxHashByBlockHash);
 	bool BatchWrite(const map<uint256, vector<uint256> > &mapTxHashByBlockHash);
-	int64_t GetDbCount()
-	{
-		return db.GetDbCount();
-	}
-
+	int64_t GetDbCount() { return db.GetDbCount(); }
 };
 
 class CScriptDB: public CScriptDBView
@@ -115,15 +111,12 @@ private:
 public:
 	bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue);
 	bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
-	bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapDatas);
+	bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb);
 	bool EraseKey(const vector<unsigned char> &vKey);
 	bool HaveData(const vector<unsigned char> &vKey);
 	bool GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);
 	bool GetContractData(const int curBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
-	int64_t GetDbCount()
-	{
-		return db.GetDbCount();
-	}
+	int64_t GetDbCount() { return db.GetDbCount(); }
 	bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash);
 	Object ToJsonObj(string Prefix);
 	bool GetAllScriptAcc(const CRegID& scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc);

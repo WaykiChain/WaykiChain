@@ -153,9 +153,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "move"                   && n > 3) ConvertTo<int64_t>(params[3]);
     if (strMethod == "sendfrom"               && n > 2) ConvertTo<double>(params[2]);
     if (strMethod == "sendfrom"               && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "listtransactions"       && n > 1) ConvertTo<int64_t>(params[1]);
-    if (strMethod == "listtransactions"       && n > 2) ConvertTo<int64_t>(params[2]);
-    if (strMethod == "listaccounts"           && n > 0) ConvertTo<int64_t>(params[0]);
+    
+    // if (strMethod == "listaccounts"           && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "walletpassphrase"       && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getblocktemplate"       && n > 0) ConvertTo<Object>(params[0]);
     if (strMethod == "listsinceblock"         && n > 1) ConvertTo<int64_t>(params[1]);
@@ -248,19 +247,21 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "genvotedelegatetxraw"     && n > 3) ConvertTo<int>(params[3]);
     /********************************************************************************************************************/
 
-    if (strMethod == "gettxhashbyaddress"     && n > 1) ConvertTo<int>(params[1]);
-    if (strMethod == "getcontractkeyvalue"    && n > 1) ConvertTo<Array>(params[1]);
+   
+    if (strMethod == "getcontractkeyvalue"      && n > 1) ConvertTo<Array>(params[1]);
 
     if (strMethod == "listtx"                 && n > 0) ConvertTo<int>(params[0]);
     if (strMethod == "listtx"                 && n > 1) ConvertTo<int>(params[1]);
-    if (strMethod == "listdelegates"        && n > 0) ConvertTo<int>(params[0]);
+    if (strMethod == "listtxbyaddr"           && n > 1) ConvertTo<int>(params[1]);
+    if (strMethod == "listdelegates"          && n > 0) ConvertTo<int>(params[0]);
     if (strMethod == "listtransactions"       && n > 1) ConvertTo<int>(params[1]);
     if (strMethod == "listtransactions"       && n > 2) ConvertTo<int>(params[2]);
+    // if (strMethod == "listtransactions"       && n > 1) ConvertTo<int64_t>(params[1]);
+    // if (strMethod == "listtransactions"       && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "listtransactionsv2"     && n > 1) ConvertTo<int>(params[1]);
     if (strMethod == "listtransactionsv2"     && n > 2) ConvertTo<int>(params[2]);
     if (strMethod == "notionalpoolingasset"   && n > 2) ConvertTo<double>(params[2]);
     
-
     if (strMethod == "invalidateblock"        && n > 0) { if (params[0].get_str().size() < 32) ConvertTo<int>(params[0]); }
 
     return params;

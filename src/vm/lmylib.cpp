@@ -1189,24 +1189,21 @@ static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr < std::
  * 1.第一个是 key值
  * 2.第二个是value值
  */
-static int ExWriteDataDBFunc(lua_State *L) {
+static int ExWriteDataDBFunc(lua_State *L) 
+{
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
-
-    if(!GetDataTableWriteDataDB(L,retdata) ||retdata.size() != 2)
-    {
+    if (!GetDataTableWriteDataDB(L,retdata) ||retdata.size() != 2) {
         return RetFalse("ExWriteDataDBFunc key err1");
     }
 
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-    {
+    if (NULL == pVmRunEvn) {
         return RetFalse("pVmRunEvn is NULL");
     }
 
     const CRegID scriptid = pVmRunEvn->GetScriptRegID();
     bool flag = true;
     CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
-
     CScriptDBOperLog operlog;
 //  int64_t step = (*retdata.at(1)).size() -1;
     if (!scriptDB->SetContractData(scriptid, *retdata.at(0), *retdata.at(1),operlog)) {
@@ -1380,26 +1377,21 @@ static int ExGetCurTxHash(lua_State *L) {
 static int ExModifyDataDBValueFunc(lua_State *L)
 {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
-    if(!GetDataTableWriteDataDB(L,retdata) ||retdata.size() != 2 )
-    {
+    if (!GetDataTableWriteDataDB(L,retdata) ||retdata.size() != 2) {
         return RetFalse("ExModifyDataDBValueFunc key err1");
     }
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-    {
+    if (NULL == pVmRunEvn) {
         return RetFalse("pVmRunEvn is NULL");
     }
 
     CRegID scriptid = pVmRunEvn->GetScriptRegID();
     bool flag = false;
     CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
-
-//  int64_t step = 0;
     CScriptDBOperLog operlog;
     vector_unsigned_char vTemp;
     if(scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vTemp)) {
-        if(scriptDB->SetContractData(scriptid,*retdata.at(0),*retdata.at(1).get(),operlog))
-        {
+        if (scriptDB->SetContractData(scriptid,*retdata.at(0),*retdata.at(1).get(),operlog)) {
             shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEvn->GetDbLog();
             m_dblog.get()->push_back(operlog);
             flag = true;

@@ -431,7 +431,7 @@ void CAccountViewCache::SetBaseData(CAccountView * pNewBase){
 
 bool CScriptDBView::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) {	return false;}
 bool CScriptDBView::SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) {return false;}
-bool CScriptDBView::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapDatas) {return false;}
+bool CScriptDBView::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb) {return false;}
 bool CScriptDBView::EraseKey(const vector<unsigned char> &vKey) {return false;}
 bool CScriptDBView::HaveData(const vector<unsigned char> &vKey) {return false;}
 bool CScriptDBView::GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) {return false;}
@@ -453,7 +453,7 @@ Object CScriptDBView:: ToJsonObj(string Prefix){
 CScriptDBViewBacked::CScriptDBViewBacked(CScriptDBView &dataBaseView) {pBase = &dataBaseView;}
 bool CScriptDBViewBacked::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) {return pBase->GetData(vKey, vValue);}
 bool CScriptDBViewBacked::SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) {return pBase->SetData(vKey, vValue);}
-bool CScriptDBViewBacked::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapDatas) {return pBase->BatchWrite(mapDatas);}
+bool CScriptDBViewBacked::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb) {return pBase->BatchWrite(mapContractDb);}
 bool CScriptDBViewBacked::EraseKey(const vector<unsigned char> &vKey) {return pBase->EraseKey(vKey);}
 bool CScriptDBViewBacked::HaveData(const vector<unsigned char> &vKey) {return pBase->HaveData(vKey);}
 bool CScriptDBViewBacked::GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) {return pBase->GetScript(nIndex, vScriptId, vValue);}
@@ -470,25 +470,25 @@ bool CScriptDBViewBacked::SetTxHashByAddress(const CKeyID &keyId, int nHeight, i
 bool CScriptDBViewBacked::GetAllScriptAcc(const CRegID& scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) {return pBase->GetAllScriptAcc(scriptId, mapAcc);}
 
 CScriptDBViewCache::CScriptDBViewCache(CScriptDBView &base, bool fDummy) : CScriptDBViewBacked(base) {
-	mapDatas.clear();
+	mapContractDb.clear();
 }
+
 bool CScriptDBViewCache::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) {
-	if (mapDatas.count(vKey) > 0) {
-		if (!mapDatas[vKey].empty()) {
-			vValue = mapDatas[vKey];
+	if (mapContractDb.count(vKey) > 0) {
+		if (!mapContractDb[vKey].empty()) {
+			vValue = mapContractDb[vKey];
 			return true;
 		} else {
 			return false;
 		}
-	}
-	if (!pBase->GetData(vKey, vValue)) {
+	} else if (!pBase->GetData(vKey, vValue)) {
 		return false;
-	}
-	mapDatas[vKey] = vValue;
-	return true;
+	} 
+	
+	return false;
 }
 bool CScriptDBViewCache::SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) {
-	mapDatas[vKey] = vValue;
+	mapContractDb[vKey] = vValue;
 	return true;
 }
 bool CScriptDBViewCache::UndoScriptData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) {
@@ -502,8 +502,8 @@ bool CScriptDBViewCache::UndoScriptData(const vector<unsigned char> &vKey, const
 		vector<unsigned char> vScriptCountKey = { 's', 'd', 'n', 'u', 'm' };
 		vector<unsigned char> vScriptId(vKey.begin() + 4, vKey.begin() + 10);
 		vector<unsigned char> vOldValue;
-		if (mapDatas.count(vKey)) {
-			vOldValue = mapDatas[vKey];
+		if (mapContractDb.count(vKey)) {
+			vOldValue = mapContractDb[vKey];
 		} else {
 			GetData(vKey, vOldValue);
 		}
@@ -528,23 +528,23 @@ bool CScriptDBViewCache::UndoScriptData(const vector<unsigned char> &vKey, const
 			}
 		}
 	}
-	mapDatas[vKey] = vValue;
+	mapContractDb[vKey] = vValue;
 	return true;
 }
 bool CScriptDBViewCache::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapData) {
 	for (auto &items : mapData) {
-		mapDatas[items.first] = items.second;
+		mapContractDb[items.first] = items.second;
 	}
 	return true;
 }
 bool CScriptDBViewCache::EraseKey(const vector<unsigned char> &vKey) {
-	if (mapDatas.count(vKey) > 0) {
-		mapDatas[vKey].clear();
+	if (mapContractDb.count(vKey) > 0) {
+		mapContractDb[vKey].clear();
 	} else {
 		vector<unsigned char> vValue;
 		if (pBase->GetData(vKey, vValue)) {
 			vValue.clear();
-			mapDatas[vKey] = vValue;
+			mapContractDb[vKey] = vValue;
 		}
 		else {
 			return false;
@@ -553,8 +553,8 @@ bool CScriptDBViewCache::EraseKey(const vector<unsigned char> &vKey) {
 	return true;
 }
 bool CScriptDBViewCache::HaveData(const vector<unsigned char> &vKey) {
-	if (mapDatas.count(vKey) > 0) {
-		if(!mapDatas[vKey].empty())
+	if (mapContractDb.count(vKey) > 0) {
+		if(!mapContractDb[vKey].empty())
 			return true;
 		else
 			return false;
@@ -568,7 +568,7 @@ bool CScriptDBViewCache::GetScript(const int nIndex, vector<unsigned char> &vScr
 		vector<unsigned char> vDataValue;
 		vDataKey.clear();
 		vDataValue.clear();
-		for (auto &item : mapDatas) {   //遍历本级缓存数据，找出合法的最小的key值
+		for (auto &item : mapContractDb) {   //遍历本级缓存数据，找出合法的最小的key值
 			vector<unsigned char> vTemp(item.first.begin(), item.first.begin() + 3);
 			if (scriptKey == vTemp) {
 				if (item.second.empty()) {
@@ -596,10 +596,10 @@ bool CScriptDBViewCache::GetScript(const int nIndex, vector<unsigned char> &vScr
 			vector<unsigned char> dataKeyTemp = {'d', 'e', 'f'};
 			dataKeyTemp.insert(dataKeyTemp.end(), vScriptId.begin(), vScriptId.end()); //上级得到的key值
 			if (dataKeyTemp < vDataKey) {  //若上级查询的key小于本级缓存的key,且此key在缓存中没有，则直接返回数据库中查询的结果
-				if (mapDatas.count(dataKeyTemp) == 0)
+				if (mapContractDb.count(dataKeyTemp) == 0)
 					return true;
 				else {
-					mapDatas[dataKeyTemp].clear();  //在缓存中dataKeyTemp已经被删除过了，重新将此key对应的value清除
+					mapContractDb[dataKeyTemp].clear();  //在缓存中dataKeyTemp已经被删除过了，重新将此key对应的value清除
 					return GetScript(nIndex, vScriptId, vValue); //重新从数据库中获取下一条数据
 				}
 			} else {  //若上级查询的key大于等于本级缓存的key,返回本级的数据
@@ -614,13 +614,13 @@ bool CScriptDBViewCache::GetScript(const int nIndex, vector<unsigned char> &vScr
 		vector<unsigned char> vKey = { 'd','e','f' };
 		vKey.insert(vKey.end(), vScriptId.begin(), vScriptId.end());
 		vector<unsigned char> vPreKey(vKey);
-		map<vector<unsigned char>, vector<unsigned char> >::iterator iterFindKey = mapDatas.upper_bound(vPreKey);
+		map<vector<unsigned char>, vector<unsigned char> >::iterator iterFindKey = mapContractDb.upper_bound(vPreKey);
 		vector<unsigned char> vDataKey;
 		vector<unsigned char> vDataValue;
  		vDataKey.clear();
  		vDataValue.clear();
 		vector<unsigned char> vKeyTemp={'d','e','f'};
-		while (iterFindKey != mapDatas.end()) {
+		while (iterFindKey != mapContractDb.end()) {
 			vector<unsigned char> vTemp(iterFindKey->first.begin(), iterFindKey->first.begin() + 3);
 			if (vKeyTemp == vTemp) {
 				if (iterFindKey->second.empty()){
@@ -652,10 +652,10 @@ bool CScriptDBViewCache::GetScript(const int nIndex, vector<unsigned char> &vScr
 			vector<unsigned char> dataKeyTemp = {'d', 'e', 'f'};
 			dataKeyTemp.insert(dataKeyTemp.end(), vScriptId.begin(), vScriptId.end()); //上级得到的key值
 			if (dataKeyTemp < vDataKey) {
-				if (mapDatas.count(dataKeyTemp) == 0)
+				if (mapContractDb.count(dataKeyTemp) == 0)
 						return true;
 				else {
-					mapDatas[dataKeyTemp].clear();  //在缓存中dataKeyTemp已经被删除过了，重新将此key对应的value清除
+					mapContractDb[dataKeyTemp].clear();  //在缓存中dataKeyTemp已经被删除过了，重新将此key对应的value清除
 					return GetScript(nIndex, vScriptId, vValue); //重新从数据库中获取下一条数据
 				}
 			} else { //若上级查询的key大于等于本级缓存的key,返回本级的数据
@@ -686,14 +686,14 @@ bool CScriptDBViewCache::SetScript(const vector<unsigned char> &vScriptId, const
 	return SetData(scriptKey, vValue);
 }
 bool CScriptDBViewCache::Flush() {
-	bool ok = pBase->BatchWrite(mapDatas);
+	bool ok = pBase->BatchWrite(mapContractDb);
 	if(ok) {
-		mapDatas.clear();
+		mapContractDb.clear();
 	}
 	return ok;
 }
 unsigned int CScriptDBViewCache::GetCacheSize() {
-	return ::GetSerializeSize(mapDatas, SER_DISK, CLIENT_VERSION);
+	return ::GetSerializeSize(mapContractDb, SER_DISK, CLIENT_VERSION);
 }
 
 bool CScriptDBViewCache::WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CScriptDBOperLog &operLog) {
@@ -742,8 +742,8 @@ bool CScriptDBViewCache::GetTxHashByAddress(const CKeyID &keyId, int nHeight, ma
 	ds1 << nHeight;
 	vPreKey.insert(vPreKey.end(), ds1.begin(), ds1.end());
 
-	map<vector<unsigned char>, vector<unsigned char> >::iterator iterFindKey = mapDatas.upper_bound(vPreKey);
-	while (iterFindKey != mapDatas.end()) {
+	map<vector<unsigned char>, vector<unsigned char> >::iterator iterFindKey = mapContractDb.upper_bound(vPreKey);
+	while (iterFindKey != mapContractDb.end()) {
 		if (0 == memcmp((char *)&iterFindKey->first[0], (char *)&vPreKey[0], 24)) {
 			if(iterFindKey->second.empty())
 				vTxHash.erase(iterFindKey->first);
@@ -780,11 +780,11 @@ bool CScriptDBViewCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos){
 	vTxHash.insert(vTxHash.end(), ds.begin(), ds.end());
 	vector<unsigned char> vTxPos;
 
-	if(mapDatas.count(vTxHash))  {
-		if(mapDatas[vTxHash].empty()) {
+	if(mapContractDb.count(vTxHash))  {
+		if(mapContractDb[vTxHash].empty()) {
 			return false;
 		}
-		vTxPos = mapDatas[vTxHash];
+		vTxPos = mapContractDb[vTxHash];
 		CDataStream dsPos(vTxPos, SER_DISK, CLIENT_VERSION);
 		dsPos >> pos;
 	}else {
@@ -854,8 +854,8 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 		vector<unsigned char> vDataValue;
 		vDataKey.clear();
 		vDataValue.clear();
-		map<vector<unsigned char>, vector<unsigned char> >::iterator iterFindKey = mapDatas.upper_bound(vKey);
-		while (iterFindKey != mapDatas.end()) {
+		map<vector<unsigned char>, vector<unsigned char> >::iterator iterFindKey = mapContractDb.upper_bound(vKey);
+		while (iterFindKey != mapContractDb.end()) {
 			vector<unsigned char> vKeyTemp(vKey.begin(), vKey.begin() + vScriptId.size() + 5);
 			vector<unsigned char> vTemp(iterFindKey->first.begin(), iterFindKey->first.begin() + vScriptId.size() + 5);
 			if (vKeyTemp == vTemp) {
@@ -880,7 +880,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 			vector<unsigned char> dataKeyTemp(vKey.begin(), vKey.end());
 			dataKeyTemp.insert(dataKeyTemp.end(), vScriptKey.begin(), vScriptKey.end());
 //			LogPrint("INFO", "dataKeyTemp:%s\n vDataKey:%s\n", HexStr(dataKeyTemp), HexStr(vDataKey));
-//			if(mapDatas.count(dataKeyTemp) > 0) {//本级缓存包含上级查询结果的key
+//			if(mapContractDb.count(dataKeyTemp) > 0) {//本级缓存包含上级查询结果的key
 //				if(dataKeyTemp != vDataKey) {  //本级和上级查找key不同，说明上级获取的数据在本级已被删除
 //					continue;
 //				} else {
@@ -910,7 +910,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 //				}
 //			}
 			if (vDataKey.empty()) {   //缓存中没有符合条件的key，直接返回上级的查询结果
-				if(mapDatas.count(dataKeyTemp) <= 0) {
+				if(mapContractDb.count(dataKeyTemp) <= 0) {
 //					CDataStream ds(vScriptData, SER_DISK, CLIENT_VERSION);
 //					ds >> vScriptData;
 					return true;
@@ -922,7 +922,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 			}
 			else {
 				if (dataKeyTemp < vDataKey) {
-					if(mapDatas.count(dataKeyTemp) <= 0) {
+					if(mapContractDb.count(dataKeyTemp) <= 0) {
 						return true;
 					}
 					else {
@@ -967,12 +967,12 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 		vKey.push_back('_');
 		vector<unsigned char> vPreKey(vKey);
 		vPreKey.insert(vPreKey.end(), vScriptKey.begin(), vScriptKey.end());
-		map<vector<unsigned char>, vector<unsigned char> >::iterator iterFindKey = mapDatas.upper_bound(vPreKey);
+		map<vector<unsigned char>, vector<unsigned char> >::iterator iterFindKey = mapContractDb.upper_bound(vPreKey);
 		vector<unsigned char> vDataKey;
 		vector<unsigned char> vDataValue;
 		vDataValue.clear();
 		vDataKey.clear();
-		while (iterFindKey != mapDatas.end()) {
+		while (iterFindKey != mapContractDb.end()) {
 			vector<unsigned char> vKeyTemp(vKey.begin(), vKey.begin() + vScriptId.size() + 5);
 			vector<unsigned char> vTemp(iterFindKey->first.begin(), iterFindKey->first.begin() + vScriptId.size() + 5);
 			if (vKeyTemp == vTemp) {
@@ -996,7 +996,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 			vector<unsigned char> dataKeyTemp(vKey.begin(), vKey.end());
 			dataKeyTemp.insert(dataKeyTemp.end(), vScriptKey.begin(), vScriptKey.end());
 //			LogPrint("INFO", "dataKeyTemp:%s\n vDataKey:%s\n", HexStr(dataKeyTemp), HexStr(vDataKey));
-//			if(mapDatas.count(dataKeyTemp) > 0) {//本级缓存包含上级查询结果的key
+//			if(mapContractDb.count(dataKeyTemp) > 0) {//本级缓存包含上级查询结果的key
 //				if(dataKeyTemp != vDataKey) {  //本级和上级查找key不同，说明上级获取的数据在本级已被删除
 //					continue;
 //				} else {
@@ -1026,7 +1026,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 //				}
 //			}
 			if (vDataKey.empty()) {   //缓存中没有符合条件的key，直接返回上级的查询结果
-				if(mapDatas.count(dataKeyTemp) <= 0) {
+				if(mapContractDb.count(dataKeyTemp) <= 0) {
 //					CDataStream ds(vScriptData, SER_DISK, CLIENT_VERSION);
 //					ds >> vScriptData;
 					return true;
@@ -1038,7 +1038,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 			}
 			else {
 				if (dataKeyTemp < vDataKey) {
-					if(mapDatas.count(dataKeyTemp) == 0)
+					if(mapContractDb.count(dataKeyTemp) == 0)
 						return true;
 					else {
 //						LogPrint("INFO", "dataKeyTemp less than vDataKey and vDataValue empty redo getcontractdata()\n");
@@ -1088,7 +1088,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 //	if(0 == nIndex) {
 //		vDataKey.clear();
 //		vDataValue.clear();
-//		for (auto &item : mapDatas) {   //遍历本级缓存数据，找出合法的最小的key值
+//		for (auto &item : mapContractDb) {   //遍历本级缓存数据，找出合法的最小的key值
 //			vector<unsigned char> vTemp(item.first.begin(),item.first.begin()+vScriptId.size()+5);
 //			if(vKey == vTemp) {
 //				if(item.second.empty()) {
@@ -1112,10 +1112,10 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 //	else if (1 == nIndex) {
 //		vector<unsigned char> vPreKey(vKey);
 //		vPreKey.insert(vPreKey.end(), vScriptKey.begin(), vScriptKey.end());
-//		map<vector<unsigned char>, vector<unsigned char> >::iterator iterFindKey = mapDatas.upper_bound(vPreKey);
+//		map<vector<unsigned char>, vector<unsigned char> >::iterator iterFindKey = mapContractDb.upper_bound(vPreKey);
 //		vDataValue.clear();
 //		vDataKey.clear();
-//		while (iterFindKey != mapDatas.end()) {
+//		while (iterFindKey != mapContractDb.end()) {
 //			vector<unsigned char> vKeyTemp(vKey.begin(), vKey.begin() + vScriptId.size() + 5);
 //			vector<unsigned char> vTemp(iterFindKey->first.begin(), iterFindKey->first.begin() + vScriptId.size() + 5);
 //			if (vKeyTemp == vTemp) {
@@ -1152,7 +1152,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 //		LogPrint("INFO", "nCurBlockHeight:%d this addr:%x, nIndex:%d, count:%lld\n ScriptKey:%s\n nHeight:%d\n ScriptData:%s\n vDataKey:%s\n vDataValue:%s\n",
 //				nCurBlockHeight, this, nIndexTemp, ++llCount, HexStr(vScriptKey), nHeight, HexStr(vScriptData), HexStr(vDataKey), HexStr(vDataValue));
 //		nIndexTemp = 1;
-//		for(auto &itemKey : mapDatas) {
+//		for(auto &itemKey : mapContractDb) {
 //			vector<unsigned char> vKeyTemp(itemKey.first.begin(), itemKey.first.begin() + vKey.size());
 //			if(vKeyTemp == vKey) {
 //				LogPrint("INFO", "vKey:%s\n vValue:%s\n", HexStr(itemKey.first), HexStr(itemKey.second));
@@ -1160,7 +1160,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 //		}
 //		set<CScriptDBOperLog>::iterator iterOperLog = setOperLog.begin();
 //		for (; iterOperLog != setOperLog.end();) { //防止由于没有flush cache，对数据库中超时的脚本数据项，在cache中多次删除，引起删除失败
-//			if (mapDatas.count(iterOperLog->vKey) > 0 && mapDatas[iterOperLog->vKey].empty()) {
+//			if (mapContractDb.count(iterOperLog->vKey) > 0 && mapContractDb[iterOperLog->vKey].empty()) {
 //				LogPrint("INFO", "DeleteData key:%s\n", HexStr(iterOperLog->vKey));
 //				setOperLog.erase(iterOperLog++);
 //			}else {
@@ -1170,7 +1170,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 //		vector<unsigned char> dataKeyTemp(vKey.begin(), vKey.end());
 //		dataKeyTemp.insert(dataKeyTemp.end(), vScriptKey.begin(), vScriptKey.end());
 //		LogPrint("INFO", "dataKeyTemp:%s\n vDataKey:%s\n", HexStr(dataKeyTemp), HexStr(vDataKey));
-//		if(mapDatas.count(dataKeyTemp) > 0) {//本级缓存包含上级查询结果的key
+//		if(mapContractDb.count(dataKeyTemp) > 0) {//本级缓存包含上级查询结果的key
 //			if(dataKeyTemp != vDataKey) {  //本级和上级查找key不同，说明上级获取的数据在本级已被删除
 //				LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getcontractdata()\n");
 //				continue;
@@ -1203,7 +1203,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 //		if(!bUpLevelRet) {
 //			set<CScriptDBOperLog>::iterator iterOperLog = setOperLog.begin();
 //			for (; iterOperLog != setOperLog.end();) { //防止由于没有flush cache，对数据库中超时的脚本数据项，在cache中多次删除，引起删除失败
-//				if (mapDatas.count(iterOperLog->vKey) > 0 && mapDatas[iterOperLog->vKey].empty()) {
+//				if (mapContractDb.count(iterOperLog->vKey) > 0 && mapContractDb[iterOperLog->vKey].empty()) {
 //					LogPrint("INFO", "DeleteData key:%s\n", HexStr(iterOperLog->vKey));
 //					setOperLog.erase(iterOperLog++);
 //				}else{
@@ -1300,9 +1300,12 @@ bool CScriptDBViewCache::EraseScript(const vector<unsigned char> &vScriptId) {
 bool CScriptDBViewCache::GetContractItemCount(const vector<unsigned char> &vScriptId, int &nCount) {
 	vector<unsigned char> scriptKey = { 's', 'd', 'n', 'u','m'};
 	scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
-	vector<unsigned char> vValue;
-	if(!GetData(scriptKey, vValue))
-		return false;
+	vector<unsigned char> vValue;	
+	if (!GetData(scriptKey, vValue)) {
+		nCount = 0;
+		return true;
+	}
+
 	CDataStream ds(vValue, SER_DISK, CLIENT_VERSION);
 	ds >> nCount;
 	return true;
@@ -1312,16 +1315,17 @@ bool CScriptDBViewCache::SetContractItemCount(const vector<unsigned char> &vScri
 	scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
 	vector<unsigned char> vValue;
 	vValue.clear();
-	if(nCount > 0) {
+	if (nCount > 0) {
 		CDataStream ds(SER_DISK, CLIENT_VERSION);
 		ds << nCount;
 		vValue.insert(vValue.end(), ds.begin(), ds.end());
-	}
-	else if (nCount < 0) {
+
+		if (!SetData(scriptKey, vValue))
+			return false;
+	} else {
 		return false;
 	}
-	if(!SetData(scriptKey, vValue))
-		return false;
+
 	return true;
 }
 
@@ -1455,17 +1459,17 @@ bool CScriptDBViewCache::EraseTxRelAccout(const uint256 &txHash) {
 Object CScriptDBViewCache::ToJsonObj() const {
 	Object obj;
 	Array arrayObj;
-//	for (auto& item : mapDatas) {
+//	for (auto& item : mapContractDb) {
 //		Object obj;
 //		obj.push_back(Pair("key", HexStr(item.first)));
 //		obj.push_back(Pair("value", HexStr(item.second)));
 //		arrayObj.push_back(obj);
 //	}
-//	obj.push_back(Pair("mapDatas", arrayObj));
+//	obj.push_back(Pair("mapContractDb", arrayObj));
 	arrayObj.push_back(pBase->ToJsonObj("def"));
 	arrayObj.push_back(pBase->ToJsonObj("data"));
 	arrayObj.push_back(pBase->ToJsonObj("author"));
-	obj.push_back(Pair("mapDatas", arrayObj));
+	obj.push_back(Pair("mapContractDb", arrayObj));
 	return obj;
 }
 void CScriptDBViewCache::SetBaseData(CScriptDBView * pNewBase){
@@ -1474,7 +1478,7 @@ void CScriptDBViewCache::SetBaseData(CScriptDBView * pNewBase){
 string CScriptDBViewCache::ToString(){
 	string str("");
 	vector<unsigned char> vPrefix = {'d', 'a', 't', 'a'};
-	for(auto & item : mapDatas) {
+	for(auto & item : mapContractDb) {
 		vector<unsigned char> vTemp(item.first.begin(), item.first.begin()+4);
 		if(vTemp ==  vPrefix){
 			str = strprintf("vKey=%s\n vData=%s\n", HexStr(item.first), HexStr(item.second));

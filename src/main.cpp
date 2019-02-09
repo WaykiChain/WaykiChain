@@ -639,25 +639,25 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, CBaseTransact
     // is it already in the memory pool?
     uint256 hash = pBaseTx->GetHash();
     if (pool.exists(hash))
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s already in mempool", hash.GetHex()), REJECT_INVALID, "tx-already-in-mempool");
+        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] already in mempool", hash.GetHex()), REJECT_INVALID, "tx-already-in-mempool");
     // is it already confirmed in block
     if(uint256() != pTxCacheTip->IsContainTx(hash))
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s has been confirmed", hash.GetHex()), REJECT_INVALID, "tx-duplicate-confirmed");
+        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] has been confirmed", hash.GetHex()), REJECT_INVALID, "tx-duplicate-confirmed");
 
     if (pBaseTx->IsCoinBase())
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s is coin base tx, can't put into mempool", hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
+        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] is a coinbase tx, can't put into mempool", hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
 
     // is it within valid height?
     unsigned int currHeight = chainActive.Tip()->nHeight;
-    int txCacheHeight = SysCfg().GetTxCacheHeight();
+    int txCacheHeight = SysCfg().GetTxCacheHeight(); //500
     if (!pBaseTx->IsValidHeight(currHeight, txCacheHeight)) {
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx hash %s beyond the scope of valid height: %d\n ",
+        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] beyond the scope of valid height: %d",
                 hash.GetHex(), currHeight),
                 REJECT_INVALID, "tx-invalid-height");
     }
 
     if (!CheckTransaction(pBaseTx, state, *pool.pAccountViewCache, *pool.pScriptDBViewCache))
-        return ERRORMSG("AcceptToMemoryPool: : CheckTransaction failed");
+        return ERRORMSG("AcceptToMemoryPool: CheckTransaction failed");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     string reason;
@@ -2096,7 +2096,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock& block, CBlockIndex *pPreBlockI
     pTxCache->SetCacheMap(pTxCacheTip->GetCacheMap());
 
     std::shared_ptr<CScriptDBViewCache> pScriptDBCache = std::make_shared<CScriptDBViewCache>(*pScriptDB, true);
-    pScriptDBCache->mapDatas = pScriptDBTip->mapDatas;
+    pScriptDBCache->mapContractDb = pScriptDBTip->mapContractDb;
 
     uint256 preBlockHash;
     bool bFindForkChainTip(false);
@@ -3890,13 +3890,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         LOCK(cs_main);
         CValidationState state;
-        if (AcceptToMemoryPool(mempool, state, pBaseTx.get(), true))
-        {
+        if (AcceptToMemoryPool(mempool, state, pBaseTx.get(), true)) {
             RelayTransaction(pBaseTx.get(), inv.hash);
             mapAlreadyAskedFor.erase(inv);
             vWorkQueue.push_back(inv.hash);
             vEraseQueue.push_back(inv.hash);
-
 
             LogPrint("INFO", "AcceptToMemoryPool: %s %s : accepted %s (poolsz %u)\n",
             pfrom->addr.ToString(), pfrom->cleanSubVer,
@@ -3904,11 +3902,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             mempool.mapTx.size());
 
         }
+
         int nDoS = 0;
-        if (state.IsInvalid(nDoS))
-        {
-            LogPrint("INFO", "%s from %s %s was not accepted into the memory pool: %s\n", pBaseTx->GetHash().ToString(),
-                pfrom->addr.ToString(), pfrom->cleanSubVer,
+        if (state.IsInvalid(nDoS)) {
+            LogPrint("INFO", "%s from %s %s was not accepted into the memory pool: %s\n", 
+                pBaseTx->GetHash().ToString(),
+                pfrom->addr.ToString(), 
+                pfrom->cleanSubVer,
                 state.GetRejectReason());
             pfrom->PushMessage("reject", strCommand, state.GetRejectCode(), state.GetRejectReason(), inv.hash);
 //          if (nDoS > 0) {
