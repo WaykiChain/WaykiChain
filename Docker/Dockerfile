@@ -18,10 +18,10 @@ RUN mkdir -p /opt/src /opt/wicc && cd /opt/src \
 && cd /opt/src/WaykiChain/linuxshell && sh ./linux.sh \
 && cd /opt/src/WaykiChain/ && sh ./autogen-coin-man.sh "coin${debug}" \
 && chmod +x ./share/genbuild.sh && make \
-&& strip /opt/src/WaykiChain/src/coind && mv /opt/src/WaykiChain/src/coind /opt/wicc/ && rm -rf /opt/src
+&& strip /opt/src/WaykiChain/src/coind && mv /opt/src/WaykiChain/src/coind /opt/wicc/ \
+&& rm -rf /opt/src
 
 ENV PATH="/opt/wicc:${PATH}"
 WORKDIR /opt/wicc/
 EXPOSE 6968 8920 18920
-
 CMD ["./coind"]
