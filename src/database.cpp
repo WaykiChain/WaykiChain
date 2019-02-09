@@ -482,7 +482,6 @@ bool CScriptDBViewCache::GetData(const vector<unsigned char> &vKey, vector<unsig
 			return false;
 		}
 	} else if (!pBase->GetData(vKey, vValue)) {
-		LogPrint("ERROR", "pBase->GetData(vKey, vValue) failed\n");
 		return false;
 	} 
 	
