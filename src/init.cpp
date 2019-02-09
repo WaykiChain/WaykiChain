@@ -776,9 +776,9 @@ bool AppInit(boost::thread_group& threadGroup)
         pwalletMain = CWallet::getinstance();
         RegisterWallet(pwalletMain);
         pwalletMain->LoadWallet(false);
-        } catch (std::exception &e) {
-            cout<< "load wallet failed:"<<  e.what() << endl;
-        }
+    } catch (std::exception &e) {
+        cout<< "load wallet failed:"<<  e.what() << endl;
+    }
 
     //load checkpoint
     SyncData::CSyncDataDb db;
@@ -851,8 +851,7 @@ bool AppInit(boost::thread_group& threadGroup)
                 }
 
                 uiInterface.InitMessage(_("Verifying blocks..."));
-                if (!VerifyDB(SysCfg().GetArg("-checklevel", 3),
-                        SysCfg().GetArg("-checkblocks", 288))) {
+                if (!VerifyDB(SysCfg().GetArg("-checklevel", 3), SysCfg().GetArg("-checkblocks", 288))) {
                     strLoadError = _("Corrupted block database detected");
                     break;
                 }

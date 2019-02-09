@@ -516,11 +516,10 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
     txundo.vAccountLog.push_back(desAcctLog);
 
     if (CONTRACT_TX == nTxType) {
-
         vector<unsigned char> vScript;
         if(!scriptDB.GetScript(boost::get<CRegID>(desUserId), vScript)) {
-            return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, read account faild, RegId=%s", boost::get<CRegID>(desUserId).ToString()),
-                    UPDATE_ACCOUNT_FAIL, "bad-read-account");
+            return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, read account faild, RegId=%s", 
+                    boost::get<CRegID>(desUserId).ToString()), READ_ACCOUNT_FAIL, "bad-read-account");
         }
         CVmRunEvn vmRunEvn;
         std::shared_ptr<CBaseTransaction> pTx = GetNewInstance();

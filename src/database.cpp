@@ -481,11 +481,13 @@ bool CScriptDBViewCache::GetData(const vector<unsigned char> &vKey, vector<unsig
 		} else {
 			return false;
 		}
-	} else if (!pBase->GetData(vKey, vValue)) {
+	}
+	
+	if (!pBase->GetData(vKey, vValue)) {
 		return false;
 	} 
-	
-	return false;
+	mapContractDb[vKey] = vValue; //cache it here for speed in-mem access
+	return true;
 }
 bool CScriptDBViewCache::SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) {
 	mapContractDb[vKey] = vValue;
