@@ -1403,7 +1403,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                     account.MinerPKey = minerpk;
                 }
                 obj = std::move(account.ToJsonObj(true));
-                obj.push_back(Pair("postion", "inwallet"));
+                obj.push_back(Pair("position", "inwallet"));
             }
         }
     }
