@@ -2224,8 +2224,8 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock& block, CBlockIndex *pPreBlockI
         //校验pos交易
         if (!VerifyPosTx(&block, *pForkAcctViewCache, *pForkTxCache, *pForkScriptDBCache, true)) {
             return state.DoS(100,
-                    ERRORMSG("CheckBlockProofWorkWithCoinDay() : the block Hash=%s check pos tx error", block.GetHash().GetHex()),
-                    REJECT_INVALID, "bad-pos-tx");
+                    ERRORMSG("CheckBlockProofWorkWithCoinDay() : the block Hash=%s check pos tx error", 
+                    block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
         }
 
         //校验利息是否正常

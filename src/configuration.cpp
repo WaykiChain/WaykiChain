@@ -204,14 +204,13 @@ namespace Checkpoints
 
  const G_CONFIG_TABLE &IniCfg(){
 	static G_CONFIG_TABLE * psCfg =  NULL;
-     if(psCfg == NULL)
-     {
+     if (psCfg == NULL) {
     	 psCfg  = new G_CONFIG_TABLE ();
      }
      assert(psCfg != NULL);
      return *psCfg;
-
 }
+
  const uint256 G_CONFIG_TABLE::GetIntHash(NET_TYPE type) const
  {
 
@@ -471,23 +470,23 @@ string G_CONFIG_TABLE::GetDelegateSignature(NET_TYPE type) const {
 //========以下是静态成员初始化的值=====================================================
 //=========================================================================
 
-//名称
+//BaseCoin name
 string G_CONFIG_TABLE::COIN_NAME = "WaykiChain";
 
 
-	//公钥-主网络
+/** Public Key for mainnet */
 vector<string> G_CONFIG_TABLE::intPubKey_mainNet =
 {
 	"037671de4799dbf919effa034bbcaadd78c8a942adeebe7d71155304979a02802a",
 	"0226d8c242052560b3ec7c75d45ba3a8cb187ff2c21a9e96cb8755eeefd50bcdca"
 };
-	//公钥-测试网络
+/** Public Key for testnet */
  vector<string> G_CONFIG_TABLE::initPubKey_testNet =
 {
 	"037de11ea5def6393f45c2461c6f55e6e5cda831545324c63fc5c04409d459a5b3",
 	"025fa44ce081c3b4f34982a86e85e474fca1d98bbb6da612e097c9e7041208f11a"
 };
-	//公钥-局域网络
+/** Public Key for RegTestNet */
  vector<string> G_CONFIG_TABLE::initPubkey_regTest =
 {
 	"03b2299425981d6c2ec382cda999e604eb06b2b0f387f4b8500519c44d143cd2a8",

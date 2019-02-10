@@ -371,13 +371,13 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles)
             FILE *file = OpenBlockFile(pos, true);
             if (!file)
                 break;
-            LogPrint("INFO","Reindexing block file blk%05u.dat...\n", (unsigned int)nFile);
+            LogPrint("INFO", "Reindexing block file blk%05u.dat...\n", (unsigned int)nFile);
             LoadExternalBlockFile(file, &pos);
             nFile++;
         }
         pblocktree->WriteReindexing(false);
         SysCfg().SetReIndex(false);
-        LogPrint("INFO","Reindexing finished\n");
+        LogPrint("INFO", "Reindexing finished\n");
         // To avoid ending up in a situation without genesis block, re-try initializing (no-op if reindexing worked):
         InitBlockIndex();
     }
@@ -393,7 +393,7 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles)
             LoadExternalBlockFile(file);
             RenameOver(pathBootstrap, pathBootstrapOld);
         } else {
-            LogPrint("INFO","Warning: Could not open bootstrap file %s\n", pathBootstrap.string());
+            LogPrint("INFO", "Warning: Could not open bootstrap file %s\n", pathBootstrap.string());
         }
     }
 

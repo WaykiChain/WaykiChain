@@ -157,7 +157,8 @@ public:
 class CRegTestParams: public CTestNetParams {
 public:
     CRegTestParams() {
-        memcpy(pchMessageStart,IniCfg().GetMagicNumber(REGTEST_NET),sizeof(pchMessageStart));
+        memcpy(pchMessageStart, IniCfg().GetMagicNumber(REGTEST_NET),
+            sizeof(pchMessageStart));
         nSubsidyHalvingInterval =  IniCfg().GetHalvingInterval(REGTEST_NET);
         bnProofOfStakeLimit = ~arith_uint256(0) >> 6;     //target:00000011 11111111 11111111
         genesis.SetTime(IniCfg().GetStartTimeInit(REGTEST_NET));
@@ -273,7 +274,7 @@ CBaseParams &SysCfg() {
     return *pParams.get();
 }
 
-//write for test code
+//write for mainnet code
 const CBaseParams &SysParamsMain() {
     static std::shared_ptr<CBaseParams> pParams;
     pParams = std::make_shared<CMainParams>();
@@ -281,7 +282,7 @@ const CBaseParams &SysParamsMain() {
     return *pParams.get();
 }
 
-//write for test code
+//write for testNet code
 const CBaseParams &SysParamsTest() {
     static std::shared_ptr<CBaseParams> pParams;
     pParams = std::make_shared<CTestNetParams>();
@@ -289,7 +290,7 @@ const CBaseParams &SysParamsTest() {
     return *pParams.get();
 }
 
-//write for test code
+//write for RegTestNet code
 const CBaseParams &SysParamsReg() {
     static std::shared_ptr<CBaseParams> pParams;
     pParams = std::make_shared<CRegTestParams>();
