@@ -166,7 +166,7 @@ extern json_spirit::Value genvotedelegatetxraw      (const json_spirit::Array& p
 extern json_spirit::Value submittx(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value sigstr(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value decoderawtransaction(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value decoderawtx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value printblockdbinfo(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value getblockcount(const json_spirit::Array& params, bool fHelp); // in rpcblockchain.cpp
