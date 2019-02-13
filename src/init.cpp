@@ -143,6 +143,7 @@ void Shutdown()
 
     StopNode();
     UnregisterNodeSignals(GetNodeSignals());
+
     {
         LOCK(cs_main);
 
@@ -169,7 +170,6 @@ void Shutdown()
         delete pScriptDB; pScriptDB = NULL;
         delete pTxCacheTip; pTxCacheTip = NULL;
         delete pScriptDBTip; pScriptDBTip = NULL;
-
     }
 
     boost::filesystem::remove(GetPidFile());

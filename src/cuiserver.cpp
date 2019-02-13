@@ -52,7 +52,7 @@ void CUIServer::Send(const string& strData) {
 bool CUIServer::IsInitalEnd = false;
 void CUIServer::SendData(const string& strData) {
 	system::error_code ignored_error;
-	if(m_bConnect&&m_socket.get() ){
+	if (m_bConnect&&m_socket.get()) {
 		m_socket->write_some(asio::buffer(strData), ignored_error);
 	}
 }
@@ -63,8 +63,7 @@ void CUIServer::Accept() {
 }
 
 void CUIServer::Accept_handler(sock_pt sock) {
-	if(m_bConnect)
-	{
+	if(m_bConnect) {
 		//only save one connection
 		Accept();
 		return;
@@ -87,7 +86,7 @@ void CUIServer::Accept_handler(sock_pt sock) {
 	std::shared_ptr<vector<char> > str(new vector<char>(100, 0));
 	memset(data_,0,max_length);
 	sock->async_read_some(asio::buffer(data_,max_length),
-			bind(&CUIServer::read_handler, this, asio::placeholders::error, data_, sock));
+		bind(&CUIServer::read_handler, this, asio::placeholders::error, data_, sock));
 }
 
 void CUIServer::read_handler(const system::error_code& ec, char* pstr, sock_pt sock) {
@@ -104,7 +103,7 @@ void CUIServer::RunServer(){
 	m_iosev.run();
 	if(instance != NULL && !instance->m_bRunFlag) {
 		delete instance;
-			instance = NULL;
+		instance = NULL;
 	}
 }
 
