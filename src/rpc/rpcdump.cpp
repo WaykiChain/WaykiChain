@@ -194,7 +194,7 @@ Value importwallet(const Array& params, bool fHelp)
     			continue;
     		string strKeyId = find_value(keyItem.get_obj(), "keyid").get_str();
     		CKeyID keyId(uint160(ParseHex(strKeyId)));
-    		keyCombi.UnSersailFromJson(keyItem.get_obj());
+    		keyCombi.UnSerializeFromJson(keyItem.get_obj());
     		if(!keyCombi.IsContainMainKey() && !keyCombi.IsContainMinerKey()) {
     			continue;
     		}
