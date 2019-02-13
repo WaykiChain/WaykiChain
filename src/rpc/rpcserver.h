@@ -157,12 +157,12 @@ extern json_spirit::Value getassets(const json_spirit:: Array& params, bool fHel
 extern json_spirit::Value sendtoaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendtoaddresswithfee(const json_spirit::Array& params, bool fHelp);
 
-extern json_spirit::Value sendtoaddressraw          (const json_spirit::Array& params, bool fHelp); //deprecated
-extern json_spirit::Value gensendtoaddresstxraw     (const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value genregisteraccounttxraw   (const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value genregistercontracttxraw  (const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value gencallcontracttxraw      (const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value genvotedelegatetxraw      (const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value sendtoaddressraw       (const json_spirit::Array& params, bool fHelp); //deprecated
+extern json_spirit::Value gensendtoaddressraw    (const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value genregisteraccountraw  (const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value genregistercontractraw (const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value gencallcontractraw     (const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value genvotedelegateraw     (const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value submittx(const json_spirit::Array& params, bool fHelp);
 

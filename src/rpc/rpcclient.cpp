@@ -228,25 +228,29 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "listcontracts"          && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getblock"               && n > 0) { if (params[0].get_str().size()<32) ConvertTo<int>(params[0]);}
 
-    /****** generate a digitally signed raw transaction and can be later submitted to network via submittx  **********/
-    if (strMethod == "genregisteraccounttxraw"  && n > 0) ConvertTo<double>(params[0]);
-    if (strMethod == "genregisteraccounttxraw"  && n > 1) ConvertTo<int>(params[1]);
+    /****** generate a digitally signed raw transaction for network submission via submittx  **********/
+    if (strMethod == "genregisteraccountraw"  && n > 0) ConvertTo<double>(params[0]);
+    if (strMethod == "genregisteraccountraw"  && n > 1) ConvertTo<int>(params[1]);
 
-    if (strMethod == "gensendtoaddresstxraw"    && n > 0) ConvertTo<double>(params[0]);
-    if (strMethod == "gensendtoaddresstxraw"    && n > 1) ConvertTo<double>(params[1]);
-    if (strMethod == "gensendtoaddresstxraw"    && n > 4) ConvertTo<int>(params[4]);
+    if (strMethod == "sendtoaddressraw"       && n > 0) ConvertTo<double>(params[0]);   //deprecated
+    if (strMethod == "sendtoaddressraw"       && n > 1) ConvertTo<double>(params[1]);   //deprecated
+    if (strMethod == "sendtoaddressraw"       && n > 4) ConvertTo<int>(params[4]);      //deprecated
 
-    if (strMethod == "genregistercontracttxraw" && n > 0) ConvertTo<double>(params[0]);
-    if (strMethod == "genregistercontracttxraw" && n > 2) ConvertTo<bool>(params[2]);
-    if (strMethod == "genregistercontracttxraw" && n > 4) ConvertTo<int>(params[4]);
+    if (strMethod == "gensendtoaddressraw"    && n > 0) ConvertTo<double>(params[0]);
+    if (strMethod == "gensendtoaddressraw"    && n > 1) ConvertTo<double>(params[1]);
+    if (strMethod == "gensendtoaddressraw"    && n > 4) ConvertTo<int>(params[4]);
 
-    if (strMethod == "gencallcontracttxraw"     && n > 0) ConvertTo<double>(params[0]);
-    if (strMethod == "gencallcontracttxraw"     && n > 1) ConvertTo<double>(params[1]);
-    if (strMethod == "gencallcontracttxraw"     && n > 5) ConvertTo<int>(params[5]);
+    if (strMethod == "genregistercontractraw" && n > 0) ConvertTo<double>(params[0]);
+    if (strMethod == "genregistercontractraw" && n > 2) ConvertTo<bool>(params[2]);
+    if (strMethod == "genregistercontractraw" && n > 4) ConvertTo<int>(params[4]);
 
-    if (strMethod == "genvotedelegatetxraw"     && n > 1) ConvertTo<Array>(params[1]);
-    if (strMethod == "genvotedelegatetxraw"     && n > 2) ConvertTo<int64_t>(params[2]);
-    if (strMethod == "genvotedelegatetxraw"     && n > 3) ConvertTo<int>(params[3]);
+    if (strMethod == "gencallcontractraw"     && n > 0) ConvertTo<double>(params[0]);
+    if (strMethod == "gencallcontractraw"     && n > 1) ConvertTo<double>(params[1]);
+    if (strMethod == "gencallcontractraw"     && n > 5) ConvertTo<int>(params[5]);
+
+    if (strMethod == "genvotedelegateraw"     && n > 1) ConvertTo<Array>(params[1]);
+    if (strMethod == "genvotedelegateraw"     && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "genvotedelegateraw"     && n > 3) ConvertTo<int>(params[3]);
     /********************************************************************************************************************/
 
    

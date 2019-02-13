@@ -256,13 +256,13 @@ static const CRPCCommand vRPCCommands[] =
     { "submitblock",            &submitblock,            true,      false,      false },
 
     /* Raw transactions */
-    { "sendtoaddressraw",       &gensendtoaddresstxraw,  false,     false,      false },  /* deprecated */
-    { "gensendtoaddresstxraw",  &gensendtoaddresstxraw,  false,     false,      false },
-    { "registeraccountraw",     &genregisteraccounttxraw,  false,    false,     false },  /* deprecated */
-    { "genregisteraccounttxraw",&genregisteraccounttxraw,  false,   false,     false },
-    { "genregistercontracttxraw",&genregistercontracttxraw,  true,  false,     false },
-    { "gencallcontracttxraw",   &gencallcontracttxraw,    true,      false,     false },
-    { "genvotedelegatetxraw",   &genvotedelegatetxraw,    true,      false,     true },
+    { "sendtoaddressraw",       &gensendtoaddressraw,    false,     false,     false },  /* deprecated */
+    { "gensendtoaddressraw",    &gensendtoaddressraw,    false,     false,     false },
+    { "registeraccountraw",     &genregisteraccountraw,  false,     false,     false },  /* deprecated */
+    { "genregisteraccountraw",  &genregisteraccountraw,  false,     false,     false },
+    { "genregistercontractraw", &genregistercontractraw, true,      false,     false },
+    { "gencallcontractraw",     &gencallcontractraw,     true,      false,     false },
+    { "genvotedelegateraw",     &genvotedelegateraw,     true,      false,     true  },
 
     /* uses wallet if enabled */
     { "backupwallet",           &backupwallet,           true,      false,      true },

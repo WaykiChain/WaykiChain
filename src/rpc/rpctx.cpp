@@ -805,9 +805,9 @@ Value votedelegatetx(const Array& params, bool fHelp) {
 }
 
 //create a vote delegate raw transaction
-Value genvotedelegatetxraw(const Array& params, bool fHelp) {
+Value genvotedelegateraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() <  3  || params.size() > 4) {
-            throw runtime_error("genvotedelegatetxraw \"addr\" \"opervotes\" \"fee\" \"height\"\n"
+            throw runtime_error("genvotedelegateraw \"addr\" \"opervotes\" \"fee\" \"height\"\n"
                     "\nget a vote delegate transaction raw transaction\n"
                     "\nArguments:\n"
                     "1.\"addr\": (string required) from address that votes delegate(s)\n"
@@ -824,8 +824,8 @@ Value genvotedelegatetxraw(const Array& params, bool fHelp) {
                     "\nResult:\n"
                     "\"txhash\": (string)\n"
                     "\nExamples:\n"
-                    + HelpExampleCli("genvotedelegatetxraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000") + "\nAs json rpc call\n"
-                    + HelpExampleRpc("genvotedelegatetxraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000"));
+                    + HelpExampleCli("genvotedelegateraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000") + "\nAs json rpc call\n"
+                    + HelpExampleRpc("genvotedelegateraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000"));
     }
     RPCTypeCheck(params, list_of(str_type)(array_type)(int_type)(int_type));
 
@@ -852,20 +852,20 @@ Value genvotedelegatetxraw(const Array& params, bool fHelp) {
 
         CUserID userId = keyid;
         if (!view.GetAccount(userId, account)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in genvotedelegatetxraw Error: Account does not exist.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in genvotedelegateraw Error: Account does not exist.");
         }
 
         if (!account.IsRegistered()) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in genvotedelegatetxraw Error: Account is not registered.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in genvotedelegateraw Error: Account is not registered.");
         }
 
         uint64_t balance = account.GetRawBalance();
         if (balance < fee) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in genvotedelegatetxraw Error: Account balance is insufficient.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in genvotedelegateraw Error: Account balance is insufficient.");
         }
 
         if (!pwalletMain->HasKey(keyid)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in genvotedelegatetxraw Error: Send tx address is not in wallet file.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in genvotedelegateraw Error: Send tx address is not in wallet file.");
         }
 
         delegateTx.llFees = fee;
@@ -882,15 +882,15 @@ Value genvotedelegatetxraw(const Array& params, bool fHelp) {
             const Value& delegateAddress = find_value(operVote.get_obj(), "delegate");
             const Value& delegateVotes = find_value(operVote.get_obj(),  "votes");
             if(delegateAddress.type() == null_type || delegateVotes == null_type) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "in genvotedelegatetxraw Error: Voted delegator's address type error or vote value error.");
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "in genvotedelegateraw Error: Voted delegator's address type error or vote value error.");
             }
             CKeyID delegateKeyId;
             if (!GetKeyId(delegateAddress.get_str(), delegateKeyId)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in genvotedelegatetxraw Error: Voted delegator's address error.");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in genvotedelegateraw Error: Voted delegator's address error.");
             }
             CAccount delegateAcct;
             if (!view.GetAccount(CUserID(delegateKeyId), delegateAcct)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in genvotedelegatetxraw Error: Voted delegator's address is not registered.");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in genvotedelegateraw Error: Voted delegator's address is not registered.");
             }
             operVoteFund.fund.pubKey = delegateAcct.PublicKey;
             operVoteFund.fund.value = (uint64_t)abs(delegateVotes.get_int64());
@@ -2205,9 +2205,9 @@ Value getcontractitemcount(const Array& params, bool fHelp) {
     return nItemCount;
 }
 
-Value genregisteraccounttxraw(const Array& params, bool fHelp) {
+Value genregisteraccountraw(const Array& params, bool fHelp) {
     if (fHelp || (params.size() < 3  || params.size() > 4)) {
-        throw runtime_error("genregisteraccounttxraw \"fee\" \"height\" \"publickey\" (\"minerpublickey\") \n"
+        throw runtime_error("genregisteraccountraw \"fee\" \"height\" \"publickey\" (\"minerpublickey\") \n"
                 "\ncreate a register account transaction\n"
                 "\nArguments:\n"
                 "1.fee: (numeric, required) pay to miner\n"
@@ -2217,9 +2217,9 @@ Value genregisteraccounttxraw(const Array& params, bool fHelp) {
                 "\nResult:\n"
                 "\"txhash\": (string)\n"
                 "\nExamples:\n"
-                + HelpExampleCli("genregisteraccounttxraw",  "10000  3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\"")
+                + HelpExampleCli("genregisteraccountraw",  "10000  3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\"")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("genregisteraccounttxraw", " 10000 3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\""));
+                + HelpExampleRpc("genregisteraccountraw", " 10000 3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\""));
     }
     CUserID ukey;
     CUserID uminerkey = CNullID();
@@ -2293,9 +2293,9 @@ Value submittx(const Array& params, bool fHelp) {
 }
 
 // cold-wallet feature
-Value gencallcontracttxraw(const Array& params, bool fHelp) {
+Value gencallcontractraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
-        throw runtime_error("gencallcontracttxraw \"height\" \"fee\" \"amount\" \"user_regid\" \"contract_regid\" \"contract\" \n"
+        throw runtime_error("gencallcontractraw \"height\" \"fee\" \"amount\" \"user_regid\" \"contract_regid\" \"contract\" \n"
                 "\ngenerate contract invocation rawtx\n"
                 "\nArguments:\n"
                 "1.\"fee\": (numeric, required) fee paid to miner\n"
@@ -2307,11 +2307,11 @@ Value gencallcontracttxraw(const Array& params, bool fHelp) {
                 "\nResult:\n"
                 "\"contract invocation rawtx str\": (string)\n"
                 "\nExamples:\n"
-                + HelpExampleCli("gencallcontracttxraw",
+                + HelpExampleCli("gencallcontractraw",
                         "1000 01020304 000000000100 [\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\"] "
                                 "[\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\","
                                 "\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\"] 10") + "\nAs json rpc call\n"
-                + HelpExampleRpc("gencallcontracttxraw",
+                + HelpExampleRpc("gencallcontractraw",
                         "1000 01020304 000000000100 000000000100 [\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\"] "
                                 "[\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\","
                                 "\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\"] 10"));
@@ -2362,10 +2362,10 @@ Value gencallcontracttxraw(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value genregistercontracttxraw(const Array& params, bool fHelp) {
+Value genregistercontractraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4) {
         throw runtime_error(
-            "genregistercontracttxraw \"height\" \"fee\" \"addr\" \"flag\" \"script or scriptid\" (\"script description\")\n"
+            "genregistercontractraw \"height\" \"fee\" \"addr\" \"flag\" \"script or scriptid\" (\"script description\")\n"
             "\nregister script\n"
             "\nArguments:\n"
             "1.\"fee\": (numeric required) pay to miner\n"
@@ -2377,10 +2377,10 @@ Value genregistercontracttxraw(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txhash\": (string)\n"
             "\nExamples:\n"
-            + HelpExampleCli("genregistercontracttxraw",
+            + HelpExampleCli("genregistercontractraw",
                     "\"10\" \"10000\" \"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"1\" \"010203040506\" ")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("genregistercontracttxraw",
+            + HelpExampleRpc("genregistercontractraw",
                     "\"10\" \"10000\" \"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"1\" \"010203040506\" "));
     }
 
@@ -2395,7 +2395,7 @@ Value genregistercontracttxraw(const Array& params, bool fHelp) {
         string path = params[3].get_str();
         FILE* file = fopen(path.c_str(), "rb+");
         if (!file) {
-            throw runtime_error("genregistercontracttxraw open App Lua Script file" + path + "error");
+            throw runtime_error("genregistercontractraw open App Lua Script file" + path + "error");
         }
         long lSize;
         fseek(file, 0, SEEK_END);

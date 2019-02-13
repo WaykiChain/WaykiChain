@@ -354,12 +354,12 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
     return obj;
 }
 
-Value gensendtoaddresstxraw(const Array& params, bool fHelp)
+Value gensendtoaddressraw(const Array& params, bool fHelp)
 {
     int size = params.size();
     if (fHelp || size < 4 || size > 5 ) {
         throw runtime_error(
-                "gensendtoaddresstxraw \"fee\" \"amount\" \"sendaddress\" \"recvaddress\" \"height\"\n"
+                "gensendtoaddressraw \"fee\" \"amount\" \"sendaddress\" \"recvaddress\" \"height\"\n"
                 "\n create common transaction by height: fee, amount, sendaddress, recvaddress\n"
                 + HelpRequiringPassphrase() + "\nArguments:\n"
                 "1. \"fee\"     (numeric, required)  \n"
@@ -370,15 +370,15 @@ Value gensendtoaddresstxraw(const Array& params, bool fHelp)
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
                 "\nExamples:\n"
-                + HelpExampleCli("gensendtoaddresstxraw", "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
-                + HelpExampleCli("gensendtoaddresstxraw",
+                + HelpExampleCli("gensendtoaddressraw", "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
+                + HelpExampleCli("gensendtoaddressraw",
                 "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"")
-                + HelpExampleRpc("gensendtoaddresstxraw",
+                + HelpExampleRpc("gensendtoaddressraw",
                 "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""
-                + HelpExampleCli("gensendtoaddresstxraw", "\"0-6\" 10 ")
-                + HelpExampleCli("gensendtoaddresstxraw", "100 1000 \"00000000000000000005\" 10 ")
-                + HelpExampleCli("gensendtoaddresstxraw", "100 1000 \"0-6\" \"0-5\" 10 ")
-                + HelpExampleCli("gensendtoaddresstxraw", "100 1000 \"00000000000000000005\" \"0-6\"10 ")));
+                + HelpExampleCli("gensendtoaddressraw", "\"0-6\" 10 ")
+                + HelpExampleCli("gensendtoaddressraw", "100 1000 \"00000000000000000005\" 10 ")
+                + HelpExampleCli("gensendtoaddressraw", "100 1000 \"0-6\" \"0-5\" 10 ")
+                + HelpExampleCli("gensendtoaddressraw", "100 1000 \"00000000000000000005\" \"0-6\"10 ")));
     }
 
     CKeyID sendKeyId, recvKeyId;
@@ -396,7 +396,6 @@ Value gensendtoaddresstxraw(const Array& params, bool fHelp)
     if (!pAccountViewTip->GetKeyId(sendId, sendKeyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Get CKeyID failed from CUserID");
     }
-
     if (sendId.type() == typeid(CKeyID)) {
         CRegID regId;
         if(!pAccountViewTip->GetRegId(sendId, regId)){
