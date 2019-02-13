@@ -36,7 +36,7 @@ public:
 	string ToString() const;
 
 	Object ToJsonObj()const;
-	bool UnSersailFromJson(const Object&);
+	bool UnSerializeFromJson(const Object&);
 	int64_t GetBirthDay()const;
 	bool GetCKey(CKey& keyOut,bool IsMiner = false) const ;
 	bool CreateANewKey();

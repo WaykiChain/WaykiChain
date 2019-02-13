@@ -24,8 +24,6 @@
 using namespace json_spirit;
 
 
-
-
 CAppCFund::CAppCFund() {
 	vTag.clear();
 	value = 0;

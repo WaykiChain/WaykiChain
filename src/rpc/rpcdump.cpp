@@ -181,13 +181,12 @@ Value importwallet(const Array& params, bool fHelp)
     file.seekg(0, file.beg);
     int inmsizeport = 0;
     pwalletMain->ShowProgress(_("Importing..."), 0); // show progress dialog in GUI
-    if (file.good()){
+    if (file.good()) {
     	Value reply;
-    	json_spirit::read(file,reply);
+    	json_spirit::read(file, reply);
     	const Value & keyobj = find_value(reply.get_obj(),"key");
     	const Array & keyarry = keyobj.get_array();
-    	for(auto const &keyItem :keyarry)
-    	{
+    	for (auto const &keyItem :keyarry) {
     		CKeyCombi keyCombi;
     		const Value &obj = find_value(keyItem.get_obj(), "keyid");
     		if(obj.type() == null_type)
@@ -204,15 +203,11 @@ Value importwallet(const Array& params, bool fHelp)
     }
     file.close();
     pwalletMain->ShowProgress("", 100); // hide progress dialog in GUI
-
     pwalletMain->ScanForWalletTransactions(chainActive.Genesis(), true);
 
-
     Object reply2;
-    reply2.push_back(Pair("imported_key_size",inmsizeport));
+    reply2.push_back(Pair("imported_key_size", inmsizeport));
     return reply2;
-
-
 }
 
 Value dumpprivkey(const Array& params, bool fHelp)
