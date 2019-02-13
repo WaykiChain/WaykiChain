@@ -2786,8 +2786,7 @@ CMerkleBlock::CMerkleBlock(const CBlock& block, CBloomFilter& filter) {
         if (filter.contains(block.vptx[i]->GetHash())) {
             vMatch.push_back(true);
             vMatchedTxn.push_back(make_pair(i, hash));
-        }
-        else
+        } else
             vMatch.push_back(false);
         vHashes.push_back(hash);
     }
@@ -2830,7 +2829,9 @@ void CPartialMerkleTree::TraverseAndBuild(int height, unsigned int pos, const ve
     }
 }
 
-uint256 CPartialMerkleTree::TraverseAndExtract(int height, unsigned int pos, unsigned int &nBitsUsed, unsigned int &nHashUsed, vector<uint256> &vMatch) {
+uint256 CPartialMerkleTree::TraverseAndExtract(int height, unsigned int pos, 
+    unsigned int &nBitsUsed, unsigned int &nHashUsed, vector<uint256> &vMatch) 
+{
     if (nBitsUsed >= vBits.size()) {
         // overflowed the bits array - failure
         fBad = true;
@@ -2860,7 +2861,9 @@ uint256 CPartialMerkleTree::TraverseAndExtract(int height, unsigned int pos, uns
     }
 }
 
-CPartialMerkleTree::CPartialMerkleTree(const vector<uint256> &vTxid, const vector<bool> &vMatch) : nTransactions(vTxid.size()), fBad(false) {
+CPartialMerkleTree::CPartialMerkleTree(const vector<uint256> &vTxid, const vector<bool> &vMatch) : 
+    nTransactions(vTxid.size()), fBad(false) 
+{
     // reset state
     vBits.clear();
     vHash.clear();
