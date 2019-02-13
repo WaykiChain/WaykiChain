@@ -46,7 +46,8 @@ Object CallRPC(const string& strMethod, const Array& params)
 
     bool fWait = SysCfg().GetBoolArg("-rpcwait", false); // -rpcwait means try until server has started
     do {
-        bool fConnected = d.connect(SysCfg().GetArg("-rpcconnect", "127.0.0.1"), SysCfg().GetArg("-rpcport", itostr(SysCfg().RPCPort())));
+        bool fConnected = d.connect(SysCfg().GetArg("-rpcconnect", "127.0.0.1"), 
+            SysCfg().GetArg("-rpcport", itostr(SysCfg().RPCPort())));
         if (fConnected) break;
         if (fWait)
             MilliSleep(1000);
@@ -55,7 +56,8 @@ Object CallRPC(const string& strMethod, const Array& params)
     } while (fWait);
 
     // HTTP basic authentication
-    string strUserPass64 = EncodeBase64(SysCfg().GetArg("-rpcuser", "") + ":" + SysCfg().GetArg("-rpcpassword", ""));
+    string strUserPass64 = EncodeBase64(SysCfg().GetArg("-rpcuser", "") + ":" 
+        + SysCfg().GetArg("-rpcpassword", ""));
     map<string, string> mapRequestHeaders;
     mapRequestHeaders["Authorization"] = string("Basic ") + strUserPass64;
 

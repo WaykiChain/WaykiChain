@@ -3248,7 +3248,6 @@ void PrintBlockTree()
 bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
 {
     int64_t nStart = GetTimeMillis();
-
     int nLoaded = 0;
     try {
         CBufferedFile blkdat(fileIn, 2*MAX_BLOCK_SIZE, MAX_BLOCK_SIZE+8, SER_DISK, CLIENT_VERSION);

@@ -199,7 +199,7 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
-            if (!(nType & SER_GETHASH))
+        if (!(nType & SER_GETHASH))
             READWRITE(nVersion);
             READWRITE(vchPrivKey);
             READWRITE(nTimeCreated);
@@ -225,7 +225,7 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
-            if (!(nType & SER_GETHASH))
+        if (!(nType & SER_GETHASH))
             READWRITE(nVersion);
             READWRITE(vchPubKey);
     )
@@ -260,46 +260,41 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
-            CAccountingEntry& me = *const_cast<CAccountingEntry*>(this);
-            if (!(nType & SER_GETHASH))
+        CAccountingEntry& me = *const_cast<CAccountingEntry*>(this);
+        if (!(nType & SER_GETHASH))
             READWRITE(nVersion);
             // Note: strAccount is serialized as part of the key, not here.
             READWRITE(nCreditDebit);
             READWRITE(nTime);
             READWRITE(strOtherAccount);
 
-            if (!fRead)
-            {
-                WriteOrderPos(nOrderPos, me.mapValue);
+        if (!fRead) {
+            WriteOrderPos(nOrderPos, me.mapValue);
 
-                if (!(mapValue.empty() && _ssExtra.empty()))
-                {
-                    CDataStream ss(nType, nVersion);
-                    ss.insert(ss.begin(), '\0');
-                    ss << mapValue;
-                    ss.insert(ss.end(), _ssExtra.begin(), _ssExtra.end());
-                    me.strComment.append(ss.str());
-                }
+            if (!(mapValue.empty() && _ssExtra.empty())) {
+                CDataStream ss(nType, nVersion);
+                ss.insert(ss.begin(), '\0');
+                ss << mapValue;
+                ss.insert(ss.end(), _ssExtra.begin(), _ssExtra.end());
+                me.strComment.append(ss.str());
             }
+        }
 
-            READWRITE(strComment);
+        READWRITE(strComment);
 
-            size_t nSepPos = strComment.find("\0", 0, 1);
-            if (fRead)
-            {
-                me.mapValue.clear();
-                if (string::npos != nSepPos)
-                {
-                    CDataStream ss(vector<char>(strComment.begin() + nSepPos + 1, strComment.end()), nType, nVersion);
-                    ss >> me.mapValue;
-                    me._ssExtra = vector<char>(ss.begin(), ss.end());
-                }
-                ReadOrderPos(me.nOrderPos, me.mapValue);
+        size_t nSepPos = strComment.find("\0", 0, 1);
+        if (fRead) {
+            me.mapValue.clear();
+            if (string::npos != nSepPos) {
+                CDataStream ss(vector<char>(strComment.begin() + nSepPos + 1, strComment.end()), nType, nVersion);
+                ss >> me.mapValue;
+                me._ssExtra = vector<char>(ss.begin(), ss.end());
             }
-            if (string::npos != nSepPos)
-            me.strComment.erase(nSepPos);
-
-            me.mapValue.erase("n");
+            ReadOrderPos(me.nOrderPos, me.mapValue);
+        }
+        if (string::npos != nSepPos)
+        me.strComment.erase(nSepPos);
+        me.mapValue.erase("n");
     )
 
 private:
@@ -322,9 +317,7 @@ public:
         blockHeight = height;
     }
 
-    ~CAccountTx() {
-
-    }
+    ~CAccountTx() { }
 
     void BindWallet(CWallet* pwallet) {
         if (pWallet == NULL) {
@@ -357,12 +350,14 @@ public:
         }
         return true;
     }
+
     bool HaveTx(const uint256 &hash) {
         if (mapAccountTx.end() != mapAccountTx.find(hash)) {
             return true;
         }
         return false;
     }
+
     bool DelTx(const uint256 &hash) {
         return mapAccountTx.erase(hash);
     }
@@ -379,9 +374,9 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
-            READWRITE(blockHash);
-            READWRITE(blockHeight);
-            READWRITE(mapAccountTx);
+        READWRITE(blockHash);
+        READWRITE(blockHeight);
+        READWRITE(mapAccountTx);
     )
 
 };

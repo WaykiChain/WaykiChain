@@ -26,9 +26,8 @@ using namespace boost;
 //
 
 
-
-
-bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,string& strType, string& strErr, int MinVersion)
+bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,string& strType, 
+	string& strErr, int MinVersion)
 {
 	try {
 		// Unserialize
@@ -58,7 +57,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,str
 			CKeyID cKeyid;
 			ssKey >> cKeyid;
 			ssValue >> keyCombi;
-			if(keyCombi.IsContainMainKey()) {
+			if (keyCombi.IsContainMainKey()) {
 				if (cKeyid != keyCombi.GetCKeyID()) {
 					strErr = "Error reading wallet database: keystore corrupt";
 					return false;
@@ -72,20 +71,20 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,str
 			std::vector<unsigned char> vchCryptedSecret;
 			ssKey >> pubKey;
 			ssValue >> vchCryptedSecret;
-			if(pwallet != NULL)
+			if (pwallet != NULL)
 				pwallet->LoadCryptedKey(pubKey, vchCryptedSecret);
 
-		} else if(strType == "mkey") {
+		} else if (strType == "mkey") {
 			unsigned int ID;
 			CMasterKey kMasterKey;
 			ssKey >> ID;
 			ssValue >> kMasterKey;
-			if(pwallet != NULL) {
+			if (pwallet != NULL) {
 				pwallet->nMasterKeyMaxID = ID;
 				pwallet->mapMasterKeys.insert(make_pair(ID, kMasterKey));
 			}
-		}
-		else if (strType == "blocktx") {
+
+		} else if (strType == "blocktx") {
 			uint256 hash;
 			CAccountTx atx;
 			CKeyID cKeyid;
@@ -93,9 +92,11 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,str
 			ssValue >> atx;
 			if (pwallet != NULL)
 				pwallet->mapInBlockTx[hash] = std::move(atx);
+
 		} else if (strType == "defaultkey") {
 			if (pwallet != NULL)
 				ssValue >> pwallet->vchDefaultKey;
+
 		} else if (strType != "version" && "minversion" != strType) {
 			ERRORMSG("load wallet error! read invalid key type:%s\n", strType);
 //			assert(0);
@@ -106,89 +107,81 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,str
 	return true;
 }
 
-
-
 DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
 {
+	pwallet->vchDefaultKey = CPubKey();
+	bool fNoncriticalErrors = false;
+	DBErrors result = DB_LOAD_OK;
 
-	  pwallet->vchDefaultKey = CPubKey();
-	    bool fNoncriticalErrors = false;
-	    DBErrors result = DB_LOAD_OK;
+	try {
+		LOCK(pwallet->cs_wallet);
+		int nMinVersion = 0;
+		if (Read((string)"minversion", nMinVersion)) {
+				if (nMinVersion > CLIENT_VERSION)
+					return DB_TOO_NEW;
+				pwallet->LoadMinVersion(nMinVersion);
+		}
 
-	    try {
-	        LOCK(pwallet->cs_wallet);
-	        int nMinVersion = 0;
-			if (Read((string)"minversion", nMinVersion))
-			{
-				 if (nMinVersion > CLIENT_VERSION)
-					  return DB_TOO_NEW;
-				 pwallet->LoadMinVersion(nMinVersion);
+		// Get cursor
+		Dbc* pcursor = GetCursor();
+		if (!pcursor)
+		{
+			LogPrint("INFO","Error getting wallet database cursor\n");
+			return DB_CORRUPT;
+		}
+
+	    while (true) {
+			// Read next record
+			CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+			CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+			int ret = ReadAtCursor(pcursor, ssKey, ssValue);
+			if (ret == DB_NOTFOUND)
+				break;
+			else if (ret != 0) {
+				LogPrint("INFO","Error reading next record from wallet database\n");
+				return DB_CORRUPT;
 			}
 
-	        // Get cursor
-	        Dbc* pcursor = GetCursor();
-	        if (!pcursor)
-	        {
-	            LogPrint("INFO","Error getting wallet database cursor\n");
-	            return DB_CORRUPT;
-	        }
-
-	        while (true)
-	        {
-	            // Read next record
-	            CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-	            CDataStream ssValue(SER_DISK, CLIENT_VERSION);
-	            int ret = ReadAtCursor(pcursor, ssKey, ssValue);
-	            if (ret == DB_NOTFOUND)
-	                break;
-	            else if (ret != 0)
-	            {
-	                LogPrint("INFO","Error reading next record from wallet database\n");
-	                return DB_CORRUPT;
-	            }
-
-	            // Try to be tolerant of single corrupt records:
-	            string strType, strErr;
-	            if (!ReadKeyValue(pwallet, ssKey, ssValue, strType, strErr, GetMinVersion()))
-	            {
-	                // losing keys is considered a catastrophic error, anything else
-	                // we assume the user can live with:
+			// Try to be tolerant of single corrupt records:
+			string strType, strErr;
+			if (!ReadKeyValue(pwallet, ssKey, ssValue, strType, strErr, GetMinVersion()))
+			{
+				// losing keys is considered a catastrophic error, anything else
+				// we assume the user can live with:
 //	                if (IsKeyType(strType))
 //	                    result = DB_CORRUPT;
-				if (strType == "keystore"){
-					return DB_CORRUPT;
-				}else
-	                {
-	                    // Leave other errors alone, if we try to fix them we might make things worse.
-	                    fNoncriticalErrors = true; // ... but do warn the user there is something wrong.
+			if (strType == "keystore"){
+				return DB_CORRUPT;
+			}else
+				{
+					// Leave other errors alone, if we try to fix them we might make things worse.
+					fNoncriticalErrors = true; // ... but do warn the user there is something wrong.
 //	                    if (strType == "acctx")
 //	                        // Rescan if there is a bad transaction record:
 //	                        SoftSetBoolArg("-rescan", true);
-	                }
-	            }
-	            if (!strErr.empty())
-	                LogPrint("INFO","%s\n", strErr);
-	        }
-	        pcursor->close();
+				}
+			}
+			if (!strErr.empty())
+				LogPrint("INFO","%s\n", strErr);
 	    }
-	    catch (boost::thread_interrupted) {
-	        throw;
-	    }
-	    catch (...) {
-	        result = DB_CORRUPT;
-	    }
+	        
+		pcursor->close();
 
-	    if (fNoncriticalErrors && result == DB_LOAD_OK)
-	        result = DB_NONCRITICAL_ERROR;
+	} catch (boost::thread_interrupted) {
+	    throw;
+	} catch (...) {
+	    result = DB_CORRUPT;
+	}
 
-	    // Any wallet corruption at all: skip any rewriting or
-	    // upgrading, we don't want to make it worse.
-	    if (result != DB_LOAD_OK)
-	        return result;
+	if (fNoncriticalErrors && result == DB_LOAD_OK)
+		result = DB_NONCRITICAL_ERROR;
 
-	    LogPrint("INFO","nFileVersion = %d\n", GetMinVersion());
+	// Any wallet corruption at all: skip any rewriting or
+	// upgrading, we don't want to make it worse.
+	if (result != DB_LOAD_OK)
+		return result;
 
-
+	LogPrint("INFO","nFileVersion = %d\n", GetMinVersion());
 
 //	    // nTimeFirstKey is only reliable if all keys have metadata
 //	    if ((wss.nKeys + wss.nCKeys) != wss.nKeyMeta)
@@ -201,8 +194,8 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
 //	    if (wss.fIsEncrypted && (wss.nFileVersion == 40000 || wss.nFileVersion == 50000))
 //	        return DB_NEED_REWRITE;
 
-	    if ( GetMinVersion()< CLIENT_VERSION) // Update
-	    	WriteVersion( GetMinVersion());
+	if ( GetMinVersion()< CLIENT_VERSION) // Update
+		WriteVersion( GetMinVersion());
 
 	if (pwallet->IsEmpty()) {
 		CKey mCkey;
@@ -212,7 +205,7 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
 		}
 	}
 
-	  return result;
+	return result;
 }
 
 
@@ -264,18 +257,15 @@ bool CWalletDB::Recover(CDBEnv& dbenv, string filename, bool fOnlyKeys)
         return false;
     }
     DbTxn* ptxn = dbenv.TxnBegin();
-    for (auto& row : salvagedData)
-    {
-        if (fOnlyKeys)
-        {
+    for (auto& row : salvagedData) {
+        if (fOnlyKeys) {
             CDataStream ssKey(row.first, SER_DISK, CLIENT_VERSION);
             CDataStream ssValue(row.second, SER_DISK, CLIENT_VERSION);
             string strType, strErr;
             bool fReadOK = ReadKeyValue(NULL, ssKey, ssValue, strType, strErr, -1);
             if (strType != "keystore")
                 continue;
-            if (!fReadOK)
-            {
+            if (!fReadOK) {
                 LogPrint("INFO","WARNING: CWalletDB::Recover skipping %s: %s\n", strType, strErr);
                 continue;
             }
@@ -284,7 +274,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, string filename, bool fOnlyKeys)
         Dbt datValue(&row.second[0], row.second.size());
         int ret2 = pdbCopy->put(ptxn, &datKey, &datValue, DB_NOOVERWRITE);
         if (ret2 > 0)
-            fSuccess = false;
+        	fSuccess = false;
     }
     ptxn->commit(0);
     pdbCopy->close(0);

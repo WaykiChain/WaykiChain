@@ -157,6 +157,7 @@ extern json_spirit::Value getassets(const json_spirit:: Array& params, bool fHel
 extern json_spirit::Value sendtoaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendtoaddresswithfee(const json_spirit::Array& params, bool fHelp);
 
+extern json_spirit::Value sendtoaddressraw          (const json_spirit::Array& params, bool fHelp); //deprecated
 extern json_spirit::Value gensendtoaddresstxraw     (const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value genregisteraccounttxraw   (const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value genregistercontracttxraw  (const json_spirit::Array& params, bool fHelp);

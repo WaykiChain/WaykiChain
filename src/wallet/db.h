@@ -23,10 +23,7 @@
 class CDiskBlockIndex;
 class COutPoint;
 
-
-
 void ThreadFlushWalletDB(const std::string& strWalletFile);
-
 
 class CDBEnv
 {
@@ -59,6 +56,7 @@ public:
     enum VerifyResult { VERIFY_OK,
                         RECOVER_OK,
                         RECOVER_FAIL };
+                        
     VerifyResult Verify(std::string strFile, bool (*recoverFunc)(CDBEnv& dbenv, std::string strFile));
     /**
      * Salvage data from a file that Verify says is bad.

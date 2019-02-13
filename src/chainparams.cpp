@@ -57,11 +57,11 @@ public:
         vSeeds.push_back(CDNSSeedData("seed1.waykichain.net", "n1.waykichain.net"));
         vSeeds.push_back(CDNSSeedData("seed2.waykichain.net", "n2.waykichain.net"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = IniCfg().GetAddressPrefix(MAIN_NET,PUBKEY_ADDRESS);
-        base58Prefixes[SCRIPT_ADDRESS] = IniCfg().GetAddressPrefix(MAIN_NET,SCRIPT_ADDRESS);
-        base58Prefixes[SECRET_KEY] = IniCfg().GetAddressPrefix(MAIN_NET,SECRET_KEY);
-        base58Prefixes[EXT_PUBLIC_KEY] = IniCfg().GetAddressPrefix(MAIN_NET,EXT_PUBLIC_KEY);
-        base58Prefixes[EXT_SECRET_KEY] = IniCfg().GetAddressPrefix(MAIN_NET,EXT_SECRET_KEY);
+        base58Prefixes[PUBKEY_ADDRESS]  = IniCfg().GetAddressPrefix(MAIN_NET,PUBKEY_ADDRESS);
+        base58Prefixes[SCRIPT_ADDRESS]  = IniCfg().GetAddressPrefix(MAIN_NET,SCRIPT_ADDRESS);
+        base58Prefixes[SECRET_KEY]      = IniCfg().GetAddressPrefix(MAIN_NET,SECRET_KEY);
+        base58Prefixes[EXT_PUBLIC_KEY]  = IniCfg().GetAddressPrefix(MAIN_NET,EXT_PUBLIC_KEY);
+        base58Prefixes[EXT_SECRET_KEY]  = IniCfg().GetAddressPrefix(MAIN_NET,EXT_SECRET_KEY);
 
         // Convert the pnSeeds array into usable address objects.
         for (unsigned int i = 0; i < IniCfg().GetSeedNodeIP().size(); i++) {

@@ -785,6 +785,7 @@ bool CWallet::LoadCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigne
 {
     return CCryptoKeyStore::AddCryptedKey(vchPubKey, vchCryptedSecret);
 }
+
 bool CWallet::AddKey(const CKey& key,const CKey& minerKey)
 {
     if((!key.IsValid()) || (!minerKey.IsValid()))
@@ -792,6 +793,7 @@ bool CWallet::AddKey(const CKey& key,const CKey& minerKey)
     CKeyCombi keyCombi(key, minerKey, nWalletVersion);
     return AddKey(key.GetPubKey().GetKeyID(), keyCombi);
 }
+
 bool CWallet::AddKey(const CKeyID &KeyId, const CKeyCombi& keyCombi)
 {
     if (!fFileBacked)
@@ -815,7 +817,6 @@ bool CWallet::AddKey(const CKey& key)
     CKeyCombi keyCombi(key, nWalletVersion);
     return AddKey(key.GetPubKey().GetKeyID(), keyCombi);
 }
-
 
 bool CWallet::IsReadyForCoolMiner(const CAccountViewCache& view) const {
     CRegID regId;
@@ -860,6 +861,5 @@ int CWallet::GetVersion() {
     LOCK(cs_wallet);
     return nWalletVersion;
 }
-
 
 

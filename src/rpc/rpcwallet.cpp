@@ -382,7 +382,6 @@ Value gensendtoaddresstxraw(const Array& params, bool fHelp)
     }
 
     CKeyID sendKeyId, recvKeyId;
-
     CAccountViewCache view(*pAccountViewTip, true);
 
     int64_t Fee = AmountToRawValue(params[0]);
@@ -397,6 +396,7 @@ Value gensendtoaddresstxraw(const Array& params, bool fHelp)
     if (!pAccountViewTip->GetKeyId(sendId, sendKeyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Get CKeyID failed from CUserID");
     }
+
     if (sendId.type() == typeid(CKeyID)) {
         CRegID regId;
         if(!pAccountViewTip->GetRegId(sendId, regId)){
