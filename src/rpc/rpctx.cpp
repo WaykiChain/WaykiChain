@@ -412,8 +412,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         uint64_t balance = account.GetRawBalance();
         if (balance < fee) {
             LogPrint("ERROR", "balance=%d, vs fee=%d", balance, fee);
-            throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account balance is insufficient",
-                balance, fee);
+            throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account balance is insufficient");
         }
 
         CPubKey pubkey;

@@ -46,12 +46,10 @@ int main(int argc, char* argv[])
 {
     SetupEnvironment();
 
-    try
-    {
+    try {
         if(!AppInitRPC(argc, argv))
             return abs(RPC_MISC_ERROR);
-    }
-    catch (exception& e) {
+    } catch (exception& e) {
         PrintExceptionContinue(&e, "AppInitRPC()");
         return abs(RPC_MISC_ERROR);
     } catch (...) {
@@ -60,11 +58,9 @@ int main(int argc, char* argv[])
     }
 
     int ret = abs(RPC_MISC_ERROR);
-    try
-    {
+    try {
         ret = CommandLineRPC(argc, argv);
-    }
-    catch (exception& e) {
+    } catch (exception& e) {
         PrintExceptionContinue(&e, "CommandLineRPC()");
     } catch (...) {
         PrintExceptionContinue(NULL, "CommandLineRPC()");
