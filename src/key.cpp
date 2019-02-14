@@ -661,12 +661,11 @@ string CKeyID::ToAddress() const {
 	if (IsNull()) {
 		return "";
 	} else{
-	return CCoinAddress(*this).ToString();
+	    return CCoinAddress(*this).ToString();
 	}
 }
 
-CKeyID::CKeyID(const string& strAddress) :
-		uint160() {
+CKeyID::CKeyID(const string& strAddress) : uint160() {
 	if (strAddress.length() == 40) {
 		*this = uint160S(strAddress);
 	} else {

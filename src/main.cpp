@@ -12,7 +12,6 @@
 #include "alert.h"
 #include "chainparams.h"
 
-#include "checkqueue.h"
 #include "init.h"
 #include "net.h"
 #include "txdb.h"

@@ -8,7 +8,7 @@
 | backupwallet | ```<destination>``` | Safely copies wallet.dat to destination, which can be a directory or a path with filename. | N |
 | callcontracttx | ```<userregid><appid><amount><contract><fee>[height, default = the tip block height]``` | create contract transaction | Y |
 | gencallcontractraw | ```<height><fee><amount><address><contract>``` | get call contract raw transaction | N |
-| dropprivkey | | drop private key from wallet | Y |
+| dropminerkeys | | drop miner key from wallet to become a cool miner| Y |
 | dumpwallet | ```<filename>``` | Dumps all wallet keys in a human-readable format.And write to ```<filename>``` | Y |
 | dumpprivkey | ```<wiccaddress>``` | Reveals the private key corresponding to ```<wiccaddress>``` | Y |
 | encryptwallet | ```<passphrase>``` | Encrypts the wallet with ```<passphrase>``` | N |

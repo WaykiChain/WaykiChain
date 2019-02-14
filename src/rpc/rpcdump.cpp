@@ -71,26 +71,26 @@ string DecodeDumpString(const string &str)
     return ret.str();
 }
 
-Value dropprivkey(const Array& params, bool fHelp)
+Value dropminerkeys(const Array& params, bool fHelp)
 {
 	if (fHelp || params.size() != 0) {
-		throw runtime_error("dropprivkey \n"
-			    "\ndrop all wallet private key(s).\n"
+		throw runtime_error("dropminerkeys \n"
+			    "\ndrop all miner keys in a wallet for cool mining.\n"
 			    "\nResult:\n"
 			    "\nExamples:\n"
-			    + HelpExampleCli("dropprivkey", "")
-			    + HelpExampleRpc("dropprivkey", "")
+			    + HelpExampleCli("dropminerkeys", "")
+			    + HelpExampleRpc("dropminerkeys", "")
 		);
     }
 
 	EnsureWalletIsUnlocked();
 	if (!pwalletMain->IsReadyForCoolMiner(*pAccountViewTip)) {
-		throw runtime_error("there is no cool miner key  or miner key not registered yet");
+		throw runtime_error("there is no cool miner key or miner key is not registered yet");
 	}
 
 	pwalletMain->ClearAllCkeyForCoolMiner();
 	Object ret;
-	ret.push_back( Pair("info", "wallet is ready for cool miner") );
+	ret.push_back( Pair("info", "wallet is ready for cool miner to mine.") );
 	return ret;
 }
 
