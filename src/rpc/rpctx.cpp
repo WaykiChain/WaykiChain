@@ -1676,7 +1676,6 @@ Value resetclient(const Array& params, bool fHelp) {
     }
     
     Value ret = TestDisconnectBlock(chainActive.Tip()->nHeight);
-
     if (chainActive.Tip()->nHeight == 0) {
         pwalletMain->CleanAll();
         CBlockIndex* te = chainActive.Tip();
@@ -2195,7 +2194,7 @@ Value getcontractitemcount(const Array& params, bool fHelp) {
         throw runtime_error("contract RegId invalid!");
     }
     if (!pScriptDBTip->HaveScript(regId)) {
-        throw runtime_error("contract with the RegId does NOT exist!");
+        throw runtime_error("contract with the given RegId does NOT exist!");
     }
 
     int nItemCount = 0;

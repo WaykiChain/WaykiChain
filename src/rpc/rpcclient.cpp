@@ -161,14 +161,13 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "getblocktemplate"       && n > 0) ConvertTo<Object>(params[0]);
     if (strMethod == "listsinceblock"         && n > 1) ConvertTo<int64_t>(params[1]);
 
-    if (strMethod == "addmultisigaddress"     && n > 0) ConvertTo<int64_t>(params[0]);
-    if (strMethod == "addmultisigaddress"     && n > 1) ConvertTo<Array>(params[1]);
-    if (strMethod == "createmultisig"         && n > 0) ConvertTo<int64_t>(params[0]);
-    if (strMethod == "createmultisig"         && n > 1) ConvertTo<Array>(params[1]);
-
-    if (strMethod == "listunspent"            && n > 0) ConvertTo<int64_t>(params[0]);
-    if (strMethod == "listunspent"            && n > 1) ConvertTo<int64_t>(params[1]);
-    if (strMethod == "listunspent"            && n > 2) ConvertTo<Array>(params[2]);
+    // if (strMethod == "addmultisigaddress"     && n > 0) ConvertTo<int64_t>(params[0]);
+    // if (strMethod == "addmultisigaddress"     && n > 1) ConvertTo<Array>(params[1]);
+    // if (strMethod == "createmultisig"         && n > 0) ConvertTo<int64_t>(params[0]);
+    // if (strMethod == "createmultisig"         && n > 1) ConvertTo<Array>(params[1]);
+    // if (strMethod == "listunspent"            && n > 0) ConvertTo<int64_t>(params[0]);
+    // if (strMethod == "listunspent"            && n > 1) ConvertTo<int64_t>(params[1]);
+    // if (strMethod == "listunspent"            && n > 2) ConvertTo<Array>(params[2]);
 
     if (strMethod == "getblock"               && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "getchainstate"          && n > 0) ConvertTo<int>(params[0]);
@@ -202,9 +201,9 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "registercontracttx"     && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "registercontracttx"     && n > 3) ConvertTo<int>(params[3]);
 
-    if (strMethod == "createcontracttx"       && n > 2) ConvertTo<int64_t>(params[2]); //deprecated
-    if (strMethod == "createcontracttx"       && n > 4) ConvertTo<int64_t>(params[4]); //deprecated
-    if (strMethod == "createcontracttx"       && n > 5) ConvertTo<int>(params[5]);     //deprecated
+    // if (strMethod == "createcontracttx"       && n > 2) ConvertTo<int64_t>(params[2]); //for backward compatibility
+    // if (strMethod == "createcontracttx"       && n > 4) ConvertTo<int64_t>(params[4]); //for backward compatibility
+    // if (strMethod == "createcontracttx"       && n > 5) ConvertTo<int>(params[5]);     //for backward compatibility
 
     if (strMethod == "callcontracttx"         && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "callcontracttx"         && n > 4) ConvertTo<int64_t>(params[4]);
@@ -213,21 +212,15 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "listaddr"               && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "listunconfirmedtx"      && n > 0) ConvertTo<bool>(params[0]);
     // if (strMethod == "listcontractregid"      && n > 0) ConvertTo<bool>(params[0]);
-
     // if (strMethod == "testnormaltx"           && n > 2) ConvertTo<int>(params[2]);
     // if (strMethod == "testminer"              && n > 0) ConvertTo<int>(params[0]);
     if (strMethod == "disconnectblock"        && n > 0) ConvertTo<int>(params[0]);
 
-    // if (strMethod == "getoneaddr"             && n > 0) ConvertTo<int64_t>(params[0]);
-    // if (strMethod == "getoneaddr"             && n > 1) ConvertTo<bool>(params[1]);
-    // if (strMethod == "getoneaddr"             && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "getcontractdata"        && n == 3) { ConvertTo<int>(params[1]); ConvertTo<int>(params[2]); }
     if (strMethod == "getcontractdataraw"     && n == 3) { ConvertTo<int>(params[1]); ConvertTo<int>(params[2]); }
 
     if (strMethod == "getcontractconfirmdata" && n > 1) ConvertTo<int>(params[1]);
     if (strMethod == "getcontractconfirmdata" && n > 2) ConvertTo<int>(params[2]);
-    // if (strMethod == "getp2pbetdata"          && n == 3) ConvertTo<int>(params[1]);
-    // if (strMethod == "getp2pbetdata"          && n == 3) ConvertTo<int>(params[2]);
     if (strMethod == "listcontracts"          && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getblock"               && n > 0) { if (params[0].get_str().size()<32) ConvertTo<int>(params[0]);}
 
@@ -255,8 +248,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "genvotedelegateraw"     && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "genvotedelegateraw"     && n > 3) ConvertTo<int>(params[3]);
     /********************************************************************************************************************/
-
-   
     if (strMethod == "getcontractkeyvalue"      && n > 1) ConvertTo<Array>(params[1]);
 
     if (strMethod == "listtx"                 && n > 0) ConvertTo<int>(params[0]);
