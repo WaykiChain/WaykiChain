@@ -364,7 +364,7 @@ bool SysTestBase::GetNewAddr(std::string &addr,bool flag) {
 	{
 		param = "true";
 	}
-	const char *argv[] = { "rpctest", "getnewaddress",param.c_str()};
+	const char *argv[] = { "rpctest", "getnewaddr", param.c_str()};
 	int argc = sizeof(argv) / sizeof(char*);
 
 	Value value;

@@ -104,13 +104,13 @@ elif cmd == "getinfo":
     except:
         print "\n---An error occurred---\n"
 
-elif cmd == "getnewaddress":
+elif cmd == "getnewaddr":
     try:
         acct = raw_input("Enter an account name: ")
         try:
-            print access.getnewaddress(acct)
+            print access.getnewaddr(acct)
         except:
-            print access.getnewaddress()
+            print access.getnewaddr()
     except:
         print "\n---An error occurred---\n"
 

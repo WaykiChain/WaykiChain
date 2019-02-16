@@ -158,9 +158,9 @@ function S {
 }
 
 function OneRound {
-  A1=$( $CLI $B1ARGS getnewaddress )
-  A2=$( $CLI $B2ARGS getnewaddress )
-  A3=$( $CLI $B3ARGS getnewaddress )
+  A1=$( $CLI $B1ARGS getnewaddr )
+  A2=$( $CLI $B2ARGS getnewaddr )
+  A3=$( $CLI $B3ARGS getnewaddr )
   if [[ $(( $RANDOM%2 )) < 1 ]] ; then
       N=$(( $RANDOM % 9 + 1 ))
       S 1 $A2 "0.$N"

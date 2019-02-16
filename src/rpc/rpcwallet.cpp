@@ -50,17 +50,17 @@ bool GetKeyId(string const &addr,CKeyID &KeyId)
     return true;
 }
 
-Value getnewaddress(const Array& params, bool fHelp)
+Value getnewaddr(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 1)
         throw runtime_error(
-            "getnewaddress  (\"IsMiner\")\n"
+            "getnewaddr  (\"IsMiner\")\n"
             "\nget a new address\n"
             "\nArguments:\n"
-            "1. \"IsMiner\" (bool, optional)  If true, it creates two sets of key-pairs, one of which is for miner.\n"
+            "1. \"IsMiner\" (bool, optional)  If true, it creates two sets of key-pairs: one for mining and another for receiving miner fees.\n"
            "\nExamples:\n"
-            + HelpExampleCli("getnewaddress", "")
-            + HelpExampleCli("getnewaddress", "true")
+            + HelpExampleCli("getnewaddr", "")
+            + HelpExampleCli("getnewaddr", "true")
         );
     EnsureWalletIsUnlocked();
 

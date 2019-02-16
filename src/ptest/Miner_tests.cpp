@@ -224,7 +224,7 @@ public:
 	bool GetNewAddr(std::string &addr)
 	{
 		//CommanRpc
-		const char *argv[] = {"rpctest", "getnewaddress"};
+		const char *argv[] = {"rpctest", "getnewaddr"};
 		int argc = sizeof(argv)/sizeof(char*);
 
 		Value value;
@@ -232,7 +232,7 @@ public:
 		if (!ret)
 		{
 			addr = value.get_str();
-			LogPrint("test_miners","GetNewAddr:%s\r\n",addr.c_str());
+			LogPrint("test_miners","getnewaddr:%s\r\n",addr.c_str());
 			return true;
 		}
 		return false;

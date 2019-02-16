@@ -1666,7 +1666,7 @@ Value disconnectblock(const Array& params, bool fHelp) {
 Value resetclient(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
         throw runtime_error("resetclient\n"
-            "\nreset client\n"
+            "\nreset the client such that its blocks and wallet data is purged to none and needs to sync from network again.\n"
             "\nArguments:\n"
             "\nResult:\n"
             "\nExamples:\n"
@@ -1703,7 +1703,7 @@ Value resetclient(const Array& params, bool fHelp) {
         pwalletMain->SyncTransaction(uint256(), NULL, &firs);
         mempool.clear();
     } else {
-        throw JSONRPCError(RPC_WALLET_ERROR, "restclient Error: Sign failed.");
+        throw JSONRPCError(RPC_WALLET_ERROR, "restclient Error: Reset failed.");
     }
     return ret;
 }

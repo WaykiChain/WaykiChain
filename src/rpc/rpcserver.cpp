@@ -218,6 +218,7 @@ static const CRPCCommand vRPCCommands[] =
     { "gencheckpoint",          &gencheckpoint,          true,      true,       false },
     { "setcheckpoint",          &setcheckpoint,          true,      true,       false },
     { "validateaddr",           &validateaddr,           true,      true,       false },
+    { "validateaddress",        &validateaddr,           true,      true,       false }, //deprecated
     { "listtxbyaddr",           &listtxbyaddr,           true,      true,       false },
 
     /* P2P networking */
@@ -264,10 +265,11 @@ static const CRPCCommand vRPCCommands[] =
     { "backupwallet",           &backupwallet,           true,      false,      true },
     { "dumpprivkey",            &dumpprivkey,            true,      false,      true },
     { "dumpwallet",             &dumpwallet,             true,      false,      true },
-    { "encryptwallet",          &encryptwallet,          false,     false,      true },
-    { "getaccountinfo",         &getaccountinfo,         true,      false,      true },
-    { "getnewaddress",          &getnewaddress,          true,      false,      true },
-    { "gettxdetail",            &gettxdetail,            true,      false,      true },
+    { "encryptwallet",          &encryptwallet,         false,     false,      true },
+    { "getaccountinfo",         &getaccountinfo,        true,      false,      true },
+    { "getnewaddress",          &getnewaddr,            true,      false,      true },   /* deprecated */
+    { "getnewaddr",             &getnewaddr,            true,      false,      true }, 
+    { "gettxdetail",            &gettxdetail,           true,      false,      true },
     { "listunconfirmedtx",      &listunconfirmedtx,      true,      false,      true },
     { "getwalletinfo",          &getwalletinfo,          true,      false,      true },
     { "importprivkey",          &importprivkey,          false,     false,      true },
