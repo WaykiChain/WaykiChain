@@ -155,14 +155,14 @@ Value importwallet(const Array& params, bool fHelp)
             "importwallet \"filename\"\n"
             "\nImports keys from a wallet dump file (see dumpwallet).\n"
             "\nArguments:\n"
-            "1. \"filename\"    (string, required) The wallet file\n"
+            "1. \"filename\"    (string, required) The wallet file to be imported\n"
             "\nExamples:\n"
-            "\nDump the wallet\n"
-            + HelpExampleCli("dumpwallet", "\"test\"") +
+            "\nDump the wallet first\n"
+            + HelpExampleCli("dumpwallet", "\"target_dumpwallet_filepath\"") +
             "\nImport the wallet\n"
-            + HelpExampleCli("importwallet", "\"test\"") +
+            + HelpExampleCli("importwallet", "\"target_dumpwallet_filepath\"") +
             "\nImport using the json rpc call\n"
-            + HelpExampleRpc("importwallet", "\"test\"")
+            + HelpExampleRpc("importwallet", "\"target_dumpwallet_filepath\"")
         );
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
@@ -179,7 +179,7 @@ Value importwallet(const Array& params, bool fHelp)
 //  bool fGood = true;
 //  int64_t nFilesize = max((int64_t)1, (int64_t)file.tellg());
     file.seekg(0, file.beg);
-    int inmsizeport = 0;
+    int importedKeySize = 0;
     pwalletMain->ShowProgress(_("Importing..."), 0); // show progress dialog in GUI
     if (file.good()) {
     	Value reply;
@@ -198,7 +198,7 @@ Value importwallet(const Array& params, bool fHelp)
     			continue;
     		}
     		if(pwalletMain->AddKey(keyId, keyCombi))
-    			inmsizeport++;
+    			importedKeySize++;
     	}
     }
     file.close();
@@ -206,7 +206,7 @@ Value importwallet(const Array& params, bool fHelp)
     pwalletMain->ScanForWalletTransactions(chainActive.Genesis(), true);
 
     Object reply2;
-    reply2.push_back(Pair("imported_key_size", inmsizeport));
+    reply2.push_back(Pair("imported_key_size", importedKeySize));
     return reply2;
 }
 
@@ -276,22 +276,21 @@ Value dumpwallet(const Array& params, bool fHelp) {
 	reply.push_back(Pair("Best block index hight ", chainActive.Height()));
 	reply.push_back(Pair("Best block hash ", chainActive.Tip()->GetBlockHash().ToString()));
 
-	set<CKeyID> setKeyId;
-	pwalletMain->GetKeys(setKeyId);
-	Array key;
-	for(auto & keyId : setKeyId)
-	{
+	set<CKeyID> setKeyIds;
+	pwalletMain->GetKeys(setKeyIds);
+	Array arrKeys;
+	for (auto & keyId : setKeyIds) {
 		CKeyCombi keyCombi;
 		pwalletMain->GetKeyCombi(keyId, keyCombi);
 		Object obj = keyCombi.ToJsonObj();
 		obj.push_back(Pair("keyid", keyId.ToString()));
-		key.push_back(obj);
+		arrKeys.push_back(obj);
 	}
-	reply.push_back(Pair("key",key));
+	reply.push_back(Pair("key", arrKeys));
 	file <<  write_string(Value(reply), true);
 	file.close();
 	Object reply2;
-	reply2.push_back(Pair("info","dump ok"));
-	reply2.push_back(Pair("key size",(int)setKeyId.size()));
+	reply2.push_back(Pair("info", "dump ok"));
+	reply2.push_back(Pair("key size", (int)setKeyIds.size()));
 	return reply2;
 }
