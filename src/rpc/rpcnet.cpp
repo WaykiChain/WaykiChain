@@ -12,6 +12,8 @@
 #include "util.h"
 
 #include <boost/foreach.hpp>
+#include <boost/assign/list_of.hpp>
+
 #include "json/json_spirit_value.h"
 
 using namespace json_spirit;
@@ -157,11 +159,11 @@ Value addnode(const Array& params, bool fHelp)
             "2. \"command\"  (string, required) 'add' to add a node to the list, 'remove' to remove a node from the list, 'onetry' to try a connection to the node once\n"
 			"\nResult:\n"
         	"\nExamples:\n"
-            + HelpExampleCli("addnode", "\"192.168.0.6:8333\" \"onetry\"")
-            + HelpExampleRpc("addnode", "\"192.168.0.6:8333\", \"onetry\"")
+            + HelpExampleCli("addnode", "\"192.168.0.6:8333\" onetry")
+            + HelpExampleRpc("addnode", "\"192.168.0.6:8333\", onetry")
         );
 
-    RPCTypeCheck(params, list_of(str_type)(str_type));
+    RPCTypeCheck(params, boost::assign::list_of(str_type)(str_type));
 
     string strNode = params[0].get_str();
     if (strNode.find("127.0.0.1:") != std::string::npos)

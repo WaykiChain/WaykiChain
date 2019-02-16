@@ -3,15 +3,14 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <stdint.h>
+#include <boost/assign/list_of.hpp>
+
 #include "rpcserver.h"
 #include "main.h"
 #include "sync.h"
-//#include "checkpoints.h"
 #include "configuration.h"
 #include "json/json_spirit_value.h"
-
-#include <stdint.h>
-#include <boost/assign/list_of.hpp>
 
 using namespace json_spirit;
 using namespace std;
@@ -212,7 +211,7 @@ Value getblockhash(const Array& params, bool fHelp)
             "\nExamples:\n"
             + HelpExampleRpc("getblockhash", "1000"));
     }
-    RPCTypeCheck(params, list_of(int_type));
+    RPCTypeCheck(params, boost::assign::list_of(int_type));
 
     int nHeight = params[0].get_int();
     if (nHeight < 0 || nHeight >= chainActive.Height())
@@ -259,7 +258,7 @@ Value getblock(const Array& params, bool fHelp)
             + HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\""));
     }
 
-    RPCTypeCheck(params, list_of(str_type)(bool_type));
+    RPCTypeCheck(params, boost::assign::list_of(str_type)(bool_type));
 
     std::string strHash;
     if(int_type == params[0].type()) {
