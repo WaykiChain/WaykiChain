@@ -8,10 +8,10 @@
 #include "sync.h"
 //#include "checkpoints.h"
 #include "configuration.h"
+#include "json/json_spirit_value.h"
 
 #include <stdint.h>
-
-#include "json/json_spirit_value.h"
+#include <boost/assign/list_of.hpp>
 
 using namespace json_spirit;
 using namespace std;
@@ -83,9 +83,9 @@ Value getblockcount(const Array& params, bool fHelp)
     if (fHelp || params.size() != 0)
         throw runtime_error(
             "getblockcount\n"
-            "\nReturns the number of blocks in the longest block chain.\n"
+            "\nReturns the number of blocks in the longest chain.\n"
             "\nResult:\n"
-            "n    (numeric) The current block count\n"
+            "\n    (numeric) The current block count\n"
             "\nExamples:\n"
             + HelpExampleCli("getblockcount", "")
             + HelpExampleRpc("getblockcount", "")
@@ -212,9 +212,10 @@ Value getblockhash(const Array& params, bool fHelp)
             "\nExamples:\n"
             + HelpExampleRpc("getblockhash", "1000"));
     }
+    RPCTypeCheck(params, list_of(int_type));
 
     int nHeight = params[0].get_int();
-    if (nHeight < 0 || nHeight > chainActive.Height())
+    if (nHeight < 0 || nHeight >= chainActive.Height())
         throw runtime_error("Block number out of range");
 
     CBlockIndex* pblockindex = chainActive[nHeight];
@@ -258,10 +259,12 @@ Value getblock(const Array& params, bool fHelp)
             + HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\""));
     }
 
+    RPCTypeCheck(params, list_of(str_type)(bool_type));
+
     std::string strHash;
     if(int_type == params[0].type()) {
         int nHeight = params[0].get_int();
-        if (nHeight < 0 || nHeight > chainActive.Height())
+        if (nHeight < 0 || nHeight >= chainActive.Height())
             throw runtime_error("Block number out of range.");
 
         CBlockIndex* pblockindex = chainActive[nHeight];
