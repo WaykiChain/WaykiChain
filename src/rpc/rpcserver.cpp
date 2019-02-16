@@ -137,8 +137,7 @@ string CRPCTable::help(string strCommand) const
 {
     string strRet;
     set<rpcfn_type> setDone;
-    for (map<string, const CRPCCommand*>::const_iterator mi = mapCommands.begin(); mi != mapCommands.end(); ++mi)
-    {
+    for (map<string, const CRPCCommand*>::const_iterator mi = mapCommands.begin(); mi != mapCommands.end(); ++mi) {
         const CRPCCommand *pcmd = mi->second;
         string strMethod = mi->first;
         // We already filter duplicates, but these deprecated screw up the sort order
@@ -149,15 +148,12 @@ string CRPCTable::help(string strCommand) const
 
         if (pcmd->reqWallet && !pwalletMain)
             continue;
-        try
-        {
+        try {
             Array params;
             rpcfn_type pfn = pcmd->actor;
             if (setDone.insert(pfn).second)
                 (*pfn)(params, true);
-        }
-        catch (std::exception& e)
-        {
+        } catch (std::exception& e) {
             // Help text is returned in an exception
             string strHelp = string(e.what());
             if (strCommand == "")
@@ -341,7 +337,6 @@ CRPCTable::CRPCTable() {
     unsigned int vcidx;
     for (vcidx = 0; vcidx < (sizeof(vRPCCommands) / sizeof(vRPCCommands[0])); vcidx++) {
         const CRPCCommand *pcmd;
-
         pcmd = &vRPCCommands[vcidx];
         mapCommands[pcmd->name] = pcmd;
     }

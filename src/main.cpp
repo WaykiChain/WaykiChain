@@ -2333,7 +2333,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp) {
     AssertLockHeld(cs_main);
     // Check for duplicate
     uint256 hash = block.GetHash();
-    LogPrint("INFO", "AcceptBlcok[%d]: %s\n", block.GetHeight(), hash.GetHex());
+    LogPrint("INFO", "AcceptBlock[%d]: %s\n", block.GetHeight(), hash.GetHex());
     if (mapBlockIndex.count(hash))
         return state.Invalid(ERRORMSG("AcceptBlock() : block already in mapBlockIndex"), 0, "duplicated");
 
