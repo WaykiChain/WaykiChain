@@ -815,13 +815,13 @@ Value backupwallet(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "backupwallet \"destination\"\n"
-            "\nSafely copies wallet.dat to destination, which can be a directory or a path with filename.\n"
+            "backupwallet \"dest_dir\"\n"
+            "\nSafely copies wallet.dat to a target directory.\n"
             "\nArguments:\n"
-            "1. \"destination\"   (string, required) The destination directory or file\n"
+            "1. \"dest_dir\"   (string, required) The destination directory\n"
             "\nExamples:\n"
-            + HelpExampleCli("backupwallet", "\"backup.dat\"")
-            + HelpExampleRpc("backupwallet", "\"backup.dat\"")
+            + HelpExampleCli("backupwallet", "\"~/backup_wallet/\"")
+            + HelpExampleRpc("backupwallet", "\"~/backup_wallet/\"")
         );
 
     string strDest = params[0].get_str();

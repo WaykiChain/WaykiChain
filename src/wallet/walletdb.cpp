@@ -453,12 +453,11 @@ void ThreadRelayTx(CWallet* pWallet)
 
 bool BackupWallet(const CWallet& wallet, const string& strDest)
 {
-    while (true)
-    {
+    while (true) {
         {
             LOCK(bitdb.cs_db);
-            if (!bitdb.mapFileUseCount.count(wallet.strWalletFile) || bitdb.mapFileUseCount[wallet.strWalletFile] == 0)
-            {
+            if (!bitdb.mapFileUseCount.count(wallet.strWalletFile) || 
+				bitdb.mapFileUseCount[wallet.strWalletFile] == 0) {
                 // Flush log data to the dat file
                 bitdb.CloseDb(wallet.strWalletFile);
                 bitdb.CheckpointLSN(wallet.strWalletFile);
@@ -476,10 +475,10 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
 #else
                     boost::filesystem::copy_file(pathSrc, pathDest);
 #endif
-                    LogPrint("INFO", "copied wallet.dat to %s\n", pathDest.string());
+                    LogPrint("INFO", "copied wallet.dat onto %s\n", pathDest.string());
                     return true;
                 } catch (const boost::filesystem::filesystem_error& e) {
-                    LogPrint("ERROR", "error copying wallet.dat to %s - %s\n", pathDest.string(), e.what());
+                    LogPrint("ERROR", "error copying wallet.dat onto %s - %s\n", pathDest.string(), e.what());
                     return false;
                 }
             }

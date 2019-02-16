@@ -5,7 +5,7 @@
 |Command | Parameters| Description | Unlocked wallet required?|
 |---|---|---|---|
 | addnode | ```<node><add/remove/onetry>```| Attempts add or remove ```<node>``` from the addnode list or try a connection to ```<node>``` once.| N |
-| backupwallet | ```<destination>``` | Safely copies wallet.dat to destination, which can be a directory or a path with filename. | N |
+| backupwallet | ```<destination>``` | Safely copies wallet.dat to a target directory. | N |
 | callcontracttx | ```<userregid><appid><amount><contract><fee>[height, default = the tip block height]``` | create contract transaction | Y |
 | gencallcontractraw | ```<height><fee><amount><address><contract>``` | get call contract raw transaction | N |
 | dropminerkeys | | drop miner key from wallet to become a cool miner| Y |
