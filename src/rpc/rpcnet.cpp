@@ -396,7 +396,7 @@ Value getchainstate(const Array& params, bool fHelp)
             "getchainstate \"num\"\n"
 			"\nget the chain state by the most recent blocks.\n"
             "\nArguments:\n"
-            "1.num   (numeric,required, > 0) The number of the recently blocks.\n"
+            "1.num   (numeric,required, > 0) The number of the most recent blocks.\n"
             "\nResult:\n"
             "{\n"
             "  \"blocktime\": n,   (numeric) the time of each block\n"
@@ -414,8 +414,7 @@ Value getchainstate(const Array& params, bool fHelp)
 		nHeight = params[0].get_int();
 		if(nHeight < 1)
 			throw runtime_error("Block number out of range.");
-	    if(nHeight > chainActive.Height())
-	    {   //防止超过最大高度
+	    if(nHeight > chainActive.Height()) {   //防止超过最大高度
 	    	nHeight = chainActive.Height();
 	    }
 	}
@@ -432,8 +431,7 @@ Value getchainstate(const Array& params, bool fHelp)
 		transactions.push_back((int)pBlockIndex->nTx);
 		fuel.push_back(pBlockIndex->nFuel);
 		block.SetNull();
-		if(ReadBlockFromDisk(block, pBlockIndex))
-		{
+		if (ReadBlockFromDisk(block, pBlockIndex)) {
 			string miner(boost::get<CRegID>(dynamic_pointer_cast<CRewardTransaction>(block.vptx[0])->account).ToString());
 			blockminer.push_back(move(miner));
 		}

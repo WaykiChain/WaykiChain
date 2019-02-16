@@ -214,17 +214,17 @@ Value dumpprivkey(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "dumpprivkey \"WICC address\"\n"
-            "\nReveals the private key corresponding to 'WICC address'.\n"
-            "Then the importprivkey can be used with this output\n"
+            "dumpprivkey \"address\"\n"
+            "\nReturns the private key corresponding to the given WICC address.\n"
+            "Then the importprivkey can be used with this output in another wallet for migration purposes.\n"
             "\nArguments:\n"
-            "1. \"Coinaddress\"   (string, required) The Coin address for the private key\n"
+            "1. \"address\"   (string, required) WICC address\n"
             "\nResult:\n"
-            "\"key\"                (string) The private key\n"
+            "\"key\"                (string) The associated private key\n"
             "\nExamples:\n"
-            + HelpExampleCli("dumpprivkey", "\"myaddress\"")
-            + HelpExampleCli("importprivkey", "\"mykey\"")
-            + HelpExampleRpc("dumpprivkey", "\"myaddress\"")
+            + HelpExampleCli("dumpprivkey", "\"$myaddress\"")
+            + HelpExampleCli("importprivkey", "\"$myprivkey\"")
+            + HelpExampleRpc("dumpprivkey", "\"$myaddress\"")
         );
 
     EnsureWalletIsUnlocked();
@@ -235,10 +235,11 @@ Value dumpprivkey(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Coin address");
     CKeyID keyID;
     if (!address.GetKeyID(keyID))
-        throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to a key");
+        throw JSONRPCError(RPC_TYPE_ERROR, "The address is not associated with any private key");
     CKey vchSecret;
     if (!pwalletMain->GetKey(keyID, vchSecret))
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " + strAddress + " is not known");
+
     CKey minerkey;
 #if 0 //modified by shane @2018/5/17 此处不能抛异常
     if (!pwalletMain->GetKey(keyID, minerkey,true))
@@ -248,10 +249,12 @@ Value dumpprivkey(const Array& params, bool fHelp)
 #endif
     Object reply;
     	reply.push_back(Pair("privkey", CCoinSecret(vchSecret).ToString()));
-    if(minerkey.IsValid() && minerkey.ToString() != vchSecret.ToString())
+
+    if (minerkey.IsValid() && minerkey.ToString() != vchSecret.ToString())
     	reply.push_back(Pair("minerkey", CCoinSecret(minerkey).ToString()));
     else
     	reply.push_back(Pair("minerkey", " "));
+
     return reply;
 }
 
@@ -261,12 +264,19 @@ Value dumpwallet(const Array& params, bool fHelp) {
 				"\nDumps all wallet keys in a human-readable format.\n"
 				"\nArguments:\n"
 				"1. \"filename\"    (string, required) The filename\n"
-				"\nExamples:\n" + HelpExampleCli("dumpwallet", "\"test\"") + HelpExampleRpc("dumpwallet", "\"test\""));
+				"\nExamples:\n"
+                + HelpExampleCli("dumpwallet", "$mywalletfilepath")
+                + HelpExampleRpc("dumpwallet", "$mywalletfilepath"));
 
 	EnsureWalletIsUnlocked();
 
-	ofstream file;
-	file.open(params[0].get_str().c_str());
+    string dumpFilePath = params[0].get_str().c_str();
+    if (dumpFilePath.find(GetDataDir().string()) != std::string::npos)
+        throw JSONRPCError(RPC_WALLET_FILEPATH_INVALID, 
+            "Wallet file shall not be saved into the Data dir to avoid likely file overwrite.");
+
+    ofstream file;
+	file.open(dumpFilePath);
 	if (!file.is_open())
 		throw JSONRPCError(RPC_INVALID_PARAMETER, "Cannot open wallet dump file");
 
