@@ -236,19 +236,6 @@ elif cmd == "sendfrom":
     except:
         print "\n---An error occurred---\n"
 
-elif cmd == "sendmany":
-    try:
-        frm = raw_input("From: ")
-        to = raw_input("To (in format address1:amount1,address2:amount2,...): ")
-        mc = raw_input("Minimum confirmations (optional): ")
-        comment = raw_input("Comment (optional): ")
-        try:
-            print access.sendmany(frm,to,mc,comment)
-        except:
-            print access.sendmany(frm,to)
-    except:
-        print "\n---An error occurred---\n"
-
 elif cmd == "sendtoaddress":
     try:
         to = raw_input("To (in format address1:amount1,address2:amount2,...): ")
