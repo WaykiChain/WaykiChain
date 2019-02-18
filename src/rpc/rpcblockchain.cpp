@@ -230,7 +230,7 @@ Value getblock(const Array& params, bool fHelp)
             "\nIf verbose is false, returns a string that is serialized, hex-encoded data for block 'hash'.\n"
             "If verbose is true, returns an Object with information about block <hash>.\n"
             "\nArguments:\n"
-            "1. \"hash or height\"(string or numeric,required) string for The block hash,numeric for the block height\n"
+            "1. \"hash or height\"(string or numeric,required) string for the block hash, or numeric for the block height\n"
             "2. verbose           (boolean, optional, default=true) true for a json object, false for the hex encoded data\n"
             "\nResult (for verbose = true):\n"
             "{\n"
@@ -253,12 +253,12 @@ Value getblock(const Array& params, bool fHelp)
             "}\n"
             "\nResult (for verbose=false):\n"
             "\"data\"             (string) A string that is serialized, hex-encoded data for block 'hash'.\n"
-            "\nExamples:\n" 
-            + HelpExampleCli("getblock", "\"1000\"") 
+            "\nExamples:\n"
+            + HelpExampleCli("getblock", "\"1000\"")
             + HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\""));
     }
 
-    RPCTypeCheck(params, boost::assign::list_of(str_type)(bool_type));
+    // RPCTypeCheck(params, boost::assign::list_of(str_type)(bool_type)); disable this to allow either string or int argument
 
     std::string strHash;
     if(int_type == params[0].type()) {
@@ -365,7 +365,7 @@ Value listsetblockindexvalid(const Array& params, bool fHelp)
             + HelpExampleCli("listsetblockindexvalid", "")
             + HelpExampleRpc("listsetblockindexvalid", ""));
     }
-    
+
     return ListSetBlockIndexValid();
 }
 
