@@ -2,7 +2,7 @@
  * configuration.h
  *
  *  Created on: 2016年9月8日
- *      Author: WaykiChain Core Developer 
+ *      Author: WaykiChain Core Developer
  */
 
 #ifndef CONFIGURATION_H_
@@ -51,18 +51,14 @@ namespace Checkpoints
     extern bool fEnabled;
 }
 
-
 typedef enum  {
 	emNODE_1,
 	emNODE_2,
-	MAX_NODE//!< MAX_NETWORK_TYPES
-}NODE_NUMBER;
-
-
+	MAX_NODE		//!< MAX_NETWORK_TYPES
+} NODE_NUMBER;
 
 class G_CONFIG_TABLE
 {
-
 public:
 	string GetCoinName()const
 	{
@@ -90,88 +86,84 @@ public:
 	const vector<string> GetDelegatePubKey(NET_TYPE type) const;
 
 private:
+	static string COIN_NAME ;	/* basecoin name */
 
-	//名称：
-	static string COIN_NAME ;
-
-	//公钥
+	/* initial public key */
 	static  vector<string> intPubKey_mainNet;
 	static  vector<string> initPubKey_testNet;
 	static  vector<string> initPubkey_regTest;
 
-
-	//投票代表
+	/* delegate public key */
 	static vector<string> delegatePubKey_mainNet;
 	static vector<string> delegatePubKey_testNet;
 	static vector<string> delegatePubKey_regTest;
 
+	/* delegate signature */
 	static string delegateSignature_mainNet;
 	static string delegateSignature_testNet;
     static string delegateSignature_regNet;
 
-	//创世块HASH
+	/* gensis block hash */
 	static string hashGenesisBlock_mainNet;
 	static string hashGenesisBlock_testNet;
 	static string hashGenesisBlock_regTest;
 
-
-	//check point 公钥
+	/* checkpoint public key */
 	static string CheckPointPK_MainNet;
 	static string CheckPointPK_TestNet;
 
-
-	//梅根HASH
+	/* merkle root hash */
 	static string HashMerkleRoot;
 
-	//IP地址
+	/* Peer IP seeds */
 	static vector<unsigned int> pnSeed;
 
-
-	//网络协议魔数
+	/* Network Magic Number */
 	static unsigned char Message_mainNet[MESSAGE_START_SIZE];
 	static unsigned char Message_testNet[MESSAGE_START_SIZE];
 	static unsigned char Message_regTest[MESSAGE_START_SIZE];
 
-	//修改地址前缀
+	/* Address Prefix */
 	static  vector<unsigned char> AddrPrefix_mainNet[MAX_BASE58_TYPES];
 	static  vector<unsigned char> AddrPrefix_testNet[MAX_BASE58_TYPES];
 
-
-	//网络端口
+	/* P2P Port */
 	static unsigned int nDefaultPort_mainNet ;
 	static unsigned int nDefaultPort_testNet ;
 	static unsigned int nDefaultPort_regTest;
 
+	/* RPC Port */
 	static unsigned int nRPCPort_mainNet;
 	static unsigned int nRPCPort_testNet ;
 
+	/* UI Port */
 	static unsigned int nUIPort_mainNet;
 	static unsigned int nUIPort_testNet;
 
-	//修改时间
+	/* Start Time */
 	static unsigned int StartTime_mainNet;
 	static unsigned int StartTime_testNet;
 	static unsigned int StartTime_regTest;
 
-	//半衰期
+	/* Subsidy Halving Interval (半衰期) */
 	static unsigned int nSubsidyHalvingInterval_mainNet;
+	static unsigned int nSubsidyHalvingInterval_testNet;
 	static unsigned int nSubsidyHalvingInterval_regNet;
 
-
-	//修改发币总量
+	/* initial coin */
 	static uint64_t InitialCoin;
 
-	//矿工费用
+	/* Default Miner fee */
 	static uint64_t DefaultFee;
 
-	//记账人数
-	static unsigned int  nDelegates;
+	/* Designated Delegate count */
+	static unsigned int nDelegates;
 
 	static unsigned int ExpansionPecent;
 
-	//投票初始分红率
+	/* Initial subsidy rate upon vote casting */
 	static uint64_t nInitialSubsidy;
-	//投票固定分红率
+	/* Eventual/lasting subsidy rate for vote casting */
 	static uint64_t nFixedSubsidy;
 
 };

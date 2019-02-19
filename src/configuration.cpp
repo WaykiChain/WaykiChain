@@ -95,7 +95,7 @@ namespace Checkpoints
 
     // nHeight找不到 或 高度和hash都能找到，则返回true
     bool CheckBlock(int nHeight, const uint256& hash)
-    { 
+    {
         if (!fEnabled)
             return true;
 
@@ -107,7 +107,7 @@ namespace Checkpoints
     }
 
     // Guess how far we are in the verification process at the given block index
-    double GuessVerificationProgress(CBlockIndex *pindex, bool fSigchecks) 
+    double GuessVerificationProgress(CBlockIndex *pindex, bool fSigchecks)
     {
         if (pindex==NULL)
             return 0.0;
@@ -141,7 +141,7 @@ namespace Checkpoints
 
     // 获取mapCheckpoints 中保存最后一个checkpoint 的高度
     int GetTotalBlocksEstimate()
-    {    
+    {
         if (!fEnabled) return 0;
 
         const MapCheckpoints& checkpoints = *Checkpoints().mapCheckpoints;
@@ -399,9 +399,9 @@ unsigned int G_CONFIG_TABLE::GetHalvingInterval(NET_TYPE type) const{
         case MAIN_NET: {
             return nSubsidyHalvingInterval_mainNet;
         }
-//				case TEST_NET: {
-//					return nSubsidyHalvingInterval_testNet;
-//				}
+        case TEST_NET: {
+            return nSubsidyHalvingInterval_testNet;
+        }
         case REGTEST_NET: {
             return nSubsidyHalvingInterval_regNet;
         }
@@ -588,7 +588,8 @@ unsigned int G_CONFIG_TABLE::StartTime_regTest = 1504305600;
 //半衰期 (half-life)
 // 365 * 24 * 60 * 60 / 10 = 3153600
 unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = 3153600; // one year
-unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_regNet = 500;
+unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_testNet = 3153600; // one year
+unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_regNet  = 500;
 
 //修改发币初始值
 uint64_t G_CONFIG_TABLE::InitialCoin = 210000000;
