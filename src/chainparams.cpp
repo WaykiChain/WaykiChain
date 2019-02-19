@@ -30,7 +30,7 @@ public:
         // The message start string is designed to be unlikely to occur in normal data.
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
-        memcpy(pchMessageStart,IniCfg().GetMagicNumber(MAIN_NET),sizeof(pchMessageStart));
+        memcpy(pchMessageStart, IniCfg().GetMagicNumber(MAIN_NET), sizeof(pchMessageStart));
         vAlertPubKey =  ParseHex(IniCfg().GetCheckPointPkey(MAIN_NET));
         nDefaultPort = IniCfg().GetnDefaultPort(MAIN_NET) ;
         nRPCPort = IniCfg().GetnRPCPort(MAIN_NET);
@@ -78,13 +78,16 @@ public:
         }
     }
 
-    virtual const CBlock& GenesisBlock() const {
+    virtual const CBlock& GenesisBlock() const
+    {
         return genesis;
     }
-    virtual NET_TYPE NetworkID() const {
+    virtual NET_TYPE NetworkID() const
+    {
         return MAIN_NET;
     }
-    virtual bool InitalConfig() {
+    virtual bool InitalConfig()
+    {
         return CBaseParams::InitalConfig();
     }
     virtual int GetBlockMaxNonce() const
@@ -132,19 +135,27 @@ public:
         vSeeds.push_back(CDNSSeedData("seed1.waykitest.net", "n1.waykitest.net"));
         vSeeds.push_back(CDNSSeedData("seed2.waykitest.net", "n2.waykitest.net"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = IniCfg().GetAddressPrefix(TEST_NET,PUBKEY_ADDRESS);
-        base58Prefixes[SCRIPT_ADDRESS] = IniCfg().GetAddressPrefix(TEST_NET,SCRIPT_ADDRESS);
-        base58Prefixes[SECRET_KEY] = IniCfg().GetAddressPrefix(TEST_NET,SECRET_KEY);
-        base58Prefixes[EXT_PUBLIC_KEY] = IniCfg().GetAddressPrefix(TEST_NET,EXT_PUBLIC_KEY);
-        base58Prefixes[EXT_SECRET_KEY] = IniCfg().GetAddressPrefix(TEST_NET,EXT_SECRET_KEY);
+        base58Prefixes[PUBKEY_ADDRESS]  = IniCfg().GetAddressPrefix(TEST_NET,PUBKEY_ADDRESS);
+        base58Prefixes[SCRIPT_ADDRESS]  = IniCfg().GetAddressPrefix(TEST_NET,SCRIPT_ADDRESS);
+        base58Prefixes[SECRET_KEY]      = IniCfg().GetAddressPrefix(TEST_NET,SECRET_KEY);
+        base58Prefixes[EXT_PUBLIC_KEY]  = IniCfg().GetAddressPrefix(TEST_NET,EXT_PUBLIC_KEY);
+        base58Prefixes[EXT_SECRET_KEY]  = IniCfg().GetAddressPrefix(TEST_NET,EXT_SECRET_KEY);
     }
-    virtual NET_TYPE NetworkID() const {return TEST_NET;}
+
+    virtual NET_TYPE NetworkID() const
+    {
+        return TEST_NET;
+    }
+
     virtual bool InitalConfig()
     {
         CMainParams::InitalConfig();
+        nSubsidyHalvingInterval = GetArg("-subsidyhalvinginterval", IniCfg().GetHalvingInterval(REGTEST_NET));
+        nTargetSpacing = GetArg("-targetspacing", 10);
         fServer = true;
         return true;
     }
+
     virtual int GetBlockMaxNonce() const
     {
         return 1000;
