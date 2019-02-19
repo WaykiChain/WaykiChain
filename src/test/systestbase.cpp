@@ -82,7 +82,7 @@ bool AppInit(int argc, char* argv[],boost::thread_group &threadGroup) {
 	bool fRet = false;
 	try {
 		CBaseParams::IntialParams(argc, argv);
-		SysCfg().InitalConfig();
+		SysCfg().InitialConfig();
 
 		PrintTestNotSetPara();
 

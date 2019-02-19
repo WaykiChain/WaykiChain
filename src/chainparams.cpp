@@ -86,9 +86,9 @@ public:
     {
         return MAIN_NET;
     }
-    virtual bool InitalConfig()
+    virtual bool InitialConfig()
     {
-        return CBaseParams::InitalConfig();
+        return CBaseParams::InitialConfig();
     }
     virtual int GetBlockMaxNonce() const
     {
@@ -147,9 +147,9 @@ public:
         return TEST_NET;
     }
 
-    virtual bool InitalConfig()
+    virtual bool InitialConfig()
     {
-        CMainParams::InitalConfig();
+        CMainParams::InitialConfig();
         nSubsidyHalvingInterval = GetArg("-subsidyhalvinginterval", IniCfg().GetHalvingInterval(REGTEST_NET));
         nTargetSpacing = GetArg("-targetspacing", 10);
         fServer = true;
@@ -194,8 +194,8 @@ public:
     virtual NET_TYPE NetworkID() const {
         return REGTEST_NET;
     }
-    virtual bool InitalConfig() {
-        CTestNetParams::InitalConfig();
+    virtual bool InitialConfig() {
+        CTestNetParams::InitialConfig();
         fServer = true;
         return true;
     }
