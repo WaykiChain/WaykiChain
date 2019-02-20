@@ -1292,7 +1292,7 @@ if (fHelp || params.size() > 2) {
                 "\nget all confirmed transactions and all unconfirmed transactions from wallet.\n"
                 "\nArguments:\n"
                 "1. count          (numeric, optional, default=10) The number of transactions to return\n"
-                "2. from           (numeric, optional, default=0) The number of transactions to skip\n"    
+                "2. from           (numeric, optional, default=0) The number of transactions to skip\n"
                 "\nExamples:\n"
                 "\nResult:\n"
                 "\nExamples:\n"
@@ -1547,7 +1547,7 @@ static Value AccountLogToJson(const CAccountLog &accoutLog) {
     Object obj;
     obj.push_back(Pair("keyid", accoutLog.keyID.ToString()));
     obj.push_back(Pair("llValues", accoutLog.llValues));
-    obj.push_back(Pair("nHeight", accoutLog.nHeight));
+    obj.push_back(Pair("nHeight", accoutLog.nVoteHeight));
 //  Array array;
 //  for(auto const &te: accoutLog.vRewardFund)
 //  {
@@ -1674,7 +1674,7 @@ Value resetclient(const Array& params, bool fHelp) {
             + "\nAs json rpc call\n"
             + HelpExampleRpc("resetclient", ""));
     }
-    
+
     Value ret = TestDisconnectBlock(chainActive.Tip()->nHeight);
     if (chainActive.Tip()->nHeight == 0) {
         pwalletMain->CleanAll();
@@ -1958,7 +1958,7 @@ Value getcontractdataraw(const Array& params, bool fHelp) {
                 + HelpExampleCli("getcontractdataraw", "\"1304166-1\" \"key\"")
                 + HelpExampleRpc("getcontractdataraw", "\"1304166-1\" \"key\""));
     }
-    
+
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true) {
         throw runtime_error("getcontractdataraw : app regid not supplied!");
@@ -2459,7 +2459,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Error: contract RegId not exist");
         }
     }
-   
+
     std::shared_ptr<CRegisterContractTx> tx = std::make_shared<CRegisterContractTx>();
     tx.get()->regAcctId = view.GetRegId(keyid);
     tx.get()->script = vscript;
@@ -3274,7 +3274,7 @@ Value listdelegates(const Array& params, bool fHelp) {
         CRegID regId(0,0);
         if (contractScriptTemp.GetContractData(0, regId, nIndex, vDelegateKey, vScriptData)) {
             nIndex = 1;
-            vector<unsigned char>::iterator iterVotes = find_first_of(vDelegateKey.begin(), vDelegateKey.end(), 
+            vector<unsigned char>::iterator iterVotes = find_first_of(vDelegateKey.begin(), vDelegateKey.end(),
                 vDelegatePrefix.begin(), vDelegatePrefix.end());
             string strVotes(iterVotes+9, iterVotes+25);
             uint64_t llVotes = 0;
