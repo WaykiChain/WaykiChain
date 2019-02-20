@@ -1435,7 +1435,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
                 sourceAccount.PublicKey = pubKey;
                 sourceAccount.llValues = pRewardTx->rewardValue;
                 assert(view.SaveAccountInfo(accountId, keyId, sourceAccount));
-            } else if(block.vptx[i]->nTxType == DELEGATE_TX) {
+            } else if (block.vptx[i]->nTxType == DELEGATE_TX) {
                 std::shared_ptr<CDelegateTransaction> pDelegateTx =
                     dynamic_pointer_cast<CDelegateTransaction>(block.vptx[i]);
                 assert(pDelegateTx->userId.type() == typeid(CRegID));
@@ -1450,21 +1450,21 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
                         maxVotes = operFund.fund.value;
                     }
                     if(voteAcct.PublicKey == operFund.fund.pubKey) {
-                    voteAcct.llVotes = operFund.fund.value;
-                    assert(scriptDBCache.SetDelegateData(voteAcct, operDbLog));
+                        voteAcct.llVotes = operFund.fund.value;
+                        assert(scriptDBCache.SetDelegateData(voteAcct, operDbLog));
                     } else {
-                    CAccount delegateAcct;
-                    assert(!view.GetAccount(operFund.fund.pubKey, delegateAcct));
-                    CRegID delegateRegId(pindex->nHeight, j++);
-                    delegateAcct.keyID = operFund.fund.pubKey.GetKeyID();
-                    delegateAcct.SetRegId(delegateRegId);
-                    delegateAcct.PublicKey = operFund.fund.pubKey;
-                    delegateAcct.llVotes = operFund.fund.value;
-                    assert(view.SaveAccountInfo(delegateRegId, delegateAcct.keyID, delegateAcct));
-                    assert(scriptDBCache.SetDelegateData(delegateAcct, operDbLog));
+                        CAccount delegateAcct;
+                        assert(!view.GetAccount(operFund.fund.pubKey, delegateAcct));
+                        CRegID delegateRegId(pindex->nHeight, j++);
+                        delegateAcct.keyID = operFund.fund.pubKey.GetKeyID();
+                        delegateAcct.SetRegId(delegateRegId);
+                        delegateAcct.PublicKey = operFund.fund.pubKey;
+                        delegateAcct.llVotes = operFund.fund.value;
+                        assert(view.SaveAccountInfo(delegateRegId, delegateAcct.keyID, delegateAcct));
+                        assert(scriptDBCache.SetDelegateData(delegateAcct, operDbLog));
                     }
-                    voteAcct.voteFunds.push_back(operFund.fund);
-                    sort(voteAcct.voteFunds.begin(), voteAcct.voteFunds.end(),
+                    voteAcct.vVoteFunds.push_back(operFund.fund);
+                    sort(voteAcct.vVoteFunds.begin(), voteAcct.vVoteFunds.end(),
                     [](CVoteFund fund1, CVoteFund fund2) {
                         return fund1.value > fund2.value;
                     });

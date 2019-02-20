@@ -1030,18 +1030,18 @@ bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValid
     CAccount acctInfo;
     if (!view.GetAccount(userId, acctInfo)) {
         return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, read regist addr %s account info error", HexStr(id.GetID())),
-                UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+            UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
     CAccount acctInfoLog(acctInfo);
     uint64_t minusValue = llFees;
     if (minusValue > 0) {
         if(!acctInfo.OperateAccount(MINUS_FREE, minusValue, nHeight))
             return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate account failed ,regId=%s", boost::get<CRegID>(userId).ToString()),
-                    UPDATE_ACCOUNT_FAIL, "operate-account-failed");
+                UPDATE_ACCOUNT_FAIL, "operate-account-failed");
     }
     if (!acctInfo.DealDelegateVote(operVoteFunds, nHeight)) {
-            return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate delegate vote failed ,regId=%s", boost::get<CRegID>(userId).ToString()),
-                    UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate delegate vote failed ,regId=%s", boost::get<CRegID>(userId).ToString()),
+            UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }
     if (!view.SaveAccountInfo(acctInfo.regID, acctInfo.keyID, acctInfo)) {
             return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx create new account script id %s script info error", acctInfo.regID.ToString()),
@@ -1102,7 +1102,8 @@ string CDelegateTransaction::ToString(CAccountViewCache &view) const {
     string str;
     CKeyID keyId;
     view.GetKeyId(userId, keyId);
-    str += strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion, keyId.ToAddress(), keyId.ToString());
+    str += strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", txTypeArray[nTxType],
+        GetHash().ToString().c_str(), nVersion, keyId.ToAddress(), keyId.ToString());
     str += "vote:\n";
     for(auto item=operVoteFunds.begin(); item!=operVoteFunds.end(); ++item) {
         str += strprintf("%s", item->ToString());
@@ -1158,7 +1159,7 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
 
     //check account delegates number;
     set<CKeyID> setTotalOperVoteKeyID;
-    for(auto operItem : sendAcctInfo.voteFunds) {
+    for(auto operItem : sendAcctInfo.vVoteFunds) {
         setTotalOperVoteKeyID.insert(operItem.pubKey.GetKeyID());
     }
 
@@ -1220,10 +1221,10 @@ uint256 CDelegateTransaction::SignatureHash() const {
 
 string CAccountLog::ToString() const {
     string str("");
-    str += strprintf("    Account log: keyId=%d llValues=%lld nHeight=%lld llVotes=%lld \n",
-            keyID.GetHex(), llValues, nHeight, llVotes);
+    str += strprintf("    Account log: keyId=%d llValues=%lld nVoteHeight=%lld llVotes=%lld \n",
+            keyID.GetHex(), llValues, nVoteHeight, llVotes);
      str += string("    vote fund:");
-    for(auto it =  voteFunds.begin(); it != voteFunds.end(); ++it) {
+    for(auto it =  vVoteFunds.begin(); it != vVoteFunds.end(); ++it) {
         str += strprintf("    address=%s, vote=%lld\n", it->pubKey.GetKeyID().ToAddress(), it->value);
     }
     return str;
@@ -1262,43 +1263,36 @@ bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {
 bool CAccount::UndoOperateAccount(const CAccountLog & accountLog) {
     LogPrint("undo_account", "after operate:%s\n", ToString());
     llValues    = accountLog.llValues;
-    nHeight     = accountLog.nHeight;
-    voteFunds   = accountLog.voteFunds;
+    nVoteHeight = accountLog.nVoteHeight;
+    vVoteFunds  = accountLog.vVoteFunds;
     llVotes     = accountLog.llVotes;
     LogPrint("undo_account", "before operate:%s\n", ToString().c_str());
     return true;
 }
 
 uint64_t CAccount::GetAccountProfit(int nCurHeight) {
-    if (nCurHeight < nHeight) {
-        LogPrint("ERROR", "vote tx height(%d) is no greater than height(%d)", nCurHeight, nHeight);
-        return 0;
-    }
-
-    // 过滤无分红情况
-    if (voteFunds.empty()) {
-        nHeight = nCurHeight;
-        return 0;
+     if (vVoteFunds.empty()) {
+        LogPrint("DEBUG", "1st-time vote for the account, hence no issuance of interest.");
+        nVoteHeight = nCurHeight;
+        return 0; // 0 profit for 1st-time vote
     }
 
     // 先判断计算分红的上下限区块高度是否落在同一个分红率区间
-    int nBeginHeight = nHeight;
-    int nEndHeight = nCurHeight;
-    uint64_t nBeginSubsidy = IniCfg().GetBlockSubsidyCfg(nHeight);
+    uint64_t nBeginHeight = nVoteHeight;
+    uint64_t nEndHeight = nCurHeight;
+    uint64_t nBeginSubsidy = IniCfg().GetBlockSubsidyCfg(nVoteHeight);
     uint64_t nEndSubsidy = IniCfg().GetBlockSubsidyCfg(nCurHeight);
-    uint64_t nValue = voteFunds.begin()->value;
-    LogPrint("profits", "nBeginSubsidy:%lld nEndSubsidy:%lld nBeginHeight:%d nEndHeight:%d\n", nBeginSubsidy, nEndSubsidy, nBeginHeight, nEndHeight);
+    uint64_t nValue = vVoteFunds.begin()->value;
+    LogPrint("profits", "nBeginSubsidy:%lld nEndSubsidy:%lld nBeginHeight:%d nEndHeight:%d\n",
+        nBeginSubsidy, nEndSubsidy, nBeginHeight, nEndHeight);
 
     // 计算分红
     auto calculateProfit = [](uint64_t nValue, uint64_t nSubsidy, int nBeginHeight, int nEndHeight) -> uint64_t {
-        int64_t nHoldHeight = (int64_t)nEndHeight - (int64_t)nBeginHeight;
-        int64_t nDayHeight = 24 * 60 * 60 / SysCfg().GetTargetSpacing();
-        // uint64_t llProfits =  nValue * nHoldHeight * nSubsidy * 10000 / nDayHeight / 365 / 100 / 10000;
-        // 为了避免 nValue * hHoldHeight * nSubsidy * 10000 > max(uint64_t) 造成溢出，对原始公式进行变换
-        uint64_t llProfits =  (uint64_t)(nValue * ((long double)nHoldHeight * nSubsidy / nDayHeight / 365 / 100));
-
-        LogPrint("profits", "nValue:%lld nSubsidy:%lld nBeginHeight:%d nEndHeight:%d llProfits:%lld\n", nValue, nSubsidy, nBeginHeight, nEndHeight, llProfits);
-
+        int64_t nHoldHeight = nEndHeight - nBeginHeight;
+        int64_t nYearHeight = SysCfg().GetSubsidyHalvingInterval();
+        uint64_t llProfits =  (uint64_t)(nValue * ((long double)nHoldHeight * nSubsidy / nYearHeight / 100));
+        LogPrint("profits", "nValue:%lld nSubsidy:%lld nBeginHeight:%d nEndHeight:%d llProfits:%lld\n",
+            nValue, nSubsidy, nBeginHeight, nEndHeight, llProfits);
         return llProfits;
     };
 
@@ -1314,9 +1308,9 @@ uint64_t CAccount::GetAccountProfit(int nCurHeight) {
 
     llProfits += calculateProfit(nValue, nSubsidy, nBeginHeight, nEndHeight);
     LogPrint("profits", "updateHeight:%d curHeight:%d freeze value:%lld\n",
-        nHeight, nCurHeight, voteFunds.begin()->value);
+        nVoteHeight, nCurHeight, vVoteFunds.begin()->value);
 
-    nHeight = nCurHeight;
+    nVoteHeight = nCurHeight;
     return llProfits;
 }
 
@@ -1325,14 +1319,14 @@ uint64_t CAccount::GetRawBalance() {
 }
 
 uint64_t CAccount::GetTotalBalance() {
-    if(!voteFunds.empty())
-        return voteFunds.begin()->value + llValues;
+    if(!vVoteFunds.empty())
+        return vVoteFunds.begin()->value + llValues;
     return llValues;
 }
 
 uint64_t CAccount::GetFrozenBalance() {
     uint64_t votes = 0;
-    for (auto it = voteFunds.begin(); it != voteFunds.end(); it++) {
+    for (auto it = vVoteFunds.begin(); it != vVoteFunds.end(); it++) {
       if(it->value > votes) {
           votes = it->value;
       }
@@ -1343,7 +1337,7 @@ uint64_t CAccount::GetFrozenBalance() {
 Object CAccount::ToJsonObj(bool isAddress) const
 {
     Array voteFundArray;
-    for(auto & fund : voteFunds) { voteFundArray.push_back(fund.ToJson(true)); }
+    for(auto & fund : vVoteFunds) { voteFundArray.push_back(fund.ToJson(true)); }
     Object obj;
     obj.push_back(Pair("Address",       keyID.ToAddress()));
     obj.push_back(Pair("KeyID",         keyID.ToString()));
@@ -1351,7 +1345,7 @@ Object CAccount::ToJsonObj(bool isAddress) const
     obj.push_back(Pair("MinerPKey",     MinerPKey.ToString()));
     obj.push_back(Pair("RegID",         regID.ToString()));
     obj.push_back(Pair("Balance",       llValues));
-    obj.push_back(Pair("UpdateHeight",  nHeight));
+    obj.push_back(Pair("UpdateHeight",  nVoteHeight));
     obj.push_back(Pair("Votes",         llVotes));
     obj.push_back(Pair("voteFundList",  voteFundArray));
     return obj;
@@ -1360,9 +1354,10 @@ Object CAccount::ToJsonObj(bool isAddress) const
 string CAccount::ToString(bool isAddress) const {
     string str;
     str += strprintf("regID=%s, keyID=%s, publicKey=%s, minerpubkey=%s, values=%ld updateHeight=%d llVotes=%lld\n",
-    regID.ToString(), keyID.GetHex().c_str(), PublicKey.ToString().c_str(), MinerPKey.ToString().c_str(), llValues, nHeight, llVotes);
-    str += "voteFunds list: \n";
-    for(auto & fund : voteFunds) {
+        regID.ToString(), keyID.GetHex().c_str(), PublicKey.ToString().c_str(),
+        MinerPKey.ToString().c_str(), llValues, nVoteHeight, llVotes);
+    str += "vVoteFunds list: \n";
+    for (auto & fund : vVoteFunds) {
         str += fund.ToString(isAddress);
     }
     return str;
@@ -1374,7 +1369,7 @@ bool CAccount::IsMoneyOverflow(uint64_t nAddMoney) {
     return true;
 }
 
-bool CAccount::OperateAccount(OperType type, const uint64_t &value, const int nCurHeight) {
+bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64_t nCurHeight) {
     LogPrint("op_account", "before operate:%s\n", ToString());
     if (!IsMoneyOverflow(value))
         return false;
@@ -1403,22 +1398,26 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const int nC
     return true;
 }
 
-bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const int nCurHeight)
+bool CAccount::DealDelegateVote(vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight)
 {
-    if (voteFunds.empty()) return false;
+    if (nCurHeight < nVoteHeight) {
+        LogPrint("ERROR", "current sycn block height(%d) can't be smaller than account VoteHeight (%d)",
+            nCurHeight, nVoteHeight);
+        return false;
+    }
 
-    int64_t totalVotes = (int64_t)voteFunds.begin()->value;
+    int64_t totalVotes = (int64_t) vVoteFunds.begin()->value;
     uint64_t llProfit = GetAccountProfit(nCurHeight);
     if (!IsMoneyOverflow(llProfit)) return false;
 
     for (auto operVote = operVoteFunds.begin(); operVote != operVoteFunds.end(); ++operVote) {
         CPubKey pubKey = operVote->fund.pubKey;
-        vector<CVoteFund>::iterator itfund = find_if(voteFunds.begin(), voteFunds.end(),
+        vector<CVoteFund>::iterator itfund = find_if(vVoteFunds.begin(), vVoteFunds.end(),
             [pubKey](CVoteFund fund){ return fund.pubKey == pubKey; });
 
         int voteType = VoteOperType(operVote->operType);
         if (ADD_FUND == voteType) {
-            if (itfund != voteFunds.end()) {
+            if (itfund != vVoteFunds.end()) {
                 if (!IsMoneyOverflow(operVote->fund.value))
                      return ERRORMSG("DealDelegateVote() : oper fund value exceed maximum ");
 //                if (operVote->fund.value > llValues) {
@@ -1428,13 +1427,13 @@ bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const in
                 if (!IsMoneyOverflow(itfund->value))
                      return ERRORMSG("DealDelegateVote() : fund value exceeds maximum");
             } else {
-               voteFunds.push_back(operVote->fund);
-               if(voteFunds.size() > IniCfg().GetDelegatesNum()) {
+               vVoteFunds.push_back(operVote->fund);
+               if(vVoteFunds.size() > IniCfg().GetDelegatesNum()) {
                    return ERRORMSG("DealDelegateVote() : fund number exceeds maximum");
                }
             }
         } else if(MINUS_FUND == voteType) {
-            if  (itfund != voteFunds.end()) {
+            if  (itfund != vVoteFunds.end()) {
                 if (!IsMoneyOverflow(operVote->fund.value))
                     return ERRORMSG("DealDelegateVote() : oper fund value exceed maximum ");
                 if(itfund->value < operVote->fund.value) {
@@ -1442,7 +1441,7 @@ bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const in
                 }
                 itfund->value -= operVote->fund.value;
                 if(0 == itfund->value) {
-                    voteFunds.erase(itfund);
+                    vVoteFunds.erase(itfund);
                 }
             } else {
                 return ERRORMSG("DealDelegateVote() : CDelegateTransaction ExecuteTx AccountVoteOper revocation votes are not exist");
@@ -1452,12 +1451,13 @@ bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const in
         }
     }
 
-    std::sort(voteFunds.begin(),voteFunds.end(),[](CVoteFund fund1, CVoteFund fund2) {
-            return fund1.value > fund2.value;
+    std::sort(vVoteFunds.begin(),vVoteFunds.end(), [](CVoteFund fund1, CVoteFund fund2) {
+        return fund1.value > fund2.value;
     });
+
     int64_t newTotalVotes = 0;
-    if(!voteFunds.empty())
-        newTotalVotes = voteFunds.begin()->value;
+    if(!vVoteFunds.empty())
+        newTotalVotes = vVoteFunds.begin()->value;
     if(llValues + (uint64_t)totalVotes < (uint64_t)newTotalVotes ) {
         return  ERRORMSG("DealDelegateVote() : delegate value exceed account value");
     }

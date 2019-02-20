@@ -396,21 +396,21 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
-            READWRITE(VARINT(this->nVersion));
-            nVersion = this->nVersion;
-            READWRITE(VARINT(nValidHeight));
-            CID srcId(srcRegId);
-            READWRITE(srcId);
-            CID desId(desUserId);
-            READWRITE(desId);
-            READWRITE(VARINT(llFees));
-            READWRITE(VARINT(llValues));
-            READWRITE(vContract);
-            READWRITE(signature);
-            if(fRead) {
-                srcRegId = srcId.GetUserId();
-                desUserId = desId.GetUserId();
-            }
+        READWRITE(VARINT(this->nVersion));
+        nVersion = this->nVersion;
+        READWRITE(VARINT(nValidHeight));
+        CID srcId(srcRegId);
+        READWRITE(srcId);
+        CID desId(desUserId);
+        READWRITE(desId);
+        READWRITE(VARINT(llFees));
+        READWRITE(VARINT(llValues));
+        READWRITE(vContract);
+        READWRITE(signature);
+        if(fRead) {
+            srcRegId = srcId.GetUserId();
+            desUserId = desId.GetUserId();
+        }
     )
 
     uint64_t GetValue() const {return llValues;}
@@ -616,7 +616,9 @@ public:
         signature.clear();
      }
 
-    CDelegateTransaction(const CUserID& in_UserId, uint64_t in_Fee, const vector<COperVoteFund> & in_OperVoteFunds, const int in_Heigh) {
+    CDelegateTransaction(const CUserID& in_UserId, uint64_t in_Fee, const vector<COperVoteFund> & in_OperVoteFunds,
+        const int in_Heigh)
+    {
         if (in_UserId.type() == typeid(CRegID)) {
             assert(!boost::get<CRegID>(in_UserId).IsEmpty());
         }
@@ -637,22 +639,21 @@ public:
     }
 
     ~CDelegateTransaction() {
-
     }
 
     IMPLEMENT_SERIALIZE
     (
-            READWRITE(VARINT(this->nVersion));
-            nVersion = this->nVersion;
-            READWRITE(VARINT(nValidHeight));
-            CID ID(userId);
-            READWRITE(ID);
-            READWRITE(operVoteFunds);
-            READWRITE(VARINT(llFees));
-            READWRITE(signature);
-            if(fRead) {
-                userId = ID.GetUserId();
-            }
+        READWRITE(VARINT(this->nVersion));
+        nVersion = this->nVersion;
+        READWRITE(VARINT(nValidHeight));
+        CID ID(userId);
+        READWRITE(ID);
+        READWRITE(operVoteFunds);
+        READWRITE(VARINT(llFees));
+        READWRITE(signature);
+        if(fRead) {
+            userId = ID.GetUserId();
+        }
     )
 
     uint256 GetHash() const;
@@ -854,48 +855,47 @@ public:
 };
 
 class CAccount {
+
 public:
     CRegID regID;
     CKeyID keyID;                                           //!< keyID of the account
     CPubKey PublicKey;                                      //!< public key of the account
     CPubKey MinerPKey;                                      //!< public key of the account for miner
     uint64_t llValues;                                      //!< total money
-    int nHeight;                                            //!< update height
-    vector<CVoteFund> voteFunds;                            //!< delegate votes order by vote value
+    uint64_t nVoteHeight;                                   //!< account vote block height
+    vector<CVoteFund> vVoteFunds;                           //!< account delegate votes order by vote value
     uint64_t llVotes;                                       //!< votes received
+
 public :
     /**
      * @brief operate account
      * @param type: operate type
-     * @param fund
-     * @param nHeight:  the height that block connected into chain
-     * @param pscriptID
-     * @param bCheckAuthorized
-     * @return if operate successfully return ture,otherwise return false
+     * @param values
+     * @param nCurHeight:  the tip block height
+     * @return returns true if successful, otherwise false
      */
-    bool OperateAccount(OperType type, const uint64_t &values,const int nCurHeight);
+    bool OperateAccount(OperType type, const uint64_t &values, const uint64_t nCurHeight);
 
     bool UndoOperateAccount(const CAccountLog & accountLog);
 
-    bool DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const int nCurHeight);
+    bool DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight);
 
     bool OperateVote(VoteOperType type, const uint64_t & values);
 public:
-    CAccount(CKeyID &keyId, CPubKey &pubKey) :
-            keyID(keyId), PublicKey(pubKey) {
+    CAccount(CKeyID &keyId, CPubKey &pubKey) : keyID(keyId), PublicKey(pubKey) {
         llValues = 0;
         MinerPKey =  CPubKey();
-        nHeight = 0;
+        nVoteHeight = 0;
+        vVoteFunds.clear();
         regID.clean();
-        voteFunds.clear();
         llVotes = 0;
     }
     CAccount(): keyID(uint160()), llValues(0) {
         PublicKey = CPubKey();
         MinerPKey =  CPubKey();
-        nHeight = 0;
+        nVoteHeight = 0;
+        vVoteFunds.clear();
         regID.clean();
-        voteFunds.clear();
         llVotes = 0;
     }
     CAccount(const CAccount & other) {
@@ -904,8 +904,8 @@ public:
         this->PublicKey = other.PublicKey;
         this->MinerPKey = other.MinerPKey;
         this->llValues = other.llValues;
-        this->nHeight = other.nHeight;
-        this->voteFunds = other.voteFunds;
+        this->nVoteHeight = other.nVoteHeight;
+        this->vVoteFunds = other.vVoteFunds;
         this->llVotes = other.llVotes;
     }
     CAccount &operator=(const CAccount & other) {
@@ -916,8 +916,8 @@ public:
         this->PublicKey = other.PublicKey;
         this->MinerPKey = other.MinerPKey;
         this->llValues = other.llValues;
-        this->nHeight = other.nHeight;
-        this->voteFunds = other.voteFunds;
+        this->nVoteHeight = other.nVoteHeight;
+        this->vVoteFunds = other.vVoteFunds;
         this->llVotes = other.llVotes;
         return *this;
     }
@@ -925,6 +925,7 @@ public:
         return std::make_shared<CAccount>(*this);
     }
 
+    // Fixme
     bool IsMiner(int nCurHeight) {
 //      if(nCurHeight < 2*SysCfg().GetIntervalPos())
 //          return true;
@@ -943,17 +944,20 @@ public:
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;
     bool IsEmptyValue() const { return !(llValues > 0); }
+
     uint256 GetHash(){
         CHashWriter ss(SER_GETHASH, 0);
         ss << regID << keyID << PublicKey << MinerPKey << VARINT(llValues)
-           << VARINT(nHeight) << voteFunds << llVotes;
+           << VARINT(nVoteHeight) << vVoteFunds << llVotes;
         return ss.GetHash();
     }
+
     uint64_t GetMaxCoinDay(int nCurHeight) {
         return llValues * SysCfg().GetMaxDay();
     }
 
     bool UpDateAccountPos(int nCurHeight);
+
     IMPLEMENT_SERIALIZE
     (
         READWRITE(regID);
@@ -961,12 +965,13 @@ public:
         READWRITE(PublicKey);
         READWRITE(MinerPKey);
         READWRITE(VARINT(llValues));
-        READWRITE(VARINT(nHeight));
-        READWRITE(voteFunds);
+        READWRITE(VARINT(nVoteHeight));
+        READWRITE(vVoteFunds);
         READWRITE(llVotes);
     )
 
     uint64_t GetReceiveVotes() const { return llVotes; }
+
 private:
     bool IsMoneyOverflow(uint64_t nAddMoney);
 };
@@ -975,45 +980,48 @@ class CAccountLog {
 public:
     CKeyID keyID;
     uint64_t llValues;                                  //!< freedom money which coinage greater than 30 days
-    int nHeight;                                        //!< update height
-    vector<CVoteFund> voteFunds;                        //!< delegate votes
+    uint64_t nVoteHeight;                               //!< account vote height
+    vector<CVoteFund> vVoteFunds;                       //!< delegate votes
     uint64_t llVotes;                                   //!< votes received
+
     IMPLEMENT_SERIALIZE
     (
         READWRITE(keyID);
         READWRITE(VARINT(llValues));
-        READWRITE(VARINT(nHeight));
-        READWRITE(voteFunds);
+        READWRITE(VARINT(nVoteHeight));
+        READWRITE(vVoteFunds);
         READWRITE(llVotes);
     )
+
 public:
     CAccountLog(const CAccount &acct) {
         keyID = acct.keyID;
         llValues = acct.llValues;
-        nHeight = acct.nHeight;
-        voteFunds = acct.voteFunds;
+        nVoteHeight = acct.nVoteHeight;
+        vVoteFunds = acct.vVoteFunds;
         llVotes = acct.llVotes;
     }
     CAccountLog(CKeyID &keyId) {
         keyID = keyId;
         llValues = 0;
-        nHeight = 0;
+        nVoteHeight = 0;
         llVotes = 0;
     }
     CAccountLog() {
         keyID = uint160();
         llValues = 0;
-        nHeight = 0;
-        voteFunds.clear();
+        nVoteHeight = 0;
+        vVoteFunds.clear();
         llVotes = 0;
     }
     void SetValue(const CAccount &acct) {
         keyID = acct.keyID;
         llValues = acct.llValues;
-        nHeight = acct.nHeight;
+        nVoteHeight = acct.nVoteHeight;
         llVotes = acct.llVotes;
-        voteFunds = acct.voteFunds;
+        vVoteFunds = acct.vVoteFunds;
     }
+
     string ToString() const;
 };
 
