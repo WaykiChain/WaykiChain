@@ -1329,7 +1329,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &
     std::shared_ptr<CBaseTransaction> pBaseTx = block.vptx[0];
     txundo = blockUndo.vtxundo.back();
     LogPrint("undo_account", "tx Hash:%s\n", pBaseTx->GetHash().ToString());
-    if(!pBaseTx->UndoExecuteTx(0, view, state, txundo, pindex->nHeight, txCache, scriptCache))
+    if (!pBaseTx->UndoExecuteTx(0, view, state, txundo, pindex->nHeight, txCache, scriptCache))
         return false;
 //  LogPrint("INFO", "reward tx undo elapse:%lld ms\n", GetTimeMillis() - llTime);
 

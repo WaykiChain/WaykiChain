@@ -39,19 +39,23 @@ bool CID::Set(const CRegID &id) {
     vchData.insert(vchData.end(), ds.begin(), ds.end());
     return true;
 }
+
 bool CID::Set(const CKeyID &id) {
     vchData.resize(20);
     memcpy(&vchData[0], &id, 20);
     return true;
 }
+
 bool CID::Set(const CPubKey &id) {
     vchData.resize(id.size());
     memcpy(&vchData[0], &id, id.size());
     return true;
 }
+
 bool CID::Set(const CNullID &id) {
     return true;
 }
+
 bool CID::Set(const CUserID &userid) {
     return boost::apply_visitor(CIDVisitor(this), userid);
 }
@@ -288,6 +292,7 @@ bool CBaseTransaction::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValid
     }
     return true;
 }
+
 uint64_t CBaseTransaction::GetFuel(int nfuelRate) {
     uint64_t llFuel = ceil(nRunStep/100.0f) * nfuelRate;
     if (REG_CONT_TX == nTxType) {
@@ -518,7 +523,7 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
     if (CONTRACT_TX == nTxType) {
         vector<unsigned char> vScript;
         if(!scriptDB.GetScript(boost::get<CRegID>(desUserId), vScript)) {
-            return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, read account faild, RegId=%s", 
+            return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, read account faild, RegId=%s",
                     boost::get<CRegID>(desUserId).ToString()), READ_ACCOUNT_FAIL, "bad-read-account");
         }
         CVmRunEvn vmRunEvn;
@@ -1019,8 +1024,9 @@ uint256 CRegisterContractTx::SignatureHash() const {
     return ss.GetHash();
 }
 
-bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
-           CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
+bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+    CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB)
+{
     CID id(userId);
     CAccount acctInfo;
     if (!view.GetAccount(userId, acctInfo)) {
@@ -1034,7 +1040,7 @@ bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValid
             return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate account failed ,regId=%s", boost::get<CRegID>(userId).ToString()),
                     UPDATE_ACCOUNT_FAIL, "operate-account-failed");
     }
-    if(!acctInfo.DealDelegateVote(operVoteFunds, nHeight)) {
+    if (!acctInfo.DealDelegateVote(operVoteFunds, nHeight)) {
             return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate delegate vote failed ,regId=%s", boost::get<CRegID>(userId).ToString()),
                     UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }
@@ -1256,10 +1262,10 @@ bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {
 
 bool CAccount::UndoOperateAccount(const CAccountLog & accountLog) {
     LogPrint("undo_account", "after operate:%s\n", ToString());
-    llValues =  accountLog.llValues;
-    nHeight = accountLog.nHeight;
-    voteFunds = accountLog.voteFunds;
-    llVotes = accountLog.llVotes;
+    llValues    =  accountLog.llValues;
+    nHeight     = accountLog.nHeight;
+    voteFunds   = accountLog.voteFunds;
+    llVotes     = accountLog.llVotes;
     LogPrint("undo_account", "before operate:%s\n", ToString().c_str());
     return true;
 }
@@ -1267,6 +1273,7 @@ bool CAccount::UndoOperateAccount(const CAccountLog & accountLog) {
 uint64_t CAccount::GetAccountProfit(int nCurHeight) {
     // 过滤无分红情况
     if (voteFunds.empty() || nCurHeight <= nHeight) {
+        nHeight = nCurHeight;
         return 0;
     }
     // 先判断计算分红的上下限区块高度是否落在同一个分红率区间
@@ -1301,9 +1308,10 @@ uint64_t CAccount::GetAccountProfit(int nCurHeight) {
     }
 
     llProfits += calculateProfit(nValue, nSubsidy, nBeginHeight, nEndHeight);
-    LogPrint("profits", "updateHeight:%d curHeight:%d freeze value:%lld\n", nHeight, nCurHeight, voteFunds.begin()->value);
-    nHeight = nCurHeight;
+    LogPrint("profits", "updateHeight:%d curHeight:%d freeze value:%lld\n",
+        nHeight, nCurHeight, voteFunds.begin()->value);
 
+    nHeight = nCurHeight;
     return llProfits;
 }
 
@@ -1396,8 +1404,10 @@ bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const in
     if(!voteFunds.empty()) {
         totalVotes = (int64_t)voteFunds.begin()->value;
     }
+
     uint64_t llProfit = GetAccountProfit(nCurHeight);
     if (!IsMoneyOverflow(llProfit)) return false;
+
     for (auto operVote = operVoteFunds.begin(); operVote != operVoteFunds.end(); ++operVote) {
         CPubKey pubKey = operVote->fund.pubKey;
         vector<CVoteFund>::iterator itfund = find_if(voteFunds.begin(), voteFunds.end(),

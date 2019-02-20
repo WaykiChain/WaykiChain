@@ -158,24 +158,20 @@ CVmlua::~CVmlua() {
 
 }
 
-
 #ifdef WIN_DLL
-extern "C" __declspec(dllexport) int luaopen_mylib(lua_State *L);
+	extern "C" __declspec(dllexport) int luaopen_mylib(lua_State *L);
 #else
-LUAMOD_API int luaopen_mylib(lua_State *L);
+	LUAMOD_API int luaopen_mylib(lua_State *L);
 #endif
 
-
-
 void vm_openlibs (lua_State *L) {
-
 	static const luaL_Reg lualibs[] = {
-			{ "base", luaopen_base },
-			{ LUA_LOADLIBNAME, luaopen_package },
-			{ LUA_TABLIBNAME, luaopen_table },
-			{ LUA_MATHLIBNAME, luaopen_math },
-			{ LUA_STRLIBNAME, luaopen_string},
-			{ NULL, NULL }
+		{ "base", 			luaopen_base 	},
+		{ LUA_LOADLIBNAME, 	luaopen_package },
+		{ LUA_TABLIBNAME, 	luaopen_table 	},
+		{ LUA_MATHLIBNAME, 	luaopen_math 	},
+		{ LUA_STRLIBNAME, 	luaopen_string	},
+		{ NULL, 			NULL 			}
 	};
 
 	const luaL_Reg *lib;
@@ -214,7 +210,7 @@ tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun) {
 	 long long step = 0;
 	 unsigned short count = 0;
 
-	if((maxstep == 0) || (NULL == pVmScriptRun)){
+	if ((maxstep == 0) || (NULL == pVmScriptRun)) {
 		return std::make_tuple (-1, string("maxstep == 0\n"));
 	}
 
@@ -260,9 +256,8 @@ tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun) {
 	lua_newtable(lua_state);    //新建一个表,压入栈顶
 	lua_pushnumber(lua_state,-1);
 	lua_rawseti(lua_state,-2,0);
-	memcpy(&count,m_ExRam,  2);//外面已限制，合约内容小于4096字节
-    for(unsigned short n = 0;n < count;n++)
-    {
+	memcpy(&count,m_ExRam,  2); //外面已限制，合约内容小于4096字节
+    for (unsigned short n = 0; n < count; n++) {
         lua_pushinteger(lua_state,m_ExRam[2 + n]);// value值放入
         lua_rawseti(lua_state,-2,n+1);  //set table at key 'n + 1'
     }
@@ -277,8 +272,8 @@ tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun) {
    //5.加载脚本
     step = maxstep;
 
-    if(luaL_loadbuffer(lua_state,(char *)m_ExeFile,strlen((char *)m_ExeFile),"line") || lua_pcallk(lua_state,0,0,0,0,NULL,&step))
-    {
+    if (luaL_loadbuffer(lua_state, (char *) m_ExeFile, strlen((char *)m_ExeFile), "line") ||
+		lua_pcallk(lua_state,0,0,0,0, NULL, &step)) {
        const char* pError = lua_tostring(lua_state,-1);
        string strError = strprintf("luaL_loadbuffer fail:%s\n", pError ? pError : "unknown" );
 	   LogPrint("vm", "%s",  strError);
@@ -294,10 +289,8 @@ tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun) {
 	int res = lua_getglobal(lua_state, "gCheckAccount");
 	LogPrint("vm", "lua_getglobal:%d\n", res);
 
-    if(LUA_TBOOLEAN == res)
-    {
-    	if(lua_isboolean(lua_state,-1))
-    	{
+    if (LUA_TBOOLEAN == res) {
+    	if (lua_isboolean(lua_state,-1)) {
     		bool bCheck = lua_toboolean(lua_state,-1);
     		LogPrint("vm", "lua_toboolean:%d\n", bCheck);
     		pVmScriptRun->SetCheckAccount(bCheck);
@@ -305,18 +298,13 @@ tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun) {
     }
     lua_pop(lua_state, 1);
 
-
     //7.关闭Lua虚拟机
 	lua_close(lua_state);
 	LogPrint("vm", "run step=%ld\n",step);
 
-	if(step < 0)
-	{
-		return std::make_tuple (step, string("execure tx contract run step exceed the max step limit\n"));
+	if (step < 0) {
+		return std::make_tuple (step, string("execute tx contract run step exceeds the max step limit\n"));
 	}
 
 	return std::make_tuple (step, string("script run ok"));
 }
-
-
-
