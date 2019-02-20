@@ -1270,10 +1270,10 @@ bool CAccount::UndoOperateAccount(const CAccountLog & accountLog) {
     return true;
 }
 
-uint64_t CAccount::GetAccountProfit(int nCurHeight) {
+uint64_t CAccount::GetAccountProfit(uint64_t nCurHeight) {
      if (vVoteFunds.empty()) {
-        LogPrint("DEBUG", "1st-time vote for the account, hence no issuance of interest.");
-        nVoteHeight = nCurHeight;
+        LogPrint("DEBUG", "1st-time vote for the account, hence no minting of interest.");
+        nVoteHeight = nCurHeight; //record the 1st-time vote block height into account
         return 0; // 0 profit for 1st-time vote
     }
 
@@ -1401,7 +1401,7 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64
 bool CAccount::DealDelegateVote(vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight)
 {
     if (nCurHeight < nVoteHeight) {
-        LogPrint("ERROR", "current sycn block height(%d) can't be smaller than account VoteHeight (%d)",
+        LogPrint("ERROR", "current vote tx height (%d) can't be smaller than the last nVoteHeight (%d)",
             nCurHeight, nVoteHeight);
         return false;
     }

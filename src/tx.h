@@ -940,7 +940,7 @@ public:
     uint64_t GetTotalBalance();
     uint64_t GetFrozenBalance();
 //  void ClearAccPos(int nCurHeight);
-    uint64_t GetAccountProfit(int prevBlockHeight);
+    uint64_t GetAccountProfit(uint64_t prevBlockHeight);
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;
     bool IsEmptyValue() const { return !(llValues > 0); }
