@@ -1401,7 +1401,7 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64
 bool CAccount::DealDelegateVote(vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight)
 {
     if (nCurHeight < nVoteHeight) {
-        LogPrint("ERROR", "current sycn block height(%d) can't be smaller than account VoteHeight (%d)",
+        LogPrint("ERROR", "current sycn block height(%d) can't be smaller than account nVoteHeight (%d)",
             nCurHeight, nVoteHeight);
         return false;
     }
