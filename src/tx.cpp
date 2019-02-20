@@ -1272,9 +1272,9 @@ bool CAccount::UndoOperateAccount(const CAccountLog & accountLog) {
 
 uint64_t CAccount::GetAccountProfit(int nCurHeight) {
      if (vVoteFunds.empty()) {
-        LogPrint("DEBUG", "1st-time vote for the account, hence no issuance of interest.");
-        nVoteHeight = nCurHeight;
-        return 0; // 0 profit for 1st-time vote
+        LogPrint("DEBUG", "1st-time vote for the account, hence no minting of vote interest.");
+        nVoteHeight = nCurHeight; // save the current tx height as the last vote height!
+        return 0; // return 0 profit for the 1st vote to the account
     }
 
     // 先判断计算分红的上下限区块高度是否落在同一个分红率区间
