@@ -496,7 +496,7 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
     }
 
     uint64_t addValue = llValues;
-    if(!view.GetAccount(desUserId, desAcct)) {
+    if (!view.GetAccount(desUserId, desAcct)) {
         if((COMMON_TX == nTxType) && (desUserId.type() == typeid(CKeyID))) {  // target account address not exist
             desAcct.keyID = boost::get<CKeyID>(desUserId);
             desAcctLog.keyID = desAcct.keyID;
@@ -505,8 +505,7 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
             return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, get account info failed by regid:%s", boost::get<CRegID>(desUserId).ToString()),
                     UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-    }
-    else{
+    } else {
         desAcctLog.SetValue(desAcct);
     }
     if (!desAcct.OperateAccount(ADD_FREE, addValue, nHeight)) {
@@ -1262,7 +1261,7 @@ bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {
 
 bool CAccount::UndoOperateAccount(const CAccountLog & accountLog) {
     LogPrint("undo_account", "after operate:%s\n", ToString());
-    llValues    =  accountLog.llValues;
+    llValues    = accountLog.llValues;
     nHeight     = accountLog.nHeight;
     voteFunds   = accountLog.voteFunds;
     llVotes     = accountLog.llVotes;
@@ -1271,11 +1270,17 @@ bool CAccount::UndoOperateAccount(const CAccountLog & accountLog) {
 }
 
 uint64_t CAccount::GetAccountProfit(int nCurHeight) {
+    if (nCurHeight < nHeight) {
+        LogPrint("ERROR", "vote tx height(%d) is no greater than height(%d)", nCurHeight, nHeight);
+        return 0;
+    }
+
     // 过滤无分红情况
-    if (voteFunds.empty() || nCurHeight <= nHeight) {
+    if (voteFunds.empty()) {
         nHeight = nCurHeight;
         return 0;
     }
+
     // 先判断计算分红的上下限区块高度是否落在同一个分红率区间
     int nBeginHeight = nHeight;
     int nEndHeight = nCurHeight;
@@ -1400,11 +1405,9 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const int nC
 
 bool CAccount::DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const int nCurHeight)
 {
-    int64_t totalVotes = 0;
-    if(!voteFunds.empty()) {
-        totalVotes = (int64_t)voteFunds.begin()->value;
-    }
+    if (voteFunds.empty()) return false;
 
+    int64_t totalVotes = (int64_t)voteFunds.begin()->value;
     uint64_t llProfit = GetAccountProfit(nCurHeight);
     if (!IsMoneyOverflow(llProfit)) return false;
 

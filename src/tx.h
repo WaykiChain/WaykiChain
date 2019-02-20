@@ -971,14 +971,13 @@ private:
     bool IsMoneyOverflow(uint64_t nAddMoney);
 };
 
-
 class CAccountLog {
 public:
     CKeyID keyID;
-    uint64_t llValues;                                      //!< freedom money which coinage greater than 30 days
-    int nHeight;                                            //!< update height
-    vector<CVoteFund> voteFunds;                            //!< delegate votes
-    uint64_t llVotes;                                       //!< votes received
+    uint64_t llValues;                                  //!< freedom money which coinage greater than 30 days
+    int nHeight;                                        //!< update height
+    vector<CVoteFund> voteFunds;                        //!< delegate votes
+    uint64_t llVotes;                                   //!< votes received
     IMPLEMENT_SERIALIZE
     (
         READWRITE(keyID);
@@ -1017,6 +1016,7 @@ public:
     }
     string ToString() const;
 };
+
 inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTransaction> &pa, int nType, int nVersion) {
     return pa->GetSerializeSize(nType, nVersion) + 1;
 }
