@@ -150,8 +150,6 @@ public:
     virtual bool InitialConfig()
     {
         CMainParams::InitialConfig();
-        nSubsidyHalvingInterval = GetArg("-subsidyhalvinginterval", IniCfg().GetHalvingInterval(REGTEST_NET));
-        nTargetSpacing = GetArg("-targetspacing", 10);
         fServer = true;
         return true;
     }
@@ -196,6 +194,9 @@ public:
     }
     virtual bool InitialConfig() {
         CTestNetParams::InitialConfig();
+
+        nSubsidyHalvingInterval = GetArg("-subsidyhalvinginterval", IniCfg().GetHalvingInterval(REGTEST_NET));
+        nTargetSpacing = GetArg("-targetspacing", 10);
         fServer = true;
         return true;
     }

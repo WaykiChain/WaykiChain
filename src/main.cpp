@@ -1398,8 +1398,6 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
 
 //static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
 
-
-
 bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &view, CBlockIndex* pindex,
     CTransactionDBCache &txCache, CScriptDBViewCache &scriptDBCache, bool fJustCheck)
 {
@@ -1437,8 +1435,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
                 sourceAccount.PublicKey = pubKey;
                 sourceAccount.llValues = pRewardTx->rewardValue;
                 assert(view.SaveAccountInfo(accountId, keyId, sourceAccount));
-            }
-            else if(block.vptx[i]->nTxType == DELEGATE_TX) {
+            } else if(block.vptx[i]->nTxType == DELEGATE_TX) {
                 std::shared_ptr<CDelegateTransaction> pDelegateTx =
                     dynamic_pointer_cast<CDelegateTransaction>(block.vptx[i]);
                 assert(pDelegateTx->userId.type() == typeid(CRegID));
@@ -1448,36 +1445,34 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
                 CScriptDBOperLog operDbLog;
                 int j = i;
                 for(auto &operFund : pDelegateTx->operVoteFunds) {
-                     assert(operFund.operType == ADD_FUND);
-                     if(operFund.fund.value > maxVotes) {
-                         maxVotes = operFund.fund.value;
-                     }
-                     if(voteAcct.PublicKey == operFund.fund.pubKey) {
-                         voteAcct.llVotes = operFund.fund.value;
-                         assert(scriptDBCache.SetDelegateData(voteAcct, operDbLog));
-                     }
-                     else {
-                             CAccount delegateAcct;
-                             assert(!view.GetAccount(operFund.fund.pubKey, delegateAcct));
-                             CRegID delegateRegId(pindex->nHeight, j++);
-                             delegateAcct.keyID = operFund.fund.pubKey.GetKeyID();
-                             delegateAcct.SetRegId(delegateRegId);
-                             delegateAcct.PublicKey = operFund.fund.pubKey;
-                             delegateAcct.llVotes = operFund.fund.value;
-                             assert(view.SaveAccountInfo(delegateRegId, delegateAcct.keyID, delegateAcct));
-                             assert(scriptDBCache.SetDelegateData(delegateAcct, operDbLog));
-                     }
-                     voteAcct.voteFunds.push_back(operFund.fund);
-                     sort(voteAcct.voteFunds.begin(), voteAcct.voteFunds.end(),
-                        [](CVoteFund fund1, CVoteFund fund2) {
-                         return fund1.value > fund2.value;
-                     });
+                    assert(operFund.operType == ADD_FUND);
+                    if(operFund.fund.value > maxVotes) {
+                        maxVotes = operFund.fund.value;
+                    }
+                    if(voteAcct.PublicKey == operFund.fund.pubKey) {
+                    voteAcct.llVotes = operFund.fund.value;
+                    assert(scriptDBCache.SetDelegateData(voteAcct, operDbLog));
+                    } else {
+                    CAccount delegateAcct;
+                    assert(!view.GetAccount(operFund.fund.pubKey, delegateAcct));
+                    CRegID delegateRegId(pindex->nHeight, j++);
+                    delegateAcct.keyID = operFund.fund.pubKey.GetKeyID();
+                    delegateAcct.SetRegId(delegateRegId);
+                    delegateAcct.PublicKey = operFund.fund.pubKey;
+                    delegateAcct.llVotes = operFund.fund.value;
+                    assert(view.SaveAccountInfo(delegateRegId, delegateAcct.keyID, delegateAcct));
+                    assert(scriptDBCache.SetDelegateData(delegateAcct, operDbLog));
+                    }
+                    voteAcct.voteFunds.push_back(operFund.fund);
+                    sort(voteAcct.voteFunds.begin(), voteAcct.voteFunds.end(),
+                    [](CVoteFund fund1, CVoteFund fund2) {
+                        return fund1.value > fund2.value;
+                    });
                 }
                 assert( voteAcct.llValues >= maxVotes);
                 voteAcct.llValues -= maxVotes;
                 assert(view.SaveAccountInfo(voteAcct.regID, voteAcct.keyID, voteAcct));
             }
-
         }
         return true;
     }
@@ -1521,7 +1516,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
             LogPrint("op_account", "tx index:%d tx hash:%s\n", i, pBaseTx->GetHash().GetHex());
             CTxUndo txundo;
             pBaseTx->nFuelRate = block.GetFuelRate();
-            if(!pBaseTx->ExecuteTx(i, view, state, txundo, pindex->nHeight, txCache, scriptDBCache)) {
+            if (!pBaseTx->ExecuteTx(i, view, state, txundo, pindex->nHeight, txCache, scriptDBCache)) {
                 return false;
             }
 
@@ -1583,8 +1578,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
                 return state.DoS(100, ERRORMSG("ConnectBlock() : read mature block error"),
                     REJECT_INVALID, "bad-read-block");
             }
-            if (!matureBlock.vptx[0]->ExecuteTx(-1, view, state, txundo, pindex->nHeight, txCache,
-                scriptDBCache))
+            if (!matureBlock.vptx[0]->ExecuteTx(-1, view, state, txundo, pindex->nHeight, txCache, scriptDBCache))
                 return ERRORMSG("ConnectBlock() : execute mature block reward tx error!");
         }
         blockundo.vtxundo.push_back(txundo);
