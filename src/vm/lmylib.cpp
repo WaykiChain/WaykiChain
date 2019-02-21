@@ -628,7 +628,7 @@ static int ExSha256Func(lua_State *L) {
 
     if(!GetDataString(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() <= 0)
     {
-        return RetFalse("ExSha256Func para err0");
+        return RetFalse("ExSha256Func para err");
     }
 
     uint256 rslt = Hash(&retdata.at(0).get()->at(0), &retdata.at(0).get()->at(0) + retdata.at(0).get()->size());
@@ -1189,7 +1189,7 @@ static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr < std::
  * 1.第一个是 key值
  * 2.第二个是value值
  */
-static int ExWriteDataDBFunc(lua_State *L) 
+static int ExWriteDataDBFunc(lua_State *L)
 {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
     if (!GetDataTableWriteDataDB(L,retdata) ||retdata.size() != 2) {
@@ -2234,4 +2234,3 @@ LUAMOD_API int luaopen_mylib(lua_State *L)
     luaL_newlib(L,mylib);//生成一个table,把mylibs所有函数填充进去
     return 1;
 }
-
