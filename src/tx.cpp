@@ -165,7 +165,7 @@ void CRegID::SetRegID(string strRegID)
         vRegID.insert(vRegID.end(), BEGIN(nIndex), END(nIndex));
 //      memcpy(&vRegID.at(0),&nHeight,sizeof(nHeight));
 //      memcpy(&vRegID[sizeof(nHeight)],&nIndex,sizeof(nIndex));
-    } else if(strRegID.length() == 12) {
+    } else if (strRegID.length() == 12) {
         vRegID = ::ParseHex(strRegID);
         memcpy(&nHeight,&vRegID[0],sizeof(nHeight));
         memcpy(&nIndex,&vRegID[sizeof(nHeight)],sizeof(nIndex));

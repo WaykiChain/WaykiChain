@@ -96,7 +96,7 @@ public:
 	bool SetAccount(const CUserID &userId, const CAccount &account);
 	bool GetKeyId(const CUserID &userId, CKeyID &keyId);
 	bool SetKeyId(const CUserID &userId, const CKeyID &keyId);
-	CUserID GetUserId (const string &addr);
+	bool GetUserId (const string &addr, GetUserId & userId);
 	CRegID GetRegId (const CKeyID &keyId);
 	bool EraseAccount(const CUserID &userId);
 	bool EraseId(const CUserID &userId);
@@ -162,7 +162,7 @@ public:
       取脚本数据总条数时第一个vector是scriptKey ="sdnum";
       取脚本数据时第一个vector是scriptKey ="data" + "vScriptId" + "_" + "vScriptKey"
       取交易关联账户时第一个vector是scriptKey ="tx" + "txHash"
-	*/ 
+	*/
 public:
 	CScriptDBViewCache(CScriptDBView &base, bool fDummy = false);
 	bool GetScript(const CRegID &scriptId, vector<unsigned char> &vValue);
@@ -410,4 +410,3 @@ public:
 
 
 #endif
-

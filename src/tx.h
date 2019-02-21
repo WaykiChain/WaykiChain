@@ -110,7 +110,7 @@ public:
     static bool IsRegIdStr(const string & str);
     static bool GetKeyID(const string & str,CKeyID &keyId);
 
-    bool IsEmpty()const{return (nHeight == 0 && nIndex == 0);};
+    bool IsEmpty() const { return (nHeight == 0 && nIndex == 0); };
 
     bool clean();
 

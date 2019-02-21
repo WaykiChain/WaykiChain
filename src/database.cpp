@@ -292,18 +292,21 @@ bool CAccountViewCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
 	return false;
 }
 
-CUserID CAccountViewCache::GetUserId(const string &addr)
+bool CAccountViewCache::GetUserId(const string &addr, CUserID &userId)
 {
 	CRegID regId(addr);
-	if(!regId.IsEmpty()) {
-		return regId;
-	}
-	CKeyID keyId(addr);
-	if(!keyId.IsEmpty()) {
-		return keyId;
+	if (!regId.IsEmpty()) {
+		userId = regId;
+		return true;
 	}
 
-	throw ERRORMSG("GetUserId: addr %s invalid", addr);
+	CKeyID keyId(addr);
+	if (!keyId.IsEmpty()) {
+		userId = keyId;
+		return true;
+	}
+
+	return false;
 }
 
 CRegID CAccountViewCache::GetRegId(const CKeyID &keyId)
