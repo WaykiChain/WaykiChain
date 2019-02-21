@@ -1460,7 +1460,7 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
     if (llValues + totalVotes < newTotalVotes) {
         return  ERRORMSG("ProcessDelegateVote() : delegate value exceed account value");
     }
-    llValues = llValues + totalVotes - newTotalVotes;
+    llValues = (llValues + totalVotes) - newTotalVotes;
     llValues += llProfit;
     LogPrint("profits", "received profits: %lld\n", llProfit);
     return true;
