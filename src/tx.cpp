@@ -637,15 +637,17 @@ bool CTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScri
     return true;
 }
 string CTransaction::ToString(CAccountViewCache &view) const {
-    string str;
     string desId;
     if (desUserId.type() == typeid(CKeyID)) {
         desId = boost::get<CKeyID>(desUserId).ToString();
     } else if (desUserId.type() == typeid(CRegID)) {
         desId = boost::get<CRegID>(desUserId).ToString();
     }
-    str += strprintf("txType=%s, hash=%s, ver=%d, srcId=%s desId=%s, llValues=%ld, llFees=%ld, vContract=%s, nValidHeight=%d\n",
-    txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion, boost::get<CRegID>(srcRegId).ToString(), desId.c_str(), llValues, llFees, HexStr(vContract).c_str(), nValidHeight);
+
+    string str = strprintf("txType=%s, hash=%s, ver=%d, srcId=%s desId=%s, llValues=%ld, llFees=%ld, vContract=%s, nValidHeight=%d\n",
+        txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion, boost::get<CRegID>(srcRegId).ToString(),
+        desId.c_str(), llValues, llFees, HexStr(vContract).c_str(), nValidHeight);
+
     return str;
 }
 
@@ -678,31 +680,34 @@ Object CTransaction::ToJSON(const CAccountViewCache &AccountView) const{
 bool CTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 
     if(srcRegId.type() != typeid(CRegID)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction srcRegId must be CRegID"), REJECT_INVALID, "srcaddr-type-error");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction srcRegId must be CRegID"),
+            REJECT_INVALID, "srcaddr-type-error");
     }
 
     if((desUserId.type() != typeid(CRegID)) && (desUserId.type() != typeid(CKeyID))) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction desUserId must be CRegID or CKeyID"), REJECT_INVALID, "desaddr-type-error");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction desUserId must be CRegID or CKeyID"),
+            REJECT_INVALID, "desaddr-type-error");
     }
 
     if (!MoneyRange(llFees)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction CheckTransaction, appeal tx fee out of range"), REJECT_INVALID,
-                "bad-appeal-fee-toolarge");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction CheckTransaction, appeal tx fee out of range"),
+            REJECT_INVALID, "bad-appeal-fee-toolarge");
     }
 
     CAccount acctInfo;
     if (!view.GetAccount(boost::get<CRegID>(srcRegId), acctInfo)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() :CTransaction CheckTransaction, read account falied, regid=%s", boost::get<CRegID>(srcRegId).ToString()), REJECT_INVALID, "bad-getaccount");
+        return state.DoS(100, ERRORMSG("CheckTransaction() :CTransaction CheckTransaction, read account falied, regid=%s",
+            boost::get<CRegID>(srcRegId).ToString()), REJECT_INVALID, "bad-getaccount");
     }
     if (!acctInfo.IsRegistered()) {
-        return state.DoS(100, ERRORMSG("CheckTransaction(): CTransaction CheckTransaction, account have not registed public key"), REJECT_INVALID,
-                "bad-no-pubkey");
+        return state.DoS(100, ERRORMSG("CheckTransaction(): CTransaction CheckTransaction, account have not registed public key"),
+            REJECT_INVALID, "bad-no-pubkey");
     }
 
     uint256 sighash = SignatureHash();
     if (!CheckSignScript(sighash, signature, acctInfo.PublicKey)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction CheckTransaction, CheckSignScript failed"), REJECT_INVALID,
-                "bad-signscript-check");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction CheckTransaction, CheckSignScript failed"),
+            REJECT_INVALID, "bad-signscript-check");
     }
 
     return true;
