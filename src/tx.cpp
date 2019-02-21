@@ -1024,8 +1024,7 @@ uint256 CRegisterContractTx::SignatureHash() const {
 }
 
 bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-    CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB)
-{
+    CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
     CID id(userId);
     CAccount acctInfo;
     if (!view.GetAccount(userId, acctInfo)) {
@@ -1406,7 +1405,7 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
         return false;
     }
 
-    int64_t totalVotes = (int64_t) vVoteFunds.begin()->value;
+    int64_t totalVotes = vVoteFunds.empty() ? 0 : (int64_t) vVoteFunds.begin()->value;
     uint64_t llProfit = GetAccountProfit(nCurHeight);
     if (!IsMoneyOverflow(llProfit)) return false;
 
@@ -1420,9 +1419,6 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
             if (itfund != vVoteFunds.end()) {
                 if (!IsMoneyOverflow(operVote->fund.value))
                      return ERRORMSG("ProcessDelegateVote() : oper fund value exceed maximum ");
-//                if (operVote->fund.value > llValues) {
-//                     return  ERRORMSG("ProcessDelegateVote() : delegate value exceed account value");
-//                }
                 itfund->value += operVote->fund.value;
                 if (!IsMoneyOverflow(itfund->value))
                      return ERRORMSG("ProcessDelegateVote() : fund value exceeds maximum");
