@@ -1039,7 +1039,7 @@ bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValid
             return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate account failed ,regId=%s", boost::get<CRegID>(userId).ToString()),
                 UPDATE_ACCOUNT_FAIL, "operate-account-failed");
     }
-    if (!acctInfo.DealDelegateVote(operVoteFunds, nHeight)) {
+    if (!acctInfo.ProcessDelegateVote(operVoteFunds, nHeight)) {
         return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate delegate vote failed ,regId=%s", boost::get<CRegID>(userId).ToString()),
             UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }
@@ -1398,7 +1398,7 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64
     return true;
 }
 
-bool CAccount::DealDelegateVote(vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight)
+bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight)
 {
     if (nCurHeight < nVoteHeight) {
         LogPrint("ERROR", "current vote tx height (%d) can't be smaller than the last nVoteHeight (%d)",
@@ -1419,35 +1419,35 @@ bool CAccount::DealDelegateVote(vector<COperVoteFund> & operVoteFunds, const uin
         if (ADD_FUND == voteType) {
             if (itfund != vVoteFunds.end()) {
                 if (!IsMoneyOverflow(operVote->fund.value))
-                     return ERRORMSG("DealDelegateVote() : oper fund value exceed maximum ");
+                     return ERRORMSG("ProcessDelegateVote() : oper fund value exceed maximum ");
 //                if (operVote->fund.value > llValues) {
-//                     return  ERRORMSG("DealDelegateVote() : delegate value exceed account value");
+//                     return  ERRORMSG("ProcessDelegateVote() : delegate value exceed account value");
 //                }
                 itfund->value += operVote->fund.value;
                 if (!IsMoneyOverflow(itfund->value))
-                     return ERRORMSG("DealDelegateVote() : fund value exceeds maximum");
+                     return ERRORMSG("ProcessDelegateVote() : fund value exceeds maximum");
             } else {
                vVoteFunds.push_back(operVote->fund);
                if(vVoteFunds.size() > IniCfg().GetDelegatesNum()) {
-                   return ERRORMSG("DealDelegateVote() : fund number exceeds maximum");
+                   return ERRORMSG("ProcessDelegateVote() : fund number exceeds maximum");
                }
             }
         } else if(MINUS_FUND == voteType) {
             if  (itfund != vVoteFunds.end()) {
                 if (!IsMoneyOverflow(operVote->fund.value))
-                    return ERRORMSG("DealDelegateVote() : oper fund value exceed maximum ");
+                    return ERRORMSG("ProcessDelegateVote() : oper fund value exceed maximum ");
                 if(itfund->value < operVote->fund.value) {
-                    return ERRORMSG("DealDelegateVote() : oper fund value exceed delegate fund value");
+                    return ERRORMSG("ProcessDelegateVote() : oper fund value exceed delegate fund value");
                 }
                 itfund->value -= operVote->fund.value;
                 if(0 == itfund->value) {
                     vVoteFunds.erase(itfund);
                 }
             } else {
-                return ERRORMSG("DealDelegateVote() : CDelegateTransaction ExecuteTx AccountVoteOper revocation votes are not exist");
+                return ERRORMSG("ProcessDelegateVote() : CDelegateTransaction ExecuteTx AccountVoteOper revocation votes are not exist");
             }
         } else {
-            return ERRORMSG("DealDelegateVote() : operType: %d invalid", voteType);
+            return ERRORMSG("ProcessDelegateVote() : operType: %d invalid", voteType);
         }
     }
 
@@ -1459,7 +1459,7 @@ bool CAccount::DealDelegateVote(vector<COperVoteFund> & operVoteFunds, const uin
     if(!vVoteFunds.empty())
         newTotalVotes = vVoteFunds.begin()->value;
     if(llValues + (uint64_t)totalVotes < (uint64_t)newTotalVotes ) {
-        return  ERRORMSG("DealDelegateVote() : delegate value exceed account value");
+        return  ERRORMSG("ProcessDelegateVote() : delegate value exceed account value");
     }
     llValues += totalVotes - newTotalVotes;
     llValues += llProfit;

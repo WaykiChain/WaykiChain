@@ -878,7 +878,7 @@ public :
 
     bool UndoOperateAccount(const CAccountLog & accountLog);
 
-    bool DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight);
+    bool ProcessDelegateVote (vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight);
 
     bool OperateVote(VoteOperType type, const uint64_t & values);
 public:
