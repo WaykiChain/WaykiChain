@@ -1406,7 +1406,7 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
         return false;
     }
 
-    int64_t totalVotes = (int64_t) vVoteFunds.begin()->value;
+    int64_t totalVotes = vVoteFunds.empty() ? 0 : (int64_t) vVoteFunds.begin()->value;
     uint64_t llProfit = GetAccountProfit(nCurHeight);
     if (!IsMoneyOverflow(llProfit)) return false;
 
