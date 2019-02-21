@@ -663,7 +663,7 @@ Object CTransaction::ToJSON(const CAccountViewCache &AccountView) const{
     result.push_back(Pair("hash", GetHash().GetHex()));
     result.push_back(Pair("txtype", txTypeArray[nTxType]));
     result.push_back(Pair("ver", nVersion));
-    result.push_back(Pair("regid",  getregidstring(srcRegId)));
+    result.push_back(Pair("regid", getregidstring(srcRegId)));
     view.GetKeyId(srcRegId, keyid);
     result.push_back(Pair("addr",  keyid.ToAddress()));
     result.push_back(Pair("desregid", getregidstring(desUserId)));

@@ -483,7 +483,8 @@ Value callcontracttx(const Array& params, bool fHelp) {
         if (!GetKeyId(params[0].get_str(), srckeyid)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender's Base58 Addr is invalid");
         }
-        if(!pAccountViewTip->GetRegId(CUserID(srckeyid), userId)) {
+
+        if (!pAccountViewTip->GetRegId(CUserID(srckeyid), userId)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender has NO RegId");
         }
     }
@@ -667,7 +668,10 @@ Value registercontracttx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in registercontracttx Error: Account balance is insufficient.");
         }
 
-        tx.regAcctId = view.GetRegId(keyid);
+        CRegID regId;
+        view.GetRegId(keyid, regId);
+
+        tx.regAcctId = regId;
         tx.script = vscript;
         tx.llFees = fee;
         tx.nRunStep = vscript.size();
@@ -2461,7 +2465,10 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
     }
 
     std::shared_ptr<CRegisterContractTx> tx = std::make_shared<CRegisterContractTx>();
-    tx.get()->regAcctId = view.GetRegId(keyid);
+    CRegID regId;
+    view.GetRegId(keyid, regId);
+
+    tx.get()->regAcctId = regId;
     tx.get()->script = vscript;
     tx.get()->llFees = fee;
 

@@ -401,7 +401,7 @@ Value gensendtoaddressraw(const Array& params, bool fHelp)
 
     if (sendId.type() == typeid(CKeyID)) {
         CRegID regId;
-        if(!pAccountViewTip->GetRegId(sendId, regId)){
+        if (!pAccountViewTip->GetRegId(sendId, regId)){
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress not registed");
         }
         sendId = regId;
@@ -449,7 +449,7 @@ typedef struct {
         for (unsigned int i = 0; i < 34; ++i)
             READWRITE(address[i]);
     )
-}TRAN_USER;
+} TRAN_USER;
 #pragma pack()
 
 Value notionalpoolingasset(const Array& params, bool fHelp)
