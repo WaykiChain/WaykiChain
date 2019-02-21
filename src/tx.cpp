@@ -1473,14 +1473,12 @@ bool CAccount::OperateVote(VoteOperType type, const uint64_t & values) {
         if(!IsMoneyOverflow(llVotes)) {
             return ERRORMSG("OperateVote() : delegates total votes exceed maximum ");
         }
-    }
-    else if(MINUS_FUND == type) {
+    } else if (MINUS_FUND == type) {
         if(llVotes < values) {
             return ERRORMSG("OperateVote() : delegates total votes less than revocation vote value");
         }
         llVotes -= values;
-    }
-    else {
+    } else {
         return ERRORMSG("OperateVote() : CDelegateTransaction ExecuteTx AccountVoteOper revocation votes are not exist");
     }
     return true;
