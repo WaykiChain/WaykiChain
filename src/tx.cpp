@@ -1419,9 +1419,6 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
             if (itfund != vVoteFunds.end()) {
                 if (!IsMoneyOverflow(operVote->fund.value))
                      return ERRORMSG("ProcessDelegateVote() : oper fund value exceed maximum ");
-//                if (operVote->fund.value > llValues) {
-//                     return  ERRORMSG("ProcessDelegateVote() : delegate value exceed account value");
-//                }
                 itfund->value += operVote->fund.value;
                 if (!IsMoneyOverflow(itfund->value))
                      return ERRORMSG("ProcessDelegateVote() : fund value exceeds maximum");
