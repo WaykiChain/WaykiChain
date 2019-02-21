@@ -1024,7 +1024,8 @@ uint256 CRegisterContractTx::SignatureHash() const {
 }
 
 bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-    CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
+    CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB)
+{
     CID id(userId);
     CAccount acctInfo;
     if (!view.GetAccount(userId, acctInfo)) {
