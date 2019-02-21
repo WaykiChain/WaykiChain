@@ -1405,7 +1405,6 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
         return false;
     }
 
-    int64_t totalVotes = vVoteFunds.empty() ? 0 : (int64_t) vVoteFunds.begin()->value;
     uint64_t llProfit = GetAccountProfit(nCurHeight);
     if (!IsMoneyOverflow(llProfit)) return false;
 
@@ -1452,9 +1451,11 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
     });
 
     int64_t newTotalVotes = 0;
-    if(!vVoteFunds.empty())
+    if (!vVoteFunds.empty())
         newTotalVotes = vVoteFunds.begin()->value;
-    if(llValues + (uint64_t)totalVotes < (uint64_t)newTotalVotes ) {
+
+    int64_t totalVotes = vVoteFunds.empty() ? 0 : (int64_t) vVoteFunds.begin()->value;
+    if (llValues + (uint64_t) totalVotes < (uint64_t) newTotalVotes) {
         return  ERRORMSG("ProcessDelegateVote() : delegate value exceed account value");
     }
     llValues += totalVotes - newTotalVotes;
