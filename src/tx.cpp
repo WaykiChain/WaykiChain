@@ -1408,6 +1408,8 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
     uint64_t llProfit = GetAccountProfit(nCurHeight);
     if (!IsMoneyOverflow(llProfit)) return false;
 
+    uint64_t totalVotes = vVoteFunds.empty() ? 0 : vVoteFunds.begin()->value; /* totalVotes before vVoteFunds upate */
+
     for (auto operVote = operVoteFunds.begin(); operVote != operVoteFunds.end(); ++operVote) {
         CPubKey pubKey = operVote->fund.pubKey;
         vector<CVoteFund>::iterator itfund = find_if(vVoteFunds.begin(), vVoteFunds.end(),
@@ -1446,21 +1448,21 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
         }
     }
 
-    std::sort(vVoteFunds.begin(),vVoteFunds.end(), [](CVoteFund fund1, CVoteFund fund2) {
+    // sort account votes after the operations against the new votes
+    std::sort(vVoteFunds.begin(), vVoteFunds.end(), [](CVoteFund fund1, CVoteFund fund2) {
         return fund1.value > fund2.value;
     });
 
-    int64_t newTotalVotes = 0;
+    uint64_t newTotalVotes = 0;
     if (!vVoteFunds.empty())
-        newTotalVotes = vVoteFunds.begin()->value;
+        newTotalVotes = vVoteFunds.begin()->value; //get the maximum one as the vote amount
 
-    int64_t totalVotes = vVoteFunds.empty() ? 0 : (int64_t) vVoteFunds.begin()->value;
-    if (llValues + (uint64_t) totalVotes < (uint64_t) newTotalVotes) {
+    if (llValues + totalVotes < newTotalVotes) {
         return  ERRORMSG("ProcessDelegateVote() : delegate value exceed account value");
     }
     llValues += totalVotes - newTotalVotes;
     llValues += llProfit;
-    LogPrint("profits", "receive profits:%lld\n", llProfit);
+    LogPrint("profits", "received profits: %lld\n", llProfit);
     return true;
 }
 
