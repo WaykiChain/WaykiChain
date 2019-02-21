@@ -1397,8 +1397,7 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64
     return true;
 }
 
-bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight)
-{
+bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight) {
     if (nCurHeight < nVoteHeight) {
         LogPrint("ERROR", "current vote tx height (%d) can't be smaller than the last nVoteHeight (%d)",
             nCurHeight, nVoteHeight);
@@ -1413,7 +1412,7 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
     for (auto operVote = operVoteFunds.begin(); operVote != operVoteFunds.end(); ++operVote) {
         CPubKey pubKey = operVote->fund.pubKey;
         vector<CVoteFund>::iterator itfund = find_if(vVoteFunds.begin(), vVoteFunds.end(),
-            [pubKey](CVoteFund fund){ return fund.pubKey == pubKey; });
+                                                     [pubKey](CVoteFund fund) { return fund.pubKey == pubKey; });
 
         int voteType = VoteOperType(operVote->operType);
         if (ADD_FUND == voteType) {
@@ -1425,23 +1424,23 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
                      return ERRORMSG("ProcessDelegateVote() : fund value exceeds maximum");
             } else {
                vVoteFunds.push_back(operVote->fund);
-               if(vVoteFunds.size() > IniCfg().GetDelegatesNum()) {
+               if (vVoteFunds.size() > IniCfg().GetDelegatesNum()) {
                    return ERRORMSG("ProcessDelegateVote() : fund number exceeds maximum");
                }
             }
-        } else if(MINUS_FUND == voteType) {
+        } else if (MINUS_FUND == voteType) {
             if  (itfund != vVoteFunds.end()) {
                 if (!IsMoneyOverflow(operVote->fund.value))
                     return ERRORMSG("ProcessDelegateVote() : oper fund value exceed maximum ");
-                if(itfund->value < operVote->fund.value) {
+                if (itfund->value < operVote->fund.value) {
                     return ERRORMSG("ProcessDelegateVote() : oper fund value exceed delegate fund value");
                 }
                 itfund->value -= operVote->fund.value;
-                if(0 == itfund->value) {
+                if (0 == itfund->value) {
                     vVoteFunds.erase(itfund);
                 }
             } else {
-                return ERRORMSG("ProcessDelegateVote() : CDelegateTransaction ExecuteTx AccountVoteOper revocation votes are not exist");
+                return ERRORMSG("ProcessDelegateVote() : revocation votes not exist");
             }
         } else {
             return ERRORMSG("ProcessDelegateVote() : operType: %d invalid", voteType);
@@ -1453,9 +1452,8 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
         return fund1.value > fund2.value;
     });
 
-    uint64_t newTotalVotes = 0;
-    if (!vVoteFunds.empty())
-        newTotalVotes = vVoteFunds.begin()->value; //get the maximum one as the vote amount
+    // get the maximum one as the vote amount
+    uint64_t newTotalVotes = vVoteFunds.empty() ? 0 : vVoteFunds.begin()->value;
 
     if (llValues + totalVotes < newTotalVotes) {
         return  ERRORMSG("ProcessDelegateVote() : delegate value exceed account value");
