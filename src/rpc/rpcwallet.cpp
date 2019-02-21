@@ -37,7 +37,7 @@ string HelpRequiringPassphrase()
 void EnsureWalletIsUnlocked()
 {
     if (pwalletMain->IsLocked())
-        throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, 
+        throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED,
             "Error: Please enter the wallet passphrase with walletpassphrase first.");
 }
 
@@ -142,7 +142,7 @@ Value signmessage(const Array& params, bool fHelp)
     return EncodeBase64(&vchSig[0], vchSig.size());
 }
 
-static std::tuple<bool, string> SendMoney(const CRegID &sendRegId, const CUserID &recvRegId, 
+static std::tuple<bool, string> SendMoney(const CRegID &sendRegId, const CUserID &recvRegId,
     int64_t nValue, int64_t nFee) {
     CTransaction tx;
     tx.srcRegId = sendRegId;
@@ -390,21 +390,27 @@ Value gensendtoaddressraw(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "send 0 amount disallowed!");
     }
 
-    CUserID  sendId, recvId;
-    sendId = view.GetUserId(params[2].get_str());
+    CUserID sendId, recvId;
+    if (!view.GetUserId(params[2].get_str(), sendId)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Sender Address!");
+    }
 
     if (!pAccountViewTip->GetKeyId(sendId, sendKeyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Get CKeyID failed from CUserID");
     }
+
     if (sendId.type() == typeid(CKeyID)) {
         CRegID regId;
-        if(!pAccountViewTip->GetRegId(sendId, regId)){
+        if (!pAccountViewTip->GetRegId(sendId, regId)){
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress not registed");
         }
         sendId = regId;
     }
 
-    recvId = view.GetUserId(params[3].get_str());
+    if (!view.GetUserId(params[3].get_str(), recvId)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid receiver address!");
+    }
+
     if (recvId.type() == typeid(CKeyID)) {
         CRegID regId;
         if (pAccountViewTip->GetRegId(recvId, regId)) {
@@ -443,7 +449,7 @@ typedef struct {
         for (unsigned int i = 0; i < 34; ++i)
             READWRITE(address[i]);
     )
-}TRAN_USER;
+} TRAN_USER;
 #pragma pack()
 
 Value notionalpoolingasset(const Array& params, bool fHelp)
@@ -704,7 +710,7 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
             recvUserId = recvKeyId;
         }
 
-        CTransaction tx(sendRegId, recvUserId, SysCfg().GetTxFee(), 
+        CTransaction tx(sendRegId, recvUserId, SysCfg().GetTxFee(),
             pAccountViewTip->GetRawBalance(sendRegId) - SysCfg().GetTxFee() - nAmount,
             chainActive.Height());
 
@@ -1015,7 +1021,7 @@ Value walletlock(const Array& params, bool fHelp)
     }
 
     if (!pwalletMain->IsEncrypted()) {
-        throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, 
+        throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE,
             "Error: running with an unencrypted wallet, but walletlock was called.");
     }
 

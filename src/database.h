@@ -91,13 +91,14 @@ public:
 	 * @param regId
 	 * @return
 	 */
-	bool GetRegId(const CUserID &userId, CRegID &regId)const;
+
 	bool GetAccount(const CUserID &userId, CAccount &account);
 	bool SetAccount(const CUserID &userId, const CAccount &account);
 	bool GetKeyId(const CUserID &userId, CKeyID &keyId);
 	bool SetKeyId(const CUserID &userId, const CKeyID &keyId);
-	CUserID GetUserId (const string &addr);
-	CRegID GetRegId (const CKeyID &keyId);
+	bool GetUserId (const string &addr, CUserID &userId);
+	bool GetRegId(const CKeyID &keyId, CRegID &regId);
+	bool GetRegId(const CUserID &userId, CRegID &regId) const;
 	bool EraseAccount(const CUserID &userId);
 	bool EraseId(const CUserID &userId);
 	bool HaveAccount(const CUserID &userId);
@@ -162,7 +163,7 @@ public:
       取脚本数据总条数时第一个vector是scriptKey ="sdnum";
       取脚本数据时第一个vector是scriptKey ="data" + "vScriptId" + "_" + "vScriptKey"
       取交易关联账户时第一个vector是scriptKey ="tx" + "txHash"
-	*/ 
+	*/
 public:
 	CScriptDBViewCache(CScriptDBView &base, bool fDummy = false);
 	bool GetScript(const CRegID &scriptId, vector<unsigned char> &vValue);
@@ -410,4 +411,3 @@ public:
 
 
 #endif
-

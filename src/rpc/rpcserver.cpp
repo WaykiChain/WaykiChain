@@ -241,7 +241,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getrawmempool",          &getrawmempool,          true,      false,      false },
     { "listcheckpoint",         &listcheckpoint,         true,      false,      false },
     { "verifychain",            &verifychain,            true,      false,      false },
-    
+
     { "gettotalcoins",          &gettotalcoins,           false,     false,      false },
     { "gettotalassets",         &gettotalassets,         false,     false,      false },
     { "invalidateblock",        &invalidateblock,        true,      true,       false },
@@ -268,7 +268,7 @@ static const CRPCCommand vRPCCommands[] =
     { "encryptwallet",          &encryptwallet,         false,     false,      true },
     { "getaccountinfo",         &getaccountinfo,        true,      false,      true },
     { "getnewaddress",          &getnewaddr,            true,      false,      true },   /* deprecated */
-    { "getnewaddr",             &getnewaddr,            true,      false,      true }, 
+    { "getnewaddr",             &getnewaddr,            true,      false,      true },
     { "gettxdetail",            &gettxdetail,           true,      false,      true },
     { "listunconfirmedtx",      &listunconfirmedtx,      true,      false,      true },
     { "getwalletinfo",          &getwalletinfo,          true,      false,      true },
@@ -289,7 +289,7 @@ static const CRPCCommand vRPCCommands[] =
     { "createcontracttx",       &callcontracttx,         true,      false,      true }, /** deprecated */
     { "callcontracttx",         &callcontracttx,         true,      false,      true },
     { "votedelegatetx",         &votedelegatetx,         true,      false,      true },
-    
+
     { "settxfee",               &settxfee,               false,     false,      true },
     { "walletlock",             &walletlock,             true,      false,      true },
     { "walletpassphrasechange", &walletpassphrasechange, false,     false,      true },
@@ -781,7 +781,7 @@ void ServiceConnection(AcceptedConnection *conn) {
 
         // disable http keepalive for client-wallet connection to bypass connection threading bugs
         // if (mapHeaders["connection"] == "close")
-            fRun = false;
+        fRun = false;
 
         JSONRequest jreq;
         try {

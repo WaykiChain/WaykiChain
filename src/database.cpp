@@ -292,28 +292,49 @@ bool CAccountViewCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
 	return false;
 }
 
-CUserID CAccountViewCache::GetUserId(const string &addr)
+bool CAccountViewCache::GetUserId(const string &addr, CUserID &userId)
 {
 	CRegID regId(addr);
-	if(!regId.IsEmpty()) {
-		return regId;
-	}
-	CKeyID keyId(addr);
-	if(!keyId.IsEmpty()) {
-		return keyId;
+	if (!regId.IsEmpty()) {
+		userId = regId;
+		return true;
 	}
 
-	throw ERRORMSG("GetUserId: addr %s invalid", addr);
+	CKeyID keyId(addr);
+	if (!keyId.IsEmpty()) {
+		userId = keyId;
+		return true;
+	}
+
+	return false;
 }
 
-CRegID CAccountViewCache::GetRegId(const CKeyID &keyId)
+bool CAccountViewCache::GetRegId(const CKeyID &keyId, CRegID &regId)
 {
 	CAccount acct;
 	if (CAccountViewCache::GetAccount(CUserID(keyId), acct)) {
-		return acct.regID;
+		regId = acct.regID;
+		return true;
 	} else {
-        throw runtime_error(tinyformat::format("GetRegId :account id %s not exist\n", keyId.ToAddress()));
+        //throw runtime_error(tinyformat::format("GetRegId :account id %s not exist\n", keyId.ToAddress()));
+		return false;
 	}
+}
+
+bool CAccountViewCache::GetRegId(const CUserID& userId, CRegID& regId) const
+{
+	CAccountViewCache tempView(*this);
+	CAccount account;
+	if(userId.type() == typeid(CRegID)) {
+		regId = boost::get<CRegID>(userId);
+		return true;
+	}
+	if(tempView.GetAccount(userId,account))
+	{
+		regId =  account.regID;
+		return !regId.IsEmpty();
+	}
+	return false;
 }
 
 bool CAccountViewCache::SetAccount(const CUserID &userId, const CAccount &account) {
@@ -365,22 +386,6 @@ bool CAccountViewCache::Flush(){
 		cacheKeyIds.clear();
 	 }
 	 return fOk;
-}
-
-bool CAccountViewCache::GetRegId(const CUserID& userId, CRegID& regId) const{
-
-	CAccountViewCache tempView(*this);
-	CAccount account;
-	if(userId.type() == typeid(CRegID)) {
-		regId = boost::get<CRegID>(userId);
-		return true;
-	}
-	if(tempView.GetAccount(userId,account))
-	{
-		regId =  account.regID;
-		return !regId.IsEmpty();
-	}
-	return false;
 }
 
 int64_t CAccountViewCache::GetRawBalance(const CUserID& userId) const {

@@ -208,9 +208,9 @@ vector_unsigned_char CVmRunEvn::GetAccountID(CVmOperate value) {
         string addr(value.accountid,value.accountid+sizeof(value.accountid));
         CKeyID KeyId = CKeyID(addr);
         CRegID regid;
-        if(m_view->GetRegId(CUserID(KeyId), regid)){
+        if (m_view->GetRegId(CUserID(KeyId), regid)){
             accountid.assign(regid.GetVec6().begin(),regid.GetVec6().end());
-        }else{
+        } else {
             accountid.assign(value.accountid, value.accountid + 34);
         }
     }

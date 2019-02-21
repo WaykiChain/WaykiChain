@@ -110,7 +110,7 @@ public:
     static bool IsRegIdStr(const string & str);
     static bool GetKeyID(const string & str,CKeyID &keyId);
 
-    bool IsEmpty()const{return (nHeight == 0 && nIndex == 0);};
+    bool IsEmpty() const { return (nHeight == 0 && nIndex == 0); };
 
     bool clean();
 
@@ -603,30 +603,29 @@ public:
         *this = *(CDelegateTransaction *) pBaseTx;
     }
 
-    CDelegateTransaction(const vector_unsigned_char &accountIn, vector<COperVoteFund> & in_OperVoteFunds, const uint64_t in_Fee, const int in_Height) {
+    CDelegateTransaction(const vector_unsigned_char &accountIn, vector<COperVoteFund> &operVoteFundsIn, const uint64_t feeIn, const int heightIn) {
         nTxType = DELEGATE_TX;
         if (accountIn.size() > 6) {
             userId = CPubKey(accountIn);
         } else {
             userId = CRegID(accountIn);
         }
-        operVoteFunds = in_OperVoteFunds;
-        nValidHeight = in_Height;
-        llFees = in_Fee;
+        operVoteFunds = operVoteFundsIn;
+        nValidHeight = heightIn;
+        llFees = feeIn;
         signature.clear();
      }
 
-    CDelegateTransaction(const CUserID& in_UserId, uint64_t in_Fee, const vector<COperVoteFund> & in_OperVoteFunds,
-        const int in_Heigh)
-    {
-        if (in_UserId.type() == typeid(CRegID)) {
-            assert(!boost::get<CRegID>(in_UserId).IsEmpty());
+    CDelegateTransaction(const CUserID &userIdIn, uint64_t feeIn, const vector<COperVoteFund> &operVoteFundsIn,
+        const int heightIn) {
+        if (userIdIn.type() == typeid(CRegID)) {
+            assert(!boost::get<CRegID>(userIdIn).IsEmpty());
         }
         nTxType = DELEGATE_TX;
-        userId = in_UserId;
-        operVoteFunds =  in_OperVoteFunds;
-        nValidHeight = in_Heigh;
-        llFees = in_Fee;
+        userId = userIdIn;
+        operVoteFunds =  operVoteFundsIn;
+        nValidHeight = heightIn;
+        llFees = feeIn;
         signature.clear();
     }
 
@@ -651,7 +650,7 @@ public:
         READWRITE(operVoteFunds);
         READWRITE(VARINT(llFees));
         READWRITE(signature);
-        if(fRead) {
+        if (fRead) {
             userId = ID.GetUserId();
         }
     )
@@ -878,7 +877,7 @@ public :
 
     bool UndoOperateAccount(const CAccountLog & accountLog);
 
-    bool DealDelegateVote (vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight);
+    bool ProcessDelegateVote (vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight);
 
     bool OperateVote(VoteOperType type, const uint64_t & values);
 public:
@@ -940,7 +939,7 @@ public:
     uint64_t GetTotalBalance();
     uint64_t GetFrozenBalance();
 //  void ClearAccPos(int nCurHeight);
-    uint64_t GetAccountProfit(int prevBlockHeight);
+    uint64_t GetAccountProfit(uint64_t prevBlockHeight);
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;
     bool IsEmptyValue() const { return !(llValues > 0); }

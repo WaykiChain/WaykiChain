@@ -165,7 +165,7 @@ void CRegID::SetRegID(string strRegID)
         vRegID.insert(vRegID.end(), BEGIN(nIndex), END(nIndex));
 //      memcpy(&vRegID.at(0),&nHeight,sizeof(nHeight));
 //      memcpy(&vRegID[sizeof(nHeight)],&nIndex,sizeof(nIndex));
-    } else if(strRegID.length() == 12) {
+    } else if (strRegID.length() == 12) {
         vRegID = ::ParseHex(strRegID);
         memcpy(&nHeight,&vRegID[0],sizeof(nHeight));
         memcpy(&nIndex,&vRegID[sizeof(nHeight)],sizeof(nIndex));
@@ -637,15 +637,17 @@ bool CTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScri
     return true;
 }
 string CTransaction::ToString(CAccountViewCache &view) const {
-    string str;
     string desId;
     if (desUserId.type() == typeid(CKeyID)) {
         desId = boost::get<CKeyID>(desUserId).ToString();
     } else if (desUserId.type() == typeid(CRegID)) {
         desId = boost::get<CRegID>(desUserId).ToString();
     }
-    str += strprintf("txType=%s, hash=%s, ver=%d, srcId=%s desId=%s, llValues=%ld, llFees=%ld, vContract=%s, nValidHeight=%d\n",
-    txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion, boost::get<CRegID>(srcRegId).ToString(), desId.c_str(), llValues, llFees, HexStr(vContract).c_str(), nValidHeight);
+
+    string str = strprintf("txType=%s, hash=%s, ver=%d, srcId=%s desId=%s, llValues=%ld, llFees=%ld, vContract=%s, nValidHeight=%d\n",
+        txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion, boost::get<CRegID>(srcRegId).ToString(),
+        desId.c_str(), llValues, llFees, HexStr(vContract).c_str(), nValidHeight);
+
     return str;
 }
 
@@ -663,7 +665,7 @@ Object CTransaction::ToJSON(const CAccountViewCache &AccountView) const{
     result.push_back(Pair("hash", GetHash().GetHex()));
     result.push_back(Pair("txtype", txTypeArray[nTxType]));
     result.push_back(Pair("ver", nVersion));
-    result.push_back(Pair("regid",  getregidstring(srcRegId)));
+    result.push_back(Pair("regid", getregidstring(srcRegId)));
     view.GetKeyId(srcRegId, keyid);
     result.push_back(Pair("addr",  keyid.ToAddress()));
     result.push_back(Pair("desregid", getregidstring(desUserId)));
@@ -678,31 +680,34 @@ Object CTransaction::ToJSON(const CAccountViewCache &AccountView) const{
 bool CTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 
     if(srcRegId.type() != typeid(CRegID)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction srcRegId must be CRegID"), REJECT_INVALID, "srcaddr-type-error");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction srcRegId must be CRegID"),
+            REJECT_INVALID, "srcaddr-type-error");
     }
 
     if((desUserId.type() != typeid(CRegID)) && (desUserId.type() != typeid(CKeyID))) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction desUserId must be CRegID or CKeyID"), REJECT_INVALID, "desaddr-type-error");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction desUserId must be CRegID or CKeyID"),
+            REJECT_INVALID, "desaddr-type-error");
     }
 
     if (!MoneyRange(llFees)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction CheckTransaction, appeal tx fee out of range"), REJECT_INVALID,
-                "bad-appeal-fee-toolarge");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction CheckTransaction, appeal tx fee out of range"),
+            REJECT_INVALID, "bad-appeal-fee-toolarge");
     }
 
     CAccount acctInfo;
     if (!view.GetAccount(boost::get<CRegID>(srcRegId), acctInfo)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() :CTransaction CheckTransaction, read account falied, regid=%s", boost::get<CRegID>(srcRegId).ToString()), REJECT_INVALID, "bad-getaccount");
+        return state.DoS(100, ERRORMSG("CheckTransaction() :CTransaction CheckTransaction, read account falied, regid=%s",
+            boost::get<CRegID>(srcRegId).ToString()), REJECT_INVALID, "bad-getaccount");
     }
     if (!acctInfo.IsRegistered()) {
-        return state.DoS(100, ERRORMSG("CheckTransaction(): CTransaction CheckTransaction, account have not registed public key"), REJECT_INVALID,
-                "bad-no-pubkey");
+        return state.DoS(100, ERRORMSG("CheckTransaction(): CTransaction CheckTransaction, account have not registed public key"),
+            REJECT_INVALID, "bad-no-pubkey");
     }
 
     uint256 sighash = SignatureHash();
     if (!CheckSignScript(sighash, signature, acctInfo.PublicKey)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction CheckTransaction, CheckSignScript failed"), REJECT_INVALID,
-                "bad-signscript-check");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction CheckTransaction, CheckSignScript failed"),
+            REJECT_INVALID, "bad-signscript-check");
     }
 
     return true;
@@ -1039,7 +1044,7 @@ bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValid
             return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate account failed ,regId=%s", boost::get<CRegID>(userId).ToString()),
                 UPDATE_ACCOUNT_FAIL, "operate-account-failed");
     }
-    if (!acctInfo.DealDelegateVote(operVoteFunds, nHeight)) {
+    if (!acctInfo.ProcessDelegateVote(operVoteFunds, nHeight)) {
         return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate delegate vote failed ,regId=%s", boost::get<CRegID>(userId).ToString()),
             UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }
@@ -1270,11 +1275,11 @@ bool CAccount::UndoOperateAccount(const CAccountLog & accountLog) {
     return true;
 }
 
-uint64_t CAccount::GetAccountProfit(int nCurHeight) {
+uint64_t CAccount::GetAccountProfit(uint64_t nCurHeight) {
      if (vVoteFunds.empty()) {
-        LogPrint("DEBUG", "1st-time vote for the account, hence no minting of vote interest.");
-        nVoteHeight = nCurHeight; // save the current tx height as the last vote height!
-        return 0; // return 0 profit for the 1st vote to the account
+        LogPrint("DEBUG", "1st-time vote for the account, hence no minting of interest.");
+        nVoteHeight = nCurHeight; //record the 1st-time vote block height into account
+        return 0; // 0 profit for 1st-time vote
     }
 
     // 先判断计算分红的上下限区块高度是否落在同一个分红率区间
@@ -1398,72 +1403,70 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64
     return true;
 }
 
-bool CAccount::DealDelegateVote(vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight)
-{
+bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight) {
     if (nCurHeight < nVoteHeight) {
-        LogPrint("ERROR", "current sycn block height(%d) can't be smaller than account nVoteHeight (%d)",
+        LogPrint("ERROR", "current vote tx height (%d) can't be smaller than the last nVoteHeight (%d)",
             nCurHeight, nVoteHeight);
         return false;
     }
 
-    int64_t totalVotes = (int64_t) vVoteFunds.begin()->value;
     uint64_t llProfit = GetAccountProfit(nCurHeight);
     if (!IsMoneyOverflow(llProfit)) return false;
+
+    uint64_t totalVotes = vVoteFunds.empty() ? 0 : vVoteFunds.begin()->value; /* totalVotes before vVoteFunds upate */
 
     for (auto operVote = operVoteFunds.begin(); operVote != operVoteFunds.end(); ++operVote) {
         CPubKey pubKey = operVote->fund.pubKey;
         vector<CVoteFund>::iterator itfund = find_if(vVoteFunds.begin(), vVoteFunds.end(),
-            [pubKey](CVoteFund fund){ return fund.pubKey == pubKey; });
+                                                     [pubKey](CVoteFund fund) { return fund.pubKey == pubKey; });
 
         int voteType = VoteOperType(operVote->operType);
         if (ADD_FUND == voteType) {
             if (itfund != vVoteFunds.end()) {
                 if (!IsMoneyOverflow(operVote->fund.value))
-                     return ERRORMSG("DealDelegateVote() : oper fund value exceed maximum ");
-//                if (operVote->fund.value > llValues) {
-//                     return  ERRORMSG("DealDelegateVote() : delegate value exceed account value");
-//                }
+                     return ERRORMSG("ProcessDelegateVote() : oper fund value exceed maximum ");
                 itfund->value += operVote->fund.value;
                 if (!IsMoneyOverflow(itfund->value))
-                     return ERRORMSG("DealDelegateVote() : fund value exceeds maximum");
+                     return ERRORMSG("ProcessDelegateVote() : fund value exceeds maximum");
             } else {
                vVoteFunds.push_back(operVote->fund);
-               if(vVoteFunds.size() > IniCfg().GetDelegatesNum()) {
-                   return ERRORMSG("DealDelegateVote() : fund number exceeds maximum");
+               if (vVoteFunds.size() > IniCfg().GetDelegatesNum()) {
+                   return ERRORMSG("ProcessDelegateVote() : fund number exceeds maximum");
                }
             }
-        } else if(MINUS_FUND == voteType) {
+        } else if (MINUS_FUND == voteType) {
             if  (itfund != vVoteFunds.end()) {
                 if (!IsMoneyOverflow(operVote->fund.value))
-                    return ERRORMSG("DealDelegateVote() : oper fund value exceed maximum ");
-                if(itfund->value < operVote->fund.value) {
-                    return ERRORMSG("DealDelegateVote() : oper fund value exceed delegate fund value");
+                    return ERRORMSG("ProcessDelegateVote() : oper fund value exceed maximum ");
+                if (itfund->value < operVote->fund.value) {
+                    return ERRORMSG("ProcessDelegateVote() : oper fund value exceed delegate fund value");
                 }
                 itfund->value -= operVote->fund.value;
-                if(0 == itfund->value) {
+                if (0 == itfund->value) {
                     vVoteFunds.erase(itfund);
                 }
             } else {
-                return ERRORMSG("DealDelegateVote() : CDelegateTransaction ExecuteTx AccountVoteOper revocation votes are not exist");
+                return ERRORMSG("ProcessDelegateVote() : revocation votes not exist");
             }
         } else {
-            return ERRORMSG("DealDelegateVote() : operType: %d invalid", voteType);
+            return ERRORMSG("ProcessDelegateVote() : operType: %d invalid", voteType);
         }
     }
 
-    std::sort(vVoteFunds.begin(),vVoteFunds.end(), [](CVoteFund fund1, CVoteFund fund2) {
+    // sort account votes after the operations against the new votes
+    std::sort(vVoteFunds.begin(), vVoteFunds.end(), [](CVoteFund fund1, CVoteFund fund2) {
         return fund1.value > fund2.value;
     });
 
-    int64_t newTotalVotes = 0;
-    if(!vVoteFunds.empty())
-        newTotalVotes = vVoteFunds.begin()->value;
-    if(llValues + (uint64_t)totalVotes < (uint64_t)newTotalVotes ) {
-        return  ERRORMSG("DealDelegateVote() : delegate value exceed account value");
+    // get the maximum one as the vote amount
+    uint64_t newTotalVotes = vVoteFunds.empty() ? 0 : vVoteFunds.begin()->value;
+
+    if (llValues + totalVotes < newTotalVotes) {
+        return  ERRORMSG("ProcessDelegateVote() : delegate value exceed account value");
     }
-    llValues += totalVotes - newTotalVotes;
+    llValues = (llValues + totalVotes) - newTotalVotes;
     llValues += llProfit;
-    LogPrint("profits", "receive profits:%lld\n", llProfit);
+    LogPrint("profits", "received profits: %lld\n", llProfit);
     return true;
 }
 
@@ -1473,14 +1476,12 @@ bool CAccount::OperateVote(VoteOperType type, const uint64_t & values) {
         if(!IsMoneyOverflow(llVotes)) {
             return ERRORMSG("OperateVote() : delegates total votes exceed maximum ");
         }
-    }
-    else if(MINUS_FUND == type) {
+    } else if (MINUS_FUND == type) {
         if(llVotes < values) {
             return ERRORMSG("OperateVote() : delegates total votes less than revocation vote value");
         }
         llVotes -= values;
-    }
-    else {
+    } else {
         return ERRORMSG("OperateVote() : CDelegateTransaction ExecuteTx AccountVoteOper revocation votes are not exist");
     }
     return true;
