@@ -7,13 +7,8 @@
 #include <string>
 #include <memory>
 
-
-
 using namespace std;
 class CVmRunEvn;
-
-
-
 
 class CVmlua {
 public:
@@ -21,10 +16,10 @@ public:
 	~CVmlua();
 	tuple<uint64_t,string> run(uint64_t maxstep,CVmRunEvn *pVmScriptRun);
 	static tuple<bool,string> syntaxcheck(const char* filePath);
-private:
-	unsigned char m_ExRam[65536];  //存放的是合约交易的contact内容
-	unsigned char m_ExeFile[65536];//可执行文件 IpboApp.lua
 
+private:
+	unsigned char m_ExRam[65536];  	// to save contract tx function argument (contract)
+	unsigned char m_ExeFile[65536];	// executable file IpboApp.lua
 };
 
 

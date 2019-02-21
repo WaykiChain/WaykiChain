@@ -143,6 +143,7 @@ void Shutdown()
 
     StopNode();
     UnregisterNodeSignals(GetNodeSignals());
+
     {
         LOCK(cs_main);
 
@@ -169,7 +170,6 @@ void Shutdown()
         delete pScriptDB; pScriptDB = NULL;
         delete pTxCacheTip; pTxCacheTip = NULL;
         delete pScriptDBTip; pScriptDBTip = NULL;
-
     }
 
     boost::filesystem::remove(GetPidFile());
@@ -371,13 +371,13 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles)
             FILE *file = OpenBlockFile(pos, true);
             if (!file)
                 break;
-            LogPrint("INFO","Reindexing block file blk%05u.dat...\n", (unsigned int)nFile);
+            LogPrint("INFO", "Reindexing block file blk%05u.dat...\n", (unsigned int)nFile);
             LoadExternalBlockFile(file, &pos);
             nFile++;
         }
         pblocktree->WriteReindexing(false);
         SysCfg().SetReIndex(false);
-        LogPrint("INFO","Reindexing finished\n");
+        LogPrint("INFO", "Reindexing finished\n");
         // To avoid ending up in a situation without genesis block, re-try initializing (no-op if reindexing worked):
         InitBlockIndex();
     }
@@ -393,7 +393,7 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles)
             LoadExternalBlockFile(file);
             RenameOver(pathBootstrap, pathBootstrapOld);
         } else {
-            LogPrint("INFO","Warning: Could not open bootstrap file %s\n", pathBootstrap.string());
+            LogPrint("INFO", "Warning: Could not open bootstrap file %s\n", pathBootstrap.string());
         }
     }
 
@@ -776,9 +776,9 @@ bool AppInit(boost::thread_group& threadGroup)
         pwalletMain = CWallet::getinstance();
         RegisterWallet(pwalletMain);
         pwalletMain->LoadWallet(false);
-        } catch (std::exception &e) {
-            cout<< "load wallet failed:"<<  e.what() << endl;
-        }
+    } catch (std::exception &e) {
+        cout<< "load wallet failed:"<<  e.what() << endl;
+    }
 
     //load checkpoint
     SyncData::CSyncDataDb db;
@@ -851,8 +851,7 @@ bool AppInit(boost::thread_group& threadGroup)
                 }
 
                 uiInterface.InitMessage(_("Verifying blocks..."));
-                if (!VerifyDB(SysCfg().GetArg("-checklevel", 3),
-                        SysCfg().GetArg("-checkblocks", 288))) {
+                if (!VerifyDB(SysCfg().GetArg("-checklevel", 3), SysCfg().GetArg("-checkblocks", 288))) {
                     strLoadError = _("Corrupted block database detected");
                     break;
                 }

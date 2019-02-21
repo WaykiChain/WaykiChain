@@ -197,7 +197,7 @@ def sanity_test_fee(bitcoind, txdata_hex, max_fee):
     class FeeError(RuntimeError):
         pass
     try:
-        txinfo = bitcoind.decoderawtransaction(txdata_hex)
+        txinfo = bitcoind.decoderawtx(txdata_hex)
         total_in = compute_amount_in(bitcoind, txinfo)
         total_out = compute_amount_out(txinfo)
         if total_in-total_out > max_fee:

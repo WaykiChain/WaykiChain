@@ -29,7 +29,7 @@ Object CKeyCombi::ToJsonObj()const {
     return std::move(reply);
 }
 
-bool CKeyCombi::UnSersailFromJson(const Object& obj){
+bool CKeyCombi::UnSerializeFromJson(const Object& obj){
 	try {
 		Object reply;
 		const Value& mCKey = find_value(obj, "mCkey");
@@ -47,7 +47,7 @@ bool CKeyCombi::UnSersailFromJson(const Object& obj){
 			nCreationTime =find_value(obj, "nCreationTime").get_int64();
 		}
 	} catch (...) {
-		ERRORMSG("UnSersailFromJson Failed !");
+		ERRORMSG("UnSerializeFromJson Failed !");
 		return false;
 	}
 

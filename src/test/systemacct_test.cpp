@@ -48,7 +48,7 @@ BOOST_FIXTURE_TEST_CASE(transfer_test, CSysAccountTest)
 	string strResigterd("tQCmxQDFQdHmAZw1j3dteB4CTro2Ph5TYP");
 	BOOST_CHECK(!RegisterAccount(strRegAddr,10000,strTxHash));
 
-	//用getnewaddress获取一个没有设置挖坑的公钥地址，注册账户最后一个参数是true，看此地址是否能够注册成功
+	//用getnewaddr获取一个没有设置挖坑的公钥地址，注册账户最后一个参数是true，看此地址是否能够注册成功
 	string strNewKeyID;
 	BOOST_CHECK(GetNewAddr(strNewKeyID,true));
 

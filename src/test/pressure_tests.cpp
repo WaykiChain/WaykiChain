@@ -120,7 +120,7 @@ public:
 	 */
 	bool CreateRegAcctTx() {
 		//获取一个新的地址
-		const char *argv[] = {"rpctest", "getnewaddress"};
+		const char *argv[] = {"rpctest", "getnewaddr"};
 		int argc = sizeof(argv) /sizeof(char *);
 		Value value;
 		if(!CommandLineRPC_GetValue(argc, argv, value))

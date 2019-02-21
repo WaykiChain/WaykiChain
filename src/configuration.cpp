@@ -27,7 +27,7 @@ using namespace std;
 
 namespace Checkpoints
 {
-    typedef map<int, uint256> MapCheckpoints; // the first parameter is  nHeight;
+    typedef map<int, uint256> MapCheckpoints; // nHeight -> blockHash;
     CCriticalSection cs_checkPoint;
 
     // How many times we expect transactions after the last checkpoint to
@@ -95,7 +95,7 @@ namespace Checkpoints
 
     // nHeight找不到 或 高度和hash都能找到，则返回true
     bool CheckBlock(int nHeight, const uint256& hash)
-    { 
+    {
         if (!fEnabled)
             return true;
 
@@ -107,7 +107,7 @@ namespace Checkpoints
     }
 
     // Guess how far we are in the verification process at the given block index
-    double GuessVerificationProgress(CBlockIndex *pindex, bool fSigchecks) 
+    double GuessVerificationProgress(CBlockIndex *pindex, bool fSigchecks)
     {
         if (pindex==NULL)
             return 0.0;
@@ -141,7 +141,7 @@ namespace Checkpoints
 
     // 获取mapCheckpoints 中保存最后一个checkpoint 的高度
     int GetTotalBlocksEstimate()
-    {    
+    {
         if (!fEnabled) return 0;
 
         const MapCheckpoints& checkpoints = *Checkpoints().mapCheckpoints;
@@ -204,14 +204,13 @@ namespace Checkpoints
 
  const G_CONFIG_TABLE &IniCfg(){
 	static G_CONFIG_TABLE * psCfg =  NULL;
-     if(psCfg == NULL)
-     {
+     if (psCfg == NULL) {
     	 psCfg  = new G_CONFIG_TABLE ();
      }
      assert(psCfg != NULL);
      return *psCfg;
-
 }
+
  const uint256 G_CONFIG_TABLE::GetIntHash(NET_TYPE type) const
  {
 
@@ -308,7 +307,6 @@ unsigned char* G_CONFIG_TABLE::GetMagicNumber(NET_TYPE type) const{
     return NULL;
 }
 
-
 vector<unsigned char> G_CONFIG_TABLE::GetAddressPrefix(NET_TYPE type,Base58Type BaseType) const{
 
     switch (type) {
@@ -327,7 +325,6 @@ vector<unsigned char> G_CONFIG_TABLE::GetAddressPrefix(NET_TYPE type,Base58Type 
     return vector<unsigned char>();
 
 }
-
 
 unsigned int G_CONFIG_TABLE::GetnDefaultPort(NET_TYPE type) const{
    switch (type) {
@@ -400,9 +397,9 @@ unsigned int G_CONFIG_TABLE::GetHalvingInterval(NET_TYPE type) const{
         case MAIN_NET: {
             return nSubsidyHalvingInterval_mainNet;
         }
-//				case TEST_NET: {
-//					return nSubsidyHalvingInterval_testNet;
-//				}
+        case TEST_NET: {
+            return nSubsidyHalvingInterval_testNet;
+        }
         case REGTEST_NET: {
             return nSubsidyHalvingInterval_regNet;
         }
@@ -471,23 +468,23 @@ string G_CONFIG_TABLE::GetDelegateSignature(NET_TYPE type) const {
 //========以下是静态成员初始化的值=====================================================
 //=========================================================================
 
-//名称
+//BaseCoin name
 string G_CONFIG_TABLE::COIN_NAME = "WaykiChain";
 
 
-	//公钥-主网络
+/** Public Key for mainnet */
 vector<string> G_CONFIG_TABLE::intPubKey_mainNet =
 {
 	"037671de4799dbf919effa034bbcaadd78c8a942adeebe7d71155304979a02802a",
 	"0226d8c242052560b3ec7c75d45ba3a8cb187ff2c21a9e96cb8755eeefd50bcdca"
 };
-	//公钥-测试网络
+/** Public Key for testnet */
  vector<string> G_CONFIG_TABLE::initPubKey_testNet =
 {
 	"037de11ea5def6393f45c2461c6f55e6e5cda831545324c63fc5c04409d459a5b3",
 	"025fa44ce081c3b4f34982a86e85e474fca1d98bbb6da612e097c9e7041208f11a"
 };
-	//公钥-局域网络
+/** Public Key for RegTestNet */
  vector<string> G_CONFIG_TABLE::initPubkey_regTest =
 {
 	"03b2299425981d6c2ec382cda999e604eb06b2b0f387f4b8500519c44d143cd2a8",
@@ -559,7 +556,8 @@ string G_CONFIG_TABLE::hashGenesisBlock_regTest = "0xab8d8b1d11784098108df399b24
 string G_CONFIG_TABLE::HashMerkleRoot = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
 
 //IP Address
-vector<unsigned int> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0xDC36FB0D, 0x91A11C77, 0xFFFFE60D, 0x3D304B2F, 0xB21A4E75, 0x0C2AFE2F, 0xC246FE2F, 0x0947FE2F};
+vector<unsigned int> G_CONFIG_TABLE::pnSeed =
+    {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0xDC36FB0D, 0x91A11C77, 0xFFFFE60D, 0x3D304B2F, 0xB21A4E75, 0x0C2AFE2F, 0xC246FE2F, 0x0947FE2F};
 
 //Network Magic No.
 unsigned char G_CONFIG_TABLE::Message_mainNet[MESSAGE_START_SIZE] = {0xff, 0x42, 0x1d, 0x1a};
@@ -567,17 +565,21 @@ unsigned char G_CONFIG_TABLE::Message_testNet[MESSAGE_START_SIZE] = {0xfd, 0x7d,
 unsigned char G_CONFIG_TABLE::Message_regTest[MESSAGE_START_SIZE] = {0xfe, 0xfa, 0xd3, 0xc6};
 
 //Address Prefix
-vector<unsigned char> G_CONFIG_TABLE::AddrPrefix_mainNet[MAX_BASE58_TYPES] = {{73}, {51}, {153}, {0x4c, 0x1d, 0x3d, 0x5f}, {0x4c, 0x23, 0x3f, 0x4b}, {0}};
-vector<unsigned char> G_CONFIG_TABLE::AddrPrefix_testNet[MAX_BASE58_TYPES] = {{135}, {88}, {210}, {0x7d, 0x57, 0x3a, 0x2c}, {0x7d, 0x5c, 0x5A, 0x26}, {0}};
+vector<unsigned char> G_CONFIG_TABLE::AddrPrefix_mainNet[MAX_BASE58_TYPES] =
+    {{73}, {51}, {153}, {0x4c, 0x1d, 0x3d, 0x5f}, {0x4c, 0x23, 0x3f, 0x4b}, {0}};
+vector<unsigned char> G_CONFIG_TABLE::AddrPrefix_testNet[MAX_BASE58_TYPES] =
+    {{135}, {88}, {210}, {0x7d, 0x57, 0x3a, 0x2c}, {0x7d, 0x5c, 0x5A, 0x26}, {0}};
 
 //Default P2P Port
 unsigned int G_CONFIG_TABLE::nDefaultPort_mainNet = 8920;
 unsigned int G_CONFIG_TABLE::nDefaultPort_testNet = 18920;
 unsigned int G_CONFIG_TABLE::nDefaultPort_regTest = 18921;
 
+// Default RPC Port
 unsigned int G_CONFIG_TABLE::nRPCPort_mainNet = 18900;
 unsigned int G_CONFIG_TABLE::nRPCPort_testNet = 18901;
 
+// Default UI Port
 unsigned int G_CONFIG_TABLE::nUIPort_mainNet = 4245;
 unsigned int G_CONFIG_TABLE::nUIPort_testNet = 4246;
 
@@ -589,7 +591,8 @@ unsigned int G_CONFIG_TABLE::StartTime_regTest = 1504305600;
 //半衰期 (half-life)
 // 365 * 24 * 60 * 60 / 10 = 3153600
 unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = 3153600; // one year
-unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_regNet = 500;
+unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_testNet = 3153600; // one year
+unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_regNet  = 500;
 
 //修改发币初始值
 uint64_t G_CONFIG_TABLE::InitialCoin = 210000000;

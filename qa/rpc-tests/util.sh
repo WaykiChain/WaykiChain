@@ -55,7 +55,7 @@ function CheckBalance {
 
 # Use: Address <datadir> [account]
 function Address {
-  $CLI $1 getnewaddress $2
+  $CLI $1 getnewaddr $2
 }
 
 # Send from to amount

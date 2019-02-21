@@ -79,28 +79,28 @@ bool CLevelDBWrapper::WriteBatch(CLevelDBBatch &batch, bool fSync) throw(leveldb
 }
 
 int64_t CLevelDBWrapper::GetDbCount()
-   {
-   	leveldb::Iterator *pcursor = NewIterator();
-   	int64_t ret = 0;
-   	pcursor->SeekToFirst();
-   	while (pcursor->Valid()) {
-   		boost::this_thread::interruption_point();
-   		try {
-   			ret++;
-   			leveldb::Slice slKey = pcursor->key();
-   			leveldb::Slice slValue = pcursor->value();
-   			CDataStream ssKey(slKey.data(), slKey.data() + slKey.size(), SER_DISK, CLIENT_VERSION);
-   			CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-   			LogPrint("db", "Key:%s\n value:%s\n", HexStr(ssKey), HexStr(ssValue));
-   			pcursor->Next();
+{
+    leveldb::Iterator *pcursor = NewIterator();
+    int64_t ret = 0;
+    pcursor->SeekToFirst();
+    while (pcursor->Valid()) {
+        boost::this_thread::interruption_point();
+        try {
+            ret++;
+            leveldb::Slice slKey = pcursor->key();
+            leveldb::Slice slValue = pcursor->value();
+            CDataStream ssKey(slKey.data(), slKey.data() + slKey.size(), SER_DISK, CLIENT_VERSION);
+            CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+            LogPrint("db", "Key:%s\n value:%s\n", HexStr(ssKey), HexStr(ssValue));
+            pcursor->Next();
 
-   		} catch (std::exception &e) {
-   			 if(pcursor)
-   			 delete pcursor;
-   			 ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
-   			 return 0;
-   		}
-   	}
-   	delete pcursor;
-   	return ret;
-   }
+        } catch (std::exception &e) {
+            if(pcursor)
+                delete pcursor;
+            ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
+            return 0;
+        }
+    }
+    delete pcursor;
+    return ret;
+}

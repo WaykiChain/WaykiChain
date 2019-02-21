@@ -28,8 +28,7 @@ inline int64_t GetMaxMoney()
 {
 	if(SysCfg().NetworkID() == REGTEST_NET) {
 		return MAX_MONEY_REG_NET;
-	}
-	else {
+	} else {
 		return MAX_MONEY;
 	}
 }

@@ -27,12 +27,11 @@ extern Value createfreezetx(const Array& params, bool fHelp);
 extern Value registercontracttx(const Array& params, bool fHelp);
 extern Value votedelegatetx(const Array& params, bool fHelp);
 
-extern Value gensendtoaddresstxraw(const Array& params, bool fHelp);
-extern Value genregisteraccounttxraw(const Array& params, bool fHelp);
-extern Value genregistercontracttxraw(const Array& params, bool fHelp);
-extern Value gencallcontracttxraw(const Array& params, bool fHelp);
-extern Value genvotedelegatetxraw(const Array& params, bool fHelp);
-
+extern Value gensendtoaddressraw(const Array& params, bool fHelp);
+extern Value genregisteraccountraw(const Array& params, bool fHelp);
+extern Value genregistercontractraw(const Array& params, bool fHelp);
+extern Value gencallcontractraw(const Array& params, bool fHelp);
+extern Value genvotedelegateraw(const Array& params, bool fHelp);
 
 extern Value getaddrinfo(const Array& params, bool fHelp);
 

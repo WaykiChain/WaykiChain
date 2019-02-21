@@ -108,7 +108,8 @@ void CTxMemPool::remove(CBaseTransaction *pBaseTx, list<std::shared_ptr<CBaseTra
 	}
 }
 
-bool CTxMemPool::CheckTxInMemPool(const uint256& hash, const CTxMemPoolEntry &entry, CValidationState &state, bool bExcute) {
+bool CTxMemPool::CheckTxInMemPool(const uint256& hash, const CTxMemPoolEntry &entry, CValidationState &state, bool bExcute)
+{
 	CTxUndo txundo;
 	CTransactionDBCache txCacheTemp(*pTxCacheTip, true);
 	CAccountViewCache acctViewTemp(*pAccountViewCache, true);
@@ -116,15 +117,18 @@ bool CTxMemPool::CheckTxInMemPool(const uint256& hash, const CTxMemPoolEntry &en
 
 	// is it already confirmed in block
 	if(uint256() != pTxCacheTip->IsContainTx(hash))
-		return state.Invalid(ERRORMSG("CheckTxInMemPool() : tx hash %s has been confirmed", hash.GetHex()), REJECT_INVALID, "tx-duplicate-confirmed");
+		return state.Invalid(ERRORMSG("CheckTxInMemPool() : tx hash %s has been confirmed",
+			hash.GetHex()), REJECT_INVALID, "tx-duplicate-confirmed");
 	// is it in valid height
 	if (!entry.GetTx()->IsValidHeight(chainActive.Tip()->nHeight, SysCfg().GetTxCacheHeight())) {
-		return state.Invalid(ERRORMSG("CheckTxInMemPool() : txhash=%s beyond the scope of valid height ", hash.GetHex()),
-				REJECT_INVALID, "tx-invalid-height");
+		return state.Invalid(ERRORMSG("CheckTxInMemPool() : txhash=%s beyond the scope of valid height ",
+			hash.GetHex()), REJECT_INVALID, "tx-invalid-height");
 	}
+
 	if (CONTRACT_TX == entry.GetTx()->nTxType) {
 		LogPrint("vm", "tx hash=%s CheckTxInMemPool run contract\n", entry.GetTx()->GetHash().GetHex());
 	}
+
 	if(bExcute) {
 		if (!entry.GetTx()->ExecuteTx(0, acctViewTemp, state, txundo, chainActive.Tip()->nHeight + 1,
 				txCacheTemp, scriptDBViewTemp)) {
@@ -141,7 +145,7 @@ bool CTxMemPool::addUnchecked(const uint256& hash, const CTxMemPoolEntry &entry,
 	// all the appropriate checks.
 	LOCK(cs);
 	{
-		if(!CheckTxInMemPool(hash, entry, state)) {
+		if (!CheckTxInMemPool(hash, entry, state)) {
 			return false;
 		}
 		mapTx.insert(make_pair(hash, entry));

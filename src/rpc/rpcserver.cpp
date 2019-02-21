@@ -137,8 +137,7 @@ string CRPCTable::help(string strCommand) const
 {
     string strRet;
     set<rpcfn_type> setDone;
-    for (map<string, const CRPCCommand*>::const_iterator mi = mapCommands.begin(); mi != mapCommands.end(); ++mi)
-    {
+    for (map<string, const CRPCCommand*>::const_iterator mi = mapCommands.begin(); mi != mapCommands.end(); ++mi) {
         const CRPCCommand *pcmd = mi->second;
         string strMethod = mi->first;
         // We already filter duplicates, but these deprecated screw up the sort order
@@ -149,15 +148,12 @@ string CRPCTable::help(string strCommand) const
 
         if (pcmd->reqWallet && !pwalletMain)
             continue;
-        try
-        {
+        try {
             Array params;
             rpcfn_type pfn = pcmd->actor;
             if (setDone.insert(pfn).second)
                 (*pfn)(params, true);
-        }
-        catch (std::exception& e)
-        {
+        } catch (std::exception& e) {
             // Help text is returned in an exception
             string strHelp = string(e.what());
             if (strCommand == "")
@@ -210,7 +206,7 @@ Value stop(const Array& params, bool fHelp) {
 //
 extern Value resetclient(const Array& params, bool fHelp);
 extern Value gettxoperationlog(const Array& params, bool fHelp);
-extern Value dropprivkey(const Array& params, bool fHelp);
+extern Value dropminerkeys(const Array& params, bool fHelp);
 
 static const CRPCCommand vRPCCommands[] =
 { //  name                      actor (function)         okSafeMode threadSafe reqWallet
@@ -222,6 +218,7 @@ static const CRPCCommand vRPCCommands[] =
     { "gencheckpoint",          &gencheckpoint,          true,      true,       false },
     { "setcheckpoint",          &setcheckpoint,          true,      true,       false },
     { "validateaddr",           &validateaddr,           true,      true,       false },
+    { "validateaddress",        &validateaddr,           true,      true,       false }, //deprecated
     { "listtxbyaddr",           &listtxbyaddr,           true,      true,       false },
 
     /* P2P networking */
@@ -256,26 +253,27 @@ static const CRPCCommand vRPCCommands[] =
     { "submitblock",            &submitblock,            true,      false,      false },
 
     /* Raw transactions */
-    { "sendtoaddressraw",       &gensendtoaddresstxraw,  false,     false,      false },  /* deprecated */
-    { "gensendtoaddresstxraw",  &gensendtoaddresstxraw,  false,     false,      false },
-    { "registeraccountraw",     &genregisteraccounttxraw,  false,    false,     false },  /* deprecated */
-    { "genregisteraccounttxraw",&genregisteraccounttxraw,  false,   false,     false },
-    { "genregistercontracttxraw",&genregistercontracttxraw,  true,  false,     false },
-    { "gencallcontracttxraw",   &gencallcontracttxraw,    true,      false,     false },
-    { "genvotedelegatetxraw",   &genvotedelegatetxraw,    true,      false,     true },
+    { "sendtoaddressraw",       &gensendtoaddressraw,    false,     false,     false },  /* deprecated */
+    { "gensendtoaddressraw",    &gensendtoaddressraw,    false,     false,     false },
+    { "registeraccountraw",     &genregisteraccountraw,  false,     false,     false },  /* deprecated */
+    { "genregisteraccountraw",  &genregisteraccountraw,  false,     false,     false },
+    { "genregistercontractraw", &genregistercontractraw, true,      false,     false },
+    { "gencallcontractraw",     &gencallcontractraw,     true,      false,     false },
+    { "genvotedelegateraw",     &genvotedelegateraw,     true,      false,     true  },
 
     /* uses wallet if enabled */
     { "backupwallet",           &backupwallet,           true,      false,      true },
     { "dumpprivkey",            &dumpprivkey,            true,      false,      true },
     { "dumpwallet",             &dumpwallet,             true,      false,      true },
-    { "encryptwallet",          &encryptwallet,          false,     false,      true },
-    { "getaccountinfo",         &getaccountinfo,         true,      false,      true },
-    { "getnewaddress",          &getnewaddress,          true,      false,      true },
-    { "gettxdetail",            &gettxdetail,            true,      false,      true },
+    { "encryptwallet",          &encryptwallet,         false,     false,      true },
+    { "getaccountinfo",         &getaccountinfo,        true,      false,      true },
+    { "getnewaddress",          &getnewaddr,            true,      false,      true },   /* deprecated */
+    { "getnewaddr",             &getnewaddr,            true,      false,      true }, 
+    { "gettxdetail",            &gettxdetail,           true,      false,      true },
     { "listunconfirmedtx",      &listunconfirmedtx,      true,      false,      true },
     { "getwalletinfo",          &getwalletinfo,          true,      false,      true },
     { "importprivkey",          &importprivkey,          false,     false,      true },
-    { "dropprivkey",            &dropprivkey,            false,     false,      true },
+    { "dropminerkeys",          &dropminerkeys,          false,     false,      true },
 
     { "importwallet",           &importwallet,           false,     false,      true },
     { "listaddr",               &listaddr,               true,      false,      true },
@@ -321,7 +319,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getcontractkeyvalue",    &getcontractkeyvalue,    true,      false,      true },
     { "getsignature",           &getsignature,           true,      false,      true },
     { "listdelegates",          &listdelegates,          true,      false,      true },
-    { "decoderawtransaction",   &decoderawtransaction,   false,     false,      false},
+    { "decoderawtx",            &decoderawtx,            false,     false,      false},
 
     /* for test code */
     { "gettxoperationlog",      &gettxoperationlog,      false,     false,      false},
@@ -341,7 +339,6 @@ CRPCTable::CRPCTable() {
     unsigned int vcidx;
     for (vcidx = 0; vcidx < (sizeof(vRPCCommands) / sizeof(vRPCCommands[0])); vcidx++) {
         const CRPCCommand *pcmd;
-
         pcmd = &vRPCCommands[vcidx];
         mapCommands[pcmd->name] = pcmd;
     }

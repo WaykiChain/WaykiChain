@@ -99,8 +99,8 @@ wait $B2PID
 $BITCOIND $B2ARGS &
 B2PID=$!
 
-B1ADDRESS=$( $CLI $B1ARGS getnewaddress )
-B2ADDRESS=$( $CLI $B2ARGS getnewaddress )
+B1ADDRESS=$( $CLI $B1ARGS getnewaddr )
+B2ADDRESS=$( $CLI $B2ARGS getnewaddr )
 
 # Transaction C: send-to-self, spend A
 TXID_C=$( $CLI $B1ARGS sendtoaddress $B1ADDRESS 50.0)

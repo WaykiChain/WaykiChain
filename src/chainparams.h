@@ -87,7 +87,7 @@ public:
         temp.get()->assign(te.begin(), te.end());
         return temp;
     }
-    virtual bool InitalConfig() {
+    virtual bool InitialConfig() {
         fServer = GetBoolArg("-server", false);
 
         m_mapMultiArgs["-debug"].push_back("ERROR"); //add froce ERROR to log

@@ -50,17 +50,17 @@ bool GetKeyId(string const &addr,CKeyID &KeyId)
     return true;
 }
 
-Value getnewaddress(const Array& params, bool fHelp)
+Value getnewaddr(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 1)
         throw runtime_error(
-            "getnewaddress  (\"IsMiner\")\n"
+            "getnewaddr  (\"IsMiner\")\n"
             "\nget a new address\n"
             "\nArguments:\n"
-            "1. \"IsMiner\" (bool, optional)  If true, it creates two sets of key-pairs, one of which is for miner.\n"
+            "1. \"IsMiner\" (bool, optional)  If true, it creates two sets of key-pairs: one for mining and another for receiving miner fees.\n"
            "\nExamples:\n"
-            + HelpExampleCli("getnewaddress", "")
-            + HelpExampleCli("getnewaddress", "true")
+            + HelpExampleCli("getnewaddr", "")
+            + HelpExampleCli("getnewaddr", "true")
         );
     EnsureWalletIsUnlocked();
 
@@ -354,12 +354,12 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
     return obj;
 }
 
-Value gensendtoaddresstxraw(const Array& params, bool fHelp)
+Value gensendtoaddressraw(const Array& params, bool fHelp)
 {
     int size = params.size();
     if (fHelp || size < 4 || size > 5 ) {
         throw runtime_error(
-                "gensendtoaddresstxraw \"fee\" \"amount\" \"sendaddress\" \"recvaddress\" \"height\"\n"
+                "gensendtoaddressraw \"fee\" \"amount\" \"sendaddress\" \"recvaddress\" \"height\"\n"
                 "\n create common transaction by height: fee, amount, sendaddress, recvaddress\n"
                 + HelpRequiringPassphrase() + "\nArguments:\n"
                 "1. \"fee\"     (numeric, required)  \n"
@@ -370,19 +370,18 @@ Value gensendtoaddresstxraw(const Array& params, bool fHelp)
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
                 "\nExamples:\n"
-                + HelpExampleCli("gensendtoaddresstxraw", "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
-                + HelpExampleCli("gensendtoaddresstxraw",
+                + HelpExampleCli("gensendtoaddressraw", "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
+                + HelpExampleCli("gensendtoaddressraw",
                 "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"")
-                + HelpExampleRpc("gensendtoaddresstxraw",
+                + HelpExampleRpc("gensendtoaddressraw",
                 "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""
-                + HelpExampleCli("gensendtoaddresstxraw", "\"0-6\" 10 ")
-                + HelpExampleCli("gensendtoaddresstxraw", "100 1000 \"00000000000000000005\" 10 ")
-                + HelpExampleCli("gensendtoaddresstxraw", "100 1000 \"0-6\" \"0-5\" 10 ")
-                + HelpExampleCli("gensendtoaddresstxraw", "100 1000 \"00000000000000000005\" \"0-6\"10 ")));
+                + HelpExampleCli("gensendtoaddressraw", "\"0-6\" 10 ")
+                + HelpExampleCli("gensendtoaddressraw", "100 1000 \"00000000000000000005\" 10 ")
+                + HelpExampleCli("gensendtoaddressraw", "100 1000 \"0-6\" \"0-5\" 10 ")
+                + HelpExampleCli("gensendtoaddressraw", "100 1000 \"00000000000000000005\" \"0-6\"10 ")));
     }
 
     CKeyID sendKeyId, recvKeyId;
-
     CAccountViewCache view(*pAccountViewTip, true);
 
     int64_t Fee = AmountToRawValue(params[0]);
@@ -816,13 +815,13 @@ Value backupwallet(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "backupwallet \"destination\"\n"
-            "\nSafely copies wallet.dat to destination, which can be a directory or a path with filename.\n"
+            "backupwallet \"dest_dir\"\n"
+            "\nSafely copies wallet.dat to a target directory.\n"
             "\nArguments:\n"
-            "1. \"destination\"   (string, required) The destination directory or file\n"
+            "1. \"dest_dir\"   (string, required) The destination directory\n"
             "\nExamples:\n"
-            + HelpExampleCli("backupwallet", "\"backup.dat\"")
-            + HelpExampleRpc("backupwallet", "\"backup.dat\"")
+            + HelpExampleCli("backupwallet", "\"~/backup_wallet/\"")
+            + HelpExampleRpc("backupwallet", "\"~/backup_wallet/\"")
         );
 
     string strDest = params[0].get_str();

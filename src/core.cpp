@@ -31,13 +31,11 @@ uint256 CBlock::BuildMerkleTree() const
 		vMerkleTree.push_back(std::move(ptx->GetHash()));
 	}
     int j = 0;
-    for (int nSize = vptx.size(); nSize > 1; nSize = (nSize + 1) / 2)
-    {
-        for (int i = 0; i < nSize; i += 2)
-        {
+    for (int nSize = vptx.size(); nSize > 1; nSize = (nSize + 1) / 2) {
+        for (int i = 0; i < nSize; i += 2) {
             int i2 = min(i+1, nSize-1);
             vMerkleTree.push_back(std::move(Hash(BEGIN(vMerkleTree[j+i]),  END(vMerkleTree[j+i]),
-                                       BEGIN(vMerkleTree[j+i2]), END(vMerkleTree[j+i2]))));
+                BEGIN(vMerkleTree[j+i2]), END(vMerkleTree[j+i2]))));
         }
         j += nSize;
     }
@@ -50,8 +48,7 @@ vector<uint256> CBlock::GetMerkleBranch(int nIndex) const
         BuildMerkleTree();
     vector<uint256> vMerkleBranch;
     int j = 0;
-    for (int nSize = vptx.size(); nSize > 1; nSize = (nSize + 1) / 2)
-    {
+    for (int nSize = vptx.size(); nSize > 1; nSize = (nSize + 1) / 2) {
         int i = min(nIndex^1, nSize-1);
         vMerkleBranch.push_back(vMerkleTree[j+i]);
         nIndex >>= 1;
@@ -64,8 +61,7 @@ uint256 CBlock::CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBr
 {
     if (nIndex == -1)
         return uint256();
-    for(const auto& otherside:vMerkleBranch)
-    {
+    for(const auto& otherside:vMerkleBranch) {
         if (nIndex & 1)
             hash = Hash(BEGIN(otherside), END(otherside), BEGIN(hash), END(hash));
         else
@@ -85,7 +81,7 @@ int64_t CBlock::GetFee() const{
 
 void CBlock::print(CAccountViewCache &view) const
 {
-	LogPrint("INFO","CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, nFuelRate=%d)\n",
+	LogPrint("INFO", "CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, nFuelRate=%d)\n",
         GetHash().ToString(),
         nVersion,
         hashPrevBlock.ToString(),
@@ -106,11 +102,10 @@ void CBlock::print(CAccountViewCache &view) const
 
 std::tuple<bool, int> CBlock::GetTxIndex(const uint256& txHash) const {
 	for (size_t i = 0;i<vMerkleTree.size();i++) {
-			if (txHash == vMerkleTree[i]) {
-				return std::make_tuple(true,i);
-			}
-		}
+        if (txHash == vMerkleTree[i]) {
+            return std::make_tuple(true,i);
+        }
+	}
 
 	return std::make_tuple(false,0);
 }
-

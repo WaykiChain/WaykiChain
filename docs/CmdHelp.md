@@ -5,10 +5,10 @@
 |Command | Parameters| Description | Unlocked wallet required?|
 |---|---|---|---|
 | addnode | ```<node><add/remove/onetry>```| Attempts add or remove ```<node>``` from the addnode list or try a connection to ```<node>``` once.| N |
-| backupwallet | ```<destination>``` | Safely copies wallet.dat to destination, which can be a directory or a path with filename. | N |
+| backupwallet | ```<destination>``` | Safely copies wallet.dat to a target directory. | N |
 | callcontracttx | ```<userregid><appid><amount><contract><fee>[height, default = the tip block height]``` | create contract transaction | Y |
-| gencallcontracttxraw | ```<height><fee><amount><address><contract>``` | get call contract raw transaction | N |
-| dropprivkey | | drop private key from wallet | Y |
+| gencallcontractraw | ```<height><fee><amount><address><contract>``` | get call contract raw transaction | N |
+| dropminerkeys | | drop miner key from wallet to become a cool miner| Y |
 | dumpwallet | ```<filename>``` | Dumps all wallet keys in a human-readable format.And write to ```<filename>``` | Y |
 | dumpprivkey | ```<wiccaddress>``` | Reveals the private key corresponding to ```<wiccaddress>``` | Y |
 | encryptwallet | ```<passphrase>``` | Encrypts the wallet with ```<passphrase>``` | N |
@@ -29,7 +29,7 @@
 | getdifficulty | | Returns the proof-of-work difficulty as a multiple of the minimum difficulty | N |
 | getinfo | | Returns an object containing various state info | N |
 | getmininginfo | | Returns an object containing mining-related information: <br> <ul>blocks</ul><ul>currentblocksize</ul><ul>currentblocktx</ul><ul>difficulty</ul><ul>errors</ul><ul>generate</ul><ul>genproclimit</ul><ul>hashespersec</ul><ul>pooledtx</ul><ul>testnet</ul> | N |
-| getnewaddress | ```[isminer]``` | Returns a new  address for receiving payments. If [isminer] is ture will create a miner key,otherwise will only return a new address. | Y |
+| getnewaddr | ```[isminer]``` | Returns a new  address for receiving payments. If [isminer] is ture will create a miner key,otherwise will only return a new address. | Y |
 | getnetworkhashps | ```[blocks][height]``` | Returns the estimated network hashes per second based on the last n blocks.<br><li>.    blocks</li> (numeric, optional, default=120) The number of blocks, or -1 for blocks since last difficulty change</li><li>2.    height (numeric, optional, default=-1) To estimate at the time of the given height.</li>| N |
 | getnetworkinfo | | Returns an object containing various state info regarding P2P network | N |
 | getpeerinfo | | Returns data about each connected node | N |
@@ -50,12 +50,12 @@
 | listtxcache | | get all transactions in cache | N |
 | listunconfirmedtx | | get the list of unconfirmedtx | N |
 | registeraccounttx | ```<address> [fee]``` | register an account from the local wallet node | Y |
-| genregisteraccounttxraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account raw transaction | N |
+| genregisteraccountraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account raw transaction | N |
 | reconsiderblock | ```<hash>``` | Removes invalidity status of a block and its descendants, reconsider them for activation. | N |
 | registercontracttx | ```<address><filepath><fee>[height][contract_description]``` | register a contract app | Y |
-| genregistercontracttxraw | ```<height><fee><address><flag><contract or contract RegId><contract description>``` | get Contract Registration Tx Raw: <br>1.    Height(numeric required) :valod height<br> 2.    Fee: (numeric required) pay to miner<br>3.    address: (string required)for send<br>4.    flag: (numeric, required) 0-1<br>5.    app or appregid: (string required), if flag=0 is script's file path, else if flag=1 scriptid<br>6.    script description:(string optional) new script description.<br>| N |
+| genregistercontractraw | ```<height><fee><address><flag><contract or contract RegId><contract description>``` | get Contract Registration Tx Raw: <br>1.    Height(numeric required) :valod height<br> 2.    Fee: (numeric required) pay to miner<br>3.    address: (string required)for send<br>4.    flag: (numeric, required) 0-1<br>5.    app or appregid: (string required), if flag=0 is script's file path, else if flag=1 scriptid<br>6.    script description:(string optional) new script description.<br>| N |
 | sendtoaddress | ```[wiccaddress]<[recvaddress><amount>``` | Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001. Returns the transaction ID <txhash> if successful | Y |
-| gensendtoaddresstxraw | ```<fee><amount><sendaddress><recvaddress><height>``` | generate a signed raw tx with height,fee,amount,sendaddress, recvaddress | N |
+| gensendtoaddressraw | ```<fee><amount><sendaddress><recvaddress><height>``` | generate a signed raw tx with height,fee,amount,sendaddress, recvaddress | N |
 | sendtoaddresswithfee | [sendaddress]<recvaddress><amount><fee> | Send an amount to a given address with fee. The amount is a real and is rounded to the nearest 0.00000001 (Sendaddress is optional) | Y |
 | setgenerate | ```<generate>``` [genproclimit] | <generate> is true or false to turn generation on or off. Generation is limited to [genproclimit] processors, -1 is unlimited. | N |
 | settxfee | ```<amount>``` | ```<amount>``` is a real and is rounded to the nearest 0.00000001 | N |

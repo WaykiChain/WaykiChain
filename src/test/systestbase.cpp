@@ -82,7 +82,7 @@ bool AppInit(int argc, char* argv[],boost::thread_group &threadGroup) {
 	bool fRet = false;
 	try {
 		CBaseParams::IntialParams(argc, argv);
-		SysCfg().InitalConfig();
+		SysCfg().InitialConfig();
 
 		PrintTestNotSetPara();
 
@@ -364,7 +364,7 @@ bool SysTestBase::GetNewAddr(std::string &addr,bool flag) {
 	{
 		param = "true";
 	}
-	const char *argv[] = { "rpctest", "getnewaddress",param.c_str()};
+	const char *argv[] = { "rpctest", "getnewaddr", param.c_str()};
 	int argc = sizeof(argv) / sizeof(char*);
 
 	Value value;
