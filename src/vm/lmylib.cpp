@@ -1688,7 +1688,7 @@ static int GetUserAppAccValue(lua_State *L){
         return RetFalse("pVmRunEvn is NULL");
     }
 
-    shared_ptr<CAppUserAccout> sptrAcc;
+    shared_ptr<CAppUserAccount> sptrAcc;
     uint64_t valueData = 0 ;
     int len = 0;
     if(pVmRunEvn->GetAppUserAccout(accid.GetIdV(),sptrAcc))
@@ -1794,7 +1794,7 @@ static int GetUserAppAccFoudWithTag(lua_State *L){
     CAppFundOperate userfund;
     ss>>userfund;
 
-    shared_ptr<CAppUserAccout> sptrAcc;
+    shared_ptr<CAppUserAccount> sptrAcc;
     CAppCFund fund;
     int len = 0;
     if(pVmRunEvn->GetAppUserAccout(userfund.GetAppUserV(),sptrAcc))
@@ -1988,7 +1988,7 @@ static int ExTransferContactAsset(lua_State *L) {
         return RetFalse(string(__FUNCTION__)+"recv addr is not valid !");
     }
 
-    std::shared_ptr<CAppUserAccout> temp = std::make_shared<CAppUserAccout>();
+    std::shared_ptr<CAppUserAccount> temp = std::make_shared<CAppUserAccount>();
     CScriptDBViewCache* pContractScript = pVmRunEvn->GetScriptDB();
 
     if (!pContractScript->GetScriptAcc(script, sendkey, *temp.get())) {

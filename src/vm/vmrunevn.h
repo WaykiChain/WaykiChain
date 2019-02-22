@@ -49,11 +49,11 @@ class CVmRunEvn {
 	/**
 	 * vm before the app account state
 	 */
-	vector<shared_ptr<CAppUserAccout>> RawAppUserAccout;
+	vector<shared_ptr<CAppUserAccount>> RawAppUserAccout;
 	/**
 	 * vm operate the app account  state
 	 */
-	vector<shared_ptr<CAppUserAccout>> NewAppUserAccout;
+	vector<shared_ptr<CAppUserAccount>> NewAppUserAccout;
 	CScriptDBViewCache *m_ScriptDBTip;
 	CAccountViewCache *m_view;
 	vector<CVmOperate> m_output;   //保存操作结果
@@ -106,7 +106,7 @@ private:
 //	bool IsSignatureAccount(CRegID account);
 	bool OpeatorAppAccount(const map<vector<unsigned char >,vector<CAppFundOperate> > opMap, CScriptDBViewCache& view);
 
-	std::shared_ptr<CAppUserAccout> GetAppAccount(shared_ptr<CAppUserAccout>& AppAccount);
+	std::shared_ptr<CAppUserAccount> GetAppAccount(shared_ptr<CAppUserAccount>& AppAccount);
 public:
 	/**
 	 * A constructor.
@@ -122,9 +122,9 @@ public:
 	 * @return :the variable NewAccont
 	 */
 	vector<shared_ptr<CAccount> > &GetNewAccont();
-	vector<shared_ptr<CAppUserAccout>> &GetRawAppUserAccount();
+	vector<shared_ptr<CAppUserAccount>> &GetRawAppUserAccount();
 
-	vector<shared_ptr<CAppUserAccout>> &GetNewAppUserAccount();
+	vector<shared_ptr<CAppUserAccount>> &GetNewAppUserAccount();
 	/**
 	 * @brief  start to run the script
 	 * @param Tx: run the tx
@@ -153,7 +153,7 @@ public:
 	void InsertOutAPPOperte(const vector<unsigned char>& userId,const CAppFundOperate &source);
 	shared_ptr<vector<CScriptDBOperLog> > GetDbLog();
 
-	bool GetAppUserAccout(const vector<unsigned char> &id,shared_ptr<CAppUserAccout> &sptrAcc);
+	bool GetAppUserAccout(const vector<unsigned char> &id,shared_ptr<CAppUserAccount> &sptrAcc);
 	bool CheckAppAcctOperate(CTransaction* tx);
 	void SetCheckAccount(bool bCheckAccount);
 	virtual ~CVmRunEvn();

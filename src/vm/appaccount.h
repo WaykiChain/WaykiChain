@@ -155,16 +155,16 @@ public:
 };
 
 
-class CAppUserAccout {
+class CAppUserAccount {
 public:
-	CAppUserAccout();
-	CAppUserAccout(const vector<unsigned char> &userId);
+	CAppUserAccount();
+	CAppUserAccount(const vector<unsigned char> &userId);
 	bool Operate(const vector<CAppFundOperate> &Op);
-	bool GetAppCFund(CAppCFund &outFound,const vector<unsigned char> &vtag,int nhight);
+	bool GetAppCFund(CAppCFund &outFound,const vector<unsigned char> &vtag,int nheight);
 
 	bool AutoMergeFreezeToFree(int hight);
 
-	virtual ~CAppUserAccout();
+	virtual ~CAppUserAccount();
 	Object toJSON()const;
 	string toString()const;
 	uint64_t getllValues() const {

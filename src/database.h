@@ -168,8 +168,8 @@ public:
 	CScriptDBViewCache(CScriptDBView &base, bool fDummy = false);
 	bool GetScript(const CRegID &scriptId, vector<unsigned char> &vValue);
 
-	bool GetScriptAcc(const CRegID &scriptId,const vector<unsigned char> &vKey,CAppUserAccout& appAccOut);
-	bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccout& appAccIn,CScriptDBOperLog &operlog);
+	bool GetScriptAcc(const CRegID &scriptId,const vector<unsigned char> &vKey,CAppUserAccount& appAccOut);
+	bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount& appAccIn,CScriptDBOperLog &operlog);
 	bool EraseScriptAcc(const CRegID &scriptId,const vector<unsigned char> &vKey);
 
 	bool GetScript(const int nIndex, CRegID &scriptId, vector<unsigned char> &vValue);
