@@ -8,11 +8,9 @@
 #include "script.h"
 
 CVmScript::CVmScript() {
-	// LEARN Auto-generated constructor stub
-
+    // LEARN Auto-generated constructor stub
 }
 
 CVmScript::~CVmScript() {
-	// LEARN Auto-generated destructor stub
+    // LEARN Auto-generated destructor stub
 }
-
