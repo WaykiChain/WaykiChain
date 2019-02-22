@@ -604,7 +604,7 @@ Value getassets(const Array& params, bool fHelp)
         string addr = KeyId.ToAddress();
         veckey.assign(addr.c_str(), addr.c_str() + addr.length());
 
-        std::shared_ptr<CAppUserAccout> temp = std::make_shared<CAppUserAccout>();
+        std::shared_ptr<CAppUserAccount> temp = std::make_shared<CAppUserAccount>();
         if (!pScriptDBTip->GetScriptAcc(regid, veckey, *temp.get())) {
             continue;
         }

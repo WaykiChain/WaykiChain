@@ -31,12 +31,12 @@ vector<shared_ptr<CAccount> > &CVmRunEvn::GetRawAccont() {
 vector<shared_ptr<CAccount> > &CVmRunEvn::GetNewAccont() {
     return NewAccont;
 }
-vector<shared_ptr<CAppUserAccout>> &CVmRunEvn::GetNewAppUserAccount()
+vector<shared_ptr<CAppUserAccount>> &CVmRunEvn::GetNewAppUserAccount()
 {
     return NewAppUserAccout;
 }
 
-vector<shared_ptr<CAppUserAccout>> &CVmRunEvn::GetRawAppUserAccount()
+vector<shared_ptr<CAppUserAccount>> &CVmRunEvn::GetRawAppUserAccount()
 {
     return RawAppUserAccout;
 }
@@ -217,12 +217,12 @@ vector_unsigned_char CVmRunEvn::GetAccountID(CVmOperate value) {
     return accountid;
 }
 
-shared_ptr<CAppUserAccout> CVmRunEvn::GetAppAccount(shared_ptr<CAppUserAccout>& AppAccount) {
+shared_ptr<CAppUserAccount> CVmRunEvn::GetAppAccount(shared_ptr<CAppUserAccount>& AppAccount) {
     if (RawAppUserAccout.size() == 0)
         return NULL;
-    vector<shared_ptr<CAppUserAccout> >::iterator Iter;
+    vector<shared_ptr<CAppUserAccount> >::iterator Iter;
     for (Iter = RawAppUserAccout.begin(); Iter != RawAppUserAccout.end(); Iter++) {
-        shared_ptr<CAppUserAccout> temp = *Iter;
+        shared_ptr<CAppUserAccount> temp = *Iter;
         if (AppAccount.get()->getaccUserId() == temp.get()->getaccUserId()) {
             return temp;
         }
@@ -537,11 +537,11 @@ shared_ptr<vector<CScriptDBOperLog> > CVmRunEvn::GetDbLog()
  * @param sptrAcc
  * @return
  */
-bool CVmRunEvn::GetAppUserAccout(const vector<unsigned char> &vAppUserId, shared_ptr<CAppUserAccout> &sptrAcc) {
+bool CVmRunEvn::GetAppUserAccout(const vector<unsigned char> &vAppUserId, shared_ptr<CAppUserAccount> &sptrAcc) {
     assert(m_ScriptDBTip != NULL);
-    shared_ptr<CAppUserAccout> tem = std::make_shared<CAppUserAccout>();
+    shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
     if (!m_ScriptDBTip->GetScriptAcc(GetScriptRegID(), vAppUserId, *tem.get())) {
-            tem = std::make_shared<CAppUserAccout>(vAppUserId);
+            tem = std::make_shared<CAppUserAccount>(vAppUserId);
             sptrAcc = tem;
             return true;
     }
@@ -556,7 +556,7 @@ bool CVmRunEvn::OpeatorAppAccount(const map<vector<unsigned char >,vector<CAppFu
     NewAppUserAccout.clear();
     if ((MapAppOperate.size() > 0)) {
         for (auto const tem : opMap) {
-            shared_ptr<CAppUserAccout> sptrAcc;
+            shared_ptr<CAppUserAccount> sptrAcc;
             if (!GetAppUserAccout(tem.first, sptrAcc)) {
                 LogPrint("vm", "GetAppUserAccout(tem.first, sptrAcc, true) failed \r\n appuserid :%s\r\n",
                         HexStr(tem.first));
@@ -567,7 +567,7 @@ bool CVmRunEvn::OpeatorAppAccount(const map<vector<unsigned char >,vector<CAppFu
                 return false;
 
             }
-            shared_ptr<CAppUserAccout> vmAppAccount = GetAppAccount(sptrAcc);
+            shared_ptr<CAppUserAccount> vmAppAccount = GetAppAccount(sptrAcc);
             if (vmAppAccount.get() == NULL) {
                 RawAppUserAccout.push_back(sptrAcc);
                 vmAppAccount = sptrAcc;

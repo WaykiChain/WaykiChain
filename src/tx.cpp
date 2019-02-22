@@ -555,7 +555,7 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
             txundo.vAccountLog.push_back(oldAcctLog);
         }
         txundo.vScriptOperLog.insert(txundo.vScriptOperLog.end(), vmRunEvn.GetDbLog()->begin(), vmRunEvn.GetDbLog()->end());
-        vector<std::shared_ptr<CAppUserAccout> > &vAppUserAccount = vmRunEvn.GetRawAppUserAccount();
+        vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEvn.GetRawAppUserAccount();
         for (auto & itemUserAccount : vAppUserAccount) {
             CKeyID itemKeyID;
             bool bValid = GetKeyId(view, itemUserAccount.get()->getaccUserId(), itemKeyID);
@@ -619,7 +619,7 @@ bool CTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScri
                 vAddr.insert(item->keyID);
             }
 
-            vector<std::shared_ptr<CAppUserAccout> > &vAppUserAccount = vmRunEvn.GetRawAppUserAccount();
+            vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEvn.GetRawAppUserAccount();
             for (auto & itemUserAccount : vAppUserAccount) {
                 CKeyID itemKeyID;
                 bool bValid = GetKeyId(view, itemUserAccount.get()->getaccUserId(), itemKeyID);

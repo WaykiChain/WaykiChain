@@ -1739,7 +1739,7 @@ void CTransactionDBCache::SetCacheMap(const map<uint256, vector<uint256> > &mapC
 }
 
 bool CScriptDBViewCache::GetScriptAcc(const CRegID& scriptId, const vector<unsigned char> &vAccKey,
-	CAppUserAccout& appAccOut)
+	CAppUserAccount& appAccOut)
 {
 	vector<unsigned char> scriptKey = {'a','c','c','t'};
 	vector<unsigned char> vRegId = scriptId.GetVec6();
@@ -1756,7 +1756,7 @@ bool CScriptDBViewCache::GetScriptAcc(const CRegID& scriptId, const vector<unsig
 	return true;
 }
 
-bool CScriptDBViewCache::SetScriptAcc(const CRegID& scriptId, const CAppUserAccout& appAccOut,
+bool CScriptDBViewCache::SetScriptAcc(const CRegID& scriptId, const CAppUserAccount& appAccOut,
 	CScriptDBOperLog &operlog)
 {
 	vector<unsigned char> scriptKey = {'a','c','c','t'};

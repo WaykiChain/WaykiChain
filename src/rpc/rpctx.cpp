@@ -2744,16 +2744,16 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
         acctKey.assign(acctAddr.c_str(), acctAddr.c_str() + acctAddr.length());
     }
 
-    std::shared_ptr<CAppUserAccout> tem = std::make_shared<CAppUserAccout>();
+    std::shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
     if (params.size() == 3 && params[2].get_int() == 0) {
         CScriptDBViewCache contractScriptTemp(*mempool.pScriptDBViewCache, true);
         if (!contractScriptTemp.GetScriptAcc(appRegId, acctKey, *tem.get())) {
-            tem = std::make_shared<CAppUserAccout>(acctKey);
+            tem = std::make_shared<CAppUserAccount>(acctKey);
         }
     }else {
         CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
         if (!contractScriptTemp.GetScriptAcc(appRegId, acctKey, *tem.get())) {
-            tem = std::make_shared<CAppUserAccout>(acctKey);
+            tem = std::make_shared<CAppUserAccount>(acctKey);
         }
     }
     tem.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
@@ -2795,9 +2795,9 @@ Value listcontractassets(const Array& params, bool fHelp) {
             vector<unsigned char> key;
             key.assign(address.c_str(), address.c_str() + address.length());
 
-            std::shared_ptr<CAppUserAccout> tem = std::make_shared<CAppUserAccout>();
+            std::shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
             if (!contractScriptTemp.GetScriptAcc(script, key, *tem.get())) {
-                tem = std::make_shared<CAppUserAccout>(key);
+                tem = std::make_shared<CAppUserAccount>(key);
             }
             tem.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
 
@@ -3101,7 +3101,7 @@ Value gettotalassets(const Array& params, bool fHelp) {
             map<vector<unsigned char>, vector<unsigned char>>::iterator it;
             for(it = mapAcc.begin(); it != mapAcc.end();++it)
             {
-                CAppUserAccout appAccOut;
+                CAppUserAccount appAccOut;
                 vector<unsigned char> vKey = it->first;
                 vector<unsigned char> vValue = it->second;
 
