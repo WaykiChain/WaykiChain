@@ -1407,7 +1407,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
         !fJustCheck, !fJustCheck))
         return false;
 
-    if(!fJustCheck) {
+    if (!fJustCheck) {
         // verify that the view's current state corresponds to the previous block
         uint256 hashPrevBlock = pindex->pprev == NULL ? uint256() : pindex->pprev->GetBlockHash();
         if(hashPrevBlock != view.GetBestBlock()) {
@@ -1422,7 +1422,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
     if (block.GetHash() == SysCfg().HashGenesisBlock()) {
         view.SetBestBlock(pindex->GetBlockHash());
         for (unsigned int i = 1; i < block.vptx.size(); i++) {
-            if(block.vptx[i]->nTxType == REWARD_TX) {
+            if (block.vptx[i]->nTxType == REWARD_TX) {
                 assert(i<=1);
                 std::shared_ptr<CRewardTransaction> pRewardTx =
                     dynamic_pointer_cast<CRewardTransaction>(block.vptx[i]);
@@ -1444,7 +1444,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
                 uint64_t maxVotes = 0;
                 CScriptDBOperLog operDbLog;
                 int j = i;
-                for(auto &operFund : pDelegateTx->operVoteFunds) {
+                for (auto &operFund : pDelegateTx->operVoteFunds) {
                     assert(operFund.operType == ADD_FUND);
                     if(operFund.fund.value > maxVotes) {
                         maxVotes = operFund.fund.value;
@@ -1602,8 +1602,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
      }
 
     // Write undo information to disk
-    if (pindex->GetUndoPos().IsNull() || (pindex->nStatus & BLOCK_VALID_MASK) < BLOCK_VALID_SCRIPTS)
-    {
+    if (pindex->GetUndoPos().IsNull() || (pindex->nStatus & BLOCK_VALID_MASK) < BLOCK_VALID_SCRIPTS) {
         if (pindex->GetUndoPos().IsNull()) {
             CDiskBlockPos pos;
             if (!FindUndoPos(state, pindex->nFile, pos, ::GetSerializeSize(blockundo, SER_DISK,
@@ -1624,11 +1623,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CAccountViewCache &vie
             return state.Abort(_("Failed to write block index"));
     }
 
-
-
     if (!txCache.AddBlockToCache(block))
             return state.Abort(_("Connect tip block failed add block tx to txcache"));
-    if(pindex->nHeight - SysCfg().GetTxCacheHeight() > 0) {
+
+    if (pindex->nHeight - SysCfg().GetTxCacheHeight() > 0) {
         CBlockIndex *pDeleteBlockIndex = pindex;
         int nCacheHeight = SysCfg().GetTxCacheHeight();
         while (pDeleteBlockIndex && nCacheHeight -- > 0) {
