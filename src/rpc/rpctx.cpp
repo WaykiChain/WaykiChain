@@ -1089,10 +1089,10 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
 
-                        if(item.second->nTxType == CONTRACT_TX) {
+                        if (item.second->nTxType == CONTRACT_TX) {
                             obj.push_back(Pair("txtype", "CONTRACT_TX"));
                             obj.push_back(Pair("contract", HexStr(ptx->vContract)));
-                        }else {
+                        } else {
                             obj.push_back(Pair("txtype", "COMMON_TX"));
                         }
                         arrayData.push_back(obj);
@@ -1100,7 +1100,6 @@ Value listtransactions(const Array& params, bool fHelp) {
                         txnCount++;
                     }
                 }
-
             }
         }
     }
