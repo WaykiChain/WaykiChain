@@ -699,26 +699,26 @@ Value registercontracttx(const Array& params, bool fHelp) {
 //vote a delegate transaction
 Value votedelegatetx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 4) {
-            throw runtime_error(
-                "votedelegatetx \"sendaddr\" \"opervotes\" \"fee\" (\"height\") \n"
-                "\ncreate a delegate vote transaction\n"
-                "\nArguments:\n"
-                "1.\"sendaddr\": (string required) The address from which votes are sent to other delegate addresses\n"
-                "2. \"opervotes\"    (string, required) A json array of oper votes to corresponding delegates\n"
-                " [\n"
-                    "   {\n"
-                    "      \"delegate\":\"address\", (string, required) The delegate address where votes are recevied\n"
-                    "      \"votes\": n (numeric, required) votes, increase votes when positive or reduce votes when negative\n"
-                    "   }\n"
-                    "       ,...\n"
-                " ]\n"
-                "3.\"fee\": (numeric required) pay fee to miner\n"
-                "4.\"height\": (numeric optional) valid height. When not supplied, the tip block height in chainActive will be used.\n"
-                "\nResult:\n"
-                "\"txhash\": (string)\n"
-                "\nExamples:\n"
-                + HelpExampleCli("votedelegatetx"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\", 10000 ") + "\nAs json rpc call\n"
-                + HelpExampleRpc("votedelegatetx"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\", 10000 "));
+        throw runtime_error(
+            "votedelegatetx \"sendaddr\" \"opervotes\" \"fee\" (\"height\") \n"
+            "\ncreate a delegate vote transaction\n"
+            "\nArguments:\n"
+            "1.\"sendaddr\": (string required) The address from which votes are sent to other delegate addresses\n"
+            "2. \"opervotes\"    (string, required) A json array of oper votes to corresponding delegates\n"
+            " [\n"
+                "   {\n"
+                "      \"delegate\":\"address\", (string, required) The delegate address where votes are recevied\n"
+                "      \"votes\": n (numeric, required) votes, increase votes when positive or reduce votes when negative\n"
+                "   }\n"
+                "       ,...\n"
+            " ]\n"
+            "3.\"fee\": (numeric required) pay fee to miner\n"
+            "4.\"height\": (numeric optional) valid height. When not supplied, the tip block height in chainActive will be used.\n"
+            "\nResult:\n"
+            "\"txhash\": (string)\n"
+            "\nExamples:\n"
+            + HelpExampleCli("votedelegatetx"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\", 10000 ") + "\nAs json rpc call\n"
+            + HelpExampleRpc("votedelegatetx"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\", 10000 "));
     }
     RPCTypeCheck(params, list_of(str_type)(array_type)(int_type)(int_type));
 
@@ -907,7 +907,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
         }
 
          if (!pwalletMain->Sign(keyid, delegateTx.SignatureHash(), delegateTx.signature)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in votedelegatetx Error: Sign failed.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in genvotedelegateraw Error: Sign failed.");
         }
     }
 
