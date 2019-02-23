@@ -306,8 +306,8 @@ void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
 }
 
 bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionDBCache &txCache,
-                 CScriptDBViewCache &scriptCache, bool bNeedRunTx) {
-
+        CScriptDBViewCache &scriptCache, bool bNeedRunTx)
+{
     uint64_t maxNonce = SysCfg().GetBlockMaxNonce();
     vector<CAccount> vDelegatesAcctList;
 

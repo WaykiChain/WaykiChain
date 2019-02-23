@@ -592,8 +592,8 @@ int CMerkleTx::SetMerkleBranch(const CBlock* pblock)
     return chainActive.Height() - pindex->nHeight + 1;
 }
 
-bool CheckSignScript(const uint256 & sigHash, const std::vector<unsigned char> signature,
-    const CPubKey pubKey) {
+bool CheckSignScript(const uint256 & sigHash, const std::vector<unsigned char> signature, const CPubKey pubKey)
+{
     if (signatureCache.Get(sigHash, signature, pubKey))
         return true;
     if (!pubKey.Verify(sigHash, signature))
@@ -615,7 +615,7 @@ bool CheckTransaction(CBaseTransaction *ptx, CValidationState &state, CAccountVi
         return state.DoS(100, ERRORMSG("CheckTransaction() : size limits failed"),
             REJECT_INVALID, "bad-txns-oversize");
 
-    if(!ptx->CheckTransaction(state, view, scriptDB))
+    if (!ptx->CheckTransaction(state, view, scriptDB))
         return false;
 
     return true;
