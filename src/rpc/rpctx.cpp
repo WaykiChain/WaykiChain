@@ -905,6 +905,10 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             }
             delegateTx.operVoteFunds.push_back(operVoteFund);
         }
+
+         if (!pwalletMain->Sign(keyid, delegateTx.SignatureHash(), delegateTx.signature)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "in votedelegatetx Error: Sign failed.");
+        }
     }
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);

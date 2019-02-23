@@ -1134,7 +1134,7 @@ Object CDelegateTransaction::ToJSON(const CAccountViewCache &AccountView) const 
     result.push_back(Pair("addr", keyid.ToAddress()));
     result.push_back(Pair("fees", llFees));
     Array operVoteFundArray;
-    for(auto item = operVoteFunds.begin(); item != operVoteFunds.end(); ++item) {
+    for (auto item = operVoteFunds.begin(); item != operVoteFunds.end(); ++item) {
         operVoteFundArray.push_back(item->ToJson(true));
     }
     result.push_back(Pair("operVoteFundList", operVoteFundArray));
