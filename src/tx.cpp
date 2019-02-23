@@ -1173,12 +1173,12 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
         return state.DoS(100, ERRORMSG("CheckTransaction(): CDelegateTransaction CheckTransaction, pubkey not registed"),
             REJECT_INVALID, "bad-no-pubkey");
     }
-
-    //FIXME: add block height check to workaround old block missing sig issue
-    uint256 signhash = SignatureHash();
-    if (!CheckSignScript(signhash, signature, sendAcctInfo.PublicKey)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction CheckTransaction, CheckSignScript failed"),
-            REJECT_INVALID, "bad-signscript-check");
+    if (nValidHeight > 2116535) { //hardcode here to avoid checking 7 old unsigned votes
+        uint256 signhash = SignatureHash();
+        if (!CheckSignScript(signhash, signature, sendAcctInfo.PublicKey)) {
+            return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction CheckTransaction, CheckSignScript failed"),
+                REJECT_INVALID, "bad-signscript-check");
+        }
     }
 
     //check account delegates number;
@@ -1190,7 +1190,7 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
     //check delegate duplication
     set<CKeyID> setOperVoteKeyID;
     uint64_t totalVotes = 0;
-    for(auto item = operVoteFunds.begin(); item != operVoteFunds.end(); ++item) {
+    for (auto item = operVoteFunds.begin(); item != operVoteFunds.end(); ++item) {
         if (0 >= item->fund.value || (uint64_t)GetMaxMoney() < item->fund.value )
             return ERRORMSG("votes:%lld too larger than MaxVote or less than 0", item->fund.value);
         setOperVoteKeyID.insert(item->fund.pubKey.GetKeyID());
