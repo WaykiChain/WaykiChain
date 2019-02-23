@@ -52,3 +52,4 @@ Run waykichain coind inside a docker container!
 |--|--|
 |How to modify JSON RPC port | Two options: <br> <li>modify [WaykiChain.conf](https://github.com/WaykiChain/WaykiChain/wiki/WaykiChain.conf) (```rpcport=6968```)<li>modify docker container mapping port |
 |How to run a testnet | modify WaykiChain.conf by adding ```testnet=1```, otherwise it will run as mainnet |
+|How to run a regtest | modify WaykiChain.conf by adding ```regtest=1```, otherwise it will run as mainnet |
