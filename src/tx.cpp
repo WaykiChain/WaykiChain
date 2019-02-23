@@ -983,16 +983,16 @@ Object CRegisterContractTx::ToJSON(const CAccountViewCache &AccountView) const{
     return result;
 }
 
-bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
-
+bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB)
+{
     if (regAcctId.type() != typeid(CRegID)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx regAcctId must be CRegID"), REJECT_INVALID,
-                "regacctid-type-error");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx regAcctId must be CRegID"),
+            REJECT_INVALID, "regacctid-type-error");
     }
 
     if (!MoneyRange(llFees)) {
-            return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, tx fee out of range"), REJECT_INVALID,
-                    "fee-too-large");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, tx fee out of range"),
+            REJECT_INVALID, "fee-too-large");
     }
 
     uint64_t llFuel = ceil(script.size()/100) * GetFuelRate(scriptDB);
@@ -1002,29 +1002,31 @@ bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountView
 
     if( llFees < llFuel) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, register app tx fee too litter (actual:%lld vs need:%lld)", llFees, llFuel),
-                REJECT_INVALID, "fee-too-litter");
+            REJECT_INVALID, "fee-too-litter");
     }
 
     CAccount acctInfo;
     if (!view.GetAccount(boost::get<CRegID>(regAcctId), acctInfo)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, get account falied"),
-                REJECT_INVALID, "bad-getaccount");
+            REJECT_INVALID, "bad-getaccount");
     }
     if (!acctInfo.IsRegistered()) {
         return state.DoS(100, ERRORMSG("CheckTransaction(): CRegisterContractTx CheckTransaction, account have not registed public key"),
-                REJECT_INVALID, "bad-no-pubkey");
+            REJECT_INVALID, "bad-no-pubkey");
     }
     uint256 signhash = SignatureHash();
     if (!CheckSignScript(signhash, signature, acctInfo.PublicKey)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, CheckSignScript failed"),
-                REJECT_INVALID, "bad-signscript-check");
+            REJECT_INVALID, "bad-signscript-check");
     }
     return true;
 }
+
 uint256 CRegisterContractTx::GetHash() const
 {
     return SignatureHash();
 }
+
 uint256 CRegisterContractTx::SignatureHash() const {
     CHashWriter ss(SER_GETHASH, 0);
     CID regAccId(regAcctId);
@@ -1054,7 +1056,7 @@ bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValid
     }
     if (!view.SaveAccountInfo(acctInfo.regID, acctInfo.keyID, acctInfo)) {
             return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx create new account script id %s script info error", acctInfo.regID.ToString()),
-                    UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+                UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
     txundo.vAccountLog.push_back(acctInfoLog);
     txundo.txHash = GetHash();
@@ -1063,19 +1065,19 @@ bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValid
         CAccount delegate;
         if (!view.GetAccount(CUserID(iter->fund.pubKey), delegate)) {
             return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, read regist addr %s account info error", iter->fund.pubKey.GetKeyID().ToAddress()),
-                    UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+                UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         CAccount delegateAcctLog(delegate);
         if (!delegate.OperateVote(VoteOperType(iter->operType), iter->fund.value)) {
             return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, operate delegate address %s vote fund error", iter->fund.pubKey.GetKeyID().ToAddress()),
-                    UPDATE_ACCOUNT_FAIL, "operate-vote-error");
+                UPDATE_ACCOUNT_FAIL, "operate-vote-error");
         }
         txundo.vAccountLog.push_back(delegateAcctLog);
         // set the new value and erase the old value
         CScriptDBOperLog operDbLog;
         if (!scriptDB.SetDelegateData(delegate, operDbLog)) {
             return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, erase account id %s vote info error", delegate.regID.ToString()),
-                    UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+                UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
         txundo.vScriptOperLog.push_back(operDbLog);
 
@@ -1083,14 +1085,14 @@ bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValid
         if (delegateAcctLog.llVotes > 0) {
             if(!scriptDB.EraseDelegateData(delegateAcctLog, eraseDbLog)) {
                 return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, erase account id %s vote info error", delegateAcctLog.regID.ToString()),
-                        UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+                    UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
             }
         }
         txundo.vScriptOperLog.push_back(eraseDbLog);
 
         if (!view.SaveAccountInfo(delegate.regID, delegate.keyID, delegate)) {
-                return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx create new account script id %s script info error", acctInfo.regID.ToString()),
-                        UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+            return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx create new account script id %s script info error", acctInfo.regID.ToString()),
+                UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
     }
 
@@ -1139,17 +1141,18 @@ Object CDelegateTransaction::ToJSON(const CAccountViewCache &AccountView) const 
     return std::move(result);
 }
 
-bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB)
+{
     CID id(userId);
-    if(userId.type() != typeid(CRegID)) {
+    if (userId.type() != typeid(CRegID)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction send account is not CRegID type"),
             REJECT_INVALID, "deletegate-tx-error");
     }
-    if(0 == operVoteFunds.size()) {
+    if (0 == operVoteFunds.size()) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction the deletegate oper fund empty"),
             REJECT_INVALID, "oper-fund-empty-error");
     }
-    if(operVoteFunds.size() > IniCfg().GetDelegatesNum()) {
+    if (operVoteFunds.size() > IniCfg().GetDelegatesNum()) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction the deletegates number a transaction can't exceeds maximum"),
             REJECT_INVALID, "deletegates-number-error");
     }
@@ -1163,13 +1166,17 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
     }
     CAccount sendAcctInfo;
     if (!view.GetAccount(userId, sendAcctInfo)) {
-     return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction get account info error, userid=%s", HexStr(id.GetID())),
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction get account info error, userid=%s", HexStr(id.GetID())),
             REJECT_INVALID, "bad-read-accountdb");
     }
+    if (!sendAcctInfo.IsRegistered()) {
+        return state.DoS(100, ERRORMSG("CheckTransaction(): CDelegateTransaction CheckTransaction, pubkey not registed"),
+            REJECT_INVALID, "bad-no-pubkey");
+    }
 
-    //FIXME: add block height check to walkaround old block missing sig issue
+    //FIXME: add block height check to workaround old block missing sig issue
     uint256 signhash = SignatureHash();
-    if (!CheckSignScript(signhash, signature, boost::get<CPubKey>(userId))) {
+    if (!CheckSignScript(signhash, signature, sendAcctInfo.PublicKey)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction CheckTransaction, CheckSignScript failed"),
             REJECT_INVALID, "bad-signscript-check");
     }

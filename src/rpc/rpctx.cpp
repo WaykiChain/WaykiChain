@@ -812,25 +812,25 @@ Value votedelegatetx(const Array& params, bool fHelp) {
 //create a vote delegate raw transaction
 Value genvotedelegateraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() <  3  || params.size() > 4) {
-            throw runtime_error("genvotedelegateraw \"addr\" \"opervotes\" \"fee\" \"height\"\n"
-                    "\nget a vote delegate transaction raw transaction\n"
-                    "\nArguments:\n"
-                    "1.\"addr\": (string required) from address that votes delegate(s)\n"
-                    "2. \"opervotes\"    (string, required) A json array of json oper vote to delegates\n"
-                    " [\n"
-                      " {\n"
-                      "    \"delegate\":\"address\", (string, required) The transaction id\n"
-                      "    \"votes\":n  (numeric, required) votes\n"
-                      " }\n"
-                      "       ,...\n"
-                    " ]\n"
-                    "3.\"fee\": (numeric required) pay to miner\n"
-                    "4.\"height\": (numeric optional)valid height,If not provide, use the tip block hegiht in chainActive\n"
-                    "\nResult:\n"
-                    "\"txhash\": (string)\n"
-                    "\nExamples:\n"
-                    + HelpExampleCli("genvotedelegateraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000") + "\nAs json rpc call\n"
-                    + HelpExampleRpc("genvotedelegateraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000"));
+        throw runtime_error("genvotedelegateraw \"addr\" \"opervotes\" \"fee\" \"height\"\n"
+            "\nget a vote delegate transaction raw transaction\n"
+            "\nArguments:\n"
+            "1.\"addr\": (string required) from address that votes delegate(s)\n"
+            "2. \"opervotes\"    (string, required) A json array of json oper vote to delegates\n"
+            " [\n"
+                " {\n"
+                "    \"delegate\":\"address\", (string, required) The transaction id\n"
+                "    \"votes\":n  (numeric, required) votes\n"
+                " }\n"
+                "       ,...\n"
+            " ]\n"
+            "3.\"fee\": (numeric required) pay to miner\n"
+            "4.\"height\": (numeric optional)valid height,If not provide, use the tip block hegiht in chainActive\n"
+            "\nResult:\n"
+            "\"txhash\": (string)\n"
+            "\nExamples:\n"
+            + HelpExampleCli("genvotedelegateraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000") + "\nAs json rpc call\n"
+            + HelpExampleRpc("genvotedelegateraw"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\" 1000"));
     }
     RPCTypeCheck(params, list_of(str_type)(array_type)(int_type)(int_type));
 
@@ -876,13 +876,12 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
         delegateTx.llFees = fee;
         if( 0 != nHeight) {
             delegateTx.nValidHeight = nHeight;
-        }
-        else {
+        } else {
             delegateTx.nValidHeight = chainActive.Tip()->nHeight;
         }
         delegateTx.userId = account.regID;
 
-        for(auto operVote : operVoteArray) {
+        for (auto operVote : operVoteArray) {
             COperVoteFund operVoteFund;
             const Value& delegateAddress = find_value(operVote.get_obj(), "delegate");
             const Value& delegateVotes = find_value(operVote.get_obj(),  "votes");
@@ -901,8 +900,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             operVoteFund.fund.value = (uint64_t)abs(delegateVotes.get_int64());
             if(delegateVotes.get_int64() > 0 ) {
                 operVoteFund.operType = ADD_FUND;
-            }
-            else {
+            } else {
                 operVoteFund.operType = MINUS_FUND;
             }
             delegateTx.operVoteFunds.push_back(operVoteFund);
@@ -920,15 +918,16 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
 Value listaddr(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
         throw runtime_error(
-                 "listaddr\n"
-                 "\nreturn Array containing address,balance,haveminerkey,regid information.\n"
-                 "\nArguments:\n"
-                 "\nResult:\n"
-                 "\nExamples:\n"
-                 + HelpExampleCli("listaddr", "")
-                 + "\nAs json rpc call\n"
-                 + HelpExampleRpc("listaddr", ""));
+            "listaddr\n"
+            "\nreturn Array containing address,balance,haveminerkey,regid information.\n"
+            "\nArguments:\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("listaddr", "")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("listaddr", ""));
     }
+
     Array retArry;
     assert(pwalletMain != NULL);
     {
