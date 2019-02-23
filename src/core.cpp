@@ -73,7 +73,7 @@ uint256 CBlock::CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBr
 
 int64_t CBlock::GetFee() const{
 	int64_t nFees = 0;
-	for(unsigned int i = 1; i < vptx.size(); ++i){
+	for (unsigned int i = 1; i < vptx.size(); ++i) {
 		nFees += vptx[i]->GetFee();
 	}
 	return nFees;

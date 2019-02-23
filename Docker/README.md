@@ -1,6 +1,6 @@
 # Version
-* 2019-01-15
-* v1.1.1
+* 2019-02-21
+* v1.2.5
 
 # Run in docker
 Run waykichain coind inside a docker container!
@@ -29,12 +29,13 @@ Run waykichain coind inside a docker container!
    * ``` sudo cp -r docker-waykicoind/bin . ```
 1. copy WaykiCoind.conf into ```conf``` dir and modify its content accordingly
    * For mainnet, please make sure ```testnet=1``` is removed
-   * For testnet, please make sure ```testnet=1``` is provided
-   * For common nodes (no mining), please set ```gen=0``` to avoid CPU waste
-1. launch the node container: 
+   * For testnet, please make sure only ```testnet=1``` is provided
+   * For regtest, please make suer only ```regtest=1``` is provided
+   * For common nodes (no mining), please set ```gen=0``` to avoid computing resources waste
+1. launch the node container:
    * For mainnet, run ```$sh ./bin/run-waykicoind-main.sh```
    * For testnet,  run ```$sh ./bin/run-waykicoind-test.sh```
-   
+
 ## Lookup Help menu from coind
 * ```docker exec -it waykicoind-test coind help```
 
@@ -51,3 +52,4 @@ Run waykichain coind inside a docker container!
 |--|--|
 |How to modify JSON RPC port | Two options: <br> <li>modify [WaykiChain.conf](https://github.com/WaykiChain/WaykiChain/wiki/WaykiChain.conf) (```rpcport=6968```)<li>modify docker container mapping port |
 |How to run a testnet | modify WaykiChain.conf by adding ```testnet=1```, otherwise it will run as mainnet |
+|How to run a regtest | modify WaykiChain.conf by adding ```regtest=1```, otherwise it will run as mainnet |

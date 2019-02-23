@@ -434,8 +434,9 @@ Object CRegisterAccountTx::ToJSON(const CAccountViewCache &AccountView) const{
     result.push_back(Pair("height", nValidHeight));
    return result;
 }
-bool CRegisterAccountTx::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 
+bool CRegisterAccountTx::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB)
+{
     if (userId.type() != typeid(CPubKey)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx userId must be CPubKey"),
                 REJECT_INVALID, "userid-type-error");
@@ -677,14 +678,15 @@ Object CTransaction::ToJSON(const CAccountViewCache &AccountView) const{
     result.push_back(Pair("contract", HexStr(vContract)));
     return result;
 }
+
 bool CTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 
-    if(srcRegId.type() != typeid(CRegID)) {
+    if (srcRegId.type() != typeid(CRegID)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction srcRegId must be CRegID"),
             REJECT_INVALID, "srcaddr-type-error");
     }
 
-    if((desUserId.type() != typeid(CRegID)) && (desUserId.type() != typeid(CKeyID))) {
+    if ((desUserId.type() != typeid(CRegID)) && (desUserId.type() != typeid(CKeyID))) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CTransaction desUserId must be CRegID or CKeyID"),
             REJECT_INVALID, "desaddr-type-error");
     }
@@ -712,9 +714,11 @@ bool CTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &
 
     return true;
 }
+
 uint256 CTransaction::GetHash() const {
     return SignatureHash();
 }
+
 uint256 CTransaction::SignatureHash() const {
     CHashWriter ss(SER_GETHASH, 0);
     CID srcId(srcRegId);
@@ -722,7 +726,6 @@ uint256 CTransaction::SignatureHash() const {
     ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << srcId << desId << VARINT(llFees) << VARINT(llValues) << vContract;
     return ss.GetHash();
 }
-
 
 bool CRewardTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
         int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
@@ -979,6 +982,7 @@ Object CRegisterContractTx::ToJSON(const CAccountViewCache &AccountView) const{
     result.push_back(Pair("height", nValidHeight));
     return result;
 }
+
 bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 
     if (regAcctId.type() != typeid(CRegID)) {
@@ -1138,28 +1142,36 @@ Object CDelegateTransaction::ToJSON(const CAccountViewCache &AccountView) const 
 bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     CID id(userId);
     if(userId.type() != typeid(CRegID)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction send account is not CRegID type"), REJECT_INVALID, "deletegate-tx-error");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction send account is not CRegID type"),
+            REJECT_INVALID, "deletegate-tx-error");
     }
     if(0 == operVoteFunds.size()) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction the deletegate oper fund empty"), REJECT_INVALID,
-                           "oper-fund-empty-error");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction the deletegate oper fund empty"),
+            REJECT_INVALID, "oper-fund-empty-error");
     }
     if(operVoteFunds.size() > IniCfg().GetDelegatesNum()) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction the deletegates number a transaction can't exceeds maximum"), REJECT_INVALID,
-                    "deletegates-number-error");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction the deletegates number a transaction can't exceeds maximum"),
+            REJECT_INVALID, "deletegates-number-error");
     }
     if (!MoneyRange(llFees))
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction CheckTransaction, delegate tx fee out of range"), REJECT_INVALID,
-                "bad-regtx-fee-toolarge");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction CheckTransaction, delegate tx fee out of range"),
+            REJECT_INVALID, "bad-regtx-fee-toolarge");
+
     CKeyID sendTxKeyID;
     if(!view.GetKeyId(userId, sendTxKeyID)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction get keyId error by CUserID =%s", HexStr(id.GetID())), REJECT_INVALID, "");
     }
-
     CAccount sendAcctInfo;
     if (!view.GetAccount(userId, sendAcctInfo)) {
      return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction get account info error, userid=%s", HexStr(id.GetID())),
-             REJECT_INVALID, "bad-read-accountdb");
+            REJECT_INVALID, "bad-read-accountdb");
+    }
+
+    //FIXME: add block height check to walkaround old block missing sig issue
+    uint256 signhash = SignatureHash();
+    if (!CheckSignScript(signhash, signature, boost::get<CPubKey>(userId))) {
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction CheckTransaction, CheckSignScript failed"),
+            REJECT_INVALID, "bad-signscript-check");
     }
 
     //check account delegates number;

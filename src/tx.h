@@ -126,7 +126,6 @@ public:
             vRegID.insert(vRegID.end(), BEGIN(nIndex), END(nIndex));
         }
     )
-
 };
 
 /*CID是一个vector 存放CRegID,CKeyID,CPubKey*/
@@ -598,12 +597,15 @@ public:
     vector_unsigned_char signature;
 
 public:
-    CDelegateTransaction(const CBaseTransaction *pBaseTx) {
+    CDelegateTransaction(const CBaseTransaction *pBaseTx)
+    {
         assert(DELEGATE_TX == pBaseTx->nTxType);
         *this = *(CDelegateTransaction *) pBaseTx;
     }
 
-    CDelegateTransaction(const vector_unsigned_char &accountIn, vector<COperVoteFund> &operVoteFundsIn, const uint64_t feeIn, const int heightIn) {
+    CDelegateTransaction(const vector_unsigned_char &accountIn, vector<COperVoteFund> &operVoteFundsIn,
+        const uint64_t feeIn, const int heightIn)
+    {
         nTxType = DELEGATE_TX;
         if (accountIn.size() > 6) {
             userId = CPubKey(accountIn);
@@ -617,13 +619,14 @@ public:
      }
 
     CDelegateTransaction(const CUserID &userIdIn, uint64_t feeIn, const vector<COperVoteFund> &operVoteFundsIn,
-        const int heightIn) {
+        const int heightIn)
+    {
         if (userIdIn.type() == typeid(CRegID)) {
             assert(!boost::get<CRegID>(userIdIn).IsEmpty());
         }
         nTxType = DELEGATE_TX;
         userId = userIdIn;
-        operVoteFunds =  operVoteFundsIn;
+        operVoteFunds = operVoteFundsIn;
         nValidHeight = heightIn;
         llFees = feeIn;
         signature.clear();

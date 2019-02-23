@@ -63,8 +63,8 @@ Object GetTxDetailJSON(const uint256& txhash) {
         CBlockIndex* pgenesisblockindex = mapBlockIndex[SysCfg().HashGenesisBlock()];
         ReadBlockFromDisk(genesisblock, pgenesisblockindex);
         assert(genesisblock.GetHashMerkleRoot() == genesisblock.BuildMerkleTree());
-        for(unsigned int i=0; i<genesisblock.vptx.size(); ++i) {
-            if(txhash == genesisblock.GetTxHash(i)) {
+        for (unsigned int i = 0; i < genesisblock.vptx.size(); ++i) {
+            if (txhash == genesisblock.GetTxHash(i)) {
                 obj = genesisblock.vptx[i]->ToJSON(*pAccountViewTip);
                 obj.push_back(Pair("blockhash", SysCfg().HashGenesisBlock().GetHex()));
                 obj.push_back(Pair("confirmHeight", (int) 0));
@@ -89,7 +89,8 @@ Object GetTxDetailJSON(const uint256& txhash) {
                     obj.push_back(Pair("blockhash", header.GetHash().GetHex()));
                     obj.push_back(Pair("confirmHeight", (int) header.GetHeight()));
                     obj.push_back(Pair("confirmedtime", (int) header.GetTime()));
-                    if(pBaseTx->nTxType == CONTRACT_TX) {
+
+                    if (pBaseTx->nTxType == CONTRACT_TX) {
                         vector<CVmOperate> vOutput;
                         pScriptDBTip->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
                         Array outputArray;
@@ -2498,7 +2499,9 @@ Value sigstr(const Array& params, bool fHelp) {
                 + "\nAs json rpc call\n"
                 + HelpExampleRpc("sigstr", "\"123-1\" \"W5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG 010203040506\" "));
     }
+
     vector<unsigned char> vch(ParseHex(params[0].get_str()));
+
     string addr = params[1].get_str();
     CKeyID keyid;
     if (!GetKeyId(params[1].get_str(), keyid)) {
