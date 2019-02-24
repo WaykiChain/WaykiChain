@@ -110,16 +110,13 @@ static CVmRunEvn* GetVmRunEvn(lua_State *L)
     int res = lua_getglobal(L, "VmScriptRun");
     //LogPrint("vm", "GetVmRunEvn lua_getglobal:%d\n", res);
 
-    if(LUA_TLIGHTUSERDATA == res)
-    {
-        if(lua_islightuserdata(L,-1))
-        {
+    if (LUA_TLIGHTUSERDATA == res) {
+        if (lua_islightuserdata(L,-1)) {
             pVmRunEvn = (CVmRunEvn*)lua_topointer(L,-1);
             //LogPrint("vm", "GetVmRunEvn lua_topointer:%p\n", pVmRunEvn);
         }
     }
     lua_pop(L, 1);
-
     return pVmRunEvn;
 }
 
@@ -715,7 +712,6 @@ static int ExDesFunc(lua_State *L) {
                 DES_ecb3_encrypt(&in, &out, &deskey1, &deskey2, &deskey3, DES_ENCRYPT);
                 memcpy(&desout[ii * sizeof(DES_cblock)], &out, sizeof(out));
             }
-
         } else {
             //error
             return RetFalse(string(__FUNCTION__) + "para  err !");
@@ -1705,8 +1701,7 @@ static int ExGetUserAppAccValueFunc(lua_State *L)
 }
 
 static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
-    if(!lua_istable(L,-1))
-    {
+    if (!lua_istable(L,-1)) {
         LogPrint("vm","is not table\n");
         return false;
     }
@@ -1714,56 +1709,59 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std
     vector<unsigned char> vBuf ;
     CAppFundOperate temp;
     memset(&temp,0,sizeof(temp));
-    if(!(getNumberInTable(L,(char *)"operatorType",doubleValue))){
-        LogPrint("vm","opeatortype get fail\n");
+    if (!(getNumberInTable(L,(char *)"operatorType",doubleValue))) {
+        LogPrint("vm", "opeatortype get fail\n");
         return false;
-    }else{
+    } else {
         temp.opeatortype = (unsigned char)doubleValue;
     }
-    if(!(getNumberInTable(L,(char *)"outHeight",doubleValue))){
-        LogPrint("vm","outheight get fail\n");
+
+    if (!(getNumberInTable(L,(char *)"outHeight",doubleValue))) {
+        LogPrint("vm", "outheight get fail\n");
         return false;
-    }else{
+    } else {
         temp.outheight = (unsigned int)doubleValue;
     }
 
     if(!getArrayInTable(L,(char *)"moneyTbl",sizeof(temp.mMoney),vBuf))
     {
-        LogPrint("vm","moneyTbl not table\n");
+        LogPrint("vm", "moneyTbl not table\n");
         return false;
     }else{
        memcpy(&temp.mMoney,&vBuf[0],sizeof(temp.mMoney));
     }
-    if(!(getNumberInTable(L,(char *)"userIdLen",doubleValue))){
-        LogPrint("vm","appuserIDlen get fail\n");
+
+    if (!(getNumberInTable(L, (char *) "userIdLen", doubleValue))) {
+        LogPrint("vm", "appuserIDlen get fail\n");
         return false;
-    }else{
-        temp.appuserIDlen = (unsigned char)doubleValue;
+    } else {
+        temp.appuserIDlen = (unsigned char) doubleValue;
     }
-    if((temp.appuserIDlen < 1) || (temp.appuserIDlen > sizeof(temp.vAppuser))){
-        LogPrint("vm","appuserIDlen is err\n");
+
+    if ((temp.appuserIDlen < 1) || (temp.appuserIDlen > sizeof(temp.vAppuser))) {
+        LogPrint("vm", "appuserIDlen is err\n");
         return false;
     }
-    if(!getArrayInTable(L,(char *)"userIdTbl",temp.appuserIDlen,vBuf))
-    {
-        LogPrint("vm","useridTbl not table\n");
+
+    if (!getArrayInTable(L,(char *)"userIdTbl",temp.appuserIDlen,vBuf)) {
+        LogPrint("vm", "useridTbl not table\n");
         return false;
-    }else{
+    } else {
         memcpy(temp.vAppuser,&vBuf[0],temp.appuserIDlen);
     }
-    if(!(getNumberInTable(L,(char *)"fundTagLen",doubleValue))){
+
+    if (!(getNumberInTable(L,(char *)"fundTagLen",doubleValue))) {
         LogPrint("vm","FundTaglen get fail\n");
         return false;
-    }else{
+    } else {
         temp.FundTaglen = (unsigned char)doubleValue;
     }
-    if((temp.FundTaglen > 0) && (temp.FundTaglen <= sizeof(temp.vFundTag)))
-    {
-        if(!getArrayInTable(L,(char *)"fundTagTbl",temp.FundTaglen,vBuf))
-        {
+
+    if((temp.FundTaglen > 0) && (temp.FundTaglen <= sizeof(temp.vFundTag))) {
+        if (!getArrayInTable(L,(char *)"fundTagTbl",temp.FundTaglen,vBuf)) {
             LogPrint("vm","FundTagTbl not table\n");
             return false;
-        }else{
+        } else {
             memcpy(temp.vFundTag,&vBuf[0],temp.FundTaglen);
         }
     }
@@ -1829,7 +1827,7 @@ static bool GetDataTableAssetOperate(lua_State *L, int nIndex, vector<std::share
     if (!(getNumberInTable(L, (char *) "outHeight", doubleValue))) {
         LogPrint("vm", "get outheight failed\n");
         return false;
-    } else{
+    } else {
         temp.outheight = (unsigned int) doubleValue;
         LogPrint("vm", "height = %d", temp.outheight);
     }
@@ -1864,7 +1862,7 @@ static bool GetDataTableAssetOperate(lua_State *L, int nIndex, vector<std::share
 }
 
 /**
- *   写 应用操作输出到 pVmRunEvn->MapAppOperate[0]
+ * 写应用操作输出到 pVmRunEvn->MapAppOperate[0]
  * @param ipara
  * @param pVmEvn
  * @return
@@ -1900,7 +1898,9 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
     * 每个函数里的Lua栈是私有的,当把返回值压入Lua栈以后，该栈会自动被清空*/
     return RetRstBooleanToLua(L,true);
 }
-static int ExGetBase58AddrFunc(lua_State *L){
+
+static int ExGetBase58AddrFunc(lua_State *L)
+{
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
 
     if (!GetArray(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != 6)
@@ -1933,10 +1933,11 @@ static int ExGetBase58AddrFunc(lua_State *L){
      return RetRstToLua(L,vTemp);
 }
 
-static int ExTransferContractAsset(lua_State *L) {
+static int ExTransferContractAsset(lua_State *L) 
+{
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
 
-    if(!GetArray(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != 34)
+    if (!GetArray(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != 34)
         return RetFalse(string(__FUNCTION__)+"para  err !");
 
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
@@ -1982,7 +1983,7 @@ static int ExTransferContractAsset(lua_State *L) {
     CAppFundOperate op;
     memset(&op, 0, sizeof(op));
 
-    if(nMoney > 0) {
+    if (nMoney > 0) {
         op.mMoney = nMoney;
         op.outheight = 0;
         op.opeatortype = SUB_FREE_OP;
@@ -2012,7 +2013,7 @@ static int ExTransferContractAsset(lua_State *L) {
         }
 
         op.FundTaglen = fund.GetTag().size();
-        for(i = 0; i < op.FundTaglen; i++) {
+        for (i = 0; i < op.FundTaglen; i++) {
             op.vFundTag[i] = fund.GetTag()[i];
         }
 
@@ -2116,16 +2117,16 @@ static int ExTransferSomeAsset(lua_State *L) {
 
 }
 
-static int ExGetBlockTimestamp(lua_State *L) {
+static int ExGetBlockTimestamp(lua_State *L) 
+{
     int height = 0;
     if (!GetDataInt(L,height))
         return RetFalse("ExGetBlcokTimestamp para err1");
 
     if (height <= 0) {
         height = chainActive.Height() + height;
-        if(height < 0) {
+        if(height < 0)
             return RetFalse("ExGetBlcokTimestamp para err2");
-        }
     }
 
     CBlockIndex *pindex = chainActive[height];
@@ -2195,11 +2196,13 @@ static const luaL_Reg mylib[] = {
 /*
  * 注册一个新Lua模块*/
 #ifdef WIN_DLL
-extern "C" __declspec(dllexport)int luaopen_mylib(lua_State *L)
+    extern "C" __declspec(dllexport)int luaopen_mylib(lua_State *L)
 #else
-LUAMOD_API int luaopen_mylib(lua_State *L)
+    LUAMOD_API int luaopen_mylib(lua_State *L)
 #endif
+
+
 {
-    luaL_newlib(L,mylib);//生成一个table,把mylibs所有函数填充进去
+    luaL_newlib(L, mylib); //生成一个table,把mylibs所有函数填充进去
     return 1;
 }

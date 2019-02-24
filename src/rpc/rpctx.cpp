@@ -210,15 +210,17 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
             for(auto & item : vOutput) {
                 Object objOutPut;
                 string address;
-                if(item.nacctype == regid) {
+                if (item.nacctype == regid) {
                     vector<unsigned char> vRegId(item.accountid, item.accountid+6);
                     CRegID regId(vRegId);
                     CUserID userId(regId);
                     address = RegIDToAddress(userId);
-                }else if(item.nacctype == base58addr) {
+                } else if (item.nacctype == base58addr) {
                     address.assign(item.accountid[0], sizeof(item.accountid));
                 }
+
                 objOutPut.push_back(Pair("address", address));
+                
                 uint64_t amount;
                 memcpy(&amount, item.money, sizeof(item.money));
                 double dAmount = amount / COIN;
@@ -239,17 +241,19 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
     }
     case REG_CONT_TX:
     case DELEGATE_TX:
-        if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip)) {
+        if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
             return arrayDetail;
-        }
+        
+        double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+
         obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
         obj.push_back(Pair("category", "send"));
-        double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
         obj.push_back(Pair("amount", -dAmount));
         if(pBaseTx->nTxType == REG_CONT_TX)
             obj.push_back(Pair("txtype", "REG_CONT_TX"));
         else if(pBaseTx->nTxType == DELEGATE_TX)
             obj.push_back(Pair("txtype", "DELEGATE_TX"));
+
         arrayDetail.push_back(obj);
         break;
     }

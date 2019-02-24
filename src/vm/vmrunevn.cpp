@@ -14,6 +14,7 @@
  //CVmRunEvn *pVmRunEvn = NULL;
 
 #define MAX_OUTPUT_COUNT 100
+
 CVmRunEvn::CVmRunEvn() {
     RawAccont.clear();
     NewAccont.clear();
@@ -25,6 +26,7 @@ CVmRunEvn::CVmRunEvn() {
     m_dblog = std::make_shared<std::vector<CScriptDBOperLog> >();
     isCheckAccount = false;
 }
+
 vector<shared_ptr<CAccount> > &CVmRunEvn::GetRawAccont() {
     return RawAccont;
 }
@@ -42,7 +44,7 @@ vector<shared_ptr<CAppUserAccount>> &CVmRunEvn::GetRawAppUserAccount()
 }
 
 
-bool CVmRunEvn::intial(shared_ptr<CBaseTransaction> & Tx, CAccountViewCache& view, int nheight) {
+bool CVmRunEvn::Initialize(shared_ptr<CBaseTransaction> & Tx, CAccountViewCache& view, int nheight) {
 
     m_output.clear();
     listTx = Tx;
@@ -75,7 +77,7 @@ bool CVmRunEvn::intial(shared_ptr<CBaseTransaction> & Tx, CAccountViewCache& vie
         return false;
     }
     isCheckAccount = vmScript.IsCheckAccount();
-    if(secure->vContract.size() >=4*1024 ){
+    if (secure->vContract.size() >= 4*1024 ){
         LogPrint("ERROR", "%s\n", "CVmScriptRun::intial() vContract context size lager 4096");
         return false;
     }
@@ -93,35 +95,36 @@ bool CVmRunEvn::intial(shared_ptr<CBaseTransaction> & Tx, CAccountViewCache& vie
     return true;
 }
 
-CVmRunEvn::~CVmRunEvn() {
-
+CVmRunEvn::~CVmRunEvn() 
+{
 }
-tuple<bool, uint64_t, string> CVmRunEvn::run(shared_ptr<CBaseTransaction>& Tx, CAccountViewCache& view, CScriptDBViewCache& VmDB, int nHeight,
-        uint64_t nBurnFactor, uint64_t &uRunStep) {
 
-    if (nBurnFactor == 0) {
-//      assert(0);
-        return std::make_tuple (false, 0, string("VmScript nBurnFactor == 0 \n"));
-    }
+tuple<bool, uint64_t, string> CVmRunEvn::ExecuteContract(shared_ptr<CBaseTransaction>& Tx, CAccountViewCache& view,
+    CScriptDBViewCache& VmDB, int nHeight, uint64_t nBurnFactor, uint64_t &uRunStep) 
+{
+    if (nBurnFactor == 0)
+        return std::make_tuple (false, 0, string("VmScript nBurnFactor == 0\n"));
+
     m_ScriptDBTip = &VmDB;
 
     CTransaction* tx = static_cast<CTransaction*>(Tx.get());
-    if (tx->llFees < CBaseTransaction::nMinTxFee) {
+    if (tx->llFees < CBaseTransaction::nMinTxFee)
         return std::make_tuple (false, 0, string("CVmRunEvn: Contract Tx fee too small\n"));
-    }
-    uint64_t maxstep = ((tx->llFees-CBaseTransaction::nMinTxFee)/ nBurnFactor) * 100;
+
+    uint64_t maxstep = ((tx->llFees - CBaseTransaction::nMinTxFee) / nBurnFactor) * 100;
     if (maxstep > MAX_BLOCK_RUN_STEP) {
         maxstep = MAX_BLOCK_RUN_STEP;
     }
+
     LogPrint("vm", "tx hash:%s fees=%lld fuelrate=%lld maxstep:%d\n", Tx->GetHash().GetHex(), tx->llFees, nBurnFactor, maxstep);
-    if (!intial(Tx, view, nHeight)) {
+    if (!Initialize(Tx, view, nHeight)) {
         return std::make_tuple (false, 0, string("VmScript inital Failed\n"));
     }
 
     int64_t step = 0;
 
     tuple<uint64_t, string> ret = pLua.get()->run(maxstep,this);
-    LogPrint("vm", "%s\r\n", "CVmScriptRun::run() LUA");
+    LogPrint("vm", "%s\r\n", "CVmScriptRun::ExecuteContract() LUA");
     step = std::get<0>(ret);
     if (0 == step) {
         return std::make_tuple(false, 0, string("VmScript run Failed\n"));
@@ -200,6 +203,7 @@ shared_ptr<CAccount> CVmRunEvn::GetAccount(shared_ptr<CAccount>& Account) {
     }
     return NULL;
 }
+
 vector_unsigned_char CVmRunEvn::GetAccountID(CVmOperate value) {
     vector_unsigned_char accountid;
     if (value.nacctype == regid) {

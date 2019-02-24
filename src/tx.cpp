@@ -531,13 +531,14 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
         CVmRunEvn vmRunEvn;
         std::shared_ptr<CBaseTransaction> pTx = GetNewInstance();
         uint64_t fuelRate = GetFuelRate(scriptDB);
-        int64_t llTime = GetTimeMillis();
-        tuple<bool, uint64_t, string> ret = vmRunEvn.run(pTx, view, scriptDB, nHeight, fuelRate, nRunStep);
-        if (!std::get<0>(ret))
-            return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, txhash=%s run script error:%s", GetHash().GetHex(), std::get<2>(ret)),
-                UPDATE_ACCOUNT_FAIL, "run-script-error:" + std::get<2>(ret));
 
+        int64_t llTime = GetTimeMillis();
+        tuple<bool, uint64_t, string> ret = vmRunEvn.ExecuteContract(pTx, view, scriptDB, nHeight, fuelRate, nRunStep);
+        if (!std::get<0>(ret))
+            return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, txhash=%s run script error:%s", 
+                GetHash().GetHex(), std::get<2>(ret)), UPDATE_ACCOUNT_FAIL, "run-script-error:" + std::get<2>(ret));
         LogPrint("CONTRACT_TX", "execute contract elapse:%lld, txhash=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
+
         set<CKeyID> vAddress;
         vector<std::shared_ptr<CAccount> > &vAccount = vmRunEvn.GetNewAccont();
         for (auto & itemAccount : vAccount) {  //更新对应的合约交易的账户信息
@@ -610,15 +611,17 @@ bool CTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScri
     if (CONTRACT_TX == nTxType) {
         CVmRunEvn vmRunEvn;
         std::shared_ptr<CBaseTransaction> pTx = GetNewInstance();
-        uint64_t el = GetFuelRate(scriptDB);
+        uint64_t fuelRate = GetFuelRate(scriptDB);
         CScriptDBViewCache scriptDBView(scriptDB, true);
+
         if (uint256() == pTxCacheTip->IsContainTx(GetHash())) {
             CAccountViewCache accountView(view, true);
-            tuple<bool, uint64_t, string> ret = vmRunEvn.run(pTx, accountView, scriptDBView, chainActive.Height() + 1, el,
-                    nRunStep);
-            if (!std::get<0>(ret)) {
+            tuple<bool, uint64_t, string> ret = vmRunEvn.ExecuteContract(pTx, accountView, scriptDBView, 
+                chainActive.Height() + 1, fuelRate, nRunStep);
+
+            if (!std::get<0>(ret))
                 return ERRORMSG("GetAddress()  : %s", std::get<2>(ret));
-            }
+                
             vector<shared_ptr<CAccount> > vpAccount = vmRunEvn.GetNewAccont();
 
             for (auto & item : vpAccount) {

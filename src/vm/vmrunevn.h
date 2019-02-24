@@ -20,6 +20,7 @@
 
 using namespace std;
 class CVmOperate;
+
 class CVmRunEvn {
 	/**
 	 * Run the script object
@@ -71,7 +72,7 @@ private:
 	 *  @param nheight: run the Environment the block's height
 	 * @return : check the the tx and account is Legal true is legal false is unlegal
 	 */
-	bool intial(shared_ptr<CBaseTransaction> & Tx, CAccountViewCache& view, int nheight);
+	bool Initialize(shared_ptr<CBaseTransaction> & Tx, CAccountViewCache& view, int nheight);
 	/**
 	 *@brief check aciton
 	 * @param listoperate: run the script return the code,check the code
@@ -107,6 +108,8 @@ private:
 	bool OpeatorAppAccount(const map<vector<unsigned char >,vector<CAppFundOperate> > opMap, CScriptDBViewCache& view);
 
 	std::shared_ptr<CAppUserAccount> GetAppAccount(shared_ptr<CAppUserAccount>& AppAccount);
+
+
 public:
 	/**
 	 * A constructor.
@@ -123,8 +126,8 @@ public:
 	 */
 	vector<shared_ptr<CAccount> > &GetNewAccont();
 	vector<shared_ptr<CAppUserAccount>> &GetRawAppUserAccount();
-
 	vector<shared_ptr<CAppUserAccount>> &GetNewAppUserAccount();
+
 	/**
 	 * @brief  start to run the script
 	 * @param Tx: run the tx
@@ -134,8 +137,8 @@ public:
 	 * @return: tuple<bool,uint64_t,string>  bool represent the script run success
 	 * uint64_t if the script run sucess Run the script calls the money ,string represent run the failed's  Reason
 	 */
-	tuple<bool,uint64_t,string> run(shared_ptr<CBaseTransaction>& Tx, CAccountViewCache& view,CScriptDBViewCache& VmDB,
-			int nheight,uint64_t nBurnFactor, uint64_t &uRunStep);
+	tuple<bool,uint64_t,string> ExecuteContract(shared_ptr<CBaseTransaction>& Tx, CAccountViewCache& view, CScriptDBViewCache& VmDB,
+			int nheight, uint64_t nBurnFactor, uint64_t &uRunStep);
 	/**
 	 * @brief just for test
 	 * @return:
@@ -157,6 +160,7 @@ public:
 	bool CheckAppAcctOperate(CTransaction* tx);
 	void SetCheckAccount(bool bCheckAccount);
 	virtual ~CVmRunEvn();
+
 };
 
 enum ACCOUNT_TYPE {
@@ -174,16 +178,18 @@ public:
 	unsigned char opeatortype;		//!OperType
 	unsigned int  outheight;		//!< the transacion Timeout height
 	unsigned char money[8];			//!<The transfer amount
+
 	IMPLEMENT_SERIALIZE
 	(
-			READWRITE(nacctype);
-			for(int i = 0;i < 34;i++)
-			READWRITE(accountid[i]);
-			READWRITE(opeatortype);
-			READWRITE(outheight);
-			for(int i = 0;i < 8;i++)
-			READWRITE(money[i]);
+		READWRITE(nacctype);
+		for(int i = 0;i < 34;i++)
+		READWRITE(accountid[i]);
+		READWRITE(opeatortype);
+		READWRITE(outheight);
+		for(int i = 0;i < 8;i++)
+		READWRITE(money[i]);
 	)
+
 	CVmOperate() {
 		nacctype = regid;
 		memset(accountid, 0, 34);
