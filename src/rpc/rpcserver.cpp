@@ -344,19 +344,24 @@ CRPCTable::CRPCTable() {
     }
 }
 
-const CRPCCommand *CRPCTable::operator[](string name) const {
+const CRPCCommand *CRPCTable::operator[](string name) const 
+{
     map<string, const CRPCCommand*>::const_iterator it = mapCommands.find(name);
     if (it == mapCommands.end())
         return NULL;
+
     return (*it).second;
 }
 
 
-bool HTTPAuthorized(map<string, string>& mapHeaders) {
+bool HTTPAuthorized(map<string, string>& mapHeaders) 
+{
     string strAuth = mapHeaders["authorization"];
     if (strAuth.substr(0,6) != "Basic ")
         return false;
-    string strUserPass64 = strAuth.substr(6); boost::trim(strUserPass64);
+
+    string strUserPass64 = strAuth.substr(6); 
+    boost::trim(strUserPass64);
     string strUserPass = DecodeBase64(strUserPass64);
     return TimingResistantEqual(strUserPass, strRPCUserColonPass);
 }
@@ -743,8 +748,11 @@ static string JSONRPCExecBatch(const Array& vReq) {
     return write_string(Value(ret), false) + "\n";
 }
 
-void ServiceConnection(AcceptedConnection *conn) {
+void ServiceConnection(AcceptedConnection *conn) 
+{
     bool fRun = true;
+    bool authRequired = (SysCfg().GetArg("-rpcpassword", "") != "");
+
     while (fRun && !ShutdownRequested()) {
         int nProto = 0;
         map<string, string> mapHeaders;
@@ -762,23 +770,25 @@ void ServiceConnection(AcceptedConnection *conn) {
             break;
         }
 
-        // Check authorization
-        if (mapHeaders.count("authorization") == 0) {
-            conn->stream() << HTTPReply(HTTP_UNAUTHORIZED, "", false) << flush;
-            break;
-        }
-        if (!HTTPAuthorized(mapHeaders)) {
-            LogPrint("INFO","ThreadRPCServer incorrect password attempt from %s\n", conn->peer_address_to_string());
-            /* Deter brute-forcing short passwords.
-                If this results in a DoS the user really
-                shouldn't have their RPC port exposed. */
-            if (SysCfg().GetArg("-rpcpassword", "").size() < 20)
-                MilliSleep(250);
+        if (authRequired) {
+            // Check authorization
+            if (mapHeaders.count("authorization") == 0) {
+                conn->stream() << HTTPReply(HTTP_UNAUTHORIZED, "", false) << flush;
+                break;
+            }
 
-            conn->stream() << HTTPReply(HTTP_UNAUTHORIZED, "", false) << flush;
-            break;
-        }
+            if (!HTTPAuthorized(mapHeaders)) {
+                LogPrint("INFO", "ThreadRPCServer incorrect password attempt from %s\n", conn->peer_address_to_string());
+                /* Deter brute-forcing short passwords.
+                    If this results in a DoS the user really
+                    shouldn't have their RPC port exposed. */
+                if (SysCfg().GetArg("-rpcpassword", "").size() < 20)
+                    MilliSleep(250);
 
+                conn->stream() << HTTPReply(HTTP_UNAUTHORIZED, "", false) << flush;
+                break;
+            }
+        }
         // disable http keepalive for client-wallet connection to bypass connection threading bugs
         // if (mapHeaders["connection"] == "close")
         fRun = false;
