@@ -130,10 +130,12 @@ Value importprivkey(const Array& params, bool fHelp)
     CCoinSecret vchSecret;
     bool fGood = vchSecret.SetString(strSecret);
 
-    if (!fGood) throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key encoding");
+    if (!fGood) 
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key encoding");
 
     CKey key = vchSecret.GetKey();
-    if (!key.IsValid()) throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Private key outside allowed range");
+    if (!key.IsValid()) 
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Private key outside allowed range");
 
     CPubKey pubkey = key.GetPubKey();
     {
@@ -151,8 +153,7 @@ Value importprivkey(const Array& params, bool fHelp)
 Value importwallet(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
-        throw runtime_error(
-            "importwallet \"filename\"\n"
+        throw runtime_error("importwallet \"filename\"\n"
             "\nImports keys from a wallet dump file (see dumpwallet).\n"
             "\nArguments:\n"
             "1. \"filename\"    (string, required) The wallet file to be imported\n"
@@ -213,8 +214,7 @@ Value importwallet(const Array& params, bool fHelp)
 Value dumpprivkey(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
-        throw runtime_error(
-            "dumpprivkey \"address\"\n"
+        throw runtime_error("dumpprivkey \"address\"\n"
             "\nReturns the private key corresponding to the given WICC address.\n"
             "Then the importprivkey can be used with this output in another wallet for migration purposes.\n"
             "\nArguments:\n"
@@ -241,12 +241,7 @@ Value dumpprivkey(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " + strAddress + " is not known");
 
     CKey minerkey;
-#if 0 //modified by shane @2018/5/17 此处不能抛异常
-    if (!pwalletMain->GetKey(keyID, minerkey,true))
-           throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " + strAddress + " is not known");
-#else
-	pwalletMain->GetKey(keyID, minerkey,true);
-#endif
+	pwalletMain->GetKey(keyID, minerkey, true);
     Object reply;
     	reply.push_back(Pair("privkey", CCoinSecret(vchSecret).ToString()));
 
@@ -261,12 +256,12 @@ Value dumpprivkey(const Array& params, bool fHelp)
 Value dumpwallet(const Array& params, bool fHelp) {
 	if (fHelp || params.size() != 1)
 		throw runtime_error("dumpwallet \"filename\"\n"
-				"\nDumps all wallet keys in a human-readable format.\n"
-				"\nArguments:\n"
-				"1. \"filename\"    (string, required) The filename\n"
-				"\nExamples:\n"
-                + HelpExampleCli("dumpwallet", "$mywalletfilepath")
-                + HelpExampleRpc("dumpwallet", "$mywalletfilepath"));
+            "\nDumps all wallet keys in a human-readable format.\n"
+            "\nArguments:\n"
+            "1. \"filename\"    (string, required) The filename\n"
+            "\nExamples:\n"
+            + HelpExampleCli("dumpwallet", "$mywalletfilepath")
+            + HelpExampleRpc("dumpwallet", "$mywalletfilepath"));
 
 	EnsureWalletIsUnlocked();
 
