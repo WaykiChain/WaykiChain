@@ -248,9 +248,10 @@ tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun) {
    //打开需要的库
    //luaL_openlibs(lua_state);
 */
-   vm_openlibs(lua_state);
-   //3.注册自定义模块
-   luaL_requiref(lua_state,"mylib",luaopen_mylib,1);
+	vm_openlibs(lua_state);
+   	
+	//3.注册自定义模块
+   	luaL_requiref(lua_state, "mylib", luaopen_mylib, 1);
 
    //4.往lua脚本传递合约内容
 	lua_newtable(lua_state);    //新建一个表,压入栈顶
