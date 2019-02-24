@@ -97,10 +97,10 @@ Value signmessage(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2) {
         throw runtime_error("signmessage \"WICC address\" \"message\"\n"
-            "\nSign a message with the private key of an address"
+            "\nSign a message by the private key of the given address"
             + HelpRequiringPassphrase() + "\n"
             "\nArguments:\n"
-            "1. \"WICC address\"  (string, required) The Coin address associated with the private key to sign.\n"
+            "1. \"WICC address\"  (string, required) The coin address associated with the private key to sign.\n"
             "2. \"message\"         (string, required) The message to create a signature of.\n"
             "\nResult:\n"
             "\"signature\"          (string) The signature of the message encoded in base 64\n"

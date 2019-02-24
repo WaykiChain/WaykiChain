@@ -450,12 +450,12 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 //create a contract tx
 Value callcontracttx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
-       throw runtime_error("callcontracttx \"senderaddr\" \"appregid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
+       throw runtime_error("callcontracttx \"sender_addr\" \"app_regid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
             "\ncreate contract transaction\n"
             "\nArguments:\n"
-            "1.\"senderaddr\": (string, required)\n tx sender's base58 addr\n"
-            "2.\"appregid\":(string, required) the app RegId\n"
-            "3.\"amount\":(numeric, required)\n amount of WICC to be sent to the app account\n"
+            "1.\"sender_addr\": (string, required)\n tx sender's base58 addr\n"
+            "2.\"app_regid\":(string, required) contract RegId\n"
+            "3.\"amount\":(numeric, required)\n amount of WICC to be sent to the contract account\n"
             "4.\"contract\": (string, required) contract method invoke content (Hex encode required)\n"
             "5.\"fee\": (numeric, required) pay to miner\n"
             "6.\"height\": (numeric, optional)create height,If not provide use the tip block hegiht in chainActive\n"
@@ -463,16 +463,16 @@ Value callcontracttx(const Array& params, bool fHelp) {
             "\"contract tx str\": (string)\n"
             "\nExamples:\n"
             + HelpExampleCli("callcontracttx",
-                    "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\""
-                    "411994-1"
-                    "01020304 "
-                    "1") + "\nAs json rpc call\n"
+                "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\""
+                "411994-1"
+                "01020304 "
+                "1") + "\nAs json rpc call\n"
             + HelpExampleRpc("callcontracttx",
-                    "wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6 [\"411994-1\"] "
-                    "\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\""
-                    "100000 "
-                    "\"01020304 \""
-                    "1") );
+                "wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6 [\"411994-1\"] "
+                "\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\""
+                "100000 "
+                "\"01020304 \""
+                "1") );
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(str_type)(int_type)(int_type));
