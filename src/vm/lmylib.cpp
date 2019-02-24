@@ -1785,14 +1785,12 @@ static int ExGetUserAppAccFundWithTagFunc(lua_State *L)
     CAppFundOperate temp;
     Size = ::GetSerializeSize(temp, SER_NETWORK, PROTOCOL_VERSION);
 
-    if (!GetDataTableOutAppOperate(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() !=Size) {
-        return RetFalse("GetUserAppAccFoudWithTag para err0");
-    }
+    if (!GetDataTableOutAppOperate(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != Size)
+        return RetFalse("ExGetUserAppAccFundWithTagFunc para err0");
 
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn) {
+    if(NULL == pVmRunEvn)
         return RetFalse("pVmRunEvn is NULL");
-    }
 
     CDataStream ss(*retdata.at(0),SER_DISK, CLIENT_VERSION);
     CAppFundOperate userfund;
@@ -1801,11 +1799,10 @@ static int ExGetUserAppAccFundWithTagFunc(lua_State *L)
     shared_ptr<CAppUserAccount> sptrAcc;
     CAppCFund fund;
     int len = 0;
-    if(pVmRunEvn->GetAppUserAccout(userfund.GetAppUserV(),sptrAcc))
-    {
-        if(!sptrAcc->GetAppCFund(fund,userfund.GetFundTagV(),userfund.outheight))   {
+    if (pVmRunEvn->GetAppUserAccout(userfund.GetAppUserV(),sptrAcc)) {
+        if (!sptrAcc->GetAppCFund(fund,userfund.GetFundTagV(),userfund.outheight))
             return RetFalse("GetUserAppAccFoudWithTag get fail");
-        }
+
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << fund.getvalue() ;
         vector<unsigned char> TMP(tep.begin(),tep.end());
