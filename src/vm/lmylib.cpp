@@ -640,6 +640,25 @@ static int ExSha256Func(lua_State *L) {
 }
 
 /**
+ *bool SHA256Once(void const* pfrist, const unsigned short len, void * const pout)
+ * 这个函数式从中间层传了一个参数过来:
+ * 1.第一个是要被计算hash值的字符串
+ */
+static int ExSha256OnceFunc(lua_State *L) {
+    vector<std::shared_ptr < vector<unsigned char> > > retdata;
+
+    if(!GetDataString(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() <= 0)
+    {
+        return RetFalse("ExSha256OnceFunc param err");
+    }
+    uint256 hash;
+    SHA256(&retdata.at(0).get()->at(0), retdata.at(0).get()->size(), hash.begin());
+
+    vector<unsigned char> tep1(hash.begin(), hash.end());
+    return RetRstToLua(L,tep1);
+}
+
+/**
  *unsigned short Des(void const* pdata, unsigned short len, void const* pkey, unsigned short keylen, bool IsEn, void * const pOut,unsigned short poutlen)
  * 这个函数式从中间层传了三个个参数过来:
  * 1.第一个是要被加密数据或者解密数据
@@ -2182,6 +2201,7 @@ static const luaL_Reg mylib[] = {
     {"Int64Sub", ExInt64SubFunc},
     {"Int64Div", ExInt64DivFunc},
     {"Sha256", ExSha256Func},
+    {"Sha256Once", ExSha256OnceFunc},    
     {"Des", ExDesFunc},
     {"VerifySignature", ExVerifySignatureFunc},
     {"LogPrint", ExLogPrintFunc},
