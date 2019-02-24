@@ -22,7 +22,7 @@ static bool AppInitRPC(int argc, char* argv[])
     //
     // Parameters
     //
-	CBaseParams::IntialParams(argc, argv);
+	CBaseParams::InitializeParams(argc, argv);
 	SysCfg().InitialConfig();
 
     if (argc<2 || SysCfg().IsArgCount("-?") || SysCfg().IsArgCount("--help"))

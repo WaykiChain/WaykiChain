@@ -28,7 +28,7 @@ extern const std::string CLIENT_DATE;
 
 static const int PROTOCOL_VERSION = 10001;
 
-// intial proto version, to be increased after version/verack negotiation
+// initial proto version, to be increased after version/verack negotiation
 static const int INIT_PROTO_VERSION = 10001;
 
 // disconnect from peers older than this proto version

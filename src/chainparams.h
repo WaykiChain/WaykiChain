@@ -110,14 +110,14 @@ public:
        bAddressToTx = GetBoolArg("-addresstotx", false);
         return true;
     }
+
     virtual string ToString() const {
         string te = "";
 
         for (auto & tep1 : m_mapMultiArgs) {
             te += strprintf("key:%s\n",tep1.first);
             vector<string> tep = tep1.second;
-            for(auto const & tep3:tep)
-            {
+            for (auto const & tep3:tep) {
                 te += strprintf("value :%s\n",tep3.c_str());
             }
         }
@@ -144,6 +144,7 @@ public:
 
         return te;
     }
+
     virtual int GetBlockMaxNonce() const {
         return 1000;
     }
@@ -319,7 +320,7 @@ public:
     }
     const string& GetCheckPointPKey() const {return CheckPointPKey;}
     /******************************paras**************************************/
-    static bool IntialParams(int argc, const char* const argv[]);
+    static bool InitializeParams(int argc, const char* const argv[]);
     static int64_t GetArg(const string& strArg, int64_t nDefault);
     static string GetArg(const string& strArg, const string& strDefault);
     static bool GetBoolArg(const string& strArg, bool fDefault);

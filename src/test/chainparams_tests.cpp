@@ -29,7 +29,7 @@ static void ResetArgs(const std::string& strArg) {
 	for (auto& s : vecArg)
 		vecChar.push_back(s.c_str());
 
-	CBaseParams::IntialParams(vecChar.size(), &vecChar[0]);
+	CBaseParams::InitializeParams(vecChar.size(), &vecChar[0]);
 }
 
 BOOST_AUTO_TEST_CASE(boolarg) {

@@ -81,7 +81,7 @@ bool PrintTestNotSetPara()
 bool AppInit(int argc, char* argv[],boost::thread_group &threadGroup) {
 	bool fRet = false;
 	try {
-		CBaseParams::IntialParams(argc, argv);
+		CBaseParams::InitializeParams(argc, argv);
 		SysCfg().InitialConfig();
 
 		PrintTestNotSetPara();

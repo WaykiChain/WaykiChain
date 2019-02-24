@@ -29,7 +29,7 @@ struct TestingSetup {
 				string strArgv = boost::unit_test::framework::master_test_suite().argv[i];
 				if (string::npos != strArgv.find("-datadir=")) {
 					const char* newArgv[] = { boost::unit_test::framework::master_test_suite().argv[0], strArgv.c_str() };
-					CBaseParams::IntialParams(2, newArgv);
+					CBaseParams::InitializeParams(2, newArgv);
 					bSetDataDir = true;
 					break;
 				}
@@ -62,7 +62,7 @@ struct TestingSetup {
 							param +=strCurDir;
 							const char* argv[] = {"D:\\cppwork\\coin\\src\\coind.exe", param.c_str()};
 				#endif
-				CBaseParams::IntialParams(argc, argv);
+				CBaseParams::InitialParams(argc, argv);
 			}
 	}
     ~TestingSetup()

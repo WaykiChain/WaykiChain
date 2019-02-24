@@ -398,7 +398,7 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTransactio
     return true;
 }
 
-bool CBaseParams::IntialParams(int argc, const char* const argv[]) {
+bool CBaseParams::InitializeParams(int argc, const char* const argv[]) {
     ParseParameters(argc, argv);
     if (!boost::filesystem::is_directory(GetDataDir(false))) {
         fprintf(stderr, "Error: Specified data directory \"%s\" does not exist.\n", CBaseParams::m_mapArgs["-datadir"].c_str());
