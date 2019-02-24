@@ -537,7 +537,7 @@ shared_ptr<vector<CScriptDBOperLog> > CVmRunEvn::GetDbLog()
  * @param sptrAcc
  * @return
  */
-bool CVmRunEvn::GetAppUserAccout(const vector<unsigned char> &vAppUserId, shared_ptr<CAppUserAccount> &sptrAcc) {
+bool CVmRunEvn::GetAppUserAccount(const vector<unsigned char> &vAppUserId, shared_ptr<CAppUserAccount> &sptrAcc) {
     assert(m_ScriptDBTip != NULL);
     shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
     if (!m_ScriptDBTip->GetScriptAcc(GetScriptRegID(), vAppUserId, *tem.get())) {
@@ -557,9 +557,9 @@ bool CVmRunEvn::OpeatorAppAccount(const map<vector<unsigned char >,vector<CAppFu
     if ((MapAppOperate.size() > 0)) {
         for (auto const tem : opMap) {
             shared_ptr<CAppUserAccount> sptrAcc;
-            if (!GetAppUserAccout(tem.first, sptrAcc)) {
-                LogPrint("vm", "GetAppUserAccout(tem.first, sptrAcc, true) failed \r\n appuserid :%s\r\n",
-                        HexStr(tem.first));
+            if (!GetAppUserAccount(tem.first, sptrAcc)) {
+                LogPrint("vm", "GetAppUserAccount(tem.first, sptrAcc, true) failed \r\n appuserid :%s\r\n",
+                    HexStr(tem.first));
                 return false;
             }
             if (!sptrAcc.get()->AutoMergeFreezeToFree(RunTimeHeight)) {
@@ -579,7 +579,7 @@ bool CVmRunEvn::OpeatorAppAccount(const map<vector<unsigned char >,vector<CAppFu
                 for (auto const pint : tem.second) {
                     LogPrint("vm", "GOperate failed \r\n Operate %d : %s\r\n", i++, pint.toString());
                 }
-                LogPrint("vm", "GetAppUserAccout(tem.first, sptrAcc, true) failed \r\n appuserid :%s\r\n",
+                LogPrint("vm", "GetAppUserAccount(tem.first, sptrAcc, true) failed \r\n appuserid :%s\r\n",
                         HexStr(tem.first));
                 return false;
             }

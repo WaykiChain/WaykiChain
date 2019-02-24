@@ -153,7 +153,7 @@ public:
 	void InsertOutAPPOperte(const vector<unsigned char>& userId,const CAppFundOperate &source);
 	shared_ptr<vector<CScriptDBOperLog> > GetDbLog();
 
-	bool GetAppUserAccout(const vector<unsigned char> &id,shared_ptr<CAppUserAccount> &sptrAcc);
+	bool GetAppUserAccount(const vector<unsigned char> &id, shared_ptr<CAppUserAccount> &sptrAcc);
 	bool CheckAppAcctOperate(CTransaction* tx);
 	void SetCheckAccount(bool bCheckAccount);
 	virtual ~CVmRunEvn();

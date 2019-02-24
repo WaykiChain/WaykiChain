@@ -1689,15 +1689,12 @@ static int ExGetUserAppAccValueFunc(lua_State *L)
 
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
     if(NULL == pVmRunEvn)
-    {
         return RetFalse("pVmRunEvn is NULL");
-    }
 
     shared_ptr<CAppUserAccount> sptrAcc;
     uint64_t valueData = 0 ;
     int len = 0;
-    if(pVmRunEvn->GetAppUserAccout(accid.GetIdV(),sptrAcc))
-    {
+    if (pVmRunEvn->GetAppUserAccount(accid.GetIdV(), sptrAcc)) {
         valueData = sptrAcc->getllValues();
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
@@ -1799,7 +1796,7 @@ static int ExGetUserAppAccFundWithTagFunc(lua_State *L)
     shared_ptr<CAppUserAccount> sptrAcc;
     CAppCFund fund;
     int len = 0;
-    if (pVmRunEvn->GetAppUserAccout(userfund.GetAppUserV(),sptrAcc)) {
+    if (pVmRunEvn->GetAppUserAccount(userfund.GetAppUserV(), sptrAcc)) {
         if (!sptrAcc->GetAppCFund(fund,userfund.GetFundTagV(),userfund.outheight))
             return RetFalse("GetUserAppAccFoudWithTag get fail");
 
