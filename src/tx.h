@@ -162,7 +162,7 @@ public:
         pId(pIdIn) {
     }
     bool operator()(const CRegID &id) const {
-            return pId->Set(id);
+        return pId->Set(id);
     }
     bool operator()(const CKeyID &id) const {
         return pId->Set(id);
@@ -178,6 +178,7 @@ public:
 class CBaseTransaction {
 protected:
     static string txTypeArray[7];
+
 public:
     static uint64_t nMinTxFee;
     static int64_t nMinRelayTxFee;
@@ -188,32 +189,38 @@ public:
     int nValidHeight;
     uint64_t nRunStep;  //only in memory
     int nFuelRate;      //only in memory
+
 public:
 
-    CBaseTransaction(const CBaseTransaction &other) {
+    CBaseTransaction(const CBaseTransaction &other) 
+    {
         *this = other;
     }
 
     CBaseTransaction(int _nVersion, unsigned char _nTxType) :
-            nTxType(_nTxType), nVersion(_nVersion), nValidHeight(0), nRunStep(0), nFuelRate(0){
+        nTxType(_nTxType), nVersion(_nVersion), nValidHeight(0), nRunStep(0), nFuelRate(0)
+    {
     }
 
     CBaseTransaction() :
-            nTxType(COMMON_TX), nVersion(CURRENT_VERSION), nValidHeight(0), nRunStep(0), nFuelRate(0){
+        nTxType(COMMON_TX), nVersion(CURRENT_VERSION), nValidHeight(0), nRunStep(0), nFuelRate(0)
+    {
     }
 
-    virtual ~CBaseTransaction() {
+    virtual ~CBaseTransaction() 
+    {
     }
 
     virtual unsigned int GetSerializeSize(int nType, int nVersion) const = 0;
 
     virtual uint256 GetHash() const = 0;
 
-    virtual const vector_unsigned_char& GetvContract() {
+    virtual const vector_unsigned_char& GetContract() {
         return *((vector_unsigned_char*) nullptr);
     }
 
-    virtual const vector_unsigned_char& GetvSigAcountList() {
+    virtual const vector_unsigned_char& GetvSigAcountList() 
+    {
         return *((vector_unsigned_char*) nullptr);
     }
 
@@ -233,7 +240,8 @@ public:
 
     virtual bool IsValidHeight(int nCurHeight, int nTxCacheHeight) const;
 
-    bool IsCoinBase() {
+    bool IsCoinBase() 
+    {
         return (nTxType == REWARD_TX);
     }
 
@@ -250,6 +258,7 @@ public:
     virtual uint64_t GetValue() const = 0;
 
     int GetFuelRate(CScriptDBViewCache &scriptDB);
+
 };
 
 class CRegisterAccountTx: public CBaseTransaction {
@@ -323,10 +332,10 @@ public:
     Object ToJSON(const CAccountViewCache &AccountView) const;
 
     bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
-            CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
+        CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
 
     bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
-            CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
+        CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
 
     bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
@@ -380,7 +389,8 @@ public:
         llValues = Value;
         signature.clear();
     }
-    CTransaction() {
+    CTransaction() 
+    {
         nTxType = COMMON_TX;
         llFees = 0;
         vContract.clear();
@@ -389,8 +399,8 @@ public:
         signature.clear();
     }
 
-    ~CTransaction() {
-
+    ~CTransaction() 
+    {
     }
 
     IMPLEMENT_SERIALIZE
@@ -435,7 +445,7 @@ public:
 
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 
-    const vector_unsigned_char& GetvContract() {
+    const vector_unsigned_char& GetContract() {
         return vContract;
     }
 
