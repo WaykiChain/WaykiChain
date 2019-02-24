@@ -1111,10 +1111,13 @@ Value getsignature(const Array& params, bool fHelp) {
         string strSecret = params[0].get_str();
         CCoinSecret vchSecret;
         bool fGood = vchSecret.SetString(strSecret);
-        if (!fGood) throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key encoding");
+        if (!fGood) 
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key encoding");
 
         CKey key = vchSecret.GetKey();
-        if (!key.IsValid()) throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Private key invalid");
+        if (!key.IsValid()) 
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Private key invalid");
+            
         vector<unsigned char> signature;
         uint256 hash;
         hash.SetHex(params[1].get_str());
