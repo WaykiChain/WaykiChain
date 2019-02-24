@@ -2605,9 +2605,9 @@ Value decoderawtx(const Array& params, bool fHelp)
     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
     std::shared_ptr<CBaseTransaction> pBaseTx;
     stream >> pBaseTx;
-    if (!pBaseTx.get()) {
+    if (!pBaseTx.get())
         return obj;
-    }
+    
     CAccountViewCache view(*pAccountViewTip, true);
     switch (pBaseTx.get()->nTxType) {
     case COMMON_TX: {

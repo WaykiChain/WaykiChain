@@ -344,7 +344,7 @@ class CTransaction : public CBaseTransaction {
 public:
     mutable CUserID srcRegId;                   //src regid
     mutable CUserID desUserId;                  //user regid or user key id or app regid
-    uint64_t llFees;
+    uint64_t llFees;                            //fees paid to miner
     uint64_t llValues;                          //transfer amount
     vector_unsigned_char vContract;
     vector_unsigned_char signature;

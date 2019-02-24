@@ -690,7 +690,7 @@ Object CTransaction::ToJSON(const CAccountViewCache &AccountView) const{
     return result;
 }
 
-//COMMON_TRANSACTION
+// COMMON_TX
 bool CTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 
     if (srcRegId.type() != typeid(CRegID))

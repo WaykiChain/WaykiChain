@@ -752,7 +752,7 @@ bool CWallet::CleanAll()
     return true;
 }
 
-bool CWallet::Sign(const CKeyID& keyId, const uint256& hash, vector<unsigned char> &signature,bool IsMiner)const 
+bool CWallet::Sign(const CKeyID &keyId, const uint256 &hash, vector<unsigned char> &signature, bool IsMiner) const 
 {
     CKey key;
     if (GetKey(keyId, key, IsMiner)) {
@@ -760,7 +760,7 @@ bool CWallet::Sign(const CKeyID& keyId, const uint256& hash, vector<unsigned cha
         //     cout <<"Sign miner key PubKey:"<< key.GetPubKey().ToString()<< endl;
         //     cout <<"Sign miner hash:"<< hash.ToString()<< endl;
         // }
-        return(key.Sign(hash, signature));
+        return (key.Sign(hash, signature));
     }
     return false;
 }
@@ -769,8 +769,10 @@ bool CWallet::AddCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned
 {
     if (!CCryptoKeyStore::AddCryptedKey(vchPubKey, vchCryptedSecret))
         return false;
+
     if (!fFileBacked)
         return true;
+
     {
         LOCK(cs_wallet);
         if (pwalletdbEncryption)
@@ -788,8 +790,9 @@ bool CWallet::LoadCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigne
 
 bool CWallet::AddKey(const CKey& key,const CKey& minerKey)
 {
-    if((!key.IsValid()) || (!minerKey.IsValid()))
+    if ((!key.IsValid()) || (!minerKey.IsValid()))
         return false;
+        
     CKeyCombi keyCombi(key, minerKey, nWalletVersion);
     return AddKey(key.GetPubKey().GetKeyID(), keyCombi);
 }
@@ -800,13 +803,13 @@ bool CWallet::AddKey(const CKeyID &KeyId, const CKeyCombi& keyCombi)
         return true;
 
     if(keyCombi.IsContainMainKey()) {
-        if(KeyId != keyCombi.GetCKeyID())
+        if (KeyId != keyCombi.GetCKeyID())
             return false;
     }
 
-    if(!CWalletDB(strWalletFile).WriteKeyStoreValue(KeyId, keyCombi, nWalletVersion)) {
+    if(!CWalletDB(strWalletFile).WriteKeyStoreValue(KeyId, keyCombi, nWalletVersion))
         return false;
-    }
+    
     return CCryptoKeyStore::AddKeyCombi(KeyId, keyCombi);
 }
 
@@ -814,6 +817,7 @@ bool CWallet::AddKey(const CKey& key)
 {
     if(!key.IsValid())
         return false;
+
     CKeyCombi keyCombi(key, nWalletVersion);
     return AddKey(key.GetPubKey().GetKeyID(), keyCombi);
 }
