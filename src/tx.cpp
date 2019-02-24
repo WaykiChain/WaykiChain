@@ -606,6 +606,7 @@ bool CTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScri
     CKeyID desKeyId;
     if (!view.GetKeyId(desUserId, desKeyId))
         return false;
+        
     vAddr.insert(desKeyId);
 
     if (CONTRACT_TX == nTxType) {
@@ -621,7 +622,7 @@ bool CTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScri
 
             if (!std::get<0>(ret))
                 return ERRORMSG("GetAddress()  : %s", std::get<2>(ret));
-                
+
             vector<shared_ptr<CAccount> > vpAccount = vmRunEvn.GetNewAccont();
 
             for (auto & item : vpAccount) {

@@ -25,8 +25,7 @@ static bool AppInitRPC(int argc, char* argv[])
 	CBaseParams::InitializeParams(argc, argv);
 	SysCfg().InitialConfig();
 
-    if (argc<2 || SysCfg().IsArgCount("-?") || SysCfg().IsArgCount("--help"))
-    {
+    if (argc<2 || SysCfg().IsArgCount("-?") || SysCfg().IsArgCount("--help")) {
         // First part of help message is specific to RPC client
         string strUsage = _("Coin Core RPC client version") + " " + FormatFullVersion() + "\n\n" +
             _("Usage:") + "\n" +
