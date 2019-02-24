@@ -1808,55 +1808,52 @@ static int ExGetUserAppAccFundWithTagFunc(lua_State *L)
     return len;
 }
 
-static bool GetDataTableAssetOperate(lua_State *L, int nIndex, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
-    if(!lua_istable(L,nIndex))
-    {
-        LogPrint("vm","is not table\n");
+static bool GetDataTableAssetOperate(lua_State *L, int nIndex, vector<std::shared_ptr < std::vector<unsigned char> > > &ret)
+{
+    if (!lua_istable(L, nIndex)) {
+        LogPrint("vm", "L is not table\n");
         return false;
     }
+
     double doubleValue = 0;
     vector<unsigned char> vBuf ;
     CAssetOperate temp;
     memset(&temp,0,sizeof(temp));
 
-    if(!getArrayInTable(L,(char *)"toAddrTbl",34,vBuf))
-    {
+    if (!getArrayInTable(L,(char *)"toAddrTbl",34,vBuf)) {
         LogPrint("vm","toAddrTbl not table\n");
         return false;
-    }else{
-
+    } else {
         ret.push_back(std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
     }
 
-    if(!(getNumberInTable(L,(char *)"outHeight",doubleValue))){
-        LogPrint("vm","outheight get fail\n");
+    if (!(getNumberInTable(L, (char *) "outHeight", doubleValue))) {
+        LogPrint("vm", "get outheight failed\n");
         return false;
-    }else{
-        temp.outheight = (unsigned int)doubleValue;
-
-        printf("height:%d", temp.outheight);
+    } else{
+        temp.outheight = (unsigned int) doubleValue;
+        LogPrint("vm", "height = %d", temp.outheight);
     }
 
-    if(!getArrayInTable(L,(char *)"moneyTbl",sizeof(temp.mMoney),vBuf))
-    {
-        LogPrint("vm","moneyTbl not table\n");
+    if (!getArrayInTable(L, (char *) "moneyTbl", sizeof(temp.mMoney), vBuf)) {
+        LogPrint("vm", "moneyTbl not table\n");
         return false;
-    }else{
+    } else {
        memcpy(&temp.mMoney,&vBuf[0],sizeof(temp.mMoney));
     }
-    if(!(getNumberInTable(L,(char *)"fundTagLen",doubleValue))){
-        LogPrint("vm","FundTaglen get fail\n");
+
+    if (!(getNumberInTable(L,(char *)"fundTagLen",doubleValue))) {
+        LogPrint("vm", "FundTaglen get fail\n");
         return false;
-    }else{
+    } else {
         temp.FundTaglen = (unsigned char)doubleValue;
     }
-    if((temp.FundTaglen > 0) && (temp.FundTaglen <= sizeof(temp.vFundTag)))
-    {
-        if(!getArrayInTable(L,(char *)"fundTagTbl",temp.FundTaglen,vBuf))
-        {
+
+    if ((temp.FundTaglen > 0) && (temp.FundTaglen <= sizeof(temp.vFundTag))) {
+        if (!getArrayInTable(L,(char *)"fundTagTbl",temp.FundTaglen,vBuf)) {
             LogPrint("vm","FundTagTbl not table\n");
             return false;
-        }else{
+        } else {
             memcpy(temp.vFundTag,&vBuf[0],temp.FundTaglen);
         }
     }
@@ -1881,27 +1878,21 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
     unsigned int Size = ::GetSerializeSize(temp, SER_NETWORK, PROTOCOL_VERSION);
 
     if(!GetDataTableOutAppOperate(L,retdata) ||retdata.size() != 1 || (retdata.at(0).get()->size()%Size) != 0 )
-    {
-         return RetFalse("ExWriteOutAppOperateFunc para err1");
-     }
+        return RetFalse("ExWriteOutAppOperateFunc para err1");
 
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
     if(NULL == pVmRunEvn)
-    {
         return RetFalse("pVmRunEvn is NULL");
-    }
 
     int count = retdata.at(0).get()->size()/Size;
     CDataStream ss(*retdata.at(0),SER_DISK, CLIENT_VERSION);
 
     int64_t step =-1;
-    while(count--)
-    {
+    while (count--) {
         ss >> temp;
         if(pVmRunEvn->GetComfirHeight() > nFreezeBlackAcctHeight && temp.mMoney < 0) //不能小于0,防止 上层传错金额小于20150904
-        {
             return RetFalse("ExWriteOutAppOperateFunc para err2");
-        }
+
         pVmRunEvn->InsertOutAPPOperte(temp.GetAppUserV(),temp);
         step +=Size;
     }
@@ -1913,16 +1904,12 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
 static int ExGetBase58AddrFunc(lua_State *L){
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
 
-    if(!GetArray(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != 6)
-    {
+    if (!GetArray(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != 6)
         return RetFalse("ExGetBase58AddrFunc para err0");
-    }
 
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
     if(NULL == pVmRunEvn)
-    {
         return RetFalse("pVmRunEvn is NULL");
-    }
 /*
     vector<unsigned char> recvkey;
     recvkey.assign(retdata.at(0).get()->begin(), retdata.at(0).get()->end());
@@ -1937,9 +1924,9 @@ static int ExGetBase58AddrFunc(lua_State *L){
         tmp.push_back(recvkey[i]);
 */
      CKeyID addrKeyId;
-     if (!GetKeyId(*pVmRunEvn->GetCatchView(),*retdata.at(0).get(), addrKeyId)) {
-            return RetFalse("ExGetBase58AddrFunc para err1");
-     }
+     if (!GetKeyId(*pVmRunEvn->GetCatchView(),*retdata.at(0).get(), addrKeyId))
+        return RetFalse("ExGetBase58AddrFunc para err1");
+
      string wiccaddr = addrKeyId.ToAddress();
 
      vector<unsigned char> vTemp;
@@ -1951,14 +1938,11 @@ static int ExTransferContractAsset(lua_State *L) {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
 
     if(!GetArray(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != 34)
-    {
         return RetFalse(string(__FUNCTION__)+"para  err !");
-    }
+
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
     if(NULL == pVmRunEvn)
-    {
         return RetFalse("pVmRunEvn is NULL");
-    }
 
     vector<unsigned char> sendkey;
     vector<unsigned char> recvkey;
@@ -1972,16 +1956,14 @@ static int ExTransferContractAsset(lua_State *L) {
     recvkey.assign(retdata.at(0).get()->begin(), retdata.at(0).get()->end());
 
     std::string recvaddr( recvkey.begin(), recvkey.end() );
-    if(addr == recvaddr)
-    {
+    if (addr == recvaddr) {
         LogPrint("vm", "%s\n", "send addr and recv addr is same !");
         return RetFalse(string(__FUNCTION__)+"send addr and recv addr is same !");
     }
 
     CKeyID RecvKeyID;
     bool bValid = GetKeyId(*pVmRunEvn->GetCatchView(), recvkey, RecvKeyID);
-    if(!bValid)
-    {
+    if (!bValid) {
         LogPrint("vm", "%s\n", "recv addr is not valid !");
         return RetFalse(string(__FUNCTION__)+"recv addr is not valid !");
     }
@@ -2021,8 +2003,7 @@ static int ExTransferContractAsset(lua_State *L) {
     }
 
     vector<CAppCFund> vTemp = temp.get()->getFreezedFund();
-    for(auto fund : vTemp)
-    {
+    for (auto fund : vTemp) {
         op.mMoney = fund.getvalue();
         op.outheight = fund.getheight();
         op.opeatortype = SUB_TAG_OP;
@@ -2048,7 +2029,6 @@ static int ExTransferContractAsset(lua_State *L) {
     }
 
     return RetRstBooleanToLua(L, true);
-
 }
 
 static int ExTransferSomeAsset(lua_State *L) {
@@ -2058,15 +2038,13 @@ static int ExTransferSomeAsset(lua_State *L) {
     CAssetOperate tempAsset;
     Size = ::GetSerializeSize(tempAsset, SER_NETWORK, PROTOCOL_VERSION);
 
-    if(!GetDataTableAssetOperate(L, -1, retdata) ||retdata.size() != 2|| (retdata.at(1).get()->size()%Size) != 0 || retdata.at(0).get()->size() != 34)
-    {
-            return RetFalse(string(__FUNCTION__)+"para err !");
-    }
+    if (!GetDataTableAssetOperate(L, -1, retdata) || retdata.size() != 2 || 
+        (retdata.at(1).get()->size()%Size) != 0 || retdata.at(0).get()->size() != 34)
+        return RetFalse(string(__FUNCTION__)+"para err !");
+
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-    {
+    if (NULL == pVmRunEvn)
         return RetFalse("pVmRunEvn is NULL");
-    }
 
     CDataStream ss(*retdata.at(1),SER_DISK, CLIENT_VERSION);
     CAssetOperate assetOp;
@@ -2084,28 +2062,25 @@ static int ExTransferSomeAsset(lua_State *L) {
     recvkey.assign(retdata.at(0).get()->begin(), retdata.at(0).get()->end());
 
     std::string recvaddr( recvkey.begin(), recvkey.end() );
-    if(addr == recvaddr)
-    {
+    if (addr == recvaddr) {
         LogPrint("vm", "%s\n", "send addr and recv addr is same !");
         return RetFalse(string(__FUNCTION__)+"send addr and recv addr is same !");
     }
 
     CKeyID RecvKeyID;
     bool bValid = GetKeyId(*pVmRunEvn->GetCatchView(), recvkey, RecvKeyID);
-    if(!bValid)
-    {
+    if (!bValid) {
         LogPrint("vm", "%s\n", "recv addr is not valid !");
         return RetFalse(string(__FUNCTION__)+"recv addr is not valid !");
     }
 
     uint64_t uTransferMoney = assetOp.GetUint64Value();
-    if(0 == uTransferMoney)
-    {
+    if (0 == uTransferMoney) {
         return RetFalse(string(__FUNCTION__)+"Transfer Money is not valid !");
     }
 
     int nHeight = assetOp.getheight();
-    if(nHeight < 0) {
+    if (nHeight < 0) {
         return RetFalse(string(__FUNCTION__)+"outHeight is not valid !");
     }
 
@@ -2115,7 +2090,7 @@ static int ExTransferSomeAsset(lua_State *L) {
     vector<unsigned char> vtag = assetOp.GetFundTagV();
     op.FundTaglen = vtag.size();
 
-    for(i = 0; i < op.FundTaglen; i++) {
+    for (i = 0; i < op.FundTaglen; i++) {
         op.vFundTag[i] = vtag[i];
     }
 
@@ -2126,44 +2101,37 @@ static int ExTransferSomeAsset(lua_State *L) {
     for (i = 0; i < op.appuserIDlen; i++) {
         op.vAppuser[i] = sendkey[i];
     }
-    if (nHeight > 0)
-        op.opeatortype = SUB_TAG_OP;
-    else
-        op.opeatortype = SUB_FREE_OP;
+
+    op.opeatortype = (nHeight > 0) ? SUB_TAG_OP : SUB_FREE_OP;
     pVmRunEvn->InsertOutAPPOperte(sendkey, op);
 
-    if (nHeight > 0)
-        op.opeatortype = ADD_TAG_OP;
-    else
-        op.opeatortype = ADD_FREE_OP;
+    op.opeatortype = (nHeight > 0) ? ADD_TAG_OP : ADD_FREE_OP ;
     op.appuserIDlen = recvkey.size();
+
     for (i = 0; i < op.appuserIDlen; i++) {
         op.vAppuser[i] = recvkey[i];
     }
-    pVmRunEvn->InsertOutAPPOperte(recvkey, op);
 
+    pVmRunEvn->InsertOutAPPOperte(recvkey, op);
     return RetRstBooleanToLua(L, true);
 
 }
 
 static int ExGetBlockTimestamp(lua_State *L) {
     int height = 0;
-    if(!GetDataInt(L,height)){
+    if (!GetDataInt(L,height))
         return RetFalse("ExGetBlcokTimestamp para err1");
-    }
 
-    if(height <= 0) {
+    if (height <= 0) {
         height = chainActive.Height() + height;
         if(height < 0) {
             return RetFalse("ExGetBlcokTimestamp para err2");
         }
     }
 
-
     CBlockIndex *pindex = chainActive[height];
-    if(!pindex) {
+    if (!pindex)
         return RetFalse("ExGetBlcokTimestamp get time stamp error");
-    }
 
     if (lua_checkstack(L, sizeof(lua_Integer))) {
         lua_pushinteger(L, (lua_Integer) pindex->nTime);
