@@ -824,6 +824,11 @@ Value backupwallet(const Array& params, bool fHelp)
         );
 
     string strDest = params[0].get_str();
+    string backupFilePath = strDest.c_str();
+    if (backupFilePath.find(GetDataDir().string()) != std::string::npos)
+        throw JSONRPCError(RPC_WALLET_FILEPATH_INVALID, 
+            "Wallet backup file shall not be saved into the Data dir to avoid likely file overwrite.");
+
     if (!BackupWallet(*pwalletMain, strDest))
         throw JSONRPCError(RPC_WALLET_ERROR, "Error: Wallet backup failed!");
 
