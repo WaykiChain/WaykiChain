@@ -1179,7 +1179,7 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
         return state.DoS(100, ERRORMSG("CheckTransaction(): CDelegateTransaction CheckTransaction, pubkey not registed"),
             REJECT_INVALID, "bad-no-pubkey");
     }
-    if (nValidHeight > 2116535) { //hardcode here to avoid checking 7 old unsigned votes
+    if (nValidHeight > nCheckDelegateTxSignatureForkHeight) { //hardcode here to avoid checking 7 old unsigned votes
         uint256 signhash = SignatureHash();
         if (!CheckSignScript(signhash, signature, sendAcctInfo.PublicKey)) {
             return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction CheckTransaction, CheckSignScript failed"),
