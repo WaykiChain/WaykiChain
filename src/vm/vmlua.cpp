@@ -182,16 +182,14 @@ void vm_openlibs (lua_State *L) {
 	}
 }
 
-tuple<bool,string> CVmlua::syntaxcheck(const char* filePath) {
-	//1.创建Lua运行环境
+tuple<bool,string> CVmlua::CheckScriptSyntax(const char* filePath) 
+{
 	lua_State *lua_state = luaL_newstate();
 	if (NULL == lua_state) {
 		LogPrint("vm", "luaL_newstate error\n");
 		return std::make_tuple(false, string("luaL_newstate error\n"));
 	}
-
 	vm_openlibs(lua_state);
-	//3.注册自定义模块
 	luaL_requiref(lua_state, "mylib", luaopen_mylib, 1);
 
 	int nRet = luaL_loadfile(lua_state, filePath);

@@ -14,8 +14,8 @@ class CVmlua {
 public:
 	CVmlua(const vector<unsigned char> & vRom,const vector<unsigned char> &InputData);
 	~CVmlua();
-	tuple<uint64_t,string> run(uint64_t maxstep,CVmRunEvn *pVmScriptRun);
-	static tuple<bool,string> syntaxcheck(const char* filePath);
+	tuple<uint64_t, string> run(uint64_t maxstep,CVmRunEvn *pVmScriptRun);
+	static tuple<bool, string> CheckScriptSyntax(const char* filePath);
 
 private:
 	unsigned char m_ExRam[65536];  	// to save contract tx function argument (contract)

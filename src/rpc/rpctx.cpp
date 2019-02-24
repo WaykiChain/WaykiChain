@@ -585,21 +585,21 @@ Value registercontracttx(const Array& params, bool fHelp) {
     vector<unsigned char> vscript;
 
     string path = params[1].get_str();
-    std::tuple<bool, string> result = CVmlua::syntaxcheck(path.c_str());
+    std::tuple<bool, string> result = CVmlua::CheckScriptSyntax(path.c_str());
     bool bOK = std::get<0>(result);
-    if(!bOK) {
+    if(!bOK)
         throw JSONRPCError(RPC_INVALID_PARAMS, std::get<1>(result));
-    }
+
     FILE* file = fopen(path.c_str(), "rb+");
-    if (!file) {
+    if (!file)
         throw runtime_error("create registercontracttx open script file" + path + "error");
-    }
+        
     long lSize;
     fseek(file, 0, SEEK_END);
     lSize = ftell(file);
     rewind(file);
 
-    if (lSize <= 0 || lSize > 65536) { //脚本文件大小判断 (must be <= 64 KB)
+    if (lSize <= 0 || lSize > 65536) { // contract script file size must be <= 64 KB)
         fclose(file);
         throw JSONRPCError(RPC_INVALID_PARAMS, "File size exceeds 64 KB limit.");
     }
@@ -607,7 +607,7 @@ Value registercontracttx(const Array& params, bool fHelp) {
     // allocate memory to contain the whole file:
     char *buffer = (char*) malloc(sizeof(char) * lSize);
     if (buffer == NULL) {
-        fclose(file); //及时关闭
+        fclose(file);
         throw runtime_error("allocate memory failed");
     }
     if (fread(buffer, 1, lSize, file) != (size_t) lSize) {
