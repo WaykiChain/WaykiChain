@@ -2222,7 +2222,6 @@ static const luaL_Reg mylib[] = {
     {"GetCurTxPayAmount",           ExGetCurTxPayAmountFunc},
 
     {"GetUserAppAccValue",          ExGetUserAppAccValueFunc},
-    {"GetUserAppAccFoudWithTag",    ExGetUserAppAccFundWithTagFunc}, /** deprecated */
     {"GetUserAppAccFundWithTag",    ExGetUserAppAccFundWithTagFunc},
     {"WriteOutAppOperate",          ExWriteOutAppOperateFunc},
 
