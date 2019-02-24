@@ -500,17 +500,17 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
 
     uint64_t addValue = llValues;
     if (!view.GetAccount(desUserId, desAcct)) {
-        if((COMMON_TX == nTxType) && (desUserId.type() == typeid(CKeyID))) {  // target account address not exist
+        if ((COMMON_TX == nTxType) && (desUserId.type() == typeid(CKeyID))) {  // target account address not exist
             desAcct.keyID = boost::get<CKeyID>(desUserId);
             desAcctLog.keyID = desAcct.keyID;
-        }
-        else {
+        } else {
             return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, get account info failed by regid:%s", boost::get<CRegID>(desUserId).ToString()),
-                    UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+                READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
     } else {
         desAcctLog.SetValue(desAcct);
     }
+
     if (!desAcct.OperateAccount(ADD_FREE, addValue, nHeight)) {
         return state.DoS(100, ERRORMSG("ExecuteTx() : CTransaction ExecuteTx, operate accounts error"),
                 UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
@@ -574,21 +574,23 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
     }
     txundo.txHash = GetHash();
 
-    if(SysCfg().GetAddressToTxFlag()) {
+    if (SysCfg().GetAddressToTxFlag()) {
         CScriptDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
         CKeyID revKeyId;
-        if(!view.GetKeyId(srcRegId, sendKeyId)) {
+        if (!view.GetKeyId(srcRegId, sendKeyId))
             return ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, get keyid by srcRegId error!");
-        }
-        if(!view.GetKeyId(desUserId, revKeyId)) {
+
+        if (!view.GetKeyId(desUserId, revKeyId))
             return ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, get keyid by desUserId error!");
-        }
-        if(!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
+
+        if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
             return false;
+
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
         if(!scriptDB.SetTxHashByAddress(revKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
             return false;
+            
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
     }
 
