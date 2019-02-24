@@ -2936,15 +2936,16 @@ Value gencheckpoint(const Array& params, bool fHelp)
     string file = params[1].get_str();
     int nHeight(0);
     CBlock block;
+    FILE* fp = NULL;
     try {
-        FILE* fp = fopen(file.c_str(), "rb+");
+        fp = fopen(file.c_str(), "rb+");
         CAutoFile fileout = CAutoFile(fp, SER_DISK, CLIENT_VERSION);
         if (!fileout)
             throw JSONRPCError(RPC_MISC_ERROR, "open file:" + file + "failed!");
         fileout >> nHeight;
         fileout >> block;
     } catch (std::exception &e) {
-        fp->close();
+        fclose(fp);
         throw JSONRPCError(RPC_MISC_ERROR, strprintf("read block to file error:%s", e.what()).c_str());
     }
 
