@@ -620,8 +620,8 @@ static int ExInt64DivFunc(lua_State *L) {
 
 /**
  *bool SHA256(void const* pfrist, const unsigned short len, void * const pout)
- * 这个函数式从中间层传了一个参数过来:
- * 1.第一个是要被计算hash值的字符串
+ * This function receives an input param from a middle layer:
+ *   1. The first param is the target string to be hashed twice in a BitCoin way
  */
 static int ExSha256Func(lua_State *L) {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
@@ -638,21 +638,19 @@ static int ExSha256Func(lua_State *L) {
 
 /**
  *bool SHA256Once(void const* pfrist, const unsigned short len, void * const pout)
- * 这个函数式从中间层传了一个参数过来:
- * 1.第一个是要被计算hash值的字符串
+ * This function receives an input param from a middle layer:
+ *   1. The first param is the target string to be hashed once
  */
 static int ExSha256OnceFunc(lua_State *L) {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
-
-    if(!GetDataString(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() <= 0)
-    {
+    if (!GetDataString(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() <= 0) {
         return RetFalse("ExSha256OnceFunc param err");
     }
+
     uint256 hash;
     SHA256(&retdata.at(0).get()->at(0), retdata.at(0).get()->size(), hash.begin());
-
     vector<unsigned char> tep1(hash.begin(), hash.end());
-    return RetRstToLua(L,tep1);
+    return RetRstToLua(L, tep1);
 }
 
 /**
