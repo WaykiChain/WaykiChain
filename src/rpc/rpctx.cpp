@@ -563,20 +563,21 @@ Value callcontracttx(const Array& params, bool fHelp) {
 Value registercontracttx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 5) {
         throw runtime_error("registercontracttx \"addr\" \"filepath\"\"fee\" (\"height\") (\"appdesc\")\n"
-                "\ncreate a transaction of registering a contract app\n"
-                "\nArguments:\n"
-                "1.\"addr\": (string required) contract owner address from this wallet\n"
-                "2.\"filepath\": (string required), the file path of the app script\n"
-                "3.\"fee\": (numeric required) pay to miner (the larger the size of script, the bigger fees are required)\n"
-                "4.\"height\": (numeric optional)valid height, when not specified, the tip block hegiht in chainActive will be used\n"
-                "5.\"appdesc\":(string optional) new app description\n"
-                "\nResult:\n"
-                "\"txhash\": (string)\n"
-                "\nExamples:\n"
-                + HelpExampleCli("registercontracttx",
-                        "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"myapp.lua\" \"010203040506\" \"100000\" (\"appdesc\")") + "\nAs json rpc call\n"
-                + HelpExampleRpc("registercontracttx",
-                        "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH \"myapp.lua\" \"010203040506\" \"100000\" (\"appdesc\")"));
+            "\ncreate a transaction of registering a contract app\n"
+            "\nArguments:\n"
+            "1.\"addr\": (string required) contract owner address from this wallet\n"
+            "2.\"filepath\": (string required), the file path of the app script\n"
+            "3.\"fee\": (numeric required) pay to miner (the larger the size of script, the bigger fees are required)\n"
+            "4.\"height\": (numeric optional)valid height, when not specified, the tip block hegiht in chainActive will be used\n"
+            "5.\"appdesc\":(string optional) new app description\n"
+            "\nResult:\n"
+            "\"txhash\": (string)\n"
+            "\nExamples:\n"
+            + HelpExampleCli("registercontracttx",
+                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"myapp.lua\" \"010203040506\" \"100000\" (\"appdesc\")") + 
+                "\nAs json rpc call\n"
+            + HelpExampleRpc("registercontracttx",
+                "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH \"myapp.lua\" \"010203040506\" \"100000\" (\"appdesc\")"));
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
@@ -598,9 +599,9 @@ Value registercontracttx(const Array& params, bool fHelp) {
     lSize = ftell(file);
     rewind(file);
 
-    if(lSize <= 0 || lSize > 65536) { //脚本文件大小判断 (must be <= 64KB)
+    if (lSize <= 0 || lSize > 65536) { //脚本文件大小判断 (must be <= 64 KB)
         fclose(file);
-        throw JSONRPCError(RPC_INVALID_PARAMS, "File size exceeds 64KB limit.");
+        throw JSONRPCError(RPC_INVALID_PARAMS, "File size exceeds 64 KB limit.");
     }
 
     // allocate memory to contain the whole file:

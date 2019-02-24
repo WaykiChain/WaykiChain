@@ -2203,7 +2203,7 @@ static const luaL_Reg mylib[] = {
     {"GetAccountPublickey",         ExGetAccountPublickeyFunc},
     {"QueryAccountBalance",         ExQueryAccountBalanceFunc},
     {"GetTxConfirmHeight",          ExGetTxConfirmHeightFunc},
-    {"GetTxConFirmHeight",          ExGetTxConfirmHeightFunc}, //for backward compatibility
+    {"GetTxConFirmHeight",          ExGetTxConfirmHeightFunc}, /** deprecated */
     {"GetBlockHash",                ExGetBlockHashFunc},
 
     {"GetCurRunEnvHeight",          ExGetCurRunEnvHeightFunc},
