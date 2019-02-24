@@ -1383,16 +1383,16 @@ static int ExGetCurTxHash(lua_State *L) {
 }
 
 /**
- *bool ModifyDataDBVavle(const void* const key,const unsigned char keylen, const void* const pvalue,const unsigned short valuelen)
+ *bool ExModifyDataFunc(const void* const key,const unsigned char keylen, const void* const pvalue,const unsigned short valuelen)
  * 中间层传了两个参数
  * 1.第一个是 key
  * 2.第二个是 value
  */
-static int ExModifyDataDBValueFunc(lua_State *L)
+static int ExModifyDataFunc(lua_State *L)
 {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
     if (!GetDataTableWriteDataDB(L,retdata) ||retdata.size() != 2) {
-        return RetFalse("ExModifyDataDBValueFunc key err1");
+        return RetFalse("ExModifyDataFunc key err");
     }
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
     if (NULL == pVmRunEvn) {
@@ -1404,8 +1404,8 @@ static int ExModifyDataDBValueFunc(lua_State *L)
     CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
     CScriptDBOperLog operlog;
     vector_unsigned_char vTemp;
-    if(scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vTemp)) {
-        if (scriptDB->SetContractData(scriptid,*retdata.at(0),*retdata.at(1).get(),operlog)) {
+    if (scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vTemp)) {
+        if (scriptDB->SetContractData(scriptid, *retdata.at(0), *retdata.at(1).get(), operlog)) {
             shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEvn->GetDbLog();
             m_dblog.get()->push_back(operlog);
             flag = true;
@@ -1621,8 +1621,7 @@ static int ExGetContractRegIdFunc(lua_State *L)
 static int ExGetCurTxAccountFunc(lua_State *L)
 {
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-    {
+    if (NULL == pVmRunEvn) {
         return RetFalse("pVmRunEvn is NULL");
     }
    //1.从lua取参数
@@ -1636,8 +1635,8 @@ static int ExGetCurTxAccountFunc(lua_State *L)
     return len; //number of results 告诉Lua返回了几个返回值
 }
 
-static int GetCurTxPayAmountFunc(lua_State *L){
-
+static int ExGetCurTxPayAmountFunc(lua_State *L)
+{
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
     if(NULL == pVmRunEvn)
     {
@@ -1666,25 +1665,24 @@ struct S_APP_ID
     }
 }__attribute((aligned (1)));
 
-static int GetUserAppAccValue(lua_State *L){
-
+static int ExGetUserAppAccValueFunc(lua_State *L)
+{
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
-    if(!lua_istable(L,-1))
-    {
-        LogPrint("vm","is not table\n");
+    if (!lua_istable(L,-1)) {
+        LogPrint("vm", "is not table\n");
         return 0;
     }
     double doubleValue = 0;
     vector<unsigned char> vBuf ;
     S_APP_ID accid;
     memset(&accid,0,sizeof(accid));
-    if(!(getNumberInTable(L,(char *)"idLen",doubleValue))){
+    if (!(getNumberInTable(L,(char *)"idLen",doubleValue))){
         LogPrint("vm","idlen get fail\n");
         return 0;
-    }else{
+    } else {
         accid.idlen = (unsigned char)doubleValue;
     }
-    if((accid.idlen < 1) || (accid.idlen > sizeof(accid.ID))){
+    if ((accid.idlen < 1) || (accid.idlen > sizeof(accid.ID))) {
         LogPrint("vm","idlen is err\n");
         return 0;
     }
@@ -1786,21 +1784,20 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std
     ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(tep1.begin(), tep1.end()));
     return true;
 }
-static int GetUserAppAccFoudWithTag(lua_State *L){
+
+static int ExGetUserAppAccFundWithTagFunc(lua_State *L) 
+{
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
     unsigned int Size(0);
     CAppFundOperate temp;
     Size = ::GetSerializeSize(temp, SER_NETWORK, PROTOCOL_VERSION);
 
-    if(!GetDataTableOutAppOperate(L,retdata) ||retdata.size() != 1
-        || retdata.at(0).get()->size() !=Size)
-    {
+    if (!GetDataTableOutAppOperate(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() !=Size) {
         return RetFalse("GetUserAppAccFoudWithTag para err0");
     }
 
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-    {
+    if(NULL == pVmRunEvn) {
         return RetFalse("pVmRunEvn is NULL");
     }
 
@@ -1963,7 +1960,7 @@ static int ExGetBase58AddrFunc(lua_State *L){
      return RetRstToLua(L,vTemp);
 }
 
-static int ExTransferContactAsset(lua_State *L) {
+static int ExTransferContractAsset(lua_State *L) {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
 
     if(!GetArray(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != 34)
@@ -2191,49 +2188,52 @@ static int ExGetBlockTimestamp(lua_State *L) {
 }
 
 static const luaL_Reg mylib[] = {
-    {"Int64Mul", ExInt64MulFunc},
-    {"Int64Add", ExInt64AddFunc},
-    {"Int64Sub", ExInt64SubFunc},
-    {"Int64Div", ExInt64DivFunc},
-    {"Sha256", ExSha256Func},
-    {"Sha256Once", ExSha256OnceFunc},    
-    {"Des", ExDesFunc},
-    {"VerifySignature", ExVerifySignatureFunc},
-    {"LogPrint", ExLogPrintFunc},
-    {"GetTxContract", ExGetTxContractFunc},
-    {"GetTxRegID", ExGetTxRegIDFunc},
-    {"GetAccountPublickey", ExGetAccountPublickeyFunc},
-    {"QueryAccountBalance", ExQueryAccountBalanceFunc},
-    {"GetTxConfirmHeight", ExGetTxConfirmHeightFunc},
-    {"GetTxConFirmHeight", ExGetTxConfirmHeightFunc}, //for backward compatibility
-    {"GetBlockHash", ExGetBlockHashFunc},
+    {"Int64Mul",                    ExInt64MulFunc},
+    {"Int64Add",                    ExInt64AddFunc},
+    {"Int64Sub",                    ExInt64SubFunc},
+    {"Int64Div",                    ExInt64DivFunc},
+    {"Sha256",                      ExSha256Func},
+    {"Sha256Once",                  ExSha256OnceFunc},    
+    {"Des",                         ExDesFunc},
 
-    {"GetCurRunEnvHeight", ExGetCurRunEnvHeightFunc},
-    {"WriteData", ExWriteDataDBFunc},
-    {"DeleteData", ExDeleteDataDBFunc},
-    {"ReadData", ExReadDataValueDBFunc},
-    {"GetCurTxHash", ExGetCurTxHash},
-    {"ModifyData", ExModifyDataDBValueFunc},
+    {"VerifySignature",             ExVerifySignatureFunc},
+    {"LogPrint",                    ExLogPrintFunc},
+    {"GetTxContract",               ExGetTxContractFunc},
+    {"GetTxRegID",                  ExGetTxRegIDFunc},
+    {"GetAccountPublickey",         ExGetAccountPublickeyFunc},
+    {"QueryAccountBalance",         ExQueryAccountBalanceFunc},
+    {"GetTxConfirmHeight",          ExGetTxConfirmHeightFunc},
+    {"GetTxConFirmHeight",          ExGetTxConfirmHeightFunc}, //for backward compatibility
+    {"GetBlockHash",                ExGetBlockHashFunc},
 
-    {"WriteOutput", ExWriteOutputFunc},
-    {"GetScriptData", ExGetContractDataFunc}, /** deprecated */
-    {"GetContractData", ExGetContractDataFunc},
-    {"GetScriptID", ExGetContractRegIdFunc}, /** deprecated */
-    {"GetContractRegId", ExGetContractRegIdFunc},
-    {"GetCurTxAccount", ExGetCurTxAccountFunc},
-    {"GetCurTxPayAmount", GetCurTxPayAmountFunc},
+    {"GetCurRunEnvHeight",          ExGetCurRunEnvHeightFunc},
+    {"WriteData",                   ExWriteDataDBFunc},
+    {"DeleteData",                  ExDeleteDataDBFunc},
+    {"ReadData",                    ExReadDataValueDBFunc},
+    {"GetCurTxHash",                ExGetCurTxHash},
+    {"ModifyData",                  ExModifyDataDBValueFunc},
 
-    {"GetUserAppAccValue", GetUserAppAccValue},
-    {"GetUserAppAccFoudWithTag", GetUserAppAccFoudWithTag},
-    {"WriteOutAppOperate", ExWriteOutAppOperateFunc},
+    {"WriteOutput",                 ExWriteOutputFunc},
+    {"GetScriptData",               ExGetContractDataFunc}, /** deprecated */
+    {"GetContractData",             ExGetContractDataFunc},
+    {"GetScriptID",                 ExGetContractRegIdFunc}, /** deprecated */
+    {"GetContractRegId",            ExGetContractRegIdFunc},
+    {"GetCurTxAccount",             ExGetCurTxAccountFunc},
+    {"GetCurTxPayAmount",           ExGetCurTxPayAmountFunc},
 
-    {"GetBase58Addr", ExGetBase58AddrFunc},
-    {"ByteToInteger", ExByteToIntegerFunc},
-    {"IntegerToByte4", ExIntegerToByte4Func},
-    {"IntegerToByte8", ExIntegerToByte8Func},
-    {"TransferContactAsset", ExTransferContactAsset},
-    {"TransferSomeAsset", ExTransferSomeAsset},
-    {"GetBlockTimestamp", ExGetBlockTimestamp},
+    {"GetUserAppAccValue",          ExGetUserAppAccValueFunc},
+    {"GetUserAppAccFoudWithTag",    ExGetUserAppAccFundWithTagFunc}, /** deprecated */
+    {"GetUserAppAccFundWithTag",    ExGetUserAppAccFundWithTagFunc},
+    {"WriteOutAppOperate",          ExWriteOutAppOperateFunc},
+
+    {"GetBase58Addr",               ExGetBase58AddrFunc},
+    {"ByteToInteger",               ExByteToIntegerFunc},
+    {"IntegerToByte4",              ExIntegerToByte4Func},
+    {"IntegerToByte8",              ExIntegerToByte8Func},
+    {"TransferContractAsset",       ExTransferContractAsset},
+    {"TransferSomeAsset",           ExTransferSomeAsset},
+    {"GetBlockTimestamp",           ExGetBlockTimestamp},
+
     {NULL, NULL}
 
 };
