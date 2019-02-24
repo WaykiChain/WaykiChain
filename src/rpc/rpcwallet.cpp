@@ -197,28 +197,28 @@ Value sendtoaddress(const Array& params, bool fHelp)
     int64_t nDefaultFee = SysCfg().GetTxFee();
 
     if (size == 3) {
-        if (!GetKeyId(params[0].get_str(), sendKeyId)) {
+        if (!GetKeyId(params[0].get_str(), sendKeyId))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sendaddress");
-        }
-        if (!GetKeyId(params[1].get_str(), recvKeyId)) {
+        
+        if (!GetKeyId(params[1].get_str(), recvKeyId))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
-        }
+        
         nAmount = AmountToRawValue(params[2]);
-        if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nDefaultFee) {
+        if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nDefaultFee)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress does not have enough coins");
-        }
+        
     } else { // size == 2
-        if (!GetKeyId(params[0].get_str(), recvKeyId)) {
+        if (!GetKeyId(params[0].get_str(), recvKeyId))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
-        }
+        
         nAmount = AmountToRawValue(params[1]);
 
         set<CKeyID> sKeyIds;
         sKeyIds.clear();
         pwalletMain->GetKeys(sKeyIds);
-        if(sKeyIds.empty()) {
+        if(sKeyIds.empty())
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Wallet has no key");
-        }
+        
         bool sufficientFee = false;
         for (auto &keyId: sKeyIds) {
             if (keyId != recvKeyId && pAccountViewTip->GetRawBalance(keyId) >= nAmount + nDefaultFee) {
@@ -232,13 +232,11 @@ Value sendtoaddress(const Array& params, bool fHelp)
         }
     }
 
-    if (sendKeyId == recvKeyId) {
+    if (sendKeyId == recvKeyId)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "recvadress shall not be the same as sendaddress");
-    }
 
-    if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId)) {
+    if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendadress not registered or invalid");
-    }
 
     std::tuple<bool, string> ret;
     if (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId)) {
@@ -397,14 +395,13 @@ Value gensendtoaddressraw(const Array& params, bool fHelp)
     if (sendId.type() == typeid(CKeyID)) {
         CRegID regId;
         if (!pAccountViewTip->GetRegId(sendId, regId)){
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress not registed");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender pubkey not registed");
         }
         sendId = regId;
     }
 
-    if (!view.GetUserId(params[3].get_str(), recvId)) {
+    if (!view.GetUserId(params[3].get_str(), recvId))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid receiver address!");
-    }
 
     if (recvId.type() == typeid(CKeyID)) {
         CRegID regId;
@@ -412,6 +409,9 @@ Value gensendtoaddressraw(const Array& params, bool fHelp)
             recvId = regId;
         }
     }
+
+    if (sendId == recvId)
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Receiver Address shall not be the same as Sender Address!");
 
     int height = chainActive.Tip()->nHeight;
     if (params.size() > 4) {
