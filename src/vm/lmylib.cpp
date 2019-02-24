@@ -1661,7 +1661,7 @@ struct S_APP_ID
 static int ExGetUserAppAccValueFunc(lua_State *L)
 {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
-    if (!lua_istable(L,-1)) {
+    if (!lua_istable(L, -1)) {
         LogPrint("vm", "is not table\n");
         return 0;
     }
@@ -1669,21 +1669,20 @@ static int ExGetUserAppAccValueFunc(lua_State *L)
     vector<unsigned char> vBuf ;
     S_APP_ID accid;
     memset(&accid,0,sizeof(accid));
-    if (!(getNumberInTable(L,(char *)"idLen",doubleValue))){
-        LogPrint("vm","idlen get fail\n");
+    if (!(getNumberInTable(L, (char *)"idLen", doubleValue))){
+        LogPrint("vm", "get idlen failed\n");
         return 0;
     } else {
         accid.idlen = (unsigned char)doubleValue;
     }
     if ((accid.idlen < 1) || (accid.idlen > sizeof(accid.ID))) {
-        LogPrint("vm","idlen is err\n");
+        LogPrint("vm","idlen invalid\n");
         return 0;
     }
-    if(!getArrayInTable(L,(char *)"idValueTbl",accid.idlen,vBuf))
-    {
-        LogPrint("vm","idValueTbl not table\n");
+    if (!getArrayInTable(L, (char *) "idValueTbl", accid.idlen,vBuf)) {
+        LogPrint("vm", "idValueTbl not table\n");
         return 0;
-    }else{
+    } else {
        memcpy(&accid.ID[0],&vBuf[0],accid.idlen);
     }
 
@@ -1699,8 +1698,8 @@ static int ExGetUserAppAccValueFunc(lua_State *L)
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << valueData;
-        vector<unsigned char> TMP(tep.begin(),tep.end());
-        len = RetRstToLua(L,TMP);
+        vector<unsigned char> TMP(tep.begin(), tep.end());
+        len = RetRstToLua(L, TMP);
     }
     return len;
 }
@@ -1797,8 +1796,8 @@ static int ExGetUserAppAccFundWithTagFunc(lua_State *L)
     CAppCFund fund;
     int len = 0;
     if (pVmRunEvn->GetAppUserAccount(userfund.GetAppUserV(), sptrAcc)) {
-        if (!sptrAcc->GetAppCFund(fund,userfund.GetFundTagV(),userfund.outheight))
-            return RetFalse("GetUserAppAccFoudWithTag get fail");
+        if (!sptrAcc->GetAppCFund(fund,userfund.GetFundTagV(), userfund.outheight))
+            return RetFalse("GetUserAppAccFundWithTag GetAppCFund fail");
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << fund.getvalue() ;
