@@ -133,25 +133,26 @@ static int luaopen_array(lua_State *L){
 
 
 //////////////////////////////////////////////////////////////////////
-// Construction/Destruction
+// Constructor/Destructor
+//
 //////////////////////////////////////////////////////////////////////
-CVmlua::CVmlua(const vector<unsigned char> & vRom, const vector<unsigned char> &InputData){
+CVmlua::CVmlua(const vector<unsigned char> &vContractScript, const vector<unsigned char> &vContractCallParams)
+{
 	unsigned long len = 0;
-	/*vRom 输入的是script,InputData 输入的是contract*/
-    memset(m_ExRam,0,sizeof(m_ExRam));
-    memset(m_ExeFile,0,sizeof(m_ExeFile));
+    memset(m_ContractCallParams,0,sizeof(m_ContractCallParams));
+    memset(m_ContractScript,0,sizeof(m_ContractScript));
 
-    len = vRom.size();
-    if(len >= sizeof(m_ExeFile)){
-    	throw runtime_error("CVmlua::CVmlua() length of vRom exceptions");
+    len = vContractScript.size();
+    if (len >= sizeof(m_ContractScript)) {
+    	throw runtime_error("CVmlua::CVmlua() length of vContractScript exception");
     }
-	memcpy(m_ExeFile, &vRom[0], len);
-	unsigned short count = InputData.size();//外面已限制小于4096字节
-	if(count > sizeof(m_ExRam) - 2){
-		throw runtime_error("CVmlua::CVmlua() length of contract > 4094");
+	memcpy(m_ContractScript, &vContractScript[0], len);
+	unsigned short count = vContractCallParams.size(); //外面已限制小于4096字节
+	if (count > sizeof(m_ContractCallParams) - 2) {
+		throw runtime_error("CVmlua::CVmlua() length of contract params value > 4094");
 	}
-	memcpy(m_ExRam, &count, 2);
-	memcpy(&m_ExRam[2], &InputData[0],count);
+	memcpy(m_ContractCallParams, &count, 2);
+	memcpy(&m_ContractCallParams[2], &vContractCallParams[0],count);
 }
 
 CVmlua::~CVmlua() {
@@ -250,21 +251,21 @@ tuple<uint64_t, string> CVmlua::run(uint64_t maxstep, CVmRunEvn *pVmScriptRun)
 	lua_rawseti(lua_state,-2,0);
 
 	unsigned short count = 0;
-	memcpy(&count, m_ExRam,  2); //外面已限制，合约内容小于4096字节
+	memcpy(&count, m_ContractCallParams,  2); //外面已限制，合约内容小于4096字节
     for (unsigned short n = 0; n < count; n++) {
-        lua_pushinteger(lua_state, m_ExRam[2 + n]);// value值放入
+        lua_pushinteger(lua_state, m_ContractCallParams[2 + n]);// value值放入
         lua_rawseti(lua_state, -2, n+1);  //set table at key 'n + 1'
     }
     lua_setglobal(lua_state, "contract");
 
-    //传递pVmScriptRun指针，以便后面代码引用，去掉了使用全局变量保存该指针
+    // 传递pVmScriptRun指针，以便后面代码引用，去掉了使用全局变量保存该指针
     lua_pushlightuserdata(lua_state, pVmScriptRun);
     lua_setglobal(lua_state, "VmScriptRun");
     LogPrint("vm", "pVmScriptRun=%p\n", pVmScriptRun);
 
     //5. Load the contract script
     long long step = maxstep;
-    if (luaL_loadbuffer(lua_state, (char *) m_ExeFile, strlen((char *) m_ExeFile), "line") || 
+    if (luaL_loadbuffer(lua_state, (char *) m_ContractScript, strlen((char *) m_ContractScript), "line") || 
 		lua_pcallk(lua_state,0,0,0,0,NULL,&step)) {
        const char* pError = lua_tostring(lua_state, -1);
        string strError = strprintf("luaL_loadbuffer failed: %s\n", pError ? pError : "unknown" );

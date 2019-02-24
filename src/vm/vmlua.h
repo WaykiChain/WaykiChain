@@ -12,14 +12,15 @@ class CVmRunEvn;
 
 class CVmlua {
 public:
-	CVmlua(const vector<unsigned char> & vRom,const vector<unsigned char> &InputData);
+	CVmlua(const vector<unsigned char> &vContractScript, const vector<unsigned char> &vContractCallParams);
 	~CVmlua();
 	tuple<uint64_t, string> run(uint64_t maxstep,CVmRunEvn *pVmScriptRun);
 	static tuple<bool, string> CheckScriptSyntax(const char* filePath);
 
 private:
-	unsigned char m_ExRam[65536];  	// to save contract tx function argument (contract)
-	unsigned char m_ExeFile[65536];	// executable file IpboApp.lua
+	unsigned char m_ContractCallParams[4096];  		// to hold contract call params (contract)
+	unsigned char m_ContractScript[65536];			// to hold contract script content
+	
 };
 
 
