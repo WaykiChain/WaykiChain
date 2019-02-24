@@ -75,11 +75,11 @@ Value dropminerkeys(const Array& params, bool fHelp)
 {
 	if (fHelp || params.size() != 0) {
 		throw runtime_error("dropminerkeys \n"
-			    "\ndrop all miner keys in a wallet for cool mining.\n"
-			    "\nResult:\n"
-			    "\nExamples:\n"
-			    + HelpExampleCli("dropminerkeys", "")
-			    + HelpExampleRpc("dropminerkeys", "")
+            "\ndrop all miner keys in a wallet for cool mining.\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("dropminerkeys", "")
+            + HelpExampleRpc("dropminerkeys", "")
 		);
     }
 
@@ -90,7 +90,7 @@ Value dropminerkeys(const Array& params, bool fHelp)
 
 	pwalletMain->ClearAllCkeyForCoolMiner();
 	Object ret;
-	ret.push_back( Pair("info", "wallet is ready for cool miner to mine.") );
+	ret.push_back( Pair("info", "wallet is ready for cool mining.") );
 	return ret;
 }
 
