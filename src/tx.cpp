@@ -967,6 +967,7 @@ string CRegisterContractTx::ToString(CAccountViewCache &view) const {
     txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion,boost::get<CRegID>(regAcctId).ToString(), keyId.GetHex(), llFees, nValidHeight);
     return str;
 }
+
 Object CRegisterContractTx::ToJSON(const CAccountViewCache &AccountView) const{
     Object result;
     CAccountViewCache view(AccountView);
@@ -1096,13 +1097,13 @@ bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValid
         }
     }
 
-    if(SysCfg().GetAddressToTxFlag()) {
+    if (SysCfg().GetAddressToTxFlag()) {
         CScriptDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
-        if(!view.GetKeyId(userId, sendKeyId)) {
+        if (!view.GetKeyId(userId, sendKeyId)) {
             return ERRORMSG("ExecuteTx() : CDelegateTransaction ExecuteTx, get regAcctId by account error!");
         }
-        if(!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
+        if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
             return false;
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
     }
@@ -1116,7 +1117,7 @@ string CDelegateTransaction::ToString(CAccountViewCache &view) const {
     str += strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", txTypeArray[nTxType],
         GetHash().ToString().c_str(), nVersion, keyId.ToAddress(), keyId.ToString());
     str += "vote:\n";
-    for(auto item=operVoteFunds.begin(); item!=operVoteFunds.end(); ++item) {
+    for (auto item = operVoteFunds.begin(); item != operVoteFunds.end(); ++item) {
         str += strprintf("%s", item->ToString());
     }
     return str;
@@ -1204,28 +1205,30 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
             totalVotes = item->fund.value;
     }
 
-    if(setTotalOperVoteKeyID.size() > IniCfg().GetDelegatesNum()) {
+    if (setTotalOperVoteKeyID.size() > IniCfg().GetDelegatesNum()) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction the delegates number of account can't exceeds maximum"), REJECT_INVALID,
                            "account-delegates-number-error");
     }
 
-    if(setOperVoteKeyID.size() != operVoteFunds.size()) {
+    if (setOperVoteKeyID.size() != operVoteFunds.size()) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction duplication vote fund"), REJECT_INVALID,
                            "deletegates-duplication fund-error");
     }
-    if(totalVotes > sendAcctInfo.llValues) {
+    if (totalVotes > sendAcctInfo.llValues) {
        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction delegate votes exceeds than account balance, userid=%s", HexStr(id.GetID())),
                       REJECT_INVALID, "insufficient balance for votes");
     }
     return true;
 }
 
-bool CDelegateTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CDelegateTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) 
+{
     CKeyID keyId;
     if (!view.GetKeyId(userId, keyId))
         return false;
+
     vAddr.insert(keyId);
-    for(auto iter = operVoteFunds.begin(); iter != operVoteFunds.end(); ++iter) {
+    for (auto iter = operVoteFunds.begin(); iter != operVoteFunds.end(); ++iter) {
         vAddr.insert(iter->fund.pubKey.GetKeyID());
     }
     return true;
@@ -1246,9 +1249,10 @@ uint256 CDelegateTransaction::SignatureHash() const {
 string CAccountLog::ToString() const {
     string str("");
     str += strprintf("    Account log: keyId=%d llValues=%lld nVoteHeight=%lld llVotes=%lld \n",
-            keyID.GetHex(), llValues, nVoteHeight, llVotes);
-     str += string("    vote fund:");
-    for(auto it =  vVoteFunds.begin(); it != vVoteFunds.end(); ++it) {
+        keyID.GetHex(), llValues, nVoteHeight, llVotes);
+    str += string("    vote fund:");
+
+    for (auto it =  vVoteFunds.begin(); it != vVoteFunds.end(); ++it) {
         str += strprintf("    address=%s, vote=%lld\n", it->pubKey.GetKeyID().ToAddress(), it->value);
     }
     return str;
@@ -1343,15 +1347,16 @@ uint64_t CAccount::GetRawBalance() {
 }
 
 uint64_t CAccount::GetTotalBalance() {
-    if(!vVoteFunds.empty())
+    if (!vVoteFunds.empty())
         return vVoteFunds.begin()->value + llValues;
+
     return llValues;
 }
 
 uint64_t CAccount::GetFrozenBalance() {
     uint64_t votes = 0;
     for (auto it = vVoteFunds.begin(); it != vVoteFunds.end(); it++) {
-      if(it->value > votes) {
+      if (it->value > votes) {
           votes = it->value;
       }
     }
@@ -1361,7 +1366,10 @@ uint64_t CAccount::GetFrozenBalance() {
 Object CAccount::ToJsonObj(bool isAddress) const
 {
     Array voteFundArray;
-    for(auto & fund : vVoteFunds) { voteFundArray.push_back(fund.ToJson(true)); }
+    for (auto & fund : vVoteFunds) { 
+        voteFundArray.push_back(fund.ToJson(true)); 
+    }
+
     Object obj;
     obj.push_back(Pair("Address",       keyID.ToAddress()));
     obj.push_back(Pair("KeyID",         keyID.ToString()));
