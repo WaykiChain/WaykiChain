@@ -524,9 +524,9 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
 
     if (CONTRACT_TX == nTxType) {
         vector<unsigned char> vScript;
-        if(!scriptDB.GetScript(boost::get<CRegID>(desUserId), vScript)) {
+        if (!scriptDB.GetScript(boost::get<CRegID>(desUserId), vScript)) {
             return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, read account faild, RegId=%s",
-                    boost::get<CRegID>(desUserId).ToString()), READ_ACCOUNT_FAIL, "bad-read-account");
+                boost::get<CRegID>(desUserId).ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
         }
         CVmRunEvn vmRunEvn;
         std::shared_ptr<CBaseTransaction> pTx = GetNewInstance();
@@ -590,7 +590,7 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
         if(!scriptDB.SetTxHashByAddress(revKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
             return false;
-            
+
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
     }
 
