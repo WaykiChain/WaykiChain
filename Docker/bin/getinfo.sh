@@ -5,6 +5,7 @@
 
 CON_NAME='waykicoind-test'
 RPC_CMD='getinfo'
+
 if   [[ $# -eq 3 ]]; then
     CON_NAME=$1
     RPC_CMD="$2 $3"
@@ -21,5 +22,5 @@ elif [[ $# -eq 1 ]]; then
   fi
 fi
 
-echo "execute RPC command: '$RPC_CMD' on container[$CON_NAME] ..."
+echo "execute RPC command: 'coind $RPC_CMD' on container[$CON_NAME] ..."
 docker exec -it $CON_NAME sh -c "coind $RPC_CMD"
