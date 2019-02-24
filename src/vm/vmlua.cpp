@@ -130,12 +130,6 @@ static int luaopen_array(lua_State *L){
 #endif
 
 
-
-
-//////////////////////////////////////////////////////////////////////
-// Constructor/Destructor
-//
-//////////////////////////////////////////////////////////////////////
 CVmlua::CVmlua(const vector<unsigned char> &vContractScript, const vector<unsigned char> &vContractCallParams)
 {
 	unsigned long len = 0;
@@ -147,7 +141,7 @@ CVmlua::CVmlua(const vector<unsigned char> &vContractScript, const vector<unsign
     	throw runtime_error("CVmlua::CVmlua() length of vContractScript exception");
     }
 	memcpy(m_ContractScript, &vContractScript[0], len);
-	unsigned short count = vContractCallParams.size(); //外面已限制小于4096字节
+	unsigned short count = vContractCallParams.size(); //must be less than 4094 bytes
 	if (count > sizeof(m_ContractCallParams) - 2) {
 		throw runtime_error("CVmlua::CVmlua() length of contract params value > 4094");
 	}
@@ -155,8 +149,8 @@ CVmlua::CVmlua(const vector<unsigned char> &vContractScript, const vector<unsign
 	memcpy(&m_ContractCallParams[2], &vContractCallParams[0],count);
 }
 
-CVmlua::~CVmlua() {
-
+CVmlua::~CVmlua() 
+{
 }
 
 #ifdef WIN_DLL
