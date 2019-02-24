@@ -242,7 +242,7 @@ static const CRPCCommand vRPCCommands[] =
     { "listcheckpoint",         &listcheckpoint,         true,      false,      false },
     { "verifychain",            &verifychain,            true,      false,      false },
 
-    { "gettotalcoins",          &gettotalcoins,           false,     false,      false },
+    { "gettotalcoins",          &gettotalcoins,          false,     false,      false },
     { "gettotalassets",         &gettotalassets,         false,     false,      false },
     { "invalidateblock",        &invalidateblock,        true,      true,       false },
     { "reconsiderblock",        &reconsiderblock,        true,      true,       false },
@@ -265,11 +265,11 @@ static const CRPCCommand vRPCCommands[] =
     { "backupwallet",           &backupwallet,           true,      false,      true },
     { "dumpprivkey",            &dumpprivkey,            true,      false,      true },
     { "dumpwallet",             &dumpwallet,             true,      false,      true },
-    { "encryptwallet",          &encryptwallet,         false,     false,      true },
-    { "getaccountinfo",         &getaccountinfo,        true,      false,      true },
-    { "getnewaddress",          &getnewaddr,            true,      false,      true },   /* deprecated */
-    { "getnewaddr",             &getnewaddr,            true,      false,      true },
-    { "gettxdetail",            &gettxdetail,           true,      false,      true },
+    { "encryptwallet",          &encryptwallet,          false,     false,      true },
+    { "getaccountinfo",         &getaccountinfo,         true,      false,      true },
+    { "getnewaddress",          &getnewaddr,             true,      false,      true },   /* deprecated */
+    { "getnewaddr",             &getnewaddr,             true,      false,      true },
+    { "gettxdetail",            &gettxdetail,            true,      false,      true },
     { "listunconfirmedtx",      &listunconfirmedtx,      true,      false,      true },
     { "getwalletinfo",          &getwalletinfo,          true,      false,      true },
     { "importprivkey",          &importprivkey,          false,     false,      true },
