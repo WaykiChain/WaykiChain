@@ -79,14 +79,17 @@ CAppUserAccount::CAppUserAccount(const vector<unsigned char> &userId)
 
 	vFrozenFunds.clear();
 }
-bool CAppUserAccount::GetAppCFund(CAppCFund& outFound, const vector<unsigned char>& vtag , int hight) {
 
-	auto it = find_if(vFrozenFunds.begin(), vFrozenFunds.end(), [&](const CAppCFund& CfundIn) {
-		return hight ==CfundIn.getheight() && CfundIn.GetTag()== vtag  ;});
+bool CAppUserAccount::GetAppCFund(CAppCFund& outFound, const vector<unsigned char>& vtag , int hight) 
+{
+	auto it = find_if( vFrozenFunds.begin(), vFrozenFunds.end(), 
+		[&](const CAppCFund& CfundIn) { return hight ==CfundIn.getheight() && CfundIn.GetTag() == vtag; } );
+
 	if (it != vFrozenFunds.end()) {
 		outFound = *it;
 		return true;
 	}
+
 	return false;
 }
 

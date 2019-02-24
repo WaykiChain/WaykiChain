@@ -65,6 +65,7 @@ private:
 	vector<unsigned char> vTag;	//!< vTag of the tx which create the fund
 
 };
+
 enum APP_OP_TYPE{
 	ADD_FREE_OP = 1,
 	SUB_FREE_OP,
@@ -85,7 +86,11 @@ public:
 	unsigned char FundTaglen;
 	unsigned char vFundTag[CAppCFund::MAX_TAG_SIZE ];				//!< accountid
 
-	CAppFundOperate(const vector<unsigned char> &AppTag,const vector<unsigned char> &FundTag,APP_OP_TYPE opType,int timeout,int64_t money)
+	CAppFundOperate(const vector<unsigned char> &AppTag,
+		const vector<unsigned char> &FundTag,
+		APP_OP_TYPE opType,
+		int timeout,
+		int64_t money)
 	{
 		assert(sizeof(vAppuser) >= AppTag.size());
 		assert(sizeof(vFundTag) >= FundTag.size());
