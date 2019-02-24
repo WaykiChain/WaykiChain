@@ -2585,13 +2585,13 @@ Value decoderawtx(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1) {
         throw runtime_error("decoderawtx \"hexstring\"\n"
-                "\ndecode transaction\n"
-                "\nArguments:\n"
-                "1.\"str\": (string, required) hexstring\n"
-                "\nExamples:\n"
-                + HelpExampleCli("decoderawtx", "\"03015f020001025a0164cd10004630440220664de5ec373f44d2756a23d5267ab25f22af6162d166b1cca6c76631701cbeb5022041959ff75f7c7dd39c1f9f6ef9a237a6ea467d02d2d2c3db62a1addaa8009ccd\"")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("decoderawtx", "\"03015f020001025a0164cd10004630440220664de5ec373f44d2756a23d5267ab25f22af6162d166b1cca6c76631701cbeb5022041959ff75f7c7dd39c1f9f6ef9a237a6ea467d02d2d2c3db62a1addaa8009ccd\""));
+            "\ndecode transaction\n"
+            "\nArguments:\n"
+            "1.\"str\": (string, required) hexstring\n"
+            "\nExamples:\n"
+            + HelpExampleCli("decoderawtx", "\"03015f020001025a0164cd10004630440220664de5ec373f44d2756a23d5267ab25f22af6162d166b1cca6c76631701cbeb5022041959ff75f7c7dd39c1f9f6ef9a237a6ea467d02d2d2c3db62a1addaa8009ccd\"")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("decoderawtx", "\"03015f020001025a0164cd10004630440220664de5ec373f44d2756a23d5267ab25f22af6162d166b1cca6c76631701cbeb5022041959ff75f7c7dd39c1f9f6ef9a237a6ea467d02d2d2c3db62a1addaa8009ccd\""));
     }
     vector<unsigned char> vch(ParseHex(params[0].get_str()));
     LogPrint("DEBUG", "data size:%d", vch.size());
@@ -2650,12 +2650,12 @@ Value decoderawtx(const Array& params, bool fHelp)
 Value getalltxinfo(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 0 && params.size() != 1)) {
         throw runtime_error("getalltxinfo \n"
-                "\nget all transaction info\n"
-                "\nArguments:\n"
-                "1.\"nlimitCount\": (numeric, optional, default=0) 0 return all tx, else return number of nlimitCount txs \n"
-                "\nResult:\n"
-                "\nExamples:\n" + HelpExampleCli("getalltxinfo", "") + "\nAs json rpc call\n"
-                + HelpExampleRpc("getalltxinfo", ""));
+            "\nget all transaction info\n"
+            "\nArguments:\n"
+            "1.\"nlimitCount\": (numeric, optional, default=0) 0 return all tx, else return number of nlimitCount txs \n"
+            "\nResult:\n"
+            "\nExamples:\n" + HelpExampleCli("getalltxinfo", "") + "\nAs json rpc call\n"
+            + HelpExampleRpc("getalltxinfo", ""));
     }
 
     Object retObj;
@@ -2767,15 +2767,14 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
 
 Value listcontractassets(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error(
-                 "listcontractassets regid\n"
-                 "\nreturn Array containing address, asset information.\n"
-                 "\nArguments: regid: Contract RegId\n"
-                 "\nResult:\n"
-                 "\nExamples:\n"
-                 + HelpExampleCli("listcontractassets", "1-1")
-                 + "\nAs json rpc call\n"
-                 + HelpExampleRpc("listcontractassets", "1-1"));
+        throw runtime_error("listcontractassets regid\n"
+            "\nreturn Array containing address, asset information.\n"
+            "\nArguments: regid: Contract RegId\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("listcontractassets", "1-1")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("listcontractassets", "1-1"));
     }
 
     if (!CRegID::IsSimpleRegIdStr(params[0].get_str())) {
@@ -2820,14 +2819,14 @@ Value listcontractassets(const Array& params, bool fHelp) {
 Value gethash(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error("gethash  \"str\"\n"
-                    "\nget the hash of given str\n"
-                    "\nArguments:\n"
-                    "1.\"str\": (string, required) \n"
-                    "\nresult an object \n"
-                    "\nExamples:\n"
-                    + HelpExampleCli("gethash", "\"0000001000005zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\"")
-                    + "\nAs json rpc call\n"
-                    + HelpExampleRpc("gethash", "\"0000001000005zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\""));
+            "\nget the hash of given str\n"
+            "\nArguments:\n"
+            "1.\"str\": (string, required) \n"
+            "\nresult an object \n"
+            "\nExamples:\n"
+            + HelpExampleCli("gethash", "\"0000001000005zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\"")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("gethash", "\"0000001000005zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\""));
     }
 
     string str = params[0].get_str();
@@ -2842,8 +2841,7 @@ Value gethash(const Array& params, bool fHelp) {
 
 Value getcontractkeyvalue(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
-        throw runtime_error(
-            "getcontractkeyvalue  \"regid\" \"array\""
+        throw runtime_error("getcontractkeyvalue  \"regid\" \"array\""
             "\nget contract key value\n"
             "\nArguments:\n"
             "1.\"regid\": (string, required) \n"
@@ -2914,27 +2912,26 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
 
 Value gencheckpoint(const Array& params, bool fHelp)
 {
-    if(fHelp || params.size() != 2)
-    {
-        throw runtime_error(
-                 "gencheckpoint \"privatekey\" \"filepath\"\n"
-                 "\ngenerate checkpoint by Private key signature block.\n"
-                 "\nArguments:\n"
-                 "1. \"privatekey\"  (string, required) the private key\n"
-                 "2. \"filepath\"  (string, required) check point block path\n"
-                "\nResult:\n"
-                "\nExamples:\n"
-                 + HelpExampleCli("gencheckpoint", "\"privatekey\" \"filepath\"")
-                 + HelpExampleRpc("gencheckpoint", "\"privatekey\" \"filepath\""));
+    if (fHelp || params.size() != 2) {
+        throw runtime_error("gencheckpoint \"privatekey\" \"filepath\"\n"
+            "\ngenerate checkpoint by Private key signature block.\n"
+            "\nArguments:\n"
+            "1. \"privatekey\"  (string, required) the private key\n"
+            "2. \"filepath\"  (string, required) check point block path\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("gencheckpoint", "\"privatekey\" \"filepath\"")
+            + HelpExampleRpc("gencheckpoint", "\"privatekey\" \"filepath\""));
     }
     std::string strSecret = params[0].get_str();
     CCoinSecret vchSecret;
     bool fGood = vchSecret.SetString(strSecret);
-
-    if (!fGood) throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key encoding");
+    if (!fGood) 
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key encoding");
 
     CKey key = vchSecret.GetKey();
-    if (!key.IsValid()) throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Private key outside allowed range");
+    if (!key.IsValid()) 
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Private key invalid");
 
     string file = params[1].get_str();
     int nHeight(0);
@@ -2947,7 +2944,7 @@ Value gencheckpoint(const Array& params, bool fHelp)
         fileout >> nHeight;
         fileout >> block;
     } catch (std::exception &e) {
-
+        fp->close();
         throw JSONRPCError(RPC_MISC_ERROR, strprintf("read block to file error:%s", e.what()).c_str());
     }
 
@@ -2956,7 +2953,7 @@ Value gencheckpoint(const Array& params, bool fHelp)
     CDataStream sstream(SER_NETWORK, PROTOCOL_VERSION);
     point.m_height = nHeight;
     point.m_hashCheckpoint = block.GetHash();//chainActive[intTemp]->GetBlockHash();
-    LogPrint("CHECKPOINT","send hash = %s\n",block.GetHash().ToString());
+    LogPrint("CHECKPOINT", "send hash = %s\n",block.GetHash().ToString());
     sstream << point;
     Object obj;
     if (data.Sign(key, std::vector<unsigned char>(sstream.begin(), sstream.end()))

@@ -625,18 +625,15 @@ static int ExInt64DivFunc(lua_State *L) {
  */
 static int ExSha256Func(lua_State *L) {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
-
-    if(!GetDataString(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() <= 0)
-    {
-        return RetFalse("ExSha256Func para err");
+    if (!GetDataString(L, retdata) || retdata.size() != 1 || retdata.at(0).get()->size() <= 0) {
+        return RetFalse("ExSha256Func param err");
     }
 
-    uint256 rslt = Hash(&retdata.at(0).get()->at(0), &retdata.at(0).get()->at(0) + retdata.at(0).get()->size());
-
+    uint256 hash = Hash(&retdata.at(0).get()->at(0), &retdata.at(0).get()->at(0) + retdata.at(0).get()->size());
     CDataStream tep(SER_DISK, CLIENT_VERSION);
-    tep << rslt;
+    tep << hash;
     vector<unsigned char> tep1(tep.begin(), tep.end());
-    return RetRstToLua(L,tep1);
+    return RetRstToLua(L, tep1);
 }
 
 /**
