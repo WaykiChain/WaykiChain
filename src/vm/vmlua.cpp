@@ -164,6 +164,17 @@ CVmlua::~CVmlua() {
 	LUAMOD_API int luaopen_mylib(lua_State *L);
 #endif
 
+/** ommited lua lib for safety reasons
+ * 
+//	   {LUA_COLIBNAME, luaopen_coroutine},
+//	   {LUA_IOLIBNAME, luaopen_io},
+//	   {LUA_OSLIBNAME, luaopen_os},
+//	   {LUA_STRLIBNAME, luaopen_string},
+//	   {LUA_MATHLIBNAME, luaopen_math},
+//	   {LUA_UTF8LIBNAME, luaopen_utf8},
+//	   {LUA_DBLIBNAME, luaopen_debug},
+ *
+ */
 void vm_openlibs (lua_State *L) {
 	static const luaL_Reg lualibs[] = {
 		{ "base", 			luaopen_base 	},
@@ -175,7 +186,6 @@ void vm_openlibs (lua_State *L) {
 	};
 
 	const luaL_Reg *lib;
-
 	for (lib = lualibs; lib->func; lib++) {
 		luaL_requiref(L, lib->name, lib->func, 1);
 		lua_pop(L, 1); /* remove lib */
@@ -204,13 +214,13 @@ tuple<bool,string> CVmlua::CheckScriptSyntax(const char* filePath)
 	return std::make_tuple (true, string("OK"));
 }
 
-tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun) 
+tuple<uint64_t, string> CVmlua::run(uint64_t maxstep, CVmRunEvn *pVmScriptRun) 
 {
-	 long long step = 0;
-	 unsigned short count = 0;
-
-	if ((maxstep == 0) || (NULL == pVmScriptRun)) {
+	if (maxstep == 0) {
 		return std::make_tuple (-1, string("maxstep == 0\n"));
+	}
+	if (NULL == pVmScriptRun) {
+		return std::make_tuple (-1, string("pVmScriptRun == NULL\n"));
 	}
 
 	//1.创建Lua运行环境
@@ -220,35 +230,17 @@ tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun)
 	   return std::make_tuple (-1, string("luaL_newstate error\n"));
    }
 /*
-   //2.设置待注册的Lua标准库
-   static const luaL_Reg lualibs[] =
-   {
-	   {"base",luaopen_base},
-	   {LUA_LOADLIBNAME, luaopen_package},
-//	   {LUA_COLIBNAME, luaopen_coroutine},
-	   {LUA_TABLIBNAME, luaopen_table},
-//	   {LUA_IOLIBNAME, luaopen_io},
-//	   {LUA_OSLIBNAME, luaopen_os},
-//	   {LUA_STRLIBNAME, luaopen_string},
-//	   {LUA_MATHLIBNAME, luaopen_math},
-//	   {LUA_UTF8LIBNAME, luaopen_utf8},
-//	   {LUA_DBLIBNAME, luaopen_debug},
-	   {NULL,NULL}
-   };
    //3.注册Lua标准库并清空栈
-
    const luaL_Reg *lib = lualibs;
    for(;lib->func != NULL;lib++)
    {
 	   lib->func(lua_state);
 	   lua_settop(lua_state,0);
    }
-
-   //打开需要的库
-   //luaL_openlibs(lua_state);
 */
+	//打开需要的库
 	vm_openlibs(lua_state);
-   	
+	
 	//3.注册自定义模块
    	luaL_requiref(lua_state, "mylib", luaopen_mylib, 1);
 
@@ -256,39 +248,37 @@ tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun)
 	lua_newtable(lua_state);    //新建一个表,压入栈顶
 	lua_pushnumber(lua_state,-1);
 	lua_rawseti(lua_state,-2,0);
-	memcpy(&count,m_ExRam,  2); //外面已限制，合约内容小于4096字节
+
+	unsigned short count = 0;
+	memcpy(&count, m_ExRam,  2); //外面已限制，合约内容小于4096字节
     for (unsigned short n = 0; n < count; n++) {
-        lua_pushinteger(lua_state,m_ExRam[2 + n]);// value值放入
-        lua_rawseti(lua_state,-2,n+1);  //set table at key 'n + 1'
+        lua_pushinteger(lua_state, m_ExRam[2 + n]);// value值放入
+        lua_rawseti(lua_state, -2, n+1);  //set table at key 'n + 1'
     }
-    lua_setglobal(lua_state,"contract");
+    lua_setglobal(lua_state, "contract");
 
     //传递pVmScriptRun指针，以便后面代码引用，去掉了使用全局变量保存该指针
     lua_pushlightuserdata(lua_state, pVmScriptRun);
-    lua_setglobal(lua_state,"VmScriptRun");
+    lua_setglobal(lua_state, "VmScriptRun");
+    LogPrint("vm", "pVmScriptRun=%p\n", pVmScriptRun);
 
-    LogPrint("vm", "pVmScriptRun=%p\n",pVmScriptRun);
-
-   //5.加载脚本
-    step = maxstep;
-
-    if (luaL_loadbuffer(lua_state, (char *) m_ExeFile, strlen((char *)m_ExeFile), "line") ||
-		lua_pcallk(lua_state,0,0,0,0, NULL, &step)) {
-       const char* pError = lua_tostring(lua_state,-1);
-       string strError = strprintf("luaL_loadbuffer fail:%s\n", pError ? pError : "unknown" );
-	   LogPrint("vm", "%s",  strError);
+    //5. Load the contract script
+    long long step = maxstep;
+    if (luaL_loadbuffer(lua_state, (char *) m_ExeFile, strlen((char *) m_ExeFile), "line") || 
+		lua_pcallk(lua_state,0,0,0,0,NULL,&step)) {
+       const char* pError = lua_tostring(lua_state, -1);
+       string strError = strprintf("luaL_loadbuffer failed: %s\n", pError ? pError : "unknown" );
+	   LogPrint("vm", "%s", strError);
 	   step = -1;
 	   lua_close(lua_state);
 	   LogPrint("vm", "run step=%ld\n",step);
-
 	   return std::make_tuple (step, strError);
     }
 
-    //6.平衡检查设置，默认关闭，如果脚本没设置该变量
+    //6. account balance check setting: default is closed if not such setting in the script
 	pVmScriptRun->SetCheckAccount(false);
 	int res = lua_getglobal(lua_state, "gCheckAccount");
 	LogPrint("vm", "lua_getglobal:%d\n", res);
-
     if (LUA_TBOOLEAN == res) {
     	if (lua_isboolean(lua_state,-1)) {
     		bool bCheck = lua_toboolean(lua_state,-1);
@@ -298,13 +288,13 @@ tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun)
     }
     lua_pop(lua_state, 1);
 
-    //7.关闭Lua虚拟机
+    //7. shudown the Lua VM
 	lua_close(lua_state);
-	LogPrint("vm", "run step=%ld\n",step);
+	LogPrint("vm", "run step=%ld\n", step);
 
 	if (step < 0) {
 		return std::make_tuple (step, string("execute tx contract run step exceeds the max step limit\n"));
 	}
 
-	return std::make_tuple (step, string("script run ok"));
+	return std::make_tuple (step, string("script runs ok"));
 }
