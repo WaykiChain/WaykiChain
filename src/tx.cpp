@@ -1174,18 +1174,19 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
     if(!view.GetKeyId(userId, sendTxKeyID)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction get keyId error by CUserID =%s", HexStr(id.GetID())), REJECT_INVALID, "");
     }
-    CAccount sendAcctInfo;
-    if (!view.GetAccount(userId, sendAcctInfo)) {
+
+    CAccount sendAcct;
+    if (!view.GetAccount(userId, sendAcct)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction get account info error, userid=%s", HexStr(id.GetID())),
             REJECT_INVALID, "bad-read-accountdb");
     }
-    if (!sendAcctInfo.IsRegistered()) {
+    if (!sendAcct.IsRegistered()) {
         return state.DoS(100, ERRORMSG("CheckTransaction(): CDelegateTransaction CheckTransaction, pubkey not registed"),
             REJECT_INVALID, "bad-no-pubkey");
     }
     if (nValidHeight > nCheckDelegateTxSignatureForkHeight) { //hardcode here to avoid checking 7 old unsigned votes
         uint256 signhash = SignatureHash();
-        if (!CheckSignScript(signhash, signature, sendAcctInfo.PublicKey)) {
+        if (!CheckSignScript(signhash, signature, sendAcct.PublicKey)) {
             return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction CheckTransaction, CheckSignScript failed"),
                 REJECT_INVALID, "bad-signscript-check");
         }
@@ -1193,7 +1194,7 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
 
     //check account delegates number;
     set<CKeyID> setTotalOperVoteKeyID;
-    for(auto operItem : sendAcctInfo.vVoteFunds) {
+    for (auto operItem : sendAcct.vVoteFunds) {
         setTotalOperVoteKeyID.insert(operItem.pubKey.GetKeyID());
     }
 
@@ -1201,32 +1202,35 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
     set<CKeyID> setOperVoteKeyID;
     uint64_t totalVotes = 0;
     for (auto item = operVoteFunds.begin(); item != operVoteFunds.end(); ++item) {
-        if (0 >= item->fund.value || (uint64_t)GetMaxMoney() < item->fund.value )
-            return ERRORMSG("votes:%lld too larger than MaxVote or less than 0", item->fund.value);
+        if (0 >= item->fund.value || (uint64_t) GetMaxMoney() < item->fund.value )
+            return ERRORMSG("votes: %lld not within (0 .. MaxVote)", item->fund.value);
+
         setOperVoteKeyID.insert(item->fund.pubKey.GetKeyID());
         setTotalOperVoteKeyID.insert(item->fund.pubKey.GetKeyID());
         CAccount acctInfo;
-        if (!view.GetAccount(CUserID(item->fund.pubKey), acctInfo)) {
-            return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction get account info error, address=%s", item->fund.pubKey.GetKeyID().ToAddress()),
-                    REJECT_INVALID, "bad-read-accountdb");
-        }
+        if (!view.GetAccount(CUserID(item->fund.pubKey), acctInfo))
+            return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction get account info error, address=%s", 
+                item->fund.pubKey.GetKeyID().ToAddress()), REJECT_INVALID, "bad-read-accountdb");
+
         if(item->fund.value > totalVotes)
             totalVotes = item->fund.value;
     }
 
     if (setTotalOperVoteKeyID.size() > IniCfg().GetDelegatesNum()) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction the delegates number of account can't exceeds maximum"), REJECT_INVALID,
-                           "account-delegates-number-error");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction the delegates number of account can't exceeds maximum"),
+            REJECT_INVALID, "account-delegates-number-error");
     }
 
     if (setOperVoteKeyID.size() != operVoteFunds.size()) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction duplication vote fund"), REJECT_INVALID,
-                           "deletegates-duplication fund-error");
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction duplication vote fund"), 
+            REJECT_INVALID, "deletegates-duplication fund-error");
     }
-    if (totalVotes > sendAcctInfo.llValues) {
-       return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction delegate votes exceeds than account balance, userid=%s", HexStr(id.GetID())),
-                      REJECT_INVALID, "insufficient balance for votes");
+
+    if (totalVotes > sendAcct.llValues) {
+       return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction delegate votes exceeds account balance, userid=%s", 
+            HexStr(id.GetID())), REJECT_INVALID, "insufficient balance for votes");
     }
+
     return true;
 }
 
