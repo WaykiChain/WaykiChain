@@ -560,7 +560,8 @@ Value callcontracttx(const Array& params, bool fHelp) {
 }
 
 // register a contract app tx
-Value registercontracttx(const Array& params, bool fHelp) {
+Value registercontracttx(const Array& params, bool fHelp) 
+{
     if (fHelp || params.size() < 3 || params.size() > 5) {
         throw runtime_error("registercontracttx \"addr\" \"filepath\"\"fee\" (\"height\") (\"appdesc\")\n"
             "\ncreate a transaction of registering a contract app\n"
@@ -581,9 +582,7 @@ Value registercontracttx(const Array& params, bool fHelp) {
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
-    CVmScript vmScript;
-    vector<unsigned char> vscript;
-
+    
     string path = params[1].get_str();
     std::tuple<bool, string> result = CVmlua::CheckScriptSyntax(path.c_str());
     bool bOK = std::get<0>(result);
@@ -592,8 +591,8 @@ Value registercontracttx(const Array& params, bool fHelp) {
 
     FILE* file = fopen(path.c_str(), "rb+");
     if (!file)
-        throw runtime_error("create registercontracttx open script file" + path + "error");
-        
+        throw runtime_error("registercontracttx open script file (" + path + ") error");
+
     long lSize;
     fseek(file, 0, SEEK_END);
     lSize = ftell(file);
@@ -618,6 +617,7 @@ Value registercontracttx(const Array& params, bool fHelp) {
         fclose(file); //使用完关闭文件
     }
 
+    CVmScript vmScript;
     vmScript.Rom.insert(vmScript.Rom.end(), buffer, buffer + lSize);
     if (buffer)
         free(buffer);
@@ -627,6 +627,7 @@ Value registercontracttx(const Array& params, bool fHelp) {
         vmScript.ScriptExplain.insert(vmScript.ScriptExplain.end(), scriptDesc.begin(), scriptDesc.end());
     }
 
+    vector<unsigned char> vscript;
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     ds << vmScript;
     vscript.assign(ds.begin(), ds.end());

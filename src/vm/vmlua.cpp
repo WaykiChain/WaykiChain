@@ -204,7 +204,8 @@ tuple<bool,string> CVmlua::CheckScriptSyntax(const char* filePath)
 	return std::make_tuple (true, string("OK"));
 }
 
-tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun) {
+tuple<uint64_t,string> CVmlua::run(uint64_t maxstep,CVmRunEvn *pVmScriptRun) 
+{
 	 long long step = 0;
 	 unsigned short count = 0;
 

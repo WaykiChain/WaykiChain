@@ -485,15 +485,17 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
     uint64_t minusValue = llFees+llValues;
     if (!view.GetAccount(srcRegId, srcAcct))
         return state.DoS(100, ERRORMSG("ExecuteTx() : CTransaction ExecuteTx, read source addr %s account info error", boost::get<CRegID>(srcRegId).ToString()),
-                UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+            READ_ACCOUNT_FAIL, "bad-read-accountdb");
+
     CAccountLog srcAcctLog(srcAcct);
     if (!srcAcct.OperateAccount(MINUS_FREE, minusValue, nHeight))
         return state.DoS(100, ERRORMSG("ExecuteTx() : CTransaction ExecuteTx, accounts insufficient funds"),
-                UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
+            UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
+
     CUserID userId = srcAcct.keyID;
     if(!view.SetAccount(userId, srcAcct)){
-        return state.DoS(100, ERRORMSG("UpdataAccounts() :CTransaction ExecuteTx, save account%s info error", boost::get<CRegID>(srcRegId).ToString()),
-                UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
+        return state.DoS(100, ERRORMSG("ExecuteTx() :CTransaction ExecuteTx, save account%s info error", boost::get<CRegID>(srcRegId).ToString()),
+            WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
 
     uint64_t addValue = llValues;
@@ -528,12 +530,13 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
         }
         CVmRunEvn vmRunEvn;
         std::shared_ptr<CBaseTransaction> pTx = GetNewInstance();
-        uint64_t el = GetFuelRate(scriptDB);
+        uint64_t fuelRate = GetFuelRate(scriptDB);
         int64_t llTime = GetTimeMillis();
-        tuple<bool, uint64_t, string> ret = vmRunEvn.run(pTx, view, scriptDB, nHeight, el, nRunStep);
+        tuple<bool, uint64_t, string> ret = vmRunEvn.run(pTx, view, scriptDB, nHeight, fuelRate, nRunStep);
         if (!std::get<0>(ret))
             return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, txhash=%s run script error:%s", GetHash().GetHex(), std::get<2>(ret)),
-                    UPDATE_ACCOUNT_FAIL, "run-script-error:" + std::get<2>(ret));
+                UPDATE_ACCOUNT_FAIL, "run-script-error:" + std::get<2>(ret));
+
         LogPrint("CONTRACT_TX", "execute contract elapse:%lld, txhash=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
         set<CKeyID> vAddress;
         vector<std::shared_ptr<CAccount> > &vAccount = vmRunEvn.GetNewAccont();
@@ -541,11 +544,11 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
             vAddress.insert(itemAccount->keyID);
             userId = itemAccount->keyID;
             CAccount oldAcct;
-            if(!view.GetAccount(userId, oldAcct)) {
-                if(!itemAccount->keyID.IsNull()) {  //合约往未发生过转账记录地址转币
+            if (!view.GetAccount(userId, oldAcct)) {
+                if (!itemAccount->keyID.IsNull()) {  //合约往未发生过转账记录地址转币
                     oldAcct.keyID = itemAccount->keyID;
-                }else {
-                return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, read account info error"),
+                } else {
+                    return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, read account info error"),
                         UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
                 }
             }

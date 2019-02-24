@@ -93,6 +93,7 @@ static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
 static const unsigned char REJECT_CHECKPOINT = 0x43;
 static const unsigned char UPDATE_ACCOUNT_FAIL = 0X50;
 static const unsigned char READ_ACCOUNT_FAIL = 0X51;
+static const unsigned char WRITE_ACCOUNT_FAIL = 0X52;
 
 //extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
