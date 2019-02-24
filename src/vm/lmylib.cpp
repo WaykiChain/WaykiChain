@@ -1273,31 +1273,26 @@ static int ExDeleteDataDBFunc(lua_State *L) {
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 key值
  */
-static int ExReadDataValueDBFunc(lua_State *L) {
+static int ExReadDataDBFunc(lua_State *L) {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
 
-    if(!GetDataString(L,retdata) ||retdata.size() != 1)
-    {
-        return RetFalse("ExReadDataValueDBFunc key err1");
+    if (!GetDataString(L,retdata) ||retdata.size() != 1) {
+        return RetFalse("ExReadDataDBFunc key err1");
     }
 
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-    {
+    if (NULL == pVmRunEvn) {
         return RetFalse("pVmRunEvn is NULL");
     }
 
-    CRegID scriptid = pVmRunEvn->GetScriptRegID();
+    CRegID scriptRegId = pVmRunEvn->GetScriptRegID();
 
     vector_unsigned_char vValue;
     CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
     int len = 0;
-    if(!scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vValue))
-    {
+    if (!scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(), scriptRegId, *retdata.at(0), vValue)) {
         len = 0;
-    }
-    else
-    {
+    } else {
         len = RetRstToLua(L,vValue);
     }
     return len;
@@ -1369,30 +1364,28 @@ static int ExGetDBValueFunc(lua_State *L) {
 
 static int ExGetCurTxHash(lua_State *L) {
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-    {
+    if (NULL == pVmRunEvn)
         return RetFalse("pVmRunEvn is NULL");
-    }
+        
     uint256 hash = pVmRunEvn->GetCurTxHash();
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << hash;
     vector<unsigned char> tep1(tep.begin(),tep.end());
-
     vector<unsigned char> tep2(tep1.rbegin(),tep1.rend());
     return RetRstToLua(L,tep2);
 }
 
 /**
- *bool ExModifyDataFunc(const void* const key,const unsigned char keylen, const void* const pvalue,const unsigned short valuelen)
+ *bool ExModifyDataDBFunc(const void* const key,const unsigned char keylen, const void* const pvalue,const unsigned short valuelen)
  * 中间层传了两个参数
  * 1.第一个是 key
  * 2.第二个是 value
  */
-static int ExModifyDataFunc(lua_State *L)
+static int ExModifyDataDBFunc(lua_State *L)
 {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
     if (!GetDataTableWriteDataDB(L,retdata) ||retdata.size() != 2) {
-        return RetFalse("ExModifyDataFunc key err");
+        return RetFalse("ExModifyDataDBFunc key err");
     }
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
     if (NULL == pVmRunEvn) {
@@ -2206,12 +2199,13 @@ static const luaL_Reg mylib[] = {
     {"GetTxConFirmHeight",          ExGetTxConfirmHeightFunc}, /** deprecated */
     {"GetBlockHash",                ExGetBlockHashFunc},
 
-    {"GetCurRunEnvHeight",          ExGetCurRunEnvHeightFunc},
-    {"WriteData",                   ExWriteDataDBFunc},
-    {"DeleteData",                  ExDeleteDataDBFunc},
-    {"ReadData",                    ExReadDataValueDBFunc},
     {"GetCurTxHash",                ExGetCurTxHash},
-    {"ModifyData",                  ExModifyDataDBValueFunc},
+    {"GetCurRunEnvHeight",          ExGetCurRunEnvHeightFunc},
+
+    {"WriteData",                   ExWriteDataDBFunc},
+    {"ReadData",                    ExReadDataDBFunc},
+    {"ModifyData",                  ExModifyDataDBFunc},
+    {"DeleteData",                  ExDeleteDataDBFunc},
 
     {"WriteOutput",                 ExWriteOutputFunc},
     {"GetScriptData",               ExGetContractDataFunc}, /** deprecated */
