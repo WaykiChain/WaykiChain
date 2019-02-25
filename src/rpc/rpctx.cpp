@@ -586,15 +586,18 @@ Value registercontracttx(const Array& params, bool fHelp)
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
 
-    string path = params[1].get_str();
-    std::tuple<bool, string> result = CVmlua::CheckScriptSyntax(path.c_str());
+    string luaScriptFilePath = params[1].get_str();
+    if (luaScriptFilePath.find("//tmp//lua") != std::string::npos)
+        throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir!");
+
+    std::tuple<bool, string> result = CVmlua::CheckScriptSyntax(luaScriptFilePath.c_str());
     bool bOK = std::get<0>(result);
     if(!bOK)
         throw JSONRPCError(RPC_INVALID_PARAMS, std::get<1>(result));
 
-    FILE* file = fopen(path.c_str(), "rb+");
+    FILE* file = fopen(luaScriptFilePath.c_str(), "rb+");
     if (!file)
-        throw runtime_error("registercontracttx open script file (" + path + ") error");
+        throw runtime_error("registercontracttx open script file (" + luaScriptFilePath + ") error");
 
     long lSize;
     fseek(file, 0, SEEK_END);
@@ -2383,7 +2386,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
             "2.\"addr\": (string required)\n from address that registers the contract"
             "3.\"flag\": (bool, required) 0-1\n"
             "4.\"script or scriptid\": (string required), if flag=0 is script's file path, else if flag=1 scriptid\n"
-            "5.\"height\": (int required)valid height\n"
+            "5.\"height\": (int required) valid height\n"
             "6.\"script description\":(string optional) new script description\n"
             "\nResult:\n"
             "\"txhash\": (string)\n"
@@ -2403,11 +2406,14 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
     vector<unsigned char> vscript;
     int flag = params[2].get_bool();
     if (0 == flag) {
-        string path = params[3].get_str();
-        FILE* file = fopen(path.c_str(), "rb+");
-        if (!file) {
-            throw runtime_error("genregistercontractraw open App Lua Script file" + path + "error");
-        }
+        string luaScriptFilePath = params[3].get_str();
+	    if (luaScriptFilePath.find("//tmp//lua") != std::string::npos)
+            throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir!");
+
+        FILE* file = fopen(luaScriptFilePath.c_str(), "rb+");
+        if (!file)
+            throw runtime_error("genregistercontractraw open App Lua Script file" + luaScriptFilePath + "error");
+
         long lSize;
         fseek(file, 0, SEEK_END);
         lSize = ftell(file);

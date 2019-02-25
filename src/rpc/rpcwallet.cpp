@@ -866,8 +866,10 @@ Value walletpassphrase(const Array& params, bool fHelp)
 
     if (fHelp)
         return true;
+
     if (!pwalletMain->IsEncrypted())
-        throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: running with an unencrypted wallet, but walletpassphrase was called.");
+        throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE,
+            "Error: running with an unencrypted wallet, but walletpassphrase was called.");
 
     // Note that the walletpassphrase is stored in params[0] which is not mlock()ed
     SecureString strWalletPass;
@@ -908,6 +910,7 @@ Value walletpassphrasechange(const Array& params, bool fHelp)
 
     if (fHelp)
         return true;
+
     if (!pwalletMain->IsEncrypted())
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE,
             "Error: running with an unencrypted wallet, but walletpassphrasechange was called.");

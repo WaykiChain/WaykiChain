@@ -438,11 +438,11 @@ public:
 
 		Value value;
 		int ret = CommandLineRPC_GetValue(argc, argv, value);
-		if (!ret)
-		{
+		if (!ret) {
 			LogPrint("test_miners","RegisterSecureTx:%s\r\n",value.get_str().c_str());
 			return true;
 		}
+
 		return false;
 	}
 
