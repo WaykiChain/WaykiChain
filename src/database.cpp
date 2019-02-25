@@ -19,9 +19,7 @@ bool CAccountView::EraseAccount(const CKeyID &keyId) {return false;}
 bool CAccountView::SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId) {return false;}
 bool CAccountView::GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId) {return false;}
 bool CAccountView::GetAccount(const vector<unsigned char> &accountId, CAccount &account) {return false;}
-bool CAccountView::EraseKeyId(const vector<unsigned char> &accountId){
-	return false;
-}
+bool CAccountView::EraseKeyId(const vector<unsigned char> &accountId) { return false; }
 bool CAccountView::SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account) {return false;}
 Object CAccountView::ToJsonObj(char Prefix){
 	Object obj;
@@ -1335,7 +1333,10 @@ bool CScriptDBViewCache::SetContractItemCount(const vector<unsigned char> &vScri
 	return true;
 }
 
-bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog) {
+bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId,
+	const vector<unsigned char> &vScriptKey,
+	CScriptDBOperLog &operLog)
+{
 	vector<unsigned char> scriptKey = { 'd', 'a', 't', 'a'};
 
 	scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
@@ -1344,21 +1345,19 @@ bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId, co
 
 	if (HaveScriptData(vScriptId, vScriptKey)) {
 		int nCount(0);
-		if(!GetContractItemCount(vScriptId, nCount)) {
+		if (!GetContractItemCount(vScriptId, nCount))
 			return false;
-		}
-		if (!SetContractItemCount(vScriptId, --nCount)) {
+
+		if (!SetContractItemCount(vScriptId, --nCount))
 			return false;
-		}
 	}
 
 	vector<unsigned char> vValue;
-	if(!GetData(scriptKey, vValue)) {
+	if (!GetData(scriptKey, vValue))
 		return false;
-	}
 
 	operLog = CScriptDBOperLog(scriptKey, vValue);
-	if(!EraseKey(scriptKey))
+	if (!EraseKey(scriptKey))
 		return false;
 
 	return true;
@@ -1528,16 +1527,16 @@ bool CScriptDBViewCache::EraseDelegateData(const CAccount &delegateAcct, CScript
     vVoteOldKey.insert(vVoteOldKey.end(), strOldVoltes.begin(), strOldVoltes.end());
     vVoteOldKey.push_back('_');
     vVoteOldKey.insert(vVoteOldKey.end(), delegateAcct.regID.GetVec6().begin(), delegateAcct.regID.GetVec6().end());
-    if(!EraseAppData(regId, vVoteOldKey, operLog)) {
+    if (!EraseAppData(regId, vVoteOldKey, operLog))
         return false;
-    }
+
     return true;
 }
 
 bool CScriptDBViewCache::EraseDelegateData(const vector<unsigned char> &vKey) {
-    if(!EraseKey(vKey)) {
+    if(!EraseKey(vKey))
         return false;
-    }
+
     return true;
 }
 
@@ -1553,9 +1552,11 @@ bool CTransactionDBView::BatchWrite(const map<uint256, vector<uint256> > &mapTxH
 CTransactionDBViewBacked::CTransactionDBViewBacked(CTransactionDBView &transactionView) {
 	pBase = &transactionView;
 }
+
 uint256 CTransactionDBViewBacked::IsContainTx(const uint256 & txHash) {
 	return std::move(pBase->IsContainTx(txHash));
 }
+
 bool CTransactionDBViewBacked::IsContainBlock(const CBlock &block) {
 	return pBase->IsContainBlock(block);
 }
@@ -1563,12 +1564,15 @@ bool CTransactionDBViewBacked::IsContainBlock(const CBlock &block) {
 bool CTransactionDBViewBacked::AddBlockToCache(const CBlock &block) {
 	return pBase->AddBlockToCache(block);
 }
+
 bool CTransactionDBViewBacked::DeleteBlockFromCache(const CBlock &block) {
 	return pBase->DeleteBlockFromCache(block);
 }
+
 bool CTransactionDBViewBacked::LoadTransaction(map<uint256, vector<uint256> > &mapTxHashByBlockHash) {
 	return pBase->LoadTransaction(mapTxHashByBlockHash);
 }
+
 bool CTransactionDBViewBacked::BatchWrite(const map<uint256, vector<uint256> > &mapTxHashByBlockHashIn) {
 	return pBase->BatchWrite(mapTxHashByBlockHashIn);
 }
@@ -1581,6 +1585,7 @@ bool CTransactionDBCache::IsContainBlock(const CBlock &block) {
 	return (IsInMap(mapTxHashByBlockHash,block.GetHash())
 			|| pBase->IsContainBlock(block));
 }
+
 bool CTransactionDBCache::AddBlockToCache(const CBlock &block) {
 	vector<uint256> vTxHash;
 	vTxHash.clear();
@@ -1602,6 +1607,7 @@ bool CTransactionDBCache::AddBlockToCache(const CBlock &block) {
 //	}
 	return true;
 }
+
 bool CTransactionDBCache::DeleteBlockFromCache(const CBlock &block) {
 //	LogPrint("txcache", "CTransactionDBCache::DeleteBlockFromCache() height=%d blockhash=%s \n", block.nHeight, block.GetHash().GetHex());
 	if (IsContainBlock(block)) {
@@ -1615,6 +1621,7 @@ bool CTransactionDBCache::DeleteBlockFromCache(const CBlock &block) {
 	}
 	return true;
 }
+
 uint256 CTransactionDBCache::IsContainTx(const uint256 & txHash) {
 	for (auto & item : mapTxHashByBlockHash) {
 		vector<uint256>::iterator it = find(item.second.begin(), item.second.end(), txHash);
@@ -1623,7 +1630,7 @@ uint256 CTransactionDBCache::IsContainTx(const uint256 & txHash) {
 		}
 	}
 	uint256 blockHash = pBase->IsContainTx(txHash);
-	if(IsInMap(mapTxHashByBlockHash,blockHash)){//mapTxHashByBlockHash[blockHash].empty()) { // [] 运算符防止不小心加入了垃圾数据
+	if (IsInMap(mapTxHashByBlockHash,blockHash)) { //mapTxHashByBlockHash[blockHash].empty()) { // [] 运算符防止不小心加入了垃圾数据
 		return std::move(blockHash);
 	}
 	return std::move(uint256());

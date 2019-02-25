@@ -177,7 +177,7 @@ public:
 
 class CBaseTransaction {
 protected:
-    const static string txTypeArray[7];
+    static string txTypeArray[7];
 
 public:
     static uint64_t nMinTxFee;
@@ -260,9 +260,6 @@ public:
     int GetFuelRate(CScriptDBViewCache &scriptDB);
 
 };
-
-const string CBaseTransaction::txTypeArray[7] =
-    { "NULL_TXTYPE", "REWARD_TX", "REG_ACCT_TX", "COMMON_TX", "CONTRACT_TX", "REG_CONT_TX", "DELEGATE_TX"};
 
 class CRegisterAccountTx: public CBaseTransaction {
 
@@ -842,7 +839,7 @@ public:
 class COperVoteFund
 {
 public:
-    const static string voteOperTypeArray[3];
+    static string voteOperTypeArray[3];
 
 public:
     unsigned char operType;         //!<1:ADD_FUND 2:MINUS_FUND
@@ -866,8 +863,6 @@ public:
     string ToString(bool isAddress=false) const;
     Object ToJson(bool isAddress=false) const;
 };
-
-const string COperVoteFund::voteOperTypeArray[3] = {"NULL_OPER", "ADD_FUND", "MINUS_FUND"};
 
 class CTxUndo {
 public:

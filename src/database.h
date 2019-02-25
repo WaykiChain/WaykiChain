@@ -166,12 +166,11 @@ public:
 	*/
 public:
 	CScriptDBViewCache(CScriptDBView &base, bool fDummy = false);
-	bool GetScript(const CRegID &scriptId, vector<unsigned char> &vValue);
 
+	bool GetScript(const CRegID &scriptId, vector<unsigned char> &vValue);
 	bool GetScriptAcc(const CRegID &scriptId,const vector<unsigned char> &vKey,CAppUserAccount& appAccOut);
 	bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount& appAccIn,CScriptDBOperLog &operlog);
 	bool EraseScriptAcc(const CRegID &scriptId,const vector<unsigned char> &vKey);
-
 	bool GetScript(const int nIndex, CRegID &scriptId, vector<unsigned char> &vValue);
 	bool SetScript(const CRegID &scriptId, const vector<unsigned char> &vValue);
 	bool HaveScript(const CRegID &scriptId);
@@ -180,11 +179,11 @@ public:
 	bool EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog);
 	bool HaveScriptData(const CRegID &scriptId, const vector<unsigned char > &vScriptKey);
 	bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
-			vector<unsigned char> &vScriptData);
+		vector<unsigned char> &vScriptData);
 	bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
-			vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
+		vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
 	bool SetContractData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
-				const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog);
+		const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog);
 	bool SetDelegateData(const CAccount &delegateAcct, CScriptDBOperLog &operLog);
 	bool SetDelegateData(const vector<unsigned char> &vKey);
 	bool EraseDelegateData(const CAccount &delegateAcct, CScriptDBOperLog &operLog);
@@ -206,9 +205,7 @@ public:
 	bool Flush();
 	unsigned int GetCacheSize();
 	Object ToJsonObj() const;
-	CScriptDBView * GetBaseScriptDB() {
-		return pBase;
-	}
+	CScriptDBView * GetBaseScriptDB() { return pBase; }
 	bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
 	bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB);
 	void SetBaseData(CScriptDBView * pBase);
