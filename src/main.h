@@ -118,6 +118,7 @@ static const int nFreezeBlackAcctHeight = 99854;
 static const int nUpdateTxVersion2Height = 196000;  //主链在此高度后不再接受交易版本为nTxVersion1的交易
 static const int nUpdateBlockVersionHeight = 209000;   //主链在此高度后，block版本升级
 
+static const int nContractScriptMaxSize = 65536; //64 KB max for contract script size
 
 class CCoinsDB;
 class CBlockTreeDB;

@@ -604,7 +604,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     lSize = ftell(file);
     rewind(file);
 
-    if (lSize <= 0 || lSize > 65536) { // contract script file size must be <= 64 KB)
+    if (lSize <= 0 || lSize > nContractScriptMaxSize) { // contract script file size must be <= 64 KB)
         fclose(file);
         throw JSONRPCError(RPC_INVALID_PARAMS, "File size exceeds 64 KB limit.");
     }
