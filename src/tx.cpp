@@ -464,17 +464,6 @@ bool CRegisterAccountTx::CheckTransaction(CValidationState &state, CAccountViewC
     return true;
 }
 
-uint256 CRegisterAccountTx::GetHash() const {
-    return SignatureHash();
-}
-uint256 CRegisterAccountTx::SignatureHash() const {
-    CHashWriter ss(SER_GETHASH, 0);
-    CID userPubkey(userId);
-    CID minerPubkey(minerId);
-    ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << userPubkey << minerPubkey << VARINT(llFees);
-    return ss.GetHash();
-}
-
 bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
         int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
     CAccount srcAcct;
@@ -687,8 +676,8 @@ Object CTransaction::ToJSON(const CAccountViewCache &AccountView) const{
 }
 
 // COMMON_TX
-bool CTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
-
+bool CTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB)
+{
     if (srcRegId.type() != typeid(CRegID))
         return state.DoS(100, ERRORMSG("CTransaction::CheckTransaction() : srcRegId must be CRegID"),
             REJECT_INVALID, "srcaddr-type-error");
@@ -697,23 +686,22 @@ bool CTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &
         return state.DoS(100, ERRORMSG("CTransaction::CheckTransaction() : desUserId must be CRegID or CKeyID"),
             REJECT_INVALID, "desaddr-type-error");
 
-    if (srcRegId == desUserId)
-        return state.DoS(100, ERRORMSG("CTransaction::CheckTransaction() : desUserId must NOT be the same as srcRegId"),
-            REJECT_INVALID, "desaddr-same-error");
+    // if (srcRegId == desUserId)
+    //     return state.DoS(100, ERRORMSG("CTransaction::CheckTransaction() : desUserId must NOT be the same as srcRegId"),
+    //         REJECT_INVALID, "desaddr-same-error");
 
     if (!MoneyRange(llFees))
-        return state.DoS(100, ERRORMSG("CTransaction::CheckTransaction() : appeal tx fee out of range"),
+        return state.DoS(100, ERRORMSG("CTransaction::CheckTransaction() : tx fee out of money range"),
             REJECT_INVALID, "bad-appeal-fee-toolarge");
 
     CAccount srcAccount;
-    if (!view.GetAccount(boost::get<CRegID>(srcRegId), srcAccount)) {
+    if (!view.GetAccount(boost::get<CRegID>(srcRegId), srcAccount))
         return state.DoS(100, ERRORMSG("CTransaction::CheckTransaction() : read account failed, regid=%s",
             boost::get<CRegID>(srcRegId).ToString()), REJECT_INVALID, "bad-getaccount");
-    }
-    if (!srcAccount.IsRegistered()) {
-        return state.DoS(100, ERRORMSG("CTransaction::CheckTransaction(): account public key not registered"),
-            REJECT_INVALID, "bad-no-pubkey");
-    }
+
+    if (!srcAccount.IsRegistered())
+        return state.DoS(100, ERRORMSG("CTransaction::CheckTransaction(): account pubkey not registered"),
+            REJECT_INVALID, "bad-account-unregistered");
 
     uint256 sighash = SignatureHash();
     if (!CheckSignScript(sighash, signature, srcAccount.PublicKey))
@@ -721,18 +709,6 @@ bool CTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &
             REJECT_INVALID, "bad-signscript-check");
 
     return true;
-}
-
-uint256 CTransaction::GetHash() const {
-    return SignatureHash();
-}
-
-uint256 CTransaction::SignatureHash() const {
-    CHashWriter ss(SER_GETHASH, 0);
-    CID srcId(srcRegId);
-    CID desId(desUserId);
-    ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << srcId << desId << VARINT(llFees) << VARINT(llValues) << vContract;
-    return ss.GetHash();
 }
 
 bool CRewardTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
@@ -823,21 +799,6 @@ Object CRewardTransaction::ToJSON(const CAccountViewCache &AccountView) const{
     result.push_back(Pair("money", rewardValue));
     result.push_back(Pair("height", nHeight));
     return std::move(result);
-}
-
-bool CRewardTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
-    return true;
-}
-
-uint256 CRewardTransaction::GetHash() const
-{
-    return SignatureHash();
-}
-uint256 CRewardTransaction::SignatureHash() const {
-    CHashWriter ss(SER_GETHASH, 0);
-    CID accId(account);
-    ss << VARINT(nVersion) << nTxType << accId << VARINT(rewardValue) << VARINT(nHeight);
-    return ss.GetHash();
 }
 
 bool CRegisterContractTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidationState &state, CTxUndo &txundo,
