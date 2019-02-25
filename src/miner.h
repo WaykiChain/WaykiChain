@@ -8,14 +8,14 @@
 #define COIN_MINER_H
 
 #include <stdint.h>
-#include <vector>
 #include <map>
 #include <set>
+#include <vector>
 
-#include "uint256.h"
-#include "key.h"
-#include "boost/tuple/tuple.hpp"
 #include <memory>
+#include "boost/tuple/tuple.hpp"
+#include "key.h"
+#include "uint256.h"
 
 class CBlock;
 class CBlockIndex;
@@ -31,21 +31,17 @@ class CScriptDBViewCache;
 class CAccount;
 
 typedef boost::tuple<double, double, std::shared_ptr<CBaseTransaction> > TxPriority;
-class TxPriorityCompare
-{
+class TxPriorityCompare {
     bool byFee;
-public:
-    TxPriorityCompare(bool _byFee) : byFee(_byFee) { }
-    bool operator()(const TxPriority& a, const TxPriority& b)
-    {
-        if (byFee)
-        {
+
+   public:
+    TxPriorityCompare(bool _byFee) : byFee(_byFee) {}
+    bool operator()(const TxPriority &a, const TxPriority &b) {
+        if (byFee) {
             if (a.get<1>() == b.get<1>())
                 return a.get<0>() < b.get<0>();
             return a.get<1>() < b.get<1>();
-        }
-        else
-        {
+        } else {
             if (a.get<0>() == b.get<0>())
                 return a.get<1>() < b.get<1>();
             return a.get<0>() < b.get<0>();
@@ -54,28 +50,28 @@ public:
 };
 
 /** Run the miner threads */
-void GenerateCoinBlock(bool fGenerate, CWallet* pwallet, int nThreads);
+void GenerateCoinBlock(bool fGenerate, CWallet *pwallet, int nThreads);
 /** Generate a new block */
-CBlockTemplate* CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache);
+CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache);
 /** Modify the extranonce in a block */
-void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
+void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pindexPrev, unsigned int &nExtraNonce);
 /** Do mining precalculation */
-void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash1);
+void FormatHashBuffers(CBlock *pblock, char *pmidstate, char *pdata, char *phash1);
 
 bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock);
 
-bool GetDelegatesAcctList(vector<CAccount> & vDelegatesAcctList);
-bool GetDelegatesAcctList(vector<CAccount> & vDelegatesAcctList, CAccountViewCache &accViewIn, CScriptDBViewCache &scriptCacheIn);
+bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList);
+bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCache &accViewIn, CScriptDBViewCache &scriptCacheIn);
 
 void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList);
 
-bool GetCurrentDelegate(const int64_t currentTime,  const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct);
+bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct);
 
 bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache, bool bNeedRunTx = false);
 /** Check mined block */
-bool CheckWork(CBlock* pblock, CWallet& wallet);
+bool CheckWork(CBlock *pblock, CWallet &wallet);
 /** Base sha256 mining transform */
-void SHA256Transform(void* pstate, void* pinput, const void* pinit);
+void SHA256Transform(void *pstate, void *pinput, const void *pinit);
 /** Get burn element */
 int GetElementForBurn(CBlockIndex *pindex);
 
@@ -83,4 +79,4 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate);
 
 extern uint256 CreateBlockWithAppointedAddr(CKeyID const &keyID);
 
-#endif // COIN_MINER_H
+#endif  // COIN_MINER_H
