@@ -177,7 +177,8 @@ public:
 
 class CBaseTransaction {
 protected:
-    static string txTypeArray[7];
+    static string txTypeArray[7] =
+        { "NULL_TXTYPE", "REWARD_TX", "REG_ACCT_TX", "COMMON_TX", "CONTRACT_TX", "REG_CONT_TX", "DELEGATE_TX"};
 
 public:
     static uint64_t nMinTxFee;
@@ -324,9 +325,7 @@ public:
 
     uint256 GetHash() const { return SignatureHash(); }
 
-    double GetPriority() const {
-        return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
-    }
+    double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
 
     std::shared_ptr<CBaseTransaction> GetNewInstance() { return std::make_shared<CRegisterAccountTx>(this); }
 
@@ -345,7 +344,8 @@ public:
     bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
-class CTransaction : public CBaseTransaction {
+class CTransaction : public CBaseTransaction
+{
 public:
     mutable CUserID srcRegId;                   //src regid
     mutable CUserID desUserId;                  //user regid or user key id or app regid
@@ -548,13 +548,14 @@ public:
     { return true; }
 };
 
-class CRegisterContractTx: public CBaseTransaction {
-
+class CRegisterContractTx: public CBaseTransaction
+{
 public:
-    mutable CUserID regAcctId;         //regid
-    vector_unsigned_char script;       //script content
+    mutable CUserID regAcctId;         // contract publisher regid
+    vector_unsigned_char script;       // contract script content
     uint64_t llFees;
     vector_unsigned_char signature;
+
 public:
     CRegisterContractTx(const CBaseTransaction *pBaseTx) {
         assert(REG_CONT_TX == pBaseTx->nTxType);
@@ -577,29 +578,30 @@ public:
         READWRITE(VARINT(nValidHeight));
         CID regId(regAcctId);
         READWRITE(regId);
-        if(fRead) {
+        if (fRead) {
             regAcctId = regId.GetUserId();
         }
         READWRITE(script);
         READWRITE(VARINT(llFees));
         READWRITE(signature);
     )
-    uint64_t GetValue() const {return 0;}
-    uint256 GetHash() const;
 
-    std::shared_ptr<CBaseTransaction> GetNewInstance() {
-        return std::make_shared<CRegisterContractTx>(this);
+    uint64_t GetValue() const { return 0; }
+
+    uint256 SignatureHash() const {
+        CHashWriter ss(SER_GETHASH, 0);
+        CID regAccId(regAcctId);
+        ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << regAccId << script << VARINT(llFees);
+        return ss.GetHash();
     }
 
-    uint256 SignatureHash() const;
+    uint256 GetHash() const { return SignatureHash(); }
 
-    uint64_t GetFee() const {
-        return llFees;
-    }
+    std::shared_ptr<CBaseTransaction> GetNewInstance() { return std::make_shared<CRegisterContractTx>(this); }
 
-    double GetPriority() const {
-        return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
-    }
+    uint64_t GetFee() const { return llFees; }
+
+    double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
 
     string ToString(CAccountViewCache &view) const;
 
@@ -686,21 +688,20 @@ public:
         }
     )
 
-    uint256 GetHash() const;
-
-    uint64_t GetFee() const {
-        return llFees;
+    uint256 SignatureHash() const {
+        CHashWriter ss(SER_GETHASH, 0);
+        CID regAccId(userId);
+        ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << regAccId << operVoteFunds << VARINT(llFees);
+        return ss.GetHash();
     }
 
-    double GetPriority() const {
-        return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
-    }
+    uint256 GetHash() const { return SignatureHash(); }
 
-    uint256 SignatureHash() const;
+    uint64_t GetFee() const { return llFees; }
 
-    std::shared_ptr<CBaseTransaction> GetNewInstance() {
-        return std::make_shared<CDelegateTransaction>(this);
-    }
+    double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
+
+    std::shared_ptr<CBaseTransaction> GetNewInstance() { return std::make_shared<CDelegateTransaction>(this); }
 
     string ToString(CAccountViewCache &view) const;
 
@@ -709,7 +710,7 @@ public:
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 
     bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
-            CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
+        CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
 
     bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 
@@ -837,8 +838,10 @@ public:
 };
 
 class COperVoteFund {
+
 public:
-    static string voteOperTypeArray[3];
+    static string voteOperTypeArray[3] = {"NULL_OPER", "ADD_FUND", "MINUS_FUND"};
+
 public:
     unsigned char operType;         //!<1:ADD_FUND 2:MINUS_FUND
     CVoteFund fund;

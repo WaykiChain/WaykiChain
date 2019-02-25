@@ -283,8 +283,8 @@ bool CBaseTransaction::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValid
 
     if(CONTRACT_TX == nTxType) {
         if (!scriptDB.EraseTxRelAccout(GetHash()))
-            return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, erase tx rel account error"), UPDATE_ACCOUNT_FAIL,
-                            "bad-save-scriptdb");
+            return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, erase tx rel account error"),
+                UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
     return true;
 }
@@ -298,10 +298,6 @@ uint64_t CBaseTransaction::GetFuel(int nfuelRate) {
     }
     return llFuel;
 }
-
-string CBaseTransaction::txTypeArray[7] = { "NULL_TXTYPE", "REWARD_TX", "REG_ACCT_TX", "COMMON_TX", "CONTRACT_TX", "REG_CONT_TX", "DELEGATE_TX"};
-
-string COperVoteFund::voteOperTypeArray[3] = {"NULL_OPER", "ADD_FUND", "MINUS_FUND"};
 
 int CBaseTransaction::GetFuelRate(CScriptDBViewCache &scriptDB) {
     if(0 == nFuelRate) {
@@ -329,26 +325,27 @@ bool CRegisterAccountTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
     CRegID regId(nHeight, nIndex);
     CKeyID keyId = boost::get<CPubKey>(userId).GetKeyID();
     if (!view.GetAccount(userId, account))
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, read source keyId %s account info error", keyId.ToString()),
-                UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, read source keyId %s account info error",
+            keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+
     CAccountLog acctLog(account);
     if(account.PublicKey.IsFullyValid() && account.PublicKey.GetKeyID() == keyId) {
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, read source keyId %s duplicate register", keyId.ToString()),
-                    UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, read source keyId %s duplicate register",
+            keyId.ToString()), UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
     }
     account.PublicKey = boost::get<CPubKey>(userId);
     if (llFees > 0) {
         if(!account.OperateAccount(MINUS_FREE, llFees, nHeight))
-            return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, not sufficient funds in account, keyid=%s", keyId.ToString()),
-                    UPDATE_ACCOUNT_FAIL, "not-sufficiect-funds");
+            return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, not sufficient funds in account, keyid=%s",
+                keyId.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-funds");
     }
 
     account.regID = regId;
     if (typeid(CPubKey) == minerId.type()) {
         account.MinerPKey = boost::get<CPubKey>(minerId);
         if (account.MinerPKey.IsValid() && !account.MinerPKey.IsFullyValid()) {
-            return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, MinerPKey:%s Is Invalid", account.MinerPKey.ToString()),
-                    UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
+            return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, MinerPKey:%s Is Invalid",
+                account.MinerPKey.ToString()), UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
         }
     }
 
@@ -370,15 +367,16 @@ bool CRegisterAccountTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
     }
     return true;
 }
+
 bool CRegisterAccountTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
         CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
     //drop account
     CRegID accountId(nHeight, nIndex);
     CAccount oldAccount;
     if (!view.GetAccount(accountId, oldAccount))
-        return state.DoS(100,
-                ERRORMSG("ExecuteTx() : CRegisterAccountTx UndoExecuteTx, read secure account=%s info error", accountId.ToString()),
-                UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx UndoExecuteTx, read secure account=%s info error",
+            accountId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+
     CKeyID keyId;
     view.GetKeyId(accountId, keyId);
 
@@ -437,42 +435,44 @@ bool CRegisterAccountTx::CheckTransaction(CValidationState &state, CAccountViewC
 {
     if (userId.type() != typeid(CPubKey)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx userId must be CPubKey"),
-                REJECT_INVALID, "userid-type-error");
+            REJECT_INVALID, "userid-type-error");
     }
 
     if ((minerId.type() != typeid(CPubKey)) && (minerId.type() != typeid(CNullID))) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx minerId must be CPubKey or CNullID"),
-                REJECT_INVALID, "minerid-type-error");
+            REJECT_INVALID, "minerid-type-error");
     }
 
     //check pubKey valid
     if (!boost::get<CPubKey>(userId).IsFullyValid()) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransaction, register tx public key is invalid"),
-                REJECT_INVALID, "bad-regtx-publickey");
+            REJECT_INVALID, "bad-regtx-publickey");
     }
+
+    if (!MoneyRange(llFees))
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransaction, register tx fee out of range"),
+            REJECT_INVALID, "bad-regtx-fee-toolarge");
 
     //check signature script
     uint256 sighash = SignatureHash();
     if(!CheckSignScript(sighash, signature, boost::get<CPubKey>(userId))) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransaction, register tx signature error "),
-                REJECT_INVALID, "bad-regtx-signature");
+            REJECT_INVALID, "bad-regtx-signature");
     }
 
-    if (!MoneyRange(llFees))
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterAccountTx CheckTransaction, register tx fee out of range"),
-                REJECT_INVALID, "bad-regtx-fee-toolarge");
     return true;
 }
 
 bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-        int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
+        int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB)
+{
     CAccount srcAcct;
     CAccount desAcct;
     CAccountLog desAcctLog;
     uint64_t minusValue = llFees+llValues;
     if (!view.GetAccount(srcRegId, srcAcct))
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CTransaction ExecuteTx, read source addr %s account info error", boost::get<CRegID>(srcRegId).ToString()),
-            READ_ACCOUNT_FAIL, "bad-read-accountdb");
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CTransaction ExecuteTx, read source addr %s account info error",
+            boost::get<CRegID>(srcRegId).ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CAccountLog srcAcctLog(srcAcct);
     if (!srcAcct.OperateAccount(MINUS_FREE, minusValue, nHeight))
@@ -480,10 +480,9 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
             UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
     CUserID userId = srcAcct.keyID;
-    if(!view.SetAccount(userId, srcAcct)){
-        return state.DoS(100, ERRORMSG("ExecuteTx() :CTransaction ExecuteTx, save account%s info error", boost::get<CRegID>(srcRegId).ToString()),
-            WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-    }
+    if (!view.SetAccount(userId, srcAcct))
+        return state.DoS(100, ERRORMSG("ExecuteTx() :CTransaction ExecuteTx, save account%s info error",
+            boost::get<CRegID>(srcRegId).ToString()), WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     uint64_t addValue = llValues;
     if (!view.GetAccount(desUserId, desAcct)) {
@@ -491,8 +490,8 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
             desAcct.keyID = boost::get<CKeyID>(desUserId);
             desAcctLog.keyID = desAcct.keyID;
         } else {
-            return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, get account info failed by regid:%s", boost::get<CRegID>(desUserId).ToString()),
-                READ_ACCOUNT_FAIL, "bad-read-accountdb");
+            return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, get account info failed by regid:%s",
+                boost::get<CRegID>(desUserId).ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
     } else {
         desAcctLog.SetValue(desAcct);
@@ -500,21 +499,21 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
 
     if (!desAcct.OperateAccount(ADD_FREE, addValue, nHeight)) {
         return state.DoS(100, ERRORMSG("ExecuteTx() : CTransaction ExecuteTx, operate accounts error"),
-                UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
+            UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
     if (!view.SetAccount(desUserId, desAcct)) {
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CTransaction ExecuteTx, save account error, kyeId=%s", desAcct.keyID.ToString()),
-                UPDATE_ACCOUNT_FAIL, "bad-save-account");
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CTransaction ExecuteTx, save account error, kyeId=%s",
+            desAcct.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     }
     txundo.vAccountLog.push_back(srcAcctLog);
     txundo.vAccountLog.push_back(desAcctLog);
 
     if (CONTRACT_TX == nTxType) {
         vector<unsigned char> vScript;
-        if (!scriptDB.GetScript(boost::get<CRegID>(desUserId), vScript)) {
+        if (!scriptDB.GetScript(boost::get<CRegID>(desUserId), vScript))
             return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, read account faild, RegId=%s",
                 boost::get<CRegID>(desUserId).ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
-        }
+
         CVmRunEvn vmRunEvn;
         std::shared_ptr<CBaseTransaction> pTx = GetNewInstance();
         uint64_t fuelRate = GetFuelRate(scriptDB);
@@ -543,7 +542,8 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
             CAccountLog oldAcctLog(oldAcct);
             if (!view.SetAccount(userId, *itemAccount))
                 return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, write account info error"),
-                        UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
+                    UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
+
             txundo.vAccountLog.push_back(oldAcctLog);
         }
         txundo.vScriptOperLog.insert(txundo.vScriptOperLog.end(), vmRunEvn.GetDbLog()->begin(), vmRunEvn.GetDbLog()->end());
@@ -551,14 +551,12 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
         for (auto & itemUserAccount : vAppUserAccount) {
             CKeyID itemKeyID;
             bool bValid = GetKeyId(view, itemUserAccount.get()->getaccUserId(), itemKeyID);
-            if(bValid) {
+            if (bValid)
                 vAddress.insert(itemKeyID);
-            }
         }
 
-        if(!scriptDB.SetTxRelAccout(GetHash(), vAddress)) {
+        if(!scriptDB.SetTxRelAccout(GetHash(), vAddress))
             return ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, save tx relate account info to script db error");
-        }
     }
     txundo.txHash = GetHash();
 
@@ -584,6 +582,7 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
 
     return true;
 }
+
 bool CTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     CKeyID keyId;
     if (!view.GetKeyId(srcRegId, keyId))
@@ -633,6 +632,7 @@ bool CTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScri
     }
     return true;
 }
+
 string CTransaction::ToString(CAccountViewCache &view) const {
     string desId;
     if (desUserId.type() == typeid(CKeyID)) {
@@ -659,23 +659,25 @@ Object CTransaction::ToJSON(const CAccountViewCache &AccountView) const{
         return string(" ");
     };
 
-    result.push_back(Pair("hash", GetHash().GetHex()));
-    result.push_back(Pair("txtype", txTypeArray[nTxType]));
-    result.push_back(Pair("ver", nVersion));
-    result.push_back(Pair("regid", getregidstring(srcRegId)));
     view.GetKeyId(srcRegId, keyid);
-    result.push_back(Pair("addr",  keyid.ToAddress()));
-    result.push_back(Pair("desregid", getregidstring(desUserId)));
     view.GetKeyId(desUserId, keyid);
-    result.push_back(Pair("desaddr", keyid.ToAddress()));
-    result.push_back(Pair("money", llValues));
-    result.push_back(Pair("fees", llFees));
-    result.push_back(Pair("height", nValidHeight));
-    result.push_back(Pair("contract", HexStr(vContract)));
+
+    result.push_back(Pair("hash",       GetHash().GetHex()));
+    result.push_back(Pair("txtype",     txTypeArray[nTxType]));
+    result.push_back(Pair("ver",        nVersion));
+    result.push_back(Pair("regid",      getregidstring(srcRegId)));
+    result.push_back(Pair("addr",       keyid.ToAddress()));
+    result.push_back(Pair("desregid",   getregidstring(desUserId)));
+    result.push_back(Pair("desaddr",    keyid.ToAddress()));
+    result.push_back(Pair("money",      llValues));
+    result.push_back(Pair("fees",       llFees));
+    result.push_back(Pair("height",     nValidHeight));
+    result.push_back(Pair("contract",   HexStr(vContract)));
+
     return result;
 }
 
-// COMMON_TX
+// COMMON_TX or ContractTransaction
 bool CTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB)
 {
     if (srcRegId.type() != typeid(CRegID))
@@ -712,18 +714,19 @@ bool CTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &
 }
 
 bool CRewardTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-        int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
-
+        int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB)
+{
     CID id(account);
     if (account.type() != typeid(CRegID)) {
         return state.DoS(100,
-                ERRORMSG("ExecuteTx() : CRewardTransaction ExecuteTx, account %s error, data type must be either CRegID", HexStr(id.GetID())),
-                UPDATE_ACCOUNT_FAIL, "bad-account");
+            ERRORMSG("ExecuteTx() : CRewardTransaction ExecuteTx, account %s error, data type must be either CRegID",
+            HexStr(id.GetID())), UPDATE_ACCOUNT_FAIL, "bad-account");
     }
+
     CAccount acctInfo;
     if (!view.GetAccount(account, acctInfo)) {
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CRewardTransaction ExecuteTx, read source addr %s account info error", HexStr(id.GetID())),
-                UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CRewardTransaction ExecuteTx, read source addr %s account info error",
+            HexStr(id.GetID())), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 //  LogPrint("op_account", "before operate:%s\n", acctInfo.ToString());
     CAccountLog acctInfoLog(acctInfo);
@@ -740,24 +743,27 @@ bool CRewardTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
 
     CUserID userId = acctInfo.keyID;
     if (!view.SetAccount(userId, acctInfo))
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CRewardTransaction ExecuteTx, write secure account info error"), UPDATE_ACCOUNT_FAIL,
-                "bad-save-accountdb");
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CRewardTransaction ExecuteTx, write secure account info error"),
+            UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+
     txundo.Clear();
     txundo.vAccountLog.push_back(acctInfoLog);
     txundo.txHash = GetHash();
-    if(SysCfg().GetAddressToTxFlag() && 0 == nIndex) {
+    if (SysCfg().GetAddressToTxFlag() && 0 == nIndex) {
         CScriptDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
-        if(!view.GetKeyId(account, sendKeyId)) {
+        if (!view.GetKeyId(account, sendKeyId))
             return ERRORMSG("ExecuteTx() : CRewardTransaction ExecuteTx, get keyid by account error!");
-        }
-        if(!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
+
+        if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
             return false;
+
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
     }
 //  LogPrint("op_account", "after operate:%s\n", acctInfo.ToString());
     return true;
 }
+
 bool CRewardTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     CKeyID keyId;
     if (account.type() == typeid(CRegID)) {
@@ -772,15 +778,19 @@ bool CRewardTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
     }
     return true;
 }
+
 string CRewardTransaction::ToString(CAccountViewCache &view) const {
     string str;
     CKeyID keyId;
     view.GetKeyId(account, keyId);
     CRegID regId;
     view.GetRegId(account, regId);
-    str += strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyid=%s, rewardValue=%ld\n", txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion, regId.ToString(), keyId.GetHex(), rewardValue);
+    str += strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyid=%s, rewardValue=%ld\n",
+        txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion, regId.ToString(), keyId.GetHex(), rewardValue);
+
     return str;
 }
+
 Object CRewardTransaction::ToJSON(const CAccountViewCache &AccountView) const{
     Object result;
     CAccountViewCache view(AccountView);
@@ -807,15 +817,16 @@ bool CRegisterContractTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidat
     CAccount acctInfo;
     CScriptDBOperLog operLog;
     if (!view.GetAccount(regAcctId, acctInfo)) {
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterContractTx ExecuteTx, read regist addr %s account info error", HexStr(id.GetID())),
-                UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterContractTx ExecuteTx, read regist addr %s account info error",
+            HexStr(id.GetID())), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
     CAccount acctInfoLog(acctInfo);
     uint64_t minusValue = llFees;
     if (minusValue > 0) {
         if(!acctInfo.OperateAccount(MINUS_FREE, minusValue, nHeight))
-            return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterContractTx ExecuteTx, operate account failed ,regId=%s", boost::get<CRegID>(regAcctId).ToString()),
-                    UPDATE_ACCOUNT_FAIL, "operate-account-failed");
+            return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterContractTx ExecuteTx, operate account failed ,regId=%s",
+                boost::get<CRegID>(regAcctId).ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
+
         txundo.vAccountLog.push_back(acctInfoLog);
     }
     txundo.txHash = GetHash();
@@ -825,11 +836,12 @@ bool CRegisterContractTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidat
     try {
         stream >> vmScript;
     } catch (exception& e) {
-        return state.DoS(100, ERRORMSG(("ExecuteTx() :CRegisterContractTx ExecuteTx, Unserialize to vmScript error:" + string(e.what())).c_str()),
-                UPDATE_ACCOUNT_FAIL, "unserialize-script-error");
+        return state.DoS(100, ERRORMSG(("ExecuteTx() :CRegisterContractTx ExecuteTx, Unserialize to vmScript error:" +
+            string(e.what())).c_str()), UPDATE_ACCOUNT_FAIL, "unserialize-script-error");
     }
     if(!vmScript.IsValid())
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterContractTx ExecuteTx, vmScript invalid"), UPDATE_ACCOUNT_FAIL, "script-check-failed");
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterContractTx ExecuteTx, vmScript invalid"),
+            UPDATE_ACCOUNT_FAIL, "script-check-failed");
 
     CRegID regId(nHeight, nIndex);
     //create script account
@@ -840,13 +852,13 @@ bool CRegisterContractTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidat
     //save new script content
     if(!scriptDB.SetScript(regId, script)){
         return state.DoS(100,
-                ERRORMSG("ExecuteTx() : CRegisterContractTx ExecuteTx, save script id %s script info error", regId.ToString()),
-                UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+            ERRORMSG("ExecuteTx() : CRegisterContractTx ExecuteTx, save script id %s script info error",
+                regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
     if (!view.SaveAccountInfo(regId, keyId, account)) {
         return state.DoS(100,
-                ERRORMSG("ExecuteTx() : CRegisterContractTx ExecuteTx create new account script id %s script info error",
-                        regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+            ERRORMSG("ExecuteTx() : CRegisterContractTx ExecuteTx create new account script id %s script info error",
+                regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
 
     nRunStep = script.size();
@@ -856,8 +868,8 @@ bool CRegisterContractTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidat
     }
     CUserID userId = acctInfo.keyID;
     if (!view.SetAccount(userId, acctInfo))
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterContractTx ExecuteTx, save account info error"), UPDATE_ACCOUNT_FAIL,
-                "bad-save-accountdb");
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterContractTx ExecuteTx, save account info error"),
+            UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     if(SysCfg().GetAddressToTxFlag()) {
         CScriptDBOperLog operAddressToTxLog;
@@ -923,6 +935,7 @@ bool CRegisterContractTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVa
                 "bad-save-accountdb");
     return true;
 }
+
 bool CRegisterContractTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     CKeyID keyId;
     if (!view.GetKeyId(regAcctId, keyId))
@@ -930,6 +943,7 @@ bool CRegisterContractTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view
     vAddr.insert(keyId);
     return true;
 }
+
 string CRegisterContractTx::ToString(CAccountViewCache &view) const {
     string str;
     CKeyID keyId;
@@ -992,18 +1006,6 @@ bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountView
             REJECT_INVALID, "bad-signscript-check");
     }
     return true;
-}
-
-uint256 CRegisterContractTx::GetHash() const
-{
-    return SignatureHash();
-}
-
-uint256 CRegisterContractTx::SignatureHash() const {
-    CHashWriter ss(SER_GETHASH, 0);
-    CID regAccId(regAcctId);
-    ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << regAccId << script << VARINT(llFees);
-    return ss.GetHash();
 }
 
 bool CDelegateTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
@@ -1207,18 +1209,6 @@ bool CDelegateTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &vie
         vAddr.insert(iter->fund.pubKey.GetKeyID());
     }
     return true;
-}
-
-uint256 CDelegateTransaction::GetHash() const
-{
-    return SignatureHash();
-}
-
-uint256 CDelegateTransaction::SignatureHash() const {
-    CHashWriter ss(SER_GETHASH, 0);
-    CID regAccId(userId);
-    ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << regAccId << operVoteFunds << VARINT(llFees);
-    return ss.GetHash();
 }
 
 string CAccountLog::ToString() const {

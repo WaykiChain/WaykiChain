@@ -118,7 +118,6 @@ Object GetTxDetailJSON(const uint256& txhash) {
                 return obj;
             }
         }
-
     }
     return obj;
 }
@@ -220,7 +219,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
                 }
 
                 objOutPut.push_back(Pair("address", address));
-                
+
                 uint64_t amount;
                 memcpy(&amount, item.money, sizeof(item.money));
                 double dAmount = amount / COIN;
@@ -243,7 +242,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
     case DELEGATE_TX:
         if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
             return arrayDetail;
-        
+
         double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
 
         obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
@@ -564,7 +563,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
 }
 
 // register a contract app tx
-Value registercontracttx(const Array& params, bool fHelp) 
+Value registercontracttx(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 3 || params.size() > 5) {
         throw runtime_error("registercontracttx \"addr\" \"filepath\"\"fee\" (\"height\") (\"appdesc\")\n"
@@ -579,14 +578,14 @@ Value registercontracttx(const Array& params, bool fHelp)
             "\"txhash\": (string)\n"
             "\nExamples:\n"
             + HelpExampleCli("registercontracttx",
-                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"myapp.lua\" \"010203040506\" \"100000\" (\"appdesc\")") + 
+                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"myapp.lua\" \"010203040506\" \"100000\" (\"appdesc\")") +
                 "\nAs json rpc call\n"
             + HelpExampleRpc("registercontracttx",
                 "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH \"myapp.lua\" \"010203040506\" \"100000\" (\"appdesc\")"));
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
-    
+
     string path = params[1].get_str();
     std::tuple<bool, string> result = CVmlua::CheckScriptSyntax(path.c_str());
     bool bOK = std::get<0>(result);
@@ -2607,7 +2606,7 @@ Value decoderawtx(const Array& params, bool fHelp)
     stream >> pBaseTx;
     if (!pBaseTx.get())
         return obj;
-    
+
     CAccountViewCache view(*pAccountViewTip, true);
     switch (pBaseTx.get()->nTxType) {
     case COMMON_TX: {
@@ -2932,11 +2931,11 @@ Value gencheckpoint(const Array& params, bool fHelp)
     std::string strSecret = params[0].get_str();
     CCoinSecret vchSecret;
     bool fGood = vchSecret.SetString(strSecret);
-    if (!fGood) 
+    if (!fGood)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key encoding");
 
     CKey key = vchSecret.GetKey();
-    if (!key.IsValid()) 
+    if (!key.IsValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Private key invalid");
 
     string file = params[1].get_str();
