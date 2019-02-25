@@ -561,7 +561,7 @@ vector<unsigned int> G_CONFIG_TABLE::pnSeed =
 
 //Network Magic No.
 unsigned char G_CONFIG_TABLE::Message_mainNet[MESSAGE_START_SIZE] = {0xff, 0x42, 0x1d, 0x1a};
-unsigned char G_CONFIG_TABLE::Message_testNet[MESSAGE_START_SIZE] = {0xfd, 0x7d, 0x5c, 0xd9};
+unsigned char G_CONFIG_TABLE::Message_testNet[MESSAGE_START_SIZE] = {0xfd, 0x7d, 0x5c, 0xd0};
 unsigned char G_CONFIG_TABLE::Message_regTest[MESSAGE_START_SIZE] = {0xfe, 0xfa, 0xd3, 0xc6};
 
 //Address Prefix

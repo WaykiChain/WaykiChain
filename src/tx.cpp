@@ -247,8 +247,8 @@ bool CBaseTransaction::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValid
         } else {
             if (!view.SetAccount(userId, account)) {
                 return state.DoS(100,
-                        ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, undo ExecuteTx write accountId= %s account info error"),
-                        UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
+                    ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, undo ExecuteTx write accountId= %s account info error"),
+                    UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
             }
         }
     }
@@ -257,7 +257,7 @@ bool CBaseTransaction::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValid
         if (SysCfg().GetAddressToTxFlag() && txundo.vScriptOperLog.size() > 0) {
             if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
                 return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, undo scriptdb data error"), UPDATE_ACCOUNT_FAIL,
-                                 "bad-save-scriptdb");
+                    "bad-save-scriptdb");
             ++rIterScriptDBLog;
         }
 
@@ -265,12 +265,12 @@ bool CBaseTransaction::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValid
             // recover the old value and erase the new value
             if (!scriptDB.SetDelegateData(rIterScriptDBLog->vKey))
                 return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, set delegate data error"), UPDATE_ACCOUNT_FAIL,
-                                 "bad-save-scriptdb");
+                    "bad-save-scriptdb");
 
             ++rIterScriptDBLog;
             if (!scriptDB.EraseDelegateData(rIterScriptDBLog->vKey))
                 return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, erase delegate data error"), UPDATE_ACCOUNT_FAIL,
-                                 "bad-save-scriptdb");
+                    "bad-save-scriptdb");
         }
     } else {
         vector<CScriptDBOperLog>::reverse_iterator rIterScriptDBLog = txundo.vScriptOperLog.rbegin();
