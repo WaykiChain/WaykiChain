@@ -168,7 +168,7 @@ static std::tuple<bool, string> SendMoney(const CRegID &sendRegId, const CUserID
 Value sendtoaddress(const Array& params, bool fHelp)
 {
     int size = params.size();
-    if (fHelp || (size != 2 && size != 3)) {
+    if (fHelp || (size != 2 && size != 3))
         throw runtime_error("sendtoaddress (\"sendaddress\") \"recvaddress\" \"amount\"\n"
             "\nSend an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001\n"
             + HelpRequiringPassphrase() + "\nArguments:\n"
@@ -187,7 +187,6 @@ Value sendtoaddress(const Array& params, bool fHelp)
             + HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 10 ")
             + HelpExampleCli("sendtoaddress", "\"0-6\" \"0-5\" 10 ")
             + HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" \"0-6\"10 ")));
-    }
 
     EnsureWalletIsUnlocked();
 
@@ -199,18 +198,18 @@ Value sendtoaddress(const Array& params, bool fHelp)
     if (size == 3) {
         if (!GetKeyId(params[0].get_str(), sendKeyId))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sendaddress");
-        
+
         if (!GetKeyId(params[1].get_str(), recvKeyId))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
-        
+
         nAmount = AmountToRawValue(params[2]);
         if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nDefaultFee)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress does not have enough coins");
-        
+
     } else { // size == 2
         if (!GetKeyId(params[0].get_str(), recvKeyId))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
-        
+
         nAmount = AmountToRawValue(params[1]);
 
         set<CKeyID> sKeyIds;
@@ -218,7 +217,7 @@ Value sendtoaddress(const Array& params, bool fHelp)
         pwalletMain->GetKeys(sKeyIds);
         if(sKeyIds.empty())
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Wallet has no key");
-        
+
         bool sufficientFee = false;
         for (auto &keyId: sKeyIds) {
             if (keyId != recvKeyId && pAccountViewTip->GetRawBalance(keyId) >= nAmount + nDefaultFee) {
@@ -232,8 +231,8 @@ Value sendtoaddress(const Array& params, bool fHelp)
         }
     }
 
-    if (sendKeyId == recvKeyId)
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "recvadress shall not be the same as sendaddress");
+    // if (sendKeyId == recvKeyId)
+    //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "recvadress shall not be the same as sendaddress");
 
     if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendadress not registered or invalid");
@@ -410,8 +409,8 @@ Value gensendtoaddressraw(const Array& params, bool fHelp)
         }
     }
 
-    if (sendId == recvId)
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Receiver Address shall not be the same as Sender Address!");
+    // if (sendId == recvId)
+    //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Receiver Address shall not be the same as Sender Address!");
 
     int height = chainActive.Tip()->nHeight;
     if (params.size() > 4) {
@@ -826,7 +825,7 @@ Value backupwallet(const Array& params, bool fHelp)
     string strDest = params[0].get_str();
     string backupFilePath = strDest.c_str();
     if (backupFilePath.find(GetDataDir().string()) != std::string::npos)
-        throw JSONRPCError(RPC_WALLET_FILEPATH_INVALID, 
+        throw JSONRPCError(RPC_WALLET_FILEPATH_INVALID,
             "Wallet backup file shall not be saved into the Data dir to avoid likely file overwrite.");
 
     if (!BackupWallet(*pwalletMain, strDest))
@@ -910,7 +909,7 @@ Value walletpassphrasechange(const Array& params, bool fHelp)
     if (fHelp)
         return true;
     if (!pwalletMain->IsEncrypted())
-        throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, 
+        throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE,
             "Error: running with an unencrypted wallet, but walletpassphrasechange was called.");
 
     // TODO: get rid of these .c_str() calls by implementing SecureString::operator=(string)
@@ -1106,11 +1105,11 @@ Value getsignature(const Array& params, bool fHelp) {
         string strSecret = params[0].get_str();
         CCoinSecret vchSecret;
         bool fGood = vchSecret.SetString(strSecret);
-        if (!fGood) 
+        if (!fGood)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key encoding");
 
         CKey key = vchSecret.GetKey();
-        if (!key.IsValid()) 
+        if (!key.IsValid())
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Private key invalid");
 
         vector<unsigned char> signature;
