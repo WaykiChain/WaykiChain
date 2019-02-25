@@ -136,19 +136,15 @@ bool CRegID::GetKeyID(const string & str,CKeyID &keyId)
     CRegID regId(str);
     if (regId.IsEmpty())
         return false;
+
     keyId = regId.getKeyID(*pAccountViewTip);
     return !keyId.IsEmpty();
 }
 
 bool CRegID::IsRegIdStr(const string & str)
 {
-    if(IsSimpleRegIdStr(str)){
-        return true;
-    }
-    else if(str.length()==12){
-        return true;
-    }
-    return false;
+    bool ret = IsSimpleRegIdStr(str) || (str.length() == 12);
+    return ret;
 }
 
 void CRegID::SetRegID(string strRegID)
@@ -410,7 +406,7 @@ bool CRegisterAccountTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVal
 bool CRegisterAccountTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     if (!boost::get<CPubKey>(userId).IsFullyValid())
         return false;
-    
+
     vAddr.insert(boost::get<CPubKey>(userId).GetKeyID());
     return true;
 }
@@ -537,7 +533,7 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
         int64_t llTime = GetTimeMillis();
         tuple<bool, uint64_t, string> ret = vmRunEvn.ExecuteContract(pTx, view, scriptDB, nHeight, fuelRate, nRunStep);
         if (!std::get<0>(ret))
-            return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, txhash=%s run script error:%s", 
+            return state.DoS(100, ERRORMSG("ExecuteTx() : ContractTransaction ExecuteTx, txhash=%s run script error:%s",
                 GetHash().GetHex(), std::get<2>(ret)), UPDATE_ACCOUNT_FAIL, "run-script-error:" + std::get<2>(ret));
         LogPrint("CONTRACT_TX", "execute contract elapse:%lld, txhash=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
 
@@ -608,7 +604,7 @@ bool CTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScri
     CKeyID desKeyId;
     if (!view.GetKeyId(desUserId, desKeyId))
         return false;
-        
+
     vAddr.insert(desKeyId);
 
     if (CONTRACT_TX == nTxType) {
@@ -619,7 +615,7 @@ bool CTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScri
 
         if (uint256() == pTxCacheTip->IsContainTx(GetHash())) {
             CAccountViewCache accountView(view, true);
-            tuple<bool, uint64_t, string> ret = vmRunEvn.ExecuteContract(pTx, accountView, scriptDBView, 
+            tuple<bool, uint64_t, string> ret = vmRunEvn.ExecuteContract(pTx, accountView, scriptDBView,
                 chainActive.Height() + 1, fuelRate, nRunStep);
 
             if (!std::get<0>(ret))
@@ -701,7 +697,7 @@ bool CTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &
         return state.DoS(100, ERRORMSG("CTransaction::CheckTransaction() : desUserId must be CRegID or CKeyID"),
             REJECT_INVALID, "desaddr-type-error");
 
-    if (srcRegId == desUserId) 
+    if (srcRegId == desUserId)
         return state.DoS(100, ERRORMSG("CTransaction::CheckTransaction() : desUserId must NOT be the same as srcRegId"),
             REJECT_INVALID, "desaddr-same-error");
 
@@ -1214,7 +1210,7 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
         setTotalOperVoteKeyID.insert(item->fund.pubKey.GetKeyID());
         CAccount acctInfo;
         if (!view.GetAccount(CUserID(item->fund.pubKey), acctInfo))
-            return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction get account info error, address=%s", 
+            return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction get account info error, address=%s",
                 item->fund.pubKey.GetKeyID().ToAddress()), REJECT_INVALID, "bad-read-accountdb");
 
         if(item->fund.value > totalVotes)
@@ -1227,19 +1223,19 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
     }
 
     if (setOperVoteKeyID.size() != operVoteFunds.size()) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction duplication vote fund"), 
+        return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction duplication vote fund"),
             REJECT_INVALID, "deletegates-duplication fund-error");
     }
 
     if (totalVotes > sendAcct.llValues) {
-       return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction delegate votes (%d) exceeds account balance (%d), userid=%s", 
+       return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction delegate votes (%d) exceeds account balance (%d), userid=%s",
             totalVotes, sendAcct.llValues, HexStr(id.GetID())), REJECT_INVALID, "insufficient balance for votes");
     }
 
     return true;
 }
 
-bool CDelegateTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) 
+bool CDelegateTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB)
 {
     CKeyID keyId;
     if (!view.GetKeyId(userId, keyId))
@@ -1384,8 +1380,8 @@ uint64_t CAccount::GetFrozenBalance() {
 Object CAccount::ToJsonObj(bool isAddress) const
 {
     Array voteFundArray;
-    for (auto & fund : vVoteFunds) { 
-        voteFundArray.push_back(fund.ToJson(true)); 
+    for (auto & fund : vVoteFunds) {
+        voteFundArray.push_back(fund.ToJson(true));
     }
 
     Object obj;

@@ -540,8 +540,8 @@ bool IsStandardTx(CBaseTransaction *pBaseTx, string& reason)
     // almost as much to process as they cost the sender in fees, because
     // computing signature hashes is O(ninputs*txsize). Limiting transactions
     // to MAX_STANDARD_TX_SIZE mitigates CPU exhaustion attacks.
-    unsigned int sz = ::GetSerializeSize(pBaseTx->GetNewInstance(), SER_NETWORK,
-        CTransaction::CURRENT_VERSION);
+    unsigned int sz = ::GetSerializeSize(pBaseTx->GetNewInstance(), SER_NETWORK, CTransaction::CURRENT_VERSION);
+
     if (sz >= MAX_STANDARD_TX_SIZE) {
         reason = "tx-size";
         return false;
@@ -596,9 +596,11 @@ bool CheckSignScript(const uint256 & sigHash, const std::vector<unsigned char> s
 {
     if (signatureCache.Get(sigHash, signature, pubKey))
         return true;
+
     if (!pubKey.Verify(sigHash, signature))
         return false;
         //return ERRORMSG("CheckSignScript() : tx signature error");
+
     signatureCache.Set(sigHash, signature, pubKey);
     return true;
 }

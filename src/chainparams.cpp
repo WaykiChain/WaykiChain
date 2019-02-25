@@ -114,6 +114,7 @@ public:
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
         memcpy(pchMessageStart,IniCfg().GetMagicNumber(TEST_NET),sizeof(pchMessageStart));
+        nSubsidyHalvingInterval = IniCfg().GetHalvingInterval(TEST_NET);
         vAlertPubKey =  ParseHex(IniCfg().GetCheckPointPkey(TEST_NET));
         nDefaultPort = IniCfg().GetnDefaultPort(TEST_NET) ;
         nRPCPort = IniCfg().GetnRPCPort(TEST_NET);
