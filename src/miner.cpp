@@ -237,7 +237,8 @@ bool GetDelegatesAcctList(vector<CAccount> & vDelegatesAcctList) {
     return GetDelegatesAcctList(vDelegatesAcctList, *pAccountViewTip, *pScriptDBTip);
 }
 
-bool GetCurrentDelegate(const int64_t currentTime,  const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct) {
+bool GetCurrentDelegate(const int64_t currentTime,  const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct)
+{
     int64_t slot =  currentTime / SysCfg().GetTargetSpacing();
     int miner = slot % IniCfg().GetDelegatesNum();
     delegateAcct = vDelegatesAcctList[miner];
@@ -246,35 +247,34 @@ bool GetCurrentDelegate(const int64_t currentTime,  const vector<CAccount> &vDel
     return true;
 }
 
-bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock) {
+bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock)
+{
     unsigned int nNonce = GetRand(SysCfg().GetBlockMaxNonce());
     CBlock preBlock;
     CBlockIndex* pblockindex = mapBlockIndex[pBlock->GetHashPrevBlock()];
-    if(pBlock->GetHashPrevBlock() != SysCfg().HashGenesisBlock()) {
-        if(!ReadBlockFromDisk(preBlock, pblockindex))
+    if (pBlock->GetHashPrevBlock() != SysCfg().HashGenesisBlock()) {
+        if (!ReadBlockFromDisk(preBlock, pblockindex))
             return ERRORMSG("read block info fail from disk");
 
         CAccount preDelegate;
         CRewardTransaction *preBlockRewardTx = (CRewardTransaction *) preBlock.vptx[0].get();
-        if(!view.GetAccount(preBlockRewardTx->account, preDelegate)) {
+
+        if (!view.GetAccount(preBlockRewardTx->account, preDelegate))
             return ERRORMSG("get preblock delegate account info error");
-        }
-        if(currentTime - preBlock.GetBlockTime() < SysCfg().GetTargetSpacing()) {
-            if(preDelegate.regID == delegate.regID) {
+
+        if (currentTime - preBlock.GetBlockTime() < SysCfg().GetTargetSpacing())
+            if (preDelegate.regID == delegate.regID)
                 return ERRORMSG("one delegate can't produce more than one block at the same slot");
-            }
-        }
     }
 
     pBlock->SetNonce(nNonce);
     CRewardTransaction *prtx = (CRewardTransaction *) pBlock->vptx[0].get();
-    prtx->account = delegate.regID;                                   //记账人账户ID
+    prtx->account = delegate.regID; //记账人账户ID
     prtx->nHeight = pBlock->GetHeight();
     pBlock->SetHashMerkleRoot(pBlock->BuildMerkleTree());
     pBlock->SetTime(currentTime);
     vector<unsigned char> vSign;
-    if (pwalletMain->Sign(delegate.keyID, pBlock->SignatureHash(), vSign,
-            delegate.MinerPKey.IsValid())) {
+    if (pwalletMain->Sign(delegate.keyID, pBlock->SignatureHash(), vSign, delegate.MinerPKey.IsValid())) {
         pBlock->SetSignature(vSign);
         return true;
     } else {
@@ -344,9 +344,9 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
             return ERRORMSG("get preblock delegate account info error");
         }
         if (pBlock->GetBlockTime()-preBlock.GetBlockTime() < SysCfg().GetTargetSpacing()) {
-             if(preDelegate.regID == curDelegate.regID) {
+            if(preDelegate.regID == curDelegate.regID) {
                 return ERRORMSG("one delegate can't produce more than one block at the same slot");
-             }
+            }
         }
     }
     CAccount account;
@@ -368,7 +368,7 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
 
     if (prtx->nVersion != nTxVersion1) {
         return ERRORMSG("CTransaction CheckTransaction,tx version is not equal current version, (tx version %d: vs current %d)",
-                prtx->nVersion, nTxVersion1);
+            prtx->nVersion, nTxVersion1);
     }
 
     if (bNeedRunTx) {
