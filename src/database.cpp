@@ -1239,6 +1239,7 @@ bool CScriptDBViewCache::HaveScript(const vector<unsigned char> &vScriptId) {
     scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
     return HasData(scriptKey);
 }
+
 bool CScriptDBViewCache::GetScriptCount(int &nCount) {
     vector<unsigned char> scriptKey = {'s', 'n', 'u', 'm'};
     vector<unsigned char> vValue;
@@ -1248,6 +1249,7 @@ bool CScriptDBViewCache::GetScriptCount(int &nCount) {
     ds >> nCount;
     return true;
 }
+
 bool CScriptDBViewCache::SetScriptCount(const int nCount) {
     vector<unsigned char> scriptKey = {'s', 'n', 'u', 'm'};
     vector<unsigned char> vValue;
@@ -1289,21 +1291,24 @@ bool CScriptDBViewCache::GetContractItemCount(const vector<unsigned char> &vScri
     ds >> nCount;
     return true;
 }
-bool CScriptDBViewCache::SetContractItemCount(const vector<unsigned char> &vScriptId, int nCount) {
+
+bool CScriptDBViewCache::SetContractItemCount(const vector<unsigned char> &vScriptId, int nCount)
+{
+    if (nCount < 0)
+        return false;
+
     vector<unsigned char> scriptKey = {'s', 'd', 'n', 'u', 'm'};
     scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
+
     vector<unsigned char> vValue;
     vValue.clear();
-    if (nCount > 0) {
-        CDataStream ds(SER_DISK, CLIENT_VERSION);
-        ds << nCount;
-        vValue.insert(vValue.end(), ds.begin(), ds.end());
 
-        if (!SetData(scriptKey, vValue))
-            return false;
-    } else {
+    CDataStream ds(SER_DISK, CLIENT_VERSION);
+    ds << nCount;
+    vValue.insert(vValue.end(), ds.begin(), ds.end());
+
+    if (!SetData(scriptKey, vValue))
         return false;
-    }
 
     return true;
 }
@@ -1311,10 +1316,18 @@ bool CScriptDBViewCache::SetContractItemCount(const vector<unsigned char> &vScri
 bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog)
 {
     vector<unsigned char> scriptKey = {'d', 'a', 't', 'a'};
-
     scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
     scriptKey.push_back('_');
     scriptKey.insert(scriptKey.end(), vScriptKey.begin(), vScriptKey.end());
+
+    vector<unsigned char> vValue;
+    if (!GetData(scriptKey, vValue)) {
+        return false;
+    }
+
+    operLog = CScriptDBOperLog(scriptKey, vValue);
+    if (!EraseKey(scriptKey))
+        return false;
 
     if (HasScriptData(vScriptId, vScriptKey)) {
         int nCount(0);
@@ -1325,15 +1338,6 @@ bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId, co
             return false;
         }
     }
-
-    vector<unsigned char> vValue;
-    if (!GetData(scriptKey, vValue)) {
-        return false;
-    }
-
-    operLog = CScriptDBOperLog(scriptKey, vValue);
-    if (!EraseKey(scriptKey))
-        return false;
 
     return true;
 }
