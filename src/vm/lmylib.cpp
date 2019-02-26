@@ -448,7 +448,7 @@ static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr < s
 
     int dataLen = 0;
     if(!(getNumberInTable(L,(char *)"dataLen",doubleValue))){
-            LogPrint("vm","dataLen get fail\n");
+            LogPrint("vm","get dataLen failed\n");
             return false;
         }else{
             dataLen = (unsigned int)doubleValue;
@@ -461,51 +461,50 @@ static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr < s
 
     if(!getArrayInTable(L,(char *)"data",dataLen,vBuf))
     {
-        LogPrint("vm","data not table\n");
+        LogPrint("vm","get data failed\n");
         return false;
     }else{
 
         ret.push_back(std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
     }
 
-    int keyLen = 0;
-    if(!(getNumberInTable(L,(char *)"keyLen",doubleValue))){
-            LogPrint("vm","keyLen get fail\n");
+    int pubKeyLen = 0;
+    if(!(getNumberInTable(L,(char *)"pubKeyLen",doubleValue))){
+            LogPrint("vm","get pubKeyLen failed\n");
             return false;
         }else{
-            keyLen = (unsigned int)doubleValue;
+            pubKeyLen = (unsigned int)doubleValue;
     }
 
-    if(keyLen <= 0) {
-        LogPrint("vm","keyLen <= 0\n");
+    if(pubKeyLen <= 0) {
+        LogPrint("vm","error: pubKeyLen <= 0\n");
         return false;
     }
 
-    if(!getArrayInTable(L,(char *)"key",keyLen,vBuf))
+    if(!getArrayInTable(L,(char *)"pubKey",pubKeyLen,vBuf))
     {
-        LogPrint("vm","key not table\n");
+        LogPrint("vm","get pubKey failed\n");
         return false;
     }else{
 
         ret.push_back(std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
     }
 
-    int hashLen = 0;
-    if(!(getNumberInTable(L,(char *)"hashLen",doubleValue))){
-            LogPrint("vm","hashLen get fail\n");
-            return false;
-        }else{
-            hashLen = (unsigned int)doubleValue;
+    int signatureLen = 0;
+    if(!(getNumberInTable(L,(char *)"signatureLen",doubleValue))){
+        LogPrint("vm","get signatureLen failed\n");
+        return false;
     }
+    signatureLen = (unsigned int)doubleValue;
 
-    if(hashLen <= 0) {
+    if(signatureLen <= 0) {
         LogPrint("vm","hashLen <= 0\n");
         return false;
     }
 
-    if(!getArrayInTable(L,(char *)"hash",hashLen,vBuf))
+    if(!getArrayInTable(L,(char *)"signature",signatureLen,vBuf))
     {
-        LogPrint("vm","hash not table\n");
+        LogPrint("vm","get signature failed\n");
         return false;
     }else{
 
@@ -753,33 +752,32 @@ static int ExDesFunc(lua_State *L) {
  *bool SignatureVerify(void const* data, unsigned short datalen, void const* key, unsigned short keylen,
         void const* phash, unsigned short hashlen)
  * 这个函数式从中间层传了三个个参数过来:
- * 1.第一个是签名的数据
- * 2.第二个是用的签名的publickey
- * 3.第三是签名之前的hash值
+ * 1.第一个是签名前的原始数据
+ * 2.第二个是签名的公钥(public key)
+ * 3.第三是已签名的数据
  *
  *{
  *  dataLen = 0,
  *  data = {},
- *  keyLen = 0,
- *  key = {},
- *  hashLen = 0,
- *  hash = {}
+ *  pubKeyLen = 0,
+ *  pubKey = {},
+ *  signatureLen = 0,
+ *  signature = {}
  * }
  */
 static int ExVerifySignatureFunc(lua_State *L) {
     vector<std::shared_ptr<vector<unsigned char> > > retdata;
 
-    if (!GetDataTableVerifySignature(L, retdata) || retdata.size() != 3 || retdata.at(1).get()->size() != 33
-            || retdata.at(2).get()->size() != 32) {
+    if (!GetDataTableVerifySignature(L, retdata) || retdata.size() != 3 || retdata.at(1).get()->size() != 33) {
         return RetFalse(string(__FUNCTION__) + "para  err !");
     }
 
     CPubKey pk(retdata.at(1).get()->begin(), retdata.at(1).get()->end());
-    vector<unsigned char> vec_hash(retdata.at(2).get()->rbegin(), retdata.at(2).get()->rend());
-    uint256 hash(vec_hash);
-    auto tem = std::make_shared<std::vector<vector<unsigned char> > >();
+    vector<unsigned char> &signature = *retdata.at(2);
+    vector<unsigned char> &data = *retdata.at(0);
+    uint256 dataHash = Hash(data.begin(), data.end());
 
-    bool rlt = CheckSignScript(hash, *retdata.at(0), pk);
+    bool rlt = CheckSignScript(dataHash, signature, pk);
     if (!rlt) {
         LogPrint("INFO", "ExVerifySignatureFunc call CheckSignScript verify signature failed!\n");
     }

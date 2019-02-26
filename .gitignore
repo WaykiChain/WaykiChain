@@ -36,3 +36,7 @@ src/ptest/Makefile.in
 src/stamp-h1
 src/test/coin_test
 src/test/Makefile.in
+GPATH
+GRTAGS
+GTAGS
+tags
