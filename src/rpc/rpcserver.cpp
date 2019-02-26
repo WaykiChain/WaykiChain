@@ -344,7 +344,7 @@ CRPCTable::CRPCTable() {
     }
 }
 
-const CRPCCommand *CRPCTable::operator[](string name) const 
+const CRPCCommand *CRPCTable::operator[](string name) const
 {
     map<string, const CRPCCommand*>::const_iterator it = mapCommands.find(name);
     if (it == mapCommands.end())
@@ -354,13 +354,13 @@ const CRPCCommand *CRPCTable::operator[](string name) const
 }
 
 
-bool HTTPAuthorized(map<string, string>& mapHeaders) 
+bool HTTPAuthorized(map<string, string>& mapHeaders)
 {
     string strAuth = mapHeaders["authorization"];
     if (strAuth.substr(0,6) != "Basic ")
         return false;
 
-    string strUserPass64 = strAuth.substr(6); 
+    string strUserPass64 = strAuth.substr(6);
     boost::trim(strUserPass64);
     string strUserPass = DecodeBase64(strUserPass64);
     return TimingResistantEqual(strUserPass, strRPCUserColonPass);
@@ -516,7 +516,7 @@ void StartRPCThreads() {
     string rpcuser = SysCfg().GetArg("-rpcuser", "");
     string rpcpassword = SysCfg().GetArg("-rpcpassword", "");
     // RPC user/password required but empty or equal to each other
-    if (SysCfg().RequireRPCPassword() && (rpcuser == "" || rpcpassword == "" || rpcuser == rpcpassword)) {
+    if (SysCfg().RequireRPCPassword() && (rpcuser == "" || rpcuser == rpcpassword)) {
         unsigned char rand_pwd[32];
         RAND_bytes(rand_pwd, 32);
         string strWhatAmI = "To use coind";
@@ -748,7 +748,7 @@ static string JSONRPCExecBatch(const Array& vReq) {
     return write_string(Value(ret), false) + "\n";
 }
 
-void ServiceConnection(AcceptedConnection *conn) 
+void ServiceConnection(AcceptedConnection *conn)
 {
     bool fRun = true;
     bool authRequired = (SysCfg().GetArg("-rpcpassword", "") != "");
