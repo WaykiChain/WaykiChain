@@ -114,7 +114,7 @@ class CScriptDBView {
     virtual bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
     virtual bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb);
     virtual bool EraseKey(const vector<unsigned char> &vKey);
-    virtual bool HaveData(const vector<unsigned char> &vKey);
+    virtual bool HasData(const vector<unsigned char> &vKey);
     virtual bool GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);
     virtual bool GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
                                  vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
@@ -174,7 +174,7 @@ class CScriptDBViewCache : public CScriptDBViewBacked {
     bool EraseScript(const CRegID &scriptId);
     bool GetContractItemCount(const CRegID &scriptId, int &nCount);
     bool EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog);
-    bool HaveScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey);
+    bool HasScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey);
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
                          vector<unsigned char> &vScriptData);
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
