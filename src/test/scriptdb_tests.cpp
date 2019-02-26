@@ -288,7 +288,7 @@ void testscriptdatadb() {
 	BOOST_CHECK(pTestView->Flush());
 	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey1, vScriptData1, operlog));
 	//test if the script id is exist in db
-	BOOST_CHECK(pTestView->HaveScriptData(regScriptId, vScriptKey));
+	BOOST_CHECK(pTestView->HasScriptData(regScriptId, vScriptKey));
 	vScript.clear();
 
 

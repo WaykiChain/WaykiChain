@@ -289,7 +289,7 @@ class CScriptDBViewCache : public CScriptDBViewBacked {
      * @param vScriptKey must be 8 bytes
      * @return true if contains the item, otherwise false
      */
-    bool HaveScriptData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey);
+    bool HasScriptData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey);
     /**
      * @brief Get smart contract App data and valid height by scriptid and scriptkey
      * @param vScriptId

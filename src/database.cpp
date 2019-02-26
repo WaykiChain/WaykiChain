@@ -1219,7 +1219,7 @@ bool CScriptDBViewCache::SetContractData(const vector<unsigned char> &vScriptId,
     //	CDataStream ds(SER_DISK, CLIENT_VERSION);
     //	ds << vScriptData;
     vector<unsigned char> vValue(vScriptData.begin(), vScriptData.end());
-    if (!HaveScriptData(vScriptId, vScriptKey)) {
+    if (!HasScriptData(vScriptId, vScriptKey)) {
         int nCount(0);
         GetContractItemCount(vScriptId, nCount);
         ++nCount;
@@ -1384,8 +1384,8 @@ bool CScriptDBViewCache::GetContractItemCount(const CRegID &scriptId, int &nCoun
 bool CScriptDBViewCache::EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog) {
     return EraseAppData(scriptId.GetVec6(), vScriptKey, operLog);
 }
-bool CScriptDBViewCache::HaveScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey) {
-    return HaveScriptData(scriptId.GetVec6(), vScriptKey);
+bool CScriptDBViewCache::HasScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey) {
+    return HasScriptData(scriptId.GetVec6(), vScriptKey);
 }
 bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
                                          vector<unsigned char> &vScriptData) {
