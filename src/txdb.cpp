@@ -376,7 +376,7 @@ bool CScriptDB::BatchWrite(const map<vector<unsigned char>, vector<unsigned char
 bool CScriptDB::EraseKey(const vector<unsigned char> &vKey) {
     return db.Erase(vKey);
 }
-bool CScriptDB::HaveData(const vector<unsigned char> &vKey) {
+bool CScriptDB::HasData(const vector<unsigned char> &vKey) {
     return db.Exists(vKey);
 }
 bool CScriptDB::GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) {
@@ -394,7 +394,7 @@ bool CScriptDB::GetScript(const int &nIndex, vector<unsigned char> &vScriptId, v
         vector<char> vId(vScriptId.begin(), vScriptId.end());
         ssKeySet.insert(ssKeySet.end(), vId.begin(), vId.end());
         vector<unsigned char> vKey(ssKeySet.begin(), ssKeySet.end());
-        if (HaveData(vKey)) {  //判断传过来的key,数据库中是否已经存在
+        if (HasData(vKey)) {  //判断传过来的key,数据库中是否已经存在
             pcursor->Seek(ssKeySet.str());
             i = nIndex;
         } else {
@@ -455,7 +455,7 @@ bool CScriptDB::GetContractData(const int curBlockHeight, const vector<unsigned 
         vector<char> vsKey(vScriptKey.begin(), vScriptKey.end());
         ssKeySet.insert(ssKeySet.end(), vsKey.begin(), vsKey.end());
         vector<unsigned char> vKey(ssKeySet.begin(), ssKeySet.end());
-        if (HaveData(vKey)) {  //判断传过来的key,数据库中是否已经存在
+        if (HasData(vKey)) {  //判断传过来的key,数据库中是否已经存在
             pcursor->Seek(ssKeySet.str());
             i = nIndex;
         } else {

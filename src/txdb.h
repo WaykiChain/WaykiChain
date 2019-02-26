@@ -121,7 +121,7 @@ class CScriptDB : public CScriptDBView {
     bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
     bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb);
     bool EraseKey(const vector<unsigned char> &vKey);
-    bool HaveData(const vector<unsigned char> &vKey);
+    bool HasData(const vector<unsigned char> &vKey);
     bool GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);
     bool GetContractData(const int curBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
     int64_t GetDbCount() { return db.GetDbCount(); }
