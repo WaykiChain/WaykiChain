@@ -415,6 +415,7 @@ string CRegisterAccountTx::ToString(CAccountViewCache &view) const {
     txTypeArray[nTxType],GetHash().ToString().c_str(), nVersion, boost::get<CPubKey>(userId).ToString(), llFees, boost::get<CPubKey>(userId).GetKeyID().ToAddress(), nValidHeight);
     return str;
 }
+
 Object CRegisterAccountTx::ToJSON(const CAccountViewCache &AccountView) const{
     Object result;
 
@@ -651,7 +652,7 @@ string CTransaction::ToString(CAccountViewCache &view) const {
 Object CTransaction::ToJSON(const CAccountViewCache &AccountView) const{
     Object result;
     CAccountViewCache view(AccountView);
-    CKeyID keyid;
+
 
     auto getregidstring = [&](CUserID const &userId) {
         if(userId.type() == typeid(CRegID))
@@ -659,16 +660,17 @@ Object CTransaction::ToJSON(const CAccountViewCache &AccountView) const{
         return string(" ");
     };
 
-    view.GetKeyId(srcRegId, keyid);
-    view.GetKeyId(desUserId, keyid);
+    CKeyID srckeyid, desKeyId;
+    view.GetKeyId(srcRegId, srckeyid);
+    view.GetKeyId(desUserId, desKeyId);
 
     result.push_back(Pair("hash",       GetHash().GetHex()));
     result.push_back(Pair("txtype",     txTypeArray[nTxType]));
     result.push_back(Pair("ver",        nVersion));
     result.push_back(Pair("regid",      getregidstring(srcRegId)));
-    result.push_back(Pair("addr",       keyid.ToAddress()));
+    result.push_back(Pair("addr",       srckeyid.ToAddress()));
     result.push_back(Pair("desregid",   getregidstring(desUserId)));
-    result.push_back(Pair("desaddr",    keyid.ToAddress()));
+    result.push_back(Pair("desaddr",    desKeyId.ToAddress()));
     result.push_back(Pair("money",      llValues));
     result.push_back(Pair("fees",       llFees));
     result.push_back(Pair("height",     nValidHeight));
@@ -959,12 +961,14 @@ string CRegisterContractTx::ToString(CAccountViewCache &view) const {
 Object CRegisterContractTx::ToJSON(const CAccountViewCache &AccountView) const{
     Object result;
     CAccountViewCache view(AccountView);
+
     CKeyID keyid;
+    view.GetKeyId(regAcctId, keyid);
+
     result.push_back(Pair("hash", GetHash().GetHex()));
     result.push_back(Pair("txtype", txTypeArray[nTxType]));
     result.push_back(Pair("ver", nVersion));
     result.push_back(Pair("regid",  boost::get<CRegID>(regAcctId).ToString()));
-    view.GetKeyId(regAcctId, keyid);
     result.push_back(Pair("addr", keyid.ToAddress()));
     result.push_back(Pair("script", "script_content"));
     result.push_back(Pair("fees", llFees));

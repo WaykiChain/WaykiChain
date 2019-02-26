@@ -121,6 +121,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
     }
     return obj;
 }
+
 Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
 {
     Array arrayDetail;
@@ -364,19 +365,18 @@ Value gettxdetail(const Array& params, bool fHelp) {
 
 //create a register account tx
 Value registeraccounttx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() == 0) {
-           throw runtime_error("registeraccounttx \"addr\" (\"fee\")\n"
-                "\nregister secure account\n"
-                "\nArguments:\n"
-                "1.addr: (string, required)\n"
-                "2.fee: (numeric, optional) pay tx fees to miner\n"
-                "\nResult:\n"
-                "\"txhash\": (string)\n"
-                "\nExamples:\n"
-                + HelpExampleCli("registeraccounttx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 ")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("registeraccounttx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 "));
-    }
+    if (fHelp || params.size() == 0)
+        throw runtime_error("registeraccounttx \"addr\" (\"fee\")\n"
+            "\nregister secure account\n"
+            "\nArguments:\n"
+            "1.addr: (string, required)\n"
+            "2.fee: (numeric, optional) pay tx fees to miner\n"
+            "\nResult:\n"
+            "\"txhash\": (string)\n"
+            "\nExamples:\n"
+            + HelpExampleCli("registeraccounttx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 ")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("registeraccounttx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 "));
 
     string addr = params[0].get_str();
     uint64_t fee = 0;
