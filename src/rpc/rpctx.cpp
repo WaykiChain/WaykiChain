@@ -587,7 +587,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
 
     string luaScriptFilePath = params[1].get_str();
-    if (luaScriptFilePath.find("//tmp//lua") != std::string::npos)
+    if (luaScriptFilePath.find("/tmp/lua") == std::string::npos)
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir!");
 
     std::tuple<bool, string> result = CVmlua::CheckScriptSyntax(luaScriptFilePath.c_str());
