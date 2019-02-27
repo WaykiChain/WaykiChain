@@ -649,27 +649,26 @@ string CTransaction::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CTransaction::ToJSON(const CAccountViewCache &AccountView) const{
+Object CTransaction::ToJSON(const CAccountViewCache &AccountView) const {
     Object result;
     CAccountViewCache view(AccountView);
 
-
-    auto getregidstring = [&](CUserID const &userId) {
-        if(userId.type() == typeid(CRegID))
+    auto GetRegIdString = [&](CUserID const &userId) {
+        if (userId.type() == typeid(CRegID))
             return boost::get<CRegID>(userId).ToString();
         return string(" ");
     };
 
-    CKeyID srckeyid, desKeyId;
-    view.GetKeyId(srcRegId, srckeyid);
+    CKeyID srcKeyId, desKeyId;
+    view.GetKeyId(srcRegId, srcKeyId);
     view.GetKeyId(desUserId, desKeyId);
 
     result.push_back(Pair("hash",       GetHash().GetHex()));
     result.push_back(Pair("txtype",     txTypeArray[nTxType]));
     result.push_back(Pair("ver",        nVersion));
-    result.push_back(Pair("regid",      getregidstring(srcRegId)));
-    result.push_back(Pair("addr",       srckeyid.ToAddress()));
-    result.push_back(Pair("desregid",   getregidstring(desUserId)));
+    result.push_back(Pair("regid",      GetRegIdString(srcRegId)));
+    result.push_back(Pair("addr",       srcKeyId.ToAddress()));
+    result.push_back(Pair("desregid",   GetRegIdString(desUserId)));
     result.push_back(Pair("desaddr",    desKeyId.ToAddress()));
     result.push_back(Pair("money",      llValues));
     result.push_back(Pair("fees",       llFees));
