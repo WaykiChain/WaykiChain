@@ -3751,7 +3751,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv) 
         std::shared_ptr<CBaseTransaction> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
 
         if (REWARD_TX == pBaseTx->nTxType)
-            return ERRORMSG("reward tx can't be transfer in network,Hex:%s", HexStr(vRecv.begin(), vRecv.end()));
+            return ERRORMSG("reward tx NOT accepted in network transfer. Hex:%s", HexStr(vRecv.begin(), vRecv.end()));
 
         vRecv >> pBaseTx;
 
