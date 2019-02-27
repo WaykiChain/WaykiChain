@@ -937,11 +937,15 @@ void ClearDatadirCache() {
 }
 
 boost::filesystem::path GetConfigFile() {
-	
 	boost::filesystem::path pathConfigFile(	CBaseParams::GetArg("-conf", IniCfg().GetCoinName()+".conf"));
 	if (!pathConfigFile.is_complete())
 		pathConfigFile = GetDataDir(false) / pathConfigFile;
 	return pathConfigFile;
+}
+
+boost::filesystem::path GetAbsolutePath(const string &path) {
+    boost::system::error_code ec;
+    return canonical(boost::filesystem::path(path), ec);
 }
 
 void ReadConfigFile(map<string, string>& mapSettingsRet, map<string, vector<string> >& mapMultiSettingsRet) {

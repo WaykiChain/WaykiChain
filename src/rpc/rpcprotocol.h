@@ -74,8 +74,8 @@ enum RPCErrorCode
     RPC_WALLET_ENCRYPTION_FAILED    = -16, // Failed to encrypt the wallet
     RPC_WALLET_ALREADY_UNLOCKED     = -17, // Wallet is already unlocked
 
-    RPC_SCRIPT_FILEPATH_INVALID     = -18  // Register contract script file not inside /tmp/lua dir
-
+    RPC_SCRIPT_FILEPATH_INVALID     = -18, // Register contract script file not inside /tmp/lua dir
+    RPC_SCRIPT_FILEPATH_NOT_EXIST   = -19, // Register contract script file not exist
 };
 
 //
