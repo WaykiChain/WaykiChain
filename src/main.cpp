@@ -1272,7 +1272,6 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &
         return ERRORMSG("DisconnectBlock() : block and undo data inconsistent");
 
     //    LogPrint("INFO","height= %d\n,%s", pindex->nHeight,blockUndo.ToString());
-
     //    int64_t llTime = GetTimeMillis();
     CTxUndo txundo;
     if (pindex->nHeight - COINBASE_MATURITY > 0) {

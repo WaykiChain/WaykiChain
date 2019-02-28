@@ -734,13 +734,11 @@ bool CRewardTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
     }
 //  LogPrint("op_account", "before operate:%s\n", acctInfo.ToString());
     CAccountLog acctInfoLog(acctInfo);
-    if(0 == nIndex) {   //current block reward tx, need to clear coindays
+    if (0 == nIndex) {   //current block reward tx, need to clear coindays
 //      acctInfo.ClearAccPos(nHeight);
-    }
-    else if(-1 == nIndex){ //maturity reward tx,only update values
+    } else if (-1 == nIndex) { //maturity reward tx,only update values
         acctInfo.llValues += rewardValue;
-    }
-    else {  //never go into this step
+    } else {  //never go into this step
         return ERRORMSG("nIndex type error!");
 //      assert(0);
     }
