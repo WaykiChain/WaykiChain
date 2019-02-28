@@ -367,7 +367,7 @@ Value gettxdetail(const Array& params, bool fHelp) {
 Value registeraccounttx(const Array& params, bool fHelp) {
     if (fHelp || params.size() == 0)
         throw runtime_error("registeraccounttx \"addr\" (\"fee\")\n"
-            "\nregister secure account\n"
+            "\nregister local account public key to get its RegId\n"
             "\nArguments:\n"
             "1.addr: (string, required)\n"
             "2.fee: (numeric, optional) pay tx fees to miner\n"
