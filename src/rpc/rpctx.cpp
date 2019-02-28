@@ -388,13 +388,15 @@ Value registeraccounttx(const Array& params, bool fHelp) {
             sprintf(errorMsg, "input fee smaller than mintxfee: %ld sawi", nDefaultFee);
             throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);
         }
+    } else {
+        fee = nDefaultFee;
     }
 
     //get keyid
     CKeyID keyid;
-    if (!GetKeyId(addr, keyid)) {
+    if (!GetKeyId(addr, keyid))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in registeraccounttx: Address invalid.");
-    }
+
     CRegisterAccountTx rtx;
     assert(pwalletMain != NULL);
     {
@@ -406,13 +408,13 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         CAccount account;
 
         CUserID userId = keyid;
-        if (!view.GetAccount(userId, account)) {
+        if (!view.GetAccount(userId, account))
             throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account does not exist.");
-        }
 
-        if (account.IsRegistered()) {
+
+        if (account.IsRegistered())
             throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account was already registered.");
-        }
+
         uint64_t balance = account.GetRawBalance();
         if (balance < fee) {
             LogPrint("ERROR", "balance=%d, vs fee=%d", balance, fee);
@@ -420,9 +422,8 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         }
 
         CPubKey pubkey;
-        if (!pwalletMain->GetPubKey(keyid, pubkey)) {
+        if (!pwalletMain->GetPubKey(keyid, pubkey))
             throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: local wallet key not found.");
-        }
 
         CPubKey MinerPKey;
         if (pwalletMain->GetPubKey(keyid, MinerPKey, true)) {
@@ -435,16 +436,15 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         rtx.llFees = fee;
         rtx.nValidHeight = chainActive.Tip()->nHeight;
 
-        if (!pwalletMain->Sign(keyid, rtx.SignatureHash(), rtx.signature)) {
+        if (!pwalletMain->Sign(keyid, rtx.SignatureHash(), rtx.signature))
             throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Sign failed.");
-        }
     }
 
     std::tuple<bool, string> ret;
     ret = pwalletMain->CommitTransaction((CBaseTransaction *) &rtx);
-    if (!std::get<0>(ret)) {
+    if (!std::get<0>(ret))
         throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: " + std::get<1>(ret));
-    }
+
     Object obj;
     obj.push_back(Pair("hash", std::get<1>(ret)));
     return obj;
