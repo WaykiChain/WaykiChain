@@ -510,7 +510,7 @@ public:
         nVersion = this->nVersion;
         CID acctId(account);
         READWRITE(acctId);
-        if(fRead) {
+        if (fRead) {
             account = acctId.GetUserId();
         }
         READWRITE(VARINT(rewardValue));
@@ -689,8 +689,8 @@ public:
 
     uint256 SignatureHash() const {
         CHashWriter ss(SER_GETHASH, 0);
-        CID regAccId(userId);
-        ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << regAccId << operVoteFunds << VARINT(llFees);
+        CID accId(userId);
+        ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << accId << operVoteFunds << VARINT(llFees);
         return ss.GetHash();
     }
 

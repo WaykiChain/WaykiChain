@@ -16,22 +16,13 @@
 #include <memory>
 #include "configuration.h"
 
-/** No amount larger than this (in satoshi) is valid */
+/** No amount larger than this (in sawi) is valid */
 static const int64_t MAX_MONEY = IniCfg().GetCoinInitValue() * COIN;
 static const int64_t MAX_MONEY_REG_NET = 5 * MAX_MONEY;
-
-
 static const int g_BlockVersion = 1;
 
+inline int64_t GetMaxMoney() { return (SysCfg().NetworkID() == REGTEST_NET ? MAX_MONEY_REG_NET : MAX_MONEY); }
 
-inline int64_t GetMaxMoney()
-{
-	if(SysCfg().NetworkID() == REGTEST_NET) {
-		return MAX_MONEY_REG_NET;
-	} else {
-		return MAX_MONEY;
-	}
-}
 inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= GetMaxMoney()); }
 
 class CAccountViewCache;
