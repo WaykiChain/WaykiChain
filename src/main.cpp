@@ -1365,8 +1365,6 @@ void static FlushBlockFile(bool fFinalize = false) {
 
 bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigned int nAddSize);
 
-//static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
-
 bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pindex,
                   CTransactionDBCache &txCache, CScriptDBViewCache &scriptDBCache, bool fJustCheck) {
     AssertLockHeld(cs_main);

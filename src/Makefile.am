@@ -16,7 +16,6 @@ if BUILD_BITCOIND
   bin_PROGRAMS += coind
 endif
 
-
 SUBDIRS = . $(BUILD_QT) $(BUILD_P_TEST) $(BUILD_TEST)
 #DIST_SUBDIRS = . qt test
 DIST_SUBDIRS = . test ptest
@@ -29,7 +28,6 @@ coin_CORE_H = \
   base58.h bignum.h \
   bloom.h \
   chainparams.h \
-  checkqueue.h \
   clientversion.h \
   compat\compat.h \
   core.h \
@@ -64,9 +62,10 @@ coin_CORE_H = \
   util.h \
   version.h \
   wallet/wallet.h \
-  wallet/db.h  \
-  arith_uint256.h 
-  configuration.h \
+  wallet/db.h \
+  arith_uint256.h \
+  configuration.h
+
 JSON_H = \
   json/json_spirit.h \
   json/json_spirit_error_position.h \
@@ -77,54 +76,50 @@ JSON_H = \
   json/json_spirit_value.h \
   json/json_spirit_writer.h \
   json/json_spirit_writer_template.h
-  
+
 # VmScript #
 # VmScript #
 VMLUA_H = \
-	vm/lua/lapi.h \
-	vm/lua/lauxlib.h \
-	vm/lua/lcode.h \
-	vm/lua/lctype.h \
-	vm/lua/ldebug.h \
-	vm/lua/ldo.h \
-	vm/lua/lfunc.h \
-	vm/lua/lgc.h \
-    vm/lua/llex.h \
-	vm/lua/llimits.h \
-	vm/lua/lmem.h \
-	vm/lua/lobject.h \
-	vm/lua/lopcodes.h \
-	vm/lua/lparser.h \
-	vm/lua/lprefix.h \
-	vm/lua/lstate.h \
-	vm/lua/lstring.h \
-	vm/lua/ltable.h \
-	vm/lua/ltm.h \
-	vm/lua/lua.h \
-	vm/lua/lua.hpp \
-	vm/lua/luaconf.h \
-	vm/lua/lualib.h \
-	vm/lua/lundump.h \
-	vm/lua/lvm.h \
-	vm/lua/lzio.h 	
+  vm/lua/lapi.h \
+  vm/lua/lauxlib.h \
+  vm/lua/lcode.h \
+  vm/lua/lctype.h \
+  vm/lua/ldebug.h \
+  vm/lua/ldo.h \
+  vm/lua/lfunc.h \
+  vm/lua/lgc.h \
+  vm/lua/llex.h \
+  vm/lua/llimits.h \
+  vm/lua/lmem.h \
+  vm/lua/lobject.h \
+  vm/lua/lopcodes.h \
+  vm/lua/lparser.h \
+  vm/lua/lprefix.h \
+  vm/lua/lstate.h \
+  vm/lua/lstring.h \
+  vm/lua/ltable.h \
+  vm/lua/ltm.h \
+  vm/lua/lua.h \
+  vm/lua/lua.hpp \
+  vm/lua/luaconf.h \
+  vm/lua/lualib.h \
+  vm/lua/lundump.h \
+  vm/lua/lvm.h \
+  vm/lua/lzio.h
 
-	
 VM_H = \
-	vm/vmrunevn.h \
-	vm/script.h \
-	vm/appaccount.h \
-	vm/vmlua.h
-	
+  vm/vmrunevn.h \
+  vm/script.h \
+  vm/appaccount.h \
+  vm/vmlua.h
+
 
 VM_CPP = \
-	vm/vmrunevn.cpp \
-	vm/script.cpp \
-	vm/appaccount.cpp \
-	vm/lmylib.cpp \
-	vm/vmlua.cpp 
-	
-	
-  
+  vm/vmrunevn.cpp \
+  vm/script.cpp \
+  vm/appaccount.cpp \
+  vm/lmylib.cpp \
+  vm/vmlua.cpp
 
 obj/build.h: FORCE
 	@$(MKDIR_P) $(abs_top_builddir)/src/obj
@@ -230,8 +225,6 @@ endif
 AM_CPPFLAGS += $(BDB_CPPFLAGS)
 coind_LDADD += $(BOOST_LIBS) $(BDB_LIBS)
 
-
-
 # NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
 leveldb/libleveldb.a: leveldb/libmemenv.a
 
@@ -244,7 +237,6 @@ qt/bitcoinstrings.cpp: $(libcoin_server_a_SOURCES) $(libcoin_common_a_SOURCES) $
 	@test -n $(XGETTEXT) || echo "xgettext is required for updating translations"
 	@cd $(top_srcdir); XGETTEXT=$(XGETTEXT) share/qt/extract_strings_qt.py
 
-#
 #CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
 CLEANFILES =  *.gcda *.gcno
 #
