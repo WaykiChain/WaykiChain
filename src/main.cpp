@@ -585,20 +585,21 @@ bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> si
 
     if (!pubKey.Verify(sigHash, signature))
         return false;
+
     signatureCache.Set(sigHash, signature, pubKey);
     return true;
 }
 
 bool CheckTransaction(CBaseTransaction *ptx, CValidationState &state, CAccountViewCache &view,
-                      CScriptDBViewCache &scriptDB) {
+                      CScriptDBViewCache &scriptDB)
+{
     if (REWARD_TX == ptx->nTxType)
         return true;
 
     // Size limits
-    if (::GetSerializeSize(ptx->GetNewInstance(), SER_NETWORK,
-                           PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
+    if (::GetSerializeSize(ptx->GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return state.DoS(100, ERRORMSG("CheckTransaction() : size limits failed"),
-                         REJECT_INVALID, "bad-txns-oversize");
+            REJECT_INVALID, "bad-txns-oversize");
 
     if (!ptx->CheckTransaction(state, view, scriptDB))
         return false;
@@ -621,40 +622,37 @@ int64_t GetMinRelayFee(const CBaseTransaction *pBaseTx, unsigned int nBytes, boo
 
     if (!MoneyRange(nMinFee))
         nMinFee = GetMaxMoney();
+
     return nMinFee;
 }
 
 bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTransaction *pBaseTx,
-                        bool fLimitFree, bool fRejectInsaneFee) {
+                        bool fLimitFree, bool fRejectInsaneFee)
+{
     AssertLockHeld(cs_main);
 
     // is it already in the memory pool?
     uint256 hash = pBaseTx->GetHash();
     if (pool.exists(hash))
         return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] already in mempool",
-                                      hash.GetHex()),
-                             REJECT_INVALID, "tx-already-in-mempool");
+            hash.GetHex()), REJECT_INVALID, "tx-already-in-mempool");
 
     // is it already confirmed in block?
     if (uint256() != pTxCacheTip->IsContainTx(hash))
         return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] has been confirmed",
-                                      hash.GetHex()),
-                             REJECT_INVALID, "tx-duplicate-confirmed");
+            hash.GetHex()), REJECT_INVALID, "tx-duplicate-confirmed");
 
-    // is it a coinbase tx?
+    // is it a miner reward tx?
     if (pBaseTx->IsCoinBase())
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] is a coinbase tx, can't put into mempool",
-                                      hash.GetHex()),
-                             REJECT_INVALID, "tx-coinbase-to-mempool");
+        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] is a miner reward tx, can't put into mempool",
+            hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
 
     // is it within a valid height (+/- 250 of tip height)?
     unsigned int currHeight = chainActive.Tip()->nHeight;
-    int txCacheHeight       = SysCfg().GetTxCacheHeight();  //500
-    if (!pBaseTx->IsValidHeight(currHeight, txCacheHeight)) {
+    int txCacheHeight = SysCfg().GetTxCacheHeight();  //500
+    if (!pBaseTx->IsValidHeight(currHeight, txCacheHeight))
         return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] beyond the scope of valid height: %d",
-                                      hash.GetHex(), currHeight),
-                             REJECT_INVALID, "tx-invalid-height");
-    }
+            hash.GetHex(), currHeight), REJECT_INVALID, "tx-invalid-height");
 
     if (!CheckTransaction(pBaseTx, state, *pool.pAccountViewCache, *pool.pScriptDBViewCache))
         return ERRORMSG("AcceptToMemoryPool: CheckTransaction failed");
@@ -663,7 +661,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTransact
     string reason;
     if (SysCfg().NetworkID() == MAIN_NET && !IsStandardTx(pBaseTx, reason))
         return state.DoS(0, ERRORMSG("AcceptToMemoryPool : nonstandard transaction: %s", reason),
-                         REJECT_NONSTANDARD, reason);
+            REJECT_NONSTANDARD, reason);
 
     {
         double dPriority = pBaseTx->GetPriority();
@@ -674,16 +672,15 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTransact
 
         if (pBaseTx->nTxType == COMMON_TX) {
             CTransaction *pTx = static_cast<CTransaction *>(pBaseTx);
-            if (pTx->llValues < CBaseTransaction::nMinTxFee) {
-                return state.DoS(0, ERRORMSG("AcceptToMemoryPool : tx %d transfer amount(%d) too small, you must send a min (%d)", hash.ToString(), pTx->llValues, CBaseTransaction::nMinTxFee), REJECT_DUST, "dust amount");
-            }
+            if (pTx->llValues < CBaseTransaction::nMinTxFee)
+                return state.DoS(0, ERRORMSG("AcceptToMemoryPool : common tx %d transfer amount(%d) too small, you must send a min (%d)",
+                    hash.ToString(), pTx->llValues, CBaseTransaction::nMinTxFee), REJECT_DUST, "dust amount");
         }
 
-        // Don't accept it if it can't get into a block
         int64_t txMinFee = GetMinRelayFee(pBaseTx, nSize, true);
         if (fLimitFree && nFees < txMinFee)
             return state.DoS(0, ERRORMSG("AcceptToMemoryPool : not enough fees %s, %d < %d", hash.ToString(), nFees, txMinFee),
-                             REJECT_INSUFFICIENTFEE, "insufficient fee");
+                REJECT_INSUFFICIENTFEE, "insufficient fee");
 
         // Continuously rate-limit free transactions
         // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
@@ -702,20 +699,19 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTransact
             // At default rate it would take over a month to fill 1GB
             if (dFreeCount >= SysCfg().GetArg("-limitfreerelay", 15) * 10 * 1000 / 60)
                 return state.DoS(0, ERRORMSG("AcceptToMemoryPool : free transaction rejected by rate limiter"),
-                                 REJECT_INSUFFICIENTFEE, "insufficient priority");
+                    REJECT_INSUFFICIENTFEE, "insufficient priority");
+
             LogPrint("INFO", "Rate limit dFreeCount: %g => %g\n", dFreeCount, dFreeCount + nSize);
             dFreeCount += nSize;
         }
 
         if (fRejectInsaneFee && nFees > SysCfg().GetMaxFee())
             return ERRORMSG("AcceptToMemoryPool: : insane fees %s, %d > %d",
-                            hash.ToString(),
-                            nFees, SysCfg().GetMaxFee());
+                hash.ToString(), nFees, SysCfg().GetMaxFee());
 
         // Store transaction in memory
         if (!pool.addUnchecked(hash, entry, state))
-            return ERRORMSG("AcceptToMemoryPool: : addUnchecked failed hash:%s \r\n",
-                            hash.ToString());
+            return ERRORMSG("AcceptToMemoryPool: : addUnchecked failed hash:%s \r\n", hash.ToString());
     }
 
     g_signals.SyncTransaction(hash, pBaseTx, NULL);
@@ -2244,6 +2240,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
 
         if (fCheckTx && !CheckTransaction(block.vptx[i].get(), state, view, scriptDBCache))
             return ERRORMSG("CheckBlock() :tx hash:%s CheckTransaction failed", block.vptx[i]->GetHash().GetHex());
+
         if (block.GetHash() != SysCfg().HashGenesisBlock()) {
             if (0 != i && block.vptx[i]->IsCoinBase())
                 return state.DoS(100, ERRORMSG("CheckBlock() : more than one coinbase"), REJECT_INVALID, "bad-cb-multiple");
@@ -3766,18 +3763,19 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv) 
             vEraseQueue.push_back(inv.hash);
 
             LogPrint("INFO", "AcceptToMemoryPool: %s %s : accepted %s (poolsz %u)\n",
-                     pfrom->addr.ToString(), pfrom->cleanSubVer,
-                     pBaseTx->GetHash().ToString(),
-                     mempool.mapTx.size());
+                pfrom->addr.ToString(), pfrom->cleanSubVer,
+                pBaseTx->GetHash().ToString(),
+                mempool.mapTx.size());
         }
 
         int nDoS = 0;
         if (state.IsInvalid(nDoS)) {
             LogPrint("INFO", "%s from %s %s was not accepted into the memory pool: %s\n",
-                     pBaseTx->GetHash().ToString(),
-                     pfrom->addr.ToString(),
-                     pfrom->cleanSubVer,
-                     state.GetRejectReason());
+                pBaseTx->GetHash().ToString(),
+                pfrom->addr.ToString(),
+                pfrom->cleanSubVer,
+                state.GetRejectReason());
+
             pfrom->PushMessage("reject", strCommand, state.GetRejectCode(), state.GetRejectReason(), inv.hash);
             //          if (nDoS > 0) {
             //              LogPrint("INFO", "Misebehaving, add to tx hash %s mempool error, Misbehavior add %d",  pBaseTx->GetHash().GetHex(), nDoS);

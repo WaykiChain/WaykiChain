@@ -297,7 +297,8 @@ void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
 }
 
 bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionDBCache &txCache,
-                 CScriptDBViewCache &scriptCache, bool bNeedRunTx) {
+                 CScriptDBViewCache &scriptCache, bool bNeedRunTx)
+{
     uint64_t maxNonce = SysCfg().GetBlockMaxNonce();
     vector<CAccount> vDelegatesAcctList;
 
@@ -307,17 +308,14 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
     ShuffleDelegates(pBlock->GetHeight(), vDelegatesAcctList);
 
     CAccount curDelegate;
-    if (!GetCurrentDelegate(pBlock->GetTime(), vDelegatesAcctList, curDelegate)) {
+    if (!GetCurrentDelegate(pBlock->GetTime(), vDelegatesAcctList, curDelegate))
         return false;
-    }
 
-    if (pBlock->GetNonce() > maxNonce) {
+    if (pBlock->GetNonce() > maxNonce)
         return ERRORMSG("Nonce is larger than maxNonce");
-    }
 
-    if (pBlock->GetHashMerkleRoot() != pBlock->BuildMerkleTree()) {
+    if (pBlock->GetHashMerkleRoot() != pBlock->BuildMerkleTree())
         return ERRORMSG("hashMerkleRoot is error");
-    }
 
     CAccountViewCache view(accView, true);
     CScriptDBViewCache scriptDBView(scriptCache, true);
@@ -330,76 +328,73 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
 
         CAccount preDelegate;
         CRewardTransaction *preBlockRewardTx = (CRewardTransaction *)preBlock.vptx[0].get();
-        if (!view.GetAccount(preBlockRewardTx->account, preDelegate)) {
+        if (!view.GetAccount(preBlockRewardTx->account, preDelegate))
             return ERRORMSG("get preblock delegate account info error");
-        }
+
         if (pBlock->GetBlockTime() - preBlock.GetBlockTime() < SysCfg().GetTargetSpacing()) {
-            if (preDelegate.regID == curDelegate.regID) {
+            if (preDelegate.regID == curDelegate.regID)
                 return ERRORMSG("one delegate can't produce more than one block at the same slot");
-            }
         }
     }
+
     CAccount account;
     CRewardTransaction *prtx = (CRewardTransaction *)pBlock->vptx[0].get();
     if (view.GetAccount(prtx->account, account)) {
         if (curDelegate.regID != account.regID) {
             return ERRORMSG("Verify delegate account error, delegate regid=%s vs reward regid=%s!",
-                            curDelegate.regID.ToString(), account.regID.ToString());
-            ;
+                curDelegate.regID.ToString(), account.regID.ToString());
         }
 
-        if (!CheckSignScript(pBlock->SignatureHash(), pBlock->GetSignature(), account.PublicKey)) {
-            if (!CheckSignScript(pBlock->SignatureHash(), pBlock->GetSignature(), account.MinerPKey)) {
+        if (!CheckSignScript(pBlock->SignatureHash(), pBlock->GetSignature(), account.PublicKey))
+            if (!CheckSignScript(pBlock->SignatureHash(), pBlock->GetSignature(), account.MinerPKey))
                 return ERRORMSG("Verify miner publickey signature error");
-            }
-        }
     } else {
-        return ERRORMSG("AccountView have no the accountid");
+        return ERRORMSG("AccountView has no accountid");
     }
 
-    if (prtx->nVersion != nTxVersion1) {
+    if (prtx->nVersion != nTxVersion1)
         return ERRORMSG("CTransaction CheckTransaction,tx version is not equal current version, (tx version %d: vs current %d)",
-                        prtx->nVersion, nTxVersion1);
-    }
+            prtx->nVersion, nTxVersion1);
 
     if (bNeedRunTx) {
         int64_t nTotalFuel(0);
         uint64_t nTotalRunStep(0);
         for (unsigned int i = 1; i < pBlock->vptx.size(); i++) {
             shared_ptr<CBaseTransaction> pBaseTx = pBlock->vptx[i];
-            if (uint256() != txCache.IsContainTx(pBaseTx->GetHash())) {
+            if (uint256() != txCache.IsContainTx(pBaseTx->GetHash()))
                 return ERRORMSG("VerifyPosTx duplicate tx hash:%s", pBaseTx->GetHash().GetHex());
-            }
+
             CTxUndo txundo;
             CValidationState state;
-            if (CONTRACT_TX == pBaseTx->nTxType) {
+            if (CONTRACT_TX == pBaseTx->nTxType)
                 LogPrint("vm", "tx hash=%s VerifyPosTx run contract\n", pBaseTx->GetHash().GetHex());
-            }
+
             pBaseTx->nFuelRate = pBlock->GetFuelRate();
-            if (!pBaseTx->ExecuteTx(i, view, state, txundo, pBlock->GetHeight(), txCache, scriptDBView)) {
+            if (!pBaseTx->ExecuteTx(i, view, state, txundo, pBlock->GetHeight(), txCache, scriptDBView))
                 return ERRORMSG("transaction UpdateAccount account error");
-            }
+
             nTotalRunStep += pBaseTx->nRunStep;
-            if (nTotalRunStep > MAX_BLOCK_RUN_STEP) {
+            if (nTotalRunStep > MAX_BLOCK_RUN_STEP)
                 return ERRORMSG("block total run steps exceed max run step");
-            }
 
             nTotalFuel += pBaseTx->GetFuel(pBlock->GetFuelRate());
             LogPrint("fuel", "VerifyPosTx total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txhash:%s \n", nTotalFuel, pBaseTx->GetFuel(pBlock->GetFuelRate()), pBaseTx->nRunStep, pBlock->GetFuelRate(), pBaseTx->GetHash().GetHex());
         }
 
-        if (nTotalFuel != pBlock->GetFuel()) {
+        if (nTotalFuel != pBlock->GetFuel())
             return ERRORMSG("fuel value at block header calculate error");
-        }
     }
+
     return true;
 }
 
-CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache) {
+CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache)
+{
     // Create new block
     auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
     if (!pblocktemplate.get())
         return NULL;
+
     CBlock *pblock = &pblocktemplate->block;  // pointer for convenience
 
     // Create coinbase tx

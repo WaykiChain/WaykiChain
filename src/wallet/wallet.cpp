@@ -413,6 +413,7 @@ void CWallet::ResendWalletTransactions() {
 std::tuple<bool, string> CWallet::CommitTransaction(CBaseTransaction *pTx) {
     LOCK2(cs_main, cs_wallet);
     LogPrint("INFO", "CommitTransaction() : %s", pTx->ToString(*pAccountViewTip));
+
     {
         CValidationState state;
         if (!::AcceptToMemoryPool(mempool, state, pTx, true)) {
@@ -421,11 +422,13 @@ std::tuple<bool, string> CWallet::CommitTransaction(CBaseTransaction *pTx) {
             return std::make_tuple (false,state.GetRejectReason());
         }
     }
+
     uint256 txhash = pTx->GetHash();
     UnConfirmTx[txhash] = pTx->GetNewInstance();
     bool flag =  CWalletDB(strWalletFile).WriteUnComFirmedTx(txhash,UnConfirmTx[txhash]);
     ::RelayTransaction(pTx, txhash);
-    return std::make_tuple (flag,txhash.ToString());
+
+    return std::make_tuple (flag, txhash.ToString());
 }
 
 DBErrors CWallet::LoadWallet(bool fFirstRunRet) {
@@ -726,7 +729,7 @@ bool CWallet::IsMine(CBaseTransaction* pTx) const{
     return false;
 }
 
-bool CWallet::CleanAll() 
+bool CWallet::CleanAll()
 {
     for_each(UnConfirmTx.begin(), UnConfirmTx.end(),
             [&](std::map<uint256, std::shared_ptr<CBaseTransaction> >::reference a) {
@@ -752,7 +755,7 @@ bool CWallet::CleanAll()
     return true;
 }
 
-bool CWallet::Sign(const CKeyID &keyId, const uint256 &hash, vector<unsigned char> &signature, bool IsMiner) const 
+bool CWallet::Sign(const CKeyID &keyId, const uint256 &hash, vector<unsigned char> &signature, bool IsMiner) const
 {
     CKey key;
     if (GetKey(keyId, key, IsMiner)) {
@@ -792,7 +795,7 @@ bool CWallet::AddKey(const CKey& key,const CKey& minerKey)
 {
     if ((!key.IsValid()) || (!minerKey.IsValid()))
         return false;
-        
+
     CKeyCombi keyCombi(key, minerKey, nWalletVersion);
     return AddKey(key.GetPubKey().GetKeyID(), keyCombi);
 }
@@ -809,7 +812,7 @@ bool CWallet::AddKey(const CKeyID &KeyId, const CKeyCombi& keyCombi)
 
     if(!CWalletDB(strWalletFile).WriteKeyStoreValue(KeyId, keyCombi, nWalletVersion))
         return false;
-    
+
     return CCryptoKeyStore::AddKeyCombi(KeyId, keyCombi);
 }
 
@@ -865,5 +868,3 @@ int CWallet::GetVersion() {
     LOCK(cs_wallet);
     return nWalletVersion;
 }
-
-

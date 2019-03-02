@@ -2301,9 +2301,9 @@ Value submittx(const Array& params, bool fHelp) {
     stream >> tx;
     std::tuple<bool, string> ret;
     ret = pwalletMain->CommitTransaction((CBaseTransaction *) tx.get());
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "submittx Error:" + std::get<1>(ret));
-    }
+    if (!std::get<0>(ret))
+        throw JSONRPCError(RPC_WALLET_ERROR, "submittx error: " + std::get<1>(ret));
+
     Object obj;
     obj.push_back(Pair("hash", std::get<1>(ret)));
     return obj;
@@ -2752,9 +2752,8 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
     }
 
     string strAppRegId = params[0].get_str();
-    if (!CRegID::IsSimpleRegIdStr(strAppRegId)) {
+    if (!CRegID::IsSimpleRegIdStr(strAppRegId))
         throw runtime_error("getcontractaccountinfo: invalid contract regid: " + strAppRegId);
-    }
 
     CRegID appRegId(strAppRegId);
     vector<unsigned char> acctKey;
@@ -2772,7 +2771,7 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
         if (!contractScriptTemp.GetScriptAcc(appRegId, acctKey, *tem.get())) {
             tem = std::make_shared<CAppUserAccount>(acctKey);
         }
-    }else {
+    } else {
         CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
         if (!contractScriptTemp.GetScriptAcc(appRegId, acctKey, *tem.get())) {
             tem = std::make_shared<CAppUserAccount>(acctKey);

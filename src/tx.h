@@ -422,7 +422,7 @@ public:
         READWRITE(VARINT(llValues));
         READWRITE(vContract);
         READWRITE(signature);
-        if(fRead) {
+        if (fRead) {
             srcRegId = srcId.GetUserId();
             desUserId = desId.GetUserId();
         }
