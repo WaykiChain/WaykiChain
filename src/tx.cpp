@@ -300,28 +300,31 @@ uint64_t CBaseTransaction::GetFuel(int nfuelRate) {
     return llFuel;
 }
 
-int CBaseTransaction::GetFuelRate(CScriptDBViewCache &scriptDB) {
-    if(0 == nFuelRate) {
-        CDiskTxPos postx;
-        if (scriptDB.ReadTxIndex(GetHash(), postx)) {
-            CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
-            CBlockHeader header;
-            try {
-                file >> header;
-            } catch (std::exception &e) {
-                return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
-            }
-            nFuelRate = header.GetFuelRate();
+int CBaseTransaction::GetFuelRate(CScriptDBViewCache &scriptDB) 
+{
+    if (nFuelRate > 0)
+        return nFuelRate;
+
+    CDiskTxPos postx;
+    if (scriptDB.ReadTxIndex(GetHash(), postx)) {
+        CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
+        CBlockHeader header;
+        try {
+            file >> header;
+        } catch (std::exception &e) {
+            return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
         }
-        else {
-            nFuelRate = GetElementForBurn(chainActive.Tip());
-        }
+        nFuelRate = header.GetFuelRate();
+    } else {
+        nFuelRate = GetElementForBurn(chainActive.Tip());
     }
+
     return nFuelRate;
 }
 
 bool CRegisterAccountTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-        int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
+        int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) 
+{
     CAccount account;
     CRegID regId(nHeight, nIndex);
     CKeyID keyId = boost::get<CPubKey>(userId).GetKeyID();

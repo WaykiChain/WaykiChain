@@ -398,10 +398,10 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
     CBlock *pblock = &pblocktemplate->block;  // pointer for convenience
 
     // Create coinbase tx
-    CRewardTransaction rtx;
+    CRewardTransaction rewardTx;
 
-    // Add our coinbase tx as first transaction
-    pblock->vptx.push_back(std::make_shared<CRewardTransaction>(rtx));
+    // Add our coinbase tx as the first tx
+    pblock->vptx.push_back(std::make_shared<CRewardTransaction>(rewardTx));
     pblocktemplate->vTxFees.push_back(-1);    // updated at end
     pblocktemplate->vTxSigOps.push_back(-1);  // updated at end
 
@@ -413,12 +413,12 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
     // How much of the block should be dedicated to high-priority transactions,
     // included regardless of the fees they pay
     unsigned int nBlockPrioritySize = SysCfg().GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
-    nBlockPrioritySize              = min(nBlockMaxSize, nBlockPrioritySize);
+    nBlockPrioritySize = min(nBlockMaxSize, nBlockPrioritySize);
 
     // Minimum block size you want to create; block will be filled with free transactions
     // until there are no more or the block reaches this size:
     unsigned int nBlockMinSize = SysCfg().GetArg("-blockminsize", DEFAULT_BLOCK_MIN_SIZE);
-    nBlockMinSize              = min(nBlockMaxSize, nBlockMinSize);
+    nBlockMinSize = min(nBlockMaxSize, nBlockMinSize);
 
     // Collect memory pool transactions into the block
     int64_t nFees = 0;
@@ -428,8 +428,8 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
         pblock->SetFuelRate(GetElementForBurn(pIndexPrev));
 
         // This vector will be sorted into a priority queue:
-        vector<TxPriority> vecPriority;
-        GetPriorityTx(vecPriority, pblock->GetFuelRate());
+        vector<TxPriority> vTxPriority;
+        GetPriorityTx(vTxPriority, pblock->GetFuelRate());
 
         // Collect transactions into block
         uint64_t nBlockSize = ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION);
@@ -438,23 +438,24 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
         uint64_t nTotalRunStep(0);
         int64_t nTotalFuel(0);
         TxPriorityCompare comparer(fSortedByFee);
-        make_heap(vecPriority.begin(), vecPriority.end(), comparer);
+        make_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
 
-        while (!vecPriority.empty()) {
+        while (!vTxPriority.empty()) {
             // Take highest priority transaction off the priority queue:
-            double dPriority                 = vecPriority.front().get<0>();
-            double dFeePerKb                 = vecPriority.front().get<1>();
-            shared_ptr<CBaseTransaction> stx = vecPriority.front().get<2>();
+            double dPriority                 = vTxPriority.front().get<0>();
+            double dFeePerKb                 = vTxPriority.front().get<1>();
+            shared_ptr<CBaseTransaction> stx = vTxPriority.front().get<2>();
             CBaseTransaction *pBaseTx        = stx.get();
-            //const CTransaction& tx = *(vecPriority.front().get<2>());
+            //const CTransaction& tx = *(vTxPriority.front().get<2>());
 
-            pop_heap(vecPriority.begin(), vecPriority.end(), comparer);
-            vecPriority.pop_back();
+            pop_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
+            vTxPriority.pop_back();
 
             // Size limits
             unsigned int nTxSize = ::GetSerializeSize(*pBaseTx, SER_NETWORK, PROTOCOL_VERSION);
             if (nBlockSize + nTxSize >= nBlockMaxSize)
                 continue;
+
             // Skip free transactions if we're past the minimum block size:
             if (fSortedByFee && (dFeePerKb < CTransaction::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
                 continue;
@@ -464,32 +465,32 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
             if (!fSortedByFee && ((nBlockSize + nTxSize >= nBlockPrioritySize) || !AllowFree(dPriority))) {
                 fSortedByFee = true;
                 comparer     = TxPriorityCompare(fSortedByFee);
-                make_heap(vecPriority.begin(), vecPriority.end(), comparer);
+                make_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
             }
 
             if (uint256() != std::move(txCache.IsContainTx(std::move(pBaseTx->GetHash())))) {
-                LogPrint("INFO", "CreateNewBlock duplicate tx\n");
+                LogPrint("INFO", "CreateNewBlock: duplicated tx\n");
                 continue;
             }
 
             CTxUndo txundo;
             CValidationState state;
-            if (pBaseTx->IsCoinBase()) {
-                ERRORMSG("Tx type is coin base tx error......");
-            }
-            if (CONTRACT_TX == pBaseTx->nTxType) {
-                LogPrint("vm", "tx hash=%s CreateNewBlock run contract\n", pBaseTx->GetHash().GetHex());
-            }
+            if (pBaseTx->IsCoinBase())
+                ERRORMSG("Tx type is coinbase tx error......");
+            
+            if (CONTRACT_TX == pBaseTx->nTxType)
+                LogPrint("vm", "CreateNewBlock: contract tx hash=%s\n", pBaseTx->GetHash().GetHex());
+            
             CAccountViewCache viewTemp(view, true);
             CScriptDBViewCache scriptCacheTemp(scriptCache, true);
             pBaseTx->nFuelRate = pblock->GetFuelRate();
-            if (!pBaseTx->ExecuteTx(nBlockTx + 1, viewTemp, state, txundo, pIndexPrev->nHeight + 1,
-                                    txCache, scriptCacheTemp)) {
+            if (!pBaseTx->ExecuteTx(nBlockTx + 1, viewTemp, state, txundo, pIndexPrev->nHeight + 1, txCache, scriptCacheTemp))
                 continue;
-            }
+
             // Run step limits
             if (nTotalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP)
                 continue;
+
             assert(viewTemp.Flush());
             assert(scriptCacheTemp.Flush());
             nFees += pBaseTx->GetFee();
@@ -505,9 +506,8 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
 
         nLastBlockTx   = nBlockTx;
         nLastBlockSize = nBlockSize;
-        LogPrint("INFO", "CreateNewBlock(): total size %u\n", nBlockSize);
 
-        assert(nFees - nTotalFuel >= 0);
+        assert(nFees >= nTotalFuel);
         ((CRewardTransaction *)pblock->vptx[0].get())->rewardValue = nFees - nTotalFuel;
 
         // Fill in header
@@ -516,6 +516,8 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
         pblock->SetNonce(0);
         pblock->SetHeight(pIndexPrev->nHeight + 1);
         pblock->SetFuel(nTotalFuel);
+
+        LogPrint("INFO", "CreateNewBlock(): total size %u\n", nBlockSize);
     }
 
     return pblocktemplate.release();
