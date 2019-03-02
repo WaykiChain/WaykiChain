@@ -266,6 +266,7 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
     prtx->nHeight            = pBlock->GetHeight();
     pBlock->SetHashMerkleRoot(pBlock->BuildMerkleTree());
     pBlock->SetTime(currentTime);
+    
     vector<unsigned char> vSign;
     if (pwalletMain->Sign(delegate.keyID, pBlock->SignatureHash(), vSign, delegate.MinerPKey.IsValid())) {
         pBlock->SetSignature(vSign);
@@ -566,23 +567,23 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
         GetNextTimeAndSleep();
 
         vector<CAccount> vDelegatesAcctList;
-        if (!GetDelegatesAcctList(vDelegatesAcctList)) {
+        if (!GetDelegatesAcctList(vDelegatesAcctList))
             return false;
-        }
+        
         int nIndex = 0;
-        for (auto &acct : vDelegatesAcctList) {
-            LogPrint("shuffle", "before shuffle index=%d, address=%s\n", nIndex++, acct.keyID.ToAddress());
-        }
+        for (auto &delegate : vDelegatesAcctList)
+            LogPrint("shuffle", "before shuffle: index=%d, address=%s\n", nIndex++, delegate.keyID.ToAddress());
+        
         ShuffleDelegates(pblock->GetHeight(), vDelegatesAcctList);
+
         nIndex = 0;
-        for (auto &acct : vDelegatesAcctList) {
-            LogPrint("shuffle", "after shuffle index=%d, address=%s\n", nIndex++, acct.keyID.ToAddress());
-        }
+        for (auto &delegate : vDelegatesAcctList)
+            LogPrint("shuffle", "after shuffle: index=%d, address=%s\n", nIndex++, delegate.keyID.ToAddress());
+        
         int64_t currentTime = GetTime();
         CAccount minerAcct;
-        if (!GetCurrentDelegate(currentTime, vDelegatesAcctList, minerAcct)) {
+        if (!GetCurrentDelegate(currentTime, vDelegatesAcctList, minerAcct))
             return false;
-        }
 
         bool createdFlag = false;
         int64_t nLastTime;
@@ -595,9 +596,11 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
                 pwalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey)) {
                 nLastTime   = GetTimeMillis();
                 createdFlag = CreatePosTx(currentTime, minerAcct, view, pblock);
-                LogPrint("MINER", "CreatePosTx %s, used time:%d ms, miner address=%s\n", createdFlag ? "success" : "failure", GetTimeMillis() - nLastTime, minerAcct.keyID.ToAddress());
+                LogPrint("MINER", "CreatePosTx %s, used time:%d ms, miner address=%s\n", 
+                    createdFlag ? "success" : "failure", GetTimeMillis() - nLastTime, minerAcct.keyID.ToAddress());
             }
         }
+
         if (createdFlag == true) {
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
             {
@@ -613,6 +616,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
         if (mempool.GetTransactionsUpdated() != nTransactionsUpdated || GetTime() - nStart > 60)
             return false;
     }
+
     return false;
 }
 
@@ -661,12 +665,14 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
             CAccountViewCache accountView(*pAccountViewTip, true);
             CTransactionDBCache txCache(*pTxCacheTip, true);
             CScriptDBViewCache scriptDB(*pScriptDBTip, true);
+
             int64_t nLastTime = GetTimeMillis();
-            shared_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(accountView, txCache, scriptDB));
+            CBlockTemplate * newBlockTemplate = CreateNewBlock(accountView, txCache, scriptDB);
+            shared_ptr<CBlockTemplate> pblocktemplate(newBlockTemplate);
             if (!pblocktemplate.get())
                 throw runtime_error("Create new block failed");
 
-            LogPrint("MINER", "CreateNewBlock tx count: %d used time: %d ms\n",
+            LogPrint("MINER", "CreateNewBlock tx count: %d spent time: %d ms\n",
                 pblocktemplate.get()->block.vptx.size(), GetTimeMillis() - nLastTime);
 
             CBlock *pblock = &pblocktemplate.get()->block;
