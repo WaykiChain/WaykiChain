@@ -431,7 +431,7 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
         vector<TxPriority> vTxPriority;
         GetPriorityTx(vTxPriority, pblock->GetFuelRate());
 
-        // Collect transactions into block
+        // Collect transactions into the block
         uint64_t nBlockSize = ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION);
         uint64_t nBlockTx(0);
         bool fSortedByFee(true);

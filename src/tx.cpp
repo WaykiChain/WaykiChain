@@ -333,13 +333,13 @@ bool CRegisterAccountTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CAccountLog acctLog(account);
-    if(account.PublicKey.IsFullyValid() && account.PublicKey.GetKeyID() == keyId)
+    if (account.PublicKey.IsFullyValid() && account.PublicKey.GetKeyID() == keyId)
         return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, read source keyId %s duplicate register",
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
 
     account.PublicKey = boost::get<CPubKey>(userId);
     if (llFees > 0)
-        if(!account.OperateAccount(MINUS_FREE, llFees, nHeight))
+        if (!account.OperateAccount(MINUS_FREE, llFees, nHeight))
             return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, not sufficient funds in account, keyid=%s",
                 keyId.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-funds");
 
@@ -352,22 +352,24 @@ bool CRegisterAccountTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
         }
     }
 
-    if (!view.SaveAccountInfo(regId, keyId, account)) {
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, write source addr %s account info error", regId.ToString()),
-                UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
+    if (!view.SaveAccountInfo(regId, keyId, account))
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, write source addr %s account info error", 
+            regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+    
     txundo.vAccountLog.push_back(acctLog);
     txundo.txHash = GetHash();
     if(SysCfg().GetAddressToTxFlag()) {
         CScriptDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
-        if(!view.GetKeyId(userId, sendKeyId)) {
+        if(!view.GetKeyId(userId, sendKeyId))
             return ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, get keyid by userId error!");
-        }
+        
         if(!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
             return false;
+
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
     }
+
     return true;
 }
 
@@ -415,7 +417,9 @@ bool CRegisterAccountTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
 string CRegisterAccountTx::ToString(CAccountViewCache &view) const {
     string str;
     str += strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
-    txTypeArray[nTxType],GetHash().ToString().c_str(), nVersion, boost::get<CPubKey>(userId).ToString(), llFees, boost::get<CPubKey>(userId).GetKeyID().ToAddress(), nValidHeight);
+        txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion, boost::get<CPubKey>(userId).ToString(), 
+        llFees, boost::get<CPubKey>(userId).GetKeyID().ToAddress(), nValidHeight);
+        
     return str;
 }
 

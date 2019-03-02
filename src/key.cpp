@@ -508,9 +508,11 @@ bool CPubKey::VerifyCompact(const uint256 &hash, const vector<unsigned char>& vc
 bool CPubKey::IsFullyValid() const {
     if (!IsValid())
         return false;
+
     CECKey key;
     if (!key.SetPubKey(*this))
         return false;
+        
     return true;
 }
 
