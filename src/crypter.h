@@ -179,31 +179,34 @@ public:
         return false;
     }
     bool GetKey(const CKeyID &address, CKey& keyOut, bool IsMine=false) const;
+
     bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut, bool IsMiner=false) const;
+
     void GetKeys(set<CKeyID> &setAddress, bool bFlag=false) const
     {
-        if (!IsEncrypted())
-        {
+        if (!IsEncrypted()) {
             CBasicKeyStore::GetKeys(setAddress, bFlag);
             return;
         }
+
         setAddress.clear();
         CryptedKeyMap::const_iterator mi = mapCryptedKeys.begin();
-        while (mi != mapCryptedKeys.end())
-        {
+        while (mi != mapCryptedKeys.end()) {
         	if(!bFlag)
         		setAddress.insert((*mi).first);
         	else {
         		CKeyCombi keyCombi;
         		if(GetKeyCombi((*mi).first, keyCombi)) {
-        			if(keyCombi.IsContainMinerKey() || keyCombi.IsContainMainKey())  //only return satisfied mining address
+        			if (keyCombi.HasMinerKey() || keyCombi.HasMainKey())  //only return satisfied mining address
         			    setAddress.insert((*mi).first);
         		}
         	}
             mi++;
         }
     }
+
     bool GetKeyCombi(const CKeyID & address, CKeyCombi & keyCombiOut) const;
+
     /* Wallet status (encrypted, locked) changed.
      * Note: Called without locks held.
      */

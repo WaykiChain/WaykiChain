@@ -123,10 +123,13 @@ bool DecryptSecret(const CKeyingMaterial& vMasterKey, const vector<unsigned char
 bool CCryptoKeyStore::SetCrypted()
 {
     LOCK(cs_KeyStore);
+    
     if (fUseCrypto)
         return true;
-    if (IsContainMainKey())
+
+    if (HasMainKey())
         return false;
+
     fUseCrypto = true;
     return true;
 }

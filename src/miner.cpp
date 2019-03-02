@@ -500,8 +500,8 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
             nBlockTx++;
             pblock->vptx.push_back(stx);
             LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txhash:%s\n",
-                     nTotalFuel, pBaseTx->GetFuel(pblock->GetFuelRate()), pBaseTx->nRunStep,
-                     pblock->GetFuelRate(), pBaseTx->GetHash().GetHex());
+                nTotalFuel, pBaseTx->GetFuel(pblock->GetFuelRate()), pBaseTx->nRunStep,
+                pblock->GetFuelRate(), pBaseTx->GetHash().GetHex());
         }
 
         nLastBlockTx   = nBlockTx;
@@ -622,7 +622,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
     RenameThread("Coin-miner");
 
-    auto CheckIsHaveMinerKey = [&]() {
+    auto HasMinerKey = [&]() {
         LOCK2(cs_main, pwalletMain->cs_wallet);
         set<CKeyID> setMineKey;
         setMineKey.clear();
@@ -630,7 +630,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
         return !setMineKey.empty();
     };
 
-    if (!CheckIsHaveMinerKey()) {
+    if (!HasMinerKey()) {
         LogPrint("INFO", "CoinMiner terminated.\n");
         ERRORMSG("No key for mining");
         return;
@@ -663,22 +663,22 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
             CScriptDBViewCache scriptDB(*pScriptDBTip, true);
             int64_t nLastTime = GetTimeMillis();
             shared_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(accountView, txCache, scriptDB));
-            if (!pblocktemplate.get()) {
-                throw runtime_error("Create new block fail.");
-            }
+            if (!pblocktemplate.get())
+                throw runtime_error("Create new block failed");
+
             LogPrint("MINER", "CreateNewBlock tx count: %d used time: %d ms\n",
-                     pblocktemplate.get()->block.vptx.size(), GetTimeMillis() - nLastTime);
+                pblocktemplate.get()->block.vptx.size(), GetTimeMillis() - nLastTime);
+
             CBlock *pblock = &pblocktemplate.get()->block;
             MineBlock(pblock, pwallet, pindexPrev, nTransactionsUpdated, accountView, txCache, scriptDB);
 
             if (SysCfg().NetworkID() != MAIN_NET) {
-                if (targetHeight <= getCurrHeight()) {
+                if (targetHeight <= getCurrHeight())
                     throw boost::thread_interrupted();
-                }
             }
         }
     } catch (...) {
-        LogPrint("INFO", "CoinMiner  terminated\n");
+        LogPrint("INFO", "CoinMiner terminated\n");
         SetMinerStatus(false);
         throw;
     }

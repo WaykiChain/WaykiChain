@@ -963,7 +963,7 @@ Value listaddr(const Array& params, bool fHelp) {
             Object obj;
             obj.push_back(Pair("addr", keyId.ToAddress()));
             obj.push_back(Pair("balance", (double)acctInfo.GetRawBalance()/ (double) COIN));
-            obj.push_back(Pair("haveminerkey", keyCombi.IsContainMinerKey()));
+            obj.push_back(Pair("hasminerkey", keyCombi.HasMinerKey()));
             obj.push_back(Pair("regid",acctInfo.regID.ToString()));
             retArry.push_back(obj);
         }

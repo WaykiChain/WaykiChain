@@ -21,7 +21,7 @@ using namespace json_spirit;
 class CKeyCombi {
 private:
 	CPubKey mMainPKey;
-	CKey  mMainCkey;
+	CKey  mMainCkey;  //if existing, used for saving tx fees
 
     CPubKey mMinerPKey;
 	CKey  mMinerCkey; //only used for mining/block-creation
@@ -43,8 +43,8 @@ public:
 	bool GetPubKey(CPubKey &mOutKey,bool IsMiner = false) const;
     bool CleanMainKey();
     bool CleanAll();
-	bool IsContainMinerKey()const;
-	bool IsContainMainKey()const;
+	bool HasMinerKey()const;
+	bool HasMainKey()const;
 	CKeyID GetCKeyID() const ;
 	void SetMainKey(CKey& mainKey);
 	void SetMinerKey(CKey & minerKey);
@@ -116,34 +116,37 @@ public:
         {
             LOCK(cs_KeyStore);
             KeyMap::const_iterator mi = mapKeys.begin();
-            while (mi != mapKeys.end())
-            {
+            while (mi != mapKeys.end()) {
             	if(!bFlag)   //return all address in wallet
             		setAddress.insert((*mi).first);
-            	else if(mi->second.IsContainMinerKey() || mi->second.IsContainMainKey())  //only return satisfied mining address
+            	else if (mi->second.HasMinerKey() || mi->second.HasMainKey())  //only return satisfied mining address
             		setAddress.insert((*mi).first);
+
                 mi++;
             }
         }
     }
+
     bool GetKey(const CKeyID &address, CKey &keyOut, bool IsMine=false) const
     {
         {
             LOCK(cs_KeyStore);
             KeyMap::const_iterator mi = mapKeys.find(address);
-            if (mi != mapKeys.end())
-            {
+            if (mi != mapKeys.end()) {
             	return mi->second.GetCKey(keyOut, IsMine);
             }
         }
         return false;
     }
+
     virtual bool GetKeyCombi(const CKeyID & address, CKeyCombi & keyCombiOut) const;
-    bool IsContainMainKey() {
+
+    bool HasMainKey() {
     	for(auto &item : mapKeys) {
-    		if(item.second.IsContainMainKey())
+    		if(item.second.HasMainKey())
     			return true;
     	}
+        
     	return false;
     }
 

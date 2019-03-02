@@ -192,12 +192,13 @@ Value importwallet(const Array& params, bool fHelp)
     		const Value &obj = find_value(keyItem.get_obj(), "keyid");
     		if(obj.type() == null_type)
     			continue;
+                
     		string strKeyId = find_value(keyItem.get_obj(), "keyid").get_str();
     		CKeyID keyId(uint160(ParseHex(strKeyId)));
     		keyCombi.UnSerializeFromJson(keyItem.get_obj());
-    		if(!keyCombi.IsContainMainKey() && !keyCombi.IsContainMinerKey()) {
+    		if(!keyCombi.HasMainKey() && !keyCombi.HasMinerKey())
     			continue;
-    		}
+
     		if(pwalletMain->AddKey(keyId, keyCombi))
     			importedKeySize++;
     	}

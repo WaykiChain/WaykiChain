@@ -805,7 +805,7 @@ bool CWallet::AddKey(const CKeyID &KeyId, const CKeyCombi& keyCombi)
     if (!fFileBacked)
         return true;
 
-    if(keyCombi.IsContainMainKey()) {
+    if (keyCombi.HasMainKey()) {
         if (KeyId != keyCombi.GetCKeyID())
             return false;
     }
@@ -828,7 +828,7 @@ bool CWallet::AddKey(const CKey& key)
 bool CWallet::IsReadyForCoolMiner(const CAccountViewCache& view) const {
     CRegID regId;
     for (auto const &item : mapKeys) {
-        if (item.second.IsContainMinerKey() && view.GetRegId(item.first, regId)) {
+        if (item.second.HasMinerKey() && view.GetRegId(item.first, regId)) {
             return true;
         }
     }
