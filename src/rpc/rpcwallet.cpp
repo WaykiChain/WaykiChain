@@ -376,9 +376,9 @@ Value gensendtoaddressraw(const Array& params, bool fHelp)
     CKeyID sendKeyId, recvKeyId;
     CAccountViewCache view(*pAccountViewTip, true);
 
-    int64_t Fee = AmountToRawValue(params[0]);
-    int64_t nAmount = AmountToRawValue(params[1]);
-    if(nAmount == 0){
+    int64_t fee = AmountToRawValue(params[0]);
+    int64_t amount = AmountToRawValue(params[1]);
+    if(amount == 0){
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "send 0 amount disallowed!");
     }
 
@@ -417,7 +417,7 @@ Value gensendtoaddressraw(const Array& params, bool fHelp)
         height = params[4].get_int();
     }
 
-    std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(sendId, recvId, Fee, nAmount, height);
+    std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(sendId, recvId, fee, amount, height);
     if (!pwalletMain->Sign(sendKeyId, tx->SignatureHash(), tx->signature)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,  "Sign failed");
     }

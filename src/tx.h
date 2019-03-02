@@ -274,17 +274,19 @@ public:
         assert(REG_ACCT_TX == pBaseTx->nTxType);
         *this = *(CRegisterAccountTx *) pBaseTx;
     }
-    CRegisterAccountTx(const CUserID &uId,const CUserID &minerID,int64_t fees,int height) {
-        nTxType = REG_ACCT_TX;
-        llFees = fees;
+
+    CRegisterAccountTx(const CUserID &uId, const CUserID &minerID, int64_t fee, int height) {
+        nTxType      = REG_ACCT_TX;
+        llFees       = fee;
         nValidHeight = height;
-        userId = uId;
-        minerId=minerID;
+        userId       = uId;
+        minerId      = minerID;
         signature.clear();
     }
+
     CRegisterAccountTx() {
-        nTxType = REG_ACCT_TX;
-        llFees = 0;
+        nTxType      = REG_ACCT_TX;
+        llFees       = 0;
         nValidHeight = 0;
     }
 
@@ -343,74 +345,68 @@ public:
     bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
-class CTransaction : public CBaseTransaction
-{
+class CTransaction : public CBaseTransaction {
 public:
-    mutable CUserID srcRegId;                   //src regid
-    mutable CUserID desUserId;                  //user regid or user key id or app regid
-    uint64_t llFees;                            //fees paid to miner
-    uint64_t llValues;                          //transfer amount
+    mutable CUserID srcRegId;   //src regid
+    mutable CUserID desUserId;  //user regid or user key id or app regid
+    uint64_t llFees;            //fees paid to miner
+    uint64_t llValues;          //transfer amount
     vector_unsigned_char vContract;
     vector_unsigned_char signature;
 
 public:
-    CTransaction()
-    {
+    CTransaction() {
         nTxType = COMMON_TX;
-        llFees = 0;
+        llFees  = 0;
         vContract.clear();
         nValidHeight = 0;
-        llValues = 0;
+        llValues     = 0;
         signature.clear();
     }
 
-    CTransaction(const CBaseTransaction *pBaseTx)
-    {
+    CTransaction(const CBaseTransaction *pBaseTx) {
         assert(CONTRACT_TX == pBaseTx->nTxType || COMMON_TX == pBaseTx->nTxType);
-        *this = *(CTransaction *) pBaseTx;
+        *this = *(CTransaction *)pBaseTx;
     }
 
-    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee,
-        uint64_t Value, int height, vector_unsigned_char& pContract)
-    {
-        if (in_UserRegId.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(in_UserRegId).IsEmpty());
+    CTransaction(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee,
+                 uint64_t value, int height, vector_unsigned_char &vContractIn) {
+        if (srcRegIdIn.type() == typeid(CRegID))
+            assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
 
-        if (in_desUserId.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(in_desUserId).IsEmpty());
+        if (desUserIdIn.type() == typeid(CRegID))
+            assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
 
-        nTxType = CONTRACT_TX;
-        srcRegId = in_UserRegId;
-        desUserId = in_desUserId;
-        vContract = pContract;
+        nTxType      = CONTRACT_TX;
+        srcRegId     = srcRegIdIn;
+        desUserId    = desUserIdIn;
+        vContract    = vContractIn;
         nValidHeight = height;
-        llFees = Fee;
-        llValues = Value;
+        llFees       = fee;
+        llValues     = value;
         signature.clear();
     }
 
-    CTransaction(const CUserID& in_UserRegId, CUserID in_desUserId, uint64_t Fee,
-        uint64_t Value, int height)
-    {
+    CTransaction(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee,
+                 uint64_t value, int height) {
         nTxType = COMMON_TX;
-        if (in_UserRegId.type() == typeid(CRegID)) {
-            assert(!boost::get<CRegID>(in_UserRegId).IsEmpty());
+        if (srcRegIdIn.type() == typeid(CRegID)) {
+            assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
         }
-        if (in_desUserId.type() == typeid(CRegID)) {
-            assert(!boost::get<CRegID>(in_desUserId).IsEmpty());
+        if (desUserIdIn.type() == typeid(CRegID)) {
+            assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
         }
-        srcRegId = in_UserRegId;
-        desUserId = in_desUserId;
+        srcRegId     = srcRegIdIn;
+        desUserId    = desUserIdIn;
         nValidHeight = height;
-        llFees = Fee;
-        llValues = Value;
+        llFees       = fee;
+        llValues     = value;
         signature.clear();
     }
 
     ~CTransaction() {}
 
-    IMPLEMENT_SERIALIZE
-    (
+    IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
@@ -425,11 +421,9 @@ public:
         if (fRead) {
             srcRegId = srcId.GetUserId();
             desUserId = desId.GetUserId();
-        }
-    )
+        })
 
-    uint256 SignatureHash() const
-    {
+    uint256 SignatureHash() const {
         CHashWriter ss(SER_GETHASH, 0);
         CID srcId(srcRegId);
         CID desId(desUserId);
@@ -437,9 +431,9 @@ public:
         return ss.GetHash();
     }
 
-    uint64_t GetValue() const {return llValues;}
+    uint64_t GetValue() const { return llValues; }
 
-    uint256 GetHash() const  { return SignatureHash(); }
+    uint256 GetHash() const { return SignatureHash(); }
 
     uint64_t GetFee() const { return llFees; }
 
@@ -457,15 +451,14 @@ public:
 
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 
-    const vector_unsigned_char& GetContract() {
+    const vector_unsigned_char &GetContract() {
         return vContract;
     }
 
     bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
-            CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
+                   CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
 
     bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
-
 };
 
 class CRewardTransaction: public CBaseTransaction {

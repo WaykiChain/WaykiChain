@@ -211,10 +211,11 @@ Value getblockhash(const Array& params, bool fHelp)
             "\nExamples:\n"
             + HelpExampleRpc("getblockhash", "1000"));
     }
+
     RPCTypeCheck(params, boost::assign::list_of(int_type));
 
     int nHeight = params[0].get_int();
-    if (nHeight < 0 || nHeight >= chainActive.Height())
+    if (nHeight < 0 || nHeight > chainActive.Height())
         throw runtime_error("Block number out of range");
 
     CBlockIndex* pblockindex = chainActive[nHeight];
@@ -261,13 +262,13 @@ Value getblock(const Array& params, bool fHelp)
     // RPCTypeCheck(params, boost::assign::list_of(str_type)(bool_type)); disable this to allow either string or int argument
 
     std::string strHash;
-    if(int_type == params[0].type()) {
+    if (int_type == params[0].type()) {
         int nHeight = params[0].get_int();
-        if (nHeight < 0 || nHeight >= chainActive.Height())
+        if (nHeight < 0 || nHeight > chainActive.Height())
             throw runtime_error("Block number out of range.");
 
         CBlockIndex* pblockindex = chainActive[nHeight];
-        strHash= pblockindex->GetBlockHash().GetHex();
+        strHash                  = pblockindex->GetBlockHash().GetHex();
     } else {
         strHash = params[0].get_str();
     }
