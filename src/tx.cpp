@@ -416,20 +416,24 @@ string CRegisterAccountTx::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CRegisterAccountTx::ToJSON(const CAccountViewCache &AccountView) const{
-    Object result;
+Object CRegisterAccountTx::ToJSON(const CAccountViewCache &AccountView) const
+{
+    CID userCID(userId);
+    CID minerCID(minerId);
+    string address = boost::get<CPubKey>(userId).GetKeyID().ToAddress();
+    string userPubKey = HexStr(userCID.GetID());
+    string userMinerPubKey = HexStr(minerCID.GetID());
 
-    result.push_back(Pair("hash", GetHash().GetHex()));
-    result.push_back(Pair("txtype", txTypeArray[nTxType]));
-    result.push_back(Pair("ver", nVersion));
-    result.push_back(Pair("addr", boost::get<CPubKey>(userId).GetKeyID().ToAddress()));
-    CID id(userId);
-    CID minerIdTemp(minerId);
-    result.push_back(Pair("pubkey", HexStr(id.GetID())));
-    result.push_back(Pair("miner_pubkey", HexStr(minerIdTemp.GetID())));
-    result.push_back(Pair("fees", llFees));
-    result.push_back(Pair("height", nValidHeight));
-   return result;
+    Object result;
+    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("txtype",         txTypeArray[nTxType]));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("addr",           address));
+    result.push_back(Pair("pubkey",         userPubKey));
+    result.push_back(Pair("miner_pubkey",   userMinerPubKey));
+    result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("height",         nValidHeight));
+    return result;
 }
 
 bool CRegisterAccountTx::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB)
