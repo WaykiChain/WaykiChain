@@ -501,11 +501,11 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
     if (!desAcct.OperateAccount(ADD_FREE, addValue, nHeight))
         return state.DoS(100, ERRORMSG("CTransaction::ExecuteTx, operate accounts error"),
             UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
-    }
-    if (!view.SetAccount(desUserId, desAcct)) {
+
+    if (!view.SetAccount(desUserId, desAcct))
         return state.DoS(100, ERRORMSG("CTransaction::ExecuteTx, save account error, kyeId=%s",
             desAcct.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
-    }
+
     txundo.vAccountLog.push_back(srcAcctLog);
     txundo.vAccountLog.push_back(desAcctLog);
 

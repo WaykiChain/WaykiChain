@@ -266,7 +266,7 @@ class CRegisterAccountTx: public CBaseTransaction {
 public:
     mutable CUserID userId;      //pubkey
     mutable CUserID minerId;     //Miner pubkey
-    int64_t llFees;
+    uint64_t llFees;
     vector<unsigned char> signature;
 
 public:
@@ -406,7 +406,8 @@ public:
 
     ~CTransaction() {}
 
-    IMPLEMENT_SERIALIZE(
+    IMPLEMENT_SERIALIZE
+    (
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
@@ -421,9 +422,11 @@ public:
         if (fRead) {
             srcRegId = srcId.GetUserId();
             desUserId = desId.GetUserId();
-        })
+        }
+    )
 
-    uint256 SignatureHash() const {
+    uint256 SignatureHash() const
+    {
         CHashWriter ss(SER_GETHASH, 0);
         CID srcId(srcRegId);
         CID desId(desUserId);
@@ -437,13 +440,9 @@ public:
 
     uint64_t GetFee() const { return llFees; }
 
-    double GetPriority() const {
-        return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
-    }
+    double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
 
-    std::shared_ptr<CBaseTransaction> GetNewInstance() {
-        return std::make_shared<CTransaction>(this);
-    }
+    std::shared_ptr<CBaseTransaction> GetNewInstance() { return std::make_shared<CTransaction>(this); }
 
     string ToString(CAccountViewCache &view) const;
 
@@ -451,9 +450,7 @@ public:
 
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 
-    const vector_unsigned_char &GetContract() {
-        return vContract;
-    }
+    const vector_unsigned_char &GetContract() { return vContract; }
 
     bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
                    CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
@@ -461,8 +458,8 @@ public:
     bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
-class CRewardTransaction: public CBaseTransaction {
-
+class CRewardTransaction: public CBaseTransaction
+{
 public:
     mutable CUserID account;   // in genesis block is pubkey, otherwise account id
     uint64_t rewardValue;
@@ -494,8 +491,7 @@ public:
         nHeight = _nHeight;
     }
 
-    ~CRewardTransaction() {
-    }
+    ~CRewardTransaction() { }
 
     IMPLEMENT_SERIALIZE
     (
@@ -510,7 +506,8 @@ public:
         READWRITE(VARINT(nHeight));
     )
 
-    uint256 SignatureHash() const {
+    uint256 SignatureHash() const
+    {
         CHashWriter ss(SER_GETHASH, 0);
         CID accId(account);
         ss << VARINT(nVersion) << nTxType << accId << VARINT(rewardValue) << VARINT(nHeight);
@@ -549,12 +546,14 @@ public:
     vector_unsigned_char signature;
 
 public:
-    CRegisterContractTx(const CBaseTransaction *pBaseTx) {
+    CRegisterContractTx(const CBaseTransaction *pBaseTx)
+    {
         assert(REG_CONT_TX == pBaseTx->nTxType);
         *this = *(CRegisterContractTx*) pBaseTx;
     }
 
-    CRegisterContractTx() {
+    CRegisterContractTx()
+    {
         nTxType = REG_CONT_TX;
         llFees = 0;
         nValidHeight = 0;
