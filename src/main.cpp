@@ -2517,8 +2517,11 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
 
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (!pblock->GetHashPrevBlock().IsNull() && !mapBlockIndex.count(pblock->GetHashPrevBlock())) {
-        if (pblock->GetHeight() > (unsigned int)nSyncTipHeight)
+        if (pblock->GetHeight() > (unsigned int) nSyncTipHeight) {
+            LogPrint("DEBUG", "blockHeight=%d syncTipHeight=%d\n", pblock->GetHeight(), nSyncTipHeight );
             nSyncTipHeight = pblock->GetHeight();
+        }
+
         // Accept orphans as long as there is a node to request its parents from
         if (pfrom) {
             bool success = PruneOrphanBlocks(pblock->GetHeight());
