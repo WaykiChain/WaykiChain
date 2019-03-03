@@ -123,9 +123,9 @@ Value getnetworkhashps(const Array& params, bool fHelp)
 
 static bool IsMining = false;
 
-void SetMinerStatus(bool bstatue )
+void SetMinerStatus(bool bstatus )
 {
-    IsMining =bstatue;
+    IsMining = bstatus;
 }
 
 static bool getMiningInfo()

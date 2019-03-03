@@ -980,7 +980,7 @@ bool AppInit(boost::thread_group& threadGroup)
 
     // Generate coins in the background
     if (pwalletMain) {
-        GenerateCoinBlock(SysCfg().GetBoolArg("-gen", false), pwalletMain, SysCfg().GetArg("-genproclimit", -1));
+        GenerateCoinBlock(SysCfg().GetBoolArg("-genblock", false), pwalletMain, SysCfg().GetArg("-genproclimit", -1));
         pwalletMain->ResendWalletTransactions();
         threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pwalletMain->strWalletFile)));
 

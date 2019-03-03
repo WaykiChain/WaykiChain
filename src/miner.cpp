@@ -237,7 +237,7 @@ bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDele
     int miner    = slot % IniCfg().GetDelegatesNum();
     delegateAcct = vDelegatesAcctList[miner];
     LogPrint("DEBUG", "currentTime=%lld, slot=%d, miner=%d, minderAddr=%s\n",
-             currentTime, slot, miner, delegateAcct.keyID.ToAddress());
+        currentTime, slot, miner, delegateAcct.keyID.ToAddress());
     return true;
 }
 
@@ -266,7 +266,7 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
     prtx->nHeight            = pBlock->GetHeight();
     pBlock->SetHashMerkleRoot(pBlock->BuildMerkleTree());
     pBlock->SetTime(currentTime);
-    
+
     vector<unsigned char> vSign;
     if (pwalletMain->Sign(delegate.keyID, pBlock->SignatureHash(), vSign, delegate.MinerPKey.IsValid())) {
         pBlock->SetSignature(vSign);
@@ -649,6 +649,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
 
     try {
         SetMinerStatus(true);
+
         while (true) {
             if (SysCfg().NetworkID() != REGTEST_NET) {
                 // Busy-wait for the network to come online so we don't waste time mining
@@ -678,10 +679,10 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
             CBlock *pblock = &pblocktemplate.get()->block;
             MineBlock(pblock, pwallet, pindexPrev, nTransactionsUpdated, accountView, txCache, scriptDB);
 
-            if (SysCfg().NetworkID() != MAIN_NET) {
+            if (SysCfg().NetworkID() != MAIN_NET)
                 if (targetHeight <= getCurrHeight())
                     throw boost::thread_interrupted();
-            }
+            
         }
     } catch (...) {
         LogPrint("INFO", "CoinMiner terminated\n");
