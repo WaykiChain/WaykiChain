@@ -74,7 +74,8 @@ bool CAccountViewBacked::SaveAccountInfo(const vector<unsigned char> &accountId,
     return pBase->SaveAccountInfo(accountId, keyId, account);
 }
 
-CAccountViewCache::CAccountViewCache(CAccountView &accountView, bool fDummy) : CAccountViewBacked(accountView), hashBlock(uint256()) {}
+CAccountViewCache::CAccountViewCache(CAccountView &accountView, bool fDummy) : 
+    CAccountViewBacked(accountView), hashBlock(uint256()) {}
 
 bool CAccountViewCache::GetAccount(const CKeyID &keyId, CAccount &account) {
     if (cacheAccounts.count(keyId)) {
@@ -165,9 +166,12 @@ bool CAccountViewCache::SetKeyId(const vector<unsigned char> &accountId, const C
     cacheKeyIds[accountId] = keyId;
     return true;
 }
-bool CAccountViewCache::GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId) {
+
+bool CAccountViewCache::GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId) 
+{
     if (accountId.empty())
         return false;
+
     if (cacheKeyIds.count(accountId)) {
         keyId = cacheKeyIds[accountId];
         if (keyId != uint160()) {
@@ -176,6 +180,7 @@ bool CAccountViewCache::GetKeyId(const vector<unsigned char> &accountId, CKeyID 
             return false;
         }
     }
+
     if (pBase->GetKeyId(accountId, keyId)) {
         cacheKeyIds.insert(make_pair(accountId, keyId));
         //cacheKeyIds[accountId] = keyId;

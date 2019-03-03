@@ -25,15 +25,10 @@ public:
 	CKeyID() : uint160() {}
 	CKeyID(const uint160 &in) : uint160(in) {}
 	CKeyID(const string &strAddress);
-	bool IsEmpty()const
-	{
-		return IsNull();
-	}
 
-	string ToString() const
-	{
-		return HexStr(begin(),end());
-	}
+	bool IsEmpty()const { return IsNull(); }
+
+	string ToString() const { return HexStr(begin(),end()); }
 	string ToAddress() const;
 
 };

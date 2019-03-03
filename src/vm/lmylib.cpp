@@ -124,7 +124,7 @@ static bool GetKeyId(const CAccountViewCache &view, vector<unsigned char> &ret,
         CKeyID &KeyId) {
     if (ret.size() == 6) {
         CRegID reg(ret);
-        KeyId = reg.getKeyID(view);
+        KeyId = reg.GetKeyID(view);
     } else if (ret.size() == 34) {
         string addr(ret.begin(), ret.end());
         KeyId = CKeyID(addr);
@@ -1405,63 +1405,65 @@ static int ExModifyDataDBFunc(lua_State *L)
 
 
 static bool GetDataTableWriteOutput(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
-    if(!lua_istable(L,-1))
-    {
+    if (!lua_istable(L,-1)) {
         LogPrint("vm","GetDataTableWriteOutput is not table\n");
         return false;
     }
+
     double doubleValue = 0;
     unsigned short len = 0;
     vector<unsigned char> vBuf ;
     CVmOperate temp;
     memset(&temp,0,sizeof(temp));
-    if(!(getNumberInTable(L,(char *)"addrType",doubleValue))){
+    if (!(getNumberInTable(L,(char *)"addrType",doubleValue))) {
         LogPrint("vm", "addrType get fail\n");
         return false;
-    }else{
+    } else {
         temp.nacctype = (unsigned char)doubleValue;
     }
-    if(temp.nacctype == 1)
-    {
+
+    if (temp.nacctype == 1) {
        len = 6;
-    }else if(temp.nacctype == 2){
+    } else if (temp.nacctype == 2){
        len = 34;
-    }else{
+    } else {
         LogPrint("vm", "error nacctype:%d\n", temp.nacctype);
         return false;
     }
-    if(!getArrayInTable(L,(char *)"accountIdTbl",len,vBuf))
-    {
+
+    if (!getArrayInTable(L,(char *)"accountIdTbl",len,vBuf)) {
         LogPrint("vm","accountidTbl not table\n");
         return false;
-    }else{
+    } else {
        memcpy(temp.accountid,&vBuf[0],len);
     }
-    if(!(getNumberInTable(L,(char *)"operatorType",doubleValue))){
-        LogPrint("vm", "opeatortype get fail\n");
+
+    if (!(getNumberInTable(L,(char *)"operatorType",doubleValue))) {
+        LogPrint("vm", "opType get fail\n");
         return false;
-    }else{
-        temp.opeatortype = (unsigned char)doubleValue;
-    }
-    if(!(getNumberInTable(L,(char *)"outHeight",doubleValue))){
-        LogPrint("vm", "outheight get fail\n");
-        return false;
-    }else{
-        temp.outheight = (unsigned int)doubleValue;
+
+    } else {
+        temp.opType = (unsigned char) doubleValue;
     }
 
-    if(!getArrayInTable(L,(char *)"moneyTbl",sizeof(temp.money),vBuf))
-    {
+    if (!(getNumberInTable(L,(char *)"outHeight",doubleValue))) {
+        LogPrint("vm", "outheight get fail\n");
+        return false;
+    } else {
+        temp.outHeight = (unsigned int) doubleValue;
+    }
+
+    if (!getArrayInTable(L,(char *)"moneyTbl",sizeof(temp.money),vBuf)) {
         LogPrint("vm","moneyTbl not table\n");
         return false;
-    }else{
+    } else {
         memcpy(temp.money,&vBuf[0],sizeof(temp.money));
     }
 
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << temp;
     vector<unsigned char> tep1(tep.begin(),tep.end());
-    ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(tep1.begin(), tep1.end()));
+    ret.insert(ret.end(), std::make_shared<vector<unsigned char>>(tep1.begin(), tep1.end()));
     return true;
 }
 /**
@@ -1473,72 +1475,67 @@ static int ExWriteOutputFunc(lua_State *L)
 {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
 
-    if(!GetDataTableWriteOutput(L,retdata) ||retdata.size() != 1 )
-    {
-         return RetFalse("para err0");
-     }
+    if (!GetDataTableWriteOutput(L,retdata) ||retdata.size() != 1 )
+        return RetFalse("para err0");
+
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-    {
+    if (NULL == pVmRunEvn)
         return RetFalse("pVmRunEvn is NULL");
-    }
+
     vector<CVmOperate> source;
     CVmOperate temp;
     int Size = ::GetSerializeSize(temp, SER_NETWORK, PROTOCOL_VERSION);
     int datadsize = retdata.at(0)->size();
     int count = datadsize/Size;
-    if(datadsize%Size != 0)
-    {
-//    assert(0);
-     return RetFalse("para err1");
-    }
+    if (datadsize%Size != 0)
+        return RetFalse("para err1");
+
     CDataStream ss(*retdata.at(0),SER_DISK, CLIENT_VERSION);
 
-    while(count--)
-    {
+    while (count--) {
         ss >> temp;
-      source.push_back(temp);
+        source.push_back(temp);
     }
-    if(!pVmRunEvn->InsertOutputData(source)) {
+
+    if (!pVmRunEvn->InsertOutputData(source)) {
          return RetFalse("InsertOutput err");
-    }else{
+    } else {
         /*
         * 每个函数里的Lua栈是私有的,当把返回值压入Lua栈以后，该栈会自动被清空*/
         return RetRstBooleanToLua(L,true);
     }
 }
 
-
-static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
-    if(!lua_istable(L,-1))
-    {
+static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) 
+{
+    if (!lua_istable(L,-1)) {
         LogPrint("vm", "GetDataTableGetContractData is not table\n");
         return false;
     }
+
     vector<unsigned char> vBuf ;
     //取脚本id
-    if(!getArrayInTable(L,(char *)"id",6,vBuf))
-    {
+    if (!getArrayInTable(L,(char *)"id",6,vBuf)) {
         LogPrint("vm","idTbl not table\n");
         return false;
-    }else{
+    } else {
        ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
     }
 
     //取key
     string key = "";
-    if(!(getStringInTable(L,(char *)"key",key))){
+    if (!(getStringInTable(L,(char *)"key",key))) {
         LogPrint("vm","key get fail\n");
         return false;
-    }else{
+    } else {
 //      LogPrint("vm", "key:%s\n", key);
     }
 
     vBuf.clear();
-    for(size_t i = 0;i < key.size();i++)
-    {
+    for (size_t i = 0;i < key.size();i++) {
         vBuf.insert(vBuf.end(),key.at(i));
     }
+
     ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
     return true;
 }
@@ -1553,29 +1550,21 @@ static int ExGetContractDataFunc(lua_State *L)
 {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
 
-    if(!GetDataTableGetContractData(L,retdata) ||retdata.size() != 2 || retdata.at(0).get()->size() != 6)
-    {
+    if (!GetDataTableGetContractData(L,retdata) ||retdata.size() != 2 || retdata.at(0).get()->size() != 6)
         return RetFalse("ExGetContractDataFunc tep1 err1");
-    }
+
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-    {
+    if (NULL == pVmRunEvn)
         return RetFalse("pVmRunEvn is NULL");
-    }
 
     vector_unsigned_char vValue;
     CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
     CRegID scriptid(*retdata.at(0));
     int len = 0;
     if(!scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(), scriptid, *retdata.at(1), vValue))
-    {
         len = 0;
-    }
-    else
-    {
-       //3.往函数私有栈里存运算后的结果
+    else  //3.往函数私有栈里存运算后的结果
         len = RetRstToLua(L,vValue);
-    }
    /*
     * 每个函数里的Lua栈是私有的,当把返回值压入Lua栈以后，该栈会自动被清空*/
     return len;
@@ -1592,10 +1581,9 @@ static int ExGetContractDataFunc(lua_State *L)
 static int ExGetContractRegIdFunc(lua_State *L)
 {
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-    {
+    if (NULL == pVmRunEvn)
         return RetFalse("pVmRunEvn is NULL");
-    }
+
    //1.从lua取参数
    //2.调用C++库函数 执行运算
     vector_unsigned_char scriptid = pVmRunEvn->GetScriptRegID().GetVec6();
@@ -1608,9 +1596,9 @@ static int ExGetContractRegIdFunc(lua_State *L)
 static int ExGetCurTxAccountFunc(lua_State *L)
 {
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if (NULL == pVmRunEvn) {
+    if (NULL == pVmRunEvn)
         return RetFalse("pVmRunEvn is NULL");
-    }
+
    //1.从lua取参数
    //2.调用C++库函数 执行运算
     vector_unsigned_char vUserId =pVmRunEvn->GetTxAccount().GetVec6();
@@ -1626,9 +1614,8 @@ static int ExGetCurTxPayAmountFunc(lua_State *L)
 {
     CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
     if(NULL == pVmRunEvn)
-    {
         return RetFalse("pVmRunEvn is NULL");
-    }
+
     uint64_t lvalue =pVmRunEvn->GetValue();
 
     CDataStream tep(SER_DISK, CLIENT_VERSION);
@@ -1688,7 +1675,7 @@ static int ExGetUserAppAccValueFunc(lua_State *L)
     uint64_t valueData = 0 ;
     int len = 0;
     if (pVmRunEvn->GetAppUserAccount(accid.GetIdV(), sptrAcc)) {
-        valueData = sptrAcc->getllValues();
+        valueData = sptrAcc->GetLlValues();
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << valueData;
@@ -1708,17 +1695,17 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std
     CAppFundOperate temp;
     memset(&temp,0,sizeof(temp));
     if (!(getNumberInTable(L,(char *)"operatorType",doubleValue))) {
-        LogPrint("vm", "opeatortype get fail\n");
+        LogPrint("vm", "opType get fail\n");
         return false;
     } else {
-        temp.opeatortype = (unsigned char)doubleValue;
+        temp.opType = (unsigned char)doubleValue;
     }
 
     if (!(getNumberInTable(L,(char *)"outHeight",doubleValue))) {
         LogPrint("vm", "outheight get fail\n");
         return false;
     } else {
-        temp.outheight = (unsigned int)doubleValue;
+        temp.outHeight = (unsigned int) doubleValue;
     }
 
     if(!getArrayInTable(L,(char *)"moneyTbl",sizeof(temp.mMoney),vBuf))
@@ -1749,18 +1736,18 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std
     }
 
     if (!(getNumberInTable(L,(char *)"fundTagLen",doubleValue))) {
-        LogPrint("vm","FundTaglen get fail\n");
+        LogPrint("vm", "fundTagLen get fail\n");
         return false;
     } else {
-        temp.FundTaglen = (unsigned char)doubleValue;
+        temp.fundTagLen = (unsigned char)doubleValue;
     }
 
-    if((temp.FundTaglen > 0) && (temp.FundTaglen <= sizeof(temp.vFundTag))) {
-        if (!getArrayInTable(L,(char *)"fundTagTbl",temp.FundTaglen,vBuf)) {
+    if((temp.fundTagLen > 0) && (temp.fundTagLen <= sizeof(temp.vFundTag))) {
+        if (!getArrayInTable(L,(char *)"fundTagTbl", temp.fundTagLen, vBuf)) {
             LogPrint("vm","FundTagTbl not table\n");
             return false;
         } else {
-            memcpy(temp.vFundTag,&vBuf[0],temp.FundTaglen);
+            memcpy(temp.vFundTag,&vBuf[0],temp.fundTagLen);
         }
     }
     CDataStream tep(SER_DISK, CLIENT_VERSION);
@@ -1792,7 +1779,7 @@ static int ExGetUserAppAccFundWithTagFunc(lua_State *L)
     CAppCFund fund;
     int len = 0;
     if (pVmRunEvn->GetAppUserAccount(userfund.GetAppUserV(), sptrAcc)) {
-        if (!sptrAcc->GetAppCFund(fund,userfund.GetFundTagV(), userfund.outheight))
+        if (!sptrAcc->GetAppCFund(fund,userfund.GetFundTagV(), userfund.outHeight))
             return RetFalse("GetUserAppAccFundWithTag GetAppCFund fail");
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
@@ -1826,8 +1813,8 @@ static bool GetDataTableAssetOperate(lua_State *L, int nIndex, vector<std::share
         LogPrint("vm", "get outheight failed\n");
         return false;
     } else {
-        temp.outheight = (unsigned int) doubleValue;
-        LogPrint("vm", "height = %d", temp.outheight);
+        temp.outHeight = (unsigned int) doubleValue;
+        LogPrint("vm", "height = %d", temp.outHeight);
     }
 
     if (!getArrayInTable(L, (char *) "moneyTbl", sizeof(temp.mMoney), vBuf)) {
@@ -1838,18 +1825,18 @@ static bool GetDataTableAssetOperate(lua_State *L, int nIndex, vector<std::share
     }
 
     if (!(getNumberInTable(L,(char *)"fundTagLen",doubleValue))) {
-        LogPrint("vm", "FundTaglen get fail\n");
+        LogPrint("vm", "fundTagLen get fail\n");
         return false;
     } else {
-        temp.FundTaglen = (unsigned char)doubleValue;
+        temp.fundTagLen = (unsigned char)doubleValue;
     }
 
-    if ((temp.FundTaglen > 0) && (temp.FundTaglen <= sizeof(temp.vFundTag))) {
-        if (!getArrayInTable(L,(char *)"fundTagTbl",temp.FundTaglen,vBuf)) {
+    if ((temp.fundTagLen > 0) && (temp.fundTagLen <= sizeof(temp.vFundTag))) {
+        if (!getArrayInTable(L,(char *)"fundTagTbl",temp.fundTagLen,vBuf)) {
             LogPrint("vm","FundTagTbl not table\n");
             return false;
         } else {
-            memcpy(temp.vFundTag,&vBuf[0],temp.FundTaglen);
+            memcpy(temp.vFundTag,&vBuf[0],temp.fundTagLen);
         }
     }
     CDataStream tep(SER_DISK, CLIENT_VERSION);
@@ -1947,7 +1934,7 @@ static int ExTransferContractAsset(lua_State *L)
     CRegID script = pVmRunEvn->GetScriptRegID();
 
     CRegID sendRegID =pVmRunEvn->GetTxAccount();
-    CKeyID SendKeyID = sendRegID.getKeyID(*pVmRunEvn->GetCatchView());
+    CKeyID SendKeyID = sendRegID.GetKeyID(*pVmRunEvn->GetCatchView());
     string addr = SendKeyID.ToAddress();
     sendkey.assign(addr.c_str(),addr.c_str()+addr.length());
 
@@ -1975,7 +1962,7 @@ static int ExTransferContractAsset(lua_State *L)
 
     temp.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
 
-    uint64_t nMoney = temp.get()->getllValues();
+    uint64_t nMoney = temp.get()->GetLlValues();
 
     int i = 0;
     CAppFundOperate op;
@@ -1983,41 +1970,40 @@ static int ExTransferContractAsset(lua_State *L)
 
     if (nMoney > 0) {
         op.mMoney = nMoney;
-        op.outheight = 0;
-        op.opeatortype = SUB_FREE_OP;
+        op.outHeight = 0;
+        op.opType = SUB_FREE_OP;
         op.appuserIDlen = sendkey.size();
-        for (i = 0; i < op.appuserIDlen; i++) {
+        for (i = 0; i < op.appuserIDlen; i++)
             op.vAppuser[i] = sendkey[i];
-        }
 
         pVmRunEvn->InsertOutAPPOperte(sendkey, op);
 
-        op.opeatortype = ADD_FREE_OP;
+        op.opType = ADD_FREE_OP;
         op.appuserIDlen = recvkey.size();
-        for (i = 0; i < op.appuserIDlen; i++) {
+        for (i = 0; i < op.appuserIDlen; i++)
             op.vAppuser[i] = recvkey[i];
-        }
+        
         pVmRunEvn->InsertOutAPPOperte(recvkey, op);
     }
 
     vector<CAppCFund> vTemp = temp.get()->GetFrozenFunds();
     for (auto fund : vTemp) {
         op.mMoney = fund.GetValue();
-        op.outheight = fund.GetHeight();
-        op.opeatortype = SUB_TAG_OP;
+        op.outHeight = fund.GetHeight();
+        op.opType = SUB_TAG_OP;
         op.appuserIDlen = sendkey.size();
         for (i = 0; i < op.appuserIDlen; i++) {
             op.vAppuser[i] = sendkey[i];
         }
 
-        op.FundTaglen = fund.GetTag().size();
-        for (i = 0; i < op.FundTaglen; i++) {
+        op.fundTagLen = fund.GetTag().size();
+        for (i = 0; i < op.fundTagLen; i++) {
             op.vFundTag[i] = fund.GetTag()[i];
         }
 
         pVmRunEvn->InsertOutAPPOperte(sendkey, op);
 
-        op.opeatortype = ADD_TAG_OP;
+        op.opType = ADD_TAG_OP;
         op.appuserIDlen = recvkey.size();
         for (i = 0; i < op.appuserIDlen; i++) {
             op.vAppuser[i] = recvkey[i];
@@ -2053,7 +2039,7 @@ static int ExTransferSomeAsset(lua_State *L) {
     CRegID script = pVmRunEvn->GetScriptRegID();
 
     CRegID sendRegID = pVmRunEvn->GetTxAccount();
-    CKeyID SendKeyID = sendRegID.getKeyID(*pVmRunEvn->GetCatchView());
+    CKeyID SendKeyID = sendRegID.GetKeyID(*pVmRunEvn->GetCatchView());
     string addr = SendKeyID.ToAddress();
     sendkey.assign(addr.c_str(), addr.c_str() + addr.length());
 
@@ -2084,24 +2070,24 @@ static int ExTransferSomeAsset(lua_State *L) {
     CAppFundOperate op;
     memset(&op, 0, sizeof(op));
     vector<unsigned char> vtag = assetOp.GetFundTagV();
-    op.FundTaglen = vtag.size();
+    op.fundTagLen = vtag.size();
 
-    for (i = 0; i < op.FundTaglen; i++) {
+    for (i = 0; i < op.fundTagLen; i++) {
         op.vFundTag[i] = vtag[i];
     }
 
     op.mMoney = uTransferMoney;
-    op.outheight = nHeight;
+    op.outHeight = nHeight;
     op.appuserIDlen = sendkey.size();
 
     for (i = 0; i < op.appuserIDlen; i++) {
         op.vAppuser[i] = sendkey[i];
     }
 
-    op.opeatortype = (nHeight > 0) ? SUB_TAG_OP : SUB_FREE_OP;
+    op.opType = (nHeight > 0) ? SUB_TAG_OP : SUB_FREE_OP;
     pVmRunEvn->InsertOutAPPOperte(sendkey, op);
 
-    op.opeatortype = (nHeight > 0) ? ADD_TAG_OP : ADD_FREE_OP ;
+    op.opType = (nHeight > 0) ? ADD_TAG_OP : ADD_FREE_OP ;
     op.appuserIDlen = recvkey.size();
 
     for (i = 0; i < op.appuserIDlen; i++) {

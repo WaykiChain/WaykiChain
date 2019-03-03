@@ -603,7 +603,7 @@ Value getassets(const Array& params, bool fHelp)
         }
 
         temp.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
-        uint64_t freeValues = temp.get()->getllValues();
+        uint64_t freeValues = temp.get()->GetLlValues();
         uint64_t freezeValues = temp.get()->GetAllFreezedValues();
         totalassets += freeValues;
         totalassets += freezeValues;

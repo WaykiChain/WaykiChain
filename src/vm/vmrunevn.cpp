@@ -244,7 +244,7 @@ bool CVmRunEvn::CheckOperate(const vector<CVmOperate> &listoperate) {
         if(it.nacctype != regid && it.nacctype != base58addr)
             return false;
 
-        if (it.opeatortype == ADD_FREE ) {
+        if (it.opType == ADD_FREE ) {
             memcpy(&operValue,it.money,sizeof(it.money));
             /*
             uint64_t temp = addmoey;
@@ -258,7 +258,7 @@ bool CVmRunEvn::CheckOperate(const vector<CVmOperate> &listoperate) {
                 return false;
             }
             addmoey = temp;
-        } else if (it.opeatortype == MINUS_FREE) {
+        } else if (it.opType == MINUS_FREE) {
 
             //vector<unsigned char > accountid(it.accountid,it.accountid+sizeof(it.accountid));
             vector_unsigned_char accountid = GetAccountID(it);
@@ -292,11 +292,11 @@ bool CVmRunEvn::CheckOperate(const vector<CVmOperate> &listoperate) {
         vector_unsigned_char accountid = GetAccountID(it);
         if (accountid.size() == 6) {
             CRegID regId(accountid);
-            if(regId.IsEmpty() || regId.getKeyID( *m_view) == uint160())
+            if (regId.IsEmpty() || regId.GetKeyID( *m_view) == uint160())
                 return false;
 
             //  app only be allowed minus self money
-            if (!m_ScriptDBTip->HaveScript(regId) && it.opeatortype == MINUS_FREE)
+            if (!m_ScriptDBTip->HaveScript(regId) && it.opType == MINUS_FREE)
                 return false;
         }
     }
@@ -311,7 +311,7 @@ bool CVmRunEvn::CheckAppAcctOperate(CTransaction* tx) {
     int64_t addValue(0), minusValue(0), sumValue(0);
     for (auto  vOpItem : MapAppOperate) {
         for (auto appFund : vOpItem.second) {
-            if (ADD_FREE_OP == appFund.opeatortype || ADD_TAG_OP == appFund.opeatortype) {
+            if (ADD_FREE_OP == appFund.opType || ADD_TAG_OP == appFund.opType) {
                 /*
                 int64_t temp = appFund.mMoney;
                 temp += addValue;
@@ -324,7 +324,7 @@ bool CVmRunEvn::CheckAppAcctOperate(CTransaction* tx) {
                     return false;
 
                 addValue = temp;
-            } else if (SUB_FREE_OP == appFund.opeatortype || SUB_TAG_OP == appFund.opeatortype) {
+            } else if (SUB_FREE_OP == appFund.opType || SUB_TAG_OP == appFund.opType) {
                 /*
                 int64_t temp = appFund.mMoney;
                 temp += minusValue;
@@ -352,7 +352,7 @@ bool CVmRunEvn::CheckAppAcctOperate(CTransaction* tx) {
     uint64_t sysContractAcct(0);
     for (auto item : m_output) {
         vector_unsigned_char vAccountId = GetAccountID(item);
-        if(vAccountId == boost::get<CRegID>(tx->desUserId).GetVec6() && item.opeatortype == MINUS_FREE) {
+        if(vAccountId == boost::get<CRegID>(tx->desUserId).GetVec6() && item.opType == MINUS_FREE) {
             uint64_t value;
             memcpy(&value, item.money, sizeof(item.money));
             int64_t temp = value;
@@ -449,10 +449,10 @@ bool CVmRunEvn::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
         //todolist
 //      if(IsSignatureAccount(vmAccount.get()->regID) || vmAccount.get()->regID == boost::get<CRegID>(tx->appRegId))
         {
-            ret = vmAccount.get()->OperateAccount((OperType)it.opeatortype, value, nCurHeight);
+            ret = vmAccount.get()->OperateAccount((OperType)it.opType, value, nCurHeight);
         }
 //      else{
-//          ret = vmAccount.get()->OperateAccount((OperType)it.opeatortype, fund, *m_ScriptDBTip, vAuthorLog,  height, &GetScriptRegID().GetVec6(), true);
+//          ret = vmAccount.get()->OperateAccount((OperType)it.opType, fund, *m_ScriptDBTip, vAuthorLog,  height, &GetScriptRegID().GetVec6(), true);
 //      }
 
 //      LogPrint("vm", "after account:%s\r\n", vmAccount.get()->ToString().c_str());
@@ -548,7 +548,9 @@ bool CVmRunEvn::GetAppUserAccount(const vector<unsigned char> &vAppUserId, share
     return true;
 }
 
-bool CVmRunEvn::OpeatorAppAccount(const map<vector<unsigned char >,vector<CAppFundOperate> > opMap, CScriptDBViewCache& view) {
+bool CVmRunEvn::OpeatorAppAccount(const map<vector<unsigned char >,vector<CAppFundOperate> > opMap, 
+    CScriptDBViewCache& view) 
+{
     NewAppUserAccout.clear();
     if ((MapAppOperate.size() > 0)) {
         for (auto const tem : opMap) {
@@ -558,34 +560,35 @@ bool CVmRunEvn::OpeatorAppAccount(const map<vector<unsigned char >,vector<CAppFu
                     HexStr(tem.first));
                 return false;
             }
-            if (!sptrAcc.get()->AutoMergeFreezeToFree(RunTimeHeight)) {
-                LogPrint("vm", "AutoMergeFreezeToFreefailed \r\n appuser :%s\r\n", sptrAcc.get()->toString());
-                return false;
 
+            if (!sptrAcc.get()->AutoMergeFreezeToFree(RunTimeHeight)) {
+                LogPrint("vm", "AutoMergeFreezeToFreefailed \r\n appuser :%s\r\n", sptrAcc.get()->ToString());
+                return false;
             }
+
             shared_ptr<CAppUserAccount> vmAppAccount = GetAppAccount(sptrAcc);
             if (vmAppAccount.get() == NULL) {
                 RawAppUserAccout.push_back(sptrAcc);
                 vmAppAccount = sptrAcc;
             }
-            LogPrint("vm", "before user: %s\r\n", sptrAcc.get()->toString());
+            
+            LogPrint("vm", "before user: %s\r\n", sptrAcc.get()->ToString());
             if (!sptrAcc.get()->Operate(tem.second)) {
 
                 int i = 0;
                 for (auto const pint : tem.second) {
-                    LogPrint("vm", "GOperate failed \r\n Operate %d : %s\r\n", i++, pint.toString());
+                    LogPrint("vm", "GOperate failed \r\n Operate %d : %s\r\n", i++, pint.ToString());
                 }
                 LogPrint("vm", "GetAppUserAccount(tem.first, sptrAcc, true) failed \r\n appuserid :%s\r\n",
                         HexStr(tem.first));
                 return false;
             }
             NewAppUserAccout.push_back(sptrAcc);
-            LogPrint("vm", "after user: %s\r\n", sptrAcc.get()->toString());
+            LogPrint("vm", "after user: %s\r\n", sptrAcc.get()->ToString());
             CScriptDBOperLog log;
             view.SetScriptAcc(GetScriptRegID(), *sptrAcc.get(), log);
             shared_ptr<vector<CScriptDBOperLog> > m_dblog = GetDbLog();
             m_dblog.get()->push_back(log);
-
         }
     }
     return true;
@@ -598,21 +601,24 @@ void CVmRunEvn::SetCheckAccount(bool bCheckAccount)
 
 Object CVmOperate::ToJson() {
     Object obj;
-    if(nacctype == regid) {
+    if (nacctype == regid) {
         vector<unsigned char> vRegId(accountid, accountid+6);
         CRegID regId(vRegId);
         obj.push_back(Pair("regid", regId.ToString()));
-    }else if(nacctype == base58addr) {
+    } else if (nacctype == base58addr) {
         string addr(accountid,accountid+sizeof(accountid));
         obj.push_back(Pair("addr", addr));
     }
-    if(opeatortype == ADD_FREE) {
+
+    if (opType == ADD_FREE) {
         obj.push_back(Pair("opertype", "add"));
-    }else if(opeatortype == MINUS_FREE) {
+    } else if (opType == MINUS_FREE) {
         obj.push_back(Pair("opertype", "minus"));
     }
-    if(outheight > 0)
-        obj.push_back(Pair("freezeheight", (int) outheight));
+
+    if(outHeight > 0)
+        obj.push_back(Pair("freezeheight", (int) outHeight));
+
     uint64_t amount;
     memcpy(&amount, money, sizeof(money));
     obj.push_back(Pair("amount", amount));

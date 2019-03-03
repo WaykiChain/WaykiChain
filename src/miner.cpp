@@ -628,6 +628,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
 
     auto HasMinerKey = [&]() {
         LOCK2(cs_main, pwalletMain->cs_wallet);
+        
         set<CKeyID> setMineKey;
         setMineKey.clear();
         pwalletMain->GetKeys(setMineKey, true);

@@ -82,13 +82,15 @@ public:
 typedef boost::variant<CNullID, CRegID, CKeyID, CPubKey> CUserID;
 
 /*CRegID 是地址激活后，分配的账户ID*/
-class CRegID {
+class CRegID 
+{
 private:
     uint32_t nHeight;
     uint16_t nIndex;
     mutable vector<unsigned char> vRegID;
     void SetRegIDByCompact(const vector<unsigned char> &vIn);
     void SetRegID(string strRegID);
+
 public:
     friend class CID;
     CRegID(string strRegID);
@@ -96,9 +98,10 @@ public:
     CRegID(uint32_t nHeight = 0, uint16_t nIndex = 0);
 
     const vector<unsigned char> &GetVec6() const { assert(vRegID.size() == 6); return vRegID; }
-    void SetRegID(const vector<unsigned char> &vIn) ;
-    CKeyID getKeyID(const CAccountViewCache &view)const;
-    uint32_t getHight()const { return nHeight;};
+    void SetRegID(const vector<unsigned char> &vIn);
+    
+    CKeyID GetKeyID(const CAccountViewCache &view) const;
+    uint32_t GetHight() const { return nHeight; }
 
     bool operator ==(const CRegID& co) const {
         return (this->nHeight == co.nHeight && this->nIndex == co.nIndex);
@@ -108,11 +111,11 @@ public:
     }
     static bool IsSimpleRegIdStr(const string & str);
     static bool IsRegIdStr(const string & str);
-    static bool GetKeyID(const string & str,CKeyID &keyId);
+    static bool GetKeyID(const string & str, CKeyID &keyId);
 
     bool IsEmpty() const { return (nHeight == 0 && nIndex == 0); };
 
-    bool clean();
+    bool Clean();
 
     string ToString() const;
 
@@ -128,14 +131,12 @@ public:
     )
 };
 
-/*CID是一个vector 存放CRegID,CKeyID,CPubKey*/
+/*CID是一个vector 存放CRegID, CKeyID, CPubKey*/
 class CID {
 private:
     vector_unsigned_char vchData;
 public:
-    const vector_unsigned_char &GetID() {
-        return vchData;
-    }
+    const vector_unsigned_char &GetID() { return vchData; }
     static const vector_unsigned_char & UserIDToVector(const CUserID &userid)
     {
         return CID(userid).GetID();
@@ -911,7 +912,7 @@ public:
         MinerPKey =  CPubKey();
         nVoteHeight = 0;
         vVoteFunds.clear();
-        regID.clean();
+        regID.Clean();
         llVotes = 0;
     }
     CAccount(): keyID(uint160()), llValues(0) {
@@ -919,7 +920,7 @@ public:
         MinerPKey =  CPubKey();
         nVoteHeight = 0;
         vVoteFunds.clear();
-        regID.clean();
+        regID.Clean();
         llVotes = 0;
     }
     CAccount(const CAccount & other) {

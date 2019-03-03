@@ -15,11 +15,11 @@
 #include "json/json_spirit_writer_template.h"
 using namespace json_spirit;
 
-static bool GetKeyId(const CAccountViewCache &view, const vector<unsigned char> &ret,
-        CKeyID &KeyId) {
+static bool GetKeyId(const CAccountViewCache &view, const vector<unsigned char> &ret, CKeyID &KeyId) 
+{
     if (ret.size() == 6) {
         CRegID regId(ret);
-        KeyId = regId.getKeyID(view);
+        KeyId = regId.GetKeyID(view);
     } else if (ret.size() == 34) {
         string addr(ret.begin(), ret.end());
         KeyId = CKeyID(addr);
@@ -84,7 +84,7 @@ CUserID CID::GetUserId()
     return CNullID();
 }
 
-bool CRegID::clean()
+bool CRegID::Clean()
 {
     nHeight = 0 ;
     nIndex = 0 ;
@@ -138,7 +138,7 @@ bool CRegID::GetKeyID(const string & str,CKeyID &keyId)
     if (regId.IsEmpty())
         return false;
 
-    keyId = regId.getKeyID(*pAccountViewTip);
+    keyId = regId.GetKeyID(*pAccountViewTip);
     return !keyId.IsEmpty();
 }
 
@@ -199,10 +199,10 @@ string CRegID::ToString() const
     return string(" ");
 }
 
-CKeyID CRegID::getKeyID(const CAccountViewCache &view)const
+CKeyID CRegID::GetKeyID(const CAccountViewCache &view)const
 {
     CKeyID ret;
-    CAccountViewCache(view).GetKeyId(*this,ret);
+    CAccountViewCache(view).GetKeyId(*this, ret);
     return ret;
 }
 
@@ -212,7 +212,7 @@ void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn)
         CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);
         ds >> *this;
     } else {
-        clean();
+        Clean();
     }
 }
 

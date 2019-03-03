@@ -20,8 +20,8 @@ public:
 	CAppCFund(const CAppCFund &fund);
 	CAppCFund(const vector<unsigned char> &vtag,uint64_t val,int nhight);
 	bool MergeCFund( const CAppCFund &fund);
-	Object toJSON()const;
-	string toString()const;
+	Object ToJSON()const;
+	string ToString()const;
 
 	void SetHeight(int height) { nHeight = height; }
 	int GetHeight() const { return nHeight; }
@@ -59,55 +59,57 @@ class CAppFundOperate {
 public:
 	CAppFundOperate();
 
-	unsigned char opeatortype;		//!OperType
-	unsigned int outheight;		    //!< the transacion Timeout height
+	unsigned char opType;		//!OperType
+	unsigned int outHeight;		    //!< the transacion Timeout height
 	int64_t mMoney;			        //!<The transfer amount
 	unsigned char appuserIDlen;
 	unsigned char vAppuser[CAppCFund::MAX_TAG_SIZE ];				//!< accountid
-	unsigned char FundTaglen;
+	unsigned char fundTagLen;
 	unsigned char vFundTag[CAppCFund::MAX_TAG_SIZE ];				//!< accountid
 
 	CAppFundOperate(const vector<unsigned char> &AppTag,
 		const vector<unsigned char> &FundTag,
-		APP_OP_TYPE opType,
+		APP_OP_TYPE optype,
 		int timeout,
 		int64_t money)
 	{
 		assert(sizeof(vAppuser) >= AppTag.size());
 		assert(sizeof(vFundTag) >= FundTag.size());
+		assert((optype >= ADD_FREE_OP) && (optype <= SUB_TAG_OP));
+
 		appuserIDlen = AppTag.size();
-		FundTaglen = FundTag.size();
+		fundTagLen = FundTag.size();
 		memcpy(&vAppuser[0],&AppTag[0],AppTag.size());
 		memcpy(&vFundTag[0],&FundTag[0],FundTag.size());
 		mMoney = money;
-		outheight = timeout;
-		assert((opType >= ADD_FREE_OP) && (opType <= SUB_TAG_OP));
-		opeatortype = opType;
+		outHeight = timeout;
+		opType = optype;
 	}
 
 	IMPLEMENT_SERIALIZE
 	(
-		READWRITE(opeatortype);
-		READWRITE(outheight);
+		READWRITE(opType);
+		READWRITE(outHeight);
 		READWRITE(mMoney);
 		READWRITE(appuserIDlen);
-		for(unsigned int i = 0;i < sizeof(vAppuser);++i)
+		for (unsigned int i = 0;i < sizeof(vAppuser);++i)
 		READWRITE(vAppuser[i]);
-		READWRITE(FundTaglen);
-		for(unsigned int i = 0;i < sizeof(vFundTag);++i)
+		READWRITE(fundTagLen);
+		for (unsigned int i = 0;i < sizeof(vFundTag);++i)
 		READWRITE(vFundTag[i]);
 	)
-	Object toJSON()const;
-	string toString()const;
 
-	uint64_t GetUint64Value() const {
-		return mMoney;
-	}
+	Object ToJSON()const;
+	string ToString()const;
+
+	uint64_t GetUint64Value() const { return mMoney; }
+
 	const vector<unsigned char> GetFundTagV() const {
-		assert(sizeof(vFundTag) >= FundTaglen );
-		vector<unsigned char> tag(&vFundTag[0], &vFundTag[FundTaglen]);
+		assert(sizeof(vFundTag) >= fundTagLen );
+		vector<unsigned char> tag(&vFundTag[0], &vFundTag[fundTagLen]);
 		return (tag);
 	}
+
 	const vector<unsigned char> GetAppUserV() const {
 	//	cout<<appuserIDlen<<endl;
 		assert(sizeof(vAppuser) >= appuserIDlen && appuserIDlen > 0);
@@ -115,28 +117,24 @@ public:
 		return (tag);
 	}
 
-	unsigned char getopeatortype() const {
-		return opeatortype;
+	unsigned char GetOpType() const {
+		return opType;
 	}
 
-	bool setOpeatortype(unsigned char opeatortype) {
-		if((opeatortype >= ADD_FREE_OP) && (opeatortype <= SUB_TAG_OP))
-		{
-			this->opeatortype = opeatortype;
+	bool SetOpType(unsigned char opType) {
+		if ((opType >= ADD_FREE_OP) && (opType <= SUB_TAG_OP)) {
+			this->opType = opType;
 			return true;
-		}
-		else
-		{
+		} else
 			return false;
-		}
 	}
 
-	unsigned int getoutheight() const {
-		return outheight;
+	unsigned int GetOutHeight() const {
+		return outHeight;
 	}
 
-	void setOutheight(unsigned int outheight) {
-		this->outheight = outheight;
+	void SetOutHeight(unsigned int outHeight) {
+		this->outHeight = outHeight;
 	}
 };
 
