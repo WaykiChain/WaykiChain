@@ -1467,7 +1467,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
             assert(mapBlockIndex.count(view.GetBestBlock()));
             if (!pBaseTx->IsValidHeight(mapBlockIndex[view.GetBestBlock()]->nHeight,
                                         SysCfg().GetTxCacheHeight())) {
-                return state.DoS(100, ERRORMSG("ConnectBlock() : txhash=%s beyond the scope of valid height", pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
+                return state.DoS(100, ERRORMSG("ConnectBlock() : txhash=%s beyond the scope of valid height", 
+                    pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
             }
 
             if (CONTRACT_TX == pBaseTx->nTxType) {
@@ -2149,8 +2150,11 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
         for (; rIter != vPreBlocks.rend(); ++rIter) {  //连接支链的block
             LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() ConnectBlock block nHieght=%d hash=%s\n",
                      rIter->GetHeight(), rIter->GetHash().GetHex());
-            if (!ConnectBlock(*rIter, state, *pForkAcctViewCache, mapBlockIndex[rIter->GetHash()], *pForkTxCache, *pForkScriptDBCache, false))
+
+            if (!ConnectBlock(*rIter, state, *pForkAcctViewCache, mapBlockIndex[rIter->GetHash()], 
+                *pForkTxCache, *pForkScriptDBCache, false))
                 return ERRORMSG("CheckBlockProofWorkWithCoinDay() : ConnectBlock %s failed", rIter->GetHash().ToString());
+
             CBlockIndex *pConnBlockIndex = mapBlockIndex[rIter->GetHash()];
             if (pConnBlockIndex->nStatus | BLOCK_FAILED_MASK)
                 pConnBlockIndex->nStatus = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
@@ -2159,29 +2163,27 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
         //校验pos交易
         if (!VerifyPosTx(&block, *pForkAcctViewCache, *pForkTxCache, *pForkScriptDBCache, true)) {
             return state.DoS(100,
-                             ERRORMSG("CheckBlockProofWorkWithCoinDay() : the block Hash=%s check pos tx error",
-                                      block.GetHash().GetHex()),
-                             REJECT_INVALID, "bad-pos-tx");
+                ERRORMSG("CheckBlockProofWorkWithCoinDay() : the block Hash=%s check pos tx error",
+                block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
         }
 
         //校验利息是否正常
         std::shared_ptr<CRewardTransaction> pRewardTx = dynamic_pointer_cast<CRewardTransaction>(block.vptx[0]);
         uint64_t llValidReward                        = block.GetFee() - block.GetFuel();
         if (pRewardTx->rewardValue != llValidReward)
-            return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : coinbase pays too much (actual=%d vs limit=%d)", pRewardTx->rewardValue, llValidReward),
-                             REJECT_INVALID, "bad-cb-amount");
+            return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : coinbase pays too much (actual=%d vs limit=%d)", 
+                pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-cb-amount");
 
         for (auto &item : block.vptx) {
             //校验交易是否在有效高度
             if (!item->IsValidHeight(mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight, SysCfg().GetTxCacheHeight())) {
-                return state.DoS(100,
-                                 ERRORMSG("CheckBlockProofWorkWithCoinDay() : txhash=%s beyond the scope of valid height\n ",
-                                          item->GetHash().GetHex()),
-                                 REJECT_INVALID, "tx-invalid-height");
+                return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : txhash=%s beyond the scope of valid height\n ", 
+                    item->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
             }
             //校验是否有重复确认交易
             if (uint256() != pForkTxCache->IsContainTx(item->GetHash()))
-                return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : tx hash %s has been confirmed\n", item->GetHash().GetHex()), REJECT_INVALID, "bad-txns-oversize");
+                return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : tx hash %s has been confirmed\n", 
+                    item->GetHash().GetHex()), REJECT_INVALID, "bad-txns-oversize");
         }
 
         if (!vPreBlocks.empty()) {
@@ -2190,7 +2192,8 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
                 LogPrint("INFO", "delete mapCache Key:%s\n", preBlockHash.GetHex());
                 mapCache.erase(preBlockHash);
             }
-            std::tuple<std::shared_ptr<CAccountViewCache>, std::shared_ptr<CTransactionDBCache>, std::shared_ptr<CScriptDBViewCache> > cache = std::make_tuple(pForkAcctViewCache, pForkTxCache, pForkScriptDBCache);
+            std::tuple<std::shared_ptr<CAccountViewCache>, std::shared_ptr<CTransactionDBCache>, 
+                std::shared_ptr<CScriptDBViewCache> > cache = std::make_tuple(pForkAcctViewCache, pForkTxCache, pForkScriptDBCache);
             LogPrint("INFO", "add mapCache Key:%s\n", iterBlock->GetHash().GetHex());
             mapCache[iterBlock->GetHash()] = cache;
         }
@@ -2200,7 +2203,9 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
     return true;
 }
 
-bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDBCache, bool fCheckTx, bool fCheckMerkleRoot) {
+bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDBCache, 
+                bool fCheckTx, bool fCheckMerkleRoot) 
+{
     // These are checks that are independent of context
     // that can be verified before saving an orphan block.
 
@@ -2208,12 +2213,11 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
     // Size limits
     if (block.vptx.empty() || block.vptx.size() > MAX_BLOCK_SIZE || nBlockSize > MAX_BLOCK_SIZE)
         return state.DoS(100, ERRORMSG("CheckBlock() : size limits failed"),
-                         REJECT_INVALID, "bad-blk-length");
+            REJECT_INVALID, "bad-blk-length");
 
-    if (block.GetHash() != SysCfg().HashGenesisBlock() && block.GetVersion() != CBlockHeader::CURRENT_VERSION) {
+    if (block.GetHash() != SysCfg().HashGenesisBlock() && block.GetVersion() != CBlockHeader::CURRENT_VERSION)
         return state.Invalid(ERRORMSG("CheckBlock() : block version must be set 3"),
-                             REJECT_INVALID, "block-version-error");
-    }
+            REJECT_INVALID, "block-version-error");
 
     // Check timestamp 12minutes limits
     if (block.GetBlockTime() > GetAdjustedTime() + 12 * 60)
@@ -2264,8 +2268,10 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
     return true;
 }
 
-bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
+bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) 
+{
     AssertLockHeld(cs_main);
+
     // Check for duplicate
     uint256 hash = block.GetHash();
     LogPrint("INFO", "AcceptBlock[%d]: %s\n", block.GetHeight(), hash.GetHex());
@@ -2275,48 +2281,51 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
     assert(block.GetHash() == SysCfg().HashGenesisBlock() || mapBlockIndex.count(block.GetHashPrevBlock()));
     if (block.GetHash() != SysCfg().HashGenesisBlock() &&
         block.GetFuelRate() != GetElementForBurn(mapBlockIndex[block.GetHashPrevBlock()]))
-        return state.DoS(100, ERRORMSG("CheckBlock() : block fuel rate dismatched"), REJECT_INVALID, "fuel-rate-dismatch");
+        return state.DoS(100, ERRORMSG("CheckBlock() : block fuel rate unmatched"), REJECT_INVALID, "fuel-rate-unmatch");
 
     // Get prev block index
-    CBlockIndex *pindexPrev = NULL;
-    int nHeight             = 0;
+    CBlockIndex *pBlockIndexPrev = NULL;
+    int nHeight = 0;
     if (hash != SysCfg().HashGenesisBlock()) {
         map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(block.GetHashPrevBlock());
         if (mi == mapBlockIndex.end())
             return state.DoS(10, ERRORMSG("AcceptBlock() : prev block not found"), 0, "bad-prevblk");
-        pindexPrev = (*mi).second;
-        nHeight    = pindexPrev->nHeight + 1;
+
+        pBlockIndexPrev = (*mi).second;
+        nHeight = pBlockIndexPrev->nHeight + 1;
 
         if (block.GetHeight() != (unsigned int)nHeight)
-            return state.DoS(100, ERRORMSG("AcceptBlock() : height in block claimed dismatched it's actual height"), REJECT_INVALID, "incorrect-height");
+            return state.DoS(100, ERRORMSG("AcceptBlock() : height in block claimed dismatched it's actual height"), 
+                REJECT_INVALID, "incorrect-height");
 
         int64_t tempTime = GetTimeMillis();
 
         // Check timestamp against prev
-        if (block.GetBlockTime() <= pindexPrev->GetBlockTime() ||
-            (block.GetBlockTime() - pindexPrev->GetBlockTime()) < SysCfg().GetTargetSpacing())
-            return state.Invalid(ERRORMSG("AcceptBlock() : block's timestamp is too early"), REJECT_INVALID,
-                                 "time-too-early");
+        if (block.GetBlockTime() <= pBlockIndexPrev->GetBlockTime() ||
+            (block.GetBlockTime() - pBlockIndexPrev->GetBlockTime()) < SysCfg().GetTargetSpacing())
+            return state.Invalid(ERRORMSG("AcceptBlock() : block's timestamp is too early"), 
+                REJECT_INVALID, "time-too-early");
 
         // Check that the block chain matches the known block chain up to a checkpoint
         if (!Checkpoints::CheckBlock(nHeight, hash))
             return state.DoS(100, ERRORMSG("AcceptBlock() : rejected by checkpoint lock-in at %d", nHeight),
-                             REJECT_CHECKPOINT, "checkpoint mismatch");
+                REJECT_CHECKPOINT, "checkpoint mismatch");
 
         // Don't accept any forks from the main chain prior to last checkpoint
-        CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
-        if (pcheckpoint && nHeight < pcheckpoint->nHeight)
+        CBlockIndex *pCheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
+        if (pCheckpoint && (nHeight < pCheckpoint->nHeight))
             return state.DoS(100, ERRORMSG("AcceptBlock() : forked chain older than last checkpoint (height %d)", nHeight));
 
         //Check proof of pos tx
-        if (!CheckBlockProofWorkWithCoinDay(block, pindexPrev, state)) {
-            LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() end:%lld ms\n", GetTimeMillis() - tempTime);
+        if (!CheckBlockProofWorkWithCoinDay(block, pBlockIndexPrev, state)) {
+            LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() end: %lld ms\n", GetTimeMillis() - tempTime);
             return state.DoS(100, ERRORMSG("AcceptBlock() : check proof of pos tx"), REJECT_INVALID, "bad-pos-tx");
         }
 
         // Reject block.nVersion=1 blocks when 95% (75% on testnet) of the network has upgraded:
         if (block.GetVersion() < 2) {
-            if ((!TestNet() && CBlockIndex::IsSuperMajority(2, pindexPrev, 950, 1000)) || (TestNet() && CBlockIndex::IsSuperMajority(2, pindexPrev, 75, 100))) {
+            if ((!TestNet() && CBlockIndex::IsSuperMajority(2, pBlockIndexPrev, 950, 1000)) || 
+                (TestNet() && CBlockIndex::IsSuperMajority(2, pBlockIndexPrev, 75, 100))) {
                 return state.Invalid(ERRORMSG("AcceptBlock() : rejected nVersion=1 block"), REJECT_OBSOLETE, "bad-version");
             }
         }
@@ -2347,6 +2356,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
             if (chainActive.Height() > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate))
                 pnode->PushInventory(CInv(MSG_BLOCK, hash));
     }
+
     return true;
 }
 
@@ -3422,9 +3432,10 @@ void static ProcessGetData(CNode *pfrom) {
     }
 }
 
-bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv) {
+bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv) 
+{
     RandAddSeedPerfmon();
-    LogPrint("NET", "received: %s (%u bytes)\n", strCommand, vRecv.size());
+    LogPrint("net", "received: %s (%u bytes)\n", strCommand, vRecv.size());
     //  if (GetRand(atoi(SysCfg().GetArg("-dropmessagestest", "0"))) == 0)
     //  {
     //      LogPrint("INFO","dropmessagestest DROPPING RECV MESSAGE\n");
@@ -3461,14 +3472,18 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv) 
 
         if (pfrom->nVersion == 10300)
             pfrom->nVersion = 300;
+
         if (!vRecv.empty())
             vRecv >> addrFrom >> nNonce;
+
         if (!vRecv.empty()) {
             vRecv >> pfrom->strSubVer;
             pfrom->cleanSubVer = SanitizeString(pfrom->strSubVer);
         }
+
         if (!vRecv.empty())
             vRecv >> pfrom->nStartingHeight;
+
         if (!vRecv.empty())
             vRecv >> pfrom->fRelayTxes;  // set to true after we get the first filter* message
         else
@@ -3569,6 +3584,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv) 
 
             if (addr.nTime <= 100000000 || addr.nTime > nNow + 10 * 60)
                 addr.nTime = nNow - 5 * 24 * 60 * 60;
+
             pfrom->AddAddressKnown(addr);
             bool fReachable = IsReachable(addr);
             if (addr.nTime > nSince && !pfrom->fGetAddr && vAddr.size() <= 10 && addr.IsRoutable()) {
@@ -3998,9 +4014,12 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv) 
             }
             // Truncate to reasonable length and sanitize before printing:
             string s = ss.str();
-            if (s.size() > 111) s.erase(111, string::npos);
+            if (s.size() > 111) 
+                s.erase(111, string::npos);
+
             LogPrint("net", "Reject %s\n", SanitizeString(s));
         }
+
     } else if (strCommand == "checkpoint") {
         LogPrint("CHECKPOINT", "enter checkpoint\n");
         std::vector<int> vIndex;
