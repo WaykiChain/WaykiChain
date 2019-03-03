@@ -2756,6 +2756,7 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
         throw runtime_error("getcontractaccountinfo: invalid contract regid: " + strAppRegId);
 
     CRegID appRegId(strAppRegId);
+
     vector<unsigned char> acctKey;
     if (CRegID::IsSimpleRegIdStr(params[1].get_str())) {
         CRegID acctRegId(params[1].get_str());
@@ -2765,20 +2766,21 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
         acctKey.assign(acctAddr.c_str(), acctAddr.c_str() + acctAddr.length());
     }
 
-    std::shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
+    std::shared_ptr<CAppUserAccount> appUserAccount = std::make_shared<CAppUserAccount>();
     if (params.size() == 3 && params[2].get_int() == 0) {
-        CScriptDBViewCache contractScriptTemp(*mempool.pScriptDBViewCache, true);
-        if (!contractScriptTemp.GetScriptAcc(appRegId, acctKey, *tem.get())) {
-            tem = std::make_shared<CAppUserAccount>(acctKey);
+        CScriptDBViewCache viewCache(*mempool.pScriptDBViewCache, true);
+        if (!viewCache.GetScriptAcc(appRegId, acctKey, *appUserAccount.get())) {
+            appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }
     } else {
-        CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
-        if (!contractScriptTemp.GetScriptAcc(appRegId, acctKey, *tem.get())) {
-            tem = std::make_shared<CAppUserAccount>(acctKey);
+        CScriptDBViewCache viewCache(*pScriptDBTip, true);
+        if (!viewCache.GetScriptAcc(appRegId, acctKey, *appUserAccount.get())) {
+            appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }
     }
-    tem.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
-    return Value(tem.get()->toJSON());
+    appUserAccount.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
+
+    return Value(appUserAccount.get()->toJSON());
 }
 
 Value listcontractassets(const Array& params, bool fHelp) {

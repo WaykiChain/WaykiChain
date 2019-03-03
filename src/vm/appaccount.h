@@ -180,7 +180,7 @@ public:
 		this->llValues = llValues;
 	}
 
-	const vector<unsigned char>& getaccUserId() const {
+	const vector<unsigned char>& GetAccUserId() const {
 		return mAccUserID;
 	}
 

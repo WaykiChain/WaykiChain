@@ -227,9 +227,8 @@ shared_ptr<CAppUserAccount> CVmRunEvn::GetAppAccount(shared_ptr<CAppUserAccount>
     vector<shared_ptr<CAppUserAccount> >::iterator Iter;
     for (Iter = RawAppUserAccout.begin(); Iter != RawAppUserAccout.end(); Iter++) {
         shared_ptr<CAppUserAccount> temp = *Iter;
-        if (AppAccount.get()->getaccUserId() == temp.get()->getaccUserId()) {
+        if (AppAccount.get()->GetAccUserId() == temp.get()->GetAccUserId())
             return temp;
-        }
     }
     return NULL;
 }
@@ -238,12 +237,10 @@ bool CVmRunEvn::CheckOperate(const vector<CVmOperate> &listoperate) {
     // judge contract rulue
     uint64_t addmoey = 0, miusmoney = 0;
     uint64_t operValue = 0;
-    if(listoperate.size() > MAX_OUTPUT_COUNT) {
+    if(listoperate.size() > MAX_OUTPUT_COUNT)
         return false;
-    }
 
     for (auto& it : listoperate) {
-
         if(it.nacctype != regid && it.nacctype != base58addr)
             return false;
 
@@ -261,7 +258,7 @@ bool CVmRunEvn::CheckOperate(const vector<CVmOperate> &listoperate) {
                 return false;
             }
             addmoey = temp;
-        }else if (it.opeatortype == MINUS_FREE) {
+        } else if (it.opeatortype == MINUS_FREE) {
 
             //vector<unsigned char > accountid(it.accountid,it.accountid+sizeof(it.accountid));
             vector_unsigned_char accountid = GetAccountID(it);
@@ -270,10 +267,8 @@ bool CVmRunEvn::CheckOperate(const vector<CVmOperate> &listoperate) {
             CRegID regId(accountid);
             CTransaction* tx = static_cast<CTransaction*>(listTx.get());
             /// current tx's script cant't mius other script's regid
-            if(m_ScriptDBTip->HaveScript(regId) && regId != boost::get<CRegID>(tx->desUserId))
-            {
+            if (m_ScriptDBTip->HaveScript(regId) && regId != boost::get<CRegID>(tx->desUserId))
                 return false;
-            }
 
             memcpy(&operValue,it.money,sizeof(it.money));
             /*
@@ -284,41 +279,39 @@ bool CVmRunEvn::CheckOperate(const vector<CVmOperate> &listoperate) {
             }
             */
             uint64_t temp = 0;
-            if(!SafeAdd(miusmoney, operValue, temp)) {
+            if (!SafeAdd(miusmoney, operValue, temp))
                 return false;
-            }
+
             miusmoney = temp;
-        }
-        else{
+        } else {
 //          Assert(0);
             return false; // 输入数据错误
         }
 
         //vector<unsigned char> accountid(it.accountid, it.accountid + sizeof(it.accountid));
         vector_unsigned_char accountid = GetAccountID(it);
-        if(accountid.size() == 6){
+        if (accountid.size() == 6) {
             CRegID regId(accountid);
             if(regId.IsEmpty() || regId.getKeyID( *m_view) == uint160())
                 return false;
-            //  app only be allowed minus self money
-            if (!m_ScriptDBTip->HaveScript(regId) && it.opeatortype == MINUS_FREE) {
-                return false;
-            }
-        }
 
+            //  app only be allowed minus self money
+            if (!m_ScriptDBTip->HaveScript(regId) && it.opeatortype == MINUS_FREE)
+                return false;
+        }
     }
+
     if (addmoey != miusmoney)
-    {
         return false;
-    }
+
     return true;
 }
 
 bool CVmRunEvn::CheckAppAcctOperate(CTransaction* tx) {
     int64_t addValue(0), minusValue(0), sumValue(0);
-    for(auto  vOpItem : MapAppOperate) {
-        for(auto appFund : vOpItem.second) {
-            if(ADD_FREE_OP == appFund.opeatortype || ADD_TAG_OP == appFund.opeatortype) {
+    for (auto  vOpItem : MapAppOperate) {
+        for (auto appFund : vOpItem.second) {
+            if (ADD_FREE_OP == appFund.opeatortype || ADD_TAG_OP == appFund.opeatortype) {
                 /*
                 int64_t temp = appFund.mMoney;
                 temp += addValue;
@@ -327,12 +320,11 @@ bool CVmRunEvn::CheckAppAcctOperate(CTransaction* tx) {
                 }
                 */
                 int64_t temp = 0;
-                if(!SafeAdd(appFund.mMoney, addValue, temp)) {
+                if(!SafeAdd(appFund.mMoney, addValue, temp))
                     return false;
-                }
+
                 addValue = temp;
-            }
-            else if(SUB_FREE_OP == appFund.opeatortype || SUB_TAG_OP == appFund.opeatortype) {
+            } else if (SUB_FREE_OP == appFund.opeatortype || SUB_TAG_OP == appFund.opeatortype) {
                 /*
                 int64_t temp = appFund.mMoney;
                 temp += minusValue;
@@ -341,9 +333,9 @@ bool CVmRunEvn::CheckAppAcctOperate(CTransaction* tx) {
                 }
                 */
                 int64_t temp = 0;
-                if(!SafeAdd(appFund.mMoney, minusValue, temp)) {
+                if(!SafeAdd(appFund.mMoney, minusValue, temp))
                     return false;
-                }
+                
                 minusValue = temp;
             }
         }
@@ -354,20 +346,19 @@ bool CVmRunEvn::CheckAppAcctOperate(CTransaction* tx) {
         return false;
     }
     */
-    if(!SafeSubtract(addValue, minusValue, sumValue)) {
+    if(!SafeSubtract(addValue, minusValue, sumValue))
         return false;
-    }
 
     uint64_t sysContractAcct(0);
-    for(auto item : m_output) {
+    for (auto item : m_output) {
         vector_unsigned_char vAccountId = GetAccountID(item);
         if(vAccountId == boost::get<CRegID>(tx->desUserId).GetVec6() && item.opeatortype == MINUS_FREE) {
             uint64_t value;
             memcpy(&value, item.money, sizeof(item.money));
             int64_t temp = value;
-            if(temp < 0) {
+            if (temp < 0)
                 return false;
-            }
+
             /*
             temp += sysContractAcct;
             if(temp < sysContractAcct || temp < (int64_t)value)
@@ -375,9 +366,9 @@ bool CVmRunEvn::CheckAppAcctOperate(CTransaction* tx) {
             */
             uint64_t tempValue = temp;
             uint64_t tempOut = 0;
-            if(!SafeAdd(tempValue, sysContractAcct, tempOut)) {
+            if (!SafeAdd(tempValue, sysContractAcct, tempOut))
                 return false;
-            }
+
             sysContractAcct = tempOut;
         }
     }
@@ -388,14 +379,16 @@ bool CVmRunEvn::CheckAppAcctOperate(CTransaction* tx) {
     }
 */
     int64_t sysAcctSum = 0;
-    if (!SafeSubtract((int64_t)tx->llValues, (int64_t)sysContractAcct, sysAcctSum)) {
+    if (!SafeSubtract((int64_t)tx->llValues, (int64_t)sysContractAcct, sysAcctSum))
+        return false;
+
+    if(sumValue != sysAcctSum){
+        LogPrint("vm", "CheckAppAcctOperate:addValue=%lld, minusValue=%lld, txValue=%lld, sysContractAcct=%lld sumValue=%lld, sysAcctSum=%lld\n", 
+            addValue, minusValue, tx->llValues, sysContractAcct,sumValue, sysAcctSum);
+
         return false;
     }
 
-    if(sumValue != sysAcctSum){
-        LogPrint("vm", "CheckAppAcctOperate:addValue=%lld, minusValue=%lld, txValue=%lld, sysContractAcct=%lld sumValue=%lld, sysAcctSum=%lld\n", addValue, minusValue, tx->llValues, sysContractAcct,sumValue, sysAcctSum);
-        return false;
-    }
     return true;
 }
 
@@ -409,8 +402,8 @@ bool CVmRunEvn::CheckAppAcctOperate(CTransaction* tx) {
 //  return tem;
 //}
 
-bool CVmRunEvn::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountViewCache& view, const int nCurHeight) {
-
+bool CVmRunEvn::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountViewCache& view, const int nCurHeight) 
+{
     NewAccont.clear();
     for (auto& it : listoperate) {
 //      CTransaction* tx = static_cast<CTransaction*>(listTx.get());
@@ -430,16 +423,15 @@ bool CVmRunEvn::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
         CRegID userregId;
         CKeyID userkeyid;
 
-        if(accountid.size() == 6){
+        if (accountid.size() == 6) {
             userregId.SetRegID(accountid);
             if(!view.GetAccount(CUserID(userregId), *tem.get())){
                 return false;                                           /// 账户不存在
             }
-        }else{
+        } else {
             string popaddr(accountid.begin(), accountid.end());
             userkeyid = CKeyID(popaddr);
-             if(!view.GetAccount(CUserID(userkeyid), *tem.get()))
-             {
+             if (!view.GetAccount(CUserID(userkeyid), *tem.get())) {
                  tem->keyID = userkeyid;
                 //return false;                                           /// 未产生过交易记录的账户
              }
@@ -450,8 +442,8 @@ bool CVmRunEvn::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
             RawAccont.push_back(tem);
             vmAccount = tem;
         }
-        LogPrint("vm", "account id:%s\r\n", HexStr(accountid).c_str());
-        LogPrint("vm", "befer account:%s\r\n", vmAccount.get()->ToString().c_str());
+        LogPrint("vm", "account id:%s\nbefore account: %s\n", HexStr(accountid).c_str(), vmAccount.get()->ToString().c_str());
+
         bool ret = false;
 //      vector<CScriptDBOperLog> vAuthorLog;
         //todolist
@@ -464,13 +456,13 @@ bool CVmRunEvn::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
 //      }
 
 //      LogPrint("vm", "after account:%s\r\n", vmAccount.get()->ToString().c_str());
-        if (!ret) {
+        if (!ret)
             return false;
-        }
+        
         NewAccont.push_back(vmAccount);
 //      m_dblog->insert(m_dblog->end(), vAuthorLog.begin(), vAuthorLog.end());
-
     }
+
     return true;
 }
 

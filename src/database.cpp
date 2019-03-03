@@ -1727,7 +1727,7 @@ bool CScriptDBViewCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAcco
                                       CScriptDBOperLog &operlog) {
     vector<unsigned char> scriptKey = {'a', 'c', 'c', 't'};
     vector<unsigned char> vRegId    = scriptId.GetVec6();
-    vector<unsigned char> vAccKey   = appAccOut.getaccUserId();
+    vector<unsigned char> vAccKey   = appAccOut.GetAccUserId();
     scriptKey.insert(scriptKey.end(), vRegId.begin(), vRegId.end());
     scriptKey.push_back('_');
     scriptKey.insert(scriptKey.end(), vAccKey.begin(), vAccKey.end());

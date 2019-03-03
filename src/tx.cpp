@@ -562,7 +562,7 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
         vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEvn.GetRawAppUserAccount();
         for (auto & itemUserAccount : vAppUserAccount) {
             CKeyID itemKeyID;
-            bool bValid = GetKeyId(view, itemUserAccount.get()->getaccUserId(), itemKeyID);
+            bool bValid = GetKeyId(view, itemUserAccount.get()->GetAccUserId(), itemKeyID);
             if (bValid)
                 vAddress.insert(itemKeyID);
         }
@@ -623,22 +623,21 @@ bool CTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScri
 
             vector<shared_ptr<CAccount> > vpAccount = vmRunEvn.GetNewAccont();
 
-            for (auto & item : vpAccount) {
+            for (auto & item : vpAccount)
                 vAddr.insert(item->keyID);
-            }
 
             vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEvn.GetRawAppUserAccount();
             for (auto & itemUserAccount : vAppUserAccount) {
                 CKeyID itemKeyID;
-                bool bValid = GetKeyId(view, itemUserAccount.get()->getaccUserId(), itemKeyID);
-                if(bValid) {
+                bool bValid = GetKeyId(view, itemUserAccount.get()->GetAccUserId(), itemKeyID);
+                if (bValid)
                     vAddr.insert(itemKeyID);
-                }
             }
         } else {
             set<CKeyID> vTxRelAccount;
             if (!scriptDBView.GetTxRelAccount(GetHash(), vTxRelAccount))
                 return false;
+
             vAddr.insert(vTxRelAccount.begin(), vTxRelAccount.end());
         }
     }
