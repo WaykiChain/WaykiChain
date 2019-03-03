@@ -184,9 +184,9 @@ public:
 		return mAccUserID;
 	}
 
-	void setAccUserId(const vector<unsigned char>& accUserId) {
-		mAccUserID = accUserId;
-	}
+	// void SetAccUserId(const vector<unsigned char>& accUserId) {
+	// 	mAccUserID = accUserId;
+	// }
 
 	vector<CAppCFund>& GetFrozenFund() {
 		return vFrozenFunds;
