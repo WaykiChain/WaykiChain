@@ -161,13 +161,13 @@ BOOST_AUTO_TEST_CASE(key_test1)
     {
         CAppCFund tep;
         BOOST_CHECK(AccCount.GetAppCFund(tep, fundtag, timeout)); //获取相应的冻结项
-        BOOST_CHECK(tep.getvalue() == OpArry[0].GetUint64Value());                    //冻结的金额需要没有问题
+        BOOST_CHECK(tep.GetValue() == OpArry[0].GetUint64Value());                    //冻结的金额需要没有问题
         CAppCFund tep2;
         BOOST_CHECK(AccCount.GetAppCFund(tep2, fundtag, maxtimeout + 5) == false); //获取相应的冻结项 超时时间不同 必须获取不到
 
         AccCount.AutoMergeFreezeToFree(timeout - 1);                   //自动合并 超时高度没有到  这里的 50 是为了配合签名 time out de 51
         BOOST_CHECK(AccCount.GetAppCFund(tep, fundtag, timeout));            //没有合并必须金额还是没有变动
-        BOOST_CHECK(tep.getvalue() == OpArry[0].GetUint64Value());          //没有合并必须金额还是没有变动
+        BOOST_CHECK(tep.GetValue() == OpArry[0].GetUint64Value());          //没有合并必须金额还是没有变动
     }
 
     {
@@ -180,7 +180,7 @@ BOOST_AUTO_TEST_CASE(key_test1)
     {
         CAppCFund subtemptep;
         BOOST_CHECK(AccCount.GetAppCFund(subtemptep, fundtag, timeout));        //获取相应的冻结项
-        BOOST_CHECK(subtemptep.getvalue() == (OpArry[0].GetUint64Value() - 8));    //上面减去了8  检查是否对
+        BOOST_CHECK(subtemptep.GetValue() == (OpArry[0].GetUint64Value() - 8));    //上面减去了8  检查是否对
     }
 
     {
@@ -194,7 +194,7 @@ BOOST_AUTO_TEST_CASE(key_test1)
     {
         CAppCFund reverttemptep;
         BOOST_CHECK(AccCount.GetAppCFund(reverttemptep, fundtag, timeout));          //没有合并必须金额还是没有变动
-        BOOST_CHECK(reverttemptep.getvalue() == OpArry[0].GetUint64Value());            //没有合并必须金额还是没有变动
+        BOOST_CHECK(reverttemptep.GetValue() == OpArry[0].GetUint64Value());            //没有合并必须金额还是没有变动
     }
 
     {           //合并第一个

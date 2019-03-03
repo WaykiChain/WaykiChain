@@ -32,8 +32,8 @@ CAppCFund::CAppCFund() {
 
 CAppCFund::CAppCFund(const CAppCFund &fund) {
 	vTag = fund.GetTag();
-	value = fund.getvalue();
-	nHeight = fund.getheight();
+	value = fund.GetValue();
+	nHeight = fund.GetHeight();
 }
 
 CAppCFund::CAppCFund(const vector<unsigned char>& vtag, uint64_t val, int nhight) {
@@ -44,12 +44,12 @@ CAppCFund::CAppCFund(const vector<unsigned char>& vtag, uint64_t val, int nhight
 
 inline bool CAppCFund::MergeCFund(const CAppCFund &fund) {
 	assert(fund.GetTag() == this->GetTag());
-	assert(fund.getheight() == this->getheight() && fund.getvalue() > 0);
-	//value = fund.getvalue()+value;
+	assert(fund.GetHeight() == this->GetHeight() && fund.GetValue() > 0);
+	//value = fund.GetValue()+value;
 	uint64_t tempValue = 0;
-	if(!SafeAdd(fund.getvalue(), value, tempValue)) {
+	if (!SafeAdd(fund.GetValue(), value, tempValue))
 		return ERRORMSG("Operate overflow !");
-	}
+	
 	value = tempValue;
 	return true;
 }
@@ -71,6 +71,7 @@ CAppUserAccount::CAppUserAccount() {
 
 	vFrozenFunds.clear();
 }
+
 CAppUserAccount::CAppUserAccount(const vector<unsigned char> &userId)
 {
 	mAccUserID.clear();
@@ -157,12 +158,12 @@ bool CAppUserAccount::MinusAppCFund(const CAppCFund& inFound) {
 		return CfundIn.GetTag()== inFound.GetTag() && CfundIn.getheight() ==inFound.getheight() ;});
 
 	if (it != vFrozenFunds.end()) { //如果找到了
-		if (it->getvalue() >= inFound.getvalue()) {
-			if(it->getvalue() == inFound.getvalue()) {
+		if (it->GetValue() >= inFound.GetValue()) {
+			if(it->GetValue() == inFound.GetValue()) {
 				vFrozenFunds.erase(it);
 				return true;
 			}
-			it->setValue(it->getvalue()  - inFound.getvalue());
+			it->setValue(it->GetValue()  - inFound.GetValue());
 			return true;
 		}
 	}

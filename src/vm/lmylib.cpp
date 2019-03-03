@@ -1796,7 +1796,7 @@ static int ExGetUserAppAccFundWithTagFunc(lua_State *L)
             return RetFalse("GetUserAppAccFundWithTag GetAppCFund fail");
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
-        tep << fund.getvalue() ;
+        tep << fund.GetValue() ;
         vector<unsigned char> TMP(tep.begin(),tep.end());
         len = RetRstToLua(L,TMP);
     }
@@ -2000,10 +2000,10 @@ static int ExTransferContractAsset(lua_State *L)
         pVmRunEvn->InsertOutAPPOperte(recvkey, op);
     }
 
-    vector<CAppCFund> vTemp = temp.get()->GetFrozenFund();
+    vector<CAppCFund> vTemp = temp.get()->GetFrozenFunds();
     for (auto fund : vTemp) {
-        op.mMoney = fund.getvalue();
-        op.outheight = fund.getheight();
+        op.mMoney = fund.GetValue();
+        op.outheight = fund.GetHeight();
         op.opeatortype = SUB_TAG_OP;
         op.appuserIDlen = sendkey.size();
         for (i = 0; i < op.appuserIDlen; i++) {
@@ -2073,14 +2073,12 @@ static int ExTransferSomeAsset(lua_State *L) {
     }
 
     uint64_t uTransferMoney = assetOp.GetUint64Value();
-    if (0 == uTransferMoney) {
-        return RetFalse(string(__FUNCTION__)+"Transfer Money is not valid !");
-    }
+    if (0 == uTransferMoney)
+        return RetFalse(string(__FUNCTION__) + " Transfer Money is not valid !");
 
-    int nHeight = assetOp.getheight();
-    if (nHeight < 0) {
-        return RetFalse(string(__FUNCTION__)+"outHeight is not valid !");
-    }
+    int nHeight = assetOp.GetHeight();
+    if (nHeight < 0)
+        return RetFalse(string(__FUNCTION__) + " outHeight is not valid !");
 
     int i = 0;
     CAppFundOperate op;
