@@ -2000,7 +2000,7 @@ static int ExTransferContractAsset(lua_State *L)
         pVmRunEvn->InsertOutAPPOperte(recvkey, op);
     }
 
-    vector<CAppCFund> vTemp = temp.get()->getFreezedFund();
+    vector<CAppCFund> vTemp = temp.get()->GetFrozenFund();
     for (auto fund : vTemp) {
         op.mMoney = fund.getvalue();
         op.outheight = fund.getheight();

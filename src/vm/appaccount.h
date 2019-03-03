@@ -188,20 +188,19 @@ public:
 		mAccUserID = accUserId;
 	}
 
-	vector<CAppCFund>& getFreezedFund() {
+	vector<CAppCFund>& GetFrozenFund() {
 		return vFrozenFunds;
 	}
 
-	void setFreezedFund(const vector<CAppCFund>& vtmp)
-	{
-		vFrozenFunds.clear();
-		for(int i = 0; i < (int)vtmp.size(); i++)
-		{
-			vFrozenFunds.push_back(vtmp[i]);
-		}
-	}
+	// void SetFrozenFund(const vector<CAppCFund>& vtmp)
+	// {
+	// 	vFrozenFunds.clear();
+	// 	for (int i = 0; i < (int)vtmp.size(); i++)
+	// 		vFrozenFunds.push_back(vtmp[i]);
+	// }
 
 	uint64_t GetAllFreezedValues();
+
 	IMPLEMENT_SERIALIZE
 	(
 		READWRITE(VARINT(llValues));
