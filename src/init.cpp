@@ -371,6 +371,7 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles)
             FILE *file = OpenBlockFile(pos, true);
             if (!file)
                 break;
+                
             LogPrint("INFO", "Reindexing block file blk%05u.dat...\n", (unsigned int)nFile);
             LoadExternalBlockFile(file, &pos);
             nFile++;
@@ -443,9 +444,8 @@ bool AppInit(boost::thread_group& threadGroup)
     WSADATA wsadata;
     int ret = WSAStartup(MAKEWORD(2,2), &wsadata);
     if (ret != NO_ERROR || LOBYTE(wsadata.wVersion ) != 2 || HIBYTE(wsadata.wVersion) != 2)
-    {
         return InitError(strprintf("Error: Winsock library failed to start (WSAStartup returned error %d)", ret));
-    }
+
 #endif
 #ifndef WIN32
     umask(077);
@@ -473,58 +473,52 @@ bool AppInit(boost::thread_group& threadGroup)
 
     CUIServer::StartServer();
 
-    if(SysCfg().GetBoolArg("-ui", false)) {
+    if(SysCfg().GetBoolArg("-ui", false))
         threadGroup.create_thread(ThreadSendMessageToUI);
-    }
+
     // ********************************************************* Step 2: parameter interactions
 
     if (SysCfg().IsArgCount("-bind")) {
         // when specifying an explicit binding address, you want to listen on it
         // even when -connect or -proxy is specified
-        if (SysCfg().SoftSetBoolArg("-listen", true)) {
+        if (SysCfg().SoftSetBoolArg("-listen", true))
             LogPrint("INFO", "AppInit : parameter interaction: -bind set -> setting -listen=1\n");
-        }
     }
 
     if (SysCfg().IsArgCount("-connect") && SysCfg().GetMultiArgs("-connect").size() > 0) {
         // when only connecting to trusted nodes, do not seed via DNS, or listen by default
-        if (SysCfg().SoftSetBoolArg("-dnsseed", false)) {
+        if (SysCfg().SoftSetBoolArg("-dnsseed", false))
             LogPrint("INFO", "AppInit : parameter interaction: -connect set -> setting -dnsseed=0\n");
-        }
-        if (SysCfg().SoftSetBoolArg("-listen", false)) {
+        
+        if (SysCfg().SoftSetBoolArg("-listen", false))
             LogPrint("INFO", "AppInit : parameter interaction: -connect set -> setting -listen=0\n");
-        }
     }
 
     if (SysCfg().IsArgCount("-proxy")) {
         // to protect privacy, do not listen by default if a default proxy server is specified
-        if (SysCfg().SoftSetBoolArg("-listen", false)) {
+        if (SysCfg().SoftSetBoolArg("-listen", false))
             LogPrint("INFO", "AppInit : parameter interaction: -proxy set -> setting -listen=0\n");
-        }
     }
 
     if (!SysCfg().GetBoolArg("-listen", true)) {
         // do not map ports or try to retrieve public IP when not listening (pointless)
-        if (SysCfg().SoftSetBoolArg("-upnp", false)) {
+        if (SysCfg().SoftSetBoolArg("-upnp", false))
             LogPrint("INFO", "AppInit : parameter interaction: -listen=0 -> setting -upnp=0\n");
-        }
-        if (SysCfg().SoftSetBoolArg("-discover", false)) {
+
+        if (SysCfg().SoftSetBoolArg("-discover", false))
             LogPrint("INFO", "AppInit : parameter interaction: -listen=0 -> setting -discover=0\n");
-        }
     }
 
     if (SysCfg().IsArgCount("-externalip")) {
         // if an explicit public IP is specified, do not try to find others
-        if (SysCfg().SoftSetBoolArg("-discover", false)) {
+        if (SysCfg().SoftSetBoolArg("-discover", false))
             LogPrint("INFO", "AppInit : parameter interaction: -externalip set -> setting -discover=0\n");
-        }
     }
 
     if (SysCfg().GetBoolArg("-salvagewallet", false)) {
         // Rewrite just private keys: rescan to find transactions
-        if (SysCfg().SoftSetBoolArg("-rescan", true)) {
+        if (SysCfg().SoftSetBoolArg("-rescan", true))
             LogPrint("INFO", "AppInit : parameter interaction: -salvagewallet=1 -> setting -rescan=1\n");
-        }
     }
 
     // -zapwallettx implies a rescan
@@ -535,16 +529,16 @@ bool AppInit(boost::thread_group& threadGroup)
     }
 
     // Make sure enough file descriptors are available
-    int nBind = max((int)SysCfg().IsArgCount("-bind"), 1);
+    int nBind = max((int) SysCfg().IsArgCount("-bind"), 1);
     nMaxConnections = SysCfg().GetArg("-maxconnections", 125);
     nMaxConnections = max(min(nMaxConnections, (int)(FD_SETSIZE - nBind - MIN_CORE_FILEDESCRIPTORS)), 0);
     int nFD = RaiseFileDescriptorLimit(nMaxConnections + MIN_CORE_FILEDESCRIPTORS);
-    if (nFD < MIN_CORE_FILEDESCRIPTORS) {
+    if (nFD < MIN_CORE_FILEDESCRIPTORS)
         return InitError(_("Not enough file descriptors available."));
-    }
-    if (nFD - MIN_CORE_FILEDESCRIPTORS < nMaxConnections) {
+
+    if (nFD - MIN_CORE_FILEDESCRIPTORS < nMaxConnections)
         nMaxConnections = nFD - MIN_CORE_FILEDESCRIPTORS;
-    }
+
     // ********************************************************* Step 3: parameter-to-internal-flags
     SysCfg().SetBenchMark(SysCfg().GetBoolArg("-benchmark", false));
     mempool.setSanityCheck(SysCfg().GetBoolArg("-checkmempool", RegTest()));
@@ -900,8 +894,6 @@ bool AppInit(boost::thread_group& threadGroup)
         return false;
     }
 
-
-
     if (SysCfg().IsArgCount("-printblock")) {
         string strMatch = SysCfg().GetArg("-printblock", "");
         int nFound = 0;
@@ -917,9 +909,9 @@ bool AppInit(boost::thread_group& threadGroup)
                 nFound++;
             }
         }
-        if (nFound == 0) {
+        if (nFound == 0)
             LogPrint("INFO", "No blocks matching %s were found\n", strMatch);
-        }
+
         return false;
     }
 
@@ -932,9 +924,9 @@ bool AppInit(boost::thread_group& threadGroup)
     }
     // check current chain according to checkpoint
     CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
-    if (NULL != pcheckpoint) {
+    if (NULL != pcheckpoint)
         CheckActiveChain(pcheckpoint->nHeight, pcheckpoint->GetBlockHash());
-    }
+    
     vector<boost::filesystem::path> vImportFiles;
     if (SysCfg().IsArgCount("-loadblock")) {
         vector<string>tmp = SysCfg().GetMultiArgs("-loadblock");
@@ -946,7 +938,7 @@ bool AppInit(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 10: load peers
 
-    uiInterface.InitMessage(_("Loading addresses..."));
+    uiInterface.InitMessage(_("Loading peer addresses..."));
 
     nStart = GetTimeMillis();
 
@@ -957,16 +949,16 @@ bool AppInit(boost::thread_group& threadGroup)
         }
     }
 
-    LogPrint("INFO","Loaded %i addresses from peers.dat  %dms\n", addrman.size(), GetTimeMillis() - nStart);
+    LogPrint("INFO", "Loaded %i addresses from peers.dat (%dms)\n", addrman.size(), GetTimeMillis() - nStart);
 
     // ********************************************************* Step 11: start node
 
-    if (!CheckDiskSpace()) {
+    if (!CheckDiskSpace())
         return false;
-    }
-    if (!strErrors.str().empty()) {
+
+    if (!strErrors.str().empty())
         return InitError(strErrors.str());
-    }
+
     RandAddSeedPerfmon();
 
     LogPrint("INFO", "mapBlockIndex.size()=%u, nBestHeight = %d\n", mapBlockIndex.size(), chainActive.Height());
@@ -984,12 +976,12 @@ bool AppInit(boost::thread_group& threadGroup)
         pwalletMain->ResendWalletTransactions();
         threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pwalletMain->strWalletFile)));
 
-       //resend unconfirmed tx
-       threadGroup.create_thread(boost::bind(&ThreadRelayTx, pwalletMain));
+        //resend unconfirmed tx
+        threadGroup.create_thread(boost::bind(&ThreadRelayTx, pwalletMain));
     }
     // ********************************************************* Step 12: finished
 
-    uiInterface.InitMessage("initialize end");
+    uiInterface.InitMessage("Initialization finished.");
 
     return !fRequestShutdown;
 }
