@@ -123,13 +123,11 @@ Value getnetworkhashps(const Array& params, bool fHelp)
 
 static bool IsMining = false;
 
-void SetMinerStatus(bool bstatus )
-{
-    IsMining = bstatus;
+void SetMinerStatus(bool bStatus) {
+    IsMining = bStatus;
 }
 
-static bool getMiningInfo()
-{
+static bool GetMiningInfo() {
     return IsMining;
 }
 
@@ -231,7 +229,7 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("pooledtx",         (uint64_t)mempool.size()));
     obj.push_back(Pair("nettype",          NetTypes[SysCfg().NetworkID()]));
     obj.push_back(Pair("posmaxnonce",      SysCfg().GetBlockMaxNonce()));
-    obj.push_back(Pair("generate",         getMiningInfo()));
+    obj.push_back(Pair("generate",         GetMiningInfo()));
     return obj;
 }
 

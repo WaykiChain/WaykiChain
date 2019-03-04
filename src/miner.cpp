@@ -14,7 +14,7 @@
 
 #include "./wallet/wallet.h"
 extern CWallet *pwalletMain;
-extern void SetMinerStatus(bool bstatue);
+extern void SetMinerStatus(bool bStatus);
 //////////////////////////////////////////////////////////////////////////////
 //
 // CoinMiner
@@ -478,10 +478,10 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
             CValidationState state;
             if (pBaseTx->IsCoinBase())
                 ERRORMSG("Tx type is coinbase tx error......");
-            
+
             if (CONTRACT_TX == pBaseTx->nTxType)
                 LogPrint("vm", "CreateNewBlock: contract tx hash=%s\n", pBaseTx->GetHash().GetHex());
-            
+
             CAccountViewCache viewTemp(view, true);
             CScriptDBViewCache scriptCacheTemp(scriptCache, true);
             pBaseTx->nFuelRate = pblock->GetFuelRate();
@@ -569,17 +569,17 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
         vector<CAccount> vDelegatesAcctList;
         if (!GetDelegatesAcctList(vDelegatesAcctList))
             return false;
-        
+
         int nIndex = 0;
         for (auto &delegate : vDelegatesAcctList)
             LogPrint("shuffle", "before shuffle: index=%d, address=%s\n", nIndex++, delegate.keyID.ToAddress());
-        
+
         ShuffleDelegates(pblock->GetHeight(), vDelegatesAcctList);
 
         nIndex = 0;
         for (auto &delegate : vDelegatesAcctList)
             LogPrint("shuffle", "after shuffle: index=%d, address=%s\n", nIndex++, delegate.keyID.ToAddress());
-        
+
         int64_t currentTime = GetTime();
         CAccount minerAcct;
         if (!GetCurrentDelegate(currentTime, vDelegatesAcctList, minerAcct))
@@ -596,7 +596,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
                 pwalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey)) {
                 nLastTime   = GetTimeMillis();
                 createdFlag = CreatePosTx(currentTime, minerAcct, view, pblock);
-                LogPrint("MINER", "CreatePosTx %s, used time:%d ms, miner address=%s\n", 
+                LogPrint("MINER", "CreatePosTx %s, used time:%d ms, miner address=%s\n",
                     createdFlag ? "success" : "failure", GetTimeMillis() - nLastTime, minerAcct.keyID.ToAddress());
             }
         }
@@ -628,7 +628,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
 
     auto HasMinerKey = [&]() {
         LOCK2(cs_main, pwalletMain->cs_wallet);
-        
+
         set<CKeyID> setMineKey;
         setMineKey.clear();
         pwalletMain->GetKeys(setMineKey, true);
@@ -641,12 +641,12 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
         return;
     }
 
-    auto getCurrHeight = [&]() {
+    auto GetCurrHeight = [&]() {
         LOCK(cs_main);
         return chainActive.Height();
     };
 
-    targetHeight += getCurrHeight();
+    targetHeight += GetCurrHeight();
 
     try {
         SetMinerStatus(true);
@@ -681,9 +681,9 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
             MineBlock(pblock, pwallet, pindexPrev, nTransactionsUpdated, accountView, txCache, scriptDB);
 
             if (SysCfg().NetworkID() != MAIN_NET)
-                if (targetHeight <= getCurrHeight())
+                if (targetHeight <= GetCurrHeight())
                     throw boost::thread_interrupted();
-            
+
         }
     } catch (...) {
         LogPrint("INFO", "CoinMiner terminated\n");
