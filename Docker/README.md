@@ -13,8 +13,8 @@ Run waykichain coind inside a docker container!
 
 ## Build waykicoind docker image
 ### method-1: build from Dockerfile
-1. ```git clone https://github.com/WaykiChain/docker-waykicoind.git```
-1. ```cd docker-waykicoind && sh ./bin/build-waykicoind.sh```
+1. ```git clone https://github.com/WaykiChain/WaykiChain.git```
+1. ```cd WaykiChain/Docker && sh ./bin/build-waykicoind.sh```
 
 ### method-2: pull from Docker Hub without build
 ``` docker pull wicc/waykicoind ```
@@ -25,9 +25,11 @@ Run waykichain coind inside a docker container!
    * For testnet: ``` sudo mkdir -p /opt/docker-instances/waykicoind-test ```
 1. first, cd into the above created node host dir and create ```data``` and ```conf``` subdirs:
    * ``` sudo mkdir data conf ```
-1. copy the entire bin dir from docker-waykicoind:
-   * ``` sudo cp -r docker-waykicoind/bin . ```
-1. copy WaykiCoind.conf into ```conf``` dir and modify its content accordingly
+1. copy the entire Docker/bin dir from WaykiChain repository:
+   * ``` sudo cp -r ${your_path_of_WaykiChain}/Docker/bin ./ ```
+1. copy WaykiCoind.conf into ```conf``` dir from WaykiChain repository:
+   * ``` sudo cp -r ${your_path_of_WaykiChain}/Docker/WaykiChain.conf ./dir/ ```
+1. modify content of ```WaykiCoind.conf``` accordingly
    * For mainnet, please make sure ```testnet=1``` is removed
    * For testnet, please make sure only ```testnet=1``` is provided
    * For regtest, please make suer only ```regtest=1``` is provided
