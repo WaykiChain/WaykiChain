@@ -5,7 +5,7 @@
 #include "main.h"
 #include "serialize.h"
 #include "util.h"
-#include "vm/vmrunevn.h"
+#include "vm/vmrunenv.h"
 
 bool CAccountView::GetAccount(const CKeyID &keyId, CAccount &account) { return false; }
 bool CAccountView::SetAccount(const CKeyID &keyId, const CAccount &account) { return false; }

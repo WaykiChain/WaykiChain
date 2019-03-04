@@ -21,7 +21,7 @@
 using namespace std;
 class CVmOperate;
 
-class CVmRunEvn {
+class CVmRunEnv {
 	/**
 	 * Run the script object
 	 */
@@ -114,7 +114,7 @@ public:
 	/**
 	 * A constructor.
 	 */
-	CVmRunEvn();
+	CVmRunEnv();
 	/**
 	 *@brief get be operate the account
 	 * @return the variable RawAccont
@@ -159,7 +159,7 @@ public:
 	bool GetAppUserAccount(const vector<unsigned char> &id, shared_ptr<CAppUserAccount> &sptrAcc);
 	bool CheckAppAcctOperate(CTransaction* tx);
 	void SetCheckAccount(bool bCheckAccount);
-	virtual ~CVmRunEvn();
+	virtual ~CVmRunEnv();
 
 };
 
@@ -202,5 +202,5 @@ public:
 
 };
 
-//extern CVmRunEvn *pVmRunEvn; //提供给lmylib.cpp库使用
+//extern CVmRunEnv *pVmRunEnv; //提供给lmylib.cpp库使用
 #endif /* SCRIPTCHECK_H_ */

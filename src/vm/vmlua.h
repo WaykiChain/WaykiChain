@@ -8,19 +8,19 @@
 #include <memory>
 
 using namespace std;
-class CVmRunEvn;
+class CVmRunEnv;
 
 class CVmlua {
 public:
 	CVmlua(const vector<unsigned char> &vContractScript, const vector<unsigned char> &vContractCallParams);
 	~CVmlua();
-	tuple<uint64_t, string> run(uint64_t maxstep,CVmRunEvn *pVmScriptRun);
+	tuple<uint64_t, string> run(uint64_t maxstep,CVmRunEnv *pVmRunEnv);
 	static tuple<bool, string> CheckScriptSyntax(const char* filePath);
 
 private:
 	unsigned char m_ContractCallParams[4096];  		// to hold contract call params (contract)
 	unsigned char m_ContractScript[65536];			// to hold contract script content
-	
+
 };
 
 

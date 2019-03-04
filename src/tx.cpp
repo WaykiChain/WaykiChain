@@ -6,7 +6,7 @@
 #include "main.h"
 #include <algorithm>
 #include "txdb.h"
-#include "vm/vmrunevn.h"
+#include "vm/vmrunenv.h"
 #include "core.h"
 #include "miner.h"
 #include <boost/assign/list_of.hpp>
@@ -526,12 +526,12 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
             return state.DoS(100, ERRORMSG("ContractTransaction ExecuteTx, read account faild, RegId=%s",
                 boost::get<CRegID>(desUserId).ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
-        CVmRunEvn vmRunEvn;
+        CVmRunEnv vmRunEnv;
         std::shared_ptr<CBaseTransaction> pTx = GetNewInstance();
         uint64_t fuelRate = GetFuelRate(scriptDB);
 
         int64_t llTime = GetTimeMillis();
-        tuple<bool, uint64_t, string> ret = vmRunEvn.ExecuteContract(pTx, view, scriptDB, nHeight, fuelRate, nRunStep);
+        tuple<bool, uint64_t, string> ret = vmRunEnv.ExecuteContract(pTx, view, scriptDB, nHeight, fuelRate, nRunStep);
         if (!std::get<0>(ret))
             return state.DoS(100, ERRORMSG("ContractTransaction ExecuteTx, txhash=%s run script error:%s",
                 GetHash().GetHex(), std::get<2>(ret)), UPDATE_ACCOUNT_FAIL, "run-script-error: " + std::get<2>(ret));
@@ -539,7 +539,7 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
         LogPrint("CONTRACT_TX", "execute contract elapse:%lld, txhash=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
 
         set<CKeyID> vAddress;
-        vector<std::shared_ptr<CAccount> > &vAccount = vmRunEvn.GetNewAccont();
+        vector<std::shared_ptr<CAccount> > &vAccount = vmRunEnv.GetNewAccont();
         for (auto & itemAccount : vAccount) {  //更新对应的合约交易的账户信息
             vAddress.insert(itemAccount->keyID);
             userId = itemAccount->keyID;
@@ -558,8 +558,8 @@ bool CTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
 
             txundo.vAccountLog.push_back(oldAcctLog);
         }
-        txundo.vScriptOperLog.insert(txundo.vScriptOperLog.end(), vmRunEvn.GetDbLog()->begin(), vmRunEvn.GetDbLog()->end());
-        vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEvn.GetRawAppUserAccount();
+        txundo.vScriptOperLog.insert(txundo.vScriptOperLog.end(), vmRunEnv.GetDbLog()->begin(), vmRunEnv.GetDbLog()->end());
+        vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEnv.GetRawAppUserAccount();
         for (auto & itemUserAccount : vAppUserAccount) {
             CKeyID itemKeyID;
             bool bValid = GetKeyId(view, itemUserAccount.get()->GetAccUserId(), itemKeyID);
@@ -608,25 +608,25 @@ bool CTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScri
     vAddr.insert(desKeyId);
 
     if (CONTRACT_TX == nTxType) {
-        CVmRunEvn vmRunEvn;
+        CVmRunEnv vmRunEnv;
         std::shared_ptr<CBaseTransaction> pTx = GetNewInstance();
         uint64_t fuelRate = GetFuelRate(scriptDB);
         CScriptDBViewCache scriptDBView(scriptDB, true);
 
         if (uint256() == pTxCacheTip->IsContainTx(GetHash())) {
             CAccountViewCache accountView(view, true);
-            tuple<bool, uint64_t, string> ret = vmRunEvn.ExecuteContract(pTx, accountView, scriptDBView,
+            tuple<bool, uint64_t, string> ret = vmRunEnv.ExecuteContract(pTx, accountView, scriptDBView,
                 chainActive.Height() + 1, fuelRate, nRunStep);
 
             if (!std::get<0>(ret))
                 return ERRORMSG("GetAddress()  : %s", std::get<2>(ret));
 
-            vector<shared_ptr<CAccount> > vpAccount = vmRunEvn.GetNewAccont();
+            vector<shared_ptr<CAccount> > vpAccount = vmRunEnv.GetNewAccont();
 
             for (auto & item : vpAccount)
                 vAddr.insert(item->keyID);
 
-            vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEvn.GetRawAppUserAccount();
+            vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEnv.GetRawAppUserAccount();
             for (auto & itemUserAccount : vAppUserAccount) {
                 CKeyID itemKeyID;
                 bool bValid = GetKeyId(view, itemUserAccount.get()->GetAccUserId(), itemKeyID);
