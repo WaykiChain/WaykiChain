@@ -108,14 +108,14 @@ VMLUA_H = \
   vm/lua/lzio.h
 
 VM_H = \
-  vm/vmrunevn.h \
+  vm/vmrunenv.h \
   vm/script.h \
   vm/appaccount.h \
   vm/vmlua.h
 
 
 VM_CPP = \
-  vm/vmrunevn.cpp \
+  vm/vmrunenv.cpp \
   vm/script.cpp \
   vm/appaccount.cpp \
   vm/lmylib.cpp \

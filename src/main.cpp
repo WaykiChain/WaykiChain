@@ -22,7 +22,7 @@
 #include "txmempool.h"
 #include "ui_interface.h"
 #include "util.h"
-#include "vm/vmrunevn.h"
+#include "vm/vmrunenv.h"
 
 #include <algorithm>
 #include <boost/algorithm/string/replace.hpp>

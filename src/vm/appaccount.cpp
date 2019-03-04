@@ -13,7 +13,7 @@
 #include "main.h"
 #include <algorithm>
 #include "txdb.h"
-#include "vm/vmrunevn.h"
+#include "vm/vmrunenv.h"
 #include "core.h"
 #include "miner.h"
 #include "json/json_spirit_utils.h"

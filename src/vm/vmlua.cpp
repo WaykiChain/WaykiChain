@@ -14,7 +14,7 @@
 #include "main.h"
 #include <openssl/des.h>
 #include <vector>
-#include "vmrunevn.h"
+#include "vmrunenv.h"
 #include "tx.h"
 //#include "Typedef.h"
 
@@ -149,7 +149,7 @@ CVmlua::CVmlua(const vector<unsigned char> &vContractScript, const vector<unsign
 	memcpy(&m_ContractCallParams[2], &vContractCallParams[0],count);
 }
 
-CVmlua::~CVmlua() 
+CVmlua::~CVmlua()
 {
 }
 
@@ -160,7 +160,7 @@ CVmlua::~CVmlua()
 #endif
 
 /** ommited lua lib for safety reasons
- * 
+ *
 //	   {LUA_COLIBNAME, luaopen_coroutine},
 //	   {LUA_IOLIBNAME, luaopen_io},
 //	   {LUA_OSLIBNAME, luaopen_os},
@@ -187,7 +187,7 @@ void vm_openlibs (lua_State *L) {
 	}
 }
 
-tuple<bool,string> CVmlua::CheckScriptSyntax(const char* filePath) 
+tuple<bool,string> CVmlua::CheckScriptSyntax(const char* filePath)
 {
 	lua_State *lua_state = luaL_newstate();
 	if (NULL == lua_state) {
@@ -209,13 +209,13 @@ tuple<bool,string> CVmlua::CheckScriptSyntax(const char* filePath)
 	return std::make_tuple (true, string("OK"));
 }
 
-tuple<uint64_t, string> CVmlua::run(uint64_t maxstep, CVmRunEvn *pVmScriptRun) 
+tuple<uint64_t, string> CVmlua::run(uint64_t maxstep, CVmRunEnv *pVmRunEnv)
 {
 	if (maxstep == 0) {
 		return std::make_tuple (-1, string("maxstep == 0\n"));
 	}
-	if (NULL == pVmScriptRun) {
-		return std::make_tuple (-1, string("pVmScriptRun == NULL\n"));
+	if (NULL == pVmRunEnv) {
+		return std::make_tuple (-1, string("pVmRunEnv == NULL\n"));
 	}
 
 	//1.创建Lua运行环境
@@ -235,7 +235,7 @@ tuple<uint64_t, string> CVmlua::run(uint64_t maxstep, CVmRunEvn *pVmScriptRun)
 */
 	//打开需要的库
 	vm_openlibs(lua_state);
-	
+
 	//3.注册自定义模块
    	luaL_requiref(lua_state, "mylib", luaopen_mylib, 1);
 
@@ -253,13 +253,13 @@ tuple<uint64_t, string> CVmlua::run(uint64_t maxstep, CVmRunEvn *pVmScriptRun)
     lua_setglobal(lua_state, "contract");
 
     // 传递pVmScriptRun指针，以便后面代码引用，去掉了使用全局变量保存该指针
-    lua_pushlightuserdata(lua_state, pVmScriptRun);
+    lua_pushlightuserdata(lua_state, pVmRunEnv);
     lua_setglobal(lua_state, "VmScriptRun");
-    LogPrint("vm", "pVmScriptRun=%p\n", pVmScriptRun);
+    LogPrint("vm", "pVmRunEnv=%p\n", pVmRunEnv);
 
     //5. Load the contract script
     long long step = maxstep;
-    if (luaL_loadbuffer(lua_state, (char *) m_ContractScript, strlen((char *) m_ContractScript), "line") || 
+    if (luaL_loadbuffer(lua_state, (char *) m_ContractScript, strlen((char *) m_ContractScript), "line") ||
 		lua_pcallk(lua_state,0,0,0,0,NULL,&step)) {
        const char* pError = lua_tostring(lua_state, -1);
        string strError = strprintf("luaL_loadbuffer failed: %s\n", pError ? pError : "unknown" );
@@ -271,14 +271,14 @@ tuple<uint64_t, string> CVmlua::run(uint64_t maxstep, CVmRunEvn *pVmScriptRun)
     }
 
     //6. account balance check setting: default is closed if not such setting in the script
-	pVmScriptRun->SetCheckAccount(false);
+	pVmRunEnv->SetCheckAccount(false);
 	int res = lua_getglobal(lua_state, "gCheckAccount");
 	LogPrint("vm", "lua_getglobal:%d\n", res);
     if (LUA_TBOOLEAN == res) {
     	if (lua_isboolean(lua_state,-1)) {
     		bool bCheck = lua_toboolean(lua_state,-1);
     		LogPrint("vm", "lua_toboolean:%d\n", bCheck);
-    		pVmScriptRun->SetCheckAccount(bCheck);
+    		pVmRunEnv->SetCheckAccount(bCheck);
     	}
     }
     lua_pop(lua_state, 1);

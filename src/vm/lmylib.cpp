@@ -25,7 +25,7 @@
 //#include "main.h"
 #include <openssl/des.h>
 #include <vector>
-#include "vmrunevn.h"
+#include "vmrunenv.h"
 #include "SafeInt3.hpp"
 
 #define LUA_C_BUFFER_SIZE  500  //传递值，最大字节防止栈溢出
@@ -104,20 +104,20 @@ static inline int RetFalse(const string reason)
      LogPrint("vm","%s\n", reason.c_str());
      return 0;
 }
-static CVmRunEvn* GetVmRunEvn(lua_State *L)
+static CVmRunEnv* GetVmRunEnv(lua_State *L)
 {
-    CVmRunEvn* pVmRunEvn = NULL;
+    CVmRunEnv* pVmRunEnv = NULL;
     int res = lua_getglobal(L, "VmScriptRun");
-    //LogPrint("vm", "GetVmRunEvn lua_getglobal:%d\n", res);
+    //LogPrint("vm", "GetVmRunEnv lua_getglobal:%d\n", res);
 
     if (LUA_TLIGHTUSERDATA == res) {
         if (lua_islightuserdata(L,-1)) {
-            pVmRunEvn = (CVmRunEvn*)lua_topointer(L,-1);
-            //LogPrint("vm", "GetVmRunEvn lua_topointer:%p\n", pVmRunEvn);
+            pVmRunEnv = (CVmRunEnv*)lua_topointer(L,-1);
+            //LogPrint("vm", "GetVmRunEnv lua_topointer:%p\n", pVmRunEnv);
         }
     }
     lua_pop(L, 1);
-    return pVmRunEvn;
+    return pVmRunEnv;
 }
 
 static bool GetKeyId(const CAccountViewCache &view, vector<unsigned char> &ret,
@@ -791,9 +791,9 @@ static int ExGetTxContractFunc(lua_State *L) {
         return RetFalse("ExGetTxContractFunc, para error");
     }
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if (NULL == pVmRunEvn) {
-        return RetFalse("ExGetTxContractFunc, pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (NULL == pVmRunEnv) {
+        return RetFalse("ExGetTxContractFunc, pVmRunEnv is NULL");
     }
 
     vector<unsigned char> vHash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
@@ -805,7 +805,7 @@ static int ExGetTxContractFunc(lua_State *L) {
 
     std::shared_ptr<CBaseTransaction> pBaseTx;
     int len = 0;
-    if (GetTransaction(pBaseTx, hash, *pVmRunEvn->GetScriptDB(), false)) {
+    if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == CONTRACT_TX) {
             CTransaction *tx = static_cast<CTransaction *>(pBaseTx.get());
             len = RetRstToLua(L, tx->vContract);
@@ -853,9 +853,9 @@ static int ExGetTxRegIDFunc(lua_State *L) {
         return RetFalse("ExGetTxRegIDFunc, para error");
     }
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if (NULL == pVmRunEvn) {
-        return RetFalse("ExGetTxRegIDFunc, pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (NULL == pVmRunEnv) {
+        return RetFalse("ExGetTxRegIDFunc, pVmRunEnv is NULL");
     }
 
     vector<unsigned char> vHash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
@@ -868,7 +868,7 @@ static int ExGetTxRegIDFunc(lua_State *L) {
 
     std::shared_ptr<CBaseTransaction> pBaseTx;
     int len = 0;
-    if (GetTransaction(pBaseTx, hash, *pVmRunEvn->GetScriptDB(), false)) {
+    if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == COMMON_TX || pBaseTx->nTxType == CONTRACT_TX) {
             CTransaction *tx = static_cast<CTransaction*>(pBaseTx.get());
             vector<unsigned char> item = boost::get<CRegID>(tx->srcRegId).GetVec6();
@@ -958,19 +958,19 @@ static int ExGetAccountPublickeyFunc(lua_State *L) {
         return RetFalse("ExGetAccountPublickeyFunc para err1");
     }
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if(NULL == pVmRunEnv)
     {
-        return RetFalse("pVmRunEvn is NULL");
+        return RetFalse("pVmRunEnv is NULL");
     }
 
      CKeyID addrKeyId;
-     if (!GetKeyId(*(pVmRunEvn->GetCatchView()),*retdata.at(0).get(), addrKeyId)) {
+     if (!GetKeyId(*(pVmRunEnv->GetCatchView()),*retdata.at(0).get(), addrKeyId)) {
             return RetFalse("ExGetAccountPublickeyFunc para err2");
      }
     CUserID userid(addrKeyId);
     CAccount aAccount;
-    if (!pVmRunEvn->GetCatchView()->GetAccount(userid, aAccount)) {
+    if (!pVmRunEnv->GetCatchView()->GetAccount(userid, aAccount)) {
         return RetFalse("ExGetAccountPublickeyFunc para err3");
     }
     CDataStream tep(SER_DISK, CLIENT_VERSION);
@@ -998,21 +998,21 @@ static int ExQueryAccountBalanceFunc(lua_State *L) {
         return RetFalse("ExQueryAccountBalanceFunc para err1");
     }
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if(NULL == pVmRunEnv)
     {
-        return RetFalse("pVmRunEvn is NULL");
+        return RetFalse("pVmRunEnv is NULL");
     }
 
      CKeyID addrKeyId;
-     if (!GetKeyId(*(pVmRunEvn->GetCatchView()),*retdata.at(0).get(), addrKeyId)) {
+     if (!GetKeyId(*(pVmRunEnv->GetCatchView()),*retdata.at(0).get(), addrKeyId)) {
             return RetFalse("ExQueryAccountBalanceFunc para err2");
      }
 
      CUserID userid(addrKeyId);
      CAccount aAccount;
      int len = 0;
-    if (!pVmRunEvn->GetCatchView()->GetAccount(userid, aAccount)) {
+    if (!pVmRunEnv->GetCatchView()->GetAccount(userid, aAccount)) {
         len = 0;
     }
     else
@@ -1048,13 +1048,13 @@ static int ExGetTxConfirmHeightFunc(lua_State *L) {
     uint256 hash1;
     tep1 >>hash1;
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if(NULL == pVmRunEnv)
     {
-        return RetFalse("pVmRunEvn is NULL");
+        return RetFalse("pVmRunEnv is NULL");
     }
 
-    int nHeight = GetTxConfirmHeight(hash1, *pVmRunEvn->GetScriptDB());
+    int nHeight = GetTxConfirmHeight(hash1, *pVmRunEnv->GetScriptDB());
     if(-1 == nHeight)
     {
         return RetFalse("ExGetTxConfirmHeightFunc para err2");
@@ -1082,13 +1082,13 @@ static int ExGetBlockHashFunc(lua_State *L) {
         return RetFalse("ExGetBlockHashFunc para err1");
     }
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if(NULL == pVmRunEnv)
     {
-        return RetFalse("pVmRunEvn is NULL");
+        return RetFalse("pVmRunEnv is NULL");
     }
 
-    if (height <= 0 || height >= pVmRunEvn->GetComfirHeight()) //当前block 是不可以获取hash的
+    if (height <= 0 || height >= pVmRunEnv->GetComfirHeight()) //当前block 是不可以获取hash的
     {
         return RetFalse("ExGetBlockHashFunc para err2");
     }
@@ -1109,13 +1109,13 @@ static int ExGetBlockHashFunc(lua_State *L) {
 }
 
 static int ExGetCurRunEnvHeightFunc(lua_State *L) {
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if(NULL == pVmRunEnv)
     {
-        return RetFalse("pVmRunEvn is NULL");
+        return RetFalse("pVmRunEnv is NULL");
     }
 
-    int height = pVmRunEvn->GetComfirHeight();
+    int height = pVmRunEnv->GetComfirHeight();
 
     //检测栈空间是否够
    if(height > 0)
@@ -1204,20 +1204,20 @@ static int ExWriteDataDBFunc(lua_State *L)
         return RetFalse("ExWriteDataDBFunc key err1");
     }
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if (NULL == pVmRunEvn) {
-        return RetFalse("pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (NULL == pVmRunEnv) {
+        return RetFalse("pVmRunEnv is NULL");
     }
 
-    const CRegID scriptid = pVmRunEvn->GetScriptRegID();
+    const CRegID scriptid = pVmRunEnv->GetScriptRegID();
     bool flag = true;
-    CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
+    CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
     CScriptDBOperLog operlog;
 //  int64_t step = (*retdata.at(1)).size() -1;
     if (!scriptDB->SetContractData(scriptid, *retdata.at(0), *retdata.at(1),operlog)) {
         flag = false;
     } else {
-        shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEvn->GetDbLog();
+        shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEnv->GetDbLog();
         (*m_dblog.get()).push_back(operlog);
     }
     return RetRstBooleanToLua(L,flag);
@@ -1236,27 +1236,27 @@ static int ExDeleteDataDBFunc(lua_State *L) {
         LogPrint("vm", "ExDeleteDataDBFunc key err1");
         return RetFalse(string(__FUNCTION__)+"para  err !");
     }
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if(NULL == pVmRunEnv)
     {
-        return RetFalse("pVmRunEvn is NULL");
+        return RetFalse("pVmRunEnv is NULL");
     }
-    CRegID scriptid = pVmRunEvn->GetScriptRegID();
+    CRegID scriptid = pVmRunEnv->GetScriptRegID();
 
-    CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
+    CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
 
     bool flag = true;
     CScriptDBOperLog operlog;
     int64_t nstep = 0;
     vector<unsigned char> vValue;
-    if(scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vValue)){
+    if(scriptDB->GetContractData(pVmRunEnv->GetComfirHeight(),scriptid, *retdata.at(0), vValue)){
         nstep = nstep - (int64_t)(vValue.size()+1);//删除数据奖励step
     }
     if (!scriptDB->EraseAppData(scriptid, *retdata.at(0), operlog)) {
         LogPrint("vm", "ExDeleteDataDBFunc error key:%s!\n",HexStr(*retdata.at(0)));
         flag = false;
     } else {
-        shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEvn->GetDbLog();
+        shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEnv->GetDbLog();
         m_dblog.get()->push_back(operlog);
     }
     return RetRstBooleanToLua(L,flag);
@@ -1274,17 +1274,17 @@ static int ExReadDataDBFunc(lua_State *L) {
         return RetFalse("ExReadDataDBFunc key err1");
     }
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if (NULL == pVmRunEvn) {
-        return RetFalse("pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (NULL == pVmRunEnv) {
+        return RetFalse("pVmRunEnv is NULL");
     }
 
-    CRegID scriptRegId = pVmRunEvn->GetScriptRegID();
+    CRegID scriptRegId = pVmRunEnv->GetScriptRegID();
 
     vector_unsigned_char vValue;
-    CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
+    CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
     int len = 0;
-    if (!scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(), scriptRegId, *retdata.at(0), vValue)) {
+    if (!scriptDB->GetContractData(pVmRunEnv->GetComfirHeight(), scriptRegId, *retdata.at(0), vValue)) {
         len = 0;
     } else {
         len = RetRstToLua(L,vValue);
@@ -1294,10 +1294,10 @@ static int ExReadDataDBFunc(lua_State *L) {
 
 #if 0
 static int ExGetDBSizeFunc(lua_State *L) {
-//  CVmRunEvn *pVmRunEvn = (CVmRunEvn *)pVmEvn;
-    CRegID scriptid = pVmRunEvn->GetScriptRegID();
+//  CVmRunEnv *pVmRunEnv = (CVmRunEnv *)pVmEvn;
+    CRegID scriptid = pVmRunEnv->GetScriptRegID();
     int count = 0;
-    CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
+    CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
     if (!scriptDB->GetContractItemCount(scriptid,count)) {
         return RetFalse("ExGetDBSizeFunc can't use");
     } else {
@@ -1337,7 +1337,7 @@ static int ExGetDBValueFunc(lua_State *L) {
     {
         return RetFalse("ExGetDBValueFunc para err2");
     }
-    CRegID scriptid = pVmRunEvn->GetScriptRegID();
+    CRegID scriptid = pVmRunEnv->GetScriptRegID();
 
     vector_unsigned_char vValue;
     vector<unsigned char> vScriptKey;
@@ -1346,8 +1346,8 @@ static int ExGetDBValueFunc(lua_State *L) {
         vScriptKey.assign(retdata.at(1).get()->begin(),retdata.at(1).get()->end());
     }
 
-    CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
-    flag = scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(),scriptid,index,vScriptKey,vValue);
+    CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
+    flag = scriptDB->GetContractData(pVmRunEnv->GetComfirHeight(),scriptid,index,vScriptKey,vValue);
     int len = 0;
     if(flag){
         len = RetRstToLua(L,vScriptKey) + RetRstToLua(L,vValue);
@@ -1357,11 +1357,11 @@ static int ExGetDBValueFunc(lua_State *L) {
 #endif
 
 static int ExGetCurTxHash(lua_State *L) {
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if (NULL == pVmRunEvn)
-        return RetFalse("pVmRunEvn is NULL");
-        
-    uint256 hash = pVmRunEvn->GetCurTxHash();
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (NULL == pVmRunEnv)
+        return RetFalse("pVmRunEnv is NULL");
+
+    uint256 hash = pVmRunEnv->GetCurTxHash();
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << hash;
     vector<unsigned char> tep1(tep.begin(),tep.end());
@@ -1381,19 +1381,19 @@ static int ExModifyDataDBFunc(lua_State *L)
     if (!GetDataTableWriteDataDB(L,retdata) ||retdata.size() != 2) {
         return RetFalse("ExModifyDataDBFunc key err");
     }
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if (NULL == pVmRunEvn) {
-        return RetFalse("pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (NULL == pVmRunEnv) {
+        return RetFalse("pVmRunEnv is NULL");
     }
 
-    CRegID scriptid = pVmRunEvn->GetScriptRegID();
+    CRegID scriptid = pVmRunEnv->GetScriptRegID();
     bool flag = false;
-    CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
+    CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
     CScriptDBOperLog operlog;
     vector_unsigned_char vTemp;
-    if (scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(),scriptid, *retdata.at(0), vTemp)) {
+    if (scriptDB->GetContractData(pVmRunEnv->GetComfirHeight(),scriptid, *retdata.at(0), vTemp)) {
         if (scriptDB->SetContractData(scriptid, *retdata.at(0), *retdata.at(1).get(), operlog)) {
-            shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEvn->GetDbLog();
+            shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEnv->GetDbLog();
             m_dblog.get()->push_back(operlog);
             flag = true;
         }
@@ -1478,9 +1478,9 @@ static int ExWriteOutputFunc(lua_State *L)
     if (!GetDataTableWriteOutput(L,retdata) ||retdata.size() != 1 )
         return RetFalse("para err0");
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if (NULL == pVmRunEvn)
-        return RetFalse("pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (NULL == pVmRunEnv)
+        return RetFalse("pVmRunEnv is NULL");
 
     vector<CVmOperate> source;
     CVmOperate temp;
@@ -1497,7 +1497,7 @@ static int ExWriteOutputFunc(lua_State *L)
         source.push_back(temp);
     }
 
-    if (!pVmRunEvn->InsertOutputData(source)) {
+    if (!pVmRunEnv->InsertOutputData(source)) {
          return RetFalse("InsertOutput err");
     } else {
         /*
@@ -1553,15 +1553,15 @@ static int ExGetContractDataFunc(lua_State *L)
     if (!GetDataTableGetContractData(L,retdata) ||retdata.size() != 2 || retdata.at(0).get()->size() != 6)
         return RetFalse("ExGetContractDataFunc tep1 err1");
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if (NULL == pVmRunEvn)
-        return RetFalse("pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (NULL == pVmRunEnv)
+        return RetFalse("pVmRunEnv is NULL");
 
     vector_unsigned_char vValue;
-    CScriptDBViewCache* scriptDB = pVmRunEvn->GetScriptDB();
+    CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
     CRegID scriptid(*retdata.at(0));
     int len = 0;
-    if(!scriptDB->GetContractData(pVmRunEvn->GetComfirHeight(), scriptid, *retdata.at(1), vValue))
+    if (!scriptDB->GetContractData(pVmRunEnv->GetComfirHeight(), scriptid, *retdata.at(1), vValue))
         len = 0;
     else  //3.往函数私有栈里存运算后的结果
         len = RetRstToLua(L,vValue);
@@ -1580,13 +1580,13 @@ static int ExGetContractDataFunc(lua_State *L)
  */
 static int ExGetContractRegIdFunc(lua_State *L)
 {
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if (NULL == pVmRunEvn)
-        return RetFalse("pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (NULL == pVmRunEnv)
+        return RetFalse("pVmRunEnv is NULL");
 
    //1.从lua取参数
    //2.调用C++库函数 执行运算
-    vector_unsigned_char scriptid = pVmRunEvn->GetScriptRegID().GetVec6();
+    vector_unsigned_char scriptid = pVmRunEnv->GetScriptRegID().GetVec6();
    //3.往函数私有栈里存运算后的结果
     int len = RetRstToLua(L,scriptid);
    /*
@@ -1595,13 +1595,13 @@ static int ExGetContractRegIdFunc(lua_State *L)
 }
 static int ExGetCurTxAccountFunc(lua_State *L)
 {
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if (NULL == pVmRunEvn)
-        return RetFalse("pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (NULL == pVmRunEnv)
+        return RetFalse("pVmRunEnv is NULL");
 
    //1.从lua取参数
    //2.调用C++库函数 执行运算
-    vector_unsigned_char vUserId =pVmRunEvn->GetTxAccount().GetVec6();
+    vector_unsigned_char vUserId =pVmRunEnv->GetTxAccount().GetVec6();
 
    //3.往函数私有栈里存运算后的结果
     int len = RetRstToLua(L,vUserId);
@@ -1612,11 +1612,11 @@ static int ExGetCurTxAccountFunc(lua_State *L)
 
 static int ExGetCurTxPayAmountFunc(lua_State *L)
 {
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-        return RetFalse("pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if(NULL == pVmRunEnv)
+        return RetFalse("pVmRunEnv is NULL");
 
-    uint64_t lvalue =pVmRunEvn->GetValue();
+    uint64_t lvalue =pVmRunEnv->GetValue();
 
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << lvalue;
@@ -1667,14 +1667,14 @@ static int ExGetUserAppAccValueFunc(lua_State *L)
        memcpy(&accid.ID[0],&vBuf[0],accid.idlen);
     }
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-        return RetFalse("pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if(NULL == pVmRunEnv)
+        return RetFalse("pVmRunEnv is NULL");
 
     shared_ptr<CAppUserAccount> sptrAcc;
     uint64_t valueData = 0 ;
     int len = 0;
-    if (pVmRunEvn->GetAppUserAccount(accid.GetIdV(), sptrAcc)) {
+    if (pVmRunEnv->GetAppUserAccount(accid.GetIdV(), sptrAcc)) {
         valueData = sptrAcc->GetLlValues();
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
@@ -1757,7 +1757,7 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std
     return true;
 }
 
-static int ExGetUserAppAccFundWithTagFunc(lua_State *L) 
+static int ExGetUserAppAccFundWithTagFunc(lua_State *L)
 {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
     unsigned int Size(0);
@@ -1767,9 +1767,9 @@ static int ExGetUserAppAccFundWithTagFunc(lua_State *L)
     if (!GetDataTableOutAppOperate(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != Size)
         return RetFalse("ExGetUserAppAccFundWithTagFunc para err0");
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-        return RetFalse("pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if(NULL == pVmRunEnv)
+        return RetFalse("pVmRunEnv is NULL");
 
     CDataStream ss(*retdata.at(0),SER_DISK, CLIENT_VERSION);
     CAppFundOperate userfund;
@@ -1778,7 +1778,7 @@ static int ExGetUserAppAccFundWithTagFunc(lua_State *L)
     shared_ptr<CAppUserAccount> sptrAcc;
     CAppCFund fund;
     int len = 0;
-    if (pVmRunEvn->GetAppUserAccount(userfund.GetAppUserV(), sptrAcc)) {
+    if (pVmRunEnv->GetAppUserAccount(userfund.GetAppUserV(), sptrAcc)) {
         if (!sptrAcc->GetAppCFund(fund,userfund.GetFundTagV(), userfund.outHeight))
             return RetFalse("GetUserAppAccFundWithTag GetAppCFund fail");
 
@@ -1847,7 +1847,7 @@ static bool GetDataTableAssetOperate(lua_State *L, int nIndex, vector<std::share
 }
 
 /**
- * 写应用操作输出到 pVmRunEvn->MapAppOperate[0]
+ * 写应用操作输出到 pVmRunEnv->MapAppOperate[0]
  * @param ipara
  * @param pVmEvn
  * @return
@@ -1862,9 +1862,9 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
     if(!GetDataTableOutAppOperate(L,retdata) ||retdata.size() != 1 || (retdata.at(0).get()->size()%Size) != 0 )
         return RetFalse("ExWriteOutAppOperateFunc para err1");
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-        return RetFalse("pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if(NULL == pVmRunEnv)
+        return RetFalse("pVmRunEnv is NULL");
 
     int count = retdata.at(0).get()->size()/Size;
     CDataStream ss(*retdata.at(0),SER_DISK, CLIENT_VERSION);
@@ -1872,10 +1872,10 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
     int64_t step =-1;
     while (count--) {
         ss >> temp;
-        if(pVmRunEvn->GetComfirHeight() > nFreezeBlackAcctHeight && temp.mMoney < 0) //不能小于0,防止 上层传错金额小于20150904
+        if(pVmRunEnv->GetComfirHeight() > nFreezeBlackAcctHeight && temp.mMoney < 0) //不能小于0,防止 上层传错金额小于20150904
             return RetFalse("ExWriteOutAppOperateFunc para err2");
 
-        pVmRunEvn->InsertOutAPPOperte(temp.GetAppUserV(),temp);
+        pVmRunEnv->InsertOutAPPOperte(temp.GetAppUserV(),temp);
         step +=Size;
     }
 
@@ -1891,9 +1891,9 @@ static int ExGetBase58AddrFunc(lua_State *L)
     if (!GetArray(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != 6)
         return RetFalse("ExGetBase58AddrFunc para err0");
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-        return RetFalse("pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if(NULL == pVmRunEnv)
+        return RetFalse("pVmRunEnv is NULL");
 /*
     vector<unsigned char> recvkey;
     recvkey.assign(retdata.at(0).get()->begin(), retdata.at(0).get()->end());
@@ -1908,7 +1908,7 @@ static int ExGetBase58AddrFunc(lua_State *L)
         tmp.push_back(recvkey[i]);
 */
      CKeyID addrKeyId;
-     if (!GetKeyId(*pVmRunEvn->GetCatchView(),*retdata.at(0).get(), addrKeyId))
+     if (!GetKeyId(*pVmRunEnv->GetCatchView(),*retdata.at(0).get(), addrKeyId))
         return RetFalse("ExGetBase58AddrFunc para err1");
 
      string wiccaddr = addrKeyId.ToAddress();
@@ -1918,23 +1918,23 @@ static int ExGetBase58AddrFunc(lua_State *L)
      return RetRstToLua(L,vTemp);
 }
 
-static int ExTransferContractAsset(lua_State *L) 
+static int ExTransferContractAsset(lua_State *L)
 {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
 
     if (!GetArray(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != 34)
         return RetFalse(string(__FUNCTION__)+"para  err !");
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if(NULL == pVmRunEvn)
-        return RetFalse("pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if(NULL == pVmRunEnv)
+        return RetFalse("pVmRunEnv is NULL");
 
     vector<unsigned char> sendkey;
     vector<unsigned char> recvkey;
-    CRegID script = pVmRunEvn->GetScriptRegID();
+    CRegID script = pVmRunEnv->GetScriptRegID();
 
-    CRegID sendRegID =pVmRunEvn->GetTxAccount();
-    CKeyID SendKeyID = sendRegID.GetKeyID(*pVmRunEvn->GetCatchView());
+    CRegID sendRegID =pVmRunEnv->GetTxAccount();
+    CKeyID SendKeyID = sendRegID.GetKeyID(*pVmRunEnv->GetCatchView());
     string addr = SendKeyID.ToAddress();
     sendkey.assign(addr.c_str(),addr.c_str()+addr.length());
 
@@ -1947,14 +1947,14 @@ static int ExTransferContractAsset(lua_State *L)
     }
 
     CKeyID RecvKeyID;
-    bool bValid = GetKeyId(*pVmRunEvn->GetCatchView(), recvkey, RecvKeyID);
+    bool bValid = GetKeyId(*pVmRunEnv->GetCatchView(), recvkey, RecvKeyID);
     if (!bValid) {
         LogPrint("vm", "%s\n", "recv addr is not valid !");
         return RetFalse(string(__FUNCTION__)+"recv addr is not valid !");
     }
 
     std::shared_ptr<CAppUserAccount> temp = std::make_shared<CAppUserAccount>();
-    CScriptDBViewCache* pContractScript = pVmRunEvn->GetScriptDB();
+    CScriptDBViewCache* pContractScript = pVmRunEnv->GetScriptDB();
 
     if (!pContractScript->GetScriptAcc(script, sendkey, *temp.get())) {
         return RetFalse(string(__FUNCTION__)+"para  err3 !");
@@ -1976,14 +1976,14 @@ static int ExTransferContractAsset(lua_State *L)
         for (i = 0; i < op.appuserIDlen; i++)
             op.vAppuser[i] = sendkey[i];
 
-        pVmRunEvn->InsertOutAPPOperte(sendkey, op);
+        pVmRunEnv->InsertOutAPPOperte(sendkey, op);
 
         op.opType = ADD_FREE_OP;
         op.appuserIDlen = recvkey.size();
         for (i = 0; i < op.appuserIDlen; i++)
             op.vAppuser[i] = recvkey[i];
         
-        pVmRunEvn->InsertOutAPPOperte(recvkey, op);
+        pVmRunEnv->InsertOutAPPOperte(recvkey, op);
     }
 
     vector<CAppCFund> vTemp = temp.get()->GetFrozenFunds();
@@ -2001,7 +2001,7 @@ static int ExTransferContractAsset(lua_State *L)
             op.vFundTag[i] = fund.GetTag()[i];
         }
 
-        pVmRunEvn->InsertOutAPPOperte(sendkey, op);
+        pVmRunEnv->InsertOutAPPOperte(sendkey, op);
 
         op.opType = ADD_TAG_OP;
         op.appuserIDlen = recvkey.size();
@@ -2009,7 +2009,7 @@ static int ExTransferContractAsset(lua_State *L)
             op.vAppuser[i] = recvkey[i];
         }
 
-        pVmRunEvn->InsertOutAPPOperte(recvkey, op);
+        pVmRunEnv->InsertOutAPPOperte(recvkey, op);
     }
 
     return RetRstBooleanToLua(L, true);
@@ -2022,13 +2022,13 @@ static int ExTransferSomeAsset(lua_State *L) {
     CAssetOperate tempAsset;
     Size = ::GetSerializeSize(tempAsset, SER_NETWORK, PROTOCOL_VERSION);
 
-    if (!GetDataTableAssetOperate(L, -1, retdata) || retdata.size() != 2 || 
+    if (!GetDataTableAssetOperate(L, -1, retdata) || retdata.size() != 2 ||
         (retdata.at(1).get()->size()%Size) != 0 || retdata.at(0).get()->size() != 34)
         return RetFalse(string(__FUNCTION__)+"para err !");
 
-    CVmRunEvn* pVmRunEvn = GetVmRunEvn(L);
-    if (NULL == pVmRunEvn)
-        return RetFalse("pVmRunEvn is NULL");
+    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (NULL == pVmRunEnv)
+        return RetFalse("pVmRunEnv is NULL");
 
     CDataStream ss(*retdata.at(1),SER_DISK, CLIENT_VERSION);
     CAssetOperate assetOp;
@@ -2036,10 +2036,10 @@ static int ExTransferSomeAsset(lua_State *L) {
 
     vector<unsigned char> sendkey;
     vector<unsigned char> recvkey;
-    CRegID script = pVmRunEvn->GetScriptRegID();
+    CRegID script = pVmRunEnv->GetScriptRegID();
 
-    CRegID sendRegID = pVmRunEvn->GetTxAccount();
-    CKeyID SendKeyID = sendRegID.GetKeyID(*pVmRunEvn->GetCatchView());
+    CRegID sendRegID = pVmRunEnv->GetTxAccount();
+    CKeyID SendKeyID = sendRegID.GetKeyID(*pVmRunEnv->GetCatchView());
     string addr = SendKeyID.ToAddress();
     sendkey.assign(addr.c_str(), addr.c_str() + addr.length());
 
@@ -2052,7 +2052,7 @@ static int ExTransferSomeAsset(lua_State *L) {
     }
 
     CKeyID RecvKeyID;
-    bool bValid = GetKeyId(*pVmRunEvn->GetCatchView(), recvkey, RecvKeyID);
+    bool bValid = GetKeyId(*pVmRunEnv->GetCatchView(), recvkey, RecvKeyID);
     if (!bValid) {
         LogPrint("vm", "%s\n", "recv addr is not valid !");
         return RetFalse(string(__FUNCTION__)+"recv addr is not valid !");
@@ -2085,7 +2085,7 @@ static int ExTransferSomeAsset(lua_State *L) {
     }
 
     op.opType = (nHeight > 0) ? SUB_TAG_OP : SUB_FREE_OP;
-    pVmRunEvn->InsertOutAPPOperte(sendkey, op);
+    pVmRunEnv->InsertOutAPPOperte(sendkey, op);
 
     op.opType = (nHeight > 0) ? ADD_TAG_OP : ADD_FREE_OP ;
     op.appuserIDlen = recvkey.size();
@@ -2094,12 +2094,12 @@ static int ExTransferSomeAsset(lua_State *L) {
         op.vAppuser[i] = recvkey[i];
     }
 
-    pVmRunEvn->InsertOutAPPOperte(recvkey, op);
+    pVmRunEnv->InsertOutAPPOperte(recvkey, op);
     return RetRstBooleanToLua(L, true);
 
 }
 
-static int ExGetBlockTimestamp(lua_State *L) 
+static int ExGetBlockTimestamp(lua_State *L)
 {
     int height = 0;
     if (!GetDataInt(L,height))
@@ -2130,7 +2130,7 @@ static const luaL_Reg mylib[] = {
     {"Int64Sub",                    ExInt64SubFunc},
     {"Int64Div",                    ExInt64DivFunc},
     {"Sha256",                      ExSha256Func},
-    {"Sha256Once",                  ExSha256OnceFunc},    
+    {"Sha256Once",                  ExSha256OnceFunc},
     {"Des",                         ExDesFunc},
 
     {"VerifySignature",             ExVerifySignatureFunc},

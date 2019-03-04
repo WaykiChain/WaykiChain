@@ -19,7 +19,7 @@
 #include "miner.h"
 #include "main.h"
 #include "vm/script.h"
-#include "vm/vmrunevn.h"
+#include "vm/vmrunenv.h"
 #include <stdint.h>
 
 #include <boost/assign/list_of.hpp>

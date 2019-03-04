@@ -3,7 +3,7 @@ CXX = g++
 RES = windres
 
 #DEBUGFLAGS = -g3 -O0 -DDEBUG
-DEBUGFLAGS = 
+DEBUGFLAGS =
 
 CPPFLAGS = -std=c++11 $(DEBUGFLAGS) -DHAVE_WORKING_BOOST_SLEEP  -Wstack-protector -fstack-protector-all  -DWIN32 -DWIN_DLL
 
@@ -24,7 +24,7 @@ INC = \
 		-I$(DEPS_PATH)/qrencode-3.4.3 \
 		-I./leveldb/include \
 		-I./leveldb/helpers/memenv
-	  
+
 LDFLAGS = \
 		-L$(DEPS_PATH)/boost_1_55_0/stage/lib \
 		-lboost_system-mgw48-mt-s-1_55 -lboost_filesystem-mgw48-mt-s-1_55 -lboost_program_options-mgw48-mt-s-1_55 -lboost_thread-mgw48-mt-s-1_55 -lboost_chrono-mgw48-mt-s-1_55  \
@@ -38,10 +38,10 @@ LDFLAGS = \
 		-L. -llua53 \
 		-lssl -lcrypto -lminiupnpc -lssp -lcrypt32 -liphlpapi -lshlwapi -lmswsock -lws2_32  \
 		-ladvapi32 -lrpcrt4 -luuid -loleaut32 -lole32 -lcomctl32 -lshell32 -lwinmm -lwinspool -lcomdlg32 -lgdi32 -luser32 -lkernel32 -lmingwthrd \
-		-static -static-libgcc -static-libstdc++ -Wl,--large-address-aware  -Wl,--dynamicbase -Wl,--nxcompat 
-		
+		-static -static-libgcc -static-libstdc++ -Wl,--large-address-aware  -Wl,--dynamicbase -Wl,--nxcompat
+
 OBJS = 	vm/lmylib.o \
-		vm/vmrunevn.o \
+		vm/vmrunenv.o \
 		vm/vm8051.o \
 		vm/vmlua.o \
 		vm/script.o \
@@ -96,22 +96,22 @@ OBJS = 	vm/lmylib.o \
 		wallet/db.o \
 		support/cleanse.o \
 		syncdata.o
-		
+
 RESOBJ = mylib.o
 
-CXX_SRCS = 
+CXX_SRCS =
 
-CXX_OBJS = 
+CXX_OBJS =
 
-DEPS += 
+DEPS +=
 
 default:all
-	
+
 $(OBJS):%o:%cpp
 	$(CXX) -c $(CPPFLAGS) $< -o $@ $(INC)
 
-mylib.o : mylib.rc 
-	$(RES)  -o $@ $< 
+mylib.o : mylib.rc
+	$(RES)  -o $@ $<
 
 all:$(TARGET)
 
@@ -119,10 +119,10 @@ $(TARGET): $(OBJS) $(RESOBJ)
 	$(CXX) -shared $(OBJS) $(RESOBJ) ./leveldb/libleveldb.a  ./leveldb/libmemenv.a  -o $@ $(LDFLAGS)
 	touch vm/lmylib.cpp
 	touch vm/vmlua.cpp
-	
+
 touch:
 	touch vm/lmylib.cpp
 	touch vm/vmlua.cpp
-	
+
 clean:
 	$(RM) $(TARGET) $(OBJS) $(RESOBJ)

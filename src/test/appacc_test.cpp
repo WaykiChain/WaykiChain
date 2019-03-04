@@ -14,7 +14,7 @@
 #include  "boost/filesystem/operations.hpp"
 #include  "boost/filesystem/path.hpp"
 #include  "../vm/appaccount.h"
-#include "../vm/vmrunevn.h"
+#include "../vm/vmrunenv.h"
 #include "tx.h"
 #include "util.h"
 
@@ -48,7 +48,7 @@ bool CheckAppAcct(int64_t opValue[]) {
     vector_unsigned_char pContract;
     CTransaction tx(srcUserId, desRegId, 10000, opValue[0], 1, pContract); //100 * COIN
 
-    CVmRunEvn vmRunEvn;
+    CVmRunEnv vmRunEnv;
     vector<CVmOperate> vAcctOper;
 
     vector_unsigned_char vDesUser1RegId = desUser1RegId.GetVec6();
@@ -75,7 +75,7 @@ bool CheckAppAcct(int64_t opValue[]) {
     memcpy(acctAddOper.accountid, &vDesRegId[0], 6);
     memcpy(acctAddOper.money, &temp, sizeof(temp));
     vAcctOper.push_back(acctAddOper);
-    vmRunEvn.InsertOutputData(vAcctOper);
+    vmRunEnv.InsertOutputData(vAcctOper);
 
     CAppFundOperate appFundOper;
     appFundOper.opType = ADD_FREE_OP;
@@ -84,7 +84,7 @@ bool CheckAppAcct(int64_t opValue[]) {
     memcpy(appFundOper.vAppuser,  &vDesUser1RegId[0], 6);
     appFundOper.fundTagLen = 6;
     memcpy(appFundOper.vFundTag, &vDesUser1RegId[0], 6);
-    vmRunEvn.InsertOutAPPOperte(vDesUser1RegId, appFundOper);
+    vmRunEnv.InsertOutAPPOperte(vDesUser1RegId, appFundOper);
 
     appFundOper.opType = SUB_FREE_OP;
     appFundOper.mMoney = opValue[5];      //90 * COIN
@@ -92,7 +92,7 @@ bool CheckAppAcct(int64_t opValue[]) {
     memcpy(appFundOper.vAppuser,  &vDesUser2RegId[0], 6);
     appFundOper.fundTagLen = 6;
     memcpy(appFundOper.vFundTag, &vDesUser2RegId[0], 6);
-    vmRunEvn.InsertOutAPPOperte(vDesUser2RegId, appFundOper);
+    vmRunEnv.InsertOutAPPOperte(vDesUser2RegId, appFundOper);
 
     appFundOper.opType = ADD_TAG_OP;
     appFundOper.mMoney = opValue[6];     // 90 * COIN
@@ -100,7 +100,7 @@ bool CheckAppAcct(int64_t opValue[]) {
     memcpy(appFundOper.vAppuser,  &vDesUser2RegId[0], 6);
     appFundOper.fundTagLen = 6;
     memcpy(appFundOper.vFundTag, &vDesUser2RegId[0], 6);
-    vmRunEvn.InsertOutAPPOperte(vDesUser2RegId, appFundOper);
+    vmRunEnv.InsertOutAPPOperte(vDesUser2RegId, appFundOper);
 
     appFundOper.opType = SUB_TAG_OP;
     appFundOper.mMoney = opValue[7];  // 80 * COIN
@@ -108,9 +108,9 @@ bool CheckAppAcct(int64_t opValue[]) {
     memcpy(appFundOper.vAppuser,  &vDesUser1RegId[0], 6);
     appFundOper.fundTagLen = 6;
     memcpy(appFundOper.vFundTag, &vDesUser1RegId[0], 6);
-    vmRunEvn.InsertOutAPPOperte(vDesUser1RegId, appFundOper);
+    vmRunEnv.InsertOutAPPOperte(vDesUser1RegId, appFundOper);
 
-    return vmRunEvn.CheckAppAcctOperate(&tx);
+    return vmRunEnv.CheckAppAcctOperate(&tx);
 }
 
 BOOST_AUTO_TEST_SUITE(appacc_tests)
