@@ -426,7 +426,8 @@ void luaD_call (lua_State *L, StkId func, int nResults, int allowyield,LUA_INTEG
   }
   if (!allowyield) L->nny--;
   L->nCcalls--;
-  if(pllStep != NULL && !nChanged) *pllStep = 0;
+  if (pllStep != NULL && !nChanged) 
+    *pllStep = 0;
 }
 
 
