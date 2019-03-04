@@ -461,10 +461,17 @@ bool CRegisterAccountTx::CheckTransaction(CValidationState &state, CAccountViewC
     if (!MoneyRange(llFees))
         return state.DoS(100, ERRORMSG("CRegisterAccountTx::CheckTransaction, register tx fee out of range"),
             REJECT_INVALID, "bad-regtx-fee-toolarge");
-
-    if (llFees < nMinTxFee)
-        return state.DoS(100, ERRORMSG("CRegisterAccountTx::CheckTransaction, register tx fee smaller than MinTxFee"),
-            REJECT_INVALID, "bad-regtx-fee-toosmall");
+    
+    //check the fees must be more than nMinTxFee
+    NET_TYPE networkID = SysCfg().NetworkID();
+    if ( (networkID == MAIN_NET && nValidHeight > nCheckRegisterAccountTxFeeForkHeight) //for mainnet, need hardcode here, compatible with old data
+        || (networkID == TEST_NET && nValidHeight > 27900) // for testnet, need hardcode here, compatible with old data
+        || (networkID == REGTEST_NET) ) {  // for regtest net, must do the check
+        
+        if (llFees < nMinTxFee)
+            return state.DoS(100, ERRORMSG("CRegisterAccountTx::CheckTransaction, register tx fee smaller than MinTxFee"),
+                REJECT_INVALID, "bad-regtx-fee-toosmall");
+    }
 
     //check signature script
     uint256 sighash = SignatureHash();
@@ -1162,7 +1169,11 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
         return state.DoS(100, ERRORMSG("CheckTransaction(): CDelegateTransaction CheckTransaction, pubkey not registed"),
             REJECT_INVALID, "bad-no-pubkey");
     }
-    if (nValidHeight > nCheckDelegateTxSignatureForkHeight) { //hardcode here to avoid checking 7 old unsigned votes
+
+    NET_TYPE netowrkID = SysCfg().NetworkID();
+    if ( (netowrkID == MAIN_NET && nValidHeight > nCheckDelegateTxSignatureForkHeight) // for mainnet, need hardcode here, compatible with 7 old unsigned votes
+        || (netowrkID == TEST_NET || netowrkID == REGTEST_NET) ) { // for testnet or regtest, must do the check 
+
         uint256 signhash = SignatureHash();
         if (!CheckSignScript(signhash, signature, sendAcct.PublicKey)) {
             return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction CheckTransaction, CheckSignScript failed"),
