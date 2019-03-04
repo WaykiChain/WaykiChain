@@ -264,7 +264,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
     return arrayDetail;
 }
 
-Value gettransaction(const Array& params, bool fHelp) 
+Value gettransaction(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
@@ -279,7 +279,7 @@ Value gettransaction(const Array& params, bool fHelp)
             + HelpExampleCli("gettransaction","c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\n")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("gettransaction","c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\n"));
-        
+
     uint256 txhash(uint256S(params[0].get_str()));
     std::shared_ptr<CBaseTransaction> pBaseTx;
     Object obj;
@@ -363,7 +363,7 @@ Value gettxdetail(const Array& params, bool fHelp) {
             + HelpExampleCli("gettxdetail","c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\n")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("gettxdetail","c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\n"));
-    
+
     uint256 txhash(uint256S(params[0].get_str()));
     return GetTxDetailJSON(txhash);
 }
@@ -1924,7 +1924,7 @@ Value reloadtxcache(const Array& params, bool fHelp) {
     CBlock block;
     do {
         if (!ReadBlockFromDisk(block, pIndex))
-            return ERRORMSG("reloadtxcache() : *** ReadBlockFromDisk failed at %d, hash=%s", 
+            return ERRORMSG("reloadtxcache() : *** ReadBlockFromDisk failed at %d, hash=%s",
                 pIndex->nHeight, pIndex->GetBlockHash().ToString());
 
         pTxCacheTip->AddBlockToCache(block);
@@ -1936,23 +1936,23 @@ Value reloadtxcache(const Array& params, bool fHelp) {
     return obj;
 }
 
-static int getDataFromAppDb(CScriptDBViewCache &cache, const CRegID &regid, int pagesize, int index,
+static int GetDataFromAppDb(CScriptDBViewCache &cache, const CRegID &regid, int pagesize, int index,
         vector<std::tuple<vector<unsigned char>, vector<unsigned char> > >&ret) {
     int dbsize;
     int height = chainActive.Height();
     cache.GetContractItemCount(regid, dbsize);
     if (0 == dbsize)
-        throw runtime_error("getDataFromAppDb :the app has NO data!\n");
-    
+        throw runtime_error("GetDataFromAppDb :the app has NO data!\n");
+
     vector<unsigned char> value;
     vector<unsigned char> vScriptKey;
 
     if (!cache.GetContractData(height, regid, 0, vScriptKey, value))
         throw runtime_error("GetContractData :the app data retrieval failed!\n");
-    
-    if (index == 1) 
+
+    if (index == 1)
         ret.push_back(std::make_tuple(vScriptKey, value));
-    
+
     int readCount(1);
     while (--dbsize) {
         if (cache.GetContractData(height, regid, 1, vScriptKey, value)) {
@@ -1985,7 +1985,7 @@ Value getcontractdataraw(const Array& params, bool fHelp) {
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true)
         throw runtime_error("getcontractdataraw : app regid not supplied!");
-    
+
     if (!pScriptDBTip->HaveScript(regid))
         throw runtime_error("getcontractdataraw : app regid does NOT exist!");
 
@@ -2013,7 +2013,7 @@ Value getcontractdataraw(const Array& params, bool fHelp) {
         int index = params[2].get_int();
 
         vector<std::tuple<vector<unsigned char>, vector<unsigned char> > > ret;
-        getDataFromAppDb(contractScriptTemp, regid, pagesize, index, ret);
+        GetDataFromAppDb(contractScriptTemp, regid, pagesize, index, ret);
         Array retArray;
         for (auto te : ret) {
             vector<unsigned char> key = std::get<0>(te);
@@ -2042,8 +2042,7 @@ Value getcontractdata(const Array& params, bool fHelp) {
             + HelpExampleRpc("getcontractdata", "\"1304166-1\" \"key\""));
     }
     int height = chainActive.Height();
-//  //RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
-//  vector<unsigned char> vscriptid = ParseHex(params[0].get_str());
+    // RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true) {
         throw runtime_error("getcontractdata : contract regid NOT supplied!");
@@ -2080,7 +2079,7 @@ Value getcontractdata(const Array& params, bool fHelp) {
         int index = params[2].get_int();
 
         vector<std::tuple<vector<unsigned char>, vector<unsigned char> > > ret;
-        getDataFromAppDb(contractScriptTemp, regid, pagesize, index, ret);
+        GetDataFromAppDb(contractScriptTemp, regid, pagesize, index, ret);
         Array retArray;
         for (auto te : ret) {
             vector<unsigned char> key = std::get<0>(te);
@@ -2528,7 +2527,7 @@ Value sigstr(const Array& params, bool fHelp) {
     CKeyID keyid;
     if (!GetKeyId(params[1].get_str(), keyid))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address invalid");
-    
+
     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
     std::shared_ptr<CBaseTransaction> pBaseTx;
     stream >> pBaseTx;
@@ -2541,7 +2540,7 @@ Value sigstr(const Array& params, bool fHelp) {
         std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(pBaseTx.get());
         if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature))
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
-        
+
         CDataStream ds(SER_DISK, CLIENT_VERSION);
         std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
         ds << pBaseTx;
@@ -2552,7 +2551,7 @@ Value sigstr(const Array& params, bool fHelp) {
         std::shared_ptr<CRegisterAccountTx> tx = std::make_shared<CRegisterAccountTx>(pBaseTx.get());
         if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature))
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
-        
+
         CDataStream ds(SER_DISK, CLIENT_VERSION);
         std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
         ds << pBaseTx;
@@ -2812,7 +2811,7 @@ Value listcontractassets(const Array& params, bool fHelp) {
         pwalletMain->GetKeys(setKeyId);
         if (setKeyId.size() == 0)
             return retArry;
-        
+
         CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
 
         for (const auto &keyId : setKeyId) {
@@ -2879,7 +2878,7 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
 
     int height = chainActive.Height();
 
-    if (scriptid.IsEmpty() == true) 
+    if (scriptid.IsEmpty() == true)
         throw runtime_error("in getcontractkeyvalue: contract regid size is error!\n");
 
     if (!pScriptDBTip->HaveScript(scriptid))
@@ -3012,19 +3011,19 @@ Value setcheckpoint(const Array& params, bool fHelp)
         const Value & checkpoint = find_value(reply.get_obj(),"chenkpoint");
         if(checkpoint.type() ==  json_spirit::null_type)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "read check point failed");
-        
+
         const Value & msg = find_value(checkpoint.get_obj(), "msg");
         const Value & sig = find_value(checkpoint.get_obj(), "sig");
         if(msg.type() == json_spirit::null_type || sig.type() == json_spirit::null_type)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "read msg or sig failed");
-        
+
         data.m_vchMsg = ParseHex(msg.get_str());
         data.m_vchSig = ParseHex(sig.get_str());
     }
     file.close();
     if(!data.CheckSignature(SysCfg().GetCheckPointPKey()))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "check signature failed");
-    
+
     SyncData::CSyncDataDb db;
     std::vector<SyncData::CSyncData> vdata;
     SyncData::CSyncCheckPoint point;
@@ -3109,7 +3108,7 @@ Value gettotalassets(const Array& params, bool fHelp) {
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true)
         throw runtime_error("contract regid invalid!\n");
-    
+
     if (!pScriptDBTip->HaveScript(regid))
         throw runtime_error("contract regid not exist!\n");
 
@@ -3315,7 +3314,7 @@ Value listdelegates(const Array& params, bool fHelp) {
             CAccount account;
             if (!view.GetAccount(acctRegId, account))
                 assert(0);
-            
+
             uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
             if ((maxNum - llVotes) != account.llVotes) {
                 LogPrint("INFO", "llVotes:%lld, account:%s", maxNum - llVotes, account.ToString());

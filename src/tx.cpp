@@ -15,7 +15,7 @@
 #include "json/json_spirit_writer_template.h"
 using namespace json_spirit;
 
-static bool GetKeyId(const CAccountViewCache &view, const vector<unsigned char> &ret, CKeyID &KeyId) 
+static bool GetKeyId(const CAccountViewCache &view, const vector<unsigned char> &ret, CKeyID &KeyId)
 {
     if (ret.size() == 6) {
         CRegID regId(ret);
@@ -300,7 +300,7 @@ uint64_t CBaseTransaction::GetFuel(int nfuelRate) {
     return llFuel;
 }
 
-int CBaseTransaction::GetFuelRate(CScriptDBViewCache &scriptDB) 
+int CBaseTransaction::GetFuelRate(CScriptDBViewCache &scriptDB)
 {
     if (nFuelRate > 0)
         return nFuelRate;
@@ -323,7 +323,7 @@ int CBaseTransaction::GetFuelRate(CScriptDBViewCache &scriptDB)
 }
 
 bool CRegisterAccountTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-        int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) 
+        int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB)
 {
     CAccount account;
     CRegID regId(nHeight, nIndex);
@@ -353,9 +353,9 @@ bool CRegisterAccountTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
     }
 
     if (!view.SaveAccountInfo(regId, keyId, account))
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, write source addr %s account info error", 
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, write source addr %s account info error",
             regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-    
+
     txundo.vAccountLog.push_back(acctLog);
     txundo.txHash = GetHash();
     if(SysCfg().GetAddressToTxFlag()) {
@@ -363,7 +363,7 @@ bool CRegisterAccountTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
         CKeyID sendKeyId;
         if(!view.GetKeyId(userId, sendKeyId))
             return ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, get keyid by userId error!");
-        
+
         if(!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
             return false;
 
@@ -417,9 +417,9 @@ bool CRegisterAccountTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
 string CRegisterAccountTx::ToString(CAccountViewCache &view) const {
     string str;
     str += strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
-        txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion, boost::get<CPubKey>(userId).ToString(), 
+        txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion, boost::get<CPubKey>(userId).ToString(),
         llFees, boost::get<CPubKey>(userId).GetKeyID().ToAddress(), nValidHeight);
-        
+
     return str;
 }
 
