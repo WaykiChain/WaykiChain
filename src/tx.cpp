@@ -1172,7 +1172,7 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
 
     NET_TYPE netowrkID = SysCfg().NetworkID();
     if ( (netowrkID == MAIN_NET && nValidHeight > nCheckDelegateTxSignatureForkHeight) // for mainnet, need hardcode here, compatible with 7 old unsigned votes
-        || (netowrkID == MAIN_NET || netowrkID == REGTEST_NET) ) { // for testnet or regtest, must do the check 
+        || (netowrkID == TEST_NET || netowrkID == REGTEST_NET) ) { // for testnet or regtest, must do the check 
 
         uint256 signhash = SignatureHash();
         if (!CheckSignScript(signhash, signature, sendAcct.PublicKey)) {
