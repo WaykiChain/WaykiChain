@@ -940,6 +940,7 @@ boost::filesystem::path GetConfigFile() {
 	boost::filesystem::path pathConfigFile(	CBaseParams::GetArg("-conf", IniCfg().GetCoinName()+".conf"));
 	if (!pathConfigFile.is_complete())
 		pathConfigFile = GetDataDir(false) / pathConfigFile;
+
 	return pathConfigFile;
 }
 

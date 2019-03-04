@@ -214,16 +214,19 @@ Value getinfo(const Array& params, bool fHelp)
 
     if (pwalletMain && pwalletMain->IsEncrypted())
     	obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
+
     obj.push_back(Pair("paytxfee",      ValueFromAmount(SysCfg().GetTxFee())));
     obj.push_back(Pair("relayfee",      ValueFromAmount(CTransaction::nMinRelayTxFee)));
     obj.push_back(Pair("fuelrate",     	chainActive.Tip()->nFuelRate));
     obj.push_back(Pair("fuel", 			chainActive.Tip()->nFuel));
+    obj.push_back(Pair("conf directory",GetConfigFile().string().c_str()));
     obj.push_back(Pair("data directory",GetDataDir().string().c_str()));
     obj.push_back(Pair("tip block hash",chainActive.Tip()->GetBlockHash().ToString()));
     obj.push_back(Pair("syncheight", 	nSyncTipHeight));
     obj.push_back(Pair("blocks", 		(int)chainActive.Height()));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
+
     return obj;
 }
 
