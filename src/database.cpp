@@ -1317,7 +1317,9 @@ bool CScriptDBViewCache::SetContractItemCount(const vector<unsigned char> &vScri
     return true;
 }
 
-bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog) {
+bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId,
+    const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog)
+{
     vector<unsigned char> vKey = {'d', 'a', 't', 'a'};
     vKey.insert(vKey.end(), vScriptId.begin(), vScriptId.end());
     vKey.push_back('_');
@@ -1325,18 +1327,16 @@ bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId, co
 
     if (HasData(vKey)) {
         int nCount(0);
-        if (!GetContractItemCount(vScriptId, nCount)) {
+        if (!GetContractItemCount(vScriptId, nCount))
             return false;
-        }
-        if (!SetContractItemCount(vScriptId, --nCount)) {
+
+        if (!SetContractItemCount(vScriptId, --nCount))
             return false;
-        }
     }
 
     vector<unsigned char> vValue;
-    if (!GetData(vKey, vValue)) {
+    if (!GetData(vKey, vValue))
         return false;
-    }
 
     operLog = CScriptDBOperLog(vKey, vValue);
     if (!EraseKey(vKey))
@@ -1345,7 +1345,8 @@ bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId, co
     return true;
 }
 
-bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vKey) {
+bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vKey)
+{
     if (vKey.size() < 12) {
         return ERRORMSG("EraseAppData delete script data key value error!");
         //		assert(0);
