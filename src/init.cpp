@@ -299,7 +299,7 @@ string HelpMessage() {
     strUsage += "                         " + _("<category> can be:");
     strUsage +=                                 " addrman, alert, coindb, db, lock, rand, rpc, selectcoins, mempool, net";
 #ifdef ENABLE_WALLET
-    strUsage += "  -gen                   " + _("Generate coins (default: 0)") + "\n";
+    strUsage += "  -genblock              " + _("Generate blocks (default: 0)") + "\n";
     strUsage += "  -genproclimit=<n>      " + _("Set the processor limit for when generation is on (-1 = unlimited, default: -1)") + "\n";
 #endif
     strUsage += "  -help-debug            " + _("Show all debugging options (usage: --help -help-debug)") + "\n";
@@ -371,7 +371,7 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles)
             FILE *file = OpenBlockFile(pos, true);
             if (!file)
                 break;
-                
+
             LogPrint("INFO", "Reindexing block file blk%05u.dat...\n", (unsigned int)nFile);
             LoadExternalBlockFile(file, &pos);
             nFile++;
@@ -489,7 +489,7 @@ bool AppInit(boost::thread_group& threadGroup)
         // when only connecting to trusted nodes, do not seed via DNS, or listen by default
         if (SysCfg().SoftSetBoolArg("-dnsseed", false))
             LogPrint("INFO", "AppInit : parameter interaction: -connect set -> setting -dnsseed=0\n");
-        
+
         if (SysCfg().SoftSetBoolArg("-listen", false))
             LogPrint("INFO", "AppInit : parameter interaction: -connect set -> setting -listen=0\n");
     }
@@ -926,7 +926,7 @@ bool AppInit(boost::thread_group& threadGroup)
     CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
     if (NULL != pcheckpoint)
         CheckActiveChain(pcheckpoint->nHeight, pcheckpoint->GetBlockHash());
-    
+
     vector<boost::filesystem::path> vImportFiles;
     if (SysCfg().IsArgCount("-loadblock")) {
         vector<string>tmp = SysCfg().GetMultiArgs("-loadblock");

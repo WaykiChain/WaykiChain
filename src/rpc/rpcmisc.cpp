@@ -208,7 +208,7 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("timeoffset",    GetTimeOffset()));
     obj.push_back(Pair("proxy",         (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
     obj.push_back(Pair("nettype",       name[SysCfg().NetworkID()]));
-    obj.push_back(Pair("genblock", 		SysCfg().GetArg("-gen", 0)));
+    obj.push_back(Pair("genblock", 		SysCfg().GetArg("-genblock", 0)));
     obj.push_back(Pair("chainwork", 	chainActive.Tip()->nChainWork.GetHex()));
     obj.push_back(Pair("tipblocktime", 	(int)chainActive.Tip()->nTime));
 
