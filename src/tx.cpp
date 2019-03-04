@@ -462,9 +462,11 @@ bool CRegisterAccountTx::CheckTransaction(CValidationState &state, CAccountViewC
         return state.DoS(100, ERRORMSG("CRegisterAccountTx::CheckTransaction, register tx fee out of range"),
             REJECT_INVALID, "bad-regtx-fee-toolarge");
     
-    //hardcode here to avoid checking the fees must be more than nMinTxFee
-    // only for mainnet
-    if (SysCfg().NetworkID() != MAIN_NET || nValidHeight > nCheckRegisterAccountTxFeeForkHeight) { 
+    //check the fees must be more than nMinTxFee
+    NET_TYPE networkID = SysCfg().NetworkID();
+    if ( (networkID == MAIN_NET && nValidHeight > nCheckRegisterAccountTxFeeForkHeight) //for mainnet, need hardcode here, compatible with old data
+        || (networkID == TEST_NET && nValidHeight > 27900) // for testnet, need hardcode here, compatible with old data
+        || (networkID == REGTEST_NET) ) {  // for regtest net, must do the check
         
         if (llFees < nMinTxFee)
             return state.DoS(100, ERRORMSG("CRegisterAccountTx::CheckTransaction, register tx fee smaller than MinTxFee"),
@@ -1168,9 +1170,10 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
             REJECT_INVALID, "bad-no-pubkey");
     }
 
-    //hardcode here to avoid checking 7 old unsigned votes
-    //only for mainnet
-    if (SysCfg().NetworkID() != MAIN_NET || nValidHeight > nCheckDelegateTxSignatureForkHeight) { 
+    NET_TYPE netowrkID = SysCfg().NetworkID();
+    if ( (netowrkID == MAIN_NET && nValidHeight > nCheckDelegateTxSignatureForkHeight) // for mainnet, need hardcode here, compatible with 7 old unsigned votes
+        || (netowrkID == MAIN_NET || netowrkID == REGTEST_NET) ) { // for testnet or regtest, must do the check 
+
         uint256 signhash = SignatureHash();
         if (!CheckSignScript(signhash, signature, sendAcct.PublicKey)) {
             return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTransaction CheckTransaction, CheckSignScript failed"),
