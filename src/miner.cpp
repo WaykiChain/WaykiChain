@@ -641,12 +641,12 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
         return;
     }
 
-    auto getCurrHeight = [&]() {
+    auto GetCurrHeight = [&]() {
         LOCK(cs_main);
         return chainActive.Height();
     };
 
-    targetHeight += getCurrHeight();
+    targetHeight += GetCurrHeight();
 
     try {
         SetMinerStatus(true);
@@ -681,7 +681,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
             MineBlock(pblock, pwallet, pindexPrev, nTransactionsUpdated, accountView, txCache, scriptDB);
 
             if (SysCfg().NetworkID() != MAIN_NET)
-                if (targetHeight <= getCurrHeight())
+                if (targetHeight <= GetCurrHeight())
                     throw boost::thread_interrupted();
 
         }
