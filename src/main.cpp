@@ -2107,7 +2107,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
         } else {
             CBlockIndex *pBlockIndex = chainActive.Tip();
             while (pPreBlockIndex != pBlockIndex) {  //数据库状态回滚到主链分叉处
-                LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() DisconnectBlock block nHieght=%d hash=%s\n",
+                LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() DisconnectBlock block nHeight=%d hash=%s\n",
                          pBlockIndex->nHeight, pBlockIndex->GetBlockHash().GetHex());
                 CBlock block;
                 if (!ReadBlockFromDisk(block, pBlockIndex))
@@ -2148,7 +2148,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
 
         vector<CBlock>::reverse_iterator rIter = vPreBlocks.rbegin();
         for (; rIter != vPreBlocks.rend(); ++rIter) {  //连接支链的block
-            LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() ConnectBlock block nHieght=%d hash=%s\n",
+            LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() ConnectBlock block nHeight=%d hash=%s\n",
                      rIter->GetHeight(), rIter->GetHash().GetHex());
 
             if (!ConnectBlock(*rIter, state, *pForkAcctViewCache, mapBlockIndex[rIter->GetHash()], 
