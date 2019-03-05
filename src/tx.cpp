@@ -461,13 +461,13 @@ bool CRegisterAccountTx::CheckTransaction(CValidationState &state, CAccountViewC
     if (!MoneyRange(llFees))
         return state.DoS(100, ERRORMSG("CRegisterAccountTx::CheckTransaction, register tx fee out of range"),
             REJECT_INVALID, "bad-regtx-fee-toolarge");
-    
+
     //check the fees must be more than nMinTxFee
     NET_TYPE networkID = SysCfg().NetworkID();
     if ( (networkID == MAIN_NET && nValidHeight > nCheckRegisterAccountTxFeeForkHeight) //for mainnet, need hardcode here, compatible with old data
         || (networkID == TEST_NET && nValidHeight > 27900) // for testnet, need hardcode here, compatible with old data
         || (networkID == REGTEST_NET) ) {  // for regtest net, must do the check
-        
+
         if (llFees < nMinTxFee)
             return state.DoS(100, ERRORMSG("CRegisterAccountTx::CheckTransaction, register tx fee smaller than MinTxFee"),
                 REJECT_INVALID, "bad-regtx-fee-toosmall");
@@ -1117,16 +1117,16 @@ string CDelegateTransaction::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CDelegateTransaction::ToJSON(const CAccountViewCache &AccountView) const {
+Object CDelegateTransaction::ToJSON(const CAccountViewCache &accountView) const {
     Object result;
-    CAccountViewCache view(AccountView);
-    CKeyID keyid;
+    CAccountViewCache view(accountView);
+    CKeyID keyId;
     result.push_back(Pair("hash", GetHash().GetHex()));
     result.push_back(Pair("txtype", txTypeArray[nTxType]));
     result.push_back(Pair("ver", nVersion));
     result.push_back(Pair("regid", boost::get<CRegID>(userId).ToString()));
-    view.GetKeyId(userId, keyid);
-    result.push_back(Pair("addr", keyid.ToAddress()));
+    view.GetKeyId(userId, keyId);
+    result.push_back(Pair("addr", keyId.ToAddress()));
     result.push_back(Pair("fees", llFees));
     Array operVoteFundArray;
     for (auto item = operVoteFunds.begin(); item != operVoteFunds.end(); ++item) {
@@ -1172,7 +1172,7 @@ bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountVie
 
     NET_TYPE netowrkID = SysCfg().NetworkID();
     if ( (netowrkID == MAIN_NET && nValidHeight > nCheckDelegateTxSignatureForkHeight) // for mainnet, need hardcode here, compatible with 7 old unsigned votes
-        || (netowrkID == TEST_NET || netowrkID == REGTEST_NET) ) { // for testnet or regtest, must do the check 
+        || (netowrkID == TEST_NET || netowrkID == REGTEST_NET) ) { // for testnet or regtest, must do the check
 
         uint256 signhash = SignatureHash();
         if (!CheckSignScript(signhash, signature, sendAcct.PublicKey)) {

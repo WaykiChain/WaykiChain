@@ -2741,7 +2741,7 @@ Value printblockdbinfo(const Array& params, bool fHelp) {
 
 Value getcontractaccountinfo(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 2 && params.size() != 3)) {
-        throw runtime_error("getcontractaccountinfo  \"contract_regid\" \"account_address | account_regid\""
+        throw runtime_error("getcontractaccountinfo \"contract_regid\" \"account_address | account_regid\""
             "\nget contract account info\n"
             "\nArguments:\n"
             "1.\"contract_regid\":(string, required) App RegId\n"
