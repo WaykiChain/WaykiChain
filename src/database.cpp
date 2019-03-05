@@ -1218,12 +1218,13 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
     return true;
 }
 bool CScriptDBViewCache::SetContractData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
-                                         const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog) {
+                                         const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog)
+{
     vector<unsigned char> vKey = {'d', 'a', 't', 'a'};
     vKey.insert(vKey.end(), vScriptId.begin(), vScriptId.end());
     vKey.push_back('_');
     vKey.insert(vKey.end(), vScriptKey.begin(), vScriptKey.end());
-    vector<unsigned char> vValue(vScriptData.begin(), vScriptData.end());
+    vector<unsigned char> vNewValue(vScriptData.begin(), vScriptData.end());
     if (!HasData(vKey)) {
         int nCount(0);
         GetContractItemCount(vScriptId, nCount);
@@ -1231,12 +1232,13 @@ bool CScriptDBViewCache::SetContractData(const vector<unsigned char> &vScriptId,
         if (!SetContractItemCount(vScriptId, nCount))
             return false;
     }
+
     vector<unsigned char> oldValue;
     oldValue.clear();
     GetData(vKey, oldValue);
     operLog = CScriptDBOperLog(vKey, oldValue);
-
-    return SetData(vKey, vValue);
+    bool ret = SetData(vKey, vNewValue);
+    return ret;
 }
 
 bool CScriptDBViewCache::HaveScript(const vector<unsigned char> &vScriptId) {
@@ -1332,15 +1334,16 @@ bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId,
 
         if (!SetContractItemCount(vScriptId, --nCount))
             return false;
+
+        vector<unsigned char> vValue;
+        if (!GetData(vKey, vValue))
+            return false;
+
+        operLog = CScriptDBOperLog(vKey, vValue);
+
+        if (!EraseKey(vKey))
+            return false;
     }
-
-    vector<unsigned char> vValue;
-    if (!GetData(vKey, vValue))
-        return false;
-
-    operLog = CScriptDBOperLog(vKey, vValue);
-    if (!EraseKey(vKey))
-        return false;
 
     return true;
 }
@@ -1472,7 +1475,9 @@ string CScriptDBViewCache::ToString() {
     }
     return str;
 }
-bool CScriptDBViewCache::SetDelegateData(const CAccount &delegateAcct, CScriptDBOperLog &operLog) {
+
+bool CScriptDBViewCache::SetDelegateData(const CAccount &delegateAcct, CScriptDBOperLog &operLog)
+{
     CRegID regId(0, 0);
     vector<unsigned char> vVoteKey = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
     uint64_t nMaxNumber            = 0xFFFFFFFFFFFFFFFF;
@@ -1482,9 +1487,9 @@ bool CScriptDBViewCache::SetDelegateData(const CAccount &delegateAcct, CScriptDB
     vVoteKey.insert(vVoteKey.end(), delegateAcct.regID.GetVec6().begin(), delegateAcct.regID.GetVec6().end());
     vector<unsigned char> vVoteValue;
     vVoteValue.push_back(1);
-    if (!SetContractData(regId, vVoteKey, vVoteValue, operLog)) {
+    if (!SetContractData(regId, vVoteKey, vVoteValue, operLog))
         return false;
-    }
+
     return true;
 }
 

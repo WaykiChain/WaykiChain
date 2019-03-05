@@ -1214,7 +1214,7 @@ static int ExWriteDataDBFunc(lua_State *L)
     CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
     CScriptDBOperLog operlog;
 //  int64_t step = (*retdata.at(1)).size() -1;
-    if (!scriptDB->SetContractData(scriptid, *retdata.at(0), *retdata.at(1),operlog)) {
+    if (!scriptDB->SetContractData(scriptid, *retdata.at(0), *retdata.at(1), operlog)) {
         flag = false;
     } else {
         shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEnv->GetDbLog();
@@ -1506,7 +1506,7 @@ static int ExWriteOutputFunc(lua_State *L)
     }
 }
 
-static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) 
+static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret)
 {
     if (!lua_istable(L,-1)) {
         LogPrint("vm", "GetDataTableGetContractData is not table\n");
@@ -1982,7 +1982,7 @@ static int ExTransferContractAsset(lua_State *L)
         op.appuserIDlen = recvkey.size();
         for (i = 0; i < op.appuserIDlen; i++)
             op.vAppuser[i] = recvkey[i];
-        
+
         pVmRunEnv->InsertOutAPPOperte(recvkey, op);
     }
 
