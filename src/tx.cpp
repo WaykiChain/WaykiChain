@@ -423,7 +423,7 @@ string CRegisterAccountTx::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CRegisterAccountTx::ToJSON(const CAccountViewCache &AccountView) const
+Object CRegisterAccountTx::ToJson(const CAccountViewCache &AccountView) const
 {
     CID userCID(userId);
     CID minerCID(minerId);
@@ -666,7 +666,7 @@ string CTransaction::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CTransaction::ToJSON(const CAccountViewCache &AccountView) const {
+Object CTransaction::ToJson(const CAccountViewCache &AccountView) const {
     Object result;
     CAccountViewCache view(AccountView);
 
@@ -810,7 +810,7 @@ string CRewardTransaction::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CRewardTransaction::ToJSON(const CAccountViewCache &AccountView) const{
+Object CRewardTransaction::ToJson(const CAccountViewCache &AccountView) const{
     Object result;
     CAccountViewCache view(AccountView);
     CKeyID keyid;
@@ -972,7 +972,7 @@ string CRegisterContractTx::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CRegisterContractTx::ToJSON(const CAccountViewCache &AccountView) const{
+Object CRegisterContractTx::ToJson(const CAccountViewCache &AccountView) const{
     Object result;
     CAccountViewCache view(AccountView);
 
@@ -1117,7 +1117,7 @@ string CDelegateTransaction::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CDelegateTransaction::ToJSON(const CAccountViewCache &accountView) const {
+Object CDelegateTransaction::ToJson(const CAccountViewCache &accountView) const {
     Object result;
     CAccountViewCache view(accountView);
     CKeyID keyId;

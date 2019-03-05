@@ -183,7 +183,7 @@ public:
     virtual uint256 SignatureHash() const = 0;
     virtual std::shared_ptr<CBaseTransaction> GetNewInstance() = 0;
     virtual string ToString(CAccountViewCache &view) const = 0;
-    virtual Object ToJSON(const CAccountViewCache &AccountView) const = 0;
+    virtual Object ToJson(const CAccountViewCache &AccountView) const = 0;
     virtual bool GetAddress(std::set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) = 0;
     virtual bool IsValidHeight(int nCurHeight, int nTxCacheHeight) const;
     bool IsCoinBase() { return (nTxType == REWARD_TX); }
@@ -253,7 +253,7 @@ public:
     std::shared_ptr<CBaseTransaction> GetNewInstance() { return std::make_shared<CRegisterAccountTx>(this); }
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
     string ToString(CAccountViewCache &view) const;
-    Object ToJSON(const CAccountViewCache &AccountView) const;
+    Object ToJson(const CAccountViewCache &AccountView) const;
     bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
                    CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
     bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
@@ -348,7 +348,7 @@ public:
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     std::shared_ptr<CBaseTransaction> GetNewInstance() { return std::make_shared<CTransaction>(this); }
     string ToString(CAccountViewCache &view) const;
-    Object ToJSON(const CAccountViewCache &AccountView) const;
+    Object ToJson(const CAccountViewCache &AccountView) const;
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
     const vector_unsigned_char &GetContract() { return vContract; }
     bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
@@ -407,7 +407,7 @@ public:
     uint64_t GetFee() const { return 0; }
     double GetPriority() const { return 0.0f; }
     string ToString(CAccountViewCache &view) const;
-    Object ToJSON(const CAccountViewCache &AccountView) const;
+    Object ToJson(const CAccountViewCache &AccountView) const;
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
     bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
                    CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
@@ -459,7 +459,7 @@ public:
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     string ToString(CAccountViewCache &view) const;
-    Object ToJSON(const CAccountViewCache &AccountView) const;
+    Object ToJson(const CAccountViewCache &AccountView) const;
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
     bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
                    CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
@@ -538,7 +538,7 @@ public:
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     std::shared_ptr<CBaseTransaction> GetNewInstance() { return std::make_shared<CDelegateTransaction>(this); }
     string ToString(CAccountViewCache &view) const;
-    Object ToJSON(const CAccountViewCache &accountView) const;
+    Object ToJson(const CAccountViewCache &accountView) const;
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
     bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
                    CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);

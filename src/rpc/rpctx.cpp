@@ -66,7 +66,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
         assert(genesisblock.GetHashMerkleRoot() == genesisblock.BuildMerkleTree());
         for (unsigned int i = 0; i < genesisblock.vptx.size(); ++i) {
             if (txhash == genesisblock.GetTxHash(i)) {
-                obj = genesisblock.vptx[i]->ToJSON(*pAccountViewTip);
+                obj = genesisblock.vptx[i]->ToJson(*pAccountViewTip);
                 obj.push_back(Pair("blockhash", SysCfg().HashGenesisBlock().GetHex()));
                 obj.push_back(Pair("confirmHeight", (int) 0));
                 obj.push_back(Pair("confirmedtime", (int) genesisblock.GetTime()));
@@ -86,7 +86,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
                     file >> header;
                     fseek(file, postx.nTxOffset, SEEK_CUR);
                     file >> pBaseTx;
-                    obj = pBaseTx->ToJSON(*pAccountViewTip);
+                    obj = pBaseTx->ToJson(*pAccountViewTip);
                     obj.push_back(Pair("blockhash", header.GetHash().GetHex()));
                     obj.push_back(Pair("confirmHeight", (int) header.GetHeight()));
                     obj.push_back(Pair("confirmedtime", (int) header.GetTime()));
@@ -112,7 +112,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
         {
             pBaseTx = mempool.lookup(txhash);
             if (pBaseTx.get()) {
-                obj = pBaseTx->ToJSON(*pAccountViewTip);
+                obj = pBaseTx->ToJson(*pAccountViewTip);
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
                 ds << pBaseTx;
                 obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
@@ -2626,21 +2626,21 @@ Value decoderawtx(const Array& params, bool fHelp)
     case COMMON_TX: {
         std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(pBaseTx.get());
         if (tx.get()) {
-            obj = tx->ToJSON(view);
+            obj = tx->ToJson(view);
         }
     }
         break;
     case REG_ACCT_TX: {
         std::shared_ptr<CRegisterAccountTx> tx = std::make_shared<CRegisterAccountTx>(pBaseTx.get());
         if (tx.get()) {
-            obj = tx->ToJSON(view);
+            obj = tx->ToJson(view);
         }
     }
         break;
     case CONTRACT_TX: {
         std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(pBaseTx.get());
         if (tx.get()) {
-            obj = tx->ToJSON(view);
+            obj = tx->ToJson(view);
         }
     }
         break;
@@ -2649,14 +2649,14 @@ Value decoderawtx(const Array& params, bool fHelp)
     case REG_CONT_TX: {
         std::shared_ptr<CRegisterContractTx> tx = std::make_shared<CRegisterContractTx>(pBaseTx.get());
         if (tx.get()) {
-            obj = tx->ToJSON(view);
+            obj = tx->ToJson(view);
         }
     }
         break;
     case DELEGATE_TX: {
         std::shared_ptr<CDelegateTransaction> tx = std::make_shared<CDelegateTransaction>(pBaseTx.get());
         if (tx.get()) {
-            obj = tx->ToJSON(view);
+            obj = tx->ToJson(view);
         }
     }
         break;
@@ -2784,7 +2784,7 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
     }
     appUserAccount.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
 
-    return Value(appUserAccount.get()->ToJSON());
+    return Value(appUserAccount.get()->ToJson());
 }
 
 Value listcontractassets(const Array& params, bool fHelp) {
