@@ -472,18 +472,6 @@ CBlockLocator CChain::GetLocator(const CBlockIndex *pindex) const {
     return CBlockLocator(vHave);
 }
 
-CBlockLocator CChain::GetPrunedLocator(const CBlockIndex *pindex) const {
-    vector<uint256> vHave;
-    vHave.reserve(32);
-
-    if (!pindex)
-        pindex = Tip();
-    if (pindex) {
-        vHave.push_back(pindex->GetBlockHash());
-    }
-    return CBlockLocator(vHave);
-}
-
 CBlockIndex *CChain::FindFork(const CBlockLocator &locator) const {
     // Find the first block the caller has in the main chain
     for (const auto &hash : locator.vHave) {
@@ -2455,7 +2443,7 @@ void PushGetBlocksOnCondition(CNode *pnode, CBlockIndex *pindexBegin, uint256 ha
             ++count;
             pnode->pindexLastGetBlocksBegin = pindexBegin;
             pnode->hashLastGetBlocksEnd     = hashEnd;
-            CBlockLocator blockLocator      = chainActive.GetPrunedLocator(pindexBegin);
+            CBlockLocator blockLocator      = chainActive.GetLocator(pindexBegin);
             pnode->PushMessage("getblocks", blockLocator, hashEnd);
             LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pnode->addr.ToString(), hashEnd.GetHex());
         } else {
@@ -2467,7 +2455,7 @@ void PushGetBlocksOnCondition(CNode *pnode, CBlockIndex *pindexBegin, uint256 ha
     } else {
         pnode->pindexLastGetBlocksBegin = pindexBegin;
         pnode->hashLastGetBlocksEnd     = hashEnd;
-        CBlockLocator blockLocator      = chainActive.GetPrunedLocator(pindexBegin);
+        CBlockLocator blockLocator      = chainActive.GetLocator(pindexBegin);
         pnode->PushMessage("getblocks", blockLocator, hashEnd);
         LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pnode->addr.ToString(), hashEnd.GetHex());
     }

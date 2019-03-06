@@ -1026,7 +1026,6 @@ class CChain {
 
     /** Return a CBlockLocator that refers to a block in this chain (by default the tip). */
     CBlockLocator GetLocator(const CBlockIndex *pindex = NULL) const;
-    CBlockLocator GetPrunedLocator(const CBlockIndex *pindex = NULL) const;
 
     /** Find the last common block between this chain and a locator. */
     CBlockIndex *FindFork(const CBlockLocator &locator) const;
