@@ -49,7 +49,7 @@ inline bool CAppCFund::MergeCFund(const CAppCFund &fund) {
 	uint64_t tempValue = 0;
 	if (!SafeAdd(fund.GetValue(), value, tempValue))
 		return ERRORMSG("Operate overflow !");
-	
+
 	value = tempValue;
 	return true;
 }
@@ -58,7 +58,7 @@ inline bool CAppCFund::MergeCFund(const CAppCFund &fund) {
 CAppCFund::CAppCFund(const CAppFundOperate& op) {
 	//	assert(Op.opType == ADD_TAG_OP || ADD_TAG_OP == Op.opType);
 	assert(op.outHeight > 0);
-	
+
 	vTag = op.GetFundTagV();
 	value = op.GetUint64Value();					//!< amount of money
 	nHeight = op.outHeight;
@@ -81,9 +81,9 @@ CAppUserAccount::CAppUserAccount(const vector<unsigned char> &userId)
 	vFrozenFunds.clear();
 }
 
-bool CAppUserAccount::GetAppCFund(CAppCFund& outFound, const vector<unsigned char>& vtag , int height) 
+bool CAppUserAccount::GetAppCFund(CAppCFund& outFound, const vector<unsigned char>& vtag , int height)
 {
-	auto it = find_if( vFrozenFunds.begin(), vFrozenFunds.end(), 
+	auto it = find_if( vFrozenFunds.begin(), vFrozenFunds.end(),
 		[&](const CAppCFund& CfundIn) { return height == CfundIn.GetHeight() && CfundIn.GetTag() == vtag; } );
 
 	if (it != vFrozenFunds.end()) {
@@ -118,7 +118,7 @@ uint64_t CAppUserAccount::GetAllFreezedValues()
 	return total;
 }
 
-bool CAppUserAccount::AutoMergeFreezeToFree(int height) 
+bool CAppUserAccount::AutoMergeFreezeToFree(int height)
 {
 	bool needRemove = false;
 	for (auto &Fund : vFrozenFunds) {
@@ -133,7 +133,7 @@ bool CAppUserAccount::AutoMergeFreezeToFree(int height)
 			needRemove = true;
 		}
 	}
-	
+
 	if (needRemove) {
 		vFrozenFunds.erase(remove_if(vFrozenFunds.begin(), vFrozenFunds.end(), [&](const CAppCFund& CfundIn) {
 			return (CfundIn.GetHeight() <= height);}), vFrozenFunds.end());
@@ -207,7 +207,7 @@ bool CAppUserAccount::Operate(const CAppFundOperate& Op) {
 		uint64_t tempValue = 0;
 		if (!SafeAdd(llValues, Op.GetUint64Value(), tempValue))
 			return ERRORMSG("Operate overflow !");
-		
+
 		llValues = tempValue;
 		return true;
 
@@ -241,7 +241,7 @@ CAppFundOperate::CAppFundOperate() {
 	mMoney = 0;
 }
 
-Object CAppCFund::ToJSON()const {
+Object CAppCFund::ToJson()const {
 	Object result;
 	result.push_back(Pair("value", value));
 	result.push_back(Pair("nHeight", nHeight));
@@ -250,17 +250,17 @@ Object CAppCFund::ToJSON()const {
 }
 
 string CAppCFund::ToString()const {
-	return write_string(Value(ToJSON()), true);
+	return write_string(Value(ToJson()), true);
 }
 
-Object CAppUserAccount::ToJSON() const {
+Object CAppUserAccount::ToJson() const {
 	Object result;
 	result.push_back(Pair("mAccUserID", HexStr(mAccUserID)));
 	result.push_back(Pair("FreeValues", llValues));
 
 	Array arry;
 	for (auto const te : vFrozenFunds) {
-		arry.push_back(te.ToJSON());
+		arry.push_back(te.ToJson());
 	}
 	result.push_back(Pair("FrozenFunds", arry));
 
@@ -268,10 +268,10 @@ Object CAppUserAccount::ToJSON() const {
 }
 
 string CAppUserAccount::ToString() const {
-	return write_string(Value(ToJSON()), true);
+	return write_string(Value(ToJson()), true);
 }
 
-Object CAppFundOperate::ToJSON() const {
+Object CAppFundOperate::ToJson() const {
 	Object result;
 	// int timout = outheight;
 	string optypes[] = {"error type", "ADD_FREE_OP ","SUB_FREE_OP","ADD_TAG_OP","SUB_TAG_OP"};
@@ -286,5 +286,5 @@ Object CAppFundOperate::ToJSON() const {
 }
 
 string CAppFundOperate::ToString() const {
-	return write_string(Value(ToJSON()), true);
+	return write_string(Value(ToJson()), true);
 }
