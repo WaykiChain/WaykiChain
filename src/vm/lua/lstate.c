@@ -300,7 +300,11 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   g->frealloc = f;
   g->ud = ud;
   g->mainthread = L;
+#ifdef LUA_FIXED_SEED
+  g->seed = LUA_FIXED_SEED;
+#else
   g->seed = makeseed(L);
+#endif//LUA_FIXED_SEED
   g->gcrunning = 0;  /* no GC while building state */
   g->GCestimate = 0;
   g->strt.size = g->strt.nuse = 0;
