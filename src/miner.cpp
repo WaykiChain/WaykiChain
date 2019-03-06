@@ -120,7 +120,7 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate) {
     for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi) {
         CBaseTransaction *pBaseTx = mi->second.GetTx().get();
 
-        if (uint256() == std::move(pTxCacheTip->IsContainTx(std::move(pBaseTx->GetHash())))) {
+        if (uint256() == std::move(pTxCacheTip->HasTx(std::move(pBaseTx->GetHash())))) {
             unsigned int nTxSize = ::GetSerializeSize(*pBaseTx, SER_NETWORK, PROTOCOL_VERSION);
             double dFeePerKb     = double(pBaseTx->GetFee() - pBaseTx->GetFuel(nFuelRate)) / (double(nTxSize) / 1000.0);
             dPriority            = 1000.0 / double(nTxSize);
@@ -362,7 +362,7 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
         uint64_t nTotalRunStep(0);
         for (unsigned int i = 1; i < pBlock->vptx.size(); i++) {
             shared_ptr<CBaseTransaction> pBaseTx = pBlock->vptx[i];
-            if (uint256() != txCache.IsContainTx(pBaseTx->GetHash()))
+            if (uint256() != txCache.HasTx(pBaseTx->GetHash()))
                 return ERRORMSG("VerifyPosTx duplicate tx hash:%s", pBaseTx->GetHash().GetHex());
 
             CTxUndo txundo;
@@ -469,7 +469,7 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
                 make_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
             }
 
-            if (uint256() != std::move(txCache.IsContainTx(std::move(pBaseTx->GetHash())))) {
+            if (uint256() != std::move(txCache.HasTx(std::move(pBaseTx->GetHash())))) {
                 LogPrint("INFO", "CreateNewBlock: duplicated tx\n");
                 continue;
             }
