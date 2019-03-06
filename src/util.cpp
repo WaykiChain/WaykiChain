@@ -1168,8 +1168,9 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime) {
 	// Add data
 	static CMedianFilter<int64_t> vTimeOffsets(200, 0);
 	vTimeOffsets.input(nOffsetSample);
-	LogPrint("INFO", "Added time data, samples %d, offset %+d (%+d minutes)\n", vTimeOffsets.size(), nOffsetSample,
-			nOffsetSample / 60);
+	LogPrint("INFO", "Added time data, samples %d, offset %+d (%+d minutes)\n",
+		vTimeOffsets.size(), nOffsetSample, nOffsetSample / 60);
+
 	if (vTimeOffsets.size() >= 5 && vTimeOffsets.size() % 2 == 1) {
 		int64_t nMedian = vTimeOffsets.median();
 		vector<int64_t> vSorted = vTimeOffsets.sorted();
@@ -1197,11 +1198,14 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime) {
 				}
 			}
 		}
+
 		if (SysCfg().IsDebug()) {
 			for (int64_t n : vSorted)
 				LogPrint("DEBUG", "%+d  ", n);
+
 			LogPrint("DEBUG", "|  ");
 		}
+
 		LogPrint("INFO", "nTimeOffset = %+d  (%+d minutes)\n", nTimeOffset, nTimeOffset / 60);
 	}
 }

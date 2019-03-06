@@ -666,7 +666,6 @@ bool CScriptDBViewCache::GetScript(const int nIndex, vector<unsigned char> &vScr
                 return true;
             }
         }
-
     } else {
         //		assert(0);
     }
