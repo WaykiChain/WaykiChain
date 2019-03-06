@@ -305,7 +305,7 @@ bool CTransactionDB::GetTxCache(const uint256 &blockHash, vector<uint256> &vHash
     return db.Read(make_pair('h', blockHash), vHashTx);
 }
 
-bool CTransactionDB::BatchWrite(const map<uint256, vector<uint256> > &mapTxHashByBlockHash) {
+bool CTransactionDB::BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHash) {
     CLevelDBBatch batch;
     for (auto &item : mapTxHashByBlockHash) {
         if (item.second.empty()) {
@@ -318,7 +318,7 @@ bool CTransactionDB::BatchWrite(const map<uint256, vector<uint256> > &mapTxHashB
     return db.WriteBatch(batch, true);
 }
 
-bool CTransactionDB::LoadTransaction(map<uint256, vector<uint256> > &mapTxHashByBlockHash) {
+bool CTransactionDB::LoadTransaction(map<uint256, set<uint256> > &mapTxHashByBlockHash) {
     leveldb::Iterator *pcursor = db.NewIterator();
 
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
@@ -336,7 +336,7 @@ bool CTransactionDB::LoadTransaction(map<uint256, vector<uint256> > &mapTxHashBy
             if (chType == 'h') {
                 leveldb::Slice slValue = pcursor->value();
                 CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-                vector<uint256> vTxhash;
+                set<uint256> vTxhash;
                 uint256 blockHash;
                 ssValue >> vTxhash;
                 ssKey >> blockHash;
