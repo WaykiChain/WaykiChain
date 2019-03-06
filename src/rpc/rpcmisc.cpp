@@ -214,7 +214,7 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("chainwork",         chainActive.Tip()->nChainWork.GetHex()));
 
     if (pwalletMain && pwalletMain->IsEncrypted())
-        obj.push_back(Pair("unlocktime",    nWalletUnlockTime));
+        obj.push_back(Pair("unlockeduntil", nWalletUnlockTime));
 
     obj.push_back(Pair("paytxfee",          ValueFromAmount(SysCfg().GetTxFee())));
     obj.push_back(Pair("relayfee",          ValueFromAmount(CTransaction::nMinRelayTxFee)));
