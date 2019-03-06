@@ -638,7 +638,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTransact
             hash.GetHex()), REJECT_INVALID, "tx-already-in-mempool");
 
     // is it already confirmed in block?
-    if (uint256() != pTxCacheTip->IsContainTx(hash))
+    if (uint256() != pTxCacheTip->HasTx(hash))
         return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] has been confirmed",
             hash.GetHex()), REJECT_INVALID, "tx-duplicate-confirmed");
 
@@ -1458,7 +1458,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
     if (block.vptx.size() > 1) {
         for (unsigned int i = 1; i < block.vptx.size(); i++) {
             std::shared_ptr<CBaseTransaction> pBaseTx = block.vptx[i];
-            if (uint256() != txCache.IsContainTx((pBaseTx->GetHash()))) {
+            if (uint256() != txCache.HasTx((pBaseTx->GetHash()))) {
                 return state.DoS(100,
                                  ERRORMSG("ConnectBlock() : the TxHash %s the confirm duplicate",
                                           pBaseTx->GetHash().GetHex()),
@@ -1467,7 +1467,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
             assert(mapBlockIndex.count(view.GetBestBlock()));
             if (!pBaseTx->IsValidHeight(mapBlockIndex[view.GetBestBlock()]->nHeight,
                                         SysCfg().GetTxCacheHeight())) {
-                return state.DoS(100, ERRORMSG("ConnectBlock() : txhash=%s beyond the scope of valid height", 
+                return state.DoS(100, ERRORMSG("ConnectBlock() : txhash=%s beyond the scope of valid height",
                     pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
             }
 
@@ -2151,7 +2151,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
             LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() ConnectBlock block nHeight=%d hash=%s\n",
                      rIter->GetHeight(), rIter->GetHash().GetHex());
 
-            if (!ConnectBlock(*rIter, state, *pForkAcctViewCache, mapBlockIndex[rIter->GetHash()], 
+            if (!ConnectBlock(*rIter, state, *pForkAcctViewCache, mapBlockIndex[rIter->GetHash()],
                 *pForkTxCache, *pForkScriptDBCache, false))
                 return ERRORMSG("CheckBlockProofWorkWithCoinDay() : ConnectBlock %s failed", rIter->GetHash().ToString());
 
@@ -2171,18 +2171,18 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
         std::shared_ptr<CRewardTransaction> pRewardTx = dynamic_pointer_cast<CRewardTransaction>(block.vptx[0]);
         uint64_t llValidReward                        = block.GetFee() - block.GetFuel();
         if (pRewardTx->rewardValue != llValidReward)
-            return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : coinbase pays too much (actual=%d vs limit=%d)", 
+            return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : coinbase pays too much (actual=%d vs limit=%d)",
                 pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-cb-amount");
 
         for (auto &item : block.vptx) {
             //校验交易是否在有效高度
             if (!item->IsValidHeight(mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight, SysCfg().GetTxCacheHeight())) {
-                return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : txhash=%s beyond the scope of valid height\n ", 
+                return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : txhash=%s beyond the scope of valid height\n ",
                     item->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
             }
             //校验是否有重复确认交易
-            if (uint256() != pForkTxCache->IsContainTx(item->GetHash()))
-                return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : tx hash %s has been confirmed\n", 
+            if (uint256() != pForkTxCache->HasTx(item->GetHash()))
+                return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : tx hash %s has been confirmed\n",
                     item->GetHash().GetHex()), REJECT_INVALID, "bad-txns-oversize");
         }
 
@@ -2192,7 +2192,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
                 LogPrint("INFO", "delete mapCache Key:%s\n", preBlockHash.GetHex());
                 mapCache.erase(preBlockHash);
             }
-            std::tuple<std::shared_ptr<CAccountViewCache>, std::shared_ptr<CTransactionDBCache>, 
+            std::tuple<std::shared_ptr<CAccountViewCache>, std::shared_ptr<CTransactionDBCache>,
                 std::shared_ptr<CScriptDBViewCache> > cache = std::make_tuple(pForkAcctViewCache, pForkTxCache, pForkScriptDBCache);
             LogPrint("INFO", "add mapCache Key:%s\n", iterBlock->GetHash().GetHex());
             mapCache[iterBlock->GetHash()] = cache;
@@ -2203,8 +2203,8 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
     return true;
 }
 
-bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDBCache, 
-                bool fCheckTx, bool fCheckMerkleRoot) 
+bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDBCache,
+                bool fCheckTx, bool fCheckMerkleRoot)
 {
     // These are checks that are independent of context
     // that can be verified before saving an orphan block.
@@ -2268,7 +2268,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
     return true;
 }
 
-bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) 
+bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
 {
     AssertLockHeld(cs_main);
 
@@ -2295,7 +2295,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
         nHeight = pBlockIndexPrev->nHeight + 1;
 
         if (block.GetHeight() != (unsigned int)nHeight)
-            return state.DoS(100, ERRORMSG("AcceptBlock() : height in block claimed dismatched it's actual height"), 
+            return state.DoS(100, ERRORMSG("AcceptBlock() : height in block claimed dismatched it's actual height"),
                 REJECT_INVALID, "incorrect-height");
 
         int64_t tempTime = GetTimeMillis();
@@ -2303,7 +2303,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
         // Check timestamp against prev
         if (block.GetBlockTime() <= pBlockIndexPrev->GetBlockTime() ||
             (block.GetBlockTime() - pBlockIndexPrev->GetBlockTime()) < SysCfg().GetTargetSpacing())
-            return state.Invalid(ERRORMSG("AcceptBlock() : block's timestamp is too early"), 
+            return state.Invalid(ERRORMSG("AcceptBlock() : block's timestamp is too early"),
                 REJECT_INVALID, "time-too-early");
 
         // Check that the block chain matches the known block chain up to a checkpoint
@@ -2324,7 +2324,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
 
         // Reject block.nVersion=1 blocks when 95% (75% on testnet) of the network has upgraded:
         if (block.GetVersion() < 2) {
-            if ((!TestNet() && CBlockIndex::IsSuperMajority(2, pBlockIndexPrev, 950, 1000)) || 
+            if ((!TestNet() && CBlockIndex::IsSuperMajority(2, pBlockIndexPrev, 950, 1000)) ||
                 (TestNet() && CBlockIndex::IsSuperMajority(2, pBlockIndexPrev, 75, 100))) {
                 return state.Invalid(ERRORMSG("AcceptBlock() : rejected nVersion=1 block"), REJECT_OBSOLETE, "bad-version");
             }
@@ -3435,7 +3435,7 @@ void static ProcessGetData(CNode *pfrom) {
     }
 }
 
-bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv) 
+bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
 {
     RandAddSeedPerfmon();
     LogPrint("net", "received: %s (%u bytes)\n", strCommand, vRecv.size());
@@ -4017,7 +4017,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
             }
             // Truncate to reasonable length and sanitize before printing:
             string s = ss.str();
-            if (s.size() > 111) 
+            if (s.size() > 111)
                 s.erase(111, string::npos);
 
             LogPrint("net", "Reject %s\n", SanitizeString(s));

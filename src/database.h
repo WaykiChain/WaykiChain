@@ -324,7 +324,7 @@ class CScriptDBViewCache : public CScriptDBViewBacked {
 
 class CTransactionDBView {
    public:
-    virtual uint256 IsContainTx(const uint256 &txHash);
+    virtual uint256 HasTx(const uint256 &txHash);
     virtual bool IsContainBlock(const CBlock &block);
     virtual bool AddBlockToCache(const CBlock &block);
     virtual bool DeleteBlockFromCache(const CBlock &block);
@@ -341,7 +341,7 @@ class CTransactionDBViewBacked : public CTransactionDBView {
    public:
     CTransactionDBViewBacked(CTransactionDBView &transactionView);
     bool BatchWrite(const map<uint256, vector<uint256> > &mapTxHashByBlockHashIn);
-    uint256 IsContainTx(const uint256 &txHash);
+    uint256 HasTx(const uint256 &txHash);
     bool IsContainBlock(const CBlock &block);
     bool AddBlockToCache(const CBlock &block);
     bool DeleteBlockFromCache(const CBlock &block);
@@ -358,7 +358,7 @@ class CTransactionDBCache : public CTransactionDBViewBacked {
     bool IsContainBlock(const CBlock &block);
     bool AddBlockToCache(const CBlock &block);
     bool DeleteBlockFromCache(const CBlock &block);
-    uint256 IsContainTx(const uint256 &txHash);
+    uint256 HasTx(const uint256 &txHash);
     map<uint256, vector<uint256> > GetTxHashCache(void);
     bool BatchWrite(const map<uint256, vector<uint256> > &mapTxHashByBlockHashIn);
     void AddTxHashCache(const uint256 &blockHash, const vector<uint256> &vTxHash);
