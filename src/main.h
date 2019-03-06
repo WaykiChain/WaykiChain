@@ -110,17 +110,17 @@ extern const string strMessageMagic;
 static const uint64_t nMinDiskSpace = 52428800;
 
 // hardcode to avoid fork for mainnet only
-static const int nCheckDelegateTxSignatureForkHeight = 2116535;  //fork height at which delegate tx signature check effects
-static const int nCheckRegisterAccountTxFeeForkHeight = 2400000; //fork height at which register account tx fees limited check effects 
-static const int nTwelveForwardLimits                = 28000;    //修改限制block时间不能超过本地时间12分钟
-static const int nFixedDifficulty                    = 35001;    //此高度前的block不检查难度，通过checkpoint保证
-static const int nNextWorkRequired                   = 85000;    //修改难度校验算法
-static const int nFreezeBlackAcctHeight              = 99854;
-static const int nUpdateTxVersion2Height             = 196000;   //主链在此高度后不再接受交易版本为nTxVersion1的交易
-static const int nUpdateBlockVersionHeight           = 209000;   //主链在此高度后，block版本升级
+static const int nCheckDelegateTxSignatureForkHeight  = 2116535;  //fork height at which delegate tx signature check effects
+static const int nCheckRegisterAccountTxFeeForkHeight = 2400000;  //fork height at which register account tx fees limited check effects
+static const int nTwelveForwardLimits                 = 28000;    //修改限制block时间不能超过本地时间12分钟
+static const int nFixedDifficulty                     = 35001;    //此高度前的block不检查难度，通过checkpoint保证
+static const int nNextWorkRequired                    = 85000;    //修改难度校验算法
+static const int nFreezeBlackAcctHeight               = 99854;
+static const int nUpdateTxVersion2Height              = 196000;  //主链在此高度后不再接受交易版本为nTxVersion1的交易
+static const int nUpdateBlockVersionHeight            = 209000;  //主链在此高度后，block版本升级
 
-static const int nContractScriptMaxSize              = 65536;    //64 KB max for contract script size
-static const string contractScriptPathPrefix         = "/tmp/lua/";
+static const int nContractScriptMaxSize               = 65536;   //64 KB max for contract script size
+static const string contractScriptPathPrefix          = "/tmp/lua/";
 
 class CCoinsDB;
 class CBlockTreeDB;
@@ -149,10 +149,10 @@ void EraseTransaction(const uint256 &hash);
 void RegisterNodeSignals(CNodeSignals &nodeSignals);
 /** Unregister a network node */
 void UnregisterNodeSignals(CNodeSignals &nodeSignals);
-
+/** Push getblocks request */
 void PushGetBlocks(CNode *pnode, CBlockIndex *pindexBegin, uint256 hashEnd);
-void PushGetBlocksWithCondition(CNode *pnode, CBlockIndex *pindexBegin, uint256 hashEnd);
-
+/** Push getblocks request with different filtering strategies */
+void PushGetBlocksOnCondition(CNode *pnode, CBlockIndex *pindexBegin, uint256 hashEnd);
 /** Process an incoming block */
 bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBlockPos *dbp = NULL);
 /** Check whether enough disk space is available for an incoming block */
@@ -532,18 +532,18 @@ bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex);
  *  In case pfClean is provided, operation will try to be tolerant about errors, and *pfClean
  *  will be true if no problems were found. Otherwise, the return value will be false in case
  *  of problems. Note that in any case, coins may be modified. */
-bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pindex, 
+bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pindex,
                     CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache, bool *pfClean = NULL);
 
 // Apply the effects of this block (with given index) on the UTXO set represented by coins
-bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pindex, CTransactionDBCache &txCache, 
+bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pindex, CTransactionDBCache &txCache,
                 CScriptDBViewCache &scriptCache, bool fJustCheck = false);
 
 // Add this block to the block index, and if necessary, switch the active block chain to this
 bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos &pos);
 
 // Context-independent validity checks
-bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDBCache, 
+bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDBCache,
                 bool fCheckTx = true, bool fCheckMerkleRoot = true);
 
 bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CValidationState &state);
