@@ -472,18 +472,6 @@ CBlockLocator CChain::GetLocator(const CBlockIndex *pindex) const {
     return CBlockLocator(vHave);
 }
 
-CBlockLocator CChain::GetPrunedLocator(const CBlockIndex *pindex) const {
-    vector<uint256> vHave;
-    vHave.reserve(32);
-
-    if (!pindex)
-        pindex = Tip();
-    if (pindex) {
-        vHave.push_back(pindex->GetBlockHash());
-    }
-    return CBlockLocator(vHave);
-}
-
 CBlockIndex *CChain::FindFork(const CBlockLocator &locator) const {
     // Find the first block the caller has in the main chain
     for (const auto &hash : locator.vHave) {
@@ -2427,7 +2415,7 @@ void CBlockIndex::BuildSkip() {
 }
 
 void PushGetBlocks(CNode *pnode, CBlockIndex *pindexBegin, uint256 hashEnd) {
-    // Ask this guy to fill in what we're missing ,要求从网络上同步，从pindexBegin 开始,hashEnd值结束的块
+    // Ask this guy to fill in what we're missing
     AssertLockHeld(cs_main);
     // Filter out duplicate requests
     if (pindexBegin == pnode->pindexLastGetBlocksBegin && hashEnd == pnode->hashLastGetBlocksEnd) {
@@ -2441,7 +2429,7 @@ void PushGetBlocks(CNode *pnode, CBlockIndex *pindexBegin, uint256 hashEnd) {
     LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pnode->addr.ToString(), hashEnd.GetHex());
 }
 
-void PushGetBlocksWithCondition(CNode *pnode, CBlockIndex *pindexBegin, uint256 hashEnd) {
+void PushGetBlocksOnCondition(CNode *pnode, CBlockIndex *pindexBegin, uint256 hashEnd) {
     // Ask this guy to fill in what we're missing
     AssertLockHeld(cs_main);
     // Filter out duplicate requests
@@ -2455,7 +2443,7 @@ void PushGetBlocksWithCondition(CNode *pnode, CBlockIndex *pindexBegin, uint256 
             ++count;
             pnode->pindexLastGetBlocksBegin = pindexBegin;
             pnode->hashLastGetBlocksEnd     = hashEnd;
-            CBlockLocator blockLocator      = chainActive.GetPrunedLocator(pindexBegin);
+            CBlockLocator blockLocator      = chainActive.GetLocator(pindexBegin);
             pnode->PushMessage("getblocks", blockLocator, hashEnd);
             LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pnode->addr.ToString(), hashEnd.GetHex());
         } else {
@@ -2467,7 +2455,7 @@ void PushGetBlocksWithCondition(CNode *pnode, CBlockIndex *pindexBegin, uint256 
     } else {
         pnode->pindexLastGetBlocksBegin = pindexBegin;
         pnode->hashLastGetBlocksEnd     = hashEnd;
-        CBlockLocator blockLocator      = chainActive.GetPrunedLocator(pindexBegin);
+        CBlockLocator blockLocator      = chainActive.GetLocator(pindexBegin);
         pnode->PushMessage("getblocks", blockLocator, hashEnd);
         LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pnode->addr.ToString(), hashEnd.GetHex());
     }
@@ -2543,7 +2531,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
             // Ask this guy to fill in what we're missing
             LogPrint("net", "receive an orphan block height=%d hash=%s, %s it, and lead to getblocks, current height=%d, current orphan blocks=%d\n",
                      pblock->GetHeight(), pblock->GetHash().GetHex(), success ? "keep" : "abandon", chainActive.Tip()->nHeight, mapOrphanBlocksByPrev.size());
-            PushGetBlocksWithCondition(pfrom, chainActive.Tip(), GetOrphanRoot(hash));
+            PushGetBlocksOnCondition(pfrom, chainActive.Tip(), GetOrphanRoot(hash));
         }
         return true;
     }
@@ -3663,7 +3651,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
                 COrphanBlock *pOrphanBlock = mapOrphanBlocks[inv.hash];
                 LogPrint("net", "receive orphan block inv height=%d hash=%s lead to getblocks, current height=%d\n",
                          pOrphanBlock->height, inv.hash.GetHex(), chainActive.Tip()->nHeight);
-                PushGetBlocksWithCondition(pfrom, chainActive.Tip(), GetOrphanRoot(inv.hash));
+                PushGetBlocksOnCondition(pfrom, chainActive.Tip(), GetOrphanRoot(inv.hash));
             }
 
             // Track requests for our stuff
