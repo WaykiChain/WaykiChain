@@ -1525,7 +1525,7 @@ bool CScriptDBViewCache::EraseDelegateData(const vector<unsigned char> &vKey) {
     return true;
 }
 
-uint256 CTransactionDBView::IsContainTx(const uint256 &txHash) { return std::move(uint256()); }
+uint256 CTransactionDBView::HasTx(const uint256 &txHash) { return std::move(uint256()); }
 bool CTransactionDBView::IsContainBlock(const CBlock &block) { return false; }
 bool CTransactionDBView::AddBlockToCache(const CBlock &block) { return false; }
 bool CTransactionDBView::DeleteBlockFromCache(const CBlock &block) { return false; }
@@ -1536,8 +1536,8 @@ CTransactionDBViewBacked::CTransactionDBViewBacked(CTransactionDBView &transacti
     pBase = &transactionView;
 }
 
-uint256 CTransactionDBViewBacked::IsContainTx(const uint256 &txHash) {
-    return std::move(pBase->IsContainTx(txHash));
+uint256 CTransactionDBViewBacked::HasTx(const uint256 &txHash) {
+    return std::move(pBase->HasTx(txHash));
 }
 
 bool CTransactionDBViewBacked::IsContainBlock(const CBlock &block) {
@@ -1603,14 +1603,14 @@ bool CTransactionDBCache::DeleteBlockFromCache(const CBlock &block) {
     return true;
 }
 
-uint256 CTransactionDBCache::IsContainTx(const uint256 &txHash) {
+uint256 CTransactionDBCache::HasTx(const uint256 &txHash) {
     for (auto &item : mapTxHashByBlockHash) {
         vector<uint256>::iterator it = find(item.second.begin(), item.second.end(), txHash);
         if (it != item.second.end()) {
             return item.first;
         }
     }
-    uint256 blockHash = pBase->IsContainTx(txHash);
+    uint256 blockHash = pBase->HasTx(txHash);
     if (IsInMap(mapTxHashByBlockHash, blockHash)) {  //mapTxHashByBlockHash[blockHash].empty()) { // [] 运算符防止不小心加入了垃圾数据
         return std::move(blockHash);
     }

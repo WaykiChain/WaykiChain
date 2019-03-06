@@ -164,26 +164,28 @@ Value getinfo(const Array& params, bool fHelp)
             "\nResult:\n"
             "{\n"
             "  \"version\": xxxxx,           (numeric) the server version\n"
-            "  \"fullversion\": xxxxx,       (string) the server fullversion\n"
+            "  \"fullversion\": \"xxxxx\",   (string) the server fullversion\n"
             "  \"protocolversion\": xxxxx,   (numeric) the protocol version\n"
             "  \"walletversion\": xxxxx,     (numeric) the wallet version\n"
-            "  \"balance\": xxxxxxx,         (numeric) the total coin balance of the wallet\n"
-            "  \"blocks\": xxxxxx,           (numeric) the current number of blocks processed in the server\n"
+            "  \"balance\": xxxxx,           (numeric) the total coin balance of the wallet\n"
             "  \"timeoffset\": xxxxx,        (numeric) the time offset\n"
-            "  \"connections\": xxxxx,       (numeric) the number of connections\n"
-            "  \"proxy\": \"host:port\",     (string, optional) the proxy used by the server\n"
-            "  \"difficulty\": xxxxxx,       (numeric) the current difficulty\n"
-            "  \"nettype\": xxxxx,           (string) the net type\n"
-            "  \"chainwork\": xxxxxx,        (string) the  chainwork of the tip block in chainActive\n"
-            "  \"tipblocktime\": xxxx,       (numeric) the  nTime of the tip block in chainActive\n"
-            "  \"unlocked_until\": ttt,      (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
+            "  \"proxy\": \"host:port\",     (string) the proxy used by the server\n"
+            "  \"nettype\": \"xxxxx\",       (string) the net type\n"
+            "  \"genblock\": xxxxx,          (numeric) generate blocks\n"
+            "  \"chainwork\": \"xxxxx\",     (string) the chainwork of the tip block in chainActive\n"
+            "  \"unlocktime\": xxxxx,        (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
             "  \"paytxfee\": x.xxxx,         (numeric) the transaction fee set in btc/kb\n"
             "  \"relayfee\": x.xxxx,         (numeric) minimum relay fee for non-free transactions in btc/kb\n"
-            "  \"fuelrate\": xxxxx,          (numeric) the  fuelrate of the tip block in chainActive\n"
-            "  \"fuel\": xxxxx,              (numeric) the  fuel of the tip block in chainActive\n"
-            "  \"data directory\": xxxxx,    (string) the data directory\n"
-            "  \"tip block hash\": xxxxx,    (string) the tip block hash\n"
-            "  \"errors\": \"...\"           (string) any error messages\n"
+            "  \"fuelrate\": xxxxx,          (numeric) the fuelrate of the tip block in chainActive\n"
+            "  \"fuel\": xxxxx,              (numeric) the fuel of the tip block in chainActive\n"
+            "  \"confdirectory\": \"xxxxx\", (string) the conf directory\n"
+            "  \"datadirectory\": \"xxxxx\", (string) the data directory\n"
+            "  \"tipblocktime\": xxxxx,      (numeric) the nTime of the tip block in chainActive\n"
+            "  \"tipblockhash\": \"xxxxx\",  (string) the tip block hash\n"
+            "  \"syncheight\": xxxxx ,       (numeric) the number of blocks contained the most work in the network\n"
+            "  \"blocks\": xxxxx ,           (numeric) the current number of blocks processed in the server\n"
+            "  \"connections\": xxxxx,       (numeric) the number of connections\n"
+            "  \"errors\": \"xxxxx\"         (string) any error messages\n"
             "}\n"
             "\nExamples:\n"
             + HelpExampleCli("getinfo", "")
@@ -192,40 +194,40 @@ Value getinfo(const Array& params, bool fHelp)
 
     proxyType proxy;
     GetProxy(NET_IPV4, proxy);
+    static const string fullVersion = strprintf("%s (%s)", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
+    static const string netType[] = {"MAIN_NET", "TEST_NET", "REGTEST_NET"};
 
     Object obj;
-    obj.push_back(Pair("version",       (int)CLIENT_VERSION));
-    string fullersion = strprintf("%s (%s)", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
-    obj.push_back(Pair("fullversion",fullersion));
-    obj.push_back(Pair("protocolversion",(int)PROTOCOL_VERSION));
+    obj.push_back(Pair("version",           CLIENT_VERSION));
+    obj.push_back(Pair("fullversion",       fullVersion));
+    obj.push_back(Pair("protocolversion",   PROTOCOL_VERSION));
 
     if (pwalletMain) {
         obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
         obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetRawBalance())));
     }
-    static const string name[] = {"MAIN_NET", "TEST_NET", "REGTEST_NET"};
 
-    obj.push_back(Pair("timeoffset",    GetTimeOffset()));
-    obj.push_back(Pair("proxy",         (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
-    obj.push_back(Pair("nettype",       name[SysCfg().NetworkID()]));
-    obj.push_back(Pair("genblock",      SysCfg().GetArg("-genblock", 0)));
-    obj.push_back(Pair("chainwork",     chainActive.Tip()->nChainWork.GetHex()));
-    obj.push_back(Pair("tipblocktime",  (int)chainActive.Tip()->nTime));
+    obj.push_back(Pair("timeoffset",        GetTimeOffset()));
+    obj.push_back(Pair("proxy",             (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
+    obj.push_back(Pair("nettype",           netType[SysCfg().NetworkID()]));
+    obj.push_back(Pair("genblock",          SysCfg().GetArg("-genblock", 0)));
+    obj.push_back(Pair("chainwork",         chainActive.Tip()->nChainWork.GetHex()));
 
     if (pwalletMain && pwalletMain->IsEncrypted())
-    	obj.push_back(Pair("unlockeduntil", nWalletUnlockTime));
+        obj.push_back(Pair("unlockeduntil", nWalletUnlockTime));
 
-    obj.push_back(Pair("paytxfee",      ValueFromAmount(SysCfg().GetTxFee())));
-    obj.push_back(Pair("relayfee",      ValueFromAmount(CTransaction::nMinRelayTxFee)));
-    obj.push_back(Pair("fuelrate",     	chainActive.Tip()->nFuelRate));
-    obj.push_back(Pair("fuel", 			chainActive.Tip()->nFuel));
-    obj.push_back(Pair("confdir",       GetConfigFile().string().c_str()));
-    obj.push_back(Pair("datadir",       GetDataDir().string().c_str()));
-    obj.push_back(Pair("syncblockheight", nSyncTipHeight));
-    obj.push_back(Pair("tipblockheight",(int)chainActive.Height()));
-    obj.push_back(Pair("tipblockhash",  chainActive.Tip()->GetBlockHash().ToString()));
-    obj.push_back(Pair("connections",   (int)vNodes.size()));
-    obj.push_back(Pair("errors",        GetWarnings("statusbar")));
+    obj.push_back(Pair("paytxfee",          ValueFromAmount(SysCfg().GetTxFee())));
+    obj.push_back(Pair("relayfee",          ValueFromAmount(CTransaction::nMinRelayTxFee)));
+    obj.push_back(Pair("fuelrate",          chainActive.Tip()->nFuelRate));
+    obj.push_back(Pair("fuel",              chainActive.Tip()->nFuel));
+    obj.push_back(Pair("confdir",           GetConfigFile().string().c_str()));
+    obj.push_back(Pair("datadir",           GetDataDir().string().c_str()));
+    obj.push_back(Pair("tipblocktime",      (int)chainActive.Tip()->nTime));
+    obj.push_back(Pair("tipblockhash",      chainActive.Tip()->GetBlockHash().ToString()));
+    obj.push_back(Pair("syncblockheight",   nSyncTipHeight));
+    obj.push_back(Pair("tipblockheight",    chainActive.Height()));
+    obj.push_back(Pair("connections",       vNodes.size()));
+    obj.push_back(Pair("errors",            GetWarnings("statusbar")));
 
     return obj;
 }

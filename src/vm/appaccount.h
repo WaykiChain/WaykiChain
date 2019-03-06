@@ -20,7 +20,7 @@ public:
 	CAppCFund(const CAppCFund &fund);
 	CAppCFund(const vector<unsigned char> &vtag,uint64_t val,int nhight);
 	bool MergeCFund( const CAppCFund &fund);
-	Object ToJSON()const;
+	Object ToJson()const;
 	string ToString()const;
 
 	void SetHeight(int height) { nHeight = height; }
@@ -28,7 +28,7 @@ public:
 
 	void SetValue(uint64_t value) { this->value = value; }
 	uint64_t GetValue() const { return value; }
-	
+
 	void SetTag(const vector<unsigned char>& tag) { vTag = tag; }
 	const vector<unsigned char> GetTag() const { return vTag; }
 
@@ -99,7 +99,7 @@ public:
 		READWRITE(vFundTag[i]);
 	)
 
-	Object ToJSON()const;
+	Object ToJson()const;
 	string ToString()const;
 
 	uint64_t GetUint64Value() const { return mMoney; }
@@ -150,7 +150,7 @@ public:
 
 	virtual ~CAppUserAccount();
 
-	Object ToJSON()const;
+	Object ToJson()const;
 
 	string ToString()const;
 

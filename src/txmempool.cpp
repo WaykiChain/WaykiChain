@@ -116,7 +116,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256& hash, const CTxMemPoolEntry &en
 	CScriptDBViewCache scriptDBViewTemp(*pScriptDBViewCache, true);
 
 	// is it already confirmed in block
-	if(uint256() != pTxCacheTip->IsContainTx(hash))
+	if(uint256() != pTxCacheTip->HasTx(hash))
 		return state.Invalid(ERRORMSG("CheckTxInMemPool() : tx hash %s has been confirmed",
 			hash.GetHex()), REJECT_INVALID, "tx-duplicate-confirmed");
 	// is it in valid height

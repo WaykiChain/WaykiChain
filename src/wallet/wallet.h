@@ -351,7 +351,7 @@ public:
         return true;
     }
 
-    bool HaveTx(const uint256 &hash) {
+    bool HasTx(const uint256 &hash) {
         if (mapAccountTx.end() != mapAccountTx.find(hash)) {
             return true;
         }
