@@ -382,12 +382,6 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate) {
     return true;
 }
 
-//void CWallet::ReacceptWalletTransactions() {
-//  LOCK2(cs_main, cs_wallet);
-//
-//  mapWalletTx[uint256(0)].AcceptToMemoryPool();
-//}
-
 void CWallet::ResendWalletTransactions() {
     vector<uint256> erase;
     for (auto &te : UnConfirmTx) {

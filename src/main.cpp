@@ -766,15 +766,16 @@ int GetTxConfirmHeight(const uint256 &hash, CScriptDBViewCache &scriptDBCache) {
 }
 
 // Return transaction in tx, and if it was found inside a block, its hash is placed in hashBlock
-bool GetTransaction(std::shared_ptr<CBaseTransaction> &pBaseTx, const uint256 &hash, CScriptDBViewCache &scriptDBCache, bool bSearchMemPool) {
+bool GetTransaction(std::shared_ptr<CBaseTransaction> &pBaseTx, const uint256 &hash,
+                    CScriptDBViewCache &scriptDBCache, bool bSearchMemPool)
+{
     {
         LOCK(cs_main);
         {
             if (bSearchMemPool == true) {
                 pBaseTx = mempool.lookup(hash);
-                if (pBaseTx.get()) {
+                if (pBaseTx.get())
                     return true;
-                }
             }
         }
 
@@ -852,8 +853,10 @@ bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos) {
 bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex) {
     if (!ReadBlockFromDisk(block, pindex->GetBlockPos()))
         return false;
+
     if (block.GetHash() != pindex->GetBlockHash())
         return ERRORMSG("ReadBlockFromDisk(CBlock&, CBlockIndex*) : GetHash() doesn't match index");
+
     return true;
 }
 
@@ -1663,7 +1666,7 @@ bool static DisconnectTip(CValidationState &state) {
     // Read block from disk.
     CBlock block;
     if (!ReadBlockFromDisk(block, pindexDelete))
-        return state.Abort(_("Failed to read block"));
+        return state.Abort(_("Failed to read blocks from disk."));
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {

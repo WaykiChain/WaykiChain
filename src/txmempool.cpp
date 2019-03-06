@@ -140,13 +140,13 @@ bool CTxMemPool::CheckTxInMemPool(const uint256& hash, const CTxMemPoolEntry &en
 
 bool CTxMemPool::addUnchecked(const uint256& hash, const CTxMemPoolEntry &entry, CValidationState &state) {
 	// Add to memory pool without checking anything.
-	// Used by main.cpp AcceptToMemoryPool(), which DOES do
+	// Used by main.cpp AcceptToMemoryPool(), which DOES
 	// all the appropriate checks.
 	LOCK(cs);
 	{
-		if (!CheckTxInMemPool(hash, entry, state)) {
+		if (!CheckTxInMemPool(hash, entry, state))
 			return false;
-		}
+
 		mapTx.insert(make_pair(hash, entry));
 		LogPrint("addtomempool", "add tx hash:%s time:%ld\n", hash.GetHex(), GetTime());
 		nTransactionsUpdated++;
