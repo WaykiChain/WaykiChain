@@ -744,7 +744,7 @@
 
 /*
 @@ LUA_FIXED_SEED is used to init the seed of the new lua state;
-** It can avoid the radom position of lua hash table keys
+** It can avoid the random position of lua hash table keys
 */
 #define LUA_FIXED_SEED		0xF7654321
 
