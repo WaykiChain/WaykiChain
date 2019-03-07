@@ -78,6 +78,10 @@ class COrphan {
 uint64_t nLastBlockTx   = 0;  // 块中交易的总笔数,不含coinbase
 uint64_t nLastBlockSize = 0;  // 被创建的块的尺寸
 
+MinedBlockStats g_miningBlockStats = {0, 0, 0, uint256()};
+MinedBlockStats g_lastMinedBlockStats = {0, 0, 0, uint256()};
+CCriticalSection g_csBlockStats;
+
 //base on the last 50 blocks
 int GetElementForBurn(CBlockIndex *pindex) {
     if (NULL == pindex) {
@@ -507,6 +511,8 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
 
         nLastBlockTx   = nBlockTx;
         nLastBlockSize = nBlockSize;
+        g_miningBlockStats.nTxCount = nBlockTx;
+        g_miningBlockStats.nBlockSize = nBlockSize;
 
         assert(nFees >= nTotalFuel);
         ((CRewardTransaction *)pblock->vptx[0].get())->rewardValue = nFees - nTotalFuel;
@@ -610,6 +616,14 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
             }
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
+            g_miningBlockStats.nHeight = pblock->GetHeight();
+            g_miningBlockStats.hash = pblock->GetHash();
+
+            {
+                LOCK(g_csBlockStats);
+                g_lastMinedBlockStats = g_miningBlockStats;
+            }
+
             return true;
         }
 
@@ -712,4 +726,13 @@ void GenerateCoinBlock(bool fGenerate, CWallet *pwallet, int targetHeight) {
 
     minerThreads = new boost::thread_group();
     minerThreads->create_thread(boost::bind(&CoinMiner, pwallet, targetHeight));
+}
+
+
+// class MinedBlockStats
+MinedBlockStats GetLastMinedBlockStats()
+{
+    LOCK(g_csBlockStats);
+    MinedBlockStats stats = g_lastMinedBlockStats;
+    return stats;
 }

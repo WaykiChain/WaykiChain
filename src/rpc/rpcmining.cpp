@@ -277,3 +277,33 @@ Value submitblock(const Array& params, bool fHelp)
     }
     return obj;
 }
+
+
+
+Value getminedblockstats(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0) {
+        throw runtime_error("getminedblockstats\n"
+            "\nReturns a json object containing last mined block stats."
+            "\nResult:\n"
+            "{\n"
+            "  \"height\": n              (numeric) block height\n"
+            "  \"hash\": xxx              (string) block hash\n"
+            "  \"txcount\": n             (numeric) transaction count in block, exclude coinbase\n"
+            "  \"blocksize\": n           (numeric) block size (bytes)\n"
+            "}\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getminedblockstats", "")
+            + HelpExampleRpc("getminedblockstats", "")
+        );
+    }
+
+    MinedBlockStats lastMinedBlockStats = GetLastMinedBlockStats();
+    Object obj;
+    obj.push_back(Pair("height",         lastMinedBlockStats.nHeight));
+    obj.push_back(Pair("hash",           lastMinedBlockStats.hash.ToString()));
+    obj.push_back(Pair("txcount",        lastMinedBlockStats.nTxCount));
+    obj.push_back(Pair("blocksize",      lastMinedBlockStats.nBlockSize));
+
+    return obj;
+}
