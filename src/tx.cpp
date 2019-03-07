@@ -437,7 +437,7 @@ Object CRegisterAccountTx::ToJson(const CAccountViewCache &AccountView) const
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("addr",           address));
     result.push_back(Pair("pubkey",         userPubKey));
-    result.push_back(Pair("miner_pubkey",   userMinerPubKey));
+    result.push_back(Pair("minerpubkey",    userMinerPubKey));
     result.push_back(Pair("fees",           llFees));
     result.push_back(Pair("height",         nValidHeight));
     return result;
