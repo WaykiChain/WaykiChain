@@ -828,7 +828,8 @@ bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos) {
     return true;
 }
 
-bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos) {
+bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos)
+{
     block.SetNull();
 
     // Open history file to read
@@ -850,7 +851,8 @@ bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos) {
     return true;
 }
 
-bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex) {
+bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex)
+{
     if (!ReadBlockFromDisk(block, pindex->GetBlockPos()))
         return false;
 

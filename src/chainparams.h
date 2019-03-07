@@ -294,7 +294,7 @@ public:
         return nSubsidyHalvingInterval;
     }
     virtual int64_t GetMaxFee() const {
-        return 1000000000; //10 WICC
+        return 1000 * 100000000; //1000 WICC
     }
     virtual const CBlock& GenesisBlock() const = 0;
     virtual bool RequireRPCPassword() const {
