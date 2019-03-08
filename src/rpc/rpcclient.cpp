@@ -264,6 +264,9 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     
     if (strMethod == "invalidateblock"        && n > 0) { if (params[0].get_str().size() < 32) ConvertTo<int>(params[0]); }
 
+    /** for mining */
+    if (strMethod == "getminedblocks"         && n > 0) ConvertTo<int64_t>(params[0]);
+
     return params;
 }
 

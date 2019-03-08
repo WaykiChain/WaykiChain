@@ -11,6 +11,8 @@
 #include "main.h"
 #include "net.h"
 #include "tx.h"
+#include <algorithm>
+#include <boost/circular_buffer.hpp>
 
 #include "./wallet/wallet.h"
 extern CWallet *pwalletMain;
@@ -33,6 +35,8 @@ extern void SetMinerStatus(bool bStatus);
 //  pend[-4] = (bits >> 24) & 0xff;
 //  return blocks;
 //}
+
+const int MINED_BLOCK_COUNT_MAX = 100; // the max count of mined blocks will be cached
 
 static const unsigned int pSHA256InitState[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f,
                                                  0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
@@ -77,6 +81,10 @@ class COrphan {
 
 uint64_t nLastBlockTx   = 0;  // 块中交易的总笔数,不含coinbase
 uint64_t nLastBlockSize = 0;  // 被创建的块的尺寸
+
+MinedBlockInfo g_miningBlockInfo = MinedBlockInfo();
+boost::circular_buffer<MinedBlockInfo> g_minedBlocks(MINED_BLOCK_COUNT_MAX);
+CCriticalSection g_csMinedBlocks;
 
 //base on the last 50 blocks
 int GetElementForBurn(CBlockIndex *pindex) {
@@ -507,6 +515,9 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
 
         nLastBlockTx   = nBlockTx;
         nLastBlockSize = nBlockSize;
+        g_miningBlockInfo.nTxCount = nBlockTx;
+        g_miningBlockInfo.nBlockSize = nBlockSize;
+        g_miningBlockInfo.nTotalFees = nFees;
 
         assert(nFees >= nTotalFuel);
         ((CRewardTransaction *)pblock->vptx[0].get())->rewardValue = nFees - nTotalFuel;
@@ -610,6 +621,19 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
             }
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
+            g_miningBlockInfo.nTime = pblock->GetBlockTime();
+            g_miningBlockInfo.nNonce = pblock->GetNonce();
+            g_miningBlockInfo.nHeight = pblock->GetHeight();
+            g_miningBlockInfo.nTotalFuels = pblock->GetFuel();
+            g_miningBlockInfo.nFuelRate = pblock->GetFuelRate();
+            g_miningBlockInfo.hash = pblock->GetHash();
+            g_miningBlockInfo.hashPrevBlock = pblock->GetHash();
+
+            {
+                LOCK(g_csMinedBlocks);
+                g_minedBlocks.push_front(g_miningBlockInfo);
+            }
+
             return true;
         }
 
@@ -667,6 +691,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
             CAccountViewCache accountView(*pAccountViewTip, true);
             CTransactionDBCache txCache(*pTxCacheTip, true);
             CScriptDBViewCache scriptDB(*pScriptDBTip, true);
+            g_miningBlockInfo.SetNull();
 
             int64_t nLastTime = GetTimeMillis();
             CBlockTemplate * newBlockTemplate = CreateNewBlock(accountView, txCache, scriptDB);
@@ -713,3 +738,38 @@ void GenerateCoinBlock(bool fGenerate, CWallet *pwallet, int targetHeight) {
     minerThreads = new boost::thread_group();
     minerThreads->create_thread(boost::bind(&CoinMiner, pwallet, targetHeight));
 }
+
+
+// class MinedBlock
+void MinedBlockInfo::SetNull()
+{
+    nTime = 0;
+    nNonce = 0;
+    nHeight = 0;  
+    nTotalFuels = 0;
+    nFuelRate = 0;
+    nTotalFees = 0;
+    nTxCount = 0;
+    nBlockSize = 0;
+    hash.SetNull();
+    hashPrevBlock.SetNull();
+}
+
+
+int64_t MinedBlockInfo::GetReward() 
+{
+    return nTotalFees - nTotalFuels; 
+}
+
+
+std::vector<MinedBlockInfo> GetMinedBlocks(unsigned int count)
+{
+    std::vector<MinedBlockInfo> ret;
+    LOCK(g_csMinedBlocks);
+    count = std::min((unsigned int)g_minedBlocks.size(), count);
+    for (unsigned int i = 0; i < count; i++) {
+        ret.push_back(g_minedBlocks[i]);
+    }
+    return ret;
+}
+

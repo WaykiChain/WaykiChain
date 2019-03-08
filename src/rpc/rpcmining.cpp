@@ -277,3 +277,72 @@ Value submitblock(const Array& params, bool fHelp)
     }
     return obj;
 }
+
+    int64_t         nTime;              // block time
+    int64_t         nNonce;             // nonce
+    int             nHeight;            // block height
+    int64_t         nTotalFuels;        // the total fuels of all transactions in the block
+    int             nFuelRate;          // the fuel rate
+    int64_t         nTotalFees;         // the total fees of all transactions in the block
+    uint64_t        nTxCount;           // transaction count in block, exclude coinbase
+    uint64_t        nBlockSize;         // block size(bytes)
+    uint256         hash;               // block hash
+    uint256         hashPrevBlock;      // prev block hash
+
+
+Value getminedblocks(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() > 1) {
+        throw runtime_error("getminedblocks\n"
+            "\nReturns a json array containing the blocks mined by this node."  
+            "\nArguments:\n"
+            "1. count         (numeric, optional) If provided, get the specified count blocks,\n"
+            "                                     otherwise get all nodes.\n"
+            "\nResult:\n"
+            "[\n"
+            "  {\n"
+            "    \"time\": n               (numeric) block time\n"
+            "    \"nonce\": n              (numeric) block nonce\n"
+            "    \"height\": n             (numeric) block height\n"
+            "    \"totalfuels\": n         (numeric) the total fuels of all transactions in the block\n"
+            "    \"fuelrate\": n           (numeric) block fuel rate\n"
+            "    \"totalfees\": n          (numeric) the total fees of all transactions in the block\n"
+            "    \"reward\": n             (numeric) block reward for miner\n"
+            "    \"txcount\": n            (numeric) transaction count in block, exclude coinbase\n"
+            "    \"blocksize\": n          (numeric) block size (bytes)\n"
+            "    \"hash\": xxx             (string) block hash\n"
+            "    \"preblockhash\": xxx     (string) pre block hash\n"
+            "  }\n"
+            "]\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getminedblocks", "")
+            + HelpExampleRpc("getminedblocks", "")
+        );
+    }
+
+    unsigned int count = (unsigned int)-1;
+    if (params.size() == 1) {
+        count = params[0].get_uint64();
+    }
+
+    Array ret;
+
+    auto minedBlocks = GetMinedBlocks(count);
+    for ( auto &blockInfo : minedBlocks) {
+        Object obj;
+        obj.push_back(Pair("time",          blockInfo.nTime));
+        obj.push_back(Pair("nonce",         blockInfo.nNonce));
+        obj.push_back(Pair("height",        blockInfo.nHeight));
+        obj.push_back(Pair("totalfuels",    blockInfo.nTotalFuels));
+        obj.push_back(Pair("fuelrate",      blockInfo.nFuelRate));
+        obj.push_back(Pair("totalfees",     blockInfo.nTotalFees));
+        obj.push_back(Pair("reward",        blockInfo.GetReward()));
+        obj.push_back(Pair("txcount",       blockInfo.nTxCount));
+        obj.push_back(Pair("blocksize",     blockInfo.nBlockSize));
+        obj.push_back(Pair("hash",          blockInfo.hash.ToString()));
+        obj.push_back(Pair("preblockhash",  blockInfo.hashPrevBlock.ToString()));
+        ret.push_back(obj);
+    }
+
+    return ret;
+}

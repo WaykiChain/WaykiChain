@@ -49,6 +49,28 @@ class TxPriorityCompare {
     }
 };
 
+// mined block info
+class MinedBlockInfo {
+public:
+    int64_t         nTime;              // block time
+    int64_t         nNonce;             // nonce
+    int             nHeight;            // block height
+    int64_t         nTotalFuels;        // the total fuels of all transactions in the block
+    int             nFuelRate;          // block fuel rate
+    int64_t         nTotalFees;         // the total fees of all transactions in the block
+    uint64_t        nTxCount;           // transaction count in block, exclude coinbase
+    uint64_t        nBlockSize;         // block size(bytes)
+    uint256         hash;               // block hash
+    uint256         hashPrevBlock;      // prev block hash
+
+public:
+    void SetNull();
+    int64_t GetReward();
+};
+
+// get the info of mined blocks. thread safe.
+std::vector<MinedBlockInfo> GetMinedBlocks(unsigned int count);
+
 /** Run the miner threads */
 void GenerateCoinBlock(bool fGenerate, CWallet *pwallet, int nThreads);
 /** Generate a new block */
