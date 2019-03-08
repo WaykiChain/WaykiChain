@@ -68,7 +68,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
             if (txhash == genesisblock.GetTxHash(i)) {
                 obj = genesisblock.vptx[i]->ToJson(*pAccountViewTip);
                 obj.push_back(Pair("blockhash", SysCfg().HashGenesisBlock().GetHex()));
-                obj.push_back(Pair("confirmHeight", (int) 0));
+                obj.push_back(Pair("confirmedheight", (int) 0));
                 obj.push_back(Pair("confirmedtime", (int) genesisblock.GetTime()));
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
                 ds << genesisblock.vptx[i];
@@ -88,7 +88,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
                     file >> pBaseTx;
                     obj = pBaseTx->ToJson(*pAccountViewTip);
                     obj.push_back(Pair("blockhash", header.GetHash().GetHex()));
-                    obj.push_back(Pair("confirmHeight", (int) header.GetHeight()));
+                    obj.push_back(Pair("confirmedheight", (int) header.GetHeight()));
                     obj.push_back(Pair("confirmedtime", (int) header.GetTime()));
 
                     if (pBaseTx->nTxType == CONTRACT_TX) {
@@ -2705,7 +2705,7 @@ Value getalltxinfo(const Array& params, bool fHelp) {
         for (auto const &wtx : pwalletMain->mapInBlockTx) {
             for (auto const & item : wtx.second.mapAccountTx) {
                 Object objtx = GetTxDetailJSON(item.first);
-                int nConfHeight = find_value(objtx, "confirmHeight").get_int();
+                int nConfHeight = find_value(objtx, "confirmedheight").get_int();
                 mapTx.insert(pair<int, Object>(nConfHeight, objtx));
             }
         }
@@ -2921,7 +2921,7 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
             }
         }
 
-        obj.push_back(Pair("confirmHeight", (int) height));
+        obj.push_back(Pair("confirmedheight", (int) height));
         obj.push_back(Pair("confirmedtime", (int) time));
         retArry.push_back(obj);
     }
