@@ -78,9 +78,9 @@ class COrphan {
 uint64_t nLastBlockTx   = 0;  // 块中交易的总笔数,不含coinbase
 uint64_t nLastBlockSize = 0;  // 被创建的块的尺寸
 
-MinedBlockStats g_miningBlockStats = {0, 0, 0, uint256()};
-MinedBlockStats g_lastMinedBlockStats = {0, 0, 0, uint256()};
-CCriticalSection g_csBlockStats;
+MinedBlockInfo g_miningBlockInfo = {0, 0, 0, uint256()};
+MinedBlockInfo g_lastMinedBlockInfo = {0, 0, 0, uint256()};
+CCriticalSection g_csBlockInfo;
 
 //base on the last 50 blocks
 int GetElementForBurn(CBlockIndex *pindex) {
@@ -511,8 +511,8 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
 
         nLastBlockTx   = nBlockTx;
         nLastBlockSize = nBlockSize;
-        g_miningBlockStats.nTxCount = nBlockTx;
-        g_miningBlockStats.nBlockSize = nBlockSize;
+        g_miningBlockInfo.nTxCount = nBlockTx;
+        g_miningBlockInfo.nBlockSize = nBlockSize;
 
         assert(nFees >= nTotalFuel);
         ((CRewardTransaction *)pblock->vptx[0].get())->rewardValue = nFees - nTotalFuel;
@@ -616,12 +616,12 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
             }
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
-            g_miningBlockStats.nHeight = pblock->GetHeight();
-            g_miningBlockStats.hash = pblock->GetHash();
+            g_miningBlockInfo.nHeight = pblock->GetHeight();
+            g_miningBlockInfo.hash = pblock->GetHash();
 
             {
-                LOCK(g_csBlockStats);
-                g_lastMinedBlockStats = g_miningBlockStats;
+                LOCK(g_csBlockInfo);
+                g_lastMinedBlockInfo = g_miningBlockInfo;
             }
 
             return true;
@@ -729,10 +729,10 @@ void GenerateCoinBlock(bool fGenerate, CWallet *pwallet, int targetHeight) {
 }
 
 
-// class MinedBlockStats
-MinedBlockStats GetLastMinedBlockStats()
+// class MinedBlockInfo
+MinedBlockInfo GetLastMinedBlockInfo()
 {
-    LOCK(g_csBlockStats);
-    MinedBlockStats stats = g_lastMinedBlockStats;
+    LOCK(g_csBlockInfo);
+    MinedBlockInfo stats = g_lastMinedBlockInfo;
     return stats;
 }

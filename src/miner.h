@@ -49,8 +49,8 @@ class TxPriorityCompare {
     }
 };
 
-// stat for miner
-class MinedBlockStats {
+// mined block info for miner
+class MinedBlockInfo {
 public:
     int         nHeight;            // block height
     uint64_t    nTxCount;           // transaction count in block, exclude coinbase
@@ -59,7 +59,7 @@ public:
 };
 
 // get the stat of last mined block. thread safe.
-MinedBlockStats GetLastMinedBlockStats();
+MinedBlockInfo GetLastMinedBlockInfo();
 
 /** Run the miner threads */
 void GenerateCoinBlock(bool fGenerate, CWallet *pwallet, int nThreads);
