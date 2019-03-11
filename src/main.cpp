@@ -608,7 +608,7 @@ int64_t GetMinRelayFee(const CBaseTransaction *pBaseTx, unsigned int nBytes, boo
             nMinFee = 0;
     }
 
-    if (!MoneyRange(nMinFee))
+    if (!CheckMoneyRange(nMinFee))
         nMinFee = GetMaxMoney();
 
     return nMinFee;

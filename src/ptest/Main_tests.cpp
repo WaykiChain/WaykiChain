@@ -16,7 +16,7 @@ BOOST_AUTO_TEST_CASE(subsidy_limit_test)
         uint64_t nSubsidy = GetBlockValue(nHeight, 0);
         BOOST_CHECK(nSubsidy <= 50 * COIN);
         nSum += nSubsidy * 1000;
-        BOOST_CHECK(MoneyRange(nSum));
+        BOOST_CHECK(CheckMoneyRange(nSum));
     }
     BOOST_CHECK(nSum == 2099999997690000ULL);
 }
