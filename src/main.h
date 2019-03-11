@@ -111,7 +111,7 @@ static const uint64_t nMinDiskSpace = 52428800;
 
 // hardcode to avoid fork for mainnet only
 static const int nCheckDelegateTxSignatureForkHeight  = 2116535;  //fork height at which delegate tx signature check effects
-static const int nCheckRegisterAccountTxFeeForkHeight = 2400000;  //fork height at which register account tx fees limited check effects
+static const int nCheckTxFeeForkHeight                = 2400000;  //fork height at which every tx fees limited check effects
 static const int nTwelveForwardLimits                 = 28000;    //修改限制block时间不能超过本地时间12分钟
 static const int nFixedDifficulty                     = 35001;    //此高度前的block不检查难度，通过checkpoint保证
 static const int nNextWorkRequired                    = 85000;    //修改难度校验算法

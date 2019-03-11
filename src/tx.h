@@ -195,6 +195,8 @@ public:
     virtual uint64_t GetFuel(int nfuelRate);
     virtual uint64_t GetValue() const = 0;
     int GetFuelRate(CScriptDBViewCache &scriptDB);
+protected:
+    bool CheckMinTxFee(uint64_t llFees);
 };
 
 class CRegisterAccountTx : public CBaseTransaction {
