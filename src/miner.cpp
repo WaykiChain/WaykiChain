@@ -152,26 +152,6 @@ void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pindexPrev, unsigned int &
     pblock->GetHashMerkleRoot() = pblock->BuildMerkleTree();
 }
 
-struct CAccountComparator {
-    bool operator()(const CAccount &a, const CAccount &b) {
-        CAccount &a1 = const_cast<CAccount &>(a);
-        CAccount &b1 = const_cast<CAccount &>(b);
-        if (a1.llVotes < b1.llVotes) {
-            return false;
-        }
-        if (a1.llVotes > b1.llVotes) {
-            return true;
-        }
-        if (a1.llValues < b1.llValues) {
-            return false;
-        }
-        if (a1.llValues > b1.llValues) {
-            return false;
-        }
-        return false;
-    }
-}
-
 bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCache &accViewIn, CScriptDBViewCache &scriptCacheIn) {
     LOCK(cs_main);
     CAccountViewCache accView(accViewIn, true);
