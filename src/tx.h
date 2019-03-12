@@ -792,7 +792,6 @@ public:
            << VARINT(nVoteHeight) << vVoteFunds << llVotes;
         return ss.GetHash();
     }
-    uint64_t GetMaxCoinDay(int nCurHeight) { return llValues * SysCfg().GetMaxDay(); }
     bool UpDateAccountPos(int nCurHeight);
 
     IMPLEMENT_SERIALIZE(
