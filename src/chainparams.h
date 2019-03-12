@@ -238,14 +238,9 @@ public:
     int GetLogMaxSize() const {
         return nLogMaxSize;
     }
-    int GetMaxDay() const {
-        return GetIntervalPos() * 30;
-    }
-
     void SetImporting(bool flag) const {
         fImporting = flag;
     }
-
     void SetReIndex(bool flag) const {
         fReindex = flag;
     }
