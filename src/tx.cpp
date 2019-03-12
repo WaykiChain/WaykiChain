@@ -327,7 +327,7 @@ bool CBaseTransaction::CheckMinTxFee(uint64_t llFees)
 {
     NET_TYPE networkID = SysCfg().NetworkID();
     if ( (networkID == MAIN_NET && nValidHeight > nCheckTxFeeForkHeight) //for mainnet, need hardcode here, compatible with old data
-        || (networkID == TEST_NET && nValidHeight > 27900) // for testnet, need hardcode here, compatible with old data
+        || (networkID == TEST_NET && nValidHeight > 100000) // for testnet, need hardcode here, compatible with old data
         || (networkID == REGTEST_NET) ) {  // for regtest net, must do the check
         return llFees >= nMinTxFee;
     }

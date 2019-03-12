@@ -2112,6 +2112,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
                 CBlock block;
                 if (!ReadBlockFromDisk(block, pBlockIndex))
                     return state.Abort(_("Failed to read block"));
+
                 bool bfClean = true;
                 if (!DisconnectBlock(block, state, *pAcctViewCache, pBlockIndex, *pTxCache, *pScriptDBCache, &bfClean))
                     return ERRORMSG("CheckBlockProofWorkWithCoinDay() : DisconnectBlock %s failed",
@@ -3644,14 +3645,14 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
 
             boost::this_thread::interruption_point();
             pfrom->AddInventoryKnown(inv);
-
             bool fAlreadyHave = AlreadyHave(inv);
 
             int nBlockHeight = 0;
             if (inv.type == MSG_BLOCK && mapBlockIndex.count(inv.hash))
                 nBlockHeight = mapBlockIndex[inv.hash]->nHeight;
 
-            LogPrint("net", "got inventory [%d]: %s  %s %d from peer %s\n", nInv, inv.ToString(), fAlreadyHave ? "have" : "new", nBlockHeight, pfrom->addr.ToString());
+            LogPrint("net", "got inventory[%d]: %s %s %d from peer %s\n", nInv, inv.ToString(),
+                fAlreadyHave ? "have" : "new", nBlockHeight, pfrom->addr.ToString());
 
             if (!fAlreadyHave) {
                 if (!SysCfg().IsImporting() && !SysCfg().IsReindex()) {
@@ -3663,7 +3664,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
             } else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash)) {
                 COrphanBlock *pOrphanBlock = mapOrphanBlocks[inv.hash];
                 LogPrint("net", "receive orphan block inv height=%d hash=%s lead to getblocks, current height=%d\n",
-                         pOrphanBlock->height, inv.hash.GetHex(), chainActive.Tip()->nHeight);
+                    pOrphanBlock->height, inv.hash.GetHex(), chainActive.Tip()->nHeight);
                 PushGetBlocksOnCondition(pfrom, chainActive.Tip(), GetOrphanRoot(inv.hash));
             }
 
