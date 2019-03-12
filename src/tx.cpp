@@ -1410,6 +1410,7 @@ string CAccount::ToString(bool isAddress) const {
 bool CAccount::IsMoneyOverflow(uint64_t nAddMoney) {
     if (!CheckMoneyRange(nAddMoney))
         return ERRORMSG("money:%lld too larger than MaxMoney");
+
     return true;
 }
 

@@ -90,7 +90,7 @@ bool GetAccountProfits(const Value & account, const int &current_height, uint64_
          if(item_update_height.type() != null_type) {
             int  update_height = item_update_height.get_int();
             int64_t nHoldHeight = (int64_t)current_height-(int64_t)update_height;
-            int64_t nDayHeight = 24 * 60 * 60 / SysCfg().GetTargetSpacing();
+            int64_t nDayHeight = 24 * 60 * 60 / SysCfg().GetBlockInterval();
             profits = delegate_vote_value * nHoldHeight * IniCfg().GetBlockSubsidyCfg(current_height) * 10000 / nDayHeight / 365  / 100 / 10000;
             cout << "update_height:" << update_height
              << "    current_height:" << current_height
@@ -297,4 +297,3 @@ BOOST_AUTO_TEST_CASE(oper_fund) {
 
 
 BOOST_AUTO_TEST_SUITE_END()
-

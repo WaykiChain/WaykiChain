@@ -241,7 +241,7 @@ bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList) {
 }
 
 bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct) {
-    int64_t slot = currentTime / SysCfg().GetTargetSpacing();
+    int64_t slot = currentTime / SysCfg().GetBlockInterval();
     int miner    = slot % IniCfg().GetDelegatesNum();
     delegateAcct = vDelegatesAcctList[miner];
     LogPrint("DEBUG", "currentTime=%lld, slot=%d, miner=%d, minderAddr=%s\n",
@@ -262,7 +262,7 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
         if (!view.GetAccount(preBlockRewardTx->account, preDelegate)) {
             return ERRORMSG("get preblock delegate account info error");
         }
-        if (currentTime - preBlock.GetBlockTime() < SysCfg().GetTargetSpacing()) {
+        if (currentTime - preBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
             if (preDelegate.regID == delegate.regID)
                 return ERRORMSG("one delegate can't produce more than one block at the same slot");
         }
@@ -340,7 +340,7 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
         if (!view.GetAccount(preBlockRewardTx->account, preDelegate))
             return ERRORMSG("get preblock delegate account info error");
 
-        if (pBlock->GetBlockTime() - preBlock.GetBlockTime() < SysCfg().GetTargetSpacing()) {
+        if (pBlock->GetBlockTime() - preBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
             if (preDelegate.regID == curDelegate.regID)
                 return ERRORMSG("one delegate can't produce more than one block at the same slot");
         }
@@ -569,7 +569,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
             return false;
 
         auto GetNextTimeAndSleep = [&]() {
-            while (GetTime() == nLastTime || (GetTime() - pindexPrev->GetBlockTime()) < SysCfg().GetTargetSpacing()) {
+            while (GetTime() == nLastTime || (GetTime() - pindexPrev->GetBlockTime()) < SysCfg().GetBlockInterval()) {
                 ::MilliSleep(100);
             }
             return (nLastTime = GetTime());
@@ -745,7 +745,7 @@ void MinedBlockInfo::SetNull()
 {
     nTime = 0;
     nNonce = 0;
-    nHeight = 0;  
+    nHeight = 0;
     nTotalFuels = 0;
     nFuelRate = 0;
     nTotalFees = 0;
@@ -756,9 +756,9 @@ void MinedBlockInfo::SetNull()
 }
 
 
-int64_t MinedBlockInfo::GetReward() 
+int64_t MinedBlockInfo::GetReward()
 {
-    return nTotalFees - nTotalFuels; 
+    return nTotalFees - nTotalFuels;
 }
 
 
@@ -772,4 +772,3 @@ std::vector<MinedBlockInfo> GetMinedBlocks(unsigned int count)
     }
     return ret;
 }
-

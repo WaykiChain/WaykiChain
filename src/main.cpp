@@ -2295,7 +2295,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
 
         // Check timestamp against prev
         if (block.GetBlockTime() <= pBlockIndexPrev->GetBlockTime() ||
-            (block.GetBlockTime() - pBlockIndexPrev->GetBlockTime()) < SysCfg().GetTargetSpacing())
+            (block.GetBlockTime() - pBlockIndexPrev->GetBlockTime()) < SysCfg().GetBlockInterval())
             return state.Invalid(ERRORMSG("AcceptBlock() : block's timestamp is too early"),
                 REJECT_INVALID, "time-too-early");
 

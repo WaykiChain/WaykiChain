@@ -70,7 +70,7 @@ protected:
     mutable bool fTxIndex;
     mutable int64_t nTimeBestReceived;
     mutable int64_t paytxfee;
-    int64_t nTargetSpacing;   //to limit block creation time
+    int64_t nBlockInterval;   //to limit block creation time
     mutable unsigned int nScriptCheckThreads;
     mutable int64_t nViewCacheSize;
     mutable int nTxCacheHeight;
@@ -135,7 +135,7 @@ public:
         te += strprintf("fTxIndex:%d\n",fTxIndex);
         te += strprintf("nTimeBestReceived:%d\n",nTimeBestReceived);
         te += strprintf("paytxfee:%d\n",paytxfee);
-        te += strprintf("nTargetSpacing:%d\n",nTargetSpacing);
+        te += strprintf("nBlockInterval:%d\n",nBlockInterval);
         te += strprintf("nScriptCheckThreads:%d\n",nScriptCheckThreads);
         te += strprintf("nViewCacheSize:%d\n",nViewCacheSize);
         te += strprintf("nTxCacheHeight:%d\n",nTxCacheHeight);
@@ -218,8 +218,8 @@ public:
     bool IsTxIndex() const {
         return fTxIndex;
     }
-    int64_t GetTargetSpacing() const {
-        return nTargetSpacing;
+    int64_t GetBlockInterval() const {
+        return nBlockInterval;
     }
     int64_t GetBestRecvTime() const {
         return nTimeBestReceived;
