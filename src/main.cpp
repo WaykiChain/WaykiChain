@@ -2076,16 +2076,20 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
                 LogPrint("INFO", "ForkChainTip hash=%s, height=%d\n", pPreBlockIndex->GetBlockHash().GetHex(), pPreBlockIndex->nHeight);
                 bFindForkChainTip = true;
             }
+
             if (!bFindForkChainTip) {
                 CBlock block;
                 if (!ReadBlockFromDisk(block, pPreBlockIndex))
                     return state.Abort(_("Failed to read block"));
+
                 vPreBlocks.push_back(block);  //将支链的block保存起来
             }
+
             pPreBlockIndex = pPreBlockIndex->pprev;
-            if (chainActive.Tip()->nHeight - pPreBlockIndex->nHeight > SysCfg().GetIntervalPos()) {
-                return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : block at fork chain too earlier than tip block hash=%s block height=%d\n", block.GetHash().GetHex(), block.GetHeight()));
-            }
+            if (chainActive.Tip()->nHeight - pPreBlockIndex->nHeight > SysCfg().GetIntervalPos())
+                return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
+                    block.GetHash().GetHex(), block.GetHeight()));
+
             map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(pPreBlockIndex->GetBlockHash());
             if (mi == mapBlockIndex.end())
                 return state.DoS(10, ERRORMSG("CheckBlockProofWorkWithCoinDay() : prev block not found"), 0, "bad-prevblk");
@@ -2106,16 +2110,16 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
                 if (!ReadBlockFromDisk(block, pBlockIndex))
                     return state.Abort(_("Failed to read block"));
                 bool bfClean = true;
-                if (!DisconnectBlock(block, state, *pAcctViewCache, pBlockIndex, *pTxCache, *pScriptDBCache, &bfClean)) {
+                if (!DisconnectBlock(block, state, *pAcctViewCache, pBlockIndex, *pTxCache, *pScriptDBCache, &bfClean))
                     return ERRORMSG("CheckBlockProofWorkWithCoinDay() : DisconnectBlock %s failed",
-                                    pBlockIndex->GetBlockHash().ToString());
-                }
+                        pBlockIndex->GetBlockHash().ToString());
+
                 pBlockIndex = pBlockIndex->pprev;
             }
-            std::tuple<std::shared_ptr<CAccountViewCache>, std::shared_ptr<CTransactionDBCache>,
-                       std::shared_ptr<CScriptDBViewCache> >
-                forkCache = std::make_tuple(pAcctViewCache, pTxCache,
-                                            pScriptDBCache);
+            std::tuple
+                <std::shared_ptr<CAccountViewCache>,
+                std::shared_ptr<CTransactionDBCache>,
+                std::shared_ptr<CScriptDBViewCache> > forkCache = std::make_tuple(pAcctViewCache, pTxCache, pScriptDBCache);
             LogPrint("INFO", "add mapCache Key:%s height:%d\n", pPreBlockIndex->GetBlockHash().GetHex(), pPreBlockIndex->nHeight);
             LogPrint("INFO", "add pAcctViewCache:%x \n", pAcctViewCache.get());
             LogPrint("INFO", "view best block hash:%s \n", pAcctViewCache->GetBestBlock().GetHex());
@@ -2137,7 +2141,8 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
         }
 
         LogPrint("INFO", "pForkAcctView:%x\n", pForkAcctViewCache.get());
-        LogPrint("INFO", "view best block hash:%s height:%d\n", pForkAcctViewCache->GetBestBlock().GetHex(), mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight);
+        LogPrint("INFO", "view best block hash:%s height:%d\n",
+            pForkAcctViewCache->GetBestBlock().GetHex(), mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight);
 
         vector<CBlock>::reverse_iterator rIter = vPreBlocks.rbegin();
         for (; rIter != vPreBlocks.rend(); ++rIter) {  //连接支链的block
