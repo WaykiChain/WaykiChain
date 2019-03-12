@@ -3645,9 +3645,9 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
             bool fAlreadyHave = AlreadyHave(inv);
 
             int nBlockHeight = 0;
-            if (mapBlockIndex.count(inv.hash) && inv.type == MSG_BLOCK) {
+            if (inv.type == MSG_BLOCK && mapBlockIndex.count(inv.hash))
                 nBlockHeight = mapBlockIndex[inv.hash]->nHeight;
-            }
+
             LogPrint("net", "got inventory [%d]: %s  %s %d from peer %s\n", nInv, inv.ToString(), fAlreadyHave ? "have" : "new", nBlockHeight, pfrom->addr.ToString());
 
             if (!fAlreadyHave) {
