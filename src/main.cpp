@@ -2073,7 +2073,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
     vector<CBlock> vPreBlocks;
     if (pPreBlockIndex->GetBlockHash() != chainActive.Tip()->GetBlockHash()) {
         while (!chainActive.Contains(pPreBlockIndex)) {
-            if (mapCache.count(pPreBlockIndex->GetBlockHash()) > 0 && !bFindForkChainTip) {
+            if (!bFindForkChainTip && mapCache.count(pPreBlockIndex->GetBlockHash()) > 0) {
                 preBlockHash = pPreBlockIndex->GetBlockHash();
                 LogPrint("INFO", "ForkChainTip hash=%s, height=%d\n", pPreBlockIndex->GetBlockHash().GetHex(),
                     pPreBlockIndex->nHeight);
@@ -2089,9 +2089,9 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
             }
 
             pPreBlockIndex = pPreBlockIndex->pprev;
-            if (chainActive.Tip()->nHeight - pPreBlockIndex->nHeight > SysCfg().GetIntervalPos())
-                return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
-                    block.GetHash().GetHex(), block.GetHeight()));
+            // if (chainActive.Tip()->nHeight - pPreBlockIndex->nHeight > SysCfg().GetMaxForkHeight())
+            //     return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
+            //         block.GetHash().GetHex(), block.GetHeight()));
 
             map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(pPreBlockIndex->GetBlockHash());
             if (mi == mapBlockIndex.end())

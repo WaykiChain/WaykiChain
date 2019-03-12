@@ -427,7 +427,7 @@ CBaseParams::CBaseParams() {
     fReindex = false;
     fBenchmark = false;
     fTxIndex = false;
-    nIntervalPos = 1;
+    // nMaxForkHeight = 24 * 60 * 6; //8640
     nLogMaxSize = 100 * 1024 * 1024;//100M
     nTxCacheHeight = 500;
     nTimeBestReceived = 0;

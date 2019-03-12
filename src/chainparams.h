@@ -74,7 +74,7 @@ protected:
     mutable unsigned int nScriptCheckThreads;
     mutable int64_t nViewCacheSize;
     mutable int nTxCacheHeight;
-    mutable int nIntervalPos; //to limit block interval inside block mining process
+    mutable int nMaxForkHeight; // to limit
     int nLogMaxSize; // to limit the maximum log file size in bytes
     bool bOutPut;    // whether to save contract script operation account log
     bool bAddressToTx; // whether to save the mapping of address to Tx
@@ -104,7 +104,7 @@ public:
             paytxfee = nTransactionFee;
         }
 
-        nIntervalPos = GetArg("-intervalpos", 1440);
+        // nMaxForkHeight = GetArg("-maxforkheight", 8640);
         nLogMaxSize = GetArg("-logmaxsize", 100) * 1024 * 1024;
         bOutPut = GetBoolArg("-output", false);
         bAddressToTx = GetBoolArg("-addresstotx", false);
@@ -138,7 +138,7 @@ public:
         te += strprintf("nScriptCheckThreads:%d\n", nScriptCheckThreads);
         te += strprintf("nViewCacheSize:%d\n",      nViewCacheSize);
         te += strprintf("nTxCacheHeight:%d\n",      nTxCacheHeight);
-        te += strprintf("nIntervalPos:%d\n",        nIntervalPos);
+        // te += strprintf("nMaxForkHeight:%d\n",      nMaxForkHeight);
         te += strprintf("nLogMaxSize:%d\n",         nLogMaxSize);
 
         return te;
@@ -232,9 +232,9 @@ public:
     int GetTxCacheHeight() const {
         return nTxCacheHeight;
     }
-    int GetIntervalPos() const {
-        return nIntervalPos;
-    }
+    // int GetMaxForkHeight() const {
+    //     return nMaxForkHeight;
+    // }
     int GetLogMaxSize() const {
         return nLogMaxSize;
     }
