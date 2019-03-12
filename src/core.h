@@ -23,7 +23,7 @@ static const int g_BlockVersion = 1;
 
 inline int64_t GetMaxMoney() { return (SysCfg().NetworkID() == REGTEST_NET ? MAX_MONEY_REG_NET : MAX_MONEY); }
 
-inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= GetMaxMoney()); }
+inline bool CheckMoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= GetMaxMoney()); }
 
 class CAccountViewCache;
 
