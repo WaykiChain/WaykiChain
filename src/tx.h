@@ -762,14 +762,6 @@ public:
         return *this;
     }
     std::shared_ptr<CAccount> GetNewInstance() const { return std::make_shared<CAccount>(*this); }
-
-    // Fixme: useless code below
-    bool IsMiner(int nCurHeight) {
-        //      if(nCurHeight < 2*SysCfg().GetIntervalPos())
-        //          return true;
-        //      return nCoinDay >= llValues * SysCfg().GetIntervalPos();
-        return true;
-    }
     bool IsRegistered() const { return (PublicKey.IsFullyValid() && PublicKey.GetKeyID() == keyID); }
     bool SetRegId(const CRegID &regID) {
         this->regID = regID;

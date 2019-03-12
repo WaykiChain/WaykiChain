@@ -123,7 +123,7 @@ bool DecryptSecret(const CKeyingMaterial& vMasterKey, const vector<unsigned char
 bool CCryptoKeyStore::SetCrypted()
 {
     LOCK(cs_KeyStore);
-    
+
     if (fUseCrypto)
         return true;
 
@@ -225,7 +225,7 @@ bool CCryptoKeyStore::GetKey(const CKeyID &address, CKey& keyOut, bool IsMiner) 
     {
         LOCK(cs_KeyStore);
 
-        if(IsMiner) {
+        if (IsMiner) {
         	 return CBasicKeyStore::GetKey(address, keyOut, IsMiner);
         } else {
 			if (!IsEncrypted())
