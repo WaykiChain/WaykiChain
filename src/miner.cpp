@@ -170,25 +170,6 @@ struct CAccountComparator {
         }
         return false;
     }
-};
-
-uint256 GetAdjustHash(const uint256 TargetHash, const uint64_t nPos, const int nCurHeight) {
-    uint64_t posacc = nPos / COIN;
-    posacc /= SysCfg().GetIntervalPos();
-    posacc = max(posacc, (uint64_t)1);
-    arith_uint256 adjusthash = UintToArith256(TargetHash);  //adjust nbits
-    arith_uint256 minhash = SysCfg().ProofOfWorkLimit();
-
-    while (posacc) {
-        adjusthash = adjusthash << 1;
-        posacc     = posacc >> 1;
-        if (adjusthash > minhash) {
-            adjusthash = minhash;
-            break;
-        }
-    }
-
-    return std::move(ArithToUint256(adjusthash));
 }
 
 bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCache &accViewIn, CScriptDBViewCache &scriptCacheIn) {

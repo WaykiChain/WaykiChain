@@ -74,7 +74,7 @@ protected:
     mutable unsigned int nScriptCheckThreads;
     mutable int64_t nViewCacheSize;
     mutable int nTxCacheHeight;
-    mutable int nIntervalPos; //to limit block interval within block mining process
+    mutable int nIntervalPos; //to limit block interval inside block mining process
     int nLogMaxSize; // to limit the maximum log file size in bytes
     bool bOutPut;    // whether to save contract script operation account log
     bool bAddressToTx; // whether to save the mapping of address to Tx

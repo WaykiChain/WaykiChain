@@ -2050,15 +2050,17 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
     return true;
 }
 
-bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockIndex, CValidationState &state) {
-    std::shared_ptr<CAccountViewCache> pForkAcctViewCache;
-    std::shared_ptr<CTransactionDBCache> pForkTxCache;
-    std::shared_ptr<CScriptDBViewCache> pForkScriptDBCache;
+bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockIndex, CValidationState &state)
+{
+    std::shared_ptr<CAccountViewCache>      pForkAcctViewCache;
+    std::shared_ptr<CTransactionDBCache>    pForkTxCache;
+    std::shared_ptr<CScriptDBViewCache>     pForkScriptDBCache;
+    std::shared_ptr<CAccountViewCache>      pAcctViewCache;
 
-    std::shared_ptr<CAccountViewCache> pAcctViewCache = std::make_shared<CAccountViewCache>(*pAccountViewDB, true);
-    pAcctViewCache->cacheAccounts                     = pAccountViewTip->cacheAccounts;
-    pAcctViewCache->cacheKeyIds                       = pAccountViewTip->cacheKeyIds;
-    pAcctViewCache->hashBlock                         = pAccountViewTip->hashBlock;
+    pAcctViewCache                  = std::make_shared<CAccountViewCache>(*pAccountViewDB, true);
+    pAcctViewCache->cacheAccounts   = pAccountViewTip->cacheAccounts;
+    pAcctViewCache->cacheKeyIds     = pAccountViewTip->cacheKeyIds;
+    pAcctViewCache->hashBlock       = pAccountViewTip->hashBlock;
 
     std::shared_ptr<CTransactionDBCache> pTxCache = std::make_shared<CTransactionDBCache>(*pTxCacheDB, true);
     pTxCache->SetCacheMap(pTxCacheTip->GetCacheMap());
@@ -2073,7 +2075,8 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
         while (!chainActive.Contains(pPreBlockIndex)) {
             if (mapCache.count(pPreBlockIndex->GetBlockHash()) > 0 && !bFindForkChainTip) {
                 preBlockHash = pPreBlockIndex->GetBlockHash();
-                LogPrint("INFO", "ForkChainTip hash=%s, height=%d\n", pPreBlockIndex->GetBlockHash().GetHex(), pPreBlockIndex->nHeight);
+                LogPrint("INFO", "ForkChainTip hash=%s, height=%d\n", pPreBlockIndex->GetBlockHash().GetHex(),
+                    pPreBlockIndex->nHeight);
                 bFindForkChainTip = true;
             }
 

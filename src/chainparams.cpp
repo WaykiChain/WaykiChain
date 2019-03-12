@@ -428,7 +428,7 @@ CBaseParams::CBaseParams() {
     fBenchmark = false;
     fTxIndex = false;
     nIntervalPos = 1;
-    nLogmaxsize = 100 * 1024 * 1024;//100M
+    nLogMaxSize = 100 * 1024 * 1024;//100M
     nTxCacheHeight = 500;
     nTimeBestReceived = 0;
     nScriptCheckThreads = 0;
