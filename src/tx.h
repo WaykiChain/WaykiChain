@@ -763,7 +763,7 @@ public:
     }
     std::shared_ptr<CAccount> GetNewInstance() const { return std::make_shared<CAccount>(*this); }
 
-    // Fixme
+    // Fixme: useless code below
     bool IsMiner(int nCurHeight) {
         //      if(nCurHeight < 2*SysCfg().GetIntervalPos())
         //          return true;

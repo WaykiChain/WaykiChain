@@ -75,7 +75,7 @@ protected:
     mutable int64_t nViewCacheSize;
     mutable int nTxCacheHeight;
     mutable int nIntervalPos; //to limit block interval within block mining process
-    int nLogmaxsize; // to limit the maximum log file size in bytes
+    int nLogMaxSize; // to limit the maximum log file size in bytes
     bool bOutPut;    // whether to save contract script operation account log
     bool bAddressToTx; // whether to save the mapping of address to Tx
 
@@ -104,10 +104,10 @@ public:
             paytxfee = nTransactionFee;
         }
 
-       nIntervalPos = GetArg("-intervalpos", 1440);
-       nLogmaxsize = GetArg("-logmaxsize", 100) * 1024 * 1024;
-       bOutPut = GetBoolArg("-output", false);
-       bAddressToTx = GetBoolArg("-addresstotx", false);
+        nIntervalPos = GetArg("-intervalpos", 1440);
+        nLogMaxSize = GetArg("-logmaxsize", 100) * 1024 * 1024;
+        bOutPut = GetBoolArg("-output", false);
+        bAddressToTx = GetBoolArg("-addresstotx", false);
         return true;
     }
 
@@ -121,26 +121,25 @@ public:
                 te += strprintf("value :%s\n",tep3.c_str());
             }
         }
-        te += strprintf("fDebugAll:%s\n",fDebugAll);
-        te += strprintf("fDebug:%s\n",fDebug);
-        te += strprintf("fPrintLogToConsole:%d\n",fPrintLogToConsole);
-        te += strprintf("fPrintLogToFile:%d\n",fPrintLogToFile);
-        te += strprintf("fLogTimestamps:%d\n",fLogTimestamps);
-        te += strprintf("fLogPrintFileLine:%d\n",fLogPrintFileLine);
-        te += strprintf("fServer:%d\n",fServer);
-
-        te += strprintf("fImporting:%d\n",fImporting);
-        te += strprintf("fReindex:%d\n",fReindex);
-        te += strprintf("fBenchmark:%d\n",fBenchmark);
-        te += strprintf("fTxIndex:%d\n",fTxIndex);
-        te += strprintf("nTimeBestReceived:%d\n",nTimeBestReceived);
-        te += strprintf("paytxfee:%d\n",paytxfee);
-        te += strprintf("nBlockInterval:%d\n",nBlockInterval);
-        te += strprintf("nScriptCheckThreads:%d\n",nScriptCheckThreads);
-        te += strprintf("nViewCacheSize:%d\n",nViewCacheSize);
-        te += strprintf("nTxCacheHeight:%d\n",nTxCacheHeight);
-        te += strprintf("nIntervalPos:%d\n",nIntervalPos);
-        te += strprintf("nLogmaxsize:%d\n",nLogmaxsize);
+        te += strprintf("fDebugAll:%s\n",           fDebugAll);
+        te += strprintf("fDebug:%s\n",              fDebug);
+        te += strprintf("fPrintLogToConsole:%d\n",  fPrintLogToConsole);
+        te += strprintf("fPrintLogToFile:%d\n",     fPrintLogToFile);
+        te += strprintf("fLogTimestamps:%d\n",      fLogTimestamps);
+        te += strprintf("fLogPrintFileLine:%d\n",   fLogPrintFileLine);
+        te += strprintf("fServer:%d\n",             fServer);
+        te += strprintf("fImporting:%d\n",          fImporting);
+        te += strprintf("fReindex:%d\n",            fReindex);
+        te += strprintf("fBenchmark:%d\n",          fBenchmark);
+        te += strprintf("fTxIndex:%d\n",            fTxIndex);
+        te += strprintf("nTimeBestReceived:%d\n",   nTimeBestReceived);
+        te += strprintf("paytxfee:%d\n",            paytxfee);
+        te += strprintf("nBlockInterval:%d\n",      nBlockInterval);
+        te += strprintf("nScriptCheckThreads:%d\n", nScriptCheckThreads);
+        te += strprintf("nViewCacheSize:%d\n",      nViewCacheSize);
+        te += strprintf("nTxCacheHeight:%d\n",      nTxCacheHeight);
+        te += strprintf("nIntervalPos:%d\n",        nIntervalPos);
+        te += strprintf("nLogMaxSize:%d\n",         nLogMaxSize);
 
         return te;
     }
@@ -237,7 +236,7 @@ public:
         return nIntervalPos;
     }
     int GetLogMaxSize() const {
-        return nLogmaxsize;
+        return nLogMaxSize;
     }
     int GetMaxDay() const {
         return GetIntervalPos() * 30;
