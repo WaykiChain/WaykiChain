@@ -128,14 +128,12 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
     Array arrayDetail;
     Object obj;
     std::set<CKeyID> vKeyIdSet;
-    switch(pBaseTx->nTxType)
-    {
+    switch(pBaseTx->nTxType) {
     case REWARD_TX:
     {
-        if(!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
-        {
+        if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
             return arrayDetail;
-        }
+
         obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
         obj.push_back(Pair("category", "receive"));
         double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
@@ -146,10 +144,9 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
     }
     case REG_ACCT_TX:
     {
-        if(!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
-        {
+        if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
             return arrayDetail;
-        }
+
         obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
         obj.push_back(Pair("category", "send"));
         double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
@@ -206,7 +203,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
         objRec.push_back(Pair("category", "receive"));
         objRec.push_back(Pair("amount", dAmount));
         arrayDetail.push_back(objRec);
-        if(pBaseTx->nTxType == CONTRACT_TX) {
+        if (pBaseTx->nTxType == CONTRACT_TX) {
             vector<CVmOperate> vOutput;
             pScriptDBTip->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
             Array outputArray;

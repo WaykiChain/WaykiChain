@@ -644,8 +644,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
                         (chainActive.Tip() &&
                         chainActive.Tip()->nHeight > 1 &&
                         GetAdjustedTime() - chainActive.Tip()->nTime > 60 * 60 &&
-                        !SysCfg().GetBoolArg("-genblockforce", false)) )
-                {
+                        !SysCfg().GetBoolArg("-genblockforce", false)) ) {
                     // LogPrint("INFO", "sleep 1");
                     MilliSleep(1000);
                 }
