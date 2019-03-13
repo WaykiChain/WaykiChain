@@ -17,8 +17,8 @@ using namespace std;
 class CVmScript {
 
 public:
-	vector<unsigned char> Rom;      		//!< Binary code
-	vector<unsigned char> ScriptExplain;	// !<explain the binary code action
+	vector<unsigned char> Rom;      			//!< Binary code
+	vector<unsigned char> ScriptMemo;			//!< Describe the binary code action
 
 public:
 	/**
@@ -45,7 +45,7 @@ public:
 	 IMPLEMENT_SERIALIZE
 	(
 		READWRITE(Rom);
-		READWRITE(ScriptExplain);
+		READWRITE(ScriptMemo);
 	)
 	virtual ~CVmScript();
 };

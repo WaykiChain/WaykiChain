@@ -180,7 +180,7 @@ public:
 		CVmScript vmScript;
 		vmScript.Rom.insert(vmScript.Rom.end(), buffer, buffer + lSize);
 		string desp("this is description");
-		vmScript.ScriptExplain.assign(desp.begin(), desp.end());
+		vmScript.ScriptMemo.assign(desp.begin(), desp.end());
 		CDataStream ds(SER_DISK, CLIENT_VERSION);
 		ds << vmScript;
 
@@ -308,4 +308,3 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-
