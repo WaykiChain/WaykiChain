@@ -10,7 +10,7 @@ ShowHelp() {
     echo
     echo "EXAMPLE:"
     echo
-    echo "  autogen-coin-man [coin|coin-test|coin-ptest]"
+    echo "  autogen-coin-man [coin|coin-debug|coin-test|coin-ptest]"
     echo "\033[0m"
 }
 
