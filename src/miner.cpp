@@ -640,7 +640,12 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
             if (SysCfg().NetworkID() != REGTEST_NET) {
                 // Busy-wait for the network to come online so we don't waste time mining
                 // on an obsolete chain. In regtest mode we expect to fly solo.
-                while (vNodes.empty() || (chainActive.Tip() && chainActive.Tip()->nHeight > 1 && GetAdjustedTime() - chainActive.Tip()->nTime > 60 * 60))
+                while (vNodes.empty() ||
+                    (   !SysCfg().GetBoolArg("-genblockforce", false) &&
+                        chainActive.Tip() &&
+                        chainActive.Tip()->nHeight > 1 ) &&
+                        GetAdjustedTime() - chainActive.Tip()->nTime > 60 * 60
+                    )
                     MilliSleep(1000);
             }
 
