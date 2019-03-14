@@ -660,14 +660,13 @@ Value registercontracttx(const Array& params, bool fHelp)
     assert(pwalletMain != NULL);
     CRegisterContractTx tx;
     {
-        //  LOCK2(cs_main, pwalletMain->cs_wallet);
         EnsureWalletIsUnlocked();
         //balance
         CAccountViewCache view(*pAccountViewTip, true);
         CAccount account;
 
         uint64_t balance = 0;
-        CUserID userId = keyid;
+        CUserID userId   = keyid;
         if (view.GetAccount(userId, account)) {
             balance = account.GetRawBalance();
         }
@@ -686,9 +685,9 @@ Value registercontracttx(const Array& params, bool fHelp)
         view.GetRegId(keyid, regId);
 
         tx.regAcctId = regId;
-        tx.script = vscript;
-        tx.llFees = fee;
-        tx.nRunStep = vscript.size();
+        tx.script    = vscript;
+        tx.llFees    = fee;
+        tx.nRunStep  = vscript.size();
         if (0 == height) {
             height = chainActive.Tip()->nHeight;
         }
