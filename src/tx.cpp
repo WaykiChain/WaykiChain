@@ -925,26 +925,24 @@ bool CRegisterContractTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVa
                          UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (script.size() != 6) {
-        CRegID scriptId(nHeight, nIndex);
-        //delete script content
-        if (!scriptDB.EraseScript(scriptId)) {
-            return state.DoS(100, ERRORMSG("UndoUpdateAccount() : CRegisterContractTx UndoExecuteTx, erase script id %s error", scriptId.ToString()),
-                             UPDATE_ACCOUNT_FAIL, "erase-script-failed");
-        }
-        //delete account
-        if (!view.EraseId(scriptId)) {
-            return state.DoS(100, ERRORMSG("UndoUpdateAccount() : CRegisterContractTx UndoExecuteTx, erase script account %s error", scriptId.ToString()),
-                             UPDATE_ACCOUNT_FAIL, "erase-appkeyid-failed");
-        }
-        CKeyID keyId = Hash160(scriptId.GetVec6());
-        userId       = keyId;
-        if (!view.EraseAccount(userId)) {
-            return state.DoS(100, ERRORMSG("UndoUpdateAccount() : CRegisterContractTx UndoExecuteTx, erase script account %s error", scriptId.ToString()),
-                             UPDATE_ACCOUNT_FAIL, "erase-appaccount-failed");
-        }
-        // LogPrint("INFO", "Delete regid %s app account\n", scriptId.ToString());
+    CRegID scriptId(nHeight, nIndex);
+    //delete script content
+    if (!scriptDB.EraseScript(scriptId)) {
+        return state.DoS(100, ERRORMSG("UndoUpdateAccount() : CRegisterContractTx UndoExecuteTx, erase script id %s error", scriptId.ToString()),
+                         UPDATE_ACCOUNT_FAIL, "erase-script-failed");
     }
+    //delete account
+    if (!view.EraseId(scriptId)) {
+        return state.DoS(100, ERRORMSG("UndoUpdateAccount() : CRegisterContractTx UndoExecuteTx, erase script account %s error", scriptId.ToString()),
+                         UPDATE_ACCOUNT_FAIL, "erase-appkeyid-failed");
+    }
+    CKeyID keyId = Hash160(scriptId.GetVec6());
+    userId       = keyId;
+    if (!view.EraseAccount(userId)) {
+        return state.DoS(100, ERRORMSG("UndoUpdateAccount() : CRegisterContractTx UndoExecuteTx, erase script account %s error", scriptId.ToString()),
+                         UPDATE_ACCOUNT_FAIL, "erase-appaccount-failed");
+    }
+    // LogPrint("INFO", "Delete regid %s app account\n", scriptId.ToString());
 
     for (auto &itemLog : txundo.vAccountLog) {
         if (itemLog.keyID == account.keyID) {
