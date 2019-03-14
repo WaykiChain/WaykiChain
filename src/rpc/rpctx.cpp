@@ -574,16 +574,16 @@ Value registercontracttx(const Array& params, bool fHelp)
             "1.\"addr\": (string required) contract owner address from this wallet\n"
             "2.\"filepath\": (string required), the file path of the app script\n"
             "3.\"fee\": (numeric required) pay to miner (the larger the size of script, the bigger fees are required)\n"
-            "4.\"height\": (numeric optional)valid height, when not specified, the tip block hegiht in chainActive will be used\n"
-            "5.\"appdesc\":(string optional) new app description\n"
+            "4.\"height\": (numeric optional) valid height, when not specified, the tip block hegiht in chainActive will be used\n"
+            "5.\"appdesc\": (string optional) new app description\n"
             "\nResult:\n"
             "\"txhash\": (string)\n"
             "\nExamples:\n"
             + HelpExampleCli("registercontracttx",
-                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"myapp.lua\" \"010203040506\" \"100000\" (\"appdesc\")") +
+                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"myapp.lua\" 1000000 (10000) (\"appdesc\")") +
                 "\nAs json rpc call\n"
             + HelpExampleRpc("registercontracttx",
-                "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH \"myapp.lua\" \"010203040506\" \"100000\" (\"appdesc\")"));
+                "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH \"myapp.lua\" 1000000 (10000) (\"appdesc\")"));
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
@@ -611,7 +611,7 @@ Value registercontracttx(const Array& params, bool fHelp)
 
     if (lSize <= 0 || lSize > nContractScriptMaxSize) { // contract script file size must be <= 64 KB)
         fclose(file);
-        throw JSONRPCError(RPC_INVALID_PARAMS, "File size exceeds 64 KB limit.");
+        throw JSONRPCError(RPC_INVALID_PARAMS, (lSize == -1) ? "File size is unknown" : ((lSize == 0) ? "File is empty" : "File size exceeds 64 KB limit."));
     }
 
     // allocate memory to contain the whole file:
@@ -660,14 +660,13 @@ Value registercontracttx(const Array& params, bool fHelp)
     assert(pwalletMain != NULL);
     CRegisterContractTx tx;
     {
-        //  LOCK2(cs_main, pwalletMain->cs_wallet);
         EnsureWalletIsUnlocked();
         //balance
         CAccountViewCache view(*pAccountViewTip, true);
         CAccount account;
 
         uint64_t balance = 0;
-        CUserID userId = keyid;
+        CUserID userId   = keyid;
         if (view.GetAccount(userId, account)) {
             balance = account.GetRawBalance();
         }
@@ -686,9 +685,9 @@ Value registercontracttx(const Array& params, bool fHelp)
         view.GetRegId(keyid, regId);
 
         tx.regAcctId = regId;
-        tx.script = vscript;
-        tx.llFees = fee;
-        tx.nRunStep = vscript.size();
+        tx.script    = vscript;
+        tx.llFees    = fee;
+        tx.nRunStep  = vscript.size();
         if (0 == height) {
             height = chainActive.Tip()->nHeight;
         }

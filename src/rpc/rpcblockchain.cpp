@@ -48,7 +48,7 @@ double GetDifficulty(const CBlockIndex* blockindex)
     return dDiff;
 }
 
-Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
+Object BlockToJSON(const CBlock& block, const CBlockIndex* blockindex)
 {
     Object result;
     result.push_back(Pair("hash", block.GetHash().GetHex()));
@@ -294,7 +294,7 @@ Value getblock(const Array& params, bool fHelp)
         return strHex;
     }
 
-    return blockToJSON(block, pblockindex);
+    return BlockToJSON(block, pblockindex);
 }
 
 Value verifychain(const Array& params, bool fHelp)
