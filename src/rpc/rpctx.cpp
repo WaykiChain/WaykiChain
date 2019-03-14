@@ -1380,9 +1380,9 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 "Returns account details.\n"
                 "\nResult:\n"
                 "\nExamples:\n"
-                + HelpExampleCli("getaccountinfo", "WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\n")
+                + HelpExampleCli("getaccountinfo", "WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("getaccountinfo", "WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\n")
+                + HelpExampleRpc("getaccountinfo", "\"WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\"\n")
            );
     }
     RPCTypeCheck(params, list_of(str_type));
