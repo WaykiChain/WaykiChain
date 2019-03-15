@@ -973,7 +973,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet, map<string, vector<stri
 }
 
 boost::filesystem::path GetPidFile() {
-	boost::filesystem::path pathPidFile(SysCfg().GetArg("-pid", "bitcoind.pid"));
+	boost::filesystem::path pathPidFile(SysCfg().GetArg("-pid", "coind.pid"));
 	if (!pathPidFile.is_complete())
 		pathPidFile = GetDataDir() / pathPidFile;
 	return pathPidFile;
