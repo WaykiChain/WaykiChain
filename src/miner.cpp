@@ -411,7 +411,6 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
 
         while (!vTxPriority.empty()) {
             // Take highest priority transaction off the priority queue:
-            double dPriority                 = vTxPriority.front().get<0>();
             double dFeePerKb                 = vTxPriority.front().get<1>();
             shared_ptr<CBaseTransaction> stx = vTxPriority.front().get<2>();
             CBaseTransaction *pBaseTx        = stx.get();
@@ -425,16 +424,8 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
                 continue;
 
             // Skip free transactions if we're past the minimum block size:
-            if (fSortedByFee && (dFeePerKb < CTransaction::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
+            if ((dFeePerKb < CTransaction::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
                 continue;
-
-            // Prioritize by fee once past the priority size or we run out of high-priority
-            // transactions:
-            if (!fSortedByFee && ((nBlockSize + nTxSize >= nBlockPrioritySize) || !AllowFree(dPriority))) {
-                fSortedByFee = true;
-                comparer     = TxPriorityCompare(fSortedByFee);
-                make_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
-            }
 
             CTxUndo txundo;
             CValidationState state;
