@@ -127,7 +127,7 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate) {
     static unsigned int nTxSize = 0;
     for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi) {
         CBaseTransaction *pBaseTx = mi->second.GetTx().get();
-        if (uint256() == pTxCacheTip->HasTx(pBaseTx->GetHash())) {
+        if (!pBaseTx->IsCoinBase() && uint256() == pTxCacheTip->HasTx(pBaseTx->GetHash())) {
             nTxSize   = ::GetSerializeSize(*pBaseTx, SER_NETWORK, PROTOCOL_VERSION);
             dFeePerKb = double(pBaseTx->GetFee() - pBaseTx->GetFuel(nFuelRate)) / (double(nTxSize) / 1000.0);
             dPriority = 1000.0 / double(nTxSize);
@@ -415,7 +415,6 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
             double dFeePerKb                 = vTxPriority.front().get<1>();
             shared_ptr<CBaseTransaction> stx = vTxPriority.front().get<2>();
             CBaseTransaction *pBaseTx        = stx.get();
-            //const CTransaction& tx = *(vTxPriority.front().get<2>());
 
             pop_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
             vTxPriority.pop_back();
@@ -437,16 +436,8 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
                 make_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
             }
 
-            if (uint256() != txCache.HasTx(pBaseTx->GetHash())) {
-                LogPrint("INFO", "CreateNewBlock: duplicated tx\n");
-                continue;
-            }
-
             CTxUndo txundo;
             CValidationState state;
-            if (pBaseTx->IsCoinBase())
-                ERRORMSG("Tx type is coinbase tx error......");
-
             if (CONTRACT_TX == pBaseTx->nTxType)
                 LogPrint("vm", "CreateNewBlock: contract tx hash=%s\n", pBaseTx->GetHash().GetHex());
 
@@ -473,9 +464,9 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
                 pblock->GetFuelRate(), pBaseTx->GetHash().GetHex());
         }
 
-        nLastBlockTx   = nBlockTx;
-        nLastBlockSize = nBlockSize;
-        g_miningBlockInfo.nTxCount = nBlockTx;
+        nLastBlockTx                 = nBlockTx;
+        nLastBlockSize               = nBlockSize;
+        g_miningBlockInfo.nTxCount   = nBlockTx;
         g_miningBlockInfo.nBlockSize = nBlockSize;
         g_miningBlockInfo.nTotalFees = nFees;
 
