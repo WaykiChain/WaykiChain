@@ -119,19 +119,18 @@ int GetElementForBurn(CBlockIndex *pindex) {
 }
 
 // We want to sort transactions by priority and fee, so:
-
 void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate) {
     vecPriority.reserve(mempool.mapTx.size());
     // Priority order to process transactions
-    list<COrphan> vOrphan;  // list memory doesn't move
-    double dPriority = 0;
+    static double dPriority     = 0;
+    static double dFeePerKb     = 0;
+    static unsigned int nTxSize = 0;
     for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi) {
         CBaseTransaction *pBaseTx = mi->second.GetTx().get();
-
-        if (uint256() == std::move(pTxCacheTip->HasTx(std::move(pBaseTx->GetHash())))) {
-            unsigned int nTxSize = ::GetSerializeSize(*pBaseTx, SER_NETWORK, PROTOCOL_VERSION);
-            double dFeePerKb     = double(pBaseTx->GetFee() - pBaseTx->GetFuel(nFuelRate)) / (double(nTxSize) / 1000.0);
-            dPriority            = 1000.0 / double(nTxSize);
+        if (uint256() == pTxCacheTip->HasTx(pBaseTx->GetHash())) {
+            nTxSize   = ::GetSerializeSize(*pBaseTx, SER_NETWORK, PROTOCOL_VERSION);
+            dFeePerKb = double(pBaseTx->GetFee() - pBaseTx->GetFuel(nFuelRate)) / (double(nTxSize) / 1000.0);
+            dPriority = 1000.0 / double(nTxSize);
             vecPriority.push_back(TxPriority(dPriority, dFeePerKb, mi->second.GetTx()));
         }
     }
@@ -438,7 +437,7 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
                 make_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
             }
 
-            if (uint256() != std::move(txCache.HasTx(std::move(pBaseTx->GetHash())))) {
+            if (uint256() != txCache.HasTx(pBaseTx->GetHash())) {
                 LogPrint("INFO", "CreateNewBlock: duplicated tx\n");
                 continue;
             }
@@ -498,7 +497,7 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
 
 bool CheckWork(CBlock *pblock, CWallet &wallet) {
     // Print block information
-    pblock->print(*pAccountViewTip);
+    pblock->Print(*pAccountViewTip);
 
     // Found a solution
     {
@@ -645,7 +644,6 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
                         chainActive.Tip()->nHeight > 1 &&
                         GetAdjustedTime() - chainActive.Tip()->nTime > 60 * 60 &&
                         !SysCfg().GetBoolArg("-genblockforce", false)) ) {
-                    // LogPrint("INFO", "sleep 1");
                     MilliSleep(1000);
                 }
             }
@@ -672,10 +670,8 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
             CBlock *pblock = &pblocktemplate.get()->block;
             MineBlock(pblock, pwallet, pindexPrev, nTransactionsUpdated, accountView, txCache, scriptDB);
 
-            if (SysCfg().NetworkID() != MAIN_NET)
-                if (targetHeight <= GetCurrHeight())
-                    throw boost::thread_interrupted();
-
+            if (SysCfg().NetworkID() != MAIN_NET && targetHeight <= GetCurrHeight())
+                throw boost::thread_interrupted();
         }
     } catch (...) {
         LogPrint("INFO", "CoinMiner terminated\n");

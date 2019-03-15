@@ -174,7 +174,7 @@ public:
         if (d2i_ECPrivateKey(&pkey, &pbegin, privkey.size())) {
             if(fSkipCheck)
                 return true;
-            
+
             // d2i_ECPrivateKey returns true if parsing succeeds.
             // This doesn't necessarily mean the key is valid.
             if (EC_KEY_check_key(pkey))
@@ -228,34 +228,34 @@ public:
     }
 
     bool Verify(const uint256 &hash, const vector<unsigned char>& vchSig) {
-    	 if (vchSig.empty())
-    	        return false;
+         if (vchSig.empty())
+                return false;
 
-		// New versions of OpenSSL will reject non-canonical DER signatures. de/re-serialize first.
-		unsigned char *norm_der = NULL;
-		ECDSA_SIG *norm_sig = ECDSA_SIG_new();
-		const unsigned char* sigptr = &vchSig[0];
-		assert(norm_sig);
-		if (d2i_ECDSA_SIG(&norm_sig, &sigptr, vchSig.size()) == NULL)
-		{
-			/* As of OpenSSL 1.0.0p d2i_ECDSA_SIG frees and nulls the pointer on
-			 * error. But OpenSSL's own use of this function redundantly frees the
-			 * result. As ECDSA_SIG_free(NULL) is a no-op, and in the absence of a
-			 * clear contract for the function behaving the same way is more
-			 * conservative.
-			 */
-			ECDSA_SIG_free(norm_sig);
-			return false;
-		}
-		int derlen = i2d_ECDSA_SIG(norm_sig, &norm_der);
-		ECDSA_SIG_free(norm_sig);
-		if (derlen <= 0)
-			return false;
+        // New versions of OpenSSL will reject non-canonical DER signatures. de/re-serialize first.
+        unsigned char *norm_der = NULL;
+        ECDSA_SIG *norm_sig = ECDSA_SIG_new();
+        const unsigned char* sigptr = &vchSig[0];
+        assert(norm_sig);
+        if (d2i_ECDSA_SIG(&norm_sig, &sigptr, vchSig.size()) == NULL)
+        {
+            /* As of OpenSSL 1.0.0p d2i_ECDSA_SIG frees and nulls the pointer on
+             * error. But OpenSSL's own use of this function redundantly frees the
+             * result. As ECDSA_SIG_free(NULL) is a no-op, and in the absence of a
+             * clear contract for the function behaving the same way is more
+             * conservative.
+             */
+            ECDSA_SIG_free(norm_sig);
+            return false;
+        }
+        int derlen = i2d_ECDSA_SIG(norm_sig, &norm_der);
+        ECDSA_SIG_free(norm_sig);
+        if (derlen <= 0)
+            return false;
 
-		// -1 = error, 0 = bad sig, 1 = good
-		bool ret = ECDSA_verify(0, (unsigned char*)&hash, sizeof(hash), norm_der, derlen, pkey) == 1;
-		OPENSSL_free(norm_der);
-		return ret;
+        // -1 = error, 0 = bad sig, 1 = good
+        bool ret = ECDSA_verify(0, (unsigned char*)&hash, sizeof(hash), norm_der, derlen, pkey) == 1;
+        OPENSSL_free(norm_der);
+        return ret;
     }
 
     bool SignCompact(const uint256 &hash, unsigned char *p64, int &rec) {
@@ -384,7 +384,7 @@ bool CKey::Check(const unsigned char *vch) {
 }
 
 void CKey::MakeNewKey(bool fCompressedIn) {
-	 RandAddSeedPerfmon();
+     RandAddSeedPerfmon();
     do {
         RAND_bytes(vch, sizeof(vch));
     } while (!Check(vch));
@@ -447,26 +447,26 @@ bool CKey::Load(CPrivKey &privkey, CPubKey &vchPubKey, bool fSkipCheck=false) {
     CECKey key;
     if (!key.SetPrivKey(privkey, fSkipCheck))
         return false;
-    
+
     key.GetSecretBytes(vch);
     fCompressed = vchPubKey.IsCompressed();
     fValid = true;
-    
+
     if (fSkipCheck)
         return true;
-    
+
     if (GetPubKey() != vchPubKey)
         return false;
-    
+
     return true;
 }
 
 CKeyID CPubKey::GetKeyID() const {
-	return std::move(CKeyID(Hash160(vch, vch + size())));
+    return CKeyID(Hash160(vch, vch + size()));
 }
 
 uint256 CPubKey::GetHash() const {
-	return Hash(vch, vch + size());
+    return Hash(vch, vch + size());
 }
 
 bool CPubKey::Verify(const uint256 &hash, const vector<unsigned char>& vchSig) const {
@@ -512,7 +512,7 @@ bool CPubKey::IsFullyValid() const {
     CECKey key;
     if (!key.SetPubKey(*this))
         return false;
-        
+
     return true;
 }
 
@@ -655,23 +655,23 @@ bool CExtPubKey::Derive(CExtPubKey &out, unsigned int nChild) const {
 }
 
 string CPubKey::ToString() const {
-	return HexStr(begin(),end());
+    return HexStr(begin(),end());
 
 }
 
 string CKeyID::ToAddress() const {
-	if (IsNull()) {
-		return "";
-	} else{
-	    return CCoinAddress(*this).ToString();
-	}
+    if (IsNull()) {
+        return "";
+    } else{
+        return CCoinAddress(*this).ToString();
+    }
 }
 
 CKeyID::CKeyID(const string& strAddress) : uint160() {
-	if (strAddress.length() == 40) {
-		*this = uint160S(strAddress);
-	} else {
-		CCoinAddress addr(strAddress);
-		addr.GetKeyID(*this);
-	}
+    if (strAddress.length() == 40) {
+        *this = uint160S(strAddress);
+    } else {
+        CCoinAddress addr(strAddress);
+        addr.GetKeyID(*this);
+    }
 }

@@ -3360,7 +3360,6 @@ void static ProcessGetData(CNode *pfrom) {
                             // they must either disconnect and retry or request the full block.
                             // Thus, the protocol spec specified allows for us to provide duplicate txn here,
                             // however we MUST always provide at least what the remote peer needs
-                            //                            typedef pair<unsigned int, uint256> PairType;
                             for (auto &pair : merkleBlock.vMatchedTxn)
                                 if (!pfrom->setInventoryKnown.count(CInv(MSG_TX, pair.second)))
                                     pfrom->PushMessage("tx", block.vptx[pair.first]);

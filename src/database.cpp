@@ -1525,7 +1525,7 @@ bool CScriptDBViewCache::EraseDelegateData(const vector<unsigned char> &vKey) {
     return true;
 }
 
-uint256 CTransactionDBView::HasTx(const uint256 &txHash) { return std::move(uint256()); }
+uint256 CTransactionDBView::HasTx(const uint256 &txHash) { return uint256(); }
 bool CTransactionDBView::IsContainBlock(const CBlock &block) { return false; }
 bool CTransactionDBView::AddBlockToCache(const CBlock &block) { return false; }
 bool CTransactionDBView::DeleteBlockFromCache(const CBlock &block) { return false; }
@@ -1537,7 +1537,7 @@ CTransactionDBViewBacked::CTransactionDBViewBacked(CTransactionDBView &transacti
 }
 
 uint256 CTransactionDBViewBacked::HasTx(const uint256 &txHash) {
-    return std::move(pBase->HasTx(txHash));
+    return pBase->HasTx(txHash);
 }
 
 bool CTransactionDBViewBacked::IsContainBlock(const CBlock &block) {
@@ -1611,10 +1611,10 @@ uint256 CTransactionDBCache::HasTx(const uint256 &txHash) {
         }
     }
     uint256 blockHash = pBase->HasTx(txHash);
-    if (IsInMap(mapTxHashByBlockHash, blockHash)) {  //mapTxHashByBlockHash[blockHash].empty()) { // [] 运算符防止不小心加入了垃圾数据
-        return std::move(blockHash);
+    if (IsInMap(mapTxHashByBlockHash, blockHash)) {
+        return blockHash;
     }
-    return std::move(uint256());
+    return uint256();
 }
 
 map<uint256, vector<uint256> > CTransactionDBCache::GetTxHashCache(void) {
@@ -1677,7 +1677,7 @@ bool CTransactionDBCache::IsInMap(const map<uint256, vector<uint256> > &mMap, co
 
 Object CTransactionDBCache::ToJsonObj() const {
     Array deletedobjArray;
-    Array InobjArray;
+    Array inCacheObjArray;
     for (auto &item : mapTxHashByBlockHash) {
         Object obj;
         obj.push_back(Pair("blockhash", item.first.ToString()));
@@ -1690,17 +1690,17 @@ Object CTransactionDBCache::ToJsonObj() const {
         }
         obj.push_back(Pair("txHashes", objTxInBlock));
         if (item.second.size() > 0) {
-            InobjArray.push_back(std::move(obj));
+            inCacheObjArray.push_back(obj);
         } else {
-            deletedobjArray.push_back(std::move(obj));
+            deletedobjArray.push_back(obj);
         }
     }
     Object temobj;
-    temobj.push_back(Pair("incachblock", std::move(InobjArray)));
-    //	temobj.push_back(Pair("removecachblock", std::move(deletedobjArray)));
+    temobj.push_back(Pair("incachblock", inCacheObjArray));
+    //	temobj.push_back(Pair("removecachblock", deletedobjArray));
     Object retobj;
-    retobj.push_back(Pair("mapTxHashByBlockHash", std::move(temobj)));
-    return std::move(retobj);
+    retobj.push_back(Pair("mapTxHashByBlockHash", temobj));
+    return retobj;
 }
 void CTransactionDBCache::SetBaseData(CTransactionDBView *pNewBase) {
     pBase = pNewBase;

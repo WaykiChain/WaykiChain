@@ -12,154 +12,154 @@
 using namespace json_spirit;
 
 Object CKeyCombi::ToJsonObj()const {
-	Object reply;
-	if(mMainCkey.IsValid()) {
-		reply.push_back(Pair("address",mMainCkey.GetPubKey().GetKeyID().ToAddress()));
-		reply.push_back(Pair("mCkey",mMainCkey.ToString()));
-		reply.push_back(Pair("mCkeyBase58",CCoinSecret(mMainCkey).ToString()));
-		reply.push_back(Pair("mMainPk",mMainCkey.GetPubKey().ToString()));
-	}
+    Object reply;
+    if(mMainCkey.IsValid()) {
+        reply.push_back(Pair("address",mMainCkey.GetPubKey().GetKeyID().ToAddress()));
+        reply.push_back(Pair("mCkey",mMainCkey.ToString()));
+        reply.push_back(Pair("mCkeyBase58",CCoinSecret(mMainCkey).ToString()));
+        reply.push_back(Pair("mMainPk",mMainCkey.GetPubKey().ToString()));
+    }
 
-	if(mMinerCkey.IsValid()){
-		reply.push_back(Pair("mMinerCkey",mMinerCkey.ToString()));
-		reply.push_back(Pair("mMinerCkeyBase58",CCoinSecret(mMinerCkey).ToString()));
-		reply.push_back(Pair("mMinerPk",mMinerCkey.GetPubKey().ToString()));
-	}
-	reply.push_back(Pair("nCreationTime",nCreationTime));
-    return std::move(reply);
+    if(mMinerCkey.IsValid()){
+        reply.push_back(Pair("mMinerCkey",mMinerCkey.ToString()));
+        reply.push_back(Pair("mMinerCkeyBase58",CCoinSecret(mMinerCkey).ToString()));
+        reply.push_back(Pair("mMinerPk",mMinerCkey.GetPubKey().ToString()));
+    }
+    reply.push_back(Pair("nCreationTime",nCreationTime));
+    return reply;
 }
 
 bool CKeyCombi::UnSerializeFromJson(const Object& obj){
-	try {
-		Object reply;
-		const Value& mCKey = find_value(obj, "mCkey");
-		if(mCKey.type() != json_spirit::null_type) {
-			auto const &tem1 = ::ParseHex(mCKey.get_str());
-			mMainCkey.Set(tem1.begin(),tem1.end(),true);
-		}
-		const Value& mMinerKey = find_value(obj, "mMinerCkey");
-		if(mMinerKey.type() != json_spirit::null_type) {
-			auto const &tem2=::ParseHex(mMinerKey.get_str());
-			mMinerCkey.Set(tem2.begin(),tem2.end(),true);
-		}
-		const Value& nTime = find_value(obj, "nCreationTime").get_int64();
-		if(nTime.type() != json_spirit::null_type) {
-			nCreationTime =find_value(obj, "nCreationTime").get_int64();
-		}
-	} catch (...) {
-		ERRORMSG("UnSerializeFromJson Failed !");
-		return false;
-	}
+    try {
+        Object reply;
+        const Value& mCKey = find_value(obj, "mCkey");
+        if(mCKey.type() != json_spirit::null_type) {
+            auto const &tem1 = ::ParseHex(mCKey.get_str());
+            mMainCkey.Set(tem1.begin(),tem1.end(),true);
+        }
+        const Value& mMinerKey = find_value(obj, "mMinerCkey");
+        if(mMinerKey.type() != json_spirit::null_type) {
+            auto const &tem2=::ParseHex(mMinerKey.get_str());
+            mMinerCkey.Set(tem2.begin(),tem2.end(),true);
+        }
+        const Value& nTime = find_value(obj, "nCreationTime").get_int64();
+        if(nTime.type() != json_spirit::null_type) {
+            nCreationTime =find_value(obj, "nCreationTime").get_int64();
+        }
+    } catch (...) {
+        ERRORMSG("UnSerializeFromJson Failed !");
+        return false;
+    }
 
     return true;
 }
 
 bool CKeyCombi::CleanAll() {
-	mMainCkey.Clear();
-	mMainPKey = CPubKey();
+    mMainCkey.Clear();
+    mMainPKey = CPubKey();
 
-	mMinerCkey.Clear();
-	mMinerPKey = CPubKey();
-	
-	nCreationTime = 0 ;
+    mMinerCkey.Clear();
+    mMinerPKey = CPubKey();
+
+    nCreationTime = 0 ;
     return true;
 }
 
 bool CKeyCombi::CleanMainKey(){
-	return mMainCkey.Clear();
+    return mMainCkey.Clear();
 }
 
 CKeyCombi::CKeyCombi(const CKey& inkey, int nVersion) {
-	assert(inkey.IsValid());
-	CleanAll();
-	mMainCkey = inkey ;
-	if(FEATURE_BASE == nVersion)
-		mMainPKey = mMainCkey.GetPubKey();
-	nCreationTime = GetTime();
+    assert(inkey.IsValid());
+    CleanAll();
+    mMainCkey = inkey ;
+    if(FEATURE_BASE == nVersion)
+        mMainPKey = mMainCkey.GetPubKey();
+    nCreationTime = GetTime();
 }
 
 CKeyCombi::CKeyCombi(const CKey& inkey, const CKey& minerKey, int nVersion) {
-	assert(inkey.IsValid());
-	assert(minerKey.IsValid());
-	CleanAll();
-	mMinerCkey = minerKey;
-	mMainCkey = inkey ;
-	if(FEATURE_BASE == nVersion) {
-		mMainPKey = mMainCkey.GetPubKey();
-		mMinerPKey = mMinerCkey.GetPubKey();
-	}
-	nCreationTime = GetTime();
+    assert(inkey.IsValid());
+    assert(minerKey.IsValid());
+    CleanAll();
+    mMinerCkey = minerKey;
+    mMainCkey = inkey ;
+    if(FEATURE_BASE == nVersion) {
+        mMainPKey = mMainCkey.GetPubKey();
+        mMinerPKey = mMinerCkey.GetPubKey();
+    }
+    nCreationTime = GetTime();
 }
 
 bool CKeyCombi::GetPubKey(CPubKey& mOutKey, bool IsMine) const {
-	if(IsMine == true){
-		if(mMinerCkey.IsValid()){
-			mOutKey = mMinerCkey.GetPubKey();
-			return true;
-		}
-		return false;
-	}
-	mOutKey = mMainCkey.GetPubKey();
-	return  true;
+    if(IsMine == true){
+        if(mMinerCkey.IsValid()){
+            mOutKey = mMinerCkey.GetPubKey();
+            return true;
+        }
+        return false;
+    }
+    mOutKey = mMainCkey.GetPubKey();
+    return  true;
 }
 
 string CKeyCombi::ToString() const{
-	string str("");
-	if(mMainCkey.IsValid()) {
-		str += strprintf(" MainPKey:%s MainKey:%s", mMainCkey.GetPubKey().ToString(), mMainCkey.ToString());
-	}
-	if(mMinerCkey.IsValid()) {
-		str += strprintf(" MinerPKey:%s MinerKey:%s",mMinerCkey.GetPubKey().ToString(), mMinerCkey.ToString());
-	}
-	str += strprintf(" CreationTime:%d",  nCreationTime);
-	return str;
+    string str("");
+    if(mMainCkey.IsValid()) {
+        str += strprintf(" MainPKey:%s MainKey:%s", mMainCkey.GetPubKey().ToString(), mMainCkey.ToString());
+    }
+    if(mMinerCkey.IsValid()) {
+        str += strprintf(" MinerPKey:%s MinerKey:%s",mMinerCkey.GetPubKey().ToString(), mMinerCkey.ToString());
+    }
+    str += strprintf(" CreationTime:%d",  nCreationTime);
+    return str;
 }
 
 bool CKeyCombi::GetCKey(CKey& keyOut, bool IsMiner) const {
-	if(IsMiner) {
-		keyOut = mMinerCkey;
-	} else {
-		keyOut = mMainCkey;
-	}
-	return keyOut.IsValid();
+    if(IsMiner) {
+        keyOut = mMinerCkey;
+    } else {
+        keyOut = mMainCkey;
+    }
+    return keyOut.IsValid();
 }
 
 bool CKeyCombi::CreateANewKey() {
-	CleanAll();
-	mMainCkey.MakeNewKey();
-	nCreationTime = GetTime();
-	return true;
+    CleanAll();
+    mMainCkey.MakeNewKey();
+    nCreationTime = GetTime();
+    return true;
 }
 
 CKeyCombi::CKeyCombi() {
-	CleanAll();
+    CleanAll();
 }
 
 int64_t CKeyCombi::GetBirthDay() const {
-	return nCreationTime;
+    return nCreationTime;
 }
 
 CKeyID CKeyCombi::GetCKeyID() const {
-	if(mMainCkey.IsValid())
-		return mMainCkey.GetPubKey().GetKeyID();
-	else {
-		CKeyID keyId;
-		return keyId;
-	}
+    if(mMainCkey.IsValid())
+        return mMainCkey.GetPubKey().GetKeyID();
+    else {
+        CKeyID keyId;
+        return keyId;
+    }
 }
 void CKeyCombi::SetMainKey(CKey& mainKey)
 {
-	mMainCkey = mainKey;
+    mMainCkey = mainKey;
 }
 void CKeyCombi::SetMinerKey(CKey & minerKey)
 {
-	mMinerCkey = minerKey;
+    mMinerCkey = minerKey;
 }
 bool CKeyCombi::HasMinerKey() const {
-	return mMinerCkey.IsValid();
+    return mMinerCkey.IsValid();
 }
 bool CKeyCombi::HasMainKey() const {
-	return mMainCkey.IsValid();
+    return mMainCkey.IsValid();
 }
 
 bool CKeyStore::GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut, bool IsMine) const
@@ -176,23 +176,23 @@ bool CKeyStore::GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut, bool IsM
 //}
 bool CBasicKeyStore::AddKeyCombi(const CKeyID & keyId, const CKeyCombi &keyCombi)
 {
-	LOCK(cs_KeyStore);
-	mapKeys[keyId] = keyCombi;
-	return true;
+    LOCK(cs_KeyStore);
+    mapKeys[keyId] = keyCombi;
+    return true;
 }
 
 bool CBasicKeyStore::GetKeyCombi(const CKeyID & address, CKeyCombi & keyCombiOut) const
 {
-  	{
-  		LOCK(cs_KeyStore);
-  		KeyMap::const_iterator mi = mapKeys.find(address);
-  		if(mi != mapKeys.end())
-  		{
-  			keyCombiOut = mi->second;
-  			return true;
-  		}
-  	}
-  	return false;
+    {
+        LOCK(cs_KeyStore);
+        KeyMap::const_iterator mi = mapKeys.find(address);
+        if(mi != mapKeys.end())
+        {
+            keyCombiOut = mi->second;
+            return true;
+        }
+    }
+    return false;
 }
 
 //bool CBasicKeyStore::AddKeyPubKey(const CKey& key, const CPubKey &pubkey)

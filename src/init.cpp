@@ -904,7 +904,7 @@ bool AppInit(boost::thread_group& threadGroup)
                 CBlock block;
                 ReadBlockFromDisk(block, pindex);
                 block.BuildMerkleTree();
-                block.print(*pAccountViewTip);
+                block.Print(*pAccountViewTip);
                 LogPrint("INFO","\n");
                 nFound++;
             }

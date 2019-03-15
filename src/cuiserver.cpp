@@ -80,7 +80,7 @@ void CUIServer::Accept_handler(sock_pt sock) {
 	}
 
 	Accept();
-	string sendData = write_string(Value(std::move(obj)),true);
+	string sendData = write_string(Value(obj), true);
 	PackageData(sendData);
 	sock->async_write_some(asio::buffer(sendData), bind(&CUIServer::write_handler, this));
 	std::shared_ptr<vector<char> > str(new vector<char>(100, 0));

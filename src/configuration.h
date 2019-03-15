@@ -57,21 +57,16 @@ typedef enum  {
 	MAX_NODE		//!< MAX_NETWORK_TYPES
 } NODE_NUMBER;
 
-class G_CONFIG_TABLE
-{
+class G_CONFIG_TABLE {
 public:
-	string GetCoinName()const
-	{
-		return /*std::move(COIN_NAME)*/COIN_NAME;
-	}
-
+	string GetCoinName() const { return COIN_NAME; }
 	const vector<string> GetIntPubKey(NET_TYPE type) const;
 	const uint256 GetIntHash(NET_TYPE type) const;
 	const string GetCheckPointPkey(NET_TYPE type) const;
 	const uint256 GetHashMerkleRoot() const;
 	vector<unsigned int> GetSeedNodeIP() const;
 	unsigned char* GetMagicNumber(NET_TYPE type) const;
-	vector<unsigned char> GetAddressPrefix(NET_TYPE type,Base58Type BaseType) const;
+	vector<unsigned char> GetAddressPrefix(NET_TYPE type, Base58Type BaseType) const;
 	unsigned int GetnDefaultPort(NET_TYPE type) const;
 	unsigned int GetnRPCPort(NET_TYPE type) const;
 	unsigned int GetnUIPort(NET_TYPE type) const;
@@ -81,7 +76,6 @@ public:
 	uint64_t GetBlockSubsidyCfg(int nHeight) const;
 	int GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const;
 	uint64_t GetDelegatesNum() const;
-	uint32_t GetExpansionPecentCfg() const;
 	string GetDelegateSignature(NET_TYPE type) const;
 	const vector<string> GetDelegatePubKey(NET_TYPE type) const;
 
@@ -145,7 +139,7 @@ private:
 	static unsigned int StartTime_testNet;
 	static unsigned int StartTime_regTest;
 
-	/* Subsidy Halving Interval (半衰期) */
+	/* Subsidy Halving Interval*/
 	static unsigned int nSubsidyHalvingInterval_mainNet;
 	static unsigned int nSubsidyHalvingInterval_testNet;
 	static unsigned int nSubsidyHalvingInterval_regNet;
@@ -158,8 +152,6 @@ private:
 
 	/* Designated Delegate count */
 	static unsigned int nDelegates;
-
-	static unsigned int ExpansionPecent;
 
 	/* Initial subsidy rate upon vote casting */
 	static uint64_t nInitialSubsidy;

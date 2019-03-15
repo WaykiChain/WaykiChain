@@ -54,18 +54,17 @@ void ThreadSendMessageToUI() {
 
 void AddMessageToDeque(const std::string &strMessage)
 {
-	if(SysCfg().GetBoolArg("-ui", false)) {
-		LOCK(cs_Sendbuffer);
-		g_dSendBuffer.push_back(strMessage);
-		LogPrint("msgdeque", "AddMessageToDeque %s\n", strMessage.c_str());
-	}else {
-		LogPrint("msgdeque", "AddMessageToDeque %s\n", strMessage.c_str());
-	}
+    if (SysCfg().GetBoolArg("-ui", false)) {
+        LOCK(cs_Sendbuffer);
+        g_dSendBuffer.push_back(strMessage);
+        LogPrint("msgdeque", "AddMessageToDeque %s\n", strMessage.c_str());
+    } else {
+        LogPrint("msgdeque", "AddMessageToDeque %s\n", strMessage.c_str());
+    }
 }
 
 static bool noui_ThreadSafeMessageBox(const std::string& message, const std::string& caption, unsigned int style)
 {
-
 	Object obj;
 	obj.push_back(Pair("type",     "MessageBox"));
 	obj.push_back(Pair("BoxType",     message));
@@ -84,10 +83,10 @@ static bool noui_ThreadSafeMessageBox(const std::string& message, const std::str
         break;
     default:
     	obj.push_back(Pair("BoxType",     "unKown"));
-//        strCaption += caption; // Use supplied caption (can be empty)
+        // strCaption += caption;  // Use supplied caption (can be empty)
     }
 
-    AddMessageToDeque(write_string(Value(std::move(obj)),true));
+    AddMessageToDeque(write_string(Value(obj), true));
 
     fprintf(stderr, "%s: %s\n", strCaption.c_str(), message.c_str());
     return false;
@@ -125,7 +124,7 @@ static bool noui_SyncTx()
 				Object obj;
 				obj.push_back(Pair("type", "SyncTx"));
 				obj.push_back(Pair("msg", objTx));
-				AddMessageToDeque(write_string(Value(std::move(obj)),true));
+				AddMessageToDeque(write_string(Value(obj), true));
 			}
 		}
 		pStartBlockIndex = chainActive.Next(pStartBlockIndex);
@@ -150,7 +149,7 @@ static bool noui_SyncTx()
 			Object obj;
 			obj.push_back(Pair("type",     "SyncTx"));
 			obj.push_back(Pair("msg",  objTx));// write_string(Value(arrayObj),true)));
-			AddMessageToDeque(write_string(Value(std::move(obj)),true));
+			AddMessageToDeque(write_string(Value(obj), true));
 		}
 	}
 	*/
@@ -163,7 +162,7 @@ static bool noui_SyncTx()
 		Object obj;
 		obj.push_back(Pair("type", "SyncTx"));
 		obj.push_back(Pair("msg", objTx));
-		AddMessageToDeque(write_string(Value(std::move(obj)),true));
+		AddMessageToDeque(write_string(Value(obj), true));
 	}
 	return true;
 }
@@ -182,7 +181,7 @@ static void noui_InitMessage(const std::string &message)
 	Object obj;
 	obj.push_back(Pair("type",     "init"));
 	obj.push_back(Pair("msg",     message));
-	AddMessageToDeque(write_string(Value(std::move(obj)),true));
+	AddMessageToDeque(write_string(Value(obj), true));
 }
 
 static void noui_BlockChanged(int64_t time,int64_t high,const uint256 &hash) {
@@ -195,7 +194,7 @@ static void noui_BlockChanged(int64_t time,int64_t high,const uint256 &hash) {
 	obj.push_back(Pair("hash",     hash.ToString()));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("fuelrate", GetElementForBurn(chainActive.Tip())));
-    AddMessageToDeque(write_string(Value(std::move(obj)),true));
+    AddMessageToDeque(write_string(Value(obj), true));
 }
 
 extern Object GetTxDetailJSON(const uint256& txhash);
@@ -204,7 +203,7 @@ static bool noui_RevTransaction(const uint256 &hash){
 	Object obj;
 	obj.push_back(Pair("type", "revtransaction"));
 	obj.push_back(Pair("transaction",     GetTxDetailJSON(hash)));
-	AddMessageToDeque(write_string(Value(std::move(obj)),true));
+	AddMessageToDeque(write_string(Value(obj), true));
 	return true;
 }
 
@@ -216,7 +215,7 @@ static bool noui_RevAppTransaction(const CBlock *pBlock ,int nIndex){
 	objTx.push_back(Pair("confirmedheight", (int) pBlock->GetHeight()));
 	objTx.push_back(Pair("confirmedtime", (int) pBlock->GetTime()));
 	obj.push_back(Pair("transaction", objTx));
-	AddMessageToDeque(write_string(Value(std::move(obj)),true));
+	AddMessageToDeque(write_string(Value(obj), true));
 	return true;
 }
 
@@ -225,14 +224,14 @@ static void noui_NotifyMessage(const std::string &message)
 	Object obj;
 	obj.push_back(Pair("type","notify"));
 	obj.push_back(Pair("msg",message));
-	AddMessageToDeque(write_string(Value(std::move(obj)),true));
+	AddMessageToDeque(write_string(Value(obj), true));
 }
 
 static bool noui_ReleaseTransaction(const uint256 &hash){
 	Object obj;
 	obj.push_back(Pair("type",     "releasetx"));
 	obj.push_back(Pair("hash",   hash.ToString()));
-	AddMessageToDeque(write_string(Value(std::move(obj)),true));
+	AddMessageToDeque(write_string(Value(obj), true));
 	return true;
 }
 
@@ -240,7 +239,7 @@ static bool noui_RemoveTransaction(const uint256 &hash) {
 	Object obj;
 	obj.push_back(Pair("type",     "rmtx"));
 	obj.push_back(Pair("hash",   hash.ToString()));
-	AddMessageToDeque(write_string(Value(std::move(obj)),true));
+	AddMessageToDeque(write_string(Value(obj), true));
 	return true;
 }
 
