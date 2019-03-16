@@ -160,7 +160,7 @@ public:
     vector<std::shared_ptr<CBaseTransaction> > vptx;
 
     // memory only
-    mutable vector<uint256> vMerkleTree;  //块中所有交易的交易hash集合
+    mutable vector<uint256> vMerkleTree;
 
     CBlock()
     {
@@ -216,7 +216,7 @@ public:
 
     int64_t GetFee() const;
 
-    void print(CAccountViewCache &view) const;
+    void Print(CAccountViewCache &view) const;
 };
 
 

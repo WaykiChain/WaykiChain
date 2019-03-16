@@ -802,14 +802,13 @@ bool AppInit(boost::thread_group& threadGroup)
                 delete pScriptDB;
                 delete pScriptDBTip;
 
-                pblocktree = new CBlockTreeDB(nBlockTreeDBCache, false, SysCfg().IsReindex());
-                pAccountViewDB = new CAccountViewDB(nAccountDBCache, false, SysCfg().IsReindex());
-                pAccountViewTip =  new CAccountViewCache(*pAccountViewDB,true);
-                pTxCacheDB = new CTransactionDB(nTxCacheSize, false, SysCfg().IsReindex());
-                pTxCacheTip = new CTransactionDBCache(*pTxCacheDB,true);
-                pScriptDB = new CScriptDB(nScriptCacheSize, false , SysCfg().IsReindex());
-                pScriptDBTip = new CScriptDBViewCache(*pScriptDB,true);
-
+                pblocktree      = new CBlockTreeDB(nBlockTreeDBCache, false, SysCfg().IsReindex());
+                pAccountViewDB  = new CAccountViewDB(nAccountDBCache, false, SysCfg().IsReindex());
+                pAccountViewTip = new CAccountViewCache(*pAccountViewDB, true);
+                pTxCacheDB      = new CTransactionDB(nTxCacheSize, false, SysCfg().IsReindex());
+                pTxCacheTip     = new CTransactionDBCache(*pTxCacheDB, true);
+                pScriptDB       = new CScriptDB(nScriptCacheSize, false, SysCfg().IsReindex());
+                pScriptDBTip    = new CScriptDBViewCache(*pScriptDB, true);
 
                 if (SysCfg().IsReindex())
                     pblocktree->WriteReindexing(true);
@@ -904,7 +903,7 @@ bool AppInit(boost::thread_group& threadGroup)
                 CBlock block;
                 ReadBlockFromDisk(block, pindex);
                 block.BuildMerkleTree();
-                block.print(*pAccountViewTip);
+                block.Print(*pAccountViewTip);
                 LogPrint("INFO","\n");
                 nFound++;
             }

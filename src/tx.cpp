@@ -839,7 +839,7 @@ Object CRewardTransaction::ToJson(const CAccountViewCache &AccountView) const{
     result.push_back(Pair("addr", keyid.ToAddress()));
     result.push_back(Pair("money", rewardValue));
     result.push_back(Pair("height", nHeight));
-    return std::move(result);
+    return result;
 }
 
 bool CRegisterContractTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidationState &state, CTxUndo &txundo,
@@ -1146,7 +1146,7 @@ Object CDelegateTransaction::ToJson(const CAccountViewCache &accountView) const 
         operVoteFundArray.push_back(item->ToJson(true));
     }
     result.push_back(Pair("operVoteFundList", operVoteFundArray));
-    return std::move(result);
+    return result;
 }
 
 bool CDelegateTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB)

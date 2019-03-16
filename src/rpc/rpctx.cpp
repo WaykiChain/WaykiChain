@@ -1404,13 +1404,13 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 if (pwalletMain->GetPubKey(keyid, pk)) {
                     pwalletMain->GetPubKey(keyid, minerpk, true);
                     account.PublicKey = pk;
-                    account.keyID = std::move(pk.GetKeyID());
+                    account.keyID = pk.GetKeyID();
                     if (pk != minerpk && !account.MinerPKey.IsValid()) {
                         account.MinerPKey = minerpk;
                     }
                 }
             }
-            obj = std::move(account.ToJsonObj(true));
+            obj = account.ToJsonObj(true);
             obj.push_back(Pair("position", "inblock"));
         } else { //unregistered keyid
             CPubKey pk;
@@ -1422,7 +1422,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 if (minerpk != pk) {
                     account.MinerPKey = minerpk;
                 }
-                obj = std::move(account.ToJsonObj(true));
+                obj = account.ToJsonObj(true);
                 obj.push_back(Pair("position", "inwallet"));
             }
         }

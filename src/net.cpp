@@ -463,8 +463,6 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest)
         }
     }
 
-
-    /// debug print
     LogPrint("net", "trying connection %s lastseen=%.1fhrs\n",
         pszDest ? pszDest : addrConnect.ToString(),
         pszDest ? 0 : (double)(GetAdjustedTime() - addrConnect.nTime)/3600.0);
@@ -546,9 +544,9 @@ void CNode::PushVersion()
     CAddress addrYou = (addr.IsRoutable() && !IsProxy(addr) ? addr : CAddress(CService("0.0.0.0",0)));
     CAddress addrMe = GetLocalAddress(&addr);
     RAND_bytes((unsigned char*)&nLocalHostNonce, sizeof(nLocalHostNonce));
-    LogPrint("net", "send version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", 
+    LogPrint("net", "send version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n",
         PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), addrYou.ToString(), addr.ToString());
-        
+
     PushMessage("version", PROTOCOL_VERSION, nLocalServices, nTime, addrYou, addrMe,
                 nLocalHostNonce, FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, comments), nBestHeight, true);
 }

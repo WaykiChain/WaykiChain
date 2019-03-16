@@ -119,19 +119,18 @@ int GetElementForBurn(CBlockIndex *pindex) {
 }
 
 // We want to sort transactions by priority and fee, so:
-
 void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate) {
     vecPriority.reserve(mempool.mapTx.size());
     // Priority order to process transactions
-    list<COrphan> vOrphan;  // list memory doesn't move
-    double dPriority = 0;
+    static double dPriority     = 0;
+    static double dFeePerKb     = 0;
+    static unsigned int nTxSize = 0;
     for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi) {
         CBaseTransaction *pBaseTx = mi->second.GetTx().get();
-
-        if (uint256() == std::move(pTxCacheTip->HasTx(std::move(pBaseTx->GetHash())))) {
-            unsigned int nTxSize = ::GetSerializeSize(*pBaseTx, SER_NETWORK, PROTOCOL_VERSION);
-            double dFeePerKb     = double(pBaseTx->GetFee() - pBaseTx->GetFuel(nFuelRate)) / (double(nTxSize) / 1000.0);
-            dPriority            = 1000.0 / double(nTxSize);
+        if (!pBaseTx->IsCoinBase() && uint256() == pTxCacheTip->HasTx(pBaseTx->GetHash())) {
+            nTxSize   = ::GetSerializeSize(*pBaseTx, SER_NETWORK, PROTOCOL_VERSION);
+            dFeePerKb = double(pBaseTx->GetFee() - pBaseTx->GetFuel(nFuelRate)) / (double(nTxSize) / 1000.0);
+            dPriority = 1000.0 / double(nTxSize);
             vecPriority.push_back(TxPriority(dPriority, dFeePerKb, mi->second.GetTx()));
         }
     }
@@ -412,11 +411,9 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
 
         while (!vTxPriority.empty()) {
             // Take highest priority transaction off the priority queue:
-            double dPriority                 = vTxPriority.front().get<0>();
             double dFeePerKb                 = vTxPriority.front().get<1>();
             shared_ptr<CBaseTransaction> stx = vTxPriority.front().get<2>();
             CBaseTransaction *pBaseTx        = stx.get();
-            //const CTransaction& tx = *(vTxPriority.front().get<2>());
 
             pop_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
             vTxPriority.pop_back();
@@ -427,27 +424,11 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
                 continue;
 
             // Skip free transactions if we're past the minimum block size:
-            if (fSortedByFee && (dFeePerKb < CTransaction::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
+            if ((dFeePerKb < CTransaction::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
                 continue;
-
-            // Prioritize by fee once past the priority size or we run out of high-priority
-            // transactions:
-            if (!fSortedByFee && ((nBlockSize + nTxSize >= nBlockPrioritySize) || !AllowFree(dPriority))) {
-                fSortedByFee = true;
-                comparer     = TxPriorityCompare(fSortedByFee);
-                make_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
-            }
-
-            if (uint256() != std::move(txCache.HasTx(std::move(pBaseTx->GetHash())))) {
-                LogPrint("INFO", "CreateNewBlock: duplicated tx\n");
-                continue;
-            }
 
             CTxUndo txundo;
             CValidationState state;
-            if (pBaseTx->IsCoinBase())
-                ERRORMSG("Tx type is coinbase tx error......");
-
             if (CONTRACT_TX == pBaseTx->nTxType)
                 LogPrint("vm", "CreateNewBlock: contract tx hash=%s\n", pBaseTx->GetHash().GetHex());
 
@@ -474,9 +455,9 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
                 pblock->GetFuelRate(), pBaseTx->GetHash().GetHex());
         }
 
-        nLastBlockTx   = nBlockTx;
-        nLastBlockSize = nBlockSize;
-        g_miningBlockInfo.nTxCount = nBlockTx;
+        nLastBlockTx                 = nBlockTx;
+        nLastBlockSize               = nBlockSize;
+        g_miningBlockInfo.nTxCount   = nBlockTx;
         g_miningBlockInfo.nBlockSize = nBlockSize;
         g_miningBlockInfo.nTotalFees = nFees;
 
@@ -498,7 +479,7 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
 
 bool CheckWork(CBlock *pblock, CWallet &wallet) {
     // Print block information
-    pblock->print(*pAccountViewTip);
+    pblock->Print(*pAccountViewTip);
 
     // Found a solution
     {
@@ -645,7 +626,6 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
                         chainActive.Tip()->nHeight > 1 &&
                         GetAdjustedTime() - chainActive.Tip()->nTime > 60 * 60 &&
                         !SysCfg().GetBoolArg("-genblockforce", false)) ) {
-                    // LogPrint("INFO", "sleep 1");
                     MilliSleep(1000);
                 }
             }
@@ -672,10 +652,8 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
             CBlock *pblock = &pblocktemplate.get()->block;
             MineBlock(pblock, pwallet, pindexPrev, nTransactionsUpdated, accountView, txCache, scriptDB);
 
-            if (SysCfg().NetworkID() != MAIN_NET)
-                if (targetHeight <= GetCurrHeight())
-                    throw boost::thread_interrupted();
-
+            if (SysCfg().NetworkID() != MAIN_NET && targetHeight <= GetCurrHeight())
+                throw boost::thread_interrupted();
         }
     } catch (...) {
         LogPrint("INFO", "CoinMiner terminated\n");

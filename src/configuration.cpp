@@ -201,50 +201,44 @@ namespace Checkpoints
 //=========================================================================
 //========以下是静态成员初始化的值=====================================================
 
-
- const G_CONFIG_TABLE &IniCfg(){
-	static G_CONFIG_TABLE * psCfg =  NULL;
-     if (psCfg == NULL) {
-    	 psCfg  = new G_CONFIG_TABLE ();
-     }
-     assert(psCfg != NULL);
-     return *psCfg;
+const G_CONFIG_TABLE& IniCfg() {
+    static G_CONFIG_TABLE* psCfg = NULL;
+    if (psCfg == NULL) {
+        psCfg = new G_CONFIG_TABLE();
+    }
+    assert(psCfg != NULL);
+    return *psCfg;
 }
 
- const uint256 G_CONFIG_TABLE::GetIntHash(NET_TYPE type) const
- {
+const uint256 G_CONFIG_TABLE::GetIntHash(NET_TYPE type) const {
+    switch (type) {
+        case MAIN_NET: {
+            return (uint256S((hashGenesisBlock_mainNet)));
+        }
+        case TEST_NET: {
+            return (uint256S((hashGenesisBlock_testNet)));
+        }
+        case REGTEST_NET: {
+            return (uint256S((hashGenesisBlock_regTest)));
+        }
+        default:
+            assert(0);
+    }
+    return uint256S("");
+}
 
-	 switch (type) {
-		case MAIN_NET: {
-			return (uint256S((hashGenesisBlock_mainNet)));
-		}
-		case TEST_NET: {
-			return (uint256S((hashGenesisBlock_testNet)));
-		}
-		case REGTEST_NET: {
-			return (uint256S((hashGenesisBlock_regTest)));
-		}
-		default:
-			assert(0);
-		}
-		return uint256S("");
-
- }
- const string G_CONFIG_TABLE::GetCheckPointPkey(NET_TYPE type) const {
-	switch (type) {
-	case MAIN_NET: {
-		return CheckPointPK_MainNet;
-	}
-	case TEST_NET: {
-		return CheckPointPK_TestNet;
-	}
-//			case REGTEST_NET: {
-//				return std::move(uint256S(std::move(hashGenesisBlock_regTest)));
-//			}
-	default:
-		assert(0);
-	}
-	return "";
+const string G_CONFIG_TABLE::GetCheckPointPkey(NET_TYPE type) const {
+    switch (type) {
+        case MAIN_NET: {
+            return CheckPointPK_MainNet;
+        }
+        case TEST_NET: {
+            return CheckPointPK_TestNet;
+        }
+        default:
+            assert(0);
+    }
+    return "";
 }
 
 const vector<string> G_CONFIG_TABLE::GetIntPubKey(NET_TYPE type) const {
@@ -290,25 +284,24 @@ vector<unsigned int> G_CONFIG_TABLE::GetSeedNodeIP() const
     return pnSeed;
 }
 
-unsigned char* G_CONFIG_TABLE::GetMagicNumber(NET_TYPE type) const{
- switch (type) {
-    case MAIN_NET: {
-        return Message_mainNet;
-    }
-    case TEST_NET: {
-        return Message_testNet;
-    }
-    case REGTEST_NET: {
-        return Message_regTest;
-    }
-    default:
-        assert(0);
+unsigned char* G_CONFIG_TABLE::GetMagicNumber(NET_TYPE type) const {
+    switch (type) {
+        case MAIN_NET: {
+            return Message_mainNet;
+        }
+        case TEST_NET: {
+            return Message_testNet;
+        }
+        case REGTEST_NET: {
+            return Message_regTest;
+        }
+        default:
+            assert(0);
     }
     return NULL;
 }
 
-vector<unsigned char> G_CONFIG_TABLE::GetAddressPrefix(NET_TYPE type,Base58Type BaseType) const{
-
+vector<unsigned char> G_CONFIG_TABLE::GetAddressPrefix(NET_TYPE type, Base58Type BaseType) const {
     switch (type) {
         case MAIN_NET: {
             return AddrPrefix_mainNet[BaseType];
@@ -316,18 +309,17 @@ vector<unsigned char> G_CONFIG_TABLE::GetAddressPrefix(NET_TYPE type,Base58Type 
         case TEST_NET: {
             return AddrPrefix_testNet[BaseType];
         }
-//			case REGTEST_NET: {
-//				return Message_regTest;
-//			}
+        // case REGTEST_NET: {
+        //     return Message_regTest;
+        // }
         default:
-        assert(0);
+            assert(0);
     }
     return vector<unsigned char>();
-
 }
 
-unsigned int G_CONFIG_TABLE::GetnDefaultPort(NET_TYPE type) const{
-   switch (type) {
+unsigned int G_CONFIG_TABLE::GetnDefaultPort(NET_TYPE type) const {
+    switch (type) {
         case MAIN_NET: {
             return nDefaultPort_mainNet;
         }
@@ -339,60 +331,62 @@ unsigned int G_CONFIG_TABLE::GetnDefaultPort(NET_TYPE type) const{
         }
         default:
             assert(0);
-        }
-     return 0;
-}
-
-unsigned int G_CONFIG_TABLE::GetnRPCPort(NET_TYPE type) const{
-    switch (type) {
-       case MAIN_NET: {
-           return nRPCPort_mainNet;
-       }
-       case TEST_NET: {
-           return nRPCPort_testNet;
-        }
-//		case REGTEST_NET: {
-//			return Message_regTest;
-//		}
-       default:
-           assert(0);
-       }
-       return 0;
-}
-unsigned int G_CONFIG_TABLE::GetnUIPort(NET_TYPE type) const {
-    switch (type) {
-       case MAIN_NET: {
-           return nUIPort_mainNet;
-       }
-       case TEST_NET: {
-           return nUIPort_testNet;
-       }
-       case REGTEST_NET: {
-           return nUIPort_testNet;
-       }
-       default:
-           assert(0);
-       }
-       return 0;
-}
-unsigned int G_CONFIG_TABLE::GetStartTimeInit(NET_TYPE type) const{
-    switch (type) {
-       case MAIN_NET: {
-           return StartTime_mainNet;
-       }
-       case TEST_NET: {
-           return StartTime_testNet;
-       }
-       case REGTEST_NET: {
-           return StartTime_regTest;
-       }
-       default:
-           assert(0);
-       }
+    }
     return 0;
 }
 
-unsigned int G_CONFIG_TABLE::GetHalvingInterval(NET_TYPE type) const{
+unsigned int G_CONFIG_TABLE::GetnRPCPort(NET_TYPE type) const {
+    switch (type) {
+        case MAIN_NET: {
+            return nRPCPort_mainNet;
+        }
+        case TEST_NET: {
+            return nRPCPort_testNet;
+        }
+        // case REGTEST_NET: {
+        //     return Message_regTest;
+        // }
+        default:
+            assert(0);
+    }
+    return 0;
+}
+
+unsigned int G_CONFIG_TABLE::GetnUIPort(NET_TYPE type) const {
+    switch (type) {
+        case MAIN_NET: {
+            return nUIPort_mainNet;
+        }
+        case TEST_NET: {
+            return nUIPort_testNet;
+        }
+        case REGTEST_NET: {
+            return nUIPort_testNet;
+        }
+        default:
+            assert(0);
+    }
+    return 0;
+}
+
+unsigned int G_CONFIG_TABLE::GetStartTimeInit(NET_TYPE type) const {
+    switch (type) {
+        case MAIN_NET: {
+            return StartTime_mainNet;
+        }
+        case TEST_NET: {
+            return StartTime_testNet;
+        }
+        case REGTEST_NET: {
+            return StartTime_regTest;
+        }
+        default:
+            assert(0);
+    }
+    return 0;
+}
+
+unsigned int G_CONFIG_TABLE::GetHalvingInterval(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: {
             return nSubsidyHalvingInterval_mainNet;
@@ -405,17 +399,17 @@ unsigned int G_CONFIG_TABLE::GetHalvingInterval(NET_TYPE type) const{
         }
         default:
             assert(0);
-     }
-     return 0;
+    }
+    return 0;
 }
 
-uint64_t G_CONFIG_TABLE::GetCoinInitValue() const{
+uint64_t G_CONFIG_TABLE::GetCoinInitValue() const {
     return InitialCoin;
 }
 
 uint64_t G_CONFIG_TABLE::GetBlockSubsidyCfg(int nHeight) const {
     uint64_t nSubsidy = nInitialSubsidy;
-    int nHalvings = nHeight / SysCfg().GetSubsidyHalvingInterval();
+    int nHalvings     = nHeight / SysCfg().GetSubsidyHalvingInterval();
     // Force block reward to a fixed value when right shift is more than 3.
     if (nHalvings > 4) {
         return nFixedSubsidy;
@@ -444,26 +438,23 @@ uint64_t G_CONFIG_TABLE::GetDelegatesNum() const {
     return nDelegates;
 }
 
-uint32_t G_CONFIG_TABLE::GetExpansionPecentCfg() const {
-    return ExpansionPecent;
-}
-
 string G_CONFIG_TABLE::GetDelegateSignature(NET_TYPE type) const {
     switch (type) {
-       case MAIN_NET: {
-           return delegateSignature_mainNet;
-       }
-       case TEST_NET: {
-           return delegateSignature_testNet;
+        case MAIN_NET: {
+            return delegateSignature_mainNet;
         }
-       case REGTEST_NET: {
-           return delegateSignature_regNet;
-       }
-       default:
-       assert(0);
+        case TEST_NET: {
+            return delegateSignature_testNet;
+        }
+        case REGTEST_NET: {
+            return delegateSignature_regNet;
+        }
+        default:
+            assert(0);
     }
     return 0;
 }
+
 //=========================================================================
 //========以下是静态成员初始化的值=====================================================
 //=========================================================================
@@ -543,7 +534,7 @@ string G_CONFIG_TABLE::delegateSignature_mainNet = "025e1310343d57f20740eeb32820
 string G_CONFIG_TABLE::delegateSignature_testNet = "02fc0033e19b9999997331c98652607299b0aaf20ed2dd6f0975d03cff3aecdeec";
 string G_CONFIG_TABLE::delegateSignature_regNet = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
 
-//公钥
+//Pubkey
 string G_CONFIG_TABLE::CheckPointPK_MainNet = "029e85b9822bb140d6934fe7e8cd82fb7fde49da8c96141d69884c7e53a57628cb";
 string G_CONFIG_TABLE::CheckPointPK_TestNet = "0264afea20ebe6fe4c753f9c99bdce8293cf739efbc7543784873eb12f39469d46";
 
@@ -552,7 +543,7 @@ string G_CONFIG_TABLE::hashGenesisBlock_mainNet = "0xa00d5d179450975237482f20f5c
 string G_CONFIG_TABLE::hashGenesisBlock_testNet = "0xf8aea423c73890eb982c77793cf2fff1dcc1c4d141f42a4c6841b1ffe87ac594";
 string G_CONFIG_TABLE::hashGenesisBlock_regTest = "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d";
 
- //Merkle Hash Root
+//Merkle Hash Root
 string G_CONFIG_TABLE::HashMerkleRoot = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
 
 //IP Address
@@ -589,7 +580,6 @@ unsigned int G_CONFIG_TABLE::StartTime_testNet = 1505401100;
 unsigned int G_CONFIG_TABLE::StartTime_regTest = 1504305600;
 
 //半衰期 (half-life)
-// 365 * 24 * 60 * 60 / 10 = 3153600
 unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = 3153600; // one year
 unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_testNet = 3153600; // one year
 unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_regNet  = 500;
@@ -601,8 +591,6 @@ uint64_t G_CONFIG_TABLE::InitialCoin = 210000000;
 uint64_t G_CONFIG_TABLE::DefaultFee = 15;
 
 unsigned int G_CONFIG_TABLE::nDelegates = 11;
-
-unsigned int G_CONFIG_TABLE::ExpansionPecent = 5;
 
 //投票初始分红率
 uint64_t G_CONFIG_TABLE::nInitialSubsidy = 5;

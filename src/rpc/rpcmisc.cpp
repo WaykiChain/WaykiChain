@@ -54,12 +54,12 @@ Value getbalance(const Array& params, bool fHelp)
     Object obj;
     if (size == 0) {
         obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance())));
-        return std::move(obj);
+        return obj;
     } else if (size == 1) {
         string addr = params[0].get_str();
         if (addr == "*") {
             obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance())));
-            return std::move(obj);
+            return obj;
         } else {
             CKeyID keyid;
             if (!GetKeyId(addr, keyid)) {
@@ -70,7 +70,7 @@ Value getbalance(const Array& params, bool fHelp)
                 CAccountViewCache accView(*pAccountViewTip, true);
                 if (accView.GetAccount(CUserID(keyid), account)) {
                     obj.push_back(Pair("balance", ValueFromAmount(account.GetRawBalance())));
-                    return std::move(obj);
+                    return obj;
                 }
             } else {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "address not inwallet");
@@ -106,10 +106,10 @@ Value getbalance(const Array& params, bool fHelp)
                     --nConf;
                 }
                 obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance() - nValue)));
-                return std::move(obj);
+                return obj;
             } else {
                 obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance(false))));
-                return std::move(obj);
+                return obj;
             }
         } else {
             CKeyID keyid;
@@ -138,10 +138,10 @@ Value getbalance(const Array& params, bool fHelp)
                         --nConf;
                     }
                     obj.push_back(Pair("balance", ValueFromAmount(pAccountViewTip->GetRawBalance(keyid) - nValue)));
-                    return std::move(obj);
+                    return obj;
                 } else {
                     obj.push_back(Pair("balance", ValueFromAmount(mempool.pAccountViewCache->GetRawBalance(keyid))));
-                    return std::move(obj);
+                    return obj;
                 }
             } else {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "address not inwallet");

@@ -2476,7 +2476,7 @@ void PushGetBlocksOnCondition(CNode *pnode, CBlockIndex *pindexBegin, uint256 ha
 }
 
 bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBlockPos *dbp) {
-    //  int64_t llBeginTime = GetTimeMillis();
+    int64_t llBeginTime = GetTimeMillis();
     //  LogPrint("INFO", "ProcessBlock() enter:%lld\n", llBeginTime);
     AssertLockHeld(cs_main);
     // Check for duplicate
@@ -2494,28 +2494,6 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
         LogPrint("INFO", "CheckBlock() id: %d elapse time:%lld ms\n", chainActive.Height(), GetTimeMillis() - llBeginCheckBlockTime);
         return ERRORMSG("ProcessBlock() :block hash:%s CheckBlock FAILED", pblock->GetHash().GetHex());
     }
-    //    LogPrint("INFO", "CheckBlock() elapse time:%lld ms\n", GetTimeMillis() - llBeginCheckBlockTime);
-    //    CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
-    //    if (pcheckpoint && pblock->hashPrevBlock != (chainActive.Tip() ? chainActive.Tip()->GetBlockHash() : uint256(0)))
-    //    {
-    //        // Extra checks to prevent "fill up memory by spamming with bogus blocks"
-    //        int64_t deltaTime = pblock->GetBlockTime() - pcheckpoint->nTime;
-    //        if (deltaTime < 0)
-    //        {
-    //            return state.DoS(100, ERRORMSG("ProcessBlock() : block with timestamp before last checkpoint"),
-    //                             REJECT_CHECKPOINT, "time-too-old");
-    //        }
-    //        CBigNum bnNewBlock;
-    //        bnNewBlock.SetCompact(pblock->nBits);
-    //        CBigNum bnRequired;
-    //        bnRequired.SetCompact(ComputeMinWork(pcheckpoint->nBits, deltaTime));
-    //        if (bnNewBlock > bnRequired)
-    //        {
-    //            return state.DoS(100, ERRORMSG("ProcessBlock() : block with too little proof-of-work\n"
-    //                  " bnNewBlock:%s \n bnRequired:%s \n hash:%s \n prevHash:%s", bnNewBlock.getuint256().GetHex(), bnRequired.getuint256().GetHex(), pblock->GetHash().GetHex(), pblock->hashPrevBlock.GetHex()),
-    //                             REJECT_INVALID, "bad-diffbits");
-    //        }
-    //    }
 
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (!pblock->GetHashPrevBlock().IsNull() && !mapBlockIndex.count(pblock->GetHashPrevBlock())) {
@@ -2571,7 +2549,10 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
                 ss >> block;
             }
             block.BuildMerkleTree();
-            // Use a dummy CValidationState so someone can't setup nodes to counter-DoS based on orphan resolution (that is, feeding people an invalid block based on LegitBlockX in order to get anyone relaying LegitBlockX banned)
+            /**
+             * Use a dummy CValidationState so someone can't setup nodes to counter-DoS based on orphan resolution
+             * (that is, feeding people an invalid block based on LegitBlockX in order to get anyone relaying LegitBlockX banned)
+             */
             CValidationState stateDummy;
             if (AcceptBlock(block, stateDummy)) {
                 vWorkQueue.push_back(mi->second->hashBlock);
@@ -2583,8 +2564,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
         mapOrphanBlocksByPrev.erase(hashPrev);
     }
 
-    // LogPrint("INFO", "ProcessBlock() elapse time:%lld ms\n", GetTimeMillis() - llBeginTime);
-    // LogPrint("INFO","ProcessBlock: ACCEPTED\n");
+    LogPrint("INFO", "ProcessBlock() elapse time:%lld ms\n", GetTimeMillis() - llBeginTime);
     return true;
 }
 
@@ -3360,7 +3340,6 @@ void static ProcessGetData(CNode *pfrom) {
                             // they must either disconnect and retry or request the full block.
                             // Thus, the protocol spec specified allows for us to provide duplicate txn here,
                             // however we MUST always provide at least what the remote peer needs
-                            //                            typedef pair<unsigned int, uint256> PairType;
                             for (auto &pair : merkleBlock.vMatchedTxn)
                                 if (!pfrom->setInventoryKnown.count(CInv(MSG_TX, pair.second)))
                                     pfrom->PushMessage("tx", block.vptx[pair.first]);
