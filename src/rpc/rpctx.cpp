@@ -1381,7 +1381,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 "\nExamples:\n"
                 + HelpExampleCli("getaccountinfo", "WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("getaccountinfo", "\"WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\"\n")
+                + HelpExampleRpc("getaccountinfo", "\"WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\"")
            );
     }
     RPCTypeCheck(params, list_of(str_type));
@@ -1454,128 +1454,19 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
     return retObj;
 }
 
-// //sign
-// Value sign(const Array& params, bool fHelp) {
-//     if (fHelp || params.size() != 2) {
-//         throw runtime_error("sign \"addr\" \"str\"\n"
-//                 "\ndigitally sign \"str\" by the private key associated with \"address\"\n"
-//                 "\nArguments:\n"
-//                 "1.\"addr\": the signer address\n"
-//                 "2.\"str\": (string) \n"
-//                 "\nResult:\n"
-//                 "\"signhash\": (string)\n"
-//                 "\nExamples:\n"
-//                 + HelpExampleCli("sign",
-//                     "0001a87352387b5b4d6d01299c0dc178ff044f42e016970b0dc7ea9c72c08e2e494a01020304100000")
-//                 + "\nAs json rpc call\n"
-//                 + HelpExampleRpc("sign",
-//                     "0001a87352387b5b4d6d01299c0dc178ff044f42e016970b0dc7ea9c72c08e2e494a01020304100000"));
-//     }
-
-//     //get keyid
-//     CKeyID keyid;
-//     if (!GetKeyId(params[0].get_str(), keyid)) {
-//         throw runtime_error("in sign: send address err\n");
-//     }
-//     //get string to be signed
-//     vector<unsigned char> vchSignStr(ParseHex(params[1].get_str()));
-
-//     vector<unsigned char> vsign;
-//     {
-//         LOCK(pwalletMain->cs_wallet);
-
-//         CKey key;
-//         if (!pwalletMain->GetKey(keyid, key)) {
-//             throw JSONRPCError(RPC_WALLET_ERROR, "sign Error: cannot find key.");
-//         }
-
-//         uint256 hash = Hash(vchSignStr.begin(), vchSignStr.end());
-//         if (!key.Sign(hash, vsign)) {
-//             throw JSONRPCError(RPC_WALLET_ERROR, "sign Error: Sign failed.");
-//         }
-//     }
-//     Object retObj;
-//     retObj.push_back(Pair("signeddata", HexStr(vsign)));
-//     return retObj;
-// }
-
-//Value getaccountinfo(const Array& params, bool fHelp) {
-//  if (fHelp || params.size() != 1) {
-//      throw runtime_error(
-//              "getaccountinfo \"address \" dspay address ( \"comment\" \"comment-to\" )\n"
-//                      "\nGet an account info with dspay address\n" + HelpRequiringPassphrase() + "\nArguments:\n"
-//                      "1. \"address \"  (string, required) The Coin address.\n"
-//                      "\nResult:\n"
-//                      "\"account info\"  (string) \n"
-//                      "\nExamples:\n" + HelpExampleCli("getaccountinfo", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\"")
-//                      + HelpExampleCli("getaccountinfo", "\"000000010100\"")
-//
-//                      );
-//  }
-//  CAccountViewCache view(*pAccountViewTip, true);
-//  string strParam = params[0].get_str();
-//  CAccount aAccount;
-//  if (strParam.length() != 12) {
-//      CCoinAddress address(params[0].get_str());
-//      CKeyID keyid;
-//      if (!address.GetKeyID(keyid))
-//          throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Coin address");
-//
-//      CUserID userId = keyid;
-//      if (!view.GetAccount(userId, aAccount)) {
-//          return "can not get account info by address:" + strParam;
-//      }
-//  } else {
-//      CRegID regId(ParseHex(strParam));
-//      if (!view.GetAccount(regId, aAccount)) {
-//          return "can not get account info by regid:" + strParam;
-//      }
-//  }
-//  string fundTypeArray[] = {"NULL_FUNDTYPE", "FREEDOM", "REWARD_FUND", "FREEDOM_FUND", "FREEZD_FUND", "SELF_FREEZD_FUND"};
-//
-//  Object obj;
-//  obj.push_back(Pair("keyID:", aAccount.keyID.ToString()));
-//  obj.push_back(Pair("publicKey:", aAccount.publicKey.ToString()));
-//  obj.push_back(Pair("llValues:", tinyformat::format("%s", aAccount.llValues)));
-//  Array array;
-//  //string str = ("fundtype  txhash                                  value                        height");
-//  string str = tinyformat::format("%-20.20s%-20.20s%-25.8lf%-6.6d", "fundtype", "scriptid", "value", "height");
-//  array.push_back(str);
-//  for (int i = 0; i < aAccount.vRewardFund.size(); ++i) {
-//      CFund fund = aAccount.vRewardFund[i];
-//      array.push_back(tinyformat::format("%-20.20s%-20.20s%-25.8lf%-6.6d",fundTypeArray[fund.nFundType], HexStr(fund.scriptID), fund.value, fund.nHeight));
-//  }
-//
-//  for (int i = 0; i < aAccount.vFreedomFund.size(); ++i) {
-//      CFund fund = aAccount.vFreedomFund[i];
-//      array.push_back(tinyformat::format("%-20.20s%-20.20s%-25.8lf%-6.6d",fundTypeArray[fund.nFundType], HexStr(fund.scriptID), fund.value, fund.nHeight));
-//  }
-//  for (int i = 0; i < aAccount.vFreeze.size(); ++i) {
-//      CFund fund = aAccount.vFreeze[i];
-//      array.push_back(tinyformat::format("%-20.20s%-20.20s%-25.8lf%-6.6d",fundTypeArray[fund.nFundType], HexStr(fund.scriptID), fund.value, fund.nHeight));
-//  }
-//  for (int i = 0; i < aAccount.vSelfFreeze.size(); ++i) {
-//      CFund fund = aAccount.vSelfFreeze[i];
-//      array.push_back(tinyformat::format("%-20.20s%-20.20s%-25.8lf%-6.6d",fundTypeArray[fund.nFundType], HexStr(fund.scriptID), fund.value, fund.nHeight));
-//  }
-//  obj.push_back(Pair("detailinfo:", array));
-//  return obj;
-//}
-
 static Value AccountLogToJson(const CAccountLog &accoutLog) {
     Object obj;
     obj.push_back(Pair("keyid", accoutLog.keyID.ToString()));
     obj.push_back(Pair("llValues", accoutLog.llValues));
     obj.push_back(Pair("nHeight", accoutLog.nVoteHeight));
-//  Array array;
-//  for(auto const &te: accoutLog.vRewardFund)
-//  {
-//      Object obj2;
-//      obj2.push_back(Pair("value",  te.value));
-//      obj2.push_back(Pair("nHeight",  te.nHeight));
-//      array.push_back(obj2);
-//  }
-//  obj.push_back(Pair("vRewardFund", array));
+    // Array array;
+    // for (auto const& te : accoutLog.vRewardFund) {
+    //     Object obj2;
+    //     obj2.push_back(Pair("value", te.value));
+    //     obj2.push_back(Pair("nHeight", te.nHeight));
+    //     array.push_back(obj2);
+    // }
+    // obj.push_back(Pair("vRewardFund", array));
     return obj;
 }
 
