@@ -580,8 +580,8 @@ unsigned int G_CONFIG_TABLE::StartTime_testNet = 1505401100;
 unsigned int G_CONFIG_TABLE::StartTime_regTest = 1504305600;
 
 //半衰期 (half-life)
-unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = 3153600; // one year
-unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_testNet = 3153600; // one year
+unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = 3153600; // one year = 365 * 24 * 60 * 60 / 10
+unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_testNet = 3153600; // ditto
 unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_regNet  = 500;
 
 //修改发币初始值
