@@ -313,7 +313,8 @@ static const CRPCCommand vRPCCommands[] =
     { "notionalpoolingasset",   &notionalpoolingasset,   false,     false,      true },
     { "getassets",              &getassets,              false,     false,      true },
     { "listcontractassets",     &listcontractassets,      false,     false,      true },
-    { "submittx",               &submittx,               true,      false,      false},
+    { "submittx",               &sendrawtx,              true,      false,      false}, //deprecated
+    { "sendrawtx",              &sendrawtx,              true,      false,      false},
 
     { "sigstr",                 &sigstr,                 true,      false,      true },
     { "getcontractaccountinfo", &getcontractaccountinfo, true,      false,      true },

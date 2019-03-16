@@ -63,7 +63,7 @@
 | sigstr | ```<transaction><address>``` | signature transaction | N |
 | stop | | Stop  WaykiCoind server | N |
 | submitblock | ```<hexdata>``` [optional-params-obj] | Attempts to submit new block to network <br> 1. hexdata (string, required) the hex-encoded block data to submit | N |
-| submittx | ```<transaction>``` | submit transaction | N |
+| sendrawtx | ```<transaction>``` | send raw transaction | N |
 | verifymessage | ```<wiccaddress>``` <signature> <message> | Verify a signed message. | N |
 | verifychain | ```[checklevel][numblocks]``` | Verifies blockchain database: <br>1.    checklevel (numeric, optional, 0-4, default=3), How thorough the block verification is.<br>2.    numblocks (numeric, optional, default=288, 0=all) The number of blocks to check. | N |
 | walletlock | | Removes the wallet encryption key from memory, locking the wallet. After calling this method, you will need to call walletpassphrase again before being able to call any methods which require the wallet to be unlocked. | N |

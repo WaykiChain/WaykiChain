@@ -46,7 +46,7 @@ Object CallRPC(const string& strMethod, const Array& params)
 
     bool fWait = SysCfg().GetBoolArg("-rpcwait", false); // -rpcwait means try until server has started
     do {
-        bool fConnected = d.connect(SysCfg().GetArg("-rpcconnect", "127.0.0.1"), 
+        bool fConnected = d.connect(SysCfg().GetArg("-rpcconnect", "127.0.0.1"),
             SysCfg().GetArg("-rpcport", itostr(SysCfg().RPCPort())));
         if (fConnected) break;
         if (fWait)
@@ -56,7 +56,7 @@ Object CallRPC(const string& strMethod, const Array& params)
     } while (fWait);
 
     // HTTP basic authentication
-    string strUserPass64 = EncodeBase64(SysCfg().GetArg("-rpcuser", "") + ":" 
+    string strUserPass64 = EncodeBase64(SysCfg().GetArg("-rpcuser", "") + ":"
         + SysCfg().GetArg("-rpcpassword", ""));
     map<string, string> mapRequestHeaders;
     mapRequestHeaders["Authorization"] = string("Basic ") + strUserPass64;
@@ -155,7 +155,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "move"                   && n > 3) ConvertTo<int64_t>(params[3]);
     if (strMethod == "sendfrom"               && n > 2) ConvertTo<double>(params[2]);
     if (strMethod == "sendfrom"               && n > 3) ConvertTo<int64_t>(params[3]);
-    
+
     // if (strMethod == "listaccounts"           && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "walletpassphrase"       && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getblocktemplate"       && n > 0) ConvertTo<Object>(params[0]);
@@ -224,7 +224,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "listcontracts"          && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getblock"               && n > 0) { if (params[0].get_str().size()<32) ConvertTo<int>(params[0]);}
 
-    /****** generate a digitally signed raw transaction for network submission via submittx  **********/
+    /****** generate a digitally signed raw transaction for network submission via sendrawtx  **********/
     if (strMethod == "genregisteraccountraw"  && n > 0) ConvertTo<double>(params[0]);
     if (strMethod == "genregisteraccountraw"  && n > 1) ConvertTo<int>(params[1]);
 
@@ -261,7 +261,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "listtransactionsv2"     && n > 1) ConvertTo<int>(params[1]);
     if (strMethod == "listtransactionsv2"     && n > 2) ConvertTo<int>(params[2]);
     if (strMethod == "notionalpoolingasset"   && n > 2) ConvertTo<double>(params[2]);
-    
+
     if (strMethod == "invalidateblock"        && n > 0) { if (params[0].get_str().size() < 32) ConvertTo<int>(params[0]); }
 
     /** for mining */
@@ -365,4 +365,3 @@ string HelpMessageCli(bool mainProgram)
 
     return strUsage;
 }
-

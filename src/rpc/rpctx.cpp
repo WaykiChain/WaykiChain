@@ -2170,17 +2170,17 @@ Value genregisteraccountraw(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value submittx(const Array& params, bool fHelp) {
+Value sendrawtx(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(
-            "submittx \"transaction\" \n"
-            "\nsubmit transaction\n"
+            "sendrawtx \"transaction\" \n"
+            "\nsend raw transaction\n"
             "\nArguments:\n"
             "1.\"transaction\": (string, required)\n"
             "\nExamples:\n"
-            + HelpExampleCli("submittx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\"")
+            + HelpExampleCli("sendrawtx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\"")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submittx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
+            + HelpExampleRpc("sendrawtx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
     }
     //EnsureWalletIsUnlocked();
     vector<unsigned char> vch(ParseHex(params[0].get_str()));
@@ -2191,7 +2191,7 @@ Value submittx(const Array& params, bool fHelp) {
     std::tuple<bool, string> ret;
     ret = pwalletMain->CommitTransaction((CBaseTransaction *) tx.get());
     if (!std::get<0>(ret))
-        throw JSONRPCError(RPC_WALLET_ERROR, "submittx error: " + std::get<1>(ret));
+        throw JSONRPCError(RPC_WALLET_ERROR, "sendrawtx error: " + std::get<1>(ret));
 
     Object obj;
     obj.push_back(Pair("hash", std::get<1>(ret)));
