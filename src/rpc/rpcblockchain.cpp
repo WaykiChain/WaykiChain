@@ -179,7 +179,7 @@ Value getrawmempool(const Array& params, bool fHelp)
             set<string> setDepends;
 //            BOOST_FOREACH(const CTxIn& txin, tx.vin)
 //            {
-//                if (mempool.exists(txin.prevout.hash))
+//                if (mempool.Exists(txin.prevout.hash))
 //                    setDepends.insert(txin.prevout.hash.ToString());
 //            }
             Array depends(setDepends.begin(), setDepends.end());
@@ -189,7 +189,7 @@ Value getrawmempool(const Array& params, bool fHelp)
         return o;
     } else {
         vector<uint256> vtxid;
-        mempool.queryHashes(vtxid);
+        mempool.QueryHash(vtxid);
 
         Array a;
         for (const auto& hash : vtxid)

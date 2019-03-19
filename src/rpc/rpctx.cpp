@@ -110,7 +110,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
             }
         }
         {
-            pBaseTx = mempool.lookup(txhash);
+            pBaseTx = mempool.Lookup(txhash);
             if (pBaseTx.get()) {
                 obj = pBaseTx->ToJson(*pAccountViewTip);
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -330,7 +330,7 @@ Value gettransaction(const Array& params, bool fHelp)
         }
     if(!findTx)
     {
-        pBaseTx = mempool.lookup(txhash);
+        pBaseTx = mempool.Lookup(txhash);
         if(pBaseTx == nullptr) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid txhash");
         }
@@ -1610,7 +1610,7 @@ Value resetclient(const Array& params, bool fHelp) {
 
         CBlock firs = SysCfg().GenesisBlock();
         pwalletMain->SyncTransaction(uint256(), NULL, &firs);
-        mempool.clear();
+        mempool.Clear();
     } else {
         throw JSONRPCError(RPC_WALLET_ERROR, "restclient Error: Reset failed.");
     }

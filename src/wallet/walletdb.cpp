@@ -440,7 +440,7 @@ void ThreadRelayTx(CWallet* pWallet)
            map<uint256, std::shared_ptr<CBaseTransaction> >::iterator iterTx =  pWallet->UnConfirmTx.begin();
             for(; iterTx != pWallet->UnConfirmTx.end(); ++iterTx)
             {
-                if(mempool.exists(iterTx->first)) {
+                if(mempool.Exists(iterTx->first)) {
                     RelayTransaction(iterTx->second.get(), iterTx->first);
                     LogPrint("sendtx", "ThreadRelayTx resend tx hash:%s time:%ld\n", iterTx->first.GetHex(), GetTime());
                 }
