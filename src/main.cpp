@@ -2205,15 +2205,8 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
     return true;
 }
 
-bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDBCache,
-                bool fCheckTx, bool fCheckMerkleRoot)
-{
-    // These are checks that are independent of context
-    // that can be verified before saving an orphan block.
-
-    unsigned int nBlockSize = ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
-    // Size limits
-    if (block.vptx.empty() || block.vptx.size() > MAX_BLOCK_SIZE || nBlockSize > MAX_BLOCK_SIZE)
+bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDBCache, bool fCheckTx, bool fCheckMerkleRoot) {
+    if (block.vptx.empty() || block.vptx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return state.DoS(100, ERRORMSG("CheckBlock() : size limits failed"),
             REJECT_INVALID, "bad-blk-length");
 
@@ -3740,8 +3733,6 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
     }
 
     else if (strCommand == "tx") {
-        vector<uint256> vWorkQueue;
-        vector<uint256> vEraseQueue;
         std::shared_ptr<CBaseTransaction> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
 
         if (REWARD_TX == pBaseTx->nTxType)
@@ -3757,8 +3748,6 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         if (AcceptToMemoryPool(mempool, state, pBaseTx.get(), true)) {
             RelayTransaction(pBaseTx.get(), inv.hash);
             mapAlreadyAskedFor.erase(inv);
-            vWorkQueue.push_back(inv.hash);
-            vEraseQueue.push_back(inv.hash);
 
             LogPrint("INFO", "AcceptToMemoryPool: %s %s : accepted %s (poolsz %u)\n",
                 pfrom->addr.ToString(), pfrom->cleanSubVer,
@@ -3775,10 +3764,10 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
                 state.GetRejectReason());
 
             pfrom->PushMessage("reject", strCommand, state.GetRejectCode(), state.GetRejectReason(), inv.hash);
-            //          if (nDoS > 0) {
-            //              LogPrint("INFO", "Misebehaving, add to tx hash %s mempool error, Misbehavior add %d",  pBaseTx->GetHash().GetHex(), nDoS);
-            //              Misbehaving(pfrom->GetId(), nDoS);
-            //          }
+            // if (nDoS > 0) {
+            //     LogPrint("INFO", "Misebehaving, add to tx hash %s mempool error, Misbehavior add %d", pBaseTx->GetHash().GetHex(), nDoS);
+            //     Misbehaving(pfrom->GetId(), nDoS);
+            // }
         }
     }
 

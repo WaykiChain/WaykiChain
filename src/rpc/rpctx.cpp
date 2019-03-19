@@ -597,7 +597,7 @@ Value registercontracttx(const Array& params, bool fHelp)
 
     std::tuple<bool, string> result = CVmlua::CheckScriptSyntax(luaScriptFilePath.c_str());
     bool bOK = std::get<0>(result);
-    if(!bOK)
+    if (!bOK)
         throw JSONRPCError(RPC_INVALID_PARAMS, std::get<1>(result));
 
     FILE* file = fopen(luaScriptFilePath.c_str(), "rb+");
@@ -1775,7 +1775,7 @@ Value listtxcache(const Array& params, bool fHelp) {
                 "\"txcache\"  (string) \n"
                 "\nExamples:\n" + HelpExampleCli("listtxcache", "")+ HelpExampleRpc("listtxcache", ""));
     }
-    const map<uint256, vector<uint256> > &mapTxHashByBlockHash = pTxCacheTip->GetTxHashCache();
+    const map<uint256, set<uint256> > &mapTxHashByBlockHash = pTxCacheTip->GetTxHashCache();
 
     Array retTxHashArray;
     for (auto &item : mapTxHashByBlockHash) {
