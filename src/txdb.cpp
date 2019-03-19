@@ -297,14 +297,6 @@ std::tuple<uint64_t, uint64_t> CAccountViewDB::TraverseAccount() {
 
 CTransactionDB::CTransactionDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {}
 
-bool CTransactionDB::SetTxCache(const uint256 &blockHash, const vector<uint256> &vHashTx) {
-    return db.Write(make_pair('h', blockHash), vHashTx);
-}
-
-bool CTransactionDB::GetTxCache(const uint256 &blockHash, vector<uint256> &vHashTx) {
-    return db.Read(make_pair('h', blockHash), vHashTx);
-}
-
 bool CTransactionDB::BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHash) {
     CLevelDBBatch batch;
     for (auto &item : mapTxHashByBlockHash) {

@@ -97,8 +97,6 @@ class CTransactionDB : public CTransactionDBView {
     void operator=(const CTransactionDB &);
 
    public:
-    bool SetTxCache(const uint256 &blockHash, const vector<uint256> &hashTxSet);
-    bool GetTxCache(const uint256 &hashblock, vector<uint256> &hashTx);
     bool LoadTransaction(map<uint256, set<uint256> > &mapTxHashByBlockHash);
     bool BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHash);
     int64_t GetDbCount() { return db.GetDbCount(); }

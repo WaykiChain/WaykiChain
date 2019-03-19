@@ -12,21 +12,21 @@
 
 #include "addrman.h"
 
+#include "./rpc/rpcserver.h"
+#include "./vm/lua/lua.h"
+#include "./wallet/wallet.h"
+#include "./wallet/walletdb.h"
 #include "configuration.h"
+#include "cuiserver.h"
 #include "main.h"
 #include "miner.h"
 #include "net.h"
-#include "./rpc/rpcserver.h"
+#include "noui.h"
+#include "syncdatadb.h"
+#include "tx.h"
 #include "txdb.h"
 #include "ui_interface.h"
 #include "util.h"
-#include "cuiserver.h"
-#include "tx.h"
-#include "./wallet/wallet.h"
-#include "./wallet/walletdb.h"
-#include "syncdatadb.h"
-#include "noui.h"
-#include "./vm/lua/lua.h"
 #ifdef USE_UPNP
 #include <miniupnpc/miniupnpc.h>
 #include <miniupnpc/miniwget.h>
@@ -34,11 +34,11 @@
 #include <miniupnpc/upnperrors.h>
 
 #ifndef MINIUPNPC_VERSION
-#define MINIUPNPC_VERSION   "1.9"
+#define MINIUPNPC_VERSION "1.9"
 #endif
 
 #ifndef MINIUPNPC_API_VERSION
-#define MINIUPNPC_API_VERSION   10
+#define MINIUPNPC_API_VERSION 10
 #endif
 
 #endif
@@ -50,10 +50,10 @@
 #include <signal.h>
 #endif
 
+#include <openssl/crypto.h>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
-#include <openssl/crypto.h>
 
 #include <boost/assign/list_of.hpp>
 using namespace boost::assign;
@@ -63,8 +63,7 @@ using namespace boost;
 
 #define USE_LUA 1
 
-CWallet* pwalletMain;
-
+CWallet *pwalletMain;
 
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for
@@ -81,7 +80,6 @@ enum BindFlags {
     BF_EXPLICIT     = (1U << 0),
     BF_REPORT_ERROR = (1U << 1)
 };
-
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -115,20 +113,16 @@ enum BindFlags {
 
 volatile bool fRequestShutdown = false;
 
-void StartShutdown()
-{
+void StartShutdown() {
     fRequestShutdown = true;
 }
-bool ShutdownRequested()
-{
+
+bool ShutdownRequested() {
     return fRequestShutdown;
 }
 
-
-
-void Shutdown()
-{
-    LogPrint("INFO","Shutdown : In progress...\n");
+void Shutdown() {
+    LogPrint("INFO", "Shutdown : In progress...\n");
     static CCriticalSection cs_Shutdown;
     TRY_LOCK(cs_Shutdown, lockShutdown);
     if (!lockShutdown) return;
@@ -137,7 +131,6 @@ void Shutdown()
     mempool.AddTransactionsUpdated(1);
     StopRPCThreads();
     ShutdownRPCMining();
-
 
     GenerateCoinBlock(false, NULL, 0);
 
@@ -155,21 +148,29 @@ void Shutdown()
         if (pblocktree)
             pblocktree->Flush();
 
-        if(pAccountViewTip)
+        if (pAccountViewTip)
             pAccountViewTip->Flush();
 
-        if(pTxCacheTip)
+        if (pTxCacheTip)
             pTxCacheTip->Flush();
 
-        if(pScriptDBTip)
+        if (pScriptDBTip)
             pScriptDBTip->Flush();
-        delete pAccountViewTip; pAccountViewTip = NULL;
-        delete pAccountViewDB; pAccountViewDB = NULL;
-        delete pblocktree; pblocktree = NULL;
-        delete pTxCacheDB; pTxCacheDB = NULL;
-        delete pScriptDB; pScriptDB = NULL;
-        delete pTxCacheTip; pTxCacheTip = NULL;
-        delete pScriptDBTip; pScriptDBTip = NULL;
+
+        delete pAccountViewTip;
+        pAccountViewTip = NULL;
+        delete pAccountViewDB;
+        pAccountViewDB = NULL;
+        delete pblocktree;
+        pblocktree = NULL;
+        delete pTxCacheDB;
+        pTxCacheDB = NULL;
+        delete pScriptDB;
+        pScriptDB = NULL;
+        delete pTxCacheTip;
+        pTxCacheTip = NULL;
+        delete pScriptDBTip;
+        pScriptDBTip = NULL;
     }
 
     boost::filesystem::remove(GetPidFile());
@@ -178,31 +179,27 @@ void Shutdown()
     if (pwalletMain)
         delete pwalletMain;
 
-    LogPrint("INFO","Shutdown : done\n");
+    LogPrint("INFO", "Shutdown : done\n");
     printf("Shutdown : done\n");
 }
 
 //
 // Signal handlers are very limited in what they are allowed to do, so:
 //
-void HandleSIGTERM(int)
-{
+void HandleSIGTERM(int) {
     fRequestShutdown = true;
 }
 
-void HandleSIGHUP(int)
-{
+void HandleSIGHUP(int) {
     fReopenDebugLog = true;
 }
 
-bool static InitError(const string &str)
-{
+bool static InitError(const string &str) {
     uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_ERROR | CClientUIInterface::NOSHOWGUI);
     return false;
 }
 
-bool static InitWarning(const string &str)
-{
+bool static InitWarning(const string &str) {
     uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_WARNING | CClientUIInterface::NOSHOWGUI);
     return true;
 }
@@ -227,7 +224,7 @@ string HelpMessage() {
     strUsage += "  -blocknotify=<cmd>     " + _("Execute command when the best block changes (%s in cmd is replaced by block hash)") + "\n";
     strUsage += "  -checkblocks=<n>       " + _("How many blocks to check at startup (default: 288, 0 = all)") + "\n";
     strUsage += "  -checklevel=<n>        " + _("How thorough the block verification of -checkblocks is (0-4, default: 3)") + "\n";
-    strUsage += "  -conf=<file>           " + _("Specify configuration file (default: ") + IniCfg().GetCoinName()+".conf)" + "\n";
+    strUsage += "  -conf=<file>           " + _("Specify configuration file (default: ") + IniCfg().GetCoinName() + ".conf)" + "\n";
 #if !defined(WIN32)
     strUsage += "  -daemon                " + _("Run in the background as a daemon and accept commands") + "\n";
 #endif
@@ -297,7 +294,7 @@ string HelpMessage() {
     strUsage += "  -debug=<category>      " + _("Output debugging information (default: 0, supplying <category> is optional)") + "\n";
     strUsage += "                         " + _("If <category> is not supplied, output all debugging information.") + "\n";
     strUsage += "                         " + _("<category> can be:");
-    strUsage +=                                 " addrman, alert, coindb, db, lock, rand, rpc, selectcoins, mempool, net";
+    strUsage += " addrman, alert, coindb, db, lock, rand, rpc, selectcoins, mempool, net";
 #ifdef ENABLE_WALLET
     strUsage += "  -genblock              " + _("Generate blocks (default: 0)") + "\n";
     strUsage += "  -genproclimit=<n>      " + _("Set the processor limit for when generation is on (-1 = unlimited, default: -1)") + "\n";
@@ -345,8 +342,7 @@ string HelpMessage() {
     return strUsage;
 }
 
-struct CImportingNow
-{
+struct CImportingNow {
     CImportingNow() {
         assert(SysCfg().IsImporting() == false);
         SysCfg().SetImporting(true);
@@ -358,8 +354,7 @@ struct CImportingNow
     }
 };
 
-void ThreadImport(vector<boost::filesystem::path> vImportFiles)
-{
+void ThreadImport(vector<boost::filesystem::path> vImportFiles) {
     RenameThread("coin-loadblk");
 
     // -reindex
@@ -390,7 +385,7 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles)
         if (file) {
             CImportingNow imp;
             filesystem::path pathBootstrapOld = GetDataDir() / "bootstrap.dat.old";
-            LogPrint("INFO","Importing bootstrap.dat...\n");
+            LogPrint("INFO", "Importing bootstrap.dat...\n");
             LoadExternalBlockFile(file);
             RenameOver(pathBootstrap, pathBootstrapOld);
         } else {
@@ -411,12 +406,10 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles)
     }
 }
 
-
 /** Initialize Coin.
  *  @pre Parameters should be parsed and config file should be read.
  */
-bool AppInit(boost::thread_group& threadGroup)
-{
+bool AppInit(boost::thread_group &threadGroup) {
     // ********************************************************* Step 1: setup
 #ifdef _MSC_VER
     // Turn off Microsoft heap dump noise
@@ -436,14 +429,14 @@ bool AppInit(boost::thread_group& threadGroup)
     // which is not correct. Can be removed, when GCCs winbase.h is fixed!
 #define PROCESS_DEP_ENABLE 0x00000001
 #endif
-    typedef BOOL (WINAPI *PSETPROCDEPPOL)(DWORD);
+    typedef BOOL(WINAPI * PSETPROCDEPPOL)(DWORD);
     PSETPROCDEPPOL setProcDEPPol = (PSETPROCDEPPOL)GetProcAddress(GetModuleHandleA("Kernel32.dll"), "SetProcessDEPPolicy");
     if (setProcDEPPol != NULL) setProcDEPPol(PROCESS_DEP_ENABLE);
 
     // Initialize Windows Sockets
     WSADATA wsadata;
-    int ret = WSAStartup(MAKEWORD(2,2), &wsadata);
-    if (ret != NO_ERROR || LOBYTE(wsadata.wVersion ) != 2 || HIBYTE(wsadata.wVersion) != 2)
+    int ret = WSAStartup(MAKEWORD(2, 2), &wsadata);
+    if (ret != NO_ERROR || LOBYTE(wsadata.wVersion) != 2 || HIBYTE(wsadata.wVersion) != 2)
         return InitError(strprintf("Error: Winsock library failed to start (WSAStartup returned error %d)", ret));
 
 #endif
@@ -465,7 +458,7 @@ bool AppInit(boost::thread_group& threadGroup)
     sa_hup.sa_flags = 0;
     sigaction(SIGHUP, &sa_hup, NULL);
 
-#if defined (__SVR4) && defined (__sun)
+#if defined(__SVR4) && defined(__sun)
     // ignore SIGPIPE on Solaris
     signal(SIGPIPE, SIG_IGN);
 #endif
@@ -473,7 +466,7 @@ bool AppInit(boost::thread_group& threadGroup)
 
     CUIServer::StartServer();
 
-    if(SysCfg().GetBoolArg("-ui", false))
+    if (SysCfg().GetBoolArg("-ui", false))
         threadGroup.create_thread(ThreadSendMessageToUI);
 
     // ********************************************************* Step 2: parameter interactions
@@ -529,10 +522,10 @@ bool AppInit(boost::thread_group& threadGroup)
     }
 
     // Make sure enough file descriptors are available
-    int nBind = max((int) SysCfg().IsArgCount("-bind"), 1);
+    int nBind       = max((int)SysCfg().IsArgCount("-bind"), 1);
     nMaxConnections = SysCfg().GetArg("-maxconnections", 125);
     nMaxConnections = max(min(nMaxConnections, (int)(FD_SETSIZE - nBind - MIN_CORE_FILEDESCRIPTORS)), 0);
-    int nFD = RaiseFileDescriptorLimit(nMaxConnections + MIN_CORE_FILEDESCRIPTORS);
+    int nFD         = RaiseFileDescriptorLimit(nMaxConnections + MIN_CORE_FILEDESCRIPTORS);
     if (nFD < MIN_CORE_FILEDESCRIPTORS)
         return InitError(_("Not enough file descriptors available."));
 
@@ -569,7 +562,7 @@ bool AppInit(boost::thread_group& threadGroup)
         }
     }
     if (SysCfg().GetTxFee() > nHighTransactionFeeWarning) {
-       InitWarning(_("Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction."));
+        InitWarning(_("Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction."));
     }
 
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
@@ -578,7 +571,7 @@ bool AppInit(boost::thread_group& threadGroup)
 
     // Make sure only a single Coin process is using the data directory.
     boost::filesystem::path pathLockFile = GetDataDir() / ".lock";
-    FILE* file = fopen(pathLockFile.string().c_str(), "a"); // empty lock file; created if it doesn't exist.
+    FILE *file                           = fopen(pathLockFile.string().c_str(), "a");  // empty lock file; created if it doesn't exist.
     if (file) {
         fclose(file);
     }
@@ -590,35 +583,35 @@ bool AppInit(boost::thread_group& threadGroup)
     // if (GetBoolArg("-shrinkdebugfile", !fDebug))
     //     ShrinkDebugFile();
 
-    LogPrint("INFO","%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE);
+    LogPrint("INFO", "%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE);
     printf("%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE.c_str());
-    LogPrint("INFO","Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
+    LogPrint("INFO", "Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
     printf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
 #ifdef USE_LUA
-    LogPrint("INFO","Using Lua version %s\n", LUA_RELEASE);
+    LogPrint("INFO", "Using Lua version %s\n", LUA_RELEASE);
     printf("Using Lua version %s\n", LUA_RELEASE);
 #endif
     string boost_version = BOOST_LIB_VERSION;
     StringReplace(boost_version, "_", ".");
-    LogPrint("INFO","Using Boost version %s\n", boost_version);
+    LogPrint("INFO", "Using Boost version %s\n", boost_version);
     printf("Using Boost version %s\n", boost_version.c_str());
     string leveldb_version = strprintf("%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
-    LogPrint("INFO","Using Level DB version %s\n", leveldb_version);
+    LogPrint("INFO", "Using Level DB version %s\n", leveldb_version);
     printf("Using Level DB version %s\n", leveldb_version.c_str());
-    LogPrint("INFO","Using Berkeley DB version %s\n", DB_VERSION_STRING);
+    LogPrint("INFO", "Using Berkeley DB version %s\n", DB_VERSION_STRING);
     printf("Using Berkeley DB version %s\n", DB_VERSION_STRING);
 
 #ifdef USE_UPNP
-    LogPrint("INFO","Using miniupnpc version %s,API version %d\n", MINIUPNPC_VERSION, MINIUPNPC_API_VERSION);
+    LogPrint("INFO", "Using miniupnpc version %s,API version %d\n", MINIUPNPC_VERSION, MINIUPNPC_API_VERSION);
     printf("Using miniupnpc version %s,API version %d\n", MINIUPNPC_VERSION, MINIUPNPC_API_VERSION);
 #endif
-    LogPrint("INFO","Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
+    LogPrint("INFO", "Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
     printf("Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()).c_str());
-    LogPrint("INFO","Default data directory %s\n", GetDefaultDataDir().string());
+    LogPrint("INFO", "Default data directory %s\n", GetDefaultDataDir().string());
     printf("Default data directory %s\n", GetDefaultDataDir().string().c_str());
-    LogPrint("INFO","Using data directory %s\n", strDataDir);
+    LogPrint("INFO", "Using data directory %s\n", strDataDir);
     printf("Using data directory %s\n", strDataDir.c_str());
-    LogPrint("INFO","Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
+    LogPrint("INFO", "Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
     printf("Using at most %i connections (      %i file descriptors available)\n", nMaxConnections, nFD);
     ostringstream strErrors;
 
@@ -638,7 +631,7 @@ bool AppInit(boost::thread_group& threadGroup)
     if (SysCfg().IsArgCount("-onlynet")) {
         set<enum Network> nets;
         vector<string> tmp = SysCfg().GetMultiArgs("-onlynet");
-        for (auto& snet : tmp) {
+        for (auto &snet : tmp) {
             enum Network net = ParseNetwork(snet);
             if (net == NET_UNROUTABLE) {
                 return InitError(strprintf(_("Unknown network specified in -onlynet: '%s'"), snet));
@@ -646,7 +639,7 @@ bool AppInit(boost::thread_group& threadGroup)
             nets.insert(net);
         }
         for (int n = 0; n < NET_MAX; n++) {
-            enum Network net = (enum Network) n;
+            enum Network net = (enum Network)n;
             if (!nets.count(net)) {
                 SetLimited(net);
             }
@@ -678,8 +671,7 @@ bool AppInit(boost::thread_group& threadGroup)
     if (SysCfg().IsArgCount("-tor")) {
         LogPrint("INFO", "Notice: option -tor has been replaced with -onion and will be removed in a later version.\n");
     }
-    if (!(SysCfg().GetArg("-onion", "") == "0") && !(SysCfg().GetArg("-tor", "") == "0")
-            && (fProxy || SysCfg().IsArgCount("-onion") || SysCfg().IsArgCount("-tor"))) {
+    if (!(SysCfg().GetArg("-onion", "") == "0") && !(SysCfg().GetArg("-tor", "") == "0") && (fProxy || SysCfg().IsArgCount("-onion") || SysCfg().IsArgCount("-tor"))) {
         CService addrOnion;
         if (!SysCfg().IsArgCount("-onion") && !SysCfg().IsArgCount("-tor")) {
             addrOnion = addrProxy;
@@ -695,23 +687,22 @@ bool AppInit(boost::thread_group& threadGroup)
     }
 
     // see Step 2: parameter interactions for more information about these
-    fNoListen = !SysCfg().GetBoolArg("-listen", true);
-    fDiscover = SysCfg().GetBoolArg("-discover", true);
+    fNoListen   = !SysCfg().GetBoolArg("-listen", true);
+    fDiscover   = SysCfg().GetBoolArg("-discover", true);
     fNameLookup = SysCfg().GetBoolArg("-dns", true);
 
     bool fBound = false;
     if (!fNoListen) {
         if (SysCfg().IsArgCount("-bind")) {
             vector<string> tmp = SysCfg().GetMultiArgs("-bind");
-            for (const auto& strBind : tmp) {
+            for (const auto &strBind : tmp) {
                 CService addrBind;
                 if (!Lookup(strBind.c_str(), addrBind, GetListenPort(), false)) {
                     return InitError(strprintf(_("Cannot resolve -bind address: '%s'"), strBind));
                 }
                 fBound |= Bind(addrBind, (BF_EXPLICIT | BF_REPORT_ERROR));
             }
-        }
-        else {
+        } else {
             struct in_addr inaddr_any;
             inaddr_any.s_addr = INADDR_ANY;
             fBound |= Bind(CService(in6addr_any, GetListenPort()), BF_NONE);
@@ -724,7 +715,7 @@ bool AppInit(boost::thread_group& threadGroup)
 
     if (SysCfg().IsArgCount("-externalip")) {
         vector<string> tmp = SysCfg().GetMultiArgs("-externalip");
-        for (const auto& strAddr : tmp) {
+        for (const auto &strAddr : tmp) {
             CService addrLocal(strAddr, GetListenPort(), fNameLookup);
             if (!addrLocal.IsValid()) {
                 return InitError(strprintf(_("Cannot resolve -externalip address: '%s'"), strAddr));
@@ -741,7 +732,7 @@ bool AppInit(boost::thread_group& threadGroup)
     }
 
     // ********************************************************* Step 7: load block chain
-    SysCfg().SetReIndex(SysCfg().GetBoolArg("-reindex", false) );
+    SysCfg().SetReIndex(SysCfg().GetBoolArg("-reindex", false));
 
     filesystem::path blocksDir = GetDataDir() / "blocks";
     if (!filesystem::exists(blocksDir)) {
@@ -751,27 +742,27 @@ bool AppInit(boost::thread_group& threadGroup)
     // cache size calculations
     size_t nTotalCache = (SysCfg().GetArg("-dbcache", nDefaultDbCache) << 20);
     if (nTotalCache < (nMinDbCache << 20))
-        nTotalCache = (nMinDbCache << 20); // total cache cannot be less than nMinDbCache
+        nTotalCache = (nMinDbCache << 20);  // total cache cannot be less than nMinDbCache
     else if (nTotalCache > (nMaxDbCache << 20))
-        nTotalCache = (nMaxDbCache << 20); // total cache cannot be greater than nMaxDbCache
+        nTotalCache = (nMaxDbCache << 20);  // total cache cannot be greater than nMaxDbCache
     size_t nBlockTreeDBCache = nTotalCache / 8;
     if (nBlockTreeDBCache > (1 << 21) && !SysCfg().GetBoolArg("-txindex", false))
-        nBlockTreeDBCache = (1 << 21); // block tree db cache shouldn't be larger than 2 MiB
+        nBlockTreeDBCache = (1 << 21);  // block tree db cache shouldn't be larger than 2 MiB
     nTotalCache -= nBlockTreeDBCache;
-    size_t nAccountDBCache = nTotalCache / 2; // use half of the remaining cache for coindb cache
+    size_t nAccountDBCache = nTotalCache / 2;  // use half of the remaining cache for coindb cache
     nTotalCache -= nAccountDBCache;
     size_t nScriptCacheSize = nTotalCache / 2;
     nTotalCache -= nScriptCacheSize;
     size_t nTxCacheSize = nTotalCache / 2;
 
-    SysCfg().SetViewCacheSize(nTotalCache / 300); // coins in memory require around 300 bytes
+    SysCfg().SetViewCacheSize(nTotalCache / 300);  // coins in memory require around 300 bytes
 
     try {
         pwalletMain = CWallet::getinstance();
         RegisterWallet(pwalletMain);
         pwalletMain->LoadWallet(false);
     } catch (std::exception &e) {
-        cout<< "load wallet failed:"<<  e.what() << endl;
+        cout << "load wallet failed:" << e.what() << endl;
     }
 
     //load checkpoint
@@ -821,7 +812,6 @@ bool AppInit(boost::thread_group& threadGroup)
                     break;
                 }
 
-
                 // If the loaded chain has a wrong genesis, bail out immediately
                 // (we're likely using a testnet datadir, or the other way around).
                 if (!mapBlockIndex.empty() && chainActive.Genesis() == NULL)
@@ -849,14 +839,14 @@ bool AppInit(boost::thread_group& threadGroup)
                     break;
                 }
 
-            } catch(std::exception &e) {
-                LogPrint("INFO","%s\n", e.what());
+            } catch (std::exception &e) {
+                LogPrint("INFO", "%s\n", e.what());
                 strLoadError = _("Error opening block database");
                 break;
             }
 
             fLoaded = true;
-        } while(false);
+        } while (false);
 
         uiInterface.InitMessage(_("Verifying Finished"));
         uiInterface.InitMessage(_("Sync Tx"));
@@ -870,7 +860,7 @@ bool AppInit(boost::thread_group& threadGroup)
                     SysCfg().SetReIndex(true);
                     fRequestShutdown = false;
                 } else {
-                    LogPrint("INFO","Aborted block database rebuild. Exiting.\n");
+                    LogPrint("INFO", "Aborted block database rebuild. Exiting.\n");
                     return false;
                 }
             } else {
@@ -883,10 +873,10 @@ bool AppInit(boost::thread_group& threadGroup)
     // requested to kill the GUI during the last operation. If so, exit.
     // As the program has not fully started yet, Shutdown() is possibly overkill.
     if (fRequestShutdown) {
-        LogPrint("INFO","Shutdown requested. Exiting.\n");
+        LogPrint("INFO", "Shutdown requested. Exiting.\n");
         return false;
     }
-    LogPrint("INFO"," block index %15dms\n", GetTimeMillis() - nStart);
+    LogPrint("INFO", " block index %15dms\n", GetTimeMillis() - nStart);
 
     if (SysCfg().GetBoolArg("-printblockindex", false) || SysCfg().GetBoolArg("-printblocktree", false)) {
         PrintBlockTree();
@@ -895,16 +885,16 @@ bool AppInit(boost::thread_group& threadGroup)
 
     if (SysCfg().IsArgCount("-printblock")) {
         string strMatch = SysCfg().GetArg("-printblock", "");
-        int nFound = 0;
-        for (map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.begin(); mi != mapBlockIndex.end(); ++mi) {
+        int nFound      = 0;
+        for (map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.begin(); mi != mapBlockIndex.end(); ++mi) {
             uint256 hash = (*mi).first;
             if (strncmp(hash.ToString().c_str(), strMatch.c_str(), strMatch.size()) == 0) {
-                CBlockIndex* pindex = (*mi).second;
+                CBlockIndex *pindex = (*mi).second;
                 CBlock block;
                 ReadBlockFromDisk(block, pindex);
                 block.BuildMerkleTree();
                 block.Print(*pAccountViewTip);
-                LogPrint("INFO","\n");
+                LogPrint("INFO", "\n");
                 nFound++;
             }
         }
@@ -922,13 +912,13 @@ bool AppInit(boost::thread_group& threadGroup)
         strErrors << "Failed to connect best block";
     }
     // check current chain according to checkpoint
-    CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
+    CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
     if (NULL != pcheckpoint)
         CheckActiveChain(pcheckpoint->nHeight, pcheckpoint->GetBlockHash());
 
     vector<boost::filesystem::path> vImportFiles;
     if (SysCfg().IsArgCount("-loadblock")) {
-        vector<string>tmp = SysCfg().GetMultiArgs("-loadblock");
+        vector<string> tmp = SysCfg().GetMultiArgs("-loadblock");
         for (auto strFile : tmp) {
             vImportFiles.push_back(strFile);
         }
