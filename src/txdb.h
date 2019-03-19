@@ -97,7 +97,6 @@ class CTransactionDB : public CTransactionDBView {
     void operator=(const CTransactionDB &);
 
    public:
-    bool LoadTransaction(map<uint256, set<uint256> > &mapTxHashByBlockHash);
     bool BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHash);
     int64_t GetDbCount() { return db.GetDbCount(); }
 };
@@ -128,23 +127,4 @@ class CScriptDB : public CScriptDBView {
     bool GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc);
 };
 
-//class CDelegateDB: public CDelegateDBView{
-//private:
-//    CLevelDBWrapper db;
-//public:
-//    CDelegateDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
-//private:
-//    CDelegateDB(const CDelegateDB&);
-//    void operator=(const CDelegateDB&);
-//public:
-//
-//    bool ModifyDelegatesVote(const vector<unsigned char> &vScriptId, uint64_t llVotes);
-//    bool BatchWrite(const map< vector<unsigned char>, bool> &mapVoteAccount);
-//    bool GetTopXDelegateAccount(int n, vector<vector<unsigned char> > &listScriptId);
-//    int64_t GetDbCount()
-//    {
-//        return db.GetDbCount();
-//    }
-//
-//};
 #endif  // COIN_TXDB_LEVELDB_H

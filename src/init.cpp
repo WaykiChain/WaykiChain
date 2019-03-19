@@ -829,10 +829,6 @@ bool AppInit(boost::thread_group &threadGroup) {
                     break;
                 }
 
-                if (!pTxCacheTip->LoadTransaction()) {
-                    strLoadError = _("Error loading transaction cache database");
-                }
-
                 uiInterface.InitMessage(_("Verifying blocks..."));
                 if (!VerifyDB(SysCfg().GetArg("-checklevel", 3), SysCfg().GetArg("-checkblocks", 288))) {
                     strLoadError = _("Corrupted block database detected");
@@ -908,9 +904,26 @@ bool AppInit(boost::thread_group &threadGroup) {
 
     // scan for better chains in the block chain database, that are not yet connected in the active best chain
     CValidationState state;
-    if (!ActivateBestChain(state)) {
-        strErrors << "Failed to connect best block";
+    if (!ActivateBestChain(state))
+        return InitError("Failed to connect best block");
+
+    nStart                  = GetTimeMillis();
+    CBlockIndex *blockIndex = chainActive.Tip();
+    int nCacheHeight        = SysCfg().GetTxCacheHeight();
+    int nCount              = 0;
+    CBlock block;
+    while (blockIndex && nCacheHeight-- > 0) {
+        if (!ReadBlockFromDisk(block, blockIndex))
+            return InitError("Failed to read block");
+
+        if (!pTxCacheTip->AddBlockToCache(block))
+            return InitError("Failed to add block to txcache");
+
+        blockIndex = blockIndex->pprev;
+        ++nCount;
     }
+    LogPrint("INFO", "Add the latest %d blocks to txcache (%dms)\n", nCount, GetTimeMillis() - nStart);
+
     // check current chain according to checkpoint
     CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
     if (NULL != pcheckpoint)
@@ -944,9 +957,6 @@ bool AppInit(boost::thread_group &threadGroup) {
 
     if (!CheckDiskSpace())
         return false;
-
-    if (!strErrors.str().empty())
-        return InitError(strErrors.str());
 
     RandAddSeedPerfmon();
 

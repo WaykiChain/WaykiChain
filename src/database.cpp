@@ -1523,7 +1523,6 @@ uint256 CTransactionDBView::HasTx(const uint256 &txHash) { return uint256(); }
 bool CTransactionDBView::IsContainBlock(const CBlock &block) { return false; }
 bool CTransactionDBView::AddBlockToCache(const CBlock &block) { return false; }
 bool CTransactionDBView::DeleteBlockFromCache(const CBlock &block) { return false; }
-bool CTransactionDBView::LoadTransaction(map<uint256, set<uint256> > &mapTxHashByBlockHash) { return false; }
 bool CTransactionDBView::BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHash) { return false; }
 
 CTransactionDBViewBacked::CTransactionDBViewBacked(CTransactionDBView &transactionView) {
@@ -1544,10 +1543,6 @@ bool CTransactionDBViewBacked::AddBlockToCache(const CBlock &block) {
 
 bool CTransactionDBViewBacked::DeleteBlockFromCache(const CBlock &block) {
     return pBase->DeleteBlockFromCache(block);
-}
-
-bool CTransactionDBViewBacked::LoadTransaction(map<uint256, set<uint256> > &mapTxHashByBlockHash) {
-    return pBase->LoadTransaction(mapTxHashByBlockHash);
 }
 
 bool CTransactionDBViewBacked::BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHashIn) {
@@ -1572,15 +1567,10 @@ bool CTransactionDBCache::AddBlockToCache(const CBlock &block) {
 }
 
 bool CTransactionDBCache::DeleteBlockFromCache(const CBlock &block) {
-    //	LogPrint("txcache", "CTransactionDBCache::DeleteBlockFromCache() height=%d blockhash=%s \n", block.nHeight, block.GetHash().GetHex());
     if (IsContainBlock(block)) {
         set<uint256> vTxHash;
         vTxHash.clear();
         mapTxHashByBlockHash[block.GetHash()] = vTxHash;
-        return true;
-    } else {
-        LogPrint("ERROR", "the block hash:%s isn't in TxCache\n", block.GetHash().GetHex());
-        return false;
     }
     return true;
 }
@@ -1610,26 +1600,20 @@ bool CTransactionDBCache::BatchWrite(const map<uint256, set<uint256> > &mapTxHas
 }
 
 bool CTransactionDBCache::Flush() {
-    bool bRet = pBase->BatchWrite(mapTxHashByBlockHash);
-    if (bRet) {
-        map<uint256, set<uint256> >::iterator iter = mapTxHashByBlockHash.begin();
-        for (; iter != mapTxHashByBlockHash.end();) {
-            if (iter->second.empty()) {
-                mapTxHashByBlockHash.erase(iter++);
-            } else {
-                iter++;
-            }
+    map<uint256, set<uint256> >::iterator iter = mapTxHashByBlockHash.begin();
+    for (; iter != mapTxHashByBlockHash.end();) {
+        if (iter->second.empty()) {
+            mapTxHashByBlockHash.erase(iter++);
+        } else {
+            iter++;
         }
     }
-    return bRet;
+
+    return true;
 }
 
 void CTransactionDBCache::AddTxHashCache(const uint256 &blockHash, const set<uint256> &vTxHash) {
     mapTxHashByBlockHash[blockHash] = vTxHash;
-}
-
-bool CTransactionDBCache::LoadTransaction() {
-    return pBase->LoadTransaction(mapTxHashByBlockHash);
 }
 
 void CTransactionDBCache::Clear() {
