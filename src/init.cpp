@@ -534,7 +534,7 @@ bool AppInit(boost::thread_group &threadGroup) {
 
     // ********************************************************* Step 3: parameter-to-internal-flags
     SysCfg().SetBenchMark(SysCfg().GetBoolArg("-benchmark", false));
-    mempool.setSanityCheck(SysCfg().GetBoolArg("-checkmempool", RegTest()));
+    mempool.SetSanityCheck(SysCfg().GetBoolArg("-checkmempool", RegTest()));
     Checkpoints::fEnabled = SysCfg().GetBoolArg("-checkpoints", true);
 
     setvbuf(stdout, NULL, _IOLBF, 0);

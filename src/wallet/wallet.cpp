@@ -385,7 +385,7 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate) {
 void CWallet::ResendWalletTransactions() {
     vector<uint256> erase;
     for (auto &te : UnConfirmTx) {
-        if(mempool.exists(te.first)){ //如果已经存在mempool 了那就不要再提交了
+        if(mempool.Exists(te.first)){ //如果已经存在mempool 了那就不要再提交了
             continue;
         }
         std::shared_ptr<CBaseTransaction> pBaseTx = te.second->GetNewInstance();

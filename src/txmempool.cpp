@@ -64,7 +64,6 @@ void CTxMemPool::ReScanMemPoolTx(CAccountViewCache *pAccountViewCacheIn, CScript
     {
         LOCK(cs);
         CValidationState state;
-        list<std::shared_ptr<CBaseTransaction> > removed;
         for(map<uint256, CTxMemPoolEntry >::iterator iterTx = mapTx.begin(); iterTx != mapTx.end(); ) {
             if (!CheckTxInMemPool(iterTx->first, iterTx->second, state, true)) {
                 uint256 hash = iterTx->first;
@@ -89,7 +88,7 @@ void CTxMemPool::AddTransactionsUpdated(unsigned int n) {
     nTransactionsUpdated += n;
 }
 
-void CTxMemPool::remove(CBaseTransaction *pBaseTx, list<std::shared_ptr<CBaseTransaction> >& removed, bool fRecursive) {
+void CTxMemPool::Remove(CBaseTransaction *pBaseTx, list<std::shared_ptr<CBaseTransaction> >& removed, bool fRecursive) {
     // Remove transaction from memory pool
     LOCK(cs);
     uint256 hash = pBaseTx->GetHash();
@@ -131,7 +130,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &en
     return true;
 }
 
-bool CTxMemPool::addUnchecked(const uint256& hash, const CTxMemPoolEntry &entry, CValidationState &state) {
+bool CTxMemPool::AddUnchecked(const uint256& hash, const CTxMemPoolEntry &entry, CValidationState &state) {
     // Add to memory pool without checking anything.
     // Used by main.cpp AcceptToMemoryPool(), which DOES
     // all the appropriate checks.
@@ -147,23 +146,22 @@ bool CTxMemPool::addUnchecked(const uint256& hash, const CTxMemPoolEntry &entry,
     return true;
 }
 
-void CTxMemPool::clear() {
+void CTxMemPool::Clear() {
     LOCK(cs);
     mapTx.clear();
     pAccountViewCache.reset(new CAccountViewCache(*pAccountViewTip, false));
     ++nTransactionsUpdated;
 }
 
-void CTxMemPool::queryHashes(vector<uint256>& vtxid) {
-    vtxid.clear();
-
+void CTxMemPool::QueryHash(vector<uint256>& vtxid) {
     LOCK(cs);
+    vtxid.clear();
     vtxid.reserve(mapTx.size());
     for (typename map<uint256, CTxMemPoolEntry>::iterator mi = mapTx.begin(); mi != mapTx.end(); ++mi)
         vtxid.push_back((*mi).first);
 }
 
-std::shared_ptr<CBaseTransaction> CTxMemPool::lookup(uint256 hash) const {
+std::shared_ptr<CBaseTransaction> CTxMemPool::Lookup(uint256 hash) const {
     LOCK(cs);
     typename map<uint256, CTxMemPoolEntry>::const_iterator i = mapTx.find(hash);
     if (i == mapTx.end())

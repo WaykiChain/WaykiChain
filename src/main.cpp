@@ -621,7 +621,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTransact
 
     // is it already in the memory pool?
     uint256 hash = pBaseTx->GetHash();
-    if (pool.exists(hash))
+    if (pool.Exists(hash))
         return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] already in mempool",
             hash.GetHex()), REJECT_INVALID, "tx-already-in-mempool");
 
@@ -698,8 +698,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTransact
                 hash.ToString(), nFees, SysCfg().GetMaxFee());
 
         // Store transaction in memory
-        if (!pool.addUnchecked(hash, entry, state))
-            return ERRORMSG("AcceptToMemoryPool: : addUnchecked failed hash:%s \r\n", hash.ToString());
+        if (!pool.AddUnchecked(hash, entry, state))
+            return ERRORMSG("AcceptToMemoryPool: : AddUnchecked failed hash:%s \r\n", hash.ToString());
     }
 
     g_signals.SyncTransaction(hash, pBaseTx, NULL);
@@ -734,7 +734,7 @@ int CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex *&pindexRet) const {
 int CMerkleTx::GetDepthInMainChain(CBlockIndex *&pindexRet) const {
     AssertLockHeld(cs_main);
     int nResult = GetDepthInMainChainINTERNAL(pindexRet);
-    if (nResult == 0 && !mempool.exists(pTx->GetHash()))
+    if (nResult == 0 && !mempool.Exists(pTx->GetHash()))
         return -1;  // Not in chain, not in mempool
 
     return nResult;
@@ -773,7 +773,7 @@ bool GetTransaction(std::shared_ptr<CBaseTransaction> &pBaseTx, const uint256 &h
         LOCK(cs_main);
         {
             if (bSearchMemPool == true) {
-                pBaseTx = mempool.lookup(hash);
+                pBaseTx = mempool.Lookup(hash);
                 if (pBaseTx.get())
                     return true;
             }
@@ -1691,7 +1691,7 @@ bool static DisconnectTip(CValidationState &state) {
         CValidationState stateDummy;
         if (!ptx->IsCoinBase()) {
             if (!AcceptToMemoryPool(mempool, stateDummy, ptx.get(), false)) {
-                mempool.remove(ptx.get(), removed, true);
+                mempool.Remove(ptx.get(), removed, true);
             } else
                 uiInterface.ReleaseTransaction(ptx->GetHash());
         } else {
@@ -3269,7 +3269,7 @@ bool static AlreadyHave(const CInv &inv) {
     switch (inv.type) {
         case MSG_TX: {
             bool txInMap = false;
-            txInMap      = mempool.exists(inv.hash);
+            txInMap      = mempool.Exists(inv.hash);
             return txInMap || mapOrphanTransactions.count(inv.hash);
         }
         case MSG_BLOCK:
@@ -3365,7 +3365,7 @@ void static ProcessGetData(CNode *pfrom) {
                     }
                 }
                 if (!pushed && inv.type == MSG_TX) {
-                    std::shared_ptr<CBaseTransaction> pBaseTx = mempool.lookup(inv.hash);
+                    std::shared_ptr<CBaseTransaction> pBaseTx = mempool.Lookup(inv.hash);
                     if (pBaseTx.get()) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
@@ -3802,12 +3802,12 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         LOCK2(cs_main, pfrom->cs_filter);
 
         vector<uint256> vtxid;
-        mempool.queryHashes(vtxid);
+        mempool.QueryHash(vtxid);
         vector<CInv> vInv;
         for (auto &hash : vtxid) {
             CInv inv(MSG_TX, hash);
             CTransaction tx;
-            std::shared_ptr<CBaseTransaction> pBaseTx = mempool.lookup(hash);
+            std::shared_ptr<CBaseTransaction> pBaseTx = mempool.Lookup(hash);
             if (pBaseTx.get())
                 continue;  // another thread removed since queryHashes, maybe...
 

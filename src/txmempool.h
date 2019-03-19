@@ -69,38 +69,28 @@ public:
 
     CTxMemPool();
 
-    void setSanityCheck(bool _fSanityCheck) { fSanityCheck = _fSanityCheck; }
-
-    bool addUnchecked(const uint256& hash, const CTxMemPoolEntry &entry, CValidationState &state);
-
-    void remove(CBaseTransaction *pBaseTx, list<std::shared_ptr<CBaseTransaction> >& removed, bool fRecursive = false);
-
-    void clear();
-    void queryHashes(vector<uint256>& vtxid);
+    void SetSanityCheck(bool _fSanityCheck) { fSanityCheck = _fSanityCheck; }
+    bool AddUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry, CValidationState &state);
+    void Remove(CBaseTransaction *pBaseTx, list<std::shared_ptr<CBaseTransaction> > &removed, bool fRecursive = false);
+    void Clear();
+    void QueryHash(vector<uint256> &vtxid);
     unsigned int GetTransactionsUpdated() const;
     void AddTransactionsUpdated(unsigned int n);
+    std::shared_ptr<CBaseTransaction> Lookup(uint256 hash) const;
+    void SetAccountViewDB(CAccountViewCache *pAccountViewCacheIn);
+    void SetScriptDBViewDB(CScriptDBViewCache *pScriptDBViewCacheIn);
+    bool CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &entry, CValidationState &state, bool bExcute = true);
+    void ReScanMemPoolTx(CAccountViewCache *pAccountViewCacheIn, CScriptDBViewCache *pScriptDBViewCacheIn);
 
-    unsigned long size()
-    {
+    unsigned long Size() {
         LOCK(cs);
         return mapTx.size();
     }
 
-    bool exists(uint256 hash)
-    {
+    bool Exists(uint256 hash) {
         LOCK(cs);
-		return ((mapTx.count(hash) != 0));
+        return ((mapTx.count(hash) != 0));
     }
-
-    std::shared_ptr<CBaseTransaction> lookup(uint256 hash) const;
-
-    void SetAccountViewDB(CAccountViewCache *pAccountViewCacheIn);
-
-    void SetScriptDBViewDB(CScriptDBViewCache *pScriptDBViewCacheIn);
-
-    bool CheckTxInMemPool(const uint256& hash, const CTxMemPoolEntry &entry, CValidationState &state, bool bExcute=true);
-
-    void ReScanMemPoolTx(CAccountViewCache *pAccountViewCacheIn, CScriptDBViewCache *pScriptDBViewCacheIn);
 };
 
 
