@@ -135,14 +135,14 @@ Value setgenerate(const Array& params, bool fHelp)
 {
     if (fHelp || (params.size() != 1 && params.size() != 2))
         throw runtime_error(
-            "setgenerate generate ( genproclimit )\n"
+            "setgenerate generate ( genblocklimit )\n"
             "\nSet 'generate' true or false to turn generation on or off.\n"
-            "Generation is limited to 'genproclimit' processors, -1 is unlimited.\n"
+            "Generation is limited to 'genblocklimit' processors, -1 is unlimited.\n"
             "See the getgenerate call for the current setting.\n"
             "\nArguments:\n"
             "1. generate         (boolean, required) Set to true to turn on generation, off to turn off.\n"
-            "2. genproclimit     (numeric, optional) Set the processor limit for when generation is on. Can be -1 for unlimited.\n"
-            "                    Note: in -regtest mode, genproclimit controls how many blocks are generated immediately.\n"
+            "2. genblocklimit     (numeric, optional) Set the processor limit for when generation is on. Can be -1 for unlimited.\n"
+            "                    Note: in -regtest mode, genblocklimit controls how many blocks are generated immediately.\n"
             "\nExamples:\n"
             "\nSet the generation on with a limit of one processor\n"
             + HelpExampleCli("setgenerate", "true 1")
@@ -206,7 +206,7 @@ Value getmininginfo(const Array& params, bool fHelp)
             "  \"difficulty\": xxx.xxxxx    (numeric) The current difficulty\n"
             "  \"errors\": \"...\"          (string) Current errors\n"
             "  \"generate\": true|false     (boolean) If the generation is on or off (see getgenerate or setgenerate calls)\n"
-            "  \"genproclimit\": n          (numeric) The processor limit for generation. -1 if no generation. (see getgenerate or setgenerate calls)\n"
+            "  \"genblocklimit\": n         (numeric) The processor limit for generation. -1 if no generation. (see getgenerate or setgenerate calls)\n"
             "  \"hashespersec\": n          (numeric) The hashes per second of the generation, or 0 if no generation.\n"
             "  \"pooledtx\": n              (numeric) The size of the mem pool\n"
             "  \"testnet\": true|false      (boolean) If using testnet or not\n"
@@ -224,7 +224,7 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("currentblocksize", (uint64_t)nLastBlockSize));
     obj.push_back(Pair("currentblocktx",   (uint64_t)nLastBlockTx));
     obj.push_back(Pair("errors",           GetWarnings("statusbar")));
-    obj.push_back(Pair("genproclimit",     1));
+    obj.push_back(Pair("genblocklimit",    1));
     obj.push_back(Pair("networkhashps",    getnetworkhashps(params, false)));
     obj.push_back(Pair("pooledtx",         (uint64_t)mempool.size()));
     obj.push_back(Pair("nettype",          NetTypes[SysCfg().NetworkID()]));
@@ -294,7 +294,7 @@ Value getminedblocks(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 1) {
         throw runtime_error("getminedblocks\n"
-            "\nReturns a json array containing the blocks mined by this node."  
+            "\nReturns a json array containing the blocks mined by this node."
             "\nArguments:\n"
             "1. count         (numeric, optional) If provided, get the specified count blocks,\n"
             "                                     otherwise get all nodes.\n"

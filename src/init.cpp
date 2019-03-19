@@ -297,7 +297,7 @@ string HelpMessage() {
     strUsage += " addrman, alert, coindb, db, lock, rand, rpc, selectcoins, mempool, net";
 #ifdef ENABLE_WALLET
     strUsage += "  -genblock              " + _("Generate blocks (default: 0)") + "\n";
-    strUsage += "  -genproclimit=<n>      " + _("Set the processor limit for when generation is on (-1 = unlimited, default: -1)") + "\n";
+    strUsage += "  -genblocklimit=<n>     " + _("Set the processor limit for when generation is on (-1 = unlimited, default: -1)") + "\n";
 #endif
     strUsage += "  -help-debug            " + _("Show all debugging options (usage: --help -help-debug)") + "\n";
     strUsage += "  -logtimestamps         " + _("Prepend debug output with timestamp (default: 1)") + "\n";
@@ -315,7 +315,7 @@ string HelpMessage() {
         strUsage += "  -privdb                " + _("Sets the DB_PRIVATE flag in the wallet db environment (default: 1)") + "\n";
         strUsage += "  -regtest               " + _("Enter regression test mode, which uses a special chain in which blocks can be solved instantly.") + "\n";
         strUsage += "                         " + _("This is intended for regression testing tools and app development.") + "\n";
-        strUsage += "                         " + _("In this mode -genproclimit controls how many blocks are generated immediately.") + "\n";
+        strUsage += "                         " + _("In this mode -genblocklimit controls how many blocks are generated immediately.") + "\n";
     }
     strUsage += "  -shrinkdebugfile       " + _("Shrink debug.log file on client startup (default: 1 when no -debug)") + "\n";
     strUsage += "  -testnet               " + _("Use the test network") + "\n";
@@ -971,7 +971,7 @@ bool AppInit(boost::thread_group &threadGroup) {
 
     // Generate coins in the background
     if (pwalletMain) {
-        GenerateCoinBlock(SysCfg().GetBoolArg("-genblock", false), pwalletMain, SysCfg().GetArg("-genproclimit", -1));
+        GenerateCoinBlock(SysCfg().GetBoolArg("-genblock", false), pwalletMain, SysCfg().GetArg("-genblocklimit", -1));
         pwalletMain->ResendWalletTransactions();
         threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pwalletMain->strWalletFile)));
 
