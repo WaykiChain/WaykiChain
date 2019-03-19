@@ -297,14 +297,6 @@ std::tuple<uint64_t, uint64_t> CAccountViewDB::TraverseAccount() {
 
 CTransactionDB::CTransactionDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {}
 
-bool CTransactionDB::SetTxCache(const uint256 &blockHash, const vector<uint256> &vHashTx) {
-    return db.Write(make_pair('h', blockHash), vHashTx);
-}
-
-bool CTransactionDB::GetTxCache(const uint256 &blockHash, vector<uint256> &vHashTx) {
-    return db.Read(make_pair('h', blockHash), vHashTx);
-}
-
 bool CTransactionDB::BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHash) {
     CLevelDBBatch batch;
     for (auto &item : mapTxHashByBlockHash) {
@@ -318,45 +310,12 @@ bool CTransactionDB::BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBl
     return db.WriteBatch(batch, true);
 }
 
-bool CTransactionDB::LoadTransaction(map<uint256, set<uint256> > &mapTxHashByBlockHash) {
-    leveldb::Iterator *pcursor = db.NewIterator();
-
-    CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
-    ssKeySet << make_pair('h', uint256());
-    pcursor->Seek(ssKeySet.str());
-
-    // Load mapBlockIndex
-    while (pcursor->Valid()) {
-        boost::this_thread::interruption_point();
-        try {
-            leveldb::Slice slKey = pcursor->key();
-            CDataStream ssKey(slKey.data(), slKey.data() + slKey.size(), SER_DISK, CLIENT_VERSION);
-            char chType;
-            ssKey >> chType;
-            if (chType == 'h') {
-                leveldb::Slice slValue = pcursor->value();
-                CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-                set<uint256> vTxhash;
-                uint256 blockHash;
-                ssValue >> vTxhash;
-                ssKey >> blockHash;
-                mapTxHashByBlockHash[blockHash] = vTxhash;
-                pcursor->Next();
-            } else {
-                break;  // if shutdown requested or finished loading block index
-            }
-        } catch (std::exception &e) {
-            return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
-        }
-    }
-    delete pcursor;
-    return true;
-}
-
 CScriptDB::CScriptDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {
 }
+
 CScriptDB::CScriptDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "blocks" / "script", nCacheSize, fMemory, fWipe) {
 }
+
 bool CScriptDB::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) {
     return db.Read(vKey, vValue);
 }
@@ -364,6 +323,7 @@ bool CScriptDB::GetData(const vector<unsigned char> &vKey, vector<unsigned char>
 bool CScriptDB::SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) {
     return db.Write(vKey, vValue);
 }
+
 bool CScriptDB::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb) {
     CLevelDBBatch batch;
     for (auto &item : mapContractDb) {
@@ -375,12 +335,15 @@ bool CScriptDB::BatchWrite(const map<vector<unsigned char>, vector<unsigned char
     }
     return db.WriteBatch(batch, true);
 }
+
 bool CScriptDB::EraseKey(const vector<unsigned char> &vKey) {
     return db.Erase(vKey);
 }
+
 bool CScriptDB::HasData(const vector<unsigned char> &vKey) {
     return db.Exists(vKey);
 }
+
 bool CScriptDB::GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) {
     assert(nIndex >= 0 && nIndex <= 1);
     leveldb::Iterator *pcursor = db.NewIterator();

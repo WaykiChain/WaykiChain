@@ -328,7 +328,6 @@ class CTransactionDBView {
     virtual bool IsContainBlock(const CBlock &block);
     virtual bool AddBlockToCache(const CBlock &block);
     virtual bool DeleteBlockFromCache(const CBlock &block);
-    virtual bool LoadTransaction(map<uint256, set<uint256> > &mapTxHashByBlockHash);
     virtual bool BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHashIn);
     virtual ~CTransactionDBView(){};
 };
@@ -336,7 +335,6 @@ class CTransactionDBView {
 class CTransactionDBViewBacked : public CTransactionDBView {
    protected:
     CTransactionDBView *pBase;
-    bool LoadTransaction(map<uint256, set<uint256> > &mapTxHashByBlockHash);
 
    public:
     CTransactionDBViewBacked(CTransactionDBView &transactionView);
@@ -363,7 +361,6 @@ class CTransactionDBCache : public CTransactionDBViewBacked {
     bool BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHashIn);
     void AddTxHashCache(const uint256 &blockHash, const set<uint256> &vTxHash);
     bool Flush();
-    bool LoadTransaction();
     void Clear();
     Object ToJsonObj() const;
     int GetSize();
@@ -371,35 +368,5 @@ class CTransactionDBCache : public CTransactionDBViewBacked {
     const map<uint256, set<uint256> > &GetCacheMap();
     void SetCacheMap(const map<uint256, set<uint256> > &mapCache);
 };
-
-//class CDelegateDBView {
-//
-//public:
-//    virtual bool ModifyDelegatesVote(const vector<unsigned char> &vScriptId, uint64_t llVotes);
-//    virtual bool BatchWrite(const map<vector<unsigned char>, bool> &mapVoteAccount);
-//    virtual bool GetTopXDelegateAccount(vector<vector<unsigned char> > &listScriptId);
-//    virtual ~CDelegateDBView(){};
-//};
-
-//class CDelegateDBViewBacked : public CDelegateDBView {
-//protected:
-//    CDelegateDBView * pBase;
-//public:
-//    bool ModifyDelegatesVote(const vector<unsigned char> &vScriptId, uint64_t llVotes);
-//    bool BatchWrite(const map< vector<unsigned char>, bool> &mapVoteAccount);
-//    bool GetTopXDelegateAccount(int n, vector<vector<unsigned char> > &listScriptId);
-//};
-//
-//
-//class CDelegateDBCache : public CDelegateDBViewBacked{
-//public:
-//    map<vector<unsigned char>, bool> ;
-//private:
-//    CDelegateDBCache(CDelegateDBCache &DelegateView);
-//public:
-//    bool ModifyDelegatesVote(const vector<unsigned char> &vScriptId, uint64_t llVotes);
-//    bool BatchWrite(const map< vector<unsigned char>, bool> &mapVoteAccount);
-//    bool GetTopXDelegateAccount(int n, vector<vector<unsigned char> > &listScriptId);
-//};
 
 #endif
