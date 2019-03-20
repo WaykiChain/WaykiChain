@@ -391,7 +391,7 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDe
         vOperVoteFund.push_back(operVoteFund);
     }
     CRegID accountId(0, 1);
-    shared_ptr<CDelegateTransaction> pDelegateTx = std::make_shared<CDelegateTransaction>(accountId.GetVec6(),
+    shared_ptr<CDelegateTx> pDelegateTx = std::make_shared<CDelegateTx>(accountId.GetVec6(),
             vOperVoteFund, 10000, 0);
     pDelegateTx->signature = ParseHex(IniCfg().GetDelegateSignature(type));
     pDelegateTx->nVersion = nTxVersion1;

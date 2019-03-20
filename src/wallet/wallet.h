@@ -344,7 +344,7 @@ public:
             mapAccountTx[hash] = std::make_shared<CRegisterContractTx>(pTx);
             break;
         case DELEGATE_TX:
-            mapAccountTx[hash] = std::make_shared<CDelegateTransaction>(pTx);
+            mapAccountTx[hash] = std::make_shared<CDelegateTx>(pTx);
             break;
         default:
 //          assert(0);

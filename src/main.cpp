@@ -1389,8 +1389,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                 sourceAccount.llValues  = pRewardTx->rewardValue;
                 assert(view.SaveAccountInfo(accountId, keyId, sourceAccount));
             } else if (block.vptx[i]->nTxType == DELEGATE_TX) {
-                std::shared_ptr<CDelegateTransaction> pDelegateTx =
-                    dynamic_pointer_cast<CDelegateTransaction>(block.vptx[i]);
+                std::shared_ptr<CDelegateTx> pDelegateTx =
+                    dynamic_pointer_cast<CDelegateTx>(block.vptx[i]);
                 assert(pDelegateTx->userId.type() == typeid(CRegID));
                 CAccount voteAcct;
                 assert(view.GetAccount(pDelegateTx->userId, voteAcct));
@@ -3377,7 +3377,7 @@ void static ProcessGetData(CNode *pfrom) {
                         } else if (REG_CONT_TX == pBaseTx->nTxType) {
                             ss << *((CRegisterContractTx *)pBaseTx.get());
                         } else if (DELEGATE_TX == pBaseTx->nTxType) {
-                            ss << *((CDelegateTransaction *)pBaseTx.get());
+                            ss << *((CDelegateTx *)pBaseTx.get());
                         }
                         pfrom->PushMessage("tx", ss);
                         pushed = true;
@@ -4404,7 +4404,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
         case REG_CONT_TX:
             return std::make_shared<CRegisterContractTx>();
         case DELEGATE_TX:
-            return std::make_shared<CDelegateTransaction>();
+            return std::make_shared<CDelegateTx>();
         default:
             ERRORMSG("CreateNewEmptyTransaction type error");
             break;
