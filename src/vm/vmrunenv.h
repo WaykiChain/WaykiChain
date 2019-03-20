@@ -22,6 +22,7 @@ using namespace std;
 class CVmOperate;
 
 class CVmRunEnv {
+private:
 	/**
 	 * Run the script object
 	 */
