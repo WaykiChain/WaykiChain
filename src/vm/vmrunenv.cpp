@@ -51,14 +51,14 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTransaction>& Tx, CAccountViewCache& 
     vector<unsigned char> vScript;
 
     if (Tx.get()->nTxType != CONTRACT_TX) {
-        LogPrint("ERROR", "%s\r\n", "err param");
+        LogPrint("ERROR", "%s\n", "err param");
 //      assert(0);
         return false;
     }
 
     CContractTransaction* secure = static_cast<CContractTransaction*>(Tx.get());
     if (!m_ScriptDBTip->GetScript(boost::get<CRegID>(secure->desUserId), vScript)) {
-        LogPrint("ERROR", "Script is not Registed %s\r\n", boost::get<CRegID>(secure->desUserId).ToString());
+        LogPrint("ERROR", "Script is not Registed %s\n", boost::get<CRegID>(secure->desUserId).ToString());
         return false;
     }
 
@@ -122,7 +122,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTransac
     int64_t step = 0;
 
     tuple<uint64_t, string> ret = pLua.get()->run(maxstep,this);
-    LogPrint("vm", "%s\r\n", "CVmScriptRun::ExecuteContract() LUA");
+    LogPrint("vm", "%s\n", "CVmScriptRun::ExecuteContract() LUA");
     step = std::get<0>(ret);
     if (0 == step) {
         return std::make_tuple(false, 0, string("VmScript run Failed\n"));
@@ -452,7 +452,7 @@ bool CVmRunEnv::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
 //          ret = vmAccount.get()->OperateAccount((OperType)it.opType, fund, *m_ScriptDBTip, vAuthorLog,  height, &GetScriptRegID().GetVec6(), true);
 //      }
 
-//      LogPrint("vm", "after account:%s\r\n", vmAccount.get()->ToString().c_str());
+//      LogPrint("vm", "after account:%s\n", vmAccount.get()->ToString().c_str());
         if (!ret)
             return false;
 
@@ -551,13 +551,13 @@ bool CVmRunEnv::OpeatorAppAccount(const map<vector<unsigned char >,vector<CAppFu
         for (auto const tem : opMap) {
             shared_ptr<CAppUserAccount> sptrAcc;
             if (!GetAppUserAccount(tem.first, sptrAcc)) {
-                LogPrint("vm", "GetAppUserAccount(tem.first, sptrAcc, true) failed \r\n appuserid :%s\r\n",
+                LogPrint("vm", "GetAppUserAccount(tem.first, sptrAcc, true) failed \n appuserid :%s\n",
                     HexStr(tem.first));
                 return false;
             }
 
             if (!sptrAcc.get()->AutoMergeFreezeToFree(RunTimeHeight)) {
-                LogPrint("vm", "AutoMergeFreezeToFreefailed \r\n appuser :%s\r\n", sptrAcc.get()->ToString());
+                LogPrint("vm", "AutoMergeFreezeToFreefailed \n appuser :%s\n", sptrAcc.get()->ToString());
                 return false;
             }
 
@@ -567,19 +567,19 @@ bool CVmRunEnv::OpeatorAppAccount(const map<vector<unsigned char >,vector<CAppFu
                 vmAppAccount = sptrAcc;
             }
 
-            LogPrint("vm", "before user: %s\r\n", sptrAcc.get()->ToString());
+            LogPrint("vm", "before user: %s\n", sptrAcc.get()->ToString());
             if (!sptrAcc.get()->Operate(tem.second)) {
 
                 int i = 0;
                 for (auto const pint : tem.second) {
-                    LogPrint("vm", "GOperate failed \r\n Operate %d : %s\r\n", i++, pint.ToString());
+                    LogPrint("vm", "GOperate failed \n Operate %d : %s\n", i++, pint.ToString());
                 }
-                LogPrint("vm", "GetAppUserAccount(tem.first, sptrAcc, true) failed \r\n appuserid :%s\r\n",
+                LogPrint("vm", "GetAppUserAccount(tem.first, sptrAcc, true) failed \n appuserid :%s\n",
                         HexStr(tem.first));
                 return false;
             }
             NewAppUserAccout.push_back(sptrAcc);
-            LogPrint("vm", "after user: %s\r\n", sptrAcc.get()->ToString());
+            LogPrint("vm", "after user: %s\n", sptrAcc.get()->ToString());
             CScriptDBOperLog log;
             view.SetScriptAcc(GetScriptRegID(), *sptrAcc.get(), log);
             shared_ptr<vector<CScriptDBOperLog> > m_dblog = GetDbLog();
