@@ -267,7 +267,7 @@ public:
     mutable CUserID desUserId;  //user regid or user key id or app regid
     uint64_t llFees;            //fees paid to miner
     uint64_t llValues;          //transfer amount
-    vector_unsigned_char description;
+    vector_unsigned_char memo;
     vector_unsigned_char signature;
 
 public:
@@ -276,7 +276,7 @@ public:
         llFees       = 0;
         nValidHeight = 0;
         llValues     = 0;
-        description.clear();
+        memo.clear();
         signature.clear();
     }
 
@@ -296,7 +296,7 @@ public:
         nTxType      = CONTRACT_TX;
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
-        description  = descriptionIn;
+        memo  = descriptionIn;
         nValidHeight = height;
         llFees       = fee;
         llValues     = value;
@@ -317,7 +317,7 @@ public:
         nValidHeight = height;
         llFees       = fee;
         llValues     = value;
-        description.clear();
+        memo.clear();
         signature.clear();
     }
 
@@ -333,7 +333,7 @@ public:
         READWRITE(desId);
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(llValues));
-        READWRITE(description);
+        READWRITE(memo);
         READWRITE(signature);
         if (fRead) {
             srcRegId  = srcId.GetUserId();
@@ -345,7 +345,7 @@ public:
         CID srcId(srcRegId);
         CID desId(desUserId);
         ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << srcId << desId
-           << VARINT(llFees) << VARINT(llValues) << description;
+           << VARINT(llFees) << VARINT(llValues) << memo;
         return ss.GetHash();
     }
     uint64_t GetValue() const { return llValues; }

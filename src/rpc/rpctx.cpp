@@ -170,7 +170,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
         }
 
         obj.push_back(Pair("txtype", "COMMON_TX"));
-        obj.push_back(Pair("description", HexStr(ptx->description)));
+        obj.push_back(Pair("memo", HexStr(ptx->memo)));
         obj.push_back(Pair("address", sendKeyID.ToAddress()));
         obj.push_back(Pair("category", "send"));
         double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
@@ -178,7 +178,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
         arrayDetail.push_back(obj);
         Object objRec;
         objRec.push_back(Pair("txtype", "COMMON_TX"));
-        objRec.push_back(Pair("description", HexStr(ptx->description)));
+        objRec.push_back(Pair("memo", HexStr(ptx->memo)));
         objRec.push_back(Pair("address", recvKeyID.ToAddress()));
         objRec.push_back(Pair("category", "receive"));
         objRec.push_back(Pair("amount", dAmount));
@@ -1078,7 +1078,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
                         obj.push_back(Pair("txtype", "COMMON_TX"));
-                        obj.push_back(Pair("description", HexStr(ptx->description)));
+                        obj.push_back(Pair("memo", HexStr(ptx->memo)));
                         arrayData.push_back(obj);
 
                         txnCount++;
@@ -1098,7 +1098,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
                         obj.push_back(Pair("txtype", "COMMON_TX"));
-                        obj.push_back(Pair("description", HexStr(ptx->description)));
+                        obj.push_back(Pair("memo", HexStr(ptx->memo)));
 
                         arrayData.push_back(obj);
 

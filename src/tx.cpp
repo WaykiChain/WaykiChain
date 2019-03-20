@@ -583,9 +583,9 @@ string CCommonTransaction::ToString(CAccountViewCache &view) const {
         desId = boost::get<CRegID>(desUserId).ToString();
     }
 
-    string str = strprintf("txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, llValues=%ld, llFees=%ld, description=%s, nValidHeight=%d\n",
+    string str = strprintf("txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, llValues=%ld, llFees=%ld, memo=%s, nValidHeight=%d\n",
         txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion, boost::get<CRegID>(srcRegId).ToString(),
-        desId.c_str(), llValues, llFees, HexStr(description).c_str(), nValidHeight);
+        desId.c_str(), llValues, llFees, HexStr(memo).c_str(), nValidHeight);
 
     return str;
 }
@@ -614,7 +614,7 @@ Object CCommonTransaction::ToJson(const CAccountViewCache &AccountView) const {
     result.push_back(Pair("money",          llValues));
     result.push_back(Pair("fees",           llFees));
     result.push_back(Pair("height",         nValidHeight));
-    result.push_back(Pair("description",    HexStr(description)));
+    result.push_back(Pair("memo",           HexStr(memo)));
 
     return result;
 }
