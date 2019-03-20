@@ -32,7 +32,7 @@ class CVmRunEnv {
 	 */
 	vector<shared_ptr<CAccount> > RawAccont;
 	/**
-	 * vm operate the account  state
+	 * vm operate the account state
 	 */
 	vector<shared_ptr<CAccount> > NewAccont;
 	/**
@@ -52,7 +52,7 @@ class CVmRunEnv {
 	 */
 	vector<shared_ptr<CAppUserAccount>> RawAppUserAccout;
 	/**
-	 * vm operate the app account  state
+	 * vm operate the app account state
 	 */
 	vector<shared_ptr<CAppUserAccount>> NewAppUserAccout;
 	CScriptDBViewCache *m_ScriptDBTip;
@@ -72,20 +72,21 @@ private:
 	 *  @param nheight: run the Environment the block's height
 	 * @return : check the the tx and account is Legal true is legal false is unlegal
 	 */
-	bool Initialize(shared_ptr<CBaseTransaction> & Tx, CAccountViewCache& view, int nheight);
+	bool Initialize(shared_ptr<CBaseTransaction>& pBaseTx, CAccountViewCache& view, int nheight);
 	/**
 	 *@brief check aciton
-	 * @param listoperate: run the script return the code,check the code
-	 * @return : true check success
-	 */
-	bool CheckOperate(const vector<CVmOperate> &listoperate);
+	* @param listoperate: run the script return the code,check the code
+	* @return : true check success
+	*/
+	bool CheckOperate(const vector<CVmOperate>& listoperate);
 	/**
 	 *
 	 * @param listoperate: through the vm return code ,The accounts plus money and less money
 	 * @param view:
 	 * @return true operate account success
 	 */
-	bool OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountViewCache& view, const int nCurHeight);
+	bool OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountViewCache& view,
+						const int nCurHeight);
 	/**
 	 * @brief find the vOldAccount from NewAccont if find success remove it from NewAccont
 	 * @param vOldAccount: the argument
@@ -104,8 +105,9 @@ private:
 	 * @return:Return account id
 	 */
 	vector_unsigned_char GetAccountID(CVmOperate value);
-//	bool IsSignatureAccount(CRegID account);
-	bool OpeatorAppAccount(const map<vector<unsigned char >,vector<CAppFundOperate> > opMap, CScriptDBViewCache& view);
+	//	bool IsSignatureAccount(CRegID account);
+	bool OpeatorAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
+							CScriptDBViewCache& view);
 
 	std::shared_ptr<CAppUserAccount> GetAppAccount(shared_ptr<CAppUserAccount>& AppAccount);
 

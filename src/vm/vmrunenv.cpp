@@ -27,36 +27,28 @@ CVmRunEnv::CVmRunEnv() {
     isCheckAccount = false;
 }
 
-vector<shared_ptr<CAccount> > &CVmRunEnv::GetRawAccont() {
-    return RawAccont;
-}
-vector<shared_ptr<CAccount> > &CVmRunEnv::GetNewAccont() {
-    return NewAccont;
-}
-vector<shared_ptr<CAppUserAccount>> &CVmRunEnv::GetNewAppUserAccount()
-{
-    return NewAppUserAccout;
-}
+vector<shared_ptr<CAccount>>& CVmRunEnv::GetRawAccont() { return RawAccont; }
 
-vector<shared_ptr<CAppUserAccount>> &CVmRunEnv::GetRawAppUserAccount()
-{
-    return RawAppUserAccout;
-}
+vector<shared_ptr<CAccount>>& CVmRunEnv::GetNewAccont() { return NewAccont; }
 
-bool CVmRunEnv::Initialize(shared_ptr<CBaseTransaction>& Tx, CAccountViewCache& view, int nheight) {
+vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetNewAppUserAccount() { return NewAppUserAccout; }
+
+vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetRawAppUserAccount() { return RawAppUserAccout; }
+
+bool CVmRunEnv::Initialize(shared_ptr<CBaseTransaction>& pBaseTx, CAccountViewCache& view,
+                           int nheight) {
     m_output.clear();
-    listTx = Tx;
+    listTx        = pBaseTx;
     RunTimeHeight = nheight;
-    m_view = &view;
+    m_view        = &view;
     vector<unsigned char> vScript;
 
-    if (Tx.get()->nTxType != CONTRACT_TX) {
+    if (pBaseTx.get()->nTxType != CONTRACT_TX) {
         LogPrint("ERROR", "%s\n", "err param");
-//      assert(0);
         return false;
     }
 
-    CContractTransaction* secure = static_cast<CContractTransaction*>(Tx.get());
+    CContractTransaction* secure = static_cast<CContractTransaction*>(pBaseTx.get());
     if (!m_ScriptDBTip->GetScript(boost::get<CRegID>(secure->desUserId), vScript)) {
         LogPrint("ERROR", "Script is not Registed %s\n", boost::get<CRegID>(secure->desUserId).ToString());
         return false;
@@ -70,12 +62,12 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTransaction>& Tx, CAccountViewCache& 
         throw runtime_error("CVmScriptRun::Initialize() Unserialize to vmScript error:" + string(e.what()));
     }
 
-    if (vmScript.IsValid() == false){
+    if (vmScript.IsValid() == false) {
         LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() vmScript.IsValid error");
         return false;
     }
     isCheckAccount = vmScript.IsCheckAccount();
-    if (secure->arguments.size() >= 4*1024 ){
+    if (secure->arguments.size() >= 4 * 1024) {
         LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() arguments context size lager 4096");
         return false;
     }
@@ -87,15 +79,13 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTransaction>& Tx, CAccountViewCache& 
         return false;
     }
 
-    //pVmRunEnv = this; //传CVmRunEnv对象指针给lmylib.cpp库使用
+    // pVmRunEnv = this; //传CVmRunEnv对象指针给lmylib.cpp库使用
     LogPrint("vm", "%s\n", "CVmScriptRun::Initialize() LUA");
 
     return true;
 }
 
-CVmRunEnv::~CVmRunEnv()
-{
-}
+CVmRunEnv::~CVmRunEnv() {}
 
 tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTransaction>& Tx, CAccountViewCache& view,
     CScriptDBViewCache& VmDB, int nHeight, uint64_t nBurnFactor, uint64_t &uRunStep)
