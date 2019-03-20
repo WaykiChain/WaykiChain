@@ -722,9 +722,6 @@ public:
     static uint64_t GetTotalBytesSent();
 };
 
-
-
-class CTransaction;
 void RelayTransaction(CBaseTransaction *pBaseTx, const uint256& hash);
 void RelayTransaction(CBaseTransaction *pBaseTx, const uint256& hash, const CDataStream& ss);
 

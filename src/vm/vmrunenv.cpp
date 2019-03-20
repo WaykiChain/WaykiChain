@@ -43,9 +43,7 @@ vector<shared_ptr<CAppUserAccount>> &CVmRunEnv::GetRawAppUserAccount()
     return RawAppUserAccout;
 }
 
-
-bool CVmRunEnv::Initialize(shared_ptr<CBaseTransaction> & Tx, CAccountViewCache& view, int nheight) {
-
+bool CVmRunEnv::Initialize(shared_ptr<CBaseTransaction>& Tx, CAccountViewCache& view, int nheight) {
     m_output.clear();
     listTx = Tx;
     RunTimeHeight = nheight;
@@ -58,7 +56,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTransaction> & Tx, CAccountViewCache&
         return false;
     }
 
-    CTransaction* secure = static_cast<CTransaction*>(Tx.get());
+    CContractTransaction* secure = static_cast<CContractTransaction*>(Tx.get());
     if (!m_ScriptDBTip->GetScript(boost::get<CRegID>(secure->desUserId), vScript)) {
         LogPrint("ERROR", "Script is not Registed %s\r\n", boost::get<CRegID>(secure->desUserId).ToString());
         return false;
@@ -77,13 +75,13 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTransaction> & Tx, CAccountViewCache&
         return false;
     }
     isCheckAccount = vmScript.IsCheckAccount();
-    if (secure->vContract.size() >= 4*1024 ){
-        LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() vContract context size lager 4096");
+    if (secure->arguments.size() >= 4*1024 ){
+        LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() arguments context size lager 4096");
         return false;
     }
 
     try {
-        pLua = std::make_shared<CVmlua>(vmScript.Rom, secure->vContract);
+        pLua = std::make_shared<CVmlua>(vmScript.Rom, secure->arguments);
     } catch (exception& e) {
         LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() CVmlua init error");
         return false;
@@ -107,7 +105,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTransac
 
     m_ScriptDBTip = &VmDB;
 
-    CTransaction* tx = static_cast<CTransaction*>(Tx.get());
+    CContractTransaction* tx = static_cast<CContractTransaction*>(Tx.get());
     if (tx->llFees < CBaseTransaction::nMinTxFee)
         return std::make_tuple (false, 0, string("CVmRunEnv: Contract Tx fee too small\n"));
 
@@ -265,7 +263,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate> &listoperate) {
             if(accountid.size() != 6)
                 return false;
             CRegID regId(accountid);
-            CTransaction* tx = static_cast<CTransaction*>(listTx.get());
+            CContractTransaction* tx = static_cast<CContractTransaction*>(listTx.get());
             /// current tx's script cant't mius other script's regid
             if (m_ScriptDBTip->HaveScript(regId) && regId != boost::get<CRegID>(tx->desUserId))
                 return false;
@@ -307,7 +305,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate> &listoperate) {
     return true;
 }
 
-bool CVmRunEnv::CheckAppAcctOperate(CTransaction* tx) {
+bool CVmRunEnv::CheckAppAcctOperate(CContractTransaction* tx) {
     int64_t addValue(0), minusValue(0), sumValue(0);
     for (auto  vOpItem : MapAppOperate) {
         for (auto appFund : vOpItem.second) {
@@ -467,22 +465,22 @@ bool CVmRunEnv::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
 
 const CRegID& CVmRunEnv::GetScriptRegID()
 {   // 获取目的账户ID
-    CTransaction* tx = static_cast<CTransaction*>(listTx.get());
+    CContractTransaction* tx = static_cast<CContractTransaction*>(listTx.get());
     return boost::get<CRegID>(tx->desUserId);
 }
 
 const CRegID &CVmRunEnv::GetTxAccount() {
-    CTransaction* tx = static_cast<CTransaction*>(listTx.get());
+    CContractTransaction* tx = static_cast<CContractTransaction*>(listTx.get());
     return boost::get<CRegID>(tx->srcRegId);
 }
 uint64_t CVmRunEnv::GetValue() const{
-    CTransaction* tx = static_cast<CTransaction*>(listTx.get());
+    CContractTransaction* tx = static_cast<CContractTransaction*>(listTx.get());
         return tx->llValues;
 }
 const vector<unsigned char>& CVmRunEnv::GetTxContact()
 {
-    CTransaction* tx = static_cast<CTransaction*>(listTx.get());
-        return tx->vContract;
+    CContractTransaction* tx = static_cast<CContractTransaction*>(listTx.get());
+        return tx->arguments;
 }
 int CVmRunEnv::GetComfirHeight()
 {

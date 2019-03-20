@@ -21,9 +21,8 @@
 #include <boost/test/unit_test.hpp>
 
 // Tests this internal-to-main.cpp method:
-extern bool AddOrphanTx(const CTransaction& tx);
 extern unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans);
-extern std::map<uint256, CTransaction> mapOrphanTransactions;
+extern std::map<uint256, CCommonTransaction> mapOrphanTransactions;
 
 CService ip(uint32_t i) {
     struct in_addr s;
@@ -153,9 +152,9 @@ BOOST_AUTO_TEST_CASE(DoS_checknbits)
     BOOST_CHECK(CheckNBits(firstcheck.second, lastcheck.first+60*60*24*365*4, lastcheck.second, lastcheck.first));
 }
 
-CTransaction RandomOrphan()
+CCommonTransaction RandomOrphan()
 {
-    std::map<uint256, CTransaction>::iterator it;
+    std::map<uint256, CCommonTransaction>::iterator it;
     it = mapOrphanTransactions.lower_bound(GetRandHash());
     if (it == mapOrphanTransactions.end())
     it = mapOrphanTransactions.begin();

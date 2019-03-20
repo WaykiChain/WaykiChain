@@ -510,7 +510,7 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
 
 bool IsStandardTx(CBaseTransaction *pBaseTx, string &reason) {
     AssertLockHeld(cs_main);
-    if (pBaseTx->nVersion > CTransaction::CURRENT_VERSION || pBaseTx->nVersion < 1) {
+    if (pBaseTx->nVersion > CBaseTransaction::CURRENT_VERSION || pBaseTx->nVersion < 1) {
         reason = "version";
         return false;
     }
@@ -519,7 +519,7 @@ bool IsStandardTx(CBaseTransaction *pBaseTx, string &reason) {
     // almost as much to process as they cost the sender in fees, because
     // computing signature hashes is O(ninputs*txsize). Limiting transactions
     // to MAX_STANDARD_TX_SIZE mitigates CPU exhaustion attacks.
-    unsigned int sz = ::GetSerializeSize(pBaseTx->GetNewInstance(), SER_NETWORK, CTransaction::CURRENT_VERSION);
+    unsigned int sz = ::GetSerializeSize(pBaseTx->GetNewInstance(), SER_NETWORK, CBaseTransaction::CURRENT_VERSION);
     if (sz >= MAX_STANDARD_TX_SIZE) {
         reason = "tx-size";
         return false;
@@ -615,8 +615,7 @@ int64_t GetMinRelayFee(const CBaseTransaction *pBaseTx, unsigned int nBytes, boo
 }
 
 bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTransaction *pBaseTx,
-                        bool fLimitFree, bool fRejectInsaneFee)
-{
+                        bool fLimitFree, bool fRejectInsaneFee) {
     AssertLockHeld(cs_main);
 
     // is it already in the memory pool?
@@ -659,7 +658,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTransact
         unsigned int nSize = entry.GetTxSize();
 
         if (pBaseTx->nTxType == COMMON_TX) {
-            CTransaction *pTx = static_cast<CTransaction *>(pBaseTx);
+            CCommonTransaction *pTx = static_cast<CCommonTransaction *>(pBaseTx);
             if (pTx->llValues < CBaseTransaction::nMinTxFee)
                 return state.DoS(0, ERRORMSG("AcceptToMemoryPool : common tx %d transfer amount(%d) too small, you must send a min (%d)",
                     hash.ToString(), pTx->llValues, CBaseTransaction::nMinTxFee), REJECT_DUST, "dust amount");
@@ -673,7 +672,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTransact
         // Continuously rate-limit free transactions
         // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
         // be annoying or make others' transactions take longer to confirm.
-        if (fLimitFree && nFees < CTransaction::nMinRelayTxFee) {
+        if (fLimitFree && nFees < CBaseTransaction::nMinRelayTxFee) {
             static CCriticalSection csFreeLimiter;
             static double dFreeCount;
             static int64_t nLastTime;
@@ -2797,7 +2796,7 @@ uint256 CPartialMerkleTree::ExtractMatches(vector<uint256> &vMatch) {
     if (nTransactions == 0)
         return uint256();
     // check for excessively high numbers of transactions
-    if (nTransactions > MAX_BLOCK_SIZE / 60)  // 60 is the lower bound for the size of a serialized CTransaction
+    if (nTransactions > MAX_BLOCK_SIZE / 60)  // 60 is the lower bound for the size of a serialized Transaction
         return uint256();
     // there can never be more hashes provided than one for every txid
     if (vHash.size() > nTransactions)
@@ -3369,8 +3368,10 @@ void static ProcessGetData(CNode *pfrom) {
                     if (pBaseTx.get()) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
-                        if (COMMON_TX == pBaseTx->nTxType || CONTRACT_TX == pBaseTx->nTxType) {
-                            ss << *((CTransaction *)(pBaseTx.get()));
+                        if (COMMON_TX == pBaseTx->nTxType) {
+                            ss << *((CCommonTransaction *)(pBaseTx.get()));
+                        } else if (CONTRACT_TX == pBaseTx->nTxType) {
+                            ss << *((CContractTransaction *)(pBaseTx.get()));
                         } else if (REG_ACCT_TX == pBaseTx->nTxType) {
                             ss << *((CRegisterAccountTx *)pBaseTx.get());
                         } else if (REG_CONT_TX == pBaseTx->nTxType) {
@@ -3806,7 +3807,6 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         vector<CInv> vInv;
         for (auto &hash : vtxid) {
             CInv inv(MSG_TX, hash);
-            CTransaction tx;
             std::shared_ptr<CBaseTransaction> pBaseTx = mempool.Lookup(hash);
             if (pBaseTx.get())
                 continue;  // another thread removed since queryHashes, maybe...
@@ -4394,8 +4394,9 @@ class CMainCleanup {
 std::shared_ptr<CBaseTransaction> CreateNewEmptyTransaction(unsigned char uType) {
     switch (uType) {
         case COMMON_TX:
+            return std::make_shared<CCommonTransaction>();
         case CONTRACT_TX:
-            return std::make_shared<CTransaction>();
+            return std::make_shared<CContractTransaction>();
         case REG_ACCT_TX:
             return std::make_shared<CRegisterAccountTx>();
         case REWARD_TX:

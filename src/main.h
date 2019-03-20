@@ -282,12 +282,6 @@ struct CDiskTxPos : public CDiskBlockPos {
 
 int64_t GetMinRelayFee(const CBaseTransaction *pBaseTx, unsigned int nBytes, bool fAllowFree);
 
-/** Count ECDSA signature operations the old-fashioned (pre-0.6) way
-    @return number of sigops this transaction's outputs will produce when spent
-    @see CTransaction::FetchInputs
-*/
-unsigned int GetLegacySigOpCount(const CTransaction &tx);
-
 inline bool AllowFree(double dPriority) {
     // Large (in bytes) low-priority (new, small-coin) transactions
     // need a fee.

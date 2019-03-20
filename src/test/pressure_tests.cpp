@@ -58,18 +58,18 @@ int GetRandTxType() {
 
 class PressureTest: public SysTestBase {
 public:
-	bool GetContractData(string regId, vector<unsigned char> &vContract) {
+	bool GetContractData(string regId, vector<unsigned char> &arguments) {
 		for(auto &addr : mapAddress) {
 			if(addr.first == regId)
 				continue;
 
 			uint64_t llmoney = GetRandomMoney() * COIN;
 			CRegID reg(addr.first);
-			vContract.insert(vContract.end(), reg.GetVec6().begin(), reg.GetVec6().end());
+			arguments.insert(arguments.end(), reg.GetVec6().begin(), reg.GetVec6().end());
 			CDataStream ds(SER_DISK, CLIENT_VERSION);
 			ds << llmoney;
 			vector<unsigned char> temp(ds.begin(), ds.end());
-			vContract.insert(vContract.end(), temp.begin(), temp.end());
+			arguments.insert(arguments.end(), temp.begin(), temp.end());
 		}
 		return true;
 	}
@@ -374,17 +374,26 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 			}
 			//检测Block最大值
 			BOOST_CHECK(block.GetSerializeSize(SER_DISK, CLIENT_VERSION) <= MAX_BLOCK_SIZE);
-			for(auto & ptx : block.vptx) {
-				if(ptx->IsCoinBase()) {
+			for (auto & ptx : block.vptx) {
+				if (ptx->IsCoinBase()) {
 					continue;
 				}
-				if(REG_ACCT_TX == ptx->nTxType) {
+				if (REG_ACCT_TX == ptx->nTxType) {
 					llRegAcctFee += ptx->GetFee();
 				}
-				if(COMMON_TX == ptx->nTxType) {
-					std::shared_ptr<CTransaction> pTransaction(dynamic_pointer_cast<CTransaction>(ptx));
-					if(typeid(pTransaction->desUserId) == typeid(CKeyID)) {
-						llSendValue += pTransaction->llValues;				}
+				if (COMMON_TX == ptx->nTxType) {
+					std::shared_ptr<CCommonTransaction> pTransaction(
+						dynamic_pointer_cast<CCommonTransaction>(ptx));
+					if (typeid(pTransaction->desUserId) == typeid(CKeyID)) {
+						llSendValue += pTransaction->llValues;
+					}
+				}
+				if (CONTRACT_TX == ptx->nTxType) {
+					std::shared_ptr<CContractTransaction> pTransaction(
+						dynamic_pointer_cast<CContractTransaction>(ptx));
+					if (typeid(pTransaction->desUserId) == typeid(CKeyID)) {
+						llSendValue += pTransaction->llValues;
+					}
 				}
 			}
 			llSendValue -= llRegAcctFee;

@@ -164,7 +164,7 @@ Value getrawmempool(const Array& params, bool fHelp)
 
     if (fVerbose) {
         LOCK(mempool.cs);
-        Object o;
+        Object obj;
         for (const auto& entry : mempool.mapTx) {
             const uint256& hash = entry.first;
             const CTxMemPoolEntry& e = entry.second;
@@ -175,27 +175,21 @@ Value getrawmempool(const Array& params, bool fHelp)
             info.push_back(Pair("height", (int)e.GetHeight()));
             info.push_back(Pair("startingpriority", e.GetPriority(e.GetHeight())));
             info.push_back(Pair("currentpriority", e.GetPriority(chainActive.Height())));
-//            const CTransaction& tx = e.GetTx();
             set<string> setDepends;
-//            BOOST_FOREACH(const CTxIn& txin, tx.vin)
-//            {
-//                if (mempool.Exists(txin.prevout.hash))
-//                    setDepends.insert(txin.prevout.hash.ToString());
-//            }
             Array depends(setDepends.begin(), setDepends.end());
             info.push_back(Pair("depends", depends));
-            o.push_back(Pair(hash.ToString(), info));
+            obj.push_back(Pair(hash.ToString(), info));
         }
-        return o;
+        return obj;
     } else {
         vector<uint256> vtxid;
         mempool.QueryHash(vtxid);
 
-        Array a;
+        Array arr;
         for (const auto& hash : vtxid)
-            a.push_back(hash.ToString());
+            arr.push_back(hash.ToString());
 
-        return a;
+        return arr;
     }
 }
 

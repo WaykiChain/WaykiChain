@@ -95,7 +95,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
                         vector<CVmOperate> vOutput;
                         pScriptDBTip->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
                         Array outputArray;
-                        for(auto & item : vOutput) {
+                        for (auto& item : vOutput) {
                             outputArray.push_back(item.ToJson());
                         }
                         obj.push_back(Pair("listOutput", outputArray));
@@ -156,87 +156,96 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
         break;
     }
     case COMMON_TX:
-    case CONTRACT_TX:
     {
-        /*
-        if(!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
-        {
-            return arrayDetail;
-        }
-        */
-
-        CTransaction* ptx = (CTransaction*)pBaseTx.get();
-        CKeyID SendKeyID;
-
+        CCommonTransaction* ptx = (CCommonTransaction*)pBaseTx.get();
+        CKeyID sendKeyID;
         CRegID sendRegID = boost:: get < CRegID > (ptx->srcRegId);
-        SendKeyID = sendRegID.GetKeyID(*pAccountViewTip);
-
-        CKeyID RecvKeyID;
+        sendKeyID = sendRegID.GetKeyID(*pAccountViewTip);
+        CKeyID recvKeyID;
         if (ptx->desUserId.type() == typeid(CKeyID)) {
-            RecvKeyID = boost::get<CKeyID>(ptx->desUserId);
+            recvKeyID = boost::get<CKeyID>(ptx->desUserId);
         } else if (ptx->desUserId.type() == typeid(CRegID)) {
             CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
-            RecvKeyID = desRegID.GetKeyID(*pAccountViewTip);
+            recvKeyID = desRegID.GetKeyID(*pAccountViewTip);
         }
 
-        if(COMMON_TX == pBaseTx->nTxType)
-            obj.push_back(Pair("txtype", "COMMON_TX"));
-
-        else {
-            obj.push_back(Pair("txtype", "CONTRACT_TX"));
-            obj.push_back(Pair("contract", HexStr(ptx->vContract)));
-        }
-
-        obj.push_back(Pair("address", /*vKeyIdSet.begin()->ToAddress()*/SendKeyID.ToAddress()));
+        obj.push_back(Pair("txtype", "COMMON_TX"));
+        obj.push_back(Pair("description", HexStr(ptx->description)));
+        obj.push_back(Pair("address", sendKeyID.ToAddress()));
         obj.push_back(Pair("category", "send"));
         double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
         obj.push_back(Pair("amount", -dAmount));
         arrayDetail.push_back(obj);
         Object objRec;
-        if(COMMON_TX == pBaseTx->nTxType)
-            objRec.push_back(Pair("txtype", "COMMON_TX"));
-        else {
-            objRec.push_back(Pair("txtype", "CONTRACT_TX"));
-            objRec.push_back(Pair("contract", HexStr(ptx->vContract)));
-        }
-        objRec.push_back(Pair("address", /*(++vKeyIdSet.begin())->ToAddress()*/RecvKeyID.ToAddress()));
+        objRec.push_back(Pair("txtype", "COMMON_TX"));
+        objRec.push_back(Pair("description", HexStr(ptx->description)));
+        objRec.push_back(Pair("address", recvKeyID.ToAddress()));
         objRec.push_back(Pair("category", "receive"));
         objRec.push_back(Pair("amount", dAmount));
         arrayDetail.push_back(objRec);
-        if (pBaseTx->nTxType == CONTRACT_TX) {
-            vector<CVmOperate> vOutput;
-            pScriptDBTip->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
-            Array outputArray;
-            for(auto & item : vOutput) {
-                Object objOutPut;
-                string address;
-                if (item.nacctype == regid) {
-                    vector<unsigned char> vRegId(item.accountid, item.accountid+6);
-                    CRegID regId(vRegId);
-                    CUserID userId(regId);
-                    address = RegIDToAddress(userId);
-                } else if (item.nacctype == base58addr) {
-                    address.assign(item.accountid[0], sizeof(item.accountid));
-                }
 
-                objOutPut.push_back(Pair("address", address));
+        break;
+    }
+    case CONTRACT_TX:
+    {
+        CContractTransaction* ptx = (CContractTransaction*)pBaseTx.get();
+        CKeyID sendKeyID;
+        CRegID sendRegID = boost:: get < CRegID > (ptx->srcRegId);
+        sendKeyID = sendRegID.GetKeyID(*pAccountViewTip);
+        CKeyID recvKeyID;
+        if (ptx->desUserId.type() == typeid(CKeyID)) {
+            recvKeyID = boost::get<CKeyID>(ptx->desUserId);
+        } else if (ptx->desUserId.type() == typeid(CRegID)) {
+            CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
+            recvKeyID = desRegID.GetKeyID(*pAccountViewTip);
+        }
+        obj.push_back(Pair("txtype", "CONTRACT_TX"));
+        obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
+        obj.push_back(Pair("address", sendKeyID.ToAddress()));
+        obj.push_back(Pair("category", "send"));
+        double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+        obj.push_back(Pair("amount", -dAmount));
+        arrayDetail.push_back(obj);
+        Object objRec;
+        objRec.push_back(Pair("txtype", "CONTRACT_TX"));
+        objRec.push_back(Pair("arguments", HexStr(ptx->arguments)));
+        objRec.push_back(Pair("address", recvKeyID.ToAddress()));
+        objRec.push_back(Pair("category", "receive"));
+        objRec.push_back(Pair("amount", dAmount));
+        arrayDetail.push_back(objRec);
 
-                uint64_t amount;
-                memcpy(&amount, item.money, sizeof(item.money));
-                double dAmount = amount / COIN;
-                if (item.opType == ADD_FREE) {
-                    objOutPut.push_back(Pair("category", "receive"));
-                    objOutPut.push_back(Pair("amount", dAmount));
-                } else if(item.opType == MINUS_FREE) {
-                    objOutPut.push_back(Pair("category", "send"));
-                    objOutPut.push_back(Pair("amount", -dAmount));
-                }
-
-                if (item.outHeight > 0)
-                    objOutPut.push_back(Pair("freezeheight", (int) item.outHeight));
-
-                arrayDetail.push_back(objOutPut);
+        vector<CVmOperate> vOutput;
+        pScriptDBTip->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
+        Array outputArray;
+        for (auto& item : vOutput) {
+            Object objOutPut;
+            string address;
+            if (item.nacctype == regid) {
+                vector<unsigned char> vRegId(item.accountid, item.accountid+6);
+                CRegID regId(vRegId);
+                CUserID userId(regId);
+                address = RegIDToAddress(userId);
+            } else if (item.nacctype == base58addr) {
+                address.assign(item.accountid[0], sizeof(item.accountid));
             }
+
+            objOutPut.push_back(Pair("address", address));
+
+            uint64_t amount;
+            memcpy(&amount, item.money, sizeof(item.money));
+            double dAmount = amount / COIN;
+            if (item.opType == ADD_FREE) {
+                objOutPut.push_back(Pair("category", "receive"));
+                objOutPut.push_back(Pair("amount", dAmount));
+            } else if(item.opType == MINUS_FREE) {
+                objOutPut.push_back(Pair("category", "send"));
+                objOutPut.push_back(Pair("amount", -dAmount));
+            }
+
+            if (item.outHeight > 0)
+                objOutPut.push_back(Pair("freezeheight", (int) item.outHeight));
+
+            arrayDetail.push_back(objOutPut);
         }
         break;
     }
@@ -505,11 +514,11 @@ Value callcontracttx(const Array& params, bool fHelp) {
     uint64_t amount = params[2].get_uint64();
 
     //argument-4: contract (Hex input)
-    vector<unsigned char> vcontract = ParseHex(params[3].get_str());
+    vector<unsigned char> arguments = ParseHex(params[3].get_str());
 
     //argument-5: fee
     uint64_t fee = params[4].get_uint64();
-    if (fee > 0 && fee < CTransaction::nMinTxFee) {
+    if (fee > 0 && fee < CBaseTransaction::nMinTxFee) {
         throw runtime_error("in callcontracttx :fee is smaller than nMinTxFee\n");
     }
 
@@ -519,7 +528,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
         height = params[5].get_int();
 
     EnsureWalletIsUnlocked();
-    std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>();
+    std::shared_ptr<CContractTransaction> tx = std::make_shared<CContractTransaction>();
     {
         //balance
         CAccountViewCache view(*pAccountViewTip, true);
@@ -528,12 +537,12 @@ Value callcontracttx(const Array& params, bool fHelp) {
         if (!pScriptDBTip->HaveScript(appId)) {
             throw runtime_error(tinyformat::format("callcontracttx :regid %s not exist\n", appId.ToString()));
         }
-        tx.get()->nTxType = CONTRACT_TX;
-        tx.get()->srcRegId = userId;
+        tx.get()->nTxType   = CONTRACT_TX;
+        tx.get()->srcRegId  = userId;
         tx.get()->desUserId = appId;
-        tx.get()->llValues = amount;
-        tx.get()->llFees = fee;
-        tx.get()->vContract = vcontract;
+        tx.get()->llValues  = amount;
+        tx.get()->llFees    = fee;
+        tx.get()->arguments = arguments;
         if (0 == height) {
             height = chainActive.Tip()->nHeight;
         }
@@ -648,7 +657,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     if (params.size() > 3)
         height = params[3].get_int();
 
-    if (fee > 0 && fee < CTransaction::nMinTxFee) {
+    if (fee > 0 && fee < CBaseTransaction::nMinTxFee) {
         throw runtime_error("in registercontracttx :fee is smaller than nMinTxFee\n");
     }
     //get keyid
@@ -1022,31 +1031,26 @@ Value listtransactions(const Array& params, bool fHelp) {
     for (auto const &wtx : blockInfoMap) {
         CAccountTx accountTx = pwalletMain->mapInBlockTx[wtx.second];
         for (auto const & item : accountTx.mapAccountTx) {
-
-            if(item.second->nTxType == COMMON_TX ||
-                    item.second->nTxType == CONTRACT_TX) {
-
-                CTransaction* ptx = (CTransaction*)item.second.get();
-                CKeyID SendKeyID;
-
-                CRegID sendRegID = boost:: get < CRegID > (ptx->srcRegId);
-                SendKeyID = sendRegID.GetKeyID(*pAccountViewTip);
-
-                CKeyID RecvKeyID;
+            if (item.second->nTxType == COMMON_TX) {
+                CCommonTransaction* ptx = (CCommonTransaction*)item.second.get();
+                CKeyID sendKeyID;
+                CRegID sendRegID = boost::get<CRegID>(ptx->srcRegId);
+                sendKeyID        = sendRegID.GetKeyID(*pAccountViewTip);
+                CKeyID recvKeyID;
                 if (ptx->desUserId.type() == typeid(CKeyID)) {
-                    RecvKeyID = boost::get<CKeyID>(ptx->desUserId);
+                    recvKeyID = boost::get<CKeyID>(ptx->desUserId);
                 } else if (ptx->desUserId.type() == typeid(CRegID)) {
                     CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
-                    RecvKeyID = desRegID.GetKeyID(*pAccountViewTip);
+                    recvKeyID       = desRegID.GetKeyID(*pAccountViewTip);
                 }
 
                 bool bSend = true;
-                if ("*" != strAddress && SendKeyID.ToAddress() != strAddress) {
+                if ("*" != strAddress && sendKeyID.ToAddress() != strAddress) {
                     bSend = false;
                 }
 
                 bool bRecv = true;
-                if ("*" != strAddress && RecvKeyID.ToAddress() != strAddress) {
+                if ("*" != strAddress && recvKeyID.ToAddress() != strAddress) {
                     bRecv = false;
                 }
 
@@ -1062,51 +1066,115 @@ Value listtransactions(const Array& params, bool fHelp) {
                     return arrayData;
                 }
 
-                if(bSend) {
-                    if(pwalletMain->HasKey(SendKeyID)) {
+                if (bSend) {
+                    if (pwalletMain->HasKey(sendKeyID)) {
                         Object obj;
-                        obj.push_back(Pair("address", RecvKeyID.ToAddress()));
+                        obj.push_back(Pair("address", recvKeyID.ToAddress()));
                         obj.push_back(Pair("category", "send"));
                         double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
                         obj.push_back(Pair("amount", -dAmount));
-
                         obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockHeight));
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
-
-                        if(item.second->nTxType == CONTRACT_TX) {
-                            obj.push_back(Pair("txtype", "CONTRACT_TX"));
-                            obj.push_back(Pair("contract", HexStr(ptx->vContract)));
-                        } else {
-                            obj.push_back(Pair("txtype", "COMMON_TX"));
-                        }
+                        obj.push_back(Pair("txtype", "COMMON_TX"));
+                        obj.push_back(Pair("description", HexStr(ptx->description)));
                         arrayData.push_back(obj);
 
                         txnCount++;
                     }
                 }
 
-                if(bRecv) {
-                    if(pwalletMain->HasKey(RecvKeyID)) {
+                if (bRecv) {
+                    if (pwalletMain->HasKey(recvKeyID)) {
                         Object obj;
-                        obj.push_back(Pair("srcaddr", SendKeyID.ToAddress()));
-                        obj.push_back(Pair("address", RecvKeyID.ToAddress()));
+                        obj.push_back(Pair("srcaddr", sendKeyID.ToAddress()));
+                        obj.push_back(Pair("address", recvKeyID.ToAddress()));
                         obj.push_back(Pair("category", "receive"));
                         double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
                         obj.push_back(Pair("amount", dAmount));
-
                         obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockHeight));
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
+                        obj.push_back(Pair("txtype", "COMMON_TX"));
+                        obj.push_back(Pair("description", HexStr(ptx->description)));
 
-                        if (item.second->nTxType == CONTRACT_TX) {
-                            obj.push_back(Pair("txtype", "CONTRACT_TX"));
-                            obj.push_back(Pair("contract", HexStr(ptx->vContract)));
-                        } else {
-                            obj.push_back(Pair("txtype", "COMMON_TX"));
-                        }
+                        arrayData.push_back(obj);
+
+                        txnCount++;
+                    }
+                }
+            } else if (item.second->nTxType == CONTRACT_TX) {
+                CContractTransaction* ptx = (CContractTransaction*)item.second.get();
+                CKeyID sendKeyID;
+                CRegID sendRegID = boost::get<CRegID>(ptx->srcRegId);
+                sendKeyID        = sendRegID.GetKeyID(*pAccountViewTip);
+                CKeyID recvKeyID;
+                if (ptx->desUserId.type() == typeid(CKeyID)) {
+                    recvKeyID = boost::get<CKeyID>(ptx->desUserId);
+                } else if (ptx->desUserId.type() == typeid(CRegID)) {
+                    CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
+                    recvKeyID       = desRegID.GetKeyID(*pAccountViewTip);
+                }
+
+                bool bSend = true;
+                if ("*" != strAddress && sendKeyID.ToAddress() != strAddress) {
+                    bSend = false;
+                }
+
+                bool bRecv = true;
+                if ("*" != strAddress && recvKeyID.ToAddress() != strAddress) {
+                    bRecv = false;
+                }
+
+                if(nFrom > 0 && nIndex++ < nFrom) {
+                    continue;
+                }
+
+                if(!(bSend || bRecv)) {
+                    continue;
+                }
+
+                if(nCount > 0 && txnCount > nCount) {
+                    return arrayData;
+                }
+
+                if (bSend) {
+                    if (pwalletMain->HasKey(sendKeyID)) {
+                        Object obj;
+                        obj.push_back(Pair("address", recvKeyID.ToAddress()));
+                        obj.push_back(Pair("category", "send"));
+                        double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
+                        obj.push_back(Pair("amount", -dAmount));
+                        obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockHeight));
+                        obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
+                        obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
+                        obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
+                        obj.push_back(Pair("txtype", "CONTRACT_TX"));
+                        obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
+
+                        arrayData.push_back(obj);
+
+                        txnCount++;
+                    }
+                }
+
+                if (bRecv) {
+                    if (pwalletMain->HasKey(recvKeyID)) {
+                        Object obj;
+                        obj.push_back(Pair("srcaddr", sendKeyID.ToAddress()));
+                        obj.push_back(Pair("address", recvKeyID.ToAddress()));
+                        obj.push_back(Pair("category", "receive"));
+                        double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
+                        obj.push_back(Pair("amount", dAmount));
+                        obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockHeight));
+                        obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
+                        obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
+                        obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
+                        obj.push_back(Pair("txtype", "CONTRACT_TX"));
+                        obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
+
                         arrayData.push_back(obj);
 
                         txnCount++;
@@ -1162,34 +1230,28 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
         for (auto const & item : wtx.second.mapAccountTx) {
             Object obj;
             CKeyID keyid;
-            CTransaction* ptx = (CTransaction*) item.second.get();
-            if(NULL == ptx) {
-                continue;
-            }
-            if(item.second->nTxType == COMMON_TX) {
+            if (item.second.get() && item.second->nTxType == COMMON_TX) {
+                CCommonTransaction* ptx = (CCommonTransaction*)item.second.get();
 
-                if( !accView.GetKeyId(ptx->srcRegId, keyid)) {
+                if (!accView.GetKeyId(ptx->srcRegId, keyid)) {
                     continue;
                 }
                 string srcAddr = keyid.ToAddress();
-                if( !accView.GetKeyId(ptx->desUserId, keyid)) {
+                if (!accView.GetKeyId(ptx->desUserId, keyid)) {
                     continue;
                 }
                 string desAddr = keyid.ToAddress();
-
                 if ("*" != strAddress && desAddr != strAddress) {
                     continue;
                 }
-
-                if(nFrom > 0 && nIndex++ < nFrom) {
+                if (nFrom > 0 && nIndex++ < nFrom) {
                     continue;
                 }
-                if(nCount > 0 && txnCount++ > nCount) {
+                if (nCount > 0 && txnCount++ > nCount) {
                     return arrayData;
                 }
                 obj.push_back(Pair("srcaddr", srcAddr));
                 obj.push_back(Pair("desaddr", desAddr));
-
                 double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
                 obj.push_back(Pair("amount", dAmount));
                 obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - wtx.second.blockHeight));
@@ -1262,24 +1324,18 @@ Value listcontracttx(const Array& params, bool fHelp)
     for (auto const &wtx : blockInfoMap) {
         CAccountTx accountTx = pwalletMain->mapInBlockTx[wtx.second];
         for (auto const & item : accountTx.mapAccountTx) {
-
-            if (item.second->nTxType == CONTRACT_TX) {
-
+            if (item.second.get() && item.second->nTxType == CONTRACT_TX) {
                 if (nFrom > 0 && nIndex++ < nFrom) {
                     continue;
                 }
-
                 if (nCount > 0 && txnCount > nCount) {
                     return arrayData;
                 }
 
-                CTransaction* ptx = (CTransaction*) item.second.get();
-                if(NULL == ptx) {
+                CContractTransaction* ptx = (CContractTransaction*) item.second.get();
+                if (strRegId != getregidstring(ptx->desUserId)) {
                     continue;
                 }
-
-                if(strRegId != getregidstring(ptx->desUserId))
-                    continue;
 
                 CKeyID keyid;
                 Object obj;
@@ -1295,7 +1351,7 @@ Value listcontracttx(const Array& params, bool fHelp)
                 obj.push_back(Pair("money", ptx->llValues));
                 obj.push_back(Pair("fees", ptx->llFees));
                 obj.push_back(Pair("height", ptx->nValidHeight));
-                obj.push_back(Pair("contract", HexStr(ptx->vContract)));
+                obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
                 arrayData.push_back(obj);
 
                 txnCount++;
@@ -2236,10 +2292,10 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
     if (conRegId.IsEmpty()) {
         throw runtime_error("invalid contract_regid: %s" + sUserRegId);
     }
-    vector<unsigned char> vcontract = ParseHex(params[4].get_str());
+    vector<unsigned char> arguments = ParseHex(params[4].get_str());
     int height = (params.size() == 6) ? params[5].get_int() : chainActive.Tip()->nHeight;
 
-    if (fee > 0 && fee < CTransaction::nMinTxFee)
+    if (fee > 0 && fee < CBaseTransaction::nMinTxFee)
         throw runtime_error("input fee smaller than nMinTxFee");
     if (conRegId.IsEmpty())
         throw runtime_error("contract regid invalid!\n");
@@ -2257,8 +2313,8 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
         throw runtime_error(tinyformat::format("from address :%s has no keyId\r\n", hexId));
     }
 
-    std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(
-        userRegId, conRegId, fee, amount, height, vcontract);
+    std::shared_ptr<CContractTransaction> tx = std::make_shared<CContractTransaction>(
+        userRegId, conRegId, fee, amount, height, arguments);
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
     ds << pBaseTx;
@@ -2344,7 +2400,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
         vmScript.ScriptMemo.insert(vmScript.ScriptMemo.end(), scriptMemo.begin(), scriptMemo.end());
     }
 
-    if (fee > 0 && fee < CTransaction::nMinTxFee) {
+    if (fee > 0 && fee < CBaseTransaction::nMinTxFee) {
         throw runtime_error("Error: fee smaller than nMinTxFee\n");
     }
     //get keyid
@@ -2423,66 +2479,76 @@ Value sigstr(const Array& params, bool fHelp) {
 
     Object obj;
     switch (pBaseTx.get()->nTxType) {
-    case COMMON_TX: {
-        std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(pBaseTx.get());
-        if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
+        case COMMON_TX: {
+            std::shared_ptr<CCommonTransaction> tx =
+                std::make_shared<CCommonTransaction>(pBaseTx.get());
+            if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature))
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
 
-        CDataStream ds(SER_DISK, CLIENT_VERSION);
-        std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
-        ds << pBaseTx;
-        obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-    }
-        break;
-    case REG_ACCT_TX: {
-        std::shared_ptr<CRegisterAccountTx> tx = std::make_shared<CRegisterAccountTx>(pBaseTx.get());
-        if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
+            CDataStream ds(SER_DISK, CLIENT_VERSION);
+            std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+            ds << pBaseTx;
+            obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
 
-        CDataStream ds(SER_DISK, CLIENT_VERSION);
-        std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
-        ds << pBaseTx;
-        obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-    }
-        break;
-    case CONTRACT_TX: {
-        std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(pBaseTx.get());
-        if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
+            break;
         }
-        CDataStream ds(SER_DISK, CLIENT_VERSION);
-        std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
-        ds << pBaseTx;
-        obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-    }
-        break;
-    case REWARD_TX:
-        break;
-    case REG_CONT_TX: {
-        std::shared_ptr<CRegisterContractTx> tx = std::make_shared<CRegisterContractTx>(pBaseTx.get());
-        if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
+        case REG_ACCT_TX: {
+            std::shared_ptr<CRegisterAccountTx> tx =
+                std::make_shared<CRegisterAccountTx>(pBaseTx.get());
+            if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature))
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
+
+            CDataStream ds(SER_DISK, CLIENT_VERSION);
+            std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+            ds << pBaseTx;
+            obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+
+            break;
         }
-        CDataStream ds(SER_DISK, CLIENT_VERSION);
-        std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
-        ds << pBaseTx;
-        obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-    }
-        break;
-    case DELEGATE_TX: {
-        std::shared_ptr<CDelegateTransaction> tx = std::make_shared<CDelegateTransaction>(pBaseTx.get());
-        if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
+        case CONTRACT_TX: {
+            std::shared_ptr<CContractTransaction> tx =
+                std::make_shared<CContractTransaction>(pBaseTx.get());
+            if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature)) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
+            }
+            CDataStream ds(SER_DISK, CLIENT_VERSION);
+            std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+            ds << pBaseTx;
+            obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+
+            break;
         }
-        CDataStream ds(SER_DISK, CLIENT_VERSION);
-        std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
-        ds << pBaseTx;
-        obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-    }
-        break;
-    default:
-//      assert(0);
-        break;
+        case REWARD_TX:
+            break;
+        case REG_CONT_TX: {
+            std::shared_ptr<CRegisterContractTx> tx =
+                std::make_shared<CRegisterContractTx>(pBaseTx.get());
+            if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature)) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
+            }
+            CDataStream ds(SER_DISK, CLIENT_VERSION);
+            std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+            ds << pBaseTx;
+            obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+
+            break;
+        }
+        case DELEGATE_TX: {
+            std::shared_ptr<CDelegateTransaction> tx =
+                std::make_shared<CDelegateTransaction>(pBaseTx.get());
+            if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature)) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
+            }
+            CDataStream ds(SER_DISK, CLIENT_VERSION);
+            std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+            ds << pBaseTx;
+            obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+
+            break;
+        }
+        default:
+            //      assert(0);
+            break;
     }
     return obj;
 }
@@ -2511,7 +2577,7 @@ Value decoderawtx(const Array& params, bool fHelp)
     CAccountViewCache view(*pAccountViewTip, true);
     switch (pBaseTx.get()->nTxType) {
     case COMMON_TX: {
-        std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(pBaseTx.get());
+        std::shared_ptr<CCommonTransaction> tx = std::make_shared<CCommonTransaction>(pBaseTx.get());
         if (tx.get()) {
             obj = tx->ToJson(view);
         }
@@ -2525,7 +2591,7 @@ Value decoderawtx(const Array& params, bool fHelp)
     }
         break;
     case CONTRACT_TX: {
-        std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(pBaseTx.get());
+        std::shared_ptr<CContractTransaction> tx = std::make_shared<CContractTransaction>(pBaseTx.get());
         if (tx.get()) {
             obj = tx->ToJson(view);
         }
@@ -3057,103 +3123,13 @@ Value listtxbyaddr(const Array& params, bool fHelp) {
         obj.push_back(Pair("address", address));
         obj.push_back(Pair("height", height));
         Array arrayObj;
-        for(auto item : mapTxHash) {
-//          CKeyID keyId;
-//          int nHeight(0);
-//          int nIndex(0);
-//          CDataStream ds(item.first, SER_DISK, CLIENT_VERSION);
-//          ds = ds.ignore(4);
-//          ds >> keyId;
-//          ds >> nHeight;
-//          ds >> nIndex;
-//          cout << "item.first:" <<"KeyId="<<keyId.ToAddress() << " Height="<< nHeight << " Index="<< nIndex << endl;
+        for (auto item : mapTxHash) {
             arrayObj.push_back(string(item.second.begin(), item.second.end()));
         }
         obj.push_back(Pair("txarray",arrayObj));
     }
     return obj;
 }
-
-// Value getrawtx(const Array& params, bool fHelp) {
-//     if (fHelp || params.size() != 1) {
-//         throw runtime_error(
-//             "getrawtx \"transaction\" \n"
-//             "\get transaction raw string\n"
-//             "\nArguments:\n"
-//             "1.\"transaction\": (string, required)\n"
-//             "\nExamples:\n"
-//             + HelpExampleCli("getrawtx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\"")
-//             + "\nAs json rpc call\n"
-//             + HelpExampleRpc("getrawtx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
-//     }
-//     EnsureWalletIsUnlocked();
-//     vector<unsigned char> vch(ParseHex(params[0].get_str()));
-//     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
-//     CDataStream streamRawTx(SER_DISK, CLIENT_VERSION);
-
-//     std::shared_ptr<CBaseTransaction> pa;
-//     stream >> pa;
-//     streamRawTx << pa->nTxType;
-//     if (pa->nTxType == REG_ACCT_TX) {
-//         CRegisterAccountTx *pRegAcctTx = (CRegisterAccountTx *) pa.get();
-//         streamRawTx << pRegAcctTx->nVersion;
-//         streamRawTx << pRegAcctTx->nValidHeight;
-//         CID id(pRegAcctTx->userId);
-//         streamRawTx << id;
-//         CID mMinerid(pRegAcctTx->minerId);
-//         streamRawTx << mMinerid;
-//         streamRawTx << pRegAcctTx->llFees;
-//         streamRawTx << pRegAcctTx->signature;
-
-//     } else if (pa->nTxType == COMMON_TX || pa->nTxType == CONTRACT_TX) {
-//         CTransaction * pTx = (CTransaction *) pa.get();
-//         streamRawTx << pTx->nVersion;
-//         streamRawTx << pTx->nValidHeight;
-//         CID srcId(pTx->srcRegId);
-//         streamRawTx << srcId;
-//         CID desId(pTx->desUserId);
-//         streamRawTx << desId;
-//         streamRawTx << pTx->llFees;
-//         streamRawTx << pTx->llValues;
-//         streamRawTx << pTx->vContract;
-//         streamRawTx << pTx->signature;
-
-//     }  else if (pa->nTxType == REWARD_TX) {
-//         CRewardTransaction * pRewardTx = (CRewardTransaction *) pa.get();
-//         streamRawTx << pRewardTx->nVersion;
-//         CID acctId(pRewardTx->account);
-//         streamRawTx << acctId;
-//         streamRawTx << pRewardTx->rewardValue;
-//         streamRawTx << pRewardTx->nHeight;
-
-//     } else if (pa->nTxType == REG_CONT_TX) {
-//         CRegisterContractTx * pRegAppTx = (CRegisterContractTx *) pa.get();
-//         streamRawTx << pRegAppTx->nVersion;
-//         streamRawTx << pRegAppTx->nValidHeight;
-//         CID regId(pRegAppTx->regAcctId);
-//         streamRawTx << regId;
-//         streamRawTx << pRegAppTx->script;
-//         streamRawTx << pRegAppTx->llFees;
-//         streamRawTx << pRegAppTx->signature;
-
-//     } else if(pa->nTxType == DELEGATE_TX) {
-//         CDelegateTransaction * pDelegateTx = (CDelegateTransaction *) pa.get();
-//         streamRawTx << pDelegateTx->nVersion;
-//         streamRawTx << pDelegateTx->nValidHeight;
-//         CID regId(pDelegateTx->userId);
-//         streamRawTx << regId;
-//         streamRawTx << pDelegateTx->operVoteFunds;
-//         streamRawTx << pDelegateTx->llFees;
-//         streamRawTx << pDelegateTx->signature;
-
-//     } else {
-//          throw runtime_error("serialize tx type value error, must be within range of (1...6)\n");
-//     }
-//     vector<unsigned char> vRetCh(streamRawTx.begin(), streamRawTx.end());
-//     Object obj;
-//     obj.push_back(Pair("txraw", HexStr(vRetCh)));
-//     return obj;
-// }
 
 Value listdelegates(const Array& params, bool fHelp) {
     if (fHelp || params.size() > 1) {

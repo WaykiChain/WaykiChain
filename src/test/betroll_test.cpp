@@ -839,7 +839,7 @@ unsigned char TempArray[] = {
 //	contractScript.scriptId = scriptId.vRegID;
 //	contractScript.scriptContent = vpscript;
 //	CSecureTransaction *nTemp = static_cast<CSecureTransaction*>(Tx[0].get());
-//	nTemp->vContract.insert(nTemp->vContract.begin(),VmData.begin(),VmData.end());
+//	nTemp->arguments.insert(nTemp->arguments.begin(),VmData.begin(),VmData.end());
 //	nTemp->regScriptId = scriptId.vRegID;
 //
 //	for (auto& item : account) {
@@ -848,11 +848,11 @@ unsigned char TempArray[] = {
 //	unsigned char ch; memcpy(&ch,&a2,1);
 //	CAppealTransaction *nA2 = static_cast<CAppealTransaction*>(Tx[1].get());
 //	nA2->vPreAcountIndex.push_back(0x00);
-//	nA2->vContract.push_back(ch);
+//	nA2->arguments.push_back(ch);
 //	memcpy(&ch,&b2,1);
 //	CAppealTransaction *nB2 = static_cast<CAppealTransaction*>(Tx[2].get());
 //	nB2->vPreAcountIndex.push_back(0x01);
-//	nB2->vContract.push_back(ch);
+//	nB2->arguments.push_back(ch);
 //}
 //struct CTxBetRollScript {
 //	CVmScript vscript;
@@ -912,9 +912,9 @@ unsigned char TempArray[] = {
 //			int b2 = random(100);
 //			unsigned char ch;
 //			memcpy(&ch, &b2, 1);
-//			if (ch != betroll->A2.get()->vContract[0]) {
-//				betroll->A2.get()->vContract.clear();
-//				betroll->A2.get()->vContract.push_back(ch);
+//			if (ch != betroll->A2.get()->arguments[0]) {
+//				betroll->A2.get()->arguments.clear();
+//				betroll->A2.get()->arguments.push_back(ch);
 //				break;
 //			}
 //		}
@@ -947,9 +947,9 @@ unsigned char TempArray[] = {
 //			int b2 = random(100);
 //			unsigned char ch;
 //			memcpy(&ch, &b2, 1);
-//			if (ch != betroll->B2.get()->vContract[0]) {
-//				betroll->B2.get()->vContract.clear();
-//				betroll->B2.get()->vContract.push_back(ch);
+//			if (ch != betroll->B2.get()->arguments[0]) {
+//				betroll->B2.get()->arguments.clear();
+//				betroll->B2.get()->arguments.push_back(ch);
 //				break;
 //			}
 //		}
@@ -1083,22 +1083,22 @@ unsigned char TempArray[] = {
 //	CDataStream VmData(SER_DISK, CLIENT_VERSION);
 //	VmData << vscript;
 //	string strOutpud = "script:" + HexStr(VmData.str())+"\r\n"
-//	+"first:" +HexStr(tx.get()->vContract)+"\r\n"
-//	+"A Second:" +HexStr(A2.get()->vContract)+"\r\n"
-//	+"B Third:"+HexStr(B2.get()->vContract)+"\r\n"
+//	+"first:" +HexStr(tx.get()->arguments)+"\r\n"
+//	+"A Second:" +HexStr(A2.get()->arguments)+"\r\n"
+//	+"B Third:"+HexStr(B2.get()->arguments)+"\r\n"
 //	+"or \r\n"
-//	+"B Second:"+HexStr(B2.get()->vContract)+"\r\n"
-//	+"A third:"+HexStr(A2.get()->vContract)+"\r\n";
+//	+"B Second:"+HexStr(B2.get()->arguments)+"\r\n"
+//	+"A third:"+HexStr(A2.get()->arguments)+"\r\n";
 //
 //	BOOST_MESSAGE(strOutpud);
 ////	cout << "script:" << HexStr(VmData.str()).c_str() << endl;
 ////
-////	cout<<"first:"<<HexStr(tx.get()->vContract).c_str()<<endl;
-////	cout<<"A Second:"<<HexStr(A2.get()->vContract).c_str()<<endl;
-////	cout<<"B Third:"<<HexStr(B2.get()->vContract).c_str()<<endl;
+////	cout<<"first:"<<HexStr(tx.get()->arguments).c_str()<<endl;
+////	cout<<"A Second:"<<HexStr(A2.get()->arguments).c_str()<<endl;
+////	cout<<"B Third:"<<HexStr(B2.get()->arguments).c_str()<<endl;
 ////	cout<<"or "<<endl;
-////	cout<<"B Second:"<<HexStr(B2.get()->vContract).c_str()<<endl;
-////	cout<<"A third:"<<HexStr(A2.get()->vContract).c_str()<<endl;
+////	cout<<"B Second:"<<HexStr(B2.get()->arguments).c_str()<<endl;
+////	cout<<"A third:"<<HexStr(A2.get()->arguments).c_str()<<endl;
 //}
 //
 //#else

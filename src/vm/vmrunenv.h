@@ -157,7 +157,7 @@ public:
 	shared_ptr<vector<CScriptDBOperLog> > GetDbLog();
 
 	bool GetAppUserAccount(const vector<unsigned char> &id, shared_ptr<CAppUserAccount> &sptrAcc);
-	bool CheckAppAcctOperate(CTransaction* tx);
+	bool CheckAppAcctOperate(CContractTransaction* tx);
 	void SetCheckAccount(bool bCheckAccount);
 	virtual ~CVmRunEnv();
 

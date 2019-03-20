@@ -305,8 +305,8 @@ string HelpMessage() {
         strUsage += "  -limitfreerelay=<n>    " + _("Continuously rate-limit free transactions to <n>*1000 bytes per minute (default:15)") + "\n";
         strUsage += "  -maxsigcachesize=<n>   " + _("Limit size of signature cache to <n> entries (default: 50000)") + "\n";
     }
-    strUsage += "  -mintxfee=<amt>        " + _("Fees smaller than this are considered zero fee (for transaction creation) (default:") + " " + FormatMoney(CTransaction::nMinTxFee) + ")" + "\n";
-    strUsage += "  -minrelaytxfee=<amt>   " + _("Fees smaller than this are considered zero fee (for relaying) (default:") + " " + FormatMoney(CTransaction::nMinRelayTxFee) + ")" + "\n";
+    strUsage += "  -mintxfee=<amt>        " + _("Fees smaller than this are considered zero fee (for transaction creation) (default:") + " " + FormatMoney(CBaseTransaction::nMinTxFee) + ")" + "\n";
+    strUsage += "  -minrelaytxfee=<amt>   " + _("Fees smaller than this are considered zero fee (for relaying) (default:") + " " + FormatMoney(CBaseTransaction::nMinRelayTxFee) + ")" + "\n";
     strUsage += "  -logprinttoconsole     " + _("Send trace/debug info to console instead of debug.log file") + "\n";
     if (SysCfg().GetBoolArg("-help-debug", false)) {
         strUsage += "  -printblock=<hash>     " + _("Print block on startup, if found in block index") + "\n";
@@ -548,7 +548,7 @@ bool AppInit(boost::thread_group &threadGroup) {
     if (SysCfg().IsArgCount("-mintxfee")) {
         int64_t n = 0;
         if (ParseMoney(SysCfg().GetArg("-mintxfee", ""), n) && n > 0) {
-            CTransaction::nMinTxFee = n;
+            CBaseTransaction::nMinTxFee = n;
         } else {
             return InitError(strprintf(_("Invalid amount for -mintxfee=<amount>: '%s'"), SysCfg().GetArg("-mintxfee", "")));
         }
@@ -556,7 +556,7 @@ bool AppInit(boost::thread_group &threadGroup) {
     if (SysCfg().IsArgCount("-minrelaytxfee")) {
         int64_t n = 0;
         if (ParseMoney(SysCfg().GetArg("-minrelaytxfee", ""), n) && n > 0) {
-            CTransaction::nMinRelayTxFee = n;
+            CBaseTransaction::nMinRelayTxFee = n;
         } else {
             return InitError(strprintf(_("Invalid amount for -minrelaytxfee=<amount>: '%s'"), SysCfg().GetArg("-minrelaytxfee", "")));
         }
