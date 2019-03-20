@@ -234,7 +234,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx*pTx, const CBlock* pb
 //          unsigned short i = 0;
 //          for (const auto &sptx : pblock->vptx) {
 //              //confirm the tx GenesisBlock
-//              CRewardTransaction* prtx = (CRewardTransaction*) sptx.get();
+//              CRewardTx* prtx = (CRewardTx*) sptx.get();
 //              CPubKey pubkey = boost::get<CPubKey>(prtx->account);
 //              CAccount account;
 //              if (IsMine(sptx.get())) {

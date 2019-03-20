@@ -369,7 +369,7 @@ bool CBaseParams::CreateGenesisRewardTx(vector<std::shared_ptr<CBaseTx> > &vRewa
         if (i > 0) {
             money = IniCfg().GetCoinInitValue() * COIN;
         }
-        shared_ptr<CRewardTransaction> pRewardTx = std::make_shared<CRewardTransaction>(ParseHex(vInitPubKey[i].c_str()),
+        shared_ptr<CRewardTx> pRewardTx = std::make_shared<CRewardTx>(ParseHex(vInitPubKey[i].c_str()),
                 money, 0);
         pRewardTx->nVersion = nTxVersion1;
         if (pRewardTx.get())

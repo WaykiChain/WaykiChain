@@ -899,19 +899,19 @@ bool CContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &v
     return true;
 }
 
-bool CRewardTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
+bool CRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
         int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB)
 {
     CID id(account);
     if (account.type() != typeid(CRegID)) {
         return state.DoS(100,
-            ERRORMSG("ExecuteTx() : CRewardTransaction ExecuteTx, account %s error, data type must be either CRegID",
+            ERRORMSG("ExecuteTx() : CRewardTx ExecuteTx, account %s error, data type must be either CRegID",
             HexStr(id.GetID())), UPDATE_ACCOUNT_FAIL, "bad-account");
     }
 
     CAccount acctInfo;
     if (!view.GetAccount(account, acctInfo)) {
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CRewardTransaction ExecuteTx, read source addr %s account info error",
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CRewardTx ExecuteTx, read source addr %s account info error",
             HexStr(id.GetID())), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 //  LogPrint("op_account", "before operate:%s\n", acctInfo.ToString());
@@ -927,7 +927,7 @@ bool CRewardTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
 
     CUserID userId = acctInfo.keyID;
     if (!view.SetAccount(userId, acctInfo))
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CRewardTransaction ExecuteTx, write secure account info error"),
+        return state.DoS(100, ERRORMSG("ExecuteTx() : CRewardTx ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     txundo.Clear();
@@ -937,7 +937,7 @@ bool CRewardTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
         CScriptDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
         if (!view.GetKeyId(account, sendKeyId))
-            return ERRORMSG("ExecuteTx() : CRewardTransaction ExecuteTx, get keyid by account error!");
+            return ERRORMSG("ExecuteTx() : CRewardTx ExecuteTx, get keyid by account error!");
 
         if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
             return false;
@@ -948,7 +948,7 @@ bool CRewardTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
     return true;
 }
 
-bool CRewardTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CRewardTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     CKeyID keyId;
     if (account.type() == typeid(CRegID)) {
         if (!view.GetKeyId(account, keyId))
@@ -963,7 +963,7 @@ bool CRewardTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
     return true;
 }
 
-string CRewardTransaction::ToString(CAccountViewCache &view) const {
+string CRewardTx::ToString(CAccountViewCache &view) const {
     string str;
     CKeyID keyId;
     view.GetKeyId(account, keyId);
@@ -975,7 +975,7 @@ string CRewardTransaction::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CRewardTransaction::ToJson(const CAccountViewCache &AccountView) const{
+Object CRewardTx::ToJson(const CAccountViewCache &AccountView) const{
     Object result;
     CAccountViewCache view(AccountView);
     CKeyID keyid;

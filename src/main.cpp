@@ -1377,8 +1377,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
         for (unsigned int i = 1; i < block.vptx.size(); i++) {
             if (block.vptx[i]->nTxType == REWARD_TX) {
                 assert(i <= 1);
-                std::shared_ptr<CRewardTransaction> pRewardTx =
-                    dynamic_pointer_cast<CRewardTransaction>(block.vptx[i]);
+                std::shared_ptr<CRewardTx> pRewardTx =
+                    dynamic_pointer_cast<CRewardTx>(block.vptx[i]);
                 CAccount sourceAccount;
                 CRegID accountId(pindex->nHeight, i);
                 CPubKey pubKey      = boost::get<CPubKey>(pRewardTx->account);
@@ -1497,7 +1497,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
         }
     }
 
-    std::shared_ptr<CRewardTransaction> pRewardTx = dynamic_pointer_cast<CRewardTransaction>(block.vptx[0]);
+    std::shared_ptr<CRewardTx> pRewardTx = dynamic_pointer_cast<CRewardTx>(block.vptx[0]);
     CAccount minerAcct;
     if (!view.GetAccount(pRewardTx->account, minerAcct)) {
         assert(0);
@@ -2169,7 +2169,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
         }
 
         //校验利息是否正常
-        std::shared_ptr<CRewardTransaction> pRewardTx = dynamic_pointer_cast<CRewardTransaction>(block.vptx[0]);
+        std::shared_ptr<CRewardTx> pRewardTx = dynamic_pointer_cast<CRewardTx>(block.vptx[0]);
         uint64_t llValidReward                        = block.GetFee() - block.GetFuel();
         if (pRewardTx->rewardValue != llValidReward)
             return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : coinbase pays too much (actual=%d vs limit=%d)",
@@ -4400,7 +4400,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
         case REG_ACCT_TX:
             return std::make_shared<CRegisterAccountTx>();
         case REWARD_TX:
-            return std::make_shared<CRewardTransaction>();
+            return std::make_shared<CRewardTx>();
         case REG_CONT_TX:
             return std::make_shared<CRegisterContractTx>();
         case DELEGATE_TX:

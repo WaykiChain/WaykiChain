@@ -434,7 +434,7 @@ Value getchainstate(const Array& params, bool fHelp)
         fuel.push_back(pBlockIndex->nFuel);
         block.SetNull();
         if (ReadBlockFromDisk(block, pBlockIndex)) {
-            string miner(boost::get<CRegID>(dynamic_pointer_cast<CRewardTransaction>(block.vptx[0])->account).ToString());
+            string miner(boost::get<CRegID>(dynamic_pointer_cast<CRewardTx>(block.vptx[0])->account).ToString());
             blockminer.push_back(move(miner));
         }
         pBlockIndex = pBlockIndex->pprev;

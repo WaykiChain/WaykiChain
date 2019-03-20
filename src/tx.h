@@ -466,23 +466,23 @@ public:
                           CScriptDBViewCache &scriptDB);
 };
 
-class CRewardTransaction : public CBaseTx {
+class CRewardTx : public CBaseTx {
 public:
     mutable CUserID account;  // in genesis block is pubkey, otherwise account id
     uint64_t rewardValue;
     int nHeight;
 
 public:
-    CRewardTransaction() {
+    CRewardTx() {
         nTxType     = REWARD_TX;
         rewardValue = 0;
         nHeight     = 0;
     }
-    CRewardTransaction(const CBaseTx *pBaseTx) {
+    CRewardTx(const CBaseTx *pBaseTx) {
         assert(REWARD_TX == pBaseTx->nTxType);
-        *this = *(CRewardTransaction *)pBaseTx;
+        *this = *(CRewardTx *)pBaseTx;
     }
-    CRewardTransaction(const vector_unsigned_char &accountIn, const uint64_t rewardValueIn, const int nHeightIn) {
+    CRewardTx(const vector_unsigned_char &accountIn, const uint64_t rewardValueIn, const int nHeightIn) {
         nTxType = REWARD_TX;
         if (accountIn.size() > 6) {
             account = CPubKey(accountIn);
@@ -492,7 +492,7 @@ public:
         rewardValue = rewardValueIn;
         nHeight     = nHeightIn;
     }
-    ~CRewardTransaction() {}
+    ~CRewardTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -513,7 +513,7 @@ public:
     }
     uint64_t GetValue() const { return rewardValue; }
     uint256 GetHash() const { return SignatureHash(); }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CRewardTransaction>(this); }
+    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CRewardTx>(this); }
     uint64_t GetFee() const { return 0; }
     double GetPriority() const { return 0.0f; }
     string ToString(CAccountViewCache &view) const;
@@ -971,7 +971,7 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
     } else if (pa->nTxType == CONTRACT_TX) {
         Serialize(os, *((CContractTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == REWARD_TX) {
-        Serialize(os, *((CRewardTransaction *)(pa.get())), nType, nVersion);
+        Serialize(os, *((CRewardTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == REG_CONT_TX) {
         Serialize(os, *((CRegisterContractTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == DELEGATE_TX) {
@@ -994,8 +994,8 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
         pa = std::make_shared<CContractTx>();
         Unserialize(is, *((CContractTx *)(pa.get())), nType, nVersion);
     } else if (nTxType == REWARD_TX) {
-        pa = std::make_shared<CRewardTransaction>();
-        Unserialize(is, *((CRewardTransaction *)(pa.get())), nType, nVersion);
+        pa = std::make_shared<CRewardTx>();
+        Unserialize(is, *((CRewardTx *)(pa.get())), nType, nVersion);
     } else if (nTxType == REG_CONT_TX) {
         pa = std::make_shared<CRegisterContractTx>();
         Unserialize(is, *((CRegisterContractTx *)(pa.get())), nType, nVersion);

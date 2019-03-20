@@ -34,7 +34,7 @@ class CBaseTx;
 class CRegisterAccountTx;
 class CCommonTx;
 class CContractTx;
-class CRewardTransaction;
+class CRewardTx;
 
 
 static const unsigned int MAX_SIZE = 0x02000000;
