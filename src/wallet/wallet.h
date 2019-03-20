@@ -332,7 +332,7 @@ public:
             mapAccountTx[hash] = std::make_shared<CCommonTx>(pTx);
             break;
         case CONTRACT_TX:
-            mapAccountTx[hash] = std::make_shared<CContractTransaction>(pTx);
+            mapAccountTx[hash] = std::make_shared<CContractTx>(pTx);
             break;
         case REG_ACCT_TX:
             mapAccountTx[hash] = std::make_shared<CRegisterAccountTx>(pTx);

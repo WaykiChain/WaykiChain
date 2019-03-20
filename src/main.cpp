@@ -3371,7 +3371,7 @@ void static ProcessGetData(CNode *pfrom) {
                         if (COMMON_TX == pBaseTx->nTxType) {
                             ss << *((CCommonTx *)(pBaseTx.get()));
                         } else if (CONTRACT_TX == pBaseTx->nTxType) {
-                            ss << *((CContractTransaction *)(pBaseTx.get()));
+                            ss << *((CContractTx *)(pBaseTx.get()));
                         } else if (REG_ACCT_TX == pBaseTx->nTxType) {
                             ss << *((CRegisterAccountTx *)pBaseTx.get());
                         } else if (REG_CONT_TX == pBaseTx->nTxType) {
@@ -4396,7 +4396,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
         case COMMON_TX:
             return std::make_shared<CCommonTx>();
         case CONTRACT_TX:
-            return std::make_shared<CContractTransaction>();
+            return std::make_shared<CContractTx>();
         case REG_ACCT_TX:
             return std::make_shared<CRegisterAccountTx>();
         case REWARD_TX:

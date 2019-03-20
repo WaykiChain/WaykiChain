@@ -188,7 +188,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx)
     }
     case CONTRACT_TX:
     {
-        CContractTransaction* ptx = (CContractTransaction*)pBaseTx.get();
+        CContractTx* ptx = (CContractTx*)pBaseTx.get();
         CKeyID sendKeyID;
         CRegID sendRegID = boost:: get < CRegID > (ptx->srcRegId);
         sendKeyID = sendRegID.GetKeyID(*pAccountViewTip);
@@ -528,7 +528,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
         height = params[5].get_int();
 
     EnsureWalletIsUnlocked();
-    std::shared_ptr<CContractTransaction> tx = std::make_shared<CContractTransaction>();
+    std::shared_ptr<CContractTx> tx = std::make_shared<CContractTx>();
     {
         //balance
         CAccountViewCache view(*pAccountViewTip, true);
@@ -1106,7 +1106,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                     }
                 }
             } else if (item.second->nTxType == CONTRACT_TX) {
-                CContractTransaction* ptx = (CContractTransaction*)item.second.get();
+                CContractTx* ptx = (CContractTx*)item.second.get();
                 CKeyID sendKeyID;
                 CRegID sendRegID = boost::get<CRegID>(ptx->srcRegId);
                 sendKeyID        = sendRegID.GetKeyID(*pAccountViewTip);
@@ -1332,7 +1332,7 @@ Value listcontracttx(const Array& params, bool fHelp)
                     return arrayData;
                 }
 
-                CContractTransaction* ptx = (CContractTransaction*) item.second.get();
+                CContractTx* ptx = (CContractTx*) item.second.get();
                 if (strRegId != getregidstring(ptx->desUserId)) {
                     continue;
                 }
@@ -2313,7 +2313,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
         throw runtime_error(tinyformat::format("from address :%s has no keyId\r\n", hexId));
     }
 
-    std::shared_ptr<CContractTransaction> tx = std::make_shared<CContractTransaction>(
+    std::shared_ptr<CContractTx> tx = std::make_shared<CContractTx>(
         userRegId, conRegId, fee, amount, height, arguments);
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
@@ -2506,8 +2506,8 @@ Value sigstr(const Array& params, bool fHelp) {
             break;
         }
         case CONTRACT_TX: {
-            std::shared_ptr<CContractTransaction> tx =
-                std::make_shared<CContractTransaction>(pBaseTx.get());
+            std::shared_ptr<CContractTx> tx =
+                std::make_shared<CContractTx>(pBaseTx.get());
             if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
             }
@@ -2591,7 +2591,7 @@ Value decoderawtx(const Array& params, bool fHelp)
     }
         break;
     case CONTRACT_TX: {
-        std::shared_ptr<CContractTransaction> tx = std::make_shared<CContractTransaction>(pBaseTx.get());
+        std::shared_ptr<CContractTx> tx = std::make_shared<CContractTx>(pBaseTx.get());
         if (tx.get()) {
             obj = tx->ToJson(view);
         }

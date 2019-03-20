@@ -389,8 +389,8 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 					}
 				}
 				if (CONTRACT_TX == ptx->nTxType) {
-					std::shared_ptr<CContractTransaction> pTransaction(
-						dynamic_pointer_cast<CContractTransaction>(ptx));
+					std::shared_ptr<CContractTx> pTransaction(
+						dynamic_pointer_cast<CContractTx>(ptx));
 					if (typeid(pTransaction->desUserId) == typeid(CKeyID)) {
 						llSendValue += pTransaction->llValues;
 					}

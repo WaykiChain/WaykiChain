@@ -33,7 +33,7 @@ class CDataStream;
 class CBaseTx;
 class CRegisterAccountTx;
 class CCommonTx;
-class CContractTransaction;
+class CContractTx;
 class CRewardTransaction;
 
 

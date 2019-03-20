@@ -48,7 +48,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& pBaseTx, CAccountViewCache& view
         return false;
     }
 
-    CContractTransaction* secure = static_cast<CContractTransaction*>(pBaseTx.get());
+    CContractTx* secure = static_cast<CContractTx*>(pBaseTx.get());
     if (!m_ScriptDBTip->GetScript(boost::get<CRegID>(secure->desUserId), vScript)) {
         LogPrint("ERROR", "Script is not Registed %s\n", boost::get<CRegID>(secure->desUserId).ToString());
         return false;
@@ -95,7 +95,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
 
     m_ScriptDBTip = &VmDB;
 
-    CContractTransaction* tx = static_cast<CContractTransaction*>(Tx.get());
+    CContractTx* tx = static_cast<CContractTx*>(Tx.get());
     if (tx->llFees < CBaseTx::nMinTxFee)
         return std::make_tuple (false, 0, string("CVmRunEnv: Contract Tx fee too small\n"));
 
@@ -253,7 +253,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate> &listoperate) {
             if(accountid.size() != 6)
                 return false;
             CRegID regId(accountid);
-            CContractTransaction* tx = static_cast<CContractTransaction*>(listTx.get());
+            CContractTx* tx = static_cast<CContractTx*>(listTx.get());
             /// current tx's script cant't mius other script's regid
             if (m_ScriptDBTip->HaveScript(regId) && regId != boost::get<CRegID>(tx->desUserId))
                 return false;
@@ -295,7 +295,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate> &listoperate) {
     return true;
 }
 
-bool CVmRunEnv::CheckAppAcctOperate(CContractTransaction* tx) {
+bool CVmRunEnv::CheckAppAcctOperate(CContractTx* tx) {
     int64_t addValue(0), minusValue(0), sumValue(0);
     for (auto  vOpItem : MapAppOperate) {
         for (auto appFund : vOpItem.second) {
@@ -455,21 +455,21 @@ bool CVmRunEnv::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
 
 const CRegID& CVmRunEnv::GetScriptRegID()
 {   // 获取目的账户ID
-    CContractTransaction* tx = static_cast<CContractTransaction*>(listTx.get());
+    CContractTx* tx = static_cast<CContractTx*>(listTx.get());
     return boost::get<CRegID>(tx->desUserId);
 }
 
 const CRegID &CVmRunEnv::GetTxAccount() {
-    CContractTransaction* tx = static_cast<CContractTransaction*>(listTx.get());
+    CContractTx* tx = static_cast<CContractTx*>(listTx.get());
     return boost::get<CRegID>(tx->srcRegId);
 }
 uint64_t CVmRunEnv::GetValue() const{
-    CContractTransaction* tx = static_cast<CContractTransaction*>(listTx.get());
+    CContractTx* tx = static_cast<CContractTx*>(listTx.get());
         return tx->llValues;
 }
 const vector<unsigned char>& CVmRunEnv::GetTxContact()
 {
-    CContractTransaction* tx = static_cast<CContractTransaction*>(listTx.get());
+    CContractTx* tx = static_cast<CContractTx*>(listTx.get());
         return tx->arguments;
 }
 int CVmRunEnv::GetComfirHeight()

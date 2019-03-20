@@ -533,7 +533,7 @@ Value notionalpoolingasset(const Array& params, bool fHelp)
         const int STEP = 645;
         int64_t nFee = (STEP / 100 + 1) * nFuelRate + SysCfg().GetTxFee();
         LogPrint("vm", "nFuelRate=%d, nFee=%lld\n",nFuelRate, nFee);
-        CContractTransaction tx(sendreg, regid, nFee, 0 , chainActive.Height(), arguments);
+        CContractTx tx(sendreg, regid, nFee, 0 , chainActive.Height(), arguments);
         if (!pwalletMain->Sign(sendKeyId, tx.SignatureHash(), tx.signature)) {
             continue;
         }

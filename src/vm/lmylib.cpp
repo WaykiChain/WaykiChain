@@ -807,7 +807,7 @@ static int ExGetTxContractFunc(lua_State *L) {
     int len = 0;
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == CONTRACT_TX) {
-            CContractTransaction *tx = static_cast<CContractTransaction *>(pBaseTx.get());
+            CContractTx *tx = static_cast<CContractTx *>(pBaseTx.get());
             len = RetRstToLua(L, tx->arguments);
         } else {
             return RetFalse("ExGetTxContractFunc, tx type error");
@@ -874,7 +874,7 @@ static int ExGetTxRegIDFunc(lua_State *L) {
             vector<unsigned char> item = boost::get<CRegID>(tx->srcRegId).GetVec6();
             len = RetRstToLua(L, item);
         } else if (pBaseTx->nTxType == CONTRACT_TX) {
-            CContractTransaction *tx = static_cast<CContractTransaction*>(pBaseTx.get());
+            CContractTx *tx = static_cast<CContractTx*>(pBaseTx.get());
             vector<unsigned char> item = boost::get<CRegID>(tx->srcRegId).GetVec6();
             len = RetRstToLua(L, item);
         } else {
