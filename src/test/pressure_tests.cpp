@@ -12,7 +12,7 @@
 using namespace std;
 
 const unsigned int iTxCount = 6000;
-vector<std::shared_ptr<CBaseTransaction> > vTransactions;
+vector<std::shared_ptr<CBaseTx> > vTransactions;
 vector<string> vTransactionHash;
 deque<uint64_t> dFee;
 deque<uint64_t> dFuel;
@@ -107,7 +107,7 @@ public:
 		string txHash = result.get_str();
 		vTransactionHash.push_back(txHash);
 		if (mempool.mapTx.count(uint256(uint256S(txHash))) > 0) {
-			std::shared_ptr<CBaseTransaction> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTx();
+			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTx();
 			vTransactions.push_back(tx);
 		}
 		vSendFee.push_back(make_pair(txHash, nfee));
@@ -144,7 +144,7 @@ public:
 
 		vTransactionHash.push_back(txHash);
 		if (mempool.mapTx.count(uint256(uint256S(txHash))) > 0) {
-			std::shared_ptr<CBaseTransaction> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTx();
+			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTx();
 			vTransactions.push_back(tx);
 		}
 		vSendFee.push_back(make_pair(txHash, nfee));
@@ -172,7 +172,7 @@ public:
 
 		vTransactionHash.push_back(txHash);
 		if (mempool.mapTx.count(uint256(uint256S(txHash))) > 0) {
-			std::shared_ptr<CBaseTransaction> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTx();
+			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTx();
 			vTransactions.push_back(tx);
 		}
 		vSendFee.push_back(make_pair(txHash, nfee));
@@ -191,7 +191,7 @@ public:
 		if(fFlag) {
 			vTransactionHash.push_back(hash);
 			if (mempool.mapTx.count(uint256(uint256S(hash))) > 0) {
-				std::shared_ptr<CBaseTransaction> tx = mempool.mapTx[uint256(uint256S(hash))].GetTx();
+				std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(hash))].GetTx();
 				vTransactions.push_back(tx);
 			}
 			vSendFee.push_back(make_pair(hash, nFee));

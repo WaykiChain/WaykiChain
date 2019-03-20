@@ -27,5 +27,5 @@ using namespace boost::assign;
 using namespace json_spirit;
 
 
-extern void SyncWithWallets(const uint256 &hash, const CBaseTransaction *pTx, const CBlock *pblock);
+extern void SyncWithWallets(const uint256 &hash, const CBaseTx *pTx, const CBlock *pblock);
 

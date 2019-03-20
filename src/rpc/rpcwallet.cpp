@@ -157,7 +157,7 @@ static std::tuple<bool, string> SendMoney(const CRegID &sendRegId, const CUserID
         return std::make_tuple(false, "SendMoney Sign failed");
     }
 
-    std::tuple<bool, string> ret = pwalletMain->CommitTransaction((CBaseTransaction *)&tx);
+    std::tuple<bool, string> ret = pwalletMain->CommitTransaction((CBaseTx *)&tx);
     bool flag = std::get<0>(ret);
     string te = std::get<1>(ret);
     if (flag == true)
@@ -420,7 +420,7 @@ Value gensendtoaddressraw(const Array& params, bool fHelp)
     }
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
-    std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+    std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
     ds << pBaseTx;
     Object obj;
     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
@@ -538,7 +538,7 @@ Value notionalpoolingasset(const Array& params, bool fHelp)
             continue;
         }
 
-        std::tuple<bool,string> ret = pwalletMain->CommitTransaction((CBaseTransaction *) &tx);
+        std::tuple<bool,string> ret = pwalletMain->CommitTransaction((CBaseTx *) &tx);
         if(!std::get<0>(ret))
              continue;
 
@@ -702,7 +702,7 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
         if (!pwalletMain->Sign(sendKeyId, tx.SignatureHash(), tx.signature)) {
             continue;
         }
-        std::tuple<bool,string> ret = pwalletMain->CommitTransaction((CBaseTransaction *) &tx);
+        std::tuple<bool,string> ret = pwalletMain->CommitTransaction((CBaseTx *) &tx);
         if(!std::get<0>(ret))
              continue;
 
@@ -792,7 +792,7 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
 //             continue;
 //         }
 
-//         std::tuple<bool,string> ret = pwalletMain->CommitTransaction((CBaseTransaction *) &tx);
+//         std::tuple<bool,string> ret = pwalletMain->CommitTransaction((CBaseTx *) &tx);
 //         if(!std::get<0>(ret))
 //              continue;
 //         arrayTxIds.push_back(std::get<1>(ret));

@@ -115,7 +115,7 @@ static bool noui_SyncTx()
 
 			Object objTx;
 			CAccountTx acctTx= pwalletMain->mapInBlockTx[pStartBlockIndex->GetBlockHash()];
-			map<uint256, std::shared_ptr<CBaseTransaction> >::iterator iterTx = acctTx.mapAccountTx.begin();
+			map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx = acctTx.mapAccountTx.begin();
 			for(;iterTx != acctTx.mapAccountTx.end(); ++iterTx) {
 				objTx = iterTx->second->ToJson(*pAccountViewTip);
 				objTx.push_back(Pair("blockhash", pStartBlockIndex->GetBlockHash().ToString()));
@@ -134,7 +134,7 @@ static bool noui_SyncTx()
 	for(; iterAccountTx != pwalletMain->mapInBlockTx.end(); ++iterAccountTx)
 	{
 		Object objTx;
-		map<uint256, std::shared_ptr<CBaseTransaction> >::iterator iterTx = iterAccountTx->second.mapAccountTx.begin();
+		map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx = iterAccountTx->second.mapAccountTx.begin();
 		for(;iterTx != iterAccountTx->second.mapAccountTx.end(); ++iterTx) {
 			objTx = iterTx->second.get()->ToJson(*pAccountViewTip);
 			objTx.push_back(Pair("blockhash", iterAccountTx->first.GetHex()));
@@ -153,7 +153,7 @@ static bool noui_SyncTx()
 		}
 	}
 	*/
-	map<uint256, std::shared_ptr<CBaseTransaction> >::iterator iterTx =  pwalletMain->UnConfirmTx.begin();
+	map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx =  pwalletMain->UnConfirmTx.begin();
 	for(; iterTx != pwalletMain->UnConfirmTx.end(); ++iterTx)
 	{
 		Object objTx = iterTx->second.get()->ToJson(*pAccountViewTip);

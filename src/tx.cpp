@@ -15,7 +15,7 @@
 #include "json/json_spirit_writer_template.h"
 using namespace json_spirit;
 
-string CBaseTransaction::txTypeArray[7] = { "NULL_TXTYPE", "REWARD_TX", "REG_ACCT_TX", "COMMON_TX", "CONTRACT_TX", "REG_APP_TX", "DELEGATE_TX"};
+string CBaseTx::txTypeArray[7] = { "NULL_TXTYPE", "REWARD_TX", "REG_ACCT_TX", "COMMON_TX", "CONTRACT_TX", "REG_APP_TX", "DELEGATE_TX"};
 string COperVoteFund::voteOperTypeArray[3] = {"NULL_OPER", "ADD_FUND", "MINUS_FUND"};
 
 static bool GetKeyId(const CAccountViewCache &view, const vector<unsigned char> &ret, CKeyID &KeyId)
@@ -219,7 +219,7 @@ void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn)
     }
 }
 
-bool CBaseTransaction::IsValidHeight(int nCurrHeight, int nTxCacheHeight) const
+bool CBaseTx::IsValidHeight(int nCurrHeight, int nTxCacheHeight) const
 {
     if(REWARD_TX == nTxType)
         return true;
@@ -230,18 +230,18 @@ bool CBaseTransaction::IsValidHeight(int nCurrHeight, int nTxCacheHeight) const
     return true;
 }
 
-bool CBaseTransaction::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
+bool CBaseTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
         int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
     vector<CAccountLog>::reverse_iterator rIterAccountLog = txundo.vAccountLog.rbegin();
     for (; rIterAccountLog != txundo.vAccountLog.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
         if (!view.GetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, undo ExecuteTx read accountId= %s account info error"),
+            return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTx UndoExecuteTx, undo ExecuteTx read accountId= %s account info error"),
                     UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         if (!account.UndoOperateAccount(*rIterAccountLog)) {
-            return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, undo UndoOperateAccount failed"), UPDATE_ACCOUNT_FAIL,
+            return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTx UndoExecuteTx, undo UndoOperateAccount failed"), UPDATE_ACCOUNT_FAIL,
                     "undo-operate-account-failed");
         }
         if (COMMON_TX == nTxType
@@ -251,7 +251,7 @@ bool CBaseTransaction::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValid
         } else {
             if (!view.SetAccount(userId, account)) {
                 return state.DoS(100,
-                    ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, undo ExecuteTx write accountId= %s account info error"),
+                    ERRORMSG("UndoExecuteTx() : CBaseTx UndoExecuteTx, undo ExecuteTx write accountId= %s account info error"),
                     UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
             }
         }
@@ -260,7 +260,7 @@ bool CBaseTransaction::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValid
         vector<CScriptDBOperLog>::reverse_iterator rIterScriptDBLog = txundo.vScriptOperLog.rbegin();
         if (SysCfg().GetAddressToTxFlag() && txundo.vScriptOperLog.size() > 0) {
             if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
-                return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, undo scriptdb data error"), UPDATE_ACCOUNT_FAIL,
+                return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTx UndoExecuteTx, undo scriptdb data error"), UPDATE_ACCOUNT_FAIL,
                     "bad-save-scriptdb");
             ++rIterScriptDBLog;
         }
@@ -268,32 +268,32 @@ bool CBaseTransaction::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValid
         for (; rIterScriptDBLog != txundo.vScriptOperLog.rend(); ++rIterScriptDBLog) {
             // recover the old value and erase the new value
             if (!scriptDB.SetDelegateData(rIterScriptDBLog->vKey))
-                return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, set delegate data error"), UPDATE_ACCOUNT_FAIL,
+                return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTx UndoExecuteTx, set delegate data error"), UPDATE_ACCOUNT_FAIL,
                     "bad-save-scriptdb");
 
             ++rIterScriptDBLog;
             if (!scriptDB.EraseDelegateData(rIterScriptDBLog->vKey))
-                return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, erase delegate data error"), UPDATE_ACCOUNT_FAIL,
+                return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTx UndoExecuteTx, erase delegate data error"), UPDATE_ACCOUNT_FAIL,
                     "bad-save-scriptdb");
         }
     } else {
         vector<CScriptDBOperLog>::reverse_iterator rIterScriptDBLog = txundo.vScriptOperLog.rbegin();
         for (; rIterScriptDBLog != txundo.vScriptOperLog.rend(); ++rIterScriptDBLog) {
             if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
-                return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, undo scriptdb data error"), UPDATE_ACCOUNT_FAIL,
+                return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTx UndoExecuteTx, undo scriptdb data error"), UPDATE_ACCOUNT_FAIL,
                                  "bad-save-scriptdb");
         }
     }
 
     if(CONTRACT_TX == nTxType) {
         if (!scriptDB.EraseTxRelAccout(GetHash()))
-            return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTransaction UndoExecuteTx, erase tx rel account error"),
+            return state.DoS(100, ERRORMSG("UndoExecuteTx() : CBaseTx UndoExecuteTx, erase tx rel account error"),
                 UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
     return true;
 }
 
-uint64_t CBaseTransaction::GetFuel(int nfuelRate) {
+uint64_t CBaseTx::GetFuel(int nfuelRate) {
     uint64_t llFuel = ceil(nRunStep/100.0f) * nfuelRate;
     if (REG_CONT_TX == nTxType) {
         if (llFuel < 1 * COIN) {
@@ -303,7 +303,7 @@ uint64_t CBaseTransaction::GetFuel(int nfuelRate) {
     return llFuel;
 }
 
-int CBaseTransaction::GetFuelRate(CScriptDBViewCache &scriptDB)
+int CBaseTx::GetFuelRate(CScriptDBViewCache &scriptDB)
 {
     if (nFuelRate > 0)
         return nFuelRate;
@@ -326,7 +326,7 @@ int CBaseTransaction::GetFuelRate(CScriptDBViewCache &scriptDB)
 }
 
 //check the fees must be more than nMinTxFee
-bool CBaseTransaction::CheckMinTxFee(uint64_t llFees)
+bool CBaseTx::CheckMinTxFee(uint64_t llFees)
 {
     NET_TYPE networkID = SysCfg().NetworkID();
     if ( (networkID == MAIN_NET && nValidHeight > nCheckTxFeeForkHeight) //for mainnet, need hardcode here, compatible with old data
@@ -701,7 +701,7 @@ bool CContractTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValid
             boost::get<CRegID>(desUserId).ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
     CVmRunEnv vmRunEnv;
-    std::shared_ptr<CBaseTransaction> pTx = GetNewInstance();
+    std::shared_ptr<CBaseTx> pTx = GetNewInstance();
     uint64_t fuelRate = GetFuelRate(scriptDB);
 
     int64_t llTime = GetTimeMillis();
@@ -785,7 +785,7 @@ bool CContractTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &vie
     vAddr.insert(desKeyId);
 
     CVmRunEnv vmRunEnv;
-    std::shared_ptr<CBaseTransaction> pTx = GetNewInstance();
+    std::shared_ptr<CBaseTx> pTx = GetNewInstance();
     uint64_t fuelRate = GetFuelRate(scriptDB);
     CScriptDBViewCache scriptDBView(scriptDB, true);
 

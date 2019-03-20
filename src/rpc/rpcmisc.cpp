@@ -89,7 +89,7 @@ Value getbalance(const Array& params, bool fHelp)
                 int64_t nValue(0);
                 while (nConf) {
                     if (pwalletMain->mapInBlockTx.count(pBlockIndex->GetBlockHash()) > 0) {
-                        map<uint256, std::shared_ptr<CBaseTransaction> > mapTx = pwalletMain->mapInBlockTx[pBlockIndex->GetBlockHash()].mapAccountTx;
+                        map<uint256, std::shared_ptr<CBaseTx> > mapTx = pwalletMain->mapInBlockTx[pBlockIndex->GetBlockHash()].mapAccountTx;
                         for (auto &item : mapTx) {
                             if (COMMON_TX == item.second->nTxType) {
                                 CCommonTransaction *pTx = (CCommonTransaction *)item.second.get();
@@ -122,7 +122,7 @@ Value getbalance(const Array& params, bool fHelp)
                     int64_t nValue(0);
                     while (nConf) {
                         if (pwalletMain->mapInBlockTx.count(pBlockIndex->GetBlockHash()) > 0) {
-                            map<uint256, std::shared_ptr<CBaseTransaction> > mapTx = pwalletMain->mapInBlockTx[pBlockIndex->GetBlockHash()].mapAccountTx;
+                            map<uint256, std::shared_ptr<CBaseTx> > mapTx = pwalletMain->mapInBlockTx[pBlockIndex->GetBlockHash()].mapAccountTx;
                             for (auto &item : mapTx) {
                                 if (COMMON_TX == item.second->nTxType) {
                                     CCommonTransaction *pTx = (CCommonTransaction *)item.second.get();
@@ -217,7 +217,7 @@ Value getinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("unlockeduntil", nWalletUnlockTime));
 
     obj.push_back(Pair("paytxfee",          ValueFromAmount(SysCfg().GetTxFee())));
-    obj.push_back(Pair("relayfee",          ValueFromAmount(CBaseTransaction::nMinRelayTxFee)));
+    obj.push_back(Pair("relayfee",          ValueFromAmount(CBaseTx::nMinRelayTxFee)));
     obj.push_back(Pair("fuelrate",          chainActive.Tip()->nFuelRate));
     obj.push_back(Pair("fuel",              chainActive.Tip()->nFuel));
     obj.push_back(Pair("confdir",           GetConfigFile().string().c_str()));

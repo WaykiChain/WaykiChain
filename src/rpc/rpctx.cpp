@@ -57,7 +57,7 @@ static bool GetKeyId(string const &addr, CKeyID &KeyId) {
 
 Object GetTxDetailJSON(const uint256& txhash) {
     Object obj;
-    std::shared_ptr<CBaseTransaction> pBaseTx;
+    std::shared_ptr<CBaseTx> pBaseTx;
     {
         LOCK(cs_main);
         CBlock genesisblock;
@@ -123,7 +123,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
     return obj;
 }
 
-Array GetTxAddressDetail(std::shared_ptr<CBaseTransaction> pBaseTx)
+Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx)
 {
     Array arrayDetail;
     Object obj;
@@ -287,7 +287,7 @@ Value gettransaction(const Array& params, bool fHelp)
             + HelpExampleRpc("gettransaction","c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\n"));
 
     uint256 txhash(uint256S(params[0].get_str()));
-    std::shared_ptr<CBaseTransaction> pBaseTx;
+    std::shared_ptr<CBaseTx> pBaseTx;
     Object obj;
     LOCK(cs_main);
     CBlock genesisblock;
@@ -452,7 +452,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
     }
 
     std::tuple<bool, string> ret;
-    ret = pwalletMain->CommitTransaction((CBaseTransaction *) &rtx);
+    ret = pwalletMain->CommitTransaction((CBaseTx *) &rtx);
     if (!std::get<0>(ret))
         throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: " + std::get<1>(ret));
 
@@ -518,7 +518,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
 
     //argument-5: fee
     uint64_t fee = params[4].get_uint64();
-    if (fee > 0 && fee < CBaseTransaction::nMinTxFee) {
+    if (fee > 0 && fee < CBaseTx::nMinTxFee) {
         throw runtime_error("in callcontracttx :fee is smaller than nMinTxFee\n");
     }
 
@@ -564,7 +564,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
     }
 
     std::tuple<bool, string> ret;
-    ret = pwalletMain->CommitTransaction((CBaseTransaction *) tx.get());
+    ret = pwalletMain->CommitTransaction((CBaseTx *) tx.get());
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Error:" + std::get<1>(ret));
     }
@@ -657,7 +657,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     if (params.size() > 3)
         height = params[3].get_int();
 
-    if (fee > 0 && fee < CBaseTransaction::nMinTxFee) {
+    if (fee > 0 && fee < CBaseTx::nMinTxFee) {
         throw runtime_error("in registercontracttx :fee is smaller than nMinTxFee\n");
     }
     //get keyid
@@ -708,7 +708,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     }
 
     std::tuple<bool, string> ret;
-    ret = pwalletMain->CommitTransaction((CBaseTransaction *) &tx);
+    ret = pwalletMain->CommitTransaction((CBaseTx *) &tx);
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "registercontracttx Error:" + std::get<1>(ret));
     }
@@ -821,7 +821,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     }
 
     std::tuple<bool, string> ret;
-    ret = pwalletMain->CommitTransaction((CBaseTransaction *) &delegateTx);
+    ret = pwalletMain->CommitTransaction((CBaseTx *) &delegateTx);
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "votedelegatetx Error: " + std::get<1>(ret));
     }
@@ -933,7 +933,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
     }
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
-    std::shared_ptr<CBaseTransaction> pBaseTx = delegateTx.GetNewInstance();
+    std::shared_ptr<CBaseTx> pBaseTx = delegateTx.GetNewInstance();
     ds << pBaseTx;
     Object obj;
     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
@@ -2219,7 +2219,7 @@ Value genregisteraccountraw(const Array& params, bool fHelp) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,  "Sign failed");
     }
     CDataStream ds(SER_DISK, CLIENT_VERSION);
-    std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+    std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
     ds << pBaseTx;
     Object obj;
     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
@@ -2242,10 +2242,10 @@ Value sendrawtx(const Array& params, bool fHelp) {
     vector<unsigned char> vch(ParseHex(params[0].get_str()));
     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
 
-    std::shared_ptr<CBaseTransaction> tx;
+    std::shared_ptr<CBaseTx> tx;
     stream >> tx;
     std::tuple<bool, string> ret;
-    ret = pwalletMain->CommitTransaction((CBaseTransaction *) tx.get());
+    ret = pwalletMain->CommitTransaction((CBaseTx *) tx.get());
     if (!std::get<0>(ret))
         throw JSONRPCError(RPC_WALLET_ERROR, "sendrawtx error: " + std::get<1>(ret));
 
@@ -2295,7 +2295,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
     vector<unsigned char> arguments = ParseHex(params[4].get_str());
     int height = (params.size() == 6) ? params[5].get_int() : chainActive.Tip()->nHeight;
 
-    if (fee > 0 && fee < CBaseTransaction::nMinTxFee)
+    if (fee > 0 && fee < CBaseTx::nMinTxFee)
         throw runtime_error("input fee smaller than nMinTxFee");
     if (conRegId.IsEmpty())
         throw runtime_error("contract regid invalid!\n");
@@ -2316,7 +2316,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
     std::shared_ptr<CContractTransaction> tx = std::make_shared<CContractTransaction>(
         userRegId, conRegId, fee, amount, height, arguments);
     CDataStream ds(SER_DISK, CLIENT_VERSION);
-    std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+    std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
     ds << pBaseTx;
     Object obj;
     string rawtx = HexStr(ds.begin(), ds.end());
@@ -2400,7 +2400,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
         vmScript.ScriptMemo.insert(vmScript.ScriptMemo.end(), scriptMemo.begin(), scriptMemo.end());
     }
 
-    if (fee > 0 && fee < CBaseTransaction::nMinTxFee) {
+    if (fee > 0 && fee < CBaseTx::nMinTxFee) {
         throw runtime_error("Error: fee smaller than nMinTxFee\n");
     }
     //get keyid
@@ -2444,7 +2444,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
     tx.get()->nValidHeight = height;
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
-    std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+    std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
     ds << pBaseTx;
     Object obj;
     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
@@ -2472,7 +2472,7 @@ Value sigstr(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address invalid");
 
     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
-    std::shared_ptr<CBaseTransaction> pBaseTx;
+    std::shared_ptr<CBaseTx> pBaseTx;
     stream >> pBaseTx;
     if (!pBaseTx.get())
         return Value::null;
@@ -2486,7 +2486,7 @@ Value sigstr(const Array& params, bool fHelp) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
 
             CDataStream ds(SER_DISK, CLIENT_VERSION);
-            std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+            std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
             ds << pBaseTx;
             obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
 
@@ -2499,7 +2499,7 @@ Value sigstr(const Array& params, bool fHelp) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
 
             CDataStream ds(SER_DISK, CLIENT_VERSION);
-            std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+            std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
             ds << pBaseTx;
             obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
 
@@ -2512,7 +2512,7 @@ Value sigstr(const Array& params, bool fHelp) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
             }
             CDataStream ds(SER_DISK, CLIENT_VERSION);
-            std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+            std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
             ds << pBaseTx;
             obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
 
@@ -2527,7 +2527,7 @@ Value sigstr(const Array& params, bool fHelp) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
             }
             CDataStream ds(SER_DISK, CLIENT_VERSION);
-            std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+            std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
             ds << pBaseTx;
             obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
 
@@ -2540,7 +2540,7 @@ Value sigstr(const Array& params, bool fHelp) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
             }
             CDataStream ds(SER_DISK, CLIENT_VERSION);
-            std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+            std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
             ds << pBaseTx;
             obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
 
@@ -2569,7 +2569,7 @@ Value decoderawtx(const Array& params, bool fHelp)
     LogPrint("DEBUG", "data size:%d", vch.size());
     Object obj;
     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
-    std::shared_ptr<CBaseTransaction> pBaseTx;
+    std::shared_ptr<CBaseTx> pBaseTx;
     stream >> pBaseTx;
     if (!pBaseTx.get())
         return obj;
@@ -2854,7 +2854,7 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
             obj.push_back(Pair("value", HexStr(value)));
         }
 
-        std::shared_ptr<CBaseTransaction> pBaseTx;
+        std::shared_ptr<CBaseTx> pBaseTx;
         int time = 0;
         int height = 0;
         if (SysCfg().IsTxIndex()) {

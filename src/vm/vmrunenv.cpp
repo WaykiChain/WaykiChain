@@ -35,7 +35,7 @@ vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetNewAppUserAccount() { return 
 
 vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetRawAppUserAccount() { return RawAppUserAccout; }
 
-bool CVmRunEnv::Initialize(shared_ptr<CBaseTransaction>& pBaseTx, CAccountViewCache& view,
+bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& pBaseTx, CAccountViewCache& view,
                            int nheight) {
     m_output.clear();
     listTx        = pBaseTx;
@@ -87,7 +87,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTransaction>& pBaseTx, CAccountViewCa
 
 CVmRunEnv::~CVmRunEnv() {}
 
-tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTransaction>& Tx, CAccountViewCache& view,
+tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx, CAccountViewCache& view,
     CScriptDBViewCache& VmDB, int nHeight, uint64_t nBurnFactor, uint64_t &uRunStep)
 {
     if (nBurnFactor == 0)
@@ -96,10 +96,10 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTransac
     m_ScriptDBTip = &VmDB;
 
     CContractTransaction* tx = static_cast<CContractTransaction*>(Tx.get());
-    if (tx->llFees < CBaseTransaction::nMinTxFee)
+    if (tx->llFees < CBaseTx::nMinTxFee)
         return std::make_tuple (false, 0, string("CVmRunEnv: Contract Tx fee too small\n"));
 
-    uint64_t maxstep = ((tx->llFees - CBaseTransaction::nMinTxFee) / nBurnFactor) * 100;
+    uint64_t maxstep = ((tx->llFees - CBaseTx::nMinTxFee) / nBurnFactor) * 100;
     if (maxstep > MAX_BLOCK_RUN_STEP) {
         maxstep = MAX_BLOCK_RUN_STEP;
     }

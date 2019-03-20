@@ -362,7 +362,7 @@ void CBaseParams::ParseParameters(int argc, const char* const argv[]) {
     }
 }
 
-bool CBaseParams::CreateGenesisRewardTx(vector<std::shared_ptr<CBaseTransaction> > &vRewardTx, NET_TYPE type) {
+bool CBaseParams::CreateGenesisRewardTx(vector<std::shared_ptr<CBaseTx> > &vRewardTx, NET_TYPE type) {
     vector<string> vInitPubKey = IniCfg().GetIntPubKey(type);
     for (size_t i = 0; i < vInitPubKey.size(); ++i) {
         int64_t money(0);
@@ -381,7 +381,7 @@ bool CBaseParams::CreateGenesisRewardTx(vector<std::shared_ptr<CBaseTransaction>
 
 };
 
-bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTransaction> > &vDelegateTx, NET_TYPE type) {
+bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDelegateTx, NET_TYPE type) {
     vector<string> vDelegatePubKey = IniCfg().GetDelegatePubKey(type);
     vector<string> vInitPubKey = IniCfg().GetIntPubKey(type);
     vector<COperVoteFund> vOperVoteFund;

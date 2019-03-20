@@ -23,13 +23,13 @@ struct CBlockTemplate;
 //class CReserveKey;
 //class CScript;
 class CWallet;
-class CBaseTransaction;
+class CBaseTx;
 class CAccountViewCache;
 class CTransactionDBCache;
 class CScriptDBViewCache;
 class CAccount;
 
-typedef boost::tuple<double, double, std::shared_ptr<CBaseTransaction> > TxPriority;
+typedef boost::tuple<double, double, std::shared_ptr<CBaseTx> > TxPriority;
 class TxPriorityCompare {
     bool byFee;
 

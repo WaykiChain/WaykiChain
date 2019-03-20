@@ -88,7 +88,7 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate) {
     static double dFeePerKb     = 0;
     static unsigned int nTxSize = 0;
     for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi) {
-        CBaseTransaction *pBaseTx = mi->second.GetTx().get();
+        CBaseTx *pBaseTx = mi->second.GetTx().get();
         if (!pBaseTx->IsCoinBase() && uint256() == pTxCacheTip->HasTx(pBaseTx->GetHash())) {
             nTxSize   = ::GetSerializeSize(*pBaseTx, SER_NETWORK, PROTOCOL_VERSION);
             dFeePerKb = double(pBaseTx->GetFee() - pBaseTx->GetFuel(nFuelRate)) / (double(nTxSize) / 1000.0);
@@ -290,7 +290,7 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
         int64_t nTotalFuel(0);
         uint64_t nTotalRunStep(0);
         for (unsigned int i = 1; i < pBlock->vptx.size(); i++) {
-            shared_ptr<CBaseTransaction> pBaseTx = pBlock->vptx[i];
+            shared_ptr<CBaseTx> pBaseTx = pBlock->vptx[i];
             if (uint256() != txCache.HasTx(pBaseTx->GetHash()))
                 return ERRORMSG("VerifyPosTx duplicate tx hash:%s", pBaseTx->GetHash().GetHex());
 
@@ -373,8 +373,8 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
         while (!vTxPriority.empty()) {
             // Take highest priority transaction off the priority queue:
             double dFeePerKb                 = vTxPriority.front().get<1>();
-            shared_ptr<CBaseTransaction> stx = vTxPriority.front().get<2>();
-            CBaseTransaction *pBaseTx        = stx.get();
+            shared_ptr<CBaseTx> stx = vTxPriority.front().get<2>();
+            CBaseTx *pBaseTx        = stx.get();
 
             pop_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
             vTxPriority.pop_back();
@@ -385,7 +385,7 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
                 continue;
 
             // Skip free transactions if we're past the minimum block size:
-            if ((dFeePerKb < CBaseTransaction::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
+            if ((dFeePerKb < CBaseTx::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
                 continue;
 
             CTxUndo txundo;

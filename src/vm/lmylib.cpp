@@ -803,7 +803,7 @@ static int ExGetTxContractFunc(lua_State *L) {
 
     LogPrint("vm", "ExGetTxContractFunc, hash: %s\n", hash.GetHex().c_str());
 
-    std::shared_ptr<CBaseTransaction> pBaseTx;
+    std::shared_ptr<CBaseTx> pBaseTx;
     int len = 0;
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == CONTRACT_TX) {
@@ -866,7 +866,7 @@ static int ExGetTxRegIDFunc(lua_State *L) {
 
     LogPrint("vm","ExGetTxRegIDFunc, hash: %s\n", hash.GetHex().c_str());
 
-    std::shared_ptr<CBaseTransaction> pBaseTx;
+    std::shared_ptr<CBaseTx> pBaseTx;
     int len = 0;
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == COMMON_TX) {

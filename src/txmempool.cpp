@@ -19,7 +19,7 @@ CTxMemPoolEntry::CTxMemPoolEntry() {
      nHeight = 0;
 }
 
-CTxMemPoolEntry::CTxMemPoolEntry(CBaseTransaction *pBaseTx, int64_t _nFee, int64_t _nTime, double _dPriority,
+CTxMemPoolEntry::CTxMemPoolEntry(CBaseTx *pBaseTx, int64_t _nFee, int64_t _nTime, double _dPriority,
         unsigned int _nHeight) :
         nFee(_nFee), nTime(_nTime), dPriority(_dPriority), nHeight(_nHeight) {
     pTx = pBaseTx->GetNewInstance();
@@ -88,12 +88,12 @@ void CTxMemPool::AddTransactionsUpdated(unsigned int n) {
     nTransactionsUpdated += n;
 }
 
-void CTxMemPool::Remove(CBaseTransaction *pBaseTx, list<std::shared_ptr<CBaseTransaction> >& removed, bool fRecursive) {
+void CTxMemPool::Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> >& removed, bool fRecursive) {
     // Remove transaction from memory pool
     LOCK(cs);
     uint256 hash = pBaseTx->GetHash();
     if (mapTx.count(hash)) {
-        removed.push_front(std::shared_ptr<CBaseTransaction>(mapTx[hash].GetTx()));
+        removed.push_front(std::shared_ptr<CBaseTx>(mapTx[hash].GetTx()));
         mapTx.erase(hash);
         uiInterface.RemoveTransaction(hash);
         EraseTransaction(hash);
@@ -161,10 +161,10 @@ void CTxMemPool::QueryHash(vector<uint256>& vtxid) {
         vtxid.push_back((*mi).first);
 }
 
-std::shared_ptr<CBaseTransaction> CTxMemPool::Lookup(uint256 hash) const {
+std::shared_ptr<CBaseTx> CTxMemPool::Lookup(uint256 hash) const {
     LOCK(cs);
     typename map<uint256, CTxMemPoolEntry>::const_iterator i = mapTx.find(hash);
     if (i == mapTx.end())
-        return std::shared_ptr<CBaseTransaction>();
+        return std::shared_ptr<CBaseTx>();
     return i->second.GetTx();
 }

@@ -25,7 +25,7 @@ class CValidationState;
 class CTxMemPoolEntry
 {
 private:
-	std::shared_ptr<CBaseTransaction> pTx;
+	std::shared_ptr<CBaseTx> pTx;
     int64_t nFee; // Cached to avoid expensive parent-transaction lookups
     size_t nTxSize; // ... and avoid recomputing tx size
     int64_t nTime; // Local time when entering the mempool
@@ -33,12 +33,12 @@ private:
     unsigned int nHeight; // Chain height when entering the mempool
 
 public:
-    CTxMemPoolEntry(CBaseTransaction *ptx, int64_t _nFee,
+    CTxMemPoolEntry(CBaseTx *ptx, int64_t _nFee,
                     int64_t _nTime, double _dPriority, unsigned int _nHeight);
     CTxMemPoolEntry();
     CTxMemPoolEntry(const CTxMemPoolEntry& other);
 
-    std::shared_ptr<CBaseTransaction> GetTx() const { return pTx;}
+    std::shared_ptr<CBaseTx> GetTx() const { return pTx;}
     double GetPriority(unsigned int currentHeight) const;
     int64_t GetFee() const { return nFee; }
     size_t GetTxSize() const { return nTxSize; }
@@ -71,12 +71,12 @@ public:
 
     void SetSanityCheck(bool _fSanityCheck) { fSanityCheck = _fSanityCheck; }
     bool AddUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry, CValidationState &state);
-    void Remove(CBaseTransaction *pBaseTx, list<std::shared_ptr<CBaseTransaction> > &removed, bool fRecursive = false);
+    void Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> > &removed, bool fRecursive = false);
     void Clear();
     void QueryHash(vector<uint256> &vtxid);
     unsigned int GetTransactionsUpdated() const;
     void AddTransactionsUpdated(unsigned int n);
-    std::shared_ptr<CBaseTransaction> Lookup(uint256 hash) const;
+    std::shared_ptr<CBaseTx> Lookup(uint256 hash) const;
     void SetAccountViewDB(CAccountViewCache *pAccountViewCacheIn);
     void SetScriptDBViewDB(CScriptDBViewCache *pScriptDBViewCacheIn);
     bool CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &entry, CValidationState &state, bool bExcute = true);

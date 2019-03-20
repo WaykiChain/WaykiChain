@@ -39,7 +39,7 @@ private:
 	/**
 	 * current run the tx
 	 */
-	shared_ptr<CBaseTransaction> listTx;
+	shared_ptr<CBaseTx> listTx;
 	/**
 	 * run the script
 	 */
@@ -73,7 +73,7 @@ private:
 	 *  @param nheight: run the Environment the block's height
 	 * @return : check the the tx and account is Legal true is legal false is unlegal
 	 */
-	bool Initialize(shared_ptr<CBaseTransaction>& pBaseTx, CAccountViewCache& view, int nheight);
+	bool Initialize(shared_ptr<CBaseTx>& pBaseTx, CAccountViewCache& view, int nheight);
 	/**
 	 *@brief check aciton
 	* @param listoperate: run the script return the code,check the code
@@ -140,7 +140,7 @@ public:
 	 * @return: tuple<bool,uint64_t,string>  bool represent the script run success
 	 * uint64_t if the script run sucess Run the script calls the money ,string represent run the failed's  Reason
 	 */
-	tuple<bool,uint64_t,string> ExecuteContract(shared_ptr<CBaseTransaction>& Tx, CAccountViewCache& view, CScriptDBViewCache& VmDB,
+	tuple<bool,uint64_t,string> ExecuteContract(shared_ptr<CBaseTx>& Tx, CAccountViewCache& view, CScriptDBViewCache& VmDB,
 			int nheight, uint64_t nBurnFactor, uint64_t &uRunStep);
 	/**
 	 * @brief just for test
