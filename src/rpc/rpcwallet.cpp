@@ -142,7 +142,7 @@ Value signmessage(const Array& params, bool fHelp)
 
 static std::tuple<bool, string> SendMoney(const CRegID &sendRegId, const CUserID &recvRegId,
     int64_t nValue, int64_t nFee) {
-    CTransaction tx;
+    CCommonTransaction tx;
     tx.srcRegId = sendRegId;
     tx.desUserId = recvRegId;
     tx.llValues = nValue;
@@ -409,15 +409,12 @@ Value gensendtoaddressraw(const Array& params, bool fHelp)
         }
     }
 
-    // if (sendId == recvId)
-    //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Receiver Address shall not be the same as Sender Address!");
-
     int height = chainActive.Tip()->nHeight;
     if (params.size() > 4) {
         height = params[4].get_int();
     }
 
-    std::shared_ptr<CTransaction> tx = std::make_shared<CTransaction>(sendId, recvId, fee, amount, height);
+    std::shared_ptr<CCommonTransaction> tx = std::make_shared<CCommonTransaction>(sendId, recvId, fee, amount, height);
     if (!pwalletMain->Sign(sendKeyId, tx->SignatureHash(), tx->signature)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,  "Sign failed");
     }
@@ -528,16 +525,15 @@ Value notionalpoolingasset(const Array& params, bool fHelp)
         CDataStream scriptData(SER_DISK, CLIENT_VERSION);
         scriptData << tu;
         string sendcontract = HexStr(scriptData);
-        LogPrint("vm", "sendcontract=%s\n",sendcontract.c_str());
+        LogPrint("vm", "sendcontract=%s\n", sendcontract.c_str());
 
-        vector_unsigned_char pContract;
-        pContract = ParseHex(sendcontract);
+        vector_unsigned_char arguments = ParseHex(sendcontract);
 
         int nFuelRate = GetElementForBurn(chainActive.Tip());
         const int STEP = 645;
         int64_t nFee = (STEP / 100 + 1) * nFuelRate + SysCfg().GetTxFee();
         LogPrint("vm", "nFuelRate=%d, nFee=%lld\n",nFuelRate, nFee);
-        CTransaction tx(sendreg, regid, nFee, 0 , chainActive.Height(), pContract);
+        CContractTransaction tx(sendreg, regid, nFee, 0 , chainActive.Height(), arguments);
         if (!pwalletMain->Sign(sendKeyId, tx.SignatureHash(), tx.signature)) {
             continue;
         }
@@ -655,11 +651,7 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
     if(!pwalletMain->HasKey(recvKeyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "recvaddress invalid!");
     }
-/*
-    nAmount = params[1].get_real() * COIN;
-    if(nAmount <= SysCfg().GetTxFee())
-        nAmount = 0.01 * COIN;
-*/
+
     int64_t nAmount = 10 * COIN;
     if (2 == params.size())
         nAmount = params[1].get_real() * COIN;
@@ -703,7 +695,7 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
             recvUserId = recvKeyId;
         }
 
-        CTransaction tx(sendRegId, recvUserId, SysCfg().GetTxFee(),
+        CCommonTransaction tx(sendRegId, recvUserId, SysCfg().GetTxFee(),
             pAccountViewTip->GetRawBalance(sendRegId) - SysCfg().GetTxFee() - nAmount,
             chainActive.Height());
 

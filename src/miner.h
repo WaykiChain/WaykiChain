@@ -24,7 +24,6 @@ struct CBlockTemplate;
 //class CScript;
 class CWallet;
 class CBaseTransaction;
-class COrphan;
 class CAccountViewCache;
 class CTransactionDBCache;
 class CScriptDBViewCache;

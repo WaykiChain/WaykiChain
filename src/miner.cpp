@@ -41,44 +41,6 @@ const int MINED_BLOCK_COUNT_MAX = 100; // the max count of mined blocks will be 
 static const unsigned int pSHA256InitState[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f,
                                                  0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
 
-//void SHA256Transform(void* pstate, void* pinput, const void* pinit) {
-//  SHA256_CTX ctx;
-//  unsigned char data[64];
-//
-//  SHA256_Init(&ctx);
-//
-//  for (int i = 0; i < 16; i++)
-//      ((uint32_t*) data)[i] = ByteReverse(((uint32_t*) pinput)[i]);
-//
-//  for (int i = 0; i < 8; i++)
-//      ctx.h[i] = ((uint32_t*) pinit)[i];
-//
-//  SHA256_Update(&ctx, data, sizeof(data));
-//  for (int i = 0; i < 8; i++)
-//      ((uint32_t*) pstate)[i] = ctx.h[i];
-//}
-
-// Some explaining would be appreciated
-class COrphan {
-   public:
-    const CTransaction *ptx;
-    set<uint256> setDependsOn;
-    double dPriority;
-    double dFeePerKb;
-
-    COrphan(const CTransaction *ptxIn) {
-        ptx       = ptxIn;
-        dPriority = dFeePerKb = 0;
-    }
-
-    void Print() const {
-        LogPrint("INFO", "COrphan(hash=%s, dPriority=%.1f, dFeePerKb=%.1f)\n",
-                 ptx->GetHash().ToString(), dPriority, dFeePerKb);
-        for (const auto &hash : setDependsOn)
-            LogPrint("INFO", "   setDependsOn %s\n", hash.ToString());
-    }
-};
-
 uint64_t nLastBlockTx   = 0;  // 块中交易的总笔数,不含coinbase
 uint64_t nLastBlockSize = 0;  // 被创建的块的尺寸
 
@@ -266,8 +228,7 @@ void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
 }
 
 bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionDBCache &txCache,
-                 CScriptDBViewCache &scriptCache, bool bNeedRunTx)
-{
+                 CScriptDBViewCache &scriptCache, bool bNeedRunTx) {
     uint64_t maxNonce = SysCfg().GetBlockMaxNonce();
     vector<CAccount> vDelegatesAcctList;
 
@@ -322,7 +283,7 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
     }
 
     if (prtx->nVersion != nTxVersion1)
-        return ERRORMSG("CTransaction CheckTransaction,tx version is not equal current version, (tx version %d: vs current %d)",
+        return ERRORMSG("Verify tx version error, tx version %d: vs current %d",
             prtx->nVersion, nTxVersion1);
 
     if (bNeedRunTx) {
@@ -424,7 +385,7 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
                 continue;
 
             // Skip free transactions if we're past the minimum block size:
-            if ((dFeePerKb < CTransaction::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
+            if ((dFeePerKb < CBaseTransaction::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
                 continue;
 
             CTxUndo txundo;

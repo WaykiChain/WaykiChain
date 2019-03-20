@@ -249,12 +249,11 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTransaction*pTx, const C
             int i=0;
             for (const auto &sptx : pblock->vptx) {
                 uint256 hashtx = sptx->GetHash();
-                if(sptx->nTxType == CONTRACT_TX){
-                    string thisapp = boost::get<CRegID>(static_cast<CTransaction const*>(sptx.get())->desUserId).ToString();
-                    auto it = find_if(monitoring_appid->begin(), monitoring_appid->end(), [&](const string& appid) {
-                        return appid ==  thisapp;});
-                    if(monitoring_appid->end() != it)
-                    uiInterface.RevAppTransaction(pblock, i);
+                if (sptx->nTxType == CONTRACT_TX) {
+                    string thisapp = boost::get<CRegID>(static_cast<CContractTransaction const *>(sptx.get())->desUserId).ToString();
+                    auto it = find_if(monitoring_appid->begin(), monitoring_appid->end(),
+                                      [&](const string &appid) { return appid == thisapp; });
+                    if (monitoring_appid->end() != it) uiInterface.RevAppTransaction(pblock, i);
                 }
                 //confirm the tx is mine
                 if (IsMine(sptx.get())) {

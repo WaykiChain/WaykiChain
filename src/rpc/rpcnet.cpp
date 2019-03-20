@@ -157,8 +157,8 @@ Value addnode(const Array& params, bool fHelp)
             "\nArguments:\n"
             "1. \"node:port\"     (string, required) The node IP and port (see getpeerinfo for nodes)\n"
             "2. \"command\"  (string, required) 'add' to add a node to the list, 'remove' to remove a node from the list, 'onetry' to try a connection to the node once\n"
-			"\nResult:\n"
-        	"\nExamples:\n"
+            "\nResult:\n"
+            "\nExamples:\n"
             + HelpExampleCli("addnode", "\"192.168.0.6:8333\" onetry")
             + HelpExampleRpc("addnode", "\"192.168.0.6:8333\", onetry")
         );
@@ -341,7 +341,7 @@ Value getnetworkinfo(const Array& params, bool fHelp)
     if (fHelp || params.size() != 0)
         throw runtime_error(
             "getnetworkinfo\n"
-			"\nget various information about network.\n"
+            "\nget various information about network.\n"
             "Returns an object containing various state info regarding P2P networking.\n"
             "\nResult:\n"
             "{\n"
@@ -371,7 +371,7 @@ Value getnetworkinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("timeoffset",    GetTimeOffset()));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("proxy",         (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
-    obj.push_back(Pair("relayfee",      ValueFromAmount(CTransaction::nMinRelayTxFee)));
+    obj.push_back(Pair("relayfee",      ValueFromAmount(CBaseTransaction::nMinRelayTxFee)));
     Array localAddresses;
     {
         LOCK(cs_mapLocalHost);
@@ -396,14 +396,14 @@ Value getchainstate(const Array& params, bool fHelp)
     if (fHelp || params.size() != 1)
         throw runtime_error(
             "getchainstate \"num\"\n"
-			"\nget the chain state by the most recent blocks.\n"
+            "\nget the chain state by the most recent blocks.\n"
             "\nArguments:\n"
             "1.num   (numeric,required, > 0) The number of the most recent blocks.\n"
             "\nResult:\n"
             "{\n"
             "  \"blocktime\": n,   (numeric) the time of each block\n"
             "  \"transactions\": n, (numeric) number of transactions within each block\n"
-        	"  \"fuel\": n, (numeric) fuel of each block\n"
+            "  \"fuel\": n, (numeric) fuel of each block\n"
             "  \"miner\": n, (string) RegId of the miner of each block\n"
             "}\n"
             "\nExamples:\n"
@@ -411,38 +411,38 @@ Value getchainstate(const Array& params, bool fHelp)
             + HelpExampleRpc("getchainstate", "\"5\"")
        );
 
-	int i = 0,nHeight = 0;
-	if (int_type == params[0].type()) {
-		nHeight = params[0].get_int();
-		if(nHeight < 1)
-			throw runtime_error("Block number out of range.");
-	    if(nHeight > chainActive.Height()) {   //防止超过最大高度
-	    	nHeight = chainActive.Height();
-	    }
-	}
-	CBlockIndex * pBlockIndex = chainActive.Tip();
-	CBlock block;
-	Array blocktime;
-	Array difficulty;
-	Array transactions;
-	Array fuel;
-	Array blockminer;
+    int i = 0,nHeight = 0;
+    if (int_type == params[0].type()) {
+        nHeight = params[0].get_int();
+        if(nHeight < 1)
+            throw runtime_error("Block number out of range.");
+        if(nHeight > chainActive.Height()) {   //防止超过最大高度
+            nHeight = chainActive.Height();
+        }
+    }
+    CBlockIndex * pBlockIndex = chainActive.Tip();
+    CBlock block;
+    Array blocktime;
+    Array difficulty;
+    Array transactions;
+    Array fuel;
+    Array blockminer;
 
-	for (i = 0; (i < nHeight) && (pBlockIndex != NULL); i++) {
-		blocktime.push_back(pBlockIndex->GetBlockTime());
-		transactions.push_back((int)pBlockIndex->nTx);
-		fuel.push_back(pBlockIndex->nFuel);
-		block.SetNull();
-		if (ReadBlockFromDisk(block, pBlockIndex)) {
-			string miner(boost::get<CRegID>(dynamic_pointer_cast<CRewardTransaction>(block.vptx[0])->account).ToString());
-			blockminer.push_back(move(miner));
-		}
-		pBlockIndex = pBlockIndex->pprev;
-	}
-	Object obj;
-	obj.push_back(Pair("blocktime", blocktime));
-	obj.push_back(Pair("transactions", transactions));
-	obj.push_back(Pair("fuel", fuel));
-	obj.push_back(Pair("miner",blockminer));
+    for (i = 0; (i < nHeight) && (pBlockIndex != NULL); i++) {
+        blocktime.push_back(pBlockIndex->GetBlockTime());
+        transactions.push_back((int)pBlockIndex->nTx);
+        fuel.push_back(pBlockIndex->nFuel);
+        block.SetNull();
+        if (ReadBlockFromDisk(block, pBlockIndex)) {
+            string miner(boost::get<CRegID>(dynamic_pointer_cast<CRewardTransaction>(block.vptx[0])->account).ToString());
+            blockminer.push_back(move(miner));
+        }
+        pBlockIndex = pBlockIndex->pprev;
+    }
+    Object obj;
+    obj.push_back(Pair("blocktime", blocktime));
+    obj.push_back(Pair("transactions", transactions));
+    obj.push_back(Pair("fuel", fuel));
+    obj.push_back(Pair("miner",blockminer));
     return obj;
 }
