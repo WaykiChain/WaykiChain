@@ -870,7 +870,7 @@ static int ExGetTxRegIDFunc(lua_State *L) {
     int len = 0;
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == COMMON_TX) {
-            CCommonTransaction *tx = static_cast<CCommonTransaction*>(pBaseTx.get());
+            CCommonTx *tx = static_cast<CCommonTx*>(pBaseTx.get());
             vector<unsigned char> item = boost::get<CRegID>(tx->srcRegId).GetVec6();
             len = RetRstToLua(L, item);
         } else if (pBaseTx->nTxType == CONTRACT_TX) {

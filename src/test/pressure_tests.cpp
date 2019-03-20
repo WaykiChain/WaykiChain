@@ -382,8 +382,8 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 					llRegAcctFee += ptx->GetFee();
 				}
 				if (COMMON_TX == ptx->nTxType) {
-					std::shared_ptr<CCommonTransaction> pTransaction(
-						dynamic_pointer_cast<CCommonTransaction>(ptx));
+					std::shared_ptr<CCommonTx> pTransaction(
+						dynamic_pointer_cast<CCommonTx>(ptx));
 					if (typeid(pTransaction->desUserId) == typeid(CKeyID)) {
 						llSendValue += pTransaction->llValues;
 					}

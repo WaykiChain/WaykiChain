@@ -142,7 +142,7 @@ Value signmessage(const Array& params, bool fHelp)
 
 static std::tuple<bool, string> SendMoney(const CRegID &sendRegId, const CUserID &recvRegId,
     int64_t nValue, int64_t nFee) {
-    CCommonTransaction tx;
+    CCommonTx tx;
     tx.srcRegId = sendRegId;
     tx.desUserId = recvRegId;
     tx.llValues = nValue;
@@ -414,7 +414,7 @@ Value gensendtoaddressraw(const Array& params, bool fHelp)
         height = params[4].get_int();
     }
 
-    std::shared_ptr<CCommonTransaction> tx = std::make_shared<CCommonTransaction>(sendId, recvId, fee, amount, height);
+    std::shared_ptr<CCommonTx> tx = std::make_shared<CCommonTx>(sendId, recvId, fee, amount, height);
     if (!pwalletMain->Sign(sendKeyId, tx->SignatureHash(), tx->signature)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,  "Sign failed");
     }
@@ -695,7 +695,7 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
             recvUserId = recvKeyId;
         }
 
-        CCommonTransaction tx(sendRegId, recvUserId, SysCfg().GetTxFee(),
+        CCommonTx tx(sendRegId, recvUserId, SysCfg().GetTxFee(),
             pAccountViewTip->GetRawBalance(sendRegId) - SysCfg().GetTxFee() - nAmount,
             chainActive.Height());
 

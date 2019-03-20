@@ -658,7 +658,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         unsigned int nSize = entry.GetTxSize();
 
         if (pBaseTx->nTxType == COMMON_TX) {
-            CCommonTransaction *pTx = static_cast<CCommonTransaction *>(pBaseTx);
+            CCommonTx *pTx = static_cast<CCommonTx *>(pBaseTx);
             if (pTx->llValues < CBaseTx::nMinTxFee)
                 return state.DoS(0, ERRORMSG("AcceptToMemoryPool : common tx %d transfer amount(%d) too small, you must send a min (%d)",
                     hash.ToString(), pTx->llValues, CBaseTx::nMinTxFee), REJECT_DUST, "dust amount");
@@ -3369,7 +3369,7 @@ void static ProcessGetData(CNode *pfrom) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         if (COMMON_TX == pBaseTx->nTxType) {
-                            ss << *((CCommonTransaction *)(pBaseTx.get()));
+                            ss << *((CCommonTx *)(pBaseTx.get()));
                         } else if (CONTRACT_TX == pBaseTx->nTxType) {
                             ss << *((CContractTransaction *)(pBaseTx.get()));
                         } else if (REG_ACCT_TX == pBaseTx->nTxType) {
@@ -4394,7 +4394,7 @@ class CMainCleanup {
 std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
     switch (uType) {
         case COMMON_TX:
-            return std::make_shared<CCommonTransaction>();
+            return std::make_shared<CCommonTx>();
         case CONTRACT_TX:
             return std::make_shared<CContractTransaction>();
         case REG_ACCT_TX:

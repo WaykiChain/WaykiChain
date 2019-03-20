@@ -491,7 +491,7 @@ bool CRegisterAccountTx::CheckTransaction(CValidationState &state, CAccountViewC
     return true;
 }
 
-bool CCommonTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+bool CCommonTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
                                    CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
                                    CScriptDBViewCache &scriptDB) {
     CAccount srcAcct;
@@ -499,17 +499,17 @@ bool CCommonTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
     CAccountLog desAcctLog;
     uint64_t minusValue = llFees + llValues;
     if (!view.GetAccount(srcRegId, srcAcct))
-        return state.DoS(100, ERRORMSG("CCommonTransaction::ExecuteTx, read source addr %s account info error",
+        return state.DoS(100, ERRORMSG("CCommonTx::ExecuteTx, read source addr %s account info error",
             boost::get<CRegID>(srcRegId).ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CAccountLog srcAcctLog(srcAcct);
     if (!srcAcct.OperateAccount(MINUS_FREE, minusValue, nHeight))
-        return state.DoS(100, ERRORMSG("CCommonTransaction::ExecuteTx, accounts insufficient funds"),
+        return state.DoS(100, ERRORMSG("CCommonTx::ExecuteTx, accounts insufficient funds"),
             UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
     CUserID userId = srcAcct.keyID;
     if (!view.SetAccount(userId, srcAcct))
-        return state.DoS(100, ERRORMSG("CCommonTransaction::ExecuteTx, save account%s info error",
+        return state.DoS(100, ERRORMSG("CCommonTx::ExecuteTx, save account%s info error",
             boost::get<CRegID>(srcRegId).ToString()), WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     uint64_t addValue = llValues;
@@ -526,11 +526,11 @@ bool CCommonTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
     }
 
     if (!desAcct.OperateAccount(ADD_FREE, addValue, nHeight))
-        return state.DoS(100, ERRORMSG("CCommonTransaction::ExecuteTx, operate accounts error"),
+        return state.DoS(100, ERRORMSG("CCommonTx::ExecuteTx, operate accounts error"),
             UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
 
     if (!view.SetAccount(desUserId, desAcct))
-        return state.DoS(100, ERRORMSG("CCommonTransaction::ExecuteTx, save account error, kyeId=%s",
+        return state.DoS(100, ERRORMSG("CCommonTx::ExecuteTx, save account error, kyeId=%s",
             desAcct.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
     txundo.vAccountLog.push_back(srcAcctLog);
@@ -542,10 +542,10 @@ bool CCommonTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
         CKeyID sendKeyId;
         CKeyID revKeyId;
         if (!view.GetKeyId(srcRegId, sendKeyId))
-            return ERRORMSG("CCommonTransaction::ExecuteTx, get keyid by srcRegId error!");
+            return ERRORMSG("CCommonTx::ExecuteTx, get keyid by srcRegId error!");
 
         if (!view.GetKeyId(desUserId, revKeyId))
-            return ERRORMSG("CCommonTransaction::ExecuteTx, get keyid by desUserId error!");
+            return ERRORMSG("CCommonTx::ExecuteTx, get keyid by desUserId error!");
 
         if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
                                          operAddressToTxLog))
@@ -562,7 +562,7 @@ bool CCommonTransaction::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
     return true;
 }
 
-bool CCommonTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
+bool CCommonTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
                                     CScriptDBViewCache &scriptDB) {
     CKeyID keyId;
     if (!view.GetKeyId(srcRegId, keyId))
@@ -575,7 +575,7 @@ bool CCommonTransaction::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
     return true;
 }
 
-string CCommonTransaction::ToString(CAccountViewCache &view) const {
+string CCommonTx::ToString(CAccountViewCache &view) const {
     string desId;
     if (desUserId.type() == typeid(CKeyID)) {
         desId = boost::get<CKeyID>(desUserId).ToString();
@@ -590,7 +590,7 @@ string CCommonTransaction::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CCommonTransaction::ToJson(const CAccountViewCache &AccountView) const {
+Object CCommonTx::ToJson(const CAccountViewCache &AccountView) const {
     Object result;
     CAccountViewCache view(AccountView);
 
@@ -619,37 +619,37 @@ Object CCommonTransaction::ToJson(const CAccountViewCache &AccountView) const {
     return result;
 }
 
-bool CCommonTransaction::CheckTransaction(CValidationState &state, CAccountViewCache &view,
+bool CCommonTx::CheckTransaction(CValidationState &state, CAccountViewCache &view,
                                           CScriptDBViewCache &scriptDB) {
     if (srcRegId.type() != typeid(CRegID))
-        return state.DoS(100, ERRORMSG("CCommonTransaction::CheckTransaction, srcRegId must be CRegID"),
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, srcRegId must be CRegID"),
             REJECT_INVALID, "srcaddr-type-error");
 
     if ((desUserId.type() != typeid(CRegID)) && (desUserId.type() != typeid(CKeyID)))
-        return state.DoS(100, ERRORMSG("CCommonTransaction::CheckTransaction, desUserId must be CRegID or CKeyID"),
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, desUserId must be CRegID or CKeyID"),
             REJECT_INVALID, "desaddr-type-error");
 
     if (!CheckMoneyRange(llFees))
-        return state.DoS(100, ERRORMSG("CCommonTransaction::CheckTransaction, tx fee out of money range"),
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, tx fee out of money range"),
             REJECT_INVALID, "bad-appeal-fee-toolarge");
 
     if (!CheckMinTxFee(llFees)) {
-        return state.DoS(100, ERRORMSG("CCommonTransaction::CheckTransaction, tx fee smaller than MinTxFee"),
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, tx fee smaller than MinTxFee"),
             REJECT_INVALID, "bad-regtx-fee-toosmall");
     }
 
     CAccount srcAccount;
     if (!view.GetAccount(boost::get<CRegID>(srcRegId), srcAccount))
-        return state.DoS(100, ERRORMSG("CCommonTransaction::CheckTransaction, read account failed, regid=%s",
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, read account failed, regid=%s",
             boost::get<CRegID>(srcRegId).ToString()), REJECT_INVALID, "bad-getaccount");
 
     if (!srcAccount.IsRegistered())
-        return state.DoS(100, ERRORMSG("CCommonTransaction::CheckTransaction, account pubkey not registered"),
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, account pubkey not registered"),
             REJECT_INVALID, "bad-account-unregistered");
 
     uint256 sighash = SignatureHash();
     if (!CheckSignScript(sighash, signature, srcAccount.PublicKey))
-        return state.DoS(100, ERRORMSG("CCommonTransaction::CheckTransaction, CheckSignScript failed"),
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, CheckSignScript failed"),
             REJECT_INVALID, "bad-signscript-check");
 
     return true;

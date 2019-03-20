@@ -32,7 +32,7 @@ class CAutoFile;
 class CDataStream;
 class CBaseTx;
 class CRegisterAccountTx;
-class CCommonTransaction;
+class CCommonTx;
 class CContractTransaction;
 class CRewardTransaction;
 

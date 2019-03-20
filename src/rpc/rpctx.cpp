@@ -157,7 +157,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx)
     }
     case COMMON_TX:
     {
-        CCommonTransaction* ptx = (CCommonTransaction*)pBaseTx.get();
+        CCommonTx* ptx = (CCommonTx*)pBaseTx.get();
         CKeyID sendKeyID;
         CRegID sendRegID = boost:: get < CRegID > (ptx->srcRegId);
         sendKeyID = sendRegID.GetKeyID(*pAccountViewTip);
@@ -1032,7 +1032,7 @@ Value listtransactions(const Array& params, bool fHelp) {
         CAccountTx accountTx = pwalletMain->mapInBlockTx[wtx.second];
         for (auto const & item : accountTx.mapAccountTx) {
             if (item.second->nTxType == COMMON_TX) {
-                CCommonTransaction* ptx = (CCommonTransaction*)item.second.get();
+                CCommonTx* ptx = (CCommonTx*)item.second.get();
                 CKeyID sendKeyID;
                 CRegID sendRegID = boost::get<CRegID>(ptx->srcRegId);
                 sendKeyID        = sendRegID.GetKeyID(*pAccountViewTip);
@@ -1231,7 +1231,7 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
             Object obj;
             CKeyID keyid;
             if (item.second.get() && item.second->nTxType == COMMON_TX) {
-                CCommonTransaction* ptx = (CCommonTransaction*)item.second.get();
+                CCommonTx* ptx = (CCommonTx*)item.second.get();
 
                 if (!accView.GetKeyId(ptx->srcRegId, keyid)) {
                     continue;
@@ -2480,8 +2480,8 @@ Value sigstr(const Array& params, bool fHelp) {
     Object obj;
     switch (pBaseTx.get()->nTxType) {
         case COMMON_TX: {
-            std::shared_ptr<CCommonTransaction> tx =
-                std::make_shared<CCommonTransaction>(pBaseTx.get());
+            std::shared_ptr<CCommonTx> tx =
+                std::make_shared<CCommonTx>(pBaseTx.get());
             if (!pwalletMain->Sign(keyid, tx.get()->SignatureHash(), tx.get()->signature))
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
 
@@ -2577,7 +2577,7 @@ Value decoderawtx(const Array& params, bool fHelp)
     CAccountViewCache view(*pAccountViewTip, true);
     switch (pBaseTx.get()->nTxType) {
     case COMMON_TX: {
-        std::shared_ptr<CCommonTransaction> tx = std::make_shared<CCommonTransaction>(pBaseTx.get());
+        std::shared_ptr<CCommonTx> tx = std::make_shared<CCommonTx>(pBaseTx.get());
         if (tx.get()) {
             obj = tx->ToJson(view);
         }
