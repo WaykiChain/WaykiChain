@@ -697,7 +697,7 @@ Object CTransaction::ToJson(const CAccountViewCache &AccountView) const {
     result.push_back(Pair("money",      llValues));
     result.push_back(Pair("fees",       llFees));
     result.push_back(Pair("height",     nValidHeight));
-    result.push_back(Pair("contract",   HexStr(vContract)));
+    result.push_back(Pair(nTxType == COMMON_TX ? "description" : "arguments",   HexStr(vContract)));
 
     return result;
 }
