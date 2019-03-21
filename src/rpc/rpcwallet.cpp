@@ -202,13 +202,12 @@ Value sendtoaddress(const Array& params, bool fHelp)
         if (!GetKeyId(params[1].get_str(), recvKeyId))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
 
-        nAmount = AmountToRawValue(params[2]);
-        if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nDefaultFee)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress does not have enough coins");
-
         if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendadress not registered or invalid");
 
+        nAmount = AmountToRawValue(params[2]);
+        if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nDefaultFee)
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress does not have enough coins");
     } else { // size == 2
         if (!GetKeyId(params[0].get_str(), recvKeyId))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
@@ -224,8 +223,8 @@ Value sendtoaddress(const Array& params, bool fHelp)
         bool sufficientFee = false;
         for (auto &keyId: sKeyIds) {
             if (keyId != recvKeyId &&
-                (pAccountViewTip->GetRawBalance(keyId) >= nAmount + nDefaultFee) &&
-                pAccountViewTip->GetRegId(CUserID(keyId), sendRegId)) {
+                pAccountViewTip->GetRegId(CUserID(keyId), sendRegId) &&
+                (pAccountViewTip->GetRawBalance(keyId) >= nAmount + nDefaultFee)) {
                 sendKeyId     = keyId;
                 sufficientFee = true;
                 break;
@@ -302,12 +301,12 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
             throw JSONRPCError(RPC_INSUFFICIENT_FEE, string(errorMsg));
         }
 
-        if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nActualFee) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress does not have enough coins");
-        }
-
         if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress not registered or invalid");
+        }
+
+        if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nActualFee) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress does not have enough coins");
         }
     } else { //sender address omitted
         if (!GetKeyId(params[0].get_str(), recvKeyId)) {
@@ -331,8 +330,8 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
         bool sufficientFee = false;
         for (auto &keyId: sKeyIds) {
             if (keyId != recvKeyId &&
-                (pAccountViewTip->GetRawBalance(keyId) >= nAmount + nDefaultFee) &&
-                pAccountViewTip->GetRegId(CUserID(keyId), sendRegId)) {
+                pAccountViewTip->GetRegId(CUserID(keyId), sendRegId) &&
+                (pAccountViewTip->GetRawBalance(keyId) >= nAmount + nDefaultFee)) {
                 sendKeyId     = keyId;
                 sufficientFee = true;
                 break;
