@@ -467,7 +467,7 @@ uint64_t CVmRunEnv::GetValue() const{
     CContractTx* tx = static_cast<CContractTx*>(listTx.get());
         return tx->llValues;
 }
-const vector<unsigned char>& CVmRunEnv::GetTxContact()
+const vector<unsigned char>& CVmRunEnv::GetTxContract()
 {
     CContractTx* tx = static_cast<CContractTx*>(listTx.get());
         return tx->arguments;

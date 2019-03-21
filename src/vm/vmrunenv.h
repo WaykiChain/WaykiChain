@@ -150,7 +150,7 @@ public:
 	const CRegID& GetScriptRegID();
 	const CRegID &GetTxAccount();
 	uint64_t GetValue() const;
-	const vector<unsigned char>& GetTxContact();
+	const vector<unsigned char>& GetTxContract();
 	CScriptDBViewCache* GetScriptDB();
 	CAccountViewCache * GetCatchView();
 	int GetComfirHeight();
