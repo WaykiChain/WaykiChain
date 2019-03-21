@@ -138,7 +138,7 @@ void UnregisterWallet(CWalletInterface *pwalletIn);
 /** Unregister all wallets from core */
 void UnregisterAllWallets();
 /** Push an updated transaction to all registered wallets */
-void SyncWithWallets(const uint256 &hash, CBaseTransaction *pBaseTx, const CBlock *pblock = NULL);
+void SyncWithWallets(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock = NULL);
 /** Erase Tx from wallets **/
 void EraseTransaction(const uint256 &hash);
 /** Register with a network node to receive its signals */
@@ -184,7 +184,7 @@ bool IsInitialBlockDownload();
 /** Format a string that describes several potential problems detected by the core */
 string GetWarnings(string strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
-bool GetTransaction(std::shared_ptr<CBaseTransaction> &pBaseTx, const uint256 &hash, CScriptDBViewCache &scriptDBCache, bool bSearchMempool = true);
+bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CScriptDBViewCache &scriptDBCache, bool bSearchMempool = true);
 /** Retrieve a transaction height comfirmed in block*/
 int GetTxConfirmHeight(const uint256 &hash, CScriptDBViewCache &scriptDBCache);
 
@@ -213,7 +213,7 @@ void Misbehaving(NodeId nodeid, int howmuch);
 bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> signature, const CPubKey pubKey);
 
 /** (try to) add transaction to memory pool **/
-bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTransaction *pBaseTx,
+bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx,
                         bool fLimitFree, bool fRejectInsaneFee = false);
 
 /** Mark a block as invalid. */
@@ -222,7 +222,7 @@ bool InvalidateBlock(CValidationState &state, CBlockIndex *pindex);
 /** Remove invalidity status from a block and its descendants. */
 bool ReconsiderBlock(CValidationState &state, CBlockIndex *pindex);
 
-std::shared_ptr<CBaseTransaction> CreateNewEmptyTransaction(unsigned char uType);
+std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType);
 
 struct CNodeStateStats {
     int nMisbehavior;
@@ -280,7 +280,7 @@ struct CDiskTxPos : public CDiskBlockPos {
     }
 };
 
-int64_t GetMinRelayFee(const CBaseTransaction *pBaseTx, unsigned int nBytes, bool fAllowFree);
+int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree);
 
 inline bool AllowFree(double dPriority) {
     // Large (in bytes) low-priority (new, small-coin) transactions
@@ -290,14 +290,14 @@ inline bool AllowFree(double dPriority) {
 }
 
 // Context-independent validity checks
-bool CheckTransaction(CBaseTransaction *pBaseTx, CValidationState &state, CAccountViewCache &view);
+bool CheckTransaction(CBaseTx *pBaseTx, CValidationState &state, CAccountViewCache &view);
 
 /** Check for standard transaction types
     @return True if all outputs (scriptPubKeys) use only standard transaction forms
 */
-bool IsStandardTx(CBaseTransaction *pBaseTx, string &reason);
+bool IsStandardTx(CBaseTx *pBaseTx, string &reason);
 
-bool IsFinalTx(CBaseTransaction *pBaseTx, int nBlockHeight = 0, int64_t nBlockTime = 0);
+bool IsFinalTx(CBaseTx *pBaseTx, int nBlockHeight = 0, int64_t nBlockTime = 0);
 
 /** Undo information for a CBlock */
 class CBlockUndo {
@@ -374,7 +374,7 @@ class CMerkleTx {
     uint256 hashBlock;
     vector<uint256> vMerkleBranch;
     int nIndex;
-    std::shared_ptr<CBaseTransaction> pTx;
+    std::shared_ptr<CBaseTx> pTx;
     int nHeight;
     // memory only
     mutable bool fMerkleVerified;
@@ -383,7 +383,7 @@ class CMerkleTx {
         Init();
     }
 
-    CMerkleTx(std::shared_ptr<CBaseTransaction> pBaseTx) : pTx(pBaseTx) {
+    CMerkleTx(std::shared_ptr<CBaseTx> pBaseTx) : pTx(pBaseTx) {
         Init();
     }
 
@@ -1094,7 +1094,7 @@ class CMerkleBlock {
 
 class CWalletInterface {
    protected:
-    virtual void SyncTransaction(const uint256 &hash, CBaseTransaction *pBaseTx, const CBlock *pblock) = 0;
+    virtual void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock) = 0;
     virtual void EraseFromWallet(const uint256 &hash)                                                  = 0;
     virtual void SetBestChain(const CBlockLocator &locator)                                            = 0;
     virtual void UpdatedTransaction(const uint256 &hash)                                               = 0;

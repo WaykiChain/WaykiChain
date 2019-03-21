@@ -12,7 +12,7 @@
 using namespace std;
 
 const unsigned int iTxCount = 6000;
-vector<std::shared_ptr<CBaseTransaction> > vTransactions;
+vector<std::shared_ptr<CBaseTx> > vTransactions;
 vector<string> vTransactionHash;
 deque<uint64_t> dFee;
 deque<uint64_t> dFuel;
@@ -107,7 +107,7 @@ public:
 		string txHash = result.get_str();
 		vTransactionHash.push_back(txHash);
 		if (mempool.mapTx.count(uint256(uint256S(txHash))) > 0) {
-			std::shared_ptr<CBaseTransaction> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTx();
+			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTx();
 			vTransactions.push_back(tx);
 		}
 		vSendFee.push_back(make_pair(txHash, nfee));
@@ -144,7 +144,7 @@ public:
 
 		vTransactionHash.push_back(txHash);
 		if (mempool.mapTx.count(uint256(uint256S(txHash))) > 0) {
-			std::shared_ptr<CBaseTransaction> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTx();
+			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTx();
 			vTransactions.push_back(tx);
 		}
 		vSendFee.push_back(make_pair(txHash, nfee));
@@ -172,7 +172,7 @@ public:
 
 		vTransactionHash.push_back(txHash);
 		if (mempool.mapTx.count(uint256(uint256S(txHash))) > 0) {
-			std::shared_ptr<CBaseTransaction> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTx();
+			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTx();
 			vTransactions.push_back(tx);
 		}
 		vSendFee.push_back(make_pair(txHash, nfee));
@@ -191,7 +191,7 @@ public:
 		if(fFlag) {
 			vTransactionHash.push_back(hash);
 			if (mempool.mapTx.count(uint256(uint256S(hash))) > 0) {
-				std::shared_ptr<CBaseTransaction> tx = mempool.mapTx[uint256(uint256S(hash))].GetTx();
+				std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(hash))].GetTx();
 				vTransactions.push_back(tx);
 			}
 			vSendFee.push_back(make_pair(hash, nFee));
@@ -382,15 +382,15 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 					llRegAcctFee += ptx->GetFee();
 				}
 				if (COMMON_TX == ptx->nTxType) {
-					std::shared_ptr<CCommonTransaction> pTransaction(
-						dynamic_pointer_cast<CCommonTransaction>(ptx));
+					std::shared_ptr<CCommonTx> pTransaction(
+						dynamic_pointer_cast<CCommonTx>(ptx));
 					if (typeid(pTransaction->desUserId) == typeid(CKeyID)) {
 						llSendValue += pTransaction->llValues;
 					}
 				}
 				if (CONTRACT_TX == ptx->nTxType) {
-					std::shared_ptr<CContractTransaction> pTransaction(
-						dynamic_pointer_cast<CContractTransaction>(ptx));
+					std::shared_ptr<CContractTx> pTransaction(
+						dynamic_pointer_cast<CContractTx>(ptx));
 					if (typeid(pTransaction->desUserId) == typeid(CKeyID)) {
 						llSendValue += pTransaction->llValues;
 					}

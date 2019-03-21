@@ -157,7 +157,7 @@ class CBlock : public CBlockHeader
 {
 public:
     // network and disk
-    vector<std::shared_ptr<CBaseTransaction> > vptx;
+    vector<std::shared_ptr<CBaseTx> > vptx;
 
     // memory only
     mutable vector<uint256> vMerkleTree;

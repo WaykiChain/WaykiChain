@@ -30,11 +30,11 @@
 
 class CAutoFile;
 class CDataStream;
-class CBaseTransaction;
+class CBaseTx;
 class CRegisterAccountTx;
-class CCommonTransaction;
-class CContractTransaction;
-class CRewardTransaction;
+class CCommonTx;
+class CContractTx;
+class CRewardTx;
 
 
 static const unsigned int MAX_SIZE = 0x02000000;
@@ -469,10 +469,10 @@ template<typename K, typename Pred, typename A> unsigned int GetSerializeSize(co
 template<typename Stream, typename K, typename Pred, typename A> void Serialize(Stream& os, const set<K, Pred, A>& m, int nType, int nVersion);
 template<typename Stream, typename K, typename Pred, typename A> void Unserialize(Stream& is, set<K, Pred, A>& m, int nType, int nVersion);
 
-//shared_ptr<CBaseTransaction>
-extern inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTransaction> &pa, int nType, int nVersion);
-template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CBaseTransaction> &pa, int nType, int nVersion);
-template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CBaseTransaction> &pa, int nType, int nVersion);
+//shared_ptr<CBaseTx>
+extern inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
 
 
 class CSerActionGetSerializeSize { };

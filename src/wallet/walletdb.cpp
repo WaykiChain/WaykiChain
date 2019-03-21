@@ -38,7 +38,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,str
         if (strType == "tx") {
             uint256 hash;
             ssKey >> hash;
-            std::shared_ptr<CBaseTransaction> pBaseTx; //= make_shared<CContractTransaction>();
+            std::shared_ptr<CBaseTx> pBaseTx; //= make_shared<CContractTx>();
             ssValue >> pBaseTx;
             if (pBaseTx->GetHash() == hash) {
                 if (pwallet != NULL)
@@ -329,7 +329,7 @@ bool CWalletDB::WriteCryptedKey(const CPubKey& pubkey, const std::vector<unsigne
 }
 
 
-bool CWalletDB::WriteUnComFirmedTx(const uint256& hash, const std::shared_ptr<CBaseTransaction>& tx) {
+bool CWalletDB::WriteUnComFirmedTx(const uint256& hash, const std::shared_ptr<CBaseTx>& tx) {
     nWalletDBUpdated++;
     return Write(make_pair(string("tx"), hash),tx);
 }
@@ -437,7 +437,7 @@ void ThreadRelayTx(CWallet* pWallet)
        RenameThread("relay-tx");
        while(pWallet) {
            MilliSleep(60*1000);
-           map<uint256, std::shared_ptr<CBaseTransaction> >::iterator iterTx =  pWallet->UnConfirmTx.begin();
+           map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx =  pWallet->UnConfirmTx.begin();
             for(; iterTx != pWallet->UnConfirmTx.end(); ++iterTx)
             {
                 if(mempool.Exists(iterTx->first)) {

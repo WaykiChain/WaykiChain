@@ -722,8 +722,8 @@ public:
     static uint64_t GetTotalBytesSent();
 };
 
-void RelayTransaction(CBaseTransaction *pBaseTx, const uint256& hash);
-void RelayTransaction(CBaseTransaction *pBaseTx, const uint256& hash, const CDataStream& ss);
+void RelayTransaction(CBaseTx *pBaseTx, const uint256& hash);
+void RelayTransaction(CBaseTx *pBaseTx, const uint256& hash, const CDataStream& ss);
 
 /** Access to the (IP) address database (peers.dat) */
 class CAddrDB

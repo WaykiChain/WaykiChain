@@ -60,9 +60,9 @@ map<uint256, std::tuple<std::shared_ptr<CAccountViewCache>, std::shared_ptr<CTra
 CSignatureCache signatureCache;
 
 /** Fees smaller than this (in sawi) are considered zero fee (for transaction creation) */
-uint64_t CBaseTransaction::nMinTxFee = 10000;  // Override with -mintxfee
+uint64_t CBaseTx::nMinTxFee = 10000;  // Override with -mintxfee
 /** Fees smaller than this (in sawi) are considered zero fee (for relaying and mining) */
-int64_t CBaseTransaction::nMinRelayTxFee = 1000;
+int64_t CBaseTx::nMinRelayTxFee = 1000;
 /** Amount of blocks that other nodes claim to have */
 static CMedianFilter<int> cPeerBlockCounts(8, 0);
 
@@ -75,7 +75,7 @@ struct COrphanBlock {
 map<uint256, COrphanBlock *> mapOrphanBlocks;             //存放因网络延迟等原因，收到的孤儿块
 multimap<uint256, COrphanBlock *> mapOrphanBlocksByPrev;  //存放孤儿块的上一个块Hash及块
 
-map<uint256, std::shared_ptr<CBaseTransaction> > mapOrphanTransactions;
+map<uint256, std::shared_ptr<CBaseTx> > mapOrphanTransactions;
 
 const string strMessageMagic = "Coin Signed Message:\n";
 
@@ -150,7 +150,7 @@ map<uint256, pair<NodeId, list<uint256>::iterator> > mapBlocksToDownload;  //存
 namespace {
 struct CMainSignals {
     // Notifies listeners of updated transaction data (passing hash, transaction, and optionally the block it is found in.
-    boost::signals2::signal<void(const uint256 &, CBaseTransaction *, const CBlock *)> SyncTransaction;
+    boost::signals2::signal<void(const uint256 &, CBaseTx *, const CBlock *)> SyncTransaction;
     // Notifies listeners of an erased transaction (currently disabled, requires transaction replacement).
     boost::signals2::signal<void(const uint256 &)> EraseTransaction;
     // Notifies listeners of an updated transaction without new data (for now: a coinbase potentially becoming visible).
@@ -251,7 +251,7 @@ void UnregisterAllWallets() {
     g_signals.SyncTransaction.disconnect_all_slots();
 }
 
-void SyncWithWallets(const uint256 &hash, CBaseTransaction *pBaseTx, const CBlock *pblock) {
+void SyncWithWallets(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock) {
     g_signals.SyncTransaction(hash, pBaseTx, pblock);
 }
 
@@ -498,7 +498,7 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
     while (mapOrphanTransactions.size() > nMaxOrphans) {
         // Evict a random orphan:
         uint256 randomhash = GetRandHash();
-        map<uint256, std::shared_ptr<CBaseTransaction> >::iterator it =
+        map<uint256, std::shared_ptr<CBaseTx> >::iterator it =
             mapOrphanTransactions.lower_bound(randomhash);
         if (it == mapOrphanTransactions.end())
             it = mapOrphanTransactions.begin();
@@ -508,9 +508,9 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
     return nEvicted;
 }
 
-bool IsStandardTx(CBaseTransaction *pBaseTx, string &reason) {
+bool IsStandardTx(CBaseTx *pBaseTx, string &reason) {
     AssertLockHeld(cs_main);
-    if (pBaseTx->nVersion > CBaseTransaction::CURRENT_VERSION || pBaseTx->nVersion < 1) {
+    if (pBaseTx->nVersion > CBaseTx::CURRENT_VERSION || pBaseTx->nVersion < 1) {
         reason = "version";
         return false;
     }
@@ -519,7 +519,7 @@ bool IsStandardTx(CBaseTransaction *pBaseTx, string &reason) {
     // almost as much to process as they cost the sender in fees, because
     // computing signature hashes is O(ninputs*txsize). Limiting transactions
     // to MAX_STANDARD_TX_SIZE mitigates CPU exhaustion attacks.
-    unsigned int sz = ::GetSerializeSize(pBaseTx->GetNewInstance(), SER_NETWORK, CBaseTransaction::CURRENT_VERSION);
+    unsigned int sz = ::GetSerializeSize(pBaseTx->GetNewInstance(), SER_NETWORK, CBaseTx::CURRENT_VERSION);
     if (sz >= MAX_STANDARD_TX_SIZE) {
         reason = "tx-size";
         return false;
@@ -528,7 +528,7 @@ bool IsStandardTx(CBaseTransaction *pBaseTx, string &reason) {
     return true;
 }
 
-bool IsFinalTx(CBaseTransaction *ptx, int nBlockHeight, int64_t nBlockTime) {
+bool IsFinalTx(CBaseTx *ptx, int nBlockHeight, int64_t nBlockTime) {
     AssertLockHeld(cs_main);
     return true;
 }
@@ -578,7 +578,7 @@ bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> si
     return true;
 }
 
-bool CheckTransaction(CBaseTransaction *ptx, CValidationState &state, CAccountViewCache &view,
+bool CheckTransaction(CBaseTx *ptx, CValidationState &state, CAccountViewCache &view,
                       CScriptDBViewCache &scriptDB)
 {
     if (REWARD_TX == ptx->nTxType)
@@ -595,7 +595,7 @@ bool CheckTransaction(CBaseTransaction *ptx, CValidationState &state, CAccountVi
     return true;
 }
 
-int64_t GetMinRelayFee(const CBaseTransaction *pBaseTx, unsigned int nBytes, bool fAllowFree) {
+int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree) {
     int64_t nBaseFee = pBaseTx->nMinRelayTxFee;
     int64_t nMinFee  = (1 + (int64_t)nBytes / 1000) * nBaseFee;
 
@@ -614,7 +614,7 @@ int64_t GetMinRelayFee(const CBaseTransaction *pBaseTx, unsigned int nBytes, boo
     return nMinFee;
 }
 
-bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTransaction *pBaseTx,
+bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx,
                         bool fLimitFree, bool fRejectInsaneFee) {
     AssertLockHeld(cs_main);
 
@@ -658,10 +658,10 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTransact
         unsigned int nSize = entry.GetTxSize();
 
         if (pBaseTx->nTxType == COMMON_TX) {
-            CCommonTransaction *pTx = static_cast<CCommonTransaction *>(pBaseTx);
-            if (pTx->llValues < CBaseTransaction::nMinTxFee)
+            CCommonTx *pTx = static_cast<CCommonTx *>(pBaseTx);
+            if (pTx->llValues < CBaseTx::nMinTxFee)
                 return state.DoS(0, ERRORMSG("AcceptToMemoryPool : common tx %d transfer amount(%d) too small, you must send a min (%d)",
-                    hash.ToString(), pTx->llValues, CBaseTransaction::nMinTxFee), REJECT_DUST, "dust amount");
+                    hash.ToString(), pTx->llValues, CBaseTx::nMinTxFee), REJECT_DUST, "dust amount");
         }
 
         int64_t txMinFee = GetMinRelayFee(pBaseTx, nSize, true);
@@ -672,7 +672,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTransact
         // Continuously rate-limit free transactions
         // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
         // be annoying or make others' transactions take longer to confirm.
-        if (fLimitFree && nFees < CBaseTransaction::nMinRelayTxFee) {
+        if (fLimitFree && nFees < CBaseTx::nMinRelayTxFee) {
             static CCriticalSection csFreeLimiter;
             static double dFreeCount;
             static int64_t nLastTime;
@@ -765,7 +765,7 @@ int GetTxConfirmHeight(const uint256 &hash, CScriptDBViewCache &scriptDBCache) {
 }
 
 // Return transaction in tx, and if it was found inside a block, its hash is placed in hashBlock
-bool GetTransaction(std::shared_ptr<CBaseTransaction> &pBaseTx, const uint256 &hash,
+bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash,
                     CScriptDBViewCache &scriptDBCache, bool bSearchMemPool)
 {
     {
@@ -1283,7 +1283,7 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &
     }
 
     //undo reward tx
-    std::shared_ptr<CBaseTransaction> pBaseTx = block.vptx[0];
+    std::shared_ptr<CBaseTx> pBaseTx = block.vptx[0];
     txundo                                    = blockUndo.vtxundo.back();
     LogPrint("undo_account", "tx Hash:%s\n", pBaseTx->GetHash().ToString());
     if (!pBaseTx->UndoExecuteTx(0, view, state, txundo, pindex->nHeight, txCache, scriptCache))
@@ -1293,7 +1293,7 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &
     // undo transactions in reverse order
     for (int i = block.vptx.size() - 1; i >= 1; i--) {
         //      llTime = GetTimeMillis();
-        std::shared_ptr<CBaseTransaction> pBaseTx = block.vptx[i];
+        std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
         CTxUndo txundo                            = blockUndo.vtxundo[i - 1];
         LogPrint("undo_account", "tx Hash:%s\n", pBaseTx->GetHash().ToString());
         if (!pBaseTx->UndoExecuteTx(i, view, state, txundo, pindex->nHeight, txCache, scriptCache))
@@ -1377,8 +1377,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
         for (unsigned int i = 1; i < block.vptx.size(); i++) {
             if (block.vptx[i]->nTxType == REWARD_TX) {
                 assert(i <= 1);
-                std::shared_ptr<CRewardTransaction> pRewardTx =
-                    dynamic_pointer_cast<CRewardTransaction>(block.vptx[i]);
+                std::shared_ptr<CRewardTx> pRewardTx =
+                    dynamic_pointer_cast<CRewardTx>(block.vptx[i]);
                 CAccount sourceAccount;
                 CRegID accountId(pindex->nHeight, i);
                 CPubKey pubKey      = boost::get<CPubKey>(pRewardTx->account);
@@ -1389,8 +1389,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                 sourceAccount.llValues  = pRewardTx->rewardValue;
                 assert(view.SaveAccountInfo(accountId, keyId, sourceAccount));
             } else if (block.vptx[i]->nTxType == DELEGATE_TX) {
-                std::shared_ptr<CDelegateTransaction> pDelegateTx =
-                    dynamic_pointer_cast<CDelegateTransaction>(block.vptx[i]);
+                std::shared_ptr<CDelegateTx> pDelegateTx =
+                    dynamic_pointer_cast<CDelegateTx>(block.vptx[i]);
                 assert(pDelegateTx->userId.type() == typeid(CRegID));
                 CAccount voteAcct;
                 assert(view.GetAccount(pDelegateTx->userId, voteAcct));
@@ -1449,7 +1449,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
     int64_t nTotalFuel(0);
     if (block.vptx.size() > 1) {
         for (unsigned int i = 1; i < block.vptx.size(); i++) {
-            std::shared_ptr<CBaseTransaction> pBaseTx = block.vptx[i];
+            std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
             if (uint256() != txCache.HasTx((pBaseTx->GetHash()))) {
                 return state.DoS(100,
                                  ERRORMSG("ConnectBlock() : the TxHash %s the confirm duplicate",
@@ -1497,7 +1497,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
         }
     }
 
-    std::shared_ptr<CRewardTransaction> pRewardTx = dynamic_pointer_cast<CRewardTransaction>(block.vptx[0]);
+    std::shared_ptr<CRewardTx> pRewardTx = dynamic_pointer_cast<CRewardTx>(block.vptx[0]);
     CAccount minerAcct;
     if (!view.GetAccount(pRewardTx->account, minerAcct)) {
         assert(0);
@@ -1686,7 +1686,7 @@ bool static DisconnectTip(CValidationState &state) {
     UpdateTip(pindexDelete->pprev, block);
     // Resurrect mempool transactions from the disconnected block.
     for (const auto &ptx : block.vptx) {
-        list<std::shared_ptr<CBaseTransaction> > removed;
+        list<std::shared_ptr<CBaseTx> > removed;
         CValidationState stateDummy;
         if (!ptx->IsCoinBase()) {
             if (!AcceptToMemoryPool(mempool, stateDummy, ptx.get(), false)) {
@@ -2169,7 +2169,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
         }
 
         //校验利息是否正常
-        std::shared_ptr<CRewardTransaction> pRewardTx = dynamic_pointer_cast<CRewardTransaction>(block.vptx[0]);
+        std::shared_ptr<CRewardTx> pRewardTx = dynamic_pointer_cast<CRewardTx>(block.vptx[0]);
         uint64_t llValidReward                        = block.GetFee() - block.GetFuel();
         if (pRewardTx->rewardValue != llValidReward)
             return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : coinbase pays too much (actual=%d vs limit=%d)",
@@ -3364,20 +3364,20 @@ void static ProcessGetData(CNode *pfrom) {
                     }
                 }
                 if (!pushed && inv.type == MSG_TX) {
-                    std::shared_ptr<CBaseTransaction> pBaseTx = mempool.Lookup(inv.hash);
+                    std::shared_ptr<CBaseTx> pBaseTx = mempool.Lookup(inv.hash);
                     if (pBaseTx.get()) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         if (COMMON_TX == pBaseTx->nTxType) {
-                            ss << *((CCommonTransaction *)(pBaseTx.get()));
+                            ss << *((CCommonTx *)(pBaseTx.get()));
                         } else if (CONTRACT_TX == pBaseTx->nTxType) {
-                            ss << *((CContractTransaction *)(pBaseTx.get()));
+                            ss << *((CContractTx *)(pBaseTx.get()));
                         } else if (REG_ACCT_TX == pBaseTx->nTxType) {
                             ss << *((CRegisterAccountTx *)pBaseTx.get());
                         } else if (REG_CONT_TX == pBaseTx->nTxType) {
                             ss << *((CRegisterContractTx *)pBaseTx.get());
                         } else if (DELEGATE_TX == pBaseTx->nTxType) {
-                            ss << *((CDelegateTransaction *)pBaseTx.get());
+                            ss << *((CDelegateTx *)pBaseTx.get());
                         }
                         pfrom->PushMessage("tx", ss);
                         pushed = true;
@@ -3734,7 +3734,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
     }
 
     else if (strCommand == "tx") {
-        std::shared_ptr<CBaseTransaction> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
+        std::shared_ptr<CBaseTx> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
 
         if (REWARD_TX == pBaseTx->nTxType)
             return ERRORMSG("Reward tx from network NOT accepted. Hex:%s", HexStr(vRecv.begin(), vRecv.end()));
@@ -3807,7 +3807,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         vector<CInv> vInv;
         for (auto &hash : vtxid) {
             CInv inv(MSG_TX, hash);
-            std::shared_ptr<CBaseTransaction> pBaseTx = mempool.Lookup(hash);
+            std::shared_ptr<CBaseTx> pBaseTx = mempool.Lookup(hash);
             if (pBaseTx.get())
                 continue;  // another thread removed since queryHashes, maybe...
 
@@ -4391,20 +4391,20 @@ class CMainCleanup {
     }
 } instance_of_cmaincleanup;
 
-std::shared_ptr<CBaseTransaction> CreateNewEmptyTransaction(unsigned char uType) {
+std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
     switch (uType) {
         case COMMON_TX:
-            return std::make_shared<CCommonTransaction>();
+            return std::make_shared<CCommonTx>();
         case CONTRACT_TX:
-            return std::make_shared<CContractTransaction>();
+            return std::make_shared<CContractTx>();
         case REG_ACCT_TX:
             return std::make_shared<CRegisterAccountTx>();
         case REWARD_TX:
-            return std::make_shared<CRewardTransaction>();
+            return std::make_shared<CRewardTx>();
         case REG_CONT_TX:
             return std::make_shared<CRegisterContractTx>();
         case DELEGATE_TX:
-            return std::make_shared<CDelegateTransaction>();
+            return std::make_shared<CDelegateTx>();
         default:
             ERRORMSG("CreateNewEmptyTransaction type error");
             break;

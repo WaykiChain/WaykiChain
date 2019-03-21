@@ -61,7 +61,7 @@ public:
     string strWalletFile;     //钱包文件名
 
     map<uint256, CAccountTx> mapInBlockTx;
-    map<uint256, std::shared_ptr<CBaseTransaction> > UnConfirmTx;
+    map<uint256, std::shared_ptr<CBaseTx> > UnConfirmTx;
     mutable CCriticalSection cs_wallet;
     //map<CKeyID, CKeyCombi> GetKeyPool() const;
 
@@ -117,13 +117,13 @@ public:
 
     bool LoadMinVersion(int nVersion);
 
-    void SyncTransaction(const uint256 &hash, CBaseTransaction *pTx, const CBlock* pblock);
+    void SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock* pblock);
     void EraseFromWallet(const uint256 &hash);
     int ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate = false);
 //  void ReacceptWalletTransactions();
     void ResendWalletTransactions();
 
-    bool IsMine(CBaseTransaction*pTx)const;
+    bool IsMine(CBaseTx*pTx)const;
 
     void SetBestChain(const CBlockLocator& loc);
 
@@ -145,7 +145,7 @@ public:
 
     static CWallet* getinstance();
 
-    std::tuple<bool,string>  CommitTransaction(CBaseTransaction *pTx);
+    std::tuple<bool,string>  CommitTransaction(CBaseTx *pTx);
 
 //  std::tuple<bool,string>  SendMoney(const CRegID &send,const CUserID &rsv, int64_t nValue, int64_t nFee=0);
 
@@ -308,7 +308,7 @@ private:
 public:
     uint256 blockHash;
     int blockHeight;
-    map<uint256, std::shared_ptr<CBaseTransaction> > mapAccountTx;
+    map<uint256, std::shared_ptr<CBaseTx> > mapAccountTx;
 public:
     CAccountTx(CWallet* pwallet = NULL, uint256 hash = uint256(), int height = 0) {
         pWallet = pwallet;
@@ -326,25 +326,25 @@ public:
         }
     }
 
-    bool AddTx(const uint256 &hash, const CBaseTransaction *pTx) {
+    bool AddTx(const uint256 &hash, const CBaseTx *pTx) {
         switch (pTx->nTxType) {
         case COMMON_TX:
-            mapAccountTx[hash] = std::make_shared<CCommonTransaction>(pTx);
+            mapAccountTx[hash] = std::make_shared<CCommonTx>(pTx);
             break;
         case CONTRACT_TX:
-            mapAccountTx[hash] = std::make_shared<CContractTransaction>(pTx);
+            mapAccountTx[hash] = std::make_shared<CContractTx>(pTx);
             break;
         case REG_ACCT_TX:
             mapAccountTx[hash] = std::make_shared<CRegisterAccountTx>(pTx);
             break;
         case REWARD_TX:
-            mapAccountTx[hash] = std::make_shared<CRewardTransaction>(pTx);
+            mapAccountTx[hash] = std::make_shared<CRewardTx>(pTx);
             break;
         case REG_CONT_TX:
             mapAccountTx[hash] = std::make_shared<CRegisterContractTx>(pTx);
             break;
         case DELEGATE_TX:
-            mapAccountTx[hash] = std::make_shared<CDelegateTransaction>(pTx);
+            mapAccountTx[hash] = std::make_shared<CDelegateTx>(pTx);
             break;
         default:
 //          assert(0);

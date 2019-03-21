@@ -154,7 +154,7 @@ public:
     bool operator()(const CNullID &no) const { return true; }
 };
 
-class CBaseTransaction {
+class CBaseTx {
 protected:
     static string txTypeArray[7];
 
@@ -170,16 +170,16 @@ public:
     int nFuelRate;      //only in memory
 
 public:
-    CBaseTransaction(const CBaseTransaction &other) { *this = other; }
-    CBaseTransaction(int _nVersion, unsigned char _nTxType) : nTxType(_nTxType), nVersion(_nVersion), nValidHeight(0), nRunStep(0), nFuelRate(0) {}
-    CBaseTransaction() : nTxType(COMMON_TX), nVersion(CURRENT_VERSION), nValidHeight(0), nRunStep(0), nFuelRate(0) {}
-    virtual ~CBaseTransaction() {}
+    CBaseTx(const CBaseTx &other) { *this = other; }
+    CBaseTx(int _nVersion, unsigned char _nTxType) : nTxType(_nTxType), nVersion(_nVersion), nValidHeight(0), nRunStep(0), nFuelRate(0) {}
+    CBaseTx() : nTxType(COMMON_TX), nVersion(CURRENT_VERSION), nValidHeight(0), nRunStep(0), nFuelRate(0) {}
+    virtual ~CBaseTx() {}
     virtual unsigned int GetSerializeSize(int nType, int nVersion) const = 0;
     virtual uint256 GetHash() const = 0;
     virtual uint64_t GetFee() const = 0;
     virtual double GetPriority() const = 0;
     virtual uint256 SignatureHash() const = 0;
-    virtual std::shared_ptr<CBaseTransaction> GetNewInstance() = 0;
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() = 0;
     virtual string ToString(CAccountViewCache &view) const = 0;
     virtual Object ToJson(const CAccountViewCache &AccountView) const = 0;
     virtual bool GetAddress(std::set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) = 0;
@@ -197,7 +197,7 @@ protected:
     bool CheckMinTxFee(uint64_t llFees);
 };
 
-class CRegisterAccountTx : public CBaseTransaction {
+class CRegisterAccountTx : public CBaseTx {
 public:
     mutable CUserID userId;   //pubkey
     mutable CUserID minerId;  //Miner pubkey
@@ -205,7 +205,7 @@ public:
     vector<unsigned char> signature;
 
 public:
-    CRegisterAccountTx(const CBaseTransaction *pBaseTx) {
+    CRegisterAccountTx(const CBaseTx *pBaseTx) {
         assert(REG_ACCT_TX == pBaseTx->nTxType);
         *this = *(CRegisterAccountTx *)pBaseTx;
     }
@@ -250,7 +250,7 @@ public:
     }
     uint256 GetHash() const { return SignatureHash(); }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    std::shared_ptr<CBaseTransaction> GetNewInstance() { return std::make_shared<CRegisterAccountTx>(this); }
+    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CRegisterAccountTx>(this); }
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
     string ToString(CAccountViewCache &view) const;
     Object ToJson(const CAccountViewCache &AccountView) const;
@@ -261,31 +261,31 @@ public:
     bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
-class CCommonTransaction : public CBaseTransaction {
+class CCommonTx : public CBaseTx {
 public:
     mutable CUserID srcRegId;   //src regid
     mutable CUserID desUserId;  //user regid or user key id or app regid
     uint64_t llFees;            //fees paid to miner
     uint64_t llValues;          //transfer amount
-    vector_unsigned_char description;
+    vector_unsigned_char memo;
     vector_unsigned_char signature;
 
 public:
-    CCommonTransaction() {
+    CCommonTx() {
         nTxType      = COMMON_TX;
         llFees       = 0;
         nValidHeight = 0;
         llValues     = 0;
-        description.clear();
+        memo.clear();
         signature.clear();
     }
 
-    CCommonTransaction(const CBaseTransaction *pBaseTx) {
+    CCommonTx(const CBaseTx *pBaseTx) {
         assert(COMMON_TX == pBaseTx->nTxType);
-        *this = *(CCommonTransaction *)pBaseTx;
+        *this = *(CCommonTx *)pBaseTx;
     }
 
-    CCommonTransaction(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
+    CCommonTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
                        int height, vector_unsigned_char &descriptionIn) {
         if (srcRegIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
@@ -296,14 +296,14 @@ public:
         nTxType      = CONTRACT_TX;
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
-        description  = descriptionIn;
+        memo  = descriptionIn;
         nValidHeight = height;
         llFees       = fee;
         llValues     = value;
         signature.clear();
     }
 
-    CCommonTransaction(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
+    CCommonTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
                        int height) {
         nTxType = COMMON_TX;
         if (srcRegIdIn.type() == typeid(CRegID)) {
@@ -317,11 +317,11 @@ public:
         nValidHeight = height;
         llFees       = fee;
         llValues     = value;
-        description.clear();
+        memo.clear();
         signature.clear();
     }
 
-    ~CCommonTransaction() {}
+    ~CCommonTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -333,7 +333,7 @@ public:
         READWRITE(desId);
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(llValues));
-        READWRITE(description);
+        READWRITE(memo);
         READWRITE(signature);
         if (fRead) {
             srcRegId  = srcId.GetUserId();
@@ -345,15 +345,15 @@ public:
         CID srcId(srcRegId);
         CID desId(desUserId);
         ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << srcId << desId
-           << VARINT(llFees) << VARINT(llValues) << description;
+           << VARINT(llFees) << VARINT(llValues) << memo;
         return ss.GetHash();
     }
     uint64_t GetValue() const { return llValues; }
     uint256 GetHash() const { return SignatureHash(); }
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    std::shared_ptr<CBaseTransaction> GetNewInstance() {
-        return std::make_shared<CCommonTransaction>(this);
+    std::shared_ptr<CBaseTx> GetNewInstance() {
+        return std::make_shared<CCommonTx>(this);
     }
     string ToString(CAccountViewCache &view) const;
     Object ToJson(const CAccountViewCache &AccountView) const;
@@ -364,7 +364,7 @@ public:
                           CScriptDBViewCache &scriptDB);
 };
 
-class CContractTransaction : public CBaseTransaction {
+class CContractTx : public CBaseTx {
 public:
     mutable CUserID srcRegId;   // src regid
     mutable CUserID desUserId;  // user regid or user key id or app regid
@@ -374,7 +374,7 @@ public:
     vector_unsigned_char signature;
 
 public:
-    CContractTransaction() {
+    CContractTx() {
         nTxType = CONTRACT_TX;
         llFees  = 0;
         nValidHeight = 0;
@@ -383,12 +383,12 @@ public:
         signature.clear();
     }
 
-    CContractTransaction(const CBaseTransaction *pBaseTx) {
+    CContractTx(const CBaseTx *pBaseTx) {
         assert(CONTRACT_TX == pBaseTx->nTxType);
-        *this = *(CContractTransaction *)pBaseTx;
+        *this = *(CContractTx *)pBaseTx;
     }
 
-    CContractTransaction(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee,
+    CContractTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee,
                          uint64_t value, int height, vector_unsigned_char &argumentsIn) {
         if (srcRegIdIn.type() == typeid(CRegID)) assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
 
@@ -405,7 +405,7 @@ public:
         signature.clear();
     }
 
-    CContractTransaction(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee,
+    CContractTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee,
                          uint64_t value, int height) {
         nTxType = CONTRACT_TX;
         if (srcRegIdIn.type() == typeid(CRegID)) {
@@ -423,7 +423,7 @@ public:
         signature.clear();
     }
 
-    ~CContractTransaction() {}
+    ~CContractTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -454,8 +454,8 @@ public:
     uint256 GetHash() const { return SignatureHash(); }
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    std::shared_ptr<CBaseTransaction> GetNewInstance() {
-        return std::make_shared<CContractTransaction>(this);
+    std::shared_ptr<CBaseTx> GetNewInstance() {
+        return std::make_shared<CContractTx>(this);
     }
     string ToString(CAccountViewCache &view) const;
     Object ToJson(const CAccountViewCache &AccountView) const;
@@ -466,23 +466,23 @@ public:
                           CScriptDBViewCache &scriptDB);
 };
 
-class CRewardTransaction : public CBaseTransaction {
+class CRewardTx : public CBaseTx {
 public:
     mutable CUserID account;  // in genesis block is pubkey, otherwise account id
     uint64_t rewardValue;
     int nHeight;
 
 public:
-    CRewardTransaction() {
+    CRewardTx() {
         nTxType     = REWARD_TX;
         rewardValue = 0;
         nHeight     = 0;
     }
-    CRewardTransaction(const CBaseTransaction *pBaseTx) {
+    CRewardTx(const CBaseTx *pBaseTx) {
         assert(REWARD_TX == pBaseTx->nTxType);
-        *this = *(CRewardTransaction *)pBaseTx;
+        *this = *(CRewardTx *)pBaseTx;
     }
-    CRewardTransaction(const vector_unsigned_char &accountIn, const uint64_t rewardValueIn, const int nHeightIn) {
+    CRewardTx(const vector_unsigned_char &accountIn, const uint64_t rewardValueIn, const int nHeightIn) {
         nTxType = REWARD_TX;
         if (accountIn.size() > 6) {
             account = CPubKey(accountIn);
@@ -492,7 +492,7 @@ public:
         rewardValue = rewardValueIn;
         nHeight     = nHeightIn;
     }
-    ~CRewardTransaction() {}
+    ~CRewardTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -513,7 +513,7 @@ public:
     }
     uint64_t GetValue() const { return rewardValue; }
     uint256 GetHash() const { return SignatureHash(); }
-    std::shared_ptr<CBaseTransaction> GetNewInstance() { return std::make_shared<CRewardTransaction>(this); }
+    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CRewardTx>(this); }
     uint64_t GetFee() const { return 0; }
     double GetPriority() const { return 0.0f; }
     string ToString(CAccountViewCache &view) const;
@@ -524,7 +524,7 @@ public:
     bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) { return true; }
 };
 
-class CRegisterContractTx : public CBaseTransaction {
+class CRegisterContractTx : public CBaseTx {
 public:
     mutable CUserID regAcctId;    // contract publisher regid
     vector_unsigned_char script;  // contract script content
@@ -532,7 +532,7 @@ public:
     vector_unsigned_char signature;
 
 public:
-    CRegisterContractTx(const CBaseTransaction *pBaseTx) {
+    CRegisterContractTx(const CBaseTx *pBaseTx) {
         assert(REG_CONT_TX == pBaseTx->nTxType);
         *this = *(CRegisterContractTx *)pBaseTx;
     }
@@ -565,7 +565,7 @@ public:
         return ss.GetHash();
     }
     uint256 GetHash() const { return SignatureHash(); }
-    std::shared_ptr<CBaseTransaction> GetNewInstance() { return std::make_shared<CRegisterContractTx>(this); }
+    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CRegisterContractTx>(this); }
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     string ToString(CAccountViewCache &view) const;
@@ -578,7 +578,7 @@ public:
     bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
-class CDelegateTransaction : public CBaseTransaction {
+class CDelegateTx : public CBaseTx {
 public:
     mutable CUserID userId;
     vector<COperVoteFund> operVoteFunds;  //!< oper delegate votes, max length is Delegates number
@@ -586,11 +586,11 @@ public:
     vector_unsigned_char signature;
 
 public:
-    CDelegateTransaction(const CBaseTransaction *pBaseTx) {
+    CDelegateTx(const CBaseTx *pBaseTx) {
         assert(DELEGATE_TX == pBaseTx->nTxType);
-        *this = *(CDelegateTransaction *)pBaseTx;
+        *this = *(CDelegateTx *)pBaseTx;
     }
-    CDelegateTransaction(const vector_unsigned_char &accountIn, vector<COperVoteFund> &operVoteFundsIn,
+    CDelegateTx(const vector_unsigned_char &accountIn, vector<COperVoteFund> &operVoteFundsIn,
                          const uint64_t feeIn, const int heightIn) {
         nTxType = DELEGATE_TX;
         if (accountIn.size() > 6) {
@@ -603,7 +603,7 @@ public:
         llFees        = feeIn;
         signature.clear();
     }
-    CDelegateTransaction(const CUserID &userIdIn, uint64_t feeIn, const vector<COperVoteFund> &operVoteFundsIn,
+    CDelegateTx(const CUserID &userIdIn, uint64_t feeIn, const vector<COperVoteFund> &operVoteFundsIn,
                          const int heightIn) {
         if (userIdIn.type() == typeid(CRegID)) {
             assert(!boost::get<CRegID>(userIdIn).IsEmpty());
@@ -615,14 +615,14 @@ public:
         llFees        = feeIn;
         signature.clear();
     }
-    CDelegateTransaction() {
+    CDelegateTx() {
         nTxType = DELEGATE_TX;
         llFees  = 0;
         operVoteFunds.clear();
         nValidHeight = 0;
         signature.clear();
     }
-    ~CDelegateTransaction() {}
+    ~CDelegateTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -646,7 +646,7 @@ public:
     uint256 GetHash() const { return SignatureHash(); }
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    std::shared_ptr<CBaseTransaction> GetNewInstance() { return std::make_shared<CDelegateTransaction>(this); }
+    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDelegateTx>(this); }
     string ToString(CAccountViewCache &view) const;
     Object ToJson(const CAccountViewCache &accountView) const;
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
@@ -956,52 +956,52 @@ public:
     string ToString() const;
 };
 
-inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTransaction> &pa, int nType, int nVersion) {
+inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
     return pa->GetSerializeSize(nType, nVersion) + 1;
 }
 
 template <typename Stream>
-void Serialize(Stream &os, const std::shared_ptr<CBaseTransaction> &pa, int nType, int nVersion) {
+void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
     unsigned char ntxType = pa->nTxType;
     Serialize(os, ntxType, nType, nVersion);
     if (pa->nTxType == REG_ACCT_TX) {
         Serialize(os, *((CRegisterAccountTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == COMMON_TX) {
-        Serialize(os, *((CCommonTransaction *)(pa.get())), nType, nVersion);
+        Serialize(os, *((CCommonTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == CONTRACT_TX) {
-        Serialize(os, *((CContractTransaction *)(pa.get())), nType, nVersion);
+        Serialize(os, *((CContractTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == REWARD_TX) {
-        Serialize(os, *((CRewardTransaction *)(pa.get())), nType, nVersion);
+        Serialize(os, *((CRewardTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == REG_CONT_TX) {
         Serialize(os, *((CRegisterContractTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == DELEGATE_TX) {
-        Serialize(os, *((CDelegateTransaction *)(pa.get())), nType, nVersion);
+        Serialize(os, *((CDelegateTx *)(pa.get())), nType, nVersion);
     } else
         throw ios_base::failure("seiralize tx type value error, must be ranger(1...6)");
 }
 
 template <typename Stream>
-void Unserialize(Stream &is, std::shared_ptr<CBaseTransaction> &pa, int nType, int nVersion) {
+void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
     char nTxType;
     is.read((char *)&(nTxType), sizeof(nTxType));
     if (nTxType == REG_ACCT_TX) {
         pa = std::make_shared<CRegisterAccountTx>();
         Unserialize(is, *((CRegisterAccountTx *)(pa.get())), nType, nVersion);
     } else if (nTxType == COMMON_TX) {
-        pa = std::make_shared<CCommonTransaction>();
-        Unserialize(is, *((CCommonTransaction *)(pa.get())), nType, nVersion);
+        pa = std::make_shared<CCommonTx>();
+        Unserialize(is, *((CCommonTx *)(pa.get())), nType, nVersion);
     } else if (nTxType == CONTRACT_TX) {
-        pa = std::make_shared<CContractTransaction>();
-        Unserialize(is, *((CContractTransaction *)(pa.get())), nType, nVersion);
+        pa = std::make_shared<CContractTx>();
+        Unserialize(is, *((CContractTx *)(pa.get())), nType, nVersion);
     } else if (nTxType == REWARD_TX) {
-        pa = std::make_shared<CRewardTransaction>();
-        Unserialize(is, *((CRewardTransaction *)(pa.get())), nType, nVersion);
+        pa = std::make_shared<CRewardTx>();
+        Unserialize(is, *((CRewardTx *)(pa.get())), nType, nVersion);
     } else if (nTxType == REG_CONT_TX) {
         pa = std::make_shared<CRegisterContractTx>();
         Unserialize(is, *((CRegisterContractTx *)(pa.get())), nType, nVersion);
     } else if (nTxType == DELEGATE_TX) {
-        pa = std::make_shared<CDelegateTransaction>();
-        Unserialize(is, *((CDelegateTransaction *)(pa.get())), nType, nVersion);
+        pa = std::make_shared<CDelegateTx>();
+        Unserialize(is, *((CDelegateTx *)(pa.get())), nType, nVersion);
     } else {
         string sTxType(1, nTxType);
         throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error, must be within range (1...6)");

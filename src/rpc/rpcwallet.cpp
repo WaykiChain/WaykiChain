@@ -142,7 +142,7 @@ Value signmessage(const Array& params, bool fHelp)
 
 static std::tuple<bool, string> SendMoney(const CRegID &sendRegId, const CUserID &recvRegId,
     int64_t nValue, int64_t nFee) {
-    CCommonTransaction tx;
+    CCommonTx tx;
     tx.srcRegId = sendRegId;
     tx.desUserId = recvRegId;
     tx.llValues = nValue;
@@ -157,7 +157,7 @@ static std::tuple<bool, string> SendMoney(const CRegID &sendRegId, const CUserID
         return std::make_tuple(false, "SendMoney Sign failed");
     }
 
-    std::tuple<bool, string> ret = pwalletMain->CommitTransaction((CBaseTransaction *)&tx);
+    std::tuple<bool, string> ret = pwalletMain->CommitTransaction((CBaseTx *)&tx);
     bool flag = std::get<0>(ret);
     string te = std::get<1>(ret);
     if (flag == true)
@@ -414,13 +414,13 @@ Value gensendtoaddressraw(const Array& params, bool fHelp)
         height = params[4].get_int();
     }
 
-    std::shared_ptr<CCommonTransaction> tx = std::make_shared<CCommonTransaction>(sendId, recvId, fee, amount, height);
+    std::shared_ptr<CCommonTx> tx = std::make_shared<CCommonTx>(sendId, recvId, fee, amount, height);
     if (!pwalletMain->Sign(sendKeyId, tx->SignatureHash(), tx->signature)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,  "Sign failed");
     }
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
-    std::shared_ptr<CBaseTransaction> pBaseTx = tx->GetNewInstance();
+    std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
     ds << pBaseTx;
     Object obj;
     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
@@ -533,12 +533,12 @@ Value notionalpoolingasset(const Array& params, bool fHelp)
         const int STEP = 645;
         int64_t nFee = (STEP / 100 + 1) * nFuelRate + SysCfg().GetTxFee();
         LogPrint("vm", "nFuelRate=%d, nFee=%lld\n",nFuelRate, nFee);
-        CContractTransaction tx(sendreg, regid, nFee, 0 , chainActive.Height(), arguments);
+        CContractTx tx(sendreg, regid, nFee, 0 , chainActive.Height(), arguments);
         if (!pwalletMain->Sign(sendKeyId, tx.SignatureHash(), tx.signature)) {
             continue;
         }
 
-        std::tuple<bool,string> ret = pwalletMain->CommitTransaction((CBaseTransaction *) &tx);
+        std::tuple<bool,string> ret = pwalletMain->CommitTransaction((CBaseTx *) &tx);
         if(!std::get<0>(ret))
              continue;
 
@@ -695,14 +695,14 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
             recvUserId = recvKeyId;
         }
 
-        CCommonTransaction tx(sendRegId, recvUserId, SysCfg().GetTxFee(),
+        CCommonTx tx(sendRegId, recvUserId, SysCfg().GetTxFee(),
             pAccountViewTip->GetRawBalance(sendRegId) - SysCfg().GetTxFee() - nAmount,
             chainActive.Height());
 
         if (!pwalletMain->Sign(sendKeyId, tx.SignatureHash(), tx.signature)) {
             continue;
         }
-        std::tuple<bool,string> ret = pwalletMain->CommitTransaction((CBaseTransaction *) &tx);
+        std::tuple<bool,string> ret = pwalletMain->CommitTransaction((CBaseTx *) &tx);
         if(!std::get<0>(ret))
              continue;
 
@@ -792,7 +792,7 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
 //             continue;
 //         }
 
-//         std::tuple<bool,string> ret = pwalletMain->CommitTransaction((CBaseTransaction *) &tx);
+//         std::tuple<bool,string> ret = pwalletMain->CommitTransaction((CBaseTx *) &tx);
 //         if(!std::get<0>(ret))
 //              continue;
 //         arrayTxIds.push_back(std::get<1>(ret));

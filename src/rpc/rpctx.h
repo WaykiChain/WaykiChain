@@ -17,7 +17,7 @@ using namespace boost;
 using namespace boost::assign;
 using namespace json_spirit;
 
-class CBaseTransaction;
+class CBaseTx;
 
 extern Value registeraccounttx(const Array& params, bool fHelp);
 
@@ -60,7 +60,7 @@ extern Value getcontractkeyvalue(const Array& params, bool fHelp);
 extern Value gencheckpoint(const Array& params, bool fHelp);
 extern Value setcheckpoint(const Array& params, bool fHelp);
 extern Value validateaddr(const Array& params, bool fHelp);
-extern Object TxToJSON(CBaseTransaction *pTx);
+extern Object TxToJSON(CBaseTx *pTx);
 extern Value gettotalcoins(const Array& params, bool fHelp);
 extern Value gettotalassets(const Array& params, bool fHelp);
 

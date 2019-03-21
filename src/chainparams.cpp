@@ -362,14 +362,14 @@ void CBaseParams::ParseParameters(int argc, const char* const argv[]) {
     }
 }
 
-bool CBaseParams::CreateGenesisRewardTx(vector<std::shared_ptr<CBaseTransaction> > &vRewardTx, NET_TYPE type) {
+bool CBaseParams::CreateGenesisRewardTx(vector<std::shared_ptr<CBaseTx> > &vRewardTx, NET_TYPE type) {
     vector<string> vInitPubKey = IniCfg().GetIntPubKey(type);
     for (size_t i = 0; i < vInitPubKey.size(); ++i) {
         int64_t money(0);
         if (i > 0) {
             money = IniCfg().GetCoinInitValue() * COIN;
         }
-        shared_ptr<CRewardTransaction> pRewardTx = std::make_shared<CRewardTransaction>(ParseHex(vInitPubKey[i].c_str()),
+        shared_ptr<CRewardTx> pRewardTx = std::make_shared<CRewardTx>(ParseHex(vInitPubKey[i].c_str()),
                 money, 0);
         pRewardTx->nVersion = nTxVersion1;
         if (pRewardTx.get())
@@ -381,7 +381,7 @@ bool CBaseParams::CreateGenesisRewardTx(vector<std::shared_ptr<CBaseTransaction>
 
 };
 
-bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTransaction> > &vDelegateTx, NET_TYPE type) {
+bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDelegateTx, NET_TYPE type) {
     vector<string> vDelegatePubKey = IniCfg().GetDelegatePubKey(type);
     vector<string> vInitPubKey = IniCfg().GetIntPubKey(type);
     vector<COperVoteFund> vOperVoteFund;
@@ -391,7 +391,7 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTransactio
         vOperVoteFund.push_back(operVoteFund);
     }
     CRegID accountId(0, 1);
-    shared_ptr<CDelegateTransaction> pDelegateTx = std::make_shared<CDelegateTransaction>(accountId.GetVec6(),
+    shared_ptr<CDelegateTx> pDelegateTx = std::make_shared<CDelegateTx>(accountId.GetVec6(),
             vOperVoteFund, 10000, 0);
     pDelegateTx->signature = ParseHex(IniCfg().GetDelegateSignature(type));
     pDelegateTx->nVersion = nTxVersion1;

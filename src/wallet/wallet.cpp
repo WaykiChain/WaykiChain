@@ -51,7 +51,7 @@ string CWallet:: defaultFilename("");
 //  return &(it->second);
 //}
 //
-//bool CWallet::GetTx(const uint256& hash,shared_ptr<CBaseTransaction> &tx) const{
+//bool CWallet::GetTx(const uint256& hash,shared_ptr<CBaseTx> &tx) const{
 //  LOCK(cs_wallet);
 //  for(auto &wtx: mapWalletTx) {
 //      const CAccountTx &acctx = wtx.second;
@@ -216,7 +216,7 @@ void CWallet::SetBestChain(const CBlockLocator& loc) {
 
 }
 
-void CWallet::SyncTransaction(const uint256 &hash, CBaseTransaction*pTx, const CBlock* pblock) {
+void CWallet::SyncTransaction(const uint256 &hash, CBaseTx*pTx, const CBlock* pblock) {
     static std::shared_ptr<vector<string> > monitoring_appid = NULL;
     if(monitoring_appid == NULL)
     {
@@ -234,7 +234,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTransaction*pTx, const C
 //          unsigned short i = 0;
 //          for (const auto &sptx : pblock->vptx) {
 //              //confirm the tx GenesisBlock
-//              CRewardTransaction* prtx = (CRewardTransaction*) sptx.get();
+//              CRewardTx* prtx = (CRewardTx*) sptx.get();
 //              CPubKey pubkey = boost::get<CPubKey>(prtx->account);
 //              CAccount account;
 //              if (IsMine(sptx.get())) {
@@ -250,7 +250,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTransaction*pTx, const C
             for (const auto &sptx : pblock->vptx) {
                 uint256 hashtx = sptx->GetHash();
                 if (sptx->nTxType == CONTRACT_TX) {
-                    string thisapp = boost::get<CRegID>(static_cast<CContractTransaction const *>(sptx.get())->desUserId).ToString();
+                    string thisapp = boost::get<CRegID>(static_cast<CContractTx const *>(sptx.get())->desUserId).ToString();
                     auto it = find_if(monitoring_appid->begin(), monitoring_appid->end(),
                                       [&](const string &appid) { return appid == thisapp; });
                     if (monitoring_appid->end() != it) uiInterface.RevAppTransaction(pblock, i);
@@ -387,7 +387,7 @@ void CWallet::ResendWalletTransactions() {
         if(mempool.Exists(te.first)){ //如果已经存在mempool 了那就不要再提交了
             continue;
         }
-        std::shared_ptr<CBaseTransaction> pBaseTx = te.second->GetNewInstance();
+        std::shared_ptr<CBaseTx> pBaseTx = te.second->GetNewInstance();
         auto ret = CommitTransaction(&(*pBaseTx.get()));
         if (!std::get<0>(ret)) {
             erase.push_back(te.first);
@@ -403,7 +403,7 @@ void CWallet::ResendWalletTransactions() {
 }
 
 //// Call after CreateTransaction unless you want to abort
-std::tuple<bool, string> CWallet::CommitTransaction(CBaseTransaction *pTx) {
+std::tuple<bool, string> CWallet::CommitTransaction(CBaseTx *pTx) {
     LOCK2(cs_main, cs_wallet);
     LogPrint("INFO", "CommitTransaction() : %s", pTx->ToString(*pAccountViewTip));
 
@@ -473,7 +473,7 @@ int64_t CWallet::GetRawBalance(bool IsConfirmed) const
 //  if (!Sign(keID,tx.SignatureHash(), tx.signature)) {
 //      return std::make_tuple (false,"Sign failed");
 //  }
-//  std::tuple<bool,string> ret = CommitTransaction((CBaseTransaction *) &tx);
+//  std::tuple<bool,string> ret = CommitTransaction((CBaseTx *) &tx);
 //  if(!std::get<0>(ret))
 //      return ret;
 //  return  std::make_tuple (true,tx.GetHash().GetHex());
@@ -706,7 +706,7 @@ uint256 CWallet::GetCheckSum() const {
     return ss.GetHash();
 }
 
-bool CWallet::IsMine(CBaseTransaction* pTx) const{
+bool CWallet::IsMine(CBaseTx* pTx) const{
 
     set<CKeyID> vaddr;
     CAccountViewCache view(*pAccountViewTip, true);
@@ -725,7 +725,7 @@ bool CWallet::IsMine(CBaseTransaction* pTx) const{
 bool CWallet::CleanAll()
 {
     for_each(UnConfirmTx.begin(), UnConfirmTx.end(),
-            [&](std::map<uint256, std::shared_ptr<CBaseTransaction> >::reference a) {
+            [&](std::map<uint256, std::shared_ptr<CBaseTx> >::reference a) {
                 CWalletDB(strWalletFile).EraseUnComFirmedTx(a.first);
             });
     UnConfirmTx.clear();

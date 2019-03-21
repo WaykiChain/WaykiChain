@@ -778,7 +778,7 @@ unsigned char TempArray[] = {
 //			READWRITE(money[i]);
 //	)
 //};
-//void Init(CAccountViewCache &view, CVmScript &vscript, vector<std::shared_ptr<CBaseTransaction> >& Tx,int64_t &iresult, int64_t &bresult,int64_t &betmoey) {
+//void Init(CAccountViewCache &view, CVmScript &vscript, vector<std::shared_ptr<CBaseTx> >& Tx,int64_t &iresult, int64_t &bresult,int64_t &betmoey) {
 //
 //	//std::vector<unsigned char> pScript = GetScriptBin("D:\\C51\\Debug\\Exe\\CPLUS.bin");
 //	vscript.Rom.insert(vscript.Rom.begin(), TempArray, TempArray+sizeof(TempArray));
@@ -870,7 +870,7 @@ unsigned char TempArray[] = {
 //		tx = std::make_shared < CSecureTransaction > (CSecureTransaction());
 //		A2 = std::make_shared < CAppealTransaction > (CAppealTransaction());
 //		B2 = std::make_shared < CAppealTransaction > (CAppealTransaction());
-//		vector<std::shared_ptr<CBaseTransaction> > Tx;
+//		vector<std::shared_ptr<CBaseTx> > Tx;
 //		Tx.push_back(tx);
 //		Tx.push_back(A2);
 //		Tx.push_back(B2);
@@ -884,7 +884,7 @@ unsigned char TempArray[] = {
 //};
 //
 //bool SendSecuTx(CTxBetRollScript * betroll) {
-//	vector<std::shared_ptr<CBaseTransaction> > Tx;
+//	vector<std::shared_ptr<CBaseTx> > Tx;
 //	Tx.push_back(betroll->tx);
 //	CVmScriptRun mScript(betroll->view, Tx, betroll->vscript);
 //	bool flag = mScript.run(Tx, betroll->view);
@@ -920,7 +920,7 @@ unsigned char TempArray[] = {
 //		}
 //
 //	}
-//	vector<std::shared_ptr<CBaseTransaction> > Tx;
+//	vector<std::shared_ptr<CBaseTx> > Tx;
 //	Tx.push_back(betroll->tx);
 //	Tx.push_back(betroll->A2);
 //	CVmScriptRun mScript(betroll->view, Tx, betroll->vscript);
@@ -955,7 +955,7 @@ unsigned char TempArray[] = {
 //		}
 //
 //	}
-//	vector<std::shared_ptr<CBaseTransaction> > Tx;
+//	vector<std::shared_ptr<CBaseTx> > Tx;
 //	Tx.push_back(betroll->tx);
 //	Tx.push_back(betroll->B2);
 //	CVmScriptRun mScript(betroll->view, Tx, betroll->vscript);
@@ -978,7 +978,7 @@ unsigned char TempArray[] = {
 //}
 //
 //bool SendBThirdTx(CTxBetRollScript * betroll, bool bcheck) {
-//	vector<std::shared_ptr<CBaseTransaction> > Tx;
+//	vector<std::shared_ptr<CBaseTx> > Tx;
 //	Tx.push_back(betroll->tx);
 //	Tx.push_back(betroll->A2);
 //	Tx.push_back(betroll->B2);
@@ -1011,7 +1011,7 @@ unsigned char TempArray[] = {
 //}
 //
 //bool SendAThirdTx(CTxBetRollScript * betroll, bool bcheck) {
-//	vector<std::shared_ptr<CBaseTransaction> > Tx;
+//	vector<std::shared_ptr<CBaseTx> > Tx;
 //	Tx.push_back(betroll->tx);
 //	Tx.push_back(betroll->B2);
 //	Tx.push_back(betroll->A2);

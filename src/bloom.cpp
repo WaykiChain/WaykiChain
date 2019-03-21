@@ -87,7 +87,7 @@ bool CBloomFilter::IsWithinSizeConstraints() const
     return vData.size() <= MAX_BLOOM_FILTER_SIZE && nHashFuncs <= MAX_HASH_FUNCS;
 }
 
-bool CBloomFilter::IsRelevantAndUpdate(CBaseTransaction *pBaseTx, const uint256& hash)
+bool CBloomFilter::IsRelevantAndUpdate(CBaseTx *pBaseTx, const uint256& hash)
 {
 //    bool fFound = false;
     // Match if the filter contains the hash of tx
