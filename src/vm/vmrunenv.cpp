@@ -472,7 +472,7 @@ const vector<unsigned char>& CVmRunEnv::GetTxContract()
     CContractTx* tx = static_cast<CContractTx*>(listTx.get());
         return tx->arguments;
 }
-int CVmRunEnv::GetComfirHeight()
+int CVmRunEnv::GetComfirmHeight()
 {
     return RunTimeHeight;
 }

@@ -1092,7 +1092,7 @@ static int ExGetBlockHashFunc(lua_State *L) {
         return RetFalse("pVmRunEnv is NULL");
     }
 
-    if (height <= 0 || height >= pVmRunEnv->GetComfirHeight()) //当前block 是不可以获取hash的
+    if (height <= 0 || height >= pVmRunEnv->GetComfirmHeight()) //当前block 是不可以获取hash的
     {
         return RetFalse("ExGetBlockHashFunc para err2");
     }
@@ -1119,7 +1119,7 @@ static int ExGetCurRunEnvHeightFunc(lua_State *L) {
         return RetFalse("pVmRunEnv is NULL");
     }
 
-    int height = pVmRunEnv->GetComfirHeight();
+    int height = pVmRunEnv->GetComfirmHeight();
 
     //检测栈空间是否够
    if(height > 0)
@@ -1253,7 +1253,7 @@ static int ExDeleteDataDBFunc(lua_State *L) {
     CScriptDBOperLog operlog;
     int64_t nstep = 0;
     vector<unsigned char> vValue;
-    if(scriptDB->GetContractData(pVmRunEnv->GetComfirHeight(),scriptid, *retdata.at(0), vValue)){
+    if(scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(),scriptid, *retdata.at(0), vValue)){
         nstep = nstep - (int64_t)(vValue.size()+1);//删除数据奖励step
     }
     if (!scriptDB->EraseAppData(scriptid, *retdata.at(0), operlog)) {
@@ -1288,7 +1288,7 @@ static int ExReadDataDBFunc(lua_State *L) {
     vector_unsigned_char vValue;
     CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
     int len = 0;
-    if (!scriptDB->GetContractData(pVmRunEnv->GetComfirHeight(), scriptRegId, *retdata.at(0), vValue)) {
+    if (!scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(), scriptRegId, *retdata.at(0), vValue)) {
         len = 0;
     } else {
         len = RetRstToLua(L,vValue);
@@ -1351,7 +1351,7 @@ static int ExGetDBValueFunc(lua_State *L) {
     }
 
     CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
-    flag = scriptDB->GetContractData(pVmRunEnv->GetComfirHeight(),scriptid,index,vScriptKey,vValue);
+    flag = scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(),scriptid,index,vScriptKey,vValue);
     int len = 0;
     if(flag){
         len = RetRstToLua(L,vScriptKey) + RetRstToLua(L,vValue);
@@ -1395,7 +1395,7 @@ static int ExModifyDataDBFunc(lua_State *L)
     CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
     CScriptDBOperLog operlog;
     vector_unsigned_char vTemp;
-    if (scriptDB->GetContractData(pVmRunEnv->GetComfirHeight(),scriptid, *retdata.at(0), vTemp)) {
+    if (scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(),scriptid, *retdata.at(0), vTemp)) {
         if (scriptDB->SetContractData(scriptid, *retdata.at(0), *retdata.at(1).get(), operlog)) {
             shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEnv->GetDbLog();
             m_dblog.get()->push_back(operlog);
@@ -1565,7 +1565,7 @@ static int ExGetContractDataFunc(lua_State *L)
     CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
     CRegID scriptid(*retdata.at(0));
     int len = 0;
-    if (!scriptDB->GetContractData(pVmRunEnv->GetComfirHeight(), scriptid, *retdata.at(1), vValue))
+    if (!scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(), scriptid, *retdata.at(1), vValue))
         len = 0;
     else  //3.往函数私有栈里存运算后的结果
         len = RetRstToLua(L,vValue);
@@ -1876,7 +1876,7 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
     int64_t step =-1;
     while (count--) {
         ss >> temp;
-        if(pVmRunEnv->GetComfirHeight() > nFreezeBlackAcctHeight && temp.mMoney < 0) //不能小于0,防止 上层传错金额小于20150904
+        if(pVmRunEnv->GetComfirmHeight() > nFreezeBlackAcctHeight && temp.mMoney < 0) //不能小于0,防止 上层传错金额小于20150904
             return RetFalse("ExWriteOutAppOperateFunc para err2");
 
         pVmRunEnv->InsertOutAPPOperte(temp.GetAppUserV(),temp);

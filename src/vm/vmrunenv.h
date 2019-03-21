@@ -153,7 +153,7 @@ public:
 	const vector<unsigned char>& GetTxContract();
 	CScriptDBViewCache* GetScriptDB();
 	CAccountViewCache * GetCatchView();
-	int GetComfirHeight();
+	int GetComfirmHeight();
 	uint256 GetCurTxHash();
 	bool InsertOutputData(const vector<CVmOperate> &source);
 	void InsertOutAPPOperte(const vector<unsigned char>& userId,const CAppFundOperate &source);
