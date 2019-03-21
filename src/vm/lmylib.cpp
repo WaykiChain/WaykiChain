@@ -1221,8 +1221,8 @@ static int ExWriteDataDBFunc(lua_State *L)
     if (!scriptDB->SetContractData(scriptid, *retdata.at(0), *retdata.at(1), operlog)) {
         flag = false;
     } else {
-        shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEnv->GetDbLog();
-        (*m_dblog.get()).push_back(operlog);
+        shared_ptr<vector<CScriptDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
+        (*pScriptDBOperLog.get()).push_back(operlog);
     }
     return RetRstBooleanToLua(L,flag);
 }
@@ -1260,8 +1260,8 @@ static int ExDeleteDataDBFunc(lua_State *L) {
         LogPrint("vm", "ExDeleteDataDBFunc error key:%s!\n",HexStr(*retdata.at(0)));
         flag = false;
     } else {
-        shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEnv->GetDbLog();
-        m_dblog.get()->push_back(operlog);
+        shared_ptr<vector<CScriptDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
+        pScriptDBOperLog.get()->push_back(operlog);
     }
     return RetRstBooleanToLua(L,flag);
 }
@@ -1397,8 +1397,8 @@ static int ExModifyDataDBFunc(lua_State *L)
     vector_unsigned_char vTemp;
     if (scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(),scriptid, *retdata.at(0), vTemp)) {
         if (scriptDB->SetContractData(scriptid, *retdata.at(0), *retdata.at(1).get(), operlog)) {
-            shared_ptr<vector<CScriptDBOperLog> > m_dblog = pVmRunEnv->GetDbLog();
-            m_dblog.get()->push_back(operlog);
+            shared_ptr<vector<CScriptDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
+            pScriptDBOperLog.get()->push_back(operlog);
             flag = true;
         }
     }
@@ -1851,7 +1851,7 @@ static bool GetDataTableAssetOperate(lua_State *L, int nIndex, vector<std::share
 }
 
 /**
- * 写应用操作输出到 pVmRunEnv->MapAppOperate[0]
+ * 写应用操作输出到 pVmRunEnv->mapAppFundOperate[0]
  * @param ipara
  * @param pVmEvn
  * @return
