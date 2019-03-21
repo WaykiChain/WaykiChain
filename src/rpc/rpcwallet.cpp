@@ -243,8 +243,13 @@ Value sendtoaddress(const Array& params, bool fHelp)
     } else { //receiver key not registered yet
         ret = SendMoney(sendRegId, CUserID(recvKeyId), nAmount, nDefaultFee);
     }
+
+    if (!std::get<0>(ret)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
+    }
+
     Object obj;
-    obj.push_back(Pair(std::get<0>(ret) ? "hash" : "error_code", std::get<1>(ret)));
+    obj.push_back(Pair("hash", std::get<1>(ret)));
     return obj;
 }
 
@@ -342,8 +347,13 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
     } else { //receiver key not registered yet
         ret = SendMoney(sendRegId, CUserID(recvKeyId), nAmount, nFee);
     }
+
+    if (!std::get<0>(ret)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
+    }
+
     Object obj;
-    obj.push_back(Pair(std::get<0>(ret) ? "hash" : "error code", std::get<1>(ret)));
+    obj.push_back(Pair("hash", std::get<1>(ret)));
     return obj;
 }
 
