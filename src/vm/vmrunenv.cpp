@@ -113,7 +113,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
 
     int64_t step = 0;
 
-    tuple<uint64_t, string> ret = pLua.get()->run(maxstep, this);
+    tuple<uint64_t, string> ret = pLua.get()->Run(maxstep, this);
     LogPrint("vm", "%s\n", "CVmScriptRun::ExecuteContract() LUA");
     step = std::get<0>(ret);
     if (0 == step) {

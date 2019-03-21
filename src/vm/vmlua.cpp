@@ -199,7 +199,7 @@ tuple<bool, string> CVmlua::CheckScriptSyntax(const char *filePath) {
     return std::make_tuple(true, string("OK"));
 }
 
-tuple<uint64_t, string> CVmlua::run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
+tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
     if (maxstep == 0) {
         return std::make_tuple(-1, string("maxstep == 0\n"));
     }
