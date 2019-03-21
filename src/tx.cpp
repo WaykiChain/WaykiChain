@@ -865,6 +865,10 @@ Object CContractTx::ToJson(const CAccountViewCache &AccountView) const {
 
 bool CContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &view,
                                             CScriptDBViewCache &scriptDB) {
+    if (arguments.size() >= nContractArgumentMaxSize)
+        return state.DoS(100, ERRORMSG("CContractTx::CheckTransaction, arguments's size too large"),
+                         REJECT_INVALID, "arguments-size-toolarge");
+
     if (srcRegId.type() != typeid(CRegID))
         return state.DoS(100, ERRORMSG("CContractTx::CheckTransaction, srcRegId must be CRegID"),
             REJECT_INVALID, "srcaddr-type-error");
