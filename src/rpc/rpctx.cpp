@@ -507,7 +507,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
     //argument-2: App RegId
     CRegID appId(params[1].get_str()); //App RegId
     if (appId.IsEmpty()) {
-        throw runtime_error("in callcontracttx :addresss is error!\n");
+        throw runtime_error("in callcontracttx : addresss is error!\n");
     }
 
     //argument-3: amount to be sent to the app account
@@ -515,11 +515,14 @@ Value callcontracttx(const Array& params, bool fHelp) {
 
     //argument-4: contract (Hex input)
     vector<unsigned char> arguments = ParseHex(params[3].get_str());
+    if (arguments.size() >= nContractArgumentMaxSize) {
+        throw runtime_error("in callcontracttx : arguments's size is larger than nContractArgumentMaxSize\n");
+    }
 
     //argument-5: fee
     uint64_t fee = params[4].get_uint64();
     if (fee > 0 && fee < CBaseTx::nMinTxFee) {
-        throw runtime_error("in callcontracttx :fee is smaller than nMinTxFee\n");
+        throw runtime_error("in callcontracttx : fee is smaller than nMinTxFee\n");
     }
 
     //argument-6: height
@@ -535,7 +538,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
         CAccount secureAcc;
 
         if (!pScriptDBTip->HaveScript(appId)) {
-            throw runtime_error(tinyformat::format("callcontracttx :regid %s not exist\n", appId.ToString()));
+            throw runtime_error(tinyformat::format("in callcontracttx : regid %s not exist\n", appId.ToString()));
         }
         tx.get()->nTxType   = CONTRACT_TX;
         tx.get()->srcRegId  = userId;
@@ -2293,6 +2296,9 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
         throw runtime_error("invalid contract_regid: %s" + sUserRegId);
     }
     vector<unsigned char> arguments = ParseHex(params[4].get_str());
+    if (arguments.size() >= nContractArgumentMaxSize) {
+        throw runtime_error("input arguments'size larger than nContractArgumentMaxSize");
+    }
     int height = (params.size() == 6) ? params[5].get_int() : chainActive.Tip()->nHeight;
 
     if (fee > 0 && fee < CBaseTx::nMinTxFee)
