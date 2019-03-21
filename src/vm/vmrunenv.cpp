@@ -68,8 +68,8 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountViewCache& view, int
         return false;
     }
     isCheckAccount = vmScript.IsCheckAccount();
-    if (contractTx->arguments.size() >= 4 * 1024) {
-        LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() arguments context size lager 4096");
+    if (contractTx->arguments.size() >= nContractArgumentMaxSize) {
+        LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() arguments context size too large");
         return false;
     }
 
@@ -113,7 +113,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
 
     int64_t step = 0;
 
-    tuple<uint64_t, string> ret = pLua.get()->run(maxstep, this);
+    tuple<uint64_t, string> ret = pLua.get()->Run(maxstep, this);
     LogPrint("vm", "%s\n", "CVmScriptRun::ExecuteContract() LUA");
     step = std::get<0>(ret);
     if (0 == step) {
