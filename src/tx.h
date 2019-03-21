@@ -293,7 +293,7 @@ public:
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
 
-        nTxType      = CONTRACT_TX;
+        nTxType      = COMMON_TX;
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
         memo  = descriptionIn;
@@ -305,13 +305,13 @@ public:
 
     CCommonTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
                        int height) {
-        nTxType = COMMON_TX;
-        if (srcRegIdIn.type() == typeid(CRegID)) {
+        if (srcRegIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
-        }
-        if (desUserIdIn.type() == typeid(CRegID)) {
+
+        if (desUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
-        }
+
+        nTxType      = COMMON_TX;
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
         nValidHeight = height;
@@ -390,7 +390,8 @@ public:
 
     CContractTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee,
                          uint64_t value, int height, vector_unsigned_char &argumentsIn) {
-        if (srcRegIdIn.type() == typeid(CRegID)) assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
+        if (srcRegIdIn.type() == typeid(CRegID))
+            assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
 
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
@@ -407,13 +408,13 @@ public:
 
     CContractTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee,
                          uint64_t value, int height) {
-        nTxType = CONTRACT_TX;
-        if (srcRegIdIn.type() == typeid(CRegID)) {
+        if (srcRegIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
-        }
-        if (desUserIdIn.type() == typeid(CRegID)) {
+
+        if (desUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
-        }
+
+        nTxType      = CONTRACT_TX;
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
         nValidHeight = height;
