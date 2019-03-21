@@ -133,20 +133,20 @@ static int luaopen_array(lua_State *L){
 CVmlua::CVmlua(const vector<unsigned char> &vContractScript, const vector<unsigned char> &vContractCallParams)
 {
 	unsigned long len = 0;
-    memset(m_ContractCallParams,0,sizeof(m_ContractCallParams));
-    memset(m_ContractScript,0,sizeof(m_ContractScript));
+    memset(contractCallArguments,0,sizeof(contractCallArguments));
+    memset(contractScript,0,sizeof(contractScript));
 
     len = vContractScript.size();
-    if (len >= sizeof(m_ContractScript)) {
+    if (len >= sizeof(contractScript)) {
     	throw runtime_error("CVmlua::CVmlua() length of vContractScript exception");
     }
-	memcpy(m_ContractScript, &vContractScript[0], len);
+	memcpy(contractScript, &vContractScript[0], len);
 	unsigned short count = vContractCallParams.size(); //must be less than 4094 bytes
-	if (count > sizeof(m_ContractCallParams) - 2) {
+	if (count > sizeof(contractCallArguments) - 2) {
 		throw runtime_error("CVmlua::CVmlua() length of contract params value > 4094");
 	}
-	memcpy(m_ContractCallParams, &count, 2);
-	memcpy(&m_ContractCallParams[2], &vContractCallParams[0],count);
+	memcpy(contractCallArguments, &count, 2);
+	memcpy(&contractCallArguments[2], &vContractCallParams[0],count);
 }
 
 CVmlua::~CVmlua()
@@ -245,9 +245,9 @@ tuple<uint64_t, string> CVmlua::run(uint64_t maxstep, CVmRunEnv *pVmRunEnv)
 	lua_rawseti(lua_state,-2,0);
 
 	unsigned short count = 0;
-	memcpy(&count, m_ContractCallParams,  2); //外面已限制，合约内容小于4096字节
+	memcpy(&count, contractCallArguments,  2); //外面已限制，合约内容小于4096字节
     for (unsigned short n = 0; n < count; n++) {
-        lua_pushinteger(lua_state, m_ContractCallParams[2 + n]);// value值放入
+        lua_pushinteger(lua_state, contractCallArguments[2 + n]);// value值放入
         lua_rawseti(lua_state, -2, n+1);  //set table at key 'n + 1'
     }
     lua_setglobal(lua_state, "contract");
@@ -259,7 +259,7 @@ tuple<uint64_t, string> CVmlua::run(uint64_t maxstep, CVmRunEnv *pVmRunEnv)
 
     //5. Load the contract script
     long long step = maxstep;
-    if (luaL_loadbuffer(lua_state, (char *) m_ContractScript, strlen((char *) m_ContractScript), "line") ||
+    if (luaL_loadbuffer(lua_state, (char *) contractScript, strlen((char *) contractScript), "line") ||
 		lua_pcallk(lua_state,0,0,0,0,NULL,&step)) {
        const char* pError = lua_tostring(lua_state, -1);
        string strError = strprintf("luaL_loadbuffer failed: %s\n", pError ? pError : "unknown" );

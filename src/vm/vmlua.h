@@ -18,9 +18,8 @@ public:
 	static tuple<bool, string> CheckScriptSyntax(const char* filePath);
 
 private:
-	unsigned char m_ContractCallParams[4096];  		// to hold contract call params (contract)
-	unsigned char m_ContractScript[65536];			// to hold contract script content
-
+	unsigned char contractCallArguments[4096];  // to hold contract call arguments (contract)
+	unsigned char contractScript[65536];        // to hold contract script content
 };
 
 
