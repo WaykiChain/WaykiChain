@@ -940,41 +940,6 @@ unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime) {
     return bnResult.GetCompact();
 }
 
-int64_t GetAverageSpaceTime(const CBlockIndex *pindexLast, int64_t nInterval) {
-    int64_t pmedian[nInterval];
-    int64_t *pbegin = &pmedian[nInterval];
-    int64_t *pend   = &pmedian[nInterval];
-
-    const CBlockIndex *pindex    = pindexLast;
-    const CBlockIndex *pPreIndex = pindexLast->pprev;
-
-    string strSelects;
-    for (int i = 0; i < nInterval && pindex && pPreIndex; i++, pindex = pPreIndex, pPreIndex = pPreIndex->pprev) {
-        *(--pbegin) = pindex->GetBlockTime() - pPreIndex->GetBlockTime();
-        strSelects += strprintf(" %lld", *(pbegin));
-    }
-    // LogPrint("INFO", "nheight:%d differtime :%s\n",pindex->nHeight, strSelects.c_str());
-
-    sort(pbegin, pend);
-
-    int64_t threeQuarters = pbegin[(pend - pbegin) * 3 / 4];
-    int64_t quarter       = pbegin[(pend - pbegin) / 4];
-    int64_t upBound       = threeQuarters + (threeQuarters - quarter) * 1.5;
-    int64_t lowBound      = quarter - (threeQuarters - quarter) * 1.5;
-    int64_t *pbeginCopy   = pbegin;
-    int nCount            = 0;
-    int64_t totalSpace    = 0;
-    for (; pbeginCopy != pend; ++pbeginCopy) {
-        if (*pbeginCopy <= upBound && *pbeginCopy >= lowBound) {
-            totalSpace += *pbeginCopy;
-            ++nCount;
-        }
-    }
-    int64_t nAverageSpacing = totalSpace / nCount;
-    // LogPrint("INFO", "upBound=%lld lowBound=%lld nAverageSpacing=%lld Samples=%d\n", upBound, lowBound, nAverageSpacing, nCount);
-    return nAverageSpacing;
-}
-
 double CaculateDifficulty(unsigned int nBits) {
     int nShift = (nBits >> 24) & 0xff;
 
