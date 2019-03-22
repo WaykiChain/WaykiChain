@@ -62,18 +62,23 @@ static void stackDump(lua_State *L){
     LogPrint("vm","\n");
 }
 #endif
+
 /*
  *  //3.往函数私有栈里存运算后的结果*/
-static inline int RetRstToLua(lua_State *L, const vector<unsigned char> &ResultData) {
-    int len = ResultData.size();
-    len     = len > LUA_C_BUFFER_SIZE ? LUA_C_BUFFER_SIZE : len;
+static inline int RetRstToLua(lua_State *L, const vector<unsigned char> &resultData,
+                              bool needToTruncate = true) {
+    int len = resultData.size();
+    // truncate data by default
+    if (needToTruncate) {
+        len = len > LUA_C_BUFFER_SIZE ? LUA_C_BUFFER_SIZE : len;
+    }
 
     if (len > 0) {
-        //check stack
+        // check stack to avoid stack overflow
         if (lua_checkstack(L, len)) {
-            // LogPrint("vm", "RetRstToLua value:%s\n", HexStr(ResultData).c_str());
+            // LogPrint("vm", "RetRstToLua value:%s\n", HexStr(resultData).c_str());
             for (int i = 0; i < len; i++) {
-                lua_pushinteger(L, (lua_Integer)ResultData[i]);
+                lua_pushinteger(L, (lua_Integer)resultData[i]);
             }
             return len;
         } else {
@@ -808,7 +813,7 @@ static int ExGetTxContractFunc(lua_State *L) {
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == CONTRACT_TX) {
             CContractTx *tx = static_cast<CContractTx *>(pBaseTx.get());
-            len             = RetRstToLua(L, tx->arguments);
+            len             = RetRstToLua(L, tx->arguments, false);
         } else {
             return RetFalse("ExGetTxContractFunc, tx type error");
         }
