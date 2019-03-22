@@ -20,8 +20,10 @@ public:
     static tuple<bool, string> CheckScriptSyntax(const char *filePath);
 
 private:
-    unsigned char contractCallArguments[nContractScriptMaxSize];  // to hold contract call arguments
-    unsigned char contractScript[nContractArgumentMaxSize];       // to hold contract script content
+    // to hold contract call arguments
+    unsigned char contractCallArguments[nContractScriptMaxSize + 2];
+    // to hold contract script content
+    unsigned char contractScript[nContractArgumentMaxSize];
 };
 
 #endif
