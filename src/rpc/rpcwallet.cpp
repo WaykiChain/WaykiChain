@@ -231,7 +231,8 @@ Value sendtoaddress(const Array& params, bool fHelp)
             }
         }
         if (!sufficientFee) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Insufficient coins in wallet to send");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                "Can't find a registered account with sufficient coins in wallet to send");
         }
     }
 
@@ -338,7 +339,8 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
             }
         }
         if (!sufficientFee) {
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE, "Insufficient coins in wallet to send");
+            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
+                "Can't find a registered account with sufficient coins in wallet to send");
         }
     }
 
