@@ -64,25 +64,25 @@ static void stackDump(lua_State *L){
 #endif
 /*
  *  //3.往函数私有栈里存运算后的结果*/
-static inline int RetRstToLua(lua_State *L,const vector<unsigned char> &ResultData )
-{
+static inline int RetRstToLua(lua_State *L, const vector<unsigned char> &ResultData) {
     int len = ResultData.size();
-    len = len > LUA_C_BUFFER_SIZE ? LUA_C_BUFFER_SIZE : len;
+    len     = len > LUA_C_BUFFER_SIZE ? LUA_C_BUFFER_SIZE : len;
 
-    if(len > 0) {   //检测栈空间是否够
-        if(lua_checkstack(L,len)){
-//          LogPrint("vm", "RetRstToLua value:%s\n",HexStr(ResultData).c_str());
-            for(int i = 0;i < len;i++){
-                lua_pushinteger(L, (lua_Integer) ResultData[i]);
+    if (len > 0) {
+        //check stack
+        if (lua_checkstack(L, len)) {
+            // LogPrint("vm", "RetRstToLua value:%s\n", HexStr(ResultData).c_str());
+            for (int i = 0; i < len; i++) {
+                lua_pushinteger(L, (lua_Integer)ResultData[i]);
             }
-            return len ;
-        }else{
-            LogPrint("vm","%s\n", "RetRstToLua stack overflow");
+            return len;
+        } else {
+            LogPrint("vm", "%s\n", "RetRstToLua stack overflow");
         }
     } else {
-        LogPrint("vm","RetRstToLua err len = %d\n", len);
+        LogPrint("vm", "RetRstToLua err len = %d\n", len);
     }
-    return  0;
+    return 0;
 }
 /*
  *  //3.往函数私有栈里存布尔类型返回值*/
@@ -786,12 +786,12 @@ static int ExVerifySignatureFunc(lua_State *L) {
 }
 
 static int ExGetTxContractFunc(lua_State *L) {
-    vector<std::shared_ptr<vector<unsigned char> > > retdata;
+    vector<std::shared_ptr<vector<unsigned char>>> retdata;
     if (!GetArray(L, retdata) || retdata.size() != 1 || retdata.at(0).get()->size() != 32) {
         return RetFalse("ExGetTxContractFunc, para error");
     }
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CVmRunEnv *pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv) {
         return RetFalse("ExGetTxContractFunc, pVmRunEnv is NULL");
     }
@@ -808,7 +808,7 @@ static int ExGetTxContractFunc(lua_State *L) {
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == CONTRACT_TX) {
             CContractTx *tx = static_cast<CContractTx *>(pBaseTx.get());
-            len = RetRstToLua(L, tx->arguments);
+            len             = RetRstToLua(L, tx->arguments);
         } else {
             return RetFalse("ExGetTxContractFunc, tx type error");
         }
