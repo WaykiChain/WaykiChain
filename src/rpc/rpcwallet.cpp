@@ -202,10 +202,12 @@ Value sendtoaddress(const Array& params, bool fHelp)
         if (!GetKeyId(params[1].get_str(), recvKeyId))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
 
+        if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId))
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendadress not registered or invalid");
+
         nAmount = AmountToRawValue(params[2]);
         if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nDefaultFee)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress does not have enough coins");
-
     } else { // size == 2
         if (!GetKeyId(params[0].get_str(), recvKeyId))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
@@ -215,27 +217,24 @@ Value sendtoaddress(const Array& params, bool fHelp)
         set<CKeyID> sKeyIds;
         sKeyIds.clear();
         pwalletMain->GetKeys(sKeyIds);
-        if(sKeyIds.empty())
+        if (sKeyIds.empty())
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Wallet has no key");
 
         bool sufficientFee = false;
         for (auto &keyId: sKeyIds) {
-            if (keyId != recvKeyId && pAccountViewTip->GetRawBalance(keyId) >= nAmount + nDefaultFee) {
-                sendKeyId = keyId;
+            if (keyId != recvKeyId &&
+                pAccountViewTip->GetRegId(CUserID(keyId), sendRegId) &&
+                (pAccountViewTip->GetRawBalance(keyId) >= nAmount + nDefaultFee)) {
+                sendKeyId     = keyId;
                 sufficientFee = true;
                 break;
             }
         }
         if (!sufficientFee) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Insufficient coins in wallet to send");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                "Can't find a registered account with sufficient coins in wallet to send");
         }
     }
-
-    // if (sendKeyId == recvKeyId)
-    //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "recvadress shall not be the same as sendaddress");
-
-    if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendadress not registered or invalid");
 
     std::tuple<bool, string> ret;
     if (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId)) {
@@ -302,6 +301,11 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
             sprintf(errorMsg, "Given fee(%ld) < Default fee (%ld)", nFee, nDefaultFee);
             throw JSONRPCError(RPC_INSUFFICIENT_FEE, string(errorMsg));
         }
+
+        if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress not registered or invalid");
+        }
+
         if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nActualFee) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress does not have enough coins");
         }
@@ -326,19 +330,18 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
         }
         bool sufficientFee = false;
         for (auto &keyId: sKeyIds) {
-            if (pAccountViewTip->GetRawBalance(keyId) >= nAmount + nActualFee) {
-                sendKeyId = keyId;
+            if (keyId != recvKeyId &&
+                pAccountViewTip->GetRegId(CUserID(keyId), sendRegId) &&
+                (pAccountViewTip->GetRawBalance(keyId) >= nAmount + nDefaultFee)) {
+                sendKeyId     = keyId;
                 sufficientFee = true;
                 break;
             }
         }
         if (!sufficientFee) {
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE, "Insufficient coins in wallet to send");
+            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
+                "Can't find a registered account with sufficient coins in wallet to send");
         }
-    }
-
-    if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress not registered or invalid");
     }
 
     std::tuple<bool,string> ret;
