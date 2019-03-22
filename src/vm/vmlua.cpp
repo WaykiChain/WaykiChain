@@ -138,9 +138,11 @@ CVmlua::CVmlua(const vector<unsigned char> &vContractScript,
         throw runtime_error("CVmlua::CVmlua() length of vContractScript exception");
     }
     memcpy(contractScript, &vContractScript[0], len);
-    unsigned short count = vContractCallParams.size();  // must be less than 4094 bytes
-    if (count > sizeof(contractCallArguments) - 2) {
-        throw runtime_error("CVmlua::CVmlua() length of contract params value > 4094");
+
+    // must be no more than nContractArgumentMaxSize
+    unsigned short count = vContractCallParams.size();
+    if (count > nContractArgumentMaxSize) {
+        throw runtime_error("CVmlua::CVmlua() length of vContractCallParams exception");
     }
     memcpy(contractCallArguments, &count, 2);
     memcpy(&contractCallArguments[2], &vContractCallParams[0], count);
