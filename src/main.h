@@ -1054,10 +1054,6 @@ extern int nSyncTipHeight;
 
 extern std::tuple<bool, boost::thread *> RunCoin(int argc, char *argv[]);
 extern bool WriteBlockLog(bool falg, string suffix);
-//extern set<uint256> setTxHashCache;
-//extern map<uint256, set<uint256> > mapTxHashCacheByPrev;
-
-//extern map<string, CContractScript> mapScript;
 
 struct CBlockTemplate {
     CBlock block;

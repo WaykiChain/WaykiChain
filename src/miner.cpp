@@ -318,10 +318,10 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
     return true;
 }
 
-CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache)
-{
+unique_ptr<CBlockTemplate> CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txCache,
+                                          CScriptDBViewCache &scriptCache) {
     // Create new block
-    auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
+    unique_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
     if (!pblocktemplate.get())
         return NULL;
 
@@ -348,7 +348,7 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
     // Minimum block size you want to create; block will be filled with free transactions
     // until there are no more or the block reaches this size:
     unsigned int nBlockMinSize = SysCfg().GetArg("-blockminsize", DEFAULT_BLOCK_MIN_SIZE);
-    nBlockMinSize = min(nBlockMaxSize, nBlockMinSize);
+    nBlockMinSize              = min(nBlockMaxSize, nBlockMinSize);
 
     // Collect memory pool transactions into the block
     int64_t nFees = 0;
@@ -372,7 +372,7 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
 
         while (!vTxPriority.empty()) {
             // Take highest priority transaction off the priority queue:
-            double dFeePerKb                 = vTxPriority.front().get<1>();
+            double dFeePerKb        = vTxPriority.front().get<1>();
             shared_ptr<CBaseTx> stx = vTxPriority.front().get<2>();
             CBaseTx *pBaseTx        = stx.get();
 
@@ -391,12 +391,14 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
             CTxUndo txundo;
             CValidationState state;
             if (CONTRACT_TX == pBaseTx->nTxType)
-                LogPrint("vm", "CreateNewBlock: contract tx hash=%s\n", pBaseTx->GetHash().GetHex());
+                LogPrint("vm", "CreateNewBlock: contract tx hash=%s\n",
+                         pBaseTx->GetHash().GetHex());
 
             CAccountViewCache viewTemp(view, true);
             CScriptDBViewCache scriptCacheTemp(scriptCache, true);
             pBaseTx->nFuelRate = pblock->GetFuelRate();
-            if (!pBaseTx->ExecuteTx(nBlockTx + 1, viewTemp, state, txundo, pIndexPrev->nHeight + 1, txCache, scriptCacheTemp))
+            if (!pBaseTx->ExecuteTx(nBlockTx + 1, viewTemp, state, txundo, pIndexPrev->nHeight + 1,
+                                    txCache, scriptCacheTemp))
                 continue;
 
             // Run step limits
@@ -412,8 +414,8 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
             nBlockTx++;
             pblock->vptx.push_back(stx);
             LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txhash:%s\n",
-                nTotalFuel, pBaseTx->GetFuel(pblock->GetFuelRate()), pBaseTx->nRunStep,
-                pblock->GetFuelRate(), pBaseTx->GetHash().GetHex());
+                     nTotalFuel, pBaseTx->GetFuel(pblock->GetFuelRate()), pBaseTx->nRunStep,
+                     pblock->GetFuelRate(), pBaseTx->GetHash().GetHex());
         }
 
         nLastBlockTx                 = nBlockTx;
@@ -435,7 +437,7 @@ CBlockTemplate *CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txC
         LogPrint("INFO", "CreateNewBlock(): total size %u\n", nBlockSize);
     }
 
-    return pblocktemplate.release();
+    return std::move(pblocktemplate);
 }
 
 bool CheckWork(CBlock *pblock, CWallet &wallet) {
@@ -602,8 +604,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
             g_miningBlockInfo.SetNull();
 
             int64_t nLastTime = GetTimeMillis();
-            CBlockTemplate * newBlockTemplate = CreateNewBlock(accountView, txCache, scriptDB);
-            shared_ptr<CBlockTemplate> pblocktemplate(newBlockTemplate);
+            unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(accountView, txCache, scriptDB));
             if (!pblocktemplate.get())
                 throw runtime_error("Create new block failed");
 

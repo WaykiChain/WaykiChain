@@ -742,7 +742,7 @@ bool CContractTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
             vAddress.insert(itemKeyID);
     }
 
-    if(!scriptDB.SetTxRelAccout(GetHash(), vAddress))
+    if (!scriptDB.SetTxRelAccout(GetHash(), vAddress))
         return ERRORMSG("CContractTx::ExecuteTx, save tx relate account info to script db error");
 
     txundo.txHash = GetHash();
