@@ -172,7 +172,7 @@ obj/build.h: FORCE
 version.o: obj/build.h
 
 liblua53_a_SOURCES = \
-  $(VMLUA_C)
+  VMLUA_C
 
 libcoin_server_a_SOURCES = \
   tx.cpp \
@@ -296,5 +296,5 @@ EXTRA_DIST = leveldb Makefile.include
 clean-local:
 	-$(MAKE) -C secp256k1 clean
 	-$(MAKE) -C leveldb clean
-	-$(MAKE) -C lua53 clean
+	-$(MAKE) -C lub53 clean
 	rm -f leveldb/*/*.gcno leveldb/helpers/memenv/*.gcno
