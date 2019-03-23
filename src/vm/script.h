@@ -16,8 +16,8 @@ using namespace std;
  */
 class CVmScript {
 public:
-    vector<unsigned char> Rom;         //!< Binary code
-    vector<unsigned char> ScriptMemo;  //!< Describe the binary code action
+    vector<unsigned char> rom;         //!< Binary code
+    vector<unsigned char> scriptMemo;  //!< Describe the binary code action
 
 public:
     CVmScript();
@@ -29,9 +29,9 @@ public:
      */
     bool IsValid() {
         /// Binary code'size less 64k
-        if ((Rom.size() > 64 * 1024) || (Rom.size() <= 0)) return false;
+        if ((rom.size() > 64 * 1024) || (rom.size() <= 0)) return false;
 
-        if (!memcmp(&Rom[0], "mylib = require", strlen("mylib = require"))) {
+        if (!memcmp(&rom[0], "mylib = require", strlen("mylib = require"))) {
             return true;  // lua脚本，直接返回
         }
         return false;
@@ -40,8 +40,8 @@ public:
     bool IsCheckAccount(void) { return false; }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(Rom);
-        READWRITE(ScriptMemo);)
+        READWRITE(rom);
+        READWRITE(scriptMemo);)
 };
 
 #endif /* VMSCRIPT_H_ */

@@ -74,7 +74,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountViewCache& view, int
     }
 
     try {
-        pLua = std::make_shared<CVmlua>(vmScript.Rom, contractTx->arguments);
+        pLua = std::make_shared<CVmlua>(vmScript.rom, contractTx->arguments);
     } catch (exception& e) {
         LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() CVmlua init error");
         return false;
