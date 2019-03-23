@@ -360,43 +360,35 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
     return obj;
 }
 
-Value gensendtoaddressraw(const Array& params, bool fHelp)
-{
+Value gensendtoaddressraw(const Array& params, bool fHelp) {
     int size = params.size();
-    if (fHelp || size < 4 || size > 5 ) {
-        throw runtime_error("gensendtoaddressraw \"fee\" \"amount\" \"sendaddress\" \"recvaddress\" \"height\"\n"
-            "\n create common transaction by height: fee, amount, sendaddress, recvaddress\n"
-            + HelpRequiringPassphrase() + "\nArguments:\n"
-            "1. \"fee\"     (numeric, required)  \n"
-            "2. \"amount\"  (numeric, required)  \n"
-            "3. \"sendaddress\"  (string, required) The Coin address to send to.\n"
-            "4. \"recvaddress\"  (string, required) The Coin address to receive.\n"
-            "5. \"height\"  (int, optional) \n"
+    if (fHelp || size < 4 || size > 5) {
+        throw runtime_error(
+            "gensendtoaddressraw \"sendaddress\" \"recvaddress\" \"amount\" \"fee\" \"height\"\n"
+            "\n create common transaction by sendaddress, recvaddress, amount, fee, height\n" +
+            HelpRequiringPassphrase() +
+            "\nArguments:\n"
+            "1. \"sendaddress\"  (string, required) The Coin address to send to.\n"
+            "2. \"recvaddress\"  (string, required) The Coin address to receive.\n"
+            "3. \"amount\"  (numeric, required)\n"
+            "4. \"fee\"     (numeric, required)\n"
+            "5. \"height\"  (int, optional)\n"
             "\nResult:\n"
             "\"transactionid\"  (string) The transaction id.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("gensendtoaddressraw", "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
-            + HelpExampleCli("gensendtoaddressraw",
-            "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"")
-            + HelpExampleRpc("gensendtoaddressraw",
-            "100 1000 \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""
-            + HelpExampleCli("gensendtoaddressraw", "\"0-6\" 10 ")
-            + HelpExampleCli("gensendtoaddressraw", "100 1000 \"00000000000000000005\" 10 ")
-            + HelpExampleCli("gensendtoaddressraw", "100 1000 \"0-6\" \"0-5\" 10 ")
-            + HelpExampleCli("gensendtoaddressraw", "100 1000 \"00000000000000000005\" \"0-6\"10 ")));
+            "\nExamples:\n" +
+            HelpExampleCli("gensendtoaddressraw",
+                           "\"WRJAnKvf8F8xdeuaceXJXz9AcNRdVvH5JG\" "
+                           "\"Wef9QkwAwBhtZaT3ASmMJzC7dt1kzo1xob\" 10000 10000 100") +
+            HelpExampleRpc("gensendtoaddressraw",
+                           "\"WRJAnKvf8F8xdeuaceXJXz9AcNRdVvH5JG\" "
+                           "\"Wef9QkwAwBhtZaT3ASmMJzC7dt1kzo1xob\" 10000 10000 100"));
     }
 
     CKeyID sendKeyId, recvKeyId;
     CAccountViewCache view(*pAccountViewTip, true);
 
-    int64_t fee = AmountToRawValue(params[0]);
-    int64_t amount = AmountToRawValue(params[1]);
-    if(amount == 0){
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "send 0 amount disallowed!");
-    }
-
     CUserID sendId, recvId;
-    if (!view.GetUserId(params[2].get_str(), sendId)) {
+    if (!view.GetUserId(params[0].get_str(), sendId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Sender Address!");
     }
 
@@ -406,13 +398,13 @@ Value gensendtoaddressraw(const Array& params, bool fHelp)
 
     if (sendId.type() == typeid(CKeyID)) {
         CRegID regId;
-        if (!pAccountViewTip->GetRegId(sendId, regId)){
+        if (!pAccountViewTip->GetRegId(sendId, regId)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender pubkey not registed");
         }
         sendId = regId;
     }
 
-    if (!view.GetUserId(params[3].get_str(), recvId))
+    if (!view.GetUserId(params[1].get_str(), recvId))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid receiver address!");
 
     if (recvId.type() == typeid(CKeyID)) {
@@ -422,14 +414,21 @@ Value gensendtoaddressraw(const Array& params, bool fHelp)
         }
     }
 
+    int64_t amount = AmountToRawValue(params[2]);
+    int64_t fee    = AmountToRawValue(params[3]);
+    if (amount == 0) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Send 0 amount disallowed!");
+    }
+
     int height = chainActive.Tip()->nHeight;
     if (params.size() > 4) {
         height = params[4].get_int();
     }
 
-    std::shared_ptr<CCommonTx> tx = std::make_shared<CCommonTx>(sendId, recvId, fee, amount, height);
+    std::shared_ptr<CCommonTx> tx =
+        std::make_shared<CCommonTx>(sendId, recvId, fee, amount, height);
     if (!pwalletMain->Sign(sendKeyId, tx->SignatureHash(), tx->signature)) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER,  "Sign failed");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
     }
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
