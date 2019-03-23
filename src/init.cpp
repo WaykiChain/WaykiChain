@@ -65,6 +65,8 @@ using namespace boost;
 
 CWallet *pwalletMain;
 
+static std::unique_ptr<ECCVerifyHandle> globalVerifyHandle;
+
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for
 // accessing block files, don't count towards to fd_set size limit
@@ -178,6 +180,10 @@ void Shutdown() {
 
     if (pwalletMain)
         delete pwalletMain;
+
+    // Uninitialize elliptic curve code
+    globalVerifyHandle.reset();
+    ECC_Stop();
 
     LogPrint("INFO", "Shutdown : done\n");
     printf("Shutdown : done\n");
@@ -457,6 +463,13 @@ bool AppInit(boost::thread_group &threadGroup) {
     sigemptyset(&sa_hup.sa_mask);
     sa_hup.sa_flags = 0;
     sigaction(SIGHUP, &sa_hup, NULL);
+
+    // Initialize elliptic curve code
+    ECC_Start();
+    globalVerifyHandle.reset(new ECCVerifyHandle());
+    // Sanity check
+    if (!ECC_InitSanityCheck())
+        return fprintf(stderr, "Elliptic curve cryptography sanity check failure. Aborting.");
 
 #if defined(__SVR4) && defined(__sun)
     // ignore SIGPIPE on Solaris

@@ -19,6 +19,15 @@ endif
 SUBDIRS = . $(BUILD_QT) $(BUILD_P_TEST) $(BUILD_TEST)
 #DIST_SUBDIRS = . qt test
 DIST_SUBDIRS = . test ptest
+
+#secp256k1
+DIST_SUBDIRS += secp256k1
+LIBSECP256K1=secp256k1/libsecp256k1.la
+AM_CPPFLAGS += -I$(srcdir)/secp256k1/include -I$(srcdir)/secp256k1/contrib
+
+$(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(wildcard secp256k1/include/*)
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
+
 .PHONY: FORCE
 # bitcoin core #
 coin_CORE_H = \
@@ -211,7 +220,8 @@ coind_LDADD = \
   libcoin_common.a \
   liblua53.a \
   $(LIBLEVELDB) \
-  $(LIBMEMENV)
+  $(LIBMEMENV) \
+  $(LIBSECP256K1)
 #if ENABLE_WALLET
 #coin_LDADD += libcoin_wallet.a
 #endif
@@ -246,5 +256,6 @@ DISTCLEANFILES = obj/build.h
 EXTRA_DIST = leveldb Makefile.include
 
 clean-local:
+	-$(MAKE) -C secp256k1 clean
 	-$(MAKE) -C leveldb clean
 	rm -f leveldb/*/*.gcno leveldb/helpers/memenv/*.gcno

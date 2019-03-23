@@ -42,6 +42,10 @@ using namespace boost;
 #error "Coin cannot be compiled without assertions."
 #endif
 
+#define LOG_CATEGORY_BENCH      "BENCH"     // log category: BENCH
+
+#define MILLI                   0.001       // conversation rate: milli
+
 //
 // Global state
 //
@@ -568,6 +572,7 @@ int CMerkleTx::SetMerkleBranch(const CBlock *pblock) {
 }
 
 bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> signature, const CPubKey pubKey) {
+    int64_t nTimeStart = GetTimeMicros();    
     if (signatureCache.Get(sigHash, signature, pubKey))
         return true;
 
@@ -575,6 +580,8 @@ bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> si
         return false;
 
     signatureCache.Set(sigHash, signature, pubKey);
+    int64_t nSpentTime = GetTimeMicros() - nTimeStart;
+    LogPrint(LOG_CATEGORY_BENCH, "- Verify Signature with secp256k1: %.2fms\n", MILLI * nSpentTime);    
     return true;
 }
 

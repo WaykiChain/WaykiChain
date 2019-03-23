@@ -40,3 +40,16 @@ GPATH
 GRTAGS
 GTAGS
 tags
+libtool
+src/build-aux/config.guess
+src/build-aux/config.sub
+src/build-aux/depcomp
+src/build-aux/install-sh
+src/build-aux/ltmain.sh
+src/build-aux/missing
+src/build-aux/compile
+src/m4/libtool.m4
+src/m4/lt~obsolete.m4
+src/m4/ltoptions.m4
+src/m4/ltsugar.m4
+src/m4/ltversion.m4
