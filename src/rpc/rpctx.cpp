@@ -641,13 +641,13 @@ Value registercontracttx(const Array& params, bool fHelp)
     }
 
     CVmScript vmScript;
-    vmScript.Rom.insert(vmScript.Rom.end(), buffer, buffer + lSize);
+    vmScript.rom.insert(vmScript.rom.end(), buffer, buffer + lSize);
     if (buffer)
         free(buffer);
 
     if (params.size() > 4) {
         string scriptDesc = params[4].get_str();
-        vmScript.ScriptMemo.insert(vmScript.ScriptMemo.end(), scriptDesc.begin(), scriptDesc.end());
+        vmScript.memo.insert(vmScript.memo.end(), scriptDesc.begin(), scriptDesc.end());
     }
 
     vector<unsigned char> vscript;
@@ -1707,11 +1707,11 @@ Value listcontracts(const Array& params, bool fHelp) {
         CDataStream ds(vScript, SER_DISK, CLIENT_VERSION);
         CVmScript vmScript;
         ds >> vmScript;
-        string strDes(vmScript.ScriptMemo.begin(), vmScript.ScriptMemo.end());
-        script.push_back(Pair("memo", HexStr(vmScript.ScriptMemo)));
+        string strDes(vmScript.memo.begin(), vmScript.memo.end());
+        script.push_back(Pair("memo", HexStr(vmScript.memo)));
 
         if (showDetail)
-            script.push_back(Pair("contract", HexStr(vmScript.Rom.begin(), vmScript.Rom.end())));
+            script.push_back(Pair("contract", HexStr(vmScript.rom.begin(), vmScript.rom.end())));
         arrayScript.push_back(script);
         while (pScriptDBTip->GetScript(1, regId, vScript)) {
             Object obj;
@@ -1719,10 +1719,10 @@ Value listcontracts(const Array& params, bool fHelp) {
             CDataStream ds(vScript, SER_DISK, CLIENT_VERSION);
             CVmScript vmScript;
             ds >> vmScript;
-            string strDes(vmScript.ScriptMemo.begin(), vmScript.ScriptMemo.end());
-            obj.push_back(Pair("memo", HexStr(vmScript.ScriptMemo)));
+            string strDes(vmScript.memo.begin(), vmScript.memo.end());
+            obj.push_back(Pair("memo", HexStr(vmScript.memo)));
             if (showDetail)
-                obj.push_back(Pair("contract", HexStr(vmScript.Rom.begin(), vmScript.Rom.end())));
+                obj.push_back(Pair("contract", HexStr(vmScript.rom.begin(), vmScript.rom.end())));
             arrayScript.push_back(obj);
         }
     }
@@ -1764,8 +1764,8 @@ Value getcontractinfo(const Array& params, bool fHelp) {
     CDataStream ds(vScript, SER_DISK, CLIENT_VERSION);
     CVmScript vmScript;
     ds >> vmScript;
-    obj.push_back(Pair("contract_memo", HexStr(vmScript.ScriptMemo)));
-    obj.push_back(Pair("contract_content", HexStr(vmScript.Rom.begin(), vmScript.Rom.end())));
+    obj.push_back(Pair("contract_memo", HexStr(vmScript.memo)));
+    obj.push_back(Pair("contract_content", HexStr(vmScript.rom.begin(), vmScript.rom.end())));
     return obj;
 }
 
@@ -2390,7 +2390,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
         } else {
             fclose(file);
         }
-        vmScript.Rom.insert(vmScript.Rom.end(), buffer, buffer + lSize);
+        vmScript.rom.insert(vmScript.rom.end(), buffer, buffer + lSize);
         if (buffer)
             free(buffer);
         CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -2402,8 +2402,8 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
     }
 
     if (params.size() > 5) {
-        string scriptMemo = params[5].get_str();
-        vmScript.ScriptMemo.insert(vmScript.ScriptMemo.end(), scriptMemo.begin(), scriptMemo.end());
+        string memo = params[5].get_str();
+        vmScript.memo.insert(vmScript.memo.end(), memo.begin(), memo.end());
     }
 
     if (fee > 0 && fee < CBaseTx::nMinTxFee) {
