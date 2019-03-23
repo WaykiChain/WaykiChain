@@ -8,6 +8,7 @@
 #ifndef VMSCRIPT_H_
 #define VMSCRIPT_H_
 
+#include "main.h"
 #include "serialize.h"
 using namespace std;
 
@@ -28,8 +29,8 @@ public:
      * @return
      */
     bool IsValid() {
-        /// Binary code'size less 64k
-        if ((rom.size() > 64 * 1024) || (rom.size() <= 0)) return false;
+        if ((rom.size() > nContractScriptMaxSize) || (rom.size() <= 0))
+            return false;
 
         if (!memcmp(&rom[0], "mylib = require", strlen("mylib = require"))) {
             return true;  // lua脚本，直接返回
