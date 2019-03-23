@@ -30,11 +30,17 @@ else
   CXXFLAGS_overridden=no
 fi
 
+dnl Require C++11 compiler (no GNU extensions)
+AX_CXX_COMPILE_STDCXX([11], [noext], [mandatory], [nodefault])
+
 dnl ==============================================================
 dnl Setup for automake
 dnl ==============================================================
 
 AM_INIT_AUTOMAKE([no-define subdir-objects foreign])
+
+dnl Libtool init checks.
+LT_INIT([pic-only])
 
 dnl faketime messes with timestamps and causes configure to be re-run.
 dnl --disable-maintainer-mode can be used to bypass this.
@@ -727,4 +733,33 @@ AC_SUBST(BUILD_TEST_QT)
 AC_CONFIG_FILES([Makefile src/Makefile src/test/Makefile src/ptest/Makefile share/setup.nsi share/qt/Info.plist])
 AC_CONFIG_FILES([qa/pull-tester/run-bitcoind-for-test.sh],[chmod +x qa/pull-tester/run-bitcoind-for-test.sh])
 AC_CONFIG_FILES([qa/pull-tester/build-tests.sh],[chmod +x qa/pull-tester/build-tests.sh])
+
+
+
+dnl boost's m4 checks do something really nasty: they export these vars. As a
+dnl result, they leak into secp256k1's configure and crazy things happen.
+dnl Until this is fixed upstream and we've synced, we'll just un-export them.
+CPPFLAGS_TEMP="$CPPFLAGS"
+unset CPPFLAGS
+CPPFLAGS="$CPPFLAGS_TEMP"
+
+LDFLAGS_TEMP="$LDFLAGS"
+unset LDFLAGS
+LDFLAGS="$LDFLAGS_TEMP"
+
+LIBS_TEMP="$LIBS"
+unset LIBS
+LIBS="$LIBS_TEMP"
+
+PKGCONFIG_PATH_TEMP="$PKG_CONFIG_PATH"
+unset PKG_CONFIG_PATH
+PKG_CONFIG_PATH="$PKGCONFIG_PATH_TEMP"
+
+PKGCONFIG_LIBDIR_TEMP="$PKG_CONFIG_LIBDIR"
+unset PKG_CONFIG_LIBDIR
+PKG_CONFIG_LIBDIR="$PKGCONFIG_LIBDIR_TEMP"
+
+ac_configure_args="${ac_configure_args} --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni"
+AC_CONFIG_SUBDIRS([src/secp256k1])
+
 AC_OUTPUT
