@@ -178,7 +178,7 @@ public:
 		}
 
 		CVmScript vmScript;
-		vmScript.rom.insert(vmScript.rom.end(), buffer, buffer + lSize);
+		vmScript.GetRom().insert(vmScript.GetRom().end(), buffer, buffer + lSize);
 		string desp("this is description");
 		vmScript.memo.assign(desp.begin(), desp.end());
 		CDataStream ds(SER_DISK, CLIENT_VERSION);

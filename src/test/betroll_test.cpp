@@ -781,8 +781,8 @@ unsigned char TempArray[] = {
 //void Init(CAccountViewCache &view, CVmScript &vscript, vector<std::shared_ptr<CBaseTx> >& Tx,int64_t &iresult, int64_t &bresult,int64_t &betmoey) {
 //
 //	//std::vector<unsigned char> pScript = GetScriptBin("D:\\C51\\Debug\\Exe\\CPLUS.bin");
-//	vscript.rom.insert(vscript.rom.begin(), TempArray, TempArray+sizeof(TempArray));
-//	//vscript.rom.insert(vscript.rom.begin(), pScript.begin(), pScript.end());
+//	vscript.GetRom().insert(vscript.GetRom().begin(), TempArray, TempArray+sizeof(TempArray));
+//	//vscript.GetRom().insert(vscript.GetRom().begin(), pScript.begin(), pScript.end());
 //	vscript.rule.maxPay = 50;
 //	vscript.rule.maxReSv = 50;
 //	vscript.rule.vNextOutHeight = 90;

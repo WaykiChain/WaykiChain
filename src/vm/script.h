@@ -17,15 +17,18 @@ using namespace std;
  */
 class CVmScript {
 private:
-	const static char* kLuaScriptHeadLine = "mylib = require";
+	constexpr static char* kLuaScriptHeadLine = (char*)"mylib = require";
 
-public:
     vector<unsigned char> rom;   //!< Binary code
     vector<unsigned char> memo;  //!< Describe the binary code action
 
 public:
     CVmScript();
     virtual ~CVmScript();
+
+	vector<unsigned char>& GetRom() { return rom; }
+
+	vector<unsigned char>& GetMemo() { return memo; }
 
     /**
      * @brief
@@ -35,8 +38,8 @@ public:
         if ((rom.size() > nContractScriptMaxSize) || (rom.size() <= 0))
             return false;
 
-        if (!memcmp(&rom[0], LuaScriptHeadLine, strlen(LuaScriptHeadLine)))
-            return true;  // lua脚本，直接返回
+        if (!memcmp(&rom[0], kLuaScriptHeadLine, strlen(kLuaScriptHeadLine)))
+            return true;  // lua script shebang existing verified
 
         return false;
     }
