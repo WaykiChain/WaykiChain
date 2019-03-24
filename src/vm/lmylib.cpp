@@ -1710,7 +1710,7 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std
         temp.opType = (unsigned char)doubleValue;
     }
 
-    if (!(getNumberInTable(L, (char *)"timeoutHeight", doubleValue))) {
+    if (!(getNumberInTable(L, (char *)"outHeight", doubleValue))) {
         LogPrint("vm", "timeoutHeight get fail\n");
         return false;
     } else {
