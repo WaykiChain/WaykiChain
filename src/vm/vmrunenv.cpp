@@ -381,7 +381,7 @@ bool CVmRunEnv::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
         //      CTransaction* tx = static_cast<CTransaction*>(pBaseTx.get());
         //      CFund fund;
         //      memcpy(&fund.value,it.money,sizeof(it.money));
-        //      fund.nHeight = it.outheight;
+        //      fund.nHeight = it.timeoutHeight;
         uint64_t value;
         memcpy(&value, it.money, sizeof(it.money));
 
@@ -572,7 +572,7 @@ Object CVmOperate::ToJson() {
         obj.push_back(Pair("opertype", "minus"));
     }
 
-    if (outHeight > 0) obj.push_back(Pair("freezeheight", (int)outHeight));
+    if (timeoutHeight > 0) obj.push_back(Pair("timeoutHeight", (int)timeoutHeight));
 
     uint64_t amount;
     memcpy(&amount, money, sizeof(money));

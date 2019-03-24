@@ -23,8 +23,8 @@ public:
 	Object ToJson()const;
 	string ToString()const;
 
-	void SetHeight(int height) { nHeight = height; }
-	int GetHeight() const { return nHeight; }
+	void SetHeight(int height) { timeoutHeight = height; }
+	int GetHeight() const { return timeoutHeight; }
 
 	void SetValue(uint64_t value) { this->value = value; }
 	uint64_t GetValue() const { return value; }
@@ -36,14 +36,14 @@ public:
 	IMPLEMENT_SERIALIZE
 	(
 		READWRITE(VARINT(value));
-		READWRITE(VARINT(nHeight));
+		READWRITE(VARINT(timeoutHeight));
 		READWRITE(vTag);
 	)
 
 private:
 	uint64_t value;					//!< amount of money
-	int nHeight;					//!< time-out height
-	vector<unsigned char> vTag;	//!< vTag of the tx which create the fund
+	int timeoutHeight;				//!< time-out height
+	vector<unsigned char> vTag;		//!< vTag of the tx which create the fund
 
 };
 
@@ -59,8 +59,8 @@ class CAppFundOperate {
 public:
 	CAppFundOperate();
 
-	unsigned char opType;		//!OperType
-	unsigned int outHeight;		    //!< the transacion Timeout height
+	unsigned char opType;			//!OperType
+	unsigned int timeoutHeight;	//!< the transacion Timeout height
 	int64_t mMoney;			        //!<The transfer amount
 	unsigned char appuserIDlen;
 	unsigned char vAppuser[CAppCFund::MAX_TAG_SIZE ];				//!< accountid
@@ -70,7 +70,7 @@ public:
 	CAppFundOperate(const vector<unsigned char> &AppTag,
 		const vector<unsigned char> &FundTag,
 		APP_OP_TYPE optype,
-		int timeout,
+		int timeoutHeightIn,
 		int64_t money)
 	{
 		assert(sizeof(vAppuser) >= AppTag.size());
@@ -82,14 +82,14 @@ public:
 		memcpy(&vAppuser[0],&AppTag[0],AppTag.size());
 		memcpy(&vFundTag[0],&FundTag[0],FundTag.size());
 		mMoney = money;
-		outHeight = timeout;
+		timeoutHeight = timeoutHeightIn;
 		opType = optype;
 	}
 
 	IMPLEMENT_SERIALIZE
 	(
 		READWRITE(opType);
-		READWRITE(outHeight);
+		READWRITE(timeoutHeight);
 		READWRITE(mMoney);
 		READWRITE(appuserIDlen);
 		for (unsigned int i = 0;i < sizeof(vAppuser);++i)
@@ -130,11 +130,11 @@ public:
 	}
 
 	unsigned int GetOutHeight() const {
-		return outHeight;
+		return timeoutHeight;
 	}
 
-	void SetOutHeight(unsigned int outHeight) {
-		this->outHeight = outHeight;
+	void SetOutHeight(unsigned int timeoutHeightIn) {
+		this->timeoutHeight = timeoutHeightIn;
 	}
 };
 
@@ -199,13 +199,13 @@ class CAssetOperate
 public:
 	CAssetOperate() {
 		fundTagLen = 0;
-		outHeight = 0;
+		timeoutHeight = 0;
 		mMoney = 0;
 	}
 
 	uint64_t GetUint64Value() const { return mMoney; }
 
-	int GetHeight() const { return outHeight; }
+	int GetHeight() const { return timeoutHeight; }
 
 	const vector<unsigned char> GetFundTagV() const {
 		assert(sizeof(vFundTag) >= fundTagLen );
@@ -215,7 +215,7 @@ public:
 
 	IMPLEMENT_SERIALIZE
 	(
-		READWRITE(outHeight);
+		READWRITE(timeoutHeight);
 		READWRITE(mMoney);
 		READWRITE(fundTagLen);
 		for(unsigned int i = 0;i < sizeof(vFundTag);++i)
@@ -223,7 +223,7 @@ public:
 	)
 
 public:
-	unsigned int outHeight;		    //!< the transacion Timeout height
+	unsigned int timeoutHeight;		    //!< the transacion Timeout height
 	uint64_t mMoney;			        //!<The transfer amount
 	unsigned char fundTagLen;
 	unsigned char vFundTag[ CAppCFund::MAX_TAG_SIZE ];				//!< accountid

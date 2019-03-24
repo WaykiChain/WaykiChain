@@ -1459,7 +1459,7 @@ static bool GetDataTableWriteOutput(lua_State *L, vector<std::shared_ptr < std::
         LogPrint("vm", "outheight get fail\n");
         return false;
     } else {
-        temp.outHeight = (unsigned int) doubleValue;
+        temp.timeoutHeight = (unsigned int) doubleValue;
     }
 
     if (!getArrayInTable(L,(char *)"moneyTbl",sizeof(temp.money),vBuf)) {
@@ -1710,11 +1710,11 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std
         temp.opType = (unsigned char)doubleValue;
     }
 
-    if (!(getNumberInTable(L,(char *)"outHeight",doubleValue))) {
-        LogPrint("vm", "outheight get fail\n");
+    if (!(getNumberInTable(L, (char *)"timeoutHeight", doubleValue))) {
+        LogPrint("vm", "timeoutHeight get fail\n");
         return false;
     } else {
-        temp.outHeight = (unsigned int) doubleValue;
+        temp.timeoutHeight = (unsigned int) doubleValue;
     }
 
     if(!getArrayInTable(L,(char *)"moneyTbl",sizeof(temp.mMoney),vBuf))
@@ -1979,7 +1979,7 @@ static int ExTransferContractAsset(lua_State *L)
 
     if (nMoney > 0) {
         op.mMoney = nMoney;
-        op.outHeight = 0;
+        op.timeoutHeight = 0;
         op.opType = SUB_FREE_OP;
         op.appuserIDlen = sendkey.size();
         for (i = 0; i < op.appuserIDlen; i++)
@@ -1998,7 +1998,7 @@ static int ExTransferContractAsset(lua_State *L)
     vector<CAppCFund> vTemp = temp.get()->GetFrozenFunds();
     for (auto fund : vTemp) {
         op.mMoney = fund.GetValue();
-        op.outHeight = fund.GetHeight();
+        op.timeoutHeight = fund.GetHeight();
         op.opType = SUB_TAG_OP;
         op.appuserIDlen = sendkey.size();
         for (i = 0; i < op.appuserIDlen; i++) {
@@ -2086,7 +2086,7 @@ static int ExTransferSomeAsset(lua_State *L) {
     }
 
     op.mMoney = uTransferMoney;
-    op.outHeight = nHeight;
+    op.timeoutHeight = nHeight;
     op.appuserIDlen = sendkey.size();
 
     for (i = 0; i < op.appuserIDlen; i++) {

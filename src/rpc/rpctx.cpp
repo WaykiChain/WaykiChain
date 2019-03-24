@@ -242,8 +242,8 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx)
                 objOutPut.push_back(Pair("amount", -dAmount));
             }
 
-            if (item.outHeight > 0)
-                objOutPut.push_back(Pair("freezeheight", (int) item.outHeight));
+            if (item.timeoutHeight > 0)
+                objOutPut.push_back(Pair("freezeheight", (int) item.timeoutHeight));
 
             arrayDetail.push_back(objOutPut);
         }

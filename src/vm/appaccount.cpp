@@ -57,11 +57,11 @@ inline bool CAppCFund::MergeCFund(const CAppCFund &fund) {
 
 CAppCFund::CAppCFund(const CAppFundOperate& op) {
     //	assert(Op.opType == ADD_TAG_OP || ADD_TAG_OP == Op.opType);
-    assert(op.outHeight > 0);
+    assert(op.timeoutHeight > 0);
 
     vTag = op.GetFundTagV();
     value = op.GetUint64Value();					//!< amount of money
-    nHeight = op.outHeight;
+    nHeight = op.timeoutHeight;
 }
 
 
@@ -237,7 +237,7 @@ CAppFundOperate::CAppFundOperate() {
     fundTagLen = 0;
     appuserIDlen = 0;
     opType = 0;
-    outHeight = 0;
+    timeoutHeight = 0;
     mMoney = 0;
 }
 
@@ -279,7 +279,7 @@ Object CAppFundOperate::ToJson() const {
     result.push_back(Pair("userid", HexStr(GetAppUserV())));
     result.push_back(Pair("vTag", HexStr(GetFundTagV())));
     result.push_back(Pair("opType", optypes[opType]));
-    result.push_back(Pair("outHeight", (int) outHeight));
+    result.push_back(Pair("timeoutHeight", (int) timeoutHeight));
     result.push_back(Pair("mMoney", mMoney));
 
     return result;

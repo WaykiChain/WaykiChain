@@ -177,8 +177,8 @@ class CVmOperate{
 public:
 	unsigned char nacctype;      	//regid or base58addr
 	unsigned char accountid[34];	//!< accountid
-	unsigned char opType;		//!OperType
-	unsigned int  outHeight;		//!< the transacion Timeout height
+	unsigned char opType;		    //!OperType
+	unsigned int  timeoutHeight;    //!< the transacion Timeout height
 	unsigned char money[8];			//!<The transfer amount
 
 	IMPLEMENT_SERIALIZE
@@ -187,7 +187,7 @@ public:
 		for (int i = 0;i < 34;i++)
 			READWRITE(accountid[i]);
 		READWRITE(opType);
-		READWRITE(outHeight);
+		READWRITE(timeoutHeight);
 		for (int i = 0;i < 8;i++)
 			READWRITE(money[i]);
 	)
@@ -196,7 +196,7 @@ public:
 		nacctype = regid;
 		memset(accountid, 0, 34);
 		opType = ADD_FREE;
-		outHeight = 0;
+		timeoutHeight = 0;
 		memset(money, 0, 8);
 	}
 
