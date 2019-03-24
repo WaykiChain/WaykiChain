@@ -328,10 +328,10 @@ static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr < std::vec
     //取key
     int key = 0;
     double doubleValue = 0;
-    if(!(getNumberInTable(L,(char *)"key",doubleValue))){
+    if (!(getNumberInTable(L,(char *)"key",doubleValue))){
         LogPrint("vm", "key get fail\n");
         return false;
-    }else{
+    } else {
         key = (int)doubleValue;
     }
     vBuf.clear();
@@ -339,31 +339,27 @@ static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr < std::vec
     ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
 
     //取value的长度
-    if(!(getNumberInTable(L,(char *)"length",doubleValue))){
+    if (!(getNumberInTable(L, (char *)"length", doubleValue))){
         LogPrint("vm", "length get fail\n");
         return false;
-    }else{
+    } else {
         len = (unsigned short)doubleValue;
     }
 
-    if(len > 0)
-    {
+    if (len > 0) {
         len = len > LUA_C_BUFFER_SIZE ? LUA_C_BUFFER_SIZE : len;
-        if(key)
-        {   //hex
-            if(!getArrayInTable(L,(char *)"value",len,vBuf))
-            {
+        if (key) {   //hex
+            if(!getArrayInTable(L,(char *)"value",len,vBuf)) {
                 LogPrint("vm","valueTable is not table\n");
                 return false;
-            }else{
+            } else {
                 ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
             }
-        }else{ //string
-            if(!getStringLogPrint(L,(char *)"value",len,vBuf))
-            {
+        } else { //string
+            if(!getStringLogPrint(L,(char *)"value",len,vBuf)) {
                 LogPrint("vm","valueString is not string\n");
                 return false;
-            }else{
+            } else {
                 ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
             }
         }
@@ -375,8 +371,7 @@ static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr < std::vec
 }
 static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret)
 {
-    if(!lua_istable(L,-1))
-    {
+    if(!lua_istable(L,-1)) {
         LogPrint("vm","is not table\n");
         return false;
     }
@@ -384,20 +379,19 @@ static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr < std::vector<u
     vector<unsigned char> vBuf ;
 
     int dataLen = 0;
-    if(!(getNumberInTable(L,(char *)"dataLen",doubleValue))){
+    if (!(getNumberInTable(L,(char *)"dataLen",doubleValue))){
             LogPrint("vm","dataLen get fail\n");
             return false;
-        }else{
+        } else {
             dataLen = (unsigned int)doubleValue;
     }
 
-    if(dataLen <= 0) {
+    if (dataLen <= 0) {
         LogPrint("vm","dataLen <= 0\n");
         return false;
     }
 
-    if(!getArrayInTable(L,(char *)"data",dataLen,vBuf))
-    {
+    if (!getArrayInTable(L,(char *)"data",dataLen,vBuf)) {
         LogPrint("vm","data not table\n");
         return false;
     }else{
@@ -1710,8 +1704,8 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std
         temp.opType = (unsigned char)doubleValue;
     }
 
-    if (!(getNumberInTable(L, (char *)"timeoutHeight", doubleValue))) {
-        LogPrint("vm", "timeoutHeight get fail\n");
+    if (!(getNumberInTable(L, (char *)"outHeight", doubleValue))) {
+        LogPrint("vm", "outHeight get fail\n");
         return false;
     } else {
         temp.timeoutHeight = (unsigned int) doubleValue;

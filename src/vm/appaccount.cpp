@@ -244,7 +244,7 @@ CAppFundOperate::CAppFundOperate() {
 Object CAppCFund::ToJson()const {
     Object result;
     result.push_back(Pair("value", value));
-    result.push_back(Pair("timeoutHeight", timeoutHeight));
+    result.push_back(Pair("outHeight", timeoutHeight));
     result.push_back(Pair("vTag", HexStr(vTag)));
     return result;
 }
@@ -279,7 +279,7 @@ Object CAppFundOperate::ToJson() const {
     result.push_back(Pair("userid", HexStr(GetAppUserV())));
     result.push_back(Pair("vTag", HexStr(GetFundTagV())));
     result.push_back(Pair("opType", optypes[opType]));
-    result.push_back(Pair("timeoutHeight", (int) timeoutHeight));
+    result.push_back(Pair("outHeight", (int) timeoutHeight));
     result.push_back(Pair("mMoney", mMoney));
 
     return result;

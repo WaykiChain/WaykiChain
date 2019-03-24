@@ -572,7 +572,7 @@ Object CVmOperate::ToJson() {
         obj.push_back(Pair("opertype", "minus"));
     }
 
-    if (timeoutHeight > 0) obj.push_back(Pair("timeoutHeight", (int)timeoutHeight));
+    if (timeoutHeight > 0) obj.push_back(Pair("outHeight", (int)timeoutHeight));
 
     uint64_t amount;
     memcpy(&amount, money, sizeof(money));
