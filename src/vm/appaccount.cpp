@@ -27,19 +27,19 @@ using namespace json_spirit;
 CAppCFund::CAppCFund() {
     vTag.clear();
     value = 0;
-    nHeight = 0;
+    timeoutHeight = 0;
 }
 
 CAppCFund::CAppCFund(const CAppCFund &fund) {
     vTag = fund.GetTag();
     value = fund.GetValue();
-    nHeight = fund.GetHeight();
+    timeoutHeight = fund.GetHeight();
 }
 
 CAppCFund::CAppCFund(const vector<unsigned char>& tag, uint64_t val, int height) {
     vTag = tag;
     value = val;
-    nHeight = height;
+    timeoutHeight = height;
 }
 
 inline bool CAppCFund::MergeCFund(const CAppCFund &fund) {
@@ -61,7 +61,7 @@ CAppCFund::CAppCFund(const CAppFundOperate& op) {
 
     vTag = op.GetFundTagV();
     value = op.GetUint64Value();					//!< amount of money
-    nHeight = op.timeoutHeight;
+    timeoutHeight = op.timeoutHeight;
 }
 
 
@@ -244,7 +244,7 @@ CAppFundOperate::CAppFundOperate() {
 Object CAppCFund::ToJson()const {
     Object result;
     result.push_back(Pair("value", value));
-    result.push_back(Pair("nHeight", nHeight));
+    result.push_back(Pair("timeoutHeight", timeoutHeight));
     result.push_back(Pair("vTag", HexStr(vTag)));
     return result;
 }

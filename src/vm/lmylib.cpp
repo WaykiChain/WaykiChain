@@ -1788,7 +1788,7 @@ static int ExGetUserAppAccFundWithTagFunc(lua_State *L)
     CAppCFund fund;
     int len = 0;
     if (pVmRunEnv->GetAppUserAccount(userfund.GetAppUserV(), sptrAcc)) {
-        if (!sptrAcc->GetAppCFund(fund,userfund.GetFundTagV(), userfund.outHeight))
+        if (!sptrAcc->GetAppCFund(fund,userfund.GetFundTagV(), userfund.timeoutHeight))
             return RetFalse("GetUserAppAccFundWithTag GetAppCFund fail");
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
@@ -1819,11 +1819,11 @@ static bool GetDataTableAssetOperate(lua_State *L, int nIndex, vector<std::share
     }
 
     if (!(getNumberInTable(L, (char *) "outHeight", doubleValue))) {
-        LogPrint("vm", "get outheight failed\n");
+        LogPrint("vm", "get timeoutHeight failed\n");
         return false;
     } else {
-        temp.outHeight = (unsigned int) doubleValue;
-        LogPrint("vm", "height = %d", temp.outHeight);
+        temp.timeoutHeight = (unsigned int) doubleValue;
+        LogPrint("vm", "height = %d", temp.timeoutHeight);
     }
 
     if (!getArrayInTable(L, (char *) "moneyTbl", sizeof(temp.mMoney), vBuf)) {
