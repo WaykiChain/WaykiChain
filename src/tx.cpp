@@ -707,7 +707,7 @@ bool CContractTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
     int64_t llTime = GetTimeMillis();
     tuple<bool, uint64_t, string> ret = vmRunEnv.ExecuteContract(pTx, view, scriptDB, nHeight, fuelRate, nRunStep);
     if (!std::get<0>(ret))
-        return state.DoS(100, ERRORMSG("CContractTx::ExecuteTx, txhash=%s run script error:%s",
+        return state.DoS(100, ERRORMSG("CContractTx::ExecuteTx, txid=%s run script error:%s",
             GetHash().GetHex(), std::get<2>(ret)), UPDATE_ACCOUNT_FAIL, "run-script-error: " + std::get<2>(ret));
 
     LogPrint("vm", "execute contract elapse:%lld, txhash=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());

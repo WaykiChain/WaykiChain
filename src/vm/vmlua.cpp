@@ -250,8 +250,7 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
 
     // 5. Load the contract script
     long long step = maxstep;
-    if (luaL_loadbuffer(lua_state, (char *)contractScript, strlen((char *)contractScript),
-                        "line") ||
+    if (luaL_loadbuffer(lua_state, (char *)contractScript, strlen((char *)contractScript), "line") ||
         lua_pcallk(lua_state, 0, 0, 0, 0, NULL, &step)) {
         const char *pError = lua_tostring(lua_state, -1);
         string strError    = strprintf("luaL_loadbuffer failed: %s\n", pError ? pError : "unknown");
