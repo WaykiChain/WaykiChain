@@ -270,6 +270,8 @@ if TARGET_WINDOWS
 coind_SOURCES += coind-res.rc
 endif
 
+liblua53_a_CFLAGS = -fPIC
+
 AM_CPPFLAGS += $(BDB_CPPFLAGS)
 coind_LDADD += $(BOOST_LIBS) $(BDB_LIBS)
 

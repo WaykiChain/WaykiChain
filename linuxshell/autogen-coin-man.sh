@@ -46,4 +46,4 @@ done
 srcdir="$(dirname $0)"
 cd "$srcdir"
 autoreconf --install --force
-CFLAGS="-fPIC" ./configure --disable-upnp-default --without-gui --with-incompatible-bdb $Modules
+./configure --disable-upnp-default --without-gui --with-incompatible-bdb $Modules
