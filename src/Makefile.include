@@ -28,7 +28,7 @@ $(LIBBITCOIN):
 
 if EMBEDDED_LEVELDB
 $(LIBLEVELDB) $(LIBMEMENV):
-#	$(MAKE) -C $(top_builddir)/src leveldb/$(@F)
+	$(MAKE) -C $(top_builddir)/src leveldb/$(@F)
 endif
 
 $(LIBBITCOINQT):

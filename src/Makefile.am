@@ -264,7 +264,6 @@ coind_LDADD = \
 #coin_LDADD += libcoin_wallet.a
 #endif
 coind_SOURCES = coind.cpp
-#
 
 if TARGET_WINDOWS
 coind_SOURCES += coind-res.rc
@@ -287,9 +286,8 @@ qt/bitcoinstrings.cpp: $(libcoin_server_a_SOURCES) $(libcoin_common_a_SOURCES) $
 	@test -n $(XGETTEXT) || echo "xgettext is required for updating translations"
 	@cd $(top_srcdir); XGETTEXT=$(XGETTEXT) share/qt/extract_strings_qt.py
 
-#CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
+CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
 CLEANFILES =  *.gcda *.gcno
-#
 
 DISTCLEANFILES = obj/build.h
 
