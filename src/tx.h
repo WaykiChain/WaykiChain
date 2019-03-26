@@ -195,6 +195,7 @@ public:
     int GetFuelRate(CScriptDBViewCache &scriptDB);
 protected:
     bool CheckMinTxFee(uint64_t llFees);
+    bool CheckSignatureSize(vector<unsigned char> &signature);
 };
 
 class CRegisterAccountTx : public CBaseTx {

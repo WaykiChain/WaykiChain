@@ -71,6 +71,9 @@ static const int64_t POS_REWARD                  = 10 * COIN;
 static const int64_t INIT_FUEL_RATES             = 100;  //100 unit / 100 step
 static const int64_t MIN_FUEL_RATES              = 1;    //1 unit / 100 step
 
+/** max size of signature of tx or block */
+static const int MAX_BLOCK_SIGNATURE_SIZE = 100;
+
 #ifdef USE_UPNP
 static const int fHaveUPnP = true;
 #else

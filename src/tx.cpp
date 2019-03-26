@@ -338,6 +338,11 @@ bool CBaseTx::CheckMinTxFee(uint64_t llFees)
     return true;
 }
 
+// transactions should check the signagure size before verifying signature
+bool CBaseTx::CheckSignatureSize(vector<unsigned char> &signature) {
+    return signature.size() > 0 && signature.size() < MAX_BLOCK_SIGNATURE_SIZE;
+}
+
 bool CRegisterAccountTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
         int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB)
 {
@@ -479,7 +484,12 @@ bool CRegisterAccountTx::CheckTransaction(CValidationState &state, CAccountViewC
 
     if (!CheckMinTxFee(llFees)) {
         return state.DoS(100, ERRORMSG("CRegisterAccountTx::CheckTransaction, register tx fee smaller than MinTxFee"),
-            REJECT_INVALID, "bad-regtx-fee-toosmall");
+            REJECT_INVALID, "bad-tx-fee-toosmall");
+    }
+
+    if (!CheckSignatureSize(signature)) {
+        return state.DoS(100, ERRORMSG("CRegisterAccountTx::CheckTransaction, signature size invalid"),
+            REJECT_INVALID, "bad-tx-sig-size");
     }
 
     //check signature script
@@ -635,7 +645,7 @@ bool CCommonTx::CheckTransaction(CValidationState &state, CAccountViewCache &vie
 
     if (!CheckMinTxFee(llFees)) {
         return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, tx fee smaller than MinTxFee"),
-            REJECT_INVALID, "bad-regtx-fee-toosmall");
+            REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
     CAccount srcAccount;
@@ -646,6 +656,11 @@ bool CCommonTx::CheckTransaction(CValidationState &state, CAccountViewCache &vie
     if (!srcAccount.IsRegistered())
         return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, account pubkey not registered"),
             REJECT_INVALID, "bad-account-unregistered");
+
+    if (!CheckSignatureSize(signature)) {
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, signature size invalid"),
+            REJECT_INVALID, "bad-tx-sig-size");
+    }
 
     uint256 sighash = SignatureHash();
     if (!CheckSignScript(sighash, signature, srcAccount.PublicKey))
@@ -883,7 +898,7 @@ bool CContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &v
 
     if (!CheckMinTxFee(llFees)) {
         return state.DoS(100, ERRORMSG("CContractTx::CheckTransaction, tx fee smaller than MinTxFee"),
-            REJECT_INVALID, "bad-regtx-fee-toosmall");
+            REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
     CAccount srcAccount;
@@ -894,6 +909,11 @@ bool CContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &v
     if (!srcAccount.IsRegistered())
         return state.DoS(100, ERRORMSG("CContractTx::CheckTransaction, account pubkey not registered"),
             REJECT_INVALID, "bad-account-unregistered");
+
+    if (!CheckSignatureSize(signature)) {
+        return state.DoS(100, ERRORMSG("CContractTx::CheckTransaction, signature size invalid"),
+            REJECT_INVALID, "bad-tx-sig-size");
+    }
 
     uint256 sighash = SignatureHash();
     if (!CheckSignScript(sighash, signature, srcAccount.PublicKey))
@@ -1169,7 +1189,7 @@ bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountView
 
     if (!CheckMinTxFee(llFees)) {
         return state.DoS(100, ERRORMSG("CRegisterContractTx::CheckTransaction, tx fee smaller than MinTxFee"),
-            REJECT_INVALID, "bad-regtx-fee-toosmall");
+            REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
     uint64_t llFuel = ceil(script.size()/100) * GetFuelRate(scriptDB);
@@ -1187,10 +1207,17 @@ bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountView
         return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, get account falied"),
             REJECT_INVALID, "bad-getaccount");
     }
+
     if (!acctInfo.IsRegistered()) {
         return state.DoS(100, ERRORMSG("CheckTransaction(): CRegisterContractTx CheckTransaction, account have not registed public key"),
             REJECT_INVALID, "bad-no-pubkey");
     }
+
+    if (!CheckSignatureSize(signature)) {
+        return state.DoS(100, ERRORMSG("CRegisterContractTx::CheckTransaction, signature size invalid"),
+            REJECT_INVALID, "bad-tx-sig-size");
+    }
+
     uint256 signhash = SignatureHash();
     if (!CheckSignScript(signhash, signature, acctInfo.PublicKey)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, CheckSignScript failed"),
@@ -1323,11 +1350,11 @@ bool CDelegateTx::CheckTransaction(CValidationState &state, CAccountViewCache &v
     }
     if (!CheckMoneyRange(llFees))
         return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTx CheckTransaction, delegate tx fee out of range"),
-            REJECT_INVALID, "bad-regtx-fee-toolarge");
+            REJECT_INVALID, "bad-tx-fee-toolarge");
 
     if (!CheckMinTxFee(llFees)) {
         return state.DoS(100, ERRORMSG("CDelegateTx::CheckTransaction, tx fee smaller than MinTxFee"),
-            REJECT_INVALID, "bad-regtx-fee-toosmall");
+            REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
     CKeyID sendTxKeyID;
@@ -1348,6 +1375,11 @@ bool CDelegateTx::CheckTransaction(CValidationState &state, CAccountViewCache &v
     NET_TYPE netowrkID = SysCfg().NetworkID();
     if ( (netowrkID == MAIN_NET && nValidHeight > nCheckDelegateTxSignatureForkHeight) // for mainnet, need hardcode here, compatible with 7 old unsigned votes
         || (netowrkID == TEST_NET || netowrkID == REGTEST_NET) ) { // for testnet or regtest, must do the check
+
+        if (!CheckSignatureSize(signature)) {
+            return state.DoS(100, ERRORMSG("CDelegateTx::CheckTransaction, signature size invalid"),
+                REJECT_INVALID, "bad-tx-sig-size");
+        }
 
         uint256 signhash = SignatureHash();
         if (!CheckSignScript(signhash, signature, sendAcct.PublicKey)) {
