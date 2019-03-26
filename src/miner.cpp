@@ -275,8 +275,15 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
                 curDelegate.regID.ToString(), account.regID.ToString());
         }
 
-        if (!CheckSignScript(pBlock->SignatureHash(), pBlock->GetSignature(), account.PublicKey))
-            if (!CheckSignScript(pBlock->SignatureHash(), pBlock->GetSignature(), account.MinerPKey))
+        const uint256 &blockHash = pBlock->SignatureHash();
+        const vector<unsigned char> &blockSignature = pBlock->GetSignature();
+
+        if (blockSignature.size() == 0 || blockSignature.size() > MAX_BLOCK_SIGNATURE_SIZE) {
+            return ERRORMSG("Signature size of block invalid, hash=%s", blockHash.ToString());
+        }
+
+        if (!CheckSignScript(blockHash, blockSignature, account.PublicKey))
+            if (!CheckSignScript(blockHash, blockSignature, account.MinerPKey))
                 return ERRORMSG("Verify miner publickey signature error");
     } else {
         return ERRORMSG("AccountView has no accountid");
