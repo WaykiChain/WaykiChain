@@ -728,22 +728,34 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             "votedelegatetx \"sendaddr\" \"opervotes\" \"fee\" (\"height\") \n"
             "\ncreate a delegate vote transaction\n"
             "\nArguments:\n"
-            "1.\"sendaddr\": (string required) The address from which votes are sent to other delegate addresses\n"
-            "2. \"opervotes\"    (string, required) A json array of oper votes to corresponding delegates\n"
+            "1.\"sendaddr\": (string required) The address from which votes are sent to other "
+            "delegate addresses\n"
+            "2. \"opervotes\"    (string, required) A json array of oper votes to corresponding "
+            "delegates\n"
             " [\n"
-                "   {\n"
-                "      \"delegate\":\"address\", (string, required) The delegate address where votes are recevied\n"
-                "      \"votes\": n (numeric, required) votes, increase votes when positive or reduce votes when negative\n"
-                "   }\n"
-                "       ,...\n"
+            "   {\n"
+            "      \"delegate\":\"address\", (string, required) The delegate address where votes "
+            "are recevied\n"
+            "      \"votes\": n (numeric, required) votes, increase votes when positive or reduce "
+            "votes when negative\n"
+            "   }\n"
+            "       ,...\n"
             " ]\n"
             "3.\"fee\": (numeric required) pay fee to miner\n"
-            "4.\"height\": (numeric optional) valid height. When not supplied, the tip block height in chainActive will be used.\n"
+            "4.\"height\": (numeric optional) valid height. When not supplied, the tip block "
+            "height in chainActive will be used.\n"
             "\nResult:\n"
             "\"txhash\": (string)\n"
-            "\nExamples:\n"
-            + HelpExampleCli("votedelegatetx"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\", 10000 ") + "\nAs json rpc call\n"
-            + HelpExampleRpc("votedelegatetx"," \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" \"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", \\\"votes\\\":100000000}]\", 10000 "));
+            "\nExamples:\n" +
+            HelpExampleCli("votedelegatetx",
+                           " \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\", "
+                           "\"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", "
+                           "\\\"votes\\\":100000000}]\", 10000 ") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("votedelegatetx",
+                           " \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\", "
+                           "\"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", "
+                           "\\\"votes\\\":100000000}]\", 10000 "));
     }
     RPCTypeCheck(params, list_of(str_type)(array_type)(int_type)(int_type));
 
@@ -757,35 +769,31 @@ Value votedelegatetx(const Array& params, bool fHelp) {
 
     CKeyID keyid;
     if (!GetKeyId(sendAddr, keyid)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "invalid Address: " + sendAddr);
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Address: " + sendAddr);
     }
     CDelegateTx delegateTx;
     assert(pwalletMain != NULL);
     {
         EnsureWalletIsUnlocked();
-        // balance
         CAccountViewCache view(*pAccountViewTip, true);
         CAccount account;
 
         CUserID userId = keyid;
         if (!view.GetAccount(userId, account)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "votedelegatetx Error: Account does not exist.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist.");
         }
 
         if (!account.IsRegistered()) {
-            throw JSONRPCError(RPC_WALLET_ERROR,
-                               "votedelegatetx Error: Account is not registered.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "Account is not registered.");
         }
 
         uint64_t balance = account.GetRawBalance();
         if (balance < fee) {
-            throw JSONRPCError(RPC_WALLET_ERROR,
-                               "votedelegatetx Error: Account balance is insufficient.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient.");
         }
 
         if (!pwalletMain->HasKey(keyid)) {
-            throw JSONRPCError(RPC_WALLET_ERROR,
-                               "votedelegatetx Error: Send tx address is not in wallet file.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "Send tx address is not in wallet file.");
         }
 
         delegateTx.llFees = fee;
@@ -801,18 +809,15 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             const Value& delegateAddress = find_value(operVote.get_obj(), "delegate");
             const Value& delegateVotes   = find_value(operVote.get_obj(), "votes");
             if (delegateAddress.type() == null_type || delegateVotes == null_type) {
-                throw JSONRPCError(
-                    RPC_INVALID_PARAMETER,
-                    "in votedelegatetx :vote fund address error or fund value error.");
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Vote fund address error or fund value error.");
             }
             CKeyID delegateKeyId;
             if (!GetKeyId(delegateAddress.get_str(), delegateKeyId)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in votedelegatetx :address error.");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address error.");
             }
             CAccount delegateAcct;
             if (!view.GetAccount(CUserID(delegateKeyId), delegateAcct)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                                   "in votedelegatetx Error: delegate address is not registered.");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address is not registered.");
             }
             operVoteFund.fund.pubKey = delegateAcct.PublicKey;
             operVoteFund.fund.value  = (uint64_t)abs(delegateVotes.get_int64());
@@ -825,14 +830,14 @@ Value votedelegatetx(const Array& params, bool fHelp) {
         }
 
         if (!pwalletMain->Sign(keyid, delegateTx.SignatureHash(), delegateTx.signature)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "in votedelegatetx Error: Sign failed.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed.");
         }
     }
 
     std::tuple<bool, string> ret;
     ret = pwalletMain->CommitTransaction((CBaseTx*)&delegateTx);
     if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "votedelegatetx Error: " + std::get<1>(ret));
+        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
     }
     Object obj;
     obj.push_back(Pair("hash", std::get<1>(ret)));
