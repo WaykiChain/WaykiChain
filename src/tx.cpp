@@ -898,7 +898,7 @@ bool CContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &v
 
     if (!CheckMinTxFee(llFees)) {
         return state.DoS(100, ERRORMSG("CContractTx::CheckTransaction, tx fee smaller than MinTxFee"),
-            REJECT_INVALID, "bad-regtx-fee-toosmall");
+            REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
     CAccount srcAccount;
@@ -909,6 +909,11 @@ bool CContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &v
     if (!srcAccount.IsRegistered())
         return state.DoS(100, ERRORMSG("CContractTx::CheckTransaction, account pubkey not registered"),
             REJECT_INVALID, "bad-account-unregistered");
+
+    if (!CheckSignatureSize(signature)) {
+        return state.DoS(100, ERRORMSG("CContractTx::CheckTransaction, signature size invalid"),
+            REJECT_INVALID, "bad-tx-sig-size");
+    }
 
     uint256 sighash = SignatureHash();
     if (!CheckSignScript(sighash, signature, srcAccount.PublicKey))
