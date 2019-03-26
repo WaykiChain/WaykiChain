@@ -1,6 +1,7 @@
 # Rule: according to the alphabet
 
 *.a
+*.bak
 *.dirstamp
 *.log
 *.o
