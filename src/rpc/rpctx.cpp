@@ -748,9 +748,9 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     RPCTypeCheck(params, list_of(str_type)(array_type)(int_type)(int_type));
 
     string sendAddr = params[0].get_str();
-    uint64_t fee = params[2].get_uint64(); //real type
-    int nHeight = 0;
-    if(params.size() > 3) {
+    uint64_t fee    = params[2].get_uint64();  // real type
+    int nHeight     = 0;
+    if (params.size() > 3) {
         nHeight = params[3].get_int();
     }
     Array operVoteArray = params[1].get_array();
@@ -763,7 +763,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     assert(pwalletMain != NULL);
     {
         EnsureWalletIsUnlocked();
-        //balance
+        // balance
         CAccountViewCache view(*pAccountViewTip, true);
         CAccount account;
 
@@ -773,47 +773,52 @@ Value votedelegatetx(const Array& params, bool fHelp) {
         }
 
         if (!account.IsRegistered()) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "votedelegatetx Error: Account is not registered.");
+            throw JSONRPCError(RPC_WALLET_ERROR,
+                               "votedelegatetx Error: Account is not registered.");
         }
 
         uint64_t balance = account.GetRawBalance();
         if (balance < fee) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "votedelegatetx Error: Account balance is insufficient.");
+            throw JSONRPCError(RPC_WALLET_ERROR,
+                               "votedelegatetx Error: Account balance is insufficient.");
         }
 
         if (!pwalletMain->HasKey(keyid)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "votedelegatetx Error: Send tx address is not in wallet file.");
+            throw JSONRPCError(RPC_WALLET_ERROR,
+                               "votedelegatetx Error: Send tx address is not in wallet file.");
         }
 
         delegateTx.llFees = fee;
-        if( 0 != nHeight) {
+        if (0 != nHeight) {
             delegateTx.nValidHeight = nHeight;
         } else {
             delegateTx.nValidHeight = chainActive.Tip()->nHeight;
         }
         delegateTx.userId = account.regID;
 
-        for(auto operVote : operVoteArray) {
+        for (auto operVote : operVoteArray) {
             COperVoteFund operVoteFund;
             const Value& delegateAddress = find_value(operVote.get_obj(), "delegate");
-            const Value& delegateVotes = find_value(operVote.get_obj(),  "votes");
-            if(delegateAddress.type() == null_type || delegateVotes == null_type) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "in votedelegatetx :vote fund address error or fund value error.");
+            const Value& delegateVotes   = find_value(operVote.get_obj(), "votes");
+            if (delegateAddress.type() == null_type || delegateVotes == null_type) {
+                throw JSONRPCError(
+                    RPC_INVALID_PARAMETER,
+                    "in votedelegatetx :vote fund address error or fund value error.");
             }
             CKeyID delegateKeyId;
             if (!GetKeyId(delegateAddress.get_str(), delegateKeyId)) {
-                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in votedelegatetx :address error.");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in votedelegatetx :address error.");
             }
             CAccount delegateAcct;
             if (!view.GetAccount(CUserID(delegateKeyId), delegateAcct)) {
-                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in votedelegatetx Error: delegate address is not registered.");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                                   "in votedelegatetx Error: delegate address is not registered.");
             }
             operVoteFund.fund.pubKey = delegateAcct.PublicKey;
-            operVoteFund.fund.value = (uint64_t)abs(delegateVotes.get_int64());
-            if(delegateVotes.get_int64() > 0 ) {
+            operVoteFund.fund.value  = (uint64_t)abs(delegateVotes.get_int64());
+            if (delegateVotes.get_int64() > 0) {
                 operVoteFund.operType = ADD_FUND;
-            }
-            else {
+            } else {
                 operVoteFund.operType = MINUS_FUND;
             }
             delegateTx.operVoteFunds.push_back(operVoteFund);
@@ -825,7 +830,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     }
 
     std::tuple<bool, string> ret;
-    ret = pwalletMain->CommitTransaction((CBaseTx *) &delegateTx);
+    ret = pwalletMain->CommitTransaction((CBaseTx*)&delegateTx);
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "votedelegatetx Error: " + std::get<1>(ret));
     }
