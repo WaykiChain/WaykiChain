@@ -216,7 +216,7 @@ Value SysTestBase::CreateDelegateTx(const string& strAddress, const string &oper
         strFee = strprintf("%d",fees);
     }
 
-    const char *argv[] = { "rpctest", "createdelegatetx", (char*) strAddress.c_str(), (char*) operVoteFund.c_str(), (char*) strFee.c_str()};
+    const char *argv[] = { "rpctest", "votedelegatetx", (char*) strAddress.c_str(), (char*) operVoteFund.c_str(), (char*) strFee.c_str()};
     int argc = sizeof(argv) / sizeof(char*);
 
     Value value;
