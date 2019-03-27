@@ -203,11 +203,11 @@ Value sendtoaddress(const Array& params, bool fHelp)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
 
         if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId))
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendadress not registered or invalid");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendadress not registered or invalid");
 
         nAmount = AmountToRawValue(params[2]);
         if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nDefaultFee)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress does not have enough coins");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
     } else { // size == 2
         if (!GetKeyId(params[0].get_str(), recvKeyId))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
@@ -261,8 +261,8 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
             "\nArguments:\n"
             "1.\"sendaddress\"  (string, optional) The Coin address to send to.\n"
             "2.\"recvaddress\"  (string, required) The Coin address to receive.\n"
-            "3.\"amount\"       (string,required) \n"
-            "4.\"fee\"          (string,required) \n"
+            "3.\"amount\"       (string, required)\n"
+            "4.\"fee\"          (string, required)\n"
             "\nResult:\n"
             "\"transactionid\"  (string) The transaction id.\n"
             "\nExamples:\n"
@@ -303,11 +303,11 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
         }
 
         if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress not registered or invalid");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress not registered or invalid");
         }
 
         if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nActualFee) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress does not have enough coins");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
         }
     } else { //sender address omitted
         if (!GetKeyId(params[0].get_str(), recvKeyId)) {
