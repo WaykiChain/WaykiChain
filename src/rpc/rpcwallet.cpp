@@ -170,8 +170,7 @@ Value sendtoaddress(const Array& params, bool fHelp) {
     if (fHelp || (size != 2 && size != 3))
         throw runtime_error(
             "sendtoaddress (\"sendaddress\") \"recvaddress\" \"amount\"\n"
-            "\nSend an amount to a given address. The amount is a real and is rounded to the "
-            "nearest 0.00000001\n" +
+            "\nSend an amount to a given address.\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
             "1.\"sendaddress\" (string, optional) The address where coins are sent from.\n"
@@ -253,8 +252,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
     if (fHelp || (size != 3 && size != 4)) {
         throw runtime_error(
             "sendtoaddresswithfee (\"sendaddress\") \"recvaddress\" \"amount\" (fee)\n"
-            "\nSend an amount to a given address with fee. The amount is a real and is rounded to "
-            "the nearest 0.00000001\n"
+            "\nSend an amount to a given address with fee.\n"
             "\nArguments:\n"
             "1.\"sendaddress\"  (string, optional) The Coin address to send to.\n"
             "2.\"recvaddress\"  (string, required) The Coin address to receive.\n"
@@ -629,7 +627,7 @@ Value notionalpoolingbalance(const Array& params, bool fHelp)
     int size = params.size();
     if (fHelp || (size < 1)) {
         throw runtime_error("notionalpoolingbalance  \"receive address\" \"amount\"\n"
-            "\nSend an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001\n"
+            "\nSend an amount to a given address.\n"
             + HelpRequiringPassphrase() + "\nArguments:\n"
             "1. receive address   (string, required) The Koala address to receive\n"
             "2. amount (number optional)\n"
