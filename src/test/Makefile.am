@@ -36,7 +36,6 @@ coin_test_SOURCES = \
   base32_tests.cpp \
   base58_tests.cpp \
   base64_tests.cpp \
-  bignum_tests.cpp \
   bloom_tests.cpp \
   canonical_tests.cpp \
   checkblock_tests.cpp \

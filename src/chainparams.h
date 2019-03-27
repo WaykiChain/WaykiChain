@@ -10,7 +10,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include <vector>
 
-#include "bignum.h"
 #include "uint256.h"
 #include "arith_uint256.h"
 #include "util.h"

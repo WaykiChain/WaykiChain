@@ -16,7 +16,6 @@
 #include "leveldbwrapper.h"
 #include "main.h"
 
-class CBigNum;
 class uint256;
 class CKeyID;
 class CTransactionDBCache;
