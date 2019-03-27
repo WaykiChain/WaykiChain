@@ -12,7 +12,6 @@
 #endif
 
 #include "arith_uint256.h"
-#include "bignum.h"
 #include "chainparams.h"
 #include "core.h"
 #include "database.h"
@@ -782,14 +781,6 @@ class CBlockIndex {
 
     int64_t GetBlockTime() const {
         return (int64_t)nTime;
-    }
-
-    CBigNum GetBlockWork() const {
-        CBigNum bnTarget;
-        bnTarget.SetCompact(nBits);
-        if (bnTarget <= 0)
-            return 0;
-        return (CBigNum(1) << 256) / (bnTarget + 1);
     }
 
     bool CheckIndex() const {

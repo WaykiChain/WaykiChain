@@ -35,7 +35,8 @@ coin_CORE_H = \
   addrman.h \
   alert.h \
   allocators.h \
-  base58.h bignum.h \
+  base58.h \
+  openssl.hpp \
   bloom.h \
   chainparams.h \
   clientversion.h \
@@ -275,7 +276,7 @@ AM_CPPFLAGS += $(BDB_CPPFLAGS)
 coind_LDADD += $(BOOST_LIBS) $(BDB_LIBS)
 
 # NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
-leveldb/libleveldb.a: leveldb/libmemenv.a
+$(LIBLEVELDB): $(LIBMEMENV)
 
 leveldb/%.a:
 	@echo "Building LevelDB ..." && $(MAKE) -C $(@D) $(@F) CXX="$(CXX)" \

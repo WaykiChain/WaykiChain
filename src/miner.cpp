@@ -106,9 +106,6 @@ void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pindexPrev, unsigned int &
         hashPrevBlock = pblock->GetHashPrevBlock();
     }
     ++nExtraNonce;
-    //  unsigned int nHeight = pindexPrev->nHeight + 1; // Height first in coinbase required for block.version=2
-    //    pblock->vtx[0].vin[0].scriptSig = (CScript() << nHeight << CBigNum(nExtraNonce)) + COINBASE_FLAGS;
-    //    assert(pblock->vtx[0].vin[0].scriptSig.size() <= 100);
 
     pblock->GetHashMerkleRoot() = pblock->BuildMerkleTree();
 }

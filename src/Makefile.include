@@ -1,10 +1,9 @@
 if EMBEDDED_LEVELDB
 LEVELDB_CPPFLAGS += -I$(top_srcdir)/src/leveldb/include
 LEVELDB_CPPFLAGS += -I$(top_srcdir)/src/leveldb/helpers/memenv
-LIBLEVELDB += $(top_builddir)/src/leveldb/libleveldb.a
-LIBMEMENV  += $(top_builddir)/src/leveldb/libmemenv.a
+LIBLEVELDB += leveldb/libleveldb.a
+LIBMEMENV  += leveldb/libmemenv.a
 endif
-
 AM_CPPFLAGS =  $(INCLUDES) \
   -I$(top_builddir)/src/obj \
   $(BDB_CPPFLAGS) \
@@ -25,11 +24,6 @@ LIBLUA53=$(top_builddir)/src/liblua53.a
 
 $(LIBBITCOIN):
 	$(MAKE) -C $(top_builddir)/src $(@F)
-
-if EMBEDDED_LEVELDB
-$(LIBLEVELDB) $(LIBMEMENV):
-	$(MAKE) -C $(top_builddir)/src leveldb/$(@F)
-endif
 
 $(LIBBITCOINQT):
 	$(MAKE) -C $(top_builddir)/src/qt $(@F)
