@@ -923,9 +923,9 @@ bool CContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &v
     return true;
 }
 
-bool CRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-        int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB)
-{
+bool CRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+                          CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
+                          CScriptDBViewCache &scriptDB) {
     CID id(account);
     if (account.type() != typeid(CRegID)) {
         return state.DoS(100,
@@ -938,15 +938,14 @@ bool CRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
         return state.DoS(100, ERRORMSG("ExecuteTx() : CRewardTx ExecuteTx, read source addr %s account info error",
             HexStr(id.GetID())), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-//  LogPrint("op_account", "before operate:%s\n", acctInfo.ToString());
+    // LogPrint("op_account", "before operate:%s\n", acctInfo.ToString());
     CAccountLog acctInfoLog(acctInfo);
-    if (0 == nIndex) {   //current block reward tx, need to clear coindays
-//      acctInfo.ClearAccPos(nHeight);
-    } else if (-1 == nIndex) { //maturity reward tx,only update values
+    if (0 == nIndex) {
+        // nothing to do here
+    } else if (-1 == nIndex) {  // maturity reward tx, only update values
         acctInfo.llValues += rewardValue;
-    } else {  //never go into this step
+    } else {  // never go into this step
         return ERRORMSG("nIndex type error!");
-//      assert(0);
     }
 
     CUserID userId = acctInfo.keyID;
@@ -968,7 +967,7 @@ bool CRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
 
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
     }
-//  LogPrint("op_account", "after operate:%s\n", acctInfo.ToString());
+    // LogPrint("op_account", "after operate:%s\n", acctInfo.ToString());
     return true;
 }
 

@@ -165,28 +165,24 @@ static std::tuple<bool, string> SendMoney(const CRegID &sendRegId, const CUserID
     return std::make_tuple(flag, te.c_str());
 }
 
-Value sendtoaddress(const Array& params, bool fHelp)
-{
+Value sendtoaddress(const Array& params, bool fHelp) {
     int size = params.size();
     if (fHelp || (size != 2 && size != 3))
-        throw runtime_error("sendtoaddress (\"sendaddress\") \"recvaddress\" \"amount\"\n"
-            "\nSend an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001\n"
-            + HelpRequiringPassphrase() + "\nArguments:\n"
-            "1. \"sendaddress\" (string, optional) The address where coins are sent from.\n"
-            "2. \"recvaddress\" (string, required) The address where coins are received.\n"
-            "3.\"amount\" (string, required) \n"
+        throw runtime_error(
+            "sendtoaddress (\"sendaddress\") \"recvaddress\" \"amount\"\n"
+            "\nSend an amount to a given address. The amount is a real and is rounded to the "
+            "nearest 0.00000001\n" +
+            HelpRequiringPassphrase() +
+            "\nArguments:\n"
+            "1.\"sendaddress\" (string, optional) The address where coins are sent from.\n"
+            "2.\"recvaddress\" (string, required) The address where coins are received.\n"
+            "3.\"amount\" (string, required)\n"
             "\nResult:\n"
             "\"transactionid\" (string) The transaction id.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
-            + HelpExampleCli("sendtoaddress",
-            "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"")
-            + HelpExampleRpc("sendtoaddress",
-            "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""
-            + HelpExampleCli("sendtoaddress", "\"0-6\" 10 ")
-            + HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 10 ")
-            + HelpExampleCli("sendtoaddress", "\"0-6\" \"0-5\" 10 ")
-            + HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" \"0-6\"10 ")));
+            "\nExamples:\n" +
+            HelpExampleCli("sendtoaddress", "\"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" 10000000") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("sendtoaddress", "\"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\", 10000000"));
 
     EnsureWalletIsUnlocked();
 
@@ -203,11 +199,11 @@ Value sendtoaddress(const Array& params, bool fHelp)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
 
         if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId))
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendadress not registered or invalid");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendadress not registered or invalid");
 
         nAmount = AmountToRawValue(params[2]);
         if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nDefaultFee)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress does not have enough coins");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
     } else { // size == 2
         if (!GetKeyId(params[0].get_str(), recvKeyId))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
@@ -252,29 +248,26 @@ Value sendtoaddress(const Array& params, bool fHelp)
     return obj;
 }
 
-Value sendtoaddresswithfee(const Array& params, bool fHelp)
-{
+Value sendtoaddresswithfee(const Array& params, bool fHelp) {
     int size = params.size();
     if (fHelp || (size != 3 && size != 4)) {
-        throw runtime_error("sendtoaddresswithfee (\"sendaddress\") \"recvaddress\" \"amount\" (fee)\n"
-            "\nSend an amount to a given address with fee. The amount is a real and is rounded to the nearest 0.00000001\n"
+        throw runtime_error(
+            "sendtoaddresswithfee (\"sendaddress\") \"recvaddress\" \"amount\" (fee)\n"
+            "\nSend an amount to a given address with fee. The amount is a real and is rounded to "
+            "the nearest 0.00000001\n"
             "\nArguments:\n"
             "1.\"sendaddress\"  (string, optional) The Coin address to send to.\n"
             "2.\"recvaddress\"  (string, required) The Coin address to receive.\n"
-            "3.\"amount\"       (string,required) \n"
-            "4.\"fee\"          (string,required) \n"
+            "3.\"amount\"       (string, required)\n"
+            "4.\"fee\"          (string, required)\n"
             "\nResult:\n"
             "\"transactionid\"  (string) The transaction id.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("sendtoaddresswithfee", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 10000000 1000")
-            + HelpExampleCli("sendtoaddresswithfee",
-            "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"")
-            + HelpExampleRpc("sendtoaddresswithfee",
-            "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\""
-            + HelpExampleCli("sendtoaddresswithfee", "\"0-6\" 10 ")
-            + HelpExampleCli("sendtoaddresswithfee", "\"00000000000000000005\" 10 ")
-            + HelpExampleCli("sendtoaddresswithfee", "\"0-6\" \"0-5\" 10 ")
-            + HelpExampleCli("sendtoaddresswithfee", "\"00000000000000000005\" \"0-6\"10 ")));
+            "\nExamples:\n" +
+            HelpExampleCli("sendtoaddress",
+                           "\"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" 10000000 10000") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("sendtoaddress",
+                           "\"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\", 10000000, 10000"));
     }
 
     EnsureWalletIsUnlocked();
@@ -303,11 +296,11 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp)
         }
 
         if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress not registered or invalid");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress not registered or invalid");
         }
 
         if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nActualFee) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "sendaddress does not have enough coins");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
         }
     } else { //sender address omitted
         if (!GetKeyId(params[0].get_str(), recvKeyId)) {
@@ -368,20 +361,21 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
             "\n create common transaction by sendaddress, recvaddress, amount, fee, height\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
-            "1. \"sendaddress\"  (string, required) The Coin address to send to.\n"
-            "2. \"recvaddress\"  (string, required) The Coin address to receive.\n"
-            "3. \"amount\"  (numeric, required)\n"
-            "4. \"fee\"     (numeric, required)\n"
-            "5. \"height\"  (int, optional)\n"
+            "1.\"sendaddress\"  (string, required) The Coin address to send to.\n"
+            "2.\"recvaddress\"  (string, required) The Coin address to receive.\n"
+            "3.\"amount\"  (numeric, required)\n"
+            "4.\"fee\"     (numeric, required)\n"
+            "5.\"height\"  (int, optional)\n"
             "\nResult:\n"
             "\"transactionid\"  (string) The transaction id.\n"
             "\nExamples:\n" +
             HelpExampleCli("gensendtoaddressraw",
                            "\"WRJAnKvf8F8xdeuaceXJXz9AcNRdVvH5JG\" "
                            "\"Wef9QkwAwBhtZaT3ASmMJzC7dt1kzo1xob\" 10000 10000 100") +
+            "\nAs json rpc call\n" +
             HelpExampleRpc("gensendtoaddressraw",
-                           "\"WRJAnKvf8F8xdeuaceXJXz9AcNRdVvH5JG\" "
-                           "\"Wef9QkwAwBhtZaT3ASmMJzC7dt1kzo1xob\" 10000 10000 100"));
+                           "\"WRJAnKvf8F8xdeuaceXJXz9AcNRdVvH5JG\", "
+                           "\"Wef9QkwAwBhtZaT3ASmMJzC7dt1kzo1xob\", 10000, 10000, 100"));
     }
 
     CKeyID sendKeyId, recvKeyId;
