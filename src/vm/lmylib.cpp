@@ -1440,7 +1440,7 @@ static bool GetDataTableWriteOutput(lua_State *L, vector<std::shared_ptr < std::
         LogPrint("vm","accountidTbl not table\n");
         return false;
     } else {
-       memcpy(temp.accountid,&vBuf[0],len);
+       memcpy(temp.accountId,&vBuf[0],len);
     }
 
     if (!(getNumberInTable(L,(char *)"operatorType",doubleValue))) {

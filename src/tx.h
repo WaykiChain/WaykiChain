@@ -200,8 +200,8 @@ protected:
 
 class CRegisterAccountTx : public CBaseTx {
 public:
-    mutable CUserID userId;   //pubkey
-    mutable CUserID minerId;  //Miner pubkey
+    mutable CUserID userId;   // pubkey
+    mutable CUserID minerId;  // miner pubkey
     uint64_t llFees;
     vector<unsigned char> signature;
 
@@ -264,10 +264,10 @@ public:
 
 class CCommonTx : public CBaseTx {
 public:
-    mutable CUserID srcRegId;   //src regid
-    mutable CUserID desUserId;  //user regid or user key id or app regid
-    uint64_t llFees;            //fees paid to miner
-    uint64_t llValues;          //transfer amount
+    mutable CUserID srcRegId;   // regid or pubkey
+    mutable CUserID desUserId;  // regid or keyid
+    uint64_t llFees;            // fees paid to miner
+    uint64_t llValues;          // transfer amount
     vector_unsigned_char memo;
     vector_unsigned_char signature;
 
@@ -275,8 +275,8 @@ public:
     CCommonTx() {
         nTxType      = COMMON_TX;
         llFees       = 0;
-        nValidHeight = 0;
         llValues     = 0;
+        nValidHeight = 0;
         memo.clear();
         signature.clear();
     }
@@ -287,7 +287,7 @@ public:
     }
 
     CCommonTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
-                       int height, vector_unsigned_char &descriptionIn) {
+              int height, vector_unsigned_char &descriptionIn) {
         if (srcRegIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
 
@@ -297,7 +297,7 @@ public:
         nTxType      = COMMON_TX;
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
-        memo  = descriptionIn;
+        memo         = descriptionIn;
         nValidHeight = height;
         llFees       = fee;
         llValues     = value;
@@ -305,7 +305,7 @@ public:
     }
 
     CCommonTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
-                       int height) {
+              int height) {
         if (srcRegIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
 
@@ -368,7 +368,7 @@ public:
 class CContractTx : public CBaseTx {
 public:
     mutable CUserID srcRegId;   // src regid
-    mutable CUserID desUserId;  // user regid or user key id or app regid
+    mutable CUserID desUserId;  // keyid or app regid
     uint64_t llFees;            // fees paid to miner
     uint64_t llValues;          // transfer amount
     vector_unsigned_char arguments;
@@ -809,7 +809,7 @@ public:
 
 class CAccount {
 public:
-    CRegID regID;
+    CRegID regID;                  //!< regID of the account
     CKeyID keyID;                  //!< keyID of the account
     CPubKey pubKey;                //!< public key of the account
     CPubKey minerPubKey;           //!< public key of the account for miner
@@ -834,7 +834,7 @@ public:
 public:
     CAccount(CKeyID &keyId, CPubKey &pubKey) : keyID(keyId), pubKey(pubKey) {
         llValues    = 0;
-        minerPubKey   = CPubKey();
+        minerPubKey = CPubKey();
         nVoteHeight = 0;
         vVoteFunds.clear();
         regID.Clean();
@@ -842,7 +842,7 @@ public:
     }
     CAccount() : keyID(uint160()), llValues(0) {
         pubKey      = CPubKey();
-        minerPubKey   = CPubKey();
+        minerPubKey = CPubKey();
         nVoteHeight = 0;
         vVoteFunds.clear();
         regID.Clean();
@@ -852,7 +852,7 @@ public:
         this->regID       = other.regID;
         this->keyID       = other.keyID;
         this->pubKey      = other.pubKey;
-        this->minerPubKey   = other.minerPubKey;
+        this->minerPubKey = other.minerPubKey;
         this->llValues    = other.llValues;
         this->nVoteHeight = other.nVoteHeight;
         this->vVoteFunds  = other.vVoteFunds;
@@ -864,7 +864,7 @@ public:
         this->regID       = other.regID;
         this->keyID       = other.keyID;
         this->pubKey      = other.pubKey;
-        this->minerPubKey   = other.minerPubKey;
+        this->minerPubKey = other.minerPubKey;
         this->llValues    = other.llValues;
         this->nVoteHeight = other.nVoteHeight;
         this->vVoteFunds  = other.vVoteFunds;

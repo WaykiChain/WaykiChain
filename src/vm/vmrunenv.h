@@ -167,7 +167,7 @@ public:
 
 enum ACCOUNT_TYPE {
     // account type
-    regid      = 0x01,  //!< Registration accountid
+    regid      = 0x01,  //!< Registration accountId
     base58addr = 0x02,  //!< pulickey
 };
 /**
@@ -176,7 +176,7 @@ enum ACCOUNT_TYPE {
 class CVmOperate{
 public:
 	unsigned char nacctype;      	//regid or base58addr
-	unsigned char accountid[34];	//!< accountid
+	unsigned char accountId[34];	//!< accountId
 	unsigned char opType;		    //!OperType
 	unsigned int  timeoutHeight;    //!< the transacion Timeout height
 	unsigned char money[8];			//!<The transfer amount
@@ -185,7 +185,7 @@ public:
 	(
 		READWRITE(nacctype);
 		for (int i = 0;i < 34;i++)
-			READWRITE(accountid[i]);
+			READWRITE(accountId[i]);
 		READWRITE(opType);
 		READWRITE(timeoutHeight);
 		for (int i = 0;i < 8;i++)
@@ -194,7 +194,7 @@ public:
 
 	CVmOperate() {
 		nacctype = regid;
-		memset(accountid, 0, 34);
+		memset(accountId, 0, 34);
 		opType = ADD_FREE;
 		timeoutHeight = 0;
 		memset(money, 0, 8);

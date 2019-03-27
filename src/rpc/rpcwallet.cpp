@@ -140,27 +140,52 @@ Value signmessage(const Array& params, bool fHelp)
     return EncodeBase64(&vchSig[0], vchSig.size());
 }
 
-static std::tuple<bool, string> SendMoney(const CRegID &sendRegId, const CUserID &recvRegId,
-    int64_t nValue, int64_t nFee) {
-    CCommonTx tx;
-    tx.srcRegId = sendRegId;
-    tx.desUserId = recvRegId;
-    tx.llValues = nValue;
-    tx.llFees = (0 == nFee) ? SysCfg().GetTxFee() : nFee;
-    tx.nValidHeight = chainActive.Tip()->nHeight;
+static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID& recvKeyId,
+                                          int64_t nValue, int64_t nFee) {
+    /**
+     * We need to choose the proper field as the sender/receiver's account according to
+     * the two factor: whether the sender's account is registered or not, whether the
+     * RegID is mature or not.
+     *
+     * |-------------------------------|-------------------|-------------------|
+     * |                               |      SENDER       |      RECEIVER     |
+     * |-------------------------------|-------------------|-------------------|
+     * | NOT registered                |     Public Key    |      Key ID       |
+     * |-------------------------------|-------------------|-------------------|
+     * | registered BUT immature       |     Public Key    |      Key ID       |
+     * |-------------------------------|-------------------|-------------------|
+     * | registered AND mature         |     Reg ID        |      Reg ID       |
+     * |-------------------------------|-------------------|-------------------|
+     */
+    CPubKey sendPubKey;
+    if (!pwalletMain->GetPubKey(sendKeyId, sendPubKey))
+        return std::make_tuple(false, "Key not found in the local wallet.");
 
-    CKeyID keyID;
-    if (!pAccountViewTip->GetKeyId(sendRegId, keyID)) {
-        return std::make_tuple(false, "key or keID failed");
-    }
-    if (!pwalletMain->Sign(keyID, tx.SignatureHash(), tx.signature)) {
-        return std::make_tuple(false, "SendMoney Sign failed");
-    }
+    int nHeight = chainActive.Height();
+    CUserID sendUserId, recvUserId;
+    CRegID sendRegId, recvRegId;
+    sendUserId = (pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId) &&
+                  nHeight - sendRegId.GetHeight() > kRegIdMaturePeriedByBlock)
+                     ? CUserID(sendRegId)
+                     : CUserID(sendPubKey);
+    recvUserId = (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) &&
+                  nHeight - recvRegId.GetHeight() > kRegIdMaturePeriedByBlock)
+                     ? CUserID(recvRegId)
+                     : CUserID(recvKeyId);
+    CCommonTx tx;
+    tx.srcRegId     = sendUserId;
+    tx.desUserId    = recvUserId;
+    tx.llValues     = nValue;
+    tx.llFees       = (0 == nFee) ? SysCfg().GetTxFee() : nFee;
+    tx.nValidHeight = nHeight;
+
+    if (!pwalletMain->Sign(sendKeyId, tx.SignatureHash(), tx.signature))
+        return std::make_tuple(false, "Sign failed");
 
     std::tuple<bool, string> ret = pwalletMain->CommitTransaction((CBaseTx *)&tx);
     bool flag = std::get<0>(ret);
     string te = std::get<1>(ret);
-    if (flag == true)
+    if (flag)
         te = tx.GetHash().ToString();
     return std::make_tuple(flag, te.c_str());
 }
@@ -185,7 +210,6 @@ Value sendtoaddress(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    CRegID sendRegId, recvRegId;
     CKeyID sendKeyId, recvKeyId;
     int64_t nAmount = 0;
     int64_t nDefaultFee = SysCfg().GetTxFee();
@@ -196,9 +220,6 @@ Value sendtoaddress(const Array& params, bool fHelp) {
 
         if (!GetKeyId(params[1].get_str(), recvKeyId))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
-
-        if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId))
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendadress not registered or invalid");
 
         nAmount = AmountToRawValue(params[2]);
         if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nDefaultFee)
@@ -216,9 +237,8 @@ Value sendtoaddress(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Wallet has no key");
 
         bool sufficientFee = false;
-        for (auto &keyId: sKeyIds) {
+        for (auto& keyId : sKeyIds) {
             if (keyId != recvKeyId &&
-                pAccountViewTip->GetRegId(CUserID(keyId), sendRegId) &&
                 (pAccountViewTip->GetRawBalance(keyId) >= nAmount + nDefaultFee)) {
                 sendKeyId     = keyId;
                 sufficientFee = true;
@@ -227,16 +247,11 @@ Value sendtoaddress(const Array& params, bool fHelp) {
         }
         if (!sufficientFee) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                "Can't find a registered account with sufficient coins in wallet to send");
+                "Can't find any account with sufficient coins in wallet to send");
         }
     }
 
-    std::tuple<bool, string> ret;
-    if (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId)) {
-        ret = SendMoney(sendRegId, recvRegId, nAmount, nDefaultFee);
-    } else { //receiver key not registered yet
-        ret = SendMoney(sendRegId, CUserID(recvKeyId), nAmount, nDefaultFee);
-    }
+    std::tuple<bool, string> ret = SendMoney(sendKeyId, recvKeyId, nAmount, nDefaultFee);
 
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
@@ -293,10 +308,6 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INSUFFICIENT_FEE, string(errorMsg));
         }
 
-        if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress not registered or invalid");
-        }
-
         if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nActualFee) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
         }
@@ -320,9 +331,8 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Wallet has no key!");
         }
         bool sufficientFee = false;
-        for (auto &keyId: sKeyIds) {
+        for (auto& keyId : sKeyIds) {
             if (keyId != recvKeyId &&
-                pAccountViewTip->GetRegId(CUserID(keyId), sendRegId) &&
                 (pAccountViewTip->GetRawBalance(keyId) >= nAmount + nDefaultFee)) {
                 sendKeyId     = keyId;
                 sufficientFee = true;
@@ -331,16 +341,11 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
         }
         if (!sufficientFee) {
             throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                "Can't find a registered account with sufficient coins in wallet to send");
+                "Can't find any account with sufficient coins in wallet to send");
         }
     }
 
-    std::tuple<bool,string> ret;
-    if (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId)) {
-        ret = SendMoney(sendRegId, recvRegId, nAmount, nFee);
-    } else { //receiver key not registered yet
-        ret = SendMoney(sendRegId, CUserID(recvKeyId), nAmount, nFee);
-    }
+    std::tuple<bool, string> ret = SendMoney(sendKeyId, recvKeyId, nAmount, nFee);
 
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
@@ -390,10 +395,9 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
 
     if (sendId.type() == typeid(CKeyID)) {
         CRegID regId;
-        if (!pAccountViewTip->GetRegId(sendId, regId)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender pubkey not registed");
+        if (pAccountViewTip->GetRegId(sendId, regId)) {
+            sendId = regId;
         }
-        sendId = regId;
     }
 
     if (!view.GetUserId(params[1].get_str(), recvId))
