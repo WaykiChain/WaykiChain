@@ -58,23 +58,24 @@ void CTxMemPool::SetScriptDBViewDB(CScriptDBViewCache *pScriptDBViewCacheIn) {
     pScriptDBViewCache = std::make_shared<CScriptDBViewCache>(*pScriptDBViewCacheIn, false);
 }
 
-void CTxMemPool::ReScanMemPoolTx(CAccountViewCache *pAccountViewCacheIn, CScriptDBViewCache *pScriptDBViewCacheIn) {
+void CTxMemPool::ReScanMemPoolTx(CAccountViewCache *pAccountViewCacheIn,
+                                 CScriptDBViewCache *pScriptDBViewCacheIn) {
     pAccountViewCache.reset(new CAccountViewCache(*pAccountViewCacheIn, true));
     pScriptDBViewCache.reset(new CScriptDBViewCache(*pScriptDBViewCacheIn, true));
     {
         LOCK(cs);
         CValidationState state;
-        for(map<uint256, CTxMemPoolEntry >::iterator iterTx = mapTx.begin(); iterTx != mapTx.end(); ) {
+        for (map<uint256, CTxMemPoolEntry>::iterator iterTx = mapTx.begin();
+             iterTx != mapTx.end();) {
             if (!CheckTxInMemPool(iterTx->first, iterTx->second, state, true)) {
                 uint256 hash = iterTx->first;
-                iterTx = mapTx.erase(iterTx++);
+                iterTx       = mapTx.erase(iterTx++);
                 uiInterface.RemoveTransaction(hash);
                 EraseTransaction(hash);
                 continue;
             }
             ++iterTx;
         }
-
     }
 }
 
