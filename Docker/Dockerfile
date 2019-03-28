@@ -16,8 +16,7 @@ RUN SHA=$(curl -s 'https://api.github.com/repos/WaykiChain/WaykiChain/commits' |
     mkdir -p /opt/src && cd /opt/src && git clone -b $branch 'https://github.com/WaykiChain/WaykiChain.git' --recursive
 RUN cd /opt/src/WaykiChain/linuxshell && sh ./linux.sh \
 && cd /opt/src/WaykiChain/ && sh ./autogen-coin-man.sh "coin${debug}" \
-&& chmod +x ./share/genbuild.sh && make \
-&& strip /opt/src/WaykiChain/src/coind \
+&& make && strip /opt/src/WaykiChain/src/coind \
 && mkdir /opt/wicc && mv /opt/src/WaykiChain/src/coind /opt/wicc/ \
 && rm -rf /opt/src
 
