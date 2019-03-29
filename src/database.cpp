@@ -711,23 +711,25 @@ bool CScriptDBViewCache::WriteTxOutPut(const uint256 &txid, const vector<CVmOper
     return SetData(vKey, vValue);
 }
 
-bool CScriptDBViewCache::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CScriptDBOperLog &operLog) {
+bool CScriptDBViewCache::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex,
+                                            const string &strTxHash, CScriptDBOperLog &operLog) {
     vector<unsigned char> vKey = {'A', 'D', 'D', 'R'};
-    vector<unsigned char> oldValue;
-    oldValue.clear();
-    GetData(vKey, oldValue);
-    operLog = CScriptDBOperLog(vKey, oldValue);
 
     CDataStream ds1(SER_DISK, CLIENT_VERSION);
     ds1 << keyId;
     ds1 << nHeight;
-    ds1 << nIndex;
     vKey.insert(vKey.end(), ds1.begin(), ds1.end());
     vector<unsigned char> vValue(strTxHash.begin(), strTxHash.end());
+
+    vector<unsigned char> oldValue;
+    oldValue.clear();
+    GetData(vKey, oldValue);
+    operLog = CScriptDBOperLog(vKey, oldValue);
     return SetData(vKey, vValue);
 }
 
-bool CScriptDBViewCache::GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &vTxHash) {
+bool CScriptDBViewCache::GetTxHashByAddress(
+    const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &vTxHash) {
     pBase->GetTxHashByAddress(keyId, nHeight, vTxHash);
 
     vector<unsigned char> vPreKey = {'A', 'D', 'D', 'R'};
@@ -736,22 +738,26 @@ bool CScriptDBViewCache::GetTxHashByAddress(const CKeyID &keyId, int nHeight, ma
     ds1 << nHeight;
     vPreKey.insert(vPreKey.end(), ds1.begin(), ds1.end());
 
-    map<vector<unsigned char>, vector<unsigned char> >::iterator iterFindKey = mapContractDb.upper_bound(vPreKey);
+    map<vector<unsigned char>, vector<unsigned char> >::iterator iterFindKey =
+        mapContractDb.upper_bound(vPreKey);
     while (iterFindKey != mapContractDb.end()) {
-        if (0 == memcmp((char *)&iterFindKey->first[0], (char *)&vPreKey[0], 24)) {
+        if (0 == memcmp((char *)&iterFindKey->first[0], (char *)&vPreKey[0], 28)) {
             if (iterFindKey->second.empty())
                 vTxHash.erase(iterFindKey->first);
             else {
                 vTxHash.insert(make_pair(iterFindKey->first, iterFindKey->second));
             }
-            ++iterFindKey;
         } else {
             break;
         }
     }
     return true;
 }
-bool CScriptDBViewCache::GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) { return pBase->GetAllScriptAcc(scriptId, mapAcc); }
+
+bool CScriptDBViewCache::GetAllScriptAcc(
+    const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) {
+    return pBase->GetAllScriptAcc(scriptId, mapAcc);
+}
 
 bool CScriptDBViewCache::ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput) {
     vector<unsigned char> vKey = {'o', 'u', 't', 'p', 'u', 't'};

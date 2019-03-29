@@ -560,12 +560,11 @@ bool CCommonTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
         if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
                                          operAddressToTxLog))
             return false;
-
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
+
         if (!scriptDB.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
                                          operAddressToTxLog))
             return false;
-
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
     }
 
@@ -775,12 +774,11 @@ bool CContractTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
         if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
                                          operAddressToTxLog))
             return false;
-
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
+
         if (!scriptDB.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
                                          operAddressToTxLog))
             return false;
-
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
     }
 
