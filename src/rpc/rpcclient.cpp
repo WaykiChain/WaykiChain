@@ -234,9 +234,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "gensendtoaddressraw"    && n > 3) ConvertTo<double>(params[3]);
     if (strMethod == "gensendtoaddressraw"    && n > 4) ConvertTo<int>(params[4]);
 
-    if (strMethod == "genregistercontractraw" && n > 0) ConvertTo<double>(params[0]);
-    if (strMethod == "genregistercontractraw" && n > 2) ConvertTo<bool>(params[2]);
-    if (strMethod == "genregistercontractraw" && n > 4) ConvertTo<int>(params[4]);
+    if (strMethod == "genregistercontractraw" && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "genregistercontractraw" && n > 3) ConvertTo<int>(params[3]);
 
     if (strMethod == "gencallcontractraw"     && n > 0) ConvertTo<double>(params[0]);
     if (strMethod == "gencallcontractraw"     && n > 1) ConvertTo<double>(params[1]);

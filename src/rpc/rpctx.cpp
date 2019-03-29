@@ -35,6 +35,8 @@ using namespace boost;
 using namespace boost::assign;
 using namespace json_spirit;
 
+const int MAX_RPC_SIG_STR_LEN = 65 * 1024; // 65K
+
 extern CAccountViewDB *pAccountViewDB;
 
 string RegIDToAddress(CUserID &userId) {
@@ -2355,88 +2357,81 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
 }
 
 Value genregistercontractraw(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 4) {
+    if (fHelp || params.size() < 3 || params.size() > 5) {
         throw runtime_error(
-            "genregistercontractraw \"height\" \"fee\" \"addr\" \"flag\" \"script or scriptid\" (\"script description\")\n"
+            "genregistercontractraw \"addr\" \"filepath\" \"fee\"  \"height\" (\"script description\")\n"
             "\nregister script\n"
             "\nArguments:\n"
-            "1.\"fee\": (numeric required) pay to miner\n"
-            "2.\"addr\": (string required)\n from address that registers the contract"
-            "3.\"flag\": (bool, required) 0-1\n"
-            "4.\"script or scriptid\": (string required), if flag=0 is script's file path, else if flag=1 scriptid\n"
-            "5.\"height\": (int required) valid height\n"
-            "6.\"script description\":(string optional) new script description\n"
+            "1.\"addr\": (string required)\n from address that registers the contract"
+            "2.\"filepath\": (string required), script's file path\n"
+            "3.\"fee\": (numeric required) pay to miner\n"
+            "4.\"height\": (int optional) valid height\n"
+            "5.\"script description\":(string optional) new script description\n"
             "\nResult:\n"
             "\"txhash\": (string)\n"
             "\nExamples:\n"
             + HelpExampleCli("genregistercontractraw",
-                    "\"10\" \"10000\" \"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"1\" \"010203040506\" ")
+                    "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/hello.lua\" \"10000\" ")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("genregistercontractraw",
-                    "\"10\" \"10000\" \"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"1\" \"010203040506\" "));
+                    "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/hello.lua\" \"10000\" "));
     }
 
-    RPCTypeCheck(params, list_of(real_type)(str_type)(int_type)(str_type)(int_type)(str_type));
-
-    uint64_t fee = AmountToRawValue(params[0]);
+    RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
 
     CVmScript vmScript;
     vector<unsigned char> vscript;
-    int flag = params[2].get_bool();
-    if (0 == flag) {
-        string luaScriptFilePath = GetAbsolutePath(params[3].get_str()).string();
-        if (luaScriptFilePath.empty())
-            throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Lua Script file not exist!");
+    string luaScriptFilePath = GetAbsolutePath(params[1].get_str()).string();
+    if (luaScriptFilePath.empty())
+        throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Lua Script file not exist!");
 
-        if (luaScriptFilePath.compare(0, contractScriptPathPrefix.size(), contractScriptPathPrefix.c_str()) != 0)
-            throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir!");
+    if (luaScriptFilePath.compare(0, contractScriptPathPrefix.size(), contractScriptPathPrefix.c_str()) != 0)
+        throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir!");
 
-        FILE* file = fopen(luaScriptFilePath.c_str(), "rb+");
-        if (!file)
-            throw runtime_error("genregistercontractraw open App Lua Script file" + luaScriptFilePath + "error");
+    FILE* file = fopen(luaScriptFilePath.c_str(), "rb+");
+    if (!file)
+        throw runtime_error("genregistercontractraw open App Lua Script file" + luaScriptFilePath + "error");
 
-        long lSize;
-        fseek(file, 0, SEEK_END);
-        lSize = ftell(file);
-        rewind(file);
+    long lSize;
+    fseek(file, 0, SEEK_END);
+    lSize = ftell(file);
+    rewind(file);
 
-        // allocate memory to contain the whole file:
-        char *buffer = (char*) malloc(sizeof(char) * lSize);
-        if (buffer == NULL) {
-            fclose(file);//及时关闭
-            throw runtime_error("allocate memory failed");
-        }
-
-        if (fread(buffer, 1, lSize, file) != (size_t) lSize) {
-            free(buffer);
-            fclose(file);//及时关闭
-            throw runtime_error("read contract script file error");
-        } else {
-            fclose(file);
-        }
-        vmScript.GetRom().insert(vmScript.GetRom().end(), buffer, buffer + lSize);
-        if (buffer)
-            free(buffer);
-
-        CDataStream ds(SER_DISK, CLIENT_VERSION);
-        ds << vmScript;
-
-        vscript.assign(ds.begin(), ds.end());
-    } else if (1 == flag) {
-        vscript = ParseHex(params[3].get_str());
+    // allocate memory to contain the whole file:
+    char *buffer = (char*) malloc(sizeof(char) * lSize);
+    if (buffer == NULL) {
+        fclose(file);//及时关闭
+        throw runtime_error("allocate memory failed");
     }
 
-    if (params.size() > 5) {
-        string memo = params[5].get_str();
+    if (fread(buffer, 1, lSize, file) != (size_t) lSize) {
+        free(buffer);
+        fclose(file);//及时关闭
+        throw runtime_error("read contract script file error");
+    } else {
+        fclose(file);
+    }
+    vmScript.GetRom().insert(vmScript.GetRom().end(), buffer, buffer + lSize);
+    if (buffer)
+        free(buffer);
+
+    CDataStream dsScript(SER_DISK, CLIENT_VERSION);
+    dsScript << vmScript;
+
+    vscript.assign(dsScript.begin(), dsScript.end());
+
+    if (params.size() > 4) {
+        string memo = params[4].get_str();
         vmScript.GetMemo().insert(vmScript.GetMemo().end(), memo.begin(), memo.end());
     }
 
+    uint64_t fee = params[2].get_uint64();
     if (fee > 0 && fee < CBaseTx::nMinTxFee) {
         throw runtime_error("Error: fee smaller than nMinTxFee\n");
     }
     //get keyid
     CKeyID keyid;
-    if (!GetKeyId(params[2].get_str(), keyid)) {
+    if (!GetKeyId(params[0].get_str(), keyid)) {
         throw runtime_error("Error: from address invalid\n");
     }
 
@@ -2452,14 +2447,6 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Error: Account not registered.");
     }
 
-    if (flag) {
-        vector<unsigned char> vscriptcontent;
-        CRegID regid(params[2].get_str());
-        if (!pScriptDBTip->GetScript(CRegID(vscript), vscriptcontent)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Error: contract RegId not exist");
-        }
-    }
-
     std::shared_ptr<CRegisterContractTx> tx = std::make_shared<CRegisterContractTx>();
     CRegID regId;
     view.GetRegId(keyid, regId);
@@ -2469,8 +2456,8 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
     tx.get()->llFees = fee;
 
     uint32_t height = chainActive.Tip()->nHeight;
-    if (params.size() > 4) {
-        height =  params[4].get_int();
+    if (params.size() > 3) {
+        height =  params[3].get_int();
     }
     tx.get()->nValidHeight = height;
 
@@ -2487,15 +2474,18 @@ Value sigstr(const Array& params, bool fHelp) {
         throw runtime_error("sigstr \"str\" \"addr\"\n"
                 "\nsignature transaction\n"
                 "\nArguments:\n"
-                "1.\"str\": (string, required) sig str\n"
+                "1.\"str\": (string, required) sig str, hex format, can not longer than 65K in binary bytes\n"
                 "2.\"addr\": (string, required)\n"
                 "\nExamples:\n"
-                + HelpExampleCli("sigstr", "\"123-1\" \"W5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" ")
+                + HelpExampleCli("sigstr", "\"0501800a03800a0129\" \"W5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" ")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("sigstr", "\"123-1\" \"W5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG 010203040506\" "));
+                + HelpExampleRpc("sigstr", "\"0501800a03800a0129\" \"W5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" "));
     }
 
     vector<unsigned char> vch(ParseHex(params[0].get_str()));
+    if (vch.size() > MAX_RPC_SIG_STR_LEN) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "The sig str is too long");
+    }
 
     string addr = params[1].get_str();
     CKeyID keyid;
