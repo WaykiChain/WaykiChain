@@ -3142,28 +3142,27 @@ Value listtxbyaddr(const Array& params, bool fHelp) {
 
     string address = params[0].get_str();
     int height     = params[1].get_int();
+    if (height < 0 || height > chainActive.Height())
+        throw runtime_error("Height out of range.");
+
+    CKeyID keyId;
+    if (!GetKeyId(address, keyId))
+        throw runtime_error("Address invalid.");
+
+    CScriptDBViewCache scriptDbView(*pScriptDBTip, true);
+    map<vector<unsigned char>, vector<unsigned char>> mapTxHash;
+    if (!scriptDbView.GetTxHashByAddress(keyId, height, mapTxHash))
+        throw runtime_error("Failed to fetch data.");
 
     Object obj;
-    {
-        CScriptDBViewCache scriptDbView(*pScriptDBTip, true);
-        map<vector<unsigned char>, vector<unsigned char>> mapTxHash;
-        vector<string> vTxArray;
-        CKeyID keyId;
-        if (!GetKeyId(address, keyId)) {
-            throw runtime_error("listtxbyaddr : input address invalid!\n");
-        }
-        if (!scriptDbView.GetTxHashByAddress(keyId, height, mapTxHash)) {
-            throw runtime_error("call GetTxHashByAddress failed!\n");
-            ;
-        }
-        obj.push_back(Pair("address", address));
-        obj.push_back(Pair("height", height));
-        Array arrayObj;
-        for (auto item : mapTxHash) {
-            arrayObj.push_back(string(item.second.begin(), item.second.end()));
-        }
-        obj.push_back(Pair("txarray", arrayObj));
+    Array arrayObj;
+    for (auto item : mapTxHash) {
+        arrayObj.push_back(string(item.second.begin(), item.second.end()));
     }
+    obj.push_back(Pair("address", address));
+    obj.push_back(Pair("height", height));
+    obj.push_back(Pair("txarray", arrayObj));
+
     return obj;
 }
 
