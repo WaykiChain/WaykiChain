@@ -3124,32 +3124,37 @@ Value gettotalassets(const Array& params, bool fHelp) {
 }
 
 Value listtxbyaddr(const Array& params, bool fHelp) {
-    if(fHelp || params.size() != 2) {
-        throw runtime_error("listtxbyaddr \n"
+    if (fHelp || params.size() != 2) {
+        throw runtime_error(
+            "listtxbyaddr \n"
             "\nlist all transactions by their sender/receiver addresss\n"
             "\nArguments:\n"
-            "1.\"address\": (string, required) \n"
-            "2.\"height\": (numeric, required) \n"
-                "\nResult: address related tx hash as array\n"
-            "\nExamples:\n"
-            + HelpExampleCli("listtxbyaddr", "\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"10023\"")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("listtxbyaddr", "\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" \"10023\""));
+            "1.\"address\": (string, required)\n"
+            "2.\"height\": (numeric, required)\n"
+            "\nResult: address related tx hash as array\n"
+            "\nExamples:\n" +
+            HelpExampleCli("listtxbyaddr",
+                           "\"wcoA7yUW4fc4m6a2HSk36t4VVxzKUnvq4S\" \"10000\"") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("listtxbyaddr",
+                           "\"wcoA7yUW4fc4m6a2HSk36t4VVxzKUnvq4S\", \"10000\""));
     }
+
     string address = params[0].get_str();
-    int height = params[1].get_int();
+    int height     = params[1].get_int();
 
     Object obj;
     {
         CScriptDBViewCache scriptDbView(*pScriptDBTip, true);
-        map<vector<unsigned char>, vector<unsigned char> > mapTxHash;
+        map<vector<unsigned char>, vector<unsigned char>> mapTxHash;
         vector<string> vTxArray;
         CKeyID keyId;
-        if(!GetKeyId(address, keyId)) {
-             throw runtime_error("listtxbyaddr : input address invalid!\n");
+        if (!GetKeyId(address, keyId)) {
+            throw runtime_error("listtxbyaddr : input address invalid!\n");
         }
-        if(!scriptDbView.GetTxHashByAddress(keyId, height, mapTxHash)) {
-             throw runtime_error("call GetTxHashByAddress failed!\n");;
+        if (!scriptDbView.GetTxHashByAddress(keyId, height, mapTxHash)) {
+            throw runtime_error("call GetTxHashByAddress failed!\n");
+            ;
         }
         obj.push_back(Pair("address", address));
         obj.push_back(Pair("height", height));
@@ -3157,7 +3162,7 @@ Value listtxbyaddr(const Array& params, bool fHelp) {
         for (auto item : mapTxHash) {
             arrayObj.push_back(string(item.second.begin(), item.second.end()));
         }
-        obj.push_back(Pair("txarray",arrayObj));
+        obj.push_back(Pair("txarray", arrayObj));
     }
     return obj;
 }
