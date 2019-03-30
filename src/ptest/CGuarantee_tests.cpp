@@ -26,7 +26,7 @@ using namespace json_spirit;
     "KeyID" : "000f047f75144705b0c7f4eb30d205cd66f4599a",
     "RegID" : "1826-1437",
     "PublicKey" : "02bbb24c80a808cb6eb13de90c1dca99196bfce02bcf32812b7c4357a368877c68",
-    "MinerPKey" : "02d546cc51b22621b093f08c679102b9b8ca3f1a07ea1d751de3f67c10670e635b",
+    "minerPubKey" : "02d546cc51b22621b093f08c679102b9b8ca3f1a07ea1d751de3f67c10670e635b",
     "Balance" : 129999825142,
     "CoinDays" : 0,
     "UpdateHeight" : 45433,

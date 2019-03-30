@@ -438,9 +438,9 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         if (!pwalletMain->GetPubKey(keyid, pubkey))
             throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: local wallet key not found.");
 
-        CPubKey MinerPKey;
-        if (pwalletMain->GetPubKey(keyid, MinerPKey, true)) {
-            rtx.minerId = MinerPKey;
+        CPubKey minerPubKey;
+        if (pwalletMain->GetPubKey(keyid, minerPubKey, true)) {
+            rtx.minerId = minerPubKey;
         } else {
             CNullID nullId;
             rtx.minerId = nullId;
@@ -1488,8 +1488,8 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                     pwalletMain->GetPubKey(keyid, minerpk, true);
                     account.pubKey = pk;
                     account.keyID = pk.GetKeyID();
-                    if (pk != minerpk && !account.MinerPKey.IsValid()) {
-                        account.MinerPKey = minerpk;
+                    if (pk != minerpk && !account.minerPubKey.IsValid()) {
+                        account.minerPubKey = minerpk;
                     }
                 }
             }
@@ -1503,7 +1503,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 account.pubKey = pk;
                 account.keyID = pk.GetKeyID();
                 if (minerpk != pk) {
-                    account.MinerPKey = minerpk;
+                    account.minerPubKey = minerpk;
                 }
                 obj = account.ToJsonObj(true);
                 obj.push_back(Pair("position", "inwallet"));

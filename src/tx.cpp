@@ -366,10 +366,10 @@ bool CRegisterAccountTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
 
     account.regID = regId;
     if (typeid(CPubKey) == minerId.type()) {
-        account.MinerPKey = boost::get<CPubKey>(minerId);
-        if (account.MinerPKey.IsValid() && !account.MinerPKey.IsFullyValid()) {
-            return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, MinerPKey:%s Is Invalid",
-                account.MinerPKey.ToString()), UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
+        account.minerPubKey = boost::get<CPubKey>(minerId);
+        if (account.minerPubKey.IsValid() && !account.minerPubKey.IsFullyValid()) {
+            return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, minerPubKey:%s Is Invalid",
+                account.minerPubKey.ToString()), UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
         }
     }
 
@@ -417,7 +417,7 @@ bool CRegisterAccountTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVal
     if (!oldAccount.IsEmptyValue()) {
         CPubKey empPubKey;
         oldAccount.pubKey = empPubKey;
-        oldAccount.MinerPKey = empPubKey;
+        oldAccount.minerPubKey = empPubKey;
         CUserID userId(keyId);
         view.SetAccount(userId, oldAccount);
     } else {
@@ -1568,7 +1568,7 @@ Object CAccount::ToJsonObj(bool isAddress) const
     obj.push_back(Pair("Address",       keyID.ToAddress()));
     obj.push_back(Pair("KeyID",         keyID.ToString()));
     obj.push_back(Pair("PublicKey",     pubKey.ToString()));
-    obj.push_back(Pair("MinerPKey",     MinerPKey.ToString()));
+    obj.push_back(Pair("MinerPKey",     minerPubKey.ToString()));
     obj.push_back(Pair("RegID",         regID.ToString()));
     obj.push_back(Pair("Balance",       llValues));
     obj.push_back(Pair("UpdateHeight",  nVoteHeight));
@@ -1581,7 +1581,7 @@ string CAccount::ToString(bool isAddress) const {
     string str;
     str += strprintf("regID=%s, keyID=%s, publicKey=%s, minerpubkey=%s, values=%ld updateHeight=%d llVotes=%lld\n",
         regID.ToString(), keyID.GetHex().c_str(), pubKey.ToString().c_str(),
-        MinerPKey.ToString().c_str(), llValues, nVoteHeight, llVotes);
+        minerPubKey.ToString().c_str(), llValues, nVoteHeight, llVotes);
     str += "vVoteFunds list: \n";
     for (auto & fund : vVoteFunds) {
         str += fund.ToString(isAddress);

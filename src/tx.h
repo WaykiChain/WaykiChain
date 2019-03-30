@@ -812,7 +812,7 @@ public:
     CRegID regID;
     CKeyID keyID;                  //!< keyID of the account
     CPubKey pubKey;                //!< public key of the account
-    CPubKey MinerPKey;             //!< public key of the account for miner
+    CPubKey minerPubKey;             //!< public key of the account for miner
     uint64_t llValues;             //!< total money
     uint64_t nVoteHeight;          //!< account vote block height
     vector<CVoteFund> vVoteFunds;  //!< account delegate votes order by vote value
@@ -834,7 +834,7 @@ public:
 public:
     CAccount(CKeyID &keyId, CPubKey &pubKey) : keyID(keyId), pubKey(pubKey) {
         llValues    = 0;
-        MinerPKey   = CPubKey();
+        minerPubKey   = CPubKey();
         nVoteHeight = 0;
         vVoteFunds.clear();
         regID.Clean();
@@ -842,7 +842,7 @@ public:
     }
     CAccount() : keyID(uint160()), llValues(0) {
         pubKey      = CPubKey();
-        MinerPKey   = CPubKey();
+        minerPubKey   = CPubKey();
         nVoteHeight = 0;
         vVoteFunds.clear();
         regID.Clean();
@@ -852,7 +852,7 @@ public:
         this->regID       = other.regID;
         this->keyID       = other.keyID;
         this->pubKey      = other.pubKey;
-        this->MinerPKey   = other.MinerPKey;
+        this->minerPubKey   = other.minerPubKey;
         this->llValues    = other.llValues;
         this->nVoteHeight = other.nVoteHeight;
         this->vVoteFunds  = other.vVoteFunds;
@@ -864,7 +864,7 @@ public:
         this->regID       = other.regID;
         this->keyID       = other.keyID;
         this->pubKey      = other.pubKey;
-        this->MinerPKey   = other.MinerPKey;
+        this->minerPubKey   = other.minerPubKey;
         this->llValues    = other.llValues;
         this->nVoteHeight = other.nVoteHeight;
         this->vVoteFunds  = other.vVoteFunds;
@@ -890,7 +890,7 @@ public:
     bool IsEmptyValue() const { return !(llValues > 0); }
     uint256 GetHash() {
         CHashWriter ss(SER_GETHASH, 0);
-        ss << regID << keyID << pubKey << MinerPKey << VARINT(llValues)
+        ss << regID << keyID << pubKey << minerPubKey << VARINT(llValues)
            << VARINT(nVoteHeight) << vVoteFunds << llVotes;
         return ss.GetHash();
     }
@@ -900,7 +900,7 @@ public:
         READWRITE(regID);
         READWRITE(keyID);
         READWRITE(pubKey);
-        READWRITE(MinerPKey);
+        READWRITE(minerPubKey);
         READWRITE(VARINT(llValues));
         READWRITE(VARINT(nVoteHeight));
         READWRITE(vVoteFunds);
