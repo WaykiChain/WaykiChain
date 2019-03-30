@@ -389,10 +389,7 @@ Value getnetworkinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("localaddresses", localAddresses));
     return obj;
 }
-/*
- *   获取最近 N个块状态信息: getchainstate  param
- *
- * */
+
 Value getchainstate(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
         throw runtime_error(
@@ -402,14 +399,14 @@ Value getchainstate(const Array& params, bool fHelp) {
             "1.num   (numeric, required) The number of the most recent blocks.\n"
             "\nResult:\n"
             "{\n"
-            "  \"blocktime\": n,   (numeric) the time of each block\n"
+            "  \"blocktime\": n, (numeric) the time of each block\n"
             "  \"transactions\": n, (numeric) number of transactions within each block\n"
             "  \"fuel\": n, (numeric) fuel of each block\n"
             "  \"miner\": n, (string) RegId of the miner of each block\n"
             "}\n"
             "\nExamples:\n" +
-            HelpExampleCli("getchainstate", "\"5\"") +
-            HelpExampleRpc("getchainstate", "\"5\""));
+            HelpExampleCli("getchainstate", "5") + "\nAs json rpc call\n" +
+            HelpExampleRpc("getchainstate", "5"));
 
     RPCTypeCheck(params, list_of(int_type));
 
