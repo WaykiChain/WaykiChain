@@ -821,7 +821,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             if (!view.GetAccount(CUserID(delegateKeyId), delegateAcct)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address is not registered.");
             }
-            operVoteFund.fund.pubKey = delegateAcct.PublicKey;
+            operVoteFund.fund.pubKey = delegateAcct.pubKey;
             operVoteFund.fund.value  = (uint64_t)abs(delegateVotes.get_int64());
             if (delegateVotes.get_int64() > 0) {
                 operVoteFund.operType = ADD_FUND;
@@ -944,7 +944,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                    "Voted delegator's address is not registered.");
             }
-            operVoteFund.fund.pubKey = delegateAcct.PublicKey;
+            operVoteFund.fund.pubKey = delegateAcct.pubKey;
             operVoteFund.fund.value  = (uint64_t)abs(delegateVotes.get_int64());
             if (delegateVotes.get_int64() > 0) {
                 operVoteFund.operType = ADD_FUND;
@@ -1481,12 +1481,12 @@ Value getaccountinfo(const Array& params, bool fHelp) {
         CAccount account;
         CAccountViewCache accView(*pAccountViewTip, true);
         if (accView.GetAccount(userId, account)) {
-            if (!account.PublicKey.IsValid()) {
+            if (!account.pubKey.IsValid()) {
                 CPubKey pk;
                 CPubKey minerpk;
                 if (pwalletMain->GetPubKey(keyid, pk)) {
                     pwalletMain->GetPubKey(keyid, minerpk, true);
-                    account.PublicKey = pk;
+                    account.pubKey = pk;
                     account.keyID = pk.GetKeyID();
                     if (pk != minerpk && !account.MinerPKey.IsValid()) {
                         account.MinerPKey = minerpk;
@@ -1500,7 +1500,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             CPubKey minerpk;
             if (pwalletMain->GetPubKey(keyid, pk)) {
                 pwalletMain->GetPubKey(keyid, minerpk, true);
-                account.PublicKey = pk;
+                account.pubKey = pk;
                 account.keyID = pk.GetKeyID();
                 if (minerpk != pk) {
                     account.MinerPKey = minerpk;

@@ -811,7 +811,7 @@ class CAccount {
 public:
     CRegID regID;
     CKeyID keyID;                  //!< keyID of the account
-    CPubKey PublicKey;             //!< public key of the account
+    CPubKey pubKey;                //!< public key of the account
     CPubKey MinerPKey;             //!< public key of the account for miner
     uint64_t llValues;             //!< total money
     uint64_t nVoteHeight;          //!< account vote block height
@@ -832,7 +832,7 @@ public:
     bool OperateVote(VoteOperType type, const uint64_t &values);
 
 public:
-    CAccount(CKeyID &keyId, CPubKey &pubKey) : keyID(keyId), PublicKey(pubKey) {
+    CAccount(CKeyID &keyId, CPubKey &pubKey) : keyID(keyId), pubKey(pubKey) {
         llValues    = 0;
         MinerPKey   = CPubKey();
         nVoteHeight = 0;
@@ -841,7 +841,7 @@ public:
         llVotes = 0;
     }
     CAccount() : keyID(uint160()), llValues(0) {
-        PublicKey   = CPubKey();
+        pubKey      = CPubKey();
         MinerPKey   = CPubKey();
         nVoteHeight = 0;
         vVoteFunds.clear();
@@ -851,7 +851,7 @@ public:
     CAccount(const CAccount &other) {
         this->regID       = other.regID;
         this->keyID       = other.keyID;
-        this->PublicKey   = other.PublicKey;
+        this->pubKey      = other.pubKey;
         this->MinerPKey   = other.MinerPKey;
         this->llValues    = other.llValues;
         this->nVoteHeight = other.nVoteHeight;
@@ -863,7 +863,7 @@ public:
             return *this;
         this->regID       = other.regID;
         this->keyID       = other.keyID;
-        this->PublicKey   = other.PublicKey;
+        this->pubKey      = other.pubKey;
         this->MinerPKey   = other.MinerPKey;
         this->llValues    = other.llValues;
         this->nVoteHeight = other.nVoteHeight;
@@ -872,7 +872,7 @@ public:
         return *this;
     }
     std::shared_ptr<CAccount> GetNewInstance() const { return std::make_shared<CAccount>(*this); }
-    bool IsRegistered() const { return (PublicKey.IsFullyValid() && PublicKey.GetKeyID() == keyID); }
+    bool IsRegistered() const { return (pubKey.IsFullyValid() && pubKey.GetKeyID() == keyID); }
     bool SetRegId(const CRegID &regID) {
         this->regID = regID;
         return true;
@@ -890,7 +890,7 @@ public:
     bool IsEmptyValue() const { return !(llValues > 0); }
     uint256 GetHash() {
         CHashWriter ss(SER_GETHASH, 0);
-        ss << regID << keyID << PublicKey << MinerPKey << VARINT(llValues)
+        ss << regID << keyID << pubKey << MinerPKey << VARINT(llValues)
            << VARINT(nVoteHeight) << vVoteFunds << llVotes;
         return ss.GetHash();
     }
@@ -899,7 +899,7 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(regID);
         READWRITE(keyID);
-        READWRITE(PublicKey);
+        READWRITE(pubKey);
         READWRITE(MinerPKey);
         READWRITE(VARINT(llValues));
         READWRITE(VARINT(nVoteHeight));

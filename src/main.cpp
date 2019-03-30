@@ -1357,7 +1357,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                 CKeyID keyId        = pubKey.GetKeyID();
                 sourceAccount.keyID = keyId;
                 sourceAccount.SetRegId(accountId);
-                sourceAccount.PublicKey = pubKey;
+                sourceAccount.pubKey = pubKey;
                 sourceAccount.llValues  = pRewardTx->rewardValue;
                 assert(view.SaveAccountInfo(accountId, keyId, sourceAccount));
             } else if (block.vptx[i]->nTxType == DELEGATE_TX) {
@@ -1374,7 +1374,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                     if (operFund.fund.value > maxVotes) {
                         maxVotes = operFund.fund.value;
                     }
-                    if (voteAcct.PublicKey == operFund.fund.pubKey) {
+                    if (voteAcct.pubKey == operFund.fund.pubKey) {
                         voteAcct.llVotes = operFund.fund.value;
                         assert(scriptDBCache.SetDelegateData(voteAcct, operDbLog));
                     } else {
@@ -1383,7 +1383,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                         CRegID delegateRegId(pindex->nHeight, j++);
                         delegateAcct.keyID = operFund.fund.pubKey.GetKeyID();
                         delegateAcct.SetRegId(delegateRegId);
-                        delegateAcct.PublicKey = operFund.fund.pubKey;
+                        delegateAcct.pubKey = operFund.fund.pubKey;
                         delegateAcct.llVotes   = operFund.fund.value;
                         assert(view.SaveAccountInfo(delegateRegId, delegateAcct.keyID, delegateAcct));
                         assert(scriptDBCache.SetDelegateData(delegateAcct, operDbLog));

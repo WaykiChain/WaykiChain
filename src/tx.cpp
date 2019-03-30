@@ -246,7 +246,7 @@ bool CBaseTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
         }
         if (COMMON_TX == nTxType
                 && (account.IsEmptyValue()
-                        && (!account.PublicKey.IsFullyValid() || account.PublicKey.GetKeyID() != account.keyID))) {
+                        && (!account.pubKey.IsFullyValid() || account.pubKey.GetKeyID() != account.keyID))) {
             view.EraseAccount(userId);
         } else {
             if (!view.SetAccount(userId, account)) {
@@ -354,11 +354,11 @@ bool CRegisterAccountTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CAccountLog acctLog(account);
-    if (account.PublicKey.IsFullyValid() && account.PublicKey.GetKeyID() == keyId)
+    if (account.pubKey.IsFullyValid() && account.pubKey.GetKeyID() == keyId)
         return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, read source keyId %s duplicate register",
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
 
-    account.PublicKey = boost::get<CPubKey>(userId);
+    account.pubKey = boost::get<CPubKey>(userId);
     if (llFees > 0)
         if (!account.OperateAccount(MINUS_FREE, llFees, nHeight))
             return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, not sufficient funds in account, keyid=%s",
@@ -416,7 +416,7 @@ bool CRegisterAccountTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVal
 
     if (!oldAccount.IsEmptyValue()) {
         CPubKey empPubKey;
-        oldAccount.PublicKey = empPubKey;
+        oldAccount.pubKey = empPubKey;
         oldAccount.MinerPKey = empPubKey;
         CUserID userId(keyId);
         view.SetAccount(userId, oldAccount);
@@ -662,7 +662,7 @@ bool CCommonTx::CheckTransaction(CValidationState &state, CAccountViewCache &vie
     }
 
     uint256 sighash = SignatureHash();
-    if (!CheckSignScript(sighash, signature, srcAccount.PublicKey))
+    if (!CheckSignScript(sighash, signature, srcAccount.pubKey))
         return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, CheckSignScript failed"),
             REJECT_INVALID, "bad-signscript-check");
 
@@ -914,7 +914,7 @@ bool CContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &v
     }
 
     uint256 sighash = SignatureHash();
-    if (!CheckSignScript(sighash, signature, srcAccount.PublicKey))
+    if (!CheckSignScript(sighash, signature, srcAccount.pubKey))
         return state.DoS(100, ERRORMSG("CContractTx::CheckTransaction, CheckSignScript failed"),
             REJECT_INVALID, "bad-signscript-check");
 
@@ -1216,7 +1216,7 @@ bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountView
     }
 
     uint256 signhash = SignatureHash();
-    if (!CheckSignScript(signhash, signature, acctInfo.PublicKey)) {
+    if (!CheckSignScript(signhash, signature, acctInfo.pubKey)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, CheckSignScript failed"),
             REJECT_INVALID, "bad-signscript-check");
     }
@@ -1379,7 +1379,7 @@ bool CDelegateTx::CheckTransaction(CValidationState &state, CAccountViewCache &v
         }
 
         uint256 signhash = SignatureHash();
-        if (!CheckSignScript(signhash, signature, sendAcct.PublicKey)) {
+        if (!CheckSignScript(signhash, signature, sendAcct.pubKey)) {
             return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTx CheckTransaction, CheckSignScript failed"),
                 REJECT_INVALID, "bad-signscript-check");
         }
@@ -1567,7 +1567,7 @@ Object CAccount::ToJsonObj(bool isAddress) const
     Object obj;
     obj.push_back(Pair("Address",       keyID.ToAddress()));
     obj.push_back(Pair("KeyID",         keyID.ToString()));
-    obj.push_back(Pair("PublicKey",     PublicKey.ToString()));
+    obj.push_back(Pair("PublicKey",     pubKey.ToString()));
     obj.push_back(Pair("MinerPKey",     MinerPKey.ToString()));
     obj.push_back(Pair("RegID",         regID.ToString()));
     obj.push_back(Pair("Balance",       llValues));
@@ -1580,7 +1580,7 @@ Object CAccount::ToJsonObj(bool isAddress) const
 string CAccount::ToString(bool isAddress) const {
     string str;
     str += strprintf("regID=%s, keyID=%s, publicKey=%s, minerpubkey=%s, values=%ld updateHeight=%d llVotes=%lld\n",
-        regID.ToString(), keyID.GetHex().c_str(), PublicKey.ToString().c_str(),
+        regID.ToString(), keyID.GetHex().c_str(), pubKey.ToString().c_str(),
         MinerPKey.ToString().c_str(), llValues, nVoteHeight, llVotes);
     str += "vVoteFunds list: \n";
     for (auto & fund : vVoteFunds) {

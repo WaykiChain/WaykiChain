@@ -279,7 +279,7 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
             return ERRORMSG("Signature size of block invalid, hash=%s", blockHash.ToString());
         }
 
-        if (!CheckSignScript(blockHash, blockSignature, account.PublicKey))
+        if (!CheckSignScript(blockHash, blockSignature, account.pubKey))
             if (!CheckSignScript(blockHash, blockSignature, account.MinerPKey))
                 return ERRORMSG("Verify miner publickey signature error");
     } else {
