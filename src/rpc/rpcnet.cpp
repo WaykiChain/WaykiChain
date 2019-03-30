@@ -13,9 +13,11 @@
 
 #include <boost/foreach.hpp>
 #include <boost/assign/list_of.hpp>
+#include <boost/assign/list_of.hpp>
 
 #include "json/json_spirit_value.h"
 
+using namespace boost::assign;
 using namespace json_spirit;
 using namespace std;
 
@@ -387,62 +389,56 @@ Value getnetworkinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("localaddresses", localAddresses));
     return obj;
 }
-/*
- *   获取最近 N个块状态信息: getchainstate  param
- *
- * */
-Value getchainstate(const Array& params, bool fHelp)
-{
+
+Value getchainstate(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
         throw runtime_error(
             "getchainstate \"num\"\n"
             "\nget the chain state by the most recent blocks.\n"
             "\nArguments:\n"
-            "1.num   (numeric,required, > 0) The number of the most recent blocks.\n"
+            "1.num   (numeric, required) The number of the most recent blocks, number is no more "
+            "than 1000.\n"
             "\nResult:\n"
             "{\n"
-            "  \"blocktime\": n,   (numeric) the time of each block\n"
+            "  \"blocktime\": n, (numeric) the time of each block\n"
             "  \"transactions\": n, (numeric) number of transactions within each block\n"
             "  \"fuel\": n, (numeric) fuel of each block\n"
             "  \"miner\": n, (string) RegId of the miner of each block\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getchainstate", "\"5\"")
-            + HelpExampleRpc("getchainstate", "\"5\"")
-       );
+            "\nExamples:\n" +
+            HelpExampleCli("getchainstate", "5") + "\nAs json rpc call\n" +
+            HelpExampleRpc("getchainstate", "5"));
 
-    int i = 0,nHeight = 0;
-    if (int_type == params[0].type()) {
-        nHeight = params[0].get_int();
-        if(nHeight < 1)
-            throw runtime_error("Block number out of range.");
-        if(nHeight > chainActive.Height()) {   //防止超过最大高度
-            nHeight = chainActive.Height();
-        }
-    }
-    CBlockIndex * pBlockIndex = chainActive.Tip();
+    RPCTypeCheck(params, list_of(int_type));
+
+    int nHeight = params[0].get_int();
+    if (nHeight < 1 || nHeight > chainActive.Height() || nHeight > kMostRecentBlockNumberThreshold)
+        throw runtime_error("Block number out of range.");
+
+    CBlockIndex* pBlockIndex = chainActive.Tip();
     CBlock block;
     Array blocktime;
-    Array difficulty;
     Array transactions;
     Array fuel;
     Array blockminer;
 
-    for (i = 0; (i < nHeight) && (pBlockIndex != NULL); i++) {
+    for (int i = 0; (i < nHeight) && (pBlockIndex != NULL); i++) {
         blocktime.push_back(pBlockIndex->GetBlockTime());
         transactions.push_back((int)pBlockIndex->nTx);
         fuel.push_back(pBlockIndex->nFuel);
         block.SetNull();
         if (ReadBlockFromDisk(block, pBlockIndex)) {
-            string miner(boost::get<CRegID>(dynamic_pointer_cast<CRewardTx>(block.vptx[0])->account).ToString());
-            blockminer.push_back(move(miner));
+            blockminer.push_back(
+                boost::get<CRegID>(dynamic_pointer_cast<CRewardTx>(block.vptx[0])->account)
+                    .ToString());
         }
         pBlockIndex = pBlockIndex->pprev;
     }
+
     Object obj;
     obj.push_back(Pair("blocktime", blocktime));
     obj.push_back(Pair("transactions", transactions));
     obj.push_back(Pair("fuel", fuel));
-    obj.push_back(Pair("miner",blockminer));
+    obj.push_back(Pair("miner", blockminer));
     return obj;
 }
