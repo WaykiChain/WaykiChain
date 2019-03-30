@@ -397,7 +397,7 @@ Value getchainstate(const Array& params, bool fHelp) {
             "\nget the chain state by the most recent blocks.\n"
             "\nArguments:\n"
             "1.num   (numeric, required) The number of the most recent blocks, number is no more "
-            "than 100\n"
+            "than 100.\n"
             "\nResult:\n"
             "{\n"
             "  \"blocktime\": n, (numeric) the time of each block\n"
