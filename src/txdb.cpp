@@ -157,7 +157,7 @@ bool CAccountViewDB::SetAccount(const CKeyID &keyId, const CAccount &secureAccou
     bool ret = db.Write(make_pair('k', keyId), secureAccount);
     assert(!secureAccount.keyID.IsEmpty());
     assert(!secureAccount.regID.IsEmpty());
-    assert(secureAccount.PublicKey.IsValid());
+    assert(secureAccount.pubKey.IsValid());
     return ret;
 }
 

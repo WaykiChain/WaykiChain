@@ -68,7 +68,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountViewCache& view, int
         return false;
     }
     isCheckAccount = vmScript.IsCheckAccount();
-    if (contractTx->arguments.size() >= nContractArgumentMaxSize) {
+    if (contractTx->arguments.size() >= kContractArgumentMaxSize) {
         LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() arguments context size too large");
         return false;
     }

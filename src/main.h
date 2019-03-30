@@ -96,31 +96,22 @@ static const unsigned char UPDATE_ACCOUNT_FAIL = 0X53;
 static const unsigned char READ_SCRIPT_FAIL  = 0X61;
 static const unsigned char WRITE_SCRIPT_FAIL = 0X62;
 
-//extern CScript COINBASE_FLAGS;
+// hardcode to avoid fork for mainnet only
+static const int kCheckDelegateTxSignatureForkHeight  = 2116535;    //fork height at which delegate tx signature check effects
+static const int kCheckTxFeeForkHeight                = 2400000;    //fork height at which every tx fees limited check effects
+static const int kFreezeBlackAcctHeight               = 99854;
+
+static const uint64_t kMinDiskSpace           = 52428800;  // Minimum disk space required
+static const int kContractScriptMaxSize       = 65536;     // 64 KB max for contract script size
+static const int kContractArgumentMaxSize     = 4096;      // 4 KB max for contract argument size
+static const string kContractScriptPathPrefix = "/tmp/lua/";
+
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
 extern map<uint256, CBlockIndex *> mapBlockIndex;
 extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern const string strMessageMagic;
-
-// Minimum disk space required - used in CheckDiskSpace()
-static const uint64_t nMinDiskSpace = 52428800;
-
-// hardcode to avoid fork for mainnet only
-static const int nCheckDelegateTxSignatureForkHeight  = 2116535;    //fork height at which delegate tx signature check effects
-static const int nCheckTxFeeForkHeight                = 2400000;    //fork height at which every tx fees limited check effects
-static const int nTwelveForwardLimits                 = 28000;      //修改限制block时间不能超过本地时间12分钟
-static const int nFixedDifficulty                     = 35001;      //此高度前的block不检查难度，通过checkpoint保证
-static const int nNextWorkRequired                    = 85000;      //修改难度校验算法
-static const int nFreezeBlackAcctHeight               = 99854;
-static const int nUpdateTxVersion2Height              = 196000;     //主链在此高度后不再接受交易版本为nTxVersion1的交易
-static const int nUpdateBlockVersionHeight            = 209000;     //主链在此高度后，block版本升级
-
-static const int nContractScriptMaxSize               = 65536;      //64 KB max for contract script size
-static const int nContractArgumentMaxSize             = 4096;       //4 KB max for contract argument size
-static const int kMostRecentBlockNumberThreshold      = 1000;       //most recent block number threshold
-static const string contractScriptPathPrefix          = "/tmp/lua/";
 
 class CCoinsDB;
 class CBlockTreeDB;

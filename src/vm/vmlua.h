@@ -21,9 +21,9 @@ public:
 
 private:
     // to hold contract call arguments
-    unsigned char contractCallArguments[nContractArgumentMaxSize + 2];
+    unsigned char contractCallArguments[kContractArgumentMaxSize + 2];
     // to hold contract script content
-    unsigned char contractScript[nContractScriptMaxSize];
+    unsigned char contractScript[kContractScriptMaxSize];
 };
 
 #endif

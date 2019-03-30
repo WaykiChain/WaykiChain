@@ -35,7 +35,7 @@ public:
      * @return
      */
     bool IsValid() {
-        if ((rom.size() > nContractScriptMaxSize) || (rom.size() <= 0))
+        if ((rom.size() > kContractScriptMaxSize) || (rom.size() <= 0))
             return false;
 
         if (!memcmp(&rom[0], kLuaScriptHeadLine, strlen(kLuaScriptHeadLine)))

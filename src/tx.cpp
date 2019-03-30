@@ -246,7 +246,7 @@ bool CBaseTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
         }
         if (COMMON_TX == nTxType
                 && (account.IsEmptyValue()
-                        && (!account.PublicKey.IsFullyValid() || account.PublicKey.GetKeyID() != account.keyID))) {
+                        && (!account.pubKey.IsFullyValid() || account.pubKey.GetKeyID() != account.keyID))) {
             view.EraseAccount(userId);
         } else {
             if (!view.SetAccount(userId, account)) {
@@ -329,7 +329,7 @@ int CBaseTx::GetFuelRate(CScriptDBViewCache &scriptDB)
 bool CBaseTx::CheckMinTxFee(uint64_t llFees)
 {
     NET_TYPE networkID = SysCfg().NetworkID();
-    if ( (networkID == MAIN_NET && nValidHeight > nCheckTxFeeForkHeight) //for mainnet, need hardcode here, compatible with old data
+    if ( (networkID == MAIN_NET && nValidHeight > kCheckTxFeeForkHeight) //for mainnet, need hardcode here, compatible with old data
         || (networkID == TEST_NET && nValidHeight > 100000) // for testnet, need hardcode here, compatible with old data
         || (networkID == REGTEST_NET) ) {  // for regtest net, must do the check
         return llFees >= nMinTxFee;
@@ -354,11 +354,11 @@ bool CRegisterAccountTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CAccountLog acctLog(account);
-    if (account.PublicKey.IsFullyValid() && account.PublicKey.GetKeyID() == keyId)
+    if (account.pubKey.IsFullyValid() && account.pubKey.GetKeyID() == keyId)
         return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, read source keyId %s duplicate register",
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
 
-    account.PublicKey = boost::get<CPubKey>(userId);
+    account.pubKey = boost::get<CPubKey>(userId);
     if (llFees > 0)
         if (!account.OperateAccount(MINUS_FREE, llFees, nHeight))
             return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, not sufficient funds in account, keyid=%s",
@@ -366,10 +366,10 @@ bool CRegisterAccountTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
 
     account.regID = regId;
     if (typeid(CPubKey) == minerId.type()) {
-        account.MinerPKey = boost::get<CPubKey>(minerId);
-        if (account.MinerPKey.IsValid() && !account.MinerPKey.IsFullyValid()) {
-            return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, MinerPKey:%s Is Invalid",
-                account.MinerPKey.ToString()), UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
+        account.minerPubKey = boost::get<CPubKey>(minerId);
+        if (account.minerPubKey.IsValid() && !account.minerPubKey.IsFullyValid()) {
+            return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterAccountTx ExecuteTx, minerPubKey:%s Is Invalid",
+                account.minerPubKey.ToString()), UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
         }
     }
 
@@ -416,8 +416,8 @@ bool CRegisterAccountTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVal
 
     if (!oldAccount.IsEmptyValue()) {
         CPubKey empPubKey;
-        oldAccount.PublicKey = empPubKey;
-        oldAccount.MinerPKey = empPubKey;
+        oldAccount.pubKey = empPubKey;
+        oldAccount.minerPubKey = empPubKey;
         CUserID userId(keyId);
         view.SetAccount(userId, oldAccount);
     } else {
@@ -662,7 +662,7 @@ bool CCommonTx::CheckTransaction(CValidationState &state, CAccountViewCache &vie
     }
 
     uint256 sighash = SignatureHash();
-    if (!CheckSignScript(sighash, signature, srcAccount.PublicKey))
+    if (!CheckSignScript(sighash, signature, srcAccount.pubKey))
         return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, CheckSignScript failed"),
             REJECT_INVALID, "bad-signscript-check");
 
@@ -878,7 +878,7 @@ Object CContractTx::ToJson(const CAccountViewCache &AccountView) const {
 
 bool CContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &view,
                                             CScriptDBViewCache &scriptDB) {
-    if (arguments.size() >= nContractArgumentMaxSize)
+    if (arguments.size() >= kContractArgumentMaxSize)
         return state.DoS(100, ERRORMSG("CContractTx::CheckTransaction, arguments's size too large"),
                          REJECT_INVALID, "arguments-size-toolarge");
 
@@ -914,7 +914,7 @@ bool CContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &v
     }
 
     uint256 sighash = SignatureHash();
-    if (!CheckSignScript(sighash, signature, srcAccount.PublicKey))
+    if (!CheckSignScript(sighash, signature, srcAccount.pubKey))
         return state.DoS(100, ERRORMSG("CContractTx::CheckTransaction, CheckSignScript failed"),
             REJECT_INVALID, "bad-signscript-check");
 
@@ -1216,7 +1216,7 @@ bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountView
     }
 
     uint256 signhash = SignatureHash();
-    if (!CheckSignScript(signhash, signature, acctInfo.PublicKey)) {
+    if (!CheckSignScript(signhash, signature, acctInfo.pubKey)) {
         return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, CheckSignScript failed"),
             REJECT_INVALID, "bad-signscript-check");
     }
@@ -1370,7 +1370,7 @@ bool CDelegateTx::CheckTransaction(CValidationState &state, CAccountViewCache &v
     }
 
     NET_TYPE netowrkID = SysCfg().NetworkID();
-    if ( (netowrkID == MAIN_NET && nValidHeight > nCheckDelegateTxSignatureForkHeight) // for mainnet, need hardcode here, compatible with 7 old unsigned votes
+    if ( (netowrkID == MAIN_NET && nValidHeight > kCheckDelegateTxSignatureForkHeight) // for mainnet, need hardcode here, compatible with 7 old unsigned votes
         || (netowrkID == TEST_NET || netowrkID == REGTEST_NET) ) { // for testnet or regtest, must do the check
 
         if (!CheckSignatureSize(signature)) {
@@ -1379,7 +1379,7 @@ bool CDelegateTx::CheckTransaction(CValidationState &state, CAccountViewCache &v
         }
 
         uint256 signhash = SignatureHash();
-        if (!CheckSignScript(signhash, signature, sendAcct.PublicKey)) {
+        if (!CheckSignScript(signhash, signature, sendAcct.pubKey)) {
             return state.DoS(100, ERRORMSG("CheckTransaction() : CDelegateTx CheckTransaction, CheckSignScript failed"),
                 REJECT_INVALID, "bad-signscript-check");
         }
@@ -1567,8 +1567,8 @@ Object CAccount::ToJsonObj(bool isAddress) const
     Object obj;
     obj.push_back(Pair("Address",       keyID.ToAddress()));
     obj.push_back(Pair("KeyID",         keyID.ToString()));
-    obj.push_back(Pair("PublicKey",     PublicKey.ToString()));
-    obj.push_back(Pair("MinerPKey",     MinerPKey.ToString()));
+    obj.push_back(Pair("PublicKey",     pubKey.ToString()));
+    obj.push_back(Pair("MinerPKey",     minerPubKey.ToString()));
     obj.push_back(Pair("RegID",         regID.ToString()));
     obj.push_back(Pair("Balance",       llValues));
     obj.push_back(Pair("UpdateHeight",  nVoteHeight));
@@ -1580,8 +1580,8 @@ Object CAccount::ToJsonObj(bool isAddress) const
 string CAccount::ToString(bool isAddress) const {
     string str;
     str += strprintf("regID=%s, keyID=%s, publicKey=%s, minerpubkey=%s, values=%ld updateHeight=%d llVotes=%lld\n",
-        regID.ToString(), keyID.GetHex().c_str(), PublicKey.ToString().c_str(),
-        MinerPKey.ToString().c_str(), llValues, nVoteHeight, llVotes);
+        regID.ToString(), keyID.GetHex().c_str(), pubKey.ToString().c_str(),
+        minerPubKey.ToString().c_str(), llValues, nVoteHeight, llVotes);
     str += "vVoteFunds list: \n";
     for (auto & fund : vVoteFunds) {
         str += fund.ToString(isAddress);

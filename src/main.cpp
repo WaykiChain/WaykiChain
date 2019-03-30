@@ -572,7 +572,7 @@ int CMerkleTx::SetMerkleBranch(const CBlock *pblock) {
 }
 
 bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> signature, const CPubKey pubKey) {
-    int64_t nTimeStart = GetTimeMicros();    
+    int64_t nTimeStart = GetTimeMicros();
     if (signatureCache.Get(sigHash, signature, pubKey))
         return true;
 
@@ -581,7 +581,7 @@ bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> si
 
     signatureCache.Set(sigHash, signature, pubKey);
     int64_t nSpentTime = GetTimeMicros() - nTimeStart;
-    LogPrint(LOG_CATEGORY_BENCH, "- Verify Signature with secp256k1: %.2fms\n", MILLI * nSpentTime);    
+    LogPrint(LOG_CATEGORY_BENCH, "- Verify Signature with secp256k1: %.2fms\n", MILLI * nSpentTime);
     return true;
 }
 
@@ -1357,7 +1357,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                 CKeyID keyId        = pubKey.GetKeyID();
                 sourceAccount.keyID = keyId;
                 sourceAccount.SetRegId(accountId);
-                sourceAccount.PublicKey = pubKey;
+                sourceAccount.pubKey = pubKey;
                 sourceAccount.llValues  = pRewardTx->rewardValue;
                 assert(view.SaveAccountInfo(accountId, keyId, sourceAccount));
             } else if (block.vptx[i]->nTxType == DELEGATE_TX) {
@@ -1374,7 +1374,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                     if (operFund.fund.value > maxVotes) {
                         maxVotes = operFund.fund.value;
                     }
-                    if (voteAcct.PublicKey == operFund.fund.pubKey) {
+                    if (voteAcct.pubKey == operFund.fund.pubKey) {
                         voteAcct.llVotes = operFund.fund.value;
                         assert(scriptDBCache.SetDelegateData(voteAcct, operDbLog));
                     } else {
@@ -1383,7 +1383,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                         CRegID delegateRegId(pindex->nHeight, j++);
                         delegateAcct.keyID = operFund.fund.pubKey.GetKeyID();
                         delegateAcct.SetRegId(delegateRegId);
-                        delegateAcct.PublicKey = operFund.fund.pubKey;
+                        delegateAcct.pubKey = operFund.fund.pubKey;
                         delegateAcct.llVotes   = operFund.fund.value;
                         assert(view.SaveAccountInfo(delegateRegId, delegateAcct.keyID, delegateAcct));
                         assert(scriptDBCache.SetDelegateData(delegateAcct, operDbLog));
@@ -2806,8 +2806,8 @@ bool AbortNode(const string &strMessage) {
 bool CheckDiskSpace(uint64_t nAdditionalBytes) {
     uint64_t nFreeBytesAvailable = filesystem::space(GetDataDir()).available;
 
-    // Check for nMinDiskSpace bytes (currently 50MB)
-    if (nFreeBytesAvailable < nMinDiskSpace + nAdditionalBytes)
+    // Check for kMinDiskSpace bytes (currently 50MB)
+    if (nFreeBytesAvailable < kMinDiskSpace + nAdditionalBytes)
         return AbortNode(_("Error: Disk space is low!"));
 
     return true;

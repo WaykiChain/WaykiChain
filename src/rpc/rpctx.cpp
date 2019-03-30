@@ -438,9 +438,9 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         if (!pwalletMain->GetPubKey(keyid, pubkey))
             throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: local wallet key not found.");
 
-        CPubKey MinerPKey;
-        if (pwalletMain->GetPubKey(keyid, MinerPKey, true)) {
-            rtx.minerId = MinerPKey;
+        CPubKey minerPubKey;
+        if (pwalletMain->GetPubKey(keyid, minerPubKey, true)) {
+            rtx.minerId = minerPubKey;
         } else {
             CNullID nullId;
             rtx.minerId = nullId;
@@ -517,8 +517,8 @@ Value callcontracttx(const Array& params, bool fHelp) {
 
     //argument-4: contract (Hex input)
     vector<unsigned char> arguments = ParseHex(params[3].get_str());
-    if (arguments.size() >= nContractArgumentMaxSize) {
-        throw runtime_error("in callcontracttx : arguments's size is larger than nContractArgumentMaxSize\n");
+    if (arguments.size() >= kContractArgumentMaxSize) {
+        throw runtime_error("in callcontracttx : arguments's size is larger than kContractArgumentMaxSize\n");
     }
 
     //argument-5: fee
@@ -606,7 +606,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     if (luaScriptFilePath.empty())
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Lua Script file not exist!");
 
-    if (luaScriptFilePath.compare(0, contractScriptPathPrefix.size(), contractScriptPathPrefix.c_str()) != 0)
+    if (luaScriptFilePath.compare(0, kContractScriptPathPrefix.size(), kContractScriptPathPrefix.c_str()) != 0)
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir!");
 
     std::tuple<bool, string> result = CVmlua::CheckScriptSyntax(luaScriptFilePath.c_str());
@@ -623,7 +623,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     lSize = ftell(file);
     rewind(file);
 
-    if (lSize <= 0 || lSize > nContractScriptMaxSize) { // contract script file size must be <= 64 KB)
+    if (lSize <= 0 || lSize > kContractScriptMaxSize) { // contract script file size must be <= 64 KB)
         fclose(file);
         throw JSONRPCError(RPC_INVALID_PARAMS, (lSize == -1) ? "File size is unknown" : ((lSize == 0) ? "File is empty" : "File size exceeds 64 KB limit."));
     }
@@ -821,7 +821,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             if (!view.GetAccount(CUserID(delegateKeyId), delegateAcct)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address is not registered.");
             }
-            operVoteFund.fund.pubKey = delegateAcct.PublicKey;
+            operVoteFund.fund.pubKey = delegateAcct.pubKey;
             operVoteFund.fund.value  = (uint64_t)abs(delegateVotes.get_int64());
             if (delegateVotes.get_int64() > 0) {
                 operVoteFund.operType = ADD_FUND;
@@ -944,7 +944,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                    "Voted delegator's address is not registered.");
             }
-            operVoteFund.fund.pubKey = delegateAcct.PublicKey;
+            operVoteFund.fund.pubKey = delegateAcct.pubKey;
             operVoteFund.fund.value  = (uint64_t)abs(delegateVotes.get_int64());
             if (delegateVotes.get_int64() > 0) {
                 operVoteFund.operType = ADD_FUND;
@@ -1481,15 +1481,15 @@ Value getaccountinfo(const Array& params, bool fHelp) {
         CAccount account;
         CAccountViewCache accView(*pAccountViewTip, true);
         if (accView.GetAccount(userId, account)) {
-            if (!account.PublicKey.IsValid()) {
+            if (!account.pubKey.IsValid()) {
                 CPubKey pk;
                 CPubKey minerpk;
                 if (pwalletMain->GetPubKey(keyid, pk)) {
                     pwalletMain->GetPubKey(keyid, minerpk, true);
-                    account.PublicKey = pk;
+                    account.pubKey = pk;
                     account.keyID = pk.GetKeyID();
-                    if (pk != minerpk && !account.MinerPKey.IsValid()) {
-                        account.MinerPKey = minerpk;
+                    if (pk != minerpk && !account.minerPubKey.IsValid()) {
+                        account.minerPubKey = minerpk;
                     }
                 }
             }
@@ -1500,10 +1500,10 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             CPubKey minerpk;
             if (pwalletMain->GetPubKey(keyid, pk)) {
                 pwalletMain->GetPubKey(keyid, minerpk, true);
-                account.PublicKey = pk;
+                account.pubKey = pk;
                 account.keyID = pk.GetKeyID();
                 if (minerpk != pk) {
-                    account.MinerPKey = minerpk;
+                    account.minerPubKey = minerpk;
                 }
                 obj = account.ToJsonObj(true);
                 obj.push_back(Pair("position", "inwallet"));
@@ -2322,8 +2322,8 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
         throw runtime_error("invalid contract_regid: %s" + sUserRegId);
     }
     vector<unsigned char> arguments = ParseHex(params[4].get_str());
-    if (arguments.size() >= nContractArgumentMaxSize) {
-        throw runtime_error("input arguments'size larger than nContractArgumentMaxSize");
+    if (arguments.size() >= kContractArgumentMaxSize) {
+        throw runtime_error("input arguments'size larger than kContractArgumentMaxSize");
     }
     int height = (params.size() == 6) ? params[5].get_int() : chainActive.Tip()->nHeight;
 
@@ -2385,7 +2385,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
     if (luaScriptFilePath.empty())
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Lua Script file not exist!");
 
-    if (luaScriptFilePath.compare(0, contractScriptPathPrefix.size(), contractScriptPathPrefix.c_str()) != 0)
+    if (luaScriptFilePath.compare(0, kContractScriptPathPrefix.size(), kContractScriptPathPrefix.c_str()) != 0)
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir!");
 
     FILE* file = fopen(luaScriptFilePath.c_str(), "rb+");

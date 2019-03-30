@@ -195,7 +195,7 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
     pBlock->SetTime(currentTime);
 
     vector<unsigned char> vSign;
-    if (pwalletMain->Sign(delegate.keyID, pBlock->SignatureHash(), vSign, delegate.MinerPKey.IsValid())) {
+    if (pwalletMain->Sign(delegate.keyID, pBlock->SignatureHash(), vSign, delegate.minerPubKey.IsValid())) {
         pBlock->SetSignature(vSign);
         return true;
     } else {
@@ -279,8 +279,8 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
             return ERRORMSG("Signature size of block invalid, hash=%s", blockHash.ToString());
         }
 
-        if (!CheckSignScript(blockHash, blockSignature, account.PublicKey))
-            if (!CheckSignScript(blockHash, blockSignature, account.MinerPKey))
+        if (!CheckSignScript(blockHash, blockSignature, account.pubKey))
+            if (!CheckSignScript(blockHash, blockSignature, account.minerPubKey))
                 return ERRORMSG("Verify miner publickey signature error");
     } else {
         return ERRORMSG("AccountView has no accountid");

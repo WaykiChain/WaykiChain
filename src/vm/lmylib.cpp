@@ -978,10 +978,10 @@ static int ExGetAccountPublickeyFunc(lua_State *L) {
     }
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     vector<char> te;
-    tep << aAccount.PublicKey;
-//    assert(aAccount.PublicKey.IsFullyValid());
-    if(false == aAccount.PublicKey.IsFullyValid()){
-        return RetFalse("ExGetAccountPublickeyFunc PublicKey invalid");
+    tep << aAccount.pubKey;
+//    assert(aAccount.pubKey.IsFullyValid());
+    if(false == aAccount.pubKey.IsFullyValid()){
+        return RetFalse("ExGetAccountPublickeyFunc pubKey invalid");
     }
     tep >>te;
     vector<unsigned char> tep1(te.begin(),te.end());
@@ -1875,7 +1875,7 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
     int64_t step =-1;
     while (count--) {
         ss >> temp;
-        if(pVmRunEnv->GetComfirmHeight() > nFreezeBlackAcctHeight && temp.mMoney < 0) //不能小于0,防止 上层传错金额小于20150904
+        if(pVmRunEnv->GetComfirmHeight() > kFreezeBlackAcctHeight && temp.mMoney < 0) //不能小于0,防止 上层传错金额小于20150904
             return RetFalse("ExWriteOutAppOperateFunc para err2");
 
         pVmRunEnv->InsertOutAPPOperte(temp.GetAppUserV(),temp);
