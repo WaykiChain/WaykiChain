@@ -329,7 +329,7 @@ int CBaseTx::GetFuelRate(CScriptDBViewCache &scriptDB)
 bool CBaseTx::CheckMinTxFee(uint64_t llFees)
 {
     NET_TYPE networkID = SysCfg().NetworkID();
-    if ( (networkID == MAIN_NET && nValidHeight > nCheckTxFeeForkHeight) //for mainnet, need hardcode here, compatible with old data
+    if ( (networkID == MAIN_NET && nValidHeight > kCheckTxFeeForkHeight) //for mainnet, need hardcode here, compatible with old data
         || (networkID == TEST_NET && nValidHeight > 100000) // for testnet, need hardcode here, compatible with old data
         || (networkID == REGTEST_NET) ) {  // for regtest net, must do the check
         return llFees >= nMinTxFee;
@@ -1370,7 +1370,7 @@ bool CDelegateTx::CheckTransaction(CValidationState &state, CAccountViewCache &v
     }
 
     NET_TYPE netowrkID = SysCfg().NetworkID();
-    if ( (netowrkID == MAIN_NET && nValidHeight > nCheckDelegateTxSignatureForkHeight) // for mainnet, need hardcode here, compatible with 7 old unsigned votes
+    if ( (netowrkID == MAIN_NET && nValidHeight > kCheckDelegateTxSignatureForkHeight) // for mainnet, need hardcode here, compatible with 7 old unsigned votes
         || (netowrkID == TEST_NET || netowrkID == REGTEST_NET) ) { // for testnet or regtest, must do the check
 
         if (!CheckSignatureSize(signature)) {
