@@ -515,8 +515,8 @@ Value callcontracttx(const Array& params, bool fHelp) {
 
     //argument-4: contract (Hex input)
     vector<unsigned char> arguments = ParseHex(params[3].get_str());
-    if (arguments.size() >= nContractArgumentMaxSize) {
-        throw runtime_error("in callcontracttx : arguments's size is larger than nContractArgumentMaxSize\n");
+    if (arguments.size() >= kContractArgumentMaxSize) {
+        throw runtime_error("in callcontracttx : arguments's size is larger than kContractArgumentMaxSize\n");
     }
 
     //argument-5: fee
@@ -604,7 +604,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     if (luaScriptFilePath.empty())
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Lua Script file not exist!");
 
-    if (luaScriptFilePath.compare(0, contractScriptPathPrefix.size(), contractScriptPathPrefix.c_str()) != 0)
+    if (luaScriptFilePath.compare(0, kContractScriptPathPrefix.size(), kContractScriptPathPrefix.c_str()) != 0)
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir!");
 
     std::tuple<bool, string> result = CVmlua::CheckScriptSyntax(luaScriptFilePath.c_str());
@@ -621,7 +621,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     lSize = ftell(file);
     rewind(file);
 
-    if (lSize <= 0 || lSize > nContractScriptMaxSize) { // contract script file size must be <= 64 KB)
+    if (lSize <= 0 || lSize > kContractScriptMaxSize) { // contract script file size must be <= 64 KB)
         fclose(file);
         throw JSONRPCError(RPC_INVALID_PARAMS, (lSize == -1) ? "File size is unknown" : ((lSize == 0) ? "File is empty" : "File size exceeds 64 KB limit."));
     }
@@ -2320,8 +2320,8 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
         throw runtime_error("invalid contract_regid: %s" + sUserRegId);
     }
     vector<unsigned char> arguments = ParseHex(params[4].get_str());
-    if (arguments.size() >= nContractArgumentMaxSize) {
-        throw runtime_error("input arguments'size larger than nContractArgumentMaxSize");
+    if (arguments.size() >= kContractArgumentMaxSize) {
+        throw runtime_error("input arguments'size larger than kContractArgumentMaxSize");
     }
     int height = (params.size() == 6) ? params[5].get_int() : chainActive.Tip()->nHeight;
 
@@ -2388,7 +2388,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
         if (luaScriptFilePath.empty())
             throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Lua Script file not exist!");
 
-        if (luaScriptFilePath.compare(0, contractScriptPathPrefix.size(), contractScriptPathPrefix.c_str()) != 0)
+        if (luaScriptFilePath.compare(0, kContractScriptPathPrefix.size(), kContractScriptPathPrefix.c_str()) != 0)
             throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir!");
 
         FILE* file = fopen(luaScriptFilePath.c_str(), "rb+");

@@ -878,7 +878,7 @@ Object CContractTx::ToJson(const CAccountViewCache &AccountView) const {
 
 bool CContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &view,
                                             CScriptDBViewCache &scriptDB) {
-    if (arguments.size() >= nContractArgumentMaxSize)
+    if (arguments.size() >= kContractArgumentMaxSize)
         return state.DoS(100, ERRORMSG("CContractTx::CheckTransaction, arguments's size too large"),
                          REJECT_INVALID, "arguments-size-toolarge");
 

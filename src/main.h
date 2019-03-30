@@ -96,10 +96,10 @@ static const unsigned char UPDATE_ACCOUNT_FAIL = 0X53;
 static const unsigned char READ_SCRIPT_FAIL  = 0X61;
 static const unsigned char WRITE_SCRIPT_FAIL = 0X62;
 
-static const uint64_t nMinDiskSpace          = 52428800;  // Minimum disk space required
-static const int nContractScriptMaxSize      = 65536;     // 64 KB max for contract script size
-static const int nContractArgumentMaxSize    = 4096;      // 4 KB max for contract argument size
-static const string contractScriptPathPrefix = "/tmp/lua/";
+static const uint64_t kMinDiskSpace           = 52428800;  // Minimum disk space required
+static const int kContractScriptMaxSize       = 65536;     // 64 KB max for contract script size
+static const int kContractArgumentMaxSize     = 4096;      // 4 KB max for contract argument size
+static const string kContractScriptPathPrefix = "/tmp/lua/";
 
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
