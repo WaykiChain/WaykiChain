@@ -2374,7 +2374,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
                     "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/hello.lua\" \"10000\" ")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("genregistercontractraw",
-                    "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/hello.lua\" \"10000\" "));
+                    "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"/tmp/lua/hello.lua\", \"10000\" "));
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
@@ -2479,7 +2479,7 @@ Value sigstr(const Array& params, bool fHelp) {
                 "\nExamples:\n"
                 + HelpExampleCli("sigstr", "\"0501800a03800a0129\" \"W5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" ")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("sigstr", "\"0501800a03800a0129\" \"W5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" "));
+                + HelpExampleRpc("sigstr", "\"0501800a03800a0129\", \"W5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" "));
     }
 
     vector<unsigned char> vch(ParseHex(params[0].get_str()));
