@@ -397,7 +397,7 @@ Value getchainstate(const Array& params, bool fHelp) {
             "\nget the chain state by the most recent blocks.\n"
             "\nArguments:\n"
             "1.num   (numeric, required) The number of the most recent blocks, number is no more "
-            "than 100.\n"
+            "than 1000.\n"
             "\nResult:\n"
             "{\n"
             "  \"blocktime\": n, (numeric) the time of each block\n"
@@ -412,7 +412,7 @@ Value getchainstate(const Array& params, bool fHelp) {
     RPCTypeCheck(params, list_of(int_type));
 
     int nHeight = params[0].get_int();
-    if (nHeight < 1 || nHeight > chainActive.Height() || nHeight > kMaxBlockNumberInBatch)
+    if (nHeight < 1 || nHeight > chainActive.Height() || nHeight > kMostRecentBlockNumberThreshold)
         throw runtime_error("Block number out of range.");
 
     CBlockIndex* pBlockIndex = chainActive.Tip();

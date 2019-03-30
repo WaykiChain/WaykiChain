@@ -119,7 +119,7 @@ static const int nUpdateBlockVersionHeight            = 209000;     //主链在�
 
 static const int nContractScriptMaxSize               = 65536;      //64 KB max for contract script size
 static const int nContractArgumentMaxSize             = 4096;       //4 KB max for contract argument size
-static const int kMaxBlockNumberInBatch               = 100;
+static const int kMostRecentBlockNumberThreshold      = 1000;       //most recent block number threshold
 static const string contractScriptPathPrefix          = "/tmp/lua/";
 
 class CCoinsDB;
