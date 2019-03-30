@@ -396,7 +396,8 @@ Value getchainstate(const Array& params, bool fHelp) {
             "getchainstate \"num\"\n"
             "\nget the chain state by the most recent blocks.\n"
             "\nArguments:\n"
-            "1.num   (numeric, required) The number of the most recent blocks, number is no more than 100\n"
+            "1.num   (numeric, required) The number of the most recent blocks, number is no more "
+            "than 100\n"
             "\nResult:\n"
             "{\n"
             "  \"blocktime\": n, (numeric) the time of each block\n"
@@ -417,7 +418,6 @@ Value getchainstate(const Array& params, bool fHelp) {
     CBlockIndex* pBlockIndex = chainActive.Tip();
     CBlock block;
     Array blocktime;
-    Array difficulty;
     Array transactions;
     Array fuel;
     Array blockminer;
@@ -428,9 +428,9 @@ Value getchainstate(const Array& params, bool fHelp) {
         fuel.push_back(pBlockIndex->nFuel);
         block.SetNull();
         if (ReadBlockFromDisk(block, pBlockIndex)) {
-            string miner(boost::get<CRegID>(dynamic_pointer_cast<CRewardTx>(block.vptx[0])->account)
-                             .ToString());
-            blockminer.push_back(move(miner));
+            blockminer.push_back(
+                boost::get<CRegID>(dynamic_pointer_cast<CRewardTx>(block.vptx[0])->account)
+                    .ToString());
         }
         pBlockIndex = pBlockIndex->pprev;
     }
