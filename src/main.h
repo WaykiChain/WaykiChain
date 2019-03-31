@@ -101,10 +101,11 @@ static const int kCheckDelegateTxSignatureForkHeight  = 2116535;    //fork heigh
 static const int kCheckTxFeeForkHeight                = 2400000;    //fork height at which every tx fees limited check effects
 static const int kFreezeBlackAcctHeight               = 99854;
 
-static const uint64_t kMinDiskSpace           = 52428800;  // Minimum disk space required
-static const int kContractScriptMaxSize       = 65536;     // 64 KB max for contract script size
-static const int kContractArgumentMaxSize     = 4096;      // 4 KB max for contract argument size
-static const string kContractScriptPathPrefix = "/tmp/lua/";
+static const uint64_t kMinDiskSpace              = 52428800;  // Minimum disk space required
+static const int kContractScriptMaxSize          = 65536;     // 64 KB max for contract script size
+static const int kContractArgumentMaxSize        = 4096;      // 4 KB max for contract argument size
+static const int kMostRecentBlockNumberThreshold = 1000;      // most recent block number threshold
+static const string kContractScriptPathPrefix    = "/tmp/lua/";
 
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
