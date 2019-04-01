@@ -2618,7 +2618,12 @@ Value decoderawtx(const Array& params, bool fHelp)
         }
     }
         break;
-    case REWARD_TX:
+    case REWARD_TX: {
+        std::shared_ptr<CRewardTx> tx = std::make_shared<CRewardTx>(pBaseTx.get());
+        if (tx.get()) {
+            obj = tx->ToJson(view);
+        }
+    }
         break;
     case REG_CONT_TX: {
         std::shared_ptr<CRegisterContractTx> tx = std::make_shared<CRegisterContractTx>(pBaseTx.get());
