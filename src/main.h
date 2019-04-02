@@ -98,7 +98,7 @@ static const unsigned char WRITE_SCRIPT_FAIL = 0X62;
 
 // hardcode to avoid fork for mainnet only
 static const int kCheckDelegateTxSignatureForkHeight  = 2116535;    //fork height at which delegate tx signature check effects
-static const int kCheckTxFeeForkHeight                = 2400000;    //fork height at which every tx fees limited check effects
+static const int kCheckTxFeeForkHeight                = 2800000;    //fork height at which every tx fees limited check effects
 static const int kFreezeBlackAcctHeight               = 99854;
 
 static const uint64_t kMinDiskSpace              = 52428800;  // Minimum disk space required
