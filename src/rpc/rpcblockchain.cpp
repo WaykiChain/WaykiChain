@@ -502,3 +502,98 @@ Value reconsiderblock(const Array& params, bool fHelp) {
     obj.push_back(Pair("msg", "success"));
     return obj;
 }
+
+void static TxGenerator(int64_t period, int64_t batchSize) {
+    SetThreadPriority(THREAD_PRIORITY_NORMAL);
+    RenameThread("Tx-generator");
+
+    CCoinSecret vchSecret;
+    vchSecret.SetString("Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13");
+    CKey key = vchSecret.GetKey();
+    CCommonTx tx;
+    CRegID srcRegId("0-1");
+    CRegID desRegId("0-1");
+    static uint64_t llValue = 10000;  // use static variable to keep autoincrement
+    uint64_t llFees         = SysCfg().GetTxFee();
+
+    while (true) {
+        // add interruption point
+        boost::this_thread::interruption_point();
+
+        int64_t nStart       = GetTimeMillis();
+        int32_t nValidHeight = chainActive.Tip()->nHeight;
+
+        for (int64_t i = 0; i < batchSize; ++i) {
+            // int64_t nBenchStart = GetTimeMicros();
+            tx.srcRegId         = srcRegId;
+            tx.desUserId        = desRegId;
+            tx.llValues         = llValue++;
+            tx.llFees           = llFees;
+            tx.nValidHeight     = nValidHeight;
+            // LogPrint("LOG_CATEGORY_BENCH", "construct: %ld\n", GetTimeMicros() - nBenchStart);
+            // nBenchStart = GetTimeMicros();
+
+            // sign transaction
+            key.Sign(tx.SignatureHash(), tx.signature);
+            // LogPrint("LOG_CATEGORY_BENCH", "Sign: %ld\n", GetTimeMicros() - nBenchStart);
+            // nBenchStart = GetTimeMicros();
+
+            // submit transaction
+            CValidationState state;
+            if (!::AcceptToMemoryPool(mempool, state, (CBaseTx*)&tx, true)) {
+                LogPrint("INFO", "Commit transaction failed: %s\n", state.GetRejectReason());
+                throw boost::thread_interrupted();
+            }
+            // LogPrint("LOG_CATEGORY_BENCH", "AcceptToMemoryPool: %ld\n",
+            //          GetTimeMicros() - nBenchStart);
+        }
+
+        int64_t elapseTime = GetTimeMillis() - nStart;
+        LogPrint("INFO", "TxGenerator, batch commit transaction(s): %ld, elapse time: %ld ms\n",
+                 batchSize, elapseTime);
+        if (elapseTime < period) {
+            MilliSleep(period - elapseTime);
+        } else {
+            LogPrint("INFO", "TxGenerator overload, try to slow down, please.\n");
+        }
+    }
+}
+
+Value startgeneration(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 2) {
+        throw runtime_error(
+            "startgeneration \"period\" \"batch_size\"\n"
+            "\nStart generation blocks with batch_size transactions in period ms.\n"
+            "\nArguments:\n"
+            "1. \"period\" (numeric, required)\n"
+            "2. batch_size (numeric, required)\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("startgeneration", "20 20") + "\nAs json rpc call\n" +
+            HelpExampleRpc("startgeneration", "20, 20"));
+    }
+
+    Object obj;
+    if (SysCfg().NetworkID() != REGTEST_NET) {
+        obj.push_back(Pair("msg", "regtest only."));
+        return obj;
+    }
+
+    // TODO: control range of period/batchsize.
+    int64_t period    = params[0].get_uint64();
+    int64_t batchSize = params[1].get_uint64();
+
+    static boost::thread_group *generateThreads = NULL;
+
+    if (generateThreads != NULL) {
+        generateThreads->interrupt_all();
+        delete generateThreads;
+        generateThreads = NULL;
+    }
+
+    generateThreads = new boost::thread_group();
+    generateThreads->create_thread(boost::bind(&TxGenerator, period, batchSize));
+
+    obj.push_back(Pair("msg", "success"));
+    return obj;
+}

@@ -137,7 +137,7 @@ std::tuple<bool, boost::thread*> RunCoin(int argc, char* argv[])
 	// Connect coind signal handlers
 	noui_connect();
 
-	fRet = AppInit(argc, argv,threadGroup);
+	fRet = AppInit(argc, argv, threadGroup);
 
 	detectShutdownThread = new boost::thread(boost::bind(&DetectShutdownThread, &threadGroup));
 

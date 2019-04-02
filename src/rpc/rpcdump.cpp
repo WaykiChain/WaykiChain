@@ -56,13 +56,13 @@ string static EncodeDumpTime(int64_t nTime) {
 //    return ret.str();
 //}
 
-string DecodeDumpString(const string &str) 
+string DecodeDumpString(const string &str)
 {
     stringstream ret;
     for (unsigned int pos = 0; pos < str.length(); pos++) {
         unsigned char c = str[pos];
         if (c == '%' && pos+2 < str.length()) {
-            c = (((str[pos+1]>>6)*9+((str[pos+1]-'0')&15)) << 4) | 
+            c = (((str[pos+1]>>6)*9+((str[pos+1]-'0')&15)) << 4) |
                 ((str[pos+2]>>6)*9+((str[pos+2]-'0')&15));
             pos += 2;
         }
@@ -130,23 +130,22 @@ Value importprivkey(const Array& params, bool fHelp)
     CCoinSecret vchSecret;
     bool fGood = vchSecret.SetString(strSecret);
 
-    if (!fGood) 
+    if (!fGood)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key encoding");
 
     CKey key = vchSecret.GetKey();
-    if (!key.IsValid()) 
+    if (!key.IsValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Private key outside allowed range");
 
     CPubKey pubkey = key.GetPubKey();
     {
         LOCK2(cs_main, pwalletMain->cs_wallet);
 
-       if (!pwalletMain->AddKey(key))
-           throw JSONRPCError(RPC_WALLET_ERROR, "Error adding key to wallet");
-
+        if (!pwalletMain->AddKey(key))
+            throw JSONRPCError(RPC_WALLET_ERROR, "Error adding key to wallet");
     }
     Object reply2;
-    reply2.push_back(Pair("imported_key_address",pubkey.GetKeyID().ToAddress()));
+    reply2.push_back(Pair("imported_key_address", pubkey.GetKeyID().ToAddress()));
     return reply2;
 }
 
@@ -192,7 +191,7 @@ Value importwallet(const Array& params, bool fHelp)
     		const Value &obj = find_value(keyItem.get_obj(), "keyid");
     		if(obj.type() == null_type)
     			continue;
-                
+
     		string strKeyId = find_value(keyItem.get_obj(), "keyid").get_str();
     		CKeyID keyId(uint160(ParseHex(strKeyId)));
     		keyCombi.UnSerializeFromJson(keyItem.get_obj());
@@ -268,7 +267,7 @@ Value dumpwallet(const Array& params, bool fHelp) {
 
     string dumpFilePath = params[0].get_str().c_str();
     if (dumpFilePath.find(GetDataDir().string()) != std::string::npos)
-        throw JSONRPCError(RPC_WALLET_FILEPATH_INVALID, 
+        throw JSONRPCError(RPC_WALLET_FILEPATH_INVALID,
             "Wallet file shall not be saved into the Data dir to avoid likely file overwrite.");
 
     ofstream file;
