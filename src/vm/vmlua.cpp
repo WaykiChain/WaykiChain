@@ -156,6 +156,8 @@ extern "C" __declspec(dllexport) int luaopen_mylib(lua_State *L);
 LUAMOD_API int luaopen_mylib(lua_State *L);
 #endif
 
+bool InitLuaLibsEx(lua_State *L);
+
 /** ommited lua lib for safety reasons
  *
 //	   {LUA_COLIBNAME, luaopen_coroutine},
@@ -187,6 +189,12 @@ tuple<bool, string> CVmlua::CheckScriptSyntax(const char *filePath) {
         return std::make_tuple(false, string("luaL_newstate error\n"));
     }
     vm_openlibs(lua_state);
+
+    if (!InitLuaLibsEx(lua_state)) {
+        LogPrint("vm", "InitLuaLibsEx error\n");
+        return std::make_tuple(-1, string("InitLuaLibsEx error\n"));
+    }
+
     luaL_requiref(lua_state, "mylib", luaopen_mylib, 1);
 
     int nRet = luaL_loadfile(lua_state, filePath);
@@ -226,6 +234,11 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
     */
     //打开需要的库
     vm_openlibs(lua_state);
+
+    if (!InitLuaLibsEx(lua_state)) {
+        LogPrint("vm", "InitLuaLibsEx error\n");
+        return std::make_tuple(-1, string("InitLuaLibsEx error\n"));
+    }
 
     // 3.注册自定义模块
     luaL_requiref(lua_state, "mylib", luaopen_mylib, 1);

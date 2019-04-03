@@ -30,6 +30,8 @@
 
 #define LUA_C_BUFFER_SIZE  500  //传递值，最大字节防止栈溢出
 
+lua_CFunction g_defaultRequireFunc = NULL;  // default require function
+
 #if 0
 static void setfield(lua_State *L,char * key,double value){
      //默认栈顶是table
@@ -2127,6 +2129,17 @@ static int ExGetBlockTimestamp(lua_State *L)
     return 0;
 }
 
+static int ExLinmitedRequire(lua_State *L) {
+    const char *name = luaL_checkstring(L, 1);
+    if (strcmp(name, "mylib") != 0) {
+        luaL_error(L, "Only supports to require \"mylib\"");
+    }
+    if (g_defaultRequireFunc == NULL) {
+        luaL_error(L, "The default require function is NULL");
+    }
+    g_defaultRequireFunc(L);
+}
+
 static const luaL_Reg mylib[] = {
     {"Int64Mul",                    ExInt64MulFunc},
     {"Int64Add",                    ExInt64AddFunc},
@@ -2178,6 +2191,16 @@ static const luaL_Reg mylib[] = {
 
 };
 
+// disable or replace all io-related functions
+static const luaL_Reg baseLibsEx[] = {
+    {"print",                       ExLogPrintFunc},    // replace default print function
+    {"dofile",                      NULL},              // disable dofile
+    {"loadfile",                    NULL},              // disable loadfile
+    {"require",                     ExLinmitedRequire}, // repalace default require function
+
+    {NULL, NULL}
+};
+
 /*
  * 注册一个新Lua模块*/
 #ifdef WIN_DLL
@@ -2186,8 +2209,25 @@ static const luaL_Reg mylib[] = {
     LUAMOD_API int luaopen_mylib(lua_State *L)
 #endif
 
-
 {
     luaL_newlib(L, mylib); //生成一个table,把mylibs所有函数填充进去
     return 1;
+}
+
+bool InitLuaLibsEx(lua_State *L) {
+    lua_pushglobaltable(L);
+
+    lua_pushstring(L, "require");
+    lua_gettable(L, -2);
+    g_defaultRequireFunc = lua_tocfunction(L, -1);
+    lua_pop(L, 1);
+    if (g_defaultRequireFunc == NULL) {
+        LogPrint("vm", "InitLuaLibsEx error, get default require function failed\n");
+        return false;
+    }
+
+    luaL_setfuncs(L, baseLibsEx, 0);
+
+    lua_pop(L, 1);  // pop the global table
+    return true;
 }
