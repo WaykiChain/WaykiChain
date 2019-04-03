@@ -630,6 +630,8 @@ Value startgeneration(const Array& params, bool fHelp) {
     }
 
     // TODO: control range of period/batchsize.
+    // TODO: drop the sender/receiver's privkey from wallet.
+
     int64_t period    = params[0].get_uint64();
     int64_t batchSize = params[1].get_uint64();
 
