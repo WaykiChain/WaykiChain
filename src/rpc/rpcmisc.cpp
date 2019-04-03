@@ -172,7 +172,6 @@ Value getinfo(const Array& params, bool fHelp)
             "  \"proxy\": \"host:port\",     (string) the proxy used by the server\n"
             "  \"nettype\": \"xxxxx\",       (string) the net type\n"
             "  \"genblock\": xxxxx,          (numeric) generate blocks\n"
-            "  \"chainwork\": \"xxxxx\",     (string) the chainwork of the tip block in chainActive\n"
             "  \"unlocktime\": xxxxx,        (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
             "  \"paytxfee\": x.xxxx,         (numeric) the transaction fee set in btc/kb\n"
             "  \"relayfee\": x.xxxx,         (numeric) minimum relay fee for non-free transactions in btc/kb\n"
@@ -211,7 +210,6 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("proxy",             (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
     obj.push_back(Pair("nettype",           netType[SysCfg().NetworkID()]));
     obj.push_back(Pair("genblock",          SysCfg().GetArg("-genblock", 0)));
-    obj.push_back(Pair("chainwork",         chainActive.Tip()->nChainWork.GetHex()));
 
     if (pwalletMain && pwalletMain->IsEncrypted())
         obj.push_back(Pair("unlockeduntil", nWalletUnlockTime));

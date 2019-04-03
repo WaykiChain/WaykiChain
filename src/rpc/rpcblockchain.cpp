@@ -66,7 +66,6 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("tx", txs));
     result.push_back(Pair("time", block.GetBlockTime()));
     result.push_back(Pair("nonce", (uint64_t)block.GetNonce()));
-    result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex()));
     result.push_back(Pair("fuel", blockindex->nFuel));
     result.push_back(Pair("fuelrate", blockindex->nFuelRate));
     if (blockindex->pprev)
@@ -329,7 +328,6 @@ Value getblockchaininfo(const Array& params, bool fHelp)
             "  \"bestblockhash\": \"...\", (string) the hash of the currently best block\n"
             "  \"difficulty\": xxxxxx,     (numeric) the current difficulty\n"
             "  \"verificationprogress\": xxxx, (numeric) estimate of verification progress [0..1]\n"
-            "  \"chainwork\": \"xxxx\"     (string) total amount of work in active chain, in hexadecimal\n"
             "}\n"
             "\nExamples:\n"
             + HelpExampleRpc("getblockchaininfo", ""));
@@ -345,7 +343,6 @@ Value getblockchaininfo(const Array& params, bool fHelp)
     obj.push_back(Pair("blocks",        (int)chainActive.Height()));
     obj.push_back(Pair("bestblockhash", chainActive.Tip()->GetBlockHash().GetHex()));
     obj.push_back(Pair("verificationprogress", Checkpoints::GuessVerificationProgress(chainActive.Tip())));
-    obj.push_back(Pair("chainwork",     chainActive.Tip()->nChainWork.GetHex()));
     return obj;
 }
 
