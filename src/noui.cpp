@@ -94,6 +94,9 @@ static bool noui_ThreadSafeMessageBox(const std::string& message, const std::str
 
 static bool noui_SyncTx()
 {
+    if (chainActive.Tip() == NULL) {
+        return false;
+    }
 	Array arrayObj;
 	int nTipHeight = chainActive.Tip()->nHeight;
 	int nSyncTxDeep = SysCfg().GetArg("-synctxdeep", 100);
