@@ -542,7 +542,7 @@ void static TxGenerator(int64_t period, int64_t batchSize) {
 
         for (int64_t i = 0; i < batchSize; ++i) {
             CCommonTx tx;
-            tx.srcRegId     = srcRegId;
+            tx.srcUserId    = srcRegId;
             tx.desUserId    = desRegId;
             tx.llValues     = llValue++;
             tx.llFees       = llFees;
