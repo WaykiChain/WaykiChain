@@ -163,11 +163,11 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
     sendUserId = (pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId) &&
-                  nHeight - sendRegId.GetHeight() > kRegIdMaturePeriedByBlock)
+                  nHeight - sendRegId.GetHeight() > kRegIdMaturePeriodByBlock)
                      ? CUserID(sendRegId)
                      : CUserID(sendPubKey);
     recvUserId = (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) &&
-                  nHeight - recvRegId.GetHeight() > kRegIdMaturePeriedByBlock)
+                  nHeight - recvRegId.GetHeight() > kRegIdMaturePeriodByBlock)
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
     CCommonTx tx;
@@ -408,11 +408,11 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
     sendUserId = (pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId) &&
-                  height - sendRegId.GetHeight() > kRegIdMaturePeriedByBlock)
+                  height - sendRegId.GetHeight() > kRegIdMaturePeriodByBlock)
                      ? CUserID(sendRegId)
                      : CUserID(sendPubKey);
     recvUserId = (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) &&
-                  height - recvRegId.GetHeight() > kRegIdMaturePeriedByBlock)
+                  height - recvRegId.GetHeight() > kRegIdMaturePeriodByBlock)
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
 

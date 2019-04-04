@@ -1616,7 +1616,7 @@ Object CAccount::ToJsonObj(bool isAddress) const {
 
     Object obj;
     bool isMature = regID.GetHeight() > 0 && chainActive.Height() - (int)regID.GetHeight() >
-                                                 kRegIdMaturePeriedByBlock
+                                                 kRegIdMaturePeriodByBlock
                         ? true
                         : false;
     obj.push_back(Pair("address",       keyID.ToAddress()));
