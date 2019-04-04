@@ -105,8 +105,7 @@ static const uint64_t kMinDiskSpace              = 52428800;  // Minimum disk sp
 static const int kContractScriptMaxSize          = 65536;     // 64 KB max for contract script size
 static const int kContractArgumentMaxSize        = 4096;      // 4 KB max for contract argument size
 static const int kMostRecentBlockNumberThreshold = 1000;      // most recent block number threshold
-// modifyme: Kevin
-static const int kRegIdMaturePeriedByBlock       = 10;        // RegId's mature peried measured by blocks
+static const int kRegIdMaturePeriedByBlock       = 100;       // RegId's mature peried measured by blocks
 static const string kContractScriptPathPrefix    = "/tmp/lua/";
 
 extern CCriticalSection cs_main;
