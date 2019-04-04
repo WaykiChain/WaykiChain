@@ -1622,7 +1622,7 @@ Object CAccount::ToJsonObj(bool isAddress) const {
     obj.push_back(Pair("address",       keyID.ToAddress()));
     obj.push_back(Pair("keyID",         keyID.ToString()));
     obj.push_back(Pair("publicKey",     pubKey.ToString()));
-    obj.push_back(Pair("minerPKey",     minerPubKey.ToString()));
+    obj.push_back(Pair("minerPubKey",   minerPubKey.ToString()));
     obj.push_back(Pair("regID",         regID.ToString()));
     obj.push_back(Pair("regIDMature",   isMature));
     obj.push_back(Pair("balance",       llValues));
