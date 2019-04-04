@@ -261,8 +261,6 @@ bool CBaseTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
                                  UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
             }
 
-            // removeme: Kevin
-            LogPrint("INFO", "Kevin, need to remove CRegID.\n");
             view.EraseId(CRegID(nHeight, nIndex));
         } else {
             if (!view.SetAccount(userId, account)) {
@@ -525,16 +523,16 @@ bool CCommonTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
     CAccountLog desAcctLog;
     bool generateRegID = false;
 
-    if (!view.GetAccount(srcRegId, srcAcct))
+    if (!view.GetAccount(srcUserId, srcAcct))
         return state.DoS(100, ERRORMSG("CCommonTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     else {
-        if (srcRegId.type() == typeid(CPubKey)) {
-            srcAcct.pubKey = boost::get<CPubKey>(srcRegId);
+        if (srcUserId.type() == typeid(CPubKey)) {
+            srcAcct.pubKey = boost::get<CPubKey>(srcUserId);
 
-            CRegID srcRegID2;
+            CRegID srcRegID;
             // If the source account has NO CRegID, need to generate a new CRegID.
-            if (!view.GetRegId(srcRegId, srcRegID2)) {
+            if (!view.GetRegId(srcUserId, srcRegID)) {
                 srcAcct.regID = CRegID(nHeight, nIndex);
                 generateRegID = true;
             }
@@ -588,8 +586,8 @@ bool CCommonTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
         CScriptDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
         CKeyID revKeyId;
-        if (!view.GetKeyId(srcRegId, sendKeyId))
-            return ERRORMSG("CCommonTx::ExecuteTx, get keyid by srcRegId error!");
+        if (!view.GetKeyId(srcUserId, sendKeyId))
+            return ERRORMSG("CCommonTx::ExecuteTx, get keyid by srcUserId error!");
 
         if (!view.GetKeyId(desUserId, revKeyId))
             return ERRORMSG("CCommonTx::ExecuteTx, get keyid by desUserId error!");
@@ -611,7 +609,7 @@ bool CCommonTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
 bool CCommonTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
                            CScriptDBViewCache &scriptDB) {
     CKeyID keyId;
-    if (!view.GetKeyId(srcRegId, keyId))
+    if (!view.GetKeyId(srcUserId, keyId))
         return false;
     vAddr.insert(keyId);
     CKeyID desKeyId;
@@ -623,10 +621,10 @@ bool CCommonTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
 
 string CCommonTx::ToString(CAccountViewCache &view) const {
     string srcId;
-    if (srcRegId.type() == typeid(CPubKey)) {
-        srcId = boost::get<CPubKey>(srcRegId).ToString();
-    } else if (srcRegId.type() == typeid(CRegID)) {
-        srcId = boost::get<CRegID>(srcRegId).ToString();
+    if (srcUserId.type() == typeid(CPubKey)) {
+        srcId = boost::get<CPubKey>(srcUserId).ToString();
+    } else if (srcUserId.type() == typeid(CRegID)) {
+        srcId = boost::get<CRegID>(srcUserId).ToString();
     }
 
     string desId;
@@ -656,13 +654,13 @@ Object CCommonTx::ToJson(const CAccountViewCache &AccountView) const {
     };
 
     CKeyID srcKeyId, desKeyId;
-    view.GetKeyId(srcRegId, srcKeyId);
+    view.GetKeyId(srcUserId, srcKeyId);
     view.GetKeyId(desUserId, desKeyId);
 
     result.push_back(Pair("hash",           GetHash().GetHex()));
     result.push_back(Pair("txtype",         txTypeArray[nTxType]));
     result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("regid",          GetRegIdString(srcRegId)));
+    result.push_back(Pair("regid",          GetRegIdString(srcUserId)));
     result.push_back(Pair("addr",           srcKeyId.ToAddress()));
     result.push_back(Pair("desregid",       GetRegIdString(desUserId)));
     result.push_back(Pair("desaddr",        desKeyId.ToAddress()));
@@ -676,23 +674,7 @@ Object CCommonTx::ToJson(const CAccountViewCache &AccountView) const {
 
 bool CCommonTx::CheckTransaction(CValidationState &state, CAccountViewCache &view,
                                  CScriptDBViewCache &scriptDB) {
-    // deleteme: Kevin
-    if (srcRegId.type() == typeid(CRegID)) {
-        LogPrint("INFO", "Kevin, srcRegID type: CRegID\n");
-    } else if (srcRegId.type() == typeid(CKeyID)) {
-        LogPrint("INFO", "Kevin, srcRegID type: CKeyID\n");
-    } else if (srcRegId.type() == typeid(CPubKey)) {
-        LogPrint("INFO", "Kevin, srcRegID type: CPubKey\n");
-    }
-    if (desUserId.type() == typeid(CRegID)) {
-        LogPrint("INFO", "Kevin, desUserId type: CRegID\n");
-    } else if (desUserId.type() == typeid(CKeyID)) {
-        LogPrint("INFO", "Kevin, desUserId type: CKeyID\n");
-    } else if (desUserId.type() == typeid(CPubKey)) {
-        LogPrint("INFO", "Kevin, desUserId type: CPubKey\n");
-    }
-
-    if ((srcRegId.type() != typeid(CRegID)) && (srcRegId.type() != typeid(CPubKey)))
+    if ((srcUserId.type() != typeid(CRegID)) && (srcUserId.type() != typeid(CPubKey)))
         return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, srcaddr type error"),
                          REJECT_INVALID, "srcaddr-type-error");
 
@@ -700,7 +682,7 @@ bool CCommonTx::CheckTransaction(CValidationState &state, CAccountViewCache &vie
         return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, desaddr type error"),
                          REJECT_INVALID, "desaddr-type-error");
 
-    if ((srcRegId.type() == typeid(CPubKey)) && !boost::get<CPubKey>(srcRegId).IsFullyValid())
+    if ((srcUserId.type() == typeid(CPubKey)) && !boost::get<CPubKey>(srcUserId).IsFullyValid())
         return state.DoS(100,
                          ERRORMSG("CCommonTx::CheckTransaction, common tx public key is invalid"),
                          REJECT_INVALID, "bad-commontx-publickey");
@@ -716,7 +698,7 @@ bool CCommonTx::CheckTransaction(CValidationState &state, CAccountViewCache &vie
     }
 
     CAccount srcAccount;
-    if (!view.GetAccount(srcRegId, srcAccount))
+    if (!view.GetAccount(srcUserId, srcAccount))
         return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, read account failed"),
                          REJECT_INVALID, "bad-getaccount");
 
@@ -727,7 +709,7 @@ bool CCommonTx::CheckTransaction(CValidationState &state, CAccountViewCache &vie
 
     uint256 sighash = SignatureHash();
     CPubKey pubKey =
-        srcRegId.type() == typeid(CPubKey) ? boost::get<CPubKey>(srcRegId) : srcAccount.pubKey;
+        srcUserId.type() == typeid(CPubKey) ? boost::get<CPubKey>(srcUserId) : srcAccount.pubKey;
     if (!CheckSignScript(sighash, signature, pubKey))
         return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, CheckSignScript failed"),
                          REJECT_INVALID, "bad-signscript-check");

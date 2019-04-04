@@ -264,7 +264,7 @@ public:
 
 class CCommonTx : public CBaseTx {
 public:
-    mutable CUserID srcRegId;   // regid or pubkey
+    mutable CUserID srcUserId;  // regid or pubkey
     mutable CUserID desUserId;  // regid or keyid
     uint64_t llFees;            // fees paid to miner
     uint64_t llValues;          // transfer amount
@@ -286,16 +286,16 @@ public:
         *this = *(CCommonTx *)pBaseTx;
     }
 
-    CCommonTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
+    CCommonTx(const CUserID &srcUserIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
               int height, vector_unsigned_char &descriptionIn) {
-        if (srcRegIdIn.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
+        if (srcUserIdIn.type() == typeid(CRegID))
+            assert(!boost::get<CRegID>(srcUserIdIn).IsEmpty());
 
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
 
         nTxType      = COMMON_TX;
-        srcRegId     = srcRegIdIn;
+        srcUserId    = srcUserIdIn;
         desUserId    = desUserIdIn;
         memo         = descriptionIn;
         nValidHeight = height;
@@ -304,16 +304,16 @@ public:
         signature.clear();
     }
 
-    CCommonTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
+    CCommonTx(const CUserID &srcUserIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
               int height) {
-        if (srcRegIdIn.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
+        if (srcUserIdIn.type() == typeid(CRegID))
+            assert(!boost::get<CRegID>(srcUserIdIn).IsEmpty());
 
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
 
         nTxType      = COMMON_TX;
-        srcRegId     = srcRegIdIn;
+        srcUserId    = srcUserIdIn;
         desUserId    = desUserIdIn;
         nValidHeight = height;
         llFees       = fee;
@@ -328,7 +328,7 @@ public:
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
-        CID srcId(srcRegId);
+        CID srcId(srcUserId);
         READWRITE(srcId);
         CID desId(desUserId);
         READWRITE(desId);
@@ -337,13 +337,13 @@ public:
         READWRITE(memo);
         READWRITE(signature);
         if (fRead) {
-            srcRegId  = srcId.GetUserId();
+            srcUserId  = srcId.GetUserId();
             desUserId = desId.GetUserId();
         })
 
     uint256 SignatureHash() const {
         CHashWriter ss(SER_GETHASH, 0);
-        CID srcId(srcRegId);
+        CID srcId(srcUserId);
         CID desId(desUserId);
         ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << srcId << desId
            << VARINT(llFees) << VARINT(llValues) << memo;

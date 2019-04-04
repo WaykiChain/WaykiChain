@@ -173,7 +173,7 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
     CCommonTx tx;
-    tx.srcRegId     = sendUserId;
+    tx.srcUserId    = sendUserId;
     tx.desUserId    = recvUserId;
     tx.llValues     = nValue;
     tx.llFees       = (0 == nFee) ? SysCfg().GetTxFee() : nFee;

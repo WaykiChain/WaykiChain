@@ -161,10 +161,10 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx)
     {
         CCommonTx* ptx = (CCommonTx*)pBaseTx.get();
         CKeyID sendKeyID;
-        if (ptx->srcRegId.type() == typeid(CPubKey)) {
-            sendKeyID = boost::get<CPubKey>(ptx->srcRegId).GetKeyID();
-        } else if (ptx->srcRegId.type() == typeid(CRegID)) {
-            sendKeyID = boost::get<CRegID>(ptx->srcRegId).GetKeyID(*pAccountViewTip);
+        if (ptx->srcUserId.type() == typeid(CPubKey)) {
+            sendKeyID = boost::get<CPubKey>(ptx->srcUserId).GetKeyID();
+        } else if (ptx->srcUserId.type() == typeid(CRegID)) {
+            sendKeyID = boost::get<CRegID>(ptx->srcUserId).GetKeyID(*pAccountViewTip);
         }
         CKeyID recvKeyID;
         if (ptx->desUserId.type() == typeid(CKeyID)) {
@@ -1060,7 +1060,7 @@ Value listtransactions(const Array& params, bool fHelp) {
             if (item.second->nTxType == COMMON_TX) {
                 CCommonTx* ptx = (CCommonTx*)item.second.get();
                 CKeyID sendKeyID;
-                CRegID sendRegID = boost::get<CRegID>(ptx->srcRegId);
+                CRegID sendRegID = boost::get<CRegID>(ptx->srcUserId);
                 sendKeyID        = sendRegID.GetKeyID(*pAccountViewTip);
                 CKeyID recvKeyID;
                 if (ptx->desUserId.type() == typeid(CKeyID)) {
@@ -1259,7 +1259,7 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
             if (item.second.get() && item.second->nTxType == COMMON_TX) {
                 CCommonTx* ptx = (CCommonTx*)item.second.get();
 
-                if (!accView.GetKeyId(ptx->srcRegId, keyid)) {
+                if (!accView.GetKeyId(ptx->srcUserId, keyid)) {
                     continue;
                 }
                 string srcAddr = keyid.ToAddress();
