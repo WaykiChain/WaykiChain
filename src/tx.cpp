@@ -418,6 +418,7 @@ bool CRegisterAccountTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVal
         CPubKey empPubKey;
         oldAccount.pubKey = empPubKey;
         oldAccount.minerPubKey = empPubKey;
+        oldAccount.regID.Clean();
         CUserID userId(keyId);
         view.SetAccount(userId, oldAccount);
     } else {
