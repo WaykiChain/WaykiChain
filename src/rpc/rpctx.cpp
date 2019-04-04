@@ -1467,26 +1467,25 @@ Value getaccountinfo(const Array& params, bool fHelp) {
            );
     }
     RPCTypeCheck(params, list_of(str_type));
-    CKeyID keyid;
+    CKeyID keyId;
     CUserID userId;
     string addr = params[0].get_str();
-    if (!GetKeyId(addr, keyid)) {
+    if (!GetKeyId(addr, keyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
     }
 
-    userId = keyid;
+    userId = keyId;
     Object obj;
     {
         CAccount account;
-        CAccountViewCache accView(*pAccountViewTip, true);
-        if (accView.GetAccount(userId, account)) {
+        if (pAccountViewTip->GetAccount(userId, account)) {
             if (!account.pubKey.IsValid()) {
                 CPubKey pk;
                 CPubKey minerpk;
-                if (pwalletMain->GetPubKey(keyid, pk)) {
-                    pwalletMain->GetPubKey(keyid, minerpk, true);
+                if (pwalletMain->GetPubKey(keyId, pk)) {
+                    pwalletMain->GetPubKey(keyId, minerpk, true);
                     account.pubKey = pk;
-                    account.keyID = pk.GetKeyID();
+                    account.keyID  = pk.GetKeyID();
                     if (pk != minerpk && !account.minerPubKey.IsValid()) {
                         account.minerPubKey = minerpk;
                     }
@@ -1494,13 +1493,13 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             }
             obj = account.ToJsonObj(true);
             obj.push_back(Pair("position", "inblock"));
-        } else { //unregistered keyid
+        } else {  // unregistered keyId
             CPubKey pk;
             CPubKey minerpk;
-            if (pwalletMain->GetPubKey(keyid, pk)) {
-                pwalletMain->GetPubKey(keyid, minerpk, true);
+            if (pwalletMain->GetPubKey(keyId, pk)) {
+                pwalletMain->GetPubKey(keyId, minerpk, true);
                 account.pubKey = pk;
-                account.keyID = pk.GetKeyID();
+                account.keyID  = pk.GetKeyID();
                 if (minerpk != pk) {
                     account.minerPubKey = minerpk;
                 }
