@@ -2129,7 +2129,7 @@ static int ExGetBlockTimestamp(lua_State *L)
     return 0;
 }
 
-static int ExLinmitedRequire(lua_State *L) {
+static int ExLimitedRequire(lua_State *L) {
     const char *name = luaL_checkstring(L, 1);
     if (strcmp(name, "mylib") != 0) {
         luaL_error(L, "Only supports to require \"mylib\"");
@@ -2196,7 +2196,7 @@ static const luaL_Reg baseLibsEx[] = {
     {"print",                       ExLogPrintFunc},    // replace default print function
     {"dofile",                      NULL},              // disable dofile
     {"loadfile",                    NULL},              // disable loadfile
-    {"require",                     ExLinmitedRequire}, // repalace default require function
+    {"require",                     ExLimitedRequire},  // repalace default require function
 
     {NULL, NULL}
 };
