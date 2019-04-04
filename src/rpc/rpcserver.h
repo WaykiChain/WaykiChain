@@ -183,5 +183,6 @@ extern json_spirit::Value getcontractregid(const json_spirit::Array& params, boo
 extern json_spirit::Value listcheckpoint(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value invalidateblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value reconsiderblock(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value startgeneration(const json_spirit::Array& params, bool fHelp);
 
 #endif

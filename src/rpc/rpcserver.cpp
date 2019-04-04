@@ -251,7 +251,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getmininginfo",          &getmininginfo,          true,      false,      false },
     { "getnetworkhashps",       &getnetworkhashps,       true,      false,      false },
     { "submitblock",            &submitblock,            true,      false,      false },
-    { "getminedblocks",         &getminedblocks,         true,      true,      false },
+    { "getminedblocks",         &getminedblocks,         true,      true,       false },
 
     /* Raw transactions */
     { "sendtoaddressraw",       &gensendtoaddressraw,    false,     false,     false },  /* deprecated */
@@ -310,7 +310,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getbalance",             &getbalance,             false,     false,      true },
     // { "dispersebalance",        &dispersebalance,        false,     false,      true },
     { "getassets",              &getassets,              false,     false,      true },
-    { "listcontractassets",     &listcontractassets,      false,     false,      true },
+    { "listcontractassets",     &listcontractassets,     false,     false,      true },
     { "submittx",               &sendrawtx,              true,      false,      false}, //deprecated
     { "sendrawtx",              &sendrawtx,              true,      false,      false},
 
@@ -333,6 +333,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getalltxinfo",           &getalltxinfo,           true,      false,      true },
     { "saveblocktofile",        &saveblocktofile,        true,      false,      true },
     { "gethash",                &gethash,                true,      false,      true },
+    { "startgeneration",        &startgeneration,        true,      true,       false},
 };
 
 CRPCTable::CRPCTable() {

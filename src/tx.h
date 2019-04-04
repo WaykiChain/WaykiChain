@@ -812,7 +812,7 @@ public:
     CRegID regID;
     CKeyID keyID;                  //!< keyID of the account
     CPubKey pubKey;                //!< public key of the account
-    CPubKey minerPubKey;             //!< public key of the account for miner
+    CPubKey minerPubKey;           //!< public key of the account for miner
     uint64_t llValues;             //!< total money
     uint64_t nVoteHeight;          //!< account vote block height
     vector<CVoteFund> vVoteFunds;  //!< account delegate votes order by vote value

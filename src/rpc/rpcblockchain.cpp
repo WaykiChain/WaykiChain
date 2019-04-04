@@ -3,9 +3,13 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <mutex>
+#include <queue>
+
 #include <stdint.h>
 #include <boost/assign/list_of.hpp>
 
+#include "tx.h"
 #include "rpcserver.h"
 #include "main.h"
 #include "sync.h"
@@ -15,7 +19,7 @@
 using namespace json_spirit;
 using namespace std;
 
-//void ScriptPubKeyToJSON(const CScript& scriptPubKey, Object& out, bool fIncludeHex);
+class CCommonTx;
 
 double GetDifficulty(const CBlockIndex* blockindex)
 {
@@ -496,6 +500,150 @@ Value reconsiderblock(const Array& params, bool fHelp) {
     }
 
     Object obj;
+    obj.push_back(Pair("msg", "success"));
+    return obj;
+}
+
+static queue<CCommonTx> txQueue;
+static mutex txMutex;
+
+void static TxGenerator(int64_t period, int64_t batchSize) {
+    SetThreadPriority(THREAD_PRIORITY_LOWEST);
+    RenameThread("Tx-generator");
+
+    CCoinSecret vchSecret;
+    vchSecret.SetString("Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13");
+    CKey key = vchSecret.GetKey();
+    vector<CCommonTx> batchTx;
+    CRegID srcRegId("0-1");
+    CRegID desRegId("0-1");
+    static uint64_t llValue = 10000;  // use static variable to keep autoincrement
+    uint64_t llFees         = SysCfg().GetTxFee();
+    bool needSleep          = false;
+
+    while (true) {
+        // add interruption point
+        boost::this_thread::interruption_point();
+        {
+            txMutex.lock();
+            needSleep = ((int64_t)txQueue.size() > 100 * batchSize) ? true : false;
+            txMutex.unlock();
+        }
+
+        if (needSleep) {
+            LogPrint("DEBUG", "TxGenerator, need sleep a while to slow down.\n");
+            MilliSleep(period);
+            continue;
+        }
+
+        int64_t nStart       = GetTimeMillis();
+        int32_t nValidHeight = chainActive.Tip()->nHeight;
+        batchTx.clear();
+
+        for (int64_t i = 0; i < batchSize; ++i) {
+            CCommonTx tx;
+            tx.srcRegId     = srcRegId;
+            tx.desUserId    = desRegId;
+            tx.llValues     = llValue++;
+            tx.llFees       = llFees;
+            tx.nValidHeight = nValidHeight;
+
+            // sign transaction
+            key.Sign(tx.SignatureHash(), tx.signature);
+            batchTx.push_back(tx);
+        }
+
+        {
+            txMutex.lock();
+            for (auto itor : batchTx) {
+                txQueue.push(itor);
+            }
+            txMutex.unlock();
+        }
+
+        int64_t elapseTime = GetTimeMillis() - nStart;
+        LogPrint("DEBUG", "TxGenerator, batch generate transaction(s): %ld, elapse time: %ld ms.\n",
+                 batchSize, elapseTime);
+        if (elapseTime < period) {
+            MilliSleep(period - elapseTime);
+        } else {
+            LogPrint("DEBUG", "TxGenerator, need to slow down for overloading.\n");
+        }
+    }
+}
+
+void static TxSender(int64_t batchSize) {
+    SetThreadPriority(THREAD_PRIORITY_LOWEST);
+    RenameThread("Tx-sender");
+
+    vector<CCommonTx> batchTx;
+    CValidationState state;
+    int64_t size;
+
+    while (true) {
+        // add interruption point
+        boost::this_thread::interruption_point();
+        batchTx.clear();
+        int64_t nStart = GetTimeMillis();
+        {
+            txMutex.lock();
+            size = (int64_t)txQueue.size() > batchSize ? batchSize : (int64_t)txQueue.size();
+            for (int i = 0; i < size; ++i) {
+                batchTx.push_back(txQueue.front());
+                txQueue.pop();
+            }
+            txMutex.unlock();
+        }
+
+        for (int j = 0; j < size; ++j) {
+            if (!::AcceptToMemoryPool(mempool, state, (CBaseTx*)&batchTx[j], true)) {
+                LogPrint("DEBUG", "TxSender, accept to mempool failed: %s\n", state.GetRejectReason());
+                throw boost::thread_interrupted();
+            }
+        }
+        LogPrint("DEBUG", "TxSender, batch send transaction(s): %ld, elapse time: %ld ms.\n",
+                 size, GetTimeMillis() - nStart);
+    }
+}
+
+Value startgeneration(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 2) {
+        throw runtime_error(
+            "startgeneration \"period\" \"batch_size\"\n"
+            "\nStart generation blocks with batch_size transactions in period ms.\n"
+            "\nArguments:\n"
+            "1.\"period\" (numeric, required)\n"
+            "2.\"batch_size\" (numeric, required)\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("startgeneration", "20 20") + "\nAs json rpc call\n" +
+            HelpExampleRpc("startgeneration", "20, 20"));
+    }
+
+    Object obj;
+    if (SysCfg().NetworkID() != REGTEST_NET) {
+        obj.push_back(Pair("msg", "regtest only."));
+        return obj;
+    }
+
+    // TODO: control range of period/batchsize.
+    // TODO: drop the sender/receiver's privkey from wallet.
+
+    int64_t period    = params[0].get_uint64();
+    int64_t batchSize = params[1].get_uint64();
+
+    static boost::thread_group *generateThreads = NULL;
+
+    if (generateThreads != NULL) {
+        generateThreads->interrupt_all();
+        delete generateThreads;
+        generateThreads = NULL;
+    }
+
+    generateThreads = new boost::thread_group();
+    generateThreads->create_thread(boost::bind(&TxGenerator, period, batchSize));
+    generateThreads->create_thread(boost::bind(&TxSender, batchSize));
+
     obj.push_back(Pair("msg", "success"));
     return obj;
 }

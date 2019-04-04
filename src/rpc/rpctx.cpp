@@ -1438,7 +1438,7 @@ if (fHelp || params.size() > 2) {
             //Inblockobj.push_back(Pair("tx", item.first.GetHex()));
             ConfirmTxArry.push_back(item.first.GetHex());
         }
-        if(bUpLimited) {
+        if (bUpLimited) {
             break;
         }
     }

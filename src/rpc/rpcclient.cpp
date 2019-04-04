@@ -263,6 +263,9 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     /** for mining */
     if (strMethod == "getminedblocks"         && n > 0) ConvertTo<int64_t>(params[0]);
 
+    if (strMethod == "startgeneration"        && n > 0) ConvertTo<uint64_t>(params[0]);
+    if (strMethod == "startgeneration"        && n > 1) ConvertTo<uint64_t>(params[1]);
+
     return params;
 }
 

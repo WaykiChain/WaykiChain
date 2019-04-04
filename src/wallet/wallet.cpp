@@ -418,7 +418,7 @@ std::tuple<bool, string> CWallet::CommitTransaction(CBaseTx *pTx) {
 
     uint256 txhash = pTx->GetHash();
     UnConfirmTx[txhash] = pTx->GetNewInstance();
-    bool flag =  CWalletDB(strWalletFile).WriteUnComFirmedTx(txhash,UnConfirmTx[txhash]);
+    bool flag =  CWalletDB(strWalletFile).WriteUnComFirmedTx(txhash, UnConfirmTx[txhash]);
     ::RelayTransaction(pTx, txhash);
 
     return std::make_tuple (flag, txhash.ToString());
