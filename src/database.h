@@ -11,7 +11,7 @@ using namespace std;
 class CAccount;
 class CKeyID;
 class uint256;
-class CDiskTxPos;
+struct CDiskTxPos;
 class CVmOperate;
 
 class CAccountView {

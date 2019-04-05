@@ -224,7 +224,7 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("tipblockhash",      chainActive.Tip()->GetBlockHash().ToString()));
     obj.push_back(Pair("syncblockheight",   nSyncTipHeight));
     obj.push_back(Pair("tipblockheight",    chainActive.Height()));
-    obj.push_back(Pair("connections",       vNodes.size()));
+    obj.push_back(Pair("connections",       (int)vNodes.size()));
     obj.push_back(Pair("errors",            GetWarnings("statusbar")));
 
     return obj;
