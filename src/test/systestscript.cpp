@@ -227,10 +227,10 @@ public:
 		BOOST_CHECK_EQUAL(CreateScriptAndCheck(),true);
 
 		//// 给脚本账户打钱
-		string accountid = "010000000100";
+		string accountId = "010000000100";
 		int param = 13;
 		string temp = "";
-		temp += tinyformat::format("%02x%s",param,accountid);
+		temp += tinyformat::format("%02x%s",param,accountId);
 		Value resut =CallContractTx("010000000100", "dsGb9GyDGYnnHdjSvRfYbj9ox2zPbtgtpo", temp,10,100000000,10000);
 		BOOST_CHECK(GetHashFromCreatedTx(resut,temp));
 
@@ -243,7 +243,7 @@ public:
 		/// 脚本账户给普通账户打钱
 		param = 14;
 		temp = "";
-		temp += tinyformat::format("%02x%s",param,accountid);
+		temp += tinyformat::format("%02x%s",param,accountId);
 		resut =CallContractTx("010000000100", "dsGb9GyDGYnnHdjSvRfYbj9ox2zPbtgtpo", temp,10,100000000);
 		BOOST_CHECK(GetHashFromCreatedTx(resut,temp));
 
@@ -254,10 +254,10 @@ public:
 		BOOST_CHECK_EQUAL(GetValue(temp1,"Balance"),99999999800000000);
 
 		//测试不能从其他脚本打钱到本APP脚本账户中
-		accountid = "020000000100";
+		accountId = "020000000100";
 		param = 19;
 		temp = "";
-		temp += tinyformat::format("%02x%s",param,accountid);
+		temp += tinyformat::format("%02x%s",param,accountId);
 		resut =CallContractTx("010000000100", "dsGb9GyDGYnnHdjSvRfYbj9ox2zPbtgtpo", temp,10);
 		BOOST_CHECK(!GetHashFromCreatedTx(resut,temp));
 

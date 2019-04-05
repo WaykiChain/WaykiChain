@@ -190,20 +190,20 @@ shared_ptr<CAccount> CVmRunEnv::GetAccount(shared_ptr<CAccount>& Account) {
 }
 
 vector_unsigned_char CVmRunEnv::GetAccountID(CVmOperate value) {
-    vector_unsigned_char accountid;
+    vector_unsigned_char accountId;
     if (value.nacctype == regid) {
-        accountid.assign(value.accountid, value.accountid + 6);
+        accountId.assign(value.accountId, value.accountId + 6);
     } else if (value.nacctype == base58addr) {
-        string addr(value.accountid, value.accountid + sizeof(value.accountid));
+        string addr(value.accountId, value.accountId + sizeof(value.accountId));
         CKeyID KeyId = CKeyID(addr);
         CRegID regid;
         if (pAccountViewCache->GetRegId(CUserID(KeyId), regid)) {
-            accountid.assign(regid.GetVec6().begin(), regid.GetVec6().end());
+            accountId.assign(regid.GetVec6().begin(), regid.GetVec6().end());
         } else {
-            accountid.assign(value.accountid, value.accountid + 34);
+            accountId.assign(value.accountId, value.accountId + 34);
         }
     }
-    return accountid;
+    return accountId;
 }
 
 shared_ptr<CAppUserAccount> CVmRunEnv::GetAppAccount(shared_ptr<CAppUserAccount>& AppAccount) {
@@ -240,10 +240,10 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
             }
             addmoey = temp;
         } else if (it.opType == MINUS_FREE) {
-            // vector<unsigned char > accountid(it.accountid,it.accountid+sizeof(it.accountid));
-            vector_unsigned_char accountid = GetAccountID(it);
-            if (accountid.size() != 6) return false;
-            CRegID regId(accountid);
+            // vector<unsigned char > accountId(it.accountId,it.accountId+sizeof(it.accountId));
+            vector_unsigned_char accountId = GetAccountID(it);
+            if (accountId.size() != 6) return false;
+            CRegID regId(accountId);
             CContractTx* tx = static_cast<CContractTx*>(pBaseTx.get());
             /// current tx's script cant't mius other script's regid
             if (pScriptDBViewCache->HaveScript(regId) && regId != boost::get<CRegID>(tx->desUserId))
@@ -266,10 +266,10 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
             return false;  // 输入数据错误
         }
 
-        // vector<unsigned char> accountid(it.accountid, it.accountid + sizeof(it.accountid));
-        vector_unsigned_char accountid = GetAccountID(it);
-        if (accountid.size() == 6) {
-            CRegID regId(accountid);
+        // vector<unsigned char> accountId(it.accountId, it.accountId + sizeof(it.accountId));
+        vector_unsigned_char accountId = GetAccountID(it);
+        if (accountId.size() == 6) {
+            CRegID regId(accountId);
             if (regId.IsEmpty() || regId.GetKeyID(*pAccountViewCache) == uint160()) return false;
 
             //  app only be allowed minus self money
@@ -386,22 +386,22 @@ bool CVmRunEnv::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
         memcpy(&value, it.money, sizeof(it.money));
 
         auto tem = std::make_shared<CAccount>();
-        //      vector_unsigned_char accountid = GetAccountID(it);
-        //      if (accountid.size() == 0) {
+        //      vector_unsigned_char accountId = GetAccountID(it);
+        //      if (accountId.size() == 0) {
         //          return false;
         //      }
-        //      vector_unsigned_char accountid(it.accountid,it.accountid+sizeof(it.accountid));
-        vector_unsigned_char accountid = GetAccountID(it);
+        //      vector_unsigned_char accountId(it.accountId,it.accountId+sizeof(it.accountId));
+        vector_unsigned_char accountId = GetAccountID(it);
         CRegID userregId;
         CKeyID userkeyid;
 
-        if (accountid.size() == 6) {
-            userregId.SetRegID(accountid);
+        if (accountId.size() == 6) {
+            userregId.SetRegID(accountId);
             if (!view.GetAccount(CUserID(userregId), *tem.get())) {
                 return false;  /// 账户不存在
             }
         } else {
-            string popaddr(accountid.begin(), accountid.end());
+            string popaddr(accountId.begin(), accountId.end());
             userkeyid = CKeyID(popaddr);
             if (!view.GetAccount(CUserID(userkeyid), *tem.get())) {
                 tem->keyID = userkeyid;
@@ -415,7 +415,7 @@ bool CVmRunEnv::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
             rawAccount.push_back(tem);
             vmAccount = tem;
         }
-        LogPrint("vm", "account id:%s\nbefore account: %s\n", HexStr(accountid).c_str(),
+        LogPrint("vm", "account id:%s\nbefore account: %s\n", HexStr(accountId).c_str(),
                  vmAccount.get()->ToString().c_str());
 
         bool ret = false;
@@ -558,11 +558,11 @@ void CVmRunEnv::SetCheckAccount(bool bCheckAccount) { isCheckAccount = bCheckAcc
 Object CVmOperate::ToJson() {
     Object obj;
     if (nacctype == regid) {
-        vector<unsigned char> vRegId(accountid, accountid + 6);
+        vector<unsigned char> vRegId(accountId, accountId + 6);
         CRegID regId(vRegId);
         obj.push_back(Pair("regid", regId.ToString()));
     } else if (nacctype == base58addr) {
-        string addr(accountid, accountid + sizeof(accountid));
+        string addr(accountId, accountId + sizeof(accountId));
         obj.push_back(Pair("addr", addr));
     }
 

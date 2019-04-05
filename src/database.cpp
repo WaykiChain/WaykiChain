@@ -84,7 +84,7 @@ bool CAccountViewCache::GetAccount(const CKeyID &keyId, CAccount &account) {
     }
     if (pBase->GetAccount(keyId, account)) {
         cacheAccounts.insert(make_pair(keyId, account));
-        //cacheAccounts[keyId] = account;
+        // cacheAccounts[keyId] = account;
         return true;
     }
     return false;
@@ -250,15 +250,12 @@ bool CAccountViewCache::GetAccount(const CUserID &userId, CAccount &account) {
     bool ret = false;
     if (userId.type() == typeid(CRegID)) {
         ret = GetAccount(boost::get<CRegID>(userId).GetVec6(), account);
-        //		if(ret) assert(boost::get<CRegID>(userId) == account.regID);
     } else if (userId.type() == typeid(CKeyID)) {
         ret = GetAccount(boost::get<CKeyID>(userId), account);
-        //		if(ret) assert(boost::get<CKeyID>(userId) == account.keyID);
     } else if (userId.type() == typeid(CPubKey)) {
         ret = GetAccount(boost::get<CPubKey>(userId).GetKeyID(), account);
-        //		if(ret) assert((boost::get<CPubKey>(userId)).GetKeyID() == account.keyID);
     } else if (userId.type() == typeid(CNullID)) {
-        return ERRORMSG("GetAccount input userid can't be CNullID type");
+        return ERRORMSG("GetAccount input userId can't be CNullID type");
     }
     return ret;
 }
@@ -309,7 +306,6 @@ bool CAccountViewCache::GetRegId(const CKeyID &keyId, CRegID &regId) {
         regId = acct.regID;
         return true;
     } else {
-        //throw runtime_error(tinyformat::format("GetRegId :account id %s not exist\n", keyId.ToAddress()));
         return false;
     }
 }

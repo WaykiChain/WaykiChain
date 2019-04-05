@@ -94,7 +94,7 @@ Value getbalance(const Array& params, bool fHelp)
                             if (COMMON_TX == item.second->nTxType) {
                                 CCommonTx *pTx = (CCommonTx *)item.second.get();
                                 CKeyID srcKeyId, desKeyId;
-                                pAccountViewTip->GetKeyId(pTx->srcRegId, srcKeyId);
+                                pAccountViewTip->GetKeyId(pTx->srcUserId, srcKeyId);
                                 pAccountViewTip->GetKeyId(pTx->desUserId, desKeyId);
                                 if (!pwalletMain->HasKey(srcKeyId) && pwalletMain->HasKey(desKeyId)) {
                                     nValue = pTx->llValues;

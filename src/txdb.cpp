@@ -604,7 +604,7 @@ Object CAccountViewDB::ToJsonObj(char Prefix) {
                 CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 Object obj;
                 if (Prefix == 'a') {
-                    obj.push_back(Pair("accountid:", HexStr(ssKey)));
+                    obj.push_back(Pair("accountId:", HexStr(ssKey)));
                     obj.push_back(Pair("keyid", HexStr(ssValue)));
                 } else if (Prefix == 'k') {
                     obj.push_back(Pair("keyid:", HexStr(ssKey)));

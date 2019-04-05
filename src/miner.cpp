@@ -283,7 +283,7 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
             if (!CheckSignScript(blockHash, blockSignature, account.minerPubKey))
                 return ERRORMSG("Verify miner publickey signature error");
     } else {
-        return ERRORMSG("AccountView has no accountid");
+        return ERRORMSG("AccountView has no accountId");
     }
 
     if (prtx->nVersion != nTxVersion1)

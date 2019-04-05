@@ -161,14 +161,17 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx)
     {
         CCommonTx* ptx = (CCommonTx*)pBaseTx.get();
         CKeyID sendKeyID;
-        CRegID sendRegID = boost:: get < CRegID > (ptx->srcRegId);
-        sendKeyID = sendRegID.GetKeyID(*pAccountViewTip);
+        if (ptx->srcUserId.type() == typeid(CPubKey)) {
+            sendKeyID = boost::get<CPubKey>(ptx->srcUserId).GetKeyID();
+        } else if (ptx->srcUserId.type() == typeid(CRegID)) {
+            sendKeyID = boost::get<CRegID>(ptx->srcUserId).GetKeyID(*pAccountViewTip);
+        }
         CKeyID recvKeyID;
         if (ptx->desUserId.type() == typeid(CKeyID)) {
             recvKeyID = boost::get<CKeyID>(ptx->desUserId);
         } else if (ptx->desUserId.type() == typeid(CRegID)) {
             CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
-            recvKeyID = desRegID.GetKeyID(*pAccountViewTip);
+            recvKeyID       = desRegID.GetKeyID(*pAccountViewTip);
         }
 
         obj.push_back(Pair("txtype", "COMMON_TX"));
@@ -192,14 +195,14 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx)
     {
         CContractTx* ptx = (CContractTx*)pBaseTx.get();
         CKeyID sendKeyID;
-        CRegID sendRegID = boost:: get < CRegID > (ptx->srcRegId);
-        sendKeyID = sendRegID.GetKeyID(*pAccountViewTip);
+        CRegID sendRegID = boost::get<CRegID>(ptx->srcRegId);
+        sendKeyID        = sendRegID.GetKeyID(*pAccountViewTip);
         CKeyID recvKeyID;
         if (ptx->desUserId.type() == typeid(CKeyID)) {
             recvKeyID = boost::get<CKeyID>(ptx->desUserId);
         } else if (ptx->desUserId.type() == typeid(CRegID)) {
             CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
-            recvKeyID = desRegID.GetKeyID(*pAccountViewTip);
+            recvKeyID       = desRegID.GetKeyID(*pAccountViewTip);
         }
         obj.push_back(Pair("txtype", "CONTRACT_TX"));
         obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
@@ -223,12 +226,12 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx)
             Object objOutPut;
             string address;
             if (item.nacctype == regid) {
-                vector<unsigned char> vRegId(item.accountid, item.accountid+6);
+                vector<unsigned char> vRegId(item.accountId, item.accountId+6);
                 CRegID regId(vRegId);
                 CUserID userId(regId);
                 address = RegIDToAddress(userId);
             } else if (item.nacctype == base58addr) {
-                address.assign(item.accountid[0], sizeof(item.accountid));
+                address.assign(item.accountId[0], sizeof(item.accountId));
             }
 
             objOutPut.push_back(Pair("address", address));
@@ -405,22 +408,18 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         fee = nDefaultFee;
     }
 
-    //get keyid
-    CKeyID keyid;
-    if (!GetKeyId(addr, keyid))
+    CKeyID keyId;
+    if (!GetKeyId(addr, keyId))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in registeraccounttx: Address invalid.");
 
     CRegisterAccountTx rtx;
     assert(pwalletMain != NULL);
     {
-        //  LOCK2(cs_main, pwalletMain->cs_wallet);
         EnsureWalletIsUnlocked();
 
-        //balance
         CAccountViewCache view(*pAccountViewTip, true);
         CAccount account;
-
-        CUserID userId = keyid;
+        CUserID userId = keyId;
         if (!view.GetAccount(userId, account))
             throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account does not exist.");
 
@@ -435,21 +434,21 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         }
 
         CPubKey pubkey;
-        if (!pwalletMain->GetPubKey(keyid, pubkey))
+        if (!pwalletMain->GetPubKey(keyId, pubkey))
             throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: local wallet key not found.");
 
         CPubKey minerPubKey;
-        if (pwalletMain->GetPubKey(keyid, minerPubKey, true)) {
+        if (pwalletMain->GetPubKey(keyId, minerPubKey, true)) {
             rtx.minerId = minerPubKey;
         } else {
             CNullID nullId;
             rtx.minerId = nullId;
         }
-        rtx.userId = pubkey;
-        rtx.llFees = fee;
+        rtx.userId       = pubkey;
+        rtx.llFees       = fee;
         rtx.nValidHeight = chainActive.Tip()->nHeight;
 
-        if (!pwalletMain->Sign(keyid, rtx.SignatureHash(), rtx.signature))
+        if (!pwalletMain->Sign(keyId, rtx.SignatureHash(), rtx.signature))
             throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Sign failed.");
     }
 
@@ -553,7 +552,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
         }
         tx.get()->nValidHeight = height;
 
-        //get keyid by accountid
+        //get keyid by accountId
         CKeyID keyid;
         if (!view.GetKeyId(userId, keyid)) {
             CID id(userId);
@@ -1061,7 +1060,7 @@ Value listtransactions(const Array& params, bool fHelp) {
             if (item.second->nTxType == COMMON_TX) {
                 CCommonTx* ptx = (CCommonTx*)item.second.get();
                 CKeyID sendKeyID;
-                CRegID sendRegID = boost::get<CRegID>(ptx->srcRegId);
+                CRegID sendRegID = boost::get<CRegID>(ptx->srcUserId);
                 sendKeyID        = sendRegID.GetKeyID(*pAccountViewTip);
                 CKeyID recvKeyID;
                 if (ptx->desUserId.type() == typeid(CKeyID)) {
@@ -1260,7 +1259,7 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
             if (item.second.get() && item.second->nTxType == COMMON_TX) {
                 CCommonTx* ptx = (CCommonTx*)item.second.get();
 
-                if (!accView.GetKeyId(ptx->srcRegId, keyid)) {
+                if (!accView.GetKeyId(ptx->srcUserId, keyid)) {
                     continue;
                 }
                 string srcAddr = keyid.ToAddress();
@@ -1468,26 +1467,25 @@ Value getaccountinfo(const Array& params, bool fHelp) {
            );
     }
     RPCTypeCheck(params, list_of(str_type));
-    CKeyID keyid;
+    CKeyID keyId;
     CUserID userId;
     string addr = params[0].get_str();
-    if (!GetKeyId(addr, keyid)) {
+    if (!GetKeyId(addr, keyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
     }
 
-    userId = keyid;
+    userId = keyId;
     Object obj;
     {
         CAccount account;
-        CAccountViewCache accView(*pAccountViewTip, true);
-        if (accView.GetAccount(userId, account)) {
+        if (pAccountViewTip->GetAccount(userId, account)) {
             if (!account.pubKey.IsValid()) {
                 CPubKey pk;
                 CPubKey minerpk;
-                if (pwalletMain->GetPubKey(keyid, pk)) {
-                    pwalletMain->GetPubKey(keyid, minerpk, true);
+                if (pwalletMain->GetPubKey(keyId, pk)) {
+                    pwalletMain->GetPubKey(keyId, minerpk, true);
                     account.pubKey = pk;
-                    account.keyID = pk.GetKeyID();
+                    account.keyID  = pk.GetKeyID();
                     if (pk != minerpk && !account.minerPubKey.IsValid()) {
                         account.minerPubKey = minerpk;
                     }
@@ -1495,13 +1493,13 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             }
             obj = account.ToJsonObj(true);
             obj.push_back(Pair("position", "inblock"));
-        } else { //unregistered keyid
+        } else {  // unregistered keyId
             CPubKey pk;
             CPubKey minerpk;
-            if (pwalletMain->GetPubKey(keyid, pk)) {
-                pwalletMain->GetPubKey(keyid, minerpk, true);
+            if (pwalletMain->GetPubKey(keyId, pk)) {
+                pwalletMain->GetPubKey(keyId, minerpk, true);
                 account.pubKey = pk;
-                account.keyID = pk.GetKeyID();
+                account.keyID  = pk.GetKeyID();
                 if (minerpk != pk) {
                     account.minerPubKey = minerpk;
                 }

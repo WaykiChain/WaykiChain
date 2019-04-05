@@ -200,8 +200,8 @@ protected:
 
 class CRegisterAccountTx : public CBaseTx {
 public:
-    mutable CUserID userId;   //pubkey
-    mutable CUserID minerId;  //Miner pubkey
+    mutable CUserID userId;   // pubkey
+    mutable CUserID minerId;  // miner pubkey
     uint64_t llFees;
     vector<unsigned char> signature;
 
@@ -264,10 +264,10 @@ public:
 
 class CCommonTx : public CBaseTx {
 public:
-    mutable CUserID srcRegId;   //src regid
-    mutable CUserID desUserId;  //user regid or user key id or app regid
-    uint64_t llFees;            //fees paid to miner
-    uint64_t llValues;          //transfer amount
+    mutable CUserID srcUserId;  // regid or pubkey
+    mutable CUserID desUserId;  // regid or keyid
+    uint64_t llFees;            // fees paid to miner
+    uint64_t llValues;          // transfer amount
     vector_unsigned_char memo;
     vector_unsigned_char signature;
 
@@ -275,8 +275,8 @@ public:
     CCommonTx() {
         nTxType      = COMMON_TX;
         llFees       = 0;
-        nValidHeight = 0;
         llValues     = 0;
+        nValidHeight = 0;
         memo.clear();
         signature.clear();
     }
@@ -286,34 +286,34 @@ public:
         *this = *(CCommonTx *)pBaseTx;
     }
 
-    CCommonTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
-                       int height, vector_unsigned_char &descriptionIn) {
-        if (srcRegIdIn.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
+    CCommonTx(const CUserID &srcUserIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
+              int height, vector_unsigned_char &descriptionIn) {
+        if (srcUserIdIn.type() == typeid(CRegID))
+            assert(!boost::get<CRegID>(srcUserIdIn).IsEmpty());
 
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
 
         nTxType      = COMMON_TX;
-        srcRegId     = srcRegIdIn;
+        srcUserId    = srcUserIdIn;
         desUserId    = desUserIdIn;
-        memo  = descriptionIn;
+        memo         = descriptionIn;
         nValidHeight = height;
         llFees       = fee;
         llValues     = value;
         signature.clear();
     }
 
-    CCommonTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
-                       int height) {
-        if (srcRegIdIn.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
+    CCommonTx(const CUserID &srcUserIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
+              int height) {
+        if (srcUserIdIn.type() == typeid(CRegID))
+            assert(!boost::get<CRegID>(srcUserIdIn).IsEmpty());
 
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
 
         nTxType      = COMMON_TX;
-        srcRegId     = srcRegIdIn;
+        srcUserId    = srcUserIdIn;
         desUserId    = desUserIdIn;
         nValidHeight = height;
         llFees       = fee;
@@ -328,7 +328,7 @@ public:
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
-        CID srcId(srcRegId);
+        CID srcId(srcUserId);
         READWRITE(srcId);
         CID desId(desUserId);
         READWRITE(desId);
@@ -337,13 +337,13 @@ public:
         READWRITE(memo);
         READWRITE(signature);
         if (fRead) {
-            srcRegId  = srcId.GetUserId();
+            srcUserId  = srcId.GetUserId();
             desUserId = desId.GetUserId();
         })
 
     uint256 SignatureHash() const {
         CHashWriter ss(SER_GETHASH, 0);
-        CID srcId(srcRegId);
+        CID srcId(srcUserId);
         CID desId(desUserId);
         ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << srcId << desId
            << VARINT(llFees) << VARINT(llValues) << memo;
@@ -368,7 +368,7 @@ public:
 class CContractTx : public CBaseTx {
 public:
     mutable CUserID srcRegId;   // src regid
-    mutable CUserID desUserId;  // user regid or user key id or app regid
+    mutable CUserID desUserId;  // keyid or app regid
     uint64_t llFees;            // fees paid to miner
     uint64_t llValues;          // transfer amount
     vector_unsigned_char arguments;
@@ -809,7 +809,7 @@ public:
 
 class CAccount {
 public:
-    CRegID regID;
+    CRegID regID;                  //!< regID of the account
     CKeyID keyID;                  //!< keyID of the account
     CPubKey pubKey;                //!< public key of the account
     CPubKey minerPubKey;           //!< public key of the account for miner
@@ -834,7 +834,7 @@ public:
 public:
     CAccount(CKeyID &keyId, CPubKey &pubKey) : keyID(keyId), pubKey(pubKey) {
         llValues    = 0;
-        minerPubKey   = CPubKey();
+        minerPubKey = CPubKey();
         nVoteHeight = 0;
         vVoteFunds.clear();
         regID.Clean();
@@ -842,7 +842,7 @@ public:
     }
     CAccount() : keyID(uint160()), llValues(0) {
         pubKey      = CPubKey();
-        minerPubKey   = CPubKey();
+        minerPubKey = CPubKey();
         nVoteHeight = 0;
         vVoteFunds.clear();
         regID.Clean();
@@ -852,7 +852,7 @@ public:
         this->regID       = other.regID;
         this->keyID       = other.keyID;
         this->pubKey      = other.pubKey;
-        this->minerPubKey   = other.minerPubKey;
+        this->minerPubKey = other.minerPubKey;
         this->llValues    = other.llValues;
         this->nVoteHeight = other.nVoteHeight;
         this->vVoteFunds  = other.vVoteFunds;
@@ -864,7 +864,7 @@ public:
         this->regID       = other.regID;
         this->keyID       = other.keyID;
         this->pubKey      = other.pubKey;
-        this->minerPubKey   = other.minerPubKey;
+        this->minerPubKey = other.minerPubKey;
         this->llValues    = other.llValues;
         this->nVoteHeight = other.nVoteHeight;
         this->vVoteFunds  = other.vVoteFunds;

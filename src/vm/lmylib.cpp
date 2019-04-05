@@ -872,7 +872,7 @@ static int ExGetTxRegIDFunc(lua_State *L) {
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == COMMON_TX) {
             CCommonTx *tx = static_cast<CCommonTx*>(pBaseTx.get());
-            vector<unsigned char> item = boost::get<CRegID>(tx->srcRegId).GetVec6();
+            vector<unsigned char> item = boost::get<CRegID>(tx->srcUserId).GetVec6();
             len = RetRstToLua(L, item);
         } else if (pBaseTx->nTxType == CONTRACT_TX) {
             CContractTx *tx = static_cast<CContractTx*>(pBaseTx.get());
@@ -1440,7 +1440,7 @@ static bool GetDataTableWriteOutput(lua_State *L, vector<std::shared_ptr < std::
         LogPrint("vm","accountidTbl not table\n");
         return false;
     } else {
-       memcpy(temp.accountid,&vBuf[0],len);
+       memcpy(temp.accountId,&vBuf[0],len);
     }
 
     if (!(getNumberInTable(L,(char *)"operatorType",doubleValue))) {

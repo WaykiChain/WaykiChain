@@ -63,9 +63,9 @@ public:
 	unsigned int timeoutHeight;	//!< the transacion Timeout height
 	int64_t mMoney;			        //!<The transfer amount
 	unsigned char appuserIDlen;
-	unsigned char vAppuser[CAppCFund::MAX_TAG_SIZE ];				//!< accountid
+	unsigned char vAppuser[CAppCFund::MAX_TAG_SIZE ];				//!< accountId
 	unsigned char fundTagLen;
-	unsigned char vFundTag[CAppCFund::MAX_TAG_SIZE ];				//!< accountid
+	unsigned char vFundTag[CAppCFund::MAX_TAG_SIZE ];				//!< accountId
 
 	CAppFundOperate(const vector<unsigned char> &AppTag,
 		const vector<unsigned char> &FundTag,
@@ -226,7 +226,7 @@ public:
 	unsigned int timeoutHeight;		    //!< the transacion Timeout height
 	uint64_t mMoney;			        //!<The transfer amount
 	unsigned char fundTagLen;
-	unsigned char vFundTag[ CAppCFund::MAX_TAG_SIZE ];				//!< accountid
+	unsigned char vFundTag[ CAppCFund::MAX_TAG_SIZE ];				//!< accountId
 };
 
 #endif /* APPUSERACCOUT_H_ */
