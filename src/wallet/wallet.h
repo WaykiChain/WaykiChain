@@ -50,7 +50,6 @@ private:
 
     static bool StartUp(string &strWalletFile);
 
-//  CMasterKey MasterKey;
     int nWalletVersion;
     CBlockLocator  bestBlock;
     uint256 GetCheckSum()const;
@@ -63,7 +62,6 @@ public:
     map<uint256, CAccountTx> mapInBlockTx;
     map<uint256, std::shared_ptr<CBaseTx> > UnConfirmTx;
     mutable CCriticalSection cs_wallet;
-    //map<CKeyID, CKeyCombi> GetKeyPool() const;
 
     typedef std::map<unsigned int, CMasterKey> MasterKeyMap;
     MasterKeyMap mapMasterKeys;
@@ -120,7 +118,6 @@ public:
     void SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock* pblock);
     void EraseFromWallet(const uint256 &hash);
     int ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate = false);
-//  void ReacceptWalletTransactions();
     void ResendWalletTransactions();
 
     bool IsMine(CBaseTx*pTx)const;
@@ -146,8 +143,6 @@ public:
     static CWallet* getinstance();
 
     std::tuple<bool,string>  CommitTransaction(CBaseTx *pTx);
-
-//  std::tuple<bool,string>  SendMoney(const CRegID &send,const CUserID &rsv, int64_t nValue, int64_t nFee=0);
 
     /** Address book entry changed.
      * @note called with lock cs_wallet held.

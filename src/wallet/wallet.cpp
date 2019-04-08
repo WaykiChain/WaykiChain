@@ -28,111 +28,6 @@ using namespace std;
 using namespace boost;
 
 string CWallet::defaultFilename("");
-//////////////////////////////////////////////////////////////////////////////
-//
-// mapWallet
-//
-
-// struct CompareValueOnly {
-//  bool operator()(const pair<int64_t, pair<const CWalletTx*, unsigned int> >& t1,
-//          const pair<int64_t, pair<const CWalletTx*, unsigned int> >& t2) const {
-//      return t1.first < t2.first;
-//  }
-//};
-
-// const CAccountTx* CWallet::GetAccountTx(const uint256& hash) const {
-//  LOCK(cs_wallet);
-//  map<uint256, CAccountTx>::const_iterator it = mapWalletTx.find(hash);
-//  if (it == mapWalletTx.end())
-//      return NULL;
-//  return &(it->second);
-//}
-//
-// bool CWallet::GetTx(const uint256& hash,shared_ptr<CBaseTx> &tx) const{
-//  LOCK(cs_wallet);
-//  for(auto &wtx: mapWalletTx) {
-//      const CAccountTx &acctx = wtx.second;
-//      for(auto &item: acctx.mapAccountTx) {
-//          if (item.first == hash) {
-//              tx = item.second;
-//              return true;
-//          }
-//      }
-//  }
-//  return false;
-//}
-// bool CWallet::AddPubKey(const CPubKey& pk)
-//{
-//  AssertLockHeld(cs_wallet);
-//  CKeyCombi tem(pk);
-//  if (mKeyPool.count(tem.GetCKeyID()) > 0) {
-//      LogPrint("CWallet", "this key is in the CWallet");
-//      return false;
-//  }
-//  mKeyPool[tem.GetCKeyID()] = tem;
-//  return CWalletDB(strWalletFile).WriteKeyStoreValue(tem.GetCKeyID(),tem);
-//}
-
-// bool CWallet::AddKey(const CKey& secret) {
-//  AssertLockHeld(cs_wallet);
-//
-//  CKeyStoreValue tem(secret);
-//  CKeyID kid = tem.GetCKeyID();
-//  if (mKeyPool.count(kid) > 0) {
-//      CKey dumy;
-//      if (mKeyPool[kid].getCKey(dumy, false) == true) {
-//          LogPrint("CWallet", "this key is in the CWallet");
-//          return false;
-//      }
-//  }
-//
-//  if (!fFileBacked)
-//      return true;
-//
-//  if (!IsEncrypted()) {
-//      mKeyPool[tem.GetCKeyID()] = tem;
-//      return CWalletDB(strWalletFile).WriteKeyStoreValue(tem.GetCKeyID(),tem);
-//  }
-//  else
-//  {
-//      assert(0);//to add code
-//  }
-//  return true;
-//}
-// bool CWallet::AddKey(const CKeyCombi& keyCombi) {
-//  CPubKey Pk;
-//  if (!keyCombi.GetPubKey(Pk)) {
-//      return false;
-//  }
-//  if (!fFileBacked)
-//      return true;
-//  if (!IsEncrypted()) {
-//      return CWalletDB(strWalletFile).WriteKeyStoreValue(Pk.GetKeyID(),keyCombi);
-//  } else {
-//      assert(0 && "fix me");
-//  }
-//  return false;
-//}
-
-// bool CWallet::AddKey(const CKey& secret,const CKey& minerKey) {
-//  AssertLockHeld(cs_wallet);
-//
-//  CKeyCombi tem(secret,minerKey);
-//  if(mKeyPool.count(tem.GetCKeyID()) > 0) {
-//        LogPrint("CWallet","this key is in the CWallet");
-//       return false;
-//      }
-//
-//  if (!IsEncrypted()) {
-//      mKeyPool[tem.GetCKeyID()] = tem;
-//      return CWalletDB(strWalletFile).WriteKeyStoreValue(tem.GetCKeyID(),tem);
-//  }
-//  else
-//  {
-//      assert(0);//to add code
-//  }
-//  return true;
-//}
 
 bool CWallet::Unlock(const SecureString &strWalletPassphrase) {
     CCrypter crypter;
@@ -227,19 +122,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
     if (hash.IsNull() && pTx == NULL)  // this is block Sync
     {
         uint256 blockhash         = pblock->GetHash();
-        auto GenesisBlockProgress = [&]() {
-            //          unsigned short i = 0;
-            //          for (const auto &sptx : pblock->vptx) {
-            //              //confirm the tx GenesisBlock
-            //              CRewardTx* prtx = (CRewardTx*) sptx.get();
-            //              CPubKey pubkey = boost::get<CPubKey>(prtx->account);
-            //              CAccount account;
-            //              if (IsMine(sptx.get())) {
-            //                  AddPubKey(pubkey);
-            //              }
-            //              i++;
-            //          }
-        };
+        auto GenesisBlockProgress = [&]() {};
 
         auto ConnectBlockProgress = [&]() {
             CAccountTx newtx(this, blockhash, pblock->GetHeight());
@@ -256,17 +139,6 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
                 }
                 // confirm the tx is mine
                 if (IsMine(sptx.get())) {
-                    if (sptx->nTxType == REG_ACCT_TX) {
-                        // fIsNeedUpDataRegID = true;
-                    } else if (sptx->nTxType == CONTRACT_TX) {
-                        //                      vector<CAccountOperLog> Log;
-                        //                      if (GetTxOperLog(hashtx, Log) == true) {
-                        //                          assert(newtx.AddOperLog(hashtx, Log));
-                        //                      } else {
-                        //                          ERRORMSG("GetTxOperLog  error %s",
-                        //                          hashtx.GetHex());
-                        //                      }
-                    }
                     newtx.AddTx(hashtx, sptx.get());
                     uiInterface.RevTransaction(sptx.get()->GetHash());
                 }
@@ -381,7 +253,8 @@ int CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart, bool fUpdate) {
 void CWallet::ResendWalletTransactions() {
     vector<uint256> erase;
     for (auto &te : UnConfirmTx) {
-        if (mempool.Exists(te.first)) {  //如果已经存在mempool 了那就不要再提交了
+        // Do not sumit the tx if in mempool already.
+        if (mempool.Exists(te.first)) {
             continue;
         }
         std::shared_ptr<CBaseTx> pBaseTx = te.second->GetNewInstance();
@@ -442,39 +315,6 @@ int64_t CWallet::GetRawBalance(bool IsConfirmed) const {
     }
     return ret;
 }
-
-// std::tuple<bool,string>  CWallet::SendMoney(const CRegID &send, const CUserID &rsv, int64_t
-// nValue, int64_t nFee)
-//{
-//
-//  CTransaction tx;
-//  {
-//      LOCK2(cs_main, cs_wallet);
-//      tx.srcUserId = send;
-//      tx.desUserId = rsv;
-//      tx.llValues = nValue;
-//      if (0 == nFee) {
-//          tx.llFees = SysCfg().GetTxFee();
-//      }else
-//          tx.llFees = nFee;
-//      tx.nValidHeight = chainActive.Tip()->nHeight;
-//  }
-//
-//  CKeyID keID;
-//  if(!pAccountViewTip->GetKeyId(send,keID)){
-//      return std::make_tuple (false,"key or keID failed");
-//  }
-//
-//  if (!Sign(keID,tx.SignatureHash(), tx.signature)) {
-//      return std::make_tuple (false,"Sign failed");
-//  }
-//  std::tuple<bool,string> ret = CommitTransaction((CBaseTx *) &tx);
-//  if(!std::get<0>(ret))
-//      return ret;
-//  return  std::make_tuple (true,tx.GetHash().GetHex());
-//
-//
-//}
 
 bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
     if (IsEncrypted()) return false;
@@ -585,14 +425,11 @@ void CWallet::UpdatedTransaction(const uint256 &hashTx) {
     {
         LOCK(cs_wallet);
         // Only notify UI if this transaction is in this wallet
-        //      map<uint256, CWalletTx>::const_iterator mi = mapWallet.find(hashTx);
-        //      if (mi != mapWallet.end())
         NotifyTransactionChanged(this, hashTx, CT_UPDATED);
     }
 }
 
 bool CWallet::StartUp(string &strWalletFile) {
-    //  [](int i) { return i+4; };
     auto InitError = [](const string &str) {
         uiInterface.ThreadSafeMessageBox(
             str, "", CClientUIInterface::MSG_WARNING | CClientUIInterface::NOSHOWGUI);
@@ -605,8 +442,7 @@ bool CWallet::StartUp(string &strWalletFile) {
         return true;
     };
 
-    defaultFilename = SysCfg().GetArg("-wallet", "wallet.dat");
-    //    bool fDisableWallet = SysCfg().GetBoolArg("-disablewallet", false);
+    defaultFilename   = SysCfg().GetArg("-wallet", "wallet.dat");
     string strDataDir = GetDataDir().string();
 
     // Wallet file must be a plain filename without a directory
@@ -670,7 +506,6 @@ CWallet *CWallet::getinstance() {
     if (StartUp(strWalletFile)) {
         return new CWallet(strWalletFile);
     }
-    //  assert(0);
     return NULL;
 }
 
