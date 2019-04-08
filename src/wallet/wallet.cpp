@@ -179,7 +179,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
     }
 }
 
-void CWallet::EraseFromWallet(const uint256 &hash) {
+void CWallet::EraseTransaction(const uint256 &hash) {
     if (!fFileBacked) return;
     {
         LOCK(cs_wallet);

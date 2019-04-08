@@ -116,7 +116,7 @@ public:
     bool LoadMinVersion(int nVersion);
 
     void SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock* pblock);
-    void EraseFromWallet(const uint256 &hash);
+    void EraseTransaction(const uint256 &hash);
     int ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate = false);
     void ResendWalletTransactions();
 
