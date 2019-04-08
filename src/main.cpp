@@ -634,27 +634,12 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
             ERRORMSG("AcceptToMemoryPool() : tx[%s] already in mempool", hash.GetHex()),
             REJECT_INVALID, "tx-already-in-mempool");
 
-    // is it already confirmed in block?
-    if (uint256() != pTxCacheTip->HasTx(hash))
-        return state.Invalid(
-            ERRORMSG("AcceptToMemoryPool() : tx[%s] has been confirmed", hash.GetHex()),
-            REJECT_INVALID, "tx-duplicate-confirmed");
-
     // is it a miner reward tx?
     if (pBaseTx->IsCoinBase())
         return state.Invalid(
             ERRORMSG("AcceptToMemoryPool() : tx[%s] is a miner reward tx, can't put into mempool",
                      hash.GetHex()),
             REJECT_INVALID, "tx-coinbase-to-mempool");
-
-    // is it within a valid height (+/- 250 of tip height)?
-    unsigned int currHeight = chainActive.Tip()->nHeight;
-    int txCacheHeight       = SysCfg().GetTxCacheHeight();  // 500
-    if (!pBaseTx->IsValidHeight(currHeight, txCacheHeight))
-        return state.Invalid(
-            ERRORMSG("AcceptToMemoryPool() : tx[%s] beyond the scope of valid height: %d",
-                     hash.GetHex(), currHeight),
-            REJECT_INVALID, "tx-invalid-height");
 
     if (!CheckTransaction(pBaseTx, state, *pool.pAccountViewCache, *pool.pScriptDBViewCache))
         return ERRORMSG("AcceptToMemoryPool() : CheckTransaction failed");
