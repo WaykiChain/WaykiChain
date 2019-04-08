@@ -628,34 +628,40 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     // is it already in the memory pool?
     uint256 hash = pBaseTx->GetHash();
     if (pool.Exists(hash))
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] already in mempool",
-            hash.GetHex()), REJECT_INVALID, "tx-already-in-mempool");
+        return state.Invalid(
+            ERRORMSG("AcceptToMemoryPool() : tx[%s] already in mempool", hash.GetHex()),
+            REJECT_INVALID, "tx-already-in-mempool");
 
     // is it already confirmed in block?
     if (uint256() != pTxCacheTip->HasTx(hash))
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] has been confirmed",
-            hash.GetHex()), REJECT_INVALID, "tx-duplicate-confirmed");
+        return state.Invalid(
+            ERRORMSG("AcceptToMemoryPool() : tx[%s] has been confirmed", hash.GetHex()),
+            REJECT_INVALID, "tx-duplicate-confirmed");
 
     // is it a miner reward tx?
     if (pBaseTx->IsCoinBase())
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] is a miner reward tx, can't put into mempool",
-            hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
+        return state.Invalid(
+            ERRORMSG("AcceptToMemoryPool() : tx[%s] is a miner reward tx, can't put into mempool",
+                     hash.GetHex()),
+            REJECT_INVALID, "tx-coinbase-to-mempool");
 
     // is it within a valid height (+/- 250 of tip height)?
     unsigned int currHeight = chainActive.Tip()->nHeight;
-    int txCacheHeight = SysCfg().GetTxCacheHeight();  //500
+    int txCacheHeight       = SysCfg().GetTxCacheHeight();  // 500
     if (!pBaseTx->IsValidHeight(currHeight, txCacheHeight))
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] beyond the scope of valid height: %d",
-            hash.GetHex(), currHeight), REJECT_INVALID, "tx-invalid-height");
+        return state.Invalid(
+            ERRORMSG("AcceptToMemoryPool() : tx[%s] beyond the scope of valid height: %d",
+                     hash.GetHex(), currHeight),
+            REJECT_INVALID, "tx-invalid-height");
 
     if (!CheckTransaction(pBaseTx, state, *pool.pAccountViewCache, *pool.pScriptDBViewCache))
-        return ERRORMSG("AcceptToMemoryPool: CheckTransaction failed");
+        return ERRORMSG("AcceptToMemoryPool() : CheckTransaction failed");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     string reason;
     if (SysCfg().NetworkID() == MAIN_NET && !IsStandardTx(pBaseTx, reason))
-        return state.DoS(0, ERRORMSG("AcceptToMemoryPool : nonstandard transaction: %s", reason),
-            REJECT_NONSTANDARD, reason);
+        return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : nonstandard transaction: %s", reason),
+                         REJECT_NONSTANDARD, reason);
 
     {
         double dPriority = pBaseTx->GetPriority();
@@ -667,14 +673,19 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         if (pBaseTx->nTxType == COMMON_TX) {
             CCommonTx *pTx = static_cast<CCommonTx *>(pBaseTx);
             if (pTx->llValues < CBaseTx::nMinTxFee)
-                return state.DoS(0, ERRORMSG("AcceptToMemoryPool : common tx %d transfer amount(%d) too small, you must send a min (%d)",
-                    hash.ToString(), pTx->llValues, CBaseTx::nMinTxFee), REJECT_DUST, "dust amount");
+                return state.DoS(0,
+                                 ERRORMSG("AcceptToMemoryPool() : common tx %d transfer amount(%d) "
+                                          "too small, you must send a min (%d)",
+                                          hash.ToString(), pTx->llValues, CBaseTx::nMinTxFee),
+                                 REJECT_DUST, "dust amount");
         }
 
         int64_t txMinFee = GetMinRelayFee(pBaseTx, nSize, true);
         if (fLimitFree && nFees < txMinFee)
-            return state.DoS(0, ERRORMSG("AcceptToMemoryPool : not enough fees %s, %d < %d", hash.ToString(), nFees, txMinFee),
-                REJECT_INSUFFICIENTFEE, "insufficient fee");
+            return state.DoS(0,
+                             ERRORMSG("AcceptToMemoryPool() : not enough fees %s, %d < %d",
+                                      hash.ToString(), nFees, txMinFee),
+                             REJECT_INSUFFICIENTFEE, "insufficient fee");
 
         // Continuously rate-limit free transactions
         // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
@@ -692,7 +703,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
             // -limitfreerelay unit is thousand-bytes-per-minute
             // At default rate it would take over a month to fill 1GB
             if (dFreeCount >= SysCfg().GetArg("-limitfreerelay", 15) * 10 * 1000 / 60)
-                return state.DoS(0, ERRORMSG("AcceptToMemoryPool : free transaction rejected by rate limiter"),
+                return state.DoS(
+                    0, ERRORMSG("AcceptToMemoryPool() : free transaction rejected by rate limiter"),
                     REJECT_INSUFFICIENTFEE, "insufficient priority");
 
             LogPrint("INFO", "Rate limit dFreeCount: %g => %g\n", dFreeCount, dFreeCount + nSize);
@@ -700,12 +712,13 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         }
 
         if (fRejectInsaneFee && nFees > SysCfg().GetMaxFee())
-            return ERRORMSG("AcceptToMemoryPool: : insane fees %s, %d > %d",
-                hash.ToString(), nFees, SysCfg().GetMaxFee());
+            return ERRORMSG("AcceptToMemoryPool() : insane fees %s, %d > %d", hash.ToString(),
+                            nFees, SysCfg().GetMaxFee());
 
         // Store transaction in memory
         if (!pool.AddUnchecked(hash, entry, state))
-            return ERRORMSG("AcceptToMemoryPool: : AddUnchecked failed hash:%s \r\n", hash.ToString());
+            return ERRORMSG("AcceptToMemoryPool() : AddUnchecked failed hash:%s\n",
+                            hash.ToString());
     }
 
     g_signals.SyncTransaction(hash, pBaseTx, NULL);
