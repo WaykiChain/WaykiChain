@@ -118,9 +118,6 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &en
                              REJECT_INVALID, "tx-invalid-height");
     }
 
-    if (CONTRACT_TX == entry.GetTx()->nTxType)
-        LogPrint("vm", "tx hash=%s CheckTxInMemPool run contract\n", entry.GetTx()->GetHash().GetHex());
-
     if (bExcute) {
         if (!entry.GetTx()->ExecuteTx(0, acctViewTemp, state, txundo, chainActive.Tip()->nHeight + 1,
                                       txCacheTemp, scriptDBViewTemp))
