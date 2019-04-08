@@ -88,8 +88,8 @@ public:
     bool EraseKeyStoreValue(const CKeyID &keyId);
     bool WriteBlockTx(const uint256 &hash, const CAccountTx& atx);
     bool EraseBlockTx(const uint256& hash);
-    bool WriteUnComFirmedTx(const uint256 &hash, const std::shared_ptr<CBaseTx> &tx);
-    bool EraseUnComFirmedTx(const uint256& hash);
+    bool WriteUnconfirmedTx(const uint256 &hash, const std::shared_ptr<CBaseTx> &tx);
+    bool EraseUnconfirmedTx(const uint256& hash);
     bool WriteMasterKey(unsigned int nID, const CMasterKey& kMasterKey);
     bool EraseMasterKey(unsigned int nID);
     bool WriteVersion(const int version) ;

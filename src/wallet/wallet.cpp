@@ -127,7 +127,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
                     uiInterface.RevTransaction(sptx.get()->GetHash());
                 }
                 if (UnConfirmTx.count(hashtx) > 0) {
-                    CWalletDB(strWalletFile).EraseUnComFirmedTx(hashtx);
+                    CWalletDB(strWalletFile).EraseUnconfirmedTx(hashtx);
                     UnConfirmTx.erase(hashtx);
                 }
                 ++i;
@@ -149,7 +149,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
                 if (IsMine(sptx.get())) {
                     UnConfirmTx[sptx.get()->GetHash()] = sptx.get()->GetNewInstance();
                     CWalletDB(strWalletFile)
-                        .WriteUnComFirmedTx(sptx.get()->GetHash(),
+                        .WriteUnconfirmedTx(sptx.get()->GetHash(),
                                             UnConfirmTx[sptx.get()->GetHash()]);
                 }
             }
@@ -185,7 +185,7 @@ void CWallet::EraseFromWallet(const uint256 &hash) {
         LOCK(cs_wallet);
         if (UnConfirmTx.count(hash)) {
             UnConfirmTx.erase(hash);
-            CWalletDB(strWalletFile).EraseUnComFirmedTx(hash);
+            CWalletDB(strWalletFile).EraseUnconfirmedTx(hash);
         }
     }
     return;
@@ -252,7 +252,7 @@ void CWallet::ResendWalletTransactions() {
         }
     }
     for (auto const &tee : erase) {
-        CWalletDB(strWalletFile).EraseUnComFirmedTx(tee);
+        CWalletDB(strWalletFile).EraseUnconfirmedTx(tee);
         UnConfirmTx.erase(tee);
     }
 }
@@ -274,7 +274,7 @@ std::tuple<bool, string> CWallet::CommitTransaction(CBaseTx *pTx) {
 
     uint256 txhash      = pTx->GetHash();
     UnConfirmTx[txhash] = pTx->GetNewInstance();
-    bool flag           = CWalletDB(strWalletFile).WriteUnComFirmedTx(txhash, UnConfirmTx[txhash]);
+    bool flag           = CWalletDB(strWalletFile).WriteUnconfirmedTx(txhash, UnConfirmTx[txhash]);
     ::RelayTransaction(pTx, txhash);
 
     return std::make_tuple(flag, txhash.ToString());
@@ -532,13 +532,13 @@ bool CWallet::IsMine(CBaseTx *pTx) const {
 bool CWallet::CleanAll() {
     for_each(UnConfirmTx.begin(), UnConfirmTx.end(),
              [&](std::map<uint256, std::shared_ptr<CBaseTx> >::reference a) {
-                 CWalletDB(strWalletFile).EraseUnComFirmedTx(a.first);
+                 CWalletDB(strWalletFile).EraseUnconfirmedTx(a.first);
              });
     UnConfirmTx.clear();
 
     for_each(mapInBlockTx.begin(), mapInBlockTx.end(),
              [&](std::map<uint256, CAccountTx>::reference a) {
-                 CWalletDB(strWalletFile).EraseUnComFirmedTx(a.first);
+                 CWalletDB(strWalletFile).EraseUnconfirmedTx(a.first);
              });
     mapInBlockTx.clear();
 
