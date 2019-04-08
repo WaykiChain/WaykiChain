@@ -588,18 +588,10 @@ bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> si
 }
 
 bool CheckTransaction(CBaseTx *ptx, CValidationState &state, CAccountViewCache &view,
-                      CScriptDBViewCache &scriptDB)
-{
-    if (REWARD_TX == ptx->nTxType)
-        return true;
+                      CScriptDBViewCache &scriptDB) {
+    if (REWARD_TX == ptx->nTxType) return true;
 
-    // Size limits
-    if (::GetSerializeSize(ptx->GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
-        return state.DoS(100, ERRORMSG("CheckTransaction() : size limits failed"),
-            REJECT_INVALID, "bad-txns-oversize");
-
-    if (!ptx->CheckTransaction(state, view, scriptDB))
-        return false;
+    if (!ptx->CheckTransaction(state, view, scriptDB)) return false;
 
     return true;
 }
@@ -641,14 +633,15 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
                      hash.GetHex()),
             REJECT_INVALID, "tx-coinbase-to-mempool");
 
-    if (!CheckTransaction(pBaseTx, state, *pool.pAccountViewCache, *pool.pScriptDBViewCache))
-        return ERRORMSG("AcceptToMemoryPool() : CheckTransaction failed");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     string reason;
     if (SysCfg().NetworkID() == MAIN_NET && !IsStandardTx(pBaseTx, reason))
         return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : nonstandard transaction: %s", reason),
                          REJECT_NONSTANDARD, reason);
+
+    if (!CheckTransaction(pBaseTx, state, *pool.pAccountViewCache, *pool.pScriptDBViewCache))
+        return ERRORMSG("AcceptToMemoryPool() : CheckTransaction failed");
 
     {
         double dPriority = pBaseTx->GetPriority();
