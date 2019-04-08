@@ -596,6 +596,7 @@ void static TxSender(int64_t batchSize) {
         }
 
         for (int j = 0; j < size; ++j) {
+            LOCK(cs_main);
             if (!::AcceptToMemoryPool(mempool, state, (CBaseTx*)&batchTx[j], true)) {
                 LogPrint("DEBUG", "TxSender, accept to mempool failed: %s\n", state.GetRejectReason());
                 throw boost::thread_interrupted();
