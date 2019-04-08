@@ -102,7 +102,8 @@ void CTxMemPool::Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> >& remov
     }
 }
 
-bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &entry, CValidationState &state, bool bExcute) {
+bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &entry,
+                                  CValidationState &state, bool bExcute) {
     CTxUndo txundo;
     CTransactionDBCache txCacheTemp(*pTxCacheTip, true);
     CAccountViewCache acctViewTemp(*pAccountViewCache, true);
@@ -110,17 +111,22 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &en
 
     // is it already confirmed in block
     if (uint256() != pTxCacheTip->HasTx(hash))
-        return state.Invalid(ERRORMSG("CheckTxInMemPool() : tx hash %s has been confirmed", hash.GetHex()),
-                             REJECT_INVALID, "tx-duplicate-confirmed");
-    // is it in valid height
-    if (!entry.GetTx()->IsValidHeight(chainActive.Tip()->nHeight, SysCfg().GetTxCacheHeight())) {
-        return state.Invalid(ERRORMSG("CheckTxInMemPool() : txhash=%s beyond the scope of valid height", hash.GetHex()),
-                             REJECT_INVALID, "tx-invalid-height");
+        return state.Invalid(
+            ERRORMSG("CheckTxInMemPool() : tx hash %s has been confirmed", hash.GetHex()),
+            REJECT_INVALID, "tx-duplicate-confirmed");
+    // is it within valid height
+    static int validHeight = SysCfg().GetTxCacheHeight();
+    if (!entry.GetTx()->IsValidHeight(chainActive.Tip()->nHeight, validHeight)) {
+        return state.Invalid(
+            ERRORMSG("CheckTxInMemPool() : txhash=%s beyond the scope of valid height",
+                     hash.GetHex()),
+            REJECT_INVALID, "tx-invalid-height");
     }
 
     if (bExcute) {
-        if (!entry.GetTx()->ExecuteTx(0, acctViewTemp, state, txundo, chainActive.Tip()->nHeight + 1,
-                                      txCacheTemp, scriptDBViewTemp))
+        if (!entry.GetTx()->ExecuteTx(0, acctViewTemp, state, txundo,
+                                      chainActive.Tip()->nHeight + 1, txCacheTemp,
+                                      scriptDBViewTemp))
             return false;
     }
 
@@ -128,7 +134,8 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &en
     return true;
 }
 
-bool CTxMemPool::AddUnchecked(const uint256& hash, const CTxMemPoolEntry &entry, CValidationState &state) {
+bool CTxMemPool::AddUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
+                              CValidationState &state) {
     // Add to memory pool without checking anything.
     // Used by main.cpp AcceptToMemoryPool(), which DOES
     // all the appropriate checks.
@@ -138,7 +145,6 @@ bool CTxMemPool::AddUnchecked(const uint256& hash, const CTxMemPoolEntry &entry,
             return false;
 
         mapTx.insert(make_pair(hash, entry));
-        LogPrint("addtomempool", "add tx hash:%s time:%ld\n", hash.GetHex(), GetTime());
         nTransactionsUpdated++;
     }
     return true;
