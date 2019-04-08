@@ -118,7 +118,6 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
 
         auto ConnectBlockProgress = [&]() {
             CAccountTx newtx(this, blockhash, pblock->GetHeight());
-            int i = 0;
             for (const auto &sptx : pblock->vptx) {
                 uint256 hashtx = sptx->GetHash();
                 // confirm the tx is mine
@@ -130,7 +129,6 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
                     CWalletDB(strWalletFile).EraseUnconfirmedTx(hashtx);
                     UnConfirmTx.erase(hashtx);
                 }
-                ++i;
             }
             if (newtx.GetTxSize() > 0) {          // write to disk
                 mapInBlockTx[blockhash] = newtx;  // add to map
@@ -139,13 +137,10 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
         };
 
         auto DisConnectBlockProgress = [&]() {
-            int i     = 0;
-            int index = pblock->GetHeight();
             for (const auto &sptx : pblock->vptx) {
                 if (sptx->IsCoinBase()) {
                     continue;
                 }
-                CRegID regid(index, i++);
                 if (IsMine(sptx.get())) {
                     UnConfirmTx[sptx.get()->GetHash()] = sptx.get()->GetNewInstance();
                     CWalletDB(strWalletFile)
