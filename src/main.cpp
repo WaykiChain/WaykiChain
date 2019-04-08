@@ -701,8 +701,6 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
                             hash.ToString());
     }
 
-    g_signals.SyncTransaction(hash, pBaseTx, NULL);
-
     return true;
 }
 
