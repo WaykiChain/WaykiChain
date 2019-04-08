@@ -210,18 +210,6 @@ static bool noui_RevTransaction(const uint256 &hash){
 	return true;
 }
 
-static bool noui_RevAppTransaction(const CBlock *pBlock ,int nIndex){
-	Object obj;
-	obj.push_back(Pair("type", "rev_app_transaction"));
-	Object objTx = pBlock->vptx[nIndex].get()->ToJson(*pAccountViewTip);
-	objTx.push_back(Pair("blockhash", pBlock->GetHash().GetHex()));
-	objTx.push_back(Pair("confirmedheight", (int) pBlock->GetHeight()));
-	objTx.push_back(Pair("confirmedtime", (int) pBlock->GetTime()));
-	obj.push_back(Pair("transaction", objTx));
-	AddMessageToDeque(write_string(Value(obj), true));
-	return true;
-}
-
 static void noui_NotifyMessage(const std::string &message)
 {
 	Object obj;
@@ -250,7 +238,6 @@ void noui_connect()
 {
     // Connect Coin signal handlers
 	uiInterface.RevTransaction.connect(noui_RevTransaction);
-	uiInterface.RevAppTransaction.connect(noui_RevAppTransaction);
     uiInterface.ThreadSafeMessageBox.connect(noui_ThreadSafeMessageBox);
     uiInterface.InitMessage.connect(noui_InitMessage);
     uiInterface.NotifyBlocksChanged.connect(noui_BlockChanged);
