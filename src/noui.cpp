@@ -202,14 +202,6 @@ static void noui_BlockChanged(int64_t time,int64_t high,const uint256 &hash) {
 
 extern Object GetTxDetailJSON(const uint256& txhash);
 
-static bool noui_RevTransaction(const uint256 &hash){
-	Object obj;
-	obj.push_back(Pair("type", "revtransaction"));
-	obj.push_back(Pair("transaction",     GetTxDetailJSON(hash)));
-	AddMessageToDeque(write_string(Value(obj), true));
-	return true;
-}
-
 static void noui_NotifyMessage(const std::string &message)
 {
 	Object obj;
@@ -229,7 +221,6 @@ static bool noui_ReleaseTransaction(const uint256 &hash){
 void noui_connect()
 {
     // Connect Coin signal handlers
-	uiInterface.RevTransaction.connect(noui_RevTransaction);
     uiInterface.ThreadSafeMessageBox.connect(noui_ThreadSafeMessageBox);
     uiInterface.InitMessage.connect(noui_InitMessage);
     uiInterface.NotifyBlocksChanged.connect(noui_BlockChanged);

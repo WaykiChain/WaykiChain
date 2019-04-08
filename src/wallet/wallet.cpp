@@ -123,7 +123,6 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
                 // confirm the tx is mine
                 if (IsMine(sptx.get())) {
                     newtx.AddTx(hashtx, sptx.get());
-                    uiInterface.RevTransaction(sptx.get()->GetHash());
                 }
                 if (UnConfirmTx.count(hashtx) > 0) {
                     CWalletDB(strWalletFile).EraseUnconfirmedTx(hashtx);
