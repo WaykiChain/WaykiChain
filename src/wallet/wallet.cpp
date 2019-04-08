@@ -110,8 +110,6 @@ void CWallet::SetBestChain(const CBlockLocator &loc) {
 }
 
 void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *pblock) {
-    LOCK2(cs_main, cs_wallet);
-
     assert(pTx != NULL || pblock != NULL);
 
     if (hash.IsNull() && pTx == NULL) {  // this is block Sync
@@ -139,6 +137,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
                 newtx.WriteToDisk();
             }
         };
+
         auto DisConnectBlockProgress = [&]() {
             int i     = 0;
             int index = pblock->GetHeight();
@@ -159,19 +158,23 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
                 mapInBlockTx.erase(blockhash);
             }
         };
-        auto IsConnect = [&]()  // test is connect or disconct
-        {
+
+        auto IsConnect = [&]() {  // test is connect or disconct
             return mapBlockIndex.count(blockhash) && chainActive.Contains(mapBlockIndex[blockhash]);
         };
-        // GenesisBlock progress
-        if (SysCfg().HashGenesisBlock() == blockhash) {
-            GenesisBlockProgress();
-        } else if (IsConnect()) {
-            // connect block
-            ConnectBlockProgress();
-        } else {
-            // disconnect block
-            DisConnectBlockProgress();
+
+        {
+            LOCK2(cs_main, cs_wallet);
+            // GenesisBlock progress
+            if (SysCfg().HashGenesisBlock() == blockhash) {
+                GenesisBlockProgress();
+            } else if (IsConnect()) {
+                // connect block
+                ConnectBlockProgress();
+            } else {
+                // disconnect block
+                DisConnectBlockProgress();
+            }
         }
     }
 }
