@@ -115,7 +115,6 @@ extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern const string strMessageMagic;
 
-class CCoinsDB;
 class CBlockTreeDB;
 struct CDiskBlockPos;
 class CTxUndo;
