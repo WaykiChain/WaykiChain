@@ -105,11 +105,6 @@ public:
 
     /** release transaction from block  */
     boost::signals2::signal<bool (const uint256 &hash) > ReleaseTransaction;
-
-    /** remove transaction from mempool */
-    boost::signals2::signal<bool (const uint256 &hash) > RemoveTransaction;
-
-
 };
 
 extern CClientUIInterface uiInterface;

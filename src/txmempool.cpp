@@ -70,7 +70,6 @@ void CTxMemPool::ReScanMemPoolTx(CAccountViewCache *pAccountViewCacheIn,
             if (!CheckTxInMemPool(iterTx->first, iterTx->second, state, true)) {
                 uint256 hash = iterTx->first;
                 iterTx       = mapTx.erase(iterTx++);
-                uiInterface.RemoveTransaction(hash);
                 EraseTransaction(hash);
                 continue;
             }
@@ -96,7 +95,6 @@ void CTxMemPool::Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> >& remov
     if (mapTx.count(hash)) {
         removed.push_front(std::shared_ptr<CBaseTx>(mapTx[hash].GetTx()));
         mapTx.erase(hash);
-        uiInterface.RemoveTransaction(hash);
         EraseTransaction(hash);
         nTransactionsUpdated++;
     }

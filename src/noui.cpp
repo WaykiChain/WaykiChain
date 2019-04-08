@@ -226,14 +226,6 @@ static bool noui_ReleaseTransaction(const uint256 &hash){
 	return true;
 }
 
-static bool noui_RemoveTransaction(const uint256 &hash) {
-	Object obj;
-	obj.push_back(Pair("type",     "rmtx"));
-	obj.push_back(Pair("hash",   hash.ToString()));
-	AddMessageToDeque(write_string(Value(obj), true));
-	return true;
-}
-
 void noui_connect()
 {
     // Connect Coin signal handlers
@@ -243,5 +235,4 @@ void noui_connect()
     uiInterface.NotifyBlocksChanged.connect(noui_BlockChanged);
     uiInterface.NotifyMessage.connect(noui_NotifyMessage);
     uiInterface.ReleaseTransaction.connect(noui_ReleaseTransaction);
-    uiInterface.RemoveTransaction.connect(noui_RemoveTransaction);
 }
