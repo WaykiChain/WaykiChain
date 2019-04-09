@@ -1413,7 +1413,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
     if (block.vptx.size() > 1) {
         for (unsigned int i = 1; i < block.vptx.size(); i++) {
             std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
-            if (uint256() != txCache.HasTx((pBaseTx->GetHash()))) {
+            if (txCache.HasTx((pBaseTx->GetHash()))) {
                 return state.DoS(100,
                                  ERRORMSG("ConnectBlock() : the TxHash %s the confirm duplicate",
                                           pBaseTx->GetHash().GetHex()),
@@ -2144,7 +2144,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
                     item->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
             }
             //校验是否有重复确认交易
-            if (uint256() != pForkTxCache->HasTx(item->GetHash()))
+            if (pForkTxCache->HasTx(item->GetHash()))
                 return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : tx hash %s has been confirmed\n",
                     item->GetHash().GetHex()), REJECT_INVALID, "bad-txns-oversize");
         }

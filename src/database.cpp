@@ -1521,7 +1521,7 @@ bool CScriptDBViewCache::EraseDelegateData(const vector<unsigned char> &vKey) {
     return true;
 }
 
-uint256 CTransactionDBView::HasTx(const uint256 &txHash) { return uint256(); }
+bool CTransactionDBView::HasTx(const uint256 &txHash) { return false; }
 bool CTransactionDBView::IsContainBlock(const CBlock &block) { return false; }
 bool CTransactionDBView::AddBlockToCache(const CBlock &block) { return false; }
 bool CTransactionDBView::DeleteBlockFromCache(const CBlock &block) { return false; }
@@ -1531,7 +1531,7 @@ CTransactionDBViewBacked::CTransactionDBViewBacked(CTransactionDBView &transacti
     pBase = &transactionView;
 }
 
-uint256 CTransactionDBViewBacked::HasTx(const uint256 &txHash) {
+bool CTransactionDBViewBacked::HasTx(const uint256 &txHash) {
     return pBase->HasTx(txHash);
 }
 
@@ -1577,17 +1577,14 @@ bool CTransactionDBCache::DeleteBlockFromCache(const CBlock &block) {
     return true;
 }
 
-uint256 CTransactionDBCache::HasTx(const uint256 &txHash) {
+bool CTransactionDBCache::HasTx(const uint256 &txHash) {
     for (auto &item : mapTxHashByBlockHash) {
         if (item.second.find(txHash) != item.second.end()) {
-            return item.first;
+            return true;
         }
     }
-    uint256 blockHash = pBase->HasTx(txHash);
-    if (IsInMap(mapTxHashByBlockHash, blockHash)) {
-        return blockHash;
-    }
-    return uint256();
+
+    return false;
 }
 
 map<uint256, set<uint256> > CTransactionDBCache::GetTxHashCache() {
