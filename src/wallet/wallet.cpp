@@ -609,6 +609,18 @@ bool CWallet::AddKey(const CKey &key) {
     return AddKey(key.GetPubKey().GetKeyID(), keyCombi);
 }
 
+bool CWallet::RemoveKey(const CKey &key) {
+    CKeyID keyId = key.GetPubKey.GetKeyID();
+    mapKeys.erase(keyId);
+    if (!IsEncrypted()) {
+        CWalletDB(strWalletFile).EraseKeyStoreValue(keyId);
+    } else {
+        return ERRORMSG("wallet is encrypted hence remove key forbidden!");
+    }
+
+    return true;
+}
+
 bool CWallet::IsReadyForCoolMiner(const CAccountViewCache &view) const {
     CRegID regId;
     for (auto const &item : mapKeys) {

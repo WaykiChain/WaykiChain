@@ -9,12 +9,14 @@
 #include <stdint.h>
 #include <boost/assign/list_of.hpp>
 
-#include "tx.h"
-#include "rpcserver.h"
-#include "main.h"
-#include "sync.h"
+#include "../wallet/wallet.h"
 #include "configuration.h"
+#include "init.h"
 #include "json/json_spirit_value.h"
+#include "main.h"
+#include "rpcserver.h"
+#include "sync.h"
+#include "tx.h"
 
 using namespace json_spirit;
 using namespace std;
@@ -514,6 +516,15 @@ void static TxGenerator(int64_t period, int64_t batchSize) {
     CCoinSecret vchSecret;
     vchSecret.SetString("Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13");
     CKey key = vchSecret.GetKey();
+
+    // remove key from wallet first.
+    {
+        LOCK2(cs_main, pwalletMain->cs_wallet);
+
+        if (!pwalletMain->RemoveKey(key))
+            throw boost::thread_interrupted();
+    }
+
     vector<CCommonTx> batchTx;
     CRegID srcRegId("0-1");
     CRegID desRegId("0-1");

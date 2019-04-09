@@ -52,7 +52,8 @@ private:
 
     int nWalletVersion;
     CBlockLocator  bestBlock;
-    uint256 GetCheckSum()const;
+    uint256 GetCheckSum() const;
+
 public:
     CPubKey vchDefaultKey ;
 
@@ -102,9 +103,10 @@ public:
     //! Adds a key to the store, without saving it to disk (used by LoadWallet)
     bool LoadKeyCombi(const CKeyID & keyId, const CKeyCombi& keycombi) { return CBasicKeyStore::AddKeyCombi(keyId, keycombi);}
     // Adds a key to the store, and saves it to disk.
-    bool AddKey(const CKey& secret,const CKey& minerKey);
-    bool AddKey(const CKeyID &keyId, const CKeyCombi& store);
-    bool AddKey(const CKey& key);
+    bool AddKey(const CKey &secret, const CKey &minerKey);
+    bool AddKey(const CKeyID &keyId, const CKeyCombi &store);
+    bool AddKey(const CKey &key);
+    bool RemoveKey(const CKey &key);
 
     bool CleanAll(); //just for unit test
     bool IsReadyForCoolMiner(const CAccountViewCache& view)const;
