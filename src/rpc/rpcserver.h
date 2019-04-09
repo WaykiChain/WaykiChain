@@ -7,12 +7,12 @@
 #ifndef _COINRPC_SERVER_H_
 #define _COINRPC_SERVER_H_ 1
 
-#include "uint256.h"
 #include "rpcprotocol.h"
+#include "uint256.h"
 
+#include <stdint.h>
 #include <list>
 #include <map>
-#include <stdint.h>
 #include <string>
 
 #include "json/json_spirit_reader_template.h"
@@ -21,15 +21,15 @@
 using namespace std;
 class CBlockIndex;
 
-/* Start RPC threads */
-void StartRPCThreads();
-/* Alternative to StartRPCThreads for the GUI, when no server is
- * used. The RPC thread in this case is only used to handle timeouts.
- * If real RPC threads have already been started this is a no-op.
- */
-void StartDummyRPCThread();
-/* Stop RPC threads */
-void StopRPCThreads();
+/* Start RPC Server */
+
+bool StartRPCServer();
+
+/** interrupt RPC Server */
+void InterruptRPCServer();
+
+/* Stop RPC Server */
+void StopRPCServer();
 
 /*
   Type-check arguments; throws JSONRPCError if wrong type given. Does not check that
@@ -37,24 +37,24 @@ void StopRPCThreads();
   Use like:  RPCTypeCheck(params, boost::assign::list_of(str_type)(int_type)(obj_type));
 */
 void RPCTypeCheck(const json_spirit::Array& params,
-                  const list<json_spirit::Value_type>& typesExpected, bool fAllowNull=false);
+                  const list<json_spirit::Value_type>& typesExpected, bool fAllowNull = false);
 /*
   Check for expected keys/value types in an Object.
   Use like: RPCTypeCheck(object, boost::assign::map_list_of("name", str_type)("value", int_type));
 */
 void RPCTypeCheck(const json_spirit::Object& o,
-                  const map<string, json_spirit::Value_type>& typesExpected, bool fAllowNull=false);
+                  const map<string, json_spirit::Value_type>& typesExpected,
+                  bool fAllowNull = false);
 
 /*
   Run func nSeconds from now. Uses boost deadline timers.
   Overrides previous timer <name> (if any).
  */
-void RPCRunLater(const string& name, boost::function<void(void)> func, int64_t nSeconds);
+void RPCRunLater(const std::string& name, std::function<void()> func, int64_t nSeconds);
 
-typedef json_spirit::Value(*rpcfn_type)(const json_spirit::Array& params, bool fHelp);
+typedef json_spirit::Value (*rpcfn_type)(const json_spirit::Array& params, bool fHelp);
 
-class CRPCCommand
-{
+class CRPCCommand {
 public:
     string name;
     rpcfn_type actor;
@@ -66,10 +66,10 @@ public:
 /**
  * Coin RPC command dispatcher.
  */
-class CRPCTable
-{
+class CRPCTable {
 private:
     map<string, const CRPCCommand*> mapCommands;
+
 public:
     CRPCTable();
     const CRPCCommand* operator[](string name) const;
@@ -82,7 +82,7 @@ public:
      * @returns Result of the call.
      * @throws an exception (json_spirit::Value) when an error happens.
      */
-    json_spirit::Value execute(const string &method, const json_spirit::Array &params) const;
+    json_spirit::Value execute(const string& method, const json_spirit::Array& params) const;
 };
 
 extern const CRPCTable tableRPC;
@@ -184,5 +184,40 @@ extern json_spirit::Value listcheckpoint(const json_spirit::Array& params, bool 
 extern json_spirit::Value invalidateblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value reconsiderblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value startgeneration(const json_spirit::Array& params, bool fHelp);
+
+json_spirit::Object JSONRPCExecOne(const json_spirit::Value& req);
+
+std::string JSONRPCExecBatch(const json_spirit::Array& vReq);
+
+/** Opaque base class for timers returned by NewTimerFunc.
+ * This provides no methods at the moment, but makes sure that delete
+ * cleans up the whole state.
+ */
+class RPCTimerBase {
+public:
+    virtual ~RPCTimerBase() {}
+};
+
+/**
+ * RPC timer "driver".
+ */
+class RPCTimerInterface {
+public:
+    virtual ~RPCTimerInterface() {}
+    /** Implementation name */
+    virtual const char* Name() = 0;
+    /** Factory function for timers.
+     * RPC will call the function to create a timer that will call func in *millis* milliseconds.
+     * @note As the RPC mechanism is backend-neutral, it can use different implementations of
+     * timers. This is needed to cope with the case in which there is no HTTP server, but only GUI
+     * RPC console, and to break the dependency of pcserver on httprpc.
+     */
+    virtual RPCTimerBase* NewTimer(std::function<void()>& func, int64_t millis) = 0;
+};
+
+/** Set the factory function for timers */
+void RPCSetTimerInterface(RPCTimerInterface* iface);
+/** Unset factory function for timers */
+void RPCUnsetTimerInterface(RPCTimerInterface* iface);
 
 #endif

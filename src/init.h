@@ -21,6 +21,7 @@ void StartShutdown();
 bool ShutdownRequested();
 void Shutdown();
 bool AppInit(boost::thread_group& threadGroup);
+void Interrupt();
 
 string HelpMessage();
 
