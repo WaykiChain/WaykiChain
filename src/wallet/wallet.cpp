@@ -610,7 +610,7 @@ bool CWallet::AddKey(const CKey &key) {
 }
 
 bool CWallet::RemoveKey(const CKey &key) {
-    CKeyID keyId = key.GetPubKey.GetKeyID();
+    CKeyID keyId = key.GetPubKey().GetKeyID();
     mapKeys.erase(keyId);
     if (!IsEncrypted()) {
         CWalletDB(strWalletFile).EraseKeyStoreValue(keyId);
