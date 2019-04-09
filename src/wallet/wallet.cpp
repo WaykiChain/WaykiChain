@@ -216,7 +216,7 @@ int CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart, bool fUpdate) {
     //          CBlock block;
     //          ReadBlockFromDisk(block, pindex);
     //
-    //          SyncWithWallets(0, NULL, &block);
+    //          SyncTransaction(0, NULL, &block);
     //
     //          pindex = chainActive.Next(pindex);
     //          if (GetTime() >= nNow + 60) {

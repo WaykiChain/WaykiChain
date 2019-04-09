@@ -134,7 +134,7 @@ void UnregisterWallet(CWalletInterface *pwalletIn);
 /** Unregister all wallets from core */
 void UnregisterAllWallets();
 /** Push an updated transaction to all registered wallets */
-void SyncWithWallets(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock = NULL);
+void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock = NULL);
 /** Erase Tx from wallets **/
 void EraseTransaction(const uint256 &hash);
 /** Register with a network node to receive its signals */

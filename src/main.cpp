@@ -257,7 +257,7 @@ void UnregisterAllWallets() {
     g_signals.SyncTransaction.disconnect_all_slots();
 }
 
-void SyncWithWallets(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock) {
+void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock) {
     g_signals.SyncTransaction(hash, pBaseTx, pblock);
 }
 
@@ -1588,7 +1588,7 @@ bool static WriteChainState(CValidationState &state) {
 void static UpdateTip(CBlockIndex *pindexNew, const CBlock &block) {
     chainActive.SetTip(pindexNew);
 
-    SyncWithWallets(uint256(), NULL, &block);
+    SyncTransaction(uint256(), NULL, &block);
 
     // Update best block in wallet (so we can detect restored wallets)
     bool fIsInitialDownload = IsInitialBlockDownload();
