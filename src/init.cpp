@@ -933,7 +933,7 @@ bool AppInit(boost::thread_group &threadGroup) {
     CBlock block;
     while (blockIndex && nCacheHeight-- > 0) {
         if (!ReadBlockFromDisk(block, blockIndex))
-            return InitError("Failed to read block");
+            return InitError("Failed to read block from disk");
 
         if (!pTxCacheTip->AddBlockToCache(block))
             return InitError("Failed to add block to txcache");
@@ -941,7 +941,7 @@ bool AppInit(boost::thread_group &threadGroup) {
         blockIndex = blockIndex->pprev;
         ++nCount;
     }
-    LogPrint("INFO", "Add the latest %d blocks to txcache (%dms)\n", nCount, GetTimeMillis() - nStart);
+    LogPrint("INFO", "Added the latest %d blocks to txcache (%dms)\n", nCount, GetTimeMillis() - nStart);
 
     // check current chain according to checkpoint
     CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
