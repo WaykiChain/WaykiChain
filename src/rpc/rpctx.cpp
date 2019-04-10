@@ -2267,6 +2267,10 @@ Value sendrawtx(const Array& params, bool fHelp) {
     }
     //EnsureWalletIsUnlocked();
     vector<unsigned char> vch(ParseHex(params[0].get_str()));
+    if (vch.size() > MAX_RPC_SIG_STR_LEN) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "The rawtx str is too long");
+    }
+
     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
 
     std::shared_ptr<CBaseTx> tx;
