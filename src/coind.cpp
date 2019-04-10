@@ -44,6 +44,8 @@ void DetectShutdownThread(boost::thread_group* threadGroup) {
 		threadGroup->interrupt_all();
 		threadGroup->join_all();
 	}
+
+    Interrupt();
 	uiInterface.NotifyMessage("server closed");
 	CUIServer::StopServer();
 }
@@ -144,7 +146,7 @@ std::tuple<bool, boost::thread*> RunCoin(int argc, char* argv[])
 	if (!fRet) {
 		if (detectShutdownThread)
 			detectShutdownThread->interrupt();
-
+        Interrupt();
 		threadGroup.interrupt_all();
 
 		// threadGroup.join_all(); was left out intentionally here, because we didn't re-test all of

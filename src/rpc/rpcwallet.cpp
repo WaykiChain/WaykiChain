@@ -617,11 +617,11 @@ Value backupwallet(const Array& params, bool fHelp)
     return Value::null;
 }
 
-static void LockWallet(CWallet* pWallet)
+static void LockWallet()
 {
     LOCK(cs_nWalletUnlockTime);
     nWalletUnlockTime = 0;
-    pWallet->Lock();
+    pwalletMain->Lock();
 }
 
 Value walletpassphrase(const Array& params, bool fHelp)
@@ -672,7 +672,8 @@ Value walletpassphrase(const Array& params, bool fHelp)
     int64_t nSleepTime = params[1].get_int64();
     LOCK(cs_nWalletUnlockTime);
     nWalletUnlockTime = GetTime() + nSleepTime;
-    RPCRunLater("lockwallet", boost::bind(LockWallet, pwalletMain), nSleepTime);
+    RPCRunLater("lockwallet", LockWallet, nSleepTime);
+
     Object retObj;
     retObj.push_back( Pair("wallet_unlocked", true) );
     return retObj;

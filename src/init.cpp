@@ -123,6 +123,11 @@ bool ShutdownRequested() {
     return fRequestShutdown;
 }
 
+void Interrupt()
+{
+    InterruptRPCServer();
+}
+
 void Shutdown() {
     LogPrint("INFO", "Shutdown : In progress...\n");
     static CCriticalSection cs_Shutdown;
@@ -131,7 +136,7 @@ void Shutdown() {
 
     RenameThread("Coin-shutoff");
     mempool.AddTransactionsUpdated(1);
-    StopRPCThreads();
+    StopRPCServer();
     ShutdownRPCMining();
 
     GenerateCoinBlock(false, NULL, 0);
@@ -979,7 +984,9 @@ bool AppInit(boost::thread_group &threadGroup) {
     // InitRPCMining is needed here so getwork/getblocktemplate in the GUI debug console works properly.
     InitRPCMining();
     if (SysCfg().IsServer()) {
-        StartRPCThreads();
+        if (!StartRPCServer()) {
+            return InitError(_("Failed to start rpc server. "));
+        }
     }
 
     // Generate coins in the background

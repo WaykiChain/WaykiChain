@@ -58,6 +58,7 @@ coin_CORE_H = \
   noui.h \
   protocol.h \
   random.h   \
+  rpc/httpserver.h \
   rpc/rpcclient.h \
   rpc/rpcprotocol.h \
   rpc/rpcserver.h \
@@ -175,6 +176,7 @@ version.o: obj/build.h
 liblua53_a_SOURCES = \
   $(VMLUA_C)
 
+libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libcoin_server_a_SOURCES = \
   tx.cpp \
   addrman.cpp \
@@ -188,6 +190,7 @@ libcoin_server_a_SOURCES = \
   miner.cpp \
   net.cpp \
   noui.cpp \
+  rpc/httpserver.cpp \
   rpc/rpcblockchain.cpp \
   rpc/rpcmining.cpp \
   rpc/rpcmisc.cpp \
@@ -273,7 +276,7 @@ endif
 liblua53_a_CFLAGS = -fPIC
 
 AM_CPPFLAGS += $(BDB_CPPFLAGS)
-coind_LDADD += $(BOOST_LIBS) $(BDB_LIBS)
+coind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) 
 
 # NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
 $(LIBLEVELDB): $(LIBMEMENV)
