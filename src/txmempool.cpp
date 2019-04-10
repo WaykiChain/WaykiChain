@@ -129,7 +129,9 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &en
             return false;
     }
 
-    assert(acctViewTemp.Flush() && scriptDBViewTemp.Flush());
+    assert(acctViewTemp.Flush());
+    assert(scriptDBViewTemp.Flush());
+
     return true;
 }
 
@@ -144,7 +146,7 @@ bool CTxMemPool::AddUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
             return false;
 
         mapTx.insert(make_pair(hash, entry));
-        nTransactionsUpdated++;
+        ++nTransactionsUpdated;
     }
     return true;
 }
