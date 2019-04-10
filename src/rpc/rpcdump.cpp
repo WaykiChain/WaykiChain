@@ -195,7 +195,7 @@ Value importwallet(const Array& params, bool fHelp)
     		string strKeyId = find_value(keyItem.get_obj(), "keyid").get_str();
     		CKeyID keyId(uint160(ParseHex(strKeyId)));
     		keyCombi.UnSerializeFromJson(keyItem.get_obj());
-    		if(!keyCombi.HasMainKey() && !keyCombi.HasMinerKey())
+    		if(!keyCombi.HaveMainKey() && !keyCombi.HaveMinerKey())
     			continue;
 
     		if(pwalletMain->AddKey(keyId, keyCombi))
@@ -204,7 +204,6 @@ Value importwallet(const Array& params, bool fHelp)
     }
     file.close();
     pwalletMain->ShowProgress("", 100); // hide progress dialog in GUI
-    pwalletMain->ScanForWalletTransactions(chainActive.Genesis(), true);
 
     Object reply2;
     reply2.push_back(Pair("imported_key_size", importedKeySize));

@@ -155,10 +155,10 @@ void CKeyCombi::SetMinerKey(CKey & minerKey)
 {
     mMinerCkey = minerKey;
 }
-bool CKeyCombi::HasMinerKey() const {
+bool CKeyCombi::HaveMinerKey() const {
     return mMinerCkey.IsValid();
 }
-bool CKeyCombi::HasMainKey() const {
+bool CKeyCombi::HaveMainKey() const {
     return mMainCkey.IsValid();
 }
 

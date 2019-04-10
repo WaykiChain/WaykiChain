@@ -14,16 +14,16 @@
 #include "./compat/compat.h"
 #include "serialize.h"
 #include "tinyformat.h"
+#include "ui_interface.h"
 
+#include <stdarg.h>
+#include <stdint.h>
 #include <cstdio>
 #include <exception>
 #include <map>
-#include <stdarg.h>
-#include <stdint.h>
 #include <string>
 #include <utility>
 #include <vector>
-#include "ui_interface.h"
 
 #ifndef WIN32
 #include <sys/resource.h>

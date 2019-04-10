@@ -1774,7 +1774,7 @@ void StartNode(boost::thread_group& threadGroup)
 
 bool StopNode()
 {
-    LogPrint("INFO","StopNode()\n");
+    LogPrint("INFO", "StopNode()\n");
     MapPort(false);
     if (semOutbound)
         for (int i=0; i<MAX_OUTBOUND_CONNECTIONS; i++)

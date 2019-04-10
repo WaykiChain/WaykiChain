@@ -37,9 +37,9 @@ class CContractScript;
 /** the total blocks of burn fee need */
 static const unsigned int DEFAULT_BURN_BLOCK_SIZE = 50;
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
-static const unsigned int MAX_BLOCK_SIZE = 2000000;
+static const unsigned int MAX_BLOCK_SIZE = 4000000;
 /** Default for -blockmaxsize and -blockminsize, which control the range of sizes the mining code will create **/
-static const unsigned int DEFAULT_BLOCK_MAX_SIZE = 1750000;
+static const unsigned int DEFAULT_BLOCK_MAX_SIZE = 3750000;
 static const unsigned int DEFAULT_BLOCK_MIN_SIZE = 1024 * 10;
 /** Default for -blockprioritysize, maximum space for zero/low-fee transactions **/
 static const unsigned int DEFAULT_BLOCK_PRIORITY_SIZE = 50000;
@@ -115,7 +115,6 @@ extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern const string strMessageMagic;
 
-class CCoinsDB;
 class CBlockTreeDB;
 struct CDiskBlockPos;
 class CTxUndo;
@@ -135,7 +134,7 @@ void UnregisterWallet(CWalletInterface *pwalletIn);
 /** Unregister all wallets from core */
 void UnregisterAllWallets();
 /** Push an updated transaction to all registered wallets */
-void SyncWithWallets(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock = NULL);
+void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock = NULL);
 /** Erase Tx from wallets **/
 void EraseTransaction(const uint256 &hash);
 /** Register with a network node to receive its signals */
@@ -1078,13 +1077,13 @@ class CMerkleBlock {
 };
 
 class CWalletInterface {
-   protected:
+protected:
     virtual void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock) = 0;
-    virtual void EraseFromWallet(const uint256 &hash)                                                  = 0;
-    virtual void SetBestChain(const CBlockLocator &locator)                                            = 0;
-    virtual void UpdatedTransaction(const uint256 &hash)                                               = 0;
-    //    virtual void Inventory(const uint256 &hash) =0;
-    virtual void ResendWalletTransactions() = 0;
+    virtual void EraseTransaction(const uint256 &hash)                                        = 0;
+    virtual void SetBestChain(const CBlockLocator &locator)                                   = 0;
+    virtual void UpdatedTransaction(const uint256 &hash)                                      = 0;
+    // virtual void Inventory(const uint256 &hash)                                               = 0;
+    virtual void ResendWalletTransactions()                                                   = 0;
     friend void ::RegisterWallet(CWalletInterface *);
     friend void ::UnregisterWallet(CWalletInterface *);
     friend void ::UnregisterAllWallets();

@@ -67,6 +67,8 @@ CSignatureCache signatureCache;
 uint64_t CBaseTx::nMinTxFee = 10000;  // Override with -mintxfee
 /** Fees smaller than this (in sawi) are considered zero fee (for relaying and mining) */
 int64_t CBaseTx::nMinRelayTxFee = 1000;
+/** Amout smaller than this (in sawi) is considered dust amount */
+uint64_t CBaseTx::nDustAmountThreshold = 10000;
 /** Amount of blocks that other nodes claim to have */
 static CMedianFilter<int> cPeerBlockCounts(8, 0);
 
@@ -230,19 +232,19 @@ bool WriteBlockLog(bool falg, string suffix) {
 
 void RegisterWallet(CWalletInterface *pwalletIn) {
     g_signals.SyncTransaction.connect(boost::bind(&CWalletInterface::SyncTransaction, pwalletIn, _1, _2, _3));
-    g_signals.EraseTransaction.connect(boost::bind(&CWalletInterface::EraseFromWallet, pwalletIn, _1));
+    g_signals.EraseTransaction.connect(boost::bind(&CWalletInterface::EraseTransaction, pwalletIn, _1));
     g_signals.UpdatedTransaction.connect(boost::bind(&CWalletInterface::UpdatedTransaction, pwalletIn, _1));
     g_signals.SetBestChain.connect(boost::bind(&CWalletInterface::SetBestChain, pwalletIn, _1));
-    //    g_signals.Inventory.connect(boost::bind(&CWalletInterface::Inventory, pwalletIn, _1));
+    // g_signals.Inventory.connect(boost::bind(&CWalletInterface::Inventory, pwalletIn, _1));
     g_signals.Broadcast.connect(boost::bind(&CWalletInterface::ResendWalletTransactions, pwalletIn));
 }
 
 void UnregisterWallet(CWalletInterface *pwalletIn) {
     g_signals.Broadcast.disconnect(boost::bind(&CWalletInterface::ResendWalletTransactions, pwalletIn));
-    //    g_signals.Inventory.disconnect(boost::bind(&CWalletInterface::Inventory, pwalletIn, _1));
+    // g_signals.Inventory.disconnect(boost::bind(&CWalletInterface::Inventory, pwalletIn, _1));
     g_signals.SetBestChain.disconnect(boost::bind(&CWalletInterface::SetBestChain, pwalletIn, _1));
     g_signals.UpdatedTransaction.disconnect(boost::bind(&CWalletInterface::UpdatedTransaction, pwalletIn, _1));
-    g_signals.EraseTransaction.disconnect(boost::bind(&CWalletInterface::EraseFromWallet, pwalletIn, _1));
+    g_signals.EraseTransaction.disconnect(boost::bind(&CWalletInterface::EraseTransaction, pwalletIn, _1));
     g_signals.SyncTransaction.disconnect(boost::bind(&CWalletInterface::SyncTransaction, pwalletIn, _1, _2, _3));
 }
 
@@ -255,7 +257,7 @@ void UnregisterAllWallets() {
     g_signals.SyncTransaction.disconnect_all_slots();
 }
 
-void SyncWithWallets(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock) {
+void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock) {
     g_signals.SyncTransaction(hash, pBaseTx, pblock);
 }
 
@@ -586,18 +588,10 @@ bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> si
 }
 
 bool CheckTransaction(CBaseTx *ptx, CValidationState &state, CAccountViewCache &view,
-                      CScriptDBViewCache &scriptDB)
-{
-    if (REWARD_TX == ptx->nTxType)
-        return true;
+                      CScriptDBViewCache &scriptDB) {
+    if (REWARD_TX == ptx->nTxType) return true;
 
-    // Size limits
-    if (::GetSerializeSize(ptx->GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
-        return state.DoS(100, ERRORMSG("CheckTransaction() : size limits failed"),
-            REJECT_INVALID, "bad-txns-oversize");
-
-    if (!ptx->CheckTransaction(state, view, scriptDB))
-        return false;
+    if (!ptx->CheckTransaction(state, view, scriptDB)) return false;
 
     return true;
 }
@@ -628,34 +622,26 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     // is it already in the memory pool?
     uint256 hash = pBaseTx->GetHash();
     if (pool.Exists(hash))
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] already in mempool",
-            hash.GetHex()), REJECT_INVALID, "tx-already-in-mempool");
-
-    // is it already confirmed in block?
-    if (uint256() != pTxCacheTip->HasTx(hash))
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] has been confirmed",
-            hash.GetHex()), REJECT_INVALID, "tx-duplicate-confirmed");
+        return state.Invalid(
+            ERRORMSG("AcceptToMemoryPool() : tx[%s] already in mempool", hash.GetHex()),
+            REJECT_INVALID, "tx-already-in-mempool");
 
     // is it a miner reward tx?
     if (pBaseTx->IsCoinBase())
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] is a miner reward tx, can't put into mempool",
-            hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
+        return state.Invalid(
+            ERRORMSG("AcceptToMemoryPool() : tx[%s] is a miner reward tx, can't put into mempool",
+                     hash.GetHex()),
+            REJECT_INVALID, "tx-coinbase-to-mempool");
 
-    // is it within a valid height (+/- 250 of tip height)?
-    unsigned int currHeight = chainActive.Tip()->nHeight;
-    int txCacheHeight = SysCfg().GetTxCacheHeight();  //500
-    if (!pBaseTx->IsValidHeight(currHeight, txCacheHeight))
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] beyond the scope of valid height: %d",
-            hash.GetHex(), currHeight), REJECT_INVALID, "tx-invalid-height");
-
-    if (!CheckTransaction(pBaseTx, state, *pool.pAccountViewCache, *pool.pScriptDBViewCache))
-        return ERRORMSG("AcceptToMemoryPool: CheckTransaction failed");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     string reason;
     if (SysCfg().NetworkID() == MAIN_NET && !IsStandardTx(pBaseTx, reason))
-        return state.DoS(0, ERRORMSG("AcceptToMemoryPool : nonstandard transaction: %s", reason),
-            REJECT_NONSTANDARD, reason);
+        return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : nonstandard transaction: %s", reason),
+                         REJECT_NONSTANDARD, reason);
+
+    if (!CheckTransaction(pBaseTx, state, *pool.pAccountViewCache, *pool.pScriptDBViewCache))
+        return ERRORMSG("AcceptToMemoryPool() : CheckTransaction failed");
 
     {
         double dPriority = pBaseTx->GetPriority();
@@ -666,15 +652,20 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
         if (pBaseTx->nTxType == COMMON_TX) {
             CCommonTx *pTx = static_cast<CCommonTx *>(pBaseTx);
-            if (pTx->llValues < CBaseTx::nMinTxFee)
-                return state.DoS(0, ERRORMSG("AcceptToMemoryPool : common tx %d transfer amount(%d) too small, you must send a min (%d)",
-                    hash.ToString(), pTx->llValues, CBaseTx::nMinTxFee), REJECT_DUST, "dust amount");
+            if (pTx->llValues < CBaseTx::nDustAmountThreshold)
+                return state.DoS(0,
+                                 ERRORMSG("AcceptToMemoryPool() : common tx %d transfer amount(%d) "
+                                          "too small, you must send a min (%d)",
+                                          hash.ToString(), pTx->llValues, CBaseTx::nDustAmountThreshold),
+                                 REJECT_DUST, "dust amount");
         }
 
         int64_t txMinFee = GetMinRelayFee(pBaseTx, nSize, true);
         if (fLimitFree && nFees < txMinFee)
-            return state.DoS(0, ERRORMSG("AcceptToMemoryPool : not enough fees %s, %d < %d", hash.ToString(), nFees, txMinFee),
-                REJECT_INSUFFICIENTFEE, "insufficient fee");
+            return state.DoS(0,
+                             ERRORMSG("AcceptToMemoryPool() : not enough fees %s, %d < %d",
+                                      hash.ToString(), nFees, txMinFee),
+                             REJECT_INSUFFICIENTFEE, "insufficient fee");
 
         // Continuously rate-limit free transactions
         // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
@@ -692,7 +683,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
             // -limitfreerelay unit is thousand-bytes-per-minute
             // At default rate it would take over a month to fill 1GB
             if (dFreeCount >= SysCfg().GetArg("-limitfreerelay", 15) * 10 * 1000 / 60)
-                return state.DoS(0, ERRORMSG("AcceptToMemoryPool : free transaction rejected by rate limiter"),
+                return state.DoS(
+                    0, ERRORMSG("AcceptToMemoryPool() : free transaction rejected by rate limiter"),
                     REJECT_INSUFFICIENTFEE, "insufficient priority");
 
             LogPrint("INFO", "Rate limit dFreeCount: %g => %g\n", dFreeCount, dFreeCount + nSize);
@@ -700,15 +692,14 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         }
 
         if (fRejectInsaneFee && nFees > SysCfg().GetMaxFee())
-            return ERRORMSG("AcceptToMemoryPool: : insane fees %s, %d > %d",
-                hash.ToString(), nFees, SysCfg().GetMaxFee());
+            return ERRORMSG("AcceptToMemoryPool() : insane fees %s, %d > %d", hash.ToString(),
+                            nFees, SysCfg().GetMaxFee());
 
         // Store transaction in memory
         if (!pool.AddUnchecked(hash, entry, state))
-            return ERRORMSG("AcceptToMemoryPool: : AddUnchecked failed hash:%s \r\n", hash.ToString());
+            return ERRORMSG("AcceptToMemoryPool() : AddUnchecked failed hash:%s\n",
+                            hash.ToString());
     }
-
-    g_signals.SyncTransaction(hash, pBaseTx, NULL);
 
     return true;
 }
@@ -1422,7 +1413,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
     if (block.vptx.size() > 1) {
         for (unsigned int i = 1; i < block.vptx.size(); i++) {
             std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
-            if (uint256() != txCache.HasTx((pBaseTx->GetHash()))) {
+            if (txCache.HaveTx((pBaseTx->GetHash()))) {
                 return state.DoS(100,
                                  ERRORMSG("ConnectBlock() : the TxHash %s the confirm duplicate",
                                           pBaseTx->GetHash().GetHex()),
@@ -1597,7 +1588,7 @@ bool static WriteChainState(CValidationState &state) {
 void static UpdateTip(CBlockIndex *pindexNew, const CBlock &block) {
     chainActive.SetTip(pindexNew);
 
-    SyncWithWallets(uint256(), NULL, &block);
+    SyncTransaction(uint256(), NULL, &block);
 
     // Update best block in wallet (so we can detect restored wallets)
     bool fIsInitialDownload = IsInitialBlockDownload();
@@ -1666,7 +1657,6 @@ bool static DisconnectTip(CValidationState &state) {
             } else
                 uiInterface.ReleaseTransaction(ptx->GetHash());
         } else {
-            uiInterface.RemoveTransaction(ptx->GetHash());
             EraseTransaction(ptx->GetHash());
         }
     }
@@ -2154,7 +2144,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
                     item->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
             }
             //校验是否有重复确认交易
-            if (uint256() != pForkTxCache->HasTx(item->GetHash()))
+            if (pForkTxCache->HaveTx(item->GetHash()))
                 return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : tx hash %s has been confirmed\n",
                     item->GetHash().GetHex()), REJECT_INVALID, "bad-txns-oversize");
         }

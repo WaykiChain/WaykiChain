@@ -50,10 +50,10 @@ private:
 
     static bool StartUp(string &strWalletFile);
 
-//  CMasterKey MasterKey;
     int nWalletVersion;
     CBlockLocator  bestBlock;
-    uint256 GetCheckSum()const;
+    uint256 GetCheckSum() const;
+
 public:
     CPubKey vchDefaultKey ;
 
@@ -63,7 +63,6 @@ public:
     map<uint256, CAccountTx> mapInBlockTx;
     map<uint256, std::shared_ptr<CBaseTx> > UnConfirmTx;
     mutable CCriticalSection cs_wallet;
-    //map<CKeyID, CKeyCombi> GetKeyPool() const;
 
     typedef std::map<unsigned int, CMasterKey> MasterKeyMap;
     MasterKeyMap mapMasterKeys;
@@ -104,9 +103,10 @@ public:
     //! Adds a key to the store, without saving it to disk (used by LoadWallet)
     bool LoadKeyCombi(const CKeyID & keyId, const CKeyCombi& keycombi) { return CBasicKeyStore::AddKeyCombi(keyId, keycombi);}
     // Adds a key to the store, and saves it to disk.
-    bool AddKey(const CKey& secret,const CKey& minerKey);
-    bool AddKey(const CKeyID &keyId, const CKeyCombi& store);
-    bool AddKey(const CKey& key);
+    bool AddKey(const CKey &secret, const CKey &minerKey);
+    bool AddKey(const CKeyID &keyId, const CKeyCombi &store);
+    bool AddKey(const CKey &key);
+    bool RemoveKey(const CKey &key);
 
     bool CleanAll(); //just for unit test
     bool IsReadyForCoolMiner(const CAccountViewCache& view)const;
@@ -118,9 +118,7 @@ public:
     bool LoadMinVersion(int nVersion);
 
     void SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock* pblock);
-    void EraseFromWallet(const uint256 &hash);
-    int ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate = false);
-//  void ReacceptWalletTransactions();
+    void EraseTransaction(const uint256 &hash);
     void ResendWalletTransactions();
 
     bool IsMine(CBaseTx*pTx)const;
@@ -146,8 +144,6 @@ public:
     static CWallet* getinstance();
 
     std::tuple<bool,string>  CommitTransaction(CBaseTx *pTx);
-
-//  std::tuple<bool,string>  SendMoney(const CRegID &send,const CUserID &rsv, int64_t nValue, int64_t nFee=0);
 
     /** Address book entry changed.
      * @note called with lock cs_wallet held.
@@ -353,7 +349,7 @@ public:
         return true;
     }
 
-    bool HasTx(const uint256 &hash) {
+    bool HaveTx(const uint256 &hash) {
         if (mapAccountTx.end() != mapAccountTx.find(hash)) {
             return true;
         }

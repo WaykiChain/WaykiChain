@@ -161,13 +161,14 @@ protected:
 public:
     static uint64_t nMinTxFee;
     static int64_t nMinRelayTxFee;
+    static uint64_t nDustAmountThreshold;
     static const int CURRENT_VERSION = nTxVersion1;
 
     unsigned char nTxType;
     int nVersion;
     int nValidHeight;
-    uint64_t nRunStep;  //only in memory
-    int nFuelRate;      //only in memory
+    uint64_t nRunStep;  // only in memory
+    int nFuelRate;      // only in memory
 
 public:
     CBaseTx(const CBaseTx &other) { *this = other; }

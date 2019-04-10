@@ -140,6 +140,7 @@ void Shutdown() {
     ShutdownRPCMining();
 
     GenerateCoinBlock(false, NULL, 0);
+    StartGeneration(0, 0);
 
     StopNode();
     UnregisterNodeSignals(GetNodeSignals());

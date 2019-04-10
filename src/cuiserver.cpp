@@ -6,7 +6,7 @@ using namespace json_spirit;
 
 boost::thread_group CUIServer::m_threadGroup;
 
-bool CUIServer::HasConnection(){
+bool CUIServer::HaveConnection(){
 	if(NULL == instance)
 		return false;
 

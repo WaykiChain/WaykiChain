@@ -114,7 +114,7 @@ class CScriptDBView {
     virtual bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
     virtual bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb);
     virtual bool EraseKey(const vector<unsigned char> &vKey);
-    virtual bool HasData(const vector<unsigned char> &vKey);
+    virtual bool HaveData(const vector<unsigned char> &vKey);
     virtual bool GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);
     virtual bool GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
                                  vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
@@ -139,7 +139,7 @@ class CScriptDBViewBacked : public CScriptDBView {
     bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
     bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb);
     bool EraseKey(const vector<unsigned char> &vKey);
-    bool HasData(const vector<unsigned char> &vKey);
+    bool HaveData(const vector<unsigned char> &vKey);
     bool GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);
     bool GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
                          vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
@@ -174,7 +174,7 @@ class CScriptDBViewCache : public CScriptDBViewBacked {
     bool EraseScript(const CRegID &scriptId);
     bool GetContractItemCount(const CRegID &scriptId, int &nCount);
     bool EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog);
-    bool HasScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey);
+    bool HaveScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey);
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
                          vector<unsigned char> &vScriptData);
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
@@ -218,7 +218,7 @@ class CScriptDBViewCache : public CScriptDBViewBacked {
     bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
     bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb);
     bool EraseKey(const vector<unsigned char> &vKey);
-    bool HasData(const vector<unsigned char> &vKey);
+    bool HaveData(const vector<unsigned char> &vKey);
 
     /**
      * @brief Get script content from scriptdb by scriptid
@@ -289,7 +289,7 @@ class CScriptDBViewCache : public CScriptDBViewBacked {
      * @param vScriptKey must be 8 bytes
      * @return true if contains the item, otherwise false
      */
-    bool HasScriptData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey);
+    bool HaveScriptData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey);
     /**
      * @brief Get smart contract App data and valid height by scriptid and scriptkey
      * @param vScriptId
@@ -324,11 +324,11 @@ class CScriptDBViewCache : public CScriptDBViewBacked {
 
 class CTransactionDBView {
    public:
-    virtual uint256 HasTx(const uint256 &txHash);
+    virtual bool HaveTx(const uint256 &txHash);
     virtual bool IsContainBlock(const CBlock &block);
     virtual bool AddBlockToCache(const CBlock &block);
     virtual bool DeleteBlockFromCache(const CBlock &block);
-    virtual bool BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHashIn);
+    virtual bool BatchWrite(const map<uint256, UnorderedSetType> &mapTxHashByBlockHashIn);
     virtual ~CTransactionDBView(){};
 };
 
@@ -338,8 +338,8 @@ class CTransactionDBViewBacked : public CTransactionDBView {
 
    public:
     CTransactionDBViewBacked(CTransactionDBView &transactionView);
-    bool BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHashIn);
-    uint256 HasTx(const uint256 &txHash);
+    bool BatchWrite(const map<uint256, UnorderedSetType> &mapTxHashByBlockHashIn);
+    bool HaveTx(const uint256 &txHash);
     bool IsContainBlock(const CBlock &block);
     bool AddBlockToCache(const CBlock &block);
     bool DeleteBlockFromCache(const CBlock &block);
@@ -348,25 +348,25 @@ class CTransactionDBViewBacked : public CTransactionDBView {
 class CTransactionDBCache : public CTransactionDBViewBacked {
    private:
     CTransactionDBCache(CTransactionDBCache &transactionView);
-    map<uint256, set<uint256> > mapTxHashByBlockHash;  // key:block hash  value:tx hash
-    bool IsInMap(const map<uint256, set<uint256> > &mMap, const uint256 &hash) const;
+    map<uint256, UnorderedSetType> mapTxHashByBlockHash;  // key:block hash  value:tx hash
+    bool IsInMap(const map<uint256, UnorderedSetType> &mMap, const uint256 &hash) const;
 
    public:
     CTransactionDBCache(CTransactionDBView &pTxCacheDB, bool fDummy);
     bool IsContainBlock(const CBlock &block);
     bool AddBlockToCache(const CBlock &block);
     bool DeleteBlockFromCache(const CBlock &block);
-    uint256 HasTx(const uint256 &txHash);
-    map<uint256, set<uint256> > GetTxHashCache();
-    bool BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHashIn);
-    void AddTxHashCache(const uint256 &blockHash, const set<uint256> &vTxHash);
+    bool HaveTx(const uint256 &txHash);
+    map<uint256, UnorderedSetType> GetTxHashCache();
+    bool BatchWrite(const map<uint256, UnorderedSetType> &mapTxHashByBlockHashIn);
+    void AddTxHashCache(const uint256 &blockHash, const UnorderedSetType &vTxHash);
     bool Flush();
     void Clear();
     Object ToJsonObj() const;
     int GetSize();
     void SetBaseData(CTransactionDBView *pNewBase);
-    const map<uint256, set<uint256> > &GetCacheMap();
-    void SetCacheMap(const map<uint256, set<uint256> > &mapCache);
+    const map<uint256, UnorderedSetType> &GetCacheMap();
+    void SetCacheMap(const map<uint256, UnorderedSetType> &mapCache);
 };
 
 #endif

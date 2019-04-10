@@ -688,7 +688,7 @@ Value registercontracttx(const Array& params, bool fHelp)
         if (!account.IsRegistered()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in registercontracttx Error: Account is not registered.");
         }
-        if (!pwalletMain->HasKey(keyid)) {
+        if (!pwalletMain->HaveKey(keyid)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "in registercontracttx Error: WALLET file is not correct.");
         }
         if (balance < fee) {
@@ -793,7 +793,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient.");
         }
 
-        if (!pwalletMain->HasKey(keyid)) {
+        if (!pwalletMain->HaveKey(keyid)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Send tx address is not in wallet file.");
         }
 
@@ -913,7 +913,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient.");
         }
 
-        if (!pwalletMain->HasKey(keyid)) {
+        if (!pwalletMain->HaveKey(keyid)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Send tx address is not in wallet file.");
         }
 
@@ -999,7 +999,7 @@ Value listaddr(const Array& params, bool fHelp) {
             Object obj;
             obj.push_back(Pair("addr", keyId.ToAddress()));
             obj.push_back(Pair("balance", (double)acctInfo.GetRawBalance()/ (double) COIN));
-            obj.push_back(Pair("hasminerkey", keyCombi.HasMinerKey()));
+            obj.push_back(Pair("hasminerkey", keyCombi.HaveMinerKey()));
             obj.push_back(Pair("regid",acctInfo.regID.ToString()));
             retArry.push_back(obj);
         }
@@ -1093,7 +1093,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                 }
 
                 if (bSend) {
-                    if (pwalletMain->HasKey(sendKeyID)) {
+                    if (pwalletMain->HaveKey(sendKeyID)) {
                         Object obj;
                         obj.push_back(Pair("address", recvKeyID.ToAddress()));
                         obj.push_back(Pair("category", "send"));
@@ -1112,7 +1112,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                 }
 
                 if (bRecv) {
-                    if (pwalletMain->HasKey(recvKeyID)) {
+                    if (pwalletMain->HaveKey(recvKeyID)) {
                         Object obj;
                         obj.push_back(Pair("srcaddr", sendKeyID.ToAddress()));
                         obj.push_back(Pair("address", recvKeyID.ToAddress()));
@@ -1167,7 +1167,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                 }
 
                 if (bSend) {
-                    if (pwalletMain->HasKey(sendKeyID)) {
+                    if (pwalletMain->HaveKey(sendKeyID)) {
                         Object obj;
                         obj.push_back(Pair("address", recvKeyID.ToAddress()));
                         obj.push_back(Pair("category", "send"));
@@ -1187,7 +1187,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                 }
 
                 if (bRecv) {
-                    if (pwalletMain->HasKey(recvKeyID)) {
+                    if (pwalletMain->HaveKey(recvKeyID)) {
                         Object obj;
                         obj.push_back(Pair("srcaddr", sendKeyID.ToAddress()));
                         obj.push_back(Pair("address", recvKeyID.ToAddress()));
@@ -1858,7 +1858,7 @@ Value listtxcache(const Array& params, bool fHelp) {
                 "\"txcache\"  (string) \n"
                 "\nExamples:\n" + HelpExampleCli("listtxcache", "")+ HelpExampleRpc("listtxcache", ""));
     }
-    const map<uint256, set<uint256> > &mapTxHashByBlockHash = pTxCacheTip->GetTxHashCache();
+    const map<uint256, UnorderedSetType> &mapTxHashByBlockHash = pTxCacheTip->GetTxHashCache();
 
     Array retTxHashArray;
     for (auto &item : mapTxHashByBlockHash) {

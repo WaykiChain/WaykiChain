@@ -297,17 +297,18 @@ std::tuple<uint64_t, uint64_t> CAccountViewDB::TraverseAccount() {
 
 CTransactionDB::CTransactionDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {}
 
-bool CTransactionDB::BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHash) {
-    CLevelDBBatch batch;
-    for (auto &item : mapTxHashByBlockHash) {
-        if (item.second.empty()) {
-            batch.Erase(make_pair('h', item.first));
-        } else {
-            if (!db.Exists(make_pair('h', item.first)))
-                batch.Write(make_pair('h', item.first), item.second);
-        }
-    }
-    return db.WriteBatch(batch, true);
+bool CTransactionDB::BatchWrite(const map<uint256, UnorderedSetType> &mapTxHashByBlockHash) {
+    // CLevelDBBatch batch;
+    // for (auto &item : mapTxHashByBlockHash) {
+    //     if (item.second.empty()) {
+    //         batch.Erase(make_pair('h', item.first));
+    //     } else {
+    //         if (!db.Exists(make_pair('h', item.first)))
+    //             batch.Write(make_pair('h', item.first), item.second);
+    //     }
+    // }
+    // return db.WriteBatch(batch, true);
+    return true;
 }
 
 CScriptDB::CScriptDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {
@@ -340,7 +341,7 @@ bool CScriptDB::EraseKey(const vector<unsigned char> &vKey) {
     return db.Erase(vKey);
 }
 
-bool CScriptDB::HasData(const vector<unsigned char> &vKey) {
+bool CScriptDB::HaveData(const vector<unsigned char> &vKey) {
     return db.Exists(vKey);
 }
 
@@ -359,7 +360,7 @@ bool CScriptDB::GetScript(const int &nIndex, vector<unsigned char> &vScriptId, v
         vector<char> vId(vScriptId.begin(), vScriptId.end());
         ssKeySet.insert(ssKeySet.end(), vId.begin(), vId.end());
         vector<unsigned char> vKey(ssKeySet.begin(), ssKeySet.end());
-        if (HasData(vKey)) {  //判断传过来的key,数据库中是否已经存在
+        if (HaveData(vKey)) {  //判断传过来的key,数据库中是否已经存在
             pcursor->Seek(ssKeySet.str());
             i = nIndex;
         } else {
@@ -420,7 +421,7 @@ bool CScriptDB::GetContractData(const int curBlockHeight, const vector<unsigned 
         vector<char> vsKey(vScriptKey.begin(), vScriptKey.end());
         ssKeySet.insert(ssKeySet.end(), vsKey.begin(), vsKey.end());
         vector<unsigned char> vKey(ssKeySet.begin(), ssKeySet.end());
-        if (HasData(vKey)) {  //判断传过来的key,数据库中是否已经存在
+        if (HaveData(vKey)) {  //判断传过来的key,数据库中是否已经存在
             pcursor->Seek(ssKeySet.str());
             i = nIndex;
         } else {

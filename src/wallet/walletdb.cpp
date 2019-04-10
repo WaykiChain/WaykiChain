@@ -57,7 +57,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,str
             CKeyID cKeyid;
             ssKey >> cKeyid;
             ssValue >> keyCombi;
-            if (keyCombi.HasMainKey()) {
+            if (keyCombi.HaveMainKey()) {
                 if (cKeyid != keyCombi.GetCKeyID()) {
                     strErr = "Error reading wallet database: keystore corrupt";
                     return false;
@@ -329,13 +329,13 @@ bool CWalletDB::WriteCryptedKey(const CPubKey& pubkey, const std::vector<unsigne
 }
 
 
-bool CWalletDB::WriteUnComFirmedTx(const uint256& hash, const std::shared_ptr<CBaseTx>& tx) {
+bool CWalletDB::WriteUnconfirmedTx(const uint256& hash, const std::shared_ptr<CBaseTx>& tx) {
     nWalletDBUpdated++;
     return Write(make_pair(string("tx"), hash),tx);
 }
 
 
-bool CWalletDB::EraseUnComFirmedTx(const uint256& hash) {
+bool CWalletDB::EraseUnconfirmedTx(const uint256& hash) {
     nWalletDBUpdated++;
     return Erase(make_pair(string("tx"), hash));
 }
