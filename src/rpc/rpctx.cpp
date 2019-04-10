@@ -1858,7 +1858,7 @@ Value listtxcache(const Array& params, bool fHelp) {
                 "\"txcache\"  (string) \n"
                 "\nExamples:\n" + HelpExampleCli("listtxcache", "")+ HelpExampleRpc("listtxcache", ""));
     }
-    const map<uint256, set<uint256> > &mapTxHashByBlockHash = pTxCacheTip->GetTxHashCache();
+    const map<uint256, UnorderedSetType> &mapTxHashByBlockHash = pTxCacheTip->GetTxHashCache();
 
     Array retTxHashArray;
     for (auto &item : mapTxHashByBlockHash) {

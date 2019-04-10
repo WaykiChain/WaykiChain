@@ -297,17 +297,18 @@ std::tuple<uint64_t, uint64_t> CAccountViewDB::TraverseAccount() {
 
 CTransactionDB::CTransactionDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {}
 
-bool CTransactionDB::BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHash) {
-    CLevelDBBatch batch;
-    for (auto &item : mapTxHashByBlockHash) {
-        if (item.second.empty()) {
-            batch.Erase(make_pair('h', item.first));
-        } else {
-            if (!db.Exists(make_pair('h', item.first)))
-                batch.Write(make_pair('h', item.first), item.second);
-        }
-    }
-    return db.WriteBatch(batch, true);
+bool CTransactionDB::BatchWrite(const map<uint256, UnorderedSetType> &mapTxHashByBlockHash) {
+    // CLevelDBBatch batch;
+    // for (auto &item : mapTxHashByBlockHash) {
+    //     if (item.second.empty()) {
+    //         batch.Erase(make_pair('h', item.first));
+    //     } else {
+    //         if (!db.Exists(make_pair('h', item.first)))
+    //             batch.Write(make_pair('h', item.first), item.second);
+    //     }
+    // }
+    // return db.WriteBatch(batch, true);
+    return true;
 }
 
 CScriptDB::CScriptDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {

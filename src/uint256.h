@@ -6,11 +6,12 @@
 #ifndef COIN_UINT256_H
 #define COIN_UINT256_H
 
-#include <assert.h>
+#include <cassert>
+#include <cstdint>
 #include <cstring>
 #include <stdexcept>
-#include <stdint.h>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 extern const signed char p_util_hexdigit[256]; // defined in util.cpp
@@ -176,5 +177,11 @@ inline uint256 uint256S(const std::string& str)
     return rv;
 }
 
+class CUint256Hasher {
+public:
+    size_t operator()(const uint256& key) const { return key.GetCheapHash(); }
+};
+
+typedef std::unordered_set<uint256, CUint256Hasher> UnorderedSetType;
 
 #endif // COIN_UINT256_H

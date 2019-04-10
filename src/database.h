@@ -328,7 +328,7 @@ class CTransactionDBView {
     virtual bool IsContainBlock(const CBlock &block);
     virtual bool AddBlockToCache(const CBlock &block);
     virtual bool DeleteBlockFromCache(const CBlock &block);
-    virtual bool BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHashIn);
+    virtual bool BatchWrite(const map<uint256, UnorderedSetType> &mapTxHashByBlockHashIn);
     virtual ~CTransactionDBView(){};
 };
 
@@ -338,7 +338,7 @@ class CTransactionDBViewBacked : public CTransactionDBView {
 
    public:
     CTransactionDBViewBacked(CTransactionDBView &transactionView);
-    bool BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHashIn);
+    bool BatchWrite(const map<uint256, UnorderedSetType> &mapTxHashByBlockHashIn);
     bool HaveTx(const uint256 &txHash);
     bool IsContainBlock(const CBlock &block);
     bool AddBlockToCache(const CBlock &block);
@@ -348,8 +348,8 @@ class CTransactionDBViewBacked : public CTransactionDBView {
 class CTransactionDBCache : public CTransactionDBViewBacked {
    private:
     CTransactionDBCache(CTransactionDBCache &transactionView);
-    map<uint256, set<uint256> > mapTxHashByBlockHash;  // key:block hash  value:tx hash
-    bool IsInMap(const map<uint256, set<uint256> > &mMap, const uint256 &hash) const;
+    map<uint256, UnorderedSetType> mapTxHashByBlockHash;  // key:block hash  value:tx hash
+    bool IsInMap(const map<uint256, UnorderedSetType> &mMap, const uint256 &hash) const;
 
    public:
     CTransactionDBCache(CTransactionDBView &pTxCacheDB, bool fDummy);
@@ -357,16 +357,16 @@ class CTransactionDBCache : public CTransactionDBViewBacked {
     bool AddBlockToCache(const CBlock &block);
     bool DeleteBlockFromCache(const CBlock &block);
     bool HaveTx(const uint256 &txHash);
-    map<uint256, set<uint256> > GetTxHashCache();
-    bool BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHashIn);
-    void AddTxHashCache(const uint256 &blockHash, const set<uint256> &vTxHash);
+    map<uint256, UnorderedSetType> GetTxHashCache();
+    bool BatchWrite(const map<uint256, UnorderedSetType> &mapTxHashByBlockHashIn);
+    void AddTxHashCache(const uint256 &blockHash, const UnorderedSetType &vTxHash);
     bool Flush();
     void Clear();
     Object ToJsonObj() const;
     int GetSize();
     void SetBaseData(CTransactionDBView *pNewBase);
-    const map<uint256, set<uint256> > &GetCacheMap();
-    void SetCacheMap(const map<uint256, set<uint256> > &mapCache);
+    const map<uint256, UnorderedSetType> &GetCacheMap();
+    void SetCacheMap(const map<uint256, UnorderedSetType> &mapCache);
 };
 
 #endif

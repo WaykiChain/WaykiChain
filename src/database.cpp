@@ -1525,7 +1525,7 @@ bool CTransactionDBView::HaveTx(const uint256 &txHash) { return false; }
 bool CTransactionDBView::IsContainBlock(const CBlock &block) { return false; }
 bool CTransactionDBView::AddBlockToCache(const CBlock &block) { return false; }
 bool CTransactionDBView::DeleteBlockFromCache(const CBlock &block) { return false; }
-bool CTransactionDBView::BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHash) { return false; }
+bool CTransactionDBView::BatchWrite(const map<uint256, UnorderedSetType> &mapTxHashByBlockHash) { return false; }
 
 CTransactionDBViewBacked::CTransactionDBViewBacked(CTransactionDBView &transactionView) {
     pBase = &transactionView;
@@ -1547,7 +1547,7 @@ bool CTransactionDBViewBacked::DeleteBlockFromCache(const CBlock &block) {
     return pBase->DeleteBlockFromCache(block);
 }
 
-bool CTransactionDBViewBacked::BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHashIn) {
+bool CTransactionDBViewBacked::BatchWrite(const map<uint256, UnorderedSetType> &mapTxHashByBlockHashIn) {
     return pBase->BatchWrite(mapTxHashByBlockHashIn);
 }
 
@@ -1559,7 +1559,7 @@ bool CTransactionDBCache::IsContainBlock(const CBlock &block) {
 }
 
 bool CTransactionDBCache::AddBlockToCache(const CBlock &block) {
-    set<uint256> vTxHash;
+    UnorderedSetType vTxHash;
     vTxHash.clear();
     for (auto &ptx : block.vptx) {
         vTxHash.insert(ptx->GetHash());
@@ -1570,7 +1570,7 @@ bool CTransactionDBCache::AddBlockToCache(const CBlock &block) {
 
 bool CTransactionDBCache::DeleteBlockFromCache(const CBlock &block) {
     if (IsContainBlock(block)) {
-        set<uint256> vTxHash;
+        UnorderedSetType vTxHash;
         vTxHash.clear();
         mapTxHashByBlockHash[block.GetHash()] = vTxHash;
     }
@@ -1587,11 +1587,11 @@ bool CTransactionDBCache::HaveTx(const uint256 &txHash) {
     return false;
 }
 
-map<uint256, set<uint256> > CTransactionDBCache::GetTxHashCache() {
+map<uint256, UnorderedSetType> CTransactionDBCache::GetTxHashCache() {
     return mapTxHashByBlockHash;
 }
 
-bool CTransactionDBCache::BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHashIn) {
+bool CTransactionDBCache::BatchWrite(const map<uint256, UnorderedSetType> &mapTxHashByBlockHashIn) {
     for (auto &item : mapTxHashByBlockHashIn) {
         mapTxHashByBlockHash[item.first] = item.second;
     }
@@ -1599,7 +1599,7 @@ bool CTransactionDBCache::BatchWrite(const map<uint256, set<uint256> > &mapTxHas
 }
 
 bool CTransactionDBCache::Flush() {
-    map<uint256, set<uint256> >::iterator iter = mapTxHashByBlockHash.begin();
+    map<uint256, UnorderedSetType>::iterator iter = mapTxHashByBlockHash.begin();
     for (; iter != mapTxHashByBlockHash.end();) {
         if (iter->second.empty()) {
             mapTxHashByBlockHash.erase(iter++);
@@ -1611,7 +1611,7 @@ bool CTransactionDBCache::Flush() {
     return true;
 }
 
-void CTransactionDBCache::AddTxHashCache(const uint256 &blockHash, const set<uint256> &vTxHash) {
+void CTransactionDBCache::AddTxHashCache(const uint256 &blockHash, const UnorderedSetType &vTxHash) {
     mapTxHashByBlockHash[blockHash] = vTxHash;
 }
 
@@ -1628,7 +1628,7 @@ int CTransactionDBCache::GetSize() {
     return iCount;
 }
 
-bool CTransactionDBCache::IsInMap(const map<uint256, set<uint256> > &mMap, const uint256 &hash) const {
+bool CTransactionDBCache::IsInMap(const map<uint256, UnorderedSetType> &mMap, const uint256 &hash) const {
     if (hash == uint256())
         return false;
     auto te = mMap.find(hash);
@@ -1670,11 +1670,11 @@ void CTransactionDBCache::SetBaseData(CTransactionDBView *pNewBase) {
     pBase = pNewBase;
 }
 
-const map<uint256, set<uint256> > &CTransactionDBCache::GetCacheMap() {
+const map<uint256, UnorderedSetType> &CTransactionDBCache::GetCacheMap() {
     return mapTxHashByBlockHash;
 }
 
-void CTransactionDBCache::SetCacheMap(const map<uint256, set<uint256> > &mapCache) {
+void CTransactionDBCache::SetCacheMap(const map<uint256, UnorderedSetType> &mapCache) {
     mapTxHashByBlockHash = mapCache;
 }
 

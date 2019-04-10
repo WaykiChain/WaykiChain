@@ -96,7 +96,7 @@ class CTransactionDB : public CTransactionDBView {
     void operator=(const CTransactionDB &);
 
    public:
-    bool BatchWrite(const map<uint256, set<uint256> > &mapTxHashByBlockHash);
+    bool BatchWrite(const map<uint256, UnorderedSetType> &mapTxHashByBlockHash);
     int64_t GetDbCount() { return db.GetDbCount(); }
 };
 
