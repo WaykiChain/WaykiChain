@@ -850,7 +850,7 @@ bool CContractTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScrip
     uint64_t fuelRate = GetFuelRate(scriptDB);
     CScriptDBViewCache scriptDBView(scriptDB, true);
 
-    if (!pTxCacheTip->HasTx(GetHash())) {
+    if (!pTxCacheTip->HaveTx(GetHash())) {
         CAccountViewCache accountView(view, true);
         tuple<bool, uint64_t, string> ret = vmRunEnv.ExecuteContract(pTx, accountView, scriptDBView,
             chainActive.Height() + 1, fuelRate, nRunStep);

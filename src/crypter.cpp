@@ -123,7 +123,7 @@ bool CCryptoKeyStore::SetCrypted()
     if (fUseCrypto)
         return true;
 
-    if (HasMainKey())
+    if (HaveMainKey())
         return false;
 
     fUseCrypto = true;

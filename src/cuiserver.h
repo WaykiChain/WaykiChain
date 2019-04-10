@@ -18,7 +18,7 @@ public:
 public:
 	static void StartServer();
 	static void Send(const string& strData);
-	static bool HasConnection();
+	static bool HaveConnection();
 	static void StopServer();
 	static bool IsInitalEnd;
 	static void PackageData(string &strData);

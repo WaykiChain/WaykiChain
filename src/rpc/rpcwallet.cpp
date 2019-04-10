@@ -529,7 +529,7 @@ Value getassets(const Array& params, bool fHelp)
 //     if (!GetKeyId(params[0].get_str(), sendKeyId)) {
 //         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "send address Invalid  ");
 //     }
-//     if(!pwalletMain->HasKey(sendKeyId)) {
+//     if(!pwalletMain->HaveKey(sendKeyId)) {
 //         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "send address Invalid  ");
 //     }
 

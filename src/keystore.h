@@ -25,7 +25,7 @@ private:
 
     CPubKey mMinerPKey;
 	CKey  mMinerCkey; //only used for mining/block-creation
-    
+
 	int64_t nCreationTime;
 
 public:
@@ -43,8 +43,8 @@ public:
 	bool GetPubKey(CPubKey &mOutKey,bool IsMiner = false) const;
     bool CleanMainKey();
     bool CleanAll();
-	bool HasMinerKey()const;
-	bool HasMainKey()const;
+	bool HaveMinerKey()const;
+	bool HaveMainKey()const;
 	CKeyID GetCKeyID() const ;
 	void SetMainKey(CKey& mainKey);
 	void SetMinerKey(CKey & minerKey);
@@ -78,7 +78,7 @@ public:
 //    virtual bool AddKey(const CKey &key);
 
     // Check whether a key corresponding to a given address is present in the store.
-    virtual bool HasKey(const CKeyID &address) const =0;
+    virtual bool HaveKey(const CKeyID &address) const =0;
     virtual bool GetKey(const CKeyID &address, CKey& keyOut, bool IsMine) const =0;
     virtual void GetKeys(set<CKeyID> &setAddress, bool bFlag) const =0;
     virtual bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut, bool IsMine) const;
@@ -101,7 +101,7 @@ protected:
 
 public:
     bool AddKeyCombi(const CKeyID & keyId, const CKeyCombi &keyCombi);
-    bool HasKey(const CKeyID &address) const
+    bool HaveKey(const CKeyID &address) const
     {
         bool result;
         {
@@ -119,7 +119,7 @@ public:
             while (mi != mapKeys.end()) {
             	if(!bFlag)   //return all address in wallet
             		setAddress.insert((*mi).first);
-            	else if (mi->second.HasMinerKey() || mi->second.HasMainKey())  //only return satisfied mining address
+            	else if (mi->second.HaveMinerKey() || mi->second.HaveMainKey())  //only return satisfied mining address
             		setAddress.insert((*mi).first);
 
                 mi++;
@@ -141,12 +141,12 @@ public:
 
     virtual bool GetKeyCombi(const CKeyID & address, CKeyCombi & keyCombiOut) const;
 
-    bool HasMainKey() {
+    bool HaveMainKey() {
     	for(auto &item : mapKeys) {
-    		if(item.second.HasMainKey())
+    		if(item.second.HaveMainKey())
     			return true;
     	}
-        
+
     	return false;
     }
 

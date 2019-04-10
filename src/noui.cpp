@@ -34,7 +34,7 @@ void ThreadSendMessageToUI() {
 		{
 			LOCK(cs_Sendbuffer);
 			if(!g_dSendBuffer.empty()) {
-				if (CUIServer::HasConnection()) {
+				if (CUIServer::HaveConnection()) {
 //					nCurTime = GetTime();
 					string message = g_dSendBuffer.front();
 					g_dSendBuffer.pop_front();

@@ -57,7 +57,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,str
             CKeyID cKeyid;
             ssKey >> cKeyid;
             ssValue >> keyCombi;
-            if (keyCombi.HasMainKey()) {
+            if (keyCombi.HaveMainKey()) {
                 if (cKeyid != keyCombi.GetCKeyID()) {
                     strErr = "Error reading wallet database: keystore corrupt";
                     return false;

@@ -516,7 +516,7 @@ bool CWallet::IsMine(CBaseTx *pTx) const {
         return false;
     }
     for (auto &keyid : vaddr) {
-        if (HasKey(keyid) > 0) {
+        if (HaveKey(keyid) > 0) {
             return true;
         }
     }
@@ -593,7 +593,7 @@ bool CWallet::AddKey(const CKey &key, const CKey &minerKey) {
 bool CWallet::AddKey(const CKeyID &KeyId, const CKeyCombi &keyCombi) {
     if (!fFileBacked) return true;
 
-    if (keyCombi.HasMainKey()) {
+    if (keyCombi.HaveMainKey()) {
         if (KeyId != keyCombi.GetCKeyID()) return false;
     }
 
@@ -624,7 +624,7 @@ bool CWallet::RemoveKey(const CKey &key) {
 bool CWallet::IsReadyForCoolMiner(const CAccountViewCache &view) const {
     CRegID regId;
     for (auto const &item : mapKeys) {
-        if (item.second.HasMinerKey() && view.GetRegId(item.first, regId)) {
+        if (item.second.HaveMinerKey() && view.GetRegId(item.first, regId)) {
             return true;
         }
     }

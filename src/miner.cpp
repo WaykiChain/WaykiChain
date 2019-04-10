@@ -89,7 +89,7 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate) {
     static unsigned int nTxSize = 0;
     for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi) {
         CBaseTx *pBaseTx = mi->second.GetTx().get();
-        if (!pBaseTx->IsCoinBase() && !pTxCacheTip->HasTx(pBaseTx->GetHash())) {
+        if (!pBaseTx->IsCoinBase() && !pTxCacheTip->HaveTx(pBaseTx->GetHash())) {
             nTxSize   = ::GetSerializeSize(*pBaseTx, SER_NETWORK, PROTOCOL_VERSION);
             dFeePerKb = double(pBaseTx->GetFee() - pBaseTx->GetFuel(nFuelRate)) / (double(nTxSize) / 1000.0);
             dPriority = 1000.0 / double(nTxSize);
@@ -295,7 +295,7 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
         uint64_t nTotalRunStep(0);
         for (unsigned int i = 1; i < pBlock->vptx.size(); i++) {
             shared_ptr<CBaseTx> pBaseTx = pBlock->vptx[i];
-            if (txCache.HasTx(pBaseTx->GetHash()))
+            if (txCache.HaveTx(pBaseTx->GetHash()))
                 return ERRORMSG("VerifyPosTx duplicate tx hash:%s", pBaseTx->GetHash().GetHex());
 
             CTxUndo txundo;
@@ -559,7 +559,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
     RenameThread("Coin-miner");
 
-    auto HasMinerKey = [&]() {
+    auto HaveMinerKey = [&]() {
         LOCK2(cs_main, pwalletMain->cs_wallet);
 
         set<CKeyID> setMineKey;
@@ -568,7 +568,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
         return !setMineKey.empty();
     };
 
-    if (!HasMinerKey()) {
+    if (!HaveMinerKey()) {
         LogPrint("INFO", "CoinMiner terminated.\n");
         ERRORMSG("No key for mining");
         return;

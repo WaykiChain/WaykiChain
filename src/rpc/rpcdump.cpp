@@ -195,7 +195,7 @@ Value importwallet(const Array& params, bool fHelp)
     		string strKeyId = find_value(keyItem.get_obj(), "keyid").get_str();
     		CKeyID keyId(uint160(ParseHex(strKeyId)));
     		keyCombi.UnSerializeFromJson(keyItem.get_obj());
-    		if(!keyCombi.HasMainKey() && !keyCombi.HasMinerKey())
+    		if(!keyCombi.HaveMainKey() && !keyCombi.HaveMinerKey())
     			continue;
 
     		if(pwalletMain->AddKey(keyId, keyCombi))
