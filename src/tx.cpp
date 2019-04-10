@@ -474,7 +474,7 @@ Object CRegisterAccountTx::ToJson(const CAccountViewCache &AccountView) const {
     result.push_back(Pair("pubkey",         userPubKey));
     result.push_back(Pair("minerpubkey",    userMinerPubKey));
     result.push_back(Pair("fees",           llFees));
-    result.push_back(Pair("height",         nValidHeight));
+    result.push_back(Pair("validheight",    nValidHeight));
     return result;
 }
 
@@ -666,8 +666,8 @@ Object CCommonTx::ToJson(const CAccountViewCache &AccountView) const {
     result.push_back(Pair("desaddr",        desKeyId.ToAddress()));
     result.push_back(Pair("money",          llValues));
     result.push_back(Pair("fees",           llFees));
-    result.push_back(Pair("height",         nValidHeight));
     result.push_back(Pair("memo",           HexStr(memo)));
+    result.push_back(Pair("validheight",         nValidHeight));
 
     return result;
 }
@@ -921,8 +921,8 @@ Object CContractTx::ToJson(const CAccountViewCache &AccountView) const {
     result.push_back(Pair("desaddr",    desKeyId.ToAddress()));
     result.push_back(Pair("money",      llValues));
     result.push_back(Pair("fees",       llFees));
-    result.push_back(Pair("height",     nValidHeight));
     result.push_back(Pair("arguments",   HexStr(arguments)));
+    result.push_back(Pair("validheight", nValidHeight));
 
     return result;
 }
@@ -1063,7 +1063,7 @@ Object CRewardTx::ToJson(const CAccountViewCache &AccountView) const{
     view.GetKeyId(account, keyid);
     result.push_back(Pair("addr", keyid.ToAddress()));
     result.push_back(Pair("money", rewardValue));
-    result.push_back(Pair("height", nHeight));
+    result.push_back(Pair("validheight", nHeight));
     return result;
 }
 
@@ -1219,7 +1219,7 @@ Object CRegisterContractTx::ToJson(const CAccountViewCache &AccountView) const{
     result.push_back(Pair("addr", keyid.ToAddress()));
     result.push_back(Pair("script", "script_content"));
     result.push_back(Pair("fees", llFees));
-    result.push_back(Pair("height", nValidHeight));
+    result.push_back(Pair("validheight", nValidHeight));
     return result;
 }
 

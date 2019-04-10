@@ -89,9 +89,9 @@ Object GetTxDetailJSON(const uint256& txhash) {
                     fseek(file, postx.nTxOffset, SEEK_CUR);
                     file >> pBaseTx;
                     obj = pBaseTx->ToJson(*pAccountViewTip);
-                    obj.push_back(Pair("blockhash", header.GetHash().GetHex()));
                     obj.push_back(Pair("confirmedheight", (int) header.GetHeight()));
                     obj.push_back(Pair("confirmedtime", (int) header.GetTime()));
+                    obj.push_back(Pair("blockhash", header.GetHash().GetHex()));
 
                     if (pBaseTx->nTxType == CONTRACT_TX) {
                         vector<CVmOperate> vOutput;
