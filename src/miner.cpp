@@ -394,10 +394,6 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CAccountViewCache &view, CTransactionD
 
             CTxUndo txundo;
             CValidationState state;
-            if (CONTRACT_TX == pBaseTx->nTxType)
-                LogPrint("vm", "CreateNewBlock: contract tx hash=%s\n",
-                         pBaseTx->GetHash().GetHex());
-
             CAccountViewCache viewTemp(view, true);
             CScriptDBViewCache scriptCacheTemp(scriptCache, true);
             pBaseTx->nFuelRate = pblock->GetFuelRate();
