@@ -119,7 +119,6 @@ public:
 
     void SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock* pblock);
     void EraseTransaction(const uint256 &hash);
-    int ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate = false);
     void ResendWalletTransactions();
 
     bool IsMine(CBaseTx*pTx)const;

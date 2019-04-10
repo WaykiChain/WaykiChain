@@ -204,7 +204,6 @@ Value importwallet(const Array& params, bool fHelp)
     }
     file.close();
     pwalletMain->ShowProgress("", 100); // hide progress dialog in GUI
-    pwalletMain->ScanForWalletTransactions(chainActive.Genesis(), true);
 
     Object reply2;
     reply2.push_back(Pair("imported_key_size", importedKeySize));

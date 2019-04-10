@@ -184,51 +184,6 @@ void CWallet::EraseTransaction(const uint256 &hash) {
     }
     return;
 }
-// Scan the block chain (starting in pindexStart) for transactions
-// from or to us. If fUpdate is true, found transactions that already
-// exist in the wallet will be updated.
-int CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart, bool fUpdate) {
-    LogPrint("TODO", "todo list by ranger.shi");
-    //  int ret = 0;
-    //  int64_t nNow = GetTime();
-    //
-    //  CBlockIndex* pindex = pindexStart;
-    //  {
-    //      LOCK2(cs_main, cs_wallet);
-    //
-    //      // no need to read and scan block, if block was created before
-    //      // our wallet birthday (as adjusted for block time variability)
-    //      while (pindex && nTimeFirstKey && (pindex->nTime < (nTimeFirstKey - 7200)))
-    //          pindex = chainActive.Next(pindex);
-    //
-    //      ShowProgress(_("Rescanning..."), 0); // show rescan progress in GUI as dialog or on
-    //      splashscreen, if -rescan on startup double dProgressStart =
-    //      Checkpoints::GuessVerificationProgress(pindex, false); double dProgressTip =
-    //      Checkpoints::GuessVerificationProgress(chainActive.Tip(), false); while (pindex) {
-    //          if (pindex->nHeight % 100 == 0 && dProgressTip - dProgressStart > 0.0)
-    //              ShowProgress(_("Rescanning..."),
-    //                      max(1,
-    //                              min(99,
-    //                                      (int) ((Checkpoints::GuessVerificationProgress(pindex,
-    //                                      false) - dProgressStart)
-    //                                              / (dProgressTip - dProgressStart) * 100))));
-    //
-    //          CBlock block;
-    //          ReadBlockFromDisk(block, pindex);
-    //
-    //          SyncTransaction(0, NULL, &block);
-    //
-    //          pindex = chainActive.Next(pindex);
-    //          if (GetTime() >= nNow + 60) {
-    //              nNow = GetTime();
-    //              LogPrint("INFO","Still rescanning. At block %d. Progress=%f\n", pindex->nHeight,
-    //                      Checkpoints::GuessVerificationProgress(pindex));
-    //          }
-    //      }
-    //      ShowProgress(_("Rescanning..."), 100); // hide progress dialog in GUI
-    //  }
-    return true;
-}
 
 void CWallet::ResendWalletTransactions() {
     vector<uint256> erase;
