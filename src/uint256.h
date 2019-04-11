@@ -182,6 +182,6 @@ public:
     size_t operator()(const uint256& key) const { return key.GetCheapHash(); }
 };
 
-typedef std::unordered_set<uint256, CUint256Hasher> UnorderedSetType;
+typedef std::unordered_set<uint256, CUint256Hasher> UnorderedHashSet;
 
 #endif // COIN_UINT256_H
