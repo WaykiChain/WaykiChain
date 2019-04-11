@@ -1,5 +1,5 @@
-#ifndef MESSAGEQUEUE__H_INCLUDED
-#define MESSAGEQUEUE__H_INCLUDED
+#ifndef COIN_MESSAGEQUEUE_H
+#define COIN_MESSAGEQUEUE_H
 
 #include <chrono>
 #include <condition_variable>
@@ -93,4 +93,4 @@ typename MsgQueue<T>::SizeType MsgQueue<T>::Len() {
     return mq.size();
 }
 
-#endif  // MESSAGEQUEUE__H_INCLUDED
+#endif  // COIN_MESSAGEQUEUE_H
