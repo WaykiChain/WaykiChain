@@ -468,13 +468,13 @@ Object CRegisterAccountTx::ToJson(const CAccountViewCache &AccountView) const {
 
     Object result;
     result.push_back(Pair("hash",           GetHash().GetHex()));
-    result.push_back(Pair("txtype",         txTypeArray[nTxType]));
+    result.push_back(Pair("tx_type",         txTypeArray[nTxType]));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("addr",           address));
     result.push_back(Pair("pubkey",         userPubKey));
-    result.push_back(Pair("minerpubkey",    userMinerPubKey));
+    result.push_back(Pair("miner_pubkey",    userMinerPubKey));
     result.push_back(Pair("fees",           llFees));
-    result.push_back(Pair("validheight",    nValidHeight));
+    result.push_back(Pair("valid_height",    nValidHeight));
     return result;
 }
 
@@ -658,16 +658,16 @@ Object CCommonTx::ToJson(const CAccountViewCache &AccountView) const {
     view.GetKeyId(desUserId, desKeyId);
 
     result.push_back(Pair("hash",           GetHash().GetHex()));
-    result.push_back(Pair("txtype",         txTypeArray[nTxType]));
+    result.push_back(Pair("tx_type",        txTypeArray[nTxType]));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("regid",          GetRegIdString(srcUserId)));
     result.push_back(Pair("addr",           srcKeyId.ToAddress()));
-    result.push_back(Pair("desregid",       GetRegIdString(desUserId)));
-    result.push_back(Pair("desaddr",        desKeyId.ToAddress()));
+    result.push_back(Pair("dest_regid",     GetRegIdString(desUserId)));
+    result.push_back(Pair("dest_addr",      desKeyId.ToAddress()));
     result.push_back(Pair("money",          llValues));
     result.push_back(Pair("fees",           llFees));
     result.push_back(Pair("memo",           HexStr(memo)));
-    result.push_back(Pair("validheight",         nValidHeight));
+    result.push_back(Pair("valid_height",   nValidHeight));
 
     return result;
 }
@@ -913,16 +913,16 @@ Object CContractTx::ToJson(const CAccountViewCache &AccountView) const {
     view.GetKeyId(desUserId, desKeyId);
 
     result.push_back(Pair("hash",       GetHash().GetHex()));
-    result.push_back(Pair("txtype",     txTypeArray[nTxType]));
+    result.push_back(Pair("tx_type",     txTypeArray[nTxType]));
     result.push_back(Pair("ver",        nVersion));
     result.push_back(Pair("regid",      GetRegIdString(srcRegId)));
     result.push_back(Pair("addr",       srcKeyId.ToAddress()));
-    result.push_back(Pair("desregid",   GetRegIdString(desUserId)));
-    result.push_back(Pair("desaddr",    desKeyId.ToAddress()));
+    result.push_back(Pair("dest_regid",   GetRegIdString(desUserId)));
+    result.push_back(Pair("dest_addr",    desKeyId.ToAddress()));
     result.push_back(Pair("money",      llValues));
     result.push_back(Pair("fees",       llFees));
     result.push_back(Pair("arguments",   HexStr(arguments)));
-    result.push_back(Pair("validheight", nValidHeight));
+    result.push_back(Pair("valid_height", nValidHeight));
 
     return result;
 }
@@ -1052,7 +1052,7 @@ Object CRewardTx::ToJson(const CAccountViewCache &AccountView) const{
     CAccountViewCache view(AccountView);
     CKeyID keyid;
     result.push_back(Pair("hash", GetHash().GetHex()));
-    result.push_back(Pair("txtype", txTypeArray[nTxType]));
+    result.push_back(Pair("tx_type", txTypeArray[nTxType]));
     result.push_back(Pair("ver", nVersion));
     if(account.type() == typeid(CRegID)) {
         result.push_back(Pair("regid", boost::get<CRegID>(account).ToString()));
@@ -1063,7 +1063,7 @@ Object CRewardTx::ToJson(const CAccountViewCache &AccountView) const{
     view.GetKeyId(account, keyid);
     result.push_back(Pair("addr", keyid.ToAddress()));
     result.push_back(Pair("money", rewardValue));
-    result.push_back(Pair("validheight", nHeight));
+    result.push_back(Pair("valid_height", nHeight));
     return result;
 }
 
@@ -1213,13 +1213,13 @@ Object CRegisterContractTx::ToJson(const CAccountViewCache &AccountView) const{
     view.GetKeyId(regAcctId, keyid);
 
     result.push_back(Pair("hash", GetHash().GetHex()));
-    result.push_back(Pair("txtype", txTypeArray[nTxType]));
+    result.push_back(Pair("tx_type", txTypeArray[nTxType]));
     result.push_back(Pair("ver", nVersion));
     result.push_back(Pair("regid",  boost::get<CRegID>(regAcctId).ToString()));
     result.push_back(Pair("addr", keyid.ToAddress()));
     result.push_back(Pair("script", "script_content"));
     result.push_back(Pair("fees", llFees));
-    result.push_back(Pair("validheight", nValidHeight));
+    result.push_back(Pair(valid_height", nValidHeight));
     return result;
 }
 

@@ -1376,7 +1376,7 @@ Value listcontracttx(const Array& params, bool fHelp)
                 obj.push_back(Pair("dest_addr", keyid.ToAddress()));
                 obj.push_back(Pair("money", ptx->llValues));
                 obj.push_back(Pair("fees", ptx->llFees));
-                obj.push_back(Pair("height", ptx->nValidHeight));
+                obj.push_back(Pair("valid_height", ptx->nValidHeight));
                 obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
                 arrayData.push_back(obj);
 
