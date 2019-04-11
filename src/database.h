@@ -31,7 +31,7 @@ class CAccountView {
     virtual bool GetAccount(const vector<unsigned char> &accountId, CAccount &account);
     virtual bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account);
     virtual std::tuple<uint64_t, uint64_t> TraverseAccount() = 0;
-    virtual Object ToJsonObj(char Prefix);
+    virtual Object ToJsonObj(char prefix);
     virtual ~CAccountView(){};
 };
 
@@ -118,7 +118,7 @@ class CScriptDBView {
     virtual bool GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);
     virtual bool GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
                                  vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
-    virtual Object ToJsonObj(string Prefix);
+    virtual Object ToJsonObj(string prefix);
     virtual bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
     virtual bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB);
     virtual bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CScriptDBOperLog &operLog);

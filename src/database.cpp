@@ -22,7 +22,7 @@ bool CAccountView::GetAccount(const vector<unsigned char> &accountId, CAccount &
 bool CAccountView::EraseKeyId(const vector<unsigned char> &accountId) { return false; }
 bool CAccountView::SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account) { return false; }
 
-Object CAccountView::ToJsonObj(char Prefix) { return Object(); }
+Object CAccountView::ToJsonObj(char prefix) { return Object(); }
 
 std::tuple<uint64_t, uint64_t> CAccountViewBacked::TraverseAccount() { return pBase->TraverseAccount(); }
 
@@ -436,7 +436,7 @@ bool CScriptDBView::GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vec
 bool CScriptDBView::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CScriptDBOperLog &operLog) { return false; }
 bool CScriptDBView::GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) { return false; }
 
-Object CScriptDBView::ToJsonObj(string Prefix) { return Object(); }
+Object CScriptDBView::ToJsonObj(string prefix) { return Object(); }
 
 CScriptDBViewBacked::CScriptDBViewBacked(CScriptDBView &dataBaseView) { pBase = &dataBaseView; }
 bool CScriptDBViewBacked::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) { return pBase->GetData(vKey, vValue); }
