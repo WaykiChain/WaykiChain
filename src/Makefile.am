@@ -44,6 +44,7 @@ coin_CORE_H = \
   core.h \
   database.h \
   crypter.h \
+  crypto/sha256.h \
   hash.h \
   init.h \
   key.h \
@@ -64,6 +65,7 @@ coin_CORE_H = \
   rpc/rpcserver.h \
   support/cleanse.h \
   serialize.h \
+  sigcache.h \
   sync.h \
   threadsafety.h \
   tinyformat.h \
@@ -183,6 +185,7 @@ libcoin_server_a_SOURCES = \
   alert.cpp \
   bloom.cpp \
   configuration.cpp \
+  crypto/sha256.cpp \
   database.cpp \
   init.cpp \
   leveldbwrapper.cpp \
@@ -197,6 +200,7 @@ libcoin_server_a_SOURCES = \
   rpc/rpcnet.cpp \
   rpc/rpcrawtransaction.cpp \
   rpc/rpcserver.cpp \
+  sigcache.cpp \
   txdb.cpp \
   txmempool.cpp \
   cuiserver.cpp	\
