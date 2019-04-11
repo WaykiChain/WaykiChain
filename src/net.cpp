@@ -1746,10 +1746,11 @@ void StartNode(boost::thread_group& threadGroup)
     // Start threads
     //
 
-    if (!SysCfg().GetBoolArg("-dnsseed", true))
+    if (!SysCfg().GetBoolArg("-dnsseed", true)) {
         LogPrint("INFO","DNS seeding disabled\n");
-    else
+    } else {
         threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "dnsseed", &ThreadDNSAddressSeed));
+    }
 
 #ifdef USE_UPNP
     // Map ports with UPnP

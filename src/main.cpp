@@ -4206,8 +4206,9 @@ bool SendMessages(CNode *pto, bool fSendTrickle) {
 
         CNodeState &state = *State(pto->GetId());
         if (state.fShouldBan) {
-            if (pto->addr.IsLocal())
+            if (pto->addr.IsLocal()) {
                 LogPrint("INFO", "Warning: not banning local node %s!\n", pto->addr.ToString());
+            }
             else {
                 LogPrint("INFO", "Warning: banned a remote node %s!\n", pto->addr.ToString());
                 pto->fDisconnect = true;

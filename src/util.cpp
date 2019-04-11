@@ -199,23 +199,6 @@ static boost::once_flag debugPrintInitFlag = BOOST_ONCE_INIT;
 // static FILE* fileout = NULL;
 // static boost::mutex* mutexDebugLog = NULL;
 
-struct DebugLogFile {
-    DebugLogFile() : m_newLine(true), m_fileout(NULL), m_mutexDebugLog(NULL) {}
-    ~DebugLogFile() {
-        if (m_fileout) {
-            fclose(m_fileout);
-            m_fileout = NULL;
-        }
-        if (m_mutexDebugLog) {
-            delete m_mutexDebugLog;
-            m_mutexDebugLog = NULL;
-        }
-    }
-    bool m_newLine;
-    FILE* m_fileout;
-    boost::mutex* m_mutexDebugLog;
-};
-
 static map<string, DebugLogFile> g_DebugLogs;
 
 static void DebugPrintInit() {
@@ -319,40 +302,41 @@ int LogFilePreProcess(const char* path, size_t len, FILE** stream) {
     }
     return 1;
 }
-int LogPrintStr(const char* category, const string& str) {
+
+
+bool FindLogFile(const char* category, DebugLogFileIt &logFileIt) {
+
+    boost::call_once(&DebugPrintInit, debugPrintInitFlag);
+    if (SysCfg().IsDebugAll()) {
+        if (NULL != category) {
+            logFileIt = g_DebugLogs.find(category);
+            if (logFileIt != g_DebugLogs.end()) {
+                return true;
+            }
+        }
+        logFileIt = g_DebugLogs.find("debug");
+        return logFileIt != g_DebugLogs.end();
+    } else {
+        logFileIt = g_DebugLogs.find((NULL == category) ? ("debug") : (category));
+        return logFileIt != g_DebugLogs.end();
+    }
+}
+
+int LogPrintStr(const std::string &logName, DebugLogFile &logFile, const string& str) {
     if (!SysCfg().IsDebug()) return 0;
 
     int ret = 0;  // Returns total number of characters written
-
-    boost::call_once(&DebugPrintInit, debugPrintInitFlag);
-
-    map<string, DebugLogFile>::iterator it;
-
-    if (SysCfg().IsDebugAll()) {
-        if (NULL != category) {
-            it = g_DebugLogs.find(category);
-            if (it != g_DebugLogs.end()) {
-                return 0;
-            }
-        }
-        it = g_DebugLogs.find("debug");
-    } else {
-        it = g_DebugLogs.find((NULL == category) ? ("debug") : (category));
-        if (it == g_DebugLogs.end()) {
-            return 0;
-        }
-    }
 
     if (SysCfg().IsPrintLogToConsole()) {
         // print to console
         ret = fwrite(str.data(), 1, str.size(), stdout);
     }
     if (SysCfg().IsPrintLogToFile()) {
-        DebugLogFile& log = it->second;
+        DebugLogFile& log = logFile;
         boost::mutex::scoped_lock scoped_lock(*log.m_mutexDebugLog);
 
         boost::filesystem::path pathDebug;
-        string file = it->first + ".log";   //  it->first.c_str() = "INFO"
+        string file = logName + ".log";   //  it->first.c_str() = "INFO"
         pathDebug   = GetDataDir() / file;  // /home/share/bille/Coin_test/regtest/INFO.log
         // Debug print useful for profiling
         if (SysCfg().IsLogTimestamps() && log.m_newLine) {
@@ -372,6 +356,21 @@ int LogPrintStr(const char* category, const string& str) {
         ret = fwrite(str.data(), 1, str.size(), log.m_fileout);
     }
     return ret;
+}
+
+int LogPrintStr(const char* category, const string& str) {
+    if (!SysCfg().IsDebug()) return 0;
+
+    int ret = 0;  // Returns total number of characters written
+
+    boost::call_once(&DebugPrintInit, debugPrintInitFlag);
+
+    DebugLogFileIt it;
+    if (!FindLogFile(category, it)) {
+        return 0;
+    }
+
+    return LogPrintStr(it->first, it->second, str);
 }
 
 string FormatMoney(int64_t n, bool fPlus) {
