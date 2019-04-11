@@ -1219,7 +1219,7 @@ Object CRegisterContractTx::ToJson(const CAccountViewCache &AccountView) const{
     result.push_back(Pair("addr", keyid.ToAddress()));
     result.push_back(Pair("script", "script_content"));
     result.push_back(Pair("fees", llFees));
-    result.push_back(Pair(valid_height", nValidHeight));
+    result.push_back(Pair("valid_height", nValidHeight));
     return result;
 }
 
