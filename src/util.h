@@ -90,6 +90,24 @@ inline void MilliSleep(int64_t n) {
 #endif
 }
 
+struct DebugLogFile {
+    DebugLogFile() : m_newLine(true), m_fileout(NULL), m_mutexDebugLog(NULL) {}
+    ~DebugLogFile() {
+        if (m_fileout) {
+            fclose(m_fileout);
+            m_fileout = NULL;
+        }
+        if (m_mutexDebugLog) {
+            delete m_mutexDebugLog;
+            m_mutexDebugLog = NULL;
+        }
+    }
+    bool m_newLine;
+    FILE* m_fileout;
+    boost::mutex* m_mutexDebugLog;
+};
+
+typedef map<string, DebugLogFile>::iterator DebugLogFileIt;
 
 extern string strMiscWarning;
 extern bool fNoListen;
@@ -102,6 +120,8 @@ void SetupEnvironment();
 
 //bool GetBoolArg(const string& strArg, bool fDefault);
 
+// Get the LogFile iterator by category
+bool FindLogFile(const char* category, DebugLogFileIt &logFileIt);
 /* Return true if log accepts specified category */
 bool LogAcceptCategory(const char* category);
 /* Send a string to the log output */
@@ -109,30 +129,39 @@ int LogPrintStr(const string &str);
 extern string GetLogHead(int line, const char* file, const char* category);
 int LogPrintStr(const char* category, const string &str);
 
+int LogPrintStr(const std::string &logName, DebugLogFile &logFile, const string& str);
 
 #define strprintf tfm::format
 
 #define ERRORMSG(...)  error2(__LINE__, __FILE__, __VA_ARGS__)
-#define LogPrint(tag, ...) LogTrace(tag, __LINE__, __FILE__, __VA_ARGS__)
 
-
-
-#define MAKE_ERROR_AND_TRACE_FUNC(n)                                        \
-    /*   Print to debug.log if -debug=category switch is given OR category is NULL. */ \
-    template<TINYFORMAT_ARGTYPES(n)>                                          \
-    static inline int LogTrace(const char* category, int line, const char* file, const char* format, TINYFORMAT_VARARGS(n))  \
-    {                                                                         \
-        return LogPrintStr(category, GetLogHead(line,file,category) + tfm::format(format, TINYFORMAT_PASSARGS(n))); \
-    }                                                                         \
-    /*   Log error and return false */                                        \
-    template<TINYFORMAT_ARGTYPES(n)>                                          \
-    static inline bool error2(int line, const char* file,const char* format1, TINYFORMAT_VARARGS(n))     \
-    {                                                                         \
-    	LogPrintStr("ERROR", GetLogHead(line,file,"ERROR") + tfm::format(format1, TINYFORMAT_PASSARGS(n)) + "\n"); \
-    	return false;                                                         \
+#define LogPrint(tag, ...)                                                             \
+    {                                                                                  \
+        DebugLogFileIt __logFileIt;                                                    \
+        if (FindLogFile(tag, __logFileIt)) {                                           \
+            LogTrace(tag, __logFileIt->first, __logFileIt->second, __LINE__, __FILE__, \
+                     __VA_ARGS__);                                                     \
+        }                                                                              \
     }
 
-
+#define MAKE_ERROR_AND_TRACE_FUNC(n)                                                         \
+    /*   Print to debug.log if -debug=category switch is given OR category is NULL. */       \
+    template <TINYFORMAT_ARGTYPES(n)>                                                        \
+    static inline int LogTrace(const char* category, const std::string& logName,             \
+                               DebugLogFile& logFile, int line, const char* file,            \
+                               const char* format, TINYFORMAT_VARARGS(n)) {                  \
+        return LogPrintStr(                                                                  \
+            logName, logFile,                                                                \
+            GetLogHead(line, file, category) + tfm::format(format, TINYFORMAT_PASSARGS(n))); \
+    }                                                                                        \
+    /*   Log error and return false */                                                       \
+    template <TINYFORMAT_ARGTYPES(n)>                                                        \
+    static inline bool error2(int line, const char* file, const char* format1,               \
+                              TINYFORMAT_VARARGS(n)) {                                       \
+        LogPrintStr("ERROR", GetLogHead(line, file, "ERROR") +                               \
+                                 tfm::format(format1, TINYFORMAT_PASSARGS(n)) + "\n");       \
+        return false;                                                                        \
+    }
 
 TINYFORMAT_FOREACH_ARGNUM(MAKE_ERROR_AND_TRACE_FUNC)
 
@@ -143,11 +172,11 @@ static inline bool error2(int line, const char* file,const char* format) {
 	return false;
 }
 
-extern string GetLogHead(int line, const char* file,const char* category);
+extern string GetLogHead(int line, const char* file, const char* category);
 
-static inline int LogTrace(const char* category, int line, const char* file, const char* format) {
-
-	return LogPrintStr(category,  GetLogHead(line,file,category) + format);
+static inline int LogTrace(const char* category, const std::string &logName, DebugLogFile &logFile, int line,
+                           const char* file, const char* format) {
+    return LogPrintStr(logName, logFile, GetLogHead(line, file, category) + format);
 }
 
 //static inline bool errorTrace(const char* format) {
@@ -266,15 +295,6 @@ string HexStr(const T itbegin, const T itend, bool fSpaces = false) {
 template<typename T>
 inline string HexStr(const T& vch, bool fSpaces = false) {
 	return HexStr(vch.begin(), vch.end(), fSpaces);
-}
-
-template<typename T>
-void PrintHex(const T pbegin, const T pend, const char* pszFormat = "%s", bool fSpaces = true) {
-	LogPrint("INFO",pszFormat, HexStr(pbegin, pend, fSpaces).c_str());
-}
-
-inline void PrintHex(const vector<unsigned char>& vch, const char* pszFormat = "%s", bool fSpaces = true) {
-	LogPrint("INFO",pszFormat, HexStr(vch, fSpaces).c_str());
 }
 
 //inline int64_t GetPerformanceCounter() {

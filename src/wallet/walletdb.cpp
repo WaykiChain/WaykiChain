@@ -223,18 +223,16 @@ bool CWalletDB::Recover(CDBEnv& dbenv, string filename, bool fOnlyKeys)
 
     int result = dbenv.dbenv->dbrename(NULL, filename.c_str(), NULL,
                                       newFilename.c_str(), DB_AUTO_COMMIT);
-    if (result == 0)
+    if (result == 0) {
         LogPrint("INFO","Renamed %s to %s\n", filename, newFilename);
-    else
-    {
+    } else {
         LogPrint("INFO","Failed to rename %s to %s\n", filename, newFilename);
         return false;
     }
 
     vector<CDBEnv::KeyValPair> salvagedData;
     bool allOK = dbenv.Salvage(newFilename, true, salvagedData);
-    if (salvagedData.empty())
-    {
+    if (salvagedData.empty()) {
         LogPrint("INFO","Salvage(aggressive) found no records in %s.\n", newFilename);
         return false;
     }

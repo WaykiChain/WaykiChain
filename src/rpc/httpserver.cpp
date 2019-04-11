@@ -370,10 +370,11 @@ static void libevent_log_cb(int severity, const char* msg) {
 // EVENT_LOG_WARN was added in 2.0.19; but before then _EVENT_LOG_WARN existed.
 #define EVENT_LOG_WARN _EVENT_LOG_WARN
 #endif
-    if (severity >= EVENT_LOG_WARN)  // Log warn messages and higher without debug category
+    if (severity >= EVENT_LOG_WARN) { // Log warn messages and higher without debug category
         LogPrint("LIBEVENT", "WARNING: libevent: %s\n", msg);
-    else
+    } else {
         LogPrint("LIBEVENT", "libevent: %s\n", msg);
+    }
 }
 
 bool InitHTTPServer() {
@@ -421,7 +422,7 @@ bool InitHTTPServer() {
     LogPrint("RPC", "Initialized HTTP server\n");
     int workQueueDepth =
         std::max((long)SysCfg().GetArg("-rpcworkqueue", DEFAULT_HTTP_WORKQUEUE), 1L);
-    LogPrint("ERROR", "HTTP: creating work queue of depth %d\n", workQueueDepth);
+    LogPrint("RPC", "HTTP: creating work queue of depth %d\n", workQueueDepth);
 
     workQueue = new WorkQueue<HTTPClosure>(workQueueDepth);
     // transfer ownership to eventBase/HTTP via .release()
@@ -447,7 +448,7 @@ bool UpdateHTTPServerLogging(bool enable) {
 void StartHTTPServer() {
     LogPrint("RPC", "Starting HTTP server\n");
     int rpcThreads = std::max((long)SysCfg().GetArg("-rpcthreads", DEFAULT_HTTP_THREADS), 1L);
-    LogPrint("ERROR", "HTTP: starting %d worker threads\n", rpcThreads);
+    LogPrint("RPC", "HTTP: starting %d worker threads\n", rpcThreads);
     threadHTTP = std::thread(ThreadHTTP, eventBase);
 
     for (int i = 0; i < rpcThreads; i++) {
