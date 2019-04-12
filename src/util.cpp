@@ -306,7 +306,13 @@ int LogFilePreProcess(const char* path, size_t len, FILE** stream) {
 
 bool FindLogFile(const char* category, DebugLogFileIt &logFileIt) {
 
+    if (!SysCfg().IsDebug()) {
+        logFileIt = g_DebugLogs.end();
+        return false;
+    } 
+
     boost::call_once(&DebugPrintInit, debugPrintInitFlag);
+
     if (SysCfg().IsDebugAll()) {
         if (NULL != category) {
             logFileIt = g_DebugLogs.find(category);
@@ -323,9 +329,14 @@ bool FindLogFile(const char* category, DebugLogFileIt &logFileIt) {
 }
 
 int LogPrintStr(const std::string &logName, DebugLogFile &logFile, const string& str) {
-    if (!SysCfg().IsDebug()) return 0;
+
+    if (!SysCfg().IsDebug()) {
+        return 0;
+    }
 
     int ret = 0;  // Returns total number of characters written
+
+    boost::call_once(&DebugPrintInit, debugPrintInitFlag);
 
     if (SysCfg().IsPrintLogToConsole()) {
         // print to console
@@ -359,11 +370,6 @@ int LogPrintStr(const std::string &logName, DebugLogFile &logFile, const string&
 }
 
 int LogPrintStr(const char* category, const string& str) {
-    if (!SysCfg().IsDebug()) return 0;
-
-    int ret = 0;  // Returns total number of characters written
-
-    boost::call_once(&DebugPrintInit, debugPrintInitFlag);
 
     DebugLogFileIt it;
     if (!FindLogFile(category, it)) {
