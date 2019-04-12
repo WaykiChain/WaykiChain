@@ -1094,22 +1094,19 @@ void ThreadMapPort()
     int r;
 
     r = UPNP_GetValidIGD(devlist, &urls, &data, lanaddr, sizeof(lanaddr));
-    if (r == 1)
-    {
+    if (r == 1) {
         if (fDiscover) {
             char externalIPAddress[40];
             r = UPNP_GetExternalIPAddress(urls.controlURL, data.first.servicetype, externalIPAddress);
-            if(r != UPNPCOMMAND_SUCCESS)
+            if(r != UPNPCOMMAND_SUCCESS) {
                 LogPrint("INFO","UPnP: GetExternalIPAddress() returned %d\n", r);
-            else
-            {
-                if(externalIPAddress[0])
-                {
+            } else {
+                if(externalIPAddress[0]) {
                     LogPrint("INFO","UPnP: ExternalIPAddress = %s\n", externalIPAddress);
                     AddLocal(CNetAddr(externalIPAddress), LOCAL_UPNP);
-                }
-                else
+                } else {
                     LogPrint("INFO","UPnP: GetExternalIPAddress failed.\n");
+                }
             }
         }
 
@@ -1127,11 +1124,12 @@ void ThreadMapPort()
                                     port.c_str(), port.c_str(), lanaddr, strDesc.c_str(), "TCP", 0, "0");
 #endif
 
-                if(r!=UPNPCOMMAND_SUCCESS)
+                if(r!=UPNPCOMMAND_SUCCESS) {
                     LogPrint("INFO","AddPortMapping(%s, %s, %s) failed with code %d (%s)\n",
                         port, port, lanaddr, r, strupnperror(r));
-                else
-                    LogPrint("INFO","UPnP Port Mapping successful.\n");;
+                } else {
+                    LogPrint("INFO","UPnP Port Mapping successful.\n");
+                }
 
                 MilliSleep(20*60*1000); // Refresh every 20 minutes
             }
@@ -1174,8 +1172,7 @@ void MapPort(bool fUseUPnP)
 }
 
 #else
-void MapPort(bool)
-{
+void MapPort(bool) {
     // Intentionally left blank.
 }
 #endif
