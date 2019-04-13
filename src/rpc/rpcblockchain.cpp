@@ -504,7 +504,7 @@ Value reconsiderblock(const Array& params, bool fHelp) {
     return obj;
 }
 
-static MsgQueue<CCommonTx> generationQueue;
+static unique_ptr<MsgQueue<CCommonTx>> generationQueue;
 
 void static TxGenerator(const int64_t period, const int64_t batchSize) {
     RenameThread("Tx-generator");
@@ -543,7 +543,7 @@ void static TxGenerator(const int64_t period, const int64_t batchSize) {
             // sign transaction
             key.Sign(tx.SignatureHash(), tx.signature);
 
-            generationQueue.Push(std::move(tx));
+            generationQueue.get()->Push(std::move(tx));
         }
 
         int64_t elapseTime = GetTimeMillis() - nStart;
@@ -568,7 +568,7 @@ void static TxSender() {
         // add interruption point
         boost::this_thread::interruption_point();
 
-        if (generationQueue.Pop(&tx)) {
+        if (generationQueue.get()->Pop(&tx)) {
             LOCK(cs_main);
             if (!::AcceptToMemoryPool(mempool, state, (CBaseTx*)&tx, true)) {
                 LogPrint("ERROR", "TxSender, accept to mempool failed: %s\n",
@@ -589,6 +589,14 @@ void StartGeneration(const int64_t period, const int64_t batchSize) {
     }
 
     if (period == 0 || batchSize == 0) return;
+
+    // reset message queue according to <period, batchSize>
+    // For example, generate 50(batchSize) transactions in 20(period), then
+    // we need to prepare 1000 * 10 / 20 * 50 = 25,000 transactions in 10 second.
+    // Actually, set the message queue's size to 50,000(double or up to 60,000).
+    MsgQueue<CCommonTx>::SizeType size       = 1000 * 10 * batchSize * 2 / period;
+    MsgQueue<CCommonTx>::SizeType actualSize = size > MSG_QUEUE_MAX_LEN ? MSG_QUEUE_MAX_LEN : size;
+    generationQueue.reset(new MsgQueue<CCommonTx>(actualSize));
 
     generateThreads = new boost::thread_group();
     generateThreads->create_thread(boost::bind(&TxGenerator, period, batchSize));
