@@ -382,9 +382,9 @@ Value getcontractregid(const Array& params, bool fHelp)
     int nIndex = 0;
     int nBlockHeight = GetTxConfirmHeight(txhash, *pScriptDBTip);
     if (nBlockHeight > chainActive.Height()) {
-        throw runtime_error("height bigger than tip block \n");
+        throw runtime_error("height bigger than tip block");
     } else if (-1 == nBlockHeight) {
-        throw runtime_error("tx hash unconfirmed \n");
+        throw runtime_error("tx hash unconfirmed");
     }
     CBlockIndex* pindex = chainActive[nBlockHeight];
     CBlock block;
@@ -609,7 +609,7 @@ Value startgeneration(const Array& params, bool fHelp) {
             "startgeneration \"period\" \"batch_size\"\n"
             "\nStart generation blocks with batch_size transactions in period ms.\n"
             "\nArguments:\n"
-            "1.\"period\" (numeric, required)\n"
+            "1.\"period\" (numeric, required) 0~1000\n"
             "2.\"batch_size\" (numeric, required)\n"
             "\nResult:\n"
             "\nExamples:\n" +
@@ -623,11 +623,15 @@ Value startgeneration(const Array& params, bool fHelp) {
         return obj;
     }
 
-    // TODO: control range of period/batchsize.
-    // TODO: drop the sender/receiver's privkey from wallet.
+    int64_t period    = params[0].get_int64();
+    if (period < 0 || period > 1000) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "period should range between 0 to 1000");
+    }
 
-    int64_t period    = params[0].get_uint64();
-    int64_t batchSize = params[1].get_uint64();
+    int64_t batchSize = params[1].get_int64();
+    if (batchSize < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "batch size should be bigger than 0");
+    }
 
     StartGeneration(period, batchSize);
 
