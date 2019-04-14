@@ -382,9 +382,9 @@ Value getcontractregid(const Array& params, bool fHelp)
     int nIndex = 0;
     int nBlockHeight = GetTxConfirmHeight(txhash, *pScriptDBTip);
     if (nBlockHeight > chainActive.Height()) {
-        throw runtime_error("height bigger than tip block \n");
+        throw runtime_error("height bigger than tip block");
     } else if (-1 == nBlockHeight) {
-        throw runtime_error("tx hash unconfirmed \n");
+        throw runtime_error("tx hash unconfirmed");
     }
     CBlockIndex* pindex = chainActive[nBlockHeight];
     CBlock block;
@@ -504,7 +504,7 @@ Value reconsiderblock(const Array& params, bool fHelp) {
     return obj;
 }
 
-static MsgQueue<CCommonTx> generationQueue;
+static unique_ptr<MsgQueue<CCommonTx>> generationQueue;
 
 void static TxGenerator(const int64_t period, const int64_t batchSize) {
     RenameThread("Tx-generator");
@@ -543,7 +543,7 @@ void static TxGenerator(const int64_t period, const int64_t batchSize) {
             // sign transaction
             key.Sign(tx.SignatureHash(), tx.signature);
 
-            generationQueue.Push(std::move(tx));
+            generationQueue.get()->Push(std::move(tx));
         }
 
         int64_t elapseTime = GetTimeMillis() - nStart;
@@ -568,7 +568,7 @@ void static TxSender() {
         // add interruption point
         boost::this_thread::interruption_point();
 
-        if (generationQueue.Pop(&tx)) {
+        if (generationQueue.get()->Pop(&tx)) {
             LOCK(cs_main);
             if (!::AcceptToMemoryPool(mempool, state, (CBaseTx*)&tx, true)) {
                 LogPrint("ERROR", "TxSender, accept to mempool failed: %s\n",
@@ -590,6 +590,14 @@ void StartGeneration(const int64_t period, const int64_t batchSize) {
 
     if (period == 0 || batchSize == 0) return;
 
+    // reset message queue according to <period, batchSize>
+    // For example, generate 50(batchSize) transactions in 20(period), then
+    // we need to prepare 1000 * 10 / 20 * 50 = 25,000 transactions in 10 second.
+    // Actually, set the message queue's size to 50,000(double or up to 60,000).
+    MsgQueue<CCommonTx>::SizeType size       = 1000 * 10 * batchSize * 2 / period;
+    MsgQueue<CCommonTx>::SizeType actualSize = size > MSG_QUEUE_MAX_LEN ? MSG_QUEUE_MAX_LEN : size;
+    generationQueue.reset(new MsgQueue<CCommonTx>(actualSize));
+
     generateThreads = new boost::thread_group();
     generateThreads->create_thread(boost::bind(&TxGenerator, period, batchSize));
     generateThreads->create_thread(boost::bind(&TxSender));
@@ -601,7 +609,7 @@ Value startgeneration(const Array& params, bool fHelp) {
             "startgeneration \"period\" \"batch_size\"\n"
             "\nStart generation blocks with batch_size transactions in period ms.\n"
             "\nArguments:\n"
-            "1.\"period\" (numeric, required)\n"
+            "1.\"period\" (numeric, required) 0~1000\n"
             "2.\"batch_size\" (numeric, required)\n"
             "\nResult:\n"
             "\nExamples:\n" +
@@ -615,11 +623,15 @@ Value startgeneration(const Array& params, bool fHelp) {
         return obj;
     }
 
-    // TODO: control range of period/batchsize.
-    // TODO: drop the sender/receiver's privkey from wallet.
+    int64_t period    = params[0].get_int64();
+    if (period < 0 || period > 1000) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "period should range between 0 to 1000");
+    }
 
-    int64_t period    = params[0].get_uint64();
-    int64_t batchSize = params[1].get_uint64();
+    int64_t batchSize = params[1].get_int64();
+    if (batchSize < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "batch size should be bigger than 0");
+    }
 
     StartGeneration(period, batchSize);
 

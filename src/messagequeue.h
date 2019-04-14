@@ -7,13 +7,17 @@
 #include <queue>
 
 constexpr std::chrono::milliseconds POP_DEFAULT_TIMEOUT{20};
-constexpr size_t MSG_QUEUE_MAX_LEN = 10000;
+constexpr size_t MSG_QUEUE_DEFAULT_MAX_LEN = 10000;
+constexpr size_t MSG_QUEUE_MAX_LEN         = 60000;
 
 template <typename T>
 class MsgQueue final {
 public:
     using SizeType = typename std::queue<T>::size_type;
     using Timeout  = std::chrono::milliseconds;
+
+public:
+    MsgQueue(const SizeType maxLen = MSG_QUEUE_DEFAULT_MAX_LEN) : mqMaxLen(maxLen) {}
 
 public:
     bool Pop(T* t = nullptr, const Timeout& timeout = POP_DEFAULT_TIMEOUT);
@@ -27,6 +31,7 @@ public:
 
 private:
     std::queue<T> mq;
+    SizeType mqMaxLen;
     std::condition_variable popCond;
     std::condition_variable pushCond;
     std::mutex mtx;
@@ -44,7 +49,7 @@ bool MsgQueue<T>::Pop(T* t, const Timeout& timeout) {
     }
 
     if (!mq.empty()) {
-        if (mq.size() == MSG_QUEUE_MAX_LEN) {
+        if (mq.size() == mqMaxLen) {
             pushCond.notify_all();
         }
         if (t) {
@@ -66,7 +71,7 @@ template <typename T>
 void MsgQueue<T>::Push(T&& t) {
     std::unique_lock<std::mutex> lock(mtx);
 
-    while (mq.size() == MSG_QUEUE_MAX_LEN) {
+    while (mq.size() == mqMaxLen) {
         pushCond.wait(lock);
     }
     if (mq.empty()) {
@@ -84,7 +89,7 @@ bool MsgQueue<T>::Empty() {
 template <typename T>
 bool MsgQueue<T>::Full() {
     std::unique_lock<std::mutex> lock(mtx);
-    return mq.size() == MSG_QUEUE_MAX_LEN;
+    return mq.size() == mqMaxLen;
 }
 
 template <typename T>
