@@ -63,7 +63,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountViewCache& view, int
                             string(e.what()));
     }
 
-    if (vmScript.IsValid() == false) {
+    if (!vmScript.IsValid()) {
         LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() vmScript.IsValid error");
         return false;
     }

@@ -648,8 +648,11 @@ Value registercontracttx(const Array& params, bool fHelp)
         free(buffer);
 
     if (params.size() > 4) {
-        string scriptDesc = params[4].get_str();
-        vmScript.GetMemo().insert(vmScript.GetMemo().end(), scriptDesc.begin(), scriptDesc.end());
+        string memo = params[4].get_str();
+        if (memo.size() > kContractMemoMaxSize) {
+            throw JSONRPCError(RPC_INVALID_PARAMS, "app desc is too large");
+        }
+        vmScript.GetMemo().insert(vmScript.GetMemo().end(), memo.begin(), memo.end());
     }
 
     vector<unsigned char> vscript;

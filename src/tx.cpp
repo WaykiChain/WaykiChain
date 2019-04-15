@@ -674,6 +674,10 @@ Object CCommonTx::ToJson(const CAccountViewCache &AccountView) const {
 
 bool CCommonTx::CheckTransaction(CValidationState &state, CAccountViewCache &view,
                                  CScriptDBViewCache &scriptDB) {
+    if (memo.size() > kCommonTxMemoMaxSize)
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, memo's size too large"),
+                         REJECT_INVALID, "memo-size-toolarge");
+
     if ((srcUserId.type() != typeid(CRegID)) && (srcUserId.type() != typeid(CPubKey)))
         return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, srcaddr type error"),
                          REJECT_INVALID, "srcaddr-type-error");
@@ -929,7 +933,7 @@ Object CContractTx::ToJson(const CAccountViewCache &AccountView) const {
 
 bool CContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &view,
                                             CScriptDBViewCache &scriptDB) {
-    if (arguments.size() >= kContractArgumentMaxSize)
+    if (arguments.size() > kContractArgumentMaxSize)
         return state.DoS(100, ERRORMSG("CContractTx::CheckTransaction, arguments's size too large"),
                          REJECT_INVALID, "arguments-size-toolarge");
 
@@ -1087,18 +1091,6 @@ bool CRegisterContractTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidat
     }
     txundo.txHash = GetHash();
 
-    CVmScript vmScript;
-    CDataStream stream(script, SER_DISK, CLIENT_VERSION);
-    try {
-        stream >> vmScript;
-    } catch (exception& e) {
-        return state.DoS(100, ERRORMSG(("ExecuteTx() :CRegisterContractTx ExecuteTx, Unserialize to vmScript error:" +
-            string(e.what())).c_str()), UPDATE_ACCOUNT_FAIL, "unserialize-script-error");
-    }
-    if(!vmScript.IsValid())
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterContractTx ExecuteTx, vmScript invalid"),
-            UPDATE_ACCOUNT_FAIL, "script-check-failed");
-
     CRegID regId(nHeight, nIndex);
     //create script account
     CKeyID keyId = Hash160(regId.GetVec6());
@@ -1223,53 +1215,85 @@ Object CRegisterContractTx::ToJson(const CAccountViewCache &AccountView) const{
     return result;
 }
 
-bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB)
-{
+bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &view,
+                                           CScriptDBViewCache &scriptDB) {
+    CDataStream stream(script, SER_DISK, CLIENT_VERSION);
+    CVmScript vmScript;
+    try {
+        stream >> vmScript;
+    } catch (exception &e) {
+        return state.DoS(
+            100, ERRORMSG("CheckTransaction() : CRegisterContractTx unserialize to vmScript error"),
+            REJECT_INVALID, "unserialize-error");
+    }
+
+    if (!vmScript.IsValid()) {
+        return state.DoS(100,
+                         ERRORMSG("CheckTransaction() : CRegisterContractTx vmScript is invalid"),
+                         REJECT_INVALID, "vmscript-invalid");
+    }
+
     if (regAcctId.type() != typeid(CRegID)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx regAcctId must be CRegID"),
+        return state.DoS(
+            100, ERRORMSG("CheckTransaction() : CRegisterContractTx regAcctId must be CRegID"),
             REJECT_INVALID, "regacctid-type-error");
     }
 
     if (!CheckMoneyRange(llFees)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, tx fee out of range"),
+        return state.DoS(
+            100,
+            ERRORMSG(
+                "CheckTransaction() : CRegisterContractTx CheckTransaction, tx fee out of range"),
             REJECT_INVALID, "fee-too-large");
     }
 
     if (!CheckMinTxFee(llFees)) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::CheckTransaction, tx fee smaller than MinTxFee"),
+        return state.DoS(
+            100, ERRORMSG("CRegisterContractTx::CheckTransaction, tx fee smaller than MinTxFee"),
             REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
-    uint64_t llFuel = ceil(script.size()/100) * GetFuelRate(scriptDB);
+    uint64_t llFuel = ceil(script.size() / 100) * GetFuelRate(scriptDB);
     if (llFuel < 1 * COIN) {
         llFuel = 1 * COIN;
     }
 
-    if( llFees < llFuel) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, register app tx fee too litter (actual:%lld vs need:%lld)", llFees, llFuel),
-            REJECT_INVALID, "fee-too-litter");
+    if (llFees < llFuel) {
+        return state.DoS(100,
+                         ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, "
+                                  "register app tx fee too litter (actual:%lld vs need:%lld)",
+                                  llFees, llFuel),
+                         REJECT_INVALID, "fee-too-litter");
     }
 
     CAccount acctInfo;
     if (!view.GetAccount(boost::get<CRegID>(regAcctId), acctInfo)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, get account falied"),
+        return state.DoS(
+            100,
+            ERRORMSG(
+                "CheckTransaction() : CRegisterContractTx CheckTransaction, get account falied"),
             REJECT_INVALID, "bad-getaccount");
     }
 
     if (!acctInfo.IsRegistered()) {
-        return state.DoS(100, ERRORMSG("CheckTransaction(): CRegisterContractTx CheckTransaction, account have not registed public key"),
-            REJECT_INVALID, "bad-no-pubkey");
+        return state.DoS(100,
+                         ERRORMSG("CheckTransaction(): CRegisterContractTx CheckTransaction, "
+                                  "account have not registed public key"),
+                         REJECT_INVALID, "bad-no-pubkey");
     }
 
     if (!CheckSignatureSize(signature)) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::CheckTransaction, signature size invalid"),
-            REJECT_INVALID, "bad-tx-sig-size");
+        return state.DoS(100,
+                         ERRORMSG("CRegisterContractTx::CheckTransaction, signature size invalid"),
+                         REJECT_INVALID, "bad-tx-sig-size");
     }
 
     uint256 signhash = SignatureHash();
     if (!CheckSignScript(signhash, signature, acctInfo.pubKey)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, CheckSignScript failed"),
-            REJECT_INVALID, "bad-signscript-check");
+        return state.DoS(100,
+                         ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, "
+                                  "CheckSignScript failed"),
+                         REJECT_INVALID, "bad-signscript-check");
     }
     return true;
 }

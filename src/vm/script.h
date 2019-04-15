@@ -26,22 +26,24 @@ public:
     CVmScript();
     virtual ~CVmScript();
 
-	vector<unsigned char>& GetRom() { return rom; }
-
-	vector<unsigned char>& GetMemo() { return memo; }
+    vector<unsigned char>& GetRom() { return rom; }
+    vector<unsigned char>& GetMemo() { return memo; }
 
     /**
      * @brief
      * @return
      */
     bool IsValid() {
-        if ((rom.size() > kContractScriptMaxSize) || (rom.size() <= 0))
+        if (rom.size() > kContractScriptMaxSize)
             return false;
 
-        if (!memcmp(&rom[0], kLuaScriptHeadLine, strlen(kLuaScriptHeadLine)))
-            return true;  // lua script shebang existing verified
+        if (memcmp(&rom[0], kLuaScriptHeadLine, strlen(kLuaScriptHeadLine)))
+            return false;  // lua script shebang existing verified
 
-        return false;
+        if (memo.size() > kContractMemoMaxSize)
+            return false;
+
+        return true;
     }
 
     bool IsCheckAccount(void) { return false; }
