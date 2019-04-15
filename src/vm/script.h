@@ -35,11 +35,14 @@ public:
      * @return
      */
     bool IsValid() {
-        if ((rom.size() > kContractScriptMaxSize) || (rom.size() <= 0))
+        if (rom.size() > kContractScriptMaxSize)
             return false;
 
         if (!memcmp(&rom[0], kLuaScriptHeadLine, strlen(kLuaScriptHeadLine)))
             return true;  // lua script shebang existing verified
+
+        if (memo.size() > kContractMemoMaxSize)
+            return false;
 
         return false;
     }

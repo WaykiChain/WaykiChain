@@ -1229,6 +1229,22 @@ Object CRegisterContractTx::ToJson(const CAccountViewCache &AccountView) const{
 
 bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &view,
                                            CScriptDBViewCache &scriptDB) {
+    CDataStream stream(script, SER_DISK, CLIENT_VERSION);
+    CVmScript vmScript;
+    try {
+        stream >> vmScript;
+    } catch (exception &e) {
+        return state.DoS(
+            100, ERRORMSG("CheckTransaction() : CRegisterContractTx unserialize to vmScript error"),
+            REJECT_INVALID, "unserialize-error");
+    }
+
+    if (!vmScript.IsValid()) {
+        return state.DoS(100,
+                         ERRORMSG("CheckTransaction() : CRegisterContractTx vmScript is invalid"),
+                         REJECT_INVALID, "vmscript-invalid");
+    }
+
     if (regAcctId.type() != typeid(CRegID)) {
         return state.DoS(
             100, ERRORMSG("CheckTransaction() : CRegisterContractTx regAcctId must be CRegID"),
