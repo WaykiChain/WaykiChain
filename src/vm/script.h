@@ -26,9 +26,8 @@ public:
     CVmScript();
     virtual ~CVmScript();
 
-	vector<unsigned char>& GetRom() { return rom; }
-
-	vector<unsigned char>& GetMemo() { return memo; }
+    vector<unsigned char>& GetRom() { return rom; }
+    vector<unsigned char>& GetMemo() { return memo; }
 
     /**
      * @brief
@@ -38,13 +37,13 @@ public:
         if (rom.size() > kContractScriptMaxSize)
             return false;
 
-        if (!memcmp(&rom[0], kLuaScriptHeadLine, strlen(kLuaScriptHeadLine)))
-            return true;  // lua script shebang existing verified
+        if (memcmp(&rom[0], kLuaScriptHeadLine, strlen(kLuaScriptHeadLine)))
+            return false;  // lua script shebang existing verified
 
         if (memo.size() > kContractMemoMaxSize)
             return false;
 
-        return false;
+        return true;
     }
 
     bool IsCheckAccount(void) { return false; }
