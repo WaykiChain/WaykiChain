@@ -21,7 +21,7 @@ public:
     leveldb_error(const string &msg) : runtime_error(msg) {}
 };
 
-void HandleError(const leveldb::Status &status) throw(leveldb_error);
+void HandleError(const leveldb::Status &status);
 
 // Batch of changes queued to be written to a CLevelDBWrapper
 class CLevelDBBatch
@@ -104,7 +104,7 @@ public:
     CLevelDBWrapper(const boost::filesystem::path &path, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
     ~CLevelDBWrapper();
 
-    template<typename K, typename V> bool Read(const K& key, V& value) throw(leveldb_error) {
+    template<typename K, typename V> bool Read(const K& key, V& value) {
     	leveldb::Slice slKey;
     	CDataStream ssKey(SER_DISK, CLIENT_VERSION);
 
@@ -138,13 +138,13 @@ public:
         return true;
     }
 
-    template<typename K, typename V> bool Write(const K& key, const V& value, bool fSync = false) throw(leveldb_error) {
+    template<typename K, typename V> bool Write(const K& key, const V& value, bool fSync = false) {
         CLevelDBBatch batch;
         batch.Write(key, value);
         return WriteBatch(batch, fSync);
     }
 
-    template<typename K> bool Exists(const K& key) throw(leveldb_error) {
+    template<typename K> bool Exists(const K& key) {
     	leveldb::Slice slKey;
     	CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         ssKey.reserve(ssKey.GetSerializeSize(key));
@@ -172,20 +172,20 @@ public:
         return true;
     }
 
-    template<typename K> bool Erase(const K& key, bool fSync = false) throw(leveldb_error) {
+    template<typename K> bool Erase(const K& key, bool fSync = false) {
         CLevelDBBatch batch;
         batch.Erase(key);
         return WriteBatch(batch, fSync);
     }
 
-    bool WriteBatch(CLevelDBBatch &batch, bool fSync = false) throw(leveldb_error);
+    bool WriteBatch(CLevelDBBatch &batch, bool fSync = false);
 
     // not available for LevelDB; provide for compatibility with BDB
     bool Flush() {
         return true;
     }
 
-    bool Sync() throw(leveldb_error) {
+    bool Sync() {
         CLevelDBBatch batch;
         return WriteBatch(batch, true);
     }
