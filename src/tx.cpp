@@ -674,6 +674,10 @@ Object CCommonTx::ToJson(const CAccountViewCache &AccountView) const {
 
 bool CCommonTx::CheckTransaction(CValidationState &state, CAccountViewCache &view,
                                  CScriptDBViewCache &scriptDB) {
+    if (memo.size() > kCommonTxMemoMaxSize)
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, memo's size too large"),
+                         REJECT_INVALID, "memo-size-toolarge");
+
     if ((srcUserId.type() != typeid(CRegID)) && (srcUserId.type() != typeid(CPubKey)))
         return state.DoS(100, ERRORMSG("CCommonTx::CheckTransaction, srcaddr type error"),
                          REJECT_INVALID, "srcaddr-type-error");
