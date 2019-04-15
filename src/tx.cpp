@@ -1091,18 +1091,6 @@ bool CRegisterContractTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidat
     }
     txundo.txHash = GetHash();
 
-    CVmScript vmScript;
-    CDataStream stream(script, SER_DISK, CLIENT_VERSION);
-    try {
-        stream >> vmScript;
-    } catch (exception& e) {
-        return state.DoS(100, ERRORMSG(("ExecuteTx() :CRegisterContractTx ExecuteTx, Unserialize to vmScript error:" +
-            string(e.what())).c_str()), UPDATE_ACCOUNT_FAIL, "unserialize-script-error");
-    }
-    if(!vmScript.IsValid())
-        return state.DoS(100, ERRORMSG("ExecuteTx() : CRegisterContractTx ExecuteTx, vmScript invalid"),
-            UPDATE_ACCOUNT_FAIL, "script-check-failed");
-
     CRegID regId(nHeight, nIndex);
     //create script account
     CKeyID keyId = Hash160(regId.GetVec6());
