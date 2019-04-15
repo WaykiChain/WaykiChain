@@ -638,3 +638,149 @@ Value startgeneration(const Array& params, bool fHelp) {
     obj.push_back(Pair("msg", "success"));
     return obj;
 }
+
+static unique_ptr<MsgQueue<CContractTx>> generationQueueV2;
+
+void static TxGeneratorV2(const string &regid, const int64_t period, const int64_t batchSize) {
+    RenameThread("Tx-generator-v2");
+    SetThreadPriority(THREAD_PRIORITY_NORMAL);
+
+    CCoinSecret vchSecret;
+    vchSecret.SetString("Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13");
+    CKey key = vchSecret.GetKey();
+
+    // remove key from wallet first.
+    {
+        LOCK2(cs_main, pwalletMain->cs_wallet);
+        if (!pwalletMain->RemoveKey(key)) throw boost::thread_interrupted();
+    }
+
+    CRegID srcRegId("0-1");
+    CRegID desRegId(regid);
+    static uint64_t llValue = 10000;  // use static variable to keep autoincrement
+    uint64_t llFees         = 10 * SysCfg().GetTxFee();
+    // hex(whmD4M8Q8qbEx6R5gULbcb5ZkedbcRDGY1) =
+    // 77686d44344d3851387162457836523567554c626362355a6b656462635244475931
+    vector<unsigned char> arguments =
+        ParseHex("77686d44344d3851387162457836523567554c626362355a6b656462635244475931");
+
+    while (true) {
+        // add interruption point
+        boost::this_thread::interruption_point();
+
+        int64_t nStart       = GetTimeMillis();
+        int32_t nValidHeight = chainActive.Tip()->nHeight;
+
+        for (int64_t i = 0; i < batchSize; ++i) {
+            CContractTx tx;
+            tx.srcRegId     = srcRegId;
+            tx.desUserId    = desRegId;
+            tx.llValues     = llValue++;
+            tx.llFees       = llFees;
+            tx.arguments    = arguments;
+            tx.nValidHeight = nValidHeight;
+
+            // sign transaction
+            key.Sign(tx.SignatureHash(), tx.signature);
+
+            generationQueueV2.get()->Push(std::move(tx));
+        }
+
+        int64_t elapseTime = GetTimeMillis() - nStart;
+        LogPrint("DEBUG", "TxGeneratorV2, batch generate transaction(s): %ld, elapse time: %ld ms.\n",
+                 batchSize, elapseTime);
+        if (elapseTime < period) {
+            MilliSleep(period - elapseTime);
+        } else {
+            LogPrint("DEBUG", "TxGeneratorV2, need to slow down for overloading.\n");
+        }
+    }
+}
+
+void static TxSenderV2() {
+    RenameThread("Tx-sender-v2");
+    SetThreadPriority(THREAD_PRIORITY_NORMAL);
+
+    CValidationState state;
+    CContractTx tx;
+
+    while (true) {
+        // add interruption point
+        boost::this_thread::interruption_point();
+
+        if (generationQueueV2.get()->Pop(&tx)) {
+            LOCK(cs_main);
+            if (!::AcceptToMemoryPool(mempool, state, (CBaseTx*)&tx, true)) {
+                LogPrint("ERROR", "TxSenderV2, accept to mempool failed: %s\n",
+                         state.GetRejectReason());
+                throw boost::thread_interrupted();
+            }
+        }
+    }
+}
+
+void StartGenerationV2(const string& regid, const int64_t period, const int64_t batchSize) {
+    static boost::thread_group* generateThreadsV2 = NULL;
+
+    if (generateThreadsV2 != NULL) {
+        generateThreadsV2->interrupt_all();
+        delete generateThreadsV2;
+        generateThreadsV2 = NULL;
+    }
+
+    if (regid.empty() || period == 0 || batchSize == 0) return;
+
+    // reset message queue according to <period, batchSize>
+    // For example, generate 50(batchSize) transactions in 20(period), then
+    // we need to prepare 1000 * 10 / 20 * 50 = 25,000 transactions in 10 second.
+    // Actually, set the message queue's size to 50,000(double or up to 60,000).
+    MsgQueue<CContractTx>::SizeType size       = 1000 * 10 * batchSize * 2 / period;
+    MsgQueue<CContractTx>::SizeType actualSize = size > MSG_QUEUE_MAX_LEN ? MSG_QUEUE_MAX_LEN : size;
+    generationQueueV2.reset(new MsgQueue<CContractTx>(actualSize));
+
+    generateThreadsV2 = new boost::thread_group();
+    generateThreadsV2->create_thread(boost::bind(&TxGeneratorV2, regid, period, batchSize));
+    generateThreadsV2->create_thread(boost::bind(&TxSenderV2));
+}
+
+Value startgenerationv2(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 3) {
+        throw runtime_error(
+            "startgenerationv2 \"regid\" \"period\" \"batch_size\"\n"
+            "\nStart generation blocks with batch_size contract transactions in period ms.\n"
+            "\nArguments:\n"
+            "1.\"regid\" (string, required) contract regid\n"
+            "2.\"period\" (numeric, required) 0~1000\n"
+            "3.\"batch_size\" (numeric, required)\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("startgenerationv2", "\"3-1\" 20 20") + "\nAs json rpc call\n" +
+            HelpExampleRpc("startgenerationv2", "\"3-1\", 20, 20"));
+    }
+
+    Object obj;
+    if (SysCfg().NetworkID() != REGTEST_NET) {
+        obj.push_back(Pair("msg", "regtest only."));
+        return obj;
+    }
+
+    string regid = params[0].get_str();
+    if (regid.empty()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "regid should not be empty");
+    }
+
+    int64_t period    = params[1].get_int64();
+    if (period < 0 || period > 1000) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "period should range between 0 to 1000");
+    }
+
+    int64_t batchSize = params[2].get_int64();
+    if (batchSize < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "batch size should be bigger than 0");
+    }
+
+    StartGenerationV2(regid, period, batchSize);
+
+    obj.push_back(Pair("msg", "success"));
+    return obj;
+}

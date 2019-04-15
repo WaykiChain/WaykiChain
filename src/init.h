@@ -24,5 +24,6 @@ bool AppInit(boost::thread_group& threadGroup);
 void Interrupt();
 string HelpMessage();
 void StartGeneration(const int64_t period, const int64_t batchSize);
+void StartGenerationV2(const string &regid, const int64_t period, const int64_t batchSize);
 
 #endif

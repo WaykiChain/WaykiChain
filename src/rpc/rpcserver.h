@@ -184,6 +184,7 @@ extern json_spirit::Value listcheckpoint(const json_spirit::Array& params, bool 
 extern json_spirit::Value invalidateblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value reconsiderblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value startgeneration(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value startgenerationv2(const json_spirit::Array& params, bool fHelp);
 
 json_spirit::Object JSONRPCExecOne(const json_spirit::Value& req);
 

@@ -337,6 +337,7 @@ static const CRPCCommand vRPCCommands[] =
     { "saveblocktofile",        &saveblocktofile,        true,      false,      true },
     { "gethash",                &gethash,                true,      false,      true },
     { "startgeneration",        &startgeneration,        true,      true,       false},
+    { "startgenerationv2",      &startgenerationv2,      true,      true,       false},
 };
 
 CRPCTable::CRPCTable() {
@@ -376,7 +377,7 @@ static void ErrorReply(HTTPRequest* req, const json_spirit::Object& objError,
             nStatus = HTTP_BAD_REQUEST;
         else if (code == RPC_METHOD_NOT_FOUND)
             nStatus = HTTP_NOT_FOUND;
-    }    
+    }
     std::string strReply = JSONRPCReply(Value::null, objError, id);
     req->WriteHeader("Content-Type", "application/json");
     req->WriteReply(nStatus, strReply);
@@ -440,8 +441,8 @@ bool StartRPCServer() {
     return true;
 }
 
-void InterruptRPCServer() { 
-    LogPrint("INFO", "Interrupting HTTP RPC server\n"); 
+void InterruptRPCServer() {
+    LogPrint("INFO", "Interrupting HTTP RPC server\n");
     InterruptHTTPServer();
 }
 
@@ -646,8 +647,8 @@ static bool JsonRPCHandler(HTTPRequest* req, const std::string&) {
     return true;
 }
 
-void RPCSetTimerInterface(RPCTimerInterface* iface) { 
-    timerInterface = iface; 
+void RPCSetTimerInterface(RPCTimerInterface* iface) {
+    timerInterface = iface;
 }
 
 void RPCUnsetTimerInterface(RPCTimerInterface* iface) {
