@@ -1227,53 +1227,69 @@ Object CRegisterContractTx::ToJson(const CAccountViewCache &AccountView) const{
     return result;
 }
 
-bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB)
-{
+bool CRegisterContractTx::CheckTransaction(CValidationState &state, CAccountViewCache &view,
+                                           CScriptDBViewCache &scriptDB) {
     if (regAcctId.type() != typeid(CRegID)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx regAcctId must be CRegID"),
+        return state.DoS(
+            100, ERRORMSG("CheckTransaction() : CRegisterContractTx regAcctId must be CRegID"),
             REJECT_INVALID, "regacctid-type-error");
     }
 
     if (!CheckMoneyRange(llFees)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, tx fee out of range"),
+        return state.DoS(
+            100,
+            ERRORMSG(
+                "CheckTransaction() : CRegisterContractTx CheckTransaction, tx fee out of range"),
             REJECT_INVALID, "fee-too-large");
     }
 
     if (!CheckMinTxFee(llFees)) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::CheckTransaction, tx fee smaller than MinTxFee"),
+        return state.DoS(
+            100, ERRORMSG("CRegisterContractTx::CheckTransaction, tx fee smaller than MinTxFee"),
             REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
-    uint64_t llFuel = ceil(script.size()/100) * GetFuelRate(scriptDB);
+    uint64_t llFuel = ceil(script.size() / 100) * GetFuelRate(scriptDB);
     if (llFuel < 1 * COIN) {
         llFuel = 1 * COIN;
     }
 
-    if( llFees < llFuel) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, register app tx fee too litter (actual:%lld vs need:%lld)", llFees, llFuel),
-            REJECT_INVALID, "fee-too-litter");
+    if (llFees < llFuel) {
+        return state.DoS(100,
+                         ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, "
+                                  "register app tx fee too litter (actual:%lld vs need:%lld)",
+                                  llFees, llFuel),
+                         REJECT_INVALID, "fee-too-litter");
     }
 
     CAccount acctInfo;
     if (!view.GetAccount(boost::get<CRegID>(regAcctId), acctInfo)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, get account falied"),
+        return state.DoS(
+            100,
+            ERRORMSG(
+                "CheckTransaction() : CRegisterContractTx CheckTransaction, get account falied"),
             REJECT_INVALID, "bad-getaccount");
     }
 
     if (!acctInfo.IsRegistered()) {
-        return state.DoS(100, ERRORMSG("CheckTransaction(): CRegisterContractTx CheckTransaction, account have not registed public key"),
-            REJECT_INVALID, "bad-no-pubkey");
+        return state.DoS(100,
+                         ERRORMSG("CheckTransaction(): CRegisterContractTx CheckTransaction, "
+                                  "account have not registed public key"),
+                         REJECT_INVALID, "bad-no-pubkey");
     }
 
     if (!CheckSignatureSize(signature)) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::CheckTransaction, signature size invalid"),
-            REJECT_INVALID, "bad-tx-sig-size");
+        return state.DoS(100,
+                         ERRORMSG("CRegisterContractTx::CheckTransaction, signature size invalid"),
+                         REJECT_INVALID, "bad-tx-sig-size");
     }
 
     uint256 signhash = SignatureHash();
     if (!CheckSignScript(signhash, signature, acctInfo.pubKey)) {
-        return state.DoS(100, ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, CheckSignScript failed"),
-            REJECT_INVALID, "bad-signscript-check");
+        return state.DoS(100,
+                         ERRORMSG("CheckTransaction() : CRegisterContractTx CheckTransaction, "
+                                  "CheckSignScript failed"),
+                         REJECT_INVALID, "bad-signscript-check");
     }
     return true;
 }
