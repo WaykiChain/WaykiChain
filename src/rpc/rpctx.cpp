@@ -649,6 +649,9 @@ Value registercontracttx(const Array& params, bool fHelp)
 
     if (params.size() > 4) {
         string memo = params[4].get_str();
+        if (memo.size() > kContractMemoMaxSize) {
+            throw JSONRPCError(RPC_INVALID_PARAMS, "app desc is too large");
+        }
         vmScript.GetMemo().insert(vmScript.GetMemo().end(), memo.begin(), memo.end());
     }
 
