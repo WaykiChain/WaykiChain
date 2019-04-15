@@ -14,7 +14,7 @@
 #include <memenv.h>
 #include "json/json_spirit_value.h"
 
-void HandleError(const leveldb::Status &status) throw(leveldb_error) {
+void HandleError(const leveldb::Status &status) {
     if (status.ok())
         return;
     LogPrint("INFO","%s\n", status.ToString());
@@ -72,7 +72,7 @@ CLevelDBWrapper::~CLevelDBWrapper() {
     options.env = NULL;
 }
 
-bool CLevelDBWrapper::WriteBatch(CLevelDBBatch &batch, bool fSync) throw(leveldb_error) {
+bool CLevelDBWrapper::WriteBatch(CLevelDBBatch &batch, bool fSync) {
     leveldb::Status status = pdb->Write(fSync ? syncoptions : writeoptions, &batch.batch);
     HandleError(status);
     return true;
