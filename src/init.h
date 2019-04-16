@@ -23,6 +23,7 @@ void Shutdown();
 bool AppInit(boost::thread_group& threadGroup);
 void Interrupt();
 string HelpMessage();
-void StartGeneration(const int64_t period, const int64_t batchSize);
+void StartCommonGeneration(const int64_t period, const int64_t batchSize);
+void StartContractGeneration(const string &regid, const int64_t period, const int64_t batchSize);
 
 #endif
