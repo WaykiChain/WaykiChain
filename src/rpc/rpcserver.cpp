@@ -336,8 +336,8 @@ static const CRPCCommand vRPCCommands[] =
     { "getalltxinfo",           &getalltxinfo,           true,      false,      true },
     { "saveblocktofile",        &saveblocktofile,        true,      false,      true },
     { "gethash",                &gethash,                true,      false,      true },
-    { "startgeneration",        &startgeneration,        true,      true,       false},
-    { "startgenerationv2",      &startgenerationv2,      true,      true,       false},
+    { "startcommontpstest",     &startcommontpstest,     true,      true,       false},
+    { "startcontracttpstest",   &startcontracttpstest,   true,      true,       false},
 };
 
 CRPCTable::CRPCTable() {
