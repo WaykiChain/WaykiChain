@@ -27,8 +27,8 @@ string GetTxType(unsigned char txType) {
         return "";
 }
 
-static bool GetKeyId(const CAccountViewCache &view, const vector<unsigned char> &ret, CKeyID &KeyId)
-{
+static bool GetKeyId(const CAccountViewCache &view, const vector<unsigned char> &ret,
+                     CKeyID &KeyId) {
     if (ret.size() == 6) {
         CRegID regId(ret);
         KeyId = regId.GetKeyID(view);
@@ -39,8 +39,7 @@ static bool GetKeyId(const CAccountViewCache &view, const vector<unsigned char> 
         return false;
     }
 
-    if (KeyId.IsEmpty())
-        return false;
+    if (KeyId.IsEmpty()) return false;
 
     return true;
 }
@@ -169,7 +168,7 @@ int CBaseTx::GetFuelRate(CScriptDBViewCache &scriptDB) {
 }
 
 // check the fees must be more than nMinTxFee
-bool CBaseTx::CheckMinTxFee(uint64_t llFees) {
+bool CBaseTx::CheckMinTxFee(const uint64_t llFees) const {
     NET_TYPE networkID = SysCfg().NetworkID();
     if ( (networkID == MAIN_NET && nValidHeight > kCheckTxFeeForkHeight) //for mainnet, need hardcode here, compatible with old data
         || (networkID == TEST_NET && nValidHeight > 100000) // for testnet, need hardcode here, compatible with old data
@@ -181,7 +180,7 @@ bool CBaseTx::CheckMinTxFee(uint64_t llFees) {
 }
 
 // transactions should check the signagure size before verifying signature
-bool CBaseTx::CheckSignatureSize(vector<unsigned char> &signature) {
+bool CBaseTx::CheckSignatureSize(const vector<unsigned char> &signature) const {
     return signature.size() > 0 && signature.size() < MAX_BLOCK_SIGNATURE_SIZE;
 }
 
@@ -300,9 +299,9 @@ Object CRegisterAccountTx::ToJson(const CAccountViewCache &AccountView) const {
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("addr",           address));
     result.push_back(Pair("pubkey",         userPubKey));
-    result.push_back(Pair("miner_pubkey",    userMinerPubKey));
+    result.push_back(Pair("miner_pubkey",   userMinerPubKey));
     result.push_back(Pair("fees",           llFees));
-    result.push_back(Pair("valid_height",    nValidHeight));
+    result.push_back(Pair("valid_height",   nValidHeight));
     return result;
 }
 
@@ -1371,4 +1370,242 @@ bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {
         }
     }
     return false;
+}
+
+string CSignaturePair::ToString() const {
+    string str = strprintf("regId=%s, signature=%s", regId.ToString(),
+                           string(signature.begin(), signature.end()));
+    return str;
+}
+
+Object CSignaturePair::ToJson() const {
+    Object obj;
+    obj.push_back(Pair("regid", regId.ToString()));
+    obj.push_back(Pair("signature", string(signature.begin(), signature.end())));
+
+    return obj;
+}
+
+bool CMultisigTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
+                             CScriptDBViewCache &scriptDB) {
+    CKeyID keyId;
+    for (const auto &item : signaturePairs) {
+        if (!view.GetKeyId(CUserID(item.regId), keyId)) return false;
+        vAddr.insert(keyId);
+    }
+
+    CKeyID desKeyId;
+    if (!view.GetKeyId(desUserId, desKeyId)) return false;
+    vAddr.insert(desKeyId);
+
+    return true;
+}
+
+string CMultisigTx::ToString(CAccountViewCache &view) const {
+    string desId;
+    if (desUserId.type() == typeid(CKeyID)) {
+        desId = boost::get<CKeyID>(desUserId).ToString();
+    } else if (desUserId.type() == typeid(CRegID)) {
+        desId = boost::get<CRegID>(desUserId).ToString();
+    }
+
+    string signatures;
+    signatures += "signatures: ";
+    for (const auto &item : signaturePairs) {
+        signatures += strprintf("%s, ", item.ToString());
+    }
+    string str = strprintf(
+        "txType=%s, hash=%s, ver=%d, required=%d, %s, desId=%s, bcoinBalance=%ld, llFees=%ld, "
+        "memo=%s,  nValidHeight=%d\n",
+        GetTxType(nTxType), GetHash().ToString(), nVersion, required, signatures, desId,
+        bcoinBalance, llFees, HexStr(memo), nValidHeight);
+
+    return str;
+}
+
+Object CMultisigTx::ToJson(const CAccountViewCache &AccountView) const {
+    Object result;
+    CAccountViewCache view(AccountView);
+
+    auto GetRegIdString = [&](CUserID const &userId) {
+        if (userId.type() == typeid(CRegID)) {
+            return boost::get<CRegID>(userId).ToString();
+        }
+        return string("");
+    };
+
+    CKeyID desKeyId;
+    view.GetKeyId(desUserId, desKeyId);
+
+    result.push_back(Pair("hash", GetHash().GetHex()));
+    result.push_back(Pair("tx_type", GetTxType(nTxType)));
+    result.push_back(Pair("ver", nVersion));
+    result.push_back(Pair("required", required));
+    Array signatureArray;
+    for (const auto &item : signaturePairs) {
+        signatureArray.push_back(item.ToJson());
+    }
+    result.push_back(Pair("signatures", signatureArray));
+    // TODO: generate multisig address and add it in.
+    result.push_back(Pair("dest_regid", GetRegIdString(desUserId)));
+    result.push_back(Pair("dest_addr", desKeyId.ToAddress()));
+    result.push_back(Pair("money", bcoinBalance));
+    result.push_back(Pair("fees", llFees));
+    result.push_back(Pair("memo", HexStr(memo)));
+    result.push_back(Pair("valid_height", nValidHeight));
+
+    return result;
+}
+
+bool CMultisigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
+                          CScriptDBViewCache &scriptDB) {
+    if (memo.size() > kCommonTxMemoMaxSize)
+        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, memo's size too large"),
+                         REJECT_INVALID, "memo-size-toolarge");
+
+    if (required < 1 || required > signaturePairs.size()) {
+        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, required keys invalid"),
+                         REJECT_INVALID, "required-keys-invalid");
+    }
+
+    if (signaturePairs.size() > kSignatureNumberThreshold) {
+        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, signature's number out of range"),
+                         REJECT_INVALID, "signature-number-out-of-range");
+    }
+
+    if ((desUserId.type() != typeid(CRegID)) && (desUserId.type() != typeid(CKeyID)))
+        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, desaddr type error"), REJECT_INVALID,
+                         "desaddr-type-error");
+
+    if (!CheckMoneyRange(llFees))
+        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, tx fees out of money range"),
+                         REJECT_INVALID, "bad-appeal-fees-toolarge");
+
+    if (!CheckMinTxFee(llFees)) {
+        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, tx fees smaller than MinTxFee"),
+                         REJECT_INVALID, "bad-tx-fees-toosmall");
+    }
+
+    CAccount account;
+    set<CPubKey> pubKeys;
+    uint256 sighash = SignatureHash();
+    uint8_t valid   = 0;
+    for (const auto &item : signaturePairs) {
+        if (!view.GetAccount(item.regId, account))
+            return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, read account failed"),
+                             REJECT_INVALID, "bad-getaccount");
+
+        if (!item.signature.empty()) {
+            if (!CheckSignatureSize(item.signature)) {
+                return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, signature size invalid"),
+                                 REJECT_INVALID, "bad-tx-sig-size");
+            }
+
+            if (!CheckSignScript(sighash, item.signature, account.pubKey)) {
+                return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, CheckSignScript failed"),
+                                 REJECT_INVALID, "bad-signscript-check");
+            } else {
+                ++valid;
+            }
+        }
+
+        pubKeys.insert(account.pubKey);
+    }
+
+    if (pubKeys.size() != signaturePairs.size()) {
+        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, duplicated account"), REJECT_INVALID,
+                         "duplicated-account");
+    }
+
+    if (valid < required) {
+        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, not enough valid signatures"),
+                         REJECT_INVALID, "not-enough-valid-signatures");
+    }
+
+    CScript script;
+    script.SetMultisig(required, pubKeys);
+    keyId = script.GetID();
+
+    CAccount srcAccount;
+    if (!view.GetAccount(CUserID(keyId), srcAccount))
+        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, read account failed"),
+                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
+
+    return true;
+}
+
+bool CMultisigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+                            CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
+                            CScriptDBViewCache &scriptDB) {
+    CAccount srcAcct;
+    CAccount desAcct;
+    CAccountLog desAcctLog;
+
+    if (!view.GetAccount(CUserID(keyId), srcAcct))
+        return state.DoS(100,
+                         ERRORMSG("CMultisigTx::ExecuteTx, read source addr account info error"),
+                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
+
+    CAccountLog srcAcctLog(srcAcct);
+    uint64_t minusValue = llFees + bcoinBalance;
+    if (!srcAcct.OperateAccount(MINUS_FREE, minusValue, nHeight))
+        return state.DoS(100, ERRORMSG("CMultisigTx::ExecuteTx, account has insufficient funds"),
+                         UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
+
+    if (!view.SetAccount(CUserID(srcAcct.keyID), srcAcct))
+        return state.DoS(100, ERRORMSG("CMultisigTx::ExecuteTx, save account info error"),
+                         WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
+
+    uint64_t addValue = bcoinBalance;
+    if (!view.GetAccount(desUserId, desAcct)) {
+        if (desUserId.type() == typeid(CKeyID)) {  // target account has NO CRegID
+            desAcct.keyID    = boost::get<CKeyID>(desUserId);
+            desAcctLog.keyID = desAcct.keyID;
+        } else {
+            return state.DoS(100, ERRORMSG("CMultisigTx::ExecuteTx, get account info failed"),
+                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
+        }
+    } else {  // target account has NO CAccount(first involved in transacion)
+        desAcctLog.SetValue(desAcct);
+    }
+
+    if (!desAcct.OperateAccount(ADD_FREE, addValue, nHeight))
+        return state.DoS(100, ERRORMSG("CMultisigTx::ExecuteTx, operate accounts error"),
+                         UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
+
+    if (!view.SetAccount(desUserId, desAcct))
+        return state.DoS(100,
+                         ERRORMSG("CMultisigTx::ExecuteTx, save account error, kyeId=%s",
+                                  desAcct.keyID.ToString()),
+                         UPDATE_ACCOUNT_FAIL, "bad-save-account");
+
+    txundo.vAccountLog.push_back(srcAcctLog);
+    txundo.vAccountLog.push_back(desAcctLog);
+    txundo.txHash = GetHash();
+
+    if (SysCfg().GetAddressToTxFlag()) {
+        CScriptDBOperLog operAddressToTxLog;
+        CKeyID sendKeyId;
+        CKeyID revKeyId;
+
+        for (const auto &item : signaturePairs) {
+            if (!view.GetKeyId(CUserID(item.regId), sendKeyId))
+                return ERRORMSG("CCommonTx::CMultisigTx, get keyid by srcUserId error!");
+
+            if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
+                                             operAddressToTxLog))
+                return false;
+            txundo.vScriptOperLog.push_back(operAddressToTxLog);
+        }
+
+        if (!view.GetKeyId(desUserId, revKeyId))
+            return ERRORMSG("CCommonTx::CMultisigTx, get keyid by desUserId error!");
+
+        if (!scriptDB.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
+                                         operAddressToTxLog))
+            return false;
+        txundo.vScriptOperLog.push_back(operAddressToTxLog);
+    }
+
+    return true;
 }

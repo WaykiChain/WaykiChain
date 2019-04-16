@@ -1,6 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2013 The WaykiChain developers
 // Copyright (c) 2016 The Coin developers
+// Copyright (c) 2018-2019 The WaykiChain Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -65,8 +66,7 @@ inline bool DecodeBase58Check(const string& str, vector<unsigned char>& vchRet);
 /**
  * Base class for all base58-encoded data
  */
-class CBase58Data
-{
+class CBase58Data {
 protected:
     // the version byte(s)
     vector<unsigned char> vchVersion;
@@ -76,8 +76,9 @@ protected:
     vector_uchar vchData;
 
     CBase58Data();
-    void SetData(const vector<unsigned char> &vchVersionIn, const void* pdata, size_t nSize);
-    void SetData(const vector<unsigned char> &vchVersionIn, const unsigned char *pbegin, const unsigned char *pend);
+    void SetData(const vector<unsigned char>& vchVersionIn, const void* pdata, size_t nSize);
+    void SetData(const vector<unsigned char>& vchVersionIn, const unsigned char* pbegin,
+                 const unsigned char* pend);
 
 public:
     bool SetString(const char* psz, unsigned int nVersionBytes = 1);
@@ -88,38 +89,35 @@ public:
     bool operator==(const CBase58Data& b58) const { return CompareTo(b58) == 0; }
     bool operator<=(const CBase58Data& b58) const { return CompareTo(b58) <= 0; }
     bool operator>=(const CBase58Data& b58) const { return CompareTo(b58) >= 0; }
-    bool operator< (const CBase58Data& b58) const { return CompareTo(b58) <  0; }
-    bool operator> (const CBase58Data& b58) const { return CompareTo(b58) >  0; }
+    bool operator<(const CBase58Data& b58) const { return CompareTo(b58) < 0; }
+    bool operator>(const CBase58Data& b58) const { return CompareTo(b58) > 0; }
 };
 
 /** base58-encoded Coin addresses.
  * Public-key-hash-addresses have version 0 (or 111 testnet).
  * The data vector contains RIPEMD160(SHA256(pubkey)), where pubkey is the serialized public key.
  * Script-hash-addresses have version 5 (or 196 testnet).
- * The data vector contains RIPEMD160(SHA256(cscript)), where cscript is the serialized redemption script.
+ * The data vector contains RIPEMD160(SHA256(cscript)), where cscript is the serialized redemption
+ * script.
  */
 class CCoinAddress : public CBase58Data {
 public:
-    bool Set(const CKeyID &id);
-    bool Set(const CTxDestination &dest);
+    bool Set(const CKeyID& id);
     bool IsValid() const;
 
     CCoinAddress() {}
-    CCoinAddress(const CTxDestination &dest) { Set(dest); }
+    CCoinAddress(const CKeyID& keyId) { Set(keyId); }
     CCoinAddress(const string& strAddress) { SetString(strAddress); }
     CCoinAddress(const char* pszAddress) { SetString(pszAddress); }
 
-    CTxDestination Get() const;
-    bool GetKeyID(CKeyID &keyID) const;
-//    bool GetRegID(CRegID &Regid) const ;
+    bool GetKeyID(CKeyID& keyId) const;
     bool IsScript() const;
 };
 
 /**
  * A base58-encoded secret key
  */
-class CCoinSecret : public CBase58Data
-{
+class CCoinSecret : public CBase58Data {
 public:
     void SetKey(const CKey& vchSecret);
     CKey GetKey();
@@ -131,13 +129,13 @@ public:
     CCoinSecret() {}
 };
 
-template<typename K, int Size, Base58Type Type> class CCoinExtKeyBase : public CBase58Data
-{
+template <typename K, int Size, Base58Type Type>
+class CCoinExtKeyBase : public CBase58Data {
 public:
-    void SetKey(const K &key) {
+    void SetKey(const K& key) {
         unsigned char vch[Size];
         key.Encode(vch);
-        SetData(SysCfg().Base58Prefix(Type), vch, vch+Size);
+        SetData(SysCfg().Base58Prefix(Type), vch, vch + Size);
     }
 
     K GetKey() {
@@ -146,9 +144,7 @@ public:
         return ret;
     }
 
-    CCoinExtKeyBase(const K &key) {
-        SetKey(key);
-    }
+    CCoinExtKeyBase(const K& key) { SetKey(key); }
 
     CCoinExtKeyBase() {}
 };
@@ -156,4 +152,4 @@ public:
 typedef CCoinExtKeyBase<CExtKey, 74, EXT_SECRET_KEY> CCoinExtKey;
 typedef CCoinExtKeyBase<CExtPubKey, 74, EXT_PUBLIC_KEY> CCoinExtPubKey;
 
-#endif // COIN_BASE58_H
+#endif  // COIN_BASE58_H

@@ -195,35 +195,30 @@ bool CBasicKeyStore::GetKeyCombi(const CKeyID & address, CKeyCombi & keyCombiOut
     return false;
 }
 
-//bool CBasicKeyStore::AddKeyPubKey(const CKey& key, const CPubKey &pubkey)
-//{
-//    LOCK(cs_KeyStore);
-//    mapKeys[pubkey.GetKeyID()] = key;
-//    return true;
-//}
+// bool CBasicKeyStore::AddKeyPubKey(const CKey& key, const CPubKey& pubkey) {
+//     LOCK(cs_KeyStore);
+//     mapKeys[pubkey.GetKeyID()] = key;
+//     return true;
+// }
 
-//bool CBasicKeyStore::AddCScript(const CScript& redeemScript)
-//{
-//    LOCK(cs_KeyStore);
-//    mapScripts[redeemScript.GetID()] = redeemScript;
-//    return true;
-//}
-//
-//bool CBasicKeyStore::HaveCScript(const CScriptID& hash) const
-//{
-//    LOCK(cs_KeyStore);
-//    return mapScripts.count(hash) > 0;
-//}
+bool CBasicKeyStore::AddCScript(const CScript& script) {
+    LOCK(cs_KeyStore);
+    CKeyID keyId = script.GetID();
+    mapScripts[keyId] = script;
+    return true;
+}
 
-//bool CBasicKeyStore::GetCScript(const CScriptID &hash, CScript& redeemScriptOut) const
-//{
-//    LOCK(cs_KeyStore);
-//    ScriptMap::const_iterator mi = mapScripts.find(hash);
-//    if (mi != mapScripts.end())
-//    {
-//        redeemScriptOut = (*mi).second;
-//        return true;
-//    }
-//    return false;
-//}
+bool CBasicKeyStore::HaveCScript(const CKeyID& keyId) const {
+    LOCK(cs_KeyStore);
+    return mapScripts.count(keyId) > 0;
+}
 
+bool CBasicKeyStore::GetCScript(const CKeyID& keyId, CScript& script) const {
+    LOCK(cs_KeyStore);
+    ScriptMap::const_iterator mi = mapScripts.find(keyId);
+    if (mi != mapScripts.end()) {
+        script = (*mi).second;
+        return true;
+    }
+    return false;
+}

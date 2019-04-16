@@ -145,13 +145,6 @@ public:
 
     std::tuple<bool,string>  CommitTransaction(CBaseTx *pTx);
 
-    /** Address book entry changed.
-     * @note called with lock cs_wallet held.
-     */
-    boost::signals2::signal<
-            void(CWallet *wallet, const CTxDestination &address, const string &label, bool isMine,
-                    const string &purpose, ChangeType status)> NotifyAddressBookChanged;
-
     /** Wallet transaction added, removed or updated.
      * @note called with lock cs_wallet held.
      */

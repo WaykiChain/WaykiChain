@@ -573,8 +573,7 @@ int CMerkleTx::SetMerkleBranch(const CBlock *pblock) {
     return chainActive.Height() - pindex->nHeight + 1;
 }
 
-bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> signature, const CPubKey pubKey) {
-    int64_t nTimeStart = GetTimeMicros();
+bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> &signature, const CPubKey &pubKey) {
     if (signatureCache.Get(sigHash, signature, pubKey))
         return true;
 
@@ -582,8 +581,6 @@ bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> si
         return false;
 
     signatureCache.Set(sigHash, signature, pubKey);
-    int64_t nSpentTime = GetTimeMicros() - nTimeStart;
-    LogPrint(LOG_CATEGORY_BENCH, "- Verify Signature with secp256k1: %.2fms\n", MILLI * nSpentTime);
     return true;
 }
 
@@ -3340,6 +3337,8 @@ void static ProcessGetData(CNode *pfrom) {
                             ss << *((CRegisterContractTx *)pBaseTx.get());
                         } else if (DELEGATE_TX == pBaseTx->nTxType) {
                             ss << *((CDelegateTx *)pBaseTx.get());
+                        } else if (MULTISIG_TX == pBaseTx->nTxType) {
+                            ss << *((CMultisigTx *)pBaseTx.get());
                         }
                         pfrom->PushMessage("tx", ss);
                         pushed = true;
@@ -4368,6 +4367,8 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
             return std::make_shared<CRegisterContractTx>();
         case DELEGATE_TX:
             return std::make_shared<CDelegateTx>();
+        case MULTISIG_TX:
+            return std::make_shared<CMultisigTx>();
         default:
             ERRORMSG("CreateNewEmptyTransaction type error");
             break;

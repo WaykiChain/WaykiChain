@@ -139,14 +139,12 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     CValidationState state;
     CTxUndo txundo;
 
-    //get keyid
     CKeyID srcKeyid;
     if (!FindKeyId(&acctViewTemp, params[0].get_str(), srcKeyid)) {
         throw runtime_error("parse addr failed\n");
     }
-    CUserID srcUserId   = srcKeyid;
 
-    //balance
+    CUserID srcUserId   = srcKeyid;
     CAccount account;
 
     uint64_t balance = 0;

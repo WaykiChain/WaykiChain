@@ -20,7 +20,6 @@
 class CBlock;
 class CBlockIndex;
 struct CBlockTemplate;
-//class CReserveKey;
 //class CScript;
 class CWallet;
 class CBaseTx;
