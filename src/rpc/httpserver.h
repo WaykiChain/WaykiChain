@@ -1,9 +1,9 @@
-// Copyright (c) 2015-2018 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Copyright (c) 2017-2019 The WaykiChain Core Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
-#ifndef BITCOIN_HTTPSERVER_H
-#define BITCOIN_HTTPSERVER_H
+#ifndef COIN_HTTPSERVER_H
+#define COIN_HTTPSERVER_H
 
 #include <string>
 #include <stdint.h>
@@ -150,4 +150,4 @@ private:
 
 std::string urlDecode(const std::string &urlEncoded);
 
-#endif // BITCOIN_HTTPSERVER_H
+#endif // COIN_HTTPSERVER_H

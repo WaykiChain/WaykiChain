@@ -235,6 +235,7 @@ libcoin_common_a_SOURCES = \
   random.cpp  \
   rpc/rpcprotocol.cpp \
   support/cleanse.cpp \
+  support/events.cpp \
   sync.cpp \
   syncdata.cpp \
   syncdatadb.cpp \
