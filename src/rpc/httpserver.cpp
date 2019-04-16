@@ -1,6 +1,6 @@
-// Copyright (c) 2015-2018 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Copyright (c) 2017-2019 The WaykiChain Core Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 #include <rpc/httpserver.h>
 
@@ -316,7 +316,7 @@ static bool HTTPBindAddresses(struct evhttp* http) {
     std::vector<std::pair<std::string, uint16_t>> endpoints;
 
     // Determine what addresses to bind to
-    if (SysCfg().IsArgCount("-rpcbind")) {  
+    if (SysCfg().IsArgCount("-rpcbind")) {
         // bind to specific address
         for (const std::string& strRPCBind : SysCfg().GetMultiArgs("-rpcbind")) {
             int port = http_port;
@@ -324,7 +324,7 @@ static bool HTTPBindAddresses(struct evhttp* http) {
             SplitHostPort(strRPCBind, port, host);
             endpoints.push_back(std::make_pair(host, port));
         }
-    } else { // no set -rpcbind
+    } else {  // no set -rpcbind
         if (SysCfg().IsArgCount("-rpcallowip")) {
             // bind to all ip
             endpoints.push_back(std::make_pair("::", http_port));
@@ -334,22 +334,16 @@ static bool HTTPBindAddresses(struct evhttp* http) {
             endpoints.push_back(std::make_pair("::1", http_port));
             endpoints.push_back(std::make_pair("127.0.0.1", http_port));
         }
-    } 
+    }
 
     // Bind addresses
     for (std::vector<std::pair<std::string, uint16_t>>::iterator i = endpoints.begin();
          i != endpoints.end(); ++i) {
         LogPrint("RPC", "Binding RPC on address %s port %i\n", i->first, i->second);
-        evhttp_bound_socket* bind_handle = evhttp_bind_socket_with_handle(
+        evhttp_bound_socket* bind_handle = evhttp_bind_accept_socket(
             http, i->first.empty() ? nullptr : i->first.c_str(), i->second);
         if (bind_handle) {
             CNetAddr addr;
-            /*
-            if (i->first.empty() || (LookupHost(i->first.c_str(), addr, false) && addr.IsBindAny()))
-            { LogPrintf("WARNING: the RPC server is not safe to expose to untrusted networks such as
-            the public internet\n");
-            }
-            */
             boundSockets.push_back(bind_handle);
         } else {
             LogPrint("ERROR", "Binding RPC on address %s port %i failed.\n", i->first, i->second);

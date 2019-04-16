@@ -1,9 +1,9 @@
-// Copyright (c) 2016-2018 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Copyright (c) 2017-2019 The WaykiChain Core Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
-#ifndef BITCOIN_SUPPORT_EVENTS_H
-#define BITCOIN_SUPPORT_EVENTS_H
+#ifndef COIN_SUPPORT_EVENTS_H
+#define COIN_SUPPORT_EVENTS_H
 
 #include <ios>
 #include <memory>
@@ -53,4 +53,17 @@ inline raii_evhttp_connection obtain_evhttp_connection_base(struct event_base* b
     return result;
 }
 
-#endif // BITCOIN_SUPPORT_EVENTS_H
+/**
+ * Like evhttp_accept_socket_with_handle(), but support to bind ipv6 with IPV6_V6ONLY.
+ *
+ * The returned pointer is not valid after http is freed.
+ *
+ * @param http a pointer to an evhttp object
+ * @param fd a socket fd that is ready for accepting connections
+ * @return Handle for the socket on success, NULL on failure.
+ * @see evhttp_accept_socket(), evhttp_del_accept_socket()
+ */
+struct evhttp_bound_socket* evhttp_bind_accept_socket(struct evhttp* http,
+                                                             const char* address, ev_uint16_t port);
+
+#endif // COIN_SUPPORT_EVENTS_H
