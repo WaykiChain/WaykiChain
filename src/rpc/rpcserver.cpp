@@ -17,6 +17,7 @@
 #include "wallet/wallet.h"
 #include "json/json_spirit_writer_template.h"
 #include "rpc/httpserver.h"
+#include "rpc/rpcvm.h"
 
 using namespace std;
 using namespace json_spirit;
@@ -338,6 +339,10 @@ static const CRPCCommand vRPCCommands[] =
     { "gethash",                &gethash,                true,      false,      true },
     { "startcommontpstest",     &startcommontpstest,     true,      true,       false},
     { "startcontracttpstest",   &startcontracttpstest,   true,      true,       false},
+
+    /* vm functions work in vm simulator */
+    { "vmexecutescript",        &vmexecutescript,   true,      true,       true},
+    
 };
 
 CRPCTable::CRPCTable() {

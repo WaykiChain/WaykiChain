@@ -268,6 +268,9 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "startcontracttpstest"   && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "startcontracttpstest"   && n > 2) ConvertTo<int64_t>(params[2]);
 
+    /* vm functions work in vm simulator */
+    if (strMethod == "vmexecutescript"        && n > 3) ConvertTo<uint64_t>(params[3]);
+
     return params;
 }
 
