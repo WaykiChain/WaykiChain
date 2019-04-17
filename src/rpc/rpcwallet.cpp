@@ -300,9 +300,8 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
         nFee = AmountToRawValue(params[3]);
         nActualFee = max(nDefaultFee, nFee);
         if (nFee < nDefaultFee) {
-            char errorMsg[100] = {'\0'};
-            sprintf(errorMsg, "Given fee(%ld) < Default fee (%ld)", nFee, nDefaultFee);
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE, string(errorMsg));
+            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
+                               strprintf("Given fee(%ld) < Default fee (%ld)", nFee, nDefaultFee));
         }
 
         if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nActualFee) {
@@ -316,9 +315,8 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
         nFee = AmountToRawValue(params[2]);
         nActualFee = max(nDefaultFee, nFee);
         if (nFee < nDefaultFee) {
-            char errorMsg[100] = {'\0'};
-            sprintf(errorMsg, "Given fee(%ld) < Default fee (%ld)", nFee, nDefaultFee);
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE, string(errorMsg));
+            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
+                               strprintf("Given fee(%ld) < Default fee (%ld)", nFee, nDefaultFee));
         }
 
         set<CKeyID> sKeyIds;
