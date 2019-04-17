@@ -50,6 +50,30 @@ enum TxType {
     REG_CONT_TX = 5,    //!< Register Contract Tx
     DELEGATE_TX = 6,    //!< Vote Delegate Tx
 
+    /******** Begin of Stable Coin TX Type Enums ********/
+    CDP_OPEN_TX             = 11, //!< CDP Collateralize Tx
+    CDP_REFUEL_TX           = 12, //!< CDP Refuel Tx
+    CDP_REDEMP_TX           = 13, //!< CDP Redemption Tx (partial or full)
+    CDP_LIQUIDATE_TX        = 14, //!< CDP Liquidation Tx (partial or full)
+
+    PRICE_FEED_WICC_TX      = 21, //!< Price Feed Tx: WICC/USD
+    PRICE_FEED_MICC_TX      = 22, //!< Price Feed Tx: MICC/USD
+    PRICE_FEED_WUSD_TX      = 23, //!< Price Feed Tx: WUSD/USD
+
+    SFC_PARAM_MTX           = 31, //!< StableCoin Fund Committee invokes Param Set/Update MulSigTx
+    SFC_GLOBAL_HALT_MTX     = 32, //!< StableCoin Fund Committee invokes Global Halt CDP Operations MulSigTx
+    SFC_GLOBAL_SETTLE_MTX   = 33, //!< StableCoin Fund Committee invokes Global Settle Operation MulSigTx
+
+    WUSD_TRANSFER_TX        = 41, //!< StableCoin WUSD Transfer Tx
+    MICC_TRANSFER_TX        = 42, //!< FundCoin MICC Transfer Tx
+
+    DEX_WICC_FOR_MICC_TX    = 51, //!< DEX: owner sells WICC for MICC Tx
+    DEX_MICC_FOR_WICC_TX    = 52, //!< DEX: owner sells MICC for WICC Tx
+    DEX_WICC_FOR_WUSD_TX    = 53, //!< DEX: owner sells WICC for WUSD Tx
+    DEX_WUSD_FOR_WICC_TX    = 54, //!< DEX: owner sells WUSD for WICC Tx
+    DEX_MICC_FOR_WUSD_TX    = 55, //!< DEX: owner sells MICC for WUSD Tx
+    DEX_WUSD_FOR_MICC_TX    = 56, //!< DEX: owner sells WUSD for MICC Tx
+    /******** End of Stable Coin Enums ********/
 
     NULL_TX //!< NULL_TX
 };
