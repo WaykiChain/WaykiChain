@@ -539,7 +539,7 @@ bool CCommonTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
     }
 
     CAccountLog srcAcctLog(srcAcct);
-    uint64_t minusValue = llFees + llValues;
+    uint64_t minusValue = llFees + bcoinBalance;
     if (!srcAcct.OperateAccount(MINUS_FREE, minusValue, nHeight))
         return state.DoS(100, ERRORMSG("CCommonTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -554,7 +554,7 @@ bool CCommonTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
                              WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
 
-    uint64_t addValue = llValues;
+    uint64_t addValue = bcoinBalance;
     if (!view.GetAccount(desUserId, desAcct)) {
         if (desUserId.type() == typeid(CKeyID)) {  // target account has NO CRegID
             desAcct.keyID    = boost::get<CKeyID>(desUserId);
@@ -634,10 +634,10 @@ string CCommonTx::ToString(CAccountViewCache &view) const {
     }
 
     string str = strprintf(
-        "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, llValues=%ld, llFees=%ld, memo=%s, "
+        "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, bcoinBalance=%ld, llFees=%ld, memo=%s, "
         "nValidHeight=%d\n",
         GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, srcId.c_str(), desId.c_str(),
-        llValues, llFees, HexStr(memo).c_str(), nValidHeight);
+        bcoinBalance, llFees, HexStr(memo).c_str(), nValidHeight);
 
     return str;
 }
@@ -663,7 +663,7 @@ Object CCommonTx::ToJson(const CAccountViewCache &AccountView) const {
     result.push_back(Pair("addr",           srcKeyId.ToAddress()));
     result.push_back(Pair("dest_regid",     GetRegIdString(desUserId)));
     result.push_back(Pair("dest_addr",      desKeyId.ToAddress()));
-    result.push_back(Pair("money",          llValues));
+    result.push_back(Pair("money",          bcoinBalance));
     result.push_back(Pair("fees",           llFees));
     result.push_back(Pair("memo",           HexStr(memo)));
     result.push_back(Pair("valid_height",   nValidHeight));
@@ -726,7 +726,7 @@ bool CContractTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
     CAccount srcAcct;
     CAccount desAcct;
     CAccountLog desAcctLog;
-    uint64_t minusValue = llFees + llValues;
+    uint64_t minusValue = llFees + bcoinBalance;
     if (!view.GetAccount(srcRegId, srcAcct))
         return state.DoS(100, ERRORMSG("CContractTx::ExecuteTx, read source addr %s account info error",
             boost::get<CRegID>(srcRegId).ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -741,7 +741,7 @@ bool CContractTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
         return state.DoS(100, ERRORMSG("CContractTx::ExecuteTx, save account%s info error",
             boost::get<CRegID>(srcRegId).ToString()), WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    uint64_t addValue = llValues;
+    uint64_t addValue = bcoinBalance;
     if (!view.GetAccount(desUserId, desAcct)) {
         return state.DoS(100, ERRORMSG("CContractTx::ExecuteTx, get account info failed by regid:%s",
             boost::get<CRegID>(desUserId).ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -892,10 +892,10 @@ string CContractTx::ToString(CAccountViewCache &view) const {
     }
 
     string str = strprintf(
-        "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, llValues=%ld, llFees=%ld, arguments=%s, "
+        "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, bcoinBalance=%ld, llFees=%ld, arguments=%s, "
         "nValidHeight=%d\n",
         GetTxType(nTxType), GetHash().ToString().c_str(), nVersion,
-        boost::get<CRegID>(srcRegId).ToString(), desId.c_str(), llValues, llFees,
+        boost::get<CRegID>(srcRegId).ToString(), desId.c_str(), bcoinBalance, llFees,
         HexStr(arguments).c_str(), nValidHeight);
 
     return str;
@@ -922,7 +922,7 @@ Object CContractTx::ToJson(const CAccountViewCache &AccountView) const {
     result.push_back(Pair("addr",       srcKeyId.ToAddress()));
     result.push_back(Pair("dest_regid", GetRegIdString(desUserId)));
     result.push_back(Pair("dest_addr",  desKeyId.ToAddress()));
-    result.push_back(Pair("money",      llValues));
+    result.push_back(Pair("money",      bcoinBalance));
     result.push_back(Pair("fees",       llFees));
     result.push_back(Pair("arguments",  HexStr(arguments)));
     result.push_back(Pair("valid_height", nValidHeight));
@@ -995,7 +995,7 @@ bool CRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
     if (0 == nIndex) {
         // nothing to do here
     } else if (-1 == nIndex) {  // maturity reward tx, only update values
-        acctInfo.llValues += rewardValue;
+        acctInfo.bcoinBalance += rewardValue;
     } else {  // never go into this step
         return ERRORMSG("nIndex type error!");
     }
@@ -1493,9 +1493,9 @@ bool CDelegateTx::CheckTx(CValidationState &state, CAccountViewCache &view, CScr
             REJECT_INVALID, "deletegates-duplication fund-error");
     }
 
-    if (totalVotes > sendAcct.llValues) {
+    if (totalVotes > sendAcct.bcoinBalance) {
        return state.DoS(100, ERRORMSG("CheckTx() : CDelegateTx delegate votes (%d) exceeds account balance (%d), userid=%s",
-            totalVotes, sendAcct.llValues, HexStr(id.GetID())), REJECT_INVALID, "insufficient balance for votes");
+            totalVotes, sendAcct.bcoinBalance, HexStr(id.GetID())), REJECT_INVALID, "insufficient balance for votes");
     }
 
     return true;
@@ -1516,8 +1516,8 @@ bool CDelegateTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScrip
 
 string CAccountLog::ToString() const {
     string str("");
-    str += strprintf("    Account log: keyId=%d llValues=%lld nVoteHeight=%lld llVotes=%lld \n",
-        keyID.GetHex(), llValues, nVoteHeight, llVotes);
+    str += strprintf("    Account log: keyId=%d bcoinBalance=%lld nVoteHeight=%lld llVotes=%lld \n",
+        keyID.GetHex(), bcoinBalance, nVoteHeight, llVotes);
     str += string("    vote fund:");
 
     for (auto it =  vVoteFunds.begin(); it != vVoteFunds.end(); ++it) {
@@ -1558,7 +1558,7 @@ bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {
 
 bool CAccount::UndoOperateAccount(const CAccountLog & accountLog) {
     LogPrint("undo_account", "after operate:%s\n", ToString());
-    llValues    = accountLog.llValues;
+    bcoinBalance    = accountLog.bcoinBalance;
     nVoteHeight = accountLog.nVoteHeight;
     vVoteFunds  = accountLog.vVoteFunds;
     llVotes     = accountLog.llVotes;
@@ -1611,14 +1611,14 @@ uint64_t CAccount::GetAccountProfit(uint64_t nCurHeight) {
 }
 
 uint64_t CAccount::GetRawBalance() {
-    return llValues;
+    return bcoinBalance;
 }
 
 uint64_t CAccount::GetTotalBalance() {
     if (!vVoteFunds.empty())
-        return vVoteFunds.begin()->value + llValues;
+        return vVoteFunds.begin()->value + bcoinBalance;
 
-    return llValues;
+    return bcoinBalance;
 }
 
 uint64_t CAccount::GetFrozenBalance() {
@@ -1648,7 +1648,7 @@ Object CAccount::ToJsonObj(bool isAddress) const {
     obj.push_back(Pair("minerPubKey",   minerPubKey.ToString()));
     obj.push_back(Pair("regID",         regID.ToString()));
     obj.push_back(Pair("regIDMature",   isMature));
-    obj.push_back(Pair("balance",       llValues));
+    obj.push_back(Pair("balance",       bcoinBalance));
     obj.push_back(Pair("updateHeight",  nVoteHeight));
     obj.push_back(Pair("votes",         llVotes));
     obj.push_back(Pair("voteFundList",  voteFundArray));
@@ -1659,7 +1659,7 @@ string CAccount::ToString(bool isAddress) const {
     string str;
     str += strprintf("regID=%s, keyID=%s, publicKey=%s, minerpubkey=%s, values=%ld updateHeight=%d llVotes=%lld\n",
         regID.ToString(), keyID.GetHex().c_str(), pubKey.ToString().c_str(),
-        minerPubKey.ToString().c_str(), llValues, nVoteHeight, llVotes);
+        minerPubKey.ToString().c_str(), bcoinBalance, nVoteHeight, llVotes);
     str += "vVoteFunds list: \n";
     for (auto & fund : vVoteFunds) {
         str += fund.ToString(isAddress);
@@ -1685,15 +1685,15 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64
         return true;
     switch (type) {
     case ADD_FREE: {
-        llValues += value;
-        if (!IsMoneyOverflow(llValues))
+        bcoinBalance += value;
+        if (!IsMoneyOverflow(bcoinBalance))
             return false;
         break;
     }
     case MINUS_FREE: {
-        if (value > llValues)
+        if (value > bcoinBalance)
             return false;
-        llValues -= value;
+        bcoinBalance -= value;
         break;
     }
     default:
@@ -1761,11 +1761,11 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
     // get the maximum one as the vote amount
     uint64_t newTotalVotes = vVoteFunds.empty() ? 0 : vVoteFunds.begin()->value;
 
-    if (llValues + totalVotes < newTotalVotes) {
+    if (bcoinBalance + totalVotes < newTotalVotes) {
         return  ERRORMSG("ProcessDelegateVote() : delegate value exceed account value");
     }
-    llValues = (llValues + totalVotes) - newTotalVotes;
-    llValues += llProfit;
+    bcoinBalance = (bcoinBalance + totalVotes) - newTotalVotes;
+    bcoinBalance += llProfit;
     LogPrint("profits", "received profits: %lld\n", llProfit);
     return true;
 }

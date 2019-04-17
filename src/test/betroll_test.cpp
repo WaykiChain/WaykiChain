@@ -802,7 +802,7 @@ unsigned char TempArray[] = {
 //		uint160 hash(nvector);
 //		CKeyID keyId1 = (CKeyID) hash;
 //		sourceAccount.keyID = keyId1;
-//		sourceAccount.llValues = 7800000000;
+//		sourceAccount.bcoinBalance = 7800000000;
 //		account.push_back(accountId.vRegID);
 //		assert(view.SaveAccountInfo(accountId.vRegID, keyId1, sourceAccount));
 //	}
@@ -893,7 +893,7 @@ unsigned char TempArray[] = {
 //		betroll->view.SetAccount(item.get()->keyID, *item.get());
 //	}
 //
-//	if (betroll->betm > betroll->A.llValues || betroll->betm > betroll->B.llValues) {
+//	if (betroll->betm > betroll->A.bcoinBalance || betroll->betm > betroll->B.bcoinBalance) {
 //		BOOST_CHECK(!flag);
 //
 //	} else {

@@ -1680,7 +1680,7 @@ static int ExGetUserAppAccValueFunc(lua_State *L)
     uint64_t valueData = 0 ;
     int len = 0;
     if (pVmRunEnv->GetAppUserAccount(accid.GetIdV(), sptrAcc)) {
-        valueData = sptrAcc->GetLlValues();
+        valueData = sptrAcc->GetbcoinBalance();
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << valueData;
@@ -1967,7 +1967,7 @@ static int ExTransferContractAsset(lua_State *L)
 
     temp.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
 
-    uint64_t nMoney = temp.get()->GetLlValues();
+    uint64_t nMoney = temp.get()->GetbcoinBalance();
 
     int i = 0;
     CAppFundOperate op;

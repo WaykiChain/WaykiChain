@@ -652,11 +652,11 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
         if (pBaseTx->nTxType == COMMON_TX) {
             CCommonTx *pTx = static_cast<CCommonTx *>(pBaseTx);
-            if (pTx->llValues < CBaseTx::nDustAmountThreshold)
+            if (pTx->bcoinBalance < CBaseTx::nDustAmountThreshold)
                 return state.DoS(0,
                                  ERRORMSG("AcceptToMemoryPool() : common tx %d transfer amount(%d) "
                                           "too small, you must send a min (%d)",
-                                          hash.ToString(), pTx->llValues, CBaseTx::nDustAmountThreshold),
+                                          hash.ToString(), pTx->bcoinBalance, CBaseTx::nDustAmountThreshold),
                                  REJECT_DUST, "dust amount");
         }
 
@@ -1349,7 +1349,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                 sourceAccount.keyID = keyId;
                 sourceAccount.SetRegId(accountId);
                 sourceAccount.pubKey = pubKey;
-                sourceAccount.llValues  = pRewardTx->rewardValue;
+                sourceAccount.bcoinBalance  = pRewardTx->rewardValue;
                 assert(view.SaveAccountInfo(accountId, keyId, sourceAccount));
             } else if (block.vptx[i]->nTxType == DELEGATE_TX) {
                 std::shared_ptr<CDelegateTx> pDelegateTx =
@@ -1385,8 +1385,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                              return fund1.value > fund2.value;
                          });
                 }
-                assert(voteAcct.llValues >= maxVotes);
-                voteAcct.llValues -= maxVotes;
+                assert(voteAcct.bcoinBalance >= maxVotes);
+                voteAcct.bcoinBalance -= maxVotes;
                 assert(view.SaveAccountInfo(voteAcct.regID, voteAcct.keyID, voteAcct));
             }
         }

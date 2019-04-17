@@ -173,7 +173,7 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
     CCommonTx tx;
     tx.srcUserId    = sendUserId;
     tx.desUserId    = recvUserId;
-    tx.llValues     = nValue;
+    tx.bcoinBalance     = nValue;
     tx.llFees       = (0 == nFee) ? SysCfg().GetTxFee() : nFee;
     tx.nValidHeight = nHeight;
 
@@ -417,7 +417,7 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
     CCommonTx tx;
     tx.srcUserId    = sendUserId;
     tx.desUserId    = recvUserId;
-    tx.llValues     = amount;
+    tx.bcoinBalance     = amount;
     tx.llFees       = fee;
     tx.nValidHeight = height;
 
@@ -483,7 +483,7 @@ Value getassets(const Array& params, bool fHelp)
         }
 
         temp.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
-        uint64_t freeValues = temp.get()->GetLlValues();
+        uint64_t freeValues = temp.get()->GetbcoinBalance();
         uint64_t freezeValues = temp.get()->GetAllFreezedValues();
         totalassets += freeValues;
         totalassets += freezeValues;

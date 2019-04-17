@@ -63,9 +63,9 @@ public:
 	unsigned int timeoutHeight;	//!< the transacion Timeout height
 	int64_t mMoney;			        //!<The transfer amount
 	unsigned char appuserIDlen;
-	unsigned char vAppuser[CAppCFund::MAX_TAG_SIZE ];				//!< accountId
+	unsigned char vAppuser[CAppCFund::MAX_TAG_SIZE];				//!< accountId
 	unsigned char fundTagLen;
-	unsigned char vFundTag[CAppCFund::MAX_TAG_SIZE ];				//!< accountId
+	unsigned char vFundTag[CAppCFund::MAX_TAG_SIZE];				//!< accountId
 
 	CAppFundOperate(const vector<unsigned char> &AppTag,
 		const vector<unsigned char> &FundTag,
@@ -154,8 +154,8 @@ public:
 
 	string ToString()const;
 
-	uint64_t GetLlValues() const { return llValues; }
-	void SetLlValues(uint64_t llValues) { this->llValues = llValues; }
+	uint64_t GetbcoinBalance() const { return bcoinBalance; }
+	void SetbcoinBalance(uint64_t bcoinBalance) { this->bcoinBalance = bcoinBalance; }
 
 	const vector<unsigned char>& GetAccUserId() const { return mAccUserID; }
 
@@ -176,7 +176,7 @@ public:
 
 	IMPLEMENT_SERIALIZE
 	(
-		READWRITE(VARINT(llValues));
+		READWRITE(VARINT(bcoinBalance));
 		READWRITE(mAccUserID);
 		READWRITE(vFrozenFunds);
 	)
@@ -189,7 +189,7 @@ public:
 	bool Operate(const CAppFundOperate &Op);
 
 private:
-	uint64_t llValues;       //自由金额
+	uint64_t bcoinBalance;       //自由金额
 	vector<unsigned char>  mAccUserID;
 	vector<CAppCFund> vFrozenFunds;
 };

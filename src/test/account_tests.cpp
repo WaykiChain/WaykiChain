@@ -95,7 +95,7 @@ struct CTxTest :public SysTestBase{
 		accOperate.keyID = keyID;
 
 
-		accOperate.llValues = TEST_SIZE*5;
+		accOperate.bcoinBalance = TEST_SIZE*5;
 
 		InitFund();
 	}
@@ -103,7 +103,7 @@ struct CTxTest :public SysTestBase{
 
 	void CheckAccountEqual(bool bCheckAuthority = true) {
 //		BOOST_CHECK(IsEqual(accBeforOperate.vRewardFund, accOperate.vRewardFund));
-//		BOOST_CHECK(accBeforOperate.llValues == accOperate.llValues);
+//		BOOST_CHECK(accBeforOperate.bcoinBalance == accOperate.bcoinBalance);
 
 		//cout<<"old: "<<GetTotalValue(accBeforOperate.vSelfFreeze)<<" new: "<<GetTotalValue(accOperate.vSelfFreeze)<<endl;
 	}

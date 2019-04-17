@@ -67,7 +67,7 @@ CAppCFund::CAppCFund(const CAppFundOperate& op) {
 
 CAppUserAccount::CAppUserAccount() {
     mAccUserID.clear();
-    llValues = 0;
+    bcoinBalance = 0;
 
     vFrozenFunds.clear();
 }
@@ -76,7 +76,7 @@ CAppUserAccount::CAppUserAccount(const vector<unsigned char> &userId)
 {
     mAccUserID.clear();
     mAccUserID = userId;
-    llValues = 0;
+    bcoinBalance = 0;
 
     vFrozenFunds.clear();
 }
@@ -123,13 +123,13 @@ bool CAppUserAccount::AutoMergeFreezeToFree(int height)
     bool needRemove = false;
     for (auto &Fund : vFrozenFunds) {
         if (Fund.GetHeight() <= height) {
-            //llValues += Fund.getvalue();
+            //bcoinBalance += Fund.getvalue();
             uint64_t tempValue = 0;
-            if(!SafeAdd(llValues, Fund.GetValue(), tempValue)) {
+            if(!SafeAdd(bcoinBalance, Fund.GetValue(), tempValue)) {
                 printf("Operate overflow !\n");
                 return ERRORMSG("Operate overflow !");
             }
-            llValues = tempValue;
+            bcoinBalance = tempValue;
             needRemove = true;
         }
     }
@@ -203,18 +203,18 @@ bool CAppUserAccount::Operate(const vector<CAppFundOperate> &Op) {
 bool CAppUserAccount::Operate(const CAppFundOperate& Op) {
     //LogPrint("acc","Op:%s",Op.toString());
     if (Op.opType == ADD_FREE_OP) {
-        //llValues += Op.GetUint64Value();
+        //bcoinBalance += Op.GetUint64Value();
         uint64_t tempValue = 0;
-        if (!SafeAdd(llValues, Op.GetUint64Value(), tempValue))
+        if (!SafeAdd(bcoinBalance, Op.GetUint64Value(), tempValue))
             return ERRORMSG("Operate overflow !");
 
-        llValues = tempValue;
+        bcoinBalance = tempValue;
         return true;
 
     } else if (Op.opType == SUB_FREE_OP) {
         uint64_t tem = Op.GetUint64Value();
-        if (llValues >= tem) {
-            llValues -= tem;
+        if (bcoinBalance >= tem) {
+            bcoinBalance -= tem;
             return true;
         }
 
@@ -256,7 +256,7 @@ string CAppCFund::ToString()const {
 Object CAppUserAccount::ToJson() const {
     Object result;
     result.push_back(Pair("mAccUserID", HexStr(mAccUserID)));
-    result.push_back(Pair("FreeValues", llValues));
+    result.push_back(Pair("FreeValues", bcoinBalance));
 
     Array arry;
     for (auto const te : vFrozenFunds) {

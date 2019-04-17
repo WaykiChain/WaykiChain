@@ -17,7 +17,7 @@ public:
 public:
     CCdpOpenTx(): CBaseTx(CDP_OPEN_TX) {}
 
-    CCdpOpenTx(const CBaseTx *pBaseTx) {
+    CCdpOpenTx(const CBaseTx *pBaseTx): CBaseTx(CDP_OPEN_TX) {
         assert(CDP_OPEN_TX == pBaseTx->nTxType);
         *this = *(CCdpOpenTx *) pBaseTx;
     }

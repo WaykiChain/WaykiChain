@@ -338,7 +338,7 @@ class CCommonTx : public CBaseTx {
 public:
     mutable CUserID srcUserId;  // regid or pubkey
     mutable CUserID desUserId;  // regid or keyid
-    uint64_t llValues;          // transfer amount
+    uint64_t bcoinBalance;          // transfer amount
     vector_unsigned_char memo;
     vector_unsigned_char signature;
 
@@ -363,7 +363,7 @@ public:
 
         srcUserId   = srcUserIdIn;
         desUserId   = desUserIdIn;
-        llValues    = valueIn;
+        bcoinBalance    = valueIn;
         memo        = descriptionIn;
     }
 
@@ -377,7 +377,7 @@ public:
 
         srcUserId    = srcUserIdIn;
         desUserId    = desUserIdIn;
-        llValues     = valueIn;
+        bcoinBalance     = valueIn;
     }
 
     ~CCommonTx() {}
@@ -391,7 +391,7 @@ public:
         CID desId(desUserId);
         READWRITE(desId);
         READWRITE(VARINT(llFees));
-        READWRITE(VARINT(llValues));
+        READWRITE(VARINT(bcoinBalance));
         READWRITE(memo);
         READWRITE(signature);
         if (fRead) {
@@ -405,7 +405,7 @@ public:
             CID srcId(srcUserId);
             CID desId(desUserId);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << srcId << desId
-               << VARINT(llFees) << VARINT(llValues) << memo;
+               << VARINT(llFees) << VARINT(bcoinBalance) << memo;
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
             *hash         = ss.GetHash();
@@ -414,7 +414,7 @@ public:
         return sigHash;
     }
 
-    uint64_t GetValue() const { return llValues; }
+    uint64_t GetValue() const { return bcoinBalance; }
     uint256 GetHash() const { return SignatureHash(); }
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
@@ -434,7 +434,7 @@ class CContractTx : public CBaseTx {
 public:
     mutable CUserID srcRegId;   // src regid
     mutable CUserID desUserId;  // keyid or app regid
-    uint64_t llValues;          // transfer amount
+    uint64_t bcoinBalance;          // transfer amount
     vector_unsigned_char arguments;
     vector_unsigned_char signature;
 
@@ -457,7 +457,7 @@ public:
 
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
-        llValues     = valueIn;
+        bcoinBalance     = valueIn;
         arguments    = argumentsIn;
     }
 
@@ -472,7 +472,7 @@ public:
 
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
-        llValues     = valueIn;
+        bcoinBalance     = valueIn;
     }
 
     ~CContractTx() {}
@@ -485,7 +485,7 @@ public:
         CID desId(desUserId);
         READWRITE(desId);
         READWRITE(VARINT(llFees));
-        READWRITE(VARINT(llValues));
+        READWRITE(VARINT(bcoinBalance));
         READWRITE(arguments);
         READWRITE(signature);
         if (fRead) {
@@ -499,7 +499,7 @@ public:
             CID srcId(srcRegId);
             CID desId(desUserId);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << srcId << desId
-               << VARINT(llFees) << VARINT(llValues) << arguments;
+               << VARINT(llFees) << VARINT(bcoinBalance) << arguments;
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
             *hash         = ss.GetHash();
@@ -507,7 +507,7 @@ public:
         return sigHash;
     }
 
-    uint64_t GetValue() const { return llValues; }
+    uint64_t GetValue() const { return bcoinBalance; }
     uint256 GetHash() const { return SignatureHash(); }
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
@@ -870,15 +870,19 @@ public:
 
 class CAccount {
 public:
-    CRegID regID;                  //!< regID of the account
-    CKeyID keyID;                  //!< keyID of the account
-    CPubKey pubKey;                //!< public key of the account
-    CPubKey minerPubKey;           //!< public key of the account for miner
-    uint64_t llValues;             //!< total money
-    uint64_t nVoteHeight;          //!< account vote block height
-    vector<CVoteFund> vVoteFunds;  //!< account delegate votes order by vote value
-    uint64_t llVotes;              //!< votes received
-    uint256 sigHash;               // only in memory
+    CRegID regID;                   //!< regID of the account
+    CKeyID keyID;                   //!< keyID of the account
+    CPubKey pubKey;                 //!< public key of the account
+    CPubKey minerPubKey;            //!< miner public key of the account
+    uint64_t bcoinBalance;          //!< BaseCoin balance
+    uint64_t scoinBalance;          //!< StableCoin balance
+    uint64_t fcoinBalance;          //!< StabeFundCoin balance
+    uint64_t nVoteHeight;           //!< account vote block height
+    vector<CVoteFund> vVoteFunds;   //!< account delegate votes order by vote value
+    uint64_t llVotes;               //!< votes received
+    bool hasOpenCdp;                //!< Whether the account has open CDP or not. If true, it exists in a map container
+
+    uint256 sigHash;                // only in memory
 
 public:
     /**
@@ -894,45 +898,51 @@ public:
     bool OperateVote(VoteOperType type, const uint64_t &values);
 
 public:
-    CAccount(CKeyID &keyId, CPubKey &pubKey) : keyID(keyId), pubKey(pubKey) {
-        llValues    = 0;
+    CAccount(CKeyID &keyId, CPubKey &pubKey) : 
+        keyID(keyId), pubKey(pubKey), bcoinBalance(0), scoinBalance(0), fcoinBalance(0), nVoteHeight(0), llVotes(0) {
         minerPubKey = CPubKey();
-        nVoteHeight = 0;
         vVoteFunds.clear();
         regID.Clean();
-        llVotes = 0;
     }
-    CAccount() : keyID(uint160()), llValues(0) {
+
+    CAccount() : keyID(uint160()), bcoinBalance(0), scoinBalance(0), fcoinBalance(0), nVoteHeight(0), llVotes(0) {
         pubKey      = CPubKey();
         minerPubKey = CPubKey();
-        nVoteHeight = 0;
         vVoteFunds.clear();
         regID.Clean();
-        llVotes = 0;
     }
+
     CAccount(const CAccount &other) {
         this->regID       = other.regID;
         this->keyID       = other.keyID;
         this->pubKey      = other.pubKey;
         this->minerPubKey = other.minerPubKey;
-        this->llValues    = other.llValues;
+        this->bcoinBalance = other.bcoinBalance;
+        this->scoinBalance = other.scoinBalance;
+        this->fcoinBalance = other.fcoinBalance;
         this->nVoteHeight = other.nVoteHeight;
         this->vVoteFunds  = other.vVoteFunds;
         this->llVotes     = other.llVotes;
     }
+
     CAccount &operator=(const CAccount &other) {
         if (this == &other)
             return *this;
+
         this->regID       = other.regID;
         this->keyID       = other.keyID;
         this->pubKey      = other.pubKey;
         this->minerPubKey = other.minerPubKey;
-        this->llValues    = other.llValues;
+        this->bcoinBalance = other.bcoinBalance;
+        this->scoinBalance = other.scoinBalance;
+        this->fcoinBalance = other.fcoinBalance;
         this->nVoteHeight = other.nVoteHeight;
         this->vVoteFunds  = other.vVoteFunds;
         this->llVotes     = other.llVotes;
+
         return *this;
     }
+
     std::shared_ptr<CAccount> GetNewInstance() const { return std::make_shared<CAccount>(*this); }
     bool IsRegistered() const { return (pubKey.IsFullyValid() && pubKey.GetKeyID() == keyID); }
     bool SetRegId(const CRegID &regID) {
@@ -949,14 +959,17 @@ public:
     uint64_t GetAccountProfit(uint64_t prevBlockHeight);
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;
-    bool IsEmptyValue() const { return !(llValues > 0); }
+    bool IsEmptyValue() const { return !(bcoinBalance > 0); }
 
     uint256 GetHash(bool recalculate = false) {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << regID << keyID << pubKey << minerPubKey << VARINT(llValues) << VARINT(nVoteHeight)
-               << vVoteFunds << llVotes;
-            // Truly need to write the sigHash.
+            //FIXME: need to check block soft-fork height here
+            ss << regID << keyID << pubKey << minerPubKey 
+                << VARINT(bcoinBalance) << VARINT(scoinBalance) << VARINT(fcoinBalance)
+                << VARINT(nVoteHeight)
+                << vVoteFunds << llVotes;
+        
             uint256 *hash = const_cast<uint256 *>(&sigHash);
             *hash         = ss.GetHash();
         }
@@ -971,7 +984,7 @@ public:
         READWRITE(keyID);
         READWRITE(pubKey);
         READWRITE(minerPubKey);
-        READWRITE(VARINT(llValues));
+        READWRITE(VARINT(bcoinBalance));
         READWRITE(VARINT(nVoteHeight));
         READWRITE(vVoteFunds);
         READWRITE(llVotes);)
@@ -985,14 +998,14 @@ private:
 class CAccountLog {
 public:
     CKeyID keyID;
-    uint64_t llValues;             //!< freedom money which coinage greater than 30 days
+    uint64_t bcoinBalance;             //!< freedom money which coinage greater than 30 days
     uint64_t nVoteHeight;          //!< account vote height
     vector<CVoteFund> vVoteFunds;  //!< delegate votes
     uint64_t llVotes;              //!< votes received
 
     IMPLEMENT_SERIALIZE(
         READWRITE(keyID);
-        READWRITE(VARINT(llValues));
+        READWRITE(VARINT(bcoinBalance));
         READWRITE(VARINT(nVoteHeight));
         READWRITE(vVoteFunds);
         READWRITE(llVotes);)
@@ -1000,27 +1013,27 @@ public:
 public:
     CAccountLog(const CAccount &acct) {
         keyID       = acct.keyID;
-        llValues    = acct.llValues;
+        bcoinBalance= acct.bcoinBalance;
         nVoteHeight = acct.nVoteHeight;
         vVoteFunds  = acct.vVoteFunds;
         llVotes     = acct.llVotes;
     }
     CAccountLog(CKeyID &keyId) {
         keyID       = keyId;
-        llValues    = 0;
+        bcoinBalance    = 0;
         nVoteHeight = 0;
         llVotes     = 0;
     }
     CAccountLog() {
         keyID       = uint160();
-        llValues    = 0;
+        bcoinBalance  = 0;
         nVoteHeight = 0;
         vVoteFunds.clear();
         llVotes = 0;
     }
     void SetValue(const CAccount &acct) {
         keyID       = acct.keyID;
-        llValues    = acct.llValues;
+        bcoinBalance = acct.bcoinBalance;
         nVoteHeight = acct.nVoteHeight;
         llVotes     = acct.llVotes;
         vVoteFunds  = acct.vVoteFunds;
