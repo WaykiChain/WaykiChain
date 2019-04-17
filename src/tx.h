@@ -652,11 +652,7 @@ public:
         nValidHeight  = heightIn;
         llFees        = feeIn;
     }
-    CDelegateTx() {
-        nTxType = DELEGATE_TX;
-        operVoteFunds.clear();
-        signature.clear();
-    }
+    CDelegateTx() { nTxType = DELEGATE_TX; }
     ~CDelegateTx() {}
 
     IMPLEMENT_SERIALIZE(
@@ -764,7 +760,6 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(pubKey);
         READWRITE(VARINT(value));
-
     )
 
     string ToString(bool isAddress = false) const {
