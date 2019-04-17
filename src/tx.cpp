@@ -15,7 +15,6 @@
 #include "json/json_spirit_writer_template.h"
 using namespace json_spirit;
 
-string CBaseTx::txTypeArray[7] = { "NULL_TXTYPE", "REWARD_TX", "REG_ACCT_TX", "COMMON_TX", "CONTRACT_TX", "REG_APP_TX", "DELEGATE_TX"};
 string COperVoteFund::voteOperTypeArray[3] = {"NULL_OPER", "ADD_FUND", "MINUS_FUND"};
 
 static bool GetKeyId(const CAccountViewCache &view, const vector<unsigned char> &ret, CKeyID &KeyId)
@@ -453,7 +452,7 @@ bool CRegisterAccountTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
 string CRegisterAccountTx::ToString(CAccountViewCache &view) const {
     string str;
     str += strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
-        txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion, boost::get<CPubKey>(userId).ToString(),
+        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, boost::get<CPubKey>(userId).ToString(),
         llFees, boost::get<CPubKey>(userId).GetKeyID().ToAddress(), nValidHeight);
 
     return str;
@@ -468,7 +467,7 @@ Object CRegisterAccountTx::ToJson(const CAccountViewCache &AccountView) const {
 
     Object result;
     result.push_back(Pair("hash",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",         txTypeArray[nTxType]));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("addr",           address));
     result.push_back(Pair("pubkey",         userPubKey));
@@ -637,7 +636,7 @@ string CCommonTx::ToString(CAccountViewCache &view) const {
     string str = strprintf(
         "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, llValues=%ld, llFees=%ld, memo=%s, "
         "nValidHeight=%d\n",
-        txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion, srcId.c_str(), desId.c_str(),
+        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, srcId.c_str(), desId.c_str(),
         llValues, llFees, HexStr(memo).c_str(), nValidHeight);
 
     return str;
@@ -658,7 +657,7 @@ Object CCommonTx::ToJson(const CAccountViewCache &AccountView) const {
     view.GetKeyId(desUserId, desKeyId);
 
     result.push_back(Pair("hash",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",        txTypeArray[nTxType]));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("regid",          GetRegIdString(srcUserId)));
     result.push_back(Pair("addr",           srcKeyId.ToAddress()));
@@ -895,7 +894,7 @@ string CContractTx::ToString(CAccountViewCache &view) const {
     string str = strprintf(
         "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, llValues=%ld, llFees=%ld, arguments=%s, "
         "nValidHeight=%d\n",
-        txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion,
+        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion,
         boost::get<CRegID>(srcRegId).ToString(), desId.c_str(), llValues, llFees,
         HexStr(arguments).c_str(), nValidHeight);
 
@@ -917,15 +916,15 @@ Object CContractTx::ToJson(const CAccountViewCache &AccountView) const {
     view.GetKeyId(desUserId, desKeyId);
 
     result.push_back(Pair("hash",       GetHash().GetHex()));
-    result.push_back(Pair("tx_type",     txTypeArray[nTxType]));
+    result.push_back(Pair("tx_type",    GetTxType(nTxType)));
     result.push_back(Pair("ver",        nVersion));
     result.push_back(Pair("regid",      GetRegIdString(srcRegId)));
     result.push_back(Pair("addr",       srcKeyId.ToAddress()));
-    result.push_back(Pair("dest_regid",   GetRegIdString(desUserId)));
-    result.push_back(Pair("dest_addr",    desKeyId.ToAddress()));
+    result.push_back(Pair("dest_regid", GetRegIdString(desUserId)));
+    result.push_back(Pair("dest_addr",  desKeyId.ToAddress()));
     result.push_back(Pair("money",      llValues));
     result.push_back(Pair("fees",       llFees));
-    result.push_back(Pair("arguments",   HexStr(arguments)));
+    result.push_back(Pair("arguments",  HexStr(arguments)));
     result.push_back(Pair("valid_height", nValidHeight));
 
     return result;
@@ -1046,7 +1045,7 @@ string CRewardTx::ToString(CAccountViewCache &view) const {
     CRegID regId;
     view.GetRegId(account, regId);
     str += strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyid=%s, rewardValue=%ld\n",
-        txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion, regId.ToString(), keyId.GetHex(), rewardValue);
+        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, regId.ToString(), keyId.GetHex(), rewardValue);
 
     return str;
 }
@@ -1056,7 +1055,7 @@ Object CRewardTx::ToJson(const CAccountViewCache &AccountView) const{
     CAccountViewCache view(AccountView);
     CKeyID keyid;
     result.push_back(Pair("hash", GetHash().GetHex()));
-    result.push_back(Pair("tx_type", txTypeArray[nTxType]));
+    result.push_back(Pair("tx_type", GetTxType(nTxType)));
     result.push_back(Pair("ver", nVersion));
     if(account.type() == typeid(CRegID)) {
         result.push_back(Pair("regid", boost::get<CRegID>(account).ToString()));
@@ -1193,7 +1192,7 @@ string CRegisterContractTx::ToString(CAccountViewCache &view) const {
     CKeyID keyId;
     view.GetKeyId(regAcctId, keyId);
     str += strprintf("txType=%s, hash=%s, ver=%d, accountId=%s, keyid=%s, llFees=%ld, nValidHeight=%d\n",
-    txTypeArray[nTxType], GetHash().ToString().c_str(), nVersion,boost::get<CRegID>(regAcctId).ToString(), keyId.GetHex(), llFees, nValidHeight);
+    GetTxType(nTxType), GetHash().ToString().c_str(), nVersion,boost::get<CRegID>(regAcctId).ToString(), keyId.GetHex(), llFees, nValidHeight);
     return str;
 }
 
@@ -1205,7 +1204,7 @@ Object CRegisterContractTx::ToJson(const CAccountViewCache &AccountView) const{
     view.GetKeyId(regAcctId, keyid);
 
     result.push_back(Pair("hash", GetHash().GetHex()));
-    result.push_back(Pair("tx_type", txTypeArray[nTxType]));
+    result.push_back(Pair("tx_type", GetTxType(nTxType)));
     result.push_back(Pair("ver", nVersion));
     result.push_back(Pair("regid",  boost::get<CRegID>(regAcctId).ToString()));
     result.push_back(Pair("addr", keyid.ToAddress()));
@@ -1377,7 +1376,7 @@ string CDelegateTx::ToString(CAccountViewCache &view) const {
     string str;
     CKeyID keyId;
     view.GetKeyId(userId, keyId);
-    str += strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", txTypeArray[nTxType],
+    str += strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", GetTxType(nTxType),
         GetHash().ToString().c_str(), nVersion, keyId.ToAddress(), keyId.ToString());
     str += "vote:\n";
     for (auto item = operVoteFunds.begin(); item != operVoteFunds.end(); ++item) {
@@ -1391,7 +1390,7 @@ Object CDelegateTx::ToJson(const CAccountViewCache &accountView) const {
     CAccountViewCache view(accountView);
     CKeyID keyId;
     result.push_back(Pair("hash", GetHash().GetHex()));
-    result.push_back(Pair("txtype", txTypeArray[nTxType]));
+    result.push_back(Pair("txtype", CBaseTx::GetTxType(nTxType)));
     result.push_back(Pair("ver", nVersion));
     result.push_back(Pair("regid", boost::get<CRegID>(userId).ToString()));
     view.GetKeyId(userId, keyId);

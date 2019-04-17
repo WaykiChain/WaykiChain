@@ -67,6 +67,7 @@ coin_CORE_H = \
   support/cleanse.h \
   serialize.h \
   sigcache.h \
+  stablecoin/stablecoin.h \
   sync.h \
   threadsafety.h \
   tinyformat.h \
@@ -203,6 +204,7 @@ libcoin_server_a_SOURCES = \
   rpc/rpcserver.cpp \
   rpc/rpcvm.cpp \
   sigcache.cpp \
+  stablecoin/stablecoin.cpp \
   txdb.cpp \
   txmempool.cpp \
   cuiserver.cpp	\
@@ -283,7 +285,7 @@ endif
 liblua53_a_CFLAGS = -fPIC
 
 AM_CPPFLAGS += $(BDB_CPPFLAGS)
-coind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) 
+coind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
 
 # NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
 $(LIBLEVELDB): $(LIBMEMENV)
