@@ -8,31 +8,28 @@
 #include "rpcserver.h"
 #include "init.h"
 #include "net.h"
-#include "netbase.h"
+#include "miner.h"
 #include "util.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #include "syncdatadb.h"
 
 #include "configuration.h"
-#include "miner.h"
 #include "main.h"
 #include "vm/script.h"
 #include "vm/vmrunenv.h"
-#include <stdint.h>
+#include <algorithm>
 
-#include <boost/assign/list_of.hpp>
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_reader.h"
 
 
 using namespace std;
-using namespace boost;
-using namespace boost::assign;
 using namespace json_spirit;
 
-const int MAX_RPC_SIG_STR_LEN = 65 * 1024; // 65K
+
+static const int REG_CONT_TX_FEE_MIN = 1 * COIN;
 
 static bool FindKeyId(CAccountViewCache *pAccountView, string const &addr, CKeyID &keyId) {
     // first, try to parse regId 
@@ -115,23 +112,27 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         free(buffer);
     }
 
-    uint64_t totalFee = 110010000;
-    if (params.size() > 3) {
-        totalFee = params[3].get_uint64();
-    }
-
-    uint64_t nDefaultFee = SysCfg().GetTxFee();
-
-    if (totalFee < nDefaultFee * 2) {
-        char errorMsg[100] = {'\0'};
-        sprintf(errorMsg, "input fee smaller than mintxfee*2: %ld sawi", nDefaultFee * 2);
-        throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);
-    }
-
     vector<unsigned char> vscript;
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     ds << vmScript;
     vscript.assign(ds.begin(), ds.end());
+
+    uint64_t nDefaultFee = SysCfg().GetTxFee();
+    int nFuelRate = GetElementForBurn(chainActive.Tip());
+    uint64_t regFee = std::max((int)ceil(vscript.size() / 100) * nFuelRate, REG_CONT_TX_FEE_MIN);
+    uint64_t minFee = regFee + nDefaultFee;
+
+    uint64_t totalFee = minFee + 10000000; // set default totalFee
+    if (params.size() > 3) {
+        totalFee = params[3].get_uint64();
+    }
+
+
+    if (totalFee < minFee) {
+        char errorMsg[100] = {'\0'};
+        sprintf(errorMsg, "input fee could not smaller than: %ld sawi", minFee);
+        throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);
+    }
 
     CTransactionDBCache txCacheTemp(*pTxCacheTip, true);
     CAccountViewCache acctViewTemp(*pAccountViewTip, true);
@@ -167,8 +168,6 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     CRegID srcRegId;
     acctViewTemp.GetRegId(srcKeyid, srcRegId);
 
-
-    int nFuelRate = GetElementForBurn(chainActive.Tip());
     Object registerContractTxObj;
     EnsureWalletIsUnlocked();
     int newHeight = chainActive.Tip()->nHeight + 1;    
@@ -178,7 +177,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
         tx.regAcctId = srcRegId;
         tx.script    = vscript;
-        tx.llFees    = nDefaultFee;
+        tx.llFees    = regFee;
         tx.nRunStep  = vscript.size();
         tx.nValidHeight = newHeight;
 
@@ -217,7 +216,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         contractTx.srcRegId  = srcRegId;
         contractTx.desUserId = appId;
         contractTx.llValues  = amount;
-        contractTx.llFees    = totalFee - nDefaultFee;
+        contractTx.llFees    = totalFee - regFee;
         contractTx.arguments = arguments;
         contractTx.nValidHeight = newHeight;
 
