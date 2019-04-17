@@ -63,6 +63,7 @@ coin_CORE_H = \
   rpc/rpcclient.h \
   rpc/rpcprotocol.h \
   rpc/rpcserver.h \
+  rpc/rpcvm.h \
   support/cleanse.h \
   serialize.h \
   sigcache.h \
@@ -200,6 +201,7 @@ libcoin_server_a_SOURCES = \
   rpc/rpcnet.cpp \
   rpc/rpcrawtransaction.cpp \
   rpc/rpcserver.cpp \
+  rpc/rpcvm.cpp \
   sigcache.cpp \
   txdb.cpp \
   txmempool.cpp \
