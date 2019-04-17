@@ -289,7 +289,7 @@ inline bool AllowFree(double dPriority) {
 }
 
 // Context-independent validity checks
-bool CheckTransaction(CBaseTx *pBaseTx, CValidationState &state, CAccountViewCache &view);
+bool CheckTx(CBaseTx *pBaseTx, CValidationState &state, CAccountViewCache &view);
 
 /** Check for standard transaction types
     @return True if all outputs (scriptPubKeys) use only standard transaction forms

@@ -587,11 +587,11 @@ bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> si
     return true;
 }
 
-bool CheckTransaction(CBaseTx *ptx, CValidationState &state, CAccountViewCache &view,
+bool CheckTx(CBaseTx *ptx, CValidationState &state, CAccountViewCache &view,
                       CScriptDBViewCache &scriptDB) {
     if (REWARD_TX == ptx->nTxType) return true;
 
-    if (!ptx->CheckTransaction(state, view, scriptDB)) return false;
+    if (!ptx->CheckTx(state, view, scriptDB)) return false;
 
     return true;
 }
@@ -640,8 +640,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : nonstandard transaction: %s", reason),
                          REJECT_NONSTANDARD, reason);
 
-    if (!CheckTransaction(pBaseTx, state, *pool.pAccountViewCache, *pool.pScriptDBViewCache))
-        return ERRORMSG("AcceptToMemoryPool() : CheckTransaction failed");
+    if (!CheckTx(pBaseTx, state, *pool.pAccountViewCache, *pool.pScriptDBViewCache))
+        return ERRORMSG("AcceptToMemoryPool() : CheckTx failed");
 
     {
         double dPriority = pBaseTx->GetPriority();
@@ -2196,8 +2196,8 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
     for (unsigned int i = 0; i < block.vptx.size(); i++) {
         uniqueTx.insert(block.GetTxHash(i));
 
-        if (fCheckTx && !CheckTransaction(block.vptx[i].get(), state, view, scriptDBCache))
-            return ERRORMSG("CheckBlock() :tx hash:%s CheckTransaction failed", block.vptx[i]->GetHash().GetHex());
+        if (fCheckTx && !CheckTx(block.vptx[i].get(), state, view, scriptDBCache))
+            return ERRORMSG("CheckBlock() :tx hash:%s CheckTx failed", block.vptx[i]->GetHash().GetHex());
 
         if (block.GetHash() != SysCfg().HashGenesisBlock()) {
             if (0 != i && block.vptx[i]->IsCoinBase())
