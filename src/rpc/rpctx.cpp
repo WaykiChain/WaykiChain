@@ -400,9 +400,8 @@ Value registeraccounttx(const Array& params, bool fHelp) {
     if (params.size() > 1) {
         fee = params[1].get_uint64();
         if (fee < nDefaultFee) {
-            char errorMsg[100] = {'\0'};
-            sprintf(errorMsg, "input fee smaller than mintxfee: %ld sawi", nDefaultFee);
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);
+            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
+                               strprintf("input fee smaller than mintxfee: %ld sawi", nDefaultFee));
         }
     } else {
         fee = nDefaultFee;
@@ -2198,20 +2197,29 @@ Value getcontractitemcount(const Array& params, bool fHelp) {
 }
 
 Value genregisteraccountraw(const Array& params, bool fHelp) {
-    if (fHelp || (params.size() < 3  || params.size() > 4)) {
-        throw runtime_error("genregisteraccountraw \"fee\" \"height\" \"publickey\" (\"minerpublickey\") \n"
-                "\ncreate a register account transaction\n"
-                "\nArguments:\n"
-                "1.fee: (numeric, required) pay to miner\n"
-                "2.height: (numeric, required)\n"
-                "3.publickey: (string, required)\n"
-                "4.minerpublickey: (string,optional)\n"
-                "\nResult:\n"
-                "\"txhash\": (string)\n"
-                "\nExamples:\n"
-                + HelpExampleCli("genregisteraccountraw",  "10000  3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\"")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("genregisteraccountraw", " 10000 3300 \"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" \"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\""));
+    if (fHelp || (params.size() < 3 || params.size() > 4)) {
+        throw runtime_error(
+            "genregisteraccountraw \"fee\" \"height\" \"publickey\" (\"minerpublickey\") \n"
+            "\ncreate a register account transaction\n"
+            "\nArguments:\n"
+            "1.fee: (numeric, required) pay to miner\n"
+            "2.height: (numeric, required)\n"
+            "3.publickey: (string, required)\n"
+            "4.minerpublickey: (string,optional)\n"
+            "\nResult:\n"
+            "\"txhash\": (string)\n"
+            "\nExamples:\n" +
+            HelpExampleCli(
+                "genregisteraccountraw",
+                "10000  3300 "
+                "\"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" "
+                "\"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\"") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc(
+                "genregisteraccountraw",
+                " 10000 3300 "
+                "\"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" "
+                "\"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\""));
     }
     CUserID ukey;
     CUserID uminerkey = CNullID();
@@ -2220,9 +2228,8 @@ Value genregisteraccountraw(const Array& params, bool fHelp) {
     int64_t nDefaultFee = SysCfg().GetTxFee();
 
     if (fee < nDefaultFee) {
-        char errorMsg[100] = {'\0'};
-        sprintf(errorMsg, "input fee smaller than mintxfee: %ld sawi", nDefaultFee);
-        throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);
+        throw JSONRPCError(RPC_INSUFFICIENT_FEE,
+                           strprintf("input fee smaller than mintxfee: %ld sawi", nDefaultFee));
     }
 
     int hight = params[1].get_int();
@@ -3181,9 +3188,9 @@ Value listdelegates(const Array& params, bool fHelp) {
 
     int nDelegateNum = (params.size() == 1) ? params[0].get_int() : IniCfg().GetDelegatesNum();
     if (nDelegateNum < 1 || nDelegateNum > 11) {
-        char errorMsg[100] = {'\0'};
-        sprintf(errorMsg, "input delegate number not between 1 and %ld", IniCfg().GetDelegatesNum());
-        throw JSONRPCError(RPC_INVALID_PARAMS, errorMsg);
+        throw JSONRPCError(
+            RPC_INVALID_PARAMS,
+            strprintf("input delegate number not between 1 and %ld", IniCfg().GetDelegatesNum()));
     }
 
     int nIndex = 0;

@@ -32,7 +32,7 @@ using namespace json_spirit;
 static const int REG_CONT_TX_FEE_MIN = 1 * COIN;
 
 static bool FindKeyId(CAccountViewCache *pAccountView, string const &addr, CKeyID &keyId) {
-    // first, try to parse regId 
+    // first, try to parse regId
     CRegID regId(addr);
     if (!regId.IsEmpty()) {
          keyId = regId.GetKeyID(*pAccountView);
@@ -43,7 +43,7 @@ static bool FindKeyId(CAccountViewCache *pAccountView, string const &addr, CKeyI
 
     // parse keyId from addr
     keyId = CKeyID(addr);
-    return !keyId.IsEmpty();    
+    return !keyId.IsEmpty();
 }
 
 Value vmexecutescript(const Array& params, bool fHelp) {
@@ -129,9 +129,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
 
     if (totalFee < minFee) {
-        char errorMsg[100] = {'\0'};
-        sprintf(errorMsg, "input fee could not smaller than: %ld sawi", minFee);
-        throw JSONRPCError(RPC_INSUFFICIENT_FEE, errorMsg);
+        throw JSONRPCError(RPC_INSUFFICIENT_FEE,
+                           strprintf("input fee could not smaller than: %ld sawi", minFee));
     }
 
     CTransactionDBCache txCacheTemp(*pTxCacheTip, true);
@@ -170,7 +169,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     Object registerContractTxObj;
     EnsureWalletIsUnlocked();
-    int newHeight = chainActive.Tip()->nHeight + 1;    
+    int newHeight = chainActive.Tip()->nHeight + 1;
     assert(pwalletMain != NULL);
     {
         CRegisterContractTx tx;
@@ -241,6 +240,6 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     retObj.push_back(Pair("register_contract_tx", registerContractTxObj));
     retObj.push_back(Pair("call_contract_tx", callContractTxObj));
 
-    return retObj;    
+    return retObj;
 }
 
