@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2017-2018 The WaykiChain developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
@@ -35,21 +35,23 @@ class CAccountLog;
 class COperVoteFund;
 class CVoteFund;
 
-static const int nTxVersion1 = 1;  //交易初始版本
-static const int nTxVersion2 = 2;  //交易初始版本
+static const int nTxVersion1 = 1;
+static const int nTxVersion2 = 2;
 
 typedef vector<unsigned char> vector_unsigned_char;
 
 #define SCRIPT_ID_SIZE (6)
 
 enum TxType {
-    REWARD_TX   = 1,  //!< reward tx
-    REG_ACCT_TX = 2,  //!< tx that used to register account
-    COMMON_TX   = 3,  //!< transfer coin from one account to another
-    CONTRACT_TX = 4,  //!< contract tx
-    REG_CONT_TX = 5,  //!< register contract
-    DELEGATE_TX = 6,  //!< delegate tx
-    NULL_TX,          //!< NULL_TX
+    REWARD_TX   = 1,    //!< Minder Reward Tx
+    REG_ACCT_TX = 2,    //!< Register Account Tx
+    COMMON_TX   = 3,    //!< Base Coin Transfer Tx
+    CONTRACT_TX = 4,    //!< Contract Tx
+    REG_CONT_TX = 5,    //!< Register Contract Tx
+    DELEGATE_TX = 6,    //!< Vote Delegate Tx
+
+
+    NULL_TX //!< NULL_TX
 };
 
 /**
@@ -167,14 +169,17 @@ public:
     unsigned char nTxType;
     int nVersion;
     int nValidHeight;
+    uint64_t llFees;
     uint64_t nRunStep;  // only in memory
     int nFuelRate;      // only in memory
     uint256 sigHash;    // only in memory
 
 public:
     CBaseTx(const CBaseTx &other) { *this = other; }
-    CBaseTx(int _nVersion, unsigned char _nTxType) : nTxType(_nTxType), nVersion(_nVersion), nValidHeight(0), nRunStep(0), nFuelRate(0) {}
-    CBaseTx() : nTxType(COMMON_TX), nVersion(CURRENT_VERSION), nValidHeight(0), nRunStep(0), nFuelRate(0) {}
+    CBaseTx(int _nVersion, unsigned char _nTxType) :
+        nTxType(_nTxType), nVersion(_nVersion), nValidHeight(0), llFees(0), nRunStep(0), nFuelRate(0) {}
+    CBaseTx() :
+        nTxType(COMMON_TX), nVersion(CURRENT_VERSION), nValidHeight(0), llFees(0), nRunStep(0), nFuelRate(0) {}
     virtual ~CBaseTx() {}
     virtual unsigned int GetSerializeSize(int nType, int nVersion) const = 0;
     virtual uint256 GetHash() const = 0;
@@ -188,9 +193,9 @@ public:
     virtual bool IsValidHeight(int nCurHeight, int nTxCacheHeight) const;
     bool IsCoinBase() { return (nTxType == REWARD_TX); }
     virtual bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-                           int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) = 0;
+                        int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) = 0;
     virtual bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-                               int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
+                        int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
     virtual bool CheckTransaction(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) = 0;
     virtual uint64_t GetFuel(int nfuelRate);
     virtual uint64_t GetValue() const = 0;
@@ -204,7 +209,6 @@ class CRegisterAccountTx : public CBaseTx {
 public:
     mutable CUserID userId;   // pubkey
     mutable CUserID minerId;  // miner pubkey
-    uint64_t llFees;
     vector<unsigned char> signature;
 
 public:
@@ -214,16 +218,14 @@ public:
     }
     CRegisterAccountTx(const CUserID &uId, const CUserID &minerID, int64_t fee, int height) {
         nTxType      = REG_ACCT_TX;
-        llFees       = fee;
         nValidHeight = height;
+        llFees       = fee;
         userId       = uId;
         minerId      = minerID;
         signature.clear();
     }
     CRegisterAccountTx() {
         nTxType      = REG_ACCT_TX;
-        llFees       = 0;
-        nValidHeight = 0;
     }
     ~CRegisterAccountTx() {}
 
@@ -275,7 +277,6 @@ class CCommonTx : public CBaseTx {
 public:
     mutable CUserID srcUserId;  // regid or pubkey
     mutable CUserID desUserId;  // regid or keyid
-    uint64_t llFees;            // fees paid to miner
     uint64_t llValues;          // transfer amount
     vector_unsigned_char memo;
     vector_unsigned_char signature;
@@ -283,11 +284,6 @@ public:
 public:
     CCommonTx() {
         nTxType      = COMMON_TX;
-        llFees       = 0;
-        llValues     = 0;
-        nValidHeight = 0;
-        memo.clear();
-        signature.clear();
     }
 
     CCommonTx(const CBaseTx *pBaseTx) {
@@ -310,7 +306,6 @@ public:
         nValidHeight = height;
         llFees       = fee;
         llValues     = value;
-        signature.clear();
     }
 
     CCommonTx(const CUserID &srcUserIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
@@ -327,8 +322,6 @@ public:
         nValidHeight = height;
         llFees       = fee;
         llValues     = value;
-        memo.clear();
-        signature.clear();
     }
 
     ~CCommonTx() {}
@@ -385,7 +378,6 @@ class CContractTx : public CBaseTx {
 public:
     mutable CUserID srcRegId;   // src regid
     mutable CUserID desUserId;  // keyid or app regid
-    uint64_t llFees;            // fees paid to miner
     uint64_t llValues;          // transfer amount
     vector_unsigned_char arguments;
     vector_unsigned_char signature;
@@ -393,11 +385,6 @@ public:
 public:
     CContractTx() {
         nTxType = CONTRACT_TX;
-        llFees  = 0;
-        nValidHeight = 0;
-        llValues     = 0;
-        arguments.clear();
-        signature.clear();
     }
 
     CContractTx(const CBaseTx *pBaseTx) {
@@ -420,11 +407,10 @@ public:
         nValidHeight = height;
         llFees       = fee;
         llValues     = value;
-        signature.clear();
     }
 
     CContractTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee,
-                         uint64_t value, int height) {
+                uint64_t value, int height) {
         if (srcRegIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
 
@@ -437,8 +423,6 @@ public:
         nValidHeight = height;
         llFees       = fee;
         llValues     = value;
-        arguments.clear();
-        signature.clear();
     }
 
     ~CContractTx() {}
@@ -470,9 +454,9 @@ public:
             uint256 *hash = const_cast<uint256 *>(&sigHash);
             *hash         = ss.GetHash();
         }
-
         return sigHash;
     }
+
     uint64_t GetValue() const { return llValues; }
     uint256 GetHash() const { return SignatureHash(); }
     uint64_t GetFee() const { return llFees; }
@@ -491,7 +475,7 @@ public:
 
 class CRewardTx : public CBaseTx {
 public:
-    mutable CUserID account;  // in genesis block is pubkey, otherwise account id
+    mutable CUserID account;  // pubkey in genesis block, otherwise accountId
     uint64_t rewardValue;
     int nHeight;
 
@@ -558,7 +542,6 @@ class CRegisterContractTx : public CBaseTx {
 public:
     mutable CUserID regAcctId;    // contract publisher regid
     vector_unsigned_char script;  // contract script content
-    uint64_t llFees;
     vector_unsigned_char signature;
 
 public:
@@ -566,13 +549,8 @@ public:
         assert(REG_CONT_TX == pBaseTx->nTxType);
         *this = *(CRegisterContractTx *)pBaseTx;
     }
-    CRegisterContractTx() {
-        nTxType      = REG_CONT_TX;
-        llFees       = 0;
-        nValidHeight = 0;
-    }
-    ~CRegisterContractTx() {
-    }
+    CRegisterContractTx() { nTxType = REG_CONT_TX;}
+    ~CRegisterContractTx() { }
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -620,7 +598,6 @@ class CDelegateTx : public CBaseTx {
 public:
     mutable CUserID userId;
     vector<COperVoteFund> operVoteFunds;  //!< oper delegate votes, max length is Delegates number
-    uint64_t llFees;
     vector_unsigned_char signature;
 
 public:
@@ -639,25 +616,21 @@ public:
         operVoteFunds = operVoteFundsIn;
         nValidHeight  = heightIn;
         llFees        = feeIn;
-        signature.clear();
     }
     CDelegateTx(const CUserID &userIdIn, uint64_t feeIn, const vector<COperVoteFund> &operVoteFundsIn,
-                         const int heightIn) {
-        if (userIdIn.type() == typeid(CRegID)) {
+                const int heightIn) {
+        if (userIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(userIdIn).IsEmpty());
-        }
+
         nTxType       = DELEGATE_TX;
         userId        = userIdIn;
         operVoteFunds = operVoteFundsIn;
         nValidHeight  = heightIn;
         llFees        = feeIn;
-        signature.clear();
     }
     CDelegateTx() {
         nTxType = DELEGATE_TX;
-        llFees  = 0;
         operVoteFunds.clear();
-        nValidHeight = 0;
         signature.clear();
     }
     ~CDelegateTx() {}

@@ -6,6 +6,7 @@
 #include "./vm/appaccount.h"
 #include "serialize.h"
 #include "tx.h"
+
 using namespace std;
 
 class CAccount;
