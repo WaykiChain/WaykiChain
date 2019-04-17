@@ -190,8 +190,8 @@ public:
     static uint64_t nDustAmountThreshold;
     static const int CURRENT_VERSION = nTxVersion1;
 
-    unsigned char nTxType;
     int nVersion;
+    unsigned char nTxType;
     int nValidHeight;
     uint64_t llFees;
     uint64_t nRunStep;  // only in memory
@@ -200,10 +200,19 @@ public:
 
 public:
     CBaseTx(const CBaseTx &other) { *this = other; }
-    CBaseTx(int _nVersion, unsigned char _nTxType) :
-        nTxType(_nTxType), nVersion(_nVersion), nValidHeight(0), llFees(0), nRunStep(0), nFuelRate(0) {}
-    CBaseTx() :
-        nTxType(COMMON_TX), nVersion(CURRENT_VERSION), nValidHeight(0), llFees(0), nRunStep(0), nFuelRate(0) {}
+
+    CBaseTx(int nVersionIn, unsigned char nTxTypeIn, int nValidHeightIn, uint64_t llFeesIn) :
+        nVersion(nVersionIn), nTxType(nTxTypeIn), nValidHeight(nValidHeightIn), llFees(llFeesIn), nRunStep(0), nFuelRate(0) {}
+
+    CBaseTx(unsigned char nTxTypeIn, int nValidHeightIn, uint64_t llFeesIn) :
+        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), nValidHeight(nValidHeightIn), llFees(llFeesIn), nRunStep(0), nFuelRate(0) {}
+
+    CBaseTx(int nVersionIn, unsigned char nTxTypeIn) :
+        nVersion(nVersionIn), nTxType(nTxTypeIn), nValidHeight(0), llFees(0), nRunStep(0), nFuelRate(0) {}
+
+    CBaseTx(unsigned char nTxTypeIn) :
+        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), nValidHeight(0), llFees(0), nRunStep(0), nFuelRate(0) {}
+
     virtual ~CBaseTx() {}
     virtual unsigned int GetSerializeSize(int nType, int nVersion) const = 0;
     virtual uint256 GetHash() const = 0;
@@ -236,21 +245,17 @@ public:
     vector<unsigned char> signature;
 
 public:
-    CRegisterAccountTx(const CBaseTx *pBaseTx) {
+    CRegisterAccountTx(const CBaseTx *pBaseTx): CBaseTx(REG_ACCT_TX) {
         assert(REG_ACCT_TX == pBaseTx->nTxType);
         *this = *(CRegisterAccountTx *)pBaseTx;
     }
-    CRegisterAccountTx(const CUserID &uId, const CUserID &minerID, int64_t fee, int height) {
-        nTxType      = REG_ACCT_TX;
-        nValidHeight = height;
-        llFees       = fee;
+    CRegisterAccountTx(const CUserID &uId, const CUserID &minerID, int64_t feeIn, int validHeightIn) :
+        CBaseTx(REG_ACCT_TX, validHeightIn, feeIn) {
         userId       = uId;
         minerId      = minerID;
-        signature.clear();
     }
-    CRegisterAccountTx() {
-        nTxType      = REG_ACCT_TX;
-    }
+    CRegisterAccountTx(): CBaseTx(REG_ACCT_TX) {}
+
     ~CRegisterAccountTx() {}
 
     IMPLEMENT_SERIALIZE(
@@ -306,46 +311,41 @@ public:
     vector_unsigned_char signature;
 
 public:
-    CCommonTx() {
-        nTxType      = COMMON_TX;
-    }
+    CCommonTx(): CBaseTx(COMMON_TX) { }
 
-    CCommonTx(const CBaseTx *pBaseTx) {
+    CCommonTx(const CBaseTx *pBaseTx): CBaseTx(COMMON_TX) {
         assert(COMMON_TX == pBaseTx->nTxType);
         *this = *(CCommonTx *)pBaseTx;
     }
 
-    CCommonTx(const CUserID &srcUserIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
-              int height, vector_unsigned_char &descriptionIn) {
+    CCommonTx(const CUserID &srcUserIdIn, CUserID desUserIdIn, uint64_t feeIn, uint64_t valueIn,
+              int validHeightIn, vector_unsigned_char &descriptionIn) :
+              CBaseTx(COMMON_TX, validHeightIn, feeIn) {
+
+        //FIXME: need to support public key
         if (srcUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(srcUserIdIn).IsEmpty());
 
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
 
-        nTxType      = COMMON_TX;
-        srcUserId    = srcUserIdIn;
-        desUserId    = desUserIdIn;
-        memo         = descriptionIn;
-        nValidHeight = height;
-        llFees       = fee;
-        llValues     = value;
+        srcUserId   = srcUserIdIn;
+        desUserId   = desUserIdIn;
+        llValues    = valueIn;
+        memo        = descriptionIn;
     }
 
-    CCommonTx(const CUserID &srcUserIdIn, CUserID desUserIdIn, uint64_t fee, uint64_t value,
-              int height) {
+    CCommonTx(const CUserID &srcUserIdIn, CUserID desUserIdIn, uint64_t feeIn, uint64_t valueIn,
+              int validHeightIn): CBaseTx(COMMON_TX, validHeightIn, feeIn) {
         if (srcUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(srcUserIdIn).IsEmpty());
 
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
 
-        nTxType      = COMMON_TX;
         srcUserId    = srcUserIdIn;
         desUserId    = desUserIdIn;
-        nValidHeight = height;
-        llFees       = fee;
-        llValues     = value;
+        llValues     = valueIn;
     }
 
     ~CCommonTx() {}
@@ -407,46 +407,40 @@ public:
     vector_unsigned_char signature;
 
 public:
-    CContractTx() {
-        nTxType = CONTRACT_TX;
-    }
+    CContractTx(): CBaseTx(CONTRACT_TX) {}
 
-    CContractTx(const CBaseTx *pBaseTx) {
+    CContractTx(const CBaseTx *pBaseTx): CBaseTx(CONTRACT_TX) {
         assert(CONTRACT_TX == pBaseTx->nTxType);
         *this = *(CContractTx *)pBaseTx;
     }
 
-    CContractTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee,
-                         uint64_t value, int height, vector_unsigned_char &argumentsIn) {
+    CContractTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t feeIn,
+                uint64_t valueIn, int validHeightIn, vector_unsigned_char &argumentsIn):
+                CBaseTx(CONTRACT_TX, validHeightIn, feeIn) {
         if (srcRegIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
 
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
 
-        nTxType      = CONTRACT_TX;
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
+        llValues     = valueIn;
         arguments    = argumentsIn;
-        nValidHeight = height;
-        llFees       = fee;
-        llValues     = value;
     }
 
-    CContractTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t fee,
-                uint64_t value, int height) {
+    CContractTx(const CUserID &srcRegIdIn, CUserID desUserIdIn, uint64_t feeIn,
+                uint64_t valueIn, int validHeightIn):
+                CBaseTx(CONTRACT_TX, validHeightIn, feeIn) {
         if (srcRegIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
 
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
 
-        nTxType      = CONTRACT_TX;
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
-        nValidHeight = height;
-        llFees       = fee;
-        llValues     = value;
+        llValues     = valueIn;
     }
 
     ~CContractTx() {}
@@ -504,17 +498,13 @@ public:
     int nHeight;
 
 public:
-    CRewardTx() {
-        nTxType     = REWARD_TX;
-        rewardValue = 0;
-        nHeight     = 0;
-    }
-    CRewardTx(const CBaseTx *pBaseTx) {
+    CRewardTx(): CBaseTx(REWARD_TX) { rewardValue = 0; }
+    CRewardTx(const CBaseTx *pBaseTx): CBaseTx(REWARD_TX) {
         assert(REWARD_TX == pBaseTx->nTxType);
         *this = *(CRewardTx *)pBaseTx;
     }
-    CRewardTx(const vector_unsigned_char &accountIn, const uint64_t rewardValueIn, const int nHeightIn) {
-        nTxType = REWARD_TX;
+    CRewardTx(const vector_unsigned_char &accountIn, const uint64_t rewardValueIn, const int nHeightIn):
+        CBaseTx(REWARD_TX) {
         if (accountIn.size() > 6) {
             account = CPubKey(accountIn);
         } else {
@@ -569,11 +559,11 @@ public:
     vector_unsigned_char signature;
 
 public:
-    CRegisterContractTx(const CBaseTx *pBaseTx) {
+    CRegisterContractTx(const CBaseTx *pBaseTx): CBaseTx(REG_CONT_TX) {
         assert(REG_CONT_TX == pBaseTx->nTxType);
         *this = *(CRegisterContractTx *)pBaseTx;
     }
-    CRegisterContractTx() { nTxType = REG_CONT_TX;}
+    CRegisterContractTx(): CBaseTx(REG_CONT_TX) {}
     ~CRegisterContractTx() { }
 
     IMPLEMENT_SERIALIZE(
@@ -625,34 +615,30 @@ public:
     vector_unsigned_char signature;
 
 public:
-    CDelegateTx(const CBaseTx *pBaseTx) {
+    CDelegateTx(const CBaseTx *pBaseTx): CBaseTx(DELEGATE_TX) {
         assert(DELEGATE_TX == pBaseTx->nTxType);
         *this = *(CDelegateTx *)pBaseTx;
     }
     CDelegateTx(const vector_unsigned_char &accountIn, vector<COperVoteFund> &operVoteFundsIn,
-                         const uint64_t feeIn, const int heightIn) {
-        nTxType = DELEGATE_TX;
+                const uint64_t feeIn, const int validHeightIn):
+                CBaseTx(DELEGATE_TX, validHeightIn, feeIn) {
         if (accountIn.size() > 6) {
             userId = CPubKey(accountIn);
         } else {
             userId = CRegID(accountIn);
         }
         operVoteFunds = operVoteFundsIn;
-        nValidHeight  = heightIn;
-        llFees        = feeIn;
     }
     CDelegateTx(const CUserID &userIdIn, uint64_t feeIn, const vector<COperVoteFund> &operVoteFundsIn,
-                const int heightIn) {
+                const int validHeightIn):
+                CBaseTx(DELEGATE_TX, validHeightIn, feeIn) {
         if (userIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(userIdIn).IsEmpty());
 
-        nTxType       = DELEGATE_TX;
         userId        = userIdIn;
         operVoteFunds = operVoteFundsIn;
-        nValidHeight  = heightIn;
-        llFees        = feeIn;
     }
-    CDelegateTx() { nTxType = DELEGATE_TX; }
+    CDelegateTx(): CBaseTx(DELEGATE_TX) {}
     ~CDelegateTx() {}
 
     IMPLEMENT_SERIALIZE(
