@@ -1455,18 +1455,17 @@ if (fHelp || params.size() > 2) {
 
 Value getaccountinfo(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-          throw runtime_error(
-                "getaccountinfo \"addr\"\n"
-                "\nget account information\n"
-                "\nArguments:\n"
-                "1.\"addr\": (string, required) account base58 address"
-                "Returns account details.\n"
-                "\nResult:\n"
-                "\nExamples:\n"
-                + HelpExampleCli("getaccountinfo", "WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("getaccountinfo", "\"WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\"")
-           );
+        throw runtime_error(
+            "getaccountinfo \"addr\"\n"
+            "\nget account information\n"
+            "\nArguments:\n"
+            "1.\"addr\": (string, required) account base58 address"
+            "Returns account details.\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("getaccountinfo", "\"WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\"") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("getaccountinfo", "\"WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\""));
     }
     RPCTypeCheck(params, list_of(str_type));
     CKeyID keyId;

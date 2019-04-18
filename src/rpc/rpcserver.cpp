@@ -267,6 +267,7 @@ static const CRPCCommand vRPCCommands[] =
     { "genvotedelegateraw",     &genvotedelegateraw,     true,      false,     true  },
 
     /* uses wallet if enabled */
+    { "addmultisigaddr",        &addmultisigaddr,        false,     false,      true },
     { "backupwallet",           &backupwallet,           true,      false,      true },
     { "dumpprivkey",            &dumpprivkey,            true,      false,      true },
     { "dumpwallet",             &dumpwallet,             true,      false,      true },

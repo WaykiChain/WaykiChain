@@ -11,11 +11,16 @@
 #include <stdexcept>
 #include <vector>
 #include "allocators.h"
+#include "chainparams.h"
+#include "hash.h"
+#include "serialize.h"
 #include "uint256.h"
 #include "util.h"
 
 #include <secp256k1.h>
 #include <secp256k1_recovery.h>
+
+class CRegID;
 
 /** A reference to a CKey: the Hash160 of its serialized public key */
 class CKeyID : public uint160 {
@@ -28,13 +33,6 @@ public:
 
     string ToString() const { return HexStr(begin(), end()); }
     string ToAddress() const;
-};
-
-/** A reference to a CScript: the Hash160 of its serialization (see script.h) */
-class CScriptID : public uint160 {
-public:
-    CScriptID() : uint160() {}
-    CScriptID(const uint160 &in) : uint160(in) {}
 };
 
 /** An encapsulated public key. */
@@ -384,19 +382,29 @@ struct CExtKey {
     void SetMaster(const unsigned char *seed, unsigned int nSeedLen);
 };
 
-class CNoDestination {
-public:
-    friend bool operator==(const CNoDestination &a, const CNoDestination &b) { return true; }
-    friend bool operator<(const CNoDestination &a, const CNoDestination &b) { return true; }
-};
+class CScript {
+private:
+    int nRequired;
+    mutable std::set<CPubKey> pubKeys;
 
-/** A txout script template with a specific destination. It is either:
- *  * CNoDestination: no destination set
- *  * CKeyID: TX_PUBKEYHASH destination
- *  * CScriptID: TX_SCRIPTHASH destination
- *  A CTxDestination is the internal data type encoded in a CCoinAddress
- */
-typedef boost::variant<CNoDestination, CKeyID> CTxDestination;
+public:
+    CScript() {}
+
+    void SetMultisig(int nRequiredIn, const std::set<CPubKey> &pubKeysIn) {
+        nRequired = nRequiredIn;
+        pubKeys   = pubKeysIn;
+    }
+
+    CKeyID GetID() const {
+        CDataStream ds(SER_DISK, CLIENT_VERSION);
+        ds << *this;
+        return CKeyID(Hash160(ds.begin(), ds.end()));
+    }
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(nRequired));
+        READWRITE(pubKeys);)
+};
 
 /** Users of this module must hold an ECCVerifyHandle. The constructor and
  *  destructor of these are not allowed to run in parallel, though. */
