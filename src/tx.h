@@ -181,10 +181,37 @@ public:
     bool operator()(const CNullID &no) const { return true; }
 };
 
-class CBaseTx {
-private:
-    static const unordered_map<unsigned char, string> txTypeMap;
+static const unordered_map<unsigned char, string> kTxTypeMap = {
+    { REWARD_TX,            "REWARD_TX" },
+    { REG_ACCT_TX,          "REG_ACCT_TX" },
+    { COMMON_TX,            "COMMON_TX" },
+    { CONTRACT_TX,          "CONTRACT_TX" },
+    { REG_CONT_TX,          "REG_CONT_TX" },
+    { DELEGATE_TX,          "DELEGATE_TX" },
+    { CDP_OPEN_TX,          "CDP_OPEN_TX" },
+    { CDP_REFUEL_TX,        "CDP_REFUEL_TX" },
+    { CDP_REDEMP_TX,        "CDP_REDEMP_TX" },
+    { CDP_LIQUIDATE_TX,     "CDP_LIQUIDATE_TX" },
+    { PRICE_FEED_WICC_TX,   "PRICE_FEED_WICC_TX" },
+    { PRICE_FEED_MICC_TX,   "PRICE_FEED_MICC_TX" },
+    { PRICE_FEED_WUSD_TX,   "PRICE_FEED_WUSD_TX" },
+    { SFC_PARAM_MTX,        "SFC_PARAM_MTX" },
+    { SFC_GLOBAL_HALT_MTX,  "SFC_GLOBAL_HALT_MTX" },
+    { SFC_GLOBAL_SETTLE_MTX,"SFC_GLOBAL_SETTLE_MTX" },
+    { WUSD_TRANSFER_TX,     "WUSD_TRANSFER_TX" },
+    { MICC_TRANSFER_TX,     "MICC_TRANSFER_TX" },
+    { DEX_WICC_FOR_MICC_TX, "DEX_WICC_FOR_MICC_TX" },
+    { DEX_MICC_FOR_WICC_TX, "DEX_MICC_FOR_WICC_TX" },
+    { DEX_WICC_FOR_WUSD_TX, "DEX_WICC_FOR_WUSD_TX" },
+    { DEX_WUSD_FOR_WICC_TX, "DEX_WUSD_FOR_WICC_TX" },
+    { DEX_MICC_FOR_WUSD_TX, "DEX_MICC_FOR_WUSD_TX" },
+    { DEX_WUSD_FOR_MICC_TX, "DEX_WUSD_FOR_MICC_TX" },
+    { NULL_TX,              "NULL_TX" },
+};
 
+string GetTxType(unsigned char txType);
+
+class CBaseTx {
 public:
     static uint64_t nMinTxFee;
     static int64_t nMinRelayTxFee;
@@ -239,7 +266,6 @@ public:
     virtual bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) = 0;
 
     int GetFuelRate(CScriptDBViewCache &scriptDB);
-    static string GetTxType(unsigned char nTxType);
 
 protected:
     bool CheckMinTxFee(uint64_t llFees);
