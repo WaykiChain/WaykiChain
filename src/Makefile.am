@@ -32,6 +32,7 @@ $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(w
 .PHONY: FORCE
 # bitcoin core #
 coin_CORE_H = \
+  accounts/accounts.h \
   addrman.h \
   alert.h \
   allocators.h \
@@ -182,12 +183,13 @@ liblua53_a_SOURCES = \
 
 libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libcoin_server_a_SOURCES = \
-  tx.cpp \
+  accounts/accounts.cpp \
   addrman.cpp \
   alert.cpp \
   bloom.cpp \
   configuration.cpp \
   crypto/sha256.cpp \
+  cuiserver.cpp	\
   database.cpp \
   init.cpp \
   leveldbwrapper.cpp \
@@ -207,7 +209,7 @@ libcoin_server_a_SOURCES = \
   stablecoin/stablecoin.cpp \
   txdb.cpp \
   txmempool.cpp \
-  cuiserver.cpp	\
+  tx.cpp \
   $(VMLUA_H) \
   $(VM_CPP) \
   $(VM_H) \
