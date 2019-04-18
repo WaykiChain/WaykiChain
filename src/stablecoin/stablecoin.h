@@ -59,6 +59,7 @@ public:
 
     uint256 GetHash() const { return SignatureHash(); }
     uint64_t GetFee() const { return llFees; }
+    uint64_t GetValue() const { return 0; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCdpOpenTx>(this); }
     string ToString(CAccountViewCache &view) const;

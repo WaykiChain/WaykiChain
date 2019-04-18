@@ -43,7 +43,7 @@ typedef vector<unsigned char> vector_unsigned_char;
 
 #define SCRIPT_ID_SIZE (6)
 
-enum TxType {
+enum TxType: unsigned char {
     REWARD_TX   = 1,    //!< Miner Reward Tx
     REG_ACCT_TX = 2,    //!< Register Account Tx
     COMMON_TX   = 3,    //!< Base Coin Transfer Tx
@@ -82,19 +82,19 @@ enum TxType {
 /**
  * brief:   kinds of fund type
  */
-enum FundType {
+enum FundType: unsigned char {
     FREEDOM = 1,    //!< FREEDOM
     REWARD_FUND,    //!< REWARD_FUND
     NULL_FUNDTYPE,  //!< NULL_FUNDTYPE
 };
 
-enum OperType {
+enum OperType: unsigned char {
     ADD_FREE   = 1,  //!< add money to freedom
     MINUS_FREE = 2,  //!< minus money from freedom
     NULL_OPERTYPE,   //!< invalid operate type
 };
 
-enum VoteOperType {
+enum VoteOperType: unsigned char {
     ADD_FUND   = 1,  //!< add operate
     MINUS_FUND = 2,  //!< minus operate
     NULL_OPER,       //!< invalid
@@ -182,6 +182,9 @@ public:
 };
 
 class CBaseTx {
+private:
+    static const unordered_map<unsigned char, string> txTypeMap;
+
 public:
     static uint64_t nMinTxFee;
     static int64_t nMinRelayTxFee;
@@ -196,60 +199,31 @@ public:
     int nFuelRate;      // only in memory
     uint256 sigHash;    // only in memory
 
-private:
-    static unordered_map<unsigned char, string> txTypeMap;
-    static void InitializeTxTypeMap() {
-        txTypeMap[REWARD_TX]            = "REWARD_TX";
-        txTypeMap[REG_ACCT_TX]          = "REG_ACCT_TX";
-        txTypeMap[COMMON_TX]            = "COMMON_TX";
-        txTypeMap[CONTRACT_TX]          = "CONTRACT_TX";
-        txTypeMap[REG_CONT_TX]          = "REG_CONT_TX";
-        txTypeMap[DELEGATE_TX]          = "DELEGATE_TX";
-        txTypeMap[CDP_OPEN_TX]          = "CDP_OPEN_TX";
-        txTypeMap[CDP_REFUEL_TX]        = "CDP_REFUEL_TX";
-        txTypeMap[CDP_REDEMP_TX]        = "CDP_REDEMP_TX";
-        txTypeMap[CDP_LIQUIDATE_TX]     = "CDP_LIQUIDATE_TX";
-        txTypeMap[PRICE_FEED_WICC_TX]   = "PRICE_FEED_WICC_TX";
-        txTypeMap[PRICE_FEED_MICC_TX]   = "PRICE_FEED_MICC_TX";
-        txTypeMap[PRICE_FEED_WUSD_TX]   = "PRICE_FEED_WUSD_TX";
-        txTypeMap[SFC_PARAM_MTX]        = "SFC_PARAM_MTX";
-        txTypeMap[SFC_GLOBAL_HALT_MTX]  = "SFC_GLOBAL_HALT_MTX";
-        txTypeMap[SFC_GLOBAL_SETTLE_MTX]= "SFC_GLOBAL_SETTLE_MTX";
-        txTypeMap[WUSD_TRANSFER_TX]     = "WUSD_TRANSFER_TX";
-        txTypeMap[MICC_TRANSFER_TX]     = "MICC_TRANSFER_TX";
-        txTypeMap[DEX_WICC_FOR_MICC_TX] = "DEX_WICC_FOR_MICC_TX";
-        txTypeMap[DEX_MICC_FOR_WICC_TX] = "DEX_MICC_FOR_WICC_TX";
-        txTypeMap[DEX_WICC_FOR_WUSD_TX] = "DEX_WICC_FOR_WUSD_TX";
-        txTypeMap[DEX_WUSD_FOR_WICC_TX] = "DEX_WUSD_FOR_WICC_TX";
-        txTypeMap[DEX_MICC_FOR_WUSD_TX] = "DEX_MICC_FOR_WUSD_TX";
-        txTypeMap[DEX_WUSD_FOR_MICC_TX] = "DEX_WUSD_FOR_MICC_TX";
-        txTypeMap[NULL_TX]              = "NULL_TX";
-    }
-
 public:
-    CBaseTx(const CBaseTx &other) { *this = other; InitializeTxTypeMap(); }
+    CBaseTx(const CBaseTx &other) { *this = other; }
 
-    CBaseTx(int nVersionIn, unsigned char nTxTypeIn, int nValidHeightIn, uint64_t llFeesIn) :
-        nVersion(nVersionIn), nTxType(nTxTypeIn), nValidHeight(nValidHeightIn), llFees(llFeesIn), nRunStep(0), nFuelRate(0)
-        { InitializeTxTypeMap(); }
+    CBaseTx(int nVersionIn, TxType nTxTypeIn, int nValidHeightIn, uint64_t llFeesIn) :
+        nVersion(nVersionIn), nTxType(nTxTypeIn), nValidHeight(nValidHeightIn), llFees(llFeesIn),
+        nRunStep(0), nFuelRate(0) {}
 
-    CBaseTx(unsigned char nTxTypeIn, int nValidHeightIn, uint64_t llFeesIn) :
-        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), nValidHeight(nValidHeightIn), llFees(llFeesIn), nRunStep(0), nFuelRate(0)
-        { InitializeTxTypeMap(); }
+    CBaseTx(TxType nTxTypeIn, int nValidHeightIn, uint64_t llFeesIn) :
+        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), nValidHeight(nValidHeightIn), llFees(llFeesIn),
+        nRunStep(0), nFuelRate(0) {}
 
-    CBaseTx(int nVersionIn, unsigned char nTxTypeIn) :
-        nVersion(nVersionIn), nTxType(nTxTypeIn), nValidHeight(0), llFees(0), nRunStep(0), nFuelRate(0)
-        { InitializeTxTypeMap(); }
+    CBaseTx(int nVersionIn, TxType nTxTypeIn) :
+        nVersion(nVersionIn), nTxType(nTxTypeIn),
+        nValidHeight(0), llFees(0), nRunStep(0), nFuelRate(0) {}
 
-    CBaseTx(unsigned char nTxTypeIn) :
-        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), nValidHeight(0), llFees(0), nRunStep(0), nFuelRate(0)
-        { InitializeTxTypeMap(); }
+    CBaseTx(TxType nTxTypeIn) :
+        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn),
+        nValidHeight(0), llFees(0), nRunStep(0), nFuelRate(0) {}
 
     virtual ~CBaseTx() {}
     virtual unsigned int GetSerializeSize(int nType, int nVersion) const = 0;
     virtual uint256 GetHash() const = 0;
     virtual uint64_t GetFee() const = 0;
-    virtual uint64_t GetValue() const = 0;
+    virtual uint64_t GetFuel(int nfuelRate);
+    virtual uint64_t GetValue() const { return 0; }
     virtual double GetPriority() const = 0;
     virtual uint256 SignatureHash(bool recalculate = false) const = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance() = 0;
@@ -263,9 +237,9 @@ public:
     virtual bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
                         int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
     virtual bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) = 0;
-    virtual uint64_t GetFuel(int nfuelRate);
+
     int GetFuelRate(CScriptDBViewCache &scriptDB);
-    string GetTxType(unsigned char nTxType) const { return txTypeMap[nTxType]; };
+    static string GetTxType(unsigned char nTxType);
 
 protected:
     bool CheckMinTxFee(uint64_t llFees);
@@ -832,7 +806,7 @@ public:
 
 class COperVoteFund {
 public:
-    static string voteOperTypeArray[3];
+    static const string voteOperTypeArray[3];
 
 public:
     unsigned char operType;  //!<1:ADD_FUND 2:MINUS_FUND

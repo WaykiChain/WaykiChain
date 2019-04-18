@@ -15,7 +15,35 @@
 #include "json/json_spirit_writer_template.h"
 using namespace json_spirit;
 
-string COperVoteFund::voteOperTypeArray[3] = {"NULL_OPER", "ADD_FUND", "MINUS_FUND"};
+const string COperVoteFund::voteOperTypeArray[3] = {"NULL_OPER", "ADD_FUND", "MINUS_FUND"};
+
+const unordered_map<unsigned char, string> CBaseTx::txTypeMap = {
+    { REWARD_TX,            "REWARD_TX" },
+    { REG_ACCT_TX,          "REG_ACCT_TX" },
+    { COMMON_TX,            "COMMON_TX" },
+    { CONTRACT_TX,          "CONTRACT_TX" },
+    { REG_CONT_TX,          "REG_CONT_TX" },
+    { DELEGATE_TX,          "DELEGATE_TX" },
+    { CDP_OPEN_TX,          "CDP_OPEN_TX" },
+    { CDP_REFUEL_TX,        "CDP_REFUEL_TX" },
+    { CDP_REDEMP_TX,        "CDP_REDEMP_TX" },
+    { CDP_LIQUIDATE_TX,     "CDP_LIQUIDATE_TX" },
+    { PRICE_FEED_WICC_TX,   "PRICE_FEED_WICC_TX" },
+    { PRICE_FEED_MICC_TX,   "PRICE_FEED_MICC_TX" },
+    { PRICE_FEED_WUSD_TX,   "PRICE_FEED_WUSD_TX" },
+    { SFC_PARAM_MTX,        "SFC_PARAM_MTX" },
+    { SFC_GLOBAL_HALT_MTX,  "SFC_GLOBAL_HALT_MTX" },
+    { SFC_GLOBAL_SETTLE_MTX,"SFC_GLOBAL_SETTLE_MTX" },
+    { WUSD_TRANSFER_TX,     "WUSD_TRANSFER_TX" },
+    { MICC_TRANSFER_TX,     "MICC_TRANSFER_TX" },
+    { DEX_WICC_FOR_MICC_TX, "DEX_WICC_FOR_MICC_TX" },
+    { DEX_MICC_FOR_WICC_TX, "DEX_MICC_FOR_WICC_TX" },
+    { DEX_WICC_FOR_WUSD_TX, "DEX_WICC_FOR_WUSD_TX" },
+    { DEX_WUSD_FOR_WICC_TX, "DEX_WUSD_FOR_WICC_TX" },
+    { DEX_MICC_FOR_WUSD_TX, "DEX_MICC_FOR_WUSD_TX" },
+    { DEX_WUSD_FOR_MICC_TX, "DEX_WUSD_FOR_MICC_TX" },
+    { NULL_TX,              "NULL_TX" },
+};
 
 static bool GetKeyId(const CAccountViewCache &view, const vector<unsigned char> &ret, CKeyID &KeyId)
 {
@@ -218,14 +246,18 @@ void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn)
     }
 }
 
-bool CBaseTx::IsValidHeight(int nCurrHeight, int nTxCacheHeight) const
-{
+string CBaseTx::GetTxType(unsigned char txType) { return txTypeMap[txType]; }
+
+bool CBaseTx::IsValidHeight(int nCurrHeight, int nTxCacheHeight) const {
     if(REWARD_TX == nTxType)
         return true;
+
     if (nValidHeight > nCurrHeight + nTxCacheHeight / 2)
         return false;
+
     if (nValidHeight < nCurrHeight - nTxCacheHeight / 2)
         return false;
+
     return true;
 }
 
