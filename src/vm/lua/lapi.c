@@ -88,7 +88,7 @@ static TValue *index2addr (lua_State *L, int idx) {
 ** to be called by 'lua_checkstack' in protected mode, to grow stack
 ** capturing memory errors
 */
-	static void growstack (lua_State *L, void *ud,LUA_INTEGER *pllStep) {
+static void growstack (lua_State *L, void *ud) {
   int size = *(int *)ud;
   luaD_growstack(L, size);
 }
@@ -106,7 +106,7 @@ LUA_API int lua_checkstack (lua_State *L, int n) {
     if (inuse > LUAI_MAXSTACK - n)  /* can grow without overflow? */
       res = 0;  /* no */
     else  /* try to grow stack */
-      res = (luaD_rawrunprotected(L, &growstack, &n,NULL) == LUA_OK);
+      res = (luaD_rawrunprotected(L, &growstack, &n) == LUA_OK);
   }
   if (res && ci->top < L->top + n)
     ci->top = L->top + n;  /* adjust frame top */
@@ -895,10 +895,10 @@ LUA_API void lua_callk (lua_State *L, int nargs, int nresults,
   if (k != NULL && L->nny == 0) {  /* need to prepare continuation? */
     L->ci->u.c.k = k;  /* save continuation */
     L->ci->u.c.ctx = ctx;  /* save context */
-    luaD_call(L, func, nresults, 1,NULL);  /* do the call */
+    luaD_call(L, func, nresults, 1);  /* do the call */
   }
   else  /* no continuation or no yieldable */
-    luaD_call(L, func, nresults, 0,NULL);  /* just do the call */
+    luaD_call(L, func, nresults, 0);  /* just do the call */
   adjustresults(L, nresults);
   lua_unlock(L);
 }
@@ -914,20 +914,21 @@ struct CallS {  /* data to 'f_call' */
 };
 
 
-static void f_call (lua_State *L, void *ud,LUA_INTEGER *pllStep) {
+static void f_call (lua_State *L, void *ud) {
   struct CallS *c = cast(struct CallS *, ud);
-  luaD_call(L, c->func, c->nresults, 0,pllStep);
+  luaD_call(L, c->func, c->nresults, 0);
 }
 
 
 
 LUA_API int lua_pcallk (lua_State *L, int nargs, int nresults, int errfunc,
-                        lua_KContext ctx, lua_KFunction k,LUA_INTEGER *pllStep) {
+                        lua_KContext ctx, lua_KFunction k) {
   struct CallS c;
   int status;
   ptrdiff_t func;
   lua_lock(L);
-  api_check(L, k == NULL || !isLua(L->ci), "cannot use continuations inside hooks");
+  api_check(L, k == NULL || !isLua(L->ci),
+    "cannot use continuations inside hooks");
   api_checknelems(L, nargs+1);
   api_check(L, L->status == LUA_OK, "cannot do calls on non-normal thread");
   checkresults(L, nargs, nresults);
@@ -941,7 +942,7 @@ LUA_API int lua_pcallk (lua_State *L, int nargs, int nresults, int errfunc,
   c.func = L->top - (nargs+1);  /* function to be called */
   if (k == NULL || L->nny > 0) {  /* no continuation or no yieldable? */
     c.nresults = nresults;  /* do a 'conventional' protected call */
-    status = luaD_pcall(L, f_call, &c, savestack(L, c.func), func,pllStep);
+    status = luaD_pcall(L, f_call, &c, savestack(L, c.func), func);
   }
   else {  /* prepare continuation (call is already protected by 'resume') */
     CallInfo *ci = L->ci;
@@ -953,7 +954,7 @@ LUA_API int lua_pcallk (lua_State *L, int nargs, int nresults, int errfunc,
     L->errfunc = func;
     setoah(ci->callstatus, L->allowhook);  /* save value of 'allowhook' */
     ci->callstatus |= CIST_YPCALL;  /* function can do error recovery */
-    luaD_call(L, c.func, nresults, 1,pllStep);  /* do the call */
+    luaD_call(L, c.func, nresults, 1);  /* do the call */
     ci->callstatus &= ~CIST_YPCALL;
     L->errfunc = ci->u.c.old_errfunc;
     status = LUA_OK;  /* if it is here, there were no errors */

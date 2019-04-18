@@ -740,13 +740,11 @@ void luaV_finishOp (lua_State *L) {
 #define vmcase(l)	case l:
 #define vmbreak		break
 
-void luaV_execute (lua_State *L,LUA_INTEGER *pllStep) {
+void luaV_execute (lua_State *L) {
   CallInfo *ci = L->ci;
   LClosure *cl;
   TValue *k;
   StkId base;
-  LUA_INTEGER step = 0;
-
  newframe:  /* reentry point when frame changes (call/return) */
   lua_assert(ci == L->ci);
   cl = clLvalue(ci->func);
@@ -764,14 +762,8 @@ void luaV_execute (lua_State *L,LUA_INTEGER *pllStep) {
     ra = RA(i);
     lua_assert(base == ci->u.l.base);
     lua_assert(base <= L->top && L->top < L->stack + L->stacksize);
-    if(pllStep){
-        /*统计运行的step数*/
-        if(step >= *pllStep){
-        	*pllStep = -1;//force return
-        	return ;
-        }else{
-        	step++;
-        }
+    if (!lua_burnstep(L, 1)){
+      return ;
     }
     vmdispatch (GET_OPCODE(i)) {
       vmcase(OP_MOVE) {
@@ -1139,9 +1131,6 @@ void luaV_execute (lua_State *L,LUA_INTEGER *pllStep) {
         b = luaD_poscall(L, ra, (b != 0 ? b - 1 : L->top - ra));
         if (!(ci->callstatus & CIST_REENTRY))  /* 'ci' still the called one */
         {
-        	if(pllStep){
-        		*pllStep = step; //返回总的step
-        	}
             return;  /* external invocation: return */
         }
         else {  /* invocation via reentry: continue execution */
@@ -1210,31 +1199,16 @@ void luaV_execute (lua_State *L,LUA_INTEGER *pllStep) {
         setobjs2s(L, cb+1, ra+1);
         setobjs2s(L, cb, ra);
         L->top = cb + 3;  /* func. + 2 args (state and index) */
-        if(pllStep)
-        {
-        	LUA_INTEGER remainStep =  *pllStep - step; //剩余的总step
-        	Protect(luaD_call(L, cb, GETARG_C(i), 1,&remainStep));
-        	if(remainStep >= 0) {
-        		step += remainStep;  //累加调用call实际运行的step
-        	}else {
-            	*pllStep = -1;//force return
-            	return ;
-        	}
-        }else{
-        	Protect(luaD_call(L, cb, GETARG_C(i), 1,NULL));
+        Protect(luaD_call(L, cb, GETARG_C(i), 1));
+        if (lua_isburnedout(L)) {
+          return ;
         }
         L->top = ci->top;
         i = *(ci->u.l.savedpc++);  /* go to next instruction */
         ra = RA(i);
         lua_assert(GET_OPCODE(i) == OP_TFORLOOP);
-        if(pllStep){
-            /*统计运行的step数*/
-            if(step >= *pllStep){
-            	*pllStep = -1;//force return
-            	return ;
-            }else{
-            	step++;
-            }
+        if (!lua_burnstep(L, 1)) {
+          return ;
         }
         goto l_tforloop;
       }

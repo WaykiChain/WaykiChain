@@ -274,8 +274,8 @@ LUA_API void  (lua_callk) (lua_State *L, int nargs, int nresults,
 #define lua_call(L,n,r)     lua_callk(L, (n), (r), 0, NULL)
 
 LUA_API int   (lua_pcallk) (lua_State *L, int nargs, int nresults, int errfunc,
-                            lua_KContext ctx, lua_KFunction k,LUA_INTEGER *pllStep);
-#define lua_pcall(L,n,r,f)  lua_pcallk(L, (n), (r), (f), 0, NULL,NULL)
+                            lua_KContext ctx, lua_KFunction k);
+#define lua_pcall(L,n,r,f)	lua_pcallk(L, (n), (r), (f), 0, NULL)
 
 LUA_API int   (lua_load) (lua_State *L, lua_Reader reader, void *dt,
                           const char *chunkname, const char *mode);
@@ -481,6 +481,46 @@ struct lua_Debug {
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ******************************************************************************/
+
+struct lua_burner_state {
+    int                 is_started;         /** 0 is stoped, otherwise is started */
+    unsigned long long  maxStep;            /** max step can be burned */
+    unsigned long long  step;               /** burned step */
+    unsigned long long  allocMemSize;       /** total alloc memory size */
+    unsigned long long  allocMemTimes;      /** total alloc memory times */
+    unsigned long long  freeMemSize;        /** total free memory size */
+    unsigned long long  freeMemTimes;       /** total free memory times */
+};
+
+typedef struct lua_burner_state lua_burner_state;
+
+/** 
+ * start burner until current lua stop or burned-out 
+ */
+int lua_startburner(lua_State *L, unsigned long long  maxStep);
+
+lua_burner_state* lua_getburnerstate(lua_State *L);
+
+/**
+ * burn memory
+ * burned out if return 0, otherwise is burned ok.
+ * the burned memory will be convert to burned step to check if burned out
+ */
+LUA_API int lua_burnmemory(lua_State *L, void *block, size_t osize, size_t nsize);
+
+/**
+ * burn step
+ * burned out if return 0, otherwise is burned ok.  
+ */
+LUA_API int lua_burnstep(lua_State *L, unsigned long long step);
+
+
+/** get burned step */
+LUA_API unsigned long long lua_getburnedstep(lua_State *L);
+
+/** check is burned out */
+LUA_API int lua_isburnedout(lua_State *L);
+
 
 
 #endif
