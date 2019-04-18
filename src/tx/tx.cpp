@@ -1,13 +1,13 @@
 #include "serialize.h"
 #include <boost/foreach.hpp>
 
-#include "tx.h"
+#include "tx/tx.h"
 #include "hash.h"
 #include "util.h"
 #include "database.h"
 #include "main.h"
 #include <algorithm>
-#include "txdb.h"
+#include "tx/txdb.h"
 #include "vm/vmrunenv.h"
 #include "core.h"
 #include "miner.h"

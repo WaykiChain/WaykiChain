@@ -7,8 +7,8 @@
 #include <memory>
 #include "util.h"
 #include "main.h"
-#include "txdb.h"
-#include "tx.h"
+#include "tx/txdb.h"
+#include "tx/tx.h"
 #include "util.h"
 #include <stdio.h>
 using namespace std;

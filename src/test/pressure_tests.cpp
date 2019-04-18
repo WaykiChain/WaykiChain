@@ -3,7 +3,7 @@
 #include <map>
 #include <deque>
 #include <math.h>
-#include "tx.h"
+#include "tx/tx.h"
 #include "systestbase.h"
 #include "miner.h"
 #include "../json/json_spirit_value.h"

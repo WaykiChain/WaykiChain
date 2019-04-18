@@ -7,7 +7,7 @@
 #include "util.h"
 #include <boost/test/unit_test.hpp>
 #include "rpc/rpcclient.h"
-#include "tx.h"
+#include "tx/tx.h"
 #include "wallet/wallet.h"
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -23,7 +23,7 @@
 #include "json/json_spirit_writer.h"
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_stream_reader.h"
-#include "tx.h"
+#include "tx/tx.h"
 using namespace std;
 using namespace boost;
 std::string TxHash("");

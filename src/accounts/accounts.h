@@ -245,10 +245,10 @@ public:
     uint64_t fcoinBalance;          //!< StabeFundCoin balance
     uint64_t nVoteHeight;           //!< account vote block height
     vector<CVoteFund> vVoteFunds;   //!< account delegate votes order by vote value
-    uint64_t receivedVotes;               //!< votes received
-    bool hasOpenCdp;                //!< Whether the account has open CDP or not. If true, it exists in a map container
+    uint64_t receivedVotes;         //!< votes received
+    bool hasOpenCdp;                //!< Whether the account has open CDP or not. If true, it exists in {cdp-$regid : $cdp} 
 
-    uint256 sigHash;                //!< only in memory
+    uint256 sigHash;                //!< memory only
 
 public:
     /**

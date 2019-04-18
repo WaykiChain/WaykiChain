@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <boost/foreach.hpp>
 #include "SafeInt3.hpp"
-#include "tx.h"
+#include "tx/tx.h"
 #include "util.h"
 
 // CVmRunEnv *pVmRunEnv = NULL;

@@ -10,7 +10,7 @@
 #include "init.h"
 #include "main.h"
 #include "net.h"
-#include "tx.h"
+#include "tx/tx.h"
 #include <algorithm>
 #include <boost/circular_buffer.hpp>
 

@@ -18,7 +18,7 @@
 #include "net.h"
 #include "sigcache.h"
 #include "sync.h"
-#include "txmempool.h"
+#include "tx/txmempool.h"
 #include "uint256.h"
 
 #include <stdint.h>

@@ -2,7 +2,7 @@
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
 #include "serialize.h"
-#include "txdb.h"
+#include "tx/txdb.h"
 #include "database.h"
 #include "main.h"
 #include "systestbase.h"

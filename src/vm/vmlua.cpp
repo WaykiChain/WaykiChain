@@ -14,7 +14,7 @@
 #include "hash.h"
 #include "key.h"
 #include "main.h"
-#include "tx.h"
+#include "tx/tx.h"
 #include "vmrunenv.h"
 //#include "Typedef.h"
 

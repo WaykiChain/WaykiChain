@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 The WaykiChain developers
+// Copyright (c) 2014-2015 The WaykiChain Core Developers
 // Copyright (c) 2014-2015 The Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -7,7 +7,7 @@
 #define COIN_BLOOM_H
 
 #include "serialize.h"
-#include "tx.h"
+#include "tx/tx.h"
 #include <vector>
 
 class CBaseTx;

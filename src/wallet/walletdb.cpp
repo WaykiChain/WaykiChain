@@ -10,7 +10,7 @@
 #include "serialize.h"
 #include "sync.h"
 #include "wallet.h"
-#include "tx.h"
+#include "tx/tx.h"
 
 #include <fstream>
 #include <algorithm>

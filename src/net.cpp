@@ -14,7 +14,7 @@
 #include "chainparams.h"
 #include "core.h"
 #include "ui_interface.h"
-#include "tx.h"
+#include "tx/tx.h"
 
 #ifdef WIN32
 #include <string.h>

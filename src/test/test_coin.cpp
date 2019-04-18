@@ -7,7 +7,7 @@
 
 
 #include "main.h"
-#include "txdb.h"
+#include "tx/txdb.h"
 #include "ui_interface.h"
 #include "util.h"
 

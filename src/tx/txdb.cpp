@@ -4,7 +4,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "txdb.h"
+#include "tx/txdb.h"
 #include <stdint.h>
 #include "core.h"
 #include "key.h"

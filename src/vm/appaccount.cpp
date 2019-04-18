@@ -12,7 +12,7 @@
 #include "database.h"
 #include "main.h"
 #include <algorithm>
-#include "txdb.h"
+#include "tx/txdb.h"
 #include "vm/vmrunenv.h"
 #include "core.h"
 #include "miner.h"

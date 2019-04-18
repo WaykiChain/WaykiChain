@@ -5,7 +5,7 @@
 #include <vector>
 #include "./vm/appaccount.h"
 #include "serialize.h"
-#include "tx.h"
+#include "tx/tx.h"
 
 using namespace std;
 
