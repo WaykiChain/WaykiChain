@@ -249,6 +249,7 @@ public:
     virtual unsigned int GetSerializeSize(int nType, int nVersion) const = 0;
     virtual uint256 GetHash() const = 0;
     virtual uint64_t GetFee() const = 0;
+    virtual uint64_t GetValue() const = 0;
     virtual double GetPriority() const = 0;
     virtual uint256 SignatureHash(bool recalculate = false) const = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance() = 0;
@@ -307,6 +308,8 @@ public:
         READWRITE(signature);)
 
     uint64_t GetFee() const { return llFees; }
+    uint64_t GetValue() const { return 0; }
+
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
@@ -628,6 +631,7 @@ public:
     uint256 GetHash() const { return SignatureHash(); }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CRegisterContractTx>(this); }
     uint64_t GetFee() const { return llFees; }
+    uint64_t GetValue() const { return 0; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     string ToString(CAccountViewCache &view) const;
     Object ToJson(const CAccountViewCache &AccountView) const;
@@ -701,6 +705,7 @@ public:
 
     uint256 GetHash() const { return SignatureHash(); }
     uint64_t GetFee() const { return llFees; }
+    uint64_t GetValue() const { return 0; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDelegateTx>(this); }
     string ToString(CAccountViewCache &view) const;
@@ -898,7 +903,7 @@ public:
     bool OperateVote(VoteOperType type, const uint64_t &values);
 
 public:
-    CAccount(CKeyID &keyId, CPubKey &pubKey) : 
+    CAccount(CKeyID &keyId, CPubKey &pubKey) :
         keyID(keyId), pubKey(pubKey), bcoinBalance(0), scoinBalance(0), fcoinBalance(0), nVoteHeight(0), llVotes(0) {
         minerPubKey = CPubKey();
         vVoteFunds.clear();
@@ -965,11 +970,11 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             //FIXME: need to check block soft-fork height here
-            ss << regID << keyID << pubKey << minerPubKey 
+            ss << regID << keyID << pubKey << minerPubKey
                 << VARINT(bcoinBalance) << VARINT(scoinBalance) << VARINT(fcoinBalance)
                 << VARINT(nVoteHeight)
                 << vVoteFunds << llVotes;
-        
+
             uint256 *hash = const_cast<uint256 *>(&sigHash);
             *hash         = ss.GetHash();
         }
