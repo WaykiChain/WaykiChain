@@ -125,152 +125,158 @@ Object GetTxDetailJSON(const uint256& txhash) {
     return obj;
 }
 
-Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx)
-{
+Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
     Array arrayDetail;
     Object obj;
     std::set<CKeyID> vKeyIdSet;
-    switch(pBaseTx->nTxType) {
-    case REWARD_TX:
-    {
-        if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
-            return arrayDetail;
+    switch (pBaseTx->nTxType) {
+        case REWARD_TX: {
+            if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
+                return arrayDetail;
 
-        obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
-        obj.push_back(Pair("category", "receive"));
-        double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
-        obj.push_back(Pair("amount", dAmount));
-        obj.push_back(Pair("txtype", "REWARD_TX"));
-        arrayDetail.push_back(obj);
-        break;
-    }
-    case REG_ACCT_TX:
-    {
-        if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
-            return arrayDetail;
+            obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
+            obj.push_back(Pair("category", "receive"));
+            double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+            obj.push_back(Pair("amount", dAmount));
+            obj.push_back(Pair("txtype", "REWARD_TX"));
+            arrayDetail.push_back(obj);
 
-        obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
-        obj.push_back(Pair("category", "send"));
-        double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
-        obj.push_back(Pair("amount", -dAmount));
-        obj.push_back(Pair("txtype", "REG_ACCT_TX"));
-        arrayDetail.push_back(obj);
-        break;
-    }
-    case COMMON_TX:
-    {
-        CCommonTx* ptx = (CCommonTx*)pBaseTx.get();
-        CKeyID sendKeyID;
-        if (ptx->srcUserId.type() == typeid(CPubKey)) {
-            sendKeyID = boost::get<CPubKey>(ptx->srcUserId).GetKeyID();
-        } else if (ptx->srcUserId.type() == typeid(CRegID)) {
-            sendKeyID = boost::get<CRegID>(ptx->srcUserId).GetKeyID(*pAccountViewTip);
+            break;
         }
-        CKeyID recvKeyID;
-        if (ptx->desUserId.type() == typeid(CKeyID)) {
-            recvKeyID = boost::get<CKeyID>(ptx->desUserId);
-        } else if (ptx->desUserId.type() == typeid(CRegID)) {
-            CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
-            recvKeyID       = desRegID.GetKeyID(*pAccountViewTip);
+        case REG_ACCT_TX: {
+            if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
+                return arrayDetail;
+
+            obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
+            obj.push_back(Pair("category", "send"));
+            double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+            obj.push_back(Pair("amount", -dAmount));
+            obj.push_back(Pair("txtype", "REG_ACCT_TX"));
+            arrayDetail.push_back(obj);
+
+            break;
         }
-
-        obj.push_back(Pair("txtype", "COMMON_TX"));
-        obj.push_back(Pair("memo", HexStr(ptx->memo)));
-        obj.push_back(Pair("address", sendKeyID.ToAddress()));
-        obj.push_back(Pair("category", "send"));
-        double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
-        obj.push_back(Pair("amount", -dAmount));
-        arrayDetail.push_back(obj);
-        Object objRec;
-        objRec.push_back(Pair("txtype", "COMMON_TX"));
-        objRec.push_back(Pair("memo", HexStr(ptx->memo)));
-        objRec.push_back(Pair("address", recvKeyID.ToAddress()));
-        objRec.push_back(Pair("category", "receive"));
-        objRec.push_back(Pair("amount", dAmount));
-        arrayDetail.push_back(objRec);
-
-        break;
-    }
-    case CONTRACT_TX:
-    {
-        CContractTx* ptx = (CContractTx*)pBaseTx.get();
-        CKeyID sendKeyID;
-        CRegID sendRegID = boost::get<CRegID>(ptx->srcRegId);
-        sendKeyID        = sendRegID.GetKeyID(*pAccountViewTip);
-        CKeyID recvKeyID;
-        if (ptx->desUserId.type() == typeid(CKeyID)) {
-            recvKeyID = boost::get<CKeyID>(ptx->desUserId);
-        } else if (ptx->desUserId.type() == typeid(CRegID)) {
-            CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
-            recvKeyID       = desRegID.GetKeyID(*pAccountViewTip);
-        }
-        obj.push_back(Pair("txtype", "CONTRACT_TX"));
-        obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
-        obj.push_back(Pair("address", sendKeyID.ToAddress()));
-        obj.push_back(Pair("category", "send"));
-        double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
-        obj.push_back(Pair("amount", -dAmount));
-        arrayDetail.push_back(obj);
-        Object objRec;
-        objRec.push_back(Pair("txtype", "CONTRACT_TX"));
-        objRec.push_back(Pair("arguments", HexStr(ptx->arguments)));
-        objRec.push_back(Pair("address", recvKeyID.ToAddress()));
-        objRec.push_back(Pair("category", "receive"));
-        objRec.push_back(Pair("amount", dAmount));
-        arrayDetail.push_back(objRec);
-
-        vector<CVmOperate> vOutput;
-        pScriptDBTip->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
-        Array outputArray;
-        for (auto& item : vOutput) {
-            Object objOutPut;
-            string address;
-            if (item.nacctype == regid) {
-                vector<unsigned char> vRegId(item.accountId, item.accountId+6);
-                CRegID regId(vRegId);
-                CUserID userId(regId);
-                address = RegIDToAddress(userId);
-            } else if (item.nacctype == base58addr) {
-                address.assign(item.accountId[0], sizeof(item.accountId));
+        case COMMON_TX: {
+            CCommonTx* ptx = (CCommonTx*)pBaseTx.get();
+            CKeyID sendKeyID;
+            if (ptx->srcUserId.type() == typeid(CPubKey)) {
+                sendKeyID = boost::get<CPubKey>(ptx->srcUserId).GetKeyID();
+            } else if (ptx->srcUserId.type() == typeid(CRegID)) {
+                sendKeyID = boost::get<CRegID>(ptx->srcUserId).GetKeyID(*pAccountViewTip);
             }
 
-            objOutPut.push_back(Pair("address", address));
-
-            uint64_t amount;
-            memcpy(&amount, item.money, sizeof(item.money));
-            double dAmount = amount / COIN;
-            if (item.opType == ADD_FREE) {
-                objOutPut.push_back(Pair("category", "receive"));
-                objOutPut.push_back(Pair("amount", dAmount));
-            } else if(item.opType == MINUS_FREE) {
-                objOutPut.push_back(Pair("category", "send"));
-                objOutPut.push_back(Pair("amount", -dAmount));
+            CKeyID recvKeyID;
+            if (ptx->desUserId.type() == typeid(CKeyID)) {
+                recvKeyID = boost::get<CKeyID>(ptx->desUserId);
+            } else if (ptx->desUserId.type() == typeid(CRegID)) {
+                CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
+                recvKeyID       = desRegID.GetKeyID(*pAccountViewTip);
             }
 
-            if (item.timeoutHeight > 0)
-                objOutPut.push_back(Pair("freezeheight", (int) item.timeoutHeight));
+            obj.push_back(Pair("txtype", "COMMON_TX"));
+            obj.push_back(Pair("memo", HexStr(ptx->memo)));
+            obj.push_back(Pair("address", sendKeyID.ToAddress()));
+            obj.push_back(Pair("category", "send"));
+            double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+            obj.push_back(Pair("amount", -dAmount));
+            arrayDetail.push_back(obj);
+            Object objRec;
+            objRec.push_back(Pair("txtype", "COMMON_TX"));
+            objRec.push_back(Pair("memo", HexStr(ptx->memo)));
+            objRec.push_back(Pair("address", recvKeyID.ToAddress()));
+            objRec.push_back(Pair("category", "receive"));
+            objRec.push_back(Pair("amount", dAmount));
+            arrayDetail.push_back(objRec);
 
-            arrayDetail.push_back(objOutPut);
+            break;
         }
-        break;
-    }
-    case REG_CONT_TX:
-    case DELEGATE_TX:
-        if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
-            return arrayDetail;
+        case CONTRACT_TX: {
+            CContractTx* ptx = (CContractTx*)pBaseTx.get();
+            CKeyID sendKeyID;
+            CRegID sendRegID = boost::get<CRegID>(ptx->srcRegId);
+            sendKeyID        = sendRegID.GetKeyID(*pAccountViewTip);
+            CKeyID recvKeyID;
+            if (ptx->desUserId.type() == typeid(CKeyID)) {
+                recvKeyID = boost::get<CKeyID>(ptx->desUserId);
+            } else if (ptx->desUserId.type() == typeid(CRegID)) {
+                CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
+                recvKeyID       = desRegID.GetKeyID(*pAccountViewTip);
+            }
 
-        double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+            obj.push_back(Pair("txtype", "CONTRACT_TX"));
+            obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
+            obj.push_back(Pair("address", sendKeyID.ToAddress()));
+            obj.push_back(Pair("category", "send"));
+            double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+            obj.push_back(Pair("amount", -dAmount));
+            arrayDetail.push_back(obj);
+            Object objRec;
+            objRec.push_back(Pair("txtype", "CONTRACT_TX"));
+            objRec.push_back(Pair("arguments", HexStr(ptx->arguments)));
+            objRec.push_back(Pair("address", recvKeyID.ToAddress()));
+            objRec.push_back(Pair("category", "receive"));
+            objRec.push_back(Pair("amount", dAmount));
+            arrayDetail.push_back(objRec);
 
-        obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
-        obj.push_back(Pair("category", "send"));
-        obj.push_back(Pair("amount", -dAmount));
-        if(pBaseTx->nTxType == REG_CONT_TX)
-            obj.push_back(Pair("txtype", "REG_CONT_TX"));
-        else if(pBaseTx->nTxType == DELEGATE_TX)
-            obj.push_back(Pair("txtype", "DELEGATE_TX"));
+            vector<CVmOperate> vOutput;
+            pScriptDBTip->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
+            Array outputArray;
+            for (auto& item : vOutput) {
+                Object objOutPut;
+                string address;
+                if (item.nacctype == regid) {
+                    vector<unsigned char> vRegId(item.accountId, item.accountId + 6);
+                    CRegID regId(vRegId);
+                    CUserID userId(regId);
+                    address = RegIDToAddress(userId);
+                } else if (item.nacctype == base58addr) {
+                    address.assign(item.accountId[0], sizeof(item.accountId));
+                }
 
-        arrayDetail.push_back(obj);
-        break;
+                objOutPut.push_back(Pair("address", address));
+
+                uint64_t amount;
+                memcpy(&amount, item.money, sizeof(item.money));
+                double dAmount = amount / COIN;
+
+                if (item.opType == ADD_FREE) {
+                    objOutPut.push_back(Pair("category", "receive"));
+                    objOutPut.push_back(Pair("amount", dAmount));
+                } else if (item.opType == MINUS_FREE) {
+                    objOutPut.push_back(Pair("category", "send"));
+                    objOutPut.push_back(Pair("amount", -dAmount));
+                }
+
+                if (item.timeoutHeight > 0)
+                    objOutPut.push_back(Pair("freezeheight", (int)item.timeoutHeight));
+
+                arrayDetail.push_back(objOutPut);
+            }
+
+            break;
+        }
+        case REG_CONT_TX:
+        case DELEGATE_TX: {
+            if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
+                return arrayDetail;
+
+            double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+
+            obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
+            obj.push_back(Pair("category", "send"));
+            obj.push_back(Pair("amount", -dAmount));
+
+            if (pBaseTx->nTxType == REG_CONT_TX)
+                obj.push_back(Pair("txtype", "REG_CONT_TX"));
+            else if (pBaseTx->nTxType == DELEGATE_TX)
+                obj.push_back(Pair("txtype", "DELEGATE_TX"));
+
+            arrayDetail.push_back(obj);
+
+            break;
+        }
+        default:
+            break;
     }
     return arrayDetail;
 }
