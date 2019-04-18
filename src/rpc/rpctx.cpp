@@ -2618,45 +2618,53 @@ Value decoderawtx(const Array& params, bool fHelp) {
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }
+            break;
         }
-        break;
         case REG_ACCT_TX: {
             std::shared_ptr<CRegisterAccountTx> tx =
                 std::make_shared<CRegisterAccountTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }
+            break;
         }
-        break;
+
         case CONTRACT_TX: {
             std::shared_ptr<CContractTx> tx = std::make_shared<CContractTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }
+            break;
         }
-        break;
         case REWARD_TX: {
             std::shared_ptr<CRewardTx> tx = std::make_shared<CRewardTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }
+            break;
         }
-        break;
         case REG_CONT_TX: {
             std::shared_ptr<CRegisterContractTx> tx =
                 std::make_shared<CRegisterContractTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }
+            break;
         }
-        break;
         case DELEGATE_TX: {
             std::shared_ptr<CDelegateTx> tx = std::make_shared<CDelegateTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }
+            break;
         }
-        break;
+        case MULTISIG_TX: {
+            std::shared_ptr<CMultisigTx> tx = std::make_shared<CMultisigTx>(pBaseTx.get());
+            if (tx.get()) {
+                obj = tx->ToJson(view);
+            }
+            break;
+        }
         default:
             break;
     }
