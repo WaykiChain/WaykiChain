@@ -245,7 +245,7 @@ public:
     uint64_t fcoinBalance;          //!< StabeFundCoin balance
     uint64_t nVoteHeight;           //!< account vote block height
     vector<CVoteFund> vVoteFunds;   //!< account delegate votes order by vote value
-    uint64_t llVotes;               //!< votes received
+    uint64_t receivedVotes;               //!< votes received
     bool hasOpenCdp;                //!< Whether the account has open CDP or not. If true, it exists in a map container
 
     uint256 sigHash;                //!< only in memory
@@ -271,7 +271,7 @@ public:
           scoinBalance(0),
           fcoinBalance(0),
           nVoteHeight(0),
-          llVotes(0) {
+          receivedVotes(0) {
         minerPubKey = CPubKey();
         vVoteFunds.clear();
         regID.Clean();
@@ -283,7 +283,7 @@ public:
           scoinBalance(0),
           fcoinBalance(0),
           nVoteHeight(0),
-          llVotes(0) {
+          receivedVotes(0) {
         pubKey      = CPubKey();
         minerPubKey = CPubKey();
         vVoteFunds.clear();
@@ -300,7 +300,7 @@ public:
         this->fcoinBalance = other.fcoinBalance;
         this->nVoteHeight  = other.nVoteHeight;
         this->vVoteFunds   = other.vVoteFunds;
-        this->llVotes      = other.llVotes;
+        this->receivedVotes      = other.receivedVotes;
     }
 
     CAccount &operator=(const CAccount &other) {
@@ -316,7 +316,7 @@ public:
         this->fcoinBalance = other.fcoinBalance;
         this->nVoteHeight  = other.nVoteHeight;
         this->vVoteFunds   = other.vVoteFunds;
-        this->llVotes      = other.llVotes;
+        this->receivedVotes      = other.receivedVotes;
 
         return *this;
     }
@@ -346,7 +346,7 @@ public:
             ss << regID << keyID << pubKey << minerPubKey
                 << VARINT(bcoinBalance) << VARINT(scoinBalance) << VARINT(fcoinBalance)
                 << VARINT(nVoteHeight)
-                << vVoteFunds << llVotes;
+                << vVoteFunds << receivedVotes;
 
             uint256 *hash = const_cast<uint256 *>(&sigHash);
             *hash         = ss.GetHash();
@@ -365,9 +365,9 @@ public:
         READWRITE(VARINT(bcoinBalance));
         READWRITE(VARINT(nVoteHeight));
         READWRITE(vVoteFunds);
-        READWRITE(llVotes);)
+        READWRITE(receivedVotes);)
 
-    uint64_t GetReceiveVotes() const { return llVotes; }
+    uint64_t GetReceiveVotes() const { return receivedVotes; }
 
 private:
     bool IsMoneyOverflow(uint64_t nAddMoney);
@@ -379,14 +379,14 @@ public:
     uint64_t bcoinBalance;         //!< freedom money which coinage greater than 30 days
     uint64_t nVoteHeight;          //!< account vote height
     vector<CVoteFund> vVoteFunds;  //!< delegate votes
-    uint64_t llVotes;              //!< votes received
+    uint64_t receivedVotes;              //!< votes received
 
     IMPLEMENT_SERIALIZE(
         READWRITE(keyID);
         READWRITE(VARINT(bcoinBalance));
         READWRITE(VARINT(nVoteHeight));
         READWRITE(vVoteFunds);
-        READWRITE(llVotes);)
+        READWRITE(receivedVotes);)
 
 public:
     CAccountLog(const CAccount &acct) {
@@ -394,26 +394,26 @@ public:
         bcoinBalance = acct.bcoinBalance;
         nVoteHeight  = acct.nVoteHeight;
         vVoteFunds   = acct.vVoteFunds;
-        llVotes      = acct.llVotes;
+        receivedVotes      = acct.receivedVotes;
     }
     CAccountLog(CKeyID &keyId) {
         keyID        = keyId;
         bcoinBalance = 0;
         nVoteHeight  = 0;
-        llVotes      = 0;
+        receivedVotes      = 0;
     }
     CAccountLog() {
         keyID        = uint160();
         bcoinBalance = 0;
         nVoteHeight  = 0;
         vVoteFunds.clear();
-        llVotes = 0;
+        receivedVotes = 0;
     }
     void SetValue(const CAccount &acct) {
         keyID        = acct.keyID;
         bcoinBalance = acct.bcoinBalance;
         nVoteHeight  = acct.nVoteHeight;
-        llVotes      = acct.llVotes;
+        receivedVotes      = acct.receivedVotes;
         vVoteFunds   = acct.vVoteFunds;
     }
     string ToString() const;

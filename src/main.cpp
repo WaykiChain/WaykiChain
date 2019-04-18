@@ -1363,7 +1363,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                         maxVotes = operFund.fund.value;
                     }
                     if (voteAcct.pubKey == operFund.fund.pubKey) {
-                        voteAcct.llVotes = operFund.fund.value;
+                        voteAcct.receivedVotes = operFund.fund.value;
                         assert(scriptDBCache.SetDelegateData(voteAcct, operDbLog));
                     } else {
                         CAccount delegateAcct;
@@ -1372,7 +1372,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                         delegateAcct.keyID = operFund.fund.pubKey.GetKeyID();
                         delegateAcct.SetRegId(delegateRegId);
                         delegateAcct.pubKey = operFund.fund.pubKey;
-                        delegateAcct.llVotes   = operFund.fund.value;
+                        delegateAcct.receivedVotes   = operFund.fund.value;
                         assert(view.SaveAccountInfo(delegateRegId, delegateAcct.keyID, delegateAcct));
                         assert(scriptDBCache.SetDelegateData(delegateAcct, operDbLog));
                     }

@@ -1173,7 +1173,7 @@ bool CDelegateTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
         txundo.vScriptOperLog.push_back(operDbLog);
 
         CScriptDBOperLog eraseDbLog;
-        if (delegateAcctLog.llVotes > 0) {
+        if (delegateAcctLog.receivedVotes > 0) {
             if(!scriptDB.EraseDelegateData(delegateAcctLog, eraseDbLog)) {
                 return state.DoS(100, ERRORMSG("ExecuteTx() : CDelegateTx ExecuteTx, erase account id %s vote info error", delegateAcctLog.regID.ToString()),
                     UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
