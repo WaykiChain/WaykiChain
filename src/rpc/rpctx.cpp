@@ -2585,17 +2585,23 @@ Value sigstr(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value decoderawtx(const Array& params, bool fHelp)
-{
+Value decoderawtx(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error("decoderawtx \"hexstring\"\n"
+        throw runtime_error(
+            "decoderawtx \"hexstring\"\n"
             "\ndecode transaction\n"
             "\nArguments:\n"
             "1.\"str\": (string, required) hexstring\n"
-            "\nExamples:\n"
-            + HelpExampleCli("decoderawtx", "\"03015f020001025a0164cd10004630440220664de5ec373f44d2756a23d5267ab25f22af6162d166b1cca6c76631701cbeb5022041959ff75f7c7dd39c1f9f6ef9a237a6ea467d02d2d2c3db62a1addaa8009ccd\"")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("decoderawtx", "\"03015f020001025a0164cd10004630440220664de5ec373f44d2756a23d5267ab25f22af6162d166b1cca6c76631701cbeb5022041959ff75f7c7dd39c1f9f6ef9a237a6ea467d02d2d2c3db62a1addaa8009ccd\""));
+            "\nExamples:\n" +
+            HelpExampleCli("decoderawtx",
+                           "\"03015f020001025a0164cd10004630440220664de5ec373f44d2756a23d5267ab25f2"
+                           "2af6162d166b1cca6c76631701cbeb5022041959ff75f7c7dd39c1f9f6ef9a237a6ea46"
+                           "7d02d2d2c3db62a1addaa8009ccd\"") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("decoderawtx",
+                           "\"03015f020001025a0164cd10004630440220664de5ec373f44d2756a23d5267ab25f2"
+                           "2af6162d166b1cca6c76631701cbeb5022041959ff75f7c7dd39c1f9f6ef9a237a6ea46"
+                           "7d02d2d2c3db62a1addaa8009ccd\""));
     }
     vector<unsigned char> vch(ParseHex(params[0].get_str()));
     LogPrint("DEBUG", "data size:%d", vch.size());
@@ -2603,55 +2609,56 @@ Value decoderawtx(const Array& params, bool fHelp)
     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
     std::shared_ptr<CBaseTx> pBaseTx;
     stream >> pBaseTx;
-    if (!pBaseTx.get())
-        return obj;
+    if (!pBaseTx.get()) return obj;
 
     CAccountViewCache view(*pAccountViewTip, true);
     switch (pBaseTx.get()->nTxType) {
-    case COMMON_TX: {
-        std::shared_ptr<CCommonTx> tx = std::make_shared<CCommonTx>(pBaseTx.get());
-        if (tx.get()) {
-            obj = tx->ToJson(view);
+        case COMMON_TX: {
+            std::shared_ptr<CCommonTx> tx = std::make_shared<CCommonTx>(pBaseTx.get());
+            if (tx.get()) {
+                obj = tx->ToJson(view);
+            }
         }
-    }
         break;
-    case REG_ACCT_TX: {
-        std::shared_ptr<CRegisterAccountTx> tx = std::make_shared<CRegisterAccountTx>(pBaseTx.get());
-        if (tx.get()) {
-            obj = tx->ToJson(view);
+        case REG_ACCT_TX: {
+            std::shared_ptr<CRegisterAccountTx> tx =
+                std::make_shared<CRegisterAccountTx>(pBaseTx.get());
+            if (tx.get()) {
+                obj = tx->ToJson(view);
+            }
         }
-    }
         break;
-    case CONTRACT_TX: {
-        std::shared_ptr<CContractTx> tx = std::make_shared<CContractTx>(pBaseTx.get());
-        if (tx.get()) {
-            obj = tx->ToJson(view);
+        case CONTRACT_TX: {
+            std::shared_ptr<CContractTx> tx = std::make_shared<CContractTx>(pBaseTx.get());
+            if (tx.get()) {
+                obj = tx->ToJson(view);
+            }
         }
-    }
         break;
-    case REWARD_TX: {
-        std::shared_ptr<CRewardTx> tx = std::make_shared<CRewardTx>(pBaseTx.get());
-        if (tx.get()) {
-            obj = tx->ToJson(view);
+        case REWARD_TX: {
+            std::shared_ptr<CRewardTx> tx = std::make_shared<CRewardTx>(pBaseTx.get());
+            if (tx.get()) {
+                obj = tx->ToJson(view);
+            }
         }
-    }
         break;
-    case REG_CONT_TX: {
-        std::shared_ptr<CRegisterContractTx> tx = std::make_shared<CRegisterContractTx>(pBaseTx.get());
-        if (tx.get()) {
-            obj = tx->ToJson(view);
+        case REG_CONT_TX: {
+            std::shared_ptr<CRegisterContractTx> tx =
+                std::make_shared<CRegisterContractTx>(pBaseTx.get());
+            if (tx.get()) {
+                obj = tx->ToJson(view);
+            }
         }
-    }
         break;
-    case DELEGATE_TX: {
-        std::shared_ptr<CDelegateTx> tx = std::make_shared<CDelegateTx>(pBaseTx.get());
-        if (tx.get()) {
-            obj = tx->ToJson(view);
+        case DELEGATE_TX: {
+            std::shared_ptr<CDelegateTx> tx = std::make_shared<CDelegateTx>(pBaseTx.get());
+            if (tx.get()) {
+                obj = tx->ToJson(view);
+            }
         }
-    }
         break;
-    default:
-        break;
+        default:
+            break;
     }
     return obj;
 }
