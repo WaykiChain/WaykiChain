@@ -6,7 +6,7 @@
 
 #include "alert.h"
 
-#include "key.h"
+#include "accounts/key.h"
 #include "net.h"
 #include "ui_interface.h"
 #include "util.h"

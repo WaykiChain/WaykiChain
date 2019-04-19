@@ -8,7 +8,7 @@
 
 #include "core.h"
 #include "crypter.h"
-#include "key.h"
+#include "accounts/key.h"
 #include "keystore.h"
 #include "main.h"
 #include "ui_interface.h"

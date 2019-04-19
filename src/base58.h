@@ -16,7 +16,7 @@
 #define COIN_BASE58_H
 
 #include "chainparams.h"
-#include "key.h"
+#include "accounts/key.h"
 
 #include <string>
 #include <vector>

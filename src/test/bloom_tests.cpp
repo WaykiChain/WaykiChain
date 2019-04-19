@@ -5,7 +5,7 @@
 #include "bloom.h"
 
 #include "base58.h"
-#include "key.h"
+#include "accounts/key.h"
 #include "main.h"
 #include "serialize.h"
 #include "uint256.h"

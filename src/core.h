@@ -7,7 +7,7 @@
 #ifndef COIN_CORE_H
 #define COIN_CORE_H
 
-#include "key.h"
+#include "accounts/key.h"
 #include "serialize.h"
 #include "uint256.h"
 

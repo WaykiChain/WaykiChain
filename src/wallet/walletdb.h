@@ -6,7 +6,7 @@
 #define COIN_WALLETDB_H
 
 
-#include "key.h"
+#include "accounts/key.h"
 
 #include <list>
 #include <stdint.h>

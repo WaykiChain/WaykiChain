@@ -14,8 +14,8 @@
 
 #include "../json/json_spirit_utils.h"
 #include "../json/json_spirit_value.h"
-#include "hash.h"
-#include "key.h"
+#include "../hash.h"
+#include "accounts/key.h"
 #include "chainparams.h"
 
 using namespace json_spirit;
@@ -108,7 +108,6 @@ public:
     }
     Object ToJson(bool isAddress = false) const;
 };
-
 
 class CNullID {
 public:
@@ -237,7 +236,7 @@ class CCdp {
 public:
     uint64_t collateralBCoinAmount;
     uint64_t mintedSCoinAmount;
-}
+};
 
 class CAccount {
 public:
@@ -247,11 +246,11 @@ public:
     CPubKey minerPubKey;            //!< miner public key of the account
     uint64_t bcoinBalance;          //!< BaseCoin balance
     uint64_t scoinBalance;          //!< StableCoin balance
-    uint64_t fcoinBalance;          //!< StabeFundCoin balance
+    uint64_t fcoinBalance;          //!< FundCoin balance
     uint64_t nVoteHeight;           //!< account vote block height
     vector<CVoteFund> vVoteFunds;   //!< account delegate votes order by vote value
     uint64_t receivedVotes;         //!< votes received
-    bool hasOpenCdp;                //!< Whether the account has open CDP or not. If true, it exists in {cdp-$regid : $cdp} 
+    bool hasOpenCdp;                //!< Whether the account has open CDP or not. If true, it exists in {cdp-$regid : $cdp}
 
     uint256 sigHash;                //!< memory only
 

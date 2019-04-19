@@ -9,7 +9,7 @@
 #include "keystore.h"
 #include "main.h"
 #include "net.h"
-#include "key.h"
+#include "accounts/key.h"
 #include "serialize.h"
 
 #include <stdint.h>

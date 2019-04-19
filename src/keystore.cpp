@@ -7,7 +7,7 @@
 #include "keystore.h"
 #include "wallet/wallet.h"
 #include "crypter.h"
-#include "key.h"
+#include "accounts/key.h"
 #include "base58.h"
 using namespace json_spirit;
 

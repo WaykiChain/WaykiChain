@@ -7,7 +7,7 @@
 #include "tx/txdb.h"
 #include <stdint.h>
 #include "core.h"
-#include "key.h"
+#include "accounts/key.h"
 #include "uint256.h"
 #include "util.h"
 

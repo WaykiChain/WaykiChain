@@ -8,7 +8,7 @@
 #include "data/base58_keys_invalid.json.h"
 #include "data/base58_keys_valid.json.h"
 
-#include "key.h"
+#include "accounts/key.h"
 #include "uint256.h"
 #include "util.h"
 
@@ -287,4 +287,3 @@ BOOST_AUTO_TEST_CASE(base58_keys_invalid)
 
 
 BOOST_AUTO_TEST_SUITE_END()
-

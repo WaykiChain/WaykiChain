@@ -1,20 +1,23 @@
-#include "serialize.h"
+#include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
+#include <algorithm>
 
-#include "tx/tx.h"
+#include "json/json_spirit_value.h"
+#include "json/json_spirit_writer_template.h"
+#include "json/json_spirit_utils.h"
+
+#include "serialize.h"
+#include "tx.h"
 #include "hash.h"
 #include "util.h"
 #include "database.h"
 #include "main.h"
-#include <algorithm>
-#include "tx/txdb.h"
+
+#include "txdb.h"
 #include "vm/vmrunenv.h"
 #include "core.h"
 #include "miner.h"
-#include <boost/assign/list_of.hpp>
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
-#include "json/json_spirit_writer_template.h"
+
 using namespace json_spirit;
 
 const string COperVoteFund::voteOperTypeArray[3] = {"NULL_OPER", "ADD_FUND", "MINUS_FUND"};

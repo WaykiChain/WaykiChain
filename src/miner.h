@@ -14,7 +14,7 @@
 
 #include <memory>
 #include "boost/tuple/tuple.hpp"
-#include "key.h"
+#include "accounts/key.h"
 #include "uint256.h"
 
 class CBlock;

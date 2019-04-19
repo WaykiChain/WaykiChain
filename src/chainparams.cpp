@@ -10,7 +10,7 @@
 #include "core.h"
 #include "protocol.h"
 #include "util.h"
-#include "key.h"
+#include "accounts/key.h"
 #include "tx/tx.h"
 #include "main.h"
 

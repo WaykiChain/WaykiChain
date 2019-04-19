@@ -33,6 +33,7 @@ $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(w
 # waykichain core #
 coin_CORE_H = \
   accounts/accounts.h \
+  accounts/key.h \
   addrman.h \
   alert.h \
   allocators.h \
@@ -48,7 +49,6 @@ coin_CORE_H = \
   crypto/sha256.h \
   hash.h \
   init.h \
-  key.h \
   keystore.h \
   leveldbwrapper.h \
   limitedmap.h \
@@ -236,7 +236,7 @@ libcoin_common_a_SOURCES = \
   configuration.cpp\
   core.cpp \
   hash.cpp \
-  key.cpp \
+  accounts/key.cpp \
   netbase.cpp \
   protocol.cpp \
   random.cpp  \

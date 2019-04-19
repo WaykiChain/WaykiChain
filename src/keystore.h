@@ -12,7 +12,7 @@
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_writer_template.h"
-#include "key.h"
+#include "accounts/key.h"
 #include "sync.h"
 #include "wallet/walletdb.h"
 
