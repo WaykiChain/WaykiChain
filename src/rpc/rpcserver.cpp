@@ -263,9 +263,10 @@ static const CRPCCommand vRPCCommands[] =
     { "gensendtoaddressraw",    &gensendtoaddressraw,    false,     false,     false },
     { "registeraccountraw",     &genregisteraccountraw,  false,     false,     false },  /* deprecated */
     { "genregisteraccountraw",  &genregisteraccountraw,  false,     false,     false },
-    { "genregistercontractraw", &genregistercontractraw, true,      false,     false },
-    { "gencallcontractraw",     &gencallcontractraw,     true,      false,     false },
-    { "genvotedelegateraw",     &genvotedelegateraw,     true,      false,     true  },
+    { "genregistercontractraw", &genregistercontractraw, false,     false,     false },
+    { "gencallcontractraw",     &gencallcontractraw,     false,     false,     false },
+    { "genvotedelegateraw",     &genvotedelegateraw,     false,     false,     false },
+    { "genmultisigraw",         &genmultisigraw,         false,     false,     false },
 
     /* uses wallet if enabled */
     { "addmultisigaddr",        &addmultisigaddr,        false,     false,      true },

@@ -1471,7 +1471,7 @@ bool CMultisigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
                          REJECT_INVALID, "required-keys-invalid");
     }
 
-    if (signaturePairs.size() > kSignatureNumberThreshold) {
+    if (signaturePairs.size() > kMultisigNumberThreshold) {
         return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, signature's number out of range"),
                          REJECT_INVALID, "signature-number-out-of-range");
     }

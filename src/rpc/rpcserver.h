@@ -163,6 +163,7 @@ extern json_spirit::Value genregisteraccountraw  (const json_spirit::Array& para
 extern json_spirit::Value genregistercontractraw (const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value gencallcontractraw     (const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value genvotedelegateraw     (const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value genmultisigraw         (const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value sendrawtx(const json_spirit::Array& params, bool fHelp);
 
