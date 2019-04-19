@@ -45,6 +45,7 @@ enum TxType: unsigned char {
     CONTRACT_TX = 4,    //!< Contract Tx
     REG_CONT_TX = 5,    //!< Register Contract Tx
     DELEGATE_TX = 6,    //!< Vote Delegate Tx
+    MULTISIG_TX = 7,    //!< Multisig Tx
 
     /******** Begin of Stable Coin TX Type Enums ********/
     CDP_OPEN_TX             = 11, //!< CDP Collateralize Tx
@@ -81,6 +82,7 @@ static const unordered_map<unsigned char, string> kTxTypeMap = {
     { CONTRACT_TX,          "CONTRACT_TX" },
     { REG_CONT_TX,          "REG_CONT_TX" },
     { DELEGATE_TX,          "DELEGATE_TX" },
+    { MULTISIG_TX,          "MULTISIG_TX"},
     { CDP_OPEN_TX,          "CDP_OPEN_TX" },
     { CDP_REFUEL_TX,        "CDP_REFUEL_TX" },
     { CDP_REDEMP_TX,        "CDP_REDEMP_TX" },
@@ -115,9 +117,9 @@ public:
     unsigned char nTxType;
     int nValidHeight;
     uint64_t llFees;
-    uint64_t nRunStep;  // only in memory
-    int nFuelRate;      // only in memory
-    uint256 sigHash;    // only in memory
+    uint64_t nRunStep;  //!< only in memory
+    int nFuelRate;      //!< only in memory
+    uint256 sigHash;    //!< only in memory
 
 public:
     CBaseTx(const CBaseTx &other) { *this = other; }
@@ -161,8 +163,8 @@ public:
     int GetFuelRate(CScriptDBViewCache &scriptDB);
 
 protected:
-    bool CheckMinTxFee(uint64_t llFees);
-    bool CheckSignatureSize(vector<unsigned char> &signature);
+    bool CheckMinTxFee(const uint64_t llFees) const;
+    bool CheckSignatureSize(const vector<unsigned char> &signature) const ;
 };
 
 class CRegisterAccountTx : public CBaseTx {
@@ -234,7 +236,7 @@ class CCommonTx : public CBaseTx {
 public:
     mutable CUserID srcUserId;  // regid or pubkey
     mutable CUserID desUserId;  // regid or keyid
-    uint64_t bcoinBalance;          // transfer amount
+    uint64_t bcoinBalance;      // transfer amount
     vector_unsigned_char memo;
     vector_unsigned_char signature;
 
@@ -257,10 +259,10 @@ public:
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
 
-        srcUserId   = srcUserIdIn;
-        desUserId   = desUserIdIn;
-        bcoinBalance    = valueIn;
-        memo        = descriptionIn;
+        srcUserId    = srcUserIdIn;
+        desUserId    = desUserIdIn;
+        bcoinBalance = valueIn;
+        memo         = descriptionIn;
     }
 
     CCommonTx(const CUserID &srcUserIdIn, CUserID desUserIdIn, uint64_t feeIn, uint64_t valueIn,
@@ -273,7 +275,7 @@ public:
 
         srcUserId    = srcUserIdIn;
         desUserId    = desUserIdIn;
-        bcoinBalance     = valueIn;
+        bcoinBalance = valueIn;
     }
 
     ~CCommonTx() {}
@@ -330,12 +332,12 @@ class CContractTx : public CBaseTx {
 public:
     mutable CUserID srcRegId;   // src regid
     mutable CUserID desUserId;  // keyid or app regid
-    uint64_t bcoinBalance;          // transfer amount
+    uint64_t bcoinBalance;      // transfer amount
     vector_unsigned_char arguments;
     vector_unsigned_char signature;
 
 public:
-    CContractTx(): CBaseTx(CONTRACT_TX) {}
+    CContractTx() : CBaseTx(CONTRACT_TX) {}
 
     CContractTx(const CBaseTx *pBaseTx): CBaseTx(CONTRACT_TX) {
         assert(CONTRACT_TX == pBaseTx->nTxType);
@@ -353,7 +355,7 @@ public:
 
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
-        bcoinBalance     = valueIn;
+        bcoinBalance = valueIn;
         arguments    = argumentsIn;
     }
 
@@ -368,7 +370,7 @@ public:
 
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
-        bcoinBalance     = valueIn;
+        bcoinBalance = valueIn;
     }
 
     ~CContractTx() {}
@@ -547,9 +549,9 @@ public:
         assert(DELEGATE_TX == pBaseTx->nTxType);
         *this = *(CDelegateTx *)pBaseTx;
     }
-    CDelegateTx(const vector_unsigned_char &accountIn, vector<COperVoteFund> &operVoteFundsIn,
-                const uint64_t feeIn, const int validHeightIn):
-                CBaseTx(DELEGATE_TX, validHeightIn, feeIn) {
+    CDelegateTx(const vector_unsigned_char &accountIn, const vector<COperVoteFund> &operVoteFundsIn,
+                const uint64_t feeIn, const int validHeightIn)
+        : CBaseTx(DELEGATE_TX, validHeightIn, feeIn) {
         if (accountIn.size() > 6) {
             userId = CPubKey(accountIn);
         } else {
@@ -557,11 +559,10 @@ public:
         }
         operVoteFunds = operVoteFundsIn;
     }
-    CDelegateTx(const CUserID &userIdIn, uint64_t feeIn, const vector<COperVoteFund> &operVoteFundsIn,
-                const int validHeightIn):
-                CBaseTx(DELEGATE_TX, validHeightIn, feeIn) {
-        if (userIdIn.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(userIdIn).IsEmpty());
+    CDelegateTx(const CUserID &userIdIn, const uint64_t feeIn,
+                const vector<COperVoteFund> &operVoteFundsIn, const int validHeightIn)
+        : CBaseTx(DELEGATE_TX, validHeightIn, feeIn) {
+        if (userIdIn.type() == typeid(CRegID)) assert(!boost::get<CRegID>(userIdIn).IsEmpty());
 
         userId        = userIdIn;
         operVoteFunds = operVoteFundsIn;
@@ -609,7 +610,6 @@ public:
     bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
-
 class CScriptDBOperLog {
 public:
     vector<unsigned char> vKey;
@@ -638,7 +638,9 @@ public:
         str += "\n";
         return str;
     }
-    friend bool operator<(const CScriptDBOperLog &log1, const CScriptDBOperLog &log2) { return log1.vKey < log2.vKey; }
+    friend bool operator<(const CScriptDBOperLog &log1, const CScriptDBOperLog &log2) {
+        return log1.vKey < log2.vKey;
+    }
 };
 
 class CTxUndo {
@@ -659,6 +661,119 @@ public:
         vScriptOperLog.clear();
     }
     string ToString() const;
+};
+
+class CSignaturePair {
+public:
+    CRegID regId;  //!< regid only
+    vector_unsigned_char signature;
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(regId);
+        READWRITE(signature);)
+
+public:
+    CSignaturePair(const CSignaturePair &signaturePair) {
+        regId     = signaturePair.regId;
+        signature = signaturePair.signature;
+    }
+
+    CSignaturePair() {}
+
+    string ToString() const;
+    Object ToJson() const;
+};
+
+class CMultisigTx : public CBaseTx {
+public:
+    vector<CSignaturePair> signaturePairs;  //!< signature pair
+    mutable CUserID desUserId;              //!< keyid or regid
+    uint64_t bcoinBalance;                  //!< transfer amount
+    uint8_t required;                       //!< required keys
+    vector_unsigned_char memo;              //!< memo
+
+    CKeyID keyId;  //!< only in memory
+
+public:
+    CMultisigTx() : CBaseTx(MULTISIG_TX) {}
+
+    CMultisigTx(const CBaseTx *pBaseTx) : CBaseTx(MULTISIG_TX) {
+        assert(MULTISIG_TX == pBaseTx->nTxType);
+        *this = *(CMultisigTx *)pBaseTx;
+    }
+
+    CMultisigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
+                uint64_t feeIn, const uint64_t valueIn, const int validHeightIn,
+                const uint8_t requiredIn, const vector_unsigned_char &memoIn)
+        : CBaseTx(MULTISIG_TX, validHeightIn, feeIn) {
+        if (desUserIdIn.type() == typeid(CRegID))
+            assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
+
+        signaturePairs = signaturePairsIn;
+        desUserId      = desUserIdIn;
+        bcoinBalance   = valueIn;
+        required       = requiredIn;
+        memo           = memoIn;
+    }
+
+    CMultisigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
+                uint64_t feeIn, const uint64_t valueIn, const int validHeightIn,
+                const uint8_t requiredIn)
+        : CBaseTx(MULTISIG_TX, validHeightIn, feeIn) {
+        if (desUserIdIn.type() == typeid(CRegID))
+            assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
+
+        signaturePairs = signaturePairsIn;
+        desUserId      = desUserIdIn;
+        bcoinBalance   = valueIn;
+        required       = requiredIn;
+    }
+
+    ~CMultisigTx() {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(this->nVersion));
+        nVersion = this->nVersion;
+        READWRITE(VARINT(nValidHeight));
+        READWRITE(signaturePairs);
+        CID desId(desUserId);
+        READWRITE(desId);
+        READWRITE(VARINT(llFees));
+        READWRITE(VARINT(bcoinBalance));
+        READWRITE(VARINT(required));
+        READWRITE(memo);
+        if (fRead) {
+            desUserId = desId.GetUserId();
+        })
+
+    uint256 SignatureHash(bool recalculate = false) const {
+        if (recalculate || sigHash.IsNull()) {
+            CHashWriter ss(SER_GETHASH, 0);
+            CID desId(desUserId);
+            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight);
+            // Do NOT add item.signature.
+            for (const auto &item : signaturePairs) {
+                ss << CID(item.regId);
+            }
+            ss << desId << VARINT(llFees) << VARINT(bcoinBalance) << VARINT(required) << memo;
+            // Truly need to write the sigHash.
+            uint256 *hash = const_cast<uint256 *>(&sigHash);
+            *hash         = ss.GetHash();
+        }
+        return sigHash;
+    }
+
+    uint64_t GetValue() const { return bcoinBalance; }
+    uint256 GetHash() const { return SignatureHash(); }
+    uint64_t GetFee() const { return llFees; }
+    double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
+    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CMultisigTx>(this); }
+    string ToString(CAccountViewCache &view) const;
+    Object ToJson(const CAccountViewCache &AccountView) const;
+    bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+    bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
+                   int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
+    bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
 inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
@@ -709,7 +824,7 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
         Unserialize(is, *((CDelegateTx *)(pa.get())), nType, nVersion);
     } else {
         string sTxType(1, nTxType);
-        throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error, must be within range (1...6)");
+        throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error.");
     }
     pa->nTxType = nTxType;
 }

@@ -100,6 +100,7 @@ Value getbalance(const Array& params, bool fHelp)
                                     nValue = pTx->bcoinBalance;
                                 }
                             }
+                            // TODO: MULTISIG_TX
                         }
                     }
                     pBlockIndex = pBlockIndex->pprev;
@@ -132,6 +133,7 @@ Value getbalance(const Array& params, bool fHelp)
                                         nValue = pTx->bcoinBalance;
                                     }
                                 }
+                                // TODO: MULTISIG_TX
                             }
                         }
                         pBlockIndex = pBlockIndex->pprev;
@@ -229,24 +231,6 @@ Value getinfo(const Array& params, bool fHelp)
 
     return obj;
 }
-
-class DescribeAddressVisitor : public boost::static_visitor<Object>
-{
-public:
-    Object operator()(const CNoDestination &dest) const { return Object(); }
-
-    Object operator()(const CKeyID &keyID) const {
-        Object obj;
-        CPubKey vchPubKey;
-        pwalletMain->GetPubKey(keyID, vchPubKey);
-        obj.push_back(Pair("isscript", false));
-        obj.push_back(Pair("pubkey", HexStr(vchPubKey)));
-        obj.push_back(Pair("iscompressed", vchPubKey.IsCompressed()));
-        return obj;
-    }
-
-
-};
 
 Value verifymessage(const Array& params, bool fHelp)
 {

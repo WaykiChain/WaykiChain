@@ -17,9 +17,9 @@
 #include "miner.h"
 #include "net.h"
 #include "syncdatadb.h"
-#include "tx.h"
-#include "txdb.h"
-#include "txmempool.h"
+#include "tx/tx.h"
+#include "tx/txdb.h"
+#include "tx/txmempool.h"
 #include "ui_interface.h"
 #include "util.h"
 #include "vm/vmrunenv.h"
@@ -573,8 +573,7 @@ int CMerkleTx::SetMerkleBranch(const CBlock *pblock) {
     return chainActive.Height() - pindex->nHeight + 1;
 }
 
-bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> signature, const CPubKey pubKey) {
-    int64_t nTimeStart = GetTimeMicros();
+bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> &signature, const CPubKey &pubKey) {
     if (signatureCache.Get(sigHash, signature, pubKey))
         return true;
 
@@ -582,8 +581,6 @@ bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> si
         return false;
 
     signatureCache.Set(sigHash, signature, pubKey);
-    int64_t nSpentTime = GetTimeMicros() - nTimeStart;
-    LogPrint(LOG_CATEGORY_BENCH, "- Verify Signature with secp256k1: %.2fms\n", MILLI * nSpentTime);
     return true;
 }
 
@@ -1366,7 +1363,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                         maxVotes = operFund.fund.value;
                     }
                     if (voteAcct.pubKey == operFund.fund.pubKey) {
-                        voteAcct.llVotes = operFund.fund.value;
+                        voteAcct.receivedVotes = operFund.fund.value;
                         assert(scriptDBCache.SetDelegateData(voteAcct, operDbLog));
                     } else {
                         CAccount delegateAcct;
@@ -1375,7 +1372,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                         delegateAcct.keyID = operFund.fund.pubKey.GetKeyID();
                         delegateAcct.SetRegId(delegateRegId);
                         delegateAcct.pubKey = operFund.fund.pubKey;
-                        delegateAcct.llVotes   = operFund.fund.value;
+                        delegateAcct.receivedVotes   = operFund.fund.value;
                         assert(view.SaveAccountInfo(delegateRegId, delegateAcct.keyID, delegateAcct));
                         assert(scriptDBCache.SetDelegateData(delegateAcct, operDbLog));
                     }
@@ -3340,6 +3337,8 @@ void static ProcessGetData(CNode *pfrom) {
                             ss << *((CRegisterContractTx *)pBaseTx.get());
                         } else if (DELEGATE_TX == pBaseTx->nTxType) {
                             ss << *((CDelegateTx *)pBaseTx.get());
+                        } else if (MULTISIG_TX == pBaseTx->nTxType) {
+                            ss << *((CMultisigTx *)pBaseTx.get());
                         }
                         pfrom->PushMessage("tx", ss);
                         pushed = true;
@@ -4368,6 +4367,8 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
             return std::make_shared<CRegisterContractTx>();
         case DELEGATE_TX:
             return std::make_shared<CDelegateTx>();
+        case MULTISIG_TX:
+            return std::make_shared<CMultisigTx>();
         default:
             ERRORMSG("CreateNewEmptyTransaction type error");
             break;

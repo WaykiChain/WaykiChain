@@ -1,5 +1,6 @@
-// Copyright (c) 2014 The WaykiChain developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2016 The Coin developers
+// Copyright (c) 2017-2019 The WaykiChain Core Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -138,10 +139,11 @@ CBase58Data::CBase58Data() {
 	vchData.clear();
 }
 
-void CBase58Data::SetData(const vector<unsigned char> &vchVersionIn, const void* pdata, size_t nSize) {
-	vchVersion = vchVersionIn;
-	vchData.resize(nSize);
-	if (!vchData.empty())
+void CBase58Data::SetData(const vector<unsigned char>& vchVersionIn, const void* pdata,
+                          size_t nSize) {
+    vchVersion = vchVersionIn;
+    vchData.resize(nSize);
+    if (!vchData.empty())
 		memcpy(&vchData[0], pdata, nSize);
 }
 
@@ -188,107 +190,24 @@ int CBase58Data::CompareTo(const CBase58Data& b58) const {
 	return 0;
 }
 
-namespace {
-
-class CWICCAddressVisitor: public boost::static_visitor<bool> {
-private:
-	CCoinAddress *addr;
-public:
-	CWICCAddressVisitor(CCoinAddress *addrIn) :
-			addr(addrIn) {
-	}
-
-	bool operator()(const CKeyID &id) const {
-		return addr->Set(id);
-	}
-
-	bool operator()(const CNoDestination &no) const {
-		return false;
-	}
-};
-
-};
-
-bool CCoinAddress::Set(const CKeyID &id) {
-	SetData(SysCfg().Base58Prefix(PUBKEY_ADDRESS), &id, 20);
-	return true;
-}
-
-bool CCoinAddress::Set(const CTxDestination &dest) {
-	return boost::apply_visitor(CWICCAddressVisitor(this), dest);
+bool CCoinAddress::Set(const CKeyID& id) {
+    SetData(SysCfg().Base58Prefix(PUBKEY_ADDRESS), &id, 20);
+    return true;
 }
 
 bool CCoinAddress::IsValid() const {
-
-	bool bvalid = false;
-	{
-		bool fCorrectSize = vchData.size() == 20;
-		bool fKnownVersion = vchVersion == SysCfg().Base58Prefix(PUBKEY_ADDRESS);
-		bvalid = fCorrectSize && fKnownVersion;
-	}
-	if (!bvalid) {
-		vector<unsigned char> vid;
-		vid.push_back(ACC_ADDRESS);
-		if (vchData.size() == 26 && vchVersion == vid) {
-			bvalid = true;
-		}
-	}
-	return bvalid;
+    return (vchData.size() == 20) && (vchVersion == SysCfg().Base58Prefix(PUBKEY_ADDRESS));
 }
 
-CTxDestination CCoinAddress::Get() const {
-	if (!IsValid())
-		return CNoDestination();
-
-	if (vchData.size() == 20) {
+bool CCoinAddress::GetKeyID(CKeyID& keyId) const {
+    if (IsValid()) {
 		uint160 id;
-		memcpy(&id, &vchData[0], 20);
+        memcpy(&id, &vchData[0], 20);
+        keyId = CKeyID(id);
+        return true;
+    }
 
-		if (vchVersion == SysCfg().Base58Prefix(PUBKEY_ADDRESS))
-			return CKeyID(id);
-//		else if (vchVersion == Params().Base58Prefix(CBaseParams::SCRIPT_ADDRESS))
-//			return CScriptID(id);
-		else
-			return CNoDestination();
-	}
-	else
-	{
-//		assert(0);
-		return CNoDestination();
-	}
-}
-
-bool CCoinAddress::GetKeyID(CKeyID &keyID) const {
-	uint160 id;
-
-	if (vchVersion == SysCfg().Base58Prefix(PUBKEY_ADDRESS) && vchData.size() == 20) {
-		memcpy(&id, &vchData[0], 20);
-		keyID = CKeyID(id);
-		return true;
-	}
-
-	vector<unsigned char> vid;
-	vid.push_back(ACC_ADDRESS);
-	if (vchData.size() == 26 && vchVersion == vid) {
-		memcpy(keyID.begin(), &vchData[0], 20);
-		return true;
-	}
-	return false;
-}
-
-//bool CCoinAddress::GetRegID(CRegID &Regid) const {
-//
-////	vector<unsigned char> vid;
-////	vid.push_back(CBaseParams::ACC_ADDRESS);
-//	if (vchData.size() == 26 && vchVersion == vector<unsigned char>(CBaseParams::ACC_ADDRESS)) {
-//		Regid.SetRegID(vector<unsigned char>(vchData.end()-6,vchData.end()));
-//		return true;
-//	}
-//	return false;
-//}
-
-bool CCoinAddress::IsScript() const {
-	return IsValid() && vchVersion == SysCfg().Base58Prefix(SCRIPT_ADDRESS);
+    return false;
 }
 
 void CCoinSecret::SetKey(const CKey& vchSecret) {

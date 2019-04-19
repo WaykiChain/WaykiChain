@@ -3,7 +3,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
-#include "txdb.h"
+#include "tx/txdb.h"
 
 #include "base58.h"
 #include "rpcserver.h"
@@ -1455,18 +1455,17 @@ if (fHelp || params.size() > 2) {
 
 Value getaccountinfo(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-          throw runtime_error(
-                "getaccountinfo \"addr\"\n"
-                "\nget account information\n"
-                "\nArguments:\n"
-                "1.\"addr\": (string, required) account base58 address"
-                "Returns account details.\n"
-                "\nResult:\n"
-                "\nExamples:\n"
-                + HelpExampleCli("getaccountinfo", "WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("getaccountinfo", "\"WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\"")
-           );
+        throw runtime_error(
+            "getaccountinfo \"addr\"\n"
+            "\nget account information\n"
+            "\nArguments:\n"
+            "1.\"addr\": (string, required) account base58 address"
+            "Returns account details.\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("getaccountinfo", "\"WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\"") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("getaccountinfo", "\"WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\""));
     }
     RPCTypeCheck(params, list_of(str_type));
     CKeyID keyId;
@@ -3208,11 +3207,11 @@ Value listdelegates(const Array& params, bool fHelp) {
             vector<unsigned char>::iterator iterVotes = find_first_of(vDelegateKey.begin(), vDelegateKey.end(),
                 vDelegatePrefix.begin(), vDelegatePrefix.end());
             string strVotes(iterVotes+9, iterVotes+25);
-            uint64_t llVotes = 0;
+            uint64_t receivedVotes = 0;
             stringstream strValue;
             strValue.flags(ios::hex);
             strValue << strVotes;
-            strValue >> llVotes;
+            strValue >> receivedVotes;
 
             vector<unsigned char> vAcctRegId(iterVotes+26, vDelegateKey.end());
             CRegID acctRegId(vAcctRegId);
@@ -3221,8 +3220,8 @@ Value listdelegates(const Array& params, bool fHelp) {
                 assert(0);
 
             uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
-            if ((maxNum - llVotes) != account.llVotes) {
-                LogPrint("INFO", "llVotes:%lld, account:%s", maxNum - llVotes, account.ToString());
+            if ((maxNum - receivedVotes) != account.receivedVotes) {
+                LogPrint("INFO", "receivedVotes:%lld, account:%s", maxNum - receivedVotes, account.ToString());
                 assert(0);
             }
             delegateArray.push_back(account.ToJsonObj());

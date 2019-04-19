@@ -10,7 +10,7 @@
 #include "CycleTestBase.h"
 #include "../test/systestbase.h"
 #include "../rpc/rpcclient.h"
-#include "tx.h"
+#include "tx/tx.h"
 #include <vector>
 using namespace std;
 

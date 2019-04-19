@@ -6,7 +6,7 @@
 #ifndef STABLE_COIN_H
 #define STABLE_COIN_H
 
-#include "tx.h"
+#include "tx/tx.h"
 
 class CCdpOpenTx : public CBaseTx {
 public:

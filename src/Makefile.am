@@ -30,7 +30,7 @@ $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(w
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
 
 .PHONY: FORCE
-# bitcoin core #
+# waykichain core #
 coin_CORE_H = \
   accounts/accounts.h \
   addrman.h \
@@ -68,12 +68,13 @@ coin_CORE_H = \
   support/cleanse.h \
   serialize.h \
   sigcache.h \
-  stablecoin/stablecoin.h \
+  tx/stablecoin.h \
+  tx/tx.h \
+  tx/txdb.h \
+  tx/txmempool.h \
   sync.h \
   threadsafety.h \
   tinyformat.h \
-  txdb.h \
-  txmempool.h \
   ui_interface.h \
   uint256.h \
   util.h \
@@ -206,10 +207,10 @@ libcoin_server_a_SOURCES = \
   rpc/rpcserver.cpp \
   rpc/rpcvm.cpp \
   sigcache.cpp \
-  stablecoin/stablecoin.cpp \
-  txdb.cpp \
-  txmempool.cpp \
-  tx.cpp \
+  tx/stablecoin.cpp \
+  tx/txdb.cpp \
+  tx/txmempool.cpp \
+  tx/tx.cpp \
   $(VMLUA_H) \
   $(VM_CPP) \
   $(VM_H) \

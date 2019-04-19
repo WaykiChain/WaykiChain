@@ -1,5 +1,5 @@
 #include "main.h"
-#include "txdb.h"
+#include "tx/txdb.h"
 #include "database.h"
 #include <iostream>
 #include <boost/test/unit_test.hpp>

@@ -12,7 +12,7 @@
 #include "serialize.h"
 #include "script.h"
 #include "main.h"
-#include "txdb.h"
+#include "tx/txdb.h"
 #include <memory>
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"

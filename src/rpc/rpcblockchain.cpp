@@ -14,7 +14,7 @@
 #include "messagequeue.h"
 #include "rpcserver.h"
 #include "sync.h"
-#include "tx.h"
+#include "tx/tx.h"
 
 using namespace json_spirit;
 using namespace std;

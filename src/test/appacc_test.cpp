@@ -8,14 +8,14 @@
 
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
-#include "txdb.h"
+#include "tx/txdb.h"
 #include "database.h"
 #include <iostream>
 #include  "boost/filesystem/operations.hpp"
 #include  "boost/filesystem/path.hpp"
 #include  "../vm/appaccount.h"
 #include "../vm/vmrunenv.h"
-#include "tx.h"
+#include "tx/tx.h"
 #include "util.h"
 
 using namespace std;

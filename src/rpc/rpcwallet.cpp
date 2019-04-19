@@ -48,17 +48,18 @@ bool GetKeyId(string const& addr, CKeyID& keyId) {
     return true;
 }
 
-Value getnewaddr(const Array& params, bool fHelp)
-{
+Value getnewaddr(const Array& params, bool fHelp) {
     if (fHelp || params.size() > 1)
-        throw runtime_error("getnewaddr  (\"IsMiner\")\n"
+        throw runtime_error(
+            "getnewaddr  (\"IsMiner\")\n"
             "\nget a new address\n"
             "\nArguments:\n"
-            "1. \"IsMiner\" (bool, optional)  If true, it creates two sets of key-pairs: one for mining and another for receiving miner fees.\n"
-           "\nExamples:\n"
-            + HelpExampleCli("getnewaddr", "")
-            + HelpExampleCli("getnewaddr", "true")
-        );
+            "1. \"IsMiner\" (bool, optional)  If true, it creates two sets of key-pairs: one for "
+            "mining and another for receiving miner fees.\n"
+            "\nExamples:\n" +
+            HelpExampleCli("getnewaddr", "") + "\nAs json rpc\n" +
+            HelpExampleRpc("getnewaddr", ""));
+
     EnsureWalletIsUnlocked();
 
     bool IsForMiner = false;
@@ -84,10 +85,82 @@ Value getnewaddr(const Array& params, bool fHelp)
     }
 
     CPubKey userPubKey = userkey.GetPubKey();
-    CKeyID userKeyID = userPubKey.GetKeyID();
+    CKeyID userKeyID   = userPubKey.GetKeyID();
     Object obj;
-    obj.push_back( Pair("addr", userKeyID.ToAddress()) );
-    obj.push_back( Pair("minerpubkey", minerPubKey) ); // "null" for non-miner address
+    obj.push_back(Pair("addr", userKeyID.ToAddress()));
+    obj.push_back(Pair("minerpubkey", minerPubKey));  // "null" for non-miner address
+    return obj;
+}
+
+Value addmultisigaddr(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 2 || params.size() > 3)
+        throw runtime_error(
+            "addmultisigaddr nrequired [\"regid\",...]\n"
+            "\nget a new multisig address\n"
+            "\nArguments:\n"
+            "1. nrequired        (numeric, required) The number of required signatures out of the "
+            "n keys or addresses.\n"
+            "2. \"keysobject\"   (string, required) A json array of WICC addresses or "
+            "hex-encoded public keys\n"
+            "     [\n"
+            "       \"address\"  (string) WICC address or hex-encoded public key\n"
+            "       ...,\n"
+            "     ]\n"
+            "\nExamples:\n"
+            "\nAdd a 2-3 multisig address from 3 addresses\n" +
+            HelpExampleCli("addmultisigaddr",
+                           "2 \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
+                           "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\"") +
+            "\nAs json rpc\n" +
+            HelpExampleRpc("addmultisigaddr",
+                           "2, \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
+                           "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\""));
+
+    EnsureWalletIsUnlocked();
+
+    int64_t nRequired = params[0].get_int64();
+    const Array& keys = params[1].get_array();
+
+    if (nRequired < 1) {
+        throw runtime_error("a multisignature address must require at least one key to redeem");
+    }
+
+    if ((int64_t)keys.size() < nRequired) {
+        throw runtime_error(
+            strprintf("not enough keys supplied "
+                      "(got %u keys, but need at least %d to redeem)",
+                      keys.size(), nRequired));
+    }
+
+    if ((int64_t)keys.size() > kSignatureNumberThreshold) {
+        throw runtime_error(
+            strprintf("too many keys supplied, no more than %d keys", kSignatureNumberThreshold));
+    }
+
+    CKeyID keyId;
+    CPubKey pubKey;
+    set<CPubKey> pubKeys;
+    for (unsigned int i = 0; i < keys.size(); i++) {
+        if (!GetKeyId(keys[i].get_str(), keyId)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyId.");
+        }
+
+        if (!pwalletMain->GetPubKey(keyId, pubKey)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get pubKey.");
+        }
+
+        pubKeys.insert(pubKey);
+    }
+
+    CScript script;
+    script.SetMultisig(nRequired, pubKeys);
+    CKeyID scriptId = script.GetID();
+    pwalletMain->AddCScript(script);
+
+    Object obj;
+    obj.push_back(Pair("addr", scriptId.ToAddress()));
     return obj;
 }
 
@@ -173,7 +246,7 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
     CCommonTx tx;
     tx.srcUserId    = sendUserId;
     tx.desUserId    = recvUserId;
-    tx.bcoinBalance     = nValue;
+    tx.bcoinBalance = nValue;
     tx.llFees       = (0 == nFee) ? SysCfg().GetTxFee() : nFee;
     tx.nValidHeight = nHeight;
 

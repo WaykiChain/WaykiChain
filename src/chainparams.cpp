@@ -11,7 +11,7 @@
 #include "protocol.h"
 #include "util.h"
 #include "key.h"
-#include "tx.h"
+#include "tx/tx.h"
 #include "main.h"
 
 #include <boost/assign/list_of.hpp>

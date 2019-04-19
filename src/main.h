@@ -18,7 +18,7 @@
 #include "net.h"
 #include "sigcache.h"
 #include "sync.h"
-#include "txmempool.h"
+#include "tx/txmempool.h"
 #include "uint256.h"
 
 #include <stdint.h>
@@ -109,6 +109,7 @@ static const int kCommonTxMemoMaxSize            = 100;       // 100 bytes max f
 static const int kContractMemoMaxSize            = 100;       // 100 bytes max for memo size
 static const int kMostRecentBlockNumberThreshold = 1000;      // most recent block number threshold
 static const int kRegIdMaturePeriodByBlock       = 100;       // RegId's mature period measured by blocks
+static const int kSignatureNumberThreshold       = 15;        // m-n multisig, refer to n
 static const string kContractScriptPathPrefix    = "/tmp/lua/";
 
 extern CCriticalSection cs_main;
@@ -209,7 +210,7 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 /** Increase a node's misbehavior score. */
 void Misbehaving(NodeId nodeid, int howmuch);
 
-bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> signature, const CPubKey pubKey);
+bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> &signature, const CPubKey &pubKey);
 
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx,

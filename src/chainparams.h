@@ -29,23 +29,22 @@ struct CDNSSeedData {
     }
 };
 
+typedef enum {
+    MAIN_NET,          //!< MAIN_NET
+    TEST_NET,          //!< TESTNET
+    REGTEST_NET,       //!< REGTEST_NET
+    MAX_NETWORK_TYPES  //!< MAX_NETWORK_TYPES
+} NET_TYPE;
 
-typedef enum  {
-    MAIN_NET,            //!< MAIN_NET
-    TEST_NET,            //!< TESTNET
-    REGTEST_NET,         //!< REGTEST_NET
-    MAX_NETWORK_TYPES    //!< MAX_NETWORK_TYPES
-}NET_TYPE;
-
-typedef enum  {
-    PUBKEY_ADDRESS, //!< PUBKEY_ADDRESS
+typedef enum {
+    PUBKEY_ADDRESS,   //!< PUBKEY_ADDRESS
     SCRIPT_ADDRESS, //!< SCRIPT_ADDRESS
-    SECRET_KEY,     //!< SECRET_KEY
-    EXT_PUBLIC_KEY, //!< EXT_PUBLIC_KEY
-    EXT_SECRET_KEY, //!< EXT_SECRET_KEY
-    ACC_ADDRESS,    //!< ACC_ADDRESS
-    MAX_BASE58_TYPES//!< MAX_BASE58_TYPES
-}Base58Type;
+    SECRET_KEY,       //!< SECRET_KEY
+    EXT_PUBLIC_KEY,   //!< EXT_PUBLIC_KEY
+    EXT_SECRET_KEY,   //!< EXT_SECRET_KEY
+    ACC_ADDRESS,      //!< ACC_ADDRESS
+    MAX_BASE58_TYPES  //!< MAX_BASE58_TYPES
+} Base58Type;
 
 /**
  * CChainParams defines various tweakable parameters of a given instance of the
@@ -137,7 +136,6 @@ public:
         te += strprintf("nScriptCheckThreads:%d\n", nScriptCheckThreads);
         te += strprintf("nViewCacheSize:%d\n",      nViewCacheSize);
         te += strprintf("nTxCacheHeight:%d\n",      nTxCacheHeight);
-        // te += strprintf("nMaxForkHeight:%d\n",      nMaxForkHeight);
         te += strprintf("nLogMaxSize:%d\n",         nLogMaxSize);
 
         return te;
@@ -231,9 +229,6 @@ public:
     int GetTxCacheHeight() const {
         return nTxCacheHeight;
     }
-    // int GetMaxForkHeight() const {
-    //     return nMaxForkHeight;
-    // }
     int GetLogMaxSize() const {
         return nLogMaxSize;
     }

@@ -2,7 +2,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
-#include "txdb.h"
+#include "tx/txdb.h"
 
 #include "base58.h"
 #include "rpcserver.h"
@@ -139,14 +139,12 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     CValidationState state;
     CTxUndo txundo;
 
-    //get keyid
     CKeyID srcKeyid;
     if (!FindKeyId(&acctViewTemp, params[0].get_str(), srcKeyid)) {
         throw runtime_error("parse addr failed\n");
     }
-    CUserID srcUserId   = srcKeyid;
 
-    //balance
+    CUserID srcUserId   = srcKeyid;
     CAccount account;
 
     uint64_t balance = 0;
