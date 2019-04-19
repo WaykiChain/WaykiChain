@@ -219,7 +219,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "listcontracts"          && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getblock"               && n > 0) { if (params[0].get_str().size()<32) ConvertTo<int>(params[0]);}
 
-    /****** generate a digitally signed raw transaction for network submission via sendrawtx  **********/
+    /****** generate a digitally signed raw transaction for network submission via sendtxraw  **********/
     if (strMethod == "genregisteraccountraw"  && n > 0) ConvertTo<double>(params[0]);
     if (strMethod == "genregisteraccountraw"  && n > 1) ConvertTo<int>(params[1]);
 

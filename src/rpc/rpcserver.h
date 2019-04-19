@@ -165,9 +165,9 @@ extern json_spirit::Value gencallcontractraw     (const json_spirit::Array& para
 extern json_spirit::Value genvotedelegateraw     (const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value genmultisigraw         (const json_spirit::Array& params, bool fHelp);
 
-extern json_spirit::Value sendrawtx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value sendtxraw(const json_spirit::Array& params, bool fHelp);
 
-extern json_spirit::Value sigstr(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value signtxraw(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value decoderawtx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value printblockdbinfo(const json_spirit::Array& params, bool fHelp);
 
