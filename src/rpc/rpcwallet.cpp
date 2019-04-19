@@ -166,10 +166,10 @@ Value addmulsigaddr(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value createmultisig(const Array& params, bool fHelp) {
+Value createmulsig(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2)
         throw runtime_error(
-            "createmultisig nrequired [\"address\",...]\n"
+            "createmulsig nrequired [\"address\",...]\n"
             "\nCreates a multi-signature address with n signature of m keys required.\n"
             "\nArguments:\n"
             "1. nrequired        (numeric, required) The number of required signatures out of the "
@@ -184,12 +184,12 @@ Value createmultisig(const Array& params, bool fHelp) {
             "\"addr\"  (string) A WICC address.\n"
             "\nExamples:\n"
             "\nCreate a 2-3 multisig address from 3 addresses\n" +
-            HelpExampleCli("createmultisig",
+            HelpExampleCli("createmulsig",
                            "2 \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
                            "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
                            "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\"") +
             "\nAs json rpc\n" +
-            HelpExampleRpc("createmultisig",
+            HelpExampleRpc("createmulsig",
                            "2, \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
                            "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
                            "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\""));

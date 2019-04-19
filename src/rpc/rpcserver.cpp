@@ -223,7 +223,7 @@ static const CRPCCommand vRPCCommands[] =
     { "setcheckpoint",          &setcheckpoint,          true,      true,       false },
     { "validateaddr",           &validateaddr,           true,      true,       false },
     { "validateaddress",        &validateaddr,           true,      true,       false }, //deprecated
-    { "createmultisig",         &createmultisig,         true,      true ,      false },
+    { "createmulsig",           &createmulsig,           true,      true ,      false },
     { "listtxbyaddr",           &listtxbyaddr,           true,      true,       false },
 
     /* P2P networking */
