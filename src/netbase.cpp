@@ -6,9 +6,9 @@
 
 #include "netbase.h"
 
-#include "hash.h"
+#include "crypto/hash.h"
 #include "sync.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 #include "util.h"
 
 #ifndef WIN32
@@ -1346,4 +1346,3 @@ string NetworkErrorString(int err)
     return strprintf("%s (%d)", s, err);
 }
 #endif
-

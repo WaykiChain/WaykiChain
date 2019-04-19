@@ -38,8 +38,8 @@ coin_CORE_H = \
   alert.h \
   allocators.h \
   base58.h \
-  openssl.hpp \
-  bloom.h \
+  commons/bloom.h \
+  commons/openssl.hpp \
   chainparams.h \
   clientversion.h \
   compat\compat.h \
@@ -47,7 +47,7 @@ coin_CORE_H = \
   database.h \
   crypter.h \
   crypto/sha256.h \
-  hash.h \
+  crypto/hash.h \
   init.h \
   keystore.h \
   leveldbwrapper.h \
@@ -188,7 +188,7 @@ libcoin_server_a_SOURCES = \
   accounts/accounts.cpp \
   addrman.cpp \
   alert.cpp \
-  bloom.cpp \
+  commons/bloom.cpp \
   configuration.cpp \
   crypto/sha256.cpp \
   cuiserver.cpp	\
@@ -230,17 +230,18 @@ libcoin_wallet_a_SOURCES = \
   $(COIN_CORE_H)
 
 libcoin_common_a_SOURCES = \
-  base58.cpp \
-  allocators.cpp \
-  arith_uint256.cpp \
+  accounts/key.cpp \
+  commons/base58.cpp \
+  commons/allocators.cpp \
+  commons/arith_uint256.cpp \
+  commons/random.cpp  \
+  commons/uint256.cpp \
+  crypto/hash.cpp \
   chainparams.cpp \
   configuration.cpp\
   core.cpp \
-  hash.cpp \
-  accounts/key.cpp \
   netbase.cpp \
   protocol.cpp \
-  random.cpp  \
   rpc/rpcprotocol.cpp \
   support/cleanse.cpp \
   support/events.cpp \
@@ -248,7 +249,6 @@ libcoin_common_a_SOURCES = \
   syncdata.cpp \
   syncdatadb.cpp \
   util.cpp \
-  uint256.cpp \
   version.cpp \
   json/json_spirit_reader.cpp \
   json/json_spirit_value.cpp \

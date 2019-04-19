@@ -8,7 +8,7 @@
 
 #include "configuration.h"
 
-#include "uint256.h"
+#include "commons/uint256.h"
 
 #include <boost/test/unit_test.hpp>
 
@@ -33,6 +33,6 @@ BOOST_AUTO_TEST_CASE(sanity)
 //    BOOST_CHECK(Checkpoints::CheckBlock(134444+1, p11111));
 //
 //    BOOST_CHECK(Checkpoints::GetTotalBlocksEstimate() >= 134444);
-}    
+}
 
 BOOST_AUTO_TEST_SUITE_END()

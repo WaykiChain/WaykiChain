@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "util.h"
-#include "random.h"
+#include "commons/random.h"
 #include "sync.h"
 
 #include <stdint.h>

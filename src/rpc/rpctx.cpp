@@ -5,7 +5,7 @@
 
 #include "tx/txdb.h"
 
-#include "base58.h"
+#include "commons/base58.h"
 #include "rpcserver.h"
 #include "init.h"
 #include "net.h"

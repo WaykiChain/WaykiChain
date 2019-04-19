@@ -13,13 +13,10 @@
 #include <unordered_map>
 
 #include "accounts/accounts.h"
-
-
+#include "commons/uint256.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
-
 #include "serialize.h"
-#include "uint256.h"
 
 using namespace std;
 

@@ -7,7 +7,7 @@
 #ifndef COIN_SERIALIZE_H
 #define COIN_SERIALIZE_H
 
-#include "allocators.h"
+#include "commons/allocators.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -21,7 +21,7 @@
 #include <utility>
 #include <vector>
 #include "version.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 #include <openssl/ripemd.h>
 #include <openssl/sha.h>
 #include <boost/tuple/tuple.hpp>

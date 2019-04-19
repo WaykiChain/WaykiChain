@@ -14,7 +14,7 @@
 #include "chainparams.h"
 #include "netbase.h"
 #include "serialize.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 
 #include <stdint.h>
 #include <string>

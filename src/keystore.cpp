@@ -8,7 +8,7 @@
 #include "wallet/wallet.h"
 #include "crypter.h"
 #include "accounts/key.h"
-#include "base58.h"
+#include "commons/base58.h"
 using namespace json_spirit;
 
 Object CKeyCombi::ToJsonObj()const {

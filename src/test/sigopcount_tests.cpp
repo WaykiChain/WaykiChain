@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "accounts/key.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 
 #include <vector>
 

@@ -8,8 +8,8 @@
 #include "configuration.h"
 
 #include <memory>
-#include "uint256.h"
-#include "arith_uint256.h"
+#include "commons/uint256.h"
+#include "commons/arith_uint256.h"
 #include "util.h"
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -21,7 +21,7 @@ using namespace std;
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
 
 #include "main.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 #include "syncdatadb.h"
 
 namespace Checkpoints

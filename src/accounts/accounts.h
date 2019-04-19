@@ -14,7 +14,7 @@
 
 #include "../json/json_spirit_utils.h"
 #include "../json/json_spirit_value.h"
-#include "../hash.h"
+#include "crypto/hash.h"
 #include "accounts/key.h"
 #include "chainparams.h"
 

@@ -8,7 +8,7 @@
 #include "netbase.h"
 #include "sync.h"
 #include "ui_interface.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 #include "version.h"
 
 #include <stdarg.h>
@@ -309,7 +309,7 @@ bool FindLogFile(const char* category, DebugLogFileIt &logFileIt) {
     if (!SysCfg().IsDebug()) {
         logFileIt = g_DebugLogs.end();
         return false;
-    } 
+    }
 
     boost::call_once(&DebugPrintInit, debugPrintInitFlag);
 

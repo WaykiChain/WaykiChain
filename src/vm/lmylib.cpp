@@ -20,13 +20,13 @@
 //#include "lualib.h"
 
 #include "lua/lua.hpp"
-//#include "hash.h"
+//#include "crypto/hash.h"
 //#include "accounts/key.h"
 //#include "main.h"
 #include <openssl/des.h>
 #include <vector>
 #include "vmrunenv.h"
-#include "SafeInt3.hpp"
+#include "commons/SafeInt3.hpp"
 
 #define LUA_C_BUFFER_SIZE  500  //传递值，最大字节防止栈溢出
 

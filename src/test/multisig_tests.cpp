@@ -5,7 +5,7 @@
 #include "accounts/key.h"
 #include "keystore.h"
 #include "main.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 
 #include <boost/assign/std/vector.hpp>
 #include <boost/foreach.hpp>

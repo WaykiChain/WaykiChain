@@ -6,7 +6,7 @@
 #ifndef __CRYPTER_H__
 #define __CRYPTER_H__
 
-#include "allocators.h"
+#include "commons/allocators.h"
 #include "serialize.h"
 #include "keystore.h"
 

@@ -5,7 +5,7 @@
 #include <time.h>
 #include "main.h"
 #include "miner/miner.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 #include "util.h"
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>

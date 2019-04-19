@@ -21,7 +21,7 @@
 #include "serialize.h"
 #include "sync.h"
 #include "tx/txmempool.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 #include "util.h"
 #include "version.h"
 

@@ -3,7 +3,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "allocators.h"
+#include "commons/allocators.h"
 
 #ifdef WIN32
 #ifdef _WIN32_WINNT
@@ -65,4 +65,3 @@ bool MemoryPageLocker::Unlock(const void *addr, size_t len)
 LockedPageManager::LockedPageManager() : LockedPageManagerBase<MemoryPageLocker>(GetSystemPageSize())
 {
 }
-

@@ -11,7 +11,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "arith_uint256.h"
+#include "commons/arith_uint256.h"
 #include "database.h"
 #include "leveldbwrapper.h"
 #include "main.h"

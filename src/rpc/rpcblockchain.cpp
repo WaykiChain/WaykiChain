@@ -11,7 +11,7 @@
 #include "init.h"
 #include "json/json_spirit_value.h"
 #include "main.h"
-#include "messagequeue.h"
+#include "commons/messagequeue.h"
 #include "rpcserver.h"
 #include "sync.h"
 #include "tx/tx.h"

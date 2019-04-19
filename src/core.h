@@ -9,9 +9,9 @@
 
 #include "accounts/key.h"
 #include "serialize.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 
-#include "base58.h"
+#include "commons/base58.h"
 #include <stdint.h>
 #include <memory>
 #include "configuration.h"

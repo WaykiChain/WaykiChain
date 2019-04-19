@@ -4,10 +4,10 @@
 
 #include "accounts/key.h"
 
-#include "base58.h"
-#include "uint256.h"
+#include "commons/base58.h"
+#include "commons/uint256.h"
 #include "util.h"
-#include "hash.h"
+#include "crypto/hash.h"
 #include <string>
 #include <vector>
 

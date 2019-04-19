@@ -14,8 +14,8 @@
 
 #include <memory>
 #include "boost/tuple/tuple.hpp"
-#include "accounts/key.h"
-#include "uint256.h"
+#include "../accounts/key.h"
+#include "commons/uint256.h"
 
 class CBlock;
 class CBlockIndex;

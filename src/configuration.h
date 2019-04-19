@@ -9,8 +9,8 @@
 #define CONFIGURATION_H_
 
 #include <memory>
-#include "uint256.h"
-#include "arith_uint256.h"
+#include "commons/uint256.h"
+#include "commons/arith_uint256.h"
 #include "util.h"
 #include "chainparams.h"
 #include <boost/filesystem.hpp>

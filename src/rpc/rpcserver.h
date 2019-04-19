@@ -8,7 +8,7 @@
 #define _COINRPC_SERVER_H_ 1
 
 #include "rpcprotocol.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 
 #include <stdint.h>
 #include <list>

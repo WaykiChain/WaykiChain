@@ -10,11 +10,11 @@
 #include <boost/variant.hpp>
 #include <stdexcept>
 #include <vector>
-#include "allocators.h"
+#include "commons/allocators.h"
 #include "chainparams.h"
-#include "hash.h"
+#include "crypto/hash.h"
 #include "serialize.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 #include "util.h"
 
 #include <secp256k1.h>

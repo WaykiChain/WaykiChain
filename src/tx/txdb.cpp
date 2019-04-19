@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include "core.h"
 #include "accounts/key.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 #include "util.h"
 
 using namespace std;

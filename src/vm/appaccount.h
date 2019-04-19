@@ -1,8 +1,8 @@
 /*
- * appuseraccout.h
+ * appaccout.h
  *
  *  Created on: 2015年3月30日
- *      Author: ranger.shi
+ *      Author: WaykiChain Core Developers
  */
 
 #ifndef APPUSERACCOUT_H_

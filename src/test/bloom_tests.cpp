@@ -2,13 +2,13 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "bloom.h"
+#include "commons/bloom.h"
 
-#include "base58.h"
+#include "commons/base58.h"
 #include "accounts/key.h"
 #include "main.h"
 #include "serialize.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 #include "util.h"
 
 #include <vector>

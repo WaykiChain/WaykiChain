@@ -11,7 +11,7 @@
 
 #include <openssl/des.h>
 #include <vector>
-#include "hash.h"
+#include "crypto/hash.h"
 #include "accounts/key.h"
 #include "main.h"
 #include "tx/tx.h"
@@ -291,18 +291,18 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
              " totalAllocCount=%llu,"
              " totalFreeSize=%llu,"
              " totalFreeCount=%llu\n",
-             pVmRunEnv->GetScriptRegID().ToString().c_str(), 
+             pVmRunEnv->GetScriptRegID().ToString().c_str(),
              burnedStep,
-             burnerState->maxStep, 
+             burnerState->maxStep,
              burnerState->allocMemSize,
-             burnerState->allocMemTimes, 
-             burnerState->freeMemSize, 
+             burnerState->allocMemTimes,
+             burnerState->freeMemSize,
              burnerState->freeMemTimes
     );
 
     if (burnedStep > burnerState->maxStep) {
         return std::make_tuple(-1, string("execute tx contract run step exceeds the max step limit\n"));
     }
-    
+
     return std::make_tuple(burnedStep, string("script runs ok"));
 }

@@ -11,7 +11,7 @@
 #include "coin-config.h"
 #endif
 
-#include "arith_uint256.h"
+#include "commons/arith_uint256.h"
 #include "chainparams.h"
 #include "core.h"
 #include "database.h"
@@ -19,7 +19,7 @@
 #include "sigcache.h"
 #include "sync.h"
 #include "tx/txmempool.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 
 #include <stdint.h>
 #include <algorithm>

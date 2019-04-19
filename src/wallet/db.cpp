@@ -6,7 +6,7 @@
 #include "db.h"
 
 #include "addrman.h"
-#include "hash.h"
+#include "crypto/hash.h"
 #include "protocol.h"
 #include "util.h"
 //#include "utilstrencodings.h"

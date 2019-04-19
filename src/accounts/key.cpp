@@ -8,10 +8,10 @@
 #include <openssl/ecdsa.h>
 #include <openssl/obj_mac.h>
 #include <openssl/rand.h>
-#include <random.h>
-#include "base58.h"
-#include "common.h"
-#include "hash.h"
+#include "commons/random.h"
+#include "commons/base58.h"
+#include "commons/common.h"
+#include "crypto/hash.h"
 #include "lax_der_parsing.h"
 #include "lax_der_privatekey_parsing.h"
 

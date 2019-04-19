@@ -13,8 +13,8 @@
 #include "chainparams.h"
 #include "crypto/sha256.h"
 #include "accounts/key.h"
-#include "random.h"
-#include "uint256.h"
+#include "commons/random.h"
+#include "commons/uint256.h"
 #include "util.h"
 
 /**

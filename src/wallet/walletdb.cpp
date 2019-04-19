@@ -5,7 +5,7 @@
 #define  BOOST_NO_CXX11_SCOPED_ENUMS
 #include "walletdb.h"
 
-#include "base58.h"
+#include "commons/base58.h"
 #include "protocol.h"
 #include "serialize.h"
 #include "sync.h"

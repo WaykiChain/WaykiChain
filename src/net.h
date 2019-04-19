@@ -7,17 +7,17 @@
 #ifndef COIN_NET_H
 #define COIN_NET_H
 
-#include "bloom.h"
+#include "commons/bloom.h"
 #include "./compat/compat.h"
-#include "hash.h"
-#include "limitedmap.h"
-#include "mruset.h"
+#include "crypto/hash.h"
+#include "commons/limitedmap.h"
+#include "commons/mruset.h"
 #include "netbase.h"
 #include "protocol.h"
 #include "sync.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 #include "util.h"
-#include "random.h"
+#include "commons/random.h"
 
 #include <deque>
 #include <stdint.h>

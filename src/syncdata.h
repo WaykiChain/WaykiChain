@@ -10,7 +10,7 @@
 
 #include "db.h"
 #include "main.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 #include "accounts/key.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"

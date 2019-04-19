@@ -6,7 +6,7 @@
 #include "bloom.h"
 
 #include "core.h"
-#include "hash.h"
+#include "crypto/hash.h"
 //#include "script.h"
 
 #include <math.h>

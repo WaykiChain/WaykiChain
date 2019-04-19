@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "core.h"
-#include "hash.h"
+#include "crypto/hash.h"
 #include "main.h"
 #include "util.h"
 

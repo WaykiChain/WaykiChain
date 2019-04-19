@@ -6,7 +6,7 @@
 #include "wallet.h"
 #include "tx/txdb.h"
 
-#include "base58.h"
+#include "commons/base58.h"
 
 #include <openssl/rand.h>
 #include <boost/algorithm/string.hpp>
@@ -20,7 +20,7 @@
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_writer_template.h"
 #include "net.h"
-#include "random.h"
+#include "commons/random.h"
 using namespace json_spirit;
 using namespace boost::assign;
 

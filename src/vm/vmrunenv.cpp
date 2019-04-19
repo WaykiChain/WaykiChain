@@ -7,7 +7,7 @@
 #include "vmrunenv.h"
 #include <algorithm>
 #include <boost/foreach.hpp>
-#include "SafeInt3.hpp"
+#include "commons/SafeInt3.hpp"
 #include "tx/tx.h"
 #include "util.h"
 

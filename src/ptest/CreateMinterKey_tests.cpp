@@ -9,7 +9,7 @@
 #include "main.h"
 #include "init.h"
 #include "miner/miner.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 #include "util.h"
 #include <boost/test/unit_test.hpp>
 #include "../rpc/rpcclient.h"

@@ -7,7 +7,7 @@
 
 #include "serialize.h"
 #include <boost/foreach.hpp>
-#include "hash.h"
+#include "crypto/hash.h"
 #include "util.h"
 #include "database.h"
 #include "main.h"
@@ -19,8 +19,10 @@
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_writer_template.h"
+#include "commons/SafeInt3.hpp"
 #include "appaccount.h"
-#include "SafeInt3.hpp"
+
+
 using namespace json_spirit;
 
 

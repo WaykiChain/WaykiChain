@@ -6,7 +6,7 @@
 #include "rpcserver.h"
 #include "rpctx.h"
 
-#include "base58.h"
+#include "commons/base58.h"
 #include "init.h"
 #include "main.h"
 #include "ui_interface.h"
@@ -343,7 +343,7 @@ static const CRPCCommand vRPCCommands[] =
 
     /* vm functions work in vm simulator */
     { "vmexecutescript",        &vmexecutescript,   true,      true,       true},
-    
+
 };
 
 CRPCTable::CRPCTable() {

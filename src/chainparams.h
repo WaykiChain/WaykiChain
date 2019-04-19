@@ -10,8 +10,8 @@
 #include <boost/filesystem/fstream.hpp>
 #include <vector>
 
-#include "uint256.h"
-#include "arith_uint256.h"
+#include "commons/uint256.h"
+#include "commons/arith_uint256.h"
 #include "util.h"
 
 using namespace std;

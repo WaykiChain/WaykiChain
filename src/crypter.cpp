@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 #include <boost/foreach.hpp>
-#include <openssl.hpp>
+#include "commons/openssl.hpp"
 
 bool CCrypter::SetKeyFromPassphrase(const SecureString& strKeyData, const vector<unsigned char>& chSalt, const unsigned int nRounds, const unsigned int nDerivationMethod)
 {

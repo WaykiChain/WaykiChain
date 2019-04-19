@@ -8,7 +8,7 @@
 
 #include "serialize.h"
 #include "tx.h"
-#include "hash.h"
+#include "crypto/hash.h"
 #include "util.h"
 #include "database.h"
 #include "main.h"
