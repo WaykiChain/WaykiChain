@@ -34,12 +34,14 @@ $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(w
 coin_CORE_H = \
   accounts/accounts.h \
   accounts/key.h \
+  accounts/keystore.h \
   addrman.h \
   alert.h \
   allocators.h \
   base58.h \
   commons/bloom.h \
   commons/openssl.hpp \
+  commons/serialize.h \
   chainparams.h \
   clientversion.h \
   compat\compat.h \
@@ -49,7 +51,6 @@ coin_CORE_H = \
   crypto/sha256.h \
   crypto/hash.h \
   init.h \
-  keystore.h \
   leveldbwrapper.h \
   limitedmap.h \
   main.h \
@@ -66,7 +67,6 @@ coin_CORE_H = \
   rpc/rpcserver.h \
   rpc/rpcvm.h \
   support/cleanse.h \
-  serialize.h \
   sigcache.h \
   tx/stablecoin.h \
   tx/tx.h \
@@ -219,14 +219,14 @@ libcoin_server_a_SOURCES = \
   $(COIN_CORE_H)
 
 libcoin_wallet_a_SOURCES = \
-  wallet/db.cpp  \
+  accounts/keystore.cpp \
   crypter.cpp \
   rpc/rpcdump.cpp \
   rpc/rpcwallet.cpp \
-  keystore.cpp \
+  rpc/rpctx.cpp \
+  wallet/db.cpp  \
   wallet/wallet.cpp \
   wallet/walletdb.cpp \
-  rpc/rpctx.cpp \
   $(COIN_CORE_H)
 
 libcoin_common_a_SOURCES = \

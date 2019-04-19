@@ -4,7 +4,7 @@
 #include <map>
 #include <vector>
 #include "./vm/appaccount.h"
-#include "serialize.h"
+#include "commons/serialize.h"
 #include "tx/tx.h"
 
 using namespace std;

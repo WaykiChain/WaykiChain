@@ -6,7 +6,7 @@
 #include "json/json_spirit_writer_template.h"
 #include "json/json_spirit_utils.h"
 
-#include "serialize.h"
+#include "commons/serialize.h"
 #include "tx.h"
 #include "crypto/hash.h"
 #include "util.h"

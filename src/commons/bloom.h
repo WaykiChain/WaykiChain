@@ -6,7 +6,7 @@
 #ifndef COIN_BLOOM_H
 #define COIN_BLOOM_H
 
-#include "serialize.h"
+#include "commons/serialize.h"
 #include "tx/tx.h"
 #include <vector>
 

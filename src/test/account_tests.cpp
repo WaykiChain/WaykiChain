@@ -1,7 +1,7 @@
 #include <iostream>
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
-#include "serialize.h"
+#include "commons/serialize.h"
 #include "tx/txdb.h"
 #include "database.h"
 #include "main.h"
@@ -204,4 +204,3 @@ BOOST_FIXTURE_TEST_CASE(red_packet, CTxTest) {
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-

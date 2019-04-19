@@ -7,8 +7,8 @@
 #define __CRYPTER_H__
 
 #include "commons/allocators.h"
-#include "serialize.h"
-#include "keystore.h"
+#include "commons/serialize.h"
+#include "accounts/keystore.h"
 
 class uint256;
 

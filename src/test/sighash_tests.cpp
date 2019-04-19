@@ -7,7 +7,7 @@
 
 #include "main.h"
 #include "util.h"
-#include "serialize.h"
+#include "commons/serialize.h"
 #include "version.h"
 #include "data/sighash.json.h"
 
@@ -211,4 +211,3 @@ BOOST_AUTO_TEST_SUITE(sighash_tests)
 //    }
 //}
 BOOST_AUTO_TEST_SUITE_END()
-

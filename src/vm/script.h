@@ -9,7 +9,7 @@
 #define VMSCRIPT_H_
 
 #include "main.h"
-#include "serialize.h"
+#include "commons/serialize.h"
 using namespace std;
 
 /**

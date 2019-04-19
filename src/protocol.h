@@ -13,7 +13,7 @@
 
 #include "chainparams.h"
 #include "netbase.h"
-#include "serialize.h"
+#include "commons/serialize.h"
 #include "commons/uint256.h"
 
 #include <stdint.h>

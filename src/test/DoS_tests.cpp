@@ -6,11 +6,11 @@
 // Unit tests for denial-of-service detection/prevention code
 //
 
-#include "keystore.h"
+#include "accounts/keystore.h"
 #include "main.h"
 #include "net.h"
 #include "accounts/key.h"
-#include "serialize.h"
+#include "commons/serialize.h"
 
 #include <stdint.h>
 

@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "accounts/key.h"
-#include "keystore.h"
+#include "accounts/keystore.h"
 #include "main.h"
 #include "commons/uint256.h"
 

@@ -7,7 +7,7 @@
 #include "commons/base58.h"
 #include "accounts/key.h"
 #include "main.h"
-#include "serialize.h"
+#include "commons/serialize.h"
 #include "commons/uint256.h"
 #include "util.h"
 

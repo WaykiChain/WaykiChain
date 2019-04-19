@@ -16,7 +16,7 @@
 #include "commons/uint256.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
-#include "serialize.h"
+#include "commons/serialize.h"
 
 using namespace std;
 

@@ -7,7 +7,7 @@
 #ifndef _COINALERT_H_
 #define _COINALERT_H_
 
-#include "serialize.h"
+#include "commons/serialize.h"
 #include "sync.h"
 
 #include <map>

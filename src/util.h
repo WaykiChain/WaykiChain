@@ -12,7 +12,7 @@
 #endif
 
 #include "./compat/compat.h"
-#include "serialize.h"
+#include "commons/serialize.h"
 #include "commons/tinyformat.h"
 #include "ui_interface.h"
 

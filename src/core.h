@@ -8,7 +8,7 @@
 #define COIN_CORE_H
 
 #include "accounts/key.h"
-#include "serialize.h"
+#include "commons/serialize.h"
 #include "commons/uint256.h"
 
 #include "commons/base58.h"

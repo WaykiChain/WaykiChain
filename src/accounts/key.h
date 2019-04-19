@@ -13,7 +13,7 @@
 #include "commons/allocators.h"
 #include "chainparams.h"
 #include "crypto/hash.h"
-#include "serialize.h"
+#include "commons/serialize.h"
 #include "commons/uint256.h"
 #include "util.h"
 

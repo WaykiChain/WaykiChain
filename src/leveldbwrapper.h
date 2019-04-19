@@ -6,7 +6,7 @@
 #ifndef COIN_LEVELDBWRAPPER_H
 #define COIN_LEVELDBWRAPPER_H
 
-#include "serialize.h"
+#include "commons/serialize.h"
 #include "util.h"
 #include "version.h"
 

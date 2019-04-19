@@ -9,7 +9,7 @@
 #include "core.h"
 #include "crypter.h"
 #include "accounts/key.h"
-#include "keystore.h"
+#include "accounts/keystore.h"
 #include "main.h"
 #include "ui_interface.h"
 #include "util.h"

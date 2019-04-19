@@ -9,7 +9,7 @@
 #ifdef WIN32
 #include "compat/compat.h" // for Windows API
 #endif
-#include "serialize.h"        // for begin_ptr(vec)
+#include "commons/serialize.h"        // for begin_ptr(vec)
 #include "util.h"             // for LogPrint()
 //#include "utilstrencodings.h" // for GetTime()
 

@@ -5,7 +5,7 @@
  *      Author: ranger.shi
  */
 
-#include "serialize.h"
+#include "commons/serialize.h"
 #include <boost/foreach.hpp>
 #include "crypto/hash.h"
 #include "util.h"

@@ -18,7 +18,7 @@
 //#include "net.h"
 #include "rpcprotocol.h"
 #include "rpcserver.h"
-#include "serialize.h"
+#include "commons/serialize.h"
 #include "sync.h"
 #include "tx/txmempool.h"
 #include "commons/uint256.h"

@@ -7,7 +7,7 @@
 #define WICC_DB_H
 
 #include "clientversion.h"
-#include "serialize.h"
+#include "commons/serialize.h"
 //#include "streams.h"
 #include "sync.h"
 #include "version.h"
@@ -56,7 +56,7 @@ public:
     enum VerifyResult { VERIFY_OK,
                         RECOVER_OK,
                         RECOVER_FAIL };
-                        
+
     VerifyResult Verify(std::string strFile, bool (*recoverFunc)(CDBEnv& dbenv, std::string strFile));
     /**
      * Salvage data from a file that Verify says is bad.

@@ -7,7 +7,7 @@
 #include "commons/base58.h"
 #include "core.h"
 #include "init.h"
-#include "keystore.h"
+#include "accounts/keystore.h"
 #include "main.h"
 #include "net.h"
 #include "rpcserver.h"

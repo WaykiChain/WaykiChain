@@ -6,7 +6,7 @@
  */
 
 #include "syncdatadb.h"
-#include "serialize.h"
+#include "commons/serialize.h"
 #include <map>
 
 namespace SyncData {

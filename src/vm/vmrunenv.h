@@ -9,7 +9,7 @@
 #define SCRIPTCHECK_H_
 
 #include "vmlua.h"
-#include "serialize.h"
+#include "commons/serialize.h"
 #include "script.h"
 #include "main.h"
 #include "tx/txdb.h"
