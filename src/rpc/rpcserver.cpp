@@ -269,7 +269,7 @@ static const CRPCCommand vRPCCommands[] =
     { "genmulsigtx",            &genmulsigtx,            false,     false,     false },
 
     /* uses wallet if enabled */
-    { "addmultisigaddr",        &addmultisigaddr,        false,     false,      true },
+    { "addmulsigaddr",          &addmulsigaddr,          false,     false,      true },
     { "backupwallet",           &backupwallet,           true,      false,      true },
     { "dumpprivkey",            &dumpprivkey,            true,      false,      true },
     { "dumpwallet",             &dumpwallet,             true,      false,      true },

@@ -138,7 +138,7 @@ extern json_spirit::Value getnewaddr(const json_spirit::Array& params, bool fHel
 extern json_spirit::Value getaccount(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value verifymessage(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getbalance(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value addmultisigaddr(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value addmulsigaddr(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value createmultisig(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value backupwallet(const json_spirit::Array& params, bool fHelp);
@@ -163,7 +163,7 @@ extern json_spirit::Value genregisteraccountraw  (const json_spirit::Array& para
 extern json_spirit::Value genregistercontractraw (const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value gencallcontractraw     (const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value genvotedelegateraw     (const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value genmulsigtx         (const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value genmulsigtx            (const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value sendtxraw(const json_spirit::Array& params, bool fHelp);
 
