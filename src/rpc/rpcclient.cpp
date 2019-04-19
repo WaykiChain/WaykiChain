@@ -161,8 +161,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "addmultisigaddr"        && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "addmultisigaddr"        && n > 1) ConvertTo<Array>(params[1]);
-    // if (strMethod == "createmultisig"         && n > 0) ConvertTo<int64_t>(params[0]);
-    // if (strMethod == "createmultisig"         && n > 1) ConvertTo<Array>(params[1]);
+    if (strMethod == "createmultisig"         && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "createmultisig"         && n > 1) ConvertTo<Array>(params[1]);
     // if (strMethod == "listunspent"            && n > 0) ConvertTo<int64_t>(params[0]);
     // if (strMethod == "listunspent"            && n > 1) ConvertTo<int64_t>(params[1]);
     // if (strMethod == "listunspent"            && n > 2) ConvertTo<Array>(params[2]);
