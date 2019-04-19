@@ -165,12 +165,12 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 sendKeyID = boost::get<CRegID>(ptx->srcUserId).GetKeyID(*pAccountViewTip);
             }
 
-            CKeyID recvKeyID;
+            CKeyID recvKeyId;
             if (ptx->desUserId.type() == typeid(CKeyID)) {
-                recvKeyID = boost::get<CKeyID>(ptx->desUserId);
+                recvKeyId = boost::get<CKeyID>(ptx->desUserId);
             } else if (ptx->desUserId.type() == typeid(CRegID)) {
                 CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
-                recvKeyID       = desRegID.GetKeyID(*pAccountViewTip);
+                recvKeyId       = desRegID.GetKeyID(*pAccountViewTip);
             }
 
             obj.push_back(Pair("txtype", "COMMON_TX"));
@@ -183,7 +183,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             Object objRec;
             objRec.push_back(Pair("txtype", "COMMON_TX"));
             objRec.push_back(Pair("memo", HexStr(ptx->memo)));
-            objRec.push_back(Pair("address", recvKeyID.ToAddress()));
+            objRec.push_back(Pair("address", recvKeyId.ToAddress()));
             objRec.push_back(Pair("category", "receive"));
             objRec.push_back(Pair("amount", dAmount));
             arrayDetail.push_back(objRec);
@@ -195,12 +195,12 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             CKeyID sendKeyID;
             CRegID sendRegID = boost::get<CRegID>(ptx->srcRegId);
             sendKeyID        = sendRegID.GetKeyID(*pAccountViewTip);
-            CKeyID recvKeyID;
+            CKeyID recvKeyId;
             if (ptx->desUserId.type() == typeid(CKeyID)) {
-                recvKeyID = boost::get<CKeyID>(ptx->desUserId);
+                recvKeyId = boost::get<CKeyID>(ptx->desUserId);
             } else if (ptx->desUserId.type() == typeid(CRegID)) {
                 CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
-                recvKeyID       = desRegID.GetKeyID(*pAccountViewTip);
+                recvKeyId       = desRegID.GetKeyID(*pAccountViewTip);
             }
 
             obj.push_back(Pair("txtype", "CONTRACT_TX"));
@@ -213,7 +213,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             Object objRec;
             objRec.push_back(Pair("txtype", "CONTRACT_TX"));
             objRec.push_back(Pair("arguments", HexStr(ptx->arguments)));
-            objRec.push_back(Pair("address", recvKeyID.ToAddress()));
+            objRec.push_back(Pair("address", recvKeyId.ToAddress()));
             objRec.push_back(Pair("category", "receive"));
             objRec.push_back(Pair("amount", dAmount));
             arrayDetail.push_back(objRec);
@@ -275,6 +275,47 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             break;
         }
+        case MULTISIG_TX: {
+            CMultisigTx* ptx = (CMultisigTx*)pBaseTx.get();
+
+            CAccount account;
+            set<CPubKey> pubKeys;
+            for (const auto& item : ptx->signaturePairs) {
+                if (!pAccountViewTip->GetAccount(item.regId, account))
+                    return arrayDetail;
+
+                pubKeys.insert(account.pubKey);
+            }
+
+            CScript script;
+            script.SetMultisig(ptx->required, pubKeys);
+            CKeyID sendKeyId = script.GetID();
+
+            CKeyID recvKeyId;
+            if (ptx->desUserId.type() == typeid(CKeyID)) {
+                recvKeyId = boost::get<CKeyID>(ptx->desUserId);
+            } else if (ptx->desUserId.type() == typeid(CRegID)) {
+                CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
+                recvKeyId       = desRegID.GetKeyID(*pAccountViewTip);
+            }
+
+            obj.push_back(Pair("txtype", "MULTISIG_TX"));
+            obj.push_back(Pair("memo", HexStr(ptx->memo)));
+            obj.push_back(Pair("address", sendKeyId.ToAddress()));
+            obj.push_back(Pair("category", "send"));
+            double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+            obj.push_back(Pair("amount", -dAmount));
+            arrayDetail.push_back(obj);
+            Object objRec;
+            objRec.push_back(Pair("txtype", "MULTISIG_TX"));
+            objRec.push_back(Pair("memo", HexStr(ptx->memo)));
+            objRec.push_back(Pair("address", recvKeyId.ToAddress()));
+            objRec.push_back(Pair("category", "receive"));
+            objRec.push_back(Pair("amount", dAmount));
+            arrayDetail.push_back(objRec);
+
+            break;
+        }
         default:
             break;
     }
@@ -288,7 +329,7 @@ Value gettransaction(const Array& params, bool fHelp)
             "gettransaction \"txhash\"\n"
             "\nget the transaction detail by given transaction hash.\n"
             "\nArguments:\n"
-            "1.txhash   (string,required) The hast of transaction.\n"
+            "1.txhash   (string, required) The hast of transaction.\n"
             "\nResult a object about the transaction detail\n"
             "\nResult:\n"
             "\n\"txhash\"\n"
@@ -314,7 +355,7 @@ Value gettransaction(const Array& params, bool fHelp)
             obj.push_back(Pair("blockindex", (int) i));
             obj.push_back(Pair("blocktime", (int) genesisblock.GetTime()));
             obj.push_back(Pair("txid",genesisblock.vptx.at(i)->GetHash().GetHex()));
-            obj.push_back(Pair("details",GetTxAddressDetail(genesisblock.vptx.at(i))));
+            obj.push_back(Pair("details", GetTxAddressDetail(genesisblock.vptx.at(i))));
             CDataStream ds(SER_DISK, CLIENT_VERSION);
             ds << genesisblock.vptx[i];
             obj.push_back(Pair("hex", HexStr(ds.begin(), ds.end())));
@@ -338,7 +379,7 @@ Value gettransaction(const Array& params, bool fHelp)
                     obj.push_back(Pair("blockhash", header.GetHash().GetHex()));
                     obj.push_back(Pair("blocktime", (int) header.GetTime()));
                     obj.push_back(Pair("txid",pBaseTx->GetHash().GetHex()));
-                    obj.push_back(Pair("details",GetTxAddressDetail(pBaseTx)));
+                    obj.push_back(Pair("details", GetTxAddressDetail(pBaseTx)));
                     CDataStream ds(SER_DISK, CLIENT_VERSION);
                     ds << pBaseTx;
                     obj.push_back(Pair("hex", HexStr(ds.begin(), ds.end())));
@@ -358,7 +399,7 @@ Value gettransaction(const Array& params, bool fHelp)
         obj.push_back(Pair("amount", dAmount));
         obj.push_back(Pair("confirmations",0));
         obj.push_back(Pair("txid",pBaseTx->GetHash().GetHex()));
-        obj.push_back(Pair("details",GetTxAddressDetail(pBaseTx)));
+        obj.push_back(Pair("details", GetTxAddressDetail(pBaseTx)));
         CDataStream ds(SER_DISK, CLIENT_VERSION);
         ds << pBaseTx;
         obj.push_back(Pair("hex", HexStr(ds.begin(), ds.end())));
@@ -1070,12 +1111,12 @@ Value listtransactions(const Array& params, bool fHelp) {
                 CKeyID sendKeyID;
                 CRegID sendRegID = boost::get<CRegID>(ptx->srcUserId);
                 sendKeyID        = sendRegID.GetKeyID(*pAccountViewTip);
-                CKeyID recvKeyID;
+                CKeyID recvKeyId;
                 if (ptx->desUserId.type() == typeid(CKeyID)) {
-                    recvKeyID = boost::get<CKeyID>(ptx->desUserId);
+                    recvKeyId = boost::get<CKeyID>(ptx->desUserId);
                 } else if (ptx->desUserId.type() == typeid(CRegID)) {
                     CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
-                    recvKeyID       = desRegID.GetKeyID(*pAccountViewTip);
+                    recvKeyId       = desRegID.GetKeyID(*pAccountViewTip);
                 }
 
                 bool bSend = true;
@@ -1084,7 +1125,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                 }
 
                 bool bRecv = true;
-                if ("*" != strAddress && recvKeyID.ToAddress() != strAddress) {
+                if ("*" != strAddress && recvKeyId.ToAddress() != strAddress) {
                     bRecv = false;
                 }
 
@@ -1103,7 +1144,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                 if (bSend) {
                     if (pwalletMain->HaveKey(sendKeyID)) {
                         Object obj;
-                        obj.push_back(Pair("address", recvKeyID.ToAddress()));
+                        obj.push_back(Pair("address", recvKeyId.ToAddress()));
                         obj.push_back(Pair("category", "send"));
                         double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
                         obj.push_back(Pair("amount", -dAmount));
@@ -1120,10 +1161,10 @@ Value listtransactions(const Array& params, bool fHelp) {
                 }
 
                 if (bRecv) {
-                    if (pwalletMain->HaveKey(recvKeyID)) {
+                    if (pwalletMain->HaveKey(recvKeyId)) {
                         Object obj;
                         obj.push_back(Pair("srcaddr", sendKeyID.ToAddress()));
-                        obj.push_back(Pair("address", recvKeyID.ToAddress()));
+                        obj.push_back(Pair("address", recvKeyId.ToAddress()));
                         obj.push_back(Pair("category", "receive"));
                         double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
                         obj.push_back(Pair("amount", dAmount));
@@ -1144,12 +1185,12 @@ Value listtransactions(const Array& params, bool fHelp) {
                 CKeyID sendKeyID;
                 CRegID sendRegID = boost::get<CRegID>(ptx->srcRegId);
                 sendKeyID        = sendRegID.GetKeyID(*pAccountViewTip);
-                CKeyID recvKeyID;
+                CKeyID recvKeyId;
                 if (ptx->desUserId.type() == typeid(CKeyID)) {
-                    recvKeyID = boost::get<CKeyID>(ptx->desUserId);
+                    recvKeyId = boost::get<CKeyID>(ptx->desUserId);
                 } else if (ptx->desUserId.type() == typeid(CRegID)) {
                     CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
-                    recvKeyID       = desRegID.GetKeyID(*pAccountViewTip);
+                    recvKeyId       = desRegID.GetKeyID(*pAccountViewTip);
                 }
 
                 bool bSend = true;
@@ -1158,7 +1199,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                 }
 
                 bool bRecv = true;
-                if ("*" != strAddress && recvKeyID.ToAddress() != strAddress) {
+                if ("*" != strAddress && recvKeyId.ToAddress() != strAddress) {
                     bRecv = false;
                 }
 
@@ -1177,7 +1218,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                 if (bSend) {
                     if (pwalletMain->HaveKey(sendKeyID)) {
                         Object obj;
-                        obj.push_back(Pair("address", recvKeyID.ToAddress()));
+                        obj.push_back(Pair("address", recvKeyId.ToAddress()));
                         obj.push_back(Pair("category", "send"));
                         double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
                         obj.push_back(Pair("amount", -dAmount));
@@ -1195,10 +1236,10 @@ Value listtransactions(const Array& params, bool fHelp) {
                 }
 
                 if (bRecv) {
-                    if (pwalletMain->HaveKey(recvKeyID)) {
+                    if (pwalletMain->HaveKey(recvKeyId)) {
                         Object obj;
                         obj.push_back(Pair("srcaddr", sendKeyID.ToAddress()));
-                        obj.push_back(Pair("address", recvKeyID.ToAddress()));
+                        obj.push_back(Pair("address", recvKeyId.ToAddress()));
                         obj.push_back(Pair("category", "receive"));
                         double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
                         obj.push_back(Pair("amount", dAmount));
@@ -1215,6 +1256,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                     }
                 }
             }
+            // TODO: MULTISIG_TX
         }
     }
     return arrayData;
