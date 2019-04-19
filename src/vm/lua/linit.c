@@ -33,7 +33,7 @@
 
 #include "lualib.h"
 #include "lauxlib.h"
-LUAMOD_API int luaopen_mylib(lua_State *L);
+
 
 /*
 ** these libs are loaded by lua.c and are readily available to any Lua
@@ -50,7 +50,6 @@ static const luaL_Reg loadedlibs[] = {
   {LUA_MATHLIBNAME, luaopen_math},
   {LUA_UTF8LIBNAME, luaopen_utf8},
   {LUA_DBLIBNAME, luaopen_debug},
-//  {"mylib", luaopen_mylib},
 #if defined(LUA_COMPAT_BITLIB)
   {LUA_BITLIBNAME, luaopen_bit32},
 #endif

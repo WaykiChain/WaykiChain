@@ -16,7 +16,7 @@
 #include "main.h"
 #include "tx/tx.h"
 #include "vmrunenv.h"
-//#include "Typedef.h"
+#include <assert.h>
 
 #if 0
 typedef struct NumArray{
@@ -183,16 +183,18 @@ void vm_openlibs(lua_State *L) {
 }
 
 tuple<bool, string> CVmlua::CheckScriptSyntax(const char *filePath) {
-    lua_State *lua_state = luaL_newstate();
-    if (NULL == lua_state) {
-        LogPrint("vm", "luaL_newstate error\n");
-        return std::make_tuple(false, string("luaL_newstate error\n"));
+
+    std::unique_ptr<lua_State, decltype(&lua_close)> lua_state_ptr(luaL_newstate(), &lua_close);
+    if (!lua_state_ptr) {
+        LogPrint("vm", "CVmlua::CheckScriptSyntax luaL_newstate() failed\n");
+        return std::make_tuple(false, string("CVmlua::CheckScriptSyntax luaL_newstate() failed\n"));
     }
+    lua_State *lua_state = lua_state_ptr.get();
     vm_openlibs(lua_state);
 
     if (!InitLuaLibsEx(lua_state)) {
-        LogPrint("vm", "InitLuaLibsEx error\n");
-        return std::make_tuple(-1, string("InitLuaLibsEx error\n"));
+        LogPrint("vm", "CVmlua::CheckScriptSyntax InitLuaLibsEx error\n");
+        return std::make_tuple(-1, string("CVmlua::CheckScriptSyntax InitLuaLibsEx error\n"));
     }
 
     luaL_requiref(lua_state, "mylib", luaopen_mylib, 1);
@@ -200,16 +202,14 @@ tuple<bool, string> CVmlua::CheckScriptSyntax(const char *filePath) {
     int nRet = luaL_loadfile(lua_state, filePath);
     if (nRet) {
         const char *errStr = lua_tostring(lua_state, -1);
-        lua_close(lua_state);
         return std::make_tuple(false, string(errStr));
     }
-
-    lua_close(lua_state);
 
     return std::make_tuple(true, string("OK"));
 }
 
 tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
+
     if (maxstep == 0) {
         return std::make_tuple(-1, string("maxstep == 0\n"));
     }
@@ -218,20 +218,18 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
     }
 
     // 1.创建Lua运行环境
-    lua_State *lua_state = luaL_newstate();
-    if (NULL == lua_state) {
-        LogPrint("vm", "luaL_newstate error\n");
-        return std::make_tuple(-1, string("luaL_newstate error\n"));
+    std::unique_ptr<lua_State, decltype(&lua_close)> lua_state_ptr(luaL_newstate(), &lua_close);
+    if (!lua_state_ptr) {
+        LogPrint("vm", "CVmlua::Run luaL_newstate() failed\n");
+        return std::make_tuple(-1, string("CVmlua::Run luaL_newstate() failed\n"));
     }
-    /*
-       //3.注册Lua标准库并清空栈
-       const luaL_Reg *lib = lualibs;
-       for(;lib->func != NULL;lib++)
-       {
-               lib->func(lua_state);
-               lua_settop(lua_state,0);
-       }
-    */
+    lua_State *lua_state = lua_state_ptr.get();
+
+    if (!lua_startburner(lua_state, maxstep)) {
+        LogPrint("vm", "CVmlua::Run lua_startburner() failed\n");
+        return std::make_tuple(-1, string("CVmlua::Run lua_startburner() failed\n"));
+    }
+
     //打开需要的库
     vm_openlibs(lua_state);
 
@@ -249,7 +247,8 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
     lua_rawseti(lua_state, -2, 0);
 
     unsigned short count = 0;
-    memcpy(&count, contractCallArguments, 2);  //外面已限制，合约内容小于4096字节
+    memcpy(&count, contractCallArguments, 2);
+    assert(count <= 4096 && "arguments size can not bigger than 4096");
     for (unsigned short n = 0; n < count; n++) {
         lua_pushinteger(lua_state, contractCallArguments[2 + n]);  // value值放入
         lua_rawseti(lua_state, -2, n + 1);                         // set table at key 'n + 1'
@@ -262,16 +261,12 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
     LogPrint("vm", "pVmRunEnv=%p\n", pVmRunEnv);
 
     // 5. Load the contract script
-    long long step = maxstep;
     if (luaL_loadbuffer(lua_state, (char *)contractScript, strlen((char *)contractScript), "line") ||
-        lua_pcallk(lua_state, 0, 0, 0, 0, NULL, &step)) {
+        lua_pcallk(lua_state, 0, 0, 0, 0, NULL)) {
         const char *pError = lua_tostring(lua_state, -1);
         string strError    = strprintf("luaL_loadbuffer failed: %s\n", pError ? pError : "unknown");
         LogPrint("vm", "%s", strError);
-        step = -1;
-        lua_close(lua_state);
-        LogPrint("vm", "run step=%ld\n", step);
-        return std::make_tuple(step, strError);
+        return std::make_tuple(-1, strError);
     }
 
     // 6. account balance check setting: default is closed if not such setting in the script
@@ -287,13 +282,27 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
     }
     lua_pop(lua_state, 1);
 
-    // 7. shudown the Lua VM
-    lua_close(lua_state);
-    LogPrint("vm", "run step=%ld\n", step);
+    uint64_t burnedStep = lua_getburnedstep(lua_state);
+    lua_burner_state *burnerState = lua_getburnerstate(lua_state);
+    LogPrint("vm", "contract run info: scriptRegID=%s,"
+             " burnedStep=%lld,"
+             " maxStep=%lld,"
+             " totalAllocSize=%llu,"
+             " totalAllocCount=%llu,"
+             " totalFreeSize=%llu,"
+             " totalFreeCount=%llu\n",
+             pVmRunEnv->GetScriptRegID().ToString().c_str(), 
+             burnedStep,
+             burnerState->maxStep, 
+             burnerState->allocMemSize,
+             burnerState->allocMemTimes, 
+             burnerState->freeMemSize, 
+             burnerState->freeMemTimes
+    );
 
-    if (step < 0) {
-        return std::make_tuple(step, string("execute tx contract run step exceeds the max step limit\n"));
+    if (burnedStep > burnerState->maxStep) {
+        return std::make_tuple(-1, string("execute tx contract run step exceeds the max step limit\n"));
     }
-
-    return std::make_tuple(step, string("script runs ok"));
+    
+    return std::make_tuple(burnedStep, string("script runs ok"));
 }

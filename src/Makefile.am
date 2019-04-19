@@ -126,6 +126,7 @@ VMLUA_H = \
 
 VMLUA_C = \
   vm/lua/lapi.c \
+  vm/lua/lburner.c \
   vm/lua/lauxlib.c \
   vm/lua/lbaselib.c \
   vm/lua/lbitlib.c \
