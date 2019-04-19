@@ -109,7 +109,8 @@ static const int kCommonTxMemoMaxSize            = 100;       // 100 bytes max f
 static const int kContractMemoMaxSize            = 100;       // 100 bytes max for memo size
 static const int kMostRecentBlockNumberThreshold = 1000;      // most recent block number threshold
 static const int kRegIdMaturePeriodByBlock       = 100;       // RegId's mature period measured by blocks
-static const int kSignatureNumberThreshold       = 15;        // m-n multisig, refer to n
+static const int kMultisigNumberThreshold        = 15;        // m-n multisig, refer to n
+static const int KMultisigScriptMaxSize          = 1000;      // multisig script max size
 static const string kContractScriptPathPrefix    = "/tmp/lua/";
 
 extern CCriticalSection cs_main;

@@ -241,8 +241,13 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "genvotedelegateraw"     && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "genvotedelegateraw"     && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "genvotedelegateraw"     && n > 3) ConvertTo<int>(params[3]);
+
+    if (strMethod == "genmultisigraw"         && n > 2) ConvertTo<double>(params[2]);
+    if (strMethod == "genmultisigraw"         && n > 3) ConvertTo<double>(params[3]);
+    if (strMethod == "genmultisigraw"         && n > 4) ConvertTo<int>(params[4]);
+
     /********************************************************************************************************************/
-    if (strMethod == "getcontractkeyvalue"      && n > 1) ConvertTo<Array>(params[1]);
+    if (strMethod == "getcontractkeyvalue"    && n > 1) ConvertTo<Array>(params[1]);
 
     if (strMethod == "listtx"                 && n > 0) ConvertTo<int>(params[0]);
     if (strMethod == "listtx"                 && n > 1) ConvertTo<int>(params[1]);

@@ -390,10 +390,13 @@ private:
 public:
     CScript() {}
 
-    void SetMultisig(int nRequiredIn, const std::set<CPubKey> &pubKeysIn) {
+    void SetMultisig(const int nRequiredIn, const std::set<CPubKey> &pubKeysIn) {
         nRequired = nRequiredIn;
         pubKeys   = pubKeysIn;
     }
+
+    int GetRequired() const { return nRequired; }
+    std::set<CPubKey> &GetPubKeys() { return pubKeys; }
 
     CKeyID GetID() const {
         CDataStream ds(SER_DISK, CLIENT_VERSION);

@@ -675,6 +675,11 @@ public:
         signature = signaturePair.signature;
     }
 
+    CSignaturePair(const CRegID &regIdIn, const vector_unsigned_char &signatureIn) {
+        regId     = regIdIn;
+        signature = signatureIn;
+    }
+
     CSignaturePair() {}
 
     string ToString() const;
@@ -779,8 +784,8 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nTy
 
 template <typename Stream>
 void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
-    unsigned char ntxType = pa->nTxType;
-    Serialize(os, ntxType, nType, nVersion);
+    unsigned char nTxType = pa->nTxType;
+    Serialize(os, nTxType, nType, nVersion);
     if (pa->nTxType == REG_ACCT_TX) {
         Serialize(os, *((CRegisterAccountTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == COMMON_TX) {
@@ -793,13 +798,17 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
         Serialize(os, *((CRegisterContractTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == DELEGATE_TX) {
         Serialize(os, *((CDelegateTx *)(pa.get())), nType, nVersion);
-    } else
-        throw ios_base::failure("seiralize tx type value error, must be ranger(1...6)");
+    } else if (pa->nTxType == MULTISIG_TX) {
+        Serialize(os, *((CMultisigTx *)(pa.get())), nType, nVersion);
+    } else {
+        string sTxType(1, nTxType);
+        throw ios_base::failure("Serialize: nTxType (" + sTxType + ") value error.");
+    }
 }
 
 template <typename Stream>
 void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
-    char nTxType;
+    unsigned char nTxType;
     is.read((char *)&(nTxType), sizeof(nTxType));
     if (nTxType == REG_ACCT_TX) {
         pa = std::make_shared<CRegisterAccountTx>();
@@ -819,6 +828,9 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
     } else if (nTxType == DELEGATE_TX) {
         pa = std::make_shared<CDelegateTx>();
         Unserialize(is, *((CDelegateTx *)(pa.get())), nType, nVersion);
+    } else if (nTxType == MULTISIG_TX) {
+        pa = std::make_shared<CMultisigTx>();
+        Unserialize(is, *((CMultisigTx *)(pa.get())), nType, nVersion);
     } else {
         string sTxType(1, nTxType);
         throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error.");
