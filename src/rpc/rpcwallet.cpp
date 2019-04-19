@@ -92,10 +92,10 @@ Value getnewaddr(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value addmultisigaddr(const Array& params, bool fHelp) {
+Value addmulsigaddr(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2)
         throw runtime_error(
-            "addmultisigaddr nrequired [\"address\",...]\n"
+            "addmulsigaddr nrequired [\"address\",...]\n"
             "\nget a new multisig address\n"
             "\nArguments:\n"
             "1. nrequired        (numeric, required) The number of required signatures out of the "
@@ -110,12 +110,12 @@ Value addmultisigaddr(const Array& params, bool fHelp) {
             "\"addr\"  (string) A WICC address.\n"
             "\nExamples:\n"
             "\nAdd a 2-3 multisig address from 3 addresses\n" +
-            HelpExampleCli("addmultisigaddr",
+            HelpExampleCli("addmulsigaddr",
                            "2 \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
                            "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
                            "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\"") +
             "\nAs json rpc\n" +
-            HelpExampleRpc("addmultisigaddr",
+            HelpExampleRpc("addmulsigaddr",
                            "2, \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
                            "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
                            "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\""));
@@ -166,10 +166,10 @@ Value addmultisigaddr(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value createmultisig(const Array& params, bool fHelp) {
+Value createmulsig(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2)
         throw runtime_error(
-            "createmultisig nrequired [\"address\",...]\n"
+            "createmulsig nrequired [\"address\",...]\n"
             "\nCreates a multi-signature address with n signature of m keys required.\n"
             "\nArguments:\n"
             "1. nrequired        (numeric, required) The number of required signatures out of the "
@@ -184,12 +184,12 @@ Value createmultisig(const Array& params, bool fHelp) {
             "\"addr\"  (string) A WICC address.\n"
             "\nExamples:\n"
             "\nCreate a 2-3 multisig address from 3 addresses\n" +
-            HelpExampleCli("createmultisig",
+            HelpExampleCli("createmulsig",
                            "2 \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
                            "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
                            "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\"") +
             "\nAs json rpc\n" +
-            HelpExampleRpc("createmultisig",
+            HelpExampleRpc("createmulsig",
                            "2, \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
                            "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
                            "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\""));
@@ -582,11 +582,11 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value genmultisigraw(const Array& params, bool fHelp) {
+Value genmulsigtx(const Array& params, bool fHelp) {
     int size = params.size();
     if (fHelp || size < 4 || size > 5) {
         throw runtime_error(
-            "genmultisigraw \"multisigscript\" \"recvaddress\" \"amount\" \"fee\" \"height\"\n"
+            "genmulsigtx \"multisigscript\" \"recvaddress\" \"amount\" \"fee\" \"height\"\n"
             "\n create multisig transaction by multisigscript, recvaddress, amount, fee, height\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
@@ -598,14 +598,14 @@ Value genmultisigraw(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"transactionid\"  (string) The transaction id.\n"
             "\nExamples:\n" +
-            HelpExampleCli("genmultisigraw",
+            HelpExampleCli("genmulsigtx",
                            "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571"
                            "e9521031f3d66a05bf20e83e046b74d9073d925f5dce29970623595bc4d66ed81781dd5"
                            "21034819476f12ac0e53bd82bc3205c91c40e9c569b08af8db04503afdebceb7134c\" "
                            "\"Wef9QkwAwBhtZaT3ASmMJzC7dt1kzo1xob\" 10000 10000 100") +
             "\nAs json rpc call\n" +
             HelpExampleRpc(
-                "genmultisigraw",
+                "genmulsigtx",
                 "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571e9521031f3d"
                 "66a05bf20e83e046b74d9073d925f5dce29970623595bc4d66ed81781dd521034819476f12ac0e53bd"
                 "82bc3205c91c40e9c569b08af8db04503afdebceb7134c\", "

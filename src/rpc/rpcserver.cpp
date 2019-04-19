@@ -223,7 +223,7 @@ static const CRPCCommand vRPCCommands[] =
     { "setcheckpoint",          &setcheckpoint,          true,      true,       false },
     { "validateaddr",           &validateaddr,           true,      true,       false },
     { "validateaddress",        &validateaddr,           true,      true,       false }, //deprecated
-    { "createmultisig",         &createmultisig,         true,      true ,      false },
+    { "createmulsig",           &createmulsig,           true,      true ,      false },
     { "listtxbyaddr",           &listtxbyaddr,           true,      true,       false },
 
     /* P2P networking */
@@ -266,10 +266,10 @@ static const CRPCCommand vRPCCommands[] =
     { "genregistercontractraw", &genregistercontractraw, false,     false,     false },
     { "gencallcontractraw",     &gencallcontractraw,     false,     false,     false },
     { "genvotedelegateraw",     &genvotedelegateraw,     false,     false,     false },
-    { "genmultisigraw",         &genmultisigraw,         false,     false,     false },
+    { "genmulsigtx",            &genmulsigtx,            false,     false,     false },
 
     /* uses wallet if enabled */
-    { "addmultisigaddr",        &addmultisigaddr,        false,     false,      true },
+    { "addmulsigaddr",          &addmulsigaddr,          false,     false,      true },
     { "backupwallet",           &backupwallet,           true,      false,      true },
     { "dumpprivkey",            &dumpprivkey,            true,      false,      true },
     { "dumpwallet",             &dumpwallet,             true,      false,      true },
@@ -326,7 +326,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getcontractkeyvalue",    &getcontractkeyvalue,    true,      false,      true },
     { "getsignature",           &getsignature,           true,      false,      true },
     { "listdelegates",          &listdelegates,          true,      false,      true },
-    { "decoderawtx",            &decoderawtx,            false,     false,      false},
+    { "decodetxraw",            &decodetxraw,            false,     false,      false},
 
     /* for test code */
     { "gettxoperationlog",      &gettxoperationlog,      false,     false,      false},

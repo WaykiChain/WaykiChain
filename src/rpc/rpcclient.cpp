@@ -159,10 +159,10 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "getblocktemplate"       && n > 0) ConvertTo<Object>(params[0]);
     if (strMethod == "listsinceblock"         && n > 1) ConvertTo<int64_t>(params[1]);
 
-    if (strMethod == "addmultisigaddr"        && n > 0) ConvertTo<int64_t>(params[0]);
-    if (strMethod == "addmultisigaddr"        && n > 1) ConvertTo<Array>(params[1]);
-    if (strMethod == "createmultisig"         && n > 0) ConvertTo<int64_t>(params[0]);
-    if (strMethod == "createmultisig"         && n > 1) ConvertTo<Array>(params[1]);
+    if (strMethod == "addmulsigaddr"          && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "addmulsigaddr"          && n > 1) ConvertTo<Array>(params[1]);
+    if (strMethod == "createmulsig"           && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "createmulsig"           && n > 1) ConvertTo<Array>(params[1]);
 
     if (strMethod == "getblock"               && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "getchainstate"          && n > 0) ConvertTo<int>(params[0]);
@@ -242,9 +242,9 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "genvotedelegateraw"     && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "genvotedelegateraw"     && n > 3) ConvertTo<int>(params[3]);
 
-    if (strMethod == "genmultisigraw"         && n > 2) ConvertTo<double>(params[2]);
-    if (strMethod == "genmultisigraw"         && n > 3) ConvertTo<double>(params[3]);
-    if (strMethod == "genmultisigraw"         && n > 4) ConvertTo<int>(params[4]);
+    if (strMethod == "genmulsigtx"            && n > 2) ConvertTo<double>(params[2]);
+    if (strMethod == "genmulsigtx"            && n > 3) ConvertTo<double>(params[3]);
+    if (strMethod == "genmulsigtx"            && n > 4) ConvertTo<int>(params[4]);
 
     /********************************************************************************************************************/
     if (strMethod == "getcontractkeyvalue"    && n > 1) ConvertTo<Array>(params[1]);
