@@ -1443,7 +1443,7 @@ Object CMultisigTx::ToJson(const CAccountViewCache &AccountView) const {
     result.push_back(Pair("hash", GetHash().GetHex()));
     result.push_back(Pair("tx_type", GetTxType(nTxType)));
     result.push_back(Pair("ver", nVersion));
-    result.push_back(Pair("required", required));
+    result.push_back(Pair("required_sigs", required));
     Array signatureArray;
     for (const auto &item : signaturePairs) {
         signatureArray.push_back(item.ToJson());
