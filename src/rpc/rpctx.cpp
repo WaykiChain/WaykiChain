@@ -3097,26 +3097,25 @@ Value setcheckpoint(const Array& params, bool fHelp)
     return tfm::format("sendcheckpoint :%d\n", point.m_height);
 }
 
-Value validateaddr(const Array& params, bool fHelp)
-{
+Value validateaddr(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
-        throw runtime_error("validateaddr \"wicc_address\"\n"
+        throw runtime_error(
+            "validateaddr \"wicc_address\"\n"
             "\ncheck whether address is valid or not\n"
             "\nArguments:\n"
-            "1. \"wicc_address\"  (string, required) wicc coin address\n"
+            "1. \"wicc_address\"  (string, required) WICC address\n"
             "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("validateaddr", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\"")
-            + HelpExampleRpc("validateaddr", "\"De5nZAbhMikMPGHzxvSGqHTgEuf3eNUiZ7\""));
-
+            "\nExamples:\n" +
+            HelpExampleCli("validateaddr", "\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\"") +
+            HelpExampleRpc("validateaddr", "\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\""));
 
     Object obj;
     CKeyID keyid;
     string addr = params[0].get_str();
     if (!GetKeyId(addr, keyid)) {
-        obj.push_back(Pair("ret" , false));
+        obj.push_back(Pair("is_valid", false));
     } else {
-        obj.push_back(Pair("ret" , true));
+        obj.push_back(Pair("is_valid", true));
     }
     return obj;
 }
