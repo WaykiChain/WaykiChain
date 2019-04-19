@@ -2310,17 +2310,17 @@ Value genregisteraccountraw(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value sendrawtx(const Array& params, bool fHelp) {
+Value sendtxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(
-            "sendrawtx \"transaction\" \n"
+            "sendtxraw \"transaction\" \n"
             "\nsend raw transaction\n"
             "\nArguments:\n"
             "1.\"transaction\": (string, required)\n"
             "\nExamples:\n"
-            + HelpExampleCli("sendrawtx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\"")
+            + HelpExampleCli("sendtxraw", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\"")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("sendrawtx", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
+            + HelpExampleRpc("sendtxraw", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
     }
     //EnsureWalletIsUnlocked();
     vector<unsigned char> vch(ParseHex(params[0].get_str()));
@@ -2335,7 +2335,7 @@ Value sendrawtx(const Array& params, bool fHelp) {
     std::tuple<bool, string> ret;
     ret = pwalletMain->CommitTransaction((CBaseTx *) tx.get());
     if (!std::get<0>(ret))
-        throw JSONRPCError(RPC_WALLET_ERROR, "sendrawtx error: " + std::get<1>(ret));
+        throw JSONRPCError(RPC_WALLET_ERROR, "sendtxraw error: " + std::get<1>(ret));
 
     Object obj;
     obj.push_back(Pair("hash", std::get<1>(ret)));
@@ -2528,17 +2528,17 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value sigstr(const Array& params, bool fHelp) {
+Value signtxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
-        throw runtime_error("sigstr \"str\" \"addr\"\n"
+        throw runtime_error("signtxraw \"str\" \"addr\"\n"
                 "\nsignature transaction\n"
                 "\nArguments:\n"
                 "1.\"str\": (string, required) sig str, hex format, can not longer than 65K in binary bytes\n"
                 "2.\"addr\": (string, required)\n"
                 "\nExamples:\n"
-                + HelpExampleCli("sigstr", "\"0501800a03800a0129\" \"W5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" ")
+                + HelpExampleCli("signtxraw", "\"0501800a03800a0129\" \"W5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" ")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("sigstr", "\"0501800a03800a0129\", \"W5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" "));
+                + HelpExampleRpc("signtxraw", "\"0501800a03800a0129\", \"W5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" "));
     }
 
     vector<unsigned char> vch(ParseHex(params[0].get_str()));

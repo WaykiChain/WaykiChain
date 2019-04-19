@@ -318,10 +318,10 @@ static const CRPCCommand vRPCCommands[] =
     // { "dispersebalance",        &dispersebalance,        false,     false,      true },
     { "getassets",              &getassets,              false,     false,      true },
     { "listcontractassets",     &listcontractassets,     false,     false,      true },
-    { "submittx",               &sendrawtx,              true,      false,      false}, //deprecated
-    { "sendrawtx",              &sendrawtx,              true,      false,      false},
+    { "submittx",               &sendtxraw,              true,      false,      false}, //deprecated
+    { "sendtxraw",              &sendtxraw,              true,      false,      false},
 
-    { "sigstr",                 &sigstr,                 true,      false,      true },
+    { "signtxraw",              &signtxraw,              true,      false,      true },
     { "getcontractaccountinfo", &getcontractaccountinfo, true,      false,      true },
     { "getcontractkeyvalue",    &getcontractkeyvalue,    true,      false,      true },
     { "getsignature",           &getsignature,           true,      false,      true },
@@ -344,8 +344,7 @@ static const CRPCCommand vRPCCommands[] =
     { "startcontracttpstest",   &startcontracttpstest,   true,      true,       false},
 
     /* vm functions work in vm simulator */
-    { "vmexecutescript",        &vmexecutescript,   true,      true,       true},
-
+    { "vmexecutescript",        &vmexecutescript,        true,      true,       true},
 };
 
 CRPCTable::CRPCTable() {
