@@ -53,7 +53,7 @@ coin_CORE_H = \
   leveldbwrapper.h \
   limitedmap.h \
   main.h \
-  miner.h \
+  miner/miner.h \
   mruset.h \
   netbase.h \
   net.h \
@@ -196,7 +196,7 @@ libcoin_server_a_SOURCES = \
   init.cpp \
   leveldbwrapper.cpp \
   main.cpp \
-  miner.cpp \
+  miner/miner.cpp \
   net.cpp \
   noui.cpp \
   rpc/httpserver.cpp \
