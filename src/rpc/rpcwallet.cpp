@@ -93,9 +93,9 @@ Value getnewaddr(const Array& params, bool fHelp) {
 }
 
 Value addmultisigaddr(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 2 || params.size() > 3)
+    if (fHelp || params.size() != 2)
         throw runtime_error(
-            "addmultisigaddr nrequired [\"regid\",...]\n"
+            "addmultisigaddr nrequired [\"address\",...]\n"
             "\nget a new multisig address\n"
             "\nArguments:\n"
             "1. nrequired        (numeric, required) The number of required signatures out of the "
@@ -106,6 +106,8 @@ Value addmultisigaddr(const Array& params, bool fHelp) {
             "       \"address\"  (string) WICC address or hex-encoded public key\n"
             "       ...,\n"
             "     ]\n"
+            "\nResult:\n"
+            "\"addr\"  (string) A WICC address.\n"
             "\nExamples:\n"
             "\nAdd a 2-3 multisig address from 3 addresses\n" +
             HelpExampleCli("addmultisigaddr",
@@ -161,6 +163,80 @@ Value addmultisigaddr(const Array& params, bool fHelp) {
 
     Object obj;
     obj.push_back(Pair("addr", scriptId.ToAddress()));
+    return obj;
+}
+
+Value createmultisig(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 2)
+        throw runtime_error(
+            "createmultisig nrequired [\"address\",...]\n"
+            "\nCreates a multi-signature address with n signature of m keys required.\n"
+            "\nArguments:\n"
+            "1. nrequired        (numeric, required) The number of required signatures out of the "
+            "n keys or addresses.\n"
+            "2. \"keysobject\"   (string, required) A json array of WICC addresses or "
+            "hex-encoded public keys\n"
+            "     [\n"
+            "       \"address\"  (string) WICC address or hex-encoded public key\n"
+            "       ...,\n"
+            "     ]\n"
+            "\nResult:\n"
+            "\"addr\"  (string) A WICC address.\n"
+            "\nExamples:\n"
+            "\nCreate a 2-3 multisig address from 3 addresses\n" +
+            HelpExampleCli("createmultisig",
+                           "2 \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
+                           "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\"") +
+            "\nAs json rpc\n" +
+            HelpExampleRpc("createmultisig",
+                           "2, \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
+                           "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\""));
+
+    EnsureWalletIsUnlocked();
+
+    int64_t nRequired = params[0].get_int64();
+    const Array& keys = params[1].get_array();
+
+    if (nRequired < 1) {
+        throw runtime_error("a multisignature address must require at least one key to redeem");
+    }
+
+    if ((int64_t)keys.size() < nRequired) {
+        throw runtime_error(
+            strprintf("not enough keys supplied "
+                      "(got %u keys, but need at least %d to redeem)",
+                      keys.size(), nRequired));
+    }
+
+    if ((int64_t)keys.size() > kSignatureNumberThreshold) {
+        throw runtime_error(
+            strprintf("too many keys supplied, no more than %d keys", kSignatureNumberThreshold));
+    }
+
+    CKeyID keyId;
+    CPubKey pubKey;
+    set<CPubKey> pubKeys;
+    for (unsigned int i = 0; i < keys.size(); i++) {
+        if (!GetKeyId(keys[i].get_str(), keyId)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyId.");
+        }
+
+        if (!pwalletMain->GetPubKey(keyId, pubKey)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get pubKey.");
+        }
+
+        pubKeys.insert(pubKey);
+    }
+
+    CScript script;
+    script.SetMultisig(nRequired, pubKeys);
+    CKeyID scriptId = script.GetID();
+
+    Object obj;
+    obj.push_back(Pair("addr", scriptId.ToAddress()));
+    obj.push_back(Pair("script", HexStr(script.ToString())));
     return obj;
 }
 

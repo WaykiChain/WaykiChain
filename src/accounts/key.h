@@ -401,6 +401,13 @@ public:
         return CKeyID(Hash160(ds.begin(), ds.end()));
     }
 
+    string ToString() const {
+        CDataStream ds(SER_DISK, CLIENT_VERSION);
+        ds << *this;
+
+        return ds.str();
+    }
+
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(nRequired));
         READWRITE(pubKeys);)
