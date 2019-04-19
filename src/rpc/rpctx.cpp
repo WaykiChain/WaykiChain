@@ -2633,20 +2633,20 @@ Value signtxraw(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value decoderawtx(const Array& params, bool fHelp) {
+Value decodetxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(
-            "decoderawtx \"hexstring\"\n"
+            "decodetxraw \"hexstring\"\n"
             "\ndecode transaction\n"
             "\nArguments:\n"
             "1.\"str\": (string, required) hexstring\n"
             "\nExamples:\n" +
-            HelpExampleCli("decoderawtx",
+            HelpExampleCli("decodetxraw",
                            "\"03015f020001025a0164cd10004630440220664de5ec373f44d2756a23d5267ab25f2"
                            "2af6162d166b1cca6c76631701cbeb5022041959ff75f7c7dd39c1f9f6ef9a237a6ea46"
                            "7d02d2d2c3db62a1addaa8009ccd\"") +
             "\nAs json rpc call\n" +
-            HelpExampleRpc("decoderawtx",
+            HelpExampleRpc("decodetxraw",
                            "\"03015f020001025a0164cd10004630440220664de5ec373f44d2756a23d5267ab25f2"
                            "2af6162d166b1cca6c76631701cbeb5022041959ff75f7c7dd39c1f9f6ef9a237a6ea46"
                            "7d02d2d2c3db62a1addaa8009ccd\""));
