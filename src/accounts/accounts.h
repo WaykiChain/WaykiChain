@@ -235,6 +235,11 @@ public:
     Object ToJson(bool isAddress = false) const;
 };
 
+class CCdp {
+public:
+    uint64_t collateralBCoinAmount;
+    uint64_t mintedSCoinAmount;
+}
 
 class CAccount {
 public:
