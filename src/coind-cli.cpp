@@ -29,9 +29,9 @@ static bool AppInitRPC(int argc, char* argv[])
         // First part of help message is specific to RPC client
         string strUsage = _("Coin Core RPC client version") + " " + FormatFullVersion() + "\n\n" +
             _("Usage:") + "\n" +
-              "  Coin-cli [options] <command> [params]  " + _("Send command to Coin Core") + "\n" +
-              "  Coin-cli [options] help                " + _("List commands") + "\n" +
-              "  Coin-cli [options] help <command>      " + _("Get help for a command") + "\n";
+              "  coincli [options] <command> [params]  " + _("Send command to Coin Core") + "\n" +
+              "  coincli [options] help                " + _("List commands") + "\n" +
+              "  coincli [options] help <command>      " + _("Get help for a command") + "\n";
 
         strUsage += "\n" + HelpMessageCli(true);
 
