@@ -8,7 +8,7 @@
 #include "rpcserver.h"
 #include "init.h"
 #include "net.h"
-#include "miner.h"
+#include "miner/miner.h"
 #include "util.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
@@ -240,4 +240,3 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     return retObj;
 }
-

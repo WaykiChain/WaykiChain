@@ -16,7 +16,7 @@
 #include "syncdatadb.h"
 //#include "checkpoints.h"
 #include "configuration.h"
-#include "miner.h"
+#include "miner/miner.h"
 #include "main.h"
 #include "vm/script.h"
 #include "vm/vmrunenv.h"

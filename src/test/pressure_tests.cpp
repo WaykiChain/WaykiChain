@@ -5,7 +5,7 @@
 #include <math.h>
 #include "tx/tx.h"
 #include "systestbase.h"
-#include "miner.h"
+#include "miner/miner.h"
 #include "../json/json_spirit_value.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/assign/list_of.hpp>

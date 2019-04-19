@@ -16,7 +16,7 @@
 #include "txdb.h"
 #include "vm/vmrunenv.h"
 #include "core.h"
-#include "miner.h"
+#include "miner/miner.h"
 
 using namespace json_spirit;
 

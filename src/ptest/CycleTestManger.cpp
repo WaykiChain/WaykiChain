@@ -1,7 +1,7 @@
 /*
  * CycleTestManger.cpp
  *
- *  Created on: 2014Äê12ÔÂ30ÈÕ
+ *  Created on: 2014ï¿½ï¿½12ï¿½ï¿½30ï¿½ï¿½
  *      Author: ranger.shi
  */
 
@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "main.h"
-#include "miner.h"
+#include "miner/miner.h"
 #include "uint256.h"
 #include "util.h"
 #include <boost/foreach.hpp>

@@ -2,13 +2,13 @@
  * createminterkey.cpp
  *
  *  Created on: 2015
- *  
+ *
  */
 #include <stdlib.h>
 #include <time.h>
 #include "main.h"
 #include "init.h"
-#include "miner.h"
+#include "miner/miner.h"
 #include "uint256.h"
 #include "util.h"
 #include <boost/test/unit_test.hpp>
@@ -156,6 +156,3 @@ BOOST_FIXTURE_TEST_CASE(create, CCreateMinerkey)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-
-
-

@@ -18,7 +18,7 @@
 #include "wallet/wallet.h"
 #include "init.h"
 #include "util.h"
-#include "miner.h"
+#include "miner/miner.h"
 using namespace json_spirit;
 #include "cuiserver.h"
 #include "net.h"

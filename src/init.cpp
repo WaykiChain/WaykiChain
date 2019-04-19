@@ -19,7 +19,7 @@
 #include "configuration.h"
 #include "cuiserver.h"
 #include "main.h"
-#include "miner.h"
+#include "miner/miner.h"
 #include "net.h"
 #include "noui.h"
 #include "syncdatadb.h"

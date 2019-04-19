@@ -9,7 +9,7 @@
 #include "net.h"
 #include "netbase.h"
 #include "util.h"
-#include "miner.h"
+#include "miner/miner.h"
 #include "../wallet/wallet.h"
 #include "../wallet/walletdb.h"
 

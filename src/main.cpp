@@ -14,7 +14,7 @@
 
 #include <sstream>
 #include "init.h"
-#include "miner.h"
+#include "miner/miner.h"
 #include "net.h"
 #include "syncdatadb.h"
 #include "tx/tx.h"

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "main.h"
-#include "miner.h"
+#include "miner/miner.h"
 #include "uint256.h"
 #include "util.h"
 #include <boost/foreach.hpp>

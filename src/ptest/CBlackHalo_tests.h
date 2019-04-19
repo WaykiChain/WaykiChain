@@ -1,7 +1,7 @@
 /*
  * CBlackHalo_tests.h
  *
- *  Created on: 2014Äê12ÔÂ30ÈÕ
+ *  Created on: 2014ï¿½ï¿½12ï¿½ï¿½30ï¿½ï¿½
  *      Author: ranger.shi
  */
 
@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "main.h"
-#include "miner.h"
+#include "miner/miner.h"
 #include "uint256.h"
 #include "util.h"
 #include <boost/foreach.hpp>
@@ -33,8 +33,8 @@ using namespace json_spirit;
 
 
 typedef struct  {
-	unsigned char dnType;					//!<ÀàÐÍ
-	unsigned char seller[6];			    //!<Âô¼ÒID£¨²ÉÓÃ6×Ö½ÚµÄÕË»§ID£©
+	unsigned char dnType;					//!<ï¿½ï¿½ï¿½ï¿½
+	unsigned char seller[6];			    //!<ï¿½ï¿½ï¿½ï¿½IDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½6ï¿½Ö½Úµï¿½ï¿½Ë»ï¿½IDï¿½ï¿½
 	IMPLEMENT_SERIALIZE
 	(
 			READWRITE(dnType);
@@ -44,8 +44,8 @@ typedef struct  {
 } FIRST_CONTRACT;
 
 typedef struct {
-	unsigned char dnType;				//!<½»Ò×ÀàÐÍ
-	unsigned char hash[32];		        //!<ÉÏÒ»¸ö½»Ò×°üµÄ¹þÏ£
+	unsigned char dnType;				//!<ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	unsigned char hash[32];		        //!<ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½×°ï¿½ï¿½Ä¹ï¿½Ï£
 	IMPLEMENT_SERIALIZE
 	(
 		READWRITE(dnType);
