@@ -582,11 +582,11 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value genmultisigraw(const Array& params, bool fHelp) {
+Value genmulsigtx(const Array& params, bool fHelp) {
     int size = params.size();
     if (fHelp || size < 4 || size > 5) {
         throw runtime_error(
-            "genmultisigraw \"multisigscript\" \"recvaddress\" \"amount\" \"fee\" \"height\"\n"
+            "genmulsigtx \"multisigscript\" \"recvaddress\" \"amount\" \"fee\" \"height\"\n"
             "\n create multisig transaction by multisigscript, recvaddress, amount, fee, height\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
@@ -598,14 +598,14 @@ Value genmultisigraw(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"transactionid\"  (string) The transaction id.\n"
             "\nExamples:\n" +
-            HelpExampleCli("genmultisigraw",
+            HelpExampleCli("genmulsigtx",
                            "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571"
                            "e9521031f3d66a05bf20e83e046b74d9073d925f5dce29970623595bc4d66ed81781dd5"
                            "21034819476f12ac0e53bd82bc3205c91c40e9c569b08af8db04503afdebceb7134c\" "
                            "\"Wef9QkwAwBhtZaT3ASmMJzC7dt1kzo1xob\" 10000 10000 100") +
             "\nAs json rpc call\n" +
             HelpExampleRpc(
-                "genmultisigraw",
+                "genmulsigtx",
                 "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571e9521031f3d"
                 "66a05bf20e83e046b74d9073d925f5dce29970623595bc4d66ed81781dd521034819476f12ac0e53bd"
                 "82bc3205c91c40e9c569b08af8db04503afdebceb7134c\", "

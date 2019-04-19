@@ -266,7 +266,7 @@ static const CRPCCommand vRPCCommands[] =
     { "genregistercontractraw", &genregistercontractraw, false,     false,     false },
     { "gencallcontractraw",     &gencallcontractraw,     false,     false,     false },
     { "genvotedelegateraw",     &genvotedelegateraw,     false,     false,     false },
-    { "genmultisigraw",         &genmultisigraw,         false,     false,     false },
+    { "genmulsigtx",            &genmulsigtx,            false,     false,     false },
 
     /* uses wallet if enabled */
     { "addmultisigaddr",        &addmultisigaddr,        false,     false,      true },
