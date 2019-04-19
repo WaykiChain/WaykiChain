@@ -1377,14 +1377,14 @@ bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {
 
 string CSignaturePair::ToString() const {
     string str = strprintf("regId=%s, signature=%s", regId.ToString(),
-                           string(signature.begin(), signature.end()));
+                           HexStr(signature.begin(), signature.end()));
     return str;
 }
 
 Object CSignaturePair::ToJson() const {
     Object obj;
     obj.push_back(Pair("regid", regId.ToString()));
-    obj.push_back(Pair("signature", string(signature.begin(), signature.end())));
+    obj.push_back(Pair("signature", HexStr(signature.begin(), signature.end())));
 
     return obj;
 }
