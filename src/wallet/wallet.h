@@ -61,7 +61,7 @@ public:
     string strWalletFile;     //钱包文件名
 
     map<uint256, CAccountTx> mapInBlockTx;
-    map<uint256, std::shared_ptr<CBaseTx> > UnConfirmTx;
+    map<uint256, std::shared_ptr<CBaseTx> > unconfirmedTx;
     mutable CCriticalSection cs_wallet;
 
     typedef std::map<unsigned int, CMasterKey> MasterKeyMap;
@@ -79,7 +79,7 @@ public:
                 READWRITE(bestBlock);
                 READWRITE(mapMasterKeys);
                 READWRITE(mapInBlockTx);
-                READWRITE(UnConfirmTx);
+                READWRITE(unconfirmedTx);
                 uint256 sun;
                 if(fWrite){
                  sun = GetCheckSum();
@@ -335,7 +335,7 @@ public:
         case DELEGATE_TX:
             mapAccountTx[hash] = std::make_shared<CDelegateTx>(pTx);
             break;
-        case MULTISIG_TX:
+        case MULSIG_TX:
             mapAccountTx[hash] = std::make_shared<CMulsigTx>(pTx);
             break;
         default:

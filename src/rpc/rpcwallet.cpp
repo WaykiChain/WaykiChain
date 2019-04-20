@@ -112,12 +112,12 @@ Value addmulsigaddr(const Array& params, bool fHelp) {
             "\nAdd a 2-3 multisig address from 3 addresses\n" +
             HelpExampleCli("addmulsigaddr",
                            "2 \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
-                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\", "
                            "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\"") +
             "\nAs json rpc\n" +
             HelpExampleRpc("addmulsigaddr",
                            "2, \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
-                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\", "
                            "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\""));
 
     EnsureWalletIsUnlocked();
@@ -186,12 +186,12 @@ Value createmulsig(const Array& params, bool fHelp) {
             "\nCreate a 2-3 multisig address from 3 addresses\n" +
             HelpExampleCli("createmulsig",
                            "2 \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
-                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\", "
                            "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\"") +
             "\nAs json rpc\n" +
             HelpExampleRpc("createmulsig",
                            "2, \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
-                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\", "
                            "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\""));
 
     EnsureWalletIsUnlocked();
@@ -1114,7 +1114,7 @@ Value getwalletinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("wallet_locked",     pwalletMain->IsLocked()));
     obj.push_back(Pair("unlocked_until",    nWalletUnlockTime));
     obj.push_back(Pair("coinfirmed_tx_num", (int)pwalletMain->mapInBlockTx.size()));
-    obj.push_back(Pair("unconfirmed_tx_num",(int)pwalletMain->UnConfirmTx.size()));
+    obj.push_back(Pair("unconfirmed_tx_num",(int)pwalletMain->unconfirmedTx.size()));
     return obj;
 }
 

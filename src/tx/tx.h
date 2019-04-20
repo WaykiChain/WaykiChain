@@ -42,7 +42,7 @@ enum TxType: unsigned char {
     CONTRACT_TX = 4,    //!< Contract Tx
     REG_CONT_TX = 5,    //!< Register Contract Tx
     DELEGATE_TX = 6,    //!< Vote Delegate Tx
-    MULTISIG_TX = 7,    //!< Multisig Tx
+    MULSIG_TX   = 7,    //!< Multisig Tx
 
     /******** Begin of Stable Coin TX Type Enums ********/
     CDP_OPEN_TX             = 11, //!< CDP Collateralize Tx
@@ -79,7 +79,7 @@ static const unordered_map<unsigned char, string> kTxTypeMap = {
     { CONTRACT_TX,          "CONTRACT_TX" },
     { REG_CONT_TX,          "REG_CONT_TX" },
     { DELEGATE_TX,          "DELEGATE_TX" },
-    { MULTISIG_TX,          "MULTISIG_TX"},
+    { MULSIG_TX,            "MULSIG_TX"},
     { CDP_OPEN_TX,          "CDP_OPEN_TX" },
     { CDP_REFUEL_TX,        "CDP_REFUEL_TX" },
     { CDP_REDEMP_TX,        "CDP_REDEMP_TX" },
@@ -697,17 +697,17 @@ public:
     CKeyID keyId;  //!< only in memory
 
 public:
-    CMulsigTx() : CBaseTx(MULTISIG_TX) {}
+    CMulsigTx() : CBaseTx(MULSIG_TX) {}
 
-    CMulsigTx(const CBaseTx *pBaseTx) : CBaseTx(MULTISIG_TX) {
-        assert(MULTISIG_TX == pBaseTx->nTxType);
+    CMulsigTx(const CBaseTx *pBaseTx) : CBaseTx(MULSIG_TX) {
+        assert(MULSIG_TX == pBaseTx->nTxType);
         *this = *(CMulsigTx *)pBaseTx;
     }
 
     CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
                 uint64_t feeIn, const uint64_t valueIn, const int validHeightIn,
                 const uint8_t requiredIn, const vector_unsigned_char &memoIn)
-        : CBaseTx(MULTISIG_TX, validHeightIn, feeIn) {
+        : CBaseTx(MULSIG_TX, validHeightIn, feeIn) {
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
 
@@ -721,7 +721,7 @@ public:
     CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
                 uint64_t feeIn, const uint64_t valueIn, const int validHeightIn,
                 const uint8_t requiredIn)
-        : CBaseTx(MULTISIG_TX, validHeightIn, feeIn) {
+        : CBaseTx(MULSIG_TX, validHeightIn, feeIn) {
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
 
@@ -798,7 +798,7 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
         Serialize(os, *((CRegisterContractTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == DELEGATE_TX) {
         Serialize(os, *((CDelegateTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == MULTISIG_TX) {
+    } else if (pa->nTxType == MULSIG_TX) {
         Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion);
     } else {
         string sTxType(1, nTxType);
@@ -828,7 +828,7 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
     } else if (nTxType == DELEGATE_TX) {
         pa = std::make_shared<CDelegateTx>();
         Unserialize(is, *((CDelegateTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == MULTISIG_TX) {
+    } else if (nTxType == MULSIG_TX) {
         pa = std::make_shared<CMulsigTx>();
         Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
     } else {
