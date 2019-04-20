@@ -75,11 +75,11 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     std::tuple<bool, string> syntax = CVmlua::CheckScriptSyntax(luaScriptFilePath.c_str());
     bool bOK = std::get<0>(syntax);
     if (!bOK)
-        throw JSONRPCError(RPC_INVALID_PARAMS, std::get<1>(syntax));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, std::get<1>(syntax));
 
     FILE* file = fopen(luaScriptFilePath.c_str(), "rb+");
     if (!file)
-        throw JSONRPCError(RPC_INVALID_PARAMS, "Open script file (" + luaScriptFilePath + ") error");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Open script file (" + luaScriptFilePath + ") error");
 
     long lSize;
     fseek(file, 0, SEEK_END);
@@ -88,7 +88,10 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     if (lSize <= 0 || lSize > kContractScriptMaxSize) { // contract script file size must be <= 64 KB)
         fclose(file);
-        throw JSONRPCError(RPC_INVALID_PARAMS, (lSize == -1) ? "File size is unknown" : ((lSize == 0) ? "File is empty" : "File size exceeds 64 KB limit."));
+        throw JSONRPCError(
+            RPC_INVALID_PARAMETER,
+            (lSize == -1) ? "File size is unknown"
+                          : ((lSize == 0) ? "File is empty" : "File size exceeds 64 KB limit"));
     }
 
     // allocate memory to contain the whole file:
@@ -98,11 +101,11 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         throw runtime_error("allocate memory failed");
     }
     if (fread(buffer, 1, lSize, file) != (size_t) lSize) {
-        free(buffer);  //及时释放
-        fclose(file);  //及时关闭
+        free(buffer);
+        fclose(file);
         throw runtime_error("read script file error");
     } else {
-        fclose(file); //使用完关闭文件
+        fclose(file);
     }
 
     CVmScript vmScript;
@@ -153,13 +156,13 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     }
 
     if (!account.IsRegistered()) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "in registercontracttx Error: Account is not registered.");
+        throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
     }
     if (!pwalletMain->HaveKey(srcKeyid)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "in registercontracttx Error: WALLET file is not correct.");
+        throw JSONRPCError(RPC_WALLET_ERROR, "Send address is not in wallet");
     }
     if (balance < totalFee) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "in registercontracttx Error: Account balance is insufficient.");
+        throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
     }
 
     CRegID srcRegId;
@@ -179,12 +182,12 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         tx.nValidHeight = newHeight;
 
         if (!pwalletMain->Sign(srcKeyid, tx.SignatureHash(), tx.signature)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "registercontracttx Error: Sign failed.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
 
         if (!tx.ExecuteTx(1, acctViewTemp, state, txundo, newHeight,
                                         txCacheTemp, scriptDBViewTemp)) {
-            throw JSONRPCError(RPC_TRANSACTION_ERROR, "Registercontracttx Error: executetx failed.");
+            throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx register contract failed");
         }
 
         registerContractTxObj.push_back(Pair("script_size", vscript.size()));
@@ -203,11 +206,10 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     CContractTx &contractTx = *contractTx_ptr;
 
     {
-        //balance
         CAccount secureAcc;
 
         if (!scriptDBViewTemp.HaveScript(appId)) {
-            throw runtime_error(tinyformat::format("in callcontracttx : appId %s not exist\n", appId.ToString()));
+            throw runtime_error(tinyformat::format("AppId %s is not exist\n", appId.ToString()));
         }
         contractTx.nTxType   = CONTRACT_TX;
         contractTx.srcRegId  = srcRegId;
@@ -219,12 +221,12 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
         vector<unsigned char> signature;
         if (!pwalletMain->Sign(srcKeyid, contractTx.SignatureHash(), contractTx.signature)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "callcontracttx Error: Sign failed.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
 
         if (!contractTx.ExecuteTx(2, acctViewTemp, state, txundo, chainActive.Tip()->nHeight + 1,
                                         txCacheTemp, scriptDBViewTemp)) {
-            throw JSONRPCError(RPC_TRANSACTION_ERROR, "callcontracttx Error: executetx failed.");
+            throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx  contract failed");
         }
     }
 

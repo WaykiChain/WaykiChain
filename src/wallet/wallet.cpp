@@ -196,7 +196,7 @@ void CWallet::ResendWalletTransactions() {
         auto ret                         = CommitTransaction(&(*pBaseTx.get()));
         if (!std::get<0>(ret)) {
             erase.push_back(te.first);
-            LogPrint("CWallet", "abort invalid tx %s reason:%s\r\n",
+            LogPrint("CWallet", "abort invalid tx %s reason:%s\n",
                      te.second.get()->ToString(*pAccountViewTip), std::get<1>(ret));
         }
     }

@@ -168,16 +168,16 @@ Value setgenerate(const Array& params, bool fHelp)
     }
 
     if (bSetEmpty)
-        throw JSONRPCError(RPC_INVALID_PARAMS, "no key for mining");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "No key for mining");
 
     if (params.size() > 0)
         fGenerate = params[0].get_bool();
 
-    int nGenProcLimit = 1;
+    int genBlockLimit = 1;
     if (params.size() == 2) {
-        nGenProcLimit = params[1].get_int();
-        if(nGenProcLimit <= 0) {
-            throw JSONRPCError(RPC_INVALID_PARAMS, "limit conter err for mining");
+        genBlockLimit = params[1].get_int();
+        if(genBlockLimit <= 0) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid genblocklimit");
         }
     }
     Object obj;
@@ -188,7 +188,7 @@ Value setgenerate(const Array& params, bool fHelp)
         return obj;
     }
 
-    GenerateCoinBlock(true, pwalletMain, nGenProcLimit);
+    GenerateCoinBlock(true, pwalletMain, genBlockLimit);
     obj.push_back(Pair("msg", "in  mining"));
     return obj;
 }
