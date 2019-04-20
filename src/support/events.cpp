@@ -44,9 +44,9 @@ static struct evutil_addrinfo* make_addrinfo(const char* address, ev_uint16_t po
     evutil_snprintf(strport, sizeof(strport), "%d", port);
     if ((ai_result = evutil_getaddrinfo(address, strport, &hints, &ai)) != 0) {
         if (ai_result == EVUTIL_EAI_SYSTEM) {
-            LogPrint("ERROR", "httpserver getaddrinfo error, address=%s", address);
+            LogPrint("ERROR", "make_addrinfo getaddrinfo error, address=%s\n", address);
         } else {
-            LogPrint("ERROR", "httpserver getaddrinfo error: %s, address=%s",
+            LogPrint("ERROR", "make_addrinfo getaddrinfo error: %s, address=%s\n",
                      evutil_gai_strerror(ai_result), address);
         }
         return (NULL);
@@ -62,7 +62,7 @@ static struct evutil_addrinfo* make_addrinfo(const char* address, ev_uint16_t po
 static int evutil_fast_socket_closeonexec(evutil_socket_t fd) {
 #if !defined(_WIN32) && defined(EVENT__HAVE_SETFD)
     if (fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
-        LogPrint("ERROR", "evutil_fast_socket_closeonexec fcntl(%d, F_SETFD)", fd);
+        LogPrint("ERROR", "evutil_fast_socket_closeonexec fcntl(%d, F_SETFD)\n", fd);
         return -1;
     }
 #endif
@@ -78,7 +78,7 @@ static int evutil_fast_socket_nonblocking(evutil_socket_t fd) {
     return evutil_make_socket_nonblocking(fd);
 #else
     if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
-        LogPrint("ERROR", "evutil_fast_socket_nonblocking fcntl(%d, F_SETFL)", fd);
+        LogPrint("ERROR", "evutil_fast_socket_nonblocking fcntl(%d, F_SETFL)\n", fd);
         return -1;
     }
     return 0;
@@ -136,13 +136,13 @@ static evutil_socket_t bind_socket_ai(struct evutil_addrinfo* ai, int reuse) {
     }
 
     if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (void*)&on, sizeof(on)) < 0) {
-        LogPrint("ERROR", "bind_socket_ai setsockopt(%d, SOL_SOCKET, SO_KEEPALIVE) failed", fd);
+        LogPrint("ERROR", "bind_socket_ai setsockopt(%d, SOL_SOCKET, SO_KEEPALIVE) failed\n", fd);
         evutil_closesocket(fd);
         return (-1);
     }
 
     if (evutil_make_listen_socket_reuseable(fd) < 0) {
-        LogPrint("ERROR", "bind_socket_ai evutil_make_listen_socket_reuseable failed");
+        LogPrint("ERROR", "bind_socket_ai evutil_make_listen_socket_reuseable failed\n");
         evutil_closesocket(fd);
         return (-1);
     }
@@ -153,7 +153,7 @@ static evutil_socket_t bind_socket_ai(struct evutil_addrinfo* ai, int reuse) {
     if (ai_family == PF_INET6) {
         on = 1;
         if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&on, (ev_socklen_t)sizeof(on)) < 0) {
-            LogPrint("ERROR", "bind_socket_ai evutil_make_listen_socket_ipv6only failed");
+            LogPrint("ERROR", "bind_socket_ai evutil_make_listen_socket_ipv6only failed\n");
             return (-1);
         }
     }
@@ -163,7 +163,7 @@ static evutil_socket_t bind_socket_ai(struct evutil_addrinfo* ai, int reuse) {
         r = bind(fd, ai->ai_addr, (ev_socklen_t)ai->ai_addrlen);
         if (r == -1) {
             int serrno = EVUTIL_SOCKET_ERROR();
-            LogPrint("ERROR", "bind_socket_ai bind failed, err: %s",
+            LogPrint("ERROR", "bind_socket_ai bind failed, err: %s\n",
                      evutil_socket_error_to_string(serrno));
             evutil_closesocket(fd);
             return (-1);
@@ -201,7 +201,7 @@ struct evhttp_bound_socket* evhttp_bind_accept_socket(struct evhttp* http, const
 
     if (listen(fd, 128) == -1) {
         serrno = EVUTIL_SOCKET_ERROR();
-        LogPrint("ERROR", "evhttp_bind_accept_socket listen failed! err: ",
+        LogPrint("ERROR", "evhttp_bind_accept_socket listen failed! err: \n",
                  evutil_socket_error_to_string(serrno));
         evutil_closesocket(fd);
         EVUTIL_SET_SOCKET_ERROR(serrno);
@@ -212,7 +212,7 @@ struct evhttp_bound_socket* evhttp_bind_accept_socket(struct evhttp* http, const
 
     if (bound != NULL) {
         LogPrint("LIBEVENT",
-                 "evhttp_bind_accept_socket Bound to port %d - Awaiting connections ... ", port);
+                 "evhttp_bind_accept_socket Bound to port %d - Awaiting connections ... \n", port);
         return (bound);
     }
 
