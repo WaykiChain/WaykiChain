@@ -17,6 +17,10 @@ if BUILD_BITCOIND
   bin_PROGRAMS += coind
 endif
 
+if BUILD_COINLUA
+  bin_PROGRAMS += coinlua
+endif
+
 SUBDIRS = . $(BUILD_QT) $(BUILD_P_TEST) $(BUILD_TEST)
 #DIST_SUBDIRS = . qt test
 DIST_SUBDIRS = . test ptest
@@ -286,10 +290,15 @@ if TARGET_WINDOWS
 coind_SOURCES += coind-res.rc
 endif
 
-liblua53_a_CFLAGS = -fPIC
+liblua53_a_CFLAGS = -fPIC -DLUA_USE_POSIX -Wl,-E
 
 AM_CPPFLAGS += $(BDB_CPPFLAGS)
 coind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
+
+# coinlua binary
+coinlua_LDADD = liblua53.a -lm
+coinlua_SOURCES = vm/lua/coinlua.c
+coinlua__CFLAGS = $(AM_CFLAGS) -DLUA_USE_POSIX -Wl,-E -ldl -lreadline
 
 # NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
 $(LIBLEVELDB): $(LIBMEMENV)
@@ -312,5 +321,4 @@ EXTRA_DIST = leveldb Makefile.include
 clean-local:
 	-$(MAKE) -C secp256k1 clean
 	-$(MAKE) -C leveldb clean
-	-$(MAKE) -C lua53 clean
 	rm -f leveldb/*/*.gcno leveldb/helpers/memenv/*.gcno
