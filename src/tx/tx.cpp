@@ -240,7 +240,7 @@ bool CRegisterAccountTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
 
 bool CRegisterAccountTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
         CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
-    //drop account
+    // drop account
     CRegID accountId(nHeight, nIndex);
     CAccount oldAccount;
     if (!view.GetAccount(accountId, oldAccount))
@@ -480,7 +480,7 @@ Object CCommonTx::ToJson(const CAccountViewCache &AccountView) const {
     auto GetRegIdString = [&](CUserID const &userId) {
         if (userId.type() == typeid(CRegID))
             return boost::get<CRegID>(userId).ToString();
-        return string(" ");
+        return string("");
     };
 
     CKeyID srcKeyId, desKeyId;
@@ -610,16 +610,19 @@ bool CContractTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
 
     set<CKeyID> vAddress;
     vector<std::shared_ptr<CAccount> > &vAccount = vmRunEnv.GetNewAccont();
-    for (auto & itemAccount : vAccount) {  //更新对应的合约交易的账户信息
+    // update accounts' info refered to the contract
+    for (auto &itemAccount : vAccount) {
         vAddress.insert(itemAccount->keyID);
         userId = itemAccount->keyID;
         CAccount oldAcct;
         if (!view.GetAccount(userId, oldAcct)) {
-            if (!itemAccount->keyID.IsNull()) {  //合约往未发生过转账记录地址转币
+            // The contract transfers money to an address for the first time.
+            if (!itemAccount->keyID.IsNull()) {
                 oldAcct.keyID = itemAccount->keyID;
-            } else
+            } else {
                 return state.DoS(100, ERRORMSG("CContractTx::ExecuteTx, read account info error"),
-                    UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+                                 UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+            }
         }
         CAccountLog oldAcctLog(oldAcct);
         if (!view.SetAccount(userId, *itemAccount))
@@ -739,7 +742,7 @@ Object CContractTx::ToJson(const CAccountViewCache &AccountView) const {
     auto GetRegIdString = [&](CUserID const &userId) {
         if (userId.type() == typeid(CRegID))
             return boost::get<CRegID>(userId).ToString();
-        return string(" ");
+        return string("");
     };
 
     CKeyID srcKeyId, desKeyId;
@@ -1531,7 +1534,7 @@ bool CMultisigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
 
     CAccount srcAccount;
     if (!view.GetAccount(CUserID(keyId), srcAccount))
-        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, read account failed"),
+        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, read multisig account: %s failed", keyId.ToAddress()),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     return true;
