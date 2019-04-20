@@ -336,7 +336,7 @@ public:
             mapAccountTx[hash] = std::make_shared<CDelegateTx>(pTx);
             break;
         case MULTISIG_TX:
-            mapAccountTx[hash] = std::make_shared<CMultisigTx>(pTx);
+            mapAccountTx[hash] = std::make_shared<CMulsigTx>(pTx);
             break;
         default:
             return false;

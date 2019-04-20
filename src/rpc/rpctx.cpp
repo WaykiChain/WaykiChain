@@ -276,7 +276,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             break;
         }
         case MULTISIG_TX: {
-            CMultisigTx* ptx = (CMultisigTx*)pBaseTx.get();
+            CMulsigTx* ptx = (CMulsigTx*)pBaseTx.get();
 
             CAccount account;
             set<CPubKey> pubKeys;
@@ -2626,6 +2626,40 @@ Value signtxraw(const Array& params, bool fHelp) {
 
             break;
         }
+        case MULTISIG_TX: {
+            std::shared_ptr<CMulsigTx> tx =
+                std::make_shared<CMulsigTx>(pBaseTx.get());
+
+            vector<CSignaturePair> &signaturePairs = tx.get()->signaturePairs;
+            CRegID regId;
+            if (!pAccountViewTip->GetRegId(CUserID(keyId), regId)) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to find regid");
+            }
+
+            do {
+                bool valid = false;
+                for (auto& item : signaturePairs) {
+                    if (regId == item.regId) {
+                        if (!pwalletMain->Sign(keyId, tx.get()->SignatureHash(), item.signature)) {
+                            throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
+                        } else {
+                            valid = true;
+                        }
+                    }
+                }
+
+                if (!valid) {
+                    break;
+                }
+
+                CDataStream ds(SER_DISK, CLIENT_VERSION);
+                std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
+                ds << pBaseTx;
+                obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+            } while (false);
+
+            break;
+        }
         default:
             break;
     }
@@ -2706,7 +2740,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             break;
         }
         case MULTISIG_TX: {
-            std::shared_ptr<CMultisigTx> tx = std::make_shared<CMultisigTx>(pBaseTx.get());
+            std::shared_ptr<CMulsigTx> tx = std::make_shared<CMulsigTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }
