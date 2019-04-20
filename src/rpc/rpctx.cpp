@@ -1494,10 +1494,10 @@ if (fHelp || params.size() > 2) {
     retObj.push_back(Pair("ConfirmTx", ConfirmTxArry));
     //CAccountViewCache view(*pAccountViewTip, true);
     Array UnConfirmTxArry;
-    for (auto const &wtx : pwalletMain->UnConfirmTx) {
+    for (auto const &wtx : pwalletMain->unconfirmedTx) {
         UnConfirmTxArry.push_back(wtx.first.GetHex());
     }
-    retObj.push_back(Pair("UnConfirmTx", UnConfirmTxArry));
+    retObj.push_back(Pair("unconfirmedTx", UnConfirmTxArry));
     return retObj;
 }
 
@@ -1577,10 +1577,10 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
     Object retObj;
     CAccountViewCache view(*pAccountViewTip, true);
     Array UnConfirmTxArry;
-    for (auto const &wtx : pwalletMain->UnConfirmTx) {
+    for (auto const &wtx : pwalletMain->unconfirmedTx) {
         UnConfirmTxArry.push_back(wtx.second.get()->ToString(view));
     }
-    retObj.push_back(Pair("UnConfirmTx", UnConfirmTxArry));
+    retObj.push_back(Pair("unconfirmedTx", UnConfirmTxArry));
     return retObj;
 }
 
@@ -2804,24 +2804,24 @@ Value getalltxinfo(const Array& params, bool fHelp) {
         nLimitCount = params[0].get_int();
     assert(pwalletMain != NULL);
     if(nLimitCount <=0 ) {
-        Array ComfirmTx;
+        Array confirmedTx;
         for (auto const &wtx : pwalletMain->mapInBlockTx) {
             for (auto const & item : wtx.second.mapAccountTx) {
                 Object objtx = GetTxDetailJSON(item.first);
-                ComfirmTx.push_back(objtx);
+                confirmedTx.push_back(objtx);
             }
         }
-        retObj.push_back(Pair("Confirmed", ComfirmTx));
+        retObj.push_back(Pair("confirmed", confirmedTx));
 
-        Array UnComfirmTx;
+        Array unconfirmedTx;
         CAccountViewCache view(*pAccountViewTip, true);
-        for (auto const &wtx : pwalletMain->UnConfirmTx) {
+        for (auto const &wtx : pwalletMain->unconfirmedTx) {
             Object objtx = GetTxDetailJSON(wtx.first);
-            UnComfirmTx.push_back(objtx);
+            unconfirmedTx.push_back(objtx);
         }
-        retObj.push_back(Pair("UnConfirmed", UnComfirmTx));
+        retObj.push_back(Pair("unconfirmed", unconfirmedTx));
     } else {
-        Array ComfirmTx;
+        Array confirmedTx;
         multimap<int, Object, std::greater<int> > mapTx;
         for (auto const &wtx : pwalletMain->mapInBlockTx) {
             for (auto const & item : wtx.second.mapAccountTx) {
@@ -2834,9 +2834,9 @@ Value getalltxinfo(const Array& params, bool fHelp) {
         for(auto & txItem : mapTx) {
             if(++nSize > nLimitCount)
                 break;
-            ComfirmTx.push_back(txItem.second);
+            confirmedTx.push_back(txItem.second);
         }
-        retObj.push_back(Pair("Confirmed", ComfirmTx));
+        retObj.push_back(Pair("Confirmed", confirmedTx));
     }
 
     return retObj;

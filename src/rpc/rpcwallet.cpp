@@ -1114,7 +1114,7 @@ Value getwalletinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("wallet_locked",     pwalletMain->IsLocked()));
     obj.push_back(Pair("unlocked_until",    nWalletUnlockTime));
     obj.push_back(Pair("coinfirmed_tx_num", (int)pwalletMain->mapInBlockTx.size()));
-    obj.push_back(Pair("unconfirmed_tx_num",(int)pwalletMain->UnConfirmTx.size()));
+    obj.push_back(Pair("unconfirmed_tx_num",(int)pwalletMain->unconfirmedTx.size()));
     return obj;
 }
 
