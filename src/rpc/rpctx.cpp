@@ -275,7 +275,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             break;
         }
-        case MULSIG_TX: {
+        case COMMON_MULSIG_TX: {
             CMulsigTx* ptx = (CMulsigTx*)pBaseTx.get();
 
             CAccount account;
@@ -299,7 +299,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 recvKeyId       = desRegID.GetKeyID(*pAccountViewTip);
             }
 
-            obj.push_back(Pair("txtype", "MULSIG_TX"));
+            obj.push_back(Pair("txtype", "COMMON_MULSIG_TX"));
             obj.push_back(Pair("memo", HexStr(ptx->memo)));
             obj.push_back(Pair("address", sendKeyId.ToAddress()));
             obj.push_back(Pair("category", "send"));
@@ -307,7 +307,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("amount", -dAmount));
             arrayDetail.push_back(obj);
             Object objRec;
-            objRec.push_back(Pair("txtype", "MULSIG_TX"));
+            objRec.push_back(Pair("txtype", "COMMON_MULSIG_TX"));
             objRec.push_back(Pair("memo", HexStr(ptx->memo)));
             objRec.push_back(Pair("address", recvKeyId.ToAddress()));
             objRec.push_back(Pair("category", "receive"));
@@ -1255,7 +1255,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                     }
                 }
             }
-            // TODO: MULSIG_TX
+            // TODO: COMMON_MULSIG_TX
         }
     }
     return arrayData;
@@ -2564,7 +2564,7 @@ Value signtxraw(const Array& params, bool fHelp) {
     }
 
     const Array& addresses = params[1].get_array();
-    if (pBaseTx.get()->nTxType != MULSIG_TX && addresses.size() != 1) {
+    if (pBaseTx.get()->nTxType != COMMON_MULSIG_TX && addresses.size() != 1) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "To many addresses provided");
     }
 
@@ -2654,7 +2654,7 @@ Value signtxraw(const Array& params, bool fHelp) {
             break;
         }
 
-        case MULSIG_TX: {
+        case COMMON_MULSIG_TX: {
             std::shared_ptr<CMulsigTx> tx = std::make_shared<CMulsigTx>(pBaseTx.get());
 
             vector<CSignaturePair>& signaturePairs = tx.get()->signaturePairs;
@@ -2824,7 +2824,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             }
             break;
         }
-        case MULSIG_TX: {
+        case COMMON_MULSIG_TX: {
             std::shared_ptr<CMulsigTx> tx = std::make_shared<CMulsigTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
