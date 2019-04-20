@@ -1510,17 +1510,23 @@ bool CMulsigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
     uint8_t valid   = 0;
     for (const auto &item : signaturePairs) {
         if (!view.GetAccount(item.regId, account))
-            return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, read account failed"),
+            return state.DoS(100,
+                             ERRORMSG("CMulsigTx::CheckTx, account: %s, read account failed",
+                                      item.regId.ToString()),
                              REJECT_INVALID, "bad-getaccount");
 
         if (!item.signature.empty()) {
             if (!CheckSignatureSize(item.signature)) {
-                return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, signature size invalid"),
+                return state.DoS(100,
+                                 ERRORMSG("CMulsigTx::CheckTx, account: %s, signature size invalid",
+                                          item.regId.ToString()),
                                  REJECT_INVALID, "bad-tx-sig-size");
             }
 
             if (!CheckSignScript(sighash, item.signature, account.pubKey)) {
-                return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, CheckSignScript failed"),
+                return state.DoS(100,
+                                 ERRORMSG("CMulsigTx::CheckTx, account: %s, CheckSignScript failed",
+                                          item.regId.ToString()),
                                  REJECT_INVALID, "bad-signscript-check");
             } else {
                 ++valid;
