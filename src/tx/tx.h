@@ -42,7 +42,7 @@ enum TxType: unsigned char {
     CONTRACT_TX = 4,    //!< Contract Tx
     REG_CONT_TX = 5,    //!< Register Contract Tx
     DELEGATE_TX = 6,    //!< Vote Delegate Tx
-    MULSIG_TX = 7,    //!< Multisig Tx
+    MULSIG_TX   = 7,    //!< Multisig Tx
 
     /******** Begin of Stable Coin TX Type Enums ********/
     CDP_OPEN_TX             = 11, //!< CDP Collateralize Tx

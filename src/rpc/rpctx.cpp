@@ -2534,13 +2534,12 @@ Value signtxraw(const Array& params, bool fHelp) {
             "signtxraw \"str\" \"addr\"\n"
             "\nsignature transaction\n"
             "\nArguments:\n"
-            "1.\"str\": (string, required) sig str, hex format, can not longer than 65K in binary "
-            "bytes\n"
+            "1.\"str\": (string, required) Hex-format string, no longer than 65K in binary bytes\n"
             "2.\"addr\": (string, required) A json array of WICC addresses\n"
-            "     [\n"
-            "       \"address\"  (string) WICC address\n"
-            "       ...,\n"
-            "     ]\n"
+            "[\n"
+            "  \"address\"  (string) WICC address\n"
+            "  ...,\n"
+            "]\n"
             "\nExamples:\n" +
             HelpExampleCli("signtxraw",
                            "\"0701ed7f0300030000010000020002000bcd10858c200200\" "
