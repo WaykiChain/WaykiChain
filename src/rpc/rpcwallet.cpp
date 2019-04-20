@@ -664,7 +664,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
         }
     }
 
-    CMultisigTx tx;
+    CMulsigTx tx;
     tx.signaturePairs = signaturePairs;
     tx.desUserId      = recvUserId;
     tx.bcoinBalance   = amount;

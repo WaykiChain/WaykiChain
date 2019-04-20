@@ -686,7 +686,7 @@ public:
     Object ToJson() const;
 };
 
-class CMultisigTx : public CBaseTx {
+class CMulsigTx : public CBaseTx {
 public:
     vector<CSignaturePair> signaturePairs;  //!< signature pair
     mutable CUserID desUserId;              //!< keyid or regid
@@ -697,14 +697,14 @@ public:
     CKeyID keyId;  //!< only in memory
 
 public:
-    CMultisigTx() : CBaseTx(MULTISIG_TX) {}
+    CMulsigTx() : CBaseTx(MULTISIG_TX) {}
 
-    CMultisigTx(const CBaseTx *pBaseTx) : CBaseTx(MULTISIG_TX) {
+    CMulsigTx(const CBaseTx *pBaseTx) : CBaseTx(MULTISIG_TX) {
         assert(MULTISIG_TX == pBaseTx->nTxType);
-        *this = *(CMultisigTx *)pBaseTx;
+        *this = *(CMulsigTx *)pBaseTx;
     }
 
-    CMultisigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
+    CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
                 uint64_t feeIn, const uint64_t valueIn, const int validHeightIn,
                 const uint8_t requiredIn, const vector_unsigned_char &memoIn)
         : CBaseTx(MULTISIG_TX, validHeightIn, feeIn) {
@@ -718,7 +718,7 @@ public:
         memo           = memoIn;
     }
 
-    CMultisigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
+    CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
                 uint64_t feeIn, const uint64_t valueIn, const int validHeightIn,
                 const uint8_t requiredIn)
         : CBaseTx(MULTISIG_TX, validHeightIn, feeIn) {
@@ -731,7 +731,7 @@ public:
         required       = requiredIn;
     }
 
-    ~CMultisigTx() {}
+    ~CMulsigTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -769,7 +769,7 @@ public:
     uint256 GetHash() const { return SignatureHash(); }
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CMultisigTx>(this); }
+    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CMulsigTx>(this); }
     string ToString(CAccountViewCache &view) const;
     Object ToJson(const CAccountViewCache &AccountView) const;
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
@@ -799,7 +799,7 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
     } else if (pa->nTxType == DELEGATE_TX) {
         Serialize(os, *((CDelegateTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == MULTISIG_TX) {
-        Serialize(os, *((CMultisigTx *)(pa.get())), nType, nVersion);
+        Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion);
     } else {
         string sTxType(1, nTxType);
         throw ios_base::failure("Serialize: nTxType (" + sTxType + ") value error.");
@@ -829,8 +829,8 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
         pa = std::make_shared<CDelegateTx>();
         Unserialize(is, *((CDelegateTx *)(pa.get())), nType, nVersion);
     } else if (nTxType == MULTISIG_TX) {
-        pa = std::make_shared<CMultisigTx>();
-        Unserialize(is, *((CMultisigTx *)(pa.get())), nType, nVersion);
+        pa = std::make_shared<CMulsigTx>();
+        Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
     } else {
         string sTxType(1, nTxType);
         throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error.");

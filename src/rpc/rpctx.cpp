@@ -276,7 +276,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             break;
         }
         case MULTISIG_TX: {
-            CMultisigTx* ptx = (CMultisigTx*)pBaseTx.get();
+            CMulsigTx* ptx = (CMulsigTx*)pBaseTx.get();
 
             CAccount account;
             set<CPubKey> pubKeys;
@@ -2627,8 +2627,8 @@ Value signtxraw(const Array& params, bool fHelp) {
             break;
         }
         case MULTISIG_TX: {
-            std::shared_ptr<CMultisigTx> tx =
-                std::make_shared<CMultisigTx>(pBaseTx.get());
+            std::shared_ptr<CMulsigTx> tx =
+                std::make_shared<CMulsigTx>(pBaseTx.get());
 
             vector<CSignaturePair> &signaturePairs = tx.get()->signaturePairs;
             CRegID regId;
@@ -2740,7 +2740,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             break;
         }
         case MULTISIG_TX: {
-            std::shared_ptr<CMultisigTx> tx = std::make_shared<CMultisigTx>(pBaseTx.get());
+            std::shared_ptr<CMulsigTx> tx = std::make_shared<CMulsigTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }

@@ -1392,7 +1392,7 @@ Object CSignaturePair::ToJson() const {
     return obj;
 }
 
-bool CMultisigTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
+bool CMulsigTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
                              CScriptDBViewCache &scriptDB) {
     CKeyID keyId;
     for (const auto &item : signaturePairs) {
@@ -1407,7 +1407,7 @@ bool CMultisigTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
     return true;
 }
 
-string CMultisigTx::ToString(CAccountViewCache &view) const {
+string CMulsigTx::ToString(CAccountViewCache &view) const {
     string desId;
     if (desUserId.type() == typeid(CKeyID)) {
         desId = boost::get<CKeyID>(desUserId).ToString();
@@ -1429,7 +1429,7 @@ string CMultisigTx::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CMultisigTx::ToJson(const CAccountViewCache &AccountView) const {
+Object CMulsigTx::ToJson(const CAccountViewCache &AccountView) const {
     Object result;
     CAccountViewCache view(AccountView);
 
@@ -1453,7 +1453,7 @@ Object CMultisigTx::ToJson(const CAccountViewCache &AccountView) const {
     for (const auto &item : signaturePairs) {
         signatureArray.push_back(item.ToJson());
         if (!view.GetAccount(item.regId, account)) {
-            LogPrint("ERROR", "CMultisigTx::ToJson, failed to get account info: %s\n",
+            LogPrint("ERROR", "CMulsigTx::ToJson, failed to get account info: %s\n",
                      item.regId.ToString());
             continue;
         }
@@ -1475,32 +1475,32 @@ Object CMultisigTx::ToJson(const CAccountViewCache &AccountView) const {
     return result;
 }
 
-bool CMultisigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
+bool CMulsigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
                           CScriptDBViewCache &scriptDB) {
     if (memo.size() > kCommonTxMemoMaxSize)
-        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, memo's size too large"),
+        return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, memo's size too large"),
                          REJECT_INVALID, "memo-size-toolarge");
 
     if (required < 1 || required > signaturePairs.size()) {
-        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, required keys invalid"),
+        return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, required keys invalid"),
                          REJECT_INVALID, "required-keys-invalid");
     }
 
     if (signaturePairs.size() > kMultisigNumberThreshold) {
-        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, signature's number out of range"),
+        return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, signature's number out of range"),
                          REJECT_INVALID, "signature-number-out-of-range");
     }
 
     if ((desUserId.type() != typeid(CRegID)) && (desUserId.type() != typeid(CKeyID)))
-        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, desaddr type error"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, desaddr type error"), REJECT_INVALID,
                          "desaddr-type-error");
 
     if (!CheckMoneyRange(llFees))
-        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, tx fees out of money range"),
+        return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, tx fees out of money range"),
                          REJECT_INVALID, "bad-appeal-fees-toolarge");
 
     if (!CheckMinTxFee(llFees)) {
-        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, tx fees smaller than MinTxFee"),
+        return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, tx fees smaller than MinTxFee"),
                          REJECT_INVALID, "bad-tx-fees-toosmall");
     }
 
@@ -1510,17 +1510,17 @@ bool CMultisigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
     uint8_t valid   = 0;
     for (const auto &item : signaturePairs) {
         if (!view.GetAccount(item.regId, account))
-            return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, read account failed"),
+            return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, read account failed"),
                              REJECT_INVALID, "bad-getaccount");
 
         if (!item.signature.empty()) {
             if (!CheckSignatureSize(item.signature)) {
-                return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, signature size invalid"),
+                return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, signature size invalid"),
                                  REJECT_INVALID, "bad-tx-sig-size");
             }
 
             if (!CheckSignScript(sighash, item.signature, account.pubKey)) {
-                return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, CheckSignScript failed"),
+                return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, CheckSignScript failed"),
                                  REJECT_INVALID, "bad-signscript-check");
             } else {
                 ++valid;
@@ -1531,12 +1531,12 @@ bool CMultisigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
     }
 
     if (pubKeys.size() != signaturePairs.size()) {
-        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, duplicated account"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, duplicated account"), REJECT_INVALID,
                          "duplicated-account");
     }
 
     if (valid < required) {
-        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, not enough valid signatures"),
+        return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, not enough valid signatures"),
                          REJECT_INVALID, "not-enough-valid-signatures");
     }
 
@@ -1546,13 +1546,13 @@ bool CMultisigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
 
     CAccount srcAccount;
     if (!view.GetAccount(CUserID(keyId), srcAccount))
-        return state.DoS(100, ERRORMSG("CMultisigTx::CheckTx, read multisig account: %s failed", keyId.ToAddress()),
+        return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, read multisig account: %s failed", keyId.ToAddress()),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     return true;
 }
 
-bool CMultisigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+bool CMulsigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
                             CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
                             CScriptDBViewCache &scriptDB) {
     CAccount srcAcct;
@@ -1561,17 +1561,17 @@ bool CMultisigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
 
     if (!view.GetAccount(CUserID(keyId), srcAcct))
         return state.DoS(100,
-                         ERRORMSG("CMultisigTx::ExecuteTx, read source addr account info error"),
+                         ERRORMSG("CMulsigTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CAccountLog srcAcctLog(srcAcct);
     uint64_t minusValue = llFees + bcoinBalance;
     if (!srcAcct.OperateAccount(MINUS_FREE, minusValue, nHeight))
-        return state.DoS(100, ERRORMSG("CMultisigTx::ExecuteTx, account has insufficient funds"),
+        return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
     if (!view.SetAccount(CUserID(srcAcct.keyID), srcAcct))
-        return state.DoS(100, ERRORMSG("CMultisigTx::ExecuteTx, save account info error"),
+        return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, save account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     uint64_t addValue = bcoinBalance;
@@ -1580,7 +1580,7 @@ bool CMultisigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
             desAcct.keyID    = boost::get<CKeyID>(desUserId);
             desAcctLog.keyID = desAcct.keyID;
         } else {
-            return state.DoS(100, ERRORMSG("CMultisigTx::ExecuteTx, get account info failed"),
+            return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, get account info failed"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
     } else {  // target account has NO CAccount(first involved in transacion)
@@ -1588,12 +1588,12 @@ bool CMultisigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
     }
 
     if (!desAcct.OperateAccount(ADD_FREE, addValue, nHeight))
-        return state.DoS(100, ERRORMSG("CMultisigTx::ExecuteTx, operate accounts error"),
+        return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, operate accounts error"),
                          UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
 
     if (!view.SetAccount(desUserId, desAcct))
         return state.DoS(100,
-                         ERRORMSG("CMultisigTx::ExecuteTx, save account error, kyeId=%s",
+                         ERRORMSG("CMulsigTx::ExecuteTx, save account error, kyeId=%s",
                                   desAcct.keyID.ToString()),
                          UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
@@ -1608,7 +1608,7 @@ bool CMultisigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
 
         for (const auto &item : signaturePairs) {
             if (!view.GetKeyId(CUserID(item.regId), sendKeyId))
-                return ERRORMSG("CCommonTx::CMultisigTx, get keyid by srcUserId error!");
+                return ERRORMSG("CCommonTx::CMulsigTx, get keyid by srcUserId error!");
 
             if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
                                              operAddressToTxLog))
@@ -1617,7 +1617,7 @@ bool CMultisigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
         }
 
         if (!view.GetKeyId(desUserId, revKeyId))
-            return ERRORMSG("CCommonTx::CMultisigTx, get keyid by desUserId error!");
+            return ERRORMSG("CCommonTx::CMulsigTx, get keyid by desUserId error!");
 
         if (!scriptDB.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
                                          operAddressToTxLog))

@@ -3338,7 +3338,7 @@ void static ProcessGetData(CNode *pfrom) {
                         } else if (DELEGATE_TX == pBaseTx->nTxType) {
                             ss << *((CDelegateTx *)pBaseTx.get());
                         } else if (MULTISIG_TX == pBaseTx->nTxType) {
-                            ss << *((CMultisigTx *)pBaseTx.get());
+                            ss << *((CMulsigTx *)pBaseTx.get());
                         }
                         pfrom->PushMessage("tx", ss);
                         pushed = true;
@@ -4368,7 +4368,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
         case DELEGATE_TX:
             return std::make_shared<CDelegateTx>();
         case MULTISIG_TX:
-            return std::make_shared<CMultisigTx>();
+            return std::make_shared<CMulsigTx>();
         default:
             ERRORMSG("CreateNewEmptyTransaction type error");
             break;
