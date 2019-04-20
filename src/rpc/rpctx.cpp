@@ -2530,15 +2530,29 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
 
 Value signtxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
-        throw runtime_error("signtxraw \"str\" \"addr\"\n"
-                "\nsignature transaction\n"
-                "\nArguments:\n"
-                "1.\"str\": (string, required) sig str, hex format, can not longer than 65K in binary bytes\n"
-                "2.\"addr\": (string, required)\n"
-                "\nExamples:\n"
-                + HelpExampleCli("signtxraw", "\"0501800a03800a0129\" \"W5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" ")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("signtxraw", "\"0501800a03800a0129\", \"W5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\" "));
+        throw runtime_error(
+            "signtxraw \"str\" \"addr\"\n"
+            "\nsignature transaction\n"
+            "\nArguments:\n"
+            "1.\"str\": (string, required) sig str, hex format, can not longer than 65K in binary "
+            "bytes\n"
+            "2.\"addr\": (string, required) A json array of WICC addresses\n"
+            "     [\n"
+            "       \"address\"  (string) WICC address\n"
+            "       ...,\n"
+            "     ]\n"
+            "\nExamples:\n" +
+            HelpExampleCli("signtxraw",
+                           "\"0701ed7f0300030000010000020002000bcd10858c200200\" "
+                           "\"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\", "
+                           "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\"") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("signtxraw",
+                           "\"0701ed7f0300030000010000020002000bcd10858c200200\", "
+                           "\"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\", "
+                           "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\""));
     }
 
     vector<unsigned char> vch(ParseHex(params[0].get_str()));
@@ -2546,23 +2560,36 @@ Value signtxraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "The sig str is too long");
     }
 
-    string addr = params[1].get_str();
-    CKeyID keyId;
-    if (!GetKeyId(params[1].get_str(), keyId))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address invalid");
-
     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
     std::shared_ptr<CBaseTx> pBaseTx;
     stream >> pBaseTx;
-    if (!pBaseTx.get())
+    if (!pBaseTx.get()) {
         return Value::null;
+    }
+
+    const Array& addresses = params[1].get_array();
+    if (pBaseTx.get()->nTxType != MULTISIG_TX && addresses.size() != 1) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "To many addresses provided");
+    }
+
+    std::set<CKeyID> keyIds;
+    CKeyID keyId;
+    for (unsigned int i = 0; i < addresses.size(); i++) {
+        if (!GetKeyId(addresses[i].get_str(), keyId)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyId");
+        }
+        keyIds.insert(keyId);
+    }
+
+    if (keyIds.empty()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No valid address provided");
+    }
 
     Object obj;
     switch (pBaseTx.get()->nTxType) {
         case COMMON_TX: {
-            std::shared_ptr<CCommonTx> tx =
-                std::make_shared<CCommonTx>(pBaseTx.get());
-            if (!pwalletMain->Sign(keyId, tx.get()->SignatureHash(), tx.get()->signature))
+            std::shared_ptr<CCommonTx> tx = std::make_shared<CCommonTx>(pBaseTx.get());
+            if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature))
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
 
             CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -2572,10 +2599,11 @@ Value signtxraw(const Array& params, bool fHelp) {
 
             break;
         }
+
         case REG_ACCT_TX: {
             std::shared_ptr<CRegisterAccountTx> tx =
                 std::make_shared<CRegisterAccountTx>(pBaseTx.get());
-            if (!pwalletMain->Sign(keyId, tx.get()->SignatureHash(), tx.get()->signature))
+            if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature))
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
 
             CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -2585,10 +2613,10 @@ Value signtxraw(const Array& params, bool fHelp) {
 
             break;
         }
+
         case CONTRACT_TX: {
-            std::shared_ptr<CContractTx> tx =
-                std::make_shared<CContractTx>(pBaseTx.get());
-            if (!pwalletMain->Sign(keyId, tx.get()->SignatureHash(), tx.get()->signature)) {
+            std::shared_ptr<CContractTx> tx = std::make_shared<CContractTx>(pBaseTx.get());
+            if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
             }
             CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -2598,12 +2626,15 @@ Value signtxraw(const Array& params, bool fHelp) {
 
             break;
         }
-        case REWARD_TX:
-            break;
+
+        case REWARD_TX: {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Reward transation is forbidden");
+        }
+
         case REG_CONT_TX: {
             std::shared_ptr<CRegisterContractTx> tx =
                 std::make_shared<CRegisterContractTx>(pBaseTx.get());
-            if (!pwalletMain->Sign(keyId, tx.get()->SignatureHash(), tx.get()->signature)) {
+            if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
             }
             CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -2613,10 +2644,10 @@ Value signtxraw(const Array& params, bool fHelp) {
 
             break;
         }
+
         case DELEGATE_TX: {
-            std::shared_ptr<CDelegateTx> tx =
-                std::make_shared<CDelegateTx>(pBaseTx.get());
-            if (!pwalletMain->Sign(keyId, tx.get()->SignatureHash(), tx.get()->signature)) {
+            std::shared_ptr<CDelegateTx> tx = std::make_shared<CDelegateTx>(pBaseTx.get());
+            if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
             }
             CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -2626,21 +2657,22 @@ Value signtxraw(const Array& params, bool fHelp) {
 
             break;
         }
+
         case MULTISIG_TX: {
-            std::shared_ptr<CMulsigTx> tx =
-                std::make_shared<CMulsigTx>(pBaseTx.get());
+            std::shared_ptr<CMulsigTx> tx = std::make_shared<CMulsigTx>(pBaseTx.get());
 
-            vector<CSignaturePair> &signaturePairs = tx.get()->signaturePairs;
-            CRegID regId;
-            if (!pAccountViewTip->GetRegId(CUserID(keyId), regId)) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to find regid");
-            }
+            vector<CSignaturePair>& signaturePairs = tx.get()->signaturePairs;
+            for (const auto& keyIdItem : keyIds) {
+                CRegID regId;
+                if (!pAccountViewTip->GetRegId(CUserID(keyIdItem), regId)) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Address is unregistered");
+                }
 
-            do {
                 bool valid = false;
-                for (auto& item : signaturePairs) {
-                    if (regId == item.regId) {
-                        if (!pwalletMain->Sign(keyId, tx.get()->SignatureHash(), item.signature)) {
+                for (auto& signatureItem : signaturePairs) {
+                    if (regId == signatureItem.regId) {
+                        if (!pwalletMain->Sign(keyId, tx.get()->SignatureHash(),
+                                               signatureItem.signature)) {
                             throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
                         } else {
                             valid = true;
@@ -2649,19 +2681,21 @@ Value signtxraw(const Array& params, bool fHelp) {
                 }
 
                 if (!valid) {
-                    break;
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Provided address is unmatched");
                 }
+            }
 
-                CDataStream ds(SER_DISK, CLIENT_VERSION);
-                std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
-                ds << pBaseTx;
-                obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-            } while (false);
+            CDataStream ds(SER_DISK, CLIENT_VERSION);
+            std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
+            ds << pBaseTx;
+            obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
 
             break;
         }
-        default:
-            break;
+
+        default: {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Unsupported transaction type");
+        }
     }
     return obj;
 }
@@ -2684,13 +2718,14 @@ Value decodetxraw(const Array& params, bool fHelp) {
                            "2af6162d166b1cca6c76631701cbeb5022041959ff75f7c7dd39c1f9f6ef9a237a6ea46"
                            "7d02d2d2c3db62a1addaa8009ccd\""));
     }
-    vector<unsigned char> vch(ParseHex(params[0].get_str()));
-    LogPrint("DEBUG", "data size:%d", vch.size());
     Object obj;
+    vector<unsigned char> vch(ParseHex(params[0].get_str()));
     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
     std::shared_ptr<CBaseTx> pBaseTx;
     stream >> pBaseTx;
-    if (!pBaseTx.get()) return obj;
+    if (!pBaseTx.get()) {
+        return obj;
+    }
 
     CAccountViewCache view(*pAccountViewTip, true);
     switch (pBaseTx.get()->nTxType) {
