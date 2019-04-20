@@ -538,6 +538,12 @@ AC_ARG_WITH([daemon],
   [build_bitcoind=$withval],
   [build_bitcoind=no])
 
+AC_ARG_WITH([coinlua],
+  [AS_HELP_STRING([--with-coinlua],
+  [with coinlua (default is no)])],
+  [build_coinlua=$withval],
+  [build_coinlua=no])
+
 BITCOIN_QT_INIT
 
 if test x$use_pkgconfig = xyes; then
@@ -589,6 +595,10 @@ AC_MSG_RESULT($build_bitcoind)
 AC_MSG_CHECKING([whether to build bitcoin-cli])
 AM_CONDITIONAL([BUILD_BITCOIN_CLI], [test x$build_bitcoin_cli = xyes])
 AC_MSG_RESULT($build_bitcoin_cli)
+
+AC_MSG_CHECKING([whether to build coinlua])
+AM_CONDITIONAL([BUILD_COINLUA], [test x$build_coinlua = xyes])
+AC_MSG_RESULT($build_coinlua)
 
 dnl sets $bitcoin_enable_qt, $bitcoin_enable_qt_test, $bitcoin_enable_qt_dbus
 BITCOIN_QT_CONFIGURE([$use_pkgconfig], [qt4])
