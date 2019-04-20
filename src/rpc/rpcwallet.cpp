@@ -156,7 +156,7 @@ Value addmulsigaddr(const Array& params, bool fHelp) {
         pubKeys.insert(pubKey);
     }
 
-    CScript script;
+    CMulsigScript script;
     script.SetMultisig(nRequired, pubKeys);
     CKeyID scriptId = script.GetID();
     pwalletMain->AddCScript(script);
@@ -230,7 +230,7 @@ Value createmulsig(const Array& params, bool fHelp) {
         pubKeys.insert(pubKey);
     }
 
-    CScript script;
+    CMulsigScript script;
     script.SetMultisig(nRequired, pubKeys);
     CKeyID scriptId = script.GetID();
 
@@ -643,10 +643,10 @@ Value genmulsigtx(const Array& params, bool fHelp) {
         height = params[4].get_int();
     }
 
-    CDataStream scriptDS(multiScript, SER_DISK, CLIENT_VERSION);
-    CScript script;
+    CDataStream scriptDataStream(multiScript, SER_DISK, CLIENT_VERSION);
+    CMulsigScript script;
     try {
-        scriptDS >> script;
+        scriptDataStream >> script;
     } catch (std::exception& e) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid script content");
     }

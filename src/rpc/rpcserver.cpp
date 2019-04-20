@@ -327,6 +327,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getsignature",           &getsignature,           true,      false,      true },
     { "listdelegates",          &listdelegates,          true,      false,      true },
     { "decodetxraw",            &decodetxraw,            false,     false,      false},
+    { "decodemulsigscript",     &decodemulsigscript,     false,     false,      false },
 
     /* for test code */
     { "gettxoperationlog",      &gettxoperationlog,      false,     false,      false},
