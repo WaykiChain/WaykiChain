@@ -1448,11 +1448,23 @@ Object CMultisigTx::ToJson(const CAccountViewCache &AccountView) const {
     result.push_back(Pair("ver", nVersion));
     result.push_back(Pair("required_sigs", required));
     Array signatureArray;
+    CAccount account;
+    std::set<CPubKey> pubKeys;
     for (const auto &item : signaturePairs) {
         signatureArray.push_back(item.ToJson());
+        if (!view.GetAccount(item.regId, account)) {
+            LogPrint("ERROR", "CMultisigTx::ToJson, failed to get account info: %s\n",
+                     item.regId.ToString());
+            continue;
+        }
+        pubKeys.insert(account.pubKey);
     }
+    CScript script;
+    script.SetMultisig(required, pubKeys);
+    CKeyID scriptId = script.GetID();
+
+    result.push_back(Pair("addr", scriptId.ToAddress()));
     result.push_back(Pair("signatures", signatureArray));
-    // TODO: generate multisig address and add it in.
     result.push_back(Pair("dest_regid", GetRegIdString(desUserId)));
     result.push_back(Pair("dest_addr", desKeyId.ToAddress()));
     result.push_back(Pair("money", bcoinBalance));
