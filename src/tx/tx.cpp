@@ -1542,8 +1542,10 @@ bool CMulsigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
     }
 
     if (valid < required) {
-        return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, not enough valid signatures"),
-                         REJECT_INVALID, "not-enough-valid-signatures");
+        return state.DoS(
+            100,
+            ERRORMSG("CMulsigTx::CheckTx, not enough valid signatures, %u vs %u", valid, required),
+            REJECT_INVALID, "not-enough-valid-signatures");
     }
 
     CScript script;
