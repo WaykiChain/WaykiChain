@@ -2667,7 +2667,7 @@ Value signtxraw(const Array& params, bool fHelp) {
                 bool valid = false;
                 for (auto& signatureItem : signaturePairs) {
                     if (regId == signatureItem.regId) {
-                        if (!pwalletMain->Sign(keyId, tx.get()->SignatureHash(),
+                        if (!pwalletMain->Sign(keyIdItem, tx.get()->SignatureHash(),
                                                signatureItem.signature)) {
                             throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
                         } else {
