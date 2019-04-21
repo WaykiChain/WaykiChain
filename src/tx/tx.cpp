@@ -1459,7 +1459,7 @@ Object CMulsigTx::ToJson(const CAccountViewCache &AccountView) const {
         }
         pubKeys.insert(account.pubKey);
     }
-    CScript script;
+    CMulsigScript script;
     script.SetMultisig(required, pubKeys);
     CKeyID scriptId = script.GetID();
 
@@ -1548,7 +1548,7 @@ bool CMulsigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
             REJECT_INVALID, "not-enough-valid-signatures");
     }
 
-    CScript script;
+    CMulsigScript script;
     script.SetMultisig(required, pubKeys);
     keyId = script.GetID();
 

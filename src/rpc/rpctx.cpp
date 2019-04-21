@@ -275,7 +275,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             break;
         }
-        case MULSIG_TX: {
+        case COMMON_MULSIG_TX: {
             CMulsigTx* ptx = (CMulsigTx*)pBaseTx.get();
 
             CAccount account;
@@ -287,7 +287,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 pubKeys.insert(account.pubKey);
             }
 
-            CScript script;
+            CMulsigScript script;
             script.SetMultisig(ptx->required, pubKeys);
             CKeyID sendKeyId = script.GetID();
 
@@ -299,7 +299,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 recvKeyId       = desRegID.GetKeyID(*pAccountViewTip);
             }
 
-            obj.push_back(Pair("txtype", "MULSIG_TX"));
+            obj.push_back(Pair("txtype", "COMMON_MULSIG_TX"));
             obj.push_back(Pair("memo", HexStr(ptx->memo)));
             obj.push_back(Pair("address", sendKeyId.ToAddress()));
             obj.push_back(Pair("category", "send"));
@@ -307,7 +307,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("amount", -dAmount));
             arrayDetail.push_back(obj);
             Object objRec;
-            objRec.push_back(Pair("txtype", "MULSIG_TX"));
+            objRec.push_back(Pair("txtype", "COMMON_MULSIG_TX"));
             objRec.push_back(Pair("memo", HexStr(ptx->memo)));
             objRec.push_back(Pair("address", recvKeyId.ToAddress()));
             objRec.push_back(Pair("category", "receive"));
@@ -1255,7 +1255,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                     }
                 }
             }
-            // TODO: MULSIG_TX
+            // TODO: COMMON_MULSIG_TX
         }
     }
     return arrayData;
@@ -2564,7 +2564,7 @@ Value signtxraw(const Array& params, bool fHelp) {
     }
 
     const Array& addresses = params[1].get_array();
-    if (pBaseTx.get()->nTxType != MULSIG_TX && addresses.size() != 1) {
+    if (pBaseTx.get()->nTxType != COMMON_MULSIG_TX && addresses.size() != 1) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "To many addresses provided");
     }
 
@@ -2654,7 +2654,7 @@ Value signtxraw(const Array& params, bool fHelp) {
             break;
         }
 
-        case MULSIG_TX: {
+        case COMMON_MULSIG_TX: {
             std::shared_ptr<CMulsigTx> tx = std::make_shared<CMulsigTx>(pBaseTx.get());
 
             vector<CSignaturePair>& signaturePairs = tx.get()->signaturePairs;
@@ -2693,6 +2693,60 @@ Value signtxraw(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Unsupported transaction type");
         }
     }
+    return obj;
+}
+
+Value decodemulsigscript(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "decodemulsigscript \"hex\"\n"
+            "\nDecode a hex-encoded script.\n"
+            "\nArguments:\n"
+            "1. \"hex\"     (string) the hex encoded mulsig script\n"
+            "\nResult:\n"
+            "{\n"
+            "  \"type\":\"type\", (string) The transaction type\n"
+            "  \"reqSigs\": n,    (numeric) The required signatures\n"
+            "  \"addr\",\"address\" (string) mulsig script address\n"
+            "  \"addresses\": [   (json array of string)\n"
+            "     \"address\"     (string) bitcoin address\n"
+            "     ,...\n"
+            "  ]\n"
+            "}\n"
+            "\nExamples:\n" +
+            HelpExampleCli("decodemulsigscript", "\"hexstring\"") +
+            HelpExampleRpc("decodemulsigscript", "\"hexstring\""));
+
+    RPCTypeCheck(params, list_of(str_type));
+
+    vector<unsigned char> multiScript = ParseHex(params[0].get_str());
+    if (multiScript.empty() || multiScript.size() > KMultisigScriptMaxSize) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid script size");
+    }
+
+    CDataStream ds(multiScript, SER_DISK, CLIENT_VERSION);
+    CMulsigScript script;
+    try {
+        ds >> script;
+    } catch (std::exception& e) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid script content");
+    }
+
+    CKeyID scriptId           = script.GetID();
+    int8_t required           = (int8_t)script.GetRequired();
+    std::set<CPubKey> pubKeys = script.GetPubKeys();
+
+    Array addressArray;
+    for (const auto& pubKey : pubKeys) {
+        addressArray.push_back(pubKey.GetKeyID().ToAddress());
+    }
+
+    Object obj;
+    obj.push_back(Pair("type", "mulsig"));
+    obj.push_back(Pair("req_sigs", required));
+    obj.push_back(Pair("addr", scriptId.ToAddress()));
+    obj.push_back(Pair("addresses", addressArray));
+
     return obj;
 }
 
@@ -2770,7 +2824,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             }
             break;
         }
-        case MULSIG_TX: {
+        case COMMON_MULSIG_TX: {
             std::shared_ptr<CMulsigTx> tx = std::make_shared<CMulsigTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
@@ -2799,7 +2853,7 @@ Value getalltxinfo(const Array& params, bool fHelp) {
     if(params.size() == 1)
         nLimitCount = params[0].get_int();
     assert(pwalletMain != NULL);
-    if(nLimitCount <=0 ) {
+    if (nLimitCount <= 0) {
         Array confirmedTx;
         for (auto const &wtx : pwalletMain->mapInBlockTx) {
             for (auto const & item : wtx.second.mapAccountTx) {

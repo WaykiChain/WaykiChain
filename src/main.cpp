@@ -3337,7 +3337,7 @@ void static ProcessGetData(CNode *pfrom) {
                             ss << *((CRegisterContractTx *)pBaseTx.get());
                         } else if (DELEGATE_TX == pBaseTx->nTxType) {
                             ss << *((CDelegateTx *)pBaseTx.get());
-                        } else if (MULSIG_TX == pBaseTx->nTxType) {
+                        } else if (COMMON_MULSIG_TX == pBaseTx->nTxType) {
                             ss << *((CMulsigTx *)pBaseTx.get());
                         }
                         pfrom->PushMessage("tx", ss);
@@ -4367,7 +4367,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
             return std::make_shared<CRegisterContractTx>();
         case DELEGATE_TX:
             return std::make_shared<CDelegateTx>();
-        case MULSIG_TX:
+        case COMMON_MULSIG_TX:
             return std::make_shared<CMulsigTx>();
         default:
             ERRORMSG("CreateNewEmptyTransaction type error");

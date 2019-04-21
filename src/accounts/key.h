@@ -382,13 +382,13 @@ struct CExtKey {
     void SetMaster(const unsigned char *seed, unsigned int nSeedLen);
 };
 
-class CScript {
+class CMulsigScript {
 private:
     int nRequired;
     mutable std::set<CPubKey> pubKeys;
 
 public:
-    CScript() {}
+    CMulsigScript() {}
 
     void SetMultisig(const int nRequiredIn, const std::set<CPubKey> &pubKeysIn) {
         nRequired = nRequiredIn;
