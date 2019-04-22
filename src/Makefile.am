@@ -193,6 +193,8 @@ liblua53_a_SOURCES = \
 libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libcoin_server_a_SOURCES = \
   accounts/accounts.cpp \
+  accounts/id.cpp \
+  accounts/cdp.cpp \
   addrman.cpp \
   alert.cpp \
   commons/bloom.cpp \
