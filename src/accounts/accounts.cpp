@@ -281,21 +281,19 @@ uint64_t CAccount::GetRawBalance() {
     return bcoinBalance;
 }
 
-uint64_t CAccount::GetTotalBalance() {
-    if (!vVoteFunds.empty())
-        return vVoteFunds.begin()->GetVoteCount() + bcoinBalance;
-
-    return bcoinBalance;
-}
-
 uint64_t CAccount::GetFrozenBalance() {
     uint64_t votes = 0;
-    for (auto it = vVoteFunds.begin(); it != vVoteFunds.end(); it++) {
-      if (it->GetVoteCount() > votes) {
-          votes = it->GetVoteCount();
-      }
+    if (!vVoteFunds.empty()) {
+        for (auto it = vVoteFunds.begin(); it != vVoteFunds.end(); it++) {
+            votes += it->GetVoteCount(); //one coin one vote!
+        }
     }
     return votes;
+}
+
+uint64_t CAccount::GetTotalBalance() {
+    uint64_t frozenVotes = GetFrozenBalance();
+    return ( frozenVotes + bcoinBalance );
 }
 
 Object CAccount::ToJsonObj(bool isAddress) const {
