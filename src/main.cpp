@@ -1471,11 +1471,13 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
     }
     // LogPrint("INFO", "miner address=%s\n", minerAcct.keyID.ToAddress());
     //校验reward
+
     uint64_t llValidReward = block.GetFee() - block.GetFuel();
-    if (pRewardTx->rewardValue != llValidReward)
+    if (pRewardTx->rewardValue != llValidReward) {
         LogPrint("INFO", "block fee:%lld, block fuel:%lld\n", block.GetFee(), block.GetFuel());
         return state.DoS(100, ERRORMSG("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
                         pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-cb-amount");
+    }
 
     //deal reward tx
     LogPrint("op_account", "tx index:%d tx hash:%s\n", 0, block.vptx[0]->GetHash().GetHex());
