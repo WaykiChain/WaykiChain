@@ -60,8 +60,7 @@ CUserID CID::GetUserId() const {
     return CNullID();
 }
 
-bool CRegID::Clean()
-{
+bool CRegID::Clean() {
     nHeight = 0 ;
     nIndex = 0 ;
     vRegID.clear();
@@ -108,8 +107,7 @@ bool CRegID::IsSimpleRegIdStr(const string & str)
     return false;
 }
 
-bool CRegID::GetKeyId(const string & str,CKeyID &keyId)
-{
+bool CRegID::GetKeyId(const string & str,CKeyID &keyId) {
     CRegID regId(str);
     if (regId.IsEmpty())
         return false;
@@ -118,10 +116,8 @@ bool CRegID::GetKeyId(const string & str,CKeyID &keyId)
     return !keyId.IsEmpty();
 }
 
-bool CRegID::IsRegIdStr(const string & str)
-{
-    bool ret = IsSimpleRegIdStr(str) || (str.length() == 12);
-    return ret;
+bool CRegID::IsRegIdStr(const string & str) {
+    return ( IsSimpleRegIdStr(str) || (str.length() == 12) )
 }
 
 void CRegID::SetRegID(string strRegID)
@@ -190,25 +186,6 @@ void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn)
     } else {
         Clean();
     }
-}
-
-string COperVoteFund::ToString() const {
-    string str = strprintf("operVoteType=%s %s", voteOperTypeArray[operType], fund.ToString());
-    return str;
-}
-
-Object COperVoteFund::ToJson() const {
-    Object obj;
-    string sOperType;
-    if (operType >= 3) {
-        sOperType = "INVALID_OPER_TYPE";
-        LogPrint("ERROR", "Delegate Vote Tx contains invalid operType: %d", operType);
-    } else {
-        sOperType = voteOperTypeArray[operType];
-    }
-    obj.push_back(Pair("operType", sOperType));
-    obj.push_back(Pair("voteFund", fund.ToJson()));
-    return obj;
 }
 
 string CAccountLog::ToString() const {
