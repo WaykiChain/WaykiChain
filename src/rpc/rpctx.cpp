@@ -2738,7 +2738,7 @@ Value decodemulsigscript(const Array& params, bool fHelp) {
 
     Array addressArray;
     for (const auto& pubKey : pubKeys) {
-        addressArray.push_back(pubKey.GetKeyID().ToAddress());
+        addressArray.push_back(pubKey.GetKeyId().ToAddress());
     }
 
     Object obj;
