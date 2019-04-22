@@ -294,9 +294,20 @@ public:
 };
 
 class CCdp {
+private:
+    uint64_t bcoinAmount; //collatorized basecoin amount
+    uint64_t scoinAmount; //minted stablecoin amount
+
 public:
-    uint64_t collateralBCoinAmount;
-    uint64_t mintedSCoinAmount;
+    CCdp() {}
+    CCdp(uint64_t bcoinAmountIn, uint64_t scoinAmountIn): bcoinAmount(bcoinAmountIn), scoinAmount(scoinAmountIn) {}
+
+    GetBcoindAmount() { return bcoinAmount; }
+    GetScoinAmount() { return scoinAmount; }
+    
+    IMPLEMENT_SERIALIZE(
+        READWRITE(bcoinAmount);
+        READWRITE(scoinAmount);)
 };
 
 class CAccountNickID  {
