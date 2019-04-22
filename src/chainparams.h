@@ -68,11 +68,11 @@ protected:
     mutable bool fTxIndex;
     mutable int64_t nTimeBestReceived;
     mutable int64_t paytxfee;
+    uint16_t nMaxForkHeight = 24 * 60 * 6; //8640, i.e. forked distance by a day block height
     int64_t nBlockInterval;   //to limit block creation time
     mutable unsigned int nScriptCheckThreads;
     mutable int64_t nViewCacheSize;
     mutable int nTxCacheHeight;
-    mutable int nMaxForkHeight; // to limit
     int nLogMaxSize; // to limit the maximum log file size in bytes
     bool bOutPut;    // whether to save contract script operation account log
     bool bAddressToTx; // whether to save the mapping of address to Tx
@@ -102,7 +102,6 @@ public:
             paytxfee = nTransactionFee;
         }
 
-        // nMaxForkHeight = GetArg("-maxforkheight", 8640);
         nLogMaxSize = GetArg("-logmaxsize", 100) * 1024 * 1024;
         bOutPut = GetBoolArg("-output", false);
         bAddressToTx = GetBoolArg("-addresstotx", false);

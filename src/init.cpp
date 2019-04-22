@@ -905,9 +905,9 @@ bool AppInit(boost::thread_group &threadGroup) {
         for (map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.begin(); mi != mapBlockIndex.end(); ++mi) {
             uint256 hash = (*mi).first;
             if (strncmp(hash.ToString().c_str(), strMatch.c_str(), strMatch.size()) == 0) {
-                CBlockIndex *pindex = (*mi).second;
+                CBlockIndex *pIndex = (*mi).second;
                 CBlock block;
-                ReadBlockFromDisk(block, pindex);
+                ReadBlockFromDisk(block, pIndex);
                 block.BuildMerkleTree();
                 block.Print(*pAccountViewTip);
                 LogPrint("INFO", "\n");

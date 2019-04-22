@@ -344,9 +344,9 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 			CBlock block;
 			{
 				LOCK(cs_main);
-				CBlockIndex *pindex = chainActive.Tip();
-				llFuelValue += pindex->nFuel;
-				BOOST_CHECK(ReadBlockFromDisk(block, pindex));
+				CBlockIndex *pIndex = chainActive.Tip();
+				llFuelValue += pIndex->nFuel;
+				BOOST_CHECK(ReadBlockFromDisk(block, pIndex));
 			}
 
 			for(auto &item : block.vptx) {

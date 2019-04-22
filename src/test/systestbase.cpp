@@ -677,7 +677,7 @@ uint64_t SysTestBase::GetRandomBetfee() {
 	}
 
 bool SysTestBase::GetKeyId(string const &addr,CKeyID &KeyId) {
-	if (!CRegID::GetKeyID(addr, KeyId)) {
+	if (!CRegID::GetKeyId(addr, KeyId)) {
 		KeyId=CKeyID(addr);
 		if (KeyId.IsEmpty())
 		return false;
@@ -711,9 +711,9 @@ bool SysTestBase::GetRegID(string& strAddr,string& regID){
 }
 
 bool SysTestBase::IsTxInTipBlock(const uint256& txHash) {
-		CBlockIndex* pindex = chainActive.Tip();
+		CBlockIndex* pIndex = chainActive.Tip();
 		CBlock block;
-		if (!ReadBlockFromDisk(block, pindex))
+		if (!ReadBlockFromDisk(block, pIndex))
 			return false;
 
 		block.BuildMerkleTree();

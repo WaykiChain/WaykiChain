@@ -14,9 +14,9 @@
 
 #include "accounts/accounts.h"
 #include "commons/uint256.h"
+#include "commons/serialize.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
-#include "commons/serialize.h"
 
 using namespace std;
 
@@ -69,7 +69,7 @@ enum TxType: unsigned char {
     DEX_WUSD_FOR_MICC_TX    = 56, //!< DEX: owner sells WUSD for MICC Tx
     /******** End of Stable Coin Enums ********/
 
-    NULL_TX = 0//!< NULL_TX
+    NULL_TX = 0 //!< NULL_TX
 };
 
 static const unordered_map<unsigned char, string> kTxTypeMap = {

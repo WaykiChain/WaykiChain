@@ -270,7 +270,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
         vector_unsigned_char accountId = GetAccountID(it);
         if (accountId.size() == 6) {
             CRegID regId(accountId);
-            if (regId.IsEmpty() || regId.GetKeyID(*pAccountViewCache) == uint160()) return false;
+            if (regId.IsEmpty() || regId.GetKeyId(*pAccountViewCache) == uint160()) return false;
 
             //  app only be allowed minus self money
             if (!pScriptDBViewCache->HaveScript(regId) && it.opType == MINUS_FREE) return false;

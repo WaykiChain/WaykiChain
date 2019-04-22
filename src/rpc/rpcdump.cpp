@@ -145,7 +145,7 @@ Value importprivkey(const Array& params, bool fHelp)
             throw JSONRPCError(RPC_WALLET_ERROR, "Error adding key to wallet");
     }
     Object reply2;
-    reply2.push_back(Pair("imported_key_address", pubkey.GetKeyID().ToAddress()));
+    reply2.push_back(Pair("imported_key_address", pubkey.GetKeyId().ToAddress()));
     return reply2;
 }
 
@@ -233,7 +233,7 @@ Value dumpprivkey(const Array& params, bool fHelp)
     if (!address.SetString(strAddress))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Coin address");
     CKeyID keyID;
-    if (!address.GetKeyID(keyID))
+    if (!address.GetKeyId(keyID))
         throw JSONRPCError(RPC_TYPE_ERROR, "The address is not associated with any private key");
     CKey vchSecret;
     if (!pwalletMain->GetKey(keyID, vchSecret))

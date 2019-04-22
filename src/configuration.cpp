@@ -106,31 +106,31 @@ namespace Checkpoints
     }
 
     // Guess how far we are in the verification process at the given block index
-    double GuessVerificationProgress(CBlockIndex *pindex, bool fSigchecks)
+    double GuessVerificationProgress(CBlockIndex *pIndex, bool fSigchecks)
     {
-        if (pindex==NULL)
+        if (pIndex==NULL)
             return 0.0;
 
         int64_t nNow = time(NULL);
 
         double fSigcheckVerificationFactor = fSigchecks ? SIGCHECK_VERIFICATION_FACTOR : 1.0;
-        double fWorkBefore = 0.0; // Amount of work done before pindex
-        double fWorkAfter = 0.0;  // Amount of work left after pindex (estimated)
+        double fWorkBefore = 0.0; // Amount of work done before pIndex
+        double fWorkAfter = 0.0;  // Amount of work left after pIndex (estimated)
         // Work is defined as: 1.0 per transaction before the last checkpoint, and
         // fSigcheckVerificationFactor per transaction after.
 
         const CCheckpointData &data = Checkpoints();
 
-        if (pindex->nChainTx <= data.nTransactionsLastCheckpoint) {
-            double nCheapBefore = pindex->nChainTx;
-            double nCheapAfter = data.nTransactionsLastCheckpoint - pindex->nChainTx;
+        if (pIndex->nChainTx <= data.nTransactionsLastCheckpoint) {
+            double nCheapBefore = pIndex->nChainTx;
+            double nCheapAfter = data.nTransactionsLastCheckpoint - pIndex->nChainTx;
             double nExpensiveAfter = (nNow - data.nTimeLastCheckpoint)/86400.0*data.fTransactionsPerDay;
             fWorkBefore = nCheapBefore;
             fWorkAfter = nCheapAfter + nExpensiveAfter*fSigcheckVerificationFactor;
         } else {
             double nCheapBefore = data.nTransactionsLastCheckpoint;
-            double nExpensiveBefore = pindex->nChainTx - data.nTransactionsLastCheckpoint;
-            double nExpensiveAfter = (nNow - pindex->nTime)/86400.0*data.fTransactionsPerDay;
+            double nExpensiveBefore = pIndex->nChainTx - data.nTransactionsLastCheckpoint;
+            double nExpensiveAfter = (nNow - pIndex->nTime)/86400.0*data.fTransactionsPerDay;
             fWorkBefore = nCheapBefore + nExpensiveBefore*fSigcheckVerificationFactor;
             fWorkAfter = nExpensiveAfter*fSigcheckVerificationFactor;
         }

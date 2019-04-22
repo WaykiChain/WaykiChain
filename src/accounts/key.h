@@ -10,11 +10,11 @@
 #include <boost/variant.hpp>
 #include <stdexcept>
 #include <vector>
-#include "commons/allocators.h"
+#include "../commons/serialize.h"
+#include "../commons/uint256.h"
+#include "../commons/allocators.h"
 #include "chainparams.h"
 #include "crypto/hash.h"
-#include "commons/serialize.h"
-#include "commons/uint256.h"
 #include "util.h"
 
 #include <secp256k1.h>
@@ -180,7 +180,7 @@ public:
     }
 
     // Get the KeyID of this public key (hash of its serialization)
-    CKeyID GetKeyID() const;
+    CKeyID GetKeyId() const;
 
     // Get the 256-bit hash of this public key.
     uint256 GetHash() const;

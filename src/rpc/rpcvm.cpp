@@ -35,7 +35,7 @@ static bool FindKeyId(CAccountViewCache *pAccountView, string const &addr, CKeyI
     // first, try to parse regId
     CRegID regId(addr);
     if (!regId.IsEmpty()) {
-         keyId = regId.GetKeyID(*pAccountView);
+         keyId = regId.GetKeyId(*pAccountView);
          if (!keyId.IsEmpty()) {
              return true;
          }

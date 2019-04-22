@@ -131,7 +131,7 @@ static bool GetKeyId(const CAccountViewCache &view, vector<unsigned char> &ret,
         CKeyID &KeyId) {
     if (ret.size() == 6) {
         CRegID reg(ret);
-        KeyId = reg.GetKeyID(view);
+        KeyId = reg.GetKeyId(view);
     } else if (ret.size() == 34) {
         string addr(ret.begin(), ret.end());
         KeyId = CKeyID(addr);
@@ -1101,8 +1101,8 @@ static int ExGetBlockHashFunc(lua_State *L) {
     if(chainActive.Height() < height){           //获取比当前高度高的数据是不可以的
         return RetFalse("ExGetBlockHashFunc para err3");
     }
-    CBlockIndex *pindex = chainActive[height];
-    uint256 blockHash = pindex->GetBlockHash();
+    CBlockIndex *pIndex = chainActive[height];
+    uint256 blockHash = pIndex->GetBlockHash();
 
 //  LogPrint("vm","ExGetBlockHashFunc:%s",HexStr(blockHash).c_str());
     CDataStream tep(SER_DISK, CLIENT_VERSION);
@@ -1877,7 +1877,7 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
     int64_t step =-1;
     while (count--) {
         ss >> temp;
-        if(pVmRunEnv->GetComfirmHeight() > kFreezeBlackAcctHeight && temp.mMoney < 0) //不能小于0,防止 上层传错金额小于20150904
+        if (temp.mMoney < 0) // in case contract uses negative money input
             return RetFalse("ExWriteOutAppOperateFunc para err2");
 
         pVmRunEnv->InsertOutAPPOperte(temp.GetAppUserV(),temp);
@@ -1939,7 +1939,7 @@ static int ExTransferContractAsset(lua_State *L)
     CRegID script = pVmRunEnv->GetScriptRegID();
 
     CRegID sendRegID =pVmRunEnv->GetTxAccount();
-    CKeyID SendKeyID = sendRegID.GetKeyID(*pVmRunEnv->GetCatchView());
+    CKeyID SendKeyID = sendRegID.GetKeyId(*pVmRunEnv->GetCatchView());
     string addr = SendKeyID.ToAddress();
     sendkey.assign(addr.c_str(),addr.c_str()+addr.length());
 
@@ -2044,7 +2044,7 @@ static int ExTransferSomeAsset(lua_State *L) {
     CRegID script = pVmRunEnv->GetScriptRegID();
 
     CRegID sendRegID = pVmRunEnv->GetTxAccount();
-    CKeyID SendKeyID = sendRegID.GetKeyID(*pVmRunEnv->GetCatchView());
+    CKeyID SendKeyID = sendRegID.GetKeyId(*pVmRunEnv->GetCatchView());
     string addr = SendKeyID.ToAddress();
     sendkey.assign(addr.c_str(), addr.c_str() + addr.length());
 
@@ -2116,12 +2116,12 @@ static int ExGetBlockTimestamp(lua_State *L)
             return RetFalse("ExGetBlcokTimestamp para err2");
     }
 
-    CBlockIndex *pindex = chainActive[height];
-    if (!pindex)
+    CBlockIndex *pIndex = chainActive[height];
+    if (!pIndex)
         return RetFalse("ExGetBlcokTimestamp get time stamp error");
 
     if (lua_checkstack(L, sizeof(lua_Integer))) {
-        lua_pushinteger(L, (lua_Integer) pindex->nTime);
+        lua_pushinteger(L, (lua_Integer) pIndex->nTime);
         return 1;
     }
 

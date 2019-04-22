@@ -97,11 +97,6 @@ static const unsigned char UPDATE_ACCOUNT_FAIL = 0X53;
 static const unsigned char READ_SCRIPT_FAIL  = 0X61;
 static const unsigned char WRITE_SCRIPT_FAIL = 0X62;
 
-// hardcode to avoid fork for mainnet only
-static const int kCheckDelegateTxSignatureForkHeight  = 2116535;    //fork height at which delegate tx signature check effects
-static const int kCheckTxFeeForkHeight                = 2800000;    //fork height at which every tx fees limited check effects
-static const int kFreezeBlackAcctHeight               = 99854;
-
 static const uint64_t kMinDiskSpace              = 52428800;  // Minimum disk space required
 static const int kContractScriptMaxSize          = 65536;     // 64 KB max for contract script size
 static const int kContractArgumentMaxSize        = 4096;      // 4 KB max for contract argument size
@@ -217,10 +212,10 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
                         bool fLimitFree, bool fRejectInsaneFee = false);
 
 /** Mark a block as invalid. */
-bool InvalidateBlock(CValidationState &state, CBlockIndex *pindex);
+bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex);
 
 /** Remove invalidity status from a block and its descendants. */
-bool ReconsiderBlock(CValidationState &state, CBlockIndex *pindex);
+bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex);
 
 std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType);
 
@@ -514,7 +509,7 @@ class CPartialMerkleTree {
 /** Functions for disk access for blocks */
 bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos);
 bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos);
-bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex);
+bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pIndex);
 
 /** Functions for validating blocks and updating the block tree */
 
@@ -522,11 +517,11 @@ bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex);
  *  In case pfClean is provided, operation will try to be tolerant about errors, and *pfClean
  *  will be true if no problems were found. Otherwise, the return value will be false in case
  *  of problems. Note that in any case, coins may be modified. */
-bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pindex,
+bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pIndex,
                     CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache, bool *pfClean = NULL);
 
 // Apply the effects of this block (with given index) on the UTXO set represented by coins
-bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pindex, CTransactionDBCache &txCache,
+bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pIndex, CTransactionDBCache &txCache,
                 CScriptDBViewCache &scriptCache, bool fJustCheck = false);
 
 // Add this block to the block index, and if necessary, switch the active block chain to this
@@ -791,9 +786,9 @@ class CBlockIndex {
         int64_t *pbegin = &pmedian[nMedianTimeSpan];
         int64_t *pend   = &pmedian[nMedianTimeSpan];
 
-        const CBlockIndex *pindex = this;
-        for (int i = 0; i < nMedianTimeSpan && pindex; i++, pindex = pindex->pprev)
-            *(--pbegin) = pindex->GetBlockTime();
+        const CBlockIndex *pIndex = this;
+        for (int i = 0; i < nMedianTimeSpan && pIndex; i++, pIndex = pIndex->pprev)
+            *(--pbegin) = pIndex->GetBlockTime();
 
         sort(pbegin, pend);
         return pbegin[(pend - pbegin) / 2];
@@ -832,7 +827,7 @@ class CDiskBlockIndex : public CBlockIndex {
 
     CDiskBlockIndex() : hashPrev(uint256()) {}
 
-    explicit CDiskBlockIndex(CBlockIndex *pindex) : CBlockIndex(*pindex) {
+    explicit CDiskBlockIndex(CBlockIndex *pIndex) : CBlockIndex(*pIndex) {
         hashPrev = (pprev ? pprev->GetBlockHash() : uint256());
     }
 
@@ -986,14 +981,14 @@ class CChain {
     }
 
     /** Efficiently check whether a block is present in this chain. */
-    bool Contains(const CBlockIndex *pindex) const {
-        return (*this)[pindex->nHeight] == pindex;
+    bool Contains(const CBlockIndex *pIndex) const {
+        return (*this)[pIndex->nHeight] == pIndex;
     }
 
     /** Find the successor of a block in this chain, or NULL if the given index is not found or is the tip. */
-    CBlockIndex *Next(const CBlockIndex *pindex) const {
-        if (Contains(pindex))
-            return (*this)[pindex->nHeight + 1];
+    CBlockIndex *Next(const CBlockIndex *pIndex) const {
+        if (Contains(pIndex))
+            return (*this)[pIndex->nHeight + 1];
         else
             return NULL;
     }
@@ -1004,10 +999,10 @@ class CChain {
     }
 
     /** Set/initialize a chain with a given tip. Returns the forking point. */
-    CBlockIndex *SetTip(CBlockIndex *pindex);
+    CBlockIndex *SetTip(CBlockIndex *pIndex);
 
     /** Return a CBlockLocator that refers to a block in this chain (by default the tip). */
-    CBlockLocator GetLocator(const CBlockIndex *pindex = NULL) const;
+    CBlockLocator GetLocator(const CBlockIndex *pIndex = NULL) const;
 
     /** Find the last common block between this chain and a locator. */
     CBlockIndex *FindFork(const CBlockLocator &locator) const;

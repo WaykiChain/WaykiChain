@@ -11,7 +11,7 @@
 #include "coin-config.h"
 #endif
 
-#include "./compat/compat.h"
+#include "compat/compat.h"
 #include "commons/serialize.h"
 #include "commons/tinyformat.h"
 #include "ui_interface.h"

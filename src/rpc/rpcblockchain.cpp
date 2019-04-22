@@ -386,9 +386,9 @@ Value getcontractregid(const Array& params, bool fHelp)
     } else if (-1 == nBlockHeight) {
         throw runtime_error("tx hash unconfirmed");
     }
-    CBlockIndex* pindex = chainActive[nBlockHeight];
+    CBlockIndex* pIndex = chainActive[nBlockHeight];
     CBlock block;
-    if (!ReadBlockFromDisk(block, pindex))
+    if (!ReadBlockFromDisk(block, pIndex))
         return false;
 
     block.BuildMerkleTree();

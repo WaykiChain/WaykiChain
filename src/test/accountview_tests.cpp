@@ -114,7 +114,7 @@ void CAccountViewTest::Init() {
 		CKey key;
 		key.MakeNewKey();
 		CPubKey pubkey = key.GetPubKey();
-		CKeyID keyID = pubkey.GetKeyID();
+		CKeyID keyID = pubkey.GetKeyId();
 		vRandomKeyID.push_back(keyID);
 	}
 

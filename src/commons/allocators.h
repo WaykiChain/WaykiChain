@@ -14,6 +14,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/once.hpp>
 #include <openssl/crypto.h> // for OPENSSL_cleanse()
+
 using namespace std;
 
 /**
@@ -138,7 +139,7 @@ public:
 class LockedPageManager: public LockedPageManagerBase<MemoryPageLocker>
 {
 public:
-    static LockedPageManager& Instance() 
+    static LockedPageManager& Instance()
     {
         boost::call_once(LockedPageManager::CreateInstance, LockedPageManager::init_flag);
         return *LockedPageManager::_instance;

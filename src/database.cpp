@@ -170,11 +170,7 @@ bool CAccountViewCache::GetKeyId(const vector<unsigned char> &accountId, CKeyID 
 
     if (cacheKeyIds.count(accountId)) {
         keyId = cacheKeyIds[accountId];
-        if (keyId != uint160()) {
-            return true;
-        } else {
-            return false;
-        }
+        return (keyId != uint160());
     }
 
     if (pBase->GetKeyId(accountId, keyId)) {
@@ -182,6 +178,7 @@ bool CAccountViewCache::GetKeyId(const vector<unsigned char> &accountId, CKeyID 
         //cacheKeyIds[accountId] = keyId;
         return true;
     }
+
     return false;
 }
 
@@ -198,45 +195,40 @@ bool CAccountViewCache::EraseKeyId(const vector<unsigned char> &accountId) {
     }
     return true;
 }
+
 bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAccount &account) {
-    if (accountId.empty()) {
+    if (accountId.empty())
         return false;
-    }
+
     if (cacheKeyIds.count(accountId)) {
         CKeyID keyId(cacheKeyIds[accountId]);
         if (keyId != uint160()) {
             if (cacheAccounts.count(keyId)) {
                 account = cacheAccounts[keyId];
-                if (account.keyID != uint160()) {  // 判断此帐户是否被删除了
-                    return true;
-                } else {
-                    return false;  //已删除返回false
-                }
-            } else {
-                return pBase->GetAccount(keyId, account);  //缓存map中没有，从上级存取
+                return (account.keyID != uint160()); // return true if the account exists, otherwise return false
             }
-        } else {
+
+            return pBase->GetAccount(keyId, account);  //缓存map中没有，从上级存取
+        } else
             return false;  //accountId已删除说明账户信息也已删除
-        }
+
     } else {
         CKeyID keyId;
         if (pBase->GetKeyId(accountId, keyId)) {
             cacheKeyIds[accountId] = keyId;
+
             if (cacheAccounts.count(keyId) > 0) {
                 account = cacheAccounts[keyId];
-                if (account.keyID != uint160()) {  // 判断此帐户是否被删除了
-                    return true;
-                } else {
-                    return false;  //已删除返回false
-                }
+                return (account.keyID != uint160()); // return true if the account exists, otherwise return false
             }
-            bool ret = pBase->GetAccount(keyId, account);
-            if (ret) {
+
+            if (pBase->GetAccount(keyId, account)) {
                 cacheAccounts[keyId] = account;
                 return true;
             }
         }
     }
+
     return false;
 }
 
@@ -250,37 +242,46 @@ bool CAccountViewCache::GetAccount(const CUserID &userId, CAccount &account) {
     bool ret = false;
     if (userId.type() == typeid(CRegID)) {
         ret = GetAccount(boost::get<CRegID>(userId).GetVec6(), account);
+
     } else if (userId.type() == typeid(CKeyID)) {
         ret = GetAccount(boost::get<CKeyID>(userId), account);
+
     } else if (userId.type() == typeid(CPubKey)) {
-        ret = GetAccount(boost::get<CPubKey>(userId).GetKeyID(), account);
+        ret = GetAccount(boost::get<CPubKey>(userId).GetKeyId(), account);
+
+    } else if (userId.type() == typeid(CAccountNickID)) {
+        ret = GetAccount(boost::get<CAccountNickID>(userId).GetNickId(), account);
+
     } else if (userId.type() == typeid(CNullID)) {
-        return ERRORMSG("GetAccount input userId can't be CNullID type");
+        return ERRORMSG("GetAccount: userId can't be of CNullID type");
     }
+
     return ret;
 }
 
 bool CAccountViewCache::GetKeyId(const CUserID &userId, CKeyID &keyId) {
     if (userId.type() == typeid(CRegID)) {
         return GetKeyId(boost::get<CRegID>(userId).GetVec6(), keyId);
+
     } else if (userId.type() == typeid(CPubKey)) {
-        keyId = boost::get<CPubKey>(userId).GetKeyID();
+        keyId = boost::get<CPubKey>(userId).GetKeyId();
         return true;
+
     } else if (userId.type() == typeid(CKeyID)) {
         keyId = boost::get<CKeyID>(userId);
         return true;
+
     } else if (userId.type() == typeid(CNullID)) {
-        return ERRORMSG("GetKeyId input userid can't be CNullID type");
+        return ERRORMSG("GetKeyId: userId can't be of CNullID type");
     }
-    return ERRORMSG("GetKeyId input userid is unknow type");
+
+    return ERRORMSG("GetKeyId: userid type is unknown");
 }
 
 bool CAccountViewCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
-    if (userId.type() == typeid(CRegID)) {
+    if (userId.type() == typeid(CRegID))
         return SetKeyId(boost::get<CRegID>(userId).GetVec6(), keyId);
-    } else {
-        //		assert(0);
-    }
+
     return false;
 }
 
@@ -330,7 +331,7 @@ bool CAccountViewCache::SetAccount(const CUserID &userId, const CAccount &accoun
     } else if (userId.type() == typeid(CKeyID)) {
         return SetAccount(boost::get<CKeyID>(userId), account);
     } else if (userId.type() == typeid(CPubKey)) {
-        return SetAccount(boost::get<CPubKey>(userId).GetKeyID(), account);
+        return SetAccount(boost::get<CPubKey>(userId).GetKeyId(), account);
     } else if (userId.type() == typeid(CNullID)) {
         return ERRORMSG("SetAccount input userid can't be CNullID type");
     }
@@ -341,7 +342,7 @@ bool CAccountViewCache::EraseAccount(const CUserID &userId) {
     if (userId.type() == typeid(CKeyID)) {
         return EraseAccount(boost::get<CKeyID>(userId));
     } else if (userId.type() == typeid(CPubKey)) {
-        return EraseAccount(boost::get<CPubKey>(userId).GetKeyID());
+        return EraseAccount(boost::get<CPubKey>(userId).GetKeyId());
     } else {
         return ERRORMSG("EraseAccount account type error!");
         //		assert(0);

@@ -27,7 +27,7 @@ using namespace boost::assign;
 using namespace json_spirit;
 
 static  bool GetKeyId(string const &addr,CKeyID &KeyId) {
-    if (!CRegID::GetKeyID(addr, KeyId)) {
+    if (!CRegID::GetKeyId(addr, KeyId)) {
         KeyId=CKeyID(addr);
         if (KeyId.IsEmpty())
         return false;
@@ -277,5 +277,5 @@ Value verifymessage(const Array& params, bool fHelp)
     if (!pubkey.RecoverCompact(ss.GetHash(), vchSig))
         return false;
 
-    return (pubkey.GetKeyID() == keyID);
+    return (pubkey.GetKeyId() == keyID);
 }

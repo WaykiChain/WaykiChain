@@ -41,7 +41,7 @@ void EnsureWalletIsUnlocked() {
 }
 
 bool GetKeyId(string const& addr, CKeyID& keyId) {
-    if (!CRegID::GetKeyID(addr, keyId)) {
+    if (!CRegID::GetKeyId(addr, keyId)) {
         keyId = CKeyID(addr);
         return (!keyId.IsEmpty());
     }
@@ -85,7 +85,7 @@ Value getnewaddr(const Array& params, bool fHelp) {
     }
 
     CPubKey userPubKey = userkey.GetPubKey();
-    CKeyID userKeyID   = userPubKey.GetKeyID();
+    CKeyID userKeyID   = userPubKey.GetKeyId();
     Object obj;
     obj.push_back(Pair("addr", userKeyID.ToAddress()));
     obj.push_back(Pair("minerpubkey", minerPubKey));  // "null" for non-miner address

@@ -48,7 +48,7 @@ string RegIDToAddress(CUserID &userId) {
 }
 
 static bool GetKeyId(string const &addr, CKeyID &KeyId) {
-    if (!CRegID::GetKeyID(addr, KeyId)) {
+    if (!CRegID::GetKeyId(addr, KeyId)) {
         KeyId = CKeyID(addr);
         if (KeyId.IsEmpty())
             return false;
@@ -160,9 +160,9 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             CCommonTx* ptx = (CCommonTx*)pBaseTx.get();
             CKeyID sendKeyID;
             if (ptx->srcUserId.type() == typeid(CPubKey)) {
-                sendKeyID = boost::get<CPubKey>(ptx->srcUserId).GetKeyID();
+                sendKeyID = boost::get<CPubKey>(ptx->srcUserId).GetKeyId();
             } else if (ptx->srcUserId.type() == typeid(CRegID)) {
-                sendKeyID = boost::get<CRegID>(ptx->srcUserId).GetKeyID(*pAccountViewTip);
+                sendKeyID = boost::get<CRegID>(ptx->srcUserId).GetKeyId(*pAccountViewTip);
             }
 
             CKeyID recvKeyId;
@@ -170,7 +170,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 recvKeyId = boost::get<CKeyID>(ptx->desUserId);
             } else if (ptx->desUserId.type() == typeid(CRegID)) {
                 CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
-                recvKeyId       = desRegID.GetKeyID(*pAccountViewTip);
+                recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
             }
 
             obj.push_back(Pair("txtype", "COMMON_TX"));
@@ -194,13 +194,13 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             CContractTx* ptx = (CContractTx*)pBaseTx.get();
             CKeyID sendKeyID;
             CRegID sendRegID = boost::get<CRegID>(ptx->srcRegId);
-            sendKeyID        = sendRegID.GetKeyID(*pAccountViewTip);
+            sendKeyID        = sendRegID.GetKeyId(*pAccountViewTip);
             CKeyID recvKeyId;
             if (ptx->desUserId.type() == typeid(CKeyID)) {
                 recvKeyId = boost::get<CKeyID>(ptx->desUserId);
             } else if (ptx->desUserId.type() == typeid(CRegID)) {
                 CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
-                recvKeyId       = desRegID.GetKeyID(*pAccountViewTip);
+                recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
             }
 
             obj.push_back(Pair("txtype", "CONTRACT_TX"));
@@ -296,7 +296,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 recvKeyId = boost::get<CKeyID>(ptx->desUserId);
             } else if (ptx->desUserId.type() == typeid(CRegID)) {
                 CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
-                recvKeyId       = desRegID.GetKeyID(*pAccountViewTip);
+                recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
             }
 
             obj.push_back(Pair("txtype", "MULTISIG_TX"));
@@ -869,8 +869,8 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             if (!view.GetAccount(CUserID(delegateKeyId), delegateAcct)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address is not registered.");
             }
-            operVoteFund.fund.pubKey = delegateAcct.pubKey;
-            operVoteFund.fund.value  = (uint64_t)abs(delegateVotes.get_int64());
+            operVoteFund.fund.SetVoteId( CID(delegateAcct.pubKey) ); //FIXME: can be RegID as well
+            operVoteFund.fund.SetVoteCount( (uint64_t)abs(delegateVotes.get_int64()) );
             if (delegateVotes.get_int64() > 0) {
                 operVoteFund.operType = ADD_FUND;
             } else {
@@ -992,8 +992,8 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                    "Voted delegator's address is not registered.");
             }
-            operVoteFund.fund.pubKey = delegateAcct.pubKey;
-            operVoteFund.fund.value  = (uint64_t)abs(delegateVotes.get_int64());
+            operVoteFund.fund.SetVoteId( CID(delegateAcct.pubKey) );
+            operVoteFund.fund.SetVoteCount( (uint64_t)abs(delegateVotes.get_int64()) );
             if (delegateVotes.get_int64() > 0) {
                 operVoteFund.operType = ADD_FUND;
             } else {
@@ -1110,13 +1110,13 @@ Value listtransactions(const Array& params, bool fHelp) {
                 CCommonTx* ptx = (CCommonTx*)item.second.get();
                 CKeyID sendKeyID;
                 CRegID sendRegID = boost::get<CRegID>(ptx->srcUserId);
-                sendKeyID        = sendRegID.GetKeyID(*pAccountViewTip);
+                sendKeyID        = sendRegID.GetKeyId(*pAccountViewTip);
                 CKeyID recvKeyId;
                 if (ptx->desUserId.type() == typeid(CKeyID)) {
                     recvKeyId = boost::get<CKeyID>(ptx->desUserId);
                 } else if (ptx->desUserId.type() == typeid(CRegID)) {
                     CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
-                    recvKeyId       = desRegID.GetKeyID(*pAccountViewTip);
+                    recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
                 }
 
                 bool bSend = true;
@@ -1184,13 +1184,13 @@ Value listtransactions(const Array& params, bool fHelp) {
                 CContractTx* ptx = (CContractTx*)item.second.get();
                 CKeyID sendKeyID;
                 CRegID sendRegID = boost::get<CRegID>(ptx->srcRegId);
-                sendKeyID        = sendRegID.GetKeyID(*pAccountViewTip);
+                sendKeyID        = sendRegID.GetKeyId(*pAccountViewTip);
                 CKeyID recvKeyId;
                 if (ptx->desUserId.type() == typeid(CKeyID)) {
                     recvKeyId = boost::get<CKeyID>(ptx->desUserId);
                 } else if (ptx->desUserId.type() == typeid(CRegID)) {
                     CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
-                    recvKeyId       = desRegID.GetKeyID(*pAccountViewTip);
+                    recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
                 }
 
                 bool bSend = true;
@@ -1534,7 +1534,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 if (pwalletMain->GetPubKey(keyId, pk)) {
                     pwalletMain->GetPubKey(keyId, minerpk, true);
                     account.pubKey = pk;
-                    account.keyID  = pk.GetKeyID();
+                    account.keyID  = pk.GetKeyId();
                     if (pk != minerpk && !account.minerPubKey.IsValid()) {
                         account.minerPubKey = minerpk;
                     }
@@ -1548,7 +1548,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             if (pwalletMain->GetPubKey(keyId, pk)) {
                 pwalletMain->GetPubKey(keyId, minerpk, true);
                 account.pubKey = pk;
-                account.keyID  = pk.GetKeyID();
+                account.keyID  = pk.GetKeyId();
                 if (minerpk != pk) {
                     account.minerPubKey = minerpk;
                 }
@@ -1660,18 +1660,18 @@ static Value TestDisconnectBlock(int number) {
                 return false;
             mapBlockIndex.erase(pTipIndex->GetBlockHash());
 
-//          if (!ReadBlockFromDisk(block, pindex))
-//              throw ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s", pindex->nHeight,
-//                      pindex->GetBlockHash().ToString());
+//          if (!ReadBlockFromDisk(block, pIndex))
+//              throw ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s", pIndex->nHeight,
+//                      pIndex->GetBlockHash().ToString());
 //          bool fClean = true;
 //          CTransactionDBCache txCacheTemp(*pTxCacheTip, true);
 //          CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
-//          if (!DisconnectBlock(block, state, view, pindex, txCacheTemp, contractScriptTemp, &fClean))
-//              throw ERRORMSG("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s", pindex->nHeight,
-//                      pindex->GetBlockHash().ToString());
-//          CBlockIndex *pindexDelete = pindex;
-//          pindex = pindex->pprev;
-//          chainActive.SetTip(pindex);
+//          if (!DisconnectBlock(block, state, view, pIndex, txCacheTemp, contractScriptTemp, &fClean))
+//              throw ERRORMSG("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s", pIndex->nHeight,
+//                      pIndex->GetBlockHash().ToString());
+//          CBlockIndex *pindexDelete = pIndex;
+//          pIndex = pIndex->pprev;
+//          chainActive.SetTip(pIndex);
 //
 //          assert(view.Flush() &&txCacheTemp.Flush()&& contractScriptTemp.Flush() );
 //          txCacheTemp.Clear();
@@ -2287,7 +2287,7 @@ Value genregisteraccountraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMS, "publickey invalid");
     }
     ukey = pubk;
-    dummy = pubk.GetKeyID();
+    dummy = pubk.GetKeyId();
 
     if (params.size() > 3) {
         CPubKey minerpubk = CPubKey(ParseHex(params[3].get_str()));
@@ -2299,7 +2299,7 @@ Value genregisteraccountraw(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
     std::shared_ptr<CRegisterAccountTx> tx = std::make_shared<CRegisterAccountTx>(ukey, uminerkey, fee, hight);
-    if (!pwalletMain->Sign(pubk.GetKeyID(), tx->SignatureHash(), tx->signature)) {
+    if (!pwalletMain->Sign(pubk.GetKeyId(), tx->SignatureHash(), tx->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,  "Sign failed");
     }
     CDataStream ds(SER_DISK, CLIENT_VERSION);

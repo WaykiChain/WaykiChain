@@ -49,17 +49,17 @@ boost::circular_buffer<MinedBlockInfo> g_minedBlocks(MINED_BLOCK_COUNT_MAX);
 CCriticalSection g_csMinedBlocks;
 
 //base on the last 50 blocks
-int GetElementForBurn(CBlockIndex *pindex) {
-    if (NULL == pindex) {
+int GetElementForBurn(CBlockIndex *pIndex) {
+    if (NULL == pIndex) {
         return INIT_FUEL_RATES;
     }
     int nBlock = SysCfg().GetArg("-blocksizeforburn", DEFAULT_BURN_BLOCK_SIZE);
-    if (nBlock * 2 >= pindex->nHeight - 1) {
+    if (nBlock * 2 >= pIndex->nHeight - 1) {
         return INIT_FUEL_RATES;
     } else {
         int64_t nTotalStep(0);
         int64_t nAverateStep(0);
-        CBlockIndex *pTemp = pindex;
+        CBlockIndex *pTemp = pIndex;
         for (int ii = 0; ii < nBlock; ii++) {
             nTotalStep += pTemp->nFuel / pTemp->nFuelRate * 100;
             pTemp = pTemp->pprev;
@@ -67,15 +67,15 @@ int GetElementForBurn(CBlockIndex *pindex) {
         nAverateStep = nTotalStep / nBlock;
         int newFuelRate(0);
         if (nAverateStep < MAX_BLOCK_RUN_STEP * 0.75) {
-            newFuelRate = pindex->nFuelRate * 0.9;
+            newFuelRate = pIndex->nFuelRate * 0.9;
         } else if (nAverateStep > MAX_BLOCK_RUN_STEP * 0.85) {
-            newFuelRate = pindex->nFuelRate * 1.1;
+            newFuelRate = pIndex->nFuelRate * 1.1;
         } else {
-            newFuelRate = pindex->nFuelRate;
+            newFuelRate = pIndex->nFuelRate;
         }
         if (newFuelRate < MIN_FUEL_RATES)
             newFuelRate = MIN_FUEL_RATES;
-        LogPrint("fuel", "preFuelRate=%d fuelRate=%d, nHeight=%d\n", pindex->nFuelRate, newFuelRate, pindex->nHeight);
+        LogPrint("fuel", "preFuelRate=%d fuelRate=%d, nHeight=%d\n", pIndex->nFuelRate, newFuelRate, pIndex->nHeight);
         return newFuelRate;
     }
 }

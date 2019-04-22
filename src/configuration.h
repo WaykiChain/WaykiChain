@@ -37,7 +37,7 @@ namespace Checkpoints
     // Returns last CBlockIndex* in mapBlockIndex that is a checkpoint
     CBlockIndex* GetLastCheckpoint(const std::map<uint256, CBlockIndex*>& mapBlockIndex);
 
-    double GuessVerificationProgress(CBlockIndex *pindex, bool fSigchecks = true);
+    double GuessVerificationProgress(CBlockIndex *pIndex, bool fSigchecks = true);
 
     bool AddCheckpoint(int nHeight, uint256 hash);
 
@@ -161,6 +161,27 @@ private:
 
 const G_CONFIG_TABLE &IniCfg();
 
+inline FeatureForkVersionEnum GetFeatureForkVersion(int blockHeight) {
+	switch (SysCfg().NetworkID()) {
+		case MAIN_NET: {
+			if (blockHeight >= 6000000)
+				return MAJOR_VER_R2;
+			else
+				return MAJOR_VER_R1;
 
+			break;
+		};
+		case TEST_NET: {
+			if (blockHeight >= 1000000)
+				return MAJOR_VER_R2;
+			else
+				return MAJOR_VER_R1;
+ 			break;
+		};
+		default: {
+			return MAJOR_VER_R2;
+		}
+	}
+};
 
 #endif /* CONFIGURATION_H_ */

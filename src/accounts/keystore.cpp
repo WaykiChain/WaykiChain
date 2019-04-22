@@ -14,7 +14,7 @@ using namespace json_spirit;
 Object CKeyCombi::ToJsonObj()const {
     Object reply;
     if(mMainCkey.IsValid()) {
-        reply.push_back(Pair("address",mMainCkey.GetPubKey().GetKeyID().ToAddress()));
+        reply.push_back(Pair("address",mMainCkey.GetPubKey().GetKeyId().ToAddress()));
         reply.push_back(Pair("mCkey",mMainCkey.ToString()));
         reply.push_back(Pair("mCkeyBase58",CCoinSecret(mMainCkey).ToString()));
         reply.push_back(Pair("mMainPk",mMainCkey.GetPubKey().ToString()));
@@ -141,7 +141,7 @@ int64_t CKeyCombi::GetBirthDay() const {
 
 CKeyID CKeyCombi::GetCKeyID() const {
     if(mMainCkey.IsValid())
-        return mMainCkey.GetPubKey().GetKeyID();
+        return mMainCkey.GetPubKey().GetKeyId();
     else {
         CKeyID keyId;
         return keyId;
@@ -197,7 +197,7 @@ bool CBasicKeyStore::GetKeyCombi(const CKeyID & address, CKeyCombi & keyCombiOut
 
 // bool CBasicKeyStore::AddKeyPubKey(const CKey& key, const CPubKey& pubkey) {
 //     LOCK(cs_KeyStore);
-//     mapKeys[pubkey.GetKeyID()] = key;
+//     mapKeys[pubkey.GetKeyId()] = key;
 //     return true;
 // }
 

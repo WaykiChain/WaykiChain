@@ -109,7 +109,7 @@ public:
     CCoinAddress(const string& strAddress) { SetString(strAddress); }
     CCoinAddress(const char* pszAddress) { SetString(pszAddress); }
 
-    bool GetKeyID(CKeyID& keyId) const;
+    bool GetKeyId(CKeyID& keyId) const;
     bool IsScript() const;
 };
 

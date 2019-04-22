@@ -313,7 +313,7 @@ bool CWalletDB::WriteCryptedKey(const CPubKey& pubkey, const std::vector<unsigne
      if (!Write(std::make_pair(std::string("ckey"), pubkey), vchCryptedSecret, true))
             return false;
      CKeyCombi keyCombi;
-     CKeyID keyId = pubkey.GetKeyID();
+     CKeyID keyId = pubkey.GetKeyId();
      int nVersion(0);
      Read(string("minversion"), nVersion);
      if(Read(make_pair(string("keystore"), keyId), keyCombi, nVersion))

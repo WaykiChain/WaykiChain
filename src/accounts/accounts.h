@@ -12,101 +12,28 @@
 #include <vector>
 #include <unordered_map>
 
-#include "../json/json_spirit_utils.h"
-#include "../json/json_spirit_value.h"
-#include "../crypto/hash.h"
+#include "json/json_spirit_utils.h"
+#include "json/json_spirit_value.h"
 #include "key.h"
 #include "chainparams.h"
+#include "crypto/hash.h"
 
 using namespace json_spirit;
 
 class CID;
+class CNullID;
 class CAccountViewCache;
 class CAccountLog;
 
 typedef vector<unsigned char> vector_unsigned_char;
+typedef boost::variant<CNullID, CRegID, CKeyID, CPubKey> CUserID;
 
-class CVoteFund {
-public:
-    CPubKey pubKey;   //!< delegates public key
-    uint64_t value;   //!< amount of vote
-    uint256 sigHash;  //!< only in memory
-
-public:
-    CVoteFund() {
-        value  = 0;
-        pubKey = CPubKey();
-    }
-    CVoteFund(uint64_t valueIn) {
-        value  = valueIn;
-        pubKey = CPubKey();
-    }
-    CVoteFund(uint64_t valueIn, CPubKey pubKeyIn) {
-        value  = valueIn;
-        pubKey = pubKeyIn;
-    }
-    CVoteFund(const CVoteFund &fund) {
-        value  = fund.value;
-        pubKey = fund.pubKey;
-    }
-    CVoteFund &operator=(const CVoteFund &fund) {
-        if (this == &fund) {
-            return *this;
-        }
-        this->value  = fund.value;
-        this->pubKey = fund.pubKey;
-        return *this;
-    }
-    ~CVoteFund() {}
-
-    uint256 GetHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(value) << pubKey;
-            // Truly need to write the sigHash.
-            uint256 *hash = const_cast<uint256 *>(&sigHash);
-            *hash         = ss.GetHash();
-        }
-
-        return sigHash;
-    }
-
-    friend bool operator<(const CVoteFund &fa, const CVoteFund &fb) {
-        if (fa.value <= fb.value)
-            return true;
-        else
-            return false;
-    }
-    friend bool operator>(const CVoteFund &fa, const CVoteFund &fb) {
-        return !operator<(fa, fb);
-    }
-    friend bool operator==(const CVoteFund &fa, const CVoteFund &fb) {
-        if (fa.pubKey != fb.pubKey)
-            return false;
-        if (fa.value != fb.value)
-            return false;
-        return true;
-    }
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(pubKey);
-        READWRITE(VARINT(value));
-    )
-
-    string ToString(bool isAddress = false) const {
-        string str("");
-        str += "pubKey:";
-        if (isAddress) {
-            str += pubKey.GetKeyID().ToAddress();
-        } else {
-            str += pubKey.ToString();
-        }
-        str += " value:";
-        str += strprintf("%s", value);
-        str += "\n";
-        return str;
-    }
-    Object ToJson(bool isAddress = false) const;
+enum IDTypeEnum {
+    NullType = 0,
+    PubKey = 1,
+    RegID = 2,
+    KeyID = 3,
+    NickID = 4,
 };
 
 class CNullID {
@@ -115,13 +42,15 @@ public:
     friend bool operator<(const CNullID &a, const CNullID &b) { return true; }
 };
 
+
 class CRegID {
 private:
     uint32_t nHeight;
     uint16_t nIndex;
     mutable vector<unsigned char> vRegID;
-    void SetRegIDByCompact(const vector<unsigned char> &vIn);
+
     void SetRegID(string strRegID);
+    void SetRegIDByCompact(const vector<unsigned char> &vIn);
 
 public:
     friend class CID;
@@ -134,13 +63,13 @@ public:
         return vRegID;
     }
     void SetRegID(const vector<unsigned char> &vIn);
-    CKeyID GetKeyID(const CAccountViewCache &view) const;
+    CKeyID GetKeyId(const CAccountViewCache &view) const;
     uint32_t GetHeight() const { return nHeight; }
     bool operator==(const CRegID &co) const { return (this->nHeight == co.nHeight && this->nIndex == co.nIndex); }
     bool operator!=(const CRegID &co) const { return (this->nHeight != co.nHeight || this->nIndex != co.nIndex); }
     static bool IsSimpleRegIdStr(const string &str);
     static bool IsRegIdStr(const string &str);
-    static bool GetKeyID(const string &str, CKeyID &keyId);
+    static bool GetKeyId(const string &str, CKeyID &keyId);
     bool IsEmpty() const { return (nHeight == 0 && nIndex == 0); };
     bool Clean();
     string ToString() const;
@@ -155,13 +84,15 @@ public:
         })
 };
 
-typedef boost::variant<CNullID, CRegID, CKeyID, CPubKey> CUserID;
-
 class CID {
 private:
     vector_unsigned_char vchData;
+    IDTypeEnum idType;
 
 public:
+    CID() {}
+    CID(const CUserID &dest) { Set(dest); }
+
     const vector_unsigned_char &GetID() { return vchData; }
     static const vector_unsigned_char &UserIDToVector(const CUserID &userid) { return CID(userid).GetID(); }
     bool Set(const CRegID &id);
@@ -169,9 +100,52 @@ public:
     bool Set(const CPubKey &id);
     bool Set(const CNullID &id);
     bool Set(const CUserID &userid);
-    CID() {}
-    CID(const CUserID &dest) { Set(dest); }
-    CUserID GetUserId();
+
+    CUserID GetUserId() const;
+    vector_unsigned_char GetData() const { return vchData; };
+
+    string GetIDName() const {
+        switch(idType) {
+            case IDTypeEnum::NullType: return "Null";
+            case IDTypeEnum::RegID: return "RegID";
+            case IDTypeEnum::KeyID: return "KeyID";
+            case IDTypeEnum::PubKey: return "PubKey";
+            default:
+                return "UnknownType";
+        }
+    }
+
+    void SetIDType(IDTypeEnum idTypeIn) { idType = idTypeIn; }
+    IDTypeEnum GetIDType() { return idType; }
+
+    friend bool operator==(const CID &id1, const CID &id2) {
+        return (id1.GetData() == id2.GetData());
+    }
+
+    string ToString() const {
+        CUserID uid = GetUserId();
+         switch(idType) {
+            case IDTypeEnum::NullType:
+                return "Null";
+            case IDTypeEnum::RegID:
+                return boost::get<CRegID>(uid).ToString();
+            case IDTypeEnum::KeyID:
+                return boost::get<CKeyID>(uid).ToString();
+            case IDTypeEnum::PubKey:
+                return boost::get<CPubKey>(uid).ToString();
+            default:
+                return "Unknown";
+        }
+    }
+
+    Object ToJson() const {
+        Object obj;
+        string id = ToString();
+        obj.push_back(Pair("idType", idType));
+        obj.push_back(Pair("id", id));
+        return obj;
+    }
+
     IMPLEMENT_SERIALIZE(
         READWRITE(vchData);)
 };
@@ -182,9 +156,10 @@ private:
 
 public:
     CIDVisitor(CID *pIdIn) : pId(pIdIn) {}
-    bool operator()(const CRegID &id) const { return pId->Set(id); }
-    bool operator()(const CKeyID &id) const { return pId->Set(id); }
-    bool operator()(const CPubKey &id) const { return pId->Set(id); }
+
+    bool operator()(const CRegID &id) const { pId->SetIDType(IDTypeEnum::RegID); return pId->Set(id); }
+    bool operator()(const CKeyID &id) const { pId->SetIDType(IDTypeEnum::KeyID); return pId->Set(id); }
+    bool operator()(const CPubKey &id) const { pId->SetIDType(IDTypeEnum::PubKey); return pId->Set(id); }
     bool operator()(const CNullID &no) const { return true; }
 };
 
@@ -209,6 +184,92 @@ enum VoteOperType: unsigned char {
     NULL_OPER,       //!< invalid
 };
 
+class CVoteFund {
+private:
+    CID voteId;             //!< candidate RegId or PubKey
+    uint64_t voteCount;     //!< count of votes to the candidate
+
+    uint256 sigHash;        //!< only in memory
+
+public:
+    CID GetVoteId() { return voteId; }
+    uint64_t GetVoteCount() { return voteCount; }
+
+    void SetVoteCount(uint64_t votes) { voteCount = votes; }
+    void SetVoteId(CID voteIdIn) { voteId = voteIdIn; }
+
+public:
+    CVoteFund() {
+        voteId = CID();
+        voteCount  = 0;
+    }
+    CVoteFund(uint64_t voteCountIn) {
+        voteId = CID();
+        voteCount  = voteCountIn;
+    }
+    CVoteFund(CID voteIdIn, uint64_t voteCountIn) {
+        voteId = voteIdIn;
+        voteCount  = voteCountIn;
+    }
+    CVoteFund(const CVoteFund &fund) {
+        voteId = fund.voteId;
+        voteCount  = fund.voteCount;
+    }
+    CVoteFund &operator=(const CVoteFund &fund) {
+        if (this == &fund)
+            return *this;
+
+        this->voteId = fund.voteId;
+        this->voteCount  = fund.voteCount;
+        return *this;
+    }
+    ~CVoteFund() {}
+
+    uint256 GetHash(bool recalculate = false) const {
+        if (recalculate || sigHash.IsNull()) {
+            CHashWriter ss(SER_GETHASH, 0);
+            ss << VARINT(voteCount) << voteId;
+            uint256 *hash = const_cast<uint256 *>(&sigHash);
+            *hash         = ss.GetHash();  // Truly need to write the sigHash.
+        }
+
+        return sigHash;
+    }
+
+    friend bool operator<(const CVoteFund &fa, const CVoteFund &fb) {
+        return (fa.voteCount <= fb.voteCount);
+    }
+    friend bool operator>(const CVoteFund &fa, const CVoteFund &fb) {
+        return !operator<(fa, fb);
+    }
+    friend bool operator==(const CVoteFund &fa, const CVoteFund &fb) {
+        return (fa.voteId == fb.voteId && fa.voteCount == fb.voteCount);
+    }
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(voteId);
+        READWRITE(VARINT(voteCount));
+    )
+
+    string ToString() const {
+        string str("");
+        string idType = voteId.GetIDName();
+        str = idType + voteId.ToString();
+
+        str += " votes:";
+        str += strprintf("%s", voteCount);
+        str += "\n";
+        return str;
+    }
+
+    Object ToJson() const {
+        Object obj;
+        obj.push_back(Pair("voteId", this->voteId.ToJson()));
+        obj.push_back(Pair("votes", voteCount));
+        return obj;
+    }
+};
+
 class COperVoteFund {
 public:
     static const string voteOperTypeArray[3];
@@ -228,8 +289,8 @@ public:
         operType = nType;
         fund     = operFund;
     }
-    string ToString(bool isAddress = false) const;
-    Object ToJson(bool isAddress = false) const;
+    string ToString() const;
+    Object ToJson() const;
 };
 
 class CCdp {
@@ -238,19 +299,44 @@ public:
     uint64_t mintedSCoinAmount;
 };
 
+class CAccountNickID  {
+private:
+    vector_unsigned_char nickId;
+
+public:
+    CAccountNickID() {}
+    CAccountNickID(vector_unsigned_char nickIdIn) {
+        if (nickIdIn.size() > 32)
+            throw ios_base::failure("Nickname ID length > 32 not allowed!");
+
+        nickId = nickIdIn;
+     }
+
+    vector_unsigned_char GetNickId() const { return nickId; }
+
+    string ToString() const { return std::string(nickId.begin(), nickId.end()); }
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(nickId);)
+};
+
 class CAccount {
 public:
     CRegID regID;                   //!< regID of the account
-    CKeyID keyID;                   //!< keyID of the account
+    CKeyID keyID;                   //!< keyID of the account (interchangeable to address)
     CPubKey pubKey;                 //!< public key of the account
     CPubKey minerPubKey;            //!< miner public key of the account
+    CAccountNickID nickID;          //!< Nickname ID of the account (maxlen=32)
+
     uint64_t bcoinBalance;          //!< BaseCoin balance
     uint64_t scoinBalance;          //!< StableCoin balance
     uint64_t fcoinBalance;          //!< FundCoin balance
+
     uint64_t nVoteHeight;           //!< account vote block height
-    vector<CVoteFund> vVoteFunds;   //!< account delegate votes order by vote value
+    vector<CVoteFund> vVoteFunds;   //!< account delegates votes sorted by vote amount
     uint64_t receivedVotes;         //!< votes received
-    bool hasOpenCdp;                //!< Whether the account has open CDP or not. If true, it exists in {cdp-$regid : $cdp}
+
+    bool hasOpenCdp;                //!< When true, its CDP exists in a map {cdp-$regid -> $cdp}
 
     uint256 sigHash;                //!< memory only
 
@@ -268,9 +354,10 @@ public:
     bool OperateVote(VoteOperType type, const uint64_t &values);
 
 public:
-    CAccount(CKeyID &keyId, CPubKey &pubKey)
+    CAccount(CKeyID &keyId, CPubKey &pubKey, CAccountNickID &nickId)
         : keyID(keyId),
           pubKey(pubKey),
+          nickID(nickId),
           bcoinBalance(0),
           scoinBalance(0),
           fcoinBalance(0),
@@ -295,46 +382,50 @@ public:
     }
 
     CAccount(const CAccount &other) {
-        this->regID        = other.regID;
-        this->keyID        = other.keyID;
-        this->pubKey       = other.pubKey;
-        this->minerPubKey  = other.minerPubKey;
-        this->bcoinBalance = other.bcoinBalance;
-        this->scoinBalance = other.scoinBalance;
-        this->fcoinBalance = other.fcoinBalance;
-        this->nVoteHeight  = other.nVoteHeight;
-        this->vVoteFunds   = other.vVoteFunds;
-        this->receivedVotes      = other.receivedVotes;
+        this->regID         = other.regID;
+        this->keyID         = other.keyID;
+        this->nickID        = other.nickID;
+        this->pubKey        = other.pubKey;
+        this->minerPubKey   = other.minerPubKey;
+        this->bcoinBalance  = other.bcoinBalance;
+        this->scoinBalance  = other.scoinBalance;
+        this->fcoinBalance  = other.fcoinBalance;
+        this->nVoteHeight   = other.nVoteHeight;
+        this->vVoteFunds    = other.vVoteFunds;
+        this->receivedVotes = other.receivedVotes;
     }
 
     CAccount &operator=(const CAccount &other) {
         if (this == &other)
             return *this;
 
-        this->regID        = other.regID;
-        this->keyID        = other.keyID;
-        this->pubKey       = other.pubKey;
-        this->minerPubKey  = other.minerPubKey;
-        this->bcoinBalance = other.bcoinBalance;
-        this->scoinBalance = other.scoinBalance;
-        this->fcoinBalance = other.fcoinBalance;
-        this->nVoteHeight  = other.nVoteHeight;
-        this->vVoteFunds   = other.vVoteFunds;
-        this->receivedVotes      = other.receivedVotes;
+        this->regID         = other.regID;
+        this->keyID         = other.keyID;
+        this->nickID        = other.nickID;
+        this->pubKey        = other.pubKey;
+        this->minerPubKey   = other.minerPubKey;
+        this->bcoinBalance  = other.bcoinBalance;
+        this->scoinBalance  = other.scoinBalance;
+        this->fcoinBalance  = other.fcoinBalance;
+        this->nVoteHeight   = other.nVoteHeight;
+        this->vVoteFunds    = other.vVoteFunds;
+        this->receivedVotes = other.receivedVotes;
 
         return *this;
     }
 
     std::shared_ptr<CAccount> GetNewInstance() const { return std::make_shared<CAccount>(*this); }
-    bool IsRegistered() const { return (pubKey.IsFullyValid() && pubKey.GetKeyID() == keyID); }
+    bool IsRegistered() const { return (pubKey.IsFullyValid() && pubKey.GetKeyId() == keyID); }
     bool SetRegId(const CRegID &regID) {
         this->regID = regID;
         return true;
     };
+
     bool GetRegId(CRegID &regID) const {
         regID = this->regID;
         return !regID.IsEmpty();
     };
+
     uint64_t GetRawBalance();
     uint64_t GetTotalBalance();
     uint64_t GetFrozenBalance();
@@ -383,7 +474,7 @@ public:
     uint64_t bcoinBalance;         //!< freedom money which coinage greater than 30 days
     uint64_t nVoteHeight;          //!< account vote height
     vector<CVoteFund> vVoteFunds;  //!< delegate votes
-    uint64_t receivedVotes;              //!< votes received
+    uint64_t receivedVotes;        //!< votes received
 
     IMPLEMENT_SERIALIZE(
         READWRITE(keyID);
@@ -398,13 +489,13 @@ public:
         bcoinBalance = acct.bcoinBalance;
         nVoteHeight  = acct.nVoteHeight;
         vVoteFunds   = acct.vVoteFunds;
-        receivedVotes      = acct.receivedVotes;
+        receivedVotes= acct.receivedVotes;
     }
     CAccountLog(CKeyID &keyId) {
         keyID        = keyId;
         bcoinBalance = 0;
         nVoteHeight  = 0;
-        receivedVotes      = 0;
+        receivedVotes= 0;
     }
     CAccountLog() {
         keyID        = uint160();
@@ -417,7 +508,7 @@ public:
         keyID        = acct.keyID;
         bcoinBalance = acct.bcoinBalance;
         nVoteHeight  = acct.nVoteHeight;
-        receivedVotes      = acct.receivedVotes;
+        receivedVotes= acct.receivedVotes;
         vVoteFunds   = acct.vVoteFunds;
     }
     string ToString() const;

@@ -199,7 +199,7 @@ bool CCoinAddress::IsValid() const {
     return (vchData.size() == 20) && (vchVersion == SysCfg().Base58Prefix(PUBKEY_ADDRESS));
 }
 
-bool CCoinAddress::GetKeyID(CKeyID& keyId) const {
+bool CCoinAddress::GetKeyId(CKeyID& keyId) const {
     if (IsValid()) {
 		uint160 id;
         memcpy(&id, &vchData[0], 20);

@@ -386,7 +386,9 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDe
     vector<string> vInitPubKey = IniCfg().GetIntPubKey(type);
     vector<COperVoteFund> vOperVoteFund;
     for (size_t i = 0; i < vDelegatePubKey.size(); ++i) {
-        CVoteFund fund(IniCfg().GetCoinInitValue() * COIN  / 100, CPubKey(ParseHex(vDelegatePubKey[i].c_str())));
+        uint64_t votes = IniCfg().GetCoinInitValue() * COIN  / 100;
+        CID voteId(CPubKey(ParseHex(vDelegatePubKey[i].c_str())));
+        CVoteFund fund(voteId, votes);
         COperVoteFund operVoteFund(ADD_FUND, fund);
         vOperVoteFund.push_back(operVoteFund);
     }
@@ -427,7 +429,6 @@ CBaseParams::CBaseParams() {
     fReindex = false;
     fBenchmark = false;
     fTxIndex = false;
-    // nMaxForkHeight = 24 * 60 * 6; //8640
     nLogMaxSize = 100 * 1024 * 1024;//100M
     nTxCacheHeight = 500;
     nTimeBestReceived = 0;

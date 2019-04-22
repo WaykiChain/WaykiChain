@@ -7,8 +7,6 @@
 #ifndef COIN_SERIALIZE_H
 #define COIN_SERIALIZE_H
 
-#include "commons/allocators.h"
-
 #include <algorithm>
 #include <assert.h>
 #include <limits>
@@ -20,12 +18,15 @@
 #include <string.h>
 #include <utility>
 #include <vector>
-#include "version.h"
-#include "commons/uint256.h"
+
 #include <openssl/ripemd.h>
 #include <openssl/sha.h>
 #include <boost/tuple/tuple.hpp>
 #include <boost/type_traits/is_fundamental.hpp>
+
+#include "../version.h"
+#include "allocators.h"
+#include "uint256.h"
 
 class CAutoFile;
 class CDataStream;

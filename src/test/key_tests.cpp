@@ -108,14 +108,14 @@ BOOST_AUTO_TEST_CASE(key_test1)
 		CCoinAddress addr1Ct("tQCmxQDFQdHmAZw1j3dteB4CTro2Ph5TYP");
 		CCoinAddress addr2Ct("t7yXQfSAzsypLJvwnhuehAp3nbKYhv27qW");
 
-		BOOST_CHECK(addr1Ct.Get() == CTxDestination(pubkey1C.GetKeyID()));
-		BOOST_CHECK(addr2Ct.Get() == CTxDestination(pubkey2C.GetKeyID()));
+		BOOST_CHECK(addr1Ct.Get() == CTxDestination(pubkey1C.GetKeyId()));
+		BOOST_CHECK(addr2Ct.Get() == CTxDestination(pubkey2C.GetKeyId()));
 	} else {
 		CCoinAddress addr1Cm("1NoJrossxPBKfCHuJXT4HadJrXRE9Fxiqs");
 		CCoinAddress addr2Cm("1CRj2HyM1CXWzHAXLQtiGLyggNT9WQqsDs");
 
-		BOOST_CHECK(addr1Cm.Get() == CTxDestination(pubkey1C.GetKeyID()));
-		BOOST_CHECK(addr2Cm.Get() == CTxDestination(pubkey2C.GetKeyID()));
+		BOOST_CHECK(addr1Cm.Get() == CTxDestination(pubkey1C.GetKeyId()));
+		BOOST_CHECK(addr2Cm.Get() == CTxDestination(pubkey2C.GetKeyId()));
 	}
 
     for (int n=0; n<16; n++)

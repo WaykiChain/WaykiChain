@@ -196,7 +196,7 @@ bool CKey::Derive(CKey &keyChild, unsigned char ccChild[32], unsigned int nChild
 ///////////////////////////////////////////////////////////////////////////////
 // class CPubKey
 
-CKeyID CPubKey::GetKeyID() const { return CKeyID(Hash160(vch, vch + size())); }
+CKeyID CPubKey::GetKeyId() const { return CKeyID(Hash160(vch, vch + size())); }
 
 uint256 CPubKey::GetHash() const { return Hash(vch, vch + size()); }
 
@@ -291,7 +291,7 @@ bool CPubKey::Derive(CPubKey &pubkeyChild, unsigned char ccChild[32], unsigned i
 
 bool CExtKey::Derive(CExtKey &out, unsigned int nChild) const {
     out.nDepth = nDepth + 1;
-    CKeyID id  = key.GetPubKey().GetKeyID();
+    CKeyID id  = key.GetPubKey().GetKeyId();
     memcpy(&out.vchFingerprint[0], &id, 4);
     out.nChild = nChild;
     return key.Derive(out.key, out.vchChainCode, nChild, vchChainCode);
@@ -366,7 +366,7 @@ void CExtPubKey::Decode(const unsigned char code[74]) {
 
 bool CExtPubKey::Derive(CExtPubKey &out, unsigned int nChild) const {
     out.nDepth = nDepth + 1;
-    CKeyID id  = pubkey.GetKeyID();
+    CKeyID id  = pubkey.GetKeyId();
     memcpy(&out.vchFingerprint[0], &id, 4);
     out.nChild = nChild;
     return pubkey.Derive(out.pubkey, out.vchChainCode, nChild, vchChainCode);
@@ -387,7 +387,7 @@ CKeyID::CKeyID(const string &strAddress) : uint160() {
         *this = uint160S(strAddress);
     } else {
         CCoinAddress addr(strAddress);
-        addr.GetKeyID(*this);
+        addr.GetKeyId(*this);
     }
 }
 

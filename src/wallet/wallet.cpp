@@ -542,7 +542,7 @@ bool CWallet::AddKey(const CKey &key, const CKey &minerKey) {
     if ((!key.IsValid()) || (!minerKey.IsValid())) return false;
 
     CKeyCombi keyCombi(key, minerKey, nWalletVersion);
-    return AddKey(key.GetPubKey().GetKeyID(), keyCombi);
+    return AddKey(key.GetPubKey().GetKeyId(), keyCombi);
 }
 
 bool CWallet::AddKey(const CKeyID &KeyId, const CKeyCombi &keyCombi) {
@@ -561,11 +561,11 @@ bool CWallet::AddKey(const CKey &key) {
     if (!key.IsValid()) return false;
 
     CKeyCombi keyCombi(key, nWalletVersion);
-    return AddKey(key.GetPubKey().GetKeyID(), keyCombi);
+    return AddKey(key.GetPubKey().GetKeyId(), keyCombi);
 }
 
 bool CWallet::RemoveKey(const CKey &key) {
-    CKeyID keyId = key.GetPubKey().GetKeyID();
+    CKeyID keyId = key.GetPubKey().GetKeyId();
     mapKeys.erase(keyId);
     if (!IsEncrypted()) {
         CWalletDB(strWalletFile).EraseKeyStoreValue(keyId);

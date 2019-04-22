@@ -48,4 +48,9 @@ static const int MIN_PEER_PROTO_VERSION = 10001;
 // "mempool" command, enhanced "getdata" behavior starts with this version:
 //static const int MEMPOOL_GD_VERSION = 60002;
 
+enum FeatureForkVersionEnum {
+    MAJOR_VER_R1 = 10001, // Release 1.0
+    MAJOR_VER_R2 = 10002, // Release 2.0: StableCoin Release (2019-06-30)
+};
+
 #endif
