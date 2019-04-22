@@ -38,6 +38,7 @@ $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(w
 coin_CORE_H = \
   accounts/accounts.h \
   accounts/cdp.h \
+  accounts/id.h \
   accounts/key.h \
   accounts/keystore.h \
   accounts/vote.h \
