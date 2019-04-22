@@ -312,11 +312,13 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
     sendUserId = (pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId) &&
-                  nHeight - sendRegId.GetHeight() > kRegIdMaturePeriodByBlock)
+                  (sendRegId.GetHeight() == 0 ||
+                   nHeight - sendRegId.GetHeight() > kRegIdMaturePeriodByBlock))
                      ? CUserID(sendRegId)
                      : CUserID(sendPubKey);
     recvUserId = (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) &&
-                  nHeight - recvRegId.GetHeight() > kRegIdMaturePeriodByBlock)
+                  (recvRegId.GetHeight() == 0 ||
+                   nHeight - recvRegId.GetHeight() > kRegIdMaturePeriodByBlock))
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
     CCommonTx tx;
@@ -554,14 +556,16 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
 
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
-    sendUserId = (pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId) &&
-                  height - sendRegId.GetHeight() > kRegIdMaturePeriodByBlock)
-                     ? CUserID(sendRegId)
-                     : CUserID(sendPubKey);
-    recvUserId = (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) &&
-                  height - recvRegId.GetHeight() > kRegIdMaturePeriodByBlock)
-                     ? CUserID(recvRegId)
-                     : CUserID(recvKeyId);
+    sendUserId =
+        (pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId) &&
+         (sendRegId.GetHeight() == 0 || height - sendRegId.GetHeight() > kRegIdMaturePeriodByBlock))
+            ? CUserID(sendRegId)
+            : CUserID(sendPubKey);
+    recvUserId =
+        (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) &&
+         (recvRegId.GetHeight() == 0 || height - recvRegId.GetHeight() > kRegIdMaturePeriodByBlock))
+            ? CUserID(recvRegId)
+            : CUserID(recvKeyId);
 
     CCommonTx tx;
     tx.srcUserId    = sendUserId;
@@ -628,10 +632,11 @@ Value genmulsigtx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
     }
 
-    recvUserId = (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) &&
-                  height - recvRegId.GetHeight() > kRegIdMaturePeriodByBlock)
-                     ? CUserID(recvRegId)
-                     : CUserID(recvKeyId);
+    recvUserId =
+        (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) &&
+         (recvRegId.GetHeight() == 0 || height - recvRegId.GetHeight() > kRegIdMaturePeriodByBlock))
+            ? CUserID(recvRegId)
+            : CUserID(recvKeyId);
 
     int64_t amount = AmountToRawValue(params[2]);
     int64_t fee    = AmountToRawValue(params[3]);
@@ -655,9 +660,9 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     std::set<CPubKey> pubKeys = script.GetPubKeys();
     vector<CSignaturePair> signaturePairs;
     CRegID regId;
-    for (const auto &pubKey : pubKeys) {
+    for (const auto& pubKey : pubKeys) {
         if (pAccountViewTip->GetRegId(CUserID(pubKey), regId) &&
-            height - regId.GetHeight() > kRegIdMaturePeriodByBlock) {
+            (regId.GetHeight() == 0 || height - regId.GetHeight() > kRegIdMaturePeriodByBlock)) {
             signaturePairs.push_back(CSignaturePair(regId, vector_unsigned_char()));
         } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Inmature regid or invalid key");
