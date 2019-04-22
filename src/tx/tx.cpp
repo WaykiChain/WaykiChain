@@ -514,7 +514,7 @@ bool CCommonTx::CheckTx(CValidationState &state, CAccountViewCache &view,
 
     if ((srcUserId.type() == typeid(CPubKey)) && !boost::get<CPubKey>(srcUserId).IsFullyValid())
         return state.DoS(100,
-                         ERRORMSG("CCommonTx::CheckTx, common tx public key is invalid"),
+                         ERRORMSG("CCommonTx::CheckTx, public key is invalid"),
                          REJECT_INVALID, "bad-commontx-publickey");
 
     if (!CheckMoneyRange(llFees))
