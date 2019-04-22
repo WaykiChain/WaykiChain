@@ -305,20 +305,20 @@ Object CAccount::ToJsonObj(bool isAddress) const {
     }
 
     Object obj;
-    bool isMature = regID.GetHeight() > 0 && chainActive.Height() - (int)regID.GetHeight() >
-                                                 kRegIdMaturePeriodByBlock
+    bool isMature = (regID.GetHeight() == 0 ||
+                     chainActive.Height() - (int)regID.GetHeight() > kRegIdMaturePeriodByBlock)
                         ? true
                         : false;
-    obj.push_back(Pair("address",       keyID.ToAddress()));
-    obj.push_back(Pair("keyID",         keyID.ToString()));
-    obj.push_back(Pair("publicKey",     pubKey.ToString()));
-    obj.push_back(Pair("minerPubKey",   minerPubKey.ToString()));
-    obj.push_back(Pair("regID",         regID.ToString()));
-    obj.push_back(Pair("regIDMature",   isMature));
-    obj.push_back(Pair("balance",       bcoinBalance));
-    obj.push_back(Pair("updateHeight",  nVoteHeight));
-    obj.push_back(Pair("votes",         receivedVotes));
-    obj.push_back(Pair("voteFundList",  voteFundArray));
+    obj.push_back(Pair("address", keyID.ToAddress()));
+    obj.push_back(Pair("key_id", keyID.ToString()));
+    obj.push_back(Pair("public_key", pubKey.ToString()));
+    obj.push_back(Pair("miner_public_key", minerPubKey.ToString()));
+    obj.push_back(Pair("reg_id", regID.ToString()));
+    obj.push_back(Pair("reg_id_mature", isMature));
+    obj.push_back(Pair("balance", bcoinBalance));
+    obj.push_back(Pair("update_height", nVoteHeight));
+    obj.push_back(Pair("votes", receivedVotes));
+    obj.push_back(Pair("vote_fund_list", voteFundArray));
     return obj;
 }
 

@@ -156,8 +156,8 @@ static bool noui_SyncTx()
 		}
 	}
 	*/
-	map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx =  pwalletMain->UnConfirmTx.begin();
-	for(; iterTx != pwalletMain->UnConfirmTx.end(); ++iterTx)
+	map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx =  pwalletMain->unconfirmedTx.begin();
+	for(; iterTx != pwalletMain->unconfirmedTx.end(); ++iterTx)
 	{
 		Object objTx = iterTx->second.get()->ToJson(*pAccountViewTip);
 		arrayObj.push_back(objTx);

@@ -382,18 +382,21 @@ struct CExtKey {
     void SetMaster(const unsigned char *seed, unsigned int nSeedLen);
 };
 
-class CScript {
+class CMulsigScript {
 private:
     int nRequired;
     mutable std::set<CPubKey> pubKeys;
 
 public:
-    CScript() {}
+    CMulsigScript() {}
 
-    void SetMultisig(int nRequiredIn, const std::set<CPubKey> &pubKeysIn) {
+    void SetMultisig(const int nRequiredIn, const std::set<CPubKey> &pubKeysIn) {
         nRequired = nRequiredIn;
         pubKeys   = pubKeysIn;
     }
+
+    int GetRequired() const { return nRequired; }
+    std::set<CPubKey> &GetPubKeys() { return pubKeys; }
 
     CKeyID GetID() const {
         CDataStream ds(SER_DISK, CLIENT_VERSION);

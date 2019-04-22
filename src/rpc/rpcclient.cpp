@@ -159,13 +159,11 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "getblocktemplate"       && n > 0) ConvertTo<Object>(params[0]);
     if (strMethod == "listsinceblock"         && n > 1) ConvertTo<int64_t>(params[1]);
 
-    if (strMethod == "addmultisigaddr"        && n > 0) ConvertTo<int64_t>(params[0]);
-    if (strMethod == "addmultisigaddr"        && n > 1) ConvertTo<Array>(params[1]);
-    if (strMethod == "createmultisig"         && n > 0) ConvertTo<int64_t>(params[0]);
-    if (strMethod == "createmultisig"         && n > 1) ConvertTo<Array>(params[1]);
-    // if (strMethod == "listunspent"            && n > 0) ConvertTo<int64_t>(params[0]);
-    // if (strMethod == "listunspent"            && n > 1) ConvertTo<int64_t>(params[1]);
-    // if (strMethod == "listunspent"            && n > 2) ConvertTo<Array>(params[2]);
+    if (strMethod == "addmulsigaddr"          && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "addmulsigaddr"          && n > 1) ConvertTo<Array>(params[1]);
+    if (strMethod == "createmulsig"           && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "createmulsig"           && n > 1) ConvertTo<Array>(params[1]);
+    if (strMethod == "signtxraw"              && n > 1) ConvertTo<Array>(params[1]);
 
     if (strMethod == "getblock"               && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "getchainstate"          && n > 0) ConvertTo<int>(params[0]);
@@ -222,7 +220,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "listcontracts"          && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getblock"               && n > 0) { if (params[0].get_str().size()<32) ConvertTo<int>(params[0]);}
 
-    /****** generate a digitally signed raw transaction for network submission via sendrawtx  **********/
+    /****** generate a digitally signed raw transaction for network submission via sendtxraw  **********/
     if (strMethod == "genregisteraccountraw"  && n > 0) ConvertTo<double>(params[0]);
     if (strMethod == "genregisteraccountraw"  && n > 1) ConvertTo<int>(params[1]);
 
@@ -244,8 +242,13 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "genvotedelegateraw"     && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "genvotedelegateraw"     && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "genvotedelegateraw"     && n > 3) ConvertTo<int>(params[3]);
+
+    if (strMethod == "genmulsigtx"            && n > 2) ConvertTo<double>(params[2]);
+    if (strMethod == "genmulsigtx"            && n > 3) ConvertTo<double>(params[3]);
+    if (strMethod == "genmulsigtx"            && n > 4) ConvertTo<int>(params[4]);
+
     /********************************************************************************************************************/
-    if (strMethod == "getcontractkeyvalue"      && n > 1) ConvertTo<Array>(params[1]);
+    if (strMethod == "getcontractkeyvalue"    && n > 1) ConvertTo<Array>(params[1]);
 
     if (strMethod == "listtx"                 && n > 0) ConvertTo<int>(params[0]);
     if (strMethod == "listtx"                 && n > 1) ConvertTo<int>(params[1]);

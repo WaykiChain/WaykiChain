@@ -30,6 +30,7 @@ src/coin-config.h
 src/coin-config.h.in
 src/coin-config.h.in~
 src/coind
+src/coinlua
 src/Makefile.in
 src/obj
 src/ptest/CGuarantee_tests.cpp

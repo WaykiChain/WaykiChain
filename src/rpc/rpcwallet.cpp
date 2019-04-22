@@ -92,32 +92,32 @@ Value getnewaddr(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value addmultisigaddr(const Array& params, bool fHelp) {
+Value addmulsigaddr(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2)
         throw runtime_error(
-            "addmultisigaddr nrequired [\"address\",...]\n"
+            "addmulsigaddr nrequired [\"address\",...]\n"
             "\nget a new multisig address\n"
             "\nArguments:\n"
             "1. nrequired        (numeric, required) The number of required signatures out of the "
             "n keys or addresses.\n"
             "2. \"keysobject\"   (string, required) A json array of WICC addresses or "
             "hex-encoded public keys\n"
-            "     [\n"
-            "       \"address\"  (string) WICC address or hex-encoded public key\n"
-            "       ...,\n"
-            "     ]\n"
+            "[\n"
+            "  \"address\"  (string) WICC address or hex-encoded public key\n"
+            "  ...,\n"
+            "]\n"
             "\nResult:\n"
             "\"addr\"  (string) A WICC address.\n"
             "\nExamples:\n"
             "\nAdd a 2-3 multisig address from 3 addresses\n" +
-            HelpExampleCli("addmultisigaddr",
+            HelpExampleCli("addmulsigaddr",
                            "2 \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
-                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\", "
                            "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\"") +
             "\nAs json rpc\n" +
-            HelpExampleRpc("addmultisigaddr",
+            HelpExampleRpc("addmulsigaddr",
                            "2, \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
-                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\", "
                            "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\""));
 
     EnsureWalletIsUnlocked();
@@ -136,9 +136,9 @@ Value addmultisigaddr(const Array& params, bool fHelp) {
                       keys.size(), nRequired));
     }
 
-    if ((int64_t)keys.size() > kSignatureNumberThreshold) {
+    if ((int64_t)keys.size() > kMultisigNumberThreshold) {
         throw runtime_error(
-            strprintf("too many keys supplied, no more than %d keys", kSignatureNumberThreshold));
+            strprintf("too many keys supplied, no more than %d keys", kMultisigNumberThreshold));
     }
 
     CKeyID keyId;
@@ -156,7 +156,7 @@ Value addmultisigaddr(const Array& params, bool fHelp) {
         pubKeys.insert(pubKey);
     }
 
-    CScript script;
+    CMulsigScript script;
     script.SetMultisig(nRequired, pubKeys);
     CKeyID scriptId = script.GetID();
     pwalletMain->AddCScript(script);
@@ -166,32 +166,32 @@ Value addmultisigaddr(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value createmultisig(const Array& params, bool fHelp) {
+Value createmulsig(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2)
         throw runtime_error(
-            "createmultisig nrequired [\"address\",...]\n"
+            "createmulsig nrequired [\"address\",...]\n"
             "\nCreates a multi-signature address with n signature of m keys required.\n"
             "\nArguments:\n"
             "1. nrequired        (numeric, required) The number of required signatures out of the "
             "n keys or addresses.\n"
             "2. \"keysobject\"   (string, required) A json array of WICC addresses or "
             "hex-encoded public keys\n"
-            "     [\n"
-            "       \"address\"  (string) WICC address or hex-encoded public key\n"
-            "       ...,\n"
-            "     ]\n"
+            "[\n"
+            "\"address\"  (string) WICC address or hex-encoded public key\n"
+            "  ...,\n"
+            "]\n"
             "\nResult:\n"
             "\"addr\"  (string) A WICC address.\n"
             "\nExamples:\n"
             "\nCreate a 2-3 multisig address from 3 addresses\n" +
-            HelpExampleCli("createmultisig",
+            HelpExampleCli("createmulsig",
                            "2 \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
-                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\", "
                            "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\"") +
             "\nAs json rpc\n" +
-            HelpExampleRpc("createmultisig",
+            HelpExampleRpc("createmulsig",
                            "2, \"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
-                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\","
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\", "
                            "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\""));
 
     EnsureWalletIsUnlocked();
@@ -210,9 +210,9 @@ Value createmultisig(const Array& params, bool fHelp) {
                       keys.size(), nRequired));
     }
 
-    if ((int64_t)keys.size() > kSignatureNumberThreshold) {
+    if ((int64_t)keys.size() > kMultisigNumberThreshold) {
         throw runtime_error(
-            strprintf("too many keys supplied, no more than %d keys", kSignatureNumberThreshold));
+            strprintf("too many keys supplied, no more than %d keys", kMultisigNumberThreshold));
     }
 
     CKeyID keyId;
@@ -230,7 +230,7 @@ Value createmultisig(const Array& params, bool fHelp) {
         pubKeys.insert(pubKey);
     }
 
-    CScript script;
+    CMulsigScript script;
     script.SetMultisig(nRequired, pubKeys);
     CKeyID scriptId = script.GetID();
 
@@ -433,9 +433,9 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
     EnsureWalletIsUnlocked();
 
     CKeyID sendKeyId, recvKeyId;
-    int64_t nAmount = 0;
-    int64_t nFee = 0;
-    int64_t nActualFee = 0;
+    int64_t nAmount     = 0;
+    int64_t nFee        = 0;
+    int64_t nActualFee  = 0;
     int64_t nDefaultFee = SysCfg().GetTxFee();
 
     if (size == 4) {
@@ -566,13 +566,111 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
     CCommonTx tx;
     tx.srcUserId    = sendUserId;
     tx.desUserId    = recvUserId;
-    tx.bcoinBalance     = amount;
+    tx.bcoinBalance = amount;
     tx.llFees       = fee;
     tx.nValidHeight = height;
 
     if (!pwalletMain->Sign(sendKeyId, tx.SignatureHash(), tx.signature)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
     }
+
+    CDataStream ds(SER_DISK, CLIENT_VERSION);
+    std::shared_ptr<CBaseTx> pBaseTx = tx.GetNewInstance();
+    ds << pBaseTx;
+    Object obj;
+    obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+    return obj;
+}
+
+Value genmulsigtx(const Array& params, bool fHelp) {
+    int size = params.size();
+    if (fHelp || size < 4 || size > 5) {
+        throw runtime_error(
+            "genmulsigtx \"multisigscript\" \"recvaddress\" \"amount\" \"fee\" \"height\"\n"
+            "\n create multisig transaction by multisigscript, recvaddress, amount, fee, height\n" +
+            HelpRequiringPassphrase() +
+            "\nArguments:\n"
+            "1.\"multisigscript\"  (string, required) The Coin address to send to.\n"
+            "2.\"recvaddress\"  (string, required) The Coin address to receive.\n"
+            "3.\"amount\"  (numeric, required)\n"
+            "4.\"fee\"     (numeric, required)\n"
+            "5.\"height\"  (int, optional)\n"
+            "\nResult:\n"
+            "\"transactionid\"  (string) The transaction id.\n"
+            "\nExamples:\n" +
+            HelpExampleCli("genmulsigtx",
+                           "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571"
+                           "e9521031f3d66a05bf20e83e046b74d9073d925f5dce29970623595bc4d66ed81781dd5"
+                           "21034819476f12ac0e53bd82bc3205c91c40e9c569b08af8db04503afdebceb7134c\" "
+                           "\"Wef9QkwAwBhtZaT3ASmMJzC7dt1kzo1xob\" 10000 10000 100") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc(
+                "genmulsigtx",
+                "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571e9521031f3d"
+                "66a05bf20e83e046b74d9073d925f5dce29970623595bc4d66ed81781dd521034819476f12ac0e53bd"
+                "82bc3205c91c40e9c569b08af8db04503afdebceb7134c\", "
+                "\"Wef9QkwAwBhtZaT3ASmMJzC7dt1kzo1xob\", 10000, 10000, 100"));
+    }
+
+    EnsureWalletIsUnlocked();
+
+    vector<unsigned char> multiScript = ParseHex(params[0].get_str());
+    if (multiScript.empty() || multiScript.size() > KMultisigScriptMaxSize) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid script size");
+    }
+
+    CKeyID recvKeyId;
+    CUserID recvUserId;
+    CRegID recvRegId;
+    int height = chainActive.Tip()->nHeight;
+
+    if (!GetKeyId(params[1].get_str(), recvKeyId)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
+    }
+
+    recvUserId = (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) &&
+                  height - recvRegId.GetHeight() > kRegIdMaturePeriodByBlock)
+                     ? CUserID(recvRegId)
+                     : CUserID(recvKeyId);
+
+    int64_t amount = AmountToRawValue(params[2]);
+    int64_t fee    = AmountToRawValue(params[3]);
+    if (amount == 0) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Send 0 amount disallowed!");
+    }
+
+    if (params.size() > 4) {
+        height = params[4].get_int();
+    }
+
+    CDataStream scriptDataStream(multiScript, SER_DISK, CLIENT_VERSION);
+    CMulsigScript script;
+    try {
+        scriptDataStream >> script;
+    } catch (std::exception& e) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid script content");
+    }
+
+    int8_t required = (int8_t)script.GetRequired();
+    std::set<CPubKey> pubKeys = script.GetPubKeys();
+    vector<CSignaturePair> signaturePairs;
+    CRegID regId;
+    for (const auto &pubKey : pubKeys) {
+        if (pAccountViewTip->GetRegId(CUserID(pubKey), regId) &&
+            height - regId.GetHeight() > kRegIdMaturePeriodByBlock) {
+            signaturePairs.push_back(CSignaturePair(regId, vector_unsigned_char()));
+        } else {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Inmature regid or invalid key");
+        }
+    }
+
+    CMulsigTx tx;
+    tx.signaturePairs = signaturePairs;
+    tx.desUserId      = recvUserId;
+    tx.bcoinBalance   = amount;
+    tx.llFees         = fee;
+    tx.required       = required;
+    tx.nValidHeight   = height;
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     std::shared_ptr<CBaseTx> pBaseTx = tx.GetNewInstance();
@@ -1016,7 +1114,7 @@ Value getwalletinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("wallet_locked",     pwalletMain->IsLocked()));
     obj.push_back(Pair("unlocked_until",    nWalletUnlockTime));
     obj.push_back(Pair("coinfirmed_tx_num", (int)pwalletMain->mapInBlockTx.size()));
-    obj.push_back(Pair("unconfirmed_tx_num",(int)pwalletMain->UnConfirmTx.size()));
+    obj.push_back(Pair("unconfirmed_tx_num",(int)pwalletMain->unconfirmedTx.size()));
     return obj;
 }
 

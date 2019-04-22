@@ -124,9 +124,9 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
                 if (IsMine(sptx.get())) {
                     newtx.AddTx(hashtx, sptx.get());
                 }
-                if (UnConfirmTx.count(hashtx) > 0) {
+                if (unconfirmedTx.count(hashtx) > 0) {
                     CWalletDB(strWalletFile).EraseUnconfirmedTx(hashtx);
-                    UnConfirmTx.erase(hashtx);
+                    unconfirmedTx.erase(hashtx);
                 }
             }
             if (newtx.GetTxSize() > 0) {          // write to disk
@@ -141,10 +141,10 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
                     continue;
                 }
                 if (IsMine(sptx.get())) {
-                    UnConfirmTx[sptx.get()->GetHash()] = sptx.get()->GetNewInstance();
+                    unconfirmedTx[sptx.get()->GetHash()] = sptx.get()->GetNewInstance();
                     CWalletDB(strWalletFile)
                         .WriteUnconfirmedTx(sptx.get()->GetHash(),
-                                            UnConfirmTx[sptx.get()->GetHash()]);
+                                            unconfirmedTx[sptx.get()->GetHash()]);
                 }
             }
             if (mapInBlockTx.count(blockhash)) {
@@ -177,8 +177,8 @@ void CWallet::EraseTransaction(const uint256 &hash) {
     if (!fFileBacked) return;
     {
         LOCK(cs_wallet);
-        if (UnConfirmTx.count(hash)) {
-            UnConfirmTx.erase(hash);
+        if (unconfirmedTx.count(hash)) {
+            unconfirmedTx.erase(hash);
             CWalletDB(strWalletFile).EraseUnconfirmedTx(hash);
         }
     }
@@ -187,7 +187,7 @@ void CWallet::EraseTransaction(const uint256 &hash) {
 
 void CWallet::ResendWalletTransactions() {
     vector<uint256> erase;
-    for (auto &te : UnConfirmTx) {
+    for (auto &te : unconfirmedTx) {
         // Do not sumit the tx if in mempool already.
         if (mempool.Exists(te.first)) {
             continue;
@@ -196,13 +196,13 @@ void CWallet::ResendWalletTransactions() {
         auto ret                         = CommitTransaction(&(*pBaseTx.get()));
         if (!std::get<0>(ret)) {
             erase.push_back(te.first);
-            LogPrint("CWallet", "abort invalid tx %s reason:%s\r\n",
+            LogPrint("CWallet", "abort invalid tx %s reason:%s\n",
                      te.second.get()->ToString(*pAccountViewTip), std::get<1>(ret));
         }
     }
     for (auto const &tee : erase) {
         CWalletDB(strWalletFile).EraseUnconfirmedTx(tee);
-        UnConfirmTx.erase(tee);
+        unconfirmedTx.erase(tee);
     }
 }
 
@@ -222,8 +222,8 @@ std::tuple<bool, string> CWallet::CommitTransaction(CBaseTx *pTx) {
     }
 
     uint256 txhash      = pTx->GetHash();
-    UnConfirmTx[txhash] = pTx->GetNewInstance();
-    bool flag           = CWalletDB(strWalletFile).WriteUnconfirmedTx(txhash, UnConfirmTx[txhash]);
+    unconfirmedTx[txhash] = pTx->GetNewInstance();
+    bool flag           = CWalletDB(strWalletFile).WriteUnconfirmedTx(txhash, unconfirmedTx[txhash]);
     ::RelayTransaction(pTx, txhash);
 
     return std::make_tuple(flag, txhash.ToString());
@@ -459,7 +459,7 @@ Object CAccountTx::ToJsonObj(CKeyID const &key) const {
 
 uint256 CWallet::GetCheckSum() const {
     CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
-    ss << nWalletVersion << bestBlock << mapMasterKeys << mapInBlockTx << UnConfirmTx;
+    ss << nWalletVersion << bestBlock << mapMasterKeys << mapInBlockTx << unconfirmedTx;
     return ss.GetHash();
 }
 
@@ -479,11 +479,11 @@ bool CWallet::IsMine(CBaseTx *pTx) const {
 }
 
 bool CWallet::CleanAll() {
-    for_each(UnConfirmTx.begin(), UnConfirmTx.end(),
+    for_each(unconfirmedTx.begin(), unconfirmedTx.end(),
              [&](std::map<uint256, std::shared_ptr<CBaseTx> >::reference a) {
                  CWalletDB(strWalletFile).EraseUnconfirmedTx(a.first);
              });
-    UnConfirmTx.clear();
+    unconfirmedTx.clear();
 
     for_each(mapInBlockTx.begin(), mapInBlockTx.end(),
              [&](std::map<uint256, CAccountTx>::reference a) {

@@ -82,13 +82,13 @@ public:
     virtual void GetKeys(set<CKeyID> &setAddress, bool bFlag) const             = 0;
     virtual bool GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut, bool IsMine) const;
 
-    virtual bool AddCScript(const CScript &script)                        = 0;
+    virtual bool AddCScript(const CMulsigScript &script)                        = 0;
     virtual bool HaveCScript(const CKeyID &keyId) const                       = 0;
-    virtual bool GetCScript(const CKeyID &keyId, CScript &script) const = 0;
+    virtual bool GetCScript(const CKeyID &keyId, CMulsigScript &script) const = 0;
 };
 
 typedef map<CKeyID, CKeyCombi> KeyMap;
-typedef map<CKeyID, CScript> ScriptMap;
+typedef map<CKeyID, CMulsigScript> ScriptMap;
 
 /** Basic key store, that keeps keys in an address->secret map */
 class CBasicKeyStore : public CKeyStore {
@@ -144,9 +144,9 @@ public:
         return false;
     }
 
-    virtual bool AddCScript(const CScript &script);
+    virtual bool AddCScript(const CMulsigScript &script);
     virtual bool HaveCScript(const CKeyID &keyId) const;
-    virtual bool GetCScript(const CKeyID &keyId, CScript &script) const;
+    virtual bool GetCScript(const CKeyID &keyId, CMulsigScript &script) const;
 };
 
 typedef vector<unsigned char, secure_allocator<unsigned char> > CKeyingMaterial;

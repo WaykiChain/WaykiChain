@@ -201,7 +201,7 @@ bool CBasicKeyStore::GetKeyCombi(const CKeyID & address, CKeyCombi & keyCombiOut
 //     return true;
 // }
 
-bool CBasicKeyStore::AddCScript(const CScript& script) {
+bool CBasicKeyStore::AddCScript(const CMulsigScript& script) {
     LOCK(cs_KeyStore);
     CKeyID keyId = script.GetID();
     mapScripts[keyId] = script;
@@ -213,7 +213,7 @@ bool CBasicKeyStore::HaveCScript(const CKeyID& keyId) const {
     return mapScripts.count(keyId) > 0;
 }
 
-bool CBasicKeyStore::GetCScript(const CKeyID& keyId, CScript& script) const {
+bool CBasicKeyStore::GetCScript(const CKeyID& keyId, CMulsigScript& script) const {
     LOCK(cs_KeyStore);
     ScriptMap::const_iterator mi = mapScripts.find(keyId);
     if (mi != mapScripts.end()) {

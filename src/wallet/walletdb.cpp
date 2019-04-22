@@ -42,7 +42,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,str
             ssValue >> pBaseTx;
             if (pBaseTx->GetHash() == hash) {
                 if (pwallet != NULL)
-                    pwallet->UnConfirmTx[hash] = pBaseTx->GetNewInstance();
+                    pwallet->unconfirmedTx[hash] = pBaseTx->GetNewInstance();
             } else {
                 strErr = "Error reading wallet database: tx corrupt";
                 return false;
@@ -435,8 +435,8 @@ void ThreadRelayTx(CWallet* pWallet)
        RenameThread("relay-tx");
        while(pWallet) {
            MilliSleep(60*1000);
-           map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx =  pWallet->UnConfirmTx.begin();
-            for(; iterTx != pWallet->UnConfirmTx.end(); ++iterTx)
+           map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx =  pWallet->unconfirmedTx.begin();
+            for(; iterTx != pWallet->unconfirmedTx.end(); ++iterTx)
             {
                 if(mempool.Exists(iterTx->first)) {
                     RelayTransaction(iterTx->second.get(), iterTx->first);

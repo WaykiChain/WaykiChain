@@ -223,7 +223,7 @@ static const CRPCCommand vRPCCommands[] =
     { "setcheckpoint",          &setcheckpoint,          true,      true,       false },
     { "validateaddr",           &validateaddr,           true,      true,       false },
     { "validateaddress",        &validateaddr,           true,      true,       false }, //deprecated
-    { "createmultisig",         &createmultisig,         true,      true ,      false },
+    { "createmulsig",           &createmulsig,           true,      true ,      false },
     { "listtxbyaddr",           &listtxbyaddr,           true,      true,       false },
 
     /* P2P networking */
@@ -263,12 +263,13 @@ static const CRPCCommand vRPCCommands[] =
     { "gensendtoaddressraw",    &gensendtoaddressraw,    false,     false,     false },
     { "registeraccountraw",     &genregisteraccountraw,  false,     false,     false },  /* deprecated */
     { "genregisteraccountraw",  &genregisteraccountraw,  false,     false,     false },
-    { "genregistercontractraw", &genregistercontractraw, true,      false,     false },
-    { "gencallcontractraw",     &gencallcontractraw,     true,      false,     false },
-    { "genvotedelegateraw",     &genvotedelegateraw,     true,      false,     true  },
+    { "genregistercontractraw", &genregistercontractraw, false,     false,     false },
+    { "gencallcontractraw",     &gencallcontractraw,     false,     false,     false },
+    { "genvotedelegateraw",     &genvotedelegateraw,     false,     false,     false },
+    { "genmulsigtx",            &genmulsigtx,            false,     false,     false },
 
     /* uses wallet if enabled */
-    { "addmultisigaddr",        &addmultisigaddr,        false,     false,      true },
+    { "addmulsigaddr",          &addmulsigaddr,          false,     false,      true },
     { "backupwallet",           &backupwallet,           true,      false,      true },
     { "dumpprivkey",            &dumpprivkey,            true,      false,      true },
     { "dumpwallet",             &dumpwallet,             true,      false,      true },
@@ -317,15 +318,16 @@ static const CRPCCommand vRPCCommands[] =
     // { "dispersebalance",        &dispersebalance,        false,     false,      true },
     { "getassets",              &getassets,              false,     false,      true },
     { "listcontractassets",     &listcontractassets,     false,     false,      true },
-    { "submittx",               &sendrawtx,              true,      false,      false}, //deprecated
-    { "sendrawtx",              &sendrawtx,              true,      false,      false},
+    { "submittx",               &sendtxraw,              true,      false,      false}, //deprecated
+    { "sendtxraw",              &sendtxraw,              true,      false,      false},
 
-    { "sigstr",                 &sigstr,                 true,      false,      true },
+    { "signtxraw",              &signtxraw,              true,      false,      true },
     { "getcontractaccountinfo", &getcontractaccountinfo, true,      false,      true },
     { "getcontractkeyvalue",    &getcontractkeyvalue,    true,      false,      true },
     { "getsignature",           &getsignature,           true,      false,      true },
     { "listdelegates",          &listdelegates,          true,      false,      true },
-    { "decoderawtx",            &decoderawtx,            false,     false,      false},
+    { "decodetxraw",            &decodetxraw,            false,     false,      false},
+    { "decodemulsigscript",     &decodemulsigscript,     false,     false,      false },
 
     /* for test code */
     { "gettxoperationlog",      &gettxoperationlog,      false,     false,      false},
@@ -343,8 +345,7 @@ static const CRPCCommand vRPCCommands[] =
     { "startcontracttpstest",   &startcontracttpstest,   true,      true,       false},
 
     /* vm functions work in vm simulator */
-    { "vmexecutescript",        &vmexecutescript,   true,      true,       true},
-
+    { "vmexecutescript",        &vmexecutescript,        true,      true,       true},
 };
 
 CRPCTable::CRPCTable() {
