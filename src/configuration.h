@@ -50,12 +50,6 @@ namespace Checkpoints
     extern bool fEnabled;
 }
 
-typedef enum  {
-	emNODE_1,
-	emNODE_2,
-	MAX_NODE		//!< MAX_NETWORK_TYPES
-} NODE_NUMBER;
-
 class G_CONFIG_TABLE {
 public:
 	string GetCoinName() const { return COIN_NAME; }
