@@ -180,7 +180,7 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
     uint64_t totalVotes = vVoteFunds.empty() ? 0 : vVoteFunds.begin()->GetVoteCount();
 
     for (auto operVote = operVoteFunds.begin(); operVote != operVoteFunds.end(); ++operVote) {
-        CID voteId = operVote->fund.GetVoteId();
+        CUserID voteId = operVote->fund.GetVoteId();
         vector<CVoteFund>::iterator itfund =
             find_if(vVoteFunds.begin(), vVoteFunds.end(),
                     [voteId](CVoteFund fund) { return fund.GetVoteId() == voteId; });

@@ -599,9 +599,8 @@ Value callcontracttx(const Array& params, bool fHelp) {
         tx.get()->nValidHeight = height;
 
         CKeyID keyId;
-        if (!view.GetKeyId(userId, keyId)) {
-            CID id(userId);
-            LogPrint("INFO", "callcontracttx: %s no key id\n", HexStr(id.GetID()).c_str());
+        if (!view.GetKeyId(userId, keyId)) {            
+            LogPrint("INFO", "callcontracttx: %s no key id\n", userId.ToString());
             throw JSONRPCError(RPC_WALLET_ERROR, "callcontracttx Error: no key id.");
         }
 
@@ -868,7 +867,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             if (!view.GetAccount(CUserID(delegateKeyId), delegateAcct)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address is unregistered");
             }
-            operVoteFund.fund.SetVoteId( CID(delegateAcct.pubKey) ); //FIXME: can be RegID as well
+            operVoteFund.fund.SetVoteId( CUserID(delegateAcct.pubKey) ); //FIXME: can be RegID as well
             operVoteFund.fund.SetVoteCount( (uint64_t)abs(delegateVotes.get_int64()) );
             if (delegateVotes.get_int64() > 0) {
                 operVoteFund.operType = ADD_FUND;
@@ -991,7 +990,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                    "Voted delegator's address is unregistered");
             }
-            operVoteFund.fund.SetVoteId( CID(delegateAcct.pubKey) );
+            operVoteFund.fund.SetVoteId( CUserID(delegateAcct.pubKey) );
             operVoteFund.fund.SetVoteCount( (uint64_t)abs(delegateVotes.get_int64()) );
             if (delegateVotes.get_int64() > 0) {
                 operVoteFund.operType = ADD_FUND;
@@ -2397,10 +2396,8 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
     CAccountViewCache view(*pAccountViewTip, true);
     CKeyID keyId;
     if (!view.GetKeyId(userRegId, keyId)) {
-        CID id(userRegId);
-        string hexId = HexStr(id.GetID()).c_str();
-        LogPrint("ERROR", "from address %s has no keyId\n", hexId);
-        throw runtime_error(tinyformat::format("from address %s has no keyId", hexId));
+        LogPrint("ERROR", "from address %s has no keyId\n", userRegId.ToString());
+        throw runtime_error(tinyformat::format("from address %s has no keyId", userRegId.ToString()));
     }
 
     std::shared_ptr<CContractTx> tx = std::make_shared<CContractTx>(

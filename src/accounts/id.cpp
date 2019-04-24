@@ -3,57 +3,11 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
+#include "tx/tx.h"
 #include "id.h"
-
-bool CID::Set(const CRegID &id) {
-    CDataStream ds(SER_DISK, CLIENT_VERSION);
-    ds << id;
-    vchData.clear();
-    vchData.insert(vchData.end(), ds.begin(), ds.end());
-    return true;
-}
-
-bool CID::Set(const CKeyID &id) {
-    vchData.resize(20);
-    memcpy(&vchData[0], &id, 20);
-    return true;
-}
-
-bool CID::Set(const CPubKey &id) {
-    vchData.resize(id.size());
-    memcpy(&vchData[0], &id, id.size());
-    return true;
-}
-
-bool CID::Set(const CNullID &id) {
-    return true;
-}
-
-bool CID::Set(const CUserID &userid) {
-    return boost::apply_visitor(CIDVisitor(this), userid);
-}
-
-CUserID CID::GetUserId() const {
-    unsigned long len = vchData.size();
-    if (1 < len && len <= 10) {
-        CRegID regId;
-        regId.SetRegIDByCompact(vchData);
-        return CUserID(regId);
-    } else if (len == 33) {
-        CPubKey pubKey(vchData);
-        return CUserID(pubKey);
-    } else if (len == 20) {
-        uint160 data = uint160(vchData);
-        CKeyID keyId(data);
-        return CUserID(keyId);
-    } else if(vchData.empty()) {
-        return CNullID();
-    } else {
-        LogPrint("ERROR", "vchData:%s, len:%d\n", HexStr(vchData).c_str(), len);
-        throw ios_base::failure("GetUserId error from CID");
-    }
-    return CNullID();
-}
+#include "database.h"
+// /** account db cache, global*/
+extern CAccountViewCache *pAccountViewTip;
 
 bool CRegID::Clean() {
     nHeight = 0 ;
@@ -112,7 +66,7 @@ bool CRegID::GetKeyId(const string & str,CKeyID &keyId) {
 }
 
 bool CRegID::IsRegIdStr(const string & str) {
-    return ( IsSimpleRegIdStr(str) || (str.length() == 12) )
+    return ( IsSimpleRegIdStr(str) || (str.length() == 12) );
 }
 
 void CRegID::SetRegID(string strRegID)

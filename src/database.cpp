@@ -249,8 +249,8 @@ bool CAccountViewCache::GetAccount(const CUserID &userId, CAccount &account) {
     } else if (userId.type() == typeid(CPubKey)) {
         ret = GetAccount(boost::get<CPubKey>(userId).GetKeyId(), account);
 
-    } else if (userId.type() == typeid(CAccountNickID)) {
-        ret = GetAccount(boost::get<CAccountNickID>(userId).GetNickId(), account);
+    } else if (userId.type() == typeid(CNickID)) {
+        ret = GetAccount(boost::get<CNickID>(userId).GetNickId(), account);
 
     } else if (userId.type() == typeid(CNullID)) {
         return ERRORMSG("GetAccount: userId can't be of CNullID type");

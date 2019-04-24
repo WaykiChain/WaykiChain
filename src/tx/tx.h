@@ -190,14 +190,8 @@ public:
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
-        CID id(userId);
-        READWRITE(id);
-        CID mMinerid(minerId);
-        READWRITE(mMinerid);
-        if (fRead) {
-            userId  = id.GetUserId();
-            minerId = mMinerid.GetUserId();
-        }
+        READWRITE(userId);
+        READWRITE(minerId);
         READWRITE(VARINT(llFees));
         READWRITE(signature);)
 
@@ -207,9 +201,7 @@ public:
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            CID userPubkey(userId);
-            CID minerPubkey(minerId);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << userPubkey << minerPubkey
+            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << userId << minerId
                << VARINT(llFees);
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
@@ -283,25 +275,18 @@ public:
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
-        CID srcId(srcUserId);
-        READWRITE(srcId);
-        CID desId(desUserId);
-        READWRITE(desId);
+        READWRITE(srcUserId);
+        READWRITE(desUserId);
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(bcoinBalance));
         READWRITE(memo);
         READWRITE(signature);
-        if (fRead) {
-            srcUserId  = srcId.GetUserId();
-            desUserId = desId.GetUserId();
-        })
+    )
 
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            CID srcId(srcUserId);
-            CID desId(desUserId);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << srcId << desId
+            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << srcUserId << desUserId
                << VARINT(llFees) << VARINT(bcoinBalance) << memo;
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
@@ -377,25 +362,19 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
-        READWRITE(VARINT(nValidHeight)); CID srcId(srcRegId);
-        READWRITE(srcId);
-        CID desId(desUserId);
-        READWRITE(desId);
+        READWRITE(VARINT(nValidHeight));
+        READWRITE(srcRegId);
+        READWRITE(desUserId);
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(bcoinBalance));
         READWRITE(arguments);
         READWRITE(signature);
-        if (fRead) {
-            srcRegId  = srcId.GetUserId();
-            desUserId = desId.GetUserId();
-        })
+    )
 
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            CID srcId(srcRegId);
-            CID desId(desUserId);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << srcId << desId
+            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << srcRegId << desUserId
                << VARINT(llFees) << VARINT(bcoinBalance) << arguments;
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
@@ -447,19 +426,14 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
-        CID acctId(account);
-        READWRITE(acctId);
-        if (fRead) {
-            account = acctId.GetUserId();
-        }
+        READWRITE(account);
         READWRITE(VARINT(rewardValue));
         READWRITE(VARINT(nHeight));)
 
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            CID accId(account);
-            ss << VARINT(nVersion) << nTxType << accId << VARINT(rewardValue) << VARINT(nHeight);
+            ss << VARINT(nVersion) << nTxType << account << VARINT(rewardValue) << VARINT(nHeight);
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
             *hash         = ss.GetHash();
@@ -499,11 +473,7 @@ public:
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
-        CID regId(regAcctId);
-        READWRITE(regId);
-        if (fRead) {
-            regAcctId = regId.GetUserId();
-        }
+        READWRITE(regAcctId);
         READWRITE(script);
         READWRITE(VARINT(llFees));
         READWRITE(signature);)
@@ -511,8 +481,7 @@ public:
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            CID regAccId(regAcctId);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << regAccId << script
+            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << regAcctId << script
                << VARINT(llFees);
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
@@ -573,20 +542,16 @@ public:
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
-        CID ID(userId);
-        READWRITE(ID);
+        READWRITE(userId);
         READWRITE(operVoteFunds);
         READWRITE(VARINT(llFees));
         READWRITE(signature);
-        if (fRead) {
-            userId = ID.GetUserId();
-        })
+    )
 
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            CID accId(userId);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << accId << operVoteFunds
+            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << userId << operVoteFunds
                << VARINT(llFees);
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
@@ -740,26 +705,22 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(signaturePairs);
-        CID desId(desUserId);
-        READWRITE(desId);
+        READWRITE(desUserId);
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(bcoinBalance));
         READWRITE(VARINT(required));
         READWRITE(memo);
-        if (fRead) {
-            desUserId = desId.GetUserId();
-        })
-
+    )
+ 
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            CID desId(desUserId);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight);
             // Do NOT add item.signature.
             for (const auto &item : signaturePairs) {
-                ss << CID(item.regId);
+                ss << item.regId;
             }
-            ss << desId << VARINT(llFees) << VARINT(bcoinBalance) << VARINT(required) << memo;
+            ss << desUserId << VARINT(llFees) << VARINT(bcoinBalance) << VARINT(required) << memo;
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
             *hash         = ss.GetHash();

@@ -1354,7 +1354,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
 
                 CAccount voterAcct;
                 assert( view.GetAccount(pDelegateTx->userId, voterAcct) );
-                CID voterCId(pDelegateTx->userId);
+                CUserID voterCId(pDelegateTx->userId);
                 uint64_t maxVotes = 0;
                 CScriptDBOperLog operDbLog;
                 int j = i;
@@ -1364,10 +1364,9 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                         maxVotes = operFund.fund.GetVoteCount();
                     }
 
-                    CID votedCId = operFund.fund.GetVoteId();
-                    CUserID votedUId = votedCId.GetUserId();
+                    CUserID votedUId = operFund.fund.GetVoteId();
 
-                    if (voterCId == votedCId) { //vote for self
+                    if (voterCId == votedUId) { //vote for self
                         voterAcct.receivedVotes = operFund.fund.GetVoteCount();
                         assert( scriptDBCache.SetDelegateData(voterAcct, operDbLog) );
                     } else { //vote for others

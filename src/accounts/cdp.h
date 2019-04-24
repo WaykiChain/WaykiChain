@@ -14,6 +14,7 @@
 
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
+#include "commons/serialize.h"
 // #include "key.h"
 // #include "chainparams.h"
 // #include "crypto/hash.h"
@@ -28,15 +29,17 @@ public:
     CCdp() {}
     CCdp(uint64_t bcoinAmountIn, uint64_t scoinAmountIn): bcoinAmount(bcoinAmountIn), scoinAmount(scoinAmountIn) {}
 
-    GetBcoindAmount() { return bcoinAmount; }
-    GetScoinAmount() { return scoinAmount; }
+    uint64_t GetBcoindAmount() const { return bcoinAmount; }
+    uint64_t GetScoinAmount() const { return scoinAmount; }
 
     IMPLEMENT_SERIALIZE(
         READWRITE(bcoinAmount);
-        READWRITE(scoinAmount);)
+        READWRITE(scoinAmount);
+    )
 };
 
 class CCdpCacheView {
 
 }
-#endif
+
+#endif//CDP_H

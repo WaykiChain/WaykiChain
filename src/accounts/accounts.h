@@ -32,7 +32,7 @@ public:
     CKeyID keyID;                   //!< keyID of the account (interchangeable to address)
     CPubKey pubKey;                 //!< public key of the account
     CPubKey minerPubKey;            //!< miner public key of the account
-    CAccountNickID nickID;          //!< Nickname ID of the account (maxlen=32)
+    CNickID nickID;                 //!< Nickname ID of the account (maxlen=32)
 
     uint64_t bcoinBalance;          //!< BaseCoin balance
     uint64_t scoinBalance;          //!< StableCoin balance
@@ -60,7 +60,7 @@ public:
     bool OperateVote(VoteOperType type, const uint64_t &values);
 
 public:
-    CAccount(CKeyID &keyId, CPubKey &pubKey, CAccountNickID &nickId)
+    CAccount(CKeyID &keyId, CPubKey &pubKey, CNickID &nickId)
         : keyID(keyId),
           pubKey(pubKey),
           nickID(nickId),

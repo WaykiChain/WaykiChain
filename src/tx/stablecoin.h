@@ -34,20 +34,16 @@ public:
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
-        CID uid(userId);
-        READWRITE(uid);
+        READWRITE(userId);
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(collateralAmount));
         READWRITE(signature);
-        if (fRead) {
-            userId  = uid.GetUserId();
-        })
+    )
 
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            CID uid(userId);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << uid
+            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << userId
                << VARINT(llFees) << VARINT(collateralAmount);
 
             uint256 *hash = const_cast<uint256 *>(&sigHash);
