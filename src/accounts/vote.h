@@ -18,6 +18,7 @@
 #include "key.h"
 #include "chainparams.h"
 #include "crypto/hash.h"
+#include "accounts/id.h"
 
 /**
  * Usage:   vote fund types
@@ -42,28 +43,28 @@ enum VoteOperType: unsigned char {
 
 class CVoteFund {
 private:
-    CID voteId;             //!< candidate RegId or PubKey
+    CUserID voteId;             //!< candidate RegId or PubKey
     uint64_t voteCount;     //!< count of votes to the candidate
 
     uint256 sigHash;        //!< only in memory
 
 public:
-    CID GetVoteId() { return voteId; }
+    CUserID GetVoteId() { return voteId; }
     uint64_t GetVoteCount() { return voteCount; }
 
     void SetVoteCount(uint64_t votes) { voteCount = votes; }
-    void SetVoteId(CID voteIdIn) { voteId = voteIdIn; }
+    void SetVoteId(CUserID voteIdIn) { voteId = voteIdIn; }
 
 public:
     CVoteFund() {
-        voteId = CID();
+        voteId = CUserID();
         voteCount  = 0;
     }
     CVoteFund(uint64_t voteCountIn) {
-        voteId = CID();
+        voteId = CUserID();
         voteCount  = voteCountIn;
     }
-    CVoteFund(CID voteIdIn, uint64_t voteCountIn) {
+    CVoteFund(CUserID voteIdIn, uint64_t voteCountIn) {
         voteId = voteIdIn;
         voteCount  = voteCountIn;
     }
@@ -118,10 +119,10 @@ public:
         return str;
     }
 
-    Object ToJson() const {
-        Object obj;
-        obj.push_back(Pair("voteId", this->voteId.ToJson()));
-        obj.push_back(Pair("votes", voteCount));
+    json_spirit::Object ToJson() const {
+        json_spirit::Object obj;
+        obj.push_back(json_spirit::Pair("voteId", this->voteId.ToJson()));
+        obj.push_back(json_spirit::Pair("votes", voteCount));
         return obj;
     }
 };
@@ -151,8 +152,8 @@ public:
         return strprintf("operVoteType=%s %s", voteOperTypeArray[operType], fund.ToString()); 
     }
 
-    Object ToJson() const {
-        Object obj;
+    json_spirit::Object ToJson() const {
+        json_spirit::Object obj;
         string sOperType;
         if (operType >= 3) {
             sOperType = "INVALID_OPER_TYPE";
@@ -160,8 +161,8 @@ public:
         } else {
             sOperType = voteOperTypeArray[operType];
         }
-        obj.push_back(Pair("operType", sOperType));
-        obj.push_back(Pair("voteFund", fund.ToJson()));
+        obj.push_back(json_spirit::Pair("operType", sOperType));
+        obj.push_back(json_spirit::Pair("voteFund", fund.ToJson()));
         return obj;
     }
 };
