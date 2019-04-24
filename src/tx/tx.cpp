@@ -1303,11 +1303,6 @@ bool CDelegateTx::CheckTx(CValidationState &state, CAccountViewCache &view,
             REJECT_INVALID, "deletegates-duplication fund-error");
     }
 
-    if (totalVotes > sendAcct.bcoinBalance) {
-       return state.DoS(100, ERRORMSG("CDelegateTx::CheckTx, delegate votes (%d) exceeds account balance (%d), userid=%s",
-            totalVotes, sendAcct.bcoinBalance, userId.ToString()), REJECT_INVALID, "insufficient balance for votes");
-    }
-
     return true;
 }
 
