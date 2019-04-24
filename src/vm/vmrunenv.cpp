@@ -48,9 +48,9 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountViewCache& view, int
     }
 
     CContractTx* contractTx = static_cast<CContractTx*>(tx.get());
-    if (!pScriptDBViewCache->GetScript(boost::get<CRegID>(contractTx->desUserId), vScript)) {
+    if (!pScriptDBViewCache->GetScript(contractTx->desUserId.get<CRegID>(), vScript)) {
         LogPrint("ERROR", "Script is not Registed %s\n",
-                 boost::get<CRegID>(contractTx->desUserId).ToString());
+                 contractTx->desUserId.get<CRegID>().ToString());
         return false;
     }
 
@@ -246,7 +246,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
             CRegID regId(accountId);
             CContractTx* tx = static_cast<CContractTx*>(pBaseTx.get());
             /// current tx's script cant't mius other script's regid
-            if (pScriptDBViewCache->HaveScript(regId) && regId != boost::get<CRegID>(tx->desUserId))
+            if (pScriptDBViewCache->HaveScript(regId) && regId != tx->desUserId.get<CRegID>())
                 return false;
 
             memcpy(&operValue, it.money, sizeof(it.money));
@@ -324,7 +324,7 @@ bool CVmRunEnv::CheckAppAcctOperate(CContractTx* tx) {
     uint64_t sysContractAcct(0);
     for (auto item : vmOperateOutput) {
         vector_unsigned_char vAccountId = GetAccountID(item);
-        if (vAccountId == boost::get<CRegID>(tx->desUserId).GetVec6() &&
+        if (vAccountId == tx->desUserId.get<CRegID>().GetVec6() &&
             item.opType == MINUS_FREE) {
             uint64_t value;
             memcpy(&value, item.money, sizeof(item.money));
@@ -422,7 +422,7 @@ bool CVmRunEnv::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
         //      vector<CScriptDBOperLog> vAuthorLog;
         // todolist
         //      if(IsSignatureAccount(vmAccount.get()->regID) || vmAccount.get()->regID ==
-        //      boost::get<CRegID>(tx->appRegId))
+        //      tx->appRegId.get<CRegID>())
         { ret = vmAccount.get()->OperateAccount((OperType)it.opType, value, nCurHeight); }
         //      else{
         //          ret = vmAccount.get()->OperateAccount((OperType)it.opType, fund,
@@ -442,12 +442,12 @@ bool CVmRunEnv::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
 
 const CRegID& CVmRunEnv::GetScriptRegID() {  // 获取目的账户ID
     CContractTx* tx = static_cast<CContractTx*>(pBaseTx.get());
-    return boost::get<CRegID>(tx->desUserId);
+    return tx->desUserId.get<CRegID>();
 }
 
 const CRegID& CVmRunEnv::GetTxAccount() {
     CContractTx* tx = static_cast<CContractTx*>(pBaseTx.get());
-    return boost::get<CRegID>(tx->srcRegId);
+    return tx->srcRegId.get<CRegID>();
 }
 
 uint64_t CVmRunEnv::GetValue() const {

@@ -93,11 +93,7 @@ public:
     friend bool operator<(const CNickID &a, const CNickID &b) { return a < b; }
 };
 
-typedef boost::variant<CNullID, CRegID, CKeyID, CPubKey, CNickID> __CUserID;
-
-class CUserID : public __CUserID {
-    using __CUserID::__CUserID;
-
+class CUserID {
 public:
     enum SerializeFlag {
         FlagNullType = 0,
@@ -108,17 +104,46 @@ public:
         FlagNickID   = 100
     };
 
+private:
+    boost::variant<CNullID, CRegID, CKeyID, CPubKey, CNickID>  uid;
+
+public:    
+    CUserID(): uid(CNullID()) {}
+
+    template <typename ID>
+    CUserID(const ID &id): uid(id) {}
+
+    template <typename ID>
+    CUserID& operator=(const ID& id) {
+        uid = id;
+        return *this;
+    }
+
+    template <typename ID>
+    ID& get() {
+        return boost::get<ID>(uid);
+    }
+
+    template <typename ID>
+    const ID& get() const {
+        return boost::get<ID>(uid);
+    }
+
+    const std::type_info& type() const {
+        return uid.type();
+    }
+
 public:
     std::string GetIDName() const {
-        if (type() == typeid(CRegID)) {
+        if (uid.type() == typeid(CRegID)) {
             return "RegID";
-        } else if (type() == typeid(CKeyID)) {
+        } else if (uid.type() == typeid(CKeyID)) {
             return "KeyID";
-        } else if (type() == typeid(CPubKey)) {
+        } else if (uid.type() == typeid(CPubKey)) {
             return "PubKey";
-        } else if (type() == typeid(CNickID)) {
+        } else if (uid.type() == typeid(CNickID)) {
             return "NickID";
-        } else if (type() == typeid(CNullID)) {
+        } else if (uid.type() == typeid(CNullID)) {
             return "Null";
         } else {
             return "UnknownType";
@@ -126,14 +151,14 @@ public:
     }
 
     string ToString() const {
-        if (type() == typeid(CRegID)) {
-            return boost::get<CRegID>(*this).ToString();
+        if (uid.type() == typeid(CRegID)) {
+            return boost::get<CRegID>(uid).ToString();
         } else if (type() == typeid(CKeyID)) {
-            return boost::get<CKeyID>(*this).ToString();
+            return boost::get<CKeyID>(uid).ToString();
         } else if (type() == typeid(CPubKey)) {
-            return boost::get<CPubKey>(*this).ToString();
+            return boost::get<CPubKey>(uid).ToString();
         } else if (type() == typeid(CNickID)) {
-            return boost::get<CNickID>(*this).ToString();
+            return boost::get<CNickID>(uid).ToString();
         } else if (type() == typeid(CNullID)) {
             return "Null";
         } else {
@@ -146,13 +171,13 @@ public:
             return false;
         }
         if (id1.type() == typeid(CRegID)) {
-            return boost::get<CRegID>(id1) == boost::get<CRegID>(id2);
+            return id1.get<CRegID>() == id2.get<CRegID>();
         } else if (id1.type() == typeid(CKeyID)) {
-            return boost::get<CKeyID>(id1) == boost::get<CKeyID>(id2);
+            return id1.get<CKeyID>() == id2.get<CKeyID>();
         } else if (id1.type() == typeid(CPubKey)) {
-            return boost::get<CPubKey>(id1) == boost::get<CPubKey>(id2);
+            return id1.get<CPubKey>() == id2.get<CPubKey>();
         } else if (id1.type() == typeid(CNickID)) {
-            return boost::get<CNickID>(id1) == boost::get<CNickID>(id2);
+            return id1.get<CNickID>() == id2.get<CNickID>();
         } else {  // CNullID
             return sizeof(unsigned char);
         }
@@ -167,23 +192,23 @@ public:
     }
 
     inline unsigned int GetSerializeSize(int nType, int nVersion) const {
-        if (type() == typeid(CRegID)) {
-            CRegID regId = boost::get<CRegID>(*this);
+        if (uid.type() == typeid(CRegID)) {
+            CRegID regId = boost::get<CRegID>(uid);
             unsigned int sz = regId.GetSerializeSize(nType, nVersion);
             assert(FlagRegIDMin <= sz && sz <= FlagRegIDMax);
             return sizeof(unsigned char) + sz;
-        } else if (type() == typeid(CKeyID)) {
-            CKeyID keyId = boost::get<CKeyID>(*this);
+        } else if (uid.type() == typeid(CKeyID)) {
+            CKeyID keyId = boost::get<CKeyID>(uid);
             unsigned int sz = keyId.GetSerializeSize(nType, nVersion);
             assert(sz == FlagKeyID);
             return sizeof(unsigned char) + sz;
-        } else if (type() == typeid(CPubKey)) {
-            CPubKey pubKey = boost::get<CPubKey>(*this);
+        } else if (uid.type() == typeid(CPubKey)) {
+            CPubKey pubKey = boost::get<CPubKey>(uid);
             unsigned int sz = pubKey.GetSerializeSize(nType, nVersion);
             assert(sz == sizeof(unsigned char) + FlagPubKey);
             return sz;
-        } else if (type() == typeid(CNickID)) {
-            CNickID nickId = boost::get<CNickID>(*this);
+        } else if (uid.type() == typeid(CNickID)) {
+            CNickID nickId = boost::get<CNickID>(uid);
             return sizeof(unsigned char) + nickId.GetSerializeSize(nType, nVersion);
         } else {  // CNullID
             return sizeof(unsigned char);
@@ -192,21 +217,21 @@ public:
 
     template <typename Stream>
     void Serialize(Stream &s, int nType, int nVersion) const {
-        if (type() == typeid(CRegID)) {
-            CRegID regId = boost::get<CRegID>(*this);
+        if (uid.type() == typeid(CRegID)) {
+            CRegID regId = boost::get<CRegID>(uid);
             unsigned int sz = regId.GetSerializeSize(nType, nVersion);
             assert(FlagRegIDMin <= sz && sz <= FlagRegIDMax);
             s << (unsigned char)sz << regId;
-        } else if (type() == typeid(CKeyID)) {
-            CKeyID keyId = boost::get<CKeyID>(*this);
+        } else if (uid.type() == typeid(CKeyID)) {
+            CKeyID keyId = boost::get<CKeyID>(uid);
             assert(keyId.GetSerializeSize(nType, nVersion) == FlagKeyID);
             s << (unsigned char)FlagKeyID << keyId;
-        } else if (type() == typeid(CPubKey)) {
-            CPubKey pubKey = boost::get<CPubKey>(*this);
+        } else if (uid.type() == typeid(CPubKey)) {
+            CPubKey pubKey = boost::get<CPubKey>(uid);
             assert(pubKey.GetSerializeSize(nType, nVersion) == sizeof(unsigned char) + FlagPubKey);
             s << pubKey;
-        } else if (type() == typeid(CNickID)) {
-            CNickID nickId = boost::get<CNickID>(*this);
+        } else if (uid.type() == typeid(CNickID)) {
+            CNickID nickId = boost::get<CNickID>(uid);
             s << (unsigned char)FlagNickID << nickId;
         } else {  // CNullID
             s << (unsigned char)0;
@@ -219,17 +244,17 @@ public:
         SerializeFlag typeFlag = (SerializeFlag)ReadCompactSize(s);
 
         if (typeFlag == FlagNullType) {
-            *this = CNullID();
+            uid = CNullID();
         } else if (typeFlag == FlagNickID) {  // idType >= 100
             CNickID nickId;
             s >> nickId;
-            *this = nickId;
+            uid = nickId;
         } else {  // it is the length of id content
             int len = typeFlag;
             if (FlagRegIDMin <= len && len <= FlagRegIDMax) {
                 CRegID regId(0, 0);
                 s >> regId;
-                *this = regId;
+                uid = regId;
             } else if (len == FlagKeyID) {
                 vector_unsigned_char vchData;
                 vchData.resize(len);
@@ -237,14 +262,14 @@ public:
                 s.read((char *)&vchData[0], len * sizeof(vchData[0]));
                 uint160 data = uint160(vchData);
                 CKeyID keyId(data);
-                *this = keyId;
+                uid = keyId;
             } else if (len == FlagPubKey) {
                 vector_unsigned_char vchData;
                 vchData.resize(len);
                 assert(len > 0);
                 s.read((char *)&vchData[0], len * sizeof(vchData[0]));
                 CPubKey pubKey(vchData);
-                *this = pubKey;
+                uid = pubKey;
             } else {
                 invalidId = true;
             }

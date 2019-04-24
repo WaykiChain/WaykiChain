@@ -245,10 +245,10 @@ public:
 
         //FIXME: need to support public key
         if (srcUserIdIn.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(srcUserIdIn).IsEmpty());
+            assert(!srcUserIdIn.get<CRegID>().IsEmpty());
 
         if (desUserIdIn.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
+            assert(!desUserIdIn.get<CRegID>().IsEmpty());
 
         srcUserId    = srcUserIdIn;
         desUserId    = desUserIdIn;
@@ -259,10 +259,10 @@ public:
     CCommonTx(const CUserID &srcUserIdIn, CUserID desUserIdIn, uint64_t feeIn, uint64_t valueIn,
               int validHeightIn): CBaseTx(COMMON_TX, validHeightIn, feeIn) {
         if (srcUserIdIn.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(srcUserIdIn).IsEmpty());
+            assert(!srcUserIdIn.get<CRegID>().IsEmpty());
 
         if (desUserIdIn.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
+            assert(!desUserIdIn.get<CRegID>().IsEmpty());
 
         srcUserId    = srcUserIdIn;
         desUserId    = desUserIdIn;
@@ -332,10 +332,10 @@ public:
                 uint64_t valueIn, int validHeightIn, vector_unsigned_char &argumentsIn):
                 CBaseTx(CONTRACT_TX, validHeightIn, feeIn) {
         if (srcRegIdIn.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
+            assert(!srcRegIdIn.get<CRegID>().IsEmpty());
 
         if (desUserIdIn.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
+            assert(!desUserIdIn.get<CRegID>().IsEmpty());
 
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
@@ -347,10 +347,10 @@ public:
                 uint64_t valueIn, int validHeightIn):
                 CBaseTx(CONTRACT_TX, validHeightIn, feeIn) {
         if (srcRegIdIn.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(srcRegIdIn).IsEmpty());
+            assert(!srcRegIdIn.get<CRegID>().IsEmpty());
 
         if (desUserIdIn.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
+            assert(!desUserIdIn.get<CRegID>().IsEmpty());
 
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
@@ -530,7 +530,7 @@ public:
     CDelegateTx(const CUserID &userIdIn, const uint64_t feeIn,
                 const vector<COperVoteFund> &operVoteFundsIn, const int validHeightIn)
         : CBaseTx(DELEGATE_TX, validHeightIn, feeIn) {
-        if (userIdIn.type() == typeid(CRegID)) assert(!boost::get<CRegID>(userIdIn).IsEmpty());
+        if (userIdIn.type() == typeid(CRegID)) assert(!userIdIn.get<CRegID>().IsEmpty());
 
         userId        = userIdIn;
         operVoteFunds = operVoteFundsIn;
@@ -676,7 +676,7 @@ public:
                 const uint8_t requiredIn, const vector_unsigned_char &memoIn)
         : CBaseTx(COMMON_MULSIG_TX, validHeightIn, feeIn) {
         if (desUserIdIn.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
+            assert(!desUserIdIn.get<CRegID>().IsEmpty());
 
         signaturePairs = signaturePairsIn;
         desUserId      = desUserIdIn;
@@ -690,7 +690,7 @@ public:
                 const uint8_t requiredIn)
         : CBaseTx(COMMON_MULSIG_TX, validHeightIn, feeIn) {
         if (desUserIdIn.type() == typeid(CRegID))
-            assert(!boost::get<CRegID>(desUserIdIn).IsEmpty());
+            assert(!desUserIdIn.get<CRegID>().IsEmpty());
 
         signaturePairs = signaturePairsIn;
         desUserId      = desUserIdIn;

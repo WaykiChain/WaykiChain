@@ -1341,7 +1341,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                     dynamic_pointer_cast<CRewardTx>(block.vptx[i]);
                 CAccount sourceAccount;
                 CRegID accountId(pIndex->nHeight, i);
-                CPubKey pubKey      = boost::get<CPubKey>(pRewardTx->account);
+                CPubKey pubKey      = pRewardTx->account.get<CPubKey>();
                 CKeyID keyId        = pubKey.GetKeyId();
                 sourceAccount.keyID = keyId;
                 sourceAccount.pubKey = pubKey;
@@ -1378,7 +1378,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                         votedAcct.receivedVotes = operFund.fund.GetVoteCount();
 
                         if (votedUId.type() == typeid(CPubKey)) {
-                            votedAcct.pubKey = boost::get<CPubKey>(votedUId);
+                            votedAcct.pubKey = votedUId.get<CPubKey>();
                             votedAcct.keyID = votedAcct.pubKey.GetKeyId();
                         }
 

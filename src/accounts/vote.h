@@ -49,7 +49,7 @@ private:
     uint256 sigHash;        //!< only in memory
 
 public:
-    CUserID GetVoteId() { return voteId; }
+    const CUserID &GetVoteId() { return voteId; }
     uint64_t GetVoteCount() { return voteCount; }
 
     void SetVoteCount(uint64_t votes) { voteCount = votes; }
