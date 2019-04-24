@@ -429,7 +429,7 @@ Value getchainstate(const Array& params, bool fHelp) {
         block.SetNull();
         if (ReadBlockFromDisk(block, pBlockIndex)) {
             blockminer.push_back(
-                boost::get<CRegID>(dynamic_pointer_cast<CRewardTx>(block.vptx[0])->account)
+                dynamic_pointer_cast<CRewardTx>(block.vptx[0])->account.get<CRegID>()
                     .ToString());
         }
         pBlockIndex = pBlockIndex->pprev;

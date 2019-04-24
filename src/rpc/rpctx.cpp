@@ -160,16 +160,16 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             CCommonTx* ptx = (CCommonTx*)pBaseTx.get();
             CKeyID sendKeyID;
             if (ptx->srcUserId.type() == typeid(CPubKey)) {
-                sendKeyID = boost::get<CPubKey>(ptx->srcUserId).GetKeyId();
+                sendKeyID = ptx->srcUserId.get<CPubKey>().GetKeyId();
             } else if (ptx->srcUserId.type() == typeid(CRegID)) {
-                sendKeyID = boost::get<CRegID>(ptx->srcUserId).GetKeyId(*pAccountViewTip);
+                sendKeyID = ptx->srcUserId.get<CRegID>().GetKeyId(*pAccountViewTip);
             }
 
             CKeyID recvKeyId;
             if (ptx->desUserId.type() == typeid(CKeyID)) {
-                recvKeyId = boost::get<CKeyID>(ptx->desUserId);
+                recvKeyId = ptx->desUserId.get<CKeyID>();
             } else if (ptx->desUserId.type() == typeid(CRegID)) {
-                CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
+                CRegID desRegID = ptx->desUserId.get<CRegID>();
                 recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
             }
 
@@ -193,13 +193,13 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
         case CONTRACT_TX: {
             CContractTx* ptx = (CContractTx*)pBaseTx.get();
             CKeyID sendKeyID;
-            CRegID sendRegID = boost::get<CRegID>(ptx->srcRegId);
+            CRegID sendRegID = ptx->srcRegId.get<CRegID>();
             sendKeyID        = sendRegID.GetKeyId(*pAccountViewTip);
             CKeyID recvKeyId;
             if (ptx->desUserId.type() == typeid(CKeyID)) {
-                recvKeyId = boost::get<CKeyID>(ptx->desUserId);
+                recvKeyId = ptx->desUserId.get<CKeyID>();
             } else if (ptx->desUserId.type() == typeid(CRegID)) {
-                CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
+                CRegID desRegID = ptx->desUserId.get<CRegID>();
                 recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
             }
 
@@ -293,9 +293,9 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             CKeyID recvKeyId;
             if (ptx->desUserId.type() == typeid(CKeyID)) {
-                recvKeyId = boost::get<CKeyID>(ptx->desUserId);
+                recvKeyId = ptx->desUserId.get<CKeyID>();
             } else if (ptx->desUserId.type() == typeid(CRegID)) {
-                CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
+                CRegID desRegID = ptx->desUserId.get<CRegID>();
                 recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
             }
 
@@ -1107,13 +1107,13 @@ Value listtransactions(const Array& params, bool fHelp) {
             if (item.second->nTxType == COMMON_TX) {
                 CCommonTx* ptx = (CCommonTx*)item.second.get();
                 CKeyID sendKeyID;
-                CRegID sendRegID = boost::get<CRegID>(ptx->srcUserId);
+                CRegID sendRegID = ptx->srcUserId.get<CRegID>();
                 sendKeyID        = sendRegID.GetKeyId(*pAccountViewTip);
                 CKeyID recvKeyId;
                 if (ptx->desUserId.type() == typeid(CKeyID)) {
-                    recvKeyId = boost::get<CKeyID>(ptx->desUserId);
+                    recvKeyId = ptx->desUserId.get<CKeyID>();
                 } else if (ptx->desUserId.type() == typeid(CRegID)) {
-                    CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
+                    CRegID desRegID = ptx->desUserId.get<CRegID>();
                     recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
                 }
 
@@ -1181,13 +1181,13 @@ Value listtransactions(const Array& params, bool fHelp) {
             } else if (item.second->nTxType == CONTRACT_TX) {
                 CContractTx* ptx = (CContractTx*)item.second.get();
                 CKeyID sendKeyID;
-                CRegID sendRegID = boost::get<CRegID>(ptx->srcRegId);
+                CRegID sendRegID = ptx->srcRegId.get<CRegID>();
                 sendKeyID        = sendRegID.GetKeyId(*pAccountViewTip);
                 CKeyID recvKeyId;
                 if (ptx->desUserId.type() == typeid(CKeyID)) {
-                    recvKeyId = boost::get<CKeyID>(ptx->desUserId);
+                    recvKeyId = ptx->desUserId.get<CKeyID>();
                 } else if (ptx->desUserId.type() == typeid(CRegID)) {
-                    CRegID desRegID = boost::get<CRegID>(ptx->desUserId);
+                    CRegID desRegID = ptx->desUserId.get<CRegID>();
                     recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
                 }
 
@@ -1380,7 +1380,7 @@ Value listcontracttx(const Array& params, bool fHelp)
 
     auto getregidstring = [&](CUserID const &userId) {
         if(userId.type() == typeid(CRegID))
-            return boost::get<CRegID>(userId).ToString();
+            return userId.get<CRegID>().ToString();
         return string(" ");
     };
 
