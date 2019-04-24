@@ -241,16 +241,16 @@ bool CAccountViewCache::SaveAccountInfo(const CRegID &regid, const CKeyID &keyId
 bool CAccountViewCache::GetAccount(const CUserID &userId, CAccount &account) {
     bool ret = false;
     if (userId.type() == typeid(CRegID)) {
-        ret = GetAccount(boost::get<CRegID>(userId).GetVec6(), account);
+        ret = GetAccount(userId.get<CRegID>().GetVec6(), account);
 
     } else if (userId.type() == typeid(CKeyID)) {
-        ret = GetAccount(boost::get<CKeyID>(userId), account);
+        ret = GetAccount(userId.get<CKeyID>(), account);
 
     } else if (userId.type() == typeid(CPubKey)) {
-        ret = GetAccount(boost::get<CPubKey>(userId).GetKeyId(), account);
+        ret = GetAccount(userId.get<CPubKey>().GetKeyId(), account);
 
     } else if (userId.type() == typeid(CNickID)) {
-        ret = GetAccount(boost::get<CNickID>(userId).GetNickId(), account);
+        ret = GetAccount(userId.get<CNickID>().GetNickId(), account);
 
     } else if (userId.type() == typeid(CNullID)) {
         return ERRORMSG("GetAccount: userId can't be of CNullID type");
@@ -261,14 +261,14 @@ bool CAccountViewCache::GetAccount(const CUserID &userId, CAccount &account) {
 
 bool CAccountViewCache::GetKeyId(const CUserID &userId, CKeyID &keyId) {
     if (userId.type() == typeid(CRegID)) {
-        return GetKeyId(boost::get<CRegID>(userId).GetVec6(), keyId);
+        return GetKeyId(userId.get<CRegID>().GetVec6(), keyId);
 
     } else if (userId.type() == typeid(CPubKey)) {
-        keyId = boost::get<CPubKey>(userId).GetKeyId();
+        keyId = userId.get<CPubKey>().GetKeyId();
         return true;
 
     } else if (userId.type() == typeid(CKeyID)) {
-        keyId = boost::get<CKeyID>(userId);
+        keyId = userId.get<CKeyID>();
         return true;
 
     } else if (userId.type() == typeid(CNullID)) {
@@ -280,7 +280,7 @@ bool CAccountViewCache::GetKeyId(const CUserID &userId, CKeyID &keyId) {
 
 bool CAccountViewCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
     if (userId.type() == typeid(CRegID))
-        return SetKeyId(boost::get<CRegID>(userId).GetVec6(), keyId);
+        return SetKeyId(userId.get<CRegID>().GetVec6(), keyId);
 
     return false;
 }
@@ -315,7 +315,7 @@ bool CAccountViewCache::GetRegId(const CUserID &userId, CRegID &regId) const {
     CAccountViewCache tempView(*this);
     CAccount account;
     if (userId.type() == typeid(CRegID)) {
-        regId = boost::get<CRegID>(userId);
+        regId = userId.get<CRegID>();
         return true;
     }
     if (tempView.GetAccount(userId, account)) {
@@ -327,11 +327,11 @@ bool CAccountViewCache::GetRegId(const CUserID &userId, CRegID &regId) const {
 
 bool CAccountViewCache::SetAccount(const CUserID &userId, const CAccount &account) {
     if (userId.type() == typeid(CRegID)) {
-        return SetAccount(boost::get<CRegID>(userId).GetVec6(), account);
+        return SetAccount(userId.get<CRegID>().GetVec6(), account);
     } else if (userId.type() == typeid(CKeyID)) {
-        return SetAccount(boost::get<CKeyID>(userId), account);
+        return SetAccount(userId.get<CKeyID>(), account);
     } else if (userId.type() == typeid(CPubKey)) {
-        return SetAccount(boost::get<CPubKey>(userId).GetKeyId(), account);
+        return SetAccount(userId.get<CPubKey>().GetKeyId(), account);
     } else if (userId.type() == typeid(CNullID)) {
         return ERRORMSG("SetAccount input userid can't be CNullID type");
     }
@@ -340,9 +340,9 @@ bool CAccountViewCache::SetAccount(const CUserID &userId, const CAccount &accoun
 
 bool CAccountViewCache::EraseAccount(const CUserID &userId) {
     if (userId.type() == typeid(CKeyID)) {
-        return EraseAccount(boost::get<CKeyID>(userId));
+        return EraseAccount(userId.get<CKeyID>());
     } else if (userId.type() == typeid(CPubKey)) {
-        return EraseAccount(boost::get<CPubKey>(userId).GetKeyId());
+        return EraseAccount(userId.get<CPubKey>().GetKeyId());
     } else {
         return ERRORMSG("EraseAccount account type error!");
         //		assert(0);
@@ -351,7 +351,7 @@ bool CAccountViewCache::EraseAccount(const CUserID &userId) {
 }
 bool CAccountViewCache::HaveAccount(const CUserID &userId) {
     if (userId.type() == typeid(CKeyID)) {
-        return HaveAccount(boost::get<CKeyID>(userId));
+        return HaveAccount(userId.get<CKeyID>());
     } else {
         //		assert(0);
     }
@@ -359,7 +359,7 @@ bool CAccountViewCache::HaveAccount(const CUserID &userId) {
 }
 bool CAccountViewCache::EraseId(const CUserID &userId) {
     if (userId.type() == typeid(CRegID)) {
-        return EraseKeyId(boost::get<CRegID>(userId).GetVec6());
+        return EraseKeyId(userId.get<CRegID>().GetVec6());
     } else {
         //		assert(0);
     }

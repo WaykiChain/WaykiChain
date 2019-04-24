@@ -872,11 +872,11 @@ static int ExGetTxRegIDFunc(lua_State *L) {
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == COMMON_TX) {
             CCommonTx *tx = static_cast<CCommonTx*>(pBaseTx.get());
-            vector<unsigned char> item = boost::get<CRegID>(tx->srcUserId).GetVec6();
+            vector<unsigned char> item = tx->srcUserId.get<CRegID>().GetVec6();
             len = RetRstToLua(L, item);
         } else if (pBaseTx->nTxType == CONTRACT_TX) {
             CContractTx *tx = static_cast<CContractTx*>(pBaseTx.get());
-            vector<unsigned char> item = boost::get<CRegID>(tx->srcRegId).GetVec6();
+            vector<unsigned char> item = tx->srcRegId.get<CRegID>().GetVec6();
             len = RetRstToLua(L, item);
         } else {
             return RetFalse("ExGetTxRegIDFunc, tx type error");
