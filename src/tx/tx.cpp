@@ -1293,11 +1293,6 @@ bool CDelegateTx::CheckTx(CValidationState &state, CAccountViewCache &view,
             totalVotes = item->fund.GetVoteCount();
     }
 
-    if (setTotalOperVoteKeyID.size() > IniCfg().GetDelegatesNum()) {
-        return state.DoS(100, ERRORMSG("CDelegateTx::CheckTx, the delegates number of account can't exceeds maximum"),
-            REJECT_INVALID, "account-delegates-number-error");
-    }
-
     if (setOperVoteKeyID.size() != operVoteFunds.size()) {
         return state.DoS(100, ERRORMSG("CDelegateTx::CheckTx, duplication vote fund"),
             REJECT_INVALID, "deletegates-duplication fund-error");
