@@ -6,8 +6,8 @@
 #include "tx/tx.h"
 #include "id.h"
 #include "database.h"
-// /** account db cache, global*/
-extern CAccountViewCache *pAccountViewTip;
+
+extern CAccountViewCache *pAccountViewTip; /** global account db cache*/
 
 bool CRegID::Clean() {
     nHeight = 0 ;
@@ -115,16 +115,17 @@ CRegID::CRegID(uint32_t nHeightIn, uint16_t nIndexIn)
 
 string CRegID::ToString() const
 {
-    if(!IsEmpty())
-      return  strprintf("%d-%d", nHeight, nIndex);
-    return string(" ");
+    if (IsEmpty())
+        return string("");
+
+    return  strprintf("%d-%d", nHeight, nIndex);
 }
 
 CKeyID CRegID::GetKeyId(const CAccountViewCache &view)const
 {
-    CKeyID ret;
-    CAccountViewCache(view).GetKeyId(*this, ret);
-    return ret;
+    CKeyID retKeyId;
+    CAccountViewCache(view).GetKeyId(*this, retKeyId);
+    return retKeyId;
 }
 
 void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn)

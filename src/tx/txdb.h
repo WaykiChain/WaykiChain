@@ -66,6 +66,9 @@ class CAccountViewDB : public CAccountView {
 
    public:
     bool GetAccount(const CKeyID &keyId, CAccount &secureAccount);
+    bool GetAccount(const vector<unsigned char> &accountId, CAccount &secureAccount);
+    bool GetAccount(const CUserID &userId, CAccount &account);
+
     bool SetAccount(const CKeyID &keyId, const CAccount &secureAccount);
     bool SetAccount(const vector<unsigned char> &accountId, const CAccount &secureAccount);
     bool HaveAccount(const CKeyID &keyId);
@@ -77,7 +80,7 @@ class CAccountViewDB : public CAccountView {
     bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId);
     bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId);
     bool EraseKeyId(const vector<unsigned char> &accountId);
-    bool GetAccount(const vector<unsigned char> &accountId, CAccount &secureAccount);
+
     bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &secureAccount);
     std::tuple<uint64_t, uint64_t> TraverseAccount();
     int64_t GetDbCount() { return db.GetDbCount(); }

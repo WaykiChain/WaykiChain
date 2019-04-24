@@ -1271,7 +1271,7 @@ bool CDelegateTx::CheckTx(CValidationState &state, CAccountViewCache &view,
 
     //check account delegates number;
     set<string> setTotalOperVoteKeyID; //memory only
-    for (auto voteFund : sendAcct.vVoteFunds) {
+    for (auto voteFund : sendAcct.voteFunds) {
         setTotalOperVoteKeyID.insert(voteFund.ToString());
     }
 

@@ -1386,8 +1386,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                         assert( scriptDBCache.SetDelegateData(votedAcct, operDbLog) );
                     }
 
-                    voterAcct.vVoteFunds.push_back(operFund.fund);
-                    sort(voterAcct.vVoteFunds.begin(), voterAcct.vVoteFunds.end(),
+                    voterAcct.voteFunds.push_back(operFund.fund);
+                    sort(voterAcct.voteFunds.begin(), voterAcct.voteFunds.end(),
                          [](CVoteFund fund1, CVoteFund fund2) {
                              return fund1.GetVoteCount() > fund2.GetVoteCount();
                          });

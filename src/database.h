@@ -16,97 +16,74 @@ struct CDiskTxPos;
 class CVmOperate;
 
 class CAccountView {
-   public:
-    virtual bool GetAccount(const CKeyID &keyId, CAccount &account);
-    virtual bool SetAccount(const CKeyID &keyId, const CAccount &account);
-    virtual bool SetAccount(const vector<unsigned char> &accountId, const CAccount &account);
-    virtual bool HaveAccount(const CKeyID &keyId);
-    virtual uint256 GetBestBlock();
-    virtual bool SetBestBlock(const uint256 &hashBlock);
-    virtual bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>, CKeyID> &mapKeyIds, const uint256 &hashBlock);
-    virtual bool BatchWrite(const vector<CAccount> &vAccounts);
-    virtual bool EraseAccount(const CKeyID &keyId);
-    virtual bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId);
-    virtual bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId);
-    virtual bool EraseKeyId(const vector<unsigned char> &accountId);
-    virtual bool GetAccount(const vector<unsigned char> &accountId, CAccount &account);
-    virtual bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account);
+public:
+    virtual bool GetAccount(const CKeyID &keyId, CAccount &account) = 0;
+    virtual bool GetAccount(const vector<unsigned char> &accountId, CAccount &account) = 0;
+    virtual bool SetAccount(const CKeyID &keyId, const CAccount &account) = 0;
+    virtual bool SetAccount(const vector<unsigned char> &accountId, const CAccount &account) = 0;
+    virtual bool SetAccount(const CUserID &userId, const CAccount &account);
+    virtual bool HaveAccount(const CKeyID &keyId) = 0;
+    virtual uint256 GetBestBlock() = 0;
+    virtual bool SetBestBlock(const uint256 &hashBlock) = 0;
+    virtual bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>,
+                            CKeyID> &mapKeyIds, const uint256 &hashBlock) = 0;
+    virtual bool BatchWrite(const vector<CAccount> &vAccounts) = 0;
+    virtual bool EraseAccount(const CKeyID &keyId) = 0;
+    virtual bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId) = 0;
+    virtual bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId) = 0;
+    virtual bool EraseKeyId(const vector<unsigned char> &accountId) = 0;
+
+    // virtual bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account) = 0;
     virtual std::tuple<uint64_t, uint64_t> TraverseAccount() = 0;
-    virtual Object ToJsonObj(char prefix);
+    virtual Object ToJsonObj(char prefix) = 0;
+
     virtual ~CAccountView(){};
 };
 
-class CAccountViewBacked : public CAccountView {
-   protected:
-    CAccountView *pBase;
-
-   public:
-    CAccountViewBacked(CAccountView &accountView);
-
-    bool GetAccount(const CKeyID &keyId, CAccount &account);
-    bool SetAccount(const CKeyID &keyId, const CAccount &account);
-    bool SetAccount(const vector<unsigned char> &accountId, const CAccount &account);
-    bool HaveAccount(const CKeyID &keyId);
-    uint256 GetBestBlock();
-    bool SetBestBlock(const uint256 &hashBlock);
-    bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>, CKeyID> &mapKeyIds, const uint256 &hashBlock);
-    bool BatchWrite(const vector<CAccount> &vAccounts);
-    bool EraseAccount(const CKeyID &keyId);
-    bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId);
-    bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId);
-    bool EraseKeyId(const vector<unsigned char> &accountId);
-    bool GetAccount(const vector<unsigned char> &accountId, CAccount &account);
-    bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account);
-    std::tuple<uint64_t, uint64_t> TraverseAccount();
-};
-
-class CAccountViewCache : public CAccountViewBacked {
-   public:
+class CAccountViewCache : public CAccountView {
+public:
     uint256 hashBlock;
     map<CKeyID, CAccount> cacheAccounts;
     map<vector<unsigned char>, CKeyID> cacheKeyIds;  // vector of account KeyIds
 
-   private:
-    bool GetAccount(const CKeyID &keyId, CAccount &account);
-    bool SetAccount(const CKeyID &keyId, const CAccount &account);
-    bool SetAccount(const vector<unsigned char> &accountId, const CAccount &account);
-    bool HaveAccount(const CKeyID &keyId);
-    bool EraseAccount(const CKeyID &keyId);
-    bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId);
-    bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId);
-    bool EraseKeyId(const vector<unsigned char> &accountId);
-    bool GetAccount(const vector<unsigned char> &accountId, CAccount &account);
+public:
+    virtual bool GetAccount(const CKeyID &keyId, CAccount &account);
+    virtual bool GetAccount(const vector<unsigned char> &accountId, CAccount &account);
+    virtual bool GetAccount(const CUserID &userId, CAccount &account);
+    virtual bool SetAccount(const CKeyID &keyId, const CAccount &account);
+    virtual bool SetAccount(const vector<unsigned char> &accountId, const CAccount &account);
+    virtual bool SetAccount(const CUserID &userId, const CAccount &account);
+    virtual bool HaveAccount(const CKeyID &keyId);
+    virtual uint256 GetBestBlock();
+    virtual bool SetBestBlock(const uint256 &hashBlock);
+    virtual bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>,
+                            CKeyID> &mapKeyIds, const uint256 &hashBlock);
+    virtual bool BatchWrite(const vector<CAccount> &vAccounts);
+    virtual bool EraseAccount(const CKeyID &keyId);
+    virtual bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId);
+    virtual bool SetKeyId(const CUserID &userId, const CKeyID &keyId);
+    virtual bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId);
+    virtual bool EraseKeyId(const vector<unsigned char> &accountId);
 
-   public:
-    CAccountViewCache(CAccountView &base, bool fDummy = false);
+    // virtual bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account);
+    virtual bool SaveAccountInfo(const CRegID &regid, const CKeyID &keyId, const CAccount &account);
+    virtual std::tuple<uint64_t, uint64_t> TraverseAccount();
+    virtual Object ToJsonObj(char prefix) { return Object(); }
 
-    uint256 GetBestBlock();
-    bool SetBestBlock(const uint256 &hashBlock);
-    bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>, CKeyID> &mapKeyIds, const uint256 &hashBlock);
-    bool BatchWrite(const vector<CAccount> &vAccounts);
-    /**
-     * @brief from use id to reg id
-     * @param userId
-     * @param regId
-     * @return
-     */
+public:
+    CAccountViewCache(const CAccountView &view, bool fDummy = false): hashBlock(uint256()) {}
 
-    bool GetAccount(const CUserID &userId, CAccount &account);
-    bool SetAccount(const CUserID &userId, const CAccount &account);
-    bool GetKeyId(const CUserID &userId, CKeyID &keyId);
-    bool SetKeyId(const CUserID &userId, const CKeyID &keyId);
     bool GetUserId(const string &addr, CUserID &userId);
     bool GetRegId(const CKeyID &keyId, CRegID &regId);
     bool GetRegId(const CUserID &userId, CRegID &regId) const;
+    bool GetKeyId(const CUserID &userId, CKeyID &keyId);
     bool EraseAccount(const CUserID &userId);
     bool EraseId(const CUserID &userId);
     bool HaveAccount(const CUserID &userId);
     int64_t GetRawBalance(const CUserID &userId) const;
-    bool SaveAccountInfo(const CRegID &accountId, const CKeyID &keyId, const CAccount &account);
     bool Flush();
     unsigned int GetCacheSize();
     Object ToJsonObj() const;
-    void SetBaseData(CAccountView *pBase);
 };
 
 class CScriptDBView {

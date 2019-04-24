@@ -6,7 +6,6 @@
 #ifndef CDP_H
 #define CDP_H
 
-// #include <boost/variant.hpp>
 // #include <memory>
 #include <string>
 // #include <vector>
@@ -40,6 +39,6 @@ public:
 
 class CCdpCacheView {
 
-}
+};
 
 #endif//CDP_H
