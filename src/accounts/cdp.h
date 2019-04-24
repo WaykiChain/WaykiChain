@@ -36,4 +36,7 @@ public:
         READWRITE(scoinAmount);)
 };
 
+class CCdpCacheView {
+
+}
 #endif
