@@ -1314,7 +1314,7 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
 bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pIndex,
                   CTransactionDBCache &txCache, CScriptDBViewCache &scriptDBCache, bool fJustCheck) {
     AssertLockHeld(cs_main);
-    bool isGensisBlock = ( block.GetHeight() == 0 && block.GetHash() == SysCfg().HashGenesisBlock() );
+    bool isGensisBlock = ( block.GetHeight() == 0 && block.GetHash() == SysCfg().GetGenesisBlockHash() );
 
     // Check it again in case a previous version let a bad block in
     if (!isGensisBlock && !CheckBlock(block, state, view, scriptDBCache, !fJustCheck, !fJustCheck))
@@ -1885,7 +1885,7 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
     map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.insert(make_pair(hash, pindexNew)).first;
     // LogPrint("INFO", "in map hash:%s map size:%d\n", hash.GetHex(), mapBlockIndex.size());
     pindexNew->phashBlock                        = &((*mi).first);
-    map<uint256, CBlockIndex *>::iterator miPrev = mapBlockIndex.find(block.GetHashPrevBlock());
+    map<uint256, CBlockIndex *>::iterator miPrev = mapBlockIndex.find(block.GetPrevBlockHash());
     if (miPrev != mapBlockIndex.end()) {
         pindexNew->pprev   = (*miPrev).second;
         pindexNew->nHeight = pindexNew->pprev->nHeight + 1;
@@ -2039,18 +2039,18 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
     pScriptDBCache->mapContractDb                      = pScriptDBTip->mapContractDb;
 
     uint256 preBlockHash;
-    bool bFindForkChainTip(false);
+    bool bForkChainTipFound(false);
     vector<CBlock> vPreBlocks;
     if (pPreBlockIndex->GetBlockHash() != chainActive.Tip()->GetBlockHash()) {
         while (!chainActive.Contains(pPreBlockIndex)) {
-            if (!bFindForkChainTip && mapCache.count(pPreBlockIndex->GetBlockHash()) > 0) {
+            if (!bForkChainTipFound && mapCache.count(pPreBlockIndex->GetBlockHash()) > 0) {
                 preBlockHash = pPreBlockIndex->GetBlockHash();
                 LogPrint("INFO", "ForkChainTip hash=%s, height=%d\n", pPreBlockIndex->GetBlockHash().GetHex(),
-                    pPreBlockIndex->nHeight);
-                bFindForkChainTip = true;
+                        pPreBlockIndex->nHeight);
+                bForkChainTipFound = true;
             }
 
-            if (!bFindForkChainTip) {
+            if (!bForkChainTipFound) {
                 CBlock block;
                 if (!ReadBlockFromDisk(block, pPreBlockIndex))
                     return state.Abort(_("Failed to read block"));
@@ -2101,10 +2101,11 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
         }
 
         LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() DisconnectBlock elapse :%lld ms\n", GetTimeMillis() - tempTime);
-        if (bFindForkChainTip) {
+        if (bForkChainTipFound) {
             pForkAcctViewCache = std::get<0>(mapCache[preBlockHash]);
             pForkTxCache       = std::get<1>(mapCache[preBlockHash]);
             pForkScriptDBCache = std::get<2>(mapCache[preBlockHash]);
+
             pForkAcctViewCache->SetBaseData(pAcctViewCache.get());
             pForkTxCache->SetBaseData(pTxCache.get());
             pForkScriptDBCache->SetBaseData(pScriptDBCache.get());
@@ -2160,7 +2161,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
 
         if (!vPreBlocks.empty()) {
             vector<CBlock>::iterator iterBlock = vPreBlocks.begin();
-            if (bFindForkChainTip) {
+            if (bForkChainTipFound) {
                 LogPrint("INFO", "delete mapCache Key:%s\n", preBlockHash.GetHex());
                 mapCache.erase(preBlockHash);
             }
@@ -2180,7 +2181,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
         return state.DoS(100, ERRORMSG("CheckBlock() : size limits failed"),
             REJECT_INVALID, "bad-blk-length");
 
-    if (block.GetHash() != SysCfg().HashGenesisBlock() && block.GetVersion() != CBlockHeader::CURRENT_VERSION)
+    if (block.GetHash() != SysCfg().GetGenesisBlockHash() && block.GetVersion() != CBlockHeader::CURRENT_VERSION)
         return state.Invalid(ERRORMSG("CheckBlock() : block version must be set 3"),
             REJECT_INVALID, "block-version-error");
 
@@ -2208,7 +2209,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
         if (fCheckTx && !CheckTx(block.vptx[i].get(), state, view, scriptDBCache))
             return ERRORMSG("CheckBlock() :tx hash:%s CheckTx failed", block.vptx[i]->GetHash().GetHex());
 
-        if (block.GetHash() != SysCfg().HashGenesisBlock()) {
+        if (block.GetHash() != SysCfg().GetGenesisBlockHash()) {
             if (0 != i && block.vptx[i]->IsCoinBase())
                 return state.DoS(100, ERRORMSG("CheckBlock() : more than one coinbase"), REJECT_INVALID, "bad-cb-multiple");
         }
@@ -2243,16 +2244,16 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
     if (mapBlockIndex.count(hash))
         return state.Invalid(ERRORMSG("AcceptBlock() : block already in mapBlockIndex"), 0, "duplicated");
 
-    assert(block.GetHash() == SysCfg().HashGenesisBlock() || mapBlockIndex.count(block.GetHashPrevBlock()));
-    if (block.GetHash() != SysCfg().HashGenesisBlock() &&
-        block.GetFuelRate() != GetElementForBurn(mapBlockIndex[block.GetHashPrevBlock()]))
+    assert(block.GetHash() == SysCfg().GetGenesisBlockHash() || mapBlockIndex.count(block.GetPrevBlockHash()));
+    if (block.GetHash() != SysCfg().GetGenesisBlockHash() &&
+        block.GetFuelRate() != GetElementForBurn(mapBlockIndex[block.GetPrevBlockHash()]))
         return state.DoS(100, ERRORMSG("CheckBlock() : block fuel rate unmatched"), REJECT_INVALID, "fuel-rate-unmatch");
 
     // Get prev block index
     CBlockIndex *pBlockIndexPrev = NULL;
     int nHeight = 0;
-    if (hash != SysCfg().HashGenesisBlock()) {
-        map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(block.GetHashPrevBlock());
+    if (hash != SysCfg().GetGenesisBlockHash()) {
+        map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(block.GetPrevBlockHash());
         if (mi == mapBlockIndex.end())
             return state.DoS(10, ERRORMSG("AcceptBlock() : prev block not found"), 0, "bad-prevblk");
 
@@ -2443,23 +2444,26 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
     //  LogPrint("INFO", "ProcessBlock() enter:%lld\n", llBeginTime);
     AssertLockHeld(cs_main);
     // Check for duplicate
-    uint256 hash = pblock->GetHash();
-    if (mapBlockIndex.count(hash))
-        return state.Invalid(ERRORMSG("ProcessBlock() : already have block %d %s", mapBlockIndex[hash]->nHeight, hash.ToString()), 0, "duplicate");
-    if (mapOrphanBlocks.count(hash))
-        return state.Invalid(ERRORMSG("ProcessBlock() : already have block (orphan) %s", hash.ToString()), 0, "duplicate");
+    uint256 blockHash = pblock->GetHash();
+    if (mapBlockIndex.count(blockHash))
+        return state.Invalid(ERRORMSG("ProcessBlock() : block exists: %d %s", 
+                            mapBlockIndex[blockHash]->nHeight, blockHash.ToString()), 0, "duplicate");
+
+    if (mapOrphanBlocks.count(blockHash))
+        return state.Invalid(ERRORMSG("ProcessBlock() : block (orphan) exists %s", blockHash.ToString()), 0, "duplicate");
 
     int64_t llBeginCheckBlockTime = GetTimeMillis();
     CAccountViewCache view(*pAccountViewTip, true);
     CScriptDBViewCache scriptDBCache(*pScriptDBTip, true);
     // Preliminary checks
     if (!CheckBlock(*pblock, state, view, scriptDBCache, false)) {
-        LogPrint("INFO", "CheckBlock() id: %d elapse time:%lld ms\n", chainActive.Height(), GetTimeMillis() - llBeginCheckBlockTime);
+        LogPrint("INFO", "CheckBlock() id: %d elapse time:%lld ms\n", 
+                chainActive.Height(), GetTimeMillis() - llBeginCheckBlockTime);
         return ERRORMSG("ProcessBlock() :block hash:%s CheckBlock FAILED", pblock->GetHash().GetHex());
     }
 
     // If we don't already have its previous block, shunt it off to holding area until we get it
-    if (!pblock->GetHashPrevBlock().IsNull() && !mapBlockIndex.count(pblock->GetHashPrevBlock())) {
+    if (!pblock->GetPrevBlockHash().IsNull() && !mapBlockIndex.count(pblock->GetPrevBlockHash())) {
         if (pblock->GetHeight() > (unsigned int) nSyncTipHeight) {
             LogPrint("DEBUG", "blockHeight=%d syncTipHeight=%d\n", pblock->GetHeight(), nSyncTipHeight );
             nSyncTipHeight = pblock->GetHeight();
@@ -2476,7 +2480,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
                     pblock2->vchBlock = vector<unsigned char>(ss.begin(), ss.end());
                 }
                 pblock2->hashBlock = hash;
-                pblock2->hashPrev  = pblock->GetHashPrevBlock();
+                pblock2->hashPrev  = pblock->GetPrevBlockHash();
                 pblock2->height    = pblock->GetHeight();
                 mapOrphanBlocks.insert(make_pair(hash, pblock2));
                 mapOrphanBlocksByPrev.insert(make_pair(pblock2->hashPrev, pblock2));

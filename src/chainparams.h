@@ -262,7 +262,7 @@ public:
         return bAddressToTx;
     }
 public:
-    const uint256& HashGenesisBlock() const {
+    const uint256& GetGenesisBlockHash() const {
         return hashGenesisBlock;
     }
     const MessageStartChars& MessageStart() const {

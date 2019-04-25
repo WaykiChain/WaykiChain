@@ -63,13 +63,13 @@ Object GetTxDetailJSON(const uint256& txhash) {
     {
         LOCK(cs_main);
         CBlock genesisblock;
-        CBlockIndex* pgenesisblockindex = mapBlockIndex[SysCfg().HashGenesisBlock()];
+        CBlockIndex* pgenesisblockindex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
         ReadBlockFromDisk(genesisblock, pgenesisblockindex);
         assert(genesisblock.GetHashMerkleRoot() == genesisblock.BuildMerkleTree());
         for (unsigned int i = 0; i < genesisblock.vptx.size(); ++i) {
             if (txhash == genesisblock.GetTxHash(i)) {
                 obj = genesisblock.vptx[i]->ToJson(*pAccountViewTip);
-                obj.push_back(Pair("blockhash", SysCfg().HashGenesisBlock().GetHex()));
+                obj.push_back(Pair("blockhash", SysCfg().GetGenesisBlockHash().GetHex()));
                 obj.push_back(Pair("confirmedheight", (int) 0));
                 obj.push_back(Pair("confirmedtime", (int) genesisblock.GetTime()));
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -343,7 +343,7 @@ Value gettransaction(const Array& params, bool fHelp)
     Object obj;
     LOCK(cs_main);
     CBlock genesisblock;
-    CBlockIndex* pgenesisblockindex = mapBlockIndex[SysCfg().HashGenesisBlock()];
+    CBlockIndex* pgenesisblockindex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
     ReadBlockFromDisk(genesisblock, pgenesisblockindex);
     assert(genesisblock.GetHashMerkleRoot() == genesisblock.BuildMerkleTree());
     for (unsigned int i=0; i<genesisblock.vptx.size(); ++i) {

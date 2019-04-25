@@ -160,7 +160,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
         {
             LOCK2(cs_main, cs_wallet);
             // GenesisBlock progress
-            if (SysCfg().HashGenesisBlock() == blockhash) {
+            if (SysCfg().GetGenesisBlockHash() == blockhash) {
                 GenesisBlockProgress();
             } else if (IsConnect()) {
                 // connect block

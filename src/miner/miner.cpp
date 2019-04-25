@@ -101,9 +101,9 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate) {
 void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pindexPrev, unsigned int &nExtraNonce) {
     // Update nExtraNonce
     static uint256 hashPrevBlock;
-    if (hashPrevBlock != pblock->GetHashPrevBlock()) {
+    if (hashPrevBlock != pblock->GetPrevBlockHash()) {
         nExtraNonce   = 0;
-        hashPrevBlock = pblock->GetHashPrevBlock();
+        hashPrevBlock = pblock->GetPrevBlockHash();
     }
     ++nExtraNonce;
 
@@ -171,8 +171,8 @@ bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDele
 bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock) {
     unsigned int nNonce = GetRand(SysCfg().GetBlockMaxNonce());
     CBlock preBlock;
-    CBlockIndex *pblockindex = mapBlockIndex[pBlock->GetHashPrevBlock()];
-    if (pBlock->GetHashPrevBlock() != SysCfg().HashGenesisBlock()) {
+    CBlockIndex *pblockindex = mapBlockIndex[pBlock->GetPrevBlockHash()];
+    if (pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
         if (!ReadBlockFromDisk(preBlock, pblockindex))
             return ERRORMSG("read block info fail from disk");
 
@@ -248,8 +248,8 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
     CScriptDBViewCache scriptDBView(scriptCache, true);
     CBlock preBlock;
 
-    CBlockIndex *pblockindex = mapBlockIndex[pBlock->GetHashPrevBlock()];
-    if (pBlock->GetHashPrevBlock() != SysCfg().HashGenesisBlock()) {
+    CBlockIndex *pblockindex = mapBlockIndex[pBlock->GetPrevBlockHash()];
+    if (pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
         if (!ReadBlockFromDisk(preBlock, pblockindex))
             return ERRORMSG("read block info fail from disk");
 
@@ -447,7 +447,7 @@ bool CheckWork(CBlock *pblock, CWallet &wallet) {
     // Found a solution
     {
         LOCK(cs_main);
-        if (pblock->GetHashPrevBlock() != chainActive.Tip()->GetBlockHash())
+        if (pblock->GetPrevBlockHash() != chainActive.Tip()->GetBlockHash())
             return ERRORMSG("CoinMiner : generated block is stale");
 
         // Process this block the same as if we had received it from another node

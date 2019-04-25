@@ -98,7 +98,7 @@ public:
     void SetVersion(int nVersion) {
     	this->nVersion = nVersion;
     }
-    uint256 GetHashPrevBlock() const  {
+    uint256 GetPrevBlockHash() const  {
     	return hashPrevBlock;
     }
     void SetHashPrevBlock(uint256 prevBlockHash) {
