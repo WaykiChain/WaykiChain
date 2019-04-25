@@ -2239,12 +2239,13 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
     AssertLockHeld(cs_main);
 
     // Check for duplicate
-    uint256 hash = block.GetHash();
-    LogPrint("INFO", "AcceptBlock[%d]: %s\n", block.GetHeight(), hash.GetHex());
-    if (mapBlockIndex.count(hash))
+    uint256 blockHash = block.GetHash();
+    LogPrint("INFO", "AcceptBlock[%d]: %s\n", block.GetHeight(), blockHash.GetHex());
+    if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("AcceptBlock() : block already in mapBlockIndex"), 0, "duplicated");
 
     assert(block.GetHash() == SysCfg().GetGenesisBlockHash() || mapBlockIndex.count(block.GetPrevBlockHash()));
+
     if (block.GetHash() != SysCfg().GetGenesisBlockHash() &&
         block.GetFuelRate() != GetElementForBurn(mapBlockIndex[block.GetPrevBlockHash()]))
         return state.DoS(100, ERRORMSG("CheckBlock() : block fuel rate unmatched"), REJECT_INVALID, "fuel-rate-unmatch");
@@ -2252,7 +2253,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
     // Get prev block index
     CBlockIndex *pBlockIndexPrev = NULL;
     int nHeight = 0;
-    if (hash != SysCfg().GetGenesisBlockHash()) {
+    if (block.GetHeight() != 0 && blockHash != SysCfg().GetGenesisBlockHash()) {
         map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(block.GetPrevBlockHash());
         if (mi == mapBlockIndex.end())
             return state.DoS(10, ERRORMSG("AcceptBlock() : prev block not found"), 0, "bad-prevblk");
@@ -2260,9 +2261,9 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
         pBlockIndexPrev = (*mi).second;
         nHeight = pBlockIndexPrev->nHeight + 1;
 
-        if (block.GetHeight() != (unsigned int)nHeight)
-            return state.DoS(100, ERRORMSG("AcceptBlock() : height in block claimed dismatched it's actual height"),
-                REJECT_INVALID, "incorrect-height");
+        if (block.GetHeight() != (unsigned int) nHeight)
+            return state.DoS(100, ERRORMSG("AcceptBlock() : height given in block unmatches with its actual height"),
+                            REJECT_INVALID, "incorrect-height");
 
         int64_t tempTime = GetTimeMillis();
 
@@ -2270,12 +2271,12 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
         if (block.GetBlockTime() <= pBlockIndexPrev->GetBlockTime() ||
             (block.GetBlockTime() - pBlockIndexPrev->GetBlockTime()) < SysCfg().GetBlockInterval())
             return state.Invalid(ERRORMSG("AcceptBlock() : block's timestamp is too early"),
-                REJECT_INVALID, "time-too-early");
+                                REJECT_INVALID, "time-too-early");
 
         // Check that the block chain matches the known block chain up to a checkpoint
         if (!Checkpoints::CheckBlock(nHeight, hash))
             return state.DoS(100, ERRORMSG("AcceptBlock() : rejected by checkpoint lock-in at %d", nHeight),
-                REJECT_CHECKPOINT, "checkpoint mismatch");
+                            REJECT_CHECKPOINT, "checkpoint mismatch");
 
         // Don't accept any forks from the main chain prior to last checkpoint
         CBlockIndex *pCheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
