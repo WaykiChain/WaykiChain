@@ -395,8 +395,10 @@ public:
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
     bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
                    int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
-    bool CheckTx(CValidationState &state, CAccountViewCache &view,
-                          CScriptDBViewCache &scriptDB);
+    bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+                       CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
+                       CScriptDBViewCache &scriptDB);
+    bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
 class CRewardTx : public CBaseTx {

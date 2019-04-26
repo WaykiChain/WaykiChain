@@ -597,6 +597,100 @@ bool CCommonTx::CheckTx(CValidationState &state, CAccountViewCache &view,
     return true;
 }
 
+bool CContractTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+    CKeyID keyId;
+    if (!view.GetKeyId(srcRegId, keyId))
+        return false;
+
+    vAddr.insert(keyId);
+    CKeyID desKeyId;
+    if (!view.GetKeyId(desUserId, desKeyId))
+        return false;
+
+    vAddr.insert(desKeyId);
+
+    CVmRunEnv vmRunEnv;
+    std::shared_ptr<CBaseTx> pTx = GetNewInstance();
+    uint64_t fuelRate = GetFuelRate(scriptDB);
+    CScriptDBViewCache scriptDBView(scriptDB, true);
+
+    if (!pTxCacheTip->HaveTx(GetHash())) {
+        CAccountViewCache accountView(view, true);
+        tuple<bool, uint64_t, string> ret = vmRunEnv.ExecuteContract(pTx, accountView, scriptDBView,
+            chainActive.Height() + 1, fuelRate, nRunStep);
+
+        if (!std::get<0>(ret))
+            return ERRORMSG("CContractTx::GetAddress, %s", std::get<2>(ret));
+
+        vector<shared_ptr<CAccount> > vpAccount = vmRunEnv.GetNewAccont();
+
+        for (auto & item : vpAccount)
+            vAddr.insert(item->keyID);
+
+        vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEnv.GetRawAppUserAccount();
+        for (auto & itemUserAccount : vAppUserAccount) {
+            CKeyID itemKeyID;
+            bool bValid = GetKeyId(view, itemUserAccount.get()->GetAccUserId(), itemKeyID);
+            if (bValid)
+                vAddr.insert(itemKeyID);
+        }
+    } else {
+        set<CKeyID> vTxRelAccount;
+        if (!scriptDBView.GetTxRelAccount(GetHash(), vTxRelAccount))
+            return false;
+
+        vAddr.insert(vTxRelAccount.begin(), vTxRelAccount.end());
+    }
+    return true;
+}
+
+string CContractTx::ToString(CAccountViewCache &view) const {
+    string desId;
+    if (desUserId.type() == typeid(CKeyID)) {
+        desId = desUserId.get<CKeyID>().ToString();
+    } else if (desUserId.type() == typeid(CRegID)) {
+        desId = desUserId.get<CRegID>().ToString();
+    }
+
+    string str = strprintf(
+        "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, bcoinBalance=%ld, llFees=%ld, arguments=%s, "
+        "nValidHeight=%d\n",
+        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion,
+        srcRegId.get<CRegID>().ToString(), desId.c_str(), bcoinBalance, llFees,
+        HexStr(arguments).c_str(), nValidHeight);
+
+    return str;
+}
+
+Object CContractTx::ToJson(const CAccountViewCache &AccountView) const {
+    Object result;
+    CAccountViewCache view(AccountView);
+
+    auto GetRegIdString = [&](CUserID const &userId) {
+        if (userId.type() == typeid(CRegID))
+            return userId.get<CRegID>().ToString();
+        return string("");
+    };
+
+    CKeyID srcKeyId, desKeyId;
+    view.GetKeyId(srcRegId, srcKeyId);
+    view.GetKeyId(desUserId, desKeyId);
+
+    result.push_back(Pair("hash",       GetHash().GetHex()));
+    result.push_back(Pair("tx_type",    GetTxType(nTxType)));
+    result.push_back(Pair("ver",        nVersion));
+    result.push_back(Pair("regid",      GetRegIdString(srcRegId)));
+    result.push_back(Pair("addr",       srcKeyId.ToAddress()));
+    result.push_back(Pair("dest_regid", GetRegIdString(desUserId)));
+    result.push_back(Pair("dest_addr",  desKeyId.ToAddress()));
+    result.push_back(Pair("money",      bcoinBalance));
+    result.push_back(Pair("fees",       llFees));
+    result.push_back(Pair("arguments",  HexStr(arguments)));
+    result.push_back(Pair("valid_height", nValidHeight));
+
+    return result;
+}
+
 bool CContractTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
                             CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
                             CScriptDBViewCache &scriptDB) {
@@ -716,98 +810,42 @@ bool CContractTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
     return true;
 }
 
-bool CContractTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
-    CKeyID keyId;
-    if (!view.GetKeyId(srcRegId, keyId))
-        return false;
-
-    vAddr.insert(keyId);
-    CKeyID desKeyId;
-    if (!view.GetKeyId(desUserId, desKeyId))
-        return false;
-
-    vAddr.insert(desKeyId);
-
-    CVmRunEnv vmRunEnv;
-    std::shared_ptr<CBaseTx> pTx = GetNewInstance();
-    uint64_t fuelRate = GetFuelRate(scriptDB);
-    CScriptDBViewCache scriptDBView(scriptDB);
-
-    if (!pTxCacheTip->HaveTx(GetHash())) {
-        CAccountViewCache accountView(view);
-        tuple<bool, uint64_t, string> ret = vmRunEnv.ExecuteContract(pTx, accountView, scriptDBView,
-            chainActive.Height() + 1, fuelRate, nRunStep);
-
-        if (!std::get<0>(ret))
-            return ERRORMSG("CContractTx::GetAddress, %s", std::get<2>(ret));
-
-        vector<shared_ptr<CAccount> > vpAccount = vmRunEnv.GetNewAccont();
-
-        for (auto & item : vpAccount)
-            vAddr.insert(item->keyID);
-
-        vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEnv.GetRawAppUserAccount();
-        for (auto & itemUserAccount : vAppUserAccount) {
-            CKeyID itemKeyID;
-            bool bValid = GetKeyId(view, itemUserAccount.get()->GetAccUserId(), itemKeyID);
-            if (bValid)
-                vAddr.insert(itemKeyID);
+bool CContractTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+                                CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
+                                CScriptDBViewCache &scriptDB) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = txundo.vAccountLog.rbegin();
+    for (; rIterAccountLog != txundo.vAccountLog.rend(); ++rIterAccountLog) {
+        CAccount account;
+        CUserID userId = rIterAccountLog->keyID;
+        if (!view.GetAccount(userId, account)) {
+            return state.DoS(100, ERRORMSG("CContractTx::UndoExecuteTx, read account info error"),
+                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-    } else {
-        set<CKeyID> vTxRelAccount;
-        if (!scriptDBView.GetTxRelAccount(GetHash(), vTxRelAccount))
-            return false;
 
-        vAddr.insert(vTxRelAccount.begin(), vTxRelAccount.end());
+        if (!account.UndoOperateAccount(*rIterAccountLog)) {
+            return state.DoS(100,
+                             ERRORMSG("CContractTx::UndoExecuteTx, undo operate account failed"),
+                             UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
+        }
+
+        if (!view.SetAccount(userId, account)) {
+            return state.DoS(100, ERRORMSG("CContractTx::UndoExecuteTx, write account info error"),
+                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
+        }
     }
+
+    vector<CScriptDBOperLog>::reverse_iterator rIterScriptDBLog = txundo.vScriptOperLog.rbegin();
+    for (; rIterScriptDBLog != txundo.vScriptOperLog.rend(); ++rIterScriptDBLog) {
+        if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
+            return state.DoS(100, ERRORMSG("CContractTx::UndoExecuteTx, undo scriptdb data error"),
+                             UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+    }
+
+    if (!scriptDB.EraseTxRelAccout(GetHash()))
+        return state.DoS(100, ERRORMSG("CContractTx::UndoExecuteTx, erase tx rel account error"),
+                         UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+
     return true;
-}
-
-string CContractTx::ToString(CAccountViewCache &view) const {
-    string desId;
-    if (desUserId.type() == typeid(CKeyID)) {
-        desId = desUserId.get<CKeyID>().ToString();
-    } else if (desUserId.type() == typeid(CRegID)) {
-        desId = desUserId.get<CRegID>().ToString();
-    }
-
-    string str = strprintf(
-        "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, bcoinBalance=%ld, llFees=%ld, arguments=%s, "
-        "nValidHeight=%d\n",
-        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion,
-        srcRegId.get<CRegID>().ToString(), desId.c_str(), bcoinBalance, llFees,
-        HexStr(arguments).c_str(), nValidHeight);
-
-    return str;
-}
-
-Object CContractTx::ToJson(const CAccountViewCache &AccountView) const {
-    Object result;
-    CAccountViewCache view(AccountView);
-
-    auto GetRegIdString = [&](CUserID const &userId) {
-        if (userId.type() == typeid(CRegID))
-            return userId.get<CRegID>().ToString();
-        return string("");
-    };
-
-    CKeyID srcKeyId, desKeyId;
-    view.GetKeyId(srcRegId, srcKeyId);
-    view.GetKeyId(desUserId, desKeyId);
-
-    result.push_back(Pair("hash",       GetHash().GetHex()));
-    result.push_back(Pair("tx_type",    GetTxType(nTxType)));
-    result.push_back(Pair("ver",        nVersion));
-    result.push_back(Pair("regid",      GetRegIdString(srcRegId)));
-    result.push_back(Pair("addr",       srcKeyId.ToAddress()));
-    result.push_back(Pair("dest_regid", GetRegIdString(desUserId)));
-    result.push_back(Pair("dest_addr",  desKeyId.ToAddress()));
-    result.push_back(Pair("money",      bcoinBalance));
-    result.push_back(Pair("fees",       llFees));
-    result.push_back(Pair("arguments",  HexStr(arguments)));
-    result.push_back(Pair("valid_height", nValidHeight));
-
-    return result;
 }
 
 bool CContractTx::CheckTx(CValidationState &state, CAccountViewCache &view,
