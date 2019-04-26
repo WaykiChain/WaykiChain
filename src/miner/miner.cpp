@@ -173,7 +173,7 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
     CBlock preBlock;
     CBlockIndex *pblockindex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
-        if (!ReadBlockFromDisk(preBlock, pblockindex))
+        if (!ReadBlockFromDisk(pblockindex, preBlock))
             return ERRORMSG("read block info fail from disk");
 
         CAccount preDelegate;
@@ -250,7 +250,7 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
 
     CBlockIndex *pblockindex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
-        if (!ReadBlockFromDisk(preBlock, pblockindex))
+        if (!ReadBlockFromDisk(pblockindex, preBlock))
             return ERRORMSG("read block info fail from disk");
 
         CAccount preDelegate;

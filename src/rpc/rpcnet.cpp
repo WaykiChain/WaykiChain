@@ -427,7 +427,7 @@ Value getchainstate(const Array& params, bool fHelp) {
         transactions.push_back((int)pBlockIndex->nTx);
         fuel.push_back(pBlockIndex->nFuel);
         block.SetNull();
-        if (ReadBlockFromDisk(block, pBlockIndex)) {
+        if (ReadBlockFromDisk(pBlockIndex, block)) {
             blockminer.push_back(
                 dynamic_pointer_cast<CRewardTx>(block.vptx[0])->account.get<CRegID>()
                     .ToString());

@@ -280,7 +280,7 @@ Value getblock(const Array& params, bool fHelp)
 
     CBlock block;
     CBlockIndex* pblockindex = mapBlockIndex[hash];
-    if (!ReadBlockFromDisk(block, pblockindex)) {
+    if (!ReadBlockFromDisk(pblockindex, block)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
     }
 
@@ -388,7 +388,7 @@ Value getcontractregid(const Array& params, bool fHelp)
     }
     CBlockIndex* pIndex = chainActive[nBlockHeight];
     CBlock block;
-    if (!ReadBlockFromDisk(block, pIndex))
+    if (!ReadBlockFromDisk(pIndex, block))
         return false;
 
     block.BuildMerkleTree();

@@ -713,7 +713,7 @@ bool SysTestBase::GetRegID(string& strAddr,string& regID){
 bool SysTestBase::IsTxInTipBlock(const uint256& txHash) {
 		CBlockIndex* pIndex = chainActive.Tip();
 		CBlock block;
-		if (!ReadBlockFromDisk(block, pIndex))
+		if (!ReadBlockFromDisk(pIndex, block))
 			return false;
 
 		block.BuildMerkleTree();

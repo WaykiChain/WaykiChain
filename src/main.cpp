@@ -823,7 +823,7 @@ bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos) {
     return true;
 }
 
-bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos)
+bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block)
 {
     block.SetNull();
 
@@ -846,9 +846,9 @@ bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos)
     return true;
 }
 
-bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pIndex)
+bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block)
 {
-    if (!ReadBlockFromDisk(block, pIndex->GetBlockPos()))
+    if (!ReadBlockFromDisk(pIndex->GetBlockPos(), block))
         return false;
 
     if (block.GetHash() != pIndex->GetBlockHash())
@@ -1233,7 +1233,7 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &
         }
         if (NULL != pMatureIndex) {
             CBlock matureBlock;
-            if (!ReadBlockFromDisk(matureBlock, pMatureIndex)) {
+            if (!ReadBlockFromDisk(pMatureIndex, matureBlock)) {
                 return state.DoS(100, ERRORMSG("ConnectBlock() : read mature block error"),
                                  REJECT_INVALID, "bad-read-block");
             }
@@ -1275,7 +1275,7 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &
             pReLoadBlockIndex = pReLoadBlockIndex->pprev;
         }
         CBlock reLoadblock;
-        if (!ReadBlockFromDisk(reLoadblock, pReLoadBlockIndex))
+        if (!ReadBlockFromDisk(pReLoadBlockIndex, reLoadblock))
             return state.Abort(_("Failed to read block"));
         if (!txCache.AddBlockToCache(reLoadblock))
             return state.Abort(_("Disconnect tip block reload preblock tx to txcache"));
@@ -1498,7 +1498,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
 
         if (NULL != pMatureIndex) {
             CBlock matureBlock;
-            if (!ReadBlockFromDisk(matureBlock, pMatureIndex)) {
+            if (!ReadBlockFromDisk(pMatureIndex, matureBlock)) {
                 return state.DoS(100, ERRORMSG("ConnectBlock() : read mature block error"),
                                 REJECT_INVALID, "bad-read-block");
             }
@@ -1557,7 +1557,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
             pDeleteBlockIndex = pDeleteBlockIndex->pprev;
         }
         CBlock deleteBlock;
-        if (!ReadBlockFromDisk(deleteBlock, pDeleteBlockIndex))
+        if (!ReadBlockFromDisk(pDeleteBlockIndex, deleteBlock))
             return state.Abort(_("Failed to read block"));
         if (!txCache.DeleteBlockFromCache(deleteBlock))
             return state.Abort(_("Connect tip block failed delete block tx to txcache"));
@@ -1640,7 +1640,7 @@ bool static DisconnectTip(CValidationState &state) {
     assert(pindexDelete);
     // Read block from disk.
     CBlock block;
-    if (!ReadBlockFromDisk(block, pindexDelete))
+    if (!ReadBlockFromDisk(pindexDelete, block))
         return state.Abort(_("Failed to read blocks from disk."));
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
@@ -1713,7 +1713,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
     assert(pindexNew->pprev == chainActive.Tip());
     // Read block from disk.
     CBlock block;
-    if (!ReadBlockFromDisk(block, pindexNew))
+    if (!ReadBlockFromDisk(pindexNew, block))
         return state.Abort(strprintf("Failed to read block hash:%s\n",
                                      pindexNew->GetBlockHash().GetHex()));
     // Apply the block atomically to the chain state.
@@ -2056,7 +2056,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
                     bForkChainTipFound = true;
                 } else {
                     CBlock block;
-                    if (!ReadBlockFromDisk(block, pPreBlockIndex))
+                    if (!ReadBlockFromDisk(pPreBlockIndex, block))
                         return state.Abort(_("Failed to read block"));
 
                     vPreBlocks.push_back(block);  //将支链的block保存起来
@@ -2087,7 +2087,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
                          pBlockIndex->nHeight, pBlockIndex->GetBlockHash().GetHex());
 
                 CBlock block;
-                if (!ReadBlockFromDisk(block, pBlockIndex))
+                if (!ReadBlockFromDisk(pBlockIndex, block))
                     return state.Abort(_("Failed to read block"));
 
                 bool bfClean = true;
@@ -2962,7 +2962,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
         CBlock block;
         //       LogPrint("INFO", "block hash:%s", pIndex->GetBlockHash().ToString());
         // check level 0: read from disk
-        if (!ReadBlockFromDisk(block, pIndex))
+        if (!ReadBlockFromDisk(pIndex, block))
             return ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s", pIndex->nHeight, pIndex->GetBlockHash().ToString());
         // check level 1: verify block validity
         if (nCheckLevel >= 1 && !CheckBlock(block, state, view, scriptDBCache))
@@ -3001,7 +3001,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
             boost::this_thread::interruption_point();
             pIndex = chainActive.Next(pIndex);
             CBlock block;
-            if (!ReadBlockFromDisk(block, pIndex))
+            if (!ReadBlockFromDisk(pIndex, block))
                 return ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s", pIndex->nHeight, pIndex->GetBlockHash().ToString());
             if (!ConnectBlock(block, state, view, pIndex, txCacheTemp, scriptDBCache, false))
                 return ERRORMSG("VerifyDB() : *** found unconnectable block at %d, hash=%s", pIndex->nHeight, pIndex->GetBlockHash().ToString());
@@ -3099,7 +3099,7 @@ void PrintBlockTree() {
 
         // print item
         CBlock block;
-        ReadBlockFromDisk(block, pIndex);
+        ReadBlockFromDisk(pIndex, block);
         LogPrint("INFO", "%d (blk%05u.dat:0x%x)  %s  tx %u\n",
                  pIndex->nHeight,
                  pIndex->GetBlockPos().nFile, pIndex->GetBlockPos().nPos,
@@ -3299,7 +3299,7 @@ void static ProcessGetData(CNode *pfrom) {
                 if (send) {
                     // Send block from disk
                     CBlock block;
-                    ReadBlockFromDisk(block, (*mi).second);
+                    ReadBlockFromDisk((*mi).second, block);
                     if (inv.type == MSG_BLOCK)
                         pfrom->PushMessage("block", block);
                     else  // MSG_FILTERED_BLOCK)

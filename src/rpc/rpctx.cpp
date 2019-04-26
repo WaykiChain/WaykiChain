@@ -64,7 +64,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
         LOCK(cs_main);
         CBlock genesisblock;
         CBlockIndex* pgenesisblockindex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
-        ReadBlockFromDisk(genesisblock, pgenesisblockindex);
+        ReadBlockFromDisk(pgenesisblockindex, genesisblock);
         assert(genesisblock.GetHashMerkleRoot() == genesisblock.BuildMerkleTree());
         for (unsigned int i = 0; i < genesisblock.vptx.size(); ++i) {
             if (txhash == genesisblock.GetTxHash(i)) {
@@ -344,7 +344,7 @@ Value gettransaction(const Array& params, bool fHelp)
     LOCK(cs_main);
     CBlock genesisblock;
     CBlockIndex* pgenesisblockindex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
-    ReadBlockFromDisk(genesisblock, pgenesisblockindex);
+    ReadBlockFromDisk(pgenesisblockindex, genesisblock);
     assert(genesisblock.GetHashMerkleRoot() == genesisblock.BuildMerkleTree());
     for (unsigned int i=0; i<genesisblock.vptx.size(); ++i) {
         if (txhash == genesisblock.GetTxHash(i)) {
@@ -1940,7 +1940,7 @@ Value reloadtxcache(const Array& params, bool fHelp) {
     }
     CBlock block;
     do {
-        if (!ReadBlockFromDisk(block, pIndex))
+        if (!ReadBlockFromDisk(pIndex, block))
             return ERRORMSG("reloadtxcache() : *** ReadBlockFromDisk failed at %d, hash=%s",
                 pIndex->nHeight, pIndex->GetBlockHash().ToString());
 
@@ -2189,7 +2189,7 @@ Value saveblocktofile(const Array& params, bool fHelp) {
     }
     CBlockIndex *pIndex = mapBlockIndex[blockHash];
     CBlock blockInfo;
-    if (!pIndex || !ReadBlockFromDisk(blockInfo, pIndex))
+    if (!pIndex || !ReadBlockFromDisk(pIndex, blockInfo))
         throw runtime_error(_("Failed to read block"));
     assert(strblockhash == blockInfo.GetHash().ToString());
 //  CDataStream ds(SER_NETWORK, PROTOCOL_VERSION);

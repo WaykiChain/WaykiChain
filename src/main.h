@@ -509,8 +509,8 @@ class CPartialMerkleTree {
 
 /** Functions for disk access for blocks */
 bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos);
-bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos);
-bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pIndex);
+bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block);
+bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block);
 
 /** Functions for validating blocks and updating the block tree */
 

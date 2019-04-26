@@ -90,7 +90,7 @@ public:
 	bool GetTxIndexInBlock(const uint256& txHash, int& nIndex) {
 		CBlockIndex* pIndex = chainActive.Tip();
 		CBlock block;
-		if (!ReadBlockFromDisk(block, pIndex))
+		if (!ReadBlockFromDisk(pIndex, block))
 			return false;
 
 		block.BuildMerkleTree();

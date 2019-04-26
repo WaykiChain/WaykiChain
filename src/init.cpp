@@ -907,7 +907,7 @@ bool AppInit(boost::thread_group &threadGroup) {
             if (strncmp(hash.ToString().c_str(), strMatch.c_str(), strMatch.size()) == 0) {
                 CBlockIndex *pIndex = (*mi).second;
                 CBlock block;
-                ReadBlockFromDisk(block, pIndex);
+                ReadBlockFromDisk(pIndex, block);
                 block.BuildMerkleTree();
                 block.Print(*pAccountViewTip);
                 LogPrint("INFO", "\n");
@@ -933,7 +933,7 @@ bool AppInit(boost::thread_group &threadGroup) {
     int nCount              = 0;
     CBlock block;
     while (blockIndex && nCacheHeight-- > 0) {
-        if (!ReadBlockFromDisk(block, blockIndex))
+        if (!ReadBlockFromDisk(blockIndex, block))
             return InitError("Failed to read block from disk");
 
         if (!pTxCacheTip->AddBlockToCache(block))
