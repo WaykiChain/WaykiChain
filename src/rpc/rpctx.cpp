@@ -499,7 +499,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
     }
 
     std::tuple<bool, string> ret;
-    ret = pwalletMain->CommitTransaction((CBaseTx *) &rtx);
+    ret = pwalletMain->CommitTx((CBaseTx *) &rtx);
     if (!std::get<0>(ret))
         throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: " + std::get<1>(ret));
 
@@ -611,7 +611,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
     }
 
     std::tuple<bool, string> ret;
-    ret = pwalletMain->CommitTransaction((CBaseTx *) tx.get());
+    ret = pwalletMain->CommitTx((CBaseTx *) tx.get());
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Error:" + std::get<1>(ret));
     }
@@ -760,7 +760,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     }
 
     std::tuple<bool, string> ret;
-    ret = pwalletMain->CommitTransaction((CBaseTx *) &tx);
+    ret = pwalletMain->CommitTx((CBaseTx *) &tx);
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
     }
@@ -888,7 +888,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     }
 
     std::tuple<bool, string> ret;
-    ret = pwalletMain->CommitTransaction((CBaseTx*)&delegateTx);
+    ret = pwalletMain->CommitTx((CBaseTx*)&delegateTx);
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
     }
@@ -2331,7 +2331,7 @@ Value sendtxraw(const Array& params, bool fHelp) {
     std::shared_ptr<CBaseTx> tx;
     stream >> tx;
     std::tuple<bool, string> ret;
-    ret = pwalletMain->CommitTransaction((CBaseTx *) tx.get());
+    ret = pwalletMain->CommitTx((CBaseTx *) tx.get());
     if (!std::get<0>(ret))
         throw JSONRPCError(RPC_WALLET_ERROR, "sendtxraw error: " + std::get<1>(ret));
 

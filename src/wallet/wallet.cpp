@@ -193,7 +193,7 @@ void CWallet::ResendWalletTransactions() {
             continue;
         }
         std::shared_ptr<CBaseTx> pBaseTx = te.second->GetNewInstance();
-        auto ret                         = CommitTransaction(&(*pBaseTx.get()));
+        auto ret                         = CommitTx(&(*pBaseTx.get()));
         if (!std::get<0>(ret)) {
             erase.push_back(te.first);
             LogPrint("CWallet", "abort invalid tx %s reason:%s\n",
@@ -207,15 +207,15 @@ void CWallet::ResendWalletTransactions() {
 }
 
 //// Call after CreateTransaction unless you want to abort
-std::tuple<bool, string> CWallet::CommitTransaction(CBaseTx *pTx) {
+std::tuple<bool, string> CWallet::CommitTx(CBaseTx *pTx) {
     LOCK2(cs_main, cs_wallet);
-    LogPrint("INFO", "CommitTransaction() : %s", pTx->ToString(*pAccountViewTip));
+    LogPrint("INFO", "CommitTx() : %s", pTx->ToString(*pAccountViewTip));
 
     {
         CValidationState state;
         if (!::AcceptToMemoryPool(mempool, state, pTx, true)) {
             // This must not fail. The transaction has already been signed and recorded.
-            LogPrint("INFO", "CommitTransaction() : Error: Transaction not valid %s\n",
+            LogPrint("INFO", "CommitTx() : Error: Transaction not valid %s\n",
                      state.GetRejectReason());
             return std::make_tuple(false, state.GetRejectReason());
         }
