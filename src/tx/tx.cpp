@@ -1200,6 +1200,52 @@ bool CRegisterContractTx::CheckTx(CValidationState &state, CAccountViewCache &vi
     return true;
 }
 
+string CDelegateTx::ToString(CAccountViewCache &view) const {
+    string str;
+    CKeyID keyId;
+    view.GetKeyId(userId, keyId);
+    str += strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", GetTxType(nTxType),
+        GetHash().ToString().c_str(), nVersion, keyId.ToAddress(), keyId.ToString());
+    str += "vote:\n";
+    for (auto item = operVoteFunds.begin(); item != operVoteFunds.end(); ++item) {
+        str += strprintf("%s", item->ToString());
+    }
+    return str;
+}
+
+Object CDelegateTx::ToJson(const CAccountViewCache &accountView) const {
+    Object result;
+    CAccountViewCache view(accountView);
+    CKeyID keyId;
+    result.push_back(Pair("hash", GetHash().GetHex()));
+    result.push_back(Pair("txtype", GetTxType(nTxType)));
+    result.push_back(Pair("ver", nVersion));
+    result.push_back(Pair("regid", userId.get<CRegID>().ToString()));
+    view.GetKeyId(userId, keyId);
+    result.push_back(Pair("addr", keyId.ToAddress()));
+    result.push_back(Pair("fees", llFees));
+    Array operVoteFundArray;
+    for (auto item = operVoteFunds.begin(); item != operVoteFunds.end(); ++item) {
+        operVoteFundArray.push_back(item->ToJson());
+    }
+    result.push_back(Pair("operVoteFundList", operVoteFundArray));
+    return result;
+}
+
+// FIXME: not useuful
+bool CDelegateTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
+                             CScriptDBViewCache &scriptDB) {
+    // CKeyID keyId;
+    // if (!view.GetKeyId(userId, keyId))
+    //     return false;
+
+    // vAddr.insert(keyId);
+    // for (auto iter = operVoteFunds.begin(); iter != operVoteFunds.end(); ++iter) {
+    //     vAddr.insert(iter->fund.GetVoteId());
+    // }
+    return true;
+}
+
 bool CDelegateTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
                             CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
                             CScriptDBViewCache &scriptDB) {
@@ -1275,36 +1321,51 @@ bool CDelegateTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
     return true;
 }
 
-string CDelegateTx::ToString(CAccountViewCache &view) const {
-    string str;
-    CKeyID keyId;
-    view.GetKeyId(userId, keyId);
-    str += strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", GetTxType(nTxType),
-        GetHash().ToString().c_str(), nVersion, keyId.ToAddress(), keyId.ToString());
-    str += "vote:\n";
-    for (auto item = operVoteFunds.begin(); item != operVoteFunds.end(); ++item) {
-        str += strprintf("%s", item->ToString());
-    }
-    return str;
-}
+bool CDelegateTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+                                CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
+                                CScriptDBViewCache &scriptDB) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = txundo.vAccountLog.rbegin();
+    for (; rIterAccountLog != txundo.vAccountLog.rend(); ++rIterAccountLog) {
+        CAccount account;
+        CUserID userId = rIterAccountLog->keyID;
+        if (!view.GetAccount(userId, account)) {
+            return state.DoS(100, ERRORMSG("CDelegateTx::UndoExecuteTx, read account info error"),
+                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
+        }
 
-Object CDelegateTx::ToJson(const CAccountViewCache &accountView) const {
-    Object result;
-    CAccountViewCache view(accountView);
-    CKeyID keyId;
-    result.push_back(Pair("hash", GetHash().GetHex()));
-    result.push_back(Pair("txtype", GetTxType(nTxType)));
-    result.push_back(Pair("ver", nVersion));
-    result.push_back(Pair("regid", userId.get<CRegID>().ToString()));
-    view.GetKeyId(userId, keyId);
-    result.push_back(Pair("addr", keyId.ToAddress()));
-    result.push_back(Pair("fees", llFees));
-    Array operVoteFundArray;
-    for (auto item = operVoteFunds.begin(); item != operVoteFunds.end(); ++item) {
-        operVoteFundArray.push_back(item->ToJson());
+        if (!account.UndoOperateAccount(*rIterAccountLog)) {
+            return state.DoS(100,
+                             ERRORMSG("CDelegateTx::UndoExecuteTx, undo operate account failed"),
+                             UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
+        }
+
+        if (!view.SetAccount(userId, account)) {
+            return state.DoS(100, ERRORMSG("CDelegateTx::UndoExecuteTx, write account info error"),
+                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
+        }
     }
-    result.push_back(Pair("operVoteFundList", operVoteFundArray));
-    return result;
+
+    vector<CScriptDBOperLog>::reverse_iterator rIterScriptDBLog = txundo.vScriptOperLog.rbegin();
+    if (SysCfg().GetAddressToTxFlag() && txundo.vScriptOperLog.size() > 0) {
+        if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
+            return state.DoS(100, ERRORMSG("CDelegateTx::UndoExecuteTx, undo scriptdb data error"),
+                             UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+        ++rIterScriptDBLog;
+    }
+
+    for (; rIterScriptDBLog != txundo.vScriptOperLog.rend(); ++rIterScriptDBLog) {
+        // Recover the old value and erase the new value.
+        if (!scriptDB.SetDelegateData(rIterScriptDBLog->vKey))
+            return state.DoS(100, ERRORMSG("CDelegateTx::UndoExecuteTx, set delegate data error"),
+                             UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+
+        ++rIterScriptDBLog;
+        if (!scriptDB.EraseDelegateData(rIterScriptDBLog->vKey))
+            return state.DoS(100, ERRORMSG("CDelegateTx::UndoExecuteTx, erase delegate data error"),
+                             UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+    }
+
+    return true;
 }
 
 bool CDelegateTx::CheckTx(CValidationState &state, CAccountViewCache &view,
@@ -1386,20 +1447,6 @@ bool CDelegateTx::CheckTx(CValidationState &state, CAccountViewCache &view,
                          REJECT_INVALID, "deletegates-duplication fund-error");
     }
 
-    return true;
-}
-
-//FIXME: not useuful
-bool CDelegateTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
-                             CScriptDBViewCache &scriptDB) {
-    // CKeyID keyId;
-    // if (!view.GetKeyId(userId, keyId))
-    //     return false;
-
-    // vAddr.insert(keyId);
-    // for (auto iter = operVoteFunds.begin(); iter != operVoteFunds.end(); ++iter) {
-    //     vAddr.insert(iter->fund.GetVoteId());
-    // }
     return true;
 }
 
