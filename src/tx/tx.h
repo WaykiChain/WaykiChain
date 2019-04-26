@@ -141,23 +141,27 @@ public:
 
     virtual ~CBaseTx() {}
     virtual unsigned int GetSerializeSize(int nType, int nVersion) const = 0;
-    virtual uint256 GetHash() const = 0;
-    virtual uint64_t GetFee() const = 0;
+    virtual uint256 GetHash() const                                      = 0;
+    virtual uint64_t GetFee() const                                      = 0;
     virtual uint64_t GetFuel(int nfuelRate);
     virtual uint64_t GetValue() const { return 0; }
-    virtual double GetPriority() const = 0;
-    virtual uint256 SignatureHash(bool recalculate = false) const = 0;
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() = 0;
-    virtual string ToString(CAccountViewCache &view) const = 0;
+    virtual double GetPriority() const                                = 0;
+    virtual uint256 SignatureHash(bool recalculate = false) const     = 0;
+    virtual std::shared_ptr<CBaseTx> GetNewInstance()                 = 0;
+    virtual string ToString(CAccountViewCache &view) const            = 0;
     virtual Object ToJson(const CAccountViewCache &AccountView) const = 0;
-    virtual bool GetAddress(std::set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) = 0;
+    virtual bool GetAddress(std::set<CKeyID> &vAddr, CAccountViewCache &view,
+                            CScriptDBViewCache &scriptDB)             = 0;
     virtual bool IsValidHeight(int nCurHeight, int nTxCacheHeight) const;
     bool IsCoinBase() { return (nTxType == REWARD_TX); }
-    virtual bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-                        int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) = 0;
-    virtual bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-                        int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
-    virtual bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) = 0;
+    virtual bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+                           CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
+                           CScriptDBViewCache &scriptDB)     = 0;
+    virtual bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+                               CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
+                               CScriptDBViewCache &scriptDB) = 0;
+    virtual bool CheckTx(CValidationState &state, CAccountViewCache &view,
+                         CScriptDBViewCache &scriptDB)       = 0;
 
     int GetFuelRate(CScriptDBViewCache &scriptDB);
 
