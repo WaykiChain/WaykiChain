@@ -893,6 +893,53 @@ bool CContractTx::CheckTx(CValidationState &state, CAccountViewCache &view,
     return true;
 }
 
+string CRewardTx::ToString(CAccountViewCache &view) const {
+    string str;
+    CKeyID keyId;
+    view.GetKeyId(account, keyId);
+    CRegID regId;
+    view.GetRegId(account, regId);
+    str += strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyid=%s, rewardValue=%ld\n",
+        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, regId.ToString(), keyId.GetHex(), rewardValue);
+
+    return str;
+}
+
+Object CRewardTx::ToJson(const CAccountViewCache &AccountView) const{
+    Object result;
+    CAccountViewCache view(AccountView);
+    CKeyID keyid;
+    result.push_back(Pair("hash", GetHash().GetHex()));
+    result.push_back(Pair("tx_type", GetTxType(nTxType)));
+    result.push_back(Pair("ver", nVersion));
+    if (account.type() == typeid(CRegID)) {
+        result.push_back(Pair("regid", account.get<CRegID>().ToString()));
+    }
+    if (account.type() == typeid(CPubKey)) {
+        result.push_back(Pair("pubkey", account.get<CPubKey>().ToString()));
+    }
+    view.GetKeyId(account, keyid);
+    result.push_back(Pair("addr", keyid.ToAddress()));
+    result.push_back(Pair("money", rewardValue));
+    result.push_back(Pair("valid_height", nHeight));
+    return result;
+}
+
+bool CRewardTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
+                           CScriptDBViewCache &scriptDB) {
+    CKeyID keyId;
+    if (account.type() == typeid(CRegID)) {
+        if (!view.GetKeyId(account, keyId)) return false;
+        vAddr.insert(keyId);
+    } else if (account.type() == typeid(CPubKey)) {
+        CPubKey pubKey = account.get<CPubKey>();
+        if (!pubKey.IsFullyValid()) return false;
+        vAddr.insert(pubKey.GetKeyId());
+    }
+
+    return true;
+}
+
 bool CRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
                           CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
                           CScriptDBViewCache &scriptDB) {
@@ -940,51 +987,37 @@ bool CRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
     return true;
 }
 
-bool CRewardTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
-    CKeyID keyId;
-    if (account.type() == typeid(CRegID)) {
-        if (!view.GetKeyId(account, keyId))
-            return false;
-        vAddr.insert(keyId);
-    } else if (account.type() == typeid(CPubKey)) {
-        CPubKey pubKey = account.get<CPubKey>();
-        if (!pubKey.IsFullyValid())
-            return false;
-        vAddr.insert(pubKey.GetKeyId());
+bool CRewardTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+                              CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
+                              CScriptDBViewCache &scriptDB) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = txundo.vAccountLog.rbegin();
+    for (; rIterAccountLog != txundo.vAccountLog.rend(); ++rIterAccountLog) {
+        CAccount account;
+        CUserID userId = rIterAccountLog->keyID;
+        if (!view.GetAccount(userId, account)) {
+            return state.DoS(100, ERRORMSG("CRewardTx::UndoExecuteTx, read account info error"),
+                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
+        }
+
+        if (!account.UndoOperateAccount(*rIterAccountLog)) {
+            return state.DoS(100, ERRORMSG("CRewardTx::UndoExecuteTx, undo operate account failed"),
+                             UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
+        }
+
+        if (!view.SetAccount(userId, account)) {
+            return state.DoS(100, ERRORMSG("CRewardTx::UndoExecuteTx, write account info error"),
+                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
+        }
     }
+
+    vector<CScriptDBOperLog>::reverse_iterator rIterScriptDBLog = txundo.vScriptOperLog.rbegin();
+    for (; rIterScriptDBLog != txundo.vScriptOperLog.rend(); ++rIterScriptDBLog) {
+        if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
+            return state.DoS(100, ERRORMSG("CRewardTx::UndoExecuteTx, undo scriptdb data error"),
+                             UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+    }
+
     return true;
-}
-
-string CRewardTx::ToString(CAccountViewCache &view) const {
-    string str;
-    CKeyID keyId;
-    view.GetKeyId(account, keyId);
-    CRegID regId;
-    view.GetRegId(account, regId);
-    str += strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyid=%s, rewardValue=%ld\n",
-        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, regId.ToString(), keyId.GetHex(), rewardValue);
-
-    return str;
-}
-
-Object CRewardTx::ToJson(const CAccountViewCache &AccountView) const{
-    Object result;
-    CAccountViewCache view(AccountView);
-    CKeyID keyid;
-    result.push_back(Pair("hash", GetHash().GetHex()));
-    result.push_back(Pair("tx_type", GetTxType(nTxType)));
-    result.push_back(Pair("ver", nVersion));
-    if(account.type() == typeid(CRegID)) {
-        result.push_back(Pair("regid", account.get<CRegID>().ToString()));
-    }
-    if(account.type() == typeid(CPubKey)) {
-        result.push_back(Pair("pubkey", account.get<CPubKey>().ToString()));
-    }
-    view.GetKeyId(account, keyid);
-    result.push_back(Pair("addr", keyid.ToAddress()));
-    result.push_back(Pair("money", rewardValue));
-    result.push_back(Pair("valid_height", nHeight));
-    return result;
 }
 
 bool CRegisterContractTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidationState &state, CTxUndo &txundo,
