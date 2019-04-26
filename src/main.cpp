@@ -58,7 +58,9 @@ CChain chainActive;
 CChain chainMostWork;
 int nSyncTipHeight(0);  //同步时 ,chainActive.Tip()->nHeight
 
-map<uint256, std::tuple<std::shared_ptr<CAccountViewCache>, std::shared_ptr<CTransactionDBCache>, std::shared_ptr<CScriptDBViewCache> > > mapCache;
+map<uint256, std::tuple<std::shared_ptr<CAccountViewCache>, 
+                        std::shared_ptr<CTransactionDBCache>, 
+                        std::shared_ptr<CScriptDBViewCache> > > mapCache;
 
 CSignatureCache signatureCache;
 
@@ -2044,20 +2046,22 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
 
     if (pPreBlockIndex->GetBlockHash() != chainActive.Tip()->GetBlockHash()) {
         while (!chainActive.Contains(pPreBlockIndex)) {
-            if (!bForkChainTipFound && mapCache.count(pPreBlockIndex->GetBlockHash()) > 0) {
-                preBlockHash = pPreBlockIndex->GetBlockHash();
-                LogPrint("INFO", "ForkChainTip hash=%s, height=%d\n", pPreBlockIndex->GetBlockHash().GetHex(),
-                        pPreBlockIndex->nHeight);
-                bForkChainTipFound = true;
-            }
-
             if (!bForkChainTipFound) {
-                CBlock block;
-                if (!ReadBlockFromDisk(block, pPreBlockIndex))
-                    return state.Abort(_("Failed to read block"));
+                if (mapCache.count(pPreBlockIndex->GetBlockHash())) {
+                    preBlockHash = pPreBlockIndex->GetBlockHash();
+                    LogPrint("INFO", "ForkChainTip hash=%s, height=%d\n", 
+                            pPreBlockIndex->GetBlockHash().GetHex(),
+                            pPreBlockIndex->nHeight);
 
-                vPreBlocks.push_back(block);  //将支链的block保存起来
-            }
+                    bForkChainTipFound = true;
+                } else {
+                    CBlock block;
+                    if (!ReadBlockFromDisk(block, pPreBlockIndex))
+                        return state.Abort(_("Failed to read block"));
+
+                    vPreBlocks.push_back(block);  //将支链的block保存起来
+                }
+            }    
 
             pPreBlockIndex = pPreBlockIndex->pprev;
             // if (chainActive.Tip()->nHeight - pPreBlockIndex->nHeight > SysCfg().GetMaxForkHeight())
@@ -2070,16 +2074,18 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
         }  //如果进来的preblock hash不为tip的hash,找到主链中分叉处
 
         int64_t tempTime = GetTimeMillis();
-        if (mapCache.count(pPreBlockIndex->GetBlockHash()) > 0) {
+        if (mapCache.count(pPreBlockIndex->GetBlockHash())) {
             LogPrint("INFO", "hash=%s, height=%d\n", pPreBlockIndex->GetBlockHash().GetHex(), pPreBlockIndex->nHeight);
             pAcctViewCache = std::get<0>(mapCache[pPreBlockIndex->GetBlockHash()]);
             pTxCache       = std::get<1>(mapCache[pPreBlockIndex->GetBlockHash()]);
             pScriptDBCache = std::get<2>(mapCache[pPreBlockIndex->GetBlockHash()]);
+
         } else {
             CBlockIndex *pBlockIndex = chainActive.Tip();
             while (pPreBlockIndex != pBlockIndex) {  //数据库状态回滚到主链分叉处
                 LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() DisconnectBlock block nHeight=%d hash=%s\n",
                          pBlockIndex->nHeight, pBlockIndex->GetBlockHash().GetHex());
+
                 CBlock block;
                 if (!ReadBlockFromDisk(block, pBlockIndex))
                     return state.Abort(_("Failed to read block"));
