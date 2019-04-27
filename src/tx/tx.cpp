@@ -1269,33 +1269,32 @@ bool CDelegateTx::CheckTx(CValidationState &state, CAccountViewCache &view,
         }
     }
 
-    //check account delegates number;
-    set<string> setTotalOperVoteKeyID; //memory only
-    for (auto voteFund : sendAcct.voteFunds) {
-        setTotalOperVoteKeyID.insert(voteFund.ToString());
-    }
-
-    //check delegate duplication
+    // check delegate duplication
     set<string> setOperVoteKeyID;
-    uint64_t totalVotes = 0;
     for (auto item = operVoteFunds.begin(); item != operVoteFunds.end(); ++item) {
-        if (0 >= item->fund.GetVoteCount() || (uint64_t) GetMaxMoney() < item->fund.GetVoteCount() )
-            return ERRORMSG("CDelegateTx::CheckTx, votes: %lld not within (0 .. MaxVote)", item->fund.GetVoteCount());
+        if (0 >= item->fund.GetVoteCount() || (uint64_t)GetMaxMoney() < item->fund.GetVoteCount())
+            return ERRORMSG("CDelegateTx::CheckTx, votes: %lld not within (0 .. MaxVote)",
+                            item->fund.GetVoteCount());
 
         setOperVoteKeyID.insert(item->fund.ToString());
-        setTotalOperVoteKeyID.insert(item->fund.ToString());
         CAccount acctInfo;
         if (!view.GetAccount(item->fund.GetVoteId(), acctInfo))
-            return state.DoS(100, ERRORMSG("CDelegateTx::CheckTx, get account info error, address=%s",
-                            item->fund.ToString()), REJECT_INVALID, "bad-read-accountdb");
+            return state.DoS(100,
+                             ERRORMSG("CDelegateTx::CheckTx, get account info error, address=%s",
+                                      item->fund.ToString()),
+                             REJECT_INVALID, "bad-read-accountdb");
 
-        if(item->fund.GetVoteCount() > totalVotes)
-            totalVotes = item->fund.GetVoteCount();
+        if (!acctInfo.IsRegistered()) {
+            return state.DoS(100,
+                             ERRORMSG("CDelegateTx::CheckTx, account is unregistered, address=%s",
+                                      item->fund.ToString()),
+                             REJECT_INVALID, "bad-read-accountdb");
+        }
     }
 
     if (setOperVoteKeyID.size() != operVoteFunds.size()) {
         return state.DoS(100, ERRORMSG("CDelegateTx::CheckTx, duplication vote fund"),
-            REJECT_INVALID, "deletegates-duplication fund-error");
+                         REJECT_INVALID, "deletegates-duplication fund-error");
     }
 
     return true;
