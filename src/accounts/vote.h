@@ -43,10 +43,10 @@ enum VoteOperType: unsigned char {
 
 class CVoteFund {
 private:
-    CUserID voteId;             //!< candidate RegId or PubKey
-    uint64_t voteCount;     //!< count of votes to the candidate
+    CUserID voteId;      //!< candidate RegId or PubKey
+    uint64_t voteCount;  //!< count of votes to the candidate
 
-    uint256 sigHash;        //!< only in memory
+    uint256 sigHash;  //!< only in memory
 
 public:
     const CUserID &GetVoteId() { return voteId; }
@@ -148,8 +148,8 @@ public:
         fund     = operFund;
     }
 
-    string ToString() const { 
-        return strprintf("operVoteType=%s %s", voteOperTypeArray[operType], fund.ToString()); 
+    string ToString() const {
+        return strprintf("operVoteType=%s %s", voteOperTypeArray[operType], fund.ToString());
     }
 
     json_spirit::Object ToJson() const {
