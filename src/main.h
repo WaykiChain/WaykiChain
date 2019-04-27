@@ -532,7 +532,7 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
 bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDBCache,
                 bool fCheckTx = true, bool fCheckMerkleRoot = true);
 
-bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CValidationState &state);
+bool ProcessForkedChain(const CBlock &block, CValidationState &state);
 
 // Store block on disk
 // if dbp is provided, the file is known to already reside on disk

@@ -1213,6 +1213,7 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &
     CDiskBlockPos pos = pIndex->GetUndoPos();
     if (pos.IsNull())
         return ERRORMSG("DisconnectBlock() : no undo data available");
+
     if (!blockUndo.ReadFromDisk(pos, pIndex->pprev->GetBlockHash()))
         return ERRORMSG("DisconnectBlock() : failure reading undo data");
 
@@ -1268,7 +1269,7 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &
         return state.Abort(_("Disconnect tip block failed to delete tx from txcache"));
 
     //load a block tx into cache transaction
-    if (pIndex->nHeight - SysCfg().GetTxCacheHeight() > 0) {
+    if (pIndex->nHeight > SysCfg().GetTxCacheHeight()) {
         CBlockIndex *pReLoadBlockIndex = pIndex;
         int nCacheHeight               = SysCfg().GetTxCacheHeight();
         while (pReLoadBlockIndex && nCacheHeight-- > 0) {
@@ -1277,6 +1278,7 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &
         CBlock reLoadblock;
         if (!ReadBlockFromDisk(pReLoadBlockIndex, reLoadblock))
             return state.Abort(_("Failed to read block"));
+
         if (!txCache.AddBlockToCache(reLoadblock))
             return state.Abort(_("Disconnect tip block reload preblock tx to txcache"));
     }
@@ -2022,7 +2024,7 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
     return true;
 }
 
-bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockIndex, CValidationState &state)
+bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValidationState &state)
 {
     std::shared_ptr<CAccountViewCache>      pForkAcctViewCache;
     std::shared_ptr<CTransactionDBCache>    pForkTxCache;
@@ -2065,25 +2067,25 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
 
             pPreBlockIndex = pPreBlockIndex->pprev;
             // if (chainActive.Tip()->nHeight - pPreBlockIndex->nHeight > SysCfg().GetMaxForkHeight())
-            //     return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
+            //     return state.DoS(100, ERRORMSG("ProcessForkedChain() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
             //         block.GetHash().GetHex(), block.GetHeight()));
 
             map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(pPreBlockIndex->GetBlockHash());
             if (mi == mapBlockIndex.end())
-                return state.DoS(10, ERRORMSG("CheckBlockProofWorkWithCoinDay() : prev block not found"), 0, "bad-prevblk");
-        }  //如果进来的preblock hash不为tip的hash, 找到主链中分叉处
+                return state.DoS(10, ERRORMSG("ProcessForkedChain() : prev block not found"), 0, "bad-prevblk");
+        }  //如果进来的preBlockHash不为tip的hash, 找到主链中分叉处
 
-        int64_t tempTime = GetTimeMillis();
-        if (mapForkCache.count(pPreBlockIndex->GetBlockHash())) {
+        if (mapForkCache.count( pPreBlockIndex->GetBlockHash()) ) {
             LogPrint("INFO", "hash=%s, height=%d\n", pPreBlockIndex->GetBlockHash().GetHex(), pPreBlockIndex->nHeight);
-            pAcctViewCache = std::get<0>(mapForkCache[pPreBlockIndex->GetBlockHash()]);
-            pTxCache       = std::get<1>(mapForkCache[pPreBlockIndex->GetBlockHash()]);
-            pScriptDBCache = std::get<2>(mapForkCache[pPreBlockIndex->GetBlockHash()]);
+            pAcctViewCache = std::get<0>(mapForkCache[ pPreBlockIndex->GetBlockHash() ]);
+            pTxCache       = std::get<1>(mapForkCache[ pPreBlockIndex->GetBlockHash() ]);
+            pScriptDBCache = std::get<2>(mapForkCache[ pPreBlockIndex->GetBlockHash() ]);
 
         } else {
+            int64_t tempTime = GetTimeMillis();
             CBlockIndex *pBlockIndex = chainActive.Tip();
             while (pPreBlockIndex != pBlockIndex) {
-                LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() DisconnectBlock block nHeight=%d hash=%s\n",
+                LogPrint("INFO", "ProcessForkedChain() DisconnectBlock block nHeight=%d hash=%s\n",
                         pBlockIndex->nHeight, pBlockIndex->GetBlockHash().GetHex());
 
                 CBlock block;
@@ -2091,30 +2093,28 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
                     return state.Abort(_("Failed to read block"));
 
                 bool bfClean = true;
-                if (!DisconnectBlock(block, state, *pAcctViewCache, pBlockIndex, *pTxCache, *pScriptDBCache, &bfClean))
-                    return ERRORMSG("CheckBlockProofWorkWithCoinDay() : DisconnectBlock %s failed",
+                if (!DisconnectBlock(block, state, *pAcctViewCache, pBlockIndex, *pTxCache, *pScriptDBCache, &bfClean)) {
+                    return ERRORMSG("ProcessForkedChain() : DisconnectBlock %s failed",
                                     pBlockIndex->GetBlockHash().ToString());
+                }
 
                 pBlockIndex = pBlockIndex->pprev;
             }  //数据库状态回滚到主链分叉处
+            LogPrint("INFO", "ProcessForkedChain() DisconnectBlock elapse :%lld ms\n", GetTimeMillis() - tempTime);
 
-            std::tuple
-                <std::shared_ptr<CAccountViewCache>,
-                std::shared_ptr<CTransactionDBCache>,
-                std::shared_ptr<CScriptDBViewCache> > forkCache = std::make_tuple(pAcctViewCache, pTxCache, pScriptDBCache);
+            mapForkCache[ pPreBlockIndex->GetBlockHash() ] = std::make_tuple(pAcctViewCache, pTxCache, pScriptDBCache);;
+
             LogPrint("INFO", "add mapForkCache Key:%s height:%d\n", pPreBlockIndex->GetBlockHash().GetHex(), pPreBlockIndex->nHeight);
             LogPrint("INFO", "add pAcctViewCache:%x \n", pAcctViewCache.get());
             LogPrint("INFO", "view best block hash:%s \n", pAcctViewCache->GetBestBlock().GetHex());
-            mapForkCache[pPreBlockIndex->GetBlockHash()] = forkCache;
         }
-
-        LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() DisconnectBlock elapse :%lld ms\n", GetTimeMillis() - tempTime);
+        
         if (bForkChainTipFound) {
             pForkAcctViewCache = std::get<0>(mapForkCache[preBlockHash]);
             pForkTxCache       = std::get<1>(mapForkCache[preBlockHash]);
             pForkScriptDBCache = std::get<2>(mapForkCache[preBlockHash]);
 
-            pForkAcctViewCache(pAcctViewCache.get());
+            pForkAcctViewCache = pAcctViewCache.get();
             pForkTxCache->SetBaseData(pTxCache.get());
             pForkScriptDBCache->SetBaseData(pScriptDBCache.get());
         } else {
@@ -2129,12 +2129,12 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
 
         vector<CBlock>::reverse_iterator rIter = vPreBlocks.rbegin();
         for (; rIter != vPreBlocks.rend(); ++rIter) {  //连接支链的block
-            LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() ConnectBlock block nHeight=%d hash=%s\n",
+            LogPrint("INFO", "ProcessForkedChain() ConnectBlock block nHeight=%d hash=%s\n",
                     rIter->GetHeight(), rIter->GetHash().GetHex());
 
             if (!ConnectBlock(*rIter, state, *pForkAcctViewCache, mapBlockIndex[rIter->GetHash()],
                 *pForkTxCache, *pForkScriptDBCache, false)) {
-                return ERRORMSG("CheckBlockProofWorkWithCoinDay() : ConnectBlock %s failed", rIter->GetHash().ToString());
+                return ERRORMSG("ProcessForkedChain() : ConnectBlock %s failed", rIter->GetHash().ToString());
             }
 
             CBlockIndex *pConnBlockIndex = mapBlockIndex[rIter->GetHash()];
@@ -2145,7 +2145,7 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
 
         //校验pos交易
         if (!VerifyPosTx(&block, *pForkAcctViewCache, *pForkTxCache, *pForkScriptDBCache, true)) {
-            return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : the block Hash=%s check pos tx error",
+            return state.DoS(100, ERRORMSG("ProcessForkedChain() : the block Hash=%s check pos tx error",
                             block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
         }
 
@@ -2153,18 +2153,18 @@ bool CheckBlockProofWorkWithCoinDay(const CBlock &block, CBlockIndex *pPreBlockI
         std::shared_ptr<CRewardTx> pRewardTx = dynamic_pointer_cast<CRewardTx>(block.vptx[0]);
         uint64_t llValidReward = block.GetFee() - block.GetFuel();
         if (pRewardTx->rewardValue != llValidReward)
-            return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : coinbase pays too much (actual=%d vs limit=%d)",
+            return state.DoS(100, ERRORMSG("ProcessForkedChain() : coinbase pays too much (actual=%d vs limit=%d)",
                             pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-cb-amount");
 
         for (auto &item : block.vptx) {
             //校验交易是否在有效高度
             if (!item->IsValidHeight(mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight, SysCfg().GetTxCacheHeight())) {
-                return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : txhash=%s beyond the scope of valid height\n ",
+                return state.DoS(100, ERRORMSG("ProcessForkedChain() : txhash=%s beyond the scope of valid height\n ",
                                 item->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
             }
             //校验是否有重复确认交易
             if (pForkTxCache->HaveTx(item->GetHash()))
-                return state.DoS(100, ERRORMSG("CheckBlockProofWorkWithCoinDay() : tx hash %s has been confirmed\n",
+                return state.DoS(100, ERRORMSG("ProcessForkedChain() : tx hash %s has been confirmed\n",
                                 item->GetHash().GetHex()), REJECT_INVALID, "bad-txns-oversize");
         }
 
@@ -2247,15 +2247,14 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
 {
     AssertLockHeld(cs_main);
 
-    // Check for duplicate
     uint256 blockHash = block.GetHash();
     LogPrint("INFO", "AcceptBlock[%d]: %s\n", block.GetHeight(), blockHash.GetHex());
-    if (mapBlockIndex.count(blockHash))
+    if (mapBlockIndex.count(blockHash)) // Check for duplicateness
         return state.Invalid(ERRORMSG("AcceptBlock() : block already in mapBlockIndex"), 0, "duplicated");
 
-    assert(block.GetHash() == SysCfg().GetGenesisBlockHash() || mapBlockIndex.count(block.GetPrevBlockHash()));
+    assert(block.GetHeight() == 0 || mapBlockIndex.count(block.GetPrevBlockHash()));
 
-    if (block.GetHash() != SysCfg().GetGenesisBlockHash() &&
+    if (block.GetHeight() != 0 &&
         block.GetFuelRate() != GetElementForBurn(mapBlockIndex[block.GetPrevBlockHash()]))
         return state.DoS(100, ERRORMSG("CheckBlock() : block fuel rate unmatched"), REJECT_INVALID, "fuel-rate-unmatch");
 
@@ -2270,31 +2269,34 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
         pBlockIndexPrev = (*mi).second;
         nHeight = pBlockIndexPrev->nHeight + 1;
 
-        if (block.GetHeight() != (unsigned int) nHeight)
+        if (block.GetHeight() != (unsigned int) nHeight) {
             return state.DoS(100, ERRORMSG("AcceptBlock() : height given in block unmatches with its actual height"),
                             REJECT_INVALID, "incorrect-height");
+        }
 
         int64_t tempTime = GetTimeMillis();
 
         // Check timestamp against prev
         if (block.GetBlockTime() <= pBlockIndexPrev->GetBlockTime() ||
-            (block.GetBlockTime() - pBlockIndexPrev->GetBlockTime()) < SysCfg().GetBlockInterval())
-            return state.Invalid(ERRORMSG("AcceptBlock() : block's timestamp is too early"),
+            (block.GetBlockTime() - pBlockIndexPrev->GetBlockTime()) < SysCfg().GetBlockInterval()) {
+            return state.Invalid(ERRORMSG("AcceptBlock() : the new block came in too early"),
                                 REJECT_INVALID, "time-too-early");
+        }
 
         // Check that the block chain matches the known block chain up to a checkpoint
-        if (!Checkpoints::CheckBlock(nHeight, hash))
+        if (!Checkpoints::CheckBlock(nHeight, hash)) {
             return state.DoS(100, ERRORMSG("AcceptBlock() : rejected by checkpoint lock-in at %d", nHeight),
                             REJECT_CHECKPOINT, "checkpoint mismatch");
+        }
 
         // Don't accept any forks from the main chain prior to last checkpoint
         CBlockIndex *pCheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
         if (pCheckpoint && (nHeight < pCheckpoint->nHeight))
             return state.DoS(100, ERRORMSG("AcceptBlock() : forked chain older than last checkpoint (height %d)", nHeight));
 
-        //Check proof of pos tx
-        if (!CheckBlockProofWorkWithCoinDay(block, pBlockIndexPrev, state)) {
-            LogPrint("INFO", "CheckBlockProofWorkWithCoinDay() end: %lld ms\n", GetTimeMillis() - tempTime);
+        // Process forked branch
+        if (!ProcessForkedChain(block, pBlockIndexPrev, state)) {
+            LogPrint("INFO", "ProcessForkedChain() end: %lld ms\n", GetTimeMillis() - tempTime);
             return state.DoS(100, ERRORMSG("AcceptBlock() : check proof of pos tx"), REJECT_INVALID, "bad-pos-tx");
         }
 
@@ -2313,13 +2315,16 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
         CDiskBlockPos blockPos;
         if (dbp != NULL)
             blockPos = *dbp;
+
         if (!FindBlockPos(state, blockPos, nBlockSize + 8, nHeight, block.GetTime(), dbp != NULL))
             return ERRORMSG("AcceptBlock() : FindBlockPos failed");
-        if (dbp == NULL)
-            if (!WriteBlockToDisk(block, blockPos))
-                return state.Abort(_("Failed to write block"));
+
+        if (dbp == NULL && !WriteBlockToDisk(block, blockPos))
+            return state.Abort(_("Failed to write block"));
+
         if (!AddToBlockIndex(block, state, blockPos))
             return ERRORMSG("AcceptBlock() : AddToBlockIndex failed");
+
     } catch (std::runtime_error &e) {
         return state.Abort(_("System error: ") + e.what());
     }
@@ -2328,9 +2333,10 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
     int nBlockEstimate = Checkpoints::GetTotalBlocksEstimate();
     if (chainActive.Tip()->GetBlockHash() == hash) {
         LOCK(cs_vNodes);
-        for (auto pnode : vNodes)
+        for (auto pnode : vNodes) {
             if (chainActive.Height() > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate))
                 pnode->PushInventory(CInv(MSG_BLOCK, hash));
+        }
     }
 
     return true;

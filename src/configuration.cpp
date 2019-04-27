@@ -92,7 +92,7 @@ namespace Checkpoints
             return dataRegtest;
     }
 
-    // nHeight找不到 或 高度和hash都能找到，则返回true
+    // nHeight找不到, or高度和hash都能找到，则返回true
     bool CheckBlock(int nHeight, const uint256& hash)
     {
         if (!fEnabled)
@@ -101,8 +101,10 @@ namespace Checkpoints
         const MapCheckpoints& checkpoints = *Checkpoints().mapCheckpoints;
 
         MapCheckpoints::const_iterator i = checkpoints.find(nHeight);
-        if (i == checkpoints.end()) return true;
-        return hash == i->second;
+        if (i == checkpoints.end()) 
+            return true; //nHeight not exists in checkpoints
+
+        return ( hash == i->second );
     }
 
     // Guess how far we are in the verification process at the given block index
