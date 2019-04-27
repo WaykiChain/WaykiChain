@@ -599,7 +599,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
         tx.get()->nValidHeight = height;
 
         CKeyID keyId;
-        if (!view.GetKeyId(userId, keyId)) {            
+        if (!view.GetKeyId(userId, keyId)) {
             LogPrint("INFO", "callcontracttx: %s no key id\n", userId.ToString());
             throw JSONRPCError(RPC_WALLET_ERROR, "callcontracttx Error: no key id.");
         }
@@ -865,10 +865,15 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             }
             CAccount delegateAcct;
             if (!view.GetAccount(CUserID(delegateKeyId), delegateAcct)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address is unregistered");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address is not exist");
             }
-            operVoteFund.fund.SetVoteId( CUserID(delegateAcct.pubKey) ); //FIXME: can be RegID as well
-            operVoteFund.fund.SetVoteCount( (uint64_t)abs(delegateVotes.get_int64()) );
+
+            if (!delegateAcct.IsRegistered()) {
+                throw JSONRPCError(RPC_WALLET_ERROR, "Delegate address is unregistered");
+            }
+
+            operVoteFund.fund.SetVoteId(CUserID(delegateAcct.pubKey));  // FIXME: can be RegID as well
+            operVoteFund.fund.SetVoteCount((uint64_t)abs(delegateVotes.get_int64()));
             if (delegateVotes.get_int64() > 0) {
                 operVoteFund.operType = ADD_FUND;
             } else {
