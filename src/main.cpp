@@ -2026,6 +2026,9 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
 
 bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValidationState &state)
 {
+    if (pPreBlockIndex->GetBlockHash() == chainActive.Tip()->GetBlockHash()) 
+        return true; //no fork
+
     std::shared_ptr<CAccountViewCache>      pForkAcctViewCache;
     std::shared_ptr<CTransactionDBCache>    pForkTxCache;
     std::shared_ptr<CScriptDBViewCache>     pForkScriptDBCache;
@@ -2042,147 +2045,141 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     std::shared_ptr<CScriptDBViewCache> pScriptDBCache = std::make_shared<CScriptDBViewCache>(*pScriptDB, true);
     pScriptDBCache->mapContractDb                      = pScriptDBTip->mapContractDb;
 
-    uint256 preBlockHash;
     bool bForkChainTipFound(false);
     vector<CBlock> vPreBlocks;
+    uint256 preBlockHash = pPreBlockIndex->GetBlockHash();
 
-    if (pPreBlockIndex->GetBlockHash() != chainActive.Tip()->GetBlockHash()) {
-        while (!chainActive.Contains(pPreBlockIndex)) {
-            if (!bForkChainTipFound) {
-                if (mapForkCache.count(pPreBlockIndex->GetBlockHash())) {
-                    preBlockHash = pPreBlockIndex->GetBlockHash();
-                    LogPrint("INFO", "ForkChainTip hash=%s, height=%d\n", 
-                            pPreBlockIndex->GetBlockHash().GetHex(),
-                            pPreBlockIndex->nHeight);
-
-                    bForkChainTipFound = true;
-                } else {
-                    CBlock block;
-                    if (!ReadBlockFromDisk(pPreBlockIndex, block))
-                        return state.Abort(_("Failed to read block"));
-
-                    vPreBlocks.push_back(block);  //将支链的block保存起来
-                }
-            }    
-
-            pPreBlockIndex = pPreBlockIndex->pprev;
-            // if (chainActive.Tip()->nHeight - pPreBlockIndex->nHeight > SysCfg().GetMaxForkHeight())
-            //     return state.DoS(100, ERRORMSG("ProcessForkedChain() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
-            //         block.GetHash().GetHex(), block.GetHeight()));
-
-            map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(pPreBlockIndex->GetBlockHash());
-            if (mi == mapBlockIndex.end())
-                return state.DoS(10, ERRORMSG("ProcessForkedChain() : prev block not found"), 0, "bad-prevblk");
-        }  //如果进来的preBlockHash不为tip的hash, 找到主链中分叉处
-
-        if (mapForkCache.count( pPreBlockIndex->GetBlockHash()) ) {
-            LogPrint("INFO", "hash=%s, height=%d\n", pPreBlockIndex->GetBlockHash().GetHex(), pPreBlockIndex->nHeight);
-            pAcctViewCache = std::get<0>(mapForkCache[ pPreBlockIndex->GetBlockHash() ]);
-            pTxCache       = std::get<1>(mapForkCache[ pPreBlockIndex->GetBlockHash() ]);
-            pScriptDBCache = std::get<2>(mapForkCache[ pPreBlockIndex->GetBlockHash() ]);
-
-        } else {
-            int64_t tempTime = GetTimeMillis();
-            CBlockIndex *pBlockIndex = chainActive.Tip();
-            while (pPreBlockIndex != pBlockIndex) {
-                LogPrint("INFO", "ProcessForkedChain() DisconnectBlock block nHeight=%d hash=%s\n",
-                        pBlockIndex->nHeight, pBlockIndex->GetBlockHash().GetHex());
-
+    while (!chainActive.Contains(pPreBlockIndex)) {
+        if (!bForkChainTipFound) {
+            if (mapForkCache.count(preBlockHash)) {
+                bForkChainTipFound = true;
+                LogPrint("INFO", "ForkChainTip hash=%s, height=%d\n", preBlockHash.GetHex(), pPreBlockIndex->nHeight);
+            } else {
                 CBlock block;
-                if (!ReadBlockFromDisk(pBlockIndex, block))
+                if (!ReadBlockFromDisk(pPreBlockIndex, block))
                     return state.Abort(_("Failed to read block"));
 
-                bool bfClean = true;
-                if (!DisconnectBlock(block, state, *pAcctViewCache, pBlockIndex, *pTxCache, *pScriptDBCache, &bfClean)) {
-                    return ERRORMSG("ProcessForkedChain() : DisconnectBlock %s failed",
-                                    pBlockIndex->GetBlockHash().ToString());
-                }
+                vPreBlocks.push_back(block);  //将支链的block保存起来
+            }
+        }    
 
-                pBlockIndex = pBlockIndex->pprev;
-            }  //数据库状态回滚到主链分叉处
-            LogPrint("INFO", "ProcessForkedChain() DisconnectBlock elapse :%lld ms\n", GetTimeMillis() - tempTime);
+        pPreBlockIndex = pPreBlockIndex->pprev;
+        preBlockHash = pPreBlockIndex->GetBlockHash();
+        // if (chainActive.Tip()->nHeight - pPreBlockIndex->nHeight > SysCfg().GetMaxForkHeight())
+        //     return state.DoS(100, ERRORMSG("ProcessForkedChain() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
+        //         block.GetHash().GetHex(), block.GetHeight()));
 
-            mapForkCache[ pPreBlockIndex->GetBlockHash() ] = std::make_tuple(pAcctViewCache, pTxCache, pScriptDBCache);;
+        if (mapBlockIndex.find(preBlockHash) == mapBlockIndex.end())
+            return state.DoS(10, ERRORMSG("ProcessForkedChain() : prev block not found"), 0, "bad-prevblk");
+    }  //如果进来的preBlockHash不为tip的hash, 找到主链中分叉处
 
-            LogPrint("INFO", "add mapForkCache Key:%s height:%d\n", pPreBlockIndex->GetBlockHash().GetHex(), pPreBlockIndex->nHeight);
-            LogPrint("INFO", "add pAcctViewCache:%x \n", pAcctViewCache.get());
-            LogPrint("INFO", "view best block hash:%s \n", pAcctViewCache->GetBestBlock().GetHex());
-        }
-        
-        if (bForkChainTipFound) {
-            pForkAcctViewCache = std::get<0>(mapForkCache[preBlockHash]);
-            pForkTxCache       = std::get<1>(mapForkCache[preBlockHash]);
-            pForkScriptDBCache = std::get<2>(mapForkCache[preBlockHash]);
+    if (mapForkCache.count(preBlockHash)) {        
+        pAcctViewCache = std::get<0>(mapForkCache[ preBlockHash ]);
+        pTxCache       = std::get<1>(mapForkCache[ preBlockHash ]);
+        pScriptDBCache = std::get<2>(mapForkCache[ preBlockHash ]);
+        LogPrint("INFO", "hash=%s, height=%d\n", preBlockHash.GetHex(), pPreBlockIndex->nHeight);
 
-            pForkAcctViewCache = pAcctViewCache.get();
-            pForkTxCache->SetBaseData(pTxCache.get());
-            pForkScriptDBCache->SetBaseData(pScriptDBCache.get());
-        } else {
-            pForkAcctViewCache.reset(new CAccountViewCache(*pAcctViewCache, true));
-            pForkTxCache.reset(new CTransactionDBCache(*pTxCache, true));
-            pForkScriptDBCache.reset(new CScriptDBViewCache(*pScriptDBCache, true));
-        }
+    } else {
+        int64_t tempTime = GetTimeMillis();
+        CBlockIndex *pBlockIndex = chainActive.Tip();
+        while (pPreBlockIndex != pBlockIndex) {
+            LogPrint("INFO", "ProcessForkedChain() DisconnectBlock block nHeight=%d hash=%s\n",
+                    pBlockIndex->nHeight, pBlockIndex->GetBlockHash().GetHex());
 
-        LogPrint("INFO", "pForkAcctView:%x\n", pForkAcctViewCache.get());
-        LogPrint("INFO", "view best block hash:%s height:%d\n",
-            pForkAcctViewCache->GetBestBlock().GetHex(), mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight);
+            CBlock block;
+            if (!ReadBlockFromDisk(pBlockIndex, block))
+                return state.Abort(_("Failed to read block"));
 
-        vector<CBlock>::reverse_iterator rIter = vPreBlocks.rbegin();
-        for (; rIter != vPreBlocks.rend(); ++rIter) {  //连接支链的block
-            LogPrint("INFO", "ProcessForkedChain() ConnectBlock block nHeight=%d hash=%s\n",
-                    rIter->GetHeight(), rIter->GetHash().GetHex());
-
-            if (!ConnectBlock(*rIter, state, *pForkAcctViewCache, mapBlockIndex[rIter->GetHash()],
-                *pForkTxCache, *pForkScriptDBCache, false)) {
-                return ERRORMSG("ProcessForkedChain() : ConnectBlock %s failed", rIter->GetHash().ToString());
+            bool bfClean = true;
+            if (!DisconnectBlock(block, state, *pAcctViewCache, pBlockIndex, *pTxCache, *pScriptDBCache, &bfClean)) {
+                return ERRORMSG("ProcessForkedChain() : DisconnectBlock %s failed",
+                                pBlockIndex->GetBlockHash().ToString());
             }
 
-            CBlockIndex *pConnBlockIndex = mapBlockIndex[rIter->GetHash()];
-            if (pConnBlockIndex->nStatus | BLOCK_FAILED_MASK) {
-                pConnBlockIndex->nStatus = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
-            }
-        }
+            pBlockIndex = pBlockIndex->pprev;
+        }  //数据库状态回滚到主链分叉处
+        LogPrint("INFO", "ProcessForkedChain() DisconnectBlock elapse :%lld ms\n", GetTimeMillis() - tempTime);
 
-        //校验pos交易
-        if (!VerifyPosTx(&block, *pForkAcctViewCache, *pForkTxCache, *pForkScriptDBCache, true)) {
-            return state.DoS(100, ERRORMSG("ProcessForkedChain() : the block Hash=%s check pos tx error",
-                            block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
-        }
+        preBlockHash = pPreBlockIndex->GetBlockHash();
+        mapForkCache[ preBlockHash ] = std::make_tuple(pAcctViewCache, pTxCache, pScriptDBCache);
 
-        //校验利息是否正常
-        std::shared_ptr<CRewardTx> pRewardTx = dynamic_pointer_cast<CRewardTx>(block.vptx[0]);
-        uint64_t llValidReward = block.GetFee() - block.GetFuel();
-        if (pRewardTx->rewardValue != llValidReward)
-            return state.DoS(100, ERRORMSG("ProcessForkedChain() : coinbase pays too much (actual=%d vs limit=%d)",
-                            pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-cb-amount");
-
-        for (auto &item : block.vptx) {
-            //校验交易是否在有效高度
-            if (!item->IsValidHeight(mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight, SysCfg().GetTxCacheHeight())) {
-                return state.DoS(100, ERRORMSG("ProcessForkedChain() : txhash=%s beyond the scope of valid height\n ",
-                                item->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
-            }
-            //校验是否有重复确认交易
-            if (pForkTxCache->HaveTx(item->GetHash()))
-                return state.DoS(100, ERRORMSG("ProcessForkedChain() : tx hash %s has been confirmed\n",
-                                item->GetHash().GetHex()), REJECT_INVALID, "bad-txns-oversize");
-        }
-
-        if (!vPreBlocks.empty()) {
-            vector<CBlock>::iterator iterBlock = vPreBlocks.begin();
-            if (bForkChainTipFound) {
-                mapForkCache.erase(preBlockHash);
-                LogPrint("INFO", "delete mapForkCache Key:%s\n", preBlockHash.GetHex());
-            }
-            std::tuple<std::shared_ptr<CAccountViewCache>, std::shared_ptr<CTransactionDBCache>, std::shared_ptr<CScriptDBViewCache> > cache = 
-                std::make_tuple(pForkAcctViewCache, pForkTxCache, pForkScriptDBCache);
-
-            mapForkCache[iterBlock->GetHash()] = cache;
-            LogPrint("INFO", "add mapForkCache Key:%s\n", iterBlock->GetHash().GetHex());
-        }
-    } 
+        LogPrint("INFO", "add mapForkCache Key:%s height:%d\n", preBlockHash.GetHex(), pPreBlockIndex->nHeight);
+        LogPrint("INFO", "add pAcctViewCache:%x \n", pAcctViewCache.get());
+        LogPrint("INFO", "view best block hash:%s \n", pAcctViewCache->GetBestBlock().GetHex());
+    }
     
-    return true;
+    if (bForkChainTipFound) {
+        pForkAcctViewCache = std::get<0>(mapForkCache[preBlockHash]);
+        pForkTxCache       = std::get<1>(mapForkCache[preBlockHash]);
+        pForkScriptDBCache = std::get<2>(mapForkCache[preBlockHash]);
+
+        // pForkAcctViewCache->SetBaseData(pAcctViewCache.get());
+        // pForkTxCache->SetBaseData(pTxCache.get());
+        // pForkScriptDBCache->SetBaseData(pScriptDBCache.get());
+
+    // } else {
+        pForkAcctViewCache.reset(new CAccountViewCache(*pAcctViewCache, true));
+        pForkTxCache.reset(new CTransactionDBCache(*pTxCache, true));
+        pForkScriptDBCache.reset(new CScriptDBViewCache(*pScriptDBCache, true));
+    // }
+
+    LogPrint("INFO", "pForkAcctView:%x\n", pForkAcctViewCache.get());
+    LogPrint("INFO", "view best block hash:%s height:%d\n", pForkAcctViewCache->GetBestBlock().GetHex(), 
+            mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight);
+
+    vector<CBlock>::reverse_iterator rIter = vPreBlocks.rbegin();
+    for (; rIter != vPreBlocks.rend(); ++rIter) {  //连接支链的block
+        LogPrint("INFO", "ProcessForkedChain() ConnectBlock block nHeight=%d hash=%s\n",
+                rIter->GetHeight(), rIter->GetHash().GetHex());
+
+        if (!ConnectBlock(*rIter, state, *pForkAcctViewCache, mapBlockIndex[rIter->GetHash()],
+            *pForkTxCache, *pForkScriptDBCache, false)) {
+            return ERRORMSG("ProcessForkedChain() : ConnectBlock %s failed", rIter->GetHash().ToString());
+        }
+
+        CBlockIndex *pConnBlockIndex = mapBlockIndex[rIter->GetHash()];
+        if (pConnBlockIndex->nStatus | BLOCK_FAILED_MASK) {
+            pConnBlockIndex->nStatus = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
+        }
+    }
+
+    //校验pos交易
+    if (!VerifyPosTx(&block, *pForkAcctViewCache, *pForkTxCache, *pForkScriptDBCache, true)) {
+        return state.DoS(100, ERRORMSG("ProcessForkedChain() : the block Hash=%s check pos tx error",
+                        block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
+    }
+
+    //校验利息是否正常
+    std::shared_ptr<CRewardTx> pRewardTx = dynamic_pointer_cast<CRewardTx>(block.vptx[0]);
+    uint64_t llValidReward = block.GetFee() - block.GetFuel();
+    if (pRewardTx->rewardValue != llValidReward)
+        return state.DoS(100, ERRORMSG("ProcessForkedChain() : coinbase pays too much (actual=%d vs limit=%d)",
+                        pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-cb-amount");
+
+    for (auto &item : block.vptx) {
+        //校验交易是否在有效高度
+        if (!item->IsValidHeight(mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight, SysCfg().GetTxCacheHeight())) {
+            return state.DoS(100, ERRORMSG("ProcessForkedChain() : txhash=%s beyond the scope of valid height\n ",
+                            item->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
+        }
+        //校验是否有重复确认交易
+        if (pForkTxCache->HaveTx(item->GetHash()))
+            return state.DoS(100, ERRORMSG("ProcessForkedChain() : tx hash %s has been confirmed\n",
+                            item->GetHash().GetHex()), REJECT_INVALID, "bad-txns-oversize");
+    }
+
+    if (!vPreBlocks.empty()) {
+        vector<CBlock>::iterator iterBlock = vPreBlocks.begin();
+        if (bForkChainTipFound) {
+            mapForkCache.erase(preBlockHash);
+            LogPrint("INFO", "delete mapForkCache Key:%s\n", preBlockHash.GetHex());
+        }
+        std::tuple<std::shared_ptr<CAccountViewCache>, std::shared_ptr<CTransactionDBCache>, std::shared_ptr<CScriptDBViewCache> > cache = 
+            std::make_tuple(pForkAcctViewCache, pForkTxCache, pForkScriptDBCache);
+
+        mapForkCache[iterBlock->GetHash()] = cache;
+        LogPrint("INFO", "add mapForkCache Key:%s\n", iterBlock->GetHash().GetHex());
+    }
 }
 
 bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDBCache, bool fCheckTx, bool fCheckMerkleRoot) {
@@ -2300,7 +2297,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
             return state.DoS(100, ERRORMSG("AcceptBlock() : check proof of pos tx"), REJECT_INVALID, "bad-pos-tx");
         }
 
-        // Reject block.nVersion=1 blocks when 95% (75% on testnet) of the network has upgraded:
+        // Reject block.nVersion=1 blocks when 95% (75% on testnet) of the network has been upgraded:
         if (block.GetVersion() < 2) {
             if ((!TestNet() && CBlockIndex::IsSuperMajority(2, pBlockIndexPrev, 950, 1000)) ||
                 (TestNet() && CBlockIndex::IsSuperMajority(2, pBlockIndexPrev, 75, 100))) {
