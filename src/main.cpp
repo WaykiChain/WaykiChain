@@ -2492,9 +2492,9 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
                     ss << *pblock;
                     pblock2->vchBlock = vector<unsigned char>(ss.begin(), ss.end());
                 }
-                pblock2->blockHash = hash;
-                pblock2->prevBlockHash  = pblock->GetPrevBlockHash();
-                pblock2->height    = pblock->GetHeight();
+                pblock2->blockHash = blockHash;
+                pblock2->prevBlockHash = pblock->GetPrevBlockHash();
+                pblock2->height = pblock->GetHeight();
                 mapOrphanBlocks.insert(make_pair(hash, pblock2));
                 mapOrphanBlocksByPrev.insert(make_pair(pblock2->prevBlockHash, pblock2));
                 setOrphanBlock.insert(pblock2);
@@ -2502,7 +2502,8 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
 
             // Ask this guy to fill in what we're missing
             LogPrint("net", "receive an orphan block height=%d hash=%s, %s it, and lead to getblocks, current height=%d, current orphan blocks=%d\n",
-                     pblock->GetHeight(), pblock->GetHash().GetHex(), success ? "keep" : "abandon", chainActive.Tip()->nHeight, mapOrphanBlocksByPrev.size());
+                    pblock->GetHeight(), pblock->GetHash().GetHex(), success ? "keep" : "abandon", 
+                    chainActive.Tip()->nHeight, mapOrphanBlocksByPrev.size());
             PushGetBlocksOnCondition(pfrom, chainActive.Tip(), GetOrphanRoot(blockHash));
         }
         return true;
