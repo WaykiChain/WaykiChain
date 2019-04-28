@@ -2328,11 +2328,11 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
 
     // Relay inventory, but don't relay old inventory during initial block download
     int nBlockEstimate = Checkpoints::GetTotalBlocksEstimate();
-    if (chainActive.Tip()->GetBlockHash() == hash) {
+    if (chainActive.Tip()->GetBlockHash() == blockHash) {
         LOCK(cs_vNodes);
         for (auto pnode : vNodes) {
             if (chainActive.Height() > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate))
-                pnode->PushInventory(CInv(MSG_BLOCK, hash));
+                pnode->PushInventory(CInv(MSG_BLOCK, blockHash));
         }
     }
 
