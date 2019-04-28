@@ -2117,11 +2117,11 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         // pForkTxCache->SetBaseData(pTxCache.get());
         // pForkScriptDBCache->SetBaseData(pScriptDBCache.get());
 
-    // } else {
+    } else {
         pForkAcctViewCache.reset(new CAccountViewCache(*pAcctViewCache));
         pForkTxCache.reset(new CTransactionDBCache(*pTxCache));
         pForkScriptDBCache.reset(new CScriptDBViewCache(*pScriptDBCache));
-    // }
+    }
 
     LogPrint("INFO", "pForkAcctView:%x\n", pForkAcctViewCache.get());
     LogPrint("INFO", "view best block hash:%s height:%d\n", pForkAcctViewCache->GetBestBlock().GetHex(), 
