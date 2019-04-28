@@ -41,7 +41,7 @@ public:
         assert(CreateGenesisRewardTx(genesis.vptx, MAIN_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, MAIN_NET));
         genesis.SetHashPrevBlock(uint256());
-        genesis.SetHashMerkleRoot(genesis.BuildMerkleTree());
+        genesis.SetMerkleRootHash(genesis.BuildMerkleTree());
 
         genesis.SetVersion(g_BlockVersion);
         genesis.SetTime(IniCfg().GetStartTimeInit(MAIN_NET));
@@ -52,7 +52,7 @@ public:
         hashGenesisBlock = genesis.GetHash();
         CheckPointPKey=IniCfg().GetCheckPointPkey(MAIN_NET);
         assert(hashGenesisBlock == IniCfg().GetIntHash(MAIN_NET));
-        assert(genesis.GetHashMerkleRoot() == IniCfg().GetHashMerkleRoot());
+        assert(genesis.GetMerkleRootHash() == IniCfg().GetMerkleRootHash());
 
         vSeeds.push_back(CDNSSeedData("seed1.waykichain.net", "n1.waykichain.net"));
         vSeeds.push_back(CDNSSeedData("seed2.waykichain.net", "n2.waykichain.net"));
@@ -127,7 +127,7 @@ public:
         genesis.vptx.clear();
         assert(CreateGenesisRewardTx(genesis.vptx, TEST_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, TEST_NET));
-        genesis.SetHashMerkleRoot(genesis.BuildMerkleTree());
+        genesis.SetMerkleRootHash(genesis.BuildMerkleTree());
         hashGenesisBlock = genesis.GetHash();
         for(auto & item : vFixedSeeds)
             item.SetPort(GetDefaultPort());
@@ -176,7 +176,7 @@ public:
         genesis.vptx.clear();
         assert(CreateGenesisRewardTx(genesis.vptx, REGTEST_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, REGTEST_NET));
-        genesis.SetHashMerkleRoot(genesis.BuildMerkleTree());
+        genesis.SetMerkleRootHash(genesis.BuildMerkleTree());
         hashGenesisBlock = genesis.GetHash();
         nDefaultPort = IniCfg().GetnDefaultPort(REGTEST_NET) ;
         nBlockInterval = 10;

@@ -107,7 +107,7 @@ void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pindexPrev, unsigned int &
     }
     ++nExtraNonce;
 
-    pblock->GetHashMerkleRoot() = pblock->BuildMerkleTree();
+    pblock->SetMerkleRootHash( pblock->BuildMerkleTree() );
 }
 
 bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCache &accViewIn, CScriptDBViewCache &scriptCacheIn) {
@@ -191,7 +191,7 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
     CRewardTx *prtx = (CRewardTx *)pBlock->vptx[0].get();
     prtx->account            = delegate.regID;  //记账人账户ID
     prtx->nHeight            = pBlock->GetHeight();
-    pBlock->SetHashMerkleRoot(pBlock->BuildMerkleTree());
+    pBlock->SetMerkleRootHash(pBlock->BuildMerkleTree());
     pBlock->SetTime(currentTime);
 
     vector<unsigned char> vSign;
@@ -241,8 +241,8 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
     if (pBlock->GetNonce() > maxNonce)
         return ERRORMSG("Nonce is larger than maxNonce");
 
-    if (pBlock->GetHashMerkleRoot() != pBlock->BuildMerkleTree())
-        return ERRORMSG("hashMerkleRoot is error");
+    if (pBlock->GetMerkleRootHash() != pBlock->BuildMerkleTree())
+        return ERRORMSG("wrong merkleRootHash");
 
     CAccountViewCache view(accView, true);
     CScriptDBViewCache scriptDBView(scriptCache, true);

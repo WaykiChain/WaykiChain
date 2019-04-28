@@ -62,7 +62,7 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("size", (int)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION)));
     result.push_back(Pair("height", blockindex->nHeight));
     result.push_back(Pair("version", block.GetVersion()));
-    result.push_back(Pair("merkleroot", block.GetHashMerkleRoot().GetHex()));
+    result.push_back(Pair("merkleroot", block.GetMerkleRootHash().GetHex()));
     result.push_back(Pair("txnumber", (int)block.vptx.size()));
     Array txs;
     for (const auto& ptx : block.vptx)

@@ -276,12 +276,11 @@ const vector<string> G_CONFIG_TABLE::GetDelegatePubKey(NET_TYPE type) const {
     return vector<string>();
 }
 
-const uint256 G_CONFIG_TABLE::GetHashMerkleRoot() const{
-    return (uint256S((HashMerkleRoot)));
+const uint256 G_CONFIG_TABLE::GetMerkleRootHash() const {
+    return (uint256S((merkleRootHash)));
 }
 
-vector<unsigned int> G_CONFIG_TABLE::GetSeedNodeIP() const
-{
+vector<unsigned int> G_CONFIG_TABLE::GetSeedNodeIP() const {
     return pnSeed;
 }
 

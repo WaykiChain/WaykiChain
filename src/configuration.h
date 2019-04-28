@@ -56,7 +56,7 @@ public:
 	const vector<string> GetIntPubKey(NET_TYPE type) const;
 	const uint256 GetIntHash(NET_TYPE type) const;
 	const string GetCheckPointPkey(NET_TYPE type) const;
-	const uint256 GetHashMerkleRoot() const;
+	const uint256 GetMerkleRootHash() const;
 	vector<unsigned int> GetSeedNodeIP() const;
 	unsigned char* GetMagicNumber(NET_TYPE type) const;
 	vector<unsigned char> GetAddressPrefix(NET_TYPE type, Base58Type BaseType) const;

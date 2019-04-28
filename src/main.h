@@ -725,7 +725,7 @@ class CBlockIndex {
         dFeePerKb = double((nblockfee - block.GetFuel())) / (double(nTxSize / 1000.0));
 
         nVersion       = block.GetVersion();
-        hashMerkleRoot = block.GetHashMerkleRoot();
+        merkleRootHash = block.GetMerkleRootHash();
         nTime          = block.GetTime();
         nNonce         = block.GetNonce();
         nFuel          = block.GetFuel();
@@ -756,7 +756,7 @@ class CBlockIndex {
         block.SetVersion(nVersion);
         if (pprev)
             block.SetHashPrevBlock(pprev->GetBlockHash());
-        block.SetHashMerkleRoot(hashMerkleRoot);
+        block.SetMerkleRootHash(hashMerkleRoot);
         block.SetTime(nTime);
         block.SetNonce(nNonce);
         block.SetHeight(nHeight);
@@ -864,8 +864,8 @@ class CDiskBlockIndex : public CBlockIndex {
     uint256 GetBlockHash() const {
         CBlockHeader block;
         block.SetVersion(nVersion);
-        block.SetHashPrevBlock(hashPrev);
-        block.SetHashMerkleRoot(hashMerkleRoot);
+        block.SetPrevBlockHash(hashPrev);
+        block.SetMerkleRootHash(hashMerkleRoot);
         block.SetTime(nTime);
         block.SetNonce(nNonce);
         block.SetHeight(nHeight);

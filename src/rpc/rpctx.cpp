@@ -65,13 +65,13 @@ Object GetTxDetailJSON(const uint256& txhash) {
         CBlock genesisblock;
         CBlockIndex* pgenesisblockindex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
         ReadBlockFromDisk(pgenesisblockindex, genesisblock);
-        assert(genesisblock.GetHashMerkleRoot() == genesisblock.BuildMerkleTree());
+        assert(genesisblock.GetMerkleRootHash() == genesisblock.BuildMerkleTree());
         for (unsigned int i = 0; i < genesisblock.vptx.size(); ++i) {
             if (txhash == genesisblock.GetTxHash(i)) {
                 obj = genesisblock.vptx[i]->ToJson(*pAccountViewTip);
-                obj.push_back(Pair("blockhash", SysCfg().GetGenesisBlockHash().GetHex()));
-                obj.push_back(Pair("confirmedheight", (int) 0));
-                obj.push_back(Pair("confirmedtime", (int) genesisblock.GetTime()));
+                obj.push_back(Pair("block_hash", SysCfg().GetGenesisBlockHash().GetHex()));
+                obj.push_back(Pair("confirmed_height", (int) 0));
+                obj.push_back(Pair("confirmed_time", (int) genesisblock.GetTime()));
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
                 ds << genesisblock.vptx[i];
                 obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
@@ -345,15 +345,15 @@ Value gettransaction(const Array& params, bool fHelp)
     CBlock genesisblock;
     CBlockIndex* pgenesisblockindex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
     ReadBlockFromDisk(pgenesisblockindex, genesisblock);
-    assert(genesisblock.GetHashMerkleRoot() == genesisblock.BuildMerkleTree());
+    assert(genesisblock.GetMerkleRootHash() == genesisblock.BuildMerkleTree());
     for (unsigned int i=0; i<genesisblock.vptx.size(); ++i) {
         if (txhash == genesisblock.GetTxHash(i)) {
             double dAmount = static_cast<double>(genesisblock.vptx.at(i)->GetValue()) / COIN;
             obj.push_back(Pair("amount", dAmount));
             obj.push_back(Pair("confirmations",chainActive.Tip()->nHeight));
-            obj.push_back(Pair("blockhash", genesisblock.GetHash().GetHex()));
-            obj.push_back(Pair("blockindex", (int) i));
-            obj.push_back(Pair("blocktime", (int) genesisblock.GetTime()));
+            obj.push_back(Pair("block_hash", genesisblock.GetHash().GetHex()));
+            obj.push_back(Pair("block_index", (int) i));
+            obj.push_back(Pair("block_time", (int) genesisblock.GetTime()));
             obj.push_back(Pair("txid",genesisblock.vptx.at(i)->GetHash().GetHex()));
             obj.push_back(Pair("details", GetTxAddressDetail(genesisblock.vptx.at(i))));
             CDataStream ds(SER_DISK, CLIENT_VERSION);

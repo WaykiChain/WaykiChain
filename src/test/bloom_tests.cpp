@@ -128,7 +128,7 @@ BOOST_AUTO_TEST_CASE(merkle_block_1)
 	BOOST_CHECK(merkleBlock.vMatchedTxn[0].first == 0);
 
 	vector<uint256> vMatched;
-	BOOST_CHECK(merkleBlock.txn.ExtractMatches(vMatched) == block.GetHashMerkleRoot());
+	BOOST_CHECK(merkleBlock.txn.ExtractMatches(vMatched) == block.GetMerkleRootHash());
 	BOOST_CHECK(vMatched.size() == merkleBlock.vMatchedTxn.size());
 	for (unsigned int i = 0; i < vMatched.size(); i++)
 	BOOST_CHECK(vMatched[i] == merkleBlock.vMatchedTxn[i].second);
@@ -145,7 +145,7 @@ BOOST_AUTO_TEST_CASE(merkle_block_1)
 	BOOST_CHECK(merkleBlock.vMatchedTxn[1].second == uint256S("6ecc769150621e38c12e9af6b581b755ce4ad1e62dc8984c25124a6f7d236a1f"));
 	BOOST_CHECK(merkleBlock.vMatchedTxn[1].first == 1);
 
-	BOOST_CHECK(merkleBlock.txn.ExtractMatches(vMatched) == block.GetHashMerkleRoot());
+	BOOST_CHECK(merkleBlock.txn.ExtractMatches(vMatched) == block.GetMerkleRootHash());
 	BOOST_CHECK(vMatched.size() == merkleBlock.vMatchedTxn.size());
 	for (unsigned int i = 0; i < vMatched.size(); i++)
 	BOOST_CHECK(vMatched[i] == merkleBlock.vMatchedTxn[i].second);
@@ -172,7 +172,7 @@ BOOST_AUTO_TEST_CASE(merkle_block_2)
 	BOOST_CHECK(merkleBlock.vMatchedTxn[0].first == 0);
 
 	vector<uint256> vMatched;
-	BOOST_CHECK(merkleBlock.txn.ExtractMatches(vMatched) == block.GetHashMerkleRoot());
+	BOOST_CHECK(merkleBlock.txn.ExtractMatches(vMatched) == block.GetMerkleRootHash());
 	BOOST_CHECK(vMatched.size() == merkleBlock.vMatchedTxn.size());
 	for (unsigned int i = 0; i < vMatched.size(); i++)
 	BOOST_CHECK(vMatched[i] == merkleBlock.vMatchedTxn[i].second);
@@ -199,7 +199,7 @@ BOOST_AUTO_TEST_CASE(merkle_block_2_with_update_none)
 	BOOST_CHECK(merkleBlock.vMatchedTxn[0].first == 0);
 
 	vector<uint256> vMatched;
-	BOOST_CHECK(merkleBlock.txn.ExtractMatches(vMatched) == block.GetHashMerkleRoot());
+	BOOST_CHECK(merkleBlock.txn.ExtractMatches(vMatched) == block.GetMerkleRootHash());
 	BOOST_CHECK(vMatched.size() == merkleBlock.vMatchedTxn.size());
 	for (unsigned int i = 0; i < vMatched.size(); i++)
 	BOOST_CHECK(vMatched[i] == merkleBlock.vMatchedTxn[i].second);
@@ -227,7 +227,7 @@ BOOST_AUTO_TEST_CASE(merkle_block_3_and_serialize)
 	BOOST_CHECK(merkleBlock.vMatchedTxn[0].first == 0);
 
 	vector<uint256> vMatched;
-	BOOST_CHECK(merkleBlock.txn.ExtractMatches(vMatched) == block.GetHashMerkleRoot());
+	BOOST_CHECK(merkleBlock.txn.ExtractMatches(vMatched) == block.GetMerkleRootHash());
 	BOOST_CHECK(vMatched.size() == merkleBlock.vMatchedTxn.size());
 	for (unsigned int i = 0; i < vMatched.size(); i++)
 	BOOST_CHECK(vMatched[i] == merkleBlock.vMatchedTxn[i].second);
@@ -268,7 +268,7 @@ BOOST_AUTO_TEST_CASE(merkle_block_4)
 	BOOST_CHECK(merkleBlock.vMatchedTxn[0].first == 0);
 
 	vector<uint256> vMatched;
-	BOOST_CHECK(merkleBlock.txn.ExtractMatches(vMatched) == block.GetHashMerkleRoot());
+	BOOST_CHECK(merkleBlock.txn.ExtractMatches(vMatched) == block.GetMerkleRootHash());
 	BOOST_CHECK(vMatched.size() == merkleBlock.vMatchedTxn.size());
 	for (unsigned int i = 0; i < vMatched.size(); i++)
 	BOOST_CHECK(vMatched[i] == merkleBlock.vMatchedTxn[i].second);
@@ -285,7 +285,7 @@ BOOST_AUTO_TEST_CASE(merkle_block_4)
 
 	BOOST_CHECK(merkleBlock.vMatchedTxn[0] == pair);
 
-	BOOST_CHECK(merkleBlock.txn.ExtractMatches(vMatched) == block.GetHashMerkleRoot());
+	BOOST_CHECK(merkleBlock.txn.ExtractMatches(vMatched) == block.GetMerkleRootHash());
 	BOOST_CHECK(vMatched.size() == merkleBlock.vMatchedTxn.size());
 	for (unsigned int i = 0; i < vMatched.size(); i++)
 	BOOST_CHECK(vMatched[i] == merkleBlock.vMatchedTxn[i].second);
