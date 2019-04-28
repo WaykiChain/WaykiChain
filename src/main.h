@@ -658,7 +658,7 @@ class CBlockIndex {
     unsigned int nStatus;
 
     //the block's fee
-    uint64_t nblockfee;
+    uint64_t nBlockFee;
 
     // block header
     int nVersion;
@@ -689,7 +689,7 @@ class CBlockIndex {
         nStatus     = 0;
         nSequenceId = 0;
         dFeePerKb   = 0.0;
-        nblockfee   = 0;  //add the block's fee
+        nBlockFee   = 0;  //add the block's fee
 
         nVersion       = 0;
         hashMerkleRoot = uint256();
@@ -715,14 +715,14 @@ class CBlockIndex {
         nChainTx    = 0;
         nStatus     = 0;
         nSequenceId = 0;
-        nblockfee   = block.GetFee();  //add the block's fee
+        nBlockFee   = block.GetFee();  //add the block's fee
 
         int64_t nTxSize(0);
         for (auto &pTx : block.vptx) {
             nTxSize += pTx->GetSerializeSize(SER_DISK, PROTOCOL_VERSION);
         }
 
-        dFeePerKb = double((nblockfee - block.GetFuel())) / (double(nTxSize / 1000.0));
+        dFeePerKb = double((nBlockFee - block.GetFuel())) / (double(nTxSize / 1000.0));
 
         nVersion       = block.GetVersion();
         merkleRootHash = block.GetMerkleRootHash();
@@ -765,7 +765,7 @@ class CBlockIndex {
     }
 
     int64_t GetBlockFee() const {
-        return nblockfee;
+        return nBlockFee;
     }
 
     uint256 GetBlockHash() const {
@@ -807,7 +807,7 @@ class CBlockIndex {
     string ToString() const {
         return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, blockHash=%s, blockFee=%d, chainWork=%s, feePerKb=%lf)",
                         pprev, nHeight, hashMerkleRoot.ToString().c_str(), GetBlockHash().ToString().c_str(), 
-                        nblockfee, nChainWork.ToString().c_str(), dFeePerKb);
+                        nBlockFee, nChainWork.ToString().c_str(), dFeePerKb);
     }
 
     void Print() const {
@@ -837,7 +837,7 @@ class CDiskBlockIndex : public CBlockIndex {
         if (!(nType & SER_GETHASH))
             READWRITE(VARINT(nVersion));
 
-        READWRITE(nblockfee);
+        READWRITE(nBlockFee);
         READWRITE(VARINT(nHeight));
         READWRITE(VARINT(nStatus));
         READWRITE(VARINT(nTx));
