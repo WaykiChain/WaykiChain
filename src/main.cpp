@@ -2466,8 +2466,8 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
         return state.Invalid(ERRORMSG("ProcessBlock() : block (orphan) exists %s", blockHash.ToString()), 0, "duplicate");
 
     int64_t llBeginCheckBlockTime = GetTimeMillis();
-    CAccountViewCache view(*pAccountViewTip, true);
-    CScriptDBViewCache scriptDBCache(*pScriptDBTip, true);
+    CAccountViewCache view(*pAccountViewTip);
+    CScriptDBViewCache scriptDBCache(*pScriptDBTip);
     // Preliminary checks
     if (!CheckBlock(*pblock, state, view, scriptDBCache, false)) {
         LogPrint("INFO", "CheckBlock() id: %d elapse time:%lld ms\n", 
@@ -2496,14 +2496,14 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
                 pblock2->prevBlockHash  = pblock->GetPrevBlockHash();
                 pblock2->height    = pblock->GetHeight();
                 mapOrphanBlocks.insert(make_pair(hash, pblock2));
-                mapOrphanBlocksByPrev.insert(make_pair(pblock2->hashPrev, pblock2));
+                mapOrphanBlocksByPrev.insert(make_pair(pblock2->prevBlockHash, pblock2));
                 setOrphanBlock.insert(pblock2);
             }
 
             // Ask this guy to fill in what we're missing
             LogPrint("net", "receive an orphan block height=%d hash=%s, %s it, and lead to getblocks, current height=%d, current orphan blocks=%d\n",
                      pblock->GetHeight(), pblock->GetHash().GetHex(), success ? "keep" : "abandon", chainActive.Tip()->nHeight, mapOrphanBlocksByPrev.size());
-            PushGetBlocksOnCondition(pfrom, chainActive.Tip(), GetOrphanRoot(hash));
+            PushGetBlocksOnCondition(pfrom, chainActive.Tip(), GetOrphanRoot(blockHash));
         }
         return true;
     }
@@ -2518,7 +2518,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
 
     // Recursively process any orphan blocks that depended on this one
     vector<uint256> vWorkQueue;
-    vWorkQueue.push_back(hash);
+    vWorkQueue.push_back(blockHash);
     for (unsigned int i = 0; i < vWorkQueue.size(); i++) {
         uint256 hashPrev = vWorkQueue[i];
         for (multimap<uint256, COrphanBlock *>::iterator mi = mapOrphanBlocksByPrev.lower_bound(hashPrev);
@@ -2952,9 +2952,9 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
         nCheckDepth = chainActive.Height();
     nCheckLevel = max(0, min(4, nCheckLevel));
     LogPrint("INFO", "Verifying last %i blocks at level %i\n", nCheckDepth, nCheckLevel);
-    CAccountViewCache view(*pAccountViewTip, true);
-    CTransactionDBCache txCacheTemp(*pTxCacheTip, true);
-    CScriptDBViewCache scriptDBCache(*pScriptDBTip, true);
+    CAccountViewCache view(*pAccountViewTip);
+    CTransactionDBCache txCacheTemp(*pTxCacheTip);
+    CScriptDBViewCache scriptDBCache(*pScriptDBTip);
     CBlockIndex *pindexState   = chainActive.Tip();
     CBlockIndex *pindexFailure = NULL;
     int nGoodTransactions      = 0;

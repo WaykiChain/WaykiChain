@@ -131,7 +131,7 @@ class CScriptDBViewBacked : public CScriptDBView {
 };
 
 class CScriptDBViewCache : public CScriptDBViewBacked {
-   public:
+public:
     map<vector<unsigned char>, vector<unsigned char> > mapContractDb;
     /*取脚本 时 第一个vector 是scriptKey = "def" + "scriptid";
       取应用账户时第一个vector是scriptKey = "acct" + "scriptid"+"_" + "accUserId";
@@ -140,8 +140,9 @@ class CScriptDBViewCache : public CScriptDBViewBacked {
       取脚本数据时第一个vector是scriptKey ="data" + "vScriptId" + "_" + "vScriptKey"
       取交易关联账户时第一个vector是scriptKey ="tx" + "txHash"
     */
-   public:
+public:
     CScriptDBViewCache(CScriptDBView &base);
+
     bool GetScript(const CRegID &scriptId, vector<unsigned char> &vValue);
     bool GetScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vKey, CAppUserAccount &appAccOut);
     bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CScriptDBOperLog &operlog);
