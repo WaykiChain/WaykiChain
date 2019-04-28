@@ -2495,7 +2495,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
                 pblock2->blockHash = blockHash;
                 pblock2->prevBlockHash = pblock->GetPrevBlockHash();
                 pblock2->height = pblock->GetHeight();
-                mapOrphanBlocks.insert(make_pair(hash, pblock2));
+                mapOrphanBlocks.insert(make_pair(blockHash, pblock2));
                 mapOrphanBlocksByPrev.insert(make_pair(pblock2->prevBlockHash, pblock2));
                 setOrphanBlock.insert(pblock2);
             }
@@ -2521,9 +2521,9 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
     vector<uint256> vWorkQueue;
     vWorkQueue.push_back(blockHash);
     for (unsigned int i = 0; i < vWorkQueue.size(); i++) {
-        uint256 hashPrev = vWorkQueue[i];
-        for (multimap<uint256, COrphanBlock *>::iterator mi = mapOrphanBlocksByPrev.lower_bound(hashPrev);
-             mi != mapOrphanBlocksByPrev.upper_bound(hashPrev); ++mi) {
+        uint256 prevBlockHash = vWorkQueue[i];
+        for (multimap<uint256, COrphanBlock *>::iterator mi = mapOrphanBlocksByPrev.lower_bound(prevBlockHash);
+             mi != mapOrphanBlocksByPrev.upper_bound(prevBlockHash); ++mi) {
             CBlock block;
             {
                 CDataStream ss(mi->second->vchBlock, SER_DISK, CLIENT_VERSION);
@@ -2542,7 +2542,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
             mapOrphanBlocks.erase(mi->second->blockHash);
             delete mi->second;
         }
-        mapOrphanBlocksByPrev.erase(hashPrev);
+        mapOrphanBlocksByPrev.erase(prevBlockHash);
     }
 
     LogPrint("INFO", "ProcessBlock() elapse time:%lld ms\n", GetTimeMillis() - llBeginTime);
