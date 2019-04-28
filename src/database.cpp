@@ -323,7 +323,7 @@ bool CAccountViewCache::EraseId(const CUserID &userId) {
 }
 
 bool CAccountViewCache::Flush() {
-    bool fOk = this->BatchWrite(cacheAccounts, cacheKeyIds, hashBlock);
+    bool fOk = this->BatchWrite(cacheAccounts, cacheKeyIds, blockHash);
     if (fOk) {
         cacheAccounts.clear();
         cacheKeyIds.clear();

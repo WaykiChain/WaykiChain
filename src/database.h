@@ -71,7 +71,7 @@ public:
     virtual Object ToJsonObj(char prefix) { return Object(); }
 
 public:
-    CAccountViewCache(const CAccountViewCache &view): blockHash(uint256()) {}
+    CAccountViewCache(const CAccountView &view): blockHash(uint256()) {}
 
     bool GetUserId(const string &addr, CUserID &userId);
     bool GetRegId(const CKeyID &keyId, CRegID &regId);

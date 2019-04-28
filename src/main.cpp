@@ -545,7 +545,7 @@ int CMerkleTx::SetMerkleBranch(const CBlock *pblock) {
     CBlock blockTmp;
 
     if (pblock) {
-        // Update the tx's hashBlock
+        // Update the tx's blockHash
         blockHash = pblock->GetHash();
 
         // Locate the transaction
@@ -1021,15 +1021,15 @@ void CheckForkWarningConditions() {
             string strCmd = SysCfg().GetArg("-alertnotify", "");
             if (!strCmd.empty()) {
                 string warning = string("'Warning: Large-work fork detected, forking after block ") +
-                                 pindexBestForkBase->phashBlock->ToString() + string("'");
+                                 pindexBestForkBase->pBlockHash->ToString() + string("'");
                 boost::replace_all(strCmd, "%s", warning);
                 boost::thread t(runCommand, strCmd);  // thread runs free
             }
         }
         if (pindexBestForkTip && pindexBestForkBase) {
             LogPrint("INFO", "CheckForkWarningConditions: Warning: Large valid fork found\n  forking the chain at height %d (%s)\n  lasting to height %d (%s).\nChain state database corruption likely.\n",
-                     pindexBestForkBase->nHeight, pindexBestForkBase->phashBlock->ToString(),
-                     pindexBestForkTip->nHeight, pindexBestForkTip->phashBlock->ToString());
+                     pindexBestForkBase->nHeight, pindexBestForkBase->pBlockHash->ToString(),
+                     pindexBestForkTip->nHeight, pindexBestForkTip->pBlockHash->ToString());
             fLargeWorkForkFound = true;
         } else {
             LogPrint("INFO", "CheckForkWarningConditions: Warning: Found invalid chain at least ~6 blocks longer than our best chain.\nChain state database corruption likely.\n");
@@ -1888,7 +1888,7 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
     }
     map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.insert(make_pair(hash, pindexNew)).first;
     // LogPrint("INFO", "in map hash:%s map size:%d\n", hash.GetHex(), mapBlockIndex.size());
-    pindexNew->phashBlock                        = &((*mi).first);
+    pindexNew->pBlockHash                        = &((*mi).first);
     map<uint256, CBlockIndex *>::iterator miPrev = mapBlockIndex.find(block.GetPrevBlockHash());
     if (miPrev != mapBlockIndex.end()) {
         pindexNew->pprev   = (*miPrev).second;
@@ -2037,7 +2037,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     pAcctViewCache                  = std::make_shared<CAccountViewCache>(*pAccountViewDB, true);
     pAcctViewCache->cacheAccounts   = pAccountViewTip->cacheAccounts;
     pAcctViewCache->cacheKeyIds     = pAccountViewTip->cacheKeyIds;
-    pAcctViewCache->hashBlock       = pAccountViewTip->hashBlock;
+    pAcctViewCache->blockHash       = pAccountViewTip->pBlockHash;
 
     std::shared_ptr<CTransactionDBCache> pTxCache = std::make_shared<CTransactionDBCache>(*pTxCacheDB, true);
     pTxCache->SetCacheMap(pTxCacheTip->GetCacheMap());
@@ -2492,8 +2492,8 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
                     ss << *pblock;
                     pblock2->vchBlock = vector<unsigned char>(ss.begin(), ss.end());
                 }
-                pblock2->hashBlock = hash;
-                pblock2->hashPrev  = pblock->GetPrevBlockHash();
+                pblock2->blockHash = hash;
+                pblock2->prevBlockHash  = pblock->GetPrevBlockHash();
                 pblock2->height    = pblock->GetHeight();
                 mapOrphanBlocks.insert(make_pair(hash, pblock2));
                 mapOrphanBlocksByPrev.insert(make_pair(pblock2->hashPrev, pblock2));
@@ -2535,10 +2535,10 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
              */
             CValidationState stateDummy;
             if (AcceptBlock(block, stateDummy)) {
-                vWorkQueue.push_back(mi->second->hashBlock);
+                vWorkQueue.push_back(mi->second->blockHash);
             }
             setOrphanBlock.erase(mi->second);
-            mapOrphanBlocks.erase(mi->second->hashBlock);
+            mapOrphanBlocks.erase(mi->second->blockHash);
             delete mi->second;
         }
         mapOrphanBlocksByPrev.erase(hashPrev);
@@ -2873,7 +2873,7 @@ CBlockIndex *InsertBlockIndex(uint256 hash) {
     if (!pindexNew)
         throw runtime_error("InsertBlockIndex() : new CBlockIndex failed");
     mi                    = mapBlockIndex.insert(make_pair(hash, pindexNew)).first;
-    pindexNew->phashBlock = &((*mi).first);
+    pindexNew->pBlockHash = &((*mi).first);
 
     return pindexNew;
 }
@@ -4246,7 +4246,7 @@ bool SendMessages(CNode *pto, bool fSendTrickle) {
         }
 
         for (const auto &reject : state.rejects)
-            pto->PushMessage("reject", (string) "block", reject.chRejectCode, reject.strRejectReason, reject.hashBlock);
+            pto->PushMessage("reject", (string) "block", reject.chRejectCode, reject.strRejectReason, reject.blockHash);
         state.rejects.clear();
 
         // Start block sync

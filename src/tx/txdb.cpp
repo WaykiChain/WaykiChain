@@ -144,10 +144,10 @@ bool CBlockTreeDB::LoadBlockIndexGuts() {
 }
 
 CAccountViewDB::CAccountViewDB(size_t nCacheSize, bool fMemory, bool fWipe) :
-    db(GetDataDir() / "blocks" / "account", nCacheSize, fMemory, fWipe) {}
+    db( GetDataDir() / "blocks" / "account", nCacheSize, fMemory, fWipe ) {}
 
 CAccountViewDB::CAccountViewDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe) :
-    db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {}
+    db( GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe ) {}
 
 bool CAccountViewDB::GetAccount(const CKeyID &keyId, CAccount &secureAccount) {
     return db.Read(make_pair('k', keyId), secureAccount);
