@@ -208,10 +208,10 @@ tuple<bool, string> CVmlua::CheckScriptSyntax(const char *filePath) {
     return std::make_tuple(true, string("OK"));
 }
 
-tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
+tuple<uint64_t, string> CVmlua::Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv) {
 
-    if (maxstep == 0) {
-        return std::make_tuple(-1, string("maxstep == 0\n"));
+    if (fuelLimit == 0) {
+        return std::make_tuple(-1, string("fuelLimit == 0\n"));
     }
     if (NULL == pVmRunEnv) {
         return std::make_tuple(-1, string("pVmRunEnv == NULL\n"));
@@ -225,9 +225,10 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
     }
     lua_State *lua_state = lua_state_ptr.get();
 
-    if (!lua_startburner(lua_state, maxstep)) {
-        LogPrint("vm", "CVmlua::Run lua_startburner() failed\n");
-        return std::make_tuple(-1, string("CVmlua::Run lua_startburner() failed\n"));
+    //TODO: should get burner version from the block height
+    if (!lua_StartBurner(lua_state, fuelLimit, BURN_VER_2_1)) {
+        LogPrint("vm", "CVmlua::Run lua_StartBurner() failed\n");
+        return std::make_tuple(-1, string("CVmlua::Run lua_StartBurner() failed\n"));
     }
 
     //打开需要的库
@@ -282,27 +283,27 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
     }
     lua_pop(lua_state, 1);
 
-    uint64_t burnedStep = lua_getburnedstep(lua_state);
-    lua_burner_state *burnerState = lua_getburnerstate(lua_state);
+    uint64_t burnedFuel = lua_GetBurnedFuel(lua_state);
+    lua_burner_state *burnerState = lua_GetBurnerState(lua_state);
     LogPrint("vm", "contract run info: scriptRegID=%s,"
-             " burnedStep=%lld,"
-             " maxStep=%lld,"
+             " burnedFuel=%lld,"
+             " fuelLimit=%lld,"
              " totalAllocSize=%llu,"
              " totalAllocCount=%llu,"
              " totalFreeSize=%llu,"
              " totalFreeCount=%llu\n",
              pVmRunEnv->GetScriptRegID().ToString().c_str(),
-             burnedStep,
-             burnerState->maxStep,
+             burnedFuel,
+             burnerState->fuelLimit,
              burnerState->allocMemSize,
              burnerState->allocMemTimes,
              burnerState->freeMemSize,
              burnerState->freeMemTimes
     );
 
-    if (burnedStep > burnerState->maxStep) {
+    if (burnedfuel > burnerState->fuelLimit) {
         return std::make_tuple(-1, string("execute tx contract run step exceeds the max step limit\n"));
     }
 
-    return std::make_tuple(burnedStep, string("script runs ok"));
+    return std::make_tuple(burnedfuel, string("script runs ok"));
 }

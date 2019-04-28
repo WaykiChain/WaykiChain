@@ -16,7 +16,7 @@ public:
     CVmlua(const vector<unsigned char> &vContractScript,
            const vector<unsigned char> &vContractCallParams);
     ~CVmlua();
-    tuple<uint64_t, string> Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv);
+    tuple<uint64_t, string> Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv);
     static tuple<bool, string> CheckScriptSyntax(const char *filePath);
 
 private:

@@ -83,8 +83,9 @@ void *luaM_realloc_ (lua_State *L, void *block, size_t osize, size_t nsize) {
   if (nsize > realosize && g->gcrunning)
     luaC_fullgc(L, 1);  /* force a GC whenever possible */
 #endif
-  if (!lua_burnmemory(L, block, osize, nsize)) {
-    luaD_throw(L, LUA_ERRMEM); // TODO: throw exception for burned-out
+  if (!lua_BurnMemory(L, block, osize, nsize, BURN_VER_2_1)) {
+    lua_BurnError(L, "memory burned-out");
+    return NULL;
   }
   newblock = (*g->frealloc)(g->ud, block, osize, nsize);
   if (newblock == NULL && nsize > 0) {

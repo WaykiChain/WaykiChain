@@ -762,7 +762,7 @@ void luaV_execute (lua_State *L) {
     ra = RA(i);
     lua_assert(base == ci->u.l.base);
     lua_assert(base <= L->top && L->top < L->stack + L->stacksize);
-    if (!lua_burnstep(L, 1)){
+    if (!lua_BurnStep(L, 1, BURN_VER_1_1)){
       return ;
     }
     vmdispatch (GET_OPCODE(i)) {
@@ -1200,14 +1200,14 @@ void luaV_execute (lua_State *L) {
         setobjs2s(L, cb, ra);
         L->top = cb + 3;  /* func. + 2 args (state and index) */
         Protect(luaD_call(L, cb, GETARG_C(i), 1));
-        if (lua_isburnedout(L)) {
+        if (lua_IsBurnedOut(L)) {
           return ;
         }
         L->top = ci->top;
         i = *(ci->u.l.savedpc++);  /* go to next instruction */
         ra = RA(i);
         lua_assert(GET_OPCODE(i) == OP_TFORLOOP);
-        if (!lua_burnstep(L, 1)) {
+        if (!lua_BurnStep(L, 1, BURN_VER_1_1)) {
           return ;
         }
         goto l_tforloop;

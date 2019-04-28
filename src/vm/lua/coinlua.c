@@ -14,11 +14,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <time.h>
 
 #include "lua.h"
 
 #include "lauxlib.h"
 #include "lualib.h"
+#include "lburner.h"
 
 
 #if !defined(LUA_PROMPT)
@@ -140,7 +142,7 @@ static void print_usage (const char *badoption) {
   "  -l name  require library 'name'\n"
   "  -v       show version information\n"
   "  -E       ignore environment variables\n"
-  "  -b step  set the max step for burner, default is LLONG_MAX\n"
+  "  -b fuel  set the fuel limit for burner, default is LLONG_MAX\n"
   "  --       stop handling options\n"
   "  -        stop handling options and execute stdin\n"
   ,
@@ -467,7 +469,7 @@ static int handle_script (lua_State *L, char **argv) {
 ** any invalid argument). 'first' returns the first not-handled argument 
 ** (either the script name or a bad argument in case of error).
 */
-static int collectargs (char **argv, int *first, long long *maxStep) {
+static int collectargs (char **argv, int *first, long long *fuelLimit) {
   int args = 0;
   int i;
   for (i = 1; argv[i] != NULL; i++) {
@@ -510,7 +512,7 @@ static int collectargs (char **argv, int *first, long long *maxStep) {
         i++;  /* try next 'argv' */
         if (argv[i] == NULL || argv[i][0] == '-')
           return has_error;  /* no next argument or it is another option */
-        *maxStep = strtoull(argv[i], NULL, 10);
+        *fuelLimit = strtoull(argv[i], NULL, 10);
         
         break;
       default:  /* invalid option */
@@ -560,22 +562,30 @@ static int handle_luainit (lua_State *L) {
     return dostring(L, init, name);
 }
 
-static void report_burner(lua_State *L) {
-    lua_burner_state* bs = lua_getburnerstate(L);
+static void report_burner(lua_State *L, clock_t start) {
+    lua_burner_state* bs = lua_GetBurnerState(L);
     printf("\n---------------------\n");
     printf("burner reports:\n"\
-      "maxStep:\t%llu\n"\
+      "fuelLimit:\t%llu\n"\
+      "burnedFuel:\t%llu\n"\
+      "fuel:\t\t%llu\n"\
+      "fuelRefund:\t%llu\n"\
       "step:\t\t%llu\n"\
       "allocMemSize:\t%llu\n"\
       "allocMemTimes:\t%llu\n"\
       "freeMemSize:\t%llu\n"\
-      "freeMemTimes:\t%llu\n",
-      bs->maxStep,
+      "freeMemTimes:\t%llu\n"\
+      "runTime:\t%llu us\n",
+      bs->fuelLimit,
+      lua_GetBurnedFuel(L),
+      bs->fuel,
+      bs->fuelRefund,
       bs->step,
       bs->allocMemSize,
       bs->allocMemTimes,
       bs->freeMemSize,
-      bs->freeMemTimes
+      bs->freeMemTimes,
+      (unsigned long long)(clock() - start)
     );
 }
 
@@ -587,8 +597,10 @@ static int pmain (lua_State *L) {
   int argc = (int)lua_tointeger(L, 1);
   char **argv = (char **)lua_touserdata(L, 2);
   int script;
-  long long maxStep = LLONG_MAX; // default value = LLONG_MAX
-  int args = collectargs(argv, &script, &maxStep);
+  long long fuelLimit = LLONG_MAX; // default value = LLONG_MAX
+  int args = collectargs(argv, &script, &fuelLimit);
+  clock_t start = clock();
+
   luaL_checkversion(L);  /* check that interpreter has correct version */
   if (argv[0] && argv[0][0]) progname = argv[0];
   if (args == has_error) {  /* bad arg? */
@@ -604,8 +616,8 @@ static int pmain (lua_State *L) {
   luaL_openlibs(L);  /* open standard libraries */
   createargtable(L, argv, argc, script);  /* create table 'arg' */
   
-  if (maxStep > 0) {
-    if (!lua_startburner(L, maxStep)) {
+  if (fuelLimit > 0) {
+    if (!lua_StartBurner(L, fuelLimit, BURN_VER_ALL)) {
       l_message(argv[0], "start burner failed!");
       return 0;
     }
@@ -630,8 +642,8 @@ static int pmain (lua_State *L) {
     else dofile(L, NULL);  /* executes stdin as a file */
   }
 
-  if (maxStep > 0) {
-    report_burner(L);
+  if (fuelLimit > 0) {
+    report_burner(L, start);
   }
 
   lua_pushboolean(L, 1);  /* signal no errors */

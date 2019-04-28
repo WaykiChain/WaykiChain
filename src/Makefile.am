@@ -106,6 +106,7 @@ JSON_H = \
 VMLUA_H = \
   vm/lua/lapi.h \
   vm/lua/lauxlib.h \
+  vm/lua/lburner.h \
   vm/lua/lcode.h \
   vm/lua/lctype.h \
   vm/lua/ldebug.h \
