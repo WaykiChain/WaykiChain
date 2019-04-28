@@ -101,13 +101,13 @@ public:
     uint256 GetPrevBlockHash() const  {
     	return prevBlockHash;
     }
-    void SetHashPrevBlock(uint256 prevBlockHash) {
+    void SetPrevBlockHash(uint256 prevBlockHash) {
     	this->prevBlockHash = prevBlockHash;
     }
-    uint256 GetHashMerkleRoot() const{
+    uint256 GetMerkleRootHash() const{
     	return merkleRootHash;
     }
-    void SetHashMerkleRoot(uint256 merkleRootHash) {
+    void SetMerkleRootHash(uint256 merkleRootHash) {
     	this->merkleRootHash = merkleRootHash;
     }
 
@@ -190,8 +190,8 @@ public:
     {
         CBlockHeader block;
         block.SetVersion(nVersion);
-        block.SetHashPrevBlock(prevBlockHash);
-        block.SetHashMerkleRoot(merkleRootHash);
+        block.SetPrevBlockHash(prevBlockHash);
+        block.SetMerkleRootHash(merkleRootHash);
         block.SetTime(nTime);
         block.SetNonce(nNonce);
         block.SetHeight(nHeight);
