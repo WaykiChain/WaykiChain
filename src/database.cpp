@@ -108,7 +108,8 @@ bool CAccountViewCache::SetBestBlock(const uint256 &blockHashIn) {
     blockHash = blockHashIn;
     return true;
 }
-bool CAccountViewCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>, CKeyID> &mapKeyIds, const uint256 &hashBlockIn) {
+bool CAccountViewCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>, 
+                                CKeyID> &mapKeyIds, const uint256 &blockHashIn) {
     for (map<CKeyID, CAccount>::const_iterator it = mapAccounts.begin(); it != mapAccounts.end(); ++it) {
         if (uint160() == it->second.keyID) {
             this->EraseAccount(it->first);
@@ -120,7 +121,7 @@ bool CAccountViewCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, con
 
     for (map<vector<unsigned char>, CKeyID>::const_iterator itKeyId = mapKeyIds.begin(); itKeyId != mapKeyIds.end(); ++itKeyId)
         cacheKeyIds[itKeyId->first] = itKeyId->second;
-    hashBlock = hashBlockIn;
+    blockHash = blockHashIn;
     return true;
 }
 bool CAccountViewCache::BatchWrite(const vector<CAccount> &vAccounts) {
