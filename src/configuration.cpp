@@ -277,7 +277,7 @@ const vector<string> G_CONFIG_TABLE::GetDelegatePubKey(NET_TYPE type) const {
 }
 
 const uint256 G_CONFIG_TABLE::GetMerkleRootHash() const {
-    return (uint256S((merkleRootHash)));
+    return (uint256S((MerkleRootHash)));
 }
 
 vector<unsigned int> G_CONFIG_TABLE::GetSeedNodeIP() const {
@@ -544,7 +544,7 @@ string G_CONFIG_TABLE::hashGenesisBlock_testNet = "0xf8aea423c73890eb982c77793cf
 string G_CONFIG_TABLE::hashGenesisBlock_regTest = "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d";
 
 //Merkle Hash Root
-string G_CONFIG_TABLE::merkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
+string G_CONFIG_TABLE::MerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
 
 //IP Address
 vector<unsigned int> G_CONFIG_TABLE::pnSeed =
