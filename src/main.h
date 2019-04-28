@@ -755,7 +755,7 @@ class CBlockIndex {
         CBlockHeader block;
         block.SetVersion(nVersion);
         if (pprev)
-            block.SetHashPrevBlock(pprev->GetBlockHash());
+            block.SetPrevBlockHash(pprev->GetBlockHash());
         block.SetMerkleRootHash(hashMerkleRoot);
         block.SetTime(nTime);
         block.SetNonce(nNonce);

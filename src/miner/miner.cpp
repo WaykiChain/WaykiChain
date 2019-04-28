@@ -428,7 +428,7 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CAccountViewCache &view, CTransactionD
         ((CRewardTx *)pblock->vptx[0].get())->rewardValue = nFees - nTotalFuel;
 
         // Fill in header
-        pblock->SetHashPrevBlock(pIndexPrev->GetBlockHash());
+        pblock->SetPrevBlockHash(pIndexPrev->GetBlockHash());
         UpdateTime(*pblock, pIndexPrev);
         pblock->SetNonce(0);
         pblock->SetHeight(pIndexPrev->nHeight + 1);

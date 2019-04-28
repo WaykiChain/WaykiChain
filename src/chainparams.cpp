@@ -40,7 +40,7 @@ public:
         nSubsidyHalvingInterval = IniCfg().GetHalvingInterval(MAIN_NET);
         assert(CreateGenesisRewardTx(genesis.vptx, MAIN_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, MAIN_NET));
-        genesis.SetHashPrevBlock(uint256());
+        genesis.SetPrevBlockHash(uint256());
         genesis.SetMerkleRootHash(genesis.BuildMerkleTree());
 
         genesis.SetVersion(g_BlockVersion);
