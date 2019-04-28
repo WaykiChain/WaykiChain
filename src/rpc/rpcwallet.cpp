@@ -547,6 +547,9 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
     int height = chainActive.Tip()->nHeight;
     if (params.size() > 4) {
         height = params[4].get_int();
+        if (height <= 0) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid height");
+        }
     }
 
     CPubKey sendPubKey;
