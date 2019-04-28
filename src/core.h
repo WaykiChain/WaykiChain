@@ -41,8 +41,8 @@ public:
     static const int CURRENT_VERSION = g_BlockVersion;
 protected:
     int nVersion;
-    uint256 hashPrevBlock;
-    uint256 hashMerkleRoot;
+    uint256 prevBlockHash;
+    uint256 merkleRootHash;
     unsigned int nTime;
     unsigned int nNonce;
     unsigned int nHeight;
@@ -60,8 +60,8 @@ public:
     (
         READWRITE(this->nVersion);
         nVersion = this->nVersion;
-        READWRITE(hashPrevBlock);
-        READWRITE(hashMerkleRoot);
+        READWRITE(prevBlockHash);
+        READWRITE(merkleRootHash);
         READWRITE(nTime);
         READWRITE(nNonce);
         READWRITE(nHeight);
@@ -73,8 +73,8 @@ public:
     void SetNull()
     {
         nVersion = CBlockHeader::CURRENT_VERSION;
-        hashPrevBlock = uint256();
-        hashMerkleRoot = uint256();
+        prevBlockHash = uint256();
+        merkleRootHash = uint256();
         nTime = 0;
         nNonce = 0;
         nHeight = 0;
@@ -99,16 +99,16 @@ public:
     	this->nVersion = nVersion;
     }
     uint256 GetPrevBlockHash() const  {
-    	return hashPrevBlock;
+    	return prevBlockHash;
     }
     void SetHashPrevBlock(uint256 prevBlockHash) {
-    	this->hashPrevBlock = prevBlockHash;
+    	this->prevBlockHash = prevBlockHash;
     }
     uint256 GetHashMerkleRoot() const{
-    	return hashMerkleRoot;
+    	return merkleRootHash;
     }
     void SetHashMerkleRoot(uint256 merkleRootHash) {
-    	this->hashMerkleRoot = merkleRootHash;
+    	this->merkleRootHash = merkleRootHash;
     }
 
     unsigned int GetTime() const{
@@ -190,8 +190,8 @@ public:
     {
         CBlockHeader block;
         block.SetVersion(nVersion);
-        block.SetHashPrevBlock(hashPrevBlock);
-        block.SetHashMerkleRoot(hashMerkleRoot);
+        block.SetHashPrevBlock(prevBlockHash);
+        block.SetHashMerkleRoot(merkleRootHash);
         block.SetTime(nTime);
         block.SetNonce(nNonce);
         block.SetHeight(nHeight);
