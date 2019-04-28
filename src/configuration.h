@@ -100,7 +100,7 @@ private:
 	static string CheckPointPK_TestNet;
 
 	/* merkle root hash */
-	static string merkleRootHash;
+	static string MerkleRootHash;
 
 	/* Peer IP seeds */
 	static vector<unsigned int> pnSeed;
