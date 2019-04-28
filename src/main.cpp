@@ -1647,8 +1647,8 @@ bool static DisconnectTip(CValidationState &state) {
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
-        CAccountViewCache view(*pAccountViewTip, true);
-        CScriptDBViewCache scriptDBView(*pScriptDBTip, true);
+        CAccountViewCache view(*pAccountViewTip);
+        CScriptDBViewCache scriptDBView(*pScriptDBTip);
         if (!DisconnectBlock(block, state, view, pindexDelete, *pTxCacheTip, scriptDBView, NULL))
             return ERRORMSG("DisconnectTip() : DisconnectBlock %s failed", pindexDelete->GetBlockHash().ToString());
         assert(view.Flush() && scriptDBView.Flush());
@@ -1722,8 +1722,8 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
     int64_t nStart = GetTimeMicros();
     {
         CInv inv(MSG_BLOCK, pindexNew->GetBlockHash());
-        CAccountViewCache view(*pAccountViewTip, true);
-        CScriptDBViewCache scriptDBView(*pScriptDBTip, true);
+        CAccountViewCache view(*pAccountViewTip);
+        CScriptDBViewCache scriptDBView(*pScriptDBTip);
         if (!ConnectBlock(block, state, view, pindexNew, *pTxCacheTip, scriptDBView)) {
             if (state.IsInvalid())
                 InvalidBlockFound(pindexNew, state);
@@ -1731,7 +1731,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
         }
         mapBlockSource.erase(inv.hash);
         assert(view.Flush() && scriptDBView.Flush());
-        CAccountViewCache viewtemp(*pAccountViewTip, true);
+        CAccountViewCache viewtemp(*pAccountViewTip);
         uint256 uBestblockHash = viewtemp.GetBestBlock();
         LogPrint("INFO", "uBestBlockHash[%d]: %s\n", nSyncTipHeight, uBestblockHash.GetHex());
     }
