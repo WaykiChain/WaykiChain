@@ -2037,7 +2037,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     pAcctViewCache                  = std::make_shared<CAccountViewCache>(*pAccountViewDB, true);
     pAcctViewCache->cacheAccounts   = pAccountViewTip->cacheAccounts;
     pAcctViewCache->cacheKeyIds     = pAccountViewTip->cacheKeyIds;
-    pAcctViewCache->blockHash       = pAccountViewTip->pBlockHash;
+    pAcctViewCache->blockHash       = pAccountViewTip->blockHash;
 
     std::shared_ptr<CTransactionDBCache> pTxCache = std::make_shared<CTransactionDBCache>(*pTxCacheDB, true);
     pTxCache->SetCacheMap(pTxCacheTip->GetCacheMap());
