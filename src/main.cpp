@@ -2280,8 +2280,8 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
                                 REJECT_INVALID, "time-too-early");
         }
 
-        // Check that the block chain matches the known block chain up to a checkpoint
-        if (!Checkpoints::CheckBlock(nHeight, hash)) {
+        // Check that the block chain matches the known blockchain up to a checkpoint
+        if (!Checkpoints::CheckBlock(nHeight, blockHash)) {
             return state.DoS(100, ERRORMSG("AcceptBlock() : rejected by checkpoint lock-in at %d", nHeight),
                             REJECT_CHECKPOINT, "checkpoint mismatch");
         }
