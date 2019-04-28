@@ -74,8 +74,8 @@ uint64_t CBaseTx::nDustAmountThreshold = 10000;
 static CMedianFilter<int> cPeerBlockCounts(8, 0);
 
 struct COrphanBlock {
-    uint256 hashBlock;
-    uint256 hashPrev;
+    uint256 blockHash;
+    uint256 prevBlockHash;
     int height;
     vector<unsigned char> vchBlock;
 };
@@ -2118,9 +2118,9 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         // pForkScriptDBCache->SetBaseData(pScriptDBCache.get());
 
     // } else {
-        pForkAcctViewCache.reset(new CAccountViewCache(*pAcctViewCache, true));
-        pForkTxCache.reset(new CTransactionDBCache(*pTxCache, true));
-        pForkScriptDBCache.reset(new CScriptDBViewCache(*pScriptDBCache, true));
+        pForkAcctViewCache.reset(new CAccountViewCache(*pAcctViewCache));
+        pForkTxCache.reset(new CTransactionDBCache(*pTxCache));
+        pForkScriptDBCache.reset(new CScriptDBViewCache(*pScriptDBCache));
     // }
 
     LogPrint("INFO", "pForkAcctView:%x\n", pForkAcctViewCache.get());

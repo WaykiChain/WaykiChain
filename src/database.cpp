@@ -100,12 +100,12 @@ bool CAccountViewCache::HaveAccount(const CKeyID &keyId) {
         return this->HaveAccount(keyId);
 }
 uint256 CAccountViewCache::GetBestBlock() {
-    if (hashBlock == uint256())
+    if (blockHash == uint256())
         return this->GetBestBlock();
-    return hashBlock;
+    return blockHash;
 }
-bool CAccountViewCache::SetBestBlock(const uint256 &hashBlockIn) {
-    hashBlock = hashBlockIn;
+bool CAccountViewCache::SetBestBlock(const uint256 &blockHashIn) {
+    blockHash = blockHashIn;
     return true;
 }
 bool CAccountViewCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>, CKeyID> &mapKeyIds, const uint256 &hashBlockIn) {
@@ -345,7 +345,7 @@ unsigned int CAccountViewCache::GetCacheSize() {
 
 Object CAccountViewCache::ToJsonObj() const {
     Object obj;
-    obj.push_back(Pair("hashBlock", hashBlock.ToString()));
+    obj.push_back(Pair("blockHash", blockHash.ToString()));
 
     Array arrayObj;
     for (auto& item : cacheAccounts) {
@@ -406,7 +406,7 @@ bool CScriptDBViewBacked::GetTxHashByAddress(const CKeyID &keyId, int nHeight, m
 bool CScriptDBViewBacked::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CScriptDBOperLog &operLog) { return pBase->SetTxHashByAddress(keyId, nHeight, nIndex, strTxHash, operLog); }
 bool CScriptDBViewBacked::GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) { return pBase->GetAllScriptAcc(scriptId, mapAcc); }
 
-CScriptDBViewCache::CScriptDBViewCache(CScriptDBView &base, bool fDummy) : CScriptDBViewBacked(base) {
+CScriptDBViewCache::CScriptDBViewCache(CScriptDBView &base) : CScriptDBViewBacked(base) {
     mapContractDb.clear();
 }
 
@@ -1500,7 +1500,7 @@ bool CTransactionDBViewBacked::BatchWrite(const map<uint256, UnorderedHashSet> &
     return pBase->BatchWrite(mapTxHashByBlockHashIn);
 }
 
-CTransactionDBCache::CTransactionDBCache(CTransactionDBView &txCacheDB, bool fDummy) : CTransactionDBViewBacked(txCacheDB) {}
+CTransactionDBCache::CTransactionDBCache(CTransactionDBView &txCacheDB) : CTransactionDBViewBacked(txCacheDB) {}
 
 bool CTransactionDBCache::IsContainBlock(const CBlock &block) {
     //(mapTxHashByBlockHash.count(block.GetHash()) > 0 && mapTxHashByBlockHash[block.GetHash()].size() > 0)

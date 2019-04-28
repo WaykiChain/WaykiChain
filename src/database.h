@@ -42,7 +42,7 @@ public:
 
 class CAccountViewCache : public CAccountView {
 public:
-    uint256 hashBlock;
+    uint256 blockHash;
     map<CKeyID, CAccount> cacheAccounts;
     map<vector<unsigned char>, CKeyID> cacheKeyIds;  // vector of account KeyIds
 
@@ -55,9 +55,9 @@ public:
     virtual bool SetAccount(const CUserID &userId, const CAccount &account);
     virtual bool HaveAccount(const CKeyID &keyId);
     virtual uint256 GetBestBlock();
-    virtual bool SetBestBlock(const uint256 &hashBlock);
+    virtual bool SetBestBlock(const uint256 &blockHash);
     virtual bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>,
-                            CKeyID> &mapKeyIds, const uint256 &hashBlock);
+                            CKeyID> &mapKeyIds, const uint256 &blockHash);
     virtual bool BatchWrite(const vector<CAccount> &vAccounts);
     virtual bool EraseAccount(const CKeyID &keyId);
     virtual bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId);
@@ -71,7 +71,7 @@ public:
     virtual Object ToJsonObj(char prefix) { return Object(); }
 
 public:
-    CAccountViewCache(const CAccountView &view, bool fDummy = false): hashBlock(uint256()) {}
+    CAccountViewCache(const CAccountViewCache &view): blockHash(uint256()) {}
 
     bool GetUserId(const string &addr, CUserID &userId);
     bool GetRegId(const CKeyID &keyId, CRegID &regId);
@@ -141,7 +141,7 @@ class CScriptDBViewCache : public CScriptDBViewBacked {
       取交易关联账户时第一个vector是scriptKey ="tx" + "txHash"
     */
    public:
-    CScriptDBViewCache(CScriptDBView &base, bool fDummy = false);
+    CScriptDBViewCache(CScriptDBView &base);
     bool GetScript(const CRegID &scriptId, vector<unsigned char> &vValue);
     bool GetScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vKey, CAppUserAccount &appAccOut);
     bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CScriptDBOperLog &operlog);
@@ -330,7 +330,7 @@ class CTransactionDBCache : public CTransactionDBViewBacked {
     bool IsInMap(const map<uint256, UnorderedHashSet> &mMap, const uint256 &hash) const;
 
    public:
-    CTransactionDBCache(CTransactionDBView &pTxCacheDB, bool fDummy);
+    CTransactionDBCache(CTransactionDBView &pTxCacheDB);
     bool IsContainBlock(const CBlock &block);
     bool AddBlockToCache(const CBlock &block);
     bool DeleteBlockFromCache(const CBlock &block);
