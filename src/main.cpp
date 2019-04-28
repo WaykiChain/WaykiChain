@@ -864,7 +864,7 @@ uint256 static GetOrphanRoot(const uint256 &hash) {
 
     // Work back to the first block in the orphan chain
     do {
-        map<uint256, COrphanBlock *>::iterator it2 = mapOrphanBlocks.find(it->second->hashPrev);
+        map<uint256, COrphanBlock *>::iterator it2 = mapOrphanBlocks.find(it->second->prevBlockHash);
         if (it2 == mapOrphanBlocks.end())
             return it->first;
         it = it2;
