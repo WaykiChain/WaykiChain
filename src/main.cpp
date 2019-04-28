@@ -717,7 +717,7 @@ int CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex *&pindexRet) const {
 
     // Make sure the merkle branch connects to this block
     if (!fMerkleVerified) {
-        if (CBlock::CheckMerkleBranch(pTx->GetHash(), vMerkleBranch, nIndex) != pIndex->hashMerkleRoot)
+        if (CBlock::CheckMerkleBranch(pTx->GetHash(), vMerkleBranch, nIndex) != pIndex->merkleRootHash)
             return 0;
         fMerkleVerified = true;
     }
@@ -2227,7 +2227,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
 
     // Check merkle root
     if (fCheckMerkleRoot && block.GetMerkleRootHash() != block.vMerkleTree.back())
-        return state.DoS(100, ERRORMSG("CheckBlock() : hashMerkleRoot mismatch, block.hashMerkleRoot=%s, block.vMerkleTree.back()=%s", 
+        return state.DoS(100, ERRORMSG("CheckBlock() : merkleRootHash mismatch, block.merkleRootHash=%s, block.vMerkleTree.back()=%s", 
                         block.GetMerkleRootHash().ToString(), block.vMerkleTree.back().ToString()), REJECT_INVALID, "bad-txnmrklroot", true);
 
     //check nonce
@@ -2798,7 +2798,7 @@ uint256 CPartialMerkleTree::ExtractMatches(vector<uint256> &vMatch) {
         nHeight++;
     // traverse the partial tree
     unsigned int nBitsUsed = 0, nHashUsed = 0;
-    uint256 hashMerkleRoot = TraverseAndExtract(nHeight, 0, nBitsUsed, nHashUsed, vMatch);
+    uint256 merkleRootHash = TraverseAndExtract(nHeight, 0, nBitsUsed, nHashUsed, vMatch);
     // verify that no problems occured during the tree traversal
     if (fBad)
         return uint256();
@@ -2808,7 +2808,7 @@ uint256 CPartialMerkleTree::ExtractMatches(vector<uint256> &vMatch) {
     // verify that all hashes were consumed
     if (nHashUsed != vHash.size())
         return uint256();
-    return hashMerkleRoot;
+    return merkleRootHash;
 }
 
 bool AbortNode(const string &strMessage) {

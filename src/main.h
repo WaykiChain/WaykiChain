@@ -692,7 +692,7 @@ class CBlockIndex {
         nBlockFee   = 0;  //add the block's fee
 
         nVersion       = 0;
-        hashMerkleRoot = uint256();
+        merkleRootHash = uint256();
         hashPos        = uint256();
         nTime          = 0;
         nBits          = 0;
@@ -756,7 +756,7 @@ class CBlockIndex {
         block.SetVersion(nVersion);
         if (pprev)
             block.SetPrevBlockHash(pprev->GetBlockHash());
-        block.SetMerkleRootHash(hashMerkleRoot);
+        block.SetMerkleRootHash(merkleRootHash);
         block.SetTime(nTime);
         block.SetNonce(nNonce);
         block.SetHeight(nHeight);
@@ -806,7 +806,7 @@ class CBlockIndex {
 
     string ToString() const {
         return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, blockHash=%s, blockFee=%d, chainWork=%s, feePerKb=%lf)",
-                        pprev, nHeight, hashMerkleRoot.ToString().c_str(), GetBlockHash().ToString().c_str(), 
+                        pprev, nHeight, merkleRootHash.ToString().c_str(), GetBlockHash().ToString().c_str(), 
                         nBlockFee, nChainWork.ToString().c_str(), dFeePerKb);
     }
 
@@ -851,7 +851,7 @@ class CDiskBlockIndex : public CBlockIndex {
         // block header
         READWRITE(this->nVersion);
         READWRITE(hashPrev);
-        READWRITE(hashMerkleRoot);
+        READWRITE(merkleRootHash);
         READWRITE(hashPos);
         READWRITE(nTime);
         READWRITE(nBits);
@@ -865,7 +865,7 @@ class CDiskBlockIndex : public CBlockIndex {
         CBlockHeader block;
         block.SetVersion(nVersion);
         block.SetPrevBlockHash(hashPrev);
-        block.SetMerkleRootHash(hashMerkleRoot);
+        block.SetMerkleRootHash(merkleRootHash);
         block.SetTime(nTime);
         block.SetNonce(nNonce);
         block.SetHeight(nHeight);
