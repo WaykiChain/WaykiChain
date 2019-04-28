@@ -662,7 +662,7 @@ class CBlockIndex {
 
     // block header
     int nVersion;
-    uint256 hashMerkleRoot;
+    uint256 merkleRootHash;
     uint256 hashPos;
     unsigned int nTime;
     unsigned int nBits;
