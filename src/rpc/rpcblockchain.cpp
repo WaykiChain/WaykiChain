@@ -62,8 +62,8 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("size", (int)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION)));
     result.push_back(Pair("height", blockindex->nHeight));
     result.push_back(Pair("version", block.GetVersion()));
-    result.push_back(Pair("merkleroot", block.GetMerkleRootHash().GetHex()));
-    result.push_back(Pair("txnumber", (int)block.vptx.size()));
+    result.push_back(Pair("merkle_root", block.GetMerkleRootHash().GetHex()));
+    result.push_back(Pair("tx_count", (int)block.vptx.size()));
     Array txs;
     for (const auto& ptx : block.vptx)
         txs.push_back(ptx->GetHash().GetHex());
@@ -71,12 +71,12 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("time", block.GetBlockTime()));
     result.push_back(Pair("nonce", (uint64_t)block.GetNonce()));
     result.push_back(Pair("fuel", blockindex->nFuel));
-    result.push_back(Pair("fuelrate", blockindex->nFuelRate));
+    result.push_back(Pair("fuel_rate", blockindex->nFuelRate));
     if (blockindex->pprev)
-        result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
+        result.push_back(Pair("previous_block_hash", blockindex->pprev->GetBlockHash().GetHex()));
     CBlockIndex *pnext = chainActive.Next(blockindex);
     if (pnext)
-        result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
+        result.push_back(Pair("next_block_hash", pnext->GetBlockHash().GetHex()));
     return result;
 }
 
