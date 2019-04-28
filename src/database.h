@@ -325,7 +325,7 @@ class CTransactionDBViewBacked : public CTransactionDBView {
 
 class CTransactionDBCache : public CTransactionDBViewBacked {
 private:
-    CTransactionDBCache(CTransactionDBCache &transactionView);
+    // CTransactionDBCache(CTransactionDBCache &transactionView);
     map<uint256, UnorderedHashSet> mapTxHashByBlockHash;  // key:block hash  value:tx hash
     bool IsInMap(const map<uint256, UnorderedHashSet> &mMap, const uint256 &hash) const;
 

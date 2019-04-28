@@ -2119,8 +2119,8 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
     } else {
         pForkAcctViewCache.reset(new CAccountViewCache(*pAcctViewCache));
-        pForkTxCache.reset(new CTransactionDBCache(*pTxCache));
-        pForkScriptDBCache.reset(new CScriptDBViewCache(*pScriptDBCache));
+        pForkTxCache.reset(new CTransactionDBCache(*pTxCache), false);
+        pForkScriptDBCache.reset(new CScriptDBViewCache(*pScriptDBCache), false);
     }
 
     LogPrint("INFO", "pForkAcctView:%x\n", pForkAcctViewCache.get());
