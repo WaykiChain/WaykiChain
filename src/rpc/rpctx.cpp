@@ -463,7 +463,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
     {
         EnsureWalletIsUnlocked();
 
-        CAccountViewCache view(*pAccountViewTip, true);
+        CAccountViewCache view(*pAccountViewTip);
         CAccount account;
         CUserID userId = keyId;
         if (!view.GetAccount(userId, account))
@@ -581,7 +581,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
     std::shared_ptr<CContractTx> tx = std::make_shared<CContractTx>();
     {
         //balance
-        CAccountViewCache view(*pAccountViewTip, true);
+        CAccountViewCache view(*pAccountViewTip);
         CAccount secureAcc;
 
         if (!pScriptDBTip->HaveScript(appId)) {
@@ -723,7 +723,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     CRegisterContractTx tx;
     {
         EnsureWalletIsUnlocked();
-        CAccountViewCache view(*pAccountViewTip, true);
+        CAccountViewCache view(*pAccountViewTip);
         CAccount account;
 
         uint64_t balance = 0;
@@ -823,7 +823,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     assert(pwalletMain != NULL);
     {
         EnsureWalletIsUnlocked();
-        CAccountViewCache view(*pAccountViewTip, true);
+        CAccountViewCache view(*pAccountViewTip);
         CAccount account;
 
         CUserID userId = keyId;
@@ -948,7 +948,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
     assert(pwalletMain != NULL);
     {
         EnsureWalletIsUnlocked();
-        CAccountViewCache view(*pAccountViewTip, true);
+        CAccountViewCache view(*pAccountViewTip);
         CAccount account;
 
         CUserID userId = keyId;
@@ -1039,7 +1039,7 @@ Value listaddr(const Array& params, bool fHelp) {
         if (setKeyId.size() == 0) {
             return retArry;
         }
-        CAccountViewCache accView(*pAccountViewTip, true);
+        CAccountViewCache accView(*pAccountViewTip);
 
         for (const auto &keyId : setKeyId) {
             CUserID userId(keyId);
@@ -1304,7 +1304,7 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
 
     int txnCount(0);
     int nIndex(0);
-    CAccountViewCache accView(*pAccountViewTip, true);
+    CAccountViewCache accView(*pAccountViewTip);
     for (auto const &wtx : pwalletMain->mapInBlockTx) {
         for (auto const & item : wtx.second.mapAccountTx) {
             Object obj;
@@ -1419,7 +1419,7 @@ Value listcontracttx(const Array& params, bool fHelp)
                 CKeyID keyId;
                 Object obj;
 
-                CAccountViewCache accView(*pAccountViewTip, true);
+                CAccountViewCache accView(*pAccountViewTip);
                 obj.push_back(Pair("hash", ptx->GetHash().GetHex()));
                 obj.push_back(Pair("regid",  getregidstring(ptx->srcRegId)));
                 accView.GetKeyId(ptx->srcRegId, keyId);
@@ -1495,7 +1495,7 @@ if (fHelp || params.size() > 2) {
         }
     }
     retObj.push_back(Pair("ConfirmTx", ConfirmTxArry));
-    //CAccountViewCache view(*pAccountViewTip, true);
+    //CAccountViewCache view(*pAccountViewTip);
     Array UnConfirmTxArry;
     for (auto const &wtx : pwalletMain->unconfirmedTx) {
         UnConfirmTxArry.push_back(wtx.first.GetHex());
@@ -1578,7 +1578,7 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
     }
 
     Object retObj;
-    CAccountViewCache view(*pAccountViewTip, true);
+    CAccountViewCache view(*pAccountViewTip);
     Array UnConfirmTxArry;
     for (auto const &wtx : pwalletMain->unconfirmedTx) {
         UnConfirmTxArry.push_back(wtx.second.get()->ToString(view));
@@ -1863,7 +1863,7 @@ Value getaddrbalance(const Array& params, bool fHelp) {
     double dbalance = 0.0;
     {
         LOCK(cs_main);
-        CAccountViewCache accView(*pAccountViewTip, true);
+        CAccountViewCache accView(*pAccountViewTip);
         CAccount secureAcc;
         CUserID userId = keyId;
         if (accView.GetAccount(userId, secureAcc)) {
@@ -2005,7 +2005,7 @@ Value getcontractdataraw(const Array& params, bool fHelp) {
     }
 
     CRegID regid(params[0].get_str());
-    if (regid.IsEmpty() == true)
+    if (regid.IsEmpty())
         throw runtime_error("getcontractdataraw : app regid not supplied!");
 
     if (!pScriptDBTip->HaveScript(regid))
@@ -2013,7 +2013,7 @@ Value getcontractdataraw(const Array& params, bool fHelp) {
 
     Object script;
     int height = chainActive.Height();
-    CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
+    CScriptDBViewCache contractScriptTemp(*pScriptDBTip);
     if (params.size() == 2) {
         vector<unsigned char> key = ParseHex(params[1].get_str());
         vector<unsigned char> value;
@@ -2066,7 +2066,7 @@ Value getcontractdata(const Array& params, bool fHelp) {
     int height = chainActive.Height();
     // RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
     CRegID regid(params[0].get_str());
-    if (regid.IsEmpty() == true) {
+    if (regid.IsEmpty()) {
         throw runtime_error("getcontractdata : contract regid NOT supplied!");
     }
 
@@ -2075,7 +2075,7 @@ Value getcontractdata(const Array& params, bool fHelp) {
     }
     Object script;
 
-    CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
+    CScriptDBViewCache contractScriptTemp(*pScriptDBTip);
     if (params.size() == 2) {
         string strKey = params[1].get_str();
         vector<unsigned char> key (strKey.length());
@@ -2136,9 +2136,9 @@ Value getcontractconfirmdata(const Array& params, bool fHelp) {
     }
     std::shared_ptr<CScriptDBViewCache> pAccountViewCache;
     if(4 == params.size() && 0==params[3].get_int()) {
-        pAccountViewCache.reset(new CScriptDBViewCache(*mempool.pScriptDBViewCache, true));
+        pAccountViewCache.reset(new CScriptDBViewCache(*mempool.pScriptDBViewCache));
     }else {
-        pAccountViewCache.reset(new CScriptDBViewCache(*pScriptDBTip, true));
+        pAccountViewCache.reset(new CScriptDBViewCache(*pScriptDBTip));
     }
     int height = chainActive.Height();
     RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
@@ -2398,7 +2398,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
     if (height < chainActive.Tip()->nHeight - 250 || height > chainActive.Tip()->nHeight + 250)
         throw runtime_error("height is out of a valid range to the tip block height!");
 
-    CAccountViewCache view(*pAccountViewTip, true);
+    CAccountViewCache view(*pAccountViewTip);
     CKeyID keyId;
     if (!view.GetKeyId(userRegId, keyId)) {
         LogPrint("ERROR", "from address %s has no keyId\n", userRegId.ToString());
@@ -2494,7 +2494,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Recv address invalid");
     }
 
-    CAccountViewCache view(*pAccountViewTip, true);
+    CAccountViewCache view(*pAccountViewTip);
     CAccount account;
 
     CUserID userId = keyId;
@@ -2779,7 +2779,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
         return obj;
     }
 
-    CAccountViewCache view(*pAccountViewTip, true);
+    CAccountViewCache view(*pAccountViewTip);
     switch (pBaseTx.get()->nTxType) {
         case COMMON_TX: {
             std::shared_ptr<CCommonTx> tx = std::make_shared<CCommonTx>(pBaseTx.get());
@@ -2866,7 +2866,7 @@ Value getalltxinfo(const Array& params, bool fHelp) {
         retObj.push_back(Pair("confirmed", confirmedTx));
 
         Array unconfirmedTx;
-        CAccountViewCache view(*pAccountViewTip, true);
+        CAccountViewCache view(*pAccountViewTip);
         for (auto const &wtx : pwalletMain->unconfirmedTx) {
             Object objtx = GetTxDetailJSON(wtx.first);
             unconfirmedTx.push_back(objtx);
@@ -2945,12 +2945,12 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
 
     std::shared_ptr<CAppUserAccount> appUserAccount = std::make_shared<CAppUserAccount>();
     if (params.size() == 3 && params[2].get_int() == 0) {
-        CScriptDBViewCache viewCache(*mempool.pScriptDBViewCache, true);
+        CScriptDBViewCache viewCache(*mempool.pScriptDBViewCache);
         if (!viewCache.GetScriptAcc(appRegId, acctKey, *appUserAccount.get())) {
             appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }
     } else {
-        CScriptDBViewCache viewCache(*pScriptDBTip, true);
+        CScriptDBViewCache viewCache(*pScriptDBTip);
         if (!viewCache.GetScriptAcc(appRegId, acctKey, *appUserAccount.get())) {
             appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }
@@ -2985,7 +2985,7 @@ Value listcontractassets(const Array& params, bool fHelp) {
         if (setKeyId.size() == 0)
             return retArry;
 
-        CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
+        CScriptDBViewCache contractScriptTemp(*pScriptDBTip);
 
         for (const auto &keyId : setKeyId) {
 
@@ -3051,14 +3051,14 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
 
     int height = chainActive.Height();
 
-    if (scriptid.IsEmpty() == true)
+    if (scriptid.IsEmpty())
         throw runtime_error("in getcontractkeyvalue: contract regid size is error!\n");
 
     if (!pScriptDBTip->HaveScript(scriptid))
         throw runtime_error("in getcontractkeyvalue: contract regid not exist!\n");
 
     Array retArry;
-    CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
+    CScriptDBViewCache contractScriptTemp(*pScriptDBTip);
 
     for (size_t i = 0; i < array.size(); i++) {
         uint256 txhash(uint256S(array[i].get_str()));
@@ -3255,7 +3255,7 @@ Value gettotalcoins(const Array& params, bool fHelp) {
 
     Object obj;
     {
-        CAccountViewCache view(*pAccountViewDB, true);
+        CAccountViewCache view(*pAccountViewDB);
         uint64_t totalCoins(0);
         uint64_t totalRegIds(0);
         std::tie(totalCoins, totalRegIds) = view.TraverseAccount();
@@ -3284,7 +3284,7 @@ Value gettotalassets(const Array& params, bool fHelp) {
     if (!pScriptDBTip->HaveScript(regid))
         throw runtime_error("contract regid not exist!\n");
 
-    CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
+    CScriptDBViewCache contractScriptTemp(*pScriptDBTip);
     Object obj;
     {
         map<vector<unsigned char>, vector<unsigned char> > mapAcc;
@@ -3337,7 +3337,7 @@ Value listtxbyaddr(const Array& params, bool fHelp) {
     if (!GetKeyId(address, keyId))
         throw runtime_error("Address invalid.");
 
-    CScriptDBViewCache scriptDbView(*pScriptDBTip, true);
+    CScriptDBViewCache scriptDbView(*pScriptDBTip);
     map<vector<unsigned char>, vector<unsigned char>> mapTxHash;
     if (!scriptDbView.GetTxHashByAddress(keyId, height, mapTxHash))
         throw runtime_error("Failed to fetch data.");
@@ -3376,8 +3376,8 @@ Value listdelegates(const Array& params, bool fHelp) {
 
     int nIndex = 0;
     vector<unsigned char> vScriptData;
-    CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
-    CAccountViewCache view(*pAccountViewTip, true);
+    CScriptDBViewCache contractScriptTemp(*pScriptDBTip);
+    CAccountViewCache view(*pAccountViewTip);
     Object obj;
     Array delegateArray;
     vector<unsigned char> vDelegateKey = {'d','e','l','e','g','a','t','e','_'};

@@ -112,8 +112,8 @@ void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pindexPrev, unsigned int &
 
 bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCache &accViewIn, CScriptDBViewCache &scriptCacheIn) {
     LOCK(cs_main);
-    CAccountViewCache accView(accViewIn, true);
-    CScriptDBViewCache scriptCache(scriptCacheIn, true);
+    CAccountViewCache accView(accViewIn);
+    CScriptDBViewCache scriptCache(scriptCacheIn);
 
     int nDelegateNum = IniCfg().GetDelegatesNum();
     int nIndex       = 0;
@@ -244,8 +244,8 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
     if (pBlock->GetMerkleRootHash() != pBlock->BuildMerkleTree())
         return ERRORMSG("wrong merkleRootHash");
 
-    CAccountViewCache view(accView, true);
-    CScriptDBViewCache scriptDBView(scriptCache, true);
+    CAccountViewCache view(accView);
+    CScriptDBViewCache scriptDBView(scriptCache);
     CBlock preBlock;
 
     CBlockIndex *pblockindex = mapBlockIndex[pBlock->GetPrevBlockHash()];
@@ -394,8 +394,8 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CAccountViewCache &view, CTransactionD
 
             CTxUndo txundo;
             CValidationState state;
-            CAccountViewCache viewTemp(view, true);
-            CScriptDBViewCache scriptCacheTemp(scriptCache, true);
+            CAccountViewCache viewTemp(view);
+            CScriptDBViewCache scriptCacheTemp(scriptCache);
             pBaseTx->nFuelRate = pblock->GetFuelRate();
             if (!pBaseTx->ExecuteTx(nBlockTx + 1, viewTemp, state, txundo, pIndexPrev->nHeight + 1,
                                     txCache, scriptCacheTemp))
@@ -596,9 +596,9 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
             //
             unsigned int nTransactionsUpdated = mempool.GetTransactionsUpdated();
             CBlockIndex *pindexPrev           = chainActive.Tip();
-            CAccountViewCache accountView(*pAccountViewTip, true);
-            CTransactionDBCache txCache(*pTxCacheTip, true);
-            CScriptDBViewCache scriptDB(*pScriptDBTip, true);
+            CAccountViewCache accountView(*pAccountViewTip);
+            CTransactionDBCache txCache(*pTxCacheTip);
+            CScriptDBViewCache scriptDB(*pScriptDBTip);
             g_miningBlockInfo.SetNull();
 
             int64_t nLastTime = GetTimeMillis();

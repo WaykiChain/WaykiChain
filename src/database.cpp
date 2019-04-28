@@ -102,6 +102,7 @@ bool CAccountViewCache::HaveAccount(const CKeyID &keyId) {
 uint256 CAccountViewCache::GetBestBlock() {
     if (blockHash == uint256())
         return this->GetBestBlock();
+
     return blockHash;
 }
 bool CAccountViewCache::SetBestBlock(const uint256 &blockHashIn) {
@@ -342,6 +343,10 @@ int64_t CAccountViewCache::GetRawBalance(const CUserID &userId) const {
 
 unsigned int CAccountViewCache::GetCacheSize() {
     return ::GetSerializeSize(cacheAccounts, SER_DISK, CLIENT_VERSION) + ::GetSerializeSize(cacheKeyIds, SER_DISK, CLIENT_VERSION);
+}
+
+std::tuple<uint64_t, uint64_t> CAccountViewCache::TraverseAccount() { 
+    return pBase->TraverseAccount(); 
 }
 
 Object CAccountViewCache::ToJsonObj() const {
@@ -1407,7 +1412,7 @@ Object CScriptDBViewCache::ToJsonObj() const {
     obj.push_back(Pair("mapContractDb", arrayObj));
     return obj;
 }
-void CScriptDBViewCache::SetBaseData(CScriptDBView *pNewBase) {
+void CScriptDBViewCache::SetBaseView(CScriptDBView *pNewBase) {
     pBase = pNewBase;
 }
 string CScriptDBViewCache::ToString() {
@@ -1616,7 +1621,7 @@ Object CTransactionDBCache::ToJsonObj() const {
     retobj.push_back(Pair("mapTxHashByBlockHash", temobj));
     return retobj;
 }
-void CTransactionDBCache::SetBaseData(CTransactionDBView *pNewBase) {
+void CTransactionDBCache::SetBaseView(CTransactionDBView *pNewBase) {
     pBase = pNewBase;
 }
 

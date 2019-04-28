@@ -448,7 +448,7 @@ Object CAccountTx::ToJsonObj(CKeyID const &key) const {
     obj.push_back(Pair("blockHash", blockHash.ToString()));
     obj.push_back(Pair("blockHeight", blockHeight));
     Array Tx;
-    CAccountViewCache view(*pAccountViewTip, true);
+    CAccountViewCache view(*pAccountViewTip);
     for (auto const &re : mapAccountTx) {
         Tx.push_back(re.second.get()->ToString(view));
     }
@@ -465,8 +465,8 @@ uint256 CWallet::GetCheckSum() const {
 
 bool CWallet::IsMine(CBaseTx *pTx) const {
     set<CKeyID> vaddr;
-    CAccountViewCache view(*pAccountViewTip, true);
-    CScriptDBViewCache scriptDB(*pScriptDBTip, true);
+    CAccountViewCache view(*pAccountViewTip);
+    CScriptDBViewCache scriptDB(*pScriptDBTip);
     if (!pTx->GetAddress(vaddr, view, scriptDB)) {
         return false;
     }

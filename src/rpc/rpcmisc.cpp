@@ -67,7 +67,7 @@ Value getbalance(const Array& params, bool fHelp)
             }
             if (pwalletMain->HaveKey(keyid)) {
                 CAccount account;
-                CAccountViewCache accView(*pAccountViewTip, true);
+                CAccountViewCache accView(*pAccountViewTip);
                 if (accView.GetAccount(CUserID(keyid), account)) {
                     obj.push_back(Pair("balance", ValueFromAmount(account.GetRawBalance())));
                     return obj;

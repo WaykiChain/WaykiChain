@@ -136,9 +136,9 @@ Value vmexecutescript(const Array& params, bool fHelp) {
                            strprintf("input fee could not smaller than: %ld sawi", minFee));
     }
 
-    CTransactionDBCache txCacheTemp(*pTxCacheTip, true);
-    CAccountViewCache acctViewTemp(*pAccountViewTip, true);
-    CScriptDBViewCache scriptDBViewTemp(*pScriptDBTip, true);
+    CTransactionDBCache txCacheTemp(*pTxCacheTip);
+    CAccountViewCache acctViewTemp(*pAccountViewTip);
+    CScriptDBViewCache scriptDBViewTemp(*pScriptDBTip);
     CValidationState state;
     CTxUndo txundo;
 

@@ -51,17 +51,17 @@ CTxMemPool::CTxMemPool() {
 }
 
 void CTxMemPool::SetAccountViewDB(CAccountViewCache *pAccountViewCacheIn) {
-    pAccountViewCache = std::make_shared<CAccountViewCache>(*pAccountViewCacheIn, false);
+    pAccountViewCache = std::make_shared<CAccountViewCache>(*pAccountViewCacheIn);
 }
 
 void CTxMemPool::SetScriptDBViewDB(CScriptDBViewCache *pScriptDBViewCacheIn) {
-    pScriptDBViewCache = std::make_shared<CScriptDBViewCache>(*pScriptDBViewCacheIn, false);
+    pScriptDBViewCache = std::make_shared<CScriptDBViewCache>(*pScriptDBViewCacheIn);
 }
 
 void CTxMemPool::ReScanMemPoolTx(CAccountViewCache *pAccountViewCacheIn,
                                  CScriptDBViewCache *pScriptDBViewCacheIn) {
-    pAccountViewCache.reset(new CAccountViewCache(*pAccountViewCacheIn, true));
-    pScriptDBViewCache.reset(new CScriptDBViewCache(*pScriptDBViewCacheIn, true));
+    pAccountViewCache.reset(new CAccountViewCache(*pAccountViewCacheIn));
+    pScriptDBViewCache.reset(new CScriptDBViewCache(*pScriptDBViewCacheIn));
     {
         LOCK(cs);
         CValidationState state;
@@ -103,9 +103,9 @@ void CTxMemPool::Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> >& remov
 bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &entry,
                                   CValidationState &state, bool bExcute) {
     CTxUndo txundo;
-    CTransactionDBCache txCacheTemp(*pTxCacheTip, true);
-    CAccountViewCache acctViewTemp(*pAccountViewCache, true);
-    CScriptDBViewCache scriptDBViewTemp(*pScriptDBViewCache, true);
+    CTransactionDBCache txCacheTemp(*pTxCacheTip);
+    CAccountViewCache acctViewTemp(*pAccountViewCache);
+    CScriptDBViewCache scriptDBViewTemp(*pScriptDBViewCache);
 
     // is it already confirmed in block
     if (pTxCacheTip->HaveTx(hash))
@@ -151,7 +151,7 @@ bool CTxMemPool::AddUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
 void CTxMemPool::Clear() {
     LOCK(cs);
     mapTx.clear();
-    pAccountViewCache.reset(new CAccountViewCache(*pAccountViewTip, false));
+    pAccountViewCache.reset(new CAccountViewCache(*pAccountViewTip));
     ++nTransactionsUpdated;
 }
 

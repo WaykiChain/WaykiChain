@@ -24,9 +24,9 @@ public:
     virtual bool SetAccount(const CUserID &userId, const CAccount &account);
     virtual bool HaveAccount(const CKeyID &keyId) = 0;
     virtual uint256 GetBestBlock() = 0;
-    virtual bool SetBestBlock(const uint256 &hashBlock) = 0;
+    virtual bool SetBestBlock(const uint256 &blockHash) = 0;
     virtual bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>,
-                            CKeyID> &mapKeyIds, const uint256 &hashBlock) = 0;
+                            CKeyID> &mapKeyIds, const uint256 &blockHash) = 0;
     virtual bool BatchWrite(const vector<CAccount> &vAccounts) = 0;
     virtual bool EraseAccount(const CKeyID &keyId) = 0;
     virtual bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId) = 0;
@@ -37,10 +37,13 @@ public:
     virtual std::tuple<uint64_t, uint64_t> TraverseAccount() = 0;
     virtual Object ToJsonObj(char prefix) = 0;
 
-    virtual ~CAccountView(){};
+    virtual ~CAccountView() = 0;
 };
 
 class CAccountViewCache : public CAccountView {
+protected:
+    CAccountView *pBase;
+
 public:
     uint256 blockHash;
     map<CKeyID, CAccount> cacheAccounts;
@@ -71,7 +74,7 @@ public:
     virtual Object ToJsonObj(char prefix) { return Object(); }
 
 public:
-    CAccountViewCache(const CAccountView &view): blockHash(uint256()) {}
+    CAccountViewCache(CAccountView &view): pBase(&view), blockHash(uint256()) {}
 
     bool GetUserId(const string &addr, CUserID &userId);
     bool GetRegId(const CKeyID &keyId, CRegID &regId);
@@ -84,6 +87,7 @@ public:
     bool Flush();
     unsigned int GetCacheSize();
     Object ToJsonObj() const;
+    void SetBaseView(CAccountView *pBaseIn) { pBase = pBaseIn; };
 };
 
 class CScriptDBView {
@@ -184,7 +188,7 @@ public:
 	CScriptDBView * GetBaseScriptDB() { return pBase; }
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
     bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB);
-    void SetBaseData(CScriptDBView *pBase);
+    void SetBaseView(CScriptDBView *pBase);
     string ToString();
     bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CScriptDBOperLog &operLog);
     bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput);
@@ -343,7 +347,7 @@ public:
     void Clear();
     Object ToJsonObj() const;
     int GetSize();
-    void SetBaseData(CTransactionDBView *pNewBase);
+    void SetBaseView(CTransactionDBView *pNewBase);
     const map<uint256, UnorderedHashSet> &GetCacheMap();
     void SetCacheMap(const map<uint256, UnorderedHashSet> &mapCache);
 };

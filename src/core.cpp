@@ -18,7 +18,7 @@ void CBlockHeader::SetHeight(unsigned int height) {
 
 uint256 CBlockHeader::SignatureHash() const {
     CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
-    ss << nVersion << hashPrevBlock << merkleRootHash << nTime << nNonce << nHeight << nFuel << nFuelRate;
+    ss << nVersion << prevBlockHash << merkleRootHash << nTime << nNonce << nHeight << nFuel << nFuelRate;
     return ss.GetHash();
 }
 
@@ -78,7 +78,7 @@ void CBlock::Print(CAccountViewCache& view) const {
     LogPrint("INFO", "CBlock(hash=%s, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, nFuelRate=%d)\n",
              GetHash().ToString(),
              nVersion,
-             hashPrevBlock.ToString(),
+             prevBlockHash.ToString(),
              merkleRootHash.ToString(),
              nTime,
              nNonce,

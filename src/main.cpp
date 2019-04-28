@@ -489,6 +489,7 @@ CBlockIndex *CChain::FindFork(const CBlockLocator &locator) const {
                 return pIndex;
         }
     }
+
     return Genesis();
 }
 
@@ -1224,7 +1225,7 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &
     //    LogPrint("INFO","height= %d\n,%s", pIndex->nHeight,blockUndo.ToString());
     //    int64_t llTime = GetTimeMillis();
     CTxUndo txundo;
-    if (pIndex->nHeight - COINBASE_MATURITY > 0) {
+    if (pIndex->nHeight > COINBASE_MATURITY) {
         //undo mature reward tx
         txundo = blockUndo.vtxundo.back();
         blockUndo.vtxundo.pop_back();
@@ -1238,15 +1239,14 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &
                 return state.DoS(100, ERRORMSG("ConnectBlock() : read mature block error"),
                                  REJECT_INVALID, "bad-read-block");
             }
-            if (!matureBlock.vptx[0]->UndoExecuteTx(-1, view, state, txundo, pIndex->nHeight,
-                                                    txCache, scriptCache))
+            if (!matureBlock.vptx[0]->UndoExecuteTx(-1, view, state, txundo, pIndex->nHeight, txCache, scriptCache))
                 return ERRORMSG("ConnectBlock() : execure mature block reward tx error!");
         }
     }
 
     //undo reward tx
     std::shared_ptr<CBaseTx> pBaseTx = block.vptx[0];
-    txundo                                    = blockUndo.vtxundo.back();
+    txundo = blockUndo.vtxundo.back();
     LogPrint("undo_account", "tx Hash:%s\n", pBaseTx->GetHash().ToString());
     if (!pBaseTx->UndoExecuteTx(0, view, state, txundo, pIndex->nHeight, txCache, scriptCache))
         return false;
@@ -1256,7 +1256,7 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &
     for (int i = block.vptx.size() - 1; i >= 1; i--) {
         //      llTime = GetTimeMillis();
         std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
-        CTxUndo txundo                            = blockUndo.vtxundo[i - 1];
+        CTxUndo txundo = blockUndo.vtxundo[i - 1];
         LogPrint("undo_account", "tx Hash:%s\n", pBaseTx->GetHash().ToString());
         if (!pBaseTx->UndoExecuteTx(i, view, state, txundo, pIndex->nHeight, txCache, scriptCache))
             return false;
@@ -2034,15 +2034,15 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     std::shared_ptr<CScriptDBViewCache>     pForkScriptDBCache;
     std::shared_ptr<CAccountViewCache>      pAcctViewCache;
 
-    pAcctViewCache                  = std::make_shared<CAccountViewCache>(*pAccountViewDB, true);
+    pAcctViewCache                  = std::make_shared<CAccountViewCache>(*pAccountViewDB);
     pAcctViewCache->cacheAccounts   = pAccountViewTip->cacheAccounts;
     pAcctViewCache->cacheKeyIds     = pAccountViewTip->cacheKeyIds;
     pAcctViewCache->blockHash       = pAccountViewTip->blockHash;
 
-    std::shared_ptr<CTransactionDBCache> pTxCache = std::make_shared<CTransactionDBCache>(*pTxCacheDB, true);
+    std::shared_ptr<CTransactionDBCache> pTxCache = std::make_shared<CTransactionDBCache>(*pTxCacheDB);
     pTxCache->SetCacheMap(pTxCacheTip->GetCacheMap());
 
-    std::shared_ptr<CScriptDBViewCache> pScriptDBCache = std::make_shared<CScriptDBViewCache>(*pScriptDB, true);
+    std::shared_ptr<CScriptDBViewCache> pScriptDBCache = std::make_shared<CScriptDBViewCache>(*pScriptDB);
     pScriptDBCache->mapContractDb                      = pScriptDBTip->mapContractDb;
 
     bool bForkChainTipFound(false);
@@ -2113,14 +2113,14 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         pForkTxCache       = std::get<1>(mapForkCache[preBlockHash]);
         pForkScriptDBCache = std::get<2>(mapForkCache[preBlockHash]);
 
-        // pForkAcctViewCache->SetBaseData(pAcctViewCache.get());
-        // pForkTxCache->SetBaseData(pTxCache.get());
-        // pForkScriptDBCache->SetBaseData(pScriptDBCache.get());
+        pForkAcctViewCache->SetBaseView(pAcctViewCache.get());
+        pForkTxCache->SetBaseView(pTxCache.get());
+        pForkScriptDBCache->SetBaseView(pScriptDBCache.get());
 
     } else {
         pForkAcctViewCache.reset(new CAccountViewCache(*pAcctViewCache));
-        pForkTxCache.reset(new CTransactionDBCache(*pTxCache), false);
-        pForkScriptDBCache.reset(new CScriptDBViewCache(*pScriptDBCache), false);
+        pForkTxCache.reset(new CTransactionDBCache(*pTxCache));
+        pForkScriptDBCache.reset(new CScriptDBViewCache(*pScriptDBCache));
     }
 
     LogPrint("INFO", "pForkAcctView:%x\n", pForkAcctViewCache.get());
@@ -2180,6 +2180,8 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         mapForkCache[iterBlock->GetHash()] = cache;
         LogPrint("INFO", "add mapForkCache Key:%s\n", iterBlock->GetHash().GetHex());
     }
+
+    return true;
 }
 
 bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDBCache, bool fCheckTx, bool fCheckMerkleRoot) {
