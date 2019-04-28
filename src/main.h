@@ -303,7 +303,7 @@ class CBlockUndo {
     IMPLEMENT_SERIALIZE(
         READWRITE(vtxundo);)
 
-    bool WriteToDisk(CDiskBlockPos &pos, const uint256 &hashBlock) {
+    bool WriteToDisk(CDiskBlockPos &pos, const uint256 &blockHash) {
         // Open history file to append
         CAutoFile fileout = CAutoFile(OpenUndoFile(pos), SER_DISK, CLIENT_VERSION);
         if (!fileout)
@@ -322,7 +322,7 @@ class CBlockUndo {
 
         // calculate & write checksum
         CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
-        hasher << hashBlock;
+        hasher << blockHash;
         hasher << *this;
         fileout << hasher.GetHash();
 
@@ -334,7 +334,7 @@ class CBlockUndo {
         return true;
     }
 
-    bool ReadFromDisk(const CDiskBlockPos &pos, const uint256 &hashBlock) {
+    bool ReadFromDisk(const CDiskBlockPos &pos, const uint256 &blockHash) {
         // Open history file to read
         CAutoFile filein = CAutoFile(OpenUndoFile(pos, true), SER_DISK, CLIENT_VERSION);
         if (!filein)
@@ -351,7 +351,7 @@ class CBlockUndo {
 
         // Verify checksum
         CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
-        hasher << hashBlock;
+        hasher << blockHash;
         hasher << *this;
         if (hashChecksum != hasher.GetHash())
             return ERRORMSG("CBlockUndo::ReadFromDisk : Checksum mismatch");
@@ -367,7 +367,7 @@ class CMerkleTx {
     int GetDepthInMainChainINTERNAL(CBlockIndex *&pindexRet) const;
 
    public:
-    uint256 hashBlock;
+    uint256 blockHash;
     vector<uint256> vMerkleBranch;
     int nIndex;
     std::shared_ptr<CBaseTx> pTx;
@@ -384,13 +384,13 @@ class CMerkleTx {
     }
 
     void Init() {
-        hashBlock       = uint256();
+        blockHash       = uint256();
         nIndex          = -1;
         fMerkleVerified = false;
     }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(hashBlock);
+        READWRITE(blockHash);
         READWRITE(vMerkleBranch);
         READWRITE(nIndex);
         READWRITE(pTx);
@@ -624,7 +624,7 @@ enum BlockStatus {
 class CBlockIndex {
    public:
     // pointer to the hash of the block, if any. memory is owned by this CBlockIndex
-    const uint256 *phashBlock;
+    const uint256 *pBlockHash;
 
     // pointer to the index of the predecessor of this block
     CBlockIndex *pprev;
@@ -676,7 +676,7 @@ class CBlockIndex {
     uint32_t nSequenceId;
 
     CBlockIndex() {
-        phashBlock  = NULL;
+        pBlockHash  = NULL;
         pprev       = NULL;
         pskip       = NULL;
         nHeight     = 0;
@@ -703,7 +703,7 @@ class CBlockIndex {
     }
 
     CBlockIndex(CBlock &block) {
-        phashBlock  = NULL;
+        pBlockHash  = NULL;
         pprev       = NULL;
         pskip       = NULL;
         nHeight     = 0;
@@ -769,7 +769,7 @@ class CBlockIndex {
     }
 
     uint256 GetBlockHash() const {
-        return *phashBlock;
+        return *pBlockHash;
     }
 
     int64_t GetBlockTime() const {
@@ -805,8 +805,9 @@ class CBlockIndex {
                                 unsigned int nRequired, unsigned int nToCheck);
 
     string ToString() const {
-        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s, blockfee=%d, chainWork=%s, feePerKb=%lf)",
-                         pprev, nHeight, hashMerkleRoot.ToString().c_str(), GetBlockHash().ToString().c_str(), nblockfee, nChainWork.ToString().c_str(), dFeePerKb);
+        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, blockHash=%s, blockFee=%d, chainWork=%s, feePerKb=%lf)",
+                        pprev, nHeight, hashMerkleRoot.ToString().c_str(), GetBlockHash().ToString().c_str(), 
+                        nblockfee, nChainWork.ToString().c_str(), dFeePerKb);
     }
 
     void Print() const {
@@ -877,7 +878,7 @@ class CDiskBlockIndex : public CBlockIndex {
     string ToString() const {
         string str = "CDiskBlockIndex(";
         str += CBlockIndex::ToString();
-        str += strprintf("\n                hashBlock=%s, hashPrev=%s)",
+        str += strprintf("\n                blockHash=%s, hashPrev=%s)",
                          GetBlockHash().ToString().c_str(),
                          hashPrev.ToString().c_str());
         return str;

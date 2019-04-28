@@ -276,7 +276,7 @@ namespace {
 struct CBlockReject {
     unsigned char chRejectCode;
     string strRejectReason;
-    uint256 hashBlock;
+    uint256 blockHash;
 };
 
 // Maintain validation-specific state about nodes, protected by cs_main, instead
@@ -546,7 +546,7 @@ int CMerkleTx::SetMerkleBranch(const CBlock *pblock) {
 
     if (pblock) {
         // Update the tx's hashBlock
-        hashBlock = pblock->GetHash();
+        blockHash = pblock->GetHash();
 
         // Locate the transaction
         for (nIndex = 0; nIndex < (int)pblock->vptx.size(); nIndex++)
@@ -564,7 +564,7 @@ int CMerkleTx::SetMerkleBranch(const CBlock *pblock) {
     }
 
     // Is the tx in a block that's in the main chain
-    map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(hashBlock);
+    map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(blockHash);
     if (mi == mapBlockIndex.end())
         return 0;
     CBlockIndex *pIndex = (*mi).second;
@@ -703,12 +703,12 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 }
 
 int CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex *&pindexRet) const {
-    if (hashBlock.IsNull() || nIndex == -1)
+    if (blockHash.IsNull() || nIndex == -1)
         return 0;
     AssertLockHeld(cs_main);
 
     // Find the block it claims to be in
-    map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(hashBlock);
+    map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(blockHash);
     if (mi == mapBlockIndex.end())
         return 0;
     CBlockIndex *pIndex = (*mi).second;
@@ -760,7 +760,7 @@ int GetTxConfirmHeight(const uint256 &hash, CScriptDBViewCache &scriptDBCache) {
     return -1;
 }
 
-// Return transaction in tx, and if it was found inside a block, its hash is placed in hashBlock
+// Return transaction in tx, and if it was found inside a block, its hash is placed in blockHash
 bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash,
                     CScriptDBViewCache &scriptDBCache, bool bSearchMemPool)
 {
@@ -881,13 +881,13 @@ bool static PruneOrphanBlocks(int nHeight) {
     if (pOrphanBlock->height <= nHeight) {
         return false;
     }
-    uint256 hash     = pOrphanBlock->hashBlock;
-    uint256 prevHash = pOrphanBlock->hashPrev;
+    uint256 hash     = pOrphanBlock->blockHash;
+    uint256 prevHash = pOrphanBlock->prevBlockHash;
     setOrphanBlock.erase(pOrphanBlock);
     multimap<uint256, COrphanBlock *>::iterator beg = mapOrphanBlocksByPrev.lower_bound(prevHash);
     multimap<uint256, COrphanBlock *>::iterator end = mapOrphanBlocksByPrev.upper_bound(prevHash);
     while (beg != end) {
-        if (beg->second->hashBlock == hash) {
+        if (beg->second->blockHash == hash) {
             mapOrphanBlocksByPrev.erase(beg);
             break;
         }
