@@ -143,7 +143,7 @@ public:
 
     static CWallet* getinstance();
 
-    std::tuple<bool,string>  CommitTransaction(CBaseTx *pTx);
+    std::tuple<bool,string>  CommitTx(CBaseTx *pTx);
 
     /** Wallet transaction added, removed or updated.
      * @note called with lock cs_wallet held.

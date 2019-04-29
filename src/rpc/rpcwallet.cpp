@@ -331,7 +331,7 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
     if (!pwalletMain->Sign(sendKeyId, tx.SignatureHash(), tx.signature))
         return std::make_tuple(false, "Sign failed");
 
-    std::tuple<bool, string> ret = pwalletMain->CommitTransaction((CBaseTx *)&tx);
+    std::tuple<bool, string> ret = pwalletMain->CommitTx((CBaseTx *)&tx);
     bool flag = std::get<0>(ret);
     string te = std::get<1>(ret);
     if (flag)
@@ -836,7 +836,7 @@ Value getassets(const Array& params, bool fHelp)
 //             continue;
 //         }
 
-//         std::tuple<bool,string> ret = pwalletMain->CommitTransaction((CBaseTx *) &tx);
+//         std::tuple<bool,string> ret = pwalletMain->CommitTx((CBaseTx *) &tx);
 //         if(!std::get<0>(ret))
 //              continue;
 //         arrayTxIds.push_back(std::get<1>(ret));
