@@ -461,8 +461,16 @@ const vector<unsigned char>& CVmRunEnv::GetTxContract() {
 }
 
 int CVmRunEnv::GetComfirmHeight() { return runTimeHeight; }
+
+int CVmRunEnv::GetBurnVersion() {
+    // the burn version belong to the Fearure Fork Version
+    return GetFeatureForkVersion(runTimeHeight); 
+}
+
 uint256 CVmRunEnv::GetCurTxHash() { return pBaseTx.get()->GetHash(); }
+
 CScriptDBViewCache* CVmRunEnv::GetScriptDB() { return pScriptDBViewCache; }
+
 CAccountViewCache* CVmRunEnv::GetCatchView() { return pAccountViewCache; }
 
 void CVmRunEnv::InsertOutAPPOperte(const vector<unsigned char>& userId,

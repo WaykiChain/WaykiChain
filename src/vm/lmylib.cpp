@@ -1222,12 +1222,12 @@ static int ExWriteDataDBFunc(lua_State *L)
     vector_unsigned_char &value = *retdata.at(1);
     if (!scriptDB->SetContractData(scriptid, key, value, operlog)) {
         LogPrint("vm", "ExWriteDataDBFunc SetContractData failed, key:%s!\n",HexStr(key));
-        lua_BurnStoreSet(L, 0, 0, BURN_VER_2_1);
+        lua_BurnStoreSet(L, 0, 0, BURN_VER_R2);
         flag = false;
     } else {
         shared_ptr<vector<CScriptDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
         (*pScriptDBOperLog.get()).push_back(operlog);
-        lua_BurnStoreSet(L, 0, value.size(), BURN_VER_2_1);
+        lua_BurnStoreSet(L, 0, value.size(), BURN_VER_R2);
     }
     return RetRstBooleanToLua(L,flag);
 }
@@ -1261,12 +1261,12 @@ static int ExDeleteDataDBFunc(lua_State *L) {
 
     if (!scriptDB->EraseAppData(scriptid, *retdata.at(0), operlog)) {
         LogPrint("vm", "ExDeleteDataDBFunc EraseAppData railed, key:%s!\n",HexStr(*retdata.at(0)));
-        lua_BurnStoreSet(L, 0, 0, BURN_VER_2_1);
+        lua_BurnStoreSet(L, 0, 0, BURN_VER_R2);
         flag = false;        
     } else {
         shared_ptr<vector<CScriptDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
         pScriptDBOperLog.get()->push_back(operlog);
-        lua_BurnStoreSet(L, 0, vValue.size(), BURN_VER_2_1);
+        lua_BurnStoreSet(L, 0, vValue.size(), BURN_VER_R2);
     }
     return RetRstBooleanToLua(L,flag);
 }
@@ -1295,9 +1295,9 @@ static int ExReadDataDBFunc(lua_State *L) {
     int len = 0;
     if (!scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(), scriptRegId, *retdata.at(0), vValue)) {
         len = 0;
-        lua_BurnStoreGet(L, 0, BURN_VER_2_1);
+        lua_BurnStoreGet(L, 0, BURN_VER_R2);
     } else {
-        lua_BurnStoreGet(L, vValue.size(), BURN_VER_2_1);
+        lua_BurnStoreGet(L, vValue.size(), BURN_VER_R2);
         len = RetRstToLua(L,vValue);
     }
     return len;
@@ -1409,11 +1409,11 @@ static int ExModifyDataDBFunc(lua_State *L)
             shared_ptr<vector<CScriptDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
             pScriptDBOperLog.get()->push_back(operlog);
             flag = true;
-            lua_BurnStoreSet(L, oldValue.size(), newValue.size(), BURN_VER_2_1);
+            lua_BurnStoreSet(L, oldValue.size(), newValue.size(), BURN_VER_R2);
         }
     }
     if (!flag) {
-        lua_BurnStoreSet(L, 0, 0, BURN_VER_2_1);
+        lua_BurnStoreSet(L, 0, 0, BURN_VER_R2);
     }
 
     return RetRstBooleanToLua(L,flag);

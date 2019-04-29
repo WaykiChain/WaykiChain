@@ -16,7 +16,6 @@
 #include "main.h"
 #include "tx/tx.h"
 #include "vmrunenv.h"
-#include <assert.h>
 
 #if 0
 typedef struct NumArray{
@@ -267,7 +266,7 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv) {
     lua_State *lua_state = lua_state_ptr.get();
 
     //TODO: should get burner version from the block height
-    if (!lua_StartBurner(lua_state, fuelLimit, BURN_VER_2_1)) {
+    if (!lua_StartBurner(lua_state, fuelLimit, pVmRunEnv->GetBurnVersion())) {
         LogPrint("vm", "CVmlua::Run lua_StartBurner() failed\n");
         return std::make_tuple(-1, string("CVmlua::Run lua_StartBurner() failed\n"));
     }

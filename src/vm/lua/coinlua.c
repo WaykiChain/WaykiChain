@@ -624,7 +624,7 @@ static int pmain (lua_State *L) {
   createargtable(L, argv, argc, script);  /* create table 'arg' */
   
   if (fuelLimit > 0) {
-    if (!lua_StartBurner(L, fuelLimit, BURN_VER_ALL)) {
+    if (!lua_StartBurner(L, fuelLimit, BURN_VER_NEWEST)) {
       l_message(argv[0], "start burner failed!");
       return 0;
     }

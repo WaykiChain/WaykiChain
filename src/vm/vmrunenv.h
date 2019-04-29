@@ -154,6 +154,8 @@ public:
     CScriptDBViewCache* GetScriptDB();
     CAccountViewCache* GetCatchView();
     int GetComfirmHeight();
+    // Get burn version for fuel burning
+    int GetBurnVersion();
     uint256 GetCurTxHash();
     bool InsertOutputData(const vector<CVmOperate>& source);
     void InsertOutAPPOperte(const vector<unsigned char>& userId, const CAppFundOperate& source);

@@ -762,7 +762,7 @@ void luaV_execute (lua_State *L) {
     ra = RA(i);
     lua_assert(base == ci->u.l.base);
     lua_assert(base <= L->top && L->top < L->stack + L->stacksize);
-    if (!lua_BurnStep(L, 1, BURN_VER_1_1)){
+    if (!lua_BurnStep(L, 1, BURN_VER_R1)){
       return ;
     }
     vmdispatch (GET_OPCODE(i)) {
@@ -1207,7 +1207,7 @@ void luaV_execute (lua_State *L) {
         i = *(ci->u.l.savedpc++);  /* go to next instruction */
         ra = RA(i);
         lua_assert(GET_OPCODE(i) == OP_TFORLOOP);
-        if (!lua_BurnStep(L, 1, BURN_VER_1_1)) {
+        if (!lua_BurnStep(L, 1, BURN_VER_R1)) {
           return ;
         }
         goto l_tforloop;

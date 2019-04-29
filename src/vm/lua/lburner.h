@@ -8,20 +8,20 @@
 
 #include "lua.h"
 
-// burn lua stack step only
-#define BURN_VER_1_1                (10001)
+/* the burn version belong to the Fearure Fork Version */
+/* burn lua stack step only */
+#define BURN_VER_R1                (10001)
 
-// burn lua base res, include instruction, memory, store
-#define BURN_VER_2_1                (20001)
+/* burn lua base resource, include instruction, memory, store */
+#define BURN_VER_R2                (20001)
 
-// enable all version on
-#define BURN_VER_ALL                INT_MAX
+/* enable all version on */
+#define BURN_VER_NEWEST            BURN_VER_R2
 
-// enable all fearure off
-#define BURN_VER_NONE               0
-
+/** burn memory unit size */
 #define BURN_MEM_UNIT_SIZE          32
 
+/** burn store unit size */
 #define BURN_STORE_UNIT_SIZE        32
 
 #define FUEL_STEP1                  1
@@ -32,7 +32,7 @@
 #define FUEL_STORE_REFUND           10000
 
 struct lua_burner_state {
-    int                 isStarted;         /** 0 is stoped, otherwise is started */
+    int                 isStarted;          /** 0 is stoped, otherwise is started */
     int                 error;              /** 0 is ok, otherwise has error */
     int                 version;            /** burner version */
     unsigned long long  fuelLimit;          /** max fuel can be burned */
