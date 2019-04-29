@@ -16,7 +16,7 @@ bool CAccountViewCache::GetAccount(const CKeyID &keyId, CAccount &account) {
             return false;
     }
 
-    if (this->GetAccount(keyId, account)) {
+    if (pBase->GetAccount(keyId, account)) {
         cacheAccounts.insert(make_pair(keyId, account));
         // cacheAccounts[keyId] = account;
         return true;
@@ -37,13 +37,13 @@ bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAcco
                 return (account.keyID != uint160()); // return true if the account exists, otherwise return false
             }
 
-            return this->GetAccount(keyId, account);  //缓存map中没有，从上级存取
+            return pBase->GetAccount(keyId, account);  //缓存map中没有，从上级存取
         } else
             return false;  //accountId已删除说明账户信息也已删除
 
     } else {
         CKeyID keyId;
-        if (this->GetKeyId(accountId, keyId)) {
+        if (pBase->GetKeyId(accountId, keyId)) {
             cacheKeyIds[accountId] = keyId;
 
             if (cacheAccounts.count(keyId) > 0) {
@@ -51,7 +51,7 @@ bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAcco
                 return (account.keyID != uint160()); // return true if the account exists, otherwise return false
             }
 
-            if (this->GetAccount(keyId, account)) {
+            if (pBase->GetAccount(keyId, account)) {
                 cacheAccounts[keyId] = account;
                 return true;
             }
@@ -97,11 +97,11 @@ bool CAccountViewCache::HaveAccount(const CKeyID &keyId) {
     if (cacheAccounts.count(keyId))
         return true;
     else
-        return this->HaveAccount(keyId);
+        return pBase->HaveAccount(keyId);
 }
 uint256 CAccountViewCache::GetBestBlock() {
     if (blockHash == uint256())
-        return this->GetBestBlock();
+        return pBase->GetBestBlock();
 
     return blockHash;
 }
@@ -109,11 +109,30 @@ bool CAccountViewCache::SetBestBlock(const uint256 &blockHashIn) {
     blockHash = blockHashIn;
     return true;
 }
+
+bool CAccountViewCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>, 
+    CKeyID> &mapKeyIds, const uint256 &blockHashIn) {
+	for (map<CKeyID, CAccount>::const_iterator it = mapAccounts.begin(); it != mapAccounts.end(); ++it) {
+		if (uint160() == it->second.keyID) {
+			pBase->EraseAccount(it->first);
+			cacheAccounts.erase(it->first);
+		} else {
+			cacheAccounts[it->first] = it->second;
+		}
+	}
+
+    for	(map<vector<unsigned char>, CKeyID>::const_iterator itKeyId = mapKeyIds.begin(); itKeyId != mapKeyIds.end(); ++itKeyId)
+    	cacheKeyIds[itKeyId->first] = itKeyId->second;
+
+    blockHash = blockHashIn;
+	return true;
+}
+
 bool CAccountViewCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>, 
                                 CKeyID> &mapKeyIds, const uint256 &blockHashIn) {
     for (map<CKeyID, CAccount>::const_iterator it = mapAccounts.begin(); it != mapAccounts.end(); ++it) {
         if (uint160() == it->second.keyID) {
-            this->EraseAccount(it->first);
+            pBase->EraseAccount(it->first);
             cacheAccounts.erase(it->first);
         } else {
             cacheAccounts[it->first] = it->second;
@@ -141,7 +160,7 @@ bool CAccountViewCache::EraseAccount(const CKeyID &keyId) {
         cacheAccounts[keyId].keyID = uint160();
     else {
         CAccount account;
-        if (this->GetAccount(keyId, account)) {
+        if (pBase->GetAccount(keyId, account)) {
             account.keyID        = uint160();
             cacheAccounts[keyId] = account;
         }
@@ -172,7 +191,7 @@ bool CAccountViewCache::GetKeyId(const vector<unsigned char> &accountId, CKeyID 
         return (keyId != uint160());
     }
 
-    if (this->GetKeyId(accountId, keyId)) {
+    if (pBase->GetKeyId(accountId, keyId)) {
         cacheKeyIds.insert(make_pair(accountId, keyId));
         //cacheKeyIds[accountId] = keyId;
         return true;
@@ -188,7 +207,7 @@ bool CAccountViewCache::EraseKeyId(const vector<unsigned char> &accountId) {
         cacheKeyIds[accountId] = uint160();
     else {
         CKeyID keyId;
-        if (this->GetKeyId(accountId, keyId)) {
+        if (pBase->GetKeyId(accountId, keyId)) {
             cacheKeyIds[accountId] = uint160();
         }
     }
@@ -324,7 +343,7 @@ bool CAccountViewCache::EraseId(const CUserID &userId) {
 }
 
 bool CAccountViewCache::Flush() {
-    bool fOk = this->BatchWrite(cacheAccounts, cacheKeyIds, blockHash);
+    bool fOk = pBase->BatchWrite(cacheAccounts, cacheKeyIds, blockHash);
     if (fOk) {
         cacheAccounts.clear();
         cacheKeyIds.clear();
