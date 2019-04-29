@@ -470,43 +470,43 @@ bool CCommonTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationSt
 }
 
 bool CCommonTx::CheckTx(CValidationState &state, CAccountViewCache &view,
-                                 CScriptDBViewCache &scriptDB) {
+                        CScriptDBViewCache &scriptDB) {
     if (memo.size() > kCommonTxMemoMaxSize)
-        return state.DoS(100, ERRORMSG("CCommonTx::CheckTx, memo's size too large"),
-                         REJECT_INVALID, "memo-size-toolarge");
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTx, memo's size too large"), REJECT_INVALID,
+                         "memo-size-toolarge");
 
     if ((srcUserId.type() != typeid(CRegID)) && (srcUserId.type() != typeid(CPubKey)))
-        return state.DoS(100, ERRORMSG("CCommonTx::CheckTx, srcaddr type error"),
-                         REJECT_INVALID, "srcaddr-type-error");
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTx, srcaddr type error"), REJECT_INVALID,
+                         "srcaddr-type-error");
 
     if ((desUserId.type() != typeid(CRegID)) && (desUserId.type() != typeid(CKeyID)))
-        return state.DoS(100, ERRORMSG("CCommonTx::CheckTx, desaddr type error"),
-                         REJECT_INVALID, "desaddr-type-error");
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTx, desaddr type error"), REJECT_INVALID,
+                         "desaddr-type-error");
 
     if ((srcUserId.type() == typeid(CPubKey)) && !srcUserId.get<CPubKey>().IsFullyValid())
-        return state.DoS(100,
-                         ERRORMSG("CCommonTx::CheckTx, public key is invalid"),
-                         REJECT_INVALID, "bad-commontx-publickey");
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTx, public key is invalid"), REJECT_INVALID,
+                         "bad-commontx-publickey");
 
     if (!CheckMoneyRange(llFees))
         return state.DoS(100, ERRORMSG("CCommonTx::CheckTx, tx fees out of money range"),
                          REJECT_INVALID, "bad-appeal-fees-toolarge");
 
-    if (!CheckMinTxFee(llFees)) {
-        return state.DoS(100,
-                         ERRORMSG("CCommonTx::CheckTx, tx fees smaller than MinTxFee"),
+    if (!CheckMinTxFee(llFees))
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTx, tx fees smaller than MinTxFee"),
                          REJECT_INVALID, "bad-tx-fees-toosmall");
-    }
 
     CAccount srcAccount;
     if (!view.GetAccount(srcUserId, srcAccount))
-        return state.DoS(100, ERRORMSG("CCommonTx::CheckTx, read account failed"),
-                         REJECT_INVALID, "bad-getaccount");
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTx, read account failed"), REJECT_INVALID,
+                         "bad-getaccount");
 
-    if (!CheckSignatureSize(signature)) {
+    if ((srcUserId.type() == typeid(CRegID)) && !srcAccount.IsRegistered())
+        return state.DoS(100, ERRORMSG("CCommonTx::CheckTx, account pubkey not registered"),
+                         REJECT_INVALID, "bad-account-unregistered");
+
+    if (!CheckSignatureSize(signature))
             return state.DoS(100, ERRORMSG("CCommonTx::CheckTx, signature size invalid"),
                              REJECT_INVALID, "bad-tx-sig-size");
-    }
 
     uint256 sighash = SignatureHash();
     CPubKey pubKey =
@@ -654,7 +654,7 @@ bool CContractTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
 
     vector<unsigned char> vScript;
     if (!scriptDB.GetScript(desUserId.get<CRegID>(), vScript))
-        return state.DoS(100, ERRORMSG("CContractTx::ExecuteTx, read account faild, RegId=%s",
+        return state.DoS(100, ERRORMSG("CContractTx::ExecuteTx, read script faild, regId=%s",
             desUserId.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
     CVmRunEnv vmRunEnv;
@@ -777,39 +777,46 @@ bool CContractTx::CheckTx(CValidationState &state, CAccountViewCache &view,
 
     if (srcRegId.type() != typeid(CRegID))
         return state.DoS(100, ERRORMSG("CContractTx::CheckTx, srcRegId must be CRegID"),
-            REJECT_INVALID, "srcaddr-type-error");
+                         REJECT_INVALID, "srcaddr-type-error");
 
-    if ((desUserId.type() != typeid(CRegID)) && (desUserId.type() != typeid(CKeyID)))
-        return state.DoS(100, ERRORMSG("CContractTx::CheckTx, desUserId must be CRegID or CKeyID"),
-            REJECT_INVALID, "desaddr-type-error");
+    if (desUserId.type() != typeid(CRegID))
+        return state.DoS(100, ERRORMSG("CContractTx::CheckTx, desUserId must be CRegID"),
+                         REJECT_INVALID, "desaddr-type-error");
 
     if (!CheckMoneyRange(llFees))
         return state.DoS(100, ERRORMSG("CContractTx::CheckTx, tx fee out of money range"),
-            REJECT_INVALID, "bad-appeal-fee-toolarge");
+                         REJECT_INVALID, "bad-appeal-fee-toolarge");
 
-    if (!CheckMinTxFee(llFees)) {
+    if (!CheckMinTxFee(llFees))
         return state.DoS(100, ERRORMSG("CContractTx::CheckTx, tx fee smaller than MinTxFee"),
-            REJECT_INVALID, "bad-tx-fee-toosmall");
-    }
+                         REJECT_INVALID, "bad-tx-fee-toosmall");
 
     CAccount srcAccount;
     if (!view.GetAccount(srcRegId.get<CRegID>(), srcAccount))
-        return state.DoS(100, ERRORMSG("CContractTx::CheckTx, read account failed, regid=%s",
-            srcRegId.get<CRegID>().ToString()), REJECT_INVALID, "bad-getaccount");
+        return state.DoS(100,
+                         ERRORMSG("CContractTx::CheckTx, read account failed, regId=%s",
+                                  srcRegId.get<CRegID>().ToString()),
+                         REJECT_INVALID, "bad-getaccount");
 
     if (!srcAccount.IsRegistered())
         return state.DoS(100, ERRORMSG("CContractTx::CheckTx, account pubkey not registered"),
-            REJECT_INVALID, "bad-account-unregistered");
+                         REJECT_INVALID, "bad-account-unregistered");
 
-    if (!CheckSignatureSize(signature)) {
+    vector<unsigned char> vScript;
+    if (!scriptDB.GetScript(desUserId.get<CRegID>(), vScript))
+        return state.DoS(100,
+                         ERRORMSG("CContractTx::CheckTx, read script faild, regId=%s",
+                                  desUserId.get<CRegID>().ToString()),
+                         REJECT_INVALID, "bad-read-script");
+
+    if (!CheckSignatureSize(signature))
         return state.DoS(100, ERRORMSG("CContractTx::CheckTx, signature size invalid"),
-            REJECT_INVALID, "bad-tx-sig-size");
-    }
+                         REJECT_INVALID, "bad-tx-sig-size");
 
     uint256 sighash = SignatureHash();
     if (!CheckSignScript(sighash, signature, srcAccount.pubKey))
         return state.DoS(100, ERRORMSG("CContractTx::CheckTx, CheckSignScript failed"),
-            REJECT_INVALID, "bad-signscript-check");
+                         REJECT_INVALID, "bad-signscript-check");
 
     return true;
 }

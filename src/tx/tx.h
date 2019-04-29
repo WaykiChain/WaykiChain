@@ -319,7 +319,7 @@ public:
 class CContractTx : public CBaseTx {
 public:
     mutable CUserID srcRegId;   // src regid
-    mutable CUserID desUserId;  // keyid or app regid
+    mutable CUserID desUserId;  // app regid
     uint64_t bcoinBalance;      // transfer amount
     vector_unsigned_char arguments;
     vector_unsigned_char signature;
