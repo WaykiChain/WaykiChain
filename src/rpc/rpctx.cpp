@@ -914,7 +914,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             "       ,...\n"
             " ]\n"
             "3.\"fee\": (numeric required) pay to miner\n"
-            "4.\"height\": (numeric optional)valid height,If not provide, use the tip block hegiht "
+            "4.\"height\": (numeric optional) valid height, If not provide, use the tip block hegiht "
             "in chainActive\n"
             "\nResult:\n"
             "\"txhash\": (string)\n"
@@ -933,13 +933,15 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
 
     string sendAddr = params[0].get_str();
     uint64_t fee    = params[2].get_uint64();  // real type
-    int nHeight     = 0;
+    int nHeight     = chainActive.Tip()->nHeight;
     if (params.size() > 3) {
         nHeight = params[3].get_int();
+        if (nHeight <= 0) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid height");
+        }
     }
     Array operVoteArray = params[1].get_array();
 
-    // get keyId
     CKeyID keyId;
     if (!GetKeyId(sendAddr, keyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid send address");
@@ -969,13 +971,9 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Send address is not in wallet");
         }
 
-        delegateTx.llFees = fee;
-        if (0 != nHeight) {
-            delegateTx.nValidHeight = nHeight;
-        } else {
-            delegateTx.nValidHeight = chainActive.Tip()->nHeight;
-        }
-        delegateTx.userId = account.regID;
+        delegateTx.llFees       = fee;
+        delegateTx.nValidHeight = nHeight;
+        delegateTx.userId       = account.regID;
 
         for (auto operVote : operVoteArray) {
             COperVoteFund operVoteFund;
@@ -2197,9 +2195,6 @@ Value saveblocktofile(const Array& params, bool fHelp) {
     if (!pIndex || !ReadBlockFromDisk(pIndex, blockInfo))
         throw runtime_error(_("Failed to read block"));
     assert(strblockhash == blockInfo.GetHash().ToString());
-//  CDataStream ds(SER_NETWORK, PROTOCOL_VERSION);
-//  ds << blockInfo.GetBlockHeader();
-//  cout << "block header:" << HexStr(ds) << endl;
     string file = params[1].get_str();
     try {
         FILE* fp = fopen(file.c_str(), "wb+");
@@ -2210,8 +2205,6 @@ Value saveblocktofile(const Array& params, bool fHelp) {
             fileout << pIndex->nHeight;
         fileout << blockInfo;
         fflush(fileout);
-        //fileout object auto free fp point, don't need double free fp point.
-//      fclose(fp);
     } catch (std::exception &e) {
         throw JSONRPCError(RPC_MISC_ERROR, "save block to file error");
     }
@@ -2255,7 +2248,7 @@ Value genregisteraccountraw(const Array& params, bool fHelp) {
             "1.fee: (numeric, required) pay to miner\n"
             "2.height: (numeric, required)\n"
             "3.publickey: (string, required)\n"
-            "4.minerpublickey: (string,optional)\n"
+            "4.minerpublickey: (string, optional)\n"
             "\nResult:\n"
             "\"txhash\": (string)\n"
             "\nExamples:\n" +
@@ -2271,39 +2264,41 @@ Value genregisteraccountraw(const Array& params, bool fHelp) {
                 "\"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" "
                 "\"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\""));
     }
-    CUserID ukey;
-    CUserID uminerkey = CNullID();
+    CUserID userId  = CNullID();
+    CUserID minerId = CNullID();
 
-    int64_t fee = AmountToRawValue(params[0]);
+    int64_t fee         = AmountToRawValue(params[0]);
     int64_t nDefaultFee = SysCfg().GetTxFee();
 
     if (fee < nDefaultFee) {
         throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                           strprintf("input fee smaller than mintxfee: %ld sawi", nDefaultFee));
+                           strprintf("Input fee smaller than mintxfee: %ld sawi", nDefaultFee));
     }
 
-    int hight = params[1].get_int();
-
-    CKeyID dummy;
-    CPubKey pubk = CPubKey(ParseHex(params[2].get_str()));
-    if (!pubk.IsCompressed() || !pubk.IsFullyValid()) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "publickey invalid");
+    int height = params[1].get_int();
+    if (height <= 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid height");
     }
-    ukey = pubk;
-    dummy = pubk.GetKeyId();
+
+    CPubKey pubKey = CPubKey(ParseHex(params[2].get_str()));
+    if (!pubKey.IsCompressed() || !pubKey.IsFullyValid()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid public key");
+    }
+    userId = pubKey;
 
     if (params.size() > 3) {
-        CPubKey minerpubk = CPubKey(ParseHex(params[3].get_str()));
-        if (!minerpubk.IsCompressed() || !minerpubk.IsFullyValid()) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "publickey invalid");
+        CPubKey minerPubKey = CPubKey(ParseHex(params[3].get_str()));
+        if (!minerPubKey.IsCompressed() || !minerPubKey.IsFullyValid()) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid public key");
         }
-        uminerkey = minerpubk;
+        minerId = minerPubKey;
     }
 
     EnsureWalletIsUnlocked();
-    std::shared_ptr<CRegisterAccountTx> tx = std::make_shared<CRegisterAccountTx>(ukey, uminerkey, fee, hight);
-    if (!pwalletMain->Sign(pubk.GetKeyId(), tx->SignatureHash(), tx->signature)) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER,  "Sign failed");
+    std::shared_ptr<CRegisterAccountTx> tx =
+        std::make_shared<CRegisterAccountTx>(userId, minerId, fee, height);
+    if (!pwalletMain->Sign(pubKey.GetKeyId(), tx->SignatureHash(), tx->signature)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
     }
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
@@ -2516,6 +2511,9 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
     uint32_t height = chainActive.Tip()->nHeight;
     if (params.size() > 3) {
         height =  params[3].get_int();
+        if (height <= 0) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid height");
+        }
     }
     tx.get()->nValidHeight = height;
 
