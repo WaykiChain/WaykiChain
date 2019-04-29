@@ -987,7 +987,7 @@ bool AppInit(boost::thread_group &threadGroup) {
     InitRPCMining();
     if (SysCfg().IsServer()) {
         if (!StartRPCServer()) {
-            return InitError(_("Failed to start rpc server. "));
+            return InitError(_("Failed to start RPC server. "));
         }
     }
 

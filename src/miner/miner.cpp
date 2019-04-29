@@ -636,7 +636,7 @@ void GenerateCoinBlock(bool fGenerate, CWallet *pwallet, int targetHeight) {
 
     // In mainnet, coin miner should generate blocks continuously regardless of target height.
     if (SysCfg().NetworkID() != MAIN_NET && targetHeight <= 0) {
-        ERRORMSG("targetHeight, fGenerate value error");
+        ERRORMSG("targetHeight <=0 (%d)", targetHeight);
         return;
     }
 
