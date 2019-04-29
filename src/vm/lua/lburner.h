@@ -27,18 +27,17 @@
 #define FUEL_STEP1                  1
 #define FUEL_MEM_ADDED              3
 #define FUEL_STORE_ADDED            20000
-//#define FUEL_STORE_RESET            5000
 #define FUEL_STORE_UNCHANGED        200
 #define FUEL_STORE_GET              200
 #define FUEL_STORE_REFUND           10000
 
-
 struct lua_burner_state {
-    int                 is_started;         /** 0 is stoped, otherwise is started */
+    int                 isStarted;         /** 0 is stoped, otherwise is started */
+    int                 error;              /** 0 is ok, otherwise has error */
     int                 version;            /** burner version */
-    unsigned long long  fuelLimit;          /** max step can be burned */
+    unsigned long long  fuelLimit;          /** max fuel can be burned */
     unsigned long long  fuel;               /** burned fuel exclude memory */
-    unsigned long long  fuelRefund;         /** burned step */
+    unsigned long long  fuelRefund;         /** the refund fuel */
     unsigned long long  allocMemSize;       /** total alloc memory size */
     /** detail */
     unsigned long long  allocMemTimes;      /** total alloc memory times */
@@ -81,11 +80,11 @@ LUA_API unsigned long long lua_GetBurnedFuel(lua_State *L);
 /** check is burned out */
 LUA_API int lua_IsBurnedOut(lua_State *L);
 
+/** get the burned fuel of memory */
+LUA_API unsigned long long lua_GetMemoryFuel(lua_State *L);
 
 #define lua_CalcFuelBySize(size, unitSize, fuelPerUnit) \
     ( unitSize == 0 ? 0 : ((size + unitSize - 1) / unitSize) * fuelPerUnit )
-
-#define lua_GetMemoryFuel(allocMemSize) lua_CalcFuelBySize(L->burnerState.allocMemSize, BURN_MEM_UNIT_SIZE, FUEL_MEM_ADDED)
 
 void lua_BurnError (lua_State *L, const char *fmt, ...);
 

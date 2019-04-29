@@ -240,7 +240,8 @@ static void createargtable (lua_State *L, char **argv, int argc, int script) {
 
 static int dochunk (lua_State *L, int status) {
   if (status == LUA_OK) status = docall(L, 0, 0);
-  return report(L, status);
+  //return report(L, status);
+  return status;
 }
 
 
@@ -265,7 +266,8 @@ static int dolibrary (lua_State *L, const char *name) {
   status = docall(L, 1, 1);  /* call 'require(name)' */
   if (status == LUA_OK)
     lua_setglobal(L, name);  /* global[name] = require return */
-  return report(L, status);
+  //return report(L, status);
+  return status;
 }
 
 
@@ -408,7 +410,7 @@ static void l_print (lua_State *L) {
 ** Do the REPL: repeatedly read (load) a line, evaluate (call) it, and
 ** print any results.
 */
-static void doREPL (lua_State *L) {
+static int doREPL (lua_State *L) {
   int status;
   const char *oldprogname = progname;
   progname = NULL;  /* no 'progname' on errors in interactive mode */
@@ -421,6 +423,7 @@ static void doREPL (lua_State *L) {
   lua_settop(L, 0);  /* clear stack */
   lua_writeline();
   progname = oldprogname;
+  return status;
 }
 
 
@@ -450,7 +453,7 @@ static int handle_script (lua_State *L, char **argv) {
     int n = pushargs(L);  /* push arguments to script */
     status = docall(L, n, LUA_MULTRET);
   }
-  return report(L, status);
+  return status;
 }
 
 
@@ -530,21 +533,21 @@ static int collectargs (char **argv, int *first, long long *fuelLimit) {
 */
 static int runargs (lua_State *L, char **argv, int n) {
   int i;
+  int status = 0;
   for (i = 1; i < n; i++) {
     int option = argv[i][1];
     lua_assert(argv[i][0] == '-');  /* already checked */
     if (option == 'e' || option == 'l') {
-      int status;
       const char *extra = argv[i] + 2;  /* both options need an argument */
       if (*extra == '\0') extra = argv[++i];
       lua_assert(extra != NULL);
       status = (option == 'e')
                ? dostring(L, extra, "=(command line)")
                : dolibrary(L, extra);
-      if (status != LUA_OK) return 0;
+      //if (status != LUA_OK) return 0;
     }
   }
-  return 1;
+  return status;
 }
 
 
@@ -566,9 +569,11 @@ static void report_burner(lua_State *L, clock_t start) {
     lua_burner_state* bs = lua_GetBurnerState(L);
     printf("\n---------------------\n");
     printf("burner reports:\n"\
+      "error:\t\t%d\n"\
       "fuelLimit:\t%llu\n"\
       "burnedFuel:\t%llu\n"\
       "fuel:\t\t%llu\n"\
+      "memoryFuel:\t%llu\n"\
       "fuelRefund:\t%llu\n"\
       "step:\t\t%llu\n"\
       "allocMemSize:\t%llu\n"\
@@ -576,9 +581,11 @@ static void report_burner(lua_State *L, clock_t start) {
       "freeMemSize:\t%llu\n"\
       "freeMemTimes:\t%llu\n"\
       "runTime:\t%llu us\n",
+      bs->error,
       bs->fuelLimit,
       lua_GetBurnedFuel(L),
       bs->fuel,
+      lua_GetMemoryFuel(L),
       bs->fuelRefund,
       bs->step,
       bs->allocMemSize,
@@ -622,24 +629,33 @@ static int pmain (lua_State *L) {
       return 0;
     }
   }
-
+  int status = 0;
   if (!(args & has_E)) {  /* no option '-E'? */
-    if (handle_luainit(L) != LUA_OK)  /* run LUA_INIT */
-      return 0;  /* error running LUA_INIT */
+    status = handle_luainit(L); 
+
   }
-  if (!runargs(L, argv, script))  /* execute arguments -e and -l */
-    return 0;  /* something failed */
-  if (script < argc &&  /* execute main script (if there is one) */
-      handle_script(L, argv + script) != LUA_OK)
-    return 0;
-  if (args & has_i)  /* -i option? */
-    doREPL(L);  /* do read-eval-print loop */
-  else if (script == argc && !(args & (has_e | has_v))) {  /* no arguments? */
+  if (status == LUA_OK) {
+    status = runargs(L, argv, script);
+  }
+  
+  if (status != LUA_OK && script < argc) {  /* execute main script (if there is one) */
+    status = handle_script(L, argv + script);
+  }
+
+  if (status != LUA_OK && args & has_i)  /* -i option? */
+    status = doREPL(L);  /* do read-eval-print loop */
+  else if (status != LUA_OK && script == argc && !(args & (has_e | has_v))) {  /* no arguments? */
     if (lua_stdin_is_tty()) {  /* running in interactive mode? */
       print_version();
-      doREPL(L);  /* do read-eval-print loop */
+      status = doREPL(L);  /* do read-eval-print loop */
     }
-    else dofile(L, NULL);  /* executes stdin as a file */
+    else if(status != LUA_OK) {
+      status = dofile(L, NULL);  /* executes stdin as a file */
+    }
+  }
+
+  if (status != LUA_OK) {
+    report(L, status);
   }
 
   if (fuelLimit > 0) {
@@ -647,7 +663,7 @@ static int pmain (lua_State *L) {
   }
 
   lua_pushboolean(L, 1);  /* signal no errors */
-  return 1;
+  return status;
 }
 
 int main (int argc, char **argv) {
