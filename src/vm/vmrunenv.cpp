@@ -100,20 +100,20 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
     if (tx->llFees < CBaseTx::nMinTxFee)
         return std::make_tuple(false, 0, string("CVmRunEnv: Contract Tx fee too small\n"));
 
-    uint64_t maxstep = ((tx->llFees - CBaseTx::nMinTxFee) / nBurnFactor) * 100;
-    if (maxstep > MAX_BLOCK_RUN_STEP) {
-        maxstep = MAX_BLOCK_RUN_STEP;
+    uint64_t fuelLimit = ((tx->llFees - CBaseTx::nMinTxFee) / nBurnFactor) * 100;
+    if (fuelLimit > MAX_BLOCK_RUN_STEP) {
+        fuelLimit = MAX_BLOCK_RUN_STEP;
     }
 
-    LogPrint("vm", "tx hash:%s fees=%lld fuelrate=%lld maxstep:%d\n", Tx->GetHash().GetHex(),
-             tx->llFees, nBurnFactor, maxstep);
+    LogPrint("vm", "tx hash:%s fees=%lld fuelrate=%lld fuelLimit:%d\n", Tx->GetHash().GetHex(),
+             tx->llFees, nBurnFactor, fuelLimit);
     if (!Initialize(Tx, view, nHeight)) {
         return std::make_tuple(false, 0, string("VmScript inital Failed\n"));
     }
 
     int64_t step = 0;
 
-    tuple<uint64_t, string> ret = pLua.get()->Run(maxstep, this);
+    tuple<uint64_t, string> ret = pLua.get()->Run(fuelLimit, this);
     LogPrint("vm", "%s\n", "CVmScriptRun::ExecuteContract() LUA");
     step = std::get<0>(ret);
     if (0 == step) {
@@ -461,8 +461,16 @@ const vector<unsigned char>& CVmRunEnv::GetTxContract() {
 }
 
 int CVmRunEnv::GetComfirmHeight() { return runTimeHeight; }
+
+int CVmRunEnv::GetBurnVersion() {
+    // the burn version belong to the Fearure Fork Version
+    return GetFeatureForkVersion(runTimeHeight); 
+}
+
 uint256 CVmRunEnv::GetCurTxHash() { return pBaseTx.get()->GetHash(); }
+
 CScriptDBViewCache* CVmRunEnv::GetScriptDB() { return pScriptDBViewCache; }
+
 CAccountViewCache* CVmRunEnv::GetCatchView() { return pAccountViewCache; }
 
 void CVmRunEnv::InsertOutAPPOperte(const vector<unsigned char>& userId,

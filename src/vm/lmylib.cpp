@@ -1218,12 +1218,16 @@ static int ExWriteDataDBFunc(lua_State *L)
     bool flag = true;
     CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
     CScriptDBOperLog operlog;
-//  int64_t step = (*retdata.at(1)).size() -1;
-    if (!scriptDB->SetContractData(scriptid, *retdata.at(0), *retdata.at(1), operlog)) {
+    vector_unsigned_char &key = *retdata.at(0);
+    vector_unsigned_char &value = *retdata.at(1);
+    if (!scriptDB->SetContractData(scriptid, key, value, operlog)) {
+        LogPrint("vm", "ExWriteDataDBFunc SetContractData failed, key:%s!\n",HexStr(key));
+        lua_BurnStoreSet(L, 0, 0, BURN_VER_R2);
         flag = false;
     } else {
         shared_ptr<vector<CScriptDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
         (*pScriptDBOperLog.get()).push_back(operlog);
+        lua_BurnStoreSet(L, 0, value.size(), BURN_VER_R2);
     }
     return RetRstBooleanToLua(L,flag);
 }
@@ -1252,17 +1256,17 @@ static int ExDeleteDataDBFunc(lua_State *L) {
 
     bool flag = true;
     CScriptDBOperLog operlog;
-    int64_t nstep = 0;
-    vector<unsigned char> vValue;
-    if(scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(),scriptid, *retdata.at(0), vValue)){
-        nstep = nstep - (int64_t)(vValue.size()+1);//删除数据奖励step
-    }
+    vector<unsigned char> vValue;    
+    scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(),scriptid, *retdata.at(0), vValue);
+
     if (!scriptDB->EraseAppData(scriptid, *retdata.at(0), operlog)) {
-        LogPrint("vm", "ExDeleteDataDBFunc error key:%s!\n",HexStr(*retdata.at(0)));
-        flag = false;
+        LogPrint("vm", "ExDeleteDataDBFunc EraseAppData railed, key:%s!\n",HexStr(*retdata.at(0)));
+        lua_BurnStoreSet(L, 0, 0, BURN_VER_R2);
+        flag = false;        
     } else {
         shared_ptr<vector<CScriptDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
         pScriptDBOperLog.get()->push_back(operlog);
+        lua_BurnStoreSet(L, 0, vValue.size(), BURN_VER_R2);
     }
     return RetRstBooleanToLua(L,flag);
 }
@@ -1291,7 +1295,9 @@ static int ExReadDataDBFunc(lua_State *L) {
     int len = 0;
     if (!scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(), scriptRegId, *retdata.at(0), vValue)) {
         len = 0;
+        lua_BurnStoreGet(L, 0, BURN_VER_R2);
     } else {
+        lua_BurnStoreGet(L, vValue.size(), BURN_VER_R2);
         len = RetRstToLua(L,vValue);
     }
     return len;
@@ -1395,16 +1401,21 @@ static int ExModifyDataDBFunc(lua_State *L)
     bool flag = false;
     CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
     CScriptDBOperLog operlog;
-    vector_unsigned_char vTemp;
-    if (scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(),scriptid, *retdata.at(0), vTemp)) {
-        if (scriptDB->SetContractData(scriptid, *retdata.at(0), *retdata.at(1).get(), operlog)) {
+    vector_unsigned_char oldValue;
+    vector_unsigned_char &key = *retdata.at(0);
+    vector_unsigned_char &newValue = *retdata.at(1);
+    if (scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(),scriptid, key, oldValue)) {
+        if (scriptDB->SetContractData(scriptid, key, newValue, operlog)) {
             shared_ptr<vector<CScriptDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
             pScriptDBOperLog.get()->push_back(operlog);
             flag = true;
+            lua_BurnStoreSet(L, oldValue.size(), newValue.size(), BURN_VER_R2);
         }
     }
+    if (!flag) {
+        lua_BurnStoreSet(L, 0, 0, BURN_VER_R2);
+    }
 
-//  step =(((int64_t)(*retdata.at(1)).size())- (int64_t)(vTemp.size()) -1);
     return RetRstBooleanToLua(L,flag);
 }
 

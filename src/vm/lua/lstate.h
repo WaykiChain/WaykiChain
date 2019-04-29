@@ -8,6 +8,7 @@
 #define lstate_h
 
 #include "lua.h"
+#include "lburner.h"
 
 #include "lobject.h"
 #include "ltm.h"
@@ -171,7 +172,7 @@ struct lua_State {
   unsigned short nCcalls;  /* number of nested C calls */
   lu_byte hookmask;
   lu_byte allowhook;
-  lua_burner_state burningState; /* burner state */
+  lua_burner_state burnerState; /* burner state */
 };
 
 

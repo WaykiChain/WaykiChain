@@ -16,7 +16,6 @@
 #include "main.h"
 #include "tx/tx.h"
 #include "vmrunenv.h"
-#include <assert.h>
 
 #if 0
 typedef struct NumArray{
@@ -208,10 +207,51 @@ tuple<bool, string> CVmlua::CheckScriptSyntax(const char *filePath) {
     return std::make_tuple(true, string("OK"));
 }
 
-tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
+static void ReportBurnState(lua_State *L, const CRegID &redId) {
 
-    if (maxstep == 0) {
-        return std::make_tuple(-1, string("maxstep == 0\n"));
+    lua_burner_state *burnerState = lua_GetBurnerState(L);
+    LogPrint("vm", "contract run info: scriptRegID=%s,"
+             " version=%d,"
+             " fuelLimit=%lld,"
+             " burnedFuel=%lld,"
+             " step=%lld,"
+             " fuelRefund=%lld,"
+             " totalAllocSize=%llu,"
+             " totalAllocCount=%llu,"
+             " totalFreeSize=%llu,"
+             " totalFreeCount=%llu\n",
+             redId.ToString().c_str(),
+             burnerState->version,
+             burnerState->fuelLimit,
+             lua_GetBurnedFuel(L),
+             burnerState->step,
+             burnerState->fuelRefund,
+             burnerState->allocMemSize,
+             burnerState->allocMemTimes,
+             burnerState->freeMemSize,
+             burnerState->freeMemTimes
+    );
+}
+
+static std::string GetLuaError(lua_State *L, int status, std::string prefix) {
+    std::string ret;
+    if (status != LUA_OK) {
+        const char *errStr = lua_tostring(L, -1);
+        if (errStr == NULL) {
+            errStr = "unknown";
+        }
+        ret = prefix + ": " + errStr;
+        if (status == LUA_ERR_BURNEDOUT) {
+            ret += ". Need more fuel to burn";
+        }
+    }
+    return ret;
+}
+
+tuple<uint64_t, string> CVmlua::Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv) {
+
+    if (fuelLimit == 0) {
+        return std::make_tuple(-1, string("fuelLimit == 0\n"));
     }
     if (NULL == pVmRunEnv) {
         return std::make_tuple(-1, string("pVmRunEnv == NULL\n"));
@@ -225,9 +265,10 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
     }
     lua_State *lua_state = lua_state_ptr.get();
 
-    if (!lua_startburner(lua_state, maxstep)) {
-        LogPrint("vm", "CVmlua::Run lua_startburner() failed\n");
-        return std::make_tuple(-1, string("CVmlua::Run lua_startburner() failed\n"));
+    //TODO: should get burner version from the block height
+    if (!lua_StartBurner(lua_state, fuelLimit, pVmRunEnv->GetBurnVersion())) {
+        LogPrint("vm", "CVmlua::Run lua_StartBurner() failed\n");
+        return std::make_tuple(-1, string("CVmlua::Run lua_StartBurner() failed\n"));
     }
 
     //打开需要的库
@@ -261,11 +302,20 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
     LogPrint("vm", "pVmRunEnv=%p\n", pVmRunEnv);
 
     // 5. Load the contract script
-    if (luaL_loadbuffer(lua_state, (char *)contractScript, strlen((char *)contractScript), "line") ||
-        lua_pcallk(lua_state, 0, 0, 0, 0, NULL)) {
-        const char *pError = lua_tostring(lua_state, -1);
-        string strError    = strprintf("luaL_loadbuffer failed: %s\n", pError ? pError : "unknown");
+    std::string strError;
+    int luaStatus = luaL_loadbuffer(lua_state, (char *)contractScript, strlen((char *)contractScript), "line");
+    if (luaStatus == LUA_OK) {
+        luaStatus = lua_pcallk(lua_state, 0, 0, 0, 0, NULL);
+        if (luaStatus != LUA_OK) {
+            strError = GetLuaError(lua_state, luaStatus, "lua_pcallk failed");
+        }
+    } else {
+        strError = GetLuaError(lua_state, luaStatus, "luaL_loadbuffer failed");
+    }
+
+    if (luaStatus != LUA_OK) {
         LogPrint("vm", "%s", strError);
+        ReportBurnState(lua_state, pVmRunEnv->GetScriptRegID());
         return std::make_tuple(-1, strError);
     }
 
@@ -282,27 +332,11 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t maxstep, CVmRunEnv *pVmRunEnv) {
     }
     lua_pop(lua_state, 1);
 
-    uint64_t burnedStep = lua_getburnedstep(lua_state);
-    lua_burner_state *burnerState = lua_getburnerstate(lua_state);
-    LogPrint("vm", "contract run info: scriptRegID=%s,"
-             " burnedStep=%lld,"
-             " maxStep=%lld,"
-             " totalAllocSize=%llu,"
-             " totalAllocCount=%llu,"
-             " totalFreeSize=%llu,"
-             " totalFreeCount=%llu\n",
-             pVmRunEnv->GetScriptRegID().ToString().c_str(),
-             burnedStep,
-             burnerState->maxStep,
-             burnerState->allocMemSize,
-             burnerState->allocMemTimes,
-             burnerState->freeMemSize,
-             burnerState->freeMemTimes
-    );
-
-    if (burnedStep > burnerState->maxStep) {
-        return std::make_tuple(-1, string("execute tx contract run step exceeds the max step limit\n"));
+    uint64_t burnedFuel = lua_GetBurnedFuel(lua_state);
+    ReportBurnState(lua_state, pVmRunEnv->GetScriptRegID());
+    if (burnedFuel > fuelLimit) {
+        return std::make_tuple(-1, string("CVmlua::Run burned-out\n"));
     }
 
-    return std::make_tuple(burnedStep, string("script runs ok"));
+    return std::make_tuple(burnedFuel, string("script runs ok"));
 }

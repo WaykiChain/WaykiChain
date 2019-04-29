@@ -327,7 +327,7 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   g->gcstepmul = LUAI_GCMUL;
   for (i=0; i < LUA_NUMTAGS; i++) g->mt[i] = NULL;
   
-  memset(&L->burningState, 0, sizeof(lua_burner_state));
+  memset(&L->burnerState, 0, sizeof(lua_burner_state));
 
   if (luaD_rawrunprotected(L, f_luaopen, NULL) != LUA_OK) {
     /* memory allocation error: free partial state */
