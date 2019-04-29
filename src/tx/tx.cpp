@@ -533,10 +533,10 @@ bool CContractTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScrip
     CVmRunEnv vmRunEnv;
     std::shared_ptr<CBaseTx> pTx = GetNewInstance();
     uint64_t fuelRate = GetFuelRate(scriptDB);
-    CScriptDBViewCache scriptDBView(scriptDB, true);
+    CScriptDBViewCache scriptDBView(scriptDB);
 
     if (!pTxCacheTip->HaveTx(GetHash())) {
-        CAccountViewCache accountView(view, true);
+        CAccountViewCache accountView(view);
         tuple<bool, uint64_t, string> ret = vmRunEnv.ExecuteContract(pTx, accountView, scriptDBView,
             chainActive.Height() + 1, fuelRate, nRunStep);
 
