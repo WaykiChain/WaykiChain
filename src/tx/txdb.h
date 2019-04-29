@@ -64,13 +64,15 @@ class CAccountViewDB : public CAccountView {
     CAccountViewDB(const CAccountViewDB &);
     void operator=(const CAccountViewDB &);
 
-   public:
+public:
     bool GetAccount(const CKeyID &keyId, CAccount &secureAccount);
     bool GetAccount(const vector<unsigned char> &accountId, CAccount &secureAccount);
     bool GetAccount(const CUserID &userId, CAccount &account);
 
-    bool SetAccount(const CKeyID &keyId, const CAccount &secureAccount);
-    bool SetAccount(const vector<unsigned char> &accountId, const CAccount &secureAccount);
+    virtual bool SetAccount(const CKeyID &keyId, const CAccount &secureAccount);
+    // virtual bool SetAccount(const CUserID &userId, const CAccount &account) {};
+    virtual bool SetAccount(const vector<unsigned char> &accountId, const CAccount &secureAccount);
+    
     bool HaveAccount(const CKeyID &keyId);
     uint256 GetBestBlock();
     bool SetBestBlock(const uint256 &hashBlock);

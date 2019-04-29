@@ -21,7 +21,7 @@ public:
     virtual bool GetAccount(const vector<unsigned char> &accountId, CAccount &account) = 0;
     virtual bool SetAccount(const CKeyID &keyId, const CAccount &account) = 0;
     virtual bool SetAccount(const vector<unsigned char> &accountId, const CAccount &account) = 0;
-    virtual bool SetAccount(const CUserID &userId, const CAccount &account);
+    // virtual bool SetAccount(const CUserID &userId, const CAccount &account) = 0;
     virtual bool HaveAccount(const CKeyID &keyId) = 0;
     virtual uint256 GetBestBlock() = 0;
     virtual bool SetBestBlock(const uint256 &blockHash) = 0;
@@ -37,7 +37,7 @@ public:
     virtual std::tuple<uint64_t, uint64_t> TraverseAccount() = 0;
     virtual Object ToJsonObj(char prefix) = 0;
 
-    virtual ~CAccountView() = 0;
+    virtual ~CAccountView() {};
 };
 
 class CAccountViewCache : public CAccountView {
@@ -75,6 +75,7 @@ public:
 
 public:
     CAccountViewCache(CAccountView &view): pBase(&view), blockHash(uint256()) {}
+    ~CAccountViewCache() {}
 
     bool GetUserId(const string &addr, CUserID &userId);
     bool GetRegId(const CKeyID &keyId, CRegID &regId);
