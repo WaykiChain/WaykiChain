@@ -115,7 +115,7 @@ public:
             te += strprintf("key:%s\n",tep1.first);
             vector<string> tep = tep1.second;
             for (auto const & tep3:tep) {
-                te += strprintf("value :%s\n",tep3.c_str());
+                te += strprintf("value:%s\n",tep3.c_str());
             }
         }
         te += strprintf("fDebugAll:%s\n",           fDebugAll);

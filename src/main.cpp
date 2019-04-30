@@ -58,8 +58,8 @@ CChain chainActive;
 CChain chainMostWork;
 int nSyncTipHeight(0);  //同步时 ,chainActive.Tip()->nHeight
 
-map<uint256, std::tuple<std::shared_ptr<CAccountViewCache>, 
-                        std::shared_ptr<CTransactionDBCache>, 
+map<uint256, std::tuple<std::shared_ptr<CAccountViewCache>,
+                        std::shared_ptr<CTransactionDBCache>,
                         std::shared_ptr<CScriptDBViewCache> > > mapForkCache;
 
 CSignatureCache signatureCache;
@@ -696,8 +696,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
         // Store transaction in memory
         if (!pool.AddUnchecked(hash, entry, state))
-            return ERRORMSG("AcceptToMemoryPool() : AddUnchecked failed hash:%s\n",
-                            hash.ToString());
+            return ERRORMSG("AcceptToMemoryPool() : AddUnchecked failed hash:%s", hash.ToString());
     }
 
     return true;
@@ -2026,7 +2025,7 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
 
 bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValidationState &state)
 {
-    if (pPreBlockIndex->GetBlockHash() == chainActive.Tip()->GetBlockHash()) 
+    if (pPreBlockIndex->GetBlockHash() == chainActive.Tip()->GetBlockHash())
         return true; //no fork
 
     std::shared_ptr<CAccountViewCache>      pForkAcctViewCache;
@@ -2061,7 +2060,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
                 vPreBlocks.push_back(block);  //将支链的block保存起来
             }
-        }    
+        }
 
         pPreBlockIndex = pPreBlockIndex->pprev;
         preBlockHash = pPreBlockIndex->GetBlockHash();
@@ -2073,7 +2072,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
             return state.DoS(10, ERRORMSG("ProcessForkedChain() : prev block not found"), 0, "bad-prevblk");
     }  //如果进来的preBlockHash不为tip的hash, 找到主链中分叉处
 
-    if (mapForkCache.count(preBlockHash)) {        
+    if (mapForkCache.count(preBlockHash)) {
         pAcctViewCache = std::get<0>(mapForkCache[ preBlockHash ]);
         pTxCache       = std::get<1>(mapForkCache[ preBlockHash ]);
         pScriptDBCache = std::get<2>(mapForkCache[ preBlockHash ]);
@@ -2107,7 +2106,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         LogPrint("INFO", "add pAcctViewCache:%x \n", pAcctViewCache.get());
         LogPrint("INFO", "view best block hash:%s \n", pAcctViewCache->GetBestBlock().GetHex());
     }
-    
+
     if (bForkChainTipFound) {
         pForkAcctViewCache = std::get<0>(mapForkCache[preBlockHash]);
         pForkTxCache       = std::get<1>(mapForkCache[preBlockHash]);
@@ -2124,7 +2123,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
     LogPrint("INFO", "pForkAcctView:%x\n", pForkAcctViewCache.get());
-    LogPrint("INFO", "view best block hash:%s height:%d\n", pForkAcctViewCache->GetBestBlock().GetHex(), 
+    LogPrint("INFO", "view best block hash:%s height:%d\n", pForkAcctViewCache->GetBestBlock().GetHex(),
             mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight);
 
     vector<CBlock>::reverse_iterator rIter = vPreBlocks.rbegin();
@@ -2174,7 +2173,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
             mapForkCache.erase(preBlockHash);
             LogPrint("INFO", "delete mapForkCache Key:%s\n", preBlockHash.GetHex());
         }
-        std::tuple<std::shared_ptr<CAccountViewCache>, std::shared_ptr<CTransactionDBCache>, std::shared_ptr<CScriptDBViewCache> > cache = 
+        std::tuple<std::shared_ptr<CAccountViewCache>, std::shared_ptr<CTransactionDBCache>, std::shared_ptr<CScriptDBViewCache> > cache =
             std::make_tuple(pForkAcctViewCache, pForkTxCache, pForkScriptDBCache);
 
         mapForkCache[iterBlock->GetHash()] = cache;
@@ -2193,8 +2192,8 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
         return state.Invalid(ERRORMSG("CheckBlock() : block version must be set 3"),
             REJECT_INVALID, "block-version-error");
 
-    // Check timestamp 12minutes limits
-    if (block.GetBlockTime() > GetAdjustedTime() + 12 * 60)
+    // Check timestamp 12 seconds limits
+    if (block.GetBlockTime() > GetAdjustedTime() + 12)
         return state.Invalid(ERRORMSG("CheckBlock() : block timestamp too far in the future"),
                              REJECT_INVALID, "time-too-new");
 
@@ -2229,7 +2228,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
 
     // Check merkle root
     if (fCheckMerkleRoot && block.GetMerkleRootHash() != block.vMerkleTree.back())
-        return state.DoS(100, ERRORMSG("CheckBlock() : merkleRootHash mismatch, block.merkleRootHash=%s, block.vMerkleTree.back()=%s", 
+        return state.DoS(100, ERRORMSG("CheckBlock() : merkleRootHash mismatch, block.merkleRootHash=%s, block.vMerkleTree.back()=%s",
                         block.GetMerkleRootHash().ToString(), block.vMerkleTree.back().ToString()), REJECT_INVALID, "bad-txnmrklroot", true);
 
     //check nonce
@@ -2461,7 +2460,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
     // Check for duplicate
     uint256 blockHash = pblock->GetHash();
     if (mapBlockIndex.count(blockHash))
-        return state.Invalid(ERRORMSG("ProcessBlock() : block exists: %d %s", 
+        return state.Invalid(ERRORMSG("ProcessBlock() : block exists: %d %s",
                             mapBlockIndex[blockHash]->nHeight, blockHash.ToString()), 0, "duplicate");
 
     if (mapOrphanBlocks.count(blockHash))
@@ -2472,7 +2471,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
     CScriptDBViewCache scriptDBCache(*pScriptDBTip);
     // Preliminary checks
     if (!CheckBlock(*pblock, state, view, scriptDBCache, false)) {
-        LogPrint("INFO", "CheckBlock() id: %d elapse time:%lld ms\n", 
+        LogPrint("INFO", "CheckBlock() id: %d elapse time:%lld ms\n",
                 chainActive.Height(), GetTimeMillis() - llBeginCheckBlockTime);
         return ERRORMSG("ProcessBlock() :block hash:%s CheckBlock FAILED", pblock->GetHash().GetHex());
     }
@@ -2504,7 +2503,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
 
             // Ask this guy to fill in what we're missing
             LogPrint("net", "receive an orphan block height=%d hash=%s, %s it, and lead to getblocks, current height=%d, current orphan blocks=%d\n",
-                    pblock->GetHeight(), pblock->GetHash().GetHex(), success ? "keep" : "abandon", 
+                    pblock->GetHeight(), pblock->GetHash().GetHex(), success ? "keep" : "abandon",
                     chainActive.Tip()->nHeight, mapOrphanBlocksByPrev.size());
             PushGetBlocksOnCondition(pfrom, chainActive.Tip(), GetOrphanRoot(blockHash));
         }
