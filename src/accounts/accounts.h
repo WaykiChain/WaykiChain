@@ -131,8 +131,8 @@ public:
         return !regID.IsEmpty();
     };
 
-    uint64_t GetBCoinBalance();
-    uint64_t GetTotalBalance();
+    uint64_t GetFreeBCoins();
+    uint64_t GetTotalBcoins();
     uint64_t GetFrozenBalance();
     uint64_t GetAccountProfit(uint64_t prevBlockHeight);
     string ToString(bool isAddress = false) const;

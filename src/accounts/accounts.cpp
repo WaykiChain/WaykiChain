@@ -76,7 +76,7 @@ uint64_t CAccount::GetAccountProfit(uint64_t nCurHeight) {
     return llProfits;
 }
 
-uint64_t CAccount::GetBCoinBalance() {
+uint64_t CAccount::GetFreeBCoins() {
     return bcoinBalance;
 }
 
@@ -90,7 +90,7 @@ uint64_t CAccount::GetFrozenBalance() {
     return votes;
 }
 
-uint64_t CAccount::GetTotalBalance() {
+uint64_t CAccount::GetTotalBcoins() {
     uint64_t frozenVotes = GetFrozenBalance();
     return ( frozenVotes + bcoinBalance );
 }

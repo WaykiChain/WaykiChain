@@ -93,7 +93,7 @@ public:
             }
     )
     virtual ~CWallet(){};
-    int64_t GetBCoinBalance(bool IsConfirmed=true)const;
+    int64_t GetFreeBCoins(bool IsConfirmed=true)const;
 
     bool Sign(const CKeyID &keyID,const uint256 &hash,vector<unsigned char> &signature,bool IsMiner=false) const;
     //! Adds an encrypted key to the store, and saves it to disk.
