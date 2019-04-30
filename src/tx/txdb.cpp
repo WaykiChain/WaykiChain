@@ -295,7 +295,11 @@ std::tuple<uint64_t, uint64_t> CAccountViewDB::TraverseAccount() {
     return std::make_tuple(totalCoins, totalRegIds);
 }
 
-CTransactionDB::CTransactionDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {}
+// CTransactionDB::CTransactionDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {}
+
+bool CTransactionDB::IsContainBlock(const CBlock &block) {
+    return false;
+}
 
 bool CTransactionDB::BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash) {
     // CLevelDBBatch batch;
@@ -311,11 +315,11 @@ bool CTransactionDB::BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashB
     return true;
 }
 
-CScriptDB::CScriptDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {
-}
+CScriptDB::CScriptDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe) : 
+    db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {}
 
-CScriptDB::CScriptDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "blocks" / "script", nCacheSize, fMemory, fWipe) {
-}
+CScriptDB::CScriptDB(size_t nCacheSize, bool fMemory, bool fWipe) : 
+    db(GetDataDir() / "blocks" / "script", nCacheSize, fMemory, fWipe) {}
 
 bool CScriptDB::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) {
     return db.Read(vKey, vValue);
@@ -345,7 +349,7 @@ bool CScriptDB::HaveData(const vector<unsigned char> &vKey) {
     return db.Exists(vKey);
 }
 
-bool CScriptDB::GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) {
+bool CScriptDB::GetScript(const int nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) {
     assert(nIndex >= 0 && nIndex <= 1);
     leveldb::Iterator *pcursor = db.NewIterator();
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);

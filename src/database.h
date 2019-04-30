@@ -93,49 +93,31 @@ public:
 
 class CScriptDBView {
    public:
-    virtual bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue);
-    virtual bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
-    virtual bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb);
-    virtual bool EraseKey(const vector<unsigned char> &vKey);
-    virtual bool HaveData(const vector<unsigned char> &vKey);
-    virtual bool GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);
+    virtual bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) = 0;
+    virtual bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) = 0;
+    virtual bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb) = 0;
+    virtual bool EraseKey(const vector<unsigned char> &vKey) = 0;
+    virtual bool HaveData(const vector<unsigned char> &vKey) = 0;
+    virtual bool GetScript(const int nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) = 0;
     virtual bool GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
-                                 vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
-    virtual Object ToJsonObj(string prefix);
-    virtual bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    virtual bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB);
-    virtual bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CScriptDBOperLog &operLog);
-    virtual bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput);
-    virtual bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash);
-    virtual bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CScriptDBOperLog &operLog);
-    virtual bool GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc);
+                                vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) = 0;
+    virtual Object ToJsonObj(string prefix) { return Object(); } //FIXME: useless prefix
+
+    // virtual bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) = 0;
+    // virtual bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB) = 0;
+    // virtual bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CScriptDBOperLog &operLog) = 0;
+    // virtual bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput) = 0;
+    virtual bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash) = 0;
+    // virtual bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CScriptDBOperLog &operLog) = 0;
+    virtual bool GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) = 0;
+
     virtual ~CScriptDBView(){};
 };
 
-class CScriptDBViewBacked : public CScriptDBView {
-   protected:
+class CScriptDBViewCache : public CScriptDBView {
+protected:
     CScriptDBView *pBase;
 
-   public:
-    CScriptDBViewBacked(CScriptDBView &dataBaseView);
-    bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue);
-    bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
-    bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb);
-    bool EraseKey(const vector<unsigned char> &vKey);
-    bool HaveData(const vector<unsigned char> &vKey);
-    bool GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);
-    bool GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
-                         vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
-    bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB);
-    bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CScriptDBOperLog &operLog);
-    bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput);
-    bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash);
-    bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CScriptDBOperLog &operLog);
-    bool GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc);
-};
-
-class CScriptDBViewCache : public CScriptDBViewBacked {
 public:
     map<vector<unsigned char>, vector<unsigned char> > mapContractDb;
     /*取脚本 时 第一个vector 是scriptKey = "def" + "scriptid";
@@ -146,13 +128,13 @@ public:
       取交易关联账户时第一个vector是scriptKey ="tx" + "txHash"
     */
 public:
-    CScriptDBViewCache(CScriptDBView &base);
+    CScriptDBViewCache(CScriptDBView &pBaseIn): pBase(&pBaseIn) { mapContractDb.clear(); };
 
     bool GetScript(const CRegID &scriptId, vector<unsigned char> &vValue);
-    bool GetScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vKey, CAppUserAccount &appAccOut);
+    bool GetScript(const int nIndex, CRegID &scriptId, vector<unsigned char> &vValue);
+    bool GetScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vKey, CAppUserAccount &appAccOut);    
     bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CScriptDBOperLog &operlog);
     bool EraseScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vKey);
-    bool GetScript(const int nIndex, CRegID &scriptId, vector<unsigned char> &vValue);
     bool SetScript(const CRegID &scriptId, const vector<unsigned char> &vValue);
     bool HaveScript(const CRegID &scriptId);
     bool EraseScript(const CRegID &scriptId);
@@ -189,7 +171,7 @@ public:
 	CScriptDBView * GetBaseScriptDB() { return pBase; }
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
     bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB);
-    void SetBaseView(CScriptDBView *pBase);
+    void SetBaseView(CScriptDBView *pBaseIn) { pBase = pBaseIn; };
     string ToString();
     bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CScriptDBOperLog &operLog);
     bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput);
@@ -307,40 +289,30 @@ public:
 };
 
 class CTransactionDBView {
-   public:
-    virtual bool HaveTx(const uint256 &txHash);
-    virtual bool IsContainBlock(const CBlock &block);
-    virtual bool AddBlockToCache(const CBlock &block);
-    virtual bool DeleteBlockFromCache(const CBlock &block);
-    virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHashIn);
+public:
+    virtual bool IsContainBlock(const CBlock &block) = 0;
+    virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHashIn) = 0;
+
     virtual ~CTransactionDBView(){};
 };
 
-class CTransactionDBViewBacked : public CTransactionDBView {
-   protected:
+
+class CTransactionDBCache : public CTransactionDBView {
+protected:
     CTransactionDBView *pBase;
 
-   public:
-    CTransactionDBViewBacked(CTransactionDBView &transactionView);
-    bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHashIn);
-    bool HaveTx(const uint256 &txHash);
-    bool IsContainBlock(const CBlock &block);
-    bool AddBlockToCache(const CBlock &block);
-    bool DeleteBlockFromCache(const CBlock &block);
-};
-
-class CTransactionDBCache : public CTransactionDBViewBacked {
 private:
     // CTransactionDBCache(CTransactionDBCache &transactionView);
     map<uint256, UnorderedHashSet> mapTxHashByBlockHash;  // key:block hash  value:tx hash
     bool IsInMap(const map<uint256, UnorderedHashSet> &mMap, const uint256 &hash) const;
 
 public:
-    CTransactionDBCache(CTransactionDBView &pTxCacheDB);
+    CTransactionDBCache(CTransactionDBView &pBaseIn) : pBase(&pBaseIn) {};
+
+    bool HaveTx(const uint256 &txHash);
     bool IsContainBlock(const CBlock &block);
     bool AddBlockToCache(const CBlock &block);
     bool DeleteBlockFromCache(const CBlock &block);
-    bool HaveTx(const uint256 &txHash);
     map<uint256, UnorderedHashSet> GetTxHashCache();
     bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHashIn);
     void AddTxHashCache(const uint256 &blockHash, const UnorderedHashSet &vTxHash);
@@ -348,7 +320,7 @@ public:
     void Clear();
     Object ToJsonObj() const;
     int GetSize();
-    void SetBaseView(CTransactionDBView *pNewBase);
+    void SetBaseView(CTransactionDBView *pBaseIn) { pBase = pBaseIn; };
     const map<uint256, UnorderedHashSet> &GetCacheMap();
     void SetCacheMap(const map<uint256, UnorderedHashSet> &mapCache);
 };
