@@ -460,11 +460,11 @@ const vector<unsigned char>& CVmRunEnv::GetTxContract() {
     return tx->arguments;
 }
 
-int CVmRunEnv::GetComfirmHeight() { return runTimeHeight; }
+int CVmRunEnv::GetConfirmHeight() { return runTimeHeight; }
 
 int CVmRunEnv::GetBurnVersion() {
     // the burn version belong to the Fearure Fork Version
-    return GetFeatureForkVersion(runTimeHeight); 
+    return GetFeatureForkVersion(runTimeHeight);
 }
 
 uint256 CVmRunEnv::GetCurTxHash() { return pBaseTx.get()->GetHash(); }
