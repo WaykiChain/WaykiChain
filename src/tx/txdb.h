@@ -53,14 +53,14 @@ class CBlockTreeDB : public CLevelDBWrapper {
 };
 
 class CAccountViewDB : public CAccountView {
-   private:
+private:
     CLevelDBWrapper db;
 
-   public:
+public:
     CAccountViewDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
     CAccountViewDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe);
 
-   private:
+private:
     CAccountViewDB(const CAccountViewDB &);
     void operator=(const CAccountViewDB &);
 
@@ -90,41 +90,45 @@ public:
 };
 
 class CTransactionDB : public CTransactionDBView {
-   private:
+private:
     CLevelDBWrapper db;
 
-   public:
-    CTransactionDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
+public:
+    CTransactionDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) : 
+        db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {};
+    ~CTransactionDB() {};
 
-   private:
+private:
     CTransactionDB(const CTransactionDB &);
     void operator=(const CTransactionDB &);
 
-   public:
-    bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash);
+public:
+    virtual bool IsContainBlock(const CBlock &block);
+    virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash);
     int64_t GetDbCount() { return db.GetDbCount(); }
 };
 
 class CScriptDB : public CScriptDBView {
-   private:
+private:
     CLevelDBWrapper db;
 
-   public:
+public:
     CScriptDB(const string &name, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
     CScriptDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
 
-   private:
+private:
     CScriptDB(const CScriptDB &);
     void operator=(const CScriptDB &);
 
-   public:
+public:
     bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue);
     bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
     bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb);
     bool EraseKey(const vector<unsigned char> &vKey);
     bool HaveData(const vector<unsigned char> &vKey);
-    bool GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);
-    bool GetContractData(const int curBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
+    bool GetScript(const int nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue);
+    bool GetContractData(const int curBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex, 
+                        vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
     int64_t GetDbCount() { return db.GetDbCount(); }
     bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash);
     Object ToJsonObj(string Prefix);

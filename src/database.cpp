@@ -374,48 +374,41 @@ Object CAccountViewCache::ToJsonObj() const {
     return obj;
 }
 
-bool CScriptDBView::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) { return false; }
-bool CScriptDBView::SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) { return false; }
-bool CScriptDBView::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb) { return false; }
-bool CScriptDBView::EraseKey(const vector<unsigned char> &vKey) { return false; }
-bool CScriptDBView::HaveData(const vector<unsigned char> &vKey) { return false; }
-bool CScriptDBView::GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) { return false; }
-bool CScriptDBView::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
-                                    vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
-    return false;
-}
-bool CScriptDBView::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) { return false; }
-bool CScriptDBView::WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB) { return false; }
-bool CScriptDBView::WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CScriptDBOperLog &operLog) { return false; }
-bool CScriptDBView::ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput) { return false; }
-bool CScriptDBView::GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash) { return false; }
-bool CScriptDBView::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CScriptDBOperLog &operLog) { return false; }
-bool CScriptDBView::GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) { return false; }
-
-Object CScriptDBView::ToJsonObj(string prefix) { return Object(); }
-
-CScriptDBViewBacked::CScriptDBViewBacked(CScriptDBView &dataBaseView) { pBase = &dataBaseView; }
-bool CScriptDBViewBacked::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) { return pBase->GetData(vKey, vValue); }
-bool CScriptDBViewBacked::SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) { return pBase->SetData(vKey, vValue); }
-bool CScriptDBViewBacked::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb) { return pBase->BatchWrite(mapContractDb); }
-bool CScriptDBViewBacked::EraseKey(const vector<unsigned char> &vKey) { return pBase->EraseKey(vKey); }
-bool CScriptDBViewBacked::HaveData(const vector<unsigned char> &vKey) { return pBase->HaveData(vKey); }
-bool CScriptDBViewBacked::GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) { return pBase->GetScript(nIndex, vScriptId, vValue); }
-bool CScriptDBViewBacked::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
-                                          const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
-    return pBase->GetContractData(nCurBlockHeight, vScriptId, nIndex, vScriptKey, vScriptData);
-}
-bool CScriptDBViewBacked::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) { return pBase->ReadTxIndex(txid, pos); }
-bool CScriptDBViewBacked::WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB) { return pBase->WriteTxIndex(list, vTxIndexOperDB); }
-bool CScriptDBViewBacked::WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CScriptDBOperLog &operLog) { return pBase->WriteTxOutPut(txid, vOutput, operLog); }
-bool CScriptDBViewBacked::ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput) { return pBase->ReadTxOutPut(txid, vOutput); }
-bool CScriptDBViewBacked::GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash) { return pBase->GetTxHashByAddress(keyId, nHeight, mapTxHash); }
-bool CScriptDBViewBacked::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CScriptDBOperLog &operLog) { return pBase->SetTxHashByAddress(keyId, nHeight, nIndex, strTxHash, operLog); }
-bool CScriptDBViewBacked::GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) { return pBase->GetAllScriptAcc(scriptId, mapAcc); }
-
-CScriptDBViewCache::CScriptDBViewCache(CScriptDBView &base) : CScriptDBViewBacked(base) {
-    mapContractDb.clear();
-}
+// bool CScriptDBView::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) { return false; }
+// bool CScriptDBView::SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) { return false; }
+// bool CScriptDBView::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb) { return false; }
+// bool CScriptDBView::EraseKey(const vector<unsigned char> &vKey) { return false; }
+// bool CScriptDBView::HaveData(const vector<unsigned char> &vKey) { return false; }
+// bool CScriptDBView::GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) { return false; }
+// bool CScriptDBView::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
+//                                     vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
+//     return false;
+// }
+// bool CScriptDBView::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) { return false; }
+// bool CScriptDBView::WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB) { return false; }
+// bool CScriptDBView::WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CScriptDBOperLog &operLog) { return false; }
+// bool CScriptDBView::ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput) { return false; }
+// bool CScriptDBView::GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash) { return false; }
+// bool CScriptDBView::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CScriptDBOperLog &operLog) { return false; }
+// bool CScriptDBView::GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) { return false; }
+// CScriptDBViewBacked::CScriptDBViewBacked(CScriptDBView &dataBaseView) { pBase = &dataBaseView; }
+// bool CScriptDBViewBacked::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) { return pBase->GetData(vKey, vValue); }
+// bool CScriptDBViewBacked::SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) { return pBase->SetData(vKey, vValue); }
+// bool CScriptDBViewBacked::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb) { return pBase->BatchWrite(mapContractDb); }
+// bool CScriptDBViewBacked::EraseKey(const vector<unsigned char> &vKey) { return pBase->EraseKey(vKey); }
+// bool CScriptDBViewBacked::HaveData(const vector<unsigned char> &vKey) { return pBase->HaveData(vKey); }
+// bool CScriptDBViewBacked::GetScript(const int &nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) { return pBase->GetScript(nIndex, vScriptId, vValue); }
+// bool CScriptDBViewBacked::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
+//                                           const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
+//     return pBase->GetContractData(nCurBlockHeight, vScriptId, nIndex, vScriptKey, vScriptData);
+// }
+// bool CScriptDBViewBacked::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) { return pBase->ReadTxIndex(txid, pos); }
+// bool CScriptDBViewBacked::WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB) { return pBase->WriteTxIndex(list, vTxIndexOperDB); }
+// bool CScriptDBViewBacked::WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CScriptDBOperLog &operLog) { return pBase->WriteTxOutPut(txid, vOutput, operLog); }
+// bool CScriptDBViewBacked::ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput) { return pBase->ReadTxOutPut(txid, vOutput); }
+// bool CScriptDBViewBacked::GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash) { return pBase->GetTxHashByAddress(keyId, nHeight, mapTxHash); }
+// bool CScriptDBViewBacked::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CScriptDBOperLog &operLog) { return pBase->SetTxHashByAddress(keyId, nHeight, nIndex, strTxHash, operLog); }
+// bool CScriptDBViewBacked::GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) { return pBase->GetAllScriptAcc(scriptId, mapAcc); }
 
 bool CScriptDBViewCache::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) {
     if (mapContractDb.count(vKey) > 0) {
@@ -1400,22 +1393,21 @@ bool CScriptDBViewCache::EraseTxRelAccout(const uint256 &txHash) {
 Object CScriptDBViewCache::ToJsonObj() const {
     Object obj;
     Array arrayObj;
-    //	for (auto& item : mapContractDb) {
-    //		Object obj;
-    //		obj.push_back(Pair("key", HexStr(item.first)));
-    //		obj.push_back(Pair("value", HexStr(item.second)));
-    //		arrayObj.push_back(obj);
-    //	}
+    for (auto& item : mapContractDb) {
+        Object obj;
+        obj.push_back(Pair("key", HexStr(item.first)));
+        obj.push_back(Pair("value", HexStr(item.second)));
+        arrayObj.push_back(obj);
+    }
     //	obj.push_back(Pair("mapContractDb", arrayObj));
     arrayObj.push_back(pBase->ToJsonObj("def"));
     arrayObj.push_back(pBase->ToJsonObj("data"));
     arrayObj.push_back(pBase->ToJsonObj("author"));
+
     obj.push_back(Pair("mapContractDb", arrayObj));
     return obj;
 }
-void CScriptDBViewCache::SetBaseView(CScriptDBView *pNewBase) {
-    pBase = pNewBase;
-}
+
 string CScriptDBViewCache::ToString() {
     string str("");
     vector<unsigned char> vPrefix = {'d', 'a', 't', 'a'};
@@ -1477,41 +1469,39 @@ bool CScriptDBViewCache::EraseDelegateData(const vector<unsigned char> &vKey) {
     return true;
 }
 
-bool CTransactionDBView::HaveTx(const uint256 &txHash) { return false; }
-bool CTransactionDBView::IsContainBlock(const CBlock &block) { return false; }
-bool CTransactionDBView::AddBlockToCache(const CBlock &block) { return false; }
-bool CTransactionDBView::DeleteBlockFromCache(const CBlock &block) { return false; }
-bool CTransactionDBView::BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash) { return false; }
+// bool CTransactionDBView::HaveTx(const uint256 &txHash) { return false; }
+// bool CTransactionDBView::IsContainBlock(const CBlock &block) { return false; }
+// bool CTransactionDBView::AddBlockToCache(const CBlock &block) { return false; }
+// bool CTransactionDBView::DeleteBlockFromCache(const CBlock &block) { return false; }
+// bool CTransactionDBView::BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash) { return false; }
 
-CTransactionDBViewBacked::CTransactionDBViewBacked(CTransactionDBView &transactionView) {
-    pBase = &transactionView;
-}
+// CTransactionDBViewBacked::CTransactionDBViewBacked(CTransactionDBView &transactionView) {
+//     pBase = &transactionView;
+// }
 
-bool CTransactionDBViewBacked::HaveTx(const uint256 &txHash) {
-    return pBase->HaveTx(txHash);
-}
+// bool CTransactionDBViewBacked::HaveTx(const uint256 &txHash) {
+//     return pBase->HaveTx(txHash);
+// }
 
-bool CTransactionDBViewBacked::IsContainBlock(const CBlock &block) {
-    return pBase->IsContainBlock(block);
-}
+// bool CTransactionDBViewBacked::IsContainBlock(const CBlock &block) {
+//     return pBase->IsContainBlock(block);
+// }
 
-bool CTransactionDBViewBacked::AddBlockToCache(const CBlock &block) {
-    return pBase->AddBlockToCache(block);
-}
+// bool CTransactionDBViewBacked::AddBlockToCache(const CBlock &block) {
+//     return pBase->AddBlockToCache(block);
+// }
 
-bool CTransactionDBViewBacked::DeleteBlockFromCache(const CBlock &block) {
-    return pBase->DeleteBlockFromCache(block);
-}
+// bool CTransactionDBViewBacked::DeleteBlockFromCache(const CBlock &block) {
+//     return pBase->DeleteBlockFromCache(block);
+// }
 
-bool CTransactionDBViewBacked::BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHashIn) {
-    return pBase->BatchWrite(mapTxHashByBlockHashIn);
-}
-
-CTransactionDBCache::CTransactionDBCache(CTransactionDBView &txCacheDB) : CTransactionDBViewBacked(txCacheDB) {}
+// bool CTransactionDBViewBacked::BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHashIn) {
+//     return pBase->BatchWrite(mapTxHashByBlockHashIn);
+// }
 
 bool CTransactionDBCache::IsContainBlock(const CBlock &block) {
     //(mapTxHashByBlockHash.count(block.GetHash()) > 0 && mapTxHashByBlockHash[block.GetHash()].size() > 0)
-    return (IsInMap(mapTxHashByBlockHash, block.GetHash()) || pBase->IsContainBlock(block));
+    return ( IsInMap(mapTxHashByBlockHash, block.GetHash()) || pBase->IsContainBlock(block) );
 }
 
 bool CTransactionDBCache::AddBlockToCache(const CBlock &block) {
@@ -1584,10 +1574,10 @@ int CTransactionDBCache::GetSize() {
     return iCount;
 }
 
-bool CTransactionDBCache::IsInMap(const map<uint256, UnorderedHashSet> &mMap, const uint256 &hash) const {
-    if (hash == uint256())
+bool CTransactionDBCache::IsInMap(const map<uint256, UnorderedHashSet> &mMap, const uint256 &blockHash) const {
+    if (blockHash == uint256())
         return false;
-    auto te = mMap.find(hash);
+    auto te = mMap.find(blockHash);
     if (te != mMap.end()) {
         return !te->second.empty();
     }
@@ -1621,9 +1611,6 @@ Object CTransactionDBCache::ToJsonObj() const {
     Object retobj;
     retobj.push_back(Pair("mapTxHashByBlockHash", temobj));
     return retobj;
-}
-void CTransactionDBCache::SetBaseView(CTransactionDBView *pNewBase) {
-    pBase = pNewBase;
 }
 
 const map<uint256, UnorderedHashSet> &CTransactionDBCache::GetCacheMap() {
