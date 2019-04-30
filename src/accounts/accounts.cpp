@@ -80,7 +80,7 @@ uint64_t CAccount::GetFreeBCoins() {
     return bcoinBalance;
 }
 
-uint64_t CAccount::GetFrozenBalance() {
+uint64_t CAccount::GetVotedBCoins() {
     uint64_t votes = 0;
     if (!voteFunds.empty()) {
         for (auto it = voteFunds.begin(); it != voteFunds.end(); it++) {
@@ -91,7 +91,7 @@ uint64_t CAccount::GetFrozenBalance() {
 }
 
 uint64_t CAccount::GetTotalBcoins() {
-    uint64_t frozenVotes = GetFrozenBalance();
+    uint64_t frozenVotes = GetVotedBCoins();
     return ( frozenVotes + bcoinBalance );
 }
 
