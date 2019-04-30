@@ -1093,7 +1093,7 @@ static int ExGetBlockHashFunc(lua_State *L) {
         return RetFalse("pVmRunEnv is NULL");
     }
 
-    if (height <= 0 || height >= pVmRunEnv->GetComfirmHeight()) //当前block 是不可以获取hash的
+    if (height <= 0 || height >= pVmRunEnv->GetConfirmHeight()) //当前block 是不可以获取hash的
     {
         return RetFalse("ExGetBlockHashFunc para err2");
     }
@@ -1120,7 +1120,7 @@ static int ExGetCurRunEnvHeightFunc(lua_State *L) {
         return RetFalse("pVmRunEnv is NULL");
     }
 
-    int height = pVmRunEnv->GetComfirmHeight();
+    int height = pVmRunEnv->GetConfirmHeight();
 
     //检测栈空间是否够
    if(height > 0)
@@ -1256,13 +1256,13 @@ static int ExDeleteDataDBFunc(lua_State *L) {
 
     bool flag = true;
     CScriptDBOperLog operlog;
-    vector<unsigned char> vValue;    
-    scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(),scriptid, *retdata.at(0), vValue);
+    vector<unsigned char> vValue;
+    scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(),scriptid, *retdata.at(0), vValue);
 
     if (!scriptDB->EraseAppData(scriptid, *retdata.at(0), operlog)) {
         LogPrint("vm", "ExDeleteDataDBFunc EraseAppData railed, key:%s!\n",HexStr(*retdata.at(0)));
         lua_BurnStoreSet(L, 0, 0, BURN_VER_R2);
-        flag = false;        
+        flag = false;
     } else {
         shared_ptr<vector<CScriptDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
         pScriptDBOperLog.get()->push_back(operlog);
@@ -1293,7 +1293,7 @@ static int ExReadDataDBFunc(lua_State *L) {
     vector_unsigned_char vValue;
     CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
     int len = 0;
-    if (!scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(), scriptRegId, *retdata.at(0), vValue)) {
+    if (!scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(), scriptRegId, *retdata.at(0), vValue)) {
         len = 0;
         lua_BurnStoreGet(L, 0, BURN_VER_R2);
     } else {
@@ -1358,7 +1358,7 @@ static int ExGetDBValueFunc(lua_State *L) {
     }
 
     CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
-    flag = scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(),scriptid,index,vScriptKey,vValue);
+    flag = scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(),scriptid,index,vScriptKey,vValue);
     int len = 0;
     if(flag){
         len = RetRstToLua(L,vScriptKey) + RetRstToLua(L,vValue);
@@ -1404,7 +1404,7 @@ static int ExModifyDataDBFunc(lua_State *L)
     vector_unsigned_char oldValue;
     vector_unsigned_char &key = *retdata.at(0);
     vector_unsigned_char &newValue = *retdata.at(1);
-    if (scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(),scriptid, key, oldValue)) {
+    if (scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(),scriptid, key, oldValue)) {
         if (scriptDB->SetContractData(scriptid, key, newValue, operlog)) {
             shared_ptr<vector<CScriptDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
             pScriptDBOperLog.get()->push_back(operlog);
@@ -1577,7 +1577,7 @@ static int ExGetContractDataFunc(lua_State *L)
     CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
     CRegID scriptid(*retdata.at(0));
     int len = 0;
-    if (!scriptDB->GetContractData(pVmRunEnv->GetComfirmHeight(), scriptid, *retdata.at(1), vValue))
+    if (!scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(), scriptid, *retdata.at(1), vValue))
         len = 0;
     else  //3.往函数私有栈里存运算后的结果
         len = RetRstToLua(L,vValue);

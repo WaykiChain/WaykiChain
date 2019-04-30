@@ -1395,11 +1395,14 @@ bool CDelegateTx::CheckTx(CValidationState &state, CAccountViewCache &view,
                                       item->fund.ToString()),
                              REJECT_INVALID, "bad-read-accountdb");
 
-        if (!acctInfo.IsRegistered()) {
-            return state.DoS(100,
-                             ERRORMSG("CDelegateTx::CheckTx, account is unregistered, address=%s",
-                                      item->fund.ToString()),
-                             REJECT_INVALID, "bad-read-accountdb");
+        if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2) {
+            if (!acctInfo.IsRegistered()) {
+                return state.DoS(
+                    100,
+                    ERRORMSG("CDelegateTx::CheckTx, account is unregistered, address=%s",
+                             item->fund.ToString()),
+                    REJECT_INVALID, "bad-read-accountdb");
+            }
         }
     }
 
