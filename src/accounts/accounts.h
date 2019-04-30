@@ -134,6 +134,9 @@ public:
     uint64_t GetFreeBCoins();
     uint64_t GetTotalBcoins();
     uint64_t GetVotedBCoins();
+    uint64_t GetFreeScoins();
+    uint64_t GetFreeFcoins();
+    
     uint64_t GetAccountProfit(uint64_t prevBlockHeight);
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;
