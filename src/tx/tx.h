@@ -231,7 +231,7 @@ class CCommonTx : public CBaseTx {
 public:
     mutable CUserID srcUserId;  // regid or pubkey
     mutable CUserID desUserId;  // regid or keyid
-    uint64_t bcoinBalance;      // transfer amount
+    uint64_t bcoins;      // transfer amount
     vector_unsigned_char memo;
     vector_unsigned_char signature;
 
@@ -256,7 +256,7 @@ public:
 
         srcUserId    = srcUserIdIn;
         desUserId    = desUserIdIn;
-        bcoinBalance = valueIn;
+        bcoins = valueIn;
         memo         = descriptionIn;
     }
 
@@ -270,7 +270,7 @@ public:
 
         srcUserId    = srcUserIdIn;
         desUserId    = desUserIdIn;
-        bcoinBalance = valueIn;
+        bcoins = valueIn;
     }
 
     ~CCommonTx() {}
@@ -282,7 +282,7 @@ public:
         READWRITE(srcUserId);
         READWRITE(desUserId);
         READWRITE(VARINT(llFees));
-        READWRITE(VARINT(bcoinBalance));
+        READWRITE(VARINT(bcoins));
         READWRITE(memo);
         READWRITE(signature);
     )
@@ -291,7 +291,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << srcUserId << desUserId
-               << VARINT(llFees) << VARINT(bcoinBalance) << memo;
+               << VARINT(llFees) << VARINT(bcoins) << memo;
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
             *hash         = ss.GetHash();
@@ -300,7 +300,7 @@ public:
         return sigHash;
     }
 
-    uint64_t GetValue() const { return bcoinBalance; }
+    uint64_t GetValue() const { return bcoins; }
     uint256 GetHash() const { return SignatureHash(); }
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
@@ -320,7 +320,7 @@ class CContractTx : public CBaseTx {
 public:
     mutable CUserID srcRegId;   // src regid
     mutable CUserID desUserId;  // app regid
-    uint64_t bcoinBalance;      // transfer amount
+    uint64_t bcoins;      // transfer amount
     vector_unsigned_char arguments;
     vector_unsigned_char signature;
 
@@ -343,7 +343,7 @@ public:
 
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
-        bcoinBalance = valueIn;
+        bcoins = valueIn;
         arguments    = argumentsIn;
     }
 
@@ -358,7 +358,7 @@ public:
 
         srcRegId     = srcRegIdIn;
         desUserId    = desUserIdIn;
-        bcoinBalance = valueIn;
+        bcoins = valueIn;
     }
 
     ~CContractTx() {}
@@ -370,7 +370,7 @@ public:
         READWRITE(srcRegId);
         READWRITE(desUserId);
         READWRITE(VARINT(llFees));
-        READWRITE(VARINT(bcoinBalance));
+        READWRITE(VARINT(bcoins));
         READWRITE(arguments);
         READWRITE(signature);
     )
@@ -379,7 +379,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << srcRegId << desUserId
-               << VARINT(llFees) << VARINT(bcoinBalance) << arguments;
+               << VARINT(llFees) << VARINT(bcoins) << arguments;
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
             *hash         = ss.GetHash();
@@ -387,7 +387,7 @@ public:
         return sigHash;
     }
 
-    uint64_t GetValue() const { return bcoinBalance; }
+    uint64_t GetValue() const { return bcoins; }
     uint256 GetHash() const { return SignatureHash(); }
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
@@ -671,7 +671,7 @@ class CMulsigTx : public CBaseTx {
 public:
     vector<CSignaturePair> signaturePairs;  //!< signature pair
     mutable CUserID desUserId;              //!< keyid or regid
-    uint64_t bcoinBalance;                  //!< transfer amount
+    uint64_t bcoins;                  //!< transfer amount
     uint8_t required;                       //!< required keys
     vector_unsigned_char memo;              //!< memo
 
@@ -694,7 +694,7 @@ public:
 
         signaturePairs = signaturePairsIn;
         desUserId      = desUserIdIn;
-        bcoinBalance   = valueIn;
+        bcoins   = valueIn;
         required       = requiredIn;
         memo           = memoIn;
     }
@@ -708,7 +708,7 @@ public:
 
         signaturePairs = signaturePairsIn;
         desUserId      = desUserIdIn;
-        bcoinBalance   = valueIn;
+        bcoins   = valueIn;
         required       = requiredIn;
     }
 
@@ -721,7 +721,7 @@ public:
         READWRITE(signaturePairs);
         READWRITE(desUserId);
         READWRITE(VARINT(llFees));
-        READWRITE(VARINT(bcoinBalance));
+        READWRITE(VARINT(bcoins));
         READWRITE(VARINT(required));
         READWRITE(memo);
     )
@@ -734,7 +734,7 @@ public:
             for (const auto &item : signaturePairs) {
                 ss << item.regId;
             }
-            ss << desUserId << VARINT(llFees) << VARINT(bcoinBalance) << VARINT(required) << memo;
+            ss << desUserId << VARINT(llFees) << VARINT(bcoins) << VARINT(required) << memo;
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
             *hash         = ss.GetHash();
@@ -742,7 +742,7 @@ public:
         return sigHash;
     }
 
-    uint64_t GetValue() const { return bcoinBalance; }
+    uint64_t GetValue() const { return bcoins; }
     uint256 GetHash() const { return SignatureHash(); }
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }

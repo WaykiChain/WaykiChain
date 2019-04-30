@@ -97,7 +97,7 @@ Value getbalance(const Array& params, bool fHelp)
                                 pAccountViewTip->GetKeyId(pTx->srcUserId, srcKeyId);
                                 pAccountViewTip->GetKeyId(pTx->desUserId, desKeyId);
                                 if (!pwalletMain->HaveKey(srcKeyId) && pwalletMain->HaveKey(desKeyId)) {
-                                    nValue = pTx->bcoinBalance;
+                                    nValue = pTx->bcoins;
                                 }
                             }
                             // TODO: COMMON_MULSIG_TX
@@ -130,7 +130,7 @@ Value getbalance(const Array& params, bool fHelp)
                                     CKeyID srcKeyId, desKeyId;
                                     pAccountViewTip->GetKeyId(pTx->desUserId, desKeyId);
                                     if (keyid == desKeyId) {
-                                        nValue = pTx->bcoinBalance;
+                                        nValue = pTx->bcoins;
                                     }
                                 }
                                 // TODO: COMMON_MULSIG_TX

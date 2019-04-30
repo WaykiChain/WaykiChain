@@ -12,8 +12,8 @@
 
 string CAccountLog::ToString() const {
     string str("");
-    str += strprintf("    Account log: keyId=%d bcoinBalance=%lld lastVoteHeight=%lld receivedVotes=%lld \n",
-        keyID.GetHex(), bcoinBalance, lastVoteHeight, receivedVotes);
+    str += strprintf("    Account log: keyId=%d bcoins=%lld lastVoteHeight=%lld receivedVotes=%lld \n",
+        keyID.GetHex(), bcoins, lastVoteHeight, receivedVotes);
     str += string("    vote fund:");
 
     for (auto it =  voteFunds.begin(); it != voteFunds.end(); ++it) {
@@ -24,7 +24,7 @@ string CAccountLog::ToString() const {
 
 bool CAccount::UndoOperateAccount(const CAccountLog & accountLog) {
     LogPrint("undo_account", "after operate:%s\n", ToString());
-    bcoinBalance    = accountLog.bcoinBalance;
+    bcoins    = accountLog.bcoins;
     lastVoteHeight = accountLog.lastVoteHeight;
     voteFunds  = accountLog.voteFunds;
     receivedVotes     = accountLog.receivedVotes;
@@ -77,22 +77,22 @@ uint64_t CAccount::GetAccountProfit(uint64_t nCurHeight) {
 }
 
 uint64_t CAccount::GetFreeBCoins() {
-    return bcoinBalance;
+    return bcoins;
 }
 
 uint64_t CAccount::GetVotedBCoins() {
     uint64_t votes = 0;
     if (!voteFunds.empty()) {
         for (auto it = voteFunds.begin(); it != voteFunds.end(); it++) {
-            votes += it->GetVoteCount(); //one coin one vote!
+            votes += it->GetVoteCount(); //one bcoin one vote!
         }
     }
     return votes;
 }
 
 uint64_t CAccount::GetTotalBcoins() {
-    uint64_t frozenVotes = GetVotedBCoins();
-    return ( frozenVotes + bcoinBalance );
+    uint64_t votedBcoins = GetVotedBCoins();
+    return ( votedBcoins + bcoins );
 }
 
 Object CAccount::ToJsonObj(bool isAddress) const {
@@ -113,9 +113,9 @@ Object CAccount::ToJsonObj(bool isAddress) const {
     obj.push_back(Pair("reg_id_mature", isMature));
     obj.push_back(Pair("pubkey", pubKey.ToString()));
     obj.push_back(Pair("miner_pubkey", minerPubKey.ToString()));
-    obj.push_back(Pair("bcoin_balance", bcoinBalance));
-    obj.push_back(Pair("scoin_balance", scoinBalance));
-    obj.push_back(Pair("fcoin_balance", fcoinBalance));
+    obj.push_back(Pair("bcoin_balance", bcoins));
+    obj.push_back(Pair("scoin_balance", scoins));
+    obj.push_back(Pair("fcoin_balance", fcoins));
     obj.push_back(Pair("received_votes", receivedVotes));
     obj.push_back(Pair("last_vote_height", lastVoteHeight));
     obj.push_back(Pair("vote_list", voteFundArray));
@@ -124,9 +124,9 @@ Object CAccount::ToJsonObj(bool isAddress) const {
 
 string CAccount::ToString(bool isAddress) const {
     string str;
-    str += strprintf("regID=%s, keyID=%s, nickID=%s, publicKey=%s, minerpubkey=%s, bcoinBalance=%ld, scoinBalance=%ld, fcoinBalance=%ld, updateHeight=%d receivedVotes=%lld\n",
+    str += strprintf("regID=%s, keyID=%s, nickID=%s, publicKey=%s, minerpubkey=%s, bcoins=%ld, scoins=%ld, fcoins=%ld, updateHeight=%d receivedVotes=%lld\n",
         regID.ToString(), keyID.GetHex().c_str(), nickID.ToString(), pubKey.ToString().c_str(),
-        minerPubKey.ToString().c_str(), bcoinBalance, scoinBalance, fcoinBalance, lastVoteHeight, receivedVotes);
+        minerPubKey.ToString().c_str(), bcoins, scoins, fcoins, lastVoteHeight, receivedVotes);
     str += "voteFunds list: \n";
     for (auto & fund : voteFunds) {
         str += fund.ToString();
@@ -152,15 +152,15 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64
         return true;
     switch (type) {
     case ADD_FREE: {
-        bcoinBalance += value;
-        if (!IsMoneyOverflow(bcoinBalance))
+        bcoins += value;
+        if (!IsMoneyOverflow(bcoins))
             return false;
         break;
     }
     case MINUS_FREE: {
-        if (value > bcoinBalance)
+        if (value > bcoins)
             return false;
-        bcoinBalance -= value;
+        bcoins -= value;
         break;
     }
     default:
@@ -238,11 +238,11 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
     // get the maximum one as the vote amount
     uint64_t newTotalVotes = voteFunds.empty() ? 0 : voteFunds.begin()->GetVoteCount();
 
-    if (bcoinBalance + totalVotes < newTotalVotes) {
+    if (bcoins + totalVotes < newTotalVotes) {
         return  ERRORMSG("ProcessDelegateVote() : delegate value exceed account value");
     }
-    bcoinBalance = (bcoinBalance + totalVotes) - newTotalVotes;
-    bcoinBalance += llProfit;
+    bcoins = (bcoins + totalVotes) - newTotalVotes;
+    bcoins += llProfit;
     LogPrint("profits", "received profits: %lld\n", llProfit);
     return true;
 }

@@ -651,11 +651,11 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
         if (pBaseTx->nTxType == COMMON_TX) {
             CCommonTx *pTx = static_cast<CCommonTx *>(pBaseTx);
-            if (pTx->bcoinBalance < CBaseTx::nDustAmountThreshold)
+            if (pTx->bcoins < CBaseTx::nDustAmountThreshold)
                 return state.DoS(0,
                                  ERRORMSG("AcceptToMemoryPool() : common tx %d transfer amount(%d) "
                                           "too small, you must send a min (%d)",
-                                          hash.ToString(), pTx->bcoinBalance, CBaseTx::nDustAmountThreshold),
+                                          hash.ToString(), pTx->bcoins, CBaseTx::nDustAmountThreshold),
                                  REJECT_DUST, "dust amount");
         }
 
@@ -1349,7 +1349,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                 sourceAccount.keyID = keyId;
                 sourceAccount.pubKey = pubKey;
                 sourceAccount.SetRegId(accountId);
-                sourceAccount.bcoinBalance  = pRewardTx->rewardValue;
+                sourceAccount.bcoins  = pRewardTx->rewardValue;
                 assert( view.SaveAccountInfo(accountId, keyId, sourceAccount) );
             } else if (block.vptx[i]->nTxType == DELEGATE_TX) {
                 std::shared_ptr<CDelegateTx> pDelegateTx = dynamic_pointer_cast<CDelegateTx>(block.vptx[i]);
@@ -1395,8 +1395,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                              return fund1.GetVoteCount() > fund2.GetVoteCount();
                          });
                 }
-                assert( voterAcct.bcoinBalance >= maxVotes );
-                voterAcct.bcoinBalance -= maxVotes;
+                assert( voterAcct.bcoins >= maxVotes );
+                voterAcct.bcoins -= maxVotes;
                 assert( view.SaveAccountInfo(voterAcct.regID, voterAcct.keyID, voterAcct) );
             }
         }

@@ -590,7 +590,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
         tx.get()->nTxType   = CONTRACT_TX;
         tx.get()->srcRegId  = userId;
         tx.get()->desUserId = appId;
-        tx.get()->bcoinBalance  = amount;
+        tx.get()->bcoins  = amount;
         tx.get()->llFees    = fee;
         tx.get()->arguments = arguments;
         if (0 == height) {
@@ -1425,7 +1425,7 @@ Value listcontracttx(const Array& params, bool fHelp)
                 obj.push_back(Pair("dest_regid", getregidstring(ptx->desUserId)));
                 accView.GetKeyId(ptx->desUserId, keyId);
                 obj.push_back(Pair("dest_addr", keyId.ToAddress()));
-                obj.push_back(Pair("money", ptx->bcoinBalance));
+                obj.push_back(Pair("money", ptx->bcoins));
                 obj.push_back(Pair("fees", ptx->llFees));
                 obj.push_back(Pair("valid_height", ptx->nValidHeight));
                 obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
@@ -1588,7 +1588,7 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
 static Value AccountLogToJson(const CAccountLog &accoutLog) {
     Object obj;
     obj.push_back(Pair("keyId", accoutLog.keyID.ToString()));
-    obj.push_back(Pair("bcoinBalance", accoutLog.bcoinBalance));
+    obj.push_back(Pair("bcoins", accoutLog.bcoins));
     obj.push_back(Pair("nHeight", accoutLog.lastVoteHeight));
     // Array array;
     // for (auto const& te : accoutLog.vRewardFund) {
@@ -2999,7 +2999,7 @@ Value listcontractassets(const Array& params, bool fHelp) {
 
             Object obj;
             obj.push_back(Pair("addr", address));
-            obj.push_back(Pair("asset", (double) tem.get()->GetbcoinBalance() / (double) COIN));
+            obj.push_back(Pair("asset", (double) tem.get()->Getbcoins() / (double) COIN));
             retArry.push_back(obj);
         }
     }
@@ -3298,7 +3298,7 @@ Value gettotalassets(const Array& params, bool fHelp) {
                 CDataStream ds(vValue, SER_DISK, CLIENT_VERSION);
                 ds >> appAccOut;
 
-                totalassets += appAccOut.GetbcoinBalance();
+                totalassets += appAccOut.Getbcoins();
                 totalassets += appAccOut.GetAllFreezedValues();
             }
 

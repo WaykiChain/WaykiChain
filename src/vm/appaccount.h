@@ -154,8 +154,8 @@ public:
 
 	string ToString()const;
 
-	uint64_t GetbcoinBalance() const { return bcoinBalance; }
-	void SetbcoinBalance(uint64_t bcoinBalance) { this->bcoinBalance = bcoinBalance; }
+	uint64_t Getbcoins() const { return bcoins; }
+	void Setbcoins(uint64_t bcoins) { this->bcoins = bcoins; }
 
 	const vector<unsigned char>& GetAccUserId() const { return mAccUserID; }
 
@@ -176,7 +176,7 @@ public:
 
 	IMPLEMENT_SERIALIZE
 	(
-		READWRITE(VARINT(bcoinBalance));
+		READWRITE(VARINT(bcoins));
 		READWRITE(mAccUserID);
 		READWRITE(vFrozenFunds);
 	)
@@ -189,7 +189,7 @@ public:
 	bool Operate(const CAppFundOperate &Op);
 
 private:
-	uint64_t bcoinBalance;       //自由金额
+	uint64_t bcoins;       //自由金额
 	vector<unsigned char>  mAccUserID;
 	vector<CAppCFund> vFrozenFunds;
 };

@@ -32,9 +32,9 @@ public:
     CPubKey pubKey;                 //!< account public key
     CPubKey minerPubKey;            //!< miner saving account public key
 
-    uint64_t bcoinBalance;          //!< BaseCoin balance
-    uint64_t scoinBalance;          //!< StableCoin balance
-    uint64_t fcoinBalance;          //!< FundCoin balance
+    uint64_t bcoins;                //!< Free Base Coins
+    uint64_t scoins;                //!< Stable Coins
+    uint64_t fcoins;                //!< FundCoin balance
 
     uint64_t receivedVotes;         //!< votes received
 
@@ -63,9 +63,9 @@ public:
         : keyID(keyId),
           pubKey(pubKey),
           nickID(nickId),
-          bcoinBalance(0),
-          scoinBalance(0),
-          fcoinBalance(0),
+          bcoins(0),
+          scoins(0),
+          fcoins(0),
           lastVoteHeight(0),
           receivedVotes(0) {
         minerPubKey = CPubKey();
@@ -75,9 +75,9 @@ public:
 
     CAccount()
         : keyID(uint160()),
-          bcoinBalance(0),
-          scoinBalance(0),
-          fcoinBalance(0),
+          bcoins(0),
+          scoins(0),
+          fcoins(0),
           lastVoteHeight(0),
           receivedVotes(0) {
         pubKey      = CPubKey();
@@ -92,9 +92,9 @@ public:
         this->nickID        = other.nickID;
         this->pubKey        = other.pubKey;
         this->minerPubKey   = other.minerPubKey;
-        this->bcoinBalance  = other.bcoinBalance;
-        this->scoinBalance  = other.scoinBalance;
-        this->fcoinBalance  = other.fcoinBalance;
+        this->bcoins  = other.bcoins;
+        this->scoins  = other.scoins;
+        this->fcoins  = other.fcoins;
         this->receivedVotes = other.receivedVotes;
         this->lastVoteHeight= other.lastVoteHeight;
         this->voteFunds     = other.voteFunds;
@@ -109,9 +109,9 @@ public:
         this->nickID        = other.nickID;
         this->pubKey        = other.pubKey;
         this->minerPubKey   = other.minerPubKey;
-        this->bcoinBalance  = other.bcoinBalance;
-        this->scoinBalance  = other.scoinBalance;
-        this->fcoinBalance  = other.fcoinBalance;
+        this->bcoins  = other.bcoins;
+        this->scoins  = other.scoins;
+        this->fcoins  = other.fcoins;
         this->receivedVotes = other.receivedVotes;
         this->lastVoteHeight= other.lastVoteHeight;
         this->voteFunds     = other.voteFunds;
@@ -137,14 +137,14 @@ public:
     uint64_t GetAccountProfit(uint64_t prevBlockHeight);
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;
-    bool IsEmptyValue() const { return !(bcoinBalance > 0); }
+    bool IsEmptyValue() const { return !(bcoins > 0); }
 
     uint256 GetHash(bool recalculate = false) {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             //FIXME: need to check block soft-fork height here
             ss << regID << keyID << pubKey << minerPubKey
-                << VARINT(bcoinBalance) << VARINT(scoinBalance) << VARINT(fcoinBalance)
+                << VARINT(bcoins) << VARINT(scoins) << VARINT(fcoins)
                 << VARINT(lastVoteHeight)
                 << voteFunds << receivedVotes;
 
@@ -163,9 +163,9 @@ public:
         READWRITE(pubKey);
         READWRITE(minerPubKey);
         READWRITE(nickID);
-        READWRITE(VARINT(bcoinBalance));
-        READWRITE(VARINT(scoinBalance));
-        READWRITE(VARINT(fcoinBalance));
+        READWRITE(VARINT(bcoins));
+        READWRITE(VARINT(scoins));
+        READWRITE(VARINT(fcoins));
         READWRITE(VARINT(lastVoteHeight));
         READWRITE(voteFunds);
         READWRITE(receivedVotes);)
@@ -179,16 +179,16 @@ private:
 class CAccountLog {
 public:
     CKeyID keyID;
-    uint64_t bcoinBalance;          //!< baseCoin balance
-    uint64_t scoinBalance;          //!< stableCoin balance
-    uint64_t fcoinBalance;          //!< fundCoin balance
+    uint64_t bcoins;          //!< baseCoin balance
+    uint64_t scoins;          //!< stableCoin balance
+    uint64_t fcoins;          //!< fundCoin balance
     uint64_t lastVoteHeight;        //!< account's last vote height
     vector<CVoteFund> voteFunds;    //!< delegate votes
     uint64_t receivedVotes;         //!< votes received
 
     IMPLEMENT_SERIALIZE(
         READWRITE(keyID);
-        READWRITE(VARINT(bcoinBalance));
+        READWRITE(VARINT(bcoins));
         READWRITE(VARINT(lastVoteHeight));
         READWRITE(voteFunds);
         READWRITE(receivedVotes);)
@@ -196,20 +196,20 @@ public:
 public:
     CAccountLog(const CAccount &acct) {
         keyID        = acct.keyID;
-        bcoinBalance = acct.bcoinBalance;
+        bcoins = acct.bcoins;
         lastVoteHeight  = acct.lastVoteHeight;
         voteFunds    = acct.voteFunds;
         receivedVotes= acct.receivedVotes;
     }
     CAccountLog(CKeyID &keyId) {
         keyID        = keyId;
-        bcoinBalance = 0;
+        bcoins = 0;
         lastVoteHeight  = 0;
         receivedVotes= 0;
     }
     CAccountLog() {
         keyID        = uint160();
-        bcoinBalance = 0;
+        bcoins = 0;
         lastVoteHeight  = 0;
         voteFunds.clear();
         receivedVotes = 0;
@@ -221,9 +221,9 @@ public:
         pubKey          = acct.pubKey;
         minerPubKey     = acct.minerPubKey;
 
-        bcoinBalance    = acct.bcoinBalance;
-        scoinBalance    = acct.scoinBalance;
-        fcoinBalance    = acct.fcoinBalance;
+        bcoins    = acct.bcoins;
+        scoins    = acct.scoins;
+        fcoins    = acct.fcoins;
         lastVoteHeight  = acct.lastVoteHeight;
         receivedVotes   = acct.receivedVotes;
         voteFunds       = acct.voteFunds;

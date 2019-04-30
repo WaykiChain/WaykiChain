@@ -214,7 +214,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         contractTx.nTxType   = CONTRACT_TX;
         contractTx.srcRegId  = srcRegId;
         contractTx.desUserId = appId;
-        contractTx.bcoinBalance  = amount;
+        contractTx.bcoins  = amount;
         contractTx.llFees    = totalFee - regFee;
         contractTx.arguments = arguments;
         contractTx.nValidHeight = newHeight;

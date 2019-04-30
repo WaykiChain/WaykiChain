@@ -277,10 +277,10 @@ string CCommonTx::ToString(CAccountViewCache &view) const {
     }
 
     string str = strprintf(
-        "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, bcoinBalance=%ld, llFees=%ld, memo=%s, "
+        "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, bcoins=%ld, llFees=%ld, memo=%s, "
         "nValidHeight=%d\n",
         GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, srcId.c_str(), desId.c_str(),
-        bcoinBalance, llFees, HexStr(memo).c_str(), nValidHeight);
+        bcoins, llFees, HexStr(memo).c_str(), nValidHeight);
 
     return str;
 }
@@ -306,7 +306,7 @@ Object CCommonTx::ToJson(const CAccountViewCache &AccountView) const {
     result.push_back(Pair("addr",           srcKeyId.ToAddress()));
     result.push_back(Pair("dest_regid",     GetRegIdString(desUserId)));
     result.push_back(Pair("dest_addr",      desKeyId.ToAddress()));
-    result.push_back(Pair("money",          bcoinBalance));
+    result.push_back(Pair("money",          bcoins));
     result.push_back(Pair("fees",           llFees));
     result.push_back(Pair("memo",           HexStr(memo)));
     result.push_back(Pair("valid_height",   nValidHeight));
@@ -352,7 +352,7 @@ bool CCommonTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
 
     CAccountLog srcAcctLog(srcAcct);
     CAccountLog desAcctLog;
-    uint64_t minusValue = llFees + bcoinBalance;
+    uint64_t minusValue = llFees + bcoins;
     if (!srcAcct.OperateAccount(MINUS_FREE, minusValue, nHeight))
         return state.DoS(100, ERRORMSG("CCommonTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -367,7 +367,7 @@ bool CCommonTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
                              WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
 
-    uint64_t addValue = bcoinBalance;
+    uint64_t addValue = bcoins;
     if (!view.GetAccount(desUserId, desAcct)) {
         if (desUserId.type() == typeid(CKeyID)) {  // target account does NOT have CRegID
             desAcct.keyID    = desUserId.get<CKeyID>();
@@ -574,10 +574,10 @@ string CContractTx::ToString(CAccountViewCache &view) const {
     }
 
     string str = strprintf(
-        "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, bcoinBalance=%ld, llFees=%ld, arguments=%s, "
+        "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, bcoins=%ld, llFees=%ld, arguments=%s, "
         "nValidHeight=%d\n",
         GetTxType(nTxType), GetHash().ToString().c_str(), nVersion,
-        srcRegId.get<CRegID>().ToString(), desId.c_str(), bcoinBalance, llFees,
+        srcRegId.get<CRegID>().ToString(), desId.c_str(), bcoins, llFees,
         HexStr(arguments).c_str(), nValidHeight);
 
     return str;
@@ -604,7 +604,7 @@ Object CContractTx::ToJson(const CAccountViewCache &AccountView) const {
     result.push_back(Pair("addr",       srcKeyId.ToAddress()));
     result.push_back(Pair("dest_regid", GetRegIdString(desUserId)));
     result.push_back(Pair("dest_addr",  desKeyId.ToAddress()));
-    result.push_back(Pair("money",      bcoinBalance));
+    result.push_back(Pair("money",      bcoins));
     result.push_back(Pair("fees",       llFees));
     result.push_back(Pair("arguments",  HexStr(arguments)));
     result.push_back(Pair("valid_height", nValidHeight));
@@ -618,7 +618,7 @@ bool CContractTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
     CAccount srcAcct;
     CAccount desAcct;
     CAccountLog desAcctLog;
-    uint64_t minusValue = llFees + bcoinBalance;
+    uint64_t minusValue = llFees + bcoins;
     if (!view.GetAccount(srcRegId, srcAcct))
         return state.DoS(100, ERRORMSG("CContractTx::ExecuteTx, read source addr %s account info error",
             srcRegId.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -633,7 +633,7 @@ bool CContractTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationStat
         return state.DoS(100, ERRORMSG("CContractTx::ExecuteTx, save account%s info error",
             srcRegId.get<CRegID>().ToString()), WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    uint64_t addValue = bcoinBalance;
+    uint64_t addValue = bcoins;
     if (!view.GetAccount(desUserId, desAcct)) {
         return state.DoS(100, ERRORMSG("CContractTx::ExecuteTx, get account info failed by regid:%s",
             desUserId.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -887,7 +887,7 @@ bool CRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
     if (0 == nIndex) {
         // nothing to do here
     } else if (-1 == nIndex) {  // maturity reward tx, only update values
-        acctInfo.bcoinBalance += rewardValue;
+        acctInfo.bcoins += rewardValue;
     } else {  // never go into this step
         return ERRORMSG("nIndex type error!");
     }
@@ -1472,10 +1472,10 @@ string CMulsigTx::ToString(CAccountViewCache &view) const {
         signatures += strprintf("%s, ", item.ToString());
     }
     string str = strprintf(
-        "txType=%s, hash=%s, ver=%d, required=%d, %s, desId=%s, bcoinBalance=%ld, llFees=%ld, "
+        "txType=%s, hash=%s, ver=%d, required=%d, %s, desId=%s, bcoins=%ld, llFees=%ld, "
         "memo=%s,  nValidHeight=%d\n",
         GetTxType(nTxType), GetHash().ToString(), nVersion, required, signatures, desId,
-        bcoinBalance, llFees, HexStr(memo), nValidHeight);
+        bcoins, llFees, HexStr(memo), nValidHeight);
 
     return str;
 }
@@ -1518,7 +1518,7 @@ Object CMulsigTx::ToJson(const CAccountViewCache &AccountView) const {
     result.push_back(Pair("signatures", signatureArray));
     result.push_back(Pair("dest_regid", GetRegIdString(desUserId)));
     result.push_back(Pair("dest_addr", desKeyId.ToAddress()));
-    result.push_back(Pair("money", bcoinBalance));
+    result.push_back(Pair("money", bcoins));
     result.push_back(Pair("fees", llFees));
     result.push_back(Pair("memo", HexStr(memo)));
     result.push_back(Pair("valid_height", nValidHeight));
@@ -1562,7 +1562,7 @@ bool CMulsigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
 
     CAccountLog srcAcctLog(srcAcct);
     CAccountLog desAcctLog;
-    uint64_t minusValue = llFees + bcoinBalance;
+    uint64_t minusValue = llFees + bcoins;
     if (!srcAcct.OperateAccount(MINUS_FREE, minusValue, nHeight))
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -1577,7 +1577,7 @@ bool CMulsigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
                              WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
 
-    uint64_t addValue = bcoinBalance;
+    uint64_t addValue = bcoins;
     if (!view.GetAccount(desUserId, desAcct)) {
         if (desUserId.type() == typeid(CKeyID)) {  // target account does NOT have CRegID
             desAcct.keyID    = desUserId.get<CKeyID>();

@@ -126,8 +126,8 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
             return false;
     }
 
-    assert(acctViewTemp.Flush());
-    assert(scriptDBViewTemp.Flush());
+    // assert(acctViewTemp.Flush());
+    // assert(scriptDBViewTemp.Flush());
 
     return true;
 }

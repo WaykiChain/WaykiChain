@@ -21,23 +21,31 @@
 
 class CCdp {
 private:
-    uint64_t bcoinAmount;   //collatorized basecoin amount
-    uint64_t scoinAmount;   //minted stablecoin amount
+    uint64_t bcoins;   // collatorized basecoin amount
+    uint64_t scoins;   // minted stablecoin amount
 
 public:
     CCdp() {}
-    CCdp(uint64_t bcoinAmountIn, uint64_t scoinAmountIn): bcoinAmount(bcoinAmountIn), scoinAmount(scoinAmountIn) {}
+    CCdp(uint64_t bcoinsIn, uint64_t scoinsIn): bcoins(bcoinsIn), scoins(scoinsIn) {}
 
-    uint64_t GetBcoindAmount() const { return bcoinAmount; }
-    uint64_t GetScoinAmount() const { return scoinAmount; }
+    uint64_t GetBcoins() const { return bcoins; }
+    uint64_t GetScoins() const { return scoins; }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(bcoinAmount);
-        READWRITE(scoinAmount);
+        READWRITE(bcoins);
+        READWRITE(scoins);
     )
 };
 
-class CCdpCacheView {
+class CCdpView {
+
+};
+
+class CCdpViewCache: CCdpView {
+
+};
+
+class CCdpViewDB: CCdpView {
 
 };
 

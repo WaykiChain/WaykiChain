@@ -344,19 +344,19 @@ bool CVmRunEnv::CheckAppAcctOperate(CContractTx* tx) {
         }
     }
     /*
-        int64_t sysAcctSum = tx->bcoinBalance - sysContractAcct;
-        if(sysAcctSum > (int64_t)tx->bcoinBalance) {
+        int64_t sysAcctSum = tx->bcoins - sysContractAcct;
+        if(sysAcctSum > (int64_t)tx->bcoins) {
             return false;
         }
     */
     int64_t sysAcctSum = 0;
-    if (!SafeSubtract((int64_t)tx->bcoinBalance, (int64_t)sysContractAcct, sysAcctSum)) return false;
+    if (!SafeSubtract((int64_t)tx->bcoins, (int64_t)sysContractAcct, sysAcctSum)) return false;
 
     if (sumValue != sysAcctSum) {
         LogPrint("vm",
                  "CheckAppAcctOperate:addValue=%lld, minusValue=%lld, txValue=%lld, "
                  "sysContractAcct=%lld sumValue=%lld, sysAcctSum=%lld\n",
-                 addValue, minusValue, tx->bcoinBalance, sysContractAcct, sumValue, sysAcctSum);
+                 addValue, minusValue, tx->bcoins, sysContractAcct, sumValue, sysAcctSum);
 
         return false;
     }
@@ -452,7 +452,7 @@ const CRegID& CVmRunEnv::GetTxAccount() {
 
 uint64_t CVmRunEnv::GetValue() const {
     CContractTx* tx = static_cast<CContractTx*>(pBaseTx.get());
-    return tx->bcoinBalance;
+    return tx->bcoins;
 }
 
 const vector<unsigned char>& CVmRunEnv::GetTxContract() {
