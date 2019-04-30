@@ -153,7 +153,7 @@ public:
     const vector<unsigned char>& GetTxContract();
     CScriptDBViewCache* GetScriptDB();
     CAccountViewCache* GetCatchView();
-    int GetComfirmHeight();
+    int GetConfirmHeight();
     // Get burn version for fuel burning
     int GetBurnVersion();
     uint256 GetCurTxHash();
