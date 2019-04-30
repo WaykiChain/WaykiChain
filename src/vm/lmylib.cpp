@@ -1022,7 +1022,7 @@ static int ExQueryAccountBalanceFunc(lua_State *L) {
     }
     else
     {
-        uint64_t nbalance = aAccount.GetRawBalance();
+        uint64_t nbalance = aAccount.GetBCoinBalance();
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << nbalance;
         vector<unsigned char> TMP(tep.begin(),tep.end());

@@ -76,7 +76,7 @@ uint64_t CAccount::GetAccountProfit(uint64_t nCurHeight) {
     return llProfits;
 }
 
-uint64_t CAccount::GetRawBalance() {
+uint64_t CAccount::GetBCoinBalance() {
     return bcoinBalance;
 }
 

@@ -21,8 +21,8 @@
 
 class CCdp {
 private:
-    uint64_t bcoinAmount; //collatorized basecoin amount
-    uint64_t scoinAmount; //minted stablecoin amount
+    uint64_t bcoinAmount;   //collatorized basecoin amount
+    uint64_t scoinAmount;   //minted stablecoin amount
 
 public:
     CCdp() {}

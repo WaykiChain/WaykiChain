@@ -259,7 +259,7 @@ public:
 				if (!accView.GetAccount(userId, account)) {
 					return false;
 				}
-				freeValue += account.GetRawBalance();
+				freeValue += account.GetBCoinBalance();
 			}
 
 		}
@@ -274,7 +274,7 @@ public:
 				if (!accView.GetAccount(userId, account)) {
 					return false;
 				}
-				scriptaccValue += account.GetRawBalance();
+				scriptaccValue += account.GetBCoinBalance();
 			}
 
 		}

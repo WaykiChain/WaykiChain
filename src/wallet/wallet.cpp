@@ -234,7 +234,7 @@ DBErrors CWallet::LoadWallet(bool fFirstRunRet) {
     return CWalletDB(strWalletFile, "cr+").LoadWallet(this);
 }
 
-int64_t CWallet::GetRawBalance(bool IsConfirmed) const {
+int64_t CWallet::GetBCoinBalance(bool IsConfirmed) const {
     int64_t ret = 0;
     {
         LOCK2(cs_main, cs_wallet);
@@ -242,9 +242,9 @@ int64_t CWallet::GetRawBalance(bool IsConfirmed) const {
         GetKeys(setKeyId);
         for (auto &keyId : setKeyId) {
             if (!IsConfirmed)
-                ret += mempool.pAccountViewCache->GetRawBalance(keyId);
+                ret += mempool.pAccountViewCache->GetBCoinBalance(keyId);
             else
-                ret += pAccountViewTip->GetRawBalance(keyId);
+                ret += pAccountViewTip->GetBCoinBalance(keyId);
         }
     }
     return ret;

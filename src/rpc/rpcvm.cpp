@@ -152,7 +152,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     uint64_t balance = 0;
     if (acctViewTemp.GetAccount(srcUserId, account)) {
-        balance = account.GetRawBalance();
+        balance = account.GetBCoinBalance();
     }
 
     if (!account.IsRegistered()) {

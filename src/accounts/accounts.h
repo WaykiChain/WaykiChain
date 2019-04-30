@@ -131,7 +131,7 @@ public:
         return !regID.IsEmpty();
     };
 
-    uint64_t GetRawBalance();
+    uint64_t GetBCoinBalance();
     uint64_t GetTotalBalance();
     uint64_t GetFrozenBalance();
     uint64_t GetAccountProfit(uint64_t prevBlockHeight);

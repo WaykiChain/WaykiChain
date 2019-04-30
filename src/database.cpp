@@ -315,11 +315,11 @@ bool CAccountViewCache::Flush() {
     return fOk;
 }
 
-int64_t CAccountViewCache::GetRawBalance(const CUserID &userId) const {
+int64_t CAccountViewCache::GetBCoinBalance(const CUserID &userId) const {
     CAccountViewCache tempvew(*this);
     CAccount account;
     if (tempvew.GetAccount(userId, account)) {
-        return account.GetRawBalance();
+        return account.GetBCoinBalance();
     }
     return 0;
 }
