@@ -1177,25 +1177,6 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime) {
     }
 }
 
-// uint32_t insecure_rand_Rz = 11;
-// uint32_t insecure_rand_Rw = 11;
-// void seed_insecure_rand(bool fDeterministic) {
-//	//The seed values have some unlikely fixed points which we avoid.
-//	if (fDeterministic) {
-//		insecure_rand_Rz = insecure_rand_Rw = 11;
-//	} else {
-//		uint32_t tmp;
-//		do {
-//			RAND_bytes((unsigned char*) &tmp, 4);
-//		} while (tmp == 0 || tmp == 0x9068ffffU);
-//		insecure_rand_Rz = tmp;
-//		do {
-//			RAND_bytes((unsigned char*) &tmp, 4);
-//		} while (tmp == 0 || tmp == 0x464fffffU);
-//		insecure_rand_Rw = tmp;
-//	}
-//}
-
 string FormatVersion(int nVersion) {
     if (nVersion % 100 == 0)
         return strprintf("%d.%d.%d", nVersion / 1000000, (nVersion / 10000) % 100,
