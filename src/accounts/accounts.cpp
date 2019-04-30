@@ -12,8 +12,8 @@
 
 string CAccountLog::ToString() const {
     string str("");
-    str += strprintf("    Account log: keyId=%d bcoinBalance=%lld nVoteHeight=%lld receivedVotes=%lld \n",
-        keyID.GetHex(), bcoinBalance, nVoteHeight, receivedVotes);
+    str += strprintf("    Account log: keyId=%d bcoinBalance=%lld lastVoteHeight=%lld receivedVotes=%lld \n",
+        keyID.GetHex(), bcoinBalance, lastVoteHeight, receivedVotes);
     str += string("    vote fund:");
 
     for (auto it =  voteFunds.begin(); it != voteFunds.end(); ++it) {
@@ -25,7 +25,7 @@ string CAccountLog::ToString() const {
 bool CAccount::UndoOperateAccount(const CAccountLog & accountLog) {
     LogPrint("undo_account", "after operate:%s\n", ToString());
     bcoinBalance    = accountLog.bcoinBalance;
-    nVoteHeight = accountLog.nVoteHeight;
+    lastVoteHeight = accountLog.lastVoteHeight;
     voteFunds  = accountLog.voteFunds;
     receivedVotes     = accountLog.receivedVotes;
     LogPrint("undo_account", "before operate:%s\n", ToString().c_str());
@@ -34,15 +34,15 @@ bool CAccount::UndoOperateAccount(const CAccountLog & accountLog) {
 
 uint64_t CAccount::GetAccountProfit(uint64_t nCurHeight) {
      if (voteFunds.empty()) {
-        LogPrint("DEBUG", "1st-time vote for the account, hence no minting of interest.");
-        nVoteHeight = nCurHeight; //record the 1st-time vote block height into account
-        return 0; // 0 profit for 1st-time vote
+        LogPrint("DEBUG", "1st-time vote by the account, hence no minting of interest.");
+        lastVoteHeight = nCurHeight; //record the 1st-time vote block height into account
+        return 0; // 0 for the very 1st vote
     }
 
     // 先判断计算分红的上下限区块高度是否落在同一个分红率区间
-    uint64_t nBeginHeight = nVoteHeight;
+    uint64_t nBeginHeight = lastVoteHeight;
     uint64_t nEndHeight = nCurHeight;
-    uint64_t nBeginSubsidy = IniCfg().GetBlockSubsidyCfg(nVoteHeight);
+    uint64_t nBeginSubsidy = IniCfg().GetBlockSubsidyCfg(lastVoteHeight);
     uint64_t nEndSubsidy = IniCfg().GetBlockSubsidyCfg(nCurHeight);
     uint64_t nValue = voteFunds.begin()->GetVoteCount();
     LogPrint("profits", "nBeginSubsidy:%lld nEndSubsidy:%lld nBeginHeight:%d nEndHeight:%d\n",
@@ -70,9 +70,9 @@ uint64_t CAccount::GetAccountProfit(uint64_t nCurHeight) {
 
     llProfits += calculateProfit(nValue, nSubsidy, nBeginHeight, nEndHeight);
     LogPrint("profits", "updateHeight:%d curHeight:%d freeze value:%lld\n",
-        nVoteHeight, nCurHeight, voteFunds.begin()->GetVoteCount());
+        lastVoteHeight, nCurHeight, voteFunds.begin()->GetVoteCount());
 
-    nVoteHeight = nCurHeight;
+    lastVoteHeight = nCurHeight;
     return llProfits;
 }
 
@@ -113,7 +113,7 @@ Object CAccount::ToJsonObj(bool isAddress) const {
     obj.push_back(Pair("reg_id", regID.ToString()));
     obj.push_back(Pair("reg_id_mature", isMature));
     obj.push_back(Pair("balance", bcoinBalance));
-    obj.push_back(Pair("update_height", nVoteHeight));
+    obj.push_back(Pair("update_height", lastVoteHeight));
     obj.push_back(Pair("votes", receivedVotes));
     obj.push_back(Pair("vote_fund_list", voteFundArray));
     return obj;
@@ -123,7 +123,7 @@ string CAccount::ToString(bool isAddress) const {
     string str;
     str += strprintf("regID=%s, keyID=%s, publicKey=%s, minerpubkey=%s, values=%ld updateHeight=%d receivedVotes=%lld\n",
         regID.ToString(), keyID.GetHex().c_str(), pubKey.ToString().c_str(),
-        minerPubKey.ToString().c_str(), bcoinBalance, nVoteHeight, receivedVotes);
+        minerPubKey.ToString().c_str(), bcoinBalance, lastVoteHeight, receivedVotes);
     str += "voteFunds list: \n";
     for (auto & fund : voteFunds) {
         str += fund.ToString();
@@ -168,9 +168,9 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64
 }
 
 bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight) {
-    if (nCurHeight < nVoteHeight) {
-        LogPrint("ERROR", "current vote tx height (%d) can't be smaller than the last nVoteHeight (%d)",
-            nCurHeight, nVoteHeight);
+    if (nCurHeight < lastVoteHeight) {
+        LogPrint("ERROR", "current vote tx height (%d) can't be smaller than the last lastVoteHeight (%d)",
+            nCurHeight, lastVoteHeight);
         return false;
     }
 

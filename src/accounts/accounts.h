@@ -28,18 +28,19 @@ class CAccount {
 public:
     CRegID regID;                   //!< regID of the account
     CKeyID keyID;                   //!< keyID of the account (interchangeable to address)
+    CNickID nickID;                 //!< Nickname ID of the account (maxlen=32)
     CPubKey pubKey;                 //!< account public key
     CPubKey minerPubKey;            //!< miner saving account public key
-    CNickID nickID;                 //!< Nickname ID of the account (maxlen=32)
 
     uint64_t bcoinBalance;          //!< BaseCoin balance
     uint64_t scoinBalance;          //!< StableCoin balance
     uint64_t fcoinBalance;          //!< FundCoin balance
 
-    uint64_t nVoteHeight;           //!< account vote block height
-    vector<CVoteFund> voteFunds;    //!< account delegates votes sorted by vote amount
     uint64_t receivedVotes;         //!< votes received
 
+    uint64_t lastVoteHeight;       //!< account's last vote block height used for computing interest
+    vector<CVoteFund> voteFunds;    //!< account delegates votes sorted by vote amount
+    
     bool hasOpenCdp;                //!< When true, its CDP exists in a map {cdp-$regid -> $cdp}
 
     uint256 sigHash;                //!< memory only
@@ -65,7 +66,7 @@ public:
           bcoinBalance(0),
           scoinBalance(0),
           fcoinBalance(0),
-          nVoteHeight(0),
+          lastVoteHeight(0),
           receivedVotes(0) {
         minerPubKey = CPubKey();
         voteFunds.clear();
@@ -77,7 +78,7 @@ public:
           bcoinBalance(0),
           scoinBalance(0),
           fcoinBalance(0),
-          nVoteHeight(0),
+          lastVoteHeight(0),
           receivedVotes(0) {
         pubKey      = CPubKey();
         minerPubKey = CPubKey();
@@ -94,7 +95,7 @@ public:
         this->bcoinBalance  = other.bcoinBalance;
         this->scoinBalance  = other.scoinBalance;
         this->fcoinBalance  = other.fcoinBalance;
-        this->nVoteHeight   = other.nVoteHeight;
+        this->lastVoteHeight   = other.lastVoteHeight;
         this->voteFunds     = other.voteFunds;
         this->receivedVotes = other.receivedVotes;
     }
@@ -111,7 +112,7 @@ public:
         this->bcoinBalance  = other.bcoinBalance;
         this->scoinBalance  = other.scoinBalance;
         this->fcoinBalance  = other.fcoinBalance;
-        this->nVoteHeight   = other.nVoteHeight;
+        this->lastVoteHeight   = other.lastVoteHeight;
         this->voteFunds     = other.voteFunds;
         this->receivedVotes = other.receivedVotes;
 
@@ -144,7 +145,7 @@ public:
             //FIXME: need to check block soft-fork height here
             ss << regID << keyID << pubKey << minerPubKey
                 << VARINT(bcoinBalance) << VARINT(scoinBalance) << VARINT(fcoinBalance)
-                << VARINT(nVoteHeight)
+                << VARINT(lastVoteHeight)
                 << voteFunds << receivedVotes;
 
             uint256 *hash = const_cast<uint256 *>(&sigHash);
@@ -161,8 +162,11 @@ public:
         READWRITE(keyID);
         READWRITE(pubKey);
         READWRITE(minerPubKey);
+        READWRITE(nickID);
         READWRITE(VARINT(bcoinBalance));
-        READWRITE(VARINT(nVoteHeight));
+        READWRITE(VARINT(scoinBalance));
+        READWRITE(VARINT(fcoinBalance));
+        READWRITE(VARINT(lastVoteHeight));
         READWRITE(voteFunds);
         READWRITE(receivedVotes);)
 
@@ -176,14 +180,14 @@ class CAccountLog {
 public:
     CKeyID keyID;
     uint64_t bcoinBalance;          //!< freedom money which coinage greater than 30 days
-    uint64_t nVoteHeight;           //!< account vote height
+    uint64_t lastVoteHeight;       //!< account's last vote height
     vector<CVoteFund> voteFunds;    //!< delegate votes
     uint64_t receivedVotes;         //!< votes received
 
     IMPLEMENT_SERIALIZE(
         READWRITE(keyID);
         READWRITE(VARINT(bcoinBalance));
-        READWRITE(VARINT(nVoteHeight));
+        READWRITE(VARINT(lastVoteHeight));
         READWRITE(voteFunds);
         READWRITE(receivedVotes);)
 
@@ -191,27 +195,33 @@ public:
     CAccountLog(const CAccount &acct) {
         keyID        = acct.keyID;
         bcoinBalance = acct.bcoinBalance;
-        nVoteHeight  = acct.nVoteHeight;
+        lastVoteHeight  = acct.lastVoteHeight;
         voteFunds    = acct.voteFunds;
         receivedVotes= acct.receivedVotes;
     }
     CAccountLog(CKeyID &keyId) {
         keyID        = keyId;
         bcoinBalance = 0;
-        nVoteHeight  = 0;
+        lastVoteHeight  = 0;
         receivedVotes= 0;
     }
     CAccountLog() {
         keyID        = uint160();
         bcoinBalance = 0;
-        nVoteHeight  = 0;
+        lastVoteHeight  = 0;
         voteFunds.clear();
         receivedVotes = 0;
     }
     void SetValue(const CAccount &acct) {
+        regID        = acct.regID;
         keyID        = acct.keyID;
+        pubKey       = acct.pubKey;
+        minerPubKey  = acct.minerPubKey;
+
         bcoinBalance = acct.bcoinBalance;
-        nVoteHeight  = acct.nVoteHeight;
+        scoinBalance = acct.scoinBalance;
+        fcoinBalance = acct.fcoinBalance;
+        lastVoteHeight  = acct.lastVoteHeight;
         receivedVotes= acct.receivedVotes;
         voteFunds    = acct.voteFunds;
     }

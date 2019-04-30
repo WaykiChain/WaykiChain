@@ -1589,7 +1589,7 @@ static Value AccountLogToJson(const CAccountLog &accoutLog) {
     Object obj;
     obj.push_back(Pair("keyId", accoutLog.keyID.ToString()));
     obj.push_back(Pair("bcoinBalance", accoutLog.bcoinBalance));
-    obj.push_back(Pair("nHeight", accoutLog.nVoteHeight));
+    obj.push_back(Pair("nHeight", accoutLog.lastVoteHeight));
     // Array array;
     // for (auto const& te : accoutLog.vRewardFund) {
     //     Object obj2;

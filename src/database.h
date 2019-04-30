@@ -3,7 +3,7 @@
 
 #include <map>
 #include <vector>
-#include "./vm/appaccount.h"
+#include "vm/appaccount.h"
 #include "commons/serialize.h"
 #include "tx/tx.h"
 
