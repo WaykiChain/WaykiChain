@@ -1141,18 +1141,18 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime) {
         int64_t nMedian         = vTimeOffsets.median();
         vector<int64_t> vSorted = vTimeOffsets.sorted();
         // Only let other nodes change our time by so much
-        if (abs64(nMedian) < 70 * 60) {
+        if (abs64(nMedian) < 70) {
             nTimeOffset = nMedian;
         } else {
             nTimeOffset = 0;
 
             static bool fDone;
             if (!fDone) {
-                // If nobody has a time different than ours but within 5 minutes of ours, give a
+                // If nobody has a time different than ours but within 5 seconds of ours, give a
                 // warning
                 bool fMatch = false;
                 for (int64_t nOffset : vSorted)
-                    if (nOffset != 0 && abs64(nOffset) < 5 * 60) fMatch = true;
+                    if (nOffset != 0 && abs64(nOffset) < 5) fMatch = true;
 
                 if (!fMatch) {
                     fDone = true;
@@ -1161,8 +1161,6 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime) {
                           "are correct! If your clock is wrong Coin will not work properly.");
                     strMiscWarning = strMessage;
                     LogPrint("INFO", "*** %s\n", strMessage);
-                    uiInterface.ThreadSafeMessageBox(strMessage, "",
-                                                     CClientUIInterface::MSG_WARNING);
                 }
             }
         }

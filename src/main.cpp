@@ -2192,8 +2192,8 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
         return state.Invalid(ERRORMSG("CheckBlock() : block version must be set 3"),
             REJECT_INVALID, "block-version-error");
 
-    // Check timestamp 12minutes limits
-    if (block.GetBlockTime() > GetAdjustedTime() + 12 * 60)
+    // Check timestamp 12 seconds limits
+    if (block.GetBlockTime() > GetAdjustedTime() + 12)
         return state.Invalid(ERRORMSG("CheckBlock() : block timestamp too far in the future"),
                              REJECT_INVALID, "time-too-new");
 
