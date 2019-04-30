@@ -100,7 +100,7 @@ void CTxMemPool::Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> >& remov
     }
 }
 
-bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &entry,
+bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &memPoolEntry,
                                   CValidationState &state, bool bExcute) {
     CTxUndo txundo;
     CTransactionDBCache txCacheTemp(*pTxCacheTip);
@@ -114,13 +114,13 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &en
 
     // is it within valid height
     static int validHeight = SysCfg().GetTxCacheHeight();
-    if (!entry.GetTx()->IsValidHeight(chainActive.Tip()->nHeight, validHeight)) {
+    if (!memPoolEntry.GetTx()->IsValidHeight(chainActive.Tip()->nHeight, validHeight)) {
         return state.Invalid(ERRORMSG("CheckTxInMemPool() : txhash=%s beyond the scope of valid height",
                             hash.GetHex()), REJECT_INVALID, "tx-invalid-height");
     }
 
     if (bExcute) {
-        if (!entry.GetTx()->ExecuteTx(0, acctViewTemp, state, txundo,
+        if (!memPoolEntry.GetTx()->ExecuteTx(0, acctViewTemp, state, txundo,
                                       chainActive.Tip()->nHeight + 1, txCacheTemp,
                                       scriptDBViewTemp))
             return false;
