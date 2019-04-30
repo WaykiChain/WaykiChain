@@ -26,8 +26,8 @@ class CAccountLog;
 
 class CAccount {
 public:
-    CRegID regID;                   //!< regID of the account
     CKeyID keyID;                   //!< keyID of the account (interchangeable to address)
+    CRegID regID;                   //!< regID of the account
     CNickID nickID;                 //!< Nickname ID of the account (maxlen=32)
     CPubKey pubKey;                 //!< account public key
     CPubKey minerPubKey;            //!< miner saving account public key
@@ -38,12 +38,12 @@ public:
 
     uint64_t receivedVotes;         //!< votes received
 
-    uint64_t lastVoteHeight;       //!< account's last vote block height used for computing interest
+    uint64_t lastVoteHeight;        //!< account's last vote block height used for computing interest
     vector<CVoteFund> voteFunds;    //!< account delegates votes sorted by vote amount
     
     bool hasOpenCdp;                //!< When true, its CDP exists in a map {cdp-$regid -> $cdp}
 
-    uint256 sigHash;                //!< memory only
+    uint256 sigHash;                //!< in-memory only
 
 public:
     /**
@@ -87,35 +87,35 @@ public:
     }
 
     CAccount(const CAccount &other) {
-        this->regID         = other.regID;
         this->keyID         = other.keyID;
+        this->regID         = other.regID;
         this->nickID        = other.nickID;
         this->pubKey        = other.pubKey;
         this->minerPubKey   = other.minerPubKey;
         this->bcoinBalance  = other.bcoinBalance;
         this->scoinBalance  = other.scoinBalance;
         this->fcoinBalance  = other.fcoinBalance;
-        this->lastVoteHeight   = other.lastVoteHeight;
-        this->voteFunds     = other.voteFunds;
         this->receivedVotes = other.receivedVotes;
+        this->lastVoteHeight= other.lastVoteHeight;
+        this->voteFunds     = other.voteFunds;
     }
 
     CAccount &operator=(const CAccount &other) {
         if (this == &other)
             return *this;
-
-        this->regID         = other.regID;
+        
         this->keyID         = other.keyID;
+        this->regID         = other.regID;
         this->nickID        = other.nickID;
         this->pubKey        = other.pubKey;
         this->minerPubKey   = other.minerPubKey;
         this->bcoinBalance  = other.bcoinBalance;
         this->scoinBalance  = other.scoinBalance;
         this->fcoinBalance  = other.fcoinBalance;
-        this->lastVoteHeight   = other.lastVoteHeight;
-        this->voteFunds     = other.voteFunds;
         this->receivedVotes = other.receivedVotes;
-
+        this->lastVoteHeight= other.lastVoteHeight;
+        this->voteFunds     = other.voteFunds;
+        
         return *this;
     }
 
@@ -179,8 +179,10 @@ private:
 class CAccountLog {
 public:
     CKeyID keyID;
-    uint64_t bcoinBalance;          //!< freedom money which coinage greater than 30 days
-    uint64_t lastVoteHeight;       //!< account's last vote height
+    uint64_t bcoinBalance;          //!< baseCoin balance
+    uint64_t scoinBalance;          //!< stableCoin balance
+    uint64_t fcoinBalance;          //!< fundCoin balance
+    uint64_t lastVoteHeight;        //!< account's last vote height
     vector<CVoteFund> voteFunds;    //!< delegate votes
     uint64_t receivedVotes;         //!< votes received
 
@@ -213,17 +215,19 @@ public:
         receivedVotes = 0;
     }
     void SetValue(const CAccount &acct) {
-        regID        = acct.regID;
-        keyID        = acct.keyID;
-        pubKey       = acct.pubKey;
-        minerPubKey  = acct.minerPubKey;
+        keyID           = acct.keyID;
+        regID           = acct.regID;
+        nickID          = acct.nickID;
+        pubKey          = acct.pubKey;
+        minerPubKey     = acct.minerPubKey;
 
-        bcoinBalance = acct.bcoinBalance;
-        scoinBalance = acct.scoinBalance;
-        fcoinBalance = acct.fcoinBalance;
+        bcoinBalance    = acct.bcoinBalance;
+        scoinBalance    = acct.scoinBalance;
+        fcoinBalance    = acct.fcoinBalance;
         lastVoteHeight  = acct.lastVoteHeight;
-        receivedVotes= acct.receivedVotes;
-        voteFunds    = acct.voteFunds;
+        receivedVotes   = acct.receivedVotes;
+        voteFunds       = acct.voteFunds;
+        hasOpenCdp      = acct.hasOpenCdp;
     }
     string ToString() const;
 };

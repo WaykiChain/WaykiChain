@@ -107,23 +107,26 @@ Object CAccount::ToJsonObj(bool isAddress) const {
                         ? true
                         : false;
     obj.push_back(Pair("address", keyID.ToAddress()));
-    obj.push_back(Pair("key_id", keyID.ToString()));
-    obj.push_back(Pair("public_key", pubKey.ToString()));
-    obj.push_back(Pair("miner_public_key", minerPubKey.ToString()));
+    obj.push_back(Pair("keyid", keyID.ToString()));
+    obj.push_back(Pair("nickid", nickID.ToString()));
     obj.push_back(Pair("reg_id", regID.ToString()));
     obj.push_back(Pair("reg_id_mature", isMature));
-    obj.push_back(Pair("balance", bcoinBalance));
-    obj.push_back(Pair("update_height", lastVoteHeight));
-    obj.push_back(Pair("votes", receivedVotes));
-    obj.push_back(Pair("vote_fund_list", voteFundArray));
+    obj.push_back(Pair("pubkey", pubKey.ToString()));
+    obj.push_back(Pair("miner_pubkey", minerPubKey.ToString()));
+    obj.push_back(Pair("bcoin_balance", bcoinBalance));
+    obj.push_back(Pair("scoin_balance", scoinBalance));
+    obj.push_back(Pair("fcoin_balance", fcoinBalance));
+    obj.push_back(Pair("received_votes", receivedVotes));
+    obj.push_back(Pair("last_vote_height", lastVoteHeight));
+    obj.push_back(Pair("vote_list", voteFundArray));
     return obj;
 }
 
 string CAccount::ToString(bool isAddress) const {
     string str;
-    str += strprintf("regID=%s, keyID=%s, publicKey=%s, minerpubkey=%s, values=%ld updateHeight=%d receivedVotes=%lld\n",
-        regID.ToString(), keyID.GetHex().c_str(), pubKey.ToString().c_str(),
-        minerPubKey.ToString().c_str(), bcoinBalance, lastVoteHeight, receivedVotes);
+    str += strprintf("regID=%s, keyID=%s, nickID=%s, publicKey=%s, minerpubkey=%s, bcoinBalance=%ld, scoinBalance=%ld, fcoinBalance=%ld, updateHeight=%d receivedVotes=%lld\n",
+        regID.ToString(), keyID.GetHex().c_str(), nickID.ToString(), pubKey.ToString().c_str(),
+        minerPubKey.ToString().c_str(), bcoinBalance, scoinBalance, fcoinBalance, lastVoteHeight, receivedVotes);
     str += "voteFunds list: \n";
     for (auto & fund : voteFunds) {
         str += fund.ToString();
@@ -133,7 +136,7 @@ string CAccount::ToString(bool isAddress) const {
 
 bool CAccount::IsMoneyOverflow(uint64_t nAddMoney) {
     if (!CheckMoneyRange(nAddMoney))
-        return ERRORMSG("money:%lld too larger than MaxMoney");
+        return ERRORMSG("money:%lld larger than MaxMoney");
 
     return true;
 }
