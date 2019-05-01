@@ -8,7 +8,7 @@
 #define COIN_NET_H
 
 #include "commons/bloom.h"
-#include "./compat/compat.h"
+#include "compat/compat.h"
 #include "crypto/hash.h"
 #include "commons/limitedmap.h"
 #include "commons/mruset.h"

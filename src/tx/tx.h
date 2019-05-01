@@ -111,11 +111,11 @@ public:
     static int64_t nMinRelayTxFee;
     static uint64_t nDustAmountThreshold;
     static const int CURRENT_VERSION = nTxVersion1;
-
     int nVersion;
     unsigned char nTxType;
     int nValidHeight;
     uint64_t llFees;
+
     uint64_t nRunStep;  //!< only in memory
     int nFuelRate;      //!< only in memory
     uint256 sigHash;    //!< only in memory

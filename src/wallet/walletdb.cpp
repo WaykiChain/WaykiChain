@@ -2,7 +2,7 @@
 // Copyright (c) 2009-2014 The WaykiChain developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#define  BOOST_NO_CXX11_SCOPED_ENUMS
+
 #include "walletdb.h"
 
 #include "commons/base58.h"
@@ -19,6 +19,8 @@
 
 using namespace std;
 using namespace boost;
+
+#define  BOOST_NO_CXX11_SCOPED_ENUMS
 
 
 //
