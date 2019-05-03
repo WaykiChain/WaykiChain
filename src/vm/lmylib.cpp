@@ -871,7 +871,7 @@ static int ExGetTxRegIDFunc(lua_State *L) {
     int len = 0;
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
-            CCommonTx *tx = static_cast<CCommonTx*>(pBaseTx.get());
+            CBaseCoinTransferTx *tx = static_cast<CBaseCoinTransferTx*>(pBaseTx.get());
             vector<unsigned char> item = tx->srcUserId.get<CRegID>().GetVec6();
             len = RetRstToLua(L, item);
         } else if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {

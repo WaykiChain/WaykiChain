@@ -321,7 +321,7 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
                    nHeight - recvRegId.GetHeight() > kRegIdMaturePeriodByBlock))
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
-    CCommonTx tx;
+    CBaseCoinTransferTx tx;
     tx.srcUserId    = sendUserId;
     tx.desUserId    = recvUserId;
     tx.bcoins = nValue;
@@ -570,7 +570,7 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
             ? CUserID(recvRegId)
             : CUserID(recvKeyId);
 
-    CCommonTx tx;
+    CBaseCoinTransferTx tx;
     tx.srcUserId    = sendUserId;
     tx.desUserId    = recvUserId;
     tx.bcoins = amount;

@@ -650,7 +650,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         unsigned int nSize = entry.GetTxSize();
 
         if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
-            CCommonTx *pTx = static_cast<CCommonTx *>(pBaseTx);
+            CBaseCoinTransferTx *pTx = static_cast<CBaseCoinTransferTx *>(pBaseTx);
             if (pTx->bcoins < CBaseTx::nDustAmountThreshold)
                 return state.DoS(0,
                                  ERRORMSG("AcceptToMemoryPool() : common tx %d transfer amount(%d) "
@@ -3359,7 +3359,7 @@ void static ProcessGetData(CNode *pfrom) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         if (BCOIN_TRANSFER_TX == pBaseTx->nTxType) {
-                            ss << *((CCommonTx *)(pBaseTx.get()));
+                            ss << *((CBaseCoinTransferTx *)(pBaseTx.get()));
                         } else if (CONTRACT_INVOKE_TX == pBaseTx->nTxType) {
                             ss << *((CContractTx *)(pBaseTx.get()));
                         } else if (ACCOUNT_REGISTER_TX == pBaseTx->nTxType) {
@@ -4387,7 +4387,7 @@ class CMainCleanup {
 std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
     switch (uType) {
         case BCOIN_TRANSFER_TX:
-            return std::make_shared<CCommonTx>();
+            return std::make_shared<CBaseCoinTransferTx>();
         case CONTRACT_INVOKE_TX:
             return std::make_shared<CContractTx>();
         case ACCOUNT_REGISTER_TX:

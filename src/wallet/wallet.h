@@ -318,7 +318,7 @@ public:
     bool AddTx(const uint256 &hash, const CBaseTx *pTx) {
         switch (pTx->nTxType) {
         case BCOIN_TRANSFER_TX:
-            mapAccountTx[hash] = std::make_shared<CCommonTx>(pTx);
+            mapAccountTx[hash] = std::make_shared<CBaseCoinTransferTx>(pTx);
             break;
         case CONTRACT_INVOKE_TX:
             mapAccountTx[hash] = std::make_shared<CContractTx>(pTx);

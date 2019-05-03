@@ -157,7 +157,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             break;
         }
         case BCOIN_TRANSFER_TX: {
-            CCommonTx* ptx = (CCommonTx*)pBaseTx.get();
+            CBaseCoinTransferTx* ptx = (CBaseCoinTransferTx*)pBaseTx.get();
             CKeyID sendKeyID;
             if (ptx->srcUserId.type() == typeid(CPubKey)) {
                 sendKeyID = ptx->srcUserId.get<CPubKey>().GetKeyId();
@@ -1108,7 +1108,7 @@ Value listtransactions(const Array& params, bool fHelp) {
         CAccountTx accountTx = pwalletMain->mapInBlockTx[wtx.second];
         for (auto const & item : accountTx.mapAccountTx) {
             if (item.second->nTxType == BCOIN_TRANSFER_TX) {
-                CCommonTx* ptx = (CCommonTx*)item.second.get();
+                CBaseCoinTransferTx* ptx = (CBaseCoinTransferTx*)item.second.get();
                 CKeyID sendKeyID;
                 CRegID sendRegID = ptx->srcUserId.get<CRegID>();
                 sendKeyID        = sendRegID.GetKeyId(*pAccountViewTip);
@@ -1308,7 +1308,7 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
             Object obj;
             CKeyID keyId;
             if (item.second.get() && item.second->nTxType == BCOIN_TRANSFER_TX) {
-                CCommonTx* ptx = (CCommonTx*)item.second.get();
+                CBaseCoinTransferTx* ptx = (CBaseCoinTransferTx*)item.second.get();
 
                 if (!accView.GetKeyId(ptx->srcUserId, keyId)) {
                     continue;
@@ -2584,7 +2584,7 @@ Value signtxraw(const Array& params, bool fHelp) {
     Object obj;
     switch (pBaseTx.get()->nTxType) {
         case BCOIN_TRANSFER_TX: {
-            std::shared_ptr<CCommonTx> tx = std::make_shared<CCommonTx>(pBaseTx.get());
+            std::shared_ptr<CBaseCoinTransferTx> tx = std::make_shared<CBaseCoinTransferTx>(pBaseTx.get());
             if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature))
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
 
@@ -2780,7 +2780,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
     CAccountViewCache view(*pAccountViewTip);
     switch (pBaseTx.get()->nTxType) {
         case BCOIN_TRANSFER_TX: {
-            std::shared_ptr<CCommonTx> tx = std::make_shared<CCommonTx>(pBaseTx.get());
+            std::shared_ptr<CBaseCoinTransferTx> tx = std::make_shared<CBaseCoinTransferTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }

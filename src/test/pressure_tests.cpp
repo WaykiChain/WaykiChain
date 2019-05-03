@@ -382,8 +382,8 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 					llRegAcctFee += ptx->GetFee();
 				}
 				if (BCOIN_TRANSFER_TX == ptx->nTxType) {
-					std::shared_ptr<CCommonTx> pTransaction(
-						dynamic_pointer_cast<CCommonTx>(ptx));
+					std::shared_ptr<CBaseCoinTransferTx> pTransaction(
+						dynamic_pointer_cast<CBaseCoinTransferTx>(ptx));
 					if (typeid(pTransaction->desUserId) == typeid(CKeyID)) {
 						llSendValue += pTransaction->bcoins;
 					}

@@ -19,7 +19,7 @@
 using namespace json_spirit;
 using namespace std;
 
-class CCommonTx;
+class CBaseCoinTransferTx;
 
 double GetDifficulty(const CBlockIndex* blockindex)
 {
@@ -504,7 +504,7 @@ Value reconsiderblock(const Array& params, bool fHelp) {
     return obj;
 }
 
-static unique_ptr<MsgQueue<CCommonTx>> generationQueue;
+static unique_ptr<MsgQueue<CBaseCoinTransferTx>> generationQueue;
 
 void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
     RenameThread("CommonTxGenerator");
@@ -533,7 +533,7 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
         int32_t nValidHeight = chainActive.Tip()->nHeight;
 
         for (int64_t i = 0; i < batchSize; ++i) {
-            CCommonTx tx;
+            CBaseCoinTransferTx tx;
             tx.srcUserId    = srcRegId;
             tx.desUserId    = desRegId;
             tx.bcoins     = llValue++;
@@ -563,7 +563,7 @@ void static CommonTxSender() {
     SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
     CValidationState state;
-    CCommonTx tx;
+    CBaseCoinTransferTx tx;
 
     while (true) {
         // add interruption point
@@ -595,9 +595,9 @@ void StartCommonGeneration(const int64_t period, const int64_t batchSize) {
     // For example, generate 50(batchSize) transactions in 20(period), then
     // we need to prepare 1000 * 10 / 20 * 50 = 25,000 transactions in 10 second.
     // Actually, set the message queue's size to 50,000(double or up to 60,000).
-    MsgQueue<CCommonTx>::SizeType size       = 1000 * 10 * batchSize * 2 / period;
-    MsgQueue<CCommonTx>::SizeType actualSize = size > MSG_QUEUE_MAX_LEN ? MSG_QUEUE_MAX_LEN : size;
-    generationQueue.reset(new MsgQueue<CCommonTx>(actualSize));
+    MsgQueue<CBaseCoinTransferTx>::SizeType size       = 1000 * 10 * batchSize * 2 / period;
+    MsgQueue<CBaseCoinTransferTx>::SizeType actualSize = size > MSG_QUEUE_MAX_LEN ? MSG_QUEUE_MAX_LEN : size;
+    generationQueue.reset(new MsgQueue<CBaseCoinTransferTx>(actualSize));
 
     generateThreads = new boost::thread_group();
     generateThreads->create_thread(boost::bind(&CommonTxGenerator, period, batchSize));
