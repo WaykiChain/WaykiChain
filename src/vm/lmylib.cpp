@@ -807,7 +807,7 @@ static int ExGetTxContractFunc(lua_State *L) {
     std::shared_ptr<CBaseTx> pBaseTx;
     int len = 0;
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
-        if (pBaseTx->nTxType == CONTRACT_TX) {
+        if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
             CContractTx *tx = static_cast<CContractTx *>(pBaseTx.get());
             len             = RetRstToLua(L, tx->arguments, false);
         } else {
@@ -870,11 +870,11 @@ static int ExGetTxRegIDFunc(lua_State *L) {
     std::shared_ptr<CBaseTx> pBaseTx;
     int len = 0;
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
-        if (pBaseTx->nTxType == COMMON_TX) {
+        if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
             CCommonTx *tx = static_cast<CCommonTx*>(pBaseTx.get());
             vector<unsigned char> item = tx->srcUserId.get<CRegID>().GetVec6();
             len = RetRstToLua(L, item);
-        } else if (pBaseTx->nTxType == CONTRACT_TX) {
+        } else if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
             CContractTx *tx = static_cast<CContractTx*>(pBaseTx.get());
             vector<unsigned char> item = tx->srcRegId.get<CRegID>().GetVec6();
             len = RetRstToLua(L, item);

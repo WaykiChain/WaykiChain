@@ -300,7 +300,7 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
 
             CTxUndo txundo;
             CValidationState state;
-            if (CONTRACT_TX == pBaseTx->nTxType)
+            if (CONTRACT_INVOKE_TX == pBaseTx->nTxType)
                 LogPrint("vm", "tx hash=%s VerifyPosTx run contract\n", pBaseTx->GetHash().GetHex());
 
             pBaseTx->nFuelRate = pBlock->GetFuelRate();

@@ -42,7 +42,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountViewCache& view, int
     pAccountViewCache = &view;
     vector<unsigned char> vScript;
 
-    if (tx.get()->nTxType != CONTRACT_TX) {
+    if (tx.get()->nTxType != CONTRACT_INVOKE_TX) {
         LogPrint("ERROR", "%s\n", "err param");
         return false;
     }

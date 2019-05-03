@@ -91,7 +91,7 @@ Value getbalance(const Array& params, bool fHelp)
                     if (pwalletMain->mapInBlockTx.count(pBlockIndex->GetBlockHash()) > 0) {
                         map<uint256, std::shared_ptr<CBaseTx> > mapTx = pwalletMain->mapInBlockTx[pBlockIndex->GetBlockHash()].mapAccountTx;
                         for (auto &item : mapTx) {
-                            if (COMMON_TX == item.second->nTxType) {
+                            if (BCOIN_TRANSFER_TX == item.second->nTxType) {
                                 CCommonTx *pTx = (CCommonTx *)item.second.get();
                                 CKeyID srcKeyId, desKeyId;
                                 pAccountViewTip->GetKeyId(pTx->txUid, srcKeyId);
@@ -125,7 +125,7 @@ Value getbalance(const Array& params, bool fHelp)
                         if (pwalletMain->mapInBlockTx.count(pBlockIndex->GetBlockHash()) > 0) {
                             map<uint256, std::shared_ptr<CBaseTx> > mapTx = pwalletMain->mapInBlockTx[pBlockIndex->GetBlockHash()].mapAccountTx;
                             for (auto &item : mapTx) {
-                                if (COMMON_TX == item.second->nTxType) {
+                                if (BCOIN_TRANSFER_TX == item.second->nTxType) {
                                     CCommonTx *pTx = (CCommonTx *)item.second.get();
                                     CKeyID srcKeyId, desKeyId;
                                     pAccountViewTip->GetKeyId(pTx->toUid, desKeyId);

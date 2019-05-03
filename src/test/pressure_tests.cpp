@@ -378,17 +378,17 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 				if (ptx->IsCoinBase()) {
 					continue;
 				}
-				if (REG_ACCT_TX == ptx->nTxType) {
+				if (ACCOUNT_REGISTER_TX == ptx->nTxType) {
 					llRegAcctFee += ptx->GetFee();
 				}
-				if (COMMON_TX == ptx->nTxType) {
+				if (BCOIN_TRANSFER_TX == ptx->nTxType) {
 					std::shared_ptr<CCommonTx> pTransaction(
 						dynamic_pointer_cast<CCommonTx>(ptx));
 					if (typeid(pTransaction->desUserId) == typeid(CKeyID)) {
 						llSendValue += pTransaction->bcoins;
 					}
 				}
-				if (CONTRACT_TX == ptx->nTxType) {
+				if (CONTRACT_INVOKE_TX == ptx->nTxType) {
 					std::shared_ptr<CContractTx> pTransaction(
 						dynamic_pointer_cast<CContractTx>(ptx));
 					if (typeid(pTransaction->desUserId) == typeid(CKeyID)) {

@@ -93,7 +93,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
                     obj.push_back(Pair("confirmedtime", (int) header.GetTime()));
                     obj.push_back(Pair("blockhash", header.GetHash().GetHex()));
 
-                    if (pBaseTx->nTxType == CONTRACT_TX) {
+                    if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
                         vector<CVmOperate> vOutput;
                         pScriptDBTip->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
                         Array outputArray;
@@ -130,7 +130,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
     Object obj;
     std::set<CKeyID> vKeyIdSet;
     switch (pBaseTx->nTxType) {
-        case REWARD_TX: {
+        case BLOCK_REWARD_TX: {
             if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
                 return arrayDetail;
 
@@ -138,12 +138,12 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("category", "receive"));
             double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
             obj.push_back(Pair("amount", dAmount));
-            obj.push_back(Pair("txtype", "REWARD_TX"));
+            obj.push_back(Pair("txtype", "BLOCK_REWARD_TX"));
             arrayDetail.push_back(obj);
 
             break;
         }
-        case REG_ACCT_TX: {
+        case ACCOUNT_REGISTER_TX: {
             if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
                 return arrayDetail;
 
@@ -151,12 +151,12 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("category", "send"));
             double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
             obj.push_back(Pair("amount", -dAmount));
-            obj.push_back(Pair("txtype", "REG_ACCT_TX"));
+            obj.push_back(Pair("txtype", "ACCOUNT_REGISTER_TX"));
             arrayDetail.push_back(obj);
 
             break;
         }
-        case COMMON_TX: {
+        case BCOIN_TRANSFER_TX: {
             CCommonTx* ptx = (CCommonTx*)pBaseTx.get();
             CKeyID sendKeyID;
             if (ptx->srcUserId.type() == typeid(CPubKey)) {
@@ -173,7 +173,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
             }
 
-            obj.push_back(Pair("txtype", "COMMON_TX"));
+            obj.push_back(Pair("txtype", "BCOIN_TRANSFER_TX"));
             obj.push_back(Pair("memo", HexStr(ptx->memo)));
             obj.push_back(Pair("address", sendKeyID.ToAddress()));
             obj.push_back(Pair("category", "send"));
@@ -181,7 +181,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("amount", -dAmount));
             arrayDetail.push_back(obj);
             Object objRec;
-            objRec.push_back(Pair("txtype", "COMMON_TX"));
+            objRec.push_back(Pair("txtype", "BCOIN_TRANSFER_TX"));
             objRec.push_back(Pair("memo", HexStr(ptx->memo)));
             objRec.push_back(Pair("address", recvKeyId.ToAddress()));
             objRec.push_back(Pair("category", "receive"));
@@ -190,7 +190,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             break;
         }
-        case CONTRACT_TX: {
+        case CONTRACT_INVOKE_TX: {
             CContractTx* ptx = (CContractTx*)pBaseTx.get();
             CKeyID sendKeyID;
             CRegID sendRegID = ptx->srcRegId.get<CRegID>();
@@ -203,7 +203,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
             }
 
-            obj.push_back(Pair("txtype", "CONTRACT_TX"));
+            obj.push_back(Pair("txtype", "CONTRACT_INVOKE_TX"));
             obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
             obj.push_back(Pair("address", sendKeyID.ToAddress()));
             obj.push_back(Pair("category", "send"));
@@ -211,7 +211,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("amount", -dAmount));
             arrayDetail.push_back(obj);
             Object objRec;
-            objRec.push_back(Pair("txtype", "CONTRACT_TX"));
+            objRec.push_back(Pair("txtype", "CONTRACT_INVOKE_TX"));
             objRec.push_back(Pair("arguments", HexStr(ptx->arguments)));
             objRec.push_back(Pair("address", recvKeyId.ToAddress()));
             objRec.push_back(Pair("category", "receive"));
@@ -255,7 +255,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             break;
         }
-        case REG_CONT_TX:
+        case CONTRACT_DEPLOY_TX:
         case DELEGATE_VOTE_TX: {
             if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
                 return arrayDetail;
@@ -266,8 +266,8 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("category", "send"));
             obj.push_back(Pair("amount", -dAmount));
 
-            if (pBaseTx->nTxType == REG_CONT_TX)
-                obj.push_back(Pair("txtype", "REG_CONT_TX"));
+            if (pBaseTx->nTxType == CONTRACT_DEPLOY_TX)
+                obj.push_back(Pair("txtype", "CONTRACT_DEPLOY_TX"));
             else if (pBaseTx->nTxType == DELEGATE_VOTE_TX)
                 obj.push_back(Pair("txtype", "DELEGATE_VOTE_TX"));
 
@@ -587,7 +587,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
         if (!pScriptDBTip->HaveScript(appId)) {
             throw runtime_error(tinyformat::format("in callcontracttx : regid %s not exist\n", appId.ToString()));
         }
-        tx.get()->nTxType   = CONTRACT_TX;
+        tx.get()->nTxType   = CONTRACT_INVOKE_TX;
         tx.get()->srcRegId  = userId;
         tx.get()->desUserId = appId;
         tx.get()->bcoins  = amount;
@@ -1107,7 +1107,7 @@ Value listtransactions(const Array& params, bool fHelp) {
     for (auto const &wtx : blockInfoMap) {
         CAccountTx accountTx = pwalletMain->mapInBlockTx[wtx.second];
         for (auto const & item : accountTx.mapAccountTx) {
-            if (item.second->nTxType == COMMON_TX) {
+            if (item.second->nTxType == BCOIN_TRANSFER_TX) {
                 CCommonTx* ptx = (CCommonTx*)item.second.get();
                 CKeyID sendKeyID;
                 CRegID sendRegID = ptx->srcUserId.get<CRegID>();
@@ -1153,7 +1153,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
-                        obj.push_back(Pair("txtype", "COMMON_TX"));
+                        obj.push_back(Pair("txtype", "BCOIN_TRANSFER_TX"));
                         obj.push_back(Pair("memo", HexStr(ptx->memo)));
                         arrayData.push_back(obj);
 
@@ -1173,7 +1173,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
-                        obj.push_back(Pair("txtype", "COMMON_TX"));
+                        obj.push_back(Pair("txtype", "BCOIN_TRANSFER_TX"));
                         obj.push_back(Pair("memo", HexStr(ptx->memo)));
 
                         arrayData.push_back(obj);
@@ -1181,7 +1181,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         txnCount++;
                     }
                 }
-            } else if (item.second->nTxType == CONTRACT_TX) {
+            } else if (item.second->nTxType == CONTRACT_INVOKE_TX) {
                 CContractTx* ptx = (CContractTx*)item.second.get();
                 CKeyID sendKeyID;
                 CRegID sendRegID = ptx->srcRegId.get<CRegID>();
@@ -1227,7 +1227,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
-                        obj.push_back(Pair("txtype", "CONTRACT_TX"));
+                        obj.push_back(Pair("txtype", "CONTRACT_INVOKE_TX"));
                         obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
 
                         arrayData.push_back(obj);
@@ -1248,7 +1248,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
-                        obj.push_back(Pair("txtype", "CONTRACT_TX"));
+                        obj.push_back(Pair("txtype", "CONTRACT_INVOKE_TX"));
                         obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
 
                         arrayData.push_back(obj);
@@ -1307,7 +1307,7 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
         for (auto const & item : wtx.second.mapAccountTx) {
             Object obj;
             CKeyID keyId;
-            if (item.second.get() && item.second->nTxType == COMMON_TX) {
+            if (item.second.get() && item.second->nTxType == BCOIN_TRANSFER_TX) {
                 CCommonTx* ptx = (CCommonTx*)item.second.get();
 
                 if (!accView.GetKeyId(ptx->srcUserId, keyId)) {
@@ -1401,7 +1401,7 @@ Value listcontracttx(const Array& params, bool fHelp)
     for (auto const &wtx : blockInfoMap) {
         CAccountTx accountTx = pwalletMain->mapInBlockTx[wtx.second];
         for (auto const & item : accountTx.mapAccountTx) {
-            if (item.second.get() && item.second->nTxType == CONTRACT_TX) {
+            if (item.second.get() && item.second->nTxType == CONTRACT_INVOKE_TX) {
                 if (nFrom > 0 && nIndex++ < nFrom) {
                     continue;
                 }
@@ -2583,7 +2583,7 @@ Value signtxraw(const Array& params, bool fHelp) {
 
     Object obj;
     switch (pBaseTx.get()->nTxType) {
-        case COMMON_TX: {
+        case BCOIN_TRANSFER_TX: {
             std::shared_ptr<CCommonTx> tx = std::make_shared<CCommonTx>(pBaseTx.get());
             if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature))
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
@@ -2596,7 +2596,7 @@ Value signtxraw(const Array& params, bool fHelp) {
             break;
         }
 
-        case REG_ACCT_TX: {
+        case ACCOUNT_REGISTER_TX: {
             std::shared_ptr<CRegisterAccountTx> tx =
                 std::make_shared<CRegisterAccountTx>(pBaseTx.get());
             if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature))
@@ -2610,7 +2610,7 @@ Value signtxraw(const Array& params, bool fHelp) {
             break;
         }
 
-        case CONTRACT_TX: {
+        case CONTRACT_INVOKE_TX: {
             std::shared_ptr<CContractTx> tx = std::make_shared<CContractTx>(pBaseTx.get());
             if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
@@ -2623,11 +2623,11 @@ Value signtxraw(const Array& params, bool fHelp) {
             break;
         }
 
-        case REWARD_TX: {
+        case BLOCK_REWARD_TX: {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Reward transation is forbidden");
         }
 
-        case REG_CONT_TX: {
+        case CONTRACT_DEPLOY_TX: {
             std::shared_ptr<CRegisterContractTx> tx =
                 std::make_shared<CRegisterContractTx>(pBaseTx.get());
             if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature)) {
@@ -2779,14 +2779,14 @@ Value decodetxraw(const Array& params, bool fHelp) {
 
     CAccountViewCache view(*pAccountViewTip);
     switch (pBaseTx.get()->nTxType) {
-        case COMMON_TX: {
+        case BCOIN_TRANSFER_TX: {
             std::shared_ptr<CCommonTx> tx = std::make_shared<CCommonTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }
             break;
         }
-        case REG_ACCT_TX: {
+        case ACCOUNT_REGISTER_TX: {
             std::shared_ptr<CRegisterAccountTx> tx =
                 std::make_shared<CRegisterAccountTx>(pBaseTx.get());
             if (tx.get()) {
@@ -2795,21 +2795,21 @@ Value decodetxraw(const Array& params, bool fHelp) {
             break;
         }
 
-        case CONTRACT_TX: {
+        case CONTRACT_INVOKE_TX: {
             std::shared_ptr<CContractTx> tx = std::make_shared<CContractTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }
             break;
         }
-        case REWARD_TX: {
+        case BLOCK_REWARD_TX: {
             std::shared_ptr<CRewardTx> tx = std::make_shared<CRewardTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }
             break;
         }
-        case REG_CONT_TX: {
+        case CONTRACT_DEPLOY_TX: {
             std::shared_ptr<CRegisterContractTx> tx =
                 std::make_shared<CRegisterContractTx>(pBaseTx.get());
             if (tx.get()) {

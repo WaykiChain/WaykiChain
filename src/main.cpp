@@ -588,7 +588,7 @@ bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> &s
 
 bool CheckTx(CBaseTx *ptx, CValidationState &state, CAccountViewCache &view,
                       CScriptDBViewCache &scriptDB) {
-    if (REWARD_TX == ptx->nTxType) return true;
+    if (BLOCK_REWARD_TX == ptx->nTxType) return true;
 
     if (!ptx->CheckTx(state, view, scriptDB)) return false;
 
@@ -649,7 +649,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         CTxMemPoolEntry entry(pBaseTx, nFees, GetTime(), dPriority, chainActive.Height());
         unsigned int nSize = entry.GetTxSize();
 
-        if (pBaseTx->nTxType == COMMON_TX) {
+        if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
             CCommonTx *pTx = static_cast<CCommonTx *>(pBaseTx);
             if (pTx->bcoins < CBaseTx::nDustAmountThreshold)
                 return state.DoS(0,
@@ -1338,7 +1338,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
     if (isGensisBlock) {
         view.SetBestBlock(pIndex->GetBlockHash());
         for (unsigned int i = 1; i < block.vptx.size(); i++) {
-            if (block.vptx[i]->nTxType == REWARD_TX) {
+            if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
                 assert(i <= 1);
                 std::shared_ptr<CRewardTx> pRewardTx =
                     dynamic_pointer_cast<CRewardTx>(block.vptx[i]);
@@ -1432,7 +1432,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                 return state.DoS(100, ERRORMSG("ConnectBlock() : txhash=%s beyond the scope of valid height",
                                 pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
 
-            if (CONTRACT_TX == pBaseTx->nTxType)
+            if (CONTRACT_INVOKE_TX == pBaseTx->nTxType)
                 LogPrint("vm", "tx hash=%s ConnectBlock run contract\n", pBaseTx->GetHash().GetHex());
 
             LogPrint("op_account", "tx index:%d tx hash:%s\n", i, pBaseTx->GetHash().GetHex());
@@ -1447,7 +1447,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                                 block.GetHash().GetHex()), REJECT_INVALID, "exeed-max_step");
 
             uint64_t llFuel = ceil(pBaseTx->nRunStep / 100.f) * block.GetFuelRate();
-            if (REG_CONT_TX == pBaseTx->nTxType) {
+            if (CONTRACT_DEPLOY_TX == pBaseTx->nTxType) {
                 if (llFuel < 1 * COIN) {
                     llFuel = 1 * COIN;
                 }
@@ -3358,13 +3358,13 @@ void static ProcessGetData(CNode *pfrom) {
                     if (pBaseTx.get()) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
-                        if (COMMON_TX == pBaseTx->nTxType) {
+                        if (BCOIN_TRANSFER_TX == pBaseTx->nTxType) {
                             ss << *((CCommonTx *)(pBaseTx.get()));
-                        } else if (CONTRACT_TX == pBaseTx->nTxType) {
+                        } else if (CONTRACT_INVOKE_TX == pBaseTx->nTxType) {
                             ss << *((CContractTx *)(pBaseTx.get()));
-                        } else if (REG_ACCT_TX == pBaseTx->nTxType) {
+                        } else if (ACCOUNT_REGISTER_TX == pBaseTx->nTxType) {
                             ss << *((CRegisterAccountTx *)pBaseTx.get());
-                        } else if (REG_CONT_TX == pBaseTx->nTxType) {
+                        } else if (CONTRACT_DEPLOY_TX == pBaseTx->nTxType) {
                             ss << *((CRegisterContractTx *)pBaseTx.get());
                         } else if (DELEGATE_VOTE_TX == pBaseTx->nTxType) {
                             ss << *((CDelegateVoteTx *)pBaseTx.get());
@@ -3728,7 +3728,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
     else if (strCommand == "tx") {
         std::shared_ptr<CBaseTx> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
 
-        if (REWARD_TX == pBaseTx->nTxType)
+        if (BLOCK_REWARD_TX == pBaseTx->nTxType)
             return ERRORMSG("Reward tx from network NOT accepted. Hex:%s", HexStr(vRecv.begin(), vRecv.end()));
 
         vRecv >> pBaseTx;
@@ -4386,15 +4386,15 @@ class CMainCleanup {
 
 std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
     switch (uType) {
-        case COMMON_TX:
+        case BCOIN_TRANSFER_TX:
             return std::make_shared<CCommonTx>();
-        case CONTRACT_TX:
+        case CONTRACT_INVOKE_TX:
             return std::make_shared<CContractTx>();
-        case REG_ACCT_TX:
+        case ACCOUNT_REGISTER_TX:
             return std::make_shared<CRegisterAccountTx>();
-        case REWARD_TX:
+        case BLOCK_REWARD_TX:
             return std::make_shared<CRewardTx>();
-        case REG_CONT_TX:
+        case CONTRACT_DEPLOY_TX:
             return std::make_shared<CRegisterContractTx>();
         case DELEGATE_VOTE_TX:
             return std::make_shared<CDelegateVoteTx>();

@@ -29,7 +29,7 @@ using namespace std;
 using namespace json_spirit;
 
 
-static const int REG_CONT_TX_FEE_MIN = 1 * COIN;
+static const int CONTRACT_DEPLOY_TX_FEE_MIN = 1 * COIN;
 
 static bool FindKeyId(CAccountViewCache *pAccountView, string const &addr, CKeyID &keyId) {
     // first, try to parse regId
@@ -122,7 +122,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     uint64_t nDefaultFee = SysCfg().GetTxFee();
     int nFuelRate = GetElementForBurn(chainActive.Tip());
-    uint64_t regFee = std::max((int)ceil(vscript.size() / 100) * nFuelRate, REG_CONT_TX_FEE_MIN);
+    uint64_t regFee = std::max((int)ceil(vscript.size() / 100) * nFuelRate, CONTRACT_DEPLOY_TX_FEE_MIN);
     uint64_t minFee = regFee + nDefaultFee;
 
     uint64_t totalFee = minFee + 10000000; // set default totalFee
@@ -211,7 +211,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         if (!scriptDBViewTemp.HaveScript(appId)) {
             throw runtime_error(tinyformat::format("AppId %s is not exist\n", appId.ToString()));
         }
-        contractTx.nTxType   = CONTRACT_TX;
+        contractTx.nTxType   = CONTRACT_INVOKE_TX;
         contractTx.srcRegId  = srcRegId;
         contractTx.desUserId = appId;
         contractTx.bcoins  = amount;

@@ -36,30 +36,28 @@ static const int nTxVersion2 = 2;
 #define SCRIPT_ID_SIZE (6)
 
 enum TxType : unsigned char {
-    REWARD_TX        = 1,  //!< Miner Reward Tx
-    REG_ACCT_TX      = 2,  //!< Register Account Tx
-    COMMON_TX        = 3,  //!< Base Coin Transfer Tx
-    CONTRACT_TX      = 4,  //!< Contract Tx
-    REG_CONT_TX      = 5,  //!< Register Contract Tx
-    DELEGATE_VOTE_TX = 6,  //!< Vote Delegate Tx
-    COMMON_MTX       = 7,  //!< Multisig Tx
+    BLOCK_REWARD_TX     = 1,  //!< Miner Reward Tx
+    ACCOUNT_REGISTER_TX = 2,  //!< Account Register Tx
+    BCOIN_TRANSFER_TX   = 3,  //!< Base Coin Transfer Tx
+    CONTRACT_INVOKE_TX  = 4,  //!< Contract Tx
+    CONTRACT_DEPLOY_TX  = 5,  //!< Register Contract Tx
+    DELEGATE_VOTE_TX    = 6,  //!< Vote Delegate Tx
+    COMMON_MTX          = 7,  //!< Multisig Tx
 
     /******** Begin of Stable Coin TX Type Enums ********/
-    CDP_OPEN_TX      = 11,  //!< CDP Collateralize Tx
-    CDP_REFUEL_TX    = 12,  //!< CDP Refuel Tx
-    CDP_REDEMP_TX    = 13,  //!< CDP Redemption Tx (partial or full)
-    CDP_LIQUIDATE_TX = 14,  //!< CDP Liquidation Tx (partial or full)
+    CDP_OPEN_TX         = 11,  //!< CDP Collateralize Tx
+    CDP_REFUEL_TX       = 12,  //!< CDP Refuel Tx
+    CDP_REDEMP_TX       = 13,  //!< CDP Redemption Tx (partial or full)
+    CDP_LIQUIDATE_TX    = 14,  //!< CDP Liquidation Tx (partial or full)
 
-    PRICE_FEED_TX = 21,  //!< Price Feed Tx: WICC/USD | MICC/WUSD | WUSD/USD
+    PRICE_FEED_TX       = 21,  //!< Price Feed Tx: WICC/USD | MICC/WUSD | WUSD/USD
 
-    SFC_PARAM_MTX = 31,  //!< StableCoin Fund Committee invokes Param Set/Update MulSigTx
-    SFC_GLOBAL_HALT_MTX =
-        32,  //!< StableCoin Fund Committee invokes Global Halt CDP Operations MulSigTx
-    SFC_GLOBAL_SETTLE_MTX =
-        33,  //!< StableCoin Fund Committee invokes Global Settle Operation MulSigTx
+    SFC_PARAM_MTX       = 31,  //!< StableCoin Fund Committee invokes Param Set/Update MulSigTx
+    SFC_GLOBAL_HALT_MTX = 32,  //!< StableCoin Fund Committee invokes Global Halt CDP Operations MulSigTx
+    SFC_GLOBAL_SETTLE_MTX =33,  //!< StableCoin Fund Committee invokes Global Settle Operation MulSigTx
 
-    SCOIN_TRANSFER_TX = 41,  //!< StableCoin Transfer Tx
-    FCOIN_TRANSFER_TX = 42,  //!< FundCoin Transfer Tx
+    SCOIN_TRANSFER_TX   = 41,  //!< StableCoin Transfer Tx
+    FCOIN_TRANSFER_TX   = 42,  //!< FundCoin Transfer Tx
 
     DEX_WICC_FOR_MICC_TX = 51,  //!< DEX: owner sells WICC for MICC Tx
     DEX_MICC_FOR_WICC_TX = 52,  //!< DEX: owner sells MICC for WICC Tx
@@ -73,12 +71,12 @@ enum TxType : unsigned char {
 };
 
 static const unordered_map<unsigned char, string> kTxTypeMap = {
-    { REWARD_TX,            "REWARD_TX" },
-    { REG_ACCT_TX,          "REG_ACCT_TX" },
-    { COMMON_TX,            "COMMON_TX" },
-    { CONTRACT_TX,          "CONTRACT_TX" },
-    { REG_CONT_TX,          "REG_CONT_TX" },
-    { DELEGATE_VOTE_TX,          "DELEGATE_VOTE_TX" },
+    { BLOCK_REWARD_TX,      "BLOCK_REWARD_TX" },
+    { ACCOUNT_REGISTER_TX,       "ACCOUNT_REGISTER_TX" },
+    { BCOIN_TRANSFER_TX,    "BCOIN_TRANSFER_TX" },
+    { CONTRACT_INVOKE_TX,   "CONTRACT_INVOKE_TX" },
+    { CONTRACT_DEPLOY_TX,   "CONTRACT_DEPLOY_TX" },
+    { DELEGATE_VOTE_TX,     "DELEGATE_VOTE_TX" },
     { COMMON_MTX,           "COMMON_MTX"},
     { CDP_OPEN_TX,          "CDP_OPEN_TX" },
     { CDP_REFUEL_TX,        "CDP_REFUEL_TX" },
@@ -150,7 +148,7 @@ public:
     virtual bool GetAddress(std::set<CKeyID> &vAddr, CAccountViewCache &view,
                             CScriptDBViewCache &scriptDB)             = 0;
     virtual bool IsValidHeight(int nCurHeight, int nTxCacheHeight) const;
-    bool IsCoinBase() { return (nTxType == REWARD_TX); }
+    bool IsCoinBase() { return (nTxType == BLOCK_REWARD_TX); }
     virtual bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
                            CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
                            CScriptDBViewCache &scriptDB)     = 0;
@@ -172,16 +170,16 @@ public:
     mutable CUserID minerUid;  // miner pubkey
 
 public:
-    CRegisterAccountTx(const CBaseTx *pBaseTx): CBaseTx(REG_ACCT_TX) {
-        assert(REG_ACCT_TX == pBaseTx->nTxType);
+    CRegisterAccountTx(const CBaseTx *pBaseTx): CBaseTx(ACCOUNT_REGISTER_TX) {
+        assert(ACCOUNT_REGISTER_TX == pBaseTx->nTxType);
         *this = *(CRegisterAccountTx *)pBaseTx;
     }
     CRegisterAccountTx(const CUserID &uId, const CUserID &minerUidIn, int64_t feeIn, int validHeightIn) :
-        CBaseTx(REG_ACCT_TX, validHeightIn, feeIn) {
+        CBaseTx(ACCOUNT_REGISTER_TX, validHeightIn, feeIn) {
         txUid       = uId;
         minerUid    = minerUidIn;
     }
-    CRegisterAccountTx(): CBaseTx(REG_ACCT_TX) {}
+    CRegisterAccountTx(): CBaseTx(ACCOUNT_REGISTER_TX) {}
 
     ~CRegisterAccountTx() {}
 
@@ -229,16 +227,16 @@ public:
     vector_unsigned_char memo;
 
 public:
-    CCommonTx(): CBaseTx(COMMON_TX) { }
+    CCommonTx(): CBaseTx(BCOIN_TRANSFER_TX) { }
 
-    CCommonTx(const CBaseTx *pBaseTx): CBaseTx(COMMON_TX) {
-        assert(COMMON_TX == pBaseTx->nTxType);
+    CCommonTx(const CBaseTx *pBaseTx): CBaseTx(BCOIN_TRANSFER_TX) {
+        assert(BCOIN_TRANSFER_TX == pBaseTx->nTxType);
         *this = *(CCommonTx *)pBaseTx;
     }
 
     CCommonTx(const CUserID &txUidIn, CUserID toUidIn, uint64_t feeIn, uint64_t valueIn,
               int validHeightIn, vector_unsigned_char &descriptionIn) :
-              CBaseTx(COMMON_TX, validHeightIn, feeIn) {
+              CBaseTx(BCOIN_TRANSFER_TX, validHeightIn, feeIn) {
 
         //FIXME: need to support public key
         if (txUidIn.type() == typeid(CRegID))
@@ -254,7 +252,7 @@ public:
     }
 
     CCommonTx(const CUserID &txUidIn, CUserID toUidIn, uint64_t feeIn, uint64_t valueIn,
-              int validHeightIn): CBaseTx(COMMON_TX, validHeightIn, feeIn) {
+              int validHeightIn): CBaseTx(BCOIN_TRANSFER_TX, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
 
@@ -316,16 +314,16 @@ public:
     vector_unsigned_char arguments; // arguments to invoke a contract method
 
 public:
-    CContractTx() : CBaseTx(CONTRACT_TX) {}
+    CContractTx() : CBaseTx(CONTRACT_INVOKE_TX) {}
 
-    CContractTx(const CBaseTx *pBaseTx): CBaseTx(CONTRACT_TX) {
-        assert(CONTRACT_TX == pBaseTx->nTxType);
+    CContractTx(const CBaseTx *pBaseTx): CBaseTx(CONTRACT_INVOKE_TX) {
+        assert(CONTRACT_INVOKE_TX == pBaseTx->nTxType);
         *this = *(CContractTx *)pBaseTx;
     }
 
     CContractTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feeIn,
                 uint64_t bcoinsIn, int validHeightIn, vector_unsigned_char &argumentsIn):
-                CBaseTx(CONTRACT_TX, validHeightIn, feeIn) {
+                CBaseTx(CONTRACT_INVOKE_TX, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty()); //FIXME: shouldnot be using assert here, throw an error instead.
 
@@ -339,7 +337,7 @@ public:
     }
 
     CContractTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feeIn, uint64_t bcoinsIn, int validHeightIn):
-                CBaseTx(CONTRACT_TX, validHeightIn, feeIn) {
+                CBaseTx(CONTRACT_INVOKE_TX, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
 
@@ -401,13 +399,13 @@ public:
     int nHeight;
 
 public:
-    CRewardTx(): CBaseTx(REWARD_TX) { rewardValue = 0; }
-    CRewardTx(const CBaseTx *pBaseTx): CBaseTx(REWARD_TX) {
-        assert(REWARD_TX == pBaseTx->nTxType);
+    CRewardTx(): CBaseTx(BLOCK_REWARD_TX) { rewardValue = 0; }
+    CRewardTx(const CBaseTx *pBaseTx): CBaseTx(BLOCK_REWARD_TX) {
+        assert(BLOCK_REWARD_TX == pBaseTx->nTxType);
         *this = *(CRewardTx *)pBaseTx;
     }
     CRewardTx(const vector_unsigned_char &accountIn, const uint64_t rewardValueIn, const int nHeightIn):
-        CBaseTx(REWARD_TX) {
+        CBaseTx(BLOCK_REWARD_TX) {
         if (accountIn.size() > 6) {
             txUid = CPubKey(accountIn);
         } else {
@@ -460,11 +458,11 @@ public:
     vector_unsigned_char contractScript;  // contract script content
 
 public:
-    CRegisterContractTx(const CBaseTx *pBaseTx): CBaseTx(REG_CONT_TX) {
-        assert(REG_CONT_TX == pBaseTx->nTxType);
+    CRegisterContractTx(const CBaseTx *pBaseTx): CBaseTx(CONTRACT_DEPLOY_TX) {
+        assert(CONTRACT_DEPLOY_TX == pBaseTx->nTxType);
         *this = *(CRegisterContractTx *)pBaseTx;
     }
-    CRegisterContractTx(): CBaseTx(REG_CONT_TX) {}
+    CRegisterContractTx(): CBaseTx(CONTRACT_DEPLOY_TX) {}
     ~CRegisterContractTx() {}
 
     IMPLEMENT_SERIALIZE(
@@ -752,15 +750,15 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nTy
 // void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
 //     unsigned char nTxType = pa->nTxType;
 //     Serialize(os, nTxType, nType, nVersion);
-//     if (pa->nTxType == REG_ACCT_TX) {
+//     if (pa->nTxType == ACCOUNT_REGISTER_TX) {
 //         Serialize(os, *((CRegisterAccountTx *)(pa.get())), nType, nVersion);
-//     } else if (pa->nTxType == COMMON_TX) {
+//     } else if (pa->nTxType == BCOIN_TRANSFER_TX) {
 //         Serialize(os, *((CCommonTx *)(pa.get())), nType, nVersion);
-//     } else if (pa->nTxType == CONTRACT_TX) {
+//     } else if (pa->nTxType == CONTRACT_INVOKE_TX) {
 //         Serialize(os, *((CContractTx *)(pa.get())), nType, nVersion);
-//     } else if (pa->nTxType == REWARD_TX) {
+//     } else if (pa->nTxType == BLOCK_REWARD_TX) {
 //         Serialize(os, *((CRewardTx *)(pa.get())), nType, nVersion);
-//     } else if (pa->nTxType == REG_CONT_TX) {
+//     } else if (pa->nTxType == CONTRACT_DEPLOY_TX) {
 //         Serialize(os, *((CRegisterContractTx *)(pa.get())), nType, nVersion);
 //     } else if (pa->nTxType == DELEGATE_VOTE_TX) {
 //         Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
@@ -776,19 +774,19 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nTy
 // void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
 //     unsigned char nTxType;
 //     is.read((char *)&(nTxType), sizeof(nTxType));
-//     if (nTxType == REG_ACCT_TX) {
+//     if (nTxType == ACCOUNT_REGISTER_TX) {
 //         pa = std::make_shared<CRegisterAccountTx>();
 //         Unserialize(is, *((CRegisterAccountTx *)(pa.get())), nType, nVersion);
-//     } else if (nTxType == COMMON_TX) {
+//     } else if (nTxType == BCOIN_TRANSFER_TX) {
 //         pa = std::make_shared<CCommonTx>();
 //         Unserialize(is, *((CCommonTx *)(pa.get())), nType, nVersion);
-//     } else if (nTxType == CONTRACT_TX) {
+//     } else if (nTxType == CONTRACT_INVOKE_TX) {
 //         pa = std::make_shared<CContractTx>();
 //         Unserialize(is, *((CContractTx *)(pa.get())), nType, nVersion);
-//     } else if (nTxType == REWARD_TX) {
+//     } else if (nTxType == BLOCK_REWARD_TX) {
 //         pa = std::make_shared<CRewardTx>();
 //         Unserialize(is, *((CRewardTx *)(pa.get())), nType, nVersion);
-//     } else if (nTxType == REG_CONT_TX) {
+//     } else if (nTxType == CONTRACT_DEPLOY_TX) {
 //         pa = std::make_shared<CRegisterContractTx>();
 //         Unserialize(is, *((CRegisterContractTx *)(pa.get())), nType, nVersion);
 //     } else if (nTxType == DELEGATE_VOTE_TX) {
