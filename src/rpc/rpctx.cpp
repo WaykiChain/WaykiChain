@@ -256,7 +256,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             break;
         }
         case REG_CONT_TX:
-        case DELEGATE_TX: {
+        case DELEGATE_VOTE_TX: {
             if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
                 return arrayDetail;
 
@@ -268,8 +268,8 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             if (pBaseTx->nTxType == REG_CONT_TX)
                 obj.push_back(Pair("txtype", "REG_CONT_TX"));
-            else if (pBaseTx->nTxType == DELEGATE_TX)
-                obj.push_back(Pair("txtype", "DELEGATE_TX"));
+            else if (pBaseTx->nTxType == DELEGATE_VOTE_TX)
+                obj.push_back(Pair("txtype", "DELEGATE_VOTE_TX"));
 
             arrayDetail.push_back(obj);
 
@@ -2641,7 +2641,7 @@ Value signtxraw(const Array& params, bool fHelp) {
             break;
         }
 
-        case DELEGATE_TX: {
+        case DELEGATE_VOTE_TX: {
             std::shared_ptr<CDelegateVoteTx> tx = std::make_shared<CDelegateVoteTx>(pBaseTx.get());
             if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
@@ -2817,7 +2817,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             }
             break;
         }
-        case DELEGATE_TX: {
+        case DELEGATE_VOTE_TX: {
             std::shared_ptr<CDelegateVoteTx> tx = std::make_shared<CDelegateVoteTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);

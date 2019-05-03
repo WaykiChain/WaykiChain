@@ -41,7 +41,7 @@ enum TxType : unsigned char {
     COMMON_TX        = 3,  //!< Base Coin Transfer Tx
     CONTRACT_TX      = 4,  //!< Contract Tx
     REG_CONT_TX      = 5,  //!< Register Contract Tx
-    DELEGATE_TX      = 6,  //!< Vote Delegate Tx
+    DELEGATE_VOTE_TX      = 6,  //!< Vote Delegate Tx
     COMMON_MTX       = 7,  //!< Multisig Tx
 
     /******** Begin of Stable Coin TX Type Enums ********/
@@ -78,7 +78,7 @@ static const unordered_map<unsigned char, string> kTxTypeMap = {
     { COMMON_TX,            "COMMON_TX" },
     { CONTRACT_TX,          "CONTRACT_TX" },
     { REG_CONT_TX,          "REG_CONT_TX" },
-    { DELEGATE_TX,          "DELEGATE_TX" },
+    { DELEGATE_VOTE_TX,          "DELEGATE_VOTE_TX" },
     { COMMON_MTX,           "COMMON_MTX"},
     { CDP_OPEN_TX,          "CDP_OPEN_TX" },
     { CDP_REFUEL_TX,        "CDP_REFUEL_TX" },
@@ -511,13 +511,13 @@ public:
     vector<COperVoteFund> operVoteFunds;  //!< oper delegate votes, max length is Delegates number
 
 public:
-    CDelegateVoteTx(const CBaseTx *pBaseTx): CBaseTx(DELEGATE_TX) {
-        assert(DELEGATE_TX == pBaseTx->nTxType);
+    CDelegateVoteTx(const CBaseTx *pBaseTx): CBaseTx(DELEGATE_VOTE_TX) {
+        assert(DELEGATE_VOTE_TX == pBaseTx->nTxType);
         *this = *(CDelegateVoteTx *)pBaseTx;
     }
     CDelegateVoteTx(const vector_unsigned_char &accountIn, const vector<COperVoteFund> &operVoteFundsIn,
                 const uint64_t feeIn, const int validHeightIn)
-        : CBaseTx(DELEGATE_TX, validHeightIn, feeIn) {
+        : CBaseTx(DELEGATE_VOTE_TX, validHeightIn, feeIn) {
         if (accountIn.size() > 6) {
             txUid = CPubKey(accountIn);
         } else {
@@ -527,13 +527,13 @@ public:
     }
     CDelegateVoteTx(const CUserID &userIdIn, const uint64_t feeIn,
                 const vector<COperVoteFund> &operVoteFundsIn, const int validHeightIn)
-        : CBaseTx(DELEGATE_TX, validHeightIn, feeIn) {
+        : CBaseTx(DELEGATE_VOTE_TX, validHeightIn, feeIn) {
         if (userIdIn.type() == typeid(CRegID)) assert(!userIdIn.get<CRegID>().IsEmpty());
 
         txUid        = userIdIn;
         operVoteFunds = operVoteFundsIn;
     }
-    CDelegateVoteTx(): CBaseTx(DELEGATE_TX) {}
+    CDelegateVoteTx(): CBaseTx(DELEGATE_VOTE_TX) {}
     ~CDelegateVoteTx() {}
 
     IMPLEMENT_SERIALIZE(
@@ -764,7 +764,7 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nTy
 //         Serialize(os, *((CRewardTx *)(pa.get())), nType, nVersion);
 //     } else if (pa->nTxType == REG_CONT_TX) {
 //         Serialize(os, *((CRegisterContractTx *)(pa.get())), nType, nVersion);
-//     } else if (pa->nTxType == DELEGATE_TX) {
+//     } else if (pa->nTxType == DELEGATE_VOTE_TX) {
 //         Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
 //     } else if (pa->nTxType == COMMON_MTX) {
 //         Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion);
@@ -793,7 +793,7 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nTy
 //     } else if (nTxType == REG_CONT_TX) {
 //         pa = std::make_shared<CRegisterContractTx>();
 //         Unserialize(is, *((CRegisterContractTx *)(pa.get())), nType, nVersion);
-//     } else if (nTxType == DELEGATE_TX) {
+//     } else if (nTxType == DELEGATE_VOTE_TX) {
 //         pa = std::make_shared<CDelegateVoteTx>();
 //         Unserialize(is, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
 //     } else if (nTxType == COMMON_MTX) {
