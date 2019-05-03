@@ -178,7 +178,7 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
 
         CAccount preDelegate;
         CRewardTx *preBlockRewardTx = (CRewardTx *)preBlock.vptx[0].get();
-        if (!view.GetAccount(preBlockRewardTx->account, preDelegate)) {
+        if (!view.GetAccount(preBlockRewardTx->txUid, preDelegate)) {
             return ERRORMSG("get preblock delegate account info error");
         }
         if (currentTime - preBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
@@ -189,8 +189,8 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
 
     pBlock->SetNonce(nNonce);
     CRewardTx *prtx = (CRewardTx *)pBlock->vptx[0].get();
-    prtx->account            = delegate.regID;  //记账人账户ID
-    prtx->nHeight            = pBlock->GetHeight();
+    prtx->txUid     = delegate.regID;  //记账人账户ID
+    prtx->nHeight   = pBlock->GetHeight();
     pBlock->SetMerkleRootHash(pBlock->BuildMerkleTree());
     pBlock->SetTime(currentTime);
 
@@ -255,7 +255,7 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
 
         CAccount preDelegate;
         CRewardTx *preBlockRewardTx = (CRewardTx *)preBlock.vptx[0].get();
-        if (!view.GetAccount(preBlockRewardTx->account, preDelegate))
+        if (!view.GetAccount(preBlockRewardTx->txUid, preDelegate))
             return ERRORMSG("get preblock delegate account info error");
 
         if (pBlock->GetBlockTime() - preBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
@@ -266,7 +266,7 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
 
     CAccount account;
     CRewardTx *prtx = (CRewardTx *)pBlock->vptx[0].get();
-    if (view.GetAccount(prtx->account, account)) {
+    if (view.GetAccount(prtx->txUid, account)) {
         if (curDelegate.regID != account.regID) {
             return ERRORMSG("Verify delegate account error, delegate regid=%s vs reward regid=%s!",
                 curDelegate.regID.ToString(), account.regID.ToString());

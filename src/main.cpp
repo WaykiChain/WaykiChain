@@ -67,7 +67,7 @@ CSignatureCache signatureCache;
 /** Fees smaller than this (in sawi) are considered zero fee (for transaction creation) */
 uint64_t CBaseTx::nMinTxFee = 10000;  // Override with -mintxfee
 /** Fees smaller than this (in sawi) are considered zero fee (for relaying and mining) */
-int64_t CBaseTx::nMinRelayTxFee = 1000;
+uint64_t CBaseTx::nMinRelayTxFee = 1000;
 /** Amout smaller than this (in sawi) is considered dust amount */
 uint64_t CBaseTx::nDustAmountThreshold = 10000;
 /** Amount of blocks that other nodes claim to have */
@@ -596,7 +596,7 @@ bool CheckTx(CBaseTx *ptx, CValidationState &state, CAccountViewCache &view,
 }
 
 int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree) {
-    int64_t nBaseFee = pBaseTx->nMinRelayTxFee;
+    uint64_t nBaseFee = pBaseTx->nMinRelayTxFee;
     int64_t nMinFee  = (1 + (int64_t)nBytes / 1000) * nBaseFee;
 
     if (fAllowFree) {

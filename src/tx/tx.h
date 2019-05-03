@@ -88,8 +88,6 @@ static const unordered_map<unsigned char, string> kTxTypeMap = {
     { SFC_PARAM_MTX,        "SFC_PARAM_MTX" },
     { SFC_GLOBAL_HALT_MTX,  "SFC_GLOBAL_HALT_MTX" },
     { SFC_GLOBAL_SETTLE_MTX,"SFC_GLOBAL_SETTLE_MTX" },
-    { WUSD_TRANSFER_TX,     "WUSD_TRANSFER_TX" },
-    { MICC_TRANSFER_TX,     "MICC_TRANSFER_TX" },
     { DEX_WICC_FOR_MICC_TX, "DEX_WICC_FOR_MICC_TX" },
     { DEX_MICC_FOR_WICC_TX, "DEX_MICC_FOR_WICC_TX" },
     { DEX_WICC_FOR_WUSD_TX, "DEX_WICC_FOR_WUSD_TX" },
@@ -171,17 +169,17 @@ protected:
 
 class CRegisterAccountTx : public CBaseTx {
 public:
-    mutable CUserID minerId;  // miner pubkey
+    mutable CUserID minerUid;  // miner pubkey
 
 public:
     CRegisterAccountTx(const CBaseTx *pBaseTx): CBaseTx(REG_ACCT_TX) {
         assert(REG_ACCT_TX == pBaseTx->nTxType);
         *this = *(CRegisterAccountTx *)pBaseTx;
     }
-    CRegisterAccountTx(const CUserID &uId, const CUserID &minerID, int64_t feeIn, int validHeightIn) :
+    CRegisterAccountTx(const CUserID &uId, const CUserID &minerUidIn, int64_t feeIn, int validHeightIn) :
         CBaseTx(REG_ACCT_TX, validHeightIn, feeIn) {
         txUid       = uId;
-        minerId      = minerID;
+        minerUid    = minerUidIn;
     }
     CRegisterAccountTx(): CBaseTx(REG_ACCT_TX) {}
 
@@ -192,7 +190,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
-        READWRITE(minerId);
+        READWRITE(minerUid);
         READWRITE(VARINT(llFees));
         READWRITE(signature);)
 
@@ -202,7 +200,7 @@ public:
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << minerId
+            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << minerUid
                << VARINT(llFees);
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
@@ -226,7 +224,7 @@ public:
 
 class CCommonTx : public CBaseTx {
 public:
-    mutable CUserID receipientUid;  // regid or keyid
+    mutable CUserID toUid;  // Recipient Regid or Keyid
     uint64_t bcoins;      // transfer amount
     vector_unsigned_char memo;
 
@@ -238,33 +236,33 @@ public:
         *this = *(CCommonTx *)pBaseTx;
     }
 
-    CCommonTx(const CUserID &srcUserIdIn, CUserID desUserIdIn, uint64_t feeIn, uint64_t valueIn,
+    CCommonTx(const CUserID &txUidIn, CUserID toUidIn, uint64_t feeIn, uint64_t valueIn,
               int validHeightIn, vector_unsigned_char &descriptionIn) :
               CBaseTx(COMMON_TX, validHeightIn, feeIn) {
 
         //FIXME: need to support public key
-        if (srcUserIdIn.type() == typeid(CRegID))
-            assert(!srcUserIdIn.get<CRegID>().IsEmpty());
+        if (txUidIn.type() == typeid(CRegID))
+            assert(!txUidIn.get<CRegID>().IsEmpty());
 
-        if (desUserIdIn.type() == typeid(CRegID))
-            assert(!desUserIdIn.get<CRegID>().IsEmpty());
+        if (toUidIn.type() == typeid(CRegID))
+            assert(!toUidIn.get<CRegID>().IsEmpty());
 
-        txUid    = srcUserIdIn;
-        receipientUid    = desUserIdIn;
-        bcoins = valueIn;
-        memo         = descriptionIn;
+        txUid   = txUidIn;
+        toUid   = toUidIn;
+        bcoins  = valueIn;
+        memo    = descriptionIn;
     }
 
-    CCommonTx(const CUserID &srcUserIdIn, CUserID desUserIdIn, uint64_t feeIn, uint64_t valueIn,
+    CCommonTx(const CUserID &txUidIn, CUserID toUidIn, uint64_t feeIn, uint64_t valueIn,
               int validHeightIn): CBaseTx(COMMON_TX, validHeightIn, feeIn) {
-        if (srcUserIdIn.type() == typeid(CRegID))
-            assert(!srcUserIdIn.get<CRegID>().IsEmpty());
+        if (txUidIn.type() == typeid(CRegID))
+            assert(!txUidIn.get<CRegID>().IsEmpty());
 
-        if (desUserIdIn.type() == typeid(CRegID))
-            assert(!desUserIdIn.get<CRegID>().IsEmpty());
+        if (toUidIn.type() == typeid(CRegID))
+            assert(!toUidIn.get<CRegID>().IsEmpty());
 
-        txUid    = srcUserIdIn;
-        receipientUid    = desUserIdIn;
+        txUid  = txUidIn;
+        toUid  = toUidIn;
         bcoins = valueIn;
     }
 
@@ -275,7 +273,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
-        READWRITE(receipientUid);
+        READWRITE(toUid);
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(bcoins));
         READWRITE(memo);
@@ -285,7 +283,7 @@ public:
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << receipientUid
+            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << toUid
                << VARINT(llFees) << VARINT(bcoins) << memo;
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
@@ -360,7 +358,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
-        READWRITE(appRegId);
+        READWRITE(appUid);
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(bcoins));
         READWRITE(arguments);
@@ -370,7 +368,7 @@ public:
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << appRegId
+            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << appUid
                << VARINT(llFees) << VARINT(bcoins) << arguments;
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);

@@ -94,8 +94,8 @@ Value getbalance(const Array& params, bool fHelp)
                             if (COMMON_TX == item.second->nTxType) {
                                 CCommonTx *pTx = (CCommonTx *)item.second.get();
                                 CKeyID srcKeyId, desKeyId;
-                                pAccountViewTip->GetKeyId(pTx->srcUserId, srcKeyId);
-                                pAccountViewTip->GetKeyId(pTx->desUserId, desKeyId);
+                                pAccountViewTip->GetKeyId(pTx->txUid, srcKeyId);
+                                pAccountViewTip->GetKeyId(pTx->toUid, desKeyId);
                                 if (!pwalletMain->HaveKey(srcKeyId) && pwalletMain->HaveKey(desKeyId)) {
                                     nValue = pTx->bcoins;
                                 }
@@ -128,7 +128,7 @@ Value getbalance(const Array& params, bool fHelp)
                                 if (COMMON_TX == item.second->nTxType) {
                                     CCommonTx *pTx = (CCommonTx *)item.second.get();
                                     CKeyID srcKeyId, desKeyId;
-                                    pAccountViewTip->GetKeyId(pTx->desUserId, desKeyId);
+                                    pAccountViewTip->GetKeyId(pTx->toUid, desKeyId);
                                     if (keyid == desKeyId) {
                                         nValue = pTx->bcoins;
                                     }
