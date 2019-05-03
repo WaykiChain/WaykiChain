@@ -36,8 +36,8 @@ public:
     uint64_t bcoins; //!< Free Base Coins
     uint64_t scoins; //!< Stable Coins
     uint64_t fcoins; //!< FundCoin balance
-
-    uint64_t receivedVotes; //!< votes received
+    uint64_t priceFeedDeposit;  //!< Deposit in bcoins to ensure proper price feed activity, 30% deviation causes cutting the deposit 
+    uint64_t receivedVotes; //!< votes received in bcoins
 
     uint64_t lastVoteHeight;     //!< account's last vote block height used for computing interest
     vector<CVoteFund> voteFunds; //!< account delegates votes sorted by vote amount

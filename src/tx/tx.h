@@ -42,7 +42,7 @@ enum TxType : unsigned char {
     CONTRACT_TX      = 4,  //!< Contract Tx
     REG_CONT_TX      = 5,  //!< Register Contract Tx
     DELEGATE_TX      = 6,  //!< Vote Delegate Tx
-    COMMON_MULSIG_TX = 7,  //!< Multisig Tx
+    COMMON_MTX       = 7,  //!< Multisig Tx
 
     /******** Begin of Stable Coin TX Type Enums ********/
     CDP_OPEN_TX      = 11,  //!< CDP Collateralize Tx
@@ -50,9 +50,7 @@ enum TxType : unsigned char {
     CDP_REDEMP_TX    = 13,  //!< CDP Redemption Tx (partial or full)
     CDP_LIQUIDATE_TX = 14,  //!< CDP Liquidation Tx (partial or full)
 
-    PRICE_FEED_WICC_TX = 21,  //!< Price Feed Tx: WICC/USD
-    PRICE_FEED_MICC_TX = 22,  //!< Price Feed Tx: MICC/USD
-    PRICE_FEED_WUSD_TX = 23,  //!< Price Feed Tx: WUSD/USD
+    PRICE_FEED_TX = 21,  //!< Price Feed Tx: WICC/USD | MICC/WUSD | WUSD/USD
 
     SFC_PARAM_MTX = 31,  //!< StableCoin Fund Committee invokes Param Set/Update MulSigTx
     SFC_GLOBAL_HALT_MTX =
@@ -81,14 +79,12 @@ static const unordered_map<unsigned char, string> kTxTypeMap = {
     { CONTRACT_TX,          "CONTRACT_TX" },
     { REG_CONT_TX,          "REG_CONT_TX" },
     { DELEGATE_TX,          "DELEGATE_TX" },
-    { COMMON_MULSIG_TX,     "COMMON_MULSIG_TX"},
+    { COMMON_MTX,           "COMMON_MTX"},
     { CDP_OPEN_TX,          "CDP_OPEN_TX" },
     { CDP_REFUEL_TX,        "CDP_REFUEL_TX" },
     { CDP_REDEMP_TX,        "CDP_REDEMP_TX" },
     { CDP_LIQUIDATE_TX,     "CDP_LIQUIDATE_TX" },
-    { PRICE_FEED_WICC_TX,   "PRICE_FEED_WICC_TX" },
-    { PRICE_FEED_MICC_TX,   "PRICE_FEED_MICC_TX" },
-    { PRICE_FEED_WUSD_TX,   "PRICE_FEED_WUSD_TX" },
+    { PRICE_FEED_TX,        "PRICE_FEED_TX" },
     { SFC_PARAM_MTX,        "SFC_PARAM_MTX" },
     { SFC_GLOBAL_HALT_MTX,  "SFC_GLOBAL_HALT_MTX" },
     { SFC_GLOBAL_SETTLE_MTX,"SFC_GLOBAL_SETTLE_MTX" },
@@ -108,13 +104,14 @@ string GetTxType(unsigned char txType);
 class CBaseTx {
 public:
     static uint64_t nMinTxFee;
-    static int64_t nMinRelayTxFee;
+    static uint64_t nMinRelayTxFee;
     static uint64_t nDustAmountThreshold;
     static const int CURRENT_VERSION = nTxVersion1;
     int nVersion;
     unsigned char nTxType;
     int nValidHeight;
     uint64_t llFees;
+    vector_unsigned_char signature;
 
     uint64_t nRunStep;  //!< only in memory
     int nFuelRate;      //!< only in memory
@@ -174,7 +171,6 @@ class CRegisterAccountTx : public CBaseTx {
 public:
     mutable CUserID userId;   // pubkey
     mutable CUserID minerId;  // miner pubkey
-    vector<unsigned char> signature;
 
 public:
     CRegisterAccountTx(const CBaseTx *pBaseTx): CBaseTx(REG_ACCT_TX) {
@@ -233,7 +229,6 @@ public:
     mutable CUserID desUserId;  // regid or keyid
     uint64_t bcoins;      // transfer amount
     vector_unsigned_char memo;
-    vector_unsigned_char signature;
 
 public:
     CCommonTx(): CBaseTx(COMMON_TX) { }
@@ -322,7 +317,6 @@ public:
     mutable CUserID desUserId;  // app regid
     uint64_t bcoins;      // transfer amount
     vector_unsigned_char arguments;
-    vector_unsigned_char signature;
 
 public:
     CContractTx() : CBaseTx(CONTRACT_TX) {}
@@ -470,7 +464,6 @@ class CRegisterContractTx : public CBaseTx {
 public:
     mutable CUserID regAcctId;    // contract publisher regid
     vector_unsigned_char script;  // contract script content
-    vector_unsigned_char signature;
 
 public:
     CRegisterContractTx(const CBaseTx *pBaseTx): CBaseTx(REG_CONT_TX) {
@@ -521,7 +514,6 @@ class CDelegateTx : public CBaseTx {
 public:
     mutable CUserID userId;
     vector<COperVoteFund> operVoteFunds;  //!< oper delegate votes, max length is Delegates number
-    vector_unsigned_char signature;
 
 public:
     CDelegateTx(const CBaseTx *pBaseTx): CBaseTx(DELEGATE_TX) {
@@ -669,32 +661,32 @@ public:
 
 class CMulsigTx : public CBaseTx {
 public:
-    vector<CSignaturePair> signaturePairs;  //!< signature pair
     mutable CUserID desUserId;              //!< keyid or regid
-    uint64_t bcoins;                  //!< transfer amount
+    uint64_t bcoins;                        //!< transfer amount
     uint8_t required;                       //!< required keys
     vector_unsigned_char memo;              //!< memo
+    vector<CSignaturePair> signaturePairs;  //!< signature pair
 
     CKeyID keyId;  //!< only in memory
 
 public:
-    CMulsigTx() : CBaseTx(COMMON_MULSIG_TX) {}
+    CMulsigTx() : CBaseTx(COMMON_MTX) {}
 
-    CMulsigTx(const CBaseTx *pBaseTx) : CBaseTx(COMMON_MULSIG_TX) {
-        assert(COMMON_MULSIG_TX == pBaseTx->nTxType);
+    CMulsigTx(const CBaseTx *pBaseTx) : CBaseTx(COMMON_MTX) {
+        assert(COMMON_MTX == pBaseTx->nTxType);
         *this = *(CMulsigTx *)pBaseTx;
     }
 
     CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
                 uint64_t feeIn, const uint64_t valueIn, const int validHeightIn,
                 const uint8_t requiredIn, const vector_unsigned_char &memoIn)
-        : CBaseTx(COMMON_MULSIG_TX, validHeightIn, feeIn) {
+        : CBaseTx(COMMON_MTX, validHeightIn, feeIn) {
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!desUserIdIn.get<CRegID>().IsEmpty());
 
         signaturePairs = signaturePairsIn;
         desUserId      = desUserIdIn;
-        bcoins   = valueIn;
+        bcoins         = valueIn;
         required       = requiredIn;
         memo           = memoIn;
     }
@@ -702,7 +694,7 @@ public:
     CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
                 uint64_t feeIn, const uint64_t valueIn, const int validHeightIn,
                 const uint8_t requiredIn)
-        : CBaseTx(COMMON_MULSIG_TX, validHeightIn, feeIn) {
+        : CBaseTx(COMMON_MTX, validHeightIn, feeIn) {
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!desUserIdIn.get<CRegID>().IsEmpty());
 
@@ -762,6 +754,7 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nTy
     return pa->GetSerializeSize(nType, nVersion) + 1;
 }
 
+//FIXME: not in use, consider moving it into test code
 template <typename Stream>
 void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
     unsigned char nTxType = pa->nTxType;
@@ -778,14 +771,14 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
         Serialize(os, *((CRegisterContractTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == DELEGATE_TX) {
         Serialize(os, *((CDelegateTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == COMMON_MULSIG_TX) {
+    } else if (pa->nTxType == COMMON_MTX) {
         Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion);
     } else {
         string sTxType(1, nTxType);
         throw ios_base::failure("Serialize: nTxType (" + sTxType + ") value error.");
     }
 }
-
+//FIXME: not in use, consider moving it into test code
 template <typename Stream>
 void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
     unsigned char nTxType;
@@ -808,7 +801,7 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
     } else if (nTxType == DELEGATE_TX) {
         pa = std::make_shared<CDelegateTx>();
         Unserialize(is, *((CDelegateTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == COMMON_MULSIG_TX) {
+    } else if (nTxType == COMMON_MTX) {
         pa = std::make_shared<CMulsigTx>();
         Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
     } else {
