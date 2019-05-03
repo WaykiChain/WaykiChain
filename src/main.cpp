@@ -1344,7 +1344,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                     dynamic_pointer_cast<CRewardTx>(block.vptx[i]);
                 CAccount sourceAccount;
                 CRegID accountId(pIndex->nHeight, i);
-                CPubKey pubKey      = pRewardTx->account.get<CPubKey>();
+                CPubKey pubKey      = pRewardTx->txUid.get<CPubKey>();
                 CKeyID keyId        = pubKey.GetKeyId();
                 sourceAccount.keyID = keyId;
                 sourceAccount.pubKey = pubKey;
@@ -1353,11 +1353,11 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                 assert( view.SaveAccountInfo(accountId, keyId, sourceAccount) );
             } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
                 std::shared_ptr<CDelegateVoteTx> pDelegateTx = dynamic_pointer_cast<CDelegateVoteTx>(block.vptx[i]);
-                assert( pDelegateTx->userId.type() == typeid(CRegID)) ; // Vote Tx must use RegId
+                assert( pDelegateTx->txUid.type() == typeid(CRegID)) ; // Vote Tx must use RegId
 
                 CAccount voterAcct;
-                assert( view.GetAccount(pDelegateTx->userId, voterAcct) );
-                CUserID voterCId(pDelegateTx->userId);
+                assert( view.GetAccount(pDelegateTx->txUid, voterAcct) );
+                CUserID voterCId(pDelegateTx->txUid);
                 uint64_t maxVotes = 0;
                 CScriptDBOperLog operDbLog;
                 int j = i;
@@ -1468,7 +1468,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
 
     std::shared_ptr<CRewardTx> pRewardTx = dynamic_pointer_cast<CRewardTx>(block.vptx[0]);
     CAccount minerAcct;
-    if (!view.GetAccount(pRewardTx->account, minerAcct)) {
+    if (!view.GetAccount(pRewardTx->txUid, minerAcct)) {
         assert(0);
     }
     // LogPrint("INFO", "miner address=%s\n", minerAcct.keyID.ToAddress());

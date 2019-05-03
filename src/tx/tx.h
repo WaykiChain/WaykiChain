@@ -41,7 +41,7 @@ enum TxType : unsigned char {
     COMMON_TX        = 3,  //!< Base Coin Transfer Tx
     CONTRACT_TX      = 4,  //!< Contract Tx
     REG_CONT_TX      = 5,  //!< Register Contract Tx
-    DELEGATE_VOTE_TX      = 6,  //!< Vote Delegate Tx
+    DELEGATE_VOTE_TX = 6,  //!< Vote Delegate Tx
     COMMON_MTX       = 7,  //!< Multisig Tx
 
     /******** Begin of Stable Coin TX Type Enums ********/
@@ -58,8 +58,8 @@ enum TxType : unsigned char {
     SFC_GLOBAL_SETTLE_MTX =
         33,  //!< StableCoin Fund Committee invokes Global Settle Operation MulSigTx
 
-    WUSD_TRANSFER_TX = 41,  //!< StableCoin WUSD Transfer Tx
-    MICC_TRANSFER_TX = 42,  //!< FundCoin MICC Transfer Tx
+    SCOIN_TRANSFER_TX = 41,  //!< StableCoin Transfer Tx
+    FCOIN_TRANSFER_TX = 42,  //!< FundCoin Transfer Tx
 
     DEX_WICC_FOR_MICC_TX = 51,  //!< DEX: owner sells WICC for MICC Tx
     DEX_MICC_FOR_WICC_TX = 52,  //!< DEX: owner sells MICC for WICC Tx
