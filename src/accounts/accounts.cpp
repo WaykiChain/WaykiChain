@@ -255,7 +255,7 @@ bool CAccount::OperateVote(VoteOperType type, const uint64_t & values) {
         }
         receivedVotes -= values;
     } else {
-        return ERRORMSG("OperateVote() : CDelegateTx ExecuteTx AccountVoteOper revocation votes are not exist");
+        return ERRORMSG("OperateVote() : CDelegateVoteTx ExecuteTx AccountVoteOper revocation votes are not exist");
     }
     return true;
 }

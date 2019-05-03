@@ -506,16 +506,16 @@ public:
     bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
-class CDelegateTx : public CBaseTx {
+class CDelegateVoteTx : public CBaseTx {
 public:
     vector<COperVoteFund> operVoteFunds;  //!< oper delegate votes, max length is Delegates number
 
 public:
-    CDelegateTx(const CBaseTx *pBaseTx): CBaseTx(DELEGATE_TX) {
+    CDelegateVoteTx(const CBaseTx *pBaseTx): CBaseTx(DELEGATE_TX) {
         assert(DELEGATE_TX == pBaseTx->nTxType);
-        *this = *(CDelegateTx *)pBaseTx;
+        *this = *(CDelegateVoteTx *)pBaseTx;
     }
-    CDelegateTx(const vector_unsigned_char &accountIn, const vector<COperVoteFund> &operVoteFundsIn,
+    CDelegateVoteTx(const vector_unsigned_char &accountIn, const vector<COperVoteFund> &operVoteFundsIn,
                 const uint64_t feeIn, const int validHeightIn)
         : CBaseTx(DELEGATE_TX, validHeightIn, feeIn) {
         if (accountIn.size() > 6) {
@@ -525,7 +525,7 @@ public:
         }
         operVoteFunds = operVoteFundsIn;
     }
-    CDelegateTx(const CUserID &userIdIn, const uint64_t feeIn,
+    CDelegateVoteTx(const CUserID &userIdIn, const uint64_t feeIn,
                 const vector<COperVoteFund> &operVoteFundsIn, const int validHeightIn)
         : CBaseTx(DELEGATE_TX, validHeightIn, feeIn) {
         if (userIdIn.type() == typeid(CRegID)) assert(!userIdIn.get<CRegID>().IsEmpty());
@@ -533,8 +533,8 @@ public:
         txUid        = userIdIn;
         operVoteFunds = operVoteFundsIn;
     }
-    CDelegateTx(): CBaseTx(DELEGATE_TX) {}
-    ~CDelegateTx() {}
+    CDelegateVoteTx(): CBaseTx(DELEGATE_TX) {}
+    ~CDelegateVoteTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -563,7 +563,7 @@ public:
     uint64_t GetFee() const { return llFees; }
     uint64_t GetValue() const { return 0; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDelegateTx>(this); }
+    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDelegateVoteTx>(this); }
     string ToString(CAccountViewCache &view) const;
     Object ToJson(const CAccountViewCache &accountView) const;
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
@@ -765,7 +765,7 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nTy
 //     } else if (pa->nTxType == REG_CONT_TX) {
 //         Serialize(os, *((CRegisterContractTx *)(pa.get())), nType, nVersion);
 //     } else if (pa->nTxType == DELEGATE_TX) {
-//         Serialize(os, *((CDelegateTx *)(pa.get())), nType, nVersion);
+//         Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
 //     } else if (pa->nTxType == COMMON_MTX) {
 //         Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion);
 //     } else {
@@ -794,8 +794,8 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nTy
 //         pa = std::make_shared<CRegisterContractTx>();
 //         Unserialize(is, *((CRegisterContractTx *)(pa.get())), nType, nVersion);
 //     } else if (nTxType == DELEGATE_TX) {
-//         pa = std::make_shared<CDelegateTx>();
-//         Unserialize(is, *((CDelegateTx *)(pa.get())), nType, nVersion);
+//         pa = std::make_shared<CDelegateVoteTx>();
+//         Unserialize(is, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
 //     } else if (nTxType == COMMON_MTX) {
 //         pa = std::make_shared<CMulsigTx>();
 //         Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);

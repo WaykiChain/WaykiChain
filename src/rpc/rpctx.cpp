@@ -819,7 +819,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     if (!GetKeyId(sendAddr, keyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid send address");
     }
-    CDelegateTx delegateTx;
+    CDelegateVoteTx delegateTx;
     assert(pwalletMain != NULL);
     {
         EnsureWalletIsUnlocked();
@@ -946,7 +946,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
     if (!GetKeyId(sendAddr, keyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid send address");
     }
-    CDelegateTx delegateTx;
+    CDelegateVoteTx delegateTx;
     assert(pwalletMain != NULL);
     {
         EnsureWalletIsUnlocked();
@@ -2642,7 +2642,7 @@ Value signtxraw(const Array& params, bool fHelp) {
         }
 
         case DELEGATE_TX: {
-            std::shared_ptr<CDelegateTx> tx = std::make_shared<CDelegateTx>(pBaseTx.get());
+            std::shared_ptr<CDelegateVoteTx> tx = std::make_shared<CDelegateVoteTx>(pBaseTx.get());
             if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
             }
@@ -2818,7 +2818,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             break;
         }
         case DELEGATE_TX: {
-            std::shared_ptr<CDelegateTx> tx = std::make_shared<CDelegateTx>(pBaseTx.get());
+            std::shared_ptr<CDelegateVoteTx> tx = std::make_shared<CDelegateVoteTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }

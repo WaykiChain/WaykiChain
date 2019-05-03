@@ -333,7 +333,7 @@ public:
             mapAccountTx[hash] = std::make_shared<CRegisterContractTx>(pTx);
             break;
         case DELEGATE_TX:
-            mapAccountTx[hash] = std::make_shared<CDelegateTx>(pTx);
+            mapAccountTx[hash] = std::make_shared<CDelegateVoteTx>(pTx);
             break;
         case COMMON_MTX:
             mapAccountTx[hash] = std::make_shared<CMulsigTx>(pTx);

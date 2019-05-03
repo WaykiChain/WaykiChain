@@ -1352,7 +1352,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                 sourceAccount.bcoins  = pRewardTx->rewardValue;
                 assert( view.SaveAccountInfo(accountId, keyId, sourceAccount) );
             } else if (block.vptx[i]->nTxType == DELEGATE_TX) {
-                std::shared_ptr<CDelegateTx> pDelegateTx = dynamic_pointer_cast<CDelegateTx>(block.vptx[i]);
+                std::shared_ptr<CDelegateVoteTx> pDelegateTx = dynamic_pointer_cast<CDelegateVoteTx>(block.vptx[i]);
                 assert( pDelegateTx->userId.type() == typeid(CRegID)) ; // Vote Tx must use RegId
 
                 CAccount voterAcct;
@@ -3367,7 +3367,7 @@ void static ProcessGetData(CNode *pfrom) {
                         } else if (REG_CONT_TX == pBaseTx->nTxType) {
                             ss << *((CRegisterContractTx *)pBaseTx.get());
                         } else if (DELEGATE_TX == pBaseTx->nTxType) {
-                            ss << *((CDelegateTx *)pBaseTx.get());
+                            ss << *((CDelegateVoteTx *)pBaseTx.get());
                         } else if (COMMON_MTX == pBaseTx->nTxType) {
                             ss << *((CMulsigTx *)pBaseTx.get());
                         }
@@ -4397,7 +4397,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
         case REG_CONT_TX:
             return std::make_shared<CRegisterContractTx>();
         case DELEGATE_TX:
-            return std::make_shared<CDelegateTx>();
+            return std::make_shared<CDelegateVoteTx>();
         case COMMON_MTX:
             return std::make_shared<CMulsigTx>();
         default:
