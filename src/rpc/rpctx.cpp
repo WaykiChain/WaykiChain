@@ -159,17 +159,17 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
         case BCOIN_TRANSFER_TX: {
             CBaseCoinTransferTx* ptx = (CBaseCoinTransferTx*)pBaseTx.get();
             CKeyID sendKeyID;
-            if (ptx->srcUserId.type() == typeid(CPubKey)) {
-                sendKeyID = ptx->srcUserId.get<CPubKey>().GetKeyId();
-            } else if (ptx->srcUserId.type() == typeid(CRegID)) {
-                sendKeyID = ptx->srcUserId.get<CRegID>().GetKeyId(*pAccountViewTip);
+            if (ptx->txUid.type() == typeid(CPubKey)) {
+                sendKeyID = ptx->txUid.get<CPubKey>().GetKeyId();
+            } else if (ptx->txUid.type() == typeid(CRegID)) {
+                sendKeyID = ptx->txUid.get<CRegID>().GetKeyId(*pAccountViewTip);
             }
 
             CKeyID recvKeyId;
-            if (ptx->desUserId.type() == typeid(CKeyID)) {
-                recvKeyId = ptx->desUserId.get<CKeyID>();
-            } else if (ptx->desUserId.type() == typeid(CRegID)) {
-                CRegID desRegID = ptx->desUserId.get<CRegID>();
+            if (ptx->toUid.type() == typeid(CKeyID)) {
+                recvKeyId = ptx->toUid.get<CKeyID>();
+            } else if (ptx->toUid.type() == typeid(CRegID)) {
+                CRegID desRegID = ptx->toUid.get<CRegID>();
                 recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
             }
 
@@ -193,13 +193,13 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
         case CONTRACT_INVOKE_TX: {
             CContractTx* ptx = (CContractTx*)pBaseTx.get();
             CKeyID sendKeyID;
-            CRegID sendRegID = ptx->srcRegId.get<CRegID>();
+            CRegID sendRegID = ptx->txUid.get<CRegID>();
             sendKeyID        = sendRegID.GetKeyId(*pAccountViewTip);
             CKeyID recvKeyId;
-            if (ptx->desUserId.type() == typeid(CKeyID)) {
-                recvKeyId = ptx->desUserId.get<CKeyID>();
-            } else if (ptx->desUserId.type() == typeid(CRegID)) {
-                CRegID desRegID = ptx->desUserId.get<CRegID>();
+            if (ptx->appUid.type() == typeid(CKeyID)) {
+                recvKeyId = ptx->appUid.get<CKeyID>();
+            } else if (ptx->appUid.type() == typeid(CRegID)) {
+                CRegID desRegID = ptx->appUid.get<CRegID>();
                 recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
             }
 
@@ -485,12 +485,12 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 
         CPubKey minerPubKey;
         if (pwalletMain->GetPubKey(keyId, minerPubKey, true)) {
-            rtx.minerId = minerPubKey;
+            rtx.minerUid = minerPubKey;
         } else {
             CNullID nullId;
-            rtx.minerId = nullId;
+            rtx.minerUid = nullId;
         }
-        rtx.userId       = pubkey;
+        rtx.txUid        = pubkey;
         rtx.llFees       = fee;
         rtx.nValidHeight = chainActive.Tip()->nHeight;
 
@@ -588,8 +588,8 @@ Value callcontracttx(const Array& params, bool fHelp) {
             throw runtime_error(tinyformat::format("in callcontracttx : regid %s not exist\n", appId.ToString()));
         }
         tx.get()->nTxType   = CONTRACT_INVOKE_TX;
-        tx.get()->srcRegId  = userId;
-        tx.get()->desUserId = appId;
+        tx.get()->txUid  = userId;
+        tx.get()->appUid = appId;
         tx.get()->bcoins  = amount;
         tx.get()->llFees    = fee;
         tx.get()->arguments = arguments;
@@ -745,8 +745,8 @@ Value registercontracttx(const Array& params, bool fHelp)
         CRegID regId;
         view.GetRegId(keyId, regId);
 
-        tx.regAcctId = regId;
-        tx.script    = vscript;
+        tx.txUid = regId;
+        tx.contractScript = vscript;
         tx.llFees    = fee;
         tx.nRunStep  = vscript.size();
         if (0 == height) {
@@ -819,7 +819,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     if (!GetKeyId(sendAddr, keyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid send address");
     }
-    CDelegateVoteTx delegateTx;
+    CDelegateVoteTx delegateVoteTx;
     assert(pwalletMain != NULL);
     {
         EnsureWalletIsUnlocked();
@@ -844,13 +844,13 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Send address is not in wallet");
         }
 
-        delegateTx.llFees = fee;
+        delegateVoteTx.llFees = fee;
         if (0 != nHeight) {
-            delegateTx.nValidHeight = nHeight;
+            delegateVoteTx.nValidHeight = nHeight;
         } else {
-            delegateTx.nValidHeight = chainActive.Tip()->nHeight;
+            delegateVoteTx.nValidHeight = chainActive.Tip()->nHeight;
         }
-        delegateTx.userId = account.regID;
+        delegateVoteTx.txUid = account.regID;
 
         for (auto operVote : operVoteArray) {
             COperVoteFund operVoteFund;
@@ -879,16 +879,16 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             } else {
                 operVoteFund.operType = MINUS_FUND;
             }
-            delegateTx.operVoteFunds.push_back(operVoteFund);
+            delegateVoteTx.operVoteFunds.push_back(operVoteFund);
         }
 
-        if (!pwalletMain->Sign(keyId, delegateTx.SignatureHash(), delegateTx.signature)) {
+        if (!pwalletMain->Sign(keyId, delegateVoteTx.SignatureHash(), delegateVoteTx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
     }
 
     std::tuple<bool, string> ret;
-    ret = pwalletMain->CommitTx((CBaseTx*)&delegateTx);
+    ret = pwalletMain->CommitTx((CBaseTx*)&delegateVoteTx);
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
     }
@@ -946,7 +946,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
     if (!GetKeyId(sendAddr, keyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid send address");
     }
-    CDelegateVoteTx delegateTx;
+    CDelegateVoteTx delegateVoteTx;
     assert(pwalletMain != NULL);
     {
         EnsureWalletIsUnlocked();
@@ -971,9 +971,9 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Send address is not in wallet");
         }
 
-        delegateTx.llFees       = fee;
-        delegateTx.nValidHeight = nHeight;
-        delegateTx.userId       = account.regID;
+        delegateVoteTx.llFees       = fee;
+        delegateVoteTx.nValidHeight = nHeight;
+        delegateVoteTx.txUid        = account.regID;
 
         for (auto operVote : operVoteArray) {
             COperVoteFund operVoteFund;
@@ -1000,16 +1000,16 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             } else {
                 operVoteFund.operType = MINUS_FUND;
             }
-            delegateTx.operVoteFunds.push_back(operVoteFund);
+            delegateVoteTx.operVoteFunds.push_back(operVoteFund);
         }
 
-        if (!pwalletMain->Sign(keyId, delegateTx.SignatureHash(), delegateTx.signature)) {
+        if (!pwalletMain->Sign(keyId, delegateVoteTx.SignatureHash(), delegateVoteTx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
     }
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
-    std::shared_ptr<CBaseTx> pBaseTx = delegateTx.GetNewInstance();
+    std::shared_ptr<CBaseTx> pBaseTx = delegateVoteTx.GetNewInstance();
     ds << pBaseTx;
     Object obj;
     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
@@ -1110,13 +1110,13 @@ Value listtransactions(const Array& params, bool fHelp) {
             if (item.second->nTxType == BCOIN_TRANSFER_TX) {
                 CBaseCoinTransferTx* ptx = (CBaseCoinTransferTx*)item.second.get();
                 CKeyID sendKeyID;
-                CRegID sendRegID = ptx->srcUserId.get<CRegID>();
+                CRegID sendRegID = ptx->txUid.get<CRegID>();
                 sendKeyID        = sendRegID.GetKeyId(*pAccountViewTip);
                 CKeyID recvKeyId;
-                if (ptx->desUserId.type() == typeid(CKeyID)) {
-                    recvKeyId = ptx->desUserId.get<CKeyID>();
-                } else if (ptx->desUserId.type() == typeid(CRegID)) {
-                    CRegID desRegID = ptx->desUserId.get<CRegID>();
+                if (ptx->toUid.type() == typeid(CKeyID)) {
+                    recvKeyId = ptx->toUid.get<CKeyID>();
+                } else if (ptx->toUid.type() == typeid(CRegID)) {
+                    CRegID desRegID = ptx->toUid.get<CRegID>();
                     recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
                 }
 
@@ -1184,13 +1184,13 @@ Value listtransactions(const Array& params, bool fHelp) {
             } else if (item.second->nTxType == CONTRACT_INVOKE_TX) {
                 CContractTx* ptx = (CContractTx*)item.second.get();
                 CKeyID sendKeyID;
-                CRegID sendRegID = ptx->srcRegId.get<CRegID>();
+                CRegID sendRegID = ptx->txUid.get<CRegID>();
                 sendKeyID        = sendRegID.GetKeyId(*pAccountViewTip);
                 CKeyID recvKeyId;
-                if (ptx->desUserId.type() == typeid(CKeyID)) {
-                    recvKeyId = ptx->desUserId.get<CKeyID>();
-                } else if (ptx->desUserId.type() == typeid(CRegID)) {
-                    CRegID desRegID = ptx->desUserId.get<CRegID>();
+                if (ptx->appUid.type() == typeid(CKeyID)) {
+                    recvKeyId = ptx->appUid.get<CKeyID>();
+                } else if (ptx->appUid.type() == typeid(CRegID)) {
+                    CRegID desRegID = ptx->appUid.get<CRegID>();
                     recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
                 }
 
@@ -1310,11 +1310,11 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
             if (item.second.get() && item.second->nTxType == BCOIN_TRANSFER_TX) {
                 CBaseCoinTransferTx* ptx = (CBaseCoinTransferTx*)item.second.get();
 
-                if (!accView.GetKeyId(ptx->srcUserId, keyId)) {
+                if (!accView.GetKeyId(ptx->txUid, keyId)) {
                     continue;
                 }
                 string srcAddr = keyId.ToAddress();
-                if (!accView.GetKeyId(ptx->desUserId, keyId)) {
+                if (!accView.GetKeyId(ptx->toUid, keyId)) {
                     continue;
                 }
                 string desAddr = keyId.ToAddress();
@@ -1410,7 +1410,7 @@ Value listcontracttx(const Array& params, bool fHelp)
                 }
 
                 CContractTx* ptx = (CContractTx*) item.second.get();
-                if (strRegId != getregidstring(ptx->desUserId)) {
+                if (strRegId != getregidstring(ptx->appUid)) {
                     continue;
                 }
 
@@ -1419,11 +1419,11 @@ Value listcontracttx(const Array& params, bool fHelp)
 
                 CAccountViewCache accView(*pAccountViewTip);
                 obj.push_back(Pair("hash", ptx->GetHash().GetHex()));
-                obj.push_back(Pair("regid",  getregidstring(ptx->srcRegId)));
-                accView.GetKeyId(ptx->srcRegId, keyId);
+                obj.push_back(Pair("regid",  getregidstring(ptx->txUid)));
+                accView.GetKeyId(ptx->txUid, keyId);
                 obj.push_back(Pair("addr",  keyId.ToAddress()));
-                obj.push_back(Pair("dest_regid", getregidstring(ptx->desUserId)));
-                accView.GetKeyId(ptx->desUserId, keyId);
+                obj.push_back(Pair("dest_regid", getregidstring(ptx->appUid)));
+                accView.GetKeyId(ptx->txUid, keyId);
                 obj.push_back(Pair("dest_addr", keyId.ToAddress()));
                 obj.push_back(Pair("money", ptx->bcoins));
                 obj.push_back(Pair("fees", ptx->llFees));
@@ -2504,8 +2504,8 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
     CRegID regId;
     view.GetRegId(keyId, regId);
 
-    tx.get()->regAcctId = regId;
-    tx.get()->script = vscript;
+    tx.get()->txUid = regId;
+    tx.get()->contractScript = vscript;
     tx.get()->llFees = fee;
 
     uint32_t height = chainActive.Tip()->nHeight;

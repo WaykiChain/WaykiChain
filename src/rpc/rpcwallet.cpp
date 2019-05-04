@@ -322,8 +322,8 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
     CBaseCoinTransferTx tx;
-    tx.srcUserId    = sendUserId;
-    tx.desUserId    = recvUserId;
+    tx.txUid    = sendUserId;
+    tx.toUid    = recvUserId;
     tx.bcoins = nValue;
     tx.llFees       = (0 == nFee) ? SysCfg().GetTxFee() : nFee;
     tx.nValidHeight = nHeight;
@@ -571,9 +571,9 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
             : CUserID(recvKeyId);
 
     CBaseCoinTransferTx tx;
-    tx.srcUserId    = sendUserId;
-    tx.desUserId    = recvUserId;
-    tx.bcoins = amount;
+    tx.txUid        = sendUserId;
+    tx.toUid        = recvUserId;
+    tx.bcoins       = amount;
     tx.llFees       = fee;
     tx.nValidHeight = height;
 
