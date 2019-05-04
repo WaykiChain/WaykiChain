@@ -2803,7 +2803,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             break;
         }
         case BLOCK_REWARD_TX: {
-            std::shared_ptr<CRewardTx> tx = std::make_shared<CRewardTx>(pBaseTx.get());
+            std::shared_ptr<CBlockRewardTx> tx = std::make_shared<CBlockRewardTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }

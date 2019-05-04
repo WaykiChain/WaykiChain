@@ -393,18 +393,18 @@ public:
     bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
-class CRewardTx : public CBaseTx {
+class CBlockRewardTx : public CBaseTx {
 public:
     uint64_t rewardValue;
     int nHeight;
 
 public:
-    CRewardTx(): CBaseTx(BLOCK_REWARD_TX) { rewardValue = 0; }
-    CRewardTx(const CBaseTx *pBaseTx): CBaseTx(BLOCK_REWARD_TX) {
+    CBlockRewardTx(): CBaseTx(BLOCK_REWARD_TX) { rewardValue = 0; }
+    CBlockRewardTx(const CBaseTx *pBaseTx): CBaseTx(BLOCK_REWARD_TX) {
         assert(BLOCK_REWARD_TX == pBaseTx->nTxType);
-        *this = *(CRewardTx *)pBaseTx;
+        *this = *(CBlockRewardTx *)pBaseTx;
     }
-    CRewardTx(const vector_unsigned_char &accountIn, const uint64_t rewardValueIn, const int nHeightIn):
+    CBlockRewardTx(const vector_unsigned_char &accountIn, const uint64_t rewardValueIn, const int nHeightIn):
         CBaseTx(BLOCK_REWARD_TX) {
         if (accountIn.size() > 6) {
             txUid = CPubKey(accountIn);
@@ -414,7 +414,7 @@ public:
         rewardValue = rewardValueIn;
         nHeight     = nHeightIn;
     }
-    ~CRewardTx() {}
+    ~CBlockRewardTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -437,7 +437,7 @@ public:
 
     uint64_t GetValue() const { return rewardValue; }
     uint256 GetHash() const { return SignatureHash(); }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CRewardTx>(this); }
+    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CBlockRewardTx>(this); }
     uint64_t GetFee() const { return 0; }
     double GetPriority() const { return 0.0f; }
     string ToString(CAccountViewCache &view) const;
@@ -757,7 +757,7 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nTy
 //     } else if (pa->nTxType == CONTRACT_INVOKE_TX) {
 //         Serialize(os, *((CContractTx *)(pa.get())), nType, nVersion);
 //     } else if (pa->nTxType == BLOCK_REWARD_TX) {
-//         Serialize(os, *((CRewardTx *)(pa.get())), nType, nVersion);
+//         Serialize(os, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
 //     } else if (pa->nTxType == CONTRACT_DEPLOY_TX) {
 //         Serialize(os, *((CRegisterContractTx *)(pa.get())), nType, nVersion);
 //     } else if (pa->nTxType == DELEGATE_VOTE_TX) {
@@ -784,8 +784,8 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nTy
 //         pa = std::make_shared<CContractTx>();
 //         Unserialize(is, *((CContractTx *)(pa.get())), nType, nVersion);
 //     } else if (nTxType == BLOCK_REWARD_TX) {
-//         pa = std::make_shared<CRewardTx>();
-//         Unserialize(is, *((CRewardTx *)(pa.get())), nType, nVersion);
+//         pa = std::make_shared<CBlockRewardTx>();
+//         Unserialize(is, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
 //     } else if (nTxType == CONTRACT_DEPLOY_TX) {
 //         pa = std::make_shared<CRegisterContractTx>();
 //         Unserialize(is, *((CRegisterContractTx *)(pa.get())), nType, nVersion);

@@ -1340,8 +1340,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
         for (unsigned int i = 1; i < block.vptx.size(); i++) {
             if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
                 assert(i <= 1);
-                std::shared_ptr<CRewardTx> pRewardTx =
-                    dynamic_pointer_cast<CRewardTx>(block.vptx[i]);
+                std::shared_ptr<CBlockRewardTx> pRewardTx =
+                    dynamic_pointer_cast<CBlockRewardTx>(block.vptx[i]);
                 CAccount sourceAccount;
                 CRegID accountId(pIndex->nHeight, i);
                 CPubKey pubKey      = pRewardTx->txUid.get<CPubKey>();
@@ -1466,7 +1466,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                             nTotalFuel, block.GetFuel());
     }
 
-    std::shared_ptr<CRewardTx> pRewardTx = dynamic_pointer_cast<CRewardTx>(block.vptx[0]);
+    std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[0]);
     CAccount minerAcct;
     if (!view.GetAccount(pRewardTx->txUid, minerAcct)) {
         assert(0);
@@ -2149,7 +2149,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
     //校验利息是否正常
-    std::shared_ptr<CRewardTx> pRewardTx = dynamic_pointer_cast<CRewardTx>(block.vptx[0]);
+    std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[0]);
     uint64_t llValidReward = block.GetFee() - block.GetFuel();
     if (pRewardTx->rewardValue != llValidReward)
         return state.DoS(100, ERRORMSG("ProcessForkedChain() : coinbase pays too much (actual=%d vs limit=%d)",
@@ -4393,7 +4393,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
         case ACCOUNT_REGISTER_TX:
             return std::make_shared<CRegisterAccountTx>();
         case BLOCK_REWARD_TX:
-            return std::make_shared<CRewardTx>();
+            return std::make_shared<CBlockRewardTx>();
         case CONTRACT_DEPLOY_TX:
             return std::make_shared<CRegisterContractTx>();
         case DELEGATE_VOTE_TX:

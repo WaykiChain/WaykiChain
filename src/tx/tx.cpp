@@ -821,7 +821,7 @@ bool CContractTx::CheckTx(CValidationState &state, CAccountViewCache &view,
     return true;
 }
 
-string CRewardTx::ToString(CAccountViewCache &view) const {
+string CBlockRewardTx::ToString(CAccountViewCache &view) const {
     string str;
     CKeyID keyId;
     view.GetKeyId(txUid, keyId);
@@ -833,7 +833,7 @@ string CRewardTx::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CRewardTx::ToJson(const CAccountViewCache &AccountView) const{
+Object CBlockRewardTx::ToJson(const CAccountViewCache &AccountView) const{
     Object result;
     CAccountViewCache view(AccountView);
     CKeyID keyid;
@@ -853,7 +853,7 @@ Object CRewardTx::ToJson(const CAccountViewCache &AccountView) const{
     return result;
 }
 
-bool CRewardTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
+bool CBlockRewardTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
                            CScriptDBViewCache &scriptDB) {
     CKeyID keyId;
     if (txUid.type() == typeid(CRegID)) {
@@ -868,18 +868,18 @@ bool CRewardTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
     return true;
 }
 
-bool CRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+bool CBlockRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
                           CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
                           CScriptDBViewCache &scriptDB) {
     if (txUid.type() != typeid(CRegID)) {
         return state.DoS(100,
-            ERRORMSG("CRewardTx::ExecuteTx, account %s error, data type must be CRegID",
+            ERRORMSG("CBlockRewardTx::ExecuteTx, account %s error, data type must be CRegID",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-account");
     }
 
     CAccount acctInfo;
     if (!view.GetAccount(txUid, acctInfo)) {
-        return state.DoS(100, ERRORMSG("CRewardTx::ExecuteTx, read source addr %s account info error",
+        return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, read source addr %s account info error",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
     // LogPrint("op_account", "before operate:%s\n", acctInfo.ToString());
@@ -894,7 +894,7 @@ bool CRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
 
     CUserID userId = acctInfo.keyID;
     if (!view.SetAccount(userId, acctInfo))
-        return state.DoS(100, ERRORMSG("CRewardTx::ExecuteTx, write secure account info error"),
+        return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     txundo.Clear();
@@ -904,7 +904,7 @@ bool CRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
         CScriptDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
         if (!view.GetKeyId(txUid, sendKeyId))
-            return ERRORMSG("CRewardTx::ExecuteTx, get keyid by account error!");
+            return ERRORMSG("CBlockRewardTx::ExecuteTx, get keyid by account error!");
 
         if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
             return false;
@@ -915,7 +915,7 @@ bool CRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
     return true;
 }
 
-bool CRewardTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+bool CBlockRewardTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
                               CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
                               CScriptDBViewCache &scriptDB) {
     vector<CAccountLog>::reverse_iterator rIterAccountLog = txundo.vAccountLog.rbegin();
@@ -923,17 +923,17 @@ bool CRewardTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationSt
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
         if (!view.GetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CRewardTx::UndoExecuteTx, read account info error"),
+            return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
 
         if (!account.UndoOperateAccount(*rIterAccountLog)) {
-            return state.DoS(100, ERRORMSG("CRewardTx::UndoExecuteTx, undo operate account failed"),
+            return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, undo operate account failed"),
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }
 
         if (!view.SetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CRewardTx::UndoExecuteTx, write account info error"),
+            return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, write account info error"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
     }
@@ -941,7 +941,7 @@ bool CRewardTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationSt
     vector<CScriptDBOperLog>::reverse_iterator rIterScriptDBLog = txundo.vScriptOperLog.rbegin();
     for (; rIterScriptDBLog != txundo.vScriptOperLog.rend(); ++rIterScriptDBLog) {
         if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
-            return state.DoS(100, ERRORMSG("CRewardTx::UndoExecuteTx, undo scriptdb data error"),
+            return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, undo scriptdb data error"),
                              UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
 
@@ -1355,13 +1355,13 @@ bool CDelegateVoteTx::CheckTx(CValidationState &state, CAccountViewCache &view,
 
     CKeyID sendTxKeyID;
     if(!view.GetKeyId(txUid, sendTxKeyID)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get keyId error by CUserID =%s", 
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get keyId error by CUserID =%s",
                         txUid.ToString()), REJECT_INVALID, "");
     }
 
     CAccount sendAcct;
     if (!view.GetAccount(txUid, sendAcct)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, userid=%s", 
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, userid=%s",
                         txUid.ToString()), REJECT_INVALID, "bad-read-accountdb");
     }
     if (!sendAcct.IsRegistered()) {
