@@ -11,16 +11,6 @@
 #include "coin-config.h"
 #endif
 
-#include "commons/arith_uint256.h"
-#include "chainparams.h"
-#include "core.h"
-#include "database.h"
-#include "net.h"
-#include "sigcache.h"
-#include "sync.h"
-#include "tx/txmempool.h"
-#include "commons/uint256.h"
-
 #include <stdint.h>
 #include <algorithm>
 #include <exception>
@@ -29,6 +19,24 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "commons/arith_uint256.h"
+#include "commons/uint256.h"
+#include "chainparams.h"
+#include "core.h"
+#include "database.h"
+#include "net.h"
+#include "sigcache.h"
+#include "sync.h"
+#include "tx/txmempool.h"
+
+#include "tx/accountreg.h"
+#include "tx/bcoin.h"
+#include "tx/contract.h"
+#include "tx/delegate.h"
+#include "tx/tx.h"
+#include "tx/bcoin.h"
+#include "tx/delegate.h"
 
 class CBlockIndex;
 class CBloomFilter;
@@ -806,7 +814,7 @@ class CBlockIndex {
 
     string ToString() const {
         return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, blockHash=%s, blockFee=%d, chainWork=%s, feePerKb=%lf)",
-                        pprev, nHeight, merkleRootHash.ToString().c_str(), GetBlockHash().ToString().c_str(), 
+                        pprev, nHeight, merkleRootHash.ToString().c_str(), GetBlockHash().ToString().c_str(),
                         nBlockFee, nChainWork.ToString().c_str(), dFeePerKb);
     }
 
@@ -1091,5 +1099,66 @@ protected:
 };
 
 extern CSignatureCache signatureCache;
+
+
+
+//global overloadding fun
+template <typename Stream>
+void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
+    unsigned char nTxType = pa->nTxType;
+    Serialize(os, nTxType, nType, nVersion);
+    if (pa->nTxType == ACCOUNT_REGISTER_TX) {
+        Serialize(os, *((CAccountRegisterTx *)(pa.get())), nType, nVersion);
+    } else if (pa->nTxType == BCOIN_TRANSFER_TX) {
+        Serialize(os, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion);
+    } else if (pa->nTxType == CONTRACT_INVOKE_TX) {
+        Serialize(os, *((CContractInvokeTx *)(pa.get())), nType, nVersion);
+    } else if (pa->nTxType == BLOCK_REWARD_TX) {
+        Serialize(os, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
+    } else if (pa->nTxType == CONTRACT_DEPLOY_TX) {
+        Serialize(os, *((CContractDeployTx *)(pa.get())), nType, nVersion);
+    } else if (pa->nTxType == DELEGATE_VOTE_TX) {
+        Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
+    } else if (pa->nTxType == COMMON_MTX) {
+        Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion);
+    } else {
+        string sTxType(1, nTxType);
+        throw ios_base::failure("Serialize: nTxType (" + sTxType + ") value error.");
+    }
+}
+
+//global overloadding fun
+template <typename Stream>
+void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
+    unsigned char nTxType;
+    is.read((char *)&(nTxType), sizeof(nTxType));
+    if (nTxType == ACCOUNT_REGISTER_TX) {
+        pa = std::make_shared<CAccountRegisterTx>();
+        Unserialize(is, *((CAccountRegisterTx *)(pa.get())), nType, nVersion);
+    } else if (nTxType == BCOIN_TRANSFER_TX) {
+        pa = std::make_shared<CBaseCoinTransferTx>();
+        Unserialize(is, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion);
+    } else if (nTxType == CONTRACT_INVOKE_TX) {
+        pa = std::make_shared<CContractInvokeTx>();
+        Unserialize(is, *((CContractInvokeTx *)(pa.get())), nType, nVersion);
+    } else if (nTxType == BLOCK_REWARD_TX) {
+        pa = std::make_shared<CBlockRewardTx>();
+        Unserialize(is, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
+    } else if (nTxType == CONTRACT_DEPLOY_TX) {
+        pa = std::make_shared<CContractDeployTx>();
+        Unserialize(is, *((CContractDeployTx *)(pa.get())), nType, nVersion);
+    } else if (nTxType == DELEGATE_VOTE_TX) {
+        pa = std::make_shared<CDelegateVoteTx>();
+        Unserialize(is, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
+    } else if (nTxType == COMMON_MTX) {
+        pa = std::make_shared<CMulsigTx>();
+        Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
+    } else {
+        string sTxType(1, nTxType);
+        throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error.");
+    }
+    pa->nTxType = nTxType;
+}
+
 
 #endif

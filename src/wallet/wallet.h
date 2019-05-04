@@ -6,15 +6,6 @@
 #ifndef COIN_WALLET_H
 #define COIN_WALLET_H
 
-#include "core.h"
-#include "crypter.h"
-#include "accounts/key.h"
-#include "accounts/keystore.h"
-#include "main.h"
-#include "ui_interface.h"
-#include "util.h"
-#include "walletdb.h"
-
 #include <algorithm>
 #include <map>
 #include <set>
@@ -23,8 +14,23 @@
 #include <string>
 #include <utility>
 #include <vector>
-
 #include <memory>
+
+#include "core.h"
+#include "crypter.h"
+#include "accounts/key.h"
+#include "accounts/keystore.h"
+#include "main.h"
+#include "ui_interface.h"
+#include "util.h"
+#include "walletdb.h"
+#include "tx/tx.h"
+#include "tx/bcoin.h"
+#include "tx/scoin.h"
+#include "tx/fcoin.h"
+#include "tx/contract.h"
+#include "tx/delegate.h"
+#include "tx/accountreg.h"
 
 
 enum WalletFeature
@@ -324,7 +330,7 @@ public:
             mapAccountTx[hash] = std::make_shared<CContractInvokeTx>(pTx);
             break;
         case ACCOUNT_REGISTER_TX:
-            mapAccountTx[hash] = std::make_shared<CRegisterAccountTx>(pTx);
+            mapAccountTx[hash] = std::make_shared<CAccountRegisterTx>(pTx);
             break;
         case BLOCK_REWARD_TX:
             mapAccountTx[hash] = std::make_shared<CBlockRewardTx>(pTx);

@@ -3,8 +3,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
-#ifndef STABLE_COIN_H
-#define STABLE_COIN_H
+#ifndef SCOIN_H
+#define SCOIN_H
 
 #include "tx/tx.h"
 

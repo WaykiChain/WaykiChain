@@ -458,7 +458,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
     if (!GetKeyId(addr, keyId))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in registeraccounttx: Address invalid.");
 
-    CRegisterAccountTx rtx;
+    CAccountRegisterTx rtx;
     assert(pwalletMain != NULL);
     {
         EnsureWalletIsUnlocked();
@@ -2295,8 +2295,8 @@ Value genregisteraccountraw(const Array& params, bool fHelp) {
     }
 
     EnsureWalletIsUnlocked();
-    std::shared_ptr<CRegisterAccountTx> tx =
-        std::make_shared<CRegisterAccountTx>(userId, minerId, fee, height);
+    std::shared_ptr<CAccountRegisterTx> tx =
+        std::make_shared<CAccountRegisterTx>(userId, minerId, fee, height);
     if (!pwalletMain->Sign(pubKey.GetKeyId(), tx->SignatureHash(), tx->signature)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
     }
@@ -2597,8 +2597,8 @@ Value signtxraw(const Array& params, bool fHelp) {
         }
 
         case ACCOUNT_REGISTER_TX: {
-            std::shared_ptr<CRegisterAccountTx> tx =
-                std::make_shared<CRegisterAccountTx>(pBaseTx.get());
+            std::shared_ptr<CAccountRegisterTx> tx =
+                std::make_shared<CAccountRegisterTx>(pBaseTx.get());
             if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature))
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
 
@@ -2787,8 +2787,8 @@ Value decodetxraw(const Array& params, bool fHelp) {
             break;
         }
         case ACCOUNT_REGISTER_TX: {
-            std::shared_ptr<CRegisterAccountTx> tx =
-                std::make_shared<CRegisterAccountTx>(pBaseTx.get());
+            std::shared_ptr<CAccountRegisterTx> tx =
+                std::make_shared<CAccountRegisterTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }

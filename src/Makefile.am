@@ -75,7 +75,7 @@ coin_CORE_H = \
   rpc/rpcvm.h \
   support/cleanse.h \
   sigcache.h \
-  tx/stablecoin.h \
+  tx/*.h \
   tx/tx.h \
   tx/txdb.h \
   tx/txmempool.h \
@@ -218,7 +218,7 @@ libcoin_server_a_SOURCES = \
   rpc/rpcserver.cpp \
   rpc/rpcvm.cpp \
   sigcache.cpp \
-  tx/stablecoin.cpp \
+  tx/*.cpp \
   tx/txdb.cpp \
   tx/txmempool.cpp \
   tx/tx.cpp \

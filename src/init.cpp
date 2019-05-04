@@ -7,6 +7,7 @@
 #if defined(HAVE_CONFIG_H)
 #include "coin-config.h"
 #endif
+
 #include "configuration.h"
 #include "init.h"
 
@@ -16,7 +17,6 @@
 #include "./vm/lua/lua.h"
 #include "./wallet/wallet.h"
 #include "./wallet/walletdb.h"
-#include "configuration.h"
 #include "cuiserver.h"
 #include "main.h"
 #include "miner/miner.h"

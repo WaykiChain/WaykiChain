@@ -31,7 +31,7 @@
 class CAutoFile;
 class CDataStream;
 class CBaseTx;
-class CRegisterAccountTx;
+class CAccountRegisterTx;
 class CBaseCoinTransferTx;
 class CContractInvokeTx;
 class CBlockRewardTx;

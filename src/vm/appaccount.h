@@ -1,9 +1,8 @@
-/*
- * appaccout.h
- *
- *  Created on: 2015年3月30日
- *      Author: WaykiChain Core Developers
- */
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 
 #ifndef APPUSERACCOUT_H_
 #define APPUSERACCOUT_H_

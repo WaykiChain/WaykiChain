@@ -15,7 +15,6 @@
 #include "miner/miner.h"
 #include "net.h"
 #include "syncdatadb.h"
-#include "tx/tx.h"
 #include "tx/txdb.h"
 #include "tx/txmempool.h"
 #include "ui_interface.h"
@@ -3363,7 +3362,7 @@ void static ProcessGetData(CNode *pfrom) {
                         } else if (CONTRACT_INVOKE_TX == pBaseTx->nTxType) {
                             ss << *((CContractInvokeTx *)(pBaseTx.get()));
                         } else if (ACCOUNT_REGISTER_TX == pBaseTx->nTxType) {
-                            ss << *((CRegisterAccountTx *)pBaseTx.get());
+                            ss << *((CAccountRegisterTx *)pBaseTx.get());
                         } else if (CONTRACT_DEPLOY_TX == pBaseTx->nTxType) {
                             ss << *((CContractDeployTx *)pBaseTx.get());
                         } else if (DELEGATE_VOTE_TX == pBaseTx->nTxType) {
@@ -4391,7 +4390,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
         case CONTRACT_INVOKE_TX:
             return std::make_shared<CContractInvokeTx>();
         case ACCOUNT_REGISTER_TX:
-            return std::make_shared<CRegisterAccountTx>();
+            return std::make_shared<CAccountRegisterTx>();
         case BLOCK_REWARD_TX:
             return std::make_shared<CBlockRewardTx>();
         case CONTRACT_DEPLOY_TX:
