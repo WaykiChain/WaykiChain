@@ -534,9 +534,9 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
 
         for (int64_t i = 0; i < batchSize; ++i) {
             CBaseCoinTransferTx tx;
-            tx.srcUserId    = srcRegId;
-            tx.desUserId    = desRegId;
-            tx.bcoins     = llValue++;
+            tx.txUid        = srcRegId;
+            tx.toUid        = desRegId;
+            tx.bcoins       = llValue++;
             tx.llFees       = llFees;
             tx.nValidHeight = nValidHeight;
 
@@ -675,9 +675,9 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
 
         for (int64_t i = 0; i < batchSize; ++i) {
             CContractTx tx;
-            tx.srcRegId     = srcRegId;
-            tx.desUserId    = desRegId;
-            tx.bcoins     = llValue++;
+            tx.txUid        = srcRegId;
+            tx.appUid       = desRegId;
+            tx.bcoins       = llValue++;
             tx.llFees       = llFees;
             tx.arguments    = arguments;
             tx.nValidHeight = nValidHeight;
