@@ -117,7 +117,7 @@ public:
 
     CPriceFeedTx(const CUserID &userIdIn, int validHeightIn, uint64_t feeIn, uint64_t bcoinsIn):
         CBaseTx(PRICE_FEED_TX, validHeightIn, feeIn) {
-        userId = userIdIn;
+        txUid = userIdIn;
     }
 
     ~CPriceFeedTx() {}
@@ -126,7 +126,7 @@ public:
         READWRITE(VARINT(this->nVersion));
         READWRITE(VARINT(nValidHeight));
         READWRITE(VARINT(llFees));
-        READWRITE(userId);
+        READWRITE(txUid);
         READWRITE(VARINT(coinType));
         READWRITE(VARINT(priceType));
         READWRITE(signature);
