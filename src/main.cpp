@@ -644,7 +644,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
     {
         double dPriority = pBaseTx->GetPriority();
-        int64_t nFees    = pBaseTx->GetFee();
+        uint64_t nFees   = pBaseTx->GetFee();
 
         CTxMemPoolEntry entry(pBaseTx, nFees, GetTime(), dPriority, chainActive.Height());
         unsigned int nSize = entry.GetTxSize();
