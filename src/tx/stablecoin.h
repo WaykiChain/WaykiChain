@@ -127,7 +127,7 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(VARINT(llFees));
         READWRITE(txUid);
-        READWRITE(coinType);
+        READWRITE(VARINT(coinType);
         READWRITE(priceType);
         READWRITE(signature);
     )
@@ -158,8 +158,7 @@ public:
     bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
                        CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
                        CScriptDBViewCache &scriptDB);
-    bool CheckTx(CValidationState &state, CAccountViewCache &view,
-                          CScriptDBViewCache &scriptDB);
+    bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
 #endif

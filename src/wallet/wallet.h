@@ -330,7 +330,7 @@ public:
             mapAccountTx[hash] = std::make_shared<CBlockRewardTx>(pTx);
             break;
         case CONTRACT_DEPLOY_TX:
-            mapAccountTx[hash] = std::make_shared<CRegisterContractTx>(pTx);
+            mapAccountTx[hash] = std::make_shared<CContractDeployTx>(pTx);
             break;
         case DELEGATE_VOTE_TX:
             mapAccountTx[hash] = std::make_shared<CDelegateVoteTx>(pTx);

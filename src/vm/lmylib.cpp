@@ -872,11 +872,11 @@ static int ExGetTxRegIDFunc(lua_State *L) {
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
             CBaseCoinTransferTx *tx = static_cast<CBaseCoinTransferTx*>(pBaseTx.get());
-            vector<unsigned char> item = tx->srcUserId.get<CRegID>().GetVec6();
+            vector<unsigned char> item = tx->txUid.get<CRegID>().GetVec6();
             len = RetRstToLua(L, item);
         } else if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
             CContractInvokeTx *tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
-            vector<unsigned char> item = tx->srcRegId.get<CRegID>().GetVec6();
+            vector<unsigned char> item = tx->txUid.get<CRegID>().GetVec6();
             len = RetRstToLua(L, item);
         } else {
             return RetFalse("ExGetTxRegIDFunc, tx type error");

@@ -720,7 +720,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     }
 
     assert(pwalletMain != NULL);
-    CRegisterContractTx tx;
+    CContractDeployTx tx;
     {
         EnsureWalletIsUnlocked();
         CAccountViewCache view(*pAccountViewTip);
@@ -2500,7 +2500,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
     }
 
-    std::shared_ptr<CRegisterContractTx> tx = std::make_shared<CRegisterContractTx>();
+    std::shared_ptr<CContractDeployTx> tx = std::make_shared<CContractDeployTx>();
     CRegID regId;
     view.GetRegId(keyId, regId);
 
@@ -2628,8 +2628,8 @@ Value signtxraw(const Array& params, bool fHelp) {
         }
 
         case CONTRACT_DEPLOY_TX: {
-            std::shared_ptr<CRegisterContractTx> tx =
-                std::make_shared<CRegisterContractTx>(pBaseTx.get());
+            std::shared_ptr<CContractDeployTx> tx =
+                std::make_shared<CContractDeployTx>(pBaseTx.get());
             if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
             }
@@ -2810,8 +2810,8 @@ Value decodetxraw(const Array& params, bool fHelp) {
             break;
         }
         case CONTRACT_DEPLOY_TX: {
-            std::shared_ptr<CRegisterContractTx> tx =
-                std::make_shared<CRegisterContractTx>(pBaseTx.get());
+            std::shared_ptr<CContractDeployTx> tx =
+                std::make_shared<CContractDeployTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }

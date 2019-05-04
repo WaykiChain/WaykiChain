@@ -588,11 +588,11 @@ Object CContractInvokeTx::ToJson(const CAccountViewCache &AccountView) const {
     Object result;
     CAccountViewCache view(AccountView);
 
-    auto GetRegIdString = [&](CUserID const &userId) {
-        if (userId.type() == typeid(CRegID))
-            return userId.get<CRegID>().ToString();
-        return string("");
-    };
+    // auto GetRegIdString = [&](CUserID const &userId) {
+    //     if (userId.type() == typeid(CRegID))
+    //         return userId.get<CRegID>().ToString();
+    //     return string("");
+    // };
 
     CKeyID srcKeyId, desKeyId;
     view.GetKeyId(txUid, srcKeyId);
@@ -603,8 +603,8 @@ Object CContractInvokeTx::ToJson(const CAccountViewCache &AccountView) const {
     result.push_back(Pair("ver",        nVersion));
     result.push_back(Pair("regid",      txUid.ToString()));
     result.push_back(Pair("addr",       srcKeyId.ToAddress()));
-    result.push_back(Pair("dest_regid", appUid.ToString()));
-    result.push_back(Pair("dest_addr",  desKeyId.ToAddress()));
+    result.push_back(Pair("app_uid",    appUid.ToString()));
+    result.push_back(Pair("app_addr",  desKeyId.ToAddress()));
     result.push_back(Pair("money",      bcoins));
     result.push_back(Pair("fees",       llFees));
     result.push_back(Pair("arguments",  HexStr(arguments)));
@@ -948,19 +948,19 @@ bool CBlockRewardTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidat
     return true;
 }
 
-bool CRegisterContractTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidationState &state, CTxUndo &txundo,
+bool CContractDeployTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidationState &state, CTxUndo &txundo,
         int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
     CAccount acctInfo;
     CScriptDBOperLog operLog;
     if (!view.GetAccount(txUid, acctInfo)) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::ExecuteTx, read regist addr %s account info error",
+        return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, read regist addr %s account info error",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
     CAccount acctInfoLog(acctInfo);
     uint64_t minusValue = llFees;
     if (minusValue > 0) {
         if(!acctInfo.OperateAccount(MINUS_FREE, minusValue, nHeight))
-            return state.DoS(100, ERRORMSG("CRegisterContractTx::ExecuteTx, operate account failed ,regId=%s",
+            return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, operate account failed ,regId=%s",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
 
         txundo.vAccountLog.push_back(acctInfoLog);
@@ -976,12 +976,12 @@ bool CRegisterContractTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidat
     //save new script content
     if(!scriptDB.SetScript(regId, contractScript)){
         return state.DoS(100,
-            ERRORMSG("CRegisterContractTx::ExecuteTx, save script id %s script info error",
+            ERRORMSG("CContractDeployTx::ExecuteTx, save script id %s script info error",
                 regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
     if (!view.SaveAccountInfo(regId, keyId, account)) {
         return state.DoS(100,
-            ERRORMSG("CRegisterContractTx::ExecuteTx, create new account script id %s script info error",
+            ERRORMSG("CContractDeployTx::ExecuteTx, create new account script id %s script info error",
                 regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
 
@@ -992,14 +992,14 @@ bool CRegisterContractTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidat
     }
     CUserID userId = acctInfo.keyID;
     if (!view.SetAccount(userId, acctInfo))
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::ExecuteTx, save account info error"),
+        return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, save account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     if(SysCfg().GetAddressToTxFlag()) {
         CScriptDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
         if(!view.GetKeyId(txUid, sendKeyId)) {
-            return ERRORMSG("CRegisterContractTx::ExecuteTx, get regAcctId by account error!");
+            return ERRORMSG("CContractDeployTx::ExecuteTx, get regAcctId by account error!");
         }
 
         if(!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
@@ -1010,30 +1010,30 @@ bool CRegisterContractTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidat
     return true;
 }
 
-bool CRegisterContractTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
+bool CContractDeployTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
         int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
     CAccount account;
     CUserID userId;
     if (!view.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::UndoExecuteTx, read regist addr %s account info error", account.ToString()),
+        return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, read regist addr %s account info error", account.ToString()),
                          UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     CRegID scriptId(nHeight, nIndex);
     //delete script content
     if (!scriptDB.EraseScript(scriptId)) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::UndoExecuteTx, erase script id %s error", scriptId.ToString()),
+        return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase script id %s error", scriptId.ToString()),
                          UPDATE_ACCOUNT_FAIL, "erase-script-failed");
     }
     //delete account
     if (!view.EraseId(scriptId)) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::UndoExecuteTx, erase script account %s error", scriptId.ToString()),
+        return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase script account %s error", scriptId.ToString()),
                          UPDATE_ACCOUNT_FAIL, "erase-appkeyid-failed");
     }
     CKeyID keyId = Hash160(scriptId.GetVec6());
     userId       = keyId;
     if (!view.EraseAccount(userId)) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::UndoExecuteTx, erase script account %s error", scriptId.ToString()),
+        return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase script account %s error", scriptId.ToString()),
                          UPDATE_ACCOUNT_FAIL, "erase-appaccount-failed");
     }
     // LogPrint("INFO", "Delete regid %s app account\n", scriptId.ToString());
@@ -1041,7 +1041,7 @@ bool CRegisterContractTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVa
     for (auto &itemLog : txundo.vAccountLog) {
         if (itemLog.keyID == account.keyID) {
             if (!account.UndoOperateAccount(itemLog))
-                return state.DoS(100, ERRORMSG("CRegisterContractTx::UndoExecuteTx, undo operate account error, keyId=%s", account.keyID.ToString()),
+                return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, undo operate account error, keyId=%s", account.keyID.ToString()),
                                  UPDATE_ACCOUNT_FAIL, "undo-account-failed");
         }
     }
@@ -1049,15 +1049,15 @@ bool CRegisterContractTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVa
     vector<CScriptDBOperLog>::reverse_iterator rIterScriptDBLog = txundo.vScriptOperLog.rbegin();
     for (; rIterScriptDBLog != txundo.vScriptOperLog.rend(); ++rIterScriptDBLog) {
         if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
-            return state.DoS(100, ERRORMSG("CRegisterContractTx::UndoExecuteTx, undo scriptdb data error"), UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");
+            return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, undo scriptdb data error"), UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");
     }
     userId = account.keyID;
     if (!view.SetAccount(userId, account))
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::UndoExecuteTx, save account error"), UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+        return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, save account error"), UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
     return true;
 }
 
-bool CRegisterContractTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CContractDeployTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     CKeyID keyId;
     if (!view.GetKeyId(txUid, keyId))
         return false;
@@ -1065,7 +1065,7 @@ bool CRegisterContractTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view
     return true;
 }
 
-string CRegisterContractTx::ToString(CAccountViewCache &view) const {
+string CContractDeployTx::ToString(CAccountViewCache &view) const {
     string str;
     CKeyID keyId;
     view.GetKeyId(txUid, keyId);
@@ -1074,7 +1074,7 @@ string CRegisterContractTx::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CRegisterContractTx::ToJson(const CAccountViewCache &AccountView) const{
+Object CContractDeployTx::ToJson(const CAccountViewCache &AccountView) const{
     Object result;
     CAccountViewCache view(AccountView);
 
@@ -1092,35 +1092,35 @@ Object CRegisterContractTx::ToJson(const CAccountViewCache &AccountView) const{
     return result;
 }
 
-bool CRegisterContractTx::CheckTx(CValidationState &state, CAccountViewCache &view,
+bool CContractDeployTx::CheckTx(CValidationState &state, CAccountViewCache &view,
                                            CScriptDBViewCache &scriptDB) {
     CDataStream stream(contractScript, SER_DISK, CLIENT_VERSION);
     CVmScript vmScript;
     try {
         stream >> vmScript;
     } catch (exception &e) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::CheckTx, unserialize to vmScript error"),
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, unserialize to vmScript error"),
                          REJECT_INVALID, "unserialize-error");
     }
 
     if (!vmScript.IsValid()) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::CheckTx, vmScript is invalid"),
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, vmScript is invalid"),
                          REJECT_INVALID, "vmscript-invalid");
     }
 
     if (txUid.type() != typeid(CRegID)) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::CheckTx, regAcctId must be CRegID"),
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, regAcctId must be CRegID"),
                          REJECT_INVALID, "regacctid-type-error");
     }
 
     if (!CheckMoneyRange(llFees)) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::CheckTx, tx fee out of range"),
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, tx fee out of range"),
                          REJECT_INVALID, "fee-too-large");
     }
 
     if (!CheckMinTxFee(llFees)) {
         return state.DoS(
-            100, ERRORMSG("CRegisterContractTx::CheckTx, tx fee smaller than MinTxFee"),
+            100, ERRORMSG("CContractDeployTx::CheckTx, tx fee smaller than MinTxFee"),
             REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
@@ -1131,7 +1131,7 @@ bool CRegisterContractTx::CheckTx(CValidationState &state, CAccountViewCache &vi
 
     if (llFees < llFuel) {
         return state.DoS(100,
-                         ERRORMSG("CRegisterContractTx::CheckTx, register app tx fee too litter "
+                         ERRORMSG("CContractDeployTx::CheckTx, register app tx fee too litter "
                                   "(actual:%lld vs need:%lld)",
                                   llFees, llFuel),
                          REJECT_INVALID, "fee-too-litter");
@@ -1139,24 +1139,24 @@ bool CRegisterContractTx::CheckTx(CValidationState &state, CAccountViewCache &vi
 
     CAccount acctInfo;
     if (!view.GetAccount(txUid.get<CRegID>(), acctInfo)) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::CheckTx, get account falied"),
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, get account falied"),
                          REJECT_INVALID, "bad-getaccount");
     }
 
     if (!acctInfo.IsRegistered()) {
         return state.DoS(
-            100, ERRORMSG("CRegisterContractTx::CheckTx, account have not registed public key"),
+            100, ERRORMSG("CContractDeployTx::CheckTx, account have not registed public key"),
             REJECT_INVALID, "bad-no-pubkey");
     }
 
     if (!CheckSignatureSize(signature)) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::CheckTx, signature size invalid"),
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, signature size invalid"),
                          REJECT_INVALID, "bad-tx-sig-size");
     }
 
     uint256 signhash = SignatureHash();
     if (!CheckSignScript(signhash, signature, acctInfo.pubKey)) {
-        return state.DoS(100, ERRORMSG("CRegisterContractTx::CheckTx, CheckSignScript failed"),
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, CheckSignScript failed"),
                          REJECT_INVALID, "bad-signscript-check");
     }
     return true;

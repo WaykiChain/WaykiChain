@@ -3365,7 +3365,7 @@ void static ProcessGetData(CNode *pfrom) {
                         } else if (ACCOUNT_REGISTER_TX == pBaseTx->nTxType) {
                             ss << *((CRegisterAccountTx *)pBaseTx.get());
                         } else if (CONTRACT_DEPLOY_TX == pBaseTx->nTxType) {
-                            ss << *((CRegisterContractTx *)pBaseTx.get());
+                            ss << *((CContractDeployTx *)pBaseTx.get());
                         } else if (DELEGATE_VOTE_TX == pBaseTx->nTxType) {
                             ss << *((CDelegateVoteTx *)pBaseTx.get());
                         } else if (COMMON_MTX == pBaseTx->nTxType) {
@@ -4395,7 +4395,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
         case BLOCK_REWARD_TX:
             return std::make_shared<CBlockRewardTx>();
         case CONTRACT_DEPLOY_TX:
-            return std::make_shared<CRegisterContractTx>();
+            return std::make_shared<CContractDeployTx>();
         case DELEGATE_VOTE_TX:
             return std::make_shared<CDelegateVoteTx>();
         case COMMON_MTX:

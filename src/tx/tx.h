@@ -453,17 +453,17 @@ public:
     }
 };
 
-class CRegisterContractTx : public CBaseTx {
+class CContractDeployTx : public CBaseTx {
 public:
     vector_unsigned_char contractScript;  // contract script content
 
 public:
-    CRegisterContractTx(const CBaseTx *pBaseTx): CBaseTx(CONTRACT_DEPLOY_TX) {
+    CContractDeployTx(const CBaseTx *pBaseTx): CBaseTx(CONTRACT_DEPLOY_TX) {
         assert(CONTRACT_DEPLOY_TX == pBaseTx->nTxType);
-        *this = *(CRegisterContractTx *)pBaseTx;
+        *this = *(CContractDeployTx *)pBaseTx;
     }
-    CRegisterContractTx(): CBaseTx(CONTRACT_DEPLOY_TX) {}
-    ~CRegisterContractTx() {}
+    CContractDeployTx(): CBaseTx(CONTRACT_DEPLOY_TX) {}
+    ~CContractDeployTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -488,7 +488,7 @@ public:
     }
 
     uint256 GetHash() const { return SignatureHash(); }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CRegisterContractTx>(this); }
+    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CContractDeployTx>(this); }
     uint64_t GetFee() const { return llFees; }
     uint64_t GetValue() const { return 0; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
@@ -759,7 +759,7 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nTy
 //     } else if (pa->nTxType == BLOCK_REWARD_TX) {
 //         Serialize(os, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
 //     } else if (pa->nTxType == CONTRACT_DEPLOY_TX) {
-//         Serialize(os, *((CRegisterContractTx *)(pa.get())), nType, nVersion);
+//         Serialize(os, *((CContractDeployTx *)(pa.get())), nType, nVersion);
 //     } else if (pa->nTxType == DELEGATE_VOTE_TX) {
 //         Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
 //     } else if (pa->nTxType == COMMON_MTX) {
@@ -787,8 +787,8 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nTy
 //         pa = std::make_shared<CBlockRewardTx>();
 //         Unserialize(is, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
 //     } else if (nTxType == CONTRACT_DEPLOY_TX) {
-//         pa = std::make_shared<CRegisterContractTx>();
-//         Unserialize(is, *((CRegisterContractTx *)(pa.get())), nType, nVersion);
+//         pa = std::make_shared<CContractDeployTx>();
+//         Unserialize(is, *((CContractDeployTx *)(pa.get())), nType, nVersion);
 //     } else if (nTxType == DELEGATE_VOTE_TX) {
 //         pa = std::make_shared<CDelegateVoteTx>();
 //         Unserialize(is, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
