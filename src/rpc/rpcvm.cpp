@@ -175,8 +175,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     {
         CRegisterContractTx tx;
 
-        tx.regAcctId = srcRegId;
-        tx.script    = vscript;
+        tx.txUid = srcRegId;
+        tx.contractScript    = vscript;
         tx.llFees    = regFee;
         tx.nRunStep  = vscript.size();
         tx.nValidHeight = newHeight;
@@ -211,12 +211,12 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         if (!scriptDBViewTemp.HaveScript(appId)) {
             throw runtime_error(tinyformat::format("AppId %s is not exist\n", appId.ToString()));
         }
-        contractTx.nTxType   = CONTRACT_INVOKE_TX;
-        contractTx.srcRegId  = srcRegId;
-        contractTx.desUserId = appId;
-        contractTx.bcoins  = amount;
-        contractTx.llFees    = totalFee - regFee;
-        contractTx.arguments = arguments;
+        contractTx.nTxType      = CONTRACT_INVOKE_TX;
+        contractTx.txUid        = srcRegId;
+        contractTx.appUid       = appId;
+        contractTx.bcoins       = amount;
+        contractTx.llFees       = totalFee - regFee;
+        contractTx.arguments    = arguments;
         contractTx.nValidHeight = newHeight;
 
         vector<unsigned char> signature;
