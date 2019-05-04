@@ -659,7 +659,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
                                  REJECT_DUST, "dust amount");
         }
 
-        int64_t txMinFee = GetMinRelayFee(pBaseTx, nSize, true);
+        uint64_t txMinFee = GetMinRelayFee(pBaseTx, nSize, true);
         if (fLimitFree && nFees < txMinFee)
             return state.DoS(0,
                              ERRORMSG("AcceptToMemoryPool() : not enough fees %s, %d < %d",
