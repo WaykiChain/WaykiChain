@@ -307,21 +307,21 @@ public:
     bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
-class CContractTx : public CBaseTx {
+class CContractInvokeTx : public CBaseTx {
 public:
     mutable CUserID appUid;  // app regid or address
     uint64_t bcoins;         // transfer amount
     vector_unsigned_char arguments; // arguments to invoke a contract method
 
 public:
-    CContractTx() : CBaseTx(CONTRACT_INVOKE_TX) {}
+    CContractInvokeTx() : CBaseTx(CONTRACT_INVOKE_TX) {}
 
-    CContractTx(const CBaseTx *pBaseTx): CBaseTx(CONTRACT_INVOKE_TX) {
+    CContractInvokeTx(const CBaseTx *pBaseTx): CBaseTx(CONTRACT_INVOKE_TX) {
         assert(CONTRACT_INVOKE_TX == pBaseTx->nTxType);
-        *this = *(CContractTx *)pBaseTx;
+        *this = *(CContractInvokeTx *)pBaseTx;
     }
 
-    CContractTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feeIn,
+    CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feeIn,
                 uint64_t bcoinsIn, int validHeightIn, vector_unsigned_char &argumentsIn):
                 CBaseTx(CONTRACT_INVOKE_TX, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID))
@@ -336,7 +336,7 @@ public:
         arguments = argumentsIn;
     }
 
-    CContractTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feeIn, uint64_t bcoinsIn, int validHeightIn):
+    CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feeIn, uint64_t bcoinsIn, int validHeightIn):
                 CBaseTx(CONTRACT_INVOKE_TX, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
@@ -349,7 +349,7 @@ public:
         bcoins = bcoinsIn;
     }
 
-    ~CContractTx() {}
+    ~CContractInvokeTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -380,7 +380,7 @@ public:
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     std::shared_ptr<CBaseTx> GetNewInstance() {
-        return std::make_shared<CContractTx>(this);
+        return std::make_shared<CContractInvokeTx>(this);
     }
     string ToString(CAccountViewCache &view) const;
     Object ToJson(const CAccountViewCache &AccountView) const;
@@ -755,7 +755,7 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nTy
 //     } else if (pa->nTxType == BCOIN_TRANSFER_TX) {
 //         Serialize(os, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion);
 //     } else if (pa->nTxType == CONTRACT_INVOKE_TX) {
-//         Serialize(os, *((CContractTx *)(pa.get())), nType, nVersion);
+//         Serialize(os, *((CContractInvokeTx *)(pa.get())), nType, nVersion);
 //     } else if (pa->nTxType == BLOCK_REWARD_TX) {
 //         Serialize(os, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
 //     } else if (pa->nTxType == CONTRACT_DEPLOY_TX) {
@@ -781,8 +781,8 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nTy
 //         pa = std::make_shared<CBaseCoinTransferTx>();
 //         Unserialize(is, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion);
 //     } else if (nTxType == CONTRACT_INVOKE_TX) {
-//         pa = std::make_shared<CContractTx>();
-//         Unserialize(is, *((CContractTx *)(pa.get())), nType, nVersion);
+//         pa = std::make_shared<CContractInvokeTx>();
+//         Unserialize(is, *((CContractInvokeTx *)(pa.get())), nType, nVersion);
 //     } else if (nTxType == BLOCK_REWARD_TX) {
 //         pa = std::make_shared<CBlockRewardTx>();
 //         Unserialize(is, *((CBlockRewardTx *)(pa.get())), nType, nVersion);

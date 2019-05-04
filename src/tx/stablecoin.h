@@ -127,8 +127,8 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(VARINT(llFees));
         READWRITE(txUid);
-        READWRITE(VARINT(coinType));
-        READWRITE(VARINT(priceType));
+        READWRITE(coinType);
+        READWRITE(priceType);
         READWRITE(signature);
     )
 

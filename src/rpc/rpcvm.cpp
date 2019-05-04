@@ -202,8 +202,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         arguments = ParseHex(params[2].get_str());
     }
 
-    std::shared_ptr<CContractTx> contractTx_ptr = std::make_shared<CContractTx>();
-    CContractTx &contractTx = *contractTx_ptr;
+    std::shared_ptr<CContractInvokeTx> contractTx_ptr = std::make_shared<CContractInvokeTx>();
+    CContractInvokeTx &contractTx = *contractTx_ptr;
 
     {
         CAccount secureAcc;

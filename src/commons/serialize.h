@@ -33,7 +33,7 @@ class CDataStream;
 class CBaseTx;
 class CRegisterAccountTx;
 class CBaseCoinTransferTx;
-class CContractTx;
+class CContractInvokeTx;
 class CBlockRewardTx;
 
 static const unsigned int MAX_SIZE = 0x02000000;

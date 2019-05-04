@@ -808,7 +808,7 @@ static int ExGetTxContractFunc(lua_State *L) {
     int len = 0;
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
-            CContractTx *tx = static_cast<CContractTx *>(pBaseTx.get());
+            CContractInvokeTx *tx = static_cast<CContractInvokeTx *>(pBaseTx.get());
             len             = RetRstToLua(L, tx->arguments, false);
         } else {
             return RetFalse("ExGetTxContractFunc, tx type error");
@@ -875,7 +875,7 @@ static int ExGetTxRegIDFunc(lua_State *L) {
             vector<unsigned char> item = tx->srcUserId.get<CRegID>().GetVec6();
             len = RetRstToLua(L, item);
         } else if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
-            CContractTx *tx = static_cast<CContractTx*>(pBaseTx.get());
+            CContractInvokeTx *tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
             vector<unsigned char> item = tx->srcRegId.get<CRegID>().GetVec6();
             len = RetRstToLua(L, item);
         } else {
