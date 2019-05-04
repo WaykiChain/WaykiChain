@@ -60,15 +60,17 @@ public:
     bool OperateVote(VoteOperType type, const uint64_t& values);
 
 public:
-    CAccount(CKeyID& keyId, CPubKey& pubKey, CNickID& nickId)
+    CAccount(CKeyID& keyId, CNickID& nickId, CPubKey& pubKey)
         : keyID(keyId),
-          pubKey(pubKey),
           nickID(nickId),
+          pubKey(pubKey),
           bcoins(0),
           scoins(0),
           fcoins(0),
+          priceFeedDeposit(0),
+          receivedVotes(0),
           lastVoteHeight(0),
-          receivedVotes(0)
+          hasOpenCdp(false)
     {
         minerPubKey = CPubKey();
         voteFunds.clear();
@@ -80,8 +82,10 @@ public:
           bcoins(0),
           scoins(0),
           fcoins(0),
+          priceFeedDeposit(0),
+          receivedVotes(0),
           lastVoteHeight(0),
-          receivedVotes(0)
+          hasOpenCdp(false)
     {
         pubKey = CPubKey();
         minerPubKey = CPubKey();
@@ -102,6 +106,7 @@ public:
         this->receivedVotes = other.receivedVotes;
         this->lastVoteHeight = other.lastVoteHeight;
         this->voteFunds = other.voteFunds;
+        this->hasOpenCdp = other.hasOpenCdp;
     }
 
     CAccount& operator=(const CAccount& other)
@@ -120,6 +125,7 @@ public:
         this->receivedVotes = other.receivedVotes;
         this->lastVoteHeight = other.lastVoteHeight;
         this->voteFunds = other.voteFunds;
+        this->hasOpenCdp = other.hasOpenCdp;
 
         return *this;
     }
@@ -158,7 +164,7 @@ public:
             ss << keyID << regID << nickID << pubKey << minerPubKey
                << VARINT(bcoins) << VARINT(scoins) << VARINT(fcoins)
                << VARINT(receivedVotes)
-               << VARINT(lastVoteHeight) << voteFunds;
+               << VARINT(lastVoteHeight) << voteFunds << hasOpenCdp;
 
             uint256* hash = const_cast<uint256*>(&sigHash);
             *hash = ss.GetHash();
@@ -178,9 +184,11 @@ public:
         READWRITE(VARINT(bcoins));
         READWRITE(VARINT(scoins));
         READWRITE(VARINT(fcoins));
+        READWRITE(VARINT(priceFeedDeposit));
         READWRITE(receivedVotes);
         READWRITE(VARINT(lastVoteHeight));
-        READWRITE(voteFunds);)
+        READWRITE(voteFunds);
+        READWRITE(hasOpenCdp);)
 
 private:
     bool IsMoneyOverflow(uint64_t nAddMoney);
@@ -205,6 +213,11 @@ public:
 
     IMPLEMENT_SERIALIZE(
         READWRITE(keyID);
+        READWRITE(regID);
+        READWRITE(nickID);
+        READWRITE(pubKey);
+        READWRITE(minerPubKey);
+        READWRITE(hasOpenCdp);
         READWRITE(VARINT(bcoins));
         READWRITE(VARINT(lastVoteHeight));
         READWRITE(voteFunds);
