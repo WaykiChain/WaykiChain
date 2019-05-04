@@ -2,12 +2,12 @@
 #include <boost/foreach.hpp>
 #include <algorithm>
 
+#include "tx.h"
+
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_writer_template.h"
 #include "json/json_spirit_utils.h"
-
 #include "commons/serialize.h"
-#include "tx.h"
 #include "txdb.h"
 #include "crypto/hash.h"
 #include "util.h"
@@ -30,22 +30,6 @@ string GetTxType(unsigned char txType) {
         return "";
 }
 
-static bool GetKeyId(const CAccountViewCache &view, const vector<unsigned char> &ret,
-                     CKeyID &KeyId) {
-    if (ret.size() == 6) {
-        CRegID regId(ret);
-        KeyId = regId.GetKeyId(view);
-    } else if (ret.size() == 34) {
-        string addr(ret.begin(), ret.end());
-        KeyId = CKeyID(addr);
-    } else {
-        return false;
-    }
-
-    if (KeyId.IsEmpty()) return false;
-
-    return true;
-}
 
 bool CBaseTx::IsValidHeight(int nCurrHeight, int nTxCacheHeight) const {
     if(BLOCK_REWARD_TX == nTxType)

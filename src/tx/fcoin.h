@@ -6,6 +6,6 @@
 #ifndef FCOIN_H
 #define FCOIN_H
 
-#include "tx/tx.h"
+#include "tx.h"
 
 #endif

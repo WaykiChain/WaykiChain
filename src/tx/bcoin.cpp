@@ -3,6 +3,20 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
+#include "bcoin.h"
+
+#include "commons/serialize.h"
+#include "tx.h"
+#include "txdb.h"
+#include "crypto/hash.h"
+#include "util.h"
+#include "database.h"
+#include "main.h"
+#include "vm/vmrunenv.h"
+#include "core.h"
+#include "miner/miner.h"
+#include "version.h"
+
 string CBaseCoinTransferTx::ToString(CAccountViewCache &view) const {
     string srcId;
     if (txUid.type() == typeid(CPubKey)) {

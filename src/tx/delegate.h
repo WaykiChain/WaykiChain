@@ -6,7 +6,7 @@
 #ifndef DELEGATE_H
 #define DELEGATE_H
 
-#include "tx/tx.h"
+#include "tx.h"
 
 class CDelegateVoteTx : public CBaseTx {
 public:

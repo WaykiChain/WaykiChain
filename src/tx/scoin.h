@@ -6,7 +6,7 @@
 #ifndef SCOIN_H
 #define SCOIN_H
 
-#include "tx/tx.h"
+#include "tx.h"
 
 static const bool kGlobalStableCoinLockIsOn         = false;    // when true, CDP cannot be added but can be closed.
                                                                 // scoins cannot be sold in DEX

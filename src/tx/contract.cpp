@@ -3,6 +3,34 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
+#include "contract.h"
+
+#include "commons/serialize.h"
+#include "txdb.h"
+#include "crypto/hash.h"
+#include "util.h"
+#include "database.h"
+#include "main.h"
+#include "vm/vmrunenv.h"
+#include "core.h"
+#include "miner/miner.h"
+#include "version.h"
+
+static bool GetKeyId(const CAccountViewCache &view, const vector<unsigned char> &ret, CKeyID &KeyId) {
+    if (ret.size() == 6) {
+        CRegID regId(ret);
+        KeyId = regId.GetKeyId(view);
+    } else if (ret.size() == 34) {
+        string addr(ret.begin(), ret.end());
+        KeyId = CKeyID(addr);
+    } else {
+        return false;
+    }
+
+    if (KeyId.IsEmpty()) return false;
+
+    return true;
+}
 
 bool CContractDeployTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidationState &state, CTxUndo &txundo,
         int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {

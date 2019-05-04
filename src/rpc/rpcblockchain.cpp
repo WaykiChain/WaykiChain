@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <boost/assign/list_of.hpp>
 
-#include "../wallet/wallet.h"
+#include "wallet/wallet.h"
 #include "configuration.h"
 #include "init.h"
 #include "json/json_spirit_value.h"

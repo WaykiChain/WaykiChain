@@ -6,7 +6,7 @@
 #ifndef CONTRACT_H
 #define CONTRACT_H
 
-#include "tx/tx.h"
+#include "tx.h"
 
 class CContractDeployTx : public CBaseTx {
 public:
