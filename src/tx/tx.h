@@ -36,11 +36,11 @@ static const int nTxVersion2 = 2;
 #define SCRIPT_ID_SIZE (6)
 
 enum TxType : unsigned char {
-    BLOCK_REWARD_TX     = 1,  //!< Miner Reward Tx
-    ACCOUNT_REGISTER_TX = 2,  //!< Account Register Tx
-    BCOIN_TRANSFER_TX   = 3,  //!< Base Coin Transfer Tx
-    CONTRACT_INVOKE_TX  = 4,  //!< Contract Tx
-    CONTRACT_DEPLOY_TX  = 5,  //!< Register Contract Tx
+    BLOCK_REWARD_TX     = 1,  //!< Miner Block Reward Tx
+    ACCOUNT_REGISTER_TX = 2,  //!< Account Registeration Tx
+    BCOIN_TRANSFER_TX   = 3,  //!< BaseCoin Transfer Tx
+    CONTRACT_INVOKE_TX  = 4,  //!< Contract Invocation Tx
+    CONTRACT_DEPLOY_TX  = 5,  //!< Contract Deployment Tx
     DELEGATE_VOTE_TX    = 6,  //!< Vote Delegate Tx
     COMMON_MTX          = 7,  //!< Multisig Tx
 
@@ -691,7 +691,7 @@ public:
 
         signaturePairs = signaturePairsIn;
         desUserId      = desUserIdIn;
-        bcoins   = valueIn;
+        bcoins         = valueIn;
         required       = requiredIn;
     }
 
@@ -745,61 +745,62 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nTy
     return pa->GetSerializeSize(nType, nVersion) + 1;
 }
 
-// //FIXME: not in use, consider moving it into test code
-// template <typename Stream>
-// void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
-//     unsigned char nTxType = pa->nTxType;
-//     Serialize(os, nTxType, nType, nVersion);
-//     if (pa->nTxType == ACCOUNT_REGISTER_TX) {
-//         Serialize(os, *((CRegisterAccountTx *)(pa.get())), nType, nVersion);
-//     } else if (pa->nTxType == BCOIN_TRANSFER_TX) {
-//         Serialize(os, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion);
-//     } else if (pa->nTxType == CONTRACT_INVOKE_TX) {
-//         Serialize(os, *((CContractInvokeTx *)(pa.get())), nType, nVersion);
-//     } else if (pa->nTxType == BLOCK_REWARD_TX) {
-//         Serialize(os, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
-//     } else if (pa->nTxType == CONTRACT_DEPLOY_TX) {
-//         Serialize(os, *((CContractDeployTx *)(pa.get())), nType, nVersion);
-//     } else if (pa->nTxType == DELEGATE_VOTE_TX) {
-//         Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
-//     } else if (pa->nTxType == COMMON_MTX) {
-//         Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion);
-//     } else {
-//         string sTxType(1, nTxType);
-//         throw ios_base::failure("Serialize: nTxType (" + sTxType + ") value error.");
-//     }
-// }
-// //FIXME: not in use, consider moving it into test code
-// template <typename Stream>
-// void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
-//     unsigned char nTxType;
-//     is.read((char *)&(nTxType), sizeof(nTxType));
-//     if (nTxType == ACCOUNT_REGISTER_TX) {
-//         pa = std::make_shared<CRegisterAccountTx>();
-//         Unserialize(is, *((CRegisterAccountTx *)(pa.get())), nType, nVersion);
-//     } else if (nTxType == BCOIN_TRANSFER_TX) {
-//         pa = std::make_shared<CBaseCoinTransferTx>();
-//         Unserialize(is, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion);
-//     } else if (nTxType == CONTRACT_INVOKE_TX) {
-//         pa = std::make_shared<CContractInvokeTx>();
-//         Unserialize(is, *((CContractInvokeTx *)(pa.get())), nType, nVersion);
-//     } else if (nTxType == BLOCK_REWARD_TX) {
-//         pa = std::make_shared<CBlockRewardTx>();
-//         Unserialize(is, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
-//     } else if (nTxType == CONTRACT_DEPLOY_TX) {
-//         pa = std::make_shared<CContractDeployTx>();
-//         Unserialize(is, *((CContractDeployTx *)(pa.get())), nType, nVersion);
-//     } else if (nTxType == DELEGATE_VOTE_TX) {
-//         pa = std::make_shared<CDelegateVoteTx>();
-//         Unserialize(is, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
-//     } else if (nTxType == COMMON_MTX) {
-//         pa = std::make_shared<CMulsigTx>();
-//         Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
-//     } else {
-//         string sTxType(1, nTxType);
-//         throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error.");
-//     }
-//     pa->nTxType = nTxType;
-// }
+//global overloadding fun
+template <typename Stream>
+void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
+    unsigned char nTxType = pa->nTxType;
+    Serialize(os, nTxType, nType, nVersion);
+    if (pa->nTxType == ACCOUNT_REGISTER_TX) {
+        Serialize(os, *((CRegisterAccountTx *)(pa.get())), nType, nVersion);
+    } else if (pa->nTxType == BCOIN_TRANSFER_TX) {
+        Serialize(os, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion);
+    } else if (pa->nTxType == CONTRACT_INVOKE_TX) {
+        Serialize(os, *((CContractInvokeTx *)(pa.get())), nType, nVersion);
+    } else if (pa->nTxType == BLOCK_REWARD_TX) {
+        Serialize(os, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
+    } else if (pa->nTxType == CONTRACT_DEPLOY_TX) {
+        Serialize(os, *((CContractDeployTx *)(pa.get())), nType, nVersion);
+    } else if (pa->nTxType == DELEGATE_VOTE_TX) {
+        Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
+    } else if (pa->nTxType == COMMON_MTX) {
+        Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion);
+    } else {
+        string sTxType(1, nTxType);
+        throw ios_base::failure("Serialize: nTxType (" + sTxType + ") value error.");
+    }
+}
+
+//global overloadding fun
+template <typename Stream>
+void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
+    unsigned char nTxType;
+    is.read((char *)&(nTxType), sizeof(nTxType));
+    if (nTxType == ACCOUNT_REGISTER_TX) {
+        pa = std::make_shared<CRegisterAccountTx>();
+        Unserialize(is, *((CRegisterAccountTx *)(pa.get())), nType, nVersion);
+    } else if (nTxType == BCOIN_TRANSFER_TX) {
+        pa = std::make_shared<CBaseCoinTransferTx>();
+        Unserialize(is, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion);
+    } else if (nTxType == CONTRACT_INVOKE_TX) {
+        pa = std::make_shared<CContractInvokeTx>();
+        Unserialize(is, *((CContractInvokeTx *)(pa.get())), nType, nVersion);
+    } else if (nTxType == BLOCK_REWARD_TX) {
+        pa = std::make_shared<CBlockRewardTx>();
+        Unserialize(is, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
+    } else if (nTxType == CONTRACT_DEPLOY_TX) {
+        pa = std::make_shared<CContractDeployTx>();
+        Unserialize(is, *((CContractDeployTx *)(pa.get())), nType, nVersion);
+    } else if (nTxType == DELEGATE_VOTE_TX) {
+        pa = std::make_shared<CDelegateVoteTx>();
+        Unserialize(is, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
+    } else if (nTxType == COMMON_MTX) {
+        pa = std::make_shared<CMulsigTx>();
+        Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
+    } else {
+        string sTxType(1, nTxType);
+        throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error.");
+    }
+    pa->nTxType = nTxType;
+}
 
 #endif

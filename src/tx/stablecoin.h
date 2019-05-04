@@ -23,7 +23,6 @@ static const uint16_t kDefaultPriceFeedTxFee        = 10000;    // 10000 sawi
 
 class CCdpOpenTx : public CBaseTx {
 public:
-    mutable CUserID userId;     // CDP owner's regid or pubkey
     uint64_t bcoins;            // CDP collateral base coins amount
     uint64_t scoins;            // minted stable coins
 
@@ -35,9 +34,9 @@ public:
         *this = *(CCdpOpenTx *) pBaseTx;
     }
 
-    CCdpOpenTx(const CUserID &userIdIn, int validHeightIn, uint64_t feeIn, uint64_t bcoinsIn):
+    CCdpOpenTx(const CUserID &txUidIn, int validHeightIn, uint64_t feeIn, uint64_t bcoinsIn):
         CBaseTx(CDP_OPEN_TX, validHeightIn, feeIn) {
-        userId = userIdIn;
+        txUid = txUidIn;
         bcoins = bcoinsIn;
     }
 
@@ -45,8 +44,9 @@ public:
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
+        nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
-        READWRITE(userId);
+        READWRITE(txUid);
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(bcoins));
         READWRITE(VARINT(scoins));
@@ -56,7 +56,7 @@ public:
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << userId
+            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
                << VARINT(llFees) << VARINT(bcoins) << VARINT(scoins);
 
             uint256 *hash = const_cast<uint256 *>(&sigHash);
@@ -83,13 +83,13 @@ public:
                           CScriptDBViewCache &scriptDB);
 };
 
-enum CoinType: uint8_t {
+enum CoinType: unsigned char {
     WICC = 1,
     MICC = 2,
     WUSD = 3,
 };
 
-enum PriceType: uint8_t {
+enum PriceType: unsigned char {
     USD     = 1,
     CNY     = 2,
     EUR     = 3,
@@ -102,8 +102,8 @@ enum PriceType: uint8_t {
 // ######################################################################
 class CPriceFeedTx : public CBaseTx {
 public:
-    CoinType coinType;          // the coin of which price is fed
-    PriceType priceType;        // price type of the coin, E.g. USD/CNY
+    unsigned char coinType;         // the coin of which price is fed
+    unsigned char priceType;        // price type of the coin, E.g. USD/CNY
 
     uint64_t price;             // price of the coin by the base currency
 
@@ -124,19 +124,19 @@ public:
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
+        nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(VARINT(llFees));
         READWRITE(txUid);
-        READWRITE(VARINT(coinType);
+        READWRITE(coinType);
         READWRITE(priceType);
-        READWRITE(signature);
-    )
+        READWRITE(signature);)
 
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
-               << VARINT(llFees);
+               << VARINT(llFees) << coinType << priceType;
 
             uint256 *hash = const_cast<uint256 *>(&sigHash);
             *hash         = ss.GetHash();
