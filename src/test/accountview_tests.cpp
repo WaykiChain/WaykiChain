@@ -125,7 +125,7 @@ void CAccountViewTest::Init() {
 
 	for (int k = 0; k < VECTOR_SIZE; k++) {
 		CAccount account;
-		account.bcoinBalance = k + 1;
+		account.bcoins = k + 1;
 		account.keyID = vRandomKeyID.at(k);
 		vAccount.push_back(account);
 	}

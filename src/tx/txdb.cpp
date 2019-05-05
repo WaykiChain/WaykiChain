@@ -274,7 +274,7 @@ std::tuple<uint64_t, uint64_t> CAccountViewDB::TraverseAccount() {
                 CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 CAccount account;
                 ssValue >> account;
-                totalCoins += account.bcoinBalance;
+                totalCoins += account.bcoins;
 
                 CRegID regId;
                 if (account.GetRegId(regId)) {

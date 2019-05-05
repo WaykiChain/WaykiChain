@@ -321,10 +321,10 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
                    nHeight - recvRegId.GetHeight() > kRegIdMaturePeriodByBlock))
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
-    CCommonTx tx;
-    tx.srcUserId    = sendUserId;
-    tx.desUserId    = recvUserId;
-    tx.bcoinBalance = nValue;
+    CBaseCoinTransferTx tx;
+    tx.txUid    = sendUserId;
+    tx.toUid    = recvUserId;
+    tx.bcoins = nValue;
     tx.llFees       = (0 == nFee) ? SysCfg().GetTxFee() : nFee;
     tx.nValidHeight = nHeight;
 
@@ -371,7 +371,7 @@ Value sendtoaddress(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
 
         nAmount = AmountToRawValue(params[2]);
-        if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nDefaultFee)
+        if (pAccountViewTip->GetFreeBCoins(sendKeyId) < nAmount + nDefaultFee)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
     } else { // size == 2
         if (!GetKeyId(params[0].get_str(), recvKeyId))
@@ -388,7 +388,7 @@ Value sendtoaddress(const Array& params, bool fHelp) {
         bool sufficientFee = false;
         for (auto& keyId : sKeyIds) {
             if (keyId != recvKeyId &&
-                (pAccountViewTip->GetRawBalance(keyId) >= nAmount + nDefaultFee)) {
+                (pAccountViewTip->GetFreeBCoins(keyId) >= nAmount + nDefaultFee)) {
                 sendKeyId     = keyId;
                 sufficientFee = true;
                 break;
@@ -455,7 +455,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
                                strprintf("Given fee(%ld) < Default fee (%ld)", nFee, nDefaultFee));
         }
 
-        if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nActualFee) {
+        if (pAccountViewTip->GetFreeBCoins(sendKeyId) < nAmount + nActualFee) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
         }
     } else {  // sender address omitted
@@ -479,7 +479,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
         bool sufficientFee = false;
         for (auto& keyId : sKeyIds) {
             if (keyId != recvKeyId &&
-                (pAccountViewTip->GetRawBalance(keyId) >= nAmount + nDefaultFee)) {
+                (pAccountViewTip->GetFreeBCoins(keyId) >= nAmount + nDefaultFee)) {
                 sendKeyId     = keyId;
                 sufficientFee = true;
                 break;
@@ -570,10 +570,10 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
             ? CUserID(recvRegId)
             : CUserID(recvKeyId);
 
-    CCommonTx tx;
-    tx.srcUserId    = sendUserId;
-    tx.desUserId    = recvUserId;
-    tx.bcoinBalance = amount;
+    CBaseCoinTransferTx tx;
+    tx.txUid        = sendUserId;
+    tx.toUid        = recvUserId;
+    tx.bcoins       = amount;
     tx.llFees       = fee;
     tx.nValidHeight = height;
 
@@ -675,7 +675,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     CMulsigTx tx;
     tx.signaturePairs = signaturePairs;
     tx.desUserId      = recvUserId;
-    tx.bcoinBalance   = amount;
+    tx.bcoins   = amount;
     tx.llFees         = fee;
     tx.required       = required;
     tx.nValidHeight   = height;
@@ -738,7 +738,7 @@ Value getassets(const Array& params, bool fHelp)
         }
 
         temp.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
-        uint64_t freeValues = temp.get()->GetbcoinBalance();
+        uint64_t freeValues = temp.get()->Getbcoins();
         uint64_t freezeValues = temp.get()->GetAllFreezedValues();
         totalassets += freeValues;
         totalassets += freezeValues;
@@ -826,7 +826,7 @@ Value getassets(const Array& params, bool fHelp)
 //             rev = recvKeyId;
 //         }
 
-//         if(pAccountViewTip->GetRawBalance(sendreg) < nAmount + SysCfg().GetTxFee()) {
+//         if(pAccountViewTip->GetFreeBCoins(sendreg) < nAmount + SysCfg().GetTxFee()) {
 //             break;
 //         }
 
@@ -1117,7 +1117,7 @@ Value getwalletinfo(const Array& params, bool fHelp)
 
     Object obj;
     obj.push_back(Pair("wallet_version",    pwalletMain->GetVersion()));
-    obj.push_back(Pair("wallet_balance",    ValueFromAmount(pwalletMain->GetRawBalance())));
+    obj.push_back(Pair("wallet_balance",    ValueFromAmount(pwalletMain->GetFreeBCoins())));
     obj.push_back(Pair("wallet_encrypted",  pwalletMain->IsEncrypted()));
     obj.push_back(Pair("wallet_locked",     pwalletMain->IsLocked()));
     obj.push_back(Pair("unlocked_until",    nWalletUnlockTime));

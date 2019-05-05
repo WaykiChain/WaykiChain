@@ -9,40 +9,42 @@
 #include <boost/variant.hpp>
 #include <memory>
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 #include "chainparams.h"
 #include "crypto/hash.h"
 #include "id.h"
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
 #include "key.h"
 #include "vote.h"
+#include "json/json_spirit_utils.h"
+#include "json/json_spirit_value.h"
 
 using namespace json_spirit;
 
 class CAccountLog;
 
-class CAccount {
+class CAccount
+{
 public:
-    CRegID regID;                   //!< regID of the account
-    CKeyID keyID;                   //!< keyID of the account (interchangeable to address)
-    CPubKey pubKey;                 //!< account public key
-    CPubKey minerPubKey;            //!< miner saving account public key
-    CNickID nickID;                 //!< Nickname ID of the account (maxlen=32)
+    CKeyID keyID;        //!< keyID of the account (interchangeable to address)
+    CRegID regID;        //!< regID of the account
+    CNickID nickID;      //!< Nickname ID of the account (maxlen=32)
+    CPubKey pubKey;      //!< account public key
+    CPubKey minerPubKey; //!< miner saving account public key
 
-    uint64_t bcoinBalance;          //!< BaseCoin balance
-    uint64_t scoinBalance;          //!< StableCoin balance
-    uint64_t fcoinBalance;          //!< FundCoin balance
+    uint64_t bcoins; //!< Free Base Coins
+    uint64_t scoins; //!< Stable Coins
+    uint64_t fcoins; //!< FundCoin balance
+    uint64_t priceFeedDeposit;  //!< Deposit in bcoins to ensure proper price feed activity, 30% deviation causes cutting the deposit 
+    uint64_t receivedVotes; //!< votes received in bcoins
 
-    uint64_t nVoteHeight;           //!< account vote block height
-    vector<CVoteFund> voteFunds;    //!< account delegates votes sorted by vote amount
-    uint64_t receivedVotes;         //!< votes received
+    uint64_t lastVoteHeight;     //!< account's last vote block height used for computing interest
+    vector<CVoteFund> voteFunds; //!< account delegates votes sorted by vote amount
 
-    bool hasOpenCdp;                //!< When true, its CDP exists in a map {cdp-$regid -> $cdp}
+    bool hasOpenCdp; //!< When true, its CDP exists in a map {cdp-$regid -> $cdp}
 
-    uint256 sigHash;                //!< memory only
+    uint256 sigHash; //!< in-memory only
 
 public:
     /**
@@ -52,21 +54,24 @@ public:
      * @param nCurHeight:  the tip block height
      * @return returns true if successful, otherwise false
      */
-    bool OperateAccount(OperType type, const uint64_t &values, const uint64_t nCurHeight);
-    bool UndoOperateAccount(const CAccountLog &accountLog);
-    bool ProcessDelegateVote(vector<COperVoteFund> &operVoteFunds, const uint64_t nCurHeight);
-    bool OperateVote(VoteOperType type, const uint64_t &values);
+    bool OperateAccount(OperType type, const uint64_t& values, const uint64_t nCurHeight);
+    bool UndoOperateAccount(const CAccountLog& accountLog);
+    bool ProcessDelegateVote(vector<COperVoteFund>& operVoteFunds, const uint64_t nCurHeight);
+    bool OperateVote(VoteOperType type, const uint64_t& values);
 
 public:
-    CAccount(CKeyID &keyId, CPubKey &pubKey, CNickID &nickId)
+    CAccount(CKeyID& keyId, CNickID& nickId, CPubKey& pubKey)
         : keyID(keyId),
-          pubKey(pubKey),
           nickID(nickId),
-          bcoinBalance(0),
-          scoinBalance(0),
-          fcoinBalance(0),
-          nVoteHeight(0),
-          receivedVotes(0) {
+          pubKey(pubKey),
+          bcoins(0),
+          scoins(0),
+          fcoins(0),
+          priceFeedDeposit(0),
+          receivedVotes(0),
+          lastVoteHeight(0),
+          hasOpenCdp(false)
+    {
         minerPubKey = CPubKey();
         voteFunds.clear();
         regID.Clean();
@@ -74,81 +79,95 @@ public:
 
     CAccount()
         : keyID(uint160()),
-          bcoinBalance(0),
-          scoinBalance(0),
-          fcoinBalance(0),
-          nVoteHeight(0),
-          receivedVotes(0) {
-        pubKey      = CPubKey();
+          bcoins(0),
+          scoins(0),
+          fcoins(0),
+          priceFeedDeposit(0),
+          receivedVotes(0),
+          lastVoteHeight(0),
+          hasOpenCdp(false)
+    {
+        pubKey = CPubKey();
         minerPubKey = CPubKey();
         voteFunds.clear();
         regID.Clean();
     }
 
-    CAccount(const CAccount &other) {
-        this->regID         = other.regID;
-        this->keyID         = other.keyID;
-        this->nickID        = other.nickID;
-        this->pubKey        = other.pubKey;
-        this->minerPubKey   = other.minerPubKey;
-        this->bcoinBalance  = other.bcoinBalance;
-        this->scoinBalance  = other.scoinBalance;
-        this->fcoinBalance  = other.fcoinBalance;
-        this->nVoteHeight   = other.nVoteHeight;
-        this->voteFunds     = other.voteFunds;
+    CAccount(const CAccount& other)
+    {
+        this->keyID = other.keyID;
+        this->regID = other.regID;
+        this->nickID = other.nickID;
+        this->pubKey = other.pubKey;
+        this->minerPubKey = other.minerPubKey;
+        this->bcoins = other.bcoins;
+        this->scoins = other.scoins;
+        this->fcoins = other.fcoins;
         this->receivedVotes = other.receivedVotes;
+        this->lastVoteHeight = other.lastVoteHeight;
+        this->voteFunds = other.voteFunds;
+        this->hasOpenCdp = other.hasOpenCdp;
     }
 
-    CAccount &operator=(const CAccount &other) {
+    CAccount& operator=(const CAccount& other)
+    {
         if (this == &other)
             return *this;
 
-        this->regID         = other.regID;
-        this->keyID         = other.keyID;
-        this->nickID        = other.nickID;
-        this->pubKey        = other.pubKey;
-        this->minerPubKey   = other.minerPubKey;
-        this->bcoinBalance  = other.bcoinBalance;
-        this->scoinBalance  = other.scoinBalance;
-        this->fcoinBalance  = other.fcoinBalance;
-        this->nVoteHeight   = other.nVoteHeight;
-        this->voteFunds     = other.voteFunds;
+        this->keyID = other.keyID;
+        this->regID = other.regID;
+        this->nickID = other.nickID;
+        this->pubKey = other.pubKey;
+        this->minerPubKey = other.minerPubKey;
+        this->bcoins = other.bcoins;
+        this->scoins = other.scoins;
+        this->fcoins = other.fcoins;
         this->receivedVotes = other.receivedVotes;
+        this->lastVoteHeight = other.lastVoteHeight;
+        this->voteFunds = other.voteFunds;
+        this->hasOpenCdp = other.hasOpenCdp;
 
         return *this;
     }
 
     std::shared_ptr<CAccount> GetNewInstance() const { return std::make_shared<CAccount>(*this); }
     bool IsRegistered() const { return (pubKey.IsFullyValid() && pubKey.GetKeyId() == keyID); }
-    bool SetRegId(const CRegID &regID) {
+    bool SetRegId(const CRegID& regID)
+    {
         this->regID = regID;
         return true;
     };
 
-    bool GetRegId(CRegID &regID) const {
+    bool GetRegId(CRegID& regID) const
+    {
         regID = this->regID;
         return !regID.IsEmpty();
     };
 
-    uint64_t GetRawBalance();
-    uint64_t GetTotalBalance();
-    uint64_t GetFrozenBalance();
+    uint64_t GetFreeBCoins() const { return bcoins; }
+    uint64_t GetFreeScoins() const { return scoins; }
+    uint64_t GetFreeFcoins() const { return fcoins; }
+    uint64_t GetReceiveVotes() const { return receivedVotes; }
+
+    uint64_t GetTotalBcoins();
+    uint64_t GetVotedBCoins();
+
     uint64_t GetAccountProfit(uint64_t prevBlockHeight);
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;
-    bool IsEmptyValue() const { return !(bcoinBalance > 0); }
+    bool IsEmptyValue() const { return !(bcoins > 0); }
 
-    uint256 GetHash(bool recalculate = false) {
+    uint256 GetHash(bool recalculate = false)
+    {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            //FIXME: need to check block soft-fork height here
-            ss << regID << keyID << pubKey << minerPubKey
-                << VARINT(bcoinBalance) << VARINT(scoinBalance) << VARINT(fcoinBalance)
-                << VARINT(nVoteHeight)
-                << voteFunds << receivedVotes;
+            ss << keyID << regID << nickID << pubKey << minerPubKey
+               << VARINT(bcoins) << VARINT(scoins) << VARINT(fcoins)
+               << VARINT(receivedVotes)
+               << VARINT(lastVoteHeight) << voteFunds << hasOpenCdp;
 
-            uint256 *hash = const_cast<uint256 *>(&sigHash);
-            *hash         = ss.GetHash();
+            uint256* hash = const_cast<uint256*>(&sigHash);
+            *hash = ss.GetHash();
         }
 
         return sigHash;
@@ -157,63 +176,92 @@ public:
     bool UpDateAccountPos(int nCurHeight);
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(regID);
         READWRITE(keyID);
+        READWRITE(regID);
+        READWRITE(nickID);
         READWRITE(pubKey);
         READWRITE(minerPubKey);
-        READWRITE(VARINT(bcoinBalance));
-        READWRITE(VARINT(nVoteHeight));
+        READWRITE(VARINT(bcoins));
+        READWRITE(VARINT(scoins));
+        READWRITE(VARINT(fcoins));
+        READWRITE(VARINT(priceFeedDeposit));
+        READWRITE(receivedVotes);
+        READWRITE(VARINT(lastVoteHeight));
         READWRITE(voteFunds);
-        READWRITE(receivedVotes);)
-
-    uint64_t GetReceiveVotes() const { return receivedVotes; }
+        READWRITE(hasOpenCdp);)
 
 private:
     bool IsMoneyOverflow(uint64_t nAddMoney);
 };
 
-class CAccountLog {
+class CAccountLog
+{
 public:
-    CKeyID keyID;
-    uint64_t bcoinBalance;          //!< freedom money which coinage greater than 30 days
-    uint64_t nVoteHeight;           //!< account vote height
-    vector<CVoteFund> voteFunds;    //!< delegate votes
-    uint64_t receivedVotes;         //!< votes received
+    CKeyID keyID;        //!< keyID of the account (interchangeable to address)
+    CRegID regID;        //!< regID of the account
+    CNickID nickID;      //!< Nickname ID of the account (maxlen=32)
+    CPubKey pubKey;      //!< account public key
+    CPubKey minerPubKey; //!< miner saving account public key
+    bool hasOpenCdp;
+
+    uint64_t bcoins;             //!< baseCoin balance
+    uint64_t scoins;             //!< stableCoin balance
+    uint64_t fcoins;             //!< fundCoin balance
+    uint64_t lastVoteHeight;     //!< account's last vote height
+    vector<CVoteFund> voteFunds; //!< delegate votes
+    uint64_t receivedVotes;      //!< votes received
 
     IMPLEMENT_SERIALIZE(
         READWRITE(keyID);
-        READWRITE(VARINT(bcoinBalance));
-        READWRITE(VARINT(nVoteHeight));
+        READWRITE(regID);
+        READWRITE(nickID);
+        READWRITE(pubKey);
+        READWRITE(minerPubKey);
+        READWRITE(hasOpenCdp);
+        READWRITE(VARINT(bcoins));
+        READWRITE(VARINT(lastVoteHeight));
         READWRITE(voteFunds);
         READWRITE(receivedVotes);)
 
 public:
-    CAccountLog(const CAccount &acct) {
-        keyID        = acct.keyID;
-        bcoinBalance = acct.bcoinBalance;
-        nVoteHeight  = acct.nVoteHeight;
-        voteFunds    = acct.voteFunds;
-        receivedVotes= acct.receivedVotes;
+    CAccountLog(const CAccount& acct)
+    {
+        keyID = acct.keyID;
+        bcoins = acct.bcoins;
+        lastVoteHeight = acct.lastVoteHeight;
+        voteFunds = acct.voteFunds;
+        receivedVotes = acct.receivedVotes;
     }
-    CAccountLog(CKeyID &keyId) {
-        keyID        = keyId;
-        bcoinBalance = 0;
-        nVoteHeight  = 0;
-        receivedVotes= 0;
+    CAccountLog(CKeyID& keyId)
+    {
+        keyID = keyId;
+        bcoins = 0;
+        lastVoteHeight = 0;
+        receivedVotes = 0;
     }
-    CAccountLog() {
-        keyID        = uint160();
-        bcoinBalance = 0;
-        nVoteHeight  = 0;
+    CAccountLog()
+    {
+        keyID = uint160();
+        bcoins = 0;
+        lastVoteHeight = 0;
         voteFunds.clear();
         receivedVotes = 0;
     }
-    void SetValue(const CAccount &acct) {
-        keyID        = acct.keyID;
-        bcoinBalance = acct.bcoinBalance;
-        nVoteHeight  = acct.nVoteHeight;
-        receivedVotes= acct.receivedVotes;
-        voteFunds    = acct.voteFunds;
+    void SetValue(const CAccount& acct)
+    {
+        keyID = acct.keyID;
+        regID = acct.regID;
+        nickID = acct.nickID;
+        pubKey = acct.pubKey;
+        minerPubKey = acct.minerPubKey;
+
+        bcoins = acct.bcoins;
+        scoins = acct.scoins;
+        fcoins = acct.fcoins;
+        lastVoteHeight = acct.lastVoteHeight;
+        receivedVotes = acct.receivedVotes;
+        voteFunds = acct.voteFunds;
+        hasOpenCdp = acct.hasOpenCdp;
     }
     string ToString() const;
 };

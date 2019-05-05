@@ -75,7 +75,13 @@ coin_CORE_H = \
   rpc/rpcvm.h \
   support/cleanse.h \
   sigcache.h \
-  tx/stablecoin.h \
+  tx/accountreg.h \
+  tx/bcoin.h \
+  tx/contract.h \
+  tx/delegate.h \
+  tx/fcoin.h \
+  tx/pricefeed.h \
+  tx/scoin.h \
   tx/tx.h \
   tx/txdb.h \
   tx/txmempool.h \
@@ -198,7 +204,6 @@ libcoin_server_a_SOURCES = \
   accounts/cdp.cpp \
   addrman.cpp \
   alert.cpp \
-  commons/bloom.cpp \
   configuration.cpp \
   crypto/sha256.cpp \
   cuiserver.cpp	\
@@ -218,10 +223,16 @@ libcoin_server_a_SOURCES = \
   rpc/rpcserver.cpp \
   rpc/rpcvm.cpp \
   sigcache.cpp \
-  tx/stablecoin.cpp \
+  tx/accountreg.cpp \
+  tx/bcoin.cpp \
+  tx/contract.cpp \
+  tx/delegate.cpp \
+  tx/fcoin.cpp \
+  tx/pricefeed.cpp \
+  tx/scoin.cpp \
+  tx/tx.cpp \
   tx/txdb.cpp \
   tx/txmempool.cpp \
-  tx/tx.cpp \
   $(VMLUA_H) \
   $(VM_CPP) \
   $(VM_H) \
@@ -246,6 +257,7 @@ libcoin_common_a_SOURCES = \
   commons/arith_uint256.cpp \
   commons/random.cpp  \
   commons/uint256.cpp \
+  commons/bloom.cpp \
   crypto/hash.cpp \
   chainparams.cpp \
   configuration.cpp\

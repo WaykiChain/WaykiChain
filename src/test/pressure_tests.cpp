@@ -259,7 +259,7 @@ public:
 				if (!accView.GetAccount(userId, account)) {
 					return false;
 				}
-				freeValue += account.GetRawBalance();
+				freeValue += account.GetFreeBCoins();
 			}
 
 		}
@@ -274,7 +274,7 @@ public:
 				if (!accView.GetAccount(userId, account)) {
 					return false;
 				}
-				scriptaccValue += account.GetRawBalance();
+				scriptaccValue += account.GetFreeBCoins();
 			}
 
 		}
@@ -378,21 +378,21 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 				if (ptx->IsCoinBase()) {
 					continue;
 				}
-				if (REG_ACCT_TX == ptx->nTxType) {
+				if (ACCOUNT_REGISTER_TX == ptx->nTxType) {
 					llRegAcctFee += ptx->GetFee();
 				}
-				if (COMMON_TX == ptx->nTxType) {
-					std::shared_ptr<CCommonTx> pTransaction(
-						dynamic_pointer_cast<CCommonTx>(ptx));
+				if (BCOIN_TRANSFER_TX == ptx->nTxType) {
+					std::shared_ptr<CBaseCoinTransferTx> pTransaction(
+						dynamic_pointer_cast<CBaseCoinTransferTx>(ptx));
 					if (typeid(pTransaction->desUserId) == typeid(CKeyID)) {
-						llSendValue += pTransaction->bcoinBalance;
+						llSendValue += pTransaction->bcoins;
 					}
 				}
-				if (CONTRACT_TX == ptx->nTxType) {
-					std::shared_ptr<CContractTx> pTransaction(
-						dynamic_pointer_cast<CContractTx>(ptx));
+				if (CONTRACT_INVOKE_TX == ptx->nTxType) {
+					std::shared_ptr<CContractInvokeTx> pTransaction(
+						dynamic_pointer_cast<CContractInvokeTx>(ptx));
 					if (typeid(pTransaction->desUserId) == typeid(CKeyID)) {
-						llSendValue += pTransaction->bcoinBalance;
+						llSendValue += pTransaction->bcoins;
 					}
 				}
 			}

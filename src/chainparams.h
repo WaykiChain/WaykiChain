@@ -280,7 +280,7 @@ public:
     int GetSubsidyHalvingInterval() const {
         return nSubsidyHalvingInterval;
     }
-    virtual int64_t GetMaxFee() const {
+    virtual uint64_t GetMaxFee() const {
         return 1000 * COIN;  //1000 WICC
     }
     virtual const CBlock& GenesisBlock() const = 0;

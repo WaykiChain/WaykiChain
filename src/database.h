@@ -3,7 +3,7 @@
 
 #include <map>
 #include <vector>
-#include "./vm/appaccount.h"
+#include "vm/appaccount.h"
 #include "commons/serialize.h"
 #include "tx/tx.h"
 
@@ -84,7 +84,7 @@ public:
     bool EraseAccount(const CUserID &userId);
     bool EraseId(const CUserID &userId);
     bool HaveAccount(const CUserID &userId);
-    int64_t GetRawBalance(const CUserID &userId) const;
+    int64_t GetFreeBCoins(const CUserID &userId) const;
     bool Flush();
     unsigned int GetCacheSize();
     Object ToJsonObj() const;

@@ -15,7 +15,6 @@
 #include "miner/miner.h"
 #include "net.h"
 #include "syncdatadb.h"
-#include "tx/tx.h"
 #include "tx/txdb.h"
 #include "tx/txmempool.h"
 #include "ui_interface.h"
@@ -67,7 +66,7 @@ CSignatureCache signatureCache;
 /** Fees smaller than this (in sawi) are considered zero fee (for transaction creation) */
 uint64_t CBaseTx::nMinTxFee = 10000;  // Override with -mintxfee
 /** Fees smaller than this (in sawi) are considered zero fee (for relaying and mining) */
-int64_t CBaseTx::nMinRelayTxFee = 1000;
+uint64_t CBaseTx::nMinRelayTxFee = 1000;
 /** Amout smaller than this (in sawi) is considered dust amount */
 uint64_t CBaseTx::nDustAmountThreshold = 10000;
 /** Amount of blocks that other nodes claim to have */
@@ -588,7 +587,7 @@ bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> &s
 
 bool CheckTx(CBaseTx *ptx, CValidationState &state, CAccountViewCache &view,
                       CScriptDBViewCache &scriptDB) {
-    if (REWARD_TX == ptx->nTxType) return true;
+    if (BLOCK_REWARD_TX == ptx->nTxType) return true;
 
     if (!ptx->CheckTx(state, view, scriptDB)) return false;
 
@@ -596,7 +595,7 @@ bool CheckTx(CBaseTx *ptx, CValidationState &state, CAccountViewCache &view,
 }
 
 int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree) {
-    int64_t nBaseFee = pBaseTx->nMinRelayTxFee;
+    uint64_t nBaseFee = pBaseTx->nMinRelayTxFee;
     int64_t nMinFee  = (1 + (int64_t)nBytes / 1000) * nBaseFee;
 
     if (fAllowFree) {
@@ -644,22 +643,22 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
     {
         double dPriority = pBaseTx->GetPriority();
-        int64_t nFees    = pBaseTx->GetFee();
+        uint64_t nFees   = pBaseTx->GetFee();
 
         CTxMemPoolEntry entry(pBaseTx, nFees, GetTime(), dPriority, chainActive.Height());
         unsigned int nSize = entry.GetTxSize();
 
-        if (pBaseTx->nTxType == COMMON_TX) {
-            CCommonTx *pTx = static_cast<CCommonTx *>(pBaseTx);
-            if (pTx->bcoinBalance < CBaseTx::nDustAmountThreshold)
+        if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
+            CBaseCoinTransferTx *pTx = static_cast<CBaseCoinTransferTx *>(pBaseTx);
+            if (pTx->bcoins < CBaseTx::nDustAmountThreshold)
                 return state.DoS(0,
                                  ERRORMSG("AcceptToMemoryPool() : common tx %d transfer amount(%d) "
                                           "too small, you must send a min (%d)",
-                                          hash.ToString(), pTx->bcoinBalance, CBaseTx::nDustAmountThreshold),
+                                          hash.ToString(), pTx->bcoins, CBaseTx::nDustAmountThreshold),
                                  REJECT_DUST, "dust amount");
         }
 
-        int64_t txMinFee = GetMinRelayFee(pBaseTx, nSize, true);
+        uint64_t txMinFee = GetMinRelayFee(pBaseTx, nSize, true);
         if (fLimitFree && nFees < txMinFee)
             return state.DoS(0,
                              ERRORMSG("AcceptToMemoryPool() : not enough fees %s, %d < %d",
@@ -1338,26 +1337,26 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
     if (isGensisBlock) {
         view.SetBestBlock(pIndex->GetBlockHash());
         for (unsigned int i = 1; i < block.vptx.size(); i++) {
-            if (block.vptx[i]->nTxType == REWARD_TX) {
+            if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
                 assert(i <= 1);
-                std::shared_ptr<CRewardTx> pRewardTx =
-                    dynamic_pointer_cast<CRewardTx>(block.vptx[i]);
+                std::shared_ptr<CBlockRewardTx> pRewardTx =
+                    dynamic_pointer_cast<CBlockRewardTx>(block.vptx[i]);
                 CAccount sourceAccount;
                 CRegID accountId(pIndex->nHeight, i);
-                CPubKey pubKey      = pRewardTx->account.get<CPubKey>();
+                CPubKey pubKey      = pRewardTx->txUid.get<CPubKey>();
                 CKeyID keyId        = pubKey.GetKeyId();
                 sourceAccount.keyID = keyId;
                 sourceAccount.pubKey = pubKey;
                 sourceAccount.SetRegId(accountId);
-                sourceAccount.bcoinBalance  = pRewardTx->rewardValue;
+                sourceAccount.bcoins  = pRewardTx->rewardValue;
                 assert( view.SaveAccountInfo(accountId, keyId, sourceAccount) );
-            } else if (block.vptx[i]->nTxType == DELEGATE_TX) {
-                std::shared_ptr<CDelegateTx> pDelegateTx = dynamic_pointer_cast<CDelegateTx>(block.vptx[i]);
-                assert( pDelegateTx->userId.type() == typeid(CRegID)) ; // Vote Tx must use RegId
+            } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
+                std::shared_ptr<CDelegateVoteTx> pDelegateTx = dynamic_pointer_cast<CDelegateVoteTx>(block.vptx[i]);
+                assert( pDelegateTx->txUid.type() == typeid(CRegID)) ; // Vote Tx must use RegId
 
                 CAccount voterAcct;
-                assert( view.GetAccount(pDelegateTx->userId, voterAcct) );
-                CUserID voterCId(pDelegateTx->userId);
+                assert( view.GetAccount(pDelegateTx->txUid, voterAcct) );
+                CUserID voterCId(pDelegateTx->txUid);
                 uint64_t maxVotes = 0;
                 CScriptDBOperLog operDbLog;
                 int j = i;
@@ -1395,8 +1394,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                              return fund1.GetVoteCount() > fund2.GetVoteCount();
                          });
                 }
-                assert( voterAcct.bcoinBalance >= maxVotes );
-                voterAcct.bcoinBalance -= maxVotes;
+                assert( voterAcct.bcoins >= maxVotes );
+                voterAcct.bcoins -= maxVotes;
                 assert( view.SaveAccountInfo(voterAcct.regID, voterAcct.keyID, voterAcct) );
             }
         }
@@ -1432,7 +1431,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                 return state.DoS(100, ERRORMSG("ConnectBlock() : txhash=%s beyond the scope of valid height",
                                 pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
 
-            if (CONTRACT_TX == pBaseTx->nTxType)
+            if (CONTRACT_INVOKE_TX == pBaseTx->nTxType)
                 LogPrint("vm", "tx hash=%s ConnectBlock run contract\n", pBaseTx->GetHash().GetHex());
 
             LogPrint("op_account", "tx index:%d tx hash:%s\n", i, pBaseTx->GetHash().GetHex());
@@ -1447,7 +1446,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                                 block.GetHash().GetHex()), REJECT_INVALID, "exeed-max_step");
 
             uint64_t llFuel = ceil(pBaseTx->nRunStep / 100.f) * block.GetFuelRate();
-            if (REG_CONT_TX == pBaseTx->nTxType) {
+            if (CONTRACT_DEPLOY_TX == pBaseTx->nTxType) {
                 if (llFuel < 1 * COIN) {
                     llFuel = 1 * COIN;
                 }
@@ -1466,9 +1465,9 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                             nTotalFuel, block.GetFuel());
     }
 
-    std::shared_ptr<CRewardTx> pRewardTx = dynamic_pointer_cast<CRewardTx>(block.vptx[0]);
+    std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[0]);
     CAccount minerAcct;
-    if (!view.GetAccount(pRewardTx->account, minerAcct)) {
+    if (!view.GetAccount(pRewardTx->txUid, minerAcct)) {
         assert(0);
     }
     // LogPrint("INFO", "miner address=%s\n", minerAcct.keyID.ToAddress());
@@ -2149,7 +2148,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
     //校验利息是否正常
-    std::shared_ptr<CRewardTx> pRewardTx = dynamic_pointer_cast<CRewardTx>(block.vptx[0]);
+    std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[0]);
     uint64_t llValidReward = block.GetFee() - block.GetFuel();
     if (pRewardTx->rewardValue != llValidReward)
         return state.DoS(100, ERRORMSG("ProcessForkedChain() : coinbase pays too much (actual=%d vs limit=%d)",
@@ -3358,17 +3357,17 @@ void static ProcessGetData(CNode *pfrom) {
                     if (pBaseTx.get()) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
-                        if (COMMON_TX == pBaseTx->nTxType) {
-                            ss << *((CCommonTx *)(pBaseTx.get()));
-                        } else if (CONTRACT_TX == pBaseTx->nTxType) {
-                            ss << *((CContractTx *)(pBaseTx.get()));
-                        } else if (REG_ACCT_TX == pBaseTx->nTxType) {
-                            ss << *((CRegisterAccountTx *)pBaseTx.get());
-                        } else if (REG_CONT_TX == pBaseTx->nTxType) {
-                            ss << *((CRegisterContractTx *)pBaseTx.get());
-                        } else if (DELEGATE_TX == pBaseTx->nTxType) {
-                            ss << *((CDelegateTx *)pBaseTx.get());
-                        } else if (COMMON_MULSIG_TX == pBaseTx->nTxType) {
+                        if (BCOIN_TRANSFER_TX == pBaseTx->nTxType) {
+                            ss << *((CBaseCoinTransferTx *)(pBaseTx.get()));
+                        } else if (CONTRACT_INVOKE_TX == pBaseTx->nTxType) {
+                            ss << *((CContractInvokeTx *)(pBaseTx.get()));
+                        } else if (ACCOUNT_REGISTER_TX == pBaseTx->nTxType) {
+                            ss << *((CAccountRegisterTx *)pBaseTx.get());
+                        } else if (CONTRACT_DEPLOY_TX == pBaseTx->nTxType) {
+                            ss << *((CContractDeployTx *)pBaseTx.get());
+                        } else if (DELEGATE_VOTE_TX == pBaseTx->nTxType) {
+                            ss << *((CDelegateVoteTx *)pBaseTx.get());
+                        } else if (COMMON_MTX == pBaseTx->nTxType) {
                             ss << *((CMulsigTx *)pBaseTx.get());
                         }
                         pfrom->PushMessage("tx", ss);
@@ -3728,7 +3727,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
     else if (strCommand == "tx") {
         std::shared_ptr<CBaseTx> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
 
-        if (REWARD_TX == pBaseTx->nTxType)
+        if (BLOCK_REWARD_TX == pBaseTx->nTxType)
             return ERRORMSG("Reward tx from network NOT accepted. Hex:%s", HexStr(vRecv.begin(), vRecv.end()));
 
         vRecv >> pBaseTx;
@@ -4386,19 +4385,19 @@ class CMainCleanup {
 
 std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
     switch (uType) {
-        case COMMON_TX:
-            return std::make_shared<CCommonTx>();
-        case CONTRACT_TX:
-            return std::make_shared<CContractTx>();
-        case REG_ACCT_TX:
-            return std::make_shared<CRegisterAccountTx>();
-        case REWARD_TX:
-            return std::make_shared<CRewardTx>();
-        case REG_CONT_TX:
-            return std::make_shared<CRegisterContractTx>();
-        case DELEGATE_TX:
-            return std::make_shared<CDelegateTx>();
-        case COMMON_MULSIG_TX:
+        case BCOIN_TRANSFER_TX:
+            return std::make_shared<CBaseCoinTransferTx>();
+        case CONTRACT_INVOKE_TX:
+            return std::make_shared<CContractInvokeTx>();
+        case ACCOUNT_REGISTER_TX:
+            return std::make_shared<CAccountRegisterTx>();
+        case BLOCK_REWARD_TX:
+            return std::make_shared<CBlockRewardTx>();
+        case CONTRACT_DEPLOY_TX:
+            return std::make_shared<CContractDeployTx>();
+        case DELEGATE_VOTE_TX:
+            return std::make_shared<CDelegateVoteTx>();
+        case COMMON_MTX:
             return std::make_shared<CMulsigTx>();
         default:
             ERRORMSG("CreateNewEmptyTransaction type error");

@@ -1,9 +1,8 @@
-/*
- * appaccout.h
- *
- *  Created on: 2015年3月30日
- *      Author: WaykiChain Core Developers
- */
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 
 #ifndef APPUSERACCOUT_H_
 #define APPUSERACCOUT_H_
@@ -154,8 +153,8 @@ public:
 
 	string ToString()const;
 
-	uint64_t GetbcoinBalance() const { return bcoinBalance; }
-	void SetbcoinBalance(uint64_t bcoinBalance) { this->bcoinBalance = bcoinBalance; }
+	uint64_t Getbcoins() const { return bcoins; }
+	void Setbcoins(uint64_t bcoins) { this->bcoins = bcoins; }
 
 	const vector<unsigned char>& GetAccUserId() const { return mAccUserID; }
 
@@ -176,7 +175,7 @@ public:
 
 	IMPLEMENT_SERIALIZE
 	(
-		READWRITE(VARINT(bcoinBalance));
+		READWRITE(VARINT(bcoins));
 		READWRITE(mAccUserID);
 		READWRITE(vFrozenFunds);
 	)
@@ -189,7 +188,7 @@ public:
 	bool Operate(const CAppFundOperate &Op);
 
 private:
-	uint64_t bcoinBalance;       //自由金额
+	uint64_t bcoins;       //自由金额
 	vector<unsigned char>  mAccUserID;
 	vector<CAppCFund> vFrozenFunds;
 };

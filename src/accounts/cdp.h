@@ -11,9 +11,12 @@
 // #include <vector>
 // #include <unordered_map>
 
+#include "leveldbwrapper.h"
+
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "commons/serialize.h"
+
 // #include "key.h"
 // #include "chainparams.h"
 // #include "crypto/hash.h"
@@ -21,24 +24,51 @@
 
 class CCdp {
 private:
-    uint64_t bcoinAmount; //collatorized basecoin amount
-    uint64_t scoinAmount; //minted stablecoin amount
+    uint64_t bcoins;   // collatorized basecoin amount
+    uint64_t scoins;   // minted stablecoin amount
 
 public:
     CCdp() {}
-    CCdp(uint64_t bcoinAmountIn, uint64_t scoinAmountIn): bcoinAmount(bcoinAmountIn), scoinAmount(scoinAmountIn) {}
+    CCdp(uint64_t bcoinsIn, uint64_t scoinsIn): bcoins(bcoinsIn), scoins(scoinsIn) {}
 
-    uint64_t GetBcoindAmount() const { return bcoinAmount; }
-    uint64_t GetScoinAmount() const { return scoinAmount; }
+    uint64_t GetBcoins() const { return bcoins; }
+    uint64_t GetScoins() const { return scoins; }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(bcoinAmount);
-        READWRITE(scoinAmount);
+        READWRITE(bcoins);
+        READWRITE(scoins);
     )
 };
 
-class CCdpCacheView {
+class CCdpView {
 
 };
 
-#endif//CDP_H
+class CCdpViewCache: CCdpView {
+protected:
+    CCdpView *pBase;
+
+public:
+    bool Flush();
+};
+
+class CCdpViewDB: CCdpView {
+private:
+    CLevelDBWrapper db;
+
+public:
+    CCdpViewDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) : 
+        db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {};
+    ~CCdpViewDB() {};
+
+private:
+    CCdpViewDB(const CCdpViewDB &);
+    void operator=(const CCdpViewDB &);
+
+public:
+    virtual bool IsContainBlock(const CBlock &block);
+    virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash);
+    int64_t GetDbCount() { return db.GetDbCount(); }
+};
+
+#endif //CDP_H

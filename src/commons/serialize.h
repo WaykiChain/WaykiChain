@@ -31,10 +31,10 @@
 class CAutoFile;
 class CDataStream;
 class CBaseTx;
-class CRegisterAccountTx;
-class CCommonTx;
-class CContractTx;
-class CRewardTx;
+class CAccountRegisterTx;
+class CBaseCoinTransferTx;
+class CContractInvokeTx;
+class CBlockRewardTx;
 
 static const unsigned int MAX_SIZE = 0x02000000;
 

@@ -369,7 +369,7 @@ bool CBaseParams::CreateGenesisRewardTx(vector<std::shared_ptr<CBaseTx> > &vRewa
         if (i > 0) {
             money = IniCfg().GetCoinInitValue() * COIN;
         }
-        shared_ptr<CRewardTx> pRewardTx = std::make_shared<CRewardTx>(ParseHex(vInitPubKey[i].c_str()),
+        shared_ptr<CBlockRewardTx> pRewardTx = std::make_shared<CBlockRewardTx>(ParseHex(vInitPubKey[i].c_str()),
                 money, 0);
         pRewardTx->nVersion = nTxVersion1;
         if (pRewardTx.get())
@@ -393,7 +393,7 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDe
         vOperVoteFund.push_back(operVoteFund);
     }
     CRegID accountId(0, 1);
-    shared_ptr<CDelegateTx> pDelegateTx = std::make_shared<CDelegateTx>(accountId.GetVec6(),
+    shared_ptr<CDelegateVoteTx> pDelegateTx = std::make_shared<CDelegateVoteTx>(accountId.GetVec6(),
             vOperVoteFund, 10000, 0);
     pDelegateTx->signature = ParseHex(IniCfg().GetDelegateSignature(type));
     pDelegateTx->nVersion = nTxVersion1;

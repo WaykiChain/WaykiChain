@@ -53,12 +53,12 @@ Value getbalance(const Array& params, bool fHelp)
     }
     Object obj;
     if (size == 0) {
-        obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance())));
+        obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetFreeBCoins())));
         return obj;
     } else if (size == 1) {
         string addr = params[0].get_str();
         if (addr == "*") {
-            obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance())));
+            obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetFreeBCoins())));
             return obj;
         } else {
             CKeyID keyid;
@@ -69,7 +69,7 @@ Value getbalance(const Array& params, bool fHelp)
                 CAccount account;
                 CAccountViewCache accView(*pAccountViewTip);
                 if (accView.GetAccount(CUserID(keyid), account)) {
-                    obj.push_back(Pair("balance", ValueFromAmount(account.GetRawBalance())));
+                    obj.push_back(Pair("balance", ValueFromAmount(account.GetFreeBCoins())));
                     return obj;
                 }
             } else {
@@ -91,25 +91,25 @@ Value getbalance(const Array& params, bool fHelp)
                     if (pwalletMain->mapInBlockTx.count(pBlockIndex->GetBlockHash()) > 0) {
                         map<uint256, std::shared_ptr<CBaseTx> > mapTx = pwalletMain->mapInBlockTx[pBlockIndex->GetBlockHash()].mapAccountTx;
                         for (auto &item : mapTx) {
-                            if (COMMON_TX == item.second->nTxType) {
-                                CCommonTx *pTx = (CCommonTx *)item.second.get();
+                            if (BCOIN_TRANSFER_TX == item.second->nTxType) {
+                                CBaseCoinTransferTx *pTx = (CBaseCoinTransferTx *)item.second.get();
                                 CKeyID srcKeyId, desKeyId;
-                                pAccountViewTip->GetKeyId(pTx->srcUserId, srcKeyId);
-                                pAccountViewTip->GetKeyId(pTx->desUserId, desKeyId);
+                                pAccountViewTip->GetKeyId(pTx->txUid, srcKeyId);
+                                pAccountViewTip->GetKeyId(pTx->toUid, desKeyId);
                                 if (!pwalletMain->HaveKey(srcKeyId) && pwalletMain->HaveKey(desKeyId)) {
-                                    nValue = pTx->bcoinBalance;
+                                    nValue = pTx->bcoins;
                                 }
                             }
-                            // TODO: COMMON_MULSIG_TX
+                            // TODO: COMMON_MTX
                         }
                     }
                     pBlockIndex = pBlockIndex->pprev;
                     --nConf;
                 }
-                obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance() - nValue)));
+                obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetFreeBCoins() - nValue)));
                 return obj;
             } else {
-                obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetRawBalance(false))));
+                obj.push_back(Pair("balance", ValueFromAmount(pwalletMain->GetFreeBCoins(false))));
                 return obj;
             }
         } else {
@@ -125,24 +125,24 @@ Value getbalance(const Array& params, bool fHelp)
                         if (pwalletMain->mapInBlockTx.count(pBlockIndex->GetBlockHash()) > 0) {
                             map<uint256, std::shared_ptr<CBaseTx> > mapTx = pwalletMain->mapInBlockTx[pBlockIndex->GetBlockHash()].mapAccountTx;
                             for (auto &item : mapTx) {
-                                if (COMMON_TX == item.second->nTxType) {
-                                    CCommonTx *pTx = (CCommonTx *)item.second.get();
+                                if (BCOIN_TRANSFER_TX == item.second->nTxType) {
+                                    CBaseCoinTransferTx *pTx = (CBaseCoinTransferTx *)item.second.get();
                                     CKeyID srcKeyId, desKeyId;
-                                    pAccountViewTip->GetKeyId(pTx->desUserId, desKeyId);
+                                    pAccountViewTip->GetKeyId(pTx->toUid, desKeyId);
                                     if (keyid == desKeyId) {
-                                        nValue = pTx->bcoinBalance;
+                                        nValue = pTx->bcoins;
                                     }
                                 }
-                                // TODO: COMMON_MULSIG_TX
+                                // TODO: COMMON_MTX
                             }
                         }
                         pBlockIndex = pBlockIndex->pprev;
                         --nConf;
                     }
-                    obj.push_back(Pair("balance", ValueFromAmount(pAccountViewTip->GetRawBalance(keyid) - nValue)));
+                    obj.push_back(Pair("balance", ValueFromAmount(pAccountViewTip->GetFreeBCoins(keyid) - nValue)));
                     return obj;
                 } else {
-                    obj.push_back(Pair("balance", ValueFromAmount(mempool.pAccountViewCache->GetRawBalance(keyid))));
+                    obj.push_back(Pair("balance", ValueFromAmount(mempool.pAccountViewCache->GetFreeBCoins(keyid))));
                     return obj;
                 }
             } else {
@@ -205,7 +205,7 @@ Value getinfo(const Array& params, bool fHelp)
 
     if (pwalletMain) {
         obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
-        obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetRawBalance())));
+        obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetFreeBCoins())));
     }
 
     obj.push_back(Pair("timeoffset",        GetTimeOffset()));

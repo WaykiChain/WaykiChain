@@ -29,7 +29,7 @@ using namespace std;
 using namespace json_spirit;
 
 
-static const int REG_CONT_TX_FEE_MIN = 1 * COIN;
+static const int CONTRACT_DEPLOY_TX_FEE_MIN = 1 * COIN;
 
 static bool FindKeyId(CAccountViewCache *pAccountView, string const &addr, CKeyID &keyId) {
     // first, try to parse regId
@@ -122,7 +122,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     uint64_t nDefaultFee = SysCfg().GetTxFee();
     int nFuelRate = GetElementForBurn(chainActive.Tip());
-    uint64_t regFee = std::max((int)ceil(vscript.size() / 100) * nFuelRate, REG_CONT_TX_FEE_MIN);
+    uint64_t regFee = std::max((int)ceil(vscript.size() / 100) * nFuelRate, CONTRACT_DEPLOY_TX_FEE_MIN);
     uint64_t minFee = regFee + nDefaultFee;
 
     uint64_t totalFee = minFee + 10000000; // set default totalFee
@@ -152,7 +152,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     uint64_t balance = 0;
     if (acctViewTemp.GetAccount(srcUserId, account)) {
-        balance = account.GetRawBalance();
+        balance = account.GetFreeBCoins();
     }
 
     if (!account.IsRegistered()) {
@@ -173,10 +173,10 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     int newHeight = chainActive.Tip()->nHeight + 1;
     assert(pwalletMain != NULL);
     {
-        CRegisterContractTx tx;
+        CContractDeployTx tx;
 
-        tx.regAcctId = srcRegId;
-        tx.script    = vscript;
+        tx.txUid = srcRegId;
+        tx.contractScript    = vscript;
         tx.llFees    = regFee;
         tx.nRunStep  = vscript.size();
         tx.nValidHeight = newHeight;
@@ -202,8 +202,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         arguments = ParseHex(params[2].get_str());
     }
 
-    std::shared_ptr<CContractTx> contractTx_ptr = std::make_shared<CContractTx>();
-    CContractTx &contractTx = *contractTx_ptr;
+    std::shared_ptr<CContractInvokeTx> contractTx_ptr = std::make_shared<CContractInvokeTx>();
+    CContractInvokeTx &contractTx = *contractTx_ptr;
 
     {
         CAccount secureAcc;
@@ -211,12 +211,12 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         if (!scriptDBViewTemp.HaveScript(appId)) {
             throw runtime_error(tinyformat::format("AppId %s is not exist\n", appId.ToString()));
         }
-        contractTx.nTxType   = CONTRACT_TX;
-        contractTx.srcRegId  = srcRegId;
-        contractTx.desUserId = appId;
-        contractTx.bcoinBalance  = amount;
-        contractTx.llFees    = totalFee - regFee;
-        contractTx.arguments = arguments;
+        contractTx.nTxType      = CONTRACT_INVOKE_TX;
+        contractTx.txUid        = srcRegId;
+        contractTx.appUid       = appId;
+        contractTx.bcoins       = amount;
+        contractTx.llFees       = totalFee - regFee;
+        contractTx.arguments    = arguments;
         contractTx.nValidHeight = newHeight;
 
         vector<unsigned char> signature;

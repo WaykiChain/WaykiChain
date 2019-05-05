@@ -3,6 +3,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #define  BOOST_NO_CXX11_SCOPED_ENUMS
+
 #include "walletdb.h"
 
 #include "commons/base58.h"
@@ -17,14 +18,11 @@
 #include <iterator>
 #include <boost/filesystem.hpp>
 
-using namespace std;
 using namespace boost;
-
 
 //
 // CWalletDB
 //
-
 
 bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,string& strType,
     string& strErr, int MinVersion)
@@ -38,7 +36,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,str
         if (strType == "tx") {
             uint256 hash;
             ssKey >> hash;
-            std::shared_ptr<CBaseTx> pBaseTx; //= make_shared<CContractTx>();
+            std::shared_ptr<CBaseTx> pBaseTx; //= make_shared<CContractInvokeTx>();
             ssValue >> pBaseTx;
             if (pBaseTx->GetHash() == hash) {
                 if (pwallet != NULL)

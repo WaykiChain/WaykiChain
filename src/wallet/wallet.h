@@ -6,15 +6,6 @@
 #ifndef COIN_WALLET_H
 #define COIN_WALLET_H
 
-#include "core.h"
-#include "crypter.h"
-#include "accounts/key.h"
-#include "accounts/keystore.h"
-#include "main.h"
-#include "ui_interface.h"
-#include "util.h"
-#include "walletdb.h"
-
 #include <algorithm>
 #include <map>
 #include <set>
@@ -23,8 +14,23 @@
 #include <string>
 #include <utility>
 #include <vector>
-
 #include <memory>
+
+#include "core.h"
+#include "crypter.h"
+#include "accounts/key.h"
+#include "accounts/keystore.h"
+#include "main.h"
+#include "ui_interface.h"
+#include "util.h"
+#include "walletdb.h"
+#include "tx/tx.h"
+#include "tx/bcoin.h"
+#include "tx/scoin.h"
+#include "tx/fcoin.h"
+#include "tx/contract.h"
+#include "tx/delegate.h"
+#include "tx/accountreg.h"
 
 
 enum WalletFeature
@@ -93,7 +99,7 @@ public:
             }
     )
     virtual ~CWallet(){};
-    int64_t GetRawBalance(bool IsConfirmed=true)const;
+    int64_t GetFreeBCoins(bool IsConfirmed=true)const;
 
     bool Sign(const CKeyID &keyID,const uint256 &hash,vector<unsigned char> &signature,bool IsMiner=false) const;
     //! Adds an encrypted key to the store, and saves it to disk.
@@ -317,25 +323,25 @@ public:
 
     bool AddTx(const uint256 &hash, const CBaseTx *pTx) {
         switch (pTx->nTxType) {
-        case COMMON_TX:
-            mapAccountTx[hash] = std::make_shared<CCommonTx>(pTx);
+        case BCOIN_TRANSFER_TX:
+            mapAccountTx[hash] = std::make_shared<CBaseCoinTransferTx>(pTx);
             break;
-        case CONTRACT_TX:
-            mapAccountTx[hash] = std::make_shared<CContractTx>(pTx);
+        case CONTRACT_INVOKE_TX:
+            mapAccountTx[hash] = std::make_shared<CContractInvokeTx>(pTx);
             break;
-        case REG_ACCT_TX:
-            mapAccountTx[hash] = std::make_shared<CRegisterAccountTx>(pTx);
+        case ACCOUNT_REGISTER_TX:
+            mapAccountTx[hash] = std::make_shared<CAccountRegisterTx>(pTx);
             break;
-        case REWARD_TX:
-            mapAccountTx[hash] = std::make_shared<CRewardTx>(pTx);
+        case BLOCK_REWARD_TX:
+            mapAccountTx[hash] = std::make_shared<CBlockRewardTx>(pTx);
             break;
-        case REG_CONT_TX:
-            mapAccountTx[hash] = std::make_shared<CRegisterContractTx>(pTx);
+        case CONTRACT_DEPLOY_TX:
+            mapAccountTx[hash] = std::make_shared<CContractDeployTx>(pTx);
             break;
-        case DELEGATE_TX:
-            mapAccountTx[hash] = std::make_shared<CDelegateTx>(pTx);
+        case DELEGATE_VOTE_TX:
+            mapAccountTx[hash] = std::make_shared<CDelegateVoteTx>(pTx);
             break;
-        case COMMON_MULSIG_TX:
+        case COMMON_MTX:
             mapAccountTx[hash] = std::make_shared<CMulsigTx>(pTx);
             break;
         default:

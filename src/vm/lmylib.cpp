@@ -807,8 +807,8 @@ static int ExGetTxContractFunc(lua_State *L) {
     std::shared_ptr<CBaseTx> pBaseTx;
     int len = 0;
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
-        if (pBaseTx->nTxType == CONTRACT_TX) {
-            CContractTx *tx = static_cast<CContractTx *>(pBaseTx.get());
+        if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
+            CContractInvokeTx *tx = static_cast<CContractInvokeTx *>(pBaseTx.get());
             len             = RetRstToLua(L, tx->arguments, false);
         } else {
             return RetFalse("ExGetTxContractFunc, tx type error");
@@ -870,13 +870,13 @@ static int ExGetTxRegIDFunc(lua_State *L) {
     std::shared_ptr<CBaseTx> pBaseTx;
     int len = 0;
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
-        if (pBaseTx->nTxType == COMMON_TX) {
-            CCommonTx *tx = static_cast<CCommonTx*>(pBaseTx.get());
-            vector<unsigned char> item = tx->srcUserId.get<CRegID>().GetVec6();
+        if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
+            CBaseCoinTransferTx *tx = static_cast<CBaseCoinTransferTx*>(pBaseTx.get());
+            vector<unsigned char> item = tx->txUid.get<CRegID>().GetVec6();
             len = RetRstToLua(L, item);
-        } else if (pBaseTx->nTxType == CONTRACT_TX) {
-            CContractTx *tx = static_cast<CContractTx*>(pBaseTx.get());
-            vector<unsigned char> item = tx->srcRegId.get<CRegID>().GetVec6();
+        } else if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
+            CContractInvokeTx *tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
+            vector<unsigned char> item = tx->txUid.get<CRegID>().GetVec6();
             len = RetRstToLua(L, item);
         } else {
             return RetFalse("ExGetTxRegIDFunc, tx type error");
@@ -1022,7 +1022,7 @@ static int ExQueryAccountBalanceFunc(lua_State *L) {
     }
     else
     {
-        uint64_t nbalance = aAccount.GetRawBalance();
+        uint64_t nbalance = aAccount.GetFreeBCoins();
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << nbalance;
         vector<unsigned char> TMP(tep.begin(),tep.end());
@@ -1691,7 +1691,7 @@ static int ExGetUserAppAccValueFunc(lua_State *L)
     uint64_t valueData = 0 ;
     int len = 0;
     if (pVmRunEnv->GetAppUserAccount(accid.GetIdV(), sptrAcc)) {
-        valueData = sptrAcc->GetbcoinBalance();
+        valueData = sptrAcc->Getbcoins();
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << valueData;
@@ -1979,7 +1979,7 @@ static int ExTransferContractAsset(lua_State *L)
 
     temp.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
 
-    uint64_t nMoney = temp.get()->GetbcoinBalance();
+    uint64_t nMoney = temp.get()->Getbcoins();
 
     int i = 0;
     CAppFundOperate op;

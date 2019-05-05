@@ -10,9 +10,9 @@
 #include <boost/variant.hpp>
 #include <stdexcept>
 #include <vector>
-#include "../commons/serialize.h"
-#include "../commons/uint256.h"
-#include "../commons/allocators.h"
+#include "commons/serialize.h"
+#include "commons/uint256.h"
+#include "commons/allocators.h"
 #include "chainparams.h"
 #include "crypto/hash.h"
 #include "util.h"

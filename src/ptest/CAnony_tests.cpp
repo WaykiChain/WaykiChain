@@ -52,7 +52,7 @@ bool CAnonyTest::RegistContract(){
 	if(!SelectOneAccount(regAddr))
 		return false;
 	//reg anony app
-	Value regscript = basetest.CRegisterContractTx(regAddr, strFileName, nCurHight, nFee+20*COIN);
+	Value regscript = basetest.CContractDeployTx(regAddr, strFileName, nCurHight, nFee+20*COIN);
 	if(basetest.GetHashFromCreatedTx(regscript, strTxHash)){
 		return true;
 	}

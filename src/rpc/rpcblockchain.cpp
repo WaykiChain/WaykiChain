@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <boost/assign/list_of.hpp>
 
-#include "../wallet/wallet.h"
+#include "wallet/wallet.h"
 #include "configuration.h"
 #include "init.h"
 #include "json/json_spirit_value.h"
@@ -19,7 +19,7 @@
 using namespace json_spirit;
 using namespace std;
 
-class CCommonTx;
+class CBaseCoinTransferTx;
 
 double GetDifficulty(const CBlockIndex* blockindex)
 {
@@ -504,7 +504,7 @@ Value reconsiderblock(const Array& params, bool fHelp) {
     return obj;
 }
 
-static unique_ptr<MsgQueue<CCommonTx>> generationQueue;
+static unique_ptr<MsgQueue<CBaseCoinTransferTx>> generationQueue;
 
 void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
     RenameThread("CommonTxGenerator");
@@ -533,10 +533,10 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
         int32_t nValidHeight = chainActive.Tip()->nHeight;
 
         for (int64_t i = 0; i < batchSize; ++i) {
-            CCommonTx tx;
-            tx.srcUserId    = srcRegId;
-            tx.desUserId    = desRegId;
-            tx.bcoinBalance     = llValue++;
+            CBaseCoinTransferTx tx;
+            tx.txUid        = srcRegId;
+            tx.toUid        = desRegId;
+            tx.bcoins       = llValue++;
             tx.llFees       = llFees;
             tx.nValidHeight = nValidHeight;
 
@@ -563,7 +563,7 @@ void static CommonTxSender() {
     SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
     CValidationState state;
-    CCommonTx tx;
+    CBaseCoinTransferTx tx;
 
     while (true) {
         // add interruption point
@@ -595,9 +595,9 @@ void StartCommonGeneration(const int64_t period, const int64_t batchSize) {
     // For example, generate 50(batchSize) transactions in 20(period), then
     // we need to prepare 1000 * 10 / 20 * 50 = 25,000 transactions in 10 second.
     // Actually, set the message queue's size to 50,000(double or up to 60,000).
-    MsgQueue<CCommonTx>::SizeType size       = 1000 * 10 * batchSize * 2 / period;
-    MsgQueue<CCommonTx>::SizeType actualSize = size > MSG_QUEUE_MAX_LEN ? MSG_QUEUE_MAX_LEN : size;
-    generationQueue.reset(new MsgQueue<CCommonTx>(actualSize));
+    MsgQueue<CBaseCoinTransferTx>::SizeType size       = 1000 * 10 * batchSize * 2 / period;
+    MsgQueue<CBaseCoinTransferTx>::SizeType actualSize = size > MSG_QUEUE_MAX_LEN ? MSG_QUEUE_MAX_LEN : size;
+    generationQueue.reset(new MsgQueue<CBaseCoinTransferTx>(actualSize));
 
     generateThreads = new boost::thread_group();
     generateThreads->create_thread(boost::bind(&CommonTxGenerator, period, batchSize));
@@ -640,7 +640,7 @@ Value startcommontpstest(const Array& params, bool fHelp) {
     return obj;
 }
 
-static unique_ptr<MsgQueue<CContractTx>> generationContractQueue;
+static unique_ptr<MsgQueue<CContractInvokeTx>> generationContractQueue;
 
 void static ContractTxGenerator(const string& regid, const int64_t period,
                                 const int64_t batchSize) {
@@ -674,10 +674,10 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
         int32_t nValidHeight = chainActive.Tip()->nHeight;
 
         for (int64_t i = 0; i < batchSize; ++i) {
-            CContractTx tx;
-            tx.srcRegId     = srcRegId;
-            tx.desUserId    = desRegId;
-            tx.bcoinBalance     = llValue++;
+            CContractInvokeTx tx;
+            tx.txUid        = srcRegId;
+            tx.appUid       = desRegId;
+            tx.bcoins       = llValue++;
             tx.llFees       = llFees;
             tx.arguments    = arguments;
             tx.nValidHeight = nValidHeight;
@@ -705,7 +705,7 @@ void static ContractTxGenerator() {
     SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
     CValidationState state;
-    CContractTx tx;
+    CContractInvokeTx tx;
 
     while (true) {
         // add interruption point
@@ -737,10 +737,10 @@ void StartContractGeneration(const string& regid, const int64_t period, const in
     // For example, generate 50(batchSize) transactions in 20(period), then
     // we need to prepare 1000 * 10 / 20 * 50 = 25,000 transactions in 10 second.
     // Actually, set the message queue's size to 50,000(double or up to 60,000).
-    MsgQueue<CContractTx>::SizeType size = 1000 * 10 * batchSize * 2 / period;
-    MsgQueue<CContractTx>::SizeType actualSize =
+    MsgQueue<CContractInvokeTx>::SizeType size = 1000 * 10 * batchSize * 2 / period;
+    MsgQueue<CContractInvokeTx>::SizeType actualSize =
         size > MSG_QUEUE_MAX_LEN ? MSG_QUEUE_MAX_LEN : size;
-    generationContractQueue.reset(new MsgQueue<CContractTx>(actualSize));
+    generationContractQueue.reset(new MsgQueue<CContractInvokeTx>(actualSize));
 
     generateContractThreads = new boost::thread_group();
     generateContractThreads->create_thread(

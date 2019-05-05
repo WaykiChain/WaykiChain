@@ -177,8 +177,8 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
             return ERRORMSG("read block info fail from disk");
 
         CAccount preDelegate;
-        CRewardTx *preBlockRewardTx = (CRewardTx *)preBlock.vptx[0].get();
-        if (!view.GetAccount(preBlockRewardTx->account, preDelegate)) {
+        CBlockRewardTx *preBlockRewardTx = (CBlockRewardTx *)preBlock.vptx[0].get();
+        if (!view.GetAccount(preBlockRewardTx->txUid, preDelegate)) {
             return ERRORMSG("get preblock delegate account info error");
         }
         if (currentTime - preBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
@@ -188,9 +188,9 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
     }
 
     pBlock->SetNonce(nNonce);
-    CRewardTx *prtx = (CRewardTx *)pBlock->vptx[0].get();
-    prtx->account            = delegate.regID;  //记账人账户ID
-    prtx->nHeight            = pBlock->GetHeight();
+    CBlockRewardTx *prtx = (CBlockRewardTx *)pBlock->vptx[0].get();
+    prtx->txUid     = delegate.regID;  //记账人账户ID
+    prtx->nHeight   = pBlock->GetHeight();
     pBlock->SetMerkleRootHash(pBlock->BuildMerkleTree());
     pBlock->SetTime(currentTime);
 
@@ -254,8 +254,8 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
             return ERRORMSG("read block info fail from disk");
 
         CAccount preDelegate;
-        CRewardTx *preBlockRewardTx = (CRewardTx *)preBlock.vptx[0].get();
-        if (!view.GetAccount(preBlockRewardTx->account, preDelegate))
+        CBlockRewardTx *preBlockRewardTx = (CBlockRewardTx *)preBlock.vptx[0].get();
+        if (!view.GetAccount(preBlockRewardTx->txUid, preDelegate))
             return ERRORMSG("get preblock delegate account info error");
 
         if (pBlock->GetBlockTime() - preBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
@@ -265,8 +265,8 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
     }
 
     CAccount account;
-    CRewardTx *prtx = (CRewardTx *)pBlock->vptx[0].get();
-    if (view.GetAccount(prtx->account, account)) {
+    CBlockRewardTx *prtx = (CBlockRewardTx *)pBlock->vptx[0].get();
+    if (view.GetAccount(prtx->txUid, account)) {
         if (curDelegate.regID != account.regID) {
             return ERRORMSG("Verify delegate account error, delegate regid=%s vs reward regid=%s!",
                 curDelegate.regID.ToString(), account.regID.ToString());
@@ -300,7 +300,7 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
 
             CTxUndo txundo;
             CValidationState state;
-            if (CONTRACT_TX == pBaseTx->nTxType)
+            if (CONTRACT_INVOKE_TX == pBaseTx->nTxType)
                 LogPrint("vm", "tx hash=%s VerifyPosTx run contract\n", pBaseTx->GetHash().GetHex());
 
             pBaseTx->nFuelRate = pBlock->GetFuelRate();
@@ -332,10 +332,10 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CAccountViewCache &view, CTransactionD
     CBlock *pblock = &pblocktemplate->block;  // pointer for convenience
 
     // Create coinbase tx
-    CRewardTx rewardTx;
+    CBlockRewardTx rewardTx;
 
     // Add our coinbase tx as the first tx
-    pblock->vptx.push_back(std::make_shared<CRewardTx>(rewardTx));
+    pblock->vptx.push_back(std::make_shared<CBlockRewardTx>(rewardTx));
     pblocktemplate->vTxFees.push_back(-1);    // updated at end
     pblocktemplate->vTxSigOps.push_back(-1);  // updated at end
 
@@ -425,7 +425,7 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CAccountViewCache &view, CTransactionD
         g_miningBlockInfo.nTotalFees = nFees;
 
         assert(nFees >= nTotalFuel);
-        ((CRewardTx *)pblock->vptx[0].get())->rewardValue = nFees - nTotalFuel;
+        ((CBlockRewardTx *)pblock->vptx[0].get())->rewardValue = nFees - nTotalFuel;
 
         // Fill in header
         pblock->SetPrevBlockHash(pIndexPrev->GetBlockHash());
