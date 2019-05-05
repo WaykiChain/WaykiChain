@@ -15,9 +15,15 @@
 #include <fstream>
 #include <algorithm>
 #include <iterator>
-#include <boost/filesystem.hpp>
+// #include <boost/filesystem.hpp>
+
+#include <fstream>
+#include <iostream>
+#include <experimental/filesystem>
 
 using namespace std;
+namespace fs = std::experimental::filesystem;
+
 using namespace boost;
 
 #define  BOOST_NO_CXX11_SCOPED_ENUMS
@@ -467,14 +473,17 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
                     pathDest /= wallet.strWalletFile;
 
                 try {
-#if BOOST_VERSION >= 104000
-                    boost::filesystem::copy_file(pathSrc, pathDest, boost::filesystem::copy_option::overwrite_if_exists);
-#else
-                    boost::filesystem::copy_file(pathSrc, pathDest);
-#endif
+                    fs::copy_file(pathSrc, pathDest, fs::copy_options::overwrite_existing);
+
+// #if BOOST_VERSION >= 104000
+//                     boost::filesystem::copy_file(pathSrc, pathDest, boost::filesystem::copy_option::overwrite_if_exists);
+// #else
+//                     boost::filesystem::copy_file(pathSrc, pathDest);
+// #endif
                     LogPrint("INFO", "copied wallet.dat into %s\n", pathDest.string());
                     return true;
-                } catch (const boost::filesystem::filesystem_error& e) {
+                } catch (fs::filesystem_error& e) {
+                // } catch (const boost::filesystem::filesystem_error& e) {
                     LogPrint("ERROR", "error copying wallet.dat into %s - %s\n", pathDest.string(), e.what());
                     return false;
                 }
