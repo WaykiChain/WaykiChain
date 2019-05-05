@@ -304,7 +304,7 @@ coind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
 # coinlua binary
 coinlua_LDADD = liblua53.a -lm
 coinlua_SOURCES = vm/lua/coinlua.c
-coinlua__CFLAGS = $(AM_CFLAGS) -DLUA_USE_POSIX -Wl,-E -ldl -lreadline
+coinlua_CFLAGS = $(AM_CFLAGS) -fPIC -DLUA_USE_POSIX -Wl,-E -ldl
 
 # NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
 $(LIBLEVELDB): $(LIBMEMENV)
