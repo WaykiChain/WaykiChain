@@ -2,6 +2,7 @@
 // Copyright (c) 2009-2014 The WaykiChain developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+#define  BOOST_NO_CXX11_SCOPED_ENUMS
 
 #include "walletdb.h"
 
@@ -15,24 +16,13 @@
 #include <fstream>
 #include <algorithm>
 #include <iterator>
-// #include <boost/filesystem.hpp>
-
-#include <fstream>
-#include <iostream>
-#include <experimental/filesystem>
-
-using namespace std;
-namespace fs = std::experimental::filesystem;
+#include <boost/filesystem.hpp>
 
 using namespace boost;
-
-#define  BOOST_NO_CXX11_SCOPED_ENUMS
-
 
 //
 // CWalletDB
 //
-
 
 bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,string& strType,
     string& strErr, int MinVersion)
@@ -473,17 +463,14 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
                     pathDest /= wallet.strWalletFile;
 
                 try {
-                    fs::copy_file(pathSrc, pathDest, fs::copy_options::overwrite_existing);
-
-// #if BOOST_VERSION >= 104000
-//                     boost::filesystem::copy_file(pathSrc, pathDest, boost::filesystem::copy_option::overwrite_if_exists);
-// #else
-//                     boost::filesystem::copy_file(pathSrc, pathDest);
-// #endif
+#if BOOST_VERSION >= 104000
+                    boost::filesystem::copy_file(pathSrc, pathDest, boost::filesystem::copy_option::overwrite_if_exists);
+#else
+                    boost::filesystem::copy_file(pathSrc, pathDest);
+#endif
                     LogPrint("INFO", "copied wallet.dat into %s\n", pathDest.string());
                     return true;
-                } catch (fs::filesystem_error& e) {
-                // } catch (const boost::filesystem::filesystem_error& e) {
+                } catch (const boost::filesystem::filesystem_error& e) {
                     LogPrint("ERROR", "error copying wallet.dat into %s - %s\n", pathDest.string(), e.what());
                     return false;
                 }
