@@ -255,7 +255,7 @@ public:
     void SetTxCacheHeight(int nHeight) const {
         nTxCacheHeight = nHeight;
     }
-    bool GetIsContractLogOn() const {
+    bool IsContractLogOn() const {
         return bContractLog;
     }
     bool GetAddressToTxFlag() const {
