@@ -12,6 +12,7 @@
 #include "util.h"
 #include "accounts/key.h"
 #include "tx/tx.h"
+#include "tx/blockreward.h"
 #include "main.h"
 
 #include <boost/assign/list_of.hpp>

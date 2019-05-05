@@ -26,6 +26,7 @@
 #include "walletdb.h"
 #include "tx/tx.h"
 #include "tx/bcoin.h"
+#include "tx/blockreward.h"
 #include "tx/scoin.h"
 #include "tx/fcoin.h"
 #include "tx/contract.h"

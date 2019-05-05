@@ -7,7 +7,6 @@
 #include "main.h"
 
 #include "configuration.h"
-
 #include "addrman.h"
 #include "alert.h"
 #include "chainparams.h"
@@ -15,11 +14,16 @@
 #include "miner/miner.h"
 #include "net.h"
 #include "syncdatadb.h"
+#include "tx/blockreward.h"
 #include "tx/txdb.h"
 #include "tx/txmempool.h"
 #include "ui_interface.h"
 #include "util.h"
 #include "vm/vmrunenv.h"
+
+#include "json/json_spirit_utils.h"
+#include "json/json_spirit_value.h"
+#include "json/json_spirit_writer_template.h"
 
 #include <sstream>
 #include <algorithm>
@@ -27,10 +31,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <memory>
-
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
-#include "json/json_spirit_writer_template.h"
 
 using namespace json_spirit;
 using namespace std;

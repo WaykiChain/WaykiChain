@@ -10,11 +10,13 @@
 #include "init.h"
 #include "main.h"
 #include "net.h"
+#include "wallet/wallet.h"
 #include "tx/tx.h"
+#include "tx/blockreward.h"
+
 #include <algorithm>
 #include <boost/circular_buffer.hpp>
 
-#include "./wallet/wallet.h"
 extern CWallet *pwalletMain;
 extern void SetMinerStatus(bool bStatus);
 //////////////////////////////////////////////////////////////////////////////
