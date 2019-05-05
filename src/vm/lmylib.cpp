@@ -1888,7 +1888,8 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
     int64_t step =-1;
     while (count--) {
         ss >> temp;
-        if (temp.mMoney < 0) // in case contract uses negative money input
+        // soft fork for contract negative money
+        if (GetFeatureForkVersion(pVmRunEnv->GetConfirmHeight()) >= MAJOR_VER_R2 && temp.mMoney < 0) // in case contract uses negative money input
             return RetFalse("ExWriteOutAppOperateFunc para err2");
 
         pVmRunEnv->InsertOutAPPOperte(temp.GetAppUserV(),temp);
