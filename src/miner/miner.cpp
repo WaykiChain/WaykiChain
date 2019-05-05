@@ -407,8 +407,11 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CAccountViewCache &view, CTransactionD
             if (nTotalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP)
                 continue;
 
+            viewTemp.SetBaseView(&view);
             assert(viewTemp.Flush());
+            scriptCacheTemp.SetBaseView(&scriptCache);
             assert(scriptCacheTemp.Flush());
+
             nFees += pBaseTx->GetFee();
             nBlockSize += stx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
             nTotalRunStep += pBaseTx->nRunStep;

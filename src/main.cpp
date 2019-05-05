@@ -1729,9 +1729,14 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
             return ERRORMSG("ConnectTip() : ConnectBlock %s failed", pindexNew->GetBlockHash().ToString());
         }
         mapBlockSource.erase(inv.hash);
-        assert(view.Flush() && scriptDBView.Flush());
-        CAccountViewCache viewtemp(*pAccountViewTip);
-        uint256 uBestblockHash = viewtemp.GetBestBlock();
+
+        view.SetBaseView(pAccountViewTip);
+        assert(view.Flush());
+        scriptDBView.SetBaseView(pScriptDBTip);
+        assert(scriptDBView.Flush());
+
+        CAccountViewCache accountViewCacheTemp(*pAccountViewTip);
+        uint256 uBestblockHash = accountViewCacheTemp.GetBestBlock();
         LogPrint("INFO", "uBestBlockHash[%d]: %s\n", nSyncTipHeight, uBestblockHash.GetHex());
     }
     if (SysCfg().IsBenchmark())

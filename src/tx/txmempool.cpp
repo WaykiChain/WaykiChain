@@ -62,6 +62,7 @@ void CTxMemPool::ReScanMemPoolTx(CAccountViewCache *pAccountViewCacheIn,
                                  CScriptDBViewCache *pScriptDBViewCacheIn) {
     pAccountViewCache.reset(new CAccountViewCache(*pAccountViewCacheIn));
     pScriptDBViewCache.reset(new CScriptDBViewCache(*pScriptDBViewCacheIn));
+
     {
         LOCK(cs);
         CValidationState state;
@@ -104,8 +105,8 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
                                   CValidationState &state, bool bExcute) {
     CTxUndo txundo;
     CTransactionDBCache txCacheTemp(*pTxCacheTip);
-    CAccountViewCache acctViewTemp(*pAccountViewCache);
-    CScriptDBViewCache scriptDBViewTemp(*pScriptDBViewCache);
+    CAccountViewCache acctViewTemp(*pAccountViewCache.get());
+    CScriptDBViewCache scriptDBViewTemp(*pScriptDBViewCache.get());
 
     // is it already confirmed in block
     if (pTxCacheTip->HaveTx(hash))
@@ -126,8 +127,10 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
             return false;
     }
 
-    // assert(acctViewTemp.Flush());
-    // assert(scriptDBViewTemp.Flush());
+    acctViewTemp.SetBaseView(pAccountViewCache.get());
+    assert(acctViewTemp.Flush());
+    scriptDBViewTemp.SetBaseView(pScriptDBViewCache.get());
+    assert(scriptDBViewTemp.Flush());
 
     return true;
 }
