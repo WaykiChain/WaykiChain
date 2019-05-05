@@ -25,6 +25,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
+
         READWRITE(contractScript);
         READWRITE(VARINT(llFees));
         READWRITE(signature);)
@@ -73,28 +74,26 @@ public:
 
     CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feeIn,
                 uint64_t bcoinsIn, int validHeightIn, vector_unsigned_char &argumentsIn):
-                CBaseTx(CONTRACT_INVOKE_TX, validHeightIn, feeIn) {
+                CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty()); //FIXME: shouldnot be using assert here, throw an error instead.
 
         if (appUidIn.type() == typeid(CRegID))
             assert(!appUidIn.get<CRegID>().IsEmpty());
 
-        txUid  = txUidIn;
         appUid = appUidIn;
         bcoins = bcoinsIn;
         arguments = argumentsIn;
     }
 
     CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feeIn, uint64_t bcoinsIn, int validHeightIn):
-                CBaseTx(CONTRACT_INVOKE_TX, validHeightIn, feeIn) {
+                CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
 
         if (appUidIn.type() == typeid(CRegID))
             assert(!appUidIn.get<CRegID>().IsEmpty());
 
-        txUid  = txUidIn;
         appUid = appUidIn;
         bcoins = bcoinsIn;
     }

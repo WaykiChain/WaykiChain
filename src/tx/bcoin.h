@@ -25,7 +25,7 @@ public:
 
     CBaseCoinTransferTx(const CUserID &txUidIn, CUserID toUidIn, uint64_t feeIn, uint64_t valueIn,
               int validHeightIn, vector_unsigned_char &descriptionIn) :
-              CBaseTx(BCOIN_TRANSFER_TX, validHeightIn, feeIn) {
+              CBaseTx(BCOIN_TRANSFER_TX, txUidIn, validHeightIn, feeIn) {
 
         //FIXME: need to support public key
         if (txUidIn.type() == typeid(CRegID))
@@ -34,14 +34,13 @@ public:
         if (toUidIn.type() == typeid(CRegID))
             assert(!toUidIn.get<CRegID>().IsEmpty());
 
-        txUid   = txUidIn;
         toUid   = toUidIn;
         bcoins  = valueIn;
         memo    = descriptionIn;
     }
 
     CBaseCoinTransferTx(const CUserID &txUidIn, CUserID toUidIn, uint64_t feeIn, uint64_t valueIn,
-              int validHeightIn): CBaseTx(BCOIN_TRANSFER_TX, validHeightIn, feeIn) {
+              int validHeightIn): CBaseTx(BCOIN_TRANSFER_TX, txUidIn, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
 
@@ -60,6 +59,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
+
         READWRITE(toUid);
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(bcoins));

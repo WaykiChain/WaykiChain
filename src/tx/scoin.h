@@ -47,6 +47,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
+
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(bcoins));
         READWRITE(VARINT(scoins));

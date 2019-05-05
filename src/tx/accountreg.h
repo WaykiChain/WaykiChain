@@ -17,9 +17,8 @@ public:
         assert(ACCOUNT_REGISTER_TX == pBaseTx->nTxType);
         *this = *(CAccountRegisterTx *)pBaseTx;
     }
-    CAccountRegisterTx(const CUserID &uId, const CUserID &minerUidIn, int64_t feeIn, int validHeightIn) :
-        CBaseTx(ACCOUNT_REGISTER_TX, validHeightIn, feeIn) {
-        txUid       = uId;
+    CAccountRegisterTx(const CUserID &txUidIn, const CUserID &minerUidIn, int64_t feeIn, int validHeightIn) :
+        CBaseTx(ACCOUNT_REGISTER_TX, txUidIn, validHeightIn, feeIn) {
         minerUid    = minerUidIn;
     }
     CAccountRegisterTx(): CBaseTx(ACCOUNT_REGISTER_TX) {}
@@ -31,6 +30,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
+
         READWRITE(minerUid);
         READWRITE(VARINT(llFees));
         READWRITE(signature);)
@@ -41,8 +41,8 @@ public:
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << minerUid
-               << VARINT(llFees);
+            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid.GetPubKey()
+                << minerUid.GetPubKey() << VARINT(llFees);
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
             *hash         = ss.GetHash();

@@ -19,7 +19,7 @@ public:
     }
     CDelegateVoteTx(const vector_unsigned_char &accountIn, const vector<COperVoteFund> &operVoteFundsIn,
                 const uint64_t feeIn, const int validHeightIn)
-        : CBaseTx(DELEGATE_VOTE_TX, validHeightIn, feeIn) {
+        : CBaseTx(DELEGATE_VOTE_TX, CNullID(), validHeightIn, feeIn) {
         if (accountIn.size() > 6) {
             txUid = CPubKey(accountIn);
         } else {
@@ -27,12 +27,13 @@ public:
         }
         operVoteFunds = operVoteFundsIn;
     }
-    CDelegateVoteTx(const CUserID &userIdIn, const uint64_t feeIn,
+    CDelegateVoteTx(const CUserID &txUidIn, const uint64_t feeIn,
                 const vector<COperVoteFund> &operVoteFundsIn, const int validHeightIn)
-        : CBaseTx(DELEGATE_VOTE_TX, validHeightIn, feeIn) {
-        if (userIdIn.type() == typeid(CRegID)) assert(!userIdIn.get<CRegID>().IsEmpty());
+        : CBaseTx(DELEGATE_VOTE_TX, txUidIn, validHeightIn, feeIn) {
 
-        txUid        = userIdIn;
+        if (txUidIn.type() == typeid(CRegID))
+            assert(!txUidIn.get<CRegID>().IsEmpty());
+
         operVoteFunds = operVoteFundsIn;
     }
     CDelegateVoteTx(): CBaseTx(DELEGATE_VOTE_TX) {}
@@ -43,6 +44,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
+
         READWRITE(operVoteFunds);
         READWRITE(VARINT(llFees));
         READWRITE(signature);
@@ -51,8 +53,9 @@ public:
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << operVoteFunds
-               << VARINT(llFees);
+            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
+                << operVoteFunds << VARINT(llFees);
+
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
             *hash         = ss.GetHash();

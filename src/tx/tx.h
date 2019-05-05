@@ -98,14 +98,14 @@ string GetTxType(unsigned char txType);
 
 class CBaseTx {
 public:
-    mutable CUserID txUid;
-
     static uint64_t nMinTxFee;
     static uint64_t nMinRelayTxFee;
     static uint64_t nDustAmountThreshold;
     static const int CURRENT_VERSION = nTxVersion1;
+
     int nVersion;
     unsigned char nTxType;
+    mutable CUserID txUid;
     int nValidHeight;
     uint64_t llFees;
     vector_unsigned_char signature;
@@ -117,12 +117,12 @@ public:
 public:
     CBaseTx(const CBaseTx &other) { *this = other; }
 
-    CBaseTx(int nVersionIn, TxType nTxTypeIn, int nValidHeightIn, uint64_t llFeesIn) :
-        nVersion(nVersionIn), nTxType(nTxTypeIn), nValidHeight(nValidHeightIn), llFees(llFeesIn),
+    CBaseTx(int nVersionIn, TxType nTxTypeIn, CUserID txUidIn, int nValidHeightIn, uint64_t llFeesIn) :
+        nVersion(nVersionIn), nTxType(nTxTypeIn), txUid(txUidIn), nValidHeight(nValidHeightIn), llFees(llFeesIn),
         nRunStep(0), nFuelRate(0) {}
 
-    CBaseTx(TxType nTxTypeIn, int nValidHeightIn, uint64_t llFeesIn) :
-        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), nValidHeight(nValidHeightIn), llFees(llFeesIn),
+    CBaseTx(TxType nTxTypeIn, CUserID txUidIn, int nValidHeightIn, uint64_t llFeesIn) :
+        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), txUid(txUidIn), nValidHeight(nValidHeightIn), llFees(llFeesIn),
         nRunStep(0), nFuelRate(0) {}
 
     CBaseTx(int nVersionIn, TxType nTxTypeIn) :
@@ -163,8 +163,6 @@ protected:
     bool CheckMinTxFee(const uint64_t llFees) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const ;
 };
-
-
 
 
 class CScriptDBOperLog {
@@ -267,7 +265,7 @@ public:
     CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
                 uint64_t feeIn, const uint64_t valueIn, const int validHeightIn,
                 const uint8_t requiredIn, const vector_unsigned_char &memoIn)
-        : CBaseTx(COMMON_MTX, validHeightIn, feeIn) {
+        : CBaseTx(COMMON_MTX, CNullID(), validHeightIn, feeIn) {
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!desUserIdIn.get<CRegID>().IsEmpty());
 
@@ -281,7 +279,7 @@ public:
     CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
                 uint64_t feeIn, const uint64_t valueIn, const int validHeightIn,
                 const uint8_t requiredIn)
-        : CBaseTx(COMMON_MTX, validHeightIn, feeIn) {
+        : CBaseTx(COMMON_MTX, CNullID(), validHeightIn, feeIn) {
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!desUserIdIn.get<CRegID>().IsEmpty());
 
