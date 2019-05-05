@@ -448,6 +448,6 @@ CBaseParams::CBaseParams() {
     fServer = 0 ;
     fServer = 0;
     nRPCPort = 0;
-    bOutPut = false;
+    bContractLog = false;
     nUIPort = 0;
 }

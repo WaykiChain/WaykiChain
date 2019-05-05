@@ -17,8 +17,8 @@ using namespace std;
 //	batch.Write('B', hash);
 //}
 
-CBlockTreeDB::CBlockTreeDB(size_t nCacheSize, bool fMemory, bool fWipe) : CLevelDBWrapper(GetDataDir() / "blocks" / "index", nCacheSize, fMemory, fWipe) {
-}
+CBlockTreeDB::CBlockTreeDB(size_t nCacheSize, bool fMemory, bool fWipe) :
+    CLevelDBWrapper(GetDataDir() / "blocks" / "index", nCacheSize, fMemory, fWipe) {}
 
 bool CBlockTreeDB::WriteBlockIndex(const CDiskBlockIndex &blockindex) {
     return Write(make_pair('b', blockindex.GetBlockHash()), blockindex);
@@ -315,10 +315,10 @@ bool CTransactionDB::BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashB
     return true;
 }
 
-CScriptDB::CScriptDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe) : 
+CScriptDB::CScriptDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe) :
     db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {}
 
-CScriptDB::CScriptDB(size_t nCacheSize, bool fMemory, bool fWipe) : 
+CScriptDB::CScriptDB(size_t nCacheSize, bool fMemory, bool fWipe) :
     db(GetDataDir() / "blocks" / "script", nCacheSize, fMemory, fWipe) {}
 
 bool CScriptDB::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) {

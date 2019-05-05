@@ -74,7 +74,7 @@ protected:
     mutable int64_t nViewCacheSize;
     mutable int nTxCacheHeight;
     int nLogMaxSize; // to limit the maximum log file size in bytes
-    bool bOutPut;    // whether to save contract script operation account log
+    bool bContractLog;    // whether to save contract script operation account log
     bool bAddressToTx; // whether to save the mapping of address to Tx
 
 public:
@@ -103,7 +103,7 @@ public:
         }
 
         nLogMaxSize = GetArg("-logmaxsize", 100) * 1024 * 1024;
-        bOutPut = GetBoolArg("-output", false);
+        bContractLog = GetBoolArg("-contractlog", false); //contract account change log
         bAddressToTx = GetBoolArg("-addresstotx", false);
         return true;
     }
@@ -255,8 +255,8 @@ public:
     void SetTxCacheHeight(int nHeight) const {
         nTxCacheHeight = nHeight;
     }
-    bool GetOutPutLog() const {
-        return bOutPut;
+    bool GetIsContractLogOn() const {
+        return bContractLog;
     }
     bool GetAddressToTxFlag() const {
         return bAddressToTx;

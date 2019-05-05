@@ -145,7 +145,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
         return std::make_tuple(false, 0, string("OpeatorApp Account Failed\n"));
     }
 
-    if (SysCfg().GetOutPutLog() && vmOperateOutput.size() > 0) {
+    if (SysCfg().IsContractLogOn() && vmOperateOutput.size() > 0) {
         CScriptDBOperLog operlog;
         uint256 txhash = GetCurTxHash();
         if (!pScriptDBViewCache->WriteTxOutPut(txhash, vmOperateOutput, operlog))

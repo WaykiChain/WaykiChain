@@ -7,6 +7,65 @@
 #define PRICE_FEED_H
 
 #include "tx/tx.h"
+class CPriceFeedTx : public CBaseTx {
+public:
+    unsigned char priceType;
+    uint64_t price;
+
+public:
+    CPriceFeedTx(): CBaseTx(PRICE_FEED_TX) { rewardValue = 0; }
+    CPriceFeedTx(const CBaseTx *pBaseTx): CBaseTx(PRICE_FEED_TX) {
+        assert(PRICE_FEED_TX == pBaseTx->nTxType);
+        *this = *(CPriceFeedTx *)pBaseTx;
+    }
+    CPriceFeedTx(const vector_unsigned_char &accountIn, const uint64_t rewardValueIn, const int nHeightIn):
+        CBaseTx(PRICE_FEED_TX) {
+        if (accountIn.size() > 6) {
+            txUid = CPubKey(accountIn);
+        } else {
+            txUid = CRegID(accountIn);
+        }
+        rewardValue = rewardValueIn;
+        nHeight     = nHeightIn;
+    }
+    ~CBlockRewardTx() {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(this->nVersion));
+        nVersion = this->nVersion;
+        READWRITE(txUid);
+        READWRITE(VARINT(rewardValue));
+        READWRITE(VARINT(nHeight));)
+
+    uint256 SignatureHash(bool recalculate = false) const {
+        if (recalculate || sigHash.IsNull()) {
+            CHashWriter ss(SER_GETHASH, 0);
+            ss << VARINT(nVersion) << nTxType << txUid << VARINT(rewardValue) << VARINT(nHeight);
+            // Truly need to write the sigHash.
+            uint256 *hash = const_cast<uint256 *>(&sigHash);
+            *hash         = ss.GetHash();
+        }
+
+        return sigHash;
+    }
+
+    uint64_t GetValue() const { return rewardValue; }
+    uint256 GetHash() const { return SignatureHash(); }
+    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CBlockRewardTx>(this); }
+    uint64_t GetFee() const { return 0; }
+    double GetPriority() const { return 0.0f; }
+    string ToString(CAccountViewCache &view) const;
+    Object ToJson(const CAccountViewCache &AccountView) const;
+    bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+    bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
+                   int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
+    bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+                       CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
+                       CScriptDBViewCache &scriptDB);
+    bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+        return true;
+    }
+};
 
 
 #endif
