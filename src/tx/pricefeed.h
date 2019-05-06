@@ -8,6 +8,7 @@
 #define PRICE_FEED_H
 
 #include "tx/tx.h"
+#include "scoin.h"
 
 class CPriceFeedTx : public CBaseTx {
 public:
@@ -22,7 +23,7 @@ public:
         *this = *(CPriceFeedTx *)pBaseTx;
     }
     CPriceFeedTx(const CUserID &txUidIn, int validHeightIn, uint64_t feeIn,
-                CoinType coinTypeIn, PriceType priceTypeIn, uint64_t price):
+                CoinType coinTypeIn, PriceType priceTypeIn, uint64_t priceIn):
         CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feeIn) {
 
         coinType = coinTypeIn;
@@ -55,7 +56,7 @@ public:
         return sigHash;
     }
 
-    uint64_t GetValue() const { return rewardValue; }
+    uint64_t GetPrice() const { return price; }
     uint256 GetHash() const { return SignatureHash(); }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CPriceFeedTx>(this); }
     uint64_t GetFee() const { return 0; }
