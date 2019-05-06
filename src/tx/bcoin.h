@@ -71,9 +71,7 @@ public:
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << toUid
                << VARINT(llFees) << VARINT(bcoins) << memo;
-            // Truly need to write the sigHash.
-            uint256 *hash = const_cast<uint256 *>(&sigHash);
-            *hash         = ss.GetHash();
+            sigHash = ss.GetHash();
         }
 
         return sigHash;

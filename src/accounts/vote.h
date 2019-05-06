@@ -46,7 +46,7 @@ private:
     CUserID voteId;      //!< candidate RegId or PubKey
     uint64_t voteCount;  //!< count of votes to the candidate
 
-    uint256 sigHash;  //!< only in memory
+    mutable uint256 sigHash;  //!< only in memory
 
 public:
     const CUserID &GetVoteId() { return voteId; }
@@ -86,8 +86,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(voteCount) << voteId;
-            uint256 *hash = const_cast<uint256 *>(&sigHash);
-            *hash         = ss.GetHash();  // Truly need to write the sigHash.
+            sigHash = ss.GetHash();
         }
 
         return sigHash;
