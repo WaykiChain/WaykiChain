@@ -40,9 +40,11 @@ public:
 
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
+            assert(txUid.type() == typeid(CPubKey) && minerUid.type() == typeid(CPubKey) );
+            
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid.GetPubKey()
-                << minerUid.GetPubKey() << VARINT(llFees);
+            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid.get<CPubKey>()
+                << minerUid.get<CPubKey>() << VARINT(llFees);
             // Truly need to write the sigHash.
             uint256 *hash = const_cast<uint256 *>(&sigHash);
             *hash         = ss.GetHash();

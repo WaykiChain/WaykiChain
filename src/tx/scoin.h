@@ -35,7 +35,7 @@ public:
     }
 
     CCdpOpenTx(const CUserID &txUidIn, int validHeightIn, uint64_t feeIn, uint64_t bcoinsIn):
-        CBaseTx(CDP_OPEN_TX, validHeightIn, feeIn) {
+        CBaseTx(CDP_OPEN_TX, txUidIn, validHeightIn, feeIn) {
         txUid = txUidIn;
         bcoins = bcoinsIn;
     }
@@ -116,9 +116,8 @@ public:
         *this = *(CPriceFeedTx *) pBaseTx;
     }
 
-    CPriceFeedTx(const CUserID &userIdIn, int validHeightIn, uint64_t feeIn, uint64_t bcoinsIn):
-        CBaseTx(PRICE_FEED_TX, validHeightIn, feeIn) {
-        txUid = userIdIn;
+    CPriceFeedTx(const CUserID &txUidIn, int validHeightIn, uint64_t feeIn, uint64_t bcoinsIn):
+        CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feeIn) {
     }
 
     ~CPriceFeedTx() {}
