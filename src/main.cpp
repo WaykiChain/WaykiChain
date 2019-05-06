@@ -1764,7 +1764,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
     }
 
     for (auto &pTxItem : block.vptx) {
-        mempool.mapTx.erase(pTxItem->GetHash());
+        mempool.memPoolTxs.erase(pTxItem->GetHash());
     }
     return true;
 }
@@ -3751,7 +3751,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
             LogPrint("INFO", "AcceptToMemoryPool: %s %s : accepted %s (poolsz %u)\n",
                 pfrom->addr.ToString(), pfrom->cleanSubVer,
                 pBaseTx->GetHash().ToString(),
-                mempool.mapTx.size());
+                mempool.memPoolTxs.size());
         }
 
         int nDoS = 0;

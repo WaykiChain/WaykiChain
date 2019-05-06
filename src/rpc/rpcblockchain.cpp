@@ -168,7 +168,7 @@ Value getrawmempool(const Array& params, bool fHelp)
     if (fVerbose) {
         LOCK(mempool.cs);
         Object obj;
-        for (const auto& entry : mempool.mapTx) {
+        for (const auto& entry : mempool.memPoolTxs) {
             const uint256& hash = entry.first;
             const CTxMemPoolEntry& e = entry.second;
             Object info;

@@ -66,11 +66,11 @@ void CTxMemPool::ReScanMemPoolTx(CAccountViewCache *pAccountViewCacheIn,
     {
         LOCK(cs);
         CValidationState state;
-        for (map<uint256, CTxMemPoolEntry>::iterator iterTx = mapTx.begin();
-             iterTx != mapTx.end();) {
+        for (map<uint256, CTxMemPoolEntry>::iterator iterTx = memPoolTxs.begin();
+             iterTx != memPoolTxs.end();) {
             if (!CheckTxInMemPool(iterTx->first, iterTx->second, state, true)) {
                 uint256 hash = iterTx->first;
-                iterTx       = mapTx.erase(iterTx++);
+                iterTx       = memPoolTxs.erase(iterTx++);
                 EraseTransaction(hash);
                 continue;
             }
@@ -93,9 +93,9 @@ void CTxMemPool::Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> >& remov
     // Remove transaction from memory pool
     LOCK(cs);
     uint256 hash = pBaseTx->GetHash();
-    if (mapTx.count(hash)) {
-        removed.push_front(std::shared_ptr<CBaseTx>(mapTx[hash].GetTx()));
-        mapTx.erase(hash);
+    if (memPoolTxs.count(hash)) {
+        removed.push_front(std::shared_ptr<CBaseTx>(memPoolTxs[hash].GetTx()));
+        memPoolTxs.erase(hash);
         EraseTransaction(hash);
         nTransactionsUpdated++;
     }
@@ -145,7 +145,7 @@ bool CTxMemPool::AddUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
         if (!CheckTxInMemPool(hash, entry, state))
             return false;
 
-        mapTx.insert(make_pair(hash, entry));
+        memPoolTxs.insert(make_pair(hash, entry));
         ++nTransactionsUpdated;
     }
     return true;
@@ -153,7 +153,7 @@ bool CTxMemPool::AddUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
 
 void CTxMemPool::Clear() {
     LOCK(cs);
-    mapTx.clear();
+    memPoolTxs.clear();
     memPoolAccountViewCache.reset(new CAccountViewCache(*pAccountViewTip));
     memPoolScriptDBViewCache.reset(new CScriptDBViewCache(*pScriptDBTip));
     ++nTransactionsUpdated;
@@ -162,15 +162,15 @@ void CTxMemPool::Clear() {
 void CTxMemPool::QueryHash(vector<uint256>& vtxid) {
     LOCK(cs);
     vtxid.clear();
-    vtxid.reserve(mapTx.size());
-    for (typename map<uint256, CTxMemPoolEntry>::iterator mi = mapTx.begin(); mi != mapTx.end(); ++mi)
+    vtxid.reserve(memPoolTxs.size());
+    for (typename map<uint256, CTxMemPoolEntry>::iterator mi = memPoolTxs.begin(); mi != memPoolTxs.end(); ++mi)
         vtxid.push_back((*mi).first);
 }
 
 std::shared_ptr<CBaseTx> CTxMemPool::Lookup(uint256 hash) const {
     LOCK(cs);
-    typename map<uint256, CTxMemPoolEntry>::const_iterator i = mapTx.find(hash);
-    if (i == mapTx.end())
+    typename map<uint256, CTxMemPoolEntry>::const_iterator i = memPoolTxs.find(hash);
+    if (i == memPoolTxs.end())
         return std::shared_ptr<CBaseTx>();
     return i->second.GetTx();
 }
