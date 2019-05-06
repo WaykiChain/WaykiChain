@@ -52,8 +52,7 @@ public:
         return sigHash;
     }
 
-    uint64_t GetValue() const { return rewardValue; }
-    uint256 GetHash() const { return SignatureHash(); }
+    virtual uint64_t GetValue() const { return rewardValue; }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CBlockRewardTx>(this); }
     uint64_t GetFee() const { return 0; }
     double GetPriority() const { return 0.0f; }

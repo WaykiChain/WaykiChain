@@ -81,8 +81,7 @@ public:
     }
 
     uint64_t GetValue() const { return bcoins; }
-    uint256 GetHash() const { return SignatureHash(); }
-    uint64_t GetFee() const { return llFees; }
+
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CBaseCoinTransferTx>(this); }
     string ToString(CAccountViewCache &view) const;

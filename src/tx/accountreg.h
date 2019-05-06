@@ -41,7 +41,7 @@ public:
     uint256 SignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             assert(txUid.type() == typeid(CPubKey) && minerUid.type() == typeid(CPubKey) );
-            
+
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid.get<CPubKey>()
                 << minerUid.get<CPubKey>() << VARINT(llFees);
@@ -52,17 +52,15 @@ public:
 
         return sigHash;
     }
-    uint256 GetHash() const { return SignatureHash(); }
-    double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CAccountRegisterTx>(this); }
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
     string ToString(CAccountViewCache &view) const;
     Object ToJson(const CAccountViewCache &AccountView) const;
+    bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
     bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
                    CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
     bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
                        CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
-    bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
 #endif

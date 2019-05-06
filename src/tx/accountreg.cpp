@@ -3,6 +3,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
+
 #include "accountreg.h"
 
 #include "commons/serialize.h"
@@ -16,6 +17,44 @@
 #include "core.h"
 #include "miner/miner.h"
 #include "version.h"
+
+
+bool CAccountRegisterTx::CheckTx(CValidationState &state, CAccountViewCache &view,
+                                CScriptDBViewCache &scriptDB) {
+    if (txUid.type() != typeid(CPubKey))
+        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, userId must be CPubKey"),
+            REJECT_INVALID, "userid-type-error");
+
+    if ((minerUid.type() != typeid(CPubKey)) && (minerUid.type() != typeid(CNullID)))
+        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, minerId must be CPubKey or CNullID"),
+            REJECT_INVALID, "minerid-type-error");
+
+    if (!txUid.get<CPubKey>().IsFullyValid())
+        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx public key is invalid"),
+            REJECT_INVALID, "bad-regtx-publickey");
+
+    if (!CheckMoneyRange(llFees))
+        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx fee out of range"),
+            REJECT_INVALID, "bad-regtx-fee-toolarge");
+
+    if (!CheckMinTxFee(llFees)) {
+        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx fee smaller than MinTxFee"),
+            REJECT_INVALID, "bad-tx-fee-toosmall");
+    }
+
+    if (!CheckSignatureSize(signature)) {
+        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, signature size invalid"),
+            REJECT_INVALID, "bad-tx-sig-size");
+    }
+
+    // check signature script
+    uint256 sighash = SignatureHash();
+    if (!CheckSignScript(sighash, signature, txUid.get<CPubKey>()))
+        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx signature error "),
+            REJECT_INVALID, "bad-regtx-signature");
+
+    return true;
+}
 
 bool CAccountRegisterTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
                                    CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
@@ -135,41 +174,4 @@ Object CAccountRegisterTx::ToJson(const CAccountViewCache &AccountView) const {
     result.push_back(Pair("fees",           llFees));
     result.push_back(Pair("valid_height",   nValidHeight));
     return result;
-}
-
-bool CAccountRegisterTx::CheckTx(CValidationState &state, CAccountViewCache &view,
-                                          CScriptDBViewCache &scriptDB) {
-    if (txUid.type() != typeid(CPubKey))
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, userId must be CPubKey"),
-            REJECT_INVALID, "userid-type-error");
-
-    if ((minerUid.type() != typeid(CPubKey)) && (minerUid.type() != typeid(CNullID)))
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, minerId must be CPubKey or CNullID"),
-            REJECT_INVALID, "minerid-type-error");
-
-    if (!txUid.get<CPubKey>().IsFullyValid())
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx public key is invalid"),
-            REJECT_INVALID, "bad-regtx-publickey");
-
-    if (!CheckMoneyRange(llFees))
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx fee out of range"),
-            REJECT_INVALID, "bad-regtx-fee-toolarge");
-
-    if (!CheckMinTxFee(llFees)) {
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx fee smaller than MinTxFee"),
-            REJECT_INVALID, "bad-tx-fee-toosmall");
-    }
-
-    if (!CheckSignatureSize(signature)) {
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, signature size invalid"),
-            REJECT_INVALID, "bad-tx-sig-size");
-    }
-
-    // check signature script
-    uint256 sighash = SignatureHash();
-    if (!CheckSignScript(sighash, signature, txUid.get<CPubKey>()))
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx signature error "),
-            REJECT_INVALID, "bad-regtx-signature");
-
-    return true;
 }

@@ -17,7 +17,11 @@ public:
     uint64_t price;
 
 public:
-    CPriceFeedTx(): CBaseTx(PRICE_FEED_TX) { price = 0; }
+    CPriceFeedTx(): CBaseTx(PRICE_FEED_TX) {
+        coinType = 0;
+        priceType = 0;
+        price = 0;
+    }
     CPriceFeedTx(const CBaseTx *pBaseTx): CBaseTx(PRICE_FEED_TX) {
         assert(PRICE_FEED_TX == pBaseTx->nTxType);
         *this = *(CPriceFeedTx *)pBaseTx;
@@ -56,22 +60,21 @@ public:
         return sigHash;
     }
 
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CPriceFeedTx>(this); }
+
+    virtual bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+    virtual bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
+                    int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
+    virtual bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+                    CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
+                    CScriptDBViewCache &scriptDB);
+
+    virtual double GetPriority() const { return 10000.0f; } // Top priority
+    virtual string ToString(CAccountViewCache &view) const;
+    virtual Object ToJson(const CAccountViewCache &AccountView) const;
+    virtual bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+
     uint64_t GetPrice() const { return price; }
-    uint256 GetHash() const { return SignatureHash(); }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CPriceFeedTx>(this); }
-    uint64_t GetFee() const { return 0; }
-    double GetPriority() const { return 0.0f; }
-    string ToString(CAccountViewCache &view) const;
-    Object ToJson(const CAccountViewCache &AccountView) const;
-    bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
-    bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-                   int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
-    bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                       CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                       CScriptDBViewCache &scriptDB);
-    bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
-        return true;
-    }
 };
 
 

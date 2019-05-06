@@ -88,6 +88,14 @@ bool CBaseTx::CheckSignatureSize(const vector<unsigned char> &signature) const {
     return signature.size() > 0 && signature.size() < MAX_BLOCK_SIGNATURE_SIZE;
 }
 
+string CBaseTx::ToString(CAccountViewCache &view) const {
+    string str = strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
+        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, txUid.get<CPubKey>().ToString(),
+        llFees, txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight);
+
+    return str;
+}
+
 string CTxUndo::ToString() const {
     vector<CAccountLog>::const_iterator iterLog = vAccountLog.begin();
     string strTxHash("txHash:");
