@@ -332,6 +332,7 @@ public:
         CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
         hasher << blockHash;
         hasher << *this;
+
         fileout << hasher.GetHash();
 
         // Flush stdio buffers and commit to disk before returning
@@ -361,6 +362,7 @@ public:
         CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
         hasher << blockHash;
         hasher << *this;
+
         if (hashChecksum != hasher.GetHash())
             return ERRORMSG("CBlockUndo::ReadFromDisk : Checksum mismatch");
         return true;

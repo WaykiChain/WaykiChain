@@ -36,7 +36,7 @@ public:
     uint64_t bcoins; //!< Free Base Coins
     uint64_t scoins; //!< Stable Coins
     uint64_t fcoins; //!< FundCoin balance
-    uint64_t priceFeedDeposit;  //!< Deposit in bcoins to ensure proper price feed activity, 30% deviation causes cutting the deposit 
+    uint64_t priceFeedDeposit;  //!< Deposit in bcoins to ensure proper price feed activity, 30% deviation causes cutting the deposit
     uint64_t receivedVotes; //!< votes received in bcoins
 
     uint64_t lastVoteHeight;     //!< account's last vote block height used for computing interest
@@ -221,48 +221,51 @@ public:
         READWRITE(VARINT(bcoins));
         READWRITE(VARINT(lastVoteHeight));
         READWRITE(voteFunds);
-        READWRITE(receivedVotes);)
+        READWRITE(VARINT(receivedVotes));)
 
 public:
-    CAccountLog(const CAccount& acct)
-    {
-        keyID = acct.keyID;
-        bcoins = acct.bcoins;
+    CAccountLog(const CAccount& acct) {
+        keyID          = acct.keyID;
+        bcoins         = acct.bcoins;
+        hasOpenCdp     = acct.hasOpenCdp;
         lastVoteHeight = acct.lastVoteHeight;
-        voteFunds = acct.voteFunds;
-        receivedVotes = acct.receivedVotes;
+        voteFunds      = acct.voteFunds;
+        receivedVotes  = acct.receivedVotes;
     }
-    CAccountLog(CKeyID& keyId)
-    {
-        keyID = keyId;
-        bcoins = 0;
+
+    CAccountLog(CKeyID& keyId) {
+        keyID          = keyId;
+        bcoins         = 0;
+        hasOpenCdp     = false;
         lastVoteHeight = 0;
-        receivedVotes = 0;
+        voteFunds.clear();
+        receivedVotes  = 0;
     }
-    CAccountLog()
-    {
-        keyID = uint160();
-        bcoins = 0;
+
+    CAccountLog() {
+        keyID          = uint160();
+        bcoins         = 0;
+        hasOpenCdp     = false;
         lastVoteHeight = 0;
         voteFunds.clear();
         receivedVotes = 0;
     }
-    void SetValue(const CAccount& acct)
-    {
-        keyID = acct.keyID;
-        regID = acct.regID;
-        nickID = acct.nickID;
-        pubKey = acct.pubKey;
-        minerPubKey = acct.minerPubKey;
 
-        bcoins = acct.bcoins;
-        scoins = acct.scoins;
-        fcoins = acct.fcoins;
+    void SetValue(const CAccount& acct) {
+        keyID          = acct.keyID;
+        regID          = acct.regID;
+        nickID         = acct.nickID;
+        pubKey         = acct.pubKey;
+        minerPubKey    = acct.minerPubKey;
+        bcoins         = acct.bcoins;
+        scoins         = acct.scoins;
+        fcoins         = acct.fcoins;
         lastVoteHeight = acct.lastVoteHeight;
-        receivedVotes = acct.receivedVotes;
-        voteFunds = acct.voteFunds;
-        hasOpenCdp = acct.hasOpenCdp;
+        receivedVotes  = acct.receivedVotes;
+        voteFunds      = acct.voteFunds;
+        hasOpenCdp     = acct.hasOpenCdp;
     }
+
     string ToString() const;
 };
 

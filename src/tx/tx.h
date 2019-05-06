@@ -245,15 +245,11 @@ public:
         READWRITE(vValue);)
 
     string ToString() const {
-        string str("");
-        str += "vKey:";
-        str += HexStr(vKey);
-        str += "\n";
-        str += "vValue:";
-        str += HexStr(vValue);
-        str += "\n";
+        string str;
+        str += strprintf("vKey: %s, vValue: %s", HexStr(vKey), HexStr(vValue));
         return str;
     }
+
     friend bool operator<(const CScriptDBOperLog &log1, const CScriptDBOperLog &log2) {
         return log1.vKey < log2.vKey;
     }
