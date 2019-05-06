@@ -638,7 +638,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : nonstandard transaction: %s", reason),
                          REJECT_NONSTANDARD, reason);
 
-    if (!CheckTx(pBaseTx, state, *pool.pAccountViewCache, *pool.pScriptDBViewCache))
+    if (!CheckTx(pBaseTx, state, *pool.memPoolAccountViewCache.get(),
+                 *pool.memPoolScriptDBViewCache.get()))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed");
 
     {

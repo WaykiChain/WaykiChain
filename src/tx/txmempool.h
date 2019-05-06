@@ -64,8 +64,8 @@ private:
 public:
     mutable CCriticalSection cs;
     map<uint256, CTxMemPoolEntry > mapTx;
-    std::shared_ptr<CAccountViewCache> pAccountViewCache;
-    std::shared_ptr<CScriptDBViewCache> pScriptDBViewCache;
+    std::shared_ptr<CAccountViewCache> memPoolAccountViewCache;
+    std::shared_ptr<CScriptDBViewCache> memPoolScriptDBViewCache;
 
     CTxMemPool();
 
