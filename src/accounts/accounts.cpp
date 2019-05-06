@@ -11,23 +11,27 @@
 // extern CAccountViewCache *pAccountViewTip;
 
 string CAccountLog::ToString() const {
-    string str("");
-    str += strprintf("    Account log: keyId=%d bcoins=%lld lastVoteHeight=%lld receivedVotes=%lld \n",
-        keyID.GetHex(), bcoins, lastVoteHeight, receivedVotes);
-    str += string("    vote fund:");
+    string str;
+    str += strprintf(
+        "Account log: keyId=%d regId=%s nickId=%s pubKey=%s minerPubKey=%s hasOpenCdp=%d "
+        "bcoins=%lld lastVoteHeight=%lld receivedVotes=%lld \n",
+        keyID.GetHex(), regID.ToString(), nickID.ToString(), pubKey.ToString(),
+        minerPubKey.ToString(), hasOpenCdp, bcoins, lastVoteHeight, receivedVotes);
+    str += "vote fund: ";
 
-    for (auto it =  voteFunds.begin(); it != voteFunds.end(); ++it) {
+    for (auto it = voteFunds.begin(); it != voteFunds.end(); ++it) {
         str += it->ToString();
     }
     return str;
 }
 
-bool CAccount::UndoOperateAccount(const CAccountLog & accountLog) {
+bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
     LogPrint("undo_account", "after operate:%s\n", ToString());
-    bcoins    = accountLog.bcoins;
+    bcoins         = accountLog.bcoins;
+    hasOpenCdp     = accountLog.hasOpenCdp;
     lastVoteHeight = accountLog.lastVoteHeight;
-    voteFunds  = accountLog.voteFunds;
-    receivedVotes     = accountLog.receivedVotes;
+    voteFunds      = accountLog.voteFunds;
+    receivedVotes  = accountLog.receivedVotes;
     LogPrint("undo_account", "before operate:%s\n", ToString().c_str());
     return true;
 }
@@ -232,7 +236,7 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
     });
 
     uint64_t newTotalVotes = GetVotedBCoins();
-    if (bcoins + totalVotes < newTotalVotes) { 
+    if (bcoins + totalVotes < newTotalVotes) {
         return  ERRORMSG("ProcessDelegateVote() : delegate votes exceeds account bcoins");
     }
     bcoins = (bcoins + totalVotes) - newTotalVotes;

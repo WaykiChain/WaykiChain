@@ -4407,9 +4407,8 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
 }
 
 string CBlockUndo::ToString() const {
+    string str;
     vector<CTxUndo>::const_iterator iterUndo = vtxundo.begin();
-    string str("");
-    LogPrint("DEBUG", "list txundo:\n");
     for (; iterUndo != vtxundo.end(); ++iterUndo) {
         str += iterUndo->ToString();
     }

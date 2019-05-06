@@ -305,7 +305,7 @@ bool IsFinalTx(CBaseTx *pBaseTx, int nBlockHeight = 0, int64_t nBlockTime = 0);
 
 /** Undo information for a CBlock */
 class CBlockUndo {
-   public:
+public:
     vector<CTxUndo> vtxundo;
 
     IMPLEMENT_SERIALIZE(
@@ -332,6 +332,7 @@ class CBlockUndo {
         CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
         hasher << blockHash;
         hasher << *this;
+
         fileout << hasher.GetHash();
 
         // Flush stdio buffers and commit to disk before returning
@@ -361,6 +362,7 @@ class CBlockUndo {
         CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
         hasher << blockHash;
         hasher << *this;
+
         if (hashChecksum != hasher.GetHash())
             return ERRORMSG("CBlockUndo::ReadFromDisk : Checksum mismatch");
         return true;
@@ -371,10 +373,10 @@ class CBlockUndo {
 
 /** A transaction with a merkle branch linking it to the block chain. */
 class CMerkleTx {
-   private:
+private:
     int GetDepthInMainChainINTERNAL(CBlockIndex *&pindexRet) const;
 
-   public:
+public:
     uint256 blockHash;
     vector<uint256> vMerkleBranch;
     int nIndex;
@@ -457,7 +459,7 @@ class CMerkleTx {
  * The size constraints follow from this.
  */
 class CPartialMerkleTree {
-   protected:
+protected:
     // the total number of transactions in the block
     unsigned int nTransactions;
 
@@ -485,7 +487,7 @@ class CPartialMerkleTree {
     // it returns the hash of the respective node.
     uint256 TraverseAndExtract(int height, unsigned int pos, unsigned int &nBitsUsed, unsigned int &nHashUsed, vector<uint256> &vMatch);
 
-   public:
+public:
     // serialization implementation
     IMPLEMENT_SERIALIZE(
         READWRITE(nTransactions);
@@ -556,7 +558,7 @@ bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &vAccountLog);
 Value ListSetBlockIndexValid();
 
 class CBlockFileInfo {
-   public:
+public:
     unsigned int nBlocks;       // number of blocks stored in file
     unsigned int nSize;         // number of used bytes of block file
     unsigned int nUndoSize;     // number of used bytes in the undo file
@@ -630,7 +632,7 @@ enum BlockStatus {
  * to it, but at most one of them can be part of the currently active branch.
  */
 class CBlockIndex {
-   public:
+public:
     // pointer to the hash of the block, if any. memory is owned by this CBlockIndex
     const uint256 *pBlockHash;
 
@@ -832,7 +834,7 @@ class CBlockIndex {
 
 /** Used to marshal pointers into hashes for db storage. */
 class CDiskBlockIndex : public CBlockIndex {
-   public:
+public:
     uint256 hashPrev;
 
     CDiskBlockIndex() : hashPrev(uint256()) {}
@@ -899,7 +901,7 @@ class CDiskBlockIndex : public CBlockIndex {
 
 /** Capture information about block/transaction validation */
 class CValidationState {
-   private:
+private:
     enum mode_state {
         MODE_VALID,    // everything ok
         MODE_INVALID,  // network rule violation (DoS value may be set)
@@ -910,7 +912,7 @@ class CValidationState {
     unsigned char chRejectCode;
     bool corruptionPossible;
 
-   public:
+public:
     CValidationState() : mode(MODE_VALID), nDoS(0), corruptionPossible(false) {}
     bool DoS(int level, bool ret = false,
              unsigned char chRejectCodeIn = 0, string strRejectReasonIn = "",
@@ -963,10 +965,10 @@ class CValidationState {
 
 /** An in-memory indexed chain of blocks. */
 class CChain {
-   private:
+private:
     vector<CBlockIndex *> vChain;
 
-   public:
+public:
     /** Returns the index entry for the genesis block of this chain, or NULL if none. */
     CBlockIndex *Genesis() const {
         return vChain.size() > 0 ? vChain[0] : NULL;
@@ -1065,12 +1067,12 @@ uint64_t GetBlockSubsidy(int nHeight);
  * to filtered nodes.
  */
 class CMerkleBlock {
-   public:
+public:
     // Public only for unit testing
     CBlockHeader header;
     CPartialMerkleTree txn;
 
-   public:
+public:
     // Public only for unit testing and relay testing
     // (not relayed)
     vector<pair<unsigned int, uint256> > vMatchedTxn;

@@ -216,22 +216,32 @@ bool CBlockRewardTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidat
 }
 
 string CTxUndo::ToString() const {
-    vector<CAccountLog>::const_iterator iterLog = vAccountLog.begin();
+    string str;
     string strTxHash("txHash:");
     strTxHash += txHash.GetHex();
     strTxHash += "\n";
-    string str("  list account Log:\n");
+
+    str += strTxHash;
+
+    string strAccountLog("list account Log:\n");
+    vector<CAccountLog>::const_iterator iterLog = vAccountLog.begin();
     for (; iterLog != vAccountLog.end(); ++iterLog) {
-        str += iterLog->ToString();
+        strAccountLog += iterLog->ToString();
     }
-    strTxHash += str;
+    strAccountLog += "\n";
+
+    str += strAccountLog;
+
+    string strDBOperLog("list script db Log:\n");
     vector<CScriptDBOperLog>::const_iterator iterDbLog = vScriptOperLog.begin();
-    string strDbLog(" list script db Log:\n");
-    for (; iterDbLog !=  vScriptOperLog.end(); ++iterDbLog) {
-        strDbLog += iterDbLog->ToString();
+    for (; iterDbLog != vScriptOperLog.end(); ++iterDbLog) {
+        strDBOperLog += iterDbLog->ToString();
     }
-    strTxHash += strDbLog;
-    return strTxHash;
+    strDBOperLog += "\n";
+
+    str += strDBOperLog;
+
+    return str;
 }
 
 bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {

@@ -36,7 +36,7 @@ public:
     uint64_t bcoins; //!< Free Base Coins
     uint64_t scoins; //!< Stable Coins
     uint64_t fcoins; //!< FundCoin balance
-    uint64_t priceFeedDeposit;  //!< Deposit in bcoins to ensure proper price feed activity, 30% deviation causes cutting the deposit 
+    uint64_t priceFeedDeposit;  //!< Deposit in bcoins to ensure proper price feed activity, 30% deviation causes cutting the deposit
     uint64_t receivedVotes; //!< votes received in bcoins
 
     uint64_t lastVoteHeight;     //!< account's last vote block height used for computing interest
@@ -70,8 +70,7 @@ public:
           priceFeedDeposit(0),
           receivedVotes(0),
           lastVoteHeight(0),
-          hasOpenCdp(false)
-    {
+          hasOpenCdp(false) {
         minerPubKey = CPubKey();
         voteFunds.clear();
         regID.Clean();
@@ -85,61 +84,61 @@ public:
           priceFeedDeposit(0),
           receivedVotes(0),
           lastVoteHeight(0),
-          hasOpenCdp(false)
-    {
-        pubKey = CPubKey();
+          hasOpenCdp(false) {
+        pubKey      = CPubKey();
         minerPubKey = CPubKey();
         voteFunds.clear();
         regID.Clean();
     }
 
-    CAccount(const CAccount& other)
-    {
-        this->keyID = other.keyID;
-        this->regID = other.regID;
-        this->nickID = other.nickID;
-        this->pubKey = other.pubKey;
-        this->minerPubKey = other.minerPubKey;
-        this->bcoins = other.bcoins;
-        this->scoins = other.scoins;
-        this->fcoins = other.fcoins;
-        this->receivedVotes = other.receivedVotes;
+    CAccount(const CAccount& other) {
+        this->keyID          = other.keyID;
+        this->regID          = other.regID;
+        this->nickID         = other.nickID;
+        this->pubKey         = other.pubKey;
+        this->minerPubKey    = other.minerPubKey;
+        this->bcoins         = other.bcoins;
+        this->scoins         = other.scoins;
+        this->fcoins         = other.fcoins;
+        this->receivedVotes  = other.receivedVotes;
         this->lastVoteHeight = other.lastVoteHeight;
-        this->voteFunds = other.voteFunds;
-        this->hasOpenCdp = other.hasOpenCdp;
+        this->voteFunds      = other.voteFunds;
+        this->hasOpenCdp     = other.hasOpenCdp;
     }
 
-    CAccount& operator=(const CAccount& other)
-    {
-        if (this == &other)
-            return *this;
+    CAccount& operator=(const CAccount& other) {
+        if (this == &other) return *this;
 
-        this->keyID = other.keyID;
-        this->regID = other.regID;
-        this->nickID = other.nickID;
-        this->pubKey = other.pubKey;
-        this->minerPubKey = other.minerPubKey;
-        this->bcoins = other.bcoins;
-        this->scoins = other.scoins;
-        this->fcoins = other.fcoins;
-        this->receivedVotes = other.receivedVotes;
+        this->keyID          = other.keyID;
+        this->regID          = other.regID;
+        this->nickID         = other.nickID;
+        this->pubKey         = other.pubKey;
+        this->minerPubKey    = other.minerPubKey;
+        this->bcoins         = other.bcoins;
+        this->scoins         = other.scoins;
+        this->fcoins         = other.fcoins;
+        this->receivedVotes  = other.receivedVotes;
         this->lastVoteHeight = other.lastVoteHeight;
-        this->voteFunds = other.voteFunds;
-        this->hasOpenCdp = other.hasOpenCdp;
+        this->voteFunds      = other.voteFunds;
+        this->hasOpenCdp     = other.hasOpenCdp;
 
         return *this;
     }
 
-    std::shared_ptr<CAccount> GetNewInstance() const { return std::make_shared<CAccount>(*this); }
-    bool IsRegistered() const { return (pubKey.IsFullyValid() && pubKey.GetKeyId() == keyID); }
-    bool SetRegId(const CRegID& regID)
-    {
+    std::shared_ptr<CAccount> GetNewInstance() const {
+        return std::make_shared<CAccount>(*this);
+    }
+
+    bool IsRegistered() const {
+        return (pubKey.IsFullyValid() && pubKey.GetKeyId() == keyID);
+    }
+
+    bool SetRegId(const CRegID& regID) {
         this->regID = regID;
         return true;
     };
 
-    bool GetRegId(CRegID& regID) const
-    {
+    bool GetRegId(CRegID& regID) const {
         regID = this->regID;
         return !regID.IsEmpty();
     };
@@ -221,48 +220,51 @@ public:
         READWRITE(VARINT(bcoins));
         READWRITE(VARINT(lastVoteHeight));
         READWRITE(voteFunds);
-        READWRITE(receivedVotes);)
+        READWRITE(VARINT(receivedVotes));)
 
 public:
-    CAccountLog(const CAccount& acct)
-    {
-        keyID = acct.keyID;
-        bcoins = acct.bcoins;
+    CAccountLog(const CAccount& acct) {
+        keyID          = acct.keyID;
+        bcoins         = acct.bcoins;
+        hasOpenCdp     = acct.hasOpenCdp;
         lastVoteHeight = acct.lastVoteHeight;
-        voteFunds = acct.voteFunds;
-        receivedVotes = acct.receivedVotes;
+        voteFunds      = acct.voteFunds;
+        receivedVotes  = acct.receivedVotes;
     }
-    CAccountLog(CKeyID& keyId)
-    {
-        keyID = keyId;
-        bcoins = 0;
+
+    CAccountLog(CKeyID& keyId) {
+        keyID          = keyId;
+        bcoins         = 0;
+        hasOpenCdp     = false;
         lastVoteHeight = 0;
-        receivedVotes = 0;
+        voteFunds.clear();
+        receivedVotes  = 0;
     }
-    CAccountLog()
-    {
-        keyID = uint160();
-        bcoins = 0;
+
+    CAccountLog() {
+        keyID          = uint160();
+        bcoins         = 0;
+        hasOpenCdp     = false;
         lastVoteHeight = 0;
         voteFunds.clear();
         receivedVotes = 0;
     }
-    void SetValue(const CAccount& acct)
-    {
-        keyID = acct.keyID;
-        regID = acct.regID;
-        nickID = acct.nickID;
-        pubKey = acct.pubKey;
-        minerPubKey = acct.minerPubKey;
 
-        bcoins = acct.bcoins;
-        scoins = acct.scoins;
-        fcoins = acct.fcoins;
+    void SetValue(const CAccount& acct) {
+        keyID          = acct.keyID;
+        regID          = acct.regID;
+        nickID         = acct.nickID;
+        pubKey         = acct.pubKey;
+        minerPubKey    = acct.minerPubKey;
+        bcoins         = acct.bcoins;
+        scoins         = acct.scoins;
+        fcoins         = acct.fcoins;
         lastVoteHeight = acct.lastVoteHeight;
-        receivedVotes = acct.receivedVotes;
-        voteFunds = acct.voteFunds;
-        hasOpenCdp = acct.hasOpenCdp;
+        receivedVotes  = acct.receivedVotes;
+        voteFunds      = acct.voteFunds;
+        hasOpenCdp     = acct.hasOpenCdp;
     }
+
     string ToString() const;
 };
 
