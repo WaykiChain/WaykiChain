@@ -70,8 +70,7 @@ public:
           priceFeedDeposit(0),
           receivedVotes(0),
           lastVoteHeight(0),
-          hasOpenCdp(false)
-    {
+          hasOpenCdp(false) {
         minerPubKey = CPubKey();
         voteFunds.clear();
         regID.Clean();
@@ -85,61 +84,61 @@ public:
           priceFeedDeposit(0),
           receivedVotes(0),
           lastVoteHeight(0),
-          hasOpenCdp(false)
-    {
-        pubKey = CPubKey();
+          hasOpenCdp(false) {
+        pubKey      = CPubKey();
         minerPubKey = CPubKey();
         voteFunds.clear();
         regID.Clean();
     }
 
-    CAccount(const CAccount& other)
-    {
-        this->keyID = other.keyID;
-        this->regID = other.regID;
-        this->nickID = other.nickID;
-        this->pubKey = other.pubKey;
-        this->minerPubKey = other.minerPubKey;
-        this->bcoins = other.bcoins;
-        this->scoins = other.scoins;
-        this->fcoins = other.fcoins;
-        this->receivedVotes = other.receivedVotes;
+    CAccount(const CAccount& other) {
+        this->keyID          = other.keyID;
+        this->regID          = other.regID;
+        this->nickID         = other.nickID;
+        this->pubKey         = other.pubKey;
+        this->minerPubKey    = other.minerPubKey;
+        this->bcoins         = other.bcoins;
+        this->scoins         = other.scoins;
+        this->fcoins         = other.fcoins;
+        this->receivedVotes  = other.receivedVotes;
         this->lastVoteHeight = other.lastVoteHeight;
-        this->voteFunds = other.voteFunds;
-        this->hasOpenCdp = other.hasOpenCdp;
+        this->voteFunds      = other.voteFunds;
+        this->hasOpenCdp     = other.hasOpenCdp;
     }
 
-    CAccount& operator=(const CAccount& other)
-    {
-        if (this == &other)
-            return *this;
+    CAccount& operator=(const CAccount& other) {
+        if (this == &other) return *this;
 
-        this->keyID = other.keyID;
-        this->regID = other.regID;
-        this->nickID = other.nickID;
-        this->pubKey = other.pubKey;
-        this->minerPubKey = other.minerPubKey;
-        this->bcoins = other.bcoins;
-        this->scoins = other.scoins;
-        this->fcoins = other.fcoins;
-        this->receivedVotes = other.receivedVotes;
+        this->keyID          = other.keyID;
+        this->regID          = other.regID;
+        this->nickID         = other.nickID;
+        this->pubKey         = other.pubKey;
+        this->minerPubKey    = other.minerPubKey;
+        this->bcoins         = other.bcoins;
+        this->scoins         = other.scoins;
+        this->fcoins         = other.fcoins;
+        this->receivedVotes  = other.receivedVotes;
         this->lastVoteHeight = other.lastVoteHeight;
-        this->voteFunds = other.voteFunds;
-        this->hasOpenCdp = other.hasOpenCdp;
+        this->voteFunds      = other.voteFunds;
+        this->hasOpenCdp     = other.hasOpenCdp;
 
         return *this;
     }
 
-    std::shared_ptr<CAccount> GetNewInstance() const { return std::make_shared<CAccount>(*this); }
-    bool IsRegistered() const { return (pubKey.IsFullyValid() && pubKey.GetKeyId() == keyID); }
-    bool SetRegId(const CRegID& regID)
-    {
+    std::shared_ptr<CAccount> GetNewInstance() const {
+        return std::make_shared<CAccount>(*this);
+    }
+
+    bool IsRegistered() const {
+        return (pubKey.IsFullyValid() && pubKey.GetKeyId() == keyID);
+    }
+
+    bool SetRegId(const CRegID& regID) {
         this->regID = regID;
         return true;
     };
 
-    bool GetRegId(CRegID& regID) const
-    {
+    bool GetRegId(CRegID& regID) const {
         regID = this->regID;
         return !regID.IsEmpty();
     };
