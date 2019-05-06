@@ -452,7 +452,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         fee = params[1].get_uint64();
         if (fee < nDefaultFee) {
             throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("input fee smaller than mintxfee: %ld sawi", nDefaultFee));
+                               strprintf("Input fee smaller than mintxfee: %ld sawi", nDefaultFee));
         }
     } else {
         fee = nDefaultFee;
@@ -460,7 +460,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 
     CKeyID keyId;
     if (!GetKeyId(addr, keyId))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in registeraccounttx: Address invalid.");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address invalid");
 
     CAccountRegisterTx rtx;
     assert(pwalletMain != NULL);
@@ -471,21 +471,21 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         CAccount account;
         CUserID userId = keyId;
         if (!view.GetAccount(userId, account))
-            throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account does not exist.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist");
 
 
         if (account.IsRegistered())
-            throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account was already registered.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "Account was already registered");
 
         uint64_t balance = account.GetFreeBCoins();
         if (balance < fee) {
             LogPrint("ERROR", "balance=%d, vs fee=%d", balance, fee);
-            throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Account balance is insufficient");
+            throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
 
         CPubKey pubkey;
         if (!pwalletMain->GetPubKey(keyId, pubkey))
-            throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: local wallet key not found.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in local wallet");
 
         CPubKey minerPubKey;
         if (pwalletMain->GetPubKey(keyId, minerPubKey, true)) {
@@ -499,13 +499,13 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         rtx.nValidHeight = chainActive.Tip()->nHeight;
 
         if (!pwalletMain->Sign(keyId, rtx.SignatureHash(), rtx.signature))
-            throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Sign failed.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
     }
 
     std::tuple<bool, string> ret;
     ret = pwalletMain->CommitTx((CBaseTx *) &rtx);
     if (!std::get<0>(ret))
-        throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: " + std::get<1>(ret));
+        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
 
     Object obj;
     obj.push_back(Pair("hash", std::get<1>(ret)));
