@@ -30,7 +30,7 @@ public:
         READWRITE(VARINT(llFees));
         READWRITE(signature);)
 
-    uint256 SignatureHash(bool recalculate = false) const {
+    uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << contractScript
@@ -43,7 +43,7 @@ public:
         return sigHash;
     }
 
-    uint256 GetHash() const { return SignatureHash(); }
+    uint256 GetHash() const { return ComputeSignatureHash(); }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CContractDeployTx>(this); }
     uint64_t GetFee() const { return llFees; }
     uint64_t GetValue() const { return 0; }
@@ -112,7 +112,7 @@ public:
         READWRITE(signature);
     )
 
-    uint256 SignatureHash(bool recalculate = false) const {
+    uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << appUid
@@ -125,7 +125,7 @@ public:
     }
 
     uint64_t GetValue() const { return bcoins; }
-    uint256 GetHash() const { return SignatureHash(); }
+    uint256 GetHash() const { return ComputeSignatureHash(); }
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     std::shared_ptr<CBaseTx> GetNewInstance() {

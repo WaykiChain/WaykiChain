@@ -238,7 +238,7 @@ bool CContractDeployTx::CheckTx(CValidationState &state, CAccountViewCache &view
                          REJECT_INVALID, "bad-tx-sig-size");
     }
 
-    uint256 signhash = SignatureHash();
+    uint256 signhash = ComputeSignatureHash();
     if (!CheckSignScript(signhash, signature, acctInfo.pubKey)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, CheckSignScript failed"),
                          REJECT_INVALID, "bad-signscript-check");
@@ -542,7 +542,7 @@ bool CContractInvokeTx::CheckTx(CValidationState &state, CAccountViewCache &view
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, signature size invalid"),
                          REJECT_INVALID, "bad-tx-sig-size");
 
-    uint256 sighash = SignatureHash();
+    uint256 sighash = ComputeSignatureHash();
     if (!CheckSignScript(sighash, signature, srcAccount.pubKey))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, CheckSignScript failed"),
                          REJECT_INVALID, "bad-signscript-check");

@@ -46,7 +46,7 @@ public:
         READWRITE(priceType);
         READWRITE(VARINT(price));)
 
-    uint256 SignatureHash(bool recalculate = false) const {
+    uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid

@@ -30,7 +30,6 @@ string GetTxType(unsigned char txType) {
         return "";
 }
 
-
 bool CBaseTx::IsValidHeight(int nCurrHeight, int nTxCacheHeight) const {
     if(BLOCK_REWARD_TX == nTxType)
         return true;
@@ -90,8 +89,9 @@ bool CBaseTx::CheckSignatureSize(const vector<unsigned char> &signature) const {
 
 string CBaseTx::ToString(CAccountViewCache &view) const {
     string str = strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
-        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, txUid.get<CPubKey>().ToString(),
-        llFees, txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight);
+                            GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, 
+                            txUid.get<CPubKey>().ToString(),
+                            llFees, txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight);
 
     return str;
 }
@@ -396,7 +396,7 @@ bool CMulsigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
 
     CAccount account;
     set<CPubKey> pubKeys;
-    uint256 sighash = SignatureHash();
+    uint256 sighash = ComputeSignatureHash();
     uint8_t valid   = 0;
     for (const auto &item : signaturePairs) {
         if (!view.GetAccount(item.regId, account))

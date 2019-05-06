@@ -230,7 +230,7 @@ bool CDelegateVoteTx::CheckTx(CValidationState &state, CAccountViewCache &view,
                 REJECT_INVALID, "bad-tx-sig-size");
         }
 
-        uint256 signhash = SignatureHash();
+        uint256 signhash = ComputeSignatureHash();
         if (!CheckSignScript(signhash, signature, sendAcct.pubKey)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, CheckSignScript failed"),
                 REJECT_INVALID, "bad-signscript-check");

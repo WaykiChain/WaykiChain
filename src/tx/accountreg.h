@@ -38,7 +38,7 @@ public:
     uint64_t GetFee() const { return llFees; }
     uint64_t GetValue() const { return 0; }
 
-    uint256 SignatureHash(bool recalculate = false) const {
+    uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             assert(txUid.type() == typeid(CPubKey) && minerUid.type() == typeid(CPubKey) );
 

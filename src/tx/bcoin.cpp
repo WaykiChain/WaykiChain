@@ -265,7 +265,7 @@ bool CBaseCoinTransferTx::CheckTx(CValidationState &state, CAccountViewCache &vi
             return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, signature size invalid"),
                              REJECT_INVALID, "bad-tx-sig-size");
 
-    uint256 sighash = SignatureHash();
+    uint256 sighash = ComputeSignatureHash();
     CPubKey pubKey =
         txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey;
     if (!CheckSignScript(sighash, signature, pubKey))

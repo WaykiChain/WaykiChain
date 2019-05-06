@@ -197,7 +197,7 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
     pBlock->SetTime(currentTime);
 
     vector<unsigned char> vSign;
-    if (pwalletMain->Sign(delegate.keyID, pBlock->SignatureHash(), vSign, delegate.minerPubKey.IsValid())) {
+    if (pwalletMain->Sign(delegate.keyID, pBlock->ComputeSignatureHash(), vSign, delegate.minerPubKey.IsValid())) {
         pBlock->SetSignature(vSign);
         return true;
     } else {
@@ -274,7 +274,7 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
                 curDelegate.regID.ToString(), account.regID.ToString());
         }
 
-        const uint256 &blockHash = pBlock->SignatureHash();
+        const uint256 &blockHash = pBlock->ComputeSignatureHash();
         const vector<unsigned char> &blockSignature = pBlock->GetSignature();
 
         if (blockSignature.size() == 0 || blockSignature.size() > MAX_BLOCK_SIGNATURE_SIZE) {

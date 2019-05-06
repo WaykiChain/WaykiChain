@@ -137,7 +137,7 @@ public:
 
     virtual uint64_t GetFee() const { return llFees; }
     virtual uint64_t GetFuel(int nfuelRate);
-    virtual uint256 GetHash() const { return SignatureHash(); };
+    virtual uint256 GetHash() const { return ComputeSignatureHash(); };
     virtual double GetPriority() const {
         return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
     }
@@ -146,7 +146,7 @@ public:
     virtual bool GetAddress(std::set<CKeyID> &vAddr,
                         CAccountViewCache &view,
                         CScriptDBViewCache &scriptDB)                       = 0;
-    virtual uint256 SignatureHash(bool recalculate = false) const           = 0;
+    virtual uint256 ComputeSignatureHash(bool recalculate = false) const           = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance()                       = 0;
     virtual string ToString(CAccountViewCache &view) const                  = 0;
     virtual Object ToJson(const CAccountViewCache &AccountView) const       = 0;
@@ -312,7 +312,7 @@ public:
         READWRITE(memo);
     )
 
-    uint256 SignatureHash(bool recalculate = false) const {
+    uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight);
@@ -329,7 +329,7 @@ public:
     }
 
     uint64_t GetValue() const { return bcoins; }
-    uint256 GetHash() const { return SignatureHash(); }
+    uint256 GetHash() const { return ComputeSignatureHash(); }
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CMulsigTx>(this); }

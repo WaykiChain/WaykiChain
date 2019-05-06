@@ -48,7 +48,7 @@ bool CAccountRegisterTx::CheckTx(CValidationState &state, CAccountViewCache &vie
     }
 
     // check signature script
-    uint256 sighash = SignatureHash();
+    uint256 sighash = ComputeSignatureHash();
     if (!CheckSignScript(sighash, signature, txUid.get<CPubKey>()))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx signature error "),
             REJECT_INVALID, "bad-regtx-signature");
