@@ -322,8 +322,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
     return arrayDetail;
 }
 
-Value gettransaction(const Array& params, bool fHelp)
-{
+Value gettransaction(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
         throw runtime_error(
             "gettransaction \"txhash\"\n"
@@ -333,10 +332,12 @@ Value gettransaction(const Array& params, bool fHelp)
             "\nResult a object about the transaction detail\n"
             "\nResult:\n"
             "\n\"txhash\"\n"
-            "\nExamples:\n"
-            + HelpExampleCli("gettransaction","c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\n")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("gettransaction","c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\n"));
+            "\nExamples:\n" +
+            HelpExampleCli("gettransaction",
+                           "c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\n") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("gettransaction",
+                           "c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\n"));
 
     uint256 txhash(uint256S(params[0].get_str()));
     std::shared_ptr<CBaseTx> pBaseTx;
@@ -346,15 +347,15 @@ Value gettransaction(const Array& params, bool fHelp)
     CBlockIndex* pgenesisblockindex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
     ReadBlockFromDisk(pgenesisblockindex, genesisblock);
     assert(genesisblock.GetMerkleRootHash() == genesisblock.BuildMerkleTree());
-    for (unsigned int i=0; i<genesisblock.vptx.size(); ++i) {
+    for (unsigned int i = 0; i < genesisblock.vptx.size(); ++i) {
         if (txhash == genesisblock.GetTxHash(i)) {
             double dAmount = static_cast<double>(genesisblock.vptx.at(i)->GetValue()) / COIN;
             obj.push_back(Pair("amount", dAmount));
-            obj.push_back(Pair("confirmations",chainActive.Tip()->nHeight));
+            obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight));
             obj.push_back(Pair("block_hash", genesisblock.GetHash().GetHex()));
-            obj.push_back(Pair("block_index", (int) i));
-            obj.push_back(Pair("block_time", (int) genesisblock.GetTime()));
-            obj.push_back(Pair("txid",genesisblock.vptx.at(i)->GetHash().GetHex()));
+            obj.push_back(Pair("block_index", (int)i));
+            obj.push_back(Pair("block_time", (int)genesisblock.GetTime()));
+            obj.push_back(Pair("txid", genesisblock.vptx.at(i)->GetHash().GetHex()));
             obj.push_back(Pair("details", GetTxAddressDetail(genesisblock.vptx.at(i))));
             CDataStream ds(SER_DISK, CLIENT_VERSION);
             ds << genesisblock.vptx[i];
@@ -362,48 +363,51 @@ Value gettransaction(const Array& params, bool fHelp)
             return obj;
         }
     }
-    bool findTx (false);
+    bool findTx(false);
     if (SysCfg().IsTxIndex()) {
-            CDiskTxPos postx;
-            if (pScriptDBTip->ReadTxIndex(txhash, postx)) {
-                findTx = true;
-                CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
-                CBlockHeader header;
-                try {
-                    file >> header;
-                    fseek(file, postx.nTxOffset, SEEK_CUR);
-                    file >> pBaseTx;
-                    double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
-                    obj.push_back(Pair("amount", dAmount));
-                    obj.push_back(Pair("confirmations",chainActive.Tip()->nHeight-(int) header.GetHeight()));
-                    obj.push_back(Pair("blockhash", header.GetHash().GetHex()));
-                    obj.push_back(Pair("blocktime", (int) header.GetTime()));
-                    obj.push_back(Pair("txid",pBaseTx->GetHash().GetHex()));
-                    obj.push_back(Pair("details", GetTxAddressDetail(pBaseTx)));
-                    CDataStream ds(SER_DISK, CLIENT_VERSION);
-                    ds << pBaseTx;
-                    obj.push_back(Pair("hex", HexStr(ds.begin(), ds.end())));
-                } catch (std::exception &e) {
-                    throw runtime_error(tfm::format("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
-                }
-                return obj;
+        CDiskTxPos postx;
+        if (pScriptDBTip->ReadTxIndex(txhash, postx)) {
+            findTx = true;
+            CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
+            CBlockHeader header;
+            try {
+                file >> header;
+                fseek(file, postx.nTxOffset, SEEK_CUR);
+                file >> pBaseTx;
+                double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+                obj.push_back(Pair("amount", dAmount));
+                obj.push_back(
+                    Pair("confirmations", chainActive.Tip()->nHeight - (int)header.GetHeight()));
+                obj.push_back(Pair("blockhash", header.GetHash().GetHex()));
+                obj.push_back(Pair("blocktime", (int)header.GetTime()));
+                obj.push_back(Pair("txid", pBaseTx->GetHash().GetHex()));
+                obj.push_back(Pair("details", GetTxAddressDetail(pBaseTx)));
+                CDataStream ds(SER_DISK, CLIENT_VERSION);
+                ds << pBaseTx;
+                obj.push_back(Pair("hex", HexStr(ds.begin(), ds.end())));
+            } catch (std::exception& e) {
+                throw runtime_error(
+                    tfm::format("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
             }
+            return obj;
         }
-    if(!findTx)
-    {
+    }
+
+    if (!findTx) {
         pBaseTx = mempool.Lookup(txhash);
-        if(pBaseTx == nullptr) {
+        if (pBaseTx == nullptr) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid txhash");
         }
         double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
         obj.push_back(Pair("amount", dAmount));
-        obj.push_back(Pair("confirmations",0));
-        obj.push_back(Pair("txid",pBaseTx->GetHash().GetHex()));
+        obj.push_back(Pair("confirmations", 0));
+        obj.push_back(Pair("txid", pBaseTx->GetHash().GetHex()));
         obj.push_back(Pair("details", GetTxAddressDetail(pBaseTx)));
         CDataStream ds(SER_DISK, CLIENT_VERSION);
         ds << pBaseTx;
         obj.push_back(Pair("hex", HexStr(ds.begin(), ds.end())));
     }
+
     return obj;
 }
 
