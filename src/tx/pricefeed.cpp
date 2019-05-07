@@ -70,7 +70,7 @@ bool CPriceFeedTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidatio
 
 Object CPriceFeedTx::ToJson(const CAccountViewCache &AccountView) const {
   //TODO
-  return CNullID();
+  return Object();
 }
 
 bool CPriceFeedTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
