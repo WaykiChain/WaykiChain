@@ -111,7 +111,7 @@ bool CContractDeployTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVali
                          UPDATE_ACCOUNT_FAIL, "erase-script-failed");
     }
     //delete account
-    if (!view.EraseId(scriptId)) {
+    if (!view.EraseKeyId(scriptId)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase script account %s error", scriptId.ToString()),
                          UPDATE_ACCOUNT_FAIL, "erase-appkeyid-failed");
     }

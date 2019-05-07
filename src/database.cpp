@@ -304,11 +304,11 @@ bool CAccountViewCache::HaveAccount(const CUserID &userId) {
     }
     return false;
 }
-bool CAccountViewCache::EraseId(const CUserID &userId) {
+bool CAccountViewCache::EraseKeyId(const CUserID &userId) {
     if (userId.type() == typeid(CRegID)) {
         return EraseKeyIdByRegId(userId.get<CRegID>().GetRegIdRaw());
     }
-    
+
     return false;
 }
 

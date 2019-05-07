@@ -113,14 +113,14 @@ bool CAccountRegisterTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
 bool CAccountRegisterTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
         CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
     // drop account
-    CRegID accountId(nHeight, nIndex);
+    CRegID accountRegId(nHeight, nIndex);
     CAccount oldAccount;
-    if (!view.GetAccount(accountId, oldAccount))
+    if (!view.GetAccount(accountRegId, oldAccount))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read secure account=%s info error",
-            accountId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+            accountRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CKeyID keyId;
-    view.GetKeyId(accountId, keyId);
+    view.GetKeyId(accountRegId, keyId);
 
     if (llFees > 0) {
         CAccountLog accountLog;
@@ -140,7 +140,7 @@ bool CAccountRegisterTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVal
     } else {
         view.EraseAccountByKeyId(txUid);
     }
-    view.EraseId(accountId);
+    view.EraseKeyId(accountRegId);
     return true;
 }
 

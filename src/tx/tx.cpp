@@ -355,7 +355,7 @@ bool CMulsigTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationSt
                                  UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
             }
 
-            view.EraseId(CRegID(nHeight, nIndex));
+            view.EraseKeyId(CRegID(nHeight, nIndex));
         } else {
             if (!view.SetAccount(userId, account)) {
                 return state.DoS(100,

@@ -83,7 +83,7 @@ public:
     bool GetRegId(const CUserID &userId, CRegID &regId) const;
     bool GetKeyId(const CUserID &userId, CKeyID &keyId);
     bool EraseAccountByKeyId(const CUserID &userId);
-    bool EraseId(const CUserID &userId);
+    bool EraseKeyId(const CUserID &userId);
     bool HaveAccount(const CUserID &userId);
     int64_t GetFreeBCoins(const CUserID &userId) const;
     bool Flush();
