@@ -219,25 +219,25 @@ bool CAccountViewDB::BatchWrite(const vector<CAccount> &vAccounts) {
     return db.WriteBatch(batch, false);
 }
 
-bool CAccountViewDB::EraseAccount(const CKeyID &keyId) {
+bool CAccountViewDB::EraseAccountByKeyId(const CKeyID &keyId) {
     return db.Erase(make_pair('k', keyId));
 }
 
-bool CAccountViewDB::SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId) {
-    return db.Write(make_pair('a', accountId), keyId);
+bool CAccountViewDB::SetKeyId(const vector<unsigned char> &accountRegId, const CKeyID &keyId) {
+    return db.Write(make_pair('r', accountRegId), keyId);
 }
 
-bool CAccountViewDB::GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId) {
-    return db.Read(make_pair('a', accountId), keyId);
+bool CAccountViewDB::GetKeyId(const vector<unsigned char> &accountRegId, CKeyID &keyId) {
+    return db.Read(make_pair('r', accountRegId), keyId);
 }
 
-bool CAccountViewDB::EraseKeyId(const vector<unsigned char> &accountId) {
-    return db.Erase(make_pair('a', accountId));
+bool CAccountViewDB::EraseAccountByRegId(const vector<unsigned char> &accountRegId) {
+    return db.Erase(make_pair('r', accountRegId));
 }
 
-bool CAccountViewDB::GetAccount(const vector<unsigned char> &accountId, CAccount &secureAccount) {
+bool CAccountViewDB::GetAccount(const vector<unsigned char> &accountRegId, CAccount &secureAccount) {
     CKeyID keyId;
-    if (db.Read(make_pair('a', accountId), keyId)) {
+    if (db.Read(make_pair('r', accountRegId), keyId)) {
         return db.Read(make_pair('k', keyId), secureAccount);
     }
     return false;
@@ -245,7 +245,7 @@ bool CAccountViewDB::GetAccount(const vector<unsigned char> &accountId, CAccount
 
 bool CAccountViewDB::SaveAccountInfo(const CAccount &account) {
     CLevelDBBatch batch;
-    batch.Write(make_pair('a', account.regID), account.keyID);
+    batch.Write(make_pair('r', account.regID), account.keyID);
     batch.Write(make_pair('n', account.nickID), account.keyID);
     batch.Write(make_pair('k', account.keyID), account);
 

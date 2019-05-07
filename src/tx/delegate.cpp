@@ -64,14 +64,15 @@ bool CDelegateVoteTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
 }
 
 bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                            CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                            CScriptDBViewCache &scriptDB) {
+                                CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
+                                CScriptDBViewCache &scriptDB) {
     CAccount acctInfo;
     if (!view.GetAccount(txUid, acctInfo)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read regist addr %s account info error", txUid.ToString()),
             UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccount acctInfoLog(acctInfo);
+
+    CAccountLog acctInfoLog(acctInfo); //save account state before modification
     uint64_t minusValue = llFees;
     if (minusValue > 0) {
         if(!acctInfo.OperateAccount(MINUS_FREE, minusValue, nHeight))
@@ -86,7 +87,8 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error", acctInfo.regID.ToString()),
                 UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
-    txundo.vAccountLog.push_back(acctInfoLog);
+
+    txundo.vAccountLog.push_back(acctInfoLog); //keep the old state after the above operation completed properly.
     txundo.txHash = GetHash();
 
     for (auto iter = operVoteFunds.begin(); iter != operVoteFunds.end(); ++iter) {
@@ -96,12 +98,13 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read KeyId(%s) account info error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        CAccount delegateAcctLog(delegate);
+        CAccountLog delegateAcctLog(delegate);
         if (!delegate.OperateVote(VoteOperType(iter->operType), iter->fund.GetVoteCount())) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate address %s vote fund error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-vote-error");
         }
-        txundo.vAccountLog.push_back(delegateAcctLog);
+        txundo.vAccountLog.push_back(delegateAcctLog); // keep delegate state before modification
+
         // set the new value and erase the old value
         CScriptDBOperLog operDbLog;
         if (!scriptDB.SetDelegateData(delegate, operDbLog)) {
@@ -113,16 +116,17 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
         CScriptDBOperLog eraseDbLog;
         if (delegateAcctLog.receivedVotes > 0) {
             if(!scriptDB.EraseDelegateData(delegateAcctLog, eraseDbLog)) {
-                return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, erase account id %s vote info error", delegateAcctLog.regID.ToString()),
-                    UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+                return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, erase account id %s vote info error",
+                                delegateAcctLog.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
             }
         }
-        txundo.vScriptOperLog.push_back(eraseDbLog);
 
         if (!view.SaveAccountInfo(delegate)) {
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error", acctInfo.regID.ToString()),
-                UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error", 
+                            acctInfo.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
+        
+        txundo.vScriptOperLog.push_back(eraseDbLog);
     }
 
     if (SysCfg().GetAddressToTxFlag()) {
@@ -131,8 +135,10 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
         if (!view.GetKeyId(txUid, sendKeyId)) {
             return ERRORMSG("CDelegateVoteTx::ExecuteTx, get regAcctId by account error!");
         }
+
         if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
             return false;
+
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
     }
     return true;

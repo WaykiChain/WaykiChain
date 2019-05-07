@@ -81,7 +81,7 @@ public:
     bool EraseAccount(const CKeyID &keyId);
     bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId);
     bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId);
-    bool EraseKeyId(const vector<unsigned char> &accountId);
+    bool EraseAccountByRegId(const vector<unsigned char> &accountRegId);
 
     bool SaveAccountInfo(const CAccount &secureAccount);
     std::tuple<uint64_t, uint64_t> TraverseAccount();

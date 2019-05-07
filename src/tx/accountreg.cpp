@@ -65,8 +65,12 @@ bool CAccountRegisterTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
     if (!view.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s account info error",
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+    
+    account.regID = regId;
+    account.keyID = keyId;
 
     CAccountLog acctLog(account);
+    
     if (account.pubKey.IsFullyValid() && account.pubKey.GetKeyId() == keyId)
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s duplicate register",
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
@@ -76,9 +80,7 @@ bool CAccountRegisterTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, not sufficient funds in account, keyid=%s",
                         keyId.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-funds");
     }
-
-    account.regID = regId;
-    account.keyID = keyId;
+    
     if (typeid(CPubKey) == minerUid.type()) {
         account.minerPubKey = minerUid.get<CPubKey>();
         if (account.minerPubKey.IsValid() && !account.minerPubKey.IsFullyValid()) {
@@ -136,7 +138,7 @@ bool CAccountRegisterTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVal
         CUserID userId(keyId);
         view.SetAccount(userId, oldAccount);
     } else {
-        view.EraseAccount(txUid);
+        view.EraseAccountByKeyId(txUid);
     }
     view.EraseId(accountId);
     return true;

@@ -28,10 +28,10 @@ public:
     virtual bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>,
                             CKeyID> &mapKeyIds, const uint256 &blockHash) = 0;
     virtual bool BatchWrite(const vector<CAccount> &vAccounts) = 0;
-    virtual bool EraseAccount(const CKeyID &keyId) = 0;
+    virtual bool EraseAccountByKeyId(const CKeyID &keyId) = 0;
     virtual bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId) = 0;
     virtual bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId) = 0;
-    virtual bool EraseKeyId(const vector<unsigned char> &accountId) = 0;
+    virtual bool EraseAccountByRegId(const vector<unsigned char> &accountRegId) = 0;
 
     // virtual bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account) = 0;
     virtual std::tuple<uint64_t, uint64_t> TraverseAccount() = 0;
@@ -63,11 +63,11 @@ public:
     virtual bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>,
                             CKeyID> &mapKeyIds, const uint256 &blockHash);
     virtual bool BatchWrite(const vector<CAccount> &vAccounts);
-    virtual bool EraseAccount(const CKeyID &keyId);
+    virtual bool EraseAccountByKeyId(const CKeyID &keyId);
     virtual bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId);
     virtual bool SetKeyId(const CUserID &userId, const CKeyID &keyId);
     virtual bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId);
-    virtual bool EraseKeyId(const vector<unsigned char> &accountId);
+    virtual bool EraseAccountByRegId(const vector<unsigned char> &accountRegId);
 
     // virtual bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account);
     virtual bool SaveAccountInfo(const CAccount &account);
@@ -82,7 +82,7 @@ public:
     bool GetRegId(const CKeyID &keyId, CRegID &regId);
     bool GetRegId(const CUserID &userId, CRegID &regId) const;
     bool GetKeyId(const CUserID &userId, CKeyID &keyId);
-    bool EraseAccount(const CUserID &userId);
+    bool EraseAccountByKeyId(const CUserID &userId);
     bool EraseId(const CUserID &userId);
     bool HaveAccount(const CUserID &userId);
     int64_t GetFreeBCoins(const CUserID &userId) const;
@@ -150,7 +150,7 @@ public:
                          const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog);
     bool SetDelegateData(const CAccount &delegateAcct, CScriptDBOperLog &operLog);
     bool SetDelegateData(const vector<unsigned char> &vKey);
-    bool EraseDelegateData(const CAccount &delegateAcct, CScriptDBOperLog &operLog);
+    bool EraseDelegateData(const CAccountLog &delegateAcct, CScriptDBOperLog &operLog);
     bool EraseDelegateData(const vector<unsigned char> &vKey);
     bool UndoScriptData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
     /**

@@ -52,8 +52,8 @@ bool CPriceFeedTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
 
     // check if account has sufficient foins to be a price feeder
     if (account.fcoins < kDefaultPriceFeedFcoinsMin)
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, not sufficient scoins in account (%s)",
-                        txUid.ToString()), PRICE_FEED_FAIL, "not-sufficiect-fcoins");
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, not sufficient fcoins(%d) in account (%s)",
+                        account.fcoins, txUid.ToString()), PRICE_FEED_FAIL, "not-sufficiect-fcoins");
 
     // update the price state accordingly: 
 

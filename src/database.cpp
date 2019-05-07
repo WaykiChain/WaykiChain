@@ -96,7 +96,7 @@ bool CAccountViewCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, con
                                 CKeyID> &mapKeyIds, const uint256 &blockHashIn) {
     for (map<CKeyID, CAccount>::const_iterator it = mapAccounts.begin(); it != mapAccounts.end(); ++it) {
         if (uint160() == it->second.keyID) {
-            pBase->EraseAccount(it->first);
+            pBase->EraseAccountByKeyId(it->first);
             cacheAccounts.erase(it->first);
         } else {
             cacheAccounts[it->first] = it->second;
@@ -119,7 +119,7 @@ bool CAccountViewCache::BatchWrite(const vector<CAccount> &vAccounts) {
     }
     return true;
 }
-bool CAccountViewCache::EraseAccount(const CKeyID &keyId) {
+bool CAccountViewCache::EraseAccountByKeyId(const CKeyID &keyId) {
     if (cacheAccounts.count(keyId))
         cacheAccounts[keyId].keyID = uint160();
     else {
@@ -164,9 +164,10 @@ bool CAccountViewCache::GetKeyId(const vector<unsigned char> &accountId, CKeyID 
     return false;
 }
 
-bool CAccountViewCache::EraseKeyId(const vector<unsigned char> &accountId) {
+bool CAccountViewCache::EraseAccountByRegId(const vector<unsigned char> &accountId) {
     if (accountId.empty())
         return false;
+
     if (cacheRegId2KeyIds.count(accountId))
         cacheRegId2KeyIds[accountId] = uint160();
     else {
@@ -182,9 +183,12 @@ bool CAccountViewCache::EraseKeyId(const vector<unsigned char> &accountId) {
 bool CAccountViewCache::SaveAccountInfo(const CAccount  &account) {
 
     cacheRegId2KeyIds[account.regID.GetRegIdRaw()]          = account.keyID;
+
     if (!account.nickID.IsEmpty())
         cacheNickId2KeyIds[account.nickID.GetNickIdRaw()]   = account.keyID;
+
     cacheAccounts[account.keyID]                            = account;
+    
     return true;
 }
 
@@ -281,11 +285,11 @@ bool CAccountViewCache::SetAccount(const CUserID &userId, const CAccount &accoun
     return ERRORMSG("SetAccount input userid is unknow type");
 }
 
-bool CAccountViewCache::EraseAccount(const CUserID &userId) {
+bool CAccountViewCache::EraseAccountByKeyId(const CUserID &userId) {
     if (userId.type() == typeid(CKeyID)) {
-        return EraseAccount(userId.get<CKeyID>());
+        return EraseAccountByKeyId(userId.get<CKeyID>());
     } else if (userId.type() == typeid(CPubKey)) {
-        return EraseAccount(userId.get<CPubKey>().GetKeyId());
+        return EraseAccountByKeyId(userId.get<CPubKey>().GetKeyId());
     } else {
         return ERRORMSG("EraseAccount account type error!");
         //		assert(0);
@@ -302,7 +306,7 @@ bool CAccountViewCache::HaveAccount(const CUserID &userId) {
 }
 bool CAccountViewCache::EraseId(const CUserID &userId) {
     if (userId.type() == typeid(CRegID)) {
-        return EraseKeyId(userId.get<CRegID>().GetRegIdRaw());
+        return EraseAccountByRegId(userId.get<CRegID>().GetRegIdRaw());
     } else {
         //		assert(0);
     }
@@ -563,7 +567,7 @@ bool CScriptDBViewCache::GetScript(const int nIndex, vector<unsigned char> &vScr
     }
     return true;
 }
-bool CScriptDBViewCache::SetScript(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vValue) {
+bool CScriptDBViewCache::SetScript(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptContent) {
     vector<unsigned char> scriptKey = {'d', 'e', 'f'};
     scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
 
@@ -574,7 +578,8 @@ bool CScriptDBViewCache::SetScript(const vector<unsigned char> &vScriptId, const
         if (!SetScriptCount(nCount))
             return false;
     }
-    return SetData(scriptKey, vValue);
+
+    return SetData(scriptKey, vScriptContent);
 }
 bool CScriptDBViewCache::Flush() {
     bool ok = pBase->BatchWrite(mapContractDb);
@@ -1148,6 +1153,7 @@ bool CScriptDBViewCache::GetScriptCount(int &nCount) {
     vector<unsigned char> vValue;
     if (!GetData(scriptKey, vValue))
         return false;
+
     CDataStream ds(vValue, SER_DISK, CLIENT_VERSION);
     ds >> nCount;
     return true;
@@ -1161,12 +1167,13 @@ bool CScriptDBViewCache::SetScriptCount(const int nCount) {
         CDataStream ds(SER_DISK, CLIENT_VERSION);
         ds << nCount;
         vValue.insert(vValue.end(), ds.begin(), ds.end());
-    } else if (nCount < 0) {
+    } else {
         //		assert(0);
         return false;
     }
     if (!SetData(scriptKey, vValue))
         return false;
+
     return true;
 }
 bool CScriptDBViewCache::EraseScript(const vector<unsigned char> &vScriptId) {
@@ -1397,7 +1404,7 @@ bool CScriptDBViewCache::SetDelegateData(const vector<unsigned char> &vKey) {
     return true;
 }
 
-bool CScriptDBViewCache::EraseDelegateData(const CAccount &delegateAcct, CScriptDBOperLog &operLog) {
+bool CScriptDBViewCache::EraseDelegateData(const CAccountLog &delegateAcct, CScriptDBOperLog &operLog) {
     CRegID regId(0, 0);
     vector<unsigned char> vVoteOldKey = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
     uint64_t nMaxNumber               = 0xFFFFFFFFFFFFFFFF;

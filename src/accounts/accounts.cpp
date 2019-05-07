@@ -144,27 +144,33 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64
     LogPrint("op_account", "before operate:%s\n", ToString());
     if (!IsMoneyOverflow(value))
         return false;
+
     if (keyID == uint160()) {
         return ERRORMSG("operate account's keyId is 0 error");
     }
+
     if (!value)
         return true;
+
     switch (type) {
     case ADD_FREE: {
         bcoins += value;
         if (!IsMoneyOverflow(bcoins))
             return false;
+
         break;
     }
     case MINUS_FREE: {
         if (value > bcoins)
             return false;
+
         bcoins -= value;
         break;
     }
     default:
         return ERRORMSG("operate account type error!");
     }
+    
     LogPrint("op_account", "after operate:%s\n", ToString());
     return true;
 }
