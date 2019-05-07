@@ -199,9 +199,9 @@ bool CAccountViewDB::BatchWrite(const map<CKeyID, CAccount> &mapAccounts,
     map<vector<unsigned char>, CKeyID>::const_iterator iterKey = mapKeyIds.begin();
     for (; iterKey != mapKeyIds.end(); ++iterKey) {
         if (iterKey->second.IsNull()) {
-            batch.Erase(make_pair('a', iterKey->first));
+            batch.Erase(make_pair('r', iterKey->first));
         } else {
-            batch.Write(make_pair('a', iterKey->first), iterKey->second);
+            batch.Write(make_pair('r', iterKey->first), iterKey->second);
         }
     }
     if (!hashBlock.IsNull())
