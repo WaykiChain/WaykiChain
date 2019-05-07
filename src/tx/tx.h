@@ -139,8 +139,8 @@ public:
     virtual uint64_t GetFuel(int nfuelRate);
     virtual uint256 GetHash() const { return ComputeSignatureHash(); };
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); };
+    virtual uint64_t GetValue() const { return 0; };
 
-    virtual uint64_t GetValue() const                                       = 0;
     virtual unsigned int GetSerializeSize(int nType, int nVersion) const    = 0;
     virtual bool GetAddress(std::set<CKeyID> &vAddr,
                         CAccountViewCache &view,
