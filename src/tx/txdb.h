@@ -78,10 +78,10 @@ public:
     bool SetBestBlock(const uint256 &hashBlock);
     bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>, CKeyID> &mapKeyIds, const uint256 &hashBlock);
     bool BatchWrite(const vector<CAccount> &vAccounts);
-    bool EraseAccount(const CKeyID &keyId);
+    bool EraseAccountByKeyId(const CKeyID &keyId);
     bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId);
     bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId);
-    bool EraseAccountByRegId(const vector<unsigned char> &accountRegId);
+    bool EraseKeyIdByRegId(const vector<unsigned char> &accountRegId);
 
     bool SaveAccountInfo(const CAccount &secureAccount);
     std::tuple<uint64_t, uint64_t> TraverseAccount();
