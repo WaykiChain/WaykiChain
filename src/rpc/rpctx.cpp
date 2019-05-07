@@ -131,14 +131,12 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
     std::set<CKeyID> vKeyIdSet;
     switch (pBaseTx->nTxType) {
         case BLOCK_REWARD_TX: {
-            CBlockRewardTx tx(&pBaseTx);
-
             if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
                 return arrayDetail;
 
             obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
             obj.push_back(Pair("category", "receive"));
-            double dAmount = static_cast<double>(tx->GetValue()) / COIN;
+            double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
             obj.push_back(Pair("amount", dAmount));
             obj.push_back(Pair("txtype", "BLOCK_REWARD_TX"));
             arrayDetail.push_back(obj);
