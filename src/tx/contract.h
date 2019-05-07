@@ -34,9 +34,7 @@ public:
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << contractScript
                << VARINT(llFees);
-            // Truly need to write the sigHash.
-            uint256 *hash = const_cast<uint256 *>(&sigHash);
-            *hash         = ss.GetHash();
+            sigHash = ss.GetHash();
         }
 
         return sigHash;
@@ -118,9 +116,7 @@ public:
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << appUid
                << VARINT(llFees) << VARINT(bcoins) << arguments;
-            // Truly need to write the sigHash.
-            uint256 *hash = const_cast<uint256 *>(&sigHash);
-            *hash         = ss.GetHash();
+            sigHash = ss.GetHash();
         }
         return sigHash;
     }

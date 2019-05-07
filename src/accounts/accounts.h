@@ -184,7 +184,7 @@ public:
         READWRITE(VARINT(scoins));
         READWRITE(VARINT(fcoins));
         READWRITE(VARINT(priceFeedDeposit));
-        READWRITE(receivedVotes);
+        READWRITE(VARINT(receivedVotes));
         READWRITE(VARINT(lastVoteHeight));
         READWRITE(voteFunds);
         READWRITE(hasOpenCdp);)

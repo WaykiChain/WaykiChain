@@ -110,9 +110,9 @@ public:
     uint64_t llFees;
     vector_unsigned_char signature;
 
-    uint64_t nRunStep;  //!< only in memory
-    int nFuelRate;      //!< only in memory
-    uint256 sigHash;    //!< only in memory
+    uint64_t nRunStep;        //!< only in memory
+    int nFuelRate;            //!< only in memory
+    mutable uint256 sigHash;  //!< only in memory
 
 public:
     CBaseTx(const CBaseTx &other) { *this = other; }
@@ -199,9 +199,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << txUid << VARINT(rewardValue) << VARINT(nHeight);
-            // Truly need to write the sigHash.
-            uint256 *hash = const_cast<uint256 *>(&sigHash);
-            *hash         = ss.GetHash();
+            sigHash = ss.GetHash();
         }
 
         return sigHash;
@@ -369,9 +367,7 @@ public:
                 ss << item.regId;
             }
             ss << desUserId << VARINT(llFees) << VARINT(bcoins) << VARINT(required) << memo;
-            // Truly need to write the sigHash.
-            uint256 *hash = const_cast<uint256 *>(&sigHash);
-            *hash         = ss.GetHash();
+            sigHash = ss.GetHash();
         }
         return sigHash;
     }
