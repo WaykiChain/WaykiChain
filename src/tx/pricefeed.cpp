@@ -62,14 +62,18 @@ bool CPriceFeedTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
 bool CPriceFeedTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
                     CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
                     CScriptDBViewCache &scriptDB) {
+    //TODO
+    return true;
 
 }
 
 
 Object CPriceFeedTx::ToJson(const CAccountViewCache &AccountView) const {
-
+  //TODO
+  return CNullID;
 }
 
 bool CPriceFeedTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
-
+    //TODO
+    return true;
 }
