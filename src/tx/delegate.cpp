@@ -119,7 +119,7 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
         }
         txundo.vScriptOperLog.push_back(eraseDbLog);
 
-        if (!view.SaveAccountInfo(delegate.regID, delegate.keyID, delegate)) {
+        if (!view.SaveAccountInfo(delegate.regID, delegate.nickID, delegate.keyID, delegate)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error", acctInfo.regID.ToString()),
                 UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
@@ -230,7 +230,7 @@ bool CDelegateVoteTx::CheckTx(CValidationState &state, CAccountViewCache &view,
                 REJECT_INVALID, "bad-tx-sig-size");
         }
 
-        uint256 signhash = SignatureHash();
+        uint256 signhash = ComputeSignatureHash();
         if (!CheckSignScript(signhash, signature, sendAcct.pubKey)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, CheckSignScript failed"),
                 REJECT_INVALID, "bad-signscript-check");

@@ -65,7 +65,7 @@ public:
 
 			uint64_t llmoney = GetRandomMoney() * COIN;
 			CRegID reg(addr.first);
-			arguments.insert(arguments.end(), reg.GetVec6().begin(), reg.GetVec6().end());
+			arguments.insert(arguments.end(), reg.GetRegIdRaw().begin(), reg.GetRegIdRaw().end());
 			CDataStream ds(SER_DISK, CLIENT_VERSION);
 			ds << llmoney;
 			vector<unsigned char> temp(ds.begin(), ds.end());

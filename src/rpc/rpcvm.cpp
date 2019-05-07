@@ -181,7 +181,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         tx.nRunStep  = vscript.size();
         tx.nValidHeight = newHeight;
 
-        if (!pwalletMain->Sign(srcKeyid, tx.SignatureHash(), tx.signature)) {
+        if (!pwalletMain->Sign(srcKeyid, tx.ComputeSignatureHash(), tx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
 
@@ -220,7 +220,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         contractTx.nValidHeight = newHeight;
 
         vector<unsigned char> signature;
-        if (!pwalletMain->Sign(srcKeyid, contractTx.SignatureHash(), contractTx.signature)) {
+        if (!pwalletMain->Sign(srcKeyid, contractTx.ComputeSignatureHash(), contractTx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
 

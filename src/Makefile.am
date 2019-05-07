@@ -76,6 +76,7 @@ coin_CORE_H = \
   support/cleanse.h \
   sigcache.h \
   tx/accountreg.h \
+  tx/blockreward.h \
   tx/bcoin.h \
   tx/contract.h \
   tx/delegate.h \
@@ -224,6 +225,7 @@ libcoin_server_a_SOURCES = \
   rpc/rpcvm.cpp \
   sigcache.cpp \
   tx/accountreg.cpp \
+  tx/blockreward.cpp \
   tx/bcoin.cpp \
   tx/contract.cpp \
   tx/delegate.cpp \

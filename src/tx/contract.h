@@ -25,11 +25,12 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
+
         READWRITE(contractScript);
         READWRITE(VARINT(llFees));
         READWRITE(signature);)
 
-    uint256 SignatureHash(bool recalculate = false) const {
+    uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << contractScript
@@ -40,7 +41,7 @@ public:
         return sigHash;
     }
 
-    uint256 GetHash() const { return SignatureHash(); }
+    uint256 GetHash() const { return ComputeSignatureHash(); }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CContractDeployTx>(this); }
     uint64_t GetFee() const { return llFees; }
     uint64_t GetValue() const { return 0; }
@@ -71,28 +72,26 @@ public:
 
     CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feeIn,
                 uint64_t bcoinsIn, int validHeightIn, vector_unsigned_char &argumentsIn):
-                CBaseTx(CONTRACT_INVOKE_TX, validHeightIn, feeIn) {
+                CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty()); //FIXME: shouldnot be using assert here, throw an error instead.
 
         if (appUidIn.type() == typeid(CRegID))
             assert(!appUidIn.get<CRegID>().IsEmpty());
 
-        txUid  = txUidIn;
         appUid = appUidIn;
         bcoins = bcoinsIn;
         arguments = argumentsIn;
     }
 
     CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feeIn, uint64_t bcoinsIn, int validHeightIn):
-                CBaseTx(CONTRACT_INVOKE_TX, validHeightIn, feeIn) {
+                CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
 
         if (appUidIn.type() == typeid(CRegID))
             assert(!appUidIn.get<CRegID>().IsEmpty());
 
-        txUid  = txUidIn;
         appUid = appUidIn;
         bcoins = bcoinsIn;
     }
@@ -111,7 +110,7 @@ public:
         READWRITE(signature);
     )
 
-    uint256 SignatureHash(bool recalculate = false) const {
+    uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << appUid
@@ -122,7 +121,7 @@ public:
     }
 
     uint64_t GetValue() const { return bcoins; }
-    uint256 GetHash() const { return SignatureHash(); }
+    uint256 GetHash() const { return ComputeSignatureHash(); }
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     std::shared_ptr<CBaseTx> GetNewInstance() {

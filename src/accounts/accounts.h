@@ -33,10 +33,10 @@ public:
     CPubKey pubKey;      //!< account public key
     CPubKey minerPubKey; //!< miner saving account public key
 
-    uint64_t bcoins; //!< Free Base Coins
-    uint64_t scoins; //!< Stable Coins
-    uint64_t fcoins; //!< FundCoin balance
-    uint64_t priceFeedDeposit;  //!< Deposit in bcoins to ensure proper price feed activity, 30% deviation causes cutting the deposit
+    uint64_t bcoins;    //!< Free Base Coins
+    uint64_t scoins;    //!< Stable Coins
+    uint64_t fcoins;    //!< FundCoin balance
+
     uint64_t receivedVotes; //!< votes received in bcoins
 
     uint64_t lastVoteHeight;     //!< account's last vote block height used for computing interest
@@ -67,7 +67,6 @@ public:
           bcoins(0),
           scoins(0),
           fcoins(0),
-          priceFeedDeposit(0),
           receivedVotes(0),
           lastVoteHeight(0),
           hasOpenCdp(false) {
@@ -81,7 +80,6 @@ public:
           bcoins(0),
           scoins(0),
           fcoins(0),
-          priceFeedDeposit(0),
           receivedVotes(0),
           lastVoteHeight(0),
           hasOpenCdp(false) {
@@ -183,7 +181,6 @@ public:
         READWRITE(VARINT(bcoins));
         READWRITE(VARINT(scoins));
         READWRITE(VARINT(fcoins));
-        READWRITE(VARINT(priceFeedDeposit));
         READWRITE(VARINT(receivedVotes));
         READWRITE(VARINT(lastVoteHeight));
         READWRITE(voteFunds);

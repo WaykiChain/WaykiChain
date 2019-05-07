@@ -18,14 +18,14 @@
 using namespace json_spirit;
 extern Array read_json(const std::string& jsondata);
 
-//extern uint256 SignatureHash(const CScript &scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType);
+//extern uint256 ComputeSignatureHash(const CScript &scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType);
 
-// Old script.cpp SignatureHash function
-//uint256 static SignatureHashOld(CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)
+// Old script.cpp ComputeSignatureHash function
+//uint256 static ComputeSignatureHashOld(CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)
 //{
 //    if (nIn >= txTo.vin.size())
 //    {
-//        printf("ERROR: SignatureHash() : nIn=%d out of range\n", nIn);
+//        printf("ERROR: ComputeSignatureHash() : nIn=%d out of range\n", nIn);
 //        return 1;
 //    }
 //    CTransaction txTmp(txTo);
@@ -56,7 +56,7 @@ extern Array read_json(const std::string& jsondata);
 //        unsigned int nOut = nIn;
 //        if (nOut >= txTmp.vout.size())
 //        {
-//            printf("ERROR: SignatureHash() : nOut=%d out of range\n", nOut);
+//            printf("ERROR: ComputeSignatureHash() : nOut=%d out of range\n", nOut);
 //            return 1;
 //        }
 //        txTmp.vout.resize(nOut+1);
@@ -137,8 +137,8 @@ BOOST_AUTO_TEST_SUITE(sighash_tests)
 //        int nIn = insecure_rand() % txTo.vin.size();
 //
 //        uint256 sh, sho;
-//        sho = SignatureHashOld(scriptCode, txTo, nIn, nHashType);
-//        sh = SignatureHash(scriptCode, txTo, nIn, nHashType);
+//        sho = ComputeSignatureHashOld(scriptCode, txTo, nIn, nHashType);
+//        sh = ComputeSignatureHash(scriptCode, txTo, nIn, nHashType);
 //        #if defined(PRINT_SIGHASH_JSON)
 //        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
 //        ss << txTo;
@@ -161,7 +161,7 @@ BOOST_AUTO_TEST_SUITE(sighash_tests)
 //    #endif
 //}
 
-// Goal: check that SignatureHash generates correct hash
+// Goal: check that ComputeSignatureHash generates correct hash
 //BOOST_AUTO_TEST_CASE(sighash_from_data)
 //{
 //    Array tests = read_json(std::string(json_tests::sighash, json_tests::sighash + sizeof(json_tests::sighash)));
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_SUITE(sighash_tests)
 //          continue;
 //        }
 //
-//        sh = SignatureHash(scriptCode, tx, nIn, nHashType);
+//        sh = ComputeSignatureHash(scriptCode, tx, nIn, nHashType);
 //        BOOST_CHECK_MESSAGE(sh.GetHex() == sigHashHex, strTest);
 //    }
 //}

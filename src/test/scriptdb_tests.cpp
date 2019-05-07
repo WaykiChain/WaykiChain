@@ -77,10 +77,10 @@ void testscriptdb() {
 
 	CRegID regId;
 	BOOST_CHECK(pTestView->GetScript(0, regId, vScript));
-	BOOST_CHECK(vScriptId == regId.GetVec6());
+	BOOST_CHECK(vScriptId == regId.GetRegIdRaw());
 	BOOST_CHECK(vScriptContent == vScript);
 	BOOST_CHECK(pTestView->GetScript(1, regId, vScript));
-	BOOST_CHECK(vScriptId1 == regId.GetVec6());
+	BOOST_CHECK(vScriptId1 == regId.GetRegIdRaw());
 	BOOST_CHECK(vScriptContent1 == vScript);
 	//delete script from db
 	BOOST_CHECK(pTestView->EraseScript(regScriptId));
@@ -137,7 +137,7 @@ void traversaldb(CScriptDBViewCache *pScriptDB, bool needEqual) {
 	if(ret)  {
 		traversalKey.push_back(vKey);
 		vector<unsigned char> dataKey = { 'd', 'a', 't', 'a' };
-		dataKey.insert(dataKey.end(), regScriptId.GetVec6().begin(), regScriptId.GetVec6().end());
+		dataKey.insert(dataKey.end(), regScriptId.GetRegIdRaw().begin(), regScriptId.GetRegIdRaw().end());
 		dataKey.push_back('_');
 		dataKey.insert(dataKey.end(), vKey.begin(), vKey.end());
 		if(pscriptDBView->mapContractDb.count(dataKey)) {
@@ -154,7 +154,7 @@ void traversaldb(CScriptDBViewCache *pScriptDB, bool needEqual) {
 		ret = pScriptDB->GetContractData(curheight,regScriptId, 1, vKey, vScript);
 		if(ret) {
 			vector<unsigned char> dataKey = { 'd', 'a', 't', 'a' };
-			dataKey.insert(dataKey.end(), regScriptId.GetVec6().begin(), regScriptId.GetVec6().end());
+			dataKey.insert(dataKey.end(), regScriptId.GetRegIdRaw().begin(), regScriptId.GetRegIdRaw().end());
 			dataKey.push_back('_');
 			dataKey.insert(dataKey.end(), vKey.begin(), vKey.end());
 			if(pscriptDBView->mapContractDb.count(dataKey)) {

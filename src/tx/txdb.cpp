@@ -17,8 +17,8 @@ using namespace std;
 //	batch.Write('B', hash);
 //}
 
-CBlockTreeDB::CBlockTreeDB(size_t nCacheSize, bool fMemory, bool fWipe) : CLevelDBWrapper(GetDataDir() / "blocks" / "index", nCacheSize, fMemory, fWipe) {
-}
+CBlockTreeDB::CBlockTreeDB(size_t nCacheSize, bool fMemory, bool fWipe) :
+    CLevelDBWrapper(GetDataDir() / "blocks" / "index", nCacheSize, fMemory, fWipe) {}
 
 bool CBlockTreeDB::WriteBlockIndex(const CDiskBlockIndex &blockindex) {
     return Write(make_pair('b', blockindex.GetBlockHash()), blockindex);
@@ -243,11 +243,12 @@ bool CAccountViewDB::GetAccount(const vector<unsigned char> &accountId, CAccount
     return false;
 }
 
-bool CAccountViewDB::SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId,
-                                     const CAccount &secureAccount) {
+bool CAccountViewDB::SaveAccountInfo(const CAccount &account) {
     CLevelDBBatch batch;
-    batch.Write(make_pair('a', accountId), keyId);
-    batch.Write(make_pair('k', keyId), secureAccount);
+    batch.Write(make_pair('a', account.regID), account.keyID);
+    batch.Write(make_pair('n', account.nickID), account.keyID);
+    batch.Write(make_pair('k', account.keyID), account);
+
     return db.WriteBatch(batch, false);
 }
 
@@ -315,10 +316,10 @@ bool CTransactionDB::BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashB
     return true;
 }
 
-CScriptDB::CScriptDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe) : 
+CScriptDB::CScriptDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe) :
     db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {}
 
-CScriptDB::CScriptDB(size_t nCacheSize, bool fMemory, bool fWipe) : 
+CScriptDB::CScriptDB(size_t nCacheSize, bool fMemory, bool fWipe) :
     db(GetDataDir() / "blocks" / "script", nCacheSize, fMemory, fWipe) {}
 
 bool CScriptDB::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) {
@@ -504,7 +505,7 @@ bool CScriptDB::GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char
 
     string strPrefixTemp("acct");
     ssKeySet.insert(ssKeySet.end(), &strPrefixTemp[0], &strPrefixTemp[4]);
-    vector<unsigned char> vRegId = scriptId.GetVec6();
+    vector<unsigned char> vRegId = scriptId.GetRegIdRaw();
     vector<char> vId(vRegId.begin(), vRegId.end());
     ssKeySet.insert(ssKeySet.end(), vId.begin(), vId.end());
     ssKeySet.insert(ssKeySet.end(), '_');

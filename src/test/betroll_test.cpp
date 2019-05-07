@@ -804,7 +804,7 @@ unsigned char TempArray[] = {
 //		sourceAccount.keyID = keyId1;
 //		sourceAccount.bcoins = 7800000000;
 //		account.push_back(accountId.vRegID);
-//		assert(view.SaveAccountInfo(accountId.vRegID, keyId1, sourceAccount));
+//		assert(view.SaveAccountInfo(sourceAccount));
 //	}
 //
 //	int a1 = random(100);

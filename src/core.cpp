@@ -9,14 +9,14 @@
 #include "util.h"
 
 uint256 CBlockHeader::GetHash() const {
-    return SignatureHash();
+    return ComputeSignatureHash();
 }
 
 void CBlockHeader::SetHeight(unsigned int height) {
     this->nHeight = height;
 }
 
-uint256 CBlockHeader::SignatureHash() const {
+uint256 CBlockHeader::ComputeSignatureHash() const {
     CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
     ss << nVersion << prevBlockHash << merkleRootHash << nTime << nNonce << nHeight << nFuel << nFuelRate;
     return ss.GetHash();

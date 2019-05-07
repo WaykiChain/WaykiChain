@@ -498,8 +498,8 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         rtx.llFees       = fee;
         rtx.nValidHeight = chainActive.Tip()->nHeight;
 
-        if (!pwalletMain->Sign(keyId, rtx.SignatureHash(), rtx.signature))
-            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
+        if (!pwalletMain->Sign(keyId, rtx.ComputeSignatureHash(), rtx.signature))
+            throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Sign failed.");
     }
 
     std::tuple<bool, string> ret;
@@ -609,7 +609,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
         }
 
         vector<unsigned char> signature;
-        if (!pwalletMain->Sign(keyId, tx.get()->SignatureHash(), tx.get()->signature)) {
+        if (!pwalletMain->Sign(keyId, tx.get()->ComputeSignatureHash(), tx.get()->signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "callcontracttx Error: Sign failed.");
         }
     }
@@ -758,7 +758,7 @@ Value registercontracttx(const Array& params, bool fHelp)
         }
         tx.nValidHeight = height;
 
-        if (!pwalletMain->Sign(keyId, tx.SignatureHash(), tx.signature)) {
+        if (!pwalletMain->Sign(keyId, tx.ComputeSignatureHash(), tx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
     }
@@ -886,7 +886,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             delegateVoteTx.operVoteFunds.push_back(operVoteFund);
         }
 
-        if (!pwalletMain->Sign(keyId, delegateVoteTx.SignatureHash(), delegateVoteTx.signature)) {
+        if (!pwalletMain->Sign(keyId, delegateVoteTx.ComputeSignatureHash(), delegateVoteTx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
     }
@@ -1007,7 +1007,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             delegateVoteTx.operVoteFunds.push_back(operVoteFund);
         }
 
-        if (!pwalletMain->Sign(keyId, delegateVoteTx.SignatureHash(), delegateVoteTx.signature)) {
+        if (!pwalletMain->Sign(keyId, delegateVoteTx.ComputeSignatureHash(), delegateVoteTx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
     }
@@ -2301,7 +2301,7 @@ Value genregisteraccountraw(const Array& params, bool fHelp) {
     EnsureWalletIsUnlocked();
     std::shared_ptr<CAccountRegisterTx> tx =
         std::make_shared<CAccountRegisterTx>(userId, minerId, fee, height);
-    if (!pwalletMain->Sign(pubKey.GetKeyId(), tx->SignatureHash(), tx->signature)) {
+    if (!pwalletMain->Sign(pubKey.GetKeyId(), tx->ComputeSignatureHash(), tx->signature)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
     }
     CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -2589,7 +2589,7 @@ Value signtxraw(const Array& params, bool fHelp) {
     switch (pBaseTx.get()->nTxType) {
         case BCOIN_TRANSFER_TX: {
             std::shared_ptr<CBaseCoinTransferTx> tx = std::make_shared<CBaseCoinTransferTx>(pBaseTx.get());
-            if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature))
+            if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->ComputeSignatureHash(), tx.get()->signature))
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
 
             CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -2603,7 +2603,7 @@ Value signtxraw(const Array& params, bool fHelp) {
         case ACCOUNT_REGISTER_TX: {
             std::shared_ptr<CAccountRegisterTx> tx =
                 std::make_shared<CAccountRegisterTx>(pBaseTx.get());
-            if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature))
+            if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->ComputeSignatureHash(), tx.get()->signature))
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
 
             CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -2616,7 +2616,7 @@ Value signtxraw(const Array& params, bool fHelp) {
 
         case CONTRACT_INVOKE_TX: {
             std::shared_ptr<CContractInvokeTx> tx = std::make_shared<CContractInvokeTx>(pBaseTx.get());
-            if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature)) {
+            if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->ComputeSignatureHash(), tx.get()->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
             }
             CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -2634,7 +2634,7 @@ Value signtxraw(const Array& params, bool fHelp) {
         case CONTRACT_DEPLOY_TX: {
             std::shared_ptr<CContractDeployTx> tx =
                 std::make_shared<CContractDeployTx>(pBaseTx.get());
-            if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature)) {
+            if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->ComputeSignatureHash(), tx.get()->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
             }
             CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -2647,7 +2647,7 @@ Value signtxraw(const Array& params, bool fHelp) {
 
         case DELEGATE_VOTE_TX: {
             std::shared_ptr<CDelegateVoteTx> tx = std::make_shared<CDelegateVoteTx>(pBaseTx.get());
-            if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->SignatureHash(), tx.get()->signature)) {
+            if (!pwalletMain->Sign(*keyIds.begin(), tx.get()->ComputeSignatureHash(), tx.get()->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
             }
             CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -2671,7 +2671,7 @@ Value signtxraw(const Array& params, bool fHelp) {
                 bool valid = false;
                 for (auto& signatureItem : signaturePairs) {
                     if (regId == signatureItem.regId) {
-                        if (!pwalletMain->Sign(keyIdItem, tx.get()->SignatureHash(),
+                        if (!pwalletMain->Sign(keyIdItem, tx.get()->ComputeSignatureHash(),
                                                signatureItem.signature)) {
                             throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
                         } else {

@@ -69,7 +69,7 @@ bool CAnonyTest::CreateAnonyTx(){
 		if(SelectOneAccount(regId)) {
 			if(vRegId.end() == find(vRegId.begin(), vRegId.end(), regId)) {
 				CRegID nRegid(regId);
-				string strTemp = HexStr(nRegid.GetVec6());
+				string strTemp = HexStr(nRegid.GetRegIdRaw());
 				vRegId.push_back(strTemp);
 				++i;
 			}

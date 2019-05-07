@@ -12,6 +12,7 @@
 #include "util.h"
 #include "accounts/key.h"
 #include "tx/tx.h"
+#include "tx/blockreward.h"
 #include "main.h"
 
 #include <boost/assign/list_of.hpp>
@@ -393,7 +394,7 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDe
         vOperVoteFund.push_back(operVoteFund);
     }
     CRegID accountId(0, 1);
-    shared_ptr<CDelegateVoteTx> pDelegateTx = std::make_shared<CDelegateVoteTx>(accountId.GetVec6(),
+    shared_ptr<CDelegateVoteTx> pDelegateTx = std::make_shared<CDelegateVoteTx>(accountId.GetRegIdRaw(),
             vOperVoteFund, 10000, 0);
     pDelegateTx->signature = ParseHex(IniCfg().GetDelegateSignature(type));
     pDelegateTx->nVersion = nTxVersion1;
@@ -447,6 +448,6 @@ CBaseParams::CBaseParams() {
     fServer = 0 ;
     fServer = 0;
     nRPCPort = 0;
-    bOutPut = false;
+    bContractLog = false;
     nUIPort = 0;
 }

@@ -119,12 +119,12 @@ public:
 		if (!pScriptDBTip->GetScript(0, regId, vScript))
 			return false;
 
-		string strRegID = HexStr(regId.GetVec6());
+		string strRegID = HexStr(regId.GetRegIdRaw());
 		string strScript = HexStr(vScript.begin(), vScript.end());
 		mapRegScript.insert(make_pair(strRegID, strScript));
 
 		while (pScriptDBTip->GetScript(1, regId, vScript)) {
-			strRegID = HexStr(regId.GetVec6());
+			strRegID = HexStr(regId.GetRegIdRaw());
 			strScript = HexStr(vScript.begin(), vScript.end());
 			mapRegScript.insert(make_pair(strRegID, strScript));
 		}
@@ -203,7 +203,7 @@ public:
 		}
 
 		CRegID regID(nConfirmHeight, nIndex);
-		return IsScriptAccCreated(HexStr(regID.GetVec6()));
+		return IsScriptAccCreated(HexStr(regID.GetRegIdRaw()));
 	}
 
 protected:
@@ -245,14 +245,14 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 		int nIndex = 0;
 		BOOST_CHECK(GetTxIndexInBlock(uint256(uint256S(strTxHash)), nIndex));
 		CRegID regID(nNewBlockHeight, nIndex);
-		BOOST_CHECK(IsScriptAccCreated(HexStr(regID.GetVec6())));
+		BOOST_CHECK(IsScriptAccCreated(HexStr(regID.GetRegIdRaw())));
 
 		//4:检查钱包里的已确认交易里是否有此笔交易
 		BOOST_CHECK(IsTxConfirmdInWallet(nNewBlockHeight, uint256(uint256S(strTxHash))));
 
 		//5:通过listregscript 获取相关信息，一一核对，看是否和输入的一致
 		string strPath = SysCfg().GetDefaultTestDataPath() + strFileName;
-		BOOST_CHECK(CheckRegScript(HexStr(regID.GetVec6()), strPath));
+		BOOST_CHECK(CheckRegScript(HexStr(regID.GetRegIdRaw()), strPath));
 
 		//6:Gettxoperationlog 获取交易log，查看是否正确
 		BOOST_CHECK(GetTxOperateLog(uint256(uint256S(strTxHash)), vLog));
@@ -289,7 +289,7 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 
 		//9.2:检测脚本账户是否删除
 		CRegID regID(nOldBlockHeight, mapData.begin()->first);
-		BOOST_CHECK(!IsScriptAccCreated(HexStr(regID.GetVec6())));
+		BOOST_CHECK(!IsScriptAccCreated(HexStr(regID.GetRegIdRaw())));
 
 		//9.3:交易是否已经已经放到钱包的未确认交易里
 		BOOST_CHECK(IsTxUnConfirmdInWallet(txHash));

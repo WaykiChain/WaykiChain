@@ -10,12 +10,13 @@
 #include "protocol.h"
 #include "sync.h"
 #include "util.h"
+#include "tx/blockreward.h"
+
+#include "json/json_spirit_value.h"
 
 #include <boost/foreach.hpp>
 #include <boost/assign/list_of.hpp>
 #include <boost/assign/list_of.hpp>
-
-#include "json/json_spirit_value.h"
 
 using namespace boost::assign;
 using namespace json_spirit;

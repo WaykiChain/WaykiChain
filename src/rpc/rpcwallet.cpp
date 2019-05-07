@@ -328,7 +328,7 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
     tx.llFees       = (0 == nFee) ? SysCfg().GetTxFee() : nFee;
     tx.nValidHeight = nHeight;
 
-    if (!pwalletMain->Sign(sendKeyId, tx.SignatureHash(), tx.signature))
+    if (!pwalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature))
         return std::make_tuple(false, "Sign failed");
 
     std::tuple<bool, string> ret = pwalletMain->CommitTx((CBaseTx *)&tx);
@@ -577,7 +577,7 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
     tx.llFees       = fee;
     tx.nValidHeight = height;
 
-    if (!pwalletMain->Sign(sendKeyId, tx.SignatureHash(), tx.signature)) {
+    if (!pwalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
     }
 
@@ -832,7 +832,7 @@ Value getassets(const Array& params, bool fHelp)
 
 //         CTransaction tx(sendreg, rev, SysCfg().GetTxFee(), nAmount , chainActive.Height());
 
-//         if (!pwalletMain->Sign(sendKeyId, tx.SignatureHash(), tx.signature)) {
+//         if (!pwalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
 //             continue;
 //         }
 

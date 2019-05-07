@@ -55,7 +55,7 @@ void CScriptDBTest::Init() {
 	for (int i = 0; i < TEST_SIZE; ++i) {
 		CRegID regID(i,1);
 		vector<unsigned char> vScriptData(vScriptBase.begin(),vScriptBase.end());
-		vector<unsigned char> vRegV6 = regID.GetVec6();
+		vector<unsigned char> vRegV6 = regID.GetRegIdRaw();
 		vScriptData.insert(vScriptData.end(),vRegV6.begin(),vRegV6.end());
 		mapScript.insert(std::make_pair(vRegV6,vScriptData));
 	}

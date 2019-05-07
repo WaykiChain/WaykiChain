@@ -15,7 +15,7 @@ static const uint16_t kDefaultForcedLiquidateRatio  = 10000;    // 100% * 10000
 static const uint16_t kDefaultCdpLoanInterest       = 350;      // 3.5% * 10000
 static const uint16_t kDefaultCdpPenaltyFeeRatio    = 1300;     //  13% * 10000
 
-static const uint32_t kDefaultPriceFeedDepositMin   = 100000;   // at least 10K bcoins deposit in order become a price feeder
+static const uint32_t kDefaultPriceFeedFcoinsMin   = 100000;   // at least 10K fcoins deposit in order become a price feeder
 static const uint16_t kDefaultPriceFeedDeviateAcceptLimit = 3000; // 30% * 10000, above than that will be penalized
 static const uint16_t kDefaultPriceFeedDeviatePenalty= 1000;     // 1000 bcoins deduction as penalty
 static const uint16_t kDefaultPriceFeedContinuousDeviateTimesLimit= 10;  // after 10 times continuous deviate limit penetration all deposit be deducted
@@ -35,7 +35,7 @@ public:
     }
 
     CCdpOpenTx(const CUserID &txUidIn, int validHeightIn, uint64_t feeIn, uint64_t bcoinsIn):
-        CBaseTx(CDP_OPEN_TX, validHeightIn, feeIn) {
+        CBaseTx(CDP_OPEN_TX, txUidIn, validHeightIn, feeIn) {
         txUid = txUidIn;
         bcoins = bcoinsIn;
     }
@@ -47,13 +47,14 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
+
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(bcoins));
         READWRITE(VARINT(scoins));
         READWRITE(signature);
     )
 
-    uint256 SignatureHash(bool recalculate = false) const {
+    uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
@@ -66,7 +67,7 @@ public:
         return sigHash;
     }
 
-    virtual uint256 GetHash() const { return SignatureHash(); }
+    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint64_t GetFee() const { return llFees; }
     uint64_t GetValue() const { return 0; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
@@ -99,66 +100,5 @@ enum PriceType: unsigned char {
     KWH     = 100, // killowatt hour
 };
 
-// ######################################################################
-class CPriceFeedTx : public CBaseTx {
-public:
-    unsigned char coinType;         // the coin of which price is fed
-    unsigned char priceType;        // price type of the coin, E.g. USD/CNY
-
-    uint64_t price;             // price of the coin by the base currency
-
-public:
-    CPriceFeedTx(): CBaseTx(PRICE_FEED_TX) {}
-
-    CPriceFeedTx(const CBaseTx *pBaseTx): CBaseTx(PRICE_FEED_TX) {
-        assert(PRICE_FEED_TX == pBaseTx->nTxType);
-        *this = *(CPriceFeedTx *) pBaseTx;
-    }
-
-    CPriceFeedTx(const CUserID &userIdIn, int validHeightIn, uint64_t feeIn, uint64_t bcoinsIn):
-        CBaseTx(PRICE_FEED_TX, validHeightIn, feeIn) {
-        txUid = userIdIn;
-    }
-
-    ~CPriceFeedTx() {}
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(this->nVersion));
-        nVersion = this->nVersion;
-        READWRITE(VARINT(nValidHeight));
-        READWRITE(VARINT(llFees));
-        READWRITE(txUid);
-        READWRITE(coinType);
-        READWRITE(priceType);
-        READWRITE(signature);)
-
-    uint256 SignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
-               << VARINT(llFees) << coinType << priceType;
-
-            uint256 *hash = const_cast<uint256 *>(&sigHash);
-            *hash         = ss.GetHash();
-        }
-
-        return sigHash;
-    }
-
-    virtual uint256 GetHash() const { return SignatureHash(); }
-    virtual uint64_t GetFee() const { return llFees; }
-    uint64_t GetValue() const { return 0; }
-    double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCdpOpenTx>(this); }
-    string ToString(CAccountViewCache &view) const;
-    Object ToJson(const CAccountViewCache &AccountView) const;
-    bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
-    bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-                   int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
-    bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                       CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                       CScriptDBViewCache &scriptDB);
-    bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
-};
 
 #endif

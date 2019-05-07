@@ -401,7 +401,7 @@ Value getcontractregid(const Array& params, bool fHelp)
     CRegID regID(nBlockHeight, nIndex);
     Object result;
     result.push_back(Pair("regid", regID.ToString()));
-    result.push_back(Pair("regid_hex", HexStr(regID.GetVec6())));
+    result.push_back(Pair("regid_hex", HexStr(regID.GetRegIdRaw())));
     return result;
 }
 
@@ -541,7 +541,7 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
             tx.nValidHeight = nValidHeight;
 
             // sign transaction
-            key.Sign(tx.SignatureHash(), tx.signature);
+            key.Sign(tx.ComputeSignatureHash(), tx.signature);
 
             generationQueue.get()->Push(std::move(tx));
         }
@@ -683,7 +683,7 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
             tx.nValidHeight = nValidHeight;
 
             // sign transaction
-            key.Sign(tx.SignatureHash(), tx.signature);
+            key.Sign(tx.ComputeSignatureHash(), tx.signature);
 
             generationContractQueue.get()->Push(std::move(tx));
         }

@@ -17,9 +17,8 @@ public:
         assert(ACCOUNT_REGISTER_TX == pBaseTx->nTxType);
         *this = *(CAccountRegisterTx *)pBaseTx;
     }
-    CAccountRegisterTx(const CUserID &uId, const CUserID &minerUidIn, int64_t feeIn, int validHeightIn) :
-        CBaseTx(ACCOUNT_REGISTER_TX, validHeightIn, feeIn) {
-        txUid       = uId;
+    CAccountRegisterTx(const CUserID &txUidIn, const CUserID &minerUidIn, int64_t feeIn, int validHeightIn) :
+        CBaseTx(ACCOUNT_REGISTER_TX, txUidIn, validHeightIn, feeIn) {
         minerUid    = minerUidIn;
     }
     CAccountRegisterTx(): CBaseTx(ACCOUNT_REGISTER_TX) {}
@@ -31,6 +30,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
+
         READWRITE(minerUid);
         READWRITE(VARINT(llFees));
         READWRITE(signature);)
@@ -38,27 +38,28 @@ public:
     uint64_t GetFee() const { return llFees; }
     uint64_t GetValue() const { return 0; }
 
-    uint256 SignatureHash(bool recalculate = false) const {
+    uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
+            assert(txUid.type() == typeid(CPubKey) && minerUid.type() == typeid(CPubKey) );
+
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << minerUid
-               << VARINT(llFees);
+            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid.get<CPubKey>() 
+                << minerUid.get<CPubKey>() << VARINT(llFees);
+                
             sigHash = ss.GetHash();
         }
 
         return sigHash;
     }
-    uint256 GetHash() const { return SignatureHash(); }
-    double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CAccountRegisterTx>(this); }
     bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
     string ToString(CAccountViewCache &view) const;
     Object ToJson(const CAccountViewCache &AccountView) const;
+    bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
     bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
                    CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
     bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
                        CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
-    bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 };
 
 #endif

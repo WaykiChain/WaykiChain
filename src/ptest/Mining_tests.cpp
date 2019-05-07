@@ -133,7 +133,7 @@ public:
 	void GetContranctData(vector<unsigned char> &vContranct ) {
 		//vector<unsigned char> temp = ParseHex(m_strRegId);
 		CRegID reg(m_strRegId);
-		vContranct.insert(vContranct.end(), reg.GetVec6().begin(), reg.GetVec6().end());
+		vContranct.insert(vContranct.end(), reg.GetRegIdRaw().begin(), reg.GetRegIdRaw().end());
 		//temp.clear();
 		CDataStream ds(SER_DISK, CLIENT_VERSION);
 		ds << m_llSendValue;

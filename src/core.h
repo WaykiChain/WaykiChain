@@ -85,7 +85,7 @@ public:
 
     uint256 GetHash() const;
 
-    uint256 SignatureHash() const;
+    uint256 ComputeSignatureHash() const;
 
     int64_t GetBlockTime() const
     {
