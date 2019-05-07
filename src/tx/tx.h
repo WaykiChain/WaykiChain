@@ -138,15 +138,14 @@ public:
     virtual uint64_t GetFee() const { return llFees; }
     virtual uint64_t GetFuel(int nfuelRate);
     virtual uint256 GetHash() const { return ComputeSignatureHash(); };
-    virtual double GetPriority() const {
-        return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
-    }
+    virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); };
 
+    virtual uint64_t GetValue() const                                       = 0;
     virtual unsigned int GetSerializeSize(int nType, int nVersion) const    = 0;
     virtual bool GetAddress(std::set<CKeyID> &vAddr,
                         CAccountViewCache &view,
                         CScriptDBViewCache &scriptDB)                       = 0;
-    virtual uint256 ComputeSignatureHash(bool recalculate = false) const           = 0;
+    virtual uint256 ComputeSignatureHash(bool recalculate = false) const    = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance()                       = 0;
     virtual string ToString(CAccountViewCache &view) const                  = 0;
     virtual Object ToJson(const CAccountViewCache &AccountView) const       = 0;

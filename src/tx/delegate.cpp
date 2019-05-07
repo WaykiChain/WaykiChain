@@ -82,7 +82,7 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate vote failed ,regId=%s", txUid.ToString()),
             UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }
-    if (!view.SaveAccountInfo(acctInfo.regID, acctInfo.keyID, acctInfo)) {
+    if (!view.SaveAccountInfo(acctInfo.regID, acctInfo. acctInfo.keyID, acctInfo)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error", acctInfo.regID.ToString()),
                 UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }

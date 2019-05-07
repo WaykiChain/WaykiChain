@@ -55,7 +55,8 @@ bool CPriceFeedTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, not sufficient scoins in account (%s)",
                         txUid.ToString()), PRICE_FEED_FAIL, "not-sufficiect-fcoins");
 
-    // update the price accordingly
+    // update the price state accordingly: 
+
 }
 
 bool CPriceFeedTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
