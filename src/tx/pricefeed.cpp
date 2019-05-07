@@ -77,3 +77,5 @@ bool CPriceFeedTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScri
     //TODO
     return true;
 }
+
+bool CPriceFeedTx::GetValue() const { return 0; }

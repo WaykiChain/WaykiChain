@@ -119,7 +119,7 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
         }
         txundo.vScriptOperLog.push_back(eraseDbLog);
 
-        if (!view.SaveAccountInfo(delegate.regID, delegate.nickID, delegate.keyID, delegate)) {
+        if (!view.SaveAccountInfo(delegate)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error", acctInfo.regID.ToString()),
                 UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
