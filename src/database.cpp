@@ -164,16 +164,16 @@ bool CAccountViewCache::GetKeyId(const vector<unsigned char> &accountId, CKeyID 
     return false;
 }
 
-bool CAccountViewCache::EraseAccountByRegId(const vector<unsigned char> &accountId) {
-    if (accountId.empty())
+bool CAccountViewCache::EraseKeyIdByRegId(const vector<unsigned char> &accountRegId) {
+    if (accountRegId.empty())
         return false;
 
-    if (cacheRegId2KeyIds.count(accountId))
-        cacheRegId2KeyIds[accountId] = uint160();
+    if (cacheRegId2KeyIds.count(accountRegId))
+        cacheRegId2KeyIds[ accountRegId ] = uint160();
     else {
         CKeyID keyId;
-        if (pBase->GetKeyId(accountId, keyId)) {
-            cacheRegId2KeyIds[accountId] = uint160();
+        if (pBase->GetKeyId(accountRegId, keyId)) {
+            cacheRegId2KeyIds[ accountRegId ] = uint160();
         }
     }
     return true;
@@ -306,10 +306,9 @@ bool CAccountViewCache::HaveAccount(const CUserID &userId) {
 }
 bool CAccountViewCache::EraseId(const CUserID &userId) {
     if (userId.type() == typeid(CRegID)) {
-        return EraseAccountByRegId(userId.get<CRegID>().GetRegIdRaw());
-    } else {
-        //		assert(0);
+        return EraseKeyIdByRegId(userId.get<CRegID>().GetRegIdRaw());
     }
+    
     return false;
 }
 

@@ -31,7 +31,7 @@ public:
     virtual bool EraseAccountByKeyId(const CKeyID &keyId) = 0;
     virtual bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId) = 0;
     virtual bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId) = 0;
-    virtual bool EraseAccountByRegId(const vector<unsigned char> &accountRegId) = 0;
+    virtual bool EraseKeyIdByRegId(const vector<unsigned char> &accountRegId) = 0;
 
     // virtual bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account) = 0;
     virtual std::tuple<uint64_t, uint64_t> TraverseAccount() = 0;
@@ -67,7 +67,7 @@ public:
     virtual bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId);
     virtual bool SetKeyId(const CUserID &userId, const CKeyID &keyId);
     virtual bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId);
-    virtual bool EraseAccountByRegId(const vector<unsigned char> &accountRegId);
+    virtual bool EraseKeyIdByRegId(const vector<unsigned char> &accountRegId);
 
     // virtual bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account);
     virtual bool SaveAccountInfo(const CAccount &account);

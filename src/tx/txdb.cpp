@@ -231,7 +231,7 @@ bool CAccountViewDB::GetKeyId(const vector<unsigned char> &accountRegId, CKeyID 
     return db.Read(make_pair('r', accountRegId), keyId);
 }
 
-bool CAccountViewDB::EraseAccountByRegId(const vector<unsigned char> &accountRegId) {
+bool CAccountViewDB::EraseKeyIdByRegId(const vector<unsigned char> &accountRegId) {
     return db.Erase(make_pair('r', accountRegId));
 }
 
