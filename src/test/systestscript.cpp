@@ -187,7 +187,7 @@ public:
 			else if(str_name =="KeyID")
 			{
 				CRegID regId(scriptid);
-				CKeyID keyId = Hash160(regId.GetVec6());
+				CKeyID keyId = Hash160(regId.GetRegIdRaw());
 				string key = HexStr(keyId.begin(), keyId.end()).c_str();
 				if(val_val.get_str() != key)
 				{
@@ -617,7 +617,7 @@ BOOST_FIXTURE_TEST_CASE(appacc,CSysScriptTest){
 
 	BOOST_CHECK(SysTestBase::GetRegID(address,strreg));
 	std::shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
-	contractScriptTemp.GetScriptAcc(script,strreg.GetVec6(),*tem.get());
+	contractScriptTemp.GetScriptAcc(script,strreg.GetRegIdRaw(),*tem.get());
 	BOOST_CHECK(tem.get()->Getbcoins() == nMoney);
 }
 

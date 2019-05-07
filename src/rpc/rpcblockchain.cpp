@@ -401,7 +401,7 @@ Value getcontractregid(const Array& params, bool fHelp)
     CRegID regID(nBlockHeight, nIndex);
     Object result;
     result.push_back(Pair("regid", regID.ToString()));
-    result.push_back(Pair("regid_hex", HexStr(regID.GetVec6())));
+    result.push_back(Pair("regid_hex", HexStr(regID.GetRegIdRaw())));
     return result;
 }
 

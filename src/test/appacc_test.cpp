@@ -51,7 +51,7 @@ bool CheckAppAcct(int64_t opValue[]) {
     CVmRunEnv vmRunEnv;
     vector<CVmOperate> vAcctOper;
 
-    vector_unsigned_char vDesUser1RegId = desUser1RegId.GetVec6();
+    vector_unsigned_char vDesUser1RegId = desUser1RegId.GetRegIdRaw();
     int64_t temp                        = opValue[1];  // 10 * COIN
     CVmOperate acctAddOper;
     acctAddOper.nacctype = regid;
@@ -60,7 +60,7 @@ bool CheckAppAcct(int64_t opValue[]) {
     memcpy(acctAddOper.money, &temp, sizeof(temp));
     vAcctOper.push_back(acctAddOper);
 
-    vector_unsigned_char vDesUser2RegId = desUser2RegId.GetVec6();
+    vector_unsigned_char vDesUser2RegId = desUser2RegId.GetRegIdRaw();
     temp = opValue[2];   //20 * COIN
     acctAddOper.nacctype = regid;
     acctAddOper.opType = ADD_FREE;
@@ -68,7 +68,7 @@ bool CheckAppAcct(int64_t opValue[]) {
     memcpy(acctAddOper.money, &temp, sizeof(temp));
     vAcctOper.push_back(acctAddOper);
 
-    vector_unsigned_char vDesRegId = desRegId.GetVec6();
+    vector_unsigned_char vDesRegId = desRegId.GetRegIdRaw();
     temp = opValue[3];  //30 * COIN
     acctAddOper.nacctype = regid;
     acctAddOper.opType = MINUS_FREE;

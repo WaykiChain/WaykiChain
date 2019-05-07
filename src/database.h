@@ -46,8 +46,9 @@ protected:
 
 public:
     uint256 blockHash;
-    map<CKeyID, CAccount> cacheAccounts;
-    map<vector<unsigned char>, CKeyID> cacheKeyIds;  // vector of account KeyIds
+    map<CKeyID, CAccount> cacheAccounts;                    // <KeyID -> Account>
+    map<vector<unsigned char>, CKeyID> cacheRegId2KeyIds;   // <RegID -> KeyID>
+    map<vector<unsigned char>, CKeyID> cacheNickId2KeyIds;  // <NickID -> KeyID>
 
 public:
     virtual bool GetAccount(const CKeyID &keyId, CAccount &account);
@@ -69,7 +70,7 @@ public:
     virtual bool EraseKeyId(const vector<unsigned char> &accountId);
 
     // virtual bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account);
-    virtual bool SaveAccountInfo(const CRegID &regid, const CKeyID &keyId, const CAccount &account);
+    virtual bool SaveAccountInfo(const CAccount &account);
     virtual std::tuple<uint64_t, uint64_t> TraverseAccount();
     virtual Object ToJsonObj(char prefix) { return Object(); }
 

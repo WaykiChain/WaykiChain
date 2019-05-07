@@ -1342,14 +1342,15 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                 std::shared_ptr<CBlockRewardTx> pRewardTx =
                     dynamic_pointer_cast<CBlockRewardTx>(block.vptx[i]);
                 CAccount sourceAccount;
-                CRegID accountId(pIndex->nHeight, i);
+                CRegID acctRegId(pIndex->nHeight, i);
                 CPubKey pubKey      = pRewardTx->txUid.get<CPubKey>();
                 CKeyID keyId        = pubKey.GetKeyId();
+                sourceAccount.nickID = CNickID();
                 sourceAccount.keyID = keyId;
                 sourceAccount.pubKey = pubKey;
-                sourceAccount.SetRegId(accountId);
+                sourceAccount.SetRegId(acctRegId);
                 sourceAccount.bcoins  = pRewardTx->rewardValue;
-                assert( view.SaveAccountInfo(accountId, keyId, sourceAccount) );
+                assert( view.SaveAccountInfo(sourceAccount) );
             } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
                 std::shared_ptr<CDelegateVoteTx> pDelegateTx = dynamic_pointer_cast<CDelegateVoteTx>(block.vptx[i]);
                 assert( pDelegateTx->txUid.type() == typeid(CRegID)) ; // Vote Tx must use RegId
@@ -1384,7 +1385,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                             votedAcct.keyID = votedAcct.pubKey.GetKeyId();
                         }
 
-                        assert( view.SaveAccountInfo(votedRegId, votedAcct.keyID, votedAcct) );
+                        assert( view.SaveAccountInfo(votedAcct) );
                         assert( scriptDBCache.SetDelegateData(votedAcct, operDbLog) );
                     }
 
@@ -1396,7 +1397,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                 }
                 assert( voterAcct.bcoins >= maxVotes );
                 voterAcct.bcoins -= maxVotes;
-                assert( view.SaveAccountInfo(voterAcct.regID, voterAcct.keyID, voterAcct) );
+                assert( view.SaveAccountInfo(voterAcct) );
             }
         }
         return true;
@@ -2034,7 +2035,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
     pAcctViewCache                  = std::make_shared<CAccountViewCache>(*pAccountViewDB);
     pAcctViewCache->cacheAccounts   = pAccountViewTip->cacheAccounts;
-    pAcctViewCache->cacheKeyIds     = pAccountViewTip->cacheKeyIds;
+    pAcctViewCache->cacheRegId2KeyIds     = pAccountViewTip->cacheRegId2KeyIds;
     pAcctViewCache->blockHash       = pAccountViewTip->blockHash;
 
     std::shared_ptr<CTransactionDBCache> pTxCache = std::make_shared<CTransactionDBCache>(*pTxCacheDB);

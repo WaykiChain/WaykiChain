@@ -53,17 +53,18 @@ bool CContractDeployTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidatio
 
     CRegID regId(nHeight, nIndex);
     //create script account
-    CKeyID keyId = Hash160(regId.GetVec6());
+    CKeyID keyId = Hash160(regId.GetRegIdRaw());
     CAccount account;
     account.keyID = keyId;
     account.regID = regId;
+    account.nickID = CNickID();
     //save new script content
     if(!scriptDB.SetScript(regId, contractScript)){
         return state.DoS(100,
             ERRORMSG("CContractDeployTx::ExecuteTx, save script id %s script info error",
                 regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
-    if (!view.SaveAccountInfo(regId, keyId, account)) {
+    if (!view.SaveAccountInfo(account)) {
         return state.DoS(100,
             ERRORMSG("CContractDeployTx::ExecuteTx, create new account script id %s script info error",
                 regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
@@ -114,7 +115,7 @@ bool CContractDeployTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVali
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase script account %s error", scriptId.ToString()),
                          UPDATE_ACCOUNT_FAIL, "erase-appkeyid-failed");
     }
-    CKeyID keyId = Hash160(scriptId.GetVec6());
+    CKeyID keyId = Hash160(scriptId.GetRegIdRaw());
     userId       = keyId;
     if (!view.EraseAccount(userId)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase script account %s error", scriptId.ToString()),

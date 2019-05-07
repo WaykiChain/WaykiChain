@@ -198,7 +198,7 @@ vector_unsigned_char CVmRunEnv::GetAccountID(CVmOperate value) {
         CKeyID KeyId = CKeyID(addr);
         CRegID regid;
         if (pAccountViewCache->GetRegId(CUserID(KeyId), regid)) {
-            accountId.assign(regid.GetVec6().begin(), regid.GetVec6().end());
+            accountId.assign(regid.GetRegIdRaw().begin(), regid.GetRegIdRaw().end());
         } else {
             accountId.assign(value.accountId, value.accountId + 34);
         }
@@ -324,7 +324,7 @@ bool CVmRunEnv::CheckAppAcctOperate(CContractInvokeTx* tx) {
     uint64_t sysContractAcct(0);
     for (auto item : vmOperateOutput) {
         vector_unsigned_char vAccountId = GetAccountID(item);
-        if (vAccountId == tx->appUid.get<CRegID>().GetVec6() &&
+        if (vAccountId == tx->appUid.get<CRegID>().GetRegIdRaw() &&
             item.opType == MINUS_FREE) {
             uint64_t value;
             memcpy(&value, item.money, sizeof(item.money));
@@ -426,7 +426,7 @@ bool CVmRunEnv::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
         { ret = vmAccount.get()->OperateAccount((OperType)it.opType, value, nCurHeight); }
         //      else{
         //          ret = vmAccount.get()->OperateAccount((OperType)it.opType, fund,
-        //          *pScriptDBViewCache, vAuthorLog,  height, &GetScriptRegID().GetVec6(), true);
+        //          *pScriptDBViewCache, vAuthorLog,  height, &GetScriptRegID().GetRegIdRaw(), true);
         //      }
 
         //      LogPrint("vm", "after account:%s\n", vmAccount.get()->ToString().c_str());

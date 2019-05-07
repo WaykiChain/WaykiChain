@@ -91,7 +91,7 @@ bool CBlackHalo::SendBuyerPackage(){
 		string selleraddr = SELLER_B;
 		BOOST_CHECK(basetest.GetRegID(selleraddr,strregid));
 		CRegID Sellerregid(strregid);
-		memcpy(senddata.seller,&Sellerregid.GetVec6().at(0),sizeof(senddata.seller));
+		memcpy(senddata.seller,&Sellerregid.GetRegIdRaw().at(0),sizeof(senddata.seller));
 
 		CDataStream scriptData(SER_DISK, CLIENT_VERSION);
 		scriptData << senddata;

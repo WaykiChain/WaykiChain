@@ -43,7 +43,7 @@ public:
     CRegID(const vector<unsigned char> &vIn);
     CRegID(uint32_t nHeight = 0, uint16_t nIndex = 0);
 
-    const vector<unsigned char> &GetVec6() const {
+    const vector<unsigned char> &GetRegIdRaw() const {
         assert(vRegID.size() == 6);
         return vRegID;
     }
@@ -76,13 +76,14 @@ private:
 public:
     CNickID() {}
     CNickID(vector_unsigned_char nickIdIn) {
-        if (nickIdIn.size() > 32) throw ios_base::failure("Nickname ID length > 32 not allowed!");
+        if (nickIdIn.size() > 32) 
+            throw ios_base::failure("Nickname ID length > 32 not allowed!");
 
         nickId = nickIdIn;
     }
 
-    vector_unsigned_char GetNickId() const { return nickId; }
-
+    vector_unsigned_char GetNickIdRaw() const { return nickId; }
+    bool IsEmpty() const { return nickId; }
     string ToString() const { return std::string(nickId.begin(), nickId.end()); }
 
     IMPLEMENT_SERIALIZE(READWRITE(nickId);)

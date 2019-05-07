@@ -243,11 +243,12 @@ bool CAccountViewDB::GetAccount(const vector<unsigned char> &accountId, CAccount
     return false;
 }
 
-bool CAccountViewDB::SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId,
-                                     const CAccount &secureAccount) {
+bool CAccountViewDB::SaveAccountInfo(const CAccount &account) {
     CLevelDBBatch batch;
-    batch.Write(make_pair('a', accountId), keyId);
-    batch.Write(make_pair('k', keyId), secureAccount);
+    batch.Write(make_pair('a', account.regID), account.keyID);
+    batch.Write(make_pair('n', account.nickID), account.keyID);
+    batch.Write(make_pair('k', account.keyID), account);
+
     return db.WriteBatch(batch, false);
 }
 
@@ -504,7 +505,7 @@ bool CScriptDB::GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char
 
     string strPrefixTemp("acct");
     ssKeySet.insert(ssKeySet.end(), &strPrefixTemp[0], &strPrefixTemp[4]);
-    vector<unsigned char> vRegId = scriptId.GetVec6();
+    vector<unsigned char> vRegId = scriptId.GetRegIdRaw();
     vector<char> vId(vRegId.begin(), vRegId.end());
     ssKeySet.insert(ssKeySet.end(), vId.begin(), vId.end());
     ssKeySet.insert(ssKeySet.end(), '_');

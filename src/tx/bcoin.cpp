@@ -115,7 +115,7 @@ bool CBaseCoinTransferTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValida
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
     if (generateRegID) {
-        if (!view.SaveAccountInfo(srcAcct.regID, srcAcct.keyID, srcAcct))
+        if (!view.SaveAccountInfo(srcAcct))
             return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account info error"),
                              WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     } else {

@@ -29,22 +29,33 @@ bool CPriceFeedTx::CheckTx(CValidationState &state, CAccountViewCache &view, CSc
     }
 
     if (!CheckSignatureSize(signature)) {
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, signature size invalid"),
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx signature size invalid"),
             REJECT_INVALID, "bad-tx-sig-size");
     }
 
     // check signature script
     uint256 sighash = ComputeSignatureHash();
     if (!CheckSignScript(sighash, signature, txUid.get<CPubKey>()))
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx signature error "),
-            REJECT_INVALID, "bad-regtx-signature");
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx signature error "),
+                        REJECT_INVALID, "bad-tx-signature");
 
     return true;
 }
 
 bool CPriceFeedTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
                     int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
+    
+    CAccount account;
+    if (!view.GetAccount(txUid, account))
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",
+                        txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
+    // check if account has sufficient foins to be a price feeder
+    if (account.fcoins < kDefaultPriceFeedFcoinsMin)
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, not sufficient scoins in account (%s)",
+                        txUid.ToString()), PRICE_FEED_FAIL, "not-sufficiect-fcoins");
+
+    // update the price accordingly
 }
 
 bool CPriceFeedTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,

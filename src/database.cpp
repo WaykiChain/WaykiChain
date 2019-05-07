@@ -29,8 +29,8 @@ bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAcco
     if (accountId.empty())
         return false;
 
-    if (cacheKeyIds.count(accountId)) {
-        CKeyID keyId(cacheKeyIds[accountId]);
+    if (cacheRegId2KeyIds.count(accountId)) {
+        CKeyID keyId(cacheRegId2KeyIds[accountId]);
         if (keyId != uint160()) {
             if (cacheAccounts.count(keyId)) {
                 account = cacheAccounts[keyId];
@@ -44,7 +44,7 @@ bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAcco
     } else {
         CKeyID keyId;
         if (pBase->GetKeyId(accountId, keyId)) {
-            cacheKeyIds[accountId] = keyId;
+            cacheRegId2KeyIds[accountId] = keyId;
 
             if (cacheAccounts.count(keyId) > 0) {
                 account = cacheAccounts[keyId];
@@ -69,8 +69,8 @@ bool CAccountViewCache::SetAccount(const vector<unsigned char> &accountId, const
     if (accountId.empty()) {
         return false;
     }
-    if (cacheKeyIds.count(accountId)) {
-        cacheAccounts[cacheKeyIds[accountId]] = account;
+    if (cacheRegId2KeyIds.count(accountId)) {
+        cacheAccounts[cacheRegId2KeyIds[accountId]] = account;
         return true;
     }
     return false;
@@ -104,7 +104,7 @@ bool CAccountViewCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, con
     }
 
     for (map<vector<unsigned char>, CKeyID>::const_iterator itKeyId = mapKeyIds.begin(); itKeyId != mapKeyIds.end(); ++itKeyId)
-        cacheKeyIds[itKeyId->first] = itKeyId->second;
+        cacheRegId2KeyIds[itKeyId->first] = itKeyId->second;
     blockHash = blockHashIn;
     return true;
 }
@@ -134,7 +134,7 @@ bool CAccountViewCache::EraseAccount(const CKeyID &keyId) {
 
 bool CAccountViewCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
     if (userId.type() == typeid(CRegID))
-        return SetKeyId(userId.get<CRegID>().GetVec6(), keyId);
+        return SetKeyId(userId.get<CRegID>().GetRegIdRaw(), keyId);
 
     return false;
 }
@@ -142,7 +142,7 @@ bool CAccountViewCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
 bool CAccountViewCache::SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId) {
     if (accountId.empty())
         return false;
-    cacheKeyIds[accountId] = keyId;
+    cacheRegId2KeyIds[accountId] = keyId;
     return true;
 }
 
@@ -150,14 +150,14 @@ bool CAccountViewCache::GetKeyId(const vector<unsigned char> &accountId, CKeyID 
     if (accountId.empty())
         return false;
 
-    if (cacheKeyIds.count(accountId)) {
-        keyId = cacheKeyIds[accountId];
+    if (cacheRegId2KeyIds.count(accountId)) {
+        keyId = cacheRegId2KeyIds[accountId];
         return (keyId != uint160());
     }
 
     if (pBase->GetKeyId(accountId, keyId)) {
-        cacheKeyIds.insert(make_pair(accountId, keyId));
-        //cacheKeyIds[accountId] = keyId;
+        cacheRegId2KeyIds.insert(make_pair(accountId, keyId));
+        //cacheRegId2KeyIds[accountId] = keyId;
         return true;
     }
 
@@ -167,28 +167,31 @@ bool CAccountViewCache::GetKeyId(const vector<unsigned char> &accountId, CKeyID 
 bool CAccountViewCache::EraseKeyId(const vector<unsigned char> &accountId) {
     if (accountId.empty())
         return false;
-    if (cacheKeyIds.count(accountId))
-        cacheKeyIds[accountId] = uint160();
+    if (cacheRegId2KeyIds.count(accountId))
+        cacheRegId2KeyIds[accountId] = uint160();
     else {
         CKeyID keyId;
         if (pBase->GetKeyId(accountId, keyId)) {
-            cacheKeyIds[accountId] = uint160();
+            cacheRegId2KeyIds[accountId] = uint160();
         }
     }
     return true;
 }
 
 
-bool CAccountViewCache::SaveAccountInfo(const CRegID &regid, const CKeyID &keyId, const CAccount &account) {
-    cacheKeyIds[regid.GetVec6()] = keyId;
-    cacheAccounts[keyId]         = account;
+bool CAccountViewCache::SaveAccountInfo(const CAccount  &account) {
+
+    cacheRegId2KeyIds[account.regID.GetRegIdRaw()]          = account.keyID;
+    if (!account.nickID.IsEmpty())
+        cacheNickId2KeyIds[account.nickID.GetNickIdRaw()]   = account.keyID;
+    cacheAccounts[account.keyID]                            = account;
     return true;
 }
 
 bool CAccountViewCache::GetAccount(const CUserID &userId, CAccount &account) {
     bool ret = false;
     if (userId.type() == typeid(CRegID)) {
-        ret = GetAccount(userId.get<CRegID>().GetVec6(), account);
+        ret = GetAccount(userId.get<CRegID>().GetRegIdRaw(), account);
 
     } else if (userId.type() == typeid(CKeyID)) {
         ret = GetAccount(userId.get<CKeyID>(), account);
@@ -197,7 +200,7 @@ bool CAccountViewCache::GetAccount(const CUserID &userId, CAccount &account) {
         ret = GetAccount(userId.get<CPubKey>().GetKeyId(), account);
 
     } else if (userId.type() == typeid(CNickID)) {
-        ret = GetAccount(userId.get<CNickID>().GetNickId(), account);
+        ret = GetAccount(userId.get<CNickID>().GetNickIdRaw(), account);
 
     } else if (userId.type() == typeid(CNullID)) {
         return ERRORMSG("GetAccount: userId can't be of CNullID type");
@@ -208,7 +211,7 @@ bool CAccountViewCache::GetAccount(const CUserID &userId, CAccount &account) {
 
 bool CAccountViewCache::GetKeyId(const CUserID &userId, CKeyID &keyId) {
     if (userId.type() == typeid(CRegID)) {
-        return GetKeyId(userId.get<CRegID>().GetVec6(), keyId);
+        return GetKeyId(userId.get<CRegID>().GetRegIdRaw(), keyId);
 
     } else if (userId.type() == typeid(CPubKey)) {
         keyId = userId.get<CPubKey>().GetKeyId();
@@ -267,7 +270,7 @@ bool CAccountViewCache::GetRegId(const CUserID &userId, CRegID &regId) const {
 
 bool CAccountViewCache::SetAccount(const CUserID &userId, const CAccount &account) {
     if (userId.type() == typeid(CRegID)) {
-        return SetAccount(userId.get<CRegID>().GetVec6(), account);
+        return SetAccount(userId.get<CRegID>().GetRegIdRaw(), account);
     } else if (userId.type() == typeid(CKeyID)) {
         return SetAccount(userId.get<CKeyID>(), account);
     } else if (userId.type() == typeid(CPubKey)) {
@@ -299,7 +302,7 @@ bool CAccountViewCache::HaveAccount(const CUserID &userId) {
 }
 bool CAccountViewCache::EraseId(const CUserID &userId) {
     if (userId.type() == typeid(CRegID)) {
-        return EraseKeyId(userId.get<CRegID>().GetVec6());
+        return EraseKeyId(userId.get<CRegID>().GetRegIdRaw());
     } else {
         //		assert(0);
     }
@@ -307,10 +310,10 @@ bool CAccountViewCache::EraseId(const CUserID &userId) {
 }
 
 bool CAccountViewCache::Flush() {
-    bool fOk = pBase->BatchWrite(cacheAccounts, cacheKeyIds, blockHash);
+    bool fOk = pBase->BatchWrite(cacheAccounts, cacheRegId2KeyIds, blockHash);
     if (fOk) {
         cacheAccounts.clear();
-        cacheKeyIds.clear();
+        cacheRegId2KeyIds.clear();
     }
     return fOk;
 }
@@ -325,7 +328,7 @@ int64_t CAccountViewCache::GetFreeBCoins(const CUserID &userId) const {
 }
 
 unsigned int CAccountViewCache::GetCacheSize() {
-    return ::GetSerializeSize(cacheAccounts, SER_DISK, CLIENT_VERSION) + ::GetSerializeSize(cacheKeyIds, SER_DISK, CLIENT_VERSION);
+    return ::GetSerializeSize(cacheAccounts, SER_DISK, CLIENT_VERSION) + ::GetSerializeSize(cacheRegId2KeyIds, SER_DISK, CLIENT_VERSION);
 }
 
 std::tuple<uint64_t, uint64_t> CAccountViewCache::TraverseAccount() { 
@@ -345,13 +348,13 @@ Object CAccountViewCache::ToJsonObj() const {
     }
     obj.push_back(Pair("cacheAccounts", arrayObj));
 
-    for (auto& item : cacheKeyIds) {
+    for (auto& item : cacheRegId2KeyIds) {
         Object obj;
         obj.push_back(Pair("accountID", HexStr(item.first)));
         obj.push_back(Pair("keyID", item.second.ToString()));
         arrayObj.push_back(obj);
     }
-    obj.push_back(Pair("cacheKeyIds", arrayObj));
+    obj.push_back(Pair("cacheRegId2KeyIds", arrayObj));
 
     return obj;
 }
@@ -713,7 +716,7 @@ bool CScriptDBViewCache::GetScript(const vector<unsigned char> &vScriptId, vecto
     return GetData(scriptKey, vValue);
 }
 bool CScriptDBViewCache::GetScript(const CRegID &scriptId, vector<unsigned char> &vValue) {
-    return GetScript(scriptId.GetVec6(), vValue);
+    return GetScript(scriptId.GetRegIdRaw(), vValue);
 }
 
 bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
@@ -1262,7 +1265,7 @@ bool CScriptDBViewCache::HaveScriptData(const vector<unsigned char> &vScriptId, 
 bool CScriptDBViewCache::GetScript(const int nIndex, CRegID &scriptId, vector<unsigned char> &vValue) {
     vector<unsigned char> tem;
     if (nIndex != 0) {
-        tem = scriptId.GetVec6();
+        tem = scriptId.GetRegIdRaw();
     }
     if (GetScript(nIndex, tem, vValue)) {
         scriptId.SetRegID(tem);
@@ -1272,33 +1275,33 @@ bool CScriptDBViewCache::GetScript(const int nIndex, CRegID &scriptId, vector<un
     return false;
 }
 bool CScriptDBViewCache::SetScript(const CRegID &scriptId, const vector<unsigned char> &vValue) {
-    return SetScript(scriptId.GetVec6(), vValue);
+    return SetScript(scriptId.GetRegIdRaw(), vValue);
 }
 bool CScriptDBViewCache::HaveScript(const CRegID &scriptId) {
-    return HaveScript(scriptId.GetVec6());
+    return HaveScript(scriptId.GetRegIdRaw());
 }
 bool CScriptDBViewCache::EraseScript(const CRegID &scriptId) {
-    return EraseScript(scriptId.GetVec6());
+    return EraseScript(scriptId.GetRegIdRaw());
 }
 bool CScriptDBViewCache::GetContractItemCount(const CRegID &scriptId, int &nCount) {
-    return GetContractItemCount(scriptId.GetVec6(), nCount);
+    return GetContractItemCount(scriptId.GetRegIdRaw(), nCount);
 }
 bool CScriptDBViewCache::EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog) {
-    return EraseAppData(scriptId.GetVec6(), vScriptKey, operLog);
+    return EraseAppData(scriptId.GetRegIdRaw(), vScriptKey, operLog);
 }
 bool CScriptDBViewCache::HaveScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey) {
-    return HaveScriptData(scriptId.GetVec6(), vScriptKey);
+    return HaveScriptData(scriptId.GetRegIdRaw(), vScriptKey);
 }
 bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
                                          vector<unsigned char> &vScriptData) {
-    return GetContractData(nCurBlockHeight, scriptId.GetVec6(), vScriptKey, vScriptData);
+    return GetContractData(nCurBlockHeight, scriptId.GetRegIdRaw(), vScriptKey, vScriptData);
 }
 bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
-    return GetContractData(nCurBlockHeight, scriptId.GetVec6(), nIndex, vScriptKey, vScriptData);
+    return GetContractData(nCurBlockHeight, scriptId.GetRegIdRaw(), nIndex, vScriptKey, vScriptData);
 }
 bool CScriptDBViewCache::SetContractData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
                                          const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog) {
-    return SetContractData(scriptId.GetVec6(), vScriptKey, vScriptData, operLog);
+    return SetContractData(scriptId.GetRegIdRaw(), vScriptKey, vScriptData, operLog);
 }
 bool CScriptDBViewCache::SetTxRelAccout(const uint256 &txHash, const set<CKeyID> &relAccount) {
     vector<unsigned char> vKey = {'t', 'x'};
@@ -1373,7 +1376,7 @@ bool CScriptDBViewCache::SetDelegateData(const CAccount &delegateAcct, CScriptDB
     string strVotes                = strprintf("%016x", nMaxNumber - delegateAcct.receivedVotes);
     vVoteKey.insert(vVoteKey.end(), strVotes.begin(), strVotes.end());
     vVoteKey.push_back('_');
-    vVoteKey.insert(vVoteKey.end(), delegateAcct.regID.GetVec6().begin(), delegateAcct.regID.GetVec6().end());
+    vVoteKey.insert(vVoteKey.end(), delegateAcct.regID.GetRegIdRaw().begin(), delegateAcct.regID.GetRegIdRaw().end());
     vector<unsigned char> vVoteValue;
     vVoteValue.push_back(1);
     if (!SetContractData(regId, vVoteKey, vVoteValue, operLog))
@@ -1401,7 +1404,7 @@ bool CScriptDBViewCache::EraseDelegateData(const CAccount &delegateAcct, CScript
     string strOldVoltes               = strprintf("%016x", nMaxNumber - delegateAcct.receivedVotes);
     vVoteOldKey.insert(vVoteOldKey.end(), strOldVoltes.begin(), strOldVoltes.end());
     vVoteOldKey.push_back('_');
-    vVoteOldKey.insert(vVoteOldKey.end(), delegateAcct.regID.GetVec6().begin(), delegateAcct.regID.GetVec6().end());
+    vVoteOldKey.insert(vVoteOldKey.end(), delegateAcct.regID.GetRegIdRaw().begin(), delegateAcct.regID.GetRegIdRaw().end());
     if (!EraseAppData(regId, vVoteOldKey, operLog))
         return false;
 
@@ -1570,7 +1573,7 @@ void CTransactionDBCache::SetCacheMap(const map<uint256, UnorderedHashSet> &mapC
 bool CScriptDBViewCache::GetScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vAccKey,
                                       CAppUserAccount &appAccOut) {
     vector<unsigned char> scriptKey = {'a', 'c', 'c', 't'};
-    vector<unsigned char> vRegId    = scriptId.GetVec6();
+    vector<unsigned char> vRegId    = scriptId.GetRegIdRaw();
     scriptKey.insert(scriptKey.end(), vRegId.begin(), vRegId.end());
     scriptKey.push_back('_');
     scriptKey.insert(scriptKey.end(), vAccKey.begin(), vAccKey.end());
@@ -1587,7 +1590,7 @@ bool CScriptDBViewCache::GetScriptAcc(const CRegID &scriptId, const vector<unsig
 bool CScriptDBViewCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccOut,
                                       CScriptDBOperLog &operlog) {
     vector<unsigned char> scriptKey = {'a', 'c', 'c', 't'};
-    vector<unsigned char> vRegId    = scriptId.GetVec6();
+    vector<unsigned char> vRegId    = scriptId.GetRegIdRaw();
     vector<unsigned char> vAccKey   = appAccOut.GetAccUserId();
     scriptKey.insert(scriptKey.end(), vRegId.begin(), vRegId.end());
     scriptKey.push_back('_');
@@ -1608,7 +1611,7 @@ bool CScriptDBViewCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAcco
 
 bool CScriptDBViewCache::EraseScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vKey) {
     vector<unsigned char> scriptKey = {'a', 'c', 'c', 't'};
-    vector<unsigned char> vRegId    = scriptId.GetVec6();
+    vector<unsigned char> vRegId    = scriptId.GetRegIdRaw();
     scriptKey.insert(scriptKey.end(), vRegId.begin(), vRegId.end());
     scriptKey.push_back('_');
     scriptKey.insert(scriptKey.end(), vKey.begin(), vKey.end());

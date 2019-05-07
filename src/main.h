@@ -102,6 +102,8 @@ static const unsigned char READ_ACCOUNT_FAIL   = 0X51;
 static const unsigned char WRITE_ACCOUNT_FAIL  = 0X52;
 static const unsigned char UPDATE_ACCOUNT_FAIL = 0X53;
 
+static const unsigned char PRICE_FEED_FAIL     = 0X54;
+
 static const unsigned char READ_SCRIPT_FAIL  = 0X61;
 static const unsigned char WRITE_SCRIPT_FAIL = 0X62;
 

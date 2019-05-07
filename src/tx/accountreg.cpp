@@ -23,19 +23,19 @@ bool CAccountRegisterTx::CheckTx(CValidationState &state, CAccountViewCache &vie
                                 CScriptDBViewCache &scriptDB) {
     if (txUid.type() != typeid(CPubKey))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, userId must be CPubKey"),
-            REJECT_INVALID, "userid-type-error");
+            REJECT_INVALID, "uid-type-error");
 
     if ((minerUid.type() != typeid(CPubKey)) && (minerUid.type() != typeid(CNullID)))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, minerId must be CPubKey or CNullID"),
-            REJECT_INVALID, "minerid-type-error");
+            REJECT_INVALID, "minerUid-type-error");
 
     if (!txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx public key is invalid"),
-            REJECT_INVALID, "bad-regtx-publickey");
+            REJECT_INVALID, "bad-tx-publickey");
 
     if (!CheckMoneyRange(llFees))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx fee out of range"),
-            REJECT_INVALID, "bad-regtx-fee-toolarge");
+            REJECT_INVALID, "bad-tx-fee-toolarge");
 
     if (!CheckMinTxFee(llFees)) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx fee smaller than MinTxFee"),
@@ -51,7 +51,7 @@ bool CAccountRegisterTx::CheckTx(CValidationState &state, CAccountViewCache &vie
     uint256 sighash = ComputeSignatureHash();
     if (!CheckSignScript(sighash, signature, txUid.get<CPubKey>()))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx signature error "),
-            REJECT_INVALID, "bad-regtx-signature");
+            REJECT_INVALID, "bad-tx-signature");
 
     return true;
 }
@@ -78,6 +78,7 @@ bool CAccountRegisterTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
     }
 
     account.regID = regId;
+    account.keyID = keyId;
     if (typeid(CPubKey) == minerUid.type()) {
         account.minerPubKey = minerUid.get<CPubKey>();
         if (account.minerPubKey.IsValid() && !account.minerPubKey.IsFullyValid()) {
@@ -86,13 +87,13 @@ bool CAccountRegisterTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
         }
     }
 
-    if (!view.SaveAccountInfo(regId, keyId, account))
+    if (!view.SaveAccountInfo(account))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, write source addr %s account info error",
             regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     txundo.vAccountLog.push_back(acctLog);
     txundo.txHash = GetHash();
-    if(SysCfg().GetAddressToTxFlag()) {
+    if (SysCfg().GetAddressToTxFlag()) {
         CScriptDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
         if(!view.GetKeyId(txUid, sendKeyId))

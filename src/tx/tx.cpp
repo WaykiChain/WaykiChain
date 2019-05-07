@@ -250,7 +250,7 @@ bool CMulsigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
     if (generateRegID) {
-        if (!view.SaveAccountInfo(srcAcct.regID, srcAcct.keyID, srcAcct))
+        if (!view.SaveAccountInfo(srcAcct.regID, srcAcct.nickID, srcAcct.keyID, srcAcct))
             return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, save account info error"),
                              WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     } else {

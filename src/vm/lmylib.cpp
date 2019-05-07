@@ -872,11 +872,11 @@ static int ExGetTxRegIDFunc(lua_State *L) {
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
             CBaseCoinTransferTx *tx = static_cast<CBaseCoinTransferTx*>(pBaseTx.get());
-            vector<unsigned char> item = tx->txUid.get<CRegID>().GetVec6();
+            vector<unsigned char> item = tx->txUid.get<CRegID>().GetRegIdRaw();
             len = RetRstToLua(L, item);
         } else if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
             CContractInvokeTx *tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
-            vector<unsigned char> item = tx->txUid.get<CRegID>().GetVec6();
+            vector<unsigned char> item = tx->txUid.get<CRegID>().GetRegIdRaw();
             len = RetRstToLua(L, item);
         } else {
             return RetFalse("ExGetTxRegIDFunc, tx type error");
@@ -1602,7 +1602,7 @@ static int ExGetContractRegIdFunc(lua_State *L)
 
    //1.从lua取参数
    //2.调用C++库函数 执行运算
-    vector_unsigned_char scriptid = pVmRunEnv->GetScriptRegID().GetVec6();
+    vector_unsigned_char scriptid = pVmRunEnv->GetScriptRegID().GetRegIdRaw();
    //3.往函数私有栈里存运算后的结果
     int len = RetRstToLua(L,scriptid);
    /*
@@ -1617,7 +1617,7 @@ static int ExGetCurTxAccountFunc(lua_State *L)
 
    //1.从lua取参数
    //2.调用C++库函数 执行运算
-    vector_unsigned_char vUserId =pVmRunEnv->GetTxAccount().GetVec6();
+    vector_unsigned_char vUserId =pVmRunEnv->GetTxAccount().GetRegIdRaw();
 
    //3.往函数私有栈里存运算后的结果
     int len = RetRstToLua(L,vUserId);
