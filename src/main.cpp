@@ -2029,26 +2029,24 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
     return true;
 }
 
-bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValidationState &state)
-{
+bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValidationState &state) {
     if (pPreBlockIndex->GetBlockHash() == chainActive.Tip()->GetBlockHash())
         return true; //no fork
 
     std::shared_ptr<CAccountViewCache>      pForkAcctViewCache;
     std::shared_ptr<CTransactionDBCache>    pForkTxCache;
     std::shared_ptr<CScriptDBViewCache>     pForkScriptDBCache;
-    std::shared_ptr<CAccountViewCache>      pAcctViewCache;
 
-    pAcctViewCache                  = std::make_shared<CAccountViewCache>(*pAccountViewDB);
-    pAcctViewCache->cacheAccounts   = pAccountViewTip->cacheAccounts;
-    pAcctViewCache->cacheRegId2KeyIds     = pAccountViewTip->cacheRegId2KeyIds;
-    pAcctViewCache->blockHash       = pAccountViewTip->blockHash;
+    std::shared_ptr<CAccountViewCache> pAcctViewCache = std::make_shared<CAccountViewCache>(*pAccountViewDB);
+    pAcctViewCache->cacheAccounts                     = pAccountViewTip->cacheAccounts;
+    pAcctViewCache->cacheRegId2KeyIds                 = pAccountViewTip->cacheRegId2KeyIds;
+    pAcctViewCache->blockHash                         = pAccountViewTip->blockHash;
 
     std::shared_ptr<CTransactionDBCache> pTxCache = std::make_shared<CTransactionDBCache>(*pTxCacheDB);
     pTxCache->SetCacheMap(pTxCacheTip->GetCacheMap());
 
     std::shared_ptr<CScriptDBViewCache> pScriptDBCache = std::make_shared<CScriptDBViewCache>(*pScriptDB);
-    pScriptDBCache->mapContractDb                      = pScriptDBTip->mapContractDb;
+    pScriptDBCache->mapContractDb = pScriptDBTip->mapContractDb;
 
     bool bForkChainTipFound(false);
     vector<CBlock> vPreBlocks;
@@ -2069,7 +2067,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         }
 
         pPreBlockIndex = pPreBlockIndex->pprev;
-        preBlockHash = pPreBlockIndex->GetBlockHash();
+        preBlockHash   = pPreBlockIndex->GetBlockHash();
         // if (chainActive.Tip()->nHeight - pPreBlockIndex->nHeight > SysCfg().GetMaxForkHeight())
         //     return state.DoS(100, ERRORMSG("ProcessForkedChain() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
         //         block.GetHash().GetHex(), block.GetHeight()));
@@ -2079,17 +2077,16 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }  //如果进来的preBlockHash不为tip的hash, 找到主链中分叉处
 
     if (mapForkCache.count(preBlockHash)) {
-        pAcctViewCache = std::get<0>(mapForkCache[ preBlockHash ]);
-        pTxCache       = std::get<1>(mapForkCache[ preBlockHash ]);
-        pScriptDBCache = std::get<2>(mapForkCache[ preBlockHash ]);
+        pAcctViewCache = std::get<0>(mapForkCache[preBlockHash]);
+        pTxCache       = std::get<1>(mapForkCache[preBlockHash]);
+        pScriptDBCache = std::get<2>(mapForkCache[preBlockHash]);
         LogPrint("INFO", "hash=%s, height=%d\n", preBlockHash.GetHex(), pPreBlockIndex->nHeight);
-
     } else {
-        int64_t tempTime = GetTimeMillis();
+        int64_t beginTime = GetTimeMillis();
         CBlockIndex *pBlockIndex = chainActive.Tip();
         while (pPreBlockIndex != pBlockIndex) {
-            LogPrint("INFO", "ProcessForkedChain() DisconnectBlock block nHeight=%d hash=%s\n",
-                    pBlockIndex->nHeight, pBlockIndex->GetBlockHash().GetHex());
+            LogPrint("INFO", "ProcessForkedChain() DisconnectBlock block nHeight=%d hash=%s\n", pBlockIndex->nHeight,
+                     pBlockIndex->GetBlockHash().GetHex());
 
             CBlock block;
             if (!ReadBlockFromDisk(pBlockIndex, block))
@@ -2103,14 +2100,14 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
             pBlockIndex = pBlockIndex->pprev;
         }  //数据库状态回滚到主链分叉处
-        LogPrint("INFO", "ProcessForkedChain() DisconnectBlock elapse :%lld ms\n", GetTimeMillis() - tempTime);
+        LogPrint("INFO", "ProcessForkedChain() DisconnectBlock elapse :%lld ms\n", GetTimeMillis() - beginTime);
 
-        preBlockHash = pPreBlockIndex->GetBlockHash();
-        mapForkCache[ preBlockHash ] = std::make_tuple(pAcctViewCache, pTxCache, pScriptDBCache);
+        preBlockHash               = pPreBlockIndex->GetBlockHash();
+        mapForkCache[preBlockHash] = std::make_tuple(pAcctViewCache, pTxCache, pScriptDBCache);
 
         LogPrint("INFO", "add mapForkCache Key:%s height:%d\n", preBlockHash.GetHex(), pPreBlockIndex->nHeight);
-        LogPrint("INFO", "add pAcctViewCache:%x \n", pAcctViewCache.get());
-        LogPrint("INFO", "view best block hash:%s \n", pAcctViewCache->GetBestBlock().GetHex());
+        LogPrint("INFO", "add pAcctViewCache:%x\n", pAcctViewCache.get());
+        LogPrint("INFO", "view best block hash:%s\n", pAcctViewCache->GetBestBlock().GetHex());
     }
 
     if (bForkChainTipFound) {
@@ -2121,7 +2118,6 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         pForkAcctViewCache->SetBaseView(pAcctViewCache.get());
         pForkTxCache->SetBaseView(pTxCache.get());
         pForkScriptDBCache->SetBaseView(pScriptDBCache.get());
-
     } else {
         pForkAcctViewCache.reset(new CAccountViewCache(*pAcctViewCache));
         pForkTxCache.reset(new CTransactionDBCache(*pTxCache));
@@ -2179,9 +2175,9 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
             mapForkCache.erase(preBlockHash);
             LogPrint("INFO", "delete mapForkCache Key:%s\n", preBlockHash.GetHex());
         }
+
         std::tuple<std::shared_ptr<CAccountViewCache>, std::shared_ptr<CTransactionDBCache>, std::shared_ptr<CScriptDBViewCache> > cache =
             std::make_tuple(pForkAcctViewCache, pForkTxCache, pForkScriptDBCache);
-
         mapForkCache[iterBlock->GetHash()] = cache;
         LogPrint("INFO", "add mapForkCache Key:%s\n", iterBlock->GetHash().GetHex());
     }
@@ -2189,24 +2185,24 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     return true;
 }
 
-bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDBCache, bool fCheckTx, bool fCheckMerkleRoot) {
-    if (block.vptx.empty() || block.vptx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
-        return state.DoS(100, ERRORMSG("CheckBlock() : size limits failed"),
-            REJECT_INVALID, "bad-blk-length");
+bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view,
+                CScriptDBViewCache &scriptDBCache, bool fCheckTx, bool fCheckMerkleRoot) {
+    if (block.vptx.empty() || block.vptx.size() > MAX_BLOCK_SIZE ||
+        ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
+        return state.DoS(100, ERRORMSG("CheckBlock() : size limits failed"), REJECT_INVALID, "bad-blk-length");
 
     if (block.GetHash() != SysCfg().GetGenesisBlockHash() && block.GetVersion() != CBlockHeader::CURRENT_VERSION)
-        return state.Invalid(ERRORMSG("CheckBlock() : block version must be set 3"),
-            REJECT_INVALID, "block-version-error");
+        return state.Invalid(ERRORMSG("CheckBlock() : block version must be set 3"), REJECT_INVALID,
+                             "block-version-error");
 
     // Check timestamp 12 seconds limits
     if (block.GetBlockTime() > GetAdjustedTime() + 12)
-        return state.Invalid(ERRORMSG("CheckBlock() : block timestamp too far in the future"),
-                             REJECT_INVALID, "time-too-new");
+        return state.Invalid(ERRORMSG("CheckBlock() : block timestamp too far in the future"), REJECT_INVALID,
+                             "time-too-new");
 
     // First transaction must be coinbase, the rest must not be
     if (block.vptx.empty() || !block.vptx[0]->IsCoinBase())
-        return state.DoS(100, ERRORMSG("CheckBlock() : first tx is not coinbase"),
-                         REJECT_INVALID, "bad-cb-missing");
+        return state.DoS(100, ERRORMSG("CheckBlock() : first tx is not coinbase"), REJECT_INVALID, "bad-cb-missing");
 
     // Build the merkle tree already. We need it anyway later, and it makes the
     // block cache the transaction hashes, which means they don't need to be
@@ -2247,13 +2243,12 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
     return true;
 }
 
-bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp)
-{
+bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
     AssertLockHeld(cs_main);
 
     uint256 blockHash = block.GetHash();
     LogPrint("INFO", "AcceptBlock[%d]: %s\n", block.GetHeight(), blockHash.GetHex());
-    if (mapBlockIndex.count(blockHash)) // Check for duplicateness
+    if (mapBlockIndex.count(blockHash))  // Check for duplicated block
         return state.Invalid(ERRORMSG("AcceptBlock() : block already in mapBlockIndex"), 0, "duplicated");
 
     assert(block.GetHeight() == 0 || mapBlockIndex.count(block.GetPrevBlockHash()));
