@@ -177,8 +177,8 @@ enum ACCOUNT_TYPE {
  */
 class CVmOperate{
 public:
-	unsigned char accountType;      	//regid or base58addr
-	unsigned char accountId[34];	//!< accountId
+	unsigned char accountType;      //regid or base58addr
+	unsigned char accountId[34];	//!< accountId: address
 	unsigned char opType;		    //!OperType
 	unsigned int  timeoutHeight;    //!< the transacion Timeout height
 	unsigned char money[8];			//!<The transfer amount

@@ -36,7 +36,7 @@ $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(w
 .PHONY: FORCE
 # waykichain core #
 coin_CORE_H = \
-  accounts/accounts.h \
+  accounts/account.h \
   accounts/cdp.h \
   accounts/id.h \
   accounts/key.h \
@@ -200,7 +200,7 @@ liblua53_a_SOURCES = \
 
 libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libcoin_server_a_SOURCES = \
-  accounts/accounts.cpp \
+  accounts/account.cpp \
   accounts/id.cpp \
   accounts/cdp.cpp \
   addrman.cpp \
