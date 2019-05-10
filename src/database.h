@@ -46,9 +46,9 @@ protected:
 
 public:
     uint256 blockHash;
-    map<CKeyID, CAccount> mapKeyId2Accounts;              // <KeyID -> Account>
-    map<vector<unsigned char>, CKeyID> mapRegId2KeyIds;   // <RegID -> KeyID>
-    map<vector<unsigned char>, CKeyID> mapNickId2KeyIds;  // <NickID -> KeyID>
+    map<CKeyID, CAccount> mapKeyId2Account;              // <KeyID -> Account>
+    map<vector<unsigned char>, CKeyID> mapRegId2KeyId;   // <RegID -> KeyID>
+    map<vector<unsigned char>, CKeyID> mapNickId2KeyId;  // <NickID -> KeyID>
 
 public:
     virtual bool GetAccount(const CKeyID &keyId, CAccount &account);

@@ -8,17 +8,17 @@
 #include "vm/vmrunenv.h"
 
 bool CAccountViewCache::GetAccount(const CKeyID &keyId, CAccount &account) {
-    if (mapKeyId2Accounts.count(keyId)) {
-        if (mapKeyId2Accounts[keyId].keyID != uint160()) {
-            account = mapKeyId2Accounts[keyId];
+    if (mapKeyId2Account.count(keyId)) {
+        if (mapKeyId2Account[keyId].keyID != uint160()) {
+            account = mapKeyId2Account[keyId];
             return true;
         } else
             return false;
     }
 
     if (pBase->GetAccount(keyId, account)) {
-        mapKeyId2Accounts.insert(make_pair(keyId, account));
-        // mapKeyId2Accounts[keyId] = account;
+        mapKeyId2Account.insert(make_pair(keyId, account));
+        // mapKeyId2Account[keyId] = account;
         return true;
     }
 
@@ -29,11 +29,11 @@ bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAcco
     if (accountId.empty())
         return false;
 
-    if (mapRegId2KeyIds.count(accountId)) {
-        CKeyID keyId(mapRegId2KeyIds[accountId]);
+    if (mapRegId2KeyId.count(accountId)) {
+        CKeyID keyId(mapRegId2KeyId[accountId]);
         if (keyId != uint160()) {
-            if (mapKeyId2Accounts.count(keyId)) {
-                account = mapKeyId2Accounts[keyId];
+            if (mapKeyId2Account.count(keyId)) {
+                account = mapKeyId2Account[keyId];
                 return (account.keyID != uint160()); // return true if the account exists, otherwise return false
             }
 
@@ -44,15 +44,15 @@ bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAcco
     } else {
         CKeyID keyId;
         if (pBase->GetKeyId(accountId, keyId)) {
-            mapRegId2KeyIds[accountId] = keyId;
+            mapRegId2KeyId[accountId] = keyId;
 
-            if (mapKeyId2Accounts.count(keyId) > 0) {
-                account = mapKeyId2Accounts[keyId];
+            if (mapKeyId2Account.count(keyId) > 0) {
+                account = mapKeyId2Account[keyId];
                 return (account.keyID != uint160()); // return true if the account exists, otherwise return false
             }
 
             if (pBase->GetAccount(keyId, account)) {
-                mapKeyId2Accounts[keyId] = account;
+                mapKeyId2Account[keyId] = account;
                 return true;
             }
         }
@@ -62,21 +62,21 @@ bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAcco
 }
 
 bool CAccountViewCache::SetAccount(const CKeyID &keyId, const CAccount &account) {
-    mapKeyId2Accounts[keyId] = account;
+    mapKeyId2Account[keyId] = account;
     return true;
 }
 bool CAccountViewCache::SetAccount(const vector<unsigned char> &accountId, const CAccount &account) {
     if (accountId.empty()) {
         return false;
     }
-    if (mapRegId2KeyIds.count(accountId)) {
-        mapKeyId2Accounts[mapRegId2KeyIds[accountId]] = account;
+    if (mapRegId2KeyId.count(accountId)) {
+        mapKeyId2Account[mapRegId2KeyId[accountId]] = account;
         return true;
     }
     return false;
 }
 bool CAccountViewCache::HaveAccount(const CKeyID &keyId) {
-    if (mapKeyId2Accounts.count(keyId))
+    if (mapKeyId2Account.count(keyId))
         return true;
     else
         return pBase->HaveAccount(keyId);
@@ -97,36 +97,36 @@ bool CAccountViewCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, con
     for (map<CKeyID, CAccount>::const_iterator it = mapAccounts.begin(); it != mapAccounts.end(); ++it) {
         if (uint160() == it->second.keyID) {
             pBase->EraseAccountByKeyId(it->first);
-            mapKeyId2Accounts.erase(it->first);
+            mapKeyId2Account.erase(it->first);
         } else {
-            mapKeyId2Accounts[it->first] = it->second;
+            mapKeyId2Account[it->first] = it->second;
         }
     }
 
     for (map<vector<unsigned char>, CKeyID>::const_iterator itKeyId = mapKeyIds.begin(); itKeyId != mapKeyIds.end(); ++itKeyId)
-        mapRegId2KeyIds[itKeyId->first] = itKeyId->second;
+        mapRegId2KeyId[itKeyId->first] = itKeyId->second;
     blockHash = blockHashIn;
     return true;
 }
 bool CAccountViewCache::BatchWrite(const vector<CAccount> &vAccounts) {
     for (vector<CAccount>::const_iterator it = vAccounts.begin(); it != vAccounts.end(); ++it) {
         if (it->IsEmptyValue() && !it->IsRegistered()) {
-            mapKeyId2Accounts[it->keyID]       = *it;
-            mapKeyId2Accounts[it->keyID].keyID = uint160();
+            mapKeyId2Account[it->keyID]       = *it;
+            mapKeyId2Account[it->keyID].keyID = uint160();
         } else {
-            mapKeyId2Accounts[it->keyID] = *it;
+            mapKeyId2Account[it->keyID] = *it;
         }
     }
     return true;
 }
 bool CAccountViewCache::EraseAccountByKeyId(const CKeyID &keyId) {
-    if (mapKeyId2Accounts.count(keyId))
-        mapKeyId2Accounts[keyId].keyID = uint160();
+    if (mapKeyId2Account.count(keyId))
+        mapKeyId2Account[keyId].keyID = uint160();
     else {
         CAccount account;
         if (pBase->GetAccount(keyId, account)) {
             account.keyID        = uint160();
-            mapKeyId2Accounts[keyId] = account;
+            mapKeyId2Account[keyId] = account;
         }
     }
     return true;
@@ -142,7 +142,7 @@ bool CAccountViewCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
 bool CAccountViewCache::SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId) {
     if (accountId.empty())
         return false;
-    mapRegId2KeyIds[accountId] = keyId;
+    mapRegId2KeyId[accountId] = keyId;
     return true;
 }
 
@@ -150,14 +150,14 @@ bool CAccountViewCache::GetKeyId(const vector<unsigned char> &accountId, CKeyID 
     if (accountId.empty())
         return false;
 
-    if (mapRegId2KeyIds.count(accountId)) {
-        keyId = mapRegId2KeyIds[accountId];
+    if (mapRegId2KeyId.count(accountId)) {
+        keyId = mapRegId2KeyId[accountId];
         return (keyId != uint160());
     }
 
     if (pBase->GetKeyId(accountId, keyId)) {
-        mapRegId2KeyIds.insert(make_pair(accountId, keyId));
-        //mapRegId2KeyIds[accountId] = keyId;
+        mapRegId2KeyId.insert(make_pair(accountId, keyId));
+        //mapRegId2KeyId[accountId] = keyId;
         return true;
     }
 
@@ -168,12 +168,12 @@ bool CAccountViewCache::EraseKeyIdByRegId(const vector<unsigned char> &accountRe
     if (accountRegId.empty())
         return false;
 
-    if (mapRegId2KeyIds.count(accountRegId))
-        mapRegId2KeyIds[ accountRegId ] = uint160();
+    if (mapRegId2KeyId.count(accountRegId))
+        mapRegId2KeyId[ accountRegId ] = uint160();
     else {
         CKeyID keyId;
         if (pBase->GetKeyId(accountRegId, keyId)) {
-            mapRegId2KeyIds[ accountRegId ] = uint160();
+            mapRegId2KeyId[ accountRegId ] = uint160();
         }
     }
     return true;
@@ -182,12 +182,12 @@ bool CAccountViewCache::EraseKeyIdByRegId(const vector<unsigned char> &accountRe
 
 bool CAccountViewCache::SaveAccountInfo(const CAccount  &account) {
 
-    mapRegId2KeyIds[account.regID.GetRegIdRaw()]          = account.keyID;
+    mapRegId2KeyId[account.regID.GetRegIdRaw()]          = account.keyID;
 
     if (!account.nickID.IsEmpty())
-        mapNickId2KeyIds[account.nickID.GetNickIdRaw()]   = account.keyID;
+        mapNickId2KeyId[account.nickID.GetNickIdRaw()]   = account.keyID;
 
-    mapKeyId2Accounts[account.keyID]                            = account;
+    mapKeyId2Account[account.keyID]                            = account;
     
     return true;
 }
@@ -313,10 +313,10 @@ bool CAccountViewCache::EraseKeyId(const CUserID &userId) {
 }
 
 bool CAccountViewCache::Flush() {
-    bool fOk = pBase->BatchWrite(mapKeyId2Accounts, mapRegId2KeyIds, blockHash);
+    bool fOk = pBase->BatchWrite(mapKeyId2Account, mapRegId2KeyId, blockHash);
     if (fOk) {
-        mapKeyId2Accounts.clear();
-        mapRegId2KeyIds.clear();
+        mapKeyId2Account.clear();
+        mapRegId2KeyId.clear();
     }
     return fOk;
 }
@@ -331,7 +331,7 @@ int64_t CAccountViewCache::GetFreeBCoins(const CUserID &userId) const {
 }
 
 unsigned int CAccountViewCache::GetCacheSize() {
-    return ::GetSerializeSize(mapKeyId2Accounts, SER_DISK, CLIENT_VERSION) + ::GetSerializeSize(mapRegId2KeyIds, SER_DISK, CLIENT_VERSION);
+    return ::GetSerializeSize(mapKeyId2Account, SER_DISK, CLIENT_VERSION) + ::GetSerializeSize(mapRegId2KeyId, SER_DISK, CLIENT_VERSION);
 }
 
 std::tuple<uint64_t, uint64_t> CAccountViewCache::TraverseAccount() { 
@@ -343,21 +343,21 @@ Object CAccountViewCache::ToJsonObj() const {
     obj.push_back(Pair("blockHash", blockHash.ToString()));
 
     Array arrayObj;
-    for (auto& item : mapKeyId2Accounts) {
+    for (auto& item : mapKeyId2Account) {
         Object obj;
         obj.push_back(Pair("keyID", item.first.ToString()));
         obj.push_back(Pair("account", item.second.ToString()));
         arrayObj.push_back(obj);
     }
-    obj.push_back(Pair("mapKeyId2Accounts", arrayObj));
+    obj.push_back(Pair("mapKeyId2Account", arrayObj));
 
-    for (auto& item : mapRegId2KeyIds) {
+    for (auto& item : mapRegId2KeyId) {
         Object obj;
         obj.push_back(Pair("accountID", HexStr(item.first)));
         obj.push_back(Pair("keyID", item.second.ToString()));
         arrayObj.push_back(obj);
     }
-    obj.push_back(Pair("mapRegId2KeyIds", arrayObj));
+    obj.push_back(Pair("mapRegId2KeyId", arrayObj));
 
     return obj;
 }
