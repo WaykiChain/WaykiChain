@@ -188,7 +188,7 @@ bool CAccountViewCache::SaveAccountInfo(const CAccount  &account) {
         cacheNickId2KeyIds[account.nickID.GetNickIdRaw()]   = account.keyID;
 
     cacheAccounts[account.keyID]                            = account;
-    
+
     return true;
 }
 
@@ -270,6 +270,17 @@ bool CAccountViewCache::GetRegId(const CUserID &userId, CRegID &regId) const {
         return !regId.IsEmpty();
     }
     return false;
+}
+
+bool CAccountViewCache::RegIDIsMature(const CRegID &regId) const {
+    if (regId.IsEmpty())
+        return false;
+
+    int height = chainActive.Height();
+    if ((regId.GetHeight() == 0) || (height - regId.GetHeight() > kRegIdMaturePeriodByBlock))
+        return true;
+    else
+        return false;
 }
 
 bool CAccountViewCache::SetAccount(const CUserID &userId, const CAccount &account) {

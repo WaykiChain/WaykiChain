@@ -82,6 +82,7 @@ public:
     bool GetUserId(const string &addr, CUserID &userId);
     bool GetRegId(const CKeyID &keyId, CRegID &regId);
     bool GetRegId(const CUserID &userId, CRegID &regId) const;
+    bool RegIDIsMature(const CRegID &regId) const;
     bool GetKeyId(const CUserID &userId, CKeyID &keyId);
     bool EraseAccountByKeyId(const CUserID &userId);
     bool EraseKeyId(const CUserID &userId);
