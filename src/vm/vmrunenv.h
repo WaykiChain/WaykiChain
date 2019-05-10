@@ -1,18 +1,15 @@
-/*
- * ScriptCheck.h
- *
- *  Created on: Sep 2, 2014
- *      Author: ranger.shi
- */
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2019- The WaykiChain Core Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef SCRIPTCHECK_H_
-#define SCRIPTCHECK_H_
+#ifndef VMRUNENV_H_
+#define VMRUNENV_H_
 
 #include "vmlua.h"
 #include "commons/serialize.h"
 #include "script.h"
 #include "main.h"
-#include "tx/txdb.h"
 #include <memory>
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
@@ -207,4 +204,4 @@ public:
 };
 
 //extern CVmRunEnv *pVmRunEnv; //提供给lmylib.cpp库使用
-#endif /* SCRIPTCHECK_H_ */
+#endif /* VMRUNENV_H_ */

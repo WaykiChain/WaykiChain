@@ -8,7 +8,6 @@
 #include "json/json_spirit_writer_template.h"
 #include "json/json_spirit_utils.h"
 #include "commons/serialize.h"
-#include "txdb.h"
 #include "crypto/hash.h"
 #include "util.h"
 #include "database.h"

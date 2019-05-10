@@ -7,7 +7,6 @@
 #include <memory>
 #include "util.h"
 #include "main.h"
-#include "tx/txdb.h"
 #include "tx/tx.h"
 #include "util.h"
 #include <stdio.h>

@@ -5,14 +5,13 @@
  *      Author: ranger.shi
  */
 
+#include "appaccount.h"
+
 #include "commons/serialize.h"
-#include <boost/foreach.hpp>
 #include "crypto/hash.h"
 #include "util.h"
 #include "database.h"
 #include "main.h"
-#include <algorithm>
-#include "tx/txdb.h"
 #include "vm/vmrunenv.h"
 #include "core.h"
 #include "miner/miner.h"
@@ -20,8 +19,9 @@
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_writer_template.h"
 #include "commons/SafeInt3.hpp"
-#include "appaccount.h"
 
+#include <boost/foreach.hpp>
+#include <algorithm>
 
 using namespace json_spirit;
 

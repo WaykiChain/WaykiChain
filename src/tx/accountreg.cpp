@@ -8,7 +8,6 @@
 
 #include "commons/serialize.h"
 #include "tx.h"
-#include "txdb.h"
 #include "crypto/hash.h"
 #include "util.h"
 #include "database.h"

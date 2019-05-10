@@ -1,14 +1,11 @@
-/*
- * appacc_test.cpp
- *
- *  Created on: 2015年3月29日
- *      Author: ranger.shi
- */
-
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2014-2015 The WaykiChain Core developers
+// Copyright (c) 2016 The Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
-#include "tx/txdb.h"
 #include "database.h"
 #include <iostream>
 #include  "boost/filesystem/operations.hpp"

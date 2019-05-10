@@ -15,7 +15,6 @@
 #include "net.h"
 #include "syncdatadb.h"
 #include "tx/blockreward.h"
-#include "tx/txdb.h"
 #include "tx/txmempool.h"
 #include "ui_interface.h"
 #include "util.h"

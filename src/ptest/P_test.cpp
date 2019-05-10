@@ -7,7 +7,6 @@
 
 
 #include "main.h"
-#include "tx/txdb.h"
 #include "ui_interface.h"
 #include "util.h"
 #include <string>

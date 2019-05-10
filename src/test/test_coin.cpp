@@ -5,9 +5,7 @@
 #define BOOST_TEST_MODULE Coin Test Suite
 
 
-
 #include "main.h"
-#include "tx/txdb.h"
 #include "ui_interface.h"
 #include "util.h"
 

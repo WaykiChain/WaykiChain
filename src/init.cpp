@@ -24,7 +24,6 @@
 #include "noui.h"
 #include "syncdatadb.h"
 #include "tx/tx.h"
-#include "tx/txdb.h"
 #include "ui_interface.h"
 #include "util.h"
 #ifdef USE_UPNP
