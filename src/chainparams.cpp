@@ -265,10 +265,10 @@ bool CBaseParams::IsArgCount(const string& strArg) {
     return false;
 }
 
-CBaseParams &SysCfg() {
+CBaseParams& SysCfg() {
     static shared_ptr<CBaseParams> pParams;
 
-    if (pParams.get() == NULL) {
+    if (pParams.get()) {
         bool fRegTest = CBaseParams::GetBoolArg("-regtest", false);
         bool fTestNet = CBaseParams::GetBoolArg("-testnet", false);
         if (fTestNet && fRegTest) {
@@ -282,9 +282,8 @@ CBaseParams &SysCfg() {
         } else {
             pParams = std::make_shared<CMainParams>();
         }
-
     }
-    assert(pParams != NULL);
+    assert(pParams.get());
     return *pParams.get();
 }
 
