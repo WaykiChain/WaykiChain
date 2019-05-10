@@ -143,6 +143,8 @@ static void print_usage (const char *badoption) {
   "  -v       show version information\n"
   "  -E       ignore environment variables\n"
   "  -b fuel  set the fuel limit for burner, default is LLONG_MAX\n"
+  "  -V ver   set the version for burner, default is BURN_VER_NEWEST\n"
+  "  -t       show the trace info of burner\n"
   "  --       stop handling options\n"
   "  -        stop handling options and execute stdin\n"
   ,
@@ -465,6 +467,13 @@ static int handle_script (lua_State *L, char **argv) {
 #define has_e		8	/* -e */
 #define has_E		16	/* -E */
 #define has_b		32	/* -b */
+#define has_V		64	/* -V */
+#define has_t		128	/* -t */
+
+typedef struct {
+  long long fuelLimit;
+  int burnVersion;
+}lua_args_t;
 
 /*
 ** Traverses all arguments from 'argv', returning a mask with those
@@ -472,7 +481,7 @@ static int handle_script (lua_State *L, char **argv) {
 ** any invalid argument). 'first' returns the first not-handled argument 
 ** (either the script name or a bad argument in case of error).
 */
-static int collectargs (char **argv, int *first, long long *fuelLimit) {
+static int collectargs (char **argv, int *first, lua_args_t *lua_args) {
   int args = 0;
   int i;
   for (i = 1; argv[i] != NULL; i++) {
@@ -515,8 +524,22 @@ static int collectargs (char **argv, int *first, long long *fuelLimit) {
         i++;  /* try next 'argv' */
         if (argv[i] == NULL || argv[i][0] == '-')
           return has_error;  /* no next argument or it is another option */
-        *fuelLimit = strtoull(argv[i], NULL, 10);
-        
+        lua_args->fuelLimit = strtoull(argv[i], NULL, 10);        
+        break;
+
+      case 'V':
+        args |= has_V;  /* FALLTHROUGH */
+        if (argv[i][2] != '\0')  /* extra characters after 1st? */
+          return has_error;  /* invalid option */
+        i++;  /* try next 'argv' */
+        if (argv[i] == NULL || argv[i][0] == '-')
+          return has_error;  /* no next argument or it is another option */
+        lua_args->burnVersion = strtoull(argv[i], NULL, 10);        
+        break;
+      case 't':
+        if (argv[i][2] != '\0')  /* extra characters after 1st? */
+          return has_error;  /* invalid option */
+        args |= has_t;
         break;
       default:  /* invalid option */
         return has_error;
@@ -565,6 +588,15 @@ static int handle_luainit (lua_State *L) {
     return dostring(L, init, name);
 }
 
+
+void trace_burning(lua_State *L, const char* caption, const char* format, ...) {
+  printf("[burner_trace] [%s] ", caption);
+  va_list argp;
+  va_start(argp, format);
+  vprintf(format, argp);  /* format message */
+  va_end(argp);
+}
+
 static void report_burner(lua_State *L, clock_t start) {
     lua_burner_state* bs = lua_GetBurnerState(L);
     printf("\n---------------------\n");
@@ -604,8 +636,11 @@ static int pmain (lua_State *L) {
   int argc = (int)lua_tointeger(L, 1);
   char **argv = (char **)lua_touserdata(L, 2);
   int script;
-  long long fuelLimit = LLONG_MAX; // default value = LLONG_MAX
-  int args = collectargs(argv, &script, &fuelLimit);
+  lua_args_t lua_args = {
+    LLONG_MAX,      /* fuelLimit */
+    BURN_VER_NEWEST /* burnVersion */
+  };
+  int args = collectargs(argv, &script, &lua_args);
   clock_t start = clock();
 
   luaL_checkversion(L);  /* check that interpreter has correct version */
@@ -623,10 +658,13 @@ static int pmain (lua_State *L) {
   luaL_openlibs(L);  /* open standard libraries */
   createargtable(L, argv, argc, script);  /* create table 'arg' */
   
-  if (fuelLimit > 0) {
-    if (!lua_StartBurner(L, fuelLimit, BURN_VER_NEWEST)) {
+  if (lua_args.fuelLimit > 0) {
+    if (!lua_StartBurner(L, lua_args.fuelLimit, lua_args.burnVersion)) {
       l_message(argv[0], "start burner failed!");
       return 0;
+    }
+    if (args & has_t) {
+      lua_SetBurnerTracer(L, &trace_burning);
     }
   }
   int status = 0;
@@ -658,7 +696,10 @@ static int pmain (lua_State *L) {
     report(L, status);
   }
 
-  if (fuelLimit > 0) {
+  if (lua_args.fuelLimit > 0) {
+    if (args & has_t) {
+      lua_SetBurnerTracer(L, NULL);
+    }
     report_burner(L, start);
   }
 
