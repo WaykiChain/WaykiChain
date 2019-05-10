@@ -1651,7 +1651,11 @@ bool static DisconnectTip(CValidationState &state) {
         CScriptDBViewCache scriptDBView(*pScriptDBTip);
         if (!DisconnectBlock(block, state, view, pindexDelete, *pTxCacheTip, scriptDBView, NULL))
             return ERRORMSG("DisconnectTip() : DisconnectBlock %s failed", pindexDelete->GetBlockHash().ToString());
-        assert(view.Flush() && scriptDBView.Flush());
+
+        // view.SetBaseView(pAccountViewTip);
+        assert(view.Flush());
+        // scriptDBView.SetBaseView(pScriptDBTip);
+        assert(scriptDBView.Flush());
     }
     if (SysCfg().IsBenchmark())
         LogPrint("INFO", "- Disconnect: %.2fms\n", (GetTimeMicros() - nStart) * 0.001);
@@ -1731,9 +1735,9 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
         }
         mapBlockSource.erase(inv.hash);
 
-        view.SetBaseView(pAccountViewTip);
+        // view.SetBaseView(pAccountViewTip);
         assert(view.Flush());
-        scriptDBView.SetBaseView(pScriptDBTip);
+        // scriptDBView.SetBaseView(pScriptDBTip);
         assert(scriptDBView.Flush());
 
         CAccountViewCache accountViewCacheTemp(*pAccountViewTip);
