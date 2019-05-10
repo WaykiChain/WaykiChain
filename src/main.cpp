@@ -1652,9 +1652,7 @@ bool static DisconnectTip(CValidationState &state) {
         if (!DisconnectBlock(block, state, view, pindexDelete, *pTxCacheTip, scriptDBView, NULL))
             return ERRORMSG("DisconnectTip() : DisconnectBlock %s failed", pindexDelete->GetBlockHash().ToString());
 
-        // view.SetBaseView(pAccountViewTip);
         assert(view.Flush());
-        // scriptDBView.SetBaseView(pScriptDBTip);
         assert(scriptDBView.Flush());
     }
     if (SysCfg().IsBenchmark())
@@ -1720,8 +1718,8 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
     // Read block from disk.
     CBlock block;
     if (!ReadBlockFromDisk(pindexNew, block))
-        return state.Abort(strprintf("Failed to read block hash:%s\n",
-                                     pindexNew->GetBlockHash().GetHex()));
+        return state.Abort(strprintf("Failed to read block hash:%s\n", pindexNew->GetBlockHash().GetHex()));
+
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
@@ -1735,9 +1733,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
         }
         mapBlockSource.erase(inv.hash);
 
-        // view.SetBaseView(pAccountViewTip);
         assert(view.Flush());
-        // scriptDBView.SetBaseView(pScriptDBTip);
         assert(scriptDBView.Flush());
 
         CAccountViewCache accountViewCacheTemp(*pAccountViewTip);
