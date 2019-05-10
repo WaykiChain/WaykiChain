@@ -54,7 +54,7 @@ bool CheckAppAcct(int64_t opValue[]) {
     vector_unsigned_char vDesUser1RegId = desUser1RegId.GetRegIdRaw();
     int64_t temp                        = opValue[1];  // 10 * COIN
     CVmOperate acctAddOper;
-    acctAddOper.nacctype = regid;
+    acctAddOper.accountType = regid;
     acctAddOper.opTye    = ADD_FREE;
     memcpy(acctAddOper.accountId, &vDesUser1RegId[0], 6);
     memcpy(acctAddOper.money, &temp, sizeof(temp));
@@ -62,7 +62,7 @@ bool CheckAppAcct(int64_t opValue[]) {
 
     vector_unsigned_char vDesUser2RegId = desUser2RegId.GetRegIdRaw();
     temp = opValue[2];   //20 * COIN
-    acctAddOper.nacctype = regid;
+    acctAddOper.accountType = regid;
     acctAddOper.opType = ADD_FREE;
     memcpy(acctAddOper.accountId, &vDesUser2RegId[0], 6);
     memcpy(acctAddOper.money, &temp, sizeof(temp));
@@ -70,7 +70,7 @@ bool CheckAppAcct(int64_t opValue[]) {
 
     vector_unsigned_char vDesRegId = desRegId.GetRegIdRaw();
     temp = opValue[3];  //30 * COIN
-    acctAddOper.nacctype = regid;
+    acctAddOper.accountType = regid;
     acctAddOper.opType = MINUS_FREE;
     memcpy(acctAddOper.accountId, &vDesRegId[0], 6);
     memcpy(acctAddOper.money, &temp, sizeof(temp));

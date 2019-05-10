@@ -191,9 +191,9 @@ shared_ptr<CAccount> CVmRunEnv::GetAccount(shared_ptr<CAccount>& Account) {
 
 vector_unsigned_char CVmRunEnv::GetAccountID(CVmOperate value) {
     vector_unsigned_char accountId;
-    if (value.nacctype == regid) {
+    if (value.accountType == regid) {
         accountId.assign(value.accountId, value.accountId + 6);
-    } else if (value.nacctype == base58addr) {
+    } else if (value.accountType == base58addr) {
         string addr(value.accountId, value.accountId + sizeof(value.accountId));
         CKeyID KeyId = CKeyID(addr);
         CRegID regid;
@@ -223,7 +223,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
     if (listoperate.size() > MAX_OUTPUT_COUNT) return false;
 
     for (auto& it : listoperate) {
-        if (it.nacctype != regid && it.nacctype != base58addr) return false;
+        if (it.accountType != regid && it.accountType != base58addr) return false;
 
         if (it.opType == ADD_FREE) {
             memcpy(&operValue, it.money, sizeof(it.money));
@@ -565,11 +565,11 @@ void CVmRunEnv::SetCheckAccount(bool bCheckAccount) { isCheckAccount = bCheckAcc
 
 Object CVmOperate::ToJson() {
     Object obj;
-    if (nacctype == regid) {
+    if (accountType == regid) {
         vector<unsigned char> vRegId(accountId, accountId + 6);
         CRegID regId(vRegId);
         obj.push_back(Pair("regid", regId.ToString()));
-    } else if (nacctype == base58addr) {
+    } else if (accountType == base58addr) {
         string addr(accountId, accountId + sizeof(accountId));
         obj.push_back(Pair("addr", addr));
     }

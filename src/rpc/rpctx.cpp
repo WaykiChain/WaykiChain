@@ -224,12 +224,12 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             for (auto& item : vOutput) {
                 Object objOutPut;
                 string address;
-                if (item.nacctype == regid) {
+                if (item.accountType == regid) {
                     vector<unsigned char> vRegId(item.accountId, item.accountId + 6);
                     CRegID regId(vRegId);
                     CUserID userId(regId);
                     address = RegIDToAddress(userId);
-                } else if (item.nacctype == base58addr) {
+                } else if (item.accountType == base58addr) {
                     address.assign(item.accountId[0], sizeof(item.accountId));
                 }
 

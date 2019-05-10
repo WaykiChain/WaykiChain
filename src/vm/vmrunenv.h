@@ -177,7 +177,7 @@ enum ACCOUNT_TYPE {
  */
 class CVmOperate{
 public:
-	unsigned char nacctype;      	//regid or base58addr
+	unsigned char accountType;      	//regid or base58addr
 	unsigned char accountId[34];	//!< accountId
 	unsigned char opType;		    //!OperType
 	unsigned int  timeoutHeight;    //!< the transacion Timeout height
@@ -185,7 +185,7 @@ public:
 
 	IMPLEMENT_SERIALIZE
 	(
-		READWRITE(nacctype);
+		READWRITE(accountType);
 		for (int i = 0;i < 34;i++)
 			READWRITE(accountId[i]);
 		READWRITE(opType);
@@ -195,7 +195,7 @@ public:
 	)
 
 	CVmOperate() {
-		nacctype = regid;
+		accountType = regid;
 		memset(accountId, 0, 34);
 		opType = ADD_FREE;
 		timeoutHeight = 0;

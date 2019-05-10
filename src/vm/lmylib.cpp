@@ -1435,15 +1435,15 @@ static bool GetDataTableWriteOutput(lua_State *L, vector<std::shared_ptr < std::
         LogPrint("vm", "addrType get fail\n");
         return false;
     } else {
-        temp.nacctype = (unsigned char)doubleValue;
+        temp.accountType = (unsigned char)doubleValue;
     }
 
-    if (temp.nacctype == 1) {
+    if (temp.accountType == 1) {
        len = 6;
-    } else if (temp.nacctype == 2){
+    } else if (temp.accountType == 2){
        len = 34;
     } else {
-        LogPrint("vm", "error nacctype:%d\n", temp.nacctype);
+        LogPrint("vm", "error accountType:%d\n", temp.accountType);
         return false;
     }
 
