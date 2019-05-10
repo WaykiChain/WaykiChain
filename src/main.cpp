@@ -2048,15 +2048,16 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     std::shared_ptr<CScriptDBViewCache> pScriptDBCache = std::make_shared<CScriptDBViewCache>(*pScriptDB);
     pScriptDBCache->mapContractDb = pScriptDBTip->mapContractDb;
 
-    bool bForkChainTipFound(false);
+    bool forkChainTipFound = false;
+    uint256 forkChainTipBlockHash;
     vector<CBlock> vPreBlocks;
-    uint256 preBlockHash = pPreBlockIndex->GetBlockHash();
 
     while (!chainActive.Contains(pPreBlockIndex)) {
-        if (!bForkChainTipFound) {
-            if (mapForkCache.count(preBlockHash)) {
-                bForkChainTipFound = true;
-                LogPrint("INFO", "ForkChainTip hash=%s, height=%d\n", preBlockHash.GetHex(), pPreBlockIndex->nHeight);
+        if (!forkChainTipFound) {
+            if (mapForkCache.count(pPreBlockIndex->GetBlockHash())) {
+                forkChainTipBlockHash = pPreBlockIndex->GetBlockHash();
+                forkChainTipFound     = true;
+                LogPrint("INFO", "ForkChainTip hash=%s, height=%d\n", forkChainTipBlockHash.GetHex(), pPreBlockIndex->nHeight);
             } else {
                 CBlock block;
                 if (!ReadBlockFromDisk(pPreBlockIndex, block))
@@ -2067,20 +2068,19 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         }
 
         pPreBlockIndex = pPreBlockIndex->pprev;
-        preBlockHash   = pPreBlockIndex->GetBlockHash();
         // if (chainActive.Tip()->nHeight - pPreBlockIndex->nHeight > SysCfg().GetMaxForkHeight())
         //     return state.DoS(100, ERRORMSG("ProcessForkedChain() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
         //         block.GetHash().GetHex(), block.GetHeight()));
 
-        if (mapBlockIndex.find(preBlockHash) == mapBlockIndex.end())
+        if (mapBlockIndex.find(pPreBlockIndex->GetBlockHash()) == mapBlockIndex.end())
             return state.DoS(10, ERRORMSG("ProcessForkedChain() : prev block not found"), 0, "bad-prevblk");
     }  //如果进来的preBlockHash不为tip的hash, 找到主链中分叉处
 
-    if (mapForkCache.count(preBlockHash)) {
-        pAcctViewCache = std::get<0>(mapForkCache[preBlockHash]);
-        pTxCache       = std::get<1>(mapForkCache[preBlockHash]);
-        pScriptDBCache = std::get<2>(mapForkCache[preBlockHash]);
-        LogPrint("INFO", "hash=%s, height=%d\n", preBlockHash.GetHex(), pPreBlockIndex->nHeight);
+    if (mapForkCache.count(pPreBlockIndex->GetBlockHash())) {
+        pAcctViewCache = std::get<0>(mapForkCache[pPreBlockIndex->GetBlockHash()]);
+        pTxCache       = std::get<1>(mapForkCache[pPreBlockIndex->GetBlockHash()]);
+        pScriptDBCache = std::get<2>(mapForkCache[pPreBlockIndex->GetBlockHash()]);
+        LogPrint("INFO", "hash=%s, height=%d\n", pPreBlockIndex->GetBlockHash().GetHex(), pPreBlockIndex->nHeight);
     } else {
         int64_t beginTime = GetTimeMillis();
         CBlockIndex *pBlockIndex = chainActive.Tip();
@@ -2102,18 +2102,17 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         }  //数据库状态回滚到主链分叉处
         LogPrint("INFO", "ProcessForkedChain() DisconnectBlock elapse :%lld ms\n", GetTimeMillis() - beginTime);
 
-        preBlockHash               = pPreBlockIndex->GetBlockHash();
-        mapForkCache[preBlockHash] = std::make_tuple(pAcctViewCache, pTxCache, pScriptDBCache);
+        mapForkCache[pPreBlockIndex->GetBlockHash()] = std::make_tuple(pAcctViewCache, pTxCache, pScriptDBCache);
 
-        LogPrint("INFO", "add mapForkCache Key:%s height:%d\n", preBlockHash.GetHex(), pPreBlockIndex->nHeight);
+        LogPrint("INFO", "add mapForkCache Key:%s height:%d\n", pPreBlockIndex->GetBlockHash().GetHex(), pPreBlockIndex->nHeight);
         LogPrint("INFO", "add pAcctViewCache:%x\n", pAcctViewCache.get());
         LogPrint("INFO", "view best block hash:%s\n", pAcctViewCache->GetBestBlock().GetHex());
     }
 
-    if (bForkChainTipFound) {
-        pForkAcctViewCache = std::get<0>(mapForkCache[preBlockHash]);
-        pForkTxCache       = std::get<1>(mapForkCache[preBlockHash]);
-        pForkScriptDBCache = std::get<2>(mapForkCache[preBlockHash]);
+    if (forkChainTipFound) {
+        pForkAcctViewCache = std::get<0>(mapForkCache[forkChainTipBlockHash]);
+        pForkTxCache       = std::get<1>(mapForkCache[forkChainTipBlockHash]);
+        pForkScriptDBCache = std::get<2>(mapForkCache[forkChainTipBlockHash]);
 
         pForkAcctViewCache->SetBaseView(pAcctViewCache.get());
         pForkTxCache->SetBaseView(pTxCache.get());
@@ -2171,9 +2170,9 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
     if (!vPreBlocks.empty()) {
         vector<CBlock>::iterator iterBlock = vPreBlocks.begin();
-        if (bForkChainTipFound) {
-            mapForkCache.erase(preBlockHash);
-            LogPrint("INFO", "delete mapForkCache Key:%s\n", preBlockHash.GetHex());
+        if (forkChainTipFound) {
+            mapForkCache.erase(forkChainTipBlockHash);
+            LogPrint("INFO", "delete mapForkCache Key:%s\n", forkChainTipBlockHash.GetHex());
         }
 
         std::tuple<std::shared_ptr<CAccountViewCache>, std::shared_ptr<CTransactionDBCache>, std::shared_ptr<CScriptDBViewCache> > cache =
