@@ -185,7 +185,7 @@ bool CAccountViewCache::SaveAccountInfo(const CAccount  &account) {
     mapRegId2KeyIds[account.regID.GetRegIdRaw()]          = account.keyID;
 
     if (!account.nickID.IsEmpty())
-        cacheNickId2KeyIds[account.nickID.GetNickIdRaw()]   = account.keyID;
+        mapNickId2KeyIds[account.nickID.GetNickIdRaw()]   = account.keyID;
 
     mapKeyId2Accounts[account.keyID]                            = account;
     
