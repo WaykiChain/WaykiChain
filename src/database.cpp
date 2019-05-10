@@ -8,17 +8,17 @@
 #include "vm/vmrunenv.h"
 
 bool CAccountViewCache::GetAccount(const CKeyID &keyId, CAccount &account) {
-    if (cacheAccounts.count(keyId)) {
-        if (cacheAccounts[keyId].keyID != uint160()) {
-            account = cacheAccounts[keyId];
+    if (cacheKeyId2Accounts.count(keyId)) {
+        if (cacheKeyId2Accounts[keyId].keyID != uint160()) {
+            account = cacheKeyId2Accounts[keyId];
             return true;
         } else
             return false;
     }
 
     if (pBase->GetAccount(keyId, account)) {
-        cacheAccounts.insert(make_pair(keyId, account));
-        // cacheAccounts[keyId] = account;
+        cacheKeyId2Accounts.insert(make_pair(keyId, account));
+        // cacheKeyId2Accounts[keyId] = account;
         return true;
     }
 
@@ -32,8 +32,8 @@ bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAcco
     if (cacheRegId2KeyIds.count(accountId)) {
         CKeyID keyId(cacheRegId2KeyIds[accountId]);
         if (keyId != uint160()) {
-            if (cacheAccounts.count(keyId)) {
-                account = cacheAccounts[keyId];
+            if (cacheKeyId2Accounts.count(keyId)) {
+                account = cacheKeyId2Accounts[keyId];
                 return (account.keyID != uint160()); // return true if the account exists, otherwise return false
             }
 
@@ -46,13 +46,13 @@ bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAcco
         if (pBase->GetKeyId(accountId, keyId)) {
             cacheRegId2KeyIds[accountId] = keyId;
 
-            if (cacheAccounts.count(keyId) > 0) {
-                account = cacheAccounts[keyId];
+            if (cacheKeyId2Accounts.count(keyId) > 0) {
+                account = cacheKeyId2Accounts[keyId];
                 return (account.keyID != uint160()); // return true if the account exists, otherwise return false
             }
 
             if (pBase->GetAccount(keyId, account)) {
-                cacheAccounts[keyId] = account;
+                cacheKeyId2Accounts[keyId] = account;
                 return true;
             }
         }
@@ -62,7 +62,7 @@ bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAcco
 }
 
 bool CAccountViewCache::SetAccount(const CKeyID &keyId, const CAccount &account) {
-    cacheAccounts[keyId] = account;
+    cacheKeyId2Accounts[keyId] = account;
     return true;
 }
 bool CAccountViewCache::SetAccount(const vector<unsigned char> &accountId, const CAccount &account) {
@@ -70,13 +70,13 @@ bool CAccountViewCache::SetAccount(const vector<unsigned char> &accountId, const
         return false;
     }
     if (cacheRegId2KeyIds.count(accountId)) {
-        cacheAccounts[cacheRegId2KeyIds[accountId]] = account;
+        cacheKeyId2Accounts[cacheRegId2KeyIds[accountId]] = account;
         return true;
     }
     return false;
 }
 bool CAccountViewCache::HaveAccount(const CKeyID &keyId) {
-    if (cacheAccounts.count(keyId))
+    if (cacheKeyId2Accounts.count(keyId))
         return true;
     else
         return pBase->HaveAccount(keyId);
@@ -97,9 +97,9 @@ bool CAccountViewCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, con
     for (map<CKeyID, CAccount>::const_iterator it = mapAccounts.begin(); it != mapAccounts.end(); ++it) {
         if (uint160() == it->second.keyID) {
             pBase->EraseAccountByKeyId(it->first);
-            cacheAccounts.erase(it->first);
+            cacheKeyId2Accounts.erase(it->first);
         } else {
-            cacheAccounts[it->first] = it->second;
+            cacheKeyId2Accounts[it->first] = it->second;
         }
     }
 
@@ -111,22 +111,22 @@ bool CAccountViewCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, con
 bool CAccountViewCache::BatchWrite(const vector<CAccount> &vAccounts) {
     for (vector<CAccount>::const_iterator it = vAccounts.begin(); it != vAccounts.end(); ++it) {
         if (it->IsEmptyValue() && !it->IsRegistered()) {
-            cacheAccounts[it->keyID]       = *it;
-            cacheAccounts[it->keyID].keyID = uint160();
+            cacheKeyId2Accounts[it->keyID]       = *it;
+            cacheKeyId2Accounts[it->keyID].keyID = uint160();
         } else {
-            cacheAccounts[it->keyID] = *it;
+            cacheKeyId2Accounts[it->keyID] = *it;
         }
     }
     return true;
 }
 bool CAccountViewCache::EraseAccountByKeyId(const CKeyID &keyId) {
-    if (cacheAccounts.count(keyId))
-        cacheAccounts[keyId].keyID = uint160();
+    if (cacheKeyId2Accounts.count(keyId))
+        cacheKeyId2Accounts[keyId].keyID = uint160();
     else {
         CAccount account;
         if (pBase->GetAccount(keyId, account)) {
             account.keyID        = uint160();
-            cacheAccounts[keyId] = account;
+            cacheKeyId2Accounts[keyId] = account;
         }
     }
     return true;
@@ -187,7 +187,7 @@ bool CAccountViewCache::SaveAccountInfo(const CAccount  &account) {
     if (!account.nickID.IsEmpty())
         cacheNickId2KeyIds[account.nickID.GetNickIdRaw()]   = account.keyID;
 
-    cacheAccounts[account.keyID]                            = account;
+    cacheKeyId2Accounts[account.keyID]                            = account;
     
     return true;
 }
@@ -313,9 +313,9 @@ bool CAccountViewCache::EraseKeyId(const CUserID &userId) {
 }
 
 bool CAccountViewCache::Flush() {
-    bool fOk = pBase->BatchWrite(cacheAccounts, cacheRegId2KeyIds, blockHash);
+    bool fOk = pBase->BatchWrite(cacheKeyId2Accounts, cacheRegId2KeyIds, blockHash);
     if (fOk) {
-        cacheAccounts.clear();
+        cacheKeyId2Accounts.clear();
         cacheRegId2KeyIds.clear();
     }
     return fOk;
@@ -331,7 +331,7 @@ int64_t CAccountViewCache::GetFreeBCoins(const CUserID &userId) const {
 }
 
 unsigned int CAccountViewCache::GetCacheSize() {
-    return ::GetSerializeSize(cacheAccounts, SER_DISK, CLIENT_VERSION) + ::GetSerializeSize(cacheRegId2KeyIds, SER_DISK, CLIENT_VERSION);
+    return ::GetSerializeSize(cacheKeyId2Accounts, SER_DISK, CLIENT_VERSION) + ::GetSerializeSize(cacheRegId2KeyIds, SER_DISK, CLIENT_VERSION);
 }
 
 std::tuple<uint64_t, uint64_t> CAccountViewCache::TraverseAccount() { 
@@ -343,13 +343,13 @@ Object CAccountViewCache::ToJsonObj() const {
     obj.push_back(Pair("blockHash", blockHash.ToString()));
 
     Array arrayObj;
-    for (auto& item : cacheAccounts) {
+    for (auto& item : cacheKeyId2Accounts) {
         Object obj;
         obj.push_back(Pair("keyID", item.first.ToString()));
         obj.push_back(Pair("account", item.second.ToString()));
         arrayObj.push_back(obj);
     }
-    obj.push_back(Pair("cacheAccounts", arrayObj));
+    obj.push_back(Pair("cacheKeyId2Accounts", arrayObj));
 
     for (auto& item : cacheRegId2KeyIds) {
         Object obj;
@@ -742,7 +742,8 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
     return true;
 }
 bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
-                                         const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
+                                         const int &nIndex, vector<unsigned char> &vScriptKey, 
+                                         vector<unsigned char> &vScriptData) {
     if (0 == nIndex) {
         vector<unsigned char> vKey = {'d', 'a', 't', 'a'};
         vKey.insert(vKey.end(), vScriptId.begin(), vScriptId.end());
@@ -968,7 +969,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
         }
     } else {
         //		assert(0);
-        return ERRORMSG("getcontractdata error");
+        return ERRORMSG("getcontractdata nIndex > 1 error");
     }
     //	vector<unsigned char> vKey = { 'd', 'a', 't', 'a' };
     //	vKey.insert(vKey.end(), vScriptId.begin(), vScriptId.end());

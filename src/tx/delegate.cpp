@@ -50,8 +50,7 @@ Object CDelegateVoteTx::ToJson(const CAccountViewCache &accountView) const {
 }
 
 // FIXME: not useuful
-bool CDelegateVoteTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
-                             CScriptDBViewCache &scriptDB) {
+bool CDelegateVoteTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     // CKeyID keyId;
     // if (!view.GetKeyId(userId, keyId))
     //     return false;

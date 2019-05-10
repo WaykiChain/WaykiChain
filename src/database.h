@@ -46,7 +46,7 @@ protected:
 
 public:
     uint256 blockHash;
-    map<CKeyID, CAccount> cacheAccounts;                    // <KeyID -> Account>
+    map<CKeyID, CAccount> cacheKeyId2Accounts;              // <KeyID -> Account>
     map<vector<unsigned char>, CKeyID> cacheRegId2KeyIds;   // <RegID -> KeyID>
     map<vector<unsigned char>, CKeyID> cacheNickId2KeyIds;  // <NickID -> KeyID>
 
