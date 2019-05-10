@@ -63,9 +63,9 @@ private:
     unsigned int nTransactionsUpdated;  //TODO meaning
 public:
     mutable CCriticalSection cs;
-    map<uint256, CTxMemPoolEntry > mapTx;
-    std::shared_ptr<CAccountViewCache> pAccountViewCache;
-    std::shared_ptr<CScriptDBViewCache> pScriptDBViewCache;
+    map<uint256, CTxMemPoolEntry > memPoolTxs;
+    std::shared_ptr<CAccountViewCache> memPoolAccountViewCache;
+    std::shared_ptr<CScriptDBViewCache> memPoolScriptDBViewCache;
 
     CTxMemPool();
 
@@ -84,12 +84,12 @@ public:
 
     unsigned long Size() {
         LOCK(cs);
-        return mapTx.size();
+        return memPoolTxs.size();
     }
 
     bool Exists(uint256 hash) {
         LOCK(cs);
-        return ((mapTx.count(hash) != 0));
+        return ((memPoolTxs.count(hash) != 0));
     }
 };
 

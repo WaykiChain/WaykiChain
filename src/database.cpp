@@ -92,7 +92,7 @@ bool CAccountViewCache::SetBestBlock(const uint256 &blockHashIn) {
     return true;
 }
 
-bool CAccountViewCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>, 
+bool CAccountViewCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>,
                                 CKeyID> &mapKeyIds, const uint256 &blockHashIn) {
     for (map<CKeyID, CAccount>::const_iterator it = mapAccounts.begin(); it != mapAccounts.end(); ++it) {
         if (uint160() == it->second.keyID) {
@@ -188,7 +188,7 @@ bool CAccountViewCache::SaveAccountInfo(const CAccount  &account) {
         cacheNickId2KeyIds[account.nickID.GetNickIdRaw()]   = account.keyID;
 
     cacheAccounts[account.keyID]                            = account;
-    
+
     return true;
 }
 
@@ -272,6 +272,17 @@ bool CAccountViewCache::GetRegId(const CUserID &userId, CRegID &regId) const {
     return false;
 }
 
+bool CAccountViewCache::RegIDIsMature(const CRegID &regId) const {
+    if (regId.IsEmpty())
+        return false;
+
+    int height = chainActive.Height();
+    if ((regId.GetHeight() == 0) || (height - regId.GetHeight() > kRegIdMaturePeriodByBlock))
+        return true;
+    else
+        return false;
+}
+
 bool CAccountViewCache::SetAccount(const CUserID &userId, const CAccount &account) {
     if (userId.type() == typeid(CRegID)) {
         return SetAccount(userId.get<CRegID>().GetRegIdRaw(), account);
@@ -292,18 +303,17 @@ bool CAccountViewCache::EraseAccountByKeyId(const CUserID &userId) {
         return EraseAccountByKeyId(userId.get<CPubKey>().GetKeyId());
     } else {
         return ERRORMSG("EraseAccount account type error!");
-        //		assert(0);
     }
     return false;
 }
+
 bool CAccountViewCache::HaveAccount(const CUserID &userId) {
     if (userId.type() == typeid(CKeyID)) {
         return HaveAccount(userId.get<CKeyID>());
-    } else {
-        //		assert(0);
     }
     return false;
 }
+
 bool CAccountViewCache::EraseKeyId(const CUserID &userId) {
     if (userId.type() == typeid(CRegID)) {
         return EraseKeyIdByRegId(userId.get<CRegID>().GetRegIdRaw());
@@ -331,11 +341,12 @@ int64_t CAccountViewCache::GetFreeBCoins(const CUserID &userId) const {
 }
 
 unsigned int CAccountViewCache::GetCacheSize() {
-    return ::GetSerializeSize(cacheAccounts, SER_DISK, CLIENT_VERSION) + ::GetSerializeSize(cacheRegId2KeyIds, SER_DISK, CLIENT_VERSION);
+    return ::GetSerializeSize(cacheAccounts, SER_DISK, CLIENT_VERSION) +
+           ::GetSerializeSize(cacheRegId2KeyIds, SER_DISK, CLIENT_VERSION);
 }
 
-std::tuple<uint64_t, uint64_t> CAccountViewCache::TraverseAccount() { 
-    return pBase->TraverseAccount(); 
+std::tuple<uint64_t, uint64_t> CAccountViewCache::TraverseAccount() {
+    return pBase->TraverseAccount();
 }
 
 Object CAccountViewCache::ToJsonObj() const {
@@ -561,8 +572,6 @@ bool CScriptDBViewCache::GetScript(const int nIndex, vector<unsigned char> &vScr
                 return true;
             }
         }
-    } else {
-        //		assert(0);
     }
     return true;
 }

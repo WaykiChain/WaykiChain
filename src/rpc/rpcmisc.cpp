@@ -142,7 +142,7 @@ Value getbalance(const Array& params, bool fHelp)
                     obj.push_back(Pair("balance", ValueFromAmount(pAccountViewTip->GetFreeBCoins(keyid) - nValue)));
                     return obj;
                 } else {
-                    obj.push_back(Pair("balance", ValueFromAmount(mempool.pAccountViewCache->GetFreeBCoins(keyid))));
+                    obj.push_back(Pair("balance", ValueFromAmount(mempool.memPoolAccountViewCache.get()->GetFreeBCoins(keyid))));
                     return obj;
                 }
             } else {

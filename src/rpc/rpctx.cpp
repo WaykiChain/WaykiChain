@@ -2137,9 +2137,9 @@ Value getcontractconfirmdata(const Array& params, bool fHelp) {
             + HelpExampleRpc("getcontractconfirmdata", "\"1304166-1\" \"1\"  \"1\""));
     }
     std::shared_ptr<CScriptDBViewCache> pAccountViewCache;
-    if(4 == params.size() && 0==params[3].get_int()) {
-        pAccountViewCache.reset(new CScriptDBViewCache(*mempool.pScriptDBViewCache));
-    }else {
+    if (4 == params.size() && 0 == params[3].get_int()) {
+        pAccountViewCache.reset(new CScriptDBViewCache(*mempool.memPoolScriptDBViewCache.get()));
+    } else {
         pAccountViewCache.reset(new CScriptDBViewCache(*pScriptDBTip));
     }
     int height = chainActive.Height();
@@ -2947,7 +2947,7 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
 
     std::shared_ptr<CAppUserAccount> appUserAccount = std::make_shared<CAppUserAccount>();
     if (params.size() == 3 && params[2].get_int() == 0) {
-        CScriptDBViewCache viewCache(*mempool.pScriptDBViewCache);
+        CScriptDBViewCache viewCache(*mempool.memPoolScriptDBViewCache.get());
         if (!viewCache.GetScriptAcc(appRegId, acctKey, *appUserAccount.get())) {
             appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }

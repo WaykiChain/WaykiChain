@@ -94,6 +94,11 @@ uint64_t CAccount::GetTotalBcoins() {
     return ( votedBcoins + bcoins );
 }
 
+bool CAccount::RegIDIsMature() const {
+    return (!regID.IsEmpty()) &&
+           ((regID.GetHeight() == 0) || (chainActive.Height() - (int)regID.GetHeight() > kRegIdMaturePeriodByBlock));
+}
+
 Object CAccount::ToJsonObj(bool isAddress) const {
     Array voteFundArray;
     for (auto &fund : voteFunds) {
@@ -101,15 +106,11 @@ Object CAccount::ToJsonObj(bool isAddress) const {
     }
 
     Object obj;
-    bool isMature = (regID.GetHeight() == 0 ||
-                     chainActive.Height() - (int)regID.GetHeight() > kRegIdMaturePeriodByBlock)
-                        ? true
-                        : false;
     obj.push_back(Pair("address", keyID.ToAddress()));
     obj.push_back(Pair("keyid", keyID.ToString()));
     obj.push_back(Pair("nickid", nickID.ToString()));
     obj.push_back(Pair("regid", regID.ToString()));
-    obj.push_back(Pair("regid_mature", isMature));
+    obj.push_back(Pair("regid_mature", RegIDIsMature()));
     obj.push_back(Pair("pubkey", pubKey.ToString()));
     obj.push_back(Pair("miner_pubkey", minerPubKey.ToString()));
     obj.push_back(Pair("bcoins", bcoins));
@@ -170,7 +171,7 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64
     default:
         return ERRORMSG("operate account type error!");
     }
-    
+
     LogPrint("op_account", "after operate:%s\n", ToString());
     return true;
 }

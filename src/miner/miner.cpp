@@ -84,12 +84,12 @@ int GetElementForBurn(CBlockIndex *pIndex) {
 
 // We want to sort transactions by priority and fee, so:
 void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate) {
-    vecPriority.reserve(mempool.mapTx.size());
+    vecPriority.reserve(mempool.memPoolTxs.size());
     // Priority order to process transactions
     static double dPriority     = 0;
     static double dFeePerKb     = 0;
     static unsigned int nTxSize = 0;
-    for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi) {
+    for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.memPoolTxs.begin(); mi != mempool.memPoolTxs.end(); ++mi) {
         CBaseTx *pBaseTx = mi->second.GetTx().get();
         if (!pBaseTx->IsCoinBase() && !pTxCacheTip->HaveTx(pBaseTx->GetHash())) {
             nTxSize   = ::GetSerializeSize(*pBaseTx, SER_NETWORK, PROTOCOL_VERSION);
@@ -407,8 +407,11 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CAccountViewCache &view, CTransactionD
             if (nTotalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP)
                 continue;
 
+            viewTemp.SetBaseView(&view);
             assert(viewTemp.Flush());
+            scriptCacheTemp.SetBaseView(&scriptCache);
             assert(scriptCacheTemp.Flush());
+
             nFees += pBaseTx->GetFee();
             nBlockSize += stx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
             nTotalRunStep += pBaseTx->nRunStep;
