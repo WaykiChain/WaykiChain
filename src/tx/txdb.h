@@ -71,7 +71,7 @@ public:
 
     virtual bool SetAccount(const CKeyID &keyId, const CAccount &account);
     // virtual bool SetAccount(const CUserID &userId, const CAccount &account) {};
-    virtual bool SetAccount(const vector<unsigned char> &accountId, const CAccount &account);
+    virtual bool SetAccount(const vector<unsigned char> &accountRegId, const CAccount &account);
     
     bool HaveAccount(const CKeyID &keyId);
     uint256 GetBestBlock();

@@ -20,7 +20,7 @@ public:
     virtual bool GetAccount(const CKeyID &keyId, CAccount &account) = 0;
     virtual bool GetAccount(const vector<unsigned char> &accountRegId, CAccount &account) = 0;
     virtual bool SetAccount(const CKeyID &keyId, const CAccount &account) = 0;
-    virtual bool SetAccount(const vector<unsigned char> &accountId, const CAccount &account) = 0;
+    virtual bool SetAccount(const vector<unsigned char> &accountRegId, const CAccount &account) = 0;
     // virtual bool SetAccount(const CUserID &userId, const CAccount &account) = 0;
     virtual bool HaveAccount(const CKeyID &keyId) = 0;
     virtual uint256 GetBestBlock() = 0;
@@ -55,7 +55,7 @@ public:
     virtual bool GetAccount(const vector<unsigned char> &accountRegId, CAccount &account);
     virtual bool GetAccount(const CUserID &userId, CAccount &account);
     virtual bool SetAccount(const CKeyID &keyId, const CAccount &account);
-    virtual bool SetAccount(const vector<unsigned char> &accountId, const CAccount &account);
+    virtual bool SetAccount(const vector<unsigned char> &accountRegId, const CAccount &account);
     virtual bool SetAccount(const CUserID &userId, const CAccount &account);
     virtual bool HaveAccount(const CKeyID &keyId);
     virtual uint256 GetBestBlock();

@@ -65,12 +65,13 @@ bool CAccountViewCache::SetAccount(const CKeyID &keyId, const CAccount &account)
     mapKeyId2Account[keyId] = account;
     return true;
 }
-bool CAccountViewCache::SetAccount(const vector<unsigned char> &accountId, const CAccount &account) {
-    if (accountId.empty()) {
+bool CAccountViewCache::SetAccount(const vector<unsigned char> &accountRegId, const CAccount &account) {
+    if (accountRegId.empty()) {
         return false;
     }
-    if (mapRegId2KeyId.count(accountId)) {
-        mapKeyId2Account[mapRegId2KeyId[accountId]] = account;
+    if (mapRegId2KeyId.count(accountRegId)) {
+        CKeyID keyId = mapRegId2KeyId[ accountRegId ];
+        mapKeyId2Account[ keyId ] = account;
         return true;
     }
     return false;
@@ -299,9 +300,7 @@ bool CAccountViewCache::EraseAccountByKeyId(const CUserID &userId) {
 bool CAccountViewCache::HaveAccount(const CUserID &userId) {
     if (userId.type() == typeid(CKeyID)) {
         return HaveAccount(userId.get<CKeyID>());
-    } else {
-        //		assert(0);
-    }
+    } 
     return false;
 }
 bool CAccountViewCache::EraseKeyId(const CUserID &userId) {

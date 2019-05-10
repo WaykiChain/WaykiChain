@@ -450,11 +450,13 @@ bool CContractInvokeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidati
         if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
                                          operAddressToTxLog))
             return false;
+
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
 
         if (!scriptDB.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
                                          operAddressToTxLog))
             return false;
+            
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
     }
 

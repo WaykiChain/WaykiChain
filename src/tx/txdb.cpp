@@ -155,22 +155,23 @@ bool CAccountViewDB::GetAccount(const CKeyID &keyId, CAccount &account) {
 
 bool CAccountViewDB::SetAccount(const CKeyID &keyId, const CAccount &account) {
     bool ret = db.Write(make_pair('k', keyId), account);
+
     assert(!account.keyID.IsEmpty());
     assert(!account.regID.IsEmpty());
     assert(account.pubKey.IsValid());
     return ret;
 }
 
-bool CAccountViewDB::SetAccount(const vector<unsigned char> &accountId, const CAccount &account) {
+bool CAccountViewDB::SetAccount(const vector<unsigned char> &accountRegId, const CAccount &account) {
     CKeyID keyId;
-    if (db.Read(make_pair('a', accountId), keyId)) {
+    if (db.Read(make_pair('r', accountRegId), keyId)) {
         return db.Write(make_pair('k', keyId), account);
     } else
         return false;
 }
 
 bool CAccountViewDB::HaveAccount(const CKeyID &keyId) {
-    return db.Exists(keyId);
+    return db.Exists(make_pair('k', keyId));
 }
 
 uint256 CAccountViewDB::GetBestBlock() {
