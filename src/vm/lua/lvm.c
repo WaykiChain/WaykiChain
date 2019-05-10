@@ -765,6 +765,7 @@ void luaV_execute (lua_State *L) {
     if (!lua_BurnStep(L, 1, BURN_VER_R1)){
       return ;
     }
+    lua_BurnOperator(L, GET_OPCODE(i), BURN_VER_R2);
     vmdispatch (GET_OPCODE(i)) {
       vmcase(OP_MOVE) {
         setobjs2s(L, ra, RB(i));

@@ -131,6 +131,8 @@ public:
         return (pubKey.IsFullyValid() && pubKey.GetKeyId() == keyID);
     }
 
+    bool RegIDIsMature() const;
+
     bool SetRegId(const CRegID& regID) {
         this->regID = regID;
         return true;

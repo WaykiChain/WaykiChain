@@ -24,12 +24,42 @@
 /** burn store unit size */
 #define BURN_STORE_UNIT_SIZE        32
 
-#define FUEL_STEP1                  1
-#define FUEL_MEM_ADDED              3
-#define FUEL_STORE_ADDED            20000
-#define FUEL_STORE_UNCHANGED        200
-#define FUEL_STORE_GET              200
-#define FUEL_STORE_REFUND           10000
+
+#define FUEL_STEP1              1
+#define FUEL_OP_ADD             3
+#define FUEL_OP_SUB             3    
+#define FUEL_OP_MUL             5
+#define FUEL_OP_DIV             5
+#define FUEL_OP_IDIV            5
+#define FUEL_OP_MOD             8
+#define FUEL_OP_POW             10
+#define FUEL_OP_BXOR            3
+#define FUEL_OP_UNM             3
+#define FUEL_OP_BAND            3
+#define FUEL_OP_BOR             3
+#define FUEL_OP_SHR             3
+#define FUEL_OP_SHL             3
+#define FUEL_OP_BNOT            3
+#define FUEL_OP_EQ              3   /* ==, ~= */
+#define FUEL_OP_LT              3   /* <, > */
+
+#define FUEL_OP_LE              3   /* <=, >= */
+#define FUEL_OP_TEST            3   /* and, or */
+#define FUEL_OP_TESTSET         3   /* and, or */
+
+#define FUEL_OP_NOT             3   /* not */
+#define FUEL_OP_CONCAT          3   /* .. */
+#define FUEL_OP_LEN             32  /* # */
+
+
+#define FUEL_MEM_ADDED          3
+#define FUEL_STORE_ADDED        20000
+#define FUEL_STORE_UNCHANGED    200
+#define FUEL_STORE_GET          200
+#define FUEL_STORE_REFUND       10000
+
+
+typedef void (*lua_burner_trace_cb) (lua_State *L, const char* caption, const char* format, ...);
 
 struct lua_burner_state {
     int                 isStarted;          /** 0 is stoped, otherwise is started */
@@ -44,6 +74,7 @@ struct lua_burner_state {
     unsigned long long  freeMemSize;        /** total free memory size */
     unsigned long long  freeMemTimes;       /** total free memory times */
     unsigned long long  step;               /** total step */
+    lua_burner_trace_cb tracer;              /** trace the burning */
 };
 
 typedef struct lua_burner_state lua_burner_state;
@@ -70,6 +101,8 @@ LUA_API int lua_BurnMemory(lua_State *L, void *block, size_t osize, size_t nsize
  */
 LUA_API int lua_BurnStep(lua_State *L, unsigned long long step, int version);
 
+LUA_API int lua_BurnOperator(lua_State *L, int op, int version);
+
 LUA_API int lua_BurnStoreSet(lua_State *L, size_t oldSize, size_t newSize, int version);
 
 LUA_API int lua_BurnStoreGet(lua_State *L, size_t size, int version);
@@ -86,7 +119,11 @@ LUA_API unsigned long long lua_GetMemoryFuel(lua_State *L);
 #define lua_CalcFuelBySize(size, unitSize, fuelPerUnit) \
     ( unitSize == 0 ? 0 : ((size + unitSize - 1) / unitSize) * fuelPerUnit )
 
-void lua_BurnError (lua_State *L, const char *fmt, ...);
+LUA_API void lua_BurnError (lua_State *L, const char *fmt, ...);
 
+/**
+ * set the burner trace callback function, rerurn the old one
+ */
+LUA_API lua_burner_trace_cb lua_SetBurnerTracer(lua_State *L, lua_burner_trace_cb tracer);
 
 #endif // L_BURNER_H

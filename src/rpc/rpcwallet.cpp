@@ -311,14 +311,10 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
     int nHeight = chainActive.Height();
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
-    sendUserId = (pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId) &&
-                  (sendRegId.GetHeight() == 0 ||
-                   nHeight - sendRegId.GetHeight() > kRegIdMaturePeriodByBlock))
+    sendUserId = (pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId) && pAccountViewTip->RegIDIsMature(sendRegId))
                      ? CUserID(sendRegId)
                      : CUserID(sendPubKey);
-    recvUserId = (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) &&
-                  (recvRegId.GetHeight() == 0 ||
-                   nHeight - recvRegId.GetHeight() > kRegIdMaturePeriodByBlock))
+    recvUserId = (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) && pAccountViewTip->RegIDIsMature(recvRegId))
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
     CBaseCoinTransferTx tx;
@@ -559,16 +555,12 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
 
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
-    sendUserId =
-        (pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId) &&
-         (sendRegId.GetHeight() == 0 || height - sendRegId.GetHeight() > kRegIdMaturePeriodByBlock))
-            ? CUserID(sendRegId)
-            : CUserID(sendPubKey);
-    recvUserId =
-        (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) &&
-         (recvRegId.GetHeight() == 0 || height - recvRegId.GetHeight() > kRegIdMaturePeriodByBlock))
-            ? CUserID(recvRegId)
-            : CUserID(recvKeyId);
+    sendUserId = (pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId) && pAccountViewTip->RegIDIsMature(sendRegId))
+                     ? CUserID(sendRegId)
+                     : CUserID(sendPubKey);
+    recvUserId = (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) && pAccountViewTip->RegIDIsMature(recvRegId))
+                     ? CUserID(recvRegId)
+                     : CUserID(recvKeyId);
 
     CBaseCoinTransferTx tx;
     tx.txUid        = sendUserId;
@@ -635,11 +627,9 @@ Value genmulsigtx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
     }
 
-    recvUserId =
-        (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) &&
-         (recvRegId.GetHeight() == 0 || height - recvRegId.GetHeight() > kRegIdMaturePeriodByBlock))
-            ? CUserID(recvRegId)
-            : CUserID(recvKeyId);
+    recvUserId = (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) && pAccountViewTip->RegIDIsMature(recvRegId))
+                     ? CUserID(recvRegId)
+                     : CUserID(recvKeyId);
 
     int64_t amount = AmountToRawValue(params[2]);
     int64_t fee    = AmountToRawValue(params[3]);
@@ -664,8 +654,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     vector<CSignaturePair> signaturePairs;
     CRegID regId;
     for (const auto& pubKey : pubKeys) {
-        if (pAccountViewTip->GetRegId(CUserID(pubKey), regId) &&
-            (regId.GetHeight() == 0 || height - regId.GetHeight() > kRegIdMaturePeriodByBlock)) {
+        if (pAccountViewTip->GetRegId(CUserID(pubKey), regId) && pAccountViewTip->RegIDIsMature(regId)) {
             signaturePairs.push_back(CSignaturePair(regId, vector_unsigned_char()));
         } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Inmature regid or invalid key");

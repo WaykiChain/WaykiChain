@@ -33,9 +33,10 @@ public:
     virtual bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId) = 0;
     virtual bool EraseKeyIdByRegId(const vector<unsigned char> &accountRegId) = 0;
 
-    // virtual bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account) = 0;
+    // virtual bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId,
+    // const CAccount &account) = 0;
     virtual std::tuple<uint64_t, uint64_t> TraverseAccount() = 0;
-    virtual Object ToJsonObj(char prefix) = 0;
+    virtual Object ToJsonObj(char prefix)                    = 0;
 
     virtual ~CAccountView() {};
 };
@@ -81,6 +82,7 @@ public:
     bool GetUserId(const string &addr, CUserID &userId);
     bool GetRegId(const CKeyID &keyId, CRegID &regId);
     bool GetRegId(const CUserID &userId, CRegID &regId) const;
+    bool RegIDIsMature(const CRegID &regId) const;
     bool GetKeyId(const CUserID &userId, CKeyID &keyId);
     bool EraseAccountByKeyId(const CUserID &userId);
     bool EraseKeyId(const CUserID &userId);
@@ -93,7 +95,7 @@ public:
 };
 
 class CScriptDBView {
-   public:
+public:
     virtual bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) = 0;
     virtual bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) = 0;
     virtual bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb) = 0;
@@ -133,7 +135,7 @@ public:
 
     bool GetScript(const CRegID &scriptId, vector<unsigned char> &vValue);
     bool GetScript(const int nIndex, CRegID &scriptId, vector<unsigned char> &vValue);
-    bool GetScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vKey, CAppUserAccount &appAccOut);    
+    bool GetScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vKey, CAppUserAccount &appAccOut);
     bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CScriptDBOperLog &operlog);
     bool EraseScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vKey);
     bool SetScript(const CRegID &scriptId, const vector<unsigned char> &vValue);
@@ -180,7 +182,7 @@ public:
     bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CScriptDBOperLog &operLog);
     bool GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc);
 
-   private:
+private:
     bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue);
     bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
     bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb);
