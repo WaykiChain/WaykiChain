@@ -40,12 +40,13 @@ public:
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
-            assert(txUid.type() == typeid(CPubKey) && minerUid.type() == typeid(CPubKey) );
+            assert(txUid.type() == typeid(CPubKey) &&
+                   (minerUid.type() == typeid(CPubKey) || minerUid.type() == typeid(CNullID)));
 
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid.get<CPubKey>() 
+            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid.get<CPubKey>()
                 << minerUid.get<CPubKey>() << VARINT(llFees);
-                
+
             sigHash = ss.GetHash();
         }
 
