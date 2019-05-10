@@ -44,7 +44,7 @@ bool CPriceFeedTx::CheckTx(CValidationState &state, CAccountViewCache &view, CSc
 
 bool CPriceFeedTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
                     int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
-    
+
     CAccount account;
     if (!view.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",
@@ -55,8 +55,9 @@ bool CPriceFeedTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, not sufficient fcoins(%d) in account (%s)",
                         account.fcoins, txUid.ToString()), PRICE_FEED_FAIL, "not-sufficiect-fcoins");
 
-    // update the price state accordingly: 
+    // update the price state accordingly:
 
+    return true;
 }
 
 bool CPriceFeedTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
