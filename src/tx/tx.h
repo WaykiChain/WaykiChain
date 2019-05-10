@@ -12,7 +12,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "accounts/accounts.h"
+#include "accounts/account.h"
 #include "commons/uint256.h"
 #include "commons/serialize.h"
 #include "json/json_spirit_utils.h"
