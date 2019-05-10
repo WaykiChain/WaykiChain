@@ -25,12 +25,12 @@ bool CAccountViewCache::GetAccount(const CKeyID &keyId, CAccount &account) {
     return false;
 }
 
-bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAccount &account) {
-    if (accountId.empty())
+bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountRegId, CAccount &account) {
+    if (accountRegId.empty())
         return false;
 
-    if (mapRegId2KeyId.count(accountId)) {
-        CKeyID keyId(mapRegId2KeyId[accountId]);
+    if (mapRegId2KeyId.count(accountRegId)) {
+        CKeyID keyId(mapRegId2KeyId[accountRegId]);
         if (keyId != uint160()) {
             if (mapKeyId2Account.count(keyId)) {
                 account = mapKeyId2Account[keyId];
@@ -39,12 +39,12 @@ bool CAccountViewCache::GetAccount(const vector<unsigned char> &accountId, CAcco
 
             return pBase->GetAccount(keyId, account);  //缓存map中没有，从上级存取
         } else
-            return false;  //accountId已删除说明账户信息也已删除
+            return false;  //accountRegId已删除说明账户信息也已删除
 
     } else {
         CKeyID keyId;
-        if (pBase->GetKeyId(accountId, keyId)) {
-            mapRegId2KeyId[accountId] = keyId;
+        if (pBase->GetKeyId(accountRegId, keyId)) {
+            mapRegId2KeyId[ accountRegId ] = keyId;
 
             if (mapKeyId2Account.count(keyId) > 0) {
                 account = mapKeyId2Account[keyId];
