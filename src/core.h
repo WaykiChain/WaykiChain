@@ -34,11 +34,11 @@ class CAccountViewCache;
  * in the block is a special one that creates a new coin owned by the creator
  * of the block.
  */
-class CBlockHeader
-{
+class CBlockHeader {
 public:
     // header
     static const int CURRENT_VERSION = g_BlockVersion;
+
 protected:
     int nVersion;
     uint256 prevBlockHash;
@@ -46,15 +46,12 @@ protected:
     unsigned int nTime;
     unsigned int nNonce;
     unsigned int nHeight;
-    int64_t    nFuel;
+    int64_t nFuel;
     int nFuelRate;
     vector<unsigned char> vSignature;
 
 public:
-    CBlockHeader()
-    {
-        SetNull();
-    }
+    CBlockHeader() { SetNull(); }
 
     IMPLEMENT_SERIALIZE
     (
@@ -70,16 +67,15 @@ public:
         READWRITE(vSignature);
     )
 
-    void SetNull()
-    {
-        nVersion = CBlockHeader::CURRENT_VERSION;
-        prevBlockHash = uint256();
+    void SetNull() {
+        nVersion       = CBlockHeader::CURRENT_VERSION;
+        prevBlockHash  = uint256();
         merkleRootHash = uint256();
-        nTime = 0;
-        nNonce = 0;
-        nHeight = 0;
-        nFuel = 0;
-        nFuelRate = 100;
+        nTime          = 0;
+        nNonce         = 0;
+        nHeight        = 0;
+        nFuel          = 0;
+        nFuelRate      = 100;
         vSignature.clear();
     }
 
@@ -87,69 +83,35 @@ public:
 
     uint256 ComputeSignatureHash() const;
 
-    int64_t GetBlockTime() const
-    {
-        return (int64_t)nTime;
-    }
+    int64_t GetBlockTime() const { return (int64_t)nTime; }
 
-    int GetVersion() const  {
-    	return  nVersion;
-    }
-    void SetVersion(int nVersion) {
-    	this->nVersion = nVersion;
-    }
-    uint256 GetPrevBlockHash() const  {
-    	return prevBlockHash;
-    }
-    void SetPrevBlockHash(uint256 prevBlockHash) {
-    	this->prevBlockHash = prevBlockHash;
-    }
-    uint256 GetMerkleRootHash() const{
-    	return merkleRootHash;
-    }
-    void SetMerkleRootHash(uint256 merkleRootHash) {
-    	this->merkleRootHash = merkleRootHash;
-    }
+    int GetVersion() const { return nVersion; }
+    void SetVersion(int nVersion) { this->nVersion = nVersion; }
 
-    unsigned int GetTime() const{
-    	return nTime;
-    }
-    void SetTime(unsigned int time) {
-    	this->nTime = time;
-    }
+    uint256 GetPrevBlockHash() const { return prevBlockHash; }
+    void SetPrevBlockHash(uint256 prevBlockHash) { this->prevBlockHash = prevBlockHash; }
 
-    unsigned int GetNonce() const{
-    	return nNonce;
-    }
-    void SetNonce(unsigned int nonce) {
-    	this->nNonce = nonce;
-    }
-    unsigned int GetHeight() const{
-    	return nHeight;
-    }
+    uint256 GetMerkleRootHash() const { return merkleRootHash; }
+    void SetMerkleRootHash(uint256 merkleRootHash) { this->merkleRootHash = merkleRootHash; }
+
+    unsigned int GetTime() const { return nTime; }
+    void SetTime(unsigned int time) { this->nTime = time; }
+
+    unsigned int GetNonce() const { return nNonce; }
+    void SetNonce(unsigned int nonce) { this->nNonce = nonce; }
+
+    unsigned int GetHeight() const { return nHeight; }
     void SetHeight(unsigned int height);
 
-    unsigned int GetFuel() const{
-    	return nFuel;
-    }
-    void SetFuel(int64_t fuel) {
-    	this->nFuel = fuel;
-    }
-    int GetFuelRate() const{
-    	return nFuelRate;
-    }
-    void SetFuelRate(int fuelRalte) {
-    	this->nFuelRate = fuelRalte;
-    }
-    const vector<unsigned char> &GetSignature() const{
-    	return vSignature;
-    }
-    void SetSignature(const vector<unsigned char> &signature) {
-    	this->vSignature = signature;
-    }
-    void ClearSignature() {
-    	this->vSignature.clear();
-    }
+    unsigned int GetFuel() const { return nFuel; }
+    void SetFuel(int64_t fuel) { this->nFuel = fuel; }
+
+    int GetFuelRate() const { return nFuelRate; }
+    void SetFuelRate(int fuelRalte) { this->nFuelRate = fuelRalte; }
+
+    const vector<unsigned char> &GetSignature() const { return vSignature; }
+    void SetSignature(const vector<unsigned char> &signature) { this->vSignature = signature; }
+    void ClearSignature() { this->vSignature.clear(); }
 };
 
 
