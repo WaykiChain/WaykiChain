@@ -65,13 +65,13 @@ private:
     void operator=(const CAccountViewDB &);
 
 public:
-    bool GetAccount(const CKeyID &keyId, CAccount &secureAccount);
-    bool GetAccount(const vector<unsigned char> &accountId, CAccount &secureAccount);
+    bool GetAccount(const CKeyID &keyId, CAccount &account);
+    bool GetAccount(const vector<unsigned char> &accountId, CAccount &account);
     bool GetAccount(const CUserID &userId, CAccount &account);
 
-    virtual bool SetAccount(const CKeyID &keyId, const CAccount &secureAccount);
+    virtual bool SetAccount(const CKeyID &keyId, const CAccount &account);
     // virtual bool SetAccount(const CUserID &userId, const CAccount &account) {};
-    virtual bool SetAccount(const vector<unsigned char> &accountId, const CAccount &secureAccount);
+    virtual bool SetAccount(const vector<unsigned char> &accountId, const CAccount &account);
     
     bool HaveAccount(const CKeyID &keyId);
     uint256 GetBestBlock();
@@ -83,7 +83,7 @@ public:
     bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId);
     bool EraseKeyIdByRegId(const vector<unsigned char> &accountRegId);
 
-    bool SaveAccountInfo(const CAccount &secureAccount);
+    bool SaveAccountInfo(const CAccount &account);
     std::tuple<uint64_t, uint64_t> TraverseAccount();
     int64_t GetDbCount() { return db.GetDbCount(); }
     Object ToJsonObj(char Prefix);

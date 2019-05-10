@@ -149,22 +149,22 @@ CAccountViewDB::CAccountViewDB(size_t nCacheSize, bool fMemory, bool fWipe) :
 CAccountViewDB::CAccountViewDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe) :
     db( GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe ) {}
 
-bool CAccountViewDB::GetAccount(const CKeyID &keyId, CAccount &secureAccount) {
-    return db.Read(make_pair('k', keyId), secureAccount);
+bool CAccountViewDB::GetAccount(const CKeyID &keyId, CAccount &account) {
+    return db.Read(make_pair('k', keyId), account);
 }
 
-bool CAccountViewDB::SetAccount(const CKeyID &keyId, const CAccount &secureAccount) {
-    bool ret = db.Write(make_pair('k', keyId), secureAccount);
-    assert(!secureAccount.keyID.IsEmpty());
-    assert(!secureAccount.regID.IsEmpty());
-    assert(secureAccount.pubKey.IsValid());
+bool CAccountViewDB::SetAccount(const CKeyID &keyId, const CAccount &account) {
+    bool ret = db.Write(make_pair('k', keyId), account);
+    assert(!account.keyID.IsEmpty());
+    assert(!account.regID.IsEmpty());
+    assert(account.pubKey.IsValid());
     return ret;
 }
 
-bool CAccountViewDB::SetAccount(const vector<unsigned char> &accountId, const CAccount &secureAccount) {
+bool CAccountViewDB::SetAccount(const vector<unsigned char> &accountId, const CAccount &account) {
     CKeyID keyId;
     if (db.Read(make_pair('a', accountId), keyId)) {
-        return db.Write(make_pair('k', keyId), secureAccount);
+        return db.Write(make_pair('k', keyId), account);
     } else
         return false;
 }
@@ -235,10 +235,10 @@ bool CAccountViewDB::EraseKeyIdByRegId(const vector<unsigned char> &accountRegId
     return db.Erase(make_pair('r', accountRegId));
 }
 
-bool CAccountViewDB::GetAccount(const vector<unsigned char> &accountRegId, CAccount &secureAccount) {
+bool CAccountViewDB::GetAccount(const vector<unsigned char> &accountRegId, CAccount &account) {
     CKeyID keyId;
     if (db.Read(make_pair('r', accountRegId), keyId)) {
-        return db.Read(make_pair('k', keyId), secureAccount);
+        return db.Read(make_pair('k', keyId), account);
     }
     return false;
 }
