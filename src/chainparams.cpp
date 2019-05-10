@@ -268,7 +268,7 @@ bool CBaseParams::IsArgCount(const string& strArg) {
 CBaseParams& SysCfg() {
     static shared_ptr<CBaseParams> pParams;
 
-    if (pParams.get()) {
+    if (!pParams.get()) {
         bool fRegTest = CBaseParams::GetBoolArg("-regtest", false);
         bool fTestNet = CBaseParams::GetBoolArg("-testnet", false);
         if (fTestNet && fRegTest) {
