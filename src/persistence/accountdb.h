@@ -18,7 +18,7 @@
 
 class uint256;
 class CKeyID;
-class CTransactionDBCache;
+// class CTransactionDBCache;
 // -dbcache default (MiB)
 static const int64_t nDefaultDbCache = 100;
 // max. -dbcache in (MiB)

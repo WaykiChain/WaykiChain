@@ -66,6 +66,9 @@ coin_CORE_H = \
   netbase.h \
   net.h \
   noui.h \
+  persistence/accountdb.h \
+  persistence/blockdb.h \
+  persistence/contractdb.h \
   protocol.h \
   random.h   \
   rpc/httpserver.h \
@@ -84,7 +87,6 @@ coin_CORE_H = \
   tx/pricefeed.h \
   tx/scoin.h \
   tx/tx.h \
-  tx/txdb.h \
   tx/txmempool.h \
   sync.h \
   threadsafety.h \
@@ -215,6 +217,9 @@ libcoin_server_a_SOURCES = \
   miner/miner.cpp \
   net.cpp \
   noui.cpp \
+  persistence/accountdb.cpp \
+  persistence/blockdb.cpp \
+  persistence/contractdb.cpp \
   rpc/httpserver.cpp \
   rpc/rpcblockchain.cpp \
   rpc/rpcmining.cpp \
@@ -233,7 +238,6 @@ libcoin_server_a_SOURCES = \
   tx/pricefeed.cpp \
   tx/scoin.cpp \
   tx/tx.cpp \
-  tx/txdb.cpp \
   tx/txmempool.cpp \
   $(VMLUA_H) \
   $(VM_CPP) \

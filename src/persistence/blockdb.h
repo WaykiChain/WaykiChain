@@ -7,7 +7,6 @@
 #ifndef PERSIST_BLOCKDB_H
 #define PERSIST_BLOCKDB_H
 
-#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -15,6 +14,8 @@
 #include "database.h"
 #include "leveldbwrapper.h"
 #include "main.h"
+
+#include <map>
 
 class uint256;
 class CKeyID;

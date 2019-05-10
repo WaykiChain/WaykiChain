@@ -7,14 +7,15 @@
 #ifndef PERSIST_CONTRACTDB_H
 #define PERSIST_CONTRACTDB_H
 
-#include <map>
-#include <string>
-#include <utility>
-#include <vector>
 #include "commons/arith_uint256.h"
 #include "database.h"
 #include "leveldbwrapper.h"
 #include "main.h"
+
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 class uint256;
 class CKeyID;
@@ -26,24 +27,24 @@ static const int64_t nMaxDbCache = sizeof(void *) > 4 ? 4096 : 1024;
 // min. -dbcache in (MiB)
 static const int64_t nMinDbCache = 4;
 
-class CTransactionDB : public CTransactionDBView {
-private:
-    CLevelDBWrapper db;
+// class CTransactionDB : public CTransactionDBView {
+// private:
+//     CLevelDBWrapper db;
 
-public:
-    CTransactionDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) : 
-        db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {};
-    ~CTransactionDB() {};
+// public:
+//     CTransactionDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) : 
+//         db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {};
+//     ~CTransactionDB() {};
 
-private:
-    CTransactionDB(const CTransactionDB &);
-    void operator=(const CTransactionDB &);
+// private:
+//     CTransactionDB(const CTransactionDB &);
+//     void operator=(const CTransactionDB &);
 
-public:
-    virtual bool IsContainBlock(const CBlock &block);
-    virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash);
-    int64_t GetDbCount() { return db.GetDbCount(); }
-};
+// public:
+//     virtual bool IsContainBlock(const CBlock &block);
+//     virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash);
+//     int64_t GetDbCount() { return db.GetDbCount(); }
+// };
 
 class CScriptDB : public CScriptDBView {
 private:
