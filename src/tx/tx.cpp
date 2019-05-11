@@ -10,7 +10,6 @@
 #include "commons/serialize.h"
 #include "crypto/hash.h"
 #include "util.h"
-#include "database.h"
 #include "main.h"
 #include "vm/vmrunenv.h"
 #include "core.h"
@@ -88,7 +87,7 @@ bool CBaseTx::CheckSignatureSize(const vector<unsigned char> &signature) const {
 
 string CBaseTx::ToString(CAccountViewCache &view) const {
     string str = strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
-                            GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, 
+                            GetTxType(nTxType), GetHash().ToString().c_str(), nVersion,
                             txUid.get<CPubKey>().ToString(),
                             llFees, txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight);
 

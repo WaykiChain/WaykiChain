@@ -7,22 +7,21 @@
 
 #include "configuration.h"
 
-#include <memory>
+#include "main.h"
+#include "commons/uint256.h"
+#include "persistence/syncdatadb.h"
 #include "commons/uint256.h"
 #include "commons/arith_uint256.h"
 #include "util.h"
+
+#include <memory>
+#include <stdint.h>
+#include <boost/assign/list_of.hpp> // for 'map_list_of()'
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <vector>
 
 using namespace std;
-
-#include <stdint.h>
-#include <boost/assign/list_of.hpp> // for 'map_list_of()'
-
-#include "main.h"
-#include "commons/uint256.h"
-#include "syncdatadb.h"
 
 namespace Checkpoints
 {
@@ -76,7 +75,7 @@ namespace Checkpoints
     static MapCheckpoints mapCheckpointsRegtest =
         boost::assign::map_list_of
         ( 0, uint256S("708d5c14424395963cd11bb3f2ff791f584efbeb59fe5922f2131bfc879cd1f7"));
-        
+
     static const CCheckpointData dataRegtest = {
         &mapCheckpointsRegtest,
         0,
@@ -102,7 +101,7 @@ namespace Checkpoints
         const MapCheckpoints& checkpoints = *Checkpoints().mapCheckpoints;
 
         MapCheckpoints::const_iterator i = checkpoints.find(nHeight);
-        if (i == checkpoints.end()) 
+        if (i == checkpoints.end())
             return true; //nHeight not exists in checkpoints
 
         return ( hash == i->second );

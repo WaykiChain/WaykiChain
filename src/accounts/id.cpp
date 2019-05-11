@@ -5,7 +5,7 @@
 
 #include "tx/tx.h"
 #include "id.h"
-#include "database.h"
+#include "persistence/accountview.h"
 
 extern CAccountViewCache *pAccountViewTip; /** global account db cache*/
 

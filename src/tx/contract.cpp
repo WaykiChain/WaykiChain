@@ -8,7 +8,6 @@
 #include "commons/serialize.h"
 #include "crypto/hash.h"
 #include "util.h"
-#include "database.h"
 #include "main.h"
 #include "vm/vmrunenv.h"
 #include "core.h"
@@ -455,7 +454,7 @@ bool CContractInvokeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidati
         if (!scriptDB.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
                                          operAddressToTxLog))
             return false;
-            
+
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
     }
 

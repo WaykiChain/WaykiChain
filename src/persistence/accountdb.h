@@ -12,7 +12,6 @@
 #include <utility>
 #include <vector>
 #include "commons/arith_uint256.h"
-#include "database.h"
 #include "leveldbwrapper.h"
 #include "main.h"
 
@@ -46,7 +45,7 @@ public:
     virtual bool SetAccount(const CKeyID &keyId, const CAccount &account);
     // virtual bool SetAccount(const CUserID &userId, const CAccount &account) {};
     virtual bool SetAccount(const vector<unsigned char> &accountRegId, const CAccount &account);
-    
+
     bool HaveAccount(const CKeyID &keyId);
     uint256 GetBestBlock();
     bool SetBestBlock(const uint256 &hashBlock);
@@ -68,7 +67,7 @@ private:
     CLevelDBWrapper db;
 
 public:
-    CTransactionDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) : 
+    CTransactionDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) :
         db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {};
     ~CTransactionDB() {};
 

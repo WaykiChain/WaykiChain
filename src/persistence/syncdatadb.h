@@ -1,19 +1,18 @@
-/*
- * CSyncDataDb.h
- *
- *  Created on: Jun 14, 2014
- *      Author: ranger.shi
- */
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2019- The WaykiChain Core Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 #ifndef SYNC_DATA_DB_H_
 #define SYNC_DATA_DB_H_
 
 #include "sync.h"
-#include <map>
 #include "syncdata.h"
 #include "net.h"
-#include "leveldbwrapper.h"
+#include "persistence/leveldbwrapper.h"
+
 #include <boost/shared_ptr.hpp>
+#include <map>
 
 namespace SyncData
 {

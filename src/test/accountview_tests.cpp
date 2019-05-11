@@ -1,6 +1,5 @@
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
-#include "database.h"
 #include <iostream>
 #include  "boost/filesystem/operations.hpp"
 #include  "boost/filesystem/path.hpp"

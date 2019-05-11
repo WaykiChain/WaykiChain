@@ -1,9 +1,7 @@
-/*
- * CSyncData.h
- *
- *  Created on: Jun 14, 2014
- *      Author: ranger.shi
- */
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2019- The WaykiChain Core Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 #ifndef CSYNC_DATA_H_
 #define CSYNC_DATA_H_

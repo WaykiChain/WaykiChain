@@ -8,9 +8,9 @@
 #include "coin-config.h"
 #endif
 
-#include "configuration.h"
-#include "init.h"
 
+#include "init.h"
+#include "configuration.h"
 #include "addrman.h"
 
 #include "./rpc/rpcserver.h"
@@ -22,7 +22,7 @@
 #include "miner/miner.h"
 #include "net.h"
 #include "noui.h"
-#include "syncdatadb.h"
+#include "persistence/syncdatadb.h"
 #include "tx/tx.h"
 #include "ui_interface.h"
 #include "util.h"
@@ -53,11 +53,10 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
-
 #include <boost/assign/list_of.hpp>
-using namespace boost::assign;
 
 using namespace std;
+using namespace boost::assign;
 using namespace boost;
 
 #define USE_LUA 1

@@ -11,7 +11,6 @@
 #include "persistence/contractdb.h"
 #include "crypto/hash.h"
 #include "util.h"
-#include "database.h"
 #include "main.h"
 #include "vm/vmrunenv.h"
 #include "core.h"

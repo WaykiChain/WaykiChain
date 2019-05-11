@@ -9,7 +9,6 @@
 #include "tx.h"
 #include "crypto/hash.h"
 #include "util.h"
-#include "database.h"
 #include "main.h"
 #include "vm/vmrunenv.h"
 #include "core.h"
@@ -120,10 +119,10 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
         }
 
         if (!view.SaveAccountInfo(delegate)) {
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error", 
+            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error",
                             acctInfo.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
-        
+
         txundo.vScriptOperLog.push_back(eraseDbLog);
     }
 

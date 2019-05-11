@@ -2,7 +2,6 @@
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
 #include "commons/serialize.h"
-#include "database.h"
 #include "main.h"
 #include "systestbase.h"
 using namespace std;

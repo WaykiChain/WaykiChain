@@ -53,7 +53,6 @@ coin_CORE_H = \
   clientversion.h \
   compat\compat.h \
   core.h \
-  database.h \
   crypter.h \
   crypto/sha256.h \
   crypto/hash.h \
@@ -69,6 +68,7 @@ coin_CORE_H = \
   persistence/accountdb.h \
   persistence/blockdb.h \
   persistence/contractdb.h \
+  persistence/txdb.h \
   protocol.h \
   random.h   \
   rpc/httpserver.h \
@@ -210,7 +210,6 @@ libcoin_server_a_SOURCES = \
   configuration.cpp \
   crypto/sha256.cpp \
   cuiserver.cpp	\
-  database.cpp \
   init.cpp \
   leveldbwrapper.cpp \
   main.cpp \
@@ -220,6 +219,7 @@ libcoin_server_a_SOURCES = \
   persistence/accountdb.cpp \
   persistence/blockdb.cpp \
   persistence/contractdb.cpp \
+  persistence/txdb.cpp \
   rpc/httpserver.cpp \
   rpc/rpcblockchain.cpp \
   rpc/rpcmining.cpp \
@@ -270,12 +270,12 @@ libcoin_common_a_SOURCES = \
   core.cpp \
   netbase.cpp \
   protocol.cpp \
+  persistence/syncdata.cpp \
+  persistence/syncdatadb.cpp \
   rpc/rpcprotocol.cpp \
   support/cleanse.cpp \
   support/events.cpp \
   sync.cpp \
-  syncdata.cpp \
-  syncdatadb.cpp \
   util.cpp \
   version.cpp \
   json/json_spirit_reader.cpp \

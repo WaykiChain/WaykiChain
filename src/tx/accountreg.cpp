@@ -10,7 +10,6 @@
 #include "tx.h"
 #include "crypto/hash.h"
 #include "util.h"
-#include "database.h"
 #include "main.h"
 #include "vm/vmrunenv.h"
 #include "core.h"
@@ -64,12 +63,12 @@ bool CAccountRegisterTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
     if (!view.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s account info error",
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-    
+
     account.regID = regId;
     account.keyID = keyId;
 
     CAccountLog acctLog(account);
-    
+
     if (account.pubKey.IsFullyValid() && account.pubKey.GetKeyId() == keyId)
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s duplicate register",
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
@@ -79,7 +78,7 @@ bool CAccountRegisterTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, not sufficient funds in account, keyid=%s",
                         keyId.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-funds");
     }
-    
+
     if (typeid(CPubKey) == minerUid.type()) {
         account.minerPubKey = minerUid.get<CPubKey>();
         if (account.minerPubKey.IsValid() && !account.minerPubKey.IsFullyValid()) {

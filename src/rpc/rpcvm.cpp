@@ -10,7 +10,7 @@
 #include "util.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
-#include "syncdatadb.h"
+#include "persistence/syncdatadb.h"
 
 #include "configuration.h"
 #include "main.h"

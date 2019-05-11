@@ -11,7 +11,7 @@
 #include "util.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
-#include "syncdatadb.h"
+#include "persistence/syncdatadb.h"
 //#include "checkpoints.h"
 #include "configuration.h"
 #include "miner/miner.h"

@@ -2,11 +2,10 @@
 // Copyright (c) 2014-2015 The WaykiChain Core developers
 // Copyright (c) 2016 The Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
-#include "database.h"
 #include <iostream>
 #include  "boost/filesystem/operations.hpp"
 #include  "boost/filesystem/path.hpp"

@@ -11,7 +11,7 @@
 // #include <vector>
 // #include <unordered_map>
 
-#include "leveldbwrapper.h"
+#include "persistence/leveldbwrapper.h"
 
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
@@ -57,7 +57,7 @@ private:
     CLevelDBWrapper db;
 
 public:
-    CCdpViewDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) : 
+    CCdpViewDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) :
         db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {};
     ~CCdpViewDB() {};
 

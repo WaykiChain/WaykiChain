@@ -8,7 +8,6 @@
 #define PERSIST_CONTRACTDB_H
 
 #include "commons/arith_uint256.h"
-#include "database.h"
 #include "leveldbwrapper.h"
 #include "main.h"
 

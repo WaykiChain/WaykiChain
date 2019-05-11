@@ -1,5 +1,4 @@
 #include "main.h"
-#include "database.h"
 #include <iostream>
 #include <boost/test/unit_test.hpp>
 #include  "boost/filesystem/operations.hpp"
@@ -172,12 +171,3 @@ BOOST_AUTO_TEST_CASE(overtime)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-
-
-
-
-
-
-
-
-
