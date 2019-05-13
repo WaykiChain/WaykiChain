@@ -99,7 +99,7 @@ static const unordered_map<unsigned char, string> kTxTypeMap = {
 
 string GetTxType(unsigned char txType);
 
-class CBaseTx: CTxBase {
+class CBaseTx: public CTxBase {
 public:
     static uint64_t nMinTxFee;
     static uint64_t nMinRelayTxFee;

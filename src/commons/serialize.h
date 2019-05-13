@@ -615,6 +615,8 @@ inline void Unserialize(Stream& is, vector<T, A>& v, int nType, int nVersion)
 }
 
 extern inline unsigned int GetSerializeSize(const std::shared_ptr<CTxBase> &pa, int nType, int nVersion);
+template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CTxBase> &pa, int nType, int nVersion);
+template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CTxBase> &pa, int nType, int nVersion);
 
 //
 // others derived from vector
