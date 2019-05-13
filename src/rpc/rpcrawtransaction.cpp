@@ -5,7 +5,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "commons/base58.h"
-#include "core.h"
 #include "init.h"
 #include "accounts/keystore.h"
 #include "main.h"

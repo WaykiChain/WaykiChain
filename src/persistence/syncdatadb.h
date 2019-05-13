@@ -9,7 +9,7 @@
 #include "sync.h"
 #include "syncdata.h"
 #include "net.h"
-#include "persistence/leveldbwrapper.h"
+#include "leveldbwrapper.h"
 
 #include <boost/shared_ptr.hpp>
 #include <map>

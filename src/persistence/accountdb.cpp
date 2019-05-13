@@ -5,7 +5,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "accountdb.h"
-#include "core.h"
 #include "accounts/key.h"
 #include "commons/uint256.h"
 #include "util.h"

@@ -7,13 +7,14 @@
 #define VMRUNENV_H_
 
 #include "vmlua.h"
+#include "appaccount.h"
 #include "commons/serialize.h"
 #include "script.h"
-#include "main.h"
-#include <memory>
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_writer_template.h"
+
+#include <memory>
 
 using namespace std;
 class CVmOperate;
@@ -24,19 +25,19 @@ private:
 	 * Run the script object
 	 */
 
-	shared_ptr<CVmlua> pLua;  //执行lua脚本
+	std::shared_ptr<CVmlua> pLua;  //执行lua脚本
 	/**
 	 * vm before the account state
 	 */
-	vector<shared_ptr<CAccount> > rawAccount;
+	vector<std::shared_ptr<CAccount> > rawAccount;
 	/**
 	 * vm operate the account state
 	 */
-	vector<shared_ptr<CAccount> > newAccount;
+	vector<std::shared_ptr<CAccount> > newAccount;
 	/**
 	 * current run the tx
 	 */
-	shared_ptr<CBaseTx> pBaseTx;
+	std::shared_ptr<CBaseTx> pBaseTx;
 	/**
 	 * run the script
 	 */
@@ -48,18 +49,18 @@ private:
 	/**
 	 * vm before the app account state
 	 */
-	vector<shared_ptr<CAppUserAccount>> rawAppUserAccount;
+	vector<std::shared_ptr<CAppUserAccount>> rawAppUserAccount;
 	/**
 	 * vm operate the app account state
 	 */
-	vector<shared_ptr<CAppUserAccount>> newAppUserAccount;
+	vector<std::shared_ptr<CAppUserAccount>> newAppUserAccount;
 	CScriptDBViewCache *pScriptDBViewCache;
 	CAccountViewCache *pAccountViewCache;
 	vector<CVmOperate> vmOperateOutput;   //保存操作结果
     bool  isCheckAccount;  //校验账户平衡开关
 
     map<vector<unsigned char>, vector<CAppFundOperate>> mapAppFundOperate;  // vector<unsigned char > 存的是accountId
-    shared_ptr<vector<CScriptDBOperLog>> pScriptDBOperLog;
+    std::shared_ptr<vector<CScriptDBOperLog>> pScriptDBOperLog;
 
 private:
     /**
@@ -69,7 +70,7 @@ private:
      *  @param nheight: run the Environment the block's height
      * @return : check the the tx and account is Legal true is legal false is unlegal
      */
-    bool Initialize(shared_ptr<CBaseTx>& tx, CAccountViewCache& view, int nHeight);
+    bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountViewCache& view, int nHeight);
     /**
      *@brief check aciton
      * @param listoperate: run the script return the code,check the code
@@ -89,13 +90,13 @@ private:
      * @param vOldAccount: the argument
      * @return:Return the object
      */
-    std::shared_ptr<CAccount> GetNewAccount(shared_ptr<CAccount>& vOldAccount);
+    std::shared_ptr<CAccount> GetNewAccount(std::shared_ptr<CAccount>& vOldAccount);
     /**
      * @brief find the Account from newAccount
      * @param Account: argument
      * @return:Return the object
      */
-    std::shared_ptr<CAccount> GetAccount(shared_ptr<CAccount>& Account);
+    std::shared_ptr<CAccount> GetAccount(std::shared_ptr<CAccount>& Account);
     /**
      * @brief get the account id
      * @param value: argument
@@ -106,7 +107,7 @@ private:
     bool OpeatorAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
                            CScriptDBViewCache& view);
 
-    std::shared_ptr<CAppUserAccount> GetAppAccount(shared_ptr<CAppUserAccount>& AppAccount);
+    std::shared_ptr<CAppUserAccount> GetAppAccount(std::shared_ptr<CAppUserAccount>& AppAccount);
 
 public:
     /**
@@ -117,14 +118,14 @@ public:
      *@brief get be operate the account
      * @return the variable rawAccount
      */
-    vector<shared_ptr<CAccount>>& GetRawAccont();
+    vector<std::shared_ptr<CAccount>>& GetRawAccont();
     /**
      *@brief get after operate the account
      * @return :the variable newAccount
      */
-    vector<shared_ptr<CAccount>>& GetNewAccont();
-    vector<shared_ptr<CAppUserAccount>>& GetRawAppUserAccount();
-    vector<shared_ptr<CAppUserAccount>>& GetNewAppUserAccount();
+    vector<std::shared_ptr<CAccount>>& GetNewAccont();
+    vector<std::shared_ptr<CAppUserAccount>>& GetRawAppUserAccount();
+    vector<std::shared_ptr<CAppUserAccount>>& GetNewAppUserAccount();
 
     /**
      * @brief  start to run the script
@@ -136,7 +137,7 @@ public:
      * uint64_t if the script run sucess Run the script calls the money ,string represent run the
      * failed's  Reason
      */
-    tuple<bool, uint64_t, string> ExecuteContract(shared_ptr<CBaseTx>& Tx, CAccountViewCache& view,
+    std::tuple<bool, uint64_t, string> ExecuteContract(std::shared_ptr<CBaseTx>& Tx, CAccountViewCache& view,
                                                   CScriptDBViewCache& VmDB, int nheight,
                                                   uint64_t nBurnFactor, uint64_t& uRunStep);
     /**
@@ -156,9 +157,9 @@ public:
     uint256 GetCurTxHash();
     bool InsertOutputData(const vector<CVmOperate>& source);
     void InsertOutAPPOperte(const vector<unsigned char>& userId, const CAppFundOperate& source);
-    shared_ptr<vector<CScriptDBOperLog>> GetDbLog();
+    std::shared_ptr<vector<CScriptDBOperLog>> GetDbLog();
 
-    bool GetAppUserAccount(const vector<unsigned char>& id, shared_ptr<CAppUserAccount>& sptrAcc);
+    bool GetAppUserAccount(const vector<unsigned char>& id, std::shared_ptr<CAppUserAccount>& sptrAcc);
     bool CheckAppAcctOperate(CContractInvokeTx* tx);
     void SetCheckAccount(bool bCheckAccount);
     virtual ~CVmRunEnv();

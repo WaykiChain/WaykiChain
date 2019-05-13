@@ -7,7 +7,6 @@
 #include "txdb.h"
 
 #include "chainparams.h"
-#include "core.h"
 #include "main.h"
 #include "commons/serialize.h"
 #include "util.h"

@@ -7,6 +7,11 @@
 #ifndef COIN_SERIALIZE_H
 #define COIN_SERIALIZE_H
 
+#include "../version.h"
+#include "allocators.h"
+#include "uint256.h"
+// #include "tx/tx.h"
+
 #include <algorithm>
 #include <assert.h>
 #include <limits>
@@ -24,17 +29,8 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/type_traits/is_fundamental.hpp>
 
-#include "../version.h"
-#include "allocators.h"
-#include "uint256.h"
-
 class CAutoFile;
 class CDataStream;
-class CBaseTx;
-class CAccountRegisterTx;
-class CBaseCoinTransferTx;
-class CContractInvokeTx;
-class CBlockRewardTx;
 
 static const unsigned int MAX_SIZE = 0x02000000;
 
@@ -467,12 +463,6 @@ template<typename Stream, typename K, typename T, typename Pred, typename A> voi
 template<typename K, typename Pred, typename A> unsigned int GetSerializeSize(const set<K, Pred, A>& m, int nType, int nVersion);
 template<typename Stream, typename K, typename Pred, typename A> void Serialize(Stream& os, const set<K, Pred, A>& m, int nType, int nVersion);
 template<typename Stream, typename K, typename Pred, typename A> void Unserialize(Stream& is, set<K, Pred, A>& m, int nType, int nVersion);
-
-//shared_ptr<CBaseTx>
-extern inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
-template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
-template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
-
 
 class CSerActionGetSerializeSize { };
 class CSerActionSerialize { };

@@ -7,6 +7,13 @@
 #ifndef PERSIST_ACCOUNTVIEW_H
 #define PERSIST_ACCOUNTVIEW_H
 
+#include "accounts/account.h"
+#include "accounts/key.h"
+
+#include <string>
+#include <utility>
+#include <vector>
+
 class CAccountView {
 public:
     virtual bool GetAccount(const CKeyID &keyId, CAccount &account) = 0;

@@ -8,7 +8,6 @@
 #include "coin-config.h"
 #endif
 
-
 #include "init.h"
 #include "configuration.h"
 #include "addrman.h"
@@ -23,6 +22,10 @@
 #include "net.h"
 #include "noui.h"
 #include "persistence/syncdatadb.h"
+#include "persistence/blockdb.h"
+#include "persistence/accountview.h"
+#include "persistence/txdb.h"
+#include "persistence/contractdb.h"
 #include "tx/tx.h"
 #include "ui_interface.h"
 #include "util.h"

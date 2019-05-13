@@ -7,9 +7,9 @@
 #ifndef COIN_HASH_H
 #define COIN_HASH_H
 
-#include "../commons/serialize.h"
-#include "../commons/uint256.h"
-#include "../version.h"
+#include "commons/serialize.h"
+#include "commons/uint256.h"
+#include "version.h"
 #include "util.h"
 
 #include <vector>

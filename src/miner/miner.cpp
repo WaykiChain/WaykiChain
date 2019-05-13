@@ -6,13 +6,14 @@
 
 #include "miner.h"
 
-#include "core.h"
 #include "init.h"
 #include "main.h"
 #include "net.h"
 #include "wallet/wallet.h"
 #include "tx/tx.h"
-#include "tx/blockreward.h"
+#include "tx/blockrewardtx.h"
+#include "persistence/txdb.h"
+#include "persistence/contractdb.h"
 
 #include <algorithm>
 #include <boost/circular_buffer.hpp>

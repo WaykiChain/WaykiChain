@@ -10,7 +10,7 @@
 #include "protocol.h"
 #include "sync.h"
 #include "util.h"
-#include "tx/blockreward.h"
+#include "tx/blockrewardtx.h"
 
 #include "json/json_spirit_value.h"
 

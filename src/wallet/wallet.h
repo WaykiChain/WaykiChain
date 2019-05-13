@@ -16,7 +16,6 @@
 #include <vector>
 #include <memory>
 
-#include "core.h"
 #include "crypter.h"
 #include "accounts/key.h"
 #include "accounts/keystore.h"
@@ -25,13 +24,13 @@
 #include "util.h"
 #include "walletdb.h"
 #include "tx/tx.h"
-#include "tx/bcoin.h"
-#include "tx/blockreward.h"
-#include "tx/scoin.h"
-#include "tx/fcoin.h"
-#include "tx/contract.h"
-#include "tx/delegate.h"
-#include "tx/accountreg.h"
+#include "tx/bcointx.h"
+#include "tx/blockrewardtx.h"
+#include "tx/scointx.h"
+#include "tx/fcointx.h"
+#include "tx/contracttx.h"
+#include "tx/delegatetx.h"
+#include "tx/accountregtxx.h"
 
 
 enum WalletFeature

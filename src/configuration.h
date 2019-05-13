@@ -8,11 +8,12 @@
 #ifndef CONFIGURATION_H_
 #define CONFIGURATION_H_
 
-#include <memory>
 #include "commons/uint256.h"
 #include "commons/arith_uint256.h"
 #include "util.h"
 #include "chainparams.h"
+
+#include <memory>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <vector>
@@ -22,6 +23,9 @@ using namespace std;
 
 class CBlockIndex;
 class uint256;
+class G_CONFIG_TABLE;
+
+const G_CONFIG_TABLE &IniCfg();
 
 /** Block-chain checkpoints are compiled-in sanity checks.
  * They are updated every release or three.
@@ -65,13 +69,12 @@ public:
 	unsigned int GetnUIPort(NET_TYPE type) const;
 	unsigned int GetStartTimeInit(NET_TYPE type) const;
 	unsigned int GetHalvingInterval(NET_TYPE type) const;
-	uint64_t GetCoinInitValue() const;
 	uint64_t GetBlockSubsidyCfg(int nHeight) const;
 	int GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const;
 	uint64_t GetDelegatesNum() const;
 	string GetDelegateSignature(NET_TYPE type) const;
 	const vector<string> GetDelegatePubKey(NET_TYPE type) const;
-
+	uint64_t GetCoinInitValue() const { return InitialCoin; };
 private:
 	static string COIN_NAME ;	/* basecoin name */
 
@@ -153,8 +156,6 @@ private:
 
 };
 
-const G_CONFIG_TABLE &IniCfg();
-
 inline FeatureForkVersionEnum GetFeatureForkVersion(int blockHeight) {
 	switch (SysCfg().NetworkID()) {
 		case MAIN_NET: {
@@ -177,5 +178,15 @@ inline FeatureForkVersionEnum GetFeatureForkVersion(int blockHeight) {
 		}
 	}
 };
+
+/** No amount larger than this (in sawi) is valid */
+static const int64_t MAX_MONEY = IniCfg().GetCoinInitValue() * COIN;
+static const int64_t MAX_MONEY_REG_NET = 5 * MAX_MONEY;
+static const int g_BlockVersion = 1;
+static const int64_t INIT_FUEL_RATES             = 100;  // 100 unit / 100 step
+static const int64_t MIN_FUEL_RATES              = 1;    // 1 unit / 100 step
+
+inline int64_t GetMaxMoney() { return (SysCfg().NetworkID() == REGTEST_NET ? MAX_MONEY_REG_NET : MAX_MONEY); }
+inline bool CheckMoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= GetMaxMoney()); }
 
 #endif /* CONFIGURATION_H_ */

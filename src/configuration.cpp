@@ -403,10 +403,6 @@ unsigned int G_CONFIG_TABLE::GetHalvingInterval(NET_TYPE type) const {
     return 0;
 }
 
-uint64_t G_CONFIG_TABLE::GetCoinInitValue() const {
-    return InitialCoin;
-}
-
 uint64_t G_CONFIG_TABLE::GetBlockSubsidyCfg(int nHeight) const {
     uint64_t nSubsidy = nInitialSubsidy;
     int nHalvings     = nHeight / SysCfg().GetSubsidyHalvingInterval();

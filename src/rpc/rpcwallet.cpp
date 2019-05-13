@@ -12,12 +12,14 @@
 #include "miner/miner.h"
 #include "../wallet/wallet.h"
 #include "../wallet/walletdb.h"
-
-#include <stdint.h>
-
-#include <boost/assign/list_of.hpp>
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
+#include "persistence/contractdb.h"
+#include "vmnet/appaccount.h"
+
+#include <stdint.h>
+#include <boost/assign/list_of.hpp>
+
 
 using namespace std;
 using namespace boost;

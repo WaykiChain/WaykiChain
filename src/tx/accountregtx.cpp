@@ -4,15 +4,15 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
-#include "accountreg.h"
+#include "accountregtx.h"
 
 #include "commons/serialize.h"
 #include "tx.h"
 #include "crypto/hash.h"
 #include "util.h"
 #include "main.h"
+#include "persistence/contractdb.h"
 #include "vm/vmrunenv.h"
-#include "core.h"
 #include "miner/miner.h"
 #include "version.h"
 

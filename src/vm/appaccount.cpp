@@ -12,7 +12,6 @@
 #include "util.h"
 #include "main.h"
 #include "vm/vmrunenv.h"
-#include "core.h"
 #include "miner/miner.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"

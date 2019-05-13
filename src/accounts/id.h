@@ -14,7 +14,7 @@
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "key.h"
-#include "chainparams.h"
+// #include "chainparams.h"
 #include "crypto/hash.h"
 
 class CAccountViewCache;
@@ -36,7 +36,7 @@ private:
 
     void SetRegID(string strRegID);
     void SetRegIDByCompact(const vector<unsigned char> &vIn);
-    
+
     friend CUserID;
 public:
     CRegID(string strRegID);
@@ -76,7 +76,7 @@ private:
 public:
     CNickID() {}
     CNickID(vector_unsigned_char nickIdIn) {
-        if (nickIdIn.size() > 32) 
+        if (nickIdIn.size() > 32)
             throw ios_base::failure("Nickname ID length > 32 not allowed!");
 
         nickId = nickIdIn;
@@ -108,7 +108,7 @@ public:
 private:
     boost::variant<CNullID, CRegID, CKeyID, CPubKey, CNickID>  uid;
 
-public:    
+public:
     CUserID(): uid(CNullID()) {}
 
     template <typename ID>

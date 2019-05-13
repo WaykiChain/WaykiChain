@@ -6,7 +6,6 @@
 
 #include "contractdb.h"
 
-#include "core.h"
 #include "accounts/key.h"
 #include "commons/uint256.h"
 #include "util.h"

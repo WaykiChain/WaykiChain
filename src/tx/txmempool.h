@@ -9,7 +9,6 @@
 #include <list>
 #include <map>
 
-#include "core.h"
 #include "sync.h"
 #include <memory>
 

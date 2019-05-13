@@ -11,6 +11,8 @@
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #include "persistence/syncdatadb.h"
+#include "persistence/txdb.h"
+#include "persistence/contractdb.h"
 
 #include "configuration.h"
 #include "main.h"

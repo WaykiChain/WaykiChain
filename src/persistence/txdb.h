@@ -9,17 +9,44 @@
 
 #include "vm/appaccount.h"
 #include "commons/serialize.h"
+#include "leveldbwrapper.h"
 
 #include <map>
 #include <vector>
 using namespace std;
 
-class CAccount;
-class CKeyID;
-class uint256;
-struct CDiskTxPos;
-class CVmOperate;
+// class CAccount;
+// class CKeyID;
+// class uint256;
+// struct CDiskTxPos;
+// class CVmOperate;
 
+class CTransactionDBView {
+public:
+    virtual bool IsContainBlock(const CBlock &block) = 0;
+    virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHashIn) = 0;
+
+    virtual ~CTransactionDBView(){};
+};
+
+class CTransactionDB : public CTransactionDBView {
+private:
+    CLevelDBWrapper db;
+
+public:
+    CTransactionDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) :
+        db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {};
+    ~CTransactionDB() {};
+
+private:
+    CTransactionDB(const CTransactionDB &);
+    void operator=(const CTransactionDB &);
+
+public:
+    virtual bool IsContainBlock(const CBlock &block);
+    virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash);
+    int64_t GetDbCount() { return db.GetDbCount(); }
+};
 
 class CTransactionDBCache : public CTransactionDBView {
 protected:

@@ -17,13 +17,6 @@
 
 class uint256;
 class CKeyID;
-// class CTransactionDBCache;
-// -dbcache default (MiB)
-static const int64_t nDefaultDbCache = 100;
-// max. -dbcache in (MiB)
-static const int64_t nMaxDbCache = sizeof(void *) > 4 ? 4096 : 1024;
-// min. -dbcache in (MiB)
-static const int64_t nMinDbCache = 4;
 
 class CAccountViewDB : public CAccountView {
 private:
@@ -61,25 +54,5 @@ public:
     int64_t GetDbCount() { return db.GetDbCount(); }
     Object ToJsonObj(char Prefix);
 };
-
-class CTransactionDB : public CTransactionDBView {
-private:
-    CLevelDBWrapper db;
-
-public:
-    CTransactionDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) :
-        db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {};
-    ~CTransactionDB() {};
-
-private:
-    CTransactionDB(const CTransactionDB &);
-    void operator=(const CTransactionDB &);
-
-public:
-    virtual bool IsContainBlock(const CBlock &block);
-    virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash);
-    int64_t GetDbCount() { return db.GetDbCount(); }
-};
-
 
 #endif  // PERSIST_ACCOUNTDB_H

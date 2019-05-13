@@ -1,7 +1,6 @@
 #include "./rpc/rpcserver.h"
 #include "./rpc/rpcclient.h"
 #include "util.h"
-#include "core.h"
 #include "chainparams.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/assign/list_of.hpp>

@@ -21,6 +21,7 @@ typedef unsigned char MessageStartChars[MESSAGE_START_SIZE];
 
 class CAddress;
 class CBlock;
+class CBaseTx;
 
 struct CDNSSeedData {
     string name, host;

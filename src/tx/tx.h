@@ -3,8 +3,19 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
-#ifndef TX_H
-#define TX_H
+#ifndef COIN_BASETX_H
+#define COIN_BASETX_H
+
+#include "persistence/accountview.h"
+#include "persistence/contractdb.h"
+#include "persistence/txdb.h"
+
+#include "accounts/account.h"
+#include "commons/uint256.h"
+#include "commons/serialize.h"
+#include "json/json_spirit_utils.h"
+#include "json/json_spirit_value.h"
+#include "tx/txbase.h"
 
 #include <boost/variant.hpp>
 #include <memory>
@@ -12,22 +23,15 @@
 #include <vector>
 #include <unordered_map>
 
-#include "accounts/account.h"
-#include "commons/uint256.h"
-#include "commons/serialize.h"
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
-
 using namespace std;
 
 class CTxUndo;
 class CValidationState;
 class CAccountViewCache;
 class CScriptDB;
-class CBlock;
 class CTransactionDBCache;
 class CScriptDBViewCache;
-class COperVoteFund;
+class CScriptDBOperLog;
 
 static const int nTxVersion1 = 1;
 static const int nTxVersion2 = 2;
@@ -96,7 +100,7 @@ static const unordered_map<unsigned char, string> kTxTypeMap = {
 
 string GetTxType(unsigned char txType);
 
-class CBaseTx {
+class CBaseTx: CTxBase {
 public:
     static uint64_t nMinTxFee;
     static uint64_t nMinRelayTxFee;
@@ -136,12 +140,14 @@ public:
     virtual ~CBaseTx() {}
 
     virtual uint64_t GetFee() const { return llFees; }
-    virtual uint64_t GetFuel(int nfuelRate);
     virtual uint256 GetHash() const { return ComputeSignatureHash(); };
+    virtual unsigned int GetSerializeSize(int nType, int nVersion) const = 0;
+
+    virtual uint64_t GetFuel(int nfuelRate);
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); };
     virtual uint64_t GetValue() const { return 0; };
 
-    virtual unsigned int GetSerializeSize(int nType, int nVersion) const    = 0;
+
     virtual bool GetAddress(std::set<CKeyID> &vAddr,
                         CAccountViewCache &view,
                         CScriptDBViewCache &scriptDB)                       = 0;
@@ -172,36 +178,6 @@ protected:
     bool CheckSignatureSize(const vector<unsigned char> &signature) const ;
 };
 
-
-class CScriptDBOperLog {
-public:
-    vector<unsigned char> vKey;
-    vector<unsigned char> vValue;
-
-    CScriptDBOperLog(const vector<unsigned char> &vKeyIn, const vector<unsigned char> &vValueIn) {
-        vKey   = vKeyIn;
-        vValue = vValueIn;
-    }
-    CScriptDBOperLog() {
-        vKey.clear();
-        vValue.clear();
-    }
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(vKey);
-        READWRITE(vValue);)
-
-    string ToString() const {
-        string str;
-        str += strprintf("vKey: %s, vValue: %s", HexStr(vKey), HexStr(vValue));
-        return str;
-    }
-
-    friend bool operator<(const CScriptDBOperLog &log1, const CScriptDBOperLog &log2) {
-        return log1.vKey < log2.vKey;
-    }
-};
-
 class CTxUndo {
 public:
     uint256 txHash;
@@ -222,123 +198,13 @@ public:
     string ToString() const;
 };
 
-class CSignaturePair {
-public:
-    CRegID regId;  //!< regid only
-    vector_unsigned_char signature;
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(regId);
-        READWRITE(signature);)
-
-public:
-    CSignaturePair(const CSignaturePair &signaturePair) {
-        regId     = signaturePair.regId;
-        signature = signaturePair.signature;
-    }
-
-    CSignaturePair(const CRegID &regIdIn, const vector_unsigned_char &signatureIn) {
-        regId     = regIdIn;
-        signature = signatureIn;
-    }
-
-    CSignaturePair() {}
-
-    string ToString() const;
-    Object ToJson() const;
-};
-
-class CMulsigTx : public CBaseTx {
-public:
-    mutable CUserID desUserId;              //!< keyid or regid
-    uint64_t bcoins;                        //!< transfer amount
-    uint8_t required;                       //!< required keys
-    vector_unsigned_char memo;              //!< memo
-    vector<CSignaturePair> signaturePairs;  //!< signature pair
-
-    CKeyID keyId;  //!< only in memory
-
-public:
-    CMulsigTx() : CBaseTx(COMMON_MTX) {}
-
-    CMulsigTx(const CBaseTx *pBaseTx) : CBaseTx(COMMON_MTX) {
-        assert(COMMON_MTX == pBaseTx->nTxType);
-        *this = *(CMulsigTx *)pBaseTx;
-    }
-
-    CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
-                uint64_t feeIn, const uint64_t valueIn, const int validHeightIn,
-                const uint8_t requiredIn, const vector_unsigned_char &memoIn)
-        : CBaseTx(COMMON_MTX, CNullID(), validHeightIn, feeIn) {
-        if (desUserIdIn.type() == typeid(CRegID))
-            assert(!desUserIdIn.get<CRegID>().IsEmpty());
-
-        signaturePairs = signaturePairsIn;
-        desUserId      = desUserIdIn;
-        bcoins         = valueIn;
-        required       = requiredIn;
-        memo           = memoIn;
-    }
-
-    CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
-                uint64_t feeIn, const uint64_t valueIn, const int validHeightIn,
-                const uint8_t requiredIn)
-        : CBaseTx(COMMON_MTX, CNullID(), validHeightIn, feeIn) {
-        if (desUserIdIn.type() == typeid(CRegID))
-            assert(!desUserIdIn.get<CRegID>().IsEmpty());
-
-        signaturePairs = signaturePairsIn;
-        desUserId      = desUserIdIn;
-        bcoins         = valueIn;
-        required       = requiredIn;
-    }
-
-    ~CMulsigTx() {}
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(this->nVersion));
-        nVersion = this->nVersion;
-        READWRITE(VARINT(nValidHeight));
-        READWRITE(signaturePairs);
-        READWRITE(desUserId);
-        READWRITE(VARINT(llFees));
-        READWRITE(VARINT(bcoins));
-        READWRITE(VARINT(required));
-        READWRITE(memo);
-    )
-
-    uint256 ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight);
-            // Do NOT add item.signature.
-            for (const auto &item : signaturePairs) {
-                ss << item.regId;
-            }
-            ss << desUserId << VARINT(llFees) << VARINT(bcoins) << VARINT(required) << memo;
-            sigHash = ss.GetHash();
-        }
-        return sigHash;
-    }
-
-    uint64_t GetValue() const { return bcoins; }
-    uint256 GetHash() const { return ComputeSignatureHash(); }
-    uint64_t GetFee() const { return llFees; }
-    double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CMulsigTx>(this); }
-    string ToString(CAccountViewCache &view) const;
-    Object ToJson(const CAccountViewCache &AccountView) const;
-    bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
-    bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-                   int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
-    bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                       CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                       CScriptDBViewCache &scriptDB);
-    bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
-};
-
 inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
     return pa->GetSerializeSize(nType, nVersion) + 1;
 }
 
-#endif
+// extern inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+
+
+#endif //COIN_BASETX_H

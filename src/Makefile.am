@@ -52,12 +52,10 @@ coin_CORE_H = \
   chainparams.h \
   clientversion.h \
   compat\compat.h \
-  core.h \
   crypter.h \
   crypto/sha256.h \
   crypto/hash.h \
   init.h \
-  leveldbwrapper.h \
   limitedmap.h \
   main.h \
   miner/miner.h \
@@ -65,7 +63,9 @@ coin_CORE_H = \
   netbase.h \
   net.h \
   noui.h \
+  persistence/leveldbwrapper.h \
   persistence/accountdb.h \
+  persistence/block.h \
   persistence/blockdb.h \
   persistence/contractdb.h \
   persistence/txdb.h \
@@ -78,14 +78,16 @@ coin_CORE_H = \
   rpc/rpcvm.h \
   support/cleanse.h \
   sigcache.h \
-  tx/accountreg.h \
-  tx/blockreward.h \
-  tx/bcoin.h \
-  tx/contract.h \
-  tx/delegate.h \
-  tx/fcoin.h \
-  tx/pricefeed.h \
-  tx/scoin.h \
+  tx/merkletx.h \
+  tx/accountregtx.h \
+  tx/blockrewardtx.h \
+  tx/bcointx.h \
+  tx/contracttx.h \
+  tx/delegatetx.h \
+  tx/fcointx.h \
+  tx/pricefeedtx.h \
+  tx/scointx.h \
+  tx/txbase.h \
   tx/tx.h \
   tx/txmempool.h \
   sync.h \
@@ -211,15 +213,10 @@ libcoin_server_a_SOURCES = \
   crypto/sha256.cpp \
   cuiserver.cpp	\
   init.cpp \
-  leveldbwrapper.cpp \
   main.cpp \
   miner/miner.cpp \
   net.cpp \
   noui.cpp \
-  persistence/accountdb.cpp \
-  persistence/blockdb.cpp \
-  persistence/contractdb.cpp \
-  persistence/txdb.cpp \
   rpc/httpserver.cpp \
   rpc/rpcblockchain.cpp \
   rpc/rpcmining.cpp \
@@ -229,14 +226,14 @@ libcoin_server_a_SOURCES = \
   rpc/rpcserver.cpp \
   rpc/rpcvm.cpp \
   sigcache.cpp \
-  tx/accountreg.cpp \
-  tx/blockreward.cpp \
-  tx/bcoin.cpp \
-  tx/contract.cpp \
-  tx/delegate.cpp \
-  tx/fcoin.cpp \
-  tx/pricefeed.cpp \
-  tx/scoin.cpp \
+  tx/accountregtx.cpp \
+  tx/blockrewardtx.cpp \
+  tx/bcointx.cpp \
+  tx/contracttx.cpp \
+  tx/delegatetx.cpp \
+  tx/fcointx.cpp \
+  tx/pricefeedtx.cpp \
+  tx/scointx.cpp \
   tx/tx.cpp \
   tx/txmempool.cpp \
   $(VMLUA_H) \
@@ -267,11 +264,17 @@ libcoin_common_a_SOURCES = \
   crypto/hash.cpp \
   chainparams.cpp \
   configuration.cpp\
-  core.cpp \
   netbase.cpp \
   protocol.cpp \
+  persistence/block.cpp \
+  persistence/disk.cpp \
   persistence/syncdata.cpp \
   persistence/syncdatadb.cpp \
+  persistence/accountdb.cpp \
+  persistence/blockdb.cpp \
+  persistence/contractdb.cpp \
+  persistence/txdb.cpp \
+  persistence/leveldbwrapper.cpp \
   rpc/rpcprotocol.cpp \
   support/cleanse.cpp \
   support/events.cpp \

@@ -14,8 +14,11 @@
 #include "miner/miner.h"
 #include "net.h"
 #include "persistence/syncdatadb.h"
+#include "persistence/accountview.h"
 #include "persistence/blockdb.h"
-#include "tx/blockreward.h"
+#include "persistence/contractdb.h"
+#include "persistence/txdb.h"
+#include "tx/blockrewardtx.h"
 #include "tx/txmempool.h"
 #include "ui_interface.h"
 #include "util.h"
@@ -53,8 +56,7 @@ CCriticalSection cs_main;
 CTxMemPool mempool;  //存放收到的未被执行,未收集到块的交易
 
 map<uint256, CBlockIndex *> mapBlockIndex;
-CChain chainActive;
-CChain chainMostWork;
+
 int nSyncTipHeight(0);  //同步时 ,chainActive.Tip()->nHeight
 
 map<uint256, std::tuple<std::shared_ptr<CAccountViewCache>,
@@ -62,6 +64,8 @@ map<uint256, std::tuple<std::shared_ptr<CAccountViewCache>,
                         std::shared_ptr<CScriptDBViewCache> > > mapForkCache;
 
 CSignatureCache signatureCache;
+CChain chainActive;
+CChain chainMostWork;
 
 /** Fees smaller than this (in sawi) are considered zero fee (for transaction creation) */
 uint64_t CBaseTx::nMinTxFee = 10000;  // Override with -mintxfee
@@ -540,39 +544,10 @@ bool IsFinalTx(CBaseTx *ptx, int nBlockHeight, int64_t nBlockTime) {
     return true;
 }
 
-int CMerkleTx::SetMerkleBranch(const CBlock *pblock) {
-    AssertLockHeld(cs_main);
-    CBlock blockTmp;
-
-    if (pblock) {
-        // Update the tx's blockHash
-        blockHash = pblock->GetHash();
-
-        // Locate the transaction
-        for (nIndex = 0; nIndex < (int)pblock->vptx.size(); nIndex++)
-            if ((pblock->vptx[nIndex])->GetHash() == pTx->GetHash())
-                break;
-        if (nIndex == (int)pblock->vptx.size()) {
-            vMerkleBranch.clear();
-            nIndex = -1;
-            LogPrint("INFO", "ERROR: SetMerkleBranch() : couldn't find tx in block\n");
-            return 0;
-        }
-
-        // Fill in merkle branch
-        vMerkleBranch = pblock->GetMerkleBranch(nIndex);
-    }
-
-    // Is the tx in a block that's in the main chain
-    map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(blockHash);
-    if (mi == mapBlockIndex.end())
-        return 0;
-    CBlockIndex *pIndex = (*mi).second;
-    if (!pIndex || !chainActive.Contains(pIndex))
-        return 0;
-
-    return chainActive.Height() - pIndex->nHeight + 1;
+FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly) {
+    return OpenDiskFile(pos, "rev", fReadOnly);
 }
+
 
 bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> &signature, const CPubKey &pubKey) {
     if (signatureCache.Get(sigHash, signature, pubKey))
@@ -951,39 +926,6 @@ double CaculateDifficulty(unsigned int nBits) {
     }
 
     return dDiff;
-}
-
-bool CheckProofOfWork(uint256 hash, unsigned int nBits) {
-    // bool fNegative;
-    // bool fOverflow;
-    // arith_uint256 bnTarget;
-
-    // bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
-
-    // // Check range
-    // if (fNegative || bnTarget == 0 || fOverflow || bnTarget > SysCfg().ProofOfWorkLimit())
-    //     return ERRORMSG("CheckProofOfWork(): nBits below minimum work");
-
-    // // Check proof of work matches claimed amount
-    // if (UintToArith256(hash) > bnTarget) {
-    //     LogPrint("INFO", "ac")
-    //     return ERRORMSG("CheckProofOfWork(): hash doesn't match nBits");
-    // }
-
-    return true;
-}
-
-bool IsInitialBlockDownload() {
-    LOCK(cs_main);
-    if (SysCfg().IsImporting() || SysCfg().IsReindex() || chainActive.Height() < Checkpoints::GetTotalBlocksEstimate())
-        return true;
-    static int64_t nLastUpdate;
-    static CBlockIndex *pindexLastBest;
-    if (chainActive.Tip() != pindexLastBest) {
-        pindexLastBest = chainActive.Tip();
-        nLastUpdate    = GetTime();
-    }
-    return (GetTime() - nLastUpdate < 10 && chainActive.Tip()->GetBlockTime() < GetTime() - 24 * 60 * 60);
 }
 
 arith_uint256 GetBlockProof(const CBlockIndex &block) {
@@ -2044,10 +1986,12 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     std::shared_ptr<CTransactionDBCache>    pForkTxCache;
     std::shared_ptr<CScriptDBViewCache>     pForkScriptDBCache;
 
-    pAcctViewCache                  = std::make_shared<CAccountViewCache>(*pAccountViewDB);
-    pAcctViewCache->mapKeyId2Account   = pAccountViewTip->mapKeyId2Account;
-    pAcctViewCache->mapRegId2KeyId     = pAccountViewTip->mapRegId2KeyId;
-    pAcctViewCache->blockHash       = pAccountViewTip->blockHash;
+    std::shared_ptr<CAccountViewCache> pAcctViewCache
+                                        = std::make_shared<CAccountViewCache>(*pAccountViewDB);
+    pAcctViewCache->mapKeyId2Account    = pAccountViewTip->mapKeyId2Account;
+    pAcctViewCache->mapRegId2KeyId      = pAccountViewTip->mapRegId2KeyId;
+    pAcctViewCache->mapNickId2KeyId     = pAccountViewTip->mapNickId2KeyId;
+    pAcctViewCache->blockHash           = pAccountViewTip->blockHash;
 
     std::shared_ptr<CTransactionDBCache> pTxCache = std::make_shared<CTransactionDBCache>(*pTxCacheDB);
     pTxCache->SetCacheMap(pTxCacheTip->GetCacheMap());
@@ -2862,29 +2806,6 @@ FILE *OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
 
 FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly) {
     return OpenDiskFile(pos, "blk", fReadOnly);
-}
-
-FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly) {
-    return OpenDiskFile(pos, "rev", fReadOnly);
-}
-
-CBlockIndex *InsertBlockIndex(uint256 hash) {
-    if (hash.IsNull())
-        return NULL;
-
-    // Return existing
-    map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(hash);
-    if (mi != mapBlockIndex.end())
-        return (*mi).second;
-
-    // Create new
-    CBlockIndex *pindexNew = new CBlockIndex();
-    if (!pindexNew)
-        throw runtime_error("InsertBlockIndex() : new CBlockIndex failed");
-    mi                    = mapBlockIndex.insert(make_pair(hash, pindexNew)).first;
-    pindexNew->pBlockHash = &((*mi).first);
-
-    return pindexNew;
 }
 
 bool static LoadBlockIndexDB() {

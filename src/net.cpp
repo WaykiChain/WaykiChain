@@ -12,7 +12,6 @@
 
 #include "addrman.h"
 #include "chainparams.h"
-#include "core.h"
 #include "ui_interface.h"
 #include "tx/tx.h"
 

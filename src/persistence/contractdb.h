@@ -9,41 +9,44 @@
 
 #include "commons/arith_uint256.h"
 #include "leveldbwrapper.h"
-#include "main.h"
+#include "vm/appaccount.h"
+#include "persistence/block.h"
 
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
 
-class uint256;
-class CKeyID;
-class CTransactionDBCache;
-// -dbcache default (MiB)
-static const int64_t nDefaultDbCache = 100;
-// max. -dbcache in (MiB)
-static const int64_t nMaxDbCache = sizeof(void *) > 4 ? 4096 : 1024;
-// min. -dbcache in (MiB)
-static const int64_t nMinDbCache = 4;
+class CVmOperate;
 
-// class CTransactionDB : public CTransactionDBView {
-// private:
-//     CLevelDBWrapper db;
+class CScriptDBOperLog {
+public:
+    vector<unsigned char> vKey;
+    vector<unsigned char> vValue;
 
-// public:
-//     CTransactionDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) :
-//         db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {};
-//     ~CTransactionDB() {};
+    CScriptDBOperLog(const vector<unsigned char> &vKeyIn, const vector<unsigned char> &vValueIn) {
+        vKey   = vKeyIn;
+        vValue = vValueIn;
+    }
+    CScriptDBOperLog() {
+        vKey.clear();
+        vValue.clear();
+    }
 
-// private:
-//     CTransactionDB(const CTransactionDB &);
-//     void operator=(const CTransactionDB &);
+    IMPLEMENT_SERIALIZE(
+        READWRITE(vKey);
+        READWRITE(vValue);)
 
-// public:
-//     virtual bool IsContainBlock(const CBlock &block);
-//     virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash);
-//     int64_t GetDbCount() { return db.GetDbCount(); }
-// };
+    string ToString() const {
+        string str;
+        str += strprintf("vKey: %s, vValue: %s", HexStr(vKey), HexStr(vValue));
+        return str;
+    }
+
+    friend bool operator<(const CScriptDBOperLog &log1, const CScriptDBOperLog &log2) {
+        return log1.vKey < log2.vKey;
+    }
+};
 
 
 class CScriptDBView {

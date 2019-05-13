@@ -7,12 +7,10 @@
 #include "chainparams.h"
 
 #include "assert.h"
-#include "core.h"
 #include "protocol.h"
 #include "util.h"
 #include "accounts/key.h"
-#include "tx/tx.h"
-#include "tx/blockreward.h"
+#include "tx/blockrewardtx.h"
 #include "main.h"
 
 #include <boost/assign/list_of.hpp>

@@ -3,14 +3,14 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
-#include "contract.h"
+#include "contracttx.h"
 
 #include "commons/serialize.h"
 #include "crypto/hash.h"
 #include "util.h"
+#include "persistence/contractdb.h"
 #include "main.h"
 #include "vm/vmrunenv.h"
-#include "core.h"
 #include "miner/miner.h"
 #include "version.h"
 

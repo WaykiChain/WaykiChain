@@ -4,6 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 #include "account.h"
+#include "configuration.h"
+
 #include "main.h"
 
 // /** account db cache*/
