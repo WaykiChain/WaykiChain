@@ -22,8 +22,13 @@ inline unsigned int GetSerializeSize(const std::shared_ptr<CTxBase> &pa, int nTy
     return pa->GetSerializeSize(nType, nVersion) + 1;
 }
 
-template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CTxBase> &pa, int nType, int nVersion);
-template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CTxBase> &pa, int nType, int nVersion);
+template<typename Stream>
+void Serialize(Stream& os, const std::shared_ptr<CTxBase> &pa, int nType, int nVersion) {
+}
+
+template<typename Stream>
+void Unserialize(Stream& is, std::shared_ptr<CTxBase> &pa, int nType, int nVersion) {
+}
 
 // class CTxUndoBase {
 // public:
