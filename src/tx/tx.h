@@ -6,13 +6,12 @@
 #ifndef COIN_BASETX_H
 #define COIN_BASETX_H
 
+#include "commons/serialize.h"
+#include "commons/uint256.h"
 #include "persistence/accountview.h"
 #include "persistence/contractdb.h"
 #include "persistence/txdb.h"
-
 #include "accounts/account.h"
-#include "commons/uint256.h"
-#include "commons/serialize.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "tx/txbase.h"
@@ -197,14 +196,6 @@ public:
     }
     string ToString() const;
 };
-
-inline unsigned int GetSerializeSize(const std::shared_ptr<CTxBase> &pa, int nType, int nVersion) {
-    return pa->GetSerializeSize(nType, nVersion) + 1;
-}
-
-extern inline unsigned int GetSerializeSize(const std::shared_ptr<CTxBase> &pa, int nType, int nVersion);
-template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CTxBase> &pa, int nType, int nVersion);
-template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CTxBase> &pa, int nType, int nVersion);
 
 
 #endif //COIN_BASETX_H

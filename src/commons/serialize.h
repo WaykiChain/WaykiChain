@@ -7,10 +7,10 @@
 #ifndef COIN_SERIALIZE_H
 #define COIN_SERIALIZE_H
 
+#include "tx/txbase.h"
 #include "../version.h"
 #include "allocators.h"
 #include "uint256.h"
-// #include "tx/tx.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -135,11 +135,6 @@ enum
 
 #define READWRITE(obj)      (nSerSize += ::SerReadWrite(s, (obj), nType, nVersion, ser_action))
 
-
-
-
-
-
 //
 // Basic types
 //
@@ -192,10 +187,6 @@ template<typename Stream> inline void Unserialize(Stream& s, double& a,         
 inline unsigned int GetSerializeSize(bool a, int, int=0)                          { return sizeof(char); }
 template<typename Stream> inline void Serialize(Stream& s, bool a, int, int=0)    { char f=a; WRITEDATA(s, f); }
 template<typename Stream> inline void Unserialize(Stream& s, bool& a, int, int=0) { char f; READDATA(s, f); a=f; }
-
-
-
-
 
 
 //
@@ -623,7 +614,7 @@ inline void Unserialize(Stream& is, vector<T, A>& v, int nType, int nVersion)
     Unserialize_impl(is, v, nType, nVersion, boost::is_fundamental<T>());
 }
 
-
+extern inline unsigned int GetSerializeSize(const std::shared_ptr<CTxBase> &pa, int nType, int nVersion);
 
 //
 // others derived from vector
@@ -648,7 +639,8 @@ inline void Unserialize(Stream& is, vector<T, A>& v, int nType, int nVersion)
 template<typename K, typename T>
 unsigned int GetSerializeSize(const pair<K, T>& item, int nType, int nVersion)
 {
-    return GetSerializeSize(item.first, nType, nVersion) + GetSerializeSize(item.second, nType, nVersion);
+    return  GetSerializeSize(item.first, nType, nVersion) +
+            GetSerializeSize(item.second, nType, nVersion);
 }
 
 template<typename Stream, typename K, typename T>

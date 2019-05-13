@@ -8,12 +8,22 @@
 
 #include "commons/uint256.h"
 
+#include <memory>
+using namespace std;
+
 class CTxBase {
 public:
     virtual uint256 GetHash() { return uint256(); };
     virtual uint64_t GetFee() { return 0; };
     virtual unsigned int GetSerializeSize(int nType, int nVersion) const { return 0; };
 };
+
+inline unsigned int GetSerializeSize(const std::shared_ptr<CTxBase> &pa, int nType, int nVersion) {
+    return pa->GetSerializeSize(nType, nVersion) + 1;
+}
+
+template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CTxBase> &pa, int nType, int nVersion);
+template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CTxBase> &pa, int nType, int nVersion);
 
 // class CTxUndoBase {
 // public:
