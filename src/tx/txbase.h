@@ -12,7 +12,7 @@ class CTxBase {
 public:
     virtual uint256 GetHash() { return uint256(); };
     virtual uint64_t GetFee() { return 0; };
-    virtual unsigned int GetSerializeSize(int nType, int nVersion) { return 0; } ;
+    virtual unsigned int GetSerializeSize(int nType, int nVersion) const { return 0; };
 };
 
 // class CTxUndoBase {

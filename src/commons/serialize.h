@@ -492,7 +492,7 @@ inline unsigned int SerReadWrite(Stream& s, T& obj, int nType, int nVersion, CSe
 template<typename T>
 inline unsigned int GetSerializeSize(const T& a, long nType, int nVersion)
 {
-    return a.GetSerializeSize((int)nType, nVersion);
+    return a.GetSerializeSize((int) nType, nVersion);
 }
 
 template<typename Stream, typename T>

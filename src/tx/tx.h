@@ -141,7 +141,7 @@ public:
 
     virtual uint64_t GetFee() const { return llFees; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); };
-    virtual unsigned int GetSerializeSize(int nType, int nVersion) const = 0;
+    virtual unsigned int GetSerializeSize(int nType, int nVersion) const { return 0; };
 
     virtual uint64_t GetFuel(int nfuelRate);
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); };
@@ -198,13 +198,13 @@ public:
     string ToString() const;
 };
 
-inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
+inline unsigned int GetSerializeSize(const std::shared_ptr<CTxBase> &pa, int nType, int nVersion) {
     return pa->GetSerializeSize(nType, nVersion) + 1;
 }
 
-// extern inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
-template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
-template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+extern inline unsigned int GetSerializeSize(const std::shared_ptr<CTxBase> &pa, int nType, int nVersion);
+template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CTxBase> &pa, int nType, int nVersion);
+template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CTxBase> &pa, int nType, int nVersion);
 
 
 #endif //COIN_BASETX_H

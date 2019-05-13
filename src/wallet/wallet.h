@@ -30,7 +30,7 @@
 #include "tx/fcointx.h"
 #include "tx/contracttx.h"
 #include "tx/delegatetx.h"
-#include "tx/accountregtxx.h"
+#include "tx/accountregtx.h"
 
 
 enum WalletFeature
