@@ -7,7 +7,13 @@
 #ifndef APPUSERACCOUT_H_
 #define APPUSERACCOUT_H_
 
-#include "tx/tx.h"
+#include "json/json_spirit_utils.h"
+#include "json/json_spirit_value.h"
+#include "commons/serialize.h"
+#include "commons/uint256.h"
+
+// #include "tx/tx.h"
+#include <vector>
 
 class CAppFundOperate;
 
@@ -19,7 +25,7 @@ public:
 	CAppCFund(const CAppCFund &fund);
 	CAppCFund(const vector<unsigned char> &vtag,uint64_t val,int nhight);
 	bool MergeCFund( const CAppCFund &fund);
-	Object ToJson()const;
+	json_spirit::Object ToJson()const;
 	string ToString()const;
 
 	void SetHeight(int height) { timeoutHeight = height; }
@@ -98,7 +104,7 @@ public:
 		READWRITE(vFundTag[i]);
 	)
 
-	Object ToJson()const;
+	json_spirit::Object ToJson()const;
 	string ToString()const;
 
 	uint64_t GetUint64Value() const { return mMoney; }
@@ -149,7 +155,7 @@ public:
 
 	virtual ~CAppUserAccount();
 
-	Object ToJson()const;
+	json_spirit::Object ToJson()const;
 
 	string ToString()const;
 

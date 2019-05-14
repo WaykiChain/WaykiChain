@@ -42,4 +42,7 @@ class CBlockTreeDB : public CLevelDBWrapper {
     bool LoadBlockIndexGuts();
 };
 
+/** Create a new block index entry for a given block hash */
+CBlockIndex * InsertBlockIndex(uint256 hash);
+
 #endif  // PERSIST_BLOCKDB_H

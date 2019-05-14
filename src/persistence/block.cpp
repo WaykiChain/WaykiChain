@@ -4,7 +4,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
-#include "block.h"
+#include "persistence/block.h"
 #include "main.h"
 
 uint256 CBlockHeader::GetHash() const {

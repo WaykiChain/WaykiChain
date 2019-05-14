@@ -5,10 +5,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 #include "blockdb.h"
-#include <stdint.h>
 #include "accounts/key.h"
 #include "commons/uint256.h"
 #include "util.h"
+#include "main.h"
+
+#include <stdint.h>
 
 using namespace std;
 
@@ -140,4 +142,24 @@ bool CBlockTreeDB::LoadBlockIndexGuts() {
     delete pcursor;
 
     return true;
+}
+
+CBlockIndex * InsertBlockIndex(uint256 hash)
+{
+    if (hash.IsNull())
+        return NULL;
+
+    // Return existing
+    map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
+    if (mi != mapBlockIndex.end())
+        return (*mi).second;
+
+    // Create new
+    CBlockIndex* pIndexNew = new CBlockIndex();
+    if (!pIndexNew)
+        throw runtime_error("LoadBlockIndex() : new CBlockIndex failed");
+    mi = mapBlockIndex.insert(make_pair(hash, pIndexNew)).first;
+    pIndexNew->pBlockHash = &((*mi).first);
+
+    return pIndexNew;
 }

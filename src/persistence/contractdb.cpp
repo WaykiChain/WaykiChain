@@ -9,6 +9,7 @@
 #include "accounts/key.h"
 #include "commons/uint256.h"
 #include "util.h"
+#include "vm/vmrunenv.h"
 
 #include <stdint.h>
 

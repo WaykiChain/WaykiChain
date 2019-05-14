@@ -317,8 +317,8 @@ public:
     static bool IsArgCount(const string& strArg);
     static bool SoftSetArgCover(const string& strArg, const string& strValue);
     static void EraseArg(const string& strArgKey);
-    bool CreateGenesisRewardTx(vector<std::shared_ptr<CBaseTx> > &vRewardTx, NET_TYPE type);
-    bool CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDelegateTx, NET_TYPE type);
+    bool CreateGenesisRewardTx(vector<std::shared_ptr<CTxBase> > &vRewardTx, NET_TYPE type);
+    bool CreateGenesisDelegateTx(vector<std::shared_ptr<CTxBase> > &vDelegateTx, NET_TYPE type);
     static void ParseParameters(int argc, const char* const argv[]);
     static const vector<string> &GetMultiArgs(const string& strArg);
     static  int GetArgsSize();
