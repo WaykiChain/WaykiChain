@@ -36,17 +36,16 @@ public:
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(txUid);
-        READWRITE(VARINT(nHeight));
 
-        READWRITE(VARINT(rewardValue));)
+        // Do NOT change the order.
+        READWRITE(VARINT(rewardValue));
+        READWRITE(VARINT(nHeight));)
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << txUid << VARINT(rewardValue) << VARINT(nHeight);
-            // Truly need to write the sigHash.
-            uint256 *hash = const_cast<uint256 *>(&sigHash);
-            *hash         = ss.GetHash();
+            sigHash = ss.GetHash();
         }
 
         return sigHash;
