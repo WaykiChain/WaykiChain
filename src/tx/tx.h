@@ -8,13 +8,10 @@
 
 #include "commons/serialize.h"
 #include "commons/uint256.h"
-#include "persistence/accountview.h"
-#include "persistence/contractdb.h"
-#include "persistence/txdb.h"
-#include "accounts/account.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
-#include "tx/txbase.h"
+#include "accounts/account.h"
+#include "accounts/id.h"
 
 #include <boost/variant.hpp>
 #include <memory>
@@ -31,6 +28,8 @@ class CScriptDB;
 class CTransactionDBCache;
 class CScriptDBViewCache;
 class CScriptDBOperLog;
+
+typedef vector<unsigned char> vector_unsigned_char;
 
 static const int nTxVersion1 = 1;
 static const int nTxVersion2 = 2;
@@ -99,7 +98,7 @@ static const unordered_map<unsigned char, string> kTxTypeMap = {
 
 string GetTxType(unsigned char txType);
 
-class CBaseTx: public CTxBase {
+class CBaseTx {
 public:
     static uint64_t nMinTxFee;
     static uint64_t nMinRelayTxFee;
@@ -196,6 +195,5 @@ public:
     }
     string ToString() const;
 };
-
 
 #endif //COIN_BASETX_H

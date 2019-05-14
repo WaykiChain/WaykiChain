@@ -10,7 +10,6 @@
 #include "tx/tx.h"
 #include <vector>
 
-class CBaseTx;
 class uint256;
 
 // 20,000 items with fp rate < 0.1% or 10,000 items and <0.0001%

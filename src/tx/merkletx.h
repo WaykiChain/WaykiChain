@@ -18,7 +18,7 @@ public:
     uint256 blockHash;
     vector<uint256> vMerkleBranch;
     int nIndex;
-    std::shared_ptr<CTxBase> pTx;
+    std::shared_ptr<CBaseTx> pTx;
     int nHeight;
     // memory only
     mutable bool fMerkleVerified;

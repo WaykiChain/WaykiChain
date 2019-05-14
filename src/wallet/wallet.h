@@ -23,7 +23,7 @@
 #include "ui_interface.h"
 #include "util.h"
 #include "walletdb.h"
-#include "tx/tx.h"
+#include "tx/txbase.h"
 #include "tx/bcointx.h"
 #include "tx/blockrewardtx.h"
 #include "tx/scointx.h"

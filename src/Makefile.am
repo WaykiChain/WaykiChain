@@ -87,7 +87,6 @@ coin_CORE_H = \
   tx/fcointx.h \
   tx/pricefeedtx.h \
   tx/scointx.h \
-  tx/txbase.h \
   tx/tx.h \
   tx/txmempool.h \
   sync.h \

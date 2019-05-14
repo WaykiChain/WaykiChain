@@ -15,11 +15,11 @@ class CTxBase {
 public:
     virtual uint256 GetHash() { return uint256(); };
     virtual uint64_t GetFee() { return 0; };
-    virtual unsigned int GetSerializeSize(int nType, int nVersion) const { return 0; };
+    virtual unsigned int GetTxBaseSerializeSize(int nType, int nVersion) const { return 0; };
 };
 
 inline unsigned int GetSerializeSize(const std::shared_ptr<CTxBase> &pa, int nType, int nVersion) {
-    return pa->GetSerializeSize(nType, nVersion) + 1;
+    return pa->GetTxBaseSerializeSize(nType, nVersion) + 1;
 }
 
 template<typename Stream>

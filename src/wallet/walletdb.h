@@ -27,6 +27,7 @@ class uint256;
 class CRegID;
 class CAccountTx;
 class CKeyCombi;
+class CBaseTx;
 
 /** Error statuses for the wallet database */
 enum DBErrors

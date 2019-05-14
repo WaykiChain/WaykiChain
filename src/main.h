@@ -160,29 +160,12 @@ void EraseTransaction(const uint256 &hash);
 void RegisterNodeSignals(CNodeSignals &nodeSignals);
 /** Unregister a network node */
 void UnregisterNodeSignals(CNodeSignals &nodeSignals);
-/** Push getblocks request */
-void PushGetBlocks(CNode *pnode, CBlockIndex *pindexBegin, uint256 hashEnd);
-/** Push getblocks request with different filtering strategies */
-void PushGetBlocksOnCondition(CNode *pnode, CBlockIndex *pindexBegin, uint256 hashEnd);
-/** Process an incoming block */
-bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBlockPos *dbp = NULL);
 /** Check whether enough disk space is available for an incoming block */
 bool CheckDiskSpace(uint64_t nAdditionalBytes = 0);
-/** Open a block file (blk?????.dat) */
-FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 
-/** Import blocks from an external file */
-bool LoadExternalBlockFile(FILE *fileIn, CDiskBlockPos *dbp = NULL);
-/** Initialize a new block tree database + block data on disk */
-bool InitBlockIndex();
-/** Load the block tree and coins database from disk */
-bool LoadBlockIndex();
-/** Unload database information */
-void UnloadBlockIndex();
 /** Verify consistency of the block and coin databases */
 bool VerifyDB(int nCheckLevel, int nCheckDepth);
-/** Print the loaded block tree */
-void PrintBlockTree();
+
 /** Process protocol messages received from a given node */
 bool ProcessMessages(CNode *pfrom);
 /** Send queued protocol messages to be sent to a give node */
@@ -192,8 +175,7 @@ void ThreadScriptCheck();
 
 /** Calculate the minimum amount of work a received block needs, without knowing its direct parent */
 unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
-/** Check whether we are doing an initial block download (synchronizing from disk or network) */
-bool IsInitialBlockDownload();
+
 /** Format a string that describes several potential problems detected by the core */
 string GetWarnings(string strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
@@ -201,9 +183,7 @@ bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CScr
 /** Retrieve a transaction height comfirmed in block*/
 int GetTxConfirmHeight(const uint256 &hash, CScriptDBViewCache &scriptDBCache);
 
-/** Find the best known block, and make it the tip of the block chain */
-bool ActivateBestChain(CValidationState &state);
-int64_t GetBlockValue(int nHeight, int64_t nFees);
+
 
 /*calutate difficulty */
 double CaculateDifficulty(unsigned int nBits);
@@ -211,7 +191,7 @@ double CaculateDifficulty(unsigned int nBits);
 /** receive checkpoint check make active chain accord to the checkpoint **/
 bool CheckActiveChain(int nHeight, uint256 hash);
 
-void UpdateTime(CBlockHeader &block, const CBlockIndex *pindexPrev);
+
 
 /** Abort with a message */
 bool AbortNode(const string &msg);
@@ -226,11 +206,6 @@ bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> &s
 bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx,
                         bool fLimitFree, bool fRejectInsaneFee = false);
 
-/** Mark a block as invalid. */
-bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex);
-
-/** Remove invalidity status from a block and its descendants. */
-bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex);
 
 std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType);
 
@@ -257,45 +232,9 @@ bool IsStandardTx(CBaseTx *pBaseTx, string &reason);
 
 bool IsFinalTx(CBaseTx *pBaseTx, int nBlockHeight = 0, int64_t nBlockTime = 0);
 
-/** Functions for disk access for blocks */
-bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos);
-bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block);
-bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block);
-
-/** Functions for validating blocks and updating the block tree */
-
-/** Undo the effects of this block (with given index) on the UTXO set represented by coins.
- *  In case pfClean is provided, operation will try to be tolerant about errors, and *pfClean
- *  will be true if no problems were found. Otherwise, the return value will be false in case
- *  of problems. Note that in any case, coins may be modified. */
-bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pIndex,
-                    CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache, bool *pfClean = NULL);
-
-// Apply the effects of this block (with given index) on the UTXO set represented by coins
-bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pIndex, CTransactionDBCache &txCache,
-                CScriptDBViewCache &scriptCache, bool fJustCheck = false);
-
-// Add this block to the block index, and if necessary, switch the active block chain to this
-bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos &pos);
-
-// Context-independent validity checks
-bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDBCache,
-                bool fCheckTx = true, bool fCheckMerkleRoot = true);
-
-bool ProcessForkedChain(const CBlock &block, CValidationState &state);
-
-// Store block on disk
-// if dbp is provided, the file is known to already reside on disk
-bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp = NULL);
-
-//disconnect block for test
-bool DisconnectBlockFromTip(CValidationState &state);
 
 //get tx operate account log
 bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &vAccountLog);
-
-//get setBlockIndexValid
-Value ListSetBlockIndexValid();
 
 
 /** An in-memory indexed chain of blocks. */
@@ -682,65 +621,10 @@ protected:
 
 extern CSignatureCache signatureCache;
 
-
-
-//global overloadding fun
-template <typename Stream>
-void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
-    unsigned char nTxType = pa->nTxType;
-    Serialize(os, nTxType, nType, nVersion);
-    if (pa->nTxType == ACCOUNT_REGISTER_TX) {
-        Serialize(os, *((CAccountRegisterTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == BCOIN_TRANSFER_TX) {
-        Serialize(os, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == CONTRACT_INVOKE_TX) {
-        Serialize(os, *((CContractInvokeTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == BLOCK_REWARD_TX) {
-        Serialize(os, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == CONTRACT_DEPLOY_TX) {
-        Serialize(os, *((CContractDeployTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == DELEGATE_VOTE_TX) {
-        Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == COMMON_MTX) {
-        Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion);
-    } else {
-        string sTxType(1, nTxType);
-        throw ios_base::failure("Serialize: nTxType (" + sTxType + ") value error.");
-    }
-}
-
-//global overloadding fun
-template <typename Stream>
-void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
-    unsigned char nTxType;
-    is.read((char *)&(nTxType), sizeof(nTxType));
-    if (nTxType == ACCOUNT_REGISTER_TX) {
-        pa = std::make_shared<CAccountRegisterTx>();
-        Unserialize(is, *((CAccountRegisterTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == BCOIN_TRANSFER_TX) {
-        pa = std::make_shared<CBaseCoinTransferTx>();
-        Unserialize(is, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == CONTRACT_INVOKE_TX) {
-        pa = std::make_shared<CContractInvokeTx>();
-        Unserialize(is, *((CContractInvokeTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == BLOCK_REWARD_TX) {
-        pa = std::make_shared<CBlockRewardTx>();
-        Unserialize(is, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == CONTRACT_DEPLOY_TX) {
-        pa = std::make_shared<CContractDeployTx>();
-        Unserialize(is, *((CContractDeployTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == DELEGATE_VOTE_TX) {
-        pa = std::make_shared<CDelegateVoteTx>();
-        Unserialize(is, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == COMMON_MTX) {
-        pa = std::make_shared<CMulsigTx>();
-        Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
-    } else {
-        string sTxType(1, nTxType);
-        throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error.");
-    }
-    pa->nTxType = nTxType;
-}
-
+inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+template<typename Stream>
+void Serialize(Stream& os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+template<typename Stream>
+void Unserialize(Stream& is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
 
 #endif
