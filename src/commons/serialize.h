@@ -455,7 +455,6 @@ template<typename K, typename Pred, typename A> unsigned int GetSerializeSize(co
 template<typename Stream, typename K, typename Pred, typename A> void Serialize(Stream& os, const set<K, Pred, A>& m, int nType, int nVersion);
 template<typename Stream, typename K, typename Pred, typename A> void Unserialize(Stream& is, set<K, Pred, A>& m, int nType, int nVersion);
 
-
 unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
 template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
 template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);

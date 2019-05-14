@@ -23,10 +23,11 @@ using namespace std;
 
 class CTransactionDBView {
 public:
+    virtual ~CTransactionDBView(){};
+
     virtual bool IsContainBlock(const CBlock &block) = 0;
     virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHashIn) = 0;
 
-    virtual ~CTransactionDBView(){};
 };
 
 class CTransactionDB : public CTransactionDBView {
@@ -34,8 +35,9 @@ private:
     CLevelDBWrapper db;
 
 public:
-    CTransactionDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) :
-        db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {};
+    CTransactionDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false)
+        : db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {};
+
     ~CTransactionDB() {};
 
 private:
@@ -43,8 +45,9 @@ private:
     void operator=(const CTransactionDB &);
 
 public:
-    virtual bool IsContainBlock(const CBlock &block);
-    virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash);
+    virtual bool IsContainBlock(const CBlock &block) { return true; };
+    virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash) { return true; };
+
     int64_t GetDbCount() { return db.GetDbCount(); }
 };
 

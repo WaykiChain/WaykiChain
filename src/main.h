@@ -297,6 +297,9 @@ public:
 
 bool IsInitialBlockDownload();
 
+/** Open an undo file (rev?????.dat) */
+FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
+
 /** Undo information for a CBlock */
 class CBlockUndo {
 public:
@@ -602,5 +605,75 @@ protected:
 };
 
 extern CSignatureCache signatureCache;
+
+
+/** Functions for validating blocks and updating the block tree */
+
+/** Undo the effects of this block (with given index) on the UTXO set represented by coins.
+ *  In case pfClean is provided, operation will try to be tolerant about errors, and *pfClean
+ *  will be true if no problems were found. Otherwise, the return value will be false in case
+ *  of problems. Note that in any case, coins may be modified. */
+bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pIndex,
+                    CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache, bool *pfClean = NULL);
+
+// Apply the effects of this block (with given index) on the UTXO set represented by coins
+bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pIndex, CTransactionDBCache &txCache,
+                CScriptDBViewCache &scriptCache, bool fJustCheck = false);
+
+// Add this block to the block index, and if necessary, switch the active block chain to this
+bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos &pos);
+
+// Context-independent validity checks
+bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDBCache,
+                bool fCheckTx = true, bool fCheckMerkleRoot = true);
+
+bool ProcessForkedChain(const CBlock &block, CValidationState &state);
+
+// Store block on disk
+// if dbp is provided, the file is known to already reside on disk
+bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp = NULL);
+
+//disconnect block for test
+bool DisconnectBlockFromTip(CValidationState &state);
+
+/** Mark a block as invalid. */
+bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex);
+
+int64_t GetBlockValue(int nHeight, int64_t nFees);
+/** Open a block file (blk?????.dat) */
+FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
+
+/** Import blocks from an external file */
+bool LoadExternalBlockFile(FILE *fileIn, CDiskBlockPos *dbp = NULL);
+/** Initialize a new block tree database + block data on disk */
+bool InitBlockIndex();
+/** Load the block tree and coins database from disk */
+bool LoadBlockIndex();
+/** Unload database information */
+void UnloadBlockIndex();
+/** Push getblocks request */
+void PushGetBlocks(CNode *pnode, CBlockIndex *pindexBegin, uint256 hashEnd);
+/** Push getblocks request with different filtering strategies */
+void PushGetBlocksOnCondition(CNode *pnode, CBlockIndex *pindexBegin, uint256 hashEnd);
+/** Process an incoming block */
+bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBlockPos *dbp = NULL);
+/** Print the loaded block tree */
+void PrintBlockTree();
+
+void UpdateTime(CBlockHeader &block, const CBlockIndex *pindexPrev);
+
+//get setBlockIndexValid
+Value ListSetBlockIndexValid();
+
+
+/** Find the best known block, and make it the tip of the block chain */
+bool ActivateBestChain(CValidationState &state);
+
+/** Remove invalidity status from a block and its descendants. */
+bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex);
+/** Functions for disk access for blocks */
+bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos);
+bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block);
+bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block);
 
 #endif

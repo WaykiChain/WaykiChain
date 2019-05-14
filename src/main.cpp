@@ -4452,3 +4452,34 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
     }
     pa->nTxType = nTxType;
 }
+
+
+FILE *OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly) {
+    if (pos.IsNull())
+        return NULL;
+    boost::filesystem::path path = GetDataDir() / "blocks" / strprintf("%s%05u.dat", prefix, pos.nFile);
+    boost::filesystem::create_directories(path.parent_path());
+    FILE *file = fopen(path.string().c_str(), "rb+");
+    if (!file && !fReadOnly)
+        file = fopen(path.string().c_str(), "wb+");
+    if (!file) {
+        LogPrint("INFO", "Unable to open file %s\n", path.string());
+        return NULL;
+    }
+    if (pos.nPos) {
+        if (fseek(file, pos.nPos, SEEK_SET)) {
+            LogPrint("INFO", "Unable to seek to position %u of %s\n", pos.nPos, path.string());
+            fclose(file);
+            return NULL;
+        }
+    }
+    return file;
+}
+
+FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly) {
+    return OpenDiskFile(pos, "blk", fReadOnly);
+}
+
+FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly) {
+    return OpenDiskFile(pos, "rev", fReadOnly);
+}
