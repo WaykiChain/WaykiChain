@@ -267,7 +267,6 @@ libcoin_common_a_SOURCES = \
   netbase.cpp \
   protocol.cpp \
   persistence/block.cpp \
-  persistence/disk.cpp \
   persistence/syncdata.cpp \
   persistence/syncdatadb.cpp \
   persistence/accountdb.cpp \

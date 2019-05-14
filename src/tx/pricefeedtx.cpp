@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
-#include "pricefeed.h"
+#include "pricefeedtx.h"
 #include "commons/serialize.h"
 #include "tx.h"
 #include "crypto/hash.h"
