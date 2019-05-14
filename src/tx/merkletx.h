@@ -7,7 +7,6 @@
 #define COIN_MERKLETX_H
 
 #include "persistence/block.h"
-#include "tx/txbase.h"
 
 /** A transaction with a merkle branch linking it to the block chain. */
 class CMerkleTx {
