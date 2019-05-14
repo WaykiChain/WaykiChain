@@ -2175,13 +2175,14 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
 
     // Check merkle root
     if (fCheckMerkleRoot && block.GetMerkleRootHash() != block.vMerkleTree.back())
-        return state.DoS(100, ERRORMSG("CheckBlock() : merkleRootHash mismatch, height=%u, block.merkleRootHash=%s, block.vMerkleTree.back()=%s",
-                        block.GetMerkleRootHash().ToString(), block.vMerkleTree.back().ToString()), REJECT_INVALID, "bad-txnmrklroot", true);
-    //check nonce
-    uint64_t maxNonce = SysCfg().GetBlockMaxNonce();  //cacul times
+        return state.DoS(100, ERRORMSG("CheckBlock() : merkleRootHash mismatch, height: %u, merkleRootHash(in block: %s vs calculate: %s)",
+                        block.GetHeight(), block.GetMerkleRootHash().ToString(), block.vMerkleTree.back().ToString()),
+                        REJECT_INVALID, "bad-txnmrklroot", true);
+
+    // Check nonce
+    static uint64_t maxNonce = SysCfg().GetBlockMaxNonce();
     if (block.GetNonce() > maxNonce) {
-        return state.Invalid(ERRORMSG("CheckBlock() : Nonce is larger than maxNonce"),
-                             REJECT_INVALID, "Nonce-too-large");
+        return state.Invalid(ERRORMSG("CheckBlock() : Nonce is larger than maxNonce"), REJECT_INVALID, "Nonce-too-large");
     }
 
     return true;
@@ -2192,7 +2193,8 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
 
     uint256 blockHash = block.GetHash();
     LogPrint("INFO", "AcceptBlock[%d]: %s\n", block.GetHeight(), blockHash.GetHex());
-    if (mapBlockIndex.count(blockHash))  // Check for duplicated block
+    // Check for duplicated block
+    if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("AcceptBlock() : block already in mapBlockIndex"), 0, "duplicated");
 
     assert(block.GetHeight() == 0 || mapBlockIndex.count(block.GetPrevBlockHash()));
