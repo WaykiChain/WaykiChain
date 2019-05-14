@@ -4375,6 +4375,23 @@ uint64_t GetBlockSubsidy(int nHeight) {
     return IniCfg().GetBlockSubsidyCfg(nHeight);
 }
 
+bool IsInitialBlockDownload() {
+    LOCK(cs_main);
+    if (SysCfg().IsImporting() ||
+        SysCfg().IsReindex() ||
+        chainActive.Height() < Checkpoints::GetTotalBlocksEstimate())
+        return true;
+
+    static int64_t nLastUpdate;
+    static CBlockIndex *pindexLastBest;
+    if (chainActive.Tip() != pindexLastBest) {
+        pindexLastBest = chainActive.Tip();
+        nLastUpdate    = GetTime();
+    }
+
+    return (GetTime() - nLastUpdate < 10 && chainActive.Tip()->GetBlockTime() < GetTime() - 24 * 60 * 60);
+}
+
 inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
     return pa->GetSerializeSize(nType, nVersion) + 1;
 }

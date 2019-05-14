@@ -295,22 +295,7 @@ public:
     CBlockIndex *FindFork(const CBlockLocator &locator) const;
 };
 
-bool IsInitialBlockDownload() {
-    LOCK(cs_main);
-    if (SysCfg().IsImporting() ||
-        SysCfg().IsReindex() ||
-        chainActive.Height() < Checkpoints::GetTotalBlocksEstimate())
-        return true;
-
-    static int64_t nLastUpdate;
-    static CBlockIndex *pindexLastBest;
-    if (chainActive.Tip() != pindexLastBest) {
-        pindexLastBest = chainActive.Tip();
-        nLastUpdate    = GetTime();
-    }
-
-    return (GetTime() - nLastUpdate < 10 && chainActive.Tip()->GetBlockTime() < GetTime() - 24 * 60 * 60);
-}
+bool IsInitialBlockDownload();
 
 /** Undo information for a CBlock */
 class CBlockUndo {
@@ -617,11 +602,5 @@ protected:
 };
 
 extern CSignatureCache signatureCache;
-
-// extern inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
-// template<typename Stream>
-// void Serialize(Stream& os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
-// template<typename Stream>
-// void Unserialize(Stream& is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
 
 #endif
