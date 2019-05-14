@@ -6,6 +6,14 @@
 
 #include "mulsigtx.h"
 
+#include "commons/serialize.h"
+#include "crypto/hash.h"
+#include "persistence/contractdb.h"
+#include "util.h"
+#include "main.h"
+#include "miner/miner.h"
+#include "version.h"
+
 string CSignaturePair::ToString() const {
     string str = strprintf("regId=%s, signature=%s", regId.ToString(),
                            HexStr(signature.begin(), signature.end()));

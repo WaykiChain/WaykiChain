@@ -30,6 +30,7 @@
 
 class CAutoFile;
 class CDataStream;
+class CBaseTx;
 
 static const unsigned int MAX_SIZE = 0x02000000;
 
@@ -454,6 +455,11 @@ template<typename K, typename Pred, typename A> unsigned int GetSerializeSize(co
 template<typename Stream, typename K, typename Pred, typename A> void Serialize(Stream& os, const set<K, Pred, A>& m, int nType, int nVersion);
 template<typename Stream, typename K, typename Pred, typename A> void Unserialize(Stream& is, set<K, Pred, A>& m, int nType, int nVersion);
 
+
+unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+
 class CSerActionGetSerializeSize { };
 class CSerActionSerialize { };
 class CSerActionUnserialize { };
@@ -612,10 +618,6 @@ inline void Unserialize(Stream& is, vector<T, A>& v, int nType, int nVersion)
 {
     Unserialize_impl(is, v, nType, nVersion, boost::is_fundamental<T>());
 }
-
-// extern inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
-// template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
-// template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
 
 //
 // others derived from vector

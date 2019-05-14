@@ -9,6 +9,7 @@
 #include "crypto/hash.h"
 #include "util.h"
 #include "persistence/contractdb.h"
+#include "persistence/txdb.h"
 #include "main.h"
 #include "vm/vmrunenv.h"
 #include "miner/miner.h"

@@ -12,6 +12,7 @@
 #include "json/json_spirit_value.h"
 #include "accounts/account.h"
 #include "accounts/id.h"
+#include "persistence/contractdb.h"
 
 #include <boost/variant.hpp>
 #include <memory>

@@ -7,6 +7,8 @@
 #ifndef COIN_MULSIGTX_H
 #define COIN_MULSIGTX_H
 
+#include "tx/tx.h"
+
 class CSignaturePair {
 public:
     CRegID regId;  //!< regid only

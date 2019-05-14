@@ -10,7 +10,6 @@
 #include "commons/arith_uint256.h"
 #include "leveldbwrapper.h"
 #include "vm/appaccount.h"
-#include "persistence/block.h"
 
 #include <map>
 #include <string>
@@ -18,6 +17,11 @@
 #include <vector>
 
 class CVmOperate;
+struct CDiskTxPos;
+class CKeyID;
+class CRegID;
+class CAccount;
+class CAccountLog;
 
 class CScriptDBOperLog {
 public:

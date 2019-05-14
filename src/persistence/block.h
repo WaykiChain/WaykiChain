@@ -14,13 +14,14 @@
 #include "commons/uint256.h"
 #include "commons/base58.h"
 #include "sync.h"
-#include "tx/txbase.h"
+#include "tx/tx.h"
 
 #include <stdint.h>
 #include <memory>
 
 
 class CDiskBlockPos;
+class CNode;
 
 enum BlockStatus {
     BLOCK_VALID_UNKNOWN      = 0,
@@ -699,8 +700,6 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
 /** Print the loaded block tree */
 void PrintBlockTree();
 
-/** Check whether we are doing an initial block download (synchronizing from disk or network) */
-bool IsInitialBlockDownload();
 void UpdateTime(CBlockHeader &block, const CBlockIndex *pindexPrev);
 
 //get setBlockIndexValid

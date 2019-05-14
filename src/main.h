@@ -27,6 +27,7 @@
 #include "sigcache.h"
 #include "persistence/accountview.h"
 #include "persistence/accountdb.h"
+#include "persistence/block.h"
 #include "tx/txmempool.h"
 #include "tx/accountregtx.h"
 #include "tx/bcointx.h"
@@ -293,10 +294,6 @@ public:
     /** Find the last common block between this chain and a locator. */
     CBlockIndex *FindFork(const CBlockLocator &locator) const;
 };
-
-
-/** Open an undo file (rev?????.dat) */
-FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 
 bool IsInitialBlockDownload() {
     LOCK(cs_main);
@@ -621,10 +618,10 @@ protected:
 
 extern CSignatureCache signatureCache;
 
-inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
-template<typename Stream>
-void Serialize(Stream& os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
-template<typename Stream>
-void Unserialize(Stream& is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+// extern inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+// template<typename Stream>
+// void Serialize(Stream& os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+// template<typename Stream>
+// void Unserialize(Stream& is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
 
 #endif

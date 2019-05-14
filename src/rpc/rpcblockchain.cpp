@@ -6,15 +6,16 @@
 #include <stdint.h>
 #include <boost/assign/list_of.hpp>
 
-#include "wallet/wallet.h"
+#include "commons/messagequeue.h"
 #include "configuration.h"
 #include "init.h"
 #include "json/json_spirit_value.h"
 #include "main.h"
-#include "commons/messagequeue.h"
 #include "rpcserver.h"
 #include "sync.h"
+#include "tx/merkletx.h"
 #include "tx/tx.h"
+#include "wallet/wallet.h"
 
 using namespace json_spirit;
 using namespace std;

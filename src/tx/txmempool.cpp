@@ -4,8 +4,11 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "commons/uint256.h"
 #include "txmempool.h"
 #include "main.h"
+#include "tx/tx.h"
+#include "persistence/txdb.h"
 
 using namespace std;
 

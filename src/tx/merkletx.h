@@ -44,8 +44,6 @@ public:
         READWRITE(pTx);
         READWRITE(nHeight);)
 
-    int SetMerkleBranch(const CBlock *pblock = NULL);
-
     // Return depth of transaction in blockchain:
     // -1  : not in blockchain, and not in memory pool (conflicted transaction)
     //  0  : in memory pool, waiting to be included in a block

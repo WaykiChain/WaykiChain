@@ -17,6 +17,8 @@ using namespace std;
 class CAccountViewCache;
 class CScriptDBViewCache;
 class CValidationState;
+class CBaseTx;
+class uint256;
 
 /*
  * CTxMemPool stores these:

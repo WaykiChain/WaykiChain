@@ -19,6 +19,7 @@
 #include "persistence/contractdb.h"
 #include "persistence/txdb.h"
 #include "tx/blockrewardtx.h"
+#include "tx/merkletx.h"
 #include "tx/txmempool.h"
 #include "ui_interface.h"
 #include "util.h"
@@ -543,11 +544,6 @@ bool IsFinalTx(CBaseTx *ptx, int nBlockHeight, int64_t nBlockTime) {
     AssertLockHeld(cs_main);
     return true;
 }
-
-FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly) {
-    return OpenDiskFile(pos, "rev", fReadOnly);
-}
-
 
 bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> &signature, const CPubKey &pubKey) {
     if (signatureCache.Get(sigHash, signature, pubKey))
@@ -2780,32 +2776,6 @@ bool CheckDiskSpace(uint64_t nAdditionalBytes) {
         return AbortNode(_("Error: Disk space is low!"));
 
     return true;
-}
-
-FILE *OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly) {
-    if (pos.IsNull())
-        return NULL;
-    boost::filesystem::path path = GetDataDir() / "blocks" / strprintf("%s%05u.dat", prefix, pos.nFile);
-    boost::filesystem::create_directories(path.parent_path());
-    FILE *file = fopen(path.string().c_str(), "rb+");
-    if (!file && !fReadOnly)
-        file = fopen(path.string().c_str(), "wb+");
-    if (!file) {
-        LogPrint("INFO", "Unable to open file %s\n", path.string());
-        return NULL;
-    }
-    if (pos.nPos) {
-        if (fseek(file, pos.nPos, SEEK_SET)) {
-            LogPrint("INFO", "Unable to seek to position %u of %s\n", pos.nPos, path.string());
-            fclose(file);
-            return NULL;
-        }
-    }
-    return file;
-}
-
-FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly) {
-    return OpenDiskFile(pos, "blk", fReadOnly);
 }
 
 bool static LoadBlockIndexDB() {
