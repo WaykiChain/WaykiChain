@@ -2175,9 +2175,8 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
 
     // Check merkle root
     if (fCheckMerkleRoot && block.GetMerkleRootHash() != block.vMerkleTree.back())
-        return state.DoS(100, ERRORMSG("CheckBlock() : merkleRootHash mismatch, block.merkleRootHash=%s, block.vMerkleTree.back()=%s",
+        return state.DoS(100, ERRORMSG("CheckBlock() : merkleRootHash mismatch, height=%u, block.merkleRootHash=%s, block.vMerkleTree.back()=%s",
                         block.GetMerkleRootHash().ToString(), block.vMerkleTree.back().ToString()), REJECT_INVALID, "bad-txnmrklroot", true);
-
     //check nonce
     uint64_t maxNonce = SysCfg().GetBlockMaxNonce();  //cacul times
     if (block.GetNonce() > maxNonce) {
