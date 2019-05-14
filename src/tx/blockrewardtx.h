@@ -36,9 +36,10 @@ public:
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(txUid);
-        READWRITE(VARINT(nHeight));
 
-        READWRITE(VARINT(rewardValue));)
+        // Do NOT change the order.
+        READWRITE(VARINT(rewardValue));
+        READWRITE(VARINT(nHeight));)
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
