@@ -104,25 +104,6 @@ std::tuple<bool, int> CBlock::GetTxIndex(const uint256& txHash) const {
     return std::make_tuple(false, 0);
 }
 
-CBlockIndex *InsertBlockIndex(uint256 hash) {
-    if (hash.IsNull())
-        return NULL;
-
-    // Return existing
-    map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(hash);
-    if (mi != mapBlockIndex.end())
-        return (*mi).second;
-
-    // Create new
-    CBlockIndex *pindexNew = new CBlockIndex();
-    if (!pindexNew)
-        throw runtime_error("InsertBlockIndex() : new CBlockIndex failed");
-    mi                    = mapBlockIndex.insert(make_pair(hash, pindexNew)).first;
-    pindexNew->pBlockHash = &((*mi).first);
-
-    return pindexNew;
-}
-
 FILE *OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly) {
     if (pos.IsNull())
         return NULL;

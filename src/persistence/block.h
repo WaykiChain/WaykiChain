@@ -464,9 +464,6 @@ public:
         LogPrint("INFO", "%s\n", ToString().c_str());
     }
 
-    /** Create a new block index entry for a given block hash */
-    CBlockIndex *InsertBlockIndex(uint256 hash);
-
     // Build the skiplist pointer for this entry.
     void BuildSkip();
 
