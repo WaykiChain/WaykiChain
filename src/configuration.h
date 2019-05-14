@@ -12,6 +12,7 @@
 #include "commons/arith_uint256.h"
 #include "util.h"
 #include "chainparams.h"
+#include "version.h"
 
 #include <memory>
 #include <boost/filesystem.hpp>

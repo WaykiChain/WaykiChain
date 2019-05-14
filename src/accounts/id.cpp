@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 #include "id.h"
-#include "persistence/accountview.h"
+#include "persistence/accountdb.h"
 
 extern CAccountViewCache *pAccountViewTip; /** global account db cache*/
 

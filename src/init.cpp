@@ -23,7 +23,7 @@
 #include "noui.h"
 #include "persistence/syncdatadb.h"
 #include "persistence/blockdb.h"
-#include "persistence/accountview.h"
+#include "persistence/accountdb.h"
 #include "persistence/txdb.h"
 #include "persistence/contractdb.h"
 #include "tx/tx.h"

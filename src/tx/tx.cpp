@@ -9,7 +9,7 @@
 #include <algorithm>
 
 #include "tx.h"
-#include "persistence/accountview.h"
+#include "persistence/accountdb.h"
 #include "persistence/contractdb.h"
 #include "persistence/txdb.h"
 #include "accounts/account.h"

@@ -9,7 +9,6 @@
 
 #include "configuration.h"
 #include "accounts/key.h"
-#include "persistence/accountview.h"
 #include "commons/serialize.h"
 #include "commons/uint256.h"
 #include "commons/base58.h"
@@ -22,6 +21,7 @@
 
 class CDiskBlockPos;
 class CNode;
+class CAccountViewCache;
 
 enum BlockStatus {
     BLOCK_VALID_UNKNOWN      = 0,

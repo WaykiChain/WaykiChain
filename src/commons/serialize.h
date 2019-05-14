@@ -7,7 +7,6 @@
 #ifndef COIN_SERIALIZE_H
 #define COIN_SERIALIZE_H
 
-#include "version.h"
 #include "allocators.h"
 #include "uint256.h"
 

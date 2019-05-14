@@ -65,7 +65,6 @@ coin_CORE_H = \
   noui.h \
   persistence/leveldbwrapper.h \
   persistence/accountdb.h \
-  persistence/accountview.h \
   persistence/block.h \
   persistence/blockdb.h \
   persistence/contractdb.h \
@@ -272,7 +271,6 @@ libcoin_common_a_SOURCES = \
   persistence/syncdata.cpp \
   persistence/syncdatadb.cpp \
   persistence/accountdb.cpp \
-  persistence/accountview.cpp \
   persistence/blockdb.cpp \
   persistence/contractdb.cpp \
   persistence/txdb.cpp \

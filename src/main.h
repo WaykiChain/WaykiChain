@@ -25,7 +25,6 @@
 #include "chainparams.h"
 #include "net.h"
 #include "sigcache.h"
-#include "persistence/accountview.h"
 #include "persistence/accountdb.h"
 #include "persistence/block.h"
 #include "tx/txmempool.h"
