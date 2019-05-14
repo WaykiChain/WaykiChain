@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2014-2019 The WaykiChain developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
+#include "accountview.h"
+
+#include "main.h"
 
 bool CAccountViewCache::GetAccount(const CKeyID &keyId, CAccount &account) {
     if (mapKeyId2Account.count(keyId)) {
@@ -364,21 +373,4 @@ Object CAccountViewCache::ToJsonObj() const {
     obj.push_back(Pair("mapRegId2KeyId", arrayObj));
 
     return obj;
-}
-
-bool CScriptDBViewCache::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) {
-    if (mapContractDb.count(vKey) > 0) {
-        if (!mapContractDb[vKey].empty()) {
-            vValue = mapContractDb[vKey];
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    if (!pBase->GetData(vKey, vValue)) {
-        return false;
-    }
-    mapContractDb[vKey] = vValue;  //cache it here for speed in-mem access
-    return true;
 }

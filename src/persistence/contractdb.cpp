@@ -1383,3 +1383,20 @@ bool CScriptDBViewCache::EraseScriptAcc(const CRegID &scriptId, const vector<uns
 
     return EraseKey(scriptKey);
 }
+
+bool CScriptDBViewCache::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) {
+    if (mapContractDb.count(vKey) > 0) {
+        if (!mapContractDb[vKey].empty()) {
+            vValue = mapContractDb[vKey];
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    if (!pBase->GetData(vKey, vValue)) {
+        return false;
+    }
+    mapContractDb[vKey] = vValue;  //cache it here for speed in-mem access
+    return true;
+}

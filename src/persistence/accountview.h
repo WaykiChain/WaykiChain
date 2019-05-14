@@ -1,8 +1,8 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2013 The WaykiChain developers
 // Copyright (c) 2016 The Coin developers
+// Copyright (c) 2014-2019 The WaykiChain developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 #ifndef PERSIST_ACCOUNTVIEW_H
 #define PERSIST_ACCOUNTVIEW_H
