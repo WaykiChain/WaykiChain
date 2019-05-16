@@ -19,7 +19,7 @@ BOOST_AUTO_TEST_CASE(subsidy_limit_test)
 			nSum += nSubsidy * 1000;
 			BOOST_CHECK(CheckMoneyRange(nSum));
 		}
-		printf("%llu\n", nSum);
+		printf("%llu\n", (unsigned long long)nSum);
 		BOOST_CHECK(nSum == 2099999997690000ULL);
 	}
 	else

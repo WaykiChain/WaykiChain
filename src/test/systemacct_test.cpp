@@ -1,3 +1,5 @@
+#ifdef TODO
+
 #include <boost/test/unit_test.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include "systestbase.h"
@@ -160,8 +162,4 @@ BOOST_FIXTURE_TEST_CASE(register_test,CSysAccountTest)
 
 BOOST_AUTO_TEST_SUITE_END()
 
-
-
-
-
-
+#endif//TODO

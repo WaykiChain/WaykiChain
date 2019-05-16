@@ -21,12 +21,12 @@ if BUILD_COINLUA
   bin_PROGRAMS += coinlua
 endif
 
-SUBDIRS = . $(BUILD_QT) $(BUILD_P_TEST) $(BUILD_TEST)
+SUBDIRS = . $(BUILD_QT) $(BUILD_P_TEST)
 #DIST_SUBDIRS = . qt test
-DIST_SUBDIRS = . test ptest
+#DIST_SUBDIRS = . test ptest
 
 #secp256k1
-DIST_SUBDIRS += secp256k1
+DIST_SUBDIRS = secp256k1
 LIBSECP256K1=secp256k1/libsecp256k1.la
 AM_CPPFLAGS += -I$(srcdir)/secp256k1/include -I$(srcdir)/secp256k1/contrib
 
@@ -326,6 +326,10 @@ coind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
 coinlua_LDADD = liblua53.a -lm
 coinlua_SOURCES = vm/lua/coinlua.c
 coinlua_CFLAGS = $(AM_CFLAGS) -fPIC -DLUA_USE_POSIX -Wl,-E -ldl
+
+if BUILD_TESTS
+include Makefile_test.am
+endif
 
 # NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
 $(LIBLEVELDB): $(LIBMEMENV)
