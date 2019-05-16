@@ -3369,49 +3369,26 @@ Value listdelegates(const Array& params, bool fHelp) {
                 + HelpExampleRpc("listdelegates", "11"));
     }
 
-    int nDelegateNum = (params.size() == 1) ? params[0].get_int() : IniCfg().GetDelegatesNum();
-    if (nDelegateNum < 1 || nDelegateNum > 11) {
+    int delegateNum = (params.size() == 1) ? params[0].get_int() : IniCfg().GetDelegatesNum();
+    if (delegateNum < 1 || delegateNum > 11) {
         throw JSONRPCError(
             RPC_INVALID_PARAMETER,
-            strprintf("input delegate number not between 1 and %ld", IniCfg().GetDelegatesNum()));
+            strprintf("Delegate number not between 1 and %ld", IniCfg().GetDelegatesNum()));
     }
 
-    int nIndex = 0;
-    vector<unsigned char> vScriptData;
-    CScriptDBViewCache contractScriptTemp(*pScriptDBTip);
-    CAccountViewCache view(*pAccountViewTip);
+    vector<CAccount> delegates;
+    if (!GetDelegatesAcctList(delegates) || delegates.size() != IniCfg().GetDelegatesNum()) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to get delegates list");
+    }
+
     Object obj;
     Array delegateArray;
-    vector<unsigned char> vDelegateKey = {'d','e','l','e','g','a','t','e','_'};
-    vector<unsigned char> vDelegatePrefix = vDelegateKey;
-    while (--nDelegateNum >= 0) {
-        CRegID regId(0,0);
-        if (contractScriptTemp.GetContractData(0, regId, nIndex, vDelegateKey, vScriptData)) {
-            nIndex = 1;
-            vector<unsigned char>::iterator iterVotes = find_first_of(vDelegateKey.begin(), vDelegateKey.end(),
-                vDelegatePrefix.begin(), vDelegatePrefix.end());
-            string strVotes(iterVotes+9, iterVotes+25);
-            uint64_t receivedVotes = 0;
-            stringstream strValue;
-            strValue.flags(ios::hex);
-            strValue << strVotes;
-            strValue >> receivedVotes;
-
-            vector<unsigned char> vAcctRegId(iterVotes+26, vDelegateKey.end());
-            CRegID acctRegId(vAcctRegId);
-            CAccount account;
-            if (!view.GetAccount(acctRegId, account))
-                assert(0);
-
-            uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
-            if ((maxNum - receivedVotes) != account.receivedVotes) {
-                LogPrint("INFO", "receivedVotes:%lld, account:%s", maxNum - receivedVotes, account.ToString());
-                assert(0);
-            }
-            delegateArray.push_back(account.ToJsonObj());
-      } else {
-          assert(0);
-      }
+    delegateNum = min(delegateNum, (int)delegates.size());
+    for (const auto& delegate : delegates) {
+        delegateArray.push_back(delegate.ToJsonObj());
+        if (--delegateNum == 0) {
+            break;
+        }
     }
     obj.push_back(Pair("delegates", delegateArray));
     return obj;
