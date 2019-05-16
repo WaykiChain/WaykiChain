@@ -1,3 +1,4 @@
+#ifdef TODO
 #include <iostream>
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
@@ -202,3 +203,4 @@ BOOST_FIXTURE_TEST_CASE(red_packet, CTxTest) {
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+#endif//TODO
