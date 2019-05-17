@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <boost/circular_buffer.hpp>
 
-extern CWallet *pwalletMain;
+extern CWallet *pWalletMain;
 extern void SetMinerStatus(bool bStatus);
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -199,7 +199,7 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
     pBlock->SetTime(currentTime);
 
     vector<unsigned char> vSign;
-    if (pwalletMain->Sign(delegate.keyID, pBlock->ComputeSignatureHash(), vSign, delegate.minerPubKey.IsValid())) {
+    if (pWalletMain->Sign(delegate.keyID, pBlock->ComputeSignatureHash(), vSign, delegate.minerPubKey.IsValid())) {
         pBlock->SetSignature(vSign);
         return true;
     } else {
@@ -511,12 +511,12 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
         bool createdFlag = false;
         int64_t nLastTime;
         {
-            LOCK2(cs_main, pwalletMain->cs_wallet);
+            LOCK2(cs_main, pWalletMain->cs_wallet);
             if ((unsigned int)(chainActive.Tip()->nHeight + 1) != pblock->GetHeight())
                 return false;
             CKey acctKey;
-            if (pwalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey, true) ||
-                pwalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey)) {
+            if (pWalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey, true) ||
+                pWalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey)) {
                 nLastTime   = GetTimeMillis();
                 createdFlag = CreatePosTx(currentTime, minerAcct, view, pblock);
                 LogPrint("MINER", "CreatePosTx %s, used time:%d ms, miner address=%s\n",
@@ -563,11 +563,11 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
     RenameThread("Coin-miner");
 
     auto HaveMinerKey = [&]() {
-        LOCK2(cs_main, pwalletMain->cs_wallet);
+        LOCK2(cs_main, pWalletMain->cs_wallet);
 
         set<CKeyID> setMineKey;
         setMineKey.clear();
-        pwalletMain->GetKeys(setMineKey, true);
+        pWalletMain->GetKeys(setMineKey, true);
         return !setMineKey.empty();
     };
 

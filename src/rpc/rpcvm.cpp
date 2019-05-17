@@ -158,7 +158,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     if (!account.IsRegistered()) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
     }
-    if (!pwalletMain->HaveKey(srcKeyid)) {
+    if (!pWalletMain->HaveKey(srcKeyid)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Send address is not in wallet");
     }
     if (balance < totalFee) {
@@ -171,7 +171,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     Object registerContractTxObj;
     EnsureWalletIsUnlocked();
     int newHeight = chainActive.Tip()->nHeight + 1;
-    assert(pwalletMain != NULL);
+    assert(pWalletMain != NULL);
     {
         CContractDeployTx tx;
 
@@ -181,7 +181,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         tx.nRunStep  = vscript.size();
         tx.nValidHeight = newHeight;
 
-        if (!pwalletMain->Sign(srcKeyid, tx.ComputeSignatureHash(), tx.signature)) {
+        if (!pWalletMain->Sign(srcKeyid, tx.ComputeSignatureHash(), tx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
 
@@ -220,7 +220,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         contractTx.nValidHeight = newHeight;
 
         vector<unsigned char> signature;
-        if (!pwalletMain->Sign(srcKeyid, contractTx.ComputeSignatureHash(), contractTx.signature)) {
+        if (!pWalletMain->Sign(srcKeyid, contractTx.ComputeSignatureHash(), contractTx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
 

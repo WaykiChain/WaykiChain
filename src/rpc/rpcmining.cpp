@@ -41,11 +41,11 @@ using namespace std;
 
 void InitRPCMining()
 {
-    if (!pwalletMain)
+    if (!pWalletMain)
         return;
 
     // getwork/getblocktemplate mining rewards paid here:
-//    pMiningKey = new CReserveKey(pwalletMain);
+//    pMiningKey = new CReserveKey(pWalletMain);
      //assert(0);
      LogPrint("TODO","InitRPCMining");
 }
@@ -154,7 +154,7 @@ Value setgenerate(const Array& params, bool fHelp)
 
     set<CKeyID> setKeyId;
     setKeyId.clear();
-    pwalletMain->GetKeys(setKeyId, true);
+    pWalletMain->GetKeys(setKeyId, true);
 
     bool bSetEmpty(true);
     for (auto & keyId : setKeyId) {
@@ -181,13 +181,13 @@ Value setgenerate(const Array& params, bool fHelp)
     }
     Object obj;
     if (fGenerate == false){
-        GenerateCoinBlock(false, pwalletMain, 1);
+        GenerateCoinBlock(false, pWalletMain, 1);
 
         obj.push_back(Pair("msg", "stoping  mining"));
         return obj;
     }
 
-    GenerateCoinBlock(true, pwalletMain, genBlockLimit);
+    GenerateCoinBlock(true, pWalletMain, genBlockLimit);
     obj.push_back(Pair("msg", "in  mining"));
     return obj;
 }

@@ -76,8 +76,8 @@ public:
 		}
 
 		uint256 blockHash(uint256S(hash));
-		auto itAccountTx = pwalletMain->mapInBlockTx.find(blockHash);
-		if (pwalletMain->mapInBlockTx.end() == itAccountTx)
+		auto itAccountTx = pWalletMain->mapInBlockTx.find(blockHash);
+		if (pWalletMain->mapInBlockTx.end() == itAccountTx)
 			return false;
 
 		for (const auto &item :itAccountTx->second.mapAccountTx) {
