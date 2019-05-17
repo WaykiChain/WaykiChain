@@ -84,6 +84,7 @@ public:
 
     vector_unsigned_char GetNickIdRaw() const { return nickId; }
     bool IsEmpty() const { return (nickId.size() == 0); }
+    void Clean() { nickId.clear(); }
     string ToString() const { return std::string(nickId.begin(), nickId.end()); }
 
     IMPLEMENT_SERIALIZE(READWRITE(nickId);)

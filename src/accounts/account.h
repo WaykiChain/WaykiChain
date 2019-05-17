@@ -224,6 +224,10 @@ public:
 public:
     CAccountLog(const CAccount& acct) {
         keyID          = acct.keyID;
+        regID          = acct.regID;
+        nickID         = acct.nickID;
+        pubKey         = acct.pubKey;
+        minerPubKey    = acct.minerPubKey;
         bcoins         = acct.bcoins;
         hasOpenCdp     = acct.hasOpenCdp;
         lastVoteHeight = acct.lastVoteHeight;
@@ -232,16 +236,20 @@ public:
     }
 
     CAccountLog(CKeyID& keyId) {
-        keyID          = keyId;
+        keyID = keyId;
+        regID.Clean();
+        nickID.Clean();
         bcoins         = 0;
         hasOpenCdp     = false;
         lastVoteHeight = 0;
         voteFunds.clear();
-        receivedVotes  = 0;
+        receivedVotes = 0;
     }
 
     CAccountLog() {
-        keyID          = uint160();
+        keyID = uint160();
+        regID.Clean();
+        nickID.Clean();
         bcoins         = 0;
         hasOpenCdp     = false;
         lastVoteHeight = 0;
