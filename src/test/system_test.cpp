@@ -1,3 +1,4 @@
+#ifdef TODO
 #include <stdlib.h>
 #include <time.h>
 #include "main.h"
@@ -75,8 +76,8 @@ public:
 		}
 
 		uint256 blockHash(uint256S(hash));
-		auto itAccountTx = pwalletMain->mapInBlockTx.find(blockHash);
-		if (pwalletMain->mapInBlockTx.end() == itAccountTx)
+		auto itAccountTx = pWalletMain->mapInBlockTx.find(blockHash);
+		if (pWalletMain->mapInBlockTx.end() == itAccountTx)
 			return false;
 
 		for (const auto &item :itAccountTx->second.mapAccountTx) {
@@ -308,3 +309,4 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+#endif //TODO

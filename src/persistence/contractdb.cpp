@@ -712,7 +712,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
             //				}
             //			}
             if (vDataKey.empty()) {  //缓存中没有符合条件的key，直接返回上级的查询结果
-                if (mapContractDb.count(dataKeyTemp) <= 0) {
+                if (!mapContractDb.count(dataKeyTemp)) {
                     //					CDataStream ds(vScriptData, SER_DISK, CLIENT_VERSION);
                     //					ds >> vScriptData;
                     return true;
@@ -722,7 +722,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
                 }
             } else {
                 if (dataKeyTemp < vDataKey) {
-                    if (mapContractDb.count(dataKeyTemp) <= 0) {
+                    if (!mapContractDb.count(dataKeyTemp)) {
                         return true;
                     } else {
                         //						LogPrint("INFO", "dataKeyTemp less than vDataKey and vDataValue empty redo getcontractdata()\n");
@@ -824,7 +824,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
             //				}
             //			}
             if (vDataKey.empty()) {  //缓存中没有符合条件的key，直接返回上级的查询结果
-                if (mapContractDb.count(dataKeyTemp) <= 0) {
+                if (!mapContractDb.count(dataKeyTemp)) {
                     //					CDataStream ds(vScriptData, SER_DISK, CLIENT_VERSION);
                     //					ds >> vScriptData;
                     return true;
@@ -834,7 +834,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
                 }
             } else {
                 if (dataKeyTemp < vDataKey) {
-                    if (mapContractDb.count(dataKeyTemp) == 0)
+                    if (!mapContractDb.count(dataKeyTemp))
                         return true;
                     else {
                         //						LogPrint("INFO", "dataKeyTemp less than vDataKey and vDataValue empty redo getcontractdata()\n");

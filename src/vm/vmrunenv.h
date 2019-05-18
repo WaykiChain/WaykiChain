@@ -123,7 +123,7 @@ public:
      *@brief get after operate the account
      * @return :the variable newAccount
      */
-    vector<std::shared_ptr<CAccount>>& GetNewAccont();
+    vector<std::shared_ptr<CAccount>>& GetNewAccount();
     vector<std::shared_ptr<CAppUserAccount>>& GetRawAppUserAccount();
     vector<std::shared_ptr<CAppUserAccount>>& GetNewAppUserAccount();
 

@@ -1,8 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2014-2015 The WaykiChain Core developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 #include "main.h"
 
@@ -1159,11 +1158,9 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &
         (blockUndo.vtxundo.size() != (block.vptx.size() + 1)))
         return ERRORMSG("DisconnectBlock() : block and undo data inconsistent");
 
-    //    LogPrint("INFO","height= %d\n,%s", pIndex->nHeight,blockUndo.ToString());
-    //    int64_t llTime = GetTimeMillis();
     CTxUndo txundo;
     if (pIndex->nHeight > COINBASE_MATURITY) {
-        //undo mature reward tx
+        // Undo mature reward tx
         txundo = blockUndo.vtxundo.back();
         blockUndo.vtxundo.pop_back();
         CBlockIndex *pMatureIndex = pIndex;
@@ -1173,39 +1170,34 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &
         if (NULL != pMatureIndex) {
             CBlock matureBlock;
             if (!ReadBlockFromDisk(pMatureIndex, matureBlock)) {
-                return state.DoS(100, ERRORMSG("ConnectBlock() : read mature block error"),
+                return state.DoS(100, ERRORMSG("DisconnectBlock() : read mature block error"),
                                  REJECT_INVALID, "bad-read-block");
             }
             if (!matureBlock.vptx[0]->UndoExecuteTx(-1, view, state, txundo, pIndex->nHeight, txCache, scriptCache))
-                return ERRORMSG("ConnectBlock() : execure mature block reward tx error!");
+                return ERRORMSG("DisconnectBlock() : undo execute mature block reward tx error");
         }
     }
 
-    //undo reward tx
+    // Undo reward tx
     std::shared_ptr<CBaseTx> pBaseTx = block.vptx[0];
     txundo = blockUndo.vtxundo.back();
-    LogPrint("undo_account", "tx Hash:%s\n", pBaseTx->GetHash().ToString());
     if (!pBaseTx->UndoExecuteTx(0, view, state, txundo, pIndex->nHeight, txCache, scriptCache))
         return false;
-    //  LogPrint("INFO", "reward tx undo elapse:%lld ms\n", GetTimeMillis() - llTime);
 
-    // undo transactions in reverse order
+    // Undo transactions in reverse order
     for (int i = block.vptx.size() - 1; i >= 1; i--) {
-        //      llTime = GetTimeMillis();
         std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
         CTxUndo txundo = blockUndo.vtxundo[i - 1];
-        LogPrint("undo_account", "tx Hash:%s\n", pBaseTx->GetHash().ToString());
         if (!pBaseTx->UndoExecuteTx(i, view, state, txundo, pIndex->nHeight, txCache, scriptCache))
             return false;
-        //  LogPrint("INFO", "tx type:%d,undo elapse:%lld ms\n", pBaseTx->nTxType, GetTimeMillis() - llTime);
     }
-    // move best block pointer to prevout block
+    // Set previous block as the best block
     view.SetBestBlock(pIndex->pprev->GetBlockHash());
 
     if (!txCache.DeleteBlockFromCache(block))
-        return state.Abort(_("Disconnect tip block failed to delete tx from txcache"));
+        return state.Abort(_("DisconnectBlock() : failed to delete block from cache"));
 
-    //load a block tx into cache transaction
+    // Load txs into cache
     if (pIndex->nHeight > SysCfg().GetTxCacheHeight()) {
         CBlockIndex *pReLoadBlockIndex = pIndex;
         int nCacheHeight               = SysCfg().GetTxCacheHeight();
@@ -1214,10 +1206,10 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &
         }
         CBlock reLoadblock;
         if (!ReadBlockFromDisk(pReLoadBlockIndex, reLoadblock))
-            return state.Abort(_("Failed to read block"));
+            return state.Abort(_("DisconnectBlock() : Failed to read block"));
 
         if (!txCache.AddBlockToCache(reLoadblock))
-            return state.Abort(_("Disconnect tip block reload preblock tx to txcache"));
+            return state.Abort(_("DisconnectBlock() : failed to reload all txs into cache"));
     }
 
     if (pfClean) {
@@ -2175,13 +2167,14 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
 
     // Check merkle root
     if (fCheckMerkleRoot && block.GetMerkleRootHash() != block.vMerkleTree.back())
-        return state.DoS(100, ERRORMSG("CheckBlock() : merkleRootHash mismatch, height=%u, block.merkleRootHash=%s, block.vMerkleTree.back()=%s",
-                        block.GetMerkleRootHash().ToString(), block.vMerkleTree.back().ToString()), REJECT_INVALID, "bad-txnmrklroot", true);
-    //check nonce
-    uint64_t maxNonce = SysCfg().GetBlockMaxNonce();  //cacul times
+        return state.DoS(100, ERRORMSG("CheckBlock() : merkleRootHash mismatch, height: %u, merkleRootHash(in block: %s vs calculate: %s)",
+                        block.GetHeight(), block.GetMerkleRootHash().ToString(), block.vMerkleTree.back().ToString()),
+                        REJECT_INVALID, "bad-txnmrklroot", true);
+
+    // Check nonce
+    static uint64_t maxNonce = SysCfg().GetBlockMaxNonce();
     if (block.GetNonce() > maxNonce) {
-        return state.Invalid(ERRORMSG("CheckBlock() : Nonce is larger than maxNonce"),
-                             REJECT_INVALID, "Nonce-too-large");
+        return state.Invalid(ERRORMSG("CheckBlock() : Nonce is larger than maxNonce"), REJECT_INVALID, "Nonce-too-large");
     }
 
     return true;
@@ -2192,7 +2185,8 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
 
     uint256 blockHash = block.GetHash();
     LogPrint("INFO", "AcceptBlock[%d]: %s\n", block.GetHeight(), blockHash.GetHex());
-    if (mapBlockIndex.count(blockHash))  // Check for duplicated block
+    // Check for duplicated block
+    if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("AcceptBlock() : block already in mapBlockIndex"), 0, "duplicated");
 
     assert(block.GetHeight() == 0 || mapBlockIndex.count(block.GetPrevBlockHash()));

@@ -104,7 +104,7 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
         // set the new value and erase the old value
         CScriptDBOperLog operDbLog;
         if (!scriptDB.SetDelegateData(delegate, operDbLog)) {
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, erase account id %s vote info error",
+            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s vote info error",
                             delegate.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
         txundo.vScriptOperLog.push_back(operDbLog);
@@ -222,7 +222,7 @@ bool CDelegateVoteTx::CheckTx(CValidationState &state, CAccountViewCache &view,
                         txUid.ToString()), REJECT_INVALID, "bad-read-accountdb");
     }
     if (!sendAcct.IsRegistered()) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, pubkey not registed"),
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, pubkey not registered"),
                         REJECT_INVALID, "bad-no-pubkey");
     }
 

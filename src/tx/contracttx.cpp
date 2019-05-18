@@ -222,13 +222,13 @@ bool CContractDeployTx::CheckTx(CValidationState &state, CAccountViewCache &view
 
     CAccount acctInfo;
     if (!view.GetAccount(txUid.get<CRegID>(), acctInfo)) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, get account falied"),
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, get account failed"),
                          REJECT_INVALID, "bad-getaccount");
     }
 
     if (!acctInfo.IsRegistered()) {
         return state.DoS(
-            100, ERRORMSG("CContractDeployTx::CheckTx, account have not registed public key"),
+            100, ERRORMSG("CContractDeployTx::CheckTx, account have not registered public key"),
             REJECT_INVALID, "bad-no-pubkey");
     }
 
@@ -272,7 +272,7 @@ bool CContractInvokeTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, 
         if (!std::get<0>(ret))
             return ERRORMSG("CContractInvokeTx::GetAddress, %s", std::get<2>(ret));
 
-        vector<shared_ptr<CAccount> > vpAccount = vmRunEnv.GetNewAccont();
+        vector<shared_ptr<CAccount> > vpAccount = vmRunEnv.GetNewAccount();
 
         for (auto & item : vpAccount)
             vAddr.insert(item->keyID);
@@ -383,7 +383,7 @@ bool CContractInvokeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidati
 
     vector<unsigned char> vScript;
     if (!scriptDB.GetScript(appUid.get<CRegID>(), vScript))
-        return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, read script faild, regId=%s",
+        return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, read script failed, regId=%s",
             appUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
     CVmRunEnv vmRunEnv;
@@ -399,8 +399,8 @@ bool CContractInvokeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidati
     LogPrint("vm", "execute contract elapse:%lld, txhash=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
 
     set<CKeyID> vAddress;
-    vector<std::shared_ptr<CAccount> > &vAccount = vmRunEnv.GetNewAccont();
-    // update accounts' info refered to the contract
+    vector<std::shared_ptr<CAccount> > &vAccount = vmRunEnv.GetNewAccount();
+    // update accounts' info referred to the contract
     for (auto &itemAccount : vAccount) {
         vAddress.insert(itemAccount->keyID);
         userId = itemAccount->keyID;
@@ -535,7 +535,7 @@ bool CContractInvokeTx::CheckTx(CValidationState &state, CAccountViewCache &view
 
     vector<unsigned char> vScript;
     if (!scriptDB.GetScript(appUid.get<CRegID>(), vScript))
-        return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, read script faild, regId=%s",
+        return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, read script failed, regId=%s",
                         appUid.get<CRegID>().ToString()),
                         REJECT_INVALID, "bad-read-script");
 

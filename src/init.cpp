@@ -64,7 +64,7 @@ using namespace boost;
 
 #define USE_LUA 1
 
-CWallet *pwalletMain;
+CWallet *pWalletMain;
 
 static std::unique_ptr<ECCVerifyHandle> globalVerifyHandle;
 
@@ -150,8 +150,8 @@ void Shutdown() {
     {
         LOCK(cs_main);
 
-        if (pwalletMain) {
-            pwalletMain->SetBestChain(chainActive.GetLocator());
+        if (pWalletMain) {
+            pWalletMain->SetBestChain(chainActive.GetLocator());
             bitdb.Flush(true);
         }
 
@@ -186,8 +186,8 @@ void Shutdown() {
     boost::filesystem::remove(GetPidFile());
     UnregisterAllWallets();
 
-    if (pwalletMain)
-        delete pwalletMain;
+    if (pWalletMain)
+        delete pWalletMain;
 
     // Uninitialize elliptic curve code
     globalVerifyHandle.reset();
@@ -779,9 +779,9 @@ bool AppInit(boost::thread_group &threadGroup) {
     SysCfg().SetViewCacheSize(nTotalCache / 300);  // coins in memory require around 300 bytes
 
     try {
-        pwalletMain = CWallet::getinstance();
-        RegisterWallet(pwalletMain);
-        pwalletMain->LoadWallet(false);
+        pWalletMain = CWallet::getinstance();
+        RegisterWallet(pWalletMain);
+        pWalletMain->LoadWallet(false);
     } catch (std::exception &e) {
         cout << "load wallet failed:" << e.what() << endl;
     }
@@ -993,13 +993,13 @@ bool AppInit(boost::thread_group &threadGroup) {
     }
 
     // Generate coins in the background
-    if (pwalletMain) {
-        GenerateCoinBlock(SysCfg().GetBoolArg("-genblock", false), pwalletMain, SysCfg().GetArg("-genblocklimit", -1));
-        pwalletMain->ResendWalletTransactions();
-        threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pwalletMain->strWalletFile)));
+    if (pWalletMain) {
+        GenerateCoinBlock(SysCfg().GetBoolArg("-genblock", false), pWalletMain, SysCfg().GetArg("-genblocklimit", -1));
+        pWalletMain->ResendWalletTransactions();
+        threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pWalletMain->strWalletFile)));
 
         //resend unconfirmed tx
-        threadGroup.create_thread(boost::bind(&ThreadRelayTx, pwalletMain));
+        threadGroup.create_thread(boost::bind(&ThreadRelayTx, pWalletMain));
     }
     // ********************************************************* Step 12: finished
 

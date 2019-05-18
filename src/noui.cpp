@@ -113,11 +113,11 @@ static bool noui_SyncTx()
 	AddMessageToDeque(write_string(Value(std::move(objMsg)),true));
 
 	while(pStartBlockIndex != NULL) {
-		if((pwalletMain->mapInBlockTx).count(pStartBlockIndex->GetBlockHash()) > 0)
+		if((pWalletMain->mapInBlockTx).count(pStartBlockIndex->GetBlockHash()) > 0)
 		{
 
 			Object objTx;
-			CAccountTx acctTx= pwalletMain->mapInBlockTx[pStartBlockIndex->GetBlockHash()];
+			CAccountTx acctTx= pWalletMain->mapInBlockTx[pStartBlockIndex->GetBlockHash()];
 			map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx = acctTx.mapAccountTx.begin();
 			for(;iterTx != acctTx.mapAccountTx.end(); ++iterTx) {
 				objTx = iterTx->second->ToJson(*pAccountViewTip);
@@ -133,8 +133,8 @@ static bool noui_SyncTx()
 		pStartBlockIndex = chainActive.Next(pStartBlockIndex);
 	}
 	/*
-	map<uint256, CAccountTx>::iterator iterAccountTx = pwalletMain->mapInBlockTx.begin();
-	for(; iterAccountTx != pwalletMain->mapInBlockTx.end(); ++iterAccountTx)
+	map<uint256, CAccountTx>::iterator iterAccountTx = pWalletMain->mapInBlockTx.begin();
+	for(; iterAccountTx != pWalletMain->mapInBlockTx.end(); ++iterAccountTx)
 	{
 		Object objTx;
 		map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx = iterAccountTx->second.mapAccountTx.begin();
@@ -156,8 +156,8 @@ static bool noui_SyncTx()
 		}
 	}
 	*/
-	map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx =  pwalletMain->unconfirmedTx.begin();
-	for(; iterTx != pwalletMain->unconfirmedTx.end(); ++iterTx)
+	map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx =  pWalletMain->unconfirmedTx.begin();
+	for(; iterTx != pWalletMain->unconfirmedTx.end(); ++iterTx)
 	{
 		Object objTx = iterTx->second.get()->ToJson(*pAccountViewTip);
 		arrayObj.push_back(objTx);
