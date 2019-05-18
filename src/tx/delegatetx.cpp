@@ -197,7 +197,7 @@ bool CDelegateVoteTx::CheckTx(CValidationState &state, CAccountViewCache &view,
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, the deletegate oper fund empty"),
             REJECT_INVALID, "oper-fund-empty-error");
     }
-    if (operVoteFunds.size() > IniCfg().GetDelegatesNum()) {
+    if (operVoteFunds.size() > IniCfg().GetTotalDelegateNum()) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, the deletegates number a transaction can't exceeds maximum"),
             REJECT_INVALID, "deletegates-number-error");
     }

@@ -72,7 +72,7 @@ public:
 	unsigned int GetHalvingInterval(NET_TYPE type) const;
 	uint64_t GetBlockSubsidyCfg(int nHeight) const;
 	int GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const;
-	uint64_t GetDelegatesNum() const;
+	uint64_t GetTotalDelegateNum() const;
 	string GetDelegateSignature(NET_TYPE type) const;
 	const vector<string> GetDelegatePubKey(NET_TYPE type) const;
 	uint64_t GetCoinInitValue() const { return InitialCoin; };
@@ -148,7 +148,7 @@ private:
 	static uint64_t DefaultFee;
 
 	/* Designated Delegate count */
-	static unsigned int nDelegates;
+	static unsigned int TotalDelegateNum;
 
 	/* Initial subsidy rate upon vote casting */
 	static uint64_t nInitialSubsidy;

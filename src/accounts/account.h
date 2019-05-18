@@ -27,24 +27,22 @@ class CAccountLog;
 class CAccount
 {
 public:
-    CKeyID keyID;        //!< keyID of the account (interchangeable to address)
-    CRegID regID;        //!< regID of the account
-    CNickID nickID;      //!< Nickname ID of the account (maxlen=32)
-    CPubKey pubKey;      //!< account public key
-    CPubKey minerPubKey; //!< miner saving account public key
+    CKeyID keyID;                   //!< keyID of the account (interchangeable to address)
+    CRegID regID;                   //!< regID of the account
+    CNickID nickID;                 //!< Nickname ID of the account (maxlen=32)
+    CPubKey pubKey;                 //!< account public key
+    CPubKey minerPubKey;            //!< miner saving account public key
 
-    uint64_t bcoins;    //!< Free Base Coins
-    uint64_t scoins;    //!< Stable Coins
-    uint64_t fcoins;    //!< FundCoin balance
-    uint64_t stakedFcoins; //!< Staked FundCoins
+    uint64_t bcoins;                //!< Free Base Coins
+    uint64_t scoins;                //!< Stable Coins
+    uint64_t fcoins;                //!< FundCoin balance
+    uint64_t fcoinsStaked;          //!< Staked FundCoins
 
-    uint64_t inVoteBcoins;         //!< votes received in bcoins
-    uint64_t lastVoteHeight;        //!< account's last vote block height used for computing interest //FIXME: deprecated
+    uint64_t bcoinsVotedIn;         //!< votes received in bcoins
     vector<CVoteFund> voteFunds;    //!< account delegates votes sorted by vote amount
 
-    bool hasOpenCdp; //!< When true, its CDP exists in a map {cdp-$regid -> $cdp}
-
-    uint256 sigHash; //!< in-memory only
+    bool hasOpenCdp;                //!< When true, its CDP exists in a map {cdp-$regid -> $cdp}
+    uint256 sigHash;                //!< in-memory only
 
 public:
     /**
@@ -69,7 +67,6 @@ public:
           fcoins(0),
           stakedFcoins(0),
           inVoteBcoins(0),
-          lastVoteHeight(0),
           hasOpenCdp(false) {
         minerPubKey = CPubKey();
         voteFunds.clear();
@@ -82,7 +79,6 @@ public:
           scoins(0),
           fcoins(0),
           inVoteBcoins(0),
-          lastVoteHeight(0),
           hasOpenCdp(false) {
         pubKey      = CPubKey();
         minerPubKey = CPubKey();
@@ -100,7 +96,6 @@ public:
         this->scoins         = other.scoins;
         this->fcoins         = other.fcoins;
         this->inVoteBcoins  = other.inVoteBcoins;
-        this->lastVoteHeight = other.lastVoteHeight;
         this->voteFunds      = other.voteFunds;
         this->hasOpenCdp     = other.hasOpenCdp;
     }
@@ -117,7 +112,6 @@ public:
         this->scoins         = other.scoins;
         this->fcoins         = other.fcoins;
         this->inVoteBcoins  = other.inVoteBcoins;
-        this->lastVoteHeight = other.lastVoteHeight;
         this->voteFunds      = other.voteFunds;
         this->hasOpenCdp     = other.hasOpenCdp;
 
@@ -152,7 +146,6 @@ public:
     uint64_t GetTotalBcoins();
     uint64_t GetVotedBCoins();
 
-    uint64_t GetAccountProfit(uint64_t prevBlockHeight);
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;
     bool IsEmptyValue() const { return !(bcoins > 0); }
@@ -161,10 +154,10 @@ public:
     {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << keyID << regID << nickID << pubKey << minerPubKey
-               << VARINT(bcoins) << VARINT(scoins) << VARINT(fcoins)
-               << VARINT(inVoteBcoins)
-               << VARINT(lastVoteHeight) << voteFunds << hasOpenCdp;
+            ss  << keyID << regID << nickID << pubKey << minerPubKey
+                << VARINT(bcoins) << VARINT(scoins) << VARINT(fcoins)
+                << VARINT(inVoteBcoins)
+                << voteFunds << hasOpenCdp;
 
             uint256* hash = const_cast<uint256*>(&sigHash);
             *hash = ss.GetHash();
@@ -185,7 +178,6 @@ public:
         READWRITE(VARINT(scoins));
         READWRITE(VARINT(fcoins));
         READWRITE(VARINT(inVoteBcoins));
-        READWRITE(VARINT(lastVoteHeight));
         READWRITE(voteFunds);
         READWRITE(hasOpenCdp);)
 
@@ -206,7 +198,6 @@ public:
     uint64_t bcoins;             //!< baseCoin balance
     uint64_t scoins;             //!< stableCoin balance
     uint64_t fcoins;             //!< fundCoin balance
-    uint64_t lastVoteHeight;     //!< account's last vote height
     vector<CVoteFund> voteFunds; //!< delegate votes
     uint64_t inVoteBcoins;      //!< votes received
 
@@ -218,7 +209,6 @@ public:
         READWRITE(minerPubKey);
         READWRITE(hasOpenCdp);
         READWRITE(VARINT(bcoins));
-        READWRITE(VARINT(lastVoteHeight));
         READWRITE(voteFunds);
         READWRITE(VARINT(inVoteBcoins));)
 
@@ -227,7 +217,6 @@ public:
         keyID          = acct.keyID;
         bcoins         = acct.bcoins;
         hasOpenCdp     = acct.hasOpenCdp;
-        lastVoteHeight = acct.lastVoteHeight;
         voteFunds      = acct.voteFunds;
         inVoteBcoins  = acct.inVoteBcoins;
     }
@@ -236,7 +225,6 @@ public:
         keyID          = keyId;
         bcoins         = 0;
         hasOpenCdp     = false;
-        lastVoteHeight = 0;
         voteFunds.clear();
         inVoteBcoins  = 0;
     }
@@ -245,7 +233,6 @@ public:
         keyID          = uint160();
         bcoins         = 0;
         hasOpenCdp     = false;
-        lastVoteHeight = 0;
         voteFunds.clear();
         inVoteBcoins = 0;
     }
@@ -259,8 +246,7 @@ public:
         bcoins         = acct.bcoins;
         scoins         = acct.scoins;
         fcoins         = acct.fcoins;
-        lastVoteHeight = acct.lastVoteHeight;
-        inVoteBcoins  = acct.inVoteBcoins;
+        inVoteBcoins   = acct.inVoteBcoins;
         voteFunds      = acct.voteFunds;
         hasOpenCdp     = acct.hasOpenCdp;
     }

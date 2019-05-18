@@ -1593,7 +1593,6 @@ static Value AccountLogToJson(const CAccountLog &accoutLog) {
     Object obj;
     obj.push_back(Pair("keyId", accoutLog.keyID.ToString()));
     obj.push_back(Pair("bcoins", accoutLog.bcoins));
-    obj.push_back(Pair("nHeight", accoutLog.lastVoteHeight));
     // Array array;
     // for (auto const& te : accoutLog.vRewardFund) {
     //     Object obj2;
@@ -3369,11 +3368,11 @@ Value listdelegates(const Array& params, bool fHelp) {
                 + HelpExampleRpc("listdelegates", "11"));
     }
 
-    int nDelegateNum = (params.size() == 1) ? params[0].get_int() : IniCfg().GetDelegatesNum();
-    if (nDelegateNum < 1 || nDelegateNum > 11) {
+    int TotalDelegateNum = (params.size() == 1) ? params[0].get_int() : IniCfg().GetTotalDelegateNum();
+    if (TotalDelegateNum < 1 || TotalDelegateNum > 11) {
         throw JSONRPCError(
             RPC_INVALID_PARAMETER,
-            strprintf("input delegate number not between 1 and %ld", IniCfg().GetDelegatesNum()));
+            strprintf("input delegate number not between 1 and %ld", IniCfg().GetTotalDelegateNum()));
     }
 
     int nIndex = 0;

@@ -118,14 +118,14 @@ bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCach
     CAccountViewCache accView(accViewIn);
     CScriptDBViewCache scriptCache(scriptCacheIn);
 
-    int nDelegateNum = IniCfg().GetDelegatesNum();
+    int TotalDelegateNum = IniCfg().GetTotalDelegateNum();
     int nIndex       = 0;
     vector<unsigned char> vScriptData;
     vector<unsigned char> vScriptKey      = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
     vector<unsigned char> vDelegatePrefix = vScriptKey;
     const int SCRIPT_KEY_PREFIX_LENGTH    = 9;
     const int VOTES_STRING_SIZE           = 16;
-    while (--nDelegateNum >= 0) {
+    while (--TotalDelegateNum >= 0) {
         CRegID regId(0, 0);
         if (scriptCache.GetContractData(0, regId, nIndex, vScriptKey, vScriptData)) {
             nIndex                                    = 1;
@@ -164,7 +164,7 @@ bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList) {
 
 bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct) {
     int64_t slot = currentTime / SysCfg().GetBlockInterval();
-    int miner    = slot % IniCfg().GetDelegatesNum();
+    int miner    = slot % IniCfg().GetTotalDelegateNum();
     delegateAcct = vDelegatesAcctList[miner];
     LogPrint("DEBUG", "currentTime=%lld, slot=%d, miner=%d, minderAddr=%s\n",
         currentTime, slot, miner, delegateAcct.keyID.ToAddress());
@@ -208,13 +208,13 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
 }
 
 void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
-    int nDelegatesNum = IniCfg().GetDelegatesNum();
-    string seedSource = strprintf("%lld", nCurHeight / nDelegatesNum + (nCurHeight % nDelegatesNum > 0 ? 1 : 0));
+    int TotalDelegateNum = IniCfg().GetTotalDelegateNum();
+    string seedSource = strprintf("%lld", nCurHeight / TotalDelegateNum + (nCurHeight % TotalDelegateNum > 0 ? 1 : 0));
     CHashWriter ss(SER_GETHASH, 0);
     ss << seedSource;
     uint256 currendSeed = ss.GetHash();
     uint64_t currendTemp(0);
-    for (int i = 0, delCount = nDelegatesNum; i < delCount; i++) {
+    for (int i = 0, delCount = TotalDelegateNum; i < delCount; i++) {
         for (int x = 0; x < 4 && i < delCount; i++, x++) {
             memcpy(&currendTemp, currendSeed.begin() + (x * 8), 8);
             int newIndex             = currendTemp % delCount;

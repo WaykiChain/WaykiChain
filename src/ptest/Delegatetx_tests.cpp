@@ -82,25 +82,25 @@ bool GetAccountBalance(const Value & account, uint64_t &balance) {
     return false;
 }
 
-bool GetAccountProfits(const Value & account, const int &current_height, uint64_t &profits) {
-    string max_delegate_addr = "";
-    uint64_t delegate_vote_value = 0;
-    if(GetMaxDelegateVote(account, max_delegate_addr, delegate_vote_value)) {
-        Value item_update_height = GetAccountItem(account, "UpdateHeight");
-         if(item_update_height.type() != null_type) {
-            int  update_height = item_update_height.get_int();
-            int64_t nHoldHeight = (int64_t)current_height-(int64_t)update_height;
-            int64_t nDayHeight = 24 * 60 * 60 / SysCfg().GetBlockInterval();
-            profits = delegate_vote_value * nHoldHeight * IniCfg().GetBlockSubsidyCfg(current_height) * 10000 / nDayHeight / 365  / 100 / 10000;
-            cout << "update_height:" << update_height
-             << "    current_height:" << current_height
-             << "\nmax_vote_value:" << delegate_vote_value
-             <<"\n##########################################"
-             << endl;
-         }
-    }
-    return true;
-}
+// bool GetAccountProfits(const Value & account, const int &current_height, uint64_t &profits) {
+//     string max_delegate_addr = "";
+//     uint64_t delegate_vote_value = 0;
+//     if(GetMaxDelegateVote(account, max_delegate_addr, delegate_vote_value)) {
+//         Value item_update_height = GetAccountItem(account, "UpdateHeight");
+//          if(item_update_height.type() != null_type) {
+//             int  update_height = item_update_height.get_int();
+//             int64_t nHoldHeight = (int64_t)current_height-(int64_t)update_height;
+//             int64_t nDayHeight = 24 * 60 * 60 / SysCfg().GetBlockInterval();
+//             profits = delegate_vote_value * nHoldHeight * IniCfg().GetBlockSubsidyCfg(current_height) * 10000 / nDayHeight / 365  / 100 / 10000;
+//             cout << "update_height:" << update_height
+//              << "    current_height:" << current_height
+//              << "\nmax_vote_value:" << delegate_vote_value
+//              <<"\n##########################################"
+//              << endl;
+//          }
+//     }
+//     return true;
+// }
 
 //当value小于零的时候，代表撤回对某个候选人的投票
 bool OperAccountDelegateVote(const string &send_addr, const string &receive_vote_addr, const int64_t &value) {

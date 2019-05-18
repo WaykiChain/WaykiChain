@@ -430,8 +430,12 @@ int G_CONFIG_TABLE::GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const {
     return mSubsidyHeight[nSubsidyValue];
 }
 
-uint64_t G_CONFIG_TABLE::GetDelegatesNum() const {
-    return nDelegates;
+uint64_t G_CONFIG_TABLE::GetTotalDelegateNum() const {
+    return TotalDelegateNum;
+}
+
+uint64_t G_CONFIG_TABLE::GetMaxVoteCandidateNum() const {
+    return MaxVoteCandidateNum;
 }
 
 string G_CONFIG_TABLE::GetDelegateSignature(NET_TYPE type) const {
@@ -581,12 +585,14 @@ unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_testNet = 3153600; // ditto
 unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_regNet  = 500;
 
 //修改发币初始值
-uint64_t G_CONFIG_TABLE::InitialCoin = 210000000;
+uint64_t G_CONFIG_TABLE::InitialCoin = 210000000; // 210 million
 
 //矿工费用
 uint64_t G_CONFIG_TABLE::DefaultFee = 15;
 
-unsigned int G_CONFIG_TABLE::nDelegates = 11;
+unsigned int G_CONFIG_TABLE::TotalDelegateNum = 11;
+
+unsigned int G_CONFIG_TABLE::MaxVoteCandidateNum = 22;
 
 //投票初始分红率
 uint64_t G_CONFIG_TABLE::nInitialSubsidy = 5;
