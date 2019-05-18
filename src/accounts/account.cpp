@@ -253,14 +253,14 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
     return true;
 }
 
-bool CAccount::OperateVote(VoteOperType type, const uint64_t & values) {
-    if(ADD_FUND == type) {
+bool CAccount::OperateVote(VoteOperType type, const uint64_t &values) {
+    if (ADD_FUND == type) {
         receivedVotes += values;
-        if(!IsMoneyOverflow(receivedVotes)) {
+        if (!IsMoneyOverflow(receivedVotes)) {
             return ERRORMSG("OperateVote() : delegates total votes exceed maximum ");
         }
     } else if (MINUS_FUND == type) {
-        if(receivedVotes < values) {
+        if (receivedVotes < values) {
             return ERRORMSG("OperateVote() : delegates total votes less than revocation vote value");
         }
         receivedVotes -= values;

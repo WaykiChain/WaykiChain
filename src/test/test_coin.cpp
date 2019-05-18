@@ -16,7 +16,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/test/unit_test.hpp>
 #include "systestbase.h"
-//CWallet* pwalletMain;
+//CWallet* pWalletMain;
 
 
 extern void noui_connect();

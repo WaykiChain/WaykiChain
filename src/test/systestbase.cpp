@@ -684,7 +684,7 @@ bool SysTestBase::IsTxInMemorypool(const uint256 &txHash) {
 }
 
 bool SysTestBase::IsTxUnConfirmdInWallet(const uint256 &txHash) {
-    for (const auto &item : pwalletMain->unconfirmedTx) {
+    for (const auto &item : pWalletMain->unconfirmedTx) {
         if (txHash == item.first) {
             return true;
         }

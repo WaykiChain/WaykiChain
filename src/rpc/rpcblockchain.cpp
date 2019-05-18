@@ -517,8 +517,8 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
 
     // remove key from wallet first.
     {
-        LOCK2(cs_main, pwalletMain->cs_wallet);
-        if (!pwalletMain->RemoveKey(key)) throw boost::thread_interrupted();
+        LOCK2(cs_main, pWalletMain->cs_wallet);
+        if (!pWalletMain->RemoveKey(key)) throw boost::thread_interrupted();
     }
 
     CRegID srcRegId("0-1");
@@ -654,8 +654,8 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
 
     // remove key from wallet first.
     {
-        LOCK2(cs_main, pwalletMain->cs_wallet);
-        if (!pwalletMain->RemoveKey(key)) throw boost::thread_interrupted();
+        LOCK2(cs_main, pWalletMain->cs_wallet);
+        if (!pWalletMain->RemoveKey(key)) throw boost::thread_interrupted();
     }
 
     CRegID srcRegId("0-1");

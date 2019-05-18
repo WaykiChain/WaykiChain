@@ -29,7 +29,7 @@ CVmRunEnv::CVmRunEnv() {
 
 vector<shared_ptr<CAccount>>& CVmRunEnv::GetRawAccont() { return rawAccount; }
 
-vector<shared_ptr<CAccount>>& CVmRunEnv::GetNewAccont() { return newAccount; }
+vector<shared_ptr<CAccount>>& CVmRunEnv::GetNewAccount() { return newAccount; }
 
 vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetNewAppUserAccount() { return newAppUserAccount; }
 

@@ -111,7 +111,7 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
 
         CScriptDBOperLog eraseDbLog;
         if (delegateAcctLog.receivedVotes > 0) {
-            if(!scriptDB.EraseDelegateData(delegateAcctLog, eraseDbLog)) {
+            if (!scriptDB.EraseDelegateData(delegateAcctLog, eraseDbLog)) {
                 return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, erase account id %s vote info error",
                                 delegateAcctLog.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
             }
@@ -222,7 +222,7 @@ bool CDelegateVoteTx::CheckTx(CValidationState &state, CAccountViewCache &view,
                         txUid.ToString()), REJECT_INVALID, "bad-read-accountdb");
     }
     if (!sendAcct.IsRegistered()) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, pubkey not registed"),
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, pubkey not registered"),
                         REJECT_INVALID, "bad-no-pubkey");
     }
 
