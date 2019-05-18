@@ -46,6 +46,7 @@ coin_CORE_H = \
   alert.h \
   allocators.h \
   base58.h \
+  commons/arith_uint256.h \
   commons/bloom.h \
   commons/openssl.hpp \
   commons/serialize.h \
@@ -68,6 +69,7 @@ coin_CORE_H = \
   persistence/block.h \
   persistence/blockdb.h \
   persistence/contractdb.h \
+  persistence/pricefeeddb.h \
   persistence/txdb.h \
   protocol.h \
   random.h   \
@@ -99,7 +101,6 @@ coin_CORE_H = \
   version.h \
   wallet/wallet.h \
   wallet/db.h \
-  arith_uint256.h \
   configuration.h
 
 JSON_H = \

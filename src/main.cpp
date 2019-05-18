@@ -1309,7 +1309,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                     CUserID votedUId = operFund.fund.GetVoteId();
 
                     if (voterCId == votedUId) { //vote for self
-                        voterAcct.receivedVotes = operFund.fund.GetVoteCount();
+                        voterAcct.inVoteBcoins = operFund.fund.GetVoteCount();
                         assert( scriptDBCache.SetDelegateData(voterAcct, operDbLog) );
                     } else { //vote for others
                         CAccount votedAcct;
@@ -1317,7 +1317,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
 
                         CRegID votedRegId(pIndex->nHeight, j++); //generate RegId in genesis block
                         votedAcct.SetRegId(votedRegId);
-                        votedAcct.receivedVotes = operFund.fund.GetVoteCount();
+                        votedAcct.inVoteBcoins = operFund.fund.GetVoteCount();
 
                         if (votedUId.type() == typeid(CPubKey)) {
                             votedAcct.pubKey = votedUId.get<CPubKey>();

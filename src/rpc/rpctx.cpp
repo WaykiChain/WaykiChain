@@ -3391,11 +3391,11 @@ Value listdelegates(const Array& params, bool fHelp) {
             vector<unsigned char>::iterator iterVotes = find_first_of(vDelegateKey.begin(), vDelegateKey.end(),
                 vDelegatePrefix.begin(), vDelegatePrefix.end());
             string strVotes(iterVotes+9, iterVotes+25);
-            uint64_t receivedVotes = 0;
+            uint64_t inVoteBcoins = 0;
             stringstream strValue;
             strValue.flags(ios::hex);
             strValue << strVotes;
-            strValue >> receivedVotes;
+            strValue >> inVoteBcoins;
 
             vector<unsigned char> vAcctRegId(iterVotes+26, vDelegateKey.end());
             CRegID acctRegId(vAcctRegId);
@@ -3404,8 +3404,8 @@ Value listdelegates(const Array& params, bool fHelp) {
                 assert(0);
 
             uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
-            if ((maxNum - receivedVotes) != account.receivedVotes) {
-                LogPrint("INFO", "receivedVotes:%lld, account:%s", maxNum - receivedVotes, account.ToString());
+            if ((maxNum - inVoteBcoins) != account.inVoteBcoins) {
+                LogPrint("INFO", "inVoteBcoins:%lld, account:%s", maxNum - inVoteBcoins, account.ToString());
                 assert(0);
             }
             delegateArray.push_back(account.ToJsonObj());

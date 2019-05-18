@@ -52,7 +52,7 @@ enum TxType : unsigned char {
     CDP_REDEMP_TX       = 13,  //!< CDP Redemption Tx (partial or full)
     CDP_LIQUIDATE_TX    = 14,  //!< CDP Liquidation Tx (partial or full)
 
-    PRICE_FEED_TX       = 21,  //!< Price Feed Tx: WICC/USD | MICC/WUSD | WUSD/USD
+    PRICE_FEED_TX       = 22,  //!< Price Feed Tx: WICC/USD | MICC/WUSD | WUSD/USD
 
     SFC_PARAM_MTX       = 31,  //!< StableCoin Fund Committee invokes Param Set/Update MulSigTx
     SFC_GLOBAL_HALT_MTX = 32,  //!< StableCoin Fund Committee invokes Global Halt CDP Operations MulSigTx
@@ -60,6 +60,7 @@ enum TxType : unsigned char {
 
     SCOIN_TRANSFER_TX   = 41,  //!< StableCoin Transfer Tx
     FCOIN_TRANSFER_TX   = 42,  //!< FundCoin Transfer Tx
+    FCOIN_STAKE_TX      = 43,  //!< Stake Fund Coin in order to become a price feeder
 
     DEX_WICC_FOR_MICC_TX = 51,  //!< DEX: owner sells WICC for MICC Tx
     DEX_MICC_FOR_WICC_TX = 52,  //!< DEX: owner sells MICC for WICC Tx

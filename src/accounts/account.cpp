@@ -15,9 +15,9 @@ string CAccountLog::ToString() const {
     string str;
     str += strprintf(
         "Account log: keyId=%d regId=%s nickId=%s pubKey=%s minerPubKey=%s hasOpenCdp=%d "
-        "bcoins=%lld lastVoteHeight=%lld receivedVotes=%lld \n",
+        "bcoins=%lld lastVoteHeight=%lld inVoteBcoins=%lld \n",
         keyID.GetHex(), regID.ToString(), nickID.ToString(), pubKey.ToString(),
-        minerPubKey.ToString(), hasOpenCdp, bcoins, lastVoteHeight, receivedVotes);
+        minerPubKey.ToString(), hasOpenCdp, bcoins, lastVoteHeight, inVoteBcoins);
     str += "vote fund: ";
 
     for (auto it = voteFunds.begin(); it != voteFunds.end(); ++it) {
@@ -32,7 +32,7 @@ bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
     hasOpenCdp     = accountLog.hasOpenCdp;
     lastVoteHeight = accountLog.lastVoteHeight;
     voteFunds      = accountLog.voteFunds;
-    receivedVotes  = accountLog.receivedVotes;
+    inVoteBcoins  = accountLog.inVoteBcoins;
     LogPrint("undo_account", "before operate:%s\n", ToString().c_str());
     return true;
 }
@@ -117,7 +117,7 @@ Object CAccount::ToJsonObj(bool isAddress) const {
     obj.push_back(Pair("bcoins", bcoins));
     obj.push_back(Pair("scoins", scoins));
     obj.push_back(Pair("fcoins", fcoins));
-    obj.push_back(Pair("received_votes", receivedVotes));
+    obj.push_back(Pair("received_votes", inVoteBcoins));
     obj.push_back(Pair("last_vote_height", lastVoteHeight));
     obj.push_back(Pair("vote_list", voteFundArray));
     return obj;
@@ -125,9 +125,9 @@ Object CAccount::ToJsonObj(bool isAddress) const {
 
 string CAccount::ToString(bool isAddress) const {
     string str;
-    str += strprintf("regID=%s, keyID=%s, nickID=%s, pubKey=%s, minerPubKey=%s, bcoins=%ld, scoins=%ld, fcoins=%ld, updateHeight=%d receivedVotes=%lld\n",
+    str += strprintf("regID=%s, keyID=%s, nickID=%s, pubKey=%s, minerPubKey=%s, bcoins=%ld, scoins=%ld, fcoins=%ld, updateHeight=%d inVoteBcoins=%lld\n",
         regID.ToString(), keyID.GetHex().c_str(), nickID.ToString(), pubKey.ToString().c_str(),
-        minerPubKey.ToString().c_str(), bcoins, scoins, fcoins, lastVoteHeight, receivedVotes);
+        minerPubKey.ToString().c_str(), bcoins, scoins, fcoins, lastVoteHeight, inVoteBcoins);
     str += "voteFunds list: \n";
     for (auto & fund : voteFunds) {
         str += fund.ToString();
@@ -255,15 +255,15 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
 
 bool CAccount::OperateVote(VoteOperType type, const uint64_t & values) {
     if(ADD_FUND == type) {
-        receivedVotes += values;
-        if(!IsMoneyOverflow(receivedVotes)) {
+        inVoteBcoins += values;
+        if(!IsMoneyOverflow(inVoteBcoins)) {
             return ERRORMSG("OperateVote() : delegates total votes exceed maximum ");
         }
     } else if (MINUS_FUND == type) {
-        if(receivedVotes < values) {
+        if(inVoteBcoins < values) {
             return ERRORMSG("OperateVote() : delegates total votes less than revocation vote value");
         }
-        receivedVotes -= values;
+        inVoteBcoins -= values;
     } else {
         return ERRORMSG("OperateVote() : CDelegateVoteTx ExecuteTx AccountVoteOper revocation votes are not exist");
     }
