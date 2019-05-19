@@ -29,61 +29,67 @@ string CAccountLog::ToString() const {
 bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
     LogPrint("undo_account", "after operate:%s\n", ToString());
     bcoins         = accountLog.bcoins;
-    hasOpenCdp     = accountLog.hasOpenCdp;
-    voteFunds      = accountLog.voteFunds;
     receivedVotes  = accountLog.receivedVotes;
+    lastVoteHeight = accountLog.lastVoteHeight;
+    voteFunds      = accountLog.voteFunds;
+    hasOpenCdp     = accountLog.hasOpenCdp;
     LogPrint("undo_account", "before operate:%s\n", ToString().c_str());
     return true;
 }
 
-// uint64_t CAccount::GetAccountProfit(uint64_t nCurHeight) {
-//      if (voteFunds.empty()) {
-//         LogPrint("DEBUG", "1st-time vote by the account, hence no minting of interest.");
-//         lastVoteHeight = nCurHeight; //record the 1st-time vote block height into account
-//         return 0; // 0 for the very 1st vote
-//     }
+uint64_t CAccount::GetAccountProfit(const uint64_t curHeight) {
+    if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2) {
+        // If the rule is one bcoin one vote, there is no profits at all, then return 0.
+        return 0;
+    }
 
-//     // 先判断计算分红的上下限区块高度是否落在同一个分红率区间
-//     uint64_t nBeginHeight = lastVoteHeight;
-//     uint64_t nEndHeight = nCurHeight;
-//     uint64_t nBeginSubsidy = IniCfg().GetBlockSubsidyCfg(lastVoteHeight);
-//     uint64_t nEndSubsidy = IniCfg().GetBlockSubsidyCfg(nCurHeight);
-//     uint64_t nValue = voteFunds.begin()->GetVoteCount();
-//     LogPrint("profits", "nBeginSubsidy:%lld nEndSubsidy:%lld nBeginHeight:%d nEndHeight:%d\n",
-//         nBeginSubsidy, nEndSubsidy, nBeginHeight, nEndHeight);
+    if (voteFunds.empty()) {
+        LogPrint("DEBUG", "1st-time vote by the account, hence no minting of interest.");
+        return 0;  // 0 for the very 1st vote
+    }
 
-//     // 计算分红
-//     auto calculateProfit = [](uint64_t nValue, uint64_t nSubsidy, int nBeginHeight, int nEndHeight) -> uint64_t {
-//         int64_t nHoldHeight = nEndHeight - nBeginHeight;
-//         int64_t nYearHeight = SysCfg().GetSubsidyHalvingInterval();
-//         uint64_t llProfits =  (uint64_t)(nValue * ((long double)nHoldHeight * nSubsidy / nYearHeight / 100));
-//         LogPrint("profits", "nValue:%lld nSubsidy:%lld nBeginHeight:%d nEndHeight:%d llProfits:%lld\n",
-//             nValue, nSubsidy, nBeginHeight, nEndHeight, llProfits);
-//         return llProfits;
-//     };
+    uint64_t nBeginHeight  = lastVoteHeight;
+    uint64_t nEndHeight    = curHeight;
+    uint64_t nBeginSubsidy = IniCfg().GetBlockSubsidyCfg(lastVoteHeight);
+    uint64_t nEndSubsidy   = IniCfg().GetBlockSubsidyCfg(curHeight);
+    uint64_t nValue        = voteFunds.begin()->GetVoteCount();
+    LogPrint("profits", "nBeginSubsidy:%lld nEndSubsidy:%lld nBeginHeight:%d nEndHeight:%d\n", nBeginSubsidy,
+             nEndSubsidy, nBeginHeight, nEndHeight);
 
-//     // 如果属于同一个分红率区间，分红=区块高度差（持有高度）* 分红率；如果不属于同一个分红率区间，则需要根据分段函数累加每一段的分红
-//     uint64_t llProfits = 0;
-//     uint64_t nSubsidy = nBeginSubsidy;
-//     while (nSubsidy != nEndSubsidy) {
-//         int nJumpHeight = IniCfg().GetBlockSubsidyJumpHeight(nSubsidy - 1);
-//         llProfits += calculateProfit(nValue, nSubsidy, nBeginHeight, nJumpHeight);
-//         nBeginHeight = nJumpHeight;
-//         nSubsidy -= 1;
-//     }
+    auto calculateProfit = [](uint64_t nValue, uint64_t nSubsidy, int nBeginHeight, int nEndHeight) -> uint64_t {
+        int64_t nHoldHeight = nEndHeight - nBeginHeight;
+        int64_t nYearHeight = SysCfg().GetSubsidyHalvingInterval();
+        uint64_t llProfits  = (uint64_t)(nValue * ((long double)nHoldHeight * nSubsidy / nYearHeight / 100));
+        LogPrint("profits", "nValue:%lld nSubsidy:%lld nBeginHeight:%d nEndHeight:%d llProfits:%lld\n", nValue,
+                 nSubsidy, nBeginHeight, nEndHeight, llProfits);
+        return llProfits;
+    };
 
-//     llProfits += calculateProfit(nValue, nSubsidy, nBeginHeight, nEndHeight);
-//     LogPrint("profits", "updateHeight:%d curHeight:%d freeze value:%lld\n",
-//         lastVoteHeight, nCurHeight, voteFunds.begin()->GetVoteCount());
+    uint64_t llProfits = 0;
+    uint64_t nSubsidy  = nBeginSubsidy;
+    while (nSubsidy != nEndSubsidy) {
+        int nJumpHeight = IniCfg().GetBlockSubsidyJumpHeight(nSubsidy - 1);
+        llProfits += calculateProfit(nValue, nSubsidy, nBeginHeight, nJumpHeight);
+        nBeginHeight = nJumpHeight;
+        nSubsidy -= 1;
+    }
 
-//     return llProfits;
-// }
+    llProfits += calculateProfit(nValue, nSubsidy, nBeginHeight, nEndHeight);
+    LogPrint("profits", "updateHeight:%d curHeight:%d freeze value:%lld\n", lastVoteHeight, curHeight,
+             voteFunds.begin()->GetVoteCount());
+
+    return llProfits;
+}
 
 uint64_t CAccount::GetVotedBCoins() {
     uint64_t votes = 0;
     if (!voteFunds.empty()) {
-        for (auto it = voteFunds.begin(); it != voteFunds.end(); it++) {
-            votes += it->GetVoteCount(); //one bcoin one vote!
+        if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R1) {
+            votes = voteFunds[0].GetVoteCount(); // one bcoin eleven votes
+        } else if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2) {
+            for (auto it = voteFunds.begin(); it != voteFunds.end(); it++) {
+                votes += it->GetVoteCount();  // one bcoin one vote
+            }
         }
     }
     return votes;
@@ -140,7 +146,7 @@ bool CAccount::IsMoneyOverflow(uint64_t nAddMoney) {
     return true;
 }
 
-bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64_t nCurHeight) {
+bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64_t curHeight) {
     LogPrint("op_account", "before operate:%s\n", ToString());
     if (!IsMoneyOverflow(value))
         return false;
@@ -175,14 +181,17 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64
     return true;
 }
 
-bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight) {
-    // if (nCurHeight < lastVoteHeight) {
-    //     LogPrint("ERROR", "nCurHeight (%d) < lastVoteHeight (%d)", nCurHeight, lastVoteHeight);
-    //     return false;
-    // }
+bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const uint64_t curHeight) {
+    if (curHeight < lastVoteHeight) {
+        LogPrint("ERROR", "curHeight (%d) < lastVoteHeight (%d)", curHeight, lastVoteHeight);
+        return false;
+    }
 
-    // uint64_t llProfit = GetAccountProfit(nCurHeight);
-    // if (!IsMoneyOverflow(llProfit)) return false;
+    uint64_t llProfit = GetAccountProfit(curHeight);
+    if (!IsMoneyOverflow(llProfit))
+        return false;
+
+    lastVoteHeight = curHeight;
 
     uint64_t lastTotalVotes = GetVotedBCoins();
 
@@ -246,6 +255,9 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
         return  ERRORMSG("ProcessDelegateVote() : delegate votes exceeds account bcoins");
     }
     bcoins = totalBcoins - newTotalVotes;
+    bcoins += llProfit; // In one bcoin one vote, the profit will always be 0.
+    LogPrint("profits", "received profits: %lld\n", llProfit);
+
     return true;
 }
 
