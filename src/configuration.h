@@ -71,6 +71,7 @@ public:
 	uint64_t GetBlockSubsidyCfg(int nHeight) const;
 	int GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const;
 	uint64_t GetTotalDelegateNum() const;
+	uint64_t GetMaxVoteCandidateNum() const;
 	string GetDelegateSignature(NET_TYPE type) const;
 	const vector<string> GetDelegatePubKey(NET_TYPE type) const;
 	uint64_t GetCoinInitValue() const { return InitialCoin; };
@@ -145,8 +146,11 @@ private:
 	/* Default Miner fee */
 	static uint64_t DefaultFee;
 
-	/* Designated Delegate count */
+	/* Total Delegate Number */
 	static unsigned int TotalDelegateNum;
+
+	/* Max Number of Delegate Candidate to Vote for by a single account */
+	static unsigned int MaxVoteCandidateNum;
 
 	/* Initial subsidy rate upon vote casting */
 	static uint64_t nInitialSubsidy;

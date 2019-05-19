@@ -130,9 +130,9 @@ bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCach
             nIndex                                    = 1;
             vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrefix.begin(), vDelegatePrefix.end());
             string strVoltes(iterVotes + SCRIPT_KEY_PREFIX_LENGTH, iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE);
-            uint64_t inVoteBcoins = 0;
+            uint64_t receivedVotes = 0;
             char *stopstring;
-            inVoteBcoins = strtoull(strVoltes.c_str(), &stopstring, VOTES_STRING_SIZE);
+            receivedVotes = strtoull(strVoltes.c_str(), &stopstring, VOTES_STRING_SIZE);
             vector<unsigned char> vAcctRegId(iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE + 1, vScriptKey.end());
             CRegID acctRegId(vAcctRegId);
             CAccount account;
@@ -142,8 +142,8 @@ bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCach
                 return false;
             }
             uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
-            if ((maxNum - inVoteBcoins) != account.inVoteBcoins) {
-                LogPrint("ERROR", "acctRegId:%s, inVoteBcoins:%lld, account:%s\n", acctRegId.ToString(), maxNum - inVoteBcoins, account.ToString());
+            if ((maxNum - receivedVotes) != account.receivedVotes) {
+                LogPrint("ERROR", "acctRegId:%s, receivedVotes:%lld, account:%s\n", acctRegId.ToString(), maxNum - receivedVotes, account.ToString());
                 LogPrint("ERROR", "scriptkey:%s, scriptvalue:%s\n", HexStr(vScriptKey.begin(), vScriptKey.end()), HexStr(vScriptData.begin(), vScriptData.end()));
                 //StartShutdown();
                 return false;

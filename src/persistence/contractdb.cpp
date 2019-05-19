@@ -1284,7 +1284,7 @@ bool CScriptDBViewCache::SetDelegateData(const CAccount &delegateAcct, CScriptDB
     CRegID regId(0, 0);
     vector<unsigned char> vVoteKey = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
     uint64_t nMaxNumber            = 0xFFFFFFFFFFFFFFFF;
-    string strVotes                = strprintf("%016x", nMaxNumber - delegateAcct.inVoteBcoins);
+    string strVotes                = strprintf("%016x", nMaxNumber - delegateAcct.receivedVotes);
     vVoteKey.insert(vVoteKey.end(), strVotes.begin(), strVotes.end());
     vVoteKey.push_back('_');
     vVoteKey.insert(vVoteKey.end(), delegateAcct.regID.GetRegIdRaw().begin(), delegateAcct.regID.GetRegIdRaw().end());
@@ -1312,7 +1312,7 @@ bool CScriptDBViewCache::EraseDelegateData(const CAccountLog &delegateAcct, CScr
     CRegID regId(0, 0);
     vector<unsigned char> vVoteOldKey = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
     uint64_t nMaxNumber               = 0xFFFFFFFFFFFFFFFF;
-    string strOldVoltes               = strprintf("%016x", nMaxNumber - delegateAcct.inVoteBcoins);
+    string strOldVoltes               = strprintf("%016x", nMaxNumber - delegateAcct.receivedVotes);
     vVoteOldKey.insert(vVoteOldKey.end(), strOldVoltes.begin(), strOldVoltes.end());
     vVoteOldKey.push_back('_');
     vVoteOldKey.insert(vVoteOldKey.end(), delegateAcct.regID.GetRegIdRaw().begin(), delegateAcct.regID.GetRegIdRaw().end());

@@ -36,9 +36,9 @@ public:
     uint64_t bcoins;                //!< Free Base Coins
     uint64_t scoins;                //!< Stable Coins
     uint64_t fcoins;                //!< FundCoin balance
-    uint64_t fcoinsStaked;          //!< Staked FundCoins
+    uint64_t fcoinsInStaking;       //!< Staked FundCoins
 
-    uint64_t bcoinsVotedIn;         //!< votes received in bcoins
+    uint64_t receivedVotes;         //!< votes received in bcoins
     vector<CVoteFund> voteFunds;    //!< account delegates votes sorted by vote amount
 
     bool hasOpenCdp;                //!< When true, its CDP exists in a map {cdp-$regid -> $cdp}
@@ -65,8 +65,8 @@ public:
           bcoins(0),
           scoins(0),
           fcoins(0),
-          stakedFcoins(0),
-          inVoteBcoins(0),
+          fcoinsInStaking(0),
+          receivedVotes(0),
           hasOpenCdp(false) {
         minerPubKey = CPubKey();
         voteFunds.clear();
@@ -78,7 +78,7 @@ public:
           bcoins(0),
           scoins(0),
           fcoins(0),
-          inVoteBcoins(0),
+          receivedVotes(0),
           hasOpenCdp(false) {
         pubKey      = CPubKey();
         minerPubKey = CPubKey();
@@ -95,7 +95,7 @@ public:
         this->bcoins         = other.bcoins;
         this->scoins         = other.scoins;
         this->fcoins         = other.fcoins;
-        this->inVoteBcoins  = other.inVoteBcoins;
+        this->receivedVotes  = other.receivedVotes;
         this->voteFunds      = other.voteFunds;
         this->hasOpenCdp     = other.hasOpenCdp;
     }
@@ -111,7 +111,7 @@ public:
         this->bcoins         = other.bcoins;
         this->scoins         = other.scoins;
         this->fcoins         = other.fcoins;
-        this->inVoteBcoins  = other.inVoteBcoins;
+        this->receivedVotes  = other.receivedVotes;
         this->voteFunds      = other.voteFunds;
         this->hasOpenCdp     = other.hasOpenCdp;
 
@@ -141,7 +141,7 @@ public:
     uint64_t GetFreeBCoins() const { return bcoins; }
     uint64_t GetFreeScoins() const { return scoins; }
     uint64_t GetFreeFcoins() const { return fcoins; }
-    uint64_t GetReceiveVotes() const { return inVoteBcoins; }
+    uint64_t GetReceiveVotes() const { return receivedVotes; }
 
     uint64_t GetTotalBcoins();
     uint64_t GetVotedBCoins();
@@ -156,7 +156,7 @@ public:
             CHashWriter ss(SER_GETHASH, 0);
             ss  << keyID << regID << nickID << pubKey << minerPubKey
                 << VARINT(bcoins) << VARINT(scoins) << VARINT(fcoins)
-                << VARINT(inVoteBcoins)
+                << VARINT(receivedVotes)
                 << voteFunds << hasOpenCdp;
 
             uint256* hash = const_cast<uint256*>(&sigHash);
@@ -177,7 +177,7 @@ public:
         READWRITE(VARINT(bcoins));
         READWRITE(VARINT(scoins));
         READWRITE(VARINT(fcoins));
-        READWRITE(VARINT(inVoteBcoins));
+        READWRITE(VARINT(receivedVotes));
         READWRITE(voteFunds);
         READWRITE(hasOpenCdp);)
 
@@ -198,8 +198,8 @@ public:
     uint64_t bcoins;             //!< baseCoin balance
     uint64_t scoins;             //!< stableCoin balance
     uint64_t fcoins;             //!< fundCoin balance
-    vector<CVoteFund> voteFunds; //!< delegate votes
-    uint64_t inVoteBcoins;      //!< votes received
+    vector<CVoteFund> voteFunds; //!< casted delegate votes
+    uint64_t receivedVotes;      //!< votes received
 
     IMPLEMENT_SERIALIZE(
         READWRITE(keyID);
@@ -210,7 +210,7 @@ public:
         READWRITE(hasOpenCdp);
         READWRITE(VARINT(bcoins));
         READWRITE(voteFunds);
-        READWRITE(VARINT(inVoteBcoins));)
+        READWRITE(VARINT(receivedVotes));)
 
 public:
     CAccountLog(const CAccount& acct) {
@@ -222,27 +222,27 @@ public:
         bcoins         = acct.bcoins;
         hasOpenCdp     = acct.hasOpenCdp;
         voteFunds      = acct.voteFunds;
-        inVoteBcoins  = acct.inVoteBcoins;
+        receivedVotes  = acct.receivedVotes;
     }
 
     CAccountLog(CKeyID& keyId) {
         keyID = keyId;
         regID.Clean();
         nickID.Clean();
-        bcoins         = 0;
-        hasOpenCdp     = false;
+        bcoins = 0;
+        hasOpenCdp = false;
         voteFunds.clear();
-        inVoteBcoins  = 0;
+        receivedVotes = 0;
     }
 
     CAccountLog() {
         keyID = uint160();
         regID.Clean();
         nickID.Clean();
-        bcoins         = 0;
-        hasOpenCdp     = false;
+        bcoins = 0;
+        hasOpenCdp = false;
         voteFunds.clear();
-        inVoteBcoins = 0;
+        receivedVotes = 0;
     }
 
     void SetValue(const CAccount& acct) {
@@ -254,7 +254,7 @@ public:
         bcoins         = acct.bcoins;
         scoins         = acct.scoins;
         fcoins         = acct.fcoins;
-        inVoteBcoins   = acct.inVoteBcoins;
+        receivedVotes  = acct.receivedVotes;
         voteFunds      = acct.voteFunds;
         hasOpenCdp     = acct.hasOpenCdp;
     }
