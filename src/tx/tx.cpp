@@ -88,7 +88,7 @@ bool CBaseTx::CheckMinTxFee(const uint64_t llFees) const {
     return true;
 }
 
-// transactions should check the signagure size before verifying signature
+// transactions should check the signature size before verifying signature
 bool CBaseTx::CheckSignatureSize(const vector<unsigned char> &signature) const {
     return signature.size() > 0 && signature.size() < MAX_BLOCK_SIGNATURE_SIZE;
 }

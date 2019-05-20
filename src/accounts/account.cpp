@@ -8,9 +8,6 @@
 
 #include "main.h"
 
-// /** account db cache*/
-// extern CAccountViewCache *pAccountViewTip;
-
 string CAccountLog::ToString() const {
     string str;
     str += strprintf(
