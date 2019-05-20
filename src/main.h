@@ -651,9 +651,9 @@ bool LoadBlockIndex();
 /** Unload database information */
 void UnloadBlockIndex();
 /** Push getblocks request */
-void PushGetBlocks(CNode *pnode, CBlockIndex *pindexBegin, uint256 hashEnd);
+void PushGetBlocks(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd);
 /** Push getblocks request with different filtering strategies */
-void PushGetBlocksOnCondition(CNode *pnode, CBlockIndex *pindexBegin, uint256 hashEnd);
+void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd);
 /** Process an incoming block */
 bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBlockPos *dbp = NULL);
 /** Print the loaded block tree */

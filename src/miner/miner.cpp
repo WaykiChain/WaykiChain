@@ -173,9 +173,9 @@ bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDele
 bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock) {
     unsigned int nNonce = GetRand(SysCfg().GetBlockMaxNonce());
     CBlock preBlock;
-    CBlockIndex *pblockindex = mapBlockIndex[pBlock->GetPrevBlockHash()];
+    CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
-        if (!ReadBlockFromDisk(pblockindex, preBlock))
+        if (!ReadBlockFromDisk(pBlockIndex, preBlock))
             return ERRORMSG("read block info fail from disk");
 
         CAccount preDelegate;
@@ -190,9 +190,9 @@ bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountVi
     }
 
     pBlock->SetNonce(nNonce);
-    CBlockRewardTx *prtx = (CBlockRewardTx *)pBlock->vptx[0].get();
-    prtx->txUid     = delegate.regID;  //记账人账户ID
-    prtx->nHeight   = pBlock->GetHeight();
+    CBlockRewardTx *pBlockRewardTx  = (CBlockRewardTx *)pBlock->vptx[0].get();
+    pBlockRewardTx->txUid           = delegate.regID;  //记账人账户ID
+    pBlockRewardTx->nHeight         = pBlock->GetHeight();
     pBlock->SetMerkleRootHash(pBlock->BuildMerkleTree());
     pBlock->SetTime(currentTime);
 
@@ -333,10 +333,10 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CAccountViewCache &view, CTransactionD
 
     CBlock *pblock = &pblocktemplate->block;  // pointer for convenience
 
-    // Create coinbase tx
+    // Create BlockReward tx
     CBlockRewardTx rewardTx;
 
-    // Add our coinbase tx as the first tx
+    // Add our Block Reward tx as the first one
     pblock->vptx.push_back(std::make_shared<CBlockRewardTx>(rewardTx));
     pblocktemplate->vTxFees.push_back(-1);    // updated at end
     pblocktemplate->vTxSigOps.push_back(-1);  // updated at end
@@ -504,7 +504,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
         int64_t currentTime = GetTime();
         CAccount minerAcct;
         if (!GetCurrentDelegate(currentTime, vDelegatesAcctList, minerAcct))
-            return false;
+            return false; // not on duty hence returns
 
         bool createdFlag = false;
         int64_t nLastTime;

@@ -98,7 +98,7 @@ public:
     bool Cancels(const CAlert& alert) const;
     bool AppliesTo(int nVersion, string strSubVerIn) const;
     bool AppliesToMe() const;
-    bool RelayTo(CNode* pnode) const;
+    bool RelayTo(CNode* pNode) const;
     bool CheckSignature() const;
     bool ProcessAlert(bool fThread = true);
 

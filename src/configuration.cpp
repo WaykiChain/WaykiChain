@@ -242,10 +242,10 @@ const string G_CONFIG_TABLE::GetCheckPointPkey(NET_TYPE type) const {
     return "";
 }
 
-const vector<string> G_CONFIG_TABLE::GetIntPubKey(NET_TYPE type) const {
+const vector<string> G_CONFIG_TABLE::GetInitPubKey(NET_TYPE type) const {
 	switch (type) {
 	    case MAIN_NET: {
-	        return (intPubKey_mainNet);
+	        return (initPubKey_mainNet);
 		}
 		case TEST_NET: {
 			return (initPubKey_testNet);
@@ -464,7 +464,7 @@ string G_CONFIG_TABLE::COIN_NAME = "WaykiChain";
 
 
 /** Public Key for mainnet */
-vector<string> G_CONFIG_TABLE::intPubKey_mainNet =
+vector<string> G_CONFIG_TABLE::initPubKey_mainNet =
 {
 	"037671de4799dbf919effa034bbcaadd78c8a942adeebe7d71155304979a02802a",
 	"0226d8c242052560b3ec7c75d45ba3a8cb187ff2c21a9e96cb8755eeefd50bcdca"

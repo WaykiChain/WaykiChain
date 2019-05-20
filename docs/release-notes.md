@@ -87,7 +87,7 @@ Protocol and network code:
 - Per-peer block download tracking and stalled download detection
 - Add new DNS seed from bitnodes.io
 - Prevent socket leak in ThreadSocketHandler and correct some proxy related socket leaks
-- Use pnode->nLastRecv as sync score (was the wrong way around)
+- Use pNode->nLastRecv as sync score (was the wrong way around)
 
 Wallet:
 - Make GetAvailableCredit run GetHash() only once per transaction (performance improvement)
@@ -201,4 +201,3 @@ Thanks to everyone who contributed to this release:
 - Warren Togami
 - Wladimir J. van der Laan
 - Yoichi Hirai
-

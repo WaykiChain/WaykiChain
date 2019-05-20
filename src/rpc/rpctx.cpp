@@ -3208,11 +3208,11 @@ Value setcheckpoint(const Array& params, bool fHelp)
     CheckActiveChain(point.m_height, point.m_hashCheckpoint);
     vdata.push_back(data);
     LOCK(cs_vNodes);
-    BOOST_FOREACH(CNode* pnode, vNodes)
+    BOOST_FOREACH(CNode* pNode, vNodes)
     {
-        if (pnode->setcheckPointKnown.count(point.m_height) == 0) {
-            pnode->setcheckPointKnown.insert(point.m_height);
-            pnode->PushMessage("checkpoint", vdata);
+        if (pNode->setcheckPointKnown.count(point.m_height) == 0) {
+            pNode->setcheckPointKnown.insert(point.m_height);
+            pNode->PushMessage("checkpoint", vdata);
         }
     }
     return tfm::format("sendcheckpoint :%d\n", point.m_height);

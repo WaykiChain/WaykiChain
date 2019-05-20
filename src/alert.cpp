@@ -127,16 +127,16 @@ bool CAlert::AppliesToMe() const
     return AppliesTo(PROTOCOL_VERSION, FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, vector<string>()));
 }
 
-bool CAlert::RelayTo(CNode* pnode) const
+bool CAlert::RelayTo(CNode* pNode) const
 {
     if (!IsInEffect())
         return false;
     // returns true if wasn't already contained in the set
-    if (pnode->setKnown.insert(GetHash()).second) {
-        if (AppliesTo(pnode->nVersion, pnode->strSubVer) ||
+    if (pNode->setKnown.insert(GetHash()).second) {
+        if (AppliesTo(pNode->nVersion, pNode->strSubVer) ||
             AppliesToMe() ||
             GetAdjustedTime() < nRelayUntil) {
-            pnode->PushMessage("alert", *this);
+            pNode->PushMessage("alert", *this);
             return true;
         }
     }

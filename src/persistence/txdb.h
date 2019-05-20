@@ -15,12 +15,6 @@
 #include <vector>
 using namespace std;
 
-// class CAccount;
-// class CKeyID;
-// class uint256;
-// struct CDiskTxPos;
-// class CVmOperate;
-
 class CTransactionDBView {
 public:
     virtual ~CTransactionDBView(){};

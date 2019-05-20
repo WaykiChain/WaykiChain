@@ -316,8 +316,8 @@ struct CNodeState {
 map<NodeId, CNodeState> mapNodeState;
 
 // Requires cs_main.
-CNodeState *State(NodeId pnode) {
-    map<NodeId, CNodeState>::iterator it = mapNodeState.find(pnode);
+CNodeState *State(NodeId pNode) {
+    map<NodeId, CNodeState>::iterator it = mapNodeState.find(pNode);
     if (it == mapNodeState.end())
         return NULL;
     return &it->second;
@@ -328,10 +328,10 @@ int GetHeight() {
     return chainActive.Height();
 }
 
-void InitializeNode(NodeId nodeid, const CNode *pnode) {
+void InitializeNode(NodeId nodeid, const CNode *pNode) {
     LOCK(cs_main);
     CNodeState &state = mapNodeState.insert(make_pair(nodeid, CNodeState())).first->second;
-    state.name        = pnode->addrName;
+    state.name        = pNode->addrName;
 }
 
 void FinalizeNode(NodeId nodeid) {
@@ -1009,11 +1009,11 @@ void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip) {
 }
 
 // Requires cs_main.
-void Misbehaving(NodeId pnode, int howmuch) {
+void Misbehaving(NodeId pNode, int howmuch) {
     if (howmuch == 0)
         return;
 
-    CNodeState *state = State(pnode);
+    CNodeState *state = State(pNode);
     if (state == NULL)
         return;
 
@@ -1028,20 +1028,20 @@ void Misbehaving(NodeId pnode, int howmuch) {
     }
 }
 
-void static InvalidChainFound(CBlockIndex *pindexNew) {
-    if (!pindexBestInvalid || pindexNew->nChainWork > pindexBestInvalid->nChainWork) {
-        pindexBestInvalid = pindexNew;
+void static InvalidChainFound(CBlockIndex *pIndexNew) {
+    if (!pindexBestInvalid || pIndexNew->nChainWork > pindexBestInvalid->nChainWork) {
+        pindexBestInvalid = pIndexNew;
         // The current code doesn't actually read the BestInvalidWork entry in
         // the block database anymore, as it is derived from the flags in block
         // index entry. We only write it for backward compatibility.
         pblocktree->WriteBestInvalidWork(ArithToUint256(pindexBestInvalid->nChainWork));
-        uiInterface.NotifyBlocksChanged(pindexNew->GetBlockTime(), chainActive.Height(),
+        uiInterface.NotifyBlocksChanged(pIndexNew->GetBlockTime(), chainActive.Height(),
                                         chainActive.Tip()->GetBlockHash());
     }
     LogPrint("INFO", "InvalidChainFound: invalid block=%s  height=%d  log2_work=%.8g  date=%s\n",
-             pindexNew->GetBlockHash().ToString(), pindexNew->nHeight,
-             log(pindexNew->nChainWork.getdouble()) / log(2.0),
-             DateTimeStrFormat("%Y-%m-%d %H:%M:%S", pindexNew->GetBlockTime()));
+             pIndexNew->GetBlockHash().ToString(), pIndexNew->nHeight,
+             log(pIndexNew->nChainWork.getdouble()) / log(2.0),
+             DateTimeStrFormat("%Y-%m-%d %H:%M:%S", pIndexNew->GetBlockTime()));
     LogPrint("INFO", "InvalidChainFound:  current best=%s  height=%d  log2_work=%.8g  date=%s\n",
              chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
              log(chainActive.Tip()->nChainWork.getdouble()) / log(2.0),
@@ -1528,8 +1528,8 @@ bool static WriteChainState(CValidationState &state) {
 }
 
 // Update chainActive and related internal data structures.
-void static UpdateTip(CBlockIndex *pindexNew, const CBlock &block) {
-    chainActive.SetTip(pindexNew);
+void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
+    chainActive.SetTip(pIndexNew);
 
     SyncTransaction(uint256(), NULL, &block);
 
@@ -1624,46 +1624,48 @@ bool static DisconnectTip(CValidationState &state) {
     return true;
 }
 
-void PrintInfo(const uint256 &hash, const int &nCurHeight, CScriptDBViewCache &scriptDBView,
-               const string &scriptId) {
-    vector<unsigned char> vScriptKey;
-    vector<unsigned char> vScriptData;
-    int nHeight;
-    set<CScriptDBOperLog> setOperLog;
-    CRegID regId(scriptId);
-    int nCount(0);
-    scriptDBView.GetContractItemCount(scriptId, nCount);
-    bool ret = scriptDBView.GetContractData(nCurHeight, regId, 0, vScriptKey, vScriptData);
-    LogPrint("scriptdbview", "\n\n\n");
-    LogPrint("scriptdbview", "blockhash=%s,curHeight=%d\n", hash.GetHex(), nCurHeight);
-    LogPrint("scriptdbview", "app script ID:%s key:%s value:%s height:%d, nCount:%d\n",
-             scriptId.c_str(), HexStr(vScriptKey), HexStr(vScriptData), nHeight, nCount);
-    while (ret) {
-        ret = scriptDBView.GetContractData(nCurHeight, regId, 1, vScriptKey, vScriptData);
-        scriptDBView.GetContractItemCount(scriptId, nCount);
-        if (ret)
-            LogPrint("scriptdbview", "app script ID:%s key:%s value:%s height:%d, nCount:%d\n",
-                     scriptId.c_str(), HexStr(vScriptKey), HexStr(vScriptData), nHeight, nCount);
-    }
-}
+// void PrintInfo(const uint256 &hash, const int &nCurHeight, CScriptDBViewCache &scriptDBView,
+//                const string &scriptId) {
+//     vector<unsigned char> vScriptKey;
+//     vector<unsigned char> vScriptData;
+//     int nHeight;
+//     set<CScriptDBOperLog> setOperLog;
+//     CRegID regId(scriptId);
+//     int nCount(0);
+//     scriptDBView.GetContractItemCount(scriptId, nCount);
+//     bool ret = scriptDBView.GetContractData(nCurHeight, regId, 0, vScriptKey, vScriptData);
+//     LogPrint("scriptdbview", "\n\n\n");
+//     LogPrint("scriptdbview", "blockhash=%s,curHeight=%d\n", hash.GetHex(), nCurHeight);
+//     LogPrint("scriptdbview", "app script ID:%s key:%s value:%s height:%d, nCount:%d\n",
+//              scriptId.c_str(), HexStr(vScriptKey), HexStr(vScriptData), nHeight, nCount);
+//     while (ret) {
+//         ret = scriptDBView.GetContractData(nCurHeight, regId, 1, vScriptKey, vScriptData);
+//         scriptDBView.GetContractItemCount(scriptId, nCount);
+//         if (ret)
+//             LogPrint("scriptdbview", "app script ID:%s key:%s value:%s height:%d, nCount:%d\n",
+//                      scriptId.c_str(), HexStr(vScriptKey), HexStr(vScriptData), nHeight, nCount);
+//     }
+// }
+
 // Connect a new block to chainActive.
-bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
-    assert(pindexNew->pprev == chainActive.Tip());
+bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
+    assert(pIndexNew->pprev == chainActive.Tip());
     // Read block from disk.
     CBlock block;
-    if (!ReadBlockFromDisk(pindexNew, block))
-        return state.Abort(strprintf("Failed to read block hash:%s\n", pindexNew->GetBlockHash().GetHex()));
+    if (!ReadBlockFromDisk(pIndexNew, block))
+        return state.Abort(strprintf("Failed to read block hash:%s\n", pIndexNew->GetBlockHash().GetHex()));
 
-    // Apply the block atomically to the chain state.
+    // Apply the block automatically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
-        CInv inv(MSG_BLOCK, pindexNew->GetBlockHash());
+        CInv inv(MSG_BLOCK, pIndexNew->GetBlockHash());
         CAccountViewCache view(*pAccountViewTip);
         CScriptDBViewCache scriptDBView(*pScriptDBTip);
-        if (!ConnectBlock(block, state, view, pindexNew, *pTxCacheTip, scriptDBView)) {
-            if (state.IsInvalid())
-                InvalidBlockFound(pindexNew, state);
-            return ERRORMSG("ConnectTip() : ConnectBlock %s failed", pindexNew->GetBlockHash().ToString());
+        if (!ConnectBlock(block, state, view, pIndexNew, *pTxCacheTip, scriptDBView)) {
+            if (state.IsInvalid()) {
+                InvalidBlockFound(pIndexNew, state);
+            }
+            return ERRORMSG("ConnectTip() : ConnectBlock %s failed", pIndexNew->GetBlockHash().ToString());
         }
         mapBlockSource.erase(inv.hash);
 
@@ -1685,7 +1687,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
         return false;
 
     // Update chainActive & related variables.
-    UpdateTip(pindexNew, block);
+    UpdateTip(pIndexNew, block);
 
     // Write new block info to log, if necessary.
     if (SysCfg().GetArg("-blocklog", 0) != 0) {
@@ -1709,7 +1711,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
 // Make chainMostWork correspond to the chain with the most work in it, that isn't
 // known to be invalid (it's however far from certain to be valid).
 void static FindMostWorkChain() {
-    CBlockIndex *pindexNew = NULL;
+    CBlockIndex *pIndexNew = NULL;
 
     // In case the current best is invalid, do not consider it.
     while (chainMostWork.Tip() && (chainMostWork.Tip()->nStatus & BLOCK_FAILED_MASK)) {
@@ -1723,19 +1725,19 @@ void static FindMostWorkChain() {
             set<CBlockIndex *, CBlockIndexWorkComparator>::reverse_iterator it = setBlockIndexValid.rbegin();
             if (it == setBlockIndexValid.rend())
                 return;
-            pindexNew = *it;
+            pIndexNew = *it;
         }
 
         // Check whether all blocks on the path between the currently active chain and the candidate are valid.
         // Just going until the active chain is an optimization, as we know all blocks in it are valid already.
-        CBlockIndex *pindexTest = pindexNew;
+        CBlockIndex *pindexTest = pIndexNew;
         bool fInvalidAncestor   = false;
         while (pindexTest && !chainActive.Contains(pindexTest)) {
             if (pindexTest->nStatus & BLOCK_FAILED_MASK) {
                 // Candidate has an invalid ancestor, remove entire chain from the set.
-                if (pindexBestInvalid == NULL || pindexNew->nChainWork > pindexBestInvalid->nChainWork)
-                    pindexBestInvalid = pindexNew;
-                CBlockIndex *pindexFailed = pindexNew;
+                if (pindexBestInvalid == NULL || pIndexNew->nChainWork > pindexBestInvalid->nChainWork)
+                    pindexBestInvalid = pIndexNew;
+                CBlockIndex *pindexFailed = pIndexNew;
                 while (pindexTest != pindexFailed) {
                     pindexFailed->nStatus |= BLOCK_FAILED_CHILD;
                     setBlockIndexValid.erase(pindexFailed);
@@ -1753,11 +1755,11 @@ void static FindMostWorkChain() {
     } while (true);
 
     // Check whether it's actually an improvement.
-    if (chainMostWork.Tip() && !CBlockIndexWorkComparator()(chainMostWork.Tip(), pindexNew))
+    if (chainMostWork.Tip() && !CBlockIndexWorkComparator()(chainMostWork.Tip(), pIndexNew))
         return;
 
     // We have a new best.
-    chainMostWork.SetTip(pindexNew);
+    chainMostWork.SetTip(pIndexNew);
 }
 
 // Try to activate to the most-work chain (thereby connecting it).
@@ -1822,31 +1824,31 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
         return state.Invalid(ERRORMSG("AddToBlockIndex() : %s already exists", hash.ToString()), 0, "duplicate");
 
     // Construct new block index object
-    CBlockIndex *pindexNew = new CBlockIndex(block);
-    assert(pindexNew);
+    CBlockIndex *pIndexNew = new CBlockIndex(block);
+    assert(pIndexNew);
     {
         LOCK(cs_nBlockSequenceId);
-        pindexNew->nSequenceId = nBlockSequenceId++;
+        pIndexNew->nSequenceId = nBlockSequenceId++;
     }
-    map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.insert(make_pair(hash, pindexNew)).first;
+    map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.insert(make_pair(hash, pIndexNew)).first;
     // LogPrint("INFO", "in map hash:%s map size:%d\n", hash.GetHex(), mapBlockIndex.size());
-    pindexNew->pBlockHash                        = &((*mi).first);
+    pIndexNew->pBlockHash                        = &((*mi).first);
     map<uint256, CBlockIndex *>::iterator miPrev = mapBlockIndex.find(block.GetPrevBlockHash());
     if (miPrev != mapBlockIndex.end()) {
-        pindexNew->pprev   = (*miPrev).second;
-        pindexNew->nHeight = pindexNew->pprev->nHeight + 1;
-        pindexNew->BuildSkip();
+        pIndexNew->pprev   = (*miPrev).second;
+        pIndexNew->nHeight = pIndexNew->pprev->nHeight + 1;
+        pIndexNew->BuildSkip();
     }
-    pindexNew->nTx        = block.vptx.size();
-    pindexNew->nChainWork = pindexNew->nHeight;
-    pindexNew->nChainTx   = (pindexNew->pprev ? pindexNew->pprev->nChainTx : 0) + pindexNew->nTx;
-    pindexNew->nFile      = pos.nFile;
-    pindexNew->nDataPos   = pos.nPos;
-    pindexNew->nUndoPos   = 0;
-    pindexNew->nStatus    = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
-    setBlockIndexValid.insert(pindexNew);
+    pIndexNew->nTx        = block.vptx.size();
+    pIndexNew->nChainWork = pIndexNew->nHeight;
+    pIndexNew->nChainTx   = (pIndexNew->pprev ? pIndexNew->pprev->nChainTx : 0) + pIndexNew->nTx;
+    pIndexNew->nFile      = pos.nFile;
+    pIndexNew->nDataPos   = pos.nPos;
+    pIndexNew->nUndoPos   = 0;
+    pIndexNew->nStatus    = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
+    setBlockIndexValid.insert(pIndexNew);
 
-    if (!pblocktree->WriteBlockIndex(CDiskBlockIndex(pindexNew)))
+    if (!pblocktree->WriteBlockIndex(CDiskBlockIndex(pIndexNew)))
         return state.Abort(_("Failed to write block index"));
     int64_t tempTime = GetTimeMillis();
     // New best?
@@ -1856,7 +1858,7 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
     }
     // LogPrint("INFO", "ActivateBestChain() elapse time:%lld ms\n", GetTimeMillis() - tempTime);
     LOCK(cs_main);
-    if (pindexNew == chainActive.Tip()) {
+    if (pIndexNew == chainActive.Tip()) {
         // Clear fork warning if its no longer applicable
         CheckForkWarningConditions();
         // Notify UI to display prev block's coinbase if it was ours
@@ -1864,14 +1866,14 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
         g_signals.UpdatedTransaction(hashPrevBestCoinBase);
         hashPrevBestCoinBase = block.GetTxHash(0);
     } else
-        CheckForkWarningConditionsOnNewFork(pindexNew);
+        CheckForkWarningConditionsOnNewFork(pIndexNew);
 
     if (!pblocktree->Flush())
         return state.Abort(_("Failed to sync block index"));
 
     if (chainActive.Tip()->nHeight > nSyncTipHeight)
         nSyncTipHeight = chainActive.Tip()->nHeight;
-    uiInterface.NotifyBlocksChanged(pindexNew->GetBlockTime(), chainActive.Height(),
+    uiInterface.NotifyBlocksChanged(pIndexNew->GetBlockTime(), chainActive.Height(),
                                     chainActive.Tip()->GetBlockHash());
     return true;
 }
@@ -2270,9 +2272,9 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
     int nBlockEstimate = Checkpoints::GetTotalBlocksEstimate();
     if (chainActive.Tip()->GetBlockHash() == blockHash) {
         LOCK(cs_vNodes);
-        for (auto pnode : vNodes) {
-            if (chainActive.Height() > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate))
-                pnode->PushInventory(CInv(MSG_BLOCK, blockHash));
+        for (auto pNode : vNodes) {
+            if (chainActive.Height() > (pNode->nStartingHeight != -1 ? pNode->nStartingHeight - 2000 : nBlockEstimate))
+                pNode->PushInventory(CInv(MSG_BLOCK, blockHash));
         }
     }
 
@@ -2345,38 +2347,38 @@ void CBlockIndex::BuildSkip() {
         pskip = pprev->GetAncestor(GetSkipHeight(nHeight));
 }
 
-void PushGetBlocks(CNode *pnode, CBlockIndex *pindexBegin, uint256 hashEnd) {
+void PushGetBlocks(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd) {
     // Ask this guy to fill in what we're missing
     AssertLockHeld(cs_main);
     // Filter out duplicate requests
-    if (pindexBegin == pnode->pindexLastGetBlocksBegin && hashEnd == pnode->hashLastGetBlocksEnd) {
+    if (pindexBegin == pNode->pindexLastGetBlocksBegin && hashEnd == pNode->hashLastGetBlocksEnd) {
         LogPrint("net", "filter the same GetLocator\n");
         return;
     }
-    pnode->pindexLastGetBlocksBegin = pindexBegin;
-    pnode->hashLastGetBlocksEnd     = hashEnd;
+    pNode->pindexLastGetBlocksBegin = pindexBegin;
+    pNode->hashLastGetBlocksEnd     = hashEnd;
     CBlockLocator blockLocator      = chainActive.GetLocator(pindexBegin);
-    pnode->PushMessage("getblocks", blockLocator, hashEnd);
-    LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pnode->addr.ToString(), hashEnd.GetHex());
+    pNode->PushMessage("getblocks", blockLocator, hashEnd);
+    LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pNode->addr.ToString(), hashEnd.GetHex());
 }
 
-void PushGetBlocksOnCondition(CNode *pnode, CBlockIndex *pindexBegin, uint256 hashEnd) {
+void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd) {
     // Ask this guy to fill in what we're missing
     AssertLockHeld(cs_main);
     // Filter out duplicate requests
-    if (pindexBegin == pnode->pindexLastGetBlocksBegin && hashEnd == pnode->hashLastGetBlocksEnd) {
+    if (pindexBegin == pNode->pindexLastGetBlocksBegin && hashEnd == pNode->hashLastGetBlocksEnd) {
         LogPrint("net", "filter the same GetLocator\n");
         static CBloomFilter filter(5000, 0.0001, 0, BLOOM_UPDATE_NONE);
         static unsigned int count = 0;
-        string key                = to_string(pnode->id) + ":" + to_string((GetTime() / 2));
+        string key                = to_string(pNode->id) + ":" + to_string((GetTime() / 2));
         if (!filter.contains(vector<unsigned char>(key.begin(), key.end()))) {
             filter.insert(vector<unsigned char>(key.begin(), key.end()));
             ++count;
-            pnode->pindexLastGetBlocksBegin = pindexBegin;
-            pnode->hashLastGetBlocksEnd     = hashEnd;
+            pNode->pindexLastGetBlocksBegin = pindexBegin;
+            pNode->hashLastGetBlocksEnd     = hashEnd;
             CBlockLocator blockLocator      = chainActive.GetLocator(pindexBegin);
-            pnode->PushMessage("getblocks", blockLocator, hashEnd);
-            LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pnode->addr.ToString(), hashEnd.GetHex());
+            pNode->PushMessage("getblocks", blockLocator, hashEnd);
+            LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pNode->addr.ToString(), hashEnd.GetHex());
         } else {
             if (count >= 5000) {
                 count = 0;
@@ -2384,11 +2386,11 @@ void PushGetBlocksOnCondition(CNode *pnode, CBlockIndex *pindexBegin, uint256 ha
             }
         }
     } else {
-        pnode->pindexLastGetBlocksBegin = pindexBegin;
-        pnode->hashLastGetBlocksEnd     = hashEnd;
+        pNode->pindexLastGetBlocksBegin = pindexBegin;
+        pNode->hashLastGetBlocksEnd     = hashEnd;
         CBlockLocator blockLocator      = chainActive.GetLocator(pindexBegin);
-        pnode->PushMessage("getblocks", blockLocator, hashEnd);
-        LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pnode->addr.ToString(), hashEnd.GetHex());
+        pNode->PushMessage("getblocks", blockLocator, hashEnd);
+        LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pNode->addr.ToString(), hashEnd.GetHex());
     }
 }
 
@@ -2515,10 +2517,14 @@ bool CheckActiveChain(int nHeight, uint256 hash) {
             for (; (it != setBlockIndexValid.rend()) && !chainMostWork.Contains(*it);) {
                 bInvalidBlock           = false;
                 CBlockIndex *pIndexTest = *it;
-                LogPrint("CHECKPOINT", "iterator:height=%d, hash=%s\n", pIndexTest->nHeight, pIndexTest->GetBlockHash().GetHex());
+                LogPrint("CHECKPOINT", "iterator:height=%d, hash=%s\n",
+                        pIndexTest->nHeight, pIndexTest->GetBlockHash().GetHex());
+
                 if (pcheckpoint->nHeight < nHeight) {
                     if (pIndexTest->nHeight >= nHeight) {
-                        LogPrint("CHECKPOINT", "CheckActiveChain delete blockindex:%s\n", pIndexTest->GetBlockHash().GetHex());
+                        LogPrint("CHECKPOINT", "CheckActiveChain delete blockindex:%s\n",
+                            pIndexTest->GetBlockHash().GetHex());
+
                         setBlockIndexValid.erase(pIndexTest);
                         it            = setBlockIndexValid.rbegin();
                         bInvalidBlock = true;
@@ -2532,17 +2538,22 @@ bool CheckActiveChain(int nHeight, uint256 hash) {
                     if (NULL == pIndexCheck || pIndexCheck->nHeight < pcheckpoint->nHeight) {
                         CBlockIndex *pIndexFailed = pIndexCheck;
                         while (pIndexTest != pIndexFailed) {
-                            LogPrint("CHECKPOINT", "CheckActiveChain delete blockindex height=%d hash=%s\n", pIndexTest->nHeight, pIndexTest->GetBlockHash().GetHex());
+                            LogPrint("CHECKPOINT", "CheckActiveChain delete blockindex height=%d hash=%s\n",
+                                    pIndexTest->nHeight, pIndexTest->GetBlockHash().GetHex());
+
                             setBlockIndexValid.erase(pIndexTest);
                             it            = setBlockIndexValid.rbegin();
                             bInvalidBlock = true;
                             pIndexTest    = pIndexTest->pprev;
                         }
                     }
-                    if (chainMostWork.Contains(pIndexCheck) && chainMostWork.Height() == pIndexCheck->nHeight && pIndexTest->nChainWork > chainMostWork.Tip()->nChainWork) {
+                    if (chainMostWork.Contains(pIndexCheck) &&
+                        chainMostWork.Height() == pIndexCheck->nHeight &&
+                        pIndexTest->nChainWork > chainMostWork.Tip()->nChainWork) {
+
                         chainMostWork.SetTip(pIndexTest);
-                        LogPrint("CHECKPOINT", "chainMostWork tip:height=%d, hash=%s\n", pIndexTest->nHeight,
-                                 pIndexTest->GetBlockHash().GetHex());
+                        LogPrint("CHECKPOINT", "chainMostWork tip:height=%d, hash=%s\n",
+                                pIndexTest->nHeight, pIndexTest->GetBlockHash().GetHex());
                     }
                 }
                 if (!bInvalidBlock)
@@ -2550,10 +2561,13 @@ bool CheckActiveChain(int nHeight, uint256 hash) {
             }
 
         } else {
-            if (NULL == chainActive[nHeight])
+            if (NULL == chainActive[ nHeight ])
                 return true;
-            bool bInvalidBlock                                                      = false;
-            std::set<CBlockIndex *, CBlockIndexWorkComparator>::reverse_iterator it = setBlockIndexValid.rbegin();
+
+            bool bInvalidBlock = false;
+            std::set<CBlockIndex *, CBlockIndexWorkComparator>::reverse_iterator it =
+                setBlockIndexValid.rbegin();
+
             for (; it != setBlockIndexValid.rend();) {
                 bInvalidBlock           = false;
                 CBlockIndex *pBlockTest = *it;
@@ -2563,7 +2577,9 @@ bool CheckActiveChain(int nHeight, uint256 hash) {
                 if (pBlockTest->GetBlockHash() != hash) {
                     CBlockIndex *pBlockIndexFailed = *it;
                     while (pBlockIndexFailed != pBlockTest) {
-                        LogPrint("CHECKPOINT", "CheckActiveChain delete blockindex height=%d hash=%s\n", pBlockIndexFailed->nHeight, pBlockIndexFailed->GetBlockHash().GetHex());
+                        LogPrint("CHECKPOINT", "CheckActiveChain delete blockindex height=%d hash=%s\n",
+                                pBlockIndexFailed->nHeight, pBlockIndexFailed->GetBlockHash().GetHex());
+
                         setBlockIndexValid.erase(pBlockIndexFailed);
                         pBlockIndexFailed = pBlockIndexFailed->pprev;
                         it                = setBlockIndexValid.rbegin();
@@ -3460,14 +3476,14 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
                     uint256 hashRand  = ArithToUint256(UintToArith256(hashSalt) ^ (hashAddr << 32) ^ ((GetTime() + hashAddr) / (24 * 60 * 60)));
                     hashRand          = Hash(BEGIN(hashRand), END(hashRand));
                     multimap<uint256, CNode *> mapMix;
-                    for (auto pnode : vNodes) {
-                        //                        if (pnode->nVersion < CADDR_TIME_VERSION)
+                    for (auto pNode : vNodes) {
+                        //                        if (pNode->nVersion < CADDR_TIME_VERSION)
                         //                            continue;
                         unsigned int nPointer;
-                        memcpy(&nPointer, &pnode, sizeof(nPointer));
+                        memcpy(&nPointer, &pNode, sizeof(nPointer));
                         uint256 hashKey = ArithToUint256(UintToArith256(hashRand) ^ nPointer);
                         hashKey         = Hash(BEGIN(hashKey), END(hashKey));
-                        mapMix.insert(make_pair(hashKey, pnode));
+                        mapMix.insert(make_pair(hashKey, pNode));
                     }
                     int nRelayNodes = fReachable ? 2 : 1;  // limited relaying of addresses outside our network(s)
                     for (multimap<uint256, CNode *>::iterator mi = mapMix.begin(); mi != mapMix.end() && nRelayNodes-- > 0; ++mi)
@@ -3792,8 +3808,8 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
                 pfrom->setKnown.insert(alertHash);
                 {
                     LOCK(cs_vNodes);
-                    for (auto pnode : vNodes)
-                        alert.RelayTo(pnode);
+                    for (auto pNode : vNodes)
+                        alert.RelayTo(pNode);
                 }
             } else {
                 // Small DoS penalty so peers that send us lots of
@@ -3896,10 +3912,10 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         }
         if (vIndex.size() == 1 && vIndex.size() == vdata.size()) {
             LOCK(cs_vNodes);
-            BOOST_FOREACH (CNode *pnode, vNodes) {
-                if (pnode->setcheckPointKnown.count(vIndex[0]) == 0) {
-                    pnode->setcheckPointKnown.insert(vIndex[0]);
-                    pnode->PushMessage("checkpoint", vdata);
+            BOOST_FOREACH (CNode *pNode, vNodes) {
+                if (pNode->setcheckPointKnown.count(vIndex[0]) == 0) {
+                    pNode->setcheckPointKnown.insert(vIndex[0]);
+                    pNode->PushMessage("checkpoint", vdata);
                 }
             }
         }
@@ -4086,16 +4102,16 @@ bool SendMessages(CNode *pto, bool fSendTrickle) {
         if (!IsInitialBlockDownload() && (GetTime() - nLastRebroadcast > 24 * 60 * 60)) {
             {
                 LOCK(cs_vNodes);
-                for (auto pnode : vNodes) {
+                for (auto pNode : vNodes) {
                     // Periodically clear setAddrKnown to allow refresh broadcasts
                     if (nLastRebroadcast)
-                        pnode->setAddrKnown.clear();
+                        pNode->setAddrKnown.clear();
 
                     // Rebroadcast our address
                     if (!fNoListen) {
-                        CAddress addr = GetLocalAddress(&pnode->addr);
+                        CAddress addr = GetLocalAddress(&pNode->addr);
                         if (addr.IsRoutable())
-                            pnode->PushAddress(addr);
+                            pNode->PushAddress(addr);
                     }
                 }
             }

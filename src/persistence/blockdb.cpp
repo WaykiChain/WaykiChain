@@ -109,27 +109,27 @@ bool CBlockTreeDB::LoadBlockIndexGuts() {
                 ssValue >> diskindex;
 
                 // Construct block index object
-                CBlockIndex *pindexNew    = InsertBlockIndex(diskindex.GetBlockHash());
-                pindexNew->pprev          = InsertBlockIndex(diskindex.hashPrev);
-                pindexNew->nHeight        = diskindex.nHeight;
-                pindexNew->nFile          = diskindex.nFile;
-                pindexNew->nDataPos       = diskindex.nDataPos;
-                pindexNew->nUndoPos       = diskindex.nUndoPos;
-                pindexNew->nVersion       = diskindex.nVersion;
-                pindexNew->merkleRootHash = diskindex.merkleRootHash;
-                pindexNew->hashPos        = diskindex.hashPos;
-                pindexNew->nTime          = diskindex.nTime;
-                pindexNew->nBits          = diskindex.nBits;
-                pindexNew->nNonce         = diskindex.nNonce;
-                pindexNew->nStatus        = diskindex.nStatus;
-                pindexNew->nTx            = diskindex.nTx;
-                pindexNew->nFuel          = diskindex.nFuel;
-                pindexNew->nFuelRate      = diskindex.nFuelRate;
-                pindexNew->vSignature     = diskindex.vSignature;
-                pindexNew->dFeePerKb      = diskindex.dFeePerKb;
+                CBlockIndex *pIndexNew    = InsertBlockIndex(diskindex.GetBlockHash());
+                pIndexNew->pprev          = InsertBlockIndex(diskindex.hashPrev);
+                pIndexNew->nHeight        = diskindex.nHeight;
+                pIndexNew->nFile          = diskindex.nFile;
+                pIndexNew->nDataPos       = diskindex.nDataPos;
+                pIndexNew->nUndoPos       = diskindex.nUndoPos;
+                pIndexNew->nVersion       = diskindex.nVersion;
+                pIndexNew->merkleRootHash = diskindex.merkleRootHash;
+                pIndexNew->hashPos        = diskindex.hashPos;
+                pIndexNew->nTime          = diskindex.nTime;
+                pIndexNew->nBits          = diskindex.nBits;
+                pIndexNew->nNonce         = diskindex.nNonce;
+                pIndexNew->nStatus        = diskindex.nStatus;
+                pIndexNew->nTx            = diskindex.nTx;
+                pIndexNew->nFuel          = diskindex.nFuel;
+                pIndexNew->nFuelRate      = diskindex.nFuelRate;
+                pIndexNew->vSignature     = diskindex.vSignature;
+                pIndexNew->dFeePerKb      = diskindex.dFeePerKb;
 
-                if (!pindexNew->CheckIndex())
-                    return ERRORMSG("LoadBlockIndex() : CheckIndex failed: %s", pindexNew->ToString());
+                if (!pIndexNew->CheckIndex())
+                    return ERRORMSG("LoadBlockIndex() : CheckIndex failed: %s", pIndexNew->ToString());
 
                 pcursor->Next();
             } else {

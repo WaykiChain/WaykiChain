@@ -56,7 +56,7 @@ namespace Checkpoints
 class G_CONFIG_TABLE {
 public:
 	string GetCoinName() const { return COIN_NAME; }
-	const vector<string> GetIntPubKey(NET_TYPE type) const;
+	const vector<string> GetInitPubKey(NET_TYPE type) const;
 	const uint256 GetIntHash(NET_TYPE type) const;
 	const string GetCheckPointPkey(NET_TYPE type) const;
 	const uint256 GetMerkleRootHash() const;
@@ -79,7 +79,7 @@ private:
 	static string COIN_NAME ;	/* basecoin name */
 
 	/* initial public key */
-	static  vector<string> intPubKey_mainNet;
+	static  vector<string> initPubKey_mainNet;
 	static  vector<string> initPubKey_testNet;
 	static  vector<string> initPubkey_regTest;
 

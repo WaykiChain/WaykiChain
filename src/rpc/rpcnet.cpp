@@ -66,9 +66,9 @@ static void CopyNodeStats(vector<CNodeStats>& vstats)
 
     LOCK(cs_vNodes);
     vstats.reserve(vNodes.size());
-    for(auto pnode : vNodes) {
+    for(auto pNode : vNodes) {
         CNodeStats stats;
-        pnode->copyStats(stats);
+        pNode->copyStats(stats);
         vstats.push_back(stats);
     }
 }
@@ -294,12 +294,12 @@ Value getaddednodeinfo(const Array& params, bool fHelp)
             bool fFound = false;
             Object node;
             node.push_back(Pair("address", addrNode.ToString()));
-            for (auto pnode : vNodes)
-                if (pnode->addr == addrNode)
+            for (auto pNode : vNodes)
+                if (pNode->addr == addrNode)
                 {
                     fFound = true;
                     fConnected = true;
-                    node.push_back(Pair("connected", pnode->fInbound ? "inbound" : "outbound"));
+                    node.push_back(Pair("connected", pNode->fInbound ? "inbound" : "outbound"));
                     break;
                 }
             if (!fFound)

@@ -37,7 +37,7 @@ public:
         strDataDir = "main";
         bnProofOfStakeLimit =~arith_uint256(0) >> 10;        //00 3f ff ff
         nSubsidyHalvingInterval = IniCfg().GetHalvingInterval(MAIN_NET);
-        assert(CreateGenesisRewardTx(genesis.vptx, MAIN_NET));
+        assert(CreateGenesisBlockRewardTx(genesis.vptx, MAIN_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, MAIN_NET));
         genesis.SetPrevBlockHash(uint256());
         genesis.SetMerkleRootHash(genesis.BuildMerkleTree());
@@ -124,7 +124,7 @@ public:
         genesis.SetTime(IniCfg().GetStartTimeInit(TEST_NET));
         genesis.SetNonce(99);
         genesis.vptx.clear();
-        assert(CreateGenesisRewardTx(genesis.vptx, TEST_NET));
+        assert(CreateGenesisBlockRewardTx(genesis.vptx, TEST_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, TEST_NET));
         genesis.SetMerkleRootHash(genesis.BuildMerkleTree());
         hashGenesisBlock = genesis.GetHash();
@@ -173,7 +173,7 @@ public:
         genesis.SetTime(IniCfg().GetStartTimeInit(REGTEST_NET));
         genesis.SetNonce(68);
         genesis.vptx.clear();
-        assert(CreateGenesisRewardTx(genesis.vptx, REGTEST_NET));
+        assert(CreateGenesisBlockRewardTx(genesis.vptx, REGTEST_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, REGTEST_NET));
         genesis.SetMerkleRootHash(genesis.BuildMerkleTree());
         hashGenesisBlock = genesis.GetHash();
@@ -360,8 +360,8 @@ void CBaseParams::ParseParameters(int argc, const char* const argv[]) {
     }
 }
 
-bool CBaseParams::CreateGenesisRewardTx(vector<std::shared_ptr<CBaseTx> > &vRewardTx, NET_TYPE type) {
-    vector<string> vInitPubKey = IniCfg().GetIntPubKey(type);
+bool CBaseParams::CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> > &vRewardTx, NET_TYPE type) {
+    vector<string> vInitPubKey = IniCfg().GetInitPubKey(type);
     for (size_t i = 0; i < vInitPubKey.size(); ++i) {
         int64_t money(0);
         if (i > 0) {
@@ -381,7 +381,7 @@ bool CBaseParams::CreateGenesisRewardTx(vector<std::shared_ptr<CBaseTx> > &vRewa
 
 bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDelegateTx, NET_TYPE type) {
     vector<string> vDelegatePubKey = IniCfg().GetDelegatePubKey(type);
-    vector<string> vInitPubKey = IniCfg().GetIntPubKey(type);
+    vector<string> vInitPubKey = IniCfg().GetInitPubKey(type);
     vector<COperVoteFund> vOperVoteFund;
     for (size_t i = 0; i < vDelegatePubKey.size(); ++i) {
         uint64_t votes = IniCfg().GetCoinInitValue() * COIN  / 100;

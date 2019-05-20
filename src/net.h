@@ -60,7 +60,7 @@ unsigned short GetListenPort();
 bool BindListenPort(const CService &bindAddr, string& strError=REF(string()));
 void StartNode(boost::thread_group& threadGroup);
 bool StopNode();
-void SocketSendData(CNode *pnode);
+void SocketSendData(CNode *pNode);
 
 typedef int NodeId;
 
