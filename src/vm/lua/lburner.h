@@ -13,7 +13,7 @@
 #define BURN_VER_R1                (10001)
 
 /* burn lua base resource, include instruction, memory, store */
-#define BURN_VER_R2                (20001)
+#define BURN_VER_R2                (10002)
 
 /* enable all version on */
 #define BURN_VER_NEWEST            BURN_VER_R2
