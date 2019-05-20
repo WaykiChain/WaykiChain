@@ -42,7 +42,7 @@ public:
     vector<CVoteFund> voteFunds;    //!< account delegates votes sorted by vote amount
 
     bool hasOpenCdp;                //!< When true, its CDP exists in a map {cdp-$regid -> $cdp}
-    uint256 sigHash;                //!< in-memory only
+    mutable uint256 sigHash;        //!< in-memory only
 
 public:
     /**
@@ -156,14 +156,13 @@ public:
     Object ToJsonObj(bool isAddress = false) const;
     bool IsEmptyValue() const { return !(bcoins > 0); }
 
-    uint256 GetHash(bool recalculate = false) {
+    uint256 GetHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << keyID << regID << nickID << pubKey << minerPubKey << VARINT(bcoins) << VARINT(scoins)
                << VARINT(fcoins) << VARINT(receivedVotes) << VARINT(lastVoteHeight) << voteFunds << hasOpenCdp;
 
-            uint256* hash = const_cast<uint256*>(&sigHash);
-            *hash         = ss.GetHash();
+            sigHash = ss.GetHash();
         }
 
         return sigHash;
