@@ -78,7 +78,7 @@ struct CTxTest :public SysTestBase{
 
 //		for (int i = 0; i < TEST_SIZE; i++) {
 //			int nFundHeight = CHAIN_HEIGHT - MONTH_BLOCKS;
-//			accOperate.OperateBalance(ADD_FREE, nFundHeight+random(MONTH_BLOCKS), nFundHeight);
+//			accOperate.OperateBalance(ADD_BCOIN, nFundHeight+random(MONTH_BLOCKS), nFundHeight);
 //		}
 	}
 
@@ -115,7 +115,7 @@ BOOST_FIXTURE_TEST_CASE(tx_add_free,CTxTest) {
 	//invalid data
 //	CFund fund(1, CHAIN_HEIGHT + 1);
 	int nHeight = chainActive.Tip()->nHeight;
-	BOOST_CHECK(accOperate.OperateBalance(ADD_FREE, 1, nHeight));
+	BOOST_CHECK(accOperate.OperateBalance(ADD_BCOIN, 1, nHeight));
 //	fund.value = MAX_MONEY;
 
 
@@ -125,12 +125,12 @@ BOOST_FIXTURE_TEST_CASE(tx_add_free,CTxTest) {
 	//	uint64_t nOld = accOperate.GetRewardAmount(CHAIN_HEIGHT)+accOperate.GetFreeBCoins(CHAIN_HEIGHT);
 		uint64_t randValue = random(10);
 	//	CFund fundReward(randValue, CHAIN_HEIGHT - 1);
-		BOOST_CHECK(accOperate.OperateBalance(ADD_FREE, randValue, nHeight));
+		BOOST_CHECK(accOperate.OperateBalance(ADD_BCOIN, randValue, nHeight));
 		//BOOST_CHECK(accOperate.GetRewardAmount(CHAIN_HEIGHT)+accOperate.GetFreeBCoins(CHAIN_HEIGHT) == nOld + randValue);
 
 	}
 
-	BOOST_CHECK(!accOperate.OperateBalance(ADD_FREE, GetMaxMoney(), nHeight));
+	BOOST_CHECK(!accOperate.OperateBalance(ADD_BCOIN, GetMaxMoney(), nHeight));
 
 	CheckAccountEqual();
 }
@@ -148,7 +148,7 @@ BOOST_FIXTURE_TEST_CASE(tx_minus_free,CTxTest) {
 //			CFund fund(minusValue, random(20));
 //			if (nOldVectorSum >= minusValue) {
 //
-//				BOOST_CHECK(accOperate.OperateBalance(MINUS_FREE, fund));
+//				BOOST_CHECK(accOperate.OperateBalance(MINUS_BCOIN, fund));
 //				BOOST_CHECK(GetTotalValue(accOperate.vFreedomFund) == nOldVectorSum - minusValue);
 //			}
 //

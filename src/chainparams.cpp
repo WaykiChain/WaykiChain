@@ -387,12 +387,12 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDe
 
     for (size_t i = 0; i < vDelegatePubKey.size(); ++i) {
         CUserID voteId(CPubKey(ParseHex(vDelegatePubKey[i].c_str())));
-        CCandidateVote vote(ADD_VALUE, voteId, bcoinsToVote);
+        CCandidateVote vote(ADD_BCOIN, voteId, bcoinsToVote);
         votes.push_back(vote);
     }
     CRegID accountId(0, 1);
-    shared_ptr<CDelegateVoteTx> pDelegateTx = std::make_shared<CDelegateVoteTx>(accountId.GetRegIdRaw(),
-            vOperVoteFund, 10000, 0);
+    shared_ptr<CDelegateVoteTx> pDelegateTx =
+        std::make_shared<CDelegateVoteTx>(accountId.GetRegIdRaw(), votes, 10000, 0);
     pDelegateTx->signature = ParseHex(IniCfg().GetDelegateSignature(type));
     pDelegateTx->nVersion = nTxVersion1;
     vDelegateTx.push_back(pDelegateTx);

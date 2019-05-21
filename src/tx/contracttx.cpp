@@ -5,15 +5,16 @@
 
 #include "contracttx.h"
 
+#include "accounts/vote.h"
 #include "commons/serialize.h"
 #include "crypto/hash.h"
-#include "util.h"
+#include "main.h"
+#include "miner/miner.h"
 #include "persistence/contractdb.h"
 #include "persistence/txdb.h"
-#include "main.h"
-#include "vm/vmrunenv.h"
-#include "miner/miner.h"
+#include "util.h"
 #include "version.h"
+#include "vm/vmrunenv.h"
 
 static bool GetKeyId(const CAccountViewCache &view, const vector<unsigned char> &ret, CKeyID &KeyId) {
     if (ret.size() == 6) {
@@ -42,7 +43,7 @@ bool CContractDeployTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidatio
     CAccount acctInfoLog(acctInfo);
     uint64_t minusValue = llFees;
     if (minusValue > 0) {
-        if(!acctInfo.OperateBalance(MINUS_FREE, minusValue, nHeight))
+        if(!acctInfo.OperateBalance(CoinType::WICC, MINUS_BCOIN, minusValue))
             return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, operate account failed ,regId=%s",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
 
@@ -353,7 +354,7 @@ bool CContractInvokeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidati
             txUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CAccountLog srcAcctLog(srcAcct);
-    if (!srcAcct.OperateBalance(MINUS_FREE, minusValue, nHeight))
+    if (!srcAcct.OperateBalance(CoinType::MICC, MINUS_BCOIN, minusValue))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, accounts insufficient funds"),
             UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
@@ -370,7 +371,7 @@ bool CContractInvokeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidati
         desAcctLog.SetValue(desAcct);
     }
 
-    if (!desAcct.OperateBalance(CoinType::WICC, ADD_VALUE, addValue)) {
+    if (!desAcct.OperateBalance(CoinType::WICC, ADD_BCOIN, addValue)) {
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, operate accounts error"),
                         UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }

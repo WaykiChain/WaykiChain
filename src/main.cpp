@@ -1264,71 +1264,69 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
     }
 
     // Special case for the genesis block, skipping connection of its transactions
-    // (its coinbase is unspendable)
     if (isGensisBlock) {
         view.SetBestBlock(pIndex->GetBlockHash());
         for (unsigned int i = 1; i < block.vptx.size(); i++) {
             if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
                 assert(i <= 1);
-                std::shared_ptr<CBlockRewardTx> pRewardTx =
-                    dynamic_pointer_cast<CBlockRewardTx>(block.vptx[i]);
+                std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[i]);
                 CAccount sourceAccount;
                 CRegID acctRegId(pIndex->nHeight, i);
-                CPubKey pubKey      = pRewardTx->txUid.get<CPubKey>();
-                CKeyID keyId        = pubKey.GetKeyId();
+                CPubKey pubKey       = pRewardTx->txUid.get<CPubKey>();
+                CKeyID keyId         = pubKey.GetKeyId();
                 sourceAccount.nickID = CNickID();
-                sourceAccount.keyID = keyId;
+                sourceAccount.keyID  = keyId;
                 sourceAccount.pubKey = pubKey;
                 sourceAccount.SetRegId(acctRegId);
-                sourceAccount.bcoins  = pRewardTx->rewardValue;
-                assert( view.SaveAccountInfo(sourceAccount) );
+                sourceAccount.bcoins = pRewardTx->rewardValue;
+                assert(view.SaveAccountInfo(sourceAccount));
             } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
                 std::shared_ptr<CDelegateVoteTx> pDelegateTx = dynamic_pointer_cast<CDelegateVoteTx>(block.vptx[i]);
-                assert( pDelegateTx->txUid.type() == typeid(CRegID)) ; // Vote Tx must use RegId
+                assert(pDelegateTx->txUid.type() == typeid(CRegID));  // Vote Tx must use RegId
 
                 CAccount voterAcct;
-                assert( view.GetAccount(pDelegateTx->txUid, voterAcct) );
+                assert(view.GetAccount(pDelegateTx->txUid, voterAcct));
                 CUserID voterCId(pDelegateTx->txUid);
                 uint64_t maxVotes = 0;
                 CScriptDBOperLog operDbLog;
                 int j = i;
-                for (auto &operFund : pDelegateTx->operVoteFunds) {
-                    assert(operFund.operType == ADD_VALUE); //it has to be ADD in GensisBlock
-                    if (operFund.fund.GetVotedBcoins() > maxVotes) {
-                        maxVotes = operFund.fund.GetVotedBcoins();
+                for (const auto &vote : pDelegateTx->candidateVotes) {
+                    assert(vote.GetCandidateVoteType() == ADD_BCOIN);  // it has to be ADD in GensisBlock
+                    if (vote.GetVotedBcoins() > maxVotes) {
+                        maxVotes = vote.GetVotedBcoins();
                     }
 
-                    CUserID votedUid = operFund.fund.GetCandidateUid();
+                    CUserID votedUid = vote.GetCandidateUid();
 
-                    if (voterCId == votedUid) { //vote for self
-                        voterAcct.receivedVotes = operFund.fund.GetVotedBcoins();
-                        assert( scriptDBCache.SetDelegateData(voterAcct, operDbLog) );
-                    } else { //vote for others
+                    if (voterCId == votedUid) {  // vote for self
+                        voterAcct.receivedVotes = vote.GetVotedBcoins();
+                        assert(scriptDBCache.SetDelegateData(voterAcct, operDbLog));
+                    } else {  // vote for others
                         CAccount votedAcct;
-                        assert( !view.GetAccount(votedUid, votedAcct) );
+                        assert(!view.GetAccount(votedUid, votedAcct));
 
-                        CRegID votedRegId(pIndex->nHeight, j++); //generate RegId in genesis block
+                        CRegID votedRegId(pIndex->nHeight, j++);  // generate RegId in genesis block
                         votedAcct.SetRegId(votedRegId);
-                        votedAcct.receivedVotes = operFund.fund.GetVotedBcoins();
+                        votedAcct.receivedVotes = vote.GetVotedBcoins();
 
                         if (votedUid.type() == typeid(CPubKey)) {
                             votedAcct.pubKey = votedUid.get<CPubKey>();
-                            votedAcct.keyID = votedAcct.pubKey.GetKeyId();
+                            votedAcct.keyID  = votedAcct.pubKey.GetKeyId();
                         }
 
-                        assert( view.SaveAccountInfo(votedAcct) );
-                        assert( scriptDBCache.SetDelegateData(votedAcct, operDbLog) );
+                        assert(view.SaveAccountInfo(votedAcct));
+                        assert(scriptDBCache.SetDelegateData(votedAcct, operDbLog));
                     }
 
-                    voterAcct.voteFunds.push_back(operFund.fund);
-                    sort(voterAcct.voteFunds.begin(), voterAcct.voteFunds.end(),
-                         [](CCandidateVote fund1, CCandidateVote fund2) {
-                             return fund1.GetVotedBcoins() > fund2.GetVotedBcoins();
+                    voterAcct.candidateVotes.push_back(vote);
+                    sort(voterAcct.candidateVotes.begin(), voterAcct.candidateVotes.end(),
+                         [](CCandidateVote vote1, CCandidateVote vote2) {
+                             return vote1.GetVotedBcoins() > vote2.GetVotedBcoins();
                          });
                 }
-                assert( voterAcct.bcoins >= maxVotes );
+                assert(voterAcct.bcoins >= maxVotes);
                 voterAcct.bcoins -= maxVotes;
-                assert( view.SaveAccountInfo(voterAcct) );
+                assert(view.SaveAccountInfo(voterAcct));
             }
         }
         return true;

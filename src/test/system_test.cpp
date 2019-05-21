@@ -259,7 +259,7 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 		BOOST_CHECK(GetTxOperateLog(uint256(uint256S(strTxHash)), vLog));
 //		BOOST_CHECK(1 == vLog.size() && 1 == vLog[0].vOperFund.size() && 1 == vLog[0].vOperFund[0].vFund.size());
 		BOOST_CHECK(strAddr1 == vLog[0].keyID.ToAddress());
-//		BOOST_CHECK(vLog[0].vOperFund[0].operType == MINUS_FREE && vLog[0].vOperFund[0].vFund[0].value == nFee);
+//		BOOST_CHECK(vLog[0].vOperFund[0].operType == MINUS_BCOIN && vLog[0].vOperFund[0].vFund[0].value == nFee);
 
 		map<int,string> mapData;
 		mapData.insert(make_pair(nIndex,strTxHash));

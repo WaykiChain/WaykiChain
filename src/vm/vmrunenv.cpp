@@ -225,7 +225,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
     for (auto& it : listoperate) {
         if (it.accountType != regid && it.accountType != base58addr) return false;
 
-        if (it.opType == ADD_FREE) {
+        if (it.opType == ADD_BCOIN) {
             memcpy(&operValue, it.money, sizeof(it.money));
             /*
             uint64_t temp = addmoey;
@@ -239,7 +239,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
                 return false;
             }
             addmoey = temp;
-        } else if (it.opType == MINUS_FREE) {
+        } else if (it.opType == MINUS_BCOIN) {
             // vector<unsigned char > accountId(it.accountId,it.accountId+sizeof(it.accountId));
             vector_unsigned_char accountId = GetAccountID(it);
             if (accountId.size() != 6) return false;
@@ -273,7 +273,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
             if (regId.IsEmpty() || regId.GetKeyId(*pAccountViewCache) == uint160()) return false;
 
             //  app only be allowed minus self money
-            if (!pScriptDBViewCache->HaveScript(regId) && it.opType == MINUS_FREE) return false;
+            if (!pScriptDBViewCache->HaveScript(regId) && it.opType == MINUS_BCOIN) return false;
         }
     }
 
@@ -325,7 +325,7 @@ bool CVmRunEnv::CheckAppAcctOperate(CContractInvokeTx* tx) {
     for (auto item : vmOperateOutput) {
         vector_unsigned_char vAccountId = GetAccountID(item);
         if (vAccountId == tx->appUid.get<CRegID>().GetRegIdRaw() &&
-            item.opType == MINUS_FREE) {
+            item.opType == MINUS_BCOIN) {
             uint64_t value;
             memcpy(&value, item.money, sizeof(item.money));
             int64_t temp = value;
@@ -398,14 +398,14 @@ bool CVmRunEnv::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
         if (accountId.size() == 6) {
             userregId.SetRegID(accountId);
             if (!view.GetAccount(CUserID(userregId), *tem.get())) {
-                return false;  /// 账户不存在
+                return false;  // 账户不存在
             }
         } else {
             string popaddr(accountId.begin(), accountId.end());
             userkeyid = CKeyID(popaddr);
             if (!view.GetAccount(CUserID(userkeyid), *tem.get())) {
                 tem->keyID = userkeyid;
-                // return false;                                           ///
+                // return false;
                 // 未产生过交易记录的账户
             }
         }
@@ -423,9 +423,9 @@ bool CVmRunEnv::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
         // todolist
         //      if(IsSignatureAccount(vmAccount.get()->regID) || vmAccount.get()->regID ==
         //      tx->appRegId.get<CRegID>())
-        { ret = vmAccount.get()->OperateBalance(CoinType::WICC, (OperType)it.opType, value); }
+        { ret = vmAccount.get()->OperateBalance(CoinType::WICC, (BalanceOpType)it.opType, value); }
         //      else{
-        //          ret = vmAccount.get()->OperateBalance((OperType)it.opType, fund,
+        //          ret = vmAccount.get()->OperateBalance((BalanceOpType)it.opType, fund,
         //          *pScriptDBViewCache, vAuthorLog,  height, &GetScriptRegID().GetRegIdRaw(), true);
         //      }
 
@@ -463,7 +463,7 @@ const vector<unsigned char>& CVmRunEnv::GetTxContract() {
 int CVmRunEnv::GetConfirmHeight() { return runTimeHeight; }
 
 int CVmRunEnv::GetBurnVersion() {
-    // the burn version belong to the Fearure Fork Version
+    // the burn version belong to the Feature Fork Version
     return GetFeatureForkVersion(runTimeHeight);
 }
 
@@ -574,9 +574,9 @@ Object CVmOperate::ToJson() {
         obj.push_back(Pair("addr", addr));
     }
 
-    if (opType == ADD_FREE) {
+    if (opType == ADD_BCOIN) {
         obj.push_back(Pair("opertype", "add"));
-    } else if (opType == MINUS_FREE) {
+    } else if (opType == MINUS_BCOIN) {
         obj.push_back(Pair("opertype", "minus"));
     }
 

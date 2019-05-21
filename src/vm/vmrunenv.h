@@ -195,7 +195,7 @@ public:
 	CVmOperate() {
 		accountType = regid;
 		memset(accountId, 0, 34);
-		opType = ADD_FREE;
+		opType = NULL_OP;
 		timeoutHeight = 0;
 		memset(money, 0, 8);
 	}
@@ -204,5 +204,4 @@ public:
 
 };
 
-//extern CVmRunEnv *pVmRunEnv; //提供给lmylib.cpp库使用
 #endif /* VMRUNENV_H_ */

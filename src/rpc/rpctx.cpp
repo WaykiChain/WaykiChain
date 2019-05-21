@@ -239,10 +239,10 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 memcpy(&amount, item.money, sizeof(item.money));
                 double dAmount = amount / COIN;
 
-                if (item.opType == ADD_FREE) {
+                if (item.opType == ADD_BCOIN) {
                     objOutPut.push_back(Pair("category", "receive"));
                     objOutPut.push_back(Pair("amount", dAmount));
-                } else if (item.opType == MINUS_FREE) {
+                } else if (item.opType == MINUS_BCOIN) {
                     objOutPut.push_back(Pair("category", "send"));
                     objOutPut.push_back(Pair("amount", -dAmount));
                 }
@@ -875,8 +875,8 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             }
 
             VoteType voteType = (objVote.get_int64() > 0) ? VoteType::ADD_BCOIN : VoteType::MINUS_BCOIN;
-            CUserID candidateUid = CUserID(delegateAcct.keyId);
-            uint64_t bcoins = (uint64_t)abs(delegateVotes.get_int64()
+            CUserID candidateUid = CUserID(delegateAcct.keyID);
+            uint64_t bcoins = (uint64_t)abs(delegateVotes.get_int64());
             CCandidateVote candidateVote(voteType, candidateUid, bcoins);
 
             delegateVoteTx.candidateVotes.push_back(candidateVote);
@@ -995,7 +995,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             }
 
             VoteType voteType = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN: VoteType::MINUS_BCOIN;
-            CUserID candidateUid = CUserID(delegateAcct.KeyId);
+            CUserID candidateUid = CUserID(delegateAcct.keyID);
             uint64_t bcoins = (uint64_t)abs(delegateVotes.get_int64());
             CCandidateVote candidateVote(voteType, candidateUid, bcoins);
 

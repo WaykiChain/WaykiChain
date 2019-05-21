@@ -157,7 +157,7 @@ BOOST_FIXTURE_TEST_CASE(register_test,CSysAccountTest)
 	//检查日志记录是否正确
 //	BOOST_CHECK(1 == vLog.size() && 1 == vLog[0].vOperFund.size() && 1 == vLog[0].vOperFund[0].vFund.size());
 	BOOST_CHECK(strRegAddr1 == vLog[0].keyID.ToAddress());
-//	BOOST_CHECK(vLog[0].vOperFund[0].operType == MINUS_FREE && vLog[0].vOperFund[0].vFund[0].value == nFee);
+//	BOOST_CHECK(vLog[0].vOperFund[0].operType == MINUS_BCOIN && vLog[0].vOperFund[0].vFund[0].value == nFee);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

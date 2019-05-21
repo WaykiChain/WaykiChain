@@ -133,7 +133,7 @@ bool CMulsigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
     CAccountLog srcAcctLog(srcAcct);
     CAccountLog desAcctLog;
     uint64_t minusValue = llFees + bcoins;
-    if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, minusValue)) {
+    if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_BCOIN, minusValue)) {
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -161,7 +161,7 @@ bool CMulsigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
         desAcctLog.SetValue(desAcct);
     }
 
-    if (!desAcct.OperateBalance(CoinType::WICC, ADD_VALUE, addValue)) {
+    if (!desAcct.OperateBalance(CoinType::WICC, ADD_BCOIN, addValue)) {
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, operate accounts error"),
                          UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }

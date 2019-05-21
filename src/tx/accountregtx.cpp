@@ -74,7 +74,7 @@ bool CAccountRegisterTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
 
     account.pubKey = txUid.get<CPubKey>();
-    if (llFees > 0 && !account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    if (llFees > 0 && !account.OperateBalance(CoinType::WICC, MINUS_BCOIN, llFees)) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, not sufficient funds in account, keyid=%s",
                         keyId.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-funds");
     }

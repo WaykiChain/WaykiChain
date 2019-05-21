@@ -47,20 +47,20 @@ enum TxType : unsigned char {
     COMMON_MTX          = 7,  //!< Multisig Tx
 
     /******** Begin of Stable Coin TX Type Enums ********/
-    CDP_OPEN_TX         = 11,  //!< CDP Collateralize Tx
-    CDP_REFUEL_TX       = 12,  //!< CDP Refuel Tx
-    CDP_REDEMP_TX       = 13,  //!< CDP Redemption Tx (partial or full)
-    CDP_LIQUIDATE_TX    = 14,  //!< CDP Liquidation Tx (partial or full)
+    CDP_OPEN_TX      = 11,  //!< CDP Collateralize Tx
+    CDP_REFUEL_TX    = 12,  //!< CDP Refuel Tx
+    CDP_REDEMP_TX    = 13,  //!< CDP Redemption Tx (partial or full)
+    CDP_LIQUIDATE_TX = 14,  //!< CDP Liquidation Tx (partial or full)
 
-    PRICE_FEED_TX       = 22,  //!< Price Feed Tx: WICC/USD | MICC/WUSD | WUSD/USD
+    PRICE_FEED_TX = 22,  //!< Price Feed Tx: WICC/USD | MICC/WUSD | WUSD/USD
 
-    SFC_PARAM_MTX       = 31,  //!< StableCoin Fund Committee invokes Param Set/Update MulSigTx
-    SFC_GLOBAL_HALT_MTX = 32,  //!< StableCoin Fund Committee invokes Global Halt CDP Operations MulSigTx
-    SFC_GLOBAL_SETTLE_MTX =33,  //!< StableCoin Fund Committee invokes Global Settle Operation MulSigTx
+    SFC_PARAM_MTX         = 31,  //!< StableCoin Fund Committee invokes Param Set/Update MulSigTx
+    SFC_GLOBAL_HALT_MTX   = 32,  //!< StableCoin Fund Committee invokes Global Halt CDP Operations MulSigTx
+    SFC_GLOBAL_SETTLE_MTX = 33,  //!< StableCoin Fund Committee invokes Global Settle Operation MulSigTx
 
-    SCOIN_TRANSFER_TX   = 41,  //!< StableCoin Transfer Tx
-    FCOIN_TRANSFER_TX   = 42,  //!< FundCoin Transfer Tx
-    FCOIN_STAKE_TX      = 43,  //!< Stake Fund Coin in order to become a price feeder
+    SCOIN_TRANSFER_TX = 41,  //!< StableCoin Transfer Tx
+    FCOIN_TRANSFER_TX = 42,  //!< FundCoin Transfer Tx
+    FCOIN_STAKE_TX    = 43,  //!< Stake Fund Coin in order to become a price feeder
 
     DEX_WICC_FOR_MICC_TX = 51,  //!< DEX: owner sells WICC for MICC Tx
     DEX_MICC_FOR_WICC_TX = 52,  //!< DEX: owner sells MICC for WICC Tx
@@ -70,7 +70,7 @@ enum TxType : unsigned char {
     DEX_WUSD_FOR_MICC_TX = 56,  //!< DEX: owner sells WUSD for MICC Tx
     /******** End of Stable Coin Enums ********/
 
-    NULL_TX = 0 //!< NULL_TX
+    NULL_TX = 0  //!< NULL_TX
 };
 
 static const unordered_map<unsigned char, string> kTxTypeMap = {

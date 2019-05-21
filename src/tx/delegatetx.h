@@ -19,7 +19,7 @@ public:
     }
     CDelegateVoteTx(
             const vector_unsigned_char &accountIn,
-            const vector<CCandidateVote> &votesIn,
+            const vector<CCandidateVote> &candidateVotesIn,
             const uint64_t feeIn,
             const int validHeightIn)
         : CBaseTx(DELEGATE_VOTE_TX, CNullID(), validHeightIn, feeIn) {
@@ -28,19 +28,19 @@ public:
         } else {
             txUid = CRegID(accountIn);
         }
-        candidateVotes = votesIn;
+        candidateVotes = candidateVotesIn;
     }
     CDelegateVoteTx(
             const CUserID &txUidIn,
             const uint64_t feeIn,
-            const vector<CCandidateVote> &votesIn,
+            const vector<CCandidateVote> &candidateVotesIn,
             const int validHeightIn)
         : CBaseTx(DELEGATE_VOTE_TX, txUidIn, validHeightIn, feeIn) {
 
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
 
-        candidateVotes = votesIn;
+        candidateVotes = candidateVotesIn;
     }
     CDelegateVoteTx(): CBaseTx(DELEGATE_VOTE_TX) {}
     ~CDelegateVoteTx() {}
