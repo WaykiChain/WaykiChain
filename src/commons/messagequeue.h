@@ -43,7 +43,7 @@ bool MsgQueue<T>::Pop(T* t, const Timeout& timeout) {
 
     if (mq.empty()) {
         // `wait_for' will return after popCond has been notified or
-        // spucious wake-up happens or times out.
+        // specious wake-up happens or times out.
         // so `Pop' may return before times out though popCond is not notified
         popCond.wait_for(lock, timeout);
     }
