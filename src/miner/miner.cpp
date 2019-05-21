@@ -138,14 +138,15 @@ bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCach
             CAccount account;
             if (!accView.GetAccount(acctRegId, account)) {
                 LogPrint("ERROR", "GetAccount Error, acctRegId:%s\n", acctRegId.ToString());
-                //StartShutdown();
+                // StartShutdown();
                 return false;
             }
             uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
             if ((maxNum - receivedVotes) != account.receivedVotes) {
-                LogPrint("ERROR", "acctRegId:%s, receivedVotes:%lld, account:%s\n", acctRegId.ToString(), maxNum - receivedVotes, account.ToString());
-                LogPrint("ERROR", "scriptkey:%s, scriptvalue:%s\n", HexStr(vScriptKey.begin(), vScriptKey.end()), HexStr(vScriptData.begin(), vScriptData.end()));
-                //StartShutdown();
+                LogPrint("ERROR", "acctRegId:%s, scriptkey:%s, scriptvalue:%s => receivedVotes:%lld, account:%s\n",
+                         acctRegId.ToString(), HexStr(vScriptKey.begin(), vScriptKey.end()),
+                         HexStr(vScriptData.begin(), vScriptData.end()), maxNum - receivedVotes, account.ToString());
+                // StartShutdown();
                 return false;
             }
             vDelegatesAcctList.push_back(account);

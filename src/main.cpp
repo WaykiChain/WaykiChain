@@ -1254,7 +1254,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
         return false;
 
     if (!fJustCheck) {
-        // verify that the view's current state corresponds to the previous block
+        // Verify that the view's current state corresponds to the previous block
         uint256 hashPrevBlock = pIndex->pprev == NULL ? uint256() : pIndex->pprev->GetBlockHash();
         if (hashPrevBlock != view.GetBestBlock()) {
             LogPrint("INFO", "hashPrevBlock=%s, bestblock=%s\n",
