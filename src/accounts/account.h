@@ -39,7 +39,11 @@ enum PriceType: unsigned char {
     KWH     = 100, // kilowatt hour
 };
 
-typedef enum VoteType BalanceOpType;
+enum BalanceOpType : unsigned char {
+    NULL_OP     = 0,  //!< invalid op
+    ADD_VALUE   = 1,  //!< add operate
+    MINUS_VALUE = 2,  //!< minus operate
+};
 
 class CAccount {
 public:

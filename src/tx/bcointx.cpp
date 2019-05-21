@@ -107,7 +107,7 @@ bool CBaseCoinTransferTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValida
     CAccountLog srcAcctLog(srcAcct);
     CAccountLog desAcctLog;
     uint64_t minusValue = llFees + bcoins;
-    if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_BCOIN, minusValue)) {
+    if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, minusValue)) {
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -122,7 +122,6 @@ bool CBaseCoinTransferTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValida
                              WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
 
-    uint64_t addValue = bcoins;
     if (!view.GetAccount(toUid, desAcct)) {
         if (toUid.type() == typeid(CKeyID)) {  // target account does NOT have CRegID
             desAcct.keyID    = toUid.get<CKeyID>();
@@ -135,15 +134,14 @@ bool CBaseCoinTransferTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValida
         desAcctLog.SetValue(desAcct);
     }
 
-    if (!desAcct.OperateBalance(CoinType::WICC, ADD_BCOIN, addValue)) {
+    if (!desAcct.OperateBalance(CoinType::WICC, ADD_VALUE, bcoins)) {
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, operate accounts error"),
                          UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
 
     if (!view.SetAccount(toUid, desAcct))
-        return state.DoS(100,
-                         ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account error, kyeId=%s",
-                                  desAcct.keyID.ToString()),
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account error, kyeId=%s",
+                         desAcct.keyID.ToString()),
                          UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
     txundo.vAccountLog.push_back(srcAcctLog);
@@ -160,14 +158,14 @@ bool CBaseCoinTransferTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValida
         if (!view.GetKeyId(toUid, revKeyId))
             return ERRORMSG("CBaseCoinTransferTx::ExecuteTx, get keyid by toUid error!");
 
-        if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
-                                         operAddressToTxLog))
+        if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(), operAddressToTxLog))
             return false;
+
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
 
-        if (!scriptDB.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
-                                         operAddressToTxLog))
+        if (!scriptDB.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(), operAddressToTxLog))
             return false;
+
         txundo.vScriptOperLog.push_back(operAddressToTxLog);
     }
 

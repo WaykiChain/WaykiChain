@@ -133,7 +133,7 @@ bool CMulsigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
     CAccountLog srcAcctLog(srcAcct);
     CAccountLog desAcctLog;
     uint64_t minusValue = llFees + bcoins;
-    if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_BCOIN, minusValue)) {
+    if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, minusValue)) {
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -161,16 +161,14 @@ bool CMulsigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
         desAcctLog.SetValue(desAcct);
     }
 
-    if (!desAcct.OperateBalance(CoinType::WICC, ADD_BCOIN, addValue)) {
+    if (!desAcct.OperateBalance(CoinType::WICC, ADD_VALUE, addValue)) {
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, operate accounts error"),
                          UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
 
     if (!view.SetAccount(desUserId, desAcct))
-        return state.DoS(100,
-                         ERRORMSG("CMulsigTx::ExecuteTx, save account error, kyeId=%s",
-                                  desAcct.keyID.ToString()),
-                         UPDATE_ACCOUNT_FAIL, "bad-save-account");
+        return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, save account error, kyeId=%s",
+                         desAcct.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
     txundo.vAccountLog.push_back(srcAcctLog);
     txundo.vAccountLog.push_back(desAcctLog);

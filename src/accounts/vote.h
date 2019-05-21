@@ -19,13 +19,13 @@
 #include "accounts/id.h"
 
 enum VoteType : unsigned char {
-    NULL_OP     = 0,  //!< invalid op
+    NULL_VOTE   = 0,  //!< invalid vote op
     ADD_BCOIN   = 1,  //!< add operate
     MINUS_BCOIN = 2,  //!< minus operate
 };
 
 static const unordered_map<unsigned char, string> kVoteTypeMap = {
-    { NULL_OP,      "NULL_OP"       },
+    { NULL_VOTE,    "NULL_VOTE"     },
     { ADD_BCOIN,    "ADD_BCOIN"     },
     { MINUS_BCOIN,  "MINUS_BCOIN"   },
 };
@@ -40,7 +40,7 @@ private:
 
 public:
     CCandidateVote() {
-        voteType = NULL_OP;
+        voteType = NULL_VOTE;
         candidateUid = CUserID();
         bcoins  = 0;
     }

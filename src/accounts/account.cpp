@@ -150,7 +150,10 @@ bool CAccount::OperateBalance(CoinType coinType, BalanceOpType opType, const uin
 
     LogPrint("balance_op", "before op: %s\n", ToString());
     int64_t opValue = value;
-    if (opType == MINUS_BCOIN)
+    if (opValue < 0)
+        return ERRORMSG("value too large, converting to a negative value!");
+
+    if (opType == BalanceOpType::MINUS_VALUE)
         opValue *= -1;
 
     switch (coinType) {

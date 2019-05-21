@@ -69,12 +69,9 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
     }
 
     CAccountLog acctInfoLog(acctInfo); //save account state before modification
-    uint64_t minusValue = llFees;
-    if (minusValue > 0) {
-        if (!acctInfo.OperateBalance(CoinType::WICC, MINUS_BCOIN, minusValue)) {
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate account failed ,regId=%s",
-                            txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
-        }
+    if (llFees > 0 && !acctInfo.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate account failed ,regId=%s",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
     }
     if (!acctInfo.ProcessDelegateVote(candidateVotes, nHeight)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate vote failed ,regId=%s", txUid.ToString()),

@@ -40,10 +40,9 @@ bool CContractDeployTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidatio
         return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, read regist addr %s account info error",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
+
     CAccount acctInfoLog(acctInfo);
-    uint64_t minusValue = llFees;
-    if (minusValue > 0) {
-        if(!acctInfo.OperateBalance(CoinType::WICC, MINUS_BCOIN, minusValue))
+    if (llFees > 0 && !acctInfo.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
             return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, operate account failed ,regId=%s",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
 
@@ -354,7 +353,7 @@ bool CContractInvokeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidati
             txUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CAccountLog srcAcctLog(srcAcct);
-    if (!srcAcct.OperateBalance(CoinType::MICC, MINUS_BCOIN, minusValue))
+    if (!srcAcct.OperateBalance(CoinType::MICC, MINUS_VALUE, minusValue))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, accounts insufficient funds"),
             UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
@@ -363,7 +362,6 @@ bool CContractInvokeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidati
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, save account%s info error",
             txUid.get<CRegID>().ToString()), WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    uint64_t addValue = bcoins;
     if (!view.GetAccount(appUid, desAcct)) {
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, get account info failed by regid:%s",
             appUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -371,7 +369,7 @@ bool CContractInvokeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidati
         desAcctLog.SetValue(desAcct);
     }
 
-    if (!desAcct.OperateBalance(CoinType::WICC, ADD_BCOIN, addValue)) {
+    if (!desAcct.OperateBalance(CoinType::WICC, ADD_VALUE, bcoins)) {
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, operate accounts error"),
                         UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
