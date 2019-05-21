@@ -10,31 +10,37 @@
 
 class CDelegateVoteTx : public CBaseTx {
 public:
-    vector<COperVoteFund> operVoteFunds;  //!< oper delegate votes, max length is Delegates number
+    vector<CCandidateVote> candidateVotes;  //!< candidate-delegate votes, max size is 22
 
 public:
     CDelegateVoteTx(const CBaseTx *pBaseTx): CBaseTx(DELEGATE_VOTE_TX) {
         assert(DELEGATE_VOTE_TX == pBaseTx->nTxType);
         *this = *(CDelegateVoteTx *)pBaseTx;
     }
-    CDelegateVoteTx(const vector_unsigned_char &accountIn, const vector<COperVoteFund> &operVoteFundsIn,
-                const uint64_t feeIn, const int validHeightIn)
+    CDelegateVoteTx(
+            const vector_unsigned_char &accountIn,
+            const vector<CCandidateVote> &votesIn,
+            const uint64_t feeIn,
+            const int validHeightIn)
         : CBaseTx(DELEGATE_VOTE_TX, CNullID(), validHeightIn, feeIn) {
         if (accountIn.size() > 6) {
             txUid = CPubKey(accountIn);
         } else {
             txUid = CRegID(accountIn);
         }
-        operVoteFunds = operVoteFundsIn;
+        candidateVotes = votesIn;
     }
-    CDelegateVoteTx(const CUserID &txUidIn, const uint64_t feeIn,
-                const vector<COperVoteFund> &operVoteFundsIn, const int validHeightIn)
+    CDelegateVoteTx(
+            const CUserID &txUidIn,
+            const uint64_t feeIn,
+            const vector<CCandidateVote> &votesIn,
+            const int validHeightIn)
         : CBaseTx(DELEGATE_VOTE_TX, txUidIn, validHeightIn, feeIn) {
 
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
 
-        operVoteFunds = operVoteFundsIn;
+        candidateVotes = votesIn;
     }
     CDelegateVoteTx(): CBaseTx(DELEGATE_VOTE_TX) {}
     ~CDelegateVoteTx() {}
@@ -45,7 +51,7 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        READWRITE(operVoteFunds);
+        READWRITE(candidateVotes);
         READWRITE(VARINT(llFees));
         READWRITE(signature);
     )
@@ -54,7 +60,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
-                << operVoteFunds << VARINT(llFees);
+                << candidateVotes << VARINT(llFees);
 
             sigHash = ss.GetHash();
         }

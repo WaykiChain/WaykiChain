@@ -258,10 +258,10 @@ BOOST_AUTO_TEST_CASE(excced_fund) {
 BOOST_AUTO_TEST_CASE(duplication_fund) {
     SysTestBase basetest;
     string sendTxAddr = "wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4";
-    vector<COperVoteFund>  vOperVoteFundList;
+    vector<CCandidateVote>  votes;
     Array operVoteFund;
     Object voteFund;
-    vOperVoteFundList.clear();
+    votes.clear();
     voteFund.clear();
     voteFund.push_back(Pair("delegate","wVTUdfEaeAAVSuXKrmMyqQXH5j5Z9oGmTt"));
     voteFund.push_back(Pair("votes", 10*COIN));

@@ -49,8 +49,8 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << coinType << priceType
-               << VARINT(price);
+            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
+                << coinType << priceType << VARINT(price);
             sigHash = ss.GetHash();
         }
 

@@ -96,6 +96,9 @@ public:
 };
 
 class CUserID {
+private:
+    boost::variant<CNullID, CRegID, CKeyID, CPubKey, CNickID>  uid;
+
 public:
     enum SerializeFlag {
         FlagNullType = 0,
@@ -105,9 +108,6 @@ public:
         FlagPubKey   = 33,
         FlagNickID   = 100
     };
-
-private:
-    boost::variant<CNullID, CRegID, CKeyID, CPubKey, CNickID>  uid;
 
 public:
     CUserID(): uid(CNullID()) {}

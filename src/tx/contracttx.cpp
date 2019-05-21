@@ -42,7 +42,7 @@ bool CContractDeployTx::ExecuteTx(int nIndex, CAccountViewCache &view,CValidatio
     CAccount acctInfoLog(acctInfo);
     uint64_t minusValue = llFees;
     if (minusValue > 0) {
-        if(!acctInfo.OperateAccount(MINUS_FREE, minusValue, nHeight))
+        if(!acctInfo.OperateBalance(MINUS_FREE, minusValue, nHeight))
             return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, operate account failed ,regId=%s",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
 
@@ -353,7 +353,7 @@ bool CContractInvokeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidati
             txUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CAccountLog srcAcctLog(srcAcct);
-    if (!srcAcct.OperateAccount(MINUS_FREE, minusValue, nHeight))
+    if (!srcAcct.OperateBalance(MINUS_FREE, minusValue, nHeight))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, accounts insufficient funds"),
             UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
@@ -370,9 +370,10 @@ bool CContractInvokeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidati
         desAcctLog.SetValue(desAcct);
     }
 
-    if (!desAcct.OperateAccount(ADD_FREE, addValue, nHeight))
+    if (!desAcct.OperateBalance(CoinType::WICC, ADD_VALUE, addValue)) {
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, operate accounts error"),
-            UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
+                        UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
+    }
 
     if (!view.SetAccount(appUid, desAcct))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, save account error, kyeId=%s",

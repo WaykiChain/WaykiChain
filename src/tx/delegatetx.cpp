@@ -54,7 +54,7 @@ bool CDelegateVoteTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CS
 
     // vAddr.insert(keyId);
     // for (auto iter = operVoteFunds.begin(); iter != operVoteFunds.end(); ++iter) {
-    //     vAddr.insert(iter->fund.GetVoteId());
+    //     vAddr.insert(iter->fund.GetCandidateUid());
     // }
     return true;
 }
@@ -71,9 +71,10 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
     CAccountLog acctInfoLog(acctInfo); //save account state before modification
     uint64_t minusValue = llFees;
     if (minusValue > 0) {
-        if(!acctInfo.OperateAccount(MINUS_FREE, minusValue, nHeight))
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate account failed ,regId=%s", txUid.ToString()),
-                UPDATE_ACCOUNT_FAIL, "operate-account-failed");
+        if(!acctInfo.OperateBalance(CoinType::WICC, MINUS_VALUE, minusValue,)) {
+            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate account failed ,regId=%s",
+                            txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
+        }
     }
     if (!acctInfo.ProcessDelegateVote(operVoteFunds, nHeight)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate vote failed ,regId=%s", txUid.ToString()),
@@ -89,13 +90,13 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
 
     for (auto iter = operVoteFunds.begin(); iter != operVoteFunds.end(); ++iter) {
         CAccount delegate;
-        const CUserID &delegateUId = iter->fund.GetVoteId();
+        const CUserID &delegateUId = iter->fund.GetCandidateUid();
         if (!view.GetAccount(delegateUId, delegate)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read KeyId(%s) account info error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         CAccountLog delegateAcctLog(delegate);
-        if (!delegate.OperateVote(VoteOperType(iter->operType), iter->fund.GetVoteCount())) {
+        if (!delegate.OperateVote(VoteType(iter->operType), iter->fund.GetVotedBcoins())) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate address %s vote fund error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-vote-error");
         }
@@ -242,13 +243,13 @@ bool CDelegateVoteTx::CheckTx(CValidationState &state, CAccountViewCache &view,
     // check delegate duplication
     set<string> setOperVoteKeyID;
     for (auto item = operVoteFunds.begin(); item != operVoteFunds.end(); ++item) {
-        if (0 >= item->fund.GetVoteCount() || (uint64_t)GetMaxMoney() < item->fund.GetVoteCount())
+        if (0 >= item->fund.GetVotedBcoins() || (uint64_t)GetMaxMoney() < item->fund.GetVotedBcoins())
             return ERRORMSG("CDelegateVoteTx::CheckTx, votes: %lld not within (0 .. MaxVote)",
-                            item->fund.GetVoteCount());
+                            item->fund.GetVotedBcoins());
 
         setOperVoteKeyID.insert(item->fund.ToString());
         CAccount acctInfo;
-        if (!view.GetAccount(item->fund.GetVoteId(), acctInfo))
+        if (!view.GetAccount(item->fund.GetCandidateUid(), acctInfo))
             return state.DoS(100,
                              ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, address=%s",
                                       item->fund.ToString()),

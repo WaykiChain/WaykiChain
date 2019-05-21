@@ -1294,25 +1294,25 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                 int j = i;
                 for (auto &operFund : pDelegateTx->operVoteFunds) {
                     assert(operFund.operType == ADD_FUND); //it has to be ADD in GensisBlock
-                    if (operFund.fund.GetVoteCount() > maxVotes) {
-                        maxVotes = operFund.fund.GetVoteCount();
+                    if (operFund.fund.GetVotedBcoins() > maxVotes) {
+                        maxVotes = operFund.fund.GetVotedBcoins();
                     }
 
-                    CUserID votedUId = operFund.fund.GetVoteId();
+                    CUserID votedUid = operFund.fund.GetCandidateUid();
 
-                    if (voterCId == votedUId) { //vote for self
-                        voterAcct.receivedVotes = operFund.fund.GetVoteCount();
+                    if (voterCId == votedUid) { //vote for self
+                        voterAcct.receivedVotes = operFund.fund.GetVotedBcoins();
                         assert( scriptDBCache.SetDelegateData(voterAcct, operDbLog) );
                     } else { //vote for others
                         CAccount votedAcct;
-                        assert( !view.GetAccount(votedUId, votedAcct) );
+                        assert( !view.GetAccount(votedUid, votedAcct) );
 
                         CRegID votedRegId(pIndex->nHeight, j++); //generate RegId in genesis block
                         votedAcct.SetRegId(votedRegId);
-                        votedAcct.receivedVotes = operFund.fund.GetVoteCount();
+                        votedAcct.receivedVotes = operFund.fund.GetVotedBcoins();
 
-                        if (votedUId.type() == typeid(CPubKey)) {
-                            votedAcct.pubKey = votedUId.get<CPubKey>();
+                        if (votedUid.type() == typeid(CPubKey)) {
+                            votedAcct.pubKey = votedUid.get<CPubKey>();
                             votedAcct.keyID = votedAcct.pubKey.GetKeyId();
                         }
 
@@ -1322,8 +1322,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
 
                     voterAcct.voteFunds.push_back(operFund.fund);
                     sort(voterAcct.voteFunds.begin(), voterAcct.voteFunds.end(),
-                         [](CVoteFund fund1, CVoteFund fund2) {
-                             return fund1.GetVoteCount() > fund2.GetVoteCount();
+                         [](CCandidateVote fund1, CCandidateVote fund2) {
+                             return fund1.GetVotedBcoins() > fund2.GetVotedBcoins();
                          });
                 }
                 assert( voterAcct.bcoins >= maxVotes );

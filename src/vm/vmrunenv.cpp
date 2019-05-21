@@ -423,9 +423,9 @@ bool CVmRunEnv::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountVi
         // todolist
         //      if(IsSignatureAccount(vmAccount.get()->regID) || vmAccount.get()->regID ==
         //      tx->appRegId.get<CRegID>())
-        { ret = vmAccount.get()->OperateAccount((OperType)it.opType, value, nCurHeight); }
+        { ret = vmAccount.get()->OperateBalance(CoinType::WICC, (OperType)it.opType, value); }
         //      else{
-        //          ret = vmAccount.get()->OperateAccount((OperType)it.opType, fund,
+        //          ret = vmAccount.get()->OperateBalance((OperType)it.opType, fund,
         //          *pScriptDBViewCache, vAuthorLog,  height, &GetScriptRegID().GetRegIdRaw(), true);
         //      }
 

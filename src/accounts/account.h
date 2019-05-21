@@ -15,7 +15,6 @@
 #include "chainparams.h"
 #include "crypto/hash.h"
 #include "id.h"
-#include "key.h"
 #include "vote.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
@@ -27,35 +26,43 @@ class CAccountLog;
 class CAccount
 {
 public:
+    enum BalanceOpType: unsigned char {
+        ADD_VALUE   = 1,
+        MINUS_VALUE = 2,
+        NULL_OP,        //!< invalid OP type
+    };
+
+public:
     CKeyID keyID;                   //!< keyID of the account (interchangeable to address)
     CRegID regID;                   //!< regID of the account
     CNickID nickID;                 //!< Nickname ID of the account (maxlen=32)
     CPubKey pubKey;                 //!< account public key
     CPubKey minerPubKey;            //!< miner saving account public key
 
-    uint64_t bcoins;                //!< Free Base Coins
-    uint64_t scoins;                //!< Stable Coins
+    uint64_t bcoins;                //!< BaseCoin balance
+    uint64_t scoins;                //!< StableCoin balance
     uint64_t fcoins;                //!< FundCoin balance
-    uint64_t fcoinsInStaking;       //!< Staked FundCoins
 
-    uint64_t receivedVotes;         //!< votes received in bcoins
-    vector<CVoteFund> voteFunds;    //!< account delegates votes sorted by vote amount
+    uint64_t stakedFcoins;          //!< Staked FundCoins for pricefeed right
+    uint64_t receivedVotes;         //!< received votes (1:1 to bcoins)
+
+    vector<CCandidateVote> voteFunds;    //!< account delegates votes sorted by vote amount
 
     bool hasOpenCdp;                //!< When true, its CDP exists in a map {cdp-$regid -> $cdp}
     uint256 sigHash;                //!< in-memory only
 
 public:
     /**
-     * @brief operate account
-     * @param type: operate type
-     * @param values
-     * @param nCurHeight:  the tip block height
+     * @brief operate account balance
+     * @param coinType: balance coin Type
+     * @param opType: balance operate type
+     * @param values: balance value to add or minus
      * @return returns true if successful, otherwise false
      */
-    bool OperateAccount(OperType type, const uint64_t& values, const uint64_t nCurHeight);
+    bool OperateBalance(CoinType coinType, BalanceOpType opType, const uint64_t& value);
     bool UndoOperateAccount(const CAccountLog& accountLog);
-    bool ProcessDelegateVote(vector<COperVoteFund>& operVoteFunds, const uint64_t nCurHeight);
-    bool OperateVote(VoteOperType type, const uint64_t& values);
+    bool ProcessDelegateVote(vector<CCandidateVote>& candidateVotes, const uint64_t nCurHeight);
+    bool OperateVote(VoteType type, const uint64_t& values);
 
 public:
     CAccount(CKeyID& keyId, CNickID& nickId, CPubKey& pubKey)
@@ -65,7 +72,7 @@ public:
           bcoins(0),
           scoins(0),
           fcoins(0),
-          fcoinsInStaking(0),
+          stakedFcoins(0),
           receivedVotes(0),
           hasOpenCdp(false) {
         minerPubKey = CPubKey();
@@ -78,6 +85,7 @@ public:
           bcoins(0),
           scoins(0),
           fcoins(0),
+          stakedFcoins(0),
           receivedVotes(0),
           hasOpenCdp(false) {
         pubKey      = CPubKey();
@@ -95,6 +103,7 @@ public:
         this->bcoins         = other.bcoins;
         this->scoins         = other.scoins;
         this->fcoins         = other.fcoins;
+        this->stakedFcoins   = other.stakedFcoins;
         this->receivedVotes  = other.receivedVotes;
         this->voteFunds      = other.voteFunds;
         this->hasOpenCdp     = other.hasOpenCdp;
@@ -198,7 +207,7 @@ public:
     uint64_t bcoins;             //!< baseCoin balance
     uint64_t scoins;             //!< stableCoin balance
     uint64_t fcoins;             //!< fundCoin balance
-    vector<CVoteFund> voteFunds; //!< casted delegate votes
+    vector<CCandidateVote> voteFunds; //!< casted delegate votes
     uint64_t receivedVotes;      //!< votes received
 
     IMPLEMENT_SERIALIZE(

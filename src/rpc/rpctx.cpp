@@ -782,8 +782,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             "\nArguments:\n"
             "1.\"sendaddr\": (string required) The address from which votes are sent to other "
             "delegate addresses\n"
-            "2. \"opervotes\"    (string, required) A json array of oper votes to corresponding "
-            "delegates\n"
+            "2. \"votes\"    (string, required) A json array of votes to delegate candidates\n"
             " [\n"
             "   {\n"
             "      \"delegate\":\"address\", (string, required) The delegate address where votes "
@@ -817,7 +816,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     if (params.size() > 3) {
         nHeight = params[3].get_int();
     }
-    Array operVoteArray = params[1].get_array();
+    Array arrVotes = params[1].get_array();
 
     CKeyID keyId;
     if (!GetKeyId(sendAddr, keyId)) {
@@ -856,34 +855,31 @@ Value votedelegatetx(const Array& params, bool fHelp) {
         }
         delegateVoteTx.txUid = account.regID;
 
-        for (auto operVote : operVoteArray) {
-            COperVoteFund operVoteFund;
-            const Value& delegateAddress = find_value(operVote.get_obj(), "delegate");
-            const Value& delegateVotes   = find_value(operVote.get_obj(), "votes");
-            if (delegateAddress.type() == null_type || delegateVotes == null_type) {
+        for (auto objVote : arrVotes) {
+
+            const Value& delegateAddr = find_value(objVote.get_obj(), "delegate");
+            const Value& delegateVotes = find_value(objVote.get_obj(), "votes");
+            if (delegateAddr.type() == null_type || delegateVotes == null_type) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Vote fund address error or fund value error");
             }
             CKeyID delegateKeyId;
-            if (!GetKeyId(delegateAddress.get_str(), delegateKeyId)) {
+            if (!GetKeyId(delegateAddr.get_str(), delegateKeyId)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address error");
             }
             CAccount delegateAcct;
             if (!view.GetAccount(CUserID(delegateKeyId), delegateAcct)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address is not exist");
             }
-
             if (!delegateAcct.IsRegistered()) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "Delegate address is unregistered");
             }
 
-            operVoteFund.fund.SetVoteId(CUserID(delegateAcct.pubKey));  // FIXME: can be RegID as well
-            operVoteFund.fund.SetVoteCount((uint64_t)abs(delegateVotes.get_int64()));
-            if (delegateVotes.get_int64() > 0) {
-                operVoteFund.operType = ADD_FUND;
-            } else {
-                operVoteFund.operType = MINUS_FUND;
-            }
-            delegateVoteTx.operVoteFunds.push_back(operVoteFund);
+            VoteType voteType = (objVote.get_int64() > 0) ? VoteType::ADD_BCOIN : VoteType::MINUS_BCOIN;
+            CUserID candidateUid = CUserID(delegateAcct.keyId);
+            uint64_t bcoins = (uint64_t)abs(delegateVotes.get_int64()
+            CCandidateVote candidateVote(voteType, candidateUid, bcoins);
+
+            delegateVoteTx.candidateVotes.push_back(candidateVote);
         }
 
         if (!pWalletMain->Sign(keyId, delegateVoteTx.ComputeSignatureHash(), delegateVoteTx.signature)) {
@@ -896,9 +892,10 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
     }
-    Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
-    return obj;
+
+    Object objRet;
+    objRet.push_back(Pair("hash", std::get<1>(ret)));
+    return objRet;
 }
 
 //create a vote delegate raw transaction
@@ -944,7 +941,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid height");
         }
     }
-    Array operVoteArray = params[1].get_array();
+    Array arrVotes = params[1].get_array();
 
     CKeyID keyId;
     if (!GetKeyId(sendAddr, keyId)) {
@@ -979,10 +976,10 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
         delegateVoteTx.nValidHeight = nHeight;
         delegateVoteTx.txUid        = account.regID;
 
-        for (auto operVote : operVoteArray) {
-            COperVoteFund operVoteFund;
-            const Value& delegateAddress = find_value(operVote.get_obj(), "delegate");
-            const Value& delegateVotes   = find_value(operVote.get_obj(), "votes");
+        for (auto objVote : arrVotes) {
+
+            const Value& delegateAddress = find_value(objVote.get_obj(), "delegate");
+            const Value& delegateVotes   = find_value(objVote.get_obj(), "votes");
             if (delegateAddress.type() == null_type || delegateVotes == null_type) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,
                                    "Voted delegator's address type "
@@ -994,17 +991,15 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             }
             CAccount delegateAcct;
             if (!view.GetAccount(CUserID(delegateKeyId), delegateAcct)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                                   "Voted delegator's address is unregistered");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Voted delegator's address is unregistered");
             }
-            operVoteFund.fund.SetVoteId( CUserID(delegateAcct.pubKey) );
-            operVoteFund.fund.SetVoteCount( (uint64_t)abs(delegateVotes.get_int64()) );
-            if (delegateVotes.get_int64() > 0) {
-                operVoteFund.operType = ADD_FUND;
-            } else {
-                operVoteFund.operType = MINUS_FUND;
-            }
-            delegateVoteTx.operVoteFunds.push_back(operVoteFund);
+
+            VoteType voteType = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN: VoteType::MINUS_BCOIN;
+            CUserID candidateUid = CUserID(delegateAcct.KeyId);
+            uint64_t bcoins = (uint64_t)abs(delegateVotes.get_int64());
+            CCandidateVote candidateVote(voteType, candidateUid, bcoins);
+
+            delegateVoteTx.candidateVotes.push_back(candidateVote);
         }
 
         if (!pWalletMain->Sign(keyId, delegateVoteTx.ComputeSignatureHash(), delegateVoteTx.signature)) {

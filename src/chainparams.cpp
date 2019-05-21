@@ -382,13 +382,13 @@ bool CBaseParams::CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> > &
 bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDelegateTx, NET_TYPE type) {
     vector<string> vDelegatePubKey = IniCfg().GetDelegatePubKey(type);
     vector<string> vInitPubKey = IniCfg().GetInitPubKey(type);
-    vector<COperVoteFund> vOperVoteFund;
+    vector<CCandidateVote> votes;
+    uint64_t bcoinsToVote = IniCfg().GetCoinInitValue() * COIN  / 100;
+
     for (size_t i = 0; i < vDelegatePubKey.size(); ++i) {
-        uint64_t votes = IniCfg().GetCoinInitValue() * COIN  / 100;
         CUserID voteId(CPubKey(ParseHex(vDelegatePubKey[i].c_str())));
-        CVoteFund fund(voteId, votes);
-        COperVoteFund operVoteFund(ADD_FUND, fund);
-        vOperVoteFund.push_back(operVoteFund);
+        CCandidateVote vote(ADD_FUND, voteId, bcoinsToVote);
+        votes.push_back(vote);
     }
     CRegID accountId(0, 1);
     shared_ptr<CDelegateVoteTx> pDelegateTx = std::make_shared<CDelegateVoteTx>(accountId.GetRegIdRaw(),

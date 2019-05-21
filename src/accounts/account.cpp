@@ -48,7 +48,7 @@ bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
 //     uint64_t nEndHeight = nCurHeight;
 //     uint64_t nBeginSubsidy = IniCfg().GetBlockSubsidyCfg(lastVoteHeight);
 //     uint64_t nEndSubsidy = IniCfg().GetBlockSubsidyCfg(nCurHeight);
-//     uint64_t nValue = voteFunds.begin()->GetVoteCount();
+//     uint64_t nValue = voteFunds.begin()->GetVotedBcoins();
 //     LogPrint("profits", "nBeginSubsidy:%lld nEndSubsidy:%lld nBeginHeight:%d nEndHeight:%d\n",
 //         nBeginSubsidy, nEndSubsidy, nBeginHeight, nEndHeight);
 
@@ -74,7 +74,7 @@ bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
 
 //     llProfits += calculateProfit(nValue, nSubsidy, nBeginHeight, nEndHeight);
 //     LogPrint("profits", "updateHeight:%d curHeight:%d freeze value:%lld\n",
-//         lastVoteHeight, nCurHeight, voteFunds.begin()->GetVoteCount());
+//         lastVoteHeight, nCurHeight, voteFunds.begin()->GetVotedBcoins());
 
 //     return llProfits;
 // }
@@ -83,7 +83,7 @@ uint64_t CAccount::GetVotedBCoins() {
     uint64_t votes = 0;
     if (!voteFunds.empty()) {
         for (auto it = voteFunds.begin(); it != voteFunds.end(); it++) {
-            votes += it->GetVoteCount(); //one bcoin one vote!
+            votes += it->GetVotedBcoins(); //one bcoin one vote!
         }
     }
     return votes;
@@ -140,8 +140,7 @@ bool CAccount::IsMoneyOverflow(uint64_t nAddMoney) {
     return true;
 }
 
-bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64_t nCurHeight) {
-    LogPrint("op_account", "before operate:%s\n", ToString());
+bool CAccount::OperateBalance(CoinType coinType, BalanceOpType opType, const uint64_t &value) {
     if (!IsMoneyOverflow(value))
         return false;
 
@@ -149,83 +148,68 @@ bool CAccount::OperateAccount(OperType type, const uint64_t &value, const uint64
         return ERRORMSG("operate account's keyId is 0 error");
     }
 
-    if (!value)
+    if (!value) //value is 0
         return true;
 
-    switch (type) {
-    case ADD_FREE: {
-        bcoins += value;
-        if (!IsMoneyOverflow(bcoins))
-            return false;
+    LogPrint("balance_op", "before op: %s\n", ToString());
+    int64 opValue = value;
+    if (opType == MINUS_VALUE)
+        opValue *= -1;
 
-        break;
+    switch (coinType) {
+        case WICC:  bcoins += opValue; if (!IsMoneyOverflow(bcoins)) return false; break;
+        case MICC:  fcoins += opValue; if (!IsMoneyOverflow(fcoins)) return false; break;
+        case WUSD:  scoins += opValue; if (!IsMoneyOverflow(scoins)) return false; break;
+        default: return ERRORMSG("coin type error!");
     }
-    case MINUS_FREE: {
-        if (value > bcoins)
-            return false;
+    LogPrint("balance_op", "after op: %s\n", ToString());
 
-        bcoins -= value;
-        break;
-    }
-    default:
-        return ERRORMSG("operate account type error!");
-    }
-
-    LogPrint("op_account", "after operate:%s\n", ToString());
     return true;
 }
 
-bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const uint64_t nCurHeight) {
-    // if (nCurHeight < lastVoteHeight) {
-    //     LogPrint("ERROR", "nCurHeight (%d) < lastVoteHeight (%d)", nCurHeight, lastVoteHeight);
-    //     return false;
-    // }
-
-    // uint64_t llProfit = GetAccountProfit(nCurHeight);
-    // if (!IsMoneyOverflow(llProfit)) return false;
-
+bool CAccount::ProcessDelegateVote(vector<CCandidateVote> & candidateVotes, const uint64_t nCurHeight) {
     uint64_t lastTotalVotes = GetVotedBCoins();
 
-    for (auto operVote = operVoteFunds.begin(); operVote != operVoteFunds.end(); ++operVote) {
-        const CUserID &voteId = operVote->fund.GetVoteId();
-        vector<CVoteFund>::iterator itfund =
-            find_if(voteFunds.begin(), voteFunds.end(),
-                    [voteId](CVoteFund fund) { return fund.GetVoteId() == voteId; });
+    for (auto operVote = candidateVotes.begin(); operVote != candidateVotes.end(); ++operVote) {
+        const CUserID &voteId = operVote->fund.GetCandidateUid();
+        vector<CCandidateVote>::iterator itfund =
+            find_if(candidateVotes.begin(), candidateVotes.end(),
+                    [voteId](CCandidateVote vote) { return vote.GetCandidateUid() == voteId; });
 
-        int voteType = VoteOperType(operVote->operType);
+        int voteType = VoteType(operVote->operType);
         if (ADD_FUND == voteType) {
-            if (itfund != voteFunds.end()) { //existing vote
-                uint64_t currVotes = itfund->GetVoteCount();
+            if (itfund != candidateVotes.end()) { //existing vote
+                uint64_t currVotes = itfund->GetVotedBcoins();
 
-                if (!IsMoneyOverflow(operVote->fund.GetVoteCount()))
+                if (!IsMoneyOverflow(operVote->fund.GetVotedBcoins()))
                      return ERRORMSG("ProcessDelegateVote() : oper fund value exceeds maximum ");
 
-                itfund->SetVoteCount( currVotes + operVote->fund.GetVoteCount() );
+                itfund->SetVotedBcoins( currVotes + operVote->fund.GetVotedBcoins() );
 
-                if (!IsMoneyOverflow(itfund->GetVoteCount()))
+                if (!IsMoneyOverflow(itfund->GetVotedBcoins()))
                      return ERRORMSG("ProcessDelegateVote() : fund value exceeds maximum");
 
             } else { //new vote
-               if (voteFunds.size() == IniCfg().GetMaxVoteCandidateNum()) {
+               if (candidateVotes.size() == IniCfg().GetMaxVoteCandidateNum()) {
                    return ERRORMSG("ProcessDelegateVote() : MaxVoteCandidateNum reached. Must revoke old votes 1st.");
                }
 
-               voteFunds.push_back(operVote->fund);
+               candidateVotes.push_back(operVote->fund);
             }
         } else if (MINUS_FUND == voteType) {
-            if  (itfund != voteFunds.end()) { //existing vote
-                uint64_t currVotes = itfund->GetVoteCount();
+            if  (itfund != candidateVotes.end()) { //existing vote
+                uint64_t currVotes = itfund->GetVotedBcoins();
 
-                if (!IsMoneyOverflow(operVote->fund.GetVoteCount()))
+                if (!IsMoneyOverflow(operVote->fund.GetVotedBcoins()))
                     return ERRORMSG("ProcessDelegateVote() : oper fund value exceeds maximum ");
 
-                if (itfund->GetVoteCount() < operVote->fund.GetVoteCount())
+                if (itfund->GetVotedBcoins() < operVote->fund.GetVotedBcoins())
                     return ERRORMSG("ProcessDelegateVote() : oper fund value exceeds delegate fund value");
 
-                itfund->SetVoteCount( currVotes - operVote->fund.GetVoteCount() );
+                itfund->SetVotedBcoins( currVotes - operVote->fund.GetVotedBcoins() );
 
-                if (0 == itfund->GetVoteCount())
-                    voteFunds.erase(itfund);
+                if (0 == itfund->GetVotedBcoins())
+                    candidateVotes.erase(itfund);
 
             } else {
                 return ERRORMSG("ProcessDelegateVote() : revocation votes not exist");
@@ -236,8 +220,8 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
     }
 
     // sort account votes after the operations against the new votes
-    std::sort(voteFunds.begin(), voteFunds.end(), [](CVoteFund fund1, CVoteFund fund2) {
-        return fund1.GetVoteCount() > fund2.GetVoteCount();
+    std::sort(voteFunds.begin(), voteFunds.end(), [](CCandidateVote fund1, CCandidateVote fund2) {
+        return fund1.GetVotedBcoins() > fund2.GetVotedBcoins();
     });
 
     uint64_t newTotalVotes = GetVotedBCoins();
@@ -249,7 +233,7 @@ bool CAccount::ProcessDelegateVote(vector<COperVoteFund> & operVoteFunds, const 
     return true;
 }
 
-bool CAccount::OperateVote(VoteOperType type, const uint64_t & values) {
+bool CAccount::OperateVote(VoteType type, const uint64_t & values) {
     if(ADD_FUND == type) {
         receivedVotes += values;
         if(!IsMoneyOverflow(receivedVotes)) {
