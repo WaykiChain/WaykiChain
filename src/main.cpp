@@ -1293,7 +1293,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                 CScriptDBOperLog operDbLog;
                 int j = i;
                 for (auto &operFund : pDelegateTx->operVoteFunds) {
-                    assert(operFund.operType == ADD_FUND); //it has to be ADD in GensisBlock
+                    assert(operFund.operType == ADD_VALUE); //it has to be ADD in GensisBlock
                     if (operFund.fund.GetVotedBcoins() > maxVotes) {
                         maxVotes = operFund.fund.GetVotedBcoins();
                     }

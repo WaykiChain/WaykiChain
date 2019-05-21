@@ -26,7 +26,7 @@
 
 using namespace json_spirit;
 
-// const string COperVoteFund::voteOperTypeArray[3] = {"NULL_OPER", "ADD_FUND", "MINUS_FUND"};
+// const string COperVoteFund::voteOperTypeArray[3] = {"NULL_OPER", "ADD_VALUE", "MINUS_VALUE"};
 
 string GetTxType(unsigned char txType) {
     auto it = kTxTypeMap.find(txType);

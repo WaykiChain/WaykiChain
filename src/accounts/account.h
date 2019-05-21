@@ -23,6 +23,22 @@ using namespace json_spirit;
 
 class CAccountLog;
 
+enum CoinType: unsigned char {
+    WICC = 1,
+    MICC = 2,
+    WUSD = 3,
+};
+
+enum PriceType: unsigned char {
+    USD     = 1,
+    CNY     = 2,
+    EUR     = 3,
+    BTC     = 10,
+    USDT    = 11,
+    GOLD    = 20,
+    KWH     = 100, // killowatt hour
+};
+
 class CAccount
 {
 public:

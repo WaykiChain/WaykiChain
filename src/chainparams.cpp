@@ -387,7 +387,7 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDe
 
     for (size_t i = 0; i < vDelegatePubKey.size(); ++i) {
         CUserID voteId(CPubKey(ParseHex(vDelegatePubKey[i].c_str())));
-        CCandidateVote vote(ADD_FUND, voteId, bcoinsToVote);
+        CCandidateVote vote(ADD_VALUE, voteId, bcoinsToVote);
         votes.push_back(vote);
     }
     CRegID accountId(0, 1);

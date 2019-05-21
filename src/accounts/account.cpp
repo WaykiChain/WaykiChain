@@ -177,7 +177,7 @@ bool CAccount::ProcessDelegateVote(vector<CCandidateVote> & candidateVotes, cons
                     [voteId](CCandidateVote vote) { return vote.GetCandidateUid() == voteId; });
 
         int voteType = VoteType(operVote->operType);
-        if (ADD_FUND == voteType) {
+        if (ADD_VALUE == voteType) {
             if (itfund != candidateVotes.end()) { //existing vote
                 uint64_t currVotes = itfund->GetVotedBcoins();
 
@@ -196,7 +196,7 @@ bool CAccount::ProcessDelegateVote(vector<CCandidateVote> & candidateVotes, cons
 
                candidateVotes.push_back(operVote->fund);
             }
-        } else if (MINUS_FUND == voteType) {
+        } else if (MINUS_VALUE == voteType) {
             if  (itfund != candidateVotes.end()) { //existing vote
                 uint64_t currVotes = itfund->GetVotedBcoins();
 
@@ -234,12 +234,12 @@ bool CAccount::ProcessDelegateVote(vector<CCandidateVote> & candidateVotes, cons
 }
 
 bool CAccount::OperateVote(VoteType type, const uint64_t & values) {
-    if(ADD_FUND == type) {
+    if(ADD_VALUE == type) {
         receivedVotes += values;
         if(!IsMoneyOverflow(receivedVotes)) {
             return ERRORMSG("OperateVote() : delegates total votes exceed maximum ");
         }
-    } else if (MINUS_FUND == type) {
+    } else if (MINUS_VALUE == type) {
         if(receivedVotes < values) {
             return ERRORMSG("OperateVote() : delegates total votes less than revocation vote value");
         }

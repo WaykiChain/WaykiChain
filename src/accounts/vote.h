@@ -41,7 +41,7 @@ static const unordered_map<unsigned char, string> kVoteTypeMap = {
 
 class CCandidateVote {
 private:
-    unsigned char voteType;  //!<1:ADD_FUND 2:MINUS_FUND
+    unsigned char voteType;  //!<1:ADD_VALUE 2:MINUS_VALUE
     CUserID  candidateUid;  //!< candidate RegId or PubKey
     uint64_t bcoins;        //!< count of votes to the candidate
 
