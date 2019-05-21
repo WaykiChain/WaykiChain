@@ -1,7 +1,8 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2019- The WaykiChain Core Developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #ifndef ACCOUNTS_H
 #define ACCOUNTS_H
@@ -53,17 +54,18 @@ public:
     CPubKey pubKey;       //!< account public key
     CPubKey minerPubKey;  //!< miner saving account public key
 
-    uint64_t bcoins;  //!< BaseCoin balance
-    uint64_t scoins;  //!< StableCoin balance
-    uint64_t fcoins;  //!< FundCoin balance
+    uint64_t bcoins;        //!< BaseCoin balance
+    uint64_t scoins;        //!< StableCoin balance
+    uint64_t fcoins;        //!< FundCoin balance
+    uint64_t stakedFcoins;  //!< Staked FundCoins for pricefeed right
 
-    uint64_t stakedFcoins;   //!< Staked FundCoins for pricefeed right
-    uint64_t receivedVotes;  //!< received votes (1:1 to bcoins)
+    uint64_t receivedVotes;                 //!< received votes
+    uint64_t lastVoteHeight;                //!< account's last vote block height used for computing interest
 
     vector<CCandidateVote> candidateVotes;  //!< account delegates votes sorted by vote amount
 
-    bool hasOpenCdp;  //!< When true, its CDP exists in a map {cdp-$regid -> $cdp}
-    uint256 sigHash;  //!< in-memory only
+    bool hasOpenCdp;          //!< When true, its CDP exists in a map {cdp-$regid -> $cdp}
+    mutable uint256 sigHash;  //!< in-memory only
 
 public:
     /**
@@ -73,7 +75,7 @@ public:
      * @param values: balance value to add or minus
      * @return returns true if successful, otherwise false
      */
-    bool OperateBalance(CoinType coinType, BalanceOpType opType, const uint64_t& value);
+    bool OperateBalance(const CoinType coinType, const BalanceOpType opType, const uint64_t value);
     bool UndoOperateAccount(const CAccountLog& accountLog);
     bool ProcessDelegateVote(vector<CCandidateVote>& candidateVotesIn, const uint64_t curHeight);
     bool OperateVote(VoteType type, const uint64_t& values);
@@ -88,6 +90,7 @@ public:
           fcoins(0),
           stakedFcoins(0),
           receivedVotes(0),
+          lastVoteHeight(0),
           hasOpenCdp(false) {
         minerPubKey = CPubKey();
         candidateVotes.clear();
@@ -101,6 +104,7 @@ public:
           fcoins(0),
           stakedFcoins(0),
           receivedVotes(0),
+          lastVoteHeight(0),
           hasOpenCdp(false) {
         pubKey      = CPubKey();
         minerPubKey = CPubKey();
@@ -119,6 +123,7 @@ public:
         this->fcoins         = other.fcoins;
         this->stakedFcoins   = other.stakedFcoins;
         this->receivedVotes  = other.receivedVotes;
+        this->lastVoteHeight = other.lastVoteHeight;
         this->candidateVotes = other.candidateVotes;
         this->hasOpenCdp     = other.hasOpenCdp;
     }
@@ -134,7 +139,9 @@ public:
         this->bcoins         = other.bcoins;
         this->scoins         = other.scoins;
         this->fcoins         = other.fcoins;
+        this->stakedFcoins   = other.stakedFcoins;
         this->receivedVotes  = other.receivedVotes;
+        this->lastVoteHeight = other.lastVoteHeight;
         this->candidateVotes = other.candidateVotes;
         this->hasOpenCdp     = other.hasOpenCdp;
 
@@ -169,21 +176,20 @@ public:
     uint64_t GetTotalBcoins();
     uint64_t GetVotedBCoins();
 
+    uint64_t GetAccountProfit(const uint64_t curHeight);
+
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;
     bool IsEmptyValue() const { return !(bcoins > 0); }
 
-    uint256 GetHash(bool recalculate = false)
-    {
+    uint256 GetHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << keyID << regID << nickID << pubKey << minerPubKey
-                << VARINT(bcoins) << VARINT(scoins) << VARINT(fcoins)
-                << VARINT(receivedVotes)
-                << candidateVotes << hasOpenCdp;
+            ss << keyID << regID << nickID << pubKey << minerPubKey << VARINT(bcoins) << VARINT(scoins)
+               << VARINT(fcoins) << VARINT(stakedFcoins) << VARINT(receivedVotes) << VARINT(lastVoteHeight)
+               << candidateVotes << hasOpenCdp;
 
-            uint256* hash = const_cast<uint256*>(&sigHash);
-            *hash = ss.GetHash();
+            sigHash = ss.GetHash();
         }
 
         return sigHash;
@@ -200,7 +206,9 @@ public:
         READWRITE(VARINT(bcoins));
         READWRITE(VARINT(scoins));
         READWRITE(VARINT(fcoins));
+        READWRITE(VARINT(stakedFcoins));
         READWRITE(VARINT(receivedVotes));
+        READWRITE(VARINT(lastVoteHeight));
         READWRITE(candidateVotes);
         READWRITE(hasOpenCdp);)
 
@@ -208,21 +216,24 @@ private:
     bool IsMoneyOverflow(uint64_t nAddMoney);
 };
 
-class CAccountLog
-{
+class CAccountLog {
 public:
     CKeyID keyID;         //!< keyID of the account (interchangeable to address)
     CRegID regID;         //!< regID of the account
     CNickID nickID;       //!< Nickname ID of the account (maxlen=32)
     CPubKey pubKey;       //!< account public key
     CPubKey minerPubKey;  //!< miner saving account public key
-    bool hasOpenCdp;
 
     uint64_t bcoins;                        //!< baseCoin balance
     uint64_t scoins;                        //!< stableCoin balance
     uint64_t fcoins;                        //!< fundCoin balance
-    vector<CCandidateVote> candidateVotes;  //!< casted delegate votes
+    uint64_t stakedFcoins;                  //!< Staked FundCoins for pricefeed right
+
     uint64_t receivedVotes;                 //!< votes received
+    uint64_t lastVoteHeight;                //!< account's last vote block height used for computing interest
+
+    vector<CCandidateVote> candidateVotes;  //!< casted delegate votes
+    bool hasOpenCdp;
 
     IMPLEMENT_SERIALIZE(
         READWRITE(keyID);
@@ -230,10 +241,14 @@ public:
         READWRITE(nickID);
         READWRITE(pubKey);
         READWRITE(minerPubKey);
-        READWRITE(hasOpenCdp);
         READWRITE(VARINT(bcoins));
+        READWRITE(VARINT(scoins));
+        READWRITE(VARINT(fcoins));
+        READWRITE(VARINT(stakedFcoins));
+        READWRITE(VARINT(receivedVotes));
+        READWRITE(VARINT(lastVoteHeight));
         READWRITE(candidateVotes);
-        READWRITE(VARINT(receivedVotes));)
+        READWRITE(hasOpenCdp);)
 
 public:
     CAccountLog(const CAccount& acct) {
@@ -243,29 +258,41 @@ public:
         pubKey         = acct.pubKey;
         minerPubKey    = acct.minerPubKey;
         bcoins         = acct.bcoins;
-        hasOpenCdp     = acct.hasOpenCdp;
-        candidateVotes = acct.candidateVotes;
+        scoins         = acct.scoins;
+        fcoins         = acct.fcoins;
+        stakedFcoins   = acct.stakedFcoins;
         receivedVotes  = acct.receivedVotes;
+        lastVoteHeight = acct.lastVoteHeight;
+        candidateVotes = acct.candidateVotes;
+        hasOpenCdp     = acct.hasOpenCdp;
     }
 
     CAccountLog(CKeyID& keyId) {
         keyID = keyId;
         regID.Clean();
         nickID.Clean();
-        bcoins = 0;
-        hasOpenCdp = false;
+        bcoins         = 0;
+        scoins         = 0;
+        fcoins         = 0;
+        stakedFcoins   = 0;
+        receivedVotes  = 0;
+        lastVoteHeight = 0;
         candidateVotes.clear();
-        receivedVotes = 0;
+        hasOpenCdp = false;
     }
 
     CAccountLog() {
         keyID = uint160();
         regID.Clean();
         nickID.Clean();
-        bcoins = 0;
-        hasOpenCdp = false;
+        bcoins         = 0;
+        scoins         = 0;
+        fcoins         = 0;
+        stakedFcoins   = 0;
+        receivedVotes  = 0;
+        lastVoteHeight = 0;
         candidateVotes.clear();
-        receivedVotes = 0;
+        hasOpenCdp = false;
     }
 
     void SetValue(const CAccount& acct) {
@@ -277,7 +304,9 @@ public:
         bcoins         = acct.bcoins;
         scoins         = acct.scoins;
         fcoins         = acct.fcoins;
+        stakedFcoins   = acct.stakedFcoins;
         receivedVotes  = acct.receivedVotes;
+        lastVoteHeight = acct.lastVoteHeight;
         candidateVotes = acct.candidateVotes;
         hasOpenCdp     = acct.hasOpenCdp;
     }

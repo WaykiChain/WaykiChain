@@ -1,7 +1,8 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2019- The WaykiChain Core Developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #ifndef SCOIN_H
 #define SCOIN_H
@@ -60,8 +61,7 @@ public:
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
                << VARINT(llFees) << VARINT(bcoins) << VARINT(scoins);
 
-            uint256 *hash = const_cast<uint256 *>(&sigHash);
-            *hash         = ss.GetHash();
+            sigHash = ss.GetHash();
         }
 
         return sigHash;

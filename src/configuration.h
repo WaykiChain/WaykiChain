@@ -166,15 +166,12 @@ inline FeatureForkVersionEnum GetFeatureForkVersion(int blockHeight) {
 				return MAJOR_VER_R2;
 			else
 				return MAJOR_VER_R1;
-
-			break;
 		};
 		case TEST_NET: {
 			if (blockHeight >= 1000000)
 				return MAJOR_VER_R2;
 			else
 				return MAJOR_VER_R1;
- 			break;
 		};
 		default: {
 			return MAJOR_VER_R2;

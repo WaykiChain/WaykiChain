@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef FCOIN_STAKE_H
 #define FCOIN_STAKE_H
@@ -45,8 +45,7 @@ public:
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
                << VARINT(fcoinsToStake);
 
-            uint256 *hash = const_cast<uint256 *>(&sigHash);
-            *hash         = ss.GetHash();
+            sigHash = ss.GetHash();
         }
 
         return sigHash;

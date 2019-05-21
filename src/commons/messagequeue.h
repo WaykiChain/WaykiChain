@@ -1,3 +1,9 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef COIN_MESSAGEQUEUE_H
 #define COIN_MESSAGEQUEUE_H
 
@@ -43,7 +49,7 @@ bool MsgQueue<T>::Pop(T* t, const Timeout& timeout) {
 
     if (mq.empty()) {
         // `wait_for' will return after popCond has been notified or
-        // spucious wake-up happens or times out.
+        // specious wake-up happens or times out.
         // so `Pop' may return before times out though popCond is not notified
         popCond.wait_for(lock, timeout);
     }

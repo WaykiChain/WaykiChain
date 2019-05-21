@@ -1,7 +1,8 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #include "delegatetx.h"
 
@@ -46,7 +47,7 @@ Object CDelegateVoteTx::ToJson(const CAccountViewCache &accountView) const {
     return result;
 }
 
-// FIXME: not useuful
+// FIXME: not useful
 bool CDelegateVoteTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     // CKeyID keyId;
     // if (!view.GetKeyId(userId, keyId))
@@ -69,7 +70,7 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
     }
 
     CAccountLog acctInfoLog(acctInfo); //save account state before modification
-    if (llFees > 0 && !acctInfo.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    if (!acctInfo.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate account failed ,regId=%s",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
     }

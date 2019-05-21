@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
 #include "accountregtx.h"
@@ -74,7 +74,7 @@ bool CAccountRegisterTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
 
     account.pubKey = txUid.get<CPubKey>();
-    if (llFees > 0 && !account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, not sufficient funds in account, keyid=%s",
                         keyId.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-funds");
     }

@@ -1,8 +1,8 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2016 The Coin developers
-// Copyright (c) 2014-2019 The WaykiChain developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
@@ -86,7 +86,7 @@ bool CBaseTx::CheckMinTxFee(const uint64_t llFees) const {
     return true;
 }
 
-// transactions should check the signagure size before verifying signature
+// transactions should check the signature size before verifying signature
 bool CBaseTx::CheckSignatureSize(const vector<unsigned char> &signature) const {
     return signature.size() > 0 && signature.size() < MAX_BLOCK_SIGNATURE_SIZE;
 }

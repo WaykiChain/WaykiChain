@@ -1057,7 +1057,7 @@ void static InvalidBlockFound(CBlockIndex *pIndex, const CValidationState &state
             CBlockReject reject = {state.GetRejectCode(), state.GetRejectReason(), pIndex->GetBlockHash()};
             State(it->second)->rejects.push_back(reject);
             if (nDoS > 0) {
-                LogPrint("INFO", "Misebehaving: found invalid block, hash:%s, Misbehavior add %d",
+                LogPrint("INFO", "Misebehaving: found invalid block, hash:%s, Misbehavior add %d\n",
                          it->first.GetHex(), nDoS);
                 Misbehaving(it->second, nDoS);
             }
