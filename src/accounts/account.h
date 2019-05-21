@@ -24,8 +24,7 @@ using namespace json_spirit;
 
 class CAccountLog;
 
-class CAccount
-{
+class CAccount {
 public:
     CKeyID keyID;                   //!< keyID of the account (interchangeable to address)
     CRegID regID;                   //!< regID of the account
@@ -39,10 +38,11 @@ public:
     uint64_t fcoinsInStaking;       //!< Staked FundCoins
 
     uint64_t receivedVotes;         //!< votes received in bcoins
+    uint64_t lastVoteHeight;        //!< account's last vote block height used for computing interest
     vector<CVoteFund> voteFunds;    //!< account delegates votes sorted by vote amount
 
     bool hasOpenCdp;                //!< When true, its CDP exists in a map {cdp-$regid -> $cdp}
-    uint256 sigHash;                //!< in-memory only
+    mutable uint256 sigHash;        //!< in-memory only
 
 public:
     /**
@@ -67,6 +67,7 @@ public:
           fcoins(0),
           fcoinsInStaking(0),
           receivedVotes(0),
+          lastVoteHeight(0),
           hasOpenCdp(false) {
         minerPubKey = CPubKey();
         voteFunds.clear();
@@ -79,6 +80,7 @@ public:
           scoins(0),
           fcoins(0),
           receivedVotes(0),
+          lastVoteHeight(0),
           hasOpenCdp(false) {
         pubKey      = CPubKey();
         minerPubKey = CPubKey();
@@ -96,6 +98,7 @@ public:
         this->scoins         = other.scoins;
         this->fcoins         = other.fcoins;
         this->receivedVotes  = other.receivedVotes;
+        this->lastVoteHeight = other.lastVoteHeight;
         this->voteFunds      = other.voteFunds;
         this->hasOpenCdp     = other.hasOpenCdp;
     }
@@ -112,6 +115,7 @@ public:
         this->scoins         = other.scoins;
         this->fcoins         = other.fcoins;
         this->receivedVotes  = other.receivedVotes;
+        this->lastVoteHeight = other.lastVoteHeight;
         this->voteFunds      = other.voteFunds;
         this->hasOpenCdp     = other.hasOpenCdp;
 
@@ -146,21 +150,19 @@ public:
     uint64_t GetTotalBcoins();
     uint64_t GetVotedBCoins();
 
+    uint64_t GetAccountProfit(const uint64_t curHeight);
+
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;
     bool IsEmptyValue() const { return !(bcoins > 0); }
 
-    uint256 GetHash(bool recalculate = false)
-    {
+    uint256 GetHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << keyID << regID << nickID << pubKey << minerPubKey
-                << VARINT(bcoins) << VARINT(scoins) << VARINT(fcoins)
-                << VARINT(receivedVotes)
-                << voteFunds << hasOpenCdp;
+            ss << keyID << regID << nickID << pubKey << minerPubKey << VARINT(bcoins) << VARINT(scoins)
+               << VARINT(fcoins) << VARINT(receivedVotes) << VARINT(lastVoteHeight) << voteFunds << hasOpenCdp;
 
-            uint256* hash = const_cast<uint256*>(&sigHash);
-            *hash = ss.GetHash();
+            sigHash = ss.GetHash();
         }
 
         return sigHash;
@@ -178,6 +180,7 @@ public:
         READWRITE(VARINT(scoins));
         READWRITE(VARINT(fcoins));
         READWRITE(VARINT(receivedVotes));
+        READWRITE(VARINT(lastVoteHeight));
         READWRITE(voteFunds);
         READWRITE(hasOpenCdp);)
 
@@ -185,21 +188,22 @@ private:
     bool IsMoneyOverflow(uint64_t nAddMoney);
 };
 
-class CAccountLog
-{
+class CAccountLog {
 public:
     CKeyID keyID;        //!< keyID of the account (interchangeable to address)
     CRegID regID;        //!< regID of the account
     CNickID nickID;      //!< Nickname ID of the account (maxlen=32)
     CPubKey pubKey;      //!< account public key
     CPubKey minerPubKey; //!< miner saving account public key
-    bool hasOpenCdp;
 
     uint64_t bcoins;             //!< baseCoin balance
     uint64_t scoins;             //!< stableCoin balance
     uint64_t fcoins;             //!< fundCoin balance
-    vector<CVoteFund> voteFunds; //!< casted delegate votes
     uint64_t receivedVotes;      //!< votes received
+    uint64_t lastVoteHeight;     //!< account's last vote block height used for computing interest
+    vector<CVoteFund> voteFunds; //!< casted delegate votes
+
+    bool hasOpenCdp;
 
     IMPLEMENT_SERIALIZE(
         READWRITE(keyID);
@@ -207,10 +211,11 @@ public:
         READWRITE(nickID);
         READWRITE(pubKey);
         READWRITE(minerPubKey);
-        READWRITE(hasOpenCdp);
         READWRITE(VARINT(bcoins));
+        READWRITE(VARINT(receivedVotes));
+        READWRITE(VARINT(lastVoteHeight));
         READWRITE(voteFunds);
-        READWRITE(VARINT(receivedVotes));)
+        READWRITE(hasOpenCdp);)
 
 public:
     CAccountLog(const CAccount& acct) {
@@ -220,9 +225,10 @@ public:
         pubKey         = acct.pubKey;
         minerPubKey    = acct.minerPubKey;
         bcoins         = acct.bcoins;
-        hasOpenCdp     = acct.hasOpenCdp;
-        voteFunds      = acct.voteFunds;
         receivedVotes  = acct.receivedVotes;
+        lastVoteHeight = acct.lastVoteHeight;
+        voteFunds      = acct.voteFunds;
+        hasOpenCdp     = acct.hasOpenCdp;
     }
 
     CAccountLog(CKeyID& keyId) {
@@ -230,19 +236,21 @@ public:
         regID.Clean();
         nickID.Clean();
         bcoins = 0;
-        hasOpenCdp = false;
-        voteFunds.clear();
         receivedVotes = 0;
+        lastVoteHeight = 0;
+        voteFunds.clear();
+        hasOpenCdp = false;
     }
 
     CAccountLog() {
         keyID = uint160();
         regID.Clean();
         nickID.Clean();
-        bcoins = 0;
-        hasOpenCdp = false;
+        bcoins         = 0;
+        receivedVotes  = 0;
+        lastVoteHeight = 0;
         voteFunds.clear();
-        receivedVotes = 0;
+        hasOpenCdp = false;
     }
 
     void SetValue(const CAccount& acct) {
@@ -255,6 +263,7 @@ public:
         scoins         = acct.scoins;
         fcoins         = acct.fcoins;
         receivedVotes  = acct.receivedVotes;
+        lastVoteHeight = acct.lastVoteHeight;
         voteFunds      = acct.voteFunds;
         hasOpenCdp     = acct.hasOpenCdp;
     }

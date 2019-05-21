@@ -60,8 +60,7 @@ public:
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
                << VARINT(llFees) << VARINT(bcoins) << VARINT(scoins);
 
-            uint256 *hash = const_cast<uint256 *>(&sigHash);
-            *hash         = ss.GetHash();
+            sigHash = ss.GetHash();
         }
 
         return sigHash;

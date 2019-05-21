@@ -46,7 +46,7 @@ Object CDelegateVoteTx::ToJson(const CAccountViewCache &accountView) const {
     return result;
 }
 
-// FIXME: not useuful
+// FIXME: not useful
 bool CDelegateVoteTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     // CKeyID keyId;
     // if (!view.GetKeyId(userId, keyId))
@@ -72,11 +72,11 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
     uint64_t minusValue = llFees;
     if (minusValue > 0) {
         if(!acctInfo.OperateAccount(MINUS_FREE, minusValue, nHeight))
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate account failed ,regId=%s", txUid.ToString()),
+            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate account failed, regId=%s", txUid.ToString()),
                 UPDATE_ACCOUNT_FAIL, "operate-account-failed");
     }
     if (!acctInfo.ProcessDelegateVote(operVoteFunds, nHeight)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate vote failed ,regId=%s", txUid.ToString()),
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate vote failed, regId=%s", txUid.ToString()),
             UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }
     if (!view.SaveAccountInfo(acctInfo)) {
