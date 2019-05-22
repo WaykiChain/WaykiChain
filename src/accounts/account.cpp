@@ -150,7 +150,7 @@ bool CAccount::IsMoneyOverflow(uint64_t nAddMoney) {
 }
 
 bool CAccount::OperateBalance(const CoinType coinType, const BalanceOpType opType, const uint64_t value) {
-    LogPrint("op_account", "before operate:%s\n", ToString());
+    assert(opType == BalanceOpType::ADD_VALUE || opType == BalanceOpType::MINUS_VALUE);
 
     if (!IsMoneyOverflow(value))
         return false;
@@ -159,23 +159,28 @@ bool CAccount::OperateBalance(const CoinType coinType, const BalanceOpType opTyp
         return ERRORMSG("operate account's keyId is 0 error");
     }
 
-    if (!value) //value is 0
+    if (!value)  // value is 0
         return true;
 
     LogPrint("balance_op", "before op: %s\n", ToString());
-    int64_t opValue = value;
-    if (opValue < 0)
-        return ERRORMSG("value too large, converting to a negative value!");
 
-    if (opType == BalanceOpType::MINUS_VALUE)
-        opValue *= -1;
+    if (opType == BalanceOpType::MINUS_VALUE) {
+        switch (coinType) {
+            case WICC:  if (bcoins < value) return false; break;
+            case MICC:  if (fcoins < value) return false; break;
+            case WUSD:  if (scoins < value) return false; break;
+            default: return ERRORMSG("coin type error");
+        }
+    }
 
+    int64_t opValue = (opType == BalanceOpType::MINUS_VALUE) ? (-value) : (value);
     switch (coinType) {
         case WICC:  bcoins += opValue; if (!IsMoneyOverflow(bcoins)) return false; break;
         case MICC:  fcoins += opValue; if (!IsMoneyOverflow(fcoins)) return false; break;
         case WUSD:  scoins += opValue; if (!IsMoneyOverflow(scoins)) return false; break;
-        default: return ERRORMSG("coin type error!");
+        default: return ERRORMSG("coin type error");
     }
+
     LogPrint("balance_op", "after op: %s\n", ToString());
 
     return true;
