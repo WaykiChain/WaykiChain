@@ -95,7 +95,7 @@ void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pindexPrev, unsigned int &
     }
     ++nExtraNonce;
 
-    pblock->SetMerkleRootHash( pblock->BuildMerkleTree() );
+    pblock->SetMerkleRootHash(pblock->BuildMerkleTree());
 }
 
 bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCache &accViewIn, CScriptDBViewCache &scriptCacheIn) {
@@ -157,7 +157,7 @@ bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDele
     return true;
 }
 
-bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock) {
+bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock) {
     unsigned int nNonce = GetRand(SysCfg().GetBlockMaxNonce());
     CBlock preBlock;
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
@@ -493,7 +493,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
         if (!GetCurrentDelegate(currentTime, vDelegatesAcctList, minerAcct))
             return false; // not on duty hence returns
 
-        bool createdFlag = false;
+        bool success = false;
         int64_t nLastTime;
         {
             LOCK2(cs_main, pWalletMain->cs_wallet);
@@ -502,20 +502,20 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
             CKey acctKey;
             if (pWalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey, true) ||
                 pWalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey)) {
-                nLastTime   = GetTimeMillis();
-                createdFlag = CreatePosTx(currentTime, minerAcct, view, pblock);
-                LogPrint("MINER", "CreatePosTx %s, used time:%d ms, miner address=%s\n",
-                    createdFlag ? "success" : "failure", GetTimeMillis() - nLastTime, minerAcct.keyID.ToAddress());
+                nLastTime = GetTimeMillis();
+                success   = CreateBlockRewardTx(currentTime, minerAcct, view, pblock);
+                LogPrint("MINER", "CreateBlockRewardTx %s, used time:%d ms, miner address=%s\n",
+                    success ? "success" : "failure", GetTimeMillis() - nLastTime, minerAcct.keyID.ToAddress());
             }
         }
 
-        if (createdFlag == true) {
+        if (success) {
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
-            {
-                nLastTime = GetTimeMillis();
-                CheckWork(pblock, *pwallet);
-                LogPrint("MINER", "CheckWork used time:%d ms\n", GetTimeMillis() - nLastTime);
-            }
+
+            nLastTime = GetTimeMillis();
+            CheckWork(pblock, *pwallet);
+            LogPrint("MINER", "CheckWork used time:%d ms\n", GetTimeMillis() - nLastTime);
+
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
             g_miningBlockInfo.nTime = pblock->GetBlockTime();

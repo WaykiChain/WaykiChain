@@ -76,7 +76,7 @@ void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pindexPrev, unsigned int &
 /** Do mining precalculation */
 void FormatHashBuffers(CBlock *pblock, char *pmidstate, char *pdata, char *phash1);
 
-bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock);
+bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock);
 
 bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList);
 bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCache &accViewIn, CScriptDBViewCache &scriptCacheIn);
