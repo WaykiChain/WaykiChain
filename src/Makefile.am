@@ -87,6 +87,7 @@ coin_CORE_H = \
   tx/contracttx.h \
   tx/delegatetx.h \
   tx/fcointx.h \
+  tx/fcoinstaketx.h \
   tx/mulsigtx.h \
   tx/pricefeedtx.h \
   tx/scointx.h \
@@ -233,6 +234,7 @@ libcoin_server_a_SOURCES = \
   tx/contracttx.cpp \
   tx/delegatetx.cpp \
   tx/fcointx.cpp \
+  tx/fcoinstaketx.cpp \
   tx/mulsigtx.cpp \
   tx/pricefeedtx.cpp \
   tx/scointx.cpp \

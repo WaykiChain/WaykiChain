@@ -8,7 +8,7 @@
 
 #include "tx.h"
 
-class CFcoinStakeTx: CBaseTx {
+class CFcoinStakeTx: public CBaseTx {
 
 private:
     uint64_t fcoinsToStake;
@@ -21,10 +21,9 @@ public:
         *this = *(CFcoinStakeTx *) pBaseTx;
     }
 
-    CFcoinStakeTx(const CUserID &txUidIn, int validHeightIn, uint64_t feeIn, uint64_t bcoinsIn):
+    CFcoinStakeTx(const CUserID &txUidIn, int validHeightIn, uint64_t feeIn, uint64_t fcoinsToStakeIn):
         CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feeIn) {
-        txUid = txUidIn;
-        bcoins = bcoinsIn;
+        fcoinsToStake = fcoinsToStakeIn;
     }
 
     ~CFcoinStakeTx() {}
@@ -51,28 +50,19 @@ public:
         return sigHash;
     }
 
-    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual uint64_t GetFee() const { return llFees; }
-    uint64_t GetValue() const { return 0; }
-    double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CFcoinStakeTx>(this); }
-    string ToString(CAccountViewCache &view) const;
-    Object ToJson(const CAccountViewCache &AccountView) const;
-    bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
-    bool ExecuteTx(     int nIndex,
-                        CAccountViewCache &view,
-                        CValidationState &state,
-                        CTxUndo &txundo,
-                        int nHeight,
-                        CTransactionDBCache &txCache,
-                        CScriptDBViewCache &scriptDB);
-    bool UndoExecuteTx( int nIndex,
-                        CAccountViewCache &view,
-                        CValidationState &state,
-                        CTxUndo &txundo,
-                        int nHeight,
-                        CTransactionDBCache &txCache,
-                        CScriptDBViewCache &scriptDB);
-    bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CFcoinStakeTx>(this); }
+
+    virtual bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+    virtual bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
+                    int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
+    virtual bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+                    CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
+                    CScriptDBViewCache &scriptDB);
+
+    virtual double GetPriority() const { return 10000.0f; } // Top priority
+    virtual string ToString(CAccountViewCache &view) const;
+    virtual Object ToJson(const CAccountViewCache &AccountView) const;
+    virtual bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+
 };
 #endif
