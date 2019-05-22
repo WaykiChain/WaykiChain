@@ -142,7 +142,6 @@ class CValidationState;
 class CWalletInterface;
 struct CNodeStateStats;
 class CAccountViewDB;
-class CTransactionDB;
 class CScriptDB;
 
 struct CBlockTemplate;
@@ -538,9 +537,6 @@ extern CAccountViewCache *pAccountViewTip;
 
 /** account db */
 extern CAccountViewDB *pAccountViewDB;
-
-/** transaction db cache*/
-extern CTransactionDB *pTxCacheDB;
 
 /** srcipt db */
 extern CScriptDB *pScriptDB;

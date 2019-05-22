@@ -161,9 +161,6 @@ void Shutdown() {
         if (pAccountViewTip)
             pAccountViewTip->Flush();
 
-        if (pTxCacheTip)
-            pTxCacheTip->Flush();
-
         if (pScriptDBTip)
             pScriptDBTip->Flush();
 
@@ -173,8 +170,6 @@ void Shutdown() {
         pAccountViewDB = NULL;
         delete pblocktree;
         pblocktree = NULL;
-        delete pTxCacheDB;
-        pTxCacheDB = NULL;
         delete pScriptDB;
         pScriptDB = NULL;
         delete pTxCacheTip;
@@ -774,7 +769,6 @@ bool AppInit(boost::thread_group &threadGroup) {
     nTotalCache -= nAccountDBCache;
     size_t nScriptCacheSize = nTotalCache / 2;
     nTotalCache -= nScriptCacheSize;
-    size_t nTxCacheSize = nTotalCache / 2;
 
     SysCfg().SetViewCacheSize(nTotalCache / 300);  // coins in memory require around 300 bytes
 
@@ -809,7 +803,6 @@ bool AppInit(boost::thread_group &threadGroup) {
                 delete pAccountViewDB;
                 delete pblocktree;
                 delete pAccountViewTip;
-                delete pTxCacheDB;
                 delete pTxCacheTip;
                 delete pScriptDB;
                 delete pScriptDBTip;
@@ -817,8 +810,7 @@ bool AppInit(boost::thread_group &threadGroup) {
                 pblocktree      = new CBlockTreeDB(nBlockTreeDBCache, false, SysCfg().IsReindex());
                 pAccountViewDB  = new CAccountViewDB(nAccountDBCache, false, SysCfg().IsReindex());
                 pAccountViewTip = new CAccountViewCache(*pAccountViewDB);
-                pTxCacheDB      = new CTransactionDB(nTxCacheSize, false, SysCfg().IsReindex());
-                pTxCacheTip     = new CTransactionDBCache(*pTxCacheDB);
+                pTxCacheTip     = new CTransactionDBCache();
                 pScriptDB       = new CScriptDB(nScriptCacheSize, false, SysCfg().IsReindex());
                 pScriptDBTip    = new CScriptDBViewCache(*pScriptDB);
 
