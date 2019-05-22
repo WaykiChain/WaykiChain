@@ -13,16 +13,16 @@ bool CFcoinStakeTx::CheckTx(CValidationState &state, CAccountViewCache &view, CS
 
     if (!CheckMoneyRange(llFees))
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, tx fee out of range"),
-            REJECT_INVALID, "bad-tx-fee-toolarge");
+                        REJECT_INVALID, "bad-tx-fee-toolarge");
 
     if (!CheckMinTxFee(llFees)) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, tx fee smaller than MinTxFee"),
-            REJECT_INVALID, "bad-tx-fee-toosmall");
+                        REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
     if (!CheckSignatureSize(signature)) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, tx signature size invalid"),
-            REJECT_INVALID, "bad-tx-sig-size");
+                        REJECT_INVALID, "bad-tx-sig-size");
     }
 
     // check signature script
