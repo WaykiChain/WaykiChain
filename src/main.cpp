@@ -499,7 +499,6 @@ CBlockIndex *CChain::FindFork(const CBlockLocator &locator) const {
 CAccountViewDB *pAccountViewDB     = NULL;
 CBlockTreeDB *pblocktree           = NULL;
 CAccountViewCache *pAccountViewTip = NULL;
-CTransactionDB *pTxCacheDB         = NULL;
 CTransactionDBCache *pTxCacheTip   = NULL;
 CScriptDB *pScriptDB               = NULL;
 CScriptDBViewCache *pScriptDBTip   = NULL;
@@ -1515,8 +1514,6 @@ bool static WriteChainState(CValidationState &state) {
         pblocktree->Sync();
         if (!pAccountViewTip->Flush())
             return state.Abort(_("Failed to write to account database"));
-        if (!pTxCacheTip->Flush())
-            return state.Abort(_("Failed to write to tx cache database"));
         if (!pScriptDBTip->Flush())
             return state.Abort(_("Failed to write to script db database"));
         mapForkCache.clear();
@@ -1612,8 +1609,6 @@ bool static DisconnectTip(CValidationState &state) {
         if (chainActive.Height() % SysCfg().GetArg("-blocklog", 0) == 0) {
             if (!pAccountViewTip->Flush())
                 return state.Abort(_("Failed to write to account database"));
-            if (!pTxCacheTip->Flush())
-                return state.Abort(_("Failed to write to tx cache database"));
             if (!pScriptDBTip->Flush())
                 return state.Abort(_("Failed to write to script db database"));
             WriteBlockLog(true, "DisConnectTip");
@@ -1692,8 +1687,6 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         if (chainActive.Height() % SysCfg().GetArg("-blocklog", 0) == 0) {
             if (!pAccountViewTip->Flush())
                 return state.Abort(_("Failed to write to account database"));
-            if (!pTxCacheTip->Flush())
-                return state.Abort(_("Failed to write to tx cache database"));
             if (!pScriptDBTip->Flush())
                 return state.Abort(_("Failed to write to script db database"));
             WriteBlockLog(true, "ConnectTip");
@@ -1968,7 +1961,7 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
 
 bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValidationState &state) {
     if (pPreBlockIndex->GetBlockHash() == chainActive.Tip()->GetBlockHash())
-        return true; //no fork
+        return true;  // no fork
 
     std::shared_ptr<CAccountViewCache>      pForkAcctViewCache;
     std::shared_ptr<CTransactionDBCache>    pForkTxCache;
@@ -1980,8 +1973,8 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     pAcctViewCache->mapNickId2KeyId                   = pAccountViewTip->mapNickId2KeyId;
     pAcctViewCache->blockHash                         = pAccountViewTip->blockHash;
 
-    std::shared_ptr<CTransactionDBCache> pTxCache = std::make_shared<CTransactionDBCache>(*pTxCacheDB);
-    pTxCache->SetCacheMap(pTxCacheTip->GetCacheMap());
+    std::shared_ptr<CTransactionDBCache> pTxCache = std::make_shared<CTransactionDBCache>();
+    pTxCache->SetTxHashCache(pTxCacheTip->GetTxHashCache());
 
     std::shared_ptr<CScriptDBViewCache> pScriptDBCache = std::make_shared<CScriptDBViewCache>(*pScriptDB);
     pScriptDBCache->mapContractDb = pScriptDBTip->mapContractDb;
@@ -2053,7 +2046,6 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         pForkScriptDBCache = std::get<2>(mapForkCache[forkChainTipBlockHash]);
 
         pForkAcctViewCache->SetBaseView(pAcctViewCache.get());
-        pForkTxCache->SetBaseView(pTxCache.get());
         pForkScriptDBCache->SetBaseView(pScriptDBCache.get());
     } else {
         pForkAcctViewCache.reset(new CAccountViewCache(*pAcctViewCache));
