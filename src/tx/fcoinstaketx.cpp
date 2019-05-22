@@ -20,6 +20,10 @@ bool CFcoinStakeTx::CheckTx(CValidationState &state, CAccountViewCache &view, CS
                         REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
+    if (!CheckFundCoinMoneyRange(fcoinsToStake)) {
+        return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, fcoinsToStake out of range"),
+                        REJECT_INVALID, "bad-tx-fcoins-toolarge");
+    }
     if (!CheckSignatureSize(signature)) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, tx signature size invalid"),
                         REJECT_INVALID, "bad-tx-sig-size");
@@ -47,8 +51,32 @@ bool CFcoinStakeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSt
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, not sufficient fcoins(%d) in account (%s)",
                         account.fcoins, txUid.ToString()), FCOIN_STAKE_FAIL, "not-sufficiect-fcoins");
 
+    CAccountLog acctLog(account);
     // update the price state accordingly:
-    account.stakedFcoins += fcoinsToStake;
+    int64_t fcoins = account.stakedFcoins + fcoinsToStake;
+    if (!CheckFundCoinMoneyRange(fcoins)) {
+        return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, fcoinsToStake out of range"),
+                        REJECT_INVALID, "bad-tx-fcoins-toolarge");
+    }
+    account.stakedFcoins = fcoins;
+
+    if (!view.SaveAccountInfo(account))
+        return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, write source addr %s account info error",
+                        account.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+
+    txundo.vAccountLog.push_back(acctLog);
+    txundo.txHash = GetHash();
+    if (SysCfg().GetAddressToTxFlag()) {
+        CScriptDBOperLog operAddressToTxLog;
+        CKeyID sendKeyId;
+        if(!view.GetKeyId(txUid, sendKeyId))
+            return ERRORMSG("CAccountRegisterTx::ExecuteTx, get keyid by userId error!");
+
+        if(!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
+            return false;
+
+        txundo.vScriptOperLog.push_back(operAddressToTxLog);
+    }
 
     return true;
 }
