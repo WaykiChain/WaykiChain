@@ -245,8 +245,6 @@ bool CContractDeployTx::CheckTx(CValidationState &state, CAccountViewCache &view
     return true;
 }
 
-/***----####################################################----*****/
-
 bool CContractInvokeTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     CKeyID keyId;
     if (!view.GetKeyId(txUid, keyId))
@@ -326,17 +324,17 @@ Object CContractInvokeTx::ToJson(const CAccountViewCache &AccountView) const {
     view.GetKeyId(txUid, srcKeyId);
     view.GetKeyId(appUid, desKeyId);
 
-    result.push_back(Pair("hash",       GetHash().GetHex()));
-    result.push_back(Pair("tx_type",    GetTxType(nTxType)));
-    result.push_back(Pair("ver",        nVersion));
-    result.push_back(Pair("regid",      txUid.ToString()));
-    result.push_back(Pair("addr",       srcKeyId.ToAddress()));
-    result.push_back(Pair("app_uid",    appUid.ToString()));
-    result.push_back(Pair("app_addr",  desKeyId.ToAddress()));
-    result.push_back(Pair("money",      bcoins));
-    result.push_back(Pair("fees",       llFees));
-    result.push_back(Pair("arguments",  HexStr(arguments)));
-    result.push_back(Pair("valid_height", nValidHeight));
+    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("regid",          txUid.ToString()));
+    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
+    result.push_back(Pair("app_uid",        appUid.ToString()));
+    result.push_back(Pair("app_addr",       desKeyId.ToAddress()));
+    result.push_back(Pair("money",          bcoins));
+    result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("arguments",      HexStr(arguments)));
+    result.push_back(Pair("valid_height",   nValidHeight));
 
     return result;
 }
