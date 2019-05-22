@@ -1,11 +1,10 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2016 The Coin developers
-// Copyright (c) 2014-2019 The WaykiChain developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef COIN_BLOCK_H
-#define COIN_BLOCK_H
+#ifndef PERSIST_BLOCK_H
+#define PERSIST_BLOCK_H
 
 #include "configuration.h"
 #include "accounts/key.h"
@@ -644,4 +643,4 @@ public:
     }
 };
 
-#endif //COIN_BLOCK_H
+#endif  // PERSIST_BLOCK_H

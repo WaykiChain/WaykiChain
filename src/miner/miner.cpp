@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "miner.h"
 
@@ -23,20 +23,6 @@ extern void SetMinerStatus(bool bStatus);
 //
 // CoinMiner
 //
-
-//int static FormatHashBlocks(void* pbuffer, unsigned int len) {
-//  unsigned char* pdata = (unsigned char*) pbuffer;
-//  unsigned int blocks = 1 + ((len + 8) / 64);
-//  unsigned char* pend = pdata + 64 * blocks;
-//  memset(pdata + len, 0, 64 * blocks - len);
-//  pdata[len] = 0x80;
-//  unsigned int bits = len * 8;
-//  pend[-1] = (bits >> 0) & 0xff;
-//  pend[-2] = (bits >> 8) & 0xff;
-//  pend[-3] = (bits >> 16) & 0xff;
-//  pend[-4] = (bits >> 24) & 0xff;
-//  return blocks;
-//}
 
 const int MINED_BLOCK_COUNT_MAX = 100; // the max count of mined blocks will be cached
 
