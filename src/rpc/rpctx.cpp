@@ -1659,24 +1659,24 @@ static Value TestDisconnectBlock(int number) {
                 return false;
             mapBlockIndex.erase(pTipIndex->GetBlockHash());
 
-//          if (!ReadBlockFromDisk(block, pIndex))
-//              throw ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s", pIndex->nHeight,
-//                      pIndex->GetBlockHash().ToString());
-//          bool fClean = true;
-//          CTransactionDBCache txCacheTemp(*pTxCacheTip, true);
-//          CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
-//          if (!DisconnectBlock(block, state, view, pIndex, txCacheTemp, contractScriptTemp, &fClean))
-//              throw ERRORMSG("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s", pIndex->nHeight,
-//                      pIndex->GetBlockHash().ToString());
-//          CBlockIndex *pindexDelete = pIndex;
-//          pIndex = pIndex->pprev;
-//          chainActive.SetTip(pIndex);
-//
-//          assert(view.Flush() &&txCacheTemp.Flush()&& contractScriptTemp.Flush() );
-//          txCacheTemp.Clear();
+            // if (!ReadBlockFromDisk(block, pIndex))
+            //     throw ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s", pIndex->nHeight,
+            //                    pIndex->GetBlockHash().ToString());
+            // bool fClean = true;
+            // CTransactionDBCache txCacheTemp(*pTxCacheTip, true);
+            // CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
+            // if (!DisconnectBlock(block, state, view, pIndex, txCacheTemp, contractScriptTemp, &fClean))
+            //     throw ERRORMSG("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s",
+            //                    pIndex->nHeight, pIndex->GetBlockHash().ToString());
+            // CBlockIndex* pindexDelete = pIndex;
+            // pIndex                    = pIndex->pprev;
+            // chainActive.SetTip(pIndex);
+
+            // assert(view.Flush() && txCacheTemp.Flush() && contractScriptTemp.Flush());
+            // txCacheTemp.Clear();
         } while (--number);
     }
-//      pTxCacheTip->Flush();
+    // pTxCacheTip->Flush();
 
     obj.push_back(Pair("tip", strprintf("hash:%s hight:%s",chainActive.Tip()->GetBlockHash().ToString(),chainActive.Tip()->nHeight)));
     return obj;
