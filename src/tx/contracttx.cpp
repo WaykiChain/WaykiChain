@@ -351,7 +351,7 @@ bool CContractInvokeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidati
             txUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CAccountLog srcAcctLog(srcAcct);
-    if (!srcAcct.OperateBalance(CoinType::MICC, MINUS_VALUE, minusValue))
+    if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, minusValue))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, accounts insufficient funds"),
             UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
