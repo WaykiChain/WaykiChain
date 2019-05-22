@@ -470,6 +470,7 @@ bool CScriptDBViewCache::GetScript(const int nIndex, vector<unsigned char> &vScr
     }
     return true;
 }
+
 bool CScriptDBViewCache::SetScript(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptContent) {
     vector<unsigned char> scriptKey = {'d', 'e', 'f'};
     scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
@@ -484,6 +485,7 @@ bool CScriptDBViewCache::SetScript(const vector<unsigned char> &vScriptId, const
 
     return SetData(scriptKey, vScriptContent);
 }
+
 bool CScriptDBViewCache::Flush() {
     bool ok = pBase->BatchWrite(mapContractDb);
     if (ok) {
@@ -491,6 +493,7 @@ bool CScriptDBViewCache::Flush() {
     }
     return ok;
 }
+
 unsigned int CScriptDBViewCache::GetCacheSize() {
     return ::GetSerializeSize(mapContractDb, SER_DISK, CLIENT_VERSION);
 }
@@ -623,13 +626,14 @@ bool CScriptDBViewCache::GetScript(const vector<unsigned char> &vScriptId, vecto
     scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
     return GetData(scriptKey, vValue);
 }
+
 bool CScriptDBViewCache::GetScript(const CRegID &scriptId, vector<unsigned char> &vValue) {
     return GetScript(scriptId.GetRegIdRaw(), vValue);
 }
 
 bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
                                          const vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
-    //	assert(vScriptKey.size() == 8);
+    // assert(vScriptKey.size() == 8);
     vector<unsigned char> vKey = {'d', 'a', 't', 'a'};
 
     vKey.insert(vKey.end(), vScriptId.begin(), vScriptId.end());
@@ -641,10 +645,10 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
     if (vValue.empty())
         return false;
     vScriptData = vValue;
-    //	CDataStream ds(vValue, SER_DISK, CLIENT_VERSION);
-    //	ds >> vScriptData;
+
     return true;
 }
+
 bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
                                          const int &nIndex, vector<unsigned char> &vScriptKey,
                                          vector<unsigned char> &vScriptData) {
@@ -676,48 +680,13 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
         bool bUpLevelRet(false);
         int nIndexTemp = nIndex;
         while ((bUpLevelRet = pBase->GetContractData(nCurBlockHeight, vScriptId, nIndexTemp, vScriptKey, vScriptData))) {
-            //			LogPrint("INFO", "nCurBlockHeight:%d this addr:0x%x, nIndex:%d, count:%lld\n ScriptKey:%s\n nHeight:%d\n ScriptData:%s\n vDataKey:%s\n vDataValue:%s\n",
-            //					nCurBlockHeight, this, nIndexTemp, ++llCount, HexStr(vScriptKey), nHeight, HexStr(vScriptData), HexStr(vDataKey), HexStr(vDataValue));
             nIndexTemp = 1;
             vector<unsigned char> dataKeyTemp(vKey.begin(), vKey.end());
             dataKeyTemp.insert(dataKeyTemp.end(), vScriptKey.begin(), vScriptKey.end());
-            //			LogPrint("INFO", "dataKeyTemp:%s\n vDataKey:%s\n", HexStr(dataKeyTemp), HexStr(vDataKey));
-            //			if(mapContractDb.count(dataKeyTemp) > 0) {//本级缓存包含上级查询结果的key
-            //				if(dataKeyTemp != vDataKey) {  //本级和上级查找key不同，说明上级获取的数据在本级已被删除
-            //					continue;
-            //				} else {
-            //					if(vDataValue.empty()) { //本级和上级数据key相同,且本级数据已经删除，重新从上级获取下一条数据
-            //						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getcontractdata()\n");
-            //						continue;
-            //					}
-            //					vScriptKey.clear();
-            //					vScriptData.clear();
-            //					vScriptKey.insert(vScriptKey.end(), vDataKey.begin() + 11, vDataKey.end());
-            //					CDataStream ds(vDataValue, SER_DISK, CLIENT_VERSION);
-            //					ds >> nHeight;
-            //					ds >> vScriptData;
-            //					return true;
-            //				}
-            //			} else {//本级缓存不包含上级查询结果key
-            //				if (dataKeyTemp < vDataKey) { //上级获取key值小
-            //					return true;      //返回上级的查询结果
-            //				} else {              //本级查询结果Key值小，返回本级查询结果
-            //					vScriptKey.clear();
-            //					vScriptData.clear();
-            //					vScriptKey.insert(vScriptKey.end(), vDataKey.begin() + 11, vDataKey.end());
-            //					CDataStream ds(vDataValue, SER_DISK, CLIENT_VERSION);
-            //					ds >> nHeight;
-            //					ds >> vScriptData;
-            //					return true;
-            //				}
-            //			}
             if (vDataKey.empty()) {  //缓存中没有符合条件的key，直接返回上级的查询结果
                 if (!mapContractDb.count(dataKeyTemp)) {
-                    //					CDataStream ds(vScriptData, SER_DISK, CLIENT_VERSION);
-                    //					ds >> vScriptData;
                     return true;
                 } else {
-                    //					LogPrint("INFO", "local level contains dataKeyTemp,but the value is empty,need redo getcontractdata()\n");
                     continue;  //重新从数据库中获取下一条数据
                 }
             } else {
@@ -725,20 +694,16 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
                     if (!mapContractDb.count(dataKeyTemp)) {
                         return true;
                     } else {
-                        //						LogPrint("INFO", "dataKeyTemp less than vDataKey and vDataValue empty redo getcontractdata()\n");
                         continue;  //重新从数据库中获取下一条数据
                     }
                 } else {
                     if (vDataValue.empty()) {  //本级和上级数据key相同,且本级数据已经删除，重新从上级获取下一条数据
-                                               //						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getcontractdata()\n");
                         continue;
                     }
                     vScriptKey.clear();
                     vScriptData.clear();
                     vScriptKey.insert(vScriptKey.end(), vDataKey.begin() + 11, vDataKey.end());
                     vScriptData = vDataValue;
-                    //					CDataStream ds(vDataValue, SER_DISK, CLIENT_VERSION);
-                    //					ds >> vScriptData;
                     return true;
                 }
             }
@@ -754,8 +719,6 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
                     return false;
                 }
                 vScriptData = vDataValue;
-                //				CDataStream ds(vDataValue, SER_DISK, CLIENT_VERSION);
-                //				ds >> vScriptData;
                 return true;
             }
         }
@@ -784,52 +747,16 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
                 }
             } else {
                 break;
-                //++iterFindKey;
             }
         }
         bool bUpLevelRet(false);
         while ((bUpLevelRet = pBase->GetContractData(nCurBlockHeight, vScriptId, nIndex, vScriptKey, vScriptData))) {
-            //			LogPrint("INFO", "nCurBlockHeight:%d this addr:0x%x, nIndex:%d, count:%lld\n ScriptKey:%s\n nHeight:%d\n ScriptData:%s\n vDataKey:%s\n vDataValue:%s\n",
-            //					nCurBlockHeight, this, nIndex, ++llCount, HexStr(vScriptKey), nHeight, HexStr(vScriptData), HexStr(vDataKey), HexStr(vDataValue));
             vector<unsigned char> dataKeyTemp(vKey.begin(), vKey.end());
             dataKeyTemp.insert(dataKeyTemp.end(), vScriptKey.begin(), vScriptKey.end());
-            //			LogPrint("INFO", "dataKeyTemp:%s\n vDataKey:%s\n", HexStr(dataKeyTemp), HexStr(vDataKey));
-            //			if(mapContractDb.count(dataKeyTemp) > 0) {//本级缓存包含上级查询结果的key
-            //				if(dataKeyTemp != vDataKey) {  //本级和上级查找key不同，说明上级获取的数据在本级已被删除
-            //					continue;
-            //				} else {
-            //					if(vDataValue.empty()) { //本级和上级数据key相同,且本级数据已经删除，重新从上级获取下一条数据
-            //						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getcontractdata()\n");
-            //						continue;
-            //					}
-            //					vScriptKey.clear();
-            //					vScriptData.clear();
-            //					vScriptKey.insert(vScriptKey.end(), vDataKey.begin() + 11, vDataKey.end());
-            //					CDataStream ds(vDataValue, SER_DISK, CLIENT_VERSION);
-            //					ds >> nHeight;
-            //					ds >> vScriptData;
-            //					return true;
-            //				}
-            //			} else {//本级缓存不包含上级查询结果key
-            //				if (dataKeyTemp < vDataKey) { //上级获取key值小
-            //					return true;      //返回上级的查询结果
-            //				} else {              //本级查询结果Key值小，返回本级查询结果
-            //					vScriptKey.clear();
-            //					vScriptData.clear();
-            //					vScriptKey.insert(vScriptKey.end(), vDataKey.begin() + 11, vDataKey.end());
-            //					CDataStream ds(vDataValue, SER_DISK, CLIENT_VERSION);
-            //					ds >> nHeight;
-            //					ds >> vScriptData;
-            //					return true;
-            //				}
-            //			}
             if (vDataKey.empty()) {  //缓存中没有符合条件的key，直接返回上级的查询结果
                 if (!mapContractDb.count(dataKeyTemp)) {
-                    //					CDataStream ds(vScriptData, SER_DISK, CLIENT_VERSION);
-                    //					ds >> vScriptData;
                     return true;
                 } else {
-                    //					LogPrint("INFO", "local level contains dataKeyTemp,but the value is empty,need redo getcontractdata()\n");
                     continue;  //重新从数据库中获取下一条数据
                 }
             } else {
@@ -837,20 +764,16 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
                     if (!mapContractDb.count(dataKeyTemp))
                         return true;
                     else {
-                        //						LogPrint("INFO", "dataKeyTemp less than vDataKey and vDataValue empty redo getcontractdata()\n");
                         continue;  //在缓存中dataKeyTemp已经被删除过了，重新从数据库中获取下一条数据
                     }
                 } else {
                     if (vDataValue.empty()) {  //本级和上级数据key相同,且本级数据已经删除，重新从上级获取下一条数据
-                                               //						LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getcontractdata()\n");
                         continue;
                     }
                     vScriptKey.clear();
                     vScriptData.clear();
                     vScriptKey.insert(vScriptKey.end(), vDataKey.begin() + 11, vDataKey.end());
                     vScriptData = vDataValue;
-                    //					CDataStream ds(vDataValue, SER_DISK, CLIENT_VERSION);
-                    //					ds >> vScriptData;
                     return true;
                 }
             }
@@ -866,161 +789,13 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
                     return false;
                 }
                 vScriptData = vDataValue;
-                //				CDataStream ds(vDataValue, SER_DISK, CLIENT_VERSION);
-                //				ds >> vScriptData;
                 return true;
             }
         }
     } else {
-        //		assert(0);
-        return ERRORMSG("getcontractdata nIndex > 1 error");
+        return ERRORMSG("GetContractData, nIndex > 1 error");
     }
-    //	vector<unsigned char> vKey = { 'd', 'a', 't', 'a' };
-    //	vKey.insert(vKey.end(), vScriptId.begin(), vScriptId.end());
-    //	vKey.push_back('_');
-    //	vector<unsigned char> vDataKey;
-    //	vector<unsigned char> vDataValue;
-    //	if(0 == nIndex) {
-    //		vDataKey.clear();
-    //		vDataValue.clear();
-    //		for (auto &item : mapContractDb) {   //遍历本级缓存数据，找出合法的最小的key值
-    //			vector<unsigned char> vTemp(item.first.begin(),item.first.begin()+vScriptId.size()+5);
-    //			if(vKey == vTemp) {
-    //				if(item.second.empty()) {
-    //					continue;
-    //				}
-    //				vDataKey = item.first;
-    //				vDataValue = item.second;
-    //				CDataStream ds(vDataValue, SER_DISK, CLIENT_VERSION);
-    //				ds >> nHeight;
-    //				if(nHeight <= nCurBlockHeight) { //若找到的key对应的数据保存时间已经超时，则需要删除该数据项，继续找下一个符合条件的key
-    //					CScriptDBOperLog operLog(vDataKey, vDataValue);
-    //					vDataKey.clear();
-    //					vDataValue.clear();
-    //					setOperLog.insert(operLog);
-    //					continue;
-    //				}
-    //				break;
-    //			}
-    //		}
-    //	}
-    //	else if (1 == nIndex) {
-    //		vector<unsigned char> vPreKey(vKey);
-    //		vPreKey.insert(vPreKey.end(), vScriptKey.begin(), vScriptKey.end());
-    //		map<vector<unsigned char>, vector<unsigned char> >::iterator iterFindKey = mapContractDb.upper_bound(vPreKey);
-    //		vDataValue.clear();
-    //		vDataKey.clear();
-    //		while (iterFindKey != mapContractDb.end()) {
-    //			vector<unsigned char> vKeyTemp(vKey.begin(), vKey.begin() + vScriptId.size() + 5);
-    //			vector<unsigned char> vTemp(iterFindKey->first.begin(), iterFindKey->first.begin() + vScriptId.size() + 5);
-    //			if (vKeyTemp == vTemp) {
-    //				if (iterFindKey->second.empty()) {
-    //					++iterFindKey;
-    //					continue;
-    //				} else {
-    //					vDataKey = iterFindKey->first;
-    //					vDataValue = iterFindKey->second;
-    //					CDataStream ds(vDataValue, SER_DISK, CLIENT_VERSION);
-    //					ds >> nHeight;
-    //					if (nHeight <= nCurBlockHeight) { //若找到的key对应的数据保存时间已经超时，则需要删除该数据项，继续找下一个符合条件的key
-    //						CScriptDBOperLog operLog(vDataKey, iterFindKey->second);
-    //						vDataKey.clear();
-    //						vDataValue.clear();
-    //						setOperLog.insert(operLog);
-    //						++iterFindKey;
-    //						continue;
-    //					}
-    //					break;
-    //				}
-    //			} else {
-    //				++iterFindKey;
-    //			}
-    //		}
-    //	}
-    //	else {
-    //		assert(0);
-    //	}
-    //	bool bUpLevelRet(false);
-    //	unsigned long llCount(0);
-    //	int nIndexTemp = nIndex;
-    //	while((bUpLevelRet = pBase->getContractData(nCurBlockHeight, vScriptId, nIndexTemp, vScriptKey, vScriptData, nHeight, setOperLog))) {
-    //		LogPrint("INFO", "nCurBlockHeight:%d this addr:%x, nIndex:%d, count:%lld\n ScriptKey:%s\n nHeight:%d\n ScriptData:%s\n vDataKey:%s\n vDataValue:%s\n",
-    //				nCurBlockHeight, this, nIndexTemp, ++llCount, HexStr(vScriptKey), nHeight, HexStr(vScriptData), HexStr(vDataKey), HexStr(vDataValue));
-    //		nIndexTemp = 1;
-    //		for(auto &itemKey : mapContractDb) {
-    //			vector<unsigned char> vKeyTemp(itemKey.first.begin(), itemKey.first.begin() + vKey.size());
-    //			if(vKeyTemp == vKey) {
-    //				LogPrint("INFO", "vKey:%s\n vValue:%s\n", HexStr(itemKey.first), HexStr(itemKey.second));
-    //			}
-    //		}
-    //		set<CScriptDBOperLog>::iterator iterOperLog = setOperLog.begin();
-    //		for (; iterOperLog != setOperLog.end();) { //防止由于没有flush cache，对数据库中超时的脚本数据项，在cache中多次删除，引起删除失败
-    //			if (mapContractDb.count(iterOperLog->vKey) > 0 && mapContractDb[iterOperLog->vKey].empty()) {
-    //				LogPrint("INFO", "DeleteData key:%s\n", HexStr(iterOperLog->vKey));
-    //				setOperLog.erase(iterOperLog++);
-    //			}else {
-    //				++iterOperLog;
-    //			}
-    //		}
-    //		vector<unsigned char> dataKeyTemp(vKey.begin(), vKey.end());
-    //		dataKeyTemp.insert(dataKeyTemp.end(), vScriptKey.begin(), vScriptKey.end());
-    //		LogPrint("INFO", "dataKeyTemp:%s\n vDataKey:%s\n", HexStr(dataKeyTemp), HexStr(vDataKey));
-    //		if(mapContractDb.count(dataKeyTemp) > 0) {//本级缓存包含上级查询结果的key
-    //			if(dataKeyTemp != vDataKey) {  //本级和上级查找key不同，说明上级获取的数据在本级已被删除
-    //				LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getcontractdata()\n");
-    //				continue;
-    //			} else {
-    //				if(vDataValue.empty()) { //本级和上级数据key相同,且本级数据已经删除，重新从上级获取下一条数据
-    //					LogPrint("INFO", "dataKeyTemp equal vDataKey and vDataValue empty redo getcontractdata()\n");
-    //					continue;
-    //				}
-    //				vScriptKey.clear();
-    //				vScriptData.clear();
-    //				vScriptKey.insert(vScriptKey.end(), vDataKey.begin() + 11, vDataKey.end());
-    //				CDataStream ds(vDataValue, SER_DISK, CLIENT_VERSION);
-    //				ds >> nHeight;
-    //				ds >> vScriptData;
-    //				return true;
-    //			}
-    //		} else {//本级缓存不包含上级查询结果key
-    //			if (dataKeyTemp < vDataKey) { //上级获取key值小
-    //				return true;      //返回上级的查询结果
-    //			} else {              //本级查询结果Key值小，返回本级查询结果
-    //				vScriptKey.clear();
-    //				vScriptData.clear();
-    //				vScriptKey.insert(vScriptKey.end(), vDataKey.begin() + 11, vDataKey.end());
-    //				CDataStream ds(vDataValue, SER_DISK, CLIENT_VERSION);
-    //				ds >> nHeight;
-    //				ds >> vScriptData;
-    //				return true;
-    //			}
-    //		}
-    //		if(!bUpLevelRet) {
-    //			set<CScriptDBOperLog>::iterator iterOperLog = setOperLog.begin();
-    //			for (; iterOperLog != setOperLog.end();) { //防止由于没有flush cache，对数据库中超时的脚本数据项，在cache中多次删除，引起删除失败
-    //				if (mapContractDb.count(iterOperLog->vKey) > 0 && mapContractDb[iterOperLog->vKey].empty()) {
-    //					LogPrint("INFO", "DeleteData key:%s\n", HexStr(iterOperLog->vKey));
-    //					setOperLog.erase(iterOperLog++);
-    //				}else{
-    //					++iterOperLog;
-    //				}
-    //			}
-    //			if (vDataKey.empty())
-    //				return false;
-    //			else {
-    //				vScriptKey.clear();
-    //				vScriptData.clear();
-    //				vScriptKey.insert(vScriptKey.end(), vDataKey.begin() + 11, vDataKey.end());
-    //				if (vDataValue.empty()) {
-    //					return false;
-    //				}
-    //				CDataStream ds(vDataValue, SER_DISK, CLIENT_VERSION);
-    //				ds >> nHeight;
-    //				ds >> vScriptData;
-    //				return true;
-    //			}
-    //		}
-    //	}
+
     return true;
 }
 bool CScriptDBViewCache::SetContractData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
@@ -1072,7 +847,6 @@ bool CScriptDBViewCache::SetScriptCount(const int nCount) {
         ds << nCount;
         vValue.insert(vValue.end(), ds.begin(), ds.end());
     } else {
-        //		assert(0);
         return false;
     }
     if (!SetData(scriptKey, vValue))
@@ -1157,7 +931,6 @@ bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId,
 bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vKey) {
     if (vKey.size() < 12) {
         return ERRORMSG("EraseAppData delete script data key value error!");
-        //		assert(0);
     }
     vector<unsigned char> vScriptId(vKey.begin() + 4, vKey.begin() + 10);
     vector<unsigned char> vScriptKey(vKey.begin() + 11, vKey.end());
@@ -1185,35 +958,46 @@ bool CScriptDBViewCache::GetScript(const int nIndex, CRegID &scriptId, vector<un
 
     return false;
 }
+
 bool CScriptDBViewCache::SetScript(const CRegID &scriptId, const vector<unsigned char> &vValue) {
     return SetScript(scriptId.GetRegIdRaw(), vValue);
 }
+
 bool CScriptDBViewCache::HaveScript(const CRegID &scriptId) {
     return HaveScript(scriptId.GetRegIdRaw());
 }
+
 bool CScriptDBViewCache::EraseScript(const CRegID &scriptId) {
     return EraseScript(scriptId.GetRegIdRaw());
 }
+
 bool CScriptDBViewCache::GetContractItemCount(const CRegID &scriptId, int &nCount) {
     return GetContractItemCount(scriptId.GetRegIdRaw(), nCount);
 }
+
 bool CScriptDBViewCache::EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog) {
     return EraseAppData(scriptId.GetRegIdRaw(), vScriptKey, operLog);
 }
+
 bool CScriptDBViewCache::HaveScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey) {
     return HaveScriptData(scriptId.GetRegIdRaw(), vScriptKey);
 }
+
 bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
                                          vector<unsigned char> &vScriptData) {
     return GetContractData(nCurBlockHeight, scriptId.GetRegIdRaw(), vScriptKey, vScriptData);
 }
-bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex, vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
+
+bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
+                                         vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
     return GetContractData(nCurBlockHeight, scriptId.GetRegIdRaw(), nIndex, vScriptKey, vScriptData);
 }
+
 bool CScriptDBViewCache::SetContractData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
                                          const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog) {
     return SetContractData(scriptId.GetRegIdRaw(), vScriptKey, vScriptData, operLog);
 }
+
 bool CScriptDBViewCache::SetTxRelAccout(const uint256 &txHash, const set<CKeyID> &relAccount) {
     vector<unsigned char> vKey = {'t', 'x'};
     vector<unsigned char> vValue;
@@ -1240,6 +1024,7 @@ bool CScriptDBViewCache::GetTxRelAccount(const uint256 &txHash, set<CKeyID> &rel
     ds >> relAccount;
     return true;
 }
+
 bool CScriptDBViewCache::EraseTxRelAccout(const uint256 &txHash) {
     vector<unsigned char> vKey = {'t', 'x'};
     vector<unsigned char> vValue;
@@ -1250,6 +1035,7 @@ bool CScriptDBViewCache::EraseTxRelAccout(const uint256 &txHash) {
     SetData(vKey, vValue);
     return true;
 }
+
 Object CScriptDBViewCache::ToJsonObj() const {
     Object obj;
     Array arrayObj;
@@ -1259,7 +1045,7 @@ Object CScriptDBViewCache::ToJsonObj() const {
         obj.push_back(Pair("value", HexStr(item.second)));
         arrayObj.push_back(obj);
     }
-    //	obj.push_back(Pair("mapContractDb", arrayObj));
+    // obj.push_back(Pair("mapContractDb", arrayObj));
     arrayObj.push_back(pBase->ToJsonObj("def"));
     arrayObj.push_back(pBase->ToJsonObj("data"));
     arrayObj.push_back(pBase->ToJsonObj("author"));
