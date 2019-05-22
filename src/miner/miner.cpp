@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "miner.h"
 
@@ -23,20 +23,6 @@ extern void SetMinerStatus(bool bStatus);
 //
 // CoinMiner
 //
-
-//int static FormatHashBlocks(void* pbuffer, unsigned int len) {
-//  unsigned char* pdata = (unsigned char*) pbuffer;
-//  unsigned int blocks = 1 + ((len + 8) / 64);
-//  unsigned char* pend = pdata + 64 * blocks;
-//  memset(pdata + len, 0, 64 * blocks - len);
-//  pdata[len] = 0x80;
-//  unsigned int bits = len * 8;
-//  pend[-1] = (bits >> 0) & 0xff;
-//  pend[-2] = (bits >> 8) & 0xff;
-//  pend[-3] = (bits >> 16) & 0xff;
-//  pend[-4] = (bits >> 24) & 0xff;
-//  return blocks;
-//}
 
 const int MINED_BLOCK_COUNT_MAX = 100; // the max count of mined blocks will be cached
 
@@ -109,7 +95,7 @@ void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pindexPrev, unsigned int &
     }
     ++nExtraNonce;
 
-    pblock->SetMerkleRootHash( pblock->BuildMerkleTree() );
+    pblock->SetMerkleRootHash(pblock->BuildMerkleTree());
 }
 
 bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCache &accViewIn, CScriptDBViewCache &scriptCacheIn) {
@@ -138,14 +124,15 @@ bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCach
             CAccount account;
             if (!accView.GetAccount(acctRegId, account)) {
                 LogPrint("ERROR", "GetAccount Error, acctRegId:%s\n", acctRegId.ToString());
-                //StartShutdown();
+                // StartShutdown();
                 return false;
             }
             uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
             if ((maxNum - receivedVotes) != account.receivedVotes) {
-                LogPrint("ERROR", "acctRegId:%s, receivedVotes:%lld, account:%s\n", acctRegId.ToString(), maxNum - receivedVotes, account.ToString());
-                LogPrint("ERROR", "scriptkey:%s, scriptvalue:%s\n", HexStr(vScriptKey.begin(), vScriptKey.end()), HexStr(vScriptData.begin(), vScriptData.end()));
-                //StartShutdown();
+                LogPrint("ERROR", "acctRegId:%s, scriptkey:%s, scriptvalue:%s => receivedVotes:%lld, account:%s\n",
+                         acctRegId.ToString(), HexStr(vScriptKey.begin(), vScriptKey.end()),
+                         HexStr(vScriptData.begin(), vScriptData.end()), maxNum - receivedVotes, account.ToString());
+                // StartShutdown();
                 return false;
             }
             vDelegatesAcctList.push_back(account);
@@ -170,7 +157,7 @@ bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDele
     return true;
 }
 
-bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock) {
+bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock) {
     unsigned int nNonce = GetRand(SysCfg().GetBlockMaxNonce());
     CBlock preBlock;
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
@@ -506,7 +493,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
         if (!GetCurrentDelegate(currentTime, vDelegatesAcctList, minerAcct))
             return false; // not on duty hence returns
 
-        bool createdFlag = false;
+        bool success = false;
         int64_t nLastTime;
         {
             LOCK2(cs_main, pWalletMain->cs_wallet);
@@ -515,20 +502,20 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
             CKey acctKey;
             if (pWalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey, true) ||
                 pWalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey)) {
-                nLastTime   = GetTimeMillis();
-                createdFlag = CreatePosTx(currentTime, minerAcct, view, pblock);
-                LogPrint("MINER", "CreatePosTx %s, used time:%d ms, miner address=%s\n",
-                    createdFlag ? "success" : "failure", GetTimeMillis() - nLastTime, minerAcct.keyID.ToAddress());
+                nLastTime = GetTimeMillis();
+                success   = CreateBlockRewardTx(currentTime, minerAcct, view, pblock);
+                LogPrint("MINER", "CreateBlockRewardTx %s, used time:%d ms, miner address=%s\n",
+                    success ? "success" : "failure", GetTimeMillis() - nLastTime, minerAcct.keyID.ToAddress());
             }
         }
 
-        if (createdFlag == true) {
+        if (success) {
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
-            {
-                nLastTime = GetTimeMillis();
-                CheckWork(pblock, *pwallet);
-                LogPrint("MINER", "CheckWork used time:%d ms\n", GetTimeMillis() - nLastTime);
-            }
+
+            nLastTime = GetTimeMillis();
+            CheckWork(pblock, *pwallet);
+            LogPrint("MINER", "CheckWork used time:%d ms\n", GetTimeMillis() - nLastTime);
+
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
             g_miningBlockInfo.nTime = pblock->GetBlockTime();

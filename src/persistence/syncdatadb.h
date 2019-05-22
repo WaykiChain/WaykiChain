@@ -1,10 +1,10 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2019- The WaykiChain Core Developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef SYNC_DATA_DB_H_
-#define SYNC_DATA_DB_H_
+#ifndef PERSIST_SYNCDATADB_H
+#define PERSIST_SYNCDATADB_H
 
 #include "sync.h"
 #include "syncdata.h"
@@ -60,6 +60,6 @@ class CSyncDataDb
 		static boost::shared_ptr<CLevelDBWrapper>	m_dbPoint;
 };
 
-} /* namespace SyncData */
+}
 
-#endif /* SYNC_DATA_DB_H_ */
+#endif // PERSIST_SYNCDATADB_H

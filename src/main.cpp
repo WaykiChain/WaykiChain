@@ -1254,7 +1254,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
         return false;
 
     if (!fJustCheck) {
-        // verify that the view's current state corresponds to the previous block
+        // Verify that the view's current state corresponds to the previous block
         uint256 hashPrevBlock = pIndex->pprev == NULL ? uint256() : pIndex->pprev->GetBlockHash();
         if (hashPrevBlock != view.GetBestBlock()) {
             LogPrint("INFO", "hashPrevBlock=%s, bestblock=%s\n",
@@ -2778,15 +2778,13 @@ bool CheckDiskSpace(uint64_t nAdditionalBytes) {
     uint64_t nFreeBytesAvailable = filesystem::space(GetDataDir()).available;
 
     // Check for kMinDiskSpace bytes (currently 50MB)
-    if (nFreeBytesAvailable < kMinDiskSpace + nAdditionalBytes)
-        return AbortNode(_("Error: Disk space is low!"));
+    if (nFreeBytesAvailable < kMinDiskSpace + nAdditionalBytes) return AbortNode(_("Error: Disk space is low!"));
 
     return true;
 }
 
 bool static LoadBlockIndexDB() {
-    if (!pblocktree->LoadBlockIndexGuts())
-        return false;
+    if (!pblocktree->LoadBlockIndexGuts()) return false;
 
     boost::this_thread::interruption_point();
 
@@ -2804,10 +2802,10 @@ bool static LoadBlockIndexDB() {
         pIndex->nChainTx    = (pIndex->pprev ? pIndex->pprev->nChainTx : 0) + pIndex->nTx;
         if ((pIndex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS && !(pIndex->nStatus & BLOCK_FAILED_MASK))
             setBlockIndexValid.insert(pIndex);
-        if (pIndex->nStatus & BLOCK_FAILED_MASK && (!pindexBestInvalid || pIndex->nChainWork > pindexBestInvalid->nChainWork))
+        if (pIndex->nStatus & BLOCK_FAILED_MASK &&
+            (!pindexBestInvalid || pIndex->nChainWork > pindexBestInvalid->nChainWork))
             pindexBestInvalid = pIndex;
-        if (pIndex->pprev)
-            pIndex->BuildSkip();
+        if (pIndex->pprev) pIndex->BuildSkip();
     }
 
     // Load block file info
@@ -2832,8 +2830,6 @@ bool static LoadBlockIndexDB() {
     // Load pointer to end of best chain
     map<uint256, CBlockIndex *>::iterator it = mapBlockIndex.find(pAccountViewTip->GetBestBlock());
 
-    //    for(auto &item : mapBlockIndex)
-    //      LogPrint("INFO", "block hash:%s\n", item.first.GetHex());
     LogPrint("INFO", "best block hash:%s\n", pAccountViewTip->GetBestBlock().GetHex());
     if (it == mapBlockIndex.end())
         return true;
@@ -2858,21 +2854,22 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
         nCheckDepth = chainActive.Height();
     nCheckLevel = max(0, min(4, nCheckLevel));
     LogPrint("INFO", "Verifying last %i blocks at level %i\n", nCheckDepth, nCheckLevel);
-    CAccountViewCache view(*pAccountViewTip);
-    CTransactionDBCache txCacheTemp(*pTxCacheTip);
-    CScriptDBViewCache scriptDBCache(*pScriptDBTip);
+
+    // Copy global view cache before disconnect and connect.
+    CAccountViewCache accountCache(*pAccountViewTip);
+    CTransactionDBCache txCache(*pTxCacheTip);
+    CScriptDBViewCache scriptCache(*pScriptDBTip);
+
     CBlockIndex *pindexState   = chainActive.Tip();
     CBlockIndex *pindexFailure = NULL;
     int nGoodTransactions      = 0;
     CValidationState state;
-    //   int64_t llTime = 0;
+
     for (CBlockIndex *pIndex = chainActive.Tip(); pIndex && pIndex->pprev; pIndex = pIndex->pprev) {
-        //      llTime = GetTimeMillis();
         boost::this_thread::interruption_point();
         if (pIndex->nHeight < chainActive.Height() - nCheckDepth)
             break;
         CBlock block;
-        //       LogPrint("INFO", "block hash:%s", pIndex->GetBlockHash().ToString());
         // check level 0: read from disk
         if (!ReadBlockFromDisk(pIndex, block))
             return ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s",
@@ -2894,7 +2891,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
             }
         }
         // check level 3: check for inconsistencies during memory-only disconnect of tip blocks
-        if (nCheckLevel >= 3 && pIndex == pindexState /*&& (coins.GetCacheSize() + pcoinsTip->GetCacheSize()) <= 2*nCoinCacheSize + 32000*/) {
+        if (nCheckLevel >= 3 && pIndex == pindexState) {
             bool fClean = true;
 
             if (!DisconnectBlock(block, state, view, pIndex, txCacheTemp, scriptDBCache, &fClean))
@@ -2908,7 +2905,6 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
             } else
                 nGoodTransactions += block.vptx.size();
         }
-        //        LogPrint("INFO", "VerifyDB block height:%d, hash:%s ,elapse time:%lld ms\n", pIndex->nHeight, pIndex->GetBlockHash().GetHex(), GetTimeMillis() - llTime);
     }
     if (pindexFailure)
         return ERRORMSG("VerifyDB() : *** coin database inconsistencies found (last %i blocks, %i good transactions before that)\n",

@@ -1,11 +1,10 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2016 The Coin developers
-// Copyright (c) 2014-2019 The WaykiChain developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef _TXDB_H_
-#define _TXDB_H_
+#ifndef PERSIST_TXDB_H
+#define PERSIST_TXDB_H
 
 #include "vm/appaccount.h"
 #include "commons/serialize.h"
@@ -73,5 +72,4 @@ public:
     void SetCacheMap(const map<uint256, UnorderedHashSet> &mapCache);
 };
 
-
-#endif
+#endif // PERSIST_TXDB_H

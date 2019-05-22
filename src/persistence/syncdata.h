@@ -1,10 +1,10 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2019- The WaykiChain Core Developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef CSYNC_DATA_H_
-#define CSYNC_DATA_H_
+#ifndef PERSIST_SYNCDATA_H
+#define PERSIST_SYNCDATA_H
 
 #include "db.h"
 #include "main.h"
@@ -39,6 +39,6 @@ class CSyncData
 		std::vector<unsigned char> 	m_vchSig;
 };
 
-} /* namespace SyncData */
+}
 
-#endif /* CSYNC_DATA_H_ */
+#endif // PERSIST_SYNCDATA_H
