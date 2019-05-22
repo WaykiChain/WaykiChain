@@ -14,7 +14,7 @@ private:
     uint64_t fcoinsToStake;
 
 public:
-    CFcoinStakeTx(): CBaseTx(FCOIN_STAKE_TX) {}
+    CFcoinStakeTx(): CBaseTx(FCOIN_STAKE_TX) { fcoinsToStake = 0;}
 
     CFcoinStakeTx(const CBaseTx *pBaseTx): CBaseTx(FCOIN_STAKE_TX) {
         assert(FCOIN_STAKE_TX == pBaseTx->nTxType);

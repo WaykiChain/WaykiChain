@@ -179,14 +179,16 @@ inline FeatureForkVersionEnum GetFeatureForkVersion(int blockHeight) {
 	}
 };
 
-/** No amount larger than this (in sawi) is valid */
-static const int64_t MAX_MONEY = IniCfg().GetCoinInitValue() * COIN;
-static const int64_t MAX_MONEY_REG_NET = 5 * MAX_MONEY;
 static const int g_BlockVersion = 1;
-static const int64_t INIT_FUEL_RATES             = 100;  // 100 unit / 100 step
-static const int64_t MIN_FUEL_RATES              = 1;    // 1 unit / 100 step
 
-inline int64_t GetMaxMoney() { return (SysCfg().NetworkID() == REGTEST_NET ? MAX_MONEY_REG_NET : MAX_MONEY); }
-inline bool CheckMoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= GetMaxMoney()); }
+/** No amount larger than this (in sawi) is valid */
+static const int64_t MAX_MONEY 			= IniCfg().GetCoinInitValue() * COIN;	//210 million
+static const int64_t MAX_MONEY_FUNDCOIN = MAX_MONEY / 10;						// 21 million
+static const int64_t INIT_FUEL_RATES    = 100;  	// 100 unit / 100 step
+static const int64_t MIN_FUEL_RATES     = 1;    	// 1 unit / 100 step
+
+inline int64_t GetMaxMoney() { return MAX_MONEY; }
+inline bool CheckMoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
+inline bool CheckFundCoinMoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY_FUNDCOIN); }
 
 #endif /* CONFIGURATION_H_ */

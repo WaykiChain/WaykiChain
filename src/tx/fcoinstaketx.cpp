@@ -40,14 +40,15 @@ bool CFcoinStakeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSt
     CAccount account;
     if (!view.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, read txUid %s account info error",
-                        txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
+                        txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
     // check if account has sufficient fcoins to be a price feeder
     if (account.fcoins < kDefaultPriceFeedFcoinsMin)
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, not sufficient fcoins(%d) in account (%s)",
-                        account.fcoins, txUid.ToString()), PRICE_FEED_FAIL, "not-sufficiect-fcoins");
+                        account.fcoins, txUid.ToString()), FCOIN_STAKE_FAIL, "not-sufficiect-fcoins");
 
     // update the price state accordingly:
+    account.stakedFcoins += fcoinsToStake;
 
     return true;
 }

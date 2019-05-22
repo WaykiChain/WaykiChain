@@ -106,14 +106,15 @@ static const unsigned char REJECT_DUST            = 0x41;
 static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
 static const unsigned char REJECT_CHECKPOINT      = 0x43;
 
-static const unsigned char READ_ACCOUNT_FAIL   = 0X51;
-static const unsigned char WRITE_ACCOUNT_FAIL  = 0X52;
-static const unsigned char UPDATE_ACCOUNT_FAIL = 0X53;
+static const unsigned char READ_ACCOUNT_FAIL    = 0X51;
+static const unsigned char WRITE_ACCOUNT_FAIL   = 0X52;
+static const unsigned char UPDATE_ACCOUNT_FAIL  = 0X53;
 
-static const unsigned char PRICE_FEED_FAIL     = 0X54;
+static const unsigned char PRICE_FEED_FAIL      = 0X54;
+static const unsigned char FCOIN_STAKE_FAIL     = 0X55;
 
-static const unsigned char READ_SCRIPT_FAIL  = 0X61;
-static const unsigned char WRITE_SCRIPT_FAIL = 0X62;
+static const unsigned char READ_SCRIPT_FAIL     = 0X61;
+static const unsigned char WRITE_SCRIPT_FAIL    = 0X62;
 
 static const uint64_t kMinDiskSpace              = 52428800;  // Minimum disk space required
 static const int kContractScriptMaxSize          = 65536;     // 64 KB max for contract script size
