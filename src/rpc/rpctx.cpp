@@ -1676,7 +1676,6 @@ static Value TestDisconnectBlock(int number) {
             // txCacheTemp.Clear();
         } while (--number);
     }
-    // pTxCacheTip->Flush();
 
     obj.push_back(Pair("tip", strprintf("hash:%s hight:%s",chainActive.Tip()->GetBlockHash().ToString(),chainActive.Tip()->nHeight)));
     return obj;
@@ -1719,10 +1718,9 @@ Value resetclient(const Array& params, bool fHelp) {
         pWalletMain->CleanAll();
         CBlockIndex* te = chainActive.Tip();
         uint256 hash = te->GetBlockHash();
-//      auto ret = remove_if( mapBlockIndex.begin(), mapBlockIndex.end(),[&](std::map<uint256, CBlockIndex*>::reference a) {
-//          return (a.first == hash);
-//      });
-//      mapBlockIndex.erase(ret,mapBlockIndex.end());
+        // auto ret        = remove_if(mapBlockIndex.begin(), mapBlockIndex.end(),
+        //                      [&](std::map<uint256, CBlockIndex*>::reference a) { return (a.first == hash); });
+        // mapBlockIndex.erase(ret, mapBlockIndex.end());
         for (auto it = mapBlockIndex.begin(), ite = mapBlockIndex.end(); it != ite;) {
             if (it->first != hash)
                 it = mapBlockIndex.erase(it);
@@ -1731,7 +1729,6 @@ Value resetclient(const Array& params, bool fHelp) {
         }
         pAccountViewTip->Flush();
         pScriptDBTip->Flush();
-        pTxCacheTip->Flush();
 
         assert(pAccountViewDB->GetDbCount() == 43);
         assert(pScriptDB->GetDbCount() == 0 || pScriptDB->GetDbCount() == 1);
