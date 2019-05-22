@@ -1,10 +1,10 @@
-// Copyright (c) 2014-2015 The WaykiChain developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef COIN_LEVELDBWRAPPER_H
-#define COIN_LEVELDBWRAPPER_H
+#ifndef PERSIST_LEVELDBWRAPPER_H
+#define PERSIST_LEVELDBWRAPPER_H
 
 #include "commons/serialize.h"
 #include "util.h"
@@ -198,4 +198,4 @@ public:
    // Object ToJsonObj();
 };
 
-#endif // COIN_LEVELDBWRAPPER_H
+#endif // PERSIST_LEVELDBWRAPPER_H

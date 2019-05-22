@@ -1,6 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2013 The Coin developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -77,7 +76,7 @@ void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pindexPrev, unsigned int &
 /** Do mining precalculation */
 void FormatHashBuffers(CBlock *pblock, char *pmidstate, char *pdata, char *phash1);
 
-bool CreatePosTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock);
+bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock);
 
 bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList);
 bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCache &accViewIn, CScriptDBViewCache &scriptCacheIn);
