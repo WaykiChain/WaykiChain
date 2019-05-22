@@ -2875,17 +2875,22 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
         //       LogPrint("INFO", "block hash:%s", pIndex->GetBlockHash().ToString());
         // check level 0: read from disk
         if (!ReadBlockFromDisk(pIndex, block))
-            return ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s", pIndex->nHeight, pIndex->GetBlockHash().ToString());
+            return ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s",
+                            pIndex->nHeight, pIndex->GetBlockHash().ToString());
+
         // check level 1: verify block validity
         if (nCheckLevel >= 1 && !CheckBlock(block, state, view, scriptDBCache))
-            return ERRORMSG("VerifyDB() : *** found bad block at %d, hash=%s\n", pIndex->nHeight, pIndex->GetBlockHash().ToString());
+            return ERRORMSG("VerifyDB() : *** found bad block at %d, hash=%s\n",
+                            pIndex->nHeight, pIndex->GetBlockHash().ToString());
+
         // check level 2: verify undo validity
         if (nCheckLevel >= 2 && pIndex) {
             CBlockUndo undo;
             CDiskBlockPos pos = pIndex->GetUndoPos();
             if (!pos.IsNull()) {
                 if (!undo.ReadFromDisk(pos, pIndex->pprev->GetBlockHash()))
-                    return ERRORMSG("VerifyDB() : *** found bad undo data at %d, hash=%s\n", pIndex->nHeight, pIndex->GetBlockHash().ToString());
+                    return ERRORMSG("VerifyDB() : *** found bad undo data at %d, hash=%s\n",
+                                    pIndex->nHeight, pIndex->GetBlockHash().ToString());
             }
         }
         // check level 3: check for inconsistencies during memory-only disconnect of tip blocks
@@ -2893,7 +2898,9 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
             bool fClean = true;
 
             if (!DisconnectBlock(block, state, view, pIndex, txCacheTemp, scriptDBCache, &fClean))
-                return ERRORMSG("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s", pIndex->nHeight, pIndex->GetBlockHash().ToString());
+                return ERRORMSG("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s",
+                                pIndex->nHeight, pIndex->GetBlockHash().ToString());
+
             pindexState = pIndex->pprev;
             if (!fClean) {
                 nGoodTransactions = 0;
@@ -2904,7 +2911,8 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
         //        LogPrint("INFO", "VerifyDB block height:%d, hash:%s ,elapse time:%lld ms\n", pIndex->nHeight, pIndex->GetBlockHash().GetHex(), GetTimeMillis() - llTime);
     }
     if (pindexFailure)
-        return ERRORMSG("VerifyDB() : *** coin database inconsistencies found (last %i blocks, %i good transactions before that)\n", chainActive.Height() - pindexFailure->nHeight + 1, nGoodTransactions);
+        return ERRORMSG("VerifyDB() : *** coin database inconsistencies found (last %i blocks, %i good transactions before that)\n",
+                        chainActive.Height() - pindexFailure->nHeight + 1, nGoodTransactions);
 
     // check level 4: try reconnecting blocks
     if (nCheckLevel >= 4) {
@@ -2914,13 +2922,16 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
             pIndex = chainActive.Next(pIndex);
             CBlock block;
             if (!ReadBlockFromDisk(pIndex, block))
-                return ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s", pIndex->nHeight, pIndex->GetBlockHash().ToString());
+                return ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s",
+                                pIndex->nHeight, pIndex->GetBlockHash().ToString());
             if (!ConnectBlock(block, state, view, pIndex, txCacheTemp, scriptDBCache, false))
-                return ERRORMSG("VerifyDB() : *** found unconnectable block at %d, hash=%s", pIndex->nHeight, pIndex->GetBlockHash().ToString());
+                return ERRORMSG("VerifyDB() : *** found unconnectable block at %d, hash=%s",
+                                pIndex->nHeight, pIndex->GetBlockHash().ToString());
         }
     }
 
-    LogPrint("INFO", "No coin database inconsistencies in last %i blocks (%i transactions)\n", chainActive.Height() - pindexState->nHeight, nGoodTransactions);
+    LogPrint("INFO", "No coin database inconsistencies in last %i blocks (%i transactions)\n",
+            chainActive.Height() - pindexState->nHeight, nGoodTransactions);
 
     return true;
 }

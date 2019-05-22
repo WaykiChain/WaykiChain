@@ -7,7 +7,6 @@
 #define PRICE_FEED_H
 
 #include "tx/tx.h"
-// #include "scointx.h"
 
 class CPriceFeedTx : public CBaseTx {
 public:
