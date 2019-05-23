@@ -117,6 +117,7 @@ JSON_H = \
 
 # VmScript #
 VMLUA_H = \
+  vm/lua/fuel.h \
   vm/lua/lapi.h \
   vm/lua/lauxlib.h \
   vm/lua/lburner.h \

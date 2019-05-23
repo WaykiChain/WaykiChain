@@ -740,7 +740,7 @@ void luaV_finishOp (lua_State *L) {
 #define vmcase(l)	case l:
 #define vmbreak		break
 
-void luaV_execute (lua_State *L) {
+void luaV_execute (lua_State *L, lua_burner_version stepVersion) {
   CallInfo *ci = L->ci;
   LClosure *cl;
   TValue *k;
@@ -762,7 +762,7 @@ void luaV_execute (lua_State *L) {
     ra = RA(i);
     lua_assert(base == ci->u.l.base);
     lua_assert(base <= L->top && L->top < L->stack + L->stacksize);
-    if (!lua_BurnStep(L, 1, BURN_VER_R1)){
+    if (!lua_BurnStep(L, 1, stepVersion)){
       return ;
     }
     lua_BurnOperator(L, GET_OPCODE(i), BURN_VER_R2);
@@ -1200,7 +1200,7 @@ void luaV_execute (lua_State *L) {
         setobjs2s(L, cb+1, ra+1);
         setobjs2s(L, cb, ra);
         L->top = cb + 3;  /* func. + 2 args (state and index) */
-        Protect(luaD_call(L, cb, GETARG_C(i), 1));
+        Protect(luaD_call(L, cb, GETARG_C(i), 1, stepVersion));
         if (lua_IsBurnedOut(L)) {
           return ;
         }
@@ -1208,7 +1208,7 @@ void luaV_execute (lua_State *L) {
         i = *(ci->u.l.savedpc++);  /* go to next instruction */
         ra = RA(i);
         lua_assert(GET_OPCODE(i) == OP_TFORLOOP);
-        if (!lua_BurnStep(L, 1, BURN_VER_R1)) {
+        if (!lua_BurnStep(L, 1, stepVersion)) {
           return ;
         }
         goto l_tforloop;

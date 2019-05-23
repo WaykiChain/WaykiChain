@@ -14,7 +14,7 @@
 
 
 #include "luaconf.h"
-
+#include "fuel.h"
 
 #define LUA_VERSION_MAJOR   "5"
 #define LUA_VERSION_MINOR   "3"
@@ -277,8 +277,8 @@ LUA_API void  (lua_callk) (lua_State *L, int nargs, int nresults,
 #define lua_call(L,n,r)     lua_callk(L, (n), (r), 0, NULL)
 
 LUA_API int   (lua_pcallk) (lua_State *L, int nargs, int nresults, int errfunc,
-                            lua_KContext ctx, lua_KFunction k);
-#define lua_pcall(L,n,r,f)	lua_pcallk(L, (n), (r), (f), 0, NULL)
+                            lua_KContext ctx, lua_KFunction k, lua_burner_version stepVersion);
+#define lua_pcall(L,n,r,f)	lua_pcallk(L, (n), (r), (f), 0, NULL, BURN_VER_STEP_V2)
 
 LUA_API int   (lua_load) (lua_State *L, lua_Reader reader, void *dt,
                           const char *chunkname, const char *mode);
