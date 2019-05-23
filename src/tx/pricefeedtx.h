@@ -81,7 +81,10 @@ public:
     virtual Object ToJson(const CAccountViewCache &AccountView) const;
     virtual bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 
-    uint64_t GetPrice() const { return price; }
+    uint64_t GetPrice() const {
+        // FIXME:
+        return 0;
+    }
 };
 
 
