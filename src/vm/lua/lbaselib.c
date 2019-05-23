@@ -468,12 +468,16 @@ static int luaB_tostring (lua_State *L) {
 
 static const luaL_Reg base_funcs[] = {
   {"assert", luaB_assert},
+#ifdef LUA_BASE_UNLIMITED
   {"collectgarbage", luaB_collectgarbage},
   {"dofile", luaB_dofile},
+#endif//LUA_BASE_UNLIMITED
   {"error", luaB_error},
   {"getmetatable", luaB_getmetatable},
   {"ipairs", luaB_ipairs},
+#ifdef LUA_BASE_UNLIMITED
   {"loadfile", luaB_loadfile},
+#endif//LUA_BASE_UNLIMITED
   {"load", luaB_load},
 #if defined(LUA_COMPAT_LOADSTRING)
   {"loadstring", luaB_load},
@@ -481,7 +485,9 @@ static const luaL_Reg base_funcs[] = {
   {"next", luaB_next},
   {"pairs", luaB_pairs},
   {"pcall", luaB_pcall},
+#ifdef LUA_BASE_UNLIMITED
   {"print", luaB_print},
+#endif//LUA_BASE_UNLIMITED
   {"rawequal", luaB_rawequal},
   {"rawlen", luaB_rawlen},
   {"rawget", luaB_rawget},

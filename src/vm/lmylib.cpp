@@ -1,36 +1,17 @@
 /*
-** $Id: ldblib.c,v 1.149 2015/02/19 17:06:21 roberto Exp $
-** Interface from Lua to its debug API
-** See Copyright Notice in lua.h
+** Copyright (c) 2015-2019 The WaykiChain Core Developers
+** Distributed under the MIT/X11 software license, see the accompanying
+** file COPYING or http://www.opensource.org/licenses/mit-license.php
 */
 
-//#define ldblib_c
-//#define LUA_LIB
-
-//#include "lprefix.h"
-//
-//
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <string.h>
-//
-//#include "lua.h"
-//
-//#include "lauxlib.h"
-//#include "lualib.h"
-
-#include "lua/lua.hpp"
-//#include "crypto/hash.h"
-//#include "accounts/key.h"
-//#include "main.h"
 #include <openssl/des.h>
 #include <vector>
+
+#include "lua/lua.hpp"
 #include "vmrunenv.h"
 #include "commons/SafeInt3.hpp"
 
 #define LUA_C_BUFFER_SIZE  500  //传递值，最大字节防止栈溢出
-
-lua_CFunction g_defaultRequireFunc = NULL;  // default require function
 
 #if 0
 static void setfield(lua_State *L,char * key,double value){
@@ -2143,14 +2124,19 @@ static int ExGetBlockTimestamp(lua_State *L)
 
 
 static int ExLimitedRequire(lua_State *L) {
-    const char *name = luaL_checkstring(L, 1);
+    const char* name = luaL_checkstring(L, 1);
     if (strcmp(name, "mylib") != 0) {
         return luaL_error(L, "Only supports to require \"mylib\"");
     }
-    if (g_defaultRequireFunc == NULL) {
-        return luaL_error(L, "The default require function is NULL");
+    /* mylib is already loaded, just load it from "_LOADED" */
+    lua_settop(L, 1);  /* _LOADED table will be at index 2 */
+    lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");
+    lua_getfield(L, 2, name);  /* _LOADED[name] */
+    if (!lua_toboolean(L, -1)) { /* is it there? */
+        return luaL_error(L, "require \"mylib\" failed!");
     }
-    return g_defaultRequireFunc(L);
+
+    return 1; 
 }
 
 static int ExLuaPrint(lua_State *L) {
@@ -2228,11 +2214,9 @@ static const luaL_Reg mylib[] = {
 
 };
 
-// disable or replace all io-related functions
+// replace all global(in the _G) functions
 static const luaL_Reg baseLibsEx[] = {
     {"print",                       ExLuaPrint},        // replace default print function
-    {"dofile",                      NULL},              // disable dofile
-    {"loadfile",                    NULL},              // disable loadfile
     {"require",                     ExLimitedRequire},  // repalace default require function
 
     {NULL, NULL}
@@ -2253,18 +2237,7 @@ static const luaL_Reg baseLibsEx[] = {
 
 bool InitLuaLibsEx(lua_State *L) {
     lua_pushglobaltable(L);
-
-    lua_pushstring(L, "require");
-    lua_gettable(L, -2);
-    g_defaultRequireFunc = lua_tocfunction(L, -1);
-    lua_pop(L, 1);
-    if (g_defaultRequireFunc == NULL) {
-        LogPrint("vm", "InitLuaLibsEx error, get default require function failed\n");
-        return false;
-    }
-
     luaL_setfuncs(L, baseLibsEx, 0);
-
     lua_pop(L, 1);  // pop the global table
     return true;
 }

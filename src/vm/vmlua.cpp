@@ -159,6 +159,7 @@ bool InitLuaLibsEx(lua_State *L);
 
 /** ommited lua lib for safety reasons
  *
+//      {LUA_LOADLIBNAME, luaopen_package},
 //	   {LUA_COLIBNAME, luaopen_coroutine},
 //	   {LUA_IOLIBNAME, luaopen_io},
 //	   {LUA_OSLIBNAME, luaopen_os},
@@ -170,7 +171,7 @@ bool InitLuaLibsEx(lua_State *L);
  */
 void vm_openlibs(lua_State *L) {
     static const luaL_Reg lualibs[] = {
-        {"base", luaopen_base},           {LUA_LOADLIBNAME, luaopen_package},
+        {"base", luaopen_base},
         {LUA_TABLIBNAME, luaopen_table},  {LUA_MATHLIBNAME, luaopen_math},
         {LUA_STRLIBNAME, luaopen_string}, {NULL, NULL}};
 
@@ -314,7 +315,7 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv) {
     }
 
     if (luaStatus != LUA_OK) {
-        LogPrint("vm", "%s", strError);
+        LogPrint("vm", "%s\n", strError);
         ReportBurnState(lua_state, pVmRunEnv->GetScriptRegID());
         return std::make_tuple(-1, strError);
     }
