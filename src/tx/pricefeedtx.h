@@ -8,30 +8,42 @@
 
 #include "tx/tx.h"
 
-class CPriceFeedTx : public CBaseTx {
-public:
+class CPricePoint {
+private:
     unsigned char coinType;
     unsigned char priceType;
     uint64_t price;
 
 public:
+
+    // string ToString() {
+    //     string out;
+    //     sprintf(out, "%d:%d:%lld", coinType, priceType, price);
+    // }
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(coinType);
+        READWRITE(priceType);
+        READWRITE(VARINT(price));)
+};
+
+class CPriceFeedTx : public CBaseTx {
+private:
+    vector<CPricePoint> pricePoints;
+
+public:
     CPriceFeedTx(): CBaseTx(PRICE_FEED_TX) {
-        coinType = 0;
-        priceType = 0;
-        price = 0;
     }
     CPriceFeedTx(const CBaseTx *pBaseTx): CBaseTx(PRICE_FEED_TX) {
         assert(PRICE_FEED_TX == pBaseTx->nTxType);
         *this = *(CPriceFeedTx *)pBaseTx;
     }
     CPriceFeedTx(const CUserID &txUidIn, int validHeightIn, uint64_t feeIn,
-                CoinType coinTypeIn, PriceType priceTypeIn, uint64_t priceIn):
+                CPricePoint pricePoint):
         CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feeIn) {
-
-        coinType = coinTypeIn;
-        priceType = priceTypeIn;
-        price     = priceIn;
+        pricePoints.push_back(pricePoint);
     }
+
     ~CPriceFeedTx() {}
 
     IMPLEMENT_SERIALIZE(
@@ -40,15 +52,15 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        READWRITE(coinType);
-        READWRITE(priceType);
-        READWRITE(VARINT(price));)
+        for(auto const& pricePoint: pricePoints) {
+            READWRITE(pricePoint);
+        };)
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
-                << coinType << priceType << VARINT(price);
+                << pricePoints;
             sigHash = ss.GetHash();
         }
 
