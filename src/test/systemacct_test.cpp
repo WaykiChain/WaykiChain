@@ -92,7 +92,7 @@ BOOST_FIXTURE_TEST_CASE(register_test,CSysAccountTest)
 //	vFailedTxHash.push_back(strTxHash);
 
 	//手续费超过最大值
-	BOOST_CHECK(!RegisterAccount(strRegAddr1, nFee+GetMaxMoney(), strTxHash));
+	BOOST_CHECK(!RegisterAccount(strRegAddr1, nFee+GetBaseCoinMaxMoney(), strTxHash));
 	vFailedTxHash.push_back(strTxHash);
 
 	//重复注册的地址

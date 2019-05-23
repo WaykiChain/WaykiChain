@@ -182,13 +182,13 @@ inline FeatureForkVersionEnum GetFeatureForkVersion(int blockHeight) {
 static const int g_BlockVersion = 1;
 
 /** No amount larger than this (in sawi) is valid */
-static const int64_t MAX_MONEY 			= IniCfg().GetCoinInitValue() * COIN;	//210 million
-static const int64_t MAX_MONEY_FUNDCOIN = MAX_MONEY / 10;						// 21 million
+static const int64_t BASECOIN_MAX_MONEY = IniCfg().GetCoinInitValue() * COIN;	//210 million
+static const int64_t FUNDCOIN_MAX_MONEY = BASECOIN_MAX_MONEY / 10;				// 21 million
 static const int64_t INIT_FUEL_RATES    = 100;  	// 100 unit / 100 step
 static const int64_t MIN_FUEL_RATES     = 1;    	// 1 unit / 100 step
 
-inline int64_t GetMaxMoney() { return MAX_MONEY; }
-inline bool CheckMoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
-inline bool CheckFundCoinMoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY_FUNDCOIN); }
+inline int64_t GetBaseCoinMaxMoney() { return BASECOIN_MAX_MONEY; }
+inline bool CheckBaseCoinRange(int64_t nValue) { return (nValue >= 0 && nValue <= BASECOIN_MAX_MONEY); }
+inline bool CheckFundCoinRange(int64_t nValue) { return (nValue >= 0 && nValue <= FUNDCOIN_MAX_MONEY); }
 
 #endif /* CONFIGURATION_H_ */

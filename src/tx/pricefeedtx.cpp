@@ -16,7 +16,7 @@
 
 bool CPriceFeedTx::CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 
-    if (!CheckMoneyRange(llFees))
+    if (!CheckBaseCoinRange(llFees))
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx fee out of range"),
             REJECT_INVALID, "bad-tx-fee-toolarge");
 

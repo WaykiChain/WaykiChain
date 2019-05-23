@@ -11,7 +11,7 @@
 
 bool CFcoinStakeTx::CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 
-    if (!CheckMoneyRange(llFees))
+    if (!CheckBaseCoinRange(llFees))
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, tx fee out of range"),
                         REJECT_INVALID, "bad-tx-fee-toolarge");
 
@@ -20,7 +20,7 @@ bool CFcoinStakeTx::CheckTx(CValidationState &state, CAccountViewCache &view, CS
                         REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
-    if (!CheckFundCoinMoneyRange(fcoinsToStake)) {
+    if (!CheckFundCoinRange(fcoinsToStake)) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, fcoinsToStake out of range"),
                         REJECT_INVALID, "bad-tx-fcoins-toolarge");
     }
@@ -54,7 +54,7 @@ bool CFcoinStakeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSt
     CAccountLog acctLog(account);
     // update the price state accordingly:
     int64_t fcoins = account.stakedFcoins + fcoinsToStake;
-    if (!CheckFundCoinMoneyRange(fcoins)) {
+    if (!CheckFundCoinRange(fcoins)) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, fcoinsToStake out of range"),
                         REJECT_INVALID, "bad-tx-fcoins-toolarge");
     }

@@ -576,8 +576,8 @@ int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowF
             nMinFee = 0;
     }
 
-    if (!CheckMoneyRange(nMinFee))
-        nMinFee = GetMaxMoney();
+    if (!CheckBaseCoinRange(nMinFee))
+        nMinFee = GetBaseCoinMaxMoney();
 
     return nMinFee;
 }

@@ -40,7 +40,7 @@ bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
 
 uint64_t CAccount::GetAccountProfit(const uint64_t curHeight) {
     if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2) {
-        // If the rule is one bcoin one vote, there is no profits at all, then return 0.
+        // The rule is one bcoin one vote, hence no profits at all and return 0.
         return 0;
     }
 
@@ -143,7 +143,7 @@ string CAccount::ToString(bool isAddress) const {
 }
 
 bool CAccount::IsMoneyOverflow(uint64_t nAddMoney) {
-    if (!CheckMoneyRange(nAddMoney))
+    if (!CheckBaseCoinRange(nAddMoney))
         return ERRORMSG("money:%lld larger than MaxMoney", nAddMoney);
 
     return true;

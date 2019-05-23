@@ -31,7 +31,7 @@ bool CAccountRegisterTx::CheckTx(CValidationState &state, CAccountViewCache &vie
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx public key is invalid"),
             REJECT_INVALID, "bad-tx-publickey");
 
-    if (!CheckMoneyRange(llFees))
+    if (!CheckBaseCoinRange(llFees))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx fee out of range"),
             REJECT_INVALID, "bad-tx-fee-toolarge");
 

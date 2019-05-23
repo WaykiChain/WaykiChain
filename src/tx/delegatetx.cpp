@@ -200,7 +200,7 @@ bool CDelegateVoteTx::CheckTx(CValidationState &state, CAccountViewCache &view,
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, the deletegates number a transaction can't exceeds maximum"),
             REJECT_INVALID, "deletegates-number-error");
     }
-    if (!CheckMoneyRange(llFees))
+    if (!CheckBaseCoinRange(llFees))
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, delegate tx fee out of range"),
             REJECT_INVALID, "bad-tx-fee-toolarge");
 
@@ -241,7 +241,7 @@ bool CDelegateVoteTx::CheckTx(CValidationState &state, CAccountViewCache &view,
     // check delegate duplication
     set<string> voteKeyIds;
     for (const auto &vote : candidateVotes) {
-        if (0 >= vote.GetVotedBcoins() || (uint64_t)GetMaxMoney() < vote.GetVotedBcoins())
+        if (0 >= vote.GetVotedBcoins() || (uint64_t)GetBaseCoinMaxMoney() < vote.GetVotedBcoins())
             return ERRORMSG("CDelegateVoteTx::CheckTx, votes: %lld not within (0 .. MaxVote)", vote.GetVotedBcoins());
 
         voteKeyIds.insert(vote.GetCandidateUid().ToString());

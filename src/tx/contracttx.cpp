@@ -196,7 +196,7 @@ bool CContractDeployTx::CheckTx(CValidationState &state, CAccountViewCache &view
                          REJECT_INVALID, "regacctid-type-error");
     }
 
-    if (!CheckMoneyRange(llFees)) {
+    if (!CheckBaseCoinRange(llFees)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, tx fee out of range"),
                          REJECT_INVALID, "fee-too-large");
     }
@@ -512,7 +512,7 @@ bool CContractInvokeTx::CheckTx(CValidationState &state, CAccountViewCache &view
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, desUserId must be CRegID"),
                          REJECT_INVALID, "desaddr-type-error");
 
-    if (!CheckMoneyRange(llFees))
+    if (!CheckBaseCoinRange(llFees))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, tx fee out of money range"),
                          REJECT_INVALID, "bad-appeal-fee-toolarge");
 

@@ -34,7 +34,7 @@ class CCandidateVote {
 private:
     unsigned char voteType;  //!< 1:ADD_BCOIN 2:MINUS_BCOIN
     CUserID candidateUid;    //!< candidate RegId or PubKey
-    uint64_t bcoins;         //!< count of votes to the candidate
+    uint64_t votedBcoins;    //!< count of votes to the candidate
 
     mutable uint256 sigHash;  //!< only in memory
 
@@ -42,17 +42,17 @@ public:
     CCandidateVote() {
         voteType = NULL_VOTE;
         candidateUid = CUserID();
-        bcoins  = 0;
+        votedBcoins  = 0;
     }
     CCandidateVote(VoteType voteTypeIn, CUserID voteUserIdIn, uint64_t votedBcoinsIn) {
         voteType = voteTypeIn;
         candidateUid = voteUserIdIn;
-        bcoins  = votedBcoinsIn;
+        votedBcoins  = votedBcoinsIn;
     }
     CCandidateVote(const CCandidateVote &voteIn) {
         voteType = voteIn.voteType;
         candidateUid = voteIn.candidateUid;
-        bcoins  = voteIn.bcoins;
+        votedBcoins  = voteIn.votedBcoins;
     }
     CCandidateVote &operator=(const CCandidateVote &voteIn) {
         if (this == &voteIn)
@@ -60,7 +60,7 @@ public:
 
         this->voteType = voteIn.voteType;
         this->candidateUid = voteIn.candidateUid;
-        this->bcoins  = voteIn.bcoins;
+        this->votedBcoins  = voteIn.votedBcoins;
         return *this;
     }
     ~CCandidateVote() {}
@@ -69,7 +69,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
 
-            ss << voteType << candidateUid << VARINT(bcoins);
+            ss << voteType << candidateUid << VARINT(votedBcoins);
             sigHash = ss.GetHash();
         }
 
@@ -77,39 +77,39 @@ public:
     }
 
     friend bool operator<(const CCandidateVote &fa, const CCandidateVote &fb) {
-        return (fa.bcoins <= fb.bcoins);
+        return (fa.votedBcoins <= fb.votedBcoins);
     }
     friend bool operator>(const CCandidateVote &fa, const CCandidateVote &fb) {
         return !operator<(fa, fb);
     }
     friend bool operator==(const CCandidateVote &fa, const CCandidateVote &fb) {
-        return (fa.candidateUid == fb.candidateUid && fa.bcoins == fb.bcoins);
+        return (fa.candidateUid == fb.candidateUid && fa.votedBcoins == fb.votedBcoins);
     }
 
     IMPLEMENT_SERIALIZE(
         READWRITE(voteType);
         READWRITE(candidateUid);
-        READWRITE(VARINT(bcoins)););
+        READWRITE(VARINT(votedBcoins)););
 
     const CUserID &GetCandidateUid() const { return candidateUid; }
     unsigned char GetCandidateVoteType() const { return voteType; }
-    uint64_t GetVotedBcoins() const { return bcoins; }
-    void SetVotedBcoins(uint64_t votedBcoinsIn) { bcoins = votedBcoinsIn; }
+    uint64_t GetVotedBcoins() const { return votedBcoins; }
+    void SetVotedBcoins(uint64_t votedBcoinsIn) { votedBcoins = votedBcoinsIn; }
     void SetCandidateUid(const CUserID &votedUserIdIn) { candidateUid = votedUserIdIn; }
 
     json_spirit::Object ToJson() const {
         json_spirit::Object obj;
 
-        obj.push_back(json_spirit::Pair("voteType", GetVoteType(voteType)));
-        obj.push_back(json_spirit::Pair("candidateUid", candidateUid.ToJson()));
-        obj.push_back(json_spirit::Pair("bcoins", bcoins));
+        obj.push_back(json_spirit::Pair("vote_type", GetVoteType(voteType)));
+        obj.push_back(json_spirit::Pair("candidate_uid", candidateUid.ToJson()));
+        obj.push_back(json_spirit::Pair("voted_bcoins", votedBcoins));
 
         return obj;
     }
 
     string ToString() const {
         string str = strprintf("voteType: %s, candidateUid: %s, votes: %lld \n", GetVoteType(voteType),
-                               candidateUid.ToString(), bcoins);
+                               candidateUid.ToString(), votedBcoins);
         return str;
     }
 

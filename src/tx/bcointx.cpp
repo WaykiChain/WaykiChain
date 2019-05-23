@@ -244,7 +244,7 @@ bool CBaseCoinTransferTx::CheckTx(CValidationState &state, CAccountViewCache &vi
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
                          "bad-commontx-publickey");
 
-    if (!CheckMoneyRange(llFees))
+    if (!CheckBaseCoinRange(llFees))
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, tx fees out of money range"),
                          REJECT_INVALID, "bad-appeal-fees-toolarge");
 
