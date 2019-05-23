@@ -177,6 +177,9 @@ Object CContractDeployTx::ToJson(const CAccountViewCache &AccountView) const{
 
 bool CContractDeployTx::CheckTx(CValidationState &state, CAccountViewCache &view,
                                            CScriptDBViewCache &scriptDB) {
+    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_REGID(txUid.type());
+
     CDataStream stream(contractScript, SER_DISK, CLIENT_VERSION);
     CVmScript vmScript;
     try {
@@ -185,39 +188,17 @@ bool CContractDeployTx::CheckTx(CValidationState &state, CAccountViewCache &view
         return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, unserialize to vmScript error"),
                          REJECT_INVALID, "unserialize-error");
     }
-
     if (!vmScript.IsValid()) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, vmScript is invalid"),
                          REJECT_INVALID, "vmscript-invalid");
     }
-
-    if (txUid.type() != typeid(CRegID)) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, regAcctId must be CRegID"),
-                         REJECT_INVALID, "regacctid-type-error");
-    }
-
-    if (!CheckBaseCoinRange(llFees)) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, tx fee out of range"),
-                         REJECT_INVALID, "fee-too-large");
-    }
-
-    if (!CheckMinTxFee(llFees)) {
-        return state.DoS(
-            100, ERRORMSG("CContractDeployTx::CheckTx, tx fee smaller than MinTxFee"),
-            REJECT_INVALID, "bad-tx-fee-toosmall");
-    }
-
     uint64_t llFuel = ceil(contractScript.size() / 100) * GetFuelRate(scriptDB);
     if (llFuel < 1 * COIN) {
         llFuel = 1 * COIN;
     }
-
     if (llFees < llFuel) {
-        return state.DoS(100,
-                         ERRORMSG("CContractDeployTx::CheckTx, register app tx fee too litter "
-                                  "(actual:%lld vs need:%lld)",
-                                  llFees, llFuel),
-                         REJECT_INVALID, "fee-too-litter");
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, register app tx fee too litter "
+                        "(actual:%lld vs need:%lld)", llFees, llFuel), REJECT_INVALID, "fee-too-litter");
     }
 
     CAccount acctInfo;
@@ -225,23 +206,14 @@ bool CContractDeployTx::CheckTx(CValidationState &state, CAccountViewCache &view
         return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, get account failed"),
                          REJECT_INVALID, "bad-getaccount");
     }
-
     if (!acctInfo.IsRegistered()) {
         return state.DoS(
             100, ERRORMSG("CContractDeployTx::CheckTx, account have not registered public key"),
             REJECT_INVALID, "bad-no-pubkey");
     }
 
-    if (!CheckSignatureSize(signature)) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, signature size invalid"),
-                         REJECT_INVALID, "bad-tx-sig-size");
-    }
+    IMPLEMENT_CHECK_TX_SIGNATURE(acctInfo.pubKey);
 
-    uint256 signhash = ComputeSignatureHash();
-    if (!VerifySignature(signhash, signature, acctInfo.pubKey)) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, VerifySignature failed"),
-                         REJECT_INVALID, "bad-signscript-check");
-    }
     return true;
 }
 
@@ -500,51 +472,26 @@ bool CContractInvokeTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVali
 
 bool CContractInvokeTx::CheckTx(CValidationState &state, CAccountViewCache &view,
                           CScriptDBViewCache &scriptDB) {
-    if (arguments.size() > kContractArgumentMaxSize)
-        return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, arguments's size too large"),
-                         REJECT_INVALID, "arguments-size-toolarge");
-
-    if (txUid.type() != typeid(CRegID))
-        return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, srcRegId must be CRegID"),
-                         REJECT_INVALID, "srcaddr-type-error");
-
-    if (appUid.type() != typeid(CRegID))
-        return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, desUserId must be CRegID"),
-                         REJECT_INVALID, "desaddr-type-error");
-
-    if (!CheckBaseCoinRange(llFees))
-        return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, tx fee out of money range"),
-                         REJECT_INVALID, "bad-appeal-fee-toolarge");
-
-    if (!CheckMinTxFee(llFees))
-        return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, tx fee smaller than MinTxFee"),
-                         REJECT_INVALID, "bad-tx-fee-toosmall");
+    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_ARGUMENTS;
+    IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID(appUid.type());
 
     CAccount srcAccount;
     if (!view.GetAccount(txUid.get<CRegID>(), srcAccount))
-        return state.DoS(100,
-                         ERRORMSG("CContractInvokeTx::CheckTx, read account failed, regId=%s",
-                                  txUid.get<CRegID>().ToString()),
-                         REJECT_INVALID, "bad-getaccount");
+        return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, read account failed, regId=%s",
+                        txUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-getaccount");
 
     if (!srcAccount.IsRegistered())
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, account pubkey not registered"),
-                         REJECT_INVALID, "bad-account-unregistered");
+                        REJECT_INVALID, "bad-account-unregistered");
 
     vector<unsigned char> vScript;
     if (!scriptDB.GetScript(appUid.get<CRegID>(), vScript))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, read script failed, regId=%s",
-                        appUid.get<CRegID>().ToString()),
-                        REJECT_INVALID, "bad-read-script");
+                        appUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-read-script");
 
-    if (!CheckSignatureSize(signature))
-        return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, signature size invalid"),
-                         REJECT_INVALID, "bad-tx-sig-size");
-
-    uint256 sighash = ComputeSignatureHash();
-    if (!VerifySignature(sighash, signature, srcAccount.pubKey))
-        return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, VerifySignature failed"),
-                         REJECT_INVALID, "bad-signscript-check");
+    IMPLEMENT_CHECK_TX_SIGNATURE(srcAccount.pubKey);
 
     return true;
 }

@@ -16,30 +16,14 @@
 
 bool CPriceFeedTx::CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 
-    if (!CheckBaseCoinRange(llFees))
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx fee out of range"),
-            REJECT_INVALID, "bad-tx-fee-toolarge");
-
-    if (!CheckMinTxFee(llFees)) {
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx fee smaller than MinTxFee"),
-            REJECT_INVALID, "bad-tx-fee-toosmall");
-    }
+    IMPLEMENT_CHECK_TX_FEE;
 
     if (pricePoints.size() == 0 || pricePoints.size() > 3) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx price points number not within 1..3"),
             REJECT_INVALID, "bad-tx-pricepoint-size-error");
     }
 
-    if (!CheckSignatureSize(signature)) {
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx signature size invalid"),
-            REJECT_INVALID, "bad-tx-sig-size");
-    }
-
-    // check signature script
-    uint256 sighash = ComputeSignatureHash();
-    if (!VerifySignature(sighash, signature, txUid.get<CPubKey>()))
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx signature error "),
-                        REJECT_INVALID, "bad-tx-signature");
+    IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
 
     return true;
 }

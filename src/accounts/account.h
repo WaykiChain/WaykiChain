@@ -72,13 +72,14 @@ public:
      * @brief operate account balance
      * @param coinType: balance coin Type
      * @param opType: balance operate type
-     * @param values: balance value to add or minus
+     * @param value: balance value to add or minus
      * @return returns true if successful, otherwise false
      */
     bool OperateBalance(const CoinType coinType, const BalanceOpType opType, const uint64_t value);
     bool UndoOperateAccount(const CAccountLog& accountLog);
     bool ProcessDelegateVote(vector<CCandidateVote>& candidateVotesIn, const uint64_t curHeight);
-    bool OperateVote(VoteType type, const uint64_t& values);
+    bool OperateVote(VoteType type, const uint64_t votes);
+    bool OperateFcoinStaking(const int64_t fcoinsToStake);
 
 public:
     CAccount(CKeyID& keyId, CNickID& nickId, CPubKey& pubKey)

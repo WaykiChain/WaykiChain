@@ -11,7 +11,7 @@
 class CFcoinStakeTx: public CBaseTx {
 
 private:
-    uint64_t fcoinsToStake;
+    int64_t fcoinsToStake; // when negative, it means staking revocation
 
 public:
     CFcoinStakeTx(): CBaseTx(FCOIN_STAKE_TX) { fcoinsToStake = 0;}

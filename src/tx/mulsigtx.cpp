@@ -255,9 +255,8 @@ bool CMulsigTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationSt
 
 bool CMulsigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
                           CScriptDBViewCache &scriptDB) {
-    if (memo.size() > kCommonTxMemoMaxSize)
-        return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, memo's size too large"),
-                         REJECT_INVALID, "memo-size-toolarge");
+    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_MEMO;
 
     if (required < 1 || required > signaturePairs.size()) {
         return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, required keys invalid"),
@@ -273,32 +272,19 @@ bool CMulsigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
         return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, desaddr type error"), REJECT_INVALID,
                          "desaddr-type-error");
 
-    if (!CheckBaseCoinRange(llFees))
-        return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, tx fees out of money range"),
-                         REJECT_INVALID, "bad-appeal-fees-toolarge");
-
-    if (!CheckMinTxFee(llFees)) {
-        return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, tx fees smaller than MinTxFee"),
-                         REJECT_INVALID, "bad-tx-fees-toosmall");
-    }
-
     CAccount account;
     set<CPubKey> pubKeys;
     uint256 sighash = ComputeSignatureHash();
     uint8_t valid   = 0;
     for (const auto &item : signaturePairs) {
         if (!view.GetAccount(item.regId, account))
-            return state.DoS(100,
-                             ERRORMSG("CMulsigTx::CheckTx, account: %s, read account failed",
-                                      item.regId.ToString()),
-                             REJECT_INVALID, "bad-getaccount");
+            return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, account: %s, read account failed",
+                            item.regId.ToString()), REJECT_INVALID, "bad-getaccount");
 
         if (!item.signature.empty()) {
             if (!CheckSignatureSize(item.signature)) {
-                return state.DoS(100,
-                                 ERRORMSG("CMulsigTx::CheckTx, account: %s, signature size invalid",
-                                          item.regId.ToString()),
-                                 REJECT_INVALID, "bad-tx-sig-size");
+                return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, account: %s, signature size invalid",
+                                item.regId.ToString()), REJECT_INVALID, "bad-tx-sig-size");
             }
 
             if (!VerifySignature(sighash, item.signature, account.pubKey)) {

@@ -186,6 +186,23 @@ bool CAccount::OperateBalance(const CoinType coinType, const BalanceOpType opTyp
     return true;
 }
 
+bool CAccount::OperateFcoinStaking(const int64_t fcoinsToStake) {
+     if (fcoinsToStake < 0) {
+        if (this->stakedFcoins < (uint64_t) (-1 * fcoinsToStake)) {
+            return ERRORMSG("No sufficient staked fcoins(%d) in account to revoke", fcoins);
+        }
+    } else { // > 0
+        if (this->fcoins < (uint64_t) fcoinsToStake) {
+            return ERRORMSG("No sufficient fcoins(%d) in account to stake", fcoins);
+        }
+    }
+
+    fcoins -= fcoinsToStake;
+    stakedFcoins += fcoinsToStake;
+
+    return true;
+}
+
 bool CAccount::ProcessDelegateVote(vector<CCandidateVote> & candidateVotesIn, const uint64_t curHeight) {
     if (curHeight < lastVoteHeight) {
         LogPrint("ERROR", "curHeight (%d) < lastVoteHeight (%d)", curHeight, lastVoteHeight);
@@ -266,10 +283,10 @@ bool CAccount::ProcessDelegateVote(vector<CCandidateVote> & candidateVotesIn, co
     return true;
 }
 
-bool CAccount::OperateVote(VoteType type, const uint64_t &values) {
+bool CAccount::OperateVote(VoteType type, const uint64_t votes) {
     switch (type) {
         case ADD_BCOIN: {
-            receivedVotes += values;
+            receivedVotes += votes;
             if (!IsMoneyOverflow(receivedVotes)) {
                 return ERRORMSG("OperateVote() : delegates total votes exceed maximum ");
             }
@@ -278,10 +295,10 @@ bool CAccount::OperateVote(VoteType type, const uint64_t &values) {
         }
 
         case MINUS_BCOIN: {
-            if (receivedVotes < values) {
-                return ERRORMSG("OperateVote() : delegates total votes less than revocation vote value");
+            if (receivedVotes < votes) {
+                return ERRORMSG("OperateVote() : delegates total votes less than revocation vote number");
             }
-            receivedVotes -= values;
+            receivedVotes -= votes;
 
             break;
         }

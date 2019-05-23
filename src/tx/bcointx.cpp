@@ -228,9 +228,8 @@ bool CBaseCoinTransferTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVa
 
 bool CBaseCoinTransferTx::CheckTx(CValidationState &state, CAccountViewCache &view,
                         CScriptDBViewCache &scriptDB) {
-    if (memo.size() > kCommonTxMemoMaxSize)
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, memo's size too large"), REJECT_INVALID,
-                         "memo-size-toolarge");
+    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_MEMO;
 
     if ((txUid.type() != typeid(CRegID)) && (txUid.type() != typeid(CPubKey)))
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, srcaddr type error"), REJECT_INVALID,
@@ -244,14 +243,6 @@ bool CBaseCoinTransferTx::CheckTx(CValidationState &state, CAccountViewCache &vi
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
                          "bad-commontx-publickey");
 
-    if (!CheckBaseCoinRange(llFees))
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, tx fees out of money range"),
-                         REJECT_INVALID, "bad-appeal-fees-toolarge");
-
-    if (!CheckMinTxFee(llFees))
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, tx fees smaller than MinTxFee"),
-                         REJECT_INVALID, "bad-tx-fees-toosmall");
-
     CAccount srcAccount;
     if (!view.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, read account failed"), REJECT_INVALID,
@@ -261,16 +252,9 @@ bool CBaseCoinTransferTx::CheckTx(CValidationState &state, CAccountViewCache &vi
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, account pubkey not registered"),
                          REJECT_INVALID, "bad-account-unregistered");
 
-    if (!CheckSignatureSize(signature))
-            return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, signature size invalid"),
-                             REJECT_INVALID, "bad-tx-sig-size");
-
-    uint256 sighash = ComputeSignatureHash();
     CPubKey pubKey =
-        txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey;
-    if (!VerifySignature(sighash, signature, pubKey))
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, VerifySignature failed"),
-                         REJECT_INVALID, "bad-signscript-check");
+        (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey);
+    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
 }

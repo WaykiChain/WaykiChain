@@ -43,7 +43,7 @@ static const uint16_t kDefaultForcedLiquidateRatio  = 10000;    // 100% * 10000
 static const uint16_t kDefaultCdpLoanInterest       = 350;      // 3.5% * 10000
 static const uint16_t kDefaultCdpPenaltyFeeRatio    = 1300;     //  13% * 10000
 
-static const uint32_t kDefaultPriceFeedFcoinsMin   = 100000;   // at least 10K fcoins deposit in order become a price feeder
+static const uint32_t kDefaultPriceFeedFcoinsMin   = 100000;   // at least 100K fcoins deposit in order become a price feeder
 static const uint16_t kDefaultPriceFeedDeviateAcceptLimit = 3000; // 30% * 10000, above than that will be penalized
 static const uint16_t kDefaultPriceFeedDeviatePenalty= 1000;     // 1000 bcoins deduction as penalty
 static const uint16_t kDefaultPriceFeedContinuousDeviateTimesLimit= 10;  // after 10 times continuous deviate limit penetration all deposit be deducted
@@ -211,5 +211,42 @@ public:
     }
     string ToString() const;
 };
+
+#define IMPLEMENT_CHECK_TX_MEMO                                                             \
+    if (memo.size() > kCommonTxMemoMaxSize)                                                 \
+        return state.DoS(100, ERRORMSG("%s::CheckTx, memo's size too large", __FUNCTION__), \
+                         REJECT_INVALID, "memo-size-toolarge");
+
+#define IMPLEMENT_CHECK_TX_ARGUMENTS                                                             \
+    if (arguments.size() > kContractArgumentMaxSize)                                             \
+        return state.DoS(100, ERRORMSG("%s::CheckTx, arguments's size too large, __FUNCTION__"), \
+                         REJECT_INVALID, "arguments-size-toolarge");
+
+#define IMPLEMENT_CHECK_TX_FEE                                                                     \
+    if (!CheckBaseCoinRange(llFees))                                                               \
+        return state.DoS(100, ERRORMSG("%s::CheckTx, tx fee out of range", __FUNCTION__),          \
+                         REJECT_INVALID, "bad-tx-fee-toolarge");                                   \
+                                                                                                   \
+    if (!CheckMinTxFee(llFees)) {                                                                  \
+        return state.DoS(100, ERRORMSG("%s::CheckTx, tx fee smaller than MinTxFee", __FUNCTION__), \
+                         REJECT_INVALID, "bad-tx-fee-toosmall");                                   \
+    }
+
+#define IMPLEMENT_CHECK_TX_REGID(txUidType)                                                \
+    if (txUidType != typeid(CRegID)) {                                                     \
+        return state.DoS(100, ERRORMSG("%s::CheckTx, txUid must be CRegID", __FUNCTION__), \
+                         REJECT_INVALID, "txUid-type-error");                              \
+    }
+
+#define IMPLEMENT_CHECK_TX_SIGNATURE(signatureVerifyPubKey)                                     \
+    if (!CheckSignatureSize(signature)) {                                                       \
+        return state.DoS(100, ERRORMSG("%s::CheckTx, tx signature size invalid", __FUNCTION__), \
+                         REJECT_INVALID, "bad-tx-sig-size");                                    \
+    }                                                                                           \
+    uint256 sighash = ComputeSignatureHash();                                                   \
+    if (!VerifySignature(sighash, signature, signatureVerifyPubKey)) {                          \
+        return state.DoS(100, ERRORMSG("%s::CheckTx, tx signature error", __FUNCTION__),        \
+                         REJECT_INVALID, "bad-tx-signature");                                   \
+    }
 
 #endif //COIN_BASETX_H

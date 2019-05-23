@@ -11,58 +11,39 @@
 
 bool CFcoinStakeTx::CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 
-    if (!CheckBaseCoinRange(llFees))
-        return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, tx fee out of range"),
-                        REJECT_INVALID, "bad-tx-fee-toolarge");
+    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (!CheckMinTxFee(llFees)) {
-        return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, tx fee smaller than MinTxFee"),
-                        REJECT_INVALID, "bad-tx-fee-toosmall");
-    }
-
-    if (!CheckFundCoinRange(fcoinsToStake)) {
+    if (fcoinsToStake == 0 || !CheckFundCoinRange(abs(fcoinsToStake))) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, fcoinsToStake out of range"),
                         REJECT_INVALID, "bad-tx-fcoins-toolarge");
     }
-    if (!CheckSignatureSize(signature)) {
-        return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, tx signature size invalid"),
-                        REJECT_INVALID, "bad-tx-sig-size");
-    }
 
-    // check signature script
-    uint256 sighash = ComputeSignatureHash();
-    if (!VerifySignature(sighash, signature, txUid.get<CPubKey>()))
-        return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, tx signature error "),
-                        REJECT_INVALID, "bad-tx-signature");
-
+    IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
     return true;
 }
 
 bool CFcoinStakeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
                     int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
-
     CAccount account;
     if (!view.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
-    // check if account has sufficient fcoins to be a price feeder
-    if (account.fcoins < kDefaultPriceFeedFcoinsMin)
-        return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, not sufficient fcoins(%d) in account (%s)",
-                        account.fcoins, txUid.ToString()), FCOIN_STAKE_FAIL, "not-sufficiect-fcoins");
-
     CAccountLog acctLog(account);
-    // update the price state accordingly:
-    int64_t fcoins = account.stakedFcoins + fcoinsToStake;
-    if (!CheckFundCoinRange(fcoins)) {
-        return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, fcoinsToStake out of range"),
-                        REJECT_INVALID, "bad-tx-fcoins-toolarge");
+    if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+        return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, not sufficient funds in txUid %s account",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-funds");
     }
-    account.stakedFcoins = fcoins;
+
+    if (!account.OperateFcoinStaking(fcoinsToStake)) {
+        return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, not sufficient funds in txUid %s account",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-funds");
+    }
 
     if (!view.SaveAccountInfo(account))
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, write source addr %s account info error",
-                        account.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     txundo.vAccountLog.push_back(acctLog);
     txundo.txHash = GetHash();
@@ -70,7 +51,7 @@ bool CFcoinStakeTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSt
         CScriptDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
         if(!view.GetKeyId(txUid, sendKeyId))
-            return ERRORMSG("CAccountRegisterTx::ExecuteTx, get keyid by userId error!");
+            return ERRORMSG("CFcoinStakeTx::ExecuteTx, get keyid by userId error!");
 
         if(!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
             return false;

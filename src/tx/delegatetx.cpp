@@ -60,6 +60,69 @@ bool CDelegateVoteTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &v
     return true;
 }
 
+
+bool CDelegateVoteTx::CheckTx(CValidationState &state, CAccountViewCache &view,
+                          CScriptDBViewCache &scriptDB) {
+    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_REGID(txUid.type());
+
+    if (0 == candidateVotes.size()) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, the deletegate oper fund empty"),
+            REJECT_INVALID, "oper-fund-empty-error");
+    }
+    if (candidateVotes.size() > IniCfg().GetTotalDelegateNum()) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, the deletegates number a transaction can't exceeds maximum"),
+            REJECT_INVALID, "deletegates-number-error");
+    }
+
+    CKeyID sendTxKeyID;
+    if (!view.GetKeyId(txUid, sendTxKeyID)) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get keyId error by CUserID =%s",
+                        txUid.ToString()), REJECT_INVALID, "");
+    }
+
+    CAccount sendAcct;
+    if (!view.GetAccount(txUid, sendAcct)) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, userid=%s",
+                        txUid.ToString()), REJECT_INVALID, "bad-read-accountdb");
+    }
+    if (!sendAcct.IsRegistered()) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, pubkey not registered"),
+                        REJECT_INVALID, "bad-no-pubkey");
+    }
+
+    if ( GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2 ) {
+        IMPLEMENT_CHECK_TX_SIGNATURE(sendAcct.pubKey);
+    }
+
+    // check delegate duplication
+    set<string> voteKeyIds;
+    for (const auto &vote : candidateVotes) {
+        if (0 >= vote.GetVotedBcoins() || (uint64_t)GetBaseCoinMaxMoney() < vote.GetVotedBcoins())
+            return ERRORMSG("CDelegateVoteTx::CheckTx, votes: %lld not within (0 .. MaxVote)", vote.GetVotedBcoins());
+
+        voteKeyIds.insert(vote.GetCandidateUid().ToString());
+        CAccount acctInfo;
+        if (!view.GetAccount(vote.GetCandidateUid(), acctInfo))
+            return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, address=%s",
+                             vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
+
+        if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2) {
+            if (!acctInfo.IsRegistered()) {
+                return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account is unregistered, address=%s",
+                                 vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
+            }
+        }
+    }
+
+    if (voteKeyIds.size() != candidateVotes.size()) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, duplication vote fund"),
+                         REJECT_INVALID, "deletegates-duplication fund-error");
+    }
+
+    return true;
+}
+
 bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
                                 CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
                                 CScriptDBViewCache &scriptDB) {
@@ -181,86 +244,6 @@ bool CDelegateVoteTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValida
         if (!scriptDB.EraseDelegateData(rIterScriptDBLog->vKey))
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, erase delegate data error"),
                              UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
-    }
-
-    return true;
-}
-
-bool CDelegateVoteTx::CheckTx(CValidationState &state, CAccountViewCache &view,
-                          CScriptDBViewCache &scriptDB) {
-    if (txUid.type() != typeid(CRegID)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, send account is not CRegID type"),
-            REJECT_INVALID, "deletegate-tx-error");
-    }
-    if (0 == candidateVotes.size()) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, the deletegate oper fund empty"),
-            REJECT_INVALID, "oper-fund-empty-error");
-    }
-    if (candidateVotes.size() > IniCfg().GetTotalDelegateNum()) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, the deletegates number a transaction can't exceeds maximum"),
-            REJECT_INVALID, "deletegates-number-error");
-    }
-    if (!CheckBaseCoinRange(llFees))
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, delegate tx fee out of range"),
-            REJECT_INVALID, "bad-tx-fee-toolarge");
-
-    if (!CheckMinTxFee(llFees)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, tx fee smaller than MinTxFee"),
-            REJECT_INVALID, "bad-tx-fee-toosmall");
-    }
-
-    CKeyID sendTxKeyID;
-    if(!view.GetKeyId(txUid, sendTxKeyID)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get keyId error by CUserID =%s",
-                        txUid.ToString()), REJECT_INVALID, "");
-    }
-
-    CAccount sendAcct;
-    if (!view.GetAccount(txUid, sendAcct)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, userid=%s",
-                        txUid.ToString()), REJECT_INVALID, "bad-read-accountdb");
-    }
-    if (!sendAcct.IsRegistered()) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, pubkey not registered"),
-                        REJECT_INVALID, "bad-no-pubkey");
-    }
-
-    if ( GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2 ) {
-        if (!CheckSignatureSize(signature)) {
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, signature size invalid"),
-                REJECT_INVALID, "bad-tx-sig-size");
-        }
-
-        uint256 signhash = ComputeSignatureHash();
-        if (!VerifySignature(signhash, signature, sendAcct.pubKey)) {
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, VerifySignature failed"),
-                REJECT_INVALID, "bad-signscript-check");
-        }
-    }
-
-    // check delegate duplication
-    set<string> voteKeyIds;
-    for (const auto &vote : candidateVotes) {
-        if (0 >= vote.GetVotedBcoins() || (uint64_t)GetBaseCoinMaxMoney() < vote.GetVotedBcoins())
-            return ERRORMSG("CDelegateVoteTx::CheckTx, votes: %lld not within (0 .. MaxVote)", vote.GetVotedBcoins());
-
-        voteKeyIds.insert(vote.GetCandidateUid().ToString());
-        CAccount acctInfo;
-        if (!view.GetAccount(vote.GetCandidateUid(), acctInfo))
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, address=%s",
-                             vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
-
-        if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2) {
-            if (!acctInfo.IsRegistered()) {
-                return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account is unregistered, address=%s",
-                                 vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
-            }
-        }
-    }
-
-    if (voteKeyIds.size() != candidateVotes.size()) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, duplication vote fund"),
-                         REJECT_INVALID, "deletegates-duplication fund-error");
     }
 
     return true;

@@ -66,11 +66,7 @@ bool CBlockRewardTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &vi
 bool CBlockRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
                           CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
                           CScriptDBViewCache &scriptDB) {
-    if (txUid.type() != typeid(CRegID)) {
-        return state.DoS(100,
-            ERRORMSG("CBlockRewardTx::ExecuteTx, account %s error, data type must be CRegID",
-            txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-account");
-    }
+    IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     CAccount acctInfo;
     if (!view.GetAccount(txUid, acctInfo)) {

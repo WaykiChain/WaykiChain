@@ -19,6 +19,8 @@
 
 bool CAccountRegisterTx::CheckTx(CValidationState &state, CAccountViewCache &view,
                                 CScriptDBViewCache &scriptDB) {
+    IMPLEMENT_CHECK_TX_FEE;
+
     if (txUid.type() != typeid(CPubKey))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, userId must be CPubKey"),
             REJECT_INVALID, "uid-type-error");
@@ -31,25 +33,7 @@ bool CAccountRegisterTx::CheckTx(CValidationState &state, CAccountViewCache &vie
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx public key is invalid"),
             REJECT_INVALID, "bad-tx-publickey");
 
-    if (!CheckBaseCoinRange(llFees))
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx fee out of range"),
-            REJECT_INVALID, "bad-tx-fee-toolarge");
-
-    if (!CheckMinTxFee(llFees)) {
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx fee smaller than MinTxFee"),
-            REJECT_INVALID, "bad-tx-fee-toosmall");
-    }
-
-    if (!CheckSignatureSize(signature)) {
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, signature size invalid"),
-            REJECT_INVALID, "bad-tx-sig-size");
-    }
-
-    // check signature script
-    uint256 sighash = ComputeSignatureHash();
-    if (!VerifySignature(sighash, signature, txUid.get<CPubKey>()))
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx signature error "),
-            REJECT_INVALID, "bad-tx-signature");
+    IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
 
     return true;
 }
