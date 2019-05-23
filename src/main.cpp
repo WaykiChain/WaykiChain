@@ -1627,29 +1627,6 @@ bool static DisconnectTip(CValidationState &state) {
     return true;
 }
 
-// void PrintInfo(const uint256 &hash, const int &nCurHeight, CContractCache &scriptDBView,
-//                const string &scriptId) {
-//     vector<unsigned char> vScriptKey;
-//     vector<unsigned char> vScriptData;
-//     int nHeight;
-//     set<CContractDBOperLog> setOperLog;
-//     CRegID regId(scriptId);
-//     int nCount(0);
-//     scriptDBView.GetContractItemCount(scriptId, nCount);
-//     bool ret = scriptDBView.GetContractData(nCurHeight, regId, 0, vScriptKey, vScriptData);
-//     LogPrint("scriptdbview", "\n\n\n");
-//     LogPrint("scriptdbview", "blockhash=%s,curHeight=%d\n", hash.GetHex(), nCurHeight);
-//     LogPrint("scriptdbview", "app script ID:%s key:%s value:%s height:%d, nCount:%d\n",
-//              scriptId.c_str(), HexStr(vScriptKey), HexStr(vScriptData), nHeight, nCount);
-//     while (ret) {
-//         ret = scriptDBView.GetContractData(nCurHeight, regId, 1, vScriptKey, vScriptData);
-//         scriptDBView.GetContractItemCount(scriptId, nCount);
-//         if (ret)
-//             LogPrint("scriptdbview", "app script ID:%s key:%s value:%s height:%d, nCount:%d\n",
-//                      scriptId.c_str(), HexStr(vScriptKey), HexStr(vScriptData), nHeight, nCount);
-//     }
-// }
-
 // Connect a new block to chainActive.
 bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
     assert(pIndexNew->pprev == chainActive.Tip());
@@ -2509,7 +2486,7 @@ bool CheckActiveChain(int nHeight, uint256 hash) {
     LogPrint("CHECKPOINT", "Current tip block:\n");
     LogPrint("CHECKPOINT", pindexOldTip->ToString().c_str());
 
-    //Find the active chain dismatch checkpoint
+    // Find the active chain dismatch checkpoint
     if (NULL == chainActive[nHeight] || hash != chainActive[nHeight]->GetBlockHash()) {
         CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
         LogPrint("CHECKPOINT", "Get Last check point:\n");
@@ -2667,7 +2644,7 @@ uint256 CPartialMerkleTree::CalcHash(int height, unsigned int pos, const vector<
     } else {
         // calculate left hash
         uint256 left = CalcHash(height - 1, pos * 2, vTxid), right;
-        // calculate right hash if not beyong the end of the array - copy left hash otherwise1
+        // calculate right hash if not beyond the end of the array - copy left hash otherwise1
         if (pos * 2 + 1 < CalcTreeWidth(height - 1))
             right = CalcHash(height - 1, pos * 2 + 1, vTxid);
         else
@@ -2763,7 +2740,7 @@ uint256 CPartialMerkleTree::ExtractMatches(vector<uint256> &vMatch) {
     // traverse the partial tree
     unsigned int nBitsUsed = 0, nHashUsed = 0;
     uint256 merkleRootHash = TraverseAndExtract(nHeight, 0, nBitsUsed, nHashUsed, vMatch);
-    // verify that no problems occured during the tree traversal
+    // verify that no problems occurred during the tree traversal
     if (fBad)
         return uint256();
     // verify that all bits were consumed (except for the padding caused by serializing it as a byte sequence)
@@ -2996,9 +2973,6 @@ void PrintBlockTree() {
     for (map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.begin(); mi != mapBlockIndex.end(); ++mi) {
         CBlockIndex *pIndex = (*mi).second;
         mapNext[pIndex->pprev].push_back(pIndex);
-        // test
-        //while (rand() % 3 == 0)
-        //    mapNext[pIndex->pprev].push_back(pIndex);
     }
 
     vector<pair<int, CBlockIndex *> > vStack;
