@@ -133,14 +133,14 @@ l_noret luaD_throw (lua_State *L, int errcode) {
 }
 
 
-int luaD_rawrunprotected (lua_State *L, Pfunc f, void *ud) {
+int luaD_rawrunprotected (lua_State *L, Pfunc f, void *ud, lua_burner_version stepVersion) {
   unsigned short oldnCcalls = L->nCcalls;
   struct lua_longjmp lj;
   lj.status = LUA_OK;
   lj.previous = L->errorJmp;  /* chain new error handler */
   L->errorJmp = &lj;
   LUAI_TRY(L, &lj,
-    (*f)(L, ud);
+    (*f)(L, ud, stepVersion);
   );
   L->errorJmp = lj.previous;  /* restore old error handler */
   L->nCcalls = oldnCcalls;
@@ -410,7 +410,7 @@ int luaD_poscall (lua_State *L, StkId firstResult, int nres) {
 ** When returns, all the results are on the stack, starting at the original
 ** function position.
 */
-void luaD_call (lua_State *L, StkId func, int nResults, int allowyield) {
+void luaD_call (lua_State *L, StkId func, int nResults, int allowyield, lua_burner_version stepVersion) {
   if (++L->nCcalls >= LUAI_MAXCCALLS) {
     if (L->nCcalls == LUAI_MAXCCALLS)
       luaG_runerror(L, "C stack overflow");
@@ -419,7 +419,7 @@ void luaD_call (lua_State *L, StkId func, int nResults, int allowyield) {
   }
   if (!allowyield) L->nny++;
   if (!luaD_precall(L, func, nResults))  /* is a Lua function? */
-    luaV_execute(L);  /* call it */
+    luaV_execute(L, stepVersion);  /* call it */
   if (!allowyield) L->nny--;
   L->nCcalls--;
 }
@@ -461,7 +461,7 @@ static void finishCcall (lua_State *L, int status) {
 ** be passed to the first continuation function (otherwise the default
 ** status is LUA_YIELD).
 */
-static void unroll (lua_State *L, void *ud) {
+static void unroll (lua_State *L, void *ud, lua_burner_version stepVersion) {
   if (ud != NULL)  /* error status? */
     finishCcall(L, *(int *)ud);  /* finish 'lua_pcallk' callee */
   while (L->ci != &L->base_ci) {  /* something in the stack */
@@ -469,7 +469,7 @@ static void unroll (lua_State *L, void *ud) {
       finishCcall(L, LUA_YIELD);  /* complete its execution */
     else {  /* Lua function */
       luaV_finishOp(L);  /* finish interrupted instruction */
-      luaV_execute(L);  /* execute down to higher C 'boundary' */
+      luaV_execute(L, stepVersion);  /* execute down to higher C 'boundary' */
     }
   }
 }
@@ -531,7 +531,7 @@ static l_noret resume_error (lua_State *L, const char *msg, StkId firstArg) {
 ** function), plus erroneous cases: non-suspended coroutine or dead
 ** coroutine.
 */
-static void resume (lua_State *L, void *ud) {
+static void resume (lua_State *L, void *ud, lua_burner_version stepVersion) {
   int nCcalls = L->nCcalls;
   int n = *(cast(int*, ud));  /* number of arguments */
   StkId firstArg = L->top - n;  /* first argument */
@@ -543,7 +543,7 @@ static void resume (lua_State *L, void *ud) {
       resume_error(L, "cannot resume non-suspended coroutine", firstArg);
     /* coroutine is in base level; start running it */
     if (!luaD_precall(L, firstArg - 1, LUA_MULTRET))  /* Lua function? */
-      luaV_execute(L);  /* call it */
+      luaV_execute(L, stepVersion);  /* call it */
   }
   else if (L->status != LUA_YIELD)
     resume_error(L, "cannot resume dead coroutine", firstArg);
@@ -551,7 +551,7 @@ static void resume (lua_State *L, void *ud) {
     L->status = LUA_OK;  /* mark that it is running (again) */
     ci->func = restorestack(L, ci->extra);
     if (isLua(ci))  /* yielded inside a hook? */
-      luaV_execute(L);  /* just continue running Lua code */
+      luaV_execute(L, stepVersion);  /* just continue running Lua code */
     else {  /* 'common' yield */
       if (ci->u.c.k != NULL) {  /* does it have a continuation function? */
         lua_unlock(L);
@@ -562,7 +562,7 @@ static void resume (lua_State *L, void *ud) {
       }
       luaD_poscall(L, firstArg, n);  /* finish 'luaD_precall' */
     }
-    unroll(L, NULL);  /* run continuation */
+    unroll(L, NULL, BURN_VER_STEP_V2);  /* run continuation */
   }
   lua_assert(nCcalls == L->nCcalls);
 }
@@ -576,13 +576,13 @@ LUA_API int lua_resume (lua_State *L, lua_State *from, int nargs) {
   L->nCcalls = (from) ? from->nCcalls + 1 : 1;
   L->nny = 0;  /* allow yields */
   api_checknelems(L, (L->status == LUA_OK) ? nargs + 1 : nargs);
-  status = luaD_rawrunprotected(L, resume, &nargs);
+  status = luaD_rawrunprotected(L, resume, &nargs, BURN_VER_STEP_V2);
   if (status == -1)  /* error calling 'lua_resume'? */
     status = LUA_ERRRUN;
   else {  /* continue running after recoverable errors */
     while (errorstatus(status) && recover(L, status)) {
       /* unroll continuation */
-      status = luaD_rawrunprotected(L, unroll, &status);
+      status = luaD_rawrunprotected(L, unroll, &status, BURN_VER_STEP_V2);
     }
     if (errorstatus(status)) {  /* unrecoverable error? */
       L->status = cast_byte(status);  /* mark thread as 'dead' */
@@ -634,14 +634,14 @@ LUA_API int lua_yieldk (lua_State *L, int nresults, lua_KContext ctx,
 
 
 int luaD_pcall (lua_State *L, Pfunc func, void *u,
-                ptrdiff_t old_top, ptrdiff_t ef) {
+                ptrdiff_t old_top, ptrdiff_t ef, lua_burner_version stepVersion) {
   int status;
   CallInfo *old_ci = L->ci;
   lu_byte old_allowhooks = L->allowhook;
   unsigned short old_nny = L->nny;
   ptrdiff_t old_errfunc = L->errfunc;
   L->errfunc = ef;
-  status = luaD_rawrunprotected(L, func, u);
+  status = luaD_rawrunprotected(L, func, u, stepVersion);
   if (status != LUA_OK) {  /* an error occurred? */
     StkId oldtop = restorestack(L, old_top);
     luaF_close(L, oldtop);  /* close possible pending closures */
@@ -678,7 +678,7 @@ static void checkmode (lua_State *L, const char *mode, const char *x) {
 }
 
 
-static void f_parser (lua_State *L, void *ud) {
+static void f_parser (lua_State *L, void *ud, lua_burner_version stepVersion) {
   LClosure *cl;
   struct SParser *p = cast(struct SParser *, ud);
   int c = zgetc(p->z);  /* read first character */
@@ -705,7 +705,7 @@ int luaD_protectedparser (lua_State *L, ZIO *z, const char *name,
   p.dyd.gt.arr = NULL; p.dyd.gt.size = 0;
   p.dyd.label.arr = NULL; p.dyd.label.size = 0;
   luaZ_initbuffer(L, &p.buff);
-  status = luaD_pcall(L, f_parser, &p, savestack(L, L->top), L->errfunc);
+  status = luaD_pcall(L, f_parser, &p, savestack(L, L->top), L->errfunc, BURN_VER_STEP_V2);
   luaZ_freebuffer(L, &p.buff);
   luaM_freearray(L, p.dyd.actvar.arr, p.dyd.actvar.size);
   luaM_freearray(L, p.dyd.gt.arr, p.dyd.gt.size);
