@@ -305,7 +305,7 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv) {
     std::string strError;
     int luaStatus = luaL_loadbuffer(lua_state, (char *)contractScript, strlen((char *)contractScript), "line");
     if (luaStatus == LUA_OK) {
-        luaStatus = lua_pcallk(lua_state, 0, 0, 0, 0, NULL);
+        luaStatus = lua_pcallk(lua_state, 0, 0, 0, 0, NULL, BURN_VER_STEP_V1);
         if (luaStatus != LUA_OK) {
             strError = GetLuaError(lua_state, luaStatus, "lua_pcallk failed");
         }
