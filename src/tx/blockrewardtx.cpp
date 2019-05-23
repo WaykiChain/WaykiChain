@@ -16,53 +16,6 @@
 #include "miner/miner.h"
 #include "version.h"
 
-string CBlockRewardTx::ToString(CAccountViewCache &view) const {
-    string str;
-    CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
-    CRegID regId;
-    view.GetRegId(txUid, regId);
-    str += strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyid=%s, rewardValue=%ld\n",
-        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, regId.ToString(), keyId.GetHex(), rewardValue);
-
-    return str;
-}
-
-Object CBlockRewardTx::ToJson(const CAccountViewCache &AccountView) const{
-    Object result;
-    CAccountViewCache view(AccountView);
-    CKeyID keyid;
-    result.push_back(Pair("hash", GetHash().GetHex()));
-    result.push_back(Pair("tx_type", GetTxType(nTxType)));
-    result.push_back(Pair("ver", nVersion));
-    if (txUid.type() == typeid(CRegID)) {
-        result.push_back(Pair("regid", txUid.get<CRegID>().ToString()));
-    }
-    if (txUid.type() == typeid(CPubKey)) {
-        result.push_back(Pair("pubkey", txUid.get<CPubKey>().ToString()));
-    }
-    view.GetKeyId(txUid, keyid);
-    result.push_back(Pair("addr", keyid.ToAddress()));
-    result.push_back(Pair("money", rewardValue));
-    result.push_back(Pair("valid_height", nHeight));
-    return result;
-}
-
-bool CBlockRewardTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view,
-                           CScriptDBViewCache &scriptDB) {
-    CKeyID keyId;
-    if (txUid.type() == typeid(CRegID)) {
-        if (!view.GetKeyId(txUid, keyId)) return false;
-        vAddr.insert(keyId);
-    } else if (txUid.type() == typeid(CPubKey)) {
-        CPubKey pubKey = txUid.get<CPubKey>();
-        if (!pubKey.IsFullyValid()) return false;
-        vAddr.insert(pubKey.GetKeyId());
-    }
-
-    return true;
-}
-
 bool CBlockRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
                           CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
                           CScriptDBViewCache &scriptDB) {
@@ -134,6 +87,53 @@ bool CBlockRewardTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidat
         if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
             return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, undo scriptdb data error"),
                              UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+    }
+
+    return true;
+}
+
+string CBlockRewardTx::ToString(CAccountViewCache &view) const {
+    string str;
+    CKeyID keyId;
+    view.GetKeyId(txUid, keyId);
+    CRegID regId;
+    view.GetRegId(txUid, regId);
+    str += strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyid=%s, rewardValue=%ld\n",
+        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, regId.ToString(), keyId.GetHex(), rewardValue);
+
+    return str;
+}
+
+Object CBlockRewardTx::ToJson(const CAccountViewCache &AccountView) const{
+    Object result;
+    CAccountViewCache view(AccountView);
+    CKeyID keyid;
+    result.push_back(Pair("hash", GetHash().GetHex()));
+    result.push_back(Pair("tx_type", GetTxType(nTxType)));
+    result.push_back(Pair("ver", nVersion));
+    if (txUid.type() == typeid(CRegID)) {
+        result.push_back(Pair("regid", txUid.get<CRegID>().ToString()));
+    }
+    if (txUid.type() == typeid(CPubKey)) {
+        result.push_back(Pair("pubkey", txUid.get<CPubKey>().ToString()));
+    }
+    view.GetKeyId(txUid, keyid);
+    result.push_back(Pair("addr", keyid.ToAddress()));
+    result.push_back(Pair("money", rewardValue));
+    result.push_back(Pair("valid_height", nHeight));
+    return result;
+}
+
+bool CBlockRewardTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view,
+                           CScriptDBViewCache &scriptDB) {
+    CKeyID keyId;
+    if (txUid.type() == typeid(CRegID)) {
+        if (!view.GetKeyId(txUid, keyId)) return false;
+        vAddr.insert(keyId);
+    } else if (txUid.type() == typeid(CPubKey)) {
+        CPubKey pubKey = txUid.get<CPubKey>();
+        if (!pubKey.IsFullyValid()) return false;
+        vAddr.insert(pubKey.GetKeyId());
     }
 
     return true;

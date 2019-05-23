@@ -26,6 +26,7 @@ string CAccountLog::ToString() const {
 
 bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
     LogPrint("undo_account", "after operate:%s\n", ToString());
+
     bcoins         = accountLog.bcoins;
     scoins         = accountLog.scoins;
     fcoins         = accountLog.fcoins;
@@ -34,6 +35,7 @@ bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
     lastVoteHeight = accountLog.lastVoteHeight;
     candidateVotes = accountLog.candidateVotes;
     hasOpenCdp     = accountLog.hasOpenCdp;
+
     LogPrint("undo_account", "before operate:%s\n", ToString().c_str());
     return true;
 }

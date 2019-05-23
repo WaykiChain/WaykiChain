@@ -65,4 +65,5 @@ public:
     virtual bool GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 
 };
+
 #endif

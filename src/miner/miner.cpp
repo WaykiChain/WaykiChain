@@ -161,7 +161,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
     unsigned int nNonce = GetRand(SysCfg().GetBlockMaxNonce());
     CBlock preBlock;
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
-    if (pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
+    if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
         if (!ReadBlockFromDisk(pBlockIndex, preBlock))
             return ERRORMSG("read block info fail from disk");
 
@@ -237,10 +237,10 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
     CScriptDBViewCache scriptDBView(scriptCache);
     CBlock preBlock;
 
-    CBlockIndex *pblockindex = mapBlockIndex[pBlock->GetPrevBlockHash()];
-    if (pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
-        if (!ReadBlockFromDisk(pblockindex, preBlock))
-            return ERRORMSG("read block info fail from disk");
+    CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
+    if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
+        if (!ReadBlockFromDisk(pBlockIndex, preBlock))
+            return ERRORMSG("read block info failed from disk");
 
         CAccount preDelegate;
         CBlockRewardTx *preBlockRewardTx = (CBlockRewardTx *)preBlock.vptx[0].get();

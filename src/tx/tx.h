@@ -41,12 +41,12 @@ static const bool kGlobalStableCoinLockIsOn         = false;    // when true, CD
 static const uint16_t kDefaultOpenLiquidateRatio    = 15000;    // 150% * 10000
 static const uint16_t kDefaultForcedLiquidateRatio  = 10000;    // 100% * 10000
 static const uint16_t kDefaultCdpLoanInterest       = 350;      // 3.5% * 10000
-static const uint16_t kDefaultCdpPenaltyFeeRatio    = 1300;     //  13% * 10000
+static const uint16_t kDefaultCdpPenaltyFeeRatio    = 1300;     // 13% * 10000
 
-static const uint32_t kDefaultPriceFeedFcoinsMin   = 100000;   // at least 100K fcoins deposit in order become a price feeder
+static const uint32_t kDefaultPriceFeedStakedFcoinsMin = 210000;  // min 210K fcoins deposit in order to be a price feeder
 static const uint16_t kDefaultPriceFeedDeviateAcceptLimit = 3000; // 30% * 10000, above than that will be penalized
 static const uint16_t kDefaultPriceFeedDeviatePenalty= 1000;     // 1000 bcoins deduction as penalty
-static const uint16_t kDefaultPriceFeedContinuousDeviateTimesLimit= 10;  // after 10 times continuous deviate limit penetration all deposit be deducted
+static const uint16_t kDefaultPriceFeedContinuousDeviateTimesLimit = 10;  // after 10 times continuous deviate limit penetration all deposit be deducted
 static const uint16_t kDefaultPriceFeedTxFee        = 10000;    // 10000 sawi
 
 
@@ -167,8 +167,8 @@ public:
                         CScriptDBViewCache &scriptDB)                       = 0;
     virtual uint256 ComputeSignatureHash(bool recalculate = false) const    = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance()                       = 0;
-    virtual string ToString(CAccountViewCache &view) const                  = 0;
-    virtual Object ToJson(const CAccountViewCache &AccountView) const       = 0;
+    virtual string ToString(const CAccountViewCache &view) const            = 0;
+    virtual Object ToJson(const CAccountViewCache &view) const              = 0;
     virtual bool CheckTx(CValidationState &state,
                         CAccountViewCache &view,
                         CScriptDBViewCache &scriptDB)                       = 0;

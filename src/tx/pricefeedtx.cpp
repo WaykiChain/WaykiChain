@@ -17,14 +17,22 @@
 bool CPriceFeedTx::CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
 
     IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (pricePoints.size() == 0 || pricePoints.size() > 3) {
+    if (pricePoints.size() == 0 || pricePoints.size() > 3) { //FIXME: hardcode here
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx price points number not within 1..3"),
             REJECT_INVALID, "bad-tx-pricepoint-size-error");
     }
+    CAccount account;
+    if (!view.GetAccount(txUid, account))
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read txUid %s account info error",
+                        txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
+
+    if (account.stakedFcoins < kDefaultPriceFeedStakedFcoinsMin) // check if account has sufficient staked fcoins to be a price feeder
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Not stake ready for txUid %s account error",
+                        txUid.ToString()), PRICE_FEED_FAIL, "account-stake-not-ready");
 
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
-
     return true;
 }
 
@@ -36,12 +44,12 @@ bool CPriceFeedTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
-    // check if account has sufficient fcoins to be a price feeder
-    if (account.fcoins < kDefaultPriceFeedFcoinsMin)
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, not sufficient fcoins(%d) in account (%s)",
-                        account.fcoins, txUid.ToString()), PRICE_FEED_FAIL, "not-sufficiect-fcoins");
 
-    // update the price state accordingly:
+
+    // check if the account is among the top 22 accounts list
+
+    // update the price state accordingly
+
 
     return true;
 }
@@ -54,6 +62,10 @@ bool CPriceFeedTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidatio
 
 }
 
+Object CPriceFeedTx::ToString(const CAccountViewCache &AccountView) const {
+  //TODO
+  return Object();
+}
 
 Object CPriceFeedTx::ToJson(const CAccountViewCache &AccountView) const {
   //TODO
@@ -63,4 +75,48 @@ Object CPriceFeedTx::ToJson(const CAccountViewCache &AccountView) const {
 bool CPriceFeedTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     //TODO
     return true;
+}
+
+bool CPriceFeedTx::GetTopPriceFeederList(vector<CAccount> &priceFeederAcctList, CAccountViewCache &accViewIn, CScriptDBViewCache &scriptCacheIn) {
+    LOCK(cs_main);
+    CAccountViewCache accView(accViewIn);
+    CScriptDBViewCache scriptCache(scriptCacheIn);
+
+    return true;
+}
+
+//############################################################################################################
+
+bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+    return true;
+}
+
+bool CBlockPriceMedianTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
+                   int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
+    return true;
+}
+
+bool CBlockPriceMedianTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
+                       CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
+                       CScriptDBViewCache &scriptDB) {
+    return true;
+}
+
+string CBlockPriceMedianTx::ToString(CAccountViewCache &view) const {
+    //TODO
+    return "";
+}
+
+Object CBlockPriceMedianTx::ToJson(const CAccountViewCache &AccountView) const {
+    //TODO
+    return Object();
+}
+
+bool CBlockPriceMedianTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+    //TODO
+    return true;
+}
+
+inline uint64_t GetMedianPriceByType(const CoinType coinType, const PriceType priceType) {
+    return mapMediaPricePoints[make_tuple<CoinType, PriceType>(coinType, priceType)];
 }

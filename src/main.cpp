@@ -1137,7 +1137,8 @@ void UpdateTime(CBlockHeader &block, const CBlockIndex *pindexPrev) {
 }
 
 bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view,
-                     CBlockIndex *pIndex, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache, bool *pfClean) {
+                     CBlockIndex *pIndex, CTransactionDBCache &txCache,
+                     CScriptDBViewCache &scriptCache, bool *pfClean) {
     assert(pIndex->GetBlockHash() == view.GetBestBlock());
 
     if (pfClean)
@@ -1409,7 +1410,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &vie
                         pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-cb-amount");
     }
 
-    //deal reward tx
+    //Execute BlockRewardTx
     LogPrint("op_account", "tx index:%d tx hash:%s\n", 0, block.vptx[0]->GetHash().GetHex());
     CTxUndo txundo;
     if (!block.vptx[0]->ExecuteTx(0, view, state, txundo, pIndex->nHeight, txCache, scriptDBCache))
@@ -2120,9 +2121,11 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
         ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return state.DoS(100, ERRORMSG("CheckBlock() : size limits failed"), REJECT_INVALID, "bad-blk-length");
 
-    if (block.GetHash() != SysCfg().GetGenesisBlockHash() && block.GetVersion() != CBlockHeader::CURRENT_VERSION)
-        return state.Invalid(ERRORMSG("CheckBlock() : block version must be set 3"), REJECT_INVALID,
-                             "block-version-error");
+    if ( (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash())
+            && block.GetVersion() != CBlockHeader::CURRENT_VERSION) {
+        return state.Invalid(ERRORMSG("CheckBlock() : block version must be set 3"),
+                            REJECT_INVALID, "block-version-error");
+    }
 
     // Check timestamp 12 seconds limits
     if (block.GetBlockTime() > GetAdjustedTime() + 12)
@@ -2147,7 +2150,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache 
         if (fCheckTx && !CheckTx(block.vptx[i].get(), state, view, scriptDBCache))
             return ERRORMSG("CheckBlock() :tx hash:%s CheckTx failed", block.vptx[i]->GetHash().GetHex());
 
-        if (block.GetHash() != SysCfg().GetGenesisBlockHash()) {
+        if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {
             if (0 != i && block.vptx[i]->IsCoinBase())
                 return state.DoS(100, ERRORMSG("CheckBlock() : more than one coinbase"), REJECT_INVALID, "bad-cb-multiple");
         }
@@ -2190,7 +2193,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
     // Get prev block index
     CBlockIndex *pBlockIndexPrev = NULL;
     int nHeight = 0;
-    if (block.GetHeight() != 0 && blockHash != SysCfg().GetGenesisBlockHash()) {
+    if (block.GetHeight() != 0 || blockHash != SysCfg().GetGenesisBlockHash()) {
         map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(block.GetPrevBlockHash());
         if (mi == mapBlockIndex.end())
             return state.DoS(10, ERRORMSG("AcceptBlock() : prev block not found"), 0, "bad-prevblk");
