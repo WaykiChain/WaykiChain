@@ -25,6 +25,11 @@ bool CPriceFeedTx::CheckTx(CValidationState &state, CAccountViewCache &view, CSc
             REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
+    if (pricePoints.size() == 0 || pricePoints.size() > 3) {
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx price points number not within 1..3"),
+            REJECT_INVALID, "bad-tx-pricepoint-size-error");
+    }
+
     if (!CheckSignatureSize(signature)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx signature size invalid"),
             REJECT_INVALID, "bad-tx-sig-size");
@@ -32,7 +37,7 @@ bool CPriceFeedTx::CheckTx(CValidationState &state, CAccountViewCache &view, CSc
 
     // check signature script
     uint256 sighash = ComputeSignatureHash();
-    if (!CheckSignScript(sighash, signature, txUid.get<CPubKey>()))
+    if (!VerifySignature(sighash, signature, txUid.get<CPubKey>()))
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx signature error "),
                         REJECT_INVALID, "bad-tx-signature");
 

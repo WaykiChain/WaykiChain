@@ -268,8 +268,8 @@ bool CBaseCoinTransferTx::CheckTx(CValidationState &state, CAccountViewCache &vi
     uint256 sighash = ComputeSignatureHash();
     CPubKey pubKey =
         txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey;
-    if (!CheckSignScript(sighash, signature, pubKey))
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, CheckSignScript failed"),
+    if (!VerifySignature(sighash, signature, pubKey))
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, VerifySignature failed"),
                          REJECT_INVALID, "bad-signscript-check");
 
     return true;

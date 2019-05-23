@@ -31,7 +31,7 @@ bool CFcoinStakeTx::CheckTx(CValidationState &state, CAccountViewCache &view, CS
 
     // check signature script
     uint256 sighash = ComputeSignatureHash();
-    if (!CheckSignScript(sighash, signature, txUid.get<CPubKey>()))
+    if (!VerifySignature(sighash, signature, txUid.get<CPubKey>()))
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, tx signature error "),
                         REJECT_INVALID, "bad-tx-signature");
 

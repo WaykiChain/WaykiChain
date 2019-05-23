@@ -778,9 +778,9 @@ static int ExVerifySignatureFunc(lua_State *L) {
     vector<unsigned char> &data = *retdata.at(0);
     uint256 dataHash = Hash(data.begin(), data.end());
 
-    bool rlt = CheckSignScript(dataHash, signature, pk);
+    bool rlt = VerifySignature(dataHash, signature, pk);
     if (!rlt) {
-        LogPrint("INFO", "ExVerifySignatureFunc call CheckSignScript verify signature failed!\n");
+        LogPrint("INFO", "ExVerifySignatureFunc call VerifySignature verify signature failed!\n");
     }
 
     return RetRstBooleanToLua(L, rlt);

@@ -75,13 +75,13 @@ public:
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CPriceFeedTx>(this); }
     virtual double GetPriority() const { return 10000.0f; } // Top priority
+
     virtual bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
     virtual bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
                     int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
     virtual bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
                     CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
                     CScriptDBViewCache &scriptDB);
-
     virtual string ToString(CAccountViewCache &view) const; //logging usage
     virtual Object ToJson(const CAccountViewCache &AccountView) const; //json-rpc usage
     virtual bool GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);

@@ -543,7 +543,7 @@ bool IsFinalTx(CBaseTx *ptx, int nBlockHeight, int64_t nBlockTime) {
     return true;
 }
 
-bool CheckSignScript(const uint256 &sigHash, const std::vector<unsigned char> &signature, const CPubKey &pubKey) {
+bool VerifySignature(const uint256 &sigHash, const std::vector<unsigned char> &signature, const CPubKey &pubKey) {
     if (signatureCache.Get(sigHash, signature, pubKey))
         return true;
 

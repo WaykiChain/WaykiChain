@@ -301,9 +301,9 @@ bool CMulsigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
                                  REJECT_INVALID, "bad-tx-sig-size");
             }
 
-            if (!CheckSignScript(sighash, item.signature, account.pubKey)) {
+            if (!VerifySignature(sighash, item.signature, account.pubKey)) {
                 return state.DoS(100,
-                                 ERRORMSG("CMulsigTx::CheckTx, account: %s, CheckSignScript failed",
+                                 ERRORMSG("CMulsigTx::CheckTx, account: %s, VerifySignature failed",
                                           item.regId.ToString()),
                                  REJECT_INVALID, "bad-signscript-check");
             } else {
