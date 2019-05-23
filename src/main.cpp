@@ -2868,7 +2868,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
                             pIndex->nHeight, pIndex->GetBlockHash().ToString());
 
         // check level 1: verify block validity
-        if (nCheckLevel >= 1 && !CheckBlock(block, state, view, scriptDBCache))
+        if (nCheckLevel >= 1 && !CheckBlock(block, state, accountCache, scriptCache))
             return ERRORMSG("VerifyDB() : *** found bad block at %d, hash=%s\n",
                             pIndex->nHeight, pIndex->GetBlockHash().ToString());
 
@@ -2886,7 +2886,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
         if (nCheckLevel >= 3 && pIndex == pindexState) {
             bool fClean = true;
 
-            if (!DisconnectBlock(block, state, view, pIndex, txCacheTemp, scriptDBCache, &fClean))
+            if (!DisconnectBlock(block, state, accountCache, pIndex, txCache, scriptCache, &fClean))
                 return ERRORMSG("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s",
                                 pIndex->nHeight, pIndex->GetBlockHash().ToString());
 
@@ -2912,8 +2912,8 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
             if (!ReadBlockFromDisk(pIndex, block))
                 return ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s",
                                 pIndex->nHeight, pIndex->GetBlockHash().ToString());
-            if (!ConnectBlock(block, state, view, pIndex, txCacheTemp, scriptDBCache, false))
-                return ERRORMSG("VerifyDB() : *** found unconnectable block at %d, hash=%s",
+            if (!ConnectBlock(block, state, accountCache, pIndex, txCache, scriptCache, false))
+                return ERRORMSG("VerifyDB() : *** found un-connectable block at %d, hash=%s",
                                 pIndex->nHeight, pIndex->GetBlockHash().ToString());
         }
     }
