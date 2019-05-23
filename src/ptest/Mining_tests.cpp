@@ -156,7 +156,7 @@ public:
 		return m_strRegId;
 	}
 
-	string GetAddress() {
+	string GetInvolvedKeyIds() {
 		return m_strAddress;
 	}
 
@@ -283,13 +283,13 @@ BOOST_FIXTURE_TEST_CASE(test1, CSendItem)
 		//创建客户端1->客户端2的普通交易
 		CSendItem sendItem = CSendItem::GetRandomSendItem(1);
 		CSendItem recItem = CSendItem::GetRandomSendItem(2);
-		CreateNormalTx(sendItem.GetAddress(),recItem.GetAddress(),recItem.GetSendValue());  //创建普通交易
+		CreateNormalTx(sendItem.GetInvolvedKeyIds(),recItem.GetInvolvedKeyIds(),recItem.GetSendValue());  //创建普通交易
 		MilliSleep(sleepTime);
 
 		//创建客户端1->客户端2的合约交易
 		CSendItem sendItem1 = CSendItem::GetRandomSendItem(1);
 
-		CallContractTx(scriptid,sendItem1.GetAddress(),"01",0);  //创建合约交易
+		CallContractTx(scriptid,sendItem1.GetInvolvedKeyIds(),"01",0);  //创建合约交易
 		MilliSleep(sleepTime);
 	}
 }
@@ -309,12 +309,12 @@ BOOST_AUTO_TEST_CASE(test2)
 		//创建客户端2->客户端3的普通交易
 		CSendItem sendItem = CSendItem::GetRandomSendItem(2);
 		CSendItem recItem = CSendItem::GetRandomSendItem(3);
-		CreateNormalTx(sendItem.GetAddress(),recItem.GetAddress(),recItem.GetSendValue());
+		CreateNormalTx(sendItem.GetInvolvedKeyIds(),recItem.GetInvolvedKeyIds(),recItem.GetSendValue());
 		MilliSleep(sleepTime);
 
 		//创建客户端2->客户端3的合约交易
 		CSendItem sendItem1 = CSendItem::GetRandomSendItem(2);
-		CallContractTx(scriptid,sendItem1.GetAddress(),"01",0); //创建合约交易
+		CallContractTx(scriptid,sendItem1.GetInvolvedKeyIds(),"01",0); //创建合约交易
 		MilliSleep(sleepTime);
 	}
 }
@@ -335,12 +335,12 @@ BOOST_AUTO_TEST_CASE(test3)
 		//创建客户端3->客户端4的普通交易
 		CSendItem sendItem = CSendItem::GetRandomSendItem(3);
 		CSendItem recItem = CSendItem::GetRandomSendItem(4);
-		CreateNormalTx(sendItem.GetAddress(),recItem.GetAddress(),recItem.GetSendValue());
+		CreateNormalTx(sendItem.GetInvolvedKeyIds(),recItem.GetInvolvedKeyIds(),recItem.GetSendValue());
 		MilliSleep(sleepTime);
 
 		//创建客户端3->客户端4的合约交易
 		CSendItem sendItem1 = CSendItem::GetRandomSendItem(3);
-		CallContractTx(scriptid,sendItem1.GetAddress(),"01",0);
+		CallContractTx(scriptid,sendItem1.GetInvolvedKeyIds(),"01",0);
 		MilliSleep(sleepTime);
 	}
 }
@@ -362,12 +362,12 @@ BOOST_AUTO_TEST_CASE(test4)
 		//创建客户端4->客户端5的普通交易
 		CSendItem sendItem = CSendItem::GetRandomSendItem(4);
 		CSendItem recItem = CSendItem::GetRandomSendItem(5);
-		CreateNormalTx(sendItem.GetAddress(),recItem.GetAddress(),recItem.GetSendValue());  //创建普通交易
+		CreateNormalTx(sendItem.GetInvolvedKeyIds(),recItem.GetInvolvedKeyIds(),recItem.GetSendValue());  //创建普通交易
 		MilliSleep(sleepTime);
 
 		//创建客户端4->客户端5的合约交易
 		CSendItem sendItem1 = CSendItem::GetRandomSendItem(4);
-		CallContractTx(scriptid,sendItem1.GetAddress(),"01",0);
+		CallContractTx(scriptid,sendItem1.GetInvolvedKeyIds(),"01",0);
 		MilliSleep(sleepTime);
 	}
 }
@@ -387,12 +387,12 @@ BOOST_AUTO_TEST_CASE(test5)
 		//创建客户端5->客户端1的普通交易
 		CSendItem sendItem = CSendItem::GetRandomSendItem(5);
 		CSendItem recItem = CSendItem::GetRandomSendItem(1);
-		CreateNormalTx(sendItem.GetAddress(),recItem.GetAddress(),recItem.GetSendValue());
+		CreateNormalTx(sendItem.GetInvolvedKeyIds(),recItem.GetInvolvedKeyIds(),recItem.GetSendValue());
 		MilliSleep(sleepTime);
 
 		//创建客户端5->客户端1的合约交易
 		CSendItem sendItem1 = CSendItem::GetRandomSendItem(5);
-		CallContractTx(scriptid,sendItem1.GetAddress(),"01",0);
+		CallContractTx(scriptid,sendItem1.GetInvolvedKeyIds(),"01",0);
 		MilliSleep(sleepTime);
 	}
 

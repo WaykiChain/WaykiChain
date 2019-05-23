@@ -140,7 +140,7 @@ bool CContractDeployTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVali
     return true;
 }
 
-bool CContractDeployTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CContractDeployTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     CKeyID keyId;
     if (!view.GetKeyId(txUid, keyId))
         return false;
@@ -245,7 +245,7 @@ bool CContractDeployTx::CheckTx(CValidationState &state, CAccountViewCache &view
     return true;
 }
 
-bool CContractInvokeTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CContractInvokeTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     CKeyID keyId;
     if (!view.GetKeyId(txUid, keyId))
         return false;
@@ -268,7 +268,7 @@ bool CContractInvokeTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, 
             chainActive.Height() + 1, fuelRate, nRunStep);
 
         if (!std::get<0>(ret))
-            return ERRORMSG("CContractInvokeTx::GetAddress, %s", std::get<2>(ret));
+            return ERRORMSG("CContractInvokeTx::GetInvolvedKeyIds, %s", std::get<2>(ret));
 
         vector<shared_ptr<CAccount> > vpAccount = vmRunEnv.GetNewAccount();
 

@@ -96,7 +96,7 @@ Object CMulsigTx::ToJson(const CAccountViewCache &AccountView) const {
     return result;
 }
 
-bool CMulsigTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
+bool CMulsigTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view,
                            CScriptDBViewCache &scriptDB) {
     CKeyID keyId;
     for (const auto &item : signaturePairs) {

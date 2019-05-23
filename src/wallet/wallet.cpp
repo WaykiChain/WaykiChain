@@ -466,7 +466,7 @@ bool CWallet::IsMine(CBaseTx *pTx) const {
     set<CKeyID> vaddr;
     CAccountViewCache view(*pAccountViewTip);
     CScriptDBViewCache scriptDB(*pScriptDBTip);
-    if (!pTx->GetAddress(vaddr, view, scriptDB)) {
+    if (!pTx->GetInvolvedKeyIds(vaddr, view, scriptDB)) {
         return false;
     }
     for (auto &keyid : vaddr) {

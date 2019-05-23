@@ -131,7 +131,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
     std::set<CKeyID> vKeyIdSet;
     switch (pBaseTx->nTxType) {
         case BLOCK_REWARD_TX: {
-            if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
+            if (!pBaseTx->GetInvolvedKeyIds(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
                 return arrayDetail;
 
             obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
@@ -144,7 +144,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             break;
         }
         case ACCOUNT_REGISTER_TX: {
-            if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
+            if (!pBaseTx->GetInvolvedKeyIds(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
                 return arrayDetail;
 
             obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
@@ -257,7 +257,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
         }
         case CONTRACT_DEPLOY_TX:
         case DELEGATE_VOTE_TX: {
-            if (!pBaseTx->GetAddress(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
+            if (!pBaseTx->GetInvolvedKeyIds(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
                 return arrayDetail;
 
             double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;

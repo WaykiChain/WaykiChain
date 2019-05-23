@@ -95,7 +95,7 @@ Object CFcoinStakeTx::ToJson(const CAccountViewCache &AccountView) const {
   return Object();
 }
 
-bool CFcoinStakeTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CFcoinStakeTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     //TODO
     return true;
 }

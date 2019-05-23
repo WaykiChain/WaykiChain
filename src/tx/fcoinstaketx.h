@@ -62,7 +62,7 @@ public:
     virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountViewCache &view) const;
     virtual Object ToJson(const CAccountViewCache &AccountView) const;
-    virtual bool GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+    virtual bool GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
 
 };
 #endif

@@ -48,7 +48,7 @@ Object CBlockRewardTx::ToJson(const CAccountViewCache &AccountView) const{
     return result;
 }
 
-bool CBlockRewardTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
+bool CBlockRewardTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view,
                            CScriptDBViewCache &scriptDB) {
     CKeyID keyId;
     if (txUid.type() == typeid(CRegID)) {

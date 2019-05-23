@@ -142,7 +142,7 @@ bool CAccountRegisterTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVal
     return true;
 }
 
-bool CAccountRegisterTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CAccountRegisterTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     if (!txUid.get<CPubKey>().IsFullyValid())
         return false;
 

@@ -71,7 +71,7 @@ Object CPriceFeedTx::ToJson(const CAccountViewCache &AccountView) const {
   return Object();
 }
 
-bool CPriceFeedTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CPriceFeedTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
     //TODO
     return true;
 }

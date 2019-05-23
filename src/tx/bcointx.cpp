@@ -68,7 +68,7 @@ Object CBaseCoinTransferTx::ToJson(const CAccountViewCache &AccountView) const {
     return result;
 }
 
-bool CBaseCoinTransferTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view,
+bool CBaseCoinTransferTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view,
                            CScriptDBViewCache &scriptDB) {
     CKeyID keyId;
     if (!view.GetKeyId(txUid, keyId))
@@ -78,6 +78,7 @@ bool CBaseCoinTransferTx::GetAddress(set<CKeyID> &vAddr, CAccountViewCache &view
     CKeyID desKeyId;
     if (!view.GetKeyId(toUid, desKeyId))
         return false;
+
     vAddr.insert(desKeyId);
     return true;
 }

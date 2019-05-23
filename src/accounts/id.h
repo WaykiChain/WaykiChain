@@ -14,7 +14,6 @@
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "key.h"
-// #include "chainparams.h"
 #include "crypto/hash.h"
 
 class CAccountViewCache;

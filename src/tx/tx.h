@@ -162,7 +162,7 @@ public:
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); };
     virtual uint64_t GetValue() const { return 0; };
 
-    virtual bool GetAddress(std::set<CKeyID> &vAddr,
+    virtual bool GetInvolvedKeyIds(std::set<CKeyID> &vAddr,
                         CAccountViewCache &view,
                         CScriptDBViewCache &scriptDB)                       = 0;
     virtual uint256 ComputeSignatureHash(bool recalculate = false) const    = 0;
