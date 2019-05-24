@@ -85,7 +85,7 @@ void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList);
 
 bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct);
 
-bool VerifyPosTx(const CBlock *pBlock, CAccountCache &accView, CTransactionCache &txCache, CContractCache &scriptCache, bool bNeedRunTx = false);
+bool VerifyPosTx(const CBlock *pBlock, bool bNeedRunTx = false);
 /** Check mined block */
 bool CheckWork(CBlock *pblock, CWallet &wallet);
 /** Base sha256 mining transform */

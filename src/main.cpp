@@ -1241,28 +1241,28 @@ void static FlushBlockFile(bool fFinalize = false) {
 
 bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigned int nAddSize);
 
-bool ConnectBlock(CBlock &block, CValidationState &state, CAccountCache &view, CBlockIndex *pIndex,
-                  CTransactionCache &txCache, CContractCache &scriptDBCache, bool fJustCheck) {
+bool ConnectBlock(CBlock &block, CValidationState &state,  CCacheWrapper &cw, CBlockIndex *pIndex, bool fJustCheck) {
     AssertLockHeld(cs_main);
     bool isGensisBlock = ( block.GetHeight() == 0 && block.GetHash() == SysCfg().GetGenesisBlockHash() );
 
     // Check it again in case a previous version let a bad block in
-    if (!isGensisBlock && !CheckBlock(block, state, view, scriptDBCache, !fJustCheck, !fJustCheck))
+    if (!isGensisBlock && !CheckBlock(block, state, cw, !fJustCheck, !fJustCheck))
         return false;
 
     if (!fJustCheck) {
         // Verify that the view's current state corresponds to the previous block
         uint256 hashPrevBlock = pIndex->pprev == NULL ? uint256() : pIndex->pprev->GetBlockHash();
-        if (hashPrevBlock != view.GetBestBlock()) {
-            LogPrint("INFO", "hashPrevBlock=%s, bestblock=%s\n",
-                     hashPrevBlock.GetHex(), view.GetBestBlock().GetHex());
-            assert(hashPrevBlock == view.GetBestBlock());
+        if (hashPrevBlock != cw.pAccountCache->GetBestBlock()) {
+            LogPrint("INFO", "hashPrevBlock=%s, bestblock=%s\n", 
+                    hashPrevBlock.GetHex(), cw.pAccountCache->GetBestBlock().GetHex());
+
+            assert(hashPrevBlock == cw.pAccountCache->GetBestBlock());
         }
     }
 
     // Special case for the genesis block, skipping connection of its transactions
     if (isGensisBlock) {
-        view.SetBestBlock(pIndex->GetBlockHash());
+        cw.pAccountCache->SetBestBlock(pIndex->GetBlockHash());
         for (unsigned int i = 1; i < block.vptx.size(); i++) {
             if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
                 assert(i <= 1);
@@ -1276,13 +1276,13 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountCache &view, C
                 sourceAccount.pubKey = pubKey;
                 sourceAccount.SetRegId(acctRegId);
                 sourceAccount.bcoins = pRewardTx->rewardValue;
-                assert(view.SaveAccountInfo(sourceAccount));
+                assert(cw.pAccountCache->SaveAccountInfo(sourceAccount));
             } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
                 std::shared_ptr<CDelegateVoteTx> pDelegateTx = dynamic_pointer_cast<CDelegateVoteTx>(block.vptx[i]);
                 assert(pDelegateTx->txUid.type() == typeid(CRegID));  // Vote Tx must use RegId
 
                 CAccount voterAcct;
-                assert(view.GetAccount(pDelegateTx->txUid, voterAcct));
+                assert(cw.pAccountCache->GetAccount(pDelegateTx->txUid, voterAcct));
                 CUserID voterCId(pDelegateTx->txUid);
                 uint64_t maxVotes = 0;
                 CContractDBOperLog operDbLog;
@@ -1297,10 +1297,10 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountCache &view, C
 
                     if (voterCId == votedUid) {  // vote for self
                         voterAcct.receivedVotes = vote.GetVotedBcoins();
-                        assert(scriptDBCache.SetDelegateData(voterAcct, operDbLog));
+                        assert(cw.pContractCache->SetDelegateData(voterAcct, operDbLog));
                     } else {  // vote for others
                         CAccount votedAcct;
-                        assert(!view.GetAccount(votedUid, votedAcct));
+                        assert(!cw.pAccountCache->GetAccount(votedUid, votedAcct));
 
                         CRegID votedRegId(pIndex->nHeight, j++);  // generate RegId in genesis block
                         votedAcct.SetRegId(votedRegId);
@@ -1311,8 +1311,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountCache &view, C
                             votedAcct.keyID  = votedAcct.pubKey.GetKeyId();
                         }
 
-                        assert(view.SaveAccountInfo(votedAcct));
-                        assert(scriptDBCache.SetDelegateData(votedAcct, operDbLog));
+                        assert(cw.pAccountCache->SaveAccountInfo(votedAcct));
+                        assert(cw.pContractCache->SetDelegateData(votedAcct, operDbLog));
                     }
 
                     voterAcct.candidateVotes.push_back(vote);
@@ -1323,13 +1323,13 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountCache &view, C
                 }
                 assert(voterAcct.bcoins >= maxVotes);
                 voterAcct.bcoins -= maxVotes;
-                assert(view.SaveAccountInfo(voterAcct));
+                assert(cw.pAccountCache->SaveAccountInfo(voterAcct));
             }
         }
         return true;
     }
 
-    if (!VerifyPosTx(&block, view, txCache, scriptDBCache, false))
+    if (!VerifyPosTx(&block, false))
         return state.DoS(100, ERRORMSG("ConnectBlock() : the block Hash=%s check pos tx error",
                         block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
 
@@ -1364,6 +1364,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CAccountCache &view, C
             LogPrint("op_account", "tx index:%d tx hash:%s\n", i, pBaseTx->GetHash().GetHex());
             CTxUndo txundo;
             pBaseTx->nFuelRate = block.GetFuelRate();
+
             if (!pBaseTx->ExecuteTx(i, view, state, txundo, pIndex->nHeight, txCache, scriptDBCache))
                 return false;
 
@@ -2115,8 +2116,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     return true;
 }
 
-bool CheckBlock(const CBlock &block, CValidationState &state, CAccountCache &accountCache,
-                CContractCache &contractCache, bool fCheckTx, bool fCheckMerkleRoot) {
+bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw, bool fCheckTx, bool fCheckMerkleRoot) {
     if (block.vptx.empty() || block.vptx.size() > MAX_BLOCK_SIZE ||
         ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return state.DoS(100, ERRORMSG("CheckBlock() : size limits failed"), REJECT_INVALID, "bad-blk-length");
@@ -2144,7 +2144,6 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CAccountCache &acc
     // Check for duplicate txids. This is caught by ConnectInputs(),
     // but catching it earlier avoids a potential DoS attack:
     set<uint256> uniqueTx;
-    CCacheWrapper cw(accountCache, contractCache);
     for (unsigned int i = 0; i < block.vptx.size(); i++) {
         uniqueTx.insert(block.GetTxHash(i));
 

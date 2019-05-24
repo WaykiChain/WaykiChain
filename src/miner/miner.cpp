@@ -98,10 +98,8 @@ void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pindexPrev, unsigned int &
     pblock->SetMerkleRootHash(pblock->BuildMerkleTree());
 }
 
-bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountCache &accViewIn, CContractCache &scriptCacheIn) {
+bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList) {
     LOCK(cs_main);
-    CAccountCache accView(accViewIn);
-    CContractCache scriptCache(scriptCacheIn);
 
     int TotalDelegateNum = IniCfg().GetTotalDelegateNum();
     int nIndex       = 0;
@@ -112,7 +110,7 @@ bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountCache &a
     const int VOTES_STRING_SIZE           = 16;
     while (--TotalDelegateNum >= 0) {
         CRegID regId(0, 0);
-        if (scriptCache.GetContractData(0, regId, nIndex, vScriptKey, vScriptData)) {
+        if (pCdMan->pContractCache->GetContractData(0, regId, nIndex, vScriptKey, vScriptData)) {
             nIndex                                    = 1;
             vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrefix.begin(), vDelegatePrefix.end());
             string strVoltes(iterVotes + SCRIPT_KEY_PREFIX_LENGTH, iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE);
@@ -122,7 +120,7 @@ bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountCache &a
             vector<unsigned char> vAcctRegId(iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE + 1, vScriptKey.end());
             CRegID acctRegId(vAcctRegId);
             CAccount account;
-            if (!accView.GetAccount(acctRegId, account)) {
+            if (!pCdMan->pAccountCache->GetAccount(acctRegId, account)) {
                 LogPrint("ERROR", "GetAccount Error, acctRegId:%s\n", acctRegId.ToString());
                 // StartShutdown();
                 return false;
@@ -142,10 +140,6 @@ bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountCache &a
         }
     }
     return true;
-}
-
-bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList) {
-    return GetDelegatesAcctList(vDelegatesAcctList, *pAccountViewTip, *pScriptDBTip);
 }
 
 bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct) {
@@ -213,12 +207,11 @@ void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
     }
 }
 
-bool VerifyPosTx(const CBlock *pBlock, CAccountCache &accView, CTransactionCache &txCache,
-                 CContractCache &scriptCache, bool bNeedRunTx) {
+bool VerifyPosTx(const CBlock *pBlock, bool bNeedRunTx) {
     uint64_t maxNonce = SysCfg().GetBlockMaxNonce();
     vector<CAccount> vDelegatesAcctList;
 
-    if (!GetDelegatesAcctList(vDelegatesAcctList, accView, scriptCache))
+    if (!GetDelegatesAcctList(vDelegatesAcctList))
         return false;
 
     ShuffleDelegates(pBlock->GetHeight(), vDelegatesAcctList);
