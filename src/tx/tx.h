@@ -24,11 +24,27 @@ using namespace std;
 
 class CTxUndo;
 class CValidationState;
-class CAccountViewCache;
-class CScriptDB;
-class CTransactionDBCache;
-class CScriptDBViewCache;
-class CScriptDBOperLog;
+class CAccountCache;
+class CContractDB;
+class CTransactionCache;
+class CContractDBOperLog;
+
+class CCacheWrapper {
+public:
+    CAccountCache *pAccountCache;
+    CTransactionCache *pTxCache;
+    CContractCache *pContractCache;
+    CTxUndo *pTxUndo;
+
+    CCacheWrapper(CAccountCache *pAccountCacheIn, CContractCache *pContractCacheIn):
+            pAccountCache(pAccountCacheIn), pTxCache(nullptr), pContractCache(pContractCacheIn), pTxUndo(nullptr) {};
+
+    CCacheWrapper( CAccountCache *pAccountCacheIn,
+            CTransactionCache *pTxCacheIn,
+            CContractCache *pContractCacheIn,
+            CTxUndo *pTxUndoIn) :
+        pAccountCache(pAccountCacheIn), pTxCache(pTxCacheIn), pContractCache(pContractCacheIn), pTxUndo(pTxUndoIn) {};
+};
 
 typedef vector<unsigned char> vector_unsigned_char;
 
@@ -61,6 +77,7 @@ enum TxType : unsigned char {
     DELEGATE_VOTE_TX    = 6,  //!< Vote Delegate Tx
     COMMON_MTX          = 7,  //!< Multisig Tx
 
+    BLOCK_MEDIAN_PRICE_TX = 8, // Block Median Price Tx
     /******** Begin of Stable Coin TX Type Enums ********/
     CDP_OPEN_TX      = 11,  //!< CDP Collateralize Tx
     CDP_REFUEL_TX    = 12,  //!< CDP Refuel Tx
@@ -162,28 +179,18 @@ public:
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); };
     virtual uint64_t GetValue() const { return 0; };
 
-    virtual bool GetInvolvedKeyIds(std::set<CKeyID> &vAddr,
-                        CAccountViewCache &view,
-                        CScriptDBViewCache &scriptDB)                       = 0;
     virtual uint256 ComputeSignatureHash(bool recalculate = false) const    = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance()                       = 0;
-    virtual string ToString(const CAccountViewCache &view) const            = 0;
-    virtual Object ToJson(const CAccountViewCache &view) const              = 0;
-    virtual bool CheckTx(CValidationState &state,
-                        CAccountViewCache &view,
-                        CScriptDBViewCache &scriptDB)                       = 0;
-    virtual bool ExecuteTx(int nIndex, CAccountViewCache &view,
-                        CValidationState &state,
-                        CTxUndo &txundo, int nHeight,
-                        CTransactionDBCache &txCache,
-                        CScriptDBViewCache &scriptDB)                       = 0;
-    virtual bool UndoExecuteTx(int nIndex, CAccountViewCache &view,
-                        CValidationState &state,
-                        CTxUndo &txundo, int nHeight,
-                        CTransactionDBCache &txCache,
-                        CScriptDBViewCache &scriptDB)                       = 0;
 
-    int GetFuelRate(CScriptDBViewCache &scriptDB);
+    virtual string ToString(const CAccountCache &view) const            = 0;
+    virtual Object ToJson(const CAccountCache &view) const              = 0;
+    virtual bool GetInvolvedKeyIds(CCacheWrapper& cw, set<CKeyID> &keyIds) = 0;
+
+    virtual bool CheckTx(CCacheWrapper &cw, CValidationState &state) = 0;
+    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state)  = 0;
+    virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) = 0;
+
+    int GetFuelRate(CContractCache &scriptDB);
     bool IsValidHeight(int nCurHeight, int nTxCacheHeight) const;
     bool IsCoinBase() { return (nTxType == BLOCK_REWARD_TX); }
 
@@ -196,7 +203,7 @@ class CTxUndo {
 public:
     uint256 txHash;
     vector<CAccountLog> vAccountLog;
-    vector<CScriptDBOperLog> vScriptOperLog;
+    vector<CContractDBOperLog> vScriptOperLog;
     IMPLEMENT_SERIALIZE(
         READWRITE(txHash);
         READWRITE(vAccountLog);

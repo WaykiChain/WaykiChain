@@ -12,13 +12,12 @@
 #include <vector>
 #include "commons/arith_uint256.h"
 #include "leveldbwrapper.h"
-#include "main.h"
+#include "accounts/account.h"
 
 class uint256;
 class CKeyID;
 
-
-class CAccountView {
+class IAccountView {
 public:
     virtual bool GetAccount(const CKeyID &keyId, CAccount &account) = 0;
     virtual bool GetAccount(const vector<unsigned char> &accountRegId, CAccount &account) = 0;
@@ -41,12 +40,12 @@ public:
     virtual std::tuple<uint64_t, uint64_t> TraverseAccount() = 0;
     virtual Object ToJsonObj(char prefix)                    = 0;
 
-    virtual ~CAccountView() {};
+    virtual ~IAccountView() {};
 };
 
-class CAccountViewCache : public CAccountView {
+class CAccountCache : public IAccountView {
 protected:
-    CAccountView *pBase;
+    IAccountView *pBase;
 
 public:
     uint256 blockHash;
@@ -79,8 +78,8 @@ public:
     virtual Object ToJsonObj(char prefix) { return Object(); }
 
 public:
-    CAccountViewCache(CAccountView &view): pBase(&view), blockHash(uint256()) {}
-    ~CAccountViewCache() {}
+    CAccountCache(IAccountView &view): pBase(&view), blockHash(uint256()) {}
+    ~CAccountCache() {}
 
     bool GetUserId(const string &addr, CUserID &userId);
     bool GetRegId(const CKeyID &keyId, CRegID &regId);
@@ -94,20 +93,23 @@ public:
     bool Flush();
     unsigned int GetCacheSize();
     Object ToJsonObj() const;
-    void SetBaseView(CAccountView *pBaseIn) { pBase = pBaseIn; };
+    void SetBaseView(IAccountView *pBaseIn) { pBase = pBaseIn; };
 };
 
-class CAccountViewDB : public CAccountView {
+class CAccountDB : public IAccountView {
 private:
     CLevelDBWrapper db;
 
 public:
-    CAccountViewDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
-    CAccountViewDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe);
+    CAccountDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) :
+                db( GetDataDir() / "blocks" / "account", nCacheSize, fMemory, fWipe ) {}
+
+    CAccountDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe) :
+                db( GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe ) {}
 
 private:
-    CAccountViewDB(const CAccountViewDB &);
-    void operator=(const CAccountViewDB &);
+    CAccountDB(const CAccountDB &);
+    void operator=(const CAccountDB &);
 
 public:
     bool GetAccount(const CKeyID &keyId, CAccount &account);

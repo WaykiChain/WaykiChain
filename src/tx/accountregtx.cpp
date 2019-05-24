@@ -16,9 +16,7 @@
 #include "miner/miner.h"
 #include "version.h"
 
-
-bool CAccountRegisterTx::CheckTx(CValidationState &state, CAccountViewCache &view,
-                                CScriptDBViewCache &scriptDB) {
+bool CAccountRegisterTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
 
     if (txUid.type() != typeid(CPubKey))
@@ -38,9 +36,7 @@ bool CAccountRegisterTx::CheckTx(CValidationState &state, CAccountViewCache &vie
     return true;
 }
 
-bool CAccountRegisterTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                                   CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                                   CScriptDBViewCache &scriptDB) {
+bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     CRegID regId(nHeight, nIndex);
     CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
@@ -71,44 +67,46 @@ bool CAccountRegisterTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidat
         }
     }
 
-    if (!view.SaveAccountInfo(account))
+    if (!cw.pAccountCache->SaveAccountInfo(account))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, write source addr %s account info error",
             regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    txundo.vAccountLog.push_back(acctLog);
-    txundo.txHash = GetHash();
+    cw.pTxUndo->vAccountLog.push_back(acctLog);
+    cw.pTxUndo->txHash = GetHash();
     if (SysCfg().GetAddressToTxFlag()) {
-        CScriptDBOperLog operAddressToTxLog;
+        CContractDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
-        if(!view.GetKeyId(txUid, sendKeyId))
+        if(!cw.pAccountCache->GetKeyId(txUid, sendKeyId))
             return ERRORMSG("CAccountRegisterTx::ExecuteTx, get keyid by userId error!");
 
-        if(!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
+        if(!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex+1,
+            cw.pTxUndo->txHash.GetHex(), operAddressToTxLog))
             return false;
 
-        txundo.vScriptOperLog.push_back(operAddressToTxLog);
+        cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
     }
 
     return true;
 }
 
-bool CAccountRegisterTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-        CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
+bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex,
+    CCacheWrapper &cw, CValidationState &state) {
     // drop account
     CRegID accountRegId(nHeight, nIndex);
     CAccount oldAccount;
-    if (!view.GetAccount(accountRegId, oldAccount))
+    if (!cw.pAccountCache->GetAccount(accountRegId, oldAccount)) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read secure account=%s info error",
-            accountRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+                        accountRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+    }
 
     CKeyID keyId;
-    view.GetKeyId(accountRegId, keyId);
+    cw.pAccountCache->GetKeyId(accountRegId, keyId);
 
     if (llFees > 0) {
         CAccountLog accountLog;
-        if (!txundo.GetAccountOperLog(keyId, accountLog))
-            return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read keyId=%s tx undo info error", keyId.GetHex()),
-                    UPDATE_ACCOUNT_FAIL, "bad-read-txundoinfo");
+        if (!cw.pTxUndo->GetAccountOperLog(keyId, accountLog))
+            return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read keyId=%s tx undo info error",
+                            keyId.GetHex()), UPDATE_ACCOUNT_FAIL, "bad-read-txundoinfo");
         oldAccount.UndoOperateAccount(accountLog);
     }
 
@@ -118,32 +116,29 @@ bool CAccountRegisterTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVal
         oldAccount.minerPubKey = empPubKey;
         oldAccount.regID.Clean();
         CUserID userId(keyId);
-        view.SetAccount(userId, oldAccount);
+        cw.pAccountCache->SetAccount(userId, oldAccount);
     } else {
-        view.EraseAccountByKeyId(txUid);
+        vicacheWrapper.accountCacheew.EraseAccountByKeyId(txUid);
     }
-    view.EraseKeyId(accountRegId);
+    cw.pAccountCache->EraseKeyId(accountRegId);
     return true;
 }
 
-bool CAccountRegisterTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CAccountRegisterTx::GetInvolvedKeyIds(CCacheWrapper & cw, set<CKeyID> &keyIds) {
     if (!txUid.get<CPubKey>().IsFullyValid())
         return false;
 
-    vAddr.insert(txUid.get<CPubKey>().GetKeyId());
+    keyIds.insert(txUid.get<CPubKey>().GetKeyId());
     return true;
 }
 
-string CAccountRegisterTx::ToString(CAccountViewCache &view) const {
-    string str;
-    str += strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
-        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, txUid.get<CPubKey>().ToString(),
-        llFees, txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight);
-
-    return str;
+string CAccountRegisterTx::ToString(const CAccountCache &view) const {
+    return strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
+                    GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, txUid.get<CPubKey>().ToString(),
+                    llFees, txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight);
 }
 
-Object CAccountRegisterTx::ToJson(const CAccountViewCache &AccountView) const {
+Object CAccountRegisterTx::ToJson(const CAccountCache &AccountView) const {
     assert(txUid.type() == typeid(CPubKey));
     string address = txUid.get<CPubKey>().GetKeyId().ToAddress();
     string userPubKey = txUid.ToString();

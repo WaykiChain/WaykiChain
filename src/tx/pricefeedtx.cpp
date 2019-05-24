@@ -14,7 +14,7 @@
 #include "miner/miner.h"
 #include "version.h"
 
-bool CPriceFeedTx::CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CPriceFeedTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
 
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -24,7 +24,7 @@ bool CPriceFeedTx::CheckTx(CValidationState &state, CAccountViewCache &view, CSc
             REJECT_INVALID, "bad-tx-pricepoint-size-error");
     }
     CAccount account;
-    if (!view.GetAccount(txUid, account))
+    if (!cw.pAccountCache->GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
@@ -36,11 +36,10 @@ bool CPriceFeedTx::CheckTx(CValidationState &state, CAccountViewCache &view, CSc
     return true;
 }
 
-bool CPriceFeedTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-                    int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
+bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
 
     CAccount account;
-    if (!view.GetAccount(txUid, account))
+    if (!cw.pAccountCache->GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
@@ -54,65 +53,58 @@ bool CPriceFeedTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationSta
     return true;
 }
 
-bool CPriceFeedTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                    CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                    CScriptDBViewCache &scriptDB) {
+bool CPriceFeedTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     //TODO
     return true;
 
 }
 
-Object CPriceFeedTx::ToString(const CAccountViewCache &AccountView) const {
+Object CPriceFeedTx::ToString(const CAccountCache &AccountView) const {
   //TODO
   return Object();
 }
 
-Object CPriceFeedTx::ToJson(const CAccountViewCache &AccountView) const {
+Object CPriceFeedTx::ToJson(const CAccountCache &AccountView) const {
   //TODO
   return Object();
 }
 
-bool CPriceFeedTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CPriceFeedTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     //TODO
     return true;
 }
 
-bool CPriceFeedTx::GetTopPriceFeederList(vector<CAccount> &priceFeederAcctList, CAccountViewCache &accViewIn, CScriptDBViewCache &scriptCacheIn) {
+bool CPriceFeedTx::GetTopPriceFeederList(CCacheWrapper &cw, vector<CAccount> &priceFeederAccts) {
     LOCK(cs_main);
-    CAccountViewCache accView(accViewIn);
-    CScriptDBViewCache scriptCache(scriptCacheIn);
 
     return true;
 }
 
 //############################################################################################################
 
-bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CheckTx(CValidationState &state, CAccountCache &view, CContractCache &scriptDB) {
     return true;
 }
 
-bool CBlockPriceMedianTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-                   int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB) {
+bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     return true;
 }
 
-bool CBlockPriceMedianTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                       CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                       CScriptDBViewCache &scriptDB) {
+bool CBlockPriceMedianTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     return true;
 }
 
-string CBlockPriceMedianTx::ToString(CAccountViewCache &view) const {
+string CBlockPriceMedianTx::ToString(CAccountCache &view) const {
     //TODO
     return "";
 }
 
-Object CBlockPriceMedianTx::ToJson(const CAccountViewCache &AccountView) const {
+Object CBlockPriceMedianTx::ToJson(const CAccountCache &AccountView) const {
     //TODO
     return Object();
 }
 
-bool CBlockPriceMedianTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CBlockPriceMedianTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountCache &view, CContractCache &scriptDB) {
     //TODO
     return true;
 }

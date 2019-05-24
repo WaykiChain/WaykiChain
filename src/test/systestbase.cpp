@@ -723,7 +723,7 @@ bool SysTestBase::GetRegID(string &strAddr, CRegID &regID) {
     CUserID userId = keyid;
 
     LOCK(cs_main);
-    CAccountViewCache accView(*pAccountViewTip);
+    CAccountCache accView(*pAccountViewTip);
     if (!accView.GetAccount(userId, account)) {
         return false;
     }

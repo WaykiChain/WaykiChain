@@ -5,9 +5,9 @@
 #include  "boost/filesystem/operations.hpp"
 #include  "boost/filesystem/path.hpp"
 using namespace std;
-CScriptDBViewCache *pscriptDBView = NULL;
-CScriptDBViewCache *pTestView = NULL;
-CScriptDB *pTestDB = NULL;
+CContractCache *pscriptDBView = NULL;
+CContractCache *pTestView = NULL;
+CContractDB *pTestDB = NULL;
 vector< vector<unsigned char> > arrKey;
 vector<unsigned char> vKey1 = {0x01, 0x02, 0x01};
 vector<unsigned char> vKey2 = {0x01, 0x02, 0x02};
@@ -19,10 +19,10 @@ vector<unsigned char> vKeyValue = {0x06, 0x07, 0x08};
 
 int nCount = 0;
 void init() {
-	 pTestDB = new CScriptDB("testdb",size_t(4<<20), false , true);
-	 pTestView =  new CScriptDBViewCache(*pTestDB, false);
+	 pTestDB = new CContractDB("testdb",size_t(4<<20), false , true);
+	 pTestView =  new CContractCache(*pTestDB, false);
 	 //穷举数据分别位于scriptDBView pTestView, pTestDB 三级分布数据测试数据库中
-	 pscriptDBView = new CScriptDBViewCache(*pTestView, true);
+	 pscriptDBView = new CContractCache(*pTestView, true);
 
 	 arrKey.push_back(vKey1);
 	 arrKey.push_back(vKey2);
@@ -91,7 +91,7 @@ void testscriptdb() {
 
 void settodb(int nType, vector<unsigned char> &vKey, vector<unsigned char> &vScriptData) {
 	vector<unsigned char> vScriptId = {0x01,0x00,0x00,0x00,0x02,0x00};
-	CScriptDBOperLog operlog;
+	CContractDBOperLog operlog;
 	CRegID regScriptId(vScriptId);
 	if(0==nType) {
 		BOOST_CHECK(pscriptDBView->SetContractData(regScriptId, vKey, vScriptData, operlog));
@@ -108,7 +108,7 @@ void settodb(int nType, vector<unsigned char> &vKey, vector<unsigned char> &vScr
 void cleandb(int nType, vector<unsigned char> vKey) {
 	vector<unsigned char> vScriptId = {0x01,0x00,0x00,0x00,0x02,0x00};
 	CRegID regScriptId(vScriptId);
-	CScriptDBOperLog operlog;
+	CContractDBOperLog operlog;
 	if(0==nType) {
 		BOOST_CHECK(pscriptDBView->EraseAppData(regScriptId, vKey, operlog));
 		BOOST_CHECK(pscriptDBView->Flush());
@@ -121,7 +121,7 @@ void cleandb(int nType, vector<unsigned char> vKey) {
 	}
 }
 
-void traversaldb(CScriptDBViewCache *pScriptDB, bool needEqual) {
+void traversaldb(CContractCache *pScriptDB, bool needEqual) {
 	assert(pScriptDB!=NULL);
 	vector< vector<unsigned char> > traversalKey;
 //	int height(0);
@@ -183,7 +183,7 @@ void testscriptdatadb() {
 	vector<unsigned char> vScriptKey5 = {0x01,0x00,0x06};
 	vector<unsigned char> vScriptData = {0x01,0x01,0x01,0x01,0x01};
 	vector<unsigned char> vScriptData1 = {0x01,0x01,0x01,0x00,0x00};
-	CScriptDBOperLog operlog;
+	CContractDBOperLog operlog;
 	CRegID regScriptId(vScriptId);
 
 	//测试数据库中有vScriptKey1， vScriptKey3，在缓存中有vScriptKey， vScriptKey2，是否能正确遍历脚本数据库
@@ -269,7 +269,7 @@ void testscriptdatadb() {
 	int curheight(0);
 	vector<unsigned char> vKey;
 	vector<unsigned char> vScript;
-	set<CScriptDBOperLog> setOperLog;
+	set<CContractDBOperLog> setOperLog;
 
 
 	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey, vScriptData,  operlog));

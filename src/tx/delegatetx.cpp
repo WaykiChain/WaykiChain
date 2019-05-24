@@ -15,10 +15,10 @@
 #include "miner/miner.h"
 #include "version.h"
 
-string CDelegateVoteTx::ToString(CAccountViewCache &view) const {
+string CDelegateVoteTx::ToString(CAccountCache &view) const {
     string str;
     CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
+    cw.pAccountCache->GetKeyId(txUid, keyId);
     str += strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", GetTxType(nTxType),
                      GetHash().ToString().c_str(), nVersion, keyId.ToAddress(), keyId.ToString());
     str += "vote:\n";
@@ -28,15 +28,15 @@ string CDelegateVoteTx::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CDelegateVoteTx::ToJson(const CAccountViewCache &accountView) const {
+Object CDelegateVoteTx::ToJson(const CAccountCache &accountView) const {
     Object result;
-    CAccountViewCache view(accountView);
+    CAccountCache view(accountView);
     CKeyID keyId;
     result.push_back(Pair("hash", GetHash().GetHex()));
     result.push_back(Pair("txtype", GetTxType(nTxType)));
     result.push_back(Pair("ver", nVersion));
     result.push_back(Pair("regid", txUid.ToString()));
-    view.GetKeyId(txUid, keyId);
+    cw.pAccountCache->GetKeyId(txUid, keyId);
     result.push_back(Pair("addr", keyId.ToAddress()));
     result.push_back(Pair("fees", llFees));
     Array candidateVoteArray;
@@ -48,9 +48,9 @@ Object CDelegateVoteTx::ToJson(const CAccountViewCache &accountView) const {
 }
 
 // FIXME: not useful
-bool CDelegateVoteTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB) {
+bool CDelegateVoteTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountCache &view, CContractCache &scriptDB) {
     // CKeyID keyId;
-    // if (!view.GetKeyId(userId, keyId))
+    // if (!cw.pAccountCache->GetKeyId(userId, keyId))
     //     return false;
 
     // vAddr.insert(keyId);
@@ -61,8 +61,7 @@ bool CDelegateVoteTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &v
 }
 
 
-bool CDelegateVoteTx::CheckTx(CValidationState &state, CAccountViewCache &view,
-                          CScriptDBViewCache &scriptDB) {
+bool CDelegateVoteTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
@@ -76,13 +75,13 @@ bool CDelegateVoteTx::CheckTx(CValidationState &state, CAccountViewCache &view,
     }
 
     CKeyID sendTxKeyID;
-    if (!view.GetKeyId(txUid, sendTxKeyID)) {
+    if (!cw.pAccountCache->GetKeyId(txUid, sendTxKeyID)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get keyId error by CUserID =%s",
                         txUid.ToString()), REJECT_INVALID, "");
     }
 
     CAccount sendAcct;
-    if (!view.GetAccount(txUid, sendAcct)) {
+    if (!cw.pAccountCache->GetAccount(txUid, sendAcct)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, userid=%s",
                         txUid.ToString()), REJECT_INVALID, "bad-read-accountdb");
     }
@@ -103,7 +102,7 @@ bool CDelegateVoteTx::CheckTx(CValidationState &state, CAccountViewCache &view,
 
         voteKeyIds.insert(vote.GetCandidateUid().ToString());
         CAccount acctInfo;
-        if (!view.GetAccount(vote.GetCandidateUid(), acctInfo))
+        if (!cw.pAccountCache->GetAccount(vote.GetCandidateUid(), acctInfo))
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, address=%s",
                              vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
 
@@ -123,11 +122,9 @@ bool CDelegateVoteTx::CheckTx(CValidationState &state, CAccountViewCache &view,
     return true;
 }
 
-bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                                CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                                CScriptDBViewCache &scriptDB) {
+bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount acctInfo;
-    if (!view.GetAccount(txUid, acctInfo)) {
+    if (!cw.pAccountCache->GetAccount(txUid, acctInfo)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read regist addr %s account info error", txUid.ToString()),
             UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
@@ -141,18 +138,18 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate vote failed ,regId=%s", txUid.ToString()),
             UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }
-    if (!view.SaveAccountInfo(acctInfo)) {
+    if (!cw.pAccountCache->SaveAccountInfo(acctInfo)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error", acctInfo.regID.ToString()),
                 UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
 
-    txundo.vAccountLog.push_back(acctInfoLog); //keep the old state after the above operation completed properly.
-    txundo.txHash = GetHash();
+    cw.pTxUndo->vAccountLog.push_back(acctInfoLog); //keep the old state after the above operation completed properly.
+    cw.pTxUndo->txHash = GetHash();
 
     for (const auto &vote : candidateVotes) {
         CAccount delegate;
         const CUserID &delegateUId = vote.GetCandidateUid();
-        if (!view.GetAccount(delegateUId, delegate)) {
+        if (!cw.pAccountCache->GetAccount(delegateUId, delegate)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read KeyId(%s) account info error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
@@ -161,17 +158,17 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate address %s vote fund error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-vote-error");
         }
-        txundo.vAccountLog.push_back(delegateAcctLog); // keep delegate state before modification
+        cw.pTxUndo->vAccountLog.push_back(delegateAcctLog); // keep delegate state before modification
 
         // set the new value and erase the old value
-        CScriptDBOperLog operDbLog;
+        CContractDBOperLog operDbLog;
         if (!scriptDB.SetDelegateData(delegate, operDbLog)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s vote info error",
                             delegate.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
-        txundo.vScriptOperLog.push_back(operDbLog);
+        cw.pTxUndo->vScriptOperLog.push_back(operDbLog);
 
-        CScriptDBOperLog eraseDbLog;
+        CContractDBOperLog eraseDbLog;
         if (delegateAcctLog.receivedVotes > 0) {
             if(!scriptDB.EraseDelegateData(delegateAcctLog, eraseDbLog)) {
                 return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, erase account id %s vote info error",
@@ -179,37 +176,35 @@ bool CDelegateVoteTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidation
             }
         }
 
-        if (!view.SaveAccountInfo(delegate)) {
+        if (!cw.pAccountCache->SaveAccountInfo(delegate)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error",
                             acctInfo.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
 
-        txundo.vScriptOperLog.push_back(eraseDbLog);
+        cw.pTxUndo->vScriptOperLog.push_back(eraseDbLog);
     }
 
     if (SysCfg().GetAddressToTxFlag()) {
-        CScriptDBOperLog operAddressToTxLog;
+        CContractDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
-        if (!view.GetKeyId(txUid, sendKeyId)) {
+        if (!cw.pAccountCache->GetKeyId(txUid, sendKeyId)) {
             return ERRORMSG("CDelegateVoteTx::ExecuteTx, get regAcctId by account error!");
         }
 
-        if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
+        if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, cw.pTxUndo->txHash.GetHex(), operAddressToTxLog))
             return false;
 
-        txundo.vScriptOperLog.push_back(operAddressToTxLog);
+        cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
     }
     return true;
 }
 
-bool CDelegateVoteTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                                CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                                CScriptDBViewCache &scriptDB) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = txundo.vAccountLog.rbegin();
-    for (; rIterAccountLog != txundo.vAccountLog.rend(); ++rIterAccountLog) {
+bool CDelegateVoteTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.pTxUndo->vAccountLog.rbegin();
+    for (; rIterAccountLog != cw.pTxUndo->vAccountLog.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
-        if (!view.GetAccount(userId, account)) {
+        if (!cw.pAccountCache->GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
@@ -220,21 +215,21 @@ bool CDelegateVoteTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValida
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }
 
-        if (!view.SetAccount(userId, account)) {
+        if (!cw.pAccountCache->SetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, write account info error"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
     }
 
-    vector<CScriptDBOperLog>::reverse_iterator rIterScriptDBLog = txundo.vScriptOperLog.rbegin();
-    if (SysCfg().GetAddressToTxFlag() && txundo.vScriptOperLog.size() > 0) {
+    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vScriptOperLog.rbegin();
+    if (SysCfg().GetAddressToTxFlag() && cw.pTxUndo->vScriptOperLog.size() > 0) {
         if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, undo scriptdb data error"),
                              UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         ++rIterScriptDBLog;
     }
 
-    for (; rIterScriptDBLog != txundo.vScriptOperLog.rend(); ++rIterScriptDBLog) {
+    for (; rIterScriptDBLog != cw.pTxUndo->vScriptOperLog.rend(); ++rIterScriptDBLog) {
         // Recover the old value and erase the new value.
         if (!scriptDB.SetDelegateData(rIterScriptDBLog->vKey))
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, set delegate data error"),

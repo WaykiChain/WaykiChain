@@ -73,7 +73,7 @@ int64_t CBlock::GetFee() const {
     return nFees;
 }
 
-void CBlock::Print(CAccountViewCache& view) const {
+void CBlock::Print(CAccountCache& view) const {
     LogPrint("INFO", "CBlock(hash=%s, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, nFuelRate=%d)\n",
              GetHash().ToString(),
              nVersion,

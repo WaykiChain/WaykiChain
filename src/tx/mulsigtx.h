@@ -114,15 +114,13 @@ public:
     uint64_t GetFee() const { return llFees; }
     double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CMulsigTx>(this); }
-    string ToString(CAccountViewCache &view) const;
-    Object ToJson(const CAccountViewCache &AccountView) const;
-    bool GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
-    bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-                   int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
-    bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                       CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                       CScriptDBViewCache &scriptDB);
-    bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+    string ToString(CAccountCache &view) const;
+    Object ToJson(const CAccountCache &AccountView) const;
+    bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
+
+    bool CheckTx(CCacheWrapper &cw, CValidationState &state);
+    bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 };
 
 #endif //COIN_MULSIGTX_H

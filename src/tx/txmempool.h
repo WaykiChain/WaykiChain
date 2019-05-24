@@ -15,8 +15,8 @@
 
 using namespace std;
 
-class CAccountViewCache;
-class CScriptDBViewCache;
+class CAccountCache;
+// class CContractCache;
 class CValidationState;
 class CBaseTx;
 class uint256;
@@ -66,8 +66,8 @@ private:
 public:
     mutable CCriticalSection cs;
     map<uint256, CTxMemPoolEntry > memPoolTxs;
-    std::shared_ptr<CAccountViewCache> memPoolAccountViewCache;
-    std::shared_ptr<CScriptDBViewCache> memPoolScriptDBViewCache;
+    std::shared_ptr<CAccountCache> memPoolAccountCache;
+    std::shared_ptr<CContractCache> memPoolContractCache;
 
     CTxMemPool();
 
@@ -76,13 +76,13 @@ public:
     void Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> > &removed, bool fRecursive = false);
     void Clear();
     void QueryHash(vector<uint256> &vtxid);
-    unsigned int GetTransactionsUpdated() const;
-    void AddTransactionsUpdated(unsigned int n);
+    unsigned int GetUpdatedTransactionNum() const;
+    void AddUpdatedTransactionNum(unsigned int n);
     std::shared_ptr<CBaseTx> Lookup(uint256 hash) const;
-    void SetAccountViewDB(CAccountViewCache *pAccountViewCacheIn);
-    void SetScriptDBViewDB(CScriptDBViewCache *pScriptDBViewCacheIn);
+    void SetAccountCache(CAccountCache *pAccountCacheIn);
+    void SetContractCache(CContractCache *pContractCacheIn);
     bool CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &entry, CValidationState &state, bool bExcute = true);
-    void ReScanMemPoolTx(CAccountViewCache *pAccountViewCacheIn, CScriptDBViewCache *pScriptDBViewCacheIn);
+    void ReScanMemPoolTx(CAccountCache *pAccountCacheIn, CContractCache *pContractCacheIn);
 
     unsigned long Size() {
         LOCK(cs);

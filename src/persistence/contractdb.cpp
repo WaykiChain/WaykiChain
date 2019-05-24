@@ -16,21 +16,7 @@
 
 using namespace std;
 
-CScriptDB::CScriptDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe) :
-    db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {}
-
-CScriptDB::CScriptDB(size_t nCacheSize, bool fMemory, bool fWipe) :
-    db(GetDataDir() / "blocks" / "script", nCacheSize, fMemory, fWipe) {}
-
-bool CScriptDB::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) {
-    return db.Read(vKey, vValue);
-}
-
-bool CScriptDB::SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) {
-    return db.Write(vKey, vValue);
-}
-
-bool CScriptDB::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb) {
+bool CContractDB::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb) {
     CLevelDBBatch batch;
     for (auto &item : mapContractDb) {
         if (item.second.empty()) {
@@ -42,15 +28,15 @@ bool CScriptDB::BatchWrite(const map<vector<unsigned char>, vector<unsigned char
     return db.WriteBatch(batch, true);
 }
 
-bool CScriptDB::EraseKey(const vector<unsigned char> &vKey) {
+bool CContractDB::EraseKey(const vector<unsigned char> &vKey) {
     return db.Erase(vKey);
 }
 
-bool CScriptDB::HaveData(const vector<unsigned char> &vKey) {
+bool CContractDB::HaveData(const vector<unsigned char> &vKey) {
     return db.Exists(vKey);
 }
 
-bool CScriptDB::GetScript(const int nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) {
+bool CContractDB::GetScript(const int nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) {
     assert(nIndex >= 0 && nIndex <= 1);
     leveldb::Iterator *pcursor = db.NewIterator();
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
@@ -104,7 +90,7 @@ bool CScriptDB::GetScript(const int nIndex, vector<unsigned char> &vScriptId, ve
         return false;
     return true;
 }
-bool CScriptDB::GetContractData(const int curBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
+bool CContractDB::GetContractData(const int curBlockHeight, const vector<unsigned char> &vScriptId, const int &nIndex,
                                 vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
     const int iPrefixLen   = 4;
     const int iScriptIdLen = 6;
@@ -164,7 +150,7 @@ bool CScriptDB::GetContractData(const int curBlockHeight, const vector<unsigned 
     return true;
 }
 
-bool CScriptDB::GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash) {
+bool CContractDB::GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash) {
     leveldb::Iterator *pcursor = db.NewIterator();
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
 
@@ -199,7 +185,7 @@ bool CScriptDB::GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<
     return true;
 }
 
-bool CScriptDB::GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) {
+bool CContractDB::GetAllContractAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) {
     leveldb::Iterator *pcursor = db.NewIterator();
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
 
@@ -236,7 +222,7 @@ bool CScriptDB::GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char
     return true;
 }
 
-Object CScriptDB::ToJsonObj(string Prefix) {
+Object CContractDB::ToJsonObj(string Prefix) {
     Object obj;
     Array arrayObj;
 
@@ -284,12 +270,12 @@ Object CScriptDB::ToJsonObj(string Prefix) {
     return obj;
 }
 
-bool CScriptDBViewCache::SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) {
+bool CContractCache::SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) {
     mapContractDb[vKey] = vValue;
     return true;
 }
 
-bool CScriptDBViewCache::UndoScriptData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) {
+bool CContractCache::UndoScriptData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) {
     vector<unsigned char> vPrefix(vKey.begin(), vKey.begin() + 4);
     vector<unsigned char> vScriptDataPrefix = {'d', 'a', 't', 'a'};
     if (vPrefix == vScriptDataPrefix) {
@@ -330,14 +316,14 @@ bool CScriptDBViewCache::UndoScriptData(const vector<unsigned char> &vKey, const
     return true;
 }
 
-bool CScriptDBViewCache::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapData) {
+bool CContractCache::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapData) {
     for (auto &items : mapData) {
         mapContractDb[items.first] = items.second;
     }
     return true;
 }
 
-bool CScriptDBViewCache::EraseKey(const vector<unsigned char> &vKey) {
+bool CContractCache::EraseKey(const vector<unsigned char> &vKey) {
     if (mapContractDb.count(vKey) > 0) {
         mapContractDb[vKey].clear();
     } else {
@@ -352,7 +338,7 @@ bool CScriptDBViewCache::EraseKey(const vector<unsigned char> &vKey) {
     return true;
 }
 
-bool CScriptDBViewCache::HaveData(const vector<unsigned char> &vKey) {
+bool CContractCache::HaveData(const vector<unsigned char> &vKey) {
     if (mapContractDb.count(vKey) > 0) {
         if (!mapContractDb[vKey].empty())
             return true;
@@ -362,7 +348,7 @@ bool CScriptDBViewCache::HaveData(const vector<unsigned char> &vKey) {
     return pBase->HaveData(vKey);
 }
 
-bool CScriptDBViewCache::GetScript(const int nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) {
+bool CContractCache::GetScript(const int nIndex, vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) {
     if (0 == nIndex) {
         vector<unsigned char> scriptKey = {'d', 'e', 'f'};
         vector<unsigned char> vDataKey;
@@ -470,7 +456,7 @@ bool CScriptDBViewCache::GetScript(const int nIndex, vector<unsigned char> &vScr
     return true;
 }
 
-bool CScriptDBViewCache::SetScript(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptContent) {
+bool CContractCache::SetScript(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptContent) {
     vector<unsigned char> scriptKey = {'d', 'e', 'f'};
     scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
 
@@ -485,7 +471,7 @@ bool CScriptDBViewCache::SetScript(const vector<unsigned char> &vScriptId, const
     return SetData(scriptKey, vScriptContent);
 }
 
-bool CScriptDBViewCache::Flush() {
+bool CContractCache::Flush() {
     bool ok = pBase->BatchWrite(mapContractDb);
     if (ok) {
         mapContractDb.clear();
@@ -493,11 +479,11 @@ bool CScriptDBViewCache::Flush() {
     return ok;
 }
 
-unsigned int CScriptDBViewCache::GetCacheSize() {
+unsigned int CContractCache::GetCacheSize() {
     return ::GetSerializeSize(mapContractDb, SER_DISK, CLIENT_VERSION);
 }
 
-bool CScriptDBViewCache::WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CScriptDBOperLog &operLog) {
+bool CContractCache::WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CContractDBOperLog &operLog) {
     vector<unsigned char> vKey = {'o', 'u', 't', 'p', 'u', 't'};
     CDataStream ds1(SER_DISK, CLIENT_VERSION);
     ds1 << txid;
@@ -511,12 +497,12 @@ bool CScriptDBViewCache::WriteTxOutPut(const uint256 &txid, const vector<CVmOper
     vector<unsigned char> oldValue;
     oldValue.clear();
     GetData(vKey, oldValue);
-    operLog = CScriptDBOperLog(vKey, oldValue);
+    operLog = CContractDBOperLog(vKey, oldValue);
     return SetData(vKey, vValue);
 }
 
-bool CScriptDBViewCache::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex,
-                                            const string &strTxHash, CScriptDBOperLog &operLog) {
+bool CContractCache::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex,
+                                            const string &strTxHash, CContractDBOperLog &operLog) {
     vector<unsigned char> vKey = {'A', 'D', 'D', 'R'};
 
     CDataStream ds1(SER_DISK, CLIENT_VERSION);
@@ -528,11 +514,11 @@ bool CScriptDBViewCache::SetTxHashByAddress(const CKeyID &keyId, int nHeight, in
     vector<unsigned char> oldValue;
     oldValue.clear();
     GetData(vKey, oldValue);
-    operLog = CScriptDBOperLog(vKey, oldValue);
+    operLog = CContractDBOperLog(vKey, oldValue);
     return SetData(vKey, vValue);
 }
 
-bool CScriptDBViewCache::GetTxHashByAddress(
+bool CContractCache::GetTxHashByAddress(
     const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash) {
     pBase->GetTxHashByAddress(keyId, nHeight, mapTxHash);
 
@@ -558,12 +544,12 @@ bool CScriptDBViewCache::GetTxHashByAddress(
     return true;
 }
 
-bool CScriptDBViewCache::GetAllScriptAcc(
+bool CContractCache::GetAllContractAcc(
     const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) {
-    return pBase->GetAllScriptAcc(scriptId, mapAcc);
+    return pBase->GetAllContractAcc(scriptId, mapAcc);
 }
 
-bool CScriptDBViewCache::ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput) {
+bool CContractCache::ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput) {
     vector<unsigned char> vKey = {'o', 'u', 't', 'p', 'u', 't'};
     CDataStream ds1(SER_DISK, CLIENT_VERSION);
     ds1 << txid;
@@ -576,7 +562,7 @@ bool CScriptDBViewCache::ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &v
     return true;
 }
 
-bool CScriptDBViewCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
+bool CContractCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     ds << txid;
     vector<unsigned char> vTxHash = {'T'};
@@ -598,7 +584,7 @@ bool CScriptDBViewCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
     }
     return true;
 }
-bool CScriptDBViewCache::WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB) {
+bool CContractCache::WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CContractDBOperLog> &vTxIndexOperDB) {
     for (vector<pair<uint256, CDiskTxPos> >::const_iterator it = list.begin(); it != list.end(); it++) {
         LogPrint("txindex", "txhash:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n", it->first.GetHex(), it->second.nFile, it->second.nPos, it->second.nTxOffset);
         CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -609,7 +595,7 @@ bool CScriptDBViewCache::WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &
         CDataStream dsPos(SER_DISK, CLIENT_VERSION);
         dsPos << it->second;
         vTxPos.insert(vTxPos.end(), dsPos.begin(), dsPos.end());
-        CScriptDBOperLog txIndexOper;
+        CContractDBOperLog txIndexOper;
         txIndexOper.vKey = vTxHash;
         GetData(vTxHash, txIndexOper.vValue);
         vTxIndexOperDB.push_back(txIndexOper);
@@ -619,18 +605,18 @@ bool CScriptDBViewCache::WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &
     return true;
 }
 
-bool CScriptDBViewCache::GetScript(const vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) {
+bool CContractCache::GetScript(const vector<unsigned char> &vScriptId, vector<unsigned char> &vValue) {
     vector<unsigned char> scriptKey = {'d', 'e', 'f'};
 
     scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
     return GetData(scriptKey, vValue);
 }
 
-bool CScriptDBViewCache::GetScript(const CRegID &scriptId, vector<unsigned char> &vValue) {
+bool CContractCache::GetScript(const CRegID &scriptId, vector<unsigned char> &vValue) {
     return GetScript(scriptId.GetRegIdRaw(), vValue);
 }
 
-bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
+bool CContractCache::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
                                          const vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
     // assert(vScriptKey.size() == 8);
     vector<unsigned char> vKey = {'d', 'a', 't', 'a'};
@@ -648,7 +634,7 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
     return true;
 }
 
-bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
+bool CContractCache::GetContractData(const int nCurBlockHeight, const vector<unsigned char> &vScriptId,
                                          const int &nIndex, vector<unsigned char> &vScriptKey,
                                          vector<unsigned char> &vScriptData) {
     if (0 == nIndex) {
@@ -797,8 +783,8 @@ bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const vector
 
     return true;
 }
-bool CScriptDBViewCache::SetContractData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
-                                         const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog) {
+bool CContractCache::SetContractData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
+                                         const vector<unsigned char> &vScriptData, CContractDBOperLog &operLog) {
     vector<unsigned char> vKey = {'d', 'a', 't', 'a'};
     vKey.insert(vKey.end(), vScriptId.begin(), vScriptId.end());
     vKey.push_back('_');
@@ -815,18 +801,18 @@ bool CScriptDBViewCache::SetContractData(const vector<unsigned char> &vScriptId,
     vector<unsigned char> oldValue;
     oldValue.clear();
     GetData(vKey, oldValue);
-    operLog  = CScriptDBOperLog(vKey, oldValue);
+    operLog  = CContractDBOperLog(vKey, oldValue);
     bool ret = SetData(vKey, vNewValue);
     return ret;
 }
 
-bool CScriptDBViewCache::HaveScript(const vector<unsigned char> &vScriptId) {
+bool CContractCache::HaveScript(const vector<unsigned char> &vScriptId) {
     vector<unsigned char> scriptKey = {'d', 'e', 'f'};
     scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
     return HaveData(scriptKey);
 }
 
-bool CScriptDBViewCache::GetScriptCount(int &nCount) {
+bool CContractCache::GetScriptCount(int &nCount) {
     vector<unsigned char> scriptKey = {'s', 'n', 'u', 'm'};
     vector<unsigned char> vValue;
     if (!GetData(scriptKey, vValue))
@@ -837,7 +823,7 @@ bool CScriptDBViewCache::GetScriptCount(int &nCount) {
     return true;
 }
 
-bool CScriptDBViewCache::SetScriptCount(const int nCount) {
+bool CContractCache::SetScriptCount(const int nCount) {
     vector<unsigned char> scriptKey = {'s', 'n', 'u', 'm'};
     vector<unsigned char> vValue;
     vValue.clear();
@@ -853,7 +839,7 @@ bool CScriptDBViewCache::SetScriptCount(const int nCount) {
 
     return true;
 }
-bool CScriptDBViewCache::EraseScript(const vector<unsigned char> &vScriptId) {
+bool CContractCache::EraseScript(const vector<unsigned char> &vScriptId) {
     vector<unsigned char> scriptKey = {'d', 'e', 'f'};
     scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
     if (HaveScript(vScriptId)) {
@@ -865,7 +851,7 @@ bool CScriptDBViewCache::EraseScript(const vector<unsigned char> &vScriptId) {
     }
     return EraseKey(scriptKey);
 }
-bool CScriptDBViewCache::GetContractItemCount(const vector<unsigned char> &vScriptId, int &nCount) {
+bool CContractCache::GetContractItemCount(const vector<unsigned char> &vScriptId, int &nCount) {
     vector<unsigned char> scriptKey = {'s', 'd', 'n', 'u', 'm'};
     scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
     vector<unsigned char> vValue;
@@ -879,7 +865,7 @@ bool CScriptDBViewCache::GetContractItemCount(const vector<unsigned char> &vScri
     return true;
 }
 
-bool CScriptDBViewCache::SetContractItemCount(const vector<unsigned char> &vScriptId, int nCount) {
+bool CContractCache::SetContractItemCount(const vector<unsigned char> &vScriptId, int nCount) {
     if (nCount < 0)
         return false;
 
@@ -899,8 +885,8 @@ bool CScriptDBViewCache::SetContractItemCount(const vector<unsigned char> &vScri
     return true;
 }
 
-bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId,
-                                      const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog) {
+bool CContractCache::EraseAppData(const vector<unsigned char> &vScriptId,
+                                      const vector<unsigned char> &vScriptKey, CContractDBOperLog &operLog) {
     vector<unsigned char> vKey = {'d', 'a', 't', 'a'};
     vKey.insert(vKey.end(), vScriptId.begin(), vScriptId.end());
     vKey.push_back('_');
@@ -918,7 +904,7 @@ bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId,
         if (!GetData(vKey, vValue))
             return false;
 
-        operLog = CScriptDBOperLog(vKey, vValue);
+        operLog = CContractDBOperLog(vKey, vValue);
 
         if (!EraseKey(vKey))
             return false;
@@ -927,17 +913,17 @@ bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vScriptId,
     return true;
 }
 
-bool CScriptDBViewCache::EraseAppData(const vector<unsigned char> &vKey) {
+bool CContractCache::EraseAppData(const vector<unsigned char> &vKey) {
     if (vKey.size() < 12) {
         return ERRORMSG("EraseAppData delete script data key value error!");
     }
     vector<unsigned char> vScriptId(vKey.begin() + 4, vKey.begin() + 10);
     vector<unsigned char> vScriptKey(vKey.begin() + 11, vKey.end());
-    CScriptDBOperLog operLog;
+    CContractDBOperLog operLog;
     return EraseAppData(vScriptId, vScriptKey, operLog);
 }
 
-bool CScriptDBViewCache::HaveScriptData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey) {
+bool CContractCache::HaveScriptData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey) {
     vector<unsigned char> scriptKey = {'d', 'a', 't', 'a'};
     scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
     scriptKey.push_back('_');
@@ -945,7 +931,7 @@ bool CScriptDBViewCache::HaveScriptData(const vector<unsigned char> &vScriptId, 
     return HaveData(scriptKey);
 }
 
-bool CScriptDBViewCache::GetScript(const int nIndex, CRegID &scriptId, vector<unsigned char> &vValue) {
+bool CContractCache::GetScript(const int nIndex, CRegID &scriptId, vector<unsigned char> &vValue) {
     vector<unsigned char> tem;
     if (nIndex != 0) {
         tem = scriptId.GetRegIdRaw();
@@ -958,46 +944,46 @@ bool CScriptDBViewCache::GetScript(const int nIndex, CRegID &scriptId, vector<un
     return false;
 }
 
-bool CScriptDBViewCache::SetScript(const CRegID &scriptId, const vector<unsigned char> &vValue) {
+bool CContractCache::SetScript(const CRegID &scriptId, const vector<unsigned char> &vValue) {
     return SetScript(scriptId.GetRegIdRaw(), vValue);
 }
 
-bool CScriptDBViewCache::HaveScript(const CRegID &scriptId) {
+bool CContractCache::HaveScript(const CRegID &scriptId) {
     return HaveScript(scriptId.GetRegIdRaw());
 }
 
-bool CScriptDBViewCache::EraseScript(const CRegID &scriptId) {
+bool CContractCache::EraseScript(const CRegID &scriptId) {
     return EraseScript(scriptId.GetRegIdRaw());
 }
 
-bool CScriptDBViewCache::GetContractItemCount(const CRegID &scriptId, int &nCount) {
+bool CContractCache::GetContractItemCount(const CRegID &scriptId, int &nCount) {
     return GetContractItemCount(scriptId.GetRegIdRaw(), nCount);
 }
 
-bool CScriptDBViewCache::EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog) {
+bool CContractCache::EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CContractDBOperLog &operLog) {
     return EraseAppData(scriptId.GetRegIdRaw(), vScriptKey, operLog);
 }
 
-bool CScriptDBViewCache::HaveScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey) {
+bool CContractCache::HaveScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey) {
     return HaveScriptData(scriptId.GetRegIdRaw(), vScriptKey);
 }
 
-bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
+bool CContractCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
                                          vector<unsigned char> &vScriptData) {
     return GetContractData(nCurBlockHeight, scriptId.GetRegIdRaw(), vScriptKey, vScriptData);
 }
 
-bool CScriptDBViewCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
+bool CContractCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
                                          vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData) {
     return GetContractData(nCurBlockHeight, scriptId.GetRegIdRaw(), nIndex, vScriptKey, vScriptData);
 }
 
-bool CScriptDBViewCache::SetContractData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
-                                         const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog) {
+bool CContractCache::SetContractData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
+                                         const vector<unsigned char> &vScriptData, CContractDBOperLog &operLog) {
     return SetContractData(scriptId.GetRegIdRaw(), vScriptKey, vScriptData, operLog);
 }
 
-bool CScriptDBViewCache::SetTxRelAccout(const uint256 &txHash, const set<CKeyID> &relAccount) {
+bool CContractCache::SetTxRelAccout(const uint256 &txHash, const set<CKeyID> &relAccount) {
     vector<unsigned char> vKey = {'t', 'x'};
     vector<unsigned char> vValue;
     CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -1008,7 +994,7 @@ bool CScriptDBViewCache::SetTxRelAccout(const uint256 &txHash, const set<CKeyID>
     vValue.assign(ds.begin(), ds.end());
     return SetData(vKey, vValue);
 }
-bool CScriptDBViewCache::GetTxRelAccount(const uint256 &txHash, set<CKeyID> &relAccount) {
+bool CContractCache::GetTxRelAccount(const uint256 &txHash, set<CKeyID> &relAccount) {
     vector<unsigned char> vKey = {'t', 'x'};
     vector<unsigned char> vValue;
     CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -1024,7 +1010,7 @@ bool CScriptDBViewCache::GetTxRelAccount(const uint256 &txHash, set<CKeyID> &rel
     return true;
 }
 
-bool CScriptDBViewCache::EraseTxRelAccout(const uint256 &txHash) {
+bool CContractCache::EraseTxRelAccout(const uint256 &txHash) {
     vector<unsigned char> vKey = {'t', 'x'};
     vector<unsigned char> vValue;
     vValue.clear();
@@ -1035,7 +1021,7 @@ bool CScriptDBViewCache::EraseTxRelAccout(const uint256 &txHash) {
     return true;
 }
 
-Object CScriptDBViewCache::ToJsonObj() const {
+Object CContractCache::ToJsonObj() const {
     Object obj;
     Array arrayObj;
     for (auto& item : mapContractDb) {
@@ -1053,7 +1039,7 @@ Object CScriptDBViewCache::ToJsonObj() const {
     return obj;
 }
 
-string CScriptDBViewCache::ToString() {
+string CContractCache::ToString() {
     string str("");
     vector<unsigned char> vPrefix = {'d', 'a', 't', 'a'};
     for (auto &item : mapContractDb) {
@@ -1065,7 +1051,7 @@ string CScriptDBViewCache::ToString() {
     return str;
 }
 
-bool CScriptDBViewCache::SetDelegateData(const CAccount &delegateAcct, CScriptDBOperLog &operLog) {
+bool CContractCache::SetDelegateData(const CAccount &delegateAcct, CContractDBOperLog &operLog) {
     CRegID regId(0, 0);
     vector<unsigned char> vVoteKey = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
     uint64_t nMaxNumber            = 0xFFFFFFFFFFFFFFFF;
@@ -1081,7 +1067,7 @@ bool CScriptDBViewCache::SetDelegateData(const CAccount &delegateAcct, CScriptDB
     return true;
 }
 
-bool CScriptDBViewCache::SetDelegateData(const vector<unsigned char> &vKey) {
+bool CContractCache::SetDelegateData(const vector<unsigned char> &vKey) {
     if (vKey.empty()) {
         return true;
     }
@@ -1093,7 +1079,7 @@ bool CScriptDBViewCache::SetDelegateData(const vector<unsigned char> &vKey) {
     return true;
 }
 
-bool CScriptDBViewCache::EraseDelegateData(const CAccountLog &delegateAcct, CScriptDBOperLog &operLog) {
+bool CContractCache::EraseDelegateData(const CAccountLog &delegateAcct, CContractDBOperLog &operLog) {
     CRegID regId(0, 0);
     vector<unsigned char> vVoteOldKey = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
     uint64_t nMaxNumber               = 0xFFFFFFFFFFFFFFFF;
@@ -1107,14 +1093,14 @@ bool CScriptDBViewCache::EraseDelegateData(const CAccountLog &delegateAcct, CScr
     return true;
 }
 
-bool CScriptDBViewCache::EraseDelegateData(const vector<unsigned char> &vKey) {
+bool CContractCache::EraseDelegateData(const vector<unsigned char> &vKey) {
     if (!EraseKey(vKey))
         return false;
 
     return true;
 }
 
-bool CScriptDBViewCache::GetScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vAccKey,
+bool CContractCache::GetScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vAccKey,
                                       CAppUserAccount &appAccOut) {
     vector<unsigned char> scriptKey = {'a', 'c', 'c', 't'};
     vector<unsigned char> vRegId    = scriptId.GetRegIdRaw();
@@ -1131,8 +1117,8 @@ bool CScriptDBViewCache::GetScriptAcc(const CRegID &scriptId, const vector<unsig
     return true;
 }
 
-bool CScriptDBViewCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccOut,
-                                      CScriptDBOperLog &operlog) {
+bool CContractCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccOut,
+                                      CContractDBOperLog &operlog) {
     vector<unsigned char> scriptKey = {'a', 'c', 'c', 't'};
     vector<unsigned char> vRegId    = scriptId.GetRegIdRaw();
     vector<unsigned char> vAccKey   = appAccOut.GetAccUserId();
@@ -1153,7 +1139,7 @@ bool CScriptDBViewCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAcco
     return SetData(scriptKey, vValue);
 }
 
-bool CScriptDBViewCache::EraseScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vKey) {
+bool CContractCache::EraseScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vKey) {
     vector<unsigned char> scriptKey = {'a', 'c', 'c', 't'};
     vector<unsigned char> vRegId    = scriptId.GetRegIdRaw();
     scriptKey.insert(scriptKey.end(), vRegId.begin(), vRegId.end());
@@ -1169,7 +1155,7 @@ bool CScriptDBViewCache::EraseScriptAcc(const CRegID &scriptId, const vector<uns
     return EraseKey(scriptKey);
 }
 
-bool CScriptDBViewCache::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) {
+bool CContractCache::GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) {
     if (mapContractDb.count(vKey) > 0) {
         if (!mapContractDb[vKey].empty()) {
             vValue = mapContractDb[vKey];

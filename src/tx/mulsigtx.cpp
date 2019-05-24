@@ -28,7 +28,7 @@ Object CSignaturePair::ToJson() const {
     return obj;
 }
 
-string CMulsigTx::ToString(CAccountViewCache &view) const {
+string CMulsigTx::ToString(CAccountCache &view) const {
     string desId;
     if (desUserId.type() == typeid(CKeyID)) {
         desId = desUserId.get<CKeyID>().ToString();
@@ -50,9 +50,9 @@ string CMulsigTx::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CMulsigTx::ToJson(const CAccountViewCache &AccountView) const {
+Object CMulsigTx::ToJson(const CAccountCache &AccountView) const {
     Object result;
-    CAccountViewCache view(AccountView);
+    CAccountCache view(AccountView);
 
     auto GetRegIdString = [&](CUserID const &userId) {
         if (userId.type() == typeid(CRegID)) {
@@ -62,7 +62,7 @@ Object CMulsigTx::ToJson(const CAccountViewCache &AccountView) const {
     };
 
     CKeyID desKeyId;
-    view.GetKeyId(desUserId, desKeyId);
+    cw.pAccountCache->GetKeyId(desUserId, desKeyId);
 
     result.push_back(Pair("hash", GetHash().GetHex()));
     result.push_back(Pair("tx_type", GetTxType(nTxType)));
@@ -73,7 +73,7 @@ Object CMulsigTx::ToJson(const CAccountViewCache &AccountView) const {
     std::set<CPubKey> pubKeys;
     for (const auto &item : signaturePairs) {
         signatureArray.push_back(item.ToJson());
-        if (!view.GetAccount(item.regId, account)) {
+        if (!cw.pAccountCache->GetAccount(item.regId, account)) {
             LogPrint("ERROR", "CMulsigTx::ToJson, failed to get account info: %s\n",
                      item.regId.ToString());
             continue;
@@ -96,35 +96,33 @@ Object CMulsigTx::ToJson(const CAccountViewCache &AccountView) const {
     return result;
 }
 
-bool CMulsigTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view,
-                           CScriptDBViewCache &scriptDB) {
+bool CMulsigTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountCache &view,
+                           CContractCache &cw.pContractCache->) {
     CKeyID keyId;
     for (const auto &item : signaturePairs) {
-        if (!view.GetKeyId(CUserID(item.regId), keyId)) return false;
+        if (!cw.pAccountCache->GetKeyId(CUserID(item.regId), keyId)) return false;
         vAddr.insert(keyId);
     }
 
     CKeyID desKeyId;
-    if (!view.GetKeyId(desUserId, desKeyId)) return false;
+    if (!cw.pAccountCache->GetKeyId(desUserId, desKeyId)) return false;
     vAddr.insert(desKeyId);
 
     return true;
 }
 
-bool CMulsigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                          CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                          CScriptDBViewCache &scriptDB) {
+bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
     CAccount desAcct;
     bool generateRegID = false;
 
-    if (!view.GetAccount(CUserID(keyId), srcAcct)) {
+    if (!cw.pAccountCache->GetAccount(CUserID(keyId), srcAcct)) {
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     } else {
         CRegID regId;
         // If the source account does NOT have CRegID, need to generate a new CRegID.
-        if (!view.GetRegId(CUserID(keyId), regId)) {
+        if (!cw.pAccountCache->GetRegId(CUserID(keyId), regId)) {
             srcAcct.regID = CRegID(nHeight, nIndex);
             generateRegID = true;
         }
@@ -139,17 +137,17 @@ bool CMulsigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
     }
 
     if (generateRegID) {
-        if (!view.SaveAccountInfo(srcAcct))
+        if (!cw.pAccountCache->SaveAccountInfo(srcAcct))
             return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, save account info error"),
                              WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     } else {
-        if (!view.SetAccount(CUserID(srcAcct.keyID), srcAcct))
+        if (!cw.pAccountCache->SetAccount(CUserID(srcAcct.keyID), srcAcct))
             return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, save account info error"),
                              WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
 
     uint64_t addValue = bcoins;
-    if (!view.GetAccount(desUserId, desAcct)) {
+    if (!cw.pAccountCache->GetAccount(desUserId, desAcct)) {
         if (desUserId.type() == typeid(CKeyID)) {  // target account does NOT have CRegID
             desAcct.keyID    = desUserId.get<CKeyID>();
             desAcctLog.keyID = desAcct.keyID;
@@ -166,50 +164,48 @@ bool CMulsigTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState 
                          UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
 
-    if (!view.SetAccount(desUserId, desAcct))
+    if (!cw.pAccountCache->SetAccount(desUserId, desAcct))
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, save account error, kyeId=%s",
                          desAcct.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
-    txundo.vAccountLog.push_back(srcAcctLog);
-    txundo.vAccountLog.push_back(desAcctLog);
-    txundo.txHash = GetHash();
+    cw.pTxUndo->vAccountLog.push_back(srcAcctLog);
+    cw.pTxUndo->vAccountLog.push_back(desAcctLog);
+    cw.pTxUndo->txHash = GetHash();
 
     if (SysCfg().GetAddressToTxFlag()) {
-        CScriptDBOperLog operAddressToTxLog;
+        CContractDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
         CKeyID revKeyId;
 
         for (const auto &item : signaturePairs) {
-            if (!view.GetKeyId(CUserID(item.regId), sendKeyId))
+            if (!cw.pAccountCache->GetKeyId(CUserID(item.regId), sendKeyId))
                 return ERRORMSG("CBaseCoinTransferTx::CMulsigTx, get keyid by srcUserId error!");
 
-            if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
+            if (!cw.pContractCache->.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
                                              operAddressToTxLog))
                 return false;
-            txundo.vScriptOperLog.push_back(operAddressToTxLog);
+            cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
         }
 
-        if (!view.GetKeyId(desUserId, revKeyId))
+        if (!cw.pAccountCache->GetKeyId(desUserId, revKeyId))
             return ERRORMSG("CBaseCoinTransferTx::CMulsigTx, get keyid by desUserId error!");
 
-        if (!scriptDB.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(),
+        if (!cw.pContractCache->.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
                                          operAddressToTxLog))
             return false;
-        txundo.vScriptOperLog.push_back(operAddressToTxLog);
+        cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
     }
 
     return true;
 }
 
-bool CMulsigTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                              CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                              CScriptDBViewCache &scriptDB) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = txundo.vAccountLog.rbegin();
-    for (; rIterAccountLog != txundo.vAccountLog.rend(); ++rIterAccountLog) {
+bool CMulsigTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.pTxUndo->vAccountLog.rbegin();
+    for (; rIterAccountLog != cw.pTxUndo->vAccountLog.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
 
-        if (!view.GetAccount(userId, account)) {
+        if (!cw.pAccountCache->GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CMulsigTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
@@ -220,7 +216,7 @@ bool CMulsigTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationSt
         }
 
         if (account.IsEmptyValue() && account.regID.IsEmpty()) {
-            view.EraseAccountByKeyId(userId);
+            cw.pAccountCache->EraseAccountByKeyId(userId);
         } else if (account.regID == CRegID(nHeight, nIndex)) {
             // If the CRegID was generated by this MULSIG_TX, need to remove CRegID.
             CPubKey empPubKey;
@@ -228,14 +224,14 @@ bool CMulsigTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationSt
             account.minerPubKey = empPubKey;
             account.regID.Clean();
 
-            if (!view.SetAccount(userId, account)) {
+            if (!cw.pAccountCache->SetAccount(userId, account)) {
                 return state.DoS(100, ERRORMSG("CBaseTx::UndoExecuteTx, write account info error"),
                                  UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
             }
 
-            view.EraseKeyId(CRegID(nHeight, nIndex));
+            cw.pAccountCache->EraseKeyId(CRegID(nHeight, nIndex));
         } else {
-            if (!view.SetAccount(userId, account)) {
+            if (!cw.pAccountCache->SetAccount(userId, account)) {
                 return state.DoS(100,
                                  ERRORMSG("CMulsigTx::UndoExecuteTx, write account info error"),
                                  UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
@@ -243,9 +239,9 @@ bool CMulsigTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationSt
         }
     }
 
-    vector<CScriptDBOperLog>::reverse_iterator rIterScriptDBLog = txundo.vScriptOperLog.rbegin();
-    for (; rIterScriptDBLog != txundo.vScriptOperLog.rend(); ++rIterScriptDBLog) {
-        if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
+    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vScriptOperLog.rbegin();
+    for (; rIterScriptDBLog != cw.pTxUndo->vScriptOperLog.rend(); ++rIterScriptDBLog) {
+        if (!cw.pContractCache->.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
             return state.DoS(100, ERRORMSG("CMulsigTx::UndoExecuteTx, undo scriptdb data error"),
                              UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
@@ -253,8 +249,8 @@ bool CMulsigTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationSt
     return true;
 }
 
-bool CMulsigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
-                          CScriptDBViewCache &scriptDB) {
+bool CMulsigTx::CheckTx(CValidationState &state, CAccountCache &view,
+                          CContractCache &cw.pContractCache->) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
 
@@ -277,7 +273,7 @@ bool CMulsigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
     uint256 sighash = ComputeSignatureHash();
     uint8_t valid   = 0;
     for (const auto &item : signaturePairs) {
-        if (!view.GetAccount(item.regId, account))
+        if (!cw.pAccountCache->GetAccount(item.regId, account))
             return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, account: %s, read account failed",
                             item.regId.ToString()), REJECT_INVALID, "bad-getaccount");
 
@@ -317,7 +313,7 @@ bool CMulsigTx::CheckTx(CValidationState &state, CAccountViewCache &view,
     keyId = script.GetID();
 
     CAccount srcAccount;
-    if (!view.GetAccount(CUserID(keyId), srcAccount))
+    if (!cw.pAccountCache->GetAccount(CUserID(keyId), srcAccount))
         return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, read multisig account: %s failed", keyId.ToAddress()),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
 

@@ -241,7 +241,7 @@ int64_t CWallet::GetFreeBCoins(bool IsConfirmed) const {
         GetKeys(setKeyId);
         for (auto &keyId : setKeyId) {
             if (!IsConfirmed)
-                ret += mempool.memPoolAccountViewCache.get()->GetFreeBCoins(keyId);
+                ret += mempool.memPoolAccountCache.get()->GetFreeBCoins(keyId);
             else
                 ret += pAccountViewTip->GetFreeBCoins(keyId);
         }
@@ -447,7 +447,7 @@ Object CAccountTx::ToJsonObj(CKeyID const &key) const {
     obj.push_back(Pair("blockHash", blockHash.ToString()));
     obj.push_back(Pair("blockHeight", blockHeight));
     Array Tx;
-    CAccountViewCache view(*pAccountViewTip);
+    CAccountCache view(*pAccountViewTip);
     for (auto const &re : mapAccountTx) {
         Tx.push_back(re.second.get()->ToString(view));
     }
@@ -464,8 +464,8 @@ uint256 CWallet::GetCheckSum() const {
 
 bool CWallet::IsMine(CBaseTx *pTx) const {
     set<CKeyID> vaddr;
-    CAccountViewCache view(*pAccountViewTip);
-    CScriptDBViewCache scriptDB(*pScriptDBTip);
+    CAccountCache view(*pAccountViewTip);
+    CContractCache scriptDB(*pScriptDBTip);
     if (!pTx->GetInvolvedKeyIds(vaddr, view, scriptDB)) {
         return false;
     }
@@ -575,7 +575,7 @@ bool CWallet::RemoveKey(const CKey &key) {
     return true;
 }
 
-bool CWallet::IsReadyForCoolMiner(const CAccountViewCache &view) const {
+bool CWallet::IsReadyForCoolMiner(const CAccountCache &view) const {
     CRegID regId;
     for (auto const &item : mapKeys) {
         if (item.second.HaveMinerKey() && view.GetRegId(item.first, regId)) {

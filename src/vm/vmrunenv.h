@@ -54,13 +54,13 @@ private:
 	 * vm operate the app account state
 	 */
 	vector<std::shared_ptr<CAppUserAccount>> newAppUserAccount;
-	CScriptDBViewCache *pScriptDBViewCache;
-	CAccountViewCache *pAccountViewCache;
+	CContractCache *pScriptDBViewCache;
+	CAccountCache *pAccountViewCache;
 	vector<CVmOperate> vmOperateOutput;   //保存操作结果
     bool  isCheckAccount;  //校验账户平衡开关
 
     map<vector<unsigned char>, vector<CAppFundOperate>> mapAppFundOperate;  // vector<unsigned char > 存的是accountId
-    std::shared_ptr<vector<CScriptDBOperLog>> pScriptDBOperLog;
+    std::shared_ptr<vector<CContractDBOperLog>> pScriptDBOperLog;
 
 private:
     /**
@@ -70,7 +70,7 @@ private:
      *  @param nheight: run the Environment the block's height
      * @return : check the the tx and account is Legal true is legal false is unlegal
      */
-    bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountViewCache& view, int nHeight);
+    bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountCache& view, int nHeight);
     /**
      *@brief check aciton
      * @param listoperate: run the script return the code,check the code
@@ -83,7 +83,7 @@ private:
      * @param view:
      * @return true operate account success
      */
-    bool OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountViewCache& view,
+    bool OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountCache& view,
                         const int nCurHeight);
     /**
      * @brief find the vOldAccount from newAccount if find success remove it from newAccount
@@ -105,7 +105,7 @@ private:
     vector_unsigned_char GetAccountID(CVmOperate value);
     //	bool IsSignatureAccount(CRegID account);
     bool OpeatorAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
-                           CScriptDBViewCache& view);
+                           CContractCache& view);
 
     std::shared_ptr<CAppUserAccount> GetAppAccount(std::shared_ptr<CAppUserAccount>& AppAccount);
 
@@ -137,8 +137,8 @@ public:
      * uint64_t if the script run sucess Run the script calls the money ,string represent run the
      * failed's  Reason
      */
-    std::tuple<bool, uint64_t, string> ExecuteContract(std::shared_ptr<CBaseTx>& Tx, CAccountViewCache& view,
-                                                  CScriptDBViewCache& VmDB, int nheight,
+    std::tuple<bool, uint64_t, string> ExecuteContract(std::shared_ptr<CBaseTx>& Tx, CAccountCache& view,
+                                                  CContractCache& VmDB, int nheight,
                                                   uint64_t nBurnFactor, uint64_t& uRunStep);
     /**
      * @brief just for test
@@ -149,15 +149,15 @@ public:
     const CRegID& GetTxAccount();
     uint64_t GetValue() const;
     const vector<unsigned char>& GetTxContract();
-    CScriptDBViewCache* GetScriptDB();
-    CAccountViewCache* GetCatchView();
+    CContractCache* GetScriptDB();
+    CAccountCache* GetCatchView();
     int GetConfirmHeight();
     // Get burn version for fuel burning
     int GetBurnVersion();
     uint256 GetCurTxHash();
     bool InsertOutputData(const vector<CVmOperate>& source);
     void InsertOutAPPOperte(const vector<unsigned char>& userId, const CAppFundOperate& source);
-    std::shared_ptr<vector<CScriptDBOperLog>> GetDbLog();
+    std::shared_ptr<vector<CContractDBOperLog>> GetDbLog();
 
     bool GetAppUserAccount(const vector<unsigned char>& id, std::shared_ptr<CAppUserAccount>& sptrAcc);
     bool CheckAppAcctOperate(CContractInvokeTx* tx);

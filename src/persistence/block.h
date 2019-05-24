@@ -20,7 +20,7 @@
 
 class CDiskBlockPos;
 class CNode;
-class CAccountViewCache;
+class CAccountCache;
 
 enum BlockStatus {
     BLOCK_VALID_UNKNOWN      = 0,
@@ -262,7 +262,7 @@ public:
 
     int64_t GetFee() const;
 
-    void Print(CAccountViewCache &view) const;
+    void Print(CAccountCache &view) const;
 };
 
 /** The block chain is a tree shaped structure starting with the

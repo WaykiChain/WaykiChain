@@ -16,13 +16,11 @@
 #include "miner/miner.h"
 #include "version.h"
 
-bool CBlockRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                          CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                          CScriptDBViewCache &scriptDB) {
+bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     CAccount acctInfo;
-    if (!view.GetAccount(txUid, acctInfo)) {
+    if (!cw.pAccountCache->GetAccount(txUid, acctInfo)) {
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, read source addr %s account info error",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
@@ -37,36 +35,37 @@ bool CBlockRewardTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationS
     }
 
     CUserID userId = acctInfo.keyID;
-    if (!view.SetAccount(userId, acctInfo))
+    if (!cw.pAccountCache->SetAccount(userId, acctInfo))
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
-    txundo.Clear();
-    txundo.vAccountLog.push_back(acctInfoLog);
-    txundo.txHash = GetHash();
+    cw.pTxUndo->Clear();
+    cw.pTxUndo->vAccountLog.push_back(acctInfoLog);
+    cw.pTxUndo->txHash = GetHash();
     if (SysCfg().GetAddressToTxFlag() && 0 == nIndex) {
-        CScriptDBOperLog operAddressToTxLog;
+        CContractDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
-        if (!view.GetKeyId(txUid, sendKeyId))
+        if (!cw.pAccountCache->GetKeyId(txUid, sendKeyId))
             return ERRORMSG("CBlockRewardTx::ExecuteTx, get keyid by account error!");
 
-        if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, txundo.txHash.GetHex(), operAddressToTxLog))
+        if (!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex+1,
+                                                            cw.pTxUndo->txHash.GetHex(),
+                                                            operAddressToTxLog)) {
             return false;
+        }
 
-        txundo.vScriptOperLog.push_back(operAddressToTxLog);
+        cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
     }
     // LogPrint("op_account", "after operate:%s\n", acctInfo.ToString());
     return true;
 }
 
-bool CBlockRewardTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                              CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                              CScriptDBViewCache &scriptDB) {
+bool CBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     vector<CAccountLog>::reverse_iterator rIterAccountLog = txundo.vAccountLog.rbegin();
-    for (; rIterAccountLog != txundo.vAccountLog.rend(); ++rIterAccountLog) {
+    for (; rIterAccountLog != cw.pTxUndo->vAccountLog.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
-        if (!view.GetAccount(userId, account)) {
+        if (!cw.pAccountCache->GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
@@ -76,15 +75,15 @@ bool CBlockRewardTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidat
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }
 
-        if (!view.SetAccount(userId, account)) {
+        if (!cw.pAccountCache->SetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, write account info error"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
     }
 
-    vector<CScriptDBOperLog>::reverse_iterator rIterScriptDBLog = txundo.vScriptOperLog.rbegin();
-    for (; rIterScriptDBLog != txundo.vScriptOperLog.rend(); ++rIterScriptDBLog) {
-        if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
+    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vScriptOperLog.rbegin();
+    for (; rIterScriptDBLog != cw.pTxUndo->vScriptOperLog.rend(); ++rIterScriptDBLog) {
+        if (!cw.pContractCache->UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
             return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, undo scriptdb data error"),
                              UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
@@ -92,7 +91,7 @@ bool CBlockRewardTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidat
     return true;
 }
 
-string CBlockRewardTx::ToString(CAccountViewCache &view) const {
+string CBlockRewardTx::ToString(CAccountCache &view) const {
     string str;
     CKeyID keyId;
     view.GetKeyId(txUid, keyId);
@@ -104,9 +103,9 @@ string CBlockRewardTx::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CBlockRewardTx::ToJson(const CAccountViewCache &AccountView) const{
+Object CBlockRewardTx::ToJson(const CAccountCache &AccountView) const{
     Object result;
-    CAccountViewCache view(AccountView);
+    CAccountCache view(AccountView);
     CKeyID keyid;
     result.push_back(Pair("hash", GetHash().GetHex()));
     result.push_back(Pair("tx_type", GetTxType(nTxType)));
@@ -124,8 +123,8 @@ Object CBlockRewardTx::ToJson(const CAccountViewCache &AccountView) const{
     return result;
 }
 
-bool CBlockRewardTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view,
-                           CScriptDBViewCache &scriptDB) {
+bool CBlockRewardTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountCache &view,
+                           CContractCache &scriptDB) {
     CKeyID keyId;
     if (txUid.type() == typeid(CRegID)) {
         if (!view.GetKeyId(txUid, keyId)) return false;

@@ -98,10 +98,10 @@ void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pindexPrev, unsigned int &
     pblock->SetMerkleRootHash(pblock->BuildMerkleTree());
 }
 
-bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCache &accViewIn, CScriptDBViewCache &scriptCacheIn) {
+bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountCache &accViewIn, CContractCache &scriptCacheIn) {
     LOCK(cs_main);
-    CAccountViewCache accView(accViewIn);
-    CScriptDBViewCache scriptCache(scriptCacheIn);
+    CAccountCache accView(accViewIn);
+    CContractCache scriptCache(scriptCacheIn);
 
     int TotalDelegateNum = IniCfg().GetTotalDelegateNum();
     int nIndex       = 0;
@@ -157,7 +157,7 @@ bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDele
     return true;
 }
 
-bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock) {
+bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountCache &view, CBlock *pBlock) {
     unsigned int nNonce = GetRand(SysCfg().GetBlockMaxNonce());
     CBlock preBlock;
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
@@ -213,8 +213,8 @@ void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
     }
 }
 
-bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionDBCache &txCache,
-                 CScriptDBViewCache &scriptCache, bool bNeedRunTx) {
+bool VerifyPosTx(const CBlock *pBlock, CAccountCache &accView, CTransactionCache &txCache,
+                 CContractCache &scriptCache, bool bNeedRunTx) {
     uint64_t maxNonce = SysCfg().GetBlockMaxNonce();
     vector<CAccount> vDelegatesAcctList;
 
@@ -233,8 +233,8 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
     if (pBlock->GetMerkleRootHash() != pBlock->BuildMerkleTree())
         return ERRORMSG("wrong merkleRootHash");
 
-    CAccountViewCache view(accView);
-    CScriptDBViewCache scriptDBView(scriptCache);
+    CAccountCache view(accView);
+    CContractCache scriptDBView(scriptCache);
     CBlock preBlock;
 
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
@@ -311,8 +311,8 @@ bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionD
     return true;
 }
 
-unique_ptr<CBlockTemplate> CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txCache,
-                                          CScriptDBViewCache &scriptCache) {
+unique_ptr<CBlockTemplate> CreateNewBlock(CAccountCache &view, CTransactionCache &txCache,
+                                          CContractCache &scriptCache) {
     // Create new block
     unique_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
     if (!pblocktemplate.get())
@@ -383,8 +383,8 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CAccountViewCache &view, CTransactionD
 
             CTxUndo txundo;
             CValidationState state;
-            CAccountViewCache viewTemp(view);
-            CScriptDBViewCache scriptCacheTemp(scriptCache);
+            CAccountCache viewTemp(view);
+            CContractCache scriptCacheTemp(scriptCache);
             pBaseTx->nFuelRate = pblock->GetFuelRate();
             if (!pBaseTx->ExecuteTx(nBlockTx + 1, viewTemp, state, txundo, pIndexPrev->nHeight + 1,
                                     txCache, scriptCacheTemp))
@@ -452,7 +452,7 @@ bool CheckWork(CBlock *pblock, CWallet &wallet) {
 }
 
 bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev, unsigned int nTransactionsUpdated,
-                      CAccountViewCache &view, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache) {
+                      CAccountCache &view, CTransactionCache &txCache, CContractCache &scriptCache) {
     int64_t nStart = GetTime();
 
     unsigned int nLastTime = 0xFFFFFFFF;
@@ -534,7 +534,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
             return true;
         }
 
-        if (mempool.GetTransactionsUpdated() != nTransactionsUpdated || GetTime() - nStart > 60)
+        if (mempool.GetUpdatedTransactionNum() != nTransactionsUpdated || GetTime() - nStart > 60)
             return false;
     }
 
@@ -586,11 +586,11 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
             //
             // Create new block
             //
-            unsigned int nTransactionsUpdated = mempool.GetTransactionsUpdated();
+            unsigned int nTransactionsUpdated = mempool.GetUpdatedTransactionNum();
             CBlockIndex *pindexPrev           = chainActive.Tip();
-            CAccountViewCache accountView(*pAccountViewTip);
-            CTransactionDBCache txCache(*pTxCacheTip);
-            CScriptDBViewCache scriptDB(*pScriptDBTip);
+            CAccountCache accountView(*pAccountViewTip);
+            CTransactionCache txCache(*pTxCacheTip);
+            CContractCache scriptDB(*pScriptDBTip);
             g_miningBlockInfo.SetNull();
 
             int64_t nLastTime = GetTimeMillis();

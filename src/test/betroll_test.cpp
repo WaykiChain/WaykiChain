@@ -777,7 +777,7 @@ unsigned char TempArray[] = {
 //			READWRITE(money[i]);
 //	)
 //};
-//void Init(CAccountViewCache &view, CVmScript &vscript, vector<std::shared_ptr<CBaseTx> >& Tx,int64_t &iresult, int64_t &bresult,int64_t &betmoey) {
+//void Init(CAccountCache &view, CVmScript &vscript, vector<std::shared_ptr<CBaseTx> >& Tx,int64_t &iresult, int64_t &bresult,int64_t &betmoey) {
 //
 //	//std::vector<unsigned char> pScript = GetScriptBin("D:\\C51\\Debug\\Exe\\CPLUS.bin");
 //	vscript.GetRom().insert(vscript.GetRom().begin(), TempArray, TempArray+sizeof(TempArray));
@@ -858,7 +858,7 @@ unsigned char TempArray[] = {
 //	std::shared_ptr<CSecureTransaction> tx;
 //	std::shared_ptr<CAppealTransaction> A2;
 //	std::shared_ptr<CAppealTransaction> B2;
-//	CAccountViewCache view;
+//	CAccountCache view;
 //	CAccountInfo A;
 //	CAccountInfo B;
 //	int64_t result;

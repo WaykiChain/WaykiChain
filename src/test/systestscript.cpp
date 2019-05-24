@@ -284,7 +284,7 @@ public:
 			return false;
 		}
 
-		CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
+		CContractCache contractScriptTemp(*pScriptDBTip, true);
 		if (!contractScriptTemp.HaveScript(regid)) {
 			return false;
 		}
@@ -345,13 +345,13 @@ public:
 			if (regid.IsEmpty() == true) {
 				return false;
 			}
-			CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
+			CContractCache contractScriptTemp(*pScriptDBTip, true);
 			if (!contractScriptTemp.HaveScript(regid)) {
 				return false;
 			}
 			vector<unsigned char> value;
 			int tipH = chainActive.Height();
-			CScriptDBOperLog operLog;
+			CContractDBOperLog operLog;
 			if (!contractScriptTemp.GetContractData(tipH,regid,key, value)) {
 				return false;
 			}
@@ -611,7 +611,7 @@ BOOST_FIXTURE_TEST_CASE(appacc,CSysScriptTest){
 
 
 
-	CScriptDBViewCache contractScriptTemp(*pScriptDBTip, true);
+	CContractCache contractScriptTemp(*pScriptDBTip, true);
 	CRegID script(sriptid);
 	CRegID strreg;
 	string address = "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz";

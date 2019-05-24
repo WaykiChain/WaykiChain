@@ -31,7 +31,7 @@ using namespace json_spirit;
 
 static const int CONTRACT_DEPLOY_TX_FEE_MIN = 1 * COIN;
 
-static bool FindKeyId(CAccountViewCache *pAccountView, string const &addr, CKeyID &keyId) {
+static bool FindKeyId(CAccountCache *pAccountView, string const &addr, CKeyID &keyId) {
     // first, try to parse regId
     CRegID regId(addr);
     if (!regId.IsEmpty()) {
@@ -136,9 +136,9 @@ Value vmexecutescript(const Array& params, bool fHelp) {
                            strprintf("input fee could not smaller than: %ld sawi", minFee));
     }
 
-    CTransactionDBCache txCacheTemp(*pTxCacheTip);
-    CAccountViewCache acctViewTemp(*pAccountViewTip);
-    CScriptDBViewCache scriptDBViewTemp(*pScriptDBTip);
+    CTransactionCache txCacheTemp(*pTxCacheTip);
+    CAccountCache acctViewTemp(*pAccountViewTip);
+    CContractCache scriptDBViewTemp(*pScriptDBTip);
     CValidationState state;
     CTxUndo txundo;
 

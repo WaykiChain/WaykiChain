@@ -78,15 +78,15 @@ public:
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CPriceFeedTx>(this); }
     virtual double GetPriority() const { return 10000.0f; } // Top priority
 
-    virtual bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
-    virtual bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-                    int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
-    virtual bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                    CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                    CScriptDBViewCache &scriptDB);
-    virtual string ToString(CAccountViewCache &view) const; //logging usage
-    virtual Object ToJson(const CAccountViewCache &view) const; //json-rpc usage
-    virtual bool GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+    virtual bool CheckTx(CValidationState &state, CAccountCache &view, CContractCache &scriptDB);
+    virtual bool ExecuteTx(int nIndex, CAccountCache &view, CValidationState &state, CTxUndo &txundo,
+                    int nHeight, CTransactionCache &txCache, CContractCache &scriptDB);
+    virtual bool UndoExecuteTx(int nIndex, CAccountCache &view, CValidationState &state,
+                    CTxUndo &txundo, int nHeight, CTransactionCache &txCache,
+                    CContractCache &scriptDB);
+    virtual string ToString(CAccountCache &view) const; //logging usage
+    virtual Object ToJson(const CAccountCache &view) const; //json-rpc usage
+    virtual bool GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountCache &view, CContractCache &scriptDB);
 
 };
 
@@ -125,16 +125,13 @@ public:
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CPriceMedianTx>(this); }
     virtual uint64_t GetFee() const { return 0; }
     virtual double GetPriority() const { return 0.0f; }
+    virtual string ToString(const CAccountCache &view) const;
+    virtual Object ToJson(const CAccountCache &view) const;
+    bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
-    virtual bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-                   int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
-    virtual bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                       CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                       CScriptDBViewCache &scriptDB);
-    virtual string ToString(const CAccountViewCache &view) const;
-    virtual Object ToJson(const CAccountViewCache &view) const;
-    virtual bool GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+    bool CheckTx(CCacheWrapper &cw, CValidationState &state);
+    bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
     inline uint64_t GetMedianPriceByType(const CoinType coinType, const PriceType priceType);
 };

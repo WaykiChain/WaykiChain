@@ -21,9 +21,9 @@ class CBlockIndex;
 struct CBlockTemplate;
 class CWallet;
 class CBaseTx;
-class CAccountViewCache;
-class CTransactionDBCache;
-class CScriptDBViewCache;
+class CAccountCache;
+class CTransactionCache;
+// class CContractCache;
 class CAccount;
 
 typedef boost::tuple<double, double, std::shared_ptr<CBaseTx> > TxPriority;
@@ -70,22 +70,22 @@ std::vector<MinedBlockInfo> GetMinedBlocks(unsigned int count);
 /** Run the miner threads */
 void GenerateCoinBlock(bool fGenerate, CWallet *pwallet, int nThreads);
 /** Generate a new block */
-unique_ptr<CBlockTemplate> CreateNewBlock(CAccountViewCache &view, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache);
+unique_ptr<CBlockTemplate> CreateNewBlock(CAccountCache &view, CTransactionCache &txCache, CContractCache &scriptCache);
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pindexPrev, unsigned int &nExtraNonce);
 /** Do mining precalculation */
 void FormatHashBuffers(CBlock *pblock, char *pmidstate, char *pdata, char *phash1);
 
-bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountViewCache &view, CBlock *pBlock);
+bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountCache &view, CBlock *pBlock);
 
 bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList);
-bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountViewCache &accViewIn, CScriptDBViewCache &scriptCacheIn);
+bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountCache &accViewIn, CContractCache &scriptCacheIn);
 
 void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList);
 
 bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct);
 
-bool VerifyPosTx(const CBlock *pBlock, CAccountViewCache &accView, CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache, bool bNeedRunTx = false);
+bool VerifyPosTx(const CBlock *pBlock, CAccountCache &accView, CTransactionCache &txCache, CContractCache &scriptCache, bool bNeedRunTx = false);
 /** Check mined block */
 bool CheckWork(CBlock *pblock, CWallet &wallet);
 /** Base sha256 mining transform */

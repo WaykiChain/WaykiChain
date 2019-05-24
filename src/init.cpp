@@ -136,7 +136,7 @@ void Shutdown() {
     if (!lockShutdown) return;
 
     RenameThread("Coin-shutoff");
-    mempool.AddTransactionsUpdated(1);
+    mempool.AddUpdatedTransactionNum(1);
     StopRPCServer();
     ShutdownRPCMining();
 
@@ -155,27 +155,8 @@ void Shutdown() {
             bitdb.Flush(true);
         }
 
-        if (pblocktree)
-            pblocktree->Flush();
-
-        if (pAccountViewTip)
-            pAccountViewTip->Flush();
-
-        if (pScriptDBTip)
-            pScriptDBTip->Flush();
-
-        delete pAccountViewTip;
-        pAccountViewTip = NULL;
-        delete pAccountViewDB;
-        pAccountViewDB = NULL;
-        delete pblocktree;
-        pblocktree = NULL;
-        delete pScriptDB;
-        pScriptDB = NULL;
-        delete pTxCacheTip;
-        pTxCacheTip = NULL;
-        delete pScriptDBTip;
-        pScriptDBTip = NULL;
+        pCdMan->Flush();
+        delete pCdMan;
     }
 
     boost::filesystem::remove(GetPidFile());
@@ -380,7 +361,7 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles) {
             LoadExternalBlockFile(file, &pos);
             nFile++;
         }
-        pblocktree->WriteReindexing(false);
+        pCdMan->pBlockTreeDb->WriteReindexing(false);
         SysCfg().SetReIndex(false);
         LogPrint("INFO", "Reindexing finished\n");
         // To avoid ending up in a situation without genesis block, re-try initializing (no-op if reindexing worked):
@@ -800,25 +781,15 @@ bool AppInit(boost::thread_group &threadGroup) {
         do {
             try {
                 UnloadBlockIndex();
-                delete pAccountViewDB;
-                delete pblocktree;
-                delete pAccountViewTip;
-                delete pTxCacheTip;
-                delete pScriptDB;
-                delete pScriptDBTip;
+                delete pCdMan;
 
-                pblocktree      = new CBlockTreeDB(nBlockTreeDBCache, false, SysCfg().IsReindex());
-                pAccountViewDB  = new CAccountViewDB(nAccountDBCache, false, SysCfg().IsReindex());
-                pAccountViewTip = new CAccountViewCache(*pAccountViewDB);
-                pTxCacheTip     = new CTransactionDBCache();
-                pScriptDB       = new CScriptDB(nScriptCacheSize, false, SysCfg().IsReindex());
-                pScriptDBTip    = new CScriptDBViewCache(*pScriptDB);
+                bool fReIndex = SysCfg().IsReindex();
+                pCdMan = new CCacheDBManager(fReIndex, false, nAccountDBCache, nScriptCacheSize, nBlockTreeDBCache);
+                if (fReIndex)
+                    pCdMan->pBlockTreeDb->WriteReindexing(true);
 
-                if (SysCfg().IsReindex())
-                    pblocktree->WriteReindexing(true);
-
-                mempool.SetAccountViewDB(pAccountViewTip);
-                mempool.SetScriptDBViewDB(pScriptDBTip);
+                mempool.SetAccountCache(pAccountCache);
+                mempool.SetContractCache(pContractCache);
 
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");

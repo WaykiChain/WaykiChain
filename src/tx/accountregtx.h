@@ -52,15 +52,15 @@ public:
 
         return sigHash;
     }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CAccountRegisterTx>(this); }
-    bool GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
-    string ToString(CAccountViewCache &view) const;
-    Object ToJson(const CAccountViewCache &AccountView) const;
-    bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
-    bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
-                   CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
-    bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo, int nHeight,
-                       CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
+
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CAccountRegisterTx>(this); }
+    virtual string ToString(const CAccountCache &view) const;
+    virtual Object ToJson(const CAccountCache &AccountView) const;
+    virtual bool GetInvolvedKeyIds(CCacheWrapper& cw, set<CKeyID> &keyIds);
+
+    virtual bool CheckTx(CCacheWrapper& cw, CValidationState &state);
+    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper& cw, CValidationState &state);
+    virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper& cw, CValidationState &state);
 };
 
 #endif

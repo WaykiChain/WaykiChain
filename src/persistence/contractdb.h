@@ -16,22 +16,23 @@
 #include <vector>
 
 class CVmOperate;
-struct CDiskTxPos;
 class CKeyID;
 class CRegID;
 class CAccount;
 class CAccountLog;
+class CContractDB;
+struct CDiskTxPos;
 
-class CScriptDBOperLog {
+class CContractDBOperLog {
 public:
     vector<unsigned char> vKey;
     vector<unsigned char> vValue;
 
-    CScriptDBOperLog(const vector<unsigned char> &vKeyIn, const vector<unsigned char> &vValueIn) {
+    CContractDBOperLog(const vector<unsigned char> &vKeyIn, const vector<unsigned char> &vValueIn) {
         vKey   = vKeyIn;
         vValue = vValueIn;
     }
-    CScriptDBOperLog() {
+    CContractDBOperLog() {
         vKey.clear();
         vValue.clear();
     }
@@ -46,13 +47,13 @@ public:
         return str;
     }
 
-    friend bool operator<(const CScriptDBOperLog &log1, const CScriptDBOperLog &log2) {
+    friend bool operator<(const CContractDBOperLog &log1, const CContractDBOperLog &log2) {
         return log1.vKey < log2.vKey;
     }
 };
 
 
-class CScriptDBView {
+class IContractView {
 public:
     virtual bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) = 0;
     virtual bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) = 0;
@@ -65,19 +66,19 @@ public:
     virtual Object ToJsonObj(string prefix) { return Object(); } //FIXME: useless prefix
 
     // virtual bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) = 0;
-    // virtual bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB) = 0;
-    // virtual bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CScriptDBOperLog &operLog) = 0;
+    // virtual bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CContractDBOperLog> &vTxIndexOperDB) = 0;
+    // virtual bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CContractDBOperLog &operLog) = 0;
     // virtual bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput) = 0;
     virtual bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash) = 0;
-    // virtual bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CScriptDBOperLog &operLog) = 0;
-    virtual bool GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) = 0;
+    // virtual bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CContractDBOperLog &operLog) = 0;
+    virtual bool GetAllContractAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) = 0;
 
-    virtual ~CScriptDBView(){};
+    virtual ~IContractView(){};
 };
 
-class CScriptDBViewCache : public CScriptDBView {
+class CContractCache : public IContractView {
 protected:
-    CScriptDBView *pBase;
+    IContractView *pBase;
 
 public:
     map<vector<unsigned char>, vector<unsigned char> > mapContractDb;
@@ -89,28 +90,28 @@ public:
       取交易关联账户时第一个vector是scriptKey ="tx" + "txHash"
     */
 public:
-    CScriptDBViewCache(CScriptDBView &pBaseIn): pBase(&pBaseIn) { mapContractDb.clear(); };
+    CContractCache(IContractView &pBaseIn): pBase(&pBaseIn) { mapContractDb.clear(); };
 
     bool GetScript(const CRegID &scriptId, vector<unsigned char> &vValue);
     bool GetScript(const int nIndex, CRegID &scriptId, vector<unsigned char> &vValue);
     bool GetScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vKey, CAppUserAccount &appAccOut);
-    bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CScriptDBOperLog &operlog);
+    bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CContractDBOperLog &operlog);
     bool EraseScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vKey);
     bool SetScript(const CRegID &scriptId, const vector<unsigned char> &vValue);
     bool HaveScript(const CRegID &scriptId);
     bool EraseScript(const CRegID &scriptId);
     bool GetContractItemCount(const CRegID &scriptId, int &nCount);
-    bool EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog);
+    bool EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CContractDBOperLog &operLog);
     bool HaveScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey);
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
                          vector<unsigned char> &vScriptData);
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
                          vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
     bool SetContractData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
-                         const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog);
-    bool SetDelegateData(const CAccount &delegateAcct, CScriptDBOperLog &operLog);
+                         const vector<unsigned char> &vScriptData, CContractDBOperLog &operLog);
+    bool SetDelegateData(const CAccount &delegateAcct, CContractDBOperLog &operLog);
     bool SetDelegateData(const vector<unsigned char> &vKey);
-    bool EraseDelegateData(const CAccountLog &delegateAcct, CScriptDBOperLog &operLog);
+    bool EraseDelegateData(const CAccountLog &delegateAcct, CContractDBOperLog &operLog);
     bool EraseDelegateData(const vector<unsigned char> &vKey);
     bool UndoScriptData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
     /**
@@ -129,16 +130,16 @@ public:
     bool Flush();
     unsigned int GetCacheSize();
     Object ToJsonObj() const;
-	CScriptDBView * GetBaseScriptDB() { return pBase; }
+	IContractView * GetBaseScriptDB() { return pBase; }
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CScriptDBOperLog> &vTxIndexOperDB);
-    void SetBaseView(CScriptDBView *pBaseIn) { pBase = pBaseIn; };
+    bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CContractDBOperLog> &vTxIndexOperDB);
+    void SetBaseView(IContractView *pBaseIn) { pBase = pBaseIn; };
     string ToString();
-    bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CScriptDBOperLog &operLog);
+    bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CContractDBOperLog &operLog);
     bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput);
     bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash);
-    bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CScriptDBOperLog &operLog);
-    bool GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc);
+    bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CContractDBOperLog &operLog);
+    bool GetAllContractAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc);
 
 private:
     bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue);
@@ -207,7 +208,7 @@ private:
      * @param vScriptKey must be 8 bytes
      * @return true if delete succeed, otherwise false
      */
-    bool EraseAppData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey, CScriptDBOperLog &operLog);
+    bool EraseAppData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey, CContractDBOperLog &operLog);
 
     bool EraseAppData(const vector<unsigned char> &vKey);
     /**
@@ -246,24 +247,28 @@ private:
      * @return true if save succeed, otherwise false
      */
     bool SetContractData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
-                         const vector<unsigned char> &vScriptData, CScriptDBOperLog &operLog);
+                         const vector<unsigned char> &vScriptData, CContractDBOperLog &operLog);
 };
 
-class CScriptDB : public CScriptDBView {
+class CContractDB : public IContractView {
 private:
     CLevelDBWrapper db;
 
 public:
-    CScriptDB(const string &name, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
-    CScriptDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
+    CContractDB(const string &name, size_t nCacheSize, bool fMemory = false, bool fWipe = false) :
+        db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {}
+
+    CContractDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) :
+        db(GetDataDir() / "blocks" / "script", nCacheSize, fMemory, fWipe) {}
 
 private:
-    CScriptDB(const CScriptDB &);
-    void operator=(const CScriptDB &);
+    CContractDB(const CContractDB &);
+    void operator=(const CContractDB &);
 
 public:
-    bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue);
-    bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
+    bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) { return db.Read(vKey, vValue); };
+    bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) { return db.Write(vKey, vValue); };
+
     bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb);
     bool EraseKey(const vector<unsigned char> &vKey);
     bool HaveData(const vector<unsigned char> &vKey);
@@ -273,7 +278,7 @@ public:
     int64_t GetDbCount() { return db.GetDbCount(); }
     bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash);
     Object ToJsonObj(string Prefix);
-    bool GetAllScriptAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc);
+    bool GetAllContractAcc(const CRegID &contractRegId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc);
 };
 
 #endif  // PERSIST_CONTRACTDB_H

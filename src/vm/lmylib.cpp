@@ -108,7 +108,7 @@ static CVmRunEnv* GetVmRunEnv(lua_State *L)
     return pVmRunEnv;
 }
 
-static bool GetKeyId(const CAccountViewCache &view, vector<unsigned char> &ret,
+static bool GetKeyId(const CAccountCache &view, vector<unsigned char> &ret,
         CKeyID &KeyId) {
     if (ret.size() == 6) {
         CRegID reg(ret);
@@ -1197,8 +1197,8 @@ static int ExWriteDataDBFunc(lua_State *L)
 
     const CRegID scriptid = pVmRunEnv->GetScriptRegID();
     bool flag = true;
-    CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
-    CScriptDBOperLog operlog;
+    CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
+    CContractDBOperLog operlog;
     vector_unsigned_char &key = *retdata.at(0);
     vector_unsigned_char &value = *retdata.at(1);
     if (!scriptDB->SetContractData(scriptid, key, value, operlog)) {
@@ -1206,7 +1206,7 @@ static int ExWriteDataDBFunc(lua_State *L)
         lua_BurnStoreSet(L, 0, 0, BURN_VER_R2);
         flag = false;
     } else {
-        shared_ptr<vector<CScriptDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
+        shared_ptr<vector<CContractDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
         (*pScriptDBOperLog.get()).push_back(operlog);
         lua_BurnStoreSet(L, 0, value.size(), BURN_VER_R2);
     }
@@ -1233,10 +1233,10 @@ static int ExDeleteDataDBFunc(lua_State *L) {
     }
     CRegID scriptid = pVmRunEnv->GetScriptRegID();
 
-    CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
+    CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
 
     bool flag = true;
-    CScriptDBOperLog operlog;
+    CContractDBOperLog operlog;
     vector<unsigned char> vValue;
     scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(),scriptid, *retdata.at(0), vValue);
 
@@ -1245,7 +1245,7 @@ static int ExDeleteDataDBFunc(lua_State *L) {
         lua_BurnStoreSet(L, 0, 0, BURN_VER_R2);
         flag = false;
     } else {
-        shared_ptr<vector<CScriptDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
+        shared_ptr<vector<CContractDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
         pScriptDBOperLog.get()->push_back(operlog);
         lua_BurnStoreSet(L, 0, vValue.size(), BURN_VER_R2);
     }
@@ -1272,7 +1272,7 @@ static int ExReadDataDBFunc(lua_State *L) {
     CRegID scriptRegId = pVmRunEnv->GetScriptRegID();
 
     vector_unsigned_char vValue;
-    CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
+    CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
     int len = 0;
     if (!scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(), scriptRegId, *retdata.at(0), vValue)) {
         len = 0;
@@ -1289,7 +1289,7 @@ static int ExGetDBSizeFunc(lua_State *L) {
 //  CVmRunEnv *pVmRunEnv = (CVmRunEnv *)pVmEvn;
     CRegID scriptid = pVmRunEnv->GetScriptRegID();
     int count = 0;
-    CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
+    CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
     if (!scriptDB->GetContractItemCount(scriptid,count)) {
         return RetFalse("ExGetDBSizeFunc can't use");
     } else {
@@ -1338,7 +1338,7 @@ static int ExGetDBValueFunc(lua_State *L) {
         vScriptKey.assign(retdata.at(1).get()->begin(),retdata.at(1).get()->end());
     }
 
-    CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
+    CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
     flag = scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(),scriptid,index,vScriptKey,vValue);
     int len = 0;
     if(flag){
@@ -1380,14 +1380,14 @@ static int ExModifyDataDBFunc(lua_State *L)
 
     CRegID scriptid = pVmRunEnv->GetScriptRegID();
     bool flag = false;
-    CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
-    CScriptDBOperLog operlog;
+    CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
+    CContractDBOperLog operlog;
     vector_unsigned_char oldValue;
     vector_unsigned_char &key = *retdata.at(0);
     vector_unsigned_char &newValue = *retdata.at(1);
     if (scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(),scriptid, key, oldValue)) {
         if (scriptDB->SetContractData(scriptid, key, newValue, operlog)) {
-            shared_ptr<vector<CScriptDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
+            shared_ptr<vector<CContractDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
             pScriptDBOperLog.get()->push_back(operlog);
             flag = true;
             lua_BurnStoreSet(L, oldValue.size(), newValue.size(), BURN_VER_R2);
@@ -1555,7 +1555,7 @@ static int ExGetContractDataFunc(lua_State *L)
         return RetFalse("pVmRunEnv is NULL");
 
     vector_unsigned_char vValue;
-    CScriptDBViewCache* scriptDB = pVmRunEnv->GetScriptDB();
+    CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
     CRegID scriptid(*retdata.at(0));
     int len = 0;
     if (!scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(), scriptid, *retdata.at(1), vValue))
@@ -1952,7 +1952,7 @@ static int ExTransferContractAsset(lua_State *L)
     }
 
     std::shared_ptr<CAppUserAccount> temp = std::make_shared<CAppUserAccount>();
-    CScriptDBViewCache* pContractScript = pVmRunEnv->GetScriptDB();
+    CContractCache* pContractScript = pVmRunEnv->GetScriptDB();
 
     if (!pContractScript->GetScriptAcc(script, sendkey, *temp.get())) {
         return RetFalse(string(__FUNCTION__)+"para  err3 !");
@@ -2136,7 +2136,7 @@ static int ExLimitedRequire(lua_State *L) {
         return luaL_error(L, "require \"mylib\" failed!");
     }
 
-    return 1; 
+    return 1;
 }
 
 static int ExLuaPrint(lua_State *L) {

@@ -67,7 +67,7 @@ Value getbalance(const Array& params, bool fHelp)
             }
             if (pWalletMain->HaveKey(keyid)) {
                 CAccount account;
-                CAccountViewCache accView(*pAccountViewTip);
+                CAccountCache accView(*pAccountViewTip);
                 if (accView.GetAccount(CUserID(keyid), account)) {
                     obj.push_back(Pair("balance", ValueFromAmount(account.GetFreeBCoins())));
                     return obj;
@@ -142,7 +142,7 @@ Value getbalance(const Array& params, bool fHelp)
                     obj.push_back(Pair("balance", ValueFromAmount(pAccountViewTip->GetFreeBCoins(keyid) - nValue)));
                     return obj;
                 } else {
-                    obj.push_back(Pair("balance", ValueFromAmount(mempool.memPoolAccountViewCache.get()->GetFreeBCoins(keyid))));
+                    obj.push_back(Pair("balance", ValueFromAmount(mempool.memPoolAccountCache.get()->GetFreeBCoins(keyid))));
                     return obj;
                 }
             } else {

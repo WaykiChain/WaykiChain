@@ -15,7 +15,7 @@
 #include "miner/miner.h"
 #include "version.h"
 
-string CBaseCoinTransferTx::ToString(CAccountViewCache &view) const {
+string CBaseCoinTransferTx::ToString(const CAccountCache &view) const {
     string srcId;
     if (txUid.type() == typeid(CPubKey)) {
         srcId = txUid.get<CPubKey>().ToString();
@@ -39,9 +39,9 @@ string CBaseCoinTransferTx::ToString(CAccountViewCache &view) const {
     return str;
 }
 
-Object CBaseCoinTransferTx::ToJson(const CAccountViewCache &AccountView) const {
+Object CBaseCoinTransferTx::ToJson(const CAccountCache &AccountView) const {
     Object result;
-    CAccountViewCache view(AccountView);
+    CAccountCache view(AccountView);
 
     auto GetRegIdString = [&](CUserID const &userId) {
         if (userId.type() == typeid(CRegID))
@@ -68,8 +68,8 @@ Object CBaseCoinTransferTx::ToJson(const CAccountViewCache &AccountView) const {
     return result;
 }
 
-bool CBaseCoinTransferTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view,
-                           CScriptDBViewCache &scriptDB) {
+bool CBaseCoinTransferTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountCache &view,
+                           CContractCache &scriptDB) {
     CKeyID keyId;
     if (!view.GetKeyId(txUid, keyId))
         return false;
@@ -83,14 +83,12 @@ bool CBaseCoinTransferTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCach
     return true;
 }
 
-bool CBaseCoinTransferTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                          CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                          CScriptDBViewCache &scriptDB) {
+bool CBaseCoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
     CAccount desAcct;
     bool generateRegID = false;
 
-    if (!view.GetAccount(txUid, srcAcct))
+    if (!cw.pAccountCache->GetAccount(txUid, srcAcct))
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     else {
@@ -99,7 +97,7 @@ bool CBaseCoinTransferTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValida
 
             CRegID regId;
             // If the source account does NOT have CRegID, need to generate a new CRegID.
-            if (!view.GetRegId(txUid, regId)) {
+            if (!cw.pAccountCache->GetRegId(txUid, regId)) {
                 srcAcct.regID = CRegID(nHeight, nIndex);
                 generateRegID = true;
             }
@@ -115,16 +113,16 @@ bool CBaseCoinTransferTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValida
     }
 
     if (generateRegID) {
-        if (!view.SaveAccountInfo(srcAcct))
+        if (!cw.pAccountCache->SaveAccountInfo(srcAcct))
             return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account info error"),
                              WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     } else {
-        if (!view.SetAccount(CUserID(srcAcct.keyID), srcAcct))
+        if (!cw.pAccountCache->SetAccount(CUserID(srcAcct.keyID), srcAcct))
             return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account info error"),
                              WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
 
-    if (!view.GetAccount(toUid, desAcct)) {
+    if (!cw.pAccountCache->GetAccount(toUid, desAcct)) {
         if (toUid.type() == typeid(CKeyID)) {  // target account does NOT have CRegID
             desAcct.keyID    = toUid.get<CKeyID>();
             desAcctLog.keyID = desAcct.keyID;
@@ -141,47 +139,47 @@ bool CBaseCoinTransferTx::ExecuteTx(int nIndex, CAccountViewCache &view, CValida
                          UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
 
-    if (!view.SetAccount(toUid, desAcct))
+    if (!cw.pAccountCache->SetAccount(toUid, desAcct))
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account error, kyeId=%s",
                          desAcct.keyID.ToString()),
                          UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
-    txundo.vAccountLog.push_back(srcAcctLog);
-    txundo.vAccountLog.push_back(desAcctLog);
-    txundo.txHash = GetHash();
+    cw.pTxUndo->vAccountLog.push_back(srcAcctLog);
+    cw.pTxUndo->vAccountLog.push_back(desAcctLog);
+    cw.pTxUndo->txHash = GetHash();
 
     if (SysCfg().GetAddressToTxFlag()) {
-        CScriptDBOperLog operAddressToTxLog;
+        CContractDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
         CKeyID revKeyId;
-        if (!view.GetKeyId(txUid, sendKeyId))
+        if (!cw.pAccountCache->GetKeyId(txUid, sendKeyId))
             return ERRORMSG("CBaseCoinTransferTx::ExecuteTx, get keyid by txUid error!");
 
-        if (!view.GetKeyId(toUid, revKeyId))
+        if (!cw.pAccountCache->GetKeyId(toUid, revKeyId))
             return ERRORMSG("CBaseCoinTransferTx::ExecuteTx, get keyid by toUid error!");
 
-        if (!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(), operAddressToTxLog))
+        if (!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
+                                                operAddressToTxLog))
             return false;
 
-        txundo.vScriptOperLog.push_back(operAddressToTxLog);
+        cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
 
-        if (!scriptDB.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, txundo.txHash.GetHex(), operAddressToTxLog))
+        if (!scriptDB.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
+                                        operAddressToTxLog))
             return false;
 
-        txundo.vScriptOperLog.push_back(operAddressToTxLog);
+        cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
     }
 
     return true;
 }
 
-bool CBaseCoinTransferTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                              CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                              CScriptDBViewCache &scriptDB) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = txundo.vAccountLog.rbegin();
-    for (; rIterAccountLog != txundo.vAccountLog.rend(); ++rIterAccountLog) {
+bool CBaseCoinTransferTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.pTxUndo->vAccountLog.rbegin();
+    for (; rIterAccountLog != cw.pTxUndo->vAccountLog.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
-        if (!view.GetAccount(userId, account)) {
+        if (!cw.pAccountCache->GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
@@ -192,7 +190,7 @@ bool CBaseCoinTransferTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVa
 
         if (account.IsEmptyValue() &&
             (!account.pubKey.IsFullyValid() || account.pubKey.GetKeyId() != account.keyID)) {
-            view.EraseAccountByKeyId(userId);
+            cw.pAccountCache->EraseAccountByKeyId(userId);
 
         } else if (account.regID == CRegID(nHeight, nIndex)) {
             // If the CRegID was generated by this BCOIN_TRANSFER_TX, need to remove CRegID.
@@ -200,15 +198,15 @@ bool CBaseCoinTransferTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVa
             account.pubKey      = empPubKey;
             account.minerPubKey = empPubKey;
             account.regID.Clean();
-            if (!view.SetAccount(userId, account)) {
+            if (!cw.pAccountCache->SetAccount(userId, account)) {
                 return state.DoS(100,
                                  ERRORMSG("CBaseCoinTransferTx::UndoExecuteTx, write account info error"),
                                  UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
             }
 
-            view.EraseKeyId(CRegID(nHeight, nIndex));
+            cw.pAccountCache->EraseKeyId(CRegID(nHeight, nIndex));
         } else {
-            if (!view.SetAccount(userId, account)) {
+            if (!cw.pAccountCache->SetAccount(userId, account)) {
                 return state.DoS(100,
                                  ERRORMSG("CBaseCoinTransferTx::UndoExecuteTx, write account info error"),
                                  UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
@@ -216,9 +214,9 @@ bool CBaseCoinTransferTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVa
         }
     }
 
-    vector<CScriptDBOperLog>::reverse_iterator rIterScriptDBLog = txundo.vScriptOperLog.rbegin();
-    for (; rIterScriptDBLog != txundo.vScriptOperLog.rend(); ++rIterScriptDBLog) {
-        if (!scriptDB.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
+    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vScriptOperLog.rbegin();
+    for (; rIterScriptDBLog != cw.pTxUndo->vScriptOperLog.rend(); ++rIterScriptDBLog) {
+        if (!cw.pContractCache->UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
             return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::UndoExecuteTx, undo scriptdb data error"),
                              UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
@@ -226,8 +224,7 @@ bool CBaseCoinTransferTx::UndoExecuteTx(int nIndex, CAccountViewCache &view, CVa
     return true;
 }
 
-bool CBaseCoinTransferTx::CheckTx(CValidationState &state, CAccountViewCache &view,
-                        CScriptDBViewCache &scriptDB) {
+bool CBaseCoinTransferTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
 
@@ -244,7 +241,7 @@ bool CBaseCoinTransferTx::CheckTx(CValidationState &state, CAccountViewCache &vi
                          "bad-commontx-publickey");
 
     CAccount srcAccount;
-    if (!view.GetAccount(txUid, srcAccount))
+    if (!cw.pAccountCache->GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 

@@ -57,7 +57,7 @@ uint64_t CBaseTx::GetFuel(int nfuelRate) {
     return llFuel;
 }
 
-int CBaseTx::GetFuelRate(CScriptDBViewCache &scriptDB) {
+int CBaseTx::GetFuelRate(CContractCache &scriptDB) {
     if (nFuelRate > 0)
         return nFuelRate;
 
@@ -91,7 +91,7 @@ bool CBaseTx::CheckSignatureSize(const vector<unsigned char> &signature) const {
     return signature.size() > 0 && signature.size() < MAX_BLOCK_SIGNATURE_SIZE;
 }
 
-string CBaseTx::ToString(CAccountViewCache &view) const {
+string CBaseTx::ToString(CAccountCache &view) const {
     string str = strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
                             GetTxType(nTxType), GetHash().ToString().c_str(), nVersion,
                             txUid.get<CPubKey>().ToString(),
@@ -118,7 +118,7 @@ string CTxUndo::ToString() const {
     str += strAccountLog;
 
     string strDBOperLog("list script db Log:\n");
-    vector<CScriptDBOperLog>::const_iterator iterDbLog = vScriptOperLog.begin();
+    vector<CContractDBOperLog>::const_iterator iterDbLog = vScriptOperLog.begin();
     for (; iterDbLog != vScriptOperLog.end(); ++iterDbLog) {
         strDBOperLog += iterDbLog->ToString();
     }

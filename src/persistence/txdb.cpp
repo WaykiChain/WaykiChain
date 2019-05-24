@@ -14,11 +14,11 @@
 
 #include <algorithm>
 
-bool CTransactionDBCache::IsContainBlock(const CBlock &block) {
+bool CTransactionCache::IsContainBlock(const CBlock &block) {
     return mapTxHashByBlockHash.count(block.GetHash());
 }
 
-bool CTransactionDBCache::AddBlockToCache(const CBlock &block) {
+bool CTransactionCache::AddBlockToCache(const CBlock &block) {
     UnorderedHashSet vTxHash;
     vTxHash.clear();
     for (auto &ptx : block.vptx) {
@@ -29,7 +29,7 @@ bool CTransactionDBCache::AddBlockToCache(const CBlock &block) {
     return true;
 }
 
-bool CTransactionDBCache::DeleteBlockFromCache(const CBlock &block) {
+bool CTransactionCache::DeleteBlockFromCache(const CBlock &block) {
     if (IsContainBlock(block)) {
         mapTxHashByBlockHash.erase(block.GetHash());
     }
@@ -37,7 +37,7 @@ bool CTransactionDBCache::DeleteBlockFromCache(const CBlock &block) {
     return true;
 }
 
-bool CTransactionDBCache::HaveTx(const uint256 &txHash) {
+bool CTransactionCache::HaveTx(const uint256 &txHash) {
     for (auto &item : mapTxHashByBlockHash) {
         if (item.second.count(txHash)) {
             return true;
@@ -47,15 +47,15 @@ bool CTransactionDBCache::HaveTx(const uint256 &txHash) {
     return false;
 }
 
-void CTransactionDBCache::AddTxHashCache(const uint256 &blockHash, const UnorderedHashSet &vTxHash) {
+void CTransactionCache::AddTxHashCache(const uint256 &blockHash, const UnorderedHashSet &vTxHash) {
     mapTxHashByBlockHash[blockHash] = vTxHash;
 }
 
-void CTransactionDBCache::Clear() { mapTxHashByBlockHash.clear(); }
+void CTransactionCache::Clear() { mapTxHashByBlockHash.clear(); }
 
-int CTransactionDBCache::GetSize() { return mapTxHashByBlockHash.size(); }
+int CTransactionCache::GetSize() { return mapTxHashByBlockHash.size(); }
 
-Object CTransactionDBCache::ToJsonObj() const {
+Object CTransactionCache::ToJsonObj() const {
     Array txArray;
     for (auto &item : mapTxHashByBlockHash) {
         Object obj;
@@ -76,8 +76,8 @@ Object CTransactionDBCache::ToJsonObj() const {
     return txCacheObj;
 }
 
-const map<uint256, UnorderedHashSet> &CTransactionDBCache::GetTxHashCache() { return mapTxHashByBlockHash; }
+const map<uint256, UnorderedHashSet> &CTransactionCache::GetTxHashCache() { return mapTxHashByBlockHash; }
 
-void CTransactionDBCache::SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache) {
+void CTransactionCache::SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache) {
     mapTxHashByBlockHash = mapCache;
 }

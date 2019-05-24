@@ -6,7 +6,7 @@
 #include "id.h"
 #include "persistence/accountdb.h"
 
-extern CAccountViewCache *pAccountViewTip; /** global account db cache*/
+extern CAccountCache *pAccountViewTip; /** global account db cache*/
 
 bool CRegID::Clean() {
     nHeight = 0 ;
@@ -120,10 +120,10 @@ string CRegID::ToString() const
     return  strprintf("%d-%d", nHeight, nIndex);
 }
 
-CKeyID CRegID::GetKeyId(const CAccountViewCache &view)const
+CKeyID CRegID::GetKeyId(const CAccountCache &view)const
 {
     CKeyID retKeyId;
-    CAccountViewCache(view).GetKeyId(*this, retKeyId);
+    CAccountCache(view).GetKeyId(*this, retKeyId);
     return retKeyId;
 }
 

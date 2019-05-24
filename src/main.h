@@ -35,12 +35,16 @@
 #include "tx/blockrewardtx.h"
 #include "tx/mulsigtx.h"
 #include "tx/tx.h"
+#include "persistence/accountdb.h"
+#include "persistence/blockdb.h"
+#include "persistence/txdb.h"
 
 class CBlockIndex;
 class CBloomFilter;
 class CChain;
 class CInv;
-class CContractScript;
+class CAccountCache;
+class CBlockTreeDB;
 
 extern CCriticalSection cs_main;
 /** The currently-connected chain of blocks. */
@@ -135,15 +139,12 @@ extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern const string strMessageMagic;
 
-class CBlockTreeDB;
-
 class CTxUndo;
 class CValidationState;
 class CWalletInterface;
-struct CNodeStateStats;
-class CAccountViewDB;
-class CScriptDB;
+class CTransactionCache;
 
+struct CNodeStateStats;
 struct CBlockTemplate;
 
 /** Register a wallet to receive updates from core */
@@ -179,10 +180,9 @@ unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
 /** Format a string that describes several potential problems detected by the core */
 string GetWarnings(string strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
-bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CScriptDBViewCache &scriptDBCache, bool bSearchMempool = true);
+bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CContractCache &scriptDBCache, bool bSearchMempool = true);
 /** Retrieve a transaction height comfirmed in block*/
-int GetTxConfirmHeight(const uint256 &hash, CScriptDBViewCache &scriptDBCache);
-
+int GetTxConfirmHeight(const uint256 &hash, CContractCache &scriptDBCache);
 
 
 /*calutate difficulty */
@@ -206,7 +206,6 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<unsigned char> &s
 bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx,
                         bool fLimitFree, bool fRejectInsaneFee = false);
 
-
 std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType);
 
 struct CNodeStateStats {
@@ -223,7 +222,7 @@ inline bool AllowFree(double dPriority) {
 }
 
 // Context-independent validity checks
-bool CheckTx(CBaseTx *pBaseTx, CValidationState &state, CAccountViewCache &view);
+bool CheckTx(CBaseTx *ptx, CCacheWrapper &cacheWrapper, CValidationState &state);
 
 /** Check for standard transaction types
     @return True if all outputs (scriptPubKeys) use only standard transaction forms
@@ -231,7 +230,6 @@ bool CheckTx(CBaseTx *pBaseTx, CValidationState &state, CAccountViewCache &view)
 bool IsStandardTx(CBaseTx *pBaseTx, string &reason);
 
 bool IsFinalTx(CBaseTx *pBaseTx, int nBlockHeight = 0, int64_t nBlockTime = 0);
-
 
 //get tx operate account log
 bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &vAccountLog);
@@ -292,7 +290,58 @@ public:
 
     /** Find the last common block between this chain and a locator. */
     CBlockIndex *FindFork(const CBlockLocator &locator) const;
-};
+}; //end of CChain
+
+class CCacheDBManager {
+public:
+    CAccountDB         *pAccountDb;         // account db
+    CAccountCache      *pAccountCache;      // account view cache
+
+    CContractDB        *pContractDb;        // contract db: pScriptDB
+    CContractCache     *pContractCache;     // contract script db cache: pScriptDBTip
+
+    CTransactionCache  *pTxCache;           // tx db cache: pTxCacheTip
+    CBlockTreeDB       *pBlockTreeDb;       // the active block tree (protected by cs_main)
+
+public:
+    CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache, size_t nScriptCacheSize, size_t nBlockTreeDBCache) {
+        pAccountDb      = new CAccountDB(nAccountDBCache, false, fReIndex);
+        pAccountCache   = new CAccountCache(*pAccountDb);
+        pContractDb     = new CContractDB(nScriptCacheSize, false, fReIndex);
+        pContractCache  = new CContractCache(*pContractDb);
+        pTxCache        = new CTransactionCache();
+        pBlockTreeDb    = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
+    }
+
+    // CCacheDBManager(CAccountDB *pAccountDbIn, CAccountCache *pAccountCacheIn,
+    //                 CContractDB *pContractDbIn, CContractCache *pContractCacheIn,
+    //                 CTransactionCache *pTxCacheIn, CBlockTreeDB *pBlockTreeDbIn) :
+    //                 pAccountDb(pAccountDbIn), pAccountCache(pAccountCacheIn),
+    //                 pContractDb(pContractDbIn), pContractCache(pContractCacheIn),
+    //                 pTxCache(pTxCacheIn), pBlockTreeDb(pBlockTreeDbIn);
+
+    ~CCacheDBManager() {
+        delete pAccountDb;      pAccountDb = nullptr;
+        delete pAccountCache;   pAccountCache = nullptr;
+        delete pContractDb;     pContractDb = nullptr;
+        delete pContractCache;  pContractCache = nullptr;
+        delete pTxCache;        pTxCache = nullptr;
+        delete pBlockTreeDb;    pBlockTreeDb = nullptr;
+    }
+
+    bool Flush() {
+        if (pBlockTreeDb)
+            pBlockTreeDb->Flush();
+
+        if (pAccountCache)
+            pAccountCache->Flush();
+
+        if (pContractCache)
+            pContractCache->Flush();
+
+        return true;
+    }
+}; //end of CCacheDBManager
 
 bool IsInitialBlockDownload();
 
@@ -529,23 +578,7 @@ public:
 /** The currently best known chain of headers (some of which may be invalid). */
 extern CChain chainMostWork;
 
-/** Global variable that points to the active block tree (protected by cs_main) */
-extern CBlockTreeDB *pblocktree;
-
-/** account db cache*/
-extern CAccountViewCache *pAccountViewTip;
-
-/** account db */
-extern CAccountViewDB *pAccountViewDB;
-
-/** srcipt db */
-extern CScriptDB *pScriptDB;
-
-/** tx db cache */
-extern CTransactionDBCache *pTxCacheTip;
-
-/** contract script db cache */
-extern CScriptDBViewCache *pScriptDBTip;
+extern CCacheDBManager *pCdMan;
 
 /** nSyncTipHight  */
 extern int nSyncTipHeight;
@@ -609,18 +642,18 @@ extern CSignatureCache signatureCache;
  *  In case pfClean is provided, operation will try to be tolerant about errors, and *pfClean
  *  will be true if no problems were found. Otherwise, the return value will be false in case
  *  of problems. Note that in any case, coins may be modified. */
-bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pIndex,
-                    CTransactionDBCache &txCache, CScriptDBViewCache &scriptCache, bool *pfClean = NULL);
+bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountCache &view, CBlockIndex *pIndex,
+                    CTransactionCache &txCache, CContractCache &scriptCache, bool *pfClean = NULL);
 
 // Apply the effects of this block (with given index) on the UTXO set represented by coins
-bool ConnectBlock(CBlock &block, CValidationState &state, CAccountViewCache &view, CBlockIndex *pIndex, CTransactionDBCache &txCache,
-                CScriptDBViewCache &scriptCache, bool fJustCheck = false);
+bool ConnectBlock(CBlock &block, CValidationState &state, CAccountCache &view, CBlockIndex *pIndex, CTransactionCache &txCache,
+                CContractCache &scriptCache, bool fJustCheck = false);
 
 // Add this block to the block index, and if necessary, switch the active block chain to this
 bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos &pos);
 
 // Context-independent validity checks
-bool CheckBlock(const CBlock &block, CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDBCache,
+bool CheckBlock(const CBlock &block, CValidationState &state, CAccountCache &view, CContractCache &scriptDBCache,
                 bool fCheckTx = true, bool fCheckMerkleRoot = true);
 
 bool ProcessForkedChain(const CBlock &block, CValidationState &state);

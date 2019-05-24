@@ -51,18 +51,18 @@ CTxMemPool::CTxMemPool() {
     nTransactionsUpdated = 0;
 }
 
-void CTxMemPool::SetAccountViewDB(CAccountViewCache *pAccountViewCacheIn) {
-    memPoolAccountViewCache = std::make_shared<CAccountViewCache>(*pAccountViewCacheIn);
+void CTxMemPool::SetAccountCache(CAccountCache *pAccountCacheIn) {
+    memPoolAccountCache = std::make_shared<CAccountCache>(*pAccountCacheIn);
 }
 
-void CTxMemPool::SetScriptDBViewDB(CScriptDBViewCache *pScriptDBViewCacheIn) {
-    memPoolScriptDBViewCache = std::make_shared<CScriptDBViewCache>(*pScriptDBViewCacheIn);
+void CTxMemPool::SetContractCache(CContractCache *pContractCacheIn) {
+    memPoolContractCache = std::make_shared<CContractCache>(*pContractCacheIn);
 }
 
-void CTxMemPool::ReScanMemPoolTx(CAccountViewCache *pAccountViewCacheIn,
-                                 CScriptDBViewCache *pScriptDBViewCacheIn) {
-    memPoolAccountViewCache.reset(new CAccountViewCache(*pAccountViewCacheIn));
-    memPoolScriptDBViewCache.reset(new CScriptDBViewCache(*pScriptDBViewCacheIn));
+void CTxMemPool::ReScanMemPoolTx(CAccountCache *pAccountCacheIn,
+                                 CContractCache *pContractCacheIn) {
+    memPoolAccountCache.reset(new CAccountCache(*pAccountCacheIn));
+    memPoolContractCache.reset(new CContractCache(*pContractCacheIn));
 
     {
         LOCK(cs);
@@ -80,12 +80,12 @@ void CTxMemPool::ReScanMemPoolTx(CAccountViewCache *pAccountViewCacheIn,
     }
 }
 
-unsigned int CTxMemPool::GetTransactionsUpdated() const {
+unsigned int CTxMemPool::GetUpdatedTransactionNum() const {
     LOCK(cs);
     return nTransactionsUpdated;
 }
 
-void CTxMemPool::AddTransactionsUpdated(unsigned int n) {
+void CTxMemPool::AddUpdatedTransactionNum(unsigned int n) {
     LOCK(cs);
     nTransactionsUpdated += n;
 }
@@ -105,9 +105,9 @@ void CTxMemPool::Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> >& remov
 bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &memPoolEntry,
                                   CValidationState &state, bool bExcute) {
     CTxUndo txundo;
-    CTransactionDBCache txCacheTemp(*pTxCacheTip);
-    CAccountViewCache acctViewTemp(*memPoolAccountViewCache.get());
-    CScriptDBViewCache scriptDBViewTemp(*memPoolScriptDBViewCache.get());
+    CTransactionCache txCacheTemp(*pTxCacheTip);
+    CAccountCache acctViewTemp(*memPoolAccountCache.get());
+    CContractCache scriptDBViewTemp(*memPoolContractCache.get());
 
     // is it already confirmed in block
     if (pTxCacheTip->HaveTx(hash))
@@ -128,9 +128,9 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
             return false;
     }
 
-    acctViewTemp.SetBaseView(memPoolAccountViewCache.get());
+    acctViewTemp.SetBaseView(memPoolAccountCache.get());
     assert(acctViewTemp.Flush());
-    scriptDBViewTemp.SetBaseView(memPoolScriptDBViewCache.get());
+    scriptDBViewTemp.SetBaseView(memPoolContractCache.get());
     assert(scriptDBViewTemp.Flush());
 
     return true;
@@ -155,8 +155,8 @@ bool CTxMemPool::AddUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
 void CTxMemPool::Clear() {
     LOCK(cs);
     memPoolTxs.clear();
-    memPoolAccountViewCache.reset(new CAccountViewCache(*pAccountViewTip));
-    memPoolScriptDBViewCache.reset(new CScriptDBViewCache(*pScriptDBTip));
+    memPoolAccountCache.reset(new CAccountCache(*pAccountViewTip));
+    memPoolContractCache.reset(new CContractCache(*pScriptDBTip));
     ++nTransactionsUpdated;
 }
 

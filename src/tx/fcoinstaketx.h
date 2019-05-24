@@ -54,15 +54,13 @@ public:
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CFcoinStakeTx>(this); }
     virtual double GetPriority() const { return 10000.0f; } // Top priority
 
-    virtual bool CheckTx(CValidationState &state, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
-    virtual bool ExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state, CTxUndo &txundo,
-                    int nHeight, CTransactionDBCache &txCache, CScriptDBViewCache &scriptDB);
-    virtual bool UndoExecuteTx(int nIndex, CAccountViewCache &view, CValidationState &state,
-                    CTxUndo &txundo, int nHeight, CTransactionDBCache &txCache,
-                    CScriptDBViewCache &scriptDB);
-    virtual string ToString(CAccountViewCache &view) const;
-    virtual Object ToJson(const CAccountViewCache &AccountView) const;
-    virtual bool GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountViewCache &view, CScriptDBViewCache &scriptDB);
+    virtual string ToString(CAccountCache &view) const;
+    virtual Object ToJson(const CAccountCache &AccountView) const;
+    bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
+
+    bool CheckTx(CCacheWrapper &cw, CValidationState &state);
+    bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
 };
 

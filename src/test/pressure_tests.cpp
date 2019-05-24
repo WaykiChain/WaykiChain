@@ -255,7 +255,7 @@ public:
 			{
 				LOCK(cs_main);
 				CAccount account;
-				CAccountViewCache accView(*pAccountViewTip, true);
+				CAccountCache accView(*pAccountViewTip, true);
 				if (!accView.GetAccount(userId, account)) {
 					return false;
 				}
@@ -270,7 +270,7 @@ public:
 			{
 				LOCK(cs_main);
 				CAccount account;
-				CAccountViewCache accView(*pAccountViewTip, true);
+				CAccountCache accView(*pAccountViewTip, true);
 				if (!accView.GetAccount(userId, account)) {
 					return false;
 				}

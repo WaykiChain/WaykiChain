@@ -18,7 +18,7 @@ using namespace json_spirit;
 
 class CBlock;
 
-class CTransactionDBCache {
+class CTransactionCache {
 private:
     map<uint256, UnorderedHashSet> mapTxHashByBlockHash;  // key:block hash  value:tx hash
 

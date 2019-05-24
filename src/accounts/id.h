@@ -16,7 +16,7 @@
 #include "key.h"
 #include "crypto/hash.h"
 
-class CAccountViewCache;
+class CAccountCache;
 class CUserID;
 
 typedef vector<unsigned char> vector_unsigned_char;
@@ -47,8 +47,9 @@ public:
         return vRegID;
     }
     void SetRegID(const vector<unsigned char> &vIn);
-    CKeyID GetKeyId(const CAccountViewCache &view) const;
+    CKeyID GetKeyId(const CAccountCache &view) const;
     uint32_t GetHeight() const { return nHeight; }
+    uint16_t GetIndex() const { return nIndex; }
     bool operator==(const CRegID &co) const { return (this->nHeight == co.nHeight && this->nIndex == co.nIndex); }
     bool operator!=(const CRegID &co) const { return (this->nHeight != co.nHeight || this->nIndex != co.nIndex); }
     static bool IsSimpleRegIdStr(const string &str);
