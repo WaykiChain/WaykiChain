@@ -748,6 +748,11 @@
 */
 #define LUA_FIXED_SEED		0xF7654321
 
-
+/*
+** if not define LUA_BASE_UNLIMITED, there are many limits for base functions of lua.
+*/
+/*
+#define LUA_BASE_UNLIMITED
+*/
 #endif
 
