@@ -1176,21 +1176,22 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CCacheWrapper &cw, 
     // Undo reward tx
     std::shared_ptr<CBaseTx> pBaseTx = block.vptx[0];
     txundo = blockUndo.vtxundo.back();
-    // CCacheWrapper cw()
-    if (!pBaseTx->UndoExecuteTx(0, view, state, txundo, pIndex->nHeight, txCache, scriptCache))
+    cw.pTxUndo = &txundo;
+    if (!pBaseTx->UndoExecuteTx(0, pIndex->nHeight, cw, state))
         return false;
 
     // Undo transactions in reverse order
     for (int i = block.vptx.size() - 1; i >= 1; i--) {
         std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
         CTxUndo txundo = blockUndo.vtxundo[i - 1];
-        if (!pBaseTx->UndoExecuteTx(i, view, state, txundo, pIndex->nHeight, txCache, scriptCache))
+        cw.pTxUndo = &txundo;
+        if (!pBaseTx->UndoExecuteTx(i, pIndex->nHeight, cw, state))
             return false;
     }
     // Set previous block as the best block
-    view.SetBestBlock(pIndex->pprev->GetBlockHash());
+    cw.pAccountCache->SetBestBlock(pIndex->pprev->GetBlockHash());
 
-    if (!txCache.DeleteBlockFromCache(block))
+    if (!cw.pTxCache->DeleteBlockFromCache(block))
         return state.Abort(_("DisconnectBlock() : failed to delete block from cache"));
 
     // Load txs into cache
@@ -1204,7 +1205,7 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CCacheWrapper &cw, 
         if (!ReadBlockFromDisk(pReLoadBlockIndex, reLoadblock))
             return state.Abort(_("DisconnectBlock() : Failed to read block"));
 
-        if (!txCache.AddBlockToCache(reLoadblock))
+        if (!cw.pTxCache->AddBlockToCache(reLoadblock))
             return state.Abort(_("DisconnectBlock() : failed to reload all txs into cache"));
     }
 
