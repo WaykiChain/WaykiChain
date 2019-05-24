@@ -1187,11 +1187,15 @@ static int ExWriteDataDBFunc(lua_State *L)
 {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
     if (!GetDataTableWriteDataDB(L,retdata) ||retdata.size() != 2) {
+        lua_BurnStoreUnchange(L, 0, 0, BURN_VER_R2);
         return RetFalse("ExWriteDataDBFunc key err1");
     }
+    vector_unsigned_char &key = *retdata.at(0);
+    vector_unsigned_char &value = *retdata.at(1);
 
     CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv) {
+        lua_BurnStoreUnchange(L, key.size(), value.size(), BURN_VER_R2);
         return RetFalse("pVmRunEnv is NULL");
     }
 
@@ -1199,16 +1203,14 @@ static int ExWriteDataDBFunc(lua_State *L)
     bool flag = true;
     CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
     CContractDBOperLog operlog;
-    vector_unsigned_char &key = *retdata.at(0);
-    vector_unsigned_char &value = *retdata.at(1);
     if (!scriptDB->SetContractData(scriptid, key, value, operlog)) {
         LogPrint("vm", "ExWriteDataDBFunc SetContractData failed, key:%s!\n",HexStr(key));
-        lua_BurnStoreSet(L, 0, 0, BURN_VER_R2);
+        lua_BurnStoreUnchange(L, key.size(), value.size(), BURN_VER_R2);
         flag = false;
     } else {
         shared_ptr<vector<CContractDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
         (*pScriptDBOperLog.get()).push_back(operlog);
-        lua_BurnStoreSet(L, 0, value.size(), BURN_VER_R2);
+        lua_BurnStoreSet(L, key.size(), operlog.vValue.size(), value.size(), BURN_VER_R2);
     }
     return RetRstBooleanToLua(L,flag);
 }
@@ -1224,11 +1226,15 @@ static int ExDeleteDataDBFunc(lua_State *L) {
     if(!GetDataString(L,retdata) ||retdata.size() != 1)
     {
         LogPrint("vm", "ExDeleteDataDBFunc key err1");
+        lua_BurnStoreUnchange(L, 0, 0, BURN_VER_R2);
         return RetFalse(string(__FUNCTION__)+"para  err !");
     }
+    vector_unsigned_char &key = *retdata.at(0);
+
     CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if(NULL == pVmRunEnv)
     {
+        lua_BurnStoreUnchange(L, key.size(), 0, BURN_VER_R2);
         return RetFalse("pVmRunEnv is NULL");
     }
     CRegID scriptid = pVmRunEnv->GetScriptRegID();
@@ -1237,17 +1243,15 @@ static int ExDeleteDataDBFunc(lua_State *L) {
 
     bool flag = true;
     CContractDBOperLog operlog;
-    vector<unsigned char> vValue;
-    scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(),scriptid, *retdata.at(0), vValue);
 
     if (!scriptDB->EraseAppData(scriptid, *retdata.at(0), operlog)) {
         LogPrint("vm", "ExDeleteDataDBFunc EraseAppData railed, key:%s!\n",HexStr(*retdata.at(0)));
-        lua_BurnStoreSet(L, 0, 0, BURN_VER_R2);
+        lua_BurnStoreUnchange(L, key.size(), operlog.vValue.size(), BURN_VER_R2);
         flag = false;
     } else {
         shared_ptr<vector<CContractDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
         pScriptDBOperLog.get()->push_back(operlog);
-        lua_BurnStoreSet(L, 0, vValue.size(), BURN_VER_R2);
+        lua_BurnStoreSet(L, key.size(), operlog.vValue.size(), 0, BURN_VER_R2);
     }
     return RetRstBooleanToLua(L,flag);
 }
@@ -1261,11 +1265,14 @@ static int ExReadDataDBFunc(lua_State *L) {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
 
     if (!GetDataString(L,retdata) ||retdata.size() != 1) {
+        lua_BurnStoreUnchange(L, 0, 0, BURN_VER_R2);
         return RetFalse("ExReadDataDBFunc key err1");
     }
+    vector_unsigned_char &key = *retdata.at(0);
 
     CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv) {
+        lua_BurnStoreUnchange(L, key.size(), 0, BURN_VER_R2);
         return RetFalse("pVmRunEnv is NULL");
     }
 
@@ -1274,11 +1281,11 @@ static int ExReadDataDBFunc(lua_State *L) {
     vector_unsigned_char vValue;
     CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
     int len = 0;
-    if (!scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(), scriptRegId, *retdata.at(0), vValue)) {
+    if (!scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(), scriptRegId, key, vValue)) {
         len = 0;
-        lua_BurnStoreGet(L, 0, BURN_VER_R2);
+        lua_BurnStoreUnchange(L, key.size(), 0, BURN_VER_R2);
     } else {
-        lua_BurnStoreGet(L, vValue.size(), BURN_VER_R2);
+        lua_BurnStoreGet(L, key.size(), vValue.size(), BURN_VER_R2);
         len = RetRstToLua(L,vValue);
     }
     return len;
@@ -1371,30 +1378,34 @@ static int ExModifyDataDBFunc(lua_State *L)
 {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
     if (!GetDataTableWriteDataDB(L,retdata) ||retdata.size() != 2) {
+        lua_BurnStoreUnchange(L, 0, 0, BURN_VER_R2);
         return RetFalse("ExModifyDataDBFunc key err");
     }
+    vector_unsigned_char &key = *retdata.at(0);
+    vector_unsigned_char &newValue = *retdata.at(1);
+
     CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv) {
+        lua_BurnStoreUnchange(L, key.size(), newValue.size(), BURN_VER_R2);
         return RetFalse("pVmRunEnv is NULL");
     }
 
     CRegID scriptid = pVmRunEnv->GetScriptRegID();
-    bool flag = false;
     CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
     CContractDBOperLog operlog;
     vector_unsigned_char oldValue;
-    vector_unsigned_char &key = *retdata.at(0);
-    vector_unsigned_char &newValue = *retdata.at(1);
+    bool flag = false;
     if (scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(),scriptid, key, oldValue)) {
         if (scriptDB->SetContractData(scriptid, key, newValue, operlog)) {
             shared_ptr<vector<CContractDBOperLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
             pScriptDBOperLog.get()->push_back(operlog);
-            flag = true;
-            lua_BurnStoreSet(L, oldValue.size(), newValue.size(), BURN_VER_R2);
+            lua_BurnStoreSet(L, key.size(),  operlog.vValue.size(), newValue.size(), BURN_VER_R2);
+            flag = true;            
+        } else {
+            lua_BurnStoreUnchange(L, key.size(), newValue.size(), BURN_VER_R2);
         }
-    }
-    if (!flag) {
-        lua_BurnStoreSet(L, 0, 0, BURN_VER_R2);
+    } else {
+        lua_BurnStoreUnchange(L, key.size(), newValue.size(), BURN_VER_R2);
     }
 
     return RetRstBooleanToLua(L,flag);

@@ -53,12 +53,12 @@ typedef int lua_burner_version;
 #define FUEL_OP_CONCAT          3   /* .. */
 #define FUEL_OP_LEN             32  /* # */
 
+#define FUEL_STORE_ADDED        600
+#define FUEL_STORE_RESET        150
+#define FUEL_STORE_UNCHANGED    3
+#define FUEL_STORE_GET          6
+#define FUEL_STORE_REFUND       450
 
-#define FUEL_MEM_ADDED          3
-#define FUEL_STORE_ADDED        20000
-#define FUEL_STORE_UNCHANGED    200
-#define FUEL_STORE_GET          200
-#define FUEL_STORE_REFUND       10000
-
+#define FUEL_MEM_ADDED          3 // fuel for burning memory  per new 32 bytes
 
 #endif // FUEL_H

@@ -7,6 +7,7 @@
 #define L_BURNER_H
 
 #include "lua.h"
+#include "fuel.h"
 
 typedef void (*lua_burner_trace_cb) (lua_State *L, const char* caption, const char* format, ...);
 
@@ -52,9 +53,11 @@ LUA_API int lua_BurnStep(lua_State *L, unsigned long long step, int version);
 
 LUA_API int lua_BurnOperator(lua_State *L, int op, int version);
 
-LUA_API int lua_BurnStoreSet(lua_State *L, size_t oldSize, size_t newSize, int version);
+LUA_API int lua_BurnStoreSet(lua_State *L, size_t keySize, size_t oldDataSize, size_t newDataSize, int version);
 
-LUA_API int lua_BurnStoreGet(lua_State *L, size_t size, int version);
+LUA_API int lua_BurnStoreUnchange(lua_State *L, size_t keySize, size_t dataSize, int version);
+
+LUA_API int lua_BurnStoreGet(lua_State *L, size_t keySize, size_t dataSize, int version);
 
 /** get burned step */
 LUA_API unsigned long long lua_GetBurnedFuel(lua_State *L);
