@@ -778,7 +778,7 @@ Value registercontracttx(const Array& params, bool fHelp)
 Value votedelegatetx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
-            "votedelegatetx \"sendaddr\" \"opervotes\" \"fee\" (\"height\") \n"
+            "votedelegatetx \"sendaddr\" \"votes\" \"fee\" (\"height\") \n"
             "\ncreate a delegate vote transaction\n"
             "\nArguments:\n"
             "1.\"sendaddr\": (string required) The address from which votes are sent to other "
@@ -787,7 +787,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             " [\n"
             "   {\n"
             "      \"delegate\":\"address\", (string, required) The delegate address where votes "
-            "are recevied\n"
+            "are received\n"
             "      \"votes\": n (numeric, required) votes, increase votes when positive or reduce "
             "votes when negative\n"
             "   }\n"
@@ -875,7 +875,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "Delegate address is unregistered");
             }
 
-            VoteType voteType = (objVote.get_int64() > 0) ? VoteType::ADD_BCOIN : VoteType::MINUS_BCOIN;
+            VoteType voteType = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN : VoteType::MINUS_BCOIN;
             CUserID candidateUid = CUserID(delegateAcct.keyID);
             uint64_t bcoins = (uint64_t)abs(delegateVotes.get_int64());
             CCandidateVote candidateVote(voteType, candidateUid, bcoins);
