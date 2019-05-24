@@ -1132,10 +1132,8 @@ void UpdateTime(CBlockHeader &block, const CBlockIndex *pindexPrev) {
     block.SetTime(max(pindexPrev->GetMedianTimePast() + 1, GetAdjustedTime()));
 }
 
-bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountCache &view,
-                     CTransactionCache &txCache, CContractCache &scriptCache,
-                     CBlockIndex *pIndex, bool *pfClean) {
-    assert(pIndex->GetBlockHash() == view.GetBestBlock());
+bool DisconnectBlock(CBlock &block, CValidationState &state, CCacheWrapper &cw, CBlockIndex *pIndex, bool *pfClean) {
+    assert(pIndex->GetBlockHash() == cw.pAccountCache->GetBestBlock());
 
     if (pfClean)
         *pfClean = false;
@@ -1169,7 +1167,8 @@ bool DisconnectBlock(CBlock &block, CValidationState &state, CAccountCache &view
                 return state.DoS(100, ERRORMSG("DisconnectBlock() : read mature block error"),
                                  REJECT_INVALID, "bad-read-block");
             }
-            if (!matureBlock.vptx[0]->UndoExecuteTx(-1, view, state, txundo, pIndex->nHeight, txCache, scriptCache))
+            cw.pTxUndo = &txundo;
+            if (!matureBlock.vptx[0]->UndoExecuteTx(-1, pIndex->nHeight, cw, state))
                 return ERRORMSG("DisconnectBlock() : undo execute mature block reward tx error");
         }
     }
@@ -1573,8 +1572,9 @@ bool static DisconnectTip(CValidationState &state) {
         CAccountCache accountCache(*(pCdMan->pAccountCache));
         CTransactionCache txCache(*(pCdMan->pTxCache));
         CContractCache contractCache(*(pCdMan->pContractCache));
+        CCacheWrapper cw(&accountCache, &txCache, &contractCache, nullptr);
 
-        if (!DisconnectBlock(block, state, accountCache, txCache, contractCache, pIndexDelete, NULL))
+        if (!DisconnectBlock(block, state, cw, pIndexDelete, NULL))
             return ERRORMSG("DisconnectTip() : DisconnectBlock %s failed", pIndexDelete->GetBlockHash().ToString());
 
         // Need to re-sync all to global cache layer.
