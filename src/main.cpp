@@ -1349,12 +1349,12 @@ bool ConnectBlock(CBlock &block, CValidationState &state,  CCacheWrapper &cw, CB
     if (block.vptx.size() > 1) {
         for (unsigned int i = 1; i < block.vptx.size(); i++) {
             std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
-            if (txCache.HaveTx((pBaseTx->GetHash())))
+            if (cw.pTxCache->HaveTx((pBaseTx->GetHash())))
                 return state.DoS(100, ERRORMSG("ConnectBlock() : the TxHash %s the confirm duplicate",
                                 pBaseTx->GetHash().GetHex()), REJECT_INVALID, "bad-cb-amount");
 
-            assert(mapBlockIndex.count(view.GetBestBlock()));
-            if (!pBaseTx->IsValidHeight(mapBlockIndex[view.GetBestBlock()]->nHeight, SysCfg().GetTxCacheHeight()))
+            assert(mapBlockIndex.count(cw.pAccountCache->GetBestBlock()));
+            if (!pBaseTx->IsValidHeight(mapBlockIndex[cw.pAccountCache->GetBestBlock()]->nHeight, SysCfg().GetTxCacheHeight()))
                 return state.DoS(100, ERRORMSG("ConnectBlock() : txhash=%s beyond the scope of valid height",
                                 pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
 
@@ -1365,7 +1365,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state,  CCacheWrapper &cw, CB
             CTxUndo txundo;
             pBaseTx->nFuelRate = block.GetFuelRate();
 
-            if (!pBaseTx->ExecuteTx(i, view, state, txundo, pIndex->nHeight, txCache, scriptDBCache))
+            cw.pTxUndo = &txundo;
+            if (!pBaseTx->ExecuteTx(i, pIndex->nHeight, cw, state))
                 return false;
 
             nTotalRunStep += pBaseTx->nRunStep;
@@ -1695,7 +1696,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         if (chainActive.Height() % SysCfg().GetArg("-blocklog", 0) == 0) {
             if (!pCdMan->pAccountCache->Flush())
                 return state.Abort(_("Failed to write to account database"));
-                
+
             if (!pCdMan->pContractCache->Flush())
                 return state.Abort(_("Failed to write to script db database"));
 
