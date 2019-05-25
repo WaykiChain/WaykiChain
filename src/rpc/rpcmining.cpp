@@ -160,7 +160,7 @@ Value setgenerate(const Array& params, bool fHelp)
     for (auto & keyId : setKeyId) {
         CUserID userId(keyId);
         CAccount acctInfo;
-        if (pAccountViewTip->GetAccount(userId, acctInfo)) {
+        if (pCdMan->pAccountCache->GetAccount(userId, acctInfo)) {
             bSetEmpty = false;
             break;
         }

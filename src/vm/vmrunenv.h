@@ -137,8 +137,7 @@ public:
      * uint64_t if the script run sucess Run the script calls the money ,string represent run the
      * failed's  Reason
      */
-    std::tuple<bool, uint64_t, string> ExecuteContract(std::shared_ptr<CBaseTx>& Tx, CAccountCache& view,
-                                                  CContractCache& VmDB, int nheight,
+    std::tuple<bool, uint64_t, string> ExecuteContract(std::shared_ptr<CBaseTx>& Tx, int nheight, CCacheWrapper &cw,
                                                   uint64_t nBurnFactor, uint64_t& uRunStep);
     /**
      * @brief just for test

@@ -56,7 +56,7 @@ public:
     uint64_t GetFee() const { return 0; }
     double GetPriority() const { return 0.0f; }
 
-    virtual string ToString(CAccountCache &view) const;
+    virtual string ToString(CAccountCache &view);
     virtual Object ToJson(const CAccountCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 

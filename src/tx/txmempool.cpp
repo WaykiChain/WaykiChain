@@ -59,8 +59,7 @@ void CTxMemPool::SetContractCache(CContractCache *pContractCacheIn) {
     memPoolContractCache = std::make_shared<CContractCache>(*pContractCacheIn);
 }
 
-void CTxMemPool::ReScanMemPoolTx(CAccountCache *pAccountCacheIn,
-                                 CContractCache *pContractCacheIn) {
+void CTxMemPool::ReScanMemPoolTx(CAccountCache *pAccountCacheIn, CContractCache *pContractCacheIn) {
     memPoolAccountCache.reset(new CAccountCache(*pAccountCacheIn));
     memPoolContractCache.reset(new CContractCache(*pContractCacheIn));
 
@@ -104,13 +103,9 @@ void CTxMemPool::Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> >& remov
 
 bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &memPoolEntry,
                                   CValidationState &state, bool bExcute) {
-    CTxUndo txundo;
-    CTransactionCache txCacheTemp(*pTxCacheTip);
-    CAccountCache acctViewTemp(*memPoolAccountCache.get());
-    CContractCache scriptDBViewTemp(*memPoolContractCache.get());
 
     // is it already confirmed in block
-    if (pTxCacheTip->HaveTx(hash))
+    if (pCdMan->pTxCache->HaveTx(hash))
         return state.Invalid(ERRORMSG("CheckTxInMemPool() : tx hash %s has been confirmed",
                             hash.GetHex()), REJECT_INVALID, "tx-duplicate-confirmed");
 
@@ -121,17 +116,19 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
                             hash.GetHex()), REJECT_INVALID, "tx-invalid-height");
     }
 
+    CTxUndo txundo;
+    CCacheWrapper cw(memPoolAccountCache.get(), pCdMan->pTxCache, memPoolContractCache.get(), &txundo);
     if (bExcute) {
-        if (!memPoolEntry.GetTx()->ExecuteTx(0, acctViewTemp, state, txundo,
-                                      chainActive.Tip()->nHeight + 1, txCacheTemp,
-                                      scriptDBViewTemp))
+        if (!memPoolEntry.GetTx()->ExecuteTx(chainActive.Tip()->nHeight + 1, 0, cw, state))
             return false;
     }
 
-    acctViewTemp.SetBaseView(memPoolAccountCache.get());
-    assert(acctViewTemp.Flush());
-    scriptDBViewTemp.SetBaseView(memPoolContractCache.get());
-    assert(scriptDBViewTemp.Flush());
+    // acctViewTemp.SetBaseView(memPoolAccountCache.get());
+    // assert(acctViewTemp.Flush());
+    // scriptDBViewTemp.SetBaseView(memPoolContractCache.get());
+    // assert(scriptDBViewTemp.Flush());
+    cw.pAccountCache->Flush();
+    cw.pContractCache->Flush();
 
     return true;
 }
@@ -154,9 +151,11 @@ bool CTxMemPool::AddUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
 
 void CTxMemPool::Clear() {
     LOCK(cs);
+
     memPoolTxs.clear();
-    memPoolAccountCache.reset(new CAccountCache(*pAccountViewTip));
-    memPoolContractCache.reset(new CContractCache(*pScriptDBTip));
+    memPoolAccountCache.reset(new CAccountCache(*pCdMan->pAccountCache));
+    memPoolContractCache.reset(new CContractCache(*pCdMan->pContractCache));
+
     ++nTransactionsUpdated;
 }
 

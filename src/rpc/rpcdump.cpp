@@ -85,7 +85,7 @@ Value dropminerkeys(const Array& params, bool fHelp)
     }
 
 	EnsureWalletIsUnlocked();
-	if (!pWalletMain->IsReadyForCoolMiner(*pAccountViewTip)) {
+	if (!pWalletMain->IsReadyForCoolMiner(*pCdMan->pAccountCache)) {
 		throw runtime_error("there is no cool miner key or miner key is not registered yet");
 	}
 

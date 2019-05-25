@@ -41,18 +41,18 @@ public:
         return sigHash;
     }
 
-    uint256 GetHash() const { return ComputeSignatureHash(); }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CContractDeployTx>(this); }
-    uint64_t GetFee() const { return llFees; }
-    uint64_t GetValue() const { return 0; }
-    double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    string ToString(CAccountCache &view) const;
-    Object ToJson(const CAccountCache &AccountView) const;
-    bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
+    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CContractDeployTx>(this); }
+    virtual uint64_t GetFee() const { return llFees; }
+    virtual uint64_t GetValue() const { return 0; }
+    virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
+    virtual string ToString(CAccountCache &view);
+    virtual Object ToJson(const CAccountCache &AccountView) const;
+    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    bool CheckTx(CCacheWrapper &cw, CValidationState &state);
-    bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-    bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 };
 
 class CContractInvokeTx : public CBaseTx {
@@ -119,20 +119,18 @@ public:
         return sigHash;
     }
 
-    uint64_t GetValue() const { return bcoins; }
-    uint256 GetHash() const { return ComputeSignatureHash(); }
-    uint64_t GetFee() const { return llFees; }
-    double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    std::shared_ptr<CBaseTx> GetNewInstance() {
-        return std::make_shared<CContractInvokeTx>(this);
-    }
-    string ToString(CAccountCache &view) const;
-    Object ToJson(const CAccountCache &AccountView) const;
-    bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
+    virtual uint64_t GetValue() const { return bcoins; }
+    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
+    virtual uint64_t GetFee() const { return llFees; }
+    virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CContractInvokeTx>(this); }
+    virtual string ToString(CAccountCache &view);
+    virtual Object ToJson(const CAccountCache &AccountView) const;
+    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    bool CheckTx(CCacheWrapper &cw, CValidationState &state);
-    bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-    bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 };
 
 #endif

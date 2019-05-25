@@ -788,8 +788,8 @@ bool AppInit(boost::thread_group &threadGroup) {
                 if (fReIndex)
                     pCdMan->pBlockTreeDb->WriteReindexing(true);
 
-                mempool.SetAccountCache(pAccountCache);
-                mempool.SetContractCache(pContractCache);
+                mempool.SetAccountCache(pCdMan->pAccountCache);
+                mempool.SetContractCache(pCdMan->pContractCache);
 
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");
@@ -873,7 +873,7 @@ bool AppInit(boost::thread_group &threadGroup) {
                 CBlock block;
                 ReadBlockFromDisk(pIndex, block);
                 block.BuildMerkleTree();
-                block.Print(*pAccountViewTip);
+                block.Print(*pCdMan->pAccountCache);
                 LogPrint("INFO", "\n");
                 nFound++;
             }
@@ -900,7 +900,7 @@ bool AppInit(boost::thread_group &threadGroup) {
         if (!ReadBlockFromDisk(blockIndex, block))
             return InitError("Failed to read block from disk");
 
-        if (!pTxCacheTip->AddBlockToCache(block))
+        if (!pCdMan->pTxCache->AddBlockToCache(block))
             return InitError("Failed to add block to txcache");
 
         blockIndex = blockIndex->pprev;

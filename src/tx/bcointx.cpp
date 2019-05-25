@@ -15,7 +15,7 @@
 #include "miner/miner.h"
 #include "version.h"
 
-string CBaseCoinTransferTx::ToString(const CAccountCache &view) const {
+string CBaseCoinTransferTx::ToString(CAccountCache &view) {
     string srcId;
     if (txUid.type() == typeid(CPubKey)) {
         srcId = txUid.get<CPubKey>().ToString();
@@ -68,18 +68,17 @@ Object CBaseCoinTransferTx::ToJson(const CAccountCache &AccountView) const {
     return result;
 }
 
-bool CBaseCoinTransferTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountCache &view,
-                           CContractCache &scriptDB) {
+bool CBaseCoinTransferTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     CKeyID keyId;
-    if (!view.GetKeyId(txUid, keyId))
+    if (!cw.pAccountCache->GetKeyId(txUid, keyId))
         return false;
 
-    vAddr.insert(keyId);
+    keyIds.insert(keyId);
     CKeyID desKeyId;
-    if (!view.GetKeyId(toUid, desKeyId))
+    if (!cw.pAccountCache->GetKeyId(toUid, desKeyId))
         return false;
 
-    vAddr.insert(desKeyId);
+    keyIds.insert(desKeyId);
     return true;
 }
 
@@ -164,8 +163,8 @@ bool CBaseCoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
 
         cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
 
-        if (!scriptDB.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
-                                        operAddressToTxLog))
+        if (!pCdMan->pContractCache->SetTxHashByAddress(revKeyId, nHeight, nIndex + 1,
+                                                        cw.pTxUndo->txHash.GetHex(), operAddressToTxLog))
             return false;
 
         cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);

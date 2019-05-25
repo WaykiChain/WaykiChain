@@ -54,7 +54,7 @@ public:
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CAccountRegisterTx>(this); }
-    virtual string ToString(const CAccountCache &view) const;
+    virtual string ToString(CAccountCache &view);
     virtual Object ToJson(const CAccountCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper& cw, set<CKeyID> &keyIds);
 

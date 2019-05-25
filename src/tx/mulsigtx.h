@@ -109,18 +109,18 @@ public:
         return sigHash;
     }
 
-    uint64_t GetValue() const { return bcoins; }
-    uint256 GetHash() const { return ComputeSignatureHash(); }
-    uint64_t GetFee() const { return llFees; }
-    double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CMulsigTx>(this); }
-    string ToString(CAccountCache &view) const;
-    Object ToJson(const CAccountCache &AccountView) const;
-    bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
+    virtual uint64_t GetValue() const { return bcoins; }
+    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
+    virtual uint64_t GetFee() const { return llFees; }
+    virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CMulsigTx>(this); }
+    virtual string ToString(CAccountCache &view);
+    virtual Object ToJson(const CAccountCache &AccountView) const;
+    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    bool CheckTx(CCacheWrapper &cw, CValidationState &state);
-    bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-    bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 };
 
 #endif //COIN_MULSIGTX_H

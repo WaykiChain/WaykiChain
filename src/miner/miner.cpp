@@ -77,7 +77,7 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate) {
     static unsigned int nTxSize = 0;
     for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.memPoolTxs.begin(); mi != mempool.memPoolTxs.end(); ++mi) {
         CBaseTx *pBaseTx = mi->second.GetTx().get();
-        if (!pBaseTx->IsCoinBase() && !pTxCacheTip->HaveTx(pBaseTx->GetHash())) {
+        if (!pBaseTx->IsCoinBase() && !pCdMan->pTxCache->HaveTx(pBaseTx->GetHash())) {
             nTxSize   = ::GetSerializeSize(*pBaseTx, SER_NETWORK, PROTOCOL_VERSION);
             dFeePerKb = double(pBaseTx->GetFee() - pBaseTx->GetFuel(nFuelRate)) / (double(nTxSize) / 1000.0);
             dPriority = 1000.0 / double(nTxSize);
@@ -86,7 +86,7 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate) {
     }
 }
 
-void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pindexPrev, unsigned int &nExtraNonce) {
+void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pIndexPrev, unsigned int &nExtraNonce) {
     // Update nExtraNonce
     static uint256 hashPrevBlock;
     if (hashPrevBlock != pblock->GetPrevBlockHash()) {
@@ -207,7 +207,7 @@ void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
     }
 }
 
-bool VerifyPosTx(const CBlock *pBlock, bool bNeedRunTx) {
+bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cw, bool bNeedRunTx) {
     uint64_t maxNonce = SysCfg().GetBlockMaxNonce();
     vector<CAccount> vDelegatesAcctList;
 
@@ -226,10 +226,7 @@ bool VerifyPosTx(const CBlock *pBlock, bool bNeedRunTx) {
     if (pBlock->GetMerkleRootHash() != pBlock->BuildMerkleTree())
         return ERRORMSG("wrong merkleRootHash");
 
-    CAccountCache view(accView);
-    CContractCache scriptDBView(scriptCache);
     CBlock preBlock;
-
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
         if (!ReadBlockFromDisk(pBlockIndex, preBlock))
@@ -237,7 +234,7 @@ bool VerifyPosTx(const CBlock *pBlock, bool bNeedRunTx) {
 
         CAccount preDelegate;
         CBlockRewardTx *preBlockRewardTx = (CBlockRewardTx *)preBlock.vptx[0].get();
-        if (!view.GetAccount(preBlockRewardTx->txUid, preDelegate))
+        if (!cw.pAccountCache->GetAccount(preBlockRewardTx->txUid, preDelegate))
             return ERRORMSG("get preblock delegate account info error");
 
         if (pBlock->GetBlockTime() - preBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
@@ -248,7 +245,7 @@ bool VerifyPosTx(const CBlock *pBlock, bool bNeedRunTx) {
 
     CAccount account;
     CBlockRewardTx *prtx = (CBlockRewardTx *)pBlock->vptx[0].get();
-    if (view.GetAccount(prtx->txUid, account)) {
+    if (cw.pAccountCache->GetAccount(prtx->txUid, account)) {
         if (curDelegate.regID != account.regID) {
             return ERRORMSG("Verify delegate account error, delegate regid=%s vs reward regid=%s!",
                 curDelegate.regID.ToString(), account.regID.ToString());
@@ -277,7 +274,7 @@ bool VerifyPosTx(const CBlock *pBlock, bool bNeedRunTx) {
         uint64_t nTotalRunStep(0);
         for (unsigned int i = 1; i < pBlock->vptx.size(); i++) {
             shared_ptr<CBaseTx> pBaseTx = pBlock->vptx[i];
-            if (txCache.HaveTx(pBaseTx->GetHash()))
+            if (cw.pTxCache->HaveTx(pBaseTx->GetHash()))
                 return ERRORMSG("VerifyPosTx duplicate tx hash:%s", pBaseTx->GetHash().GetHex());
 
             CTxUndo txundo;
@@ -286,7 +283,8 @@ bool VerifyPosTx(const CBlock *pBlock, bool bNeedRunTx) {
                 LogPrint("vm", "tx hash=%s VerifyPosTx run contract\n", pBaseTx->GetHash().GetHex());
 
             pBaseTx->nFuelRate = pBlock->GetFuelRate();
-            if (!pBaseTx->ExecuteTx(i, view, state, txundo, pBlock->GetHeight(), txCache, scriptDBView))
+            cw.pTxUndo = &txundo;
+            if (!pBaseTx->ExecuteTx(i, pBlock->GetHeight(), cw, state))
                 return ERRORMSG("transaction UpdateAccount account error");
 
             nTotalRunStep += pBaseTx->nRunStep;
@@ -294,7 +292,9 @@ bool VerifyPosTx(const CBlock *pBlock, bool bNeedRunTx) {
                 return ERRORMSG("block total run steps exceed max run step");
 
             nTotalFuel += pBaseTx->GetFuel(pBlock->GetFuelRate());
-            LogPrint("fuel", "VerifyPosTx total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txhash:%s \n", nTotalFuel, pBaseTx->GetFuel(pBlock->GetFuelRate()), pBaseTx->nRunStep, pBlock->GetFuelRate(), pBaseTx->GetHash().GetHex());
+            LogPrint("fuel", "VerifyPosTx total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txhash:%s \n",
+                    nTotalFuel, pBaseTx->GetFuel(pBlock->GetFuelRate()),
+                    pBaseTx->nRunStep, pBlock->GetFuelRate(), pBaseTx->GetHash().GetHex());
         }
 
         if (nTotalFuel != pBlock->GetFuel())
@@ -304,8 +304,7 @@ bool VerifyPosTx(const CBlock *pBlock, bool bNeedRunTx) {
     return true;
 }
 
-unique_ptr<CBlockTemplate> CreateNewBlock(CAccountCache &view, CTransactionCache &txCache,
-                                          CContractCache &scriptCache) {
+unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cw) {
     // Create new block
     unique_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
     if (!pblocktemplate.get())
@@ -376,21 +375,23 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CAccountCache &view, CTransactionCache
 
             CTxUndo txundo;
             CValidationState state;
-            CAccountCache viewTemp(view);
-            CContractCache scriptCacheTemp(scriptCache);
+            cw.pTxUndo = &txundo;
             pBaseTx->nFuelRate = pblock->GetFuelRate();
-            if (!pBaseTx->ExecuteTx(nBlockTx + 1, viewTemp, state, txundo, pIndexPrev->nHeight + 1,
-                                    txCache, scriptCacheTemp))
+            if (!pBaseTx->ExecuteTx(nBlockTx + 1, pIndexPrev->nHeight + 1, cw, state))
                 continue;
 
             // Run step limits
             if (nTotalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP)
                 continue;
 
-            viewTemp.SetBaseView(&view);
-            assert(viewTemp.Flush());
-            scriptCacheTemp.SetBaseView(&scriptCache);
-            assert(scriptCacheTemp.Flush());
+
+
+            // viewTemp.SetBaseView(&view);
+            // assert(viewTemp.Flush());
+            // scriptCacheTemp.SetBaseView(&scriptCache);
+            // assert(scriptCacheTemp.Flush());
+            cw.pAccountCache->Flush();
+            cw.pContractCache->Flush();
 
             nFees += pBaseTx->GetFee();
             nBlockSize += stx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
@@ -427,7 +428,7 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CAccountCache &view, CTransactionCache
 
 bool CheckWork(CBlock *pblock, CWallet &wallet) {
     // Print block information
-    pblock->Print(*pAccountViewTip);
+    pblock->Print(*pCdMan->pAccountCache);
 
     // Found a solution
     {
@@ -444,8 +445,7 @@ bool CheckWork(CBlock *pblock, CWallet &wallet) {
     return true;
 }
 
-bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev, unsigned int nTransactionsUpdated,
-                      CAccountCache &view, CTransactionCache &txCache, CContractCache &scriptCache) {
+bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pIndexPrev, unsigned int nTransactionsUpdated, CCacheWrapper &cw) {
     int64_t nStart = GetTime();
 
     unsigned int nLastTime = 0xFFFFFFFF;
@@ -455,11 +455,11 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
         if (vNodes.empty() && SysCfg().NetworkID() != REGTEST_NET)
             return false;
 
-        if (pindexPrev != chainActive.Tip())
+        if (pIndexPrev != chainActive.Tip())
             return false;
 
         auto GetNextTimeAndSleep = [&]() {
-            while (GetTime() == nLastTime || (GetTime() - pindexPrev->GetBlockTime()) < SysCfg().GetBlockInterval()) {
+            while (GetTime() == nLastTime || (GetTime() - pIndexPrev->GetBlockTime()) < SysCfg().GetBlockInterval()) {
                 ::MilliSleep(100);
             }
             return (nLastTime = GetTime());
@@ -492,11 +492,12 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
             LOCK2(cs_main, pWalletMain->cs_wallet);
             if ((unsigned int)(chainActive.Tip()->nHeight + 1) != pblock->GetHeight())
                 return false;
+
             CKey acctKey;
             if (pWalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey, true) ||
                 pWalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey)) {
                 nLastTime = GetTimeMillis();
-                success   = CreateBlockRewardTx(currentTime, minerAcct, view, pblock);
+                success   = CreateBlockRewardTx(currentTime, minerAcct, *cw.pAccountCache, pblock);
                 LogPrint("MINER", "CreateBlockRewardTx %s, used time:%d ms, miner address=%s\n",
                     success ? "success" : "failure", GetTimeMillis() - nLastTime, minerAcct.keyID.ToAddress());
             }
@@ -511,12 +512,12 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pindexPrev,
 
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
-            g_miningBlockInfo.nTime = pblock->GetBlockTime();
-            g_miningBlockInfo.nNonce = pblock->GetNonce();
-            g_miningBlockInfo.nHeight = pblock->GetHeight();
-            g_miningBlockInfo.nTotalFuels = pblock->GetFuel();
-            g_miningBlockInfo.nFuelRate = pblock->GetFuelRate();
-            g_miningBlockInfo.hash = pblock->GetHash();
+            g_miningBlockInfo.nTime         = pblock->GetBlockTime();
+            g_miningBlockInfo.nNonce        = pblock->GetNonce();
+            g_miningBlockInfo.nHeight       = pblock->GetHeight();
+            g_miningBlockInfo.nTotalFuels   = pblock->GetFuel();
+            g_miningBlockInfo.nFuelRate     = pblock->GetFuelRate();
+            g_miningBlockInfo.hash          = pblock->GetHash();
             g_miningBlockInfo.hashPrevBlock = pblock->GetHash();
 
             {
@@ -580,14 +581,11 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
             // Create new block
             //
             unsigned int nTransactionsUpdated = mempool.GetUpdatedTransactionNum();
-            CBlockIndex *pindexPrev           = chainActive.Tip();
-            CAccountCache accountView(*pAccountViewTip);
-            CTransactionCache txCache(*pTxCacheTip);
-            CContractCache scriptDB(*pScriptDBTip);
+            CBlockIndex *pIndexPrev           = chainActive.Tip();
+            CCacheWrapper cw(pCdMan->pAccountCache, pCdMan->pTxCache, pCdMan->pContractCache);
             g_miningBlockInfo.SetNull();
-
             int64_t nLastTime = GetTimeMillis();
-            unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(accountView, txCache, scriptDB));
+            unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(cw));
             if (!pblocktemplate.get())
                 throw runtime_error("Create new block failed");
 
@@ -595,7 +593,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
                 pblocktemplate.get()->block.vptx.size(), GetTimeMillis() - nLastTime);
 
             CBlock *pblock = &pblocktemplate.get()->block;
-            MineBlock(pblock, pwallet, pindexPrev, nTransactionsUpdated, accountView, txCache, scriptDB);
+            MineBlock(pblock, pwallet, pIndexPrev, nTransactionsUpdated, cw);
 
             if (SysCfg().NetworkID() != MAIN_NET && targetHeight <= GetCurrHeight())
                 throw boost::thread_interrupted();

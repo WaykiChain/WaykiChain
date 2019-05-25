@@ -39,7 +39,7 @@ const int MAX_RPC_SIG_STR_LEN = 65 * 1024; // 65K
 
 string RegIDToAddress(CUserID &userId) {
     CKeyID keyId;
-    if (pAccountViewTip->GetKeyId(userId, keyId))
+    if (pCdMan->pAccountCache->GetKeyId(userId, keyId))
         return keyId.ToAddress();
 
     return "cannot get address from given RegId";
@@ -66,7 +66,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
         assert(genesisblock.GetMerkleRootHash() == genesisblock.BuildMerkleTree());
         for (unsigned int i = 0; i < genesisblock.vptx.size(); ++i) {
             if (txhash == genesisblock.GetTxHash(i)) {
-                obj = genesisblock.vptx[i]->ToJson(*pAccountViewTip);
+                obj = genesisblock.vptx[i]->ToJson(*pCdMan->pAccountCache);
                 obj.push_back(Pair("block_hash", SysCfg().GetGenesisBlockHash().GetHex()));
                 obj.push_back(Pair("confirmed_height", (int) 0));
                 obj.push_back(Pair("confirmed_time", (int) genesisblock.GetTime()));
@@ -79,21 +79,21 @@ Object GetTxDetailJSON(const uint256& txhash) {
 
         if (SysCfg().IsTxIndex()) {
             CDiskTxPos postx;
-            if (pScriptDBTip->ReadTxIndex(txhash, postx)) {
+            if (pCdMan->pContractCache->ReadTxIndex(txhash, postx)) {
                 CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
                 CBlockHeader header;
                 try {
                     file >> header;
                     fseek(file, postx.nTxOffset, SEEK_CUR);
                     file >> pBaseTx;
-                    obj = pBaseTx->ToJson(*pAccountViewTip);
+                    obj = pBaseTx->ToJson(*pCdMan->pAccountCache);
                     obj.push_back(Pair("confirmedheight", (int) header.GetHeight()));
                     obj.push_back(Pair("confirmedtime", (int) header.GetTime()));
                     obj.push_back(Pair("blockhash", header.GetHash().GetHex()));
 
                     if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
                         vector<CVmOperate> vOutput;
-                        pScriptDBTip->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
+                        pCdMan->pContractCache->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
                         Array outputArray;
                         for (auto& item : vOutput) {
                             outputArray.push_back(item.ToJson());
@@ -112,7 +112,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
         {
             pBaseTx = mempool.Lookup(txhash);
             if (pBaseTx.get()) {
-                obj = pBaseTx->ToJson(*pAccountViewTip);
+                obj = pBaseTx->ToJson(*pCdMan->pAccountCache);
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
                 ds << pBaseTx;
                 obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
@@ -127,9 +127,11 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
     Array arrayDetail;
     Object obj;
     std::set<CKeyID> vKeyIdSet;
+    CCacheWrapper cw(pCdMan->pAccountCache, pCdMan->pContractCache);
+
     switch (pBaseTx->nTxType) {
         case BLOCK_REWARD_TX: {
-            if (!pBaseTx->GetInvolvedKeyIds(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
+            if (!pBaseTx->GetInvolvedKeyIds(cw, vKeyIdSet))
                 return arrayDetail;
 
             obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
@@ -142,7 +144,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             break;
         }
         case ACCOUNT_REGISTER_TX: {
-            if (!pBaseTx->GetInvolvedKeyIds(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
+            if (!pBaseTx->GetInvolvedKeyIds(cw, vKeyIdSet))
                 return arrayDetail;
 
             obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
@@ -160,7 +162,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             if (ptx->txUid.type() == typeid(CPubKey)) {
                 sendKeyID = ptx->txUid.get<CPubKey>().GetKeyId();
             } else if (ptx->txUid.type() == typeid(CRegID)) {
-                sendKeyID = ptx->txUid.get<CRegID>().GetKeyId(*pAccountViewTip);
+                sendKeyID = ptx->txUid.get<CRegID>().GetKeyId(*pCdMan->pAccountCache);
             }
 
             CKeyID recvKeyId;
@@ -168,7 +170,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 recvKeyId = ptx->toUid.get<CKeyID>();
             } else if (ptx->toUid.type() == typeid(CRegID)) {
                 CRegID desRegID = ptx->toUid.get<CRegID>();
-                recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
+                recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
             }
 
             obj.push_back(Pair("txtype", "BCOIN_TRANSFER_TX"));
@@ -192,13 +194,13 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             CContractInvokeTx* ptx = (CContractInvokeTx*)pBaseTx.get();
             CKeyID sendKeyID;
             CRegID sendRegID = ptx->txUid.get<CRegID>();
-            sendKeyID        = sendRegID.GetKeyId(*pAccountViewTip);
+            sendKeyID        = sendRegID.GetKeyId(*pCdMan->pAccountCache);
             CKeyID recvKeyId;
             if (ptx->appUid.type() == typeid(CKeyID)) {
                 recvKeyId = ptx->appUid.get<CKeyID>();
             } else if (ptx->appUid.type() == typeid(CRegID)) {
                 CRegID desRegID = ptx->appUid.get<CRegID>();
-                recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
+                recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
             }
 
             obj.push_back(Pair("txtype", "CONTRACT_INVOKE_TX"));
@@ -217,7 +219,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             arrayDetail.push_back(objRec);
 
             vector<CVmOperate> vOutput;
-            pScriptDBTip->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
+            pCdMan->pContractCache->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
             Array outputArray;
             for (auto& item : vOutput) {
                 Object objOutPut;
@@ -255,7 +257,8 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
         }
         case CONTRACT_DEPLOY_TX:
         case DELEGATE_VOTE_TX: {
-            if (!pBaseTx->GetInvolvedKeyIds(vKeyIdSet, *pAccountViewTip, *pScriptDBTip))
+
+            if (!pBaseTx->GetInvolvedKeyIds(cw, vKeyIdSet))
                 return arrayDetail;
 
             double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
@@ -279,7 +282,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             CAccount account;
             set<CPubKey> pubKeys;
             for (const auto& item : ptx->signaturePairs) {
-                if (!pAccountViewTip->GetAccount(item.regId, account))
+                if (!pCdMan->pAccountCache->GetAccount(item.regId, account))
                     return arrayDetail;
 
                 pubKeys.insert(account.pubKey);
@@ -294,7 +297,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 recvKeyId = ptx->desUserId.get<CKeyID>();
             } else if (ptx->desUserId.type() == typeid(CRegID)) {
                 CRegID desRegID = ptx->desUserId.get<CRegID>();
-                recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
+                recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
             }
 
             obj.push_back(Pair("txtype", "COMMON_MTX"));
@@ -364,7 +367,7 @@ Value gettransaction(const Array& params, bool fHelp) {
     bool findTx(false);
     if (SysCfg().IsTxIndex()) {
         CDiskTxPos postx;
-        if (pScriptDBTip->ReadTxIndex(txhash, postx)) {
+        if (pCdMan->pContractCache->ReadTxIndex(txhash, postx)) {
             findTx = true;
             CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
             CBlockHeader header;
@@ -465,10 +468,10 @@ Value registeraccounttx(const Array& params, bool fHelp) {
     {
         EnsureWalletIsUnlocked();
 
-        CAccountCache view(*pAccountViewTip);
+        CAccountCache view(*pCdMan->pAccountCache);
         CAccount account;
         CUserID userId = keyId;
-        if (!view.GetAccount(userId, account))
+        if (!pCdMan->pAccountCache->GetAccount(userId, account))
             throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist");
 
 
@@ -548,7 +551,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender's Base58 Addr is invalid");
         }
 
-        if (!pAccountViewTip->GetRegId(CUserID(srckeyid), userId)) {
+        if (!pCdMan->pAccountCache->GetRegId(CUserID(srckeyid), userId)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender has NO RegId");
         }
     }
@@ -583,10 +586,10 @@ Value callcontracttx(const Array& params, bool fHelp) {
     std::shared_ptr<CContractInvokeTx> tx = std::make_shared<CContractInvokeTx>();
     {
         //balance
-        CAccountCache view(*pAccountViewTip);
+        CAccountCache view(*pCdMan->pAccountCache);
         CAccount secureAcc;
 
-        if (!pScriptDBTip->HaveScript(appId)) {
+        if (!pCdMan->pContractCache->HaveScript(appId)) {
             throw runtime_error(tinyformat::format("in callcontracttx : regid %s not exist\n", appId.ToString()));
         }
         tx.get()->nTxType   = CONTRACT_INVOKE_TX;
@@ -601,7 +604,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
         tx.get()->nValidHeight = height;
 
         CKeyID keyId;
-        if (!view.GetKeyId(userId, keyId)) {
+        if (!pCdMan->pAccountCache->GetKeyId(userId, keyId)) {
             LogPrint("INFO", "callcontracttx: %s no key id\n", userId.ToString());
             throw JSONRPCError(RPC_WALLET_ERROR, "callcontracttx Error: no key id.");
         }
@@ -725,12 +728,12 @@ Value registercontracttx(const Array& params, bool fHelp)
     CContractDeployTx tx;
     {
         EnsureWalletIsUnlocked();
-        CAccountCache view(*pAccountViewTip);
+        CAccountCache view(*pCdMan->pAccountCache);
         CAccount account;
 
         uint64_t balance = 0;
         CUserID userId   = keyId;
-        if (view.GetAccount(userId, account)) {
+        if (pCdMan->pAccountCache->GetAccount(userId, account)) {
             balance = account.GetFreeBCoins();
         }
 
@@ -745,7 +748,7 @@ Value registercontracttx(const Array& params, bool fHelp)
         }
 
         CRegID regId;
-        view.GetRegId(keyId, regId);
+        pCdMan->pAccountCache->GetRegId(keyId, regId);
 
         tx.txUid = regId;
         tx.contractScript = vscript;
@@ -824,11 +827,11 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     assert(pWalletMain != NULL);
     {
         EnsureWalletIsUnlocked();
-        CAccountCache view(*pAccountViewTip);
+        CAccountCache view(*pCdMan->pAccountCache);
         CAccount account;
 
         CUserID userId = keyId;
-        if (!view.GetAccount(userId, account)) {
+        if (!pCdMan->pAccountCache->GetAccount(userId, account)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist");
         }
 
@@ -865,7 +868,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address error");
             }
             CAccount delegateAcct;
-            if (!view.GetAccount(CUserID(delegateKeyId), delegateAcct)) {
+            if (!pCdMan->pAccountCache->GetAccount(CUserID(delegateKeyId), delegateAcct)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address is not exist");
             }
             if (!delegateAcct.IsRegistered()) {
@@ -949,11 +952,11 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
     assert(pWalletMain != NULL);
     {
         EnsureWalletIsUnlocked();
-        CAccountCache view(*pAccountViewTip);
+        CAccountCache view(*pCdMan->pAccountCache);
         CAccount account;
 
         CUserID userId = keyId;
-        if (!view.GetAccount(userId, account)) {
+        if (!pCdMan->pAccountCache->GetAccount(userId, account)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist");
         }
 
@@ -988,7 +991,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Voted delegator's address error");
             }
             CAccount delegateAcct;
-            if (!view.GetAccount(CUserID(delegateKeyId), delegateAcct)) {
+            if (!pCdMan->pAccountCache->GetAccount(CUserID(delegateKeyId), delegateAcct)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Voted delegator's address is unregistered");
             }
 
@@ -1034,12 +1037,12 @@ Value listaddr(const Array& params, bool fHelp) {
         if (setKeyId.size() == 0) {
             return retArry;
         }
-        CAccountCache accView(*pAccountViewTip);
+        CAccountCache accView(*pCdMan->pAccountCache);
 
         for (const auto &keyId : setKeyId) {
             CUserID userId(keyId);
             CAccount acctInfo;
-            accView.GetAccount(userId, acctInfo);
+            pCdMan->pAccountCache->GetAccount(userId, acctInfo);
             CKeyCombi keyCombi;
             pWalletMain->GetKeyCombi(keyId, keyCombi);
 
@@ -1108,13 +1111,13 @@ Value listtransactions(const Array& params, bool fHelp) {
                 CBaseCoinTransferTx* ptx = (CBaseCoinTransferTx*)item.second.get();
                 CKeyID sendKeyID;
                 CRegID sendRegID = ptx->txUid.get<CRegID>();
-                sendKeyID        = sendRegID.GetKeyId(*pAccountViewTip);
+                sendKeyID        = sendRegID.GetKeyId(*pCdMan->pAccountCache);
                 CKeyID recvKeyId;
                 if (ptx->toUid.type() == typeid(CKeyID)) {
                     recvKeyId = ptx->toUid.get<CKeyID>();
                 } else if (ptx->toUid.type() == typeid(CRegID)) {
                     CRegID desRegID = ptx->toUid.get<CRegID>();
-                    recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
+                    recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
                 }
 
                 bool bSend = true;
@@ -1182,13 +1185,13 @@ Value listtransactions(const Array& params, bool fHelp) {
                 CContractInvokeTx* ptx = (CContractInvokeTx*)item.second.get();
                 CKeyID sendKeyID;
                 CRegID sendRegID = ptx->txUid.get<CRegID>();
-                sendKeyID        = sendRegID.GetKeyId(*pAccountViewTip);
+                sendKeyID        = sendRegID.GetKeyId(*pCdMan->pAccountCache);
                 CKeyID recvKeyId;
                 if (ptx->appUid.type() == typeid(CKeyID)) {
                     recvKeyId = ptx->appUid.get<CKeyID>();
                 } else if (ptx->appUid.type() == typeid(CRegID)) {
                     CRegID desRegID = ptx->appUid.get<CRegID>();
-                    recvKeyId       = desRegID.GetKeyId(*pAccountViewTip);
+                    recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
                 }
 
                 bool bSend = true;
@@ -1299,7 +1302,7 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
 
     int txnCount(0);
     int nIndex(0);
-    CAccountCache accView(*pAccountViewTip);
+    CAccountCache accView(*pCdMan->pAccountCache);
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         for (auto const & item : wtx.second.mapAccountTx) {
             Object obj;
@@ -1307,11 +1310,11 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
             if (item.second.get() && item.second->nTxType == BCOIN_TRANSFER_TX) {
                 CBaseCoinTransferTx* ptx = (CBaseCoinTransferTx*)item.second.get();
 
-                if (!accView.GetKeyId(ptx->txUid, keyId)) {
+                if (!pCdMan->pAccountCache->GetKeyId(ptx->txUid, keyId)) {
                     continue;
                 }
                 string srcAddr = keyId.ToAddress();
-                if (!accView.GetKeyId(ptx->toUid, keyId)) {
+                if (!pCdMan->pAccountCache->GetKeyId(ptx->toUid, keyId)) {
                     continue;
                 }
                 string desAddr = keyId.ToAddress();
@@ -1364,7 +1367,7 @@ Value listcontracttx(const Array& params, bool fHelp)
         throw runtime_error("in listcontracttx: scriptid size error!\n");
     }
 
-    if (!pScriptDBTip->HaveScript(regid)) {
+    if (!pCdMan->pContractCache->HaveScript(regid)) {
         throw runtime_error("in listcontracttx: scriptid does not exist!\n");
     }
 
@@ -1414,13 +1417,13 @@ Value listcontracttx(const Array& params, bool fHelp)
                 CKeyID keyId;
                 Object obj;
 
-                CAccountCache accView(*pAccountViewTip);
+                CAccountCache accView(*pCdMan->pAccountCache);
                 obj.push_back(Pair("hash", ptx->GetHash().GetHex()));
                 obj.push_back(Pair("regid",  getregidstring(ptx->txUid)));
-                accView.GetKeyId(ptx->txUid, keyId);
+                pCdMan->pAccountCache->GetKeyId(ptx->txUid, keyId);
                 obj.push_back(Pair("addr",  keyId.ToAddress()));
                 obj.push_back(Pair("dest_regid", getregidstring(ptx->appUid)));
-                accView.GetKeyId(ptx->txUid, keyId);
+                pCdMan->pAccountCache->GetKeyId(ptx->txUid, keyId);
                 obj.push_back(Pair("dest_addr", keyId.ToAddress()));
                 obj.push_back(Pair("money", ptx->bcoins));
                 obj.push_back(Pair("fees", ptx->llFees));
@@ -1490,7 +1493,7 @@ if (fHelp || params.size() > 2) {
         }
     }
     retObj.push_back(Pair("ConfirmTx", ConfirmTxArry));
-    //CAccountCache view(*pAccountViewTip);
+    //CAccountCache view(*pCdMan->pAccountCache);
     Array UnConfirmTxArry;
     for (auto const &wtx : pWalletMain->unconfirmedTx) {
         UnConfirmTxArry.push_back(wtx.first.GetHex());
@@ -1525,7 +1528,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
     Object obj;
     {
         CAccount account;
-        if (pAccountViewTip->GetAccount(userId, account)) {
+        if (pCdMan->pAccountCache->GetAccount(userId, account)) {
             if (!account.pubKey.IsValid()) {
                 CPubKey pk;
                 CPubKey minerpk;
@@ -1573,7 +1576,7 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
     }
 
     Object retObj;
-    CAccountCache view(*pAccountViewTip);
+    CAccountCache view(*pCdMan->pAccountCache);
     Array UnConfirmTxArry;
     for (auto const &wtx : pWalletMain->unconfirmedTx) {
         UnConfirmTxArry.push_back(wtx.second.get()->ToString(view));
@@ -1661,8 +1664,8 @@ static Value TestDisconnectBlock(int number) {
             //     throw ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s", pIndex->nHeight,
             //                    pIndex->GetBlockHash().ToString());
             // bool fClean = true;
-            // CTransactionCache txCacheTemp(*pTxCacheTip, true);
-            // CContractCache contractScriptTemp(*pScriptDBTip, true);
+            // CTransactionCache txCacheTemp(*pCdMan->pTxCache, true);
+            // CContractCache contractScriptTemp(*pCdMan->pContractCache, true);
             // if (!DisconnectBlock(block, state, view, pIndex, txCacheTemp, contractScriptTemp, &fClean))
             //     throw ERRORMSG("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s",
             //                    pIndex->nHeight, pIndex->GetBlockHash().ToString());
@@ -1670,7 +1673,7 @@ static Value TestDisconnectBlock(int number) {
             // pIndex                    = pIndex->pprev;
             // chainActive.SetTip(pIndex);
 
-            // assert(view.Flush() && txCacheTemp.Flush() && contractScriptTemp.Flush());
+            // assert(pCdMan->pAccountCache->Flush() && txCacheTemp.Flush() && contractScriptTemp.Flush());
             // txCacheTemp.Clear();
         } while (--number);
     }
@@ -1725,12 +1728,12 @@ Value resetclient(const Array& params, bool fHelp) {
             else
                 ++it;
         }
-        pAccountViewTip->Flush();
-        pScriptDBTip->Flush();
+        pCdMan->pAccountCache->Flush();
+        pCdMan->pContractCache->Flush();
 
-        assert(cd_mgr->pAccountDb->GetDbCount() == 43);
-        assert(cd_mgr->pContractDB->GetDbCount() == 0 || pScriptDB->GetDbCount() == 1);
-        assert(pTxCacheTip->GetSize() == 0);
+        assert(pCdMan->pAccountDb->GetDbCount() == 43);
+        assert(pCdMan->pContractDb->GetDbCount() == 0 || pCdMan->pContractDb->GetDbCount() == 1);
+        assert(pCdMan->pTxCache->GetSize() == 0);
 
         CBlock firs = SysCfg().GenesisBlock();
         pWalletMain->SyncTransaction(uint256(), NULL, &firs);
@@ -1759,14 +1762,14 @@ Value listcontracts(const Array& params, bool fHelp) {
     Object obj;
     Array arrayScript;
 
-    if (pScriptDBTip != NULL) {
+    if (pCdMan->pContractCache != NULL) {
         int nCount(0);
-        if (!pScriptDBTip->GetScriptCount(nCount))
+        if (!pCdMan->pContractCache->GetScriptCount(nCount))
             throw JSONRPCError(RPC_DATABASE_ERROR, "get contract error: cannot get registered contract number.");
         CRegID regId;
         vector<unsigned char> vScript;
         Object script;
-        if (!pScriptDBTip->GetScript(0, regId, vScript))
+        if (!pCdMan->pContractCache->GetScript(0, regId, vScript))
             throw JSONRPCError(RPC_DATABASE_ERROR, "get contract error: cannot get registered contract.");
         script.push_back(Pair("contractregid", regId.ToString()));
         CDataStream ds(vScript, SER_DISK, CLIENT_VERSION);
@@ -1779,7 +1782,7 @@ Value listcontracts(const Array& params, bool fHelp) {
             script.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
 
         arrayScript.push_back(script);
-        while (pScriptDBTip->GetScript(1, regId, vScript)) {
+        while (pCdMan->pContractCache->GetScript(1, regId, vScript)) {
             Object obj;
             obj.push_back(Pair("contractregid", regId.ToString()));
             CDataStream ds(vScript, SER_DISK, CLIENT_VERSION);
@@ -1817,12 +1820,12 @@ Value getcontractinfo(const Array& params, bool fHelp) {
         throw runtime_error("in getcontractinfo: contract regid size invalid!\n");
     }
 
-    if (!pScriptDBTip->HaveScript(regid)) {
+    if (!pCdMan->pContractCache->HaveScript(regid)) {
         throw runtime_error("in getcontractinfo: contract regid not exist!\n");
     }
 
     vector<unsigned char> vScript;
-    if (!pScriptDBTip->GetScript(regid, vScript)) {
+    if (!pCdMan->pContractCache->GetScript(regid, vScript)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "get script error: cannot get registered script.");
     }
 
@@ -1854,10 +1857,10 @@ Value getaddrbalance(const Array& params, bool fHelp) {
     double dbalance = 0.0;
     {
         LOCK(cs_main);
-        CAccountCache accView(*pAccountViewTip);
+        CAccountCache accView(*pCdMan->pAccountCache);
         CAccount secureAcc;
         CUserID userId = keyId;
-        if (accView.GetAccount(userId, secureAcc)) {
+        if (pCdMan->pAccountCache->GetAccount(userId, secureAcc)) {
             dbalance = (double) secureAcc.GetFreeBCoins() / (double) COIN;
         }
     }
@@ -1901,7 +1904,7 @@ Value listtxcache(const Array& params, bool fHelp) {
                 "\"txcache\"  (string) \n"
                 "\nExamples:\n" + HelpExampleCli("listtxcache", "")+ HelpExampleRpc("listtxcache", ""));
     }
-    const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash = pTxCacheTip->GetTxHashCache();
+    const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash = pCdMan->pTxCache->GetTxHashCache();
 
     Array retTxHashArray;
     for (auto &item : mapTxHashByBlockHash) {
@@ -1927,7 +1930,7 @@ Value reloadtxcache(const Array& params, bool fHelp) {
             + HelpExampleCli("reloadtxcache", "")
             + HelpExampleRpc("reloadtxcache", ""));
     }
-    pTxCacheTip->Clear();
+    pCdMan->pTxCache->Clear();
     CBlockIndex *pIndex = chainActive.Tip();
     if ((chainActive.Tip()->nHeight - SysCfg().GetTxCacheHeight()) >= 0) {
         pIndex = chainActive[(chainActive.Tip()->nHeight - SysCfg().GetTxCacheHeight())];
@@ -1940,7 +1943,7 @@ Value reloadtxcache(const Array& params, bool fHelp) {
             return ERRORMSG("reloadtxcache() : *** ReadBlockFromDisk failed at %d, hash=%s",
                 pIndex->nHeight, pIndex->GetBlockHash().ToString());
 
-        pTxCacheTip->AddBlockToCache(block);
+        pCdMan->pTxCache->AddBlockToCache(block);
         pIndex = chainActive.Next(pIndex);
     } while (NULL != pIndex);
 
@@ -1999,12 +2002,12 @@ Value getcontractdataraw(const Array& params, bool fHelp) {
     if (regid.IsEmpty())
         throw runtime_error("getcontractdataraw : app regid not supplied!");
 
-    if (!pScriptDBTip->HaveScript(regid))
+    if (!pCdMan->pContractCache->HaveScript(regid))
         throw runtime_error("getcontractdataraw : app regid does NOT exist!");
 
     Object script;
     int height = chainActive.Height();
-    CContractCache contractScriptTemp(*pScriptDBTip);
+    CContractCache contractScriptTemp(*pCdMan->pContractCache);
     if (params.size() == 2) {
         vector<unsigned char> key = ParseHex(params[1].get_str());
         vector<unsigned char> value;
@@ -2061,12 +2064,12 @@ Value getcontractdata(const Array& params, bool fHelp) {
         throw runtime_error("getcontractdata : contract regid NOT supplied!");
     }
 
-    if (!pScriptDBTip->HaveScript(regid)) {
+    if (!pCdMan->pContractCache->HaveScript(regid)) {
         throw runtime_error("getcontractdata : contract regid NOT exist!");
     }
     Object script;
 
-    CContractCache contractScriptTemp(*pScriptDBTip);
+    CContractCache contractScriptTemp(*pCdMan->pContractCache);
     if (params.size() == 2) {
         string strKey = params[1].get_str();
         vector<unsigned char> key (strKey.length());
@@ -2129,7 +2132,7 @@ Value getcontractconfirmdata(const Array& params, bool fHelp) {
     if (4 == params.size() && 0 == params[3].get_int()) {
         pAccountViewCache.reset(new CContractCache(*mempool.memPoolContractCache.get()));
     } else {
-        pAccountViewCache.reset(new CContractCache(*pScriptDBTip));
+        pAccountViewCache.reset(new CContractCache(*pCdMan->pContractCache));
     }
     int height = chainActive.Height();
     RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
@@ -2221,12 +2224,12 @@ Value getcontractitemcount(const Array& params, bool fHelp) {
     if (regId.IsEmpty()) {
         throw runtime_error("contract RegId invalid!");
     }
-    if (!pScriptDBTip->HaveScript(regId)) {
+    if (!pCdMan->pContractCache->HaveScript(regId)) {
         throw runtime_error("contract with the given RegId does NOT exist!");
     }
 
     int nItemCount = 0;
-    if (!pScriptDBTip->GetContractItemCount(regId, nItemCount)) {
+    if (!pCdMan->pContractCache->GetContractItemCount(regId, nItemCount)) {
         throw runtime_error("GetContractItemCount error!");
     }
     return nItemCount;
@@ -2381,14 +2384,14 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
         throw runtime_error("input fee smaller than nMinTxFee");
     if (conRegId.IsEmpty())
         throw runtime_error("contract regid invalid!");
-    if (!pScriptDBTip->HaveScript(conRegId))
+    if (!pCdMan->pContractCache->HaveScript(conRegId))
         throw runtime_error(tinyformat::format("regid %s not exist", conRegId.ToString()));
     if (height < chainActive.Tip()->nHeight - 250 || height > chainActive.Tip()->nHeight + 250)
         throw runtime_error("height is out of a valid range to the tip block height!");
 
-    CAccountCache view(*pAccountViewTip);
+    CAccountCache view(*pCdMan->pAccountCache);
     CKeyID keyId;
-    if (!view.GetKeyId(userRegId, keyId)) {
+    if (!pCdMan->pAccountCache->GetKeyId(userRegId, keyId)) {
         LogPrint("ERROR", "from address %s has no keyId\n", userRegId.ToString());
         throw runtime_error(tinyformat::format("from address %s has no keyId", userRegId.ToString()));
     }
@@ -2482,11 +2485,11 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Recv address invalid");
     }
 
-    CAccountCache view(*pAccountViewTip);
+    CAccountCache view(*pCdMan->pAccountCache);
     CAccount account;
 
     CUserID userId = keyId;
-    if (!view.GetAccount(userId, account)) {
+    if (!pCdMan->pAccountCache->GetAccount(userId, account)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist");
     }
     if (!account.IsRegistered()) {
@@ -2495,7 +2498,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
 
     std::shared_ptr<CContractDeployTx> tx = std::make_shared<CContractDeployTx>();
     CRegID regId;
-    view.GetRegId(keyId, regId);
+    pCdMan->pAccountCache->GetRegId(keyId, regId);
 
     tx.get()->txUid = regId;
     tx.get()->contractScript = vscript;
@@ -2653,7 +2656,7 @@ Value signtxraw(const Array& params, bool fHelp) {
             vector<CSignaturePair>& signaturePairs = tx.get()->signaturePairs;
             for (const auto& keyIdItem : keyIds) {
                 CRegID regId;
-                if (!pAccountViewTip->GetRegId(CUserID(keyIdItem), regId)) {
+                if (!pCdMan->pAccountCache->GetRegId(CUserID(keyIdItem), regId)) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Address is unregistered");
                 }
 
@@ -2770,7 +2773,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
         return obj;
     }
 
-    CAccountCache view(*pAccountViewTip);
+    CAccountCache view(*pCdMan->pAccountCache);
     switch (pBaseTx.get()->nTxType) {
         case BCOIN_TRANSFER_TX: {
             std::shared_ptr<CBaseCoinTransferTx> tx = std::make_shared<CBaseCoinTransferTx>(pBaseTx.get());
@@ -2857,7 +2860,7 @@ Value getalltxinfo(const Array& params, bool fHelp) {
         retObj.push_back(Pair("confirmed", confirmedTx));
 
         Array unconfirmedTx;
-        CAccountCache view(*pAccountViewTip);
+        CAccountCache view(*pCdMan->pAccountCache);
         for (auto const &wtx : pWalletMain->unconfirmedTx) {
             Object objtx = GetTxDetailJSON(wtx.first);
             unconfirmedTx.push_back(objtx);
@@ -2895,9 +2898,9 @@ Value printblockdbinfo(const Array& params, bool fHelp) {
             + HelpExampleRpc("printblockdbinfo", ""));
     }
 
-    if (!pAccountViewTip->Flush())
+    if (!pCdMan->pAccountCache->Flush())
         throw runtime_error("Failed to write to account database\n");
-    if (!pScriptDBTip->Flush())
+    if (!pCdMan->pContractCache->Flush())
         throw runtime_error("Failed to write to account database\n");
     WriteBlockLog(false, "");
     return Value::null;
@@ -2941,7 +2944,7 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
             appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }
     } else {
-        CContractCache viewCache(*pScriptDBTip);
+        CContractCache viewCache(*pCdMan->pContractCache);
         if (!viewCache.GetScriptAcc(appRegId, acctKey, *appUserAccount.get())) {
             appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }
@@ -2976,7 +2979,7 @@ Value listcontractassets(const Array& params, bool fHelp) {
         if (setKeyId.size() == 0)
             return retArry;
 
-        CContractCache contractScriptTemp(*pScriptDBTip);
+        CContractCache contractScriptTemp(*pCdMan->pContractCache);
 
         for (const auto &keyId : setKeyId) {
 
@@ -3045,11 +3048,11 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
     if (scriptid.IsEmpty())
         throw runtime_error("in getcontractkeyvalue: contract regid size is error!\n");
 
-    if (!pScriptDBTip->HaveScript(scriptid))
+    if (!pCdMan->pContractCache->HaveScript(scriptid))
         throw runtime_error("in getcontractkeyvalue: contract regid not exist!\n");
 
     Array retArry;
-    CContractCache contractScriptTemp(*pScriptDBTip);
+    CContractCache contractScriptTemp(*pCdMan->pContractCache);
 
     for (size_t i = 0; i < array.size(); i++) {
         uint256 txhash(uint256S(array[i].get_str()));
@@ -3070,7 +3073,7 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
         int height = 0;
         if (SysCfg().IsTxIndex()) {
             CDiskTxPos postx;
-            if (pScriptDBTip->ReadTxIndex(txhash, postx)) {
+            if (pCdMan->pContractCache->ReadTxIndex(txhash, postx)) {
                 CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
                 CBlockHeader header;
                 try {
@@ -3248,9 +3251,9 @@ Value gettotalcoins(const Array& params, bool fHelp) {
     {
         uint64_t totalCoins(0);
         uint64_t totalRegIds(0);
-        CAccountCache *view = gCdMan->pAccountCache;
-        std::tie(totalCoins, totalRegIds) = view.TraverseAccount();
-        // auto [totalCoins, totalRegIds] = view.TraverseAccount(); //C++17
+        // CAccountCache *view = pCdMan->pAccountCache;
+        std::tie(totalCoins, totalRegIds) = pCdMan->pAccountCache->TraverseAccount();
+        // auto [totalCoins, totalRegIds] = pCdMan->pAccountCache->TraverseAccount(); //C++17
         obj.push_back( Pair("total_coins", ValueFromAmount(totalCoins)) );
         obj.push_back( Pair("total_regids", totalRegIds) );
     }
@@ -3272,10 +3275,10 @@ Value gettotalassets(const Array& params, bool fHelp) {
     if (regid.IsEmpty() == true)
         throw runtime_error("contract regid invalid!\n");
 
-    if (!pScriptDBTip->HaveScript(regid))
+    if (!pCdMan->pContractCache->HaveScript(regid))
         throw runtime_error("contract regid not exist!\n");
 
-    CContractCache contractScriptTemp(*pScriptDBTip);
+    CContractCache contractScriptTemp(*pCdMan->pContractCache);
     Object obj;
     {
         map<vector<unsigned char>, vector<unsigned char> > mapAcc;
@@ -3328,9 +3331,9 @@ Value listtxbyaddr(const Array& params, bool fHelp) {
     if (!GetKeyId(address, keyId))
         throw runtime_error("Address invalid.");
 
-    CContractCache scriptDbView(*pScriptDBTip);
+    CContractCache scriptDbView(*pCdMan->pContractCache);
     map<vector<unsigned char>, vector<unsigned char>> mapTxHash;
-    if (!scriptDbView.GetTxHashByAddress(keyId, height, mapTxHash))
+    if (!pCdMan->pContractDb->GetTxHashByAddress(keyId, height, mapTxHash))
         throw runtime_error("Failed to fetch data.");
 
     Object obj;

@@ -67,7 +67,7 @@ Value getbalance(const Array& params, bool fHelp)
             }
             if (pWalletMain->HaveKey(keyid)) {
                 CAccount account;
-                CAccountCache accView(*pAccountViewTip);
+                CAccountCache accView(*pCdMan->pAccountCache);
                 if (accView.GetAccount(CUserID(keyid), account)) {
                     obj.push_back(Pair("balance", ValueFromAmount(account.GetFreeBCoins())));
                     return obj;
@@ -94,8 +94,8 @@ Value getbalance(const Array& params, bool fHelp)
                             if (BCOIN_TRANSFER_TX == item.second->nTxType) {
                                 CBaseCoinTransferTx *pTx = (CBaseCoinTransferTx *)item.second.get();
                                 CKeyID srcKeyId, desKeyId;
-                                pAccountViewTip->GetKeyId(pTx->txUid, srcKeyId);
-                                pAccountViewTip->GetKeyId(pTx->toUid, desKeyId);
+                                pCdMan->pAccountCache->GetKeyId(pTx->txUid, srcKeyId);
+                                pCdMan->pAccountCache->GetKeyId(pTx->toUid, desKeyId);
                                 if (!pWalletMain->HaveKey(srcKeyId) && pWalletMain->HaveKey(desKeyId)) {
                                     nValue = pTx->bcoins;
                                 }
@@ -128,7 +128,7 @@ Value getbalance(const Array& params, bool fHelp)
                                 if (BCOIN_TRANSFER_TX == item.second->nTxType) {
                                     CBaseCoinTransferTx *pTx = (CBaseCoinTransferTx *)item.second.get();
                                     CKeyID srcKeyId, desKeyId;
-                                    pAccountViewTip->GetKeyId(pTx->toUid, desKeyId);
+                                    pCdMan->pAccountCache->GetKeyId(pTx->toUid, desKeyId);
                                     if (keyid == desKeyId) {
                                         nValue = pTx->bcoins;
                                     }
@@ -139,7 +139,7 @@ Value getbalance(const Array& params, bool fHelp)
                         pBlockIndex = pBlockIndex->pprev;
                         --nConf;
                     }
-                    obj.push_back(Pair("balance", ValueFromAmount(pAccountViewTip->GetFreeBCoins(keyid) - nValue)));
+                    obj.push_back(Pair("balance", ValueFromAmount(pCdMan->pAccountCache->GetFreeBCoins(keyid) - nValue)));
                     return obj;
                 } else {
                     obj.push_back(Pair("balance", ValueFromAmount(mempool.memPoolAccountCache.get()->GetFreeBCoins(keyid))));

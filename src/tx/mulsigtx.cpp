@@ -28,7 +28,7 @@ Object CSignaturePair::ToJson() const {
     return obj;
 }
 
-string CMulsigTx::ToString(CAccountCache &view) const {
+string CMulsigTx::ToString(CAccountCache &view) {
     string desId;
     if (desUserId.type() == typeid(CKeyID)) {
         desId = desUserId.get<CKeyID>().ToString();
@@ -50,9 +50,9 @@ string CMulsigTx::ToString(CAccountCache &view) const {
     return str;
 }
 
-Object CMulsigTx::ToJson(const CAccountCache &AccountView) const {
+Object CMulsigTx::ToJson(const CAccountCache &accountView) const {
     Object result;
-    CAccountCache view(AccountView);
+    CAccountCache view(accountView);
 
     auto GetRegIdString = [&](CUserID const &userId) {
         if (userId.type() == typeid(CRegID)) {
@@ -62,7 +62,7 @@ Object CMulsigTx::ToJson(const CAccountCache &AccountView) const {
     };
 
     CKeyID desKeyId;
-    cw.pAccountCache->GetKeyId(desUserId, desKeyId);
+    view.GetKeyId(desUserId, desKeyId);
 
     result.push_back(Pair("hash", GetHash().GetHex()));
     result.push_back(Pair("tx_type", GetTxType(nTxType)));
@@ -73,7 +73,7 @@ Object CMulsigTx::ToJson(const CAccountCache &AccountView) const {
     std::set<CPubKey> pubKeys;
     for (const auto &item : signaturePairs) {
         signatureArray.push_back(item.ToJson());
-        if (!cw.pAccountCache->GetAccount(item.regId, account)) {
+        if (!view.GetAccount(item.regId, account)) {
             LogPrint("ERROR", "CMulsigTx::ToJson, failed to get account info: %s\n",
                      item.regId.ToString());
             continue;
@@ -96,17 +96,16 @@ Object CMulsigTx::ToJson(const CAccountCache &AccountView) const {
     return result;
 }
 
-bool CMulsigTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountCache &view,
-                           CContractCache &cw.pContractCache->) {
+bool CMulsigTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     CKeyID keyId;
     for (const auto &item : signaturePairs) {
         if (!cw.pAccountCache->GetKeyId(CUserID(item.regId), keyId)) return false;
-        vAddr.insert(keyId);
+        keyIds.insert(keyId);
     }
 
     CKeyID desKeyId;
     if (!cw.pAccountCache->GetKeyId(desUserId, desKeyId)) return false;
-    vAddr.insert(desKeyId);
+    keyIds.insert(desKeyId);
 
     return true;
 }
@@ -181,7 +180,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
             if (!cw.pAccountCache->GetKeyId(CUserID(item.regId), sendKeyId))
                 return ERRORMSG("CBaseCoinTransferTx::CMulsigTx, get keyid by srcUserId error!");
 
-            if (!cw.pContractCache->.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
+            if (!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
                                              operAddressToTxLog))
                 return false;
             cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
@@ -190,7 +189,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
         if (!cw.pAccountCache->GetKeyId(desUserId, revKeyId))
             return ERRORMSG("CBaseCoinTransferTx::CMulsigTx, get keyid by desUserId error!");
 
-        if (!cw.pContractCache->.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
+        if (!cw.pContractCache->SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
                                          operAddressToTxLog))
             return false;
         cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
@@ -241,7 +240,7 @@ bool CMulsigTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
 
     vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vScriptOperLog.rbegin();
     for (; rIterScriptDBLog != cw.pTxUndo->vScriptOperLog.rend(); ++rIterScriptDBLog) {
-        if (!cw.pContractCache->.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
+        if (!cw.pContractCache->UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
             return state.DoS(100, ERRORMSG("CMulsigTx::UndoExecuteTx, undo scriptdb data error"),
                              UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
@@ -249,8 +248,7 @@ bool CMulsigTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
     return true;
 }
 
-bool CMulsigTx::CheckTx(CValidationState &state, CAccountCache &view,
-                          CContractCache &cw.pContractCache->) {
+bool CMulsigTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
 

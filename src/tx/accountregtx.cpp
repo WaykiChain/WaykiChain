@@ -40,7 +40,7 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
     CAccount account;
     CRegID regId(nHeight, nIndex);
     CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
-    if (!view.GetAccount(txUid, account))
+    if (!cw.pAccountCache->GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s account info error",
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
@@ -118,7 +118,7 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex,
         CUserID userId(keyId);
         cw.pAccountCache->SetAccount(userId, oldAccount);
     } else {
-        vicacheWrapper.accountCacheew.EraseAccountByKeyId(txUid);
+        cw.pAccountCache->EraseAccountByKeyId(txUid);
     }
     cw.pAccountCache->EraseKeyId(accountRegId);
     return true;
@@ -132,7 +132,7 @@ bool CAccountRegisterTx::GetInvolvedKeyIds(CCacheWrapper & cw, set<CKeyID> &keyI
     return true;
 }
 
-string CAccountRegisterTx::ToString(const CAccountCache &view) const {
+string CAccountRegisterTx::ToString(CAccountCache &view) {
     return strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
                     GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, txUid.get<CPubKey>().ToString(),
                     llFees, txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight);

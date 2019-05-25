@@ -79,6 +79,14 @@ public:
 
 public:
     CAccountCache(IAccountView &view): pBase(&view), blockHash(uint256()) {}
+
+    CAccountCache(IAccountView *pAccountView, CAccountCache *pAccountCache): pBase(pAccountView) {
+        blockHash = pAccountCache->blockHash;
+        mapKeyId2Account = pAccountCache->mapKeyId2Account;
+        mapRegId2KeyId = pAccountCache->mapRegId2KeyId;
+        mapNickId2KeyId = pAccountCache->mapNickId2KeyId;
+    }
+
     ~CAccountCache() {}
 
     bool GetUserId(const string &addr, CUserID &userId);

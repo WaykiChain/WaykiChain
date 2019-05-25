@@ -313,10 +313,10 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
     int nHeight = chainActive.Height();
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
-    sendUserId = (pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId) && pAccountViewTip->RegIDIsMature(sendRegId))
+    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && pCdMan->pAccountCache->RegIDIsMature(sendRegId))
                      ? CUserID(sendRegId)
                      : CUserID(sendPubKey);
-    recvUserId = (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) && pAccountViewTip->RegIDIsMature(recvRegId))
+    recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) && pCdMan->pAccountCache->RegIDIsMature(recvRegId))
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
     CBaseCoinTransferTx tx;
@@ -369,7 +369,7 @@ Value sendtoaddress(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
 
         nAmount = AmountToRawValue(params[2]);
-        if (pAccountViewTip->GetFreeBCoins(sendKeyId) < nAmount + nDefaultFee)
+        if (pCdMan->pAccountCache->GetFreeBCoins(sendKeyId) < nAmount + nDefaultFee)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
     } else { // size == 2
         if (!GetKeyId(params[0].get_str(), recvKeyId))
@@ -386,7 +386,7 @@ Value sendtoaddress(const Array& params, bool fHelp) {
         bool sufficientFee = false;
         for (auto& keyId : sKeyIds) {
             if (keyId != recvKeyId &&
-                (pAccountViewTip->GetFreeBCoins(keyId) >= nAmount + nDefaultFee)) {
+                (pCdMan->pAccountCache->GetFreeBCoins(keyId) >= nAmount + nDefaultFee)) {
                 sendKeyId     = keyId;
                 sufficientFee = true;
                 break;
@@ -453,7 +453,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
                                strprintf("Given fee(%ld) < Default fee (%ld)", nFee, nDefaultFee));
         }
 
-        if (pAccountViewTip->GetFreeBCoins(sendKeyId) < nAmount + nActualFee) {
+        if (pCdMan->pAccountCache->GetFreeBCoins(sendKeyId) < nAmount + nActualFee) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
         }
     } else {  // sender address omitted
@@ -477,7 +477,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
         bool sufficientFee = false;
         for (auto& keyId : sKeyIds) {
             if (keyId != recvKeyId &&
-                (pAccountViewTip->GetFreeBCoins(keyId) >= nAmount + nDefaultFee)) {
+                (pCdMan->pAccountCache->GetFreeBCoins(keyId) >= nAmount + nDefaultFee)) {
                 sendKeyId     = keyId;
                 sufficientFee = true;
                 break;
@@ -557,10 +557,10 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
 
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
-    sendUserId = (pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId) && pAccountViewTip->RegIDIsMature(sendRegId))
+    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && pCdMan->pAccountCache->RegIDIsMature(sendRegId))
                      ? CUserID(sendRegId)
                      : CUserID(sendPubKey);
-    recvUserId = (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) && pAccountViewTip->RegIDIsMature(recvRegId))
+    recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) && pCdMan->pAccountCache->RegIDIsMature(recvRegId))
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
 
@@ -629,7 +629,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
     }
 
-    recvUserId = (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId) && pAccountViewTip->RegIDIsMature(recvRegId))
+    recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) && pCdMan->pAccountCache->RegIDIsMature(recvRegId))
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
 
@@ -656,7 +656,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     vector<CSignaturePair> signaturePairs;
     CRegID regId;
     for (const auto& pubKey : pubKeys) {
-        if (pAccountViewTip->GetRegId(CUserID(pubKey), regId) && pAccountViewTip->RegIDIsMature(regId)) {
+        if (pCdMan->pAccountCache->GetRegId(CUserID(pubKey), regId) && pCdMan->pAccountCache->RegIDIsMature(regId)) {
             signaturePairs.push_back(CSignaturePair(regId, vector_unsigned_char()));
         } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Inmature regid or invalid key");
@@ -697,7 +697,7 @@ Value getassets(const Array& params, bool fHelp)
         throw runtime_error("in getassets :scriptid size is error!\n");
     }
 
-    if (!pScriptDBTip->HaveScript(regid)) {
+    if (!pCdMan->pContractCache->HaveScript(regid)) {
         throw runtime_error("in getassets :scriptid  is not exist!\n");
     }
 
@@ -724,7 +724,7 @@ Value getassets(const Array& params, bool fHelp)
         veckey.assign(addr.c_str(), addr.c_str() + addr.length());
 
         std::shared_ptr<CAppUserAccount> temp = std::make_shared<CAppUserAccount>();
-        if (!pScriptDBTip->GetScriptAcc(regid, veckey, *temp.get())) {
+        if (!pCdMan->pContractCache->GetScriptAcc(regid, veckey, *temp.get())) {
             continue;
         }
 
@@ -778,7 +778,7 @@ Value getassets(const Array& params, bool fHelp)
 //     }
 
 //     CRegID sendRegId;
-//     if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId)) {
+//     if (!pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId)) {
 //         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "send address not activated  ");
 //     }
 
@@ -811,13 +811,13 @@ Value getassets(const Array& params, bool fHelp)
 //         CRegID revreg;
 //         CUserID rev;
 
-//         if (pAccountViewTip->GetRegId(CUserID(recvKeyId), revreg)) {
+//         if (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), revreg)) {
 //             rev = revreg;
 //         } else {
 //             rev = recvKeyId;
 //         }
 
-//         if(pAccountViewTip->GetFreeBCoins(sendreg) < nAmount + SysCfg().GetTxFee()) {
+//         if(pCdMan->pAccountCache->GetFreeBCoins(sendreg) < nAmount + SysCfg().GetTxFee()) {
 //             break;
 //         }
 

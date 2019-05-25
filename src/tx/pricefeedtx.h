@@ -8,23 +8,38 @@
 
 #include "tx/tx.h"
 
-class CPricePoint {
-private:
+class CoinPriceType {
+public:
     unsigned char coinType;
     unsigned char priceType;
-    uint64_t price;
 
-public:
-    CPricePoint(CoinType coinTypeIn, PriceType priceTypeIn, uint64_t priceIn)
-        : coinType(coinTypeIn), priceType(priceTypeIn), price(priceIn) {}
-
-    string ToString() {
-        return strprintf("coinType:%u, priceType:%u, price:%lld", coinType, priceType, price);
-    }
+    CoinPriceType(CoinType coinTypeIn, PriceType priceTypeIn) :
+        coinType(coinTypeIn), priceType(priceTypeIn) {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(coinType);
-        READWRITE(priceType);
+        READWRITE(priceType);)
+};
+
+class CPricePoint {
+private:
+    CoinPriceType coinPriceType;
+    uint64_t price;
+
+public:
+    CPricePoint(CoinPriceType coinPriceTypeIn, uint64_t priceIn)
+        : coinPriceType(coinPriceTypeIn), price(priceIn) {}
+
+    CPricePoint(CoinType coinTypeIn, PriceType priceTypeIn, uint64_t priceIn)
+        : coinPriceType(coinTypeIn, priceTypeIn), price(priceIn) {}
+
+    string ToString() {
+        return strprintf("coinType:%u, priceType:%u, price:%lld",
+                        coinPriceType.coinType, coinPriceType.priceType, price);
+    }
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(coinPriceType);
         READWRITE(VARINT(price));)
 };
 
@@ -77,42 +92,51 @@ public:
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CPriceFeedTx>(this); }
     virtual double GetPriority() const { return 10000.0f; } // Top priority
-
-    virtual bool CheckTx(CValidationState &state, CAccountCache &view, CContractCache &scriptDB);
-    virtual bool ExecuteTx(int nIndex, CAccountCache &view, CValidationState &state, CTxUndo &txundo,
-                    int nHeight, CTransactionCache &txCache, CContractCache &scriptDB);
-    virtual bool UndoExecuteTx(int nIndex, CAccountCache &view, CValidationState &state,
-                    CTxUndo &txundo, int nHeight, CTransactionCache &txCache,
-                    CContractCache &scriptDB);
-    virtual string ToString(CAccountCache &view) const; //logging usage
+    virtual string ToString(CAccountCache &view); //logging usage
     virtual Object ToJson(const CAccountCache &view) const; //json-rpc usage
-    virtual bool GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountCache &view, CContractCache &scriptDB);
+    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
+
+    virtual bool CheckTx(CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+
+    bool GetTopPriceFeederList(CCacheWrapper &cw, vector<CAccount> &priceFeederAccts);
 
 };
 
 class CBlockPriceMedianTx: public CBaseTx  {
 private:
-    map<tuple<CoinType, PriceType>, uint64_t> mapMediaPricePoints;
+    // map<tuple<CoinType, PriceType>, uint64_t> mapMediaPricePoints;
+    map<CoinPriceType, uint64_t> mapMediaPricePoints;
 
 public:
+    CBlockPriceMedianTx(): CBaseTx(BLOCK_PRICE_MEDIAN_TX) {}
+
+    CBlockPriceMedianTx(const CBaseTx *pBaseTx): CBaseTx(BLOCK_PRICE_MEDIAN_TX) {
+        assert(BLOCK_PRICE_MEDIAN_TX == pBaseTx->nTxType);
+        *this = *(CBlockPriceMedianTx *)pBaseTx;
+    }
+
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        for (auto it = mapMediaPricePoints.begin(); it! = mapMediaPricePoints.end(); ++it) {
-            unsigned char coinType  = it->first()->first();
-            unsigned char priceType = it->first()->second();
-            uint64_t price = it->second();
-            READWRITE(PricePoint(coinType, priceType, price));
+        for (auto it = mapMediaPricePoints.begin(); it != mapMediaPricePoints.end(); ++it) {
+            // CoinType coinType  = std::get<0>(it->first);
+            // PriceType priceType = std::get<1>(it->first);
+            CoinPriceType coinPriceType = it->first;
+            uint64_t price = it->second;
+
+            READWRITE(CPricePoint(coinPriceType, price));
         };
     )
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nHeight) << txUid
+            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
                 << mapMediaPricePoints;
 
             sigHash = ss.GetHash();
@@ -121,11 +145,13 @@ public:
         return sigHash;
     }
 
-    virtual uint64_t GetValue() const { return rewardValue; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CPriceMedianTx>(this); }
-    virtual uint64_t GetFee() const { return 0; }
-    virtual double GetPriority() const { return 0.0f; }
-    virtual string ToString(const CAccountCache &view) const;
+    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
+    virtual uint64_t GetFee() const { return llFees; }
+    virtual uint64_t GetValue() const { return 0; }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CBlockPriceMedianTx>(this); }
+    virtual double GetPriority() const { return 1000.0f; }
+
+    virtual string ToString(CAccountCache &view);
     virtual Object ToJson(const CAccountCache &view) const;
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 

@@ -9,7 +9,7 @@
 #include "configuration.h"
 #include "main.h"
 
-bool CFcoinStakeTx::CheckTx(CValidationState &state, CAccountCache &view, CContractCache &scriptDB) {
+bool CFcoinStakeTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
 
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -52,8 +52,8 @@ bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
         if(!cw.pAccountCache->GetKeyId(txUid, sendKeyId))
             return ERRORMSG("CFcoinStakeTx::ExecuteTx, get keyid by userId error!");
 
-        if(!scriptDB.SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, cw.pTxUndo->txHash.GetHex(),
-                                        operAddressToTxLog))
+        if(!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, cw.pTxUndo->txHash.GetHex(),
+                                                operAddressToTxLog))
             return false;
 
         cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
@@ -63,28 +63,33 @@ bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
 }
 
 bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    for (auto &itemLog : cw.pTxUndo->vAccountLog) {
-        if (itemLog.keyID == account.keyID) {
-            if (!account.UndoOperateAccount(itemLog))
-                return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, undo operate account error, keyId=%s",
-                                account.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
-        }
-    }
+    //TODO
 
-    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vScriptOperLog.rbegin();
-    for (; rIterScriptDBLog != cw.pTxUndo->vScriptOperLog.rend(); ++rIterScriptDBLog) {
-        if (!cw.pContractCache->UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
-            return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, undo scriptdb data error"),
-                            UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");
-    }
-    userId = account.keyID;
-    if (!cw.pAccountCache->SetAccount(userId, account))
-        return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, save account error"),
-                        UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+    // for (auto &itemLog : cw.pTxUndo->vAccountLog) {
+    //     if (itemLog.keyID == account.keyID) {
+    //         if (!account.UndoOperateAccount(itemLog))
+    //             return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, undo operate account error, keyId=%s",
+    //                             account.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
+    //     }
+    // }
+
+    // vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vScriptOperLog.rbegin();
+    // for (; rIterScriptDBLog != cw.pTxUndo->vScriptOperLog.rend(); ++rIterScriptDBLog) {
+    //     if (!cw.pContractCache->UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
+    //         return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, undo scriptdb data error"),
+    //                         UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");
+    // }
+    // userId = account.keyID;
+    // if (!cw.pAccountCache->SetAccount(userId, account))
+    //     return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, save account error"),
+    //                     UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     return true;
 }
 
+string CFcoinStakeTx::ToString(CAccountCache &view) {
+    return "";
+}
 
 Object CFcoinStakeTx::ToJson(const CAccountCache &AccountView) const {
   //TODO

@@ -381,7 +381,7 @@ Value getcontractregid(const Array& params, bool fHelp)
     uint256 txhash(uint256S(params[0].get_str()));
 
     int nIndex = 0;
-    int nBlockHeight = GetTxConfirmHeight(txhash, *pScriptDBTip);
+    int nBlockHeight = GetTxConfirmHeight(txhash, *pCdMan->pContractCache);
     if (nBlockHeight > chainActive.Height()) {
         throw runtime_error("height bigger than tip block");
     } else if (-1 == nBlockHeight) {

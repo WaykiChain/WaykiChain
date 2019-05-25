@@ -89,12 +89,11 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountCache& view, int nHe
 CVmRunEnv::~CVmRunEnv() {}
 
 tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx,
-                                                         CAccountCache& view,
-                                                         CContractCache& VmDB, int nHeight,
+                                                         int nHeight, CCacheWrapper &cw,
                                                          uint64_t nBurnFactor, uint64_t& uRunStep) {
     if (nBurnFactor == 0) return std::make_tuple(false, 0, string("VmScript nBurnFactor == 0\n"));
 
-    pScriptDBViewCache = &VmDB;
+    pScriptDBViewCache = cw.pContractCache;
 
     CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(Tx.get());
     if (tx->llFees < CBaseTx::nMinTxFee)
@@ -107,7 +106,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
 
     LogPrint("vm", "tx hash:%s fees=%lld fuelrate=%lld fuelLimit:%d\n", Tx->GetHash().GetHex(),
              tx->llFees, nBurnFactor, fuelLimit);
-    if (!Initialize(Tx, view, nHeight)) {
+    if (!Initialize(Tx, *cw.pAccountCache, nHeight)) {
         return std::make_tuple(false, 0, string("VmScript inital Failed\n"));
     }
 
@@ -124,13 +123,13 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
         uRunStep = step;
     }
 
-    LogPrint("vm", "tx:%s,step:%ld\n", tx->ToString(view), uRunStep);
+    LogPrint("vm", "tx:%s,step:%ld\n", tx->ToString(*cw.pAccountCache), uRunStep);
 
     if (!CheckOperate(vmOperateOutput)) {
         return std::make_tuple(false, 0, string("VmScript CheckOperate Failed \n"));
     }
 
-    if (!OpeatorAccount(vmOperateOutput, view, nHeight)) {
+    if (!OpeatorAccount(vmOperateOutput, *cw.pAccountCache, nHeight)) {
         return std::make_tuple(false, 0, string("VmScript OpeatorAccount Failed\n"));
     }
 

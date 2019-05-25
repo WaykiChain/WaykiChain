@@ -196,7 +196,7 @@ void CWallet::ResendWalletTransactions() {
         if (!std::get<0>(ret)) {
             erase.push_back(te.first);
             LogPrint("CWallet", "abort invalid tx %s reason:%s\n",
-                     te.second.get()->ToString(*pAccountViewTip), std::get<1>(ret));
+                     te.second.get()->ToString(*pCdMan->pAccountCache), std::get<1>(ret));
         }
     }
     for (auto const &tee : erase) {
@@ -208,7 +208,7 @@ void CWallet::ResendWalletTransactions() {
 //// Call after CreateTransaction unless you want to abort
 std::tuple<bool, string> CWallet::CommitTx(CBaseTx *pTx) {
     LOCK2(cs_main, cs_wallet);
-    LogPrint("INFO", "CommitTx() : %s", pTx->ToString(*pAccountViewTip));
+    LogPrint("INFO", "CommitTx() : %s", pTx->ToString(*pCdMan->pAccountCache));
 
     {
         CValidationState state;
@@ -243,7 +243,7 @@ int64_t CWallet::GetFreeBCoins(bool IsConfirmed) const {
             if (!IsConfirmed)
                 ret += mempool.memPoolAccountCache.get()->GetFreeBCoins(keyId);
             else
-                ret += pAccountViewTip->GetFreeBCoins(keyId);
+                ret += pCdMan->pAccountCache->GetFreeBCoins(keyId);
         }
     }
     return ret;
@@ -447,7 +447,7 @@ Object CAccountTx::ToJsonObj(CKeyID const &key) const {
     obj.push_back(Pair("blockHash", blockHash.ToString()));
     obj.push_back(Pair("blockHeight", blockHeight));
     Array Tx;
-    CAccountCache view(*pAccountViewTip);
+    CAccountCache view(*pCdMan->pAccountCache);
     for (auto const &re : mapAccountTx) {
         Tx.push_back(re.second.get()->ToString(view));
     }
@@ -464,9 +464,8 @@ uint256 CWallet::GetCheckSum() const {
 
 bool CWallet::IsMine(CBaseTx *pTx) const {
     set<CKeyID> vaddr;
-    CAccountCache view(*pAccountViewTip);
-    CContractCache scriptDB(*pScriptDBTip);
-    if (!pTx->GetInvolvedKeyIds(vaddr, view, scriptDB)) {
+    CCacheWrapper cw(pCdMan->pAccountCache, pCdMan->pContractCache);
+    if (!pTx->GetInvolvedKeyIds(cw, vaddr)) {
         return false;
     }
     for (auto &keyid : vaddr) {

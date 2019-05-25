@@ -59,12 +59,12 @@ bool CPriceFeedTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVa
 
 }
 
-Object CPriceFeedTx::ToString(const CAccountCache &AccountView) const {
+string CPriceFeedTx::ToString(CAccountCache &accountCache) {
   //TODO
-  return Object();
+  return "";
 }
 
-Object CPriceFeedTx::ToJson(const CAccountCache &AccountView) const {
+Object CPriceFeedTx::ToJson(const CAccountCache &accountCache) const {
   //TODO
   return Object();
 }
@@ -94,7 +94,7 @@ bool CBlockPriceMedianTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
     return true;
 }
 
-string CBlockPriceMedianTx::ToString(CAccountCache &view) const {
+string CBlockPriceMedianTx::ToString(CAccountCache &view) {
     //TODO
     return "";
 }
@@ -104,11 +104,13 @@ Object CBlockPriceMedianTx::ToJson(const CAccountCache &AccountView) const {
     return Object();
 }
 
-bool CBlockPriceMedianTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountCache &view, CContractCache &scriptDB) {
+bool CBlockPriceMedianTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     //TODO
     return true;
 }
 
 inline uint64_t GetMedianPriceByType(const CoinType coinType, const PriceType priceType) {
-    return mapMediaPricePoints[make_tuple<CoinType, PriceType>(coinType, priceType)];
+    // return mapMediaPricePoints[make_tuple<CoinType, PriceType>(coinType, priceType)];
+
+    return 0;
 }

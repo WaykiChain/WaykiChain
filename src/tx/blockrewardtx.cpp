@@ -61,7 +61,7 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
 }
 
 bool CBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = txundo.vAccountLog.rbegin();
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.pTxUndo->vAccountLog.rbegin();
     for (; rIterAccountLog != cw.pTxUndo->vAccountLog.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
@@ -91,7 +91,7 @@ bool CBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
     return true;
 }
 
-string CBlockRewardTx::ToString(CAccountCache &view) const {
+string CBlockRewardTx::ToString(CAccountCache &view) {
     string str;
     CKeyID keyId;
     view.GetKeyId(txUid, keyId);
@@ -123,16 +123,19 @@ Object CBlockRewardTx::ToJson(const CAccountCache &AccountView) const{
     return result;
 }
 
-bool CBlockRewardTx::GetInvolvedKeyIds(set<CKeyID> &vAddr, CAccountCache &view,
-                           CContractCache &scriptDB) {
+bool CBlockRewardTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     CKeyID keyId;
     if (txUid.type() == typeid(CRegID)) {
-        if (!view.GetKeyId(txUid, keyId)) return false;
-        vAddr.insert(keyId);
+        if (!cw.pAccountCache->GetKeyId(txUid, keyId))
+            return false;
+
+        keyIds.insert(keyId);
     } else if (txUid.type() == typeid(CPubKey)) {
         CPubKey pubKey = txUid.get<CPubKey>();
-        if (!pubKey.IsFullyValid()) return false;
-        vAddr.insert(pubKey.GetKeyId());
+        if (!pubKey.IsFullyValid())
+            return false;
+
+        keyIds.insert(pubKey.GetKeyId());
     }
 
     return true;

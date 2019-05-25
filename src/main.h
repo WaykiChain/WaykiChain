@@ -304,7 +304,8 @@ public:
     CBlockTreeDB       *pBlockTreeDb;       // the active block tree (protected by cs_main)
 
 public:
-    CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache, size_t nScriptCacheSize, size_t nBlockTreeDBCache) {
+    CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache,
+                    size_t nScriptCacheSize, size_t nBlockTreeDBCache) {
         pAccountDb      = new CAccountDB(nAccountDBCache, false, fReIndex);
         pAccountCache   = new CAccountCache(*pAccountDb);
         pContractDb     = new CContractDB(nScriptCacheSize, false, fReIndex);
@@ -642,15 +643,15 @@ extern CSignatureCache signatureCache;
  *  In case pfClean is provided, operation will try to be tolerant about errors, and *pfClean
  *  will be true if no problems were found. Otherwise, the return value will be false in case
  *  of problems. Note that in any case, coins may be modified. */
-bool DisconnectBlock(CBlock &block, CValidationState &state, CCacheWrapper &cw, CBlockIndex *pIndex, bool *pfClean = NULL);
+bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool *pfClean = NULL);
 // Apply the effects of this block (with given index) on the UTXO set represented by coins
-bool ConnectBlock(CBlock &block, CValidationState &state, CCacheWrapper &cw, CBlockIndex *pIndex, bool fJustCheck = false);
+bool ConnectBlock   (CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool fJustCheck = false);
 
 // Add this block to the block index, and if necessary, switch the active block chain to this
 bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos &pos);
 
 // Context-independent validity checks
-bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw, 
+bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
                 bool fCheckTx = true, bool fCheckMerkleRoot = true);
 
 bool ProcessForkedChain(const CBlock &block, CValidationState &state);
@@ -686,7 +687,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
 /** Print the loaded block tree */
 void PrintBlockTree();
 
-void UpdateTime(CBlockHeader &block, const CBlockIndex *pindexPrev);
+void UpdateTime(CBlockHeader &block, const CBlockIndex *pIndexPrev);
 
 //get setBlockIndexValid
 Value ListSetBlockIndexValid();

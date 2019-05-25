@@ -551,7 +551,7 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<unsigned char> &s
 
 bool CheckTx(CBaseTx *ptx, CCacheWrapper &cw, CValidationState &state) {
     if (BLOCK_REWARD_TX == ptx->nTxType ||
-        BLOCK_MEDIAN_PRICE_TX == ptx->nTxType) {
+        BLOCK_PRICE_MEDIAN_TX == ptx->nTxType) {
         return true;
     }
 
@@ -1128,11 +1128,11 @@ bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex) {
     return true;
 }
 
-void UpdateTime(CBlockHeader &block, const CBlockIndex *pindexPrev) {
-    block.SetTime(max(pindexPrev->GetMedianTimePast() + 1, GetAdjustedTime()));
+void UpdateTime(CBlockHeader &block, const CBlockIndex *pIndexPrev) {
+    block.SetTime(max(pIndexPrev->GetMedianTimePast() + 1, GetAdjustedTime()));
 }
 
-bool DisconnectBlock(CBlock &block, CValidationState &state, CCacheWrapper &cw, CBlockIndex *pIndex, bool *pfClean) {
+bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool *pfClean) {
     assert(pIndex->GetBlockHash() == cw.pAccountCache->GetBestBlock());
 
     if (pfClean)
@@ -1241,7 +1241,7 @@ void static FlushBlockFile(bool fFinalize = false) {
 
 bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigned int nAddSize);
 
-bool ConnectBlock(CBlock &block, CValidationState &state,  CCacheWrapper &cw, CBlockIndex *pIndex, bool fJustCheck) {
+bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool fJustCheck) {
     AssertLockHeld(cs_main);
     bool isGensisBlock = ( block.GetHeight() == 0 && block.GetHash() == SysCfg().GetGenesisBlockHash() );
 
@@ -1253,7 +1253,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state,  CCacheWrapper &cw, CB
         // Verify that the view's current state corresponds to the previous block
         uint256 hashPrevBlock = pIndex->pprev == NULL ? uint256() : pIndex->pprev->GetBlockHash();
         if (hashPrevBlock != cw.pAccountCache->GetBestBlock()) {
-            LogPrint("INFO", "hashPrevBlock=%s, bestblock=%s\n", 
+            LogPrint("INFO", "hashPrevBlock=%s, bestblock=%s\n",
                     hashPrevBlock.GetHex(), cw.pAccountCache->GetBestBlock().GetHex());
 
             assert(hashPrevBlock == cw.pAccountCache->GetBestBlock());
@@ -1329,7 +1329,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state,  CCacheWrapper &cw, CB
         return true;
     }
 
-    if (!VerifyPosTx(&block, false))
+    if (!VerifyPosTx(&block, cw, false))
         return state.DoS(100, ERRORMSG("ConnectBlock() : the block Hash=%s check pos tx error",
                         block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
 
@@ -1396,7 +1396,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state,  CCacheWrapper &cw, CB
 
     std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[0]);
     CAccount minerAcct;
-    if (!pCdMan->pAccoutCache->GetAccount(pRewardTx->txUid, minerAcct)) {
+    if (!pCdMan->pAccountCache->GetAccount(pRewardTx->txUid, minerAcct)) {
         assert(0);
     }
     // LogPrint("INFO", "miner address=%s\n", minerAcct.keyID.ToAddress());
@@ -1503,8 +1503,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state,  CCacheWrapper &cw, CB
 bool static WriteChainState(CValidationState &state) {
     static int64_t nLastWrite = 0;
     unsigned int cachesize    = pCdMan->pAccountCache->GetCacheSize() + pCdMan->pContractCache->GetCacheSize();
-    if (!IsInitialBlockDownload() 
-        || cachesize > SysCfg().GetViewCacheSize() 
+    if (!IsInitialBlockDownload()
+        || cachesize > SysCfg().GetViewCacheSize()
         || GetTimeMicros() > nLastWrite + 600 * 1000000) {
         // Typical CCoins structures on disk are around 100 bytes in size.
         // Pushing a new one to the database can cause it to be written
@@ -1583,7 +1583,7 @@ bool static DisconnectTip(CValidationState &state) {
         CContractCache contractCache(*(pCdMan->pContractCache));
         CCacheWrapper cw(&accountCache, &txCache, &contractCache, nullptr);
 
-        if (!DisconnectBlock(block, state, cw, pIndexDelete, NULL))
+        if (!DisconnectBlock(block, cw, pIndexDelete, state))
             return ERRORMSG("DisconnectTip() : DisconnectBlock %s failed", pIndexDelete->GetBlockHash().ToString());
 
         // Need to re-sync all to global cache layer.
@@ -1616,10 +1616,12 @@ bool static DisconnectTip(CValidationState &state) {
 
     if (SysCfg().GetArg("-blocklog", 0) != 0) {
         if (chainActive.Height() % SysCfg().GetArg("-blocklog", 0) == 0) {
-            if (!pAccountViewTip->Flush())
+            if (!pCdMan->pAccountCache->Flush())
                 return state.Abort(_("Failed to write to account database"));
-            if (!pScriptDBTip->Flush())
+
+            if (!pCdMan->pContractCache->Flush())
                 return state.Abort(_("Failed to write to script db database"));
+
             WriteBlockLog(true, "DisConnectTip");
         }
     }
@@ -1661,12 +1663,12 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
     int64_t nStart = GetTimeMicros();
     {
         CInv inv(MSG_BLOCK, pIndexNew->GetBlockHash());
-        
+
         CAccountCache accountCache(*pCdMan->pAccountCache);
         CContractCache contractCache(*pCdMan->pContractCache);
         CCacheWrapper cw(&accountCache, &contractCache);
 
-        if (!ConnectBlock(block, state, cw, pIndexNew)) {
+        if (!ConnectBlock(block, cw, pIndexNew, state)) {
             if (state.IsInvalid()) {
                 InvalidBlockFound(pIndexNew, state);
             }
@@ -1984,17 +1986,13 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     std::shared_ptr<CTransactionCache>  pForkTxCache;
     std::shared_ptr<CContractCache>     pForkContractCache;
 
-    std::shared_ptr<CAccountCache> pAcctViewCache = std::make_shared<CAccountCache>(pCdMan->pAccountDb);
-    pAcctViewCache->mapKeyId2Account              = pAccountViewTip->mapKeyId2Account;
-    pAcctViewCache->mapRegId2KeyId                = pAccountViewTip->mapRegId2KeyId;
-    pAcctViewCache->mapNickId2KeyId               = pAccountViewTip->mapNickId2KeyId;
-    pAcctViewCache->blockHash                     = pAccountViewTip->blockHash;
+    std::shared_ptr<CAccountCache> pAcctViewCache = std::make_shared<CAccountCache>(pCdMan->pAccountDb, pCdMan->pAccountCache);
 
     std::shared_ptr<CTransactionCache> pTxCache = std::make_shared<CTransactionCache>();
-    pTxCache->SetTxHashCache(pTxCacheTip->GetTxHashCache());
+    pTxCache->SetTxHashCache(pCdMan->pTxCache->GetTxHashCache());
 
-    std::shared_ptr<CContractCache> pContractCache = std::make_shared<CContractCache>(*pScriptDB);
-    pContractCache->mapContractDb = pScriptDBTip->mapContractDb;
+    std::shared_ptr<CContractCache> pContractCache = std::make_shared<CContractCache>(*pCdMan->pContractDb);
+    pContractCache->mapContractDb = pCdMan->pContractCache->mapContractDb;
 
     bool forkChainTipFound = false;
     uint256 forkChainTipBlockHash;
@@ -2041,7 +2039,8 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
                 return state.Abort(_("Failed to read block"));
 
             bool bfClean = true;
-            if (!DisconnectBlock(block, state, *pAcctViewCache, pBlockIndex, *pTxCache, *pContractCache, &bfClean)) {
+            CCacheWrapper cw(pAcctViewCache.get(), pTxCache.get(), pContractCache.get());
+            if (!DisconnectBlock(block, cw, pBlockIndex, state, &bfClean)) {
                 return ERRORMSG("ProcessForkedChain() : DisconnectBlock %s failed",
                                 pBlockIndex->GetBlockHash().ToString());
             }
@@ -2074,13 +2073,13 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     LogPrint("INFO", "view best block hash:%s height:%d\n", pForkAcctViewCache->GetBestBlock().GetHex(),
             mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight);
 
+    CCacheWrapper cw(pForkAcctViewCache.get(), pForkTxCache.get(), pForkContractCache.get());
     vector<CBlock>::reverse_iterator rIter = vPreBlocks.rbegin();
     for (; rIter != vPreBlocks.rend(); ++rIter) {  //连接支链的block
         LogPrint("INFO", "ProcessForkedChain() ConnectBlock block nHeight=%d hash=%s\n",
                 rIter->GetHeight(), rIter->GetHash().GetHex());
 
-        if (!ConnectBlock(*rIter, state, *pForkAcctViewCache, mapBlockIndex[rIter->GetHash()],
-            *pForkTxCache, *pForkContractCache, false)) {
+        if (!ConnectBlock(*rIter, cw, mapBlockIndex[rIter->GetHash()], state, false)) {
             return ERRORMSG("ProcessForkedChain() : ConnectBlock %s failed", rIter->GetHash().ToString());
         }
 
@@ -2091,7 +2090,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
     //校验pos交易
-    if (!VerifyPosTx(&block, *pForkAcctViewCache, *pForkTxCache, *pForkContractCache, true)) {
+    if (!VerifyPosTx(&block, cw, true)) {
         return state.DoS(100, ERRORMSG("ProcessForkedChain() : the block Hash=%s check pos tx error",
                         block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
     }
@@ -2416,12 +2415,12 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
         return state.Invalid(ERRORMSG("ProcessBlock() : block (orphan) exists %s", blockHash.ToString()), 0, "duplicate");
 
     int64_t llBeginCheckBlockTime = GetTimeMillis();
-    CAccountCache view(*pAccountViewTip);
-    CContractCache scriptDBCache(*pScriptDBTip);
+    CCacheWrapper cw(pCdMan->pAccountCache, pCdMan->pContractCache);
     // Preliminary checks
-    if (!CheckBlock(*pblock, state, view, scriptDBCache, false)) {
+    if (!CheckBlock(*pblock, state, cw, false)) {
         LogPrint("INFO", "CheckBlock() id: %d elapse time:%lld ms\n",
                 chainActive.Height(), GetTimeMillis() - llBeginCheckBlockTime);
+
         return ERRORMSG("ProcessBlock() :block hash:%s CheckBlock FAILED", pblock->GetHash().GetHex());
     }
 
@@ -2451,9 +2450,10 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
             }
 
             // Ask this guy to fill in what we're missing
-            LogPrint("net", "receive an orphan block height=%d hash=%s, %s it, and lead to getblocks, current height=%d, current orphan blocks=%d\n",
+            LogPrint("net", "receive an orphan block height=%d hash=%s, %s it, leading to getblocks (current height=%d & orphan blocks=%d)\n",
                     pblock->GetHeight(), pblock->GetHash().GetHex(), success ? "keep" : "abandon",
                     chainActive.Tip()->nHeight, mapOrphanBlocksByPrev.size());
+
             PushGetBlocksOnCondition(pfrom, chainActive.Tip(), GetOrphanRoot(blockHash));
         }
         return true;
@@ -2838,9 +2838,9 @@ bool static LoadBlockIndexDB() {
     LogPrint("INFO", "LoadBlockIndexDB(): transaction index %s\n", bTxIndex ? "enabled" : "disabled");
 
     // Load pointer to end of best chain
-    map<uint256, CBlockIndex *>::iterator it = mapBlockIndex.find(pAccountViewTip->GetBestBlock());
+    map<uint256, CBlockIndex *>::iterator it = mapBlockIndex.find(pCdMan->pAccountCache->GetBestBlock());
 
-    LogPrint("INFO", "best block hash:%s\n", pAccountViewTip->GetBestBlock().GetHex());
+    LogPrint("INFO", "best block hash:%s\n", pCdMan->pAccountCache->GetBestBlock().GetHex());
     if (it == mapBlockIndex.end())
         return true;
     chainActive.SetTip(it->second);
@@ -2866,10 +2866,10 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
     LogPrint("INFO", "Verifying last %i blocks at level %i\n", nCheckDepth, nCheckLevel);
 
     // Copy global view cache before disconnect and connect.
-    CAccountCache accountCache(*pAccountViewTip);
-    CTransactionCache txCache(*pTxCacheTip);
-    CContractCache scriptCache(*pScriptDBTip);
-
+    // CAccountCache accountCache(*pAccountViewTip);
+    // CTransactionCache txCache(*pTxCacheTip);
+    // CContractCache scriptCache(*pScriptDBTip);
+    CCacheWrapper cw(pCdMan->pAccountCache, pCdMan->pTxCache, pCdMan->pContractCache);
     CBlockIndex *pindexState   = chainActive.Tip();
     CBlockIndex *pindexFailure = NULL;
     int nGoodTransactions      = 0;
@@ -2886,7 +2886,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
                             pIndex->nHeight, pIndex->GetBlockHash().ToString());
 
         // check level 1: verify block validity
-        if (nCheckLevel >= 1 && !CheckBlock(block, state, accountCache, scriptCache))
+        if (nCheckLevel >= 1 && !CheckBlock(block, state, cw))
             return ERRORMSG("VerifyDB() : *** found bad block at %d, hash=%s\n",
                             pIndex->nHeight, pIndex->GetBlockHash().ToString());
 
@@ -2904,7 +2904,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
         if (nCheckLevel >= 3 && pIndex == pindexState) {
             bool fClean = true;
 
-            if (!DisconnectBlock(block, state, accountCache, pIndex, txCache, scriptCache, &fClean))
+            if (!DisconnectBlock(block, cw, pIndex, state, &fClean))
                 return ERRORMSG("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s",
                                 pIndex->nHeight, pIndex->GetBlockHash().ToString());
 
@@ -2930,7 +2930,8 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
             if (!ReadBlockFromDisk(pIndex, block))
                 return ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s",
                                 pIndex->nHeight, pIndex->GetBlockHash().ToString());
-            if (!ConnectBlock(block, state, accountCache, pIndex, txCache, scriptCache, false))
+
+            if (!ConnectBlock(block, cw, pIndex, state, false))
                 return ERRORMSG("VerifyDB() : *** found un-connectable block at %d, hash=%s",
                                 pIndex->nHeight, pIndex->GetBlockHash().ToString());
         }
@@ -4344,7 +4345,7 @@ bool DisconnectBlockFromTip(CValidationState &state) {
 bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &vAccountLog) {
     if (SysCfg().IsTxIndex()) {
         CDiskTxPos postx;
-        if (pScriptDBTip->ReadTxIndex(txHash, postx)) {
+        if (pCdMan->pContractCache->ReadTxIndex(txHash, postx)) {
             CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
             CBlockHeader header;
             try {

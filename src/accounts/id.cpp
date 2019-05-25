@@ -5,8 +5,9 @@
 
 #include "id.h"
 #include "persistence/accountdb.h"
+#include "main.h"
 
-extern CAccountCache *pAccountViewTip; /** global account db cache*/
+extern CCacheDBManager *pCdMan;
 
 bool CRegID::Clean() {
     nHeight = 0 ;
@@ -60,7 +61,7 @@ bool CRegID::GetKeyId(const string & str,CKeyID &keyId) {
     if (regId.IsEmpty())
         return false;
 
-    keyId = regId.GetKeyId(*pAccountViewTip);
+    keyId = regId.GetKeyId(*pCdMan->pAccountCache);
     return !keyId.IsEmpty();
 }
 

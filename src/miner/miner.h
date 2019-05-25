@@ -10,11 +10,12 @@
 #include <map>
 #include <set>
 #include <vector>
-
 #include <memory>
+
 #include "boost/tuple/tuple.hpp"
-#include "../accounts/key.h"
+#include "accounts/key.h"
 #include "commons/uint256.h"
+#include "tx/tx.h"
 
 class CBlock;
 class CBlockIndex;
@@ -23,7 +24,7 @@ class CWallet;
 class CBaseTx;
 class CAccountCache;
 class CTransactionCache;
-// class CContractCache;
+class CContractCache;
 class CAccount;
 
 typedef boost::tuple<double, double, std::shared_ptr<CBaseTx> > TxPriority;
@@ -72,7 +73,7 @@ void GenerateCoinBlock(bool fGenerate, CWallet *pwallet, int nThreads);
 /** Generate a new block */
 unique_ptr<CBlockTemplate> CreateNewBlock(CAccountCache &view, CTransactionCache &txCache, CContractCache &scriptCache);
 /** Modify the extranonce in a block */
-void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pindexPrev, unsigned int &nExtraNonce);
+void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pIndexPrev, unsigned int &nExtraNonce);
 /** Do mining precalculation */
 void FormatHashBuffers(CBlock *pblock, char *pmidstate, char *pdata, char *phash1);
 
@@ -85,7 +86,7 @@ void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList);
 
 bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct);
 
-bool VerifyPosTx(const CBlock *pBlock, bool bNeedRunTx = false);
+bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cw, bool bNeedRunTx = false);
 /** Check mined block */
 bool CheckWork(CBlock *pblock, CWallet &wallet);
 /** Base sha256 mining transform */

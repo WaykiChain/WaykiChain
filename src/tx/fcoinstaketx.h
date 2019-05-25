@@ -54,7 +54,7 @@ public:
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CFcoinStakeTx>(this); }
     virtual double GetPriority() const { return 10000.0f; } // Top priority
 
-    virtual string ToString(CAccountCache &view) const;
+    virtual string ToString(CAccountCache &view);
     virtual Object ToJson(const CAccountCache &AccountView) const;
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 

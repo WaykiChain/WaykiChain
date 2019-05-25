@@ -9,14 +9,15 @@
 
 #include <list>
 #include <map>
-
-#include "sync.h"
 #include <memory>
+
+#include "persistence/contractdb.h"
+#include "sync.h"
 
 using namespace std;
 
 class CAccountCache;
-// class CContractCache;
+class CContractCache;
 class CValidationState;
 class CBaseTx;
 class uint256;

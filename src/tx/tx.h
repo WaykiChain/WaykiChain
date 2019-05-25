@@ -40,9 +40,14 @@ public:
             pAccountCache(pAccountCacheIn), pTxCache(nullptr), pContractCache(pContractCacheIn), pTxUndo(nullptr) {};
 
     CCacheWrapper( CAccountCache *pAccountCacheIn,
-            CTransactionCache *pTxCacheIn,
-            CContractCache *pContractCacheIn,
-            CTxUndo *pTxUndoIn) :
+                    CTransactionCache *pTxCacheIn,
+                    CContractCache *pContractCacheIn) :
+        pAccountCache(pAccountCacheIn), pTxCache(pTxCacheIn), pContractCache(pContractCacheIn), pTxUndo(nullptr) {};
+
+    CCacheWrapper( CAccountCache *pAccountCacheIn,
+                    CTransactionCache *pTxCacheIn,
+                    CContractCache *pContractCacheIn,
+                    CTxUndo *pTxUndoIn) :
         pAccountCache(pAccountCacheIn), pTxCache(pTxCacheIn), pContractCache(pContractCacheIn), pTxUndo(pTxUndoIn) {};
 };
 
@@ -77,7 +82,7 @@ enum TxType : unsigned char {
     DELEGATE_VOTE_TX    = 6,  //!< Vote Delegate Tx
     COMMON_MTX          = 7,  //!< Multisig Tx
 
-    BLOCK_MEDIAN_PRICE_TX = 8, // Block Median Price Tx
+    BLOCK_PRICE_MEDIAN_TX = 8, // Block Median Price Tx
     /******** Begin of Stable Coin TX Type Enums ********/
     CDP_OPEN_TX      = 11,  //!< CDP Collateralize Tx
     CDP_REFUEL_TX    = 12,  //!< CDP Refuel Tx
@@ -182,7 +187,7 @@ public:
     virtual uint256 ComputeSignatureHash(bool recalculate = false) const    = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance()                       = 0;
 
-    virtual string ToString(const CAccountCache &view) const            = 0;
+    virtual string ToString(CAccountCache &view)            = 0;
     virtual Object ToJson(const CAccountCache &view) const              = 0;
     virtual bool GetInvolvedKeyIds(CCacheWrapper& cw, set<CKeyID> &keyIds) = 0;
 

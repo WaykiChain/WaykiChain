@@ -7,11 +7,13 @@
 #include "accounts/key.h"
 #include "commons/uint256.h"
 #include "util.h"
+#include "main.h"
 
 #include <stdint.h>
 
 using namespace std;
 
+extern CChain chainActive;
 
 bool CAccountCache::GetAccount(const CKeyID &keyId, CAccount &account) {
     if (mapKeyId2Account.count(keyId)) {
@@ -158,7 +160,7 @@ bool CAccountCache::GetKeyId(const vector<unsigned char> &accountId, CKeyID &key
         return false;
 
     if (mapRegId2KeyId.count(accountId)) {
-        keyId = mapRegId2KeyId[accountId];
+        keyId = mapRegId2KeyId[ accountId ];
         return (keyId != uint160());
     }
 
@@ -169,6 +171,25 @@ bool CAccountCache::GetKeyId(const vector<unsigned char> &accountId, CKeyID &key
     }
 
     return false;
+}
+
+bool CAccountCache::GetKeyId(const CUserID &userId, CKeyID &keyId) {
+    if (userId.type() == typeid(CRegID)) {
+        return GetKeyId(userId.get<CRegID>().GetRegIdRaw(), keyId);
+
+    } else if (userId.type() == typeid(CPubKey)) {
+        keyId = userId.get<CPubKey>().GetKeyId();
+        return true;
+
+    } else if (userId.type() == typeid(CKeyID)) {
+        keyId = userId.get<CKeyID>();
+        return true;
+
+    } else if (userId.type() == typeid(CNullID)) {
+        return ERRORMSG("GetKeyId: userId can't be of CNullID type");
+    }
+
+    return ERRORMSG("GetKeyId: userid type is unknown");
 }
 
 bool CAccountCache::EraseKeyIdByRegId(const vector<unsigned char> &accountRegId) {
@@ -218,25 +239,6 @@ bool CAccountCache::GetAccount(const CUserID &userId, CAccount &account) {
     }
 
     return ret;
-}
-
-bool CAccountCache::GetKeyId(const CUserID &userId, CKeyID &keyId) {
-    if (userId.type() == typeid(CRegID)) {
-        return GetKeyId(userId.get<CRegID>().GetRegIdRaw(), keyId);
-
-    } else if (userId.type() == typeid(CPubKey)) {
-        keyId = userId.get<CPubKey>().GetKeyId();
-        return true;
-
-    } else if (userId.type() == typeid(CKeyID)) {
-        keyId = userId.get<CKeyID>();
-        return true;
-
-    } else if (userId.type() == typeid(CNullID)) {
-        return ERRORMSG("GetKeyId: userId can't be of CNullID type");
-    }
-
-    return ERRORMSG("GetKeyId: userid type is unknown");
 }
 
 bool CAccountCache::GetUserId(const string &addr, CUserID &userId) {
@@ -484,7 +486,7 @@ bool CAccountDB::SaveAccountInfo(const CAccount &account) {
     return db.WriteBatch(batch, false);
 }
 
-std::tuple<uint64_t, uint64_t> CAccountViewDB::TraverseAccount() {
+std::tuple<uint64_t, uint64_t> CAccountDB::TraverseAccount() {
     uint64_t totalCoins(0);
     uint64_t totalRegIds(0);
 

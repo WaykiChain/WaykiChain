@@ -120,7 +120,7 @@ static bool noui_SyncTx()
 			CAccountTx acctTx= pWalletMain->mapInBlockTx[pStartBlockIndex->GetBlockHash()];
 			map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx = acctTx.mapAccountTx.begin();
 			for(;iterTx != acctTx.mapAccountTx.end(); ++iterTx) {
-				objTx = iterTx->second->ToJson(*pAccountViewTip);
+				objTx = iterTx->second->ToJson(*pCdMan->pAccountCache);
 				objTx.push_back(Pair("blockhash", pStartBlockIndex->GetBlockHash().ToString()));
 				objTx.push_back(Pair("confirmedheight", pStartBlockIndex->nHeight));
 				objTx.push_back(Pair("confirmedtime", (int)pStartBlockIndex->nTime));
@@ -159,7 +159,7 @@ static bool noui_SyncTx()
 	map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx =  pWalletMain->unconfirmedTx.begin();
 	for(; iterTx != pWalletMain->unconfirmedTx.end(); ++iterTx)
 	{
-		Object objTx = iterTx->second.get()->ToJson(*pAccountViewTip);
+		Object objTx = iterTx->second.get()->ToJson(*pCdMan->pAccountCache);
 		arrayObj.push_back(objTx);
 
 		Object obj;
