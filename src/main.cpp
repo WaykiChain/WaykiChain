@@ -1654,9 +1654,12 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
     int64_t nStart = GetTimeMicros();
     {
         CInv inv(MSG_BLOCK, pIndexNew->GetBlockHash());
-        CAccountCache view(*pAccountViewTip);
-        CContractCache scriptDBView(*pScriptDBTip);
-        if (!ConnectBlock(block, state, view, pIndexNew, *pTxCacheTip, scriptDBView)) {
+        
+        CAccountCache accountCache(*pCdMan->pAccountCache);
+        CContractCache contractCache(*pCdMan->pContractCache);
+        CCacheWrapper cw(&accountCache, &contractCache);
+
+        if (!ConnectBlock(block, state, cw, pIndexNew)) {
             if (state.IsInvalid()) {
                 InvalidBlockFound(pIndexNew, state);
             }
@@ -1665,15 +1668,18 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         mapBlockSource.erase(inv.hash);
 
         // Need to re-sync all to global cache layer.
-        view.SetBaseView(pAccountViewTip);
-        assert(view.Flush());
-        scriptDBView.SetBaseView(pScriptDBTip);
-        assert(scriptDBView.Flush());
+        // accountCache.SetBaseView(pCdMan->pAccountCache);
+        // assert(accountCache.Flush());
+        pCdMan->pAccountCache->Flush();
+        // contractCache.SetBaseView(pCdMan->pContractCache);
+        // assert(contractCache.Flush());
+        pCdMan->pContractCache->Flush();
 
-        CAccountCache accountViewCacheTemp(*pAccountViewTip);
+        CAccountCache accountViewCacheTemp(*pCdMan->pAccountCache);
         uint256 uBestblockHash = accountViewCacheTemp.GetBestBlock();
         LogPrint("INFO", "uBestBlockHash[%d]: %s\n", nSyncTipHeight, uBestblockHash.GetHex());
     }
+
     if (SysCfg().IsBenchmark())
         LogPrint("INFO", "- Connect: %.2fms\n", (GetTimeMicros() - nStart) * 0.001);
 
@@ -1687,10 +1693,12 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
     // Write new block info to log, if necessary.
     if (SysCfg().GetArg("-blocklog", 0) != 0) {
         if (chainActive.Height() % SysCfg().GetArg("-blocklog", 0) == 0) {
-            if (!pAccountViewTip->Flush())
+            if (!pCdMan->pAccountCache->Flush())
                 return state.Abort(_("Failed to write to account database"));
-            if (!pScriptDBTip->Flush())
+                
+            if (!pCdMan->pContractCache->Flush())
                 return state.Abort(_("Failed to write to script db database"));
+
             WriteBlockLog(true, "ConnectTip");
         }
     }
