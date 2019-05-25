@@ -1,7 +1,8 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2017-2018 The WaykiChain Core developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #ifndef COIN_CHAIN_PARAMS_H
 #define COIN_CHAIN_PARAMS_H
@@ -71,6 +72,7 @@ protected:
     mutable int64_t paytxfee;
     uint16_t nMaxForkHeight = 24 * 60 * 6; //8640, i.e. forked distance by a day block height
     int64_t nBlockInterval;   //to limit block creation time
+    uint32_t nFeatureForkHeight;
     mutable unsigned int nScriptCheckThreads;
     mutable int64_t nViewCacheSize;
     mutable int nTxCacheHeight;
@@ -89,7 +91,7 @@ public:
     virtual bool InitialConfig() {
         fServer = GetBoolArg("-server", false);
 
-        m_mapMultiArgs["-debug"].push_back("ERROR"); //add froce ERROR to log
+        m_mapMultiArgs["-debug"].push_back("ERROR");  // Enable ERROR logger by default
         fDebug = !m_mapMultiArgs["-debug"].empty();
         if (fDebug) {
             fDebugAll = GetBoolArg("-logprintall", false);
@@ -281,8 +283,11 @@ public:
     int GetSubsidyHalvingInterval() const {
         return nSubsidyHalvingInterval;
     }
+    uint32_t GetFeatureForkHeight() const {
+        return nFeatureForkHeight;
+    }
     virtual uint64_t GetMaxFee() const {
-        return 1000 * COIN;  //1000 WICC
+        return 1000 * COIN;  // 1000 WICC
     }
     virtual const CBlock& GenesisBlock() const = 0;
     virtual bool RequireRPCPassword() const {
@@ -307,7 +312,6 @@ public:
         return nUIPort;
     }
     const string& GetCheckPointPKey() const {return CheckPointPKey;}
-    /******************************paras**************************************/
     static bool InitializeParams(int argc, const char* const argv[]);
     static int64_t GetArg(const string& strArg, int64_t nDefault);
     static string GetArg(const string& strArg, const string& strDefault);
@@ -339,7 +343,6 @@ public:
 protected:
     static map<string, string> m_mapArgs;
     static map<string, vector<string> > m_mapMultiArgs;
-    /********************************************************************/
 
 protected:
     CBaseParams() ;
