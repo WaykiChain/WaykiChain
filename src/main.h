@@ -650,7 +650,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state, CCacheWrapper &cw, CBl
 bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos &pos);
 
 // Context-independent validity checks
-bool CheckBlock(const CBlock &block, CValidationState &state, CAccountCache &view, CContractCache &scriptDBCache,
+bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw, 
                 bool fCheckTx = true, bool fCheckMerkleRoot = true);
 
 bool ProcessForkedChain(const CBlock &block, CValidationState &state);

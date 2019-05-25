@@ -1396,7 +1396,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state,  CCacheWrapper &cw, CB
 
     std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[0]);
     CAccount minerAcct;
-    if (!view.GetAccount(pRewardTx->txUid, minerAcct)) {
+    if (!pCdMan->pAccoutCache->GetAccount(pRewardTx->txUid, minerAcct)) {
         assert(0);
     }
     // LogPrint("INFO", "miner address=%s\n", minerAcct.keyID.ToAddress());
@@ -1412,7 +1412,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state,  CCacheWrapper &cw, CB
     //Execute BlockRewardTx
     LogPrint("op_account", "tx index:%d tx hash:%s\n", 0, block.vptx[0]->GetHash().GetHex());
     CTxUndo txundo;
-    if (!block.vptx[0]->ExecuteTx(0, view, state, txundo, pIndex->nHeight, txCache, scriptDBCache))
+    cw.pTxUndo = &txundo;
+    if (!block.vptx[0]->ExecuteTx(0, pIndex->nHeight, cw, state))
         return ERRORMSG("ConnectBlock() : execute reward tx error!");
 
     blockundo.vtxundo.push_back(txundo);
@@ -1432,7 +1433,8 @@ bool ConnectBlock(CBlock &block, CValidationState &state,  CCacheWrapper &cw, CB
                                 REJECT_INVALID, "bad-read-block");
             }
 
-            if (!matureBlock.vptx[0]->ExecuteTx(-1, view, state, txundo, pIndex->nHeight, txCache, scriptDBCache))
+            cw.pTxUndo = &txundo;
+            if (!matureBlock.vptx[0]->ExecuteTx(-1, pIndex->nHeight, cw, state))
                 return ERRORMSG("ConnectBlock() : execute mature block reward tx error!");
         }
         blockundo.vtxundo.push_back(txundo);
@@ -1448,7 +1450,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state,  CCacheWrapper &cw, CB
     if (SysCfg().IsTxIndex()) {
         LogPrint("txindex", " add tx index, block hash:%s\n", pIndex->GetBlockHash().GetHex());
         vector<CContractDBOperLog> vTxIndexOperDB;
-        if (!scriptDBCache.WriteTxIndex(vPos, vTxIndexOperDB))
+        if (!pCdMan->pContractCache->WriteTxIndex(vPos, vTxIndexOperDB))
             return state.Abort(_("Failed to write transaction index"));
         auto itTxUndo = blockundo.vtxundo.rbegin();
         itTxUndo->vScriptOperLog.insert(itTxUndo->vScriptOperLog.begin(), vTxIndexOperDB.begin(),
@@ -1476,7 +1478,7 @@ bool ConnectBlock(CBlock &block, CValidationState &state,  CCacheWrapper &cw, CB
             return state.Abort(_("Failed to write block index"));
     }
 
-    if (!txCache.AddBlockToCache(block))
+    if (!pCdMan->pTxCache->AddBlockToCache(block))
         return state.Abort(_("Connect tip block failed add block tx to txcache"));
 
     if (pIndex->nHeight - SysCfg().GetTxCacheHeight() > 0) {
@@ -1488,20 +1490,22 @@ bool ConnectBlock(CBlock &block, CValidationState &state,  CCacheWrapper &cw, CB
         CBlock deleteBlock;
         if (!ReadBlockFromDisk(pDeleteBlockIndex, deleteBlock))
             return state.Abort(_("Failed to read block"));
-        if (!txCache.DeleteBlockFromCache(deleteBlock))
+        if (!pCdMan->pTxCache->DeleteBlockFromCache(deleteBlock))
             return state.Abort(_("Connect tip block failed delete block tx to txcache"));
     }
 
     // add this block to the view's block chain
-    assert(view.SetBestBlock(pIndex->GetBlockHash()));
+    assert(pCdMan->pAccountCache->SetBestBlock(pIndex->GetBlockHash()));
     return true;
 }
 
 // Update the on-disk chain state.
 bool static WriteChainState(CValidationState &state) {
     static int64_t nLastWrite = 0;
-    unsigned int cachesize    = pAccountViewTip->GetCacheSize() + pScriptDBTip->GetCacheSize();
-    if (!IsInitialBlockDownload() || cachesize > SysCfg().GetViewCacheSize() || GetTimeMicros() > nLastWrite + 600 * 1000000) {
+    unsigned int cachesize    = pCdMan->pAccountCache->GetCacheSize() + pCdMan->pContractCache->GetCacheSize();
+    if (!IsInitialBlockDownload() 
+        || cachesize > SysCfg().GetViewCacheSize() 
+        || GetTimeMicros() > nLastWrite + 600 * 1000000) {
         // Typical CCoins structures on disk are around 100 bytes in size.
         // Pushing a new one to the database can cause it to be written
         // twice (once in the log, and once in the tables). This is already
@@ -1512,10 +1516,12 @@ bool static WriteChainState(CValidationState &state) {
 
         FlushBlockFile();
         pCdMan->pBlockTreeDb->Sync();
-        if (!pAccountViewTip->Flush())
+        if (!pCdMan->pAccountCache->Flush())
             return state.Abort(_("Failed to write to account database"));
-        if (!pScriptDBTip->Flush())
+
+        if (!pCdMan->pContractCache->Flush())
             return state.Abort(_("Failed to write to script db database"));
+
         mapForkCache.clear();
         nLastWrite = GetTimeMicros();
     }
@@ -1581,10 +1587,10 @@ bool static DisconnectTip(CValidationState &state) {
             return ERRORMSG("DisconnectTip() : DisconnectBlock %s failed", pIndexDelete->GetBlockHash().ToString());
 
         // Need to re-sync all to global cache layer.
-        view.SetBaseView(pAccountViewTip);
-        assert(view.Flush());
-        scriptDBView.SetBaseView(pScriptDBTip);
-        assert(scriptDBView.Flush());
+        accountCache.SetBaseView(pCdMan->pAccountCache);
+        assert(accountCache.Flush());
+        contractCache.SetBaseView(pCdMan->pContractCache);
+        assert(contractCache.Flush());
 
     }
     if (SysCfg().IsBenchmark())
@@ -1781,7 +1787,7 @@ bool ActivateBestChain(CValidationState &state) {
             if (!DisconnectTip(state))
                 return false;
             if (chainActive.Tip() && chainMostWork.Contains(chainActive.Tip())) {
-                mempool.ReScanMemPoolTx(pAccountViewTip, pScriptDBTip);
+                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache);
             }
         }
 
@@ -1803,7 +1809,7 @@ bool ActivateBestChain(CValidationState &state) {
             }
 
             if (chainActive.Contains(chainMostWork.Tip())) {
-                mempool.ReScanMemPoolTx(pAccountViewTip, pScriptDBTip);
+                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache);
             }
         }
     }
