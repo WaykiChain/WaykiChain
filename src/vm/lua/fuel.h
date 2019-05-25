@@ -21,9 +21,6 @@ typedef int lua_burner_version;
 /** burn memory unit size */
 #define BURN_MEM_UNIT_SIZE          32
 
-/** burn store unit size */
-#define BURN_STORE_UNIT_SIZE        32
-
 #define BURN_VER_STEP_V1    BURN_VER_R1
 #define BURN_VER_STEP_V2    BURN_VER_R2
 
@@ -61,4 +58,47 @@ typedef int lua_burner_version;
 
 #define FUEL_MEM_ADDED          3 // fuel for burning memory  per new 32 bytes
 
+#define FUEL_CALL_Int64Mul              5
+#define FUEL_CALL_Int64Add              3
+#define FUEL_CALL_Int64Sub              3
+#define FUEL_CALL_Int64Div              5
+#define FUEL_CALL_ByteToInteger	        10
+#define FUEL_CALL_IntegerToByte4	    6
+#define FUEL_CALL_IntegerToByte8	    8
+#define FUEL_CALL_GetBlockHash	        4
+#define FUEL_CALL_GetBlockTimestamp	    4
+#define FUEL_CALL_GetCurTxHash	        4
+#define FUEL_CALL_GetCurRunEnvHeight	4
+#define FUEL_CALL_GetCurTxAccount	    4
+#define FUEL_CALL_GetCurTxPayAmount	    4
+#define FUEL_CALL_GetContractRegId	    4
+#define FUEL_CALL_GetTxRegID	        200
+#define FUEL_CALL_GetTxConfirmHeight	200
+#define FUEL_CALL_GetAccountPublickey	200
+#define FUEL_CALL_GetBase58Addr	        200
+
+#define FUEL_CALL_Sha256Once            30
+#define FUEL_DATA32_Sha256Once          6
+#define FUEL_CALL_Sha256                50
+#define FUEL_DATA32_Sha256              10
+#define FUEL_CALL_VerifySignature       200
+#define FUEL_DATA32_VerifySignature     10
+
+#define FUEL_CALL_LogPrint              375
+#define FUEL_DATA1_LogPrint             8
+#define FUEL_CALL_GetCurTxContract      4
+#define FUEL_CALL_GetTxContract         200
+#define FUEL_DATA32_GetTxContract       3
+
+#define FUEL_CALL_DesBasic              50
+#define FUEL_DATA8_DesBasic             2
+#define FUEL_CALL_DesTriple             140
+#define FUEL_DATA8_DesTriple            2
+
+#define FUEL_ACCOUNT_OPERATE            4500
+#define FUEL_ACCTOUNT_NEW               25000
+#define FUEL_ACCOUNT_GET_VALUE          400
+#define FUEL_ACCOUNT_GET_FUND_TAG       600
+#define FUEL_ACCTOUNT_UNCHANGED         200
+ 
 #endif // FUEL_H

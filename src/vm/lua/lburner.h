@@ -16,15 +16,17 @@ struct lua_burner_state {
     int                 error;              /** 0 is ok, otherwise has error */
     int                 version;            /** burner version */
     unsigned long long  fuelLimit;          /** max fuel can be burned */
-    unsigned long long  fuel;               /** burned fuel exclude memory */
+    unsigned long long  fuel;               /** burned fuel except memory */
     unsigned long long  fuelRefund;         /** the refund fuel */
     unsigned long long  allocMemSize;       /** total alloc memory size */
-    /** detail */
-    unsigned long long  allocMemTimes;      /** total alloc memory times */
-    unsigned long long  freeMemSize;        /** total free memory size */
-    unsigned long long  freeMemTimes;       /** total free memory times */
-    unsigned long long  step;               /** total step */
-    lua_burner_trace_cb tracer;              /** trace the burning */
+    unsigned long long  fuelStep;           /** total step */
+    unsigned long long  fuelOperator;       /** total fuel of operator of lua */
+    unsigned long long  fuelStore;          /** total fuel of store operation */
+    unsigned long long  fuelAccount;        /** total fuel of account operation (transfer output) */
+    unsigned long long  fuelFunction;       /** total fuel of extended functions except store operation 
+                                                and account operation(transfer output) functions */
+
+    lua_burner_trace_cb tracer;             /** trace the burning */
 };
 
 typedef struct lua_burner_state lua_burner_state;
@@ -59,6 +61,28 @@ LUA_API int lua_BurnStoreUnchange(lua_State *L, size_t keySize, size_t dataSize,
 
 LUA_API int lua_BurnStoreGet(lua_State *L, size_t keySize, size_t dataSize, int version);
 
+LUA_API int lua_BurnAccountOperate(lua_State *L, const char *funcName, size_t count, int version);
+#define LUA_BurnAccountOperate(L, count, version) lua_BurnAccountOperate(L, __FUNCTION__, count, version)
+
+LUA_API int lua_BurnAccountGet(lua_State *L, const char *funcName, unsigned long long fuel, int version);
+#define LUA_BurnAccountGet(L, fuel, version) lua_BurnAccountGet(L, __FUNCTION__, fuel, version)
+
+LUA_API int lua_BurnFuncCall(lua_State *L, const char* funcName, unsigned long long fuel, int version);
+#define LUA_BurnFuncCall(L, fuel, version) lua_BurnFuncCall(L, __FUNCTION__, fuel, version)
+
+#define lua_BurnFuncCallTag(L, tag, fuel, version) \
+    lua_BurnFuncCall(L, __FUNCTION__ ## " " ## tag, fuel, version)
+
+LUA_API int lua_BurnFuncData(lua_State *L, const char *funcName, unsigned long long callFuel, 
+    size_t dataSize, size_t unitSize, unsigned long long fuelPerUnit, int version);
+
+#define LUA_BurnFuncData(L, callFuel, dataSize, unitSize, fuelPerUnit,  version) \
+    lua_BurnFuncData(L, __FUNCTION__, callFuel, dataSize, unitSize, fuelPerUnit,  version)
+
+
+#define LUA_BurnFuncDataTag(L, tag, callFuel, dataSize, unitSize, fuelPerUnit,  version) \
+    lua_BurnFuncData(L, __FUNCTION__ ## " " ## tag, callFuel, dataSize, unitSize, fuelPerUnit,  version)
+
 /** get burned step */
 LUA_API unsigned long long lua_GetBurnedFuel(lua_State *L);
 
@@ -70,8 +94,6 @@ LUA_API unsigned long long lua_GetMemoryFuel(lua_State *L);
 
 #define lua_CalcFuelBySize(size, unitSize, fuelPerUnit) \
     ( unitSize == 0 ? 0 : ((size + unitSize - 1) / unitSize) * fuelPerUnit )
-
-LUA_API void lua_BurnError (lua_State *L, const char *fmt, ...);
 
 /**
  * set the burner trace callback function, rerurn the old one

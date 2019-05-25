@@ -116,13 +116,25 @@ static OpFuelInfo g_opFuelList[OP_TOTAL_COUNT] = {
         L->burnerState.tracer(L, caption, format, __VA_ARGS__);\
     }
 
-static int CheckBurnedOk(lua_State *L, const char *errMsg) {
+static int CheckBurnedOk(lua_State *L, const char *errMsg, ...) {
     if (lua_IsBurnedOut(L)) {
-        lua_BurnError(L, "%s", errMsg);
+        L->burnerState.error = 1;
+        va_list argp;
+        va_start(argp, errMsg);
+        luaL_where(L, 1);
+        lua_pushvfstring(L, errMsg, argp);
+        va_end(argp);
+        lua_concat(L, 2);
+
+        lua_lock(L);
+        api_checknelems(L, 1);
+
+        luaD_throw(L, LUA_ERR_BURNEDOUT);
         return 0;
     }
     return 1;
-}
+} 
+
 
 LUA_API int lua_StartBurner(lua_State *L, unsigned long long fuelLimit, int version) {
     assert(L->burnerState.isStarted == 0 && "burner has been started");
@@ -133,12 +145,13 @@ LUA_API int lua_StartBurner(lua_State *L, unsigned long long fuelLimit, int vers
     L->burnerState.version          = version;
     L->burnerState.fuel             = 0;    
     L->burnerState.fuelRefund       = 0;
-    L->burnerState.step             = 0;
+    L->burnerState.fuelStep         = 0;
     L->burnerState.allocMemSize     = 0;
-    L->burnerState.allocMemTimes    = 0;
-    L->burnerState.freeMemSize      = 0;
-    L->burnerState.freeMemTimes     = 0;
-    L->burnerState.tracer            = NULL;
+    L->burnerState.fuelOperator     = 0;
+    L->burnerState.fuelStore        = 0;
+    L->burnerState.fuelAccount      = 0;
+    L->burnerState.fuelFunction     = 0;
+    L->burnerState.tracer           = NULL;
     return 1;
 }
 
@@ -154,17 +167,9 @@ LUA_API int lua_BurnMemory(lua_State *L, void *block, size_t osize, size_t nsize
     if (IsBurnerRuning(L) && version <= L->burnerState.version) {
         if (nsize > 0) {  // alloc memory
             L->burnerState.allocMemSize += nsize;
-            L->burnerState.allocMemTimes++;
             TraceBurning(L, "lua_BurnMemory", "alloc memory, version=%d, size=%llu\n", 
                 version, nsize);
             return CheckBurnedOk(L, "Burned-out lua_BurnMemory");
-        } else { // free memory
-            if (block != NULL) {
-                L->burnerState.freeMemSize += osize;
-                L->burnerState.freeMemTimes++;
-                TraceBurning(L, "lua_BurnMemory", "free memory, version=%d, size=%llu\n", 
-                    version, osize);
-            }
         }
     }
     return 1;
@@ -173,7 +178,7 @@ LUA_API int lua_BurnMemory(lua_State *L, void *block, size_t osize, size_t nsize
 LUA_API int lua_BurnStep(lua_State *L, unsigned long long step, int version) {
     if (IsBurnerRuning(L) && version <= L->burnerState.version) {
         L->burnerState.fuel += step;
-        L->burnerState.step += step;
+        L->burnerState.fuelStep += step;
         TraceBurning(L, "lua_BurnStep", "version=%d, step=%llu\n", version, step);
         return CheckBurnedOk(L, "Burned-out lua_BurnStep");
     }
@@ -183,9 +188,11 @@ LUA_API int lua_BurnStep(lua_State *L, unsigned long long step, int version) {
 LUA_API int lua_BurnOperator(lua_State *L, int op, int version) {
     if (IsBurnerRuning(L) && version <= L->burnerState.version) {
         if (op >= 0 && op <= OP_TOTAL_COUNT - 1) {
-            L->burnerState.fuel += g_opFuelList[op].fuel;
+            unsigned long long fuel = g_opFuelList[op].fuel;
+            L->burnerState.fuel += fuel;
+            L->burnerState.fuelOperator += fuel;
             TraceBurning(L, "lua_BurnOperator", "version=%d, op=%s, fuel=%llu\n", 
-                version, g_opFuelList[op].name, g_opFuelList[op].fuel);
+                version, g_opFuelList[op].name, fuel);
             return CheckBurnedOk(L, "Burned-out lua_BurnOperator");
         } else {
             TraceBurning(L, "lua_BurnOperator", "unknown op, version=%d, op=%d\n", 
@@ -220,6 +227,7 @@ LUA_API int lua_BurnStoreSet(lua_State *L, size_t keySize, size_t oldDataSize, s
             }
         }
         L->burnerState.fuel += fuel;
+        L->burnerState.fuelStore += fuel;
         L->burnerState.fuelRefund += refund;
         TraceBurning(L, "lua_BurnStoreSet", "%s, version=%d, keySize=%u, oldDataSize=%u, newDataSize=%u, fuel=%llu, refund=%llu\n", 
             action, version, keySize, oldDataSize, newDataSize, refund);
@@ -230,8 +238,9 @@ LUA_API int lua_BurnStoreSet(lua_State *L, size_t keySize, size_t oldDataSize, s
 
 LUA_API int lua_BurnStoreUnchange(lua_State *L, size_t keySize, size_t dataSize, int version) {
     if (IsBurnerRuning(L) && version <= L->burnerState.version) {
-        unsigned long long fuel = max(keySize + dataSize, 1) * FUEL_STORE_UNCHANGED;
+        unsigned long long fuel = (keySize + dataSize) * FUEL_STORE_UNCHANGED;
         L->burnerState.fuel += FUEL_STORE_UNCHANGED;
+        L->burnerState.fuelStore += fuel;
         TraceBurning(L, "lua_BurnStoreUnchange", "version=%d, keySize=%u, dataSize=%u, fuel=%llu\n", 
             version, fuel);
         return CheckBurnedOk(L, "Burned-out lua_BurnStoreUnchange");
@@ -239,14 +248,64 @@ LUA_API int lua_BurnStoreUnchange(lua_State *L, size_t keySize, size_t dataSize,
     return 1;
 }
 
-
 LUA_API int lua_BurnStoreGet(lua_State *L, size_t keySize, size_t dataSize, int version) {
     if (IsBurnerRuning(L) && version <= L->burnerState.version) {
-        unsigned long long fuel = max(keySize + dataSize, 1) * FUEL_STORE_GET;
+        unsigned long long fuel = (keySize + dataSize) * FUEL_STORE_GET;
         L->burnerState.fuel += fuel;
+        L->burnerState.fuelStore += fuel;
         TraceBurning(L, "lua_BurnStoreGet", "version=%d, keySize=%u, dataSize=%u, fuel=%llu\n", 
             version, keySize, dataSize, fuel);
         return CheckBurnedOk(L, "Burned-out lua_BurnStoreGet");
+    }
+    return 1;
+}
+
+LUA_API int lua_BurnAccountOperate(lua_State *L, const char *funcName, size_t count, int version) {
+    if (IsBurnerRuning(L) && version <= L->burnerState.version) {
+        unsigned long long fuel = count * FUEL_ACCOUNT_OPERATE;
+        L->burnerState.fuel += fuel;
+        L->burnerState.fuelAccount += fuel;
+        TraceBurning(L, "lua_BurnAccountOperate", "%s, version=%d, count=%u, fuel=%llu\n", 
+            funcName, version, count, fuel);
+        return CheckBurnedOk(L, "Burned-out lua_BurnAccountOperate %s()", funcName);
+    }
+    return 1;
+}
+
+LUA_API int lua_BurnAccountGet(lua_State *L, const char *funcName, unsigned long long fuel, int version) {
+        if (IsBurnerRuning(L) && version <= L->burnerState.version) {
+        L->burnerState.fuel += fuel;
+        L->burnerState.fuelAccount += fuel;
+        TraceBurning(L, "lua_BurnAccountGet", "%s, version=%d, fuel=%llu\n", 
+            funcName, version, fuel);
+        return CheckBurnedOk(L, "Burned-out lua_BurnAccountGet %s()", funcName);
+    }
+    return 1;
+}
+
+LUA_API int lua_BurnFuncCall(lua_State *L, const char *funcName, unsigned long long fuel,
+                               int version) {
+    if (IsBurnerRuning(L) && version <= L->burnerState.version) {
+        L->burnerState.fuel += fuel;
+        L->burnerState.fuelFunction += fuel;
+        TraceBurning(L, "lua_BurnFuncCall", "%s, version=%d, fuel=%llu\n",
+                     funcName, version, fuel);
+        return CheckBurnedOk(L, "Burned-out lua_BurnFuncCall %s", funcName);
+    }
+    return 1;
+}
+
+LUA_API int lua_BurnFuncData(lua_State *L, const char *funcName, unsigned long long callFuel, 
+    size_t dataSize, size_t unitSize, unsigned long long fuelPerUnit, int version) {
+
+    if (IsBurnerRuning(L) && version <= L->burnerState.version) {
+        unsigned long long fuel = callFuel + lua_CalcFuelBySize(dataSize, unitSize, fuelPerUnit);
+        L->burnerState.fuel += fuel;
+        L->burnerState.fuelFunction += fuel;
+        TraceBurning(L, "lua_BurnFuncData",
+                     "%s, version=%d, dataSize=%u, unitSize=%u, fuelPerUnit=%llu, fuel=%llu\n",
+                     funcName, dataSize, unitSize, fuelPerUnit, version, fuel);
+        return CheckBurnedOk(L, "Burned-out lua_BurnFuncData %s", funcName);
     }
     return 1;
 }
@@ -271,21 +330,6 @@ int lua_IsBurnedOut(lua_State *L) {
 
 LUA_API unsigned long long lua_GetMemoryFuel(lua_State *L) {
     return lua_CalcFuelBySize(L->burnerState.allocMemSize, BURN_MEM_UNIT_SIZE, FUEL_MEM_ADDED);
-}
-
-void lua_BurnError(lua_State *L, const char *fmt, ...) {
-    L->burnerState.error = 1;
-    va_list argp;
-    va_start(argp, fmt);
-    luaL_where(L, 1);
-    lua_pushvfstring(L, fmt, argp);
-    va_end(argp);
-    lua_concat(L, 2);
-
-    lua_lock(L);
-    api_checknelems(L, 1);
-
-    luaD_throw(L, LUA_ERR_BURNEDOUT);
 }
 
 LUA_API lua_burner_trace_cb lua_SetBurnerTracer(lua_State *L, lua_burner_trace_cb tracer) {
