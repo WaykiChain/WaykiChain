@@ -8,7 +8,7 @@
 #ifndef COIN_MULSIGTX_H
 #define COIN_MULSIGTX_H
 
-#include "tx/tx.h"
+#include "tx.h"
 
 class CSignaturePair {
 public:

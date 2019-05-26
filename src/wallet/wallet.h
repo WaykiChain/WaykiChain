@@ -16,7 +16,7 @@
 #include <vector>
 #include <memory>
 
-#include "crypter.h"
+#include "../crypter.h"
 #include "accounts/key.h"
 #include "accounts/keystore.h"
 #include "ui_interface.h"

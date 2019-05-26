@@ -6,7 +6,7 @@
 #ifndef PERSIST_BLOCK_H
 #define PERSIST_BLOCK_H
 
-#include "configuration.h"
+#include "../configuration.h"
 #include "accounts/key.h"
 #include "commons/serialize.h"
 #include "commons/uint256.h"

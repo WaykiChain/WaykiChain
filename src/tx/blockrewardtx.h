@@ -7,7 +7,7 @@
 #ifndef BLOCK_REWARD_H
 #define BLOCK_REWARD_H
 
-#include "tx/tx.h"
+#include "tx.h"
 
 class CBlockRewardTx : public CBaseTx {
 public:

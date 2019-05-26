@@ -6,7 +6,7 @@
 #ifndef PRICE_FEED_H
 #define PRICE_FEED_H
 
-#include "tx/tx.h"
+#include "tx.h"
 
 class CoinPriceType {
 public:

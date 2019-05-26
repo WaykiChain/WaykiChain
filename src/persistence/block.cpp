@@ -3,7 +3,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "persistence/block.h"
+#include "block.h"
 #include "main.h"
 #include "net.h"
 
