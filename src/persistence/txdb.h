@@ -37,7 +37,7 @@ public:
 
 class CPricePointCache {
 private:
-    map<CCoinPriceType, tuple<vector<PricePoint>, vecto
+    map<CCoinPriceType, tuple<set<PricePoint>, set<PricePoint>> mapCoinPricePointSet;
 
 }
 #endif // PERSIST_TXDB_H
