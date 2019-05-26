@@ -259,7 +259,7 @@ public:
         db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {}
 
     CContractDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) :
-        db(GetDataDir() / "blocks" / "script", nCacheSize, fMemory, fWipe) {}
+        db(GetDataDir() / "blocks" / "contract", nCacheSize, fMemory, fWipe) {}
 
 private:
     CContractDB(const CContractDB &);

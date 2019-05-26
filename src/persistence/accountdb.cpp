@@ -207,8 +207,7 @@ bool CAccountCache::EraseKeyIdByRegId(const vector<unsigned char> &accountRegId)
     return true;
 }
 
-
-bool CAccountCache::SaveAccount(const CAccount  &account) {
+bool CAccountCache::SaveAccount(const CAccount &account) {
     mapRegId2KeyId[ account.regID.GetRegIdRaw() ] = account.keyID;
     mapKeyId2Account[ account.keyID ] = account;
     if (!account.nickID.IsEmpty()) {
