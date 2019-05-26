@@ -1,8 +1,9 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2014-2015 The WaykiChain developers
-// Copyright (c) 2017-2018 WaykiChain Developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #include "configuration.h"
 #include "chainparams.h"
 
@@ -30,13 +31,14 @@ public:
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(MAIN_NET), sizeof(pchMessageStart));
-        vAlertPubKey =  ParseHex(IniCfg().GetCheckPointPkey(MAIN_NET));
-        nDefaultPort = IniCfg().GetnDefaultPort(MAIN_NET) ;
-        nRPCPort = IniCfg().GetnRPCPort(MAIN_NET);
-        nUIPort = IniCfg().GetnUIPort(MAIN_NET);
-        strDataDir = "main";
-        bnProofOfStakeLimit =~arith_uint256(0) >> 10;        //00 3f ff ff
+        vAlertPubKey            = ParseHex(IniCfg().GetCheckPointPkey(MAIN_NET));
+        nDefaultPort            = IniCfg().GetnDefaultPort(MAIN_NET);
+        nRPCPort                = IniCfg().GetnRPCPort(MAIN_NET);
+        nUIPort                 = IniCfg().GetnUIPort(MAIN_NET);
+        strDataDir              = "main";
+        bnProofOfStakeLimit     = ~arith_uint256(0) >> 10;  // 00 3f ff ff
         nSubsidyHalvingInterval = IniCfg().GetHalvingInterval(MAIN_NET);
+        nFeatureForkHeight      = IniCfg().GetFeatureForkHeight(MAIN_NET);
         assert(CreateGenesisBlockRewardTx(genesis.vptx, MAIN_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, MAIN_NET));
         genesis.SetPrevBlockHash(uint256());
@@ -49,7 +51,7 @@ public:
         genesis.SetHeight(0);
         genesis.ClearSignature();
         hashGenesisBlock = genesis.GetHash();
-        CheckPointPKey=IniCfg().GetCheckPointPkey(MAIN_NET);
+        CheckPointPKey   = IniCfg().GetCheckPointPkey(MAIN_NET);
         assert(hashGenesisBlock == IniCfg().GetIntHash(MAIN_NET));
         assert(genesis.GetMerkleRootHash() == IniCfg().GetMerkleRootHash());
 
@@ -112,14 +114,15 @@ public:
         // The message start string is designed to be unlikely to occur in normal data.
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
-        memcpy(pchMessageStart,IniCfg().GetMagicNumber(TEST_NET),sizeof(pchMessageStart));
+        memcpy(pchMessageStart, IniCfg().GetMagicNumber(TEST_NET), sizeof(pchMessageStart));
         nSubsidyHalvingInterval = IniCfg().GetHalvingInterval(TEST_NET);
-        vAlertPubKey =  ParseHex(IniCfg().GetCheckPointPkey(TEST_NET));
-        nDefaultPort = IniCfg().GetnDefaultPort(TEST_NET) ;
-        nRPCPort = IniCfg().GetnRPCPort(TEST_NET);
-        nUIPort = IniCfg().GetnUIPort(TEST_NET);
-        strDataDir = "testnet";
-        CheckPointPKey = IniCfg().GetCheckPointPkey(TEST_NET);
+        nFeatureForkHeight      = IniCfg().GetFeatureForkHeight(TEST_NET);
+        vAlertPubKey            = ParseHex(IniCfg().GetCheckPointPkey(TEST_NET));
+        nDefaultPort            = IniCfg().GetnDefaultPort(TEST_NET);
+        nRPCPort                = IniCfg().GetnRPCPort(TEST_NET);
+        nUIPort                 = IniCfg().GetnUIPort(TEST_NET);
+        strDataDir              = "testnet";
+        CheckPointPKey          = IniCfg().GetCheckPointPkey(TEST_NET);
         // Modify the testnet genesis block so the timestamp is valid for a later start.
         genesis.SetTime(IniCfg().GetStartTimeInit(TEST_NET));
         genesis.SetNonce(99);
@@ -166,10 +169,10 @@ public:
 class CRegTestParams: public CTestNetParams {
 public:
     CRegTestParams() {
-        memcpy(pchMessageStart, IniCfg().GetMagicNumber(REGTEST_NET),
-            sizeof(pchMessageStart));
-        nSubsidyHalvingInterval =  IniCfg().GetHalvingInterval(REGTEST_NET);
-        bnProofOfStakeLimit = ~arith_uint256(0) >> 6;     //target:00000011 11111111 11111111
+        memcpy(pchMessageStart, IniCfg().GetMagicNumber(REGTEST_NET), sizeof(pchMessageStart));
+        nSubsidyHalvingInterval = IniCfg().GetHalvingInterval(REGTEST_NET);
+        nFeatureForkHeight      = IniCfg().GetFeatureForkHeight(REGTEST_NET);
+        bnProofOfStakeLimit     = ~arith_uint256(0) >> 6;  // target:00000011 11111111 11111111
         genesis.SetTime(IniCfg().GetStartTimeInit(REGTEST_NET));
         genesis.SetNonce(68);
         genesis.vptx.clear();
@@ -178,7 +181,6 @@ public:
         genesis.SetMerkleRootHash(genesis.BuildMerkleTree());
         hashGenesisBlock = genesis.GetHash();
         nDefaultPort = IniCfg().GetnDefaultPort(REGTEST_NET) ;
-        nBlockInterval = 10;
         strDataDir = "regtest";
         assert(hashGenesisBlock == IniCfg().GetIntHash(REGTEST_NET));
 
@@ -189,15 +191,19 @@ public:
     virtual bool RequireRPCPassword() const {
         return false;
     }
+
     virtual NET_TYPE NetworkID() const {
         return REGTEST_NET;
     }
+
     virtual bool InitialConfig() {
         CTestNetParams::InitialConfig();
 
-        nSubsidyHalvingInterval = GetArg("-subsidyhalvinginterval", IniCfg().GetHalvingInterval(REGTEST_NET));
-        nBlockInterval = GetArg("-blockinterval", 10);
-        fServer = true;
+        nSubsidyHalvingInterval   = GetArg("-subsidyhalvinginterval", IniCfg().GetHalvingInterval(REGTEST_NET));
+        nBlockInterval            = GetArg("-blockinterval", 10);
+        nFeatureForkHeight        = GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(REGTEST_NET));
+        fServer                   = true;
+
         return true;
     }
 };

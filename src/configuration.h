@@ -1,22 +1,22 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef CONFIGURATION_H_
 #define CONFIGURATION_H_
 
-#include "commons/uint256.h"
-#include "commons/arith_uint256.h"
-#include "util.h"
 #include "chainparams.h"
+#include "commons/arith_uint256.h"
+#include "commons/uint256.h"
+#include "util.h"
 #include "version.h"
 
-#include <memory>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include <vector>
 #include <map>
+#include <memory>
+#include <vector>
 
 using namespace std;
 
@@ -24,165 +24,157 @@ class CBlockIndex;
 class uint256;
 class G_CONFIG_TABLE;
 
-const G_CONFIG_TABLE &IniCfg();
+const G_CONFIG_TABLE& IniCfg();
 
 /** Block-chain checkpoints are compiled-in sanity checks.
  * They are updated every release or three.
  */
-namespace Checkpoints
-{
-    // Returns true if block passes checkpoint checks
-    bool CheckBlock(int nHeight, const uint256& hash);
+namespace Checkpoints {
+// Returns true if block passes checkpoint checks
+bool CheckBlock(int nHeight, const uint256& hash);
 
-    // Return conservative estimate of total number of blocks, 0 if unknown
-    int GetTotalBlocksEstimate();
+// Return conservative estimate of total number of blocks, 0 if unknown
+int GetTotalBlocksEstimate();
 
-    // Returns last CBlockIndex* in mapBlockIndex that is a checkpoint
-    CBlockIndex* GetLastCheckpoint(const std::map<uint256, CBlockIndex*>& mapBlockIndex);
+// Returns last CBlockIndex* in mapBlockIndex that is a checkpoint
+CBlockIndex* GetLastCheckpoint(const std::map<uint256, CBlockIndex*>& mapBlockIndex);
 
-    double GuessVerificationProgress(CBlockIndex *pIndex, bool fSigchecks = true);
+double GuessVerificationProgress(CBlockIndex* pIndex, bool fSigchecks = true);
 
-    bool AddCheckpoint(int nHeight, uint256 hash);
+bool AddCheckpoint(int nHeight, uint256 hash);
 
-    bool GetCheckpointByHeight(const int nHeight, std::vector<int> &vCheckpoints);
+bool GetCheckpointByHeight(const int nHeight, std::vector<int>& vCheckpoints);
 
-    bool LoadCheckpoint();
+bool LoadCheckpoint();
 
-    void GetCheckpointMap(std::map<int, uint256> &checkpoints);
+void GetCheckpointMap(std::map<int, uint256>& checkpoints);
 
-    extern bool fEnabled;
-}
+extern bool fEnabled;
+}  // namespace Checkpoints
 
 class G_CONFIG_TABLE {
 public:
-	string GetCoinName() const { return COIN_NAME; }
-	const vector<string> GetInitPubKey(NET_TYPE type) const;
-	const uint256 GetIntHash(NET_TYPE type) const;
-	const string GetCheckPointPkey(NET_TYPE type) const;
-	const uint256 GetMerkleRootHash() const;
-	vector<unsigned int> GetSeedNodeIP() const;
-	unsigned char* GetMagicNumber(NET_TYPE type) const;
-	vector<unsigned char> GetAddressPrefix(NET_TYPE type, Base58Type BaseType) const;
-	unsigned int GetnDefaultPort(NET_TYPE type) const;
-	unsigned int GetnRPCPort(NET_TYPE type) const;
-	unsigned int GetnUIPort(NET_TYPE type) const;
-	unsigned int GetStartTimeInit(NET_TYPE type) const;
-	unsigned int GetHalvingInterval(NET_TYPE type) const;
-	uint64_t GetBlockSubsidyCfg(int nHeight) const;
-	int GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const;
-	uint64_t GetTotalDelegateNum() const;
-	uint64_t GetMaxVoteCandidateNum() const;
-	string GetDelegateSignature(NET_TYPE type) const;
-	const vector<string> GetDelegatePubKey(NET_TYPE type) const;
-	uint64_t GetCoinInitValue() const { return InitialCoin; };
+    string GetCoinName() const { return COIN_NAME; }
+    const vector<string> GetInitPubKey(NET_TYPE type) const;
+    const uint256 GetIntHash(NET_TYPE type) const;
+    const string GetCheckPointPkey(NET_TYPE type) const;
+    const uint256 GetMerkleRootHash() const;
+    vector<unsigned int> GetSeedNodeIP() const;
+    unsigned char* GetMagicNumber(NET_TYPE type) const;
+    vector<unsigned char> GetAddressPrefix(NET_TYPE type, Base58Type BaseType) const;
+    unsigned int GetnDefaultPort(NET_TYPE type) const;
+    unsigned int GetnRPCPort(NET_TYPE type) const;
+    unsigned int GetnUIPort(NET_TYPE type) const;
+    unsigned int GetStartTimeInit(NET_TYPE type) const;
+    unsigned int GetHalvingInterval(NET_TYPE type) const;
+    uint64_t GetBlockSubsidyCfg(int nHeight) const;
+    int GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const;
+    uint64_t GetTotalDelegateNum() const;
+    uint64_t GetMaxVoteCandidateNum() const;
+    string GetDelegateSignature(NET_TYPE type) const;
+    const vector<string> GetDelegatePubKey(NET_TYPE type) const;
+    uint64_t GetCoinInitValue() const { return InitialCoin; };
+	uint32_t GetFeatureForkHeight(NET_TYPE) const;
+
 private:
-	static string COIN_NAME ;	/* basecoin name */
+    static string COIN_NAME; /* basecoin name */
 
-	/* initial public key */
-	static  vector<string> initPubKey_mainNet;
-	static  vector<string> initPubKey_testNet;
-	static  vector<string> initPubkey_regTest;
+    /* initial public key */
+    static vector<string> initPubKey_mainNet;
+    static vector<string> initPubKey_testNet;
+    static vector<string> initPubkey_regTest;
 
-	/* delegate public key */
-	static vector<string> delegatePubKey_mainNet;
-	static vector<string> delegatePubKey_testNet;
-	static vector<string> delegatePubKey_regTest;
+    /* delegate public key */
+    static vector<string> delegatePubKey_mainNet;
+    static vector<string> delegatePubKey_testNet;
+    static vector<string> delegatePubKey_regTest;
 
-	/* delegate signature */
-	static string delegateSignature_mainNet;
-	static string delegateSignature_testNet;
+    /* delegate signature */
+    static string delegateSignature_mainNet;
+    static string delegateSignature_testNet;
     static string delegateSignature_regNet;
 
-	/* gensis block hash */
-	static string hashGenesisBlock_mainNet;
-	static string hashGenesisBlock_testNet;
-	static string hashGenesisBlock_regTest;
+    /* gensis block hash */
+    static string hashGenesisBlock_mainNet;
+    static string hashGenesisBlock_testNet;
+    static string hashGenesisBlock_regTest;
 
-	/* checkpoint public key */
-	static string CheckPointPK_MainNet;
-	static string CheckPointPK_TestNet;
+    /* checkpoint public key */
+    static string CheckPointPK_MainNet;
+    static string CheckPointPK_TestNet;
 
-	/* merkle root hash */
-	static string MerkleRootHash;
+    /* merkle root hash */
+    static string MerkleRootHash;
 
-	/* Peer IP seeds */
-	static vector<unsigned int> pnSeed;
+    /* Peer IP seeds */
+    static vector<unsigned int> pnSeed;
 
-	/* Network Magic Number */
-	static unsigned char Message_mainNet[MESSAGE_START_SIZE];
-	static unsigned char Message_testNet[MESSAGE_START_SIZE];
-	static unsigned char Message_regTest[MESSAGE_START_SIZE];
+    /* Network Magic Number */
+    static unsigned char Message_mainNet[MESSAGE_START_SIZE];
+    static unsigned char Message_testNet[MESSAGE_START_SIZE];
+    static unsigned char Message_regTest[MESSAGE_START_SIZE];
 
-	/* Address Prefix */
-	static  vector<unsigned char> AddrPrefix_mainNet[MAX_BASE58_TYPES];
-	static  vector<unsigned char> AddrPrefix_testNet[MAX_BASE58_TYPES];
+    /* Address Prefix */
+    static vector<unsigned char> AddrPrefix_mainNet[MAX_BASE58_TYPES];
+    static vector<unsigned char> AddrPrefix_testNet[MAX_BASE58_TYPES];
 
-	/* P2P Port */
-	static unsigned int nDefaultPort_mainNet ;
-	static unsigned int nDefaultPort_testNet ;
-	static unsigned int nDefaultPort_regTest;
+    /* P2P Port */
+    static unsigned int nDefaultPort_mainNet;
+    static unsigned int nDefaultPort_testNet;
+    static unsigned int nDefaultPort_regTest;
 
-	/* RPC Port */
-	static unsigned int nRPCPort_mainNet;
-	static unsigned int nRPCPort_testNet ;
+    /* RPC Port */
+    static unsigned int nRPCPort_mainNet;
+    static unsigned int nRPCPort_testNet;
 
-	/* UI Port */
-	static unsigned int nUIPort_mainNet;
-	static unsigned int nUIPort_testNet;
+    /* UI Port */
+    static unsigned int nUIPort_mainNet;
+    static unsigned int nUIPort_testNet;
 
-	/* Start Time */
-	static unsigned int StartTime_mainNet;
-	static unsigned int StartTime_testNet;
-	static unsigned int StartTime_regTest;
+    /* Start Time */
+    static unsigned int StartTime_mainNet;
+    static unsigned int StartTime_testNet;
+    static unsigned int StartTime_regTest;
 
-	/* Subsidy Halving Interval*/
-	static unsigned int nSubsidyHalvingInterval_mainNet;
-	static unsigned int nSubsidyHalvingInterval_testNet;
-	static unsigned int nSubsidyHalvingInterval_regNet;
+    /* Subsidy Halving Interval*/
+    static unsigned int nSubsidyHalvingInterval_mainNet;
+    static unsigned int nSubsidyHalvingInterval_testNet;
+    static unsigned int nSubsidyHalvingInterval_regNet;
 
-	/* initial coin */
-	static uint64_t InitialCoin;
+    /* Initial Coin */
+    static uint64_t InitialCoin;
 
-	/* Default Miner fee */
-	static uint64_t DefaultFee;
+    /* Default Miner Fee */
+    static uint64_t DefaultFee;
 
-	/* Total Delegate Number */
-	static unsigned int TotalDelegateNum;
+    /* Total Delegate Number */
+    static unsigned int TotalDelegateNum;
 
-	/* Max Number of Delegate Candidate to Vote for by a single account */
-	static unsigned int MaxVoteCandidateNum;
+    /* Max Number of Delegate Candidate to Vote for by a single account */
+    static unsigned int MaxVoteCandidateNum;
 
-	/* Initial subsidy rate upon vote casting */
-	static uint64_t nInitialSubsidy;
-	/* Eventual/lasting subsidy rate for vote casting */
-	static uint64_t nFixedSubsidy;
+    /* Initial subsidy rate upon vote casting */
+    static uint64_t nInitialSubsidy;
+    /* Eventual/lasting subsidy rate for vote casting */
+    static uint64_t nFixedSubsidy;
 
+    /* Block height to enable feature fork version */
+	static uint32_t nFeatureForkHeight_mainNet;
+    static uint32_t nFeatureForkHeight_testNet;
+    static uint32_t nFeatureForkHeight_regNet;
 };
 
 inline FeatureForkVersionEnum GetFeatureForkVersion(int blockHeight) {
-	switch (SysCfg().NetworkID()) {
-		case MAIN_NET: {
-			if (blockHeight >= 6000000)
-				return MAJOR_VER_R2;
-			else
-				return MAJOR_VER_R1;
-		};
-		case TEST_NET: {
-			if (blockHeight >= 1000000)
-				return MAJOR_VER_R2;
-			else
-				return MAJOR_VER_R1;
-		};
-		default: {
-			return MAJOR_VER_R2;
-		}
-	}
-};
+	if (blockHeight >= (int)SysCfg().GetFeatureForkHeight())
+		return MAJOR_VER_R2;
+	else
+		return MAJOR_VER_R1;
+}
 
 static const int g_BlockVersion = 1;
 
-/** No amount larger than this (in sawi) is valid */
-static const int64_t BASECOIN_MAX_MONEY = IniCfg().GetCoinInitValue() * COIN;	//210 million
+/* No amount larger than this (in sawi) is valid */
+static const int64_t BASECOIN_MAX_MONEY = IniCfg().GetCoinInitValue() * COIN;	// 210 million
 static const int64_t FUNDCOIN_MAX_MONEY = BASECOIN_MAX_MONEY / 10;				// 21 million
 static const int64_t INIT_FUEL_RATES    = 100;  	// 100 unit / 100 step
 static const int64_t MIN_FUEL_RATES     = 1;    	// 1 unit / 100 step
