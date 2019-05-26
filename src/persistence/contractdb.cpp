@@ -243,14 +243,14 @@ Object CContractDB::ToJsonObj(string Prefix) {
             Object obj;
             if (strPrefix == Prefix) {
                 if (Prefix == "def") {
-                    obj.push_back(Pair("scriptid", HexStr(ssKey)));
+                    obj.push_back(Pair("contract_id", HexStr(ssKey)));
                     obj.push_back(Pair("value", HexStr(ssValue)));
                 } else if (Prefix == "data") {
                     obj.push_back(Pair("key", HexStr(ssKey)));
                     obj.push_back(Pair("value", HexStr(ssValue)));
                 } else if (Prefix == "acct") {
-                    obj.push_back(Pair("acctkey", HexStr(ssKey)));
-                    obj.push_back(Pair("acctvalue", HexStr(ssValue)));
+                    obj.push_back(Pair("acct_key", HexStr(ssKey)));
+                    obj.push_back(Pair("acct_value", HexStr(ssValue)));
                 }
 
             } else {
@@ -266,7 +266,7 @@ Object CContractDB::ToJsonObj(string Prefix) {
         }
     }
     delete pcursor;
-    obj.push_back(Pair("scriptdb", arrayObj));
+    obj.push_back(Pair("contract_db", arrayObj));
     return obj;
 }
 
