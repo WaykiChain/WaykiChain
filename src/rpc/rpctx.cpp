@@ -1904,10 +1904,10 @@ Value listtxcache(const Array& params, bool fHelp) {
                 "\"txcache\"  (string) \n"
                 "\nExamples:\n" + HelpExampleCli("listtxcache", "")+ HelpExampleRpc("listtxcache", ""));
     }
-    const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash = pCdMan->pTxCache->GetTxHashCache();
+    const map<uint256, UnorderedHashSet> &mapBlockTxHashSet = pCdMan->pTxCache->GetTxHashCache();
 
     Array retTxHashArray;
-    for (auto &item : mapTxHashByBlockHash) {
+    for (auto &item : mapBlockTxHashSet) {
         Object blockObj;
         Array txHashArray;
         blockObj.push_back(Pair("blockhash", item.first.GetHex()));

@@ -67,7 +67,7 @@ private:
 
 public:
     virtual bool IsContainBlock(const CBlock &block);
-    virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapTxHashByBlockHash);
+    virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSet);
     int64_t GetDbCount() { return db.GetDbCount(); }
 };
 

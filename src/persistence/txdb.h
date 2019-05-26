@@ -20,7 +20,7 @@ class CBlock;
 
 class CTransactionCache {
 private:
-    map<uint256, UnorderedHashSet> mapTxHashByBlockHash;  // key:block hash  value:tx hash
+    map<uint256, UnorderedHashSet> mapBlockTxHashSet;  // map: BlockHash ->TxhashSet
 
 public:
     bool HaveTx(const uint256 &txHash);
@@ -35,4 +35,9 @@ public:
     void SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache);
 };
 
+class CPricePointCache {
+private:
+    map<CCoinPriceType, tuple<vector<PricePoint>, vecto
+
+}
 #endif // PERSIST_TXDB_H

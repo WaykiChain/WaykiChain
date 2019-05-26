@@ -8,41 +8,6 @@
 
 #include "tx.h"
 
-class CCoinPriceType {
-public:
-    unsigned char coinType;
-    unsigned char priceType;
-
-    CCoinPriceType(CoinType coinTypeIn, PriceType priceTypeIn) :
-        coinType(coinTypeIn), priceType(priceTypeIn) {}
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(coinType);
-        READWRITE(priceType);)
-};
-
-class CPricePoint {
-private:
-    CCoinPriceType CCoinPriceType;
-    uint64_t price;
-
-public:
-    CPricePoint(CCoinPriceType coinPriceTypeIn, uint64_t priceIn)
-        : CCoinPriceType(coinPriceTypeIn), price(priceIn) {}
-
-    CPricePoint(CoinType coinTypeIn, PriceType priceTypeIn, uint64_t priceIn)
-        : CCoinPriceType(coinTypeIn, priceTypeIn), price(priceIn) {}
-
-    string ToString() {
-        return strprintf("coinType:%u, priceType:%u, price:%lld",
-                        CCoinPriceType.coinType, CCoinPriceType.priceType, price);
-    }
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(CCoinPriceType);
-        READWRITE(VARINT(price));)
-};
-
 class CPriceFeedTx : public CBaseTx {
 private:
     vector<CPricePoint> pricePoints;
