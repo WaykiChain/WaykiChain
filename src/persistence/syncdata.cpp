@@ -7,14 +7,6 @@
 
 namespace SyncData {
 
-CSyncData::CSyncData()
-{
-}
-
-CSyncData::~CSyncData()
-{
-}
-
 bool CSyncData::CheckSignature(const std::string& pubKey)
 {
 	CPubKey key(ParseHex(pubKey));

@@ -19,8 +19,8 @@ namespace SyncData
 class CSyncData
 {
 	public:
-		CSyncData();
-		virtual ~CSyncData();
+		CSyncData() {};
+		virtual ~CSyncData() {};
 		bool CheckSignature(const std::string& pubKey);
 		bool Sign(const std::vector<unsigned char>& priKey, const std::vector<unsigned char>& syncData);
 		bool Sign(const CKey& priKey, const std::vector<unsigned char>& syncData);
