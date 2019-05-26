@@ -1662,9 +1662,10 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
     int64_t nStart = GetTimeMicros();
     {
         CInv inv(MSG_BLOCK, pIndexNew->GetBlockHash());
-        CAccountCache accountCache(*pCdMan->pAccountCache);
-        CContractCache contractCache(*pCdMan->pContractCache);
-        CCacheWrapper cw(&accountCache, &contractCache);
+        CAccountCache pAccountCache(*pCdMan->pAccountCache);
+        CTransactionCache pTxCache(*pCdMan->pTxCache);
+        CContractCache pContractCache(*pCdMan->pContractCache);
+        CCacheWrapper cw(&pAccountCache, &pTxCache, &pContractCache);
 
         if (!ConnectBlock(block, cw, pIndexNew, state)) {
             if (state.IsInvalid()) {
@@ -1675,10 +1676,10 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         mapBlockSource.erase(inv.hash);
 
         // Need to re-sync all to global cache layer.
-        accountCache.SetBaseView(pCdMan->pAccountCache);
-        assert(accountCache.Flush());
-        contractCache.SetBaseView(pCdMan->pContractCache);
-        assert(contractCache.Flush());
+        pAccountCache.SetBaseView(pCdMan->pAccountCache);
+        assert(pAccountCache.Flush());
+        pContractCache.SetBaseView(pCdMan->pContractCache);
+        assert(pContractCache.Flush());
 
         CAccountCache accountViewCacheTemp(*pCdMan->pAccountCache);
         uint256 uBestblockHash = accountViewCacheTemp.GetBestBlock();
