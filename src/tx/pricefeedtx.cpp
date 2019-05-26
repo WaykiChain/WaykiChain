@@ -50,8 +50,8 @@ bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
     }
 
     if (!cw.pAccountCache->SaveAccount(account)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error",
-                        account.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, update account %s failed",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     }
 
     // update the price feed cache accordingly
