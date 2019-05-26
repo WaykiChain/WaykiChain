@@ -9,7 +9,6 @@
 #include "tx.h"
 
 class CFcoinStakeTx: public CBaseTx {
-
 private:
     int64_t fcoinsToStake; // when negative, it means staking revocation
 

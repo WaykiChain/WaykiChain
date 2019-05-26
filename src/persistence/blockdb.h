@@ -17,14 +17,13 @@
 
 /** Access to the block database (blocks/index/) */
 class CBlockTreeDB : public CLevelDBWrapper {
-   public:
-    CBlockTreeDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
-
-   private:
+private:
     CBlockTreeDB(const CBlockTreeDB &);
     void operator=(const CBlockTreeDB &);
 
-   public:
+public:
+    CBlockTreeDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
+
     bool WriteBlockIndex(const CDiskBlockIndex &blockindex);
     bool EraseBlockIndex(const uint256 &blockHash);
     bool WriteBestInvalidWork(const uint256 &bnBestInvalidWork);

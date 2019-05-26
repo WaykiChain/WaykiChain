@@ -8,12 +8,12 @@
 
 #include "tx.h"
 
-class CoinPriceType {
+class CCoinPriceType {
 public:
     unsigned char coinType;
     unsigned char priceType;
 
-    CoinPriceType(CoinType coinTypeIn, PriceType priceTypeIn) :
+    CCoinPriceType(CoinType coinTypeIn, PriceType priceTypeIn) :
         coinType(coinTypeIn), priceType(priceTypeIn) {}
 
     IMPLEMENT_SERIALIZE(
@@ -23,23 +23,23 @@ public:
 
 class CPricePoint {
 private:
-    CoinPriceType coinPriceType;
+    CCoinPriceType CCoinPriceType;
     uint64_t price;
 
 public:
-    CPricePoint(CoinPriceType coinPriceTypeIn, uint64_t priceIn)
-        : coinPriceType(coinPriceTypeIn), price(priceIn) {}
+    CPricePoint(CCoinPriceType coinPriceTypeIn, uint64_t priceIn)
+        : CCoinPriceType(coinPriceTypeIn), price(priceIn) {}
 
     CPricePoint(CoinType coinTypeIn, PriceType priceTypeIn, uint64_t priceIn)
-        : coinPriceType(coinTypeIn, priceTypeIn), price(priceIn) {}
+        : CCoinPriceType(coinTypeIn, priceTypeIn), price(priceIn) {}
 
     string ToString() {
         return strprintf("coinType:%u, priceType:%u, price:%lld",
-                        coinPriceType.coinType, coinPriceType.priceType, price);
+                        CCoinPriceType.coinType, CCoinPriceType.priceType, price);
     }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(coinPriceType);
+        READWRITE(CCoinPriceType);
         READWRITE(VARINT(price));)
 };
 
@@ -107,7 +107,7 @@ public:
 class CBlockPriceMedianTx: public CBaseTx  {
 private:
     // map<tuple<CoinType, PriceType>, uint64_t> mapMediaPricePoints;
-    map<CoinPriceType, uint64_t> mapMediaPricePoints;
+    map<CCoinPriceType, uint64_t> mapMediaPricePoints;
 
 public:
     CBlockPriceMedianTx(): CBaseTx(BLOCK_PRICE_MEDIAN_TX) {}
@@ -126,10 +126,10 @@ public:
         for (auto it = mapMediaPricePoints.begin(); it != mapMediaPricePoints.end(); ++it) {
             // CoinType coinType  = std::get<0>(it->first);
             // PriceType priceType = std::get<1>(it->first);
-            CoinPriceType coinPriceType = it->first;
+            CCoinPriceType CCoinPriceType = it->first;
             uint64_t price = it->second;
 
-            READWRITE(CPricePoint(coinPriceType, price));
+            READWRITE(CPricePoint(CCoinPriceType, price));
         };
     )
 

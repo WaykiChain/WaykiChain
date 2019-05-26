@@ -294,14 +294,16 @@ public:
 
 class CCacheDBManager {
 public:
-    CAccountDB         *pAccountDb;         // account db
-    CAccountCache      *pAccountCache;      // account view cache
+    CAccountDB          *pAccountDb;         // account db
+    CAccountCache       *pAccountCache;      // account view cache
 
-    CContractDB        *pContractDb;        // contract db: pScriptDB
-    CContractCache     *pContractCache;     // contract script db cache: pScriptDBTip
+    CContractDB         *pContractDb;        // contract db: pScriptDB
+    CContractCache      *pContractCache;     // contract script db cache: pScriptDBTip
 
-    CTransactionCache  *pTxCache;           // tx db cache: pTxCacheTip
-    CBlockTreeDB       *pBlockTreeDb;       // the active block tree (protected by cs_main)
+    CTransactionCache   *pTxCache;          // tx db cache: pTxCacheTip
+    CPricePointCache    *pPptCache;         // tx pricePoint
+
+    CBlockTreeDB        *pBlockTreeDb;      // the active block tree (protected by cs_main)
 
 public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache,
