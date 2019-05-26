@@ -95,7 +95,7 @@ bool CPriceFeedTx::GetTopPriceFeederList(CCacheWrapper &cw, vector<CAccount> &pr
 
 //############################################################################################################
 
-bool CheckTx(CValidationState &state, CAccountCache &view, CContractCache &scriptDB) {
+bool CBlockPriceMedianTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
     return true;
 }
 
