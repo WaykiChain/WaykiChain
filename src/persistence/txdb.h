@@ -38,29 +38,26 @@ public:
     void SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache);
 };
 
-class CBlockPricePointSet {
+// Price Points in two consecutive blocks
+class CConsecutiveBlockPrice {
 private:
-    set<CPricePoint> set1;
-    set<CPricePoint> set2;
-
-    set<CPricePoint> *pLastPricePointSet;
-    set<CPricePoint> *pCurrPricePointSet;
-
-    uint64_t lastMedianPrice;
-    uint64_t currMedianPrice;
+    map<int, set<uint64_t>> mapBlockPrice;    // height -> PricePointSet
+    int lastBlockHeight;
+    int currBlockHeight;
+    uint64_t lastBlockMediaPrice;
+    uint64_t currBlockMediaPrice;
 
 public:
-    CBlockPricePointSet(): pLastPricePointSet(&set1), pCurrPricePointSet(&set2) {}
-
+    void AddPricePoint(const int height, const uint64_t price);
+    uint64_t ComputeBlockMediaPrice(const int blockHeight);
 };
 
 class CPricePointCache {
 private:
-    map<CCoinPriceType, CBlockPricePointSet> mapCoinPricePointSet;
+    map<CCoinPriceType, CConsecutiveBlockPrice> mapCoinPricePointSet; // coinPriceType -> consecutiveBlockPrice
 
 public:
-    uint64_t GetMedianPrice(CCoinPriceType coinPriceType);
-
-    void AddPricePoint(CPricePoint pp);
+    void AddBlockPricePoint(const int blocHeight, const CPricePoint pp);
+    uint64_t GetMedianPrice(const CCoinPriceType coinPriceType);
 };
 #endif // PERSIST_TXDB_H

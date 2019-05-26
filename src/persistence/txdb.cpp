@@ -81,3 +81,22 @@ const map<uint256, UnorderedHashSet> &CTransactionCache::GetTxHashCache() { retu
 void CTransactionCache::SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache) {
     mapBlockTxHashSet = mapCache;
 }
+
+/****************************************************************************************************/
+void CConsecutiveBlockPrice::AddPricePoint(const int height, uint64_t price) {
+    // if (mapBlockPrice.find(height))
+
+}
+
+uint64_t CConsecutiveBlockPrice::ComputeBlockMediaPrice(const int blockHeight) {
+    return 0;
+}
+/****************************************************************************************************/
+
+void CPricePointCache::AddBlockPricePoint(const int blocHeight, const CPricePoint pp) {
+
+}
+
+uint64_t CPricePointCache::GetMedianPrice(const CCoinPriceType coinPriceType) {
+    return 0;
+}

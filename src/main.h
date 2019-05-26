@@ -301,7 +301,7 @@ public:
     CContractCache      *pContractCache;     // contract script db cache: pScriptDBTip
 
     CTransactionCache   *pTxCache;          // tx db cache: pTxCacheTip
-    CPricePointCache    *pPptCache;         // tx pricePoint
+    CPricePointCache    *pPpCache;          // tx pricePoint cache
 
     CBlockTreeDB        *pBlockTreeDb;      // the active block tree (protected by cs_main)
 
