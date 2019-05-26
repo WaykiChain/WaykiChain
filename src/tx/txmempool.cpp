@@ -102,7 +102,7 @@ void CTxMemPool::Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> >& remov
 }
 
 bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &memPoolEntry,
-                                  CValidationState &state, bool bExcute) {
+                                  CValidationState &state, bool bExecute) {
 
     // is it already confirmed in block
     if (pCdMan->pTxCache->HaveTx(hash))
@@ -116,19 +116,20 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
                             hash.GetHex()), REJECT_INVALID, "tx-invalid-height");
     }
 
+    CAccountCache pAccountCache(*memPoolAccountCache.get());
+    CTransactionCache pTxCache(*pCdMan->pTxCache);
+    CContractCache pContractCache(*memPoolContractCache.get());
     CTxUndo txundo;
-    CCacheWrapper cw(memPoolAccountCache.get(), pCdMan->pTxCache, memPoolContractCache.get(), &txundo);
-    if (bExcute) {
+    CCacheWrapper cw(&pAccountCache, &pTxCache, &pContractCache, &txundo);
+    if (bExecute) {
         if (!memPoolEntry.GetTx()->ExecuteTx(chainActive.Tip()->nHeight + 1, 0, cw, state))
             return false;
     }
 
-    // acctViewTemp.SetBaseView(memPoolAccountCache.get());
-    // assert(acctViewTemp.Flush());
-    // scriptDBViewTemp.SetBaseView(memPoolContractCache.get());
-    // assert(scriptDBViewTemp.Flush());
-    cw.pAccountCache->Flush();
-    cw.pContractCache->Flush();
+    pAccountCache.SetBaseView(memPoolAccountCache.get());
+    assert(pAccountCache.Flush());
+    pContractCache.SetBaseView(memPoolContractCache.get());
+    assert(pContractCache.Flush());
 
     return true;
 }

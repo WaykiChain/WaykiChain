@@ -1366,7 +1366,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             pBaseTx->nFuelRate = block.GetFuelRate();
 
             cw.pTxUndo = &txundo;
-            if (!pBaseTx->ExecuteTx(i, pIndex->nHeight, cw, state))
+            if (!pBaseTx->ExecuteTx(pIndex->nHeight, i, cw, state))
                 return false;
 
             nTotalRunStep += pBaseTx->nRunStep;
@@ -1413,14 +1413,13 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     LogPrint("op_account", "tx index:%d tx hash:%s\n", 0, block.vptx[0]->GetHash().GetHex());
     CTxUndo txundo;
     cw.pTxUndo = &txundo;
-    if (!block.vptx[0]->ExecuteTx(0, pIndex->nHeight, cw, state))
+    if (!block.vptx[0]->ExecuteTx(pIndex->nHeight, 0, cw, state))
         return ERRORMSG("ConnectBlock() : execute reward tx error!");
 
     blockundo.vtxundo.push_back(txundo);
 
     if (pIndex->nHeight - COINBASE_MATURITY > 0) {
-        //deal mature reward tx
-        //CBlockIndex *pMatureIndex = chainActive[pIndex->nHeight - COINBASE_MATURITY];
+        // Deal mature reward tx
         CBlockIndex *pMatureIndex = pIndex;
         for (int i = 0; i < COINBASE_MATURITY; ++i) {
             pMatureIndex = pMatureIndex->pprev;
@@ -1433,8 +1432,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                                 REJECT_INVALID, "bad-read-block");
             }
 
-            cw.pTxUndo = &txundo;
-            if (!matureBlock.vptx[0]->ExecuteTx(-1, pIndex->nHeight, cw, state))
+            // cw.pTxUndo = &txundo; //FIXME:
+            if (!matureBlock.vptx[0]->ExecuteTx(pIndex->nHeight, -1, cw, state))
                 return ERRORMSG("ConnectBlock() : execute mature block reward tx error!");
         }
         blockundo.vtxundo.push_back(txundo);
@@ -1466,7 +1465,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             if (!blockundo.WriteToDisk(pos, pIndex->pprev->GetBlockHash()))
                 return state.Abort(_("Failed to write undo data"));
 
-            // update nUndoPos in block index
+            // Update nUndoPos in block index
             pIndex->nUndoPos = pos.nPos;
             pIndex->nStatus |= BLOCK_HAVE_UNDO;
         }
@@ -1494,8 +1493,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             return state.Abort(_("Connect tip block failed delete block tx to txcache"));
     }
 
-    // add this block to the view's block chain
-    assert(pCdMan->pAccountCache->SetBestBlock(pIndex->GetBlockHash()));
+    // Add this block to the view's block chain
+    assert(cw.pAccountCache->SetBestBlock(pIndex->GetBlockHash()));
     return true;
 }
 
@@ -1663,7 +1662,6 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
     int64_t nStart = GetTimeMicros();
     {
         CInv inv(MSG_BLOCK, pIndexNew->GetBlockHash());
-
         CAccountCache accountCache(*pCdMan->pAccountCache);
         CContractCache contractCache(*pCdMan->pContractCache);
         CCacheWrapper cw(&accountCache, &contractCache);
@@ -1677,12 +1675,10 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         mapBlockSource.erase(inv.hash);
 
         // Need to re-sync all to global cache layer.
-        // accountCache.SetBaseView(pCdMan->pAccountCache);
-        // assert(accountCache.Flush());
-        pCdMan->pAccountCache->Flush();
-        // contractCache.SetBaseView(pCdMan->pContractCache);
-        // assert(contractCache.Flush());
-        pCdMan->pContractCache->Flush();
+        accountCache.SetBaseView(pCdMan->pAccountCache);
+        assert(accountCache.Flush());
+        contractCache.SetBaseView(pCdMan->pContractCache);
+        assert(contractCache.Flush());
 
         CAccountCache accountViewCacheTemp(*pCdMan->pAccountCache);
         uint256 uBestblockHash = accountViewCacheTemp.GetBestBlock();
@@ -2415,7 +2411,9 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
         return state.Invalid(ERRORMSG("ProcessBlock() : block (orphan) exists %s", blockHash.ToString()), 0, "duplicate");
 
     int64_t llBeginCheckBlockTime = GetTimeMillis();
-    CCacheWrapper cw(pCdMan->pAccountCache, pCdMan->pContractCache);
+    CAccountCache pAccountCache(*pCdMan->pAccountCache);
+    CContractCache pContractCache(*pCdMan->pContractCache);
+    CCacheWrapper cw(&pAccountCache, &pContractCache);
     // Preliminary checks
     if (!CheckBlock(*pblock, state, cw, false)) {
         LogPrint("INFO", "CheckBlock() id: %d elapse time:%lld ms\n",
@@ -2866,10 +2864,10 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
     LogPrint("INFO", "Verifying last %i blocks at level %i\n", nCheckDepth, nCheckLevel);
 
     // Copy global view cache before disconnect and connect.
-    // CAccountCache accountCache(*pAccountViewTip);
-    // CTransactionCache txCache(*pTxCacheTip);
-    // CContractCache scriptCache(*pScriptDBTip);
-    CCacheWrapper cw(pCdMan->pAccountCache, pCdMan->pTxCache, pCdMan->pContractCache);
+    CAccountCache pAccountCache(*pCdMan->pAccountCache);
+    CTransactionCache pTxCache(*pCdMan->pTxCache);
+    CContractCache pContractCache(*pCdMan->pContractCache);
+    CCacheWrapper cw(&pAccountCache, &pTxCache, &pContractCache);
     CBlockIndex *pindexState   = chainActive.Tip();
     CBlockIndex *pindexFailure = NULL;
     int nGoodTransactions      = 0;

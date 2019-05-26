@@ -207,7 +207,7 @@ void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
     }
 }
 
-bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cw, bool bNeedRunTx) {
+bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     uint64_t maxNonce = SysCfg().GetBlockMaxNonce();
     vector<CAccount> vDelegatesAcctList;
 
@@ -227,6 +227,9 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cw, bool bNeedRunTx) {
         return ERRORMSG("wrong merkleRootHash");
 
     CBlock preBlock;
+    CAccountCache pAccountCache(*cwIn.pAccountCache);
+    CContractCache pContractCache(*cwIn.pContractCache);
+    CCacheWrapper cw(&pAccountCache, &pContractCache);
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
         if (!ReadBlockFromDisk(pBlockIndex, preBlock))
@@ -284,7 +287,7 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cw, bool bNeedRunTx) {
 
             pBaseTx->nFuelRate = pBlock->GetFuelRate();
             cw.pTxUndo = &txundo;
-            if (!pBaseTx->ExecuteTx(i, pBlock->GetHeight(), cw, state))
+            if (!pBaseTx->ExecuteTx(pBlock->GetHeight(), i, cw, state))
                 return ERRORMSG("transaction UpdateAccount account error");
 
             nTotalRunStep += pBaseTx->nRunStep;
@@ -304,7 +307,7 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cw, bool bNeedRunTx) {
     return true;
 }
 
-unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cw) {
+unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
     // Create new block
     unique_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
     if (!pblocktemplate.get())
@@ -373,11 +376,15 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cw) {
             if ((dFeePerKb < CBaseTx::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
                 continue;
 
+            CAccountCache pAccountCache(*cwIn.pAccountCache);
+            CContractCache pContractCache(*cwIn.pContractCache);
             CTxUndo txundo;
             CValidationState state;
-            cw.pTxUndo = &txundo;
+
+            CCacheWrapper cw(&pAccountCache, &pContractCache, &txundo);
+
             pBaseTx->nFuelRate = pblock->GetFuelRate();
-            if (!pBaseTx->ExecuteTx(nBlockTx + 1, pIndexPrev->nHeight + 1, cw, state))
+            if (!pBaseTx->ExecuteTx(pIndexPrev->nHeight + 1, nBlockTx + 1, cw, state))
                 continue;
 
             // Run step limits
@@ -386,12 +393,10 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cw) {
 
 
 
-            // viewTemp.SetBaseView(&view);
-            // assert(viewTemp.Flush());
-            // scriptCacheTemp.SetBaseView(&scriptCache);
-            // assert(scriptCacheTemp.Flush());
-            cw.pAccountCache->Flush();
-            cw.pContractCache->Flush();
+            pAccountCache.SetBaseView(cwIn.pAccountCache);
+            assert(pAccountCache.Flush());
+            pContractCache.SetBaseView(cwIn.pContractCache);
+            assert(pContractCache.Flush());
 
             nFees += pBaseTx->GetFee();
             nBlockSize += stx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
@@ -582,7 +587,11 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
             //
             unsigned int nTransactionsUpdated = mempool.GetUpdatedTransactionNum();
             CBlockIndex *pIndexPrev           = chainActive.Tip();
-            CCacheWrapper cw(pCdMan->pAccountCache, pCdMan->pTxCache, pCdMan->pContractCache);
+            CAccountCache pAccountCache(*pCdMan->pAccountCache);
+            CTransactionCache pTxCache(*pCdMan->pTxCache);
+            CContractCache pContractCache(*pCdMan->pContractCache);
+            CCacheWrapper cw(&pAccountCache, &pTxCache, &pContractCache);
+
             g_miningBlockInfo.SetNull();
             int64_t nLastTime = GetTimeMillis();
             unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(cw));

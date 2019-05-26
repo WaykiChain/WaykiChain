@@ -314,13 +314,6 @@ public:
         pBlockTreeDb    = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
     }
 
-    // CCacheDBManager(CAccountDB *pAccountDbIn, CAccountCache *pAccountCacheIn,
-    //                 CContractDB *pContractDbIn, CContractCache *pContractCacheIn,
-    //                 CTransactionCache *pTxCacheIn, CBlockTreeDB *pBlockTreeDbIn) :
-    //                 pAccountDb(pAccountDbIn), pAccountCache(pAccountCacheIn),
-    //                 pContractDb(pContractDbIn), pContractCache(pContractCacheIn),
-    //                 pTxCache(pTxCacheIn), pBlockTreeDb(pBlockTreeDbIn);
-
     ~CCacheDBManager() {
         delete pAccountDb;      pAccountDb = nullptr;
         delete pAccountCache;   pAccountCache = nullptr;

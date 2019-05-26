@@ -89,8 +89,7 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
     return true;
 }
 
-bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex,
-    CCacheWrapper &cw, CValidationState &state) {
+bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     // drop account
     CRegID accountRegId(nHeight, nIndex);
     CAccount oldAccount;

@@ -82,7 +82,7 @@ public:
     std::shared_ptr<CBaseTx> Lookup(uint256 hash) const;
     void SetAccountCache(CAccountCache *pAccountCacheIn);
     void SetContractCache(CContractCache *pContractCacheIn);
-    bool CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &entry, CValidationState &state, bool bExcute = true);
+    bool CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &entry, CValidationState &state, bool bExecute = true);
     void ReScanMemPoolTx(CAccountCache *pAccountCacheIn, CContractCache *pContractCacheIn);
 
     unsigned long Size() {

@@ -45,6 +45,11 @@ public:
         pAccountCache(pAccountCacheIn), pTxCache(pTxCacheIn), pContractCache(pContractCacheIn), pTxUndo(nullptr) {};
 
     CCacheWrapper( CAccountCache *pAccountCacheIn,
+                    CContractCache *pContractCacheIn,
+                    CTxUndo *pTxUndoIn) :
+        pAccountCache(pAccountCacheIn), pContractCache(pContractCacheIn), pTxUndo(pTxUndoIn) {};
+
+    CCacheWrapper( CAccountCache *pAccountCacheIn,
                     CTransactionCache *pTxCacheIn,
                     CContractCache *pContractCacheIn,
                     CTxUndo *pTxUndoIn) :
