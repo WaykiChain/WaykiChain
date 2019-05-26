@@ -71,7 +71,7 @@ std::vector<MinedBlockInfo> GetMinedBlocks(unsigned int count);
 /** Run the miner threads */
 void GenerateCoinBlock(bool fGenerate, CWallet *pwallet, int nThreads);
 /** Generate a new block */
-unique_ptr<CBlockTemplate> CreateNewBlock(CAccountCache &view, CTransactionCache &txCache, CContractCache &scriptCache);
+unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn);
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pIndexPrev, unsigned int &nExtraNonce);
 /** Do mining precalculation */
@@ -86,7 +86,7 @@ void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList);
 
 bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct);
 
-bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cw, bool bNeedRunTx = false);
+bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx = false);
 /** Check mined block */
 bool CheckWork(CBlock *pblock, CWallet &wallet);
 /** Base sha256 mining transform */

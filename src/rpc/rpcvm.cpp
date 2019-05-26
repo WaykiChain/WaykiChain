@@ -136,13 +136,13 @@ Value vmexecutescript(const Array& params, bool fHelp) {
                            strprintf("input fee could not smaller than: %ld sawi", minFee));
     }
 
-    // CTransactionCache txCacheTemp(*pTxCacheTip);
-    // CAccountCache acctViewTemp(*pAccountViewTip);
-    // CContractCache scriptDBViewTemp(*pScriptDBTip);
-    CCacheWrapper cw(pCdMan->pAccountCache, pCdMan->pTxCache, pCdMan->pContractCache);
+    CAccountCache pAccountCache(*pCdMan->pAccountCache);
+    CTransactionCache pTxCache(*pCdMan->pTxCache);
+    CContractCache pContractCache(*pCdMan->pContractCache);
     CTxUndo txundo;
-    cw.pTxUndo = &txundo;
     CValidationState state;
+
+    CCacheWrapper cw(&pAccountCache, &pTxCache, &pContractCache, &txundo);
 
     CKeyID srcKeyid;
     if (!FindKeyId(cw.pAccountCache, params[0].get_str(), srcKeyid)) {
