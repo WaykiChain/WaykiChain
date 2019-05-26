@@ -191,7 +191,7 @@ bool CAccount::OperateBalance(const CoinType coinType, const BalanceOpType opTyp
 bool CAccount::OperateFcoinStaking(const int64_t fcoinsToStake) {
      if (fcoinsToStake < 0) {
         if (this->stakedFcoins < (uint64_t) (-1 * fcoinsToStake)) {
-            return ERRORMSG("No sufficient staked fcoins(%d) in account to revoke", fcoins);
+            return ERRORMSG("No sufficient staked fcoins(%d) to revoke", fcoins);
         }
     } else { // > 0
         if (this->fcoins < (uint64_t) fcoinsToStake) {

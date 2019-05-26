@@ -138,7 +138,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate vote failed ,regId=%s", txUid.ToString()),
             UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }
-    if (!cw.pAccountCache->SaveAccountInfo(acctInfo)) {
+    if (!cw.pAccountCache->SaveAccount(acctInfo)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error", acctInfo.regID.ToString()),
                 UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
@@ -176,7 +176,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
             }
         }
 
-        if (!cw.pAccountCache->SaveAccountInfo(delegate)) {
+        if (!cw.pAccountCache->SaveAccount(delegate)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error",
                             acctInfo.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }

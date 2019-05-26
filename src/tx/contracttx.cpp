@@ -62,7 +62,7 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
             ERRORMSG("CContractDeployTx::ExecuteTx, save script id %s script info error",
                 regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
-    if (!cw.pAccountCache->SaveAccountInfo(account)) {
+    if (!cw.pAccountCache->SaveAccount(account)) {
         return state.DoS(100,
             ERRORMSG("CContractDeployTx::ExecuteTx, create new account script id %s script info error",
                 regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");

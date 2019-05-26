@@ -35,7 +35,7 @@ public:
     virtual bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId) = 0;
     virtual bool EraseKeyIdByRegId(const vector<unsigned char> &accountRegId) = 0;
 
-    // virtual bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId,
+    // virtual bool SaveAccount(const vector<unsigned char> &accountId, const CKeyID &keyId,
     // const CAccount &account) = 0;
     virtual std::tuple<uint64_t, uint64_t> TraverseAccount() = 0;
     virtual Object ToJsonObj(char prefix)                    = 0;
@@ -72,8 +72,8 @@ public:
     virtual bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId);
     virtual bool EraseKeyIdByRegId(const vector<unsigned char> &accountRegId);
 
-    // virtual bool SaveAccountInfo(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account);
-    virtual bool SaveAccountInfo(const CAccount &account);
+    // virtual bool SaveAccount(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account);
+    virtual bool SaveAccount(const CAccount &account);
     virtual std::tuple<uint64_t, uint64_t> TraverseAccount();
     virtual Object ToJsonObj(char prefix) { return Object(); }
 
@@ -138,7 +138,7 @@ public:
     bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId);
     bool EraseKeyIdByRegId(const vector<unsigned char> &accountRegId);
 
-    bool SaveAccountInfo(const CAccount &account);
+    bool SaveAccount(const CAccount &account);
     std::tuple<uint64_t, uint64_t> TraverseAccount();
     int64_t GetDbCount() { return db.GetDbCount(); }
     Object ToJsonObj(char Prefix);

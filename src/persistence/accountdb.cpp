@@ -208,14 +208,12 @@ bool CAccountCache::EraseKeyIdByRegId(const vector<unsigned char> &accountRegId)
 }
 
 
-bool CAccountCache::SaveAccountInfo(const CAccount  &account) {
-
-    mapRegId2KeyId[account.regID.GetRegIdRaw()]          = account.keyID;
-
-    if (!account.nickID.IsEmpty())
-        mapNickId2KeyId[account.nickID.GetNickIdRaw()]   = account.keyID;
-
-    mapKeyId2Account[account.keyID]                            = account;
+bool CAccountCache::SaveAccount(const CAccount  &account) {
+    mapRegId2KeyId[ account.regID.GetRegIdRaw() ] = account.keyID;
+    mapKeyId2Account[ account.keyID ] = account;
+    if (!account.nickID.IsEmpty()) {
+        mapNickId2KeyId[ account.nickID.GetNickIdRaw() ] = account.keyID;
+    }
 
     return true;
 }
@@ -477,7 +475,7 @@ bool CAccountDB::GetAccount(const vector<unsigned char> &accountRegId, CAccount 
     return false;
 }
 
-bool CAccountDB::SaveAccountInfo(const CAccount &account) {
+bool CAccountDB::SaveAccount(const CAccount &account) {
     CLevelDBBatch batch;
     batch.Write(make_pair('r', account.regID), account.keyID);
     batch.Write(make_pair('n', account.nickID), account.keyID);

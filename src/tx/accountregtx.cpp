@@ -67,7 +67,7 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
         }
     }
 
-    if (!cw.pAccountCache->SaveAccountInfo(account))
+    if (!cw.pAccountCache->SaveAccount(account))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, write source addr %s account info error",
             regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 

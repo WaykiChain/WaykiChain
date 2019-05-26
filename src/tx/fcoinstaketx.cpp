@@ -31,16 +31,16 @@ bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
 
     CAccountLog acctLog(account);
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
-        return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, not sufficient funds in txUid %s account",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-funds");
+        return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, not sufficient bcoins in txUid %s account",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-bcoins");
     }
 
     if (!account.OperateFcoinStaking(fcoinsToStake)) {
-        return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, not sufficient funds in txUid %s account",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-funds");
+        return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, not sufficient fcoins in txUid %s account",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-fcoins");
     }
 
-    if (!cw.pAccountCache->SaveAccountInfo(account))
+    if (!cw.pAccountCache->SaveAccount(account))
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, write source addr %s account info error",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
@@ -49,10 +49,10 @@ bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
     if (SysCfg().GetAddressToTxFlag()) {
         CContractDBOperLog operAddressToTxLog;
         CKeyID sendKeyId;
-        if(!cw.pAccountCache->GetKeyId(txUid, sendKeyId))
+        if (!cw.pAccountCache->GetKeyId(txUid, sendKeyId))
             return ERRORMSG("CFcoinStakeTx::ExecuteTx, get keyid by userId error!");
 
-        if(!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, cw.pTxUndo->txHash.GetHex(),
+        if (!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, cw.pTxUndo->txHash.GetHex(),
                                                 operAddressToTxLog))
             return false;
 

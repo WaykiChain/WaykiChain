@@ -136,7 +136,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
     }
 
     if (generateRegID) {
-        if (!cw.pAccountCache->SaveAccountInfo(srcAcct))
+        if (!cw.pAccountCache->SaveAccount(srcAcct))
             return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, save account info error"),
                              WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     } else {

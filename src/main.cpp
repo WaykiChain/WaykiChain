@@ -1276,7 +1276,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 sourceAccount.pubKey = pubKey;
                 sourceAccount.SetRegId(acctRegId);
                 sourceAccount.bcoins = pRewardTx->rewardValue;
-                assert(cw.pAccountCache->SaveAccountInfo(sourceAccount));
+                assert(cw.pAccountCache->SaveAccount(sourceAccount));
             } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
                 std::shared_ptr<CDelegateVoteTx> pDelegateTx = dynamic_pointer_cast<CDelegateVoteTx>(block.vptx[i]);
                 assert(pDelegateTx->txUid.type() == typeid(CRegID));  // Vote Tx must use RegId
@@ -1311,7 +1311,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                             votedAcct.keyID  = votedAcct.pubKey.GetKeyId();
                         }
 
-                        assert(cw.pAccountCache->SaveAccountInfo(votedAcct));
+                        assert(cw.pAccountCache->SaveAccount(votedAcct));
                         assert(cw.pContractCache->SetDelegateData(votedAcct, operDbLog));
                     }
 
@@ -1323,7 +1323,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 }
                 assert(voterAcct.bcoins >= maxVotes);
                 voterAcct.bcoins -= maxVotes;
-                assert(cw.pAccountCache->SaveAccountInfo(voterAcct));
+                assert(cw.pAccountCache->SaveAccount(voterAcct));
             }
         }
         return true;
