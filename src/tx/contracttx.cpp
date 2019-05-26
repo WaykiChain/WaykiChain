@@ -204,7 +204,7 @@ bool CContractDeployTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
     }
 
     CAccount acctInfo;
-    if (!cw.pAccountCache->GetAccount(txUid.get<CRegID>(), acctInfo)) {
+    if (!cw.pAccountCache->GetAccount(txUid, acctInfo)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, get account failed"),
                          REJECT_INVALID, "bad-getaccount");
     }
@@ -474,7 +474,7 @@ bool CContractInvokeTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_REGID(appUid.type());
 
     CAccount srcAccount;
-    if (!cw.pAccountCache->GetAccount(txUid.get<CRegID>(), srcAccount))
+    if (!cw.pAccountCache->GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, read account failed, regId=%s",
                         txUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-getaccount");
 

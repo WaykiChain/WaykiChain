@@ -1168,7 +1168,7 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
                                  REJECT_INVALID, "bad-read-block");
             }
             cw.pTxUndo = &txundo;
-            if (!matureBlock.vptx[0]->UndoExecuteTx(-1, pIndex->nHeight, cw, state))
+            if (!matureBlock.vptx[0]->UndoExecuteTx(pIndex->nHeight, -1, cw, state))
                 return ERRORMSG("DisconnectBlock() : undo execute mature block reward tx error");
         }
     }
@@ -1177,7 +1177,7 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
     std::shared_ptr<CBaseTx> pBaseTx = block.vptx[0];
     txundo = blockUndo.vtxundo.back();
     cw.pTxUndo = &txundo;
-    if (!pBaseTx->UndoExecuteTx(0, pIndex->nHeight, cw, state))
+    if (!pBaseTx->UndoExecuteTx(pIndex->nHeight, 0, cw, state))
         return false;
 
     // Undo transactions in reverse order
@@ -1185,7 +1185,7 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
         std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
         CTxUndo txundo = blockUndo.vtxundo[i - 1];
         cw.pTxUndo = &txundo;
-        if (!pBaseTx->UndoExecuteTx(i, pIndex->nHeight, cw, state))
+        if (!pBaseTx->UndoExecuteTx(pIndex->nHeight, i, cw, state))
             return false;
     }
     // Set previous block as the best block
