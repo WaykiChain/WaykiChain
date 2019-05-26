@@ -7,7 +7,7 @@
 #define PERSIST_CONTRACTDB_H
 
 #include "commons/arith_uint256.h"
-#include "leveldbwrapper.h"
+#include "persistence/leveldbwrapper.h"
 #include "vm/appaccount.h"
 
 #include <map>
@@ -51,7 +51,6 @@ public:
         return log1.vKey < log2.vKey;
     }
 };
-
 
 class IContractView {
 public:

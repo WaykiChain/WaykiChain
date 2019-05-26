@@ -118,8 +118,8 @@ string CTxUndo::ToString() const {
     str += strAccountLog;
 
     string strDBOperLog("list script db Log:\n");
-    vector<CContractDBOperLog>::const_iterator iterDbLog = vScriptOperLog.begin();
-    for (; iterDbLog != vScriptOperLog.end(); ++iterDbLog) {
+    vector<CContractDBOperLog>::const_iterator iterDbLog = vContractOperLog.begin();
+    for (; iterDbLog != vContractOperLog.end(); ++iterDbLog) {
         strDBOperLog += iterDbLog->ToString();
     }
     strDBOperLog += "\n";
