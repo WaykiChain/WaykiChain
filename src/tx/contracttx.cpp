@@ -236,7 +236,7 @@ bool CContractInvokeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds
     uint64_t fuelRate = GetFuelRate(*cw.pContractCache);
     CContractCache scriptDBView(*cw.pContractCache);
 
-    if (!cw.pTxCache->HaveTx(GetHash())) {
+    if (!pCdMan->pTxCache->HaveTx(GetHash())) {
         tuple<bool, uint64_t, string> ret =
             vmRunEnv.ExecuteContract(pTx, chainActive.Height() + 1, cw, fuelRate, nRunStep);
 

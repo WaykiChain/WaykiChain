@@ -15,14 +15,16 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
+#include "commons/random.h"
 #include "configuration.h"
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_writer_template.h"
 #include "net.h"
-#include "commons/random.h"
+#include "persistence/accountdb.h"
+#include "persistence/contractdb.h"
+
 using namespace json_spirit;
 using namespace boost::assign;
-
 using namespace std;
 using namespace boost;
 
@@ -463,12 +465,14 @@ uint256 CWallet::GetCheckSum() const {
 }
 
 bool CWallet::IsMine(CBaseTx *pTx) const {
-    set<CKeyID> vaddr;
-    CCacheWrapper cw(pCdMan->pAccountCache, pCdMan->pContractCache);
-    if (!pTx->GetInvolvedKeyIds(cw, vaddr)) {
+    set<CKeyID> keyIds;
+    CAccountCache pAccountCache(*pCdMan->pAccountCache);
+    CContractCache pContractCache(*pCdMan->pContractCache);
+    CCacheWrapper cw(&pAccountCache, &pContractCache);
+    if (!pTx->GetInvolvedKeyIds(cw, keyIds)) {
         return false;
     }
-    for (auto &keyid : vaddr) {
+    for (auto &keyid : keyIds) {
         if (HaveKey(keyid) > 0) {
             return true;
         }
