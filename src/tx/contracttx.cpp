@@ -71,7 +71,7 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     nRunStep = contractScript.size();
 
     if(!operLog.vKey.empty()) {
-        cw.pTxUndo->vScriptOperLog.push_back(operLog);
+        cw.pTxUndo->vContractOperLog.push_back(operLog);
     }
     CUserID userId = acctInfo.keyID;
     if (!cw.pAccountCache->SetAccount(userId, acctInfo))
@@ -88,7 +88,7 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
         if(!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, cw.pTxUndo->txHash.GetHex(), operAddressToTxLog))
             return false;
 
-        cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
+        cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
     }
     return true;
 }
@@ -127,8 +127,8 @@ bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
         }
     }
 
-    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vScriptOperLog.rbegin();
-    for (; rIterScriptDBLog != cw.pTxUndo->vScriptOperLog.rend(); ++rIterScriptDBLog) {
+    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vContractOperLog.rbegin();
+    for (; rIterScriptDBLog != cw.pTxUndo->vContractOperLog.rend(); ++rIterScriptDBLog) {
         if (!cw.pContractCache->UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
             return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, undo scriptdb data error"),
                                             UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");
@@ -390,7 +390,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
         cw.pTxUndo->vAccountLog.push_back(oldAcctLog);
     }
-    cw.pTxUndo->vScriptOperLog.insert(cw.pTxUndo->vScriptOperLog.end(), vmRunEnv.GetDbLog()->begin(),
+    cw.pTxUndo->vContractOperLog.insert(cw.pTxUndo->vContractOperLog.end(), vmRunEnv.GetDbLog()->begin(),
                                  vmRunEnv.GetDbLog()->end());
     vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEnv.GetRawAppUserAccount();
     for (auto & itemUserAccount : vAppUserAccount) {
@@ -419,13 +419,13 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
                                          operAddressToTxLog))
             return false;
 
-        cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
+        cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
 
         if (!cw.pContractCache->SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
                                          operAddressToTxLog))
             return false;
 
-        cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
+        cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
     }
 
     return true;
@@ -453,8 +453,8 @@ bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
         }
     }
 
-    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vScriptOperLog.rbegin();
-    for (; rIterScriptDBLog != cw.pTxUndo->vScriptOperLog.rend(); ++rIterScriptDBLog) {
+    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vContractOperLog.rbegin();
+    for (; rIterScriptDBLog != cw.pTxUndo->vContractOperLog.rend(); ++rIterScriptDBLog) {
         if (!cw.pContractCache->UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
             return state.DoS(100, ERRORMSG("CContractInvokeTx::UndoExecuteTx, undo scriptdb data error"),
                              UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");

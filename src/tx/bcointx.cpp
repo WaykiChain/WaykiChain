@@ -161,13 +161,13 @@ bool CBaseCoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
                                                 operAddressToTxLog))
             return false;
 
-        cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
+        cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
 
         if (!pCdMan->pContractCache->SetTxHashByAddress(revKeyId, nHeight, nIndex + 1,
                                                         cw.pTxUndo->txHash.GetHex(), operAddressToTxLog))
             return false;
 
-        cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
+        cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
     }
 
     return true;
@@ -213,8 +213,8 @@ bool CBaseCoinTransferTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
         }
     }
 
-    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vScriptOperLog.rbegin();
-    for (; rIterScriptDBLog != cw.pTxUndo->vScriptOperLog.rend(); ++rIterScriptDBLog) {
+    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vContractOperLog.rbegin();
+    for (; rIterScriptDBLog != cw.pTxUndo->vContractOperLog.rend(); ++rIterScriptDBLog) {
         if (!cw.pContractCache->UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
             return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::UndoExecuteTx, undo scriptdb data error"),
                              UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");

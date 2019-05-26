@@ -1452,7 +1452,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         if (!pCdMan->pContractCache->WriteTxIndex(vPos, vTxIndexOperDB))
             return state.Abort(_("Failed to write transaction index"));
         auto itTxUndo = blockundo.vtxundo.rbegin();
-        itTxUndo->vScriptOperLog.insert(itTxUndo->vScriptOperLog.begin(), vTxIndexOperDB.begin(),
+        itTxUndo->vContractOperLog.insert(itTxUndo->vContractOperLog.begin(), vTxIndexOperDB.begin(),
                                         vTxIndexOperDB.end());
     }
 

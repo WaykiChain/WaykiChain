@@ -213,18 +213,18 @@ class CTxUndo {
 public:
     uint256 txHash;
     vector<CAccountLog> vAccountLog;
-    vector<CContractDBOperLog> vScriptOperLog;
+    vector<CContractDBOperLog> vContractOperLog;
     IMPLEMENT_SERIALIZE(
         READWRITE(txHash);
         READWRITE(vAccountLog);
-        READWRITE(vScriptOperLog);)
+        READWRITE(vContractOperLog);)
 
 public:
     bool GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog);
     void Clear() {
         txHash = uint256();
         vAccountLog.clear();
-        vScriptOperLog.clear();
+        vContractOperLog.clear();
     }
     string ToString() const;
 };

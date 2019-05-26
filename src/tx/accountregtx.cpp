@@ -83,7 +83,7 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
             cw.pTxUndo->txHash.GetHex(), operAddressToTxLog))
             return false;
 
-        cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
+        cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
     }
 
     return true;

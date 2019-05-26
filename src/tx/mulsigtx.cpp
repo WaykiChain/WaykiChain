@@ -183,7 +183,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
             if (!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
                                              operAddressToTxLog))
                 return false;
-            cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
+            cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
         }
 
         if (!cw.pAccountCache->GetKeyId(desUserId, revKeyId))
@@ -192,7 +192,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
         if (!cw.pContractCache->SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
                                          operAddressToTxLog))
             return false;
-        cw.pTxUndo->vScriptOperLog.push_back(operAddressToTxLog);
+        cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
     }
 
     return true;
@@ -238,8 +238,8 @@ bool CMulsigTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
         }
     }
 
-    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vScriptOperLog.rbegin();
-    for (; rIterScriptDBLog != cw.pTxUndo->vScriptOperLog.rend(); ++rIterScriptDBLog) {
+    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vContractOperLog.rbegin();
+    for (; rIterScriptDBLog != cw.pTxUndo->vContractOperLog.rend(); ++rIterScriptDBLog) {
         if (!cw.pContractCache->UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
             return state.DoS(100, ERRORMSG("CMulsigTx::UndoExecuteTx, undo scriptdb data error"),
                              UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
