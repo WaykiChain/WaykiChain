@@ -12,7 +12,6 @@
 #include "commons/serialize.h"
 #include "commons/uint256.h"
 
-// #include "tx/tx.h"
 #include <vector>
 
 class CAppFundOperate;

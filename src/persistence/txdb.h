@@ -17,6 +17,9 @@ using namespace std;
 using namespace json_spirit;
 
 class CBlock;
+class CPricePoint;
+class CCoinPriceType;
+
 
 class CTransactionCache {
 private:
@@ -35,9 +38,29 @@ public:
     void SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache);
 };
 
+class CBlockPricePointSet {
+private:
+    set<CPricePoint> set1;
+    set<CPricePoint> set2;
+
+    set<CPricePoint> *pLastPricePointSet;
+    set<CPricePoint> *pCurrPricePointSet;
+
+    uint64_t lastMedianPrice;
+    uint64_t currMedianPrice;
+
+public:
+    CBlockPricePointSet(): pLastPricePointSet(&set1), pCurrPricePointSet(&set2) {}
+
+};
+
 class CPricePointCache {
 private:
-    map<CCoinPriceType, tuple<set<PricePoint>, set<PricePoint>> mapCoinPricePointSet;
+    map<CCoinPriceType, CBlockPricePointSet> mapCoinPricePointSet;
 
-}
+public:
+    uint64_t GetMedianPrice(CCoinPriceType coinPriceType);
+
+    void AddPricePoint(CPricePoint pp);
+};
 #endif // PERSIST_TXDB_H

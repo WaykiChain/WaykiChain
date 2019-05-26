@@ -244,23 +244,23 @@ public:
 
 class CPricePoint {
 private:
-    CCoinPriceType CCoinPriceType;
+    CCoinPriceType coinPriceType;
     uint64_t price;
 
 public:
     CPricePoint(CCoinPriceType coinPriceTypeIn, uint64_t priceIn)
-        : CCoinPriceType(coinPriceTypeIn), price(priceIn) {}
+        : coinPriceType(coinPriceTypeIn), price(priceIn) {}
 
     CPricePoint(CoinType coinTypeIn, PriceType priceTypeIn, uint64_t priceIn)
-        : CCoinPriceType(coinTypeIn, priceTypeIn), price(priceIn) {}
+        : coinPriceType(coinTypeIn, priceTypeIn), price(priceIn) {}
 
     string ToString() {
         return strprintf("coinType:%u, priceType:%u, price:%lld",
-                        CCoinPriceType.coinType, CCoinPriceType.priceType, price);
+                        coinPriceType.coinType, coinPriceType.priceType, price);
     }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(CCoinPriceType);
+        READWRITE(coinPriceType);
         READWRITE(VARINT(price));)
 };
 
