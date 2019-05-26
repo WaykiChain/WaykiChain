@@ -43,12 +43,25 @@ bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
+    CAccountLog acctLog(account); //save account state before modification
+    if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, deduct fee from account failed ,regId=%s",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
+    }
 
+    if (!cw.pAccountCache->SaveAccount(account)) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error",
+                        account.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+    }
 
-    // check if the account is among the top 22 accounts list
+    // update the price feed cache accordingly
+    if (!pCdMan->pPpCache->AddBlockPricePointInBatch(nHeight, txUid, pricePoints)) {
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, txUid %s account duplicated price feed exits",
+                        txUid.ToString()), PRICE_FEED_FAIL, "duplicated-pricefeed");
+    }
 
-    // update the price state accordingly
-
+    cw.pTxUndo->vAccountLog.push_back(acctLog);
+    cw.pTxUndo->txHash = GetHash();
 
     return true;
 }

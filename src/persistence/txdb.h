@@ -19,7 +19,7 @@ using namespace json_spirit;
 class CBlock;
 class CPricePoint;
 class CCoinPriceType;
-
+class CUserID;
 
 class CTransactionCache {
 private:
@@ -41,23 +41,29 @@ public:
 // Price Points in two consecutive blocks
 class CConsecutiveBlockPrice {
 private:
-    map<int, set<uint64_t>> mapBlockPrice;    // height -> PricePointSet
+    map<int, vector<uint64_t>> mapBlockPriceList;       // height -> PricePointSet
+    map<int, unordered_set<string>>mapBlockTxUidSet;    // height -> TxUidSet
     int lastBlockHeight;
     int currBlockHeight;
     uint64_t lastBlockMediaPrice;
     uint64_t currBlockMediaPrice;
 
 public:
-    void AddPricePoint(const int height, const uint64_t price);
-    uint64_t ComputeBlockMediaPrice(const int blockHeight);
+    void AddPricePoint(const int height, const CUserID &txUid, const uint64_t price);
+    bool ExistBlockUserPrice(const int height, const CUserID &txUid);
+    uint64_t ComputeBlockMedianPrice(const int blockHeight);
+    uint64_t GetLastBlockMedianPrice();
+
+public:
+    static uint64_t ComputeMedianNumber(vector<uint64_t> &numbers);
 };
 
 class CPricePointCache {
 private:
-    map<CCoinPriceType, CConsecutiveBlockPrice> mapCoinPricePointSet; // coinPriceType -> consecutiveBlockPrice
+    map<string, CConsecutiveBlockPrice> mapCoinPricePointCache; // coinPriceType -> consecutiveBlockPrice
 
 public:
-    void AddBlockPricePoint(const int blocHeight, const CPricePoint pp);
-    uint64_t GetMedianPrice(const CCoinPriceType coinPriceType);
+    bool AddBlockPricePointInBatch(const int blockHeight, const CUserID &txUid, const vector<CPricePoint> &pps);
+    uint64_t ComputeBlockMedianPrice(const int blockHeight, CCoinPriceType coinPriceType);
 };
 #endif // PERSIST_TXDB_H

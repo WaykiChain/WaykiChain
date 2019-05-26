@@ -313,6 +313,7 @@ public:
         pContractDb     = new CContractDB(nScriptCacheSize, false, fReIndex);
         pContractCache  = new CContractCache(*pContractDb);
         pTxCache        = new CTransactionCache();
+        pPpCache        = new CPricePointCache();
         pBlockTreeDb    = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
     }
 
@@ -322,6 +323,7 @@ public:
         delete pContractDb;     pContractDb = nullptr;
         delete pContractCache;  pContractCache = nullptr;
         delete pTxCache;        pTxCache = nullptr;
+        delete pPpCache;        pPpCache = nullptr;
         delete pBlockTreeDb;    pBlockTreeDb = nullptr;
     }
 

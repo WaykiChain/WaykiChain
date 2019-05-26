@@ -237,6 +237,8 @@ public:
     CCoinPriceType(CoinType coinTypeIn, PriceType priceTypeIn) :
         coinType(coinTypeIn), priceType(priceTypeIn) {}
 
+    string ToString() { return strprintf("%u%u", coinType, priceType); }
+
     IMPLEMENT_SERIALIZE(
         READWRITE(coinType);
         READWRITE(priceType);)
@@ -253,6 +255,9 @@ public:
 
     CPricePoint(CoinType coinTypeIn, PriceType priceTypeIn, uint64_t priceIn)
         : coinPriceType(coinTypeIn, priceTypeIn), price(priceIn) {}
+
+    uint64_t GetPrice() { return price; }
+    CCoinPriceType GetCoinPriceType() { return coinPriceType; }
 
     string ToString() {
         return strprintf("coinType:%u, priceType:%u, price:%lld",
