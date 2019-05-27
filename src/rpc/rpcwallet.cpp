@@ -349,7 +349,7 @@ Value sendtoaddress(const Array& params, bool fHelp) {
             "2.\"recvaddress\" (string, required) The address where coins are received.\n"
             "3.\"amount\" (string, required)\n"
             "\nResult:\n"
-            "\"transactionid\" (string) The transaction id.\n"
+            "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n" +
             HelpExampleCli("sendtoaddress", "\"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" 10000000") +
             "\nAs json rpc call\n" +
@@ -421,7 +421,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
             "3.\"amount\"       (string, required)\n"
             "4.\"fee\"          (string, required)\n"
             "\nResult:\n"
-            "\"transactionid\"  (string) The transaction id.\n"
+            "\"txid\"  (string) The transaction id.\n"
             "\nExamples:\n" +
             HelpExampleCli("sendtoaddress",
                            "\"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" 10000000 10000") +
@@ -514,7 +514,7 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
             "4.\"fee\"     (numeric, required)\n"
             "5.\"height\"  (int, optional)\n"
             "\nResult:\n"
-            "\"transactionid\"  (string) The transaction id.\n"
+            "\"txid\"  (string) The transaction id.\n"
             "\nExamples:\n" +
             HelpExampleCli("gensendtoaddressraw",
                            "\"WRJAnKvf8F8xdeuaceXJXz9AcNRdVvH5JG\" "
@@ -597,7 +597,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
             "4.\"fee\"     (numeric, required)\n"
             "5.\"height\"  (int, optional)\n"
             "\nResult:\n"
-            "\"transactionid\"  (string) The transaction id.\n"
+            "\"txid\"  (string) The transaction id.\n"
             "\nExamples:\n" +
             HelpExampleCli("genmulsigtx",
                            "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571"
@@ -760,7 +760,7 @@ Value getassets(const Array& params, bool fHelp)
 //                 "2. amount (required)\n"
 //                 "3.\"description\"   (string, required) \n"
 //                 "\nResult:\n"
-//                 "\"transactionid\"  (string) The transaction id.\n"
+//                 "\"txid\"  (string) The transaction id.\n"
 //                 "\nExamples:\n"
 //                 + HelpExampleCli("dispersebalance", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
 //                 + HelpExampleRpc("dispersebalance", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1"));

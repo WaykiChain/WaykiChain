@@ -21,8 +21,8 @@ CVmRunEnv::CVmRunEnv() {
     rawAppUserAccount.clear();
     newAppUserAccount.clear();
     runTimeHeight      = 0;
-    pScriptDBViewCache = NULL;
-    pAccountViewCache  = NULL;
+    pContractCache = NULL;
+    pAccountCache  = NULL;
     pScriptDBOperLog   = std::make_shared<std::vector<CContractDBOperLog>>();
     isCheckAccount     = false;
 }
@@ -39,7 +39,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountCache& view, int nHe
     vmOperateOutput.clear();
     pBaseTx           = tx;
     runTimeHeight     = nHeight;
-    pAccountViewCache = &view;
+    pAccountCache = &view;
     vector<unsigned char> vScript;
 
     if (tx.get()->nTxType != CONTRACT_INVOKE_TX) {
@@ -48,7 +48,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountCache& view, int nHe
     }
 
     CContractInvokeTx* contractTx = static_cast<CContractInvokeTx*>(tx.get());
-    if (!pScriptDBViewCache->GetScript(contractTx->appUid.get<CRegID>(), vScript)) {
+    if (!pContractCache->GetScript(contractTx->appUid.get<CRegID>(), vScript)) {
         LogPrint("ERROR", "Script is not Registed %s\n",
                  contractTx->appUid.get<CRegID>().ToString());
         return false;
@@ -93,7 +93,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
                                                          uint64_t nBurnFactor, uint64_t& uRunStep) {
     if (nBurnFactor == 0) return std::make_tuple(false, 0, string("VmScript nBurnFactor == 0\n"));
 
-    pScriptDBViewCache = cw.pContractCache;
+    pContractCache = cw.pContractCache;
 
     CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(Tx.get());
     if (tx->llFees < CBaseTx::nMinTxFee)
@@ -140,14 +140,14 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
             return std::make_tuple(false, 0, string("VmScript CheckAppAcct Failed\n"));
     }
 
-    if (!OpeatorAppAccount(mapAppFundOperate, *pScriptDBViewCache)) {
+    if (!OpeatorAppAccount(mapAppFundOperate, *pContractCache)) {
         return std::make_tuple(false, 0, string("OpeatorApp Account Failed\n"));
     }
 
     if (SysCfg().IsContractLogOn() && vmOperateOutput.size() > 0) {
         CContractDBOperLog operlog;
         uint256 txhash = GetCurTxHash();
-        if (!pScriptDBViewCache->WriteTxOutPut(txhash, vmOperateOutput, operlog))
+        if (!pContractCache->WriteTxOutPut(txhash, vmOperateOutput, operlog))
             return std::make_tuple(false, 0, string("write tx out put Failed \n"));
         pScriptDBOperLog->push_back(operlog);
     }
@@ -196,7 +196,7 @@ vector_unsigned_char CVmRunEnv::GetAccountID(CVmOperate value) {
         string addr(value.accountId, value.accountId + sizeof(value.accountId));
         CKeyID KeyId = CKeyID(addr);
         CRegID regid;
-        if (pAccountViewCache->GetRegId(CUserID(KeyId), regid)) {
+        if (pAccountCache->GetRegId(CUserID(KeyId), regid)) {
             accountId.assign(regid.GetRegIdRaw().begin(), regid.GetRegIdRaw().end());
         } else {
             accountId.assign(value.accountId, value.accountId + 34);
@@ -245,7 +245,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
             CRegID regId(accountId);
             CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
             /// current tx's script cant't mius other script's regid
-            if (pScriptDBViewCache->HaveScript(regId) && regId != tx->appUid.get<CRegID>())
+            if (pContractCache->HaveScript(regId) && regId != tx->appUid.get<CRegID>())
                 return false;
 
             memcpy(&operValue, it.money, sizeof(it.money));
@@ -269,10 +269,10 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
         vector_unsigned_char accountId = GetAccountID(it);
         if (accountId.size() == 6) {
             CRegID regId(accountId);
-            if (regId.IsEmpty() || regId.GetKeyId(*pAccountViewCache) == uint160()) return false;
+            if (regId.IsEmpty() || regId.GetKeyId(*pAccountCache) == uint160()) return false;
 
             //  app only be allowed minus self money
-            if (!pScriptDBViewCache->HaveScript(regId) && it.opType == MINUS_BCOIN) return false;
+            if (!pContractCache->HaveScript(regId) && it.opType == MINUS_BCOIN) return false;
         }
     }
 
@@ -425,7 +425,7 @@ bool CVmRunEnv::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountCa
         { ret = vmAccount.get()->OperateBalance(CoinType::WICC, (BalanceOpType)it.opType, value); }
         //      else{
         //          ret = vmAccount.get()->OperateBalance((BalanceOpType)it.opType, fund,
-        //          *pScriptDBViewCache, vAuthorLog,  height, &GetScriptRegID().GetRegIdRaw(), true);
+        //          *pContractCache, vAuthorLog,  height, &GetScriptRegID().GetRegIdRaw(), true);
         //      }
 
         //      LogPrint("vm", "after account:%s\n", vmAccount.get()->ToString().c_str());
@@ -468,9 +468,9 @@ int CVmRunEnv::GetBurnVersion() {
 
 uint256 CVmRunEnv::GetCurTxHash() { return pBaseTx.get()->GetHash(); }
 
-CContractCache* CVmRunEnv::GetScriptDB() { return pScriptDBViewCache; }
+CContractCache* CVmRunEnv::GetScriptDB() { return pContractCache; }
 
-CAccountCache* CVmRunEnv::GetCatchView() { return pAccountViewCache; }
+CAccountCache* CVmRunEnv::GetCatchView() { return pAccountCache; }
 
 void CVmRunEnv::InsertOutAPPOperte(const vector<unsigned char>& userId,
                                    const CAppFundOperate& source) {
@@ -499,9 +499,9 @@ shared_ptr<vector<CContractDBOperLog>> CVmRunEnv::GetDbLog() { return pScriptDBO
  */
 bool CVmRunEnv::GetAppUserAccount(const vector<unsigned char>& vAppUserId,
                                   shared_ptr<CAppUserAccount>& sptrAcc) {
-    assert(pScriptDBViewCache != NULL);
+    assert(pContractCache);
     shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
-    if (!pScriptDBViewCache->GetScriptAcc(GetScriptRegID(), vAppUserId, *tem.get())) {
+    if (!pContractCache->GetScriptAcc(GetScriptRegID(), vAppUserId, *tem.get())) {
         tem     = std::make_shared<CAppUserAccount>(vAppUserId);
         sptrAcc = tem;
         return true;

@@ -2128,11 +2128,11 @@ Value getcontractconfirmdata(const Array& params, bool fHelp) {
             + HelpExampleCli("getcontractconfirmdata", "\"1304166-1\" \"1\"  \"1\"")
             + HelpExampleRpc("getcontractconfirmdata", "\"1304166-1\" \"1\"  \"1\""));
     }
-    std::shared_ptr<CContractCache> pAccountViewCache;
+    std::shared_ptr<CContractCache> pAccountCache;
     if (4 == params.size() && 0 == params[3].get_int()) {
-        pAccountViewCache.reset(new CContractCache(*mempool.memPoolContractCache.get()));
+        pAccountCache.reset(new CContractCache(*mempool.memPoolContractCache.get()));
     } else {
-        pAccountViewCache.reset(new CContractCache(*pCdMan->pContractCache));
+        pAccountCache.reset(new CContractCache(*pCdMan->pContractCache));
     }
     int height = chainActive.Height();
     RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
@@ -2140,7 +2140,7 @@ Value getcontractconfirmdata(const Array& params, bool fHelp) {
     if (regid.IsEmpty() == true)
         throw runtime_error("getcontractdata :appregid NOT found!");
 
-    if (!pAccountViewCache->HaveScript(regid))
+    if (!pAccountCache->HaveScript(regid))
         throw runtime_error("getcontractdata :appregid does NOT exist!");
 
     Object obj;
@@ -2154,7 +2154,7 @@ Value getcontractconfirmdata(const Array& params, bool fHelp) {
     std::vector<unsigned char> vValue;
     Array retArray;
     int nReadCount = 0;
-    while (pAccountViewCache->GetContractData(height, regid, 1, vScriptKey, vValue)) {
+    while (pAccountCache->GetContractData(height, regid, 1, vScriptKey, vValue)) {
         Object item;
         ++nReadCount;
         if (nReadCount > pagesize * (nIndex - 1)) {

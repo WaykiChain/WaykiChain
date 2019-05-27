@@ -2438,7 +2438,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
     int64_t llAcceptBlockTime = GetTimeMillis();
     // Store to disk
     if (!AcceptBlock(*pblock, state, dbp)) {
-        LogPrint("INFO", "AcceptBlock() elapse time:%lld ms\n", GetTimeMillis() - llAcceptBlockTime);
+        LogPrint("INFO", "AcceptBlock() elapse time: %lld ms\n", GetTimeMillis() - llAcceptBlockTime);
         return ERRORMSG("ProcessBlock() : AcceptBlock FAILED");
     }
     // LogPrint("INFO", "AcceptBlock() elapse time:%lld ms\n", GetTimeMillis() - llAcceptBlockTime);
