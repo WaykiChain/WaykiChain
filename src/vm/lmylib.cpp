@@ -883,10 +883,16 @@ static int ExGetTxRegIDFunc(lua_State *L) {
     if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
         if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
             CBaseCoinTransferTx *tx = static_cast<CBaseCoinTransferTx*>(pBaseTx.get());
+            if (tx->txUid.type() != typeid(CRegID))
+                return RetFalse("ExGetTxRegIDFunc, txUid is not CRegID type");
+
             vector<unsigned char> item = tx->txUid.get<CRegID>().GetRegIdRaw();
             len = RetRstToLua(L, item);
         } else if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
             CContractInvokeTx *tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
+            if (tx->txUid.type() != typeid(CRegID))
+                return RetFalse("ExGetTxRegIDFunc, txUid is not CRegID type");
+
             vector<unsigned char> item = tx->txUid.get<CRegID>().GetRegIdRaw();
             len = RetRstToLua(L, item);
         } else {

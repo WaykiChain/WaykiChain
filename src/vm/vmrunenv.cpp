@@ -49,7 +49,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountCache& view, int nHe
 
     CContractInvokeTx* contractTx = static_cast<CContractInvokeTx*>(tx.get());
     if (!pContractCache->GetScript(contractTx->appUid.get<CRegID>(), vScript)) {
-        LogPrint("ERROR", "Script is not Registed %s\n",
+        LogPrint("ERROR", "contract not found: %s\n",
                  contractTx->appUid.get<CRegID>().ToString());
         return false;
     }
