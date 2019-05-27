@@ -32,18 +32,19 @@ Object CDelegateVoteTx::ToJson(const CAccountCache &accountView) const {
     Object result;
     CAccountCache view(accountView);
     CKeyID keyId;
-    result.push_back(Pair("hash", GetHash().GetHex()));
-    result.push_back(Pair("txtype", GetTxType(nTxType)));
+    pCdMan->pAccountCache->GetKeyId(txUid, keyId);
+
+    result.push_back(Pair("tx_hash", GetHash().GetHex()));
+    result.push_back(Pair("tx_type", GetTxType(nTxType)));
     result.push_back(Pair("ver", nVersion));
     result.push_back(Pair("regid", txUid.ToString()));
-    pCdMan->pAccountCache->GetKeyId(txUid, keyId);
     result.push_back(Pair("addr", keyId.ToAddress()));
     result.push_back(Pair("fees", llFees));
     Array candidateVoteArray;
     for (const auto &vote : candidateVotes) {
         candidateVoteArray.push_back(vote.ToJson());
     }
-    result.push_back(Pair("candidate_vote_list", candidateVoteArray));
+    result.push_back(Pair("candidate_votes", candidateVoteArray));
     return result;
 }
 
