@@ -371,7 +371,7 @@ Value sendtoaddress(const Array& params, bool fHelp) {
         nAmount = AmountToRawValue(params[2]);
         if (pCdMan->pAccountCache->GetFreeBCoins(sendKeyId) < nAmount + nDefaultFee)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
-    } else { // size == 2
+    } else {
         if (!GetKeyId(params[0].get_str(), recvKeyId))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
 
@@ -514,7 +514,7 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
             "4.\"fee\"     (numeric, required)\n"
             "5.\"height\"  (int, optional)\n"
             "\nResult:\n"
-            "\"txid\"  (string) The transaction id.\n"
+            "\"rawtx\"  (string) The raw transaction\n"
             "\nExamples:\n" +
             HelpExampleCli("gensendtoaddressraw",
                            "\"WRJAnKvf8F8xdeuaceXJXz9AcNRdVvH5JG\" "

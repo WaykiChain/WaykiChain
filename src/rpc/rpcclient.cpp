@@ -201,7 +201,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     // if (strMethod == "createcontracttx"       && n > 4) ConvertTo<int64_t>(params[4]); //for backward compatibility
     // if (strMethod == "createcontracttx"       && n > 5) ConvertTo<int>(params[5]);     //for backward compatibility
 
-    if (strMethod == "callcontracttx"         && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "callcontracttx"         && n > 3) ConvertTo<int64_t>(params[3]);
     if (strMethod == "callcontracttx"         && n > 4) ConvertTo<int64_t>(params[4]);
     if (strMethod == "callcontracttx"         && n > 5) ConvertTo<int>(params[5]);
 
@@ -235,8 +235,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "genregistercontractraw" && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "genregistercontractraw" && n > 3) ConvertTo<int>(params[3]);
 
-    if (strMethod == "gencallcontractraw"     && n > 0) ConvertTo<double>(params[0]);
-    if (strMethod == "gencallcontractraw"     && n > 1) ConvertTo<double>(params[1]);
+    if (strMethod == "gencallcontractraw"     && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "gencallcontractraw"     && n > 4) ConvertTo<int64_t>(params[4]);
     if (strMethod == "gencallcontractraw"     && n > 5) ConvertTo<int>(params[5]);
 
     if (strMethod == "genvotedelegateraw"     && n > 1) ConvertTo<Array>(params[1]);
