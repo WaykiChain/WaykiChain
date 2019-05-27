@@ -135,19 +135,6 @@ bool CPricePointCache::AddBlockPricePointInBatch(const int blockHeight,
     return true;
 }
 
-bool CPricePointCache::RemoveBlockPricePointInBatch(const int blockHeight,
-        const CUserID &txUid, const vector<CPricePoint> &pps) {
-    for (CPricePoint pp : pps ) {
-        CConsecutiveBlockPrice cbp = mapCoinPricePointCache[ pp.GetCoinPriceType().ToString() ];
-        if (!cbp.ExistBlockUserPrice(blockHeight, txUid))
-            continue;
-
-        cbp.AddUserPrice(blockHeight, txUid, pp.GetPrice());
-    }
-
-    return true;
-}
-
 uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, CCoinPriceType coinPriceType) {
     CConsecutiveBlockPrice cbp = mapCoinPricePointCache[ coinPriceType.ToString() ];
     uint64_t medianPrice = cbp.ComputeBlockMedianPrice(blockHeight);
