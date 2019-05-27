@@ -78,18 +78,8 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
         return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, save account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
-    if(SysCfg().GetAddressToTxFlag()) {
-        CContractDBOperLog operAddressToTxLog;
-        CKeyID sendKeyId;
-        if(!cw.pAccountCache->GetKeyId(txUid, sendKeyId)) {
-            return ERRORMSG("CContractDeployTx::ExecuteTx, get regAcctId by account error!");
-        }
+    IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
 
-        if(!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, cw.pTxUndo->txHash.GetHex(), operAddressToTxLog))
-            return false;
-
-        cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
-    }
     return true;
 }
 
@@ -425,28 +415,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
     cw.pTxUndo->txHash = GetHash();
 
-    if (SysCfg().GetAddressToTxFlag()) {
-        CContractDBOperLog operAddressToTxLog;
-        CKeyID sendKeyId;
-        CKeyID revKeyId;
-        if (!cw.pAccountCache->GetKeyId(txUid, sendKeyId))
-            return ERRORMSG("CContractInvokeTx::ExecuteTx, get keyid by txUid error!");
-
-        if (!cw.pAccountCache->GetKeyId(appUid, revKeyId))
-            return ERRORMSG("CContractInvokeTx::ExecuteTx, get keyid by appUid error!");
-
-        if (!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
-                                         operAddressToTxLog))
-            return false;
-
-        cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
-
-        if (!cw.pContractCache->SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
-                                         operAddressToTxLog))
-            return false;
-
-        cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
-    }
+    IMPLEMENT_PERSIST_TX_KEYID(txUid, appUid);
 
     return true;
 }

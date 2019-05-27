@@ -180,8 +180,8 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
             if (!cw.pAccountCache->GetKeyId(CUserID(item.regId), sendKeyId))
                 return ERRORMSG("CBaseCoinTransferTx::CMulsigTx, get keyid by srcUserId error!");
 
-            if (!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
-                                             operAddressToTxLog))
+            if (!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1,
+                                        cw.pTxUndo->txHash.GetHex(), operAddressToTxLog))
                 return false;
             cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
         }
@@ -189,9 +189,10 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
         if (!cw.pAccountCache->GetKeyId(desUserId, revKeyId))
             return ERRORMSG("CBaseCoinTransferTx::CMulsigTx, get keyid by desUserId error!");
 
-        if (!cw.pContractCache->SetTxHashByAddress(revKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
-                                         operAddressToTxLog))
+        if (!cw.pContractCache->SetTxHashByAddress(revKeyId, nHeight, nIndex + 1,
+                                    cw.pTxUndo->txHash.GetHex(), operAddressToTxLog))
             return false;
+
         cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
     }
 

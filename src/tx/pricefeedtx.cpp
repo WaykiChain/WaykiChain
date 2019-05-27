@@ -62,13 +62,32 @@ bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
     cw.pTxUndo->vAccountLog.push_back(acctLog);
     cw.pTxUndo->txHash = GetHash();
 
+    IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
+
     return true;
 }
 
 bool CPriceFeedTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    //TODO
-    return true;
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.pTxUndo->vAccountLog.rbegin();
+    for (; rIterAccountLog != cw.pTxUndo->vAccountLog.rend(); ++rIterAccountLog) {
+        CAccount account;
+        CUserID userId = rIterAccountLog->keyID;
+        if (!cw.pAccountCache->GetAccount(userId, account)) {
+            return state.DoS(100, ERRORMSG("CPriceFeedTx::UndoExecuteTx, read account info error"),
+                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
+        }
+        if (!account.UndoOperateAccount(*rIterAccountLog)) {
+            return state.DoS(100, ERRORMSG("CPriceFeedTx::UndoExecuteTx, undo operate account failed"),
+                             UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
+        }
 
+        if (!cw.pAccountCache->SetAccount(userId, account)) {
+            return state.DoS(100, ERRORMSG("CPriceFeedTx::UndoExecuteTx, write account info error"),
+                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
+        }
+    }
+
+    return true;
 }
 
 string CPriceFeedTx::ToString(CAccountCache &accountCache) {

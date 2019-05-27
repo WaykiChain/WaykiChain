@@ -73,18 +73,8 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
 
     cw.pTxUndo->vAccountLog.push_back(acctLog);
     cw.pTxUndo->txHash = GetHash();
-    if (SysCfg().GetAddressToTxFlag()) {
-        CContractDBOperLog operAddressToTxLog;
-        CKeyID sendKeyId;
-        if(!cw.pAccountCache->GetKeyId(txUid, sendKeyId))
-            return ERRORMSG("CAccountRegisterTx::ExecuteTx, get keyid by userId error!");
 
-        if(!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex+1,
-            cw.pTxUndo->txHash.GetHex(), operAddressToTxLog))
-            return false;
-
-        cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
-    }
+    IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
 
     return true;
 }

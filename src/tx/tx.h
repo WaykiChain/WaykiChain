@@ -324,4 +324,34 @@ public:
                          "bad-tx-signature");                                                                   \
     }
 
+#define IMPLEMENT_PERSIST_TX_KEYID(sendTxUid, recvTxUid)                                   \
+    if (SysCfg().GetAddressToTxFlag()) {                                                   \
+        CContractDBOperLog operAddressToTxLog;                                             \
+        if (sendTxUid.type() != typeid(CNullID)) {                                         \
+            CKeyID sendKeyId;                                                              \
+            if (!cw.pAccountCache->GetKeyId(sendTxUid, sendKeyId))                         \
+                return ERRORMSG("%s::ExecuteTx, get keyid by txUid error!", __FUNCTION__); \
+                                                                                           \
+            if (!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1,     \
+                                                       cw.pTxUndo->txHash.GetHex(),        \
+                                                       operAddressToTxLog))                \
+                return false;                                                              \
+                                                                                           \
+            cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);                    \
+        }                                                                                  \
+                                                                                           \
+        if (recvTxUid.type() != typeid(CNullID)) {                                         \
+            CKeyID recvKeyId;                                                              \
+            if (!cw.pAccountCache->GetKeyId(recvTxUid, recvKeyId))                         \
+                return ERRORMSG("%s::ExecuteTx, get keyid by toUid error!", __FUNCTION__); \
+                                                                                           \
+            if (!cw.pContractCache->SetTxHashByAddress(recvKeyId, nHeight, nIndex + 1,     \
+                                                       cw.pTxUndo->txHash.GetHex(),        \
+                                                       operAddressToTxLog))                \
+                return false;                                                              \
+                                                                                           \
+            cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);                    \
+        }                                                                                  \
+    }
+
 #endif //COIN_BASETX_H

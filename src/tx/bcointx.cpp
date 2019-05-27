@@ -147,28 +147,7 @@ bool CBaseCoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     cw.pTxUndo->vAccountLog.push_back(desAcctLog);
     cw.pTxUndo->txHash = GetHash();
 
-    if (SysCfg().GetAddressToTxFlag()) {
-        CContractDBOperLog operAddressToTxLog;
-        CKeyID sendKeyId;
-        CKeyID revKeyId;
-        if (!cw.pAccountCache->GetKeyId(txUid, sendKeyId))
-            return ERRORMSG("CBaseCoinTransferTx::ExecuteTx, get keyid by txUid error!");
-
-        if (!cw.pAccountCache->GetKeyId(toUid, revKeyId))
-            return ERRORMSG("CBaseCoinTransferTx::ExecuteTx, get keyid by toUid error!");
-
-        if (!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1, cw.pTxUndo->txHash.GetHex(),
-                                                operAddressToTxLog))
-            return false;
-
-        cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
-
-        if (!pCdMan->pContractCache->SetTxHashByAddress(revKeyId, nHeight, nIndex + 1,
-                                                        cw.pTxUndo->txHash.GetHex(), operAddressToTxLog))
-            return false;
-
-        cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
-    }
+    IMPLEMENT_PERSIST_TX_KEYID(txUid, toUid);
 
     return true;
 }

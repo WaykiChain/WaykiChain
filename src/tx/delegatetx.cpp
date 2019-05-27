@@ -185,18 +185,8 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         cw.pTxUndo->vContractOperLog.push_back(eraseDbLog);
     }
 
-    if (SysCfg().GetAddressToTxFlag()) {
-        CContractDBOperLog operAddressToTxLog;
-        CKeyID sendKeyId;
-        if (!cw.pAccountCache->GetKeyId(txUid, sendKeyId)) {
-            return ERRORMSG("CDelegateVoteTx::ExecuteTx, get regAcctId by account error!");
-        }
+    IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
 
-        if (!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex+1, cw.pTxUndo->txHash.GetHex(), operAddressToTxLog))
-            return false;
-
-        cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
-    }
     return true;
 }
 
