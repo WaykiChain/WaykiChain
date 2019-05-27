@@ -517,7 +517,8 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 
 Value callcontracttx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
-       throw runtime_error("callcontracttx \"sender addr\" \"app regid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
+        throw runtime_error(
+            "callcontracttx \"sender addr\" \"app regid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
             "\ncreate contract invocation transaction\n"
             "\nArguments:\n"
             "1.\"sender addr\": (string, required)\n tx sender's base58 addr\n"
@@ -528,18 +529,12 @@ Value callcontracttx(const Array& params, bool fHelp) {
             "6.\"height\": (numeric, optional)create height,If not provide use the tip block height in chainActive\n"
             "\nResult:\n"
             "\"txhash\": (string)\n"
-            "\nExamples:\n"
-            + HelpExampleCli("callcontracttx",
-                "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\""
-                "411994-1"
-                "01020304 "
-                "1") + "\nAs json rpc call\n"
-            + HelpExampleRpc("callcontracttx",
-                "wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6 [\"411994-1\"] "
-                "\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\""
-                "100000 "
-                "\"01020304 \""
-                "1") );
+            "\nExamples:\n" +
+            HelpExampleCli("callcontracttx",
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 1") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("callcontracttx",
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 1"));
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(str_type)(int_type)(int_type));
@@ -2326,8 +2321,9 @@ Value sendtxraw(const Array& params, bool fHelp) {
 }
 
 Value gencallcontractraw(const Array& params, bool fHelp) {
-        if (fHelp || params.size() < 5 || params.size() > 6) {
-       throw runtime_error("gencallcontractraw \"sender addr\" \"app regid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
+    if (fHelp || params.size() < 5 || params.size() > 6) {
+        throw runtime_error(
+            "gencallcontractraw \"sender addr\" \"app regid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
             "\ncreate contract invocation raw transaction\n"
             "\nArguments:\n"
             "1.\"sender addr\": (string, required)\n tx sender's base58 addr\n"
@@ -2335,21 +2331,16 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
             "3.\"arguments\": (string, required) contract arguments (Hex encode required)\n"
             "4.\"amount\":(numeric, required)\n amount of WICC to be sent to the contract account\n"
             "5.\"fee\": (numeric, required) pay to miner\n"
-            "6.\"height\": (numeric, optional)create height,If not provide use the tip block height in chainActive\n"
+            "6.\"height\": (numeric, optional)create height,If not provide use the tip block height in "
+            "chainActive\n"
             "\nResult:\n"
             "\"rawtx\"  (string) The raw transaction\n"
-            "\nExamples:\n"
-            + HelpExampleCli("gencallcontractraw",
-                "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\""
-                "411994-1"
-                "01020304 "
-                "1") + "\nAs json rpc call\n"
-            + HelpExampleRpc("gencallcontractraw",
-                "wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6 [\"411994-1\"] "
-                "\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\""
-                "100000 "
-                "\"01020304 \""
-                "1") );
+            "\nExamples:\n" +
+            HelpExampleCli("gencallcontractraw",
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 1") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("gencallcontractraw",
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 1"));
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(str_type)(int_type)(int_type));
