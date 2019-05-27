@@ -41,7 +41,7 @@ public:
 // Price Points in two consecutive blocks
 class CConsecutiveBlockPrice {
 private:
-    map<int, vector<uint64_t>> mapBlockPriceList;       // height -> PricePointSet
+    map<int, vector<uint64_t>> mapBlockPriceList;       // height -> Prices
     map<int, unordered_set<string>>mapBlockTxUidSet;    // height -> TxUidSet
     int lastBlockHeight;
     int currBlockHeight;

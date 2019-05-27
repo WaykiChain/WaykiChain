@@ -254,8 +254,8 @@ Object CContractDB::ToJsonObj(string Prefix) {
                 }
 
             } else {
-                obj.push_back(Pair("unkown key", HexStr(ssKey)));
-                obj.push_back(Pair("unkown value", HexStr(ssValue)));
+                obj.push_back(Pair("unkown_key", HexStr(ssKey)));
+                obj.push_back(Pair("unkown_value", HexStr(ssValue)));
             }
             arrayObj.push_back(obj);
             pcursor->Next();

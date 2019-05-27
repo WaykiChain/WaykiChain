@@ -72,6 +72,7 @@ coin_CORE_H = \
   persistence/stakedb.h \
   persistence/pricefeeddb.h \
   persistence/txdb.h \
+  persistence/dbconf.h \
   protocol.h \
   random.h   \
   rpc/httpserver.h \
