@@ -208,29 +208,33 @@ tuple<bool, string> CVmlua::CheckScriptSyntax(const char *filePath) {
     return std::make_tuple(true, string("OK"));
 }
 
-static void ReportBurnState(lua_State *L, const CRegID &redId) {
+static void ReportBurnState(lua_State *L, CVmRunEnv *pVmRunEnv) {
 
     lua_burner_state *burnerState = lua_GetBurnerState(L);
-    LogPrint("vm", "contract run info: scriptRegID=%s,"
+    LogPrint("vm", "contract run info: txid=%s,"
              " version=%d,"
              " fuelLimit=%lld,"
              " burnedFuel=%lld,"
-             " step=%lld,"
+             " fuelStep=%lld,"
              " fuelRefund=%lld,"
-             " totalAllocSize=%llu,"
-             " totalAllocCount=%llu,"
-             " totalFreeSize=%llu,"
-             " totalFreeCount=%llu\n",
-             redId.ToString().c_str(),
+             " allocMemSize=%llu,"
+             " fuelMem=%llu,"
+             " fuelOperator=%llu,"
+             " fuelStore=%llu,"
+             " fuelAccount=%llu"
+             " fuelFunction=%llu\n",
+             pVmRunEnv->GetCurTxHash().ToString().c_str(),
              burnerState->version,
              burnerState->fuelLimit,
              lua_GetBurnedFuel(L),
-             burnerState->step,
+             burnerState->fuelStep,
              burnerState->fuelRefund,
              burnerState->allocMemSize,
-             burnerState->allocMemTimes,
-             burnerState->freeMemSize,
-             burnerState->freeMemTimes
+             lua_GetMemoryFuel(L),
+             burnerState->fuelOperator,
+             burnerState->fuelStore,
+             burnerState->fuelAccount,
+             burnerState->fuelFunction
     );
 }
 
@@ -316,7 +320,7 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv) {
 
     if (luaStatus != LUA_OK) {
         LogPrint("vm", "%s\n", strError);
-        ReportBurnState(lua_state, pVmRunEnv->GetScriptRegID());
+        ReportBurnState(lua_state, pVmRunEnv);
         return std::make_tuple(-1, strError);
     }
 
@@ -334,7 +338,7 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv) {
     lua_pop(lua_state, 1);
 
     uint64_t burnedFuel = lua_GetBurnedFuel(lua_state);
-    ReportBurnState(lua_state, pVmRunEnv->GetScriptRegID());
+    ReportBurnState(lua_state, pVmRunEnv);
     if (burnedFuel > fuelLimit) {
         return std::make_tuple(-1, string("CVmlua::Run burned-out\n"));
     }
