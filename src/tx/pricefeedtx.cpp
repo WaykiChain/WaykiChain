@@ -37,7 +37,6 @@ bool CPriceFeedTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
 }
 
 bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-
     CAccount account;
     if (!cw.pAccountCache->GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",

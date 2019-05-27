@@ -41,15 +41,14 @@ public:
 // Price Points in two consecutive blocks
 class CConsecutiveBlockPrice {
 private:
-    map<int, vector<uint64_t>> mapBlockPriceList;       // height -> Prices
-    map<int, unordered_set<string>>mapBlockTxUidSet;    // height -> TxUidSet
+    map<int, map<string, uint64_t>>mapBlockUserPrices;    // height -> { strUid -> price }
     int lastBlockHeight;
     int currBlockHeight;
     uint64_t lastBlockMediaPrice;
     uint64_t currBlockMediaPrice;
 
 public:
-    void AddPricePoint(const int height, const CUserID &txUid, const uint64_t price);
+    void AddUserPrice(const int height, const CUserID &txUid, const uint64_t price);
     bool ExistBlockUserPrice(const int height, const CUserID &txUid);
     uint64_t ComputeBlockMedianPrice(const int blockHeight);
     uint64_t GetLastBlockMedianPrice();

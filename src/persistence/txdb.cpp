@@ -83,36 +83,36 @@ void CTransactionCache::SetTxHashCache(const map<uint256, UnorderedHashSet> &map
 }
 
 /****************************************************************************************************/
-void CConsecutiveBlockPrice::AddPricePoint(const int height, const CUserID &txUid, uint64_t price) {
-    mapBlockTxUidSet[ height ].insert(txUid.ToString());
-    mapBlockPriceList[ height ].push_back(price);
+void CConsecutiveBlockPrice::AddUserPrice(const int height, const CUserID &txUid, const uint64_t price) {
+    mapBlockUserPrices[ height ][ txUid.ToString() ] = price;
 }
 
 uint64_t CConsecutiveBlockPrice::ComputeBlockMedianPrice(const int blockHeight) {
-    if (mapBlockPriceList.find(blockHeight) == mapBlockPriceList.end() ||
-        mapBlockPriceList[ blockHeight ].size() == 0) {
+    if (mapBlockUserPrices.count(blockHeight) == 0 ||
+        mapBlockUserPrices[ blockHeight ].size() == 0) {
         currBlockMediaPrice = lastBlockMediaPrice;
         return currBlockMediaPrice;
     }
 
-    if (mapBlockPriceList.find(blockHeight - 1) == mapBlockPriceList.end() ||
-        mapBlockPriceList[ blockHeight - 1 ].size() == 0) { // one block cache only
-        return ComputeMedianNumber(mapBlockPriceList[ blockHeight ]);
+    vector<uint64_t> prices;
+    if (mapBlockUserPrices.count(blockHeight - 1) != 0) {
+        for (auto userPrice : mapBlockUserPrices[ blockHeight - 1 ]) {
+            prices.push_back(userPrice.second);
+        }
     }
-
-    //two blocks
-    vector<uint64_t> v1 = mapBlockPriceList[ blockHeight-1 ];
-    vector<uint64_t> v2 = mapBlockPriceList[ blockHeight ];
-    v1.insert( v1.end(), v2.begin(), v2.end() );
-    return ComputeMedianNumber(v1);
+    if (mapBlockUserPrices.count(blockHeight) != 0) {
+        for (auto userPrice : mapBlockUserPrices[ blockHeight ]) {
+                prices.push_back(userPrice.second);
+        }
+    }
+    return ComputeMedianNumber(prices);
 }
 
 bool CConsecutiveBlockPrice::ExistBlockUserPrice(const int height, const CUserID &txUid) {
-    if (mapBlockTxUidSet.find(height) == mapBlockTxUidSet.end())
+    if (mapBlockUserPrices.count(height) == 0)
         return false;
 
-    unordered_set<string> uids = mapBlockTxUidSet[ height ];
-    return (uids.find(txUid.ToString()) != uids.end());
+    return mapBlockUserPrices[ height ].count( txUid.ToString() );
 }
 
 uint64_t CConsecutiveBlockPrice::ComputeMedianNumber(vector<uint64_t> &numbers) {
@@ -129,7 +129,20 @@ bool CPricePointCache::AddBlockPricePointInBatch(const int blockHeight,
         if (cbp.ExistBlockUserPrice(blockHeight, txUid))
             return false;
 
-        cbp.AddPricePoint(blockHeight, txUid, pp.GetPrice());
+        cbp.AddUserPrice(blockHeight, txUid, pp.GetPrice());
+    }
+
+    return true;
+}
+
+bool CPricePointCache::RemoveBlockPricePointInBatch(const int blockHeight,
+        const CUserID &txUid, const vector<CPricePoint> &pps) {
+    for (CPricePoint pp : pps ) {
+        CConsecutiveBlockPrice cbp = mapCoinPricePointCache[ pp.GetCoinPriceType().ToString() ];
+        if (!cbp.ExistBlockUserPrice(blockHeight, txUid))
+            continue;
+
+        cbp.AddUserPrice(blockHeight, txUid, pp.GetPrice());
     }
 
     return true;
