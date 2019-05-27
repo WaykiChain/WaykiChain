@@ -202,37 +202,34 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         arguments = ParseHex(params[2].get_str());
     }
 
-    std::shared_ptr<CContractInvokeTx> contractTx_ptr = std::make_shared<CContractInvokeTx>();
-    CContractInvokeTx &contractTx = *contractTx_ptr;
+    CContractInvokeTx contractInvokeTx;
 
     {
-        CAccount secureAcc;
-
         if (!cw.pContractCache->HaveScript(appId)) {
             throw runtime_error(tinyformat::format("AppId %s is not exist\n", appId.ToString()));
         }
-        contractTx.nTxType      = CONTRACT_INVOKE_TX;
-        contractTx.txUid        = srcRegId;
-        contractTx.appUid       = appId;
-        contractTx.bcoins       = amount;
-        contractTx.llFees       = totalFee - regFee;
-        contractTx.arguments    = arguments;
-        contractTx.nValidHeight = newHeight;
+        contractInvokeTx.nTxType      = CONTRACT_INVOKE_TX;
+        contractInvokeTx.txUid        = srcRegId;
+        contractInvokeTx.appUid       = appId;
+        contractInvokeTx.bcoins       = amount;
+        contractInvokeTx.llFees       = totalFee - regFee;
+        contractInvokeTx.arguments    = arguments;
+        contractInvokeTx.nValidHeight = newHeight;
 
         vector<unsigned char> signature;
-        if (!pWalletMain->Sign(srcKeyid, contractTx.ComputeSignatureHash(), contractTx.signature)) {
+        if (!pWalletMain->Sign(srcKeyid, contractInvokeTx.ComputeSignatureHash(), contractInvokeTx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
 
-        if (!contractTx.ExecuteTx(chainActive.Tip()->nHeight + 1, 2, cw, state)) {
+        if (!contractInvokeTx.ExecuteTx(chainActive.Tip()->nHeight + 1, 2, cw, state)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx  contract failed");
         }
     }
 
     Object callContractTxObj;
 
-    callContractTxObj.push_back(Pair("run_steps", contractTx.nRunStep));
-    callContractTxObj.push_back(Pair("used_fuel", contractTx.GetFuel(contractTx.nFuelRate)));
+    callContractTxObj.push_back(Pair("run_steps", contractInvokeTx.nRunStep));
+    callContractTxObj.push_back(Pair("used_fuel", contractInvokeTx.GetFuel(contractInvokeTx.nFuelRate)));
 
     Object retObj;
     retObj.push_back(Pair("fuel_rate", nFuelRate));

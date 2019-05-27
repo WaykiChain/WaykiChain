@@ -24,8 +24,7 @@ private:
 	/**
 	 * Run the script object
 	 */
-
-	std::shared_ptr<CVmlua> pLua;  //执行lua脚本
+	std::shared_ptr<CVmlua> pLua;
 	/**
 	 * vm before the account state
 	 */
@@ -54,8 +53,10 @@ private:
 	 * vm operate the app account state
 	 */
 	vector<std::shared_ptr<CAppUserAccount>> newAppUserAccount;
-	CContractCache *pScriptDBViewCache;
-	CAccountCache *pAccountViewCache;
+
+	CContractCache *pContractCache;
+	CAccountCache *pAccountCache;
+
 	vector<CVmOperate> vmOperateOutput;   //保存操作结果
     bool  isCheckAccount;  //校验账户平衡开关
 

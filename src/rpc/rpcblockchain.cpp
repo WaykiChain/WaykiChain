@@ -139,12 +139,12 @@ Value getrawmempool(const Array& params, bool fHelp)
             "1. verbose           (boolean, optional, default=false) true for a json object, false for array of transaction ids\n"
             "\nResult: (for verbose = false):\n"
             "[                     (json array of string)\n"
-            "  \"transactionid\"     (string) The transaction id\n"
+            "  \"txid\"     (string) The transaction id\n"
             "  ,...\n"
             "]\n"
             "\nResult: (for verbose = true):\n"
             "{                           (json object)\n"
-            "  \"transactionid\" : {       (json object)\n"
+            "  \"txid\" : {       (json object)\n"
             "    \"size\" : n,             (numeric) transaction size in bytes\n"
             "    \"fee\" : n,              (numeric) transaction fee in WICC coins\n"
             "    \"time\" : n,             (numeric) local time transaction entered pool in seconds since 1 Jan 1970 GMT\n"
@@ -152,7 +152,7 @@ Value getrawmempool(const Array& params, bool fHelp)
             "    \"startingpriority\" : n, (numeric) priority when transaction entered pool\n"
             "    \"currentpriority\" : n,  (numeric) transaction priority now\n"
             "    \"depends\" : [           (array) unconfirmed transactions used as inputs for this transaction\n"
-            "        \"transactionid\",    (string) parent transaction id\n"
+            "        \"txid\",    (string) parent transaction id\n"
             "       ... ]\n"
             "  }, ...\n"
             "]\n"
@@ -240,7 +240,7 @@ Value getblock(const Array& params, bool fHelp)
             "  \"version\" : n,         (numeric) The block version\n"
             "  \"merkleroot\" : \"xxxx\", (string) The merkle root\n"
             "  \"tx\" : [               (array of string) The transaction ids\n"
-            "     \"transactionid\"     (string) The transaction id\n"
+            "     \"txid\"     (string) The transaction id\n"
             "     ,...\n"
             "  ],\n"
             "  \"time\" : ttt,          (numeric) The block time in seconds since epoch (Jan 1 1970 GMT)\n"
@@ -658,8 +658,8 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
         if (!pWalletMain->RemoveKey(key)) throw boost::thread_interrupted();
     }
 
-    CRegID srcRegId("0-1");
-    CRegID desRegId(regid);
+    CRegID txUid("0-1");
+    CRegID appUid(regid);
     static uint64_t llValue = 10000;  // use static variable to keep autoincrement
     uint64_t llFees         = 10 * SysCfg().GetTxFee();
     // hex(whmD4M8Q8qbEx6R5gULbcb5ZkedbcRDGY1) =
@@ -676,8 +676,8 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
 
         for (int64_t i = 0; i < batchSize; ++i) {
             CContractInvokeTx tx;
-            tx.txUid        = srcRegId;
-            tx.appUid       = desRegId;
+            tx.txUid        = txUid;
+            tx.appUid       = appUid;
             tx.bcoins       = llValue++;
             tx.llFees       = llFees;
             tx.arguments    = arguments;
