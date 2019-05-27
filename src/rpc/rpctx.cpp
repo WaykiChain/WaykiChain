@@ -193,14 +193,16 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
         case CONTRACT_INVOKE_TX: {
             CContractInvokeTx* ptx = (CContractInvokeTx*)pBaseTx.get();
             CKeyID sendKeyID;
-            CRegID sendRegID = ptx->txUid.get<CRegID>();
-            sendKeyID        = sendRegID.GetKeyId(*pCdMan->pAccountCache);
+            if (ptx->txUid.type() == typeid(CPubKey)) {
+                sendKeyID = ptx->txUid.get<CPubKey>().GetKeyId();
+            } else if (ptx->txUid.type() == typeid(CRegID)) {
+                sendKeyID = ptx->txUid.get<CRegID>().GetKeyId(*pCdMan->pAccountCache);
+            }
+
             CKeyID recvKeyId;
-            if (ptx->appUid.type() == typeid(CKeyID)) {
-                recvKeyId = ptx->appUid.get<CKeyID>();
-            } else if (ptx->appUid.type() == typeid(CRegID)) {
-                CRegID desRegID = ptx->appUid.get<CRegID>();
-                recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
+            if (ptx->appUid.type() == typeid(CRegID)) {
+                CRegID appUid = ptx->appUid.get<CRegID>();
+                recvKeyId     = appUid.GetKeyId(*pCdMan->pAccountCache);
             }
 
             obj.push_back(Pair("txtype", "CONTRACT_INVOKE_TX"));
@@ -592,16 +594,13 @@ Value callcontracttx(const Array& params, bool fHelp) {
         if (!pCdMan->pContractCache->HaveScript(appId)) {
             throw runtime_error(tinyformat::format("in callcontracttx : regid %s not exist\n", appId.ToString()));
         }
-        tx.get()->nTxType   = CONTRACT_INVOKE_TX;
-        tx.get()->txUid  = userId;
-        tx.get()->appUid = appId;
-        tx.get()->bcoins  = amount;
-        tx.get()->llFees    = fee;
-        tx.get()->arguments = arguments;
-        if (0 == height) {
-            height = chainActive.Tip()->nHeight;
-        }
-        tx.get()->nValidHeight = height;
+        tx.get()->nTxType      = CONTRACT_INVOKE_TX;
+        tx.get()->txUid        = userId;
+        tx.get()->appUid       = appId;
+        tx.get()->bcoins       = amount;
+        tx.get()->llFees       = fee;
+        tx.get()->arguments    = arguments;
+        tx.get()->nValidHeight = (0 == height) ? chainActive.Tip()->nHeight : height;
 
         CKeyID keyId;
         if (!pCdMan->pAccountCache->GetKeyId(userId, keyId)) {
@@ -1110,8 +1109,12 @@ Value listtransactions(const Array& params, bool fHelp) {
             if (item.second->nTxType == BCOIN_TRANSFER_TX) {
                 CBaseCoinTransferTx* ptx = (CBaseCoinTransferTx*)item.second.get();
                 CKeyID sendKeyID;
-                CRegID sendRegID = ptx->txUid.get<CRegID>();
-                sendKeyID        = sendRegID.GetKeyId(*pCdMan->pAccountCache);
+                if (ptx->txUid.type() == typeid(CPubKey)) {
+                    sendKeyID = ptx->txUid.get<CPubKey>().GetKeyId();
+                } else if (ptx->txUid.type() == typeid(CRegID)) {
+                    sendKeyID = ptx->txUid.get<CRegID>().GetKeyId(*pCdMan->pAccountCache);
+                }
+
                 CKeyID recvKeyId;
                 if (ptx->toUid.type() == typeid(CKeyID)) {
                     recvKeyId = ptx->toUid.get<CKeyID>();
@@ -1184,14 +1187,16 @@ Value listtransactions(const Array& params, bool fHelp) {
             } else if (item.second->nTxType == CONTRACT_INVOKE_TX) {
                 CContractInvokeTx* ptx = (CContractInvokeTx*)item.second.get();
                 CKeyID sendKeyID;
-                CRegID sendRegID = ptx->txUid.get<CRegID>();
-                sendKeyID        = sendRegID.GetKeyId(*pCdMan->pAccountCache);
+                if (ptx->txUid.type() == typeid(CPubKey)) {
+                    sendKeyID = ptx->txUid.get<CPubKey>().GetKeyId();
+                } else if (ptx->txUid.type() == typeid(CRegID)) {
+                    sendKeyID = ptx->txUid.get<CRegID>().GetKeyId(*pCdMan->pAccountCache);
+                }
+
                 CKeyID recvKeyId;
-                if (ptx->appUid.type() == typeid(CKeyID)) {
-                    recvKeyId = ptx->appUid.get<CKeyID>();
-                } else if (ptx->appUid.type() == typeid(CRegID)) {
-                    CRegID desRegID = ptx->appUid.get<CRegID>();
-                    recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
+                if (ptx->appUid.type() == typeid(CRegID)) {
+                    CRegID appUid = ptx->appUid.get<CRegID>();
+                    recvKeyId     = appUid.GetKeyId(*pCdMan->pAccountCache);
                 }
 
                 bool bSend = true;
@@ -2230,7 +2235,7 @@ Value getcontractitemcount(const Array& params, bool fHelp) {
 
     int nItemCount = 0;
     if (!pCdMan->pContractCache->GetContractItemCount(regId, nItemCount)) {
-        throw runtime_error("GetContractItemCount error!");
+        throw runtime_error("GetContractItemCount error");
     }
     return nItemCount;
 }

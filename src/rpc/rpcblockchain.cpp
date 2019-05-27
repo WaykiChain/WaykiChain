@@ -658,8 +658,8 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
         if (!pWalletMain->RemoveKey(key)) throw boost::thread_interrupted();
     }
 
-    CRegID srcRegId("0-1");
-    CRegID desRegId(regid);
+    CRegID txUid("0-1");
+    CRegID appUid(regid);
     static uint64_t llValue = 10000;  // use static variable to keep autoincrement
     uint64_t llFees         = 10 * SysCfg().GetTxFee();
     // hex(whmD4M8Q8qbEx6R5gULbcb5ZkedbcRDGY1) =
@@ -676,8 +676,8 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
 
         for (int64_t i = 0; i < batchSize; ++i) {
             CContractInvokeTx tx;
-            tx.txUid        = srcRegId;
-            tx.appUid       = desRegId;
+            tx.txUid        = txUid;
+            tx.appUid       = appUid;
             tx.bcoins       = llValue++;
             tx.llFees       = llFees;
             tx.arguments    = arguments;
