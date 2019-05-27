@@ -1339,7 +1339,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     std::vector<pair<uint256, CDiskTxPos> > vPos;
     vPos.reserve(block.vptx.size());
 
-    //push reward pos
+    // Push BlockRewardTx pos
     vPos.push_back(make_pair(block.GetTxHash(0), pos));
     pos.nTxOffset += ::GetSerializeSize(block.vptx[0], SER_DISK, CLIENT_VERSION);
 
@@ -1399,9 +1399,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (!pCdMan->pAccountCache->GetAccount(pRewardTx->txUid, minerAcct)) {
         assert(0);
     }
-    // LogPrint("INFO", "miner address=%s\n", minerAcct.keyID.ToAddress());
-    //校验reward
 
+    // Validate BlockRewardTx
     uint64_t llValidReward = block.GetFee() - block.GetFuel();
     if (pRewardTx->rewardValue != llValidReward) {
         LogPrint("INFO", "block fee:%lld, block fuel:%lld\n", block.GetFee(), block.GetFuel());
@@ -1409,7 +1408,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                         pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-cb-amount");
     }
 
-    //Execute BlockRewardTx
+    // Execute BlockRewardTx
     LogPrint("op_account", "tx index:%d tx hash:%s\n", 0, block.vptx[0]->GetHash().GetHex());
     CTxUndo txundo;
     cw.pTxUndo = &txundo;
@@ -1419,7 +1418,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     blockundo.vtxundo.push_back(txundo);
 
     if (pIndex->nHeight - COINBASE_MATURITY > 0) {
-        // Deal mature reward tx
+        // Deal mature BlockRewardTx
         CBlockIndex *pMatureIndex = pIndex;
         for (int i = 0; i < COINBASE_MATURITY; ++i) {
             pMatureIndex = pMatureIndex->pprev;
@@ -1447,7 +1446,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         return true;
 
     if (SysCfg().IsTxIndex()) {
-        LogPrint("txindex", " add tx index, block hash:%s\n", pIndex->GetBlockHash().GetHex());
+        LogPrint("DEBUG", "add tx index, block hash:%s\n", pIndex->GetBlockHash().GetHex());
         vector<CContractDBOperLog> vTxIndexOperDB;
         if (!pCdMan->pContractCache->WriteTxIndex(vPos, vTxIndexOperDB))
             return state.Abort(_("Failed to write transaction index"));

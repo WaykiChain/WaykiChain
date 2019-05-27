@@ -325,7 +325,7 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
 
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
-    // Limit to betweeen 1K and MAX_BLOCK_SIZE-1K for sanity:
+    // Limit to between 1K and MAX_BLOCK_SIZE-1K for sanity:
     nBlockMaxSize = max((unsigned int)1000, min((unsigned int)(MAX_BLOCK_SIZE - 1000), nBlockMaxSize));
 
     // How much of the block should be dedicated to high-priority transactions,
@@ -404,7 +404,7 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
             nTotalFuel += pBaseTx->GetFuel(pblock->GetFuelRate());
             nBlockTx++;
             pblock->vptx.push_back(stx);
-            LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txhash:%s\n",
+            LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n",
                      nTotalFuel, pBaseTx->GetFuel(pblock->GetFuelRate()), pBaseTx->nRunStep,
                      pblock->GetFuelRate(), pBaseTx->GetHash().GetHex());
         }
@@ -450,7 +450,7 @@ bool CheckWork(CBlock *pblock, CWallet &wallet) {
     return true;
 }
 
-bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pIndexPrev, unsigned int nTransactionsUpdated, CCacheWrapper &cw) {
+bool static MineBlock(CBlock *pblock, CWallet *pWallet, CBlockIndex *pIndexPrev, unsigned int nTransactionsUpdated, CCacheWrapper &cw) {
     int64_t nStart = GetTime();
 
     unsigned int nLastTime = 0xFFFFFFFF;
@@ -512,7 +512,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pIndexPrev,
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
             nLastTime = GetTimeMillis();
-            CheckWork(pblock, *pwallet);
+            CheckWork(pblock, *pWallet);
             LogPrint("MINER", "CheckWork used time:%d ms\n", GetTimeMillis() - nLastTime);
 
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
@@ -540,7 +540,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pIndexPrev,
     return false;
 }
 
-void static CoinMiner(CWallet *pwallet, int targetHeight) {
+void static CoinMiner(CWallet *pWallet, int targetHeight) {
     LogPrint("INFO", "CoinMiner started.\n");
 
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
@@ -602,7 +602,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
                 pblocktemplate.get()->block.vptx.size(), GetTimeMillis() - nLastTime);
 
             CBlock *pblock = &pblocktemplate.get()->block;
-            MineBlock(pblock, pwallet, pIndexPrev, nTransactionsUpdated, cw);
+            MineBlock(pblock, pWallet, pIndexPrev, nTransactionsUpdated, cw);
 
             if (SysCfg().NetworkID() != MAIN_NET && targetHeight <= GetCurrHeight())
                 throw boost::thread_interrupted();
@@ -614,7 +614,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
     }
 }
 
-void GenerateCoinBlock(bool fGenerate, CWallet *pwallet, int targetHeight) {
+void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int targetHeight) {
     static boost::thread_group *minerThreads = NULL;
 
     if (minerThreads != NULL) {
@@ -633,7 +633,7 @@ void GenerateCoinBlock(bool fGenerate, CWallet *pwallet, int targetHeight) {
     }
 
     minerThreads = new boost::thread_group();
-    minerThreads->create_thread(boost::bind(&CoinMiner, pwallet, targetHeight));
+    minerThreads->create_thread(boost::bind(&CoinMiner, pWallet, targetHeight));
 }
 
 
