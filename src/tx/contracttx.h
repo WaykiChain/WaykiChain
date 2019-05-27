@@ -87,6 +87,8 @@ public:
                 CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
+        else if (txUidIn.type() == typeid(CPubKey))
+            assert(txUidIn.get<CPubKey>().IsFullyValid());
 
         if (appUidIn.type() == typeid(CRegID))
             assert(!appUidIn.get<CRegID>().IsEmpty());
