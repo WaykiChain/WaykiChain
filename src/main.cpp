@@ -2021,7 +2021,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
             pBlockIndex = pBlockIndex->pprev;
         }  //数据库状态回滚到主链分叉处
-        LogPrint("INFO", "ProcessForkedChain() DisconnectBlock elapse :%lld ms\n", GetTimeMillis() - beginTime);
+        LogPrint("INFO", "ProcessForkedChain() DisconnectBlock elapse: %lld ms\n", GetTimeMillis() - beginTime);
 
         mapForkCache[pPreBlockIndex->GetBlockHash()] = std::make_tuple(pAcctViewCache, pTxCache, pContractCache);
 
@@ -2065,7 +2065,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
     //校验pos交易
     if (!VerifyPosTx(&block, cw, true)) {
-        return state.DoS(100, ERRORMSG("ProcessForkedChain() : the block Hash=%s check pos tx error",
+        return state.DoS(100, ERRORMSG("ProcessForkedChain() : the block hash=%s check pos tx error",
                         block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
     }
 
@@ -2079,13 +2079,13 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     for (auto &item : block.vptx) {
         //校验交易是否在有效高度
         if (!item->IsValidHeight(mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight, SysCfg().GetTxCacheHeight())) {
-            return state.DoS(100, ERRORMSG("ProcessForkedChain() : txhash=%s beyond the scope of valid height\n ",
+            return state.DoS(100, ERRORMSG("ProcessForkedChain() : txid=%s beyond the scope of valid height\n ",
                             item->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
         }
         //校验是否有重复确认交易
         if (pForkTxCache->HaveTx(item->GetHash()))
-            return state.DoS(100, ERRORMSG("ProcessForkedChain() : tx hash %s has been confirmed\n",
-                            item->GetHash().GetHex()), REJECT_INVALID, "bad-txns-oversize");
+            return state.DoS(100, ERRORMSG("ProcessForkedChain() : txid=%s has been confirmed\n",
+                            item->GetHash().GetHex()), REJECT_INVALID, "duplicated-txid");
     }
 
     if (!vPreBlocks.empty()) {
@@ -2438,7 +2438,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
     int64_t llAcceptBlockTime = GetTimeMillis();
     // Store to disk
     if (!AcceptBlock(*pblock, state, dbp)) {
-        LogPrint("INFO", "AcceptBlock() elapse time:%lld ms\n", GetTimeMillis() - llAcceptBlockTime);
+        LogPrint("INFO", "AcceptBlock() elapse time: %lld ms\n", GetTimeMillis() - llAcceptBlockTime);
         return ERRORMSG("ProcessBlock() : AcceptBlock FAILED");
     }
     // LogPrint("INFO", "AcceptBlock() elapse time:%lld ms\n", GetTimeMillis() - llAcceptBlockTime);

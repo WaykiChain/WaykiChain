@@ -6,11 +6,11 @@
 |---|---|---|---|
 | addnode | ```<node><add/remove/onetry>```| Attempts add or remove ```<node>``` from the addnode list or try a connection to ```<node>``` once.| N |
 | backupwallet | ```<destination>``` | Safely copies wallet.dat to a target directory. | N |
-| callcontracttx | ```<userregid><appid><amount><contract><fee>[height, default = the tip block height]``` | create contract transaction | Y |
-| gencallcontractraw | ```<height><fee><amount><address><contract>``` | get call contract raw transaction | N |
+| callcontracttx | ```<sendaddress><appid><arguments><amount><fee>[height, default = the tip block height]``` | create contract invoke transaction | Y |
 | dropminerkeys | | drop miner key from wallet to become a cool miner| Y |
 | dumpwallet | ```<filename>``` | Dumps all wallet keys in a human-readable format.And write to ```<filename>``` | Y |
 | dumpprivkey | ```<wiccaddress>``` | Reveals the private key corresponding to ```<wiccaddress>``` | Y |
+| gencallcontractraw | ```<sendaddress><appid><arguments><amount><fee>[height, default = the tip block height]``` | create raw contract invoke transaction | Y |
 | encryptwallet | ```<passphrase>``` | Encrypts the wallet with ```<passphrase>``` | N |
 | generateblock | ```<address>``` | create a block with the appointed address | N |
 | getaccountinfo | ```<address>``` | Returns the account information  with the given address | N |

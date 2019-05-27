@@ -193,14 +193,16 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
         case CONTRACT_INVOKE_TX: {
             CContractInvokeTx* ptx = (CContractInvokeTx*)pBaseTx.get();
             CKeyID sendKeyID;
-            CRegID sendRegID = ptx->txUid.get<CRegID>();
-            sendKeyID        = sendRegID.GetKeyId(*pCdMan->pAccountCache);
+            if (ptx->txUid.type() == typeid(CPubKey)) {
+                sendKeyID = ptx->txUid.get<CPubKey>().GetKeyId();
+            } else if (ptx->txUid.type() == typeid(CRegID)) {
+                sendKeyID = ptx->txUid.get<CRegID>().GetKeyId(*pCdMan->pAccountCache);
+            }
+
             CKeyID recvKeyId;
-            if (ptx->appUid.type() == typeid(CKeyID)) {
-                recvKeyId = ptx->appUid.get<CKeyID>();
-            } else if (ptx->appUid.type() == typeid(CRegID)) {
-                CRegID desRegID = ptx->appUid.get<CRegID>();
-                recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
+            if (ptx->appUid.type() == typeid(CRegID)) {
+                CRegID appUid = ptx->appUid.get<CRegID>();
+                recvKeyId     = appUid.GetKeyId(*pCdMan->pAccountCache);
             }
 
             obj.push_back(Pair("txtype", "CONTRACT_INVOKE_TX"));
@@ -513,113 +515,90 @@ Value registeraccounttx(const Array& params, bool fHelp) {
     return obj;
 }
 
-//create a contract tx
 Value callcontracttx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
-       throw runtime_error("callcontracttx \"sender_addr\" \"app_regid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
-            "\ncreate contract transaction\n"
+        throw runtime_error(
+            "callcontracttx \"sender addr\" \"app regid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
+            "\ncreate contract invocation transaction\n"
             "\nArguments:\n"
-            "1.\"sender_addr\": (string, required)\n tx sender's base58 addr\n"
-            "2.\"app_regid\":(string, required) contract RegId\n"
-            "3.\"amount\":(numeric, required)\n amount of WICC to be sent to the contract account\n"
-            "4.\"contract\": (string, required) contract method invoke content (Hex encode required)\n"
+            "1.\"sender addr\": (string, required)\n tx sender's base58 addr\n"
+            "2.\"app regid\":(string, required) contract RegId\n"
+            "3.\"arguments\": (string, required) contract arguments (Hex encode required)\n"
+            "4.\"amount\":(numeric, required)\n amount of WICC to be sent to the contract account\n"
             "5.\"fee\": (numeric, required) pay to miner\n"
-            "6.\"height\": (numeric, optional)create height,If not provide use the tip block hegiht in chainActive\n"
+            "6.\"height\": (numeric, optional)create height,If not provide use the tip block height in chainActive\n"
             "\nResult:\n"
-            "\"contract tx str\": (string)\n"
-            "\nExamples:\n"
-            + HelpExampleCli("callcontracttx",
-                "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\""
-                "411994-1"
-                "01020304 "
-                "1") + "\nAs json rpc call\n"
-            + HelpExampleRpc("callcontracttx",
-                "wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6 [\"411994-1\"] "
-                "\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\""
-                "100000 "
-                "\"01020304 \""
-                "1") );
+            "\"txhash\": (string)\n"
+            "\nExamples:\n" +
+            HelpExampleCli("callcontracttx",
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 1") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("callcontracttx",
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 1"));
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(str_type)(int_type)(int_type));
 
-    //argument-1: sender's base58 addr
-    CRegID userId(params[0].get_str());
-    CKeyID srckeyid;
-    if (userId.IsEmpty()) {
-        if (!GetKeyId(params[0].get_str(), srckeyid)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender's Base58 Addr is invalid");
-        }
+    EnsureWalletIsUnlocked();
 
-        if (!pCdMan->pAccountCache->GetRegId(CUserID(srckeyid), userId)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender has NO RegId");
-        }
+    CKeyID sendKeyId, recvKeyId;
+    if (!GetKeyId(params[0].get_str(), sendKeyId))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sendaddress");
+
+    if (!GetKeyId(params[1].get_str(), recvKeyId)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid app regid");
     }
 
-    //argument-2: App RegId
-    CRegID appId(params[1].get_str()); //App RegId
-    if (appId.IsEmpty()) {
-        throw runtime_error("in callcontracttx : addresss is error!\n");
-    }
-
-    //argument-3: amount to be sent to the app account
-    uint64_t amount = params[2].get_uint64();
-
-    //argument-4: contract (Hex input)
-    vector<unsigned char> arguments = ParseHex(params[3].get_str());
+    vector<unsigned char> arguments = ParseHex(params[2].get_str());
     if (arguments.size() >= kContractArgumentMaxSize) {
-        throw runtime_error("in callcontracttx : arguments's size is larger than kContractArgumentMaxSize\n");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments's size out of range");
     }
 
-    //argument-5: fee
-    uint64_t fee = params[4].get_uint64();
-    if (fee > 0 && fee < CBaseTx::nMinTxFee) {
-        throw runtime_error("in callcontracttx : fee is smaller than nMinTxFee\n");
-    }
+    int64_t amount = AmountToRawValue(params[3]);;
+    int64_t fee = AmountToRawValue(params[4]);
 
-    //argument-6: height
-    uint32_t height(0);
+    int height = chainActive.Tip()->nHeight;
     if (params.size() > 5)
         height = params[5].get_int();
 
-    EnsureWalletIsUnlocked();
-    std::shared_ptr<CContractInvokeTx> tx = std::make_shared<CContractInvokeTx>();
-    {
-        //balance
-        CAccountCache view(*pCdMan->pAccountCache);
-        CAccount secureAcc;
-
-        if (!pCdMan->pContractCache->HaveScript(appId)) {
-            throw runtime_error(tinyformat::format("in callcontracttx : regid %s not exist\n", appId.ToString()));
-        }
-        tx.get()->nTxType   = CONTRACT_INVOKE_TX;
-        tx.get()->txUid  = userId;
-        tx.get()->appUid = appId;
-        tx.get()->bcoins  = amount;
-        tx.get()->llFees    = fee;
-        tx.get()->arguments = arguments;
-        if (0 == height) {
-            height = chainActive.Tip()->nHeight;
-        }
-        tx.get()->nValidHeight = height;
-
-        CKeyID keyId;
-        if (!pCdMan->pAccountCache->GetKeyId(userId, keyId)) {
-            LogPrint("INFO", "callcontracttx: %s no key id\n", userId.ToString());
-            throw JSONRPCError(RPC_WALLET_ERROR, "callcontracttx Error: no key id.");
-        }
-
-        vector<unsigned char> signature;
-        if (!pWalletMain->Sign(keyId, tx.get()->ComputeSignatureHash(), tx.get()->signature)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "callcontracttx Error: Sign failed.");
-        }
+    CPubKey sendPubKey;
+    if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Key not found in the local wallet.");
     }
 
-    std::tuple<bool, string> ret;
-    ret = pWalletMain->CommitTx((CBaseTx *) tx.get());
+    CUserID sendUserId;
+    CRegID sendRegId;
+    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && pCdMan->pAccountCache->RegIDIsMature(sendRegId))
+                     ? CUserID(sendRegId)
+                     : CUserID(sendPubKey);
+
+    CRegID recvRegId;
+    if (!pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid app regid");
+    }
+
+    if (!pCdMan->pContractCache->HaveScript(recvRegId)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
+    }
+
+    CContractInvokeTx tx;
+    tx.nTxType      = CONTRACT_INVOKE_TX;
+    tx.txUid        = sendUserId;
+    tx.appUid       = recvRegId;
+    tx.bcoins       = amount;
+    tx.llFees       = fee;
+    tx.arguments    = arguments;
+    tx.nValidHeight = height;
+
+    if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
+    }
+
+    std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx*)&tx);
     if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Error:" + std::get<1>(ret));
+        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
     }
+
     Object obj;
     obj.push_back(Pair("hash", std::get<1>(ret)));
     return obj;
@@ -1110,8 +1089,12 @@ Value listtransactions(const Array& params, bool fHelp) {
             if (item.second->nTxType == BCOIN_TRANSFER_TX) {
                 CBaseCoinTransferTx* ptx = (CBaseCoinTransferTx*)item.second.get();
                 CKeyID sendKeyID;
-                CRegID sendRegID = ptx->txUid.get<CRegID>();
-                sendKeyID        = sendRegID.GetKeyId(*pCdMan->pAccountCache);
+                if (ptx->txUid.type() == typeid(CPubKey)) {
+                    sendKeyID = ptx->txUid.get<CPubKey>().GetKeyId();
+                } else if (ptx->txUid.type() == typeid(CRegID)) {
+                    sendKeyID = ptx->txUid.get<CRegID>().GetKeyId(*pCdMan->pAccountCache);
+                }
+
                 CKeyID recvKeyId;
                 if (ptx->toUid.type() == typeid(CKeyID)) {
                     recvKeyId = ptx->toUid.get<CKeyID>();
@@ -1184,14 +1167,16 @@ Value listtransactions(const Array& params, bool fHelp) {
             } else if (item.second->nTxType == CONTRACT_INVOKE_TX) {
                 CContractInvokeTx* ptx = (CContractInvokeTx*)item.second.get();
                 CKeyID sendKeyID;
-                CRegID sendRegID = ptx->txUid.get<CRegID>();
-                sendKeyID        = sendRegID.GetKeyId(*pCdMan->pAccountCache);
+                if (ptx->txUid.type() == typeid(CPubKey)) {
+                    sendKeyID = ptx->txUid.get<CPubKey>().GetKeyId();
+                } else if (ptx->txUid.type() == typeid(CRegID)) {
+                    sendKeyID = ptx->txUid.get<CRegID>().GetKeyId(*pCdMan->pAccountCache);
+                }
+
                 CKeyID recvKeyId;
-                if (ptx->appUid.type() == typeid(CKeyID)) {
-                    recvKeyId = ptx->appUid.get<CKeyID>();
-                } else if (ptx->appUid.type() == typeid(CRegID)) {
-                    CRegID desRegID = ptx->appUid.get<CRegID>();
-                    recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
+                if (ptx->appUid.type() == typeid(CRegID)) {
+                    CRegID appUid = ptx->appUid.get<CRegID>();
+                    recvKeyId     = appUid.GetKeyId(*pCdMan->pAccountCache);
                 }
 
                 bool bSend = true;
@@ -2128,11 +2113,11 @@ Value getcontractconfirmdata(const Array& params, bool fHelp) {
             + HelpExampleCli("getcontractconfirmdata", "\"1304166-1\" \"1\"  \"1\"")
             + HelpExampleRpc("getcontractconfirmdata", "\"1304166-1\" \"1\"  \"1\""));
     }
-    std::shared_ptr<CContractCache> pAccountViewCache;
+    std::shared_ptr<CContractCache> pAccountCache;
     if (4 == params.size() && 0 == params[3].get_int()) {
-        pAccountViewCache.reset(new CContractCache(*mempool.memPoolContractCache.get()));
+        pAccountCache.reset(new CContractCache(*mempool.memPoolContractCache.get()));
     } else {
-        pAccountViewCache.reset(new CContractCache(*pCdMan->pContractCache));
+        pAccountCache.reset(new CContractCache(*pCdMan->pContractCache));
     }
     int height = chainActive.Height();
     RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
@@ -2140,7 +2125,7 @@ Value getcontractconfirmdata(const Array& params, bool fHelp) {
     if (regid.IsEmpty() == true)
         throw runtime_error("getcontractdata :appregid NOT found!");
 
-    if (!pAccountViewCache->HaveScript(regid))
+    if (!pAccountCache->HaveScript(regid))
         throw runtime_error("getcontractdata :appregid does NOT exist!");
 
     Object obj;
@@ -2154,7 +2139,7 @@ Value getcontractconfirmdata(const Array& params, bool fHelp) {
     std::vector<unsigned char> vValue;
     Array retArray;
     int nReadCount = 0;
-    while (pAccountViewCache->GetContractData(height, regid, 1, vScriptKey, vValue)) {
+    while (pAccountCache->GetContractData(height, regid, 1, vScriptKey, vValue)) {
         Object item;
         ++nReadCount;
         if (nReadCount > pagesize * (nIndex - 1)) {
@@ -2230,7 +2215,7 @@ Value getcontractitemcount(const Array& params, bool fHelp) {
 
     int nItemCount = 0;
     if (!pCdMan->pContractCache->GetContractItemCount(regId, nItemCount)) {
-        throw runtime_error("GetContractItemCount error!");
+        throw runtime_error("GetContractItemCount error");
     }
     return nItemCount;
 }
@@ -2316,7 +2301,6 @@ Value sendtxraw(const Array& params, bool fHelp) {
             + "\nAs json rpc call\n"
             + HelpExampleRpc("sendtxraw", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
     }
-    //EnsureWalletIsUnlocked();
     vector<unsigned char> vch(ParseHex(params[0].get_str()));
     if (vch.size() > MAX_RPC_SIG_STR_LEN) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "The rawtx str is too long");
@@ -2336,74 +2320,92 @@ Value sendtxraw(const Array& params, bool fHelp) {
     return obj;
 }
 
-// cold-wallet feature
 Value gencallcontractraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
-        throw runtime_error("gencallcontractraw \"height\" \"fee\" \"amount\" \"user_regid\" \"contract_regid\" \"contract\" \n"
-                "\ngenerate contract invocation rawtx\n"
-                "\nArguments:\n"
-                "1.\"fee\": (numeric, required) fee paid to miner\n"
-                "2.\"amount\": (numeric, required) amount of coins transfered to the contract (could be 0)\n"
-                "3.\"user_regid\": (string, required) contract callee regid\n"
-                "4.\"contract_regid\": (string required) contract regid\n"
-                "5.\"contract\": (string, required) contract arguments encoded as one hex string\n"
-                "6.\"height\": (int, optional) a valid block height (current tip height when omitted)\n"
-                "\nResult:\n"
-                "\"contract invocation rawtx str\": (string)\n"
-                "\nExamples:\n"
-                + HelpExampleCli("gencallcontractraw",
-                        "1000 01020304 000000000100 [\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\"] "
-                                "[\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\","
-                                "\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\"] 10") + "\nAs json rpc call\n"
-                + HelpExampleRpc("gencallcontractraw",
-                        "1000 01020304 000000000100 000000000100 [\"5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG\"] "
-                                "[\"5yNhSL7746VV5qWHHDNLkSQ1RYeiheryk9uzQG6C5d\","
-                                "\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\"] 10"));
+        throw runtime_error(
+            "gencallcontractraw \"sender addr\" \"app regid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
+            "\ncreate contract invocation raw transaction\n"
+            "\nArguments:\n"
+            "1.\"sender addr\": (string, required)\n tx sender's base58 addr\n"
+            "2.\"app regid\":(string, required) contract RegId\n"
+            "3.\"arguments\": (string, required) contract arguments (Hex encode required)\n"
+            "4.\"amount\":(numeric, required)\n amount of WICC to be sent to the contract account\n"
+            "5.\"fee\": (numeric, required) pay to miner\n"
+            "6.\"height\": (numeric, optional)create height,If not provide use the tip block height in "
+            "chainActive\n"
+            "\nResult:\n"
+            "\"rawtx\"  (string) The raw transaction\n"
+            "\nExamples:\n" +
+            HelpExampleCli("gencallcontractraw",
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 1") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("gencallcontractraw",
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 1"));
     }
-    RPCTypeCheck(params, list_of(real_type)(real_type)(str_type)(str_type)(str_type)(int_type));
 
-    uint64_t fee = AmountToRawValue(params[0]);
-    uint64_t amount = AmountToRawValue(params[1]);
-    string sUserRegId = params[2].get_str();
-    CRegID userRegId(sUserRegId);
-    if (userRegId.IsEmpty()) {
-        throw runtime_error("invalid user_regid: " + sUserRegId);
+    RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(str_type)(int_type)(int_type));
+
+    EnsureWalletIsUnlocked();
+
+    CKeyID sendKeyId, recvKeyId;
+    if (!GetKeyId(params[0].get_str(), sendKeyId))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sendaddress");
+
+    if (!GetKeyId(params[1].get_str(), recvKeyId)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid app regid");
     }
-    string sConRegId = params[3].get_str();
-    CRegID conRegId(sConRegId);
-    if (conRegId.IsEmpty()) {
-        throw runtime_error("invalid contract_regid: %s" + sUserRegId);
-    }
-    vector<unsigned char> arguments = ParseHex(params[4].get_str());
+
+    vector<unsigned char> arguments = ParseHex(params[2].get_str());
     if (arguments.size() >= kContractArgumentMaxSize) {
-        throw runtime_error("input arguments'size larger than kContractArgumentMaxSize");
-    }
-    int height = (params.size() == 6) ? params[5].get_int() : chainActive.Tip()->nHeight;
-
-    if (fee > 0 && fee < CBaseTx::nMinTxFee)
-        throw runtime_error("input fee smaller than nMinTxFee");
-    if (conRegId.IsEmpty())
-        throw runtime_error("contract regid invalid!");
-    if (!pCdMan->pContractCache->HaveScript(conRegId))
-        throw runtime_error(tinyformat::format("regid %s not exist", conRegId.ToString()));
-    if (height < chainActive.Tip()->nHeight - 250 || height > chainActive.Tip()->nHeight + 250)
-        throw runtime_error("height is out of a valid range to the tip block height!");
-
-    CAccountCache view(*pCdMan->pAccountCache);
-    CKeyID keyId;
-    if (!pCdMan->pAccountCache->GetKeyId(userRegId, keyId)) {
-        LogPrint("ERROR", "from address %s has no keyId\n", userRegId.ToString());
-        throw runtime_error(tinyformat::format("from address %s has no keyId", userRegId.ToString()));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments's size out of range");
     }
 
-    std::shared_ptr<CContractInvokeTx> tx = std::make_shared<CContractInvokeTx>(
-        userRegId, conRegId, fee, amount, height, arguments);
+    int64_t amount = AmountToRawValue(params[3]);;
+    int64_t fee = AmountToRawValue(params[4]);
+
+    int height = chainActive.Tip()->nHeight;
+    if (params.size() > 5)
+        height = params[5].get_int();
+
+    CPubKey sendPubKey;
+    if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Key not found in the local wallet.");
+    }
+
+    CUserID sendUserId;
+    CRegID sendRegId;
+    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && pCdMan->pAccountCache->RegIDIsMature(sendRegId))
+                     ? CUserID(sendRegId)
+                     : CUserID(sendPubKey);
+
+    CRegID recvRegId;
+    if (!pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid app regid");
+    }
+
+    if (!pCdMan->pContractCache->HaveScript(recvRegId)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
+    }
+
+    CContractInvokeTx tx;
+    tx.nTxType      = CONTRACT_INVOKE_TX;
+    tx.txUid        = sendUserId;
+    tx.appUid       = recvRegId;
+    tx.bcoins       = amount;
+    tx.llFees       = fee;
+    tx.arguments    = arguments;
+    tx.nValidHeight = height;
+
+    if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
+    }
+
     CDataStream ds(SER_DISK, CLIENT_VERSION);
-    std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
+    std::shared_ptr<CBaseTx> pBaseTx = tx.GetNewInstance();
     ds << pBaseTx;
     Object obj;
-    string rawtx = HexStr(ds.begin(), ds.end());
-    obj.push_back( Pair("rawtx", rawtx) );
+    obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+
     return obj;
 }
 
