@@ -152,7 +152,6 @@ bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDele
 }
 
 bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountCache &view, CBlock *pBlock) {
-    unsigned int nNonce = GetRand(SysCfg().GetBlockMaxNonce());
     CBlock preBlock;
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
@@ -164,27 +163,30 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
         if (!view.GetAccount(preBlockRewardTx->txUid, preDelegate)) {
             return ERRORMSG("get preblock delegate account info error");
         }
+
         if (currentTime - preBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
             if (preDelegate.regID == delegate.regID)
                 return ERRORMSG("one delegate can't produce more than one block at the same slot");
         }
     }
 
-    pBlock->SetNonce(nNonce);
     CBlockRewardTx *pBlockRewardTx  = (CBlockRewardTx *)pBlock->vptx[0].get();
-    pBlockRewardTx->txUid           = delegate.regID;  //记账人账户ID
+    pBlockRewardTx->txUid           = delegate.regID;
     pBlockRewardTx->nHeight         = pBlock->GetHeight();
+    // Assign profits to the delegate account.
+    pBlockRewardTx->rewardValue     += delegate.CalculateAccountProfit(pBlock->GetHeight());
+
+    pBlock->SetNonce(GetRand(SysCfg().GetBlockMaxNonce()));
     pBlock->SetMerkleRootHash(pBlock->BuildMerkleTree());
     pBlock->SetTime(currentTime);
 
-    vector<unsigned char> vSign;
-    if (pWalletMain->Sign(delegate.keyID, pBlock->ComputeSignatureHash(), vSign, delegate.minerPubKey.IsValid())) {
-        pBlock->SetSignature(vSign);
+    vector<unsigned char> signature;
+    if (pWalletMain->Sign(delegate.keyID, pBlock->ComputeSignatureHash(), signature, delegate.minerPubKey.IsValid())) {
+        pBlock->SetSignature(signature);
         return true;
     } else {
-        return false;
+        return ERRORMSG("Sign failed");
     }
-    return true;
 }
 
 void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
@@ -247,8 +249,8 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     }
 
     CAccount account;
-    CBlockRewardTx *prtx = (CBlockRewardTx *)pBlock->vptx[0].get();
-    if (cw.pAccountCache->GetAccount(prtx->txUid, account)) {
+    CBlockRewardTx *pRewardTx = (CBlockRewardTx *)pBlock->vptx[0].get();
+    if (cw.pAccountCache->GetAccount(pRewardTx->txUid, account)) {
         if (curDelegate.regID != account.regID) {
             return ERRORMSG("Verify delegate account error, delegate regid=%s vs reward regid=%s!",
                 curDelegate.regID.ToString(), account.regID.ToString());
@@ -268,9 +270,9 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
         return ERRORMSG("AccountView has no accountId");
     }
 
-    if (prtx->nVersion != nTxVersion1)
+    if (pRewardTx->nVersion != nTxVersion1)
         return ERRORMSG("Verify tx version error, tx version %d: vs current %d",
-            prtx->nVersion, nTxVersion1);
+            pRewardTx->nVersion, nTxVersion1);
 
     if (bNeedRunTx) {
         int64_t nTotalFuel(0);

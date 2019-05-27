@@ -1400,10 +1400,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         assert(0);
     }
 
-    // Validate BlockRewardTx
-    uint64_t llValidReward = block.GetFee() - block.GetFuel();
+    // Verify BlockRewardTx
+    uint64_t llValidReward = block.GetFee() - block.GetFuel() + minerAcct.CalculateAccountProfit(block.GetHeight());
     if (pRewardTx->rewardValue != llValidReward) {
-        LogPrint("INFO", "block fee:%lld, block fuel:%lld\n", block.GetFee(), block.GetFuel());
+        LogPrint("INFO", "block height:%u, block fee:%lld, block fuel:%u, vote profits:%llu\n", block.GetHeight(),
+                 block.GetFee(), block.GetFuel(), minerAcct.CalculateAccountProfit(block.GetHeight()));
         return state.DoS(100, ERRORMSG("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
                         pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-cb-amount");
     }
@@ -2062,13 +2063,13 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         }
     }
 
-    //校验pos交易
+    // Verify reward transaction
     if (!VerifyPosTx(&block, cw, true)) {
         return state.DoS(100, ERRORMSG("ProcessForkedChain() : the block hash=%s check pos tx error",
                         block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
     }
 
-    //校验利息是否正常
+    // Verify reward value
     std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[0]);
     uint64_t llValidReward = block.GetFee() - block.GetFuel();
     if (pRewardTx->rewardValue != llValidReward)
@@ -2076,12 +2077,12 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
                         pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-cb-amount");
 
     for (auto &item : block.vptx) {
-        //校验交易是否在有效高度
+        // Verify height
         if (!item->IsValidHeight(mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight, SysCfg().GetTxCacheHeight())) {
             return state.DoS(100, ERRORMSG("ProcessForkedChain() : txid=%s beyond the scope of valid height\n ",
                             item->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
         }
-        //校验是否有重复确认交易
+        // Verify duplicated transaction
         if (pForkTxCache->HaveTx(item->GetHash()))
             return state.DoS(100, ERRORMSG("ProcessForkedChain() : txid=%s has been confirmed\n",
                             item->GetHash().GetHex()), REJECT_INVALID, "duplicated-txid");
