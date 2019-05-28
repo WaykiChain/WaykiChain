@@ -13,7 +13,7 @@ private:
     int64_t fcoinsToStake; // when negative, it means staking revocation
 
 public:
-    CFcoinStakeTx(): CBaseTx(FCOIN_STAKE_TX) { fcoinsToStake = 0;}
+    CFcoinStakeTx(): CBaseTx(FCOIN_STAKE_TX), fcoinsToStake(0) {}
 
     CFcoinStakeTx(const CBaseTx *pBaseTx): CBaseTx(FCOIN_STAKE_TX) {
         assert(FCOIN_STAKE_TX == pBaseTx->nTxType);
@@ -21,9 +21,8 @@ public:
     }
 
     CFcoinStakeTx(const CUserID &txUidIn, int validHeightIn, uint64_t feeIn, uint64_t fcoinsToStakeIn):
-        CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feeIn) {
-        fcoinsToStake = fcoinsToStakeIn;
-    }
+        CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feeIn),
+        fcoinsToStake(0) {}
 
     ~CFcoinStakeTx() {}
 
