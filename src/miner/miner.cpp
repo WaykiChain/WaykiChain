@@ -11,6 +11,7 @@
 #include "wallet/wallet.h"
 #include "tx/tx.h"
 #include "tx/blockrewardtx.h"
+#include "tx/blockpricemediantx.h"
 #include "persistence/txdb.h"
 #include "persistence/contractdb.h"
 
@@ -319,6 +320,7 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
 
     // Create BlockReward tx
     CBlockRewardTx rewardTx;
+    CBlockPriceMedianTx priceMedianTx;
 
     // Add our Block Reward tx as the first one
     pblock->vptx.push_back(std::make_shared<CBlockRewardTx>(rewardTx));

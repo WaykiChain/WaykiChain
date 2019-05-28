@@ -4,8 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#ifndef BLOCK_REWARD_H
-#define BLOCK_REWARD_H
+#ifndef TX_BLOCK_REWARD_H
+#define TX_BLOCK_REWARD_H
 
 #include "tx.h"
 

@@ -85,6 +85,7 @@ coin_CORE_H = \
   tx/merkletx.h \
   tx/accountregtx.h \
   tx/blockrewardtx.h \
+  tx/blockpricemediantx.h \
   tx/bcointx.h \
   tx/contracttx.h \
   tx/delegatetx.h \
@@ -233,6 +234,7 @@ libcoin_server_a_SOURCES = \
   sigcache.cpp \
   tx/accountregtx.cpp \
   tx/blockrewardtx.cpp \
+  tx/blockpricemediantx.cpp \
   tx/bcointx.cpp \
   tx/contracttx.cpp \
   tx/delegatetx.cpp \

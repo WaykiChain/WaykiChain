@@ -110,38 +110,3 @@ bool CPriceFeedTx::GetTopPriceFeederList(CCacheWrapper &cw, vector<CAccount> &pr
 
     return true;
 }
-
-//############################################################################################################
-
-bool CBlockPriceMedianTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
-    return true;
-}
-
-bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    return true;
-}
-
-bool CBlockPriceMedianTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    return true;
-}
-
-string CBlockPriceMedianTx::ToString(CAccountCache &view) {
-    //TODO
-    return "";
-}
-
-Object CBlockPriceMedianTx::ToJson(const CAccountCache &AccountView) const {
-    //TODO
-    return Object();
-}
-
-bool CBlockPriceMedianTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    //TODO
-    return true;
-}
-
-inline uint64_t GetMedianPriceByType(const CoinType coinType, const PriceType priceType) {
-    // return mapMediaPricePoints[make_tuple<CoinType, PriceType>(coinType, priceType)];
-
-    return 0;
-}
