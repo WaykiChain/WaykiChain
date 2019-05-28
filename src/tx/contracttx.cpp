@@ -34,7 +34,6 @@ static bool GetKeyId(const CAccountCache &view, const vector<unsigned char> &ret
 
 bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount acctInfo;
-    CContractDBOperLog operLog;
     if (!cw.accountCache.GetAccount(txUid, acctInfo)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, read regist addr %s account info error",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -70,9 +69,6 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
     nRunStep = contractScript.size();
 
-    if(!operLog.vKey.empty()) {
-        cw.txUndo.vContractOperLog.push_back(operLog);
-    }
     CUserID userId = acctInfo.keyID;
     if (!cw.accountCache.SetAccount(userId, acctInfo))
         return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, save account info error"),
@@ -426,8 +422,7 @@ bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
         }
 
         if (!account.UndoOperateAccount(*rIterAccountLog)) {
-            return state.DoS(100,
-                             ERRORMSG("CContractInvokeTx::UndoExecuteTx, undo operate account failed"),
+            return state.DoS(100, ERRORMSG("CContractInvokeTx::UndoExecuteTx, undo operate account failed"),
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }
 

@@ -71,10 +71,9 @@ int GetElementForBurn(CBlockIndex *pIndex) {
     return newFuelRate;
 }
 
-// We want to sort transactions by priority and fee, so:
+// Sort transactions by priority and fee to decide priority orders to process transactions.
 void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate) {
     vecPriority.reserve(mempool.memPoolTxs.size());
-    // Priority order to process transactions
     static double dPriority     = 0;
     static double dFeePerKb     = 0;
     static unsigned int nTxSize = 0;

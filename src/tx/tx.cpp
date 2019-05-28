@@ -112,6 +112,7 @@ string CTxUndo::ToString() const {
     vector<CAccountLog>::const_iterator iterLog = vAccountLog.begin();
     for (; iterLog != vAccountLog.end(); ++iterLog) {
         strAccountLog += iterLog->ToString();
+        strAccountLog += ";";
     }
     strAccountLog += "\n";
 
@@ -121,6 +122,7 @@ string CTxUndo::ToString() const {
     vector<CContractDBOperLog>::const_iterator iterDbLog = vContractOperLog.begin();
     for (; iterDbLog != vContractOperLog.end(); ++iterDbLog) {
         strDBOperLog += iterDbLog->ToString();
+        strDBOperLog += ";";
     }
     strDBOperLog += "\n";
 

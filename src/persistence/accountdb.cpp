@@ -26,7 +26,6 @@ bool CAccountCache::GetAccount(const CKeyID &keyId, CAccount &account) {
 
     if (pBase->GetAccount(keyId, account)) {
         mapKeyId2Account.insert(make_pair(keyId, account));
-        // mapKeyId2Account[keyId] = account;
         return true;
     }
 
