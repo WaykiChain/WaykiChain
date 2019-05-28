@@ -355,4 +355,19 @@ public:
         }                                                                                  \
     }
 
+#define IMPLEMENT_UNPERSIST_TX_STATE                                                              \
+    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog =                               \
+        cw.pTxUndo->vContractOperLog.rbegin();                                                    \
+    for (; rIterScriptDBLog != cw.pTxUndo->vContractOperLog.rend(); ++rIterScriptDBLog) {         \
+        if (!cw.pContractCache->UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue)) \
+            return state.DoS(                                                                     \
+                100, ERRORMSG("%s::UndoExecuteTx, undo scriptdb data error", __FUNCTION__),       \
+                UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");                                     \
+    }                                                                                             \
+                                                                                                  \
+    if (!cw.pContractCache->EraseTxRelAccout(GetHash()))                                          \
+        return state.DoS(100,                                                                     \
+                         ERRORMSG("%s::UndoExecuteTx, erase tx rel account error", __FUNCTION__), \
+                         UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+
 #endif //COIN_BASETX_H

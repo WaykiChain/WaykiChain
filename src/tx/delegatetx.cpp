@@ -212,14 +212,7 @@ bool CDelegateVoteTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         }
     }
 
-    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vContractOperLog.rbegin();
-    if (SysCfg().GetAddressToTxFlag() && cw.pTxUndo->vContractOperLog.size() > 0) {
-        if (!cw.pContractCache->UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, undo scriptdb data error"),
-                             UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
-        ++rIterScriptDBLog;
-    }
-
+    IMPLEMENT_UNPERSIST_TX_STATE;
     for (; rIterScriptDBLog != cw.pTxUndo->vContractOperLog.rend(); ++rIterScriptDBLog) {
         // Recover the old value and erase the new value.
         if (!cw.pContractCache->SetDelegateData(rIterScriptDBLog->vKey))

@@ -48,7 +48,6 @@ bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
     cw.pTxUndo->txHash = GetHash();
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
-
     return true;
 }
 
@@ -58,7 +57,7 @@ bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
         if (!cw.pAccountCache->GetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, read account info error, userId=%s", 
+            return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, read account info error, userId=%s",
                 userId.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         if (!account.UndoOperateAccount(*rIterAccountLog)) {
@@ -72,21 +71,14 @@ bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
         }
     }
 
-    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vContractOperLog.rbegin();
-    for (; rIterScriptDBLog != cw.pTxUndo->vContractOperLog.rend(); ++rIterScriptDBLog) {
-        if (!cw.pContractCache->UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
-            return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, undo scriptdb data error"),
-                            UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");
-    }
-
+    IMPLEMENT_UNPERSIST_TX_STATE;
     return true;
 }
 
 string CFcoinStakeTx::ToString(CAccountCache &view) {
-
     string str = strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, fcoinsToStake=%ld, llFees=%ld, nValidHeight=%d\n",
-        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, txUid.ToString().c_str(), 
+        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, txUid.ToString().c_str(),
         fcoinsToStake, llFees, nValidHeight);
 
     return str;

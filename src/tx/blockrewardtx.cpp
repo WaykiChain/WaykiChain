@@ -24,7 +24,6 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, read source addr %s account info error",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    // LogPrint("op_account", "before operate:%s\n", acctInfo.ToString());
     CAccountLog acctInfoLog(acctInfo);
     if (0 == nIndex) {
         // nothing to do here
@@ -45,7 +44,6 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
 
-    // LogPrint("op_account", "after operate:%s\n", acctInfo.ToString());
     return true;
 }
 
@@ -70,13 +68,7 @@ bool CBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
         }
     }
 
-    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vContractOperLog.rbegin();
-    for (; rIterScriptDBLog != cw.pTxUndo->vContractOperLog.rend(); ++rIterScriptDBLog) {
-        if (!cw.pContractCache->UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
-            return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, undo scriptdb data error"),
-                             UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
-    }
-
+    IMPLEMENT_UNPERSIST_TX_STATE;
     return true;
 }
 
@@ -87,7 +79,8 @@ string CBlockRewardTx::ToString(CAccountCache &view) {
     CRegID regId;
     view.GetRegId(txUid, regId);
     str += strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyid=%s, rewardValue=%ld\n",
-        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, regId.ToString(), keyId.GetHex(), rewardValue);
+                    GetTxType(nTxType), GetHash().ToString().c_str(), nVersion,
+                    regId.ToString(), keyId.GetHex(), rewardValue);
 
     return str;
 }

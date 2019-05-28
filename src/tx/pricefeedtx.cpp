@@ -31,12 +31,12 @@ bool CPriceFeedTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
 
     CRegID sendRegId;
     account.GetRegId(sendRegId);
-    if (!pCdMan->pDelegateCache->ExistDelegate(sendRegId.ToString())) {
+    if (!pCdMan->pDelegateCache->ExistDelegate(sendRegId.ToString())) { // must be a miner
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, txUid %s account is not a delegate error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-isnot-delegate");
     }
 
-    if (account.stakedFcoins < kDefaultPriceFeedStakedFcoinsMin) // check price feeder qualification
+    if (account.stakedFcoins < kDefaultPriceFeedStakedFcoinsMin) // must stake enough fcoins
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Fcoins not sufficient by txUid %s account error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-not-sufficient");
 
@@ -71,7 +71,6 @@ bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
     cw.pTxUndo->txHash = GetHash();
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
-
     return true;
 }
 
@@ -95,6 +94,7 @@ bool CPriceFeedTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVa
         }
     }
 
+    IMPLEMENT_UNPERSIST_TX_STATE;
     return true;
 }
 
