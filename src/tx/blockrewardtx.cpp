@@ -42,20 +42,9 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
     cw.pTxUndo->Clear();
     cw.pTxUndo->vAccountLog.push_back(acctInfoLog);
     cw.pTxUndo->txHash = GetHash();
-    if (SysCfg().GetAddressToTxFlag() && 0 == nIndex) {
-        CContractDBOperLog operAddressToTxLog;
-        CKeyID sendKeyId;
-        if (!cw.pAccountCache->GetKeyId(txUid, sendKeyId))
-            return ERRORMSG("CBlockRewardTx::ExecuteTx, get keyid by account error!");
 
-        if (!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex+1,
-                                                            cw.pTxUndo->txHash.GetHex(),
-                                                            operAddressToTxLog)) {
-            return false;
-        }
+    IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
 
-        cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);
-    }
     // LogPrint("op_account", "after operate:%s\n", acctInfo.ToString());
     return true;
 }
