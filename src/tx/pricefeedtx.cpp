@@ -28,9 +28,10 @@ bool CPriceFeedTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
-    if (account.stakedFcoins < kDefaultPriceFeedStakedFcoinsMin) // check if account has sufficient staked fcoins to be a price feeder
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Not stake ready for txUid %s account error",
-                        txUid.ToString()), PRICE_FEED_FAIL, "account-stake-not-ready");
+    if (account.fcoins < kDefaultPriceFeedHoldFcoinsMin ||
+        account.stakedFcoins < kDefaultPriceFeedStakedFcoinsMin) // check price feeder qualification
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Not qualified to feed price by txUid %s account error",
+                        txUid.ToString()), PRICE_FEED_FAIL, "account-pricefeed-not-qualified");
 
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
     return true;
