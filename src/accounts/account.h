@@ -177,7 +177,10 @@ public:
     uint64_t GetTotalBcoins();
     uint64_t GetVotedBCoins();
 
+    // Get profits for voting.
     uint64_t GetAccountProfit(const uint64_t curHeight);
+    // Calculate profits for voted.
+    uint64_t CalculateAccountProfit(const uint64_t curHeight) const;
 
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;

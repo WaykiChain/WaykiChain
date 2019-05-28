@@ -61,7 +61,7 @@ uint64_t CAccount::GetAccountProfit(const uint64_t curHeight) {
 
     auto calculateProfit = [](uint64_t nValue, uint64_t nSubsidy, int nBeginHeight, int nEndHeight) -> uint64_t {
         int64_t nHoldHeight = nEndHeight - nBeginHeight;
-        int64_t nYearHeight = SysCfg().GetSubsidyHalvingInterval();
+        static int64_t nYearHeight = SysCfg().GetSubsidyHalvingInterval();
         uint64_t llProfits  = (uint64_t)(nValue * ((long double)nHoldHeight * nSubsidy / nYearHeight / 100));
         LogPrint("profits", "nValue:%lld nSubsidy:%lld nBeginHeight:%d nEndHeight:%d llProfits:%lld\n", nValue,
                  nSubsidy, nBeginHeight, nEndHeight, llProfits);
@@ -82,6 +82,21 @@ uint64_t CAccount::GetAccountProfit(const uint64_t curHeight) {
              candidateVotes.begin()->GetVotedBcoins());
 
     return llProfits;
+}
+
+uint64_t CAccount::CalculateAccountProfit(const uint64_t curHeight) const {
+    if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R1) {
+        return 0;
+    }
+
+    uint64_t subsidy          = IniCfg().GetBlockSubsidyCfg(curHeight);
+    static int64_t holdHeight = 1;
+    static int64_t yearHeight = SysCfg().GetSubsidyHalvingInterval();
+    uint64_t profits          = (uint64_t)(receivedVotes * ((long double)holdHeight * subsidy / yearHeight / 100));
+    LogPrint("profits", "receivedVotes:%llu subsidy:%llu holdHeight:%lld yearHeight:%lld llProfits:%llu\n",
+             receivedVotes, subsidy, holdHeight, yearHeight, profits);
+
+    return profits;
 }
 
 uint64_t CAccount::GetVotedBCoins() {
