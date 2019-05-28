@@ -69,7 +69,7 @@ public:
 std::vector<MinedBlockInfo> GetMinedBlocks(unsigned int count);
 
 /** Run the miner threads */
-void GenerateCoinBlock(bool fGenerate, CWallet *pwallet, int nThreads);
+void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int nThreads);
 /** Generate a new block */
 unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn);
 /** Modify the extranonce in a block */

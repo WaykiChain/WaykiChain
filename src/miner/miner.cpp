@@ -152,7 +152,6 @@ bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDele
 }
 
 bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountCache &view, CBlock *pBlock) {
-    unsigned int nNonce = GetRand(SysCfg().GetBlockMaxNonce());
     CBlock preBlock;
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
@@ -164,27 +163,30 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
         if (!view.GetAccount(preBlockRewardTx->txUid, preDelegate)) {
             return ERRORMSG("get preblock delegate account info error");
         }
+
         if (currentTime - preBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
             if (preDelegate.regID == delegate.regID)
                 return ERRORMSG("one delegate can't produce more than one block at the same slot");
         }
     }
 
-    pBlock->SetNonce(nNonce);
     CBlockRewardTx *pBlockRewardTx  = (CBlockRewardTx *)pBlock->vptx[0].get();
-    pBlockRewardTx->txUid           = delegate.regID;  //记账人账户ID
+    pBlockRewardTx->txUid           = delegate.regID;
     pBlockRewardTx->nHeight         = pBlock->GetHeight();
+    // Assign profits to the delegate account.
+    pBlockRewardTx->rewardValue     += delegate.CalculateAccountProfit(pBlock->GetHeight());
+
+    pBlock->SetNonce(GetRand(SysCfg().GetBlockMaxNonce()));
     pBlock->SetMerkleRootHash(pBlock->BuildMerkleTree());
     pBlock->SetTime(currentTime);
 
-    vector<unsigned char> vSign;
-    if (pWalletMain->Sign(delegate.keyID, pBlock->ComputeSignatureHash(), vSign, delegate.minerPubKey.IsValid())) {
-        pBlock->SetSignature(vSign);
+    vector<unsigned char> signature;
+    if (pWalletMain->Sign(delegate.keyID, pBlock->ComputeSignatureHash(), signature, delegate.minerPubKey.IsValid())) {
+        pBlock->SetSignature(signature);
         return true;
     } else {
-        return false;
+        return ERRORMSG("Sign failed");
     }
-    return true;
 }
 
 void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
@@ -247,8 +249,8 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     }
 
     CAccount account;
-    CBlockRewardTx *prtx = (CBlockRewardTx *)pBlock->vptx[0].get();
-    if (cw.pAccountCache->GetAccount(prtx->txUid, account)) {
+    CBlockRewardTx *pRewardTx = (CBlockRewardTx *)pBlock->vptx[0].get();
+    if (cw.pAccountCache->GetAccount(pRewardTx->txUid, account)) {
         if (curDelegate.regID != account.regID) {
             return ERRORMSG("Verify delegate account error, delegate regid=%s vs reward regid=%s!",
                 curDelegate.regID.ToString(), account.regID.ToString());
@@ -268,9 +270,9 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
         return ERRORMSG("AccountView has no accountId");
     }
 
-    if (prtx->nVersion != nTxVersion1)
+    if (pRewardTx->nVersion != nTxVersion1)
         return ERRORMSG("Verify tx version error, tx version %d: vs current %d",
-            prtx->nVersion, nTxVersion1);
+            pRewardTx->nVersion, nTxVersion1);
 
     if (bNeedRunTx) {
         int64_t nTotalFuel(0);
@@ -325,7 +327,7 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
 
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
-    // Limit to betweeen 1K and MAX_BLOCK_SIZE-1K for sanity:
+    // Limit to between 1K and MAX_BLOCK_SIZE-1K for sanity:
     nBlockMaxSize = max((unsigned int)1000, min((unsigned int)(MAX_BLOCK_SIZE - 1000), nBlockMaxSize));
 
     // How much of the block should be dedicated to high-priority transactions,
@@ -404,7 +406,7 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
             nTotalFuel += pBaseTx->GetFuel(pblock->GetFuelRate());
             nBlockTx++;
             pblock->vptx.push_back(stx);
-            LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txhash:%s\n",
+            LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n",
                      nTotalFuel, pBaseTx->GetFuel(pblock->GetFuelRate()), pBaseTx->nRunStep,
                      pblock->GetFuelRate(), pBaseTx->GetHash().GetHex());
         }
@@ -450,7 +452,7 @@ bool CheckWork(CBlock *pblock, CWallet &wallet) {
     return true;
 }
 
-bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pIndexPrev, unsigned int nTransactionsUpdated, CCacheWrapper &cw) {
+bool static MineBlock(CBlock *pblock, CWallet *pWallet, CBlockIndex *pIndexPrev, unsigned int nTransactionsUpdated, CCacheWrapper &cw) {
     int64_t nStart = GetTime();
 
     unsigned int nLastTime = 0xFFFFFFFF;
@@ -512,7 +514,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pIndexPrev,
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
             nLastTime = GetTimeMillis();
-            CheckWork(pblock, *pwallet);
+            CheckWork(pblock, *pWallet);
             LogPrint("MINER", "CheckWork used time:%d ms\n", GetTimeMillis() - nLastTime);
 
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
@@ -540,7 +542,7 @@ bool static MineBlock(CBlock *pblock, CWallet *pwallet, CBlockIndex *pIndexPrev,
     return false;
 }
 
-void static CoinMiner(CWallet *pwallet, int targetHeight) {
+void static CoinMiner(CWallet *pWallet, int targetHeight) {
     LogPrint("INFO", "CoinMiner started.\n");
 
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
@@ -602,7 +604,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
                 pblocktemplate.get()->block.vptx.size(), GetTimeMillis() - nLastTime);
 
             CBlock *pblock = &pblocktemplate.get()->block;
-            MineBlock(pblock, pwallet, pIndexPrev, nTransactionsUpdated, cw);
+            MineBlock(pblock, pWallet, pIndexPrev, nTransactionsUpdated, cw);
 
             if (SysCfg().NetworkID() != MAIN_NET && targetHeight <= GetCurrHeight())
                 throw boost::thread_interrupted();
@@ -614,7 +616,7 @@ void static CoinMiner(CWallet *pwallet, int targetHeight) {
     }
 }
 
-void GenerateCoinBlock(bool fGenerate, CWallet *pwallet, int targetHeight) {
+void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int targetHeight) {
     static boost::thread_group *minerThreads = NULL;
 
     if (minerThreads != NULL) {
@@ -633,7 +635,7 @@ void GenerateCoinBlock(bool fGenerate, CWallet *pwallet, int targetHeight) {
     }
 
     minerThreads = new boost::thread_group();
-    minerThreads->create_thread(boost::bind(&CoinMiner, pwallet, targetHeight));
+    minerThreads->create_thread(boost::bind(&CoinMiner, pWallet, targetHeight));
 }
 
 
