@@ -73,9 +73,9 @@ void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int nThreads);
 /** Generate a new block */
 unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn);
 /** Modify the extranonce in a block */
-void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pIndexPrev, unsigned int &nExtraNonce);
+void IncrementExtraNonce(CBlock *pBlock, CBlockIndex *pIndexPrev, unsigned int &nExtraNonce);
 /** Do mining precalculation */
-void FormatHashBuffers(CBlock *pblock, char *pmidstate, char *pdata, char *phash1);
+void FormatHashBuffers(CBlock *pBlock, char *pmidstate, char *pdata, char *phash1);
 
 bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountCache &view, CBlock *pBlock);
 
@@ -88,7 +88,7 @@ bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDele
 
 bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx = false);
 /** Check mined block */
-bool CheckWork(CBlock *pblock, CWallet &wallet);
+bool CheckWork(CBlock *pBlock, CWallet &wallet);
 /** Base sha256 mining transform */
 void SHA256Transform(void *pstate, void *pinput, const void *pinit);
 /** Get burn element */

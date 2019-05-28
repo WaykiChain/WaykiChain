@@ -110,16 +110,16 @@ void CWallet::SetBestChain(const CBlockLocator &loc) {
     bestBlock = loc;
 }
 
-void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *pblock) {
+void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *pBlock) {
     assert(pTx != NULL || pblock != NULL);
 
     if (hash.IsNull() && pTx == NULL) {  // this is block Sync
-        uint256 blockhash         = pblock->GetHash();
+        uint256 blockhash         = pBlock->GetHash();
         auto GenesisBlockProgress = [&]() {};
 
         auto ConnectBlockProgress = [&]() {
-            CAccountTx newtx(this, blockhash, pblock->GetHeight());
-            for (const auto &sptx : pblock->vptx) {
+            CAccountTx newtx(this, blockhash, pBlock->GetHeight());
+            for (const auto &sptx : pBlock->vptx) {
                 uint256 hashtx = sptx->GetHash();
                 // confirm the tx is mine
                 if (IsMine(sptx.get())) {
@@ -137,7 +137,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
         };
 
         auto DisConnectBlockProgress = [&]() {
-            for (const auto &sptx : pblock->vptx) {
+            for (const auto &sptx : pBlock->vptx) {
                 if (sptx->IsCoinBase()) {
                     continue;
                 }

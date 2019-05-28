@@ -263,7 +263,7 @@ void UnregisterAllWallets() {
     g_signals.SyncTransaction.disconnect_all_slots();
 }
 
-void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock) {
+void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pBlock) {
     g_signals.SyncTransaction(hash, pBaseTx, pblock);
 }
 
@@ -2375,12 +2375,12 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 ha
     }
 }
 
-bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBlockPos *dbp) {
+bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pBlock, CDiskBlockPos *dbp) {
     int64_t llBeginTime = GetTimeMillis();
     //  LogPrint("INFO", "ProcessBlock() enter:%lld\n", llBeginTime);
     AssertLockHeld(cs_main);
     // Check for duplicate
-    uint256 blockHash = pblock->GetHash();
+    uint256 blockHash = pBlock->GetHash();
     if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("ProcessBlock() : block exists: %d %s",
                             mapBlockIndex[blockHash]->nHeight, blockHash.ToString()), 0, "duplicate");
@@ -2393,33 +2393,33 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
     CContractCache pContractCache(*pCdMan->pContractCache);
     CCacheWrapper cw(&pAccountCache, &pContractCache);
     // Preliminary checks
-    if (!CheckBlock(*pblock, state, cw, false)) {
+    if (!CheckBlock(*pBlock, state, cw, false)) {
         LogPrint("INFO", "CheckBlock() id: %d elapse time:%lld ms\n",
                 chainActive.Height(), GetTimeMillis() - llBeginCheckBlockTime);
 
-        return ERRORMSG("ProcessBlock() :block hash:%s CheckBlock FAILED", pblock->GetHash().GetHex());
+        return ERRORMSG("ProcessBlock() :block hash:%s CheckBlock FAILED", pBlock->GetHash().GetHex());
     }
 
     // If we don't already have its previous block, shunt it off to holding area until we get it
-    if (!pblock->GetPrevBlockHash().IsNull() && !mapBlockIndex.count(pblock->GetPrevBlockHash())) {
-        if (pblock->GetHeight() > (unsigned int) nSyncTipHeight) {
-            LogPrint("DEBUG", "blockHeight=%d syncTipHeight=%d\n", pblock->GetHeight(), nSyncTipHeight );
-            nSyncTipHeight = pblock->GetHeight();
+    if (!pBlock->GetPrevBlockHash().IsNull() && !mapBlockIndex.count(pBlock->GetPrevBlockHash())) {
+        if (pBlock->GetHeight() > (unsigned int) nSyncTipHeight) {
+            LogPrint("DEBUG", "blockHeight=%d syncTipHeight=%d\n", pBlock->GetHeight(), nSyncTipHeight );
+            nSyncTipHeight = pBlock->GetHeight();
         }
 
         // Accept orphans as long as there is a node to request its parents from
         if (pfrom) {
-            bool success = PruneOrphanBlocks(pblock->GetHeight());
+            bool success = PruneOrphanBlocks(pBlock->GetHeight());
             if (success) {
                 COrphanBlock *pblock2 = new COrphanBlock();
                 {
                     CDataStream ss(SER_DISK, CLIENT_VERSION);
-                    ss << *pblock;
+                    ss << *pBlock;
                     pblock2->vchBlock = vector<unsigned char>(ss.begin(), ss.end());
                 }
                 pblock2->blockHash = blockHash;
-                pblock2->prevBlockHash = pblock->GetPrevBlockHash();
-                pblock2->height = pblock->GetHeight();
+                pblock2->prevBlockHash = pBlock->GetPrevBlockHash();
+                pblock2->height = pBlock->GetHeight();
                 mapOrphanBlocks.insert(make_pair(blockHash, pblock2));
                 mapOrphanBlocksByPrev.insert(make_pair(pblock2->prevBlockHash, pblock2));
                 setOrphanBlock.insert(pblock2);
@@ -2427,7 +2427,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
 
             // Ask this guy to fill in what we're missing
             LogPrint("net", "receive an orphan block height=%d hash=%s, %s it, leading to getblocks (current height=%d & orphan blocks=%d)\n",
-                    pblock->GetHeight(), pblock->GetHash().GetHex(), success ? "keep" : "abandon",
+                    pBlock->GetHeight(), pBlock->GetHash().GetHex(), success ? "keep" : "abandon",
                     chainActive.Tip()->nHeight, mapOrphanBlocksByPrev.size());
 
             PushGetBlocksOnCondition(pfrom, chainActive.Tip(), GetOrphanRoot(blockHash));
@@ -2437,7 +2437,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBl
 
     int64_t llAcceptBlockTime = GetTimeMillis();
     // Store to disk
-    if (!AcceptBlock(*pblock, state, dbp)) {
+    if (!AcceptBlock(*pBlock, state, dbp)) {
         LogPrint("INFO", "AcceptBlock() elapse time: %lld ms\n", GetTimeMillis() - llAcceptBlockTime);
         return ERRORMSG("ProcessBlock() : AcceptBlock FAILED");
     }

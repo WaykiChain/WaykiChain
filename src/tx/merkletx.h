@@ -58,19 +58,19 @@ public:
     }
     int GetBlocksToMaturity() const;
 
-    int SetMerkleBranch(const CBlock *pblock) {
+    int SetMerkleBranch(const CBlock *pBlock) {
         AssertLockHeld(cs_main);
         CBlock blockTmp;
 
         if (pblock) {
             // Update the tx's blockHash
-            blockHash = pblock->GetHash();
+            blockHash = pBlock->GetHash();
 
             // Locate the transaction
-            for (nIndex = 0; nIndex < (int)pblock->vptx.size(); nIndex++)
-                if ((pblock->vptx[nIndex])->GetHash() == pTx->GetHash())
+            for (nIndex = 0; nIndex < (int)pBlock->vptx.size(); nIndex++)
+                if ((pBlock->vptx[nIndex])->GetHash() == pTx->GetHash())
                     break;
-            if (nIndex == (int)pblock->vptx.size()) {
+            if (nIndex == (int)pBlock->vptx.size()) {
                 vMerkleBranch.clear();
                 nIndex = -1;
                 LogPrint("INFO", "ERROR: SetMerkleBranch() : couldn't find tx in block\n");
@@ -78,7 +78,7 @@ public:
             }
 
             // Fill in merkle branch
-            vMerkleBranch = pblock->GetMerkleBranch(nIndex);
+            vMerkleBranch = pBlock->GetMerkleBranch(nIndex);
         }
 
         // Is the tx in a block that's in the main chain

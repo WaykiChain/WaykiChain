@@ -154,7 +154,7 @@ void UnregisterWallet(CWalletInterface *pwalletIn);
 /** Unregister all wallets from core */
 void UnregisterAllWallets();
 /** Push an updated transaction to all registered wallets */
-void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock = NULL);
+void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pBlock = NULL);
 /** Erase Tx from wallets **/
 void EraseTransaction(const uint256 &hash);
 /** Register with a network node to receive its signals */
@@ -620,7 +620,7 @@ public:
 
 class CWalletInterface {
 protected:
-    virtual void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock) = 0;
+    virtual void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pBlock) = 0;
     virtual void EraseTransaction(const uint256 &hash)                                        = 0;
     virtual void SetBestChain(const CBlockLocator &locator)                                   = 0;
     virtual void UpdatedTransaction(const uint256 &hash)                                      = 0;
@@ -680,7 +680,7 @@ void PushGetBlocks(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd);
 /** Push getblocks request with different filtering strategies */
 void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd);
 /** Process an incoming block */
-bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBlockPos *dbp = NULL);
+bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pBlock, CDiskBlockPos *dbp = NULL);
 /** Print the loaded block tree */
 void PrintBlockTree();
 
