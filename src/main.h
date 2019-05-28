@@ -302,6 +302,7 @@ public:
 
     CTransactionCache   *pTxCache;
     CPricePointCache    *pPpCache;
+    CDelegateCache      *pDelegateCache;
 
     CBlockTreeDB        *pBlockTreeDb;
 
@@ -314,6 +315,7 @@ public:
         pContractCache  = new CContractCache(*pContractDb);
         pTxCache        = new CTransactionCache();
         pPpCache        = new CPricePointCache();
+        pDelegateCache  = new CDelegateCache();
         pBlockTreeDb    = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
     }
 
@@ -324,6 +326,7 @@ public:
         delete pContractCache;  pContractCache = nullptr;
         delete pTxCache;        pTxCache = nullptr;
         delete pPpCache;        pPpCache = nullptr;
+        delete pDelegateCache;  pDelegateCache = nullptr;
         delete pBlockTreeDb;    pBlockTreeDb = nullptr;
     }
 

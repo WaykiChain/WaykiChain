@@ -23,15 +23,20 @@ bool CPriceFeedTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx price points number not within 1..3"),
             REJECT_INVALID, "bad-tx-pricepoint-size-error");
     }
+
     CAccount account;
     if (!cw.pAccountCache->GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
-    if (account.fcoins < kDefaultPriceFeedHoldFcoinsMin ||
-        account.stakedFcoins < kDefaultPriceFeedStakedFcoinsMin) // check price feeder qualification
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Not qualified to feed price by txUid %s account error",
-                        txUid.ToString()), PRICE_FEED_FAIL, "account-pricefeed-not-qualified");
+    if (!pCdMan->pDelegateCache->ExistDelegate(account.GetRegID().ToString())) {
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, txUid %s account is not a delegate error",
+                        txUid.ToString()), PRICE_FEED_FAIL, "account-isnot-delegate");
+    }
+
+    if (account.stakedFcoins < kDefaultPriceFeedStakedFcoinsMin) // check price feeder qualification
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Fcoins not sufficient by txUid %s account error",
+                        txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-not-sufficient");
 
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
     return true;

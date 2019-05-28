@@ -65,4 +65,19 @@ public:
     bool AddBlockPricePointInBatch(const int blockHeight, const CUserID &txUid, const vector<CPricePoint> &pps);
     uint64_t ComputeBlockMedianPrice(const int blockHeight, CCoinPriceType coinPriceType);
 };
+
+/* Top 11 delegates */
+class CDelegateCache {
+private:
+    CStakeCache stakeCache;
+    unordered_set<string> delegateRegIds;
+
+public:
+    CDelegateCache(CStakeCache &stakeCacheIn): stakeCache(stakeCacheIn) {}
+
+public:
+    bool LoadTopDelegates();
+    bool ExistDelegate(string delegateRegId);   //if empty, load data from the low-level StakeCache
+};
+
 #endif // PERSIST_TXDB_H

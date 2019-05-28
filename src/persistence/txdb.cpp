@@ -140,3 +140,19 @@ uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, CCoinP
     uint64_t medianPrice = cbp.ComputeBlockMedianPrice(blockHeight);
     return medianPrice;
 }
+
+/****************************************************************************************************/
+bool CDelegateCache::LoadTopDelegates() {
+    delegateRegIds.clear();
+    stakeCache.GetTopDelegates(delegateRegIds);
+    return true;
+}
+
+//if empty, load data from the low-level StakeCache
+bool CDelegateCache::ExistDelegate(string delegateRegId) {
+    if (delegateRegIds.empty()) {
+        LoadTopDelegates();
+    }
+
+    return delegateRegIds.count(delegateRegId);
+}

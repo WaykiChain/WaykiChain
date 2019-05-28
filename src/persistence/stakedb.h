@@ -114,6 +114,8 @@ public:
     IStakeView *GetBaseView() { return pBase; }
     void SetBaseView(IStakeView *pBaseIn) { pBase = pBaseIn; };
 
+    bool GetTopDelegates(unordered_set<string> &topDelegateRegIds);
+
 private:
     bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
     bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue);
