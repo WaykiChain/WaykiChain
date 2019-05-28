@@ -181,7 +181,6 @@ extern json_spirit::Value getblockhash(const json_spirit::Array& params, bool fH
 extern json_spirit::Value getblock(const json_spirit::Array& params, bool fHelp);
 // extern json_spirit::Value gettxoutsetinfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value verifychain(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value listsetblockindexvalid(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getcontractregid(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listcheckpoint(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value invalidateblock(const json_spirit::Array& params, bool fHelp);

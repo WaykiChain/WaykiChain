@@ -703,10 +703,6 @@ void PrintBlockTree();
 
 void UpdateTime(CBlockHeader &block, const CBlockIndex *pIndexPrev);
 
-//get setBlockIndexValid
-Value ListSetBlockIndexValid();
-
-
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState &state);
 

@@ -4360,21 +4360,6 @@ bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &vAccountLog) {
     return false;
 }
 
-Value ListSetBlockIndexValid() {
-    Object result;
-    std::set<CBlockIndex *, CBlockIndexWorkComparator>::reverse_iterator it = setBlockIndexValid.rbegin();
-    for (; it != setBlockIndexValid.rend(); ++it) {
-        CBlockIndex *pIndex = *it;
-        result.push_back(Pair(tfm::format("height=%d status=%b", pIndex->nHeight, pIndex->nStatus).c_str(), pIndex->GetBlockHash().GetHex()));
-    }
-    uint256 hash            = uint256S("0x6dccf719d146184b9a26e37d62be193fd51d0d49b2f8aa15f84656d790e1d46c");
-    CBlockIndex *blockIndex = mapBlockIndex[hash];
-    for (; blockIndex != nullptr && blockIndex->nHeight > 157332; blockIndex = blockIndex->pprev) {
-        result.push_back(Pair(tfm::format("height=%d status=%b", blockIndex->nHeight, blockIndex->nStatus).c_str(), blockIndex->GetBlockHash().GetHex()));
-    }
-    return result;
-}
-
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex) {
     AssertLockHeld(cs_main);
     return setBlockIndexValid.erase(pIndex) > 0;
