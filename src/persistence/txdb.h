@@ -9,6 +9,7 @@
 #include "vm/appaccount.h"
 #include "commons/serialize.h"
 #include "json/json_spirit_value.h"
+#include "stakedb.h"
 
 #include <map>
 #include <vector>
@@ -73,7 +74,7 @@ private:
     unordered_set<string> delegateRegIds;
 
 public:
-    CDelegateCache(CStakeCache &stakeCacheIn): stakeCache(stakeCacheIn) {}
+    CDelegateCache(CStakeCache &stakeCacheIn): stakeCache(stakeCacheIn) {};
 
 public:
     bool LoadTopDelegates();

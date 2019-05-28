@@ -62,7 +62,7 @@ public:
         AssertLockHeld(cs_main);
         CBlock blockTmp;
 
-        if (pblock) {
+        if (pBlock) {
             // Update the tx's blockHash
             blockHash = pBlock->GetHash();
 

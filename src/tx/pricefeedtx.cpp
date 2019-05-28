@@ -29,7 +29,9 @@ bool CPriceFeedTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
-    if (!pCdMan->pDelegateCache->ExistDelegate(account.GetRegID().ToString())) {
+    CRegID sendRegId;
+    account.GetRegId(sendRegId);
+    if (!pCdMan->pDelegateCache->ExistDelegate(sendRegId.ToString())) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, txUid %s account is not a delegate error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-isnot-delegate");
     }

@@ -447,7 +447,7 @@ bool CheckWork(CBlock *pBlock, CWallet &wallet) {
 
         // Process this block the same as if we had received it from another node
         CValidationState state;
-        if (!ProcessBlock(state, NULL, pblock))
+        if (!ProcessBlock(state, NULL, pBlock))
             return ERRORMSG("CoinMiner : ProcessBlock, block not accepted");
     }
 
@@ -506,7 +506,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
             if (pWalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey, true) ||
                 pWalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey)) {
                 nLastTime = GetTimeMillis();
-                success   = CreateBlockRewardTx(currentTime, minerAcct, *cw.pAccountCache, pblock);
+                success   = CreateBlockRewardTx(currentTime, minerAcct, *cw.pAccountCache, pBlock);
                 LogPrint("MINER", "CreateBlockRewardTx %s, used time:%d ms, miner address=%s\n",
                     success ? "success" : "failure", GetTimeMillis() - nLastTime, minerAcct.keyID.ToAddress());
             }
@@ -516,7 +516,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
             nLastTime = GetTimeMillis();
-            CheckWork(pblock, *pWallet);
+            CheckWork(pBlock, *pWallet);
             LogPrint("MINER", "CheckWork used time:%d ms\n", GetTimeMillis() - nLastTime);
 
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
@@ -606,7 +606,7 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
                 pBlockTemplate.get()->block.vptx.size(), GetTimeMillis() - nLastTime);
 
             CBlock *pBlock = &pBlockTemplate.get()->block;
-            MineBlock(pblock, pWallet, pIndexPrev, nTransactionsUpdated, cw);
+            MineBlock(pBlock, pWallet, pIndexPrev, nTransactionsUpdated, cw);
 
             if (SysCfg().NetworkID() != MAIN_NET && targetHeight <= GetCurrHeight())
                 throw boost::thread_interrupted();

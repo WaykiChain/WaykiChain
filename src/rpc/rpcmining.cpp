@@ -254,16 +254,16 @@ Value submitblock(const Array& params, bool fHelp)
 
     vector<unsigned char> blockData(ParseHex(params[0].get_str()));
     CDataStream ssBlock(blockData, SER_NETWORK, PROTOCOL_VERSION);
-    CBlock pblock;
+    CBlock pBlock;
     try {
-        ssBlock >> pblock;
+        ssBlock >> pBlock;
     }
     catch (std::exception &e) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
     }
 
     CValidationState state;
-    bool fAccepted = ProcessBlock(state, NULL, &pblock);
+    bool fAccepted = ProcessBlock(state, NULL, &pBlock);
     Object obj;
     if (!fAccepted) {
         obj.push_back(Pair("status", "rejected"));
@@ -272,21 +272,10 @@ Value submitblock(const Array& params, bool fHelp)
     } else {
 
         obj.push_back(Pair("status", "OK"));
-        obj.push_back(Pair("hash", pblock.GetHash().ToString()));
+        obj.push_back(Pair("hash", pBlock.GetHash().ToString()));
     }
     return obj;
 }
-
-    int64_t         nTime;              // block time
-    int64_t         nNonce;             // nonce
-    int             nHeight;            // block height
-    int64_t         nTotalFuels;        // the total fuels of all transactions in the block
-    int             nFuelRate;          // the fuel rate
-    int64_t         nTotalFees;         // the total fees of all transactions in the block
-    uint64_t        nTxCount;           // transaction count in block, exclude coinbase
-    uint64_t        nBlockSize;         // block size(bytes)
-    uint256         hash;               // block hash
-    uint256         hashPrevBlock;      // prev block hash
 
 
 Value getminedblocks(const Array& params, bool fHelp)

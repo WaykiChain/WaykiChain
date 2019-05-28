@@ -111,7 +111,7 @@ void CWallet::SetBestChain(const CBlockLocator &loc) {
 }
 
 void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *pBlock) {
-    assert(pTx != NULL || pblock != NULL);
+    assert(pTx != NULL || pBlock != NULL);
 
     if (hash.IsNull() && pTx == NULL) {  // this is block Sync
         uint256 blockhash         = pBlock->GetHash();

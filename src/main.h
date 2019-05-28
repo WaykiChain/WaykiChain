@@ -304,30 +304,40 @@ public:
     CPricePointCache    *pPpCache;
     CDelegateCache      *pDelegateCache;
 
+    CStakeDB            *pStakeDb;
+    CStakeCache         *pStakeCache;
+
     CBlockTreeDB        *pBlockTreeDb;
 
 public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache,
                     size_t nScriptCacheSize, size_t nBlockTreeDBCache) {
         pAccountDb      = new CAccountDB(nAccountDBCache, false, fReIndex);
-        pAccountCache   = new CAccountCache(*pAccountDb);
         pContractDb     = new CContractDB(nScriptCacheSize, false, fReIndex);
+        pBlockTreeDb    = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
+        pStakeDb        = new CStakeDB(nScriptCacheSize);
+
+        pAccountCache   = new CAccountCache(*pAccountDb);
         pContractCache  = new CContractCache(*pContractDb);
+        pStakeCache     = new CStakeCache(*pStakeDb);
+        pDelegateCache  = new CDelegateCache(*pStakeCache);
         pTxCache        = new CTransactionCache();
         pPpCache        = new CPricePointCache();
-        pDelegateCache  = new CDelegateCache();
-        pBlockTreeDb    = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
     }
 
     ~CCacheDBManager() {
-        delete pAccountDb;      pAccountDb = nullptr;
+
         delete pAccountCache;   pAccountCache = nullptr;
-        delete pContractDb;     pContractDb = nullptr;
         delete pContractCache;  pContractCache = nullptr;
         delete pTxCache;        pTxCache = nullptr;
         delete pPpCache;        pPpCache = nullptr;
         delete pDelegateCache;  pDelegateCache = nullptr;
+        delete pStakeCache;     pStakeCache = nullptr;
+
+        delete pContractDb;     pContractDb = nullptr;
+        delete pStakeDb;        pStakeDb = nullptr;
         delete pBlockTreeDb;    pBlockTreeDb = nullptr;
+        delete pAccountDb;      pAccountDb = nullptr;
     }
 
     bool Flush() {

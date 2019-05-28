@@ -216,9 +216,9 @@ Value getblockhash(const Array& params, bool fHelp)
     if (nHeight < 0 || nHeight > chainActive.Height())
         throw runtime_error("Block number out of range");
 
-    CBlockIndex* pblockindex = chainActive[nHeight];
+    CBlockIndex* pBlockIndex = chainActive[nHeight];
     Object result;
-    result.push_back(Pair("hash", pblockindex->GetBlockHash().GetHex()));
+    result.push_back(Pair("hash", pBlockIndex->GetBlockHash().GetHex()));
     return result;
 }
 
@@ -265,8 +265,8 @@ Value getblock(const Array& params, bool fHelp)
         if (nHeight < 0 || nHeight > chainActive.Height())
             throw runtime_error("Block number out of range.");
 
-        CBlockIndex* pblockindex = chainActive[nHeight];
-        strHash                  = pblockindex->GetBlockHash().GetHex();
+        CBlockIndex* pBlockIndex = chainActive[nHeight];
+        strHash                  = pBlockIndex->GetBlockHash().GetHex();
     } else {
         strHash = params[0].get_str();
     }
@@ -280,8 +280,8 @@ Value getblock(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
 
     CBlock block;
-    CBlockIndex* pblockindex = mapBlockIndex[hash];
-    if (!ReadBlockFromDisk(pblockindex, block)) {
+    CBlockIndex* pBlockIndex = mapBlockIndex[hash];
+    if (!ReadBlockFromDisk(pBlockIndex, block)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
     }
 
@@ -292,7 +292,7 @@ Value getblock(const Array& params, bool fHelp)
         return strHex;
     }
 
-    return BlockToJSON(block, pblockindex);
+    return BlockToJSON(block, pBlockIndex);
 }
 
 Value verifychain(const Array& params, bool fHelp)
@@ -449,8 +449,8 @@ Value invalidateblock(const Array& params, bool fHelp) {
         if (mapBlockIndex.count(hash) == 0)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
 
-        CBlockIndex* pblockindex = mapBlockIndex[hash];
-        InvalidateBlock(state, pblockindex);
+        CBlockIndex* pBlockIndex = mapBlockIndex[hash];
+        InvalidateBlock(state, pBlockIndex);
     }
 
     if (state.IsValid()) {
@@ -488,8 +488,8 @@ Value reconsiderblock(const Array& params, bool fHelp) {
         if (mapBlockIndex.count(hash) == 0)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
 
-        CBlockIndex* pblockindex = mapBlockIndex[hash];
-        ReconsiderBlock(state, pblockindex);
+        CBlockIndex* pBlockIndex = mapBlockIndex[hash];
+        ReconsiderBlock(state, pBlockIndex);
     }
 
     if (state.IsValid()) {

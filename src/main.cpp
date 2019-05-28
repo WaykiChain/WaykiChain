@@ -264,7 +264,7 @@ void UnregisterAllWallets() {
 }
 
 void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pBlock) {
-    g_signals.SyncTransaction(hash, pBaseTx, pblock);
+    g_signals.SyncTransaction(hash, pBaseTx, pBlock);
 }
 
 void EraseTransaction(const uint256 &hash) {

@@ -99,6 +99,12 @@ bool CStakeDB::GetStakedFcoins(const int &nIndex, vector<unsigned char> &vKey, v
     return GetData(6, nIndex, vKey, vValue);
 }
 
+bool CStakeCache::GetTopDelegates(unordered_set<string> &topDelegateRegIds) {
+    //TODO
+
+    return true;
+}
+
 bool CStakeCache::SetDelegateVote(const CAccount &delegateAcct, CStakeDBOperLog &operLog) {
     // delegate_{(uint64t)MAX-receivedVotes)}_{delRegID} --> 1
 
