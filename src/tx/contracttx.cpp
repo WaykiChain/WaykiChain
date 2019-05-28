@@ -317,10 +317,10 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     CAccount desAcct;
     bool generateRegID = false;
 
-    if (!cw.pAccountCache->GetAccount(txUid, srcAcct))
+    if (!cw.pAccountCache->GetAccount(txUid, srcAcct)) {
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    else {
+    } else {
         if (txUid.type() == typeid(CPubKey)) {
             srcAcct.pubKey = txUid.get<CPubKey>();
 

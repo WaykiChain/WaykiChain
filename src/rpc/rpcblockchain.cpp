@@ -1,7 +1,8 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2013 The WaykiChain developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #include <stdint.h>
 #include <boost/assign/list_of.hpp>
@@ -22,30 +23,25 @@ using namespace std;
 
 class CBaseCoinTransferTx;
 
-double GetDifficulty(const CBlockIndex* blockindex)
-{
+double GetDifficulty(const CBlockIndex* pBlockIndex) {
     // Floating point number that is a multiple of the minimum difficulty,
     // minimum difficulty = 1.0.
-    if (blockindex == NULL)
-    {
+    if (pBlockIndex == NULL) {
         if (chainActive.Tip() == NULL)
             return 1.0;
         else
-            blockindex = chainActive.Tip();
+            pBlockIndex = chainActive.Tip();
     }
 
-    int nShift = (blockindex->nBits >> 24) & 0xff;
+    int nShift = (pBlockIndex->nBits >> 24) & 0xff;
 
-    double dDiff =
-        (double)0x0000ffff / (double)(blockindex->nBits & 0x00ffffff);
+    double dDiff = (double)0x0000ffff / (double)(pBlockIndex->nBits & 0x00ffffff);
 
-    while (nShift < 29)
-    {
+    while (nShift < 29) {
         dDiff *= 256.0;
         nShift++;
     }
-    while (nShift > 29)
-    {
+    while (nShift > 29) {
         dDiff /= 256.0;
         nShift--;
     }
@@ -53,31 +49,34 @@ double GetDifficulty(const CBlockIndex* blockindex)
     return dDiff;
 }
 
-Object BlockToJSON(const CBlock& block, const CBlockIndex* blockindex)
-{
+Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     Object result;
     result.push_back(Pair("hash", block.GetHash().GetHex()));
     CMerkleTx txGen(block.vptx[0]);
     txGen.SetMerkleBranch(&block);
     result.push_back(Pair("confirmations", (int)txGen.GetDepthInMainChain()));
     result.push_back(Pair("size", (int)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION)));
-    result.push_back(Pair("height", blockindex->nHeight));
+    result.push_back(Pair("height", (int)block.GetHeight()));
     result.push_back(Pair("version", block.GetVersion()));
     result.push_back(Pair("merkle_root", block.GetMerkleRootHash().GetHex()));
     result.push_back(Pair("tx_count", (int)block.vptx.size()));
     Array txs;
-    for (const auto& ptx : block.vptx)
-        txs.push_back(ptx->GetHash().GetHex());
+    for (const auto& ptx : block.vptx) txs.push_back(ptx->GetHash().GetHex());
     result.push_back(Pair("tx", txs));
     result.push_back(Pair("time", block.GetBlockTime()));
     result.push_back(Pair("nonce", (uint64_t)block.GetNonce()));
-    result.push_back(Pair("fuel", blockindex->nFuel));
-    result.push_back(Pair("fuel_rate", blockindex->nFuelRate));
-    if (blockindex->pprev)
-        result.push_back(Pair("previous_block_hash", blockindex->pprev->GetBlockHash().GetHex()));
-    CBlockIndex *pnext = chainActive.Next(blockindex);
-    if (pnext)
-        result.push_back(Pair("next_block_hash", pnext->GetBlockHash().GetHex()));
+    CBlockRewardTx* pBlockRewardTx = (CBlockRewardTx*)block.vptx[0].get();
+    uint64_t rewardValue           = pBlockRewardTx->rewardValue;
+    int64_t fees                   = block.GetFee();
+    int64_t fuel                   = block.GetFuel();
+    uint64_t profits               = rewardValue - (fees - fuel);
+    result.push_back(Pair("fuel", (int)block.GetFuel()));
+    result.push_back(Pair("fuel_rate", block.GetFuelRate()));
+    result.push_back(Pair("profits", profits));
+    result.push_back(Pair("fees", fees));
+    if (pBlockIndex->pprev) result.push_back(Pair("previous_block_hash", pBlockIndex->pprev->GetBlockHash().GetHex()));
+    CBlockIndex* pNext = chainActive.Next(pBlockIndex);
+    if (pNext) result.push_back(Pair("next_block_hash", pNext->GetBlockHash().GetHex()));
     return result;
 }
 
