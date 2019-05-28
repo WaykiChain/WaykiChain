@@ -31,7 +31,7 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
     } else if (-1 == nIndex) {  // maturity reward tx, only update values
         acctInfo.bcoins += rewardValue;
     } else {  // never go into this step
-        return ERRORMSG("nIndex type error!");
+        return ERRORMSG("CBlockRewardTx::ExecuteTx, invalid index");
     }
 
     CUserID userId = acctInfo.keyID;
