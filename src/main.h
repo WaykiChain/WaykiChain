@@ -33,11 +33,13 @@
 #include "tx/contracttx.h"
 #include "tx/delegatetx.h"
 #include "tx/blockrewardtx.h"
+#include "tx/blockpricemediantx.h"
 #include "tx/mulsigtx.h"
 #include "tx/tx.h"
 #include "persistence/accountdb.h"
 #include "persistence/blockdb.h"
 #include "persistence/txdb.h"
+#include "persistence/cachewrapper.h"
 
 class CBlockIndex;
 class CBloomFilter;
@@ -291,6 +293,8 @@ public:
     /** Find the last common block between this chain and a locator. */
     CBlockIndex *FindFork(const CBlockLocator &locator) const;
 }; //end of CChain
+
+
 
 class CCacheDBManager {
 public:
@@ -738,6 +742,8 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
         Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == COMMON_MTX) {
         Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion);
+    } else if (pa->nTxType == BLOCK_PRICE_MEDIAN_TX) {
+        Serialize(os, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion);
     } else {
         string sTxType(1, nTxType);
         throw ios_base::failure("Serialize: nTxType (" + sTxType + ") value error.");
@@ -770,6 +776,9 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
     } else if (nTxType == COMMON_MTX) {
         pa = std::make_shared<CMulsigTx>();
         Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
+    } else if (nTxType == BLOCK_PRICE_MEDIAN_TX) {
+        pa = std::make_shared<CBlockPriceMedianTx>();
+        Unserialize(is, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion);
     } else {
         string sTxType(1, nTxType);
         throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error.");

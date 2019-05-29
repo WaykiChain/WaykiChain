@@ -81,4 +81,24 @@ public:
     bool ExistDelegate(string delegateRegId);   //if empty, load data from the low-level StakeCache
 };
 
+class CTxUndo {
+public:
+    uint256 txHash;
+    vector<CAccountLog> vAccountLog;
+    vector<CContractDBOperLog> vContractOperLog;
+    IMPLEMENT_SERIALIZE(
+        READWRITE(txHash);
+        READWRITE(vAccountLog);
+        READWRITE(vContractOperLog);)
+
+public:
+    bool GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog);
+    void Clear() {
+        txHash = uint256();
+        vAccountLog.clear();
+        vContractOperLog.clear();
+    }
+    string ToString() const;
+};
+
 #endif // PERSIST_TXDB_H

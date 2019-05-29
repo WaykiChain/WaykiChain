@@ -127,6 +127,7 @@ public:
      * @return
      */
     bool Flush();
+    bool Flush(IContractView *pView);
     unsigned int GetCacheSize();
     Object ToJsonObj() const;
 	IContractView * GetBaseScriptDB() { return pBase; }

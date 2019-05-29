@@ -127,7 +127,9 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
     Array arrayDetail;
     Object obj;
     std::set<CKeyID> vKeyIdSet;
-    CCacheWrapper cw(pCdMan->pAccountCache, pCdMan->pContractCache);
+    auto spCW = std::make_shared<CCacheWrapper>();
+    spCW->accountCache = *pCdMan->pAccountCache;
+    spCW->contractCache = *pCdMan->pContractCache;
 
     switch (pBaseTx->nTxType) {
         case BLOCK_REWARD_TX: {

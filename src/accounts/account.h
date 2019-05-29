@@ -57,6 +57,7 @@ public:
     uint64_t bcoins;        //!< BaseCoin balance
     uint64_t scoins;        //!< StableCoin balance
     uint64_t fcoins;        //!< FundCoin balance
+    uint64_t stakedBcoins;  //!< Staked/Collateralized BaseCoins
     uint64_t stakedFcoins;  //!< Staked FundCoins for pricefeed right
 
     uint64_t receivedVotes;                 //!< received votes

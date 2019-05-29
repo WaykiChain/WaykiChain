@@ -22,45 +22,14 @@
 
 using namespace std;
 
-class CTxUndo;
+class CCacheWrapper;
 class CValidationState;
-class CAccountCache;
-class CContractDB;
-class CTransactionCache;
-class CContractDBOperLog;
-
-class CCacheWrapper {
-public:
-    CAccountCache *pAccountCache;
-    CTransactionCache *pTxCache;
-    CContractCache *pContractCache;
-    CTxUndo *pTxUndo;
-
-    CCacheWrapper(CAccountCache *pAccountCacheIn, CContractCache *pContractCacheIn):
-            pAccountCache(pAccountCacheIn), pTxCache(nullptr), pContractCache(pContractCacheIn), pTxUndo(nullptr) {};
-
-    CCacheWrapper( CAccountCache *pAccountCacheIn,
-                    CTransactionCache *pTxCacheIn,
-                    CContractCache *pContractCacheIn) :
-        pAccountCache(pAccountCacheIn), pTxCache(pTxCacheIn), pContractCache(pContractCacheIn), pTxUndo(nullptr) {};
-
-    CCacheWrapper( CAccountCache *pAccountCacheIn,
-                    CContractCache *pContractCacheIn,
-                    CTxUndo *pTxUndoIn) :
-        pAccountCache(pAccountCacheIn), pContractCache(pContractCacheIn), pTxUndo(pTxUndoIn) {};
-
-    CCacheWrapper( CAccountCache *pAccountCacheIn,
-                    CTransactionCache *pTxCacheIn,
-                    CContractCache *pContractCacheIn,
-                    CTxUndo *pTxUndoIn) :
-        pAccountCache(pAccountCacheIn), pTxCache(pTxCacheIn), pContractCache(pContractCacheIn), pTxUndo(pTxUndoIn) {};
-};
+class CContractCache;
 
 typedef vector<unsigned char> vector_unsigned_char;
 
 static const int nTxVersion1 = 1;
 static const int nTxVersion2 = 2;
-
 
 static const bool kGlobalStableCoinLockIsOn         = false;    // when true, CDP cannot be added but can be closed.
                                                                 // scoins cannot be sold in DEX
@@ -210,25 +179,6 @@ protected:
     bool CheckSignatureSize(const vector<unsigned char> &signature) const ;
 };
 
-class CTxUndo {
-public:
-    uint256 txHash;
-    vector<CAccountLog> vAccountLog;
-    vector<CContractDBOperLog> vContractOperLog;
-    IMPLEMENT_SERIALIZE(
-        READWRITE(txHash);
-        READWRITE(vAccountLog);
-        READWRITE(vContractOperLog);)
-
-public:
-    bool GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog);
-    void Clear() {
-        txHash = uint256();
-        vAccountLog.clear();
-        vContractOperLog.clear();
-    }
-    string ToString() const;
-};
 
 class CCoinPriceType {
 public:
@@ -330,42 +280,42 @@ public:
         CContractDBOperLog operAddressToTxLog;                                             \
         if (sendTxUid.type() != typeid(CNullID)) {                                         \
             CKeyID sendKeyId;                                                              \
-            if (!cw.pAccountCache->GetKeyId(sendTxUid, sendKeyId))                         \
+            if (!cw.accountCache.GetKeyId(sendTxUid, sendKeyId))                         \
                 return ERRORMSG("%s::ExecuteTx, get keyid by txUid error!", __FUNCTION__); \
                                                                                            \
-            if (!cw.pContractCache->SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1,     \
-                                                       cw.pTxUndo->txHash.GetHex(),        \
+            if (!cw.contractCache.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1,     \
+                                                       spCW->txUndo->txHash.GetHex(),        \
                                                        operAddressToTxLog))                \
                 return false;                                                              \
                                                                                            \
-            cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);                    \
+            spCW->txUndo->vContractOperLog.push_back(operAddressToTxLog);                    \
         }                                                                                  \
                                                                                            \
         if (recvTxUid.type() != typeid(CNullID)) {                                         \
             CKeyID recvKeyId;                                                              \
-            if (!cw.pAccountCache->GetKeyId(recvTxUid, recvKeyId))                         \
+            if (!cw.accountCache.GetKeyId(recvTxUid, recvKeyId))                         \
                 return ERRORMSG("%s::ExecuteTx, get keyid by toUid error!", __FUNCTION__); \
                                                                                            \
-            if (!cw.pContractCache->SetTxHashByAddress(recvKeyId, nHeight, nIndex + 1,     \
-                                                       cw.pTxUndo->txHash.GetHex(),        \
+            if (!cw.contractCache.SetTxHashByAddress(recvKeyId, nHeight, nIndex + 1,     \
+                                                       spCW->txUndo->txHash.GetHex(),        \
                                                        operAddressToTxLog))                \
                 return false;                                                              \
                                                                                            \
-            cw.pTxUndo->vContractOperLog.push_back(operAddressToTxLog);                    \
+            spCW->txUndo->vContractOperLog.push_back(operAddressToTxLog);                    \
         }                                                                                  \
     }
 
 #define IMPLEMENT_UNPERSIST_TX_STATE                                                              \
     vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog =                               \
-        cw.pTxUndo->vContractOperLog.rbegin();                                                    \
-    for (; rIterScriptDBLog != cw.pTxUndo->vContractOperLog.rend(); ++rIterScriptDBLog) {         \
-        if (!cw.pContractCache->UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue)) \
+        spCW->txUndo->vContractOperLog.rbegin();                                                    \
+    for (; rIterScriptDBLog != spCW->txUndo->vContractOperLog.rend(); ++rIterScriptDBLog) {         \
+        if (!cw.contractCache.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue)) \
             return state.DoS(                                                                     \
                 100, ERRORMSG("%s::UndoExecuteTx, undo scriptdb data error", __FUNCTION__),       \
                 UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");                                     \
     }                                                                                             \
                                                                                                   \
-    if (!cw.pContractCache->EraseTxRelAccout(GetHash()))                                          \
+    if (!cw.contractCache.EraseTxRelAccout(GetHash()))                                          \
         return state.DoS(100,                                                                     \
                          ERRORMSG("%s::UndoExecuteTx, erase tx rel account error", __FUNCTION__), \
                          UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");

@@ -16,43 +16,42 @@
 #include "miner/miner.h"
 #include "version.h"
 
-bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CBlockRewardTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    return true;
+};
 
-    CAccount acctInfo;
-    if (!cw.pAccountCache->GetAccount(txUid, acctInfo)) {
+bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+    CAccount account;
+    if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, read source addr %s account info error",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccountLog acctInfoLog(acctInfo);
-    if (0 == nIndex) {
-        // nothing to do here
-    } else if (-1 == nIndex) {  // maturity reward tx, only update values
-        acctInfo.bcoins += rewardValue;
-    } else {  // never go into this step
-        return ERRORMSG("CBlockRewardTx::ExecuteTx, invalid index");
+    CAccountLog acctLog(account);
+    if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+        return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, not sufficient bcoins in txUid %s account",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-bcoins");
     }
 
-    CUserID userId = acctInfo.keyID;
-    if (!cw.pAccountCache->SetAccount(userId, acctInfo))
+    CUserID userId = account.keyID;
+    if (!cw.accountCache.SetAccount(userId, account))
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
-    cw.pTxUndo->Clear();
-    cw.pTxUndo->vAccountLog.push_back(acctInfoLog);
-    cw.pTxUndo->txHash = GetHash();
+    spCW->txUndo->Clear();
+    spCW->txUndo->vAccountLog.push_back(acctLog);
+    spCW->txUndo->txHash = GetHash();
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
-
     return true;
 }
 
 bool CBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.pTxUndo->vAccountLog.rbegin();
-    for (; rIterAccountLog != cw.pTxUndo->vAccountLog.rend(); ++rIterAccountLog) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = spCW->txUndo->vAccountLog.rbegin();
+    for (; rIterAccountLog != spCW->txUndo->vAccountLog.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
-        if (!cw.pAccountCache->GetAccount(userId, account)) {
+        if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
@@ -62,7 +61,7 @@ bool CBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }
 
-        if (!cw.pAccountCache->SetAccount(userId, account)) {
+        if (!cw.accountCache.SetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, write account info error"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
@@ -108,7 +107,7 @@ Object CBlockRewardTx::ToJson(const CAccountCache &AccountView) const{
 bool CBlockRewardTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     CKeyID keyId;
     if (txUid.type() == typeid(CRegID)) {
-        if (!cw.pAccountCache->GetKeyId(txUid, keyId))
+        if (!cw.accountCache.GetKeyId(txUid, keyId))
             return false;
 
         keyIds.insert(keyId);

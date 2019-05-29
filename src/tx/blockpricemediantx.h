@@ -8,7 +8,6 @@
 
 #include "tx.h"
 
-
 class CBlockPriceMedianTx: public CBaseTx  {
 private:
     // map<tuple<CoinType, PriceType>, uint64_t> mapMedianPricePoints;
@@ -29,12 +28,10 @@ public:
         READWRITE(txUid);
 
         for (auto it = mapMedianPricePoints.begin(); it != mapMedianPricePoints.end(); ++it) {
-            // CoinType coinType  = std::get<0>(it->first);
-            // PriceType priceType = std::get<1>(it->first);
-            CCoinPriceType CCoinPriceType = it->first;
+            CCoinPriceType coinPriceType = it->first;
             uint64_t price = it->second;
 
-            READWRITE(CPricePoint(CCoinPriceType, price));
+            READWRITE(CPricePoint(coinPriceType, price));
         };
     )
 

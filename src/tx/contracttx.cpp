@@ -35,7 +35,7 @@ static bool GetKeyId(const CAccountCache &view, const vector<unsigned char> &ret
 bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount acctInfo;
     CContractDBOperLog operLog;
-    if (!cw.pAccountCache->GetAccount(txUid, acctInfo)) {
+    if (!cw.accountCache.GetAccount(txUid, acctInfo)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, read regist addr %s account info error",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
@@ -45,9 +45,9 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
             return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, operate account failed ,regId=%s",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
 
-        cw.pTxUndo->vAccountLog.push_back(acctInfoLog);
+        spCW->txUndo->vAccountLog.push_back(acctInfoLog);
     }
-    cw.pTxUndo->txHash = GetHash();
+    spCW->txUndo->txHash = GetHash();
 
     CRegID regId(nHeight, nIndex);
     //create script account
@@ -57,12 +57,12 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     account.regID = regId;
     account.nickID = CNickID();
     //save new script content
-    if(!cw.pContractCache->SetScript(regId, contractScript)){
+    if(!cw.contractCache.SetScript(regId, contractScript)){
         return state.DoS(100,
             ERRORMSG("CContractDeployTx::ExecuteTx, save script id %s script info error",
                 regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
-    if (!cw.pAccountCache->SaveAccount(account)) {
+    if (!cw.accountCache.SaveAccount(account)) {
         return state.DoS(100,
             ERRORMSG("CContractDeployTx::ExecuteTx, create new account script id %s script info error",
                 regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
@@ -71,10 +71,10 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     nRunStep = contractScript.size();
 
     if(!operLog.vKey.empty()) {
-        cw.pTxUndo->vContractOperLog.push_back(operLog);
+        spCW->txUndo->vContractOperLog.push_back(operLog);
     }
     CUserID userId = acctInfo.keyID;
-    if (!cw.pAccountCache->SetAccount(userId, acctInfo))
+    if (!cw.accountCache.SetAccount(userId, acctInfo))
         return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, save account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
@@ -86,30 +86,30 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     CUserID userId;
-    if (!cw.pAccountCache->GetAccount(txUid, account)) {
+    if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, read regist addr %s account info error",
                                         account.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     CRegID contractRegId(nHeight, nIndex);
     //delete script content
-    if (!cw.pContractCache->EraseScript(contractRegId)) {
+    if (!cw.contractCache.EraseScript(contractRegId)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase script id %s error",
                                         contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "erase-script-failed");
     }
     //delete account
-    if (!cw.pAccountCache->EraseKeyId(contractRegId)) {
+    if (!cw.accountCache.EraseKeyId(contractRegId)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase script account %s error", contractRegId.ToString()),
                          UPDATE_ACCOUNT_FAIL, "erase-appkeyid-failed");
     }
     CKeyID keyId = Hash160(contractRegId.GetRegIdRaw());
-    if (!cw.pAccountCache->EraseAccountByKeyId(keyId)) {
+    if (!cw.accountCache.EraseAccountByKeyId(keyId)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase script account %s error", contractRegId.ToString()),
                          UPDATE_ACCOUNT_FAIL, "erase-appaccount-failed");
     }
     // LogPrint("INFO", "Delete regid %s app account\n", contractRegId.ToString());
 
-    for (auto &itemLog : cw.pTxUndo->vAccountLog) {
+    for (auto &itemLog : spCW->txUndo->vAccountLog) {
         if (itemLog.keyID == account.keyID) {
             if (!account.UndoOperateAccount(itemLog))
                 return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, undo operate account error, keyId=%s", account.keyID.ToString()),
@@ -118,7 +118,7 @@ bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
     }
 
     userId = account.keyID;
-    if (!cw.pAccountCache->SetAccount(userId, account))
+    if (!cw.accountCache.SetAccount(userId, account))
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, save account error"),
                                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
@@ -128,7 +128,7 @@ bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
 
 bool CContractDeployTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     CKeyID keyId;
-    if (!cw.pAccountCache->GetKeyId(txUid, keyId))
+    if (!cw.accountCache.GetKeyId(txUid, keyId))
         return false;
 
     keyIds.insert(keyId);
@@ -178,7 +178,7 @@ bool CContractDeployTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, vmScript is invalid"),
                          REJECT_INVALID, "vmscript-invalid");
     }
-    uint64_t llFuel = ceil(contractScript.size() / 100) * GetFuelRate(*cw.pContractCache);
+    uint64_t llFuel = ceil(contractScript.size() / 100) * GetFuelRate(spCW->contractCache);
     if (llFuel < 1 * COIN) {
         llFuel = 1 * COIN;
     }
@@ -188,7 +188,7 @@ bool CContractDeployTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
     }
 
     CAccount acctInfo;
-    if (!cw.pAccountCache->GetAccount(txUid, acctInfo)) {
+    if (!cw.accountCache.GetAccount(txUid, acctInfo)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, get account failed"),
                          REJECT_INVALID, "bad-getaccount");
     }
@@ -205,20 +205,20 @@ bool CContractDeployTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
 
 bool CContractInvokeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     CKeyID keyId;
-    if (!cw.pAccountCache->GetKeyId(txUid, keyId))
+    if (!cw.accountCache.GetKeyId(txUid, keyId))
         return false;
 
     keyIds.insert(keyId);
     CKeyID desKeyId;
-    if (!cw.pAccountCache->GetKeyId(appUid, desKeyId))
+    if (!cw.accountCache.GetKeyId(appUid, desKeyId))
         return false;
 
     keyIds.insert(desKeyId);
 
     CVmRunEnv vmRunEnv;
     std::shared_ptr<CBaseTx> pTx = GetNewInstance();
-    uint64_t fuelRate = GetFuelRate(*cw.pContractCache);
-    CContractCache scriptDBView(*cw.pContractCache);
+    uint64_t fuelRate = GetFuelRate(spCW->contractCache);
+    CContractCache scriptDBView(spCW->contractCache);
 
     if (!pCdMan->pTxCache->HaveTx(GetHash())) {
         tuple<bool, uint64_t, string> ret =
@@ -235,13 +235,13 @@ bool CContractInvokeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds
         vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEnv.GetRawAppUserAccount();
         for (auto & itemUserAccount : vAppUserAccount) {
             CKeyID itemKeyID;
-            bool bValid = GetKeyId(*cw.pAccountCache, itemUserAccount.get()->GetAccUserId(), itemKeyID);
+            bool bValid = GetKeyId(spCW->accountCache, itemUserAccount.get()->GetAccUserId(), itemKeyID);
             if (bValid)
                 keyIds.insert(itemKeyID);
         }
     } else {
         set<CKeyID> vTxRelAccount;
-        if (!cw.pContractCache->GetTxRelAccount(GetHash(), vTxRelAccount))
+        if (!cw.contractCache.GetTxRelAccount(GetHash(), vTxRelAccount))
             return false;
 
         keyIds.insert(vTxRelAccount.begin(), vTxRelAccount.end());
@@ -301,7 +301,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     CAccount desAcct;
     bool generateRegID = false;
 
-    if (!cw.pAccountCache->GetAccount(txUid, srcAcct)) {
+    if (!cw.accountCache.GetAccount(txUid, srcAcct)) {
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     } else {
@@ -310,7 +310,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
             CRegID regId;
             // If the source account does NOT have CRegID, need to generate a new CRegID.
-            if (!cw.pAccountCache->GetRegId(txUid, regId)) {
+            if (!cw.accountCache.GetRegId(txUid, regId)) {
                 srcAcct.regID = CRegID(nHeight, nIndex);
                 generateRegID = true;
             }
@@ -325,16 +325,16 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
             UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
     if (generateRegID) {
-        if (!cw.pAccountCache->SaveAccount(srcAcct))
+        if (!cw.accountCache.SaveAccount(srcAcct))
             return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, save account info error"),
                              WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     } else {
-        if (!cw.pAccountCache->SetAccount(CUserID(srcAcct.keyID), srcAcct))
+        if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyID), srcAcct))
             return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, save account info error"),
                              WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
 
-    if (!cw.pAccountCache->GetAccount(appUid, desAcct)) {
+    if (!cw.accountCache.GetAccount(appUid, desAcct)) {
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, get account info failed by regid:%s",
             appUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     } else {
@@ -346,21 +346,21 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
                         UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
 
-    if (!cw.pAccountCache->SetAccount(appUid, desAcct))
+    if (!cw.accountCache.SetAccount(appUid, desAcct))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, save account error, kyeId=%s",
             desAcct.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
-    cw.pTxUndo->vAccountLog.push_back(srcAcctLog);
-    cw.pTxUndo->vAccountLog.push_back(desAcctLog);
+    cw.txUndo->vAccountLog.push_back(srcAcctLog);
+    cw.txUndo->vAccountLog.push_back(desAcctLog);
 
     vector<unsigned char> vScript;
-    if (!cw.pContractCache->GetScript(appUid.get<CRegID>(), vScript))
+    if (!cw.contractCache.GetScript(appUid.get<CRegID>(), vScript))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, read script failed, regId=%s",
             appUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
     CVmRunEnv vmRunEnv;
     std::shared_ptr<CBaseTx> pTx = GetNewInstance();
-    uint64_t fuelRate = GetFuelRate(*cw.pContractCache);
+    uint64_t fuelRate = GetFuelRate(cw.contractCache);
 
     int64_t llTime = GetTimeMillis();
     tuple<bool, uint64_t, string> ret = vmRunEnv.ExecuteContract(pTx, nHeight, cw, fuelRate, nRunStep);
@@ -378,7 +378,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
         vAddress.insert(itemAccount->keyID);
         userId = itemAccount->keyID;
         CAccount oldAcct;
-        if (!cw.pAccountCache->GetAccount(userId, oldAcct)) {
+        if (!cw.accountCache.GetAccount(userId, oldAcct)) {
             // The contract transfers money to an address for the first time.
             if (!itemAccount->keyID.IsNull()) {
                 oldAcct.keyID = itemAccount->keyID;
@@ -388,26 +388,27 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
             }
         }
         CAccountLog oldAcctLog(oldAcct);
-        if (!cw.pAccountCache->SetAccount(userId, *itemAccount))
+        if (!cw.accountCache.SetAccount(userId, *itemAccount))
             return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, write account info error"),
                 UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-        cw.pTxUndo->vAccountLog.push_back(oldAcctLog);
+        cw.txUndo->vAccountLog.push_back(oldAcctLog);
     }
-    cw.pTxUndo->vContractOperLog.insert(cw.pTxUndo->vContractOperLog.end(), vmRunEnv.GetDbLog()->begin(),
-                                 vmRunEnv.GetDbLog()->end());
+    cw.txUndo->vContractOperLog.insert(cw.txUndo->vContractOperLog.end(), vmRunEnv.GetDbLog()->begin(),
+                                        vmRunEnv.GetDbLog()->end());
+
     vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEnv.GetRawAppUserAccount();
     for (auto & itemUserAccount : vAppUserAccount) {
         CKeyID itemKeyID;
-        bool bValid = GetKeyId(*cw.pAccountCache, itemUserAccount.get()->GetAccUserId(), itemKeyID);
+        bool bValid = GetKeyId(spCW->accountCache, itemUserAccount.get()->GetAccUserId(), itemKeyID);
         if (bValid)
             vAddress.insert(itemKeyID);
     }
 
-    if (!cw.pContractCache->SetTxRelAccout(GetHash(), vAddress))
+    if (!cw.contractCache.SetTxRelAccout(GetHash(), vAddress))
         return ERRORMSG("CContractInvokeTx::ExecuteTx, save tx relate account info to script db error");
 
-    cw.pTxUndo->txHash = GetHash();
+    cw.txUndo->txHash = GetHash();
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, appUid);
 
@@ -415,11 +416,11 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 }
 
 bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.pTxUndo->vAccountLog.rbegin();
-    for (; rIterAccountLog != cw.pTxUndo->vAccountLog.rend(); ++rIterAccountLog) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo->vAccountLog.rbegin();
+    for (; rIterAccountLog != cw.txUndo->vAccountLog.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
-        if (!cw.pAccountCache->GetAccount(userId, account)) {
+        if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CContractInvokeTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
@@ -432,22 +433,22 @@ bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
 
         if (account.IsEmptyValue() &&
             (!account.pubKey.IsFullyValid() || account.pubKey.GetKeyId() != account.keyID)) {
-            cw.pAccountCache->EraseAccountByKeyId(userId);
+            cw.accountCache.EraseAccountByKeyId(userId);
         } else if (account.regID == CRegID(nHeight, nIndex)) {
             // If the CRegID was generated by this CONTRACT_INVOKE_TX, need to remove CRegID.
             CPubKey empPubKey;
             account.pubKey      = empPubKey;
             account.minerPubKey = empPubKey;
             account.regID.Clean();
-            if (!cw.pAccountCache->SetAccount(userId, account)) {
+            if (!cw.accountCache.SetAccount(userId, account)) {
                 return state.DoS(100,
                                  ERRORMSG("CContractInvokeTx::UndoExecuteTx, write account info error"),
                                  UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
             }
 
-            cw.pAccountCache->EraseKeyId(CRegID(nHeight, nIndex));
+            cw.accountCache.EraseKeyId(CRegID(nHeight, nIndex));
         } else {
-            if (!cw.pAccountCache->SetAccount(userId, account)) {
+            if (!cw.accountCache.SetAccount(userId, account)) {
                 return state.DoS(100,
                                  ERRORMSG("CContractInvokeTx::UndoExecuteTx, write account info error"),
                                  UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
@@ -470,7 +471,7 @@ bool CContractInvokeTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
                          "bad-publickey");
 
     CAccount srcAccount;
-    if (!cw.pAccountCache->GetAccount(txUid, srcAccount))
+    if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, read account failed, regId=%s",
                         txUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-getaccount");
 
@@ -479,7 +480,7 @@ bool CContractInvokeTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
                         REJECT_INVALID, "bad-account-unregistered");
 
     vector<unsigned char> vScript;
-    if (!cw.pContractCache->GetScript(appUid.get<CRegID>(), vScript))
+    if (!cw.contractCache.GetScript(appUid.get<CRegID>(), vScript))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, read script failed, regId=%s",
                         appUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-read-script");
 

@@ -99,6 +99,7 @@ public:
     bool HaveAccount(const CUserID &userId);
     int64_t GetFreeBCoins(const CUserID &userId) const;
     bool Flush();
+    bool Flush(IAccountView *pView);
     unsigned int GetCacheSize();
     Object ToJsonObj() const;
     void SetBaseView(IAccountView *pBaseIn) { pBase = pBaseIn; };

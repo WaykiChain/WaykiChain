@@ -8,10 +8,29 @@
 
 
 bool CBlockPriceMedianTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+    IMPLEMENT_CHECK_TX_REGID(txUid.type());
     return true;
 }
 
 bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+    CAccount acctInfo;
+    if (!cw.accountCache.GetAccount(txUid, acctInfo)) {
+        return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, read source addr %s account info error",
+            txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+    }
+    CAccountLog acctInfoLog(acctInfo);
+    if (!cw.accountCache.)
+
+    CUserID userId = acctInfo.keyID;
+    if (!cw.accountCache.SetAccount(userId, acctInfo))
+        return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
+            UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+
+    spCW->txUndo->Clear();
+    spCW->txUndo->vAccountLog.push_back(acctInfoLog);
+    spCW->txUndo->txHash = GetHash();
+
+    IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
     return true;
 }
 

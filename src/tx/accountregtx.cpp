@@ -40,7 +40,7 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
     CAccount account;
     CRegID regId(nHeight, nIndex);
     CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
-    if (!cw.pAccountCache->GetAccount(txUid, account))
+    if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s account info error",
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
@@ -67,12 +67,12 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
         }
     }
 
-    if (!cw.pAccountCache->SaveAccount(account))
+    if (!cw.accountCache.SaveAccount(account))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, write source addr %s account info error",
             regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    cw.pTxUndo->vAccountLog.push_back(acctLog);
-    cw.pTxUndo->txHash = GetHash();
+    spCW->txUndo->vAccountLog.push_back(acctLog);
+    spCW->txUndo->txHash = GetHash();
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
 
@@ -83,17 +83,17 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
     // drop account
     CRegID accountRegId(nHeight, nIndex);
     CAccount oldAccount;
-    if (!cw.pAccountCache->GetAccount(accountRegId, oldAccount)) {
+    if (!cw.accountCache.GetAccount(accountRegId, oldAccount)) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read secure account=%s info error",
                         accountRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     CKeyID keyId;
-    cw.pAccountCache->GetKeyId(accountRegId, keyId);
+    cw.accountCache.GetKeyId(accountRegId, keyId);
 
     if (llFees > 0) {
         CAccountLog accountLog;
-        if (!cw.pTxUndo->GetAccountOperLog(keyId, accountLog))
+        if (!spCW->txUndo->GetAccountOperLog(keyId, accountLog))
             return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read keyId=%s tx undo info error",
                             keyId.GetHex()), UPDATE_ACCOUNT_FAIL, "bad-read-txundoinfo");
         oldAccount.UndoOperateAccount(accountLog);
@@ -105,11 +105,11 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
         oldAccount.minerPubKey = empPubKey;
         oldAccount.regID.Clean();
         CUserID userId(keyId);
-        cw.pAccountCache->SetAccount(userId, oldAccount);
+        cw.accountCache.SetAccount(userId, oldAccount);
     } else {
-        cw.pAccountCache->EraseAccountByKeyId(txUid);
+        cw.accountCache.EraseAccountByKeyId(txUid);
     }
-    cw.pAccountCache->EraseKeyId(accountRegId);
+    cw.accountCache.EraseKeyId(accountRegId);
     return true;
 }
 

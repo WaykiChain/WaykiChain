@@ -3,8 +3,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef CONTRACT_H
-#define CONTRACT_H
+#ifndef TX_CONTRACT_H
+#define TX_CONTRACT_H
 
 #include "tx.h"
 
@@ -135,4 +135,4 @@ public:
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 };
 
-#endif
+#endif //TX_CONTRACT_H

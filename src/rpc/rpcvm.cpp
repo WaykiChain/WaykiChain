@@ -136,16 +136,14 @@ Value vmexecutescript(const Array& params, bool fHelp) {
                            strprintf("input fee could not smaller than: %ld sawi", minFee));
     }
 
-    CAccountCache pAccountCache(*pCdMan->pAccountCache);
-    CTransactionCache pTxCache(*pCdMan->pTxCache);
-    CContractCache pContractCache(*pCdMan->pContractCache);
-    CTxUndo txundo;
-    CValidationState state;
-
-    CCacheWrapper cw(&pAccountCache, &pTxCache, &pContractCache, &txundo);
+    auto spCW = std::make_shared<CCacheWrapper>();
+    spCW->accountCache = *pCdMan->pAccountCache;
+    spCW->contractCache = *pCdMan->pContractCache;
+    spCW->txCache = *pCdMan->pTxCache;
+    spCW->txUndo = CTxUndo();
 
     CKeyID srcKeyid;
-    if (!FindKeyId(cw.pAccountCache, params[0].get_str(), srcKeyid)) {
+    if (!FindKeyId(&spCW->accountCache, params[0].get_str(), srcKeyid)) {
         throw runtime_error("parse addr failed\n");
     }
 
@@ -153,7 +151,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     CAccount account;
 
     uint64_t balance = 0;
-    if (cw.pAccountCache->GetAccount(srcUserId, account)) {
+    if (spCW->accountCache.GetAccount(srcUserId, account)) {
         balance = account.GetFreeBCoins();
     }
 
@@ -168,7 +166,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     }
 
     CRegID srcRegId;
-    cw.pAccountCache->GetRegId(srcKeyid, srcRegId);
+    spCW->accountCache.GetRegId(srcKeyid, srcRegId);
 
     Object registerContractTxObj;
     EnsureWalletIsUnlocked();
@@ -186,7 +184,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
 
-        if (!tx.ExecuteTx(newHeight, 1, cw, state)) {
+        CValidationState state;
+        if (!tx.ExecuteTx(newHeight, 1, *spCW, state)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx register contract failed");
         }
 
@@ -205,7 +204,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     CContractInvokeTx contractInvokeTx;
 
     {
-        if (!cw.pContractCache->HaveScript(appId)) {
+        if (!spCW->contractCache.HaveScript(appId)) {
             throw runtime_error(tinyformat::format("AppId %s is not exist\n", appId.ToString()));
         }
         contractInvokeTx.nTxType      = CONTRACT_INVOKE_TX;
@@ -221,7 +220,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
 
-        if (!contractInvokeTx.ExecuteTx(chainActive.Tip()->nHeight + 1, 2, cw, state)) {
+        CValidationState state;
+        if (!contractInvokeTx.ExecuteTx(chainActive.Tip()->nHeight + 1, 2, *spCW, state)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx  contract failed");
         }
     }

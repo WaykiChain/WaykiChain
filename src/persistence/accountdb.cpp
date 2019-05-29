@@ -337,6 +337,15 @@ bool CAccountCache::Flush() {
     return fOk;
 }
 
+bool CAccountCache::Flush(IAccountView *pView) {
+    bool fOk = pView->BatchWrite(mapKeyId2Account, mapRegId2KeyId, blockHash);
+    if (fOk) {
+        mapKeyId2Account.clear();
+        mapRegId2KeyId.clear();
+    }
+    return fOk;
+}
+
 int64_t CAccountCache::GetFreeBCoins(const CUserID &userId) const {
     CAccountCache tempvew(*this);
     CAccount account;

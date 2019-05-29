@@ -116,20 +116,19 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
                             hash.GetHex()), REJECT_INVALID, "tx-invalid-height");
     }
 
-    CAccountCache pAccountCache(*memPoolAccountCache.get());
-    CTransactionCache pTxCache(*pCdMan->pTxCache);
-    CContractCache pContractCache(*memPoolContractCache.get());
-    CTxUndo txundo;
-    CCacheWrapper cw(&pAccountCache, &pTxCache, &pContractCache, &txundo);
+    auto spCW = std::make_shared<CCacheWrapper>();
+    spCW->accountCache = *memPoolAccountCache;
+    spCW->contractCache = *memPoolContractCache;
+    spCW->txCache = *pCdMan->pTxCache;
+    spCW->txUndo = CTxUndo();
+
     if (bExecute) {
-        if (!memPoolEntry.GetTx()->ExecuteTx(chainActive.Tip()->nHeight + 1, 0, cw, state))
+        if (!memPoolEntry.GetTx()->ExecuteTx(chainActive.Tip()->nHeight + 1, 0, *spCW, state))
             return false;
     }
 
-    pAccountCache.SetBaseView(memPoolAccountCache.get());
-    assert(pAccountCache.Flush());
-    pContractCache.SetBaseView(memPoolContractCache.get());
-    assert(pContractCache.Flush());
+    pAccountCache.Flush(memPoolAccountCache.get());
+    pContractCache.Flush(memPoolContractCache.get());
 
     return true;
 }

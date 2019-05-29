@@ -479,6 +479,14 @@ bool CContractCache::Flush() {
     return ok;
 }
 
+bool CContractCache::Flush(IContractView *pView) {
+    bool ok = pView->BatchWrite(mapContractDb);
+    if (ok) {
+        mapContractDb.clear();
+    }
+    return ok;
+}
+
 unsigned int CContractCache::GetCacheSize() {
     return ::GetSerializeSize(mapContractDb, SER_DISK, CLIENT_VERSION);
 }
