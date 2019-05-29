@@ -27,10 +27,6 @@ extern void SetMinerStatus(bool bStatus);
 //
 
 const int MINED_BLOCK_COUNT_MAX = 100; // the max count of mined blocks will be cached
-
-static const unsigned int pSHA256InitState[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f,
-                                                 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
-
 uint64_t nLastBlockTx   = 0;  // 块中交易的总笔数,不含coinbase
 uint64_t nLastBlockSize = 0;  // 被创建的块的尺寸
 

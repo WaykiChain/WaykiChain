@@ -170,14 +170,13 @@ bool CContractDeployTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, unserialize to vmScript error"),
                          REJECT_INVALID, "unserialize-error");
     }
+
     if (!vmScript.IsValid()) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, vmScript is invalid"),
                          REJECT_INVALID, "vmscript-invalid");
     }
-    uint64_t llFuel = ceil(contractScript.size() / 100) * GetFuelRate(cw.contractCache);
-    if (llFuel < 1 * COIN) {
-        llFuel = 1 * COIN;
-    }
+
+    uint64_t llFuel = GetFuel(GetFuelRate(cw.contractCache));
     if (llFees < llFuel) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, register app tx fee too litter "
                         "(actual:%lld vs need:%lld)", llFees, llFuel), REJECT_INVALID, "fee-too-litter");
@@ -214,7 +213,6 @@ bool CContractInvokeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds
     CVmRunEnv vmRunEnv;
     std::shared_ptr<CBaseTx> pTx = GetNewInstance();
     uint64_t fuelRate = GetFuelRate(cw.contractCache);
-    CContractCache scriptDBView(cw.contractCache);
 
     if (!pCdMan->pTxCache->HaveTx(GetHash())) {
         tuple<bool, uint64_t, string> ret =
