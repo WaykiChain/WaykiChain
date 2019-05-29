@@ -5,6 +5,7 @@
 
 
 #include "blockpricemediantx.h"
+#include "main.h"
 
 
 bool CBlockPriceMedianTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
@@ -19,16 +20,17 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
     CAccountLog acctInfoLog(acctInfo);
-    if (!cw.accountCache.)
+    // TODO: want to check something
+    //if (!cw.accountCache.)
 
     CUserID userId = acctInfo.keyID;
     if (!cw.accountCache.SetAccount(userId, acctInfo))
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
-    spCW->txUndo->Clear();
-    spCW->txUndo->vAccountLog.push_back(acctInfoLog);
-    spCW->txUndo->txHash = GetHash();
+    cw.txUndo.Clear();
+    cw.txUndo.vAccountLog.push_back(acctInfoLog);
+    cw.txUndo.txHash = GetHash();
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
     return true;

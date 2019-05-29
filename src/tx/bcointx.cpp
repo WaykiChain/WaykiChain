@@ -143,9 +143,9 @@ bool CBaseCoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
                          desAcct.keyID.ToString()),
                          UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
-    spCW->txUndo->vAccountLog.push_back(srcAcctLog);
-    spCW->txUndo->vAccountLog.push_back(desAcctLog);
-    spCW->txUndo->txHash = GetHash();
+    cw.txUndo.vAccountLog.push_back(srcAcctLog);
+    cw.txUndo.vAccountLog.push_back(desAcctLog);
+    cw.txUndo.txHash = GetHash();
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, toUid);
 
@@ -153,8 +153,8 @@ bool CBaseCoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
 }
 
 bool CBaseCoinTransferTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = spCW->txUndo->vAccountLog.rbegin();
-    for (; rIterAccountLog != spCW->txUndo->vAccountLog.rend(); ++rIterAccountLog) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.vAccountLog.rbegin();
+    for (; rIterAccountLog != cw.txUndo.vAccountLog.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
         if (!cw.accountCache.GetAccount(userId, account)) {

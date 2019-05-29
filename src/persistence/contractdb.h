@@ -89,6 +89,8 @@ public:
       取交易关联账户时第一个vector是scriptKey ="tx" + "txHash"
     */
 public:
+    CContractCache(): pBase() {}
+
     CContractCache(IContractView &pBaseIn): pBase(&pBaseIn) { mapContractDb.clear(); };
 
     bool GetScript(const CRegID &scriptId, vector<unsigned char> &vValue);

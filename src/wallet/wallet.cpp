@@ -470,7 +470,7 @@ bool CWallet::IsMine(CBaseTx *pTx) const {
     spCW->contractCache = *pCdMan->pContractCache;
 
     set<CKeyID> keyIds;
-    if (!pTx->GetInvolvedKeyIds(cw, keyIds)) {
+    if (!pTx->GetInvolvedKeyIds(*spCW, keyIds)) {
         return false;
     }
 

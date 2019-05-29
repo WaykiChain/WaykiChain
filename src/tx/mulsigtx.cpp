@@ -167,9 +167,9 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, save account error, kyeId=%s",
                          desAcct.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
-    spCW->txUndo->vAccountLog.push_back(srcAcctLog);
-    spCW->txUndo->vAccountLog.push_back(desAcctLog);
-    spCW->txUndo->txHash = GetHash();
+    cw.txUndo.vAccountLog.push_back(srcAcctLog);
+    cw.txUndo.vAccountLog.push_back(desAcctLog);
+    cw.txUndo.txHash = GetHash();
 
     if (SysCfg().GetAddressToTxFlag()) {
         CContractDBOperLog operAddressToTxLog;
@@ -181,27 +181,27 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
                 return ERRORMSG("CBaseCoinTransferTx::CMulsigTx, get keyid by srcUserId error!");
 
             if (!cw.contractCache.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1,
-                                        spCW->txUndo->txHash.GetHex(), operAddressToTxLog))
+                                        cw.txUndo.txHash.GetHex(), operAddressToTxLog))
                 return false;
-            spCW->txUndo->vContractOperLog.push_back(operAddressToTxLog);
+            cw.txUndo.vContractOperLog.push_back(operAddressToTxLog);
         }
 
         if (!cw.accountCache.GetKeyId(desUserId, revKeyId))
             return ERRORMSG("CBaseCoinTransferTx::CMulsigTx, get keyid by desUserId error!");
 
         if (!cw.contractCache.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1,
-                                    spCW->txUndo->txHash.GetHex(), operAddressToTxLog))
+                                    cw.txUndo.txHash.GetHex(), operAddressToTxLog))
             return false;
 
-        spCW->txUndo->vContractOperLog.push_back(operAddressToTxLog);
+        cw.txUndo.vContractOperLog.push_back(operAddressToTxLog);
     }
 
     return true;
 }
 
 bool CMulsigTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = spCW->txUndo->vAccountLog.rbegin();
-    for (; rIterAccountLog != spCW->txUndo->vAccountLog.rend(); ++rIterAccountLog) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.vAccountLog.rbegin();
+    for (; rIterAccountLog != cw.txUndo.vAccountLog.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
 

@@ -28,10 +28,8 @@ public:
         READWRITE(txUid);
 
         for (auto it = mapMedianPricePoints.begin(); it != mapMedianPricePoints.end(); ++it) {
-            CCoinPriceType coinPriceType = it->first;
-            uint64_t price = it->second;
-
-            READWRITE(CPricePoint(coinPriceType, price));
+            CPricePoint pricePoint(it->first, it->second);
+            READWRITE(pricePoint);
         };
     )
 

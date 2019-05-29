@@ -71,8 +71,8 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, write source addr %s account info error",
             regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    spCW->txUndo->vAccountLog.push_back(acctLog);
-    spCW->txUndo->txHash = GetHash();
+    cw.txUndo.vAccountLog.push_back(acctLog);
+    cw.txUndo.txHash = GetHash();
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
 
@@ -93,7 +93,7 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
 
     if (llFees > 0) {
         CAccountLog accountLog;
-        if (!spCW->txUndo->GetAccountOperLog(keyId, accountLog))
+        if (!cw.txUndo.GetAccountOperLog(keyId, accountLog))
             return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read keyId=%s tx undo info error",
                             keyId.GetHex()), UPDATE_ACCOUNT_FAIL, "bad-read-txundoinfo");
         oldAccount.UndoOperateAccount(accountLog);

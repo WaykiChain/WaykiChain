@@ -62,21 +62,21 @@ bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
     }
 
     // update the price feed cache accordingly
-    if (!cw.pPpCache->AddBlockPricePointInBatch(nHeight, txUid, pricePoints)) {
+    if (!cw.pricePointCache.AddBlockPricePointInBatch(nHeight, txUid, pricePoints)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, txUid %s account duplicated price feed exits",
                         txUid.ToString()), PRICE_FEED_FAIL, "duplicated-pricefeed");
     }
 
-    spCW->txUndo->vAccountLog.push_back(acctLog);
-    spCW->txUndo->txHash = GetHash();
+    cw.txUndo.vAccountLog.push_back(acctLog);
+    cw.txUndo.txHash = GetHash();
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
     return true;
 }
 
 bool CPriceFeedTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = spCW->txUndo->vAccountLog.rbegin();
-    for (; rIterAccountLog != spCW->txUndo->vAccountLog.rend(); ++rIterAccountLog) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.vAccountLog.rbegin();
+    for (; rIterAccountLog != cw.txUndo.vAccountLog.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
         if (!cw.accountCache.GetAccount(userId, account)) {

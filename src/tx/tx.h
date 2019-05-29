@@ -284,11 +284,11 @@ public:
                 return ERRORMSG("%s::ExecuteTx, get keyid by txUid error!", __FUNCTION__); \
                                                                                            \
             if (!cw.contractCache.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1,     \
-                                                       spCW->txUndo->txHash.GetHex(),        \
+                                                       cw.txUndo.txHash.GetHex(),        \
                                                        operAddressToTxLog))                \
                 return false;                                                              \
                                                                                            \
-            spCW->txUndo->vContractOperLog.push_back(operAddressToTxLog);                    \
+            cw.txUndo.vContractOperLog.push_back(operAddressToTxLog);                    \
         }                                                                                  \
                                                                                            \
         if (recvTxUid.type() != typeid(CNullID)) {                                         \
@@ -297,18 +297,18 @@ public:
                 return ERRORMSG("%s::ExecuteTx, get keyid by toUid error!", __FUNCTION__); \
                                                                                            \
             if (!cw.contractCache.SetTxHashByAddress(recvKeyId, nHeight, nIndex + 1,     \
-                                                       spCW->txUndo->txHash.GetHex(),        \
+                                                       cw.txUndo.txHash.GetHex(),        \
                                                        operAddressToTxLog))                \
                 return false;                                                              \
                                                                                            \
-            spCW->txUndo->vContractOperLog.push_back(operAddressToTxLog);                    \
+            cw.txUndo.vContractOperLog.push_back(operAddressToTxLog);                    \
         }                                                                                  \
     }
 
 #define IMPLEMENT_UNPERSIST_TX_STATE                                                              \
     vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog =                               \
-        spCW->txUndo->vContractOperLog.rbegin();                                                    \
-    for (; rIterScriptDBLog != spCW->txUndo->vContractOperLog.rend(); ++rIterScriptDBLog) {         \
+        cw.txUndo.vContractOperLog.rbegin();                                                    \
+    for (; rIterScriptDBLog != cw.txUndo.vContractOperLog.rend(); ++rIterScriptDBLog) {         \
         if (!cw.contractCache.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue)) \
             return state.DoS(                                                                     \
                 100, ERRORMSG("%s::UndoExecuteTx, undo scriptdb data error", __FUNCTION__),       \

@@ -144,8 +144,8 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
                 UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
 
-    spCW->txUndo->vAccountLog.push_back(acctInfoLog); //keep the old state after the above operation completed properly.
-    spCW->txUndo->txHash = GetHash();
+    cw.txUndo.vAccountLog.push_back(acctInfoLog); //keep the old state after the above operation completed properly.
+    cw.txUndo.txHash = GetHash();
 
     for (const auto &vote : candidateVotes) {
         CAccount delegate;
@@ -159,7 +159,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate address %s vote fund error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-vote-error");
         }
-        spCW->txUndo->vAccountLog.push_back(delegateAcctLog); // keep delegate state before modification
+        cw.txUndo.vAccountLog.push_back(delegateAcctLog); // keep delegate state before modification
 
         // set the new value and erase the old value
         CContractDBOperLog operDbLog;
@@ -167,7 +167,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s vote info error",
                             delegate.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
-        spCW->txUndo->vContractOperLog.push_back(operDbLog);
+        cw.txUndo.vContractOperLog.push_back(operDbLog);
 
         CContractDBOperLog eraseDbLog;
         if (delegateAcctLog.receivedVotes > 0) {
@@ -182,7 +182,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
                             acctInfo.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
 
-        spCW->txUndo->vContractOperLog.push_back(eraseDbLog);
+        cw.txUndo.vContractOperLog.push_back(eraseDbLog);
     }
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
@@ -191,8 +191,8 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
 }
 
 bool CDelegateVoteTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = spCW->txUndo->vAccountLog.rbegin();
-    for (; rIterAccountLog != spCW->txUndo->vAccountLog.rend(); ++rIterAccountLog) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.vAccountLog.rbegin();
+    for (; rIterAccountLog != cw.txUndo.vAccountLog.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
         if (!cw.accountCache.GetAccount(userId, account)) {
@@ -213,7 +213,7 @@ bool CDelegateVoteTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     }
 
     IMPLEMENT_UNPERSIST_TX_STATE;
-    for (; rIterScriptDBLog != spCW->txUndo->vContractOperLog.rend(); ++rIterScriptDBLog) {
+    for (; rIterScriptDBLog != cw.txUndo.vContractOperLog.rend(); ++rIterScriptDBLog) {
         // Recover the old value and erase the new value.
         if (!cw.contractCache.SetDelegateData(rIterScriptDBLog->vKey))
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, set delegate data error"),

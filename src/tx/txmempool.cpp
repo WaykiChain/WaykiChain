@@ -127,8 +127,8 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
             return false;
     }
 
-    pAccountCache.Flush(memPoolAccountCache.get());
-    pContractCache.Flush(memPoolContractCache.get());
+    spCW->accountCache.Flush(memPoolAccountCache.get());
+    spCW->contractCache.Flush(memPoolContractCache.get());
 
     return true;
 }

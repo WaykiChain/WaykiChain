@@ -43,16 +43,16 @@ bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, write source addr %s account info error",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    spCW->txUndo->vAccountLog.push_back(acctLog);
-    spCW->txUndo->txHash = GetHash();
+    cw.txUndo.vAccountLog.push_back(acctLog);
+    cw.txUndo.txHash = GetHash();
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
     return true;
 }
 
 bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = spCW->txUndo->vAccountLog.rbegin();
-    for (; rIterAccountLog != spCW->txUndo->vAccountLog.rend(); ++rIterAccountLog) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.vAccountLog.rbegin();
+    for (; rIterAccountLog != cw.txUndo.vAccountLog.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
         if (!cw.accountCache.GetAccount(userId, account)) {

@@ -92,6 +92,8 @@ public:
     map<vector<unsigned char>, vector<unsigned char> > voteDb;
 
 public:
+    CStakeCache(): pBase() {}
+
     CStakeCache(IStakeView &pBaseIn) : pBase(&pBaseIn) { voteDb.clear(); };
 
     /** delegate vote */

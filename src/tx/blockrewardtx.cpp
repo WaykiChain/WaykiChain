@@ -38,17 +38,17 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
-    spCW->txUndo->Clear();
-    spCW->txUndo->vAccountLog.push_back(acctLog);
-    spCW->txUndo->txHash = GetHash();
+    cw.txUndo.Clear();
+    cw.txUndo.vAccountLog.push_back(acctLog);
+    cw.txUndo.txHash = GetHash();
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
     return true;
 }
 
 bool CBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = spCW->txUndo->vAccountLog.rbegin();
-    for (; rIterAccountLog != spCW->txUndo->vAccountLog.rend(); ++rIterAccountLog) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.vAccountLog.rbegin();
+    for (; rIterAccountLog != cw.txUndo.vAccountLog.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
         if (!cw.accountCache.GetAccount(userId, account)) {

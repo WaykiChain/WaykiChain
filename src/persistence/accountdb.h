@@ -78,6 +78,8 @@ public:
     virtual Object ToJsonObj(char prefix) { return Object(); }
 
 public:
+    CAccountCache(): pBase(), blockHash(uint256()) {}
+
     CAccountCache(IAccountView &view): pBase(&view), blockHash(uint256()) {}
 
     CAccountCache(IAccountView *pAccountView, CAccountCache *pAccountCache): pBase(pAccountView) {
