@@ -178,8 +178,17 @@ bool CContractDeployTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
 
     uint64_t llFuel = GetFuel(GetFuelRate(cw.contractCache));
     if (llFees < llFuel) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, register app tx fee too litter "
-                        "(actual:%lld vs need:%lld)", llFees, llFuel), REJECT_INVALID, "fee-too-litter");
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, fee too litter to afford fuel "
+                         "(actual:%lld vs need:%lld)", llFees, llFuel),
+                         REJECT_INVALID, "fee-too-litter-to-afford-fuel");
+    }
+
+    unsigned int nTxSize = ::GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
+    double dFeePerKb     = double(llFees - llFuel) / (double(nTxSize) / 1000.0);
+    if (dFeePerKb < CBaseTx::nMinRelayTxFee) {
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, fee too litter in fees/Kb "
+                        "(actual:%.4f vs need:%lld)", dFeePerKb, CBaseTx::nMinRelayTxFee),
+                        REJECT_INVALID, "fee-too-litter-in-fees/Kb");
     }
 
     CAccount acctInfo;
@@ -189,8 +198,8 @@ bool CContractDeployTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
     }
     if (!acctInfo.IsRegistered()) {
         return state.DoS(
-            100, ERRORMSG("CContractDeployTx::CheckTx, account have not registered public key"),
-            REJECT_INVALID, "bad-no-pubkey");
+            100, ERRORMSG("CContractDeployTx::CheckTx, account unregistered"),
+            REJECT_INVALID, "bad-account-unregistered");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(acctInfo.pubKey);
@@ -470,7 +479,7 @@ bool CContractInvokeTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
                         txUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-getaccount");
 
     if (!srcAccount.IsRegistered())
-        return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, account pubkey not registered"),
+        return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, account unregistered"),
                         REJECT_INVALID, "bad-account-unregistered");
 
     vector<unsigned char> vScript;
