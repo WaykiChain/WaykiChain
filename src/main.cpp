@@ -1155,10 +1155,10 @@ if ((blockUndo.vtxundo.size() != block.vptx.size()) &&
     (blockUndo.vtxundo.size() != (block.vptx.size() + 1)))
     return ERRORMSG("DisconnectBlock() : block and undo data inconsistent");
 
-CTxUndo txundo;
+CTxUndo txUndo;
 if (pIndex->nHeight > COINBASE_MATURITY) {
     // Undo mature reward tx
-    txundo = blockUndo.vtxundo.back();
+    txUndo = blockUndo.vtxundo.back();
     blockUndo.vtxundo.pop_back();
     CBlockIndex *pMatureIndex = pIndex;
     for (int i = 0; i < COINBASE_MATURITY; ++i) {
@@ -1170,7 +1170,7 @@ if (pIndex->nHeight > COINBASE_MATURITY) {
             return state.DoS(100, ERRORMSG("DisconnectBlock() : read mature block error"),
                              REJECT_INVALID, "bad-read-block");
         }
-        cw.txUndo = txundo;
+        cw.txUndo = txUndo;
         if (!matureBlock.vptx[0]->UndoExecuteTx(pIndex->nHeight, -1, cw, state))
             return ERRORMSG("DisconnectBlock() : undo execute mature block reward tx error");
     }
@@ -1178,18 +1178,16 @@ if (pIndex->nHeight > COINBASE_MATURITY) {
 
 // Undo reward tx
 std::shared_ptr<CBaseTx> pBaseTx = block.vptx[0];
-txundo = blockUndo.vtxundo.back();
-cw.txUndo = txundo;
+cw.txUndo = blockUndo.vtxundo.back();
 if (!pBaseTx->UndoExecuteTx(pIndex->nHeight, 0, cw, state))
     return false;
 
 // Undo transactions in reverse order
 for (int i = block.vptx.size() - 1; i >= 1; i--) {
     std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
-    CTxUndo txundo = blockUndo.vtxundo[i - 1];
-        cw.pTxUndo = &txundo;
+        cw.txUndo = blockUndo.vtxundo[i - 1];
         if (!pBaseTx->UndoExecuteTx(pIndex->nHeight, i, cw, state)) {
-            LogPrint("ERROR", "%s\n", txundo.ToString());
+            LogPrint("ERROR", "%s\n", cw.txUndo.ToString());
             return false;
         }
     }
@@ -1257,7 +1255,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (!fJustCheck) {
         // Verify that the view's current state corresponds to the previous block
         uint256 hashPrevBlock = pIndex->pprev == nullptr ? uint256() : pIndex->pprev->GetBlockHash();
-        if (hashPrevBlock != cw.pAccountCache->GetBestBlock()) {
+        if (hashPrevBlock != cw.accountCache.GetBestBlock()) {
             LogPrint("INFO", "hashPrevBlock=%s, bestblock=%s\n",
                     hashPrevBlock.GetHex(), cw.accountCache.GetBestBlock().GetHex());
 
@@ -1437,7 +1435,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                                 REJECT_INVALID, "bad-read-block");
             }
 
-            // cw.txUndo = txundo; //FIXME:
+            cw.txUndo = txundo; //FIXME:
             if (!matureBlock.vptx[0]->ExecuteTx(pIndex->nHeight, -1, cw, state))
                 return ERRORMSG("ConnectBlock() : execute mature block reward tx error!");
         }
@@ -2858,8 +2856,8 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
     spCW->contractCache = *pCdMan->pContractCache;
     spCW->txCache = *pCdMan->pTxCache;
 
-    CBlockIndex *pindexState   = chainActive.Tip();
-    CBlockIndex *pindexFailure = nullptr;
+    CBlockIndex *pIndexState   = chainActive.Tip();
+    CBlockIndex *pIndexFailure = nullptr;
     int nGoodTransactions      = 0;
     CValidationState state;
 

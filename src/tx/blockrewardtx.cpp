@@ -27,10 +27,11 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, read source addr %s account info error",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
+
     CAccountLog acctLog(account);
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
-        return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, not sufficient bcoins in txUid %s account",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-bcoins");
+        return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, insufficient bcoins in txUid %s account",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
     }
 
     CUserID userId = account.keyID;
