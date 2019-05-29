@@ -90,6 +90,7 @@ public:
           bcoins(0),
           scoins(0),
           fcoins(0),
+          stakedBcoins(0),
           stakedFcoins(0),
           receivedVotes(0),
           lastVoteHeight(0),
@@ -104,6 +105,7 @@ public:
           bcoins(0),
           scoins(0),
           fcoins(0),
+          stakedBcoins(0),
           stakedFcoins(0),
           receivedVotes(0),
           lastVoteHeight(0),
@@ -123,6 +125,7 @@ public:
         this->bcoins         = other.bcoins;
         this->scoins         = other.scoins;
         this->fcoins         = other.fcoins;
+        this->stakedBcoins   = other.stakedBcoins;
         this->stakedFcoins   = other.stakedFcoins;
         this->receivedVotes  = other.receivedVotes;
         this->lastVoteHeight = other.lastVoteHeight;
@@ -141,6 +144,7 @@ public:
         this->bcoins         = other.bcoins;
         this->scoins         = other.scoins;
         this->fcoins         = other.fcoins;
+        this->stakedBcoins   = other.stakedBcoins;
         this->stakedFcoins   = other.stakedFcoins;
         this->receivedVotes  = other.receivedVotes;
         this->lastVoteHeight = other.lastVoteHeight;
@@ -211,6 +215,7 @@ public:
         READWRITE(VARINT(bcoins));
         READWRITE(VARINT(scoins));
         READWRITE(VARINT(fcoins));
+        READWRITE(VARINT(stakedBcoins));
         READWRITE(VARINT(stakedFcoins));
         READWRITE(VARINT(receivedVotes));
         READWRITE(VARINT(lastVoteHeight));
@@ -232,6 +237,7 @@ public:
     uint64_t bcoins;                        //!< baseCoin balance
     uint64_t scoins;                        //!< stableCoin balance
     uint64_t fcoins;                        //!< fundCoin balance
+    uint64_t stakedBcoins;                  //!< Staked/Collateralized BaseCoins
     uint64_t stakedFcoins;                  //!< Staked FundCoins for pricefeed right
 
     uint64_t receivedVotes;                 //!< votes received
@@ -249,6 +255,7 @@ public:
         READWRITE(VARINT(bcoins));
         READWRITE(VARINT(scoins));
         READWRITE(VARINT(fcoins));
+        READWRITE(VARINT(stakedBcoins));
         READWRITE(VARINT(stakedFcoins));
         READWRITE(VARINT(receivedVotes));
         READWRITE(VARINT(lastVoteHeight));
@@ -265,6 +272,7 @@ public:
         bcoins         = acct.bcoins;
         scoins         = acct.scoins;
         fcoins         = acct.fcoins;
+        stakedBcoins   = acct.stakedBcoins;
         stakedFcoins   = acct.stakedFcoins;
         receivedVotes  = acct.receivedVotes;
         lastVoteHeight = acct.lastVoteHeight;
@@ -279,6 +287,7 @@ public:
         bcoins         = 0;
         scoins         = 0;
         fcoins         = 0;
+        stakedBcoins   = 0;
         stakedFcoins   = 0;
         receivedVotes  = 0;
         lastVoteHeight = 0;
@@ -293,6 +302,7 @@ public:
         bcoins         = 0;
         scoins         = 0;
         fcoins         = 0;
+        stakedBcoins   = 0;
         stakedFcoins   = 0;
         receivedVotes  = 0;
         lastVoteHeight = 0;
@@ -309,6 +319,7 @@ public:
         bcoins         = acct.bcoins;
         scoins         = acct.scoins;
         fcoins         = acct.fcoins;
+        stakedBcoins   = acct.stakedBcoins;
         stakedFcoins   = acct.stakedFcoins;
         receivedVotes  = acct.receivedVotes;
         lastVoteHeight = acct.lastVoteHeight;

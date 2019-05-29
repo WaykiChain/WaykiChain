@@ -30,6 +30,7 @@ bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
     bcoins         = accountLog.bcoins;
     scoins         = accountLog.scoins;
     fcoins         = accountLog.fcoins;
+    stakedBcoins   = accountLog.stakedBcoins;
     stakedFcoins   = accountLog.stakedFcoins;
     receivedVotes  = accountLog.receivedVotes;
     lastVoteHeight = accountLog.lastVoteHeight;
@@ -140,6 +141,7 @@ Object CAccount::ToJsonObj(bool isAddress) const {
     obj.push_back(Pair("bcoins",            bcoins));
     obj.push_back(Pair("scoins",            scoins));
     obj.push_back(Pair("fcoins",            fcoins));
+    obj.push_back(Pair("staked_bcoins",     stakedBcoins));
     obj.push_back(Pair("staked_fcoins",     stakedFcoins));
     obj.push_back(Pair("received_votes",    receivedVotes));
     obj.push_back(Pair("vote_list",         candidateVoteArray));
@@ -149,7 +151,9 @@ Object CAccount::ToJsonObj(bool isAddress) const {
 
 string CAccount::ToString(bool isAddress) const {
     string str;
-    str += strprintf("regID=%s, keyID=%s, nickID=%s, pubKey=%s, minerPubKey=%s, bcoins=%ld, scoins=%ld, fcoins=%ld, receivedVotes=%lld\n",
+    str += strprintf(
+        "regID=%s, keyID=%s, nickID=%s, pubKey=%s, minerPubKey=%s, bcoins=%ld, scoins=%ld, fcoins=%ld, "
+        "receivedVotes=%lld\n",
         regID.ToString(), keyID.GetHex().c_str(), nickID.ToString(), pubKey.ToString().c_str(),
         minerPubKey.ToString().c_str(), bcoins, scoins, fcoins, receivedVotes);
     str += "candidate vote list: \n";
