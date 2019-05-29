@@ -41,7 +41,6 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
-    cw.txUndo.Clear();
     cw.txUndo.vAccountLog.push_back(accountLog);
     cw.txUndo.txHash = GetHash();
 

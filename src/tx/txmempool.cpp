@@ -120,7 +120,6 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
     spCW->accountCache = *memPoolAccountCache;
     spCW->contractCache = *memPoolContractCache;
     spCW->txCache = *pCdMan->pTxCache;
-    spCW->txUndo = CTxUndo();
 
     if (bExecute) {
         if (!memPoolEntry.GetTx()->ExecuteTx(chainActive.Tip()->nHeight + 1, 0, *spCW, state))

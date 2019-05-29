@@ -1176,7 +1176,8 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
     // Undo reward tx
     std::shared_ptr<CBaseTx> pBaseTx = block.vptx[0];
     cw.txUndo                        = blockUndo.vtxundo.back();
-    if (!pBaseTx->UndoExecuteTx(pIndex->nHeight, 0, cw, state)) return false;
+    if (!pBaseTx->UndoExecuteTx(pIndex->nHeight, 0, cw, state))
+        return false;
 
     // Undo transactions in reverse order
     for (int i = block.vptx.size() - 1; i >= 1; i--) {
@@ -1361,10 +1362,9 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 LogPrint("vm", "tx hash=%s ConnectBlock run contract\n", pBaseTx->GetHash().GetHex());
 
             LogPrint("op_account", "tx index:%d tx hash:%s\n", i, pBaseTx->GetHash().GetHex());
-            CTxUndo txundo;
             pBaseTx->nFuelRate = block.GetFuelRate();
 
-            cw.txUndo = txundo;
+            cw.txUndo.Clear();  // Clear first.
             if (!pBaseTx->ExecuteTx(pIndex->nHeight, i, cw, state))
                 return false;
 
@@ -1385,7 +1385,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                      nTotalFuel, llFuel, pBaseTx->nRunStep, block.GetFuelRate(), pBaseTx->GetHash().GetHex());
             vPos.push_back(make_pair(block.GetTxHash(i), pos));
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
-            blockundo.vtxundo.push_back(txundo);
+            blockundo.vtxundo.push_back(cw.txUndo);
         }
 
         if (nTotalFuel != block.GetFuel())
@@ -1410,12 +1410,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     // Execute BlockRewardTx
     LogPrint("op_account", "tx index:%d tx hash:%s\n", 0, block.vptx[0]->GetHash().GetHex());
-    CTxUndo txundo;
-    cw.txUndo = txundo;
+    cw.txUndo.Clear();  // Clear first
     if (!block.vptx[0]->ExecuteTx(pIndex->nHeight, 0, cw, state))
         return ERRORMSG("ConnectBlock() : execute reward tx error!");
 
-    blockundo.vtxundo.push_back(txundo);
+    blockundo.vtxundo.push_back(cw.txUndo);
 
     if (pIndex->nHeight - COINBASE_MATURITY > 0) {
         // Deal mature BlockRewardTx
@@ -1431,11 +1430,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                                 REJECT_INVALID, "bad-read-block");
             }
 
-            cw.txUndo = txundo; //FIXME:
+            cw.txUndo.Clear();  // Clear first
             if (!matureBlock.vptx[0]->ExecuteTx(pIndex->nHeight, -1, cw, state))
                 return ERRORMSG("ConnectBlock() : execute mature block reward tx error!");
         }
-        blockundo.vtxundo.push_back(txundo);
+        blockundo.vtxundo.push_back(cw.txUndo);
     }
     int64_t nTime = GetTimeMicros() - nStart;
     if (SysCfg().IsBenchmark())

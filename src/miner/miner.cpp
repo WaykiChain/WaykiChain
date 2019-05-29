@@ -291,7 +291,8 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
                 LogPrint("vm", "tx hash=%s VerifyPosTx run contract\n", pBaseTx->GetHash().GetHex());
 
             pBaseTx->nFuelRate = pBlock->GetFuelRate();
-            spCW->txUndo = CTxUndo();
+
+            spCW->txUndo.Clear(); // Clear first.
             if (!pBaseTx->ExecuteTx(pBlock->GetHeight(), i, *spCW, state))
                 return ERRORMSG("transaction UpdateAccount account error");
 
@@ -300,7 +301,7 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
                 return ERRORMSG("block total run steps exceed max run step");
 
             nTotalFuel += pBaseTx->GetFuel(pBlock->GetFuelRate());
-            LogPrint("fuel", "VerifyPosTx total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txhash:%s \n",
+            LogPrint("fuel", "VerifyPosTx total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n",
                     nTotalFuel, pBaseTx->GetFuel(pBlock->GetFuelRate()),
                     pBaseTx->nRunStep, pBlock->GetFuelRate(), pBaseTx->GetHash().GetHex());
         }
@@ -326,6 +327,7 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
 
     // Add our Block Reward tx as the first one
     pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>(rewardTx));
+    // TODO: add softfork to enable price median transaction.
     // pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>(priceMedianTx));
     pBlockTemplate->vTxFees.push_back(-1);    // updated at end
     pBlockTemplate->vTxSigOps.push_back(-1);  // updated at end
@@ -383,12 +385,9 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
             if ((dFeePerKb < CBaseTx::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
                 continue;
 
-
-
-            auto spCW = std::make_shared<CCacheWrapper>();
-            spCW->accountCache = cwIn.accountCache;
+            auto spCW           = std::make_shared<CCacheWrapper>();
+            spCW->accountCache  = cwIn.accountCache;
             spCW->contractCache = cwIn.contractCache;
-            spCW->txUndo = CTxUndo();
 
             CValidationState state;
             pBaseTx->nFuelRate = pBlock->GetFuelRate();
