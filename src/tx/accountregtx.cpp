@@ -55,8 +55,8 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
 
     account.pubKey = txUid.get<CPubKey>();
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, not sufficient funds in account, keyid=%s",
-                        keyId.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-funds");
+        return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, insufficient funds in account, keyid=%s",
+                        keyId.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
     if (typeid(CPubKey) == minerUid.type()) {

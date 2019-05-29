@@ -326,7 +326,7 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
 
     // Add our Block Reward tx as the first one
     pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>(rewardTx));
-    pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>(priceMedianTx));
+    // pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>(priceMedianTx));
     pBlockTemplate->vTxFees.push_back(-1);    // updated at end
     pBlockTemplate->vTxSigOps.push_back(-1);  // updated at end
 
