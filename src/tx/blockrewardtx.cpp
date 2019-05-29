@@ -27,11 +27,13 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, read source addr %s account info error",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-
-    CAccountLog acctLog(account);
-    if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
-        return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, insufficient bcoins in txUid %s account",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
+    CAccountLog accountLog(account);
+    if (0 == nIndex) {
+        // nothing to do here
+    } else if (-1 == nIndex) {  // maturity reward tx, only update values
+        account.bcoins += rewardValue;
+    } else {  // never go into this step
+        return ERRORMSG("CBlockRewardTx::ExecuteTx, invalid index");
     }
 
     CUserID userId = account.keyID;
@@ -40,7 +42,7 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     cw.txUndo.Clear();
-    cw.txUndo.vAccountLog.push_back(acctLog);
+    cw.txUndo.vAccountLog.push_back(accountLog);
     cw.txUndo.txHash = GetHash();
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
