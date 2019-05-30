@@ -8,6 +8,7 @@
 #include "commons/uint256.h"
 #include "util.h"
 #include "main.h"
+#include "persistence/dbconf.h"
 
 #include <stdint.h>
 
@@ -151,6 +152,7 @@ bool CAccountCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
 bool CAccountCache::SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId) {
     if (accountId.empty())
         return false;
+
     mapRegId2KeyId[accountId] = keyId;
     return true;
 }
@@ -389,28 +391,35 @@ Object CAccountCache::ToJsonObj() const {
 }
 
 bool CAccountDB::GetAccount(const CKeyID &keyId, CAccount &account) {
-    return db.Read(make_pair('k', keyId), account);
+    // return db.Read(make_pair('k', keyId), account);
+    string key = GenDbKey(DBK_KeyId2Account, keyId);
+    return db.Read(key, account);
 }
 
 bool CAccountDB::SetAccount(const CKeyID &keyId, const CAccount &account) {
-    bool ret = db.Write(make_pair('k', keyId), account);
+    string key = GenDbKey(DBK_KeyId2Account, keyId);
+    bool ret = db.Write(key, account);
 
-    assert(!account.keyID.IsEmpty());
-    assert(!account.regID.IsEmpty());
-    assert(account.pubKey.IsValid());
+    // assert(!account.keyID.IsEmpty());
+    // assert(!account.regID.IsEmpty());
+    // assert(account.pubKey.IsValid());
     return ret;
 }
 
 bool CAccountDB::SetAccount(const vector<unsigned char> &accountRegId, const CAccount &account) {
     CKeyID keyId;
-    if (db.Read(make_pair('r', accountRegId), keyId)) {
-        return db.Write(make_pair('k', keyId), account);
-    } else
-        return false;
+    string keyIdKey = GenDbKey(DBK_RegId2KeyId, accountRegId);
+    if (db.Read(keyIdKey, keyId)) {
+        string accountKey = GenDbKey(DBK_KeyId2Account, keyId);
+        return db.Write(accountKey, account);
+    }
+
+    return false;
 }
 
 bool CAccountDB::HaveAccount(const CKeyID &keyId) {
-    return db.Exists(make_pair('k', keyId));
+    string accountKey = GenDbKey(DBK_KeyId2Account, keyId);
+    return db.Exists(accountKey);
 }
 
 uint256 CAccountDB::GetBestBlock() {

@@ -791,13 +791,16 @@ bool CContractCache::GetContractData(const int nCurBlockHeight, const vector<uns
 
     return true;
 }
-bool CContractCache::SetContractData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
-                                         const vector<unsigned char> &vScriptData, CContractDBOperLog &operLog) {
+bool CContractCache::SetContractData(const vector<unsigned char> &vScriptId,
+                                    const vector<unsigned char> &vScriptKey,
+                                    const vector<unsigned char> &vScriptData,
+                                    CContractDBOperLog &operLog) {
     vector<unsigned char> vKey = {'d', 'a', 't', 'a'};
     vKey.insert(vKey.end(), vScriptId.begin(), vScriptId.end());
     vKey.push_back('_');
     vKey.insert(vKey.end(), vScriptKey.begin(), vScriptKey.end());
     vector<unsigned char> vNewValue(vScriptData.begin(), vScriptData.end());
+
     if (!HaveData(vKey)) {
         int nCount(0);
         GetContractItemCount(vScriptId, nCount);
