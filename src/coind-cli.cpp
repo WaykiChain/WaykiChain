@@ -1,14 +1,13 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2013 The WaykiChain developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #include "util.h"
 #include "init.h"
 #include "rpc/rpcclient.h"
 #include "rpcprotocol.h"
-#include "ui_interface.h" /* for _(...) */
 #include "chainparams.h"
 
 #include <boost/filesystem/operations.hpp>

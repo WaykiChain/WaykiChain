@@ -23,9 +23,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include "vm/script.h"
 #include "rpc/rpcserver.h"
-#include "noui.h"
-#include "ui_interface.h"
-#include "cuiserver.h"
 #include <boost/algorithm/string/predicate.hpp>
 
 using namespace std;

@@ -1,9 +1,8 @@
-/*
- * CRPCRequest2.cpp
- *
- *  Created on: Dec 9, 2014
- *      Author: ranger.shi
- */
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #include "systestbase.h"
 
@@ -20,7 +19,6 @@ void DetectShutdownThread(boost::thread_group *threadGroup) {
         threadGroup->interrupt_all();
         threadGroup->join_all();
     }
-    CUIServer::StopServer();
 }
 
 bool PrintTestNotSetPara() {
@@ -123,12 +121,7 @@ std::tuple<bool, boost::thread *> RunCoin(int argc, char *argv[]) {
     static boost::thread_group threadGroup;
     SetupEnvironment();
 
-    bool fRet = false;
-
-    // Connect coind signal handlers
-    noui_connect();
-
-    fRet = AppInit(argc, argv, threadGroup);
+    bool fRet = AppInit(argc, argv, threadGroup);
 
     detectShutdownThread = new boost::thread(boost::bind(&DetectShutdownThread, &threadGroup));
 

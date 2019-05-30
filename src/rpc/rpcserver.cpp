@@ -9,7 +9,6 @@
 #include "commons/base58.h"
 #include "init.h"
 #include "main.h"
-#include "ui_interface.h"
 #include "util.h"
 
 #include <boost/algorithm/string.hpp>
@@ -405,9 +404,7 @@ static bool InitRPCAuthentication() {
         else if (SysCfg().IsArgCount("-daemon"))
             strWhatAmI = strprintf(_("To use the %s option"), "\"-daemon\"");
 
-        uiInterface.ThreadSafeMessageBox(
-            strprintf(
-                _("%s, you must set a rpcpassword in the configuration file:\n"
+        LogPrint("ERROR", "%s, you must set a rpcpassword in the configuration file:\n"
                   "%s\n"
                   "It is recommended you use the following random password:\n"
                   "rpcuser=wiccrpc\n"
@@ -417,10 +414,9 @@ static bool InitRPCAuthentication() {
                   "If the file does not exist, create it with owner-readable-only file "
                   "permissions.\n"
                   "It is also recommended to set alertnotify so you are notified of problems;\n"
-                  "for example: alertnotify=echo %%s | mail -s \"Coin Alert\" admin@foo.com\n"),
+                  "for example: alertnotify=echo %%s | mail -s \"Coin Alert\" admin@foo.com\n",
                 strWhatAmI, GetConfigFile().string(),
-                EncodeBase58(&rand_pwd[0], &rand_pwd[0] + 32)),
-            "", CClientUIInterface::MSG_ERROR);
+                EncodeBase58(&rand_pwd[0], &rand_pwd[0] + 32));
         StartShutdown();
         return false;
     }

@@ -139,7 +139,6 @@ bool CCryptoKeyStore::Lock()
         LOCK(cs_KeyStore);
         vMasterKey.clear();
     }
-    pUIInterface->NotifyMessage("Lock");
     NotifyStatusChanged(this);
     return true;
 }
@@ -169,7 +168,6 @@ bool CCryptoKeyStore::Unlock(const CKeyingMaterial& vMasterKeyIn)
         }
         vMasterKey = vMasterKeyIn;
     }
-    pUIInterface->NotifyMessage("UnLock");
     NotifyStatusChanged(this);
     return true;
 }
