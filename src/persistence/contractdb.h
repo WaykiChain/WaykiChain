@@ -9,6 +9,7 @@
 #include "commons/arith_uint256.h"
 #include "persistence/leveldbwrapper.h"
 #include "vm/appaccount.h"
+#include "dbconf.h"
 
 #include <map>
 #include <string>

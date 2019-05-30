@@ -391,12 +391,12 @@ Object CAccountCache::ToJsonObj() const {
 
 bool CAccountDB::GetAccount(const CKeyID &keyId, CAccount &account) {
     // return db.Read(make_pair('k', keyId), account);
-    string key = GenDbKey(DBK_KeyId2Account, keyId);
+    string key = GenDbKey(dbk::KEYID_2_ACCOUNT, keyId);
     return db.Read(key, account);
 }
 
 bool CAccountDB::SetAccount(const CKeyID &keyId, const CAccount &account) {
-    string key = GenDbKey(DBK_KeyId2Account, keyId);
+    string key = GenDbKey(dbk::KEYID_2_ACCOUNT, keyId);
     bool ret = db.Write(key, account);
 
     // assert(!account.keyID.IsEmpty());
@@ -407,9 +407,9 @@ bool CAccountDB::SetAccount(const CKeyID &keyId, const CAccount &account) {
 
 bool CAccountDB::SetAccount(const vector<unsigned char> &accountRegId, const CAccount &account) {
     CKeyID keyId;
-    string keyIdKey = GenDbKey(DBK_RegId2KeyId, accountRegId);
+    string keyIdKey = GenDbKey(dbk::REGID_2_KEYID, accountRegId);
     if (db.Read(keyIdKey, keyId)) {
-        string accountKey = GenDbKey(DBK_KeyId2Account, keyId);
+        string accountKey = GenDbKey(dbk::KEYID_2_ACCOUNT, keyId);
         return db.Write(accountKey, account);
     }
 
@@ -417,7 +417,7 @@ bool CAccountDB::SetAccount(const vector<unsigned char> &accountRegId, const CAc
 }
 
 bool CAccountDB::HaveAccount(const CKeyID &keyId) {
-    string accountKey = GenDbKey(DBK_KeyId2Account, keyId);
+    string accountKey = GenDbKey(dbk::KEYID_2_ACCOUNT, keyId);
     return db.Exists(accountKey);
 }
 
