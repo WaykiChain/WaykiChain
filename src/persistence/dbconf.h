@@ -10,52 +10,55 @@
 
 using namespace std;
 
-namespace dbconf {
+/**
+ * database key 
+ */
+namespace dbk {
 
-enum DBK_PrefixType {
-    DBK_RedIndex = 0,
-    DBK_Flag,
-    DBK_Vote,
-    DBK_KeyId2TxId,
-    DBK_TxId2KeyIds,
-    DBK_TxId2DiskIndex,
-    DBK_RegId2KeyId,
-    DBK_NickId2KeyId,
-    DBK_KeyId2Account,
-    DBK_PersistBlockHash,
-    DBK_PersistBlockFile,
-    DBK_ContractCount,
-    DBK_ContractDef,
-    DBK_ContractData,
-    DBK_ContractTxOut,
-    DBK_ContractItemNum,
-    DBK_StakeFcoin,
+    #define EACH_ENUM_DEFINE_TYPE(enumType, enumName, description) enumType
+    #define EACH_ENUM_DEFINE_NAME(enumType, enumName, description) enumName
 
-};
+        //                 type                name(prefix)       description
+        //               ----------           ------------   -----------------------------
+    #define DBK_PREFIX_LIST(EACH_ENUM_DEFINE) \
+        EACH_ENUM_DEFINE( REINDEX,             "ridx",     "rind --> 1 | 0" ), \
+        EACH_ENUM_DEFINE( FLAG,                "flag",     "flag --> 1 | 0" ), \
+        EACH_ENUM_DEFINE( VOTE,                "vote",     "vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1" ), \
+        EACH_ENUM_DEFINE( KEYID_2_TXID,        "idtx",     "idtx{$KeyId}{$Height}{$Index} --> $txid" ), \
+        EACH_ENUM_DEFINE( TXID_2_KEYIDS,       "tids",     "tids{$txid} --> {$KeyId1, $KeyId2, ...}" ), \
+        EACH_ENUM_DEFINE( TXID_2_DISK_INDEX,   "tidx",     "tidx{$txid} --> $DiskTxPos" ), \
+        EACH_ENUM_DEFINE( REGID_2_KEYID,       "rkey",     "rkey{$RegID} --> $KeyId" ), \
+        EACH_ENUM_DEFINE( NICKID_2_KEYID,      "nkey",     "nkey{$NickID} --> $KeyId" ), \
+        EACH_ENUM_DEFINE( KEYID_2_ACCOUNT,     "idac",     "idac{$KeyID} --> $CAccount" ), \
+        EACH_ENUM_DEFINE( PERSIST_BLOCK_HASH,  "pbkh",     "pbkh --> $BlockHash" ), \
+        EACH_ENUM_DEFINE( PERSIST_BLOCK_FILE,  "pbfl",     "pbfl --> $nFile" ), \
+        EACH_ENUM_DEFINE( CONTRACT_COUNT,      "cnum",     "cnum{$ContractRegId} --> $total_num_of_cntracts" ), \
+        EACH_ENUM_DEFINE( CONTRACT_DEF,        "cdef",     "cdef{$ContractRegId} --> $ContractContent" ), \
+        EACH_ENUM_DEFINE( CONTRACT_DATA,       "cdat",     "cdat{$RegId}_{$DataKey} --> $Data" ), \
+        EACH_ENUM_DEFINE( CONTRACT_TX_OUT,     "cout",     "cout{txid} --> $VmOperateOutput" ), \
+        EACH_ENUM_DEFINE( CONTRACT_ITEM_NUM,   "citn",     "citn{ContractRegId} --> $total_num_of_contract_i" ), \
+        EACH_ENUM_DEFINE( STAKE_FCOIN,         "fcoin",    "fcoin{(uint64t)MAX - stakedFcoins}_{RegId} --> 1" ),
 
-static const string DBK_PrefixList[] = {
-    "ridx",  // rind --> 1 | 0
-    "flag",  // flag --> 1 | 0
-    "vote",  // vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1
-    "idtx",  // idtx{$KeyId}{$Height}{$Index} --> $txid
-    "tids",  // tids{$txid} --> {$KeyId1, $KeyId2, ...}
-    "tidx",  // tidx{$txid} --> $DiskTxPos
-    "rkey",  // rkey{$RegID} --> $KeyId
-    "nkey",  // nkey{$NickID} --> $KeyId
-    "idac",  // idac{$KeyID} --> $CAccount
-    "pbkh",  // pbkh --> $BlockHash
-    "pbfl",  // pbfl --> $nFile
-    "cnum",  // cnum{$ContractRegId} --> $total_num_of_cntracts
-    "cdef",  // cdef{$ContractRegId} --> $ContractContent
-    "cdat",  // cdat{$RegId}_{$DataKey} --> $Data
-    "cout",  // cout{txid} --> $VmOperateOutput
-    "citn",  // citn{ContractRegId} --> $total_num_of_contract_items
-    "fcoin"  // fcoin{(uint64t)MAX - stakedFcoins}_{RegId} --> 1
-};
 
-static string GenDbKey(DBK_PrefixType keyPrefixType, string keyPostfix) {
-        return DBK_PrefixList[ keyPrefixType ] + keyPostfix;
-}
+    enum PrefixType {
+        DBK_PREFIX_LIST(EACH_ENUM_DEFINE_TYPE)
+    };
+
+    static const int PREFIX_COUNT = PrefixType::STAKE_FCOIN + 1;
+
+    static const std::string gPrefixNames[PREFIX_COUNT] = {
+        DBK_PREFIX_LIST(EACH_ENUM_DEFINE_NAME)
+    };
+
+    template<typename PrefixElement>
+    std::string GenDbKey(PrefixType keyPrefixType, PrefixElement element) {
+        assert(keyPrefixType >= 0 && keyPrefixType <= PREFIX_COUNT);
+        const string &prefix = gPrefixNames[ keyPrefixType ];
+        CDataStream ssKeyTemp(SER_DISK, CLIENT_VERSION);
+        ssKeyTemp.write(prefix.c_str(), prefix.size());
+        ssKeyTemp << element;
+        return std::string(ssKeyTemp.begin(), ssKeyTemp.end());
+    }
 
 }
 
