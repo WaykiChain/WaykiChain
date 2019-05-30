@@ -3,14 +3,12 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PERSIST_DBCONF_H
-#define PERSIST_DBCONF_H
+#ifndef PERSIST_DBACCESS_H
+#define PERSIST_DBACCESS_H
 
-#include <string>
+#include "leveldbwrapper.h"
 
-using namespace std;
-
-namespace dbconf {
+#include <vector>
 
 enum DBK_PrefixType {
     DBK_RedIndex = 0,
@@ -53,10 +51,14 @@ static const string DBK_PrefixList[] = {
     "fcoin"  // fcoin{(uint64t)MAX - stakedFcoins}_{RegId} --> 1
 };
 
-static string GenDbKey(DBK_PrefixType keyPrefixType, string keyPostfix) {
-        return DBK_PrefixList[ keyPrefixType ] + keyPostfix;
-}
+class CDbAccess {
+public:
+    CDbAccess(CLevelDBWrapper &ldbWrapperIn): ldbWrapper(ldbWrapperIn) {};
 
-}
+    bool GetData(DBK_PrefixType keyPrefixType);
 
-#endif //PERSIST_DBCONF_H
+private:
+    CLevelDBWrapper &ldbWrapper;
+};
+
+#endif //
