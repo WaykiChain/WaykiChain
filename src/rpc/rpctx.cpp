@@ -523,12 +523,12 @@ Value callcontracttx(const Array& params, bool fHelp) {
             "callcontracttx \"sender addr\" \"app regid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
             "\ncreate contract invocation transaction\n"
             "\nArguments:\n"
-            "1.\"sender addr\": (string, required)\n tx sender's base58 addr\n"
-            "2.\"app regid\":(string, required) contract RegId\n"
-            "3.\"arguments\": (string, required) contract arguments (Hex encode required)\n"
-            "4.\"amount\":(numeric, required)\n amount of WICC to be sent to the contract account\n"
-            "5.\"fee\": (numeric, required) pay to miner\n"
-            "6.\"height\": (numeric, optional)create height,If not provide use the tip block height in chainActive\n"
+            "1.\"sender addr\": (string, required)  tx sender's base58 addr\n"
+            "2.\"app regid\":(string, required)     contract RegId\n"
+            "3.\"arguments\": (string, required)    contract arguments (Hex encode required)\n"
+            "4.\"amount\":(numeric, required)       amount of WICC to be sent to the contract account\n"
+            "5.\"fee\": (numeric, required)         pay to miner\n"
+            "6.\"height\": (numeric, optional)      create height,If not provide use the tip block height in chainActive\n"
             "\nResult:\n"
             "\"txhash\": (string)\n"
             "\nExamples:\n" +
@@ -539,7 +539,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
                            "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 1"));
     }
 
-    RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(str_type)(int_type)(int_type));
+    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(int_type)(int_type)(int_type));
 
     EnsureWalletIsUnlocked();
 

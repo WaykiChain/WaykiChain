@@ -26,7 +26,6 @@ bool CAccountCache::GetAccount(const CKeyID &keyId, CAccount &account) {
 
     if (pBase->GetAccount(keyId, account)) {
         mapKeyId2Account.insert(make_pair(keyId, account));
-        // mapKeyId2Account[keyId] = account;
         return true;
     }
 
@@ -347,9 +346,9 @@ bool CAccountCache::Flush(IAccountView *pView) {
 }
 
 int64_t CAccountCache::GetFreeBCoins(const CUserID &userId) const {
-    CAccountCache tempvew(*this);
+    CAccountCache accountCache(*this);
     CAccount account;
-    if (tempvew.GetAccount(userId, account)) {
+    if (accountCache.GetAccount(userId, account)) {
         return account.GetFreeBCoins();
     }
     return 0;

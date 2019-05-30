@@ -140,7 +140,6 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     spCW->accountCache = *pCdMan->pAccountCache;
     spCW->contractCache = *pCdMan->pContractCache;
     spCW->txCache = *pCdMan->pTxCache;
-    spCW->txUndo = CTxUndo();
 
     CKeyID srcKeyid;
     if (!FindKeyId(&spCW->accountCache, params[0].get_str(), srcKeyid)) {

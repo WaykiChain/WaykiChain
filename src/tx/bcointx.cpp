@@ -211,7 +211,7 @@ bool CBaseCoinTransferTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
                          "bad-getaccount");
 
     if ((txUid.type() == typeid(CRegID)) && !srcAccount.IsRegistered())
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, account pubkey not registered"),
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
 
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey);

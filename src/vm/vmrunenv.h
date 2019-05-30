@@ -84,7 +84,7 @@ private:
      * @param view:
      * @return true operate account success
      */
-    bool OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountCache& view,
+    bool OperateAccount(const vector<CVmOperate>& listoperate, CAccountCache& view,
                         const int nCurHeight);
     /**
      * @brief find the vOldAccount from newAccount if find success remove it from newAccount
@@ -105,7 +105,7 @@ private:
      */
     vector_unsigned_char GetAccountID(CVmOperate value);
     //	bool IsSignatureAccount(CRegID account);
-    bool OpeatorAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
+    bool OperateAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
                            CContractCache& view);
 
     std::shared_ptr<CAppUserAccount> GetAppAccount(std::shared_ptr<CAppUserAccount>& AppAccount);

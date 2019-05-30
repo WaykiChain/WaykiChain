@@ -334,7 +334,6 @@ static const CRPCCommand vRPCCommands[] =
     { "disconnectblock",        &disconnectblock,        true,      false,      true },
     { "resetclient",            &resetclient,            true,      false,      false},
     { "reloadtxcache",          &reloadtxcache,          true,      false,      true },
-    { "listsetblockindexvalid", &listsetblockindexvalid, true,      false,      false},
     { "getcontractregid",       &getcontractregid,       true,      false,      false},
     { "getcontractitemcount",   &getcontractitemcount,   true,      false,      false},
     { "printblockdbinfo",       &printblockdbinfo,       true,      false,      false},

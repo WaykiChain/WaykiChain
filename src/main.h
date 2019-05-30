@@ -170,9 +170,9 @@ bool CheckDiskSpace(uint64_t nAdditionalBytes = 0);
 bool VerifyDB(int nCheckLevel, int nCheckDepth);
 
 /** Process protocol messages received from a given node */
-bool ProcessMessages(CNode *pfrom);
+bool ProcessMessages(CNode *pFrom);
 /** Send queued protocol messages to be sent to a give node */
-bool SendMessages(CNode *pto, bool fSendTrickle);
+bool SendMessages(CNode *pTo, bool fSendTrickle);
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
 
@@ -697,15 +697,11 @@ void PushGetBlocks(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd);
 /** Push getblocks request with different filtering strategies */
 void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd);
 /** Process an incoming block */
-bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pBlock, CDiskBlockPos *dbp = NULL);
+bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBlockPos *dbp = NULL);
 /** Print the loaded block tree */
 void PrintBlockTree();
 
 void UpdateTime(CBlockHeader &block, const CBlockIndex *pIndexPrev);
-
-//get setBlockIndexValid
-Value ListSetBlockIndexValid();
-
 
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState &state);

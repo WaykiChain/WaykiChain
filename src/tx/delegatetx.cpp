@@ -87,8 +87,8 @@ bool CDelegateVoteTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
                         txUid.ToString()), REJECT_INVALID, "bad-read-accountdb");
     }
     if (!sendAcct.IsRegistered()) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, pubkey not registered"),
-                        REJECT_INVALID, "bad-no-pubkey");
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account unregistered"),
+                        REJECT_INVALID, "bad-account-unregistered");
     }
 
     if ( GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2 ) {
