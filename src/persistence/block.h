@@ -6,11 +6,11 @@
 #ifndef PERSIST_BLOCK_H
 #define PERSIST_BLOCK_H
 
-#include "../configuration.h"
 #include "accounts/key.h"
+#include "commons/base58.h"
 #include "commons/serialize.h"
 #include "commons/uint256.h"
-#include "commons/base58.h"
+#include "configuration.h"
 #include "sync.h"
 #include "tx/tx.h"
 

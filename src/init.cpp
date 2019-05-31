@@ -12,22 +12,19 @@
 #include "configuration.h"
 #include "addrman.h"
 
-#include "./rpc/rpcserver.h"
-#include "./vm/lua/lua.h"
-#include "./wallet/wallet.h"
-#include "./wallet/walletdb.h"
-#include "cuiserver.h"
+#include "rpc/rpcserver.h"
+#include "vm/lua/lua.h"
+#include "wallet/wallet.h"
+#include "wallet/walletdb.h"
 #include "main.h"
 #include "miner/miner.h"
 #include "net.h"
-#include "noui.h"
 #include "persistence/syncdatadb.h"
 #include "persistence/blockdb.h"
 #include "persistence/accountdb.h"
 #include "persistence/txdb.h"
 #include "persistence/contractdb.h"
 #include "tx/tx.h"
-#include "ui_interface.h"
 #include "util.h"
 #ifdef USE_UPNP
 #include <miniupnpc/miniupnpc.h>
@@ -178,12 +175,12 @@ void HandleSIGHUP(int) {
 }
 
 bool static InitError(const string &str) {
-    uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_ERROR | CClientUIInterface::NOSHOWGUI);
+    LogPrint("ERROR", "%s\n", str);
     return false;
 }
 
 bool static InitWarning(const string &str) {
-    uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_WARNING | CClientUIInterface::NOSHOWGUI);
+    LogPrint("ERROR", "%s\n", str);
     return true;
 }
 
@@ -393,7 +390,6 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles) {
  *  @pre Parameters should be parsed and config file should be read.
  */
 bool AppInit(boost::thread_group &threadGroup) {
-    // ********************************************************* Step 1: setup
 #ifdef _MSC_VER
     // Turn off Microsoft heap dump noise
     _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
@@ -453,13 +449,6 @@ bool AppInit(boost::thread_group &threadGroup) {
     signal(SIGPIPE, SIG_IGN);
 #endif
 #endif
-
-    CUIServer::StartServer();
-
-    if (SysCfg().GetBoolArg("-ui", false))
-        threadGroup.create_thread(ThreadSendMessageToUI);
-
-    // ********************************************************* Step 2: parameter interactions
 
     if (SysCfg().IsArgCount("-bind")) {
         // when specifying an explicit binding address, you want to listen on it
@@ -522,7 +511,6 @@ bool AppInit(boost::thread_group &threadGroup) {
     if (nFD - MIN_CORE_FILEDESCRIPTORS < nMaxConnections)
         nMaxConnections = nFD - MIN_CORE_FILEDESCRIPTORS;
 
-    // ********************************************************* Step 3: parameter-to-internal-flags
     SysCfg().SetBenchMark(SysCfg().GetBoolArg("-benchmark", false));
     mempool.SetSanityCheck(SysCfg().GetBoolArg("-checkmempool", RegTest()));
     Checkpoints::fEnabled = SysCfg().GetBoolArg("-checkpoints", true);
@@ -551,11 +539,10 @@ bool AppInit(boost::thread_group &threadGroup) {
             return InitError(strprintf(_("Invalid amount for -minrelaytxfee=<amount>: '%s'"), SysCfg().GetArg("-minrelaytxfee", "")));
         }
     }
+
     if (SysCfg().GetTxFee() > nHighTransactionFeeWarning) {
         InitWarning(_("Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction."));
     }
-
-    // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
 
     string strDataDir = GetDataDir().string();
 
@@ -603,13 +590,6 @@ bool AppInit(boost::thread_group &threadGroup) {
     printf("Using data directory %s\n", strDataDir.c_str());
     LogPrint("INFO", "Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
     printf("Using at most %i connections (      %i file descriptors available)\n", nMaxConnections, nFD);
-    ostringstream strErrors;
-
-    int64_t nStart;
-
-    // ********************************************************* Step 5: verify wallet database integrity
-
-    // ********************************************************* Step 6: network initialization
 
     RegisterNodeSignals(GetNodeSignals());
 
@@ -676,7 +656,6 @@ bool AppInit(boost::thread_group &threadGroup) {
         SetReachable(NET_TOR);
     }
 
-    // see Step 2: parameter interactions for more information about these
     fNoListen   = !SysCfg().GetBoolArg("-listen", true);
     fDiscover   = SysCfg().GetBoolArg("-discover", true);
     fNameLookup = SysCfg().GetBoolArg("-dns", true);
@@ -721,7 +700,6 @@ bool AppInit(boost::thread_group &threadGroup) {
         }
     }
 
-    // ********************************************************* Step 7: load block chain
     SysCfg().SetReIndex(SysCfg().GetBoolArg("-reindex", false));
 
     filesystem::path blocksDir = GetDataDir() / "blocks";
@@ -747,14 +725,14 @@ bool AppInit(boost::thread_group &threadGroup) {
     SysCfg().SetViewCacheSize(nTotalCache / 300);  // coins in memory require around 300 bytes
 
     try {
-        pWalletMain = CWallet::getinstance();
+        pWalletMain = CWallet::GetInstance();
         RegisterWallet(pWalletMain);
         pWalletMain->LoadWallet(false);
     } catch (std::exception &e) {
         cout << "load wallet failed:" << e.what() << endl;
     }
 
-    //load checkpoint
+    // load checkpoint
     SyncData::CSyncDataDb db;
     if (db.InitializeSyncDataDb(GetDataDir() / "syncdata")) {
         if (!Checkpoints::LoadCheckpoint()) {
@@ -763,14 +741,12 @@ bool AppInit(boost::thread_group &threadGroup) {
         }
     }
 
+    int64_t nStart = GetTimeMillis();
     bool fLoaded = false;
     while (!fLoaded) {
         bool fReset = SysCfg().IsReindex();
         string strLoadError;
 
-        uiInterface.InitMessage(_("Loading block index..."));
-
-        nStart = GetTimeMillis();
         do {
             try {
                 UnloadBlockIndex();
@@ -806,7 +782,6 @@ bool AppInit(boost::thread_group &threadGroup) {
                     break;
                 }
 
-                uiInterface.InitMessage(_("Verifying blocks..."));
                 if (!VerifyDB(SysCfg().GetArg("-checklevel", 3), SysCfg().GetArg("-checkblocks", 288))) {
                     strLoadError = _("Corrupted block database detected");
                     break;
@@ -821,21 +796,12 @@ bool AppInit(boost::thread_group &threadGroup) {
             fLoaded = true;
         } while (false);
 
-        uiInterface.InitMessage(_("Verifying Finished"));
-        uiInterface.InitMessage(_("Sync Tx"));
         if (!fLoaded) {
-            // first suggest a reindex
+            // Rebuild the block database first.
             if (!fReset) {
-                bool fRet = uiInterface.ThreadSafeMessageBox(
-                    strLoadError + ".\n\n" + _("Do you want to rebuild the block database now?"),
-                    "", CClientUIInterface::MSG_ERROR | CClientUIInterface::BTN_ABORT);
-                if (fRet) {
-                    SysCfg().SetReIndex(true);
-                    fRequestShutdown = false;
-                } else {
-                    LogPrint("INFO", "Aborted block database rebuild. Exiting.\n");
-                    return false;
-                }
+                LogPrint("INFO", "Need to rebuild the block database first.\n");
+                SysCfg().SetReIndex(true);
+                fRequestShutdown = false;
             } else {
                 return InitError(strLoadError);
             }
@@ -849,7 +815,8 @@ bool AppInit(boost::thread_group &threadGroup) {
         LogPrint("INFO", "Shutdown requested. Exiting.\n");
         return false;
     }
-    LogPrint("INFO", " block index %15dms\n", GetTimeMillis() - nStart);
+
+    LogPrint("INFO", "Build %lu block indexes into memory (%lldms)\n", mapBlockIndex.size(), GetTimeMillis() - nStart);
 
     if (SysCfg().GetBoolArg("-printblockindex", false) || SysCfg().GetBoolArg("-printblocktree", false)) {
         PrintBlockTree();
@@ -876,8 +843,6 @@ bool AppInit(boost::thread_group &threadGroup) {
 
         return false;
     }
-
-    // ********************************************************* Step 9: import blocks
 
     // scan for better chains in the block chain database, that are not yet connected in the active best chain
     CValidationState state;
@@ -915,12 +880,8 @@ bool AppInit(boost::thread_group &threadGroup) {
     }
     threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles));
 
-    // ********************************************************* Step 10: load peers
-
-    uiInterface.InitMessage(_("Loading peer addresses..."));
 
     nStart = GetTimeMillis();
-
     {
         CAddrDB adb;
         if (!adb.Read(addrman)) {
@@ -930,14 +891,10 @@ bool AppInit(boost::thread_group &threadGroup) {
 
     LogPrint("INFO", "Loaded %i addresses from peers.dat (%dms)\n", addrman.size(), GetTimeMillis() - nStart);
 
-    // ********************************************************* Step 11: start node
-
     if (!CheckDiskSpace())
         return false;
 
     RandAddSeedPerfmon();
-
-    LogPrint("INFO", "mapBlockIndex.size()=%u, nBestHeight = %d\n", mapBlockIndex.size(), chainActive.Height());
 
     StartNode(threadGroup);
     // InitRPCMining is needed here so getwork/getblocktemplate in the GUI debug console works properly.
@@ -957,9 +914,6 @@ bool AppInit(boost::thread_group &threadGroup) {
         //resend unconfirmed tx
         threadGroup.create_thread(boost::bind(&ThreadRelayTx, pWalletMain));
     }
-    // ********************************************************* Step 12: finished
-
-    uiInterface.InitMessage("Initialization finished.");
 
     return !fRequestShutdown;
 }

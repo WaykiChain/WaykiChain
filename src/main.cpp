@@ -6,22 +6,21 @@
 
 #include "main.h"
 
-#include "configuration.h"
 #include "addrman.h"
 #include "alert.h"
 #include "chainparams.h"
+#include "configuration.h"
 #include "init.h"
 #include "miner/miner.h"
 #include "net.h"
-#include "persistence/syncdatadb.h"
 #include "persistence/accountdb.h"
 #include "persistence/blockdb.h"
 #include "persistence/contractdb.h"
+#include "persistence/syncdatadb.h"
 #include "persistence/txdb.h"
 #include "tx/blockrewardtx.h"
 #include "tx/merkletx.h"
 #include "tx/txmempool.h"
-#include "ui_interface.h"
 #include "util.h"
 #include "vm/vmrunenv.h"
 
@@ -175,8 +174,6 @@ struct CMainSignals {
     boost::signals2::signal<void(const uint256 &, CBaseTx *, const CBlock *)> SyncTransaction;
     // Notifies listeners of an erased transaction (currently disabled, requires transaction replacement).
     boost::signals2::signal<void(const uint256 &)> EraseTransaction;
-    // Notifies listeners of an updated transaction without new data (for now: a coinbase potentially becoming visible).
-    boost::signals2::signal<void(const uint256 &)> UpdatedTransaction;
     // Notifies listeners of a new active block chain.
     boost::signals2::signal<void(const CBlockLocator &)> SetBestChain;
     // Notifies listeners about an inventory item being seen on the network.
@@ -250,7 +247,6 @@ bool WriteBlockLog(bool falg, string suffix) {
 void RegisterWallet(CWalletInterface *pwalletIn) {
     g_signals.SyncTransaction.connect(boost::bind(&CWalletInterface::SyncTransaction, pwalletIn, _1, _2, _3));
     g_signals.EraseTransaction.connect(boost::bind(&CWalletInterface::EraseTransaction, pwalletIn, _1));
-    g_signals.UpdatedTransaction.connect(boost::bind(&CWalletInterface::UpdatedTransaction, pwalletIn, _1));
     g_signals.SetBestChain.connect(boost::bind(&CWalletInterface::SetBestChain, pwalletIn, _1));
     // g_signals.Inventory.connect(boost::bind(&CWalletInterface::Inventory, pwalletIn, _1));
     g_signals.Broadcast.connect(boost::bind(&CWalletInterface::ResendWalletTransactions, pwalletIn));
@@ -260,7 +256,6 @@ void UnregisterWallet(CWalletInterface *pwalletIn) {
     g_signals.Broadcast.disconnect(boost::bind(&CWalletInterface::ResendWalletTransactions, pwalletIn));
     // g_signals.Inventory.disconnect(boost::bind(&CWalletInterface::Inventory, pwalletIn, _1));
     g_signals.SetBestChain.disconnect(boost::bind(&CWalletInterface::SetBestChain, pwalletIn, _1));
-    g_signals.UpdatedTransaction.disconnect(boost::bind(&CWalletInterface::UpdatedTransaction, pwalletIn, _1));
     g_signals.EraseTransaction.disconnect(boost::bind(&CWalletInterface::EraseTransaction, pwalletIn, _1));
     g_signals.SyncTransaction.disconnect(boost::bind(&CWalletInterface::SyncTransaction, pwalletIn, _1, _2, _3));
 }
@@ -269,7 +264,6 @@ void UnregisterAllWallets() {
     g_signals.Broadcast.disconnect_all_slots();
     // g_signals.Inventory.disconnect_all_slots();
     g_signals.SetBestChain.disconnect_all_slots();
-    g_signals.UpdatedTransaction.disconnect_all_slots();
     g_signals.EraseTransaction.disconnect_all_slots();
     g_signals.SyncTransaction.disconnect_all_slots();
 }
@@ -1031,8 +1025,6 @@ void static InvalidChainFound(CBlockIndex *pIndexNew) {
         // the block database anymore, as it is derived from the flags in block
         // index entry. We only write it for backward compatibility.
         pCdMan->pBlockTreeDb->WriteBestInvalidWork(ArithToUint256(pindexBestInvalid->nChainWork));
-        uiInterface.NotifyBlocksChanged(pIndexNew->GetBlockTime(), chainActive.Height(),
-                                        chainActive.Tip()->GetBlockHash());
     }
     LogPrint("INFO", "InvalidChainFound: invalid block=%s  height=%d  log2_work=%.8g  date=%s\n",
              pIndexNew->GetBlockHash().ToString(), pIndexNew->nHeight,
@@ -1603,8 +1595,7 @@ bool static DisconnectTip(CValidationState &state) {
         if (!ptx->IsCoinBase()) {
             if (!AcceptToMemoryPool(mempool, stateDummy, ptx.get(), false)) {
                 mempool.Remove(ptx.get(), removed, true);
-            } else
-                uiInterface.ReleaseTransaction(ptx->GetHash());
+            }
         } else {
             EraseTransaction(ptx->GetHash());
         }
@@ -1841,10 +1832,6 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
     if (pIndexNew == chainActive.Tip()) {
         // Clear fork warning if its no longer applicable
         CheckForkWarningConditions();
-        // Notify UI to display prev block's coinbase if it was ours
-        static uint256 hashPrevBestCoinBase;
-        g_signals.UpdatedTransaction(hashPrevBestCoinBase);
-        hashPrevBestCoinBase = block.GetTxHash(0);
     } else
         CheckForkWarningConditionsOnNewFork(pIndexNew);
 
@@ -1853,8 +1840,7 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
 
     if (chainActive.Tip()->nHeight > nSyncTipHeight)
         nSyncTipHeight = chainActive.Tip()->nHeight;
-    uiInterface.NotifyBlocksChanged(pIndexNew->GetBlockTime(), chainActive.Height(),
-                                    chainActive.Tip()->GetBlockHash());
+
     return true;
 }
 
@@ -2087,7 +2073,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         }
         // Verify duplicated transaction
         if (pForkTxCache->HaveTx(item->GetHash()))
-            return state.DoS(100, ERRORMSG("ProcessForkedChain() : txid=%s has been confirmed\n",
+            return state.DoS(100, ERRORMSG("ProcessForkedChain() : txid=%s has been confirmed",
                             item->GetHash().GetHex()), REJECT_INVALID, "duplicated-txid");
     }
 
@@ -2759,8 +2745,8 @@ uint256 CPartialMerkleTree::ExtractMatches(vector<uint256> &vMatch) {
 bool AbortNode(const string &strMessage) {
     strMiscWarning = strMessage;
     LogPrint("INFO", "*** %s\n", strMessage);
-    uiInterface.ThreadSafeMessageBox(strMessage, "", CClientUIInterface::MSG_ERROR);
     StartShutdown();
+
     return false;
 }
 
@@ -2768,13 +2754,15 @@ bool CheckDiskSpace(uint64_t nAdditionalBytes) {
     uint64_t nFreeBytesAvailable = filesystem::space(GetDataDir()).available;
 
     // Check for kMinDiskSpace bytes (currently 50MB)
-    if (nFreeBytesAvailable < kMinDiskSpace + nAdditionalBytes) return AbortNode(_("Error: Disk space is low!"));
+    if (nFreeBytesAvailable < kMinDiskSpace + nAdditionalBytes)
+        return AbortNode(_("Error: Disk space is low!"));
 
     return true;
 }
 
 bool static LoadBlockIndexDB() {
-    if (!pCdMan->pBlockTreeDb->LoadBlockIndexGuts()) return false;
+    if (!pCdMan->pBlockTreeDb->LoadBlockIndexGuts())
+        return false;
 
     boost::this_thread::interruption_point();
 
@@ -2818,11 +2806,13 @@ bool static LoadBlockIndexDB() {
     LogPrint("INFO", "LoadBlockIndexDB(): transaction index %s\n", bTxIndex ? "enabled" : "disabled");
 
     // Load pointer to end of best chain
-    map<uint256, CBlockIndex *>::iterator it = mapBlockIndex.find(pCdMan->pAccountCache->GetBestBlock());
+    uint256 bestBlockHash = pCdMan->pAccountCache->GetBestBlock();
+    const auto &it = mapBlockIndex.find(bestBlockHash);
+    if (it == mapBlockIndex.end()) {
+        LogPrint("ERROR", "LoadBlockIndexDB(): failed to find block %s\n", bestBlockHash.GetHex());
+        return false;
+    }
 
-    LogPrint("INFO", "best block hash:%s\n", pCdMan->pAccountCache->GetBestBlock().GetHex());
-    if (it == mapBlockIndex.end())
-        return true;
     chainActive.SetTip(it->second);
     LogPrint("INFO", "LoadBlockIndexDB(): hashBestChain=%s height=%d date=%s progress=%f\n",
              chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
@@ -4155,7 +4145,6 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
         if (pTo->fStartSync && !SysCfg().IsImporting() && !SysCfg().IsReindex()) {
             pTo->fStartSync = false;
             nSyncTipHeight  = pTo->nStartingHeight;
-            uiInterface.NotifyBlocksChanged(0, chainActive.Tip()->nHeight, chainActive.Tip()->GetBlockHash());
             LogPrint("net", "start block sync lead to getblocks\n");
             PushGetBlocks(pTo, chainActive.Tip(), uint256());
         }

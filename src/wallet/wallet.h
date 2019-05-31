@@ -16,10 +16,9 @@
 #include <vector>
 #include <memory>
 
-#include "../crypter.h"
+#include "crypter.h"
 #include "accounts/key.h"
 #include "accounts/keystore.h"
-#include "ui_interface.h"
 #include "util.h"
 #include "walletdb.h"
 #include "main.h"
@@ -133,8 +132,6 @@ public:
 
     DBErrors LoadWallet(bool fFirstRunRet);
 
-    void UpdatedTransaction(const uint256 &hashTx);
-
     bool EncryptWallet(const SecureString& strWalletPassphrase);
 
     bool Unlock(const SecureString& strWalletPassphrase);
@@ -144,20 +141,12 @@ public:
     // get the current wallet format (the oldest client version guaranteed to understand this wallet)
     int GetVersion() ;
 
-    bool SetMinVersion(enum WalletFeature nVersion, CWalletDB* pwalletdbIn);
+    bool SetMinVersion(enum WalletFeature nVersion, CWalletDB* pWalletDbIn);
 
 
-    static CWallet* getinstance();
+    static CWallet* GetInstance();
 
     std::tuple<bool,string>  CommitTx(CBaseTx *pTx);
-
-    /** Wallet transaction added, removed or updated.
-     * @note called with lock cs_wallet held.
-     */
-    boost::signals2::signal<void(CWallet *wallet, const uint256 &hashTx, ChangeType status)> NotifyTransactionChanged;
-
-    /** Show progress e.g. for rescan */
-    boost::signals2::signal<void(const string &title, int nProgress)> ShowProgress;
 };
 
 

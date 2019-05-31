@@ -342,38 +342,28 @@ bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
     return true;
 }
 
-bool CWallet::SetMinVersion(enum WalletFeature nVersion, CWalletDB *pwalletdbIn) {
+bool CWallet::SetMinVersion(enum WalletFeature nVersion, CWalletDB *pWalletDbIn) {
     LOCK(cs_wallet);  // nWalletVersion
     if (nWalletVersion >= nVersion) return true;
 
     nWalletVersion = nVersion;
     if (fFileBacked) {
-        CWalletDB *pwalletdb = pwalletdbIn ? pwalletdbIn : new CWalletDB(strWalletFile);
+        CWalletDB *pwalletdb = pWalletDbIn ? pWalletDbIn : new CWalletDB(strWalletFile);
         pwalletdb->WriteMinVersion(nWalletVersion);
-        if (!pwalletdbIn) delete pwalletdb;
+        if (!pWalletDbIn) delete pwalletdb;
     }
 
     return true;
 }
 
-void CWallet::UpdatedTransaction(const uint256 &hashTx) {
-    {
-        LOCK(cs_wallet);
-        // Only notify UI if this transaction is in this wallet
-        NotifyTransactionChanged(this, hashTx, CT_UPDATED);
-    }
-}
-
 bool CWallet::StartUp(string &strWalletFile) {
     auto InitError = [](const string &str) {
-        uiInterface.ThreadSafeMessageBox(
-            str, "", CClientUIInterface::MSG_WARNING | CClientUIInterface::NOSHOWGUI);
+        LogPrint("ERROR", "%s\n", str);
         return true;
     };
 
     auto InitWarning = [](const string &str) {
-        uiInterface.ThreadSafeMessageBox(
-            str, "", CClientUIInterface::MSG_WARNING | CClientUIInterface::NOSHOWGUI);
+        LogPrint("ERROR", "%s\n", str);
         return true;
     };
 
@@ -390,7 +380,6 @@ bool CWallet::StartUp(string &strWalletFile) {
         strWalletFile = defaultFilename;
     }
     LogPrint("INFO", "Using wallet %s\n", strWalletFile);
-    uiInterface.InitMessage(_("Verifying wallet..."));
 
     if (!bitdb.Open(GetDataDir())) {
         // try moving the database env out of the way
@@ -430,13 +419,14 @@ bool CWallet::StartUp(string &strWalletFile) {
                           strDataDir);
             InitWarning(msg);
         }
-        if (r == CDBEnv::RECOVER_FAIL) return InitError(_("wallet.dat corrupt, salvage failed"));
+        if (r == CDBEnv::RECOVER_FAIL)
+            return InitError(_("wallet.dat corrupt, salvage failed"));
     }
 
     return true;
 }
 
-CWallet *CWallet::getinstance() {
+CWallet *CWallet::GetInstance() {
     string strWalletFile("");
     if (StartUp(strWalletFile)) {
         return new CWallet(strWalletFile);
