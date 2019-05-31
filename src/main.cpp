@@ -2406,10 +2406,10 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
 
     // Preliminary checks
     if (!CheckBlock(*pBlock, state, *spCW, false)) {
-        LogPrint("INFO", "CheckBlock() id: %d elapse time:%lld ms\n",
+        LogPrint("INFO", "CheckBlock() height: %d elapse time:%lld ms\n",
                 chainActive.Height(), GetTimeMillis() - llBeginCheckBlockTime);
 
-        return ERRORMSG("ProcessBlock() :block hash:%s CheckBlock FAILED", pBlock->GetHash().GetHex());
+        return ERRORMSG("ProcessBlock() : block hash:%s CheckBlock FAILED", pBlock->GetHash().GetHex());
     }
 
     // If we don't already have its previous block, shunt it off to holding area until we get it
