@@ -21,7 +21,7 @@ public:
     leveldb_error(const string &msg) : runtime_error(msg) {}
 };
 
-void HandleError(const leveldb::Status &status);
+void ThrowError(const leveldb::Status &status);
 
 // Batch of changes queued to be written to a CLevelDBWrapper
 class CLevelDBBatch
@@ -32,6 +32,16 @@ private:
     leveldb::WriteBatch batch;
 
 public:
+    template<typename V> 
+    void Write(const std::string &key, const V& value) {
+    	leveldb::Slice slKey(key);
+        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+        ssValue.reserve(ssValue.GetSerializeSize(value));
+        ssValue << value;
+        leveldb::Slice slValue(&ssValue[0], ssValue.size());
+        batch.Put(slKey, slValue);
+    }
+
     template<typename K, typename V> void Write(const K& key, const V& value) {
     	leveldb::Slice slKey;
     	CDataStream ssKey(SER_DISK, CLIENT_VERSION);
@@ -53,6 +63,10 @@ public:
         ssValue << value;
         leveldb::Slice slValue(&ssValue[0], ssValue.size());
         batch.Put(slKey, slValue);
+    }
+
+    void Erase(const std::string &key) {
+        batch.Delete(key);
     }
 
     template<typename K> void Erase(const K& key) {
@@ -104,6 +118,27 @@ public:
     CLevelDBWrapper(const boost::filesystem::path &path, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
     ~CLevelDBWrapper();
 
+    template<typename V>
+    bool Read(std::string key, V &value) { 
+    	leveldb::Slice slKey(key);
+
+        string strValue;
+        leveldb::Status status = pdb->Get(readoptions, slKey, &strValue);
+        if (!status.ok()) {
+            if (status.IsNotFound())
+                return false;
+            LogPrint("INFO","LevelDB read failure: %s\n", status.ToString().c_str());
+            ThrowError(status);
+        }
+        try {
+            CDataStream ssValue(strValue.data(), strValue.data() + strValue.size(), SER_DISK, CLIENT_VERSION);
+            ssValue >> value;
+        } catch(std::exception &e) {
+            return false;
+        }
+        return true;       
+    }
+
     template<typename K, typename V> bool Read(const K& key, V& value) {
     	leveldb::Slice slKey;
     	CDataStream ssKey(SER_DISK, CLIENT_VERSION);
@@ -127,7 +162,7 @@ public:
             if (status.IsNotFound())
                 return false;
             LogPrint("INFO","LevelDB read failure: %s\n", status.ToString().c_str());
-            HandleError(status);
+            ThrowError(status);
         }
         try {
             CDataStream ssValue(strValue.data(), strValue.data() + strValue.size(), SER_DISK, CLIENT_VERSION);
@@ -138,10 +173,32 @@ public:
         return true;
     }
 
+
+    template<typename V> 
+    bool Write(const std::string &key, const V &value, bool fSync = false) {
+        CLevelDBBatch batch;
+        batch.Write(key, value);
+        return WriteBatch(batch, fSync);
+    }
+
     template<typename K, typename V> bool Write(const K& key, const V& value, bool fSync = false) {
         CLevelDBBatch batch;
         batch.Write(key, value);
         return WriteBatch(batch, fSync);
+    }
+
+
+    bool Exists(const std::string &key) {
+    	leveldb::Slice slKey(key);
+        string strValue;
+        leveldb::Status status = pdb->Get(readoptions, slKey, &strValue);
+        if (!status.ok()) {
+            if (status.IsNotFound())
+                return false;
+            LogPrint("INFO","LevelDB read failure: %s\n", status.ToString().c_str());
+            ThrowError(status);
+        }
+        return true;
     }
 
     template<typename K> bool Exists(const K& key) {
@@ -167,7 +224,7 @@ public:
             if (status.IsNotFound())
                 return false;
             LogPrint("INFO","LevelDB read failure: %s\n", status.ToString().c_str());
-            HandleError(status);
+            ThrowError(status);
         }
         return true;
     }
