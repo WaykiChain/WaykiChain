@@ -22,36 +22,46 @@ bool CSyncDataDb::InitializeSyncDataDb(const boost::filesystem::path &path)
 
 bool CSyncDataDb::WriteCheckpoint(int height, const CSyncData& data)
 {
+/* TODO: delete checkpoint
 	bool ret = false;
 	if (m_dbPoint)
 	{
 		ret = m_dbPoint->Write(std::make_pair('c', height), data);
 	}
 	return ret;
+*/
+    return false;
 }
 
 bool CSyncDataDb::ReadCheckpoint(int height, CSyncData& data)
 {
+/* TODO: delete checkpoint
 	bool ret = false;
 	if (m_dbPoint)
 	{
 		ret = m_dbPoint->Read(std::make_pair('c', height), data);
 	}
 	return ret;
+*/
+    return false;
 }
 
 bool CSyncDataDb::ExistCheckpoint(int height)
 {
+/* TODO: delete checkpoint
 	bool ret = false;
 	if (m_dbPoint)
 	{
 		ret = m_dbPoint->Exists(height);
 	}
 	return ret;
+*/
+    return false;
 }
 
 bool CSyncDataDb::LoadCheckPoint(std::map<int, uint256>& values)
 {
+/* TODO: delete checkpoint
 	bool ret = false;
 	if (m_dbPoint)
 	{
@@ -95,6 +105,8 @@ bool CSyncDataDb::LoadCheckPoint(std::map<int, uint256>& values)
 		ret = true;
 	}
 	return ret;
+*/
+    return false;
 }
 
 
