@@ -49,22 +49,20 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     cw.txUndo.txHash = GetHash();
 
     CRegID regId(nHeight, nIndex);
-    //create script account
+    // create script account
     CKeyID keyId = Hash160(regId.GetRegIdRaw());
     CAccount account;
     account.keyID = keyId;
     account.regID = regId;
     account.nickID = CNickID();
-    //save new script content
-    if(!cw.contractCache.SetScript(regId, contractScript)){
-        return state.DoS(100,
-            ERRORMSG("CContractDeployTx::ExecuteTx, save script id %s script info error",
-                regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+    // save new script content
+    if (!cw.contractCache.SetScript(regId, contractScript)) {
+        return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, save script id %s script info error",
+            regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
     if (!cw.accountCache.SaveAccount(account)) {
-        return state.DoS(100,
-            ERRORMSG("CContractDeployTx::ExecuteTx, create new account script id %s script info error",
-                regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+        return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, create new account script id %s script info error",
+            regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
 
     nRunStep = contractScript.size();

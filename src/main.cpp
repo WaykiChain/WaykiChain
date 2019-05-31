@@ -1342,16 +1342,13 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         for (unsigned int i = 1; i < block.vptx.size(); i++) {
             std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
             if (cw.txCache.HaveTx((pBaseTx->GetHash())))
-                return state.DoS(100, ERRORMSG("ConnectBlock() : the TxHash %s the confirm duplicate",
-                                pBaseTx->GetHash().GetHex()), REJECT_INVALID, "bad-coinbase-amount");
+                return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s duplicated",
+                                pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-duplicated");
 
             assert(mapBlockIndex.count(cw.accountCache.GetBestBlock()));
             if (!pBaseTx->IsValidHeight(mapBlockIndex[cw.accountCache.GetBestBlock()]->nHeight, SysCfg().GetTxCacheHeight()))
-                return state.DoS(100, ERRORMSG("ConnectBlock() : txhash=%s beyond the scope of valid height",
+                return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s beyond the scope of valid height",
                                 pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
-
-            if (CONTRACT_INVOKE_TX == pBaseTx->nTxType)
-                LogPrint("vm", "tx hash=%s ConnectBlock run contract\n", pBaseTx->GetHash().GetHex());
 
             LogPrint("op_account", "tx index:%d tx hash:%s\n", i, pBaseTx->GetHash().GetHex());
             pBaseTx->nFuelRate = block.GetFuelRate();
@@ -1578,6 +1575,7 @@ bool static DisconnectTip(CValidationState &state) {
 
         // Need to re-sync all to global cache layer.
         spCW->accountCache.Flush(pCdMan->pAccountCache);
+        spCW->txCache.Flush(pCdMan->pTxCache);
         spCW->contractCache.Flush(pCdMan->pContractCache);
 
     }
@@ -1628,9 +1626,9 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
     {
         CInv inv(MSG_BLOCK, pIndexNew->GetBlockHash());
 
-        auto spCW = std::make_shared<CCacheWrapper>();
-        spCW->accountCache = *pCdMan->pAccountCache;
-        spCW->txCache = *pCdMan->pTxCache;
+        auto spCW           = std::make_shared<CCacheWrapper>();
+        spCW->accountCache  = *pCdMan->pAccountCache;
+        spCW->txCache       = *pCdMan->pTxCache;
         spCW->contractCache = *pCdMan->pContractCache;
 
         if (!ConnectBlock(block, *spCW, pIndexNew, state)) {
@@ -1643,10 +1641,11 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
 
         // Need to re-sync all to global cache layer.
         spCW->accountCache.Flush(pCdMan->pAccountCache);
+        spCW->txCache.Flush(pCdMan->pTxCache);
         spCW->contractCache.Flush(pCdMan->pContractCache);
 
-        CAccountCache accountViewCacheTemp(*pCdMan->pAccountCache);
-        uint256 uBestblockHash = accountViewCacheTemp.GetBestBlock();
+        CAccountCache accountCache(*pCdMan->pAccountCache);
+        uint256 uBestblockHash = accountCache.GetBestBlock();
         LogPrint("INFO", "uBestBlockHash[%d]: %s\n", nSyncTipHeight, uBestblockHash.GetHex());
     }
 
@@ -1938,17 +1937,18 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     if (pPreBlockIndex->GetBlockHash() == chainActive.Tip()->GetBlockHash())
         return true;  // no fork
 
-    std::shared_ptr<CAccountCache>      pForkAcctViewCache;
-    std::shared_ptr<CTransactionCache>  pForkTxCache;
-    std::shared_ptr<CContractCache>     pForkContractCache;
+    std::shared_ptr<CAccountCache> pForkAccountCache;
+    std::shared_ptr<CTransactionCache> pForkTxCache;
+    std::shared_ptr<CContractCache> pForkContractCache;
 
-    std::shared_ptr<CAccountCache> pAcctViewCache = std::make_shared<CAccountCache>(pCdMan->pAccountDb, pCdMan->pAccountCache);
+    std::shared_ptr<CAccountCache> pAccountCache =
+        std::make_shared<CAccountCache>(pCdMan->pAccountDb, pCdMan->pAccountCache);
 
     std::shared_ptr<CTransactionCache> pTxCache = std::make_shared<CTransactionCache>();
     pTxCache->SetTxHashCache(pCdMan->pTxCache->GetTxHashCache());
 
     std::shared_ptr<CContractCache> pContractCache = std::make_shared<CContractCache>(*pCdMan->pContractDb);
-    pContractCache->mapContractDb = pCdMan->pContractCache->mapContractDb;
+    pContractCache->mapContractDb                  = pCdMan->pContractCache->mapContractDb;
 
     bool forkChainTipFound = false;
     uint256 forkChainTipBlockHash;
@@ -1979,13 +1979,19 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }  //如果进来的preBlockHash不为tip的hash, 找到主链中分叉处
 
     if (mapForkCache.count(pPreBlockIndex->GetBlockHash())) {
-        pAcctViewCache = std::get<0>(mapForkCache[pPreBlockIndex->GetBlockHash()]);
+        pAccountCache  = std::get<0>(mapForkCache[pPreBlockIndex->GetBlockHash()]);
         pTxCache       = std::get<1>(mapForkCache[pPreBlockIndex->GetBlockHash()]);
         pContractCache = std::get<2>(mapForkCache[pPreBlockIndex->GetBlockHash()]);
         LogPrint("INFO", "hash=%s, height=%d\n", pPreBlockIndex->GetBlockHash().GetHex(), pPreBlockIndex->nHeight);
     } else {
-        int64_t beginTime = GetTimeMillis();
+        int64_t beginTime        = GetTimeMillis();
         CBlockIndex *pBlockIndex = chainActive.Tip();
+
+        auto spCW                = std::make_shared<CCacheWrapper>();
+        spCW->accountCache       = *pAccountCache;
+        spCW->txCache            = *pTxCache;
+        spCW->contractCache      = *pContractCache;
+
         while (pPreBlockIndex != pBlockIndex) {
             LogPrint("INFO", "ProcessForkedChain() DisconnectBlock block nHeight=%d hash=%s\n", pBlockIndex->nHeight,
                      pBlockIndex->GetBlockHash().GetHex());
@@ -1994,11 +2000,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
             if (!ReadBlockFromDisk(pBlockIndex, block))
                 return state.Abort(_("Failed to read block"));
 
-            bool bfClean = true;
-            auto spCW = std::make_shared<CCacheWrapper>();
-            spCW->accountCache = *pAcctViewCache;
-            spCW->txCache = *pTxCache;
-            spCW->contractCache = *pContractCache;
+            bool bfClean        = true;
             if (!DisconnectBlock(block, *spCW, pBlockIndex, state, &bfClean)) {
                 return ERRORMSG("ProcessForkedChain() : DisconnectBlock %s failed",
                                 pBlockIndex->GetBlockHash().ToString());
@@ -2006,43 +2008,50 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
             pBlockIndex = pBlockIndex->pprev;
         }  //数据库状态回滚到主链分叉处
+
+        // Need to re-sync all to cache layer.
+        spCW->accountCache.Flush(pAccountCache.get());
+        spCW->txCache.Flush(pTxCache.get());
+        spCW->contractCache.Flush(pContractCache.get());
+
         LogPrint("INFO", "ProcessForkedChain() DisconnectBlock elapse: %lld ms\n", GetTimeMillis() - beginTime);
 
-        mapForkCache[pPreBlockIndex->GetBlockHash()] = std::make_tuple(pAcctViewCache, pTxCache, pContractCache);
+        mapForkCache[pPreBlockIndex->GetBlockHash()] = std::make_tuple(pAccountCache, pTxCache, pContractCache);
 
         LogPrint("INFO", "add mapForkCache Key:%s height:%d\n", pPreBlockIndex->GetBlockHash().GetHex(), pPreBlockIndex->nHeight);
-        LogPrint("INFO", "add pAcctViewCache:%x\n", pAcctViewCache.get());
-        LogPrint("INFO", "view best block hash:%s\n", pAcctViewCache->GetBestBlock().GetHex());
+        LogPrint("INFO", "add pAccountCache:%x\n", pAccountCache.get());
+        LogPrint("INFO", "view best block hash:%s\n", pAccountCache->GetBestBlock().GetHex());
     }
 
     if (forkChainTipFound) {
-        pForkAcctViewCache = std::get<0>(mapForkCache[forkChainTipBlockHash]);
+        pForkAccountCache  = std::get<0>(mapForkCache[forkChainTipBlockHash]);
         pForkTxCache       = std::get<1>(mapForkCache[forkChainTipBlockHash]);
         pForkContractCache = std::get<2>(mapForkCache[forkChainTipBlockHash]);
 
-        pForkAcctViewCache->SetBaseView(pAcctViewCache.get());
+        pForkAccountCache->SetBaseView(pAccountCache.get());
         pForkContractCache->SetBaseView(pContractCache.get());
     } else {
-        pForkAcctViewCache.reset(new CAccountCache(*pAcctViewCache));
+        pForkAccountCache.reset(new CAccountCache(*pAccountCache));
         pForkTxCache.reset(new CTransactionCache(*pTxCache));
         pForkContractCache.reset(new CContractCache(*pContractCache));
     }
 
-    LogPrint("INFO", "pForkAcctView:%x\n", pForkAcctViewCache.get());
-    LogPrint("INFO", "view best block hash:%s height:%d\n", pForkAcctViewCache->GetBestBlock().GetHex(),
-            mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight);
+    LogPrint("INFO", "pForkAcctView:%x\n", pForkAccountCache.get());
+    LogPrint("INFO", "view best block hash:%s height:%d\n", pForkAccountCache->GetBestBlock().GetHex(),
+            mapBlockIndex[pForkAccountCache->GetBestBlock()]->nHeight);
 
-    auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache = *pForkAcctViewCache;
-    spCW->contractCache = *pForkContractCache;
-    spCW->txCache = *pForkTxCache;
+    // Reset spCW first.
+    auto spForkCW           = std::make_shared<CCacheWrapper>();
+    spForkCW->accountCache  = *pForkAccountCache;
+    spForkCW->txCache       = *pForkTxCache;
+    spForkCW->contractCache = *pForkContractCache;
 
     vector<CBlock>::reverse_iterator rIter = vPreBlocks.rbegin();
     for (; rIter != vPreBlocks.rend(); ++rIter) {  //连接支链的block
-        LogPrint("INFO", "ProcessForkedChain() ConnectBlock block nHeight=%d hash=%s\n",
-                rIter->GetHeight(), rIter->GetHash().GetHex());
+        LogPrint("INFO", "ProcessForkedChain() : ConnectBlock block nHeight=%d hash=%s\n", rIter->GetHeight(),
+                 rIter->GetHash().GetHex());
 
-        if (!ConnectBlock(*rIter, *spCW, mapBlockIndex[rIter->GetHash()], state, false)) {
+        if (!ConnectBlock(*rIter, *spForkCW, mapBlockIndex[rIter->GetHash()], state, false)) {
             return ERRORMSG("ProcessForkedChain() : ConnectBlock %s failed", rIter->GetHash().ToString());
         }
 
@@ -2052,16 +2061,21 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         }
     }
 
+    // Need to re-sync all to cache layer.
+    spForkCW->accountCache.Flush(pForkAccountCache.get());
+    spForkCW->txCache.Flush(pForkTxCache.get());
+    spForkCW->contractCache.Flush(pForkContractCache.get());
+
     // Verify reward transaction
-    if (!VerifyPosTx(&block, *spCW, true)) {
-        return state.DoS(100, ERRORMSG("ProcessForkedChain() : the block hash=%s check pos tx error",
+    if (!VerifyPosTx(&block, *spForkCW, true)) {
+        return state.DoS(100, ERRORMSG("ProcessForkedChain() : txid=%s check pos tx error",
                         block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
     }
 
     // Verify reward value
     CBlockRewardTx *pRewardTx = (CBlockRewardTx *)block.vptx[0].get();
     CAccount minerAcct;
-    if (!pForkAcctViewCache->GetAccount(pRewardTx->txUid, minerAcct)) {
+    if (!pForkAccountCache->GetAccount(pRewardTx->txUid, minerAcct)) {
         assert(0);
     }
 
@@ -2075,7 +2089,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
     for (auto &item : block.vptx) {
         // Verify height
-        if (!item->IsValidHeight(mapBlockIndex[pForkAcctViewCache->GetBestBlock()]->nHeight, SysCfg().GetTxCacheHeight())) {
+        if (!item->IsValidHeight(mapBlockIndex[pForkAccountCache->GetBestBlock()]->nHeight, SysCfg().GetTxCacheHeight())) {
             return state.DoS(100, ERRORMSG("ProcessForkedChain() : txid=%s beyond the scope of valid height\n ",
                             item->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
         }
@@ -2093,7 +2107,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         }
 
         std::tuple<std::shared_ptr<CAccountCache>, std::shared_ptr<CTransactionCache>, std::shared_ptr<CContractCache> > cache =
-            std::make_tuple(pForkAcctViewCache, pForkTxCache, pForkContractCache);
+            std::make_tuple(pForkAccountCache, pForkTxCache, pForkContractCache);
         mapForkCache[iterBlock->GetHash()] = cache;
         LogPrint("INFO", "add mapForkCache Key:%s\n", iterBlock->GetHash().GetHex());
     }
