@@ -1144,10 +1144,9 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
     if ((blockUndo.vtxundo.size() != block.vptx.size()) && (blockUndo.vtxundo.size() != (block.vptx.size() + 1)))
         return ERRORMSG("DisconnectBlock() : block and undo data inconsistent");
 
-    CTxUndo txUndo;
     if (pIndex->nHeight > COINBASE_MATURITY) {
         // Undo mature reward tx
-        txUndo = blockUndo.vtxundo.back();
+        CTxUndo txUndo = blockUndo.vtxundo.back();
         blockUndo.vtxundo.pop_back();
         CBlockIndex *pMatureIndex = pIndex;
         for (int i = 0; i < COINBASE_MATURITY; ++i) {
@@ -2860,8 +2859,8 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
     // Copy global view cache before disconnect and connect.
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache = *pCdMan->pAccountCache;
-    spCW->contractCache = *pCdMan->pContractCache;
     spCW->txCache = *pCdMan->pTxCache;
+    spCW->contractCache = *pCdMan->pContractCache;
 
     CBlockIndex *pIndexState   = chainActive.Tip();
     CBlockIndex *pIndexFailure = nullptr;
