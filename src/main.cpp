@@ -1343,7 +1343,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
             if (cw.txCache.HaveTx((pBaseTx->GetHash())))
                 return state.DoS(100, ERRORMSG("ConnectBlock() : the TxHash %s the confirm duplicate",
-                                pBaseTx->GetHash().GetHex()), REJECT_INVALID, "bad-cb-amount");
+                                pBaseTx->GetHash().GetHex()), REJECT_INVALID, "bad-coinbase-amount");
 
             assert(mapBlockIndex.count(cw.accountCache.GetBestBlock()));
             if (!pBaseTx->IsValidHeight(mapBlockIndex[cw.accountCache.GetBestBlock()]->nHeight, SysCfg().GetTxCacheHeight()))
@@ -1385,7 +1385,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                             nTotalFuel, block.GetFuel());
     }
 
-    std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[0]);
+    CBlockRewardTx *pRewardTx = (CBlockRewardTx *)block.vptx[0].get();
     CAccount minerAcct;
     if (!pCdMan->pAccountCache->GetAccount(pRewardTx->txUid, minerAcct)) {
         assert(0);
@@ -1394,10 +1394,10 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     // Verify BlockRewardTx
     uint64_t llValidReward = block.GetFee() - block.GetFuel() + minerAcct.CalculateAccountProfit(block.GetHeight());
     if (pRewardTx->rewardValue != llValidReward) {
-        LogPrint("INFO", "block height:%u, block fee:%lld, block fuel:%u, vote profits:%llu\n", block.GetHeight(),
+        LogPrint("ERROR", "block height:%u, block fee:%lld, block fuel:%u, vote profits:%llu\n", block.GetHeight(),
                  block.GetFee(), block.GetFuel(), minerAcct.CalculateAccountProfit(block.GetHeight()));
         return state.DoS(100, ERRORMSG("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
-                        pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-cb-amount");
+                        pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-coinbase-amount");
     }
 
     // Execute BlockRewardTx
@@ -2059,11 +2059,19 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
     // Verify reward value
-    std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[0]);
-    uint64_t llValidReward = block.GetFee() - block.GetFuel();
-    if (pRewardTx->rewardValue != llValidReward)
+    CBlockRewardTx *pRewardTx = (CBlockRewardTx *)block.vptx[0].get();
+    CAccount minerAcct;
+    if (!pForkAcctViewCache->GetAccount(pRewardTx->txUid, minerAcct)) {
+        assert(0);
+    }
+
+    uint64_t llValidReward = block.GetFee() - block.GetFuel() + minerAcct.CalculateAccountProfit(block.GetHeight());
+    if (pRewardTx->rewardValue != llValidReward) {
+        LogPrint("ERROR", "block height:%u, block fee:%lld, block fuel:%u, vote profits:%llu\n", block.GetHeight(),
+                 block.GetFee(), block.GetFuel(), minerAcct.CalculateAccountProfit(block.GetHeight()));
         return state.DoS(100, ERRORMSG("ProcessForkedChain() : coinbase pays too much (actual=%d vs limit=%d)",
-                        pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-cb-amount");
+                        pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-coinbase-amount");
+    }
 
     for (auto &item : block.vptx) {
         // Verify height
