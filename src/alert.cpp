@@ -1,14 +1,13 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The WaykiChain developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #include "alert.h"
 
 #include "accounts/key.h"
 #include "net.h"
-#include "ui_interface.h"
 #include "util.h"
 
 #include <stdint.h>
@@ -199,23 +198,17 @@ bool CAlert::ProcessAlert(bool fThread)
     {
         LOCK(cs_mapAlerts);
         // Cancel previous alerts
-        for (map<uint256, CAlert>::iterator mi = mapAlerts.begin(); mi != mapAlerts.end();)
-        {
+        for (map<uint256, CAlert>::iterator mi = mapAlerts.begin(); mi != mapAlerts.end();) {
             const CAlert& alert = (*mi).second;
-            if (Cancels(alert))
-            {
+            if (Cancels(alert)) {
                 LogPrint("alert", "cancelling alert %d\n", alert.nID);
-                uiInterface.NotifyAlertChanged((*mi).first, CT_DELETED);
                 mapAlerts.erase(mi++);
-            }
-            else if (!alert.IsInEffect())
-            {
+            } else if (!alert.IsInEffect()) {
                 LogPrint("alert", "expiring alert %d\n", alert.nID);
-                uiInterface.NotifyAlertChanged((*mi).first, CT_DELETED);
                 mapAlerts.erase(mi++);
-            }
-            else
+            } else {
                 mi++;
+            }
         }
 
         // Check if this alert has been cancelled
@@ -230,22 +223,19 @@ bool CAlert::ProcessAlert(bool fThread)
         // Add to mapAlerts
         mapAlerts.insert(make_pair(GetHash(), *this));
         // Notify UI and -alertnotify if it applies to me
-        if(AppliesToMe())
-        {
-            uiInterface.NotifyAlertChanged(GetHash(), CT_NEW);
+        if (AppliesToMe()) {
             string strCmd = SysCfg().GetArg("-alertnotify", "");
-            if (!strCmd.empty())
-            {
+            if (!strCmd.empty()) {
                 // Alert text should be plain ascii coming from a trusted source, but to
                 // be safe we first strip anything not in safeChars, then add single quotes around
                 // the whole string before passing it to the shell:
                 string singleQuote("'");
                 string safeStatus = SanitizeString(strStatusBar);
-                safeStatus = singleQuote+safeStatus+singleQuote;
+                safeStatus        = singleQuote + safeStatus + singleQuote;
                 boost::replace_all(strCmd, "%s", safeStatus);
 
                 if (fThread)
-                    boost::thread t(runCommand, strCmd); // thread runs free
+                    boost::thread t(runCommand, strCmd);  // thread runs free
                 else
                     runCommand(strCmd);
             }

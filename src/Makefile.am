@@ -63,7 +63,6 @@ coin_CORE_H = \
   mruset.h \
   netbase.h \
   net.h \
-  noui.h \
   persistence/leveldbwrapper.h \
   persistence/accountdb.h \
   persistence/block.h \
@@ -99,7 +98,6 @@ coin_CORE_H = \
   sync.h \
   threadsafety.h \
   tinyformat.h \
-  ui_interface.h \
   uint256.h \
   util.h \
   version.h \
@@ -217,12 +215,10 @@ libcoin_server_a_SOURCES = \
   alert.cpp \
   configuration.cpp \
   crypto/sha256.cpp \
-  cuiserver.cpp	\
   init.cpp \
   main.cpp \
   miner/miner.cpp \
   net.cpp \
-  noui.cpp \
   rpc/httpserver.cpp \
   rpc/rpcblockchain.cpp \
   rpc/rpcmining.cpp \
