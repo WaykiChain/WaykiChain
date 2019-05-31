@@ -1024,7 +1024,8 @@ void static InvalidChainFound(CBlockIndex *pIndexNew) {
         // The current code doesn't actually read the BestInvalidWork entry in
         // the block database anymore, as it is derived from the flags in block
         // index entry. We only write it for backward compatibility.
-        pCdMan->pBlockTreeDb->WriteBestInvalidWork(ArithToUint256(pindexBestInvalid->nChainWork));
+        // TODO: need to remove the indexBestInvalid
+        //pCdMan->pBlockTreeDb->WriteBestInvalidWork(ArithToUint256(pindexBestInvalid->nChainWork));
     }
     LogPrint("INFO", "InvalidChainFound: invalid block=%s  height=%d  log2_work=%.8g  date=%s\n",
              pIndexNew->GetBlockHash().ToString(), pIndexNew->nHeight,

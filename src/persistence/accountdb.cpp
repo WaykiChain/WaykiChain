@@ -551,9 +551,6 @@ Object CAccountDB::ToJsonObj(dbk::PrefixType prefix) {
         boost::this_thread::interruption_point();
         try {
             leveldb::Slice slKey = pcursor->key();
-            CDataStream ssKey(slKey.data(), slKey.data() + slKey.size(), SER_DISK, CLIENT_VERSION);
-            char chType;
-            ssKey >> chType;
             if (slKey.starts_with(prefixStr)) {
                 leveldb::Slice slValue = pcursor->value();
                 Object obj;

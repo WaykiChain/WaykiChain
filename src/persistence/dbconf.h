@@ -23,8 +23,8 @@ namespace dbk {
         //               ----------           ------------   -----------------------------
     #define DBK_PREFIX_LIST(EACH_ENUM_DEFINE) \
         EACH_ENUM_DEFINE( EMPTY,              "",         "empty prefix" ) \
-        EACH_ENUM_DEFINE( REINDEX,            "ridx",     "rind --> 1 | 0" ) \
-        EACH_ENUM_DEFINE( FLAG,               "flag",     "flag --> 1 | 0" ) \
+        EACH_ENUM_DEFINE( REINDEX,            "ridx",     "[prefix] --> $Reindex = 1 | 0" ) \
+        EACH_ENUM_DEFINE( FLAG,               "flag",     "[prefix] --> $Flag = 1 | 0" ) \
         EACH_ENUM_DEFINE( VOTE,               "vote",     "vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1" ) \
         EACH_ENUM_DEFINE( KEYID_TXID,         "idtx",     "idtx{$KeyId}{$Height}{$Index} --> $txid" ) \
         EACH_ENUM_DEFINE( TXID_KEYIDS,        "tids",     "tids{$txid} --> {$KeyId1, $KeyId2, ...}" ) \
@@ -32,8 +32,10 @@ namespace dbk {
         EACH_ENUM_DEFINE( REGID_KEYID,        "rkey",     "rkey{$RegID} --> $KeyId" ) \
         EACH_ENUM_DEFINE( NICKID_KEYID,       "nkey",     "nkey{$NickID} --> $KeyId" ) \
         EACH_ENUM_DEFINE( KEYID_ACCOUNT,      "idac",     "idac{$KeyID} --> $CAccount" ) \
-        EACH_ENUM_DEFINE( BEST_BLOCKHASH,     "bbkh",     "pbkh --> $BestBlockHash" ) \
-        EACH_ENUM_DEFINE( PERSIST_BLOCKFILE,  "pbfl",     "pbfl --> $nFile" ) \
+        EACH_ENUM_DEFINE( BEST_BLOCKHASH,     "btbh",     " [prefix] --> $BestBlockHash" ) \
+        EACH_ENUM_DEFINE( BLOCK_INDEX,        "bidx",     "pbfl --> $nFile" ) \
+        EACH_ENUM_DEFINE( BLOCKFILE_NUM_INFO, "bfni",     "BlockFileNum --> $BlockFileInfo" ) \
+        EACH_ENUM_DEFINE( LAST_BLOCKFILE,     "ltbf",      "[prefix] --> $LastBlockFile" ) \
         EACH_ENUM_DEFINE( CONTRACT_COUNT,     "cnum",     "cnum{$ContractRegId} --> $total_num_of_cntracts" ) \
         EACH_ENUM_DEFINE( CONTRACT_DEF,       "cdef",     "cdef{$ContractRegId} --> $ContractContent" ) \
         EACH_ENUM_DEFINE( CONTRACT_DATA,      "cdat",     "cdat{$RegId}_{$DataKey} --> $Data" ) \
