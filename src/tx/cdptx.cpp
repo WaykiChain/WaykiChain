@@ -67,7 +67,7 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
     cw.txUndo.accountLogs.push_back(acctLog);
 
     CDBOpLog cdpDbOpLog;
-    cw.cdpCache->SetStakeBcoins(bcoinsToStake, nHeight, cdpDbOpLog); //update cache & persis to ldb
+    cw.cdpCache->SetStakeBcoins(txUid, bcoinsToStake, nHeight, cdpDbOpLog); //update cache & persis to ldb
     cw.txUndo.cdpOpLogs.push_back(cdpDbOpLog);
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());

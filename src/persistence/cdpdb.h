@@ -42,7 +42,7 @@ public:
 
 class CCdpCache: public ICdpView  {
 public:
-    bool SetStakeBcoins(uint64_t bcoinsToStake, int blockHeight, CDBOpLog &cdpDbOpLog);
+    bool SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, int blockHeight, CDBOpLog &cdpDbOpLog);
     bool GetLiquidityCdpItems(vector<CdpItem> & cdpItems);
 
 public:

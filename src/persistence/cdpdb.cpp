@@ -5,7 +5,7 @@
 
 #include "cdpdb.h"
 
-bool CCdpCache::SetStakeBcoins(uint64_t bcoinsToStake, int blockHeight, CDBOpLog &cdpDbOpLog) {
+bool CCdpCache::SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, int blockHeight, CDBOpLog &cdpDbOpLog) {
     //TODO
     return true;
 }
