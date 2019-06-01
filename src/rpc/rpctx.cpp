@@ -520,7 +520,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 Value callcontracttx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
-            "callcontracttx \"sender addr\" \"app regid\" \"amount\" \"contract\" \"fee\" (\"height\")\n"
+            "callcontracttx \"sender addr\" \"app regid\" \"arguments\" \"amount\" \"fee\" (\"height\")\n"
             "\ncreate contract invocation transaction\n"
             "\nArguments:\n"
             "1.\"sender addr\": (string, required)  tx sender's base58 addr\n"
