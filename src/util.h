@@ -14,7 +14,6 @@
 #include "compat/compat.h"
 #include "commons/serialize.h"
 #include "commons/tinyformat.h"
-#include "ui_interface.h"
 
 #include <stdarg.h>
 #include <stdint.h>
@@ -112,7 +111,6 @@ typedef map<string, DebugLogFile>::iterator DebugLogFileIt;
 extern string strMiscWarning;
 extern bool fNoListen;
 extern volatile bool fReopenDebugLog;
-extern CClientUIInterface * pUIInterface;
 
 void RandAddSeed();
 void RandAddSeedPerfmon();
@@ -297,18 +295,6 @@ inline string HexStr(const T& vch, bool fSpaces = false) {
 	return HexStr(vch.begin(), vch.end(), fSpaces);
 }
 
-//inline int64_t GetPerformanceCounter() {
-//	int64_t nCounter = 0;
-//#ifdef WIN32
-//	QueryPerformanceCounter((LARGE_INTEGER*) &nCounter);
-//#else
-//	timeval t;
-//	gettimeofday(&t, NULL);
-//	nCounter = (int64_t) t.tv_sec * 1000000 + t.tv_usec;
-//#endif
-//	return nCounter;
-//}
-
 inline int64_t GetTimeMillis() {
 	return (boost::posix_time::ptime(boost::posix_time::microsec_clock::universal_time())
 			- boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1))).total_milliseconds();
@@ -334,27 +320,6 @@ inline bool IsSwitchChar(char c) {
 	return c == '-';
 #endif
 }
-
-/**
- * MWC RNG of George Marsaglia
- * This is intended to be fast. It has a period of 2^59.3, though the
- * least significant 16 bits only have a period of about 2^30.1.
- *
- * @return random value
- */
-//extern uint32_t insecure_rand_Rz;
-//extern uint32_t insecure_rand_Rw;
-//static inline uint32_t insecure_rand(void) {
-//	insecure_rand_Rz = 36969 * (insecure_rand_Rz & 65535) + (insecure_rand_Rz >> 16);
-//	insecure_rand_Rw = 18000 * (insecure_rand_Rw & 65535) + (insecure_rand_Rw >> 16);
-//	return (insecure_rand_Rw << 16) + insecure_rand_Rz;
-//}
-
-/**
- * Seed insecure_rand using the random pool.
- * @param Deterministic Use a determinstic seed
- */
-//void seed_insecure_rand(bool fDeterministic = false);
 
 /**
  * Timing-attack-resistant comparison.
@@ -535,5 +500,7 @@ constexpr inline bool IsSpace(char c) noexcept {
  *   false if not the entire string could be parsed or when overflow or underflow occurred.
  */
 bool ParseInt32(const std::string& str, int32_t *out);
+
+inline string _(const char* str) { return string(str); }
 
 #endif

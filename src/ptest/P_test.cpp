@@ -4,22 +4,15 @@
 
 #define BOOST_TEST_MODULE Process Test Suite
 
-
-
-#include "main.h"
-#include "ui_interface.h"
-#include "util.h"
-#include <string>
-
-#include "./wallet/wallet.h"
-
-
 #include <boost/filesystem.hpp>
 #include <boost/test/unit_test.hpp>
+#include <string>
 #include "chainparams.h"
-using namespace std;
+#include "main.h"
+#include "util.h"
+#include "wallet/wallet.h"
 
-//extern void noui_connect();
+using namespace std;
 
 struct TestingSetup {
 	TestingSetup() {

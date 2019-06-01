@@ -156,7 +156,7 @@ void UnregisterWallet(CWalletInterface *pwalletIn);
 /** Unregister all wallets from core */
 void UnregisterAllWallets();
 /** Push an updated transaction to all registered wallets */
-void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pBlock = NULL);
+void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pBlock = nullptr);
 /** Erase Tx from wallets **/
 void EraseTransaction(const uint256 &hash);
 /** Register with a network node to receive its signals */
@@ -243,20 +243,20 @@ private:
     vector<CBlockIndex *> vChain;
 
 public:
-    /** Returns the index entry for the genesis block of this chain, or NULL if none. */
+    /** Returns the index entry for the genesis block of this chain, or nullptr if none. */
     CBlockIndex *Genesis() const {
-        return vChain.size() > 0 ? vChain[0] : NULL;
+        return vChain.size() > 0 ? vChain[0] : nullptr;
     }
 
-    /** Returns the index entry for the tip of this chain, or NULL if none. */
+    /** Returns the index entry for the tip of this chain, or nullptr if none. */
     CBlockIndex *Tip() const {
-        return vChain.size() > 0 ? vChain[vChain.size() - 1] : NULL;
+        return vChain.size() > 0 ? vChain[vChain.size() - 1] : nullptr;
     }
 
-    /** Returns the index entry at a particular height in this chain, or NULL if no such height exists. */
+    /** Returns the index entry at a particular height in this chain, or nullptr if no such height exists. */
     CBlockIndex *operator[](int nHeight) const {
         if (nHeight < 0 || nHeight >= (int)vChain.size())
-            return NULL;
+            return nullptr;
         return vChain[nHeight];
     }
 
@@ -271,12 +271,12 @@ public:
         return (*this)[pIndex->nHeight] == pIndex;
     }
 
-    /** Find the successor of a block in this chain, or NULL if the given index is not found or is the tip. */
+    /** Find the successor of a block in this chain, or nullptr if the given index is not found or is the tip. */
     CBlockIndex *Next(const CBlockIndex *pIndex) const {
         if (Contains(pIndex))
             return (*this)[pIndex->nHeight + 1];
         else
-            return NULL;
+            return nullptr;
     }
 
     /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->nHeight : -1. */
@@ -288,7 +288,7 @@ public:
     CBlockIndex *SetTip(CBlockIndex *pIndex);
 
     /** Return a CBlockLocator that refers to a block in this chain (by default the tip). */
-    CBlockLocator GetLocator(const CBlockIndex *pIndex = NULL) const;
+    CBlockLocator GetLocator(const CBlockIndex *pIndex = nullptr) const;
 
     /** Find the last common block between this chain and a locator. */
     CBlockIndex *FindFork(const CBlockLocator &locator) const;
@@ -640,8 +640,6 @@ protected:
     virtual void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pBlock) = 0;
     virtual void EraseTransaction(const uint256 &hash)                                        = 0;
     virtual void SetBestChain(const CBlockLocator &locator)                                   = 0;
-    virtual void UpdatedTransaction(const uint256 &hash)                                      = 0;
-    // virtual void Inventory(const uint256 &hash)                                               = 0;
     virtual void ResendWalletTransactions()                                                   = 0;
     friend void ::RegisterWallet(CWalletInterface *);
     friend void ::UnregisterWallet(CWalletInterface *);
@@ -657,7 +655,7 @@ extern CSignatureCache signatureCache;
  *  In case pfClean is provided, operation will try to be tolerant about errors, and *pfClean
  *  will be true if no problems were found. Otherwise, the return value will be false in case
  *  of problems. Note that in any case, coins may be modified. */
-bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool *pfClean = NULL);
+bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool *pfClean = nullptr);
 // Apply the effects of this block (with given index) on the UTXO set represented by coins
 bool ConnectBlock   (CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool fJustCheck = false);
 
@@ -672,7 +670,7 @@ bool ProcessForkedChain(const CBlock &block, CValidationState &state);
 
 // Store block on disk
 // if dbp is provided, the file is known to already reside on disk
-bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp = NULL);
+bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp = nullptr);
 
 //disconnect block for test
 bool DisconnectBlockFromTip(CValidationState &state);
@@ -685,7 +683,7 @@ int64_t GetBlockValue(int nHeight, int64_t nFees);
 FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 
 /** Import blocks from an external file */
-bool LoadExternalBlockFile(FILE *fileIn, CDiskBlockPos *dbp = NULL);
+bool LoadExternalBlockFile(FILE *fileIn, CDiskBlockPos *dbp = nullptr);
 /** Initialize a new block tree database + block data on disk */
 bool InitBlockIndex();
 /** Load the block tree and coins database from disk */
@@ -697,7 +695,7 @@ void PushGetBlocks(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd);
 /** Push getblocks request with different filtering strategies */
 void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd);
 /** Process an incoming block */
-bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBlockPos *dbp = NULL);
+bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBlockPos *dbp = nullptr);
 /** Print the loaded block tree */
 void PrintBlockTree();
 

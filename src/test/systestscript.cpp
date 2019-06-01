@@ -1,3 +1,9 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifdef TODO
 #include <stdlib.h>
 #include <time.h>
@@ -14,8 +20,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include "vm/script.h"
 #include "rpc/rpcserver.h"
-#include "noui.h"
-#include "ui_interface.h"
 #include "systestbase.h"
 #include <boost/algorithm/string/predicate.hpp>
 #include "json/json_spirit_writer_template.h"
