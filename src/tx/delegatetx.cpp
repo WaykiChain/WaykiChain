@@ -162,13 +162,13 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         cw.txUndo.accountLogs.push_back(delegateAcctLog); // keep delegate state before modification
 
         // set the new value and erase the old value
+        CDBOpLogs& opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
         CDBOpLog operDbLog;
         if (!cw.contractCache.SetDelegateData(delegate, operDbLog)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s vote info error",
                             delegate.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
-        CDBOpLogList &delegateOpLogs = cw.txUndo.dbOpLogs[];
-        cw.txUndo.contractOpLogs.push_back(operDbLog);
+        opLogs.push_back(operDbLog);
 
         CDBOpLog eraseDbLog;
         if (delegateAcctLog.receivedVotes > 0) {
@@ -183,7 +183,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
                             account.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
 
-        cw.txUndo.contractOpLogs.push_back(eraseDbLog);
+        opLogs.push_back(eraseDbLog);
     }
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
@@ -213,14 +213,16 @@ bool CDelegateVoteTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         }
     }
 
-    for (; rIterScriptDBLog != cw.txUndo.contractOpLogs.rend(); ++rIterScriptDBLog) {
+    CDBOpLogs& opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
+    auto rIterScriptDBLog = opLogs.rbegin();
+    for (; rIterScriptDBLog != opLogs.rend(); ++rIterScriptDBLog) {
         // Recover the old value and erase the new value.
-        if (!cw.contractCache.SetDelegateData(rIterScriptDBLog->vKey))
+        if (!cw.contractCache.SetDelegateData(rIterScriptDBLog->key))
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, set delegate data error"),
                              UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
 
         ++rIterScriptDBLog;
-        if (!cw.contractCache.EraseDelegateData(rIterScriptDBLog->vKey))
+        if (!cw.contractCache.EraseDelegateData(rIterScriptDBLog->key))
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, erase delegate data error"),
                              UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }

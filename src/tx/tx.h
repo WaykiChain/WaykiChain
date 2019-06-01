@@ -278,7 +278,8 @@ public:
 
 #define IMPLEMENT_PERSIST_TX_KEYID(sendTxUid, recvTxUid)                                   \
     if (SysCfg().GetAddressToTxFlag()) {                                                   \
-        CDBOpLog operAddressToTxLog;                                               \
+        CDBOpLogs& opLogs = cw.txUndo.mapDbOpLogs[ADDR_TXHASH];                              \
+        CDBOpLog operAddressToTxLog;                                                       \
         if (sendTxUid.type() != typeid(CNullID)) {                                         \
             CKeyID sendKeyId;                                                              \
             if (!cw.accountCache.GetKeyId(sendTxUid, sendKeyId))                           \
@@ -289,7 +290,7 @@ public:
                                                      operAddressToTxLog))                  \
                 return false;                                                              \
                                                                                            \
-            cw.txUndo.contractOpLogs.push_back(operAddressToTxLog);                        \
+            opLogs.push_back(operAddressToTxLog);                        \
         }                                                                                  \
                                                                                            \
         if (recvTxUid.type() != typeid(CNullID)) {                                         \
@@ -302,7 +303,7 @@ public:
                                                      operAddressToTxLog))                  \
                 return false;                                                              \
                                                                                            \
-            cw.txUndo.contractOpLogs.push_back(operAddressToTxLog);                        \
+            opLogs.push_back(operAddressToTxLog);                        \
         }                                                                                  \
     }
 

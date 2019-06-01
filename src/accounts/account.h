@@ -80,6 +80,7 @@ public:
     bool ProcessDelegateVote(vector<CCandidateVote>& candidateVotesIn, const uint64_t curHeight);
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool StakeFcoins(const int64_t fcoinsToStake); //price feeder must stake fcoins
+    bool OperateFcoinStaking(const int64_t fcoinsToStake) { return false; } // TODO: ...
 
     bool StakeBcoinsToCdp(const int64_t bcoinsToStake);
     bool RedeemScoinsToCdp(const int64_t bcoinsToStake);

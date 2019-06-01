@@ -9,6 +9,7 @@
 #include <map>
 #include <string>
 #include "leveldbwrapper.h"
+#include "accounts/id.h"
 
 using namespace std;
 
@@ -49,6 +50,7 @@ public:
 
 class CCdpCache: public ICdpView  {
 public:
+    ~CCdpCache(){};
     bool SetStakeBcoins(uint64_t bcoinsToStake, int blockHeight, CDBOpLog &cdpDbOpLog);
     bool GetLiquidityCdpItems(vector<CdpItem> & cdpItems);
 
@@ -74,6 +76,7 @@ private:
 class CCdpDb: public ICdpView  {
 
 public:
+    ~CCdpDb() {};
     virtual bool GetData(const string &vKey, vector<unsigned char> &vValue) = 0;
     virtual bool SetData(const string &vKey, const vector<unsigned char> &vValue) = 0;
     virtual bool BatchWrite(const map<string, vector<unsigned char> > &mapContractDb) = 0;

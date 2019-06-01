@@ -118,13 +118,14 @@ string CTxUndo::ToString() const {
 
     str += strAccountLog;
 
-    string strDBOperLog("list script db Log:\n");
-    vector<CDBOpLog>::const_iterator iterDbLog = contractOpLogs.begin();
-    for (; iterDbLog != contractOpLogs.end(); ++iterDbLog) {
-        strDBOperLog += iterDbLog->ToString();
-        strDBOperLog += ";";
-    }
-    strDBOperLog += "\n";
+    string strDBOperLog("map of dbLogs:\n");
+    for (auto iterMap : mapDbOpLogs) {
+        string strList = "";
+        for (auto iterDbLog : iterMap.second) {
+            strDBOperLog += iterDbLog.ToString() + ",";
+        }
+        strDBOperLog += GetDbOpLogTypeName(iterMap.first) + ":[" + strDBOperLog + "]";
+	}
 
     str += strDBOperLog;
 

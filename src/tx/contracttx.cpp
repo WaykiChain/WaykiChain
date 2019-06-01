@@ -117,10 +117,10 @@ bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
     if (!cw.accountCache.SetAccount(userId, account))
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, save account error"),
                                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
-
-    auto rIterScriptDBLog =  cw.txUndo.contractOpLogs.rbegin();
-    for (; rIterScriptDBLog != cw.txUndo.contractOpLogs.rend(); ++rIterScriptDBLog) {
-        if (!cw.contractCache.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
+    CDBOpLogs &opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
+    auto rIterScriptDBLog = opLogs.rbegin();
+    for (; rIterScriptDBLog != opLogs.rend(); ++rIterScriptDBLog) {
+        if (!cw.contractCache.UndoScriptData(rIterScriptDBLog->key, rIterScriptDBLog->value))
             return state.DoS(
                 100, ERRORMSG("%s::UndoExecuteTx, undo scriptdb data error", __FUNCTION__),
                 UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");
@@ -410,7 +410,8 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
         cw.txUndo.accountLogs.push_back(oldAcctLog);
     }
-    cw.txUndo.contractOpLogs.insert(cw.txUndo.contractOpLogs.end(), vmRunEnv.GetDbLog()->begin(),
+    CDBOpLogs &opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
+    opLogs.insert(opLogs.end(), vmRunEnv.GetDbLog()->begin(),
                                         vmRunEnv.GetDbLog()->end());
 
     vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEnv.GetRawAppUserAccount();
@@ -471,10 +472,10 @@ bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
             }
         }
     }
-
-    auto rIterScriptDBLog = cw.txUndo.contractOpLogs.rbegin();
-    for (; rIterScriptDBLog != cw.txUndo.contractOpLogs.rend(); ++rIterScriptDBLog) {
-        if (!cw.contractCache.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
+    CDBOpLogs& opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
+    auto rIterScriptDBLog = opLogs.rbegin();
+    for (; rIterScriptDBLog != opLogs.rend(); ++rIterScriptDBLog) {
+        if (!cw.contractCache.UndoScriptData(rIterScriptDBLog->key, rIterScriptDBLog->value))
             return state.DoS(100, ERRORMSG("%s::UndoExecuteTx, undo scriptdb data error", __FUNCTION__),
                             UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");
     }
