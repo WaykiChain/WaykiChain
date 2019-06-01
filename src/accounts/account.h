@@ -64,7 +64,7 @@ public:
     uint64_t lastVoteHeight;                //!< account's last vote block height used for computing interest
 
     vector<CCandidateVote> candidateVotes;  //!< account delegates votes sorted by vote amount
-
+    bool hasOpenCdp;
     mutable uint256 sigHash;  //!< in-memory only
 
 public:

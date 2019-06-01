@@ -59,9 +59,11 @@ enum TxType : unsigned char {
 
     BLOCK_PRICE_MEDIAN_TX = 8, // Block Median Price Tx
     /******** Begin of Stable Coin TX Type Enums ********/
-    CDP_STAKE_TX        = 11,   //!< CDP Staking/Restaking Tx
-    CDP_REDEEM_TX       = 12,   //!< CDP Redemption Tx (partial or full)
-    CDP_LIQUIDATE_TX    = 13,   //!< CDP Liquidation Tx (partial or full)
+    CDP_OPEN_TX         = 11,   //!< CDP Open Tx
+    CDP_REFUEL_TX       = 12,   //!< CDP refuel Tx
+    CDP_REDEEMP_TX       = 13,   //!< CDP Redemption Tx (partial or full)
+    CDP_LIQUIDATE_TX    = 14,   //!< CDP Liquidation Tx (partial or full)
+    CDP_STAKE_TX        = 15,   //!< CDP Staking/Restaking Tx
 
     PRICE_FEED_TX = 22,  //!< Price Feed Tx: WICC/USD | MICC/WUSD | WUSD/USD
 
@@ -94,7 +96,7 @@ static const unordered_map<unsigned char, string> kTxTypeMap = {
     { COMMON_MTX,           "COMMON_MTX"},
     { CDP_OPEN_TX,          "CDP_OPEN_TX" },
     { CDP_REFUEL_TX,        "CDP_REFUEL_TX" },
-    { CDP_REDEMP_TX,        "CDP_REDEMP_TX" },
+    { CDP_REDEEMP_TX,        "CDP_REDEEMP_TX" },
     { CDP_LIQUIDATE_TX,     "CDP_LIQUIDATE_TX" },
     { PRICE_FEED_TX,        "PRICE_FEED_TX" },
     { SFC_PARAM_MTX,        "SFC_PARAM_MTX" },

@@ -6,7 +6,11 @@
 #ifndef PERSIST_CDP_CACHE_H
 #define PERSIST_CDP_CACHE_H
 
+#include <map>
+#include <string>
 #include "leveldbwrapper.h"
+
+using namespace std;
 
 //stake in BaseCoin to get StableCoins
 struct CdpStakeOp {
@@ -14,6 +18,9 @@ struct CdpStakeOp {
     uint64_t stakedBcoins;
     uint64_t mintedScoins;
 };
+
+//TODO: CdpItem
+class CdpItem {};
 
 /**
  *  Persisted in LDB as:
@@ -31,11 +38,11 @@ struct CUserCdp {
 
 class ICdpView {
 public:
-    virtual bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) = 0;
-    virtual bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) = 0;
+    virtual bool GetData(const string &vKey, vector<unsigned char> &vValue) = 0;
+    virtual bool SetData(const string &vKey, const vector<unsigned char> &vValue) = 0;
     virtual bool BatchWrite(const map<string, vector<unsigned char> > &mapCdps) = 0;
-    virtual bool EraseKey(const vector<unsigned char> &vKey) = 0;
-    virtual bool HaveData(const vector<unsigned char> &vKey) = 0;
+    virtual bool EraseKey(const string &vKey) = 0;
+    virtual bool HaveData(const string &vKey) = 0;
 
     virtual ~ICdpView(){};
 };
@@ -46,11 +53,11 @@ public:
     bool GetLiquidityCdpItems(vector<CdpItem> & cdpItems);
 
 public:
-    virtual bool GetData(const string key, vector<unsigned char> &vValue);
-    virtual bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
-    virtual bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb);
-    virtual bool EraseKey(const vector<unsigned char> &vKey);
-    virtual bool HaveData(const vector<unsigned char> &vKey);
+    virtual bool GetData(const string &key, vector<unsigned char> &vValue);
+    virtual bool SetData(const string &vKey, const vector<unsigned char> &vValue);
+    virtual bool BatchWrite(const map<string, vector<unsigned char> > &mapContractDb);
+    virtual bool EraseKey(const string &vKey);
+    virtual bool HaveData(const string &vKey);
 
     bool GetCdpData();
     bool SetCdpData();
@@ -67,11 +74,11 @@ private:
 class CCdpDb: public ICdpView  {
 
 public:
-    virtual bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue) = 0;
-    virtual bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) = 0;
-    virtual bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb) = 0;
-    virtual bool EraseKey(const vector<unsigned char> &vKey) = 0;
-    virtual bool HaveData(const vector<unsigned char> &vKey) = 0;
+    virtual bool GetData(const string &vKey, vector<unsigned char> &vValue) = 0;
+    virtual bool SetData(const string &vKey, const vector<unsigned char> &vValue) = 0;
+    virtual bool BatchWrite(const map<string, vector<unsigned char> > &mapContractDb) = 0;
+    virtual bool EraseKey(const string &vKey) = 0;
+    virtual bool HaveData(const string &vKey) = 0;
 
 };
 

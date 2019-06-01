@@ -79,15 +79,15 @@ public:
     uint64_t interestFees;      // stability fees
 
 public:
-    CdpRedeemTx() : CBaseTx(CDP_REDEEM_TX) {}
+    CdpRedeemTx() : CBaseTx(CDP_REDEEMP_TX) {}
 
-    CdpRedeemTx(const CBaseTx *pBaseTx): CBaseTx(CDP_REDEEM_TX) {
+    CdpRedeemTx(const CBaseTx *pBaseTx): CBaseTx(CDP_REDEEMP_TX) {
         *this = *(CdpTx *)pBaseTx;
     }
 
     CdpRedeemTx(const CUserID &txUidIn, uint64_t feeIn, int validHeightIn,
                 uint64_t scoinsToRedeemIn, uint64_t interestFeesIn):
-                CBaseTx(CDP_REDEEM_TX, txUidIn, validHeightIn, feeIn) {
+                CBaseTx(CDP_REDEEMP_TX, txUidIn, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
