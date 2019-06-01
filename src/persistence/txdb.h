@@ -85,14 +85,17 @@ public:
 
 enum DbOpLogType {
     COMMON_OP,
-    DELEGATE_OP,
+    ADDR_TXHASH,
+    TX_FILEPOS,
 };
+
+typedef vector<CDBOpLog> CDBOpLogs;
 
 class CTxUndo {
 public:
     uint256 txHash;
     vector<CAccountLog> accountLogs;
-    map<OpLogType, vector<CDBOpLog>> dbOpLogs;
+    map<DbOpLogType, CDBOpLogs> mapDbOpLogs;
 
     IMPLEMENT_SERIALIZE(
         READWRITE(txHash);
@@ -101,11 +104,13 @@ public:
 
 public:
     bool GetAccountOpLog(const CKeyID &keyId, CAccountLog &accountLog);
+
     void Clear() {
         txHash = uint256();
         accountLogs.clear();
         dbOpLogs.clear();
     }
+
     string ToString() const;
 };
 

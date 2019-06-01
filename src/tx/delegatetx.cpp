@@ -167,6 +167,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s vote info error",
                             delegate.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
+        CDBOpLogList &delegateOpLogs = cw.txUndo.dbOpLogs[];
         cw.txUndo.contractOpLogs.push_back(operDbLog);
 
         CDBOpLog eraseDbLog;

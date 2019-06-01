@@ -17,14 +17,24 @@
 
 using namespace json_spirit;
 
+
 class CDBOpLog {
 public:
+    uint8_t  type;
     string key;
     string value;
 
-    CDBOpLog(const string keyIn, const string &valueIn) {
-        key   = keyIn;
-        value = valueIn;
+    CDBOpLog(): type(0), key(), value() {        
+    }
+
+    CDBOpLog(uint8_t typeIn, const string keyIn, const string &valueIn) {
+        Reset(keyIn, valueIn, typeIn);
+    }
+
+    void Reset(uint8_t typeIn, const string &keyIn, const string &valueIn) {
+        type = typeIn
+        key = keyIn;
+        value = valueIn;        
     }
 
     IMPLEMENT_SERIALIZE(

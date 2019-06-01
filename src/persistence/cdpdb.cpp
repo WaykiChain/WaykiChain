@@ -15,7 +15,7 @@ bool CCdpCache::GetLiquidityCdpItems(vector<CdpItem> & cdpItems) {
     return true;
 }
 
-bool CCdpCache::GetData(const string key, vector<unsigned char> &value) {
+bool CCdpCache::GetData(const string &key, vector<unsigned char> &value) {
     if (mapCdps.count(key) > 0) {
         if (!mapCdps[key].empty()) {
             vValue = mapCdps[vKey];
@@ -32,22 +32,22 @@ bool CCdpCache::GetData(const string key, vector<unsigned char> &value) {
     return true;
 }
 
-bool CCdpCache::SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue) {
+bool CCdpCache::SetData(const string &vKey, const vector<unsigned char> &vValue) {
     //TODO
     return true;
 }
 
-bool CCdpCache::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapContractDb) {
+bool CCdpCache::BatchWrite(const map<string, vector<unsigned char> > &mapContractDb) {
     //TODO
     return true;
 }
 
-bool CCdpCache::EraseKey(const vector<unsigned char> &vKey) {
+bool CCdpCache::EraseKey(const string &vKey) {
     //TODO
     return true;
 }
 
-bool CCdpCache::HaveData(const vector<unsigned char> &vKey) {
+bool CCdpCache::HaveData(const string &vKey) {
     //TODO
     return true;
 }
