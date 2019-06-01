@@ -23,7 +23,7 @@ CVmRunEnv::CVmRunEnv() {
     runTimeHeight      = 0;
     pContractCache = NULL;
     pAccountCache  = NULL;
-    pScriptDBOperLog   = std::make_shared<std::vector<CContractDBOperLog>>();
+    pScriptDBOperLog   = std::make_shared<std::vector<CDBOpLog>>();
     isCheckAccount     = false;
 }
 
@@ -91,13 +91,14 @@ CVmRunEnv::~CVmRunEnv() {}
 tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx,
                                                          int nHeight, CCacheWrapper &cw,
                                                          uint64_t nBurnFactor, uint64_t& uRunStep) {
-    if (nBurnFactor == 0) return std::make_tuple(false, 0, string("VmScript nBurnFactor == 0\n"));
+    if (nBurnFactor == 0)
+        return std::make_tuple(false, 0, string("VmScript nBurnFactor == 0"));
 
     pContractCache = &cw.contractCache;
 
     CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(Tx.get());
     if (tx->llFees < CBaseTx::nMinTxFee)
-        return std::make_tuple(false, 0, string("CVmRunEnv: Contract Tx fee too small\n"));
+        return std::make_tuple(false, 0, string("CVmRunEnv: Contract Tx fee too small"));
 
     uint64_t fuelLimit = ((tx->llFees - CBaseTx::nMinTxFee) / nBurnFactor) * 100;
     if (fuelLimit > MAX_BLOCK_RUN_STEP) {
@@ -106,17 +107,18 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
 
     LogPrint("vm", "tx hash:%s fees=%lld fuelrate=%lld fuelLimit:%d\n", Tx->GetHash().GetHex(),
              tx->llFees, nBurnFactor, fuelLimit);
+
     if (!Initialize(Tx, cw.accountCache, nHeight)) {
-        return std::make_tuple(false, 0, string("VmScript inital Failed\n"));
+        return std::make_tuple(false, 0, string("VmScript inital Failed"));
     }
 
     int64_t step = 0;
 
     tuple<uint64_t, string> ret = pLua.get()->Run(fuelLimit, this);
-    LogPrint("vm", "%s\n", "CVmScriptRun::ExecuteContract() LUA");
+    LogPrint("vm", "CVmScriptRun::ExecuteContract() LUA\n");
     step = std::get<0>(ret);
     if (0 == step) {
-        return std::make_tuple(false, 0, string("VmScript run Failed\n"));
+        return std::make_tuple(false, 0, string("VmScript run Failed"));
     } else if (-1 == step) {
         return std::make_tuple(false, 0, std::get<1>(ret));
     } else {
@@ -126,29 +128,29 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
     LogPrint("vm", "tx:%s,step:%ld\n", tx->ToString(cw.accountCache), uRunStep);
 
     if (!CheckOperate(vmOperateOutput)) {
-        return std::make_tuple(false, 0, string("VmScript CheckOperate Failed \n"));
+        return std::make_tuple(false, 0, string("VmScript CheckOperate Failed"));
     }
 
-    if (!OpeatorAccount(vmOperateOutput, cw.accountCache, nHeight)) {
-        return std::make_tuple(false, 0, string("VmScript OpeatorAccount Failed\n"));
+    if (!OperateAccount(vmOperateOutput, cw.accountCache, nHeight)) {
+        return std::make_tuple(false, 0, string("VmScript OperateAccount Failed"));
     }
 
     LogPrint("vm", "isCheckAccount:%d\n", isCheckAccount);
     if (isCheckAccount) {
         LogPrint("vm", "isCheckAccount is true\n");
         if (!CheckAppAcctOperate(tx))
-            return std::make_tuple(false, 0, string("VmScript CheckAppAcct Failed\n"));
+            return std::make_tuple(false, 0, string("VmScript CheckAppAcct Failed"));
     }
 
-    if (!OpeatorAppAccount(mapAppFundOperate, *pContractCache)) {
-        return std::make_tuple(false, 0, string("OpeatorApp Account Failed\n"));
+    if (!OperateAppAccount(mapAppFundOperate, *pContractCache)) {
+        return std::make_tuple(false, 0, string("OperateAppAccount Account Failed"));
     }
 
     if (SysCfg().IsContractLogOn() && vmOperateOutput.size() > 0) {
-        CContractDBOperLog operlog;
+        CDBOpLog operlog;
         uint256 txhash = GetCurTxHash();
         if (!pContractCache->WriteTxOutPut(txhash, vmOperateOutput, operlog))
-            return std::make_tuple(false, 0, string("write tx out put Failed \n"));
+            return std::make_tuple(false, 0, string("write tx out put Failed"));
         pScriptDBOperLog->push_back(operlog);
     }
     /*
@@ -159,9 +161,9 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
     */
     uint64_t spend = 0;
     if (!SafeMultiply(uRunStep, nBurnFactor, spend)) {
-        return std::make_tuple(false, 0, string("mul error\n"));
+        return std::make_tuple(false, 0, string("mul error"));
     }
-    return std::make_tuple(true, spend, string("VmScript Sucess\n"));
+    return std::make_tuple(true, spend, string("VmScript Success"));
 }
 
 shared_ptr<CAccount> CVmRunEnv::GetNewAccount(shared_ptr<CAccount>& vOldAccount) {
@@ -373,7 +375,7 @@ bool CVmRunEnv::CheckAppAcctOperate(CContractInvokeTx* tx) {
 //  return tem;
 //}
 
-bool CVmRunEnv::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountCache& view,
+bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountCache& view,
                                const int nCurHeight) {
     newAccount.clear();
     for (auto& it : listoperate) {
@@ -418,7 +420,7 @@ bool CVmRunEnv::OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountCa
                  vmAccount.get()->ToString().c_str());
 
         bool ret = false;
-        //      vector<CContractDBOperLog> vAuthorLog;
+        //      vector<CDBOpLog> vAuthorLog;
         // todolist
         //      if(IsSignatureAccount(vmAccount.get()->regID) || vmAccount.get()->regID ==
         //      tx->appRegId.get<CRegID>())
@@ -489,7 +491,7 @@ bool CVmRunEnv::InsertOutputData(const vector<CVmOperate>& source) {
     return false;
 }
 
-shared_ptr<vector<CContractDBOperLog>> CVmRunEnv::GetDbLog() { return pScriptDBOperLog; }
+shared_ptr<vector<CDBOpLog>> CVmRunEnv::GetDbLog() { return pScriptDBOperLog; }
 
 /**
  * 从脚本数据库中，取指定账户的 应用账户信息,同时解冻冻结金额到自由金额
@@ -513,7 +515,7 @@ bool CVmRunEnv::GetAppUserAccount(const vector<unsigned char>& vAppUserId,
     return true;
 }
 
-bool CVmRunEnv::OpeatorAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
+bool CVmRunEnv::OperateAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
                                   CContractCache& view) {
     newAppUserAccount.clear();
     if ((mapAppFundOperate.size() > 0)) {
@@ -551,9 +553,9 @@ bool CVmRunEnv::OpeatorAppAccount(const map<vector<unsigned char>, vector<CAppFu
             }
             newAppUserAccount.push_back(sptrAcc);
             LogPrint("vm", "after user: %s\n", sptrAcc.get()->ToString());
-            CContractDBOperLog log;
+            CDBOpLog log;
             view.SetScriptAcc(GetScriptRegID(), *sptrAcc.get(), log);
-            shared_ptr<vector<CContractDBOperLog>> pScriptDBOperLog = GetDbLog();
+            shared_ptr<vector<CDBOpLog>> pScriptDBOperLog = GetDbLog();
             pScriptDBOperLog.get()->push_back(log);
         }
     }

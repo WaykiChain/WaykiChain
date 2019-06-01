@@ -30,6 +30,7 @@ bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
     bcoins         = accountLog.bcoins;
     scoins         = accountLog.scoins;
     fcoins         = accountLog.fcoins;
+    stakedBcoins   = accountLog.stakedBcoins;
     stakedFcoins   = accountLog.stakedFcoins;
     receivedVotes  = accountLog.receivedVotes;
     lastVoteHeight = accountLog.lastVoteHeight;
@@ -140,6 +141,7 @@ Object CAccount::ToJsonObj(bool isAddress) const {
     obj.push_back(Pair("bcoins",            bcoins));
     obj.push_back(Pair("scoins",            scoins));
     obj.push_back(Pair("fcoins",            fcoins));
+    obj.push_back(Pair("staked_bcoins",     stakedBcoins));
     obj.push_back(Pair("staked_fcoins",     stakedFcoins));
     obj.push_back(Pair("received_votes",    receivedVotes));
     obj.push_back(Pair("vote_list",         candidateVoteArray));
@@ -149,7 +151,9 @@ Object CAccount::ToJsonObj(bool isAddress) const {
 
 string CAccount::ToString(bool isAddress) const {
     string str;
-    str += strprintf("regID=%s, keyID=%s, nickID=%s, pubKey=%s, minerPubKey=%s, bcoins=%ld, scoins=%ld, fcoins=%ld, receivedVotes=%lld\n",
+    str += strprintf(
+        "regID=%s, keyID=%s, nickID=%s, pubKey=%s, minerPubKey=%s, bcoins=%ld, scoins=%ld, fcoins=%ld, "
+        "receivedVotes=%lld\n",
         regID.ToString(), keyID.GetHex().c_str(), nickID.ToString(), pubKey.ToString().c_str(),
         minerPubKey.ToString().c_str(), bcoins, scoins, fcoins, receivedVotes);
     str += "candidate vote list: \n";
@@ -203,7 +207,7 @@ bool CAccount::OperateBalance(const CoinType coinType, const BalanceOpType opTyp
     return true;
 }
 
-bool CAccount::OperateFcoinStaking(const int64_t fcoinsToStake) {
+bool CAccount::StakeFcoins(const int64_t fcoinsToStake) {
      if (fcoinsToStake < 0) {
         if (this->stakedFcoins < (uint64_t) (-1 * fcoinsToStake)) {
             return ERRORMSG("No sufficient staked fcoins(%d) to revoke", fcoins);
@@ -216,6 +220,31 @@ bool CAccount::OperateFcoinStaking(const int64_t fcoinsToStake) {
 
     fcoins -= fcoinsToStake;
     stakedFcoins += fcoinsToStake;
+
+    return true;
+}
+
+bool CAccount::StakeBcoinsToCdp(const int64_t bcoinsToStake) {
+     if (bcoinsToStake < 0) {
+        return ERRORMSG("bcoinsToStake(%d) cannot be negative", bcoinsToStake);
+    } else { // > 0
+        if (this->bcoins < (uint64_t) bcoinsToStake) {
+            return ERRORMSG("No sufficient bcoins(%d) in account to stake", bcoins);
+        }
+    }
+
+    bcoins -= bcoinsToStake;
+    stakedBcoins += bcoinsToStake;
+
+    return true;
+}
+
+bool CAccount::RedeemScoinsToCdp(const int64_t bcoinsToStake) {
+
+    return true;
+}
+
+bool CAccount::LiquidateCdp(const int64_t bcoinsToStake) {
 
     return true;
 }
@@ -300,12 +329,12 @@ bool CAccount::ProcessDelegateVote(vector<CCandidateVote> & candidateVotesIn, co
     return true;
 }
 
-bool CAccount::OperateVote(VoteType type, const uint64_t votes) {
+bool CAccount::StakeVoteBcoins(VoteType type, const uint64_t votes) {
     switch (type) {
         case ADD_BCOIN: {
             receivedVotes += votes;
             if (!IsMoneyOverflow(receivedVotes)) {
-                return ERRORMSG("OperateVote() : delegates total votes exceed maximum ");
+                return ERRORMSG("StakeVoteBcoins() : delegates total votes exceed maximum ");
             }
 
             break;
@@ -313,7 +342,7 @@ bool CAccount::OperateVote(VoteType type, const uint64_t votes) {
 
         case MINUS_BCOIN: {
             if (receivedVotes < votes) {
-                return ERRORMSG("OperateVote() : delegates total votes less than revocation vote number");
+                return ERRORMSG("StakeVoteBcoins() : delegates total votes less than revocation vote number");
             }
             receivedVotes -= votes;
 
@@ -321,7 +350,7 @@ bool CAccount::OperateVote(VoteType type, const uint64_t votes) {
         }
 
         default:
-            return ERRORMSG("OperateVote() : CDelegateVoteTx ExecuteTx AccountVoteOper revocation votes are not exist");
+            return ERRORMSG("StakeVoteBcoins() : CDelegateVoteTx ExecuteTx AccountVoteOper revocation votes are not exist");
     }
 
     return true;

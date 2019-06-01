@@ -350,21 +350,6 @@ Value getblockchaininfo(const Array& params, bool fHelp)
     return obj;
 }
 
-Value listsetblockindexvalid(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 0) {
-        throw runtime_error("listsetblockindexvalid \n"
-            "\ncall ListSetBlockIndexValid function\n"
-            "\nArguments:\n"
-            "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("listsetblockindexvalid", "")
-            + HelpExampleRpc("listsetblockindexvalid", ""));
-    }
-
-    return ListSetBlockIndexValid();
-}
-
 Value getcontractregid(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1) {

@@ -61,7 +61,7 @@ private:
     bool  isCheckAccount;  //校验账户平衡开关
 
     map<vector<unsigned char>, vector<CAppFundOperate>> mapAppFundOperate;  // vector<unsigned char > 存的是accountId
-    std::shared_ptr<vector<CContractDBOperLog>> pScriptDBOperLog;
+    std::shared_ptr<vector<CDBOpLog>> pScriptDBOperLog;
 
 private:
     /**
@@ -84,7 +84,7 @@ private:
      * @param view:
      * @return true operate account success
      */
-    bool OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountCache& view,
+    bool OperateAccount(const vector<CVmOperate>& listoperate, CAccountCache& view,
                         const int nCurHeight);
     /**
      * @brief find the vOldAccount from newAccount if find success remove it from newAccount
@@ -105,7 +105,7 @@ private:
      */
     vector_unsigned_char GetAccountID(CVmOperate value);
     //	bool IsSignatureAccount(CRegID account);
-    bool OpeatorAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
+    bool OperateAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
                            CContractCache& view);
 
     std::shared_ptr<CAppUserAccount> GetAppAccount(std::shared_ptr<CAppUserAccount>& AppAccount);
@@ -157,7 +157,7 @@ public:
     uint256 GetCurTxHash();
     bool InsertOutputData(const vector<CVmOperate>& source);
     void InsertOutAPPOperte(const vector<unsigned char>& userId, const CAppFundOperate& source);
-    std::shared_ptr<vector<CContractDBOperLog>> GetDbLog();
+    std::shared_ptr<vector<CDBOpLog>> GetDbLog();
 
     bool GetAppUserAccount(const vector<unsigned char>& id, std::shared_ptr<CAppUserAccount>& sptrAcc);
     bool CheckAppAcctOperate(CContractInvokeTx* tx);

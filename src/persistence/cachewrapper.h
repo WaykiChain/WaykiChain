@@ -10,6 +10,7 @@
 #include "contractdb.h"
 #include "txdb.h"
 #include "stakedb.h"
+#include "cdpdb.h"
 
 class CCacheWrapper {
 public:
@@ -18,7 +19,9 @@ public:
     CContractCache contractCache;
     CPricePointCache pricePointCache;
     CStakeCache stakeCache;
+    CCdpCache cdpCache;
     CTxUndo txUndo;
+
 };
 
 #endif //PERSIST_CACHEWRAPPER_H

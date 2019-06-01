@@ -1,7 +1,8 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #include "main.h"
 
@@ -60,9 +61,9 @@ map<uint256, CBlockIndex *> mapBlockIndex;
 
 int nSyncTipHeight(0);  //同步时 ,chainActive.Tip()->nHeight
 
-map<uint256, std::tuple<std::shared_ptr<CAccountCache>,
-                        std::shared_ptr<CTransactionCache>,
-                        std::shared_ptr<CContractCache> > > mapForkCache;
+map<uint256,
+    std::tuple<std::shared_ptr<CAccountCache>, std::shared_ptr<CTransactionCache>, std::shared_ptr<CContractCache> > >
+    mapForkCache;
 
 CSignatureCache signatureCache;
 CChain chainActive;
@@ -95,17 +96,23 @@ namespace {
 struct CBlockIndexWorkComparator {
     bool operator()(CBlockIndex *pa, CBlockIndex *pb) {
         // First sort by most total work, ...
-        if (pa->nChainWork > pb->nChainWork) return false;
-        if (pa->nChainWork < pb->nChainWork) return true;
+        if (pa->nChainWork > pb->nChainWork)
+            return false;
+        if (pa->nChainWork < pb->nChainWork)
+            return true;
 
         // ... then by earliest time received, ...
-        if (pa->nSequenceId < pb->nSequenceId) return false;
-        if (pa->nSequenceId > pb->nSequenceId) return true;
+        if (pa->nSequenceId < pb->nSequenceId)
+            return false;
+        if (pa->nSequenceId > pb->nSequenceId)
+            return true;
 
         // Use pointer address as tie breaker (should only happen with blocks
         // loaded from disk, as those all have id 0).
-        if (pa < pb) return false;
-        if (pa > pb) return true;
+        if (pa < pb)
+            return false;
+        if (pa > pb)
+            return true;
 
         // Identical blocks.
         return false;
@@ -113,13 +120,16 @@ struct CBlockIndexWorkComparator {
 };
 
 CBlockIndex *pindexBestInvalid;
-// may contain all CBlockIndex*'s that have validness >=BLOCK_VALID_TRANSACTIONS, and must contain those who aren't failed
+// may contain all CBlockIndex*'s that have validness >=BLOCK_VALID_TRANSACTIONS, and must contain those who aren't
+// failed
 set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexValid;  //根据高度排序的有序集合
 
 struct COrphanBlockComparator {
     bool operator()(COrphanBlock *pa, COrphanBlock *pb) {
-        if (pa->height > pb->height) return false;
-        if (pa->height < pb->height) return true;
+        if (pa->height > pb->height)
+            return false;
+        if (pa->height < pb->height)
+            return true;
         return false;
     }
 };
@@ -160,7 +170,8 @@ map<uint256, pair<NodeId, list<uint256>::iterator> > mapBlocksToDownload;  //存
 
 namespace {
 struct CMainSignals {
-    // Notifies listeners of updated transaction data (passing hash, transaction, and optionally the block it is found in.
+    // Notifies listeners of updated transaction data (passing hash, transaction, and optionally the block it is found
+    // in.
     boost::signals2::signal<void(const uint256 &, CBaseTx *, const CBlock *)> SyncTransaction;
     // Notifies listeners of an erased transaction (currently disabled, requires transaction replacement).
     boost::signals2::signal<void(const uint256 &)> EraseTransaction;
@@ -176,7 +187,7 @@ struct CMainSignals {
 }  // namespace
 
 bool WriteBlockLog(bool falg, string suffix) {
-    if (NULL == chainActive.Tip()) {
+    if (nullptr == chainActive.Tip()) {
         return false;
     }
     char splitChar;
@@ -267,9 +278,7 @@ void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pBlock
     g_signals.SyncTransaction(hash, pBaseTx, pBlock);
 }
 
-void EraseTransaction(const uint256 &hash) {
-    g_signals.EraseTransaction(hash);
-}
+void EraseTransaction(const uint256 &hash) { g_signals.EraseTransaction(hash); }
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -321,7 +330,7 @@ map<NodeId, CNodeState> mapNodeState;
 CNodeState *State(NodeId pNode) {
     map<NodeId, CNodeState>::iterator it = mapNodeState.find(pNode);
     if (it == mapNodeState.end())
-        return NULL;
+        return nullptr;
     return &it->second;
 }
 
@@ -350,8 +359,7 @@ void FinalizeNode(NodeId nodeid) {
 
 // Requires cs_main.
 void MarkBlockAsReceived(const uint256 &hash, NodeId nodeFrom = -1) {
-    map<uint256, pair<NodeId, list<uint256>::iterator> >::iterator itToDownload =
-        mapBlocksToDownload.find(hash);
+    map<uint256, pair<NodeId, list<uint256>::iterator> >::iterator itToDownload = mapBlocksToDownload.find(hash);
     if (itToDownload != mapBlocksToDownload.end()) {
         CNodeState *state = State(itToDownload->second.first);
         state->vBlocksToDownload.erase(itToDownload->second.second);
@@ -359,8 +367,7 @@ void MarkBlockAsReceived(const uint256 &hash, NodeId nodeFrom = -1) {
         mapBlocksToDownload.erase(itToDownload);
     }
 
-    map<uint256, pair<NodeId, list<QueuedBlock>::iterator> >::iterator itInFlight =
-        mapBlocksInFlight.find(hash);
+    map<uint256, pair<NodeId, list<QueuedBlock>::iterator> >::iterator itInFlight = mapBlocksInFlight.find(hash);
     if (itInFlight != mapBlocksInFlight.end()) {
         CNodeState *state = State(itInFlight->second.first);
         state->vBlocksInFlight.erase(itInFlight->second.second);
@@ -378,12 +385,11 @@ bool AddBlockToQueue(NodeId nodeid, const uint256 &hash) {
     }
 
     CNodeState *state = State(nodeid);
-    if (state == NULL) {
+    if (state == nullptr) {
         return false;
     }
 
-    list<uint256>::iterator it =
-        state->vBlocksToDownload.insert(state->vBlocksToDownload.end(), hash);
+    list<uint256>::iterator it = state->vBlocksToDownload.insert(state->vBlocksToDownload.end(), hash);
     state->nBlocksToDownload++;
     if (state->nBlocksToDownload > 5000) {
         LogPrint("INFO", "Misbehaving: AddBlockToQueue download too many times, nMisbehavior add 10\n");
@@ -396,7 +402,7 @@ bool AddBlockToQueue(NodeId nodeid, const uint256 &hash) {
 // Requires cs_main.
 void MarkBlockAsInFlight(NodeId nodeid, const uint256 &hash) {
     CNodeState *state = State(nodeid);
-    assert(state != NULL);
+    assert(state != nullptr);
 
     // Make sure it's not listed somewhere already.
     MarkBlockAsReceived(hash);
@@ -414,7 +420,7 @@ void MarkBlockAsInFlight(NodeId nodeid, const uint256 &hash) {
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
     LOCK(cs_main);
     CNodeState *state = State(nodeid);
-    if (state == NULL)
+    if (state == nullptr)
         return false;
     stats.nMisbehavior = state->nMisbehavior;
     return true;
@@ -442,9 +448,9 @@ void UnregisterNodeSignals(CNodeSignals &nodeSignals) {
 //
 
 CBlockIndex *CChain::SetTip(CBlockIndex *pIndex) {
-    if (pIndex == NULL) {
+    if (pIndex == nullptr) {
         vChain.clear();
-        return NULL;
+        return nullptr;
     }
     vChain.resize(pIndex->nHeight + 1);
     while (pIndex && vChain[pIndex->nHeight] != pIndex) {
@@ -502,9 +508,8 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
     unsigned int nEvicted = 0;
     while (mapOrphanTransactions.size() > nMaxOrphans) {
         // Evict a random orphan:
-        uint256 randomhash = GetRandHash();
-        map<uint256, std::shared_ptr<CBaseTx> >::iterator it =
-            mapOrphanTransactions.lower_bound(randomhash);
+        uint256 randomhash                                   = GetRandHash();
+        map<uint256, std::shared_ptr<CBaseTx> >::iterator it = mapOrphanTransactions.lower_bound(randomhash);
         if (it == mapOrphanTransactions.end())
             it = mapOrphanTransactions.begin();
         mapOrphanTransactions.erase(it->first);
@@ -550,8 +555,7 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<unsigned char> &s
 }
 
 bool CheckTx(CBaseTx *ptx, CCacheWrapper &cw, CValidationState &state) {
-    if (BLOCK_REWARD_TX == ptx->nTxType ||
-        BLOCK_PRICE_MEDIAN_TX == ptx->nTxType) {
+    if (BLOCK_REWARD_TX == ptx->nTxType || BLOCK_PRICE_MEDIAN_TX == ptx->nTxType) {
         return true;
     }
 
@@ -560,7 +564,7 @@ bool CheckTx(CBaseTx *ptx, CCacheWrapper &cw, CValidationState &state) {
 
 int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree) {
     uint64_t nBaseFee = pBaseTx->nMinRelayTxFee;
-    int64_t nMinFee  = (1 + (int64_t)nBytes / 1000) * nBaseFee;
+    int64_t nMinFee   = (1 + (int64_t)nBytes / 1000) * nBaseFee;
 
     if (fAllowFree) {
         // There is a free transaction area in blocks created by most miners,
@@ -577,33 +581,30 @@ int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowF
     return nMinFee;
 }
 
-bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx,
-                        bool fLimitFree, bool fRejectInsaneFee) {
+bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx, bool fLimitFree,
+                        bool fRejectInsaneFee) {
     AssertLockHeld(cs_main);
 
     // is it already in the memory pool?
     uint256 hash = pBaseTx->GetHash();
     if (pool.Exists(hash))
-        return state.Invalid(
-            ERRORMSG("AcceptToMemoryPool() : tx[%s] already in mempool", hash.GetHex()),
-            REJECT_INVALID, "tx-already-in-mempool");
+        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] already in mempool", hash.GetHex()),
+                             REJECT_INVALID, "tx-already-in-mempool");
 
     // is it a miner reward tx?
     if (pBaseTx->IsCoinBase())
         return state.Invalid(
-            ERRORMSG("AcceptToMemoryPool() : tx[%s] is a miner reward tx, can't put into mempool",
-                     hash.GetHex()),
+            ERRORMSG("AcceptToMemoryPool() : tx[%s] is a miner reward tx, can't put into mempool", hash.GetHex()),
             REJECT_INVALID, "tx-coinbase-to-mempool");
-
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     string reason;
     if (SysCfg().NetworkID() == MAIN_NET && !IsStandardTx(pBaseTx, reason))
-        return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : nonstandard transaction: %s", reason),
-                         REJECT_NONSTANDARD, reason);
+        return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : nonstandard transaction: %s", reason), REJECT_NONSTANDARD,
+                         reason);
 
-    auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache = *pool.memPoolAccountCache;
+    auto spCW           = std::make_shared<CCacheWrapper>();
+    spCW->accountCache  = *pool.memPoolAccountCache;
     spCW->contractCache = *pool.memPoolContractCache;
 
     if (!CheckTx(pBaseTx, *spCW, state))
@@ -619,19 +620,15 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
             CBaseCoinTransferTx *pTx = static_cast<CBaseCoinTransferTx *>(pBaseTx);
             if (pTx->bcoins < CBaseTx::nDustAmountThreshold)
-                return state.DoS(0,
-                                 ERRORMSG("AcceptToMemoryPool() : common tx %d transfer amount(%d) "
-                                          "too small, you must send a min (%d)",
-                                          hash.ToString(), pTx->bcoins, CBaseTx::nDustAmountThreshold),
-                                 REJECT_DUST, "dust amount");
+                return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : common tx %d transfer amount(%d) "
+                    "too small, you must send a min (%d)", hash.ToString(), pTx->bcoins, CBaseTx::nDustAmountThreshold),
+                    REJECT_DUST, "dust amount");
         }
 
         uint64_t txMinFee = GetMinRelayFee(pBaseTx, nSize, true);
         if (fLimitFree && nFees < txMinFee)
-            return state.DoS(0,
-                             ERRORMSG("AcceptToMemoryPool() : not enough fees %s, %d < %d",
-                                      hash.ToString(), nFees, txMinFee),
-                             REJECT_INSUFFICIENTFEE, "insufficient fee");
+            return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : not enough fees %s, %d < %d", hash.ToString(), nFees, txMinFee),
+                REJECT_INSUFFICIENTFEE, "insufficient fee");
 
         // Continuously rate-limit free transactions
         // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
@@ -649,17 +646,16 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
             // -limitfreerelay unit is thousand-bytes-per-minute
             // At default rate it would take over a month to fill 1GB
             if (dFreeCount >= SysCfg().GetArg("-limitfreerelay", 15) * 10 * 1000 / 60)
-                return state.DoS(
-                    0, ERRORMSG("AcceptToMemoryPool() : free transaction rejected by rate limiter"),
-                    REJECT_INSUFFICIENTFEE, "insufficient priority");
+                return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : free transaction rejected by rate limiter"),
+                                 REJECT_INSUFFICIENTFEE, "insufficient priority");
 
             LogPrint("INFO", "Rate limit dFreeCount: %g => %g\n", dFreeCount, dFreeCount + nSize);
             dFreeCount += nSize;
         }
 
         if (fRejectInsaneFee && nFees > SysCfg().GetMaxFee())
-            return ERRORMSG("AcceptToMemoryPool() : insane fees %s, %d > %d", hash.ToString(),
-                            nFees, SysCfg().GetMaxFee());
+            return ERRORMSG("AcceptToMemoryPool() : insane fees %s, %d > %d", hash.ToString(), nFees,
+                            SysCfg().GetMaxFee());
 
         // Store transaction in memory
         if (!pool.AddUnchecked(hash, entry, state))
@@ -728,9 +724,8 @@ int GetTxConfirmHeight(const uint256 &hash, CContractCache &scriptDBCache) {
 }
 
 // Return transaction in tx, and if it was found inside a block, its hash is placed in blockHash
-bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash,
-                    CContractCache &scriptDBCache, bool bSearchMemPool)
-{
+bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CContractCache &scriptDBCache,
+                    bool bSearchMemPool) {
     {
         LOCK(cs_main);
         {
@@ -790,8 +785,7 @@ bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos) {
     return true;
 }
 
-bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block)
-{
+bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block) {
     block.SetNull();
 
     // Open history file to read
@@ -813,8 +807,7 @@ bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block)
     return true;
 }
 
-bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block)
-{
+bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block) {
     if (!ReadBlockFromDisk(pIndex->GetBlockPos(), block))
         return false;
 
@@ -936,7 +929,7 @@ arith_uint256 GetBlockProof(const CBlockIndex &block) {
 
 bool fLargeWorkForkFound         = false;
 bool fLargeWorkInvalidChainFound = false;
-CBlockIndex *pindexBestForkTip = NULL, *pindexBestForkBase = NULL;
+CBlockIndex *pindexBestForkTip = nullptr, *pindexBestForkBase = nullptr;
 
 void CheckForkWarningConditions() {
     AssertLockHeld(cs_main);
@@ -947,10 +940,11 @@ void CheckForkWarningConditions() {
 
     // If our best fork is no longer within 72 blocks (+/- 12 hours if no one mines it)
     // of our head, drop it
-    if (pindexBestForkTip && chainActive.Height() - pindexBestForkTip->nHeight >= 72)
-        pindexBestForkTip = NULL;
+    if (pindexBestForkTip && chainActive.Height() - pindexBestForkTip->nHeight >= 72) pindexBestForkTip = nullptr;
 
-    if (pindexBestForkTip || (pindexBestInvalid && pindexBestInvalid->nChainWork > chainActive.Tip()->nChainWork + (GetBlockProof(*chainActive.Tip()) * 6))) {
+    if (pindexBestForkTip ||
+        (pindexBestInvalid &&
+         pindexBestInvalid->nChainWork > chainActive.Tip()->nChainWork + (GetBlockProof(*chainActive.Tip()) * 6))) {
         if (!fLargeWorkForkFound && pindexBestForkBase) {
             string strCmd = SysCfg().GetArg("-alertnotify", "");
             if (!strCmd.empty()) {
@@ -961,12 +955,16 @@ void CheckForkWarningConditions() {
             }
         }
         if (pindexBestForkTip && pindexBestForkBase) {
-            LogPrint("INFO", "CheckForkWarningConditions: Warning: Large valid fork found\n  forking the chain at height %d (%s)\n  lasting to height %d (%s).\nChain state database corruption likely.\n",
+            LogPrint("INFO",
+                     "CheckForkWarningConditions: Warning: Large valid fork found\n  forking the chain at height %d "
+                     "(%s)\n  lasting to height %d (%s).\nChain state database corruption likely.\n",
                      pindexBestForkBase->nHeight, pindexBestForkBase->pBlockHash->ToString(),
                      pindexBestForkTip->nHeight, pindexBestForkTip->pBlockHash->ToString());
             fLargeWorkForkFound = true;
         } else {
-            LogPrint("INFO", "CheckForkWarningConditions: Warning: Found invalid chain at least ~6 blocks longer than our best chain.\nChain state database corruption likely.\n");
+            LogPrint("INFO",
+                     "CheckForkWarningConditions: Warning: Found invalid chain at least ~6 blocks longer than our best "
+                     "chain.\nChain state database corruption likely.\n");
             fLargeWorkInvalidChainFound = true;
         }
     } else {
@@ -995,7 +993,8 @@ void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip) {
     // or a chain that is entirely longer than ours and invalid (note that this should be detected by both)
     // We define it this way because it allows us to only store the highest fork tip (+ base) which meets
     // the 7-block condition and from this always have the most-likely-to-cause-warning fork
-    if (pfork && (!pindexBestForkTip || (pindexBestForkTip && pindexNewForkTip->nHeight > pindexBestForkTip->nHeight)) &&
+    if (pfork &&
+        (!pindexBestForkTip || (pindexBestForkTip && pindexNewForkTip->nHeight > pindexBestForkTip->nHeight)) &&
         pindexNewForkTip->nChainWork - pfork->nChainWork > (GetBlockProof(*pfork) * 7) &&
         chainActive.Height() - pindexNewForkTip->nHeight < 72) {
         pindexBestForkTip  = pindexNewForkTip;
@@ -1011,17 +1010,17 @@ void Misbehaving(NodeId pNode, int howmuch) {
         return;
 
     CNodeState *state = State(pNode);
-    if (state == NULL)
+    if (state == nullptr)
         return;
 
     state->nMisbehavior += howmuch;
     if (state->nMisbehavior >= SysCfg().GetArg("-banscore", 100)) {
-        LogPrint("INFO", "Misbehaving: %s (%d -> %d) BAN THRESHOLD EXCEEDED\n",
-                 state->name, state->nMisbehavior - howmuch, state->nMisbehavior);
+        LogPrint("INFO", "Misbehaving: %s (%d -> %d) BAN THRESHOLD EXCEEDED\n", state->name,
+                 state->nMisbehavior - howmuch, state->nMisbehavior);
         state->fShouldBan = true;
     } else {
-        LogPrint("INFO", "Misbehaving: %s (%d -> %d)\n",
-                 state->name, state->nMisbehavior - howmuch, state->nMisbehavior);
+        LogPrint("INFO", "Misbehaving: %s (%d -> %d)\n", state->name, state->nMisbehavior - howmuch,
+                 state->nMisbehavior);
     }
 }
 
@@ -1054,8 +1053,8 @@ void static InvalidBlockFound(CBlockIndex *pIndex, const CValidationState &state
             CBlockReject reject = {state.GetRejectCode(), state.GetRejectReason(), pIndex->GetBlockHash()};
             State(it->second)->rejects.push_back(reject);
             if (nDoS > 0) {
-                LogPrint("INFO", "Misebehaving: found invalid block, hash:%s, Misbehavior add %d\n",
-                         it->first.GetHex(), nDoS);
+                LogPrint("INFO", "Misebehaving: found invalid block, hash:%s, Misbehavior add %d\n", it->first.GetHex(),
+                         nDoS);
                 Misbehaving(it->second, nDoS);
             }
         }
@@ -1076,8 +1075,8 @@ bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex) {
     pCdMan->pBlockTreeDb->WriteBlockIndex(CDiskBlockIndex(pIndex));
     setBlockIndexValid.erase(pIndex);
 
-    LogPrint("INFO", "Invalidate block[%d]: %s BLOCK_FAILED_VALID\n",
-             pIndex->nHeight, pIndex->GetBlockHash().ToString());
+    LogPrint("INFO", "Invalidate block[%d]: %s BLOCK_FAILED_VALID\n", pIndex->nHeight,
+             pIndex->GetBlockHash().ToString());
 
     while (chainActive.Contains(pIndex)) {
         CBlockIndex *pindexWalk = chainActive.Tip();
@@ -1085,8 +1084,8 @@ bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex) {
         pCdMan->pBlockTreeDb->WriteBlockIndex(CDiskBlockIndex(pindexWalk));
         setBlockIndexValid.erase(pindexWalk);
 
-        LogPrint("INFO", "Invalidate block[%d]: %s BLOCK_FAILED_CHILD\n",
-                 pindexWalk->nHeight, pindexWalk->GetBlockHash().ToString());
+        LogPrint("INFO", "Invalidate block[%d]: %s BLOCK_FAILED_CHILD\n", pindexWalk->nHeight,
+                 pindexWalk->GetBlockHash().ToString());
 
         // ActivateBestChain considers blocks already in chainActive
         // unconditionally valid already, so force disconnect away from it.
@@ -1112,14 +1111,14 @@ bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex) {
             setBlockIndexValid.insert(it->second);
             if (it->second == pindexBestInvalid) {
                 // Reset invalid block marker if it was pointing to one of those.
-                pindexBestInvalid = NULL;
+                pindexBestInvalid = nullptr;
             }
         }
         it++;
     }
 
     // Remove the invalidity flag from all ancestors too.
-    while (pIndex != NULL) {
+    while (pIndex != nullptr) {
         if (pIndex->nStatus & BLOCK_FAILED_MASK) {
             pIndex->nStatus &= ~BLOCK_FAILED_MASK;
             setBlockIndexValid.insert(pIndex);
@@ -1150,26 +1149,25 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
     if (!blockUndo.ReadFromDisk(pos, pIndex->pprev->GetBlockHash()))
         return ERRORMSG("DisconnectBlock() : failure reading undo data");
 
-    if ((blockUndo.vtxundo.size() != block.vptx.size()) &&
-        (blockUndo.vtxundo.size() != (block.vptx.size() + 1)))
+    if ((blockUndo.vtxundo.size() != block.vptx.size()) && (blockUndo.vtxundo.size() != (block.vptx.size() + 1)))
         return ERRORMSG("DisconnectBlock() : block and undo data inconsistent");
 
-    CTxUndo txundo;
+    CTxUndo txUndo;
     if (pIndex->nHeight > COINBASE_MATURITY) {
         // Undo mature reward tx
-        txundo = blockUndo.vtxundo.back();
+        txUndo = blockUndo.vtxundo.back();
         blockUndo.vtxundo.pop_back();
         CBlockIndex *pMatureIndex = pIndex;
         for (int i = 0; i < COINBASE_MATURITY; ++i) {
             pMatureIndex = pMatureIndex->pprev;
         }
-        if (NULL != pMatureIndex) {
+        if (nullptr != pMatureIndex) {
             CBlock matureBlock;
             if (!ReadBlockFromDisk(pMatureIndex, matureBlock)) {
-                return state.DoS(100, ERRORMSG("DisconnectBlock() : read mature block error"),
-                                 REJECT_INVALID, "bad-read-block");
+                return state.DoS(100, ERRORMSG("DisconnectBlock() : read mature block error"), REJECT_INVALID,
+                                 "bad-read-block");
             }
-            cw.txUndo = txundo;
+            cw.txUndo = txUndo;
             if (!matureBlock.vptx[0]->UndoExecuteTx(pIndex->nHeight, -1, cw, state))
                 return ERRORMSG("DisconnectBlock() : undo execute mature block reward tx error");
         }
@@ -1177,18 +1175,18 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
 
     // Undo reward tx
     std::shared_ptr<CBaseTx> pBaseTx = block.vptx[0];
-    txundo = blockUndo.vtxundo.back();
-    cw.txUndo = txundo;
+    cw.txUndo                        = blockUndo.vtxundo.back();
     if (!pBaseTx->UndoExecuteTx(pIndex->nHeight, 0, cw, state))
         return false;
 
     // Undo transactions in reverse order
     for (int i = block.vptx.size() - 1; i >= 1; i--) {
         std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
-        CTxUndo txundo = blockUndo.vtxundo[i - 1];
-        cw.txUndo = txundo;
-        if (!pBaseTx->UndoExecuteTx(pIndex->nHeight, i, cw, state))
+        cw.txUndo                        = blockUndo.vtxundo[i - 1];
+        if (!pBaseTx->UndoExecuteTx(pIndex->nHeight, i, cw, state)) {
+            LogPrint("ERROR", "%s\n", cw.txUndo.ToString());
             return false;
+        }
     }
     // Set previous block as the best block
     cw.accountCache.SetBestBlock(pIndex->pprev->GetBlockHash());
@@ -1253,7 +1251,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     if (!fJustCheck) {
         // Verify that the view's current state corresponds to the previous block
-        uint256 hashPrevBlock = pIndex->pprev == NULL ? uint256() : pIndex->pprev->GetBlockHash();
+        uint256 hashPrevBlock = pIndex->pprev == nullptr ? uint256() : pIndex->pprev->GetBlockHash();
         if (hashPrevBlock != cw.accountCache.GetBestBlock()) {
             LogPrint("INFO", "hashPrevBlock=%s, bestblock=%s\n",
                     hashPrevBlock.GetHex(), cw.accountCache.GetBestBlock().GetHex());
@@ -1287,7 +1285,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 assert(cw.accountCache.GetAccount(pDelegateTx->txUid, voterAcct));
                 CUserID voterCId(pDelegateTx->txUid);
                 uint64_t maxVotes = 0;
-                CContractDBOperLog operDbLog;
+                CDBOpLog operDbLog;
                 int j = i;
                 for (const auto &vote : pDelegateTx->candidateVotes) {
                     assert(vote.GetCandidateVoteType() == ADD_BCOIN);  // it has to be ADD in GensisBlock
@@ -1364,10 +1362,9 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 LogPrint("vm", "tx hash=%s ConnectBlock run contract\n", pBaseTx->GetHash().GetHex());
 
             LogPrint("op_account", "tx index:%d tx hash:%s\n", i, pBaseTx->GetHash().GetHex());
-            CTxUndo txundo;
             pBaseTx->nFuelRate = block.GetFuelRate();
 
-            cw.txUndo = txundo;
+            cw.txUndo.Clear();  // Clear first.
             if (!pBaseTx->ExecuteTx(pIndex->nHeight, i, cw, state))
                 return false;
 
@@ -1388,7 +1385,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                      nTotalFuel, llFuel, pBaseTx->nRunStep, block.GetFuelRate(), pBaseTx->GetHash().GetHex());
             vPos.push_back(make_pair(block.GetTxHash(i), pos));
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
-            blockundo.vtxundo.push_back(txundo);
+            blockundo.vtxundo.push_back(cw.txUndo);
         }
 
         if (nTotalFuel != block.GetFuel())
@@ -1413,12 +1410,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     // Execute BlockRewardTx
     LogPrint("op_account", "tx index:%d tx hash:%s\n", 0, block.vptx[0]->GetHash().GetHex());
-    CTxUndo txundo;
-    cw.txUndo = txundo;
+    cw.txUndo.Clear();  // Clear first
     if (!block.vptx[0]->ExecuteTx(pIndex->nHeight, 0, cw, state))
         return ERRORMSG("ConnectBlock() : execute reward tx error!");
 
-    blockundo.vtxundo.push_back(txundo);
+    blockundo.vtxundo.push_back(cw.txUndo);
 
     if (pIndex->nHeight - COINBASE_MATURITY > 0) {
         // Deal mature BlockRewardTx
@@ -1427,18 +1423,18 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             pMatureIndex = pMatureIndex->pprev;
         }
 
-        if (NULL != pMatureIndex) {
+        if (nullptr != pMatureIndex) {
             CBlock matureBlock;
             if (!ReadBlockFromDisk(pMatureIndex, matureBlock)) {
                 return state.DoS(100, ERRORMSG("ConnectBlock() : read mature block error"),
                                 REJECT_INVALID, "bad-read-block");
             }
 
-            // cw.txUndo = txundo; //FIXME:
+            cw.txUndo.Clear();  // Clear first
             if (!matureBlock.vptx[0]->ExecuteTx(pIndex->nHeight, -1, cw, state))
                 return ERRORMSG("ConnectBlock() : execute mature block reward tx error!");
         }
-        blockundo.vtxundo.push_back(txundo);
+        blockundo.vtxundo.push_back(cw.txUndo);
     }
     int64_t nTime = GetTimeMicros() - nStart;
     if (SysCfg().IsBenchmark())
@@ -1450,11 +1446,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     if (SysCfg().IsTxIndex()) {
         LogPrint("DEBUG", "add tx index, block hash:%s\n", pIndex->GetBlockHash().GetHex());
-        vector<CContractDBOperLog> vTxIndexOperDB;
+        vector<CDBOpLog> vTxIndexOperDB;
         if (!pCdMan->pContractCache->WriteTxIndex(vPos, vTxIndexOperDB))
             return state.Abort(_("Failed to write transaction index"));
         auto itTxUndo = blockundo.vtxundo.rbegin();
-        itTxUndo->vContractOperLog.insert(itTxUndo->vContractOperLog.begin(), vTxIndexOperDB.begin(),
+        itTxUndo->contractOpLogs.insert(itTxUndo->contractOpLogs.begin(), vTxIndexOperDB.begin(),
                                         vTxIndexOperDB.end());
     }
 
@@ -1533,7 +1529,7 @@ bool static WriteChainState(CValidationState &state) {
 void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
     chainActive.SetTip(pIndexNew);
 
-    SyncTransaction(uint256(), NULL, &block);
+    SyncTransaction(uint256(), nullptr, &block);
 
     // Update best block in wallet (so we can detect restored wallets)
     bool fIsInitialDownload = IsInitialBlockDownload();
@@ -1555,7 +1551,7 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
     if (!fIsInitialDownload) {
         int nUpgraded             = 0;
         const CBlockIndex *pIndex = chainActive.Tip();
-        for (int i = 0; i < 100 && pIndex != NULL; i++) {
+        for (int i = 0; i < 100 && pIndex != nullptr; i++) {
             if (pIndex->nVersion > CBlock::CURRENT_VERSION)
                 ++nUpgraded;
             pIndex = pIndex->pprev;
@@ -1695,7 +1691,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
 // Make chainMostWork correspond to the chain with the most work in it, that isn't
 // known to be invalid (it's however far from certain to be valid).
 void static FindMostWorkChain() {
-    CBlockIndex *pIndexNew = NULL;
+    CBlockIndex *pIndexNew = nullptr;
 
     // In case the current best is invalid, do not consider it.
     while (chainMostWork.Tip() && (chainMostWork.Tip()->nStatus & BLOCK_FAILED_MASK)) {
@@ -1719,7 +1715,7 @@ void static FindMostWorkChain() {
         while (pindexTest && !chainActive.Contains(pindexTest)) {
             if (pindexTest->nStatus & BLOCK_FAILED_MASK) {
                 // Candidate has an invalid ancestor, remove entire chain from the set.
-                if (pindexBestInvalid == NULL || pIndexNew->nChainWork > pindexBestInvalid->nChainWork)
+                if (pindexBestInvalid == nullptr || pIndexNew->nChainWork > pindexBestInvalid->nChainWork)
                     pindexBestInvalid = pIndexNew;
                 CBlockIndex *pindexFailed = pIndexNew;
                 while (pindexTest != pindexFailed) {
@@ -1756,7 +1752,7 @@ bool ActivateBestChain(CValidationState &state) {
         fComplete = true;
 
         // Check whether we have something to do.
-        if (chainMostWork.Tip() == NULL) break;
+        if (chainMostWork.Tip() == nullptr) break;
 
         // Disconnect active blocks which are no longer in the best chain.
         while (chainActive.Tip() && !chainMostWork.Contains(chainActive.Tip())) {
@@ -2186,7 +2182,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
         return state.DoS(100, ERRORMSG("CheckBlock() : block fuel rate unmatched"), REJECT_INVALID, "fuel-rate-unmatch");
 
     // Get prev block index
-    CBlockIndex *pBlockIndexPrev = NULL;
+    CBlockIndex *pBlockIndexPrev = nullptr;
     int nHeight = 0;
     if (block.GetHeight() != 0 || blockHash != SysCfg().GetGenesisBlockHash()) {
         map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(block.GetPrevBlockHash());
@@ -2240,13 +2236,13 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
     try {
         unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
         CDiskBlockPos blockPos;
-        if (dbp != NULL)
+        if (dbp != nullptr)
             blockPos = *dbp;
 
-        if (!FindBlockPos(state, blockPos, nBlockSize + 8, nHeight, block.GetTime(), dbp != NULL))
+        if (!FindBlockPos(state, blockPos, nBlockSize + 8, nHeight, block.GetTime(), dbp != nullptr))
             return ERRORMSG("AcceptBlock() : FindBlockPos failed");
 
-        if (dbp == NULL && !WriteBlockToDisk(block, blockPos))
+        if (dbp == nullptr && !WriteBlockToDisk(block, blockPos))
             return state.Abort(_("Failed to write block"));
 
         if (!AddToBlockIndex(block, state, blockPos))
@@ -2271,7 +2267,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
 
 bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex *pstart, unsigned int nRequired, unsigned int nToCheck) {
     unsigned int nFound = 0;
-    for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != NULL; i++) {
+    for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != nullptr; i++) {
         if (pstart->nVersion >= minVersion)
             ++nFound;
         pstart = pstart->pprev;
@@ -2306,7 +2302,7 @@ int static inline GetSkipHeight(int height) {
 
 CBlockIndex *CBlockIndex::GetAncestor(int height) {
     if (height > nHeight || height < 0)
-        return NULL;
+        return nullptr;
 
     CBlockIndex *pindexWalk = this;
     int heightWalk          = nHeight;
@@ -2382,7 +2378,7 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 ha
     }
 }
 
-bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pBlock, CDiskBlockPos *dbp) {
+bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBlockPos *dbp) {
     int64_t llBeginTime = GetTimeMillis();
     //  LogPrint("INFO", "ProcessBlock() enter:%lld\n", llBeginTime);
     AssertLockHeld(cs_main);
@@ -2416,7 +2412,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pBlock, CDiskBl
         }
 
         // Accept orphans as long as there is a node to request its parents from
-        if (pfrom) {
+        if (pFrom) {
             bool success = PruneOrphanBlocks(pBlock->GetHeight());
             if (success) {
                 COrphanBlock *pblock2 = new COrphanBlock();
@@ -2438,7 +2434,7 @@ bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pBlock, CDiskBl
                     pBlock->GetHeight(), pBlock->GetHash().GetHex(), success ? "keep" : "abandon",
                     chainActive.Tip()->nHeight, mapOrphanBlocksByPrev.size());
 
-            PushGetBlocksOnCondition(pfrom, chainActive.Tip(), GetOrphanRoot(blockHash));
+            PushGetBlocksOnCondition(pFrom, chainActive.Tip(), GetOrphanRoot(blockHash));
         }
         return true;
     }
@@ -2495,11 +2491,11 @@ bool CheckActiveChain(int nHeight, uint256 hash) {
     LogPrint("CHECKPOINT", pindexOldTip->ToString().c_str());
 
     // Find the active chain dismatch checkpoint
-    if (NULL == chainActive[nHeight] || hash != chainActive[nHeight]->GetBlockHash()) {
+    if (nullptr == chainActive[nHeight] || hash != chainActive[nHeight]->GetBlockHash()) {
         CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
         LogPrint("CHECKPOINT", "Get Last check point:\n");
         if (pcheckpoint) {
-            if (NULL == chainActive[nHeight] && chainActive.Contains(pcheckpoint)) {
+            if (nullptr == chainActive[nHeight] && chainActive.Contains(pcheckpoint)) {
                 return true;
             }
             pcheckpoint->Print();
@@ -2527,7 +2523,7 @@ bool CheckActiveChain(int nHeight, uint256 hash) {
                     while (pIndexCheck && !chainMostWork.Contains(pIndexCheck)) {
                         pIndexCheck = pIndexCheck->pprev;
                     }
-                    if (NULL == pIndexCheck || pIndexCheck->nHeight < pcheckpoint->nHeight) {
+                    if (nullptr == pIndexCheck || pIndexCheck->nHeight < pcheckpoint->nHeight) {
                         CBlockIndex *pIndexFailed = pIndexCheck;
                         while (pIndexTest != pIndexFailed) {
                             LogPrint("CHECKPOINT", "CheckActiveChain delete blockindex height=%d hash=%s\n",
@@ -2553,7 +2549,7 @@ bool CheckActiveChain(int nHeight, uint256 hash) {
             }
 
         } else {
-            if (NULL == chainActive[ nHeight ])
+            if (nullptr == chainActive[ nHeight ])
                 return true;
 
             bool bInvalidBlock = false;
@@ -2587,14 +2583,14 @@ bool CheckActiveChain(int nHeight, uint256 hash) {
         }
 
         // Check whether we have something to do. sync chainMostWork to chainActive;disconnect block or connect block;
-        if (chainMostWork.Tip() == NULL)
+        if (chainMostWork.Tip() == nullptr)
             return false;
         CValidationState state;
         while (chainActive.Tip() && !chainMostWork.Contains(chainActive.Tip())) {
             if (!DisconnectTip(state))
                 return false;
         }
-        while (NULL != chainMostWork[chainActive.Height() + 1]) {
+        while (nullptr != chainMostWork[chainActive.Height() + 1]) {
             CBlockIndex *pindexConnect = chainMostWork[chainActive.Height() + 1];
             if (!ConnectTip(state, pindexConnect)) {
                 if (state.IsInvalid()) {
@@ -2838,7 +2834,7 @@ bool static LoadBlockIndexDB() {
 
 bool VerifyDB(int nCheckLevel, int nCheckDepth) {
     LOCK(cs_main);
-    if (chainActive.Tip() == NULL || chainActive.Tip()->pprev == NULL)
+    if (chainActive.Tip() == nullptr || chainActive.Tip()->pprev == nullptr)
         return true;
 
     // Verify blocks in the best chain
@@ -2855,8 +2851,8 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
     spCW->contractCache = *pCdMan->pContractCache;
     spCW->txCache = *pCdMan->pTxCache;
 
-    CBlockIndex *pindexState   = chainActive.Tip();
-    CBlockIndex *pindexFailure = NULL;
+    CBlockIndex *pIndexState   = chainActive.Tip();
+    CBlockIndex *pIndexFailure = nullptr;
     int nGoodTransactions      = 0;
     CValidationState state;
 
@@ -2886,28 +2882,28 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
             }
         }
         // check level 3: check for inconsistencies during memory-only disconnect of tip blocks
-        if (nCheckLevel >= 3 && pIndex == pindexState) {
+        if (nCheckLevel >= 3 && pIndex == pIndexState) {
             bool fClean = true;
 
             if (!DisconnectBlock(block, *spCW, pIndex, state, &fClean))
                 return ERRORMSG("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s",
                                 pIndex->nHeight, pIndex->GetBlockHash().ToString());
 
-            pindexState = pIndex->pprev;
+            pIndexState = pIndex->pprev;
             if (!fClean) {
                 nGoodTransactions = 0;
-                pindexFailure     = pIndex;
+                pIndexFailure     = pIndex;
             } else
                 nGoodTransactions += block.vptx.size();
         }
     }
-    if (pindexFailure)
+    if (pIndexFailure)
         return ERRORMSG("VerifyDB() : *** coin database inconsistencies found (last %i blocks, %i good transactions before that)\n",
-                        chainActive.Height() - pindexFailure->nHeight + 1, nGoodTransactions);
+                        chainActive.Height() - pIndexFailure->nHeight + 1, nGoodTransactions);
 
     // check level 4: try reconnecting blocks
     if (nCheckLevel >= 4) {
-        CBlockIndex *pIndex = pindexState;
+        CBlockIndex *pIndex = pIndexState;
         while (pIndex != chainActive.Tip()) {
             boost::this_thread::interruption_point();
             pIndex = chainActive.Next(pIndex);
@@ -2923,7 +2919,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
     }
 
     LogPrint("INFO", "No coin database inconsistencies in last %i blocks (%i transactions)\n",
-            chainActive.Height() - pindexState->nHeight, nGoodTransactions);
+            chainActive.Height() - pIndexState->nHeight, nGoodTransactions);
 
     return true;
 }
@@ -2931,8 +2927,8 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
 void UnloadBlockIndex() {
     mapBlockIndex.clear();
     setBlockIndexValid.clear();
-    chainActive.SetTip(NULL);
-    pindexBestInvalid = NULL;
+    chainActive.SetTip(nullptr);
+    pindexBestInvalid = nullptr;
 }
 
 bool LoadBlockIndex() {
@@ -2945,7 +2941,7 @@ bool LoadBlockIndex() {
 bool InitBlockIndex() {
     LOCK(cs_main);
     // Check whether we're already initialized
-    if (chainActive.Genesis() != NULL)
+    if (chainActive.Genesis() != nullptr)
         return true;
 
     // Use the provided setting for -txindex in the new database
@@ -3085,7 +3081,7 @@ bool LoadExternalBlockFile(FILE *fileIn, CDiskBlockPos *dbp) {
                     if (dbp)
                         dbp->nPos = nBlockPos;
                     CValidationState state;
-                    if (ProcessBlock(state, NULL, &block, dbp))
+                    if (ProcessBlock(state, nullptr, &block, dbp))
                         nLoaded++;
                     if (state.IsError())
                         break;
@@ -3173,16 +3169,16 @@ bool static AlreadyHave(const CInv &inv) {
     return true;
 }
 
-void static ProcessGetData(CNode *pfrom) {
-    deque<CInv>::iterator it = pfrom->vRecvGetData.begin();
+void static ProcessGetData(CNode *pFrom) {
+    deque<CInv>::iterator it = pFrom->vRecvGetData.begin();
 
     vector<CInv> vNotFound;
 
     LOCK(cs_main);
 
-    while (it != pfrom->vRecvGetData.end()) {
+    while (it != pFrom->vRecvGetData.end()) {
         // Don't bother if send buffer is too full to respond anyway
-        if (pfrom->nSendSize >= SendBufferSize())
+        if (pFrom->nSendSize >= SendBufferSize())
             break;
 
         const CInv &inv = *it;
@@ -3213,13 +3209,13 @@ void static ProcessGetData(CNode *pfrom) {
                     CBlock block;
                     ReadBlockFromDisk((*mi).second, block);
                     if (inv.type == MSG_BLOCK)
-                        pfrom->PushMessage("block", block);
+                        pFrom->PushMessage("block", block);
                     else  // MSG_FILTERED_BLOCK)
                     {
-                        LOCK(pfrom->cs_filter);
-                        if (pfrom->pfilter) {
-                            CMerkleBlock merkleBlock(block, *pfrom->pfilter);
-                            pfrom->PushMessage("merkleblock", merkleBlock);
+                        LOCK(pFrom->cs_filter);
+                        if (pFrom->pfilter) {
+                            CMerkleBlock merkleBlock(block, *pFrom->pfilter);
+                            pFrom->PushMessage("merkleblock", merkleBlock);
                             // CMerkleBlock just contains hashes, so also push any transactions in the block the client did not see
                             // This avoids hurting performance by pointlessly requiring a round-trip
                             // Note that there is currently no way for a node to request any single transactions we didnt send here -
@@ -3227,22 +3223,22 @@ void static ProcessGetData(CNode *pfrom) {
                             // Thus, the protocol spec specified allows for us to provide duplicate txn here,
                             // however we MUST always provide at least what the remote peer needs
                             for (auto &pair : merkleBlock.vMatchedTxn)
-                                if (!pfrom->setInventoryKnown.count(CInv(MSG_TX, pair.second)))
-                                    pfrom->PushMessage("tx", block.vptx[pair.first]);
+                                if (!pFrom->setInventoryKnown.count(CInv(MSG_TX, pair.second)))
+                                    pFrom->PushMessage("tx", block.vptx[pair.first]);
                         }
                         // else
                         // no response
                     }
 
                     // Trigger them to send a getblocks request for the next batch of inventory
-                    if (inv.hash == pfrom->hashContinue) {
+                    if (inv.hash == pFrom->hashContinue) {
                         // Bypass PushInventory, this must send even if redundant,
                         // and we want it right after the last block so they don't
                         // wait for other stuff first.
                         vector<CInv> vInv;
                         vInv.push_back(CInv(MSG_BLOCK, chainActive.Tip()->GetBlockHash()));
-                        pfrom->PushMessage("inv", vInv);
-                        pfrom->hashContinue.SetNull();
+                        pFrom->PushMessage("inv", vInv);
+                        pFrom->hashContinue.SetNull();
                         LogPrint("net", "reset node hashcontinue\n");
                     }
                 }
@@ -3253,7 +3249,7 @@ void static ProcessGetData(CNode *pfrom) {
                     LOCK(cs_mapRelay);
                     map<CInv, CDataStream>::iterator mi = mapRelay.find(inv);
                     if (mi != mapRelay.end()) {
-                        pfrom->PushMessage(inv.GetCommand(), (*mi).second);
+                        pFrom->PushMessage(inv.GetCommand(), (*mi).second);
                         pushed = true;
                     }
                 }
@@ -3275,7 +3271,7 @@ void static ProcessGetData(CNode *pfrom) {
                         } else if (COMMON_MTX == pBaseTx->nTxType) {
                             ss << *((CMulsigTx *)pBaseTx.get());
                         }
-                        pfrom->PushMessage("tx", ss);
+                        pFrom->PushMessage("tx", ss);
                         pushed = true;
                     }
                 }
@@ -3292,7 +3288,7 @@ void static ProcessGetData(CNode *pfrom) {
         }
     }
 
-    pfrom->vRecvGetData.erase(pfrom->vRecvGetData.begin(), it);
+    pFrom->vRecvGetData.erase(pFrom->vRecvGetData.begin(), it);
 
     if (!vNotFound.empty()) {
         // Let the peer know that we didn't find what it asked for, so it doesn't
@@ -3302,11 +3298,11 @@ void static ProcessGetData(CNode *pfrom) {
         // do that because they want to know about (and store and rebroadcast and
         // risk analyze) the dependencies of transactions relevant to them, without
         // having to download the entire memory pool.
-        pfrom->PushMessage("notfound", vNotFound);
+        pFrom->PushMessage("notfound", vNotFound);
     }
 }
 
-bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
+bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
 {
     RandAddSeedPerfmon();
     LogPrint("net", "received: %s (%u bytes)\n", strCommand, vRecv.size());
@@ -3318,15 +3314,15 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
 
     {
         LOCK(cs_main);
-        State(pfrom->GetId())->nLastBlockProcess = GetTimeMicros();
+        State(pFrom->GetId())->nLastBlockProcess = GetTimeMicros();
     }
 
     if (strCommand == "version") {
         // Each connection can only send one version message
-        if (pfrom->nVersion != 0) {
-            pfrom->PushMessage("reject", strCommand, REJECT_DUPLICATE, string("Duplicate version message"));
+        if (pFrom->nVersion != 0) {
+            pFrom->PushMessage("reject", strCommand, REJECT_DUPLICATE, string("Duplicate version message"));
             LogPrint("INFO", "Misbehaving: Duplicated version message, nMisbehavior add 1\n");
-            Misbehaving(pfrom->GetId(), 1);
+            Misbehaving(pFrom->GetId(), 1);
             return false;
         }
 
@@ -3334,73 +3330,73 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         CAddress addrMe;
         CAddress addrFrom;
         uint64_t nNonce = 1;
-        vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe;
-        if (pfrom->nVersion < MIN_PEER_PROTO_VERSION) {
+        vRecv >> pFrom->nVersion >> pFrom->nServices >> nTime >> addrMe;
+        if (pFrom->nVersion < MIN_PEER_PROTO_VERSION) {
             // disconnect from peers older than this proto version
-            LogPrint("INFO", "partner %s using obsolete version %i; disconnecting\n", pfrom->addr.ToString(), pfrom->nVersion);
-            pfrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
+            LogPrint("INFO", "partner %s using obsolete version %i; disconnecting\n", pFrom->addr.ToString(), pFrom->nVersion);
+            pFrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
                                strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION));
-            pfrom->fDisconnect = true;
+            pFrom->fDisconnect = true;
             return false;
         }
 
-        if (pfrom->nVersion == 10300)
-            pfrom->nVersion = 300;
+        if (pFrom->nVersion == 10300)
+            pFrom->nVersion = 300;
 
         if (!vRecv.empty())
             vRecv >> addrFrom >> nNonce;
 
         if (!vRecv.empty()) {
-            vRecv >> pfrom->strSubVer;
-            pfrom->cleanSubVer = SanitizeString(pfrom->strSubVer);
+            vRecv >> pFrom->strSubVer;
+            pFrom->cleanSubVer = SanitizeString(pFrom->strSubVer);
         }
 
         if (!vRecv.empty())
-            vRecv >> pfrom->nStartingHeight;
+            vRecv >> pFrom->nStartingHeight;
 
         if (!vRecv.empty())
-            vRecv >> pfrom->fRelayTxes;  // set to true after we get the first filter* message
+            vRecv >> pFrom->fRelayTxes;  // set to true after we get the first filter* message
         else
-            pfrom->fRelayTxes = true;
+            pFrom->fRelayTxes = true;
 
-        if (pfrom->fInbound && addrMe.IsRoutable()) {
-            pfrom->addrLocal = addrMe;
+        if (pFrom->fInbound && addrMe.IsRoutable()) {
+            pFrom->addrLocal = addrMe;
             SeenLocal(addrMe);
         }
 
         // Disconnect if we connected to ourself
         if (nNonce == nLocalHostNonce && nNonce > 1) {
-            LogPrint("INFO", "connected to self at %s, disconnecting\n", pfrom->addr.ToString());
-            pfrom->fDisconnect = true;
+            LogPrint("INFO", "connected to self at %s, disconnecting\n", pFrom->addr.ToString());
+            pFrom->fDisconnect = true;
             return true;
         }
 
         // Be shy and don't send version until we hear
-        if (pfrom->fInbound)
-            pfrom->PushVersion();
+        if (pFrom->fInbound)
+            pFrom->PushVersion();
 
-        pfrom->fClient = !(pfrom->nServices & NODE_NETWORK);
+        pFrom->fClient = !(pFrom->nServices & NODE_NETWORK);
 
         // Change version
-        pfrom->PushMessage("verack");
-        pfrom->ssSend.SetVersion(min(pfrom->nVersion, PROTOCOL_VERSION));
+        pFrom->PushMessage("verack");
+        pFrom->ssSend.SetVersion(min(pFrom->nVersion, PROTOCOL_VERSION));
 
-        if (!pfrom->fInbound) {
+        if (!pFrom->fInbound) {
             // Advertise our address
             if (!fNoListen && !IsInitialBlockDownload()) {
-                CAddress addr = GetLocalAddress(&pfrom->addr);
+                CAddress addr = GetLocalAddress(&pFrom->addr);
                 if (addr.IsRoutable())
-                    pfrom->PushAddress(addr);
+                    pFrom->PushAddress(addr);
             }
 
             // Get recent addresses
-            if (pfrom->fOneShot || /*pfrom->nVersion >= CADDR_TIME_VERSION || */ addrman.size() < 1000) {
-                pfrom->PushMessage("getaddr");
-                pfrom->fGetAddr = true;
+            if (pFrom->fOneShot || /*pFrom->nVersion >= CADDR_TIME_VERSION || */ addrman.size() < 1000) {
+                pFrom->PushMessage("getaddr");
+                pFrom->fGetAddr = true;
             }
-            addrman.Good(pfrom->addr);
+            addrman.Good(pFrom->addr);
         } else {
-            if (((CNetAddr)pfrom->addr) == (CNetAddr)addrFrom) {
+            if (((CNetAddr)pFrom->addr) == (CNetAddr)addrFrom) {
                 addrman.Add(addrFrom, addrFrom);
                 addrman.Good(addrFrom);
             }
@@ -3410,31 +3406,31 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         {
             LOCK(cs_mapAlerts);
             for (const auto &item : mapAlerts)
-                item.second.RelayTo(pfrom);
+                item.second.RelayTo(pFrom);
         }
 
-        pfrom->fSuccessfullyConnected = true;
+        pFrom->fSuccessfullyConnected = true;
 
-        LogPrint("INFO", "receive version message: %s: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", pfrom->cleanSubVer, pfrom->nVersion, pfrom->nStartingHeight, addrMe.ToString(), addrFrom.ToString(), pfrom->addr.ToString());
+        LogPrint("INFO", "receive version message: %s: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", pFrom->cleanSubVer, pFrom->nVersion, pFrom->nStartingHeight, addrMe.ToString(), addrFrom.ToString(), pFrom->addr.ToString());
 
-        AddTimeData(pfrom->addr, nTime);
+        AddTimeData(pFrom->addr, nTime);
 
         LOCK(cs_main);
-        cPeerBlockCounts.input(pfrom->nStartingHeight);
+        cPeerBlockCounts.input(pFrom->nStartingHeight);
 
-        if (pfrom->nStartingHeight > Checkpoints::GetTotalBlocksEstimate()) {
-            pfrom->PushMessage("getcheck", Checkpoints::GetTotalBlocksEstimate());
+        if (pFrom->nStartingHeight > Checkpoints::GetTotalBlocksEstimate()) {
+            pFrom->PushMessage("getcheck", Checkpoints::GetTotalBlocksEstimate());
         }
     }
 
-    else if (pfrom->nVersion == 0) {
+    else if (pFrom->nVersion == 0) {
         // Must have a version message before anything else
-        Misbehaving(pfrom->GetId(), 1);
+        Misbehaving(pFrom->GetId(), 1);
         return false;
     }
 
     else if (strCommand == "verack") {
-        pfrom->SetRecvVersion(min(pfrom->nVersion, PROTOCOL_VERSION));
+        pFrom->SetRecvVersion(min(pFrom->nVersion, PROTOCOL_VERSION));
     }
 
     else if (strCommand == "addr") {
@@ -3442,10 +3438,10 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         vRecv >> vAddr;
 
         // Don't want addr from older versions unless seeding
-        //        if (pfrom->nVersion < CADDR_TIME_VERSION && addrman.size() > 1000)
+        //        if (pFrom->nVersion < CADDR_TIME_VERSION && addrman.size() > 1000)
         //            return true;
         if (vAddr.size() > 1000) {
-            Misbehaving(pfrom->GetId(), 20);
+            Misbehaving(pFrom->GetId(), 20);
             return ERRORMSG("message addr size() = %u", vAddr.size());
         }
 
@@ -3459,9 +3455,9 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
             if (addr.nTime <= 100000000 || addr.nTime > nNow + 10 * 60)
                 addr.nTime = nNow - 5 * 24 * 60 * 60;
 
-            pfrom->AddAddressKnown(addr);
+            pFrom->AddAddressKnown(addr);
             bool fReachable = IsReachable(addr);
-            if (addr.nTime > nSince && !pfrom->fGetAddr && vAddr.size() <= 10 && addr.IsRoutable()) {
+            if (addr.nTime > nSince && !pFrom->fGetAddr && vAddr.size() <= 10 && addr.IsRoutable()) {
                 // Relay to a limited number of other nodes
                 {
                     LOCK(cs_vNodes);
@@ -3492,18 +3488,18 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
             if (fReachable)
                 vAddrOk.push_back(addr);
         }
-        addrman.Add(vAddrOk, pfrom->addr, 2 * 60 * 60);
+        addrman.Add(vAddrOk, pFrom->addr, 2 * 60 * 60);
         if (vAddr.size() < 1000)
-            pfrom->fGetAddr = false;
-        if (pfrom->fOneShot)
-            pfrom->fDisconnect = true;
+            pFrom->fGetAddr = false;
+        if (pFrom->fOneShot)
+            pFrom->fDisconnect = true;
     }
 
     else if (strCommand == "inv") {
         vector<CInv> vInv;
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
-            Misbehaving(pfrom->GetId(), 20);
+            Misbehaving(pFrom->GetId(), 20);
             return ERRORMSG("message inv size() = %u", vInv.size());
         }
 
@@ -3513,7 +3509,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
             const CInv &inv = vInv[nInv];
 
             boost::this_thread::interruption_point();
-            pfrom->AddInventoryKnown(inv);
+            pFrom->AddInventoryKnown(inv);
             bool fAlreadyHave = AlreadyHave(inv);
 
             int nBlockHeight = 0;
@@ -3521,28 +3517,28 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
                 nBlockHeight = mapBlockIndex[inv.hash]->nHeight;
 
             LogPrint("net", "got inventory[%d]: %s %s %d from peer %s\n", nInv, inv.ToString(),
-                fAlreadyHave ? "have" : "new", nBlockHeight, pfrom->addr.ToString());
+                fAlreadyHave ? "have" : "new", nBlockHeight, pFrom->addr.ToString());
 
             if (!fAlreadyHave) {
                 if (!SysCfg().IsImporting() && !SysCfg().IsReindex()) {
                     if (inv.type == MSG_BLOCK)
-                        AddBlockToQueue(pfrom->GetId(), inv.hash);
+                        AddBlockToQueue(pFrom->GetId(), inv.hash);
                     else
-                        pfrom->AskFor(inv);  // MSG_TX
+                        pFrom->AskFor(inv);  // MSG_TX
                 }
             } else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash)) {
                 COrphanBlock *pOrphanBlock = mapOrphanBlocks[inv.hash];
                 LogPrint("net", "receive orphan block inv height=%d hash=%s lead to getblocks, current height=%d\n",
                     pOrphanBlock->height, inv.hash.GetHex(), chainActive.Tip()->nHeight);
-                PushGetBlocksOnCondition(pfrom, chainActive.Tip(), GetOrphanRoot(inv.hash));
+                PushGetBlocksOnCondition(pFrom, chainActive.Tip(), GetOrphanRoot(inv.hash));
             }
 
             // Track requests for our stuff
             // g_signals.Inventory(inv.hash);
 
-            if (pfrom->nSendSize > (SendBufferSize() * 2)) {
-                Misbehaving(pfrom->GetId(), 50);
-                return ERRORMSG("send buffer size() = %u", pfrom->nSendSize);
+            if (pFrom->nSendSize > (SendBufferSize() * 2)) {
+                Misbehaving(pFrom->GetId(), 50);
+                return ERRORMSG("send buffer size() = %u", pFrom->nSendSize);
             }
         }
     }
@@ -3551,7 +3547,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         vector<CInv> vInv;
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
-            Misbehaving(pfrom->GetId(), 20);
+            Misbehaving(pFrom->GetId(), 20);
             return ERRORMSG("message getdata size() = %u", vInv.size());
         }
 
@@ -3561,8 +3557,8 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         if ((vInv.size() > 0) || (vInv.size() == 1))
             LogPrint("net", "received getdata for: %s\n", vInv[0].ToString());
 
-        pfrom->vRecvGetData.insert(pfrom->vRecvGetData.end(), vInv.begin(), vInv.end());
-        ProcessGetData(pfrom);
+        pFrom->vRecvGetData.insert(pFrom->vRecvGetData.end(), vInv.begin(), vInv.end());
+        ProcessGetData(pFrom);
     }
 
     else if (strCommand == "getblocks") {
@@ -3585,12 +3581,12 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
                 LogPrint("net", "getblocks stopping at %d %s\n", pIndex->nHeight, pIndex->GetBlockHash().ToString());
                 break;
             }
-            pfrom->PushInventory(CInv(MSG_BLOCK, pIndex->GetBlockHash()));
+            pFrom->PushInventory(CInv(MSG_BLOCK, pIndex->GetBlockHash()));
             if (--nLimit <= 0) {
                 // When this block is requested, we'll send an inv that'll make them
                 // getblocks the next batch of inventory.
                 LogPrint("net", "getblocks stopping at limit %d %s\n", pIndex->nHeight, pIndex->GetBlockHash().ToString());
-                pfrom->hashContinue = pIndex->GetBlockHash();
+                pFrom->hashContinue = pIndex->GetBlockHash();
                 break;
             }
         }
@@ -3603,7 +3599,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
 
         LOCK(cs_main);
 
-        CBlockIndex *pIndex = NULL;
+        CBlockIndex *pIndex = nullptr;
         if (locator.IsNull()) {
             // If locator is null, return the hashStop block
             map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(hashStop);
@@ -3626,7 +3622,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
             if (--nLimit <= 0 || pIndex->GetBlockHash() == hashStop)
                 break;
         }
-        pfrom->PushMessage("headers", vHeaders);
+        pFrom->PushMessage("headers", vHeaders);
     }
 
     else if (strCommand == "tx") {
@@ -3638,7 +3634,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         vRecv >> pBaseTx;
 
         CInv inv(MSG_TX, pBaseTx->GetHash());
-        pfrom->AddInventoryKnown(inv);
+        pFrom->AddInventoryKnown(inv);
 
         LOCK(cs_main);
         CValidationState state;
@@ -3647,7 +3643,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
             mapAlreadyAskedFor.erase(inv);
 
             LogPrint("INFO", "AcceptToMemoryPool: %s %s : accepted %s (poolsz %u)\n",
-                pfrom->addr.ToString(), pfrom->cleanSubVer,
+                pFrom->addr.ToString(), pFrom->cleanSubVer,
                 pBaseTx->GetHash().ToString(),
                 mempool.memPoolTxs.size());
         }
@@ -3656,14 +3652,14 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         if (state.IsInvalid(nDoS)) {
             LogPrint("INFO", "%s from %s %s was not accepted into the memory pool: %s\n",
                 pBaseTx->GetHash().ToString(),
-                pfrom->addr.ToString(),
-                pfrom->cleanSubVer,
+                pFrom->addr.ToString(),
+                pFrom->cleanSubVer,
                 state.GetRejectReason());
 
-            pfrom->PushMessage("reject", strCommand, state.GetRejectCode(), state.GetRejectReason(), inv.hash);
+            pFrom->PushMessage("reject", strCommand, state.GetRejectCode(), state.GetRejectReason(), inv.hash);
             // if (nDoS > 0) {
             //     LogPrint("INFO", "Misebehaving, add to tx hash %s mempool error, Misbehavior add %d", pBaseTx->GetHash().GetHex(), nDoS);
-            //     Misbehaving(pfrom->GetId(), nDoS);
+            //     Misbehaving(pFrom->GetId(), nDoS);
             // }
         }
     }
@@ -3673,30 +3669,30 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         CBlock block;
         vRecv >> block;
 
-        LogPrint("net", "received block %s from %s\n", block.GetHash().ToString(), pfrom->addr.ToString());
+        LogPrint("net", "received block %s from %s\n", block.GetHash().ToString(), pFrom->addr.ToString());
         // block.Print();
 
         CInv inv(MSG_BLOCK, block.GetHash());
-        pfrom->AddInventoryKnown(inv);
+        pFrom->AddInventoryKnown(inv);
 
         LOCK(cs_main);
         // Remember who we got this block from.
-        mapBlockSource[inv.hash] = pfrom->GetId();
-        MarkBlockAsReceived(inv.hash, pfrom->GetId());
+        mapBlockSource[inv.hash] = pFrom->GetId();
+        MarkBlockAsReceived(inv.hash, pFrom->GetId());
 
         CValidationState state;
-        ProcessBlock(state, pfrom, &block);
+        ProcessBlock(state, pFrom, &block);
     }
 
     else if (strCommand == "getaddr") {
-        pfrom->vAddrToSend.clear();
+        pFrom->vAddrToSend.clear();
         vector<CAddress> vAddr = addrman.GetAddr();
         for (const auto &addr : vAddr)
-            pfrom->PushAddress(addr);
+            pFrom->PushAddress(addr);
     }
 
     else if (strCommand == "mempool") {
-        LOCK2(cs_main, pfrom->cs_filter);
+        LOCK2(cs_main, pFrom->cs_filter);
 
         vector<uint256> vtxid;
         mempool.QueryHash(vtxid);
@@ -3707,21 +3703,21 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
             if (pBaseTx.get())
                 continue;  // another thread removed since queryHashes, maybe...
 
-            if ((pfrom->pfilter && pfrom->pfilter->contains(hash)) ||  //other type transaction
-                (!pfrom->pfilter))
+            if ((pFrom->pfilter && pFrom->pfilter->contains(hash)) ||  //other type transaction
+                (!pFrom->pfilter))
                 vInv.push_back(inv);
 
             if (vInv.size() == MAX_INV_SZ) {
-                pfrom->PushMessage("inv", vInv);
+                pFrom->PushMessage("inv", vInv);
                 vInv.clear();
             }
         }
         if (vInv.size() > 0)
-            pfrom->PushMessage("inv", vInv);
+            pFrom->PushMessage("inv", vInv);
     }
 
     else if (strCommand == "ping") {
-        //        if (pfrom->nVersion > BIP0031_VERSION)
+        //        if (pFrom->nVersion > BIP0031_VERSION)
         //        {
         uint64_t nonce = 0;
         vRecv >> nonce;
@@ -3736,7 +3732,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         // it, if the remote node sends a ping once per second and this node takes 5
         // seconds to respond to each, the 5th ping the remote sends would appear to
         // return very quickly.
-        pfrom->PushMessage("pong", nonce);
+        pFrom->PushMessage("pong", nonce);
         //        }
     }
 
@@ -3751,14 +3747,14 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
             vRecv >> nonce;
 
             // Only process pong message if there is an outstanding ping (old ping without nonce should never pong)
-            if (pfrom->nPingNonceSent != 0) {
-                if (nonce == pfrom->nPingNonceSent) {
+            if (pFrom->nPingNonceSent != 0) {
+                if (nonce == pFrom->nPingNonceSent) {
                     // Matching pong received, this ping is no longer outstanding
                     bPingFinished        = true;
-                    int64_t pingUsecTime = pingUsecEnd - pfrom->nPingUsecStart;
+                    int64_t pingUsecTime = pingUsecEnd - pFrom->nPingUsecStart;
                     if (pingUsecTime > 0) {
                         // Successful ping time measurement, replace previous
-                        pfrom->nPingUsecTime = pingUsecTime;
+                        pFrom->nPingUsecTime = pingUsecTime;
                     } else {
                         // This should never happen
                         sProblem = "Timing mishap";
@@ -3783,15 +3779,15 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
 
         if (!(sProblem.empty())) {
             LogPrint("net", "pong %s %s: %s, %x expected, %x received, %u bytes\n",
-                     pfrom->addr.ToString(),
-                     pfrom->cleanSubVer,
+                     pFrom->addr.ToString(),
+                     pFrom->cleanSubVer,
                      sProblem,
-                     pfrom->nPingNonceSent,
+                     pFrom->nPingNonceSent,
                      nonce,
                      nAvail);
         }
         if (bPingFinished) {
-            pfrom->nPingNonceSent = 0;
+            pFrom->nPingNonceSent = 0;
         }
     }
 
@@ -3800,10 +3796,10 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         vRecv >> alert;
 
         uint256 alertHash = alert.GetHash();
-        if (pfrom->setKnown.count(alertHash) == 0) {
+        if (pFrom->setKnown.count(alertHash) == 0) {
             if (alert.ProcessAlert()) {
                 // Relay
-                pfrom->setKnown.insert(alertHash);
+                pFrom->setKnown.insert(alertHash);
                 {
                     LOCK(cs_vNodes);
                     for (auto pNode : vNodes)
@@ -3816,7 +3812,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
                 // This isn't a Misbehaving(100) (immediate ban) because the
                 // peer might be an older or different implementation with
                 // a different signature key, etc.
-                Misbehaving(pfrom->GetId(), 10);
+                Misbehaving(pFrom->GetId(), 10);
             }
         }
     }
@@ -3828,14 +3824,14 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         if (!filter.IsWithinSizeConstraints()) {
             LogPrint("INFO", "Misebehaving: filter is not within size constraints, Misbehavior add 100");
             // There is no excuse for sending a too-large filter
-            Misbehaving(pfrom->GetId(), 100);
+            Misbehaving(pFrom->GetId(), 100);
         } else {
-            LOCK(pfrom->cs_filter);
-            delete pfrom->pfilter;
-            pfrom->pfilter = new CBloomFilter(filter);
-            pfrom->pfilter->UpdateEmptyFull();
+            LOCK(pFrom->cs_filter);
+            delete pFrom->pfilter;
+            pFrom->pfilter = new CBloomFilter(filter);
+            pFrom->pfilter->UpdateEmptyFull();
         }
-        pfrom->fRelayTxes = true;
+        pFrom->fRelayTxes = true;
     }
 
     else if (strCommand == "filteradd") {
@@ -3847,23 +3843,23 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         if (vData.size() > 520)  //MAX_SCRIPT_ELEMENT_SIZE)
         {
             LogPrint("INFO", "Misbehaving: send a data item > 520 bytes, Misbehavior add 100");
-            Misbehaving(pfrom->GetId(), 100);
+            Misbehaving(pFrom->GetId(), 100);
         } else {
-            LOCK(pfrom->cs_filter);
-            if (pfrom->pfilter)
-                pfrom->pfilter->insert(vData);
+            LOCK(pFrom->cs_filter);
+            if (pFrom->pfilter)
+                pFrom->pfilter->insert(vData);
             else {
                 LogPrint("INFO", "Misbehaving: filter error, Misbehavior add 100");
-                Misbehaving(pfrom->GetId(), 100);
+                Misbehaving(pFrom->GetId(), 100);
             }
         }
     }
 
     else if (strCommand == "filterclear") {
-        LOCK(pfrom->cs_filter);
-        delete pfrom->pfilter;
-        pfrom->pfilter    = new CBloomFilter();
-        pfrom->fRelayTxes = true;
+        LOCK(pFrom->cs_filter);
+        delete pFrom->pfilter;
+        pFrom->pfilter    = new CBloomFilter();
+        pFrom->fRelayTxes = true;
     }
 
     else if (strCommand == "reject") {
@@ -3903,7 +3899,7 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
                     db.WriteCheckpoint(point.m_height, data);
                     Checkpoints::AddCheckpoint(point.m_height, point.m_hashCheckpoint);
                     CheckActiveChain(point.m_height, point.m_hashCheckpoint);
-                    pfrom->setcheckPointKnown.insert(point.m_height);
+                    pFrom->setcheckPointKnown.insert(point.m_height);
                     vIndex.push_back(point.m_height);
                 }
             }
@@ -3926,30 +3922,30 @@ bool static ProcessMessage(CNode *pfrom, string strCommand, CDataStream &vRecv)
         Checkpoints::GetCheckpointByHeight(height, vheight);
         for (std::size_t i = 0; i < vheight.size(); ++i) {
             SyncData::CSyncData data;
-            if (pfrom->setcheckPointKnown.count(vheight[i]) == 0 && db.ReadCheckpoint(vheight[i], data)) {
-                pfrom->setcheckPointKnown.insert(vheight[i]);
+            if (pFrom->setcheckPointKnown.count(vheight[i]) == 0 && db.ReadCheckpoint(vheight[i], data)) {
+                pFrom->setcheckPointKnown.insert(vheight[i]);
                 vdata.push_back(data);
             }
         }
         if (!vdata.empty()) {
-            pfrom->PushMessage("checkpoint", vdata);
+            pFrom->PushMessage("checkpoint", vdata);
         }
     } else {
         // Ignore unknown commands for extensibility
     }
 
     // Update the last seen time for this node's address
-    if (pfrom->fNetworkNode)
+    if (pFrom->fNetworkNode)
         if (strCommand == "version" || strCommand == "addr" || strCommand == "inv" || strCommand == "getdata" || strCommand == "ping")
-            AddressCurrentlyConnected(pfrom->addr);
+            AddressCurrentlyConnected(pFrom->addr);
 
     return true;
 }
 
 // requires LOCK(cs_vRecvMsg)
-bool ProcessMessages(CNode *pfrom) {
+bool ProcessMessages(CNode *pFrom) {
     //if (fDebug)
-    //    LogPrint("INFO","ProcessMessages(%u messages)\n", pfrom->vRecvMsg.size());
+    //    LogPrint("INFO","ProcessMessages(%u messages)\n", pFrom->vRecvMsg.size());
 
     //
     // Message format
@@ -3961,16 +3957,16 @@ bool ProcessMessages(CNode *pfrom) {
     //
     bool fOk = true;
 
-    if (!pfrom->vRecvGetData.empty())
-        ProcessGetData(pfrom);
+    if (!pFrom->vRecvGetData.empty())
+        ProcessGetData(pFrom);
 
     // this maintains the order of responses
-    if (!pfrom->vRecvGetData.empty()) return fOk;
+    if (!pFrom->vRecvGetData.empty()) return fOk;
 
-    deque<CNetMessage>::iterator it = pfrom->vRecvMsg.begin();
-    while (!pfrom->fDisconnect && it != pfrom->vRecvMsg.end()) {
+    deque<CNetMessage>::iterator it = pFrom->vRecvMsg.begin();
+    while (!pFrom->fDisconnect && it != pFrom->vRecvMsg.end()) {
         // Don't bother if send buffer is too full to respond anyway
-        if (pfrom->nSendSize >= SendBufferSize())
+        if (pFrom->nSendSize >= SendBufferSize())
             break;
 
         // get next message
@@ -4020,10 +4016,10 @@ bool ProcessMessages(CNode *pfrom) {
         // Process message
         bool fRet = false;
         try {
-            fRet = ProcessMessage(pfrom, strCommand, vRecv);
+            fRet = ProcessMessage(pFrom, strCommand, vRecv);
             boost::this_thread::interruption_point();
         } catch (std::ios_base::failure &e) {
-            pfrom->PushMessage("reject", strCommand, REJECT_MALFORMED, string("error parsing message"));
+            pFrom->PushMessage("reject", strCommand, REJECT_MALFORMED, string("error parsing message"));
             if (strstr(e.what(), "end of data")) {
                 // Allow exceptions from under-length message on vRecv
                 LogPrint("INFO", "ProcessMessages(%s, %u bytes) : Exception '%s' caught, normally caused by a message being shorter than its stated length\n", strCommand, nMessageSize, e.what());
@@ -4039,7 +4035,7 @@ bool ProcessMessages(CNode *pfrom) {
         } catch (std::exception &e) {
             PrintExceptionContinue(&e, "ProcessMessages()");
         } catch (...) {
-            PrintExceptionContinue(NULL, "ProcessMessages()");
+            PrintExceptionContinue(nullptr, "ProcessMessages()");
         }
 
         if (!fRet)
@@ -4049,27 +4045,27 @@ bool ProcessMessages(CNode *pfrom) {
     }
 
     // In case the connection got shut down, its receive buffer was wiped
-    if (!pfrom->fDisconnect)
-        pfrom->vRecvMsg.erase(pfrom->vRecvMsg.begin(), it);
+    if (!pFrom->fDisconnect)
+        pFrom->vRecvMsg.erase(pFrom->vRecvMsg.begin(), it);
 
     return fOk;
 }
 
-bool SendMessages(CNode *pto, bool fSendTrickle) {
+bool SendMessages(CNode *pTo, bool fSendTrickle) {
     {
         // Don't send anything until we get their version message
-        if (pto->nVersion == 0)
+        if (pTo->nVersion == 0)
             return true;
 
         //
         // Message: ping
         //
         bool pingSend = false;
-        if (pto->fPingQueued) {
+        if (pTo->fPingQueued) {
             // RPC ping request by user
             pingSend = true;
         }
-        if (pto->nLastSend && GetTime() - pto->nLastSend > 30 * 60 && pto->vSendMsg.empty()) {
+        if (pTo->nLastSend && GetTime() - pTo->nLastSend > 30 * 60 && pTo->vSendMsg.empty()) {
             // Ping automatically sent as a keepalive
             pingSend = true;
         }
@@ -4078,16 +4074,16 @@ bool SendMessages(CNode *pto, bool fSendTrickle) {
             while (nonce == 0) {
                 RAND_bytes((unsigned char *)&nonce, sizeof(nonce));
             }
-            pto->nPingNonceSent = nonce;
-            pto->fPingQueued    = false;
-            //            if (pto->nVersion > BIP0031_VERSION) {
+            pTo->nPingNonceSent = nonce;
+            pTo->fPingQueued    = false;
+            //            if (pTo->nVersion > BIP0031_VERSION) {
             // Take timestamp as close as possible before transmitting ping
-            pto->nPingUsecStart = GetTimeMicros();
-            pto->PushMessage("ping", nonce);
+            pTo->nPingUsecStart = GetTimeMicros();
+            pTo->PushMessage("ping", nonce);
             //            } else {
             //                // Peer is too old to support ping command with nonce, pong will never arrive, disable timing
-            //                pto->nPingUsecStart = 0;
-            //                pto->PushMessage("ping");
+            //                pTo->nPingUsecStart = 0;
+            //                pTo->PushMessage("ping");
             //            }
         }
 
@@ -4121,47 +4117,47 @@ bool SendMessages(CNode *pto, bool fSendTrickle) {
         //
         if (fSendTrickle) {
             vector<CAddress> vAddr;
-            vAddr.reserve(pto->vAddrToSend.size());
-            for (const auto &addr : pto->vAddrToSend) {
+            vAddr.reserve(pTo->vAddrToSend.size());
+            for (const auto &addr : pTo->vAddrToSend) {
                 // returns true if wasn't already contained in the set
-                if (pto->setAddrKnown.insert(addr).second) {
+                if (pTo->setAddrKnown.insert(addr).second) {
                     vAddr.push_back(addr);
                     // receiver rejects addr messages larger than 1000
                     if (vAddr.size() >= 1000) {
-                        pto->PushMessage("addr", vAddr);
+                        pTo->PushMessage("addr", vAddr);
                         vAddr.clear();
                     }
                 }
             }
-            pto->vAddrToSend.clear();
+            pTo->vAddrToSend.clear();
             if (!vAddr.empty())
-                pto->PushMessage("addr", vAddr);
+                pTo->PushMessage("addr", vAddr);
         }
 
-        CNodeState &state = *State(pto->GetId());
+        CNodeState &state = *State(pTo->GetId());
         if (state.fShouldBan) {
-            if (pto->addr.IsLocal()) {
-                LogPrint("INFO", "Warning: not banning local node %s!\n", pto->addr.ToString());
+            if (pTo->addr.IsLocal()) {
+                LogPrint("INFO", "Warning: not banning local node %s!\n", pTo->addr.ToString());
             }
             else {
-                LogPrint("INFO", "Warning: banned a remote node %s!\n", pto->addr.ToString());
-                pto->fDisconnect = true;
-                CNode::Ban(pto->addr);
+                LogPrint("INFO", "Warning: banned a remote node %s!\n", pTo->addr.ToString());
+                pTo->fDisconnect = true;
+                CNode::Ban(pTo->addr);
             }
             state.fShouldBan = false;
         }
 
         for (const auto &reject : state.rejects)
-            pto->PushMessage("reject", (string) "block", reject.chRejectCode, reject.strRejectReason, reject.blockHash);
+            pTo->PushMessage("reject", (string) "block", reject.chRejectCode, reject.strRejectReason, reject.blockHash);
         state.rejects.clear();
 
         // Start block sync
-        if (pto->fStartSync && !SysCfg().IsImporting() && !SysCfg().IsReindex()) {
-            pto->fStartSync = false;
-            nSyncTipHeight  = pto->nStartingHeight;
+        if (pTo->fStartSync && !SysCfg().IsImporting() && !SysCfg().IsReindex()) {
+            pTo->fStartSync = false;
+            nSyncTipHeight  = pTo->nStartingHeight;
             uiInterface.NotifyBlocksChanged(0, chainActive.Tip()->nHeight, chainActive.Tip()->GetBlockHash());
             LogPrint("net", "start block sync lead to getblocks\n");
-            PushGetBlocks(pto, chainActive.Tip(), uint256());
+            PushGetBlocks(pTo, chainActive.Tip(), uint256());
         }
 
         // Resend wallet transactions that haven't gotten in a block yet
@@ -4177,11 +4173,11 @@ bool SendMessages(CNode *pto, bool fSendTrickle) {
         vector<CInv> vInv;
         vector<CInv> vInvWait;
         {
-            LOCK(pto->cs_inventory);
-            vInv.reserve(pto->vInventoryToSend.size());
-            vInvWait.reserve(pto->vInventoryToSend.size());
-            for (const auto &inv : pto->vInventoryToSend) {
-                if (pto->setInventoryKnown.count(inv))
+            LOCK(pTo->cs_inventory);
+            vInv.reserve(pTo->vInventoryToSend.size());
+            vInvWait.reserve(pTo->vInventoryToSend.size());
+            for (const auto &inv : pTo->vInventoryToSend) {
+                if (pTo->setInventoryKnown.count(inv))
                     continue;
 
                 // trickle out tx inv to protect privacy
@@ -4201,29 +4197,29 @@ bool SendMessages(CNode *pto, bool fSendTrickle) {
                 }
 
                 // returns true if wasn't already contained in the set
-                if (pto->setInventoryKnown.insert(inv).second) {
+                if (pTo->setInventoryKnown.insert(inv).second) {
                     vInv.push_back(inv);
                     if (vInv.size() >= 1000) {
-                        pto->PushMessage("inv", vInv);
+                        pTo->PushMessage("inv", vInv);
                         vInv.clear();
                     }
                 }
             }
-            pto->vInventoryToSend = vInvWait;
+            pTo->vInventoryToSend = vInvWait;
         }
         if (!vInv.empty())
-            pto->PushMessage("inv", vInv);
+            pTo->PushMessage("inv", vInv);
 
         // Detect stalled peers. Require that blocks are in flight, we haven't
         // received a (requested) block in one minute, and that all blocks are
         // in flight for over two minutes, since we first had a chance to
         // process an incoming block.
         int64_t nNow = GetTimeMicros();
-        if (!pto->fDisconnect && state.nBlocksInFlight &&
+        if (!pTo->fDisconnect && state.nBlocksInFlight &&
             state.nLastBlockReceive < state.nLastBlockProcess - BLOCK_DOWNLOAD_TIMEOUT * 1000000 &&
             state.vBlocksInFlight.front().nTime < state.nLastBlockProcess - 2 * BLOCK_DOWNLOAD_TIMEOUT * 1000000) {
             LogPrint("INFO", "Peer %s is stalling block download, disconnecting\n", state.name.c_str());
-            pto->fDisconnect = true;
+            pTo->fDisconnect = true;
         }
 
         //
@@ -4231,14 +4227,14 @@ bool SendMessages(CNode *pto, bool fSendTrickle) {
         //
         vector<CInv> vGetData;
         int nIndex(0);
-        while (!pto->fDisconnect && state.nBlocksToDownload && state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
+        while (!pTo->fDisconnect && state.nBlocksToDownload && state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
             uint256 hash = state.vBlocksToDownload.front();
             vGetData.push_back(CInv(MSG_BLOCK, hash));
-            MarkBlockAsInFlight(pto->GetId(), hash);
+            MarkBlockAsInFlight(pTo->GetId(), hash);
             LogPrint("net", "Requesting block [%d] %s from %s, nBlocksInFlight=%d\n",
                      ++nIndex, hash.ToString().c_str(), state.name.c_str(), state.nBlocksInFlight);
             if (vGetData.size() >= 1000) {
-                pto->PushMessage("getdata", vGetData);
+                pTo->PushMessage("getdata", vGetData);
                 vGetData.clear();
                 nIndex = 0;
             }
@@ -4247,20 +4243,20 @@ bool SendMessages(CNode *pto, bool fSendTrickle) {
         //
         // Message: getdata (non-blocks)
         //
-        while (!pto->fDisconnect && !pto->mapAskFor.empty() && (*pto->mapAskFor.begin()).first <= nNow) {
-            const CInv &inv = (*pto->mapAskFor.begin()).second;
+        while (!pTo->fDisconnect && !pTo->mapAskFor.empty() && (*pTo->mapAskFor.begin()).first <= nNow) {
+            const CInv &inv = (*pTo->mapAskFor.begin()).second;
             if (!AlreadyHave(inv)) {
                 LogPrint("net", "sending getdata: %s\n", inv.ToString());
                 vGetData.push_back(inv);
                 if (vGetData.size() >= 1000) {
-                    pto->PushMessage("getdata", vGetData);
+                    pTo->PushMessage("getdata", vGetData);
                     vGetData.clear();
                 }
             }
-            pto->mapAskFor.erase(pto->mapAskFor.begin());
+            pTo->mapAskFor.erase(pTo->mapAskFor.begin());
         }
         if (!vGetData.empty())
-            pto->PushMessage("getdata", vGetData);
+            pTo->PushMessage("getdata", vGetData);
     }
     return true;
 }
@@ -4308,7 +4304,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
             ERRORMSG("CreateNewEmptyTransaction type error");
             break;
     }
-    return NULL;
+    return nullptr;
 }
 
 string CBlockUndo::ToString() const {
@@ -4324,7 +4320,7 @@ bool DisconnectBlockFromTip(CValidationState &state) {
     return DisconnectTip(state);
 }
 
-bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &vAccountLog) {
+bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &accountLogs) {
     if (SysCfg().IsTxIndex()) {
         CDiskTxPos postx;
         if (pCdMan->pContractCache->ReadTxIndex(txHash, postx)) {
@@ -4347,7 +4343,7 @@ bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &vAccountLog) {
 
                 for (auto &txUndo : blockUndo.vtxundo) {
                     if (txUndo.txHash == txHash) {
-                        vAccountLog = txUndo.vAccountLog;
+                        accountLogs = txUndo.accountLogs;
                         return true;
                     }
                 }
@@ -4355,21 +4351,6 @@ bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &vAccountLog) {
         }
     }
     return false;
-}
-
-Value ListSetBlockIndexValid() {
-    Object result;
-    std::set<CBlockIndex *, CBlockIndexWorkComparator>::reverse_iterator it = setBlockIndexValid.rbegin();
-    for (; it != setBlockIndexValid.rend(); ++it) {
-        CBlockIndex *pIndex = *it;
-        result.push_back(Pair(tfm::format("height=%d status=%b", pIndex->nHeight, pIndex->nStatus).c_str(), pIndex->GetBlockHash().GetHex()));
-    }
-    uint256 hash            = uint256S("0x6dccf719d146184b9a26e37d62be193fd51d0d49b2f8aa15f84656d790e1d46c");
-    CBlockIndex *blockIndex = mapBlockIndex[hash];
-    for (; blockIndex != NULL && blockIndex->nHeight > 157332; blockIndex = blockIndex->pprev) {
-        result.push_back(Pair(tfm::format("height=%d status=%b", blockIndex->nHeight, blockIndex->nStatus).c_str(), blockIndex->GetBlockHash().GetHex()));
-    }
-    return result;
 }
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex) {
@@ -4400,7 +4381,7 @@ bool IsInitialBlockDownload() {
 
 FILE *OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly) {
     if (pos.IsNull())
-        return NULL;
+        return nullptr;
     boost::filesystem::path path = GetDataDir() / "blocks" / strprintf("%s%05u.dat", prefix, pos.nFile);
     boost::filesystem::create_directories(path.parent_path());
     FILE *file = fopen(path.string().c_str(), "rb+");
@@ -4408,13 +4389,13 @@ FILE *OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
         file = fopen(path.string().c_str(), "wb+");
     if (!file) {
         LogPrint("INFO", "Unable to open file %s\n", path.string());
-        return NULL;
+        return nullptr;
     }
     if (pos.nPos) {
         if (fseek(file, pos.nPos, SEEK_SET)) {
             LogPrint("INFO", "Unable to seek to position %u of %s\n", pos.nPos, path.string());
             fclose(file);
-            return NULL;
+            return nullptr;
         }
     }
     return file;

@@ -14,7 +14,34 @@
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
 #include "json/json_spirit_value.h"
+
 using namespace json_spirit;
+
+class CDBOpLog {
+public:
+    string key;
+    string value;
+
+    CDBOpLog(const string keyIn, const string &valueIn) {
+        key   = keyIn;
+        value = valueIn;
+    }
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(key);
+        READWRITE(value);)
+
+    string ToString() const {
+        string str;
+        str += strprintf("vey: %s, value: %s", HexStr(key), HexStr(value));
+        return str;
+    }
+
+    friend bool operator<(const CDBOpLog &log1, const CDBOpLog &log2) {
+        return log1.key < log2.key;
+    }
+};
+
 class leveldb_error : public runtime_error
 {
 public:

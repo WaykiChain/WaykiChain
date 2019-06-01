@@ -4,8 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
-#ifndef APPUSERACCOUT_H_
-#define APPUSERACCOUT_H_
+#ifndef VM_APP_ACCOUT_H
+#define VM_APP_ACCOUT_H
 
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
@@ -233,4 +233,4 @@ public:
 	unsigned char vFundTag[ CAppCFund::MAX_TAG_SIZE ];				//!< accountId
 };
 
-#endif /* APPUSERACCOUT_H_ */
+#endif /* VM_APP_ACCOUT_H */

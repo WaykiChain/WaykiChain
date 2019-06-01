@@ -27,10 +27,13 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, read source addr %s account info error",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccountLog acctLog(account);
-    if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
-        return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, not sufficient bcoins in txUid %s account",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-bcoins");
+    CAccountLog accountLog(account);
+    if (0 == nIndex) {
+        // nothing to do here
+    } else if (-1 == nIndex) {  // maturity reward tx, only update values
+        account.bcoins += rewardValue;
+    } else {  // never go into this step
+        return ERRORMSG("CBlockRewardTx::ExecuteTx, invalid index");
     }
 
     CUserID userId = account.keyID;
@@ -38,8 +41,7 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
-    cw.txUndo.Clear();
-    cw.txUndo.vAccountLog.push_back(acctLog);
+    cw.txUndo.accountLogs.push_back(accountLog);
     cw.txUndo.txHash = GetHash();
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
@@ -47,8 +49,8 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
 }
 
 bool CBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.vAccountLog.rbegin();
-    for (; rIterAccountLog != cw.txUndo.vAccountLog.rend(); ++rIterAccountLog) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+    for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
         if (!cw.accountCache.GetAccount(userId, account)) {
@@ -66,8 +68,6 @@ bool CBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
     }
-
-    IMPLEMENT_UNPERSIST_TX_STATE;
     return true;
 }
 

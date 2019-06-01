@@ -55,8 +55,8 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
 
     account.pubKey = txUid.get<CPubKey>();
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, not sufficient funds in account, keyid=%s",
-                        keyId.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-funds");
+        return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, insufficient funds in account, keyid=%s",
+                        keyId.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
     if (typeid(CPubKey) == minerUid.type()) {
@@ -71,7 +71,7 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, write source addr %s account info error",
             regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    cw.txUndo.vAccountLog.push_back(acctLog);
+    cw.txUndo.accountLogs.push_back(acctLog);
     cw.txUndo.txHash = GetHash();
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
@@ -93,7 +93,7 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
 
     if (llFees > 0) {
         CAccountLog accountLog;
-        if (!cw.txUndo.GetAccountOperLog(keyId, accountLog))
+        if (!cw.txUndo.GetAccountOpLog(keyId, accountLog))
             return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read keyId=%s tx undo info error",
                             keyId.GetHex()), UPDATE_ACCOUNT_FAIL, "bad-read-txundoinfo");
         oldAccount.UndoOperateAccount(accountLog);

@@ -1,8 +1,8 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2014-2015 The WaykiChain developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #if defined(HAVE_CONFIG_H)
 #include "coin-config.h"
@@ -116,18 +116,11 @@ enum BindFlags {
 
 volatile bool fRequestShutdown = false;
 
-void StartShutdown() {
-    fRequestShutdown = true;
-}
+void StartShutdown() { fRequestShutdown = true; }
 
-bool ShutdownRequested() {
-    return fRequestShutdown;
-}
+bool ShutdownRequested() { return fRequestShutdown; }
 
-void Interrupt()
-{
-    InterruptRPCServer();
-}
+void Interrupt() { InterruptRPCServer(); }
 
 void Shutdown() {
     LogPrint("INFO", "Shutdown : In progress...\n");
@@ -140,7 +133,7 @@ void Shutdown() {
     StopRPCServer();
     ShutdownRPCMining();
 
-    GenerateCoinBlock(false, NULL, 0);
+    GenerateCoinBlock(false, nullptr, 0);
     StartCommonGeneration(0, 0);
     StartContractGeneration("", 0, 0);
 
@@ -404,7 +397,7 @@ bool AppInit(boost::thread_group &threadGroup) {
 #ifdef _MSC_VER
     // Turn off Microsoft heap dump noise
     _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
-    _CrtSetReportFile(_CRT_WARN, CreateFileA("NUL", GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, 0));
+    _CrtSetReportFile(_CRT_WARN, CreateFileA("NUL", GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, 0));
 #endif
 #if _MSC_VER >= 1400
     // Disable confusing "helpful" text message on abort, Ctrl-C
@@ -421,7 +414,7 @@ bool AppInit(boost::thread_group &threadGroup) {
 #endif
     typedef BOOL(WINAPI * PSETPROCDEPPOL)(DWORD);
     PSETPROCDEPPOL setProcDEPPol = (PSETPROCDEPPOL)GetProcAddress(GetModuleHandleA("Kernel32.dll"), "SetProcessDEPPolicy");
-    if (setProcDEPPol != NULL) setProcDEPPol(PROCESS_DEP_ENABLE);
+    if (setProcDEPPol != nullptr) setProcDEPPol(PROCESS_DEP_ENABLE);
 
     // Initialize Windows Sockets
     WSADATA wsadata;
@@ -438,15 +431,15 @@ bool AppInit(boost::thread_group &threadGroup) {
     sa.sa_handler = HandleSIGTERM;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
-    sigaction(SIGTERM, &sa, NULL);
-    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGTERM, &sa, nullptr);
+    sigaction(SIGINT, &sa, nullptr);
 
     // Reopen debug.log on SIGHUP
     struct sigaction sa_hup;
     sa_hup.sa_handler = HandleSIGHUP;
     sigemptyset(&sa_hup.sa_mask);
     sa_hup.sa_flags = 0;
-    sigaction(SIGHUP, &sa_hup, NULL);
+    sigaction(SIGHUP, &sa_hup, nullptr);
 
     // Initialize elliptic curve code
     ECC_Start();
@@ -534,7 +527,7 @@ bool AppInit(boost::thread_group &threadGroup) {
     mempool.SetSanityCheck(SysCfg().GetBoolArg("-checkmempool", RegTest()));
     Checkpoints::fEnabled = SysCfg().GetBoolArg("-checkpoints", true);
 
-    setvbuf(stdout, NULL, _IOLBF, 0);
+    setvbuf(stdout, nullptr, _IOLBF, 0);
 
     // Fee-per-kilobyte amount considered the same as "free"
     // If you are mining, be careful setting this:
@@ -798,7 +791,7 @@ bool AppInit(boost::thread_group &threadGroup) {
 
                 // If the loaded chain has a wrong genesis, bail out immediately
                 // (we're likely using a testnet datadir, or the other way around).
-                if (!mapBlockIndex.empty() && chainActive.Genesis() == NULL)
+                if (!mapBlockIndex.empty() && chainActive.Genesis() == nullptr)
                     return InitError(_("Incorrect or no genesis block found. Wrong datadir for network?"));
 
                 // Initialize the block index (no-op if non-empty database was already loaded)
@@ -910,7 +903,7 @@ bool AppInit(boost::thread_group &threadGroup) {
 
     // check current chain according to checkpoint
     CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
-    if (NULL != pcheckpoint)
+    if (nullptr != pcheckpoint)
         CheckActiveChain(pcheckpoint->nHeight, pcheckpoint->GetBlockHash());
 
     vector<boost::filesystem::path> vImportFiles;

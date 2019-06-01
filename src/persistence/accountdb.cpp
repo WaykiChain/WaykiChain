@@ -27,7 +27,6 @@ bool CAccountCache::GetAccount(const CKeyID &keyId, CAccount &account) {
 
     if (pBase->GetAccount(keyId, account)) {
         mapKeyId2Account.insert(make_pair(keyId, account));
-        // mapKeyId2Account[keyId] = account;
         return true;
     }
 
@@ -349,9 +348,9 @@ bool CAccountCache::Flush(IAccountView *pView) {
 }
 
 int64_t CAccountCache::GetFreeBCoins(const CUserID &userId) const {
-    CAccountCache tempvew(*this);
+    CAccountCache accountCache(*this);
     CAccount account;
-    if (tempvew.GetAccount(userId, account)) {
+    if (accountCache.GetAccount(userId, account)) {
         return account.GetFreeBCoins();
     }
     return 0;
@@ -392,12 +391,20 @@ Object CAccountCache::ToJsonObj() const {
 
 bool CAccountDB::GetAccount(const CKeyID &keyId, CAccount &account) {
     // return db.Read(make_pair('k', keyId), account);
+<<<<<<< HEAD
     string key = GenDbKey(DBK_KeyId2Account, keyId);
+=======
+    string key = GenDbKey(dbk::KEYID_2_ACCOUNT, keyId);
+>>>>>>> c7ec018a9c09f62f6c94c3d1226e813fec4f1230
     return db.Read(key, account);
 }
 
 bool CAccountDB::SetAccount(const CKeyID &keyId, const CAccount &account) {
+<<<<<<< HEAD
     string key = GenDbKey(DBK_KeyId2Account, keyId);
+=======
+    string key = GenDbKey(dbk::KEYID_2_ACCOUNT, keyId);
+>>>>>>> c7ec018a9c09f62f6c94c3d1226e813fec4f1230
     bool ret = db.Write(key, account);
 
     // assert(!account.keyID.IsEmpty());
@@ -408,9 +415,9 @@ bool CAccountDB::SetAccount(const CKeyID &keyId, const CAccount &account) {
 
 bool CAccountDB::SetAccount(const vector<unsigned char> &accountRegId, const CAccount &account) {
     CKeyID keyId;
-    string keyIdKey = GenDbKey(DBK_RegId2KeyId, accountRegId);
+    string keyIdKey = GenDbKey(dbk::REGID_2_KEYID, accountRegId);
     if (db.Read(keyIdKey, keyId)) {
-        string accountKey = GenDbKey(DBK_KeyId2Account, keyId);
+        string accountKey = GenDbKey(dbk::KEYID_2_ACCOUNT, keyId);
         return db.Write(accountKey, account);
     }
 
@@ -418,7 +425,7 @@ bool CAccountDB::SetAccount(const vector<unsigned char> &accountRegId, const CAc
 }
 
 bool CAccountDB::HaveAccount(const CKeyID &keyId) {
-    string accountKey = GenDbKey(DBK_KeyId2Account, keyId);
+    string accountKey = GenDbKey(dbk::KEYID_2_ACCOUNT, keyId);
     return db.Exists(accountKey);
 }
 

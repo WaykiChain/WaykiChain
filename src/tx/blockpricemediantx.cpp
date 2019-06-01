@@ -21,15 +21,13 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     }
     CAccountLog acctInfoLog(acctInfo);
     // TODO: want to check something
-    //if (!cw.accountCache.)
 
     CUserID userId = acctInfo.keyID;
     if (!cw.accountCache.SetAccount(userId, acctInfo))
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
-    cw.txUndo.Clear();
-    cw.txUndo.vAccountLog.push_back(acctInfoLog);
+    cw.txUndo.accountLogs.push_back(acctInfoLog);
     cw.txUndo.txHash = GetHash();
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());

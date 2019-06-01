@@ -91,7 +91,7 @@ void testscriptdb() {
 
 void settodb(int nType, vector<unsigned char> &vKey, vector<unsigned char> &vScriptData) {
 	vector<unsigned char> vScriptId = {0x01,0x00,0x00,0x00,0x02,0x00};
-	CContractDBOperLog operlog;
+	CDBOpLog operlog;
 	CRegID regScriptId(vScriptId);
 	if(0==nType) {
 		BOOST_CHECK(pscriptDBView->SetContractData(regScriptId, vKey, vScriptData, operlog));
@@ -108,7 +108,7 @@ void settodb(int nType, vector<unsigned char> &vKey, vector<unsigned char> &vScr
 void cleandb(int nType, vector<unsigned char> vKey) {
 	vector<unsigned char> vScriptId = {0x01,0x00,0x00,0x00,0x02,0x00};
 	CRegID regScriptId(vScriptId);
-	CContractDBOperLog operlog;
+	CDBOpLog operlog;
 	if(0==nType) {
 		BOOST_CHECK(pscriptDBView->EraseAppData(regScriptId, vKey, operlog));
 		BOOST_CHECK(pscriptDBView->Flush());
@@ -183,7 +183,7 @@ void testscriptdatadb() {
 	vector<unsigned char> vScriptKey5 = {0x01,0x00,0x06};
 	vector<unsigned char> vScriptData = {0x01,0x01,0x01,0x01,0x01};
 	vector<unsigned char> vScriptData1 = {0x01,0x01,0x01,0x00,0x00};
-	CContractDBOperLog operlog;
+	CDBOpLog operlog;
 	CRegID regScriptId(vScriptId);
 
 	//测试数据库中有vScriptKey1， vScriptKey3，在缓存中有vScriptKey， vScriptKey2，是否能正确遍历脚本数据库
@@ -269,7 +269,7 @@ void testscriptdatadb() {
 	int curheight(0);
 	vector<unsigned char> vKey;
 	vector<unsigned char> vScript;
-	set<CContractDBOperLog> setOperLog;
+	set<CDBOpLog> setOperLog;
 
 
 	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey, vScriptData,  operlog));

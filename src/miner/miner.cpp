@@ -27,10 +27,6 @@ extern void SetMinerStatus(bool bStatus);
 //
 
 const int MINED_BLOCK_COUNT_MAX = 100; // the max count of mined blocks will be cached
-
-static const unsigned int pSHA256InitState[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f,
-                                                 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
-
 uint64_t nLastBlockTx   = 0;  // 块中交易的总笔数,不含coinbase
 uint64_t nLastBlockSize = 0;  // 被创建的块的尺寸
 
@@ -71,10 +67,9 @@ int GetElementForBurn(CBlockIndex *pIndex) {
     return newFuelRate;
 }
 
-// We want to sort transactions by priority and fee, so:
+// Sort transactions by priority and fee to decide priority orders to process transactions.
 void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate) {
     vecPriority.reserve(mempool.memPoolTxs.size());
-    // Priority order to process transactions
     static double dPriority     = 0;
     static double dFeePerKb     = 0;
     static unsigned int nTxSize = 0;
@@ -292,7 +287,8 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
                 LogPrint("vm", "tx hash=%s VerifyPosTx run contract\n", pBaseTx->GetHash().GetHex());
 
             pBaseTx->nFuelRate = pBlock->GetFuelRate();
-            spCW->txUndo = CTxUndo();
+
+            spCW->txUndo.Clear(); // Clear first.
             if (!pBaseTx->ExecuteTx(pBlock->GetHeight(), i, *spCW, state))
                 return ERRORMSG("transaction UpdateAccount account error");
 
@@ -301,7 +297,7 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
                 return ERRORMSG("block total run steps exceed max run step");
 
             nTotalFuel += pBaseTx->GetFuel(pBlock->GetFuelRate());
-            LogPrint("fuel", "VerifyPosTx total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txhash:%s \n",
+            LogPrint("fuel", "VerifyPosTx total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n",
                     nTotalFuel, pBaseTx->GetFuel(pBlock->GetFuelRate()),
                     pBaseTx->nRunStep, pBlock->GetFuelRate(), pBaseTx->GetHash().GetHex());
         }
@@ -327,7 +323,8 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
 
     // Add our Block Reward tx as the first one
     pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>(rewardTx));
-    pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>(priceMedianTx));
+    // TODO: add softfork to enable price median transaction.
+    // pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>(priceMedianTx));
     pBlockTemplate->vTxFees.push_back(-1);    // updated at end
     pBlockTemplate->vTxSigOps.push_back(-1);  // updated at end
 
@@ -384,12 +381,9 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
             if ((dFeePerKb < CBaseTx::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
                 continue;
 
-
-
-            auto spCW = std::make_shared<CCacheWrapper>();
-            spCW->accountCache = cwIn.accountCache;
+            auto spCW           = std::make_shared<CCacheWrapper>();
+            spCW->accountCache  = cwIn.accountCache;
             spCW->contractCache = cwIn.contractCache;
-            spCW->txUndo = CTxUndo();
 
             CValidationState state;
             pBaseTx->nFuelRate = pBlock->GetFuelRate();
