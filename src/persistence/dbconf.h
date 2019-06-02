@@ -6,8 +6,11 @@
 #ifndef PERSIST_DBCONF_H
 #define PERSIST_DBCONF_H
 
-#include <string>
 #include <leveldb/slice.h>
+#include <string>
+
+#include "version.h"
+#include "commons/serialize.h"
 
 /**
  * database key

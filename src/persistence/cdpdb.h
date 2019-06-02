@@ -9,6 +9,7 @@
 #include <map>
 #include <string>
 #include "leveldbwrapper.h"
+#include "accounts/id.h"
 
 using namespace std;
 
@@ -74,6 +75,7 @@ private:
 class CCdpDb: public ICdpView  {
 
 public:
+    ~CCdpDb() {};
     virtual bool GetData(const string &vKey, vector<unsigned char> &vValue) = 0;
     virtual bool SetData(const string &vKey, const vector<unsigned char> &vValue) = 0;
     virtual bool BatchWrite(const map<string, vector<unsigned char> > &mapContractDb) = 0;

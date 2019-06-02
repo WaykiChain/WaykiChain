@@ -1440,11 +1440,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (SysCfg().IsTxIndex()) {
         LogPrint("DEBUG", "add tx index, block hash:%s\n", pIndex->GetBlockHash().GetHex());
         vector<CDBOpLog> vTxIndexOperDB;
-        if (!cw.contractCache->WriteTxIndex(vPos, vTxIndexOperDB))
+        if (!cw.contractCache.WriteTxIndex(vPos, vTxIndexOperDB))
             return state.Abort(_("Failed to write transaction index"));
         // TODO: must undo these oplogs in DisconnectBlock()
         auto itTxUndo = blockundo.vtxundo.rbegin();
-        CDBOpLogs &opLogs = itTxUndo->mapDbOpLogs[TX_FILEPOS];
+        CDBOpLogs &opLogs = itTxUndo->mapDbOpLogs[TX_FILE_POS];
         opLogs.insert(opLogs.begin(), vTxIndexOperDB.begin(), vTxIndexOperDB.end());
     }
 

@@ -7,9 +7,9 @@
 #define PERSIST_CONTRACTDB_H
 
 #include "commons/arith_uint256.h"
+#include "dbconf.h"
 #include "persistence/leveldbwrapper.h"
 #include "vm/appaccount.h"
-#include "dbconf.h"
 
 #include <map>
 #include <string>
@@ -87,6 +87,11 @@ public:
     bool EraseDelegateData(const CAccountLog &delegateAcct, CDBOpLog &operLog);
     bool EraseDelegateData(const vector<unsigned char> &vKey);
     bool UndoScriptData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
+
+    bool SetDelegateData(const string& key) { return SetDelegateData(vector<unsigned char>(key.begin(), key.end())); } // TODO: 
+    bool EraseDelegateData(const string &key) { return EraseDelegateData(vector<unsigned char>(key.begin(), key.end())); } // TODO:...
+    bool UndoScriptData(const string& key, const string& value); // TODO:...
+
     /**
      * @brief Get all number of scripts in scriptdb
      * @param nCount

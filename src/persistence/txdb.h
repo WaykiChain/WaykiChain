@@ -83,14 +83,6 @@ public:
     bool ExistDelegate(string delegateRegId);   //if empty, load data from the low-level StakeCache
 };
 
-enum DbOpLogType {
-    COMMON_OP,
-    ADDR_TXHASH,
-    TX_FILEPOS,
-};
-
-typedef vector<CDBOpLog> CDBOpLogs;
-
 class CTxUndo {
 public:
     uint256 txHash;
@@ -100,7 +92,9 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(txHash);
         READWRITE(accountLogs);
-        READWRITE(dbOpLogs);)
+		/*TODO:
+        //READWRITE(mapDbOpLogs);*/
+	)
 
 public:
     bool GetAccountOpLog(const CKeyID &keyId, CAccountLog &accountLog);
@@ -108,7 +102,7 @@ public:
     void Clear() {
         txHash = uint256();
         accountLogs.clear();
-        dbOpLogs.clear();
+        mapDbOpLogs.clear();
     }
 
     string ToString() const;

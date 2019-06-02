@@ -176,6 +176,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
         CKeyID sendKeyId;
         CKeyID revKeyId;
 
+		CDBOpLogs& opLogs = cw.txUndo.mapDbOpLogs[ADDR_TXHASH];
         for (const auto &item : signaturePairs) {
             if (!cw.accountCache.GetKeyId(CUserID(item.regId), sendKeyId))
                 return ERRORMSG("CBaseCoinTransferTx::CMulsigTx, get keyid by srcUserId error!");
@@ -183,7 +184,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
             if (!cw.contractCache.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1,
                                         cw.txUndo.txHash.GetHex(), operAddressToTxLog))
                 return false;
-            cw.txUndo.contractOpLogs.push_back(operAddressToTxLog);
+            opLogs.push_back(operAddressToTxLog);
         }
 
         if (!cw.accountCache.GetKeyId(desUserId, revKeyId))
@@ -193,7 +194,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
                                     cw.txUndo.txHash.GetHex(), operAddressToTxLog))
             return false;
 
-        cw.txUndo.contractOpLogs.push_back(operAddressToTxLog);
+        opLogs.push_back(operAddressToTxLog);
     }
 
     return true;

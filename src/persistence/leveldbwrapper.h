@@ -10,31 +10,33 @@
 #include "util.h"
 #include "version.h"
 
+#include "json/json_spirit_value.h"
 #include <boost/filesystem/path.hpp>
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
-#include "json/json_spirit_value.h"
 
 using namespace json_spirit;
 
+enum DbOpLogType {
+    COMMON_OP,
+    ADDR_TXHASH,
+    TX_FILE_POS,
+};
 
 class CDBOpLog {
 public:
-    uint8_t  type;
     string key;
     string value;
 
-    CDBOpLog(): type(0), key(), value() {        
+    CDBOpLog() : key(), value() {}
+
+    CDBOpLog(const string keyIn, const string& valueIn){
+        Reset(keyIn, valueIn);
     }
 
-    CDBOpLog(uint8_t typeIn, const string keyIn, const string &valueIn) {
-        Reset(keyIn, valueIn, typeIn);
-    }
-
-    void Reset(uint8_t typeIn, const string &keyIn, const string &valueIn) {
-        type = typeIn
+    void Reset(const string& keyIn, const string& valueIn){
         key = keyIn;
-        value = valueIn;        
+        value = valueIn;
     }
 
     IMPLEMENT_SERIALIZE(
@@ -52,6 +54,20 @@ public:
     }
 };
 
+inline std::string GetDbOpLogTypeName(DbOpLogType type){
+    switch (type) {
+    case COMMON_OP:
+        return "COMMON_OP";
+    case ADDR_TXHASH:
+        return "ADDR_TXHASH";
+    case TX_FILE_POS:
+        return "TX_FILE_POS";
+    }
+    return "UNKNOWN";
+}
+
+typedef vector<CDBOpLog> CDBOpLogs;
+
 class leveldb_error : public runtime_error
 {
 public:
@@ -61,8 +77,7 @@ public:
 void ThrowError(const leveldb::Status &status);
 
 // Batch of changes queued to be written to a CLevelDBWrapper
-class CLevelDBBatch
-{
+class CLevelDBBatch {
     friend class CLevelDBWrapper;
 
 private:
@@ -127,8 +142,7 @@ public:
     }
 };
 
-class CLevelDBWrapper
-{
+class CLevelDBWrapper {
 private:
     // custom environment this database is using (may be NULL in case of default environment)
     leveldb::Env *penv;
