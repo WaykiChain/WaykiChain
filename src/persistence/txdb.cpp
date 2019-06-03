@@ -51,6 +51,10 @@ void CTransactionCache::AddTxHashCache(const uint256 &blockHash, const Unordered
     mapBlockTxHashSet[blockHash] = vTxHash;
 }
 
+void CTransactionCache::Flush(CTransactionCache *txCache) {
+    txCache->SetTxHashCache(mapBlockTxHashSet);
+}
+
 void CTransactionCache::Clear() { mapBlockTxHashSet.clear(); }
 
 int CTransactionCache::GetSize() { return mapBlockTxHashSet.size(); }
@@ -155,4 +159,43 @@ bool CDelegateCache::ExistDelegate(string delegateRegId) {
     }
 
     return delegateRegIds.count(delegateRegId);
+}
+
+string CTxUndo::ToString() const {
+    string str;
+    string strTxHash("txid:");
+    strTxHash += txHash.GetHex();
+
+    str += strTxHash + "\n";
+
+    string strAccountLog("list account log:");
+    vector<CAccountLog>::const_iterator iterLog = vAccountLog.begin();
+    for (; iterLog != vAccountLog.end(); ++iterLog) {
+        strAccountLog += iterLog->ToString();
+        strAccountLog += ";";
+    }
+
+    str += strAccountLog + "\n";
+
+    string strDBOperLog("list contract log:");
+    vector<CContractDBOperLog>::const_iterator iterDbLog = vContractOperLog.begin();
+    for (; iterDbLog != vContractOperLog.end(); ++iterDbLog) {
+        strDBOperLog += iterDbLog->ToString();
+        strDBOperLog += ";";
+    }
+
+    str += strDBOperLog;
+
+    return str;
+}
+
+bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {
+    vector<CAccountLog>::iterator iterLog = vAccountLog.begin();
+    for (; iterLog != vAccountLog.end(); ++iterLog) {
+        if (iterLog->keyID == keyId) {
+            accountLog = *iterLog;
+            return true;
+        }
+    }
+    return false;
 }

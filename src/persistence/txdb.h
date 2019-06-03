@@ -6,11 +6,11 @@
 #ifndef PERSIST_TXDB_H
 #define PERSIST_TXDB_H
 
-#include "vm/appaccount.h"
 #include "commons/serialize.h"
+#include "contractdb.h"
 #include "json/json_spirit_value.h"
 #include "stakedb.h"
-#include "contractdb.h"
+#include "vm/appaccount.h"
 
 #include <map>
 #include <vector>
@@ -25,17 +25,22 @@ class CUserID;
 
 class CTransactionCache {
 private:
-    map<uint256, UnorderedHashSet> mapBlockTxHashSet;  // map: BlockHash ->TxhashSet
+    map<uint256, UnorderedHashSet> mapBlockTxHashSet;  // map: BlockHash ->TxHashSet
 
 public:
     bool HaveTx(const uint256 &txHash);
     bool IsContainBlock(const CBlock &block);
+
     bool AddBlockToCache(const CBlock &block);
     bool DeleteBlockFromCache(const CBlock &block);
     void AddTxHashCache(const uint256 &blockHash, const UnorderedHashSet &vTxHash);
+
+    void Flush(CTransactionCache *txCache);
     void Clear();
+
     Object ToJsonObj() const;
     int GetSize();
+
     const map<uint256, UnorderedHashSet> &GetTxHashCache();
     void SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache);
 };

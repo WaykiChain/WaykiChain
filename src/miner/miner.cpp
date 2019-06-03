@@ -228,8 +228,8 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
 
     CBlock preBlock;
 
-    auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache = cwIn.accountCache;
+    auto spCW           = std::make_shared<CCacheWrapper>();
+    spCW->accountCache  = cwIn.accountCache;
     spCW->contractCache = cwIn.contractCache;
 
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
@@ -394,6 +394,9 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
             if (nTotalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP)
                 continue;
 
+            // Need to re-sync all to cache layer except for transaction cache, as it's depend on
+            // the global transaction cache to verify whether a transaction(txid) has been confirmed
+            // already in block.
             spCW->accountCache.Flush(&cwIn.accountCache);
             spCW->contractCache.Flush(&cwIn.contractCache);
 

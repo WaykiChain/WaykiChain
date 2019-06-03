@@ -839,9 +839,11 @@ bool CContractCache::SetScriptCount(const int nCount) {
         CDataStream ds(SER_DISK, CLIENT_VERSION);
         ds << nCount;
         vValue.insert(vValue.end(), ds.begin(), ds.end());
-    } else {
+    }  else if (nCount < 0) {
         return false;
     }
+    // If nCount = 0, set an empty value to trigger deleting it in level DB.
+
     if (!SetData(scriptKey, vValue))
         return false;
 
