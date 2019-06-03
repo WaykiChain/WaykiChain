@@ -103,11 +103,9 @@ bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
     // LogPrint("INFO", "Delete regid %s app account\n", contractRegId.ToString());
 
     for (auto &itemLog : cw.txUndo.vAccountLog) {
-        if (itemLog.keyID == account.keyID) {
-            if (!account.UndoOperateAccount(itemLog))
-                return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, undo operate account error, keyId=%s",
-                                 account.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
-        }
+        if (!account.UndoOperateAccount(itemLog))
+            return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, undo operate account error, keyId=%s",
+                             account.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
     }
 
     if (!cw.accountCache.SetAccount(CUserID(account.keyID), account))
