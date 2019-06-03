@@ -13,19 +13,23 @@
 
 using namespace std;
 
-//stake in BaseCoin to get StableCoins
+/**
+ * stake in BaseCoin to get StableCoins
+ *
+ * Ij =  TNj * (Hj+1 - Hj)/Y * 0.1a/Log10(1+b*TNj)
+ *
+ */
 struct CdpStakeOp {
-    uint64_t blockHeight;
-    uint64_t stakedBcoins;
-    uint64_t mintedScoins;
-};
+    uint64_t lastBlockHeight;       // Hj, mem-only
+    uint64_t lastTotalStakedScoins; // TNj, mem-only
 
-//TODO: CdpItem
-class CdpItem {};
+    uint64_t blockHeight;           // Hj+1, persisted
+    uint64_t mintedScoins;          // persisted
+};
 
 /**
  *  Persisted in LDB as:
- *      cdp$RegId --> { owedScoins, list_of{blockHeight, stakedBcoins, mintedBcoins} }
+ *      cdp$RegId --> { blockHeight, mintedScoins }
  *
  */
 struct CUserCdp {
@@ -33,7 +37,7 @@ struct CUserCdp {
     uint64_t totalStakedBcoins;     // summed from stakeOps
     uint64_t totalMintedScoins;     // summed from stakeOps
     uint64_t owedScoins;            // owed = total minted - total redempted
-    vector<CdpStakeOp> stakeOps;
+    CdpStakeOp stakeOp;
 };
 
 
