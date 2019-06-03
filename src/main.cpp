@@ -1392,8 +1392,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (pRewardTx->rewardValue != llValidReward) {
         LogPrint("ERROR", "block height:%u, block fee:%lld, block fuel:%u, vote profits:%llu\n", block.GetHeight(),
                  block.GetFee(), block.GetFuel(), minerAcct.CalculateAccountProfit(block.GetHeight()));
-        return state.DoS(100, ERRORMSG("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
-                        pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-coinbase-amount");
+        return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount(actual=%d vs valid=%d)",
+                        pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
     }
 
     // Execute BlockRewardTx
@@ -2082,8 +2082,8 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     if (pRewardTx->rewardValue != llValidReward) {
         LogPrint("ERROR", "block height:%u, block fee:%lld, block fuel:%u, vote profits:%llu\n", block.GetHeight(),
                  block.GetFee(), block.GetFuel(), minerAcct.CalculateAccountProfit(block.GetHeight()));
-        return state.DoS(100, ERRORMSG("ProcessForkedChain() : coinbase pays too much (actual=%d vs limit=%d)",
-                        pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-coinbase-amount");
+        return state.DoS(100, ERRORMSG("ProcessForkedChain() : invalid coinbase reward amount(actual=%d vs valid=%d)",
+                        pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
     }
 
     for (auto &item : block.vptx) {

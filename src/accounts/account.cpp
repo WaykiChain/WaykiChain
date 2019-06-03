@@ -42,7 +42,7 @@ bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
 }
 
 uint64_t CAccount::GetAccountProfit(const uint64_t curHeight) {
-    if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2) {
+    if (GetFeatureForkVersion(curHeight) == MAJOR_VER_R2) {
         // The rule is one bcoin one vote, hence no profits at all and return 0.
         return 0;
     }
@@ -86,7 +86,7 @@ uint64_t CAccount::GetAccountProfit(const uint64_t curHeight) {
 }
 
 uint64_t CAccount::CalculateAccountProfit(const uint64_t curHeight) const {
-    if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R1) {
+    if (GetFeatureForkVersion(curHeight) == MAJOR_VER_R1) {
         return 0;
     }
 
