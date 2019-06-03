@@ -87,7 +87,7 @@ class CTxUndo {
 public:
     uint256 txHash;
     vector<CAccountLog> accountLogs;
-    map<DbOpLogType, CDBOpLogs> mapDbOpLogs;
+    map<DbOpLogType, CDbOpLogs> mapDbOpLogs;
 
     IMPLEMENT_SERIALIZE(
         READWRITE(txHash);

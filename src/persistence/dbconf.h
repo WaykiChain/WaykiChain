@@ -45,7 +45,7 @@ namespace dbk {
         EACH_ENUM_DEFINE( CONTRACT_TX_OUT,    "cout",     "cout{txid} --> $VmOperateOutput" ) \
         EACH_ENUM_DEFINE( CONTRACT_ITEM_NUM,  "citn",     "citn{ContractRegId} --> $total_num_of_contract_i" ) \
         EACH_ENUM_DEFINE( STAKE_FCOIN,        "fcoin",    "fcoin{(uint64t)MAX - stakedFcoins}_{RegId} --> 1" ) \
-        EACH_ENUM_DEFINE( CDP,                "cdp",      "cdp{$RegID} --> blockHeight,mintedScoins"
+        EACH_ENUM_DEFINE( CDP,                "cdp",      "cdp{$RegID} --> blockHeight,mintedScoins")
 
     enum PrefixType {
         DBK_PREFIX_LIST(EACH_ENUM_DEFINE_TYPE)

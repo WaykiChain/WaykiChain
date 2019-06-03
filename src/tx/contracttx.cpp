@@ -117,7 +117,7 @@ bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
     if (!cw.accountCache.SetAccount(userId, account))
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, save account error"),
                                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
-    CDBOpLogs &opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
+    CDbOpLogs &opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
     auto rIterScriptDBLog = opLogs.rbegin();
     for (; rIterScriptDBLog != opLogs.rend(); ++rIterScriptDBLog) {
         if (!cw.contractCache.UndoScriptData(rIterScriptDBLog->key, rIterScriptDBLog->value))
@@ -410,7 +410,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
         cw.txUndo.accountLogs.push_back(oldAcctLog);
     }
-    CDBOpLogs &opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
+    CDbOpLogs &opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
     opLogs.insert(opLogs.end(), vmRunEnv.GetDbLog()->begin(),
                                         vmRunEnv.GetDbLog()->end());
 
@@ -472,7 +472,7 @@ bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
             }
         }
     }
-    CDBOpLogs& opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
+    CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
     auto rIterScriptDBLog = opLogs.rbegin();
     for (; rIterScriptDBLog != opLogs.rend(); ++rIterScriptDBLog) {
         if (!cw.contractCache.UndoScriptData(rIterScriptDBLog->key, rIterScriptDBLog->value))

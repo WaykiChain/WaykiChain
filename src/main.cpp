@@ -1278,7 +1278,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 assert(cw.accountCache.GetAccount(pDelegateTx->txUid, voterAcct));
                 CUserID voterCId(pDelegateTx->txUid);
                 uint64_t maxVotes = 0;
-                CDBOpLog operDbLog;
+                CDbOpLog operDbLog;
                 int j = i;
                 for (const auto &vote : pDelegateTx->candidateVotes) {
                     assert(vote.GetCandidateVoteType() == ADD_BCOIN);  // it has to be ADD in GensisBlock
@@ -1439,12 +1439,12 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     if (SysCfg().IsTxIndex()) {
         LogPrint("DEBUG", "add tx index, block hash:%s\n", pIndex->GetBlockHash().GetHex());
-        vector<CDBOpLog> vTxIndexOperDB;
+        vector<CDbOpLog> vTxIndexOperDB;
         if (!cw.contractCache.WriteTxIndex(vPos, vTxIndexOperDB))
             return state.Abort(_("Failed to write transaction index"));
         // TODO: must undo these oplogs in DisconnectBlock()
         auto itTxUndo = blockundo.vtxundo.rbegin();
-        CDBOpLogs &opLogs = itTxUndo->mapDbOpLogs[TX_FILE_POS];
+        CDbOpLogs &opLogs = itTxUndo->mapDbOpLogs[TX_FILE_POS];
         opLogs.insert(opLogs.begin(), vTxIndexOperDB.begin(), vTxIndexOperDB.end());
     }
 

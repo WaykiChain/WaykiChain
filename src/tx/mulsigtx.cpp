@@ -172,11 +172,11 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
     cw.txUndo.txHash = GetHash();
 
     if (SysCfg().GetAddressToTxFlag()) {
-        CDBOpLog operAddressToTxLog;
+        CDbOpLog operAddressToTxLog;
         CKeyID sendKeyId;
         CKeyID revKeyId;
 
-		CDBOpLogs& opLogs = cw.txUndo.mapDbOpLogs[ADDR_TXHASH];
+		CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[ADDR_TXHASH];
         for (const auto &item : signaturePairs) {
             if (!cw.accountCache.GetKeyId(CUserID(item.regId), sendKeyId))
                 return ERRORMSG("CBaseCoinTransferTx::CMulsigTx, get keyid by srcUserId error!");

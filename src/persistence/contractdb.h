@@ -37,11 +37,11 @@ public:
     virtual Object ToJsonObj(string prefix) { return Object(); } //FIXME: useless prefix
 
     // virtual bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) = 0;
-    // virtual bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDBOpLog> &vTxIndexOperDB) = 0;
-    // virtual bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLog &operLog) = 0;
+    // virtual bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB) = 0;
+    // virtual bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CDbOpLog &operLog) = 0;
     // virtual bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput) = 0;
     virtual bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash) = 0;
-    // virtual bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CDBOpLog &operLog) = 0;
+    // virtual bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CDbOpLog &operLog) = 0;
     virtual bool GetAllContractAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc) = 0;
 
     virtual ~IContractView(){};
@@ -68,27 +68,27 @@ public:
     bool GetScript(const CRegID &scriptId, vector<unsigned char> &vValue);
     bool GetScript(const int nIndex, CRegID &scriptId, vector<unsigned char> &vValue);
     bool GetScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vKey, CAppUserAccount &appAccOut);
-    bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CDBOpLog &operlog);
+    bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CDbOpLog &operlog);
     bool EraseScriptAcc(const CRegID &scriptId, const vector<unsigned char> &vKey);
     bool SetScript(const CRegID &scriptId, const vector<unsigned char> &vValue);
     bool HaveScript(const CRegID &scriptId);
     bool EraseScript(const CRegID &scriptId);
     bool GetContractItemCount(const CRegID &scriptId, int &nCount);
-    bool EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CDBOpLog &operLog);
+    bool EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CDbOpLog &operLog);
     bool HaveScriptData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey);
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
                          vector<unsigned char> &vScriptData);
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
                          vector<unsigned char> &vScriptKey, vector<unsigned char> &vScriptData);
     bool SetContractData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
-                         const vector<unsigned char> &vScriptData, CDBOpLog &operLog);
-    bool SetDelegateData(const CAccount &delegateAcct, CDBOpLog &operLog);
+                         const vector<unsigned char> &vScriptData, CDbOpLog &operLog);
+    bool SetDelegateData(const CAccount &delegateAcct, CDbOpLog &operLog);
     bool SetDelegateData(const vector<unsigned char> &vKey);
-    bool EraseDelegateData(const CAccountLog &delegateAcct, CDBOpLog &operLog);
+    bool EraseDelegateData(const CAccountLog &delegateAcct, CDbOpLog &operLog);
     bool EraseDelegateData(const vector<unsigned char> &vKey);
     bool UndoScriptData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
 
-    bool SetDelegateData(const string& key) { return SetDelegateData(vector<unsigned char>(key.begin(), key.end())); } // TODO: 
+    bool SetDelegateData(const string& key) { return SetDelegateData(vector<unsigned char>(key.begin(), key.end())); } // TODO:
     bool EraseDelegateData(const string &key) { return EraseDelegateData(vector<unsigned char>(key.begin(), key.end())); } // TODO:...
     bool UndoScriptData(const string& key, const string& value); // TODO:...
 
@@ -111,13 +111,13 @@ public:
     Object ToJsonObj() const;
 	IContractView * GetBaseScriptDB() { return pBase; }
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDBOpLog> &vTxIndexOperDB);
+    bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB);
     void SetBaseView(IContractView *pBaseIn) { pBase = pBaseIn; };
     string ToString();
-    bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLog &operLog);
+    bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CDbOpLog &operLog);
     bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput);
     bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<vector<unsigned char>, vector<unsigned char> > &mapTxHash);
-    bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CDBOpLog &operLog);
+    bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CDbOpLog &operLog);
     bool GetAllContractAcc(const CRegID &scriptId, map<vector<unsigned char>, vector<unsigned char> > &mapAcc);
 
 private:
@@ -187,7 +187,7 @@ private:
      * @param vScriptKey must be 8 bytes
      * @return true if delete succeed, otherwise false
      */
-    bool EraseAppData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey, CDBOpLog &operLog);
+    bool EraseAppData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey, CDbOpLog &operLog);
 
     bool EraseAppData(const vector<unsigned char> &vKey);
     /**
@@ -226,7 +226,7 @@ private:
      * @return true if save succeed, otherwise false
      */
     bool SetContractData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
-                         const vector<unsigned char> &vScriptData, CDBOpLog &operLog);
+                         const vector<unsigned char> &vScriptData, CDbOpLog &operLog);
 };
 
 class CContractDB : public IContractView {

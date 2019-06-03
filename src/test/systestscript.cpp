@@ -355,7 +355,7 @@ public:
 			}
 			vector<unsigned char> value;
 			int tipH = chainActive.Height();
-			CDBOpLog operLog;
+			CDbOpLog operLog;
 			if (!contractScriptTemp.GetContractData(tipH,regid,key, value)) {
 				return false;
 			}

@@ -162,15 +162,15 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         cw.txUndo.accountLogs.push_back(delegateAcctLog); // keep delegate state before modification
 
         // set the new value and erase the old value
-        CDBOpLogs& opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
-        CDBOpLog operDbLog;
+        CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
+        CDbOpLog operDbLog;
         if (!cw.contractCache.SetDelegateData(delegate, operDbLog)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s vote info error",
                             delegate.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
         opLogs.push_back(operDbLog);
 
-        CDBOpLog eraseDbLog;
+        CDbOpLog eraseDbLog;
         if (delegateAcctLog.receivedVotes > 0) {
             if(!cw.contractCache.EraseDelegateData(delegateAcctLog, eraseDbLog)) {
                 return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, erase account id %s vote info error",
@@ -213,7 +213,7 @@ bool CDelegateVoteTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         }
     }
 
-    CDBOpLogs& opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
+    CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
     auto rIterScriptDBLog = opLogs.rbegin();
     for (; rIterScriptDBLog != opLogs.rend(); ++rIterScriptDBLog) {
         // Recover the old value and erase the new value.

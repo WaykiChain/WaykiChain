@@ -5,12 +5,12 @@
 
 #include "cdpdb.h"
 
-bool CCdpCache::SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, int blockHeight, CDBOpLog &cdpDbOpLog) {
+bool CCdpCache::SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, int blockHeight, CDbOpLog &cdpDbOpLog) {
     //TODO
     return true;
 }
 
-bool CCdpCache::GetLiquidityCdpItems(vector<CdpItem> & cdpItems) {
+bool CCdpCache::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
     //TODO
     return true;
 }
@@ -52,3 +52,10 @@ bool CCdpCache::HaveData(const string &vKey) {
     //TODO
     return true;
 }
+
+
+CCdpDb::CCdpDb(const string &name, size_t nCacheSize, bool fMemory, bool fWipe)
+    : db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {}
+
+CCdpDb::CCdpDb(size_t nCacheSize, bool fMemory, bool fWipe)
+    : db(GetDataDir() / "blocks" / "cdp", nCacheSize, fMemory, fWipe) {}

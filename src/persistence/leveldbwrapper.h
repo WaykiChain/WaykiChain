@@ -23,14 +23,14 @@ enum DbOpLogType {
     TX_FILE_POS,
 };
 
-class CDBOpLog {
+class CDbOpLog {
 public:
     string key;
     string value;
 
-    CDBOpLog() : key(), value() {}
+    CDbOpLog() : key(), value() {}
 
-    CDBOpLog(const string keyIn, const string& valueIn){
+    CDbOpLog(const string keyIn, const string& valueIn){
         Reset(keyIn, valueIn);
     }
 
@@ -49,7 +49,7 @@ public:
         return str;
     }
 
-    friend bool operator<(const CDBOpLog &log1, const CDBOpLog &log2) {
+    friend bool operator<(const CDbOpLog &log1, const CDbOpLog &log2) {
         return log1.key < log2.key;
     }
 };
@@ -66,7 +66,7 @@ inline std::string GetDbOpLogTypeName(DbOpLogType type){
     return "UNKNOWN";
 }
 
-typedef vector<CDBOpLog> CDBOpLogs;
+typedef vector<CDbOpLog> CDbOpLogs;
 
 class leveldb_error : public runtime_error
 {
@@ -84,7 +84,7 @@ private:
     leveldb::WriteBatch batch;
 
 public:
-    template<typename V> 
+    template<typename V>
     void Write(const std::string &key, const V& value) {
     	leveldb::Slice slKey(key);
         CDataStream ssValue(SER_DISK, CLIENT_VERSION);
@@ -170,7 +170,7 @@ public:
     ~CLevelDBWrapper();
 
     template<typename V>
-    bool Read(std::string key, V &value) { 
+    bool Read(std::string key, V &value) {
     	leveldb::Slice slKey(key);
 
         string strValue;
@@ -187,7 +187,7 @@ public:
         } catch(std::exception &e) {
             return false;
         }
-        return true;       
+        return true;
     }
 
     template<typename K, typename V> bool Read(const K& key, V& value) {
@@ -225,7 +225,7 @@ public:
     }
 
 
-    template<typename V> 
+    template<typename V>
     bool Write(const std::string &key, const V &value, bool fSync = false) {
         CLevelDBBatch batch;
         batch.Write(key, value);

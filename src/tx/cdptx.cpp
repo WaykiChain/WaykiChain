@@ -66,7 +66,7 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
     }
     cw.txUndo.accountLogs.push_back(acctLog);
 
-    CDBOpLog cdpDbOpLog;
+    CDbOpLog cdpDbOpLog;
     cw.cdpCache->SetStakeBcoins(txUid, bcoinsToStake, nHeight, cdpDbOpLog); //update cache & persis to ldb
     cw.txUndo.cdpOpLogs.push_back(cdpDbOpLog);
 
@@ -93,7 +93,7 @@ bool CdpStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
 
-        auto rIterTxDbLog = cw.txUndo..rbegin();
+        auto rIterTxDbLog = cw.txUndo.rbegin();
         if (!cw.cdpCache.SetCdpData()) {
 
         }

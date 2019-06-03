@@ -278,8 +278,8 @@ public:
 
 #define IMPLEMENT_PERSIST_TX_KEYID(sendTxUid, recvTxUid)                                   \
     if (SysCfg().GetAddressToTxFlag()) {                                                   \
-        CDBOpLogs& opLogs = cw.txUndo.mapDbOpLogs[ADDR_TXHASH];                              \
-        CDBOpLog operAddressToTxLog;                                                       \
+        CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[ADDR_TXHASH];                              \
+        CDbOpLog operAddressToTxLog;                                                       \
         if (sendTxUid.type() != typeid(CNullID)) {                                         \
             CKeyID sendKeyId;                                                              \
             if (!cw.accountCache.GetKeyId(sendTxUid, sendKeyId))                           \

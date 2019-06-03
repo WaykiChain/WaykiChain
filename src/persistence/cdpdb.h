@@ -14,30 +14,28 @@
 using namespace std;
 
 /**
- * stake in BaseCoin to get StableCoins
+ * CDP Cache Item: stake in BaseCoin to get StableCoins
  *
  * Ij =  TNj * (Hj+1 - Hj)/Y * 0.1a/Log10(1+b*TNj)
  *
- */
-struct CdpStakeOp {
-    uint64_t lastBlockHeight;       // Hj, mem-only
-    uint64_t lastTotalStakedScoins; // TNj, mem-only
-
-    uint64_t blockHeight;           // Hj+1, persisted
-    uint64_t mintedScoins;          // persisted
-};
-
-/**
- *  Persisted in LDB as:
- *      cdp$RegId --> { blockHeight, mintedScoins }
+ * Persisted in LDB as:
+ *      cdp$RegId --> { blockHeight, mintedScoins, totalOwedScoins }
  *
  */
 struct CUserCdp {
     CRegID ownerRegId;              // CDP Owner RegId
-    uint64_t totalStakedBcoins;     // summed from stakeOps
-    uint64_t totalMintedScoins;     // summed from stakeOps
-    uint64_t owedScoins;            // owed = total minted - total redempted
-    CdpStakeOp stakeOp;
+
+    uint64_t lastBlockHeight;       // Hj, mem-only
+    uint64_t lastTotalStakedScoins; // TNj, mem-only
+
+    uint64_t blockHeight;           // persisted: Hj+1
+    uint64_t mintedScoins;          // persisted
+    uint64_t totalOwedScoins;       // persisted: owed = total minted - total redempted
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(blockHeight);
+        READWRITE(mintedScoins);
+    )
 
     bool IsEmpty() const {
         return ownerRegId.IsEmpty(); // TODO: need to check empty for other fields?
@@ -47,11 +45,11 @@ struct CUserCdp {
 
 class ICdpView {
 public:
-    virtual bool GetData(const string &vKey, CUserCdp &vValue) = 0;
-    virtual bool SetData(const string &vKey, const CUserCdp &vValue) = 0;
+    virtual bool GetData(const string &key, CUserCdp &value) = 0;
+    virtual bool SetData(const string &key, const CUserCdp &value) = 0;
     virtual bool BatchWrite(const map<string, CUserCdp> &mapCdps) = 0;
-    virtual bool EraseKey(const string &vKey) = 0;
-    virtual bool HaveData(const string &vKey) = 0;
+    virtual bool EraseKey(const string &key) = 0;
+    virtual bool HaveData(const string &key) = 0;
 
     virtual ~ICdpView(){};
 };
@@ -61,15 +59,15 @@ public:
     CCdpCache() {};
     CCdpCache(ICdpView &base): ICdpView(), pBase(&base) {};
 
-    bool SetStakeBcoins(uint64_t bcoinsToStake, int blockHeight, CDBOpLog &cdpDbOpLog);
-    bool GetLiquidityCdpItems(vector<CdpItem> & cdpItems);
+    bool SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, int blockHeight, CDbOpLog &cdpDbOpLog);
+    bool GetUnderLiquidityCdps(vector<CUserCdp> & userCdps);
 
 public:
-    virtual bool GetData(const string &key, CUserCdp &vValue);
-    virtual bool SetData(const string &vKey, const CUserCdp &vValue);
+    virtual bool GetData(const string &key, CUserCdp &value);
+    virtual bool SetData(const string &key, const CUserCdp &value);
     virtual bool BatchWrite(const map<string, CUserCdp > &mapContractDb);
-    virtual bool EraseKey(const string &vKey);
-    virtual bool HaveData(const string &vKey);
+    virtual bool EraseKey(const string &key);
+    virtual bool HaveData(const string &key);
 
     bool GetCdpData();
     bool SetCdpData();
@@ -80,17 +78,27 @@ private:
     uint64_t liquidityPrice       = 0;
     uint64_t forcedLiquidityPrice = 0;
     uint64_t bcoinMedianPrice     = 0;
-    map<string, CUserCdp> mapCdps;  // UserRegId --> UserCDP
+
+    map<string, CUserCdp> mapCdps;  //CUserID.ToString() --> CUserCdp
 };
 
 class CCdpDb: public ICdpView  {
-public:
+private:
+    CLevelDBWrapper db;
 
-    virtual bool GetData(const string &vKey, CUserCdp &vValue) = 0;
-    virtual bool SetData(const string &vKey, const CUserCdp &vValue) = 0;
+public:
+    CCdpDb(const string &name, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
+    CCdpDb(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
+
+    virtual bool GetData(const string &key, CUserCdp &value) = 0;
+    virtual bool SetData(const string &key, const CUserCdp &value) = 0;
     virtual bool BatchWrite(const map<string, CUserCdp > &mapContractDb) = 0;
-    virtual bool EraseKey(const string &vKey) = 0;
-    virtual bool HaveData(const string &vKey) = 0;
+    virtual bool EraseKey(const string &key) = 0;
+    virtual bool HaveData(const string &key) = 0;
+
+private:
+    CCdpDb(const CCdpDb &);
+    void operator=(const CCdpDb &);
 
 };
 

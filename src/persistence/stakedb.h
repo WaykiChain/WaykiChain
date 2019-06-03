@@ -60,30 +60,6 @@ public:
     virtual ~IStakeView(){};
 };
 
-class CStakeDB : public IStakeView {
-private:
-    CLevelDBWrapper db;
-
-public:
-    CStakeDB(const string &name, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
-    CStakeDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
-
-    bool GetDelegateVote(const int &nIndex, vector<unsigned char> &vKey, vector<unsigned char> &vValue);
-    bool GetStakedFcoins(const int &nIndex, vector<unsigned char> &vKey, vector<unsigned char> &vValue);
-
-private:
-    CStakeDB(const CStakeDB &);
-    void operator=(const CStakeDB &);
-
-    bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
-    bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue);
-    bool EraseKey(const vector<unsigned char> &vKey);
-    bool HaveData(const vector<unsigned char> &vKey);
-    bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &voteDb);
-
-    bool GetData(const size_t prefixLen, const int &nIndex, vector<unsigned char> &vKey, vector<unsigned char> &vValue);
-};
-
 class CStakeCache : public IStakeView {
 protected:
     IStakeView *pBase;
@@ -130,5 +106,31 @@ private:
 
     bool GetData(const size_t prefixLen, const int &nIndex, vector<unsigned char> &vKey, vector<unsigned char> &vValue);
 };
+
+
+class CStakeDB : public IStakeView {
+private:
+    CLevelDBWrapper db;
+
+public:
+    CStakeDB(const string &name, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
+    CStakeDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
+
+    bool GetDelegateVote(const int &nIndex, vector<unsigned char> &vKey, vector<unsigned char> &vValue);
+    bool GetStakedFcoins(const int &nIndex, vector<unsigned char> &vKey, vector<unsigned char> &vValue);
+
+private:
+    CStakeDB(const CStakeDB &);
+    void operator=(const CStakeDB &);
+
+    bool SetData(const vector<unsigned char> &vKey, const vector<unsigned char> &vValue);
+    bool GetData(const vector<unsigned char> &vKey, vector<unsigned char> &vValue);
+    bool EraseKey(const vector<unsigned char> &vKey);
+    bool HaveData(const vector<unsigned char> &vKey);
+    bool BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &voteDb);
+
+    bool GetData(const size_t prefixLen, const int &nIndex, vector<unsigned char> &vKey, vector<unsigned char> &vValue);
+};
+
 
 #endif  // PERSIST_STAKEDB_H

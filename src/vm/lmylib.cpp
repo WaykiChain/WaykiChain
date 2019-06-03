@@ -1246,13 +1246,13 @@ static int ExWriteDataDBFunc(lua_State *L)
     const CRegID scriptid = pVmRunEnv->GetScriptRegID();
     bool flag = true;
     CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
-    CDBOpLog operlog;
+    CDbOpLog operlog;
     if (!scriptDB->SetContractData(scriptid, key, value, operlog)) {
         LogPrint("vm", "ExWriteDataDBFunc SetContractData failed, key:%s!\n",HexStr(key));
         lua_BurnStoreUnchange(L, key.size(), value.size(), BURN_VER_R2);
         flag = false;
     } else {
-        shared_ptr<vector<CDBOpLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
+        shared_ptr<vector<CDbOpLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
         (*pScriptDBOperLog.get()).push_back(operlog);
         lua_BurnStoreSet(L, key.size(), operlog.value.size(), value.size(), BURN_VER_R2);
     }
@@ -1284,14 +1284,14 @@ static int ExDeleteDataDBFunc(lua_State *L) {
     CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
 
     bool flag = true;
-    CDBOpLog operlog;
+    CDbOpLog operlog;
 
     if (!scriptDB->EraseAppData(scriptid, *retdata.at(0), operlog)) {
         LogPrint("vm", "ExDeleteDataDBFunc EraseAppData railed, key:%s!\n",HexStr(*retdata.at(0)));
         lua_BurnStoreUnchange(L, key.size(), operlog.value.size(), BURN_VER_R2);
         flag = false;
     } else {
-        shared_ptr<vector<CDBOpLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
+        shared_ptr<vector<CDbOpLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
         pScriptDBOperLog.get()->push_back(operlog);
         lua_BurnStoreSet(L, key.size(), operlog.value.size(), 0, BURN_VER_R2);
     }
@@ -1432,12 +1432,12 @@ static int ExModifyDataDBFunc(lua_State *L)
 
     CRegID scriptid = pVmRunEnv->GetScriptRegID();
     CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
-    CDBOpLog operlog;
+    CDbOpLog operlog;
     vector_unsigned_char oldValue;
     bool flag = false;
     if (scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(),scriptid, key, oldValue)) {
         if (scriptDB->SetContractData(scriptid, key, newValue, operlog)) {
-            shared_ptr<vector<CDBOpLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
+            shared_ptr<vector<CDbOpLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
             pScriptDBOperLog.get()->push_back(operlog);
             lua_BurnStoreSet(L, key.size(),  operlog.value.size(), newValue.size(), BURN_VER_R2);
             flag = true;
