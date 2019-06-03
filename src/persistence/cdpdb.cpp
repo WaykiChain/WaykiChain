@@ -5,7 +5,7 @@
 
 #include "cdpdb.h"
 
-bool CCdpCache::SetStakeBcoins(CUserID txUid, CCachewrapper & cw, uint64_t bcoinsToStake, uint64_t collateralRatio,
+bool CCdpCache::SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, uint64_t collateralRatio,
                                 int blockHeight, CDbOpLog &cdpDbOpLog) {
 
     string key = dbk::GenDbKey(dbk::CDP), txUid.ToString();
@@ -57,8 +57,7 @@ bool CCdpCache::GetData(const string &key, CUserCdp &value) {
 }
 
 bool CCdpCache::SetData(const string &key, const CUserCdp &value) {
-    //TODO
-    db.write(dbk::)
+    pBase.write(dbk::GetDbKey(dbk::CDP, key), value)
     return true;
 }
 
