@@ -1432,10 +1432,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (fJustCheck)
         return true;
 
+    // TODO: need to undo it when disconnect blocks.
     if (SysCfg().IsTxIndex()) {
         LogPrint("DEBUG", "add tx index, block hash:%s\n", pIndex->GetBlockHash().GetHex());
         vector<CContractDBOperLog> vTxIndexOperDB;
-        if (!pCdMan->pContractCache->WriteTxIndex(vPos, vTxIndexOperDB))
+        if (!cw.contractCache.WriteTxIndex(vPos, vTxIndexOperDB))
             return state.Abort(_("Failed to write transaction index"));
         auto itTxUndo = blockundo.vtxundo.rbegin();
         itTxUndo->vContractOperLog.insert(itTxUndo->vContractOperLog.begin(), vTxIndexOperDB.begin(),
@@ -1463,7 +1464,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             return state.Abort(_("Failed to write block index"));
     }
 
-    if (!pCdMan->pTxCache->AddBlockToCache(block))
+    if (!cw.txCache.AddBlockToCache(block))
         return state.Abort(_("Connect tip block failed add block tx to txcache"));
 
     if (pIndex->nHeight - SysCfg().GetTxCacheHeight() > 0) {
@@ -1475,7 +1476,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         CBlock deleteBlock;
         if (!ReadBlockFromDisk(pDeleteBlockIndex, deleteBlock))
             return state.Abort(_("Failed to read block"));
-        if (!pCdMan->pTxCache->DeleteBlockFromCache(deleteBlock))
+        if (!cw.txCache.DeleteBlockFromCache(deleteBlock))
             return state.Abort(_("Connect tip block failed delete block tx to txcache"));
     }
 
