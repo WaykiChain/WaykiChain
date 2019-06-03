@@ -15,29 +15,30 @@ bool CCdpCache::GetLiquidityCdpItems(vector<CdpItem> & cdpItems) {
     return true;
 }
 
-bool CCdpCache::GetData(const string &key, vector<unsigned char> &value) {
+bool CCdpCache::GetData(const string &key, CUserCdp &value) {
     if (mapCdps.count(key) > 0) {
-        if (!mapCdps[key].empty()) {
-            vValue = mapCdps[vKey];
+        if (!mapCdps[key].IsEmpty()) {
+            value = mapCdps[key];
             return true;
         } else {
             return false;
         }
     }
 
-    if (!pBase->GetData(vKey, vValue)) {
+    if (!pBase->GetData(key, value)) {
         return false;
     }
-    mapCdps[vKey] = vValue;  //cache it here for speed in-mem access
+
+    mapCdps[key] = value;  //cache it here for speed in-mem access
     return true;
 }
 
-bool CCdpCache::SetData(const string &vKey, const vector<unsigned char> &vValue) {
+bool CCdpCache::SetData(const string &vKey, const CUserCdp &value) {
     //TODO
     return true;
 }
 
-bool CCdpCache::BatchWrite(const map<string, vector<unsigned char> > &mapContractDb) {
+bool CCdpCache::BatchWrite(const map<string, CUserCdp> &mapContractDb) {
     //TODO
     return true;
 }
