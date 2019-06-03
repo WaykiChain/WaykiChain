@@ -313,7 +313,7 @@ public:
 
     CBlockTreeDB        *pBlockTreeDb;
 
-    uint64_t            collateralRatio(200);
+    uint64_t            collateralRatio;
 
 public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache,
@@ -329,6 +329,8 @@ public:
         pDelegateCache  = new CDelegateCache(*pStakeCache);
         pTxCache        = new CTransactionCache();
         pPpCache        = new CPricePointCache();
+
+        collateralRatio = 200; //minimum 200% collateral ratio
     }
 
     ~CCacheDBManager() {
