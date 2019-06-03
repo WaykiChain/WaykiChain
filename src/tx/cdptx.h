@@ -14,6 +14,7 @@
 class CdpStakeTx: public CBaseTx {
 public:
     uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
+    uint64_t collateralRatio;       // must be >=0 200 (%)
 
 public:
     CdpStakeTx() : CBaseTx(CDP_STAKE_TX) {}
@@ -22,13 +23,15 @@ public:
         *this = *(CdpStakeTx *)pBaseTx;
     }
 
-    CdpStakeTx(const CUserID &txUidIn, uint64_t feeIn, int validHeightIn, uint64_t bcoinsToStakeIn, ):
+    CdpStakeTx(const CUserID &txUidIn, uint64_t feeIn, int validHeightIn,
+                uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn):
                 CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
         bcoinsToStake = bcoinsToStakeIn;
+        collateralRatio = collateralRatioIn;
     }
 
     ~CdpStakeTx() {}
@@ -41,6 +44,7 @@ public:
 
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(bcoinsToStake));
+        READWRITE(VARINT(collateralRatio));
         READWRITE(signature);
     )
 
@@ -48,7 +52,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << appUid
-               << VARINT(llFees) << VARINT(bcoinsToStake);
+               << VARINT(llFees) << VARINT(bcoinsToStake) << VARINT(collateralRatio);
             sigHash = ss.GetHash();
         }
         return sigHash;

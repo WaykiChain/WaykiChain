@@ -5,8 +5,31 @@
 
 #include "cdpdb.h"
 
-bool CCdpCache::SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, int blockHeight, CDbOpLog &cdpDbOpLog) {
-    //TODO
+bool CCdpCache::SetStakeBcoins(CUserID txUid, CCachewrapper & cw, uint64_t bcoinsToStake, uint64_t collateralRatio,
+                                int blockHeight, CDbOpLog &cdpDbOpLog) {
+
+    string key = dbk::GenDbKey(dbk::CDP), txUid.ToString();
+    CUserCdp lastCdp;
+    if (this.mapCdps.count(txUid.ToString())) {
+        if (!GetData(key, lastCdp)) {
+            return ERRORMSG("CCdpCache::SetStakeBcoins : GetData failed.");
+        }
+
+    }
+
+    CUserCdp cdp        = lastCdp;
+    cdp.lastBlockHeight = cdp.blockHeight;
+    cdp.lastOwedScoins += cdp.totalOwedScoins;
+    cdp.blockHeight     = blockHeight;
+    cdp.collateralRatio = collateralRatio;
+    cdp.mintedScoins    = bcoinsToStake / collateralRatio;
+    cdp.totalOwedScoins += cdp.mintedScoins;
+
+    if (!SaveData(key, cdp)) {
+        return ERRORMSG("CCdpCache::SetStakeBcoins : SaveData failed.");
+    }
+    cdpDbOpLog.pus_back(lastCdp);
+
     return true;
 }
 
@@ -33,8 +56,9 @@ bool CCdpCache::GetData(const string &key, CUserCdp &value) {
     return true;
 }
 
-bool CCdpCache::SetData(const string &vKey, const CUserCdp &value) {
+bool CCdpCache::SetData(const string &key, const CUserCdp &value) {
     //TODO
+    db.write(dbk::)
     return true;
 }
 

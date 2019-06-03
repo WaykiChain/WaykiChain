@@ -44,6 +44,8 @@ namespace dbk {
         EACH_ENUM_DEFINE( CONTRACT_ITEM_NUM,  "citn")     /* citn{ContractRegId} --> $total_num_of_contract_i */ \
         EACH_ENUM_DEFINE( STAKE_FCOIN,        "fcoin")    /* fcoin{(uint64t)MAX - stakedFcoins}_{RegId} --> 1 */ \
         EACH_ENUM_DEFINE( CDP,                "cdp")      /* cdp{$RegID} --> blockHeight,mintedScoins */ \
+        EACH_ENUM_DEFINE( CDP_IR_PARAM_A,     "ira")      /* [prefix] --> param_a */ \
+        EACH_ENUM_DEFINE( CDP_IR_PARAM_B,     "irb")      /* [prefix] --> param_b */ \
         \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one */ \
         EACH_ENUM_DEFINE( PREFIX_COUNT,        "")       /* enum count, must be the last one */

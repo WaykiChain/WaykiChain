@@ -9,10 +9,12 @@ string CdpStakeTx::ToString(CAccountCache &view) {
     //TODO
     return "";
 }
+
 Object CdpStakeTx::ToJson(const CAccountCache &AccountView) const {
     //TODO
     return Object();
 }
+
 bool CdpStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     //TODO
     return true;
@@ -25,6 +27,11 @@ bool CdpStakeTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
     if (bcoinsToStake == 0) {
         return state.DoS(100, ERRORMSG("CdpStakeTx::CheckTx, bcoin amount is zero"),
             REJECT_INVALID, "bad-tx-bcoins-is-zero-error");
+    }
+
+    if (collateralRatio < pCdMan->collateralRatio ) {
+        return state.DoS(100, ERRORMSG("CdpStakeTx::CheckTx, collateral ratio is smaller than minimal %d",
+                        pCdMan->collateralRatio), REJECT_INVALID, "bad-tx-collateral-ratio-toosmall");
     }
 
     CAccount account;
@@ -67,7 +74,7 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
     cw.txUndo.accountLogs.push_back(acctLog);
 
     CDbOpLog cdpDbOpLog;
-    cw.cdpCache->SetStakeBcoins(txUid, bcoinsToStake, nHeight, cdpDbOpLog); //update cache & persis to ldb
+    cw.cdpCache->SetStakeBcoins(txUid, cw, bcoinsToStake, collateralRatio, nHeight, cdpDbOpLog); //update cache & persis to ldb
     cw.txUndo.cdpOpLogs.push_back(cdpDbOpLog);
 
     IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
@@ -92,19 +99,13 @@ bool CdpStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
             return state.DoS(100, ERRORMSG("CdpStakeTx::UndoExecuteTx, write account info error"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
-
-        auto rIterTxDbLog = cw.txUndo.rbegin();
-        if (!cw.cdpCache.SetCdpData()) {
-
-        }
     }
 
     auto rIterCdpDBLog = cw.txUndo.cdpOpLogs.rbegin();
     for (; rIterCdpDBLog != cw.txUndo.cdpOpLogs.rend(); ++rIterCdpDBLog) {
-        // Update CdpItem with the old value
-        if (!cw.cdpCache.Set(rIterCdpDBLog->key))
-            return state.DoS(100, ERRORMSG("CdpStakeTx::UndoExecuteTx, set delegate data error"),
-                             UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+        if (!cw.cdpCache.SetData(rIterCdpDBLog->key, rIterCdpDBLog->value))
+            return state.DoS(100, ERRORMSG("CdpStakeTx::UndoExecuteTx, set cdp data error"),
+                             UPDATE_ACCOUNT_FAIL, "bad-save-cdp");
 
         ++rIterCdpDBLog;
     }

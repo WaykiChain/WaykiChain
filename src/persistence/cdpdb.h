@@ -26,15 +26,17 @@ struct CUserCdp {
     CRegID ownerRegId;              // CDP Owner RegId
 
     uint64_t lastBlockHeight;       // Hj, mem-only
-    uint64_t lastTotalStakedScoins; // TNj, mem-only
+    uint64_t lastOwedScoins;        // TNj, mem-only
+    uint64_t collateralRatio;       // ratio = bcoins / mintedScoins, must be >= 200%
 
     uint64_t blockHeight;           // persisted: Hj+1
-    uint64_t mintedScoins;          // persisted
-    uint64_t totalOwedScoins;       // persisted: owed = total minted - total redempted
+    uint64_t mintedScoins;          // persisted: mintedScoins = bcoins/rate
+    uint64_t totalOwedScoins;       // persisted: total = last + minted = total minted - total redempted
 
     IMPLEMENT_SERIALIZE(
         READWRITE(blockHeight);
         READWRITE(mintedScoins);
+        READWRITE(totalOwedScoins);
     )
 
     bool IsEmpty() const {
@@ -59,7 +61,8 @@ public:
     CCdpCache() {};
     CCdpCache(ICdpView &base): ICdpView(), pBase(&base) {};
 
-    bool SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, int blockHeight, CDbOpLog &cdpDbOpLog);
+    bool SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, uint64_t collateralRatio,
+                        int blockHeight, CDbOpLog &cdpDbOpLog);
     bool GetUnderLiquidityCdps(vector<CUserCdp> & userCdps);
 
 public:

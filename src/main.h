@@ -313,6 +313,8 @@ public:
 
     CBlockTreeDB        *pBlockTreeDb;
 
+    uint64_t            collateralRatio(200);
+
 public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache,
                     size_t nScriptCacheSize, size_t nBlockTreeDBCache) {
