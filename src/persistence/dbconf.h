@@ -35,16 +35,17 @@ namespace dbk {
         EACH_ENUM_DEFINE( REGID_KEYID,        "rkey",     "rkey{$RegID} --> $KeyId" ) \
         EACH_ENUM_DEFINE( NICKID_KEYID,       "nkey",     "nkey{$NickID} --> $KeyId" ) \
         EACH_ENUM_DEFINE( KEYID_ACCOUNT,      "idac",     "idac{$KeyID} --> $CAccount" ) \
-        EACH_ENUM_DEFINE( BEST_BLOCKHASH,     "btbh",     " [prefix] --> $BestBlockHash" ) \
+        EACH_ENUM_DEFINE( BEST_BLOCKHASH,     "bbkh",     "[prefix] --> $BestBlockHash" ) \
         EACH_ENUM_DEFINE( BLOCK_INDEX,        "bidx",     "pbfl --> $nFile" ) \
         EACH_ENUM_DEFINE( BLOCKFILE_NUM_INFO, "bfni",     "BlockFileNum --> $BlockFileInfo" ) \
-        EACH_ENUM_DEFINE( LAST_BLOCKFILE,     "ltbf",      "[prefix] --> $LastBlockFile" ) \
+        EACH_ENUM_DEFINE( LAST_BLOCKFILE,     "ltbf",     "[prefix] --> $LastBlockFile" ) \
         EACH_ENUM_DEFINE( CONTRACT_COUNT,     "cnum",     "cnum{$ContractRegId} --> $total_num_of_cntracts" ) \
         EACH_ENUM_DEFINE( CONTRACT_DEF,       "cdef",     "cdef{$ContractRegId} --> $ContractContent" ) \
         EACH_ENUM_DEFINE( CONTRACT_DATA,      "cdat",     "cdat{$RegId}_{$DataKey} --> $Data" ) \
         EACH_ENUM_DEFINE( CONTRACT_TX_OUT,    "cout",     "cout{txid} --> $VmOperateOutput" ) \
         EACH_ENUM_DEFINE( CONTRACT_ITEM_NUM,  "citn",     "citn{ContractRegId} --> $total_num_of_contract_i" ) \
-        EACH_ENUM_DEFINE( STAKE_FCOIN,        "fcoin",    "fcoin{(uint64t)MAX - stakedFcoins}_{RegId} --> 1" )
+        EACH_ENUM_DEFINE( STAKE_FCOIN,        "fcoin",    "fcoin{(uint64t)MAX - stakedFcoins}_{RegId} --> 1" ) \
+        EACH_ENUM_DEFINE( CDP,                "cdp",      "cdp{$RegID} --> blockHeight,mintedScoins"
 
     enum PrefixType {
         DBK_PREFIX_LIST(EACH_ENUM_DEFINE_TYPE)

@@ -38,14 +38,18 @@ struct CUserCdp {
     uint64_t totalMintedScoins;     // summed from stakeOps
     uint64_t owedScoins;            // owed = total minted - total redempted
     CdpStakeOp stakeOp;
+
+    bool IsEmpty() const {
+        return ownerRegId.IsEmpty(); // TODO: need to check empty for other fields?
+    }
 };
 
 
 class ICdpView {
 public:
-    virtual bool GetData(const string &vKey, vector<unsigned char> &vValue) = 0;
-    virtual bool SetData(const string &vKey, const vector<unsigned char> &vValue) = 0;
-    virtual bool BatchWrite(const map<string, vector<unsigned char> > &mapCdps) = 0;
+    virtual bool GetData(const string &vKey, CUserCdp &vValue) = 0;
+    virtual bool SetData(const string &vKey, const CUserCdp &vValue) = 0;
+    virtual bool BatchWrite(const map<string, CUserCdp> &mapCdps) = 0;
     virtual bool EraseKey(const string &vKey) = 0;
     virtual bool HaveData(const string &vKey) = 0;
 
@@ -54,13 +58,16 @@ public:
 
 class CCdpCache: public ICdpView  {
 public:
-    bool SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, int blockHeight, CDBOpLog &cdpDbOpLog);
+    CCdpCache() {};
+    CCdpCache(ICdpView &base): ICdpView(), pBase(&base) {};
+
+    bool SetStakeBcoins(uint64_t bcoinsToStake, int blockHeight, CDBOpLog &cdpDbOpLog);
     bool GetLiquidityCdpItems(vector<CdpItem> & cdpItems);
 
 public:
-    virtual bool GetData(const string &key, vector<unsigned char> &vValue);
-    virtual bool SetData(const string &vKey, const vector<unsigned char> &vValue);
-    virtual bool BatchWrite(const map<string, vector<unsigned char> > &mapContractDb);
+    virtual bool GetData(const string &key, CUserCdp &vValue);
+    virtual bool SetData(const string &vKey, const CUserCdp &vValue);
+    virtual bool BatchWrite(const map<string, CUserCdp > &mapContractDb);
     virtual bool EraseKey(const string &vKey);
     virtual bool HaveData(const string &vKey);
 
@@ -68,21 +75,20 @@ public:
     bool SetCdpData();
 
 private:
-    uint64_t collateralRatio;
-    uint64_t liquidityPrice;
-    uint64_t forcedLiquidityPrice;
-
-    uint64_t bcoinMedianPrice;
-    map<string, CUserCdp> mapCdps; // UserRegId --> UserCDP
+    ICdpView *pBase               = nullptr;
+    uint64_t collateralRatio      = 0;
+    uint64_t liquidityPrice       = 0;
+    uint64_t forcedLiquidityPrice = 0;
+    uint64_t bcoinMedianPrice     = 0;
+    map<string, CUserCdp> mapCdps;  // UserRegId --> UserCDP
 };
 
 class CCdpDb: public ICdpView  {
-
 public:
-    ~CCdpDb() {};
-    virtual bool GetData(const string &vKey, vector<unsigned char> &vValue) = 0;
-    virtual bool SetData(const string &vKey, const vector<unsigned char> &vValue) = 0;
-    virtual bool BatchWrite(const map<string, vector<unsigned char> > &mapContractDb) = 0;
+
+    virtual bool GetData(const string &vKey, CUserCdp &vValue) = 0;
+    virtual bool SetData(const string &vKey, const CUserCdp &vValue) = 0;
+    virtual bool BatchWrite(const map<string, CUserCdp > &mapContractDb) = 0;
     virtual bool EraseKey(const string &vKey) = 0;
     virtual bool HaveData(const string &vKey) = 0;
 

@@ -61,7 +61,7 @@ public:
       取交易关联账户时第一个vector是scriptKey ="tx" + "txHash"
     */
 public:
-    CContractCache(): pBase() {}
+    CContractCache(): pBase(nullptr) {}
 
     CContractCache(IContractView &pBaseIn): pBase(&pBaseIn) { mapContractDb.clear(); };
 
