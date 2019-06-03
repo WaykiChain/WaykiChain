@@ -1432,9 +1432,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (fJustCheck)
         return true;
 
-    // TODO: need to undo it when disconnect blocks.
     if (SysCfg().IsTxIndex()) {
-        LogPrint("DEBUG", "add tx index, block hash:%s\n", pIndex->GetBlockHash().GetHex());
+        LogPrint("DEBUG", "Add transaction indexes, block hash:%s\n", pIndex->GetBlockHash().GetHex());
         vector<CContractDBOperLog> vTxIndexOperDB;
         if (!cw.contractCache.WriteTxIndex(vPos, vTxIndexOperDB))
             return state.Abort(_("Failed to write transaction index"));
@@ -2831,8 +2830,7 @@ bool static LoadBlockIndexDB() {
     uint256 bestBlockHash = pCdMan->pAccountCache->GetBestBlock();
     const auto &it = mapBlockIndex.find(bestBlockHash);
     if (it == mapBlockIndex.end()) {
-        LogPrint("ERROR", "LoadBlockIndexDB(): failed to find block %s\n", bestBlockHash.GetHex());
-        return false;
+        return true;
     }
 
     chainActive.SetTip(it->second);
