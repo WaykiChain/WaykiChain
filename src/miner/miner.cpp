@@ -592,9 +592,9 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
             CBlockIndex *pIndexPrev           = chainActive.Tip();
 
             auto spCW = std::make_shared<CCacheWrapper>();
-            spCW->accountCache = *pCdMan->pAccountCache;
-            spCW->contractCache = *pCdMan->pContractCache;
-            spCW->txCache = *pCdMan->pTxCache;
+            spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
+            spCW->contractCache.SetBaseView(pCdMan->pContractCache);
+            spCW->txCache.SetBaseView(pCdMan->pTxCache);
 
             g_miningBlockInfo.SetNull();
             int64_t nLastTime = GetTimeMillis();

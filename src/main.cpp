@@ -1627,10 +1627,10 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
     {
         CInv inv(MSG_BLOCK, pIndexNew->GetBlockHash());
 
-        auto spCW           = std::make_shared<CCacheWrapper>();
-        spCW->accountCache  = *pCdMan->pAccountCache;
-        spCW->txCache       = *pCdMan->pTxCache;
-        spCW->contractCache = *pCdMan->pContractCache;
+        auto spCW = std::make_shared<CCacheWrapper>();
+        spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
+        spCW->txCache.SetBaseView(pCdMan->pTxCache);
+        spCW->contractCache.SetBaseView(pCdMan->pContractCache);
 
         if (!ConnectBlock(block, *spCW, pIndexNew, state)) {
             if (state.IsInvalid()) {
@@ -1645,8 +1645,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         spCW->txCache.Flush(pCdMan->pTxCache);
         spCW->contractCache.Flush(pCdMan->pContractCache);
 
-        CAccountCache accountCache(*pCdMan->pAccountCache);
-        uint256 uBestblockHash = accountCache.GetBestBlock();
+        uint256 uBestblockHash = pCdMan->pAccountCache->GetBestBlock();
         LogPrint("INFO", "uBestBlockHash[%d]: %s\n", nSyncTipHeight, uBestblockHash.GetHex());
     }
 
@@ -2402,8 +2401,8 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
 
     int64_t llBeginCheckBlockTime = GetTimeMillis();
     auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache = *pCdMan->pAccountCache;
-    spCW->contractCache = *pCdMan->pContractCache;
+    spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
+    spCW->contractCache.SetBaseView(pCdMan->pContractCache);
 
     // Preliminary checks
     if (!CheckBlock(*pBlock, state, *spCW, false)) {
@@ -2857,11 +2856,10 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
     nCheckLevel = max(0, min(4, nCheckLevel));
     LogPrint("INFO", "Verifying last %i blocks at level %i\n", nCheckDepth, nCheckLevel);
 
-    // Copy global view cache before disconnect and connect.
     auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache = *pCdMan->pAccountCache;
-    spCW->txCache = *pCdMan->pTxCache;
-    spCW->contractCache = *pCdMan->pContractCache;
+    spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
+    spCW->txCache.SetBaseView(pCdMan->pTxCache);
+    spCW->contractCache.SetBaseView(pCdMan->pContractCache);
 
     CBlockIndex *pIndexState   = chainActive.Tip();
     CBlockIndex *pIndexFailure = nullptr;

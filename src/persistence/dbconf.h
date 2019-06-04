@@ -14,6 +14,13 @@
 
 /**
  * database key
+ *
+ *    取脚本 时 第一个vector 是scriptKey = "def" + "scriptid";
+      取应用账户时第一个vector是scriptKey = "acct" + "scriptid"+"_" + "accUserId";
+      取脚本总条数时第一个vector是scriptKey ="snum",
+      取脚本数据总条数时第一个vector是scriptKey ="sdnum";
+      取脚本数据时第一个vector是scriptKey ="data" + "vScriptId" + "_" + "vScriptKey"
+      取交易关联账户时第一个vector是scriptKey ="tx" + "txHash"
  */
 namespace dbk {
 

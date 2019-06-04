@@ -21,22 +21,22 @@ class CKeyID;
 class IAccountView {
 public:
     virtual bool GetAccount(const CKeyID &keyId, CAccount &account) = 0;
-    virtual bool GetAccount(const vector<unsigned char> &accountRegId, CAccount &account) = 0;
+    virtual bool GetAccount(const string &accountRegId, CAccount &account) = 0;
     virtual bool SetAccount(const CKeyID &keyId, const CAccount &account) = 0;
-    virtual bool SetAccount(const vector<unsigned char> &accountRegId, const CAccount &account) = 0;
+    virtual bool SetAccount(const string &accountRegId, const CAccount &account) = 0;
     // virtual bool SetAccount(const CUserID &userId, const CAccount &account) = 0;
     virtual bool HaveAccount(const CKeyID &keyId) = 0;
     virtual uint256 GetBestBlock() = 0;
     virtual bool SetBestBlock(const uint256 &blockHash) = 0;
-    virtual bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>,
+    virtual bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<string,
                             CKeyID> &mapKeyIds, const uint256 &blockHash) = 0;
     virtual bool BatchWrite(const vector<CAccount> &vAccounts) = 0;
     virtual bool EraseAccountByKeyId(const CKeyID &keyId) = 0;
-    virtual bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId) = 0;
-    virtual bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId) = 0;
-    virtual bool EraseKeyIdByRegId(const vector<unsigned char> &accountRegId) = 0;
+    virtual bool SetKeyId(const string &accountId, const CKeyID &keyId) = 0;
+    virtual bool GetKeyId(const string &accountId, CKeyID &keyId) = 0;
+    virtual bool EraseKeyIdByRegId(const string &accountRegId) = 0;
 
-    // virtual bool SaveAccount(const vector<unsigned char> &accountId, const CKeyID &keyId,
+    // virtual bool SaveAccount(const string &accountId, const CKeyID &keyId,
     // const CAccount &account) = 0;
     virtual std::tuple<uint64_t, uint64_t> TraverseAccount() = 0;
     virtual Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY) = 0;
@@ -51,29 +51,29 @@ protected:
 public:
     uint256 blockHash;
     map<CKeyID, CAccount> mapKeyId2Account;              // <KeyID -> Account>
-    map<vector<unsigned char>, CKeyID> mapRegId2KeyId;   // <RegID -> KeyID>
-    map<vector<unsigned char>, CKeyID> mapNickId2KeyId;  // <NickID -> KeyID>
+    map<string, CKeyID> mapRegId2KeyId;   // <RegID -> KeyID>
+    map<string, CKeyID> mapNickId2KeyId;  // <NickID -> KeyID>
 
 public:
     virtual bool GetAccount(const CKeyID &keyId, CAccount &account);
-    virtual bool GetAccount(const vector<unsigned char> &accountRegId, CAccount &account);
+    virtual bool GetAccount(const string &accountRegId, CAccount &account);
     virtual bool GetAccount(const CUserID &userId, CAccount &account);
     virtual bool SetAccount(const CKeyID &keyId, const CAccount &account);
-    virtual bool SetAccount(const vector<unsigned char> &accountRegId, const CAccount &account);
+    virtual bool SetAccount(const string &accountRegId, const CAccount &account);
     virtual bool SetAccount(const CUserID &userId, const CAccount &account);
     virtual bool HaveAccount(const CKeyID &keyId);
     virtual uint256 GetBestBlock();
     virtual bool SetBestBlock(const uint256 &blockHash);
-    virtual bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>,
+    virtual bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<string,
                             CKeyID> &mapKeyIds, const uint256 &blockHash);
     virtual bool BatchWrite(const vector<CAccount> &vAccounts);
     virtual bool EraseAccountByKeyId(const CKeyID &keyId);
-    virtual bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId);
+    virtual bool SetKeyId(const string &accountId, const CKeyID &keyId);
     virtual bool SetKeyId(const CUserID &userId, const CKeyID &keyId);
-    virtual bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId);
-    virtual bool EraseKeyIdByRegId(const vector<unsigned char> &accountRegId);
+    virtual bool GetKeyId(const string &accountId, CKeyID &keyId);
+    virtual bool EraseKeyIdByRegId(const string &accountRegId);
 
-    // virtual bool SaveAccount(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account);
+    // virtual bool SaveAccount(const string &accountId, const CKeyID &keyId, const CAccount &account);
     virtual bool SaveAccount(const CAccount &account);
     virtual std::tuple<uint64_t, uint64_t> TraverseAccount();
 
@@ -124,22 +124,22 @@ private:
 
 public:
     bool GetAccount(const CKeyID &keyId, CAccount &account);
-    bool GetAccount(const vector<unsigned char> &accountId, CAccount &account);
+    bool GetAccount(const string &accountId, CAccount &account);
     bool GetAccount(const CUserID &userId, CAccount &account);
 
     virtual bool SetAccount(const CKeyID &keyId, const CAccount &account);
     // virtual bool SetAccount(const CUserID &userId, const CAccount &account) {};
-    virtual bool SetAccount(const vector<unsigned char> &accountRegId, const CAccount &account);
+    virtual bool SetAccount(const string &accountRegId, const CAccount &account);
 
     bool HaveAccount(const CKeyID &keyId);
     uint256 GetBestBlock();
     bool SetBestBlock(const uint256 &hashBlock);
-    bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>, CKeyID> &mapKeyIds, const uint256 &hashBlock);
+    bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<string, CKeyID> &mapKeyIds, const uint256 &hashBlock);
     bool BatchWrite(const vector<CAccount> &vAccounts);
     bool EraseAccountByKeyId(const CKeyID &keyId);
-    bool SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId);
-    bool GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId);
-    bool EraseKeyIdByRegId(const vector<unsigned char> &accountRegId);
+    bool SetKeyId(const string &accountId, const CKeyID &keyId);
+    bool GetKeyId(const string &accountId, CKeyID &keyId);
+    bool EraseKeyIdByRegId(const string &accountRegId);
 
     bool SaveAccount(const CAccount &account);
     std::tuple<uint64_t, uint64_t> TraverseAccount();

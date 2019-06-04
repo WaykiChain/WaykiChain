@@ -32,7 +32,7 @@ bool CAccountCache::GetAccount(const CKeyID &keyId, CAccount &account) {
     return false;
 }
 
-bool CAccountCache::GetAccount(const vector<unsigned char> &accountRegId, CAccount &account) {
+bool CAccountCache::GetAccount(const string &accountRegId, CAccount &account) {
     if (accountRegId.empty())
         return false;
 
@@ -68,11 +68,32 @@ bool CAccountCache::GetAccount(const vector<unsigned char> &accountRegId, CAccou
     return false;
 }
 
+bool CAccountCache::GetAccount(const CUserID &userId, CAccount &account) {
+    bool ret = false;
+    if (userId.type() == typeid(CRegID)) {
+        ret = GetAccount(userId.get<CRegID>().ToString(), account);
+
+    } else if (userId.type() == typeid(CKeyID)) {
+        ret = GetAccount(userId.get<CKeyID>(), account);
+
+    } else if (userId.type() == typeid(CPubKey)) {
+        ret = GetAccount(userId.get<CPubKey>().GetKeyId(), account);
+
+    } else if (userId.type() == typeid(CNickID)) {
+        ret = GetAccount(userId.get<CNickID>().ToString(), account);
+
+    } else if (userId.type() == typeid(CNullID)) {
+        return ERRORMSG("GetAccount: userId can't be of CNullID type");
+    }
+
+    return ret;
+}
+
 bool CAccountCache::SetAccount(const CKeyID &keyId, const CAccount &account) {
     mapKeyId2Account[keyId] = account;
     return true;
 }
-bool CAccountCache::SetAccount(const vector<unsigned char> &accountRegId, const CAccount &account) {
+bool CAccountCache::SetAccount(const string &accountRegId, const CAccount &account) {
     if (accountRegId.empty()) {
         return false;
     }
@@ -100,7 +121,7 @@ bool CAccountCache::SetBestBlock(const uint256 &blockHashIn) {
     return true;
 }
 
-bool CAccountCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<vector<unsigned char>,
+bool CAccountCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<string,
                                 CKeyID> &mapKeyIds, const uint256 &blockHashIn) {
     for (map<CKeyID, CAccount>::const_iterator it = mapAccounts.begin(); it != mapAccounts.end(); ++it) {
         if (uint160() == it->second.keyID) {
@@ -111,7 +132,7 @@ bool CAccountCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const m
         }
     }
 
-    for (map<vector<unsigned char>, CKeyID>::const_iterator itKeyId = mapKeyIds.begin(); itKeyId != mapKeyIds.end(); ++itKeyId)
+    for (map<string, CKeyID>::const_iterator itKeyId = mapKeyIds.begin(); itKeyId != mapKeyIds.end(); ++itKeyId)
         mapRegId2KeyId[itKeyId->first] = itKeyId->second;
     blockHash = blockHashIn;
     return true;
@@ -147,7 +168,7 @@ bool CAccountCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
     return false;
 }
 
-bool CAccountCache::SetKeyId(const vector<unsigned char> &accountId, const CKeyID &keyId) {
+bool CAccountCache::SetKeyId(const string &accountId, const CKeyID &keyId) {
     if (accountId.empty())
         return false;
 
@@ -155,7 +176,7 @@ bool CAccountCache::SetKeyId(const vector<unsigned char> &accountId, const CKeyI
     return true;
 }
 
-bool CAccountCache::GetKeyId(const vector<unsigned char> &accountId, CKeyID &keyId) {
+bool CAccountCache::GetKeyId(const string &accountId, CKeyID &keyId) {
     if (accountId.empty())
         return false;
 
@@ -192,7 +213,7 @@ bool CAccountCache::GetKeyId(const CUserID &userId, CKeyID &keyId) {
     return ERRORMSG("GetKeyId: userid type is unknown");
 }
 
-bool CAccountCache::EraseKeyIdByRegId(const vector<unsigned char> &accountRegId) {
+bool CAccountCache::EraseKeyIdByRegId(const string &accountRegId) {
     if (accountRegId.empty())
         return false;
 
@@ -217,26 +238,6 @@ bool CAccountCache::SaveAccount(const CAccount &account) {
     return true;
 }
 
-bool CAccountCache::GetAccount(const CUserID &userId, CAccount &account) {
-    bool ret = false;
-    if (userId.type() == typeid(CRegID)) {
-        ret = GetAccount(userId.get<CRegID>().GetRegIdRaw(), account);
-
-    } else if (userId.type() == typeid(CKeyID)) {
-        ret = GetAccount(userId.get<CKeyID>(), account);
-
-    } else if (userId.type() == typeid(CPubKey)) {
-        ret = GetAccount(userId.get<CPubKey>().GetKeyId(), account);
-
-    } else if (userId.type() == typeid(CNickID)) {
-        ret = GetAccount(userId.get<CNickID>().GetNickIdRaw(), account);
-
-    } else if (userId.type() == typeid(CNullID)) {
-        return ERRORMSG("GetAccount: userId can't be of CNullID type");
-    }
-
-    return ret;
-}
 
 bool CAccountCache::GetUserId(const string &addr, CUserID &userId) {
     CRegID regId(addr);
@@ -403,7 +404,7 @@ bool CAccountDB::SetAccount(const CKeyID &keyId, const CAccount &account) {
     return ret;
 }
 
-bool CAccountDB::SetAccount(const vector<unsigned char> &accountRegId, const CAccount &account) {
+bool CAccountDB::SetAccount(const string &accountRegId, const CAccount &account) {
     CKeyID keyId;
     string keyIdKey = GenDbKey(dbk::REGID_KEYID, accountRegId);
     if (db.Read(keyIdKey, keyId)) {
@@ -431,7 +432,7 @@ bool CAccountDB::SetBestBlock(const uint256 &hashBlock) {
 }
 
 bool CAccountDB::BatchWrite(const map<CKeyID, CAccount> &mapAccounts,
-                                const map<vector<unsigned char>, CKeyID> &mapKeyIds, const uint256 &hashBlock) {
+                                const map<string, CKeyID> &mapKeyIds, const uint256 &hashBlock) {
     CLevelDBBatch batch;
     map<CKeyID, CAccount>::const_iterator iterAccount = mapAccounts.begin();
     for (; iterAccount != mapAccounts.end(); ++iterAccount) {
@@ -442,7 +443,7 @@ bool CAccountDB::BatchWrite(const map<CKeyID, CAccount> &mapAccounts,
         }
     }
 
-    map<vector<unsigned char>, CKeyID>::const_iterator iterKey = mapKeyIds.begin();
+    map<string, CKeyID>::const_iterator iterKey = mapKeyIds.begin();
     for (; iterKey != mapKeyIds.end(); ++iterKey) {
         if (iterKey->second.IsNull()) {
             batch.Erase(dbk::GenDbKey(dbk::REGID_KEYID, iterKey->first));
@@ -470,19 +471,19 @@ bool CAccountDB::EraseAccountByKeyId(const CKeyID &keyId) {
     return db.Erase(dbk::GenDbKey(dbk::KEYID_ACCOUNT, keyId));
 }
 
-bool CAccountDB::SetKeyId(const vector<unsigned char> &accountRegId, const CKeyID &keyId) {
+bool CAccountDB::SetKeyId(const string &accountRegId, const CKeyID &keyId) {
     return db.Write(dbk::GenDbKey(dbk::REGID_KEYID, accountRegId), keyId);
 }
 
-bool CAccountDB::GetKeyId(const vector<unsigned char> &accountRegId, CKeyID &keyId) {
+bool CAccountDB::GetKeyId(const string &accountRegId, CKeyID &keyId) {
     return db.Read(dbk::GenDbKey(dbk::REGID_KEYID, accountRegId), keyId);
 }
 
-bool CAccountDB::EraseKeyIdByRegId(const vector<unsigned char> &accountRegId) {
+bool CAccountDB::EraseKeyIdByRegId(const string &accountRegId) {
     return db.Erase(dbk::GenDbKey(dbk::REGID_KEYID, accountRegId));
 }
 
-bool CAccountDB::GetAccount(const vector<unsigned char> &accountRegId, CAccount &account) {
+bool CAccountDB::GetAccount(const string &accountRegId, CAccount &account) {
     CKeyID keyId;
     if (db.Read(dbk::GenDbKey(dbk::REGID_KEYID, accountRegId), keyId)) {
         return db.Read(dbk::GenDbKey(dbk::KEYID_ACCOUNT, keyId), account);

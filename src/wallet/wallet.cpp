@@ -456,8 +456,8 @@ uint256 CWallet::GetCheckSum() const {
 
 bool CWallet::IsMine(CBaseTx *pTx) const {
     auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache = *pCdMan->pAccountCache;
-    spCW->contractCache = *pCdMan->pContractCache;
+    spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
+    spCW->contractCache.SetBaseView(pCdMan->pContractCache);
 
     set<CKeyID> keyIds;
     if (!pTx->GetInvolvedKeyIds(*spCW, keyIds)) {

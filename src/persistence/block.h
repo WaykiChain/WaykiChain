@@ -512,7 +512,8 @@ struct CDiskTxPos : public CDiskBlockPos {
         READWRITE(*(CDiskBlockPos *)this);
         READWRITE(VARINT(nTxOffset));)
 
-    CDiskTxPos(const CDiskBlockPos &blockIn, unsigned int nTxOffsetIn) : CDiskBlockPos(blockIn.nFile, blockIn.nPos), nTxOffset(nTxOffsetIn) {
+    CDiskTxPos(const CDiskBlockPos &blockIn, unsigned int nTxOffsetIn) :
+        CDiskBlockPos(blockIn.nFile, blockIn.nPos), nTxOffset(nTxOffsetIn) {
     }
 
     CDiskTxPos() {

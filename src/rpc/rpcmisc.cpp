@@ -66,9 +66,7 @@ Value getbalance(const Array& params, bool fHelp)
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
             }
             if (pWalletMain->HaveKey(keyid)) {
-                CAccount account;
-                CAccountCache accView(*pCdMan->pAccountCache);
-                if (accView.GetAccount(CUserID(keyid), account)) {
+                if (pCdMan->pAccountCache->GetAccount(CUserID(keyid), account)) {
                     obj.push_back(Pair("balance", ValueFromAmount(account.GetFreeBCoins())));
                     return obj;
                 }
