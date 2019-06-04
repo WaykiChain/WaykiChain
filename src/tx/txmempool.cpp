@@ -118,8 +118,8 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
 
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache = *memPoolAccountCache;
-    spCW->contractCache = *memPoolContractCache;
     spCW->txCache = *pCdMan->pTxCache;
+    spCW->contractCache = *memPoolContractCache;
 
     if (bExecute) {
         if (!memPoolEntry.GetTx()->ExecuteTx(chainActive.Tip()->nHeight + 1, 0, *spCW, state))

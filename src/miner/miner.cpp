@@ -228,9 +228,10 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
 
     CBlock preBlock;
 
-    auto spCW           = std::make_shared<CCacheWrapper>();
-    spCW->accountCache  = cwIn.accountCache;
-    spCW->contractCache = cwIn.contractCache;
+    auto spCW = std::make_shared<CCacheWrapper>();
+    spCW->accountCache.SetBaseView(&cwIn.accountCache);
+    spCW->txCache = cwIn.txCache;
+    spCW->contractCache(&cwIn.contractCache);
 
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
@@ -382,8 +383,8 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
                 continue;
 
             auto spCW           = std::make_shared<CCacheWrapper>();
-            spCW->accountCache  = cwIn.accountCache;
-            spCW->contractCache = cwIn.contractCache;
+            spCW->accountCache.SetBaseView(&cwIn.accountCache);
+            spCW->contractCache.SetBaseView(&cwIn.contractCache);
 
             CValidationState state;
             pBaseTx->nFuelRate = pBlock->GetFuelRate();
@@ -593,8 +594,8 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
 
             auto spCW = std::make_shared<CCacheWrapper>();
             spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
+            spCW->txCache = *pCdMan->txCache;
             spCW->contractCache.SetBaseView(pCdMan->pContractCache);
-            spCW->txCache.SetBaseView(pCdMan->pTxCache);
 
             g_miningBlockInfo.SetNull();
             int64_t nLastTime = GetTimeMillis();

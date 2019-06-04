@@ -128,8 +128,8 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
     Object obj;
     std::set<CKeyID> vKeyIdSet;
     auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache = *pCdMan->pAccountCache;
-    spCW->contractCache = *pCdMan->pContractCache;
+    spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
+    spCW->contractCache.SetBaseView(pCdMan->pContractCache);
 
     switch (pBaseTx->nTxType) {
         case BLOCK_REWARD_TX: {
@@ -140,7 +140,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("category", "receive"));
             double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
             obj.push_back(Pair("amount", dAmount));
-            obj.push_back(Pair("txtype", "BLOCK_REWARD_TX"));
+            obj.push_back(Pair("tx_type", "BLOCK_REWARD_TX"));
             arrayDetail.push_back(obj);
 
             break;
@@ -153,7 +153,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("category", "send"));
             double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
             obj.push_back(Pair("amount", -dAmount));
-            obj.push_back(Pair("txtype", "ACCOUNT_REGISTER_TX"));
+            obj.push_back(Pair("tx_type", "ACCOUNT_REGISTER_TX"));
             arrayDetail.push_back(obj);
 
             break;
@@ -175,7 +175,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
             }
 
-            obj.push_back(Pair("txtype", "BCOIN_TRANSFER_TX"));
+            obj.push_back(Pair("tx_type", "BCOIN_TRANSFER_TX"));
             obj.push_back(Pair("memo", HexStr(ptx->memo)));
             obj.push_back(Pair("address", sendKeyID.ToAddress()));
             obj.push_back(Pair("category", "send"));
@@ -183,7 +183,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("amount", -dAmount));
             arrayDetail.push_back(obj);
             Object objRec;
-            objRec.push_back(Pair("txtype", "BCOIN_TRANSFER_TX"));
+            objRec.push_back(Pair("tx_type", "BCOIN_TRANSFER_TX"));
             objRec.push_back(Pair("memo", HexStr(ptx->memo)));
             objRec.push_back(Pair("address", recvKeyId.ToAddress()));
             objRec.push_back(Pair("category", "receive"));
@@ -207,7 +207,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 recvKeyId     = appUid.GetKeyId(*pCdMan->pAccountCache);
             }
 
-            obj.push_back(Pair("txtype", "CONTRACT_INVOKE_TX"));
+            obj.push_back(Pair("tx_type", "CONTRACT_INVOKE_TX"));
             obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
             obj.push_back(Pair("address", sendKeyID.ToAddress()));
             obj.push_back(Pair("category", "send"));
@@ -215,7 +215,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("amount", -dAmount));
             arrayDetail.push_back(obj);
             Object objRec;
-            objRec.push_back(Pair("txtype", "CONTRACT_INVOKE_TX"));
+            objRec.push_back(Pair("tx_type", "CONTRACT_INVOKE_TX"));
             objRec.push_back(Pair("arguments", HexStr(ptx->arguments)));
             objRec.push_back(Pair("address", recvKeyId.ToAddress()));
             objRec.push_back(Pair("category", "receive"));
@@ -272,9 +272,9 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("amount", -dAmount));
 
             if (pBaseTx->nTxType == CONTRACT_DEPLOY_TX)
-                obj.push_back(Pair("txtype", "CONTRACT_DEPLOY_TX"));
+                obj.push_back(Pair("tx_type", "CONTRACT_DEPLOY_TX"));
             else if (pBaseTx->nTxType == DELEGATE_VOTE_TX)
-                obj.push_back(Pair("txtype", "DELEGATE_VOTE_TX"));
+                obj.push_back(Pair("tx_type", "DELEGATE_VOTE_TX"));
 
             arrayDetail.push_back(obj);
 
@@ -304,7 +304,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
             }
 
-            obj.push_back(Pair("txtype", "COMMON_MTX"));
+            obj.push_back(Pair("tx_type", "COMMON_MTX"));
             obj.push_back(Pair("memo", HexStr(ptx->memo)));
             obj.push_back(Pair("address", sendKeyId.ToAddress()));
             obj.push_back(Pair("category", "send"));
@@ -312,7 +312,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("amount", -dAmount));
             arrayDetail.push_back(obj);
             Object objRec;
-            objRec.push_back(Pair("txtype", "COMMON_MTX"));
+            objRec.push_back(Pair("tx_type", "COMMON_MTX"));
             objRec.push_back(Pair("memo", HexStr(ptx->memo)));
             objRec.push_back(Pair("address", recvKeyId.ToAddress()));
             objRec.push_back(Pair("category", "receive"));
@@ -1138,7 +1138,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
-                        obj.push_back(Pair("txtype", "BCOIN_TRANSFER_TX"));
+                        obj.push_back(Pair("tx_type", "BCOIN_TRANSFER_TX"));
                         obj.push_back(Pair("memo", HexStr(ptx->memo)));
                         arrayData.push_back(obj);
 
@@ -1158,7 +1158,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
-                        obj.push_back(Pair("txtype", "BCOIN_TRANSFER_TX"));
+                        obj.push_back(Pair("tx_type", "BCOIN_TRANSFER_TX"));
                         obj.push_back(Pair("memo", HexStr(ptx->memo)));
 
                         arrayData.push_back(obj);
@@ -1214,7 +1214,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
-                        obj.push_back(Pair("txtype", "CONTRACT_INVOKE_TX"));
+                        obj.push_back(Pair("tx_type", "CONTRACT_INVOKE_TX"));
                         obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
 
                         arrayData.push_back(obj);
@@ -1235,7 +1235,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
-                        obj.push_back(Pair("txtype", "CONTRACT_INVOKE_TX"));
+                        obj.push_back(Pair("tx_type", "CONTRACT_INVOKE_TX"));
                         obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
 
                         arrayData.push_back(obj);

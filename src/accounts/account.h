@@ -183,8 +183,8 @@ public:
     uint64_t GetFreeFcoins() const { return fcoins; }
     uint64_t GetReceiveVotes() const { return receivedVotes; }
 
-    uint64_t GetTotalBcoins();
-    uint64_t GetVotedBCoins();
+    uint64_t GetTotalBcoins(const uint64_t curHeight);
+    uint64_t GetVotedBCoins(const uint64_t curHeight);
 
     // Get profits for voting.
     uint64_t GetAccountProfit(const uint64_t curHeight);

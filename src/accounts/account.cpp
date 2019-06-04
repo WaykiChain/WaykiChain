@@ -100,12 +100,12 @@ uint64_t CAccount::CalculateAccountProfit(const uint64_t curHeight) const {
     return profits;
 }
 
-uint64_t CAccount::GetVotedBCoins() {
+uint64_t CAccount::GetVotedBCoins(const uint64_t curHeight) {
     uint64_t votes = 0;
     if (!candidateVotes.empty()) {
-        if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R1) {
+        if (GetFeatureForkVersion(curHeight) == MAJOR_VER_R1) {
             votes = candidateVotes[0].GetVotedBcoins(); // one bcoin eleven votes
-        } else if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2) {
+        } else if (GetFeatureForkVersion(curHeight) == MAJOR_VER_R2) {
             for (const auto &vote : candidateVotes) {
                 votes += vote.GetVotedBcoins();  // one bcoin one vote
             }
@@ -114,8 +114,8 @@ uint64_t CAccount::GetVotedBCoins() {
     return votes;
 }
 
-uint64_t CAccount::GetTotalBcoins() {
-    uint64_t votedBcoins = GetVotedBCoins();
+uint64_t CAccount::GetTotalBcoins(const uint64_t curHeight) {
+    uint64_t votedBcoins = GetVotedBCoins(curHeight);
     return (votedBcoins + bcoins);
 }
 
@@ -261,7 +261,7 @@ bool CAccount::ProcessDelegateVote(vector<CCandidateVote> & candidateVotesIn, co
 
     lastVoteHeight = curHeight;
 
-    uint64_t lastTotalVotes = GetVotedBCoins();
+    uint64_t lastTotalVotes = GetVotedBCoins(curHeight);
 
     for (const auto &vote : candidateVotesIn) {
         const CUserID &voteId = vote.GetCandidateUid();
@@ -317,7 +317,7 @@ bool CAccount::ProcessDelegateVote(vector<CCandidateVote> & candidateVotesIn, co
         return vote1.GetVotedBcoins() > vote2.GetVotedBcoins();
     });
 
-    uint64_t newTotalVotes = GetVotedBCoins();
+    uint64_t newTotalVotes = GetVotedBCoins(curHeight);
     uint64_t totalBcoins = bcoins + lastTotalVotes;
     if (totalBcoins < newTotalVotes) {
         return  ERRORMSG("ProcessDelegateVote() : delegate votes exceeds account bcoins");

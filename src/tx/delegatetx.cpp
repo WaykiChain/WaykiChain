@@ -91,7 +91,7 @@ bool CDelegateVoteTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
                         REJECT_INVALID, "bad-account-unregistered");
     }
 
-    if ( GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2 ) {
+    if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2) {
         IMPLEMENT_CHECK_TX_SIGNATURE(sendAcct.pubKey);
     }
 

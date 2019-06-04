@@ -138,15 +138,15 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
+    spCW->txCache = *pCdMan->txCache;
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
-    spCW->txCache.SetBaseView(pCdMan->pTxCache);
 
-    CKeyID srcKeyid;
-    if (!FindKeyId(&spCW->accountCache, params[0].get_str(), srcKeyid)) {
+    CKeyID srcKeyId;
+    if (!FindKeyId(&spCW->accountCache, params[0].get_str(), srcKeyId)) {
         throw runtime_error("parse addr failed\n");
     }
 
-    CUserID srcUserId = srcKeyid;
+    CUserID srcUserId = srcKeyId;
     CAccount account;
 
     uint64_t balance = 0;
@@ -157,7 +157,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     if (!account.IsRegistered()) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
     }
-    if (!pWalletMain->HaveKey(srcKeyid)) {
+    if (!pWalletMain->HaveKey(srcKeyId)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Send address is not in wallet");
     }
     if (balance < totalFee) {
@@ -165,7 +165,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     }
 
     CRegID srcRegId;
-    spCW->accountCache.GetRegId(srcKeyid, srcRegId);
+    spCW->accountCache.GetRegId(srcKeyId, srcRegId);
 
     Object registerContractTxObj;
     EnsureWalletIsUnlocked();
@@ -179,7 +179,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         tx.nRunStep       = vscript.size();
         tx.nValidHeight   = newHeight;
 
-        if (!pWalletMain->Sign(srcKeyid, tx.ComputeSignatureHash(), tx.signature)) {
+        if (!pWalletMain->Sign(srcKeyId, tx.ComputeSignatureHash(), tx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
 
@@ -215,7 +215,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         contractInvokeTx.nValidHeight = newHeight;
 
         vector<unsigned char> signature;
-        if (!pWalletMain->Sign(srcKeyid, contractInvokeTx.ComputeSignatureHash(), contractInvokeTx.signature)) {
+        if (!pWalletMain->Sign(srcKeyId, contractInvokeTx.ComputeSignatureHash(), contractInvokeTx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
 
