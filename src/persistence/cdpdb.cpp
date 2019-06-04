@@ -5,6 +5,7 @@
 
 #include "cdpdb.h"
 #include "dbconf.h"
+#include "leveldbwrapper.h"
 
 bool CCdpCache::SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, uint64_t collateralRatio,
                                 int blockHeight, CDbOpLog &cdpDbOpLog) {
@@ -29,8 +30,7 @@ bool CCdpCache::SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, uint64_t c
     if (!SetData(key, cdp)) {
         return ERRORMSG("CCdpCache::SetStakeBcoins : SetData failed.");
     }
-    cdpDbOpLog.push_back(lastCdp);
-
+    cdpDbOpLog.Reset(key, lastCdp);
     return true;
 }
 
@@ -84,8 +84,24 @@ CCdpDb::CCdpDb(const string &name, size_t nCacheSize, bool fMemory, bool fWipe)
 CCdpDb::CCdpDb(size_t nCacheSize, bool fMemory, bool fWipe)
     : db(GetDataDir() / "blocks" / "cdp", nCacheSize, fMemory, fWipe) {}
 
- virtual bool GetData(const string &key, CUserCdp &value);
-    virtual bool SetData(const string &key, const CUserCdp &value);
-    virtual bool BatchWrite(const map<string, CUserCdp > &mapContractDb);
-    virtual bool EraseKey(const string &key);
-    virtual bool HaveData(const string &key);
+bool CCdpDb::GetData(const string &key, CUserCdp &value) {
+    //TODO
+    return true;
+}
+
+bool CCdpDb::SetData(const string &key, const CUserCdp &value) {
+    //TODO
+    return true;
+}
+bool CCdpDb::BatchWrite(const map<string, CUserCdp > &mapContractDb) {
+    //TODO
+    return true;
+}
+bool CCdpDb::EraseKey(const string &key) {
+    //TODO
+    return true;
+}
+bool CCdpDb::HaveData(const string &key) {
+    //TODO
+    return true;
+}
