@@ -167,15 +167,16 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, save account error, kyeId=%s",
                          desAcct.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
-    cw.txUndo.vAccountLog.push_back(srcAcctLog);
-    cw.txUndo.vAccountLog.push_back(desAcctLog);
+    cw.txUndo.accountLogs.push_back(srcAcctLog);
+    cw.txUndo.accountLogs.push_back(desAcctLog);
     cw.txUndo.txHash = GetHash();
 
     if (SysCfg().GetAddressToTxFlag()) {
-        CContractDBOperLog operAddressToTxLog;
+        CDbOpLog operAddressToTxLog;
         CKeyID sendKeyId;
         CKeyID revKeyId;
 
+		CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[ADDR_TXHASH];
         for (const auto &item : signaturePairs) {
             if (!cw.accountCache.GetKeyId(CUserID(item.regId), sendKeyId))
                 return ERRORMSG("CBaseCoinTransferTx::CMulsigTx, get keyid by srcUserId error!");
@@ -183,7 +184,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
             if (!cw.contractCache.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1,
                                         cw.txUndo.txHash.GetHex(), operAddressToTxLog))
                 return false;
-            cw.txUndo.vContractOperLog.push_back(operAddressToTxLog);
+            opLogs.push_back(operAddressToTxLog);
         }
 
         if (!cw.accountCache.GetKeyId(desUserId, revKeyId))
@@ -193,15 +194,15 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
                                     cw.txUndo.txHash.GetHex(), operAddressToTxLog))
             return false;
 
-        cw.txUndo.vContractOperLog.push_back(operAddressToTxLog);
+        opLogs.push_back(operAddressToTxLog);
     }
 
     return true;
 }
 
 bool CMulsigTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.vAccountLog.rbegin();
-    for (; rIterAccountLog != cw.txUndo.vAccountLog.rend(); ++rIterAccountLog) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+    for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
 
@@ -239,7 +240,6 @@ bool CMulsigTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
         }
     }
 
-    IMPLEMENT_UNPERSIST_TX_STATE;
     return true;
 }
 

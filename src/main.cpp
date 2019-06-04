@@ -1024,7 +1024,8 @@ void static InvalidChainFound(CBlockIndex *pIndexNew) {
         // The current code doesn't actually read the BestInvalidWork entry in
         // the block database anymore, as it is derived from the flags in block
         // index entry. We only write it for backward compatibility.
-        pCdMan->pBlockTreeDb->WriteBestInvalidWork(ArithToUint256(pindexBestInvalid->nChainWork));
+        // TODO: need to remove the indexBestInvalid
+        //pCdMan->pBlockTreeDb->WriteBestInvalidWork(ArithToUint256(pindexBestInvalid->nChainWork));
     }
     LogPrint("INFO", "InvalidChainFound: invalid block=%s  height=%d  log2_work=%.8g  date=%s\n",
              pIndexNew->GetBlockHash().ToString(), pIndexNew->nHeight,
@@ -1276,7 +1277,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 assert(cw.accountCache.GetAccount(pDelegateTx->txUid, voterAcct));
                 CUserID voterCId(pDelegateTx->txUid);
                 uint64_t maxVotes = 0;
-                CContractDBOperLog operDbLog;
+                CDbOpLog operDbLog;
                 int j = i;
                 for (const auto &vote : pDelegateTx->candidateVotes) {
                     assert(vote.GetCandidateVoteType() == ADD_BCOIN);  // it has to be ADD in GensisBlock
@@ -1433,13 +1434,14 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         return true;
 
     if (SysCfg().IsTxIndex()) {
-        LogPrint("DEBUG", "Add transaction indexes, block hash:%s\n", pIndex->GetBlockHash().GetHex());
-        vector<CContractDBOperLog> vTxIndexOperDB;
+        LogPrint("DEBUG", "add tx index, block hash:%s\n", pIndex->GetBlockHash().GetHex());
+        vector<CDbOpLog> vTxIndexOperDB;
         if (!cw.contractCache.WriteTxIndex(vPos, vTxIndexOperDB))
             return state.Abort(_("Failed to write transaction index"));
+        // TODO: must undo these oplogs in DisconnectBlock()
         auto itTxUndo = blockundo.vtxundo.rbegin();
-        itTxUndo->vContractOperLog.insert(itTxUndo->vContractOperLog.begin(), vTxIndexOperDB.begin(),
-                                        vTxIndexOperDB.end());
+        CDbOpLogs &opLogs = itTxUndo->mapDbOpLogs[TX_FILE_POS];
+        opLogs.insert(opLogs.begin(), vTxIndexOperDB.begin(), vTxIndexOperDB.end());
     }
 
     // Write undo information to disk
@@ -4329,7 +4331,7 @@ bool DisconnectBlockFromTip(CValidationState &state) {
     return DisconnectTip(state);
 }
 
-bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &vAccountLog) {
+bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &accountLogs) {
     if (SysCfg().IsTxIndex()) {
         CDiskTxPos postx;
         if (pCdMan->pContractCache->ReadTxIndex(txHash, postx)) {
@@ -4352,7 +4354,7 @@ bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &vAccountLog) {
 
                 for (auto &txUndo : blockUndo.vtxundo) {
                     if (txUndo.txHash == txHash) {
-                        vAccountLog = txUndo.vAccountLog;
+                        accountLogs = txUndo.accountLogs;
                         return true;
                     }
                 }

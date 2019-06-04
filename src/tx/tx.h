@@ -59,10 +59,11 @@ enum TxType : unsigned char {
 
     BLOCK_PRICE_MEDIAN_TX = 8, // Block Median Price Tx
     /******** Begin of Stable Coin TX Type Enums ********/
-    CDP_OPEN_TX      = 11,  //!< CDP Collateralize Tx
-    CDP_REFUEL_TX    = 12,  //!< CDP Refuel Tx
-    CDP_REDEMP_TX    = 13,  //!< CDP Redemption Tx (partial or full)
-    CDP_LIQUIDATE_TX = 14,  //!< CDP Liquidation Tx (partial or full)
+    CDP_OPEN_TX         = 11,   //!< CDP Open Tx
+    CDP_REFUEL_TX       = 12,   //!< CDP refuel Tx
+    CDP_REDEEMP_TX       = 13,   //!< CDP Redemption Tx (partial or full)
+    CDP_LIQUIDATE_TX    = 14,   //!< CDP Liquidation Tx (partial or full)
+    CDP_STAKE_TX        = 15,   //!< CDP Staking/Restaking Tx
 
     PRICE_FEED_TX = 22,  //!< Price Feed Tx: WICC/USD | MICC/WUSD | WUSD/USD
 
@@ -95,7 +96,7 @@ static const unordered_map<unsigned char, string> kTxTypeMap = {
     { COMMON_MTX,           "COMMON_MTX"},
     { CDP_OPEN_TX,          "CDP_OPEN_TX" },
     { CDP_REFUEL_TX,        "CDP_REFUEL_TX" },
-    { CDP_REDEMP_TX,        "CDP_REDEMP_TX" },
+    { CDP_REDEEMP_TX,        "CDP_REDEEMP_TX" },
     { CDP_LIQUIDATE_TX,     "CDP_LIQUIDATE_TX" },
     { PRICE_FEED_TX,        "PRICE_FEED_TX" },
     { SFC_PARAM_MTX,        "SFC_PARAM_MTX" },
@@ -277,47 +278,33 @@ public:
 
 #define IMPLEMENT_PERSIST_TX_KEYID(sendTxUid, recvTxUid)                                   \
     if (SysCfg().GetAddressToTxFlag()) {                                                   \
-        CContractDBOperLog operAddressToTxLog;                                             \
+        CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[ADDR_TXHASH];                              \
+        CDbOpLog operAddressToTxLog;                                                       \
         if (sendTxUid.type() != typeid(CNullID)) {                                         \
             CKeyID sendKeyId;                                                              \
-            if (!cw.accountCache.GetKeyId(sendTxUid, sendKeyId))                         \
+            if (!cw.accountCache.GetKeyId(sendTxUid, sendKeyId))                           \
                 return ERRORMSG("%s::ExecuteTx, get keyid by txUid error!", __FUNCTION__); \
                                                                                            \
-            if (!cw.contractCache.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1,     \
-                                                       cw.txUndo.txHash.GetHex(),        \
-                                                       operAddressToTxLog))                \
+            if (!cw.contractCache.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1,       \
+                                                     cw.txUndo.txHash.GetHex(),            \
+                                                     operAddressToTxLog))                  \
                 return false;                                                              \
                                                                                            \
-            cw.txUndo.vContractOperLog.push_back(operAddressToTxLog);                    \
+            opLogs.push_back(operAddressToTxLog);                        \
         }                                                                                  \
                                                                                            \
         if (recvTxUid.type() != typeid(CNullID)) {                                         \
             CKeyID recvKeyId;                                                              \
-            if (!cw.accountCache.GetKeyId(recvTxUid, recvKeyId))                         \
+            if (!cw.accountCache.GetKeyId(recvTxUid, recvKeyId))                           \
                 return ERRORMSG("%s::ExecuteTx, get keyid by toUid error!", __FUNCTION__); \
                                                                                            \
-            if (!cw.contractCache.SetTxHashByAddress(recvKeyId, nHeight, nIndex + 1,     \
-                                                       cw.txUndo.txHash.GetHex(),        \
-                                                       operAddressToTxLog))                \
+            if (!cw.contractCache.SetTxHashByAddress(recvKeyId, nHeight, nIndex + 1,       \
+                                                     cw.txUndo.txHash.GetHex(),            \
+                                                     operAddressToTxLog))                  \
                 return false;                                                              \
                                                                                            \
-            cw.txUndo.vContractOperLog.push_back(operAddressToTxLog);                    \
+            opLogs.push_back(operAddressToTxLog);                        \
         }                                                                                  \
     }
-
-#define IMPLEMENT_UNPERSIST_TX_STATE                                                              \
-    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog =                               \
-        cw.txUndo.vContractOperLog.rbegin();                                                    \
-    for (; rIterScriptDBLog != cw.txUndo.vContractOperLog.rend(); ++rIterScriptDBLog) {         \
-        if (!cw.contractCache.UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue)) \
-            return state.DoS(                                                                     \
-                100, ERRORMSG("%s::UndoExecuteTx, undo scriptdb data error", __FUNCTION__),       \
-                UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");                                     \
-    }                                                                                             \
-                                                                                                  \
-    if (!cw.contractCache.EraseTxRelAccout(GetHash()))                                          \
-        return state.DoS(100,                                                                     \
-                         ERRORMSG("%s::UndoExecuteTx, erase tx rel account error", __FUNCTION__), \
-                         UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
 
 #endif //COIN_BASETX_H

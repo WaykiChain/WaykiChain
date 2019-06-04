@@ -169,19 +169,21 @@ string CTxUndo::ToString() const {
     str += strTxHash + "\n";
 
     string strAccountLog("list account log:");
-    vector<CAccountLog>::const_iterator iterLog = vAccountLog.begin();
-    for (; iterLog != vAccountLog.end(); ++iterLog) {
+    for (auto iterLog : accountLogs) {
         strAccountLog += iterLog->ToString();
         strAccountLog += ";";
     }
 
     str += strAccountLog + "\n";
 
-    string strDBOperLog("list contract log:");
-    vector<CContractDBOperLog>::const_iterator iterDbLog = vContractOperLog.begin();
-    for (; iterDbLog != vContractOperLog.end(); ++iterDbLog) {
-        strDBOperLog += iterDbLog->ToString();
-        strDBOperLog += ";";
+    string strDBOperLog("list LDB Oplog:");
+    for (auto itemOpLogs : mapDbOpLogs) {
+        strDBOperLog += strprintf("type:%d {", itemOpLogs.first)
+        for (auto iterDbLog : itemOpLogs.second) {
+            strDBOperLog += iterDbLog->ToString();
+            strDBOperLog += ";";
+        }
+        strDBOperLog += "}";
     }
 
     str += strDBOperLog;
@@ -190,8 +192,7 @@ string CTxUndo::ToString() const {
 }
 
 bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {
-    vector<CAccountLog>::iterator iterLog = vAccountLog.begin();
-    for (; iterLog != vAccountLog.end(); ++iterLog) {
+    for (auto iterLog : accountLogs) {
         if (iterLog->keyID == keyId) {
             accountLog = *iterLog;
             return true;

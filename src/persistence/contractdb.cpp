@@ -316,6 +316,12 @@ bool CContractCache::UndoScriptData(const vector<unsigned char> &vKey, const vec
     return true;
 }
 
+bool CContractCache::UndoScriptData(const string& key, const string& value)
+{
+    //TODO: ...
+    return UndoScriptData(vector<unsigned char>(key.begin(), key.end()), vector<unsigned char>(value.begin(), value.end()));
+}
+
 bool CContractCache::BatchWrite(const map<vector<unsigned char>, vector<unsigned char> > &mapData) {
     for (auto &items : mapData) {
         mapContractDb[items.first] = items.second;
@@ -491,7 +497,7 @@ unsigned int CContractCache::GetCacheSize() {
     return ::GetSerializeSize(mapContractDb, SER_DISK, CLIENT_VERSION);
 }
 
-bool CContractCache::WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CContractDBOperLog &operLog) {
+bool CContractCache::WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CDbOpLog &operLog) {
     vector<unsigned char> vKey = {'o', 'u', 't', 'p', 'u', 't'};
     CDataStream ds1(SER_DISK, CLIENT_VERSION);
     ds1 << txid;
@@ -505,12 +511,12 @@ bool CContractCache::WriteTxOutPut(const uint256 &txid, const vector<CVmOperate>
     vector<unsigned char> oldValue;
     oldValue.clear();
     GetData(vKey, oldValue);
-    operLog = CContractDBOperLog(vKey, oldValue);
+    operLog = CDbOpLog(string(vKey.begin(), vKey.end()), string(oldValue.begin(), oldValue.end())); // TODO: ...
     return SetData(vKey, vValue);
 }
 
 bool CContractCache::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex,
-                                            const string &strTxHash, CContractDBOperLog &operLog) {
+                                            const string &strTxHash, CDbOpLog &operLog) {
     vector<unsigned char> vKey = {'A', 'D', 'D', 'R'};
 
     CDataStream ds1(SER_DISK, CLIENT_VERSION);
@@ -522,7 +528,7 @@ bool CContractCache::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nI
     vector<unsigned char> oldValue;
     oldValue.clear();
     GetData(vKey, oldValue);
-    operLog = CContractDBOperLog(vKey, oldValue);
+    operLog = CDbOpLog(string(vKey.begin(), vKey.end()), string(oldValue.begin(), oldValue.end())); //TODO: use string
     return SetData(vKey, vValue);
 }
 
@@ -592,7 +598,7 @@ bool CContractCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
     }
     return true;
 }
-bool CContractCache::WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CContractDBOperLog> &vTxIndexOperDB) {
+bool CContractCache::WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB) {
     for (vector<pair<uint256, CDiskTxPos> >::const_iterator it = list.begin(); it != list.end(); it++) {
         LogPrint("txindex", "txhash:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n", it->first.GetHex(), it->second.nFile, it->second.nPos, it->second.nTxOffset);
         CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -603,9 +609,11 @@ bool CContractCache::WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list
         CDataStream dsPos(SER_DISK, CLIENT_VERSION);
         dsPos << it->second;
         vTxPos.insert(vTxPos.end(), dsPos.begin(), dsPos.end());
-        CContractDBOperLog txIndexOper;
-        txIndexOper.vKey = vTxHash;
-        GetData(vTxHash, txIndexOper.vValue);
+        CDbOpLog txIndexOper;
+        txIndexOper.key = string(vTxHash.begin(), vTxHash.end()); // TODO: change to string
+        vector<unsigned char> vValue;
+        GetData(vTxHash, vValue); // TODO: change to string
+        txIndexOper.value = string(vValue.begin(), vValue.end());
         vTxIndexOperDB.push_back(txIndexOper);
         if (!SetData(vTxHash, vTxPos))
             return false;
@@ -791,13 +799,16 @@ bool CContractCache::GetContractData(const int nCurBlockHeight, const vector<uns
 
     return true;
 }
-bool CContractCache::SetContractData(const vector<unsigned char> &vScriptId, const vector<unsigned char> &vScriptKey,
-                                         const vector<unsigned char> &vScriptData, CContractDBOperLog &operLog) {
+bool CContractCache::SetContractData(const vector<unsigned char> &vScriptId,
+                                    const vector<unsigned char> &vScriptKey,
+                                    const vector<unsigned char> &vScriptData,
+                                    CDbOpLog &operLog) {
     vector<unsigned char> vKey = {'d', 'a', 't', 'a'};
     vKey.insert(vKey.end(), vScriptId.begin(), vScriptId.end());
     vKey.push_back('_');
     vKey.insert(vKey.end(), vScriptKey.begin(), vScriptKey.end());
     vector<unsigned char> vNewValue(vScriptData.begin(), vScriptData.end());
+
     if (!HaveData(vKey)) {
         int nCount(0);
         GetContractItemCount(vScriptId, nCount);
@@ -809,7 +820,7 @@ bool CContractCache::SetContractData(const vector<unsigned char> &vScriptId, con
     vector<unsigned char> oldValue;
     oldValue.clear();
     GetData(vKey, oldValue);
-    operLog  = CContractDBOperLog(vKey, oldValue);
+    operLog = CDbOpLog(string(vKey.begin(), vKey.end()), string(oldValue.begin(), oldValue.end())); //TODO: use string
     bool ret = SetData(vKey, vNewValue);
     return ret;
 }
@@ -896,7 +907,7 @@ bool CContractCache::SetContractItemCount(const vector<unsigned char> &vScriptId
 }
 
 bool CContractCache::EraseAppData(const vector<unsigned char> &vScriptId,
-                                      const vector<unsigned char> &vScriptKey, CContractDBOperLog &operLog) {
+                                      const vector<unsigned char> &vScriptKey, CDbOpLog &operLog) {
     vector<unsigned char> vKey = {'d', 'a', 't', 'a'};
     vKey.insert(vKey.end(), vScriptId.begin(), vScriptId.end());
     vKey.push_back('_');
@@ -914,7 +925,7 @@ bool CContractCache::EraseAppData(const vector<unsigned char> &vScriptId,
         if (!GetData(vKey, vValue))
             return false;
 
-        operLog = CContractDBOperLog(vKey, vValue);
+        operLog = CDbOpLog(string(vKey.begin(), vKey.end()), string(vValue.begin(), vValue.end())); //TODO: use string
 
         if (!EraseKey(vKey))
             return false;
@@ -929,7 +940,7 @@ bool CContractCache::EraseAppData(const vector<unsigned char> &vKey) {
     }
     vector<unsigned char> vScriptId(vKey.begin() + 4, vKey.begin() + 10);
     vector<unsigned char> vScriptKey(vKey.begin() + 11, vKey.end());
-    CContractDBOperLog operLog;
+    CDbOpLog operLog;
     return EraseAppData(vScriptId, vScriptKey, operLog);
 }
 
@@ -970,7 +981,7 @@ bool CContractCache::GetContractItemCount(const CRegID &scriptId, int &nCount) {
     return GetContractItemCount(scriptId.GetRegIdRaw(), nCount);
 }
 
-bool CContractCache::EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CContractDBOperLog &operLog) {
+bool CContractCache::EraseAppData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey, CDbOpLog &operLog) {
     return EraseAppData(scriptId.GetRegIdRaw(), vScriptKey, operLog);
 }
 
@@ -989,7 +1000,7 @@ bool CContractCache::GetContractData(const int nCurBlockHeight, const CRegID &sc
 }
 
 bool CContractCache::SetContractData(const CRegID &scriptId, const vector<unsigned char> &vScriptKey,
-                                         const vector<unsigned char> &vScriptData, CContractDBOperLog &operLog) {
+                                         const vector<unsigned char> &vScriptData, CDbOpLog &operLog) {
     return SetContractData(scriptId.GetRegIdRaw(), vScriptKey, vScriptData, operLog);
 }
 
@@ -1061,7 +1072,7 @@ string CContractCache::ToString() {
     return str;
 }
 
-bool CContractCache::SetDelegateData(const CAccount &delegateAcct, CContractDBOperLog &operLog) {
+bool CContractCache::SetDelegateData(const CAccount &delegateAcct, CDbOpLog &operLog) {
     CRegID regId(0, 0);
     vector<unsigned char> vVoteKey = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
     uint64_t nMaxNumber            = 0xFFFFFFFFFFFFFFFF;
@@ -1089,7 +1100,7 @@ bool CContractCache::SetDelegateData(const vector<unsigned char> &vKey) {
     return true;
 }
 
-bool CContractCache::EraseDelegateData(const CAccountLog &delegateAcct, CContractDBOperLog &operLog) {
+bool CContractCache::EraseDelegateData(const CAccountLog &delegateAcct, CDbOpLog &operLog) {
     CRegID regId(0, 0);
     vector<unsigned char> vVoteOldKey = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
     uint64_t nMaxNumber               = 0xFFFFFFFFFFFFFFFF;
@@ -1128,7 +1139,7 @@ bool CContractCache::GetScriptAcc(const CRegID &scriptId, const vector<unsigned 
 }
 
 bool CContractCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccOut,
-                                      CContractDBOperLog &operlog) {
+                                      CDbOpLog &operlog) {
     vector<unsigned char> scriptKey = {'a', 'c', 'c', 't'};
     vector<unsigned char> vRegId    = scriptId.GetRegIdRaw();
     vector<unsigned char> vAccKey   = appAccOut.GetAccUserId();
@@ -1136,9 +1147,9 @@ bool CContractCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAccount 
     scriptKey.push_back('_');
     scriptKey.insert(scriptKey.end(), vAccKey.begin(), vAccKey.end());
     vector<unsigned char> vValue;
-    operlog.vKey = scriptKey;
+    operlog.key = string(scriptKey.begin(), scriptKey.end());// TODO: use string
     if (GetData(scriptKey, vValue)) {
-        operlog.vValue = vValue;
+        operlog.value = string(vValue.begin(), vValue.end()); // TODO: use string
     }
     CDataStream ds(SER_DISK, CLIENT_VERSION);
 

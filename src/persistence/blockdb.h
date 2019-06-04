@@ -26,7 +26,8 @@ public:
 
     bool WriteBlockIndex(const CDiskBlockIndex &blockindex);
     bool EraseBlockIndex(const uint256 &blockHash);
-    bool WriteBestInvalidWork(const uint256 &bnBestInvalidWork);
+    // TODO: need to delete WriteBestInvalidWork
+//    bool WriteBestInvalidWork(const uint256 &bnBestInvalidWork);
     bool ReadBlockFileInfo(int nFile, CBlockFileInfo &fileinfo);
     bool WriteBlockFileInfo(int nFile, const CBlockFileInfo &fileinfo);
     bool ReadLastBlockFile(int &nFile);

@@ -13,6 +13,7 @@
 #include "commons/arith_uint256.h"
 #include "leveldbwrapper.h"
 #include "accounts/account.h"
+#include "dbconf.h"
 
 class uint256;
 class CKeyID;
@@ -38,7 +39,7 @@ public:
     // virtual bool SaveAccount(const vector<unsigned char> &accountId, const CKeyID &keyId,
     // const CAccount &account) = 0;
     virtual std::tuple<uint64_t, uint64_t> TraverseAccount() = 0;
-    virtual Object ToJsonObj(char prefix)                    = 0;
+    virtual Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY) = 0;
 
     virtual ~IAccountView() {};
 };
@@ -75,10 +76,9 @@ public:
     // virtual bool SaveAccount(const vector<unsigned char> &accountId, const CKeyID &keyId, const CAccount &account);
     virtual bool SaveAccount(const CAccount &account);
     virtual std::tuple<uint64_t, uint64_t> TraverseAccount();
-    virtual Object ToJsonObj(char prefix) { return Object(); }
 
 public:
-    CAccountCache(): pBase(), blockHash(uint256()) {}
+    CAccountCache(): pBase(nullptr), blockHash(uint256()) {}
 
     CAccountCache(IAccountView &view): pBase(&view), blockHash(uint256()) {}
 
@@ -103,7 +103,7 @@ public:
     bool Flush();
     bool Flush(IAccountView *pView);
     unsigned int GetCacheSize();
-    Object ToJsonObj() const;
+    virtual Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY);
     void SetBaseView(IAccountView *pBaseIn) { pBase = pBaseIn; };
 };
 
@@ -144,7 +144,7 @@ public:
     bool SaveAccount(const CAccount &account);
     std::tuple<uint64_t, uint64_t> TraverseAccount();
     int64_t GetDbCount() { return db.GetDbCount(); }
-    Object ToJsonObj(char Prefix);
+    Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY);
 };
 
 #endif  // PERSIST_ACCOUNTDB_H

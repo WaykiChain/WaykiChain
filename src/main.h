@@ -234,7 +234,7 @@ bool IsStandardTx(CBaseTx *pBaseTx, string &reason);
 bool IsFinalTx(CBaseTx *pBaseTx, int nBlockHeight = 0, int64_t nBlockTime = 0);
 
 //get tx operate account log
-bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &vAccountLog);
+bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &accountLogs);
 
 
 /** An in-memory indexed chain of blocks. */
@@ -313,6 +313,8 @@ public:
 
     CBlockTreeDB        *pBlockTreeDb;
 
+    uint64_t            collateralRatio;
+
 public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache,
                     size_t nScriptCacheSize, size_t nBlockTreeDBCache) {
@@ -327,6 +329,8 @@ public:
         pDelegateCache  = new CDelegateCache(*pStakeCache);
         pTxCache        = new CTransactionCache();
         pPpCache        = new CPricePointCache();
+
+        collateralRatio = 200; //minimum 200% collateral ratio
     }
 
     ~CCacheDBManager() {

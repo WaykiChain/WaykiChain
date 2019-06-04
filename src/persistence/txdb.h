@@ -10,7 +10,8 @@
 #include "contractdb.h"
 #include "json/json_spirit_value.h"
 #include "stakedb.h"
-#include "vm/appaccount.h"
+#include "contractdb.h"
+// #include "cdpdb.h"
 
 #include <map>
 #include <vector>
@@ -45,7 +46,7 @@ public:
     void SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache);
 };
 
-// Price Points in two consecutive blocks
+// Price Points in 11 consecutive blocks
 class CConsecutiveBlockPrice {
 private:
     map<int, map<string, uint64_t>>mapBlockUserPrices;    // height -> { strUid -> price }
@@ -90,20 +91,25 @@ public:
 class CTxUndo {
 public:
     uint256 txHash;
-    vector<CAccountLog> vAccountLog;
-    vector<CContractDBOperLog> vContractOperLog;
+    vector<CAccountLog> accountLogs;
+    map<DbOpLogType, CDbOpLogs> mapDbOpLogs;
+
     IMPLEMENT_SERIALIZE(
         READWRITE(txHash);
-        READWRITE(vAccountLog);
-        READWRITE(vContractOperLog);)
+        READWRITE(accountLogs);
+		/*TODO:
+        //READWRITE(mapDbOpLogs);*/
+	)
 
 public:
-    bool GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog);
+    bool GetAccountOpLog(const CKeyID &keyId, CAccountLog &accountLog);
+
     void Clear() {
         txHash = uint256();
-        vAccountLog.clear();
-        vContractOperLog.clear();
+        accountLogs.clear();
+        mapDbOpLogs.clear();
     }
+
     string ToString() const;
 };
 

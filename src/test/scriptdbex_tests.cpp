@@ -118,7 +118,7 @@ void CContractDBTest::GetContractData(CContractCache* pViewCache) {
 	int nCurHeight = TEST_SIZE / 2;
 	vector<unsigned char> vScriptData;
 	vector<unsigned char> vScriptKey;
-	set<CContractDBOperLog> setOperLog;
+	set<CDbOpLog> setOperLog;
 	auto it = mapScript.begin();
 	BOOST_CHECK(it != mapScript.end());
 

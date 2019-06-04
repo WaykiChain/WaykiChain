@@ -23,7 +23,7 @@ CVmRunEnv::CVmRunEnv() {
     runTimeHeight      = 0;
     pContractCache = NULL;
     pAccountCache  = NULL;
-    pScriptDBOperLog   = std::make_shared<std::vector<CContractDBOperLog>>();
+    pScriptDBOperLog   = std::make_shared<std::vector<CDbOpLog>>();
     isCheckAccount     = false;
 }
 
@@ -147,7 +147,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
     }
 
     if (SysCfg().IsContractLogOn() && vmOperateOutput.size() > 0) {
-        CContractDBOperLog operlog;
+        CDbOpLog operlog;
         uint256 txhash = GetCurTxHash();
         if (!pContractCache->WriteTxOutPut(txhash, vmOperateOutput, operlog))
             return std::make_tuple(false, 0, string("write tx out put Failed"));
@@ -420,7 +420,7 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountCa
                  vmAccount.get()->ToString().c_str());
 
         bool ret = false;
-        //      vector<CContractDBOperLog> vAuthorLog;
+        //      vector<CDbOpLog> vAuthorLog;
         // todolist
         //      if(IsSignatureAccount(vmAccount.get()->regID) || vmAccount.get()->regID ==
         //      tx->appRegId.get<CRegID>())
@@ -491,7 +491,7 @@ bool CVmRunEnv::InsertOutputData(const vector<CVmOperate>& source) {
     return false;
 }
 
-shared_ptr<vector<CContractDBOperLog>> CVmRunEnv::GetDbLog() { return pScriptDBOperLog; }
+shared_ptr<vector<CDbOpLog>> CVmRunEnv::GetDbLog() { return pScriptDBOperLog; }
 
 /**
  * 从脚本数据库中，取指定账户的 应用账户信息,同时解冻冻结金额到自由金额
@@ -553,9 +553,9 @@ bool CVmRunEnv::OperateAppAccount(const map<vector<unsigned char>, vector<CAppFu
             }
             newAppUserAccount.push_back(sptrAcc);
             LogPrint("vm", "after user: %s\n", sptrAcc.get()->ToString());
-            CContractDBOperLog log;
+            CDbOpLog log;
             view.SetScriptAcc(GetScriptRegID(), *sptrAcc.get(), log);
-            shared_ptr<vector<CContractDBOperLog>> pScriptDBOperLog = GetDbLog();
+            shared_ptr<vector<CDbOpLog>> pScriptDBOperLog = GetDbLog();
             pScriptDBOperLog.get()->push_back(log);
         }
     }
