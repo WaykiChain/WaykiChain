@@ -15,7 +15,7 @@
 #include <algorithm>
 
 bool CTransactionCache::IsContainBlock(const CBlock &block) {
-    return mapBlockTxHashSet.count(block.GetHash());
+    return mapBlockTxHashSet.count(block.GetHash()) || pBase->IsContainBlock(block);
 }
 
 bool CTransactionCache::AddBlockToCache(const CBlock &block) {
@@ -31,10 +31,14 @@ bool CTransactionCache::AddBlockToCache(const CBlock &block) {
 
 bool CTransactionCache::DeleteBlockFromCache(const CBlock &block) {
     if (IsContainBlock(block)) {
-        mapBlockTxHashSet.erase(block.GetHash());
+        UnorderedHashSet txHash;
+		mapTxHashByBlockHash[block.GetHash()] = txHash;
+
+        return true;
     }
 
-    return true;
+    LogPrint("ERROR", "failed to delete transactions in block: %s", block.GetHash().GetHex());
+    return false;
 }
 
 bool CTransactionCache::HaveTx(const uint256 &txHash) {
@@ -44,11 +48,18 @@ bool CTransactionCache::HaveTx(const uint256 &txHash) {
         }
     }
 
-    return false;
+    return pBase->HaveTx(txHash);
 }
 
-void CTransactionCache::AddTxHashCache(const uint256 &blockHash, const UnorderedHashSet &vTxHash) {
-    mapBlockTxHashSet[blockHash] = vTxHash;
+void CTransactionCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn) {
+    for (auto &item : mapBlockTxHashSetIn) {
+        mapBlockTxHashSet[item.first] = item.second;
+    }
+}
+
+void CTransactionCache::Flush() {
+    pBase->BatchWrite(mapBlockTxHashSet);
+    mapBlockTxHashSet.clear();
 }
 
 void CTransactionCache::Flush(CTransactionCache *txCache) {

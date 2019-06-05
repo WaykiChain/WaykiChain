@@ -27,6 +27,11 @@ class CUserID;
 class CTransactionCache {
 private:
     map<uint256, UnorderedHashSet> mapBlockTxHashSet;  // map: BlockHash ->TxHashSet
+    CTransactionCache *pBase;
+
+public:
+    // TODO:
+    CTransactionCache(CTransactionCache *pBaseIn) : pBase(pBaseIn) {}
 
 public:
     bool HaveTx(const uint256 &txHash);
@@ -34,10 +39,11 @@ public:
 
     bool AddBlockToCache(const CBlock &block);
     bool DeleteBlockFromCache(const CBlock &block);
-    void AddTxHashCache(const uint256 &blockHash, const UnorderedHashSet &vTxHash);
 
-    void Flush(CTransactionCache *txCache);
     void Clear();
+    void BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn);
+    void Flush(CTransactionCache *txCache);
+    void Flush();
 
     Object ToJsonObj() const;
     int GetSize();
