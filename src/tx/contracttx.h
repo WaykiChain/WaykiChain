@@ -10,7 +10,7 @@
 
 class CContractDeployTx : public CBaseTx {
 public:
-    vector_unsigned_char contractScript;  // contract script content
+    string contractScript;  // contract script content
 
 public:
     CContractDeployTx(const CBaseTx *pBaseTx): CBaseTx(CONTRACT_DEPLOY_TX) {

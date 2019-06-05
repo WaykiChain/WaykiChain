@@ -115,14 +115,14 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         free(buffer);
     }
 
-    vector<unsigned char> vscript;
+    string contractScript;
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     ds << vmScript;
-    vscript.assign(ds.begin(), ds.end());
+    contractScript.assign(ds.begin(), ds.end());
 
     uint64_t nDefaultFee = SysCfg().GetTxFee();
     int nFuelRate = GetElementForBurn(chainActive.Tip());
-    uint64_t regFee = std::max((int)ceil(vscript.size() / 100) * nFuelRate, CONTRACT_DEPLOY_TX_FEE_MIN);
+    uint64_t regFee = std::max((int)ceil(contractScript.size() / 100) * nFuelRate, CONTRACT_DEPLOY_TX_FEE_MIN);
     uint64_t minFee = regFee + nDefaultFee;
 
     uint64_t totalFee = minFee + 10000000; // set default totalFee
@@ -138,7 +138,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
-    spCW->txCache = *pCdMan->txCache;
+    spCW->txCache = *pCdMan->pTxCache;
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
 
     CKeyID srcKeyId;
@@ -174,9 +174,9 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     {
         CContractDeployTx tx;
         tx.txUid          = srcRegId;
-        tx.contractScript = vscript;
+        tx.contractScript = contractScript;
         tx.llFees         = regFee;
-        tx.nRunStep       = vscript.size();
+        tx.nRunStep       = contractScript.size();
         tx.nValidHeight   = newHeight;
 
         if (!pWalletMain->Sign(srcKeyId, tx.ComputeSignatureHash(), tx.signature)) {
@@ -188,7 +188,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx register contract failed");
         }
 
-        registerContractTxObj.push_back(Pair("script_size", vscript.size()));
+        registerContractTxObj.push_back(Pair("script_size", contractScript.size()));
         registerContractTxObj.push_back(Pair("used_fuel", tx.GetFuel(nFuelRate)));
     }
 
