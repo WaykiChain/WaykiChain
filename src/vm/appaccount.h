@@ -145,52 +145,47 @@ public:
 
 class CAppUserAccount {
 public:
-	CAppUserAccount();
-	CAppUserAccount(const vector<unsigned char> &userId);
-	bool Operate(const vector<CAppFundOperate> &Op);
-	bool GetAppCFund(CAppCFund &outFound,const vector<unsigned char> &vtag,int nheight);
+    CAppUserAccount();
+    CAppUserAccount(const vector<unsigned char> &userId);
+    bool Operate(const vector<CAppFundOperate> &Op);
+    bool GetAppCFund(CAppCFund &outFound, const vector<unsigned char> &vTag, int nHeight);
 
-	bool AutoMergeFreezeToFree(int hight);
+    bool AutoMergeFreezeToFree(int hight);
 
-	virtual ~CAppUserAccount();
+    virtual ~CAppUserAccount();
 
-	json_spirit::Object ToJson()const;
+    json_spirit::Object ToJson() const;
 
-	string ToString()const;
+    string ToString() const;
 
-	uint64_t Getbcoins() const { return bcoins; }
-	void Setbcoins(uint64_t bcoins) { this->bcoins = bcoins; }
+    uint64_t GetBcoins() const { return bcoins; }
+    void SetBcoins(uint64_t bcoins) { this->bcoins = bcoins; }
 
-	const vector<unsigned char>& GetAccUserId() const { return mAccUserID; }
+    const vector<unsigned char> &GetAccUserId() const { return mAccUserID; }
 
-	// void SetAccUserId(const vector<unsigned char>& accUserId) {
-	// 	mAccUserID = accUserId;
-	// }
+    // void SetAccUserId(const vector<unsigned char>& accUserId) {
+    // 	mAccUserID = accUserId;
+    // }
 
-	vector<CAppCFund>& GetFrozenFunds() { return vFrozenFunds; }
+    vector<CAppCFund> &GetFrozenFunds() { return vFrozenFunds; }
 
-	// void SetFrozenFund(const vector<CAppCFund>& vtmp)
-	// {
-	// 	vFrozenFunds.clear();
-	// 	for (int i = 0; i < (int)vtmp.size(); i++)
-	// 		vFrozenFunds.push_back(vtmp[i]);
-	// }
+    // void SetFrozenFund(const vector<CAppCFund>& vtmp)
+    // {
+    // 	vFrozenFunds.clear();
+    // 	for (int i = 0; i < (int)vtmp.size(); i++)
+    // 		vFrozenFunds.push_back(vtmp[i]);
+    // }
 
-	uint64_t GetAllFreezedValues();
+    uint64_t GetAllFreezedValues();
 
-	IMPLEMENT_SERIALIZE
-	(
-		READWRITE(VARINT(bcoins));
-		READWRITE(mAccUserID);
-		READWRITE(vFrozenFunds);
-	)
+    IMPLEMENT_SERIALIZE(READWRITE(VARINT(bcoins)); READWRITE(mAccUserID); READWRITE(vFrozenFunds);)
 
-	bool MinusAppCFund(const vector<unsigned char> &vtag,uint64_t val,int nhight);
-	bool AddAppCFund(const vector<unsigned char>& vtag, uint64_t val, int nhight);
-	bool MinusAppCFund(const CAppCFund &inFound);
-	bool AddAppCFund(const CAppCFund &inFound);
-	bool ChangeAppCFund(const CAppCFund &inFound);
-	bool Operate(const CAppFundOperate &Op);
+    bool MinusAppCFund(const vector<unsigned char> &vtag, uint64_t val, int nhight);
+    bool AddAppCFund(const vector<unsigned char> &vtag, uint64_t val, int nhight);
+    bool MinusAppCFund(const CAppCFund &inFound);
+    bool AddAppCFund(const CAppCFund &inFound);
+    bool ChangeAppCFund(const CAppCFund &inFound);
+    bool Operate(const CAppFundOperate &Op);
 
 private:
 	uint64_t bcoins;       //自由金额

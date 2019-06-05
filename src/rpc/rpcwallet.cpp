@@ -713,23 +713,20 @@ Value getassets(const Array& params, bool fHelp)
     Array arrayAssetIds;
     set<CKeyID>::iterator it;
     for (it = sKeyid.begin(); it != sKeyid.end(); it++) {
-        CKeyID KeyId = *it;
+        CKeyID keyId = *it;
 
-        if (KeyId.IsNull()) {
+        if (keyId.IsNull()) {
             continue;
         }
 
-        vector<unsigned char> veckey;
-        string addr = KeyId.ToAddress();
-        veckey.assign(addr.c_str(), addr.c_str() + addr.length());
-
+        string addr = keyId.ToAddress();
         std::shared_ptr<CAppUserAccount> temp = std::make_shared<CAppUserAccount>();
-        if (!pCdMan->pContractCache->GetScriptAcc(regid, veckey, *temp.get())) {
+        if (!pCdMan->pContractCache->GetScriptAcc(regid, addr, *temp.get())) {
             continue;
         }
 
         temp.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
-        uint64_t freeValues = temp.get()->Getbcoins();
+        uint64_t freeValues = temp.get()->GetBcoins();
         uint64_t freezeValues = temp.get()->GetAllFreezedValues();
         totalassets += freeValues;
         totalassets += freezeValues;

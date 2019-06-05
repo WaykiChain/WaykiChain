@@ -37,10 +37,10 @@ vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetRawAppUserAccount() { return 
 
 bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountCache& view, int nHeight) {
     vmOperateOutput.clear();
-    pBaseTx           = tx;
-    runTimeHeight     = nHeight;
+    pBaseTx       = tx;
+    runTimeHeight = nHeight;
     pAccountCache = &view;
-    vector<unsigned char> vScript;
+    string contractScript;
 
     if (tx.get()->nTxType != CONTRACT_INVOKE_TX) {
         LogPrint("ERROR", "%s\n", "err param");
@@ -48,13 +48,13 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountCache& view, int nHe
     }
 
     CContractInvokeTx* contractTx = static_cast<CContractInvokeTx*>(tx.get());
-    if (!pContractCache->GetScript(contractTx->appUid.get<CRegID>(), vScript)) {
+    if (!pContractCache->GetScript(contractTx->appUid.get<CRegID>(), contractScript)) {
         LogPrint("ERROR", "contract not found: %s\n",
                  contractTx->appUid.get<CRegID>().ToString());
         return false;
     }
 
-    CDataStream stream(vScript, SER_DISK, CLIENT_VERSION);
+    CDataStream stream(contractScript, SER_DISK, CLIENT_VERSION);
     try {
         stream >> vmScript;
     } catch (exception& e) {
@@ -503,7 +503,8 @@ bool CVmRunEnv::GetAppUserAccount(const vector<unsigned char>& vAppUserId,
                                   shared_ptr<CAppUserAccount>& sptrAcc) {
     assert(pContractCache);
     shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
-    if (!pContractCache->GetScriptAcc(GetScriptRegID(), vAppUserId, *tem.get())) {
+    string appUserId(vAppUserId.begin(), vAppUserId.end());
+    if (!pContractCache->GetScriptAcc(GetScriptRegID(), appUserId, *tem.get())) {
         tem     = std::make_shared<CAppUserAccount>(vAppUserId);
         sptrAcc = tem;
         return true;

@@ -501,8 +501,8 @@ bool CContractInvokeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, account unregistered"),
                         REJECT_INVALID, "bad-account-unregistered");
 
-    vector<unsigned char> vScript;
-    if (!cw.contractCache.GetScript(appUid.get<CRegID>(), vScript))
+    string contractScript;
+    if (!cw.contractCache.GetScript(appUid.get<CRegID>(), contractScript))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, read script failed, regId=%s",
                         appUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-read-script");
 

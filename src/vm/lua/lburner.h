@@ -23,7 +23,7 @@ struct lua_burner_state {
     unsigned long long  fuelOperator;       /** total fuel of operator of lua */
     unsigned long long  fuelStore;          /** total fuel of store operation */
     unsigned long long  fuelAccount;        /** total fuel of account operation (transfer output) */
-    unsigned long long  fuelFunction;       /** total fuel of extended functions except store operation 
+    unsigned long long  fuelFunction;       /** total fuel of extended functions except store operation
                                                 and account operation(transfer output) functions */
 
     lua_burner_trace_cb tracer;             /** trace the burning */
@@ -31,8 +31,8 @@ struct lua_burner_state {
 
 typedef struct lua_burner_state lua_burner_state;
 
-/** 
- * start burner until current lua stop or burned-out 
+/**
+ * start burner until current lua stop or burned-out
  * fuelLimit      the max step for burning
  * version      the burner version
  */
@@ -49,7 +49,7 @@ LUA_API int lua_BurnMemory(lua_State *L, void *block, size_t osize, size_t nsize
 
 /**
  * burn step
- * burned out if return 0, otherwise is burned ok.  
+ * burned out if return 0, otherwise is burned ok.
  */
 LUA_API int lua_BurnStep(lua_State *L, unsigned long long step, int version);
 
@@ -57,7 +57,7 @@ LUA_API int lua_BurnOperator(lua_State *L, int op, int version);
 
 LUA_API int lua_BurnStoreSet(lua_State *L, size_t keySize, size_t oldDataSize, size_t newDataSize, int version);
 
-LUA_API int lua_BurnStoreUnchange(lua_State *L, size_t keySize, size_t dataSize, int version);
+LUA_API int lua_BurnStoreUnchanged(lua_State *L, size_t keySize, size_t dataSize, int version);
 
 LUA_API int lua_BurnStoreGet(lua_State *L, size_t keySize, size_t dataSize, int version);
 
@@ -73,7 +73,7 @@ LUA_API int lua_BurnFuncCall(lua_State *L, const char* funcName, unsigned long l
 #define lua_BurnFuncCallTag(L, tag, fuel, version) \
     lua_BurnFuncCall(L, __FUNCTION__ ## " " ## tag, fuel, version)
 
-LUA_API int lua_BurnFuncData(lua_State *L, const char *funcName, unsigned long long callFuel, 
+LUA_API int lua_BurnFuncData(lua_State *L, const char *funcName, unsigned long long callFuel,
     size_t dataSize, size_t unitSize, unsigned long long fuelPerUnit, int version);
 
 #define LUA_BurnFuncData(L, callFuel, dataSize, unitSize, fuelPerUnit,  version) \

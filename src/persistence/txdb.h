@@ -31,6 +31,7 @@ private:
     CTransactionCache *pBase;
 
 public:
+    CTransactionCache() : pBase(nullptr) {}
     CTransactionCache(CTransactionCache *pBaseIn) : pBase(pBaseIn) {}
 
 public:
@@ -109,7 +110,7 @@ public:
 	)
 
 public:
-    bool GetAccountOpLog(const CKeyID &keyId, CAccountLog &accountLog);
+    bool GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog);
 
     void Clear() {
         txHash = uint256();

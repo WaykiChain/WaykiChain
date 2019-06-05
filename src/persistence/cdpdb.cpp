@@ -30,7 +30,9 @@ bool CCdpCache::SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, uint64_t c
     if (!SetData(key, cdp)) {
         return ERRORMSG("CCdpCache::SetStakeBcoins : SetData failed.");
     }
-    cdpDbOpLog.Reset(key, lastCdp);
+
+    // TODO: serialize to string
+    // cdpDbOpLog.Reset(key, lastCdp);
     return true;
 }
 
@@ -58,7 +60,7 @@ bool CCdpCache::GetData(const string &key, CUserCdp &value) {
 }
 
 bool CCdpCache::SetData(const string &key, const CUserCdp &value) {
-    pBase->SetData(dbk::GetDbKey(dbk::CDP, key), value);
+    pBase->SetData(dbk::GenDbKey(dbk::CDP, key), value);
     return true;
 }
 

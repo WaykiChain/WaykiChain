@@ -32,7 +32,7 @@ bool CTransactionCache::AddBlockToCache(const CBlock &block) {
 bool CTransactionCache::DeleteBlockFromCache(const CBlock &block) {
     if (IsContainBlock(block)) {
         UnorderedHashSet txHash;
-		mapTxHashByBlockHash[block.GetHash()] = txHash;
+		mapBlockTxHashSet[block.GetHash()] = txHash;
 
         return true;
     }
@@ -182,7 +182,7 @@ string CTxUndo::ToString() const {
 
     string strAccountLog("list account log:");
     for (auto iterLog : accountLogs) {
-        strAccountLog += iterLog->ToString();
+        strAccountLog += iterLog.ToString();
         strAccountLog += ";";
     }
 
@@ -190,9 +190,9 @@ string CTxUndo::ToString() const {
 
     string strDBOperLog("list LDB Oplog:");
     for (auto itemOpLogs : mapDbOpLogs) {
-        strDBOperLog += strprintf("type:%d {", itemOpLogs.first)
+        strDBOperLog += strprintf("type:%d {", itemOpLogs.first);
         for (auto iterDbLog : itemOpLogs.second) {
-            strDBOperLog += iterDbLog->ToString();
+            strDBOperLog += iterDbLog.ToString();
             strDBOperLog += ";";
         }
         strDBOperLog += "}";
@@ -205,8 +205,8 @@ string CTxUndo::ToString() const {
 
 bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {
     for (auto iterLog : accountLogs) {
-        if (iterLog->keyID == keyId) {
-            accountLog = *iterLog;
+        if (iterLog.keyID == keyId) {
+            accountLog = iterLog;
             return true;
         }
     }
