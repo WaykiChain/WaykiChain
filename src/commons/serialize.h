@@ -883,6 +883,10 @@ public:
         Init(nTypeIn, nVersionIn);
     }
 
+    CDataStream(const string & str, int nTypeIn, int nVersionIn) : vch(str.begin(), str.end()) {
+        Init(nTypeIn, nVersionIn);
+    }
+
     CDataStream(const vector<unsigned char>& vchIn, int nTypeIn, int nVersionIn) : vch((char*)&vchIn.begin()[0], (char*)&vchIn.end()[0])
     {
         Init(nTypeIn, nVersionIn);
