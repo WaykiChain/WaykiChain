@@ -24,13 +24,13 @@ class CPricePoint;
 class CCoinPriceType;
 class CUserID;
 
+// TODO: initialize pBase by constructor instead of SetBaseView.
 class CTransactionCache {
 private:
     map<uint256, UnorderedHashSet> mapBlockTxHashSet;  // map: BlockHash ->TxHashSet
     CTransactionCache *pBase;
 
 public:
-    // TODO:
     CTransactionCache(CTransactionCache *pBaseIn) : pBase(pBaseIn) {}
 
 public:
@@ -41,8 +41,9 @@ public:
     bool DeleteBlockFromCache(const CBlock &block);
 
     void Clear();
+    void SetBaseView(CTransactionCache *pBaseIn) { pBase = pBaseIn; }
     void BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn);
-    void Flush(CTransactionCache *txCache);
+    void Flush(CTransactionCache *pBaseIn);
     void Flush();
 
     Object ToJsonObj() const;

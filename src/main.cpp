@@ -1621,7 +1621,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
 
         auto spCW = std::make_shared<CCacheWrapper>();
         spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
-        spCW->txCache = *pCdMan->pTxCache;
+        spCW->txCache.SetBaseView(pCdMan->pTxCache);
         spCW->contractCache.SetBaseView(pCdMan->pContractCache);
 
         if (!ConnectBlock(block, *spCW, pIndexNew, state)) {
@@ -1932,7 +1932,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     auto spForkCW       = std::make_shared<CCacheWrapper>();
     auto spCW           = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
-    spCW->txCache       = *pCdMan->pTxCache;
+    spCW->txCache.SetBaseView(pCdMan->pTxCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
 
     bool forkChainTipFound = false;
@@ -2829,7 +2829,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
 
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
-    spCW->txCache = *pCdMan->pTxCache;
+    spCW->txCache.SetBaseView(pCdMan->pTxCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
 
     CBlockIndex *pIndexState   = chainActive.Tip();

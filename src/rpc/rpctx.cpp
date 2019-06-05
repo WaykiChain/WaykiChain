@@ -1646,22 +1646,6 @@ static Value TestDisconnectBlock(int number) {
             if (!pCdMan->pBlockTreeDb->EraseBlockIndex(pTipIndex->GetBlockHash()))
                 return false;
             mapBlockIndex.erase(pTipIndex->GetBlockHash());
-
-            // if (!ReadBlockFromDisk(block, pIndex))
-            //     throw ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s", pIndex->nHeight,
-            //                    pIndex->GetBlockHash().ToString());
-            // bool fClean = true;
-            // CTransactionCache txCacheTemp(*pCdMan->pTxCache, true);
-            // CContractCache contractScriptTemp(*pCdMan->pContractCache, true);
-            // if (!DisconnectBlock(block, state, view, pIndex, txCacheTemp, contractScriptTemp, &fClean))
-            //     throw ERRORMSG("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s",
-            //                    pIndex->nHeight, pIndex->GetBlockHash().ToString());
-            // CBlockIndex* pindexDelete = pIndex;
-            // pIndex                    = pIndex->pprev;
-            // chainActive.SetTip(pIndex);
-
-            // assert(pCdMan->pAccountCache->Flush() && txCacheTemp.Flush() && contractScriptTemp.Flush());
-            // txCacheTemp.Clear();
         } while (--number);
     }
 

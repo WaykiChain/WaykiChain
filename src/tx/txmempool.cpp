@@ -118,7 +118,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
 
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache = *memPoolAccountCache;
-    spCW->txCache = *pCdMan->pTxCache;
+    spCW->txCache.SetBaseView(pCdMan->pTxCache);
     spCW->contractCache = *memPoolContractCache;
 
     if (bExecute) {

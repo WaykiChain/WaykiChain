@@ -62,8 +62,9 @@ void CTransactionCache::Flush() {
     mapBlockTxHashSet.clear();
 }
 
-void CTransactionCache::Flush(CTransactionCache *txCache) {
-    txCache->SetTxHashCache(mapBlockTxHashSet);
+void CTransactionCache::Flush(CTransactionCache *pBaseIn) {
+    pBaseIn->BatchWrite(mapBlockTxHashSet);
+    mapBlockTxHashSet.clear();
 }
 
 void CTransactionCache::Clear() { mapBlockTxHashSet.clear(); }

@@ -595,7 +595,7 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
 
             auto spCW = std::make_shared<CCacheWrapper>();
             spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
-            spCW->txCache = *pCdMan->pTxCache;
+            spCW->txCache.SetBaseView(pCdMan->pTxCache);
             spCW->contractCache.SetBaseView(pCdMan->pContractCache);
 
             g_miningBlockInfo.SetNull();
