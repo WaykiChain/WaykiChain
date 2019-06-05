@@ -231,7 +231,7 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(&cwIn.accountCache);
     spCW->txCache = cwIn.txCache;
-    spCW->contractCache(&cwIn.contractCache);
+    spCW->contractCache.SetBaseView(&cwIn.contractCache);
 
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
@@ -594,7 +594,7 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
 
             auto spCW = std::make_shared<CCacheWrapper>();
             spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
-            spCW->txCache = *pCdMan->txCache;
+            spCW->txCache = *pCdMan->pTxCache;
             spCW->contractCache.SetBaseView(pCdMan->pContractCache);
 
             g_miningBlockInfo.SetNull();

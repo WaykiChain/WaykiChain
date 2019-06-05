@@ -31,8 +31,8 @@ public:
     virtual bool BatchWrite(const map<string, string > &mapContractDb) = 0;
     virtual bool EraseKey(const string &key) = 0;
     virtual bool HaveData(const string &key) = 0;
-    virtual bool GetScript(const int nIndex, string &contractRegId string &value) = 0;
-    virtual bool GetContractData(const int nCurBlockHeight, const string &contractRegId const int &nIndex,
+    virtual bool GetScript(const int nIndex, string &contractRegId, string &value) = 0;
+    virtual bool GetContractData(const int nCurBlockHeight, const string &contractRegId, const int &nIndex,
                                 string &contractKey, string &contractData) = 0;
     virtual Object ToJsonObj(string prefix) { return Object(); } //FIXME: useless prefix
 
@@ -123,7 +123,7 @@ private:
      * @param vValue
      * @return true if get script succeed,otherwise false
      */
-    bool GetScript(const string &contractRegId string &value);
+    bool GetScript(const string &contractRegId, string &value);
     /**
      * @brief Get Script content from scriptdb by index
      * @param nIndex the value must be non-negative
@@ -131,14 +131,14 @@ private:
      * @param vValue
      * @return true if get script succeed, otherwise false
      */
-    bool GetScript(const int nIndex, string &contractRegId string &value);
+    bool GetScript(const int nIndex, string &contractRegId, string &value);
     /**
      * @brief Save script content to scriptdb
      * @param vScriptId
      * @param vValue
      * @return true if save succeed, otherwise false
      */
-    bool SetScript(const string &contractRegId const string &value);
+    bool SetScript(const string &contractRegId, const string &value);
     /**
      * @brief Detect if scriptdb contains the script by scriptid
      * @param vScriptId
@@ -163,21 +163,21 @@ private:
      * @param nCount
      * @return true if get succeed, otherwise false
      */
-    bool GetContractItemCount(const string &contractRegId int &nCount);
+    bool GetContractItemCount(const string &contractRegId, int &nCount);
     /**
      * @brief Save count of the Contract's data into contract db
      * @param vScriptId
      * @param nCount
      * @return true if save succeed, otherwise false
      */
-    bool SetContractItemCount(const string &contractRegId int nCount);
+    bool SetContractItemCount(const string &contractRegId, int nCount);
     /**
      * @brief Delete the item of the scirpt's data by scriptId and scriptKey
      * @param vScriptId
      * @param vScriptKey must be 8 bytes
      * @return true if delete succeed, otherwise false
      */
-    bool EraseAppData(const string &contractRegId const string &contractKey, CDbOpLog &operLog);
+    bool EraseAppData(const string &contractRegId, const string &contractKey, CDbOpLog &operLog);
 
     bool EraseAppData(const string &key);
     /**
@@ -186,7 +186,7 @@ private:
      * @param vScriptKey must be 8 bytes
      * @return true if contains the item, otherwise false
      */
-    bool HaveScriptData(const string &contractRegId const string &contractKey);
+    bool HaveScriptData(const string &contractRegId, const string &contractKey);
     /**
      * @brief Get smart contract App data and valid height by scriptid and scriptkey
      * @param vScriptId
@@ -195,7 +195,7 @@ private:
      * @param nHeight valide height of script data
      * @return true if get succeed, otherwise false
      */
-    bool GetContractData(const int nCurBlockHeight, const string &contractRegId const string &contractKey,
+    bool GetContractData(const int nCurBlockHeight, const string &contractRegId, const string &contractKey,
                          string &vScriptData);
     /**
      * @brief Get smart contract app data and valid height by scriptid and nIndex
@@ -206,7 +206,7 @@ private:
      * @param nHeight valid height of script data
      * @return true if get succeed, otherwise false
      */
-    bool GetContractData(const int nCurBlockHeight, const string &contractRegId const int &nIndex, string &contractKey, string &vScriptData);
+    bool GetContractData(const int nCurBlockHeight, const string &contractRegId, const int &nIndex, string &contractKey, string &vScriptData);
     /**
      * @brief Save script data and valid height into script db
      * @param vScriptId
@@ -215,7 +215,7 @@ private:
      * @param nHeight valide height of script data
      * @return true if save succeed, otherwise false
      */
-    bool SetContractData(const string &contractRegId const string &contractKey,
+    bool SetContractData(const string &contractRegId, const string &contractKey,
                          const string &vScriptData, CDbOpLog &operLog);
 };
 
@@ -235,14 +235,14 @@ private:
     void operator=(const CContractDB &);
 
 public:
-    bool GetData(const string &key, string &value) { return db.Read(vKey, vValue); };
-    bool SetData(const string &key, const string &value) { return db.Write(vKey, vValue); };
+    bool GetData(const string &key, string &value) { return db.Read(key, value); };
+    bool SetData(const string &key, const string &value) { return db.Write(key, value); };
 
     bool BatchWrite(const map<string, string > &mapContractDb);
     bool EraseKey(const string &key);
     bool HaveData(const string &key);
-    bool GetScript(const int nIndex, string &contractRegId string &value);
-    bool GetContractData(const int curBlockHeight, const string &contractRegId const int &nIndex,
+    bool GetScript(const int nIndex, string &contractRegId, string &value);
+    bool GetContractData(const int curBlockHeight, const string &contractRegId, const int &nIndex,
                         string &contractKey, string &vScriptData);
     int64_t GetDbCount() { return db.GetDbCount(); }
     bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash);

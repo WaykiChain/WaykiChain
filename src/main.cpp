@@ -590,8 +590,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
                          reason);
 
     auto spCW           = std::make_shared<CCacheWrapper>();
-    spCW->accountCache.SetBaseView(pool.memPoolAccountCache);
-    spCW->contractCache.SetBaseView(pool.memPoolContractCache);
+    spCW->accountCache.SetBaseView(pool.memPoolAccountCache.get());
+    spCW->contractCache.SetBaseView(pool.memPoolContractCache.get());
 
     if (!CheckTx(pBaseTx, *spCW, state))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed");
