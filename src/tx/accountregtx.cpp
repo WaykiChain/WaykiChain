@@ -16,7 +16,7 @@
 #include "miner/miner.h"
 #include "version.h"
 
-bool CAccountRegisterTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CAccountRegisterTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
 
     if (txUid.type() != typeid(CPubKey))

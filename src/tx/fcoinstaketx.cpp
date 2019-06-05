@@ -9,7 +9,7 @@
 #include "configuration.h"
 #include "main.h"
 
-bool CFcoinStakeTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CFcoinStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 

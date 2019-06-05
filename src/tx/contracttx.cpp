@@ -164,7 +164,7 @@ Object CContractDeployTx::ToJson(const CAccountCache &accountCache) const{
     return result;
 }
 
-bool CContractDeployTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CContractDeployTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
@@ -482,7 +482,7 @@ bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
     return true;
 }
 
-bool CContractInvokeTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CContractInvokeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_ARGUMENTS;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());

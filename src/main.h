@@ -224,7 +224,7 @@ inline bool AllowFree(double dPriority) {
 }
 
 // Context-independent validity checks
-bool CheckTx(CBaseTx *ptx, CCacheWrapper &cacheWrapper, CValidationState &state);
+bool CheckTx(int nHeight, CBaseTx *ptx, CCacheWrapper &cacheWrapper, CValidationState &state);
 
 /** Check for standard transaction types
     @return True if all outputs (scriptPubKeys) use only standard transaction forms

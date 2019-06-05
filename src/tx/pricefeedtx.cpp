@@ -14,7 +14,7 @@
 #include "miner/miner.h"
 #include "version.h"
 
-bool CPriceFeedTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CPriceFeedTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
 
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());

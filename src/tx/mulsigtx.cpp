@@ -243,7 +243,7 @@ bool CMulsigTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
     return true;
 }
 
-bool CMulsigTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CMulsigTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
 

@@ -540,12 +540,12 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<unsigned char> &s
     return true;
 }
 
-bool CheckTx(CBaseTx *ptx, CCacheWrapper &cw, CValidationState &state) {
+bool CheckTx(int nHeight, CBaseTx *ptx, CCacheWrapper &cw, CValidationState &state) {
     if (BLOCK_REWARD_TX == ptx->nTxType || BLOCK_PRICE_MEDIAN_TX == ptx->nTxType) {
         return true;
     }
 
-    return (ptx->CheckTx(cw, state));
+    return (ptx->CheckTx(nHeight, cw, state));
 }
 
 int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree) {
@@ -593,7 +593,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     spCW->accountCache.SetBaseView(pool.memPoolAccountCache.get());
     spCW->contractCache.SetBaseView(pool.memPoolContractCache.get());
 
-    if (!CheckTx(pBaseTx, *spCW, state))
+    if (!CheckTx(chainActive.Height(), pBaseTx, *spCW, state))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed");
 
     {
@@ -2116,7 +2116,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     for (unsigned int i = 0; i < block.vptx.size(); i++) {
         uniqueTx.insert(block.GetTxHash(i));
 
-        if (fCheckTx && !CheckTx(block.vptx[i].get(), cw, state))
+        if (fCheckTx && !CheckTx(block.GetHeight(), block.vptx[i].get(), cw, state))
             return ERRORMSG("CheckBlock() :tx hash:%s CheckTx failed", block.vptx[i]->GetHash().GetHex());
 
         if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {
