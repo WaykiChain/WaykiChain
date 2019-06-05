@@ -26,38 +26,12 @@ class G_CONFIG_TABLE;
 
 const G_CONFIG_TABLE& IniCfg();
 
-/** Block-chain checkpoints are compiled-in sanity checks.
- * They are updated every release or three.
- */
-namespace Checkpoints {
-// Returns true if block passes checkpoint checks
-bool CheckBlock(int nHeight, const uint256& hash);
-
-// Return conservative estimate of total number of blocks, 0 if unknown
-int GetTotalBlocksEstimate();
-
-// Returns last CBlockIndex* in mapBlockIndex that is a checkpoint
-CBlockIndex* GetLastCheckpoint(const std::map<uint256, CBlockIndex*>& mapBlockIndex);
-
-double GuessVerificationProgress(CBlockIndex* pIndex, bool fSigchecks = true);
-
-bool AddCheckpoint(int nHeight, uint256 hash);
-
-bool GetCheckpointByHeight(const int nHeight, std::vector<int>& vCheckpoints);
-
-bool LoadCheckpoint();
-
-void GetCheckpointMap(std::map<int, uint256>& checkpoints);
-
-extern bool fEnabled;
-}  // namespace Checkpoints
-
 class G_CONFIG_TABLE {
 public:
     string GetCoinName() const { return COIN_NAME; }
     const vector<string> GetInitPubKey(NET_TYPE type) const;
     const uint256 GetIntHash(NET_TYPE type) const;
-    const string GetCheckPointPkey(NET_TYPE type) const;
+    const string GetAlertPkey(NET_TYPE type) const;
     const uint256 GetMerkleRootHash() const;
     vector<unsigned int> GetSeedNodeIP() const;
     unsigned char* GetMagicNumber(NET_TYPE type) const;
@@ -99,9 +73,9 @@ private:
     static string hashGenesisBlock_testNet;
     static string hashGenesisBlock_regTest;
 
-    /* checkpoint public key */
-    static string CheckPointPK_MainNet;
-    static string CheckPointPK_TestNet;
+    /* alert public key */
+    static string AlertPK_MainNet;
+    static string AlertPK_TestNet;
 
     /* merkle root hash */
     static string MerkleRootHash;

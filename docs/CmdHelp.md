@@ -45,7 +45,6 @@
 | invalidateblock | ```<hash>``` | Mark a block as invalid. | N |
 | listaddr | | return Array containing address,balance,haveminerkey,regid information | N |
 | listcontracts | ```<showDetail>``` | get all registered contracts: <br>1. showDetail: 0 | 1  (boolean, required) 1 to show scriptContent, otherwise not show it. | N |
-| listcheckpoint | | Returns the list of checkpoints | N |
 | listtx | | get all confirm transactions and all unconfirm transactions from wallet | N |
 | listtxcache | | get all transactions in cache | N |
 | listunconfirmedtx | | get the list of unconfirmedtx | N |

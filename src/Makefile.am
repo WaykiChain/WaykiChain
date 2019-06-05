@@ -275,8 +275,6 @@ libcoin_common_a_SOURCES = \
   protocol.cpp \
   persistence/block.cpp \
   persistence/cdpdb.cpp \
-  persistence/syncdata.cpp \
-  persistence/syncdatadb.cpp \
   persistence/accountdb.cpp \
   persistence/blockdb.cpp \
   persistence/contractdb.cpp \

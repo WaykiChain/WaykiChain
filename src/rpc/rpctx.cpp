@@ -12,9 +12,7 @@
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #include "persistence/blockdb.h"
-#include "persistence/syncdatadb.h"
 #include "persistence/txdb.h"
-//#include "checkpoints.h"
 #include "configuration.h"
 #include "miner/miner.h"
 #include "main.h"
@@ -3081,121 +3079,6 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
     }
 
     return retArry;
-}
-
-Value gencheckpoint(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 2) {
-        throw runtime_error("gencheckpoint \"privatekey\" \"filepath\"\n"
-            "\ngenerate checkpoint by Private key signature block.\n"
-            "\nArguments:\n"
-            "1. \"privatekey\"  (string, required) the private key\n"
-            "2. \"filepath\"  (string, required) check point block path\n"
-            "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("gencheckpoint", "\"privatekey\" \"filepath\"")
-            + HelpExampleRpc("gencheckpoint", "\"privatekey\" \"filepath\""));
-    }
-
-    std::string strSecret = params[0].get_str();
-    CCoinSecret vchSecret;
-    bool fGood = vchSecret.SetString(strSecret);
-    if (!fGood)
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key encoding");
-
-    CKey key = vchSecret.GetKey();
-    if (!key.IsValid())
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Private key invalid");
-
-    string file = params[1].get_str();
-    int nHeight(0);
-    CBlock block;
-    FILE* fp = NULL;
-    try {
-        fp = fopen(file.c_str(), "rb+");
-        CAutoFile fileout = CAutoFile(fp, SER_DISK, CLIENT_VERSION);
-        if (!fileout)
-            throw JSONRPCError(RPC_MISC_ERROR, "open file:" + file + "failed!");
-        fileout >> nHeight;
-        fileout >> block;
-    } catch (std::exception &e) {
-        fclose(fp);
-        throw JSONRPCError(RPC_MISC_ERROR, strprintf("read block to file error:%s", e.what()).c_str());
-    }
-
-    SyncData::CSyncData data;
-    SyncData::CSyncCheckPoint point;
-    CDataStream sstream(SER_NETWORK, PROTOCOL_VERSION);
-    point.m_height = nHeight;
-    point.m_hashCheckpoint = block.GetHash();//chainActive[intTemp]->GetBlockHash();
-    LogPrint("CHECKPOINT", "send hash = %s\n",block.GetHash().ToString());
-    sstream << point;
-    Object obj;
-    if (data.Sign(key, std::vector<unsigned char>(sstream.begin(), sstream.end()))
-        && data.CheckSignature(SysCfg().GetCheckPointPKey())) {
-        obj.push_back(Pair("chenkpoint", data.ToJsonObj()));
-        return obj;
-    }
-    return obj;
-}
-
-Value setcheckpoint(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 1) {
-        throw runtime_error(
-            "setcheckpoint \"filepath\"\n"
-            "\nadd new checkpoint and send it out.\n"
-            "\nArguments:\n"
-            "1. \"filepath\"  (string, required) check point block path\n"
-            "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("setcheckpoint", "\"filepath\"")
-            + HelpExampleRpc("setcheckpoint", "\"filepath\""));
-    }
-    SyncData::CSyncData data;
-    ifstream file;
-    file.open(params[0].get_str().c_str(), ios::in | ios::ate);
-    if (!file.is_open())
-          throw JSONRPCError(RPC_INVALID_PARAMETER, "Cannot open check point dump file");
-
-    file.seekg(0, file.beg);
-    if (file.good()){
-        Value reply;
-        json_spirit::read(file,reply);
-        const Value & checkpoint = find_value(reply.get_obj(),"chenkpoint");
-        if(checkpoint.type() ==  json_spirit::null_type)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "read check point failed");
-
-        const Value & msg = find_value(checkpoint.get_obj(), "msg");
-        const Value & sig = find_value(checkpoint.get_obj(), "sig");
-        if(msg.type() == json_spirit::null_type || sig.type() == json_spirit::null_type)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "read msg or sig failed");
-
-        data.m_vchMsg = ParseHex(msg.get_str());
-        data.m_vchSig = ParseHex(sig.get_str());
-    }
-    file.close();
-    if(!data.CheckSignature(SysCfg().GetCheckPointPKey()))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "check signature failed");
-
-    SyncData::CSyncDataDb db;
-    std::vector<SyncData::CSyncData> vdata;
-    SyncData::CSyncCheckPoint point;
-    CDataStream sstream(data.m_vchMsg, SER_NETWORK, PROTOCOL_VERSION);
-    sstream >> point;
-    db.WriteCheckpoint(point.m_height, data);
-    Checkpoints::AddCheckpoint(point.m_height, point.m_hashCheckpoint);
-    CheckActiveChain(point.m_height, point.m_hashCheckpoint);
-    vdata.push_back(data);
-    LOCK(cs_vNodes);
-    BOOST_FOREACH(CNode* pNode, vNodes)
-    {
-        if (pNode->setcheckPointKnown.count(point.m_height) == 0) {
-            pNode->setcheckPointKnown.insert(point.m_height);
-            pNode->PushMessage("checkpoint", vdata);
-        }
-    }
-    return tfm::format("sendcheckpoint :%d\n", point.m_height);
 }
 
 Value validateaddr(const Array& params, bool fHelp) {

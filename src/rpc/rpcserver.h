@@ -1,11 +1,10 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The WaykiChain developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef _COINRPC_SERVER_H_
-#define _COINRPC_SERVER_H_ 1
+#define _COINRPC_SERVER_H_
 
 #include "rpcprotocol.h"
 #include "commons/uint256.h"
@@ -182,7 +181,6 @@ extern json_spirit::Value getblock(const json_spirit::Array& params, bool fHelp)
 // extern json_spirit::Value gettxoutsetinfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value verifychain(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getcontractregid(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value listcheckpoint(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value invalidateblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value reconsiderblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value startcommontpstest(const json_spirit::Array& params, bool fHelp);

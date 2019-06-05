@@ -31,7 +31,7 @@ public:
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(MAIN_NET), sizeof(pchMessageStart));
-        vAlertPubKey            = ParseHex(IniCfg().GetCheckPointPkey(MAIN_NET));
+        vAlertPubKey            = ParseHex(IniCfg().GetAlertPkey(MAIN_NET));
         nDefaultPort            = IniCfg().GetnDefaultPort(MAIN_NET);
         nRPCPort                = IniCfg().GetnRPCPort(MAIN_NET);
         nUIPort                 = IniCfg().GetnUIPort(MAIN_NET);
@@ -51,7 +51,6 @@ public:
         genesis.SetHeight(0);
         genesis.ClearSignature();
         hashGenesisBlock = genesis.GetHash();
-        CheckPointPKey   = IniCfg().GetCheckPointPkey(MAIN_NET);
         assert(hashGenesisBlock == IniCfg().GetIntHash(MAIN_NET));
         assert(genesis.GetMerkleRootHash() == IniCfg().GetMerkleRootHash());
 
@@ -117,12 +116,11 @@ public:
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(TEST_NET), sizeof(pchMessageStart));
         nSubsidyHalvingInterval = IniCfg().GetHalvingInterval(TEST_NET);
         nFeatureForkHeight      = IniCfg().GetFeatureForkHeight(TEST_NET);
-        vAlertPubKey            = ParseHex(IniCfg().GetCheckPointPkey(TEST_NET));
+        vAlertPubKey            = ParseHex(IniCfg().GetAlertPkey(TEST_NET));
         nDefaultPort            = IniCfg().GetnDefaultPort(TEST_NET);
         nRPCPort                = IniCfg().GetnRPCPort(TEST_NET);
         nUIPort                 = IniCfg().GetnUIPort(TEST_NET);
         strDataDir              = "testnet";
-        CheckPointPKey          = IniCfg().GetCheckPointPkey(TEST_NET);
         // Modify the testnet genesis block so the timestamp is valid for a later start.
         genesis.SetTime(IniCfg().GetStartTimeInit(TEST_NET));
         genesis.SetNonce(99);

@@ -1,5 +1,5 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The WaykiChain developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -218,8 +218,6 @@ static const CRPCCommand vRPCCommands[] =
     { "getinfo",                &getinfo,                true,      false,      false }, /* uses wallet if enabled */
     { "help",                   &help,                   true,      true,       false },
     { "stop",                   &stop,                   true,      true,       false },
-    { "gencheckpoint",          &gencheckpoint,          true,      true,       false },
-    { "setcheckpoint",          &setcheckpoint,          true,      true,       false },
     { "validateaddr",           &validateaddr,           true,      true,       false },
     { "validateaddress",        &validateaddr,           true,      true,       false }, //deprecated
     { "createmulsig",           &createmulsig,           true,      true ,      false },
@@ -243,7 +241,6 @@ static const CRPCCommand vRPCCommands[] =
     { "getblockhash",           &getblockhash,           false,     false,      false },
     { "getdifficulty",          &getdifficulty,          true,      false,      false },
     { "getrawmempool",          &getrawmempool,          true,      false,      false },
-    { "listcheckpoint",         &listcheckpoint,         true,      false,      false },
     { "verifychain",            &verifychain,            true,      false,      false },
 
     { "gettotalcoins",          &gettotalcoins,          false,     false,      false },
