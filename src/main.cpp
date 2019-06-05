@@ -1547,7 +1547,7 @@ bool static DisconnectTip(CValidationState &state) {
         // Need to re-sync all to global cache layer.
         spCW->accountCache.Flush(pCdMan->pAccountCache);
         spCW->txCache.Flush(pCdMan->pTxCache);
-        spCW->contractCache.Flush(pCdMan->pContractCache);
+        spCW->contractCache.Flush();
 
     }
     if (SysCfg().IsBenchmark())
@@ -1613,7 +1613,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         // Need to re-sync all to global cache layer.
         spCW->accountCache.Flush(pCdMan->pAccountCache);
         spCW->txCache.Flush(pCdMan->pTxCache);
-        spCW->contractCache.Flush(pCdMan->pContractCache);
+        spCW->contractCache.Flush();
 
         uint256 uBestblockHash = pCdMan->pAccountCache->GetBestBlock();
         LogPrint("INFO", "uBestBlockHash[%d]: %s\n", nSyncTipHeight, uBestblockHash.GetHex());

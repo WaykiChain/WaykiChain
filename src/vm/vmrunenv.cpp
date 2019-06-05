@@ -564,28 +564,3 @@ bool CVmRunEnv::OperateAppAccount(const map<vector<unsigned char>, vector<CAppFu
 }
 
 void CVmRunEnv::SetCheckAccount(bool bCheckAccount) { isCheckAccount = bCheckAccount; }
-
-Object CVmOperate::ToJson() {
-    Object obj;
-    if (accountType == regid) {
-        vector<unsigned char> vRegId(accountId, accountId + 6);
-        CRegID regId(vRegId);
-        obj.push_back(Pair("regid", regId.ToString()));
-    } else if (accountType == base58addr) {
-        string addr(accountId, accountId + sizeof(accountId));
-        obj.push_back(Pair("addr", addr));
-    }
-
-    if (opType == ADD_BCOIN) {
-        obj.push_back(Pair("opertype", "add"));
-    } else if (opType == MINUS_BCOIN) {
-        obj.push_back(Pair("opertype", "minus"));
-    }
-
-    if (timeoutHeight > 0) obj.push_back(Pair("outHeight", (int)timeoutHeight));
-
-    uint64_t amount;
-    memcpy(&amount, money, sizeof(money));
-    obj.push_back(Pair("amount", amount));
-    return obj;
-}

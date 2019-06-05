@@ -130,7 +130,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
     // the global transaction cache to verify whether a transaction(txid) has been confirmed
     // already in block.
     spCW->accountCache.Flush(memPoolAccountCache.get());
-    spCW->contractCache.Flush(memPoolContractCache.get());
+    spCW->contractCache.Flush();
 
     return true;
 }

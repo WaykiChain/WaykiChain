@@ -44,9 +44,17 @@ public:
         return true;
     }
 
+    bool IsEmpty() const {
+        return IsNull();
+    }
+
     void SetNull()
     {
         memset(data, 0, sizeof(data));
+    }
+
+    void SetEmpty() {
+        SetNull();
     }
 
     friend inline bool operator==(const base_blob& a, const base_blob& b) { return memcmp(a.data, b.data, sizeof(a.data)) == 0; }

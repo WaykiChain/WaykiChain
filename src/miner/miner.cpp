@@ -400,7 +400,7 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
             // the global transaction cache to verify whether a transaction(txid) has been confirmed
             // already in block.
             spCW->accountCache.Flush(&cwIn.accountCache);
-            spCW->contractCache.Flush(&cwIn.contractCache);
+            spCW->contractCache.Flush();
 
             nFees += pBaseTx->GetFee();
             nBlockSize += stx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);

@@ -278,7 +278,7 @@ public:
 
 #define IMPLEMENT_PERSIST_TX_KEYID(sendTxUid, recvTxUid)                                   \
     if (SysCfg().GetAddressToTxFlag()) {                                                   \
-        CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[ADDR_TXHASH];                              \
+        CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[ADDR_TXHASH];                            \
         CDbOpLog operAddressToTxLog;                                                       \
         if (sendTxUid.type() != typeid(CNullID)) {                                         \
             CKeyID sendKeyId;                                                              \
@@ -286,11 +286,11 @@ public:
                 return ERRORMSG("%s::ExecuteTx, get keyid by txUid error!", __FUNCTION__); \
                                                                                            \
             if (!cw.contractCache.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1,       \
-                                                     cw.txUndo.txHash.GetHex(),            \
+                                                     cw.txUndo.txHash,                     \
                                                      operAddressToTxLog))                  \
                 return false;                                                              \
                                                                                            \
-            opLogs.push_back(operAddressToTxLog);                        \
+            opLogs.push_back(operAddressToTxLog);                                          \
         }                                                                                  \
                                                                                            \
         if (recvTxUid.type() != typeid(CNullID)) {                                         \
@@ -299,11 +299,11 @@ public:
                 return ERRORMSG("%s::ExecuteTx, get keyid by toUid error!", __FUNCTION__); \
                                                                                            \
             if (!cw.contractCache.SetTxHashByAddress(recvKeyId, nHeight, nIndex + 1,       \
-                                                     cw.txUndo.txHash.GetHex(),            \
+                                                     cw.txUndo.txHash,                     \
                                                      operAddressToTxLog))                  \
                 return false;                                                              \
                                                                                            \
-            opLogs.push_back(operAddressToTxLog);                        \
+            opLogs.push_back(operAddressToTxLog);                                          \
         }                                                                                  \
     }
 

@@ -182,7 +182,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
                 return ERRORMSG("CBaseCoinTransferTx::CMulsigTx, get keyid by srcUserId error!");
 
             if (!cw.contractCache.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1,
-                                        cw.txUndo.txHash.GetHex(), operAddressToTxLog))
+                                        cw.txUndo.txHash, operAddressToTxLog))
                 return false;
             opLogs.push_back(operAddressToTxLog);
         }
@@ -191,7 +191,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
             return ERRORMSG("CBaseCoinTransferTx::CMulsigTx, get keyid by desUserId error!");
 
         if (!cw.contractCache.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1,
-                                    cw.txUndo.txHash.GetHex(), operAddressToTxLog))
+                                    cw.txUndo.txHash, operAddressToTxLog))
             return false;
 
         opLogs.push_back(operAddressToTxLog);

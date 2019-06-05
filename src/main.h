@@ -294,7 +294,7 @@ public:
     CAccountDB          *pAccountDb;
     CAccountCache       *pAccountCache;
 
-    CContractDB         *pContractDb;
+    CDBAccess           *pContractDb;
     CContractCache      *pContractCache;
 
     CTransactionCache   *pTxCache;
@@ -312,12 +312,12 @@ public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache,
                     size_t nScriptCacheSize, size_t nBlockTreeDBCache) {
         pAccountDb      = new CAccountDB(nAccountDBCache, false, fReIndex);
-        pContractDb     = new CContractDB(nScriptCacheSize, false, fReIndex);
+        pContractDb     = new CDBAccess(DB_NAME_CONTRACT, nScriptCacheSize, false, fReIndex);
         pBlockTreeDb    = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
         pStakeDb        = new CStakeDB(nScriptCacheSize);
 
         pAccountCache   = new CAccountCache(*pAccountDb);
-        pContractCache  = new CContractCache(*pContractDb);
+        pContractCache  = new CContractCache(pContractDb);
         pStakeCache     = new CStakeCache(*pStakeDb);
         pDelegateCache  = new CDelegateCache(*pStakeCache);
         pTxCache        = new CTransactionCache();

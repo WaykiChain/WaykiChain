@@ -69,6 +69,7 @@ coin_CORE_H = \
   persistence/blockdb.h \
   persistence/cdpdb.h \
   persistence/contractdb.h \
+  persistence/disk.h \
   persistence/stakedb.h \
   persistence/pricefeeddb.h \
   persistence/txdb.h \

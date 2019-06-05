@@ -9,6 +9,7 @@
 #include "commons/serialize.h"
 #include "util.h"
 #include "version.h"
+#include "dbconf.h"
 
 #include "json/json_spirit_value.h"
 #include <boost/filesystem/path.hpp>
@@ -25,18 +26,41 @@ enum DbOpLogType {
 
 class CDbOpLog {
 public:
+    string prefix;
     string key;
-    string value;
+    string value; // TODO: use
 
     CDbOpLog() : key(), value() {}
 
-    CDbOpLog(const string keyIn, const string& valueIn){
-        Reset(keyIn, valueIn);
+    CDbOpLog(const string &keyIn, const string& valueIn):
+        key(keyIn), value(valueIn) {
     }
 
-    void Reset(const string& keyIn, const string& valueIn){
+    template<typename K, typename V>
+    CDbOpLog(dbk::PrefixType prefixType, const K& keyIn, const V& valueIn){
+        Set(dbk::GenDbKey(prefixType, keyIn), valueIn);
+    }
+
+    template<typename V>
+    void Set(const string& keyIn, const V& valueIn){
         key = keyIn;
-        value = valueIn;
+        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+        ssValue << valueIn;
+        value = ssValue.str();
+    }
+
+    const string& GetKey() const {
+        return key;
+    }
+
+    void GetValue(string &valueOut) {
+        valueOut = value;
+    }
+
+    template<typename V>
+    void GetValue(V& valueIn){
+        CDataStream ssValue(value, SER_DISK, CLIENT_VERSION);
+        ssValue >> valueIn;
     }
 
     IMPLEMENT_SERIALIZE(

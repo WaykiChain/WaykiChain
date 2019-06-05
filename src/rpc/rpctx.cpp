@@ -1700,10 +1700,11 @@ Value resetclient(const Array& params, bool fHelp) {
         pCdMan->pAccountCache->Flush();
         pCdMan->pContractCache->Flush();
 
+/* TODO:...
         assert(pCdMan->pAccountDb->GetDbCount() == 43);
         assert(pCdMan->pContractDb->GetDbCount() == 0 || pCdMan->pContractDb->GetDbCount() == 1);
         assert(pCdMan->pTxCache->GetSize() == 0);
-
+*/
         CBlock firs = SysCfg().GenesisBlock();
         pWalletMain->SyncTransaction(uint256(), NULL, &firs);
         mempool.Clear();
@@ -3196,9 +3197,8 @@ Value listtxbyaddr(const Array& params, bool fHelp) {
     if (!GetKeyId(address, keyId))
         throw runtime_error("Address invalid.");
 
-    CContractCache scriptDbView(*pCdMan->pContractCache);
     map<string, string> mapTxHash;
-    if (!pCdMan->pContractDb->GetTxHashByAddress(keyId, height, mapTxHash))
+    if (!pCdMan->pContractCache->GetTxHashByAddress(keyId, height, mapTxHash))
         throw runtime_error("Failed to fetch data.");
 
     Object obj;

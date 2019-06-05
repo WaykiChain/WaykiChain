@@ -34,7 +34,7 @@ namespace dbk {
         EACH_ENUM_DEFINE( REINDEX,            "ridx")     /* [prefix] --> $Reindex = 1 | 0 */ \
         EACH_ENUM_DEFINE( FLAG,               "flag")     /* [prefix] --> $Flag = 1 | 0 */ \
         EACH_ENUM_DEFINE( VOTE,               "vote")     /* "vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1 */ \
-        EACH_ENUM_DEFINE( KEYID_TXID,         "idtx")     /* idtx{$KeyId}{$Height}{$Index} --> $txid */ \
+        EACH_ENUM_DEFINE( LIST_KEYID_TX,      "lktx")     /* lktx{$KeyId}{$Height}{$Index} --> $txid */ \
         EACH_ENUM_DEFINE( TXID_KEYIDS,        "tids")     /* tids{$txid} --> {$KeyId1, $KeyId2, ...}*/ \
         EACH_ENUM_DEFINE( TXID_DISKINDEX,     "tidx")     /* tidx{$txid} --> $DiskTxPos */ \
         EACH_ENUM_DEFINE( REGID_KEYID,        "rkey")     /* rkey{$RegID} --> $KeyId */ \
@@ -81,8 +81,11 @@ namespace dbk {
         return std::string(ssKeyTemp.begin(), ssKeyTemp.end());
     }
 
+
+
 }
 
+static const string DB_NAME_CONTRACT = "contract";
 
 typedef leveldb::Slice Slice;
 

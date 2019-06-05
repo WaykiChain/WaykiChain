@@ -334,4 +334,46 @@ public:
     string ToString() const;
 };
 
+
+enum ACCOUNT_TYPE {
+    // account type
+    regid      = 0x01,  //!< Registration accountId
+    base58addr = 0x02,  //!< pulickey
+};
+/**
+ * account operate produced in contract
+ * TODO: rename CVmOperate
+ */
+class CVmOperate{
+public:
+	unsigned char accountType;      //regid or base58addr
+	unsigned char accountId[34];	//!< accountId: address
+	unsigned char opType;		    //!OperType
+	unsigned int  timeoutHeight;    //!< the transacion Timeout height
+	unsigned char money[8];			//!<The transfer amount
+
+	IMPLEMENT_SERIALIZE
+	(
+		READWRITE(accountType);
+		for (int i = 0;i < 34;i++)
+			READWRITE(accountId[i]);
+		READWRITE(opType);
+		READWRITE(timeoutHeight);
+		for (int i = 0;i < 8;i++)
+			READWRITE(money[i]);
+	)
+
+	CVmOperate() {
+		accountType = regid;
+		memset(accountId, 0, 34);
+		opType = NULL_OP;
+		timeoutHeight = 0;
+		memset(money, 0, 8);
+	}
+
+	Object ToJson();
+
+};
+
+
 #endif
