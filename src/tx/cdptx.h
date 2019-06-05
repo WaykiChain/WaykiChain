@@ -71,6 +71,7 @@ public:
     virtual bool CheckTx(CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+
 };
 
 /**
@@ -144,7 +145,7 @@ public:
  */
 class CdpLiquidateTx: public CBaseTx {
 public:
-    uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
+    uint64_t scoinsToRedeem;         // stable coins to redeem base coins
 
 public:
     CdpTx() : CBaseTx(CDP_LIQUIDATE_TX) {}

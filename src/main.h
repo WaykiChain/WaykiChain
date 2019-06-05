@@ -122,6 +122,9 @@ static const unsigned char FCOIN_STAKE_FAIL     = 0X55;
 static const unsigned char READ_SCRIPT_FAIL     = 0X61;
 static const unsigned char WRITE_SCRIPT_FAIL    = 0X62;
 
+static const unsigned char STAKE_CDP_FAIL       = 0X71;
+static const unsigned char REDEEM_CDP_FAIL      = 0X71;
+
 static const uint64_t kMinDiskSpace              = 52428800;  // Minimum disk space required
 static const int kContractScriptMaxSize          = 65536;     // 64 KB max for contract script size
 static const int kContractArgumentMaxSize        = 4096;      // 4 KB max for contract argument size

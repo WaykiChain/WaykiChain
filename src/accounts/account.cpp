@@ -224,7 +224,7 @@ bool CAccount::StakeFcoins(const int64_t fcoinsToStake) {
     return true;
 }
 
-bool CAccount::StakeBcoinsToCdp(const int64_t bcoinsToStake) {
+bool CAccount::StakeBcoinsToCdp(CoinType coinType, const int64_t bcoinsToStake, const int64_t mintedScoins) {
      if (bcoinsToStake < 0) {
         return ERRORMSG("bcoinsToStake(%d) cannot be negative", bcoinsToStake);
     } else { // > 0
@@ -235,6 +235,7 @@ bool CAccount::StakeBcoinsToCdp(const int64_t bcoinsToStake) {
 
     bcoins -= bcoinsToStake;
     stakedBcoins += bcoinsToStake;
+    scoins += mintedScoins;
 
     return true;
 }

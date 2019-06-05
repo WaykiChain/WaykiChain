@@ -8,7 +8,7 @@
 #include "leveldbwrapper.h"
 
 bool CCdpCache::SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, uint64_t collateralRatio,
-                                int blockHeight, CDbOpLog &cdpDbOpLog) {
+                                uint64_t mintedScoins, int blockHeight, CDbOpLog &cdpDbOpLog) {
 
     string key = dbk::GenDbKey(dbk::CDP, txUid);
     CUserCdp lastCdp;
@@ -16,15 +16,14 @@ bool CCdpCache::SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, uint64_t c
         if (!GetData(key, lastCdp)) {
             return ERRORMSG("CCdpCache::SetStakeBcoins : GetData failed.");
         }
-
     }
 
     CUserCdp cdp        = lastCdp;
     cdp.lastBlockHeight = cdp.blockHeight;
-    cdp.lastOwedScoins += cdp.totalOwedScoins;
+    cdp.lastOwedScoins  += cdp.totalOwedScoins;
     cdp.blockHeight     = blockHeight;
     cdp.collateralRatio = collateralRatio;
-    cdp.mintedScoins    = bcoinsToStake / collateralRatio;
+    cdp.mintedScoins    = mintedScoins;
     cdp.totalOwedScoins += cdp.mintedScoins;
 
     if (!SetData(key, cdp)) {
