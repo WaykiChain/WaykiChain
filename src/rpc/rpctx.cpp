@@ -1925,7 +1925,7 @@ Value reloadtxcache(const Array& params, bool fHelp) {
 
 static int GetDataFromAppDb(CContractCache &cache, const CRegID &regId, int pagesize, int index,
         vector<std::tuple<string, string > > &ret) {
-    int dbsize;
+    int dbsize = 0;
     int height = chainActive.Height();
     cache.GetContractItemCount(regId, dbsize);
     if (0 == dbsize)
@@ -1992,7 +1992,7 @@ Value getcontractdataraw(const Array& params, bool fHelp) {
         return script;
 
     } else {
-        int dbsize;
+        int dbsize = 0;
         contractScriptTemp.GetContractItemCount(regId, dbsize);
         if (0 == dbsize) {
             throw runtime_error("the contract has NO data!");
@@ -2058,7 +2058,7 @@ Value getcontractdata(const Array& params, bool fHelp) {
         return script;
 
     } else {
-        int dbsize;
+        int dbsize = 0;
         pCdMan->pContractCache->GetContractItemCount(regId, dbsize);
         if (0 == dbsize) {
             throw runtime_error("the contract has NO data!");
