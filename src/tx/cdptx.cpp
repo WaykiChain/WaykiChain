@@ -20,7 +20,7 @@ bool CdpStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     return true;
 }
 
-bool CdpStakeTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CdpStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 

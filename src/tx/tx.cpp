@@ -79,8 +79,8 @@ int CBaseTx::GetFuelRate(CContractCache &scriptDB) {
 }
 
 // check the fees must be more than nMinTxFee
-bool CBaseTx::CheckMinTxFee(const uint64_t llFees) const {
-    if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2 )
+bool CBaseTx::CheckMinTxFee(const uint64_t llFees, const int nHeight) const {
+    if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2 )
         return llFees >= nMinTxFee;
 
     return true;

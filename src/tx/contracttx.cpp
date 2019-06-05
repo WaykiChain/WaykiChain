@@ -164,7 +164,7 @@ Object CContractDeployTx::ToJson(const CAccountCache &accountCache) const{
     return result;
 }
 
-bool CContractDeployTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CContractDeployTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
@@ -364,8 +364,8 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     cw.txUndo.accountLogs.push_back(srcAcctLog);
     cw.txUndo.accountLogs.push_back(desAcctLog);
 
-    vector<unsigned char> vScript;
-    if (!cw.contractCache.GetScript(appUid.get<CRegID>(), vScript))
+    string contractScript;
+    if (!cw.contractCache.GetScript(appUid.get<CRegID>(), contractScript))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, read script failed, regId=%s",
             appUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
@@ -482,7 +482,7 @@ bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
     return true;
 }
 
-bool CContractInvokeTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CContractInvokeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_ARGUMENTS;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
@@ -501,8 +501,8 @@ bool CContractInvokeTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, account unregistered"),
                         REJECT_INVALID, "bad-account-unregistered");
 
-    vector<unsigned char> vScript;
-    if (!cw.contractCache.GetScript(appUid.get<CRegID>(), vScript))
+    string contractScript;
+    if (!cw.contractCache.GetScript(appUid.get<CRegID>(), contractScript))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, read script failed, regId=%s",
                         appUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-read-script");
 

@@ -346,7 +346,6 @@ Value getblockchaininfo(const Array& params, bool fHelp)
     obj.push_back(Pair("chain",         chain));
     obj.push_back(Pair("blocks",        (int)chainActive.Height()));
     obj.push_back(Pair("bestblockhash", chainActive.Tip()->GetBlockHash().GetHex()));
-    obj.push_back(Pair("verificationprogress", Checkpoints::GuessVerificationProgress(chainActive.Tip())));
     return obj;
 }
 
@@ -387,28 +386,6 @@ Value getcontractregid(const Array& params, bool fHelp)
     Object result;
     result.push_back(Pair("regid", regID.ToString()));
     result.push_back(Pair("regid_hex", HexStr(regID.GetRegIdRaw())));
-    return result;
-}
-
-Value listcheckpoint(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 0) {
-        throw runtime_error(
-            "listcheckpoint index\n"
-            "\nget the list of checkpoint.\n"
-            "\nResult:\n"
-            "\nAn object containing checkpoint\n"
-            "\nExamples:\n"
-            + HelpExampleCli("listcheckpoint", "")
-            + HelpExampleRpc("listcheckpoint", ""));
-    }
-
-    Object result;
-    std::map<int, uint256> checkpointMap;
-    Checkpoints::GetCheckpointMap(checkpointMap);
-    for(std::map<int, uint256>::iterator iterCheck = checkpointMap.begin(); iterCheck != checkpointMap.end(); ++iterCheck){
-        result.push_back(Pair(tfm::format("%d", iterCheck->first).c_str(), iterCheck->second.GetHex()));
-    }
     return result;
 }
 

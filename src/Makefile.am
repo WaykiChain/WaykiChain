@@ -72,6 +72,7 @@ coin_CORE_H = \
   persistence/stakedb.h \
   persistence/pricefeeddb.h \
   persistence/txdb.h \
+  persistence/dbaccess.h \
   persistence/dbconf.h \
   protocol.h \
   random.h   \
@@ -274,8 +275,6 @@ libcoin_common_a_SOURCES = \
   protocol.cpp \
   persistence/block.cpp \
   persistence/cdpdb.cpp \
-  persistence/syncdata.cpp \
-  persistence/syncdatadb.cpp \
   persistence/accountdb.cpp \
   persistence/blockdb.cpp \
   persistence/contractdb.cpp \

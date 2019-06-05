@@ -1,8 +1,8 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The WaykiChain developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #ifndef COIN_NET_H
 #define COIN_NET_H
@@ -263,14 +263,13 @@ public:
     vector<CAddress> vAddrToSend;
     mruset<CAddress> setAddrKnown;
     bool fGetAddr;
-    set<uint256> setKnown;             // 存的是 alertHash
-    std::set<int> setcheckPointKnown;  // checkPoint 的height
+    set<uint256> setKnown;             // alertHash
 
     // inventory based relay
     mruset<CInv> setInventoryKnown;   //存放已收到的inv
     vector<CInv> vInventoryToSend;    //待发送的inv
     CCriticalSection cs_inventory;
-    multimap<int64_t, CInv> mapAskFor;   //向网络请求交易 的 时间, a priority queue
+    multimap<int64_t, CInv> mapAskFor;   //向网络请求交易的时间, a priority queue
 
     // Ping time measurement
     uint64_t nPingNonceSent;

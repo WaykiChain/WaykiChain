@@ -16,7 +16,7 @@
 #include "miner/miner.h"
 #include "version.h"
 
-bool CAccountRegisterTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CAccountRegisterTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
 
     if (txUid.type() != typeid(CPubKey))
@@ -93,9 +93,9 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
 
     if (llFees > 0) {
         CAccountLog accountLog;
-        if (!cw.txUndo.GetAccountOpLog(keyId, accountLog))
+        if (!cw.txUndo.GetAccountOperLog(keyId, accountLog))
             return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read keyId=%s tx undo info error",
-                            keyId.GetHex()), UPDATE_ACCOUNT_FAIL, "bad-read-txundoinfo");
+                            keyId.GetHex()), UPDATE_ACCOUNT_FAIL, "bad-read-undoinfo");
         oldAccount.UndoOperateAccount(accountLog);
     }
 

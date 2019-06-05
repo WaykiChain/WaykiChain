@@ -15,7 +15,7 @@
 #include <algorithm>
 
 bool CTransactionCache::IsContainBlock(const CBlock &block) {
-    return mapBlockTxHashSet.count(block.GetHash());
+    return mapBlockTxHashSet.count(block.GetHash()) || pBase->IsContainBlock(block);
 }
 
 bool CTransactionCache::AddBlockToCache(const CBlock &block) {
@@ -31,10 +31,14 @@ bool CTransactionCache::AddBlockToCache(const CBlock &block) {
 
 bool CTransactionCache::DeleteBlockFromCache(const CBlock &block) {
     if (IsContainBlock(block)) {
-        mapBlockTxHashSet.erase(block.GetHash());
+        UnorderedHashSet txHash;
+		mapBlockTxHashSet[block.GetHash()] = txHash;
+
+        return true;
     }
 
-    return true;
+    LogPrint("ERROR", "failed to delete transactions in block: %s", block.GetHash().GetHex());
+    return false;
 }
 
 bool CTransactionCache::HaveTx(const uint256 &txHash) {
@@ -44,15 +48,23 @@ bool CTransactionCache::HaveTx(const uint256 &txHash) {
         }
     }
 
-    return false;
+    return pBase->HaveTx(txHash);
 }
 
-void CTransactionCache::AddTxHashCache(const uint256 &blockHash, const UnorderedHashSet &vTxHash) {
-    mapBlockTxHashSet[blockHash] = vTxHash;
+void CTransactionCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn) {
+    for (auto &item : mapBlockTxHashSetIn) {
+        mapBlockTxHashSet[item.first] = item.second;
+    }
 }
 
-void CTransactionCache::Flush(CTransactionCache *txCache) {
-    txCache->SetTxHashCache(mapBlockTxHashSet);
+void CTransactionCache::Flush() {
+    pBase->BatchWrite(mapBlockTxHashSet);
+    mapBlockTxHashSet.clear();
+}
+
+void CTransactionCache::Flush(CTransactionCache *pBaseIn) {
+    pBaseIn->BatchWrite(mapBlockTxHashSet);
+    mapBlockTxHashSet.clear();
 }
 
 void CTransactionCache::Clear() { mapBlockTxHashSet.clear(); }
@@ -170,7 +182,7 @@ string CTxUndo::ToString() const {
 
     string strAccountLog("list account log:");
     for (auto iterLog : accountLogs) {
-        strAccountLog += iterLog->ToString();
+        strAccountLog += iterLog.ToString();
         strAccountLog += ";";
     }
 
@@ -178,9 +190,9 @@ string CTxUndo::ToString() const {
 
     string strDBOperLog("list LDB Oplog:");
     for (auto itemOpLogs : mapDbOpLogs) {
-        strDBOperLog += strprintf("type:%d {", itemOpLogs.first)
+        strDBOperLog += strprintf("type:%d {", itemOpLogs.first);
         for (auto iterDbLog : itemOpLogs.second) {
-            strDBOperLog += iterDbLog->ToString();
+            strDBOperLog += iterDbLog.ToString();
             strDBOperLog += ";";
         }
         strDBOperLog += "}";
@@ -193,8 +205,8 @@ string CTxUndo::ToString() const {
 
 bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {
     for (auto iterLog : accountLogs) {
-        if (iterLog->keyID == keyId) {
-            accountLog = *iterLog;
+        if (iterLog.keyID == keyId) {
+            accountLog = iterLog;
             return true;
         }
     }

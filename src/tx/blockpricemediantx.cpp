@@ -8,7 +8,7 @@
 #include "main.h"
 
 
-bool CBlockPriceMedianTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CBlockPriceMedianTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
     return true;
 }

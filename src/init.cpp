@@ -19,7 +19,6 @@
 #include "main.h"
 #include "miner/miner.h"
 #include "net.h"
-#include "persistence/syncdatadb.h"
 #include "persistence/blockdb.h"
 #include "persistence/accountdb.h"
 #include "persistence/txdb.h"
@@ -263,7 +262,6 @@ string HelpMessage() {
     strUsage += "\n" + _("Debugging/Testing options:") + "\n";
     if (SysCfg().GetBoolArg("-help-debug", false)) {
         strUsage += "  -benchmark             " + _("Show benchmark information (default: 0)") + "\n";
-        strUsage += "  -checkpoints           " + _("Only accept block chain matching built-in checkpoints (default: 1)") + "\n";
         strUsage += "  -dblogsize=<n>         " + _("Flush database activity from memory pool to disk log every <n> megabytes (default: 100)") + "\n";
         strUsage += "  -disablesafemode       " + _("Disable safemode, override a real safe mode event (default: 0)") + "\n";
         strUsage += "  -testsafemode          " + _("Force safe mode (default: 0)") + "\n";
@@ -513,7 +511,6 @@ bool AppInit(boost::thread_group &threadGroup) {
 
     SysCfg().SetBenchMark(SysCfg().GetBoolArg("-benchmark", false));
     mempool.SetSanityCheck(SysCfg().GetBoolArg("-checkmempool", RegTest()));
-    Checkpoints::fEnabled = SysCfg().GetBoolArg("-checkpoints", true);
 
     setvbuf(stdout, nullptr, _IOLBF, 0);
 
@@ -732,15 +729,6 @@ bool AppInit(boost::thread_group &threadGroup) {
         cout << "load wallet failed:" << e.what() << endl;
     }
 
-    // load checkpoint
-    SyncData::CSyncDataDb db;
-    if (db.InitializeSyncDataDb(GetDataDir() / "syncdata")) {
-        if (!Checkpoints::LoadCheckpoint()) {
-            LogPrint("INFO", "load check point error!\n");
-            return false;
-        }
-    }
-
     int64_t nStart = GetTimeMillis();
     bool fLoaded = false;
     while (!fLoaded) {
@@ -865,11 +853,6 @@ bool AppInit(boost::thread_group &threadGroup) {
         ++nCount;
     }
     LogPrint("INFO", "Added the latest %d blocks to txcache (%dms)\n", nCount, GetTimeMillis() - nStart);
-
-    // check current chain according to checkpoint
-    CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
-    if (nullptr != pcheckpoint)
-        CheckActiveChain(pcheckpoint->nHeight, pcheckpoint->GetBlockHash());
 
     vector<boost::filesystem::path> vImportFiles;
     if (SysCfg().IsArgCount("-loadblock")) {

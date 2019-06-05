@@ -623,7 +623,7 @@ BOOST_FIXTURE_TEST_CASE(appacc,CSysScriptTest){
 	BOOST_CHECK(SysTestBase::GetRegID(address,strreg));
 	std::shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
 	contractScriptTemp.GetScriptAcc(script,strreg.GetRegIdRaw(),*tem.get());
-	BOOST_CHECK(tem.get()->Getbcoins() == nMoney);
+	BOOST_CHECK(tem.get()->GetBcoins() == nMoney);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

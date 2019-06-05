@@ -16,7 +16,7 @@
 #include "miner/miner.h"
 #include "version.h"
 
-bool CBlockRewardTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CBlockRewardTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
     return true;
 };

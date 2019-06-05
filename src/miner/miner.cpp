@@ -99,44 +99,45 @@ void IncrementExtraNonce(CBlock *pBlock, CBlockIndex *pIndexPrev, unsigned int &
 bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList) {
     LOCK(cs_main);
 
-    int TotalDelegateNum = IniCfg().GetTotalDelegateNum();
-    int nIndex       = 0;
-    vector<unsigned char> vScriptData;
-    vector<unsigned char> vScriptKey      = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
-    vector<unsigned char> vDelegatePrefix = vScriptKey;
-    const int SCRIPT_KEY_PREFIX_LENGTH    = 9;
-    const int VOTES_STRING_SIZE           = 16;
-    while (--TotalDelegateNum >= 0) {
-        CRegID regId(0, 0);
-        if (pCdMan->pContractCache->GetContractData(0, regId, nIndex, vScriptKey, vScriptData)) {
-            nIndex                                    = 1;
-            vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrefix.begin(), vDelegatePrefix.end());
-            string strVoltes(iterVotes + SCRIPT_KEY_PREFIX_LENGTH, iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE);
-            uint64_t receivedVotes = 0;
-            char *stopstring;
-            receivedVotes = strtoull(strVoltes.c_str(), &stopstring, VOTES_STRING_SIZE);
-            vector<unsigned char> vAcctRegId(iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE + 1, vScriptKey.end());
-            CRegID acctRegId(vAcctRegId);
-            CAccount account;
-            if (!pCdMan->pAccountCache->GetAccount(acctRegId, account)) {
-                LogPrint("ERROR", "GetAccount Error, acctRegId:%s\n", acctRegId.ToString());
-                // StartShutdown();
-                return false;
-            }
-            uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
-            if ((maxNum - receivedVotes) != account.receivedVotes) {
-                LogPrint("ERROR", "acctRegId:%s, scriptkey:%s, scriptvalue:%s => receivedVotes:%lld, account:%s\n",
-                         acctRegId.ToString(), HexStr(vScriptKey.begin(), vScriptKey.end()),
-                         HexStr(vScriptData.begin(), vScriptData.end()), maxNum - receivedVotes, account.ToString());
-                // StartShutdown();
-                return false;
-            }
-            vDelegatesAcctList.push_back(account);
-        } else {
-            StartShutdown();
-            return false;
-        }
-    }
+    // TODO:
+    // int TotalDelegateNum = IniCfg().GetTotalDelegateNum();
+    // int nIndex       = 0;
+    // vector<unsigned char> vScriptData;
+    // vector<unsigned char> vScriptKey      = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
+    // vector<unsigned char> vDelegatePrefix = vScriptKey;
+    // const int SCRIPT_KEY_PREFIX_LENGTH    = 9;
+    // const int VOTES_STRING_SIZE           = 16;
+    // while (--TotalDelegateNum >= 0) {
+    //     CRegID regId(0, 0);
+    //     if (pCdMan->pContractCache->GetContractData(0, regId, nIndex, vScriptKey, vScriptData)) {
+    //         nIndex                                    = 1;
+    //         vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrefix.begin(), vDelegatePrefix.end());
+    //         string strVoltes(iterVotes + SCRIPT_KEY_PREFIX_LENGTH, iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE);
+    //         uint64_t receivedVotes = 0;
+    //         char *stopstring;
+    //         receivedVotes = strtoull(strVoltes.c_str(), &stopstring, VOTES_STRING_SIZE);
+    //         vector<unsigned char> vAcctRegId(iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE + 1, vScriptKey.end());
+    //         CRegID acctRegId(vAcctRegId);
+    //         CAccount account;
+    //         if (!pCdMan->pAccountCache->GetAccount(acctRegId, account)) {
+    //             LogPrint("ERROR", "GetAccount Error, acctRegId:%s\n", acctRegId.ToString());
+    //             // StartShutdown();
+    //             return false;
+    //         }
+    //         uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
+    //         if ((maxNum - receivedVotes) != account.receivedVotes) {
+    //             LogPrint("ERROR", "acctRegId:%s, scriptkey:%s, scriptvalue:%s => receivedVotes:%lld, account:%s\n",
+    //                      acctRegId.ToString(), HexStr(vScriptKey.begin(), vScriptKey.end()),
+    //                      HexStr(vScriptData.begin(), vScriptData.end()), maxNum - receivedVotes, account.ToString());
+    //             // StartShutdown();
+    //             return false;
+    //         }
+    //         vDelegatesAcctList.push_back(account);
+    //     } else {
+    //         StartShutdown();
+    //         return false;
+    //     }
+    // }
     return true;
 }
 
@@ -594,7 +595,7 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
 
             auto spCW = std::make_shared<CCacheWrapper>();
             spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
-            spCW->txCache = *pCdMan->pTxCache;
+            spCW->txCache.SetBaseView(pCdMan->pTxCache);
             spCW->contractCache.SetBaseView(pCdMan->pContractCache);
 
             g_miningBlockInfo.SetNull();

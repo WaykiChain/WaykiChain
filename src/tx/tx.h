@@ -156,19 +156,19 @@ public:
     virtual uint256 GetHash() const { return ComputeSignatureHash(); };
     virtual unsigned int GetSerializeSize(int nType, int nVersion) const { return 0; };
 
-    virtual uint64_t GetFuel(int nfuelRate);
+    virtual uint64_t GetFuel(int nFuelRate);
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); };
     virtual uint64_t GetValue() const { return 0; };
 
-    virtual uint256 ComputeSignatureHash(bool recalculate = false) const    = 0;
-    virtual std::shared_ptr<CBaseTx> GetNewInstance()                       = 0;
+    virtual uint256 ComputeSignatureHash(bool recalculate = false) const = 0;
+    virtual std::shared_ptr<CBaseTx> GetNewInstance()                    = 0;
 
-    virtual string ToString(CAccountCache &view)            = 0;
-    virtual Object ToJson(const CAccountCache &view) const              = 0;
-    virtual bool GetInvolvedKeyIds(CCacheWrapper& cw, set<CKeyID> &keyIds) = 0;
+    virtual string ToString(CAccountCache &view)                           = 0;
+    virtual Object ToJson(const CAccountCache &view) const                 = 0;
+    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) = 0;
 
-    virtual bool CheckTx(CCacheWrapper &cw, CValidationState &state) = 0;
-    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state)  = 0;
+    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state)                   = 0;
+    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state)     = 0;
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) = 0;
 
     int GetFuelRate(CContractCache &scriptDB);
@@ -176,7 +176,7 @@ public:
     bool IsCoinBase() { return (nTxType == BLOCK_REWARD_TX); }
 
 protected:
-    bool CheckMinTxFee(const uint64_t llFees) const;
+    bool CheckMinTxFee(const uint64_t llFees, const int nHeight) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const ;
 };
 
@@ -236,7 +236,7 @@ public:
         return state.DoS(100, ERRORMSG("%s::CheckTx, tx fee out of range", __FUNCTION__), REJECT_INVALID,          \
                          "bad-tx-fee-toolarge");                                                                   \
                                                                                                                    \
-    if (!CheckMinTxFee(llFees)) {                                                                                  \
+    if (!CheckMinTxFee(llFees, nHeight)) {                                                                         \
         return state.DoS(100, ERRORMSG("%s::CheckTx, tx fee smaller than MinTxFee", __FUNCTION__), REJECT_INVALID, \
                          "bad-tx-fee-toosmall");                                                                   \
     }

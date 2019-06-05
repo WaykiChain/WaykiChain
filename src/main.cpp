@@ -16,7 +16,6 @@
 #include "persistence/accountdb.h"
 #include "persistence/blockdb.h"
 #include "persistence/contractdb.h"
-#include "persistence/syncdatadb.h"
 #include "persistence/txdb.h"
 #include "tx/blockrewardtx.h"
 #include "tx/merkletx.h"
@@ -540,12 +539,12 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<unsigned char> &s
     return true;
 }
 
-bool CheckTx(CBaseTx *ptx, CCacheWrapper &cw, CValidationState &state) {
+bool CheckTx(int nHeight, CBaseTx *ptx, CCacheWrapper &cw, CValidationState &state) {
     if (BLOCK_REWARD_TX == ptx->nTxType || BLOCK_PRICE_MEDIAN_TX == ptx->nTxType) {
         return true;
     }
 
-    return (ptx->CheckTx(cw, state));
+    return (ptx->CheckTx(nHeight, cw, state));
 }
 
 int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree) {
@@ -593,7 +592,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     spCW->accountCache.SetBaseView(pool.memPoolAccountCache.get());
     spCW->contractCache.SetBaseView(pool.memPoolContractCache.get());
 
-    if (!CheckTx(pBaseTx, *spCW, state))
+    if (!CheckTx(chainActive.Height(), pBaseTx, *spCW, state))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed");
 
     {
@@ -882,23 +881,6 @@ unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime) {
     return bnResult.GetCompact();
 }
 
-double CaculateDifficulty(unsigned int nBits) {
-    int nShift = (nBits >> 24) & 0xff;
-
-    double dDiff = (double)0x0000ffff / (double)(nBits & 0x00ffffff);
-
-    while (nShift < 29) {
-        dDiff *= 256.0;
-        nShift++;
-    }
-    while (nShift > 29) {
-        dDiff /= 256.0;
-        nShift--;
-    }
-
-    return dDiff;
-}
-
 arith_uint256 GetBlockProof(const CBlockIndex &block) {
     arith_uint256 bnTarget;
     bool fNegative;
@@ -920,7 +902,6 @@ CBlockIndex *pindexBestForkTip = nullptr, *pindexBestForkBase = nullptr;
 void CheckForkWarningConditions() {
     AssertLockHeld(cs_main);
     // Before we get past initial download, we cannot reliably alert about forks
-    // (we assume we don't get stuck on a fork before the last checkpoint)
     if (IsInitialBlockDownload())
         return;
 
@@ -1521,14 +1502,11 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
     // New best block
     SysCfg().SetBestRecvTime(GetTime());
     mempool.AddUpdatedTransactionNum(1);
-    LogPrint("INFO", "UpdateTip: new best=%s  height=%d  log2_work=%.8g  tx=%lu  date=%s progress=%f txnumber=%d dFeePerKb=%lf nFuelRate=%d\n",
-             chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), log(chainActive.Tip()->nChainWork.getdouble()) / log(2.0), (unsigned long)chainActive.Tip()->nChainTx,
+    LogPrint("INFO", "UpdateTip: new best=%s  height=%d  tx=%lu  date=%s txnumber=%d dFeePerKb=%lf nFuelRate=%d\n",
+             chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), (unsigned long)chainActive.Tip()->nChainTx,
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
-             Checkpoints::GuessVerificationProgress(chainActive.Tip()), block.vptx.size(), chainActive.Tip()->dFeePerKb, chainActive.Tip()->nFuelRate);
-    LogPrint("updatetip", "UpdateTip: new best=%s  height=%d  log2_work=%.8g  tx=%lu  date=%s progress=%f txnumber=%d dFeePerKb=%lf nFuelRate=%d difficulty=%.8lf\n",
-             chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), log(chainActive.Tip()->nChainWork.getdouble()) / log(2.0), (unsigned long)chainActive.Tip()->nChainTx,
-             DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
-             Checkpoints::GuessVerificationProgress(chainActive.Tip()), block.vptx.size(), chainActive.Tip()->dFeePerKb, chainActive.Tip()->nFuelRate, CaculateDifficulty(chainActive.Tip()->nBits));
+             block.vptx.size(), chainActive.Tip()->dFeePerKb, chainActive.Tip()->nFuelRate);
+
     // Check the version of the last 100 blocks to see if we need to upgrade:
     if (!fIsInitialDownload) {
         int nUpgraded             = 0;
@@ -1621,7 +1599,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
 
         auto spCW = std::make_shared<CCacheWrapper>();
         spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
-        spCW->txCache = *pCdMan->pTxCache;
+        spCW->txCache.SetBaseView(pCdMan->pTxCache);
         spCW->contractCache.SetBaseView(pCdMan->pContractCache);
 
         if (!ConnectBlock(block, *spCW, pIndexNew, state)) {
@@ -1727,7 +1705,7 @@ void static FindMostWorkChain() {
 // Try to activate to the most-work chain (thereby connecting it).
 bool ActivateBestChain(CValidationState &state) {
     LOCK(cs_main);
-    CBlockIndex *pindexOldTip = chainActive.Tip();
+    CBlockIndex *pIndexOldTip = chainActive.Tip();
     bool fComplete            = false;
     while (!fComplete) {
         FindMostWorkChain();
@@ -1768,7 +1746,7 @@ bool ActivateBestChain(CValidationState &state) {
         }
     }
 
-    if (chainActive.Tip() != pindexOldTip) {
+    if (chainActive.Tip() != pIndexOldTip) {
         string strCmd = SysCfg().GetArg("-blocknotify", "");
         if (!IsInitialBlockDownload() && !strCmd.empty()) {
             boost::replace_all(strCmd, "%s", chainActive.Tip()->GetBlockHash().GetHex());
@@ -1932,7 +1910,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     auto spForkCW       = std::make_shared<CCacheWrapper>();
     auto spCW           = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
-    spCW->txCache       = *pCdMan->pTxCache;
+    spCW->txCache.SetBaseView(pCdMan->pTxCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
 
     bool forkChainTipFound = false;
@@ -2116,7 +2094,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     for (unsigned int i = 0; i < block.vptx.size(); i++) {
         uniqueTx.insert(block.GetTxHash(i));
 
-        if (fCheckTx && !CheckTx(block.vptx[i].get(), cw, state))
+        if (fCheckTx && !CheckTx(block.GetHeight(), block.vptx[i].get(), cw, state))
             return ERRORMSG("CheckBlock() :tx hash:%s CheckTx failed", block.vptx[i]->GetHash().GetHex());
 
         if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {
@@ -2185,17 +2163,6 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
                                 REJECT_INVALID, "time-too-early");
         }
 
-        // Check that the block chain matches the known blockchain up to a checkpoint
-        if (!Checkpoints::CheckBlock(nHeight, blockHash)) {
-            return state.DoS(100, ERRORMSG("AcceptBlock() : rejected by checkpoint lock-in at %d", nHeight),
-                            REJECT_CHECKPOINT, "checkpoint mismatch");
-        }
-
-        // Don't accept any forks from the main chain prior to last checkpoint
-        CBlockIndex *pCheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
-        if (pCheckpoint && (nHeight < pCheckpoint->nHeight))
-            return state.DoS(100, ERRORMSG("AcceptBlock() : forked chain older than last checkpoint (height %d)", nHeight));
-
         // Process forked branch
         if (!ProcessForkedChain(block, pBlockIndexPrev, state)) {
             LogPrint("INFO", "ProcessForkedChain() end: %lld ms\n", GetTimeMillis() - tempTime);
@@ -2232,11 +2199,10 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
     }
 
     // Relay inventory, but don't relay old inventory during initial block download
-    int nBlockEstimate = Checkpoints::GetTotalBlocksEstimate();
     if (chainActive.Tip()->GetBlockHash() == blockHash) {
         LOCK(cs_vNodes);
         for (auto pNode : vNodes) {
-            if (chainActive.Height() > (pNode->nStartingHeight != -1 ? pNode->nStartingHeight - 2000 : nBlockEstimate))
+            if (chainActive.Height() > (pNode->nStartingHeight != -1 ? pNode->nStartingHeight - 2000 : 0))
                 pNode->PushInventory(CInv(MSG_BLOCK, blockHash));
         }
     }
@@ -2458,146 +2424,6 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     return true;
 }
 
-bool CheckActiveChain(int nHeight, uint256 hash) {
-    LogPrint("CHECKPOINT", "CheckActiveChain Enter====\n");
-    LogPrint("CHECKPOINT", "check point hash:%s\n", hash.ToString());
-    if (nHeight < 1) {
-        return true;
-    }
-    LOCK(cs_main);
-    CBlockIndex *pindexOldTip = chainActive.Tip();
-    LogPrint("CHECKPOINT", "Current tip block:\n");
-    LogPrint("CHECKPOINT", pindexOldTip->ToString().c_str());
-
-    // Find the active chain dismatch checkpoint
-    if (nullptr == chainActive[nHeight] || hash != chainActive[nHeight]->GetBlockHash()) {
-        CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
-        LogPrint("CHECKPOINT", "Get Last check point:\n");
-        if (pcheckpoint) {
-            if (nullptr == chainActive[nHeight] && chainActive.Contains(pcheckpoint)) {
-                return true;
-            }
-            pcheckpoint->Print();
-            chainMostWork.SetTip(pcheckpoint);
-            bool bInvalidBlock                                                      = false;
-            std::set<CBlockIndex *, CBlockIndexWorkComparator>::reverse_iterator it = setBlockIndexValid.rbegin();
-            for (; (it != setBlockIndexValid.rend()) && !chainMostWork.Contains(*it);) {
-                bInvalidBlock           = false;
-                CBlockIndex *pIndexTest = *it;
-                LogPrint("CHECKPOINT", "iterator:height=%d, hash=%s\n",
-                        pIndexTest->nHeight, pIndexTest->GetBlockHash().GetHex());
-
-                if (pcheckpoint->nHeight < nHeight) {
-                    if (pIndexTest->nHeight >= nHeight) {
-                        LogPrint("CHECKPOINT", "CheckActiveChain delete blockindex:%s\n",
-                            pIndexTest->GetBlockHash().GetHex());
-
-                        setBlockIndexValid.erase(pIndexTest);
-                        it            = setBlockIndexValid.rbegin();
-                        bInvalidBlock = true;
-                    }
-
-                } else {
-                    CBlockIndex *pIndexCheck = pIndexTest->pprev;
-                    while (pIndexCheck && !chainMostWork.Contains(pIndexCheck)) {
-                        pIndexCheck = pIndexCheck->pprev;
-                    }
-                    if (nullptr == pIndexCheck || pIndexCheck->nHeight < pcheckpoint->nHeight) {
-                        CBlockIndex *pIndexFailed = pIndexCheck;
-                        while (pIndexTest != pIndexFailed) {
-                            LogPrint("CHECKPOINT", "CheckActiveChain delete blockindex height=%d hash=%s\n",
-                                    pIndexTest->nHeight, pIndexTest->GetBlockHash().GetHex());
-
-                            setBlockIndexValid.erase(pIndexTest);
-                            it            = setBlockIndexValid.rbegin();
-                            bInvalidBlock = true;
-                            pIndexTest    = pIndexTest->pprev;
-                        }
-                    }
-                    if (chainMostWork.Contains(pIndexCheck) &&
-                        chainMostWork.Height() == pIndexCheck->nHeight &&
-                        pIndexTest->nChainWork > chainMostWork.Tip()->nChainWork) {
-
-                        chainMostWork.SetTip(pIndexTest);
-                        LogPrint("CHECKPOINT", "chainMostWork tip:height=%d, hash=%s\n",
-                                pIndexTest->nHeight, pIndexTest->GetBlockHash().GetHex());
-                    }
-                }
-                if (!bInvalidBlock)
-                    ++it;
-            }
-
-        } else {
-            if (nullptr == chainActive[ nHeight ])
-                return true;
-
-            bool bInvalidBlock = false;
-            std::set<CBlockIndex *, CBlockIndexWorkComparator>::reverse_iterator it =
-                setBlockIndexValid.rbegin();
-
-            for (; it != setBlockIndexValid.rend();) {
-                bInvalidBlock           = false;
-                CBlockIndex *pBlockTest = *it;
-                while (pBlockTest->nHeight > nHeight) {
-                    pBlockTest = pBlockTest->pprev;
-                }
-                if (pBlockTest->GetBlockHash() != hash) {
-                    CBlockIndex *pBlockIndexFailed = *it;
-                    while (pBlockIndexFailed != pBlockTest) {
-                        LogPrint("CHECKPOINT", "CheckActiveChain delete blockindex height=%d hash=%s\n",
-                                pBlockIndexFailed->nHeight, pBlockIndexFailed->GetBlockHash().GetHex());
-
-                        setBlockIndexValid.erase(pBlockIndexFailed);
-                        pBlockIndexFailed = pBlockIndexFailed->pprev;
-                        it                = setBlockIndexValid.rbegin();
-                        bInvalidBlock     = true;
-                        LogPrint("CHECKPOINT", "setBlockIndexValid size:%d\n", setBlockIndexValid.size());
-                    }
-                }
-                if (!bInvalidBlock)
-                    ++it;
-            }
-            assert(chainActive[nHeight - 1]);
-            chainMostWork.SetTip(chainActive[nHeight - 1]);
-        }
-
-        // Check whether we have something to do. sync chainMostWork to chainActive;disconnect block or connect block;
-        if (chainMostWork.Tip() == nullptr)
-            return false;
-        CValidationState state;
-        while (chainActive.Tip() && !chainMostWork.Contains(chainActive.Tip())) {
-            if (!DisconnectTip(state))
-                return false;
-        }
-        while (nullptr != chainMostWork[chainActive.Height() + 1]) {
-            CBlockIndex *pindexConnect = chainMostWork[chainActive.Height() + 1];
-            if (!ConnectTip(state, pindexConnect)) {
-                if (state.IsInvalid()) {
-                    // The block violates a consensus rule.
-                    if (!state.CorruptionPossible())
-                        InvalidChainFound(chainMostWork.Tip());
-                    state = CValidationState();
-                    break;
-                } else {
-                    // A system error occurred (disk space, database error, ...).
-                    return false;
-                }
-            }
-            setBlockIndexValid.insert(pindexConnect);
-        }
-    }
-
-    if (chainActive.Tip() != pindexOldTip) {
-        std::string strCmd = SysCfg().GetArg("-blocknotify", "");
-        if (!IsInitialBlockDownload() && !strCmd.empty()) {
-            boost::replace_all(strCmd, "%s", chainActive.Tip()->GetBlockHash().GetHex());
-            boost::thread t(runCommand, strCmd);  // thread runs free
-        }
-    }
-    LogPrint("CHECKPOINT", "CheckActiveChain End====\n");
-    return true;
-}
-
 CMerkleBlock::CMerkleBlock(const CBlock &block, CBloomFilter &filter) {
     header = block.GetBlockHeader();
 
@@ -2806,10 +2632,9 @@ bool static LoadBlockIndexDB() {
     }
 
     chainActive.SetTip(it->second);
-    LogPrint("INFO", "LoadBlockIndexDB(): hashBestChain=%s height=%d date=%s progress=%f\n",
+    LogPrint("INFO", "LoadBlockIndexDB(): hashBestChain=%s height=%d date=%s\n",
              chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
-             DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
-             Checkpoints::GuessVerificationProgress(chainActive.Tip()));
+             DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));
 
     return true;
 }
@@ -2829,7 +2654,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
 
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
-    spCW->txCache = *pCdMan->pTxCache;
+    spCW->txCache.SetBaseView(pCdMan->pTxCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
 
     CBlockIndex *pIndexState   = chainActive.Tip();
@@ -3171,19 +2996,7 @@ void static ProcessGetData(CNode *pFrom) {
                 bool send                                = false;
                 map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(inv.hash);
                 if (mi != mapBlockIndex.end()) {
-                    // If the requested block is at a height below our last
-                    // checkpoint, only serve it if it's in the checkpointed chain
-                    int nHeight              = mi->second->nHeight;
-                    CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
-                    if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
-                        if (!chainActive.Contains(mi->second)) {
-                            LogPrint("INFO", "ProcessGetData(): ignoring request for old block that isn't in the main chain\n");
-                        } else {
-                            send = true;
-                        }
-                    } else {
-                        send = true;
-                    }
+                    send = true;
                 }
                 if (send) {
                     // Send block from disk
@@ -3396,11 +3209,9 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
 
         AddTimeData(pFrom->addr, nTime);
 
-        LOCK(cs_main);
-        cPeerBlockCounts.input(pFrom->nStartingHeight);
-
-        if (pFrom->nStartingHeight > Checkpoints::GetTotalBlocksEstimate()) {
-            pFrom->PushMessage("getcheck", Checkpoints::GetTotalBlocksEstimate());
+        {
+            LOCK(cs_main);
+            cPeerBlockCounts.input(pFrom->nStartingHeight);
         }
     }
 
@@ -3866,51 +3677,6 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
             LogPrint("net", "Reject %s\n", SanitizeString(s));
         }
 
-    } else if (strCommand == "checkpoint") {
-        LogPrint("CHECKPOINT", "enter checkpoint\n");
-        std::vector<int> vIndex;
-        std::vector<SyncData::CSyncData> vdata;
-        vRecv >> vdata;
-        BOOST_FOREACH (SyncData::CSyncData &data, vdata) {
-            if (data.CheckSignature(SysCfg().GetCheckPointPKey())) {
-                SyncData::CSyncCheckPoint point;
-                point.SetData(data);
-                SyncData::CSyncDataDb db;
-                if (!db.ExistCheckpoint(point.m_height)) {
-                    db.WriteCheckpoint(point.m_height, data);
-                    Checkpoints::AddCheckpoint(point.m_height, point.m_hashCheckpoint);
-                    CheckActiveChain(point.m_height, point.m_hashCheckpoint);
-                    pFrom->setcheckPointKnown.insert(point.m_height);
-                    vIndex.push_back(point.m_height);
-                }
-            }
-        }
-        if (vIndex.size() == 1 && vIndex.size() == vdata.size()) {
-            LOCK(cs_vNodes);
-            BOOST_FOREACH (CNode *pNode, vNodes) {
-                if (pNode->setcheckPointKnown.count(vIndex[0]) == 0) {
-                    pNode->setcheckPointKnown.insert(vIndex[0]);
-                    pNode->PushMessage("checkpoint", vdata);
-                }
-            }
-        }
-    } else if (strCommand == "getcheck") {
-        int height = 0;
-        vRecv >> height;
-        SyncData::CSyncDataDb db;
-        std::vector<SyncData::CSyncData> vdata;
-        std::vector<int> vheight;
-        Checkpoints::GetCheckpointByHeight(height, vheight);
-        for (std::size_t i = 0; i < vheight.size(); ++i) {
-            SyncData::CSyncData data;
-            if (pFrom->setcheckPointKnown.count(vheight[i]) == 0 && db.ReadCheckpoint(vheight[i], data)) {
-                pFrom->setcheckPointKnown.insert(vheight[i]);
-                vdata.push_back(data);
-            }
-        }
-        if (!vdata.empty()) {
-            pFrom->PushMessage("checkpoint", vdata);
-        }
     } else {
         // Ignore unknown commands for extensibility
     }
@@ -4345,14 +4111,13 @@ uint64_t GetBlockSubsidy(int nHeight) {
 bool IsInitialBlockDownload() {
     LOCK(cs_main);
     if (SysCfg().IsImporting() ||
-        SysCfg().IsReindex() ||
-        chainActive.Height() < Checkpoints::GetTotalBlocksEstimate())
+        SysCfg().IsReindex())
         return true;
 
     static int64_t nLastUpdate;
-    static CBlockIndex *pindexLastBest;
-    if (chainActive.Tip() != pindexLastBest) {
-        pindexLastBest = chainActive.Tip();
+    static CBlockIndex *pIndexLastBest;
+    if (chainActive.Tip() != pIndexLastBest) {
+        pIndexLastBest = chainActive.Tip();
         nLastUpdate    = GetTime();
     }
 

@@ -63,12 +63,10 @@ OBJS = 	vm/lmylib.o \
 		addrman.o \
 		alert.o \
 		bloom.o \
-		checkpoints.o \
 		init.o \
 		txdb.o \
 		util.o \
 		miner.o \
-		syncdatadb.o \
 		leveldbwrapper.o \
 		version.o \
 		allocators.o \
@@ -95,7 +93,6 @@ OBJS = 	vm/lmylib.o \
 		random.o \
 		wallet/db.o \
 		support/cleanse.o \
-		syncdata.o
 
 RESOBJ = mylib.o
 

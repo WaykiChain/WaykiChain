@@ -62,7 +62,7 @@ bool CDelegateVoteTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) 
 }
 
 
-bool CDelegateVoteTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CDelegateVoteTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
@@ -91,7 +91,7 @@ bool CDelegateVoteTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
                         REJECT_INVALID, "bad-account-unregistered");
     }
 
-    if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2) {
+    if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2) {
         IMPLEMENT_CHECK_TX_SIGNATURE(sendAcct.pubKey);
     }
 
@@ -107,7 +107,7 @@ bool CDelegateVoteTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, address=%s",
                              vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
 
-        if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2) {
+        if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2) {
             if (!account.IsRegistered()) {
                 return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account is unregistered, address=%s",
                                  vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");

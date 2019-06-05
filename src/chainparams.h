@@ -311,7 +311,6 @@ public:
     int GetUIPort() const {
         return nUIPort;
     }
-    const string& GetCheckPointPKey() const {return CheckPointPKey;}
     static bool InitializeParams(int argc, const char* const argv[]);
     static int64_t GetArg(const string& strArg, int64_t nDefault);
     static string GetArg(const string& strArg, const string& strDefault);
@@ -354,7 +353,7 @@ protected:
     int nDefaultPort;
     int nRPCPort;
     int nUIPort;
-    string CheckPointPKey;
+    string alartPKey;
     arith_uint256 bnProofOfStakeLimit;
     int nSubsidyHalvingInterval;
     string strDataDir;

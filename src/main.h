@@ -110,7 +110,6 @@ static const unsigned char REJECT_DUPLICATE       = 0x12;
 static const unsigned char REJECT_NONSTANDARD     = 0x40;
 static const unsigned char REJECT_DUST            = 0x41;
 static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
-static const unsigned char REJECT_CHECKPOINT      = 0x43;
 
 static const unsigned char READ_ACCOUNT_FAIL    = 0X51;
 static const unsigned char WRITE_ACCOUNT_FAIL   = 0X52;
@@ -189,15 +188,6 @@ bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CCon
 /** Retrieve a transaction height comfirmed in block*/
 int GetTxConfirmHeight(const uint256 &hash, CContractCache &scriptDBCache);
 
-
-/*calutate difficulty */
-double CaculateDifficulty(unsigned int nBits);
-
-/** receive checkpoint check make active chain accord to the checkpoint **/
-bool CheckActiveChain(int nHeight, uint256 hash);
-
-
-
 /** Abort with a message */
 bool AbortNode(const string &msg);
 /** Get statistics from node state */
@@ -227,7 +217,7 @@ inline bool AllowFree(double dPriority) {
 }
 
 // Context-independent validity checks
-bool CheckTx(CBaseTx *ptx, CCacheWrapper &cacheWrapper, CValidationState &state);
+bool CheckTx(int nHeight, CBaseTx *ptx, CCacheWrapper &cacheWrapper, CValidationState &state);
 
 /** Check for standard transaction types
     @return True if all outputs (scriptPubKeys) use only standard transaction forms

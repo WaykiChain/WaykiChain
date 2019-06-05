@@ -59,63 +59,63 @@ public:
 
     CContractCache(IContractView &pBaseIn): pBase(&pBaseIn) { mapContractDb.clear(); };
 
-    bool GetScript(const CRegID &scriptId, string &value);
-    bool GetScript(const int nIndex, CRegID &scriptId, string &value);
-    bool GetScriptAcc(const CRegID &scriptId, const string &key, CAppUserAccount &appAccOut);
-    bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CDbOpLog &operlog);
-    bool EraseScriptAcc(const CRegID &scriptId, const string &key);
-    bool SetScript(const CRegID &scriptId, const string &value);
-    bool HaveScript(const CRegID &scriptId);
-    bool EraseScript(const CRegID &scriptId);
-    bool GetContractItemCount(const CRegID &scriptId, int &nCount);
-    bool EraseAppData(const CRegID &scriptId, const string &contractKey, CDbOpLog &operLog);
-    bool HaveScriptData(const CRegID &scriptId, const string &contractKey);
+    bool GetScript(const CRegID &scriptId, string &value) { return true; }
+    bool GetScript(const int nIndex, CRegID &scriptId, string &value) { return true; }
+    bool GetScriptAcc(const CRegID &scriptId, const string &key, CAppUserAccount &appAccOut) { return true; }
+    bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CDbOpLog &operlog) { return true; }
+    bool EraseScriptAcc(const CRegID &scriptId, const string &key) { return true; }
+    bool SetScript(const CRegID &scriptId, const string &value) { return true; }
+    bool HaveScript(const CRegID &scriptId) { return true; }
+    bool EraseScript(const CRegID &scriptId) { return true; }
+    bool GetContractItemCount(const CRegID &scriptId, int &nCount) { return true; }
+    bool EraseAppData(const CRegID &scriptId, const string &contractKey, CDbOpLog &operLog) { return true; }
+    bool HaveScriptData(const CRegID &scriptId, const string &contractKey) { return true; }
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const string &contractKey,
-                         string &vScriptData);
+                         string &vScriptData)  { return true; }
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
-                         string &contractKey, string &vScriptData);
+                         string &contractKey, string &vScriptData) { return true; }
     bool SetContractData(const CRegID &scriptId, const string &contractKey,
-                         const string &vScriptData, CDbOpLog &operLog);
-    bool SetDelegateData(const CAccount &delegateAcct, CDbOpLog &operLog);
-    bool SetDelegateData(const string &key);
-    bool EraseDelegateData(const CAccountLog &delegateAcct, CDbOpLog &operLog);
-    bool EraseDelegateData(const string &key);
-    bool UndoScriptData(const string &key, const string &value);
+                         const string &vScriptData, CDbOpLog &operLog) { return true; }
+    bool SetDelegateData(const CAccount &delegateAcct, CDbOpLog &operLog) { return true; }
+    bool SetDelegateData(const string &key) { return true; }
+    bool EraseDelegateData(const CAccountLog &delegateAcct, CDbOpLog &operLog) { return true; }
+    bool EraseDelegateData(const string &key) { return true; }
+    bool UndoScriptData(const string &key, const string &value) { return true; }
 
     /**
      * @brief Get all number of scripts in scriptdb
      * @param nCount
      * @return true if get succeed, otherwise false
      */
-    bool GetScriptCount(int &nCount);
-    bool SetTxRelAccout(const uint256 &txHash, const set<CKeyID> &relAccount);
-    bool GetTxRelAccount(const uint256 &txHash, set<CKeyID> &relAccount);
-    bool EraseTxRelAccout(const uint256 &txHash);
+    bool GetScriptCount(int &nCount) { return true; }
+    bool SetTxRelAccout(const uint256 &txHash, const set<CKeyID> &relAccount) { return true; }
+    bool GetTxRelAccount(const uint256 &txHash, set<CKeyID> &relAccount) { return true; }
+    bool EraseTxRelAccout(const uint256 &txHash) { return true; }
     /**
      * @brief write all data in the caches to script db
      * @return
      */
-    bool Flush();
-    bool Flush(IContractView *pView);
-    unsigned int GetCacheSize();
-    Object ToJsonObj() const;
+    bool Flush() { return true; }
+    bool Flush(IContractView *pView) { return true; }
+    unsigned int GetCacheSize() { return 0; }
+    Object ToJsonObj() const { return Object(); }
 	IContractView * GetBaseScriptDB() { return pBase; }
-    bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB);
-    void SetBaseView(IContractView *pBaseIn) { pBase = pBaseIn; };
-    string ToString();
-    bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CDbOpLog &operLog);
-    bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput);
-    bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash);
-    bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CDbOpLog &operLog);
-    bool GetAllContractAcc(const CRegID &scriptId, map<string, string > &mapAcc);
+    bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) { return true; }
+    bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB) { return true; }
+    void SetBaseView(IContractView *pBaseIn) { pBase = pBaseIn; }
+    string ToString() { return ""; }
+    bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CDbOpLog &operLog) { return true; }
+    bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput) { return true; }
+    bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash) { return true; }
+    bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CDbOpLog &operLog) { return true; }
+    bool GetAllContractAcc(const CRegID &scriptId, map<string, string > &mapAcc) { return true; }
 
 private:
-    bool GetData(const string &key, string &value);
-    bool SetData(const string &key, const string &value);
-    bool BatchWrite(const map<string, string > &mapContractDb);
-    bool EraseKey(const string &key);
-    bool HaveData(const string &key);
+    bool GetData(const string &key, string &value) { return true; }
+    bool SetData(const string &key, const string &value) { return true; }
+    bool BatchWrite(const map<string, string > &mapContractDb) { return true; }
+    bool EraseKey(const string &key) { return true; }
+    bool HaveData(const string &key) { return true; }
 
     /**
      * @brief Get script content from scriptdb by scriptid
@@ -123,7 +123,7 @@ private:
      * @param vValue
      * @return true if get script succeed,otherwise false
      */
-    bool GetScript(const string &contractRegId, string &value);
+    bool GetScript(const string &contractRegId, string &value) { return true; }
     /**
      * @brief Get Script content from scriptdb by index
      * @param nIndex the value must be non-negative
@@ -131,62 +131,62 @@ private:
      * @param vValue
      * @return true if get script succeed, otherwise false
      */
-    bool GetScript(const int nIndex, string &contractRegId, string &value);
+    bool GetScript(const int nIndex, string &contractRegId, string &value) { return true; }
     /**
      * @brief Save script content to scriptdb
      * @param vScriptId
      * @param vValue
      * @return true if save succeed, otherwise false
      */
-    bool SetScript(const string &contractRegId, const string &value);
+    bool SetScript(const string &contractRegId, const string &value) { return true; }
     /**
      * @brief Detect if scriptdb contains the script by scriptid
      * @param vScriptId
      * @return true if contains script, otherwise false
      */
-    bool HaveScript(const string &vScriptId);
+    bool HaveScript(const string &vScriptId) { return true; }
     /**
      * @brief Save all number of scripts in scriptdb
      * @param nCount
      * @return true if save count succeed, otherwise false
      */
-    bool SetScriptCount(const int nCount);
+    bool SetScriptCount(const int nCount) { return true; }
     /**
      * @brief Delete script from script db by scriptId
      * @param vScriptId
      * @return true if delete succeed, otherwise false
      */
-    bool EraseScript(const string &vScriptId);
+    bool EraseScript(const string &vScriptId) { return true; }
     /**
      * @brief Get total number of contract data elements in contract db
      * @param vScriptId
      * @param nCount
      * @return true if get succeed, otherwise false
      */
-    bool GetContractItemCount(const string &contractRegId, int &nCount);
+    bool GetContractItemCount(const string &contractRegId, int &nCount) { return true; }
     /**
      * @brief Save count of the Contract's data into contract db
      * @param vScriptId
      * @param nCount
      * @return true if save succeed, otherwise false
      */
-    bool SetContractItemCount(const string &contractRegId, int nCount);
+    bool SetContractItemCount(const string &contractRegId, int nCount) { return true; }
     /**
      * @brief Delete the item of the scirpt's data by scriptId and scriptKey
      * @param vScriptId
      * @param vScriptKey must be 8 bytes
      * @return true if delete succeed, otherwise false
      */
-    bool EraseAppData(const string &contractRegId, const string &contractKey, CDbOpLog &operLog);
+    bool EraseAppData(const string &contractRegId, const string &contractKey, CDbOpLog &operLog) { return true; }
 
-    bool EraseAppData(const string &key);
+    bool EraseAppData(const string &key) { return true; }
     /**
      * @brief Detect if scriptdb contains the item of script's data by scriptid and scriptkey
      * @param vScriptId
      * @param vScriptKey must be 8 bytes
      * @return true if contains the item, otherwise false
      */
-    bool HaveScriptData(const string &contractRegId, const string &contractKey);
+    bool HaveScriptData(const string &contractRegId, const string &contractKey) { return true; }
     /**
      * @brief Get smart contract App data and valid height by scriptid and scriptkey
      * @param vScriptId
@@ -206,7 +206,8 @@ private:
      * @param nHeight valid height of script data
      * @return true if get succeed, otherwise false
      */
-    bool GetContractData(const int nCurBlockHeight, const string &contractRegId, const int &nIndex, string &contractKey, string &vScriptData);
+    bool GetContractData(const int nCurBlockHeight, const string &contractRegId, const int &nIndex, string &contractKey,
+                         string &vScriptData) { return true; }
     /**
      * @brief Save script data and valid height into script db
      * @param vScriptId
@@ -216,7 +217,7 @@ private:
      * @return true if save succeed, otherwise false
      */
     bool SetContractData(const string &contractRegId, const string &contractKey,
-                         const string &vScriptData, CDbOpLog &operLog);
+                         const string &vScriptData, CDbOpLog &operLog) { return true; }
 };
 
 class CContractDB : public IContractView {
@@ -232,22 +233,22 @@ public:
 
 private:
     CContractDB(const CContractDB &);
-    void operator=(const CContractDB &);
+    void operator=(const CContractDB &) {}
 
 public:
-    bool GetData(const string &key, string &value) { return db.Read(key, value); };
-    bool SetData(const string &key, const string &value) { return db.Write(key, value); };
+    bool GetData(const string &key, string &value) { return db.Read(key, value); }
+    bool SetData(const string &key, const string &value) { return db.Write(key, value); }
 
-    bool BatchWrite(const map<string, string > &mapContractDb);
-    bool EraseKey(const string &key);
-    bool HaveData(const string &key);
-    bool GetScript(const int nIndex, string &contractRegId, string &value);
+    bool BatchWrite(const map<string, string > &mapContractDb) { return true; }
+    bool EraseKey(const string &key) { return true; }
+    bool HaveData(const string &key) { return true; }
+    bool GetScript(const int nIndex, string &contractRegId, string &value) { return true; }
     bool GetContractData(const int curBlockHeight, const string &contractRegId, const int &nIndex,
-                        string &contractKey, string &vScriptData);
+                        string &contractKey, string &vScriptData) { return true; }
     int64_t GetDbCount() { return db.GetDbCount(); }
-    bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash);
-    Object ToJsonObj(string Prefix);
-    bool GetAllContractAcc(const CRegID &contractRegId, map<string, string > &mapAcc);
+    bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash) { return true; }
+    Object ToJsonObj(string Prefix) { return Object(); }
+    bool GetAllContractAcc(const CRegID &contractRegId, map<string, string > &mapAcc) { return true; }
 };
 
 #endif  // PERSIST_CONTRACTDB_H
