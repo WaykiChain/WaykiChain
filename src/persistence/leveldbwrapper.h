@@ -26,7 +26,7 @@ enum DbOpLogType {
 
 class CDbOpLog {
 public:
-    dbk::PrefixType prefixType;
+    mutable dbk::PrefixType prefixType;
     string prefix;
     string key; // TODO: delete
     string keyElement;
@@ -69,7 +69,10 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(prefix);
         if (fRead) {
-            //TODO: parse PrefixType
+            prefixType = dbk::ParseKeyPrefixType(prefix);
+            if (prefixType == dbk::EMPTY) {
+                throw std::out_of_range("CDbOpLog unserialize failed! invalid prefix=" + prefix);
+            }
         }
         READWRITE(key);
         READWRITE(value);

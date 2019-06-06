@@ -25,7 +25,8 @@
 namespace dbk {
 
     #define EACH_ENUM_DEFINE_TYPE(enumType, enumName) enumType,
-    #define EACH_ENUM_DEFINE_NAMES(enumType, enumName) enumName,
+    #define EACH_ENUM_DEFINE_NAME(enumType, enumName) enumName,
+    #define EACH_ENUM_DEFINE_NAME_MAP(enumType, enumName) { enumName, enumType },
 
     //                 type                name(prefix)       description
     //               ----------           ------------   -----------------------------
@@ -63,13 +64,23 @@ namespace dbk {
     };
 
     static const std::string gPrefixNames[PREFIX_COUNT + 1] = {
-        DBK_PREFIX_LIST(EACH_ENUM_DEFINE_NAMES)
+        DBK_PREFIX_LIST(EACH_ENUM_DEFINE_NAME)
+    };
+
+    static const std::map<std::string, PrefixType> gPrefixNameMap = {
+        DBK_PREFIX_LIST(EACH_ENUM_DEFINE_NAME_MAP)
     };
 
     inline const std::string& GetKeyPrefix(PrefixType prefixType) {
         assert(prefixType >= 0 && prefixType <= PREFIX_COUNT);
         return gPrefixNames[prefixType];
     };
+
+    inline PrefixType ParseKeyPrefixType(const std::string &keyPrefix) {
+        //return gPrefixNameMap[keyPrefix];
+        return EMPTY;
+        //TODO:...
+    };  
 
     template<typename KeyElement>
     std::string GenDbKey(PrefixType keyPrefixType, const KeyElement &keyElement) {

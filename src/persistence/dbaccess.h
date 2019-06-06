@@ -49,21 +49,21 @@ namespace db_util {
     }
 
     // vector
-    template<typename T, typename A> 
+    template<typename T, typename A>
     bool IsEmpty(const vector<T, A>& val) {
         return val.empty();
     }
-    template<typename T, typename A> 
+    template<typename T, typename A>
     void SetEmpty(vector<T, A>& val) {
         return val.clear();
     }
 
     // 2 pair
-    template<typename K, typename T> 
+    template<typename K, typename T>
     bool IsEmpty(const std::pair<K, T>& val) {
         return IsEmpty(val->first) && IsEmpty(val->second);
     }
-    template<typename K, typename T> 
+    template<typename K, typename T>
     void SetEmpty(std::pair<K, T>& val) {
         SetEmpty(val->first);
         SetEmpty(val->second);
@@ -101,21 +101,26 @@ public:
                 db( GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe ) {}
 
     template<typename KeyType, typename ValueType>
-    bool GetData(dbk::PrefixType prefixType, const KeyType &key, ValueType &value) {
-        return false;
-        // string keyStr = dbk::GenDbKey(prefixType, key);
-        // return db.Read(keyStr, value);
+    bool GetData(const dbk::PrefixType prefixType, const KeyType &key, ValueType &value) {
+        string keyStr = dbk::GenDbKey(prefixType, key);
+        return db.Read(keyStr, value);
     }
 
     template<typename KeyType, typename ValueType>
-    bool HaveData(dbk::PrefixType prefixType, const KeyType &key) {
+    bool GetNextItem(const dbk::PrefixType prefixType, KeyType &key, ValueType &value) {
+        // TODO:
+        return false;
+    }
+
+    template<typename KeyType, typename ValueType>
+    bool HaveData(const dbk::PrefixType prefixType, const KeyType &key) {
         string keyStr = GenDbKey(prefixType, key);
         return db.Exists(keyStr);
     }
 
 
     template<typename KeyType, typename ValueType>
-    void BatchWrite(dbk::PrefixType prefixType, const map<KeyType, ValueType> &mapData) {
+    void BatchWrite(const dbk::PrefixType prefixType, const map<KeyType, ValueType> &mapData) {
         CLevelDBBatch batch;
         for (auto it : mapData) {
             if (db_util::IsEmpty(it->second)) {
@@ -142,21 +147,27 @@ public:
      */
     CDBCache(): pBase(nullptr), pDbAccess(nullptr), prefixType(dbk::EMPTY) {};
 
-    CDBCache(CDBCache<KeyType, ValueType> *pBaseIn): pBase(pBaseIn), 
+    CDBCache(CDBCache<KeyType, ValueType> *pBaseIn): pBase(pBaseIn),
         pDbAccess(nullptr), prefixType(pBaseIn->prefixType) {
         assert(pBaseIn != nullptr);
     };
 
-    CDBCache(CDBAccess *pDbAccessIn, dbk::PrefixType prefixTypeIn): pBase(nullptr), 
-        pDbAccess(pDbAccessIn), prefixType(prefixTypeIn) { 
-        assert(pDbAccessIn != nullptr); 
-    };  
+    CDBCache(CDBAccess *pDbAccessIn, dbk::PrefixType prefixTypeIn): pBase(nullptr),
+        pDbAccess(pDbAccessIn), prefixType(prefixTypeIn) {
+        assert(pDbAccessIn != nullptr);
+    };
+
     void SetBase(CDBCache<KeyType, ValueType> *pBaseIn) {
         assert(pDbAccess == nullptr);
         assert(mapData.empty());
         pBase = pBaseIn;
         prefixType = pBaseIn->prefixType;
     };
+
+    bool GetNextItem(KeyType &key, ValueType &value) {
+        // TODO:
+        return false;
+    }
 
     bool GetData(const KeyType &key, ValueType &value) {
         auto it = GetDataIt(key);
@@ -237,7 +248,7 @@ private:
             }
         } else if (pDbAccess != NULL) {
             auto ptrValue = std::make_shared<ValueType>();
-            
+
             if (pDbAccess->GetData(prefixType, key, *ptrValue)) {
                 auto newIt = mapData.emplace(make_pair(key, *ptrValue));
                 assert(newIt.second); // TODO: throw error
