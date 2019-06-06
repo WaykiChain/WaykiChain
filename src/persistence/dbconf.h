@@ -71,18 +71,28 @@ namespace dbk {
         return gPrefixNames[prefixType];
     };
 
-    template<typename PrefixElement>
-    std::string GenDbKey(PrefixType keyPrefixType, PrefixElement element) {
-        assert(keyPrefixType >= 0 && keyPrefixType <= PREFIX_COUNT);
-        const string &prefix = GetKeyPrefix(keyPrefixType);
+    template<typename KeyElement>
+    std::string GenDbKey(PrefixType keyPrefixType, const KeyElement &keyElement) {
+
         CDataStream ssKeyTemp(SER_DISK, CLIENT_VERSION);
-        ssKeyTemp.write(prefix.c_str(), prefix.size());
-        ssKeyTemp << element;
+        if (keyPrefixType != EMPTY) {
+            const string &prefix = GetKeyPrefix(keyPrefixType);
+            ssKeyTemp.write(prefix.c_str(), prefix.size());
+        }
+        ssKeyTemp << keyElement;
         return std::string(ssKeyTemp.begin(), ssKeyTemp.end());
     }
 
-
-
+    template<typename KeyElement>
+    void ParseDbKey(const std::string& key, PrefixType keyPrefixType, KeyElement &keyElement) {
+        assert(key.size() > 0);
+        CDataStream ssKeyTemp(key, SER_DISK, CLIENT_VERSION);
+        if (keyPrefixType != EMPTY) {
+            const string &prefix = GetKeyPrefix(keyPrefixType);
+            ssKeyTemp.ignore(prefix.size());
+        }
+        ssKeyTemp >> keyElement;
+    }
 }
 
 static const string DB_NAME_CONTRACT = "contract";

@@ -206,7 +206,15 @@ public:
         this.mapData.clear();
     }
 
-    dbk::PrefixType GetPrefixType() { return prefixType; }
+    void UndoData(const CDbOpLog &dbOpLog) {
+        assert(dbOpLog.GetPrefixType() == prefixType);
+        KeyType key;
+        ValueType value;
+        dbOpLog.Get(key, value);
+        mapData[key] = value;
+    }
+
+    dbk::PrefixType GetPrefixType() const { return prefixType; }
 
 private:
     Iterator GetDataIt(const KeyType &key) {

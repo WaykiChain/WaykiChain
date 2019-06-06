@@ -26,9 +26,11 @@ enum DbOpLogType {
 
 class CDbOpLog {
 public:
+    dbk::PrefixType prefixType;
     string prefix;
-    string key;
-    string value; // TODO: use
+    string key; // TODO: delete
+    string keyElement;
+    string value; // TODO: private
 
     CDbOpLog() : key(), value() {}
 
@@ -37,35 +39,41 @@ public:
     }
 
     template<typename K, typename V>
-    CDbOpLog(dbk::PrefixType prefixType, const K& keyIn, const V& valueIn){
-        Set(dbk::GenDbKey(prefixType, keyIn), valueIn);
+    CDbOpLog(dbk::PrefixType prefixTypeIn, const K& keyElementIn, const V& valueIn){
+        Set(prefixTypeIn, keyElementIn, valueIn);
     }
 
-    template<typename V>
-    void Set(const string& keyIn, const V& valueIn){
-        key = keyIn;
+    template<typename K, typename V>
+    void Set(dbk::PrefixType prefixTypeIn, const K& keyElementIn, const V& valueIn){
+        prefixType = prefixTypeIn;
+        prefix = dbk::GetKeyPrefix(prefixType);
+        keyElement = dbk::GenDbKey(dbk::EMPTY, keyElementIn);
         CDataStream ssValue(SER_DISK, CLIENT_VERSION);
         ssValue << valueIn;
         value = ssValue.str();
     }
 
-    const string& GetKey() const {
-        return key;
-    }
-
-    void GetValue(string &valueOut) {
-        valueOut = value;
-    }
-
-    template<typename V>
-    void GetValue(V& valueIn){
+    template<typename K, typename V>
+    void Get(const K& keyElementOut, const V& valueOut) const {
+        prefix = dbk::GetKeyPrefix(prefixType);
+        dbk::ParseDbKey(keyElement, dbk::EMPTY, keyElementOut);
         CDataStream ssValue(value, SER_DISK, CLIENT_VERSION);
-        ssValue >> valueIn;
+        ssValue << valueOut;
+        value = ssValue.str();
+    }
+
+    inline dbk::PrefixType GetPrefixType() const {
+        return prefixType;
     }
 
     IMPLEMENT_SERIALIZE(
+        READWRITE(prefix);
+        if (fRead) {
+            //TODO: parse PrefixType
+        }
         READWRITE(key);
-        READWRITE(value);)
+        READWRITE(value);
+    )
 
     string ToString() const {
         string str;
