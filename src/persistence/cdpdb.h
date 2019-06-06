@@ -65,7 +65,7 @@ public:
     CCdpCache() {};
     CCdpCache(ICdpView &base): ICdpView(), pBase(&base) {};
 
-    bool SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, uint64_t collateralRatio, uint64_t mintedScoins
+    bool SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, uint64_t collateralRatio, uint64_t mintedScoins,
                         int blockHeight, CDbOpLog &cdpDbOpLog);
     bool GetUnderLiquidityCdps(vector<CUserCdp> & userCdps);
 
