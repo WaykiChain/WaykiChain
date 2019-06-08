@@ -34,6 +34,7 @@ public:
 
     CDbOpLog() : key(), value() {}
 
+    // TODO: delete this constructor
     CDbOpLog(const string &keyIn, const string& valueIn):
         key(keyIn), value(valueIn) {
     }
@@ -43,6 +44,7 @@ public:
         Set(prefixTypeIn, keyElementIn, valueIn);
     }
 
+    // for key-value
     template<typename K, typename V>
     void Set(dbk::PrefixType prefixTypeIn, const K& keyElementIn, const V& valueIn){
         prefixType = prefixTypeIn;
@@ -53,13 +55,29 @@ public:
         value = ssValue.str();
     }
 
-    template<typename K, typename V>
-    void Get(const K& keyElementOut, const V& valueOut) const {
+    // for single value
+    template<typename V>
+    void Set(dbk::PrefixType prefixTypeIn, const V& valueIn){
+        prefixType = prefixTypeIn;
         prefix = dbk::GetKeyPrefix(prefixType);
-        dbk::ParseDbKey(keyElement, dbk::EMPTY, keyElementOut);
-        CDataStream ssValue(value, SER_DISK, CLIENT_VERSION);
-        ssValue << valueOut;
+        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+        ssValue << valueIn;
         value = ssValue.str();
+    }
+
+    // for key-value
+    template<typename K, typename V>
+    void Get(K& keyElementOut, V& valueOut) const {
+        dbk::ParseDbKey(key, dbk::EMPTY, keyElementOut);
+        CDataStream ssValue(value, SER_DISK, CLIENT_VERSION);
+        ssValue >> valueOut;
+    }
+
+    // for single value
+    template<typename V>
+    void Get(V& valueOut) const {
+        CDataStream ssValue(value, SER_DISK, CLIENT_VERSION);
+        ssValue >> valueOut;
     }
 
     inline dbk::PrefixType GetPrefixType() const {

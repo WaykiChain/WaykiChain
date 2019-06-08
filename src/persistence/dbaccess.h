@@ -106,6 +106,12 @@ public:
         return db.Read(keyStr, value);
     }
 
+    template<typename ValueType>
+    bool GetData(const dbk::PrefixType prefixType, ValueType &value) {
+        const string prefix = dbk::GetKeyPrefix(prefixType);
+        return db.Read(prefix, value);
+    }
+
     template<typename KeyType, typename ValueType>
     bool GetNextItem(const dbk::PrefixType prefixType, KeyType &key, ValueType &value) {
         // TODO:
@@ -114,20 +120,33 @@ public:
 
     template<typename KeyType, typename ValueType>
     bool HaveData(const dbk::PrefixType prefixType, const KeyType &key) {
-        string keyStr = GenDbKey(prefixType, key);
+        string keyStr = dbk::GenDbKey(prefixType, key);
         return db.Exists(keyStr);
     }
-
 
     template<typename KeyType, typename ValueType>
     void BatchWrite(const dbk::PrefixType prefixType, const map<KeyType, ValueType> &mapData) {
         CLevelDBBatch batch;
         for (auto it : mapData) {
+            string key = dbk::GenDbKey(prefixType, it->first);
             if (db_util::IsEmpty(it->second)) {
-                batch.Erase(dbk::GenDbKey(prefixType, it->first));
+                batch.Erase(key);
             } else {
-                batch.Write(dbk::GenDbKey(prefixType, it->first));
+                batch.Write(key, it->second);
             }
+        }
+        db.WriteBatch(batch, true);
+    }
+
+    template<typename KeyType, typename ValueType>
+    void BatchWrite(const dbk::PrefixType prefixType, ValueType &value) {
+        CLevelDBBatch batch;
+        const string prefix = dbk::GetKeyPrefix(prefixType);
+        
+        if (db_util::IsEmpty(value)) {
+            batch.Erase(prefix);
+        } else {
+            batch.Write(prefix, value);
         }
         db.WriteBatch(batch, true);
     }
@@ -188,7 +207,6 @@ public:
 
 
     bool HaveData(const KeyType &key) {
-        // TODO: need to implements with pDbAccess.HaveData() ?
         auto it = GetDataIt(key);
         return it != mapData.end();
     }
@@ -263,6 +281,121 @@ private:
     CDBAccess *pDbAccess;
     dbk::PrefixType prefixType;
     map<KeyType, ValueType> mapData;
+
+};
+
+
+template<typename ValueType>
+class CDBSingleCache {
+public:
+    /**
+     * Default constructor, must use set base to initialize before using.
+     */
+    CDBSingleCache(): pBase(nullptr), pDbAccess(nullptr), prefixType(dbk::EMPTY) {};
+
+    CDBSingleCache(CDBSingleCache<ValueType> *pBaseIn): pBase(pBaseIn),
+        pDbAccess(nullptr), prefixType(pBaseIn->prefixType) {
+        assert(pBaseIn != nullptr);
+    };
+
+    CDBSingleCache(CDBAccess *pDbAccessIn, dbk::PrefixType prefixTypeIn): pBase(nullptr),
+        pDbAccess(pDbAccessIn), prefixType(prefixTypeIn) {
+        assert(pDbAccessIn != nullptr);
+    };
+
+    void SetBase(CDBSingleCache<ValueType> *pBaseIn) {
+        assert(pDbAccess == nullptr);
+        assert(!ptrData);
+        pBase = pBaseIn;
+        prefixType = pBaseIn->prefixType;
+    };
+
+    bool GetData(ValueType &value) {
+        auto ptr = GetDataPtr();
+        if (ptr) {
+            value = *ptr;
+            return true;
+        }
+        return false;
+    }
+
+    bool SetData(const ValueType &value) {
+        if (ptrData) {
+            *ptrData = value;
+        } else {
+            ptrData = std::make_shared<ValueType>(value);
+        }
+        return true;
+    };
+
+
+    bool HaveData() {
+        auto ptr = GetDataPtr();
+        return ptr;
+    }
+
+    bool EraseData() {
+        auto ptr = GetDataPtr();
+        if (ptr) {
+            db_util::SetEmpty(*ptr);
+        }
+        return true;
+    }
+
+    void Flush() {
+        assert(pBase != nullptr || pDbAccess != nullptr);
+        if (pBase != nullptr) {
+            assert(pDbAccess == nullptr);
+            pBase->ptrData = this.ptrData;
+        } else if (pDbAccess != nullptr) {
+            assert(pBase == nullptr);
+            pDbAccess->BatchWrite(prefixType, ptrData);
+        }
+
+        this.ptrData = nullptr;
+    }
+
+    void UndoData(const CDbOpLog &dbOpLog) {
+        assert(dbOpLog.GetPrefixType() == prefixType);
+        if (!ptrData) {
+            ptrData = make_shared<ValueType>();
+        }
+        dbOpLog.Get(*ptrData);
+    }
+
+    dbk::PrefixType GetPrefixType() const { return prefixType; }
+
+private:
+    std::shared_ptr<ValueType> GetDataPtr() {
+
+        assert(prefixType != dbk::EMPTY);
+        if (ptrData) {
+            if (!db_util::IsEmpty(ptrData)) {
+                return ptrData;
+            }
+        } else if (pBase != nullptr){
+            auto ptr = pBase->GetDataPtr();
+            if (ptr) {
+                assert(!db_util::IsEmpty(ptr));
+                ptrData = std::make_shared<ValueType>(*ptr);
+                return ptrData;
+            }
+        } else if (pDbAccess != NULL) {
+            auto ptrDbData = std::make_shared<ValueType>();
+
+            if (pDbAccess->GetData(prefixType, *ptrDbData)) {
+                assert(!db_util::IsEmpty(ptrDbData));
+                ptrData = ptrDbData;
+                return ptrData;
+            }
+        }
+        return nullptr;
+    };
+private:
+    CDBSingleCache<ValueType> *pBase;
+    CDBAccess *pDbAccess;
+    dbk::PrefixType prefixType;
+    std::shared_ptr<ValueType> ptrData;
 
 };
 
