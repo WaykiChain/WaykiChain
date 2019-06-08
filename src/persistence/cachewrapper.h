@@ -19,7 +19,7 @@ public:
     CContractCache contractCache;
     CPricePointCache pricePointCache;
     CStakeCache stakeCache;
-    CCdpCache cdpCache;
+    CCdpCacheDBManager cdpCache;
     CTxUndo txUndo;
 
 };

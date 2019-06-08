@@ -306,7 +306,7 @@ public:
 
     CBlockTreeDB        *pBlockTreeDb;
 
-    uint64_t            collateralRatio;
+    uint64_t            collateralRatioMin; //minimum collateral ratio
 
 public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache,

@@ -57,10 +57,10 @@ class CContractCache {
 //    IContractView *pBase;
 
 private:
-    CDBCache<string, string> scriptCache;                       // scriptRegId -> script content
-    CDBCache<uint256, vector<CVmOperate>> txOutputCache;        // txid -> vector<CVmOperate>
-    CDBCache<std::tuple<CKeyID, int, int>, uint256> acctTxListCache; // txid,height,index -> txid
-    CDBCache<uint256, CDiskTxPos> txDiskPosCache;               // txid -> DiskTxPos
+    CDBCache<string, string> scriptCache;                               // scriptRegId -> script content
+    CDBCache<uint256, vector<CVmOperate>> txOutputCache;                // txid -> vector<CVmOperate>
+    CDBCache<std::tuple<CKeyID, int, int>, uint256> acctTxListCache;    // keyid,height,index -> txid
+    CDBCache<uint256, CDiskTxPos> txDiskPosCache;                       // txid -> DiskTxPos
 
 public:
     map<string, string > mapContractDb;
