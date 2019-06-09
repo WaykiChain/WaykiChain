@@ -16,53 +16,16 @@ using namespace std;
 extern CChain chainActive;
 
 bool CAccountCache::GetAccount(const CKeyID &keyId, CAccount &account) {
-    if (mapKeyId2Account.count(keyId)) {
-        if (mapKeyId2Account[keyId].keyID != uint160()) {
-            account = mapKeyId2Account[keyId];
-            return true;
-        } else
-            return false;
-    }
-
-    if (pBase->GetAccount(keyId, account)) {
-        mapKeyId2Account.insert(make_pair(keyId, account));
-        return true;
-    }
-
-    return false;
+    return keyId2AccountCache.GetData(keyId, account);
 }
 
 bool CAccountCache::GetAccount(const CRegID &regId, CAccount &account) {
     if (regId.IsEmpty())
         return false;
 
-    if (mapRegId2KeyId.count(regId)) {
-        CKeyID keyId(mapRegId2KeyId[regId]);
-        if (keyId != uint160()) {
-            if (mapKeyId2Account.count(keyId)) {
-                account = mapKeyId2Account[keyId];
-                return (account.keyID != uint160()); // return true if the account exists, otherwise return false
-            }
-
-            return pBase->GetAccount(keyId, account);  //缓存map中没有，从上级存取
-        } else
-            return false;  //regId 已删除说明账户信息也已删除
-
-    } else {
-        CKeyID keyId;
-        if (pBase->GetKeyId(regId, keyId)) {
-            mapRegId2KeyId[ regId ] = keyId;
-
-            if (mapKeyId2Account.count(keyId) > 0) {
-                account = mapKeyId2Account[keyId];
-                return (account.keyID != uint160()); // return true if the account exists, otherwise return false
-            }
-
-            if (pBase->GetAccount(keyId, account)) {
-                mapKeyId2Account[keyId] = account;
-                return true;
-            }
-        }
+    CKeyID keyId;
+    if (regId2KeyIdCache.GetData(regId.GetRegIdRawStr(), keyId)) {
+        return keyId2AccountCache.GetData(keyId, account);
     }
 
     return false;
@@ -90,37 +53,31 @@ bool CAccountCache::GetAccount(const CUserID &userId, CAccount &account) {
 }
 
 bool CAccountCache::SetAccount(const CKeyID &keyId, const CAccount &account) {
-    mapKeyId2Account[keyId] = account;
+    keyId2AccountCache.SetData(keyId, account);
     return true;
 }
 bool CAccountCache::SetAccount(const CRegID &regId, const CAccount &account) {
-    if (regId.IsEmpty()) {
-        return false;
-    }
-    if (mapRegId2KeyId.count(regId) > 0) {
-        CKeyID keyId = mapRegId2KeyId[ regId ];
-        mapKeyId2Account[ keyId ] = account;
-        return true;
+    CKeyID keyId;
+    if (regId2KeyIdCache.GetData(regId.GetRegIdRawStr(), keyId)) {
+        return keyId2AccountCache.SetData(keyId, account);
     }
     return false;
 }
-bool CAccountCache::HaveAccount(const CKeyID &keyId) {
-    if (mapKeyId2Account.count(keyId))
-        return true;
-    else
-        return pBase->HaveAccount(keyId);
-}
-uint256 CAccountCache::GetBestBlock() {
-    if (blockHash == uint256())
-        return pBase->GetBestBlock();
 
+bool CAccountCache::HaveAccount(const CKeyID &keyId) {
+    return keyId2AccountCache.HaveData(keyId);
+}
+
+uint256 CAccountCache::GetBestBlock() {
+    uint256 blockHash;
+    blockHashCache.GetData(blockHash);
     return blockHash;
 }
-bool CAccountCache::SetBestBlock(const uint256 &blockHashIn) {
-    blockHash = blockHashIn;
-    return true;
-}
 
+bool CAccountCache::SetBestBlock(const uint256 &blockHashIn) {
+    return blockHashCache.SetData(blockHashIn);
+}
+/* TODO: check and delete
 bool CAccountCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<CRegID,
                                 CKeyID> &mapKeyIds, const uint256 &blockHashIn) {
     for (auto it = mapAccounts.begin(); it != mapAccounts.end(); ++it) {
@@ -148,17 +105,11 @@ bool CAccountCache::BatchWrite(const vector<CAccount> &vAccounts) {
     }
     return true;
 }
+*/
+
 bool CAccountCache::EraseAccountByKeyId(const CKeyID &keyId) {
-    if (mapKeyId2Account.count(keyId))
-        mapKeyId2Account[keyId].keyID = uint160();
-    else {
-        CAccount account;
-        if (pBase->GetAccount(keyId, account)) {
-            account.keyID        = uint160();
-            mapKeyId2Account[keyId] = account;
-        }
-    }
-    return true;
+
+    return keyId2AccountCache.EraseData(keyId);
 }
 
 bool CAccountCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
@@ -169,29 +120,11 @@ bool CAccountCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
 }
 
 bool CAccountCache::SetKeyId(const CRegID &regId, const CKeyID &keyId) {
-    if (regId.IsEmpty())
-        return false;
-
-    mapRegId2KeyId[regId] = keyId;
-    return true;
+    return regId2KeyIdCache.SetData(regId.GetRegIdRawStr(), keyId);
 }
 
 bool CAccountCache::GetKeyId(const CRegID &regId, CKeyID &keyId) {
-    if (regId.IsEmpty())
-        return false;
-
-    if (mapRegId2KeyId.count(regId)) {
-        keyId = mapRegId2KeyId[ regId ];
-        return (keyId != uint160());
-    }
-
-    if (pBase->GetKeyId(regId, keyId)) {
-        mapRegId2KeyId.insert(make_pair(regId, keyId));
-        //mapRegId2KeyId[regId] = keyId;
-        return true;
-    }
-
-    return false;
+    return regId2KeyIdCache.GetData(regId.GetRegIdRawStr(), keyId);
 }
 
 bool CAccountCache::GetKeyId(const CUserID &userId, CKeyID &keyId) {
@@ -214,27 +147,20 @@ bool CAccountCache::GetKeyId(const CUserID &userId, CKeyID &keyId) {
 }
 
 bool CAccountCache::EraseKeyIdByRegId(const CRegID &regId) {
-    if (regId.IsEmpty())
-        return false;
-
-    if (mapRegId2KeyId.count(regId))
-        mapRegId2KeyId[ regId ] = uint160();
-    else {
-        CKeyID keyId;
-        if (pBase->GetKeyId(regId, keyId)) {
-            mapRegId2KeyId[ regId ] = uint160();
-        }
-    }
-    return true;
+    return regId2KeyIdCache.EraseData(regId.GetRegIdRawStr());
 }
 
 bool CAccountCache::SaveAccount(const CAccount &account) {
+    regId2KeyIdCache.SetData(account.regID.GetRegIdRawStr(), account.keyID);
+    keyId2AccountCache.SetData(account.keyID, account);
+    nickId2KeyIdCache.SetData(account.nickID, account.keyID);
+/*
     mapRegId2KeyId[ account.regID ] = account.keyID;
     mapKeyId2Account[ account.keyID ] = account;
     if (!account.nickID.IsEmpty()) {
         mapNickId2KeyId[ account.nickID ] = account.keyID;
     }
-
+*/
     return true;
 }
 
@@ -257,15 +183,26 @@ bool CAccountCache::GetUserId(const string &addr, CUserID &userId) {
 
 bool CAccountCache::GetRegId(const CKeyID &keyId, CRegID &regId) {
     CAccount acct;
-    if (CAccountCache::GetAccount(CUserID(keyId), acct)) {
+    if (keyId2AccountCache.GetData(keyId, acct)) {
         regId = acct.regID;
         return true;
-    } else {
-        return false;
     }
+    return false;
 }
 
 bool CAccountCache::GetRegId(const CUserID &userId, CRegID &regId) const {
+    if (userId.type() == typeid(CRegID)) {
+        regId = userId.get<CRegID>();
+        return true;
+    } else if (userId.type() == typeid(CRegID)) {
+        CAccount account;
+        if (GetAccount(userId.get<CKeyID>(), account)) {
+            regId = account.ID;
+            return !regId.IsEmpty();
+        }
+    }
+    return false;
+/*    TODO: why to copy this cache??
     CAccountCache tempView(*this);
     CAccount account;
     if (userId.type() == typeid(CRegID)) {
@@ -277,6 +214,7 @@ bool CAccountCache::GetRegId(const CUserID &userId, CRegID &regId) const {
         return !regId.IsEmpty();
     }
     return false;
+*/
 }
 
 bool CAccountCache::RegIDIsMature(const CRegID &regId) const {
@@ -330,42 +268,46 @@ bool CAccountCache::EraseKeyId(const CUserID &userId) {
 }
 
 bool CAccountCache::Flush() {
-    bool fOk = pBase->BatchWrite(mapKeyId2Account, mapRegId2KeyId, blockHash);
-    if (fOk) {
-        mapKeyId2Account.clear();
-        mapRegId2KeyId.clear();
-    }
-    return fOk;
-}
-
-bool CAccountCache::Flush(IAccountView *pView) {
-    bool fOk = pView->BatchWrite(mapKeyId2Account, mapRegId2KeyId, blockHash);
-    if (fOk) {
-        mapKeyId2Account.clear();
-        mapRegId2KeyId.clear();
-    }
-    return fOk;
+    blockHashCache.Flush();
+    keyId2AccountCache.Flush();
+    regId2KeyIdCache.Flush();
+    nickId2KeyIdCache.Flush();
+    return true;
 }
 
 int64_t CAccountCache::GetFreeBCoins(const CUserID &userId) const {
+    CAccount account;
+    if (GetAccount(userId, account)) {
+        return account.GetFreeBCoins();
+    }
+    return 0;
+/*
     CAccountCache accountCache(*this);
     CAccount account;
     if (accountCache.GetAccount(userId, account)) {
         return account.GetFreeBCoins();
     }
     return 0;
+*/
 }
 
 unsigned int CAccountCache::GetCacheSize() {
+    /* TODO: CDbCache::GetCacheSize()
     return  ::GetSerializeSize(mapKeyId2Account, SER_DISK, CLIENT_VERSION) +
             ::GetSerializeSize(mapRegId2KeyId, SER_DISK, CLIENT_VERSION);
+    */
+   return 0;
 }
 
 std::tuple<uint64_t, uint64_t> CAccountCache::TraverseAccount() {
-    return pBase->TraverseAccount();
+    // TODO: GetTotalCoins
+    //return pBase->TraverseAccount();
+    return make_tuple<uint64_t, uint64_t>(0, 0);
 }
 
 Object CAccountCache::ToJsonObj(dbk::PrefixType prefix) {
+    return Object();
+/* TODO: CDbCache::ToJsonObj()
     Object obj;
     obj.push_back(Pair("blockHash", blockHash.ToString()));
 
@@ -387,8 +329,10 @@ Object CAccountCache::ToJsonObj(dbk::PrefixType prefix) {
     obj.push_back(Pair("mapRegId2KeyId", arrayObj));
 
     return obj;
+    */
 }
 
+/* TODO: delete CAccountDB
 bool CAccountDB::GetAccount(const CKeyID &keyId, CAccount &account) {
     string key = GenDbKey(dbk::KEYID_ACCOUNT, keyId);
     return db.Read(key, account);
@@ -430,7 +374,8 @@ uint256 CAccountDB::GetBestBlock() {
 bool CAccountDB::SetBestBlock(const uint256 &hashBlock) {
     return db.Write(dbk::GetKeyPrefix(dbk::BEST_BLOCKHASH), hashBlock);
 }
-
+*/
+/* TODO: check and delete...
 bool CAccountDB::BatchWrite(const map<CKeyID, CAccount> &mapAccounts,
                                 const map<CRegID, CKeyID> &mapKeyIds, const uint256 &hashBlock) {
     CLevelDBBatch batch;
@@ -466,6 +411,7 @@ bool CAccountDB::BatchWrite(const vector<CAccount> &vAccounts) {
     }
     return db.WriteBatch(batch, false);
 }
+
 
 bool CAccountDB::EraseAccountByKeyId(const CKeyID &keyId) {
     return db.Erase(dbk::GenDbKey(dbk::KEYID_ACCOUNT, keyId));
@@ -578,3 +524,4 @@ Object CAccountDB::ToJsonObj(dbk::PrefixType prefix) {
     obj.push_back(Pair("scriptdb", arrayObj));
     return obj;
 }
+*/

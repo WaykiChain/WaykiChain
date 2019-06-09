@@ -1545,7 +1545,7 @@ bool static DisconnectTip(CValidationState &state) {
                             pIndexDelete->GetBlockHash().ToString());
 
         // Need to re-sync all to global cache layer.
-        spCW->accountCache.Flush(pCdMan->pAccountCache);
+        spCW->accountCache.Flush();
         spCW->txCache.Flush(pCdMan->pTxCache);
         spCW->contractCache.Flush();
 
@@ -1611,7 +1611,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         mapBlockSource.erase(inv.hash);
 
         // Need to re-sync all to global cache layer.
-        spCW->accountCache.Flush(pCdMan->pAccountCache);
+        spCW->accountCache.Flush();
         spCW->txCache.Flush(pCdMan->pTxCache);
         spCW->contractCache.Flush();
 

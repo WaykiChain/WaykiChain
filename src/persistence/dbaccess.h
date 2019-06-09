@@ -101,13 +101,13 @@ public:
                 db( GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe ) {}
 
     template<typename KeyType, typename ValueType>
-    bool GetData(const dbk::PrefixType prefixType, const KeyType &key, ValueType &value) {
+    bool GetData(const dbk::PrefixType prefixType, const KeyType &key, ValueType &value) const {
         string keyStr = dbk::GenDbKey(prefixType, key);
         return db.Read(keyStr, value);
     }
 
     template<typename ValueType>
-    bool GetData(const dbk::PrefixType prefixType, ValueType &value) {
+    bool GetData(const dbk::PrefixType prefixType, ValueType &value) const {
         const string prefix = dbk::GetKeyPrefix(prefixType);
         return db.Read(prefix, value);
     }
@@ -119,7 +119,7 @@ public:
     }
 
     template<typename KeyType, typename ValueType>
-    bool HaveData(const dbk::PrefixType prefixType, const KeyType &key) {
+    bool HaveData(const dbk::PrefixType prefixType, const KeyType &key) const {
         string keyStr = dbk::GenDbKey(prefixType, key);
         return db.Exists(keyStr);
     }
@@ -152,7 +152,7 @@ public:
     }
 
 private:
-    CLevelDBWrapper db;
+    mutable CLevelDBWrapper db; // // TODO: remove the mutable declare
 };
 
 template<typename KeyType, typename ValueType>
@@ -188,7 +188,7 @@ public:
         return false;
     }
 
-    bool GetData(const KeyType &key, ValueType &value) {
+    bool GetData(const KeyType &key, ValueType &value) const {
         auto it = GetDataIt(key);
         if (it != mapData.end()) {
             value = it->second;
@@ -246,7 +246,7 @@ public:
     dbk::PrefixType GetPrefixType() const { return prefixType; }
 
 private:
-    Iterator GetDataIt(const KeyType &key) {
+    Iterator GetDataIt(const KeyType &key) const {
         // key should not be empty
         if (db_util::IsEmpty(key)) {
             return mapData.end();
@@ -277,7 +277,7 @@ private:
         return mapData.end();
     };
 private:
-    CDBCache<KeyType, ValueType> *pBase;
+    mutable CDBCache<KeyType, ValueType> *pBase;
     CDBAccess *pDbAccess;
     dbk::PrefixType prefixType;
     map<KeyType, ValueType> mapData;
@@ -376,7 +376,7 @@ private:
         } else if (pBase != nullptr){
             auto ptr = pBase->GetDataPtr();
             if (ptr) {
-                assert(!db_util::IsEmpty(ptr));
+                assert(!db_util::IsEmpty(*ptr));
                 ptrData = std::make_shared<ValueType>(*ptr);
                 return ptrData;
             }
@@ -384,7 +384,7 @@ private:
             auto ptrDbData = std::make_shared<ValueType>();
 
             if (pDbAccess->GetData(prefixType, *ptrDbData)) {
-                assert(!db_util::IsEmpty(ptrDbData));
+                assert(!db_util::IsEmpty(*ptrDbData));
                 ptrData = ptrDbData;
                 return ptrData;
             }

@@ -210,6 +210,15 @@ public:
 
     bool UpDateAccountPos(int nCurHeight);
 
+    bool IsEmpty() const {
+        return keyID.IsEmpty();
+    }
+
+    void SetEmpty() {
+        keyID.SetEmpty();
+        // TODO: need set other fields to empty()??
+    }
+
     IMPLEMENT_SERIALIZE(
         READWRITE(keyID);
         READWRITE(regID);

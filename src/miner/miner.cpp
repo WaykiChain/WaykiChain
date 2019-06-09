@@ -399,7 +399,7 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
             // Need to re-sync all to cache layer except for transaction cache, as it's depend on
             // the global transaction cache to verify whether a transaction(txid) has been confirmed
             // already in block.
-            spCW->accountCache.Flush(&cwIn.accountCache);
+            spCW->accountCache.Flush();
             spCW->contractCache.Flush();
 
             nFees += pBaseTx->GetFee();

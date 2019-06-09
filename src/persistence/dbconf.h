@@ -106,6 +106,7 @@ namespace dbk {
     }
 }
 
+static const string DB_NAME_ACCOUNT = "account";
 static const string DB_NAME_CONTRACT = "contract";
 
 typedef leveldb::Slice Slice;

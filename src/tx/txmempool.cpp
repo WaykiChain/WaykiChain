@@ -117,9 +117,9 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
     }
 
     auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache = *memPoolAccountCache;
+    spCW->accountCache.SetBaseView(memPoolAccountCache.get());
     spCW->txCache.SetBaseView(pCdMan->pTxCache);
-    spCW->contractCache = *memPoolContractCache;
+    spCW->contractCache.SetBaseView(memPoolContractCache.get());
 
     if (bExecute) {
         if (!memPoolEntry.GetTx()->ExecuteTx(chainActive.Tip()->nHeight + 1, 0, *spCW, state))
@@ -129,7 +129,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
     // Need to re-sync all to cache layer except for transaction cache, as it's depend on
     // the global transaction cache to verify whether a transaction(txid) has been confirmed
     // already in block.
-    spCW->accountCache.Flush(memPoolAccountCache.get());
+    spCW->accountCache.Flush();
     spCW->contractCache.Flush();
 
     return true;
