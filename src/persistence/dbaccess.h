@@ -90,7 +90,7 @@ namespace db_util {
     }
 
     template<typename T>
-    void SetEmpty(const T& val) {
+    void SetEmpty(T& val) {
         return val.SetEmpty();
     }
 };
@@ -127,18 +127,18 @@ public:
     template<typename KeyType, typename ValueType>
     void BatchWrite(const dbk::PrefixType prefixType, const map<KeyType, ValueType> &mapData) {
         CLevelDBBatch batch;
-        for (auto it : mapData) {
-            string key = dbk::GenDbKey(prefixType, it->first);
-            if (db_util::IsEmpty(it->second)) {
+        for (auto item : mapData) {
+            string key = dbk::GenDbKey(prefixType, item.first);
+            if (db_util::IsEmpty(item.second)) {
                 batch.Erase(key);
             } else {
-                batch.Write(key, it->second);
+                batch.Write(key, item.second);
             }
         }
         db.WriteBatch(batch, true);
     }
 
-    template<typename KeyType, typename ValueType>
+    template<typename ValueType>
     void BatchWrite(const dbk::PrefixType prefixType, ValueType &value) {
         CLevelDBBatch batch;
         const string prefix = dbk::GetKeyPrefix(prefixType);
@@ -206,13 +206,13 @@ public:
     };
 
 
-    bool HaveData(const KeyType &key) {
+    bool HaveData(const KeyType &key) const {
         auto it = GetDataIt(key);
         return it != mapData.end();
     }
 
     bool EraseData(const KeyType &key) {
-        auto it = GetDataIt(key);
+        Iterator it = GetDataIt(key);
         if (it != mapData.end()) {
             db_util::SetEmpty(it->second);
         }
@@ -223,16 +223,15 @@ public:
         assert(pBase != nullptr || pDbAccess != nullptr);
         if (pBase != nullptr) {
             assert(pDbAccess == nullptr);
-            for (auto it : this.mapdata) {
+            for (auto it : mapData) {
                 pBase->mapData[it.first] = it.second;
             }
-            this.mapData.clear();
         } else if (pDbAccess != nullptr) {
             assert(pBase == nullptr);
-            pDbAccess->BatchWrite(prefixType, mapData);
+            pDbAccess->BatchWrite<KeyType, ValueType>(prefixType, mapData);
         }
 
-        this.mapData.clear();
+        mapData.clear();
     }
 
     void UndoData(const CDbOpLog &dbOpLog) {
@@ -280,7 +279,7 @@ private:
     mutable CDBCache<KeyType, ValueType> *pBase;
     CDBAccess *pDbAccess;
     dbk::PrefixType prefixType;
-    map<KeyType, ValueType> mapData;
+    mutable map<KeyType, ValueType> mapData;
 
 };
 
@@ -310,7 +309,7 @@ public:
         prefixType = pBaseIn->prefixType;
     };
 
-    bool GetData(ValueType &value) {
+    bool GetData(ValueType &value) const {
         auto ptr = GetDataPtr();
         if (ptr) {
             value = *ptr;
@@ -329,7 +328,7 @@ public:
     };
 
 
-    bool HaveData() {
+    bool HaveData() const {
         auto ptr = GetDataPtr();
         return ptr;
     }
@@ -346,13 +345,13 @@ public:
         assert(pBase != nullptr || pDbAccess != nullptr);
         if (pBase != nullptr) {
             assert(pDbAccess == nullptr);
-            pBase->ptrData = this.ptrData;
+            pBase->ptrData = ptrData;
         } else if (pDbAccess != nullptr) {
             assert(pBase == nullptr);
-            pDbAccess->BatchWrite(prefixType, ptrData);
+            pDbAccess->BatchWrite(prefixType, *ptrData);
         }
 
-        this.ptrData = nullptr;
+        ptrData = nullptr;
     }
 
     void UndoData(const CDbOpLog &dbOpLog) {
@@ -366,11 +365,11 @@ public:
     dbk::PrefixType GetPrefixType() const { return prefixType; }
 
 private:
-    std::shared_ptr<ValueType> GetDataPtr() {
+    std::shared_ptr<ValueType> GetDataPtr() const {
 
         assert(prefixType != dbk::EMPTY);
         if (ptrData) {
-            if (!db_util::IsEmpty(ptrData)) {
+            if (!db_util::IsEmpty(*ptrData)) {
                 return ptrData;
             }
         } else if (pBase != nullptr){
@@ -392,10 +391,10 @@ private:
         return nullptr;
     };
 private:
-    CDBSingleCache<ValueType> *pBase;
+    mutable CDBSingleCache<ValueType> *pBase;
     CDBAccess *pDbAccess;
     dbk::PrefixType prefixType;
-    std::shared_ptr<ValueType> ptrData;
+    mutable std::shared_ptr<ValueType> ptrData;
 
 };
 

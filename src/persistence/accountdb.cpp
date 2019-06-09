@@ -15,11 +15,11 @@ using namespace std;
 
 extern CChain chainActive;
 
-bool CAccountCache::GetAccount(const CKeyID &keyId, CAccount &account) {
+bool CAccountCache::GetAccount(const CKeyID &keyId, CAccount &account) const {
     return keyId2AccountCache.GetData(keyId, account);
 }
 
-bool CAccountCache::GetAccount(const CRegID &regId, CAccount &account) {
+bool CAccountCache::GetAccount(const CRegID &regId, CAccount &account) const {
     if (regId.IsEmpty())
         return false;
 
@@ -31,7 +31,7 @@ bool CAccountCache::GetAccount(const CRegID &regId, CAccount &account) {
     return false;
 }
 
-bool CAccountCache::GetAccount(const CUserID &userId, CAccount &account) {
+bool CAccountCache::GetAccount(const CUserID &userId, CAccount &account) const {
     bool ret = false;
     if (userId.type() == typeid(CRegID)) {
         ret = GetAccount(userId.get<CRegID>(), account);
@@ -64,11 +64,11 @@ bool CAccountCache::SetAccount(const CRegID &regId, const CAccount &account) {
     return false;
 }
 
-bool CAccountCache::HaveAccount(const CKeyID &keyId) {
+bool CAccountCache::HaveAccount(const CKeyID &keyId) const {
     return keyId2AccountCache.HaveData(keyId);
 }
 
-uint256 CAccountCache::GetBestBlock() {
+uint256 CAccountCache::GetBestBlock() const {
     uint256 blockHash;
     blockHashCache.GetData(blockHash);
     return blockHash;
@@ -123,11 +123,11 @@ bool CAccountCache::SetKeyId(const CRegID &regId, const CKeyID &keyId) {
     return regId2KeyIdCache.SetData(regId.GetRegIdRawStr(), keyId);
 }
 
-bool CAccountCache::GetKeyId(const CRegID &regId, CKeyID &keyId) {
+bool CAccountCache::GetKeyId(const CRegID &regId, CKeyID &keyId) const {
     return regId2KeyIdCache.GetData(regId.GetRegIdRawStr(), keyId);
 }
 
-bool CAccountCache::GetKeyId(const CUserID &userId, CKeyID &keyId) {
+bool CAccountCache::GetKeyId(const CUserID &userId, CKeyID &keyId) const {
     if (userId.type() == typeid(CRegID)) {
         return GetKeyId(userId.get<CRegID>(), keyId);
 
@@ -165,7 +165,7 @@ bool CAccountCache::SaveAccount(const CAccount &account) {
 }
 
 
-bool CAccountCache::GetUserId(const string &addr, CUserID &userId) {
+bool CAccountCache::GetUserId(const string &addr, CUserID &userId) const {
     CRegID regId(addr);
     if (!regId.IsEmpty()) {
         userId = regId;
@@ -181,7 +181,7 @@ bool CAccountCache::GetUserId(const string &addr, CUserID &userId) {
     return false;
 }
 
-bool CAccountCache::GetRegId(const CKeyID &keyId, CRegID &regId) {
+bool CAccountCache::GetRegId(const CKeyID &keyId, CRegID &regId) const {
     CAccount acct;
     if (keyId2AccountCache.GetData(keyId, acct)) {
         regId = acct.regID;
@@ -197,7 +197,7 @@ bool CAccountCache::GetRegId(const CUserID &userId, CRegID &regId) const {
     } else if (userId.type() == typeid(CRegID)) {
         CAccount account;
         if (GetAccount(userId.get<CKeyID>(), account)) {
-            regId = account.ID;
+            regId = account.regID;
             return !regId.IsEmpty();
         }
     }
@@ -252,7 +252,7 @@ bool CAccountCache::EraseAccountByKeyId(const CUserID &userId) {
     return false;
 }
 
-bool CAccountCache::HaveAccount(const CUserID &userId) {
+bool CAccountCache::HaveAccount(const CUserID &userId) const {
     if (userId.type() == typeid(CKeyID)) {
         return HaveAccount(userId.get<CKeyID>());
     }
@@ -291,7 +291,7 @@ int64_t CAccountCache::GetFreeBCoins(const CUserID &userId) const {
 */
 }
 
-unsigned int CAccountCache::GetCacheSize() {
+unsigned int CAccountCache::GetCacheSize() const {
     /* TODO: CDbCache::GetCacheSize()
     return  ::GetSerializeSize(mapKeyId2Account, SER_DISK, CLIENT_VERSION) +
             ::GetSerializeSize(mapRegId2KeyId, SER_DISK, CLIENT_VERSION);

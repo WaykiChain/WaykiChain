@@ -55,14 +55,14 @@ public:
     CDBCache<CNickID, CKeyID> nickId2KeyIdCache;       // <NickID -> KeyID>
 
 public:
-    bool GetAccount(const CKeyID &keyId, CAccount &account);
-    bool GetAccount(const CRegID &regId, CAccount &account);
-    bool GetAccount(const CUserID &userId, CAccount &account);
+    bool GetAccount(const CKeyID &keyId, CAccount &account) const;
+    bool GetAccount(const CRegID &regId, CAccount &account) const;
+    bool GetAccount(const CUserID &userId, CAccount &account) const;
     bool SetAccount(const CKeyID &keyId, const CAccount &account);
     bool SetAccount(const CRegID &regId, const CAccount &account);
     bool SetAccount(const CUserID &userId, const CAccount &account);
-    bool HaveAccount(const CKeyID &keyId);
-    uint256 GetBestBlock();
+    bool HaveAccount(const CKeyID &keyId) const;
+    uint256 GetBestBlock() const;
     bool SetBestBlock(const uint256 &blockHash);
     bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<CRegID,
                             CKeyID> &mapKeyIds, const uint256 &blockHash);
@@ -70,7 +70,7 @@ public:
     bool EraseAccountByKeyId(const CKeyID &keyId);
     bool SetKeyId(const CRegID &regId, const CKeyID &keyId);
     bool SetKeyId(const CUserID &userId, const CKeyID &keyId);
-    bool GetKeyId(const CRegID &regId, CKeyID &keyId);
+    bool GetKeyId(const CRegID &regId, CKeyID &keyId) const;
     bool EraseKeyIdByRegId(const CRegID &regId);
 
     bool SaveAccount(const CAccount &account);
@@ -93,17 +93,17 @@ public:
 
     ~CAccountCache() {}
 
-    bool GetUserId(const string &addr, CUserID &userId);
-    bool GetRegId(const CKeyID &keyId, CRegID &regId);
+    bool GetUserId(const string &addr, CUserID &userId) const;
+    bool GetRegId(const CKeyID &keyId, CRegID &regId) const;
     bool GetRegId(const CUserID &userId, CRegID &regId) const;
     bool RegIDIsMature(const CRegID &regId) const;
-    bool GetKeyId(const CUserID &userId, CKeyID &keyId);
+    bool GetKeyId(const CUserID &userId, CKeyID &keyId) const;
     bool EraseAccountByKeyId(const CUserID &userId);
     bool EraseKeyId(const CUserID &userId);
-    bool HaveAccount(const CUserID &userId);
+    bool HaveAccount(const CUserID &userId) const;
     int64_t GetFreeBCoins(const CUserID &userId) const;
     bool Flush();
-    unsigned int GetCacheSize();
+    unsigned int GetCacheSize() const;
     Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY);
     void SetBaseView(CAccountCache *pBaseIn) { 
         blockHashCache.SetBase(&pBaseIn->blockHashCache);
