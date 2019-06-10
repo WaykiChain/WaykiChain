@@ -30,7 +30,8 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     cw.txUndo.accountLogs.push_back(acctInfoLog);
     cw.txUndo.txHash = GetHash();
 
-    IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
+   if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid})) return false;
+
     return true;
 }
 

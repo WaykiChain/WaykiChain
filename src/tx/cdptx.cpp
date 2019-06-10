@@ -88,7 +88,8 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
     cw.cdpCache.StakeBcoins(txUid, bcoinsToStake, collateralRatio, (uint64_t) mintedScoins, nHeight, cdpDbOpLog); //update cache & persist into ldb
     cw.txUndo.mapDbOpLogs[DbOpLogType::COMMON_OP].push_back(cdpDbOpLog);
 
-    IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
+    if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid})) return false;
+
     return true;
 }
 

@@ -202,19 +202,6 @@ bool CAccountCache::GetRegId(const CUserID &userId, CRegID &regId) const {
         }
     }
     return false;
-/*    TODO: why to copy this cache??
-    CAccountCache tempView(*this);
-    CAccount account;
-    if (userId.type() == typeid(CRegID)) {
-        regId = userId.get<CRegID>();
-        return true;
-    }
-    if (tempView.GetAccount(userId, account)) {
-        regId = account.regID;
-        return !regId.IsEmpty();
-    }
-    return false;
-*/
 }
 
 bool CAccountCache::RegIDIsMature(const CRegID &regId) const {
@@ -281,14 +268,6 @@ int64_t CAccountCache::GetFreeBCoins(const CUserID &userId) const {
         return account.GetFreeBCoins();
     }
     return 0;
-/*
-    CAccountCache accountCache(*this);
-    CAccount account;
-    if (accountCache.GetAccount(userId, account)) {
-        return account.GetFreeBCoins();
-    }
-    return 0;
-*/
 }
 
 unsigned int CAccountCache::GetCacheSize() const {
