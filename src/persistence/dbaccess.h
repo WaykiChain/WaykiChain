@@ -112,10 +112,28 @@ public:
         return db.Read(prefix, value);
     }
 
-    template<typename KeyType, typename ValueType>
-    bool GetNextItem(const dbk::PrefixType prefixType, KeyType &key, ValueType &value) {
-        // TODO:
-        return false;
+    template <typename KeyType>
+    bool GetTopNElements(const int32_t maxNum, const dbk::PrefixType prefixType, const set<KeyType> &excludeKeys,
+                         set<KeyType> &keys) {
+        leveldb::Iterator *pCursor = db.NewIterator();
+        leveldb::Slice slKey = pCursor->key();
+        KeyType key;
+        uint32_t count = 0;
+        pCursor->Seek(dbk::GetKeyPrefix(prefixType));
+
+        for (; (count < maxNum) && pCursor->Valid(); pCursor->Next()) {
+            dbk::ParseDbKey(slKey, prefixType, key);
+
+            if (excludeKeys.count(key)) {
+                continue;
+            }
+
+            // Got an valid element.
+            keys.insert(key);
+            ++ count;
+        }
+
+        return true;
     }
 
     template<typename KeyType, typename ValueType>
@@ -142,7 +160,7 @@ public:
     void BatchWrite(const dbk::PrefixType prefixType, ValueType &value) {
         CLevelDBBatch batch;
         const string prefix = dbk::GetKeyPrefix(prefixType);
-        
+
         if (db_util::IsEmpty(value)) {
             batch.Erase(prefix);
         } else {
@@ -184,9 +202,24 @@ public:
         prefixType = pBaseIn->prefixType;
     };
 
-    bool GetNextItem(KeyType &key, ValueType &value) {
-        // TODO:
-        return false;
+
+    bool GetTopNElements(const int32_t maxNum, const set<KeyType> expiredKeys,
+                         set<KeyType> &keys) {
+        ValueType emptyValue;
+        uint32_t count = 0;
+        auto &iter = mapData.begin();
+
+        for (; (count < maxNum) && iter != mapData.end(); ++iter) {
+            if (iter.second == emptyValue) {
+                expiredKeys.insert(iter.first);
+            } else {
+                // Got a valid element.
+                keys.insert(iter.first);
+                ++ count;
+            }
+        }
+
+        return true;
     }
 
     bool GetData(const KeyType &key, ValueType &value) const {
@@ -283,7 +316,6 @@ private:
     CDBAccess *pDbAccess;
     dbk::PrefixType prefixType;
     mutable map<KeyType, ValueType> mapData;
-
 };
 
 
