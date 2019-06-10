@@ -32,6 +32,9 @@ static bool GetKeyId(const CAccountCache &view, const vector<unsigned char> &ret
     return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// class CContractDeployTx
+
 bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
@@ -72,7 +75,7 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
     nRunStep = contractScript.size();
 
-    IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
+    if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid})) return false;
 
     return true;
 }
@@ -212,6 +215,9 @@ bool CContractDeployTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState
 
     return true;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// class CContractInvokeTx
 
 bool CContractInvokeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     CKeyID keyId;
@@ -423,7 +429,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
     cw.txUndo.txHash = GetHash();
 
-    IMPLEMENT_PERSIST_TX_KEYID(txUid, appUid);
+    if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid, appUid})) return false;
 
     return true;
 }

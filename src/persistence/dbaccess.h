@@ -25,6 +25,10 @@ namespace db_util {
     template<typename T, typename A> bool IsEmpty(const vector<T, A>& val);
     template<typename T, typename A> void SetEmpty(vector<T, A>& val);
 
+    // set
+    template<typename K, typename Pred, typename A> bool IsEmpty(const set<K, Pred, A>& val);
+    template<typename K, typename Pred, typename A> void SetEmpty(set<K, Pred, A>& val);
+
     // 2 pair
     template<typename K, typename T> bool IsEmpty(const std::pair<K, T>& val);
     template<typename K, typename T> void SetEmpty(std::pair<K, T>& val);
@@ -45,7 +49,7 @@ namespace db_util {
 
     template<typename C>
     void SetEmpty(basic_string<C> &val) {
-        return val.clear();
+        val.clear();
     }
 
     // vector
@@ -55,7 +59,15 @@ namespace db_util {
     }
     template<typename T, typename A>
     void SetEmpty(vector<T, A>& val) {
-        return val.clear();
+        val.clear();
+    }
+
+    // set
+    template<typename K, typename Pred, typename A> bool IsEmpty(const set<K, Pred, A>& val) {
+        return val.empty();
+    }
+    template<typename K, typename Pred, typename A> void SetEmpty(set<K, Pred, A>& val) {
+        val.clear();
     }
 
     // 2 pair
@@ -91,7 +103,7 @@ namespace db_util {
 
     template<typename T>
     void SetEmpty(T& val) {
-        return val.SetEmpty();
+        val.SetEmpty();
     }
 };
 
@@ -112,38 +124,26 @@ public:
         return db.Read(prefix, value);
     }
 
-    template<typename KeyType, typename ValueType>
-    bool GetNextItem(const dbk::PrefixType prefixType, KeyType &key, ValueType &value) {
-        // If the key is empty, match the first element by the prefix only, otherwise, match
-        // the first element by the `prefix + key'.
-        // For example, here is the list {xxx01, xxx02, xxx03, ...}
-        //              Parameters              Matched Element      Returned Key
-        // ----------------------------------  ------------------   ---------------
-        // GetNextItem("xxx", "", value)            "xxx01"             01
-        // GetNextItem("xxx", "02", value)          "xxx03"             03
-
-        string keyStr = db_util::IsEmpty(key) ? dbk::GetKeyPrefix(prefixType) : dbk::GenDbKey(prefixType, key);
+    template <typename KeyType>
+    bool GetTopNElements(const int32_t maxNum, const dbk::PrefixType prefixType, const set<KeyType> &excludeKeys,
+                         set<KeyType> &keys) {
         leveldb::Iterator *pCursor = db.NewIterator();
-        pCursor->Seek(keyStr);
+        leveldb::Slice slKey = pCursor->key();
+        KeyType key;
+        uint32_t count = 0;
+        pCursor->Seek(dbk::GetKeyPrefix(prefixType));
 
-        if (db_util::IsEmpty(key)) {
-            pCursor->Next();
+        for (; (count < maxNum) && pCursor->Valid(); pCursor->Next()) {
+            dbk::ParseDbKey(slKey, prefixType, key);
+
+            if (excludeKeys.count(key)) {
+                continue;
+            }
+
+            // Got an valid element.
+            keys.insert(key);
+            ++ count;
         }
-
-        if (!pCursor->Valid()) {
-            return false;
-        }
-
-        Slice slKey = pCursor->key();
-        if (!slKey.starts_with(Slice(dbk::GetKeyPrefix(prefixType)))) {
-            return false;
-        }
-
-        dbk::ParseDbKey(slKey, prefixType, key);
-
-        Slice slValue = pCursor->value();
-        CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-        ssValue >> value;
 
         return true;
     }
@@ -214,9 +214,24 @@ public:
         prefixType = pBaseIn->prefixType;
     };
 
-    bool GetNextItem(KeyType &key, ValueType &value) {
-        // TODO:
-        return false;
+
+    bool GetTopNElements(const int32_t maxNum, const set<KeyType> expiredKeys,
+                         set<KeyType> &keys) {
+        ValueType emptyValue;
+        uint32_t count = 0;
+        auto &iter = mapData.begin();
+
+        for (; (count < maxNum) && iter != mapData.end(); ++iter) {
+            if (iter.second == emptyValue) {
+                expiredKeys.insert(iter.first);
+            } else {
+                // Got a valid element.
+                keys.insert(iter.first);
+                ++ count;
+            }
+        }
+
+        return true;
     }
 
     bool GetData(const KeyType &key, ValueType &value) const {
@@ -313,7 +328,6 @@ private:
     CDBAccess *pDbAccess;
     dbk::PrefixType prefixType;
     mutable map<KeyType, ValueType> mapData;
-
 };
 
 

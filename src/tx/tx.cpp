@@ -99,3 +99,24 @@ string CBaseTx::ToString(CAccountCache &view) {
 
     return str;
 }
+
+bool CBaseTx::SaveTxAddresses(int nHeight, int nIndex, CCacheWrapper &cw, const vector<CUserID> &userIds) {
+    if (SysCfg().GetAddressToTxFlag()) {
+        CDbOpLogs &opLogs = cw.txUndo.mapDbOpLogs[ADDR_TXHASH];
+        CDbOpLog operAddressToTxLog;
+        for (auto userId : userIds) {
+            if (userId.type() != typeid(CNullID)) {
+                CKeyID keyId;
+                if (!cw.accountCache.GetKeyId(userId, keyId))
+                    return ERRORMSG("SaveTxAddresses, get keyid uid error!");
+
+                if (!cw.contractCache.SetTxHashByAddress(keyId, nHeight, nIndex + 1,
+                                                         cw.txUndo.txHash, operAddressToTxLog))
+                    return ERRORMSG("SaveTxAddresses, SetTxHashByAddress to db cache failed!");
+
+                opLogs.push_back(operAddressToTxLog);
+            }
+        }
+    }
+    return true;
+}

@@ -186,7 +186,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         opLogs.push_back(eraseDbLog);
     }
 
-    IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
+    if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid})) return false;
 
     return true;
 }

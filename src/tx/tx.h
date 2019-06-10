@@ -178,8 +178,9 @@ public:
 protected:
     bool CheckMinTxFee(const uint64_t llFees, const int nHeight) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const ;
+protected:
+    static bool SaveTxAddresses(int nHeight, int nIndex, CCacheWrapper &cw, const vector<CUserID> &userIds);
 };
-
 
 class CCoinPriceType {
 public:
@@ -274,37 +275,6 @@ public:
     if (!VerifySignature(sighash, signature, signatureVerifyPubKey)) {                                          \
         return state.DoS(100, ERRORMSG("%s::CheckTx, tx signature error", __FUNCTION__), REJECT_INVALID,        \
                          "bad-tx-signature");                                                                   \
-    }
-
-#define IMPLEMENT_PERSIST_TX_KEYID(sendTxUid, recvTxUid)                                   \
-    if (SysCfg().GetAddressToTxFlag()) {                                                   \
-        CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[ADDR_TXHASH];                            \
-        CDbOpLog operAddressToTxLog;                                                       \
-        if (sendTxUid.type() != typeid(CNullID)) {                                         \
-            CKeyID sendKeyId;                                                              \
-            if (!cw.accountCache.GetKeyId(sendTxUid, sendKeyId))                           \
-                return ERRORMSG("%s::ExecuteTx, get keyid by txUid error!", __FUNCTION__); \
-                                                                                           \
-            if (!cw.contractCache.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1,       \
-                                                     cw.txUndo.txHash,                     \
-                                                     operAddressToTxLog))                  \
-                return false;                                                              \
-                                                                                           \
-            opLogs.push_back(operAddressToTxLog);                                          \
-        }                                                                                  \
-                                                                                           \
-        if (recvTxUid.type() != typeid(CNullID)) {                                         \
-            CKeyID recvKeyId;                                                              \
-            if (!cw.accountCache.GetKeyId(recvTxUid, recvKeyId))                           \
-                return ERRORMSG("%s::ExecuteTx, get keyid by toUid error!", __FUNCTION__); \
-                                                                                           \
-            if (!cw.contractCache.SetTxHashByAddress(recvKeyId, nHeight, nIndex + 1,       \
-                                                     cw.txUndo.txHash,                     \
-                                                     operAddressToTxLog))                  \
-                return false;                                                              \
-                                                                                           \
-            opLogs.push_back(operAddressToTxLog);                                          \
-        }                                                                                  \
     }
 
 #endif //COIN_BASETX_H

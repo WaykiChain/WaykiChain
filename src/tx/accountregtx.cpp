@@ -74,7 +74,7 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
     cw.txUndo.accountLogs.push_back(acctLog);
     cw.txUndo.txHash = GetHash();
 
-    IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
+   if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid})) return false;
 
     return true;
 }
