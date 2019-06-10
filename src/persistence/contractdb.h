@@ -58,9 +58,10 @@ class CContractCache {
 
 private:
     CDBCache<string, string> scriptCache;                               // scriptRegId -> script content
-    CDBCache<uint256, vector<CVmOperate>> txOutputCache;                // txid -> vector<CVmOperate>
-    CDBCache<std::tuple<CKeyID, int, int>, uint256> acctTxListCache;    // keyid,height,index -> txid
-    CDBCache<uint256, CDiskTxPos> txDiskPosCache;                       // txid -> DiskTxPos
+    CDBCache<uint256, vector<CVmOperate>> txOutputCache;                // txId -> vector<CVmOperate>
+    CDBCache<std::tuple<CKeyID, int, int>, uint256> acctTxListCache;    // keyId,height,index -> txid
+    CDBCache<uint256, CDiskTxPos> txDiskPosCache;                       // txId -> DiskTxPos
+    CDBCache<uint256, set<CKeyID> > contractAccountsCache;              // contractTxId -> relatedAccounts
 
 public:
     map<string, string > mapContractDb;
@@ -72,13 +73,15 @@ public:
         scriptCache(pDbAccess, dbk::CONTRACT_DEF),
         txOutputCache(pDbAccess, dbk::CONTRACT_TX_OUT),
         acctTxListCache(pDbAccess, dbk::LIST_KEYID_TX),
-        txDiskPosCache(pDbAccess, dbk::TXID_DISKINDEX) {};
+        txDiskPosCache(pDbAccess, dbk::TXID_DISKINDEX),
+        contractAccountsCache(pDbAccess, dbk::CONTRACT_ACCOUNTS) {};
 
     CContractCache(CContractCache *pBaseIn):
         scriptCache(pBaseIn->scriptCache), 
         txOutputCache(pBaseIn->txOutputCache), 
         acctTxListCache(pBaseIn->acctTxListCache),
-        txDiskPosCache(pBaseIn->txDiskPosCache) {};
+        txDiskPosCache(pBaseIn->txDiskPosCache),
+        contractAccountsCache(pBaseIn->contractAccountsCache) {};
 
     bool GetScript(const CRegID &scriptId, string &value);
     bool GetScript(const int nIndex, CRegID &scriptId, string &value);
@@ -129,6 +132,7 @@ public:
         txOutputCache.SetBase(&pBaseIn->txOutputCache);
         acctTxListCache.SetBase(&pBaseIn->acctTxListCache);
         txDiskPosCache.SetBase(&pBaseIn->txDiskPosCache);
+        contractAccountsCache.SetBase(&pBaseIn->contractAccountsCache);        
      }
 
     string ToString();

@@ -1023,50 +1023,14 @@ bool CContractCache::SetContractData(const CRegID &scriptId, const string &vScri
 }
 
 bool CContractCache::SetTxRelAccout(const uint256 &txHash, const set<CKeyID> &relAccount) {
-    return false;
-    /*TODO:....
-    string vKey = {'t', 'x'};
-    string vValue;
-    CDataStream ds(SER_DISK, CLIENT_VERSION);
-    ds << txHash;
-    vKey.insert(vKey.end(), ds.begin(), ds.end());
-    ds.clear();
-    ds << relAccount;
-    vValue.assign(ds.begin(), ds.end());
-    return SetData(vKey, vValue);
-    */
+    return contractAccountsCache.SetData(txHash, relAccount);
 }
 bool CContractCache::GetTxRelAccount(const uint256 &txHash, set<CKeyID> &relAccount) {
-    return false;
-    /*TODO:
-    string vKey = {'t', 'x'};
-    string vValue;
-    CDataStream ds(SER_DISK, CLIENT_VERSION);
-    ds << txHash;
-    vKey.insert(vKey.end(), ds.begin(), ds.end());
-    if (!GetData(vKey, vValue))
-        return false;
-    ds.clear();
-    vector<char> temp;
-    temp.assign(vValue.begin(), vValue.end());
-    ds.insert(ds.end(), temp.begin(), temp.end());
-    ds >> relAccount;
-    return true;
-    */
+    return contractAccountsCache.GetData(txHash, relAccount);
 }
 
 bool CContractCache::EraseTxRelAccout(const uint256 &txHash) {
-    return false;
-    /*
-    string vKey = {'t', 'x'};
-    string vValue;
-    vValue.clear();
-    CDataStream ds(SER_DISK, CLIENT_VERSION);
-    ds << txHash;
-    vKey.insert(vKey.end(), ds.begin(), ds.end());
-    SetData(vKey, vValue);
-    return true;
-    */
+    return contractAccountsCache.EraseData(txHash);
 }
 
 Object CContractCache::ToJsonObj() const {

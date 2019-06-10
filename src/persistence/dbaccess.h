@@ -25,6 +25,10 @@ namespace db_util {
     template<typename T, typename A> bool IsEmpty(const vector<T, A>& val);
     template<typename T, typename A> void SetEmpty(vector<T, A>& val);
 
+    // set
+    template<typename K, typename Pred, typename A> bool IsEmpty(const set<K, Pred, A>& val);
+    template<typename K, typename Pred, typename A> void SetEmpty(set<K, Pred, A>& val);
+
     // 2 pair
     template<typename K, typename T> bool IsEmpty(const std::pair<K, T>& val);
     template<typename K, typename T> void SetEmpty(std::pair<K, T>& val);
@@ -45,7 +49,7 @@ namespace db_util {
 
     template<typename C>
     void SetEmpty(basic_string<C> &val) {
-        return val.clear();
+        val.clear();
     }
 
     // vector
@@ -55,7 +59,15 @@ namespace db_util {
     }
     template<typename T, typename A>
     void SetEmpty(vector<T, A>& val) {
-        return val.clear();
+        val.clear();
+    }
+
+    // set
+    template<typename K, typename Pred, typename A> bool IsEmpty(const set<K, Pred, A>& val) {
+        return val.empty();
+    }
+    template<typename K, typename Pred, typename A> void SetEmpty(set<K, Pred, A>& val) {
+        val.clear();
     }
 
     // 2 pair
@@ -91,7 +103,7 @@ namespace db_util {
 
     template<typename T>
     void SetEmpty(T& val) {
-        return val.SetEmpty();
+        val.SetEmpty();
     }
 };
 
