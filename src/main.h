@@ -323,7 +323,7 @@ public:
         pTxCache        = new CTransactionCache();
         pPpCache        = new CPricePointCache();
 
-        collateralRatio = 200; //minimum 200% collateral ratio
+        collateralRatioMin = 200; //minimum 200% collateral ratio
     }
 
     ~CCacheDBManager() {
