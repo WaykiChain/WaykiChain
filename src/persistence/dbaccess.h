@@ -114,8 +114,38 @@ public:
 
     template<typename KeyType, typename ValueType>
     bool GetNextItem(const dbk::PrefixType prefixType, KeyType &key, ValueType &value) {
-        // TODO:
-        return false;
+        // If the key is empty, match the first element by the prefix only, otherwise, match
+        // the first element by the `prefix + key'.
+        // For example, here is the list {xxx01, xxx02, xxx03, ...}
+        //              Parameters              Matched Element      Returned Key
+        // ----------------------------------  ------------------   ---------------
+        // GetNextItem("xxx", "", value)            "xxx01"             01
+        // GetNextItem("xxx", "02", value)          "xxx03"             03
+
+        string keyStr = db_util::IsEmpty(key) ? dbk::GetKeyPrefix(prefixType) : dbk::GenDbKey(prefixType, key);
+        leveldb::Iterator *pCursor = db.NewIterator();
+        pCursor->Seek(keyStr);
+
+        if (db_util::IsEmpty(key)) {
+            pCursor->Next();
+        }
+
+        if (!pCursor->Valid()) {
+            return false;
+        }
+
+        Slice slKey = pCursor->key();
+        if (!slKey.starts_with(Slice(dbk::GetKeyPrefix(prefixType)))) {
+            return false;
+        }
+
+        dbk::ParseDbKey(slKey, prefixType, key);
+
+        Slice slValue = pCursor->value();
+        CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+        ssValue >> value;
+
+        return true;
     }
 
     template<typename KeyType, typename ValueType>
@@ -142,7 +172,7 @@ public:
     void BatchWrite(const dbk::PrefixType prefixType, ValueType &value) {
         CLevelDBBatch batch;
         const string prefix = dbk::GetKeyPrefix(prefixType);
-        
+
         if (db_util::IsEmpty(value)) {
             batch.Erase(prefix);
         } else {
