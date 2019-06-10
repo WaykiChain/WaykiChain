@@ -301,9 +301,6 @@ public:
     CPricePointCache    *pPpCache;
     CDelegateCache      *pDelegateCache;
 
-    CStakeDB            *pStakeDb;
-    CStakeCache         *pStakeCache;
-
     CBlockTreeDB        *pBlockTreeDb;
 
     uint64_t            collateralRatioMin; //minimum collateral ratio
@@ -314,12 +311,9 @@ public:
         pAccountDb      = new CDBAccess(DB_NAME_ACCOUNT, nAccountDBCache, false, fReIndex);
         pContractDb     = new CDBAccess(DB_NAME_CONTRACT, nScriptCacheSize, false, fReIndex);
         pBlockTreeDb    = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
-        pStakeDb        = new CStakeDB(nScriptCacheSize);
 
         pAccountCache   = new CAccountCache(pAccountDb);
         pContractCache  = new CContractCache(pContractDb);
-        pStakeCache     = new CStakeCache(*pStakeDb);
-        pDelegateCache  = new CDelegateCache(*pStakeCache);
         pTxCache        = new CTransactionCache();
         pPpCache        = new CPricePointCache();
 
@@ -333,10 +327,8 @@ public:
         delete pTxCache;        pTxCache = nullptr;
         delete pPpCache;        pPpCache = nullptr;
         delete pDelegateCache;  pDelegateCache = nullptr;
-        delete pStakeCache;     pStakeCache = nullptr;
 
         delete pContractDb;     pContractDb = nullptr;
-        delete pStakeDb;        pStakeDb = nullptr;
         delete pBlockTreeDb;    pBlockTreeDb = nullptr;
         delete pAccountDb;      pAccountDb = nullptr;
     }

@@ -9,7 +9,6 @@
 #include "accountdb.h"
 #include "contractdb.h"
 #include "txdb.h"
-#include "stakedb.h"
 #include "cdpdb.h"
 
 class CCacheWrapper {
@@ -18,7 +17,6 @@ public:
     CTransactionCache txCache;
     CContractCache contractCache;
     CPricePointCache pricePointCache;
-    CStakeCache stakeCache;
     CCdpCacheDBManager cdpCache;
     CTxUndo txUndo;
 
