@@ -6,11 +6,10 @@
 #ifndef PERSIST_TXDB_H
 #define PERSIST_TXDB_H
 
+#include "accounts/account.h"
 #include "commons/serialize.h"
-#include "contractdb.h"
+#include "dbaccess.h"
 #include "json/json_spirit_value.h"
-#include "contractdb.h"
-// #include "cdpdb.h"
 
 #include <map>
 #include <vector>

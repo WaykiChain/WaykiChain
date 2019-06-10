@@ -49,7 +49,7 @@ public:
 
 class CAccountCache {
 public:
-    CDBSingleCache<uint256>    blockHashCache;              // [single] best blockHash
+    CDBSingleCache<uint256> blockHashCache;            // [single] best blockHash
     CDBCache<CKeyID, CAccount> keyId2AccountCache;     // <KeyID -> Account>
     CDBCache<string, CKeyID> regId2KeyIdCache;         // <RegID str -> KeyID>
     CDBCache<CNickID, CKeyID> nickId2KeyIdCache;       // <NickID -> KeyID>
@@ -79,7 +79,7 @@ public:
 public:
     CAccountCache() {}
 
-    CAccountCache(CDBAccess *pDbAccess): 
+    CAccountCache(CDBAccess *pDbAccess):
         blockHashCache(pDbAccess, dbk::BEST_BLOCKHASH),
         keyId2AccountCache(pDbAccess, dbk::KEYID_ACCOUNT),
         regId2KeyIdCache(pDbAccess, dbk::REGID_KEYID),
@@ -105,7 +105,7 @@ public:
     bool Flush();
     unsigned int GetCacheSize() const;
     Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY);
-    void SetBaseView(CAccountCache *pBaseIn) { 
+    void SetBaseView(CAccountCache *pBaseIn) {
         blockHashCache.SetBase(&pBaseIn->blockHashCache);
         keyId2AccountCache.SetBase(&pBaseIn->keyId2AccountCache);
         regId2KeyIdCache.SetBase(&pBaseIn->regId2KeyIdCache);
