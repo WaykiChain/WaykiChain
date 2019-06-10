@@ -7,18 +7,21 @@
 #include "dbconf.h"
 #include "leveldbwrapper.h"
 
-bool CCdpCache::SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, uint64_t collateralRatio,
-                                uint64_t mintedScoins, int blockHeight, CDbOpLog &cdpDbOpLog) {
+bool CCdpCacheDBManager::StakeBcoins(
+    CUserID txUid, 
+    uint64_t bcoinsToStake, 
+    uint64_t collateralRatio,
+    uint64_t mintedScoins, 
+    int blockHeight, 
+    CDbOpLog &cdpDbOpLog) {
 
-    string key = dbk::GenDbKey(dbk::CDP, txUid);
     CUserCdp lastCdp;
-    if (mapCdps.count(txUid.ToString())) {
-        if (!GetData(key, lastCdp)) {
-            return ERRORMSG("CCdpCache::SetStakeBcoins : GetData failed.");
-        }
+    if (!cdpCache.GetData(txUid.ToString(), lastCdp)) {
+        return ERRORMSG("CCdpCache::StakeBcoins : GetData failed.");
     }
 
     CUserCdp cdp        = lastCdp;
+
     cdp.lastBlockHeight = cdp.blockHeight;
     cdp.lastOwedScoins  += cdp.totalOwedScoins;
     cdp.blockHeight     = blockHeight;
@@ -26,83 +29,16 @@ bool CCdpCache::SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, uint64_t c
     cdp.mintedScoins    = mintedScoins;
     cdp.totalOwedScoins += cdp.mintedScoins;
 
-    if (!SetData(key, cdp)) {
-        return ERRORMSG("CCdpCache::SetStakeBcoins : SetData failed.");
+    string cdpKey = txUid.ToString();
+    if (!cdpCache.SetData(cdpKey, cdp)) {
+        return ERRORMSG("CCdpCache::StakeBcoins : SetData failed.");
     }
 
-    // TODO: serialize to string
-    // cdpDbOpLog.Reset(key, lastCdp);
+    cdpDbOpLog = CDbOpLog(cdpCache.GetPrefixType(), cdpKey, lastCdp); 
     return true;
 }
 
-bool CCdpCache::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
-    //TODO
-    return true;
-}
-
-bool CCdpCache::GetData(const string &key, CUserCdp &value) {
-    if (mapCdps.count(key) > 0) {
-        if (!mapCdps[key].IsEmpty()) {
-            value = mapCdps[key];
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    if (!pBase->GetData(key, value)) {
-        return false;
-    }
-
-    mapCdps[key] = value;  //cache it here for speed in-mem access
-    return true;
-}
-
-bool CCdpCache::SetData(const string &key, const CUserCdp &value) {
-    pBase->SetData(dbk::GenDbKey(dbk::CDP, key), value);
-    return true;
-}
-
-bool CCdpCache::BatchWrite(const map<string, CUserCdp> &mapContractDb) {
-    //TODO
-    return true;
-}
-
-bool CCdpCache::EraseKey(const string &vKey) {
-    //TODO
-    return true;
-}
-
-bool CCdpCache::HaveData(const string &vKey) {
-    //TODO
-    return true;
-}
-
-
-CCdpDb::CCdpDb(const string &name, size_t nCacheSize, bool fMemory, bool fWipe)
-    : db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {}
-
-CCdpDb::CCdpDb(size_t nCacheSize, bool fMemory, bool fWipe)
-    : db(GetDataDir() / "blocks" / "cdp", nCacheSize, fMemory, fWipe) {}
-
-bool CCdpDb::GetData(const string &key, CUserCdp &value) {
-    //TODO
-    return true;
-}
-
-bool CCdpDb::SetData(const string &key, const CUserCdp &value) {
-    //TODO
-    return true;
-}
-bool CCdpDb::BatchWrite(const map<string, CUserCdp > &mapContractDb) {
-    //TODO
-    return true;
-}
-bool CCdpDb::EraseKey(const string &key) {
-    //TODO
-    return true;
-}
-bool CCdpDb::HaveData(const string &key) {
+bool CCdpCacheDBManager::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
     //TODO
     return true;
 }

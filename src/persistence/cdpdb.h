@@ -10,6 +10,7 @@
 #include <string>
 #include "leveldbwrapper.h"
 #include "accounts/id.h"
+#include "dbaccess.h"
 
 using namespace std;
 
@@ -43,70 +44,96 @@ struct CUserCdp {
         READWRITE(totalOwedScoins);
     )
 
+    string ToString() {
+        return strprintf("%d%d%d%d", blockHeight, mintedScoins, totalStakedBcoins, totalOwedScoins);
+    }
+
     bool IsEmpty() const {
         return ownerRegId.IsEmpty(); // TODO: need to check empty for other fields?
     }
 };
 
 
-class ICdpView {
+class CCdpCacheDBManager {
+
 public:
-    virtual bool GetData(const string &key, CUserCdp &value) = 0;
-    virtual bool SetData(const string &key, const CUserCdp &value) = 0;
-    virtual bool BatchWrite(const map<string, CUserCdp> &mapCdps) = 0;
-    virtual bool EraseKey(const string &key) = 0;
-    virtual bool HaveData(const string &key) = 0;
+    CCdpCacheDBManager() {}
+    CCdpCacheDBManager(CDBAccess *pDbAccess): cdpCache(pDbAccess, dbk::CDP) {}
 
-    virtual ~ICdpView(){};
-};
+    bool StakeBcoins(CUserID txUid, uint64_t bcoinsToStake, uint64_t collateralRatio,
+                    uint64_t mintedScoins, int blockHeight, CDbOpLog &cdpDbOpLog);
 
-class CCdpCache: public ICdpView  {
-public:
-    CCdpCache() {};
-    CCdpCache(ICdpView &base): ICdpView(), pBase(&base) {};
-
-    bool SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, uint64_t collateralRatio, uint64_t mintedScoins,
-                        int blockHeight, CDbOpLog &cdpDbOpLog);
     bool GetUnderLiquidityCdps(vector<CUserCdp> & userCdps);
-
-public:
-    virtual bool GetData(const string &key, CUserCdp &value);
-    virtual bool SetData(const string &key, const CUserCdp &value);
-    virtual bool BatchWrite(const map<string, CUserCdp > &mapContractDb);
-    virtual bool EraseKey(const string &key);
-    virtual bool HaveData(const string &key);
-
-    bool GetCdpData();
-    bool SetCdpData();
+    
+    bool GetCdp(string userRegId, CUserCdp &cdp) { return cdpCache.GetData(userRegId, cdp); }
+    bool SaveCdp(string userRegId, CUserCdp &cdp) { return cdpCache.SetData(userRegId, cdp); }
+    bool UndoCdp(CDbOpLog &opLog) { return cdpCache.UndoData(opLog); }
 
 private:
-    ICdpView *pBase               = nullptr;
     uint64_t collateralRatio      = 0;
-    uint64_t liquidityPrice       = 0;
-    uint64_t forcedLiquidityPrice = 0;
     uint64_t bcoinMedianPrice     = 0;
 
-    map<string, CUserCdp> mapCdps;  //CUserID.ToString() --> CUserCdp
-};
-
-class CCdpDb: public ICdpView  {
-private:
-    CLevelDBWrapper db;
-
-public:
-    CCdpDb(const string &name, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
-    CCdpDb(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
-
-    virtual bool GetData(const string &key, CUserCdp &value);
-    virtual bool SetData(const string &key, const CUserCdp &value);
-    virtual bool BatchWrite(const map<string, CUserCdp > &mapContractDb);
-    virtual bool EraseKey(const string &key);
-    virtual bool HaveData(const string &key);
-
-private:
-    CCdpDb(const CCdpDb &);
-    void operator=(const CCdpDb &);
+    CDBCache<string, CUserCdp> cdpCache;      // CdpOwnerRegId -> CUserCdp
 
 };
+
+// class ICdpView {
+// public:
+//     virtual bool GetData(const string &key, CUserCdp &value) = 0;
+//     virtual bool SetData(const string &key, const CUserCdp &value) = 0;
+//     virtual bool BatchWrite(const map<string, CUserCdp> &mapCdps) = 0;
+//     virtual bool EraseKey(const string &key) = 0;
+//     virtual bool HaveData(const string &key) = 0;
+
+//     virtual ~ICdpView(){};
+// };
+
+// class CCdpCache: public ICdpView  {
+// public:
+//     CCdpCache() {};
+//     CCdpCache(ICdpView &base): ICdpView(), pBase(&base) {};
+
+//     bool SetStakeBcoins(CUserID txUid, uint64_t bcoinsToStake, uint64_t collateralRatio, uint64_t mintedScoins,
+//                         int blockHeight, CDbOpLog &cdpDbOpLog);
+//     bool GetUnderLiquidityCdps(vector<CUserCdp> & userCdps);
+
+// public:
+//     virtual bool GetData(const string &key, CUserCdp &value);
+//     virtual bool SetData(const string &key, const CUserCdp &value);
+//     virtual bool BatchWrite(const map<string, CUserCdp > &mapContractDb);
+//     virtual bool EraseKey(const string &key);
+//     virtual bool HaveData(const string &key);
+
+   
+
+// private:
+//     ICdpView *pBase               = nullptr;
+//     uint64_t collateralRatio      = 0;
+//     uint64_t liquidityPrice       = 0;
+//     uint64_t forcedLiquidityPrice = 0;
+//     uint64_t bcoinMedianPrice     = 0;
+
+//     map<string, CUserCdp> mapCdps;  //CUserID.ToString() --> CUserCdp
+// };
+
+// class CCdpDb: public ICdpView  {
+// private:
+//     CLevelDBWrapper db;
+
+// public:
+//     CCdpDb(const string &name, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
+//     CCdpDb(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
+
+//     virtual bool GetData(const string &key, CUserCdp &value);
+//     virtual bool SetData(const string &key, const CUserCdp &value);
+//     virtual bool BatchWrite(const map<string, CUserCdp > &mapContractDb);
+//     virtual bool EraseKey(const string &key);
+//     virtual bool HaveData(const string &key);
+
+// private:
+//     CCdpDb(const CCdpDb &);
+//     void operator=(const CCdpDb &);
+
+// };
 
 #endif //PERSIST_CDP_CACHE_H

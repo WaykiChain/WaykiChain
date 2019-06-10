@@ -87,7 +87,7 @@ public:
     CdpRedeemTx() : CBaseTx(CDP_REDEEMP_TX) {}
 
     CdpRedeemTx(const CBaseTx *pBaseTx): CBaseTx(CDP_REDEEMP_TX) {
-        *this = *(CdpTx *)pBaseTx;
+        *this = *(CdpRedeemTx *)pBaseTx;
     }
 
     CdpRedeemTx(const CUserID &txUidIn, uint64_t feeIn, int validHeightIn,
@@ -148,22 +148,22 @@ public:
     uint64_t scoinsToRedeem;         // stable coins to redeem base coins
 
 public:
-    CdpTx() : CBaseTx(CDP_LIQUIDATE_TX) {}
+    CdpLiquidateTx() : CBaseTx(CDP_LIQUIDATE_TX) {}
 
-    CdpTx(const CBaseTx *pBaseTx): CBaseTx(CDP_LIQUIDATE_TX) {
-        *this = *(CdpTx *)pBaseTx;
+    CdpLiquidateTx(const CBaseTx *pBaseTx): CBaseTx(CDP_LIQUIDATE_TX) {
+        *this = *(CdpLiquidateTx *)pBaseTx;
     }
 
-    CdpTx(const CUserID &txUidIn, uint64_t feeIn, int validHeightIn, uint64_t bcoinsToStakeIn, ):
+    CdpLiquidateTx(const CUserID &txUidIn, uint64_t feeIn, int validHeightIn, uint64_t scoinsToRedeemIn):
                 CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
-        bcoinsToStake = bcoinsToStakeIn;
+        scoinsToRedeem = scoinsToRedeemIn;
     }
 
-    ~CdpTx() {}
+    ~CdpLiquidateTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -200,3 +200,5 @@ public:
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 };
+
+#endif //TX_CDP_H

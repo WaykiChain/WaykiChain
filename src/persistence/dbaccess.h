@@ -160,6 +160,7 @@ class CDBCache {
 
 public:
     typedef typename map<KeyType, ValueType>::iterator Iterator;
+
 public:
     /**
      * Default constructor, must use set base to initialize before using.
@@ -234,12 +235,13 @@ public:
         mapData.clear();
     }
 
-    void UndoData(const CDbOpLog &dbOpLog) {
+    bool UndoData(const CDbOpLog &dbOpLog) {
         assert(dbOpLog.GetPrefixType() == prefixType);
         KeyType key;
         ValueType value;
         dbOpLog.Get(key, value);
         mapData[key] = value;
+        return true;
     }
 
     dbk::PrefixType GetPrefixType() const { return prefixType; }
@@ -275,6 +277,7 @@ private:
 
         return mapData.end();
     };
+
 private:
     mutable CDBCache<KeyType, ValueType> *pBase;
     CDBAccess *pDbAccess;

@@ -24,6 +24,7 @@ enum DbOpLogType {
     TX_FILE_POS,
 };
 
+
 class CDbOpLog {
 public:
     mutable dbk::PrefixType prefixType;
