@@ -12,6 +12,8 @@
 #include "version.h"
 #include "commons/serialize.h"
 
+typedef leveldb::Slice Slice;
+
 /**
  * database key
  *
@@ -81,7 +83,7 @@ namespace dbk {
         //return gPrefixNameMap[keyPrefix];
         return EMPTY;
         //TODO:...
-    };  
+    };
 
     template<typename KeyElement>
     std::string GenDbKey(PrefixType keyPrefixType, const KeyElement &keyElement) {
@@ -95,21 +97,23 @@ namespace dbk {
     }
 
     template<typename KeyElement>
-    void ParseDbKey(const std::string& key, PrefixType keyPrefixType, KeyElement &keyElement) {
-        assert(key.size() > 0);
-        CDataStream ssKeyTemp(key, SER_DISK, CLIENT_VERSION);
-        assert(keyPrefixType != EMPTY);
+    void ParseDbKey(const Slice& slice, PrefixType keyPrefixType, KeyElement &keyElement) {
+        assert(slice.size() > 0);
+        CDataStream ssKeyTemp(slice.data(), slice.data() + slice.size(), SER_DISK, CLIENT_VERSION);
         const string &prefix = GetKeyPrefix(keyPrefixType);
         ssKeyTemp.ignore(prefix.size());
         ssKeyTemp >> keyElement;
+    }
+
+    template<typename KeyElement>
+    void ParseDbKey(const std::string& key, PrefixType keyPrefixType, KeyElement &keyElement) {
+        ParseDbKey(Slice(key), keyPrefixType, keyElement);
     }
 }
 
 static const string DB_NAME_ACCOUNT = "account";
 static const string DB_NAME_CONTRACT = "contract";
 static const string DB_NAME_CDP = "cdp";
-
-typedef leveldb::Slice Slice;
 
 class SliceIterator {
 public:

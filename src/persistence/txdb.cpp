@@ -160,7 +160,7 @@ uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, CCoinP
 /****************************************************************************************************/
 bool CDelegateCache::LoadTopDelegates() {
     delegateRegIds.clear();
-    stakeCache.GetTopDelegates(delegateRegIds);
+    // stakeCache.GetTopDelegates(delegateRegIds);
     return true;
 }
 
