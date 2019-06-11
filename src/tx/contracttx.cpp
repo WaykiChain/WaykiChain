@@ -116,9 +116,9 @@ bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
                                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     CDbOpLogs &opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
-    auto rIterScriptDBLog = opLogs.rbegin();
-    for (; rIterScriptDBLog != opLogs.rend(); ++rIterScriptDBLog) {
-        if (!cw.contractCache.UndoScriptData(rIterScriptDBLog->key, rIterScriptDBLog->value))
+    auto rIterDBOpLog = opLogs.rbegin();
+    for (; rIterDBOpLog != opLogs.rend(); ++rIterDBOpLog) {
+        if (!cw.contractCache.UndoScriptData(rIterDBOpLog->key, rIterDBOpLog->value))
             return state.DoS(
                 100, ERRORMSG("%s::UndoExecuteTx, undo scriptdb data error", __FUNCTION__),
                 UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");
@@ -474,9 +474,9 @@ bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
         }
     }
     CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
-    auto rIterScriptDBLog = opLogs.rbegin();
-    for (; rIterScriptDBLog != opLogs.rend(); ++rIterScriptDBLog) {
-        if (!cw.contractCache.UndoScriptData(rIterScriptDBLog->key, rIterScriptDBLog->value))
+    auto rIterDBOpLog = opLogs.rbegin();
+    for (; rIterDBOpLog != opLogs.rend(); ++rIterDBOpLog) {
+        if (!cw.contractCache.UndoScriptData(rIterDBOpLog->key, rIterDBOpLog->value))
             return state.DoS(100, ERRORMSG("%s::UndoExecuteTx, undo scriptdb data error", __FUNCTION__),
                             UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");
     }

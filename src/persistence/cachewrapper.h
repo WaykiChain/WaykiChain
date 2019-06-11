@@ -14,8 +14,9 @@
 class CCacheWrapper {
 public:
     CAccountCache accountCache;
-    CTransactionCache txCache;
     CContractCache contractCache;
+    CDelegateCache delegateCache;
+    CTransactionCache txCache;
     CPricePointCache pricePointCache;
     CCdpCacheDBManager cdpCache;
     CTxUndo txUndo;

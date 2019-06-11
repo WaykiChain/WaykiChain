@@ -101,6 +101,9 @@ public:
     bool SetDelegateData(const CDbOpLog &operLog);
     bool EraseDelegateData(const CDbOpLog &operLog);
 
+    void SetBaseView(CDelegateCache *pBaseIn) {
+        voteRegIdCache = pBaseIn->voteRegIdCache;
+    }
     // TODO:
     void Flush() {}
 

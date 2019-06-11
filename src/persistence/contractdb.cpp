@@ -512,7 +512,7 @@ unsigned int CContractCache::GetCacheSize() {
 bool CContractCache::WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CDbOpLog &operLog) {
     vector<CVmOperate> oldValue;
     txOutputCache.GetData(txid, oldValue);
-    
+
     operLog = CDbOpLog(txOutputCache.GetPrefixType(), txid, oldValue);
     return txOutputCache.SetData(txid, vOutput);
 }
@@ -524,7 +524,7 @@ bool CContractCache::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nI
 
     uint256 oldValue;
     acctTxListCache.GetData(key, oldValue);
-    operLog = CDbOpLog(acctTxListCache.GetPrefixType(), key, oldValue); 
+    operLog = CDbOpLog(acctTxListCache.GetPrefixType(), key, oldValue);
     return acctTxListCache.SetData(key, txid);
 }
 
@@ -560,7 +560,7 @@ bool CContractCache::GetTxHashByAddress(
 
 bool CContractCache::GetAllContractAcc(
     const CRegID &scriptId, map<string, string > &mapAcc) {
- 
+
     return false;
     /* TODO: GetAllContractAcc
     return pBase->GetAllContractAcc(scriptId, mapAcc);
@@ -576,11 +576,11 @@ bool CContractCache::ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutp
 }
 
 bool CContractCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
-    return txDiskPosCache.GetData(txid, pos); 
+    return txDiskPosCache.GetData(txid, pos);
 }
 bool CContractCache::WriteTxIndexs(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB) {
     for (auto it : list) {
-        LogPrint("txindex", "txhash:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n", 
+        LogPrint("txindex", "txhash:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
             it.first.GetHex(), it.second.nFile, it.second.nPos, it.second.nTxOffset);
 
         CDiskTxPos oldValue;
@@ -821,7 +821,7 @@ bool CContractCache::SetScriptCount(const int nCount) {
 
 bool CContractCache::EraseScript(const string &scriptId) {
 
-/* TODO: delete    
+/* TODO: delete
     if (HaveScript(vScriptId)) {
         int nCount(0);
         if (!GetScriptCount(nCount))
@@ -1019,67 +1019,6 @@ string CContractCache::ToString() {
         }
     }
     return str;
-    */
-}
-
-bool CContractCache::SetDelegateData(const CAccount &delegateAcct, CDbOpLog &operLog) {
-    return false;
-    /* TODO:
-    CRegID regId(0, 0);
-    string vVoteKey = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
-    uint64_t nMaxNumber            = 0xFFFFFFFFFFFFFFFF;
-    string strVotes                = strprintf("%016x", nMaxNumber - delegateAcct.receivedVotes);
-    vVoteKey.insert(vVoteKey.end(), strVotes.begin(), strVotes.end());
-    vVoteKey.push_back('_');
-    vVoteKey.insert(vVoteKey.end(), delegateAcct.regID.GetRegIdRaw().begin(), delegateAcct.regID.GetRegIdRaw().end());
-    string vVoteValue;
-    vVoteValue.push_back(1);
-    if (!SetContractData(regId, vVoteKey, vVoteValue, operLog))
-        return false;
-
-    return true;
-    */
-}
-
-bool CContractCache::SetDelegateData(const string &vKey) {
-    return false;
-    /* TODO:
-    if (vKey.empty()) {
-        return true;
-    }
-    string vValue;
-    vValue.push_back(1);
-    if (!SetData(vKey, vValue)) {
-        return false;
-    }
-    return true;
-    */
-}
-
-bool CContractCache::EraseDelegateData(const CAccountLog &delegateAcct, CDbOpLog &operLog) {
-    return false;
-    /* TODO:
-    CRegID regId(0, 0);
-    string vVoteOldKey = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
-    uint64_t nMaxNumber               = 0xFFFFFFFFFFFFFFFF;
-    string strOldVoltes               = strprintf("%016x", nMaxNumber - delegateAcct.receivedVotes);
-    vVoteOldKey.insert(vVoteOldKey.end(), strOldVoltes.begin(), strOldVoltes.end());
-    vVoteOldKey.push_back('_');
-    vVoteOldKey.insert(vVoteOldKey.end(), delegateAcct.regID.GetRegIdRaw().begin(), delegateAcct.regID.GetRegIdRaw().end());
-    if (!EraseAppData(regId, vVoteOldKey, operLog))
-        return false;
-
-    return true;
-    */
-}
-
-bool CContractCache::EraseDelegateData(const string &vKey) {
-    return false;
-    /* TODO:
-    if (!EraseKey(vKey))
-        return false;
-
-    return true;
     */
 }
 

@@ -1262,7 +1262,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
                     if (uid == votedUid) {  // vote for self
                         voterAcct.receivedVotes = vote.GetVotedBcoins();
-                        assert(cw.contractCache.SetDelegateData(voterAcct, operDbLog));
+                        assert(cw.delegateCache.SetDelegateData(voterAcct, operDbLog));
                     } else {  // vote for others
                         CAccount votedAcct;
                         assert(!cw.accountCache.GetAccount(votedUid, votedAcct));
@@ -1277,7 +1277,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                         }
 
                         assert(cw.accountCache.SaveAccount(votedAcct));
-                        assert(cw.contractCache.SetDelegateData(votedAcct, operDbLog));
+                        assert(cw.delegateCache.SetDelegateData(votedAcct, operDbLog));
                     }
 
                     voterAcct.candidateVotes.push_back(vote);

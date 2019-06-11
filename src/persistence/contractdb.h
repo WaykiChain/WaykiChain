@@ -109,10 +109,6 @@ public:
                          string &contractKey, string &vScriptData);
     bool SetContractData(const CRegID &scriptId, const string &contractKey,
                          const string &vScriptData, CDbOpLog &operLog);
-    bool SetDelegateData(const CAccount &delegateAcct, CDbOpLog &operLog);
-    bool SetDelegateData(const string &key);
-    bool EraseDelegateData(const CAccountLog &delegateAcct, CDbOpLog &operLog);
-    bool EraseDelegateData(const string &key);
     bool UndoScriptData(const string &key, const string &value);
 
     /**
