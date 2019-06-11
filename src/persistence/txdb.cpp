@@ -20,7 +20,6 @@ bool CTransactionCache::IsContainBlock(const CBlock &block) {
 
 bool CTransactionCache::AddBlockToCache(const CBlock &block) {
     UnorderedHashSet vTxHash;
-    vTxHash.clear();
     for (auto &ptx : block.vptx) {
         vTxHash.insert(ptx->GetHash());
     }
@@ -52,8 +51,13 @@ bool CTransactionCache::HaveTx(const uint256 &txHash) {
 }
 
 void CTransactionCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn) {
+    // If the value is empty, delete it from cache.
     for (auto &item : mapBlockTxHashSetIn) {
-        mapBlockTxHashSet[item.first] = item.second;
+        if (item.second.empty()) {
+            mapBlockTxHashSet.erase(item.first);
+        } else {
+            mapBlockTxHashSet[item.first] = item.second;
+        }
     }
 }
 
