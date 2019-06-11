@@ -68,7 +68,7 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
     if (!cw.cdpCache.GetCdp(txUid.ToString(), cdp)) {
         // first-time staking?
     }
-    int mintedScoins = (bcoinsToStake + cdp.totalStakedBcoins) * COIN / collateralRatio - cdp.totalOwedScoins;
+    int mintedScoins = (bcoinsToStake + cdp.totalStakedBcoins) * COIN / 100 / collateralRatio - cdp.totalOwedScoins;
     if (mintedScoins <= 0) {
         return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, over-collateralized from regId=%s",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "cdp-overcollateralized");

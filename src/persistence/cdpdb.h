@@ -35,10 +35,11 @@ struct CUserCdp {
     uint64_t totalStakedBcoins;     // persisted: total staked bcoins
     uint64_t totalOwedScoins;       // persisted: TNj = last + minted = total minted - total redempted
 
-    CUserCdp(): lastOwedScoins(0), mintedScoins(0), totalStakedBcoins(0), totalOwedScoins(0) {}
+    CUserCdp(): lastOwedScoins(0), collateralRatio(200), mintedScoins(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(blockHeight);
+        READWRITE(collateralRatio);
         READWRITE(mintedScoins);
         READWRITE(totalStakedBcoins);
         READWRITE(totalOwedScoins);
@@ -64,7 +65,7 @@ public:
                     uint64_t mintedScoins, int blockHeight, CDbOpLog &cdpDbOpLog);
 
     bool GetUnderLiquidityCdps(vector<CUserCdp> & userCdps);
-    
+
     bool GetCdp(string userRegId, CUserCdp &cdp) { return cdpCache.GetData(userRegId, cdp); }
     bool SaveCdp(string userRegId, CUserCdp &cdp) { return cdpCache.SetData(userRegId, cdp); }
     bool UndoCdp(CDbOpLog &opLog) { return cdpCache.UndoData(opLog); }
@@ -104,7 +105,7 @@ private:
 //     virtual bool EraseKey(const string &key);
 //     virtual bool HaveData(const string &key);
 
-   
+
 
 // private:
 //     ICdpView *pBase               = nullptr;
