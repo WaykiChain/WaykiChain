@@ -15,7 +15,7 @@
 #include <algorithm>
 
 bool CTransactionCache::IsContainBlock(const CBlock &block) {
-    return mapBlockTxHashSet.count(block.GetHash()) || pBase->IsContainBlock(block);
+    return mapBlockTxHashSet.count(block.GetHash()) || (pBase ? pBase->IsContainBlock(block) : false);
 }
 
 bool CTransactionCache::AddBlockToCache(const CBlock &block) {
@@ -47,7 +47,7 @@ bool CTransactionCache::HaveTx(const uint256 &txHash) {
         }
     }
 
-    return pBase->HaveTx(txHash);
+    return pBase ? pBase->HaveTx(txHash) : false;
 }
 
 void CTransactionCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn) {
@@ -62,6 +62,8 @@ void CTransactionCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBloc
 }
 
 void CTransactionCache::Flush() {
+    assert(pBase);
+
     pBase->BatchWrite(mapBlockTxHashSet);
     mapBlockTxHashSet.clear();
 }
