@@ -325,9 +325,72 @@ bool CContractCache::UndoScriptData(const string &vKey, const string &vValue) {
 }
 */
 
-bool CContractCache::UndoScriptData(const string& key, const string& value)
+bool CContractCache::UndoDatas(const CDbOpLogs &dbOpLogs)
 {
-    return false;
+    for (auto it = dbOpLogs.rbegin(); it != dbOpLogs.rend(); ++it) {
+        auto &dbOpLog = *it;
+        switch (dbOpLog.GetPrefixType()) {
+            case dbk::CONTRACT_DEF:
+                return scriptCache.UndoData(dbOpLog);
+            case dbk::CONTRACT_TX_OUT:
+                return acctTxListCache.UndoData(dbOpLog);
+            case dbk::TXID_DISKINDEX:
+                return txDiskPosCache.UndoData(dbOpLog);
+            case dbk::CONTRACT_RELATED_KID:
+                return contractRelatedKidCache.UndoData(dbOpLog);
+            case dbk::CONTRACT_DATA:
+                return contractDataCache.UndoData(dbOpLog);
+            case dbk::CONTRACT_ITEM_NUM:
+                return contractItemCountCache.UndoData(dbOpLog);
+            case dbk::CONTRACT_ACCOUNT:
+                return contractAccountCache.UndoData(dbOpLog);
+            default:
+                LogPrint("ERROR", "CContractCache::UndoDatas can not handle the dbOpLog=", dbOpLog.ToString());
+                return false;
+        }
+    }
+    return true;
+    /* TODO: need to handle UndoContractData()
+
+        string vPrefix(vKey.begin(), vKey.begin() + 4);
+        string vScriptDataPrefix = {'d', 'a', 't', 'a'};
+        if (vPrefix == vScriptDataPrefix) {
+            assert(vKey.size() > 10);
+            if (vKey.size() < 10) {
+                return ERRORMSG("UndoScriptData() : vKey=%s error!\n", HexStr(vKey));
+            }
+            string vScriptCountKey = {'s', 'd', 'n', 'u', 'm'};
+            string vScriptId(vKey.begin() + 4, vKey.begin() + 10);
+            string vOldValue;
+            if (mapContractDb.count(vKey)) {
+                vOldValue = mapContractDb[vKey];
+            } else {
+                GetData(vKey, vOldValue);
+            }
+            vScriptCountKey.insert(vScriptCountKey.end(), vScriptId.begin(), vScriptId.end());
+            CDataStream ds(SER_DISK, CLIENT_VERSION);
+
+            int nCount(0);
+            if (vValue.empty()) {  //key所对应的值由非空设置为空，计数减1
+                if (!vOldValue.empty()) {
+                    if (!GetContractItemCount(vScriptId, nCount))
+                        return false;
+                    --nCount;
+                    if (!SetContractItemCount(vScriptId, nCount))
+                        return false;
+                }
+            } else {  //key所对应的值由空设置为非空，计数加1
+                if (vOldValue.empty()) {
+                    GetContractItemCount(vScriptId, nCount);
+                    ++nCount;
+                    if (!SetContractItemCount(vScriptId, nCount))
+                        return false;
+                }
+            }
+        }
+        mapContractDb[vKey] = vValue;
+        return true;
+    */    
     //TODO: ...
     //return UndoScriptData(string(key.begin(), key.end()), string(value.begin(), value.end()));
 }
