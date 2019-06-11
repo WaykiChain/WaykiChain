@@ -207,6 +207,15 @@ bool CAccount::OperateBalance(const CoinType coinType, const BalanceOpType opTyp
     return true;
 }
 
+bool CAccount::PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest) {
+    if (scoins < scoinInterest || fcoins < fcoinsInterest)
+        return false;
+
+    scoins -= scoinInterest;
+    fcoins -= fcoinsInterest;
+    return true;
+}
+
 bool CAccount::StakeFcoins(const int64_t fcoinsToStake) {
      if (fcoinsToStake < 0) {
         if (this->stakedFcoins < (uint64_t) (-1 * fcoinsToStake)) {

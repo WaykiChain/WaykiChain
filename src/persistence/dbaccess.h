@@ -188,7 +188,7 @@ private:
 };
 
 template<typename KeyType, typename ValueType>
-class CDBCache {
+class CDBMultiValueCache {
 
 public:
     typedef typename map<KeyType, ValueType>::iterator Iterator;
@@ -197,19 +197,19 @@ public:
     /**
      * Default constructor, must use set base to initialize before using.
      */
-    CDBCache(): pBase(nullptr), pDbAccess(nullptr), prefixType(dbk::EMPTY) {};
+    CDBMultiValueCache(): pBase(nullptr), pDbAccess(nullptr), prefixType(dbk::EMPTY) {};
 
-    CDBCache(CDBCache<KeyType, ValueType> *pBaseIn): pBase(pBaseIn),
+    CDBMultiValueCache(CDBMultiValueCache<KeyType, ValueType> *pBaseIn): pBase(pBaseIn),
         pDbAccess(nullptr), prefixType(pBaseIn->prefixType) {
         assert(pBaseIn != nullptr);
     };
 
-    CDBCache(CDBAccess *pDbAccessIn, dbk::PrefixType prefixTypeIn): pBase(nullptr),
+    CDBMultiValueCache(CDBAccess *pDbAccessIn, dbk::PrefixType prefixTypeIn): pBase(nullptr),
         pDbAccess(pDbAccessIn), prefixType(prefixTypeIn) {
         assert(pDbAccessIn != nullptr);
     };
 
-    void SetBase(CDBCache<KeyType, ValueType> *pBaseIn) {
+    void SetBase(CDBMultiValueCache<KeyType, ValueType> *pBaseIn) {
         assert(pDbAccess == nullptr);
         assert(mapData.empty());
         pBase = pBaseIn;
@@ -354,7 +354,7 @@ private:
     }
 
 private:
-    mutable CDBCache<KeyType, ValueType> *pBase;
+    mutable CDBMultiValueCache<KeyType, ValueType> *pBase;
     CDBAccess *pDbAccess;
     dbk::PrefixType prefixType;
     mutable map<KeyType, ValueType> mapData;
@@ -362,24 +362,24 @@ private:
 
 
 template<typename ValueType>
-class CDBSingleCache {
+class CDBScalarValueCache {
 public:
     /**
      * Default constructor, must use set base to initialize before using.
      */
-    CDBSingleCache(): pBase(nullptr), pDbAccess(nullptr), prefixType(dbk::EMPTY) {};
+    CDBScalarValueCache(): pBase(nullptr), pDbAccess(nullptr), prefixType(dbk::EMPTY) {};
 
-    CDBSingleCache(CDBSingleCache<ValueType> *pBaseIn): pBase(pBaseIn),
+    CDBScalarValueCache(CDBScalarValueCache<ValueType> *pBaseIn): pBase(pBaseIn),
         pDbAccess(nullptr), prefixType(pBaseIn->prefixType) {
         assert(pBaseIn != nullptr);
     };
 
-    CDBSingleCache(CDBAccess *pDbAccessIn, dbk::PrefixType prefixTypeIn): pBase(nullptr),
+    CDBScalarValueCache(CDBAccess *pDbAccessIn, dbk::PrefixType prefixTypeIn): pBase(nullptr),
         pDbAccess(pDbAccessIn), prefixType(prefixTypeIn) {
         assert(pDbAccessIn != nullptr);
     };
 
-    void SetBase(CDBSingleCache<ValueType> *pBaseIn) {
+    void SetBase(CDBScalarValueCache<ValueType> *pBaseIn) {
         assert(pDbAccess == nullptr);
         assert(!ptrData);
         pBase = pBaseIn;
@@ -468,7 +468,7 @@ private:
         return nullptr;
     };
 private:
-    mutable CDBSingleCache<ValueType> *pBase;
+    mutable CDBScalarValueCache<ValueType> *pBase;
     CDBAccess *pDbAccess;
     dbk::PrefixType prefixType;
     mutable std::shared_ptr<ValueType> ptrData;

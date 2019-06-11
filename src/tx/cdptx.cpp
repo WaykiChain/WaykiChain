@@ -6,6 +6,8 @@
 #include "cdptx.h"
 #include "main.h"
 
+#include <math.h>
+
 string CdpStakeTx::ToString(CAccountCache &view) {
     //TODO
     return "";
@@ -65,12 +67,37 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
 
-    //1. deduct interest fees
+    //1. deduct interest fees in scoins
     CUserCdp cdp;
     if (!cw.cdpCache.GetCdp(txUid.ToString(), cdp)) {
         // first-time staking, no interest will be charged
     } else {
-        cdp.totalOwedScoins * (nHeight - cdp.lastBlockHeight)/YEAR_BLOCK_COUNT
+        if (nHeight < cdp.lastBlockHeight) {
+            return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, nHeight: %d < cdp.lastBlockHeight: %d",
+                        nHeight, cdp.lastBlockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-smaller-error");
+        }
+
+        uint64_t totalScoinsInterestToRepay = cdp.ComputeInterest(nHeight);
+        uint64_t totalFcoinsInterestToRepay = totalScoinsInterestToRepay / fcoinMedianPrice;
+        if (account.fcoins >= totalFcoinsInterestToRepay) {
+            account.fcoins -= totalFcoinsInterestToRepay;
+        } else {
+            uint64_t restFcoins = totalFcoinsInterestToRepay - account.fcoins;
+            account.fcoins = 0;
+            uint64_t scoins = restFcoins * fcoinMedianPrice;
+        }
+
+        uint64_t scoinsInterestToRepay = totalScoinsInterestToRepay;
+        uint64_t fcoinsInterestToRepay = 0;
+        if (account.scoins < totalScoinsInterestToRepay) {
+            scoinsInterestToRepay = account.scoins;
+            uint64_t fcoinMedianPrice = cw.pricePointCache.GetFcoinMedianPrice();
+            fcoinsInterestToRepay = (totalScoinsInterestToRepay - scoinsInterestToRepay) / fcoinMedianPrice;
+        }
+
+        account.PayInterest(scoinsInterestToRepay, );
+
+        cw.cdpCache
     }
 
     //2. mint scoins

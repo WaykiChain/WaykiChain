@@ -75,17 +75,23 @@ public:
 
 class CPricePointCache {
 private:
+    uint64_t bcoinMedianPrice; //against scoin
+    uint64_t fcoinMedianPrice; //against scoin
+
     map<string, CConsecutiveBlockPrice> mapCoinPricePointCache; // coinPriceType -> consecutiveBlockPrice
 
 public:
     bool AddBlockPricePointInBatch(const int blockHeight, const CUserID &txUid, const vector<CPricePoint> &pps);
     uint64_t ComputeBlockMedianPrice(const int blockHeight, CCoinPriceType coinPriceType);
+
+    uint64_t GetBcoinMedianPrice() { return bcoinMedianPrice; }
+    uint64_t GetFcoinMedianPrice() { return fcoinMedianPrice; }
 };
 
 /* Top 11 delegates */
 class CDelegateCache {
 public:
-    CDBCache<std::tuple<uint64_t /* votes */, CRegID>, uint8_t> voteRegIdCache;
+    CDBMultiValueCache<std::tuple<uint64_t /* votes */, CRegID>, uint8_t> voteRegIdCache;
 
 public:
     CDelegateCache(){};

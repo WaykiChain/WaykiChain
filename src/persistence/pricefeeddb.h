@@ -15,7 +15,6 @@
 using namespace std;
 
 // typedef vector<unsigned char> unsigned_vector;
-typedef string CCoinPriceType;
 
 struct PriceFeed {
     uint64_t blockHeight;

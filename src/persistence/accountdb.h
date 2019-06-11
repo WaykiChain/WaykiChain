@@ -49,10 +49,10 @@ public:
 
 class CAccountCache {
 public:
-    CDBSingleCache<uint256> blockHashCache;            // [single] best blockHash
-    CDBCache<CKeyID, CAccount> keyId2AccountCache;     // <KeyID -> Account>
-    CDBCache<string, CKeyID> regId2KeyIdCache;         // <RegID str -> KeyID>
-    CDBCache<CNickID, CKeyID> nickId2KeyIdCache;       // <NickID -> KeyID>
+    CDBScalarValueCache<uint256> blockHashCache;            // [single] best blockHash
+    CDBMultiValueCache<CKeyID, CAccount> keyId2AccountCache;     // <KeyID -> Account>
+    CDBMultiValueCache<string, CKeyID> regId2KeyIdCache;         // <RegID str -> KeyID>
+    CDBMultiValueCache<CNickID, CKeyID> nickId2KeyIdCache;       // <NickID -> KeyID>
 
 public:
     bool GetAccount(const CKeyID &keyId, CAccount &account) const;

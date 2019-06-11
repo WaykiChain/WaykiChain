@@ -15,8 +15,9 @@ class CdpStakeTx: public CBaseTx {
 public:
     uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
     uint64_t collateralRatio;       // must be >= 200 (%)
-    uint64_t fcoinsInterest;        // Interest will be deducted from bcoinsToStake when 0
+    uint64_t scoinsInterest;        // Interest will be deducted from bcoinsToStake when 0
                                     // For the first-time staking, no interest shall be paid though
+    uint64_t fcoinsInterest;
 
 public:
     CdpStakeTx() : CBaseTx(CDP_STAKE_TX) {}

@@ -76,6 +76,7 @@ public:
      * @return returns true if successful, otherwise false
      */
     bool OperateBalance(const CoinType coinType, const BalanceOpType opType, const uint64_t value);
+    bool PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest);
     bool UndoOperateAccount(const CAccountLog& accountLog);
     bool ProcessDelegateVote(vector<CCandidateVote>& candidateVotesIn, const uint64_t curHeight);
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);

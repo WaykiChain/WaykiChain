@@ -271,7 +271,7 @@ int64_t CAccountCache::GetFreeBCoins(const CUserID &userId) const {
 }
 
 unsigned int CAccountCache::GetCacheSize() const {
-    /* TODO: CDbCache::GetCacheSize()
+    /* TODO: CDBMultiValueCache::GetCacheSize()
     return  ::GetSerializeSize(mapKeyId2Account, SER_DISK, CLIENT_VERSION) +
             ::GetSerializeSize(mapRegId2KeyId, SER_DISK, CLIENT_VERSION);
     */
@@ -286,7 +286,7 @@ std::tuple<uint64_t, uint64_t> CAccountCache::TraverseAccount() {
 
 Object CAccountCache::ToJsonObj(dbk::PrefixType prefix) {
     return Object();
-/* TODO: CDbCache::ToJsonObj()
+/* TODO: CDBMultiValueCache::ToJsonObj()
     Object obj;
     obj.push_back(Pair("blockHash", blockHash.ToString()));
 

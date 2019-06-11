@@ -8,11 +8,11 @@
 #include "leveldbwrapper.h"
 
 bool CCdpCacheDBManager::StakeBcoins(
-    CUserID txUid, 
-    uint64_t bcoinsToStake, 
+    CUserID txUid,
+    uint64_t bcoinsToStake,
     uint64_t collateralRatio,
-    uint64_t mintedScoins, 
-    int blockHeight, 
+    uint64_t mintedScoins,
+    int blockHeight,
     CDbOpLog &cdpDbOpLog) {
 
     CUserCdp lastCdp;
@@ -34,11 +34,32 @@ bool CCdpCacheDBManager::StakeBcoins(
         return ERRORMSG("CCdpCache::StakeBcoins : SetData failed.");
     }
 
-    cdpDbOpLog = CDbOpLog(cdpCache.GetPrefixType(), cdpKey, lastCdp); 
+    cdpDbOpLog = CDbOpLog(cdpCache.GetPrefixType(), cdpKey, lastCdp);
     return true;
+}
+
+bool CCdpCacheDBManager::PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest) {
+    fcoinsInterest
 }
 
 bool CCdpCacheDBManager::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
     //TODO
     return true;
+}
+
+/**
+ *  Interest Ratio Formula: ( a/collateralRatioFloat/Log10(b+4*N) )
+ *  a = 1, b = 1, collateralRatioFloat = 4
+ *
+ *  ==> ratio = 1/4/Log10(1+4*N)
+ */
+uint64_t CCdpCacheDBManager::ComputeInterest(int blockHeight) {
+    assert(blockHeight > cdp.lastBlockHeight);
+
+    int interval = blockHeight - cdp.lastBlockHeight;
+    double collateralRatioFloat = collateralRatio / 100.0;
+    double interest = ((double) (interestParamA / collateralRatioFloat) * totalOwedScoins / kYearBlockCount)
+                    * log10(interestParamB + collateralRatioFloat * totalOwedScoins) * interval;
+
+    return (uint64_t) interest;
 }
