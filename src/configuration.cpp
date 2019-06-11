@@ -390,12 +390,12 @@ unsigned int G_CONFIG_TABLE::StartTime_testNet = 1505401100;
 unsigned int G_CONFIG_TABLE::StartTime_regTest = 1504305600;
 
 // Subsidy Halving Interval
-unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = 3153600;  // one year = 365 * 24 * 60 * 60 / 10
-unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_testNet = 3153600;  // ditto
+unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = kYearBlockCount;
+unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_testNet = kYearBlockCount;
 unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_regNet  = 500;
 
 // Initial Coin
-uint64_t G_CONFIG_TABLE::InitialCoin = 210000000;  // 210 million
+uint64_t G_CONFIG_TABLE::InitialCoin = kTotalBaseCoinCount;  // 210 million
 
 // Default Miner Fee
 uint64_t G_CONFIG_TABLE::DefaultFee = 15;

@@ -59,15 +59,21 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
     }
     CAccountLog acctLog(account); //save account state before modification
 
+    //0. deduct processing fees (WICC)
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, deduct fees from regId=%s failed ,",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
 
+    //1. deduct interest fees
     CUserCdp cdp;
     if (!cw.cdpCache.GetCdp(txUid.ToString(), cdp)) {
-        // first-time staking?
+        // first-time staking, no interest will be charged
+    } else {
+        cdp.totalOwedScoins * (nHeight - cdp.lastBlockHeight)/YEAR_BLOCK_COUNT
     }
+
+    //2. mint scoins
     int mintedScoins = (bcoinsToStake + cdp.totalStakedBcoins) * COIN / 100 / collateralRatio - cdp.totalOwedScoins;
     if (mintedScoins <= 0) {
         return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, over-collateralized from regId=%s",
