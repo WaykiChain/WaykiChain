@@ -74,7 +74,6 @@ OBJS = 	vm/lmylib.o \
 		protocol.o \
 		netbase.o \
 		vm/appaccount.o \
-		cuiserver.o \
 		wallet/wallet.o \
 		wallet/walletdb.o \
 		noui.o \
