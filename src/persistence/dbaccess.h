@@ -125,7 +125,7 @@ public:
     }
 
     template <typename KeyType>
-    bool GetTopNElements(const int32_t maxNum, const dbk::PrefixType prefixType, const set<KeyType> &excludeKeys,
+    bool GetTopNElements(const int32_t maxNum, const dbk::PrefixType prefixType, set<KeyType> &expiredKeys,
                          set<KeyType> &keys) {
         leveldb::Iterator *pCursor = db.NewIterator();
         leveldb::Slice slKey = pCursor->key();
@@ -136,13 +136,15 @@ public:
         for (; (count < maxNum) && pCursor->Valid(); pCursor->Next()) {
             dbk::ParseDbKey(slKey, prefixType, key);
 
-            if (excludeKeys.count(key)) {
+            if (expiredKeys.count(key)) {
                 continue;
-            }
+            } else {
+                // Got an valid element.
+                auto ret = keys.emplace(key);
+                assert(ret.second);  // TODO: throw error
 
-            // Got an valid element.
-            keys.insert(key);
-            ++ count;
+                ++count;
+            }
         }
 
         return true;
@@ -214,21 +216,20 @@ public:
         prefixType = pBaseIn->prefixType;
     };
 
+    bool GetTopNElements(const int32_t maxNum, set<KeyType> &keys) {
+        // 1. Get all candidate elements.
+        set<KeyType> expiredKeys;
+        set<KeyType> candidateKeys;
+        if (!GetTopNElements(maxNum, expiredKeys, candidateKeys)) {
+            // TODO: log
+            return false;
+        }
 
-    bool GetTopNElements(const int32_t maxNum, const set<KeyType> expiredKeys,
-                         set<KeyType> &keys) {
-        ValueType emptyValue;
+        // 2. Get the top N elements.
         uint32_t count = 0;
-        auto &iter = mapData.begin();
-
-        for (; (count < maxNum) && iter != mapData.end(); ++iter) {
-            if (iter.second == emptyValue) {
-                expiredKeys.insert(iter.first);
-            } else {
-                // Got a valid element.
-                keys.insert(iter.first);
-                ++ count;
-            }
+        auto iter      = candidateKeys.begin();
+        for (; (count < maxNum) && iter != candidateKeys.end(); ++iter) {
+            keys.insert(iter.first);
         }
 
         return true;
@@ -322,6 +323,35 @@ private:
 
         return mapData.end();
     };
+
+    bool GetTopNElements(const int32_t maxNum, set<KeyType> &expiredKeys, set<KeyType> &keys) {
+        if (!mapData.empty()) {
+            uint32_t count = 0;
+            auto iter      = mapData.begin();
+
+            for (; (count < maxNum) && iter != mapData.end(); ++iter) {
+                if (db_util::IsEmpty(iter.second)) {
+                    expiredKeys.insert(iter.first);
+                } else if (expiredKeys.count(iter.first) || keys.count(iter.first)) {
+                    // TODO: log
+                    continue;
+                } else {
+                    // Got a valid element.
+                    keys.insert(iter.first);
+
+                    ++count;
+                }
+            }
+        }
+
+        if (pBase != nullptr) {
+            pBase->GetTopNElements(maxNum, expiredKeys, keys);
+        } else if (pDbAccess != nullptr) {
+            pDbAccess->GetTopNElements(maxNum, prefixType, expiredKeys, keys);
+        }
+
+        return true;
+    }
 
 private:
     mutable CDBCache<KeyType, ValueType> *pBase;
@@ -442,7 +472,6 @@ private:
     CDBAccess *pDbAccess;
     dbk::PrefixType prefixType;
     mutable std::shared_ptr<ValueType> ptrData;
-
 };
 
 #endif//PERSIST_DB_ACCESS_H
