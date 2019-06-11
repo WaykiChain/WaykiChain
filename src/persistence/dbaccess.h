@@ -232,7 +232,7 @@ public:
             keys.insert(iter.first);
         }
 
-        return true;
+        return keys.size() == maxNum;
     }
 
     bool GetData(const KeyType &key, ValueType &value) const {
