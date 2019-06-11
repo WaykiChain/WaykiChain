@@ -505,7 +505,7 @@ bool CVmRunEnv::GetAppUserAccount(const vector<unsigned char>& vAppUserId,
     shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
     string appUserId(vAppUserId.begin(), vAppUserId.end());
     if (!pContractCache->GetScriptAcc(GetScriptRegID(), appUserId, *tem.get())) {
-        tem     = std::make_shared<CAppUserAccount>(vAppUserId);
+        tem     = std::make_shared<CAppUserAccount>(appUserId);
         sptrAcc = tem;
         return true;
     }

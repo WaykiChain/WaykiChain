@@ -41,7 +41,7 @@ public:
     virtual Object ToJsonObj(string prefix) { return Object(); } //FIXME: useless prefix
 
     // virtual bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) = 0;
-    // virtual bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB) = 0;
+    // virtual bool WriteTxIndexs(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB) = 0;
     // virtual bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CDbOpLog &operLog) = 0;
     // virtual bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput) = 0;
     virtual bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash) = 0;
@@ -57,11 +57,14 @@ class CContractCache {
 //    IContractView *pBase;
 
 private:
-    CDBCache<string, string> scriptCache;                               // scriptRegId -> script content
-    CDBCache<uint256, vector<CVmOperate>> txOutputCache;                // txId -> vector<CVmOperate>
-    CDBCache<std::tuple<CKeyID, int, int>, uint256> acctTxListCache;    // keyId,height,index -> txid
-    CDBCache<uint256, CDiskTxPos> txDiskPosCache;                       // txId -> DiskTxPos
-    CDBCache<uint256, set<CKeyID> > contractAccountsCache;              // contractTxId -> relatedAccounts
+    CDBCache<string, string>                        scriptCache;            // scriptRegId -> script content
+    CDBCache<uint256, vector<CVmOperate>>           txOutputCache;          // txId -> vector<CVmOperate>
+    CDBCache<std::tuple<CKeyID, int, int>, uint256> acctTxListCache;        // keyId,height,index -> txid
+    CDBCache<uint256, CDiskTxPos>                   txDiskPosCache;         // txId -> DiskTxPos
+    CDBCache<uint256, set<CKeyID>>                  contractRelatedKidCache;// contractTxId -> relatedAccounts
+    CDBCache<pair<string, string>, string>          contractDataCache;      // pair<scriptId, scriptKey> -> scriptData
+    CDBCache<string, CDBCountValue>                 contractItemCountCache; // scriptId -> contractItemCount
+    CDBCache<pair<string, string>, CAppUserAccount> contractAccountCache;   // scriptId -> contractItemCount
 
 public:
     map<string, string > mapContractDb;
@@ -74,14 +77,20 @@ public:
         txOutputCache(pDbAccess, dbk::CONTRACT_TX_OUT),
         acctTxListCache(pDbAccess, dbk::LIST_KEYID_TX),
         txDiskPosCache(pDbAccess, dbk::TXID_DISKINDEX),
-        contractAccountsCache(pDbAccess, dbk::CONTRACT_ACCOUNTS) {};
+        contractRelatedKidCache(pDbAccess, dbk::CONTRACT_RELATED_KID),
+        contractDataCache(pDbAccess, dbk::CONTRACT_DATA),
+        contractItemCountCache(pDbAccess, dbk::CONTRACT_ITEM_NUM),
+        contractAccountCache(pDbAccess, dbk::CONTRACT_ACCOUNT) {};
 
     CContractCache(CContractCache *pBaseIn):
         scriptCache(pBaseIn->scriptCache),
         txOutputCache(pBaseIn->txOutputCache),
         acctTxListCache(pBaseIn->acctTxListCache),
         txDiskPosCache(pBaseIn->txDiskPosCache),
-        contractAccountsCache(pBaseIn->contractAccountsCache) {};
+        contractRelatedKidCache(pBaseIn->contractRelatedKidCache),
+        contractDataCache(pBaseIn->contractDataCache),
+        contractItemCountCache(pBaseIn->contractItemCountCache),
+        contractAccountCache(pBaseIn->contractAccountCache) {};
 
     bool GetScript(const CRegID &scriptId, string &value);
     bool GetScript(const int nIndex, CRegID &scriptId, string &value);
@@ -125,14 +134,17 @@ public:
     Object ToJsonObj() const;
 //	IContractView * GetBaseScriptDB() { return pBase; }
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB);
+    bool WriteTxIndexs(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB);
 
     void SetBaseView(CContractCache *pBaseIn) {
         scriptCache.SetBase(&pBaseIn->scriptCache);
         txOutputCache.SetBase(&pBaseIn->txOutputCache);
         acctTxListCache.SetBase(&pBaseIn->acctTxListCache);
         txDiskPosCache.SetBase(&pBaseIn->txDiskPosCache);
-        contractAccountsCache.SetBase(&pBaseIn->contractAccountsCache);
+        contractRelatedKidCache.SetBase(&pBaseIn->contractRelatedKidCache);
+        contractDataCache.SetBase(&pBaseIn->contractDataCache);
+        contractItemCountCache.SetBase(&pBaseIn->contractItemCountCache);
+        contractAccountCache.SetBase(&pBaseIn->contractAccountCache);
      }
 
     string ToString();
@@ -203,6 +215,7 @@ private:
      * @return true if save succeed, otherwise false
      */
     bool SetContractItemCount(const string &contractRegId, int nCount);
+    bool IncContractItemCount(const string &contractRegId, int count);
     /**
      * @brief Delete the item of the scirpt's data by scriptId and scriptKey
      * @param vScriptId

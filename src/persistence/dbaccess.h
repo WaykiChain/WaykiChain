@@ -73,12 +73,12 @@ namespace db_util {
     // 2 pair
     template<typename K, typename T>
     bool IsEmpty(const std::pair<K, T>& val) {
-        return IsEmpty(val->first) && IsEmpty(val->second);
+        return IsEmpty(val.first) && IsEmpty(val.second);
     }
     template<typename K, typename T>
     void SetEmpty(std::pair<K, T>& val) {
-        SetEmpty(val->first);
-        SetEmpty(val->second);
+        SetEmpty(val.first);
+        SetEmpty(val.second);
     }
 
     // 3 tuple
@@ -105,6 +105,25 @@ namespace db_util {
     void SetEmpty(T& val) {
         val.SetEmpty();
     }
+};
+
+class CDBCountValue {
+public:
+    int64_t value;
+public:
+    CDBCountValue(): value(0) {}
+
+    bool IsEmpty() const {
+        return value == 0;
+    }
+
+    void SetEmpty() {
+        value = 0;
+    }
+
+    inline bool IsValid() { return value >= 0; };
+
+    IMPLEMENT_SERIALIZE( READWRITE(value); )
 };
 
 class CDBAccess {

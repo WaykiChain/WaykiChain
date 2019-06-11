@@ -16,12 +16,12 @@
 #include "version.h"
 #include "vm/vmrunenv.h"
 
-static bool GetKeyId(const CAccountCache &view, const vector<unsigned char> &ret, CKeyID &KeyId) {
-    if (ret.size() == 6) {
-        CRegID regId(ret);
+static bool GetKeyId(const CAccountCache &view, const string &userIdStr, CKeyID &KeyId) {
+    if (userIdStr.size() == 6) {
+        CRegID regId(userIdStr);
         KeyId = regId.GetKeyId(view);
-    } else if (ret.size() == 34) {
-        string addr(ret.begin(), ret.end());
+    } else if (userIdStr.size() == 34) {
+        string addr(userIdStr.begin(), userIdStr.end());
         KeyId = CKeyID(addr);
     } else {
         return false;
