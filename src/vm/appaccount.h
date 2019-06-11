@@ -146,7 +146,7 @@ public:
 class CAppUserAccount {
 public:
     CAppUserAccount();
-    CAppUserAccount(const vector<unsigned char> &userId);
+    CAppUserAccount(const string &userId);
     bool Operate(const vector<CAppFundOperate> &Op);
     bool GetAppCFund(CAppCFund &outFound, const vector<unsigned char> &vTag, int nHeight);
 
@@ -161,7 +161,7 @@ public:
     uint64_t GetBcoins() const { return bcoins; }
     void SetBcoins(uint64_t bcoins) { this->bcoins = bcoins; }
 
-    const vector<unsigned char> &GetAccUserId() const { return mAccUserID; }
+    const string& GetAccUserId() const { return mAccUserID; }
 
     // void SetAccUserId(const vector<unsigned char>& accUserId) {
     // 	mAccUserID = accUserId;
@@ -187,9 +187,13 @@ public:
     bool ChangeAppCFund(const CAppCFund &inFound);
     bool Operate(const CAppFundOperate &Op);
 
+	bool IsEmpty() const { return mAccUserID.empty(); }
+
+	void SetEmpty() { mAccUserID.clear(); }
+
 private:
 	uint64_t bcoins;       //自由金额
-	vector<unsigned char>  mAccUserID;
+	string  mAccUserID;
 	vector<CAppCFund> vFrozenFunds;
 };
 

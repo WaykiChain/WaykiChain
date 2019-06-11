@@ -50,9 +50,10 @@ namespace dbk {
         EACH_ENUM_DEFINE( CONTRACT_COUNT,     "cnum")     /* cnum{$ContractRegId} --> $total_num_of_cntracts */ \
         EACH_ENUM_DEFINE( CONTRACT_DEF,       "cdef")     /* cdef{$ContractRegId} --> $ContractContent */ \
         EACH_ENUM_DEFINE( CONTRACT_DATA,      "cdat")     /* cdat{$RegId}_{$DataKey} --> $Data */ \
-        EACH_ENUM_DEFINE( CONTRACT_TX_OUT,    "cout")     /* cout{txid} --> $VmOperateOutput */ \
-        EACH_ENUM_DEFINE( CONTRACT_ITEM_NUM,  "citn")     /* citn{ContractRegId} --> $total_num_of_contract_i */ \
-        EACH_ENUM_DEFINE( CONTRACT_ACCOUNTS,  "cacc")     /* cacc{ContractTxId} --> $set<CKeyID> */ \
+        EACH_ENUM_DEFINE( CONTRACT_TX_OUT,    "cout")     /* cout{$txid} --> $VmOperateOutput */ \
+        EACH_ENUM_DEFINE( CONTRACT_ITEM_NUM,  "citn")     /* citn{$ContractRegId} --> $total_num_of_contract_i */ \
+        EACH_ENUM_DEFINE( CONTRACT_RELATED_KID, "crid")   /* cacs{$ContractTxId} --> $set<CKeyID> */ \
+        EACH_ENUM_DEFINE( CONTRACT_ACCOUNT,   "cacc")     /* cacc{$ContractRegId}{$AccUserId} --> appUserAccount */ \
         EACH_ENUM_DEFINE( STAKE_FCOIN,        "fcoin")    /* fcoin{(uint64t)MAX - stakedFcoins}_{RegId} --> 1 */ \
         EACH_ENUM_DEFINE( CDP,                "cdp")      /* cdp{$RegID} --> blockHeight,mintedScoins */ \
         EACH_ENUM_DEFINE( CDP_IR_PARAM_A,     "ira")      /* [prefix] --> param_a */ \
@@ -80,9 +81,10 @@ namespace dbk {
     };
 
     inline PrefixType ParseKeyPrefixType(const std::string &keyPrefix) {
-        //return gPrefixNameMap[keyPrefix];
+        auto it = gPrefixNameMap.find(keyPrefix);
+        if (it != gPrefixNameMap.end())
+            return it->second;
         return EMPTY;
-        //TODO:...
     };
 
     template<typename KeyElement>
@@ -111,8 +113,9 @@ namespace dbk {
     }
 }
 
-static const string DB_NAME_ACCOUNT = "account";
+static const string DB_NAME_ACCOUNT  = "account";
 static const string DB_NAME_CONTRACT = "contract";
+static const string DB_NAME_DELEGATE = "delegate";
 static const string DB_NAME_CDP = "cdp";
 
 class SliceIterator {

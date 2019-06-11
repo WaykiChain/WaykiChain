@@ -177,6 +177,64 @@ bool CDelegateCache::ExistDelegate(const CRegID &delegateRegId) {
     return delegateRegIds.count(delegateRegId);
 }
 
+bool CDelegateCache::SetDelegateData(const CAccount &delegateAcct, CDbOpLog &operLog) {
+    static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
+    string strVotes           = strprintf("%016x", maxNumber - delegateAcct.receivedVotes);
+    const CRegID &regId       = delegateAcct.regID;
+
+    auto key             = std::make_pair(strVotes, regId);
+    static uint8_t value = 1;
+
+    operLog = CDbOpLog(voteRegIdCache.GetPrefixType(), key, value);
+
+    return voteRegIdCache.SetData(key, value);
+}
+
+bool CDelegateCache::EraseDelegateData(const CAccountLog &delegateAcct, CDbOpLog &operLog) {
+    static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
+    string strVotes           = strprintf("%016x", maxNumber - delegateAcct.receivedVotes);
+    const CRegID &regId       = delegateAcct.regID;
+
+    auto oldKey             = std::make_pair(strVotes, regId);
+    static uint8_t oldValue = 1;
+
+    operLog = CDbOpLog(voteRegIdCache.GetPrefixType(), oldKey, oldValue);
+
+    if (!voteRegIdCache.EraseData(oldKey)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool CDelegateCache::SetDelegateData(const CDbOpLog &operLog) {
+    std::pair<string, CRegID> key;
+    uint8_t value;
+    operLog.Get(key, value);
+
+    if (db_util::IsEmpty(key)) {
+        return true;
+    }
+
+    if (!voteRegIdCache.SetData(key, value)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool CDelegateCache::EraseDelegateData(const CDbOpLog &operLog) {
+    std::pair<string, CRegID> key;
+    uint8_t value;
+    operLog.Get(key, value);
+
+    if (!voteRegIdCache.EraseData(key)) {
+        return false;
+    }
+
+    return true;
+}
+
 string CTxUndo::ToString() const {
     string str;
     string strTxHash("txid:");

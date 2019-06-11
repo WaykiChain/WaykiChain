@@ -2930,11 +2930,11 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
     std::shared_ptr<CAppUserAccount> appUserAccount = std::make_shared<CAppUserAccount>();
     if (params.size() == 3 && params[2].get_int() == 0) {
         if (!mempool.memPoolContractCache->GetScriptAcc(appRegId, acctKey, *appUserAccount.get())) {
-            appUserAccount = std::make_shared<CAppUserAccount>(vector<unsigned char>(acctKey.begin(), acctKey.end()));
+            appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }
     } else {
         if (!pCdMan->pContractCache->GetScriptAcc(appRegId, acctKey, *appUserAccount.get())) {
-            appUserAccount = std::make_shared<CAppUserAccount>(vector<unsigned char>(acctKey.begin(), acctKey.end()));
+            appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }
     }
     appUserAccount.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
@@ -2975,7 +2975,7 @@ Value listcontractassets(const Array& params, bool fHelp) {
 
             std::shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
             if (!contractScriptTemp.GetScriptAcc(script, key, *tem.get())) {
-                tem = std::make_shared<CAppUserAccount>(vector<unsigned char>(key.begin(), key.end()));
+                tem = std::make_shared<CAppUserAccount>(key);
             }
             tem.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
 

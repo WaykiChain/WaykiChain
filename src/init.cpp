@@ -716,8 +716,10 @@ bool AppInit(boost::thread_group &threadGroup) {
     nTotalCache -= nBlockTreeDBCache;
     size_t nAccountDBCache = nTotalCache / 2;  // use half of the remaining cache for coindb cache
     nTotalCache -= nAccountDBCache;
-    size_t nScriptCacheSize = nTotalCache / 2;
-    nTotalCache -= nScriptCacheSize;
+    size_t nContractDBCache = nTotalCache / 2;
+    nTotalCache -= nContractDBCache;
+    size_t nDelegateDBCache = nTotalCache / 2;
+    nTotalCache -= nDelegateDBCache;
 
     SysCfg().SetViewCacheSize(nTotalCache / 300);  // coins in memory require around 300 bytes
 
@@ -741,9 +743,9 @@ bool AppInit(boost::thread_group &threadGroup) {
                 delete pCdMan;
 
                 bool fReIndex = SysCfg().IsReindex();
-                pCdMan = new CCacheDBManager(fReIndex, false, nAccountDBCache, nScriptCacheSize, nBlockTreeDBCache);
-                if (fReIndex)
-                    pCdMan->pBlockTreeDb->WriteReindexing(true);
+                pCdMan = new CCacheDBManager(fReIndex, false, nAccountDBCache, nContractDBCache, nDelegateDBCache,
+                                             nBlockTreeDBCache);
+                if (fReIndex) pCdMan->pBlockTreeDb->WriteReindexing(true);
 
                 mempool.SetAccountCache(pCdMan->pAccountCache);
                 mempool.SetContractCache(pCdMan->pContractCache);

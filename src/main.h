@@ -299,25 +299,28 @@ public:
     CDBAccess           *pContractDb;
     CContractCache      *pContractCache;
 
-    CTransactionCache   *pTxCache;
-    CPricePointCache    *pPpCache;
+    CDBAccess           *pDelegateDb;
     CDelegateCache      *pDelegateCache;
 
     CBlockTreeDB        *pBlockTreeDb;
 
+    CTransactionCache   *pTxCache;
+    CPricePointCache    *pPpCache;
+
     uint64_t            collateralRatioMin; //minimum collateral ratio
 
 public:
-    CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache,
-                    size_t nScriptCacheSize, size_t nBlockTreeDBCache) {
-        pAccountDb      = new CDBAccess(DB_NAME_ACCOUNT, nAccountDBCache, false, fReIndex);
-        pContractDb     = new CDBAccess(DB_NAME_CONTRACT, nScriptCacheSize, false, fReIndex);
-        pBlockTreeDb    = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
+    CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache, size_t nContractDBCache,
+                    size_t nDelegateDBCache, size_t nBlockTreeDBCache) {
+        pAccountDb   = new CDBAccess(DB_NAME_ACCOUNT, nAccountDBCache, false, fReIndex);
+        pContractDb  = new CDBAccess(DB_NAME_CONTRACT, nContractDBCache, false, fReIndex);
+        pDelegateDb  = new CDBAccess(DB_NAME_DELEGATE, nDelegateDBCache, false, fReIndex);
+        pBlockTreeDb = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
 
-        pAccountCache   = new CAccountCache(pAccountDb);
-        pContractCache  = new CContractCache(pContractDb);
-        pTxCache        = new CTransactionCache();
-        pPpCache        = new CPricePointCache();
+        pAccountCache  = new CAccountCache(pAccountDb);
+        pContractCache = new CContractCache(pContractDb);
+        pTxCache       = new CTransactionCache();
+        pPpCache       = new CPricePointCache();
 
         collateralRatioMin = 200; //minimum 200% collateral ratio
     }
@@ -326,24 +329,25 @@ public:
 
         delete pAccountCache;   pAccountCache = nullptr;
         delete pContractCache;  pContractCache = nullptr;
+        delete pDelegateCache;  pDelegateCache = nullptr;
         delete pTxCache;        pTxCache = nullptr;
         delete pPpCache;        pPpCache = nullptr;
-        delete pDelegateCache;  pDelegateCache = nullptr;
 
-        delete pContractDb;     pContractDb = nullptr;
-        delete pBlockTreeDb;    pBlockTreeDb = nullptr;
         delete pAccountDb;      pAccountDb = nullptr;
+        delete pContractDb;     pContractDb = nullptr;
+        delete pDelegateDb;     pDelegateDb = nullptr;
+        delete pBlockTreeDb;    pBlockTreeDb = nullptr;
     }
 
     bool Flush() {
-        if (pBlockTreeDb)
-            pBlockTreeDb->Flush();
-
         if (pAccountCache)
             pAccountCache->Flush();
 
         if (pContractCache)
             pContractCache->Flush();
+
+        if (pBlockTreeDb)
+            pBlockTreeDb->Flush();
 
         return true;
     }
