@@ -85,7 +85,8 @@ public:
 /* Top 11 delegates */
 class CDelegateCache {
 public:
-    CDBCache<std::tuple<uint64_t /* votes */, CRegID>, uint8_t> voteRegIdCache;
+    // vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1
+    CDBCache<std::pair<string, CRegID>, uint8_t> voteRegIdCache;
 
 public:
     CDelegateCache(){};
@@ -94,6 +95,14 @@ public:
 
     bool LoadTopDelegates();
     bool ExistDelegate(const CRegID &regId);
+
+    bool SetDelegateData(const CAccount &delegateAcct, CDbOpLog &operLog);
+    bool EraseDelegateData(const CAccountLog &delegateAcct, CDbOpLog &operLog);
+    bool SetDelegateData(const CDbOpLog &operLog);
+    bool EraseDelegateData(const CDbOpLog &operLog);
+
+    // TODO:
+    void Flush() {}
 
 private:
     set<CRegID> delegateRegIds;

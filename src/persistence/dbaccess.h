@@ -15,7 +15,12 @@
  * Empty functions
  */
 namespace db_util {
-    inline bool IsEmpty(const int val) { return true;}
+    // TODO:
+    inline bool IsEmpty(const int val) { return true; }
+
+    // uint8_t
+    inline bool IsEmpty(const uint8_t val) { return val != 0; }
+    inline void SetEmpty(uint8_t &val) { val = 0; }
 
     // string
     template<typename C> bool IsEmpty(const basic_string<C> &val);
