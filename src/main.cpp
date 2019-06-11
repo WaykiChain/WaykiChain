@@ -1248,7 +1248,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
                 CAccount voterAcct;
                 assert(cw.accountCache.GetAccount(pDelegateTx->txUid, voterAcct));
-                CUserID voterCId(pDelegateTx->txUid);
+                CUserID uid(pDelegateTx->txUid);
                 uint64_t maxVotes = 0;
                 CDbOpLog operDbLog;
                 int j = i;
@@ -1260,7 +1260,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
                     CUserID votedUid = vote.GetCandidateUid();
 
-                    if (voterCId == votedUid) {  // vote for self
+                    if (uid == votedUid) {  // vote for self
                         voterAcct.receivedVotes = vote.GetVotedBcoins();
                         assert(cw.contractCache.SetDelegateData(voterAcct, operDbLog));
                     } else {  // vote for others

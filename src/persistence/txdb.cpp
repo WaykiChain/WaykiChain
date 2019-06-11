@@ -163,15 +163,13 @@ uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, CCoinP
     return medianPrice;
 }
 
-/****************************************************************************************************/
 bool CDelegateCache::LoadTopDelegates() {
     delegateRegIds.clear();
-    // stakeCache.GetTopDelegates(delegateRegIds);
+    // TODO:
     return true;
 }
 
-//if empty, load data from the low-level StakeCache
-bool CDelegateCache::ExistDelegate(string delegateRegId) {
+bool CDelegateCache::ExistDelegate(const CRegID &delegateRegId) {
     if (delegateRegIds.empty()) {
         LoadTopDelegates();
     }

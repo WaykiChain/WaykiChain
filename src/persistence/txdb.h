@@ -7,8 +7,10 @@
 #define PERSIST_TXDB_H
 
 #include "accounts/account.h"
+#include "Accounts/id.h"
 #include "commons/serialize.h"
 #include "dbaccess.h"
+#include "dbconf.h"
 #include "json/json_spirit_value.h"
 
 #include <map>
@@ -82,15 +84,19 @@ public:
 
 /* Top 11 delegates */
 class CDelegateCache {
-private:
-    unordered_set<string> delegateRegIds;
+public:
+    CDBCache<std::tuple<uint64_t /* votes */, CRegID>, uint8_t> voteRegIdCache;
 
 public:
-    CDelegateCache() {};
+    CDelegateCache(){};
+    CDelegateCache(CDBAccess *pDbAccess) : voteRegIdCache(pDbAccess, dbk::VOTE){};
+    CDelegateCache(CDelegateCache *pBaseIn) : voteRegIdCache(pBaseIn->voteRegIdCache){};
 
-public:
     bool LoadTopDelegates();
-    bool ExistDelegate(string delegateRegId);   //if empty, load data from the low-level StakeCache
+    bool ExistDelegate(const CRegID &regId);
+
+private:
+    set<CRegID> delegateRegIds;
 };
 
 class CTxUndo {

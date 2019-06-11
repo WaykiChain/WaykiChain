@@ -77,8 +77,8 @@ public:
         contractAccountsCache(pDbAccess, dbk::CONTRACT_ACCOUNTS) {};
 
     CContractCache(CContractCache *pBaseIn):
-        scriptCache(pBaseIn->scriptCache), 
-        txOutputCache(pBaseIn->txOutputCache), 
+        scriptCache(pBaseIn->scriptCache),
+        txOutputCache(pBaseIn->txOutputCache),
         acctTxListCache(pBaseIn->acctTxListCache),
         txDiskPosCache(pBaseIn->txDiskPosCache),
         contractAccountsCache(pBaseIn->contractAccountsCache) {};
@@ -95,7 +95,7 @@ public:
     bool EraseAppData(const CRegID &scriptId, const string &contractKey, CDbOpLog &operLog);
     bool HaveScriptData(const CRegID &scriptId, const string &contractKey);
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const string &contractKey,
-                         string &vScriptData) ;
+                         string &vScriptData);
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
                          string &contractKey, string &vScriptData);
     bool SetContractData(const CRegID &scriptId, const string &contractKey,
@@ -132,7 +132,7 @@ public:
         txOutputCache.SetBase(&pBaseIn->txOutputCache);
         acctTxListCache.SetBase(&pBaseIn->acctTxListCache);
         txDiskPosCache.SetBase(&pBaseIn->txDiskPosCache);
-        contractAccountsCache.SetBase(&pBaseIn->contractAccountsCache);        
+        contractAccountsCache.SetBase(&pBaseIn->contractAccountsCache);
      }
 
     string ToString();
