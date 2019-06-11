@@ -5,16 +5,7 @@
 
 
 #include "blockrewardtx.h"
-
-#include "commons/serialize.h"
-#include "tx.h"
-#include "persistence/contractdb.h"
-#include "crypto/hash.h"
-#include "util.h"
 #include "main.h"
-#include "vm/vmrunenv.h"
-#include "miner/miner.h"
-#include "version.h"
 
 bool CBlockRewardTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
