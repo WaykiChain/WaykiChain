@@ -104,6 +104,11 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
             }
         }
     }
+    if (!cw.accountCache.SaveAccount(fcoinGensisAccount)) {
+        return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, update fcoinGensisAccount %s failed",
+                        fcoinGenesisUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
+    }
+    cw.txUndo.accountLogs.push_back(fcoinGensisAccount);
 
     //2. mint scoins
     int mintedScoins = (bcoinsToStake + cdp.totalStakedBcoins) / collateralRatio / 100 - cdp.totalOwedScoins;
@@ -111,23 +116,15 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
         return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, over-collateralized from regId=%s",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "cdp-overcollateralized");
     }
-
     if (!account.StakeBcoinsToCdp(CoinType::WICC, bcoinsToStake, (uint64_t) mintedScoins)) {
         return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, stake boins from regId=%s failed",
                         txUid.ToString()), STAKE_CDP_FAIL, "cdp-stake-bcoinsfailed");
     }
-
     if (!cw.accountCache.SaveAccount(account)) {
         return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, update account %s failed",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     }
     cw.txUndo.accountLogs.push_back(acctLog);
-
-    if (!cw.accountCache.SaveAccount(fcoinGensisAccount)) {
-        return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, update fcoinGensisAccount %s failed",
-                        fcoinGenesisUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
-    }
-    cw.txUndo.accountLogs.push_back(fcoinGensisAccount);
 
     CDbOpLog cdpDbOpLog;
     cw.cdpCache.StakeBcoinsToCdp(txUid, bcoinsToStake, collateralRatio, (uint64_t) mintedScoins, nHeight, cdpDbOpLog); //update cache & persist into ldb
