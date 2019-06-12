@@ -207,7 +207,6 @@ public:
     void SetTxCacheHeight(int nHeight) const { nTxCacheHeight = nHeight; }
     bool IsContractLogOn() const { return bContractLog; }
     bool GetAddressToTxFlag() const { return bAddressToTx; }
-    const uint256& GetGenesisBlockHash() const { return genesisBlockHash; }
     const MessageStartChars& MessageStart() const { return pchMessageStart; }
     const vector<unsigned char>& AlertKey() const { return vAlertPubKey; }
     int GetDefaultPort() const { return nDefaultPort; }
@@ -215,7 +214,17 @@ public:
     int GetSubsidyHalvingInterval() const { return nSubsidyHalvingInterval; }
     uint32_t GetFeatureForkHeight() const { return nFeatureForkHeight; }
     virtual uint64_t GetMaxFee() const { return 1000 * COIN; }
+
     virtual const CBlock& GenesisBlock() const = 0;
+    const uint256& GetGenesisBlockHash() const { return genesisBlockHash; }
+    bool CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vRewardTx, NET_TYPE type);
+    bool CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> >& vDelegateTx, NET_TYPE type);
+
+    virtual const CBlock& FundCoinGenesisBlock() const = 0;
+    const uint256& GetFundCoinGenesisBlockHash() const { return fundCoinGenesisBlockHash; }
+    bool CreateFundCoinGenesisRegisterAccountTx(vector<std::shared_ptr<CBaseTx> >& vRegisterAccountTx, NET_TYPE type) { return true; }
+    bool CreateFundCoinGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vRewardTx, NET_TYPE type) { return true; }
+
     virtual bool RequireRPCPassword() const { return true; }
     const string& DataDir() const { return strDataDir; }
     virtual NET_TYPE NetworkID() const = 0;
@@ -234,8 +243,6 @@ public:
     static bool IsArgCount(const string& strArg);
     static bool SoftSetArgCover(const string& strArg, const string& strValue);
     static void EraseArg(const string& strArgKey);
-    bool CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vRewardTx, NET_TYPE type);
-    bool CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> >& vDelegateTx, NET_TYPE type);
     static void ParseParameters(int argc, const char* const argv[]);
     static const vector<string>& GetMultiArgs(const string& strArg);
     static int GetArgsSize();
@@ -253,6 +260,7 @@ protected:
     CBaseParams() ;
 
     uint256 genesisBlockHash;
+    uint256 fundCoinGenesisBlockHash;
     MessageStartChars pchMessageStart;
     // Raw pub key bytes for the broadcast alert signing key.
     vector<unsigned char> vAlertPubKey;

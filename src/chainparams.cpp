@@ -79,6 +79,7 @@ public:
     }
 
     virtual const CBlock& GenesisBlock() const { return genesis; }
+    virtual const CBlock& FundCoinGenesisBlock() const { return fundCoinGenesis; }
     virtual NET_TYPE NetworkID() const { return MAIN_NET; }
     virtual bool InitialConfig() { return CBaseParams::InitialConfig(); }
     virtual int GetBlockMaxNonce() const { return 1000; }
@@ -90,6 +91,7 @@ public:
 
 protected:
     CBlock genesis;
+    CBlock fundCoinGenesis;
     vector<CAddress> vFixedSeeds;
 };
 
@@ -185,15 +187,9 @@ public:
     }
 };
 
-const vector<string> &CBaseParams::GetMultiArgs(const string& strArg) {
-    return m_mapMultiArgs[strArg];
-}
-int CBaseParams::GetArgsSize() {
-    return m_mapArgs.size();
-}
-int CBaseParams::GetMultiArgsSize() {
-    return m_mapMultiArgs.size();
-}
+const vector<string>& CBaseParams::GetMultiArgs(const string& strArg) { return m_mapMultiArgs[strArg]; }
+int CBaseParams::GetArgsSize() { return m_mapArgs.size(); }
+int CBaseParams::GetMultiArgsSize() { return m_mapMultiArgs.size(); }
 
 string CBaseParams::GetArg(const string& strArg, const string& strDefault) {
     if (m_mapArgs.count(strArg))
@@ -379,6 +375,7 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDe
     pDelegateTx->signature = ParseHex(IniCfg().GetDelegateSignature(type));
     pDelegateTx->nVersion = nTxVersion1;
     vDelegateTx.push_back(pDelegateTx);
+
     return true;
 }
 
