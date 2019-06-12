@@ -63,11 +63,20 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
 
     //0. deduct processing fees (WICC)
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
-        return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, deduct fees from regId=%s failed ,",
+        return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, deduct fees from regId=%s failed,",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
 
-    //1. deduct interest fees in scoins
+    CAccount fcoinGensisAccount;
+    CRegID fcoinGenesisRegId(kFcoinGenesisTxHeight, kFcoinGenesisTxIndex);
+    CUserID fcoinGenesisUid(fcoinGenesisRegId);
+    if (!cw.accountCache.GetAccount(fcoinGenesisUid, fcoinGensisAccount)) {
+        return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, read fcoinGenesisUid %s account info error",
+                        fcoinGenesisUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
+    }
+    CAccountLog genesisAcctLog(account);
+
+    //1. deduct interest fees in scoins into the miccc pool
     CUserCdp cdp;
     if (!cw.cdpCache.GetCdp(txUid.ToString(), cdp)) {
         // first-time staking, no interest will be charged
@@ -78,30 +87,26 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
         }
 
         uint64_t totalScoinsInterestToRepay = cdp.ComputeInterest(nHeight);
+        uint64_t fcoinMedianPrice = cw.pricePointCache.GetFcoinMedianPrice();
         uint64_t totalFcoinsInterestToRepay = totalScoinsInterestToRepay / fcoinMedianPrice;
         if (account.fcoins >= totalFcoinsInterestToRepay) {
-            account.fcoins -= totalFcoinsInterestToRepay;
+            account.fcoins -= totalFcoinsInterestToRepay; // burn away fcoins, total thus reduced
         } else {
             uint64_t restFcoins = totalFcoinsInterestToRepay - account.fcoins;
-            account.fcoins = 0;
-            uint64_t scoins = restFcoins * fcoinMedianPrice;
+            account.fcoins = 0; // burn away fcoins, total thus reduced
+            uint64_t restScoins = restFcoins * fcoinMedianPrice;
+            if (account.scoins >= restScoins ) {
+                account.scoins -= restScoins;
+                fcoinGensisAccount.sCoins += restScoins; //add scoins into the common pool
+            } else {
+                return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, scoins not enough: %d, needs: %d",
+                        account.scoins, restScoins), UPDATE_ACCOUNT_FAIL, "scoins-smaller-error");
+            }
         }
-
-        uint64_t scoinsInterestToRepay = totalScoinsInterestToRepay;
-        uint64_t fcoinsInterestToRepay = 0;
-        if (account.scoins < totalScoinsInterestToRepay) {
-            scoinsInterestToRepay = account.scoins;
-            uint64_t fcoinMedianPrice = cw.pricePointCache.GetFcoinMedianPrice();
-            fcoinsInterestToRepay = (totalScoinsInterestToRepay - scoinsInterestToRepay) / fcoinMedianPrice;
-        }
-
-        account.PayInterest(scoinsInterestToRepay, );
-
-        cw.cdpCache
     }
 
     //2. mint scoins
-    int mintedScoins = (bcoinsToStake + cdp.totalStakedBcoins) * COIN / 100 / collateralRatio - cdp.totalOwedScoins;
+    int mintedScoins = (bcoinsToStake + cdp.totalStakedBcoins) / collateralRatio / 100 - cdp.totalOwedScoins;
     if (mintedScoins <= 0) {
         return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, over-collateralized from regId=%s",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "cdp-overcollateralized");
@@ -111,14 +116,21 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
         return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, stake boins from regId=%s failed",
                         txUid.ToString()), STAKE_CDP_FAIL, "cdp-stake-bcoinsfailed");
     }
+
     if (!cw.accountCache.SaveAccount(account)) {
         return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, update account %s failed",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     }
     cw.txUndo.accountLogs.push_back(acctLog);
 
+    if (!cw.accountCache.SaveAccount(fcoinGensisAccount)) {
+        return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, update fcoinGensisAccount %s failed",
+                        fcoinGenesisUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
+    }
+    cw.txUndo.accountLogs.push_back(fcoinGensisAccount);
+
     CDbOpLog cdpDbOpLog;
-    cw.cdpCache.StakeBcoins(txUid, bcoinsToStake, collateralRatio, (uint64_t) mintedScoins, nHeight, cdpDbOpLog); //update cache & persist into ldb
+    cw.cdpCache.StakeBcoinsToCdp(txUid, bcoinsToStake, collateralRatio, (uint64_t) mintedScoins, nHeight, cdpDbOpLog); //update cache & persist into ldb
     cw.txUndo.mapDbOpLogs[DbOpLogType::COMMON_OP].push_back(cdpDbOpLog);
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid})) return false;

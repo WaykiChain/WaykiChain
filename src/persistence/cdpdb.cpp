@@ -7,7 +7,7 @@
 #include "dbconf.h"
 #include "leveldbwrapper.h"
 
-bool CCdpCacheDBManager::StakeBcoins(
+bool CCdpCacheDBManager::StakeBcoinsToCdp(
     CUserID txUid,
     uint64_t bcoinsToStake,
     uint64_t collateralRatio,
@@ -49,20 +49,17 @@ bool CCdpCacheDBManager::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
 }
 
 /**
- *  Interest Ratio Formula: ( a/collateralRatioFloat/Log10(b+4*N) )
- *  a = 1, b = 1, collateralRatioFloat = 4
+ *  Interest Ratio Formula: ( a / Log10(b + N) )
+ *  a = 1, b = 1
  *
- *  ==> ratio = 1/4/Log10(1+4*N)
+ *  ==> ratio = 1/Log10(1+N)
  */
 uint64_t CCdpCacheDBManager::ComputeInterest(int blockHeight) {
-    // TODO:
-    // assert(blockHeight > cdp.lastBlockHeight);
+    assert(blockHeight > cdp.lastBlockHeight);
 
-    // int interval = blockHeight - cdp.lastBlockHeight;
-    // double collateralRatioFloat = collateralRatio / 100.0;
-    // double interest = ((double) (interestParamA / collateralRatioFloat) * totalOwedScoins / kYearBlockCount)
-    //                 * log10(interestParamB + collateralRatioFloat * totalOwedScoins) * interval;
+    int interval = blockHeight - cdp.lastBlockHeight;
+    double interest = ((double) interestParamA * totalOwedScoins / kYearBlockCount)
+                    * log10(interestParamB + totalOwedScoins) * interval;
 
-    // return (uint64_t) interest;
-    return 0;
+    return (uint64_t) interest;
 }

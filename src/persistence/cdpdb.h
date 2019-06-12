@@ -61,7 +61,7 @@ public:
     CCdpCacheDBManager() {}
     CCdpCacheDBManager(CDBAccess *pDbAccess): cdpCache(pDbAccess, dbk::CDP) {}
 
-    bool StakeBcoins(CUserID txUid, uint64_t bcoinsToStake, uint64_t collateralRatio,
+    bool StakeBcoinsToCdp(CUserID txUid, uint64_t bcoinsToStake, uint64_t collateralRatio,
                     uint64_t mintedScoins, int blockHeight, CDbOpLog &cdpDbOpLog);
 
     bool PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest);
