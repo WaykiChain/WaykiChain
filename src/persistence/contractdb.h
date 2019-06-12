@@ -109,7 +109,8 @@ public:
                          string &contractKey, string &vScriptData);
     bool SetContractData(const CRegID &scriptId, const string &contractKey,
                          const string &vScriptData, CDbOpLog &operLog);
-    bool UndoScriptData(const string &key, const string &value);
+
+    bool UndoDatas(const CDbOpLogs &dbOpLogs);
 
     /**
      * @brief Get all number of scripts in scriptdb

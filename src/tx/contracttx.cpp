@@ -115,15 +115,23 @@ bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, save account error"),
                                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
-    CDbOpLogs &opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
-    auto rIterDBOpLog = opLogs.rbegin();
-    for (; rIterDBOpLog != opLogs.rend(); ++rIterDBOpLog) {
-        if (!cw.contractCache.UndoScriptData(rIterDBOpLog->key, rIterDBOpLog->value))
+
+    CDbOpLogs &opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP]; // TODO: should change COMMON_OP to CONTRACT_DB
+    if (!cw.contractCache.UndoDatas(opLogs)) {
+        return state.DoS(
+            100, ERRORMSG("%s::UndoExecuteTx, undo contractCache data error", __FUNCTION__),
+            UPDATE_ACCOUNT_FAIL, "undo-contractCache-failed");
+
+    }
+/*
+    auto rIterScriptDBLog = opLogs.rbegin();
+    for (; rIterScriptDBLog != opLogs.rend(); ++rIterScriptDBLog) {
+        if (!cw.contractCache.UndoScriptData(rIterScriptDBLog->key, rIterScriptDBLog->value))
             return state.DoS(
                 100, ERRORMSG("%s::UndoExecuteTx, undo scriptdb data error", __FUNCTION__),
                 UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");
     }
-
+*/
     if (!cw.contractCache.EraseTxRelAccout(GetHash()))
         return state.DoS(100,
                          ERRORMSG("%s::UndoExecuteTx, erase tx rel account error", __FUNCTION__),
@@ -474,11 +482,9 @@ bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
         }
     }
     CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
-    auto rIterDBOpLog = opLogs.rbegin();
-    for (; rIterDBOpLog != opLogs.rend(); ++rIterDBOpLog) {
-        if (!cw.contractCache.UndoScriptData(rIterDBOpLog->key, rIterDBOpLog->value))
-            return state.DoS(100, ERRORMSG("%s::UndoExecuteTx, undo scriptdb data error", __FUNCTION__),
-                            UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");
+    if (!cw.contractCache.UndoDatas(opLogs)) {
+        return state.DoS(100, ERRORMSG("%s::UndoExecuteTx, undo contractdb datas error", __FUNCTION__),
+                         UPDATE_ACCOUNT_FAIL, "undo-contractdb-failed");
     }
 
     if (!cw.contractCache.EraseTxRelAccout(GetHash()))

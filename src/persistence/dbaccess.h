@@ -315,6 +315,11 @@ public:
         return true;
     }
 
+    void ParseUndoData(const CDbOpLog &dbOpLog, KeyType &key, ValueType &value) {
+        assert(dbOpLog.GetPrefixType() == prefixType);
+        dbOpLog.Get(key, value);
+    }
+
     dbk::PrefixType GetPrefixType() const { return prefixType; }
 
 private:
