@@ -31,12 +31,12 @@ bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
     CAccountLog acctLog(account);
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, not sufficient bcoins in txUid %s account",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-bcoins");
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
     }
 
     if (!account.OperateFcoinStaking(fcoinsToStake)) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, not sufficient fcoins in txUid %s account",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-fcoins");
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fcoins");
     }
 
     if (!cw.accountCache.SaveAccount(account))

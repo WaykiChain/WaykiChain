@@ -59,7 +59,6 @@ public:
     bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-
 };
 
 #endif

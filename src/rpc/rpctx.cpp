@@ -2799,7 +2799,6 @@ Value decodetxraw(const Array& params, bool fHelp) {
             }
             break;
         }
-
         case CONTRACT_INVOKE_TX: {
             std::shared_ptr<CContractInvokeTx> tx = std::make_shared<CContractInvokeTx>(pBaseTx.get());
             if (tx.get()) {
