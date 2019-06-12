@@ -1681,11 +1681,11 @@ static int ExGetCurTxPayAmountFunc(lua_State *L)
 
 struct S_APP_ID
 {
-    unsigned char idlen;                    //!the len of the tag
-    unsigned char ID[CAppCFund::MAX_TAG_SIZE];     //! the ID for the
+    unsigned char idlen;                        //! the len of the tag
+    unsigned char ID[CAppCFund::MAX_TAG_SIZE];  //! the ID for the
 
     const vector<unsigned char> GetIdV() const {
-//      assert(sizeof(ID) >= idlen);
+        // assert(sizeof(ID) >= idlen);
         vector<unsigned char> Id(&ID[0], &ID[idlen]);
         return (Id);
     }

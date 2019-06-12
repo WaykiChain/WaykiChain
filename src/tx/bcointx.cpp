@@ -74,11 +74,13 @@ bool CBaseCoinTransferTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyI
         return false;
 
     keyIds.insert(keyId);
+
     CKeyID desKeyId;
     if (!cw.accountCache.GetKeyId(toUid, desKeyId))
         return false;
 
     keyIds.insert(desKeyId);
+
     return true;
 }
 

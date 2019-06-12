@@ -35,7 +35,7 @@ string GetTxType(const unsigned char txType) {
 }
 
 bool CBaseTx::IsValidHeight(int nCurrHeight, int nTxCacheHeight) const {
-    if (BLOCK_REWARD_TX == nTxType || BLOCK_PRICE_MEDIAN_TX == nTxType || FCOIN_REWARD_TX == nTxType)
+    if (BLOCK_REWARD_TX == nTxType || BLOCK_PRICE_MEDIAN_TX == nTxType)
         return true;
 
     if (nValidHeight > nCurrHeight + nTxCacheHeight / 2)

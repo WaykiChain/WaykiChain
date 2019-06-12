@@ -37,7 +37,7 @@ bool CPriceFeedTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     }
 
     if (account.stakedFcoins < kDefaultPriceFeedStakedFcoinsMin) // must stake enough fcoins
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Fcoins not sufficient by txUid %s account error",
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Fcoins insufficient by txUid %s account error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-not-sufficient");
 
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
@@ -69,9 +69,9 @@ bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
 
     cw.txUndo.accountLogs.push_back(acctLog);
     cw.txUndo.txHash = GetHash();
-    
+
     if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid})) return false;
-    
+
     return true;
 }
 

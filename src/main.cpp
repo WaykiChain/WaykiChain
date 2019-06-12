@@ -540,7 +540,7 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<unsigned char> &s
 }
 
 bool CheckTx(int nHeight, CBaseTx *ptx, CCacheWrapper &cw, CValidationState &state) {
-    if (BLOCK_REWARD_TX == ptx->nTxType || BLOCK_PRICE_MEDIAN_TX == ptx->nTxType || FCOIN_REWARD_TX == ptx->nTxType) {
+    if (BLOCK_REWARD_TX == ptx->nTxType || BLOCK_PRICE_MEDIAN_TX == ptx->nTxType) {
         return true;
     }
 
@@ -3420,10 +3420,9 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
     else if (strCommand == "tx") {
         std::shared_ptr<CBaseTx> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
 
-        if (BLOCK_REWARD_TX == pBaseTx->nTxType || BLOCK_PRICE_MEDIAN_TX == pBaseTx->nTxType ||
-            FCOIN_REWARD_TX == pBaseTx->nTxType) {
+        if (BLOCK_REWARD_TX == pBaseTx->nTxType || BLOCK_PRICE_MEDIAN_TX == pBaseTx->nTxType) {
             return ERRORMSG(
-                "None of BLOCK_REWARD_TX, BLOCK_PRICE_MEDIAN_TX, FCOIN_REWARD_TX from network should be accepted, "
+                "None of BLOCK_REWARD_TX, BLOCK_PRICE_MEDIAN_TX from network should be accepted, "
                 "Hex:%s", HexStr(vRecv.begin(), vRecv.end()));
         }
 

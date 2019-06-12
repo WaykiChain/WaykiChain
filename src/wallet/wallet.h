@@ -333,9 +333,6 @@ public:
         case COMMON_MTX:
             mapAccountTx[hash] = std::make_shared<CMulsigTx>(pTx);
             break;
-        case FCOIN_REWARD_TX:
-            mapAccountTx[hash] = std::make_shared<CFCoinRewardTx>(pTx);
-            break;
         default:
             return false;
         }

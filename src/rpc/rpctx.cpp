@@ -319,19 +319,6 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             break;
         }
-        case FCOIN_REWARD_TX: {
-            if (!pBaseTx->GetInvolvedKeyIds(*spCW, vKeyIdSet))
-                return arrayDetail;
-
-            obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
-            obj.push_back(Pair("category", "receive"));
-            double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
-            obj.push_back(Pair("micc", dAmount));
-            obj.push_back(Pair("tx_type", "FCOIN_REWARD_TX"));
-            arrayDetail.push_back(obj);
-
-            break;
-        }
         default:
             break;
     }
@@ -2690,10 +2677,6 @@ Value signtxraw(const Array& params, bool fHelp) {
             break;
         }
 
-        case FCOIN_REWARD_TX: {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fcoin reward transation is forbidden");
-        }
-
         default: {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Unsupported transaction type");
         }
@@ -2830,13 +2813,6 @@ Value decodetxraw(const Array& params, bool fHelp) {
         }
         case COMMON_MTX: {
             std::shared_ptr<CMulsigTx> tx = std::make_shared<CMulsigTx>(pBaseTx.get());
-            if (tx.get()) {
-                obj = tx->ToJson(view);
-            }
-            break;
-        }
-        case FCOIN_REWARD_TX: {
-            std::shared_ptr<CFCoinRewardTx> tx = std::make_shared<CFCoinRewardTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(view);
             }

@@ -24,7 +24,7 @@ public:
     }
 
     CBaseCoinTransferTx(const CUserID &txUidIn, CUserID toUidIn, uint64_t feeIn, uint64_t valueIn,
-              int validHeightIn, vector_unsigned_char &descriptionIn) :
+              int validHeightIn, vector_unsigned_char &memoIn) :
               CBaseTx(BCOIN_TRANSFER_TX, txUidIn, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
@@ -36,7 +36,7 @@ public:
 
         toUid   = toUidIn;
         bcoins  = valueIn;
-        memo    = descriptionIn;
+        memo    = memoIn;
     }
 
     CBaseCoinTransferTx(const CUserID &txUidIn, CUserID toUidIn, uint64_t feeIn, uint64_t valueIn,
@@ -49,7 +49,6 @@ public:
         if (toUidIn.type() == typeid(CRegID))
             assert(!toUidIn.get<CRegID>().IsEmpty());
 
-        txUid  = txUidIn;
         toUid  = toUidIn;
         bcoins = valueIn;
     }

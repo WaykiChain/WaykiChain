@@ -734,8 +734,6 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
         Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == BLOCK_PRICE_MEDIAN_TX) {
         Serialize(os, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == FCOIN_REWARD_TX) {
-        Serialize(os, *((CFCoinRewardTx *)(pa.get())), nType, nVersion);
     } else {
         string sTxType(1, nTxType);
         throw ios_base::failure("Serialize: nTxType (" + sTxType + ") value error.");
@@ -771,9 +769,6 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
     } else if (nTxType == BLOCK_PRICE_MEDIAN_TX) {
         pa = std::make_shared<CBlockPriceMedianTx>();
         Unserialize(is, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == FCOIN_REWARD_TX) {
-        pa = std::make_shared<CFCoinRewardTx>();
-        Unserialize(is, *((CFCoinRewardTx *)(pa.get())), nType, nVersion);
     } else {
         string sTxType(1, nTxType);
         throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error.");

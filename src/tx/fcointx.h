@@ -8,20 +8,36 @@
 
 #include "tx.h"
 
-class CFCoinRewardTx : public CBaseTx {
-public:
-    uint64_t rewardValue;
-    int nHeight;
+class CFcoinTransferTx: public CBaseTx {
+private:
+    mutable CUserID toUid;
+    int64_t fcoins;
+    vector_unsigned_char memo;
 
 public:
-    CFCoinRewardTx(): CBaseTx(FCOIN_REWARD_TX) { rewardValue = 0; }
+    CFcoinTransferTx(): CBaseTx(FCOIN_TRANSFER_TX), fcoins(0) {}
 
-    CFCoinRewardTx(const CBaseTx *pBaseTx): CBaseTx(FCOIN_REWARD_TX) {
-        assert(FCOIN_REWARD_TX == pBaseTx->nTxType);
-        *this = *(CFCoinRewardTx *)pBaseTx;
+    CFcoinTransferTx(const CBaseTx *pBaseTx): CBaseTx(FCOIN_TRANSFER_TX) {
+        assert(FCOIN_TRANSFER_TX == pBaseTx->nTxType);
+        *this = *(CFcoinTransferTx *) pBaseTx;
     }
 
-    ~CFCoinRewardTx() {}
+    CFcoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int validHeightIn, uint64_t feeIn,
+                     uint64_t fcoinsIn, vector_unsigned_char &memoIn)
+        : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feeIn) {
+        toUid  = toUidIn;
+        fcoins = fcoinsIn;
+        memo   = memoIn;
+    }
+
+    CFcoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int validHeightIn, uint64_t feeIn,
+                     uint64_t fcoinsIn)
+        : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feeIn) {
+        toUid  = toUidIn;
+        fcoins = fcoinsIn;
+    }
+
+    ~CFcoinTransferTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -29,30 +45,34 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        READWRITE(VARINT(rewardValue));)
+        READWRITE(toUid);
+        READWRITE(VARINT(llFees));
+        READWRITE(VARINT(fcoins));
+        READWRITE(memo);
+        READWRITE(signature);
+    )
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nHeight) << txUid << VARINT(rewardValue);
+            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
+               << toUid << VARINT(llFees) << VARINT(fcoins);
+
             sigHash = ss.GetHash();
         }
 
         return sigHash;
     }
 
-    virtual uint64_t GetValue() const { return rewardValue; }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CFCoinRewardTx>(this); }
-    uint64_t GetFee() const { return 0; }
-    double GetPriority() const { return 0.0f; }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CFcoinTransferTx>(this); }
 
     virtual string ToString(CAccountCache &accountCache);
     virtual Object ToJson(const CAccountCache &accountCache) const;
-    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
+    bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-    virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
+    bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 };
 
 #endif

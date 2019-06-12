@@ -15,7 +15,7 @@ bool CFcoinStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &st
 
     if (fcoinsToStake == 0 || !CheckFundCoinRange(abs(fcoinsToStake))) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, fcoinsToStake out of range"),
-                        REJECT_INVALID, "bad-tx-fcoins-toolarge");
+                        REJECT_INVALID, "bad-tx-fcoins-outofrange");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
@@ -30,12 +30,12 @@ bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
 
     CAccountLog acctLog(account);
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
-        return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, not sufficient bcoins in txUid %s account",
+        return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient bcoins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
     }
 
     if (!account.OperateFcoinStaking(fcoinsToStake)) {
-        return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, not sufficient fcoins in txUid %s account",
+        return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient fcoins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fcoins");
     }
 
@@ -74,27 +74,25 @@ bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     return true;
 }
 
-string CFcoinStakeTx::ToString(CAccountCache &view) {
-    string str = strprintf(
-        "txType=%s, hash=%s, ver=%d, txUid=%s, fcoinsToStake=%ld, llFees=%ld, nValidHeight=%d\n",
-        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, txUid.ToString().c_str(),
-        fcoinsToStake, llFees, nValidHeight);
+string CFcoinStakeTx::ToString(CAccountCache &accountCache) {
+    string str = strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, fcoinsToStake=%ld, llFees=%ld, nValidHeight=%d\n",
+                           GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), fcoinsToStake, llFees,
+                           nValidHeight);
 
     return str;
 }
 
-Object CFcoinStakeTx::ToJson(const CAccountCache &AccountView) const {
+Object CFcoinStakeTx::ToJson(const CAccountCache &accountCache) const {
     Object result;
-    CAccountCache view(AccountView);
 
-    CKeyID txKeyId;
-    view.GetKeyId(txUid, txKeyId);
+    CKeyID keyId;
+    accountCache.GetKeyId(txUid, keyId);
 
     result.push_back(Pair("hash",               GetHash().GetHex()));
     result.push_back(Pair("tx_type",            GetTxType(nTxType)));
     result.push_back(Pair("ver",                nVersion));
     result.push_back(Pair("regid",              txUid.ToString()));
-    result.push_back(Pair("addr",               txKeyId.ToAddress()));
+    result.push_back(Pair("addr",               keyId.ToAddress()));
     result.push_back(Pair("coins_to_stake",     fcoinsToStake));
     result.push_back(Pair("fees",               llFees));
     result.push_back(Pair("valid_height",       nValidHeight));
