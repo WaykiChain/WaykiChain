@@ -71,7 +71,7 @@ public:
     bool SaveCdp(string userRegId, CUserCdp &cdp) { return cdpCache.SetData(userRegId, cdp); }
     bool UndoCdp(CDbOpLog &opLog) { return cdpCache.UndoData(opLog); }
 
-    uint64_t ComputeInterest(int blockHeight);
+    uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);
 
     uint64_t GetCollateralRatio() {
         uint64_t ratio;
