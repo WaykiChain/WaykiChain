@@ -62,36 +62,28 @@ bool CBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
     return true;
 }
 
-string CBlockRewardTx::ToString(CAccountCache &view) {
-    string str;
+string CBlockRewardTx::ToString(CAccountCache &accountCache) {
     CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
-    CRegID regId;
-    view.GetRegId(txUid, regId);
-    str += strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyid=%s, rewardValue=%ld\n",
-                    GetTxType(nTxType), GetHash().ToString().c_str(), nVersion,
-                    regId.ToString(), keyId.GetHex(), rewardValue);
+    accountCache.GetKeyId(txUid, keyId);
+
+    string str = strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyid=%s, rewardValue=%ld\n", GetTxType(nTxType),
+                           GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), rewardValue);
 
     return str;
 }
 
-Object CBlockRewardTx::ToJson(const CAccountCache &AccountView) const{
+Object CBlockRewardTx::ToJson(const CAccountCache &accountCache) const{
     Object result;
-    CAccountCache view(AccountView);
     CKeyID keyid;
+    accountCache.GetKeyId(txUid, keyid);
     result.push_back(Pair("hash", GetHash().GetHex()));
     result.push_back(Pair("tx_type", GetTxType(nTxType)));
     result.push_back(Pair("ver", nVersion));
-    if (txUid.type() == typeid(CRegID)) {
-        result.push_back(Pair("regid", txUid.get<CRegID>().ToString()));
-    }
-    if (txUid.type() == typeid(CPubKey)) {
-        result.push_back(Pair("pubkey", txUid.get<CPubKey>().ToString()));
-    }
-    view.GetKeyId(txUid, keyid);
+    result.push_back(Pair("uid", txUid.ToString()));
     result.push_back(Pair("addr", keyid.ToAddress()));
     result.push_back(Pair("money", rewardValue));
     result.push_back(Pair("valid_height", nHeight));
+
     return result;
 }
 

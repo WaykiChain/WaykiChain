@@ -91,12 +91,8 @@ public:
 /* Top 11 delegates */
 class CDelegateCache {
 public:
-<<<<<<< HEAD
-    CDBMultiValueCache<std::tuple<uint64_t /* votes */, CRegID>, uint8_t> voteRegIdCache;
-=======
     // vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1
-    CDBCache<std::pair<string, CRegID>, uint8_t> voteRegIdCache;
->>>>>>> bdfc914b8d6bb03a01ba9613d4ee7fa774d45ab8
+    CDBMultiValueCache<std::pair<string, CRegID>, uint8_t> voteRegIdCache;
 
 public:
     CDelegateCache(){};

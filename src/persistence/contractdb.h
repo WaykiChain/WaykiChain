@@ -57,14 +57,14 @@ class CContractCache {
 //    IContractView *pBase;
 
 private:
-    CDBCache<string, string>                        scriptCache;            // scriptRegId -> script content
-    CDBCache<uint256, vector<CVmOperate>>           txOutputCache;          // txId -> vector<CVmOperate>
-    CDBCache<std::tuple<CKeyID, int, int>, uint256> acctTxListCache;        // keyId,height,index -> txid
-    CDBCache<uint256, CDiskTxPos>                   txDiskPosCache;         // txId -> DiskTxPos
-    CDBCache<uint256, set<CKeyID>>                  contractRelatedKidCache;// contractTxId -> relatedAccounts
-    CDBCache<pair<string, string>, string>          contractDataCache;      // pair<scriptId, scriptKey> -> scriptData
-    CDBCache<string, CDBCountValue>                 contractItemCountCache; // scriptId -> contractItemCount
-    CDBCache<pair<string, string>, CAppUserAccount> contractAccountCache;   // scriptId -> contractItemCount
+    CDBMultiValueCache<string, string>                        scriptCache;            // scriptRegId -> script content
+    CDBMultiValueCache<uint256, vector<CVmOperate>>           txOutputCache;          // txId -> vector<CVmOperate>
+    CDBMultiValueCache<std::tuple<CKeyID, int, int>, uint256> acctTxListCache;        // keyId,height,index -> txid
+    CDBMultiValueCache<uint256, CDiskTxPos>                   txDiskPosCache;         // txId -> DiskTxPos
+    CDBMultiValueCache<uint256, set<CKeyID>>                  contractRelatedKidCache;// contractTxId -> relatedAccounts
+    CDBMultiValueCache<pair<string, string>, string>          contractDataCache;      // pair<scriptId, scriptKey> -> scriptData
+    CDBMultiValueCache<string, CDBCountValue>                 contractItemCountCache; // scriptId -> contractItemCount
+    CDBMultiValueCache<pair<string, string>, CAppUserAccount> contractAccountCache;   // scriptId -> contractItemCount
 
 public:
     map<string, string > mapContractDb;

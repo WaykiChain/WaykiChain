@@ -17,6 +17,7 @@
 namespace db_util {
     // TODO:
     inline bool IsEmpty(const int val) { return true; }
+    inline bool IsEmpty(const uint64_t val) { return true; }
 
     // uint8_t
     inline bool IsEmpty(const uint8_t val) { return val != 0; }

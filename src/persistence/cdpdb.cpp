@@ -39,7 +39,8 @@ bool CCdpCacheDBManager::StakeBcoins(
 }
 
 bool CCdpCacheDBManager::PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest) {
-    fcoinsInterest
+    // TODO:
+    return true;
 }
 
 bool CCdpCacheDBManager::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
@@ -54,6 +55,8 @@ bool CCdpCacheDBManager::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
  *  ==> ratio = 1/4/Log10(1+4*N)
  */
 uint64_t CCdpCacheDBManager::ComputeInterest(int blockHeight) {
+    // FIXME: find cdp via CRegID
+    CUserCdp cdp;
     assert(blockHeight > cdp.lastBlockHeight);
 
     int interval = blockHeight - cdp.lastBlockHeight;

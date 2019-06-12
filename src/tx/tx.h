@@ -74,6 +74,7 @@ enum TxType : unsigned char {
     SCOIN_TRANSFER_TX = 41,  //!< StableCoin Transfer Tx
     FCOIN_TRANSFER_TX = 42,  //!< FundCoin Transfer Tx
     FCOIN_STAKE_TX    = 43,  //!< Stake Fund Coin in order to become a price feeder
+    FCOIN_REWARD_TX   = 44,  //!< FundCoin Reward Tx
 
     DEX_WICC_FOR_MICC_TX = 51,  //!< DEX: owner sells WICC for MICC Tx
     DEX_MICC_FOR_WICC_TX = 52,  //!< DEX: owner sells MICC for WICC Tx
@@ -96,12 +97,13 @@ static const unordered_map<unsigned char, string> kTxTypeMap = {
     { COMMON_MTX,           "COMMON_MTX"},
     { CDP_OPEN_TX,          "CDP_OPEN_TX" },
     { CDP_REFUEL_TX,        "CDP_REFUEL_TX" },
-    { CDP_REDEEMP_TX,        "CDP_REDEEMP_TX" },
+    { CDP_REDEEMP_TX,       "CDP_REDEEMP_TX" },
     { CDP_LIQUIDATE_TX,     "CDP_LIQUIDATE_TX" },
     { PRICE_FEED_TX,        "PRICE_FEED_TX" },
     { SFC_PARAM_MTX,        "SFC_PARAM_MTX" },
     { SFC_GLOBAL_HALT_MTX,  "SFC_GLOBAL_HALT_MTX" },
     { SFC_GLOBAL_SETTLE_MTX,"SFC_GLOBAL_SETTLE_MTX" },
+    { FCOIN_REWARD_TX,      "FCOIN_REWARD_TX" },
     { DEX_WICC_FOR_MICC_TX, "DEX_WICC_FOR_MICC_TX" },
     { DEX_MICC_FOR_WICC_TX, "DEX_MICC_FOR_WICC_TX" },
     { DEX_WICC_FOR_WUSD_TX, "DEX_WICC_FOR_WUSD_TX" },
