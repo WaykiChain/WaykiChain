@@ -76,7 +76,7 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
     }
     CAccountLog genesisAcctLog(account);
 
-    //1. deduct interest fees in scoins into the miccc pool
+    //1. deduct interest fees in scoins into the micc pool
     CUserCdp cdp;
     if (!cw.cdpCache.GetCdp(txUid.ToString(), cdp)) {
         // first-time staking, no interest will be charged
@@ -117,8 +117,8 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "cdp-overcollateralized");
     }
     if (!account.StakeBcoinsToCdp(CoinType::WICC, bcoinsToStake, (uint64_t) mintedScoins)) {
-        return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, stake boins from regId=%s failed",
-                        txUid.ToString()), STAKE_CDP_FAIL, "cdp-stake-bcoinsfailed");
+        return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, stake bcoins from regId=%s failed",
+                        txUid.ToString()), STAKE_CDP_FAIL, "cdp-stake-bcoins-failed");
     }
     if (!cw.accountCache.SaveAccount(account)) {
         return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, update account %s failed",

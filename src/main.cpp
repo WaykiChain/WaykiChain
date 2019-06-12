@@ -1290,6 +1290,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 assert(cw.accountCache.SaveAccount(voterAcct));
             }
         }
+
         return true;
     }
 
