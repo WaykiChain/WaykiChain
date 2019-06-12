@@ -17,17 +17,12 @@ bool CFCoinRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
         return state.DoS(100, ERRORMSG("CFCoinRewardTx::ExecuteTx, read source addr %s account info error",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccountLog accountLog(account);
-    if (0 == nIndex) {
-        // nothing to do here
-    } else if (-1 == nIndex) {  // maturity reward tx, only update values
-        account.bcoins += rewardValue;
-    } else {  // never go into this step
-        return ERRORMSG("CFCoinRewardTx::ExecuteTx, invalid index");
-    }
 
-    CUserID userId = account.keyID;
-    if (!cw.accountCache.SetAccount(userId, account))
+    CAccountLog accountLog(account);
+
+    // Reward fcoins to account.
+    account.fcoins += rewardValue;
+    if (!cw.accountCache.SetAccount(CUserID(account.keyID), account))
         return state.DoS(100, ERRORMSG("CFCoinRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
@@ -43,8 +38,7 @@ bool CFCoinRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
-        CUserID userId = rIterAccountLog->keyID;
-        if (!cw.accountCache.GetAccount(userId, account)) {
+        if (!cw.accountCache.GetAccount(CUserID(rIterAccountLog->keyID), account)) {
             return state.DoS(100, ERRORMSG("CFCoinRewardTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
@@ -54,11 +48,12 @@ bool CFCoinRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }
 
-        if (!cw.accountCache.SetAccount(userId, account)) {
+        if (!cw.accountCache.SetAccount(CUserID(rIterAccountLog->keyID), account)) {
             return state.DoS(100, ERRORMSG("CFCoinRewardTx::UndoExecuteTx, write account info error"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
     }
+
     return true;
 }
 
