@@ -55,14 +55,14 @@ bool CCdpCacheDBManager::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
  *  ==> ratio = 1/4/Log10(1+4*N)
  */
 uint64_t CCdpCacheDBManager::ComputeInterest(int blockHeight) {
-    // FIXME: find cdp via CRegID
-    CUserCdp cdp;
-    assert(blockHeight > cdp.lastBlockHeight);
+    // TODO:
+    // assert(blockHeight > cdp.lastBlockHeight);
 
-    int interval = blockHeight - cdp.lastBlockHeight;
-    double collateralRatioFloat = collateralRatio / 100.0;
-    double interest = ((double) (interestParamA / collateralRatioFloat) * totalOwedScoins / kYearBlockCount)
-                    * log10(interestParamB + collateralRatioFloat * totalOwedScoins) * interval;
+    // int interval = blockHeight - cdp.lastBlockHeight;
+    // double collateralRatioFloat = collateralRatio / 100.0;
+    // double interest = ((double) (interestParamA / collateralRatioFloat) * totalOwedScoins / kYearBlockCount)
+    //                 * log10(interestParamB + collateralRatioFloat * totalOwedScoins) * interval;
 
-    return (uint64_t) interest;
+    // return (uint64_t) interest;
+    return 0;
 }
