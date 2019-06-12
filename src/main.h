@@ -34,6 +34,7 @@
 #include "tx/delegatetx.h"
 #include "tx/blockrewardtx.h"
 #include "tx/blockpricemediantx.h"
+#include "tx/fcointx.h"
 #include "tx/mulsigtx.h"
 #include "tx/tx.h"
 #include "persistence/accountdb.h"

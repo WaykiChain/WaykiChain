@@ -15,70 +15,28 @@
 #include "miner/miner.h"
 #include "version.h"
 
-string CBaseCoinTransferTx::ToString(CAccountCache &view) {
-    string srcId;
-    if (txUid.type() == typeid(CPubKey)) {
-        srcId = txUid.get<CPubKey>().ToString();
-    } else if (txUid.type() == typeid(CRegID)) {
-        srcId = txUid.get<CRegID>().ToString();
-    }
+bool CBaseCoinTransferTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_MEMO;
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid.type());
 
-    string desId;
-    if (toUid.type() == typeid(CKeyID)) {
-        desId = toUid.get<CKeyID>().ToString();
-    } else if (toUid.type() == typeid(CRegID)) {
-        desId = toUid.get<CRegID>().ToString();
-    }
+    if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
+                         "bad-publickey");
 
-    string str = strprintf(
-        "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, bcoins=%ld, llFees=%ld, memo=%s, "
-        "nValidHeight=%d\n",
-        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, srcId.c_str(), desId.c_str(),
-        bcoins, llFees, HexStr(memo).c_str(), nValidHeight);
+    CAccount srcAccount;
+    if (!cw.accountCache.GetAccount(txUid, srcAccount))
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, read account failed"), REJECT_INVALID,
+                         "bad-getaccount");
 
-    return str;
-}
+    if ((txUid.type() == typeid(CRegID)) && !srcAccount.IsRegistered())
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, account unregistered"),
+                         REJECT_INVALID, "bad-account-unregistered");
 
-Object CBaseCoinTransferTx::ToJson(const CAccountCache &AccountView) const {
-    Object result;
-    CAccountCache view(AccountView);
+    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey);
+    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
-    auto GetRegIdString = [&](CUserID const &userId) {
-        if (userId.type() == typeid(CRegID))
-            return userId.get<CRegID>().ToString();
-        return string("");
-    };
-
-    CKeyID srcKeyId, desKeyId;
-    view.GetKeyId(txUid, srcKeyId);
-    view.GetKeyId(toUid, desKeyId);
-
-    result.push_back(Pair("hash",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
-    result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("regid",          GetRegIdString(txUid)));
-    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
-    result.push_back(Pair("dest_regid",     GetRegIdString(toUid)));
-    result.push_back(Pair("dest_addr",      desKeyId.ToAddress()));
-    result.push_back(Pair("money",          bcoins));
-    result.push_back(Pair("fees",           llFees));
-    result.push_back(Pair("memo",           HexStr(memo)));
-    result.push_back(Pair("valid_height",   nValidHeight));
-
-    return result;
-}
-
-bool CBaseCoinTransferTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    CKeyID keyId;
-    if (!cw.accountCache.GetKeyId(txUid, keyId))
-        return false;
-
-    keyIds.insert(keyId);
-    CKeyID desKeyId;
-    if (!cw.accountCache.GetKeyId(toUid, desKeyId))
-        return false;
-
-    keyIds.insert(desKeyId);
     return true;
 }
 
@@ -194,27 +152,71 @@ bool CBaseCoinTransferTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
     return true;
 }
 
-bool CBaseCoinTransferTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
-    IMPLEMENT_CHECK_TX_FEE;
-    IMPLEMENT_CHECK_TX_MEMO;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
-    IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid.type());
+string CBaseCoinTransferTx::ToString(CAccountCache &view) {
+    string srcId;
+    if (txUid.type() == typeid(CPubKey)) {
+        srcId = txUid.get<CPubKey>().ToString();
+    } else if (txUid.type() == typeid(CRegID)) {
+        srcId = txUid.get<CRegID>().ToString();
+    }
 
-    if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
-                         "bad-publickey");
+    string desId;
+    if (toUid.type() == typeid(CKeyID)) {
+        desId = toUid.get<CKeyID>().ToString();
+    } else if (toUid.type() == typeid(CRegID)) {
+        desId = toUid.get<CRegID>().ToString();
+    }
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, read account failed"), REJECT_INVALID,
-                         "bad-getaccount");
+    string str = strprintf(
+        "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, bcoins=%ld, llFees=%ld, memo=%s, "
+        "nValidHeight=%d\n",
+        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, srcId.c_str(), desId.c_str(),
+        bcoins, llFees, HexStr(memo).c_str(), nValidHeight);
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.IsRegistered())
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
+    return str;
+}
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey);
-    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
+Object CBaseCoinTransferTx::ToJson(const CAccountCache &AccountView) const {
+    Object result;
+    CAccountCache view(AccountView);
+
+    auto GetRegIdString = [&](CUserID const &userId) {
+        if (userId.type() == typeid(CRegID))
+            return userId.get<CRegID>().ToString();
+        return string("");
+    };
+
+    CKeyID srcKeyId, desKeyId;
+    view.GetKeyId(txUid, srcKeyId);
+    view.GetKeyId(toUid, desKeyId);
+
+    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("regid",          GetRegIdString(txUid)));
+    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
+    result.push_back(Pair("dest_regid",     GetRegIdString(toUid)));
+    result.push_back(Pair("dest_addr",      desKeyId.ToAddress()));
+    result.push_back(Pair("money",          bcoins));
+    result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("memo",           HexStr(memo)));
+    result.push_back(Pair("valid_height",   nValidHeight));
+
+    return result;
+}
+
+bool CBaseCoinTransferTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+    CKeyID keyId;
+    if (!cw.accountCache.GetKeyId(txUid, keyId))
+        return false;
+
+    keyIds.insert(keyId);
+
+    CKeyID desKeyId;
+    if (!cw.accountCache.GetKeyId(toUid, desKeyId))
+        return false;
+
+    keyIds.insert(desKeyId);
 
     return true;
 }

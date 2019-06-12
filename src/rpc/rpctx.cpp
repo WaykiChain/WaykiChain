@@ -2612,7 +2612,7 @@ Value signtxraw(const Array& params, bool fHelp) {
         }
 
         case BLOCK_REWARD_TX: {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Reward transation is forbidden");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Block reward transation is forbidden");
         }
 
         case CONTRACT_DEPLOY_TX: {
@@ -2782,7 +2782,6 @@ Value decodetxraw(const Array& params, bool fHelp) {
             }
             break;
         }
-
         case CONTRACT_INVOKE_TX: {
             std::shared_ptr<CContractInvokeTx> tx = std::make_shared<CContractInvokeTx>(pBaseTx.get());
             if (tx.get()) {

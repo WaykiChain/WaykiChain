@@ -42,9 +42,8 @@ using namespace boost;
 #error "Coin cannot be compiled without assertions."
 #endif
 
-#define LOG_CATEGORY_BENCH      "BENCH"     // log category: BENCH
-
-#define MILLI                   0.001       // conversation rate: milli
+#define LOG_CATEGORY_BENCH "BENCH"  // log category: BENCH
+#define MILLI 0.001                 // conversation rate: milli
 
 //
 // Global state
@@ -2512,7 +2511,8 @@ uint256 CPartialMerkleTree::TraverseAndExtract(int height, unsigned int pos,
     }
 }
 
-CPartialMerkleTree::CPartialMerkleTree(const vector<uint256> &vTxid, const vector<bool> &vMatch) : nTransactions(vTxid.size()), fBad(false) {
+CPartialMerkleTree::CPartialMerkleTree(const vector<uint256> &vTxid, const vector<bool> &vMatch)
+    : nTransactions(vTxid.size()), fBad(false) {
     // reset state
     vBits.clear();
     vHash.clear();
@@ -3100,11 +3100,10 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
 {
     RandAddSeedPerfmon();
     LogPrint("net", "received: %s (%u bytes)\n", strCommand, vRecv.size());
-    //  if (GetRand(atoi(SysCfg().GetArg("-dropmessagestest", "0"))) == 0)
-    //  {
-    //      LogPrint("INFO","dropmessagestest DROPPING RECV MESSAGE\n");
-    //      return true;
-    //  }
+    // if (GetRand(atoi(SysCfg().GetArg("-dropmessagestest", "0"))) == 0) {
+    //     LogPrint("INFO", "dropmessagestest DROPPING RECV MESSAGE\n");
+    //     return true;
+    // }
 
     {
         LOCK(cs_main);
@@ -3126,7 +3125,7 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
         uint64_t nNonce = 1;
         vRecv >> pFrom->nVersion >> pFrom->nServices >> nTime >> addrMe;
         if (pFrom->nVersion < MIN_PEER_PROTO_VERSION) {
-            // disconnect from peers older than this proto version
+            // Disconnect from peers older than this proto version
             LogPrint("INFO", "partner %s using obsolete version %i; disconnecting\n", pFrom->addr.ToString(), pFrom->nVersion);
             pFrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
                                strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION));
@@ -3230,8 +3229,8 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
         vRecv >> vAddr;
 
         // Don't want addr from older versions unless seeding
-        //        if (pFrom->nVersion < CADDR_TIME_VERSION && addrman.size() > 1000)
-        //            return true;
+        // if (pFrom->nVersion < CADDR_TIME_VERSION && addrman.size() > 1000)
+        //     return true;
         if (vAddr.size() > 1000) {
             Misbehaving(pFrom->GetId(), 20);
             return ERRORMSG("message addr size() = %u", vAddr.size());
@@ -3325,9 +3324,6 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
                 PushGetBlocksOnCondition(pFrom, chainActive.Tip(), GetOrphanRoot(inv.hash));
             }
 
-            // Track requests for our stuff
-            // g_signals.Inventory(inv.hash);
-
             if (pFrom->nSendSize > (SendBufferSize() * 2)) {
                 Misbehaving(pFrom->GetId(), 50);
                 return ERRORMSG("send buffer size() = %u", pFrom->nSendSize);
@@ -3405,7 +3401,7 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
                 pIndex = chainActive.Next(pIndex);
         }
 
-        // we must use CBlocks, as CBlockHeaders won't include the 0x00 nTx count at the end
+        // We must use CBlocks, as CBlockHeaders won't include the 0x00 nTx count at the end
         vector<CBlock> vHeaders;
         int nLimit = 2000;
         LogPrint("NET", "getheaders %d to %s\n", (pIndex ? pIndex->nHeight : -1), hashStop.ToString());
@@ -3420,8 +3416,11 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
     else if (strCommand == "tx") {
         std::shared_ptr<CBaseTx> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
 
-        if (BLOCK_REWARD_TX == pBaseTx->nTxType)
-            return ERRORMSG("Reward tx from network NOT accepted. Hex:%s", HexStr(vRecv.begin(), vRecv.end()));
+        if (BLOCK_REWARD_TX == pBaseTx->nTxType || BLOCK_PRICE_MEDIAN_TX == pBaseTx->nTxType) {
+            return ERRORMSG(
+                "None of BLOCK_REWARD_TX, BLOCK_PRICE_MEDIAN_TX from network should be accepted, "
+                "Hex:%s", HexStr(vRecv.begin(), vRecv.end()));
+        }
 
         vRecv >> pBaseTx;
 
