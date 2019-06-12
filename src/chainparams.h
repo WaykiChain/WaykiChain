@@ -26,9 +26,7 @@ class CBlock;
 
 struct CDNSSeedData {
     string name, host;
-    CDNSSeedData(const string &strName, const string &strHost) :
-            name(strName), host(strHost) {
-    }
+    CDNSSeedData(const string& strName, const string& strHost) : name(strName), host(strHost) {}
 };
 
 typedef enum {
@@ -178,139 +176,55 @@ public:
         int nConnectTimeout = 5000;
         if (m_mapArgs.count("-timeout")) {
             int nNewTimeout = GetArg("-timeout", 5000);
-            if (nNewTimeout > 0 && nNewTimeout < 600000)
-                nConnectTimeout = nNewTimeout;
+            if (nNewTimeout > 0 && nNewTimeout < 600000) nConnectTimeout = nNewTimeout;
         }
         return nConnectTimeout;
     }
-    bool IsDebug() const {
-        return fDebug;
-    }
-    bool IsDebugAll() const {
-        return fDebugAll;
-    }
-    bool IsPrintLogToConsole() const {
-        return fPrintLogToConsole;
-    }
-    bool IsPrintLogToFile() const {
-        return fPrintLogToFile;
-    }
-    bool IsLogTimestamps() const {
-        return fPrintLogToFile;
-    }
-    bool IsLogPrintLine() const {
-        return fLogPrintFileLine;
-    }
-    bool IsServer() const {
-        return fServer;
-    }
-    bool IsImporting() const {
-        return fImporting;
-    }
-    bool IsReindex() const {
-        return fReindex;
-    }
-    bool IsBenchmark() const {
-        return fBenchmark;
-    }
-    bool IsTxIndex() const {
-        return fTxIndex;
-    }
-    int64_t GetBlockInterval() const {
-        return nBlockInterval;
-    }
-    int64_t GetBestRecvTime() const {
-        return nTimeBestReceived;
-    }
-    int64_t GetScriptCheckThreads() const {
-        return nScriptCheckThreads;
-    }
-    unsigned int GetViewCacheSize() const {
-        return nViewCacheSize;
-    }
-    int GetTxCacheHeight() const {
-        return nTxCacheHeight;
-    }
-    int GetLogMaxSize() const {
-        return nLogMaxSize;
-    }
-    void SetImporting(bool flag) const {
-        fImporting = flag;
-    }
-    void SetReIndex(bool flag) const {
-        fReindex = flag;
-    }
-    void SetBenchMark(bool flag) const {
-        fBenchmark = flag;
-    }
-    void SetTxIndex(bool flag) const {
-        fTxIndex = flag;
-    }
-    void SetBestRecvTime(int64_t nTime) const {
-        nTimeBestReceived = nTime;
-    }
-    void SetScriptCheckThreads(int64_t nNum) const {
-        nScriptCheckThreads = nNum;
-    }
-    void SetViewCacheSize(unsigned int nSize) const {
-        nViewCacheSize = nSize;
-    }
-    void SetTxCacheHeight(int nHeight) const {
-        nTxCacheHeight = nHeight;
-    }
-    bool IsContractLogOn() const {
-        return bContractLog;
-    }
-    bool GetAddressToTxFlag() const {
-        return bAddressToTx;
-    }
-public:
-    const uint256& GetGenesisBlockHash() const {
-        return hashGenesisBlock;
-    }
-    const MessageStartChars& MessageStart() const {
-        return pchMessageStart;
-    }
-    const vector<unsigned char>& AlertKey() const {
-        return vAlertPubKey;
-    }
-    int GetDefaultPort() const {
-        return nDefaultPort;
-    }
-    const arith_uint256 ProofOfWorkLimit()  {
-        return bnProofOfStakeLimit;
-    }
-    int GetSubsidyHalvingInterval() const {
-        return nSubsidyHalvingInterval;
-    }
-    uint32_t GetFeatureForkHeight() const {
-        return nFeatureForkHeight;
-    }
-    virtual uint64_t GetMaxFee() const {
-        return 1000 * COIN;  // 1000 WICC
-    }
+    bool IsDebug() const { return fDebug; }
+    bool IsDebugAll() const { return fDebugAll; }
+    bool IsPrintLogToConsole() const { return fPrintLogToConsole; }
+    bool IsPrintLogToFile() const { return fPrintLogToFile; }
+    bool IsLogTimestamps() const { return fPrintLogToFile; }
+    bool IsLogPrintLine() const { return fLogPrintFileLine; }
+    bool IsServer() const { return fServer; }
+    bool IsImporting() const { return fImporting; }
+    bool IsReindex() const { return fReindex; }
+    bool IsBenchmark() const { return fBenchmark; }
+    bool IsTxIndex() const { return fTxIndex; }
+    int64_t GetBlockInterval() const { return nBlockInterval; }
+    int64_t GetBestRecvTime() const { return nTimeBestReceived; }
+    int64_t GetScriptCheckThreads() const { return nScriptCheckThreads; }
+    unsigned int GetViewCacheSize() const { return nViewCacheSize; }
+    int GetTxCacheHeight() const { return nTxCacheHeight; }
+    int GetLogMaxSize() const { return nLogMaxSize; }
+    void SetImporting(bool flag) const { fImporting = flag; }
+    void SetReIndex(bool flag) const { fReindex = flag; }
+    void SetBenchMark(bool flag) const { fBenchmark = flag; }
+    void SetTxIndex(bool flag) const { fTxIndex = flag; }
+    void SetBestRecvTime(int64_t nTime) const { nTimeBestReceived = nTime; }
+    void SetScriptCheckThreads(int64_t nNum) const { nScriptCheckThreads = nNum; }
+    void SetViewCacheSize(unsigned int nSize) const { nViewCacheSize = nSize; }
+    void SetTxCacheHeight(int nHeight) const { nTxCacheHeight = nHeight; }
+    bool IsContractLogOn() const { return bContractLog; }
+    bool GetAddressToTxFlag() const { return bAddressToTx; }
+    const uint256& GetGenesisBlockHash() const { return genesisBlockHash; }
+    const MessageStartChars& MessageStart() const { return pchMessageStart; }
+    const vector<unsigned char>& AlertKey() const { return vAlertPubKey; }
+    int GetDefaultPort() const { return nDefaultPort; }
+    const arith_uint256 ProofOfWorkLimit() { return bnProofOfStakeLimit; }
+    int GetSubsidyHalvingInterval() const { return nSubsidyHalvingInterval; }
+    uint32_t GetFeatureForkHeight() const { return nFeatureForkHeight; }
+    virtual uint64_t GetMaxFee() const { return 1000 * COIN; }
     virtual const CBlock& GenesisBlock() const = 0;
-    virtual bool RequireRPCPassword() const {
-        return true;
-    }
-    const string& DataDir() const {
-        return strDataDir;
-    }
+    virtual bool RequireRPCPassword() const { return true; }
+    const string& DataDir() const { return strDataDir; }
     virtual NET_TYPE NetworkID() const = 0;
-    const vector<CDNSSeedData>& DNSSeeds() const {
-        return vSeeds;
-    }
-    const vector<unsigned char> &Base58Prefix(Base58Type type) const {
-        return base58Prefixes[type];
-    }
+    const vector<CDNSSeedData>& DNSSeeds() const { return vSeeds; }
+    const vector<unsigned char>& Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
     virtual const vector<CAddress>& FixedSeeds() const = 0;
-    virtual bool IsInFixedSeeds(CAddress &addr) = 0;
-    int RPCPort() const {
-        return nRPCPort;
-    }
-    int GetUIPort() const {
-        return nUIPort;
-    }
+    virtual bool IsInFixedSeeds(CAddress& addr)        = 0;
+    int RPCPort() const { return nRPCPort; }
+    int GetUIPort() const { return nUIPort; }
     static bool InitializeParams(int argc, const char* const argv[]);
     static int64_t GetArg(const string& strArg, int64_t nDefault);
     static string GetArg(const string& strArg, const string& strDefault);
@@ -320,24 +234,16 @@ public:
     static bool IsArgCount(const string& strArg);
     static bool SoftSetArgCover(const string& strArg, const string& strValue);
     static void EraseArg(const string& strArgKey);
-    bool CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> > &vRewardTx, NET_TYPE type);
-    bool CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDelegateTx, NET_TYPE type);
+    bool CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vRewardTx, NET_TYPE type);
+    bool CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> >& vDelegateTx, NET_TYPE type);
     static void ParseParameters(int argc, const char* const argv[]);
-    static const vector<string> &GetMultiArgs(const string& strArg);
-    static  int GetArgsSize();
-    static  int GetMultiArgsSize();
-    static  map<string, string> GetMapArgs() {
-        return m_mapArgs;
-    }
-    static  map<string, vector<string> > GetMapMultiArgs() {
-        return m_mapMultiArgs;
-    }
-    static void SetMapArgs(const map<string, string> &mapArgs) {
-        m_mapArgs = mapArgs;
-    }
-    static void SetMultiMapArgs(const map<string, vector<string> >&mapMultiArgs) {
-        m_mapMultiArgs = mapMultiArgs;
-    }
+    static const vector<string>& GetMultiArgs(const string& strArg);
+    static int GetArgsSize();
+    static int GetMultiArgsSize();
+    static map<string, string> GetMapArgs() { return m_mapArgs; }
+    static map<string, vector<string> > GetMapMultiArgs() { return m_mapMultiArgs; }
+    static void SetMapArgs(const map<string, string>& mapArgs) { m_mapArgs = mapArgs; }
+    static void SetMultiMapArgs(const map<string, vector<string> >& mapMultiArgs) { m_mapMultiArgs = mapMultiArgs; }
 
 protected:
     static map<string, string> m_mapArgs;
@@ -346,7 +252,7 @@ protected:
 protected:
     CBaseParams() ;
 
-    uint256 hashGenesisBlock;
+    uint256 genesisBlockHash;
     MessageStartChars pchMessageStart;
     // Raw pub key bytes for the broadcast alert signing key.
     vector<unsigned char> vAlertPubKey;
@@ -368,18 +274,16 @@ inline bool TestNet() {
     return SysCfg().NetworkID() == TEST_NET;
 }
 
-inline bool RegTest() {
-    return SysCfg().NetworkID() == REGTEST_NET;
-}
+inline bool RegTest() { return SysCfg().NetworkID() == REGTEST_NET; }
 
-//write for test code
-extern const CBaseParams &SysParamsMain();
+// write for test code
+extern const CBaseParams& SysParamsMain();
 
-//write for test code
-extern const CBaseParams &SysParamsTest();
+// write for test code
+extern const CBaseParams& SysParamsTest();
 
-//write for test code
-extern const CBaseParams &SysParamsReg();
+// write for test code
+extern const CBaseParams& SysParamsReg();
 
 extern string initPubKey[];
 
