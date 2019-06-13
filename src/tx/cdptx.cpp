@@ -86,7 +86,7 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
                         nHeight, cdp.lastBlockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-smaller-error");
         }
 
-        uint64_t totalScoinsInterestToRepay = cdp.ComputeInterest(nHeight);
+        uint64_t totalScoinsInterestToRepay = cw.cdpCache.ComputeInterest(nHeight, cdp);
         uint64_t fcoinMedianPrice = cw.pricePointCache.GetFcoinMedianPrice();
         uint64_t totalFcoinsInterestToRepay = totalScoinsInterestToRepay / fcoinMedianPrice;
         if (account.fcoins >= totalFcoinsInterestToRepay) {
@@ -97,7 +97,7 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
             uint64_t restScoins = restFcoins * fcoinMedianPrice;
             if (account.scoins >= restScoins ) {
                 account.scoins -= restScoins;
-                fcoinGensisAccount.sCoins += restScoins; //add scoins into the common pool
+                fcoinGensisAccount.scoins += restScoins; //add scoins into the common pool
             } else {
                 return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, scoins not enough: %d, needs: %d",
                         account.scoins, restScoins), UPDATE_ACCOUNT_FAIL, "scoins-smaller-error");

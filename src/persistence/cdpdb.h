@@ -64,7 +64,6 @@ public:
     bool StakeBcoinsToCdp(CUserID txUid, uint64_t bcoinsToStake, uint64_t collateralRatio,
                     uint64_t mintedScoins, int blockHeight, CDbOpLog &cdpDbOpLog);
 
-    bool PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest);
     bool GetUnderLiquidityCdps(vector<CUserCdp> & userCdps);
 
     bool GetCdp(string userRegId, CUserCdp &cdp) { return cdpCache.GetData(userRegId, cdp); }
