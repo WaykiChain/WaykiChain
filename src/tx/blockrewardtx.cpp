@@ -66,7 +66,7 @@ string CBlockRewardTx::ToString(CAccountCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    string str = strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyid=%s, rewardValue=%ld\n", GetTxType(nTxType),
+    string str = strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyId=%s, rewardValue=%ld\n", GetTxType(nTxType),
                            GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), rewardValue);
 
     return str;
@@ -74,15 +74,15 @@ string CBlockRewardTx::ToString(CAccountCache &accountCache) {
 
 Object CBlockRewardTx::ToJson(const CAccountCache &accountCache) const{
     Object result;
-    CKeyID keyid;
-    accountCache.GetKeyId(txUid, keyid);
-    result.push_back(Pair("hash", GetHash().GetHex()));
-    result.push_back(Pair("tx_type", GetTxType(nTxType)));
-    result.push_back(Pair("ver", nVersion));
-    result.push_back(Pair("uid", txUid.ToString()));
-    result.push_back(Pair("addr", keyid.ToAddress()));
-    result.push_back(Pair("money", rewardValue));
-    result.push_back(Pair("valid_height", nHeight));
+    CKeyID keyId;
+    accountCache.GetKeyId(txUid,            keyId);
+    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("uid",            txUid.ToString()));
+    result.push_back(Pair("addr",           keyId.ToAddress()));
+    result.push_back(Pair("money",          rewardValue));
+    result.push_back(Pair("valid_height",   nHeight));
 
     return result;
 }

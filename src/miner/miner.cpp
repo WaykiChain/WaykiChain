@@ -316,14 +316,9 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
     if (!pBlock.get())
         return nullptr;
 
-    // Create BlockReward tx
-    CBlockRewardTx rewardTx;
-    CBlockPriceMedianTx priceMedianTx;
-
-    // Add our Block Reward tx as the first one
-    pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>(rewardTx));
+    pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
     // TODO: add softfork to enable price median transaction.
-    // pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>(priceMedianTx));
+    // pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>());
 
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
@@ -333,26 +328,26 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
     // How much of the block should be dedicated to high-priority transactions,
     // included regardless of the fees they pay
     unsigned int nBlockPrioritySize = SysCfg().GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
-    nBlockPrioritySize = min(nBlockMaxSize, nBlockPrioritySize);
+    nBlockPrioritySize = std::min(nBlockMaxSize, nBlockPrioritySize);
 
     // Minimum block size you want to create; block will be filled with free transactions
     // until there are no more or the block reaches this size:
     unsigned int nBlockMinSize = SysCfg().GetArg("-blockminsize", DEFAULT_BLOCK_MIN_SIZE);
-    nBlockMinSize              = min(nBlockMaxSize, nBlockMinSize);
+    nBlockMinSize              = std::min(nBlockMaxSize, nBlockMinSize);
 
     // Collect memory pool transactions into the block
     {
         LOCK2(cs_main, mempool.cs);
 
         CBlockIndex *pIndexPrev = chainActive.Tip();
-        uint32_t nHeight  = pIndexPrev->nHeight + 1;
-        int32_t nFuelRate = GetElementForBurn(pIndexPrev);
-        uint64_t nBlockSize    = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
-        uint64_t nBlockTx      = 0;
-        bool fSortedByFee      = true;
-        uint64_t nTotalRunStep = 0;
-        int64_t nTotalFees     = 0;
-        int64_t nTotalFuel     = 0;
+        uint32_t nHeight        = pIndexPrev->nHeight + 1;
+        int32_t nFuelRate       = GetElementForBurn(pIndexPrev);
+        uint64_t nBlockSize     = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
+        uint64_t nBlockTx       = 0;
+        bool fSortedByFee       = true;
+        uint64_t nTotalRunStep  = 0;
+        int64_t nTotalFees      = 0;
+        int64_t nTotalFuel      = 0;
 
         // Calculate && sort transactions from memory pool.
         vector<TxPriority> vTxPriority;
@@ -379,7 +374,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
             if ((dFeePerKb < CBaseTx::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
                 continue;
 
-            auto spCW           = std::make_shared<CCacheWrapper>();
+            auto spCW = std::make_shared<CCacheWrapper>();
             spCW->accountCache.SetBaseView(&cwIn.accountCache);
             spCW->contractCache.SetBaseView(&cwIn.contractCache);
 
@@ -402,7 +397,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
             nBlockSize += stx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
             nTotalRunStep += pBaseTx->nRunStep;
             nTotalFuel += pBaseTx->GetFuel(nFuelRate);
-            nBlockTx++;
+            ++nBlockTx;
             pBlock->vptx.push_back(stx);
 
             LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n", nTotalFuel,
@@ -428,6 +423,38 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
 
 
         LogPrint("INFO", "CreateNewBlock(): total size %u\n", nBlockSize);
+    }
+
+    return pBlock;
+}
+
+std::unique_ptr<CBlock> CreateFundCoinGenesisBlock() {
+    // Create new block
+    std::unique_ptr<CBlock> pBlock(new CBlock());
+    if (!pBlock.get())
+        return nullptr;
+
+    {
+        LOCK(cs_main);
+
+        pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
+        SysCfg().CreateFundCoinAccountRegisterTx(pBlock->vptx, SysCfg().NetworkID());
+        SysCfg().CreateFundCoinGenesisBlockRewardTx(pBlock->vptx, SysCfg().NetworkID());
+
+        // Fill in header.
+        CBlockIndex *pIndexPrev = chainActive.Tip();
+        uint32_t nHeight        = pIndexPrev->nHeight + 1;
+        int32_t nFuelRate       = GetElementForBurn(pIndexPrev);
+
+        pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());
+        UpdateTime(*pBlock, pIndexPrev);
+        pBlock->SetNonce(0);
+        pBlock->SetHeight(nHeight);
+        pBlock->SetFuel(0);
+        pBlock->SetFuelRate(nFuelRate);
+
+        // Verify merkle root hash.
+        assert(pBlock->GetMerkleRootHash() == IniCfg().GetFundCoinMerkleRootHash());
     }
 
     return pBlock;
@@ -598,7 +625,9 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
 
             miningBlockInfo.SetNull();
             int64_t nLastTime = GetTimeMillis();
-            auto pBlock = CreateNewBlock(*spCW);
+
+            auto pBlock = (pIndexPrev->nHeight + 1 == kFcoinGenesisTxHeight) ? CreateFundCoinGenesisBlock()
+                                                                             : CreateNewBlock(*spCW);
             if (!pBlock.get())
                 throw runtime_error("Create new block failed");
 
@@ -639,18 +668,15 @@ void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int targetHeight) {
     minerThreads->create_thread(boost::bind(&CoinMiner, pWallet, targetHeight));
 }
 
-
-// class MinedBlock
-void MinedBlockInfo::SetNull()
-{
-    nTime = 0;
-    nNonce = 0;
-    nHeight = 0;
+void MinedBlockInfo::SetNull() {
+    nTime       = 0;
+    nNonce      = 0;
+    nHeight     = 0;
     nTotalFuels = 0;
-    nFuelRate = 0;
-    nTotalFees = 0;
-    nTxCount = 0;
-    nBlockSize = 0;
+    nFuelRate   = 0;
+    nTotalFees  = 0;
+    nTxCount    = 0;
+    nBlockSize  = 0;
     hash.SetNull();
     hashPrevBlock.SetNull();
 }
