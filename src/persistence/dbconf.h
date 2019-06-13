@@ -58,6 +58,8 @@ namespace dbk {
         EACH_ENUM_DEFINE( CDP,                "cdp")      /* cdp{$RegID} --> blockHeight,mintedScoins */ \
         EACH_ENUM_DEFINE( CDP_IR_PARAM_A,     "ira")      /* [prefix] --> param_a */ \
         EACH_ENUM_DEFINE( CDP_IR_PARAM_B,     "irb")      /* [prefix] --> param_b */ \
+        EACH_ENUM_DEFINE( DEX_BUY_ORDER,      "dexb")     /* [prefix]{micc|wusd|wicc} --> buy order */ \
+        EACH_ENUM_DEFINE( DEX_SELL_ORDER,     "dexs")     /* [prefix]{micc|wusd|wicc} --> sell order */ \
         \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one */ \
         EACH_ENUM_DEFINE( PREFIX_COUNT,        "")       /* enum count, must be the last one */
@@ -116,7 +118,8 @@ namespace dbk {
 static const string DB_NAME_ACCOUNT  = "account";
 static const string DB_NAME_CONTRACT = "contract";
 static const string DB_NAME_DELEGATE = "delegate";
-static const string DB_NAME_CDP = "cdp";
+static const string DB_NAME_CDP      = "cdp";
+static const string DB_NAME_DEX      = "dex";
 
 class SliceIterator {
 public:

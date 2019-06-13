@@ -94,4 +94,36 @@ private:
 
 };
 
+enum OrderType {
+    BUY = 1,
+    SELL = 2,
+    NULL_TYPE = 0
+};
+
+enum CoinType {
+    WICC = 1,
+    WUSD = 2,
+    MICC = 3,
+};
+
+struct CDexOrder {
+    uint64_t amount;
+    uint64_t discount; // *1000 E.g. 97% * 1000 = 970
+}
+
+class CDexCacheDBManager {
+public:
+    CDexCacheDBManager() {}
+    CDexCacheDBManager(CDBAccess *pDbAccess): cdpCache(pDbAccess, dbk::CDP) {}
+
+private:
+    //key: dex{wicc2wusd|wusd2wicc|wusd2micc|micc2wusd}{RegID}
+    CDBMultiValueCache<string, CDexOrder> dexManualBuyMiccOrderCache;  // buy micc with wusd
+    CDBMultiValueCache<string, CDexOrder> dexManualSellMiccOrderCache; // sell micc for wusd
+    CDBMultiValueCache<string, CDexOrder> dexManualBuyWiccOrderCache;  // buy wicc with wusd
+    CDBMultiValueCache<string, CDexOrder> dexManualSellWiccOrderCache; // sell wicc for wusd
+
+    CDBMultiValueCache<string, CUserCdp> dexCdpBuyMiccOrderCache;     //with wusd
+}
+
 #endif //PERSIST_CDP_CACHE_H

@@ -61,12 +61,13 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
     }
     CAccountLog acctLog(account); //save account state before modification
 
-    //0. deduct processing fees (WICC)
+    //1. pay miner fees (WICC)
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, deduct fees from regId=%s failed,",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
 
+    //2. deduct interest fees in scoins into the micc pool
     CAccount fcoinGensisAccount;
     CRegID fcoinGenesisRegId(kFcoinGenesisTxHeight, kFcoinGenesisTxIndex);
     CUserID fcoinGenesisUid(fcoinGenesisRegId);
@@ -76,7 +77,6 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
     }
     CAccountLog genesisAcctLog(account);
 
-    //1. deduct interest fees in scoins into the micc pool
     CUserCdp cdp;
     if (!cw.cdpCache.GetCdp(txUid.ToString(), cdp)) {
         // first-time staking, no interest will be charged
@@ -95,7 +95,7 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
             uint64_t restFcoins = totalFcoinsInterestToRepay - account.fcoins;
             account.fcoins = 0; // burn away fcoins, total thus reduced
             uint64_t restScoins = restFcoins * fcoinMedianPrice;
-            if (account.scoins >= restScoins ) {
+            if (account.scoins >= restScoins) {
                 account.scoins -= restScoins;
                 fcoinGensisAccount.scoins += restScoins; //add scoins into the common pool
             } else {
@@ -110,7 +110,7 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
     }
     cw.txUndo.accountLogs.push_back(fcoinGensisAccount);
 
-    //2. mint scoins
+    //3. mint scoins
     int mintedScoins = (bcoinsToStake + cdp.totalStakedBcoins) / collateralRatio / 100 - cdp.totalOwedScoins;
     if (mintedScoins < 0) { // can be zero since we allow increasing collateral ratio when staking bcoins
         return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, over-collateralized from regId=%s",
@@ -198,10 +198,14 @@ bool CCdpLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &
 }
 bool CCdpLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     //TODO
-    //0. pay miner fees
-    //1. pay fines 
-    //2. collect due-amount bcoins
-    //3. return remaining bcoins to the cdp owner
+    //0. pay miner fees (WICC)
+    if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+        return state.DoS(100, ERRORMSG("CCdpLiquidateTx::ExecuteTx, deduct fees from regId=%s failed,",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
+    }
+    //2. pay fines
+    //3. collect due-amount bcoins
+    //4. return remaining bcoins to the cdp owner
     return true;
 }
 bool CdpLiquidateTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
