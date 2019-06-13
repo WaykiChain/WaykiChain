@@ -30,7 +30,7 @@ uint64_t nLastBlockTx   = 0;
 uint64_t nLastBlockSize = 0;
 
 MinedBlockInfo miningBlockInfo = MinedBlockInfo();
-boost::circular_buffer<MinedBlockInfo> minedBlocks(kMinedBlockMaxSize);
+boost::circular_buffer<MinedBlockInfo> minedBlocks(kMaxMinedBlocks);
 CCriticalSection csMinedBlocks;
 
 //base on the last 50 blocks
@@ -328,7 +328,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
     // Limit to between 1K and MAX_BLOCK_SIZE-1K for sanity:
-    nBlockMaxSize = max((unsigned int)1000, min((unsigned int)(MAX_BLOCK_SIZE - 1000), nBlockMaxSize));
+    nBlockMaxSize = std::max((unsigned int)1000, std::min((unsigned int)(MAX_BLOCK_SIZE - 1000), nBlockMaxSize));
 
     // How much of the block should be dedicated to high-priority transactions,
     // included regardless of the fees they pay
@@ -341,26 +341,26 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
     nBlockMinSize              = min(nBlockMaxSize, nBlockMinSize);
 
     // Collect memory pool transactions into the block
-    int64_t nFees = 0;
     {
         LOCK2(cs_main, mempool.cs);
 
         CBlockIndex *pIndexPrev = chainActive.Tip();
         // Mining block's height, which is one greater than the previous block.
-        uint32_t nHeight = pIndexPrev->nHeight + 1;
-
-        pBlock->SetFuelRate(GetElementForBurn(pIndexPrev));
+        uint32_t nHeight  = pIndexPrev->nHeight + 1;
+        int32_t nFuelRate = GetElementForBurn(pIndexPrev);
 
         // This vector will be sorted into a priority queue:
         vector<TxPriority> vTxPriority;
-        GetPriorityTx(vTxPriority, pBlock->GetFuelRate());
+        GetPriorityTx(vTxPriority, nFuelRate);
 
         // Collect transactions into the block
-        uint64_t nBlockSize = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
-        uint64_t nBlockTx(0);
-        bool fSortedByFee(true);
-        uint64_t nTotalRunStep(0);
-        int64_t nTotalFuel(0);
+        uint64_t nBlockSize    = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
+        uint64_t nBlockTx      = 0;
+        bool fSortedByFee      = true;
+        uint64_t nTotalRunStep = 0;
+        int64_t nTotalFees     = 0;
+        int64_t nTotalFuel     = 0;
+
         TxPriorityCompare comparer(fSortedByFee);
         make_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
 
@@ -387,7 +387,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
             spCW->contractCache.SetBaseView(&cwIn.contractCache);
 
             CValidationState state;
-            pBaseTx->nFuelRate = pBlock->GetFuelRate();
+            pBaseTx->nFuelRate = nFuelRate;
             if (!pBaseTx->ExecuteTx(nHeight, nBlockTx + 1, *spCW, state))
                 continue;
 
@@ -401,25 +401,25 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
             spCW->accountCache.Flush();
             spCW->contractCache.Flush();
 
-            nFees += pBaseTx->GetFee();
+            nTotalFees += pBaseTx->GetFee();
             nBlockSize += stx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
             nTotalRunStep += pBaseTx->nRunStep;
-            nTotalFuel += pBaseTx->GetFuel(pBlock->GetFuelRate());
+            nTotalFuel += pBaseTx->GetFuel(nFuelRate);
             nBlockTx++;
             pBlock->vptx.push_back(stx);
-            LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n",
-                     nTotalFuel, pBaseTx->GetFuel(pBlock->GetFuelRate()), pBaseTx->nRunStep,
-                     pBlock->GetFuelRate(), pBaseTx->GetHash().GetHex());
+
+            LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n", nTotalFuel,
+                     pBaseTx->GetFuel(nFuelRate), pBaseTx->nRunStep, nFuelRate, pBaseTx->GetHash().GetHex());
         }
 
         nLastBlockTx               = nBlockTx;
         nLastBlockSize             = nBlockSize;
         miningBlockInfo.nTxCount   = nBlockTx;
         miningBlockInfo.nBlockSize = nBlockSize;
-        miningBlockInfo.nTotalFees = nFees;
+        miningBlockInfo.nTotalFees = nTotalFees;
 
-        assert(nFees >= nTotalFuel);
-        ((CBlockRewardTx *)pBlock->vptx[0].get())->rewardValue = nFees - nTotalFuel;
+        assert(nTotalFees >= nTotalFuel);
+        ((CBlockRewardTx *)pBlock->vptx[0].get())->rewardValue = nTotalFees - nTotalFuel;
 
         // Fill in header
         pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());
@@ -427,6 +427,8 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         pBlock->SetNonce(0);
         pBlock->SetHeight(nHeight);
         pBlock->SetFuel(nTotalFuel);
+        pBlock->SetFuelRate(nFuelRate);
+
 
         LogPrint("INFO", "CreateNewBlock(): total size %u\n", nBlockSize);
     }
