@@ -668,18 +668,15 @@ void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int targetHeight) {
     minerThreads->create_thread(boost::bind(&CoinMiner, pWallet, targetHeight));
 }
 
-
-// class MinedBlock
-void MinedBlockInfo::SetNull()
-{
-    nTime = 0;
-    nNonce = 0;
-    nHeight = 0;
+void MinedBlockInfo::SetNull() {
+    nTime       = 0;
+    nNonce      = 0;
+    nHeight     = 0;
     nTotalFuels = 0;
-    nFuelRate = 0;
-    nTotalFees = 0;
-    nTxCount = 0;
-    nBlockSize = 0;
+    nFuelRate   = 0;
+    nTotalFees  = 0;
+    nTxCount    = 0;
+    nBlockSize  = 0;
     hash.SetNull();
     hashPrevBlock.SetNull();
 }
