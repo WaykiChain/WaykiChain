@@ -166,19 +166,19 @@ bool CdpStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
 }
 
 /************************************<< CdpLiquidateTx >>***********************************************/
-string CdpLiquidateTx::ToString(CAccountCache &view) {
+string CCdpLiquidateTx::ToString(CAccountCache &view) {
     //TODO
     return "";
 }
-Object CdpLiquidateTx::ToJson(const CAccountCache &AccountView) const {
+Object CCdpLiquidateTx::ToJson(const CAccountCache &AccountView) const {
     //TODO
     return Object();
 }
-bool CdpLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+bool CCdpLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     //TODO
     return true;
 }
-bool CdpLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CCdpLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
@@ -196,8 +196,12 @@ bool CdpLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &s
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
     return true;
 }
-bool CdpLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CCdpLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     //TODO
+    //0. pay miner fees
+    //1. pay fines 
+    //2. collect due-amount bcoins
+    //3. return remaining bcoins to the cdp owner
     return true;
 }
 bool CdpLiquidateTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {

@@ -151,19 +151,19 @@ public:
 /**
  * Liquidate a CDP
  */
-class CdpLiquidateTx: public CBaseTx {
+class CCdpLiquidateTx: public CBaseTx {
 public:
     uint64_t scoinsToRedeem;    // stable coins to redeem base coins
     uint64_t fcoinsInterest;    // Interest will be deducted from scoinsToRedeem when 0
                                 // For the first-time staking, no interest shall be paid though
 public:
-    CdpLiquidateTx() : CBaseTx(CDP_LIQUIDATE_TX) {}
+    CCdpLiquidateTx() : CBaseTx(CDP_LIQUIDATE_TX) {}
 
-    CdpLiquidateTx(const CBaseTx *pBaseTx): CBaseTx(CDP_LIQUIDATE_TX) {
-        *this = *(CdpLiquidateTx *)pBaseTx;
+    CCdpLiquidateTx(const CBaseTx *pBaseTx): CBaseTx(CDP_LIQUIDATE_TX) {
+        *this = *(CCdpLiquidateTx *)pBaseTx;
     }
 
-    CdpLiquidateTx(const CUserID &txUidIn, uint64_t feeIn, int validHeightIn,
+    CCdpLiquidateTx(const CUserID &txUidIn, uint64_t feeIn, int validHeightIn,
                 uint64_t scoinsToRedeemIn, uint64_t fcoinsInterestIn):
                 CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID)) {
@@ -174,7 +174,7 @@ public:
         fcoinsInterest = fcoinsInterestIn;
     }
 
-    ~CdpLiquidateTx() {}
+    ~CCdpLiquidateTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
