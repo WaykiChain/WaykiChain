@@ -30,16 +30,18 @@ typedef boost::tuple<double, double, std::shared_ptr<CBaseTx> > TxPriority;
 class TxPriorityCompare {
     bool byFee;
 
-   public:
-    TxPriorityCompare(bool _byFee) : byFee(_byFee) {}
+public:
+    TxPriorityCompare(bool byFeeIn) : byFee(byFeeIn) {}
     bool operator()(const TxPriority &a, const TxPriority &b) {
         if (byFee) {
             if (a.get<1>() == b.get<1>())
                 return a.get<0>() < b.get<0>();
+
             return a.get<1>() < b.get<1>();
         } else {
             if (a.get<0>() == b.get<0>())
                 return a.get<1>() < b.get<1>();
+
             return a.get<0>() < b.get<0>();
         }
     }

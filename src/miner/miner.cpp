@@ -345,15 +345,8 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         LOCK2(cs_main, mempool.cs);
 
         CBlockIndex *pIndexPrev = chainActive.Tip();
-        // Mining block's height, which is one greater than the previous block.
         uint32_t nHeight  = pIndexPrev->nHeight + 1;
         int32_t nFuelRate = GetElementForBurn(pIndexPrev);
-
-        // This vector will be sorted into a priority queue:
-        vector<TxPriority> vTxPriority;
-        GetPriorityTx(vTxPriority, nFuelRate);
-
-        // Collect transactions into the block
         uint64_t nBlockSize    = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
         uint64_t nBlockTx      = 0;
         bool fSortedByFee      = true;
@@ -361,11 +354,15 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         int64_t nTotalFees     = 0;
         int64_t nTotalFuel     = 0;
 
+        // Calculate && sort transactions from memory pool.
+        vector<TxPriority> vTxPriority;
+        GetPriorityTx(vTxPriority, nFuelRate);
         TxPriorityCompare comparer(fSortedByFee);
         make_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
 
+        // Collect transactions into the block.
         while (!vTxPriority.empty()) {
-            // Take highest priority transaction off the priority queue:
+            // Take highest priority transaction off the priority queue.
             double dFeePerKb        = vTxPriority.front().get<1>();
             shared_ptr<CBaseTx> stx = vTxPriority.front().get<2>();
             CBaseTx *pBaseTx        = stx.get();
