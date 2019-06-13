@@ -36,12 +36,12 @@ struct CDexForcedOrder {
     uint64_t bcoinsAmount;
     uint64_t scoinsAmount;
     double collateralRatioByAmount; //fixed: bcoinsAmount / scoinsAmount
-    double collateralRatioByValue; //changed according to price
+    double collateralRatioByValue; //collateralRatioAmount * wiccMedianPrice
 
     uint64_t orderDiscount; // *1000 E.g. 97% * 1000 = 970
 
     bool operator()(const CDexForcedOrder &a, const CDexForcedOrder &b) {
-        return a.collateralRatioByValue < b.collateralRatioByValue;
+        return a.collateralRatioByAmount < b.collateralRatioByAmount;
     }
 };
 

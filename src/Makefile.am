@@ -74,6 +74,7 @@ coin_CORE_H = \
   persistence/txdb.h \
   persistence/dbaccess.h \
   persistence/dbconf.h \
+  persistence/dex.h \
   protocol.h \
   random.h   \
   rpc/httpserver.h \
