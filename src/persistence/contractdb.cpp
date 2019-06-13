@@ -587,7 +587,7 @@ bool CContractCache::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nI
 
     uint256 oldValue;
     acctTxListCache.GetData(key, oldValue);
-    operLog = CDbOpLog(acctTxListCache.GetPrefixType(), key, oldValue);
+    operLog.Set(acctTxListCache.GetPrefixType(), key, oldValue);
     return acctTxListCache.SetData(key, txid);
 }
 

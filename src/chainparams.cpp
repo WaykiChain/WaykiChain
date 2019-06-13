@@ -12,6 +12,7 @@
 #include "util.h"
 #include "accounts/key.h"
 #include "tx/blockrewardtx.h"
+#include "tx/accountregtx.h"
 #include "main.h"
 
 #include <boost/assign/list_of.hpp>
@@ -51,7 +52,7 @@ public:
         genesis.SetHeight(0);
         genesis.ClearSignature();
         genesisBlockHash = genesis.GetHash();
-        assert(genesisBlockHash == IniCfg().GetIntHash(MAIN_NET));
+        assert(genesisBlockHash == IniCfg().GetGenesisBlockHash(MAIN_NET));
         assert(genesis.GetMerkleRootHash() == IniCfg().GetMerkleRootHash());
 
         vSeeds.push_back(CDNSSeedData("seed1.waykichain.net", "n1.waykichain.net"));
@@ -79,7 +80,6 @@ public:
     }
 
     virtual const CBlock& GenesisBlock() const { return genesis; }
-    virtual const CBlock& FundCoinGenesisBlock() const { return fundCoinGenesis; }
     virtual NET_TYPE NetworkID() const { return MAIN_NET; }
     virtual bool InitialConfig() { return CBaseParams::InitialConfig(); }
     virtual int GetBlockMaxNonce() const { return 1000; }
@@ -91,7 +91,6 @@ public:
 
 protected:
     CBlock genesis;
-    CBlock fundCoinGenesis;
     vector<CAddress> vFixedSeeds;
 };
 
@@ -120,7 +119,7 @@ public:
         for (auto& item : vFixedSeeds)
             item.SetPort(GetDefaultPort());
 
-        assert(genesisBlockHash == IniCfg().GetIntHash(TEST_NET));
+        assert(genesisBlockHash == IniCfg().GetGenesisBlockHash(TEST_NET));
         vSeeds.push_back(CDNSSeedData("seed1.waykitest.net", "n1.waykitest.net"));
         vSeeds.push_back(CDNSSeedData("seed2.waykitest.net", "n2.waykitest.net"));
 
@@ -161,7 +160,7 @@ public:
         genesisBlockHash = genesis.GetHash();
         nDefaultPort = IniCfg().GetnDefaultPort(REGTEST_NET) ;
         strDataDir = "regtest";
-        assert(genesisBlockHash == IniCfg().GetIntHash(REGTEST_NET));
+        assert(genesisBlockHash == IniCfg().GetGenesisBlockHash(REGTEST_NET));
 
         vFixedSeeds.clear();
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
@@ -339,26 +338,23 @@ void CBaseParams::ParseParameters(int argc, const char* const argv[]) {
     }
 }
 
-bool CBaseParams::CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> > &vRewardTx, NET_TYPE type) {
+bool CBaseParams::CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
     vector<string> vInitPubKey = IniCfg().GetInitPubKey(type);
     for (size_t i = 0; i < vInitPubKey.size(); ++i) {
-        int64_t money(0);
+        uint64_t rewardValue = 0;
         if (i > 0) {
-            money = IniCfg().GetCoinInitValue() * COIN;
+            rewardValue = IniCfg().GetCoinInitValue() * COIN;
         }
-        shared_ptr<CBlockRewardTx> pRewardTx = std::make_shared<CBlockRewardTx>(ParseHex(vInitPubKey[i].c_str()),
-                money, 0);
-        pRewardTx->nVersion = nTxVersion1;
-        if (pRewardTx.get())
-            vRewardTx.push_back(pRewardTx);
-        else
-            return false;
-    }
-    return true;
 
+        auto pRewardTx      = std::make_shared<CBlockRewardTx>(ParseHex(vInitPubKey[i]), rewardValue, 0);
+        pRewardTx->nVersion = nTxVersion1;
+        vptx.push_back(pRewardTx);
+    }
+
+    return true;
 };
 
-bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDelegateTx, NET_TYPE type) {
+bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vptx, NET_TYPE type) {
     vector<string> vDelegatePubKey = IniCfg().GetDelegatePubKey(type);
     vector<string> vInitPubKey = IniCfg().GetInitPubKey(type);
     vector<CCandidateVote> votes;
@@ -369,12 +365,35 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDe
         CCandidateVote vote(ADD_BCOIN, voteId, bcoinsToVote);
         votes.push_back(vote);
     }
+
     CRegID accountId(0, 1);
-    shared_ptr<CDelegateVoteTx> pDelegateTx =
-        std::make_shared<CDelegateVoteTx>(accountId.GetRegIdRaw(), votes, 10000, 0);
+    auto pDelegateTx       = std::make_shared<CDelegateVoteTx>(accountId.GetRegIdRaw(), votes, 10000, 0);
     pDelegateTx->signature = ParseHex(IniCfg().GetDelegateSignature(type));
     pDelegateTx->nVersion = nTxVersion1;
-    vDelegateTx.push_back(pDelegateTx);
+
+    vptx.push_back(pDelegateTx);
+
+    return true;
+}
+
+bool CBaseParams::CreateFundCoinAccountRegisterTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
+    CPubKey pubKey = CPubKey(ParseHex(IniCfg().GetFundCoinInitPubKey(type)));
+    CPubKey minerPubKey;
+
+    auto pRegisterAccountTx       = std::make_shared<CAccountRegisterTx>(pubKey, minerPubKey, 0, kFcoinGenesisTxHeight);
+    pRegisterAccountTx->signature = ParseHex(IniCfg().GetAccountRegisterSignature(type));
+    pRegisterAccountTx->nVersion  = nTxVersion1;
+
+    vptx.push_back(pRegisterAccountTx);
+
+    return true;
+};
+
+bool CBaseParams::CreateFundCoinGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
+    auto pRewardTx      = std::make_shared<CBlockRewardTx>(ParseHex(IniCfg().GetFundCoinInitPubKey(type)),
+                                                      kTotalFundCoinAmount, kFcoinGenesisTxHeight);
+    pRewardTx->nVersion = nTxVersion1;
+    vptx.push_back(pRewardTx);
 
     return true;
 }
@@ -394,11 +413,9 @@ bool CBaseParams::InitializeParams(int argc, const char* const argv[]) {
     return true;
 }
 
-int64_t CBaseParams::GetTxFee() const{
-    return paytxfee;
-}
-int64_t CBaseParams::SetDefaultTxFee(int64_t fee) const{
-    paytxfee = fee;
+int64_t CBaseParams::GetTxFee() const { return payTxFee; }
+int64_t CBaseParams::SetDefaultTxFee(int64_t fee) const {
+    payTxFee = fee;
     return fee;
 }
 
@@ -414,7 +431,7 @@ CBaseParams::CBaseParams() {
     nViewCacheSize          = 2000000;
     nBlockInterval          = 10;
     nSubsidyHalvingInterval = 0;
-    paytxfee                = 10000;
+    payTxFee                = 10000;
     nDefaultPort            = 0;
     fPrintLogToConsole      = 0;
     fPrintLogToFile         = 0;

@@ -19,7 +19,6 @@
 
 class CBlock;
 class CBlockIndex;
-struct CBlockTemplate;
 class CWallet;
 class CBaseTx;
 class CAccountCache;
@@ -31,16 +30,18 @@ typedef boost::tuple<double, double, std::shared_ptr<CBaseTx> > TxPriority;
 class TxPriorityCompare {
     bool byFee;
 
-   public:
-    TxPriorityCompare(bool _byFee) : byFee(_byFee) {}
+public:
+    TxPriorityCompare(bool byFeeIn) : byFee(byFeeIn) {}
     bool operator()(const TxPriority &a, const TxPriority &b) {
         if (byFee) {
             if (a.get<1>() == b.get<1>())
                 return a.get<0>() < b.get<0>();
+
             return a.get<1>() < b.get<1>();
         } else {
             if (a.get<0>() == b.get<0>())
                 return a.get<1>() < b.get<1>();
+
             return a.get<0>() < b.get<0>();
         }
     }
@@ -66,12 +67,12 @@ public:
 };
 
 // get the info of mined blocks. thread safe.
-std::vector<MinedBlockInfo> GetMinedBlocks(unsigned int count);
+vector<MinedBlockInfo> GetMinedBlocks(unsigned int count);
 
 /** Run the miner threads */
 void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int nThreads);
 /** Generate a new block */
-unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn);
+std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn);
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(CBlock *pBlock, CBlockIndex *pIndexPrev, unsigned int &nExtraNonce);
 /** Do mining precalculation */

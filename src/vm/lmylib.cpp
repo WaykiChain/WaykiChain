@@ -1249,7 +1249,7 @@ static int ExWriteDataDBFunc(lua_State *L)
     } else {
         shared_ptr<vector<CDbOpLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
         (*pScriptDBOperLog.get()).push_back(operlog);
-        lua_BurnStoreSet(L, key.size(), operlog.value.size(), value.size(), BURN_VER_R2);
+        lua_BurnStoreSet(L, key.size(), operlog.GetValue().size(), value.size(), BURN_VER_R2);
     }
     return RetRstBooleanToLua(L,flag);
 }
@@ -1283,12 +1283,12 @@ static int ExDeleteDataDBFunc(lua_State *L) {
 
     if (!scriptDB->EraseAppData(contractRegId, string((*retdata.at(0)).begin(), (*retdata.at(0)).end()), operlog)) {
         LogPrint("vm", "ExDeleteDataDBFunc EraseAppData railed, key:%s!\n", HexStr(*retdata.at(0)));
-        lua_BurnStoreUnchanged(L, key.size(), operlog.value.size(), BURN_VER_R2);
+        lua_BurnStoreUnchanged(L, key.size(), operlog.GetValue().size(), BURN_VER_R2);
         flag = false;
     } else {
         shared_ptr<vector<CDbOpLog>> pScriptDBOperLog = pVmRunEnv->GetDbLog();
         pScriptDBOperLog.get()->push_back(operlog);
-        lua_BurnStoreSet(L, key.size(), operlog.value.size(), 0, BURN_VER_R2);
+        lua_BurnStoreSet(L, key.size(), operlog.GetValue().size(), 0, BURN_VER_R2);
     }
 
     return RetRstBooleanToLua(L, flag);
@@ -1437,7 +1437,7 @@ static int ExModifyDataDBFunc(lua_State *L)
         if (scriptDB->SetContractData(contractRegId, key, newValue, operlog)) {
             shared_ptr<vector<CDbOpLog> > pScriptDBOperLog = pVmRunEnv->GetDbLog();
             pScriptDBOperLog.get()->push_back(operlog);
-            lua_BurnStoreSet(L, key.size(),  operlog.value.size(), newValue.size(), BURN_VER_R2);
+            lua_BurnStoreSet(L, key.size(),  operlog.GetValue().size(), newValue.size(), BURN_VER_R2);
             flag = true;
         } else {
             lua_BurnStoreUnchanged(L, key.size(), newValue.size(), BURN_VER_R2);

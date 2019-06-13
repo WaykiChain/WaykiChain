@@ -162,7 +162,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         cw.txUndo.accountLogs.push_back(delegateAcctLog); // keep delegate state before modification
 
         // set the new value and erase the old value
-        CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
+        CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[DB_OP_DELEGATE];
         CDbOpLog operDbLog;
         if (!cw.delegateCache.SetDelegateData(delegate, operDbLog)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s vote info error",
@@ -213,7 +213,7 @@ bool CDelegateVoteTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         }
     }
 
-    CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[COMMON_OP];
+    CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[DB_OP_DELEGATE];
     auto rIterDBOpLog = opLogs.rbegin();
     for (; rIterDBOpLog != opLogs.rend(); ++rIterDBOpLog) {
         // Recover the old value and erase the new value.

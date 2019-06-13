@@ -141,6 +141,8 @@ static const int kRegIdMaturePeriodByBlock          = 100;       // RegId's matu
 static const uint64_t kFcoinGenesisTxHeight         = 5880000;
 static const uint64_t kFcoinGenesisTxIndex          = 1;
 
+const uint16_t kMaxMinedBlocks                      = 100;      // maximun cache size for mined blocks
+
 static const string kContractScriptPathPrefix       = "/tmp/lua/";
 
 extern CTxMemPool mempool;
@@ -155,12 +157,11 @@ class CWalletInterface;
 class CTransactionCache;
 
 struct CNodeStateStats;
-struct CBlockTemplate;
 
 /** Register a wallet to receive updates from core */
-void RegisterWallet(CWalletInterface *pwalletIn);
+void RegisterWallet(CWalletInterface *pWalletIn);
 /** Unregister a wallet from core */
-void UnregisterWallet(CWalletInterface *pwalletIn);
+void UnregisterWallet(CWalletInterface *pWalletIn);
 /** Unregister all wallets from core */
 void UnregisterAllWallets();
 /** Push an updated transaction to all registered wallets */
@@ -599,12 +600,6 @@ extern int nSyncTipHeight;
 
 extern std::tuple<bool, boost::thread *> RunCoin(int argc, char *argv[]);
 extern bool WriteBlockLog(bool falg, string suffix);
-
-struct CBlockTemplate {
-    CBlock block;
-    vector<int64_t> vTxFees;
-    vector<int64_t> vTxSigOps;
-};
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex);
 

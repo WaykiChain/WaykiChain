@@ -39,10 +39,10 @@ bool CCdpCacheDBManager::StakeBcoinsToCdp(
     return true;
 }
 
-bool CCdpCacheDBManager::PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest) {
-    // TODO:
-    return true;
-}
+// bool CCdpCacheDBManager::PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest) {
+//     // TODO:
+//     return true;
+// }
 
 bool CCdpCacheDBManager::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
     //TODO

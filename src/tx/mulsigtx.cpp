@@ -171,31 +171,13 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
     cw.txUndo.accountLogs.push_back(desAcctLog);
     cw.txUndo.txHash = GetHash();
 
-    if (SysCfg().GetAddressToTxFlag()) {
-        CDbOpLog operAddressToTxLog;
-        CKeyID sendKeyId;
-        CKeyID revKeyId;
-
-		CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[ADDR_TXHASH];
-        for (const auto &item : signaturePairs) {
-            if (!cw.accountCache.GetKeyId(CUserID(item.regId), sendKeyId))
-                return ERRORMSG("CBaseCoinTransferTx::CMulsigTx, get keyid by srcUserId error!");
-
-            if (!cw.contractCache.SetTxHashByAddress(sendKeyId, nHeight, nIndex + 1,
-                                        cw.txUndo.txHash, operAddressToTxLog))
-                return false;
-            opLogs.push_back(operAddressToTxLog);
-        }
-
-        if (!cw.accountCache.GetKeyId(desUserId, revKeyId))
-            return ERRORMSG("CBaseCoinTransferTx::CMulsigTx, get keyid by desUserId error!");
-
-        if (!cw.contractCache.SetTxHashByAddress(revKeyId, nHeight, nIndex + 1,
-                                    cw.txUndo.txHash, operAddressToTxLog))
-            return false;
-
-        opLogs.push_back(operAddressToTxLog);
+    vector<CUserID> uids;
+    for (const auto &item : signaturePairs) {
+        uids.push_back(CUserID(item.regId));
     }
+    uids.push_back(desUserId);
+
+    if (!SaveTxAddresses(nHeight, nIndex, cw, uids)) return false;
 
     return true;
 }

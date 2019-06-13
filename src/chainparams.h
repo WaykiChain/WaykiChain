@@ -67,7 +67,7 @@ protected:
     mutable bool fBenchmark;
     mutable bool fTxIndex;
     mutable int64_t nTimeBestReceived;
-    mutable int64_t paytxfee;
+    mutable int64_t payTxFee;
     uint16_t nMaxForkHeight = 24 * 60 * 6; //8640, i.e. forked distance by a day block height
     int64_t nBlockInterval;   //to limit block creation time
     uint32_t nFeatureForkHeight;
@@ -100,12 +100,13 @@ public:
         }
         int64_t nTransactionFee ;
         if (ParseMoney(GetArg("-paytxfee", ""), nTransactionFee) && nTransactionFee > 0) {
-            paytxfee = nTransactionFee;
+            payTxFee = nTransactionFee;
         }
 
         nLogMaxSize = GetArg("-logmaxsize", 100) * 1024 * 1024;
         bContractLog = GetBoolArg("-contractlog", false); //contract account change log
         bAddressToTx = GetBoolArg("-addresstotx", false);
+
         return true;
     }
 
@@ -131,7 +132,7 @@ public:
         te += strprintf("fBenchmark:%d\n",          fBenchmark);
         te += strprintf("fTxIndex:%d\n",            fTxIndex);
         te += strprintf("nTimeBestReceived:%d\n",   nTimeBestReceived);
-        te += strprintf("paytxfee:%d\n",            paytxfee);
+        te += strprintf("paytxfee:%d\n",            payTxFee);
         te += strprintf("nBlockInterval:%d\n",      nBlockInterval);
         te += strprintf("nScriptCheckThreads:%d\n", nScriptCheckThreads);
         te += strprintf("nViewCacheSize:%d\n",      nViewCacheSize);
@@ -217,13 +218,11 @@ public:
 
     virtual const CBlock& GenesisBlock() const = 0;
     const uint256& GetGenesisBlockHash() const { return genesisBlockHash; }
-    bool CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vRewardTx, NET_TYPE type);
-    bool CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> >& vDelegateTx, NET_TYPE type);
+    bool CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
+    bool CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
 
-    virtual const CBlock& FundCoinGenesisBlock() const = 0;
-    const uint256& GetFundCoinGenesisBlockHash() const { return fundCoinGenesisBlockHash; }
-    bool CreateFundCoinGenesisRegisterAccountTx(vector<std::shared_ptr<CBaseTx> >& vRegisterAccountTx, NET_TYPE type) { return true; }
-    bool CreateFundCoinGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vRewardTx, NET_TYPE type) { return true; }
+    bool CreateFundCoinAccountRegisterTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
+    bool CreateFundCoinGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
 
     virtual bool RequireRPCPassword() const { return true; }
     const string& DataDir() const { return strDataDir; }
@@ -257,10 +256,9 @@ protected:
     static map<string, vector<string> > m_mapMultiArgs;
 
 protected:
-    CBaseParams() ;
+    CBaseParams();
 
     uint256 genesisBlockHash;
-    uint256 fundCoinGenesisBlockHash;
     MessageStartChars pchMessageStart;
     // Raw pub key bytes for the broadcast alert signing key.
     vector<unsigned char> vAlertPubKey;

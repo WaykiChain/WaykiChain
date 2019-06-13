@@ -19,26 +19,20 @@
 using namespace json_spirit;
 
 enum DbOpLogType {
-    COMMON_OP,
-    ADDR_TXHASH,
-    TX_FILE_POS,
+    DB_OP_CONTRACT,
+    DB_OP_CDP,
+    DB_OP_DELEGATE
 };
 
 
 class CDbOpLog {
-public:
+private:
     mutable dbk::PrefixType prefixType;
     string prefix;
-    string key; // TODO: delete
     string keyElement;
-    string value; // TODO: private
-
-    CDbOpLog() : key(), value() {}
-
-    // TODO: delete this constructor
-    CDbOpLog(const string &keyIn, const string& valueIn):
-        key(keyIn), value(valueIn) {
-    }
+    string value;
+public:
+    CDbOpLog() {}
 
     template<typename K, typename V>
     CDbOpLog(dbk::PrefixType prefixTypeIn, const K& keyElementIn, const V& valueIn){
@@ -69,7 +63,7 @@ public:
     // for key-value
     template<typename K, typename V>
     void Get(K& keyElementOut, V& valueOut) const {
-        dbk::ParseDbKey(key, dbk::EMPTY, keyElementOut);
+        dbk::ParseDbKey(keyElement, dbk::EMPTY, keyElementOut);
         CDataStream ssValue(value, SER_DISK, CLIENT_VERSION);
         ssValue >> valueOut;
     }
@@ -85,6 +79,8 @@ public:
         return prefixType;
     }
 
+    inline Slice GetValue() { return value; }
+
     IMPLEMENT_SERIALIZE(
         READWRITE(prefix);
         if (fRead) {
@@ -93,29 +89,29 @@ public:
                 throw std::out_of_range("CDbOpLog unserialize failed! invalid prefix=" + prefix);
             }
         }
-        READWRITE(key);
+        READWRITE(keyElement);
         READWRITE(value);
     )
 
     string ToString() const {
         string str;
-        str += strprintf("vey: %s, value: %s", HexStr(key), HexStr(value));
+        str += strprintf("prefix: %s, key: %s, value: %s", prefix, HexStr(keyElement), HexStr(value));
         return str;
     }
 
     friend bool operator<(const CDbOpLog &log1, const CDbOpLog &log2) {
-        return log1.key < log2.key;
+        return log1.prefixType < log2.prefixType || log1.keyElement < log2.keyElement;
     }
 };
 
 inline std::string GetDbOpLogTypeName(DbOpLogType type){
     switch (type) {
-    case COMMON_OP:
-        return "COMMON_OP";
-    case ADDR_TXHASH:
-        return "ADDR_TXHASH";
-    case TX_FILE_POS:
-        return "TX_FILE_POS";
+    case DB_OP_CONTRACT:
+        return "DB_OP_CONTRACT";
+    case DB_OP_CDP:
+        return "DB_OP_CDP";
+    case DB_OP_DELEGATE:
+        return "DB_OP_DELEGATE";
     }
     return "UNKNOWN";
 }
