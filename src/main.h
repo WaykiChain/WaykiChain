@@ -307,27 +307,44 @@ public:
     CDBAccess           *pDelegateDb;
     CDelegateCache      *pDelegateCache;
 
+    CDBAccess           *pCdpDb;
+    CCdpCacheDBManager  *pCdpCache;
+
+    CDBAccess           *pDexDb;
+    CDexCacheDBManager  *pDexCache;
+
     CBlockTreeDB        *pBlockTreeDb;
 
     CTransactionCache   *pTxCache;
     CPricePointCache    *pPpCache;
 
-    uint64_t            collateralRatioMin; //minimum collateral ratio
+    uint64_t            collateralRatioMin = 200; //minimum collateral ratio
 
 public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache, size_t nContractDBCache,
                     size_t nDelegateDBCache, size_t nBlockTreeDBCache) {
-        pAccountDb   = new CDBAccess(DB_NAME_ACCOUNT, nAccountDBCache, false, fReIndex);
-        pContractDb  = new CDBAccess(DB_NAME_CONTRACT, nContractDBCache, false, fReIndex);
-        pDelegateDb  = new CDBAccess(DB_NAME_DELEGATE, nDelegateDBCache, false, fReIndex);
+        //TODO fix cache size
+
         pBlockTreeDb = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
 
-        pAccountCache  = new CAccountCache(pAccountDb);
-        pContractCache = new CContractCache(pContractDb);
-        pTxCache       = new CTransactionCache();
-        pPpCache       = new CPricePointCache();
+        pAccountDb      = new CDBAccess(DB_NAME_ACCOUNT, nAccountDBCache, false, fReIndex);
+        pAccountCache   = new CAccountCache(pAccountDb);
 
-        collateralRatioMin = 200; //minimum 200% collateral ratio
+        pContractDb     = new CDBAccess(DB_NAME_CONTRACT, nContractDBCache, false, fReIndex);
+        pContractCache  = new CContractCache(pContractDb);
+
+        pDelegateDb     = new CDBAccess(DB_NAME_DELEGATE, nDelegateDBCache, false, fReIndex);
+        pDelegateCache  = new CDelegateCache(pDelegateDb);
+
+        pCdpDb          = new CDBAccess(DB_NAME_CDP, nAccountDBCache, false, fReIndex); //TODO fix cache size
+        pCdpCache       = new CCdpCacheDBManager(pCdpDb);
+
+        pDexDb          = new CDBAccess(DB_NAME_DEX, nAccountDBCache, false, fReIndex); //TODO fix cache size
+        pDexCache       = new CDexDBManager(pDexDb);
+
+        pTxCache        = new CTransactionCache();
+        pPpCache        = new CPricePointCache();
+
     }
 
     ~CCacheDBManager() {
@@ -342,6 +359,12 @@ public:
         delete pContractDb;     pContractDb = nullptr;
         delete pDelegateDb;     pDelegateDb = nullptr;
         delete pBlockTreeDb;    pBlockTreeDb = nullptr;
+
+        delete pCdpCache;       pCdpCache = nullptr;
+        delete pCdpDb;          pCdpDb = nullptr;
+
+        delete pDexDb;          pDexDb = nullptr;
+        delete pDexCache;       pDexCache = nullptr;
     }
 
     bool Flush() {

@@ -19,6 +19,7 @@ public:
     CTransactionCache txCache;
     CPricePointCache pricePointCache;
     CCdpCacheDBManager cdpCache;
+    CDexCache dexCache;
     CTxUndo txUndo;
 
 };

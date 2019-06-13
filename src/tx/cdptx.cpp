@@ -95,7 +95,7 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
             uint64_t restFcoins = totalFcoinsInterestToRepay - account.fcoins;
             account.fcoins = 0; // burn away fcoins, total thus reduced
             uint64_t restScoins = restFcoins * fcoinMedianPrice;
-            if (account.scoins >= restScoins ) {
+            if (account.scoins >= restScoins) {
                 account.scoins -= restScoins;
                 fcoinGensisAccount.scoins += restScoins; //add scoins into the common pool
             } else {
