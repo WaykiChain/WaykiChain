@@ -126,8 +126,8 @@ void Shutdown() {
 
     RenameThread("Coin-shutoff");
     mempool.AddUpdatedTransactionNum(1);
+
     StopRPCServer();
-    ShutdownRPCMining();
 
     GenerateCoinBlock(false, nullptr, 0);
     StartCommonGeneration(0, 0);
@@ -882,8 +882,7 @@ bool AppInit(boost::thread_group &threadGroup) {
     RandAddSeedPerfmon();
 
     StartNode(threadGroup);
-    // InitRPCMining is needed here so getwork/getblocktemplate in the GUI debug console works properly.
-    InitRPCMining();
+
     if (SysCfg().IsServer()) {
         if (!StartRPCServer()) {
             return InitError(_("Failed to start RPC server. "));

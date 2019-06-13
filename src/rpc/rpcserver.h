@@ -95,9 +95,6 @@ extern uint256 ParseHashO(const json_spirit::Object& o, string strKey);
 extern vector<unsigned char> ParseHexV(const json_spirit::Value& v, string strName);
 extern vector<unsigned char> ParseHexO(const json_spirit::Object& o, string strKey);
 
-extern void InitRPCMining();
-extern void ShutdownRPCMining();
-
 extern int64_t nWalletUnlockTime;
 extern int64_t AmountToRawValue(const json_spirit::Value& value);
 extern json_spirit::Value ValueFromAmount(int64_t amount);
@@ -125,7 +122,6 @@ extern json_spirit::Value dropminerkeys(const json_spirit::Array& params, bool f
 
 //extern json_spirit::Value getgenerate(const json_spirit::Array& params, bool fHelp); // in rpcmining.cpp
 extern json_spirit::Value setgenerate(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getnetworkhashps(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value gethashespersec(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getmininginfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getwork(const json_spirit::Array& params, bool fHelp);
