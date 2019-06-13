@@ -10,6 +10,7 @@
 #include "contractdb.h"
 #include "txdb.h"
 #include "cdpdb.h"
+#include "dex.h"
 
 class CCacheWrapper {
 public:
@@ -18,7 +19,7 @@ public:
     CDelegateCache delegateCache;
     CTransactionCache txCache;
     CPricePointCache pricePointCache;
-    CCdpCacheDBManager cdpCache;
+    CCdpCacheManager cdpCache;
     CDexCache dexCache;
     CTxUndo txUndo;
 

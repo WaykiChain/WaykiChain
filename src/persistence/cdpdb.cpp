@@ -8,7 +8,7 @@
 #include "leveldbwrapper.h"
 #include "main.h"
 
-bool CCdpCacheDBManager::StakeBcoinsToCdp(
+bool CCdpCacheManager::StakeBcoinsToCdp(
     CUserID txUid,
     uint64_t bcoinsToStake,
     uint64_t collateralRatio,
@@ -39,12 +39,12 @@ bool CCdpCacheDBManager::StakeBcoinsToCdp(
     return true;
 }
 
-// bool CCdpCacheDBManager::PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest) {
+// bool CCdpCacheManager::PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest) {
 //     // TODO:
 //     return true;
 // }
 
-bool CCdpCacheDBManager::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
+bool CCdpCacheManager::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
     //TODO
     return true;
 }
@@ -55,7 +55,7 @@ bool CCdpCacheDBManager::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
  *
  *  ==> ratio = 1/Log10(1+N)
  */
-uint64_t CCdpCacheDBManager::ComputeInterest(int blockHeight, const CUserCdp &cdp) {
+uint64_t CCdpCacheManager::ComputeInterest(int blockHeight, const CUserCdp &cdp) {
     assert(blockHeight > cdp.lastBlockHeight);
 
     int interval = blockHeight - cdp.lastBlockHeight;
