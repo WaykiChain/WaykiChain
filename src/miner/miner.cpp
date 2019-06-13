@@ -310,13 +310,11 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     return true;
 }
 
-unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
+std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
     // Create new block
-    unique_ptr<CBlockTemplate> pBlockTemplate(new CBlockTemplate());
-    if (!pBlockTemplate.get())
-        return NULL;
-
-    CBlock *pBlock = &pBlockTemplate->block;  // pointer for convenience
+    std::unique_ptr<CBlock> pBlock(new CBlock());
+    if (!pBlock.get())
+        return nullptr;
 
     // Create BlockReward tx
     CBlockRewardTx rewardTx;
@@ -326,8 +324,6 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
     pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>(rewardTx));
     // TODO: add softfork to enable price median transaction.
     // pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>(priceMedianTx));
-    pBlockTemplate->vTxFees.push_back(-1);    // updated at end
-    pBlockTemplate->vTxSigOps.push_back(-1);  // updated at end
 
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
@@ -348,7 +344,11 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
     int64_t nFees = 0;
     {
         LOCK2(cs_main, mempool.cs);
+
         CBlockIndex *pIndexPrev = chainActive.Tip();
+        // Mining block's height, which is one greater than the previous block.
+        uint32_t nHeight = pIndexPrev->nHeight + 1;
+
         pBlock->SetFuelRate(GetElementForBurn(pIndexPrev));
 
         // This vector will be sorted into a priority queue:
@@ -388,7 +388,7 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
 
             CValidationState state;
             pBaseTx->nFuelRate = pBlock->GetFuelRate();
-            if (!pBaseTx->ExecuteTx(pIndexPrev->nHeight + 1, nBlockTx + 1, *spCW, state))
+            if (!pBaseTx->ExecuteTx(nHeight, nBlockTx + 1, *spCW, state))
                 continue;
 
             // Run step limits
@@ -425,13 +425,13 @@ unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn) {
         pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());
         UpdateTime(*pBlock, pIndexPrev);
         pBlock->SetNonce(0);
-        pBlock->SetHeight(pIndexPrev->nHeight + 1);
+        pBlock->SetHeight(nHeight);
         pBlock->SetFuel(nTotalFuel);
 
         LogPrint("INFO", "CreateNewBlock(): total size %u\n", nBlockSize);
     }
 
-    return std::move(pBlockTemplate);
+    return pBlock;
 }
 
 bool CheckWork(CBlock *pBlock, CWallet &wallet) {
@@ -599,15 +599,14 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
 
             miningBlockInfo.SetNull();
             int64_t nLastTime = GetTimeMillis();
-            unique_ptr<CBlockTemplate> pBlockTemplate(CreateNewBlock(*spCW));
-            if (!pBlockTemplate.get())
+            auto pBlock = CreateNewBlock(*spCW);
+            if (!pBlock.get())
                 throw runtime_error("Create new block failed");
 
-            LogPrint("MINER", "CreateNewBlock tx count: %d spent time: %d ms\n",
-                pBlockTemplate.get()->block.vptx.size(), GetTimeMillis() - nLastTime);
+            LogPrint("MINER", "CreateNewBlock tx count: %d spent time: %d ms\n", pBlock->vptx.size(),
+                     GetTimeMillis() - nLastTime);
 
-            CBlock *pBlock = &pBlockTemplate.get()->block;
-            MineBlock(pBlock, pWallet, pIndexPrev, nTransactionsUpdated, *spCW);
+            MineBlock(pBlock.get(), pWallet, pIndexPrev, nTransactionsUpdated, *spCW);
 
             if (SysCfg().NetworkID() != MAIN_NET && targetHeight <= GetCurrHeight())
                 throw boost::thread_interrupted();
@@ -657,20 +656,15 @@ void MinedBlockInfo::SetNull()
     hashPrevBlock.SetNull();
 }
 
+int64_t MinedBlockInfo::GetReward() { return nTotalFees - nTotalFuels; }
 
-int64_t MinedBlockInfo::GetReward()
-{
-    return nTotalFees - nTotalFuels;
-}
-
-
-std::vector<MinedBlockInfo> GetMinedBlocks(unsigned int count)
-{
+vector<MinedBlockInfo> GetMinedBlocks(unsigned int count) {
     std::vector<MinedBlockInfo> ret;
     LOCK(csMinedBlocks);
     count = std::min((unsigned int)minedBlocks.size(), count);
     for (unsigned int i = 0; i < count; i++) {
         ret.push_back(minedBlocks[i]);
     }
+
     return ret;
 }

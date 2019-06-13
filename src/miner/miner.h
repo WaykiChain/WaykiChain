@@ -19,7 +19,6 @@
 
 class CBlock;
 class CBlockIndex;
-struct CBlockTemplate;
 class CWallet;
 class CBaseTx;
 class CAccountCache;
@@ -66,12 +65,12 @@ public:
 };
 
 // get the info of mined blocks. thread safe.
-std::vector<MinedBlockInfo> GetMinedBlocks(unsigned int count);
+vector<MinedBlockInfo> GetMinedBlocks(unsigned int count);
 
 /** Run the miner threads */
 void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int nThreads);
 /** Generate a new block */
-unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn);
+std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn);
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(CBlock *pBlock, CBlockIndex *pIndexPrev, unsigned int &nExtraNonce);
 /** Do mining precalculation */

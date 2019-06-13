@@ -157,7 +157,6 @@ class CWalletInterface;
 class CTransactionCache;
 
 struct CNodeStateStats;
-struct CBlockTemplate;
 
 /** Register a wallet to receive updates from core */
 void RegisterWallet(CWalletInterface *pWalletIn);
@@ -601,12 +600,6 @@ extern int nSyncTipHeight;
 
 extern std::tuple<bool, boost::thread *> RunCoin(int argc, char *argv[]);
 extern bool WriteBlockLog(bool falg, string suffix);
-
-struct CBlockTemplate {
-    CBlock block;
-    vector<int64_t> vTxFees;
-    vector<int64_t> vTxSigOps;
-};
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex);
 
