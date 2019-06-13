@@ -178,7 +178,7 @@ bool CdpLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     //TODO
     return true;
 }
-bool CdpLiquidateTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CdpLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
