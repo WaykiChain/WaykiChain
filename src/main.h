@@ -141,6 +141,8 @@ static const int kRegIdMaturePeriodByBlock          = 100;       // RegId's matu
 static const uint64_t kFcoinGenesisTxHeight         = 5880000;
 static const uint64_t kFcoinGenesisTxIndex          = 1;
 
+const uint16_t kMinedBlockMaxSize                   = 100;      // maximun cache size for mined blocks
+
 static const string kContractScriptPathPrefix       = "/tmp/lua/";
 
 extern CTxMemPool mempool;
