@@ -8,42 +8,42 @@
 
 #include <math.h>
 
-string CdpStakeTx::ToString(CAccountCache &view) {
+string CCdpStakeTx::ToString(CAccountCache &view) {
     //TODO
     return "";
 }
 
-Object CdpStakeTx::ToJson(const CAccountCache &AccountView) const {
+Object CCdpStakeTx::ToJson(const CAccountCache &AccountView) const {
     //TODO
     return Object();
 }
 
-bool CdpStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+bool CCdpStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     //TODO
     return true;
 }
 
-bool CdpStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CCdpStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     // bcoinsToStake can be zero since we allow downgrading collateral ratio to mint new scoins
     // but it must be grater than the fund committe defined minimum ratio value
     if (collateralRatio < pCdMan->collateralRatioMin ) {
-        return state.DoS(100, ERRORMSG("CdpStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal (%d)",
+        return state.DoS(100, ERRORMSG("CCdpStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal (%d)",
                         collateralRatio, pCdMan->collateralRatioMin), REJECT_INVALID, "bad-tx-collateral-ratio-toosmall");
     }
 
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CdpStakeTx::CheckTx, read txUid %s account info error",
+        return state.DoS(100, ERRORMSG("CCdpStakeTx::CheckTx, read txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     CRegID sendRegId;
     account.GetRegId(sendRegId);
     if (!pCdMan->pDelegateCache->ExistDelegate(sendRegId.ToString())) { // must be a miner
-        return state.DoS(100, ERRORMSG("CdpStakeTx::CheckTx, txUid %s account is not a delegate error",
+        return state.DoS(100, ERRORMSG("CCdpStakeTx::CheckTx, txUid %s account is not a delegate error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "account-not-delegate");
     }
 
@@ -51,19 +51,19 @@ bool CdpStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state
     return true;
 }
 
-bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     cw.txUndo.txHash = GetHash();
 
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, read txUid %s account info error",
+        return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
     }
     CAccountLog acctLog(account); //save account state before modification
 
     //0. deduct processing fees (WICC)
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
-        return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, deduct fees from regId=%s failed,",
+        return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, deduct fees from regId=%s failed,",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
 
@@ -71,7 +71,7 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
     CRegID fcoinGenesisRegId(kFcoinGenesisTxHeight, kFcoinGenesisTxIndex);
     CUserID fcoinGenesisUid(fcoinGenesisRegId);
     if (!cw.accountCache.GetAccount(fcoinGenesisUid, fcoinGensisAccount)) {
-        return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, read fcoinGenesisUid %s account info error",
+        return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, read fcoinGenesisUid %s account info error",
                         fcoinGenesisUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
     }
     CAccountLog genesisAcctLog(account);
@@ -82,7 +82,7 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
         // first-time staking, no interest will be charged
     } else {
         if (nHeight < cdp.lastBlockHeight) {
-            return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, nHeight: %d < cdp.lastBlockHeight: %d",
+            return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, nHeight: %d < cdp.lastBlockHeight: %d",
                         nHeight, cdp.lastBlockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-smaller-error");
         }
 
@@ -99,13 +99,13 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
                 account.scoins -= restScoins;
                 fcoinGensisAccount.scoins += restScoins; //add scoins into the common pool
             } else {
-                return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, scoins not enough: %d, needs: %d",
+                return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, scoins not enough: %d, needs: %d",
                         account.scoins, restScoins), UPDATE_ACCOUNT_FAIL, "scoins-smaller-error");
             }
         }
     }
     if (!cw.accountCache.SaveAccount(fcoinGensisAccount)) {
-        return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, update fcoinGensisAccount %s failed",
+        return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, update fcoinGensisAccount %s failed",
                         fcoinGenesisUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     }
     cw.txUndo.accountLogs.push_back(fcoinGensisAccount);
@@ -113,15 +113,15 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
     //2. mint scoins
     int mintedScoins = (bcoinsToStake + cdp.totalStakedBcoins) / collateralRatio / 100 - cdp.totalOwedScoins;
     if (mintedScoins < 0) { // can be zero since we allow increasing collateral ratio when staking bcoins
-        return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, over-collateralized from regId=%s",
+        return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, over-collateralized from regId=%s",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "cdp-overcollateralized");
     }
     if (!account.StakeBcoinsToCdp(CoinType::WICC, bcoinsToStake, (uint64_t) mintedScoins)) {
-        return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, stake bcoins from regId=%s failed",
+        return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, stake bcoins from regId=%s failed",
                         txUid.ToString()), STAKE_CDP_FAIL, "cdp-stake-bcoins-failed");
     }
     if (!cw.accountCache.SaveAccount(account)) {
-        return state.DoS(100, ERRORMSG("CdpStakeTx::ExecuteTx, update account %s failed",
+        return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, update account %s failed",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     }
     cw.txUndo.accountLogs.push_back(acctLog);
@@ -134,22 +134,22 @@ bool CdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidati
     return ret;
 }
 
-bool CdpStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CCdpStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
         if (!cw.accountCache.GetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CdpStakeTx::UndoExecuteTx, read account info error"),
+            return state.DoS(100, ERRORMSG("CCdpStakeTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         if (!account.UndoOperateAccount(*rIterAccountLog)) {
-            return state.DoS(100, ERRORMSG("CdpStakeTx::UndoExecuteTx, undo operate account failed"),
+            return state.DoS(100, ERRORMSG("CCdpStakeTx::UndoExecuteTx, undo operate account failed"),
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }
 
         if (!cw.accountCache.SetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CdpStakeTx::UndoExecuteTx, write account info error"),
+            return state.DoS(100, ERRORMSG("CCdpStakeTx::UndoExecuteTx, write account info error"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
     }
@@ -157,7 +157,7 @@ bool CdpStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
     auto cdpLogs = cw.txUndo.mapDbOpLogs[DbOpLogType::COMMON_OP];
     for (auto cdpLog : cdpLogs) {
         if (!cw.cdpCache.UndoCdp(cdpLog)) {
-            return state.DoS(100, ERRORMSG("CdpStakeTx::UndoExecuteTx, restore cdp error"),
+            return state.DoS(100, ERRORMSG("CCdpStakeTx::UndoExecuteTx, restore cdp error"),
                              UPDATE_ACCOUNT_FAIL, "bad-restore-cdp");
         }
     }

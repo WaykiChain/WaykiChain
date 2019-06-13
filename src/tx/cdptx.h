@@ -11,7 +11,7 @@
 /**
  * Stake or ReStake bcoins into a CDP
  */
-class CdpStakeTx: public CBaseTx {
+class CCdpStakeTx: public CBaseTx {
 public:
     uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
     uint64_t collateralRatio;       // must be >= 200 (%)
@@ -20,13 +20,13 @@ public:
     uint64_t fcoinsInterest;
 
 public:
-    CdpStakeTx() : CBaseTx(CDP_STAKE_TX) {}
+    CCdpStakeTx() : CBaseTx(CDP_STAKE_TX) {}
 
-    CdpStakeTx(const CBaseTx *pBaseTx): CBaseTx(CDP_STAKE_TX) {
-        *this = *(CdpStakeTx *)pBaseTx;
+    CCdpStakeTx(const CBaseTx *pBaseTx): CBaseTx(CDP_STAKE_TX) {
+        *this = *(CCdpStakeTx *)pBaseTx;
     }
 
-    CdpStakeTx(const CUserID &txUidIn, uint64_t feeIn, int validHeightIn,
+    CCdpStakeTx(const CUserID &txUidIn, uint64_t feeIn, int validHeightIn,
                 uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn, uint64_t fcoinsInterestIn):
                 CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID)) {
@@ -38,7 +38,7 @@ public:
         fcoinsInterest = fcoinsInterestIn;
     }
 
-    ~CdpStakeTx() {}
+    ~CCdpStakeTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -68,7 +68,7 @@ public:
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint64_t GetFee() const { return llFees; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CdpTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCdpStakeTx>(this); }
 
     virtual string ToString(CAccountCache &view);
     virtual Object ToJson(const CAccountCache &AccountView) const;
@@ -84,20 +84,20 @@ public:
  * Redeem scoins into a CDP fully or partially
  * Need to pay interest or stability fees
  */
-class CdpRedeemTx: public CBaseTx {
+class CCdpRedeemTx: public CBaseTx {
 public:
     uint64_t scoinsToRedeem;    // stableCoins amount to redeem or burn
     uint64_t fcoinsInterest;    // Interest will be deducted from scoinsToRedeem when 0
                                 // For the first-time staking, no interest shall be paid though
 
 public:
-    CdpRedeemTx() : CBaseTx(CDP_REDEEMP_TX) {}
+    CCdpRedeemTx() : CBaseTx(CDP_REDEEMP_TX) {}
 
-    CdpRedeemTx(const CBaseTx *pBaseTx): CBaseTx(CDP_REDEEMP_TX) {
-        *this = *(CdpRedeemTx *)pBaseTx;
+    CCdpRedeemTx(const CBaseTx *pBaseTx): CBaseTx(CDP_REDEEMP_TX) {
+        *this = *(CCdpRedeemTx *)pBaseTx;
     }
 
-    CdpRedeemTx(const CUserID &txUidIn, uint64_t feeIn, int validHeightIn,
+    CCdpRedeemTx(const CUserID &txUidIn, uint64_t feeIn, int validHeightIn,
                 uint64_t scoinsToRedeemIn, uint64_t fcoinsInterestIn):
                 CBaseTx(CDP_REDEEMP_TX, txUidIn, validHeightIn, feeIn) {
         if (txUidIn.type() == typeid(CRegID)) {
@@ -137,7 +137,7 @@ public:
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint64_t GetFee() const { return llFees; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CdpTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCdpRedeemTx>(this); }
 
     virtual string ToString(CAccountCache &view);
     virtual Object ToJson(const CAccountCache &AccountView) const;
@@ -203,7 +203,7 @@ public:
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint64_t GetFee() const { return llFees; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CdpTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCdpLiquidateTx>(this); }
 
     virtual string ToString(CAccountCache &view);
     virtual Object ToJson(const CAccountCache &AccountView) const;
