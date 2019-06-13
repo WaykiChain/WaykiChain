@@ -28,7 +28,7 @@
 | getchainstate | ```<num>``` | Returns chain state by retrieving the recent num of blocks | N |
 | getdifficulty | | Returns the proof-of-work difficulty as a multiple of the minimum difficulty | N |
 | getinfo | | Returns an object containing various state info | N |
-| getmininginfo | | Returns an object containing mining-related information: <br> <ul>blocks</ul><ul>currentblocksize</ul><ul>currentblocktx</ul><ul>difficulty</ul><ul>errors</ul><ul>generate</ul><ul>genblocklimit</ul><ul>hashespersec</ul><ul>pooledtx</ul><ul>testnet</ul> | N |
+| getmininginfo | | Returns an object containing mining-related information: <br> <ul>blocks</ul><ul>currentblocksize</ul><ul>currentblocktx</ul><ul>difficulty</ul><ul>errors</ul><ul>generate</ul><ul>pooledtx</ul><ul>testnet</ul> | N |
 | getnewaddr | ```[isminer]``` | Returns a new  address for receiving payments. If [isminer] is ture will create a miner key,otherwise will only return a new address. | Y |
 | getnetworkinfo | | Returns an object containing various state info regarding P2P network | N |
 | getpeerinfo | | Returns data about each connected node | N |
