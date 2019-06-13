@@ -100,15 +100,16 @@ string CBaseTx::ToString(CAccountCache &view) {
     return str;
 }
 
-bool CBaseTx::SaveTxAddresses(int nHeight, int nIndex, CCacheWrapper &cw, const vector<CUserID> &userIds) {
+bool CBaseTx::SaveTxAddresses(int nHeight, int nIndex, CCacheWrapper &cw,
+                              const vector<CUserID> &userIds) {
     if (SysCfg().GetAddressToTxFlag()) {
-        CDbOpLogs &opLogs = cw.txUndo.mapDbOpLogs[ADDR_TXHASH];
+        CDbOpLogs &opLogs = cw.txUndo.mapDbOpLogs[DB_OP_CONTRACT];
         CDbOpLog operAddressToTxLog;
         for (auto userId : userIds) {
             if (userId.type() != typeid(CNullID)) {
                 CKeyID keyId;
                 if (!cw.accountCache.GetKeyId(userId, keyId))
-                    return ERRORMSG("SaveTxAddresses, get keyid uid error!");
+                    return ERRORMSG("SaveTxAddresses, get keyid by uid error!");
 
                 if (!cw.contractCache.SetTxHashByAddress(keyId, nHeight, nIndex + 1,
                                                          cw.txUndo.txHash, operAddressToTxLog))
