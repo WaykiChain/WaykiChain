@@ -234,20 +234,20 @@ bool WriteBlockLog(bool falg, string suffix) {
     return true;
 }
 
-void RegisterWallet(CWalletInterface *pwalletIn) {
-    g_signals.SyncTransaction.connect(boost::bind(&CWalletInterface::SyncTransaction, pwalletIn, _1, _2, _3));
-    g_signals.EraseTransaction.connect(boost::bind(&CWalletInterface::EraseTransaction, pwalletIn, _1));
-    g_signals.SetBestChain.connect(boost::bind(&CWalletInterface::SetBestChain, pwalletIn, _1));
-    // g_signals.Inventory.connect(boost::bind(&CWalletInterface::Inventory, pwalletIn, _1));
-    g_signals.Broadcast.connect(boost::bind(&CWalletInterface::ResendWalletTransactions, pwalletIn));
+void RegisterWallet(CWalletInterface *pWalletIn) {
+    g_signals.SyncTransaction.connect(boost::bind(&CWalletInterface::SyncTransaction, pWalletIn, _1, _2, _3));
+    g_signals.EraseTransaction.connect(boost::bind(&CWalletInterface::EraseTransaction, pWalletIn, _1));
+    g_signals.SetBestChain.connect(boost::bind(&CWalletInterface::SetBestChain, pWalletIn, _1));
+    // g_signals.Inventory.connect(boost::bind(&CWalletInterface::Inventory, pWalletIn, _1));
+    g_signals.Broadcast.connect(boost::bind(&CWalletInterface::ResendWalletTransactions, pWalletIn));
 }
 
-void UnregisterWallet(CWalletInterface *pwalletIn) {
-    g_signals.Broadcast.disconnect(boost::bind(&CWalletInterface::ResendWalletTransactions, pwalletIn));
-    // g_signals.Inventory.disconnect(boost::bind(&CWalletInterface::Inventory, pwalletIn, _1));
-    g_signals.SetBestChain.disconnect(boost::bind(&CWalletInterface::SetBestChain, pwalletIn, _1));
-    g_signals.EraseTransaction.disconnect(boost::bind(&CWalletInterface::EraseTransaction, pwalletIn, _1));
-    g_signals.SyncTransaction.disconnect(boost::bind(&CWalletInterface::SyncTransaction, pwalletIn, _1, _2, _3));
+void UnregisterWallet(CWalletInterface *pWalletIn) {
+    g_signals.Broadcast.disconnect(boost::bind(&CWalletInterface::ResendWalletTransactions, pWalletIn));
+    // g_signals.Inventory.disconnect(boost::bind(&CWalletInterface::Inventory, pWalletIn, _1));
+    g_signals.SetBestChain.disconnect(boost::bind(&CWalletInterface::SetBestChain, pWalletIn, _1));
+    g_signals.EraseTransaction.disconnect(boost::bind(&CWalletInterface::EraseTransaction, pWalletIn, _1));
+    g_signals.SyncTransaction.disconnect(boost::bind(&CWalletInterface::SyncTransaction, pWalletIn, _1, _2, _3));
 }
 
 void UnregisterAllWallets() {

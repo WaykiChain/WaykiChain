@@ -481,7 +481,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
         if (!GetDelegatesAcctList(vDelegatesAcctList))
             return false;
 
-        int nIndex = 0;
+        uint16_t nIndex = 0;
         for (auto &delegate : vDelegatesAcctList)
             LogPrint("shuffle", "before shuffle: index=%d, address=%s\n", nIndex++, delegate.keyID.ToAddress());
 

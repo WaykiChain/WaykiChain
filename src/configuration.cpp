@@ -20,28 +20,30 @@
 using namespace std;
 
 const G_CONFIG_TABLE& IniCfg() {
-    static G_CONFIG_TABLE* psCfg = NULL;
-    if (psCfg == NULL) {
+    static G_CONFIG_TABLE* psCfg = nullptr;
+    if (psCfg == nullptr) {
         psCfg = new G_CONFIG_TABLE();
     }
-    assert(psCfg != NULL);
+    assert(psCfg != nullptr);
+
     return *psCfg;
 }
 
-const uint256 G_CONFIG_TABLE::GetIntHash(NET_TYPE type) const {
+const uint256 G_CONFIG_TABLE::GetGenesisBlockHash(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: {
-            return (uint256S((hashGenesisBlock_mainNet)));
+            return (uint256S((genesisBlockHash_mainNet)));
         }
         case TEST_NET: {
-            return (uint256S((hashGenesisBlock_testNet)));
+            return (uint256S((genesisBlockHash_testNet)));
         }
         case REGTEST_NET: {
-            return (uint256S((hashGenesisBlock_regTest)));
+            return (uint256S((genesisBlockHash_regTest)));
         }
         default:
             assert(0);
     }
+
     return uint256S("");
 }
 
@@ -56,6 +58,7 @@ const string G_CONFIG_TABLE::GetAlertPkey(NET_TYPE type) const {
         default:
             assert(0);
     }
+
     return "";
 }
 
@@ -73,6 +76,7 @@ const vector<string> G_CONFIG_TABLE::GetInitPubKey(NET_TYPE type) const {
         default:
             assert(0);
     }
+
     return vector<string>();
 }
 
@@ -90,7 +94,66 @@ const vector<string> G_CONFIG_TABLE::GetDelegatePubKey(NET_TYPE type) const {
         default:
             assert(0);
     }
+
     return vector<string>();
+}
+
+const uint256 G_CONFIG_TABLE::GetMerkleRootHash() const { return (uint256S((MerkleRootHash))); }
+
+string G_CONFIG_TABLE::GetDelegateSignature(NET_TYPE type) const {
+    switch (type) {
+        case MAIN_NET: {
+            return delegateSignature_mainNet;
+        }
+        case TEST_NET: {
+            return delegateSignature_testNet;
+        }
+        case REGTEST_NET: {
+            return delegateSignature_regNet;
+        }
+        default:
+            assert(0);
+    }
+
+    return "";
+}
+
+const string G_CONFIG_TABLE::GetFundCoinInitPubKey(NET_TYPE type) const {
+    switch (type) {
+        case MAIN_NET: {
+            return initPubKeyFundCoin_mainNet;
+        }
+        case TEST_NET: {
+            return initPubKeyFundCoin_testNet;
+        }
+        case REGTEST_NET: {
+            return initPubkeyFundCoin_regTest;
+        }
+        default:
+            assert(0);
+    }
+
+    return "";
+}
+
+const uint256 G_CONFIG_TABLE::GetFundCoinMerkleRootHash() const { return (uint256S((FundCoinMerkleRootHash))); }
+
+string G_CONFIG_TABLE::GetAccountRegisterSignature(NET_TYPE type) const {
+    switch (type) {
+        case MAIN_NET: {
+            return accountRegisterSignature_mainNet;
+        }
+        case TEST_NET: {
+            return accountRegisterSignature_testNet;
+        }
+        case REGTEST_NET: {
+            return accountRegisterSignature_regNet;
+        }
+        default:
+            assert(0);
+    }
+
+    return "";
 }
 
 uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(NET_TYPE type) const {
@@ -110,8 +173,6 @@ uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(NET_TYPE type) const {
 
     return 0;
 }
-
-const uint256 G_CONFIG_TABLE::GetMerkleRootHash() const { return (uint256S((MerkleRootHash))); }
 
 vector<unsigned int> G_CONFIG_TABLE::GetSeedNodeIP() const { return pnSeed; }
 
@@ -266,23 +327,6 @@ uint64_t G_CONFIG_TABLE::GetTotalDelegateNum() const { return TotalDelegateNum; 
 
 uint64_t G_CONFIG_TABLE::GetMaxVoteCandidateNum() const { return MaxVoteCandidateNum; }
 
-string G_CONFIG_TABLE::GetDelegateSignature(NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: {
-            return delegateSignature_mainNet;
-        }
-        case TEST_NET: {
-            return delegateSignature_testNet;
-        }
-        case REGTEST_NET: {
-            return delegateSignature_regNet;
-        }
-        default:
-            assert(0);
-    }
-    return 0;
-}
-
 // BaseCoin name
 string G_CONFIG_TABLE::COIN_NAME = "WaykiChain";
 
@@ -349,12 +393,28 @@ string G_CONFIG_TABLE::AlertPK_MainNet = "029e85b9822bb140d6934fe7e8cd82fb7fde49
 string G_CONFIG_TABLE::AlertPK_TestNet = "0264afea20ebe6fe4c753f9c99bdce8293cf739efbc7543784873eb12f39469d46";
 
 // Gensis Block Hash
-string G_CONFIG_TABLE::hashGenesisBlock_mainNet = "0xa00d5d179450975237482f20f5cd688cac689eb83bc2151d561bfe720185dc13";
-string G_CONFIG_TABLE::hashGenesisBlock_testNet = "0xf8aea423c73890eb982c77793cf2fff1dcc1c4d141f42a4c6841b1ffe87ac594";
-string G_CONFIG_TABLE::hashGenesisBlock_regTest = "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d";
+string G_CONFIG_TABLE::genesisBlockHash_mainNet = "0xa00d5d179450975237482f20f5cd688cac689eb83bc2151d561bfe720185dc13";
+string G_CONFIG_TABLE::genesisBlockHash_testNet = "0xf8aea423c73890eb982c77793cf2fff1dcc1c4d141f42a4c6841b1ffe87ac594";
+string G_CONFIG_TABLE::genesisBlockHash_regTest = "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d";
 
-// Merkle Hash Root
+// Merkle Root Hash
 string G_CONFIG_TABLE::MerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
+
+// TODO: replace public key.
+// Public Key for mainnet
+string G_CONFIG_TABLE::initPubKeyFundCoin_mainNet = "037671de4799dbf919effa034bbcaadd78c8a942adeebe7d71155304979a02802a";
+string G_CONFIG_TABLE::initPubKeyFundCoin_testNet = "037de11ea5def6393f45c2461c6f55e6e5cda831545324c63fc5c04409d459a5b3";
+string G_CONFIG_TABLE::initPubkeyFundCoin_regTest = "03b2299425981d6c2ec382cda999e604eb06b2b0f387f4b8500519c44d143cd2a8";
+
+// TODO: relpace signature
+// Signature in genesis block
+string G_CONFIG_TABLE::accountRegisterSignature_mainNet = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
+string G_CONFIG_TABLE::accountRegisterSignature_testNet = "02fc0033e19b9999997331c98652607299b0aaf20ed2dd6f0975d03cff3aecdeec";
+string G_CONFIG_TABLE::accountRegisterSignature_regNet  = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
+
+// TODO: replace merkle root hash
+// Merkle Root Hash
+string G_CONFIG_TABLE::FundCoinMerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
 
 // IP Address
 vector<unsigned int> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0xDC36FB0D, 0x91A11C77, 0xFFFFE60D,

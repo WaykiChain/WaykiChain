@@ -158,9 +158,9 @@ struct CNodeStateStats;
 struct CBlockTemplate;
 
 /** Register a wallet to receive updates from core */
-void RegisterWallet(CWalletInterface *pwalletIn);
+void RegisterWallet(CWalletInterface *pWalletIn);
 /** Unregister a wallet from core */
-void UnregisterWallet(CWalletInterface *pwalletIn);
+void UnregisterWallet(CWalletInterface *pWalletIn);
 /** Unregister all wallets from core */
 void UnregisterAllWallets();
 /** Push an updated transaction to all registered wallets */
