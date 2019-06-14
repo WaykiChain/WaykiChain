@@ -30,7 +30,7 @@ bool CScoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper 
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CAccountLog srcAccountLog(srcAccount);
-    if (!srcAccount.OperateBalance(feesCoinType, MINUS_VALUE, llFees)) {
+    if (!srcAccount.OperateBalance(CoinType(feesCoinType), MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CScoinTransferTx::ExecuteTx, insufficient coins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-coins");
     }

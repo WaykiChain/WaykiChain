@@ -1203,6 +1203,44 @@ void static FlushBlockFile(bool fFinalize = false) {
     }
 }
 
+static bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigned int nAddSize) {
+    pos.nFile = nFile;
+
+    LOCK(cs_LastBlockFile);
+
+    unsigned int nNewSize;
+    if (nFile == nLastBlockFile) {
+        pos.nPos = infoLastBlockFile.nUndoSize;
+        nNewSize = (infoLastBlockFile.nUndoSize += nAddSize);
+        if (!pCdMan->pBlockTreeDb->WriteBlockFileInfo(nLastBlockFile, infoLastBlockFile))
+            return state.Abort(_("Failed to write block info"));
+    } else {
+        CBlockFileInfo info;
+        if (!pCdMan->pBlockTreeDb->ReadBlockFileInfo(nFile, info))
+            return state.Abort(_("Failed to read block info"));
+        pos.nPos = info.nUndoSize;
+        nNewSize = (info.nUndoSize += nAddSize);
+        if (!pCdMan->pBlockTreeDb->WriteBlockFileInfo(nFile, info))
+            return state.Abort(_("Failed to write block info"));
+    }
+
+    unsigned int nOldChunks = (pos.nPos + UNDOFILE_CHUNK_SIZE - 1) / UNDOFILE_CHUNK_SIZE;
+    unsigned int nNewChunks = (nNewSize + UNDOFILE_CHUNK_SIZE - 1) / UNDOFILE_CHUNK_SIZE;
+    if (nNewChunks > nOldChunks) {
+        if (CheckDiskSpace(nNewChunks * UNDOFILE_CHUNK_SIZE - pos.nPos)) {
+            FILE *file = OpenUndoFile(pos);
+            if (file) {
+                LogPrint("INFO", "Pre-allocating up to position 0x%x in rev%05u.dat\n", nNewChunks * UNDOFILE_CHUNK_SIZE, pos.nFile);
+                AllocateFileRange(file, pos.nPos, nNewChunks * UNDOFILE_CHUNK_SIZE - pos.nPos);
+                fclose(file);
+            }
+        } else
+            return state.Error("out of disk space");
+    }
+
+    return true;
+}
+
 static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex) {
     cw.accountCache.SetBestBlock(pIndex->GetBlockHash());
     for (unsigned int i = 1; i < block.vptx.size(); i++) {
@@ -1216,7 +1254,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             account.nickID = CNickID();
             account.keyID  = keyId;
             account.pubKey = pubKey;
-            account.regId  = regId;
+            account.regID  = regId;
             account.bcoins = pRewardTx->rewardValue;
 
             assert(cw.accountCache.SaveAccount(account));
@@ -1277,8 +1315,8 @@ static bool ProcessFundCoinGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlock
     cw.accountCache.SetBestBlock(pIndex->GetBlockHash());
 
     assert(block.vptx.size() == 3);
-    assert(block.vptx[1]->nTxType == ACCOUNT_REGISTER_TX);
-    assert(block.vptx[2]->nTxType == BLOCK_REWARD_TX);
+    assert(block.vptx[1]->nTxType == BLOCK_REWARD_TX);
+    assert(block.vptx[2]->nTxType == ACCOUNT_REGISTER_TX);
 
     CPubKey fundCoinGenesisPubKey = CPubKey(ParseHex(IniCfg().GetFundCoinInitPubKey(SysCfg().NetworkID())));
 
@@ -1291,9 +1329,12 @@ static bool ProcessFundCoinGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlock
             assert(pubKey == fundCoinGenesisPubKey);
 
             CAccount genesisAccount;
-            assert(cw.accountCache.GetAccount(pRewardTx->txUid, genesisAccount));
-            assert(pRewardTx->rewardValue == kTotalFundCoinAmount);
-            genesisAccount.fcoins = pRewardTx->rewardValue;
+            genesisAccount.nickID = CNickID();
+            genesisAccount.keyID  = pubKey.GetKeyId();
+            genesisAccount.pubKey = CPubKey();
+            genesisAccount.regID  = CRegID();
+            genesisAccount.fcoins = kTotalFundCoinAmount;
+
             assert(cw.accountCache.SaveAccount(genesisAccount));
 
             CAccount globalFundAccount;
@@ -1303,6 +1344,7 @@ static bool ProcessFundCoinGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlock
             globalFundAccount.keyID  = keyId;
             globalFundAccount.pubKey = CPubKey();
             globalFundAccount.regID  = regId;
+            globalFundAccount.scoins = kInitialRiskProvisionScoinCount;
 
             assert(cw.accountCache.SaveAccount(globalFundAccount));
         } else if (block.vptx[i]->nTxType == ACCOUNT_REGISTER_TX) {
@@ -1313,8 +1355,7 @@ static bool ProcessFundCoinGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlock
             assert(pubKey == fundCoinGenesisPubKey);
 
             CAccount genesisAccount;
-            genesisAccount.nickID = CNickID();
-            genesisAccount.keyID  = pubKey.GetKeyId();
+            assert(cw.accountCache.GetAccount(pAccountRegisterTx->txUid, genesisAccount));
             genesisAccount.pubKey = pubKey;
             genesisAccount.regID  = CRegID(pIndex->nHeight, i);
 
@@ -1922,44 +1963,6 @@ bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos, unsigned int nAdd
         return state.Abort(_("Failed to write file info"));
     if (fUpdatedLast)
         pCdMan->pBlockTreeDb->WriteLastBlockFile(nLastBlockFile);
-
-    return true;
-}
-
-bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigned int nAddSize) {
-    pos.nFile = nFile;
-
-    LOCK(cs_LastBlockFile);
-
-    unsigned int nNewSize;
-    if (nFile == nLastBlockFile) {
-        pos.nPos = infoLastBlockFile.nUndoSize;
-        nNewSize = (infoLastBlockFile.nUndoSize += nAddSize);
-        if (!pCdMan->pBlockTreeDb->WriteBlockFileInfo(nLastBlockFile, infoLastBlockFile))
-            return state.Abort(_("Failed to write block info"));
-    } else {
-        CBlockFileInfo info;
-        if (!pCdMan->pBlockTreeDb->ReadBlockFileInfo(nFile, info))
-            return state.Abort(_("Failed to read block info"));
-        pos.nPos = info.nUndoSize;
-        nNewSize = (info.nUndoSize += nAddSize);
-        if (!pCdMan->pBlockTreeDb->WriteBlockFileInfo(nFile, info))
-            return state.Abort(_("Failed to write block info"));
-    }
-
-    unsigned int nOldChunks = (pos.nPos + UNDOFILE_CHUNK_SIZE - 1) / UNDOFILE_CHUNK_SIZE;
-    unsigned int nNewChunks = (nNewSize + UNDOFILE_CHUNK_SIZE - 1) / UNDOFILE_CHUNK_SIZE;
-    if (nNewChunks > nOldChunks) {
-        if (CheckDiskSpace(nNewChunks * UNDOFILE_CHUNK_SIZE - pos.nPos)) {
-            FILE *file = OpenUndoFile(pos);
-            if (file) {
-                LogPrint("INFO", "Pre-allocating up to position 0x%x in rev%05u.dat\n", nNewChunks * UNDOFILE_CHUNK_SIZE, pos.nFile);
-                AllocateFileRange(file, pos.nPos, nNewChunks * UNDOFILE_CHUNK_SIZE - pos.nPos);
-                fclose(file);
-            }
-        } else
-            return state.Error("out of disk space");
-    }
 
     return true;
 }

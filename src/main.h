@@ -125,26 +125,27 @@ static const unsigned char WRITE_SCRIPT_FAIL    = 0X62;
 static const unsigned char STAKE_CDP_FAIL       = 0X71;
 static const unsigned char REDEEM_CDP_FAIL      = 0X71;
 
-static const uint64_t kTotalBaseCoinCount           = 210000000; // 210 million
-static const uint64_t kYearBlockCount               = 3153600;   // one year = 365 * 24 * 60 * 60 / 10
-static const uint64_t kMinDiskSpace                 = 52428800;  // Minimum disk space required
-static const int kContractScriptMaxSize             = 65536;     // 64 KB max for contract script size
-static const int kContractArgumentMaxSize           = 4096;      // 4 KB max for contract argument size
-static const int kCommonTxMemoMaxSize               = 100;       // 100 bytes max for memo size
-static const int kContractMemoMaxSize               = 100;       // 100 bytes max for memo size
-static const int kMostRecentBlockNumberThreshold    = 1000;      // most recent block number threshold
+static const uint64_t kTotalBaseCoinCount               = 210000000; // 210 million
+static const uint64_t kInitialRiskProvisionScoinCount   = 2100000;   // 2 million 100 thousand
+static const uint64_t kYearBlockCount                   = 3153600;   // one year = 365 * 24 * 60 * 60 / 10
+static const uint64_t kMinDiskSpace                     = 52428800;  // Minimum disk space required
+static const int kContractScriptMaxSize                 = 65536;     // 64 KB max for contract script size
+static const int kContractArgumentMaxSize               = 4096;      // 4 KB max for contract argument size
+static const int kCommonTxMemoMaxSize                   = 100;       // 100 bytes max for memo size
+static const int kContractMemoMaxSize                   = 100;       // 100 bytes max for memo size
+static const int kMostRecentBlockNumberThreshold        = 1000;      // most recent block number threshold
 
-static const int kMultisigNumberThreshold           = 15;        // m-n multisig, refer to n
-static const int KMultisigScriptMaxSize             = 1000;      // multisig script max size
-static const int kRegIdMaturePeriodByBlock          = 100;       // RegId's mature period measured by blocks
+static const int kMultisigNumberThreshold               = 15;        // m-n multisig, refer to n
+static const int KMultisigScriptMaxSize                 = 1000;      // multisig script max size
+static const int kRegIdMaturePeriodByBlock              = 100;       // RegId's mature period measured by blocks
 
-static const uint64_t kFcoinGenesisTxHeight         = 5880000;
-static const uint64_t kFcoinGenesisRegisterTxIndex  = 1;
-static const uint64_t kFcoinGenesisIssueTxIndex     = 2;
+static const uint64_t kFcoinGenesisTxHeight             = 5880000;
+static const uint64_t kFcoinGenesisRegisterTxIndex      = 1;
+static const uint64_t kFcoinGenesisIssueTxIndex         = 2;
 
-const uint16_t kMaxMinedBlocks                      = 100;      // maximun cache size for mined blocks
+const uint16_t kMaxMinedBlocks                          = 100;      // maximun cache size for mined blocks
 
-static const string kContractScriptPathPrefix       = "/tmp/lua/";
+static const string kContractScriptPathPrefix           = "/tmp/lua/";
 
 extern CTxMemPool mempool;
 extern map<uint256, CBlockIndex *> mapBlockIndex;

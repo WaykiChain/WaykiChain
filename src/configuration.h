@@ -39,7 +39,6 @@ public:
 
     string GetAccountRegisterSignature(NET_TYPE type) const;
     const string GetFundCoinInitPubKey(NET_TYPE type) const;
-    const uint256 GetFundCoinMerkleRootHash() const;
 
     vector<unsigned int> GetSeedNodeIP() const;
     unsigned char* GetMagicNumber(NET_TYPE type) const;

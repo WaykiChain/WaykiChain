@@ -452,9 +452,6 @@ std::unique_ptr<CBlock> CreateFundCoinGenesisBlock() {
         pBlock->SetHeight(nHeight);
         pBlock->SetFuel(0);
         pBlock->SetFuelRate(nFuelRate);
-
-        // Verify merkle root hash.
-        assert(pBlock->GetMerkleRootHash() == IniCfg().GetFundCoinMerkleRootHash());
     }
 
     return pBlock;

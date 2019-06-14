@@ -72,7 +72,7 @@ class CScoinTransferTx: public CBaseTx {
 private:
     mutable CUserID toUid;
     uint64_t scoins;
-    uin8_t feesCoinType;    // default: WICC
+    uint8_t feesCoinType;  // default: WICC
     vector_unsigned_char memo;
 
 public:
