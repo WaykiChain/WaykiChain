@@ -5,7 +5,6 @@
 
 #include "cdpdb.h"
 #include "dbconf.h"
-#include "leveldbwrapper.h"
 #include "main.h"
 
 bool CCdpCacheManager::StakeBcoinsToCdp(
@@ -51,7 +50,7 @@ bool CCdpCacheManager::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
  *  ==> ratio = 1/Log10(1+N)
  */
 uint64_t CCdpCacheManager::ComputeInterest(int blockHeight, const CUserCdp &cdp) {
-    assert(blockHeight > cdp.lastBlockHeight);
+    assert(uint64_t(blockHeight) > cdp.lastBlockHeight);
 
     int interval = blockHeight - cdp.lastBlockHeight;
     double interest = ((double) GetInterestParamA() * cdp.totalOwedScoins / kYearBlockCount)

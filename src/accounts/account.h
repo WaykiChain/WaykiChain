@@ -24,13 +24,13 @@ using namespace json_spirit;
 
 class CAccountLog;
 
-enum CoinType: unsigned char {
+enum CoinType: uint8_t {
     WICC = 1,
     MICC = 2,
     WUSD = 3,
 };
 
-enum PriceType: unsigned char {
+enum PriceType: uint8_t {
     USD     = 1,
     CNY     = 2,
     EUR     = 3,
@@ -40,7 +40,7 @@ enum PriceType: unsigned char {
     KWH     = 100, // kilowatt hour
 };
 
-enum BalanceOpType : unsigned char {
+enum BalanceOpType : uint8_t {
     NULL_OP     = 0,  //!< invalid op
     ADD_VALUE   = 1,  //!< add operate
     MINUS_VALUE = 2,  //!< minus operate

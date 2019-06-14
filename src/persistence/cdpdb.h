@@ -73,15 +73,15 @@ public:
     uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);
 
     uint64_t GetCollateralRatio() {
-        uint64_t ratio;
+        uint64_t ratio = 0;
         return collateralRatio.GetData(ratio) ? ratio : 200;
     }
     uint64_t GetInterestParamA() {
-        uint64_t paramA;
+        uint64_t paramA = 0;
         return interestParamA.GetData(paramA) ? paramA : 1;
     }
     uint64_t GetInterestParamB() {
-        uint64_t paramB;
+        uint64_t paramB = 0;
         return interestParamB.GetData(paramB) ? paramB : 1;
     }
 
