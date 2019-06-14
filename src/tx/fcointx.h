@@ -11,7 +11,7 @@
 class CFcoinTransferTx: public CBaseTx {
 private:
     mutable CUserID toUid;
-    int64_t fcoins;
+    uint64_t fcoins;
     vector_unsigned_char memo;
 
 public:
@@ -22,7 +22,7 @@ public:
         *this = *(CFcoinTransferTx *) pBaseTx;
     }
 
-    CFcoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int validHeightIn, uint64_t feeIn,
+    CFcoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t feeIn,
                      uint64_t fcoinsIn, vector_unsigned_char &memoIn)
         : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feeIn) {
         toUid  = toUidIn;
@@ -30,7 +30,7 @@ public:
         memo   = memoIn;
     }
 
-    CFcoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int validHeightIn, uint64_t feeIn,
+    CFcoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t feeIn,
                      uint64_t fcoinsIn)
         : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feeIn) {
         toUid  = toUidIn;
@@ -70,9 +70,9 @@ public:
     virtual Object ToJson(const CAccountCache &accountCache) const;
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
-    bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-    bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    bool CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state);
+    bool ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state);
+    bool UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state);
 };
 
 #endif

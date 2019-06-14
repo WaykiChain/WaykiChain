@@ -7,7 +7,7 @@
 #include "fcointx.h"
 #include "main.h"
 
-bool CFcoinTransferTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CFcoinTransferTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -22,7 +22,7 @@ bool CFcoinTransferTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState 
     return true;
 }
 
-bool CFcoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CFcoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CFcoinTransferTx::ExecuteTx, read txUid %s account info error",
@@ -68,7 +68,7 @@ bool CFcoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVa
     return true;
 }
 
-bool CFcoinTransferTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CFcoinTransferTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;

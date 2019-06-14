@@ -393,6 +393,7 @@ bool CBaseParams::CreateFundCoinGenesisBlockRewardTx(vector<std::shared_ptr<CBas
     auto pRewardTx      = std::make_shared<CBlockRewardTx>(ParseHex(IniCfg().GetFundCoinInitPubKey(type)),
                                                       kTotalFundCoinAmount, kFcoinGenesisTxHeight);
     pRewardTx->nVersion = nTxVersion1;
+
     vptx.push_back(pRewardTx);
 
     return true;

@@ -155,6 +155,7 @@ public:
         block.SetFuel(nFuel);
         block.SetFuelRate(nFuelRate);
         block.SetSignature(vSignature);
+
         return block;
     }
 

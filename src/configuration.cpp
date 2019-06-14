@@ -136,8 +136,6 @@ const string G_CONFIG_TABLE::GetFundCoinInitPubKey(NET_TYPE type) const {
     return "";
 }
 
-const uint256 G_CONFIG_TABLE::GetFundCoinMerkleRootHash() const { return (uint256S((FundCoinMerkleRootHash))); }
-
 string G_CONFIG_TABLE::GetAccountRegisterSignature(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: {
@@ -411,10 +409,6 @@ string G_CONFIG_TABLE::initPubkeyFundCoin_regTest = "03b2299425981d6c2ec382cda99
 string G_CONFIG_TABLE::accountRegisterSignature_mainNet = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
 string G_CONFIG_TABLE::accountRegisterSignature_testNet = "02fc0033e19b9999997331c98652607299b0aaf20ed2dd6f0975d03cff3aecdeec";
 string G_CONFIG_TABLE::accountRegisterSignature_regNet  = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
-
-// TODO: replace merkle root hash
-// Merkle Root Hash
-string G_CONFIG_TABLE::FundCoinMerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
 
 // IP Address
 vector<unsigned int> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0xDC36FB0D, 0x91A11C77, 0xFFFFE60D,
