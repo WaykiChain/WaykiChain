@@ -20,9 +20,9 @@ public:
     CDelegateVoteTx(
             const vector_unsigned_char &accountIn,
             const vector<CCandidateVote> &candidateVotesIn,
-            const uint64_t feeIn,
+            const uint64_t feesIn,
             const int validHeightIn)
-        : CBaseTx(DELEGATE_VOTE_TX, CNullID(), validHeightIn, feeIn) {
+        : CBaseTx(DELEGATE_VOTE_TX, CNullID(), validHeightIn, feesIn) {
         if (accountIn.size() > 6) {
             txUid = CPubKey(accountIn);
         } else {
@@ -32,10 +32,10 @@ public:
     }
     CDelegateVoteTx(
             const CUserID &txUidIn,
-            const uint64_t feeIn,
+            const uint64_t feesIn,
             const vector<CCandidateVote> &candidateVotesIn,
             const int validHeightIn)
-        : CBaseTx(DELEGATE_VOTE_TX, txUidIn, validHeightIn, feeIn) {
+        : CBaseTx(DELEGATE_VOTE_TX, txUidIn, validHeightIn, feesIn) {
 
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());

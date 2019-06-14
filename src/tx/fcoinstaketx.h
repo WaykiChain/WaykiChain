@@ -20,8 +20,8 @@ public:
         *this = *(CFcoinStakeTx *) pBaseTx;
     }
 
-    CFcoinStakeTx(const CUserID &txUidIn, int validHeightIn, uint64_t feeIn, uint64_t fcoinsToStakeIn):
-        CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feeIn),
+    CFcoinStakeTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn, uint64_t fcoinsToStakeIn):
+        CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feesIn),
         fcoinsToStake(fcoinsToStakeIn) {}
 
     ~CFcoinStakeTx() {}

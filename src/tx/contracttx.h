@@ -69,9 +69,9 @@ public:
         *this = *(CContractInvokeTx *)pBaseTx;
     }
 
-    CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feeIn,
+    CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn,
                 uint64_t bcoinsIn, int validHeightIn, vector_unsigned_char &argumentsIn):
-                CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feeIn) {
+                CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty()); //FIXME: shouldnot be using assert here, throw an error instead.
 
@@ -83,8 +83,8 @@ public:
         arguments = argumentsIn;
     }
 
-    CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feeIn, uint64_t bcoinsIn, int validHeightIn):
-                CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feeIn) {
+    CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn, uint64_t bcoinsIn, int validHeightIn):
+                CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
         else if (txUidIn.type() == typeid(CPubKey))

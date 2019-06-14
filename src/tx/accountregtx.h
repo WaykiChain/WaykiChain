@@ -18,8 +18,8 @@ public:
         assert(ACCOUNT_REGISTER_TX == pBaseTx->nTxType);
         *this = *(CAccountRegisterTx *)pBaseTx;
     }
-    CAccountRegisterTx(const CUserID &txUidIn, const CUserID &minerUidIn, int64_t feeIn, int validHeightIn) :
-        CBaseTx(ACCOUNT_REGISTER_TX, txUidIn, validHeightIn, feeIn) {
+    CAccountRegisterTx(const CUserID &txUidIn, const CUserID &minerUidIn, int64_t feesIn, int validHeightIn) :
+        CBaseTx(ACCOUNT_REGISTER_TX, txUidIn, validHeightIn, feesIn) {
         minerUid    = minerUidIn;
     }
     CAccountRegisterTx(): CBaseTx(ACCOUNT_REGISTER_TX) {}

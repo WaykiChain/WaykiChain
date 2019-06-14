@@ -18,14 +18,14 @@ public:
         assert(PRICE_FEED_TX == pBaseTx->nTxType);
         *this = *(CPriceFeedTx *)pBaseTx;
     }
-    CPriceFeedTx(const CUserID &txUidIn, int validHeightIn, uint64_t feeIn,
+    CPriceFeedTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                 const CPricePoint &pricePointIn):
-        CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feeIn) {
+        CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feesIn) {
         pricePoints.push_back(pricePointIn);
     }
-    CPriceFeedTx(const CUserID &txUidIn, int validHeightIn, uint64_t feeIn,
+    CPriceFeedTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                 const vector<CPricePoint> &pricePointsIn):
-        CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feeIn) {
+        CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feesIn) {
         if (pricePoints.size() > 3 || pricePoints.size() == 0)
             return; // limit max # of price points to be three in one shot
 

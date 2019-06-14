@@ -26,9 +26,9 @@ public:
         *this = *(CCdpStakeTx *)pBaseTx;
     }
 
-    CCdpStakeTx(const CUserID &txUidIn, uint64_t feeIn, int validHeightIn,
+    CCdpStakeTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
                 uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn, uint64_t fcoinsInterestIn):
-                CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feeIn) {
+                CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
@@ -97,9 +97,9 @@ public:
         *this = *(CCdpRedeemTx *)pBaseTx;
     }
 
-    CCdpRedeemTx(const CUserID &txUidIn, uint64_t feeIn, int validHeightIn,
+    CCdpRedeemTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
                 uint64_t scoinsToRedeemIn, uint64_t fcoinsInterestIn):
-                CBaseTx(CDP_REDEEMP_TX, txUidIn, validHeightIn, feeIn) {
+                CBaseTx(CDP_REDEEMP_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
@@ -163,9 +163,9 @@ public:
         *this = *(CCdpLiquidateTx *)pBaseTx;
     }
 
-    CCdpLiquidateTx(const CUserID &txUidIn, uint64_t feeIn, int validHeightIn,
+    CCdpLiquidateTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
                 uint64_t scoinsToRedeemIn, uint64_t fcoinsInterestIn):
-                CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, feeIn) {
+                CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }

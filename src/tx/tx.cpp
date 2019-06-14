@@ -78,7 +78,6 @@ int32_t CBaseTx::GetFuelRate(CContractCache &scriptDB) {
     return nFuelRate;
 }
 
-// check the fees must be more than nMinTxFee
 bool CBaseTx::CheckMinTxFee(const uint64_t llFees, const int32_t nHeight) const {
     if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2 )
         return llFees >= nMinTxFee;
@@ -86,7 +85,7 @@ bool CBaseTx::CheckMinTxFee(const uint64_t llFees, const int32_t nHeight) const 
     return true;
 }
 
-// transactions should check the signature size before verifying signature
+// Transactions should check the signature size before verifying signature
 bool CBaseTx::CheckSignatureSize(const vector<unsigned char> &signature) const {
     return signature.size() > 0 && signature.size() < MAX_BLOCK_SIGNATURE_SIZE;
 }

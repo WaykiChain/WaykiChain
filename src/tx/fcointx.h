@@ -22,17 +22,17 @@ public:
         *this = *(CFcoinTransferTx *) pBaseTx;
     }
 
-    CFcoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t feeIn,
+    CFcoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t feesIn,
                      uint64_t fcoinsIn, vector_unsigned_char &memoIn)
-        : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feeIn) {
+        : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feesIn) {
         toUid  = toUidIn;
         fcoins = fcoinsIn;
         memo   = memoIn;
     }
 
-    CFcoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t feeIn,
+    CFcoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t feesIn,
                      uint64_t fcoinsIn)
-        : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feeIn) {
+        : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feesIn) {
         toUid  = toUidIn;
         fcoins = fcoinsIn;
     }

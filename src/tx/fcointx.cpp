@@ -13,7 +13,7 @@ bool CFcoinTransferTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationSt
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
     IMPLEMENT_CHECK_TX_REGID(toUid.type());
 
-    if (fcoins == 0 || !CheckFundCoinRange(fcoins)) {
+    if (!CheckFundCoinRange(fcoins)) {
         return state.DoS(100, ERRORMSG("CFcoinTransferTx::CheckTx, fcoins out of range"),
                         REJECT_INVALID, "bad-tx-fcoins-outofrange");
     }
@@ -117,6 +117,7 @@ Object CFcoinTransferTx::ToJson(const CAccountCache &accountCache) const {
     result.push_back(Pair("dest_addr",          desKeyId.ToAddress()));
     result.push_back(Pair("fcoins",             fcoins));
     result.push_back(Pair("fees",               llFees));
+    result.push_back(Pair("memo",               HexStr(memo)));
     result.push_back(Pair("valid_height",       nValidHeight));
 
     return result;

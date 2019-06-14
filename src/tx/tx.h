@@ -18,6 +18,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <cstdint>
 #include <unordered_map>
 
 using namespace std;
@@ -153,12 +154,12 @@ public:
     virtual ~CBaseTx() {}
 
     virtual uint64_t GetFee() const { return llFees; }
-    virtual uint256 GetHash() const { return ComputeSignatureHash(); };
-    virtual unsigned int32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; };
+    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
+    virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 
     virtual uint64_t GetFuel(int32_t nFuelRate);
-    virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); };
-    virtual uint64_t GetValue() const { return 0; };
+    virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
+    virtual uint64_t GetValue() const { return 0; }
 
     virtual uint256 ComputeSignatureHash(bool recalculate = false) const = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance()                    = 0;
