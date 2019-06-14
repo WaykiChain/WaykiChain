@@ -17,6 +17,7 @@
 #include "json/json_spirit_value.h"
 #include "commons/serialize.h"
 #include "persistence/block.h"
+#include "main.h"
 
 // #include "key.h"
 // #include "chainparams.h"

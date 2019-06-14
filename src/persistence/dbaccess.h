@@ -152,10 +152,10 @@ public:
     template <typename KeyType>
     bool GetTopNElements(const int32_t maxNum, const dbk::PrefixType prefixType, set<KeyType> &expiredKeys,
                          set<KeyType> &keys) {
-        leveldb::Iterator *pCursor = db.NewIterator();
-        leveldb::Slice slKey = pCursor->key();
         KeyType key;
-        uint32_t count = 0;
+        uint32_t count             = 0;
+        leveldb::Iterator *pCursor = db.NewIterator();
+        leveldb::Slice slKey       = pCursor->key();
         pCursor->Seek(dbk::GetKeyPrefix(prefixType));
 
         for (; (count < maxNum) && pCursor->Valid(); pCursor->Next()) {
@@ -169,6 +169,33 @@ public:
                 assert(ret.second);  // TODO: throw error
 
                 ++count;
+            }
+        }
+
+        return true;
+    }
+
+    template <typename KeyType, typename ValueType>
+    bool GetAllElements(const int32_t maxNum, const dbk::PrefixType prefixType, set<KeyType> &expiredKeys,
+                        map<KeyType, ValueType> &elements) {
+        KeyType key;
+        ValueType value;
+        leveldb::Iterator *pCursor = db.NewIterator();
+        leveldb::Slice slKey       = pCursor->key();
+        pCursor->Seek(dbk::GetKeyPrefix(prefixType));
+
+        for (; pCursor->Valid(); pCursor->Next()) {
+            dbk::ParseDbKey(slKey, prefixType, key);
+
+            if (expiredKeys.count(key)) {
+                continue;
+            } else {
+                // Got an valid element.
+                leveldb::Slice slValue = pCursor->value();
+                CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+                ds >> value;
+                auto ret = elements.emplace(key, value);
+                assert(ret.second);  // TODO: throw error
             }
         }
 
@@ -258,6 +285,16 @@ public:
         }
 
         return keys.size() == maxNum;
+    }
+
+    bool GetAllElements(map<KeyType, ValueType> &elements) {
+        set<KeyType> expiredKeys;
+        if (!GetAllElements(expiredKeys, elements)) {
+            // TODO: log
+            return false;
+        }
+
+        return true;
     }
 
     bool GetData(const KeyType &key, ValueType &value) const {
@@ -378,6 +415,30 @@ private:
             pBase->GetTopNElements(maxNum, expiredKeys, keys);
         } else if (pDbAccess != nullptr) {
             pDbAccess->GetTopNElements(maxNum, prefixType, expiredKeys, keys);
+        }
+
+        return true;
+    }
+
+    bool GetAllElements(set<KeyType> &expiredKeys, map<KeyType, ValueType> &elements) {
+        if (!mapData.empty()) {
+            for (const auto &iter : mapData) {
+                if (db_util::IsEmpty(iter.second)) {
+                    expiredKeys.insert(iter.first);
+                } else if (expiredKeys.count(iter.first) || elements.count(iter.first)) {
+                    // TODO: log
+                    continue;
+                } else {
+                    // Got a valid element.
+                    elements.insert(iter.first);
+                }
+            }
+        }
+
+        if (pBase != nullptr) {
+            pBase->GetAllElements(expiredKeys, elements);
+        } else if (pDbAccess != nullptr) {
+            pDbAccess->GetAllElements(prefixType, expiredKeys, elements);
         }
 
         return true;
