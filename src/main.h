@@ -26,6 +26,7 @@
 #include "sigcache.h"
 #include "persistence/accountdb.h"
 #include "persistence/block.h"
+#include "persistence/dex.h"
 #include "tx/txmempool.h"
 #include "tx/accountregtx.h"
 #include "tx/bcointx.h"
@@ -138,7 +139,8 @@ static const int KMultisigScriptMaxSize             = 1000;      // multisig scr
 static const int kRegIdMaturePeriodByBlock          = 100;       // RegId's mature period measured by blocks
 
 static const uint64_t kFcoinGenesisTxHeight         = 5880000;
-static const uint64_t kFcoinGenesisTxIndex          = 2;
+static const uint64_t kFcoinGenesisRegisterTxIndex  = 1;
+static const uint64_t kFcoinGenesisIssueTxIndex     = 2;
 
 const uint16_t kMaxMinedBlocks                      = 100;      // maximun cache size for mined blocks
 
@@ -309,8 +311,7 @@ public:
     CDBAccess           *pCdpDb;
     CCdpCacheManager    *pCdpCache;
 
-    CDBAccess           *pDexDb;
-    CDexCacheDBManager  *pDexCache;
+    CDexCache           *pDexCache;
 
     CBlockTreeDB        *pBlockTreeDb;
 
@@ -338,8 +339,7 @@ public:
         pCdpDb          = new CDBAccess(DB_NAME_CDP, nAccountDBCache, false, fReIndex); //TODO fix cache size
         pCdpCache       = new CCdpCacheManager(pCdpDb);
 
-        pDexDb          = new CDBAccess(DB_NAME_DEX, nAccountDBCache, false, fReIndex); //TODO fix cache size
-        pDexCache       = new CDexDBManager(pDexDb);
+        pDexCache       = new CDexCache();
 
         pTxCache        = new CTransactionCache();
         pPpCache        = new CPricePointCache();
@@ -362,7 +362,6 @@ public:
         delete pCdpCache;       pCdpCache = nullptr;
         delete pCdpDb;          pCdpDb = nullptr;
 
-        delete pDexDb;          pDexDb = nullptr;
         delete pDexCache;       pDexCache = nullptr;
     }
 
