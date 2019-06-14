@@ -15,9 +15,8 @@ class CCdpStakeTx: public CBaseTx {
 public:
     uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
     uint64_t collateralRatio;       // must be >= 200 (%)
-    uint64_t scoinsInterest;        // Interest will be deducted from bcoinsToStake when 0
+    uint64_t fcoinsInterest;        // Interest will be deducted from bcoinsToStake when 0
                                     // For the first-time staking, no interest shall be paid though
-    uint64_t fcoinsInterest;
 
 public:
     CCdpStakeTx() : CBaseTx(CDP_STAKE_TX) {}
@@ -57,7 +56,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << appUid
+            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
                << VARINT(llFees) << VARINT(bcoinsToStake) << VARINT(collateralRatio) << VARINT(fcoinsInterest);
             sigHash = ss.GetHash();
         }
@@ -108,7 +107,7 @@ public:
         fcoinsInterest = fcoinsInterestIn;
     }
 
-    ~CdpRedeemTx() {}
+    ~CCdpRedeemTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -126,14 +125,14 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << appUid
+            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
                << VARINT(llFees) << VARINT(scoinsToRedeem) << VARINT(fcoinsInterest);
             sigHash = ss.GetHash();
         }
         return sigHash;
     }
 
-    virtual uint64_t GetValue() const { return bcoinsToStake; }
+    virtual uint64_t GetValue() const { return scoinsToRedeem; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint64_t GetFee() const { return llFees; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }

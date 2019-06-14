@@ -6,37 +6,41 @@
 #ifndef PERSIST_DEX_H
 #define PERSIST_DEX_H
 
-#include <map>
-#include <string>
+#include <set>
+#include <vector>
 
 #include "accounts/id.h"
 
-using namespace std;
+// using namespace std;
 
+// enum OrderType {
+//     BUY = 1,
+//     SELL = 2,
+//     NULL_TYPE = 0
+// };
 
-enum OrderType {
-    BUY = 1,
-    SELL = 2,
-    NULL_TYPE = 0
-};
-
-enum CoinType {
-    WICC = 1,
-    WUSD = 2,
-    MICC = 3,
-};
+// enum CoinType {
+//     WICC = 1,
+//     WUSD = 2,
+//     MICC = 3,
+// };
 
 struct CDexManualOrder {
     CUserID orderUid;
     uint64_t orderAmount;
+    uint64_t orderPrice;
+
+     bool operator()(const CDexManualOrder &a, const CDexManualOrder &b) {
+        return a.orderPrice < b.orderPrice;
+    }
 };
 
 struct CDexForcedOrder {
     CUserID cdpOwnerUid;
     uint64_t bcoinsAmount;
     uint64_t scoinsAmount;
-    double collateralRatioByAmount; //fixed: bcoinsAmount / scoinsAmount
-    double collateralRatioByValue; //collateralRatioAmount * wiccMedianPrice
+    double collateralRatioByAmount; //fixed: 100*  bcoinsAmount / scoinsAmount
+    double collateralRatioByValue; // collateralRatioAmount * wiccMedianPrice
 
     uint64_t orderDiscount; // *1000 E.g. 97% * 1000 = 970
 
@@ -49,13 +53,16 @@ class CDexCache {
 public:
     CDexCache() {}
 
-private:
-    vector<CDexManualOrder> buyMiccManualOrderCache;  // buy micc with wusd, key: dex_bmicc{RegID}
-    vector<CDexManualOrder> sellMiccManualOrderCache; // sell micc for wusd, key: dex_smicc{RegID}
-    vector<CDexManualOrder> buyWiccManualOrderCache;  // buy wicc with wusd, key: dex_bwicc{RegID}
-    vector<CDexManualOrder> sellWiccManualOrderCache; // sell wicc for wusd, key: dex_swicc{RegID}
+public:
+    bool MatchFcoinManualSellOrder(uint64_t scoins);
 
-    set<CDexForcedOrder> sellCdpWiccForcedOrderCache; //sell wicc for wusd with floating wicc price
+private:
+    set<CDexManualOrder> bcoinManualBuyOrderCache;  // buy wicc with wusd
+    set<CDexManualOrder> fcoinManualBuyOrderCache;  // buy micc with wusd
+    set<CDexManualOrder> bcoinManualSellOrderCache; // sell wicc for wusd
+    set<CDexManualOrder> fcoinManualSellOrderCache; // sell micc for wusd
+   
+    set<CDexForcedOrder> cdpForcedSellOrderCache; //sell wicc for wusd with floating wicc price
 };
 
 #endif //PERSIST_DEX_H

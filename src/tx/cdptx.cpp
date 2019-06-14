@@ -40,6 +40,11 @@ bool CCdpStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &stat
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
+    if (account.fcoins < fcoinsInterest) {
+        return state.DoS(100, ERRORMSG("CCdpStakeTx::CheckTx, account fcoins %d insufficent for interest %d",
+                        account.fcoins, fcoinsInterest), READ_ACCOUNT_FAIL, "account-fcoins-insufficient");
+    }
+
     CRegID sendRegId;
     account.GetRegId(sendRegId);
     if (!pCdMan->pDelegateCache->ExistDelegate(sendRegId.ToString())) { // must be a miner
@@ -67,9 +72,9 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
 
-    //2. deduct interest fees in scoins into the micc pool
+    //2. pay interest fees in wusd or micc into the micc pool
     CAccount fcoinGensisAccount;
-    CRegID fcoinGenesisRegId(kFcoinGenesisTxHeight, kFcoinGenesisTxIndex);
+    CRegID fcoinGenesisRegId(kFcoinGenesisTxHeight, kFcoinGenesisRegisterTxIndex);
     CUserID fcoinGenesisUid(fcoinGenesisRegId);
     if (!cw.accountCache.GetAccount(fcoinGenesisUid, fcoinGensisAccount)) {
         return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, read fcoinGenesisUid %s account info error",
@@ -87,17 +92,31 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
         }
 
         uint64_t totalScoinsInterestToRepay = cw.cdpCache.ComputeInterest(nHeight, cdp);
+        if (fcoinsInterest >= totalScoinsInterestToRepay) {
+            account.fcoins -= fcoinsInterest; // burn away fcoins, total thus reduced
+            fcoinGensisAccount.fcoins += fcoinsInterest; //keep total balance
+        } else {
+
+        }
+
         uint64_t fcoinMedianPrice = cw.pricePointCache.GetFcoinMedianPrice();
         uint64_t totalFcoinsInterestToRepay = totalScoinsInterestToRepay / fcoinMedianPrice;
         if (account.fcoins >= totalFcoinsInterestToRepay) {
             account.fcoins -= totalFcoinsInterestToRepay; // burn away fcoins, total thus reduced
+            fcoinGensisAccount.fcoins += totalFcoinsInterestToRepay; //keep total balance
         } else {
             uint64_t restFcoins = totalFcoinsInterestToRepay - account.fcoins;
+            fcoinGensisAccount.fcoins += account.fcoins; //keep total balance
             account.fcoins = 0; // burn away fcoins, total thus reduced
             uint64_t restScoins = restFcoins * fcoinMedianPrice;
+            
+
             if (account.scoins >= restScoins) {
+                // scoins-to-fcoins-order-match
+                cw.dexCache.MatchFcoinManualSellOrder(restScoins);
+
                 account.scoins -= restScoins;
-                fcoinGensisAccount.scoins += restScoins; //add scoins into the common pool
+                fcoinGensisAccount.scoins += restScoins; //add scoins into the global pool
             } else {
                 return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, scoins not enough: %d, needs: %d",
                         account.scoins, restScoins), UPDATE_ACCOUNT_FAIL, "scoins-smaller-error");
@@ -165,6 +184,35 @@ bool CCdpStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
     return true;
 }
 
+/************************************<< CCdpRedeemTx >>***********************************************/
+string CCdpRedeem::ToString(CAccountCache &view) {
+     //TODO
+     return "";
+ }
+ Object CCdpRedeem::ToJson(const CAccountCache &AccountView) const {
+     //TODO
+     return Object();
+ }
+ bool CCdpRedeem::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+     //TODO
+     return true;
+ }
+ bool CCdpRedeem::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+     //TODO
+     return true;
+ }
+ bool CCdpRedeem::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+     //TODO
+     //1. pay miner fees
+     //2. pay interest fees
+     //3. redeem in scoins and update cdp
+     return true;
+ }
+ bool CCdpRedeem::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+     //TODO
+     return true;
+ }
+
 /************************************<< CdpLiquidateTx >>***********************************************/
 string CCdpLiquidateTx::ToString(CAccountCache &view) {
     //TODO
@@ -198,7 +246,7 @@ bool CCdpLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &
 }
 bool CCdpLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     //TODO
-    //0. pay miner fees (WICC)
+    //1. pay miner fees (WICC)
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CCdpLiquidateTx::ExecuteTx, deduct fees from regId=%s failed,",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
