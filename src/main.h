@@ -307,7 +307,7 @@ public:
     CDelegateCache      *pDelegateCache;
 
     CDBAccess           *pCdpDb;
-    CCdpCacheDBManager  *pCdpCache;
+    CCdpCacheManager    *pCdpCache;
 
     CDBAccess           *pDexDb;
     CDexCacheDBManager  *pDexCache;
@@ -336,7 +336,7 @@ public:
         pDelegateCache  = new CDelegateCache(pDelegateDb);
 
         pCdpDb          = new CDBAccess(DB_NAME_CDP, nAccountDBCache, false, fReIndex); //TODO fix cache size
-        pCdpCache       = new CCdpCacheDBManager(pCdpDb);
+        pCdpCache       = new CCdpCacheManager(pCdpDb);
 
         pDexDb          = new CDBAccess(DB_NAME_DEX, nAccountDBCache, false, fReIndex); //TODO fix cache size
         pDexCache       = new CDexDBManager(pDexDb);
