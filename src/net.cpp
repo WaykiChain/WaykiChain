@@ -262,13 +262,13 @@ bool IsReachable(const CNetAddr& addr) {
 }
 
 bool GetMyExternalIP2(const CService& addrConnect, const char* pszGet, const char* pszKeyword, CNetAddr& ipRet) {
-    LogPrint("GETMYIP", "GetMyExternalIP2 addrConnect:%s \n", addrConnect.ToString());
+    LogPrint("INFO", "GetMyExternalIP2 addrConnect:%s \n", addrConnect.ToString());
     SOCKET hSocket;
     if (!ConnectSocket(addrConnect, hSocket))
         return ERRORMSG("GetMyExternalIP() : connection to %s failed", addrConnect.ToString());
 
     send(hSocket, pszGet, strlen(pszGet), MSG_NOSIGNAL);
-    LogPrint("GETMYIP", "GetMyExternalIP2 SendData:%s\n", pszGet);
+    LogPrint("INFO", "GetMyExternalIP2 SendData:%s\n", pszGet);
     // set timeout interval
     u_long nNetTimeout = 5000;
     if (0 != setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&nNetTimeout, sizeof(u_long))) {
@@ -299,7 +299,7 @@ bool GetMyExternalIP2(const CService& addrConnect, const char* pszGet, const cha
             while (strLine.size() > 0 && isspace(strLine[strLine.size() - 1]))
                 strLine.resize(strLine.size() - 1);
             CService addr(strLine, 0, true);
-            LogPrint("GETMYIP", "GetMyExternalIP() received [%s] %s\n", strLine, addr.ToString());
+            LogPrint("INFO", "GetMyExternalIP() received [%s] %s\n", strLine, addr.ToString());
             if (!addr.IsValid() || !addr.IsRoutable())
                 return false;
             ipRet.SetIP(addr);

@@ -1,6 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The WaykiChain developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -428,7 +427,7 @@ inline uint32_t ByteReverse(uint32_t value) {
 //    boost::function<void()> f = boost::bind(&FunctionWithArg, argument);
 //    threadGroup.create_thread(boost::bind(&LoopForever<boost::function<void()> >, "nothing", f, milliseconds));
 template<typename Callable> void LoopForever(const char* name, Callable func, int64_t msecs) {
-	string s = strprintf("bitcoin-%s", name);
+	string s = strprintf("coin-%s", name);
 	RenameThread(s.c_str());
 	LogPrint("INFO","%s thread start\n", name);
 	try
@@ -455,7 +454,7 @@ template<typename Callable> void LoopForever(const char* name, Callable func, in
 }
 // .. and a wrapper that just calls func once
 template<typename Callable> void TraceThread(const char* name, Callable func) {
-	string s = strprintf("bitcoin-%s", name);
+	string s = strprintf("coin-%s", name);
 	RenameThread(s.c_str());
 	try
 	{
