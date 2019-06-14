@@ -1203,11 +1203,132 @@ void static FlushBlockFile(bool fFinalize = false) {
     }
 }
 
-bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigned int nAddSize);
+static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex) {
+    cw.accountCache.SetBestBlock(pIndex->GetBlockHash());
+    for (unsigned int i = 1; i < block.vptx.size(); i++) {
+        if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
+            assert(i <= 1);
+            std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[i]);
+            CAccount account;
+            CRegID regId(pIndex->nHeight, i);
+            CPubKey pubKey       = pRewardTx->txUid.get<CPubKey>();
+            CKeyID keyId         = pubKey.GetKeyId();
+            account.nickID = CNickID();
+            account.keyID  = keyId;
+            account.pubKey = pubKey;
+            account.regId  = regId;
+            account.bcoins = pRewardTx->rewardValue;
+
+            assert(cw.accountCache.SaveAccount(account));
+        } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
+            std::shared_ptr<CDelegateVoteTx> pDelegateTx = dynamic_pointer_cast<CDelegateVoteTx>(block.vptx[i]);
+            assert(pDelegateTx->txUid.type() == typeid(CRegID));  // Vote Tx must use RegId
+
+            CAccount voterAcct;
+            assert(cw.accountCache.GetAccount(pDelegateTx->txUid, voterAcct));
+            CUserID uid(pDelegateTx->txUid);
+            uint64_t maxVotes = 0;
+            CDbOpLog operDbLog;
+            int j = i;
+            for (const auto &vote : pDelegateTx->candidateVotes) {
+                assert(vote.GetCandidateVoteType() == ADD_BCOIN);  // it has to be ADD in GensisBlock
+                if (vote.GetVotedBcoins() > maxVotes) {
+                    maxVotes = vote.GetVotedBcoins();
+                }
+
+                CUserID votedUid = vote.GetCandidateUid();
+
+                if (uid == votedUid) {  // vote for self
+                    voterAcct.receivedVotes = vote.GetVotedBcoins();
+                    assert(cw.delegateCache.SetDelegateData(voterAcct, operDbLog));
+                } else {  // vote for others
+                    CAccount votedAcct;
+                    assert(!cw.accountCache.GetAccount(votedUid, votedAcct));
+
+                    CRegID votedRegId(pIndex->nHeight, j++);  // generate RegId in genesis block
+                    votedAcct.SetRegId(votedRegId);
+                    votedAcct.receivedVotes = vote.GetVotedBcoins();
+
+                    if (votedUid.type() == typeid(CPubKey)) {
+                        votedAcct.pubKey = votedUid.get<CPubKey>();
+                        votedAcct.keyID  = votedAcct.pubKey.GetKeyId();
+                    }
+
+                    assert(cw.accountCache.SaveAccount(votedAcct));
+                    assert(cw.delegateCache.SetDelegateData(votedAcct, operDbLog));
+                }
+
+                voterAcct.candidateVotes.push_back(vote);
+                sort(voterAcct.candidateVotes.begin(), voterAcct.candidateVotes.end(),
+                     [](CCandidateVote vote1, CCandidateVote vote2) {
+                         return vote1.GetVotedBcoins() > vote2.GetVotedBcoins();
+                     });
+            }
+            assert(voterAcct.bcoins >= maxVotes);
+            voterAcct.bcoins -= maxVotes;
+            assert(cw.accountCache.SaveAccount(voterAcct));
+        }
+    }
+
+    return true;
+}
+
+static bool ProcessFundCoinGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex) {
+    cw.accountCache.SetBestBlock(pIndex->GetBlockHash());
+
+    assert(block.vptx.size() == 3);
+    assert(block.vptx[1]->nTxType == ACCOUNT_REGISTER_TX);
+    assert(block.vptx[2]->nTxType == BLOCK_REWARD_TX);
+
+    CPubKey fundCoinGenesisPubKey = CPubKey(ParseHex(IniCfg().GetFundCoinInitPubKey(SysCfg().NetworkID())));
+
+    for (unsigned int i = 1; i < block.vptx.size(); i++) {
+        if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
+            std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[i]);
+
+            assert(pRewardTx->txUid.type() == typeid(CPubKey));
+            CPubKey pubKey = pRewardTx->txUid.get<CPubKey>();
+            assert(pubKey == fundCoinGenesisPubKey);
+
+            CAccount genesisAccount;
+            assert(cw.accountCache.GetAccount(pRewardTx->txUid, genesisAccount));
+            assert(pRewardTx->rewardValue == kTotalFundCoinAmount);
+            genesisAccount.fcoins = pRewardTx->rewardValue;
+            assert(cw.accountCache.SaveAccount(genesisAccount));
+
+            CAccount globalFundAccount;
+            CRegID regId(pIndex->nHeight, i);
+            CKeyID keyId             = Hash160(regId.GetRegIdRaw());
+            globalFundAccount.nickID = CNickID();
+            globalFundAccount.keyID  = keyId;
+            globalFundAccount.pubKey = CPubKey();
+            globalFundAccount.regID  = regId;
+
+            assert(cw.accountCache.SaveAccount(globalFundAccount));
+        } else if (block.vptx[i]->nTxType == ACCOUNT_REGISTER_TX) {
+            std::shared_ptr<CAccountRegisterTx> pAccountRegisterTx =
+                dynamic_pointer_cast<CAccountRegisterTx>(block.vptx[i]);
+            assert(pAccountRegisterTx->txUid.type() == typeid(CPubKey));
+            CPubKey pubKey = pAccountRegisterTx->txUid.get<CPubKey>();
+            assert(pubKey == fundCoinGenesisPubKey);
+
+            CAccount genesisAccount;
+            genesisAccount.nickID = CNickID();
+            genesisAccount.keyID  = pubKey.GetKeyId();
+            genesisAccount.pubKey = pubKey;
+            genesisAccount.regID  = CRegID(pIndex->nHeight, i);
+
+            assert(cw.accountCache.SaveAccount(genesisAccount));
+        }
+    }
+
+    return true;
+}
 
 bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool fJustCheck) {
     AssertLockHeld(cs_main);
-    bool isGensisBlock = ( block.GetHeight() == 0 && block.GetHash() == SysCfg().GetGenesisBlockHash() );
+
+    bool isGensisBlock = block.GetHeight() == 0 && block.GetHash() == SysCfg().GetGenesisBlockHash();
 
     // Check it again in case a previous version let a bad block in
     if (!isGensisBlock && !CheckBlock(block, state, cw, !fJustCheck, !fJustCheck))
@@ -1226,72 +1347,9 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     // Special case for the genesis block, skipping connection of its transactions
     if (isGensisBlock) {
-        cw.accountCache.SetBestBlock(pIndex->GetBlockHash());
-        for (unsigned int i = 1; i < block.vptx.size(); i++) {
-            if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
-                assert(i <= 1);
-                std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[i]);
-                CAccount sourceAccount;
-                CRegID acctRegId(pIndex->nHeight, i);
-                CPubKey pubKey       = pRewardTx->txUid.get<CPubKey>();
-                CKeyID keyId         = pubKey.GetKeyId();
-                sourceAccount.nickID = CNickID();
-                sourceAccount.keyID  = keyId;
-                sourceAccount.pubKey = pubKey;
-                sourceAccount.SetRegId(acctRegId);
-                sourceAccount.bcoins = pRewardTx->rewardValue;
-                assert(cw.accountCache.SaveAccount(sourceAccount));
-            } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
-                std::shared_ptr<CDelegateVoteTx> pDelegateTx = dynamic_pointer_cast<CDelegateVoteTx>(block.vptx[i]);
-                assert(pDelegateTx->txUid.type() == typeid(CRegID));  // Vote Tx must use RegId
-
-                CAccount voterAcct;
-                assert(cw.accountCache.GetAccount(pDelegateTx->txUid, voterAcct));
-                CUserID uid(pDelegateTx->txUid);
-                uint64_t maxVotes = 0;
-                CDbOpLog operDbLog;
-                int j = i;
-                for (const auto &vote : pDelegateTx->candidateVotes) {
-                    assert(vote.GetCandidateVoteType() == ADD_BCOIN);  // it has to be ADD in GensisBlock
-                    if (vote.GetVotedBcoins() > maxVotes) {
-                        maxVotes = vote.GetVotedBcoins();
-                    }
-
-                    CUserID votedUid = vote.GetCandidateUid();
-
-                    if (uid == votedUid) {  // vote for self
-                        voterAcct.receivedVotes = vote.GetVotedBcoins();
-                        assert(cw.delegateCache.SetDelegateData(voterAcct, operDbLog));
-                    } else {  // vote for others
-                        CAccount votedAcct;
-                        assert(!cw.accountCache.GetAccount(votedUid, votedAcct));
-
-                        CRegID votedRegId(pIndex->nHeight, j++);  // generate RegId in genesis block
-                        votedAcct.SetRegId(votedRegId);
-                        votedAcct.receivedVotes = vote.GetVotedBcoins();
-
-                        if (votedUid.type() == typeid(CPubKey)) {
-                            votedAcct.pubKey = votedUid.get<CPubKey>();
-                            votedAcct.keyID  = votedAcct.pubKey.GetKeyId();
-                        }
-
-                        assert(cw.accountCache.SaveAccount(votedAcct));
-                        assert(cw.delegateCache.SetDelegateData(votedAcct, operDbLog));
-                    }
-
-                    voterAcct.candidateVotes.push_back(vote);
-                    sort(voterAcct.candidateVotes.begin(), voterAcct.candidateVotes.end(),
-                         [](CCandidateVote vote1, CCandidateVote vote2) {
-                             return vote1.GetVotedBcoins() > vote2.GetVotedBcoins();
-                         });
-                }
-                assert(voterAcct.bcoins >= maxVotes);
-                voterAcct.bcoins -= maxVotes;
-                assert(cw.accountCache.SaveAccount(voterAcct));
-            }
-        }
-
-        return true;
+        return ProcessGenesisBlock(block, cw, pIndex);
+    } else if (block.GetHeight() == kFcoinGenesisTxHeight) {
+        return ProcessFundCoinGenesisBlock(block, cw, pIndex);
     }
 
     if (!VerifyPosTx(&block, cw, false))
@@ -2071,7 +2129,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
 
     if ( (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash())
             && block.GetVersion() != CBlockHeader::CURRENT_VERSION) {
-        return state.Invalid(ERRORMSG("CheckBlock() : block version must be set 3"),
+        return state.Invalid(ERRORMSG("CheckBlock() : block version error"),
                             REJECT_INVALID, "block-version-error");
     }
 

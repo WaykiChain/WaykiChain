@@ -96,9 +96,6 @@ private:
     static string accountRegisterSignature_testNet;
     static string accountRegisterSignature_regNet;
 
-    /* fund coin merkle root hash */
-    static string FundCoinMerkleRootHash;
-
     /* Peer IP seeds */
     static vector<unsigned int> pnSeed;
 
