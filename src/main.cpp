@@ -1345,9 +1345,10 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         }
     }
 
-    // Special case for the genesis block, skipping connection of its transactions
+    // Special case for the genesis block, skipping connection of its transactions.
     if (isGensisBlock) {
         return ProcessGenesisBlock(block, cw, pIndex);
+    // Specail case for the fund coin genesis block, skipping connections of its transactions.
     } else if (block.GetHeight() == kFcoinGenesisTxHeight) {
         return ProcessFundCoinGenesisBlock(block, cw, pIndex);
     }
@@ -1584,6 +1585,7 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
 }
 
 // Disconnect chainActive's tip.
+// TODO: disconnect fund coin genesis block.
 bool static DisconnectTip(CValidationState &state) {
     CBlockIndex *pIndexDelete = chainActive.Tip();
     assert(pIndexDelete);

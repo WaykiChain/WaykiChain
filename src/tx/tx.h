@@ -28,8 +28,8 @@ class CContractCache;
 
 typedef vector<unsigned char> vector_unsigned_char;
 
-static const int nTxVersion1 = 1;
-static const int nTxVersion2 = 2;
+static const int32_t nTxVersion1 = 1;
+static const int32_t nTxVersion2 = 2;
 
 static const bool kGlobalStableCoinLockIsOn         = false;    // when true, CDP cannot be added but can be closed.
                                                                 // scoins cannot be sold in DEX
@@ -118,31 +118,31 @@ public:
     static uint64_t nMinTxFee;
     static uint64_t nMinRelayTxFee;
     static uint64_t nDustAmountThreshold;
-    static const int CURRENT_VERSION = nTxVersion1;
+    static const int32_t CURRENT_VERSION = nTxVersion1;
 
-    int nVersion;
+    int32_t nVersion;
     unsigned char nTxType;
     mutable CUserID txUid;
-    int nValidHeight;
+    int32_t nValidHeight;
     uint64_t llFees;
     vector_unsigned_char signature;
 
     uint64_t nRunStep;        //!< only in memory
-    int nFuelRate;            //!< only in memory
+    int32_t nFuelRate;            //!< only in memory
     mutable uint256 sigHash;  //!< only in memory
 
 public:
     CBaseTx(const CBaseTx &other) { *this = other; }
 
-    CBaseTx(int nVersionIn, TxType nTxTypeIn, CUserID txUidIn, int nValidHeightIn, uint64_t llFeesIn) :
+    CBaseTx(int32_t nVersionIn, TxType nTxTypeIn, CUserID txUidIn, int32_t nValidHeightIn, uint64_t llFeesIn) :
         nVersion(nVersionIn), nTxType(nTxTypeIn), txUid(txUidIn), nValidHeight(nValidHeightIn), llFees(llFeesIn),
         nRunStep(0), nFuelRate(0) {}
 
-    CBaseTx(TxType nTxTypeIn, CUserID txUidIn, int nValidHeightIn, uint64_t llFeesIn) :
+    CBaseTx(TxType nTxTypeIn, CUserID txUidIn, int32_t nValidHeightIn, uint64_t llFeesIn) :
         nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), txUid(txUidIn), nValidHeight(nValidHeightIn), llFees(llFeesIn),
         nRunStep(0), nFuelRate(0) {}
 
-    CBaseTx(int nVersionIn, TxType nTxTypeIn) :
+    CBaseTx(int32_t nVersionIn, TxType nTxTypeIn) :
         nVersion(nVersionIn), nTxType(nTxTypeIn),
         nValidHeight(0), llFees(0), nRunStep(0), nFuelRate(0) {}
 
@@ -154,9 +154,9 @@ public:
 
     virtual uint64_t GetFee() const { return llFees; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); };
-    virtual unsigned int GetSerializeSize(int nType, int nVersion) const { return 0; };
+    virtual unsigned int32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; };
 
-    virtual uint64_t GetFuel(int nFuelRate);
+    virtual uint64_t GetFuel(int32_t nFuelRate);
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); };
     virtual uint64_t GetValue() const { return 0; };
 
@@ -167,19 +167,19 @@ public:
     virtual Object ToJson(const CAccountCache &view) const                 = 0;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) = 0;
 
-    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state)                   = 0;
-    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state)     = 0;
-    virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) = 0;
+    virtual bool CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state)                       = 0;
+    virtual bool ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state)     = 0;
+    virtual bool UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) = 0;
 
-    int GetFuelRate(CContractCache &scriptDB);
-    bool IsValidHeight(int nCurHeight, int nTxCacheHeight) const;
+    int32_t GetFuelRate(CContractCache &scriptDB);
+    bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
     bool IsCoinBase() { return (nTxType == BLOCK_REWARD_TX); }
 
 protected:
-    bool CheckMinTxFee(const uint64_t llFees, const int nHeight) const;
+    bool CheckMinTxFee(const uint64_t llFees, const int32_t nHeight) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const ;
 protected:
-    static bool SaveTxAddresses(int nHeight, int nIndex, CCacheWrapper &cw, const vector<CUserID> &userIds);
+    static bool SaveTxAddresses(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, const vector<CUserID> &userIds);
 };
 
 class CCoinPriceType {

@@ -34,7 +34,7 @@ string GetTxType(const unsigned char txType) {
         return "";
 }
 
-bool CBaseTx::IsValidHeight(int nCurrHeight, int nTxCacheHeight) const {
+bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
     if (BLOCK_REWARD_TX == nTxType || BLOCK_PRICE_MEDIAN_TX == nTxType)
         return true;
 
@@ -47,8 +47,8 @@ bool CBaseTx::IsValidHeight(int nCurrHeight, int nTxCacheHeight) const {
     return true;
 }
 
-uint64_t CBaseTx::GetFuel(int nfuelRate) {
-    uint64_t llFuel = ceil(nRunStep/100.0f) * nfuelRate;
+uint64_t CBaseTx::GetFuel(int32_t nFuelRate) {
+    uint64_t llFuel = ceil(nRunStep/100.0f) * nFuelRate;
     if (CONTRACT_DEPLOY_TX == nTxType) {
         if (llFuel < 1 * COIN) {
             llFuel = 1 * COIN;
@@ -57,7 +57,7 @@ uint64_t CBaseTx::GetFuel(int nfuelRate) {
     return llFuel;
 }
 
-int CBaseTx::GetFuelRate(CContractCache &scriptDB) {
+int32_t CBaseTx::GetFuelRate(CContractCache &scriptDB) {
     if (nFuelRate > 0)
         return nFuelRate;
 
@@ -79,7 +79,7 @@ int CBaseTx::GetFuelRate(CContractCache &scriptDB) {
 }
 
 // check the fees must be more than nMinTxFee
-bool CBaseTx::CheckMinTxFee(const uint64_t llFees, const int nHeight) const {
+bool CBaseTx::CheckMinTxFee(const uint64_t llFees, const int32_t nHeight) const {
     if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2 )
         return llFees >= nMinTxFee;
 
@@ -100,7 +100,7 @@ string CBaseTx::ToString(CAccountCache &view) {
     return str;
 }
 
-bool CBaseTx::SaveTxAddresses(int nHeight, int nIndex, CCacheWrapper &cw,
+bool CBaseTx::SaveTxAddresses(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw,
                               const vector<CUserID> &userIds) {
     if (SysCfg().GetAddressToTxFlag()) {
         CDbOpLogs &opLogs = cw.txUndo.mapDbOpLogs[DB_OP_CONTRACT];
