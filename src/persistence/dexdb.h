@@ -25,17 +25,17 @@
 //     MICC = 3,
 // };
 
-struct CDexManualOrder {
+struct CDexFixedPriceOrder {
     CUserID orderUid;
     uint64_t orderAmount;
     uint64_t orderPrice;
 
-     bool operator()(const CDexManualOrder &a, const CDexManualOrder &b) {
+     bool operator()(const CDexFixedPriceOrder &a, const CDexFixedPriceOrder &b) {
         return a.orderPrice < b.orderPrice;
     }
 };
 
-struct CDexForcedOrder {
+struct CDexForcedCdpOrder {
     CUserID cdpOwnerUid;
     uint64_t bcoinsAmount;
     uint64_t scoinsAmount;
@@ -44,7 +44,7 @@ struct CDexForcedOrder {
 
     uint64_t orderDiscount; // *1000 E.g. 97% * 1000 = 970
 
-    bool operator()(const CDexForcedOrder &a, const CDexForcedOrder &b) {
+    bool operator()(const CDexForcedCdpOrder &a, const CDexForcedCdpOrder &b) {
         return a.collateralRatioByAmount < b.collateralRatioByAmount;
     }
 };
@@ -57,12 +57,16 @@ public:
     bool MatchFcoinManualSellOrder(uint64_t scoins);
 
 private:
-    set<CDexManualOrder> bcoinManualBuyOrderCache;  // buy wicc with wusd
-    set<CDexManualOrder> fcoinManualBuyOrderCache;  // buy micc with wusd
-    set<CDexManualOrder> bcoinManualSellOrderCache; // sell wicc for wusd
-    set<CDexManualOrder> fcoinManualSellOrderCache; // sell micc for wusd
-   
-    set<CDexForcedOrder> cdpForcedSellOrderCache; //sell wicc for wusd with floating wicc price
+    CDBMultiValueCache<CDexFixedPriceOrder> bcoinBuyOrderCache;  // buy wicc with wusd (wusd_wicc)
+    CDBMultiValueCache<CDexFixedPriceOrder> fcoinBuyOrderCache;  // buy micc with wusd (wusd_micc)
+    CDBMultiValueCache<CDexFixedPriceOrder> bcoinSellOrderCache; // sell wicc for wusd (wicc_wusd)
+    CDBMultiValueCache<CDexFixedPriceOrder> fcoinSellOrderCache; // sell micc for wusd (micc_wusd)
+
+    //floating price
+    set<
+    CDBMultiValueCache<CDexForcedCdpOrder> bcoinCdpSellOrderCache; //sell wicc for wusd (wicc_wusd)
+    CDBMultiValueCache<CDexForcedCdpOrder> fcoinCdpSellOrderCache; //sell micc for wusd (micc_wusd)
+    CDBMultiValueCache<CDexForcedCdpOrder> fcoinCdpSellOrderCache; //sell micc for wusd (wusd_micc)
 };
 
 #endif //PERSIST_DEX_H

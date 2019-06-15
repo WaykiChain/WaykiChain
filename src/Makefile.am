@@ -74,7 +74,7 @@ coin_CORE_H = \
   persistence/txdb.h \
   persistence/dbaccess.h \
   persistence/dbconf.h \
-  persistence/dex.h \
+  persistence/dexdb.h \
   protocol.h \
   random.h   \
   rpc/httpserver.h \
@@ -281,6 +281,7 @@ libcoin_common_a_SOURCES = \
   persistence/contractdb.cpp \
   persistence/txdb.cpp \
   persistence/leveldbwrapper.cpp \
+  persistence/dexdb.cpp \
   rpc/rpcprotocol.cpp \
   support/cleanse.cpp \
   support/events.cpp \

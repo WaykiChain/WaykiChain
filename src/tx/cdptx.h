@@ -15,8 +15,8 @@ class CCdpStakeTx: public CBaseTx {
 public:
     uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
     uint64_t collateralRatio;       // must be >= 200 (%)
-    uint64_t fcoinsInterest;        // Interest will be deducted from bcoinsToStake when 0
-                                    // For the first-time staking, no interest shall be paid though
+    uint64_t fcoinsInterest;        // preferred, will be burned immediately
+    uint64_t scoinsInterest;        // 3% increase compared to fcoins value, to place buy order of MICCs to burn
 
 public:
     CCdpStakeTx() : CBaseTx(CDP_STAKE_TX) {}
@@ -77,6 +77,8 @@ public:
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
+private:
+    bool PayInterest(int nHeight, CCacheWrapper &cw, CValidationState &state);
 };
 
 /**
