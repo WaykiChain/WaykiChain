@@ -11,7 +11,7 @@
 /**
  * Stake or ReStake bcoins into a CDP
  */
-class CCdpStakeTx: public CBaseTx {
+class CCDPStakeTx: public CBaseTx {
 public:
     uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
     uint64_t collateralRatio;       // must be >= 200 (%)
@@ -19,13 +19,13 @@ public:
     uint64_t scoinsInterest;        // 3% increase compared to fcoins value, to place buy order of MICCs to burn
 
 public:
-    CCdpStakeTx() : CBaseTx(CDP_STAKE_TX) {}
+    CCDPStakeTx() : CBaseTx(CDP_STAKE_TX) {}
 
-    CCdpStakeTx(const CBaseTx *pBaseTx): CBaseTx(CDP_STAKE_TX) {
-        *this = *(CCdpStakeTx *)pBaseTx;
+    CCDPStakeTx(const CBaseTx *pBaseTx): CBaseTx(CDP_STAKE_TX) {
+        *this = *(CCDPStakeTx *)pBaseTx;
     }
 
-    CCdpStakeTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
+    CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
                 uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn, uint64_t fcoinsInterestIn):
                 CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
@@ -37,7 +37,7 @@ public:
         fcoinsInterest = fcoinsInterestIn;
     }
 
-    ~CCdpStakeTx() {}
+    ~CCDPStakeTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -67,7 +67,7 @@ public:
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint64_t GetFee() const { return llFees; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCdpStakeTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPStakeTx>(this); }
 
     virtual string ToString(CAccountCache &view);
     virtual Object ToJson(const CAccountCache &AccountView) const;
@@ -85,20 +85,20 @@ private:
  * Redeem scoins into a CDP fully or partially
  * Need to pay interest or stability fees
  */
-class CCdpRedeemTx: public CBaseTx {
+class CCDPRedeemTx: public CBaseTx {
 public:
     uint64_t scoinsToRedeem;    // stableCoins amount to redeem or burn
     uint64_t fcoinsInterest;    // Interest will be deducted from scoinsToRedeem when 0
                                 // For the first-time staking, no interest shall be paid though
 
 public:
-    CCdpRedeemTx() : CBaseTx(CDP_REDEEMP_TX) {}
+    CCDPRedeemTx() : CBaseTx(CDP_REDEEMP_TX) {}
 
-    CCdpRedeemTx(const CBaseTx *pBaseTx): CBaseTx(CDP_REDEEMP_TX) {
-        *this = *(CCdpRedeemTx *)pBaseTx;
+    CCDPRedeemTx(const CBaseTx *pBaseTx): CBaseTx(CDP_REDEEMP_TX) {
+        *this = *(CCDPRedeemTx *)pBaseTx;
     }
 
-    CCdpRedeemTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
+    CCDPRedeemTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
                 uint64_t scoinsToRedeemIn, uint64_t fcoinsInterestIn):
                 CBaseTx(CDP_REDEEMP_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
@@ -109,7 +109,7 @@ public:
         fcoinsInterest = fcoinsInterestIn;
     }
 
-    ~CCdpRedeemTx() {}
+    ~CCDPRedeemTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -138,7 +138,7 @@ public:
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint64_t GetFee() const { return llFees; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCdpRedeemTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPRedeemTx>(this); }
 
     virtual string ToString(CAccountCache &view);
     virtual Object ToJson(const CAccountCache &AccountView) const;
@@ -152,19 +152,19 @@ public:
 /**
  * Liquidate a CDP
  */
-class CCdpLiquidateTx: public CBaseTx {
+class CCDPLiquidateTx: public CBaseTx {
 public:
     uint64_t scoinsToRedeem;    // stable coins to redeem base coins
     uint64_t fcoinsInterest;    // Interest will be deducted from scoinsToRedeem when 0
                                 // For the first-time staking, no interest shall be paid though
 public:
-    CCdpLiquidateTx() : CBaseTx(CDP_LIQUIDATE_TX) {}
+    CCDPLiquidateTx() : CBaseTx(CDP_LIQUIDATE_TX) {}
 
-    CCdpLiquidateTx(const CBaseTx *pBaseTx): CBaseTx(CDP_LIQUIDATE_TX) {
-        *this = *(CCdpLiquidateTx *)pBaseTx;
+    CCDPLiquidateTx(const CBaseTx *pBaseTx): CBaseTx(CDP_LIQUIDATE_TX) {
+        *this = *(CCDPLiquidateTx *)pBaseTx;
     }
 
-    CCdpLiquidateTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
+    CCDPLiquidateTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
                 uint64_t scoinsToRedeemIn, uint64_t fcoinsInterestIn):
                 CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
@@ -175,7 +175,7 @@ public:
         fcoinsInterest = fcoinsInterestIn;
     }
 
-    ~CCdpLiquidateTx() {}
+    ~CCDPLiquidateTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -204,7 +204,7 @@ public:
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint64_t GetFee() const { return llFees; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCdpLiquidateTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPLiquidateTx>(this); }
 
     virtual string ToString(CAccountCache &view);
     virtual Object ToJson(const CAccountCache &AccountView) const;

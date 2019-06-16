@@ -76,12 +76,16 @@ enum TxType : unsigned char {
     FCOIN_TRANSFER_TX = 42,  //!< FundCoin Transfer Tx
     FCOIN_STAKE_TX    = 43,  //!< Stake Fund Coin in order to become a price feeder
 
-    DEX_WICC_FOR_MICC_TX = 51,  //!< DEX: owner sells WICC for MICC Tx
-    DEX_MICC_FOR_WICC_TX = 52,  //!< DEX: owner sells MICC for WICC Tx
-    DEX_WICC_FOR_WUSD_TX = 53,  //!< DEX: owner sells WICC for WUSD Tx
-    DEX_WUSD_FOR_WICC_TX = 54,  //!< DEX: owner sells WUSD for WICC Tx
-    DEX_MICC_FOR_WUSD_TX = 55,  //!< DEX: owner sells MICC for WUSD Tx
-    DEX_WUSD_FOR_MICC_TX = 56,  //!< DEX: owner sells WUSD for MICC Tx
+    DEX_BUY_ORDER_TX        = 51,
+    DEX_SELL_ORDER_TX       = 52,
+    DEX_SETTLE_TX           = 53,
+
+    // DEX_WICC_FOR_MICC_TX = 51,  //!< DEX: owner sells WICC for MICC Tx
+    // DEX_MICC_FOR_WICC_TX = 52,  //!< DEX: owner sells MICC for WICC Tx
+    // DEX_WICC_FOR_WUSD_TX = 53,  //!< DEX: owner sells WICC for WUSD Tx
+    // DEX_WUSD_FOR_WICC_TX = 54,  //!< DEX: owner sells WUSD for WICC Tx
+    // DEX_MICC_FOR_WUSD_TX = 55,  //!< DEX: owner sells MICC for WUSD Tx
+    // DEX_WUSD_FOR_MICC_TX = 56,  //!< DEX: owner sells WUSD for MICC Tx
     /******** End of Stable Coin Enums ********/
 
     NULL_TX = 0  //!< NULL_TX

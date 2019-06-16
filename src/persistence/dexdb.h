@@ -63,7 +63,6 @@ private:
     CDBMultiValueCache<CDexFixedPriceOrder> fcoinSellOrderCache; // sell micc for wusd (micc_wusd)
 
     //floating price
-    set<
     CDBMultiValueCache<CDexForcedCdpOrder> bcoinCdpSellOrderCache; //sell wicc for wusd (wicc_wusd)
     CDBMultiValueCache<CDexForcedCdpOrder> fcoinCdpSellOrderCache; //sell micc for wusd (micc_wusd)
     CDBMultiValueCache<CDexForcedCdpOrder> fcoinCdpSellOrderCache; //sell micc for wusd (wusd_micc)
