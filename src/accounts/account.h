@@ -57,13 +57,19 @@ public:
     uint64_t bcoins;        //!< BaseCoin balance
     uint64_t scoins;        //!< StableCoin balance
     uint64_t fcoins;        //!< FundCoin balance
+
+    uint64_t frozenDEXBcoins;  //frozen bcoins in DEX
+    uint64_t frozenDEXScoins;  //frozen scoins in DEX
+    uint64_t frozenDEXFcoins;  //frozen fcoins in DEX
+
     uint64_t stakedBcoins;  //!< Staked/Collateralized BaseCoins (accumulated)
     uint64_t stakedFcoins;  //!< Staked FundCoins for pricefeed right (accumulated)
 
-    uint64_t receivedVotes;                 //!< received votes
-    uint64_t lastVoteHeight;                //!< account's last vote block height used for computing interest
-
     vector<CCandidateVote> candidateVotes;  //!< account delegates votes sorted by vote amount
+
+    uint64_t receivedVotes;    //!< received votes
+    uint64_t lastVoteHeight;   //!< account's last vote block height used for computing interest
+
     bool hasOpenCdp;
     mutable uint256 sigHash;  //!< in-memory only
 
@@ -95,6 +101,9 @@ public:
           bcoins(0),
           scoins(0),
           fcoins(0),
+          frozenDEXBcoins(0),
+          frozenDEXScoins(0),
+          frozenDEXFcoins(0),
           stakedBcoins(0),
           stakedFcoins(0),
           receivedVotes(0),
@@ -110,6 +119,9 @@ public:
           bcoins(0),
           scoins(0),
           fcoins(0),
+          frozenDEXBcoins(0),
+          frozenDEXScoins(0),
+          frozenDEXFcoins(0),
           stakedBcoins(0),
           stakedFcoins(0),
           receivedVotes(0),
@@ -130,6 +142,9 @@ public:
         this->bcoins         = other.bcoins;
         this->scoins         = other.scoins;
         this->fcoins         = other.fcoins;
+        this->frozenDEXBcoins = other.frozenDEXBcoins;
+        this->frozenDEXScoins = other.frozenDEXScoins;
+        this->frozenDEXFcoins = other.frozenDEXFcoins;
         this->stakedBcoins   = other.stakedBcoins;
         this->stakedFcoins   = other.stakedFcoins;
         this->receivedVotes  = other.receivedVotes;
@@ -149,6 +164,9 @@ public:
         this->bcoins         = other.bcoins;
         this->scoins         = other.scoins;
         this->fcoins         = other.fcoins;
+        this->frozenDEXBcoins = other.frozenDEXBcoins;
+        this->frozenDEXScoins = other.frozenDEXScoins;
+        this->frozenDEXFcoins = other.frozenDEXFcoins;
         this->stakedBcoins   = other.stakedBcoins;
         this->stakedFcoins   = other.stakedFcoins;
         this->receivedVotes  = other.receivedVotes;
@@ -182,6 +200,11 @@ public:
     uint64_t GetFreeBCoins() const { return bcoins; }
     uint64_t GetFreeScoins() const { return scoins; }
     uint64_t GetFreeFcoins() const { return fcoins; }
+
+    uint64_t GetFrozenBCoins() const { return frozenDEXBcoins; }
+    uint64_t GetFrozenScoins() const { return frozenDEXScoins; }
+    uint64_t GetFrozenFcoins() const { return frozenDEXFcoins; }
+
     uint64_t GetReceiveVotes() const { return receivedVotes; }
 
     uint64_t GetTotalBcoins(const uint64_t curHeight);
@@ -200,7 +223,8 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << keyID << regID << nickID << pubKey << minerPubKey << VARINT(bcoins) << VARINT(scoins)
-               << VARINT(fcoins) << VARINT(stakedFcoins) << VARINT(receivedVotes) << VARINT(lastVoteHeight)
+               << VARINT(fcoins) << VARINT(fronzenDEXBCoins) << VARINT(fronzenDEXSCoins) << VARINT(fronzenDEXFCoins)
+               << VARINT(stakedFcoins) << VARINT(receivedVotes) << VARINT(lastVoteHeight)
                << candidateVotes << hasOpenCdp;
 
             sigHash = ss.GetHash();
@@ -229,6 +253,9 @@ public:
         READWRITE(VARINT(bcoins));
         READWRITE(VARINT(scoins));
         READWRITE(VARINT(fcoins));
+        READWRITE(VARINT(frozenDEXBcoins));
+        READWRITE(VARINT(frozenDEXScoins));
+        READWRITE(VARINT(frozenDEXFcoins));
         READWRITE(VARINT(stakedBcoins));
         READWRITE(VARINT(stakedFcoins));
         READWRITE(VARINT(receivedVotes));
@@ -240,6 +267,7 @@ private:
     bool IsMoneyOverflow(uint64_t nAddMoney);
 };
 
+//TODO: add fronzeDEXBCons etc below
 class CAccountLog {
 public:
     CKeyID keyID;         //!< keyID of the account (interchangeable to address)

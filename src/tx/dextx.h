@@ -21,7 +21,7 @@ public:
     CDEXBuyOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                 const CoinType buyCoinTypeIn, const uint64_t buyAmountIn, const uint64_t bidPriceIn):
         CBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn) {
-        
+
         buyCoinType = buyCoinTypeIn;
         buyAmount = buyAmountIn;
         bidPrice = bidPriceIn;
@@ -63,7 +63,7 @@ public:
 private:
 
     CoinType buyCoinType;   // target coin type (wicc or micc) to buy with wusd
-    uint64_t buyAmount;     // amount of target coins to buy 
+    uint64_t buyAmount;     // amount of target coins to buy
     uint64_t bidPrice;      // bidding price willing to buy
 
 };
@@ -81,7 +81,7 @@ public:
     CDEXSellOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                 const CoinType sellCoinTypeIn, const uint64_t sellAmountIn, const uint64_t askPriceIn):
         CBaseTx(DEX_SELL_ORDER_TX, txUidIn, validHeightIn, feesIn) {
-      
+
         sellCoinType = sellCoinTypeIn;
         sellAmount = sellAmountIn;
         askPrice = askPriceIn;
@@ -123,9 +123,24 @@ public:
 private:
 
     CoinType sellCoinType;   // holing coin type (wicc or micc) to sell for wusd
-    uint64_t sellAmount;     // amount of holding coins to sell 
+    uint64_t sellAmount;     // amount of holding coins to sell
     uint64_t askPrice;       // asking price willing to sell
 
+};
+
+typedef CRegID TxCord;
+
+struct DEXDealItem  {
+    TxCord buyOrderTxCord
+    TxCord sellOrderTxCord;
+    uint64_t dealPrice;
+    uint64_t dealAmount;
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(buyOrderTxCord);
+        READWRITE(sellOrderTxCord);
+        READWRITE(VARINT(dealPrice));
+        READWRITE(VARINT(dealAmount));)
 };
 
 class CDEXSettleTx: public CBaseTx {
@@ -141,7 +156,7 @@ public:
     CDEXSettleTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                 const CoinType sellCoinTypeIn, const uint64_t sellAmountIn, const uint64_t askPriceIn):
         CBaseTx(DEX_SETTLE_TX, txUidIn, validHeightIn, feesIn) {
-      
+
     }
 
     ~CDEXSettleTx() {}
@@ -151,14 +166,13 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
-
-       )
+        READWRITE(dealItems);)
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid;
-
+            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
+                << dealItems;
             sigHash = ss.GetHash();
         }
 
@@ -176,11 +190,7 @@ public:
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
 private:
-
-    uint256 buyOrderTxId;
-    uint256 sellOrderTxId;
-    uint64_t dealAmount;
-    uint64_t dealPrice;
+    vector<DEXDealItem> dealItems;
 
 };
 #endif //TX_DEX_H
