@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "accounts/id.h"
-#include "dbaccess.h"
 
 // using namespace std;
 
@@ -26,17 +25,30 @@
 //     MICC = 3,
 // };
 
-struct CDexFixedPriceOrder {
+struct CDEXLimitPriceOrder {
     CUserID orderUid;
     uint64_t orderAmount;
     uint64_t orderPrice;
 
-     bool operator()(const CDexFixedPriceOrder &a, const CDexFixedPriceOrder &b) {
+     bool operator()(const CDEXLimitPriceOrder &a, const CDEXLimitPriceOrder &b) {
         return a.orderPrice < b.orderPrice;
     }
 };
 
-struct CDexForcedCdpOrder {
+struct CDEXMarketPriceOrder {
+    CUserID orderUid;
+    uint64_t orderAmount;
+
+     bool operator()(const CDEXMarketPriceOrder &a, const CDEXMarketPriceOrder &b) {
+        return a.orderPrice < b.orderPrice;
+    }
+};
+
+//System-generated Market Order
+// wicc -> wusd
+// micc -> wusd
+// wusd -> micc
+struct CDEXSysMarketPriceOrder {
     CUserID cdpOwnerUid;
     uint64_t bcoinsAmount;
     uint64_t scoinsAmount;
@@ -58,17 +70,10 @@ public:
     bool MatchFcoinManualSellOrder(uint64_t scoins);
 
 private:
-#if TODO_DELETE
     CDBMultiValueCache<CDexFixedPriceOrder> bcoinBuyOrderCache;  // buy wicc with wusd (wusd_wicc)
     CDBMultiValueCache<CDexFixedPriceOrder> fcoinBuyOrderCache;  // buy micc with wusd (wusd_micc)
     CDBMultiValueCache<CDexFixedPriceOrder> bcoinSellOrderCache; // sell wicc for wusd (wicc_wusd)
     CDBMultiValueCache<CDexFixedPriceOrder> fcoinSellOrderCache; // sell micc for wusd (micc_wusd)
-
-    //floating price
-    CDBMultiValueCache<CDexForcedCdpOrder> bcoinCdpSellOrderCache; //sell wicc for wusd (wicc_wusd)
-    CDBMultiValueCache<CDexForcedCdpOrder> fcoinCdpSellOrderCache; //sell micc for wusd (micc_wusd)
-    CDBMultiValueCache<CDexForcedCdpOrder> fcoinCdpSellOrderCache; //sell micc for wusd (wusd_micc)
-#endif
 };
 
 #endif //PERSIST_DEX_H
