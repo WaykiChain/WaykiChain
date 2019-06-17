@@ -153,7 +153,7 @@ bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
 
     CDbOpLog cdpDbOpLog;
     cw.cdpCache.StakeBcoinsToCdp(txUid, bcoinsToStake, collateralRatio, (uint64_t) mintedScoins, nHeight, cdpDbOpLog); //update cache & persist into ldb
-    cw.txUndo.mapDbOpLogs[DbOpLogType::DB_OP_CDP].push_back(cdpDbOpLog);
+    cw.txUndo.dbOpLogsMap.AddDbOpLog(dbk::CDP, cdpDbOpLog);
 
     bool ret = SaveTxAddresses(nHeight, nIndex, cw, {txUid});
     return ret;
@@ -179,7 +179,7 @@ bool CCDPStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         }
     }
 
-    auto cdpLogs = cw.txUndo.mapDbOpLogs[DbOpLogType::DB_OP_CDP];
+    auto cdpLogs = cw.txUndo.dbOpLogsMap.GetDbOpLogs(dbk::CDP);
     for (auto cdpLog : cdpLogs) {
         if (!cw.cdpCache.UndoCdp(cdpLog)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::UndoExecuteTx, restore cdp error"),

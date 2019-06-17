@@ -325,7 +325,7 @@ bool CContractCache::UndoScriptData(const string &vKey, const string &vValue) {
 }
 */
 
-bool CContractCache::UndoDatas(const CDbOpLogs &dbOpLogs)
+bool CContractCache::UndoDatas(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs)
 {
     for (auto it = dbOpLogs.rbegin(); it != dbOpLogs.rend(); ++it) {
         auto &dbOpLog = *it;
@@ -591,6 +591,12 @@ bool CContractCache::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nI
     return acctTxListCache.SetData(key, txid);
 }
 
+bool CContractCache::UndoTxHashByAddress(CDBOpLogsMap &dbOpLogsMap) {
+    auto &dbOpLogs = dbOpLogsMap.GetDbOpLogs(acctTxListCache.GetPrefixType());
+    UndoDatas(acctTxListCache.GetPrefixType(), dbOpLogs);
+}
+
+
 bool CContractCache::GetTxHashByAddress(
     const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash) {
 
@@ -641,7 +647,7 @@ bool CContractCache::ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutp
 bool CContractCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
     return txDiskPosCache.GetData(txid, pos);
 }
-bool CContractCache::WriteTxIndexs(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB) {
+bool CContractCache::WriteTxIndexs(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogsMap &dbOpLogsMap) {
     for (auto it : list) {
         LogPrint("txindex", "txhash:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
             it.first.GetHex(), it.second.nFile, it.second.nPos, it.second.nTxOffset);
@@ -649,7 +655,7 @@ bool CContractCache::WriteTxIndexs(const vector<pair<uint256, CDiskTxPos> > &lis
         CDiskTxPos oldValue;
         txDiskPosCache.GetData(it.first, oldValue);
         CDbOpLog opLog(txDiskPosCache.GetPrefixType(), it.first, oldValue);
-        vTxIndexOperDB.push_back(opLog);
+        dbOpLogsMap.AddDbOpLog(txDiskPosCache.GetPrefixType(), opLog);
         if (!txDiskPosCache.SetData(it.first, it.second)) {
             return false;
         }

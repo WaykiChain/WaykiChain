@@ -162,13 +162,12 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         cw.txUndo.accountLogs.push_back(delegateAcctLog); // keep delegate state before modification
 
         // set the new value and erase the old value
-        CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[DB_OP_DELEGATE];
         CDbOpLog operDbLog;
         if (!cw.delegateCache.SetDelegateData(delegate, operDbLog)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s vote info error",
                             delegate.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
-        opLogs.push_back(operDbLog);
+        cw.txUndo.dbOpLogsMap.AddDbOpLog(dbk::VOTE, operDbLog);
 
         CDbOpLog eraseDbLog;
         if (delegateAcctLog.receivedVotes > 0) {
@@ -183,7 +182,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
                             account.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
 
-        opLogs.push_back(eraseDbLog);
+        cw.txUndo.dbOpLogsMap.AddDbOpLog(dbk::VOTE, eraseDbLog);
     }
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid})) return false;
@@ -213,7 +212,8 @@ bool CDelegateVoteTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         }
     }
 
-    CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[DB_OP_DELEGATE];
+    // TODO: should use account of this tx to undo the delegate cache??
+    const CDbOpLogs& opLogs = cw.txUndo.dbOpLogsMap.GetDbOpLogs(dbk::VOTE);
     auto rIterDBOpLog = opLogs.rbegin();
     for (; rIterDBOpLog != opLogs.rend(); ++rIterDBOpLog) {
         // Recover the old value and erase the new value.

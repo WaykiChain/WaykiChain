@@ -251,17 +251,7 @@ string CTxUndo::ToString() const {
     str += strAccountLog + "\n";
 
     string strDBOperLog("list LDB Oplog:");
-    for (auto itemOpLogs : mapDbOpLogs) {
-        strDBOperLog += strprintf("type:%d {", itemOpLogs.first);
-        for (auto iterDbLog : itemOpLogs.second) {
-            strDBOperLog += iterDbLog.ToString();
-            strDBOperLog += ";";
-        }
-        strDBOperLog += "}";
-    }
-
-    str += strDBOperLog;
-
+    str += "list LDB Oplog:" + dbOpLogsMap.ToString();
     return str;
 }
 

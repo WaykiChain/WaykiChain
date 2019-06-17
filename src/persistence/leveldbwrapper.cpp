@@ -27,6 +27,19 @@ void ThrowError(const leveldb::Status &status) {
     throw leveldb_error("Unknown database error");
 }
 
+std::string CDBOpLogsMap::ToString() const {
+    std::string str = "";
+    for (auto itemOpLogs : mapDbOpLogs) {
+        str += strprintf("type:%s {", itemOpLogs.first);
+        for (auto iterDbLog : itemOpLogs.second) {
+            str += iterDbLog.ToString();
+            str += ";";
+        }
+        str += "}";
+    }
+    return str;
+}
+
 static leveldb::Options GetOptions(size_t nCacheSize) {
     leveldb::Options options;
     options.block_cache = leveldb::NewLRUCache(nCacheSize / 2);

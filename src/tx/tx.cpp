@@ -102,7 +102,7 @@ string CBaseTx::ToString(CAccountCache &view) {
 bool CBaseTx::SaveTxAddresses(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw,
                               const vector<CUserID> &userIds) {
     if (SysCfg().GetAddressToTxFlag()) {
-        CDbOpLogs &opLogs = cw.txUndo.mapDbOpLogs[DB_OP_CONTRACT];
+        CDbOpLogs &opLogs = cw.txUndo.dbOpLogsMap.GetDbOpLogs(dbk::LIST_KEYID_TX);
         CDbOpLog operAddressToTxLog;
         for (auto userId : userIds) {
             if (userId.type() != typeid(CNullID)) {

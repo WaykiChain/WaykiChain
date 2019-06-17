@@ -116,12 +116,10 @@ bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
                                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
 
-    CDbOpLogs &opLogs = cw.txUndo.mapDbOpLogs[DB_OP_CONTRACT];
-    if (!cw.contractCache.UndoDatas(opLogs)) {
+    if (!cw.contractCache.UndoTxHashByAddress(cw.txUndo.dbOpLogsMap)) {
         return state.DoS(
             100, ERRORMSG("%s::UndoExecuteTx, undo contractCache data error", __FUNCTION__),
             UPDATE_ACCOUNT_FAIL, "undo-contractCache-failed");
-
     }
 /*
     auto rIterScriptDBLog = opLogs.rbegin();
@@ -419,8 +417,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
         cw.txUndo.accountLogs.push_back(oldAcctLog);
     }
-    CDbOpLogs &opLogs = cw.txUndo.mapDbOpLogs[DB_OP_CONTRACT];
-    opLogs.insert(opLogs.end(), vmRunEnv.GetDbLog()->begin(), vmRunEnv.GetDbLog()->end());
+    cw.txUndo.dbOpLogsMap.AddDbOpLogs(dbk::CONTRACT_DATA, *vmRunEnv.GetDbLog());
 
     vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEnv.GetRawAppUserAccount();
     for (auto & itemUserAccount : vAppUserAccount) {
@@ -480,8 +477,8 @@ bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
             }
         }
     }
-    CDbOpLogs& opLogs = cw.txUndo.mapDbOpLogs[DB_OP_CONTRACT];
-    if (!cw.contractCache.UndoDatas(opLogs)) {
+    const CDbOpLogs& dbOpLogs = cw.txUndo.dbOpLogsMap.GetDbOpLogs(dbk::CONTRACT_DATA);
+    if (!cw.contractCache.UndoDatas(dbk::CONTRACT_DATA, dbOpLogs)) {
         return state.DoS(100, ERRORMSG("%s::UndoExecuteTx, undo contractdb datas error", __FUNCTION__),
                          UPDATE_ACCOUNT_FAIL, "undo-contractdb-failed");
     }

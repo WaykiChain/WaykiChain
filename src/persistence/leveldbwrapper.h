@@ -118,6 +118,42 @@ inline std::string GetDbOpLogTypeName(DbOpLogType type){
 
 typedef vector<CDbOpLog> CDbOpLogs;
 
+class CDBOpLogsMap {
+public:
+    const CDbOpLogs& GetDbOpLogs(dbk::PrefixType prefixType) const {
+        assert(prefixType != dbk::EMPTY);
+        const string& prefix = dbk::GetKeyPrefix(prefixType);
+        auto it = mapDbOpLogs.find(prefix);
+        return it->second;        
+    }
+
+    CDbOpLogs& GetDbOpLogs(dbk::PrefixType prefixType) {
+        assert(prefixType != dbk::EMPTY);
+        const string& prefix = dbk::GetKeyPrefix(prefixType);
+        return mapDbOpLogs[prefix];
+    }
+
+    void AddDbOpLogs(dbk::PrefixType prefixType, const CDbOpLogs& dbOpLogsIn) {
+        CDbOpLogs& dbOpLogs = GetDbOpLogs(prefixType);
+        dbOpLogs.insert(dbOpLogs.end(), dbOpLogsIn.begin(), dbOpLogsIn.end());
+    }
+
+    void AddDbOpLog(dbk::PrefixType prefixType, const CDbOpLog& dbOpLogIn) {
+        CDbOpLogs& dbOpLogs = GetDbOpLogs(prefixType);
+        dbOpLogs.push_back(dbOpLogIn);
+    }
+
+    void Clear() { mapDbOpLogs.clear(); }
+
+    std::string ToString() const;
+public:
+    IMPLEMENT_SERIALIZE(
+        READWRITE(mapDbOpLogs);
+	)
+private:
+    mutable map<string, CDbOpLogs> mapDbOpLogs; // dbName -> dbOpLogs
+};
+
 class leveldb_error : public runtime_error
 {
 public:

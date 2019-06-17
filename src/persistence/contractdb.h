@@ -98,7 +98,7 @@ public:
     bool SetContractData(const CRegID &scriptId, const string &contractKey,
                          const string &vScriptData, CDbOpLog &operLog);
 
-    bool UndoDatas(const CDbOpLogs &dbOpLogs);
+    bool UndoDatas(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs);
 
     /**
      * @brief Get all number of scripts in scriptdb
@@ -119,7 +119,7 @@ public:
     Object ToJsonObj() const;
 //	IContractView * GetBaseScriptDB() { return pBase; }
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    bool WriteTxIndexs(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB);
+    bool WriteTxIndexs(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogsMap &dbOpLogsMap);
 
     void SetBaseView(CContractCache *pBaseIn) {
         scriptCache.SetBase(&pBaseIn->scriptCache);
@@ -137,6 +137,7 @@ public:
     bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput);
     bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash);
     bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const uint256 &txid, CDbOpLog &operLog);
+    bool UndoTxHashByAddress(CDBOpLogsMap &dbOpLogsMap);
     bool GetAllContractAcc(const CRegID &scriptId, map<string, string > &mapAcc);
 
 private:
