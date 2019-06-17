@@ -246,7 +246,6 @@ template<int PREFIX_TYPE_VALUE, typename KeyType, typename ValueType>
 class CDBMultiValueCache {
 public:
     static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
-    static_assert(PREFIX_TYPE != dbk::EMPTY);
 public:
     typedef typename map<KeyType, ValueType>::iterator Iterator;
 
@@ -460,7 +459,6 @@ template<int PREFIX_TYPE_VALUE, typename ValueType>
 class CDBScalarValueCache {
 public:
     static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
-    static_assert(PREFIX_TYPE != dbk::EMPTY);
 public:
     /**
      * Default constructor, must use set base to initialize before using.
