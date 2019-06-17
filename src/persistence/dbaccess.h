@@ -134,8 +134,9 @@ public:
 
 class CDBAccess {
 public:
-    CDBAccess(const string &name, size_t nCacheSize, bool fMemory, bool fWipe) :
-                db( GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe ) {}
+    CDBAccess(DBNameType dbNameTypeIn, size_t nCacheSize, bool fMemory, bool fWipe) :
+              dbNameType(dbNameTypeIn),
+              db( GetDataDir() / "blocks" / ::GetDbName(dbNameTypeIn), nCacheSize, fMemory, fWipe ) {}
 
     template<typename KeyType, typename ValueType>
     bool GetData(const dbk::PrefixType prefixType, const KeyType &key, ValueType &value) const {
@@ -235,13 +236,17 @@ public:
         db.WriteBatch(batch, true);
     }
 
+    DBNameType GetDbNameType() const { return dbNameType; }
 private:
+    DBNameType dbNameType;
     mutable CLevelDBWrapper db; // // TODO: remove the mutable declare
 };
 
-template<typename KeyType, typename ValueType>
+template<int PREFIX_TYPE_VALUE, typename KeyType, typename ValueType>
 class CDBMultiValueCache {
-
+public:
+    static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
+    static_assert(PREFIX_TYPE != dbk::EMPTY);
 public:
     typedef typename map<KeyType, ValueType>::iterator Iterator;
 
@@ -249,23 +254,23 @@ public:
     /**
      * Default constructor, must use set base to initialize before using.
      */
-    CDBMultiValueCache(): pBase(nullptr), pDbAccess(nullptr), prefixType(dbk::EMPTY) {};
+    CDBMultiValueCache(): pBase(nullptr), pDbAccess(nullptr) {};
 
-    CDBMultiValueCache(CDBMultiValueCache<KeyType, ValueType> *pBaseIn): pBase(pBaseIn),
-        pDbAccess(nullptr), prefixType(pBaseIn->prefixType) {
+    CDBMultiValueCache(CDBMultiValueCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn): pBase(pBaseIn),
+        pDbAccess(nullptr) {
         assert(pBaseIn != nullptr);
     };
 
-    CDBMultiValueCache(CDBAccess *pDbAccessIn, dbk::PrefixType prefixTypeIn): pBase(nullptr),
-        pDbAccess(pDbAccessIn), prefixType(prefixTypeIn) {
+    CDBMultiValueCache(CDBAccess *pDbAccessIn): pBase(nullptr),
+        pDbAccess(pDbAccessIn) {
         assert(pDbAccessIn != nullptr);
+        assert(pDbAccess->GetDbNameType() == GetDbNameEnumByPrefix(PREFIX_TYPE));
     };
 
-    void SetBase(CDBMultiValueCache<KeyType, ValueType> *pBaseIn) {
+    void SetBase(CDBMultiValueCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn) {
         assert(pDbAccess == nullptr);
         assert(mapData.empty());
         pBase = pBaseIn;
-        prefixType = pBaseIn->prefixType;
     };
 
     bool GetTopNElements(const int32_t maxNum, set<KeyType> &keys) {
@@ -337,14 +342,14 @@ public:
             }
         } else if (pDbAccess != nullptr) {
             assert(pBase == nullptr);
-            pDbAccess->BatchWrite<KeyType, ValueType>(prefixType, mapData);
+            pDbAccess->BatchWrite<KeyType, ValueType>(PREFIX_TYPE, mapData);
         }
 
         mapData.clear();
     }
 
     bool UndoData(const CDbOpLog &dbOpLog) {
-        assert(dbOpLog.GetPrefixType() == prefixType);
+        assert(dbOpLog.GetPrefixType() == PREFIX_TYPE);
         KeyType key;
         ValueType value;
         dbOpLog.Get(key, value);
@@ -353,11 +358,11 @@ public:
     }
 
     void ParseUndoData(const CDbOpLog &dbOpLog, KeyType &key, ValueType &value) {
-        assert(dbOpLog.GetPrefixType() == prefixType);
+        assert(dbOpLog.GetPrefixType() == PREFIX_TYPE);
         dbOpLog.Get(key, value);
     }
 
-    dbk::PrefixType GetPrefixType() const { return prefixType; }
+    dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
 
 private:
     Iterator GetDataIt(const KeyType &key) const {
@@ -381,7 +386,7 @@ private:
         } else if (pDbAccess != NULL) {
             auto ptrValue = std::make_shared<ValueType>();
 
-            if (pDbAccess->GetData(prefixType, key, *ptrValue)) {
+            if (pDbAccess->GetData(PREFIX_TYPE, key, *ptrValue)) {
                 auto newIt = mapData.emplace(make_pair(key, *ptrValue));
                 assert(newIt.second); // TODO: throw error
                 return newIt.first;
@@ -414,7 +419,7 @@ private:
         if (pBase != nullptr) {
             pBase->GetTopNElements(maxNum, expiredKeys, keys);
         } else if (pDbAccess != nullptr) {
-            pDbAccess->GetTopNElements(maxNum, prefixType, expiredKeys, keys);
+            pDbAccess->GetTopNElements(maxNum, PREFIX_TYPE, expiredKeys, keys);
         }
 
         return true;
@@ -438,43 +443,44 @@ private:
         if (pBase != nullptr) {
             pBase->GetAllElements(expiredKeys, elements);
         } else if (pDbAccess != nullptr) {
-            pDbAccess->GetAllElements(prefixType, expiredKeys, elements);
+            pDbAccess->GetAllElements(PREFIX_TYPE, expiredKeys, elements);
         }
 
         return true;
     }
 
 private:
-    mutable CDBMultiValueCache<KeyType, ValueType> *pBase;
+    mutable CDBMultiValueCache<PREFIX_TYPE, KeyType, ValueType> *pBase;
     CDBAccess *pDbAccess;
-    dbk::PrefixType prefixType;
     mutable map<KeyType, ValueType> mapData;
 };
 
 
-template<typename ValueType>
+template<int PREFIX_TYPE_VALUE, typename ValueType>
 class CDBScalarValueCache {
+public:
+    static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
+    static_assert(PREFIX_TYPE != dbk::EMPTY);
 public:
     /**
      * Default constructor, must use set base to initialize before using.
      */
-    CDBScalarValueCache(): pBase(nullptr), pDbAccess(nullptr), prefixType(dbk::EMPTY) {};
+    CDBScalarValueCache(): pBase(nullptr), pDbAccess(nullptr) {};
 
-    CDBScalarValueCache(CDBScalarValueCache<ValueType> *pBaseIn): pBase(pBaseIn),
-        pDbAccess(nullptr), prefixType(pBaseIn->prefixType) {
+    CDBScalarValueCache(CDBScalarValueCache<PREFIX_TYPE, ValueType> *pBaseIn): pBase(pBaseIn),
+        pDbAccess(nullptr) {
         assert(pBaseIn != nullptr);
     };
 
-    CDBScalarValueCache(CDBAccess *pDbAccessIn, dbk::PrefixType prefixTypeIn): pBase(nullptr),
-        pDbAccess(pDbAccessIn), prefixType(prefixTypeIn) {
+    CDBScalarValueCache(CDBAccess *pDbAccessIn): pBase(nullptr),
+        pDbAccess(pDbAccessIn) {
         assert(pDbAccessIn != nullptr);
     };
 
-    void SetBase(CDBScalarValueCache<ValueType> *pBaseIn) {
+    void SetBase(CDBScalarValueCache<PREFIX_TYPE, ValueType> *pBaseIn) {
         assert(pDbAccess == nullptr);
         assert(!ptrData);
         pBase = pBaseIn;
-        prefixType = pBaseIn->prefixType;
     };
 
     bool GetData(ValueType &value) const {
@@ -516,26 +522,25 @@ public:
             pBase->ptrData = ptrData;
         } else if (pDbAccess != nullptr) {
             assert(pBase == nullptr);
-            pDbAccess->BatchWrite(prefixType, *ptrData);
+            pDbAccess->BatchWrite(PREFIX_TYPE, *ptrData);
         }
 
         ptrData = nullptr;
     }
 
     void UndoData(const CDbOpLog &dbOpLog) {
-        assert(dbOpLog.GetPrefixType() == prefixType);
+        assert(dbOpLog.GetPrefixType() == PREFIX_TYPE);
         if (!ptrData) {
             ptrData = make_shared<ValueType>();
         }
         dbOpLog.Get(*ptrData);
     }
 
-    dbk::PrefixType GetPrefixType() const { return prefixType; }
+    dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
 
 private:
     std::shared_ptr<ValueType> GetDataPtr() const {
 
-        assert(prefixType != dbk::EMPTY);
         if (ptrData) {
             if (!db_util::IsEmpty(*ptrData)) {
                 return ptrData;
@@ -550,7 +555,7 @@ private:
         } else if (pDbAccess != NULL) {
             auto ptrDbData = std::make_shared<ValueType>();
 
-            if (pDbAccess->GetData(prefixType, *ptrDbData)) {
+            if (pDbAccess->GetData(PREFIX_TYPE, *ptrDbData)) {
                 assert(!db_util::IsEmpty(*ptrDbData));
                 ptrData = ptrDbData;
                 return ptrData;
@@ -559,9 +564,8 @@ private:
         return nullptr;
     };
 private:
-    mutable CDBScalarValueCache<ValueType> *pBase;
+    mutable CDBScalarValueCache<PREFIX_TYPE, ValueType> *pBase;
     CDBAccess *pDbAccess;
-    dbk::PrefixType prefixType;
     mutable std::shared_ptr<ValueType> ptrData;
 };
 

@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "accounts/id.h"
+#include "dbaccess.h"
 
 // using namespace std;
 
@@ -57,6 +58,7 @@ public:
     bool MatchFcoinManualSellOrder(uint64_t scoins);
 
 private:
+#if TODO_DELETE
     CDBMultiValueCache<CDexFixedPriceOrder> bcoinBuyOrderCache;  // buy wicc with wusd (wusd_wicc)
     CDBMultiValueCache<CDexFixedPriceOrder> fcoinBuyOrderCache;  // buy micc with wusd (wusd_micc)
     CDBMultiValueCache<CDexFixedPriceOrder> bcoinSellOrderCache; // sell wicc for wusd (wicc_wusd)
@@ -66,6 +68,7 @@ private:
     CDBMultiValueCache<CDexForcedCdpOrder> bcoinCdpSellOrderCache; //sell wicc for wusd (wicc_wusd)
     CDBMultiValueCache<CDexForcedCdpOrder> fcoinCdpSellOrderCache; //sell micc for wusd (micc_wusd)
     CDBMultiValueCache<CDexForcedCdpOrder> fcoinCdpSellOrderCache; //sell micc for wusd (wusd_micc)
+#endif
 };
 
 #endif //PERSIST_DEX_H

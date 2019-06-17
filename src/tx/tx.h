@@ -80,12 +80,12 @@ enum TxType : unsigned char {
     DEX_SELL_ORDER_TX       = 52,
     DEX_SETTLE_TX           = 53,
 
-    // DEX_WICC_FOR_MICC_TX = 51,  //!< DEX: owner sells WICC for MICC Tx
-    // DEX_MICC_FOR_WICC_TX = 52,  //!< DEX: owner sells MICC for WICC Tx
-    // DEX_WICC_FOR_WUSD_TX = 53,  //!< DEX: owner sells WICC for WUSD Tx
-    // DEX_WUSD_FOR_WICC_TX = 54,  //!< DEX: owner sells WUSD for WICC Tx
-    // DEX_MICC_FOR_WUSD_TX = 55,  //!< DEX: owner sells MICC for WUSD Tx
-    // DEX_WUSD_FOR_MICC_TX = 56,  //!< DEX: owner sells WUSD for MICC Tx
+    DEX_WICC_FOR_MICC_TX = 61,  //!< DEX: owner sells WICC for MICC Tx
+    DEX_MICC_FOR_WICC_TX = 62,  //!< DEX: owner sells MICC for WICC Tx
+    DEX_WICC_FOR_WUSD_TX = 63,  //!< DEX: owner sells WICC for WUSD Tx
+    DEX_WUSD_FOR_WICC_TX = 64,  //!< DEX: owner sells WUSD for WICC Tx
+    DEX_MICC_FOR_WUSD_TX = 65,  //!< DEX: owner sells MICC for WUSD Tx
+    DEX_WUSD_FOR_MICC_TX = 66,  //!< DEX: owner sells WUSD for MICC Tx
     /******** End of Stable Coin Enums ********/
 
     NULL_TX = 0  //!< NULL_TX

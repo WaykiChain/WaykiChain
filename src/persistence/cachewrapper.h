@@ -10,7 +10,7 @@
 #include "contractdb.h"
 #include "txdb.h"
 #include "cdpdb.h"
-#include "dex.h"
+#include "dexdb.h"
 
 class CCacheWrapper {
 public:

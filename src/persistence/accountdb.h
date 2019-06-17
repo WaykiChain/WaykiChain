@@ -49,12 +49,6 @@ public:
 
 class CAccountCache {
 public:
-    CDBScalarValueCache<uint256> blockHashCache;            // [single] best blockHash
-    CDBMultiValueCache<CKeyID, CAccount> keyId2AccountCache;     // <KeyID -> Account>
-    CDBMultiValueCache<string, CKeyID> regId2KeyIdCache;         // <RegID str -> KeyID>
-    CDBMultiValueCache<CNickID, CKeyID> nickId2KeyIdCache;       // <NickID -> KeyID>
-
-public:
     bool GetAccount(const CKeyID &keyId, CAccount &account) const;
     bool GetAccount(const CRegID &regId, CAccount &account) const;
     bool GetAccount(const CUserID &userId, CAccount &account) const;
@@ -80,10 +74,12 @@ public:
     CAccountCache() {}
 
     CAccountCache(CDBAccess *pDbAccess):
-        blockHashCache(pDbAccess, dbk::BEST_BLOCKHASH),
-        keyId2AccountCache(pDbAccess, dbk::KEYID_ACCOUNT),
-        regId2KeyIdCache(pDbAccess, dbk::REGID_KEYID),
-        nickId2KeyIdCache(pDbAccess, dbk::NICKID_KEYID) {}
+        blockHashCache(pDbAccess),
+        keyId2AccountCache(pDbAccess),
+        regId2KeyIdCache(pDbAccess),
+        nickId2KeyIdCache(pDbAccess) {
+        assert(pDbAccess->GetDbNameType() == DBNameType::ACCOUNT);
+    }
 
     CAccountCache(CAccountCache *pBase):
         blockHashCache(pBase->blockHashCache),
@@ -111,6 +107,20 @@ public:
         regId2KeyIdCache.SetBase(&pBaseIn->regId2KeyIdCache);
         nickId2KeyIdCache.SetBase(&pBaseIn->nickId2KeyIdCache);
      };
+private:
+/*  CDBScalarValueCache     prefixType             value           variable           */
+/*  -------------------- --------------------   -------------   --------------------- */
+    // best blockHash
+    CDBScalarValueCache< dbk::BEST_BLOCKHASH,     uint256>        blockHashCache; 
+
+/*  CDBScalarValueCache     prefixType            key              value           variable           */
+/*  -------------------- --------------------   --------------  -------------   --------------------- */
+    // <KeyID -> Account>
+    CDBMultiValueCache< dbk::KEYID_ACCOUNT,        CKeyID,       CAccount >       keyId2AccountCache;
+    // <RegID str -> KeyID>
+    CDBMultiValueCache< dbk::REGID_KEYID,          string,       CKeyID >         regId2KeyIdCache;
+    // <NickID -> KeyID> 
+    CDBMultiValueCache< dbk::NICKID_KEYID,         CNickID,      CKeyID>          nickId2KeyIdCache;
 };
 
 /*

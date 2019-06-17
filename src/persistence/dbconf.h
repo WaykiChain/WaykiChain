@@ -14,6 +14,37 @@
 
 typedef leveldb::Slice Slice;
 
+#define DEF_DB_NAME_ENUM(enumType, enumName) enumType,
+#define DEF_DB_NAME_ARRAY(enumType, enumName) enumName,
+
+//         DBNameType            DBName           description
+//         ----------           --------------     ----------------------------
+#define DB_NAME_LIST(DEFINE) \
+    DEFINE( ACCOUNT,             "account")      /* account */ \
+    DEFINE( BLOCK,               "block")        /* account */ \
+    DEFINE( CONTRACT,            "contract")     /* contract */ \
+    DEFINE( DELEGATE,            "delegate")     /* delegate */ \
+    DEFINE( CDP,                 "dcp")          /* dcp */ \
+    DEFINE( DEX,                 "dex")          /* dex */ \
+    /*                                                                */  \
+    /* Add new Enum elements above, DB_NAME_COUNT Must be the last one */ \
+    DEFINE( DB_NAME_COUNT,        "")       /* enum count, must be the last one */
+
+enum DBNameType {
+    DB_NAME_LIST(DEF_DB_NAME_ENUM)
+};
+
+#define DB_NAME_NONE DB_NAME_COUNT
+
+static const std::string kDbNames[DBNameType::DB_NAME_COUNT + 1] {
+    DB_NAME_LIST(DEF_DB_NAME_ARRAY)
+};
+
+inline const std::string& GetDbName(DBNameType dbNameType) { 
+    assert(dbNameType >= 0 && dbNameType < DBNameType::DB_NAME_COUNT);
+    return kDbNames[dbNameType];
+}
+
 /**
  * database key
  *
@@ -26,60 +57,75 @@ typedef leveldb::Slice Slice;
  */
 namespace dbk {
 
-    #define EACH_ENUM_DEFINE_TYPE(enumType, enumName) enumType,
-    #define EACH_ENUM_DEFINE_NAME(enumType, enumName) enumName,
-    #define EACH_ENUM_DEFINE_NAME_MAP(enumType, enumName) { enumName, enumType },
 
-    //                 type                name(prefix)       description
-    //               ----------           ------------   -----------------------------
-    #define DBK_PREFIX_LIST(EACH_ENUM_DEFINE) \
-        EACH_ENUM_DEFINE( EMPTY,              "")         /* empty prefix ) */ \
-        EACH_ENUM_DEFINE( REINDEX,            "ridx")     /* [prefix] --> $Reindex = 1 | 0 */ \
-        EACH_ENUM_DEFINE( FLAG,               "flag")     /* [prefix] --> $Flag = 1 | 0 */ \
-        EACH_ENUM_DEFINE( VOTE,               "vote")     /* "vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1 */ \
-        EACH_ENUM_DEFINE( LIST_KEYID_TX,      "lktx")     /* lktx{$KeyId}{$Height}{$Index} --> $txid */ \
-        EACH_ENUM_DEFINE( TXID_KEYIDS,        "tids")     /* tids{$txid} --> {$KeyId1, $KeyId2, ...}*/ \
-        EACH_ENUM_DEFINE( TXID_DISKINDEX,     "tidx")     /* tidx{$txid} --> $DiskTxPos */ \
-        EACH_ENUM_DEFINE( REGID_KEYID,        "rkey")     /* rkey{$RegID} --> $KeyId */ \
-        EACH_ENUM_DEFINE( NICKID_KEYID,       "nkey")     /* nkey{$NickID} --> $KeyId */ \
-        EACH_ENUM_DEFINE( KEYID_ACCOUNT,      "idac")     /* idac{$KeyID} --> $CAccount */ \
-        EACH_ENUM_DEFINE( BEST_BLOCKHASH,     "bbkh")     /* [prefix] --> $BestBlockHash */ \
-        EACH_ENUM_DEFINE( BLOCK_INDEX,        "bidx")     /* pbfl --> $nFile */ \
-        EACH_ENUM_DEFINE( BLOCKFILE_NUM_INFO, "bfni")     /* BlockFileNum --> $BlockFileInfo */ \
-        EACH_ENUM_DEFINE( LAST_BLOCKFILE,     "ltbf")     /* [prefix] --> $LastBlockFile */ \
-        EACH_ENUM_DEFINE( CONTRACT_COUNT,     "cnum")     /* cnum{$ContractRegId} --> $total_num_of_cntracts */ \
-        EACH_ENUM_DEFINE( CONTRACT_DEF,       "cdef")     /* cdef{$ContractRegId} --> $ContractContent */ \
-        EACH_ENUM_DEFINE( CONTRACT_DATA,      "cdat")     /* cdat{$RegId}_{$DataKey} --> $Data */ \
-        EACH_ENUM_DEFINE( CONTRACT_TX_OUT,    "cout")     /* cout{$txid} --> $VmOperateOutput */ \
-        EACH_ENUM_DEFINE( CONTRACT_ITEM_NUM,  "citn")     /* citn{$ContractRegId} --> $total_num_of_contract_i */ \
-        EACH_ENUM_DEFINE( CONTRACT_RELATED_KID, "crid")   /* cacs{$ContractTxId} --> $set<CKeyID> */ \
-        EACH_ENUM_DEFINE( CONTRACT_ACCOUNT,   "cacc")     /* cacc{$ContractRegId}{$AccUserId} --> appUserAccount */ \
-        EACH_ENUM_DEFINE( STAKE_FCOIN,        "fcoin")    /* fcoin{(uint64t)MAX - stakedFcoins}_{RegId} --> 1 */ \
-        EACH_ENUM_DEFINE( CDP,                "cdp")      /* cdp{$RegID} --> blockHeight,mintedScoins */ \
-        EACH_ENUM_DEFINE( CDP_IR_PARAM_A,     "ira")      /* [prefix] --> param_a */ \
-        EACH_ENUM_DEFINE( CDP_IR_PARAM_B,     "irb")      /* [prefix] --> param_b */ \
-        EACH_ENUM_DEFINE( DEX_BUY_ORDER,      "dexb")     /* [prefix]{micc|wusd|wicc} --> buy order */ \
-        EACH_ENUM_DEFINE( DEX_SELL_ORDER,     "dexs")     /* [prefix]{micc|wusd|wicc} --> sell order */ \
-        \
-        /* Add new Enum elements above, PREFIX_COUNT Must be the last one */ \
-        EACH_ENUM_DEFINE( PREFIX_COUNT,        "")       /* enum count, must be the last one */
+    //                 type        name(prefix)  db name             description
+    //               ----------    ------------ -------------  -----------------------------------
+    #define DBK_PREFIX_LIST(DEFINE) \
+        DEFINE( EMPTY,                "",      DB_NAME_NONE )  /* empty prefix  */ \
+        /**** block db                                                                         */ \
+        DEFINE( BLOCK_INDEX,          "bidx",  BLOCK )         /* pbfl --> $nFile */ \
+        DEFINE( BLOCKFILE_NUM_INFO,   "bfni",  BLOCK )         /* BlockFileNum --> $BlockFileInfo */ \
+        DEFINE( LAST_BLOCKFILE,       "ltbf",  BLOCK )         /* [prefix] --> $LastBlockFile */ \
+        DEFINE( REINDEX,              "ridx",  BLOCK )         /* [prefix] --> $Reindex = 1 | 0 */ \
+        DEFINE( FLAG,                 "flag",  BLOCK )         /* [prefix] --> $Flag = 1 | 0 */ \
+        /**** account db                                                                     */ \
+        DEFINE( REGID_KEYID,          "rkey",  ACCOUNT )       /* rkey{$RegID} --> $KeyId */ \
+        DEFINE( NICKID_KEYID,         "nkey",  ACCOUNT )       /* nkey{$NickID} --> $KeyId */ \
+        DEFINE( KEYID_ACCOUNT,        "idac",  ACCOUNT )       /* idac{$KeyID} --> $CAccount */ \
+        DEFINE( BEST_BLOCKHASH,       "bbkh",  ACCOUNT )       /* [prefix] --> $BestBlockHash */ \
+        /**** contract db                                                                     */ \
+        DEFINE( LIST_KEYID_TX,        "lktx",  CONTRACT )      /* lktx{$KeyId}{$Height}{$Index} --> $txid */ \
+        DEFINE( TXID_DISKINDEX,       "tidx",  CONTRACT )      /* tidx{$txid} --> $DiskTxPos */ \
+        DEFINE( CONTRACT_DEF,         "cdef",  CONTRACT )      /* cdef{$ContractRegId} --> $ContractContent */ \
+        DEFINE( CONTRACT_DATA,        "cdat",  CONTRACT )      /* cdat{$RegId}_{$DataKey} --> $Data */ \
+        DEFINE( CONTRACT_TX_OUT,      "cout",  CONTRACT )      /* cout{$txid} --> $VmOperateOutput */ \
+        DEFINE( CONTRACT_ITEM_NUM,    "citn",  CONTRACT )      /* citn{$ContractRegId} --> $total_num_of_contract_i */ \
+        DEFINE( CONTRACT_RELATED_KID, "crid",  CONTRACT )      /* cacs{$ContractTxId} --> $set<CKeyID> */ \
+        DEFINE( CONTRACT_ACCOUNT,     "cacc",  CONTRACT )      /* cacc{$ContractRegId}{$AccUserId} --> appUserAccount */ \
+        /**** delegate db                                                                     */ \
+        DEFINE( VOTE,                 "vote",  DELEGATE )      /* "vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1 */ \
+        /**** cdp db                                                                     */ \
+        DEFINE( STAKE_FCOIN,          "fcoin", CDP )           /* fcoin{(uint64t)MAX - stakedFcoins}_{RegId} --> 1 */ \
+        DEFINE( CDP,                  "cdp",   CDP )           /* cdp{$RegID} --> blockHeight,mintedScoins */ \
+        DEFINE( CDP_IR_PARAM_A,       "ira",   CDP )           /* [prefix] --> param_a */ \
+        DEFINE( CDP_IR_PARAM_B,       "irb",   CDP )           /* [prefix] --> param_b */ \
+        DEFINE( CDP_COLLATERAL_RATIO, "ccr",   CDP )           /* [prefix] --> collateralRatio */ \
+        DEFINE( DEX_BUY_ORDER,        "dexb",  DEX )           /* [prefix]{micc|wusd|wicc} --> buy order */ \
+        DEFINE( DEX_SELL_ORDER,       "dexs",  DEX )           /* [prefix]{micc|wusd|wicc} --> sell order */ \
+        /*                                                                             */ \
+        /* Add new Enum elements above, PREFIX_COUNT Must be the last one              */ \
+        DEFINE( PREFIX_COUNT,         "",      DB_NAME_NONE)   /* enum count, must be the last one */
 
+
+    #define DEF_DB_PREFIX_ENUM(enumType, enumName, dbName) enumType,
+    #define DEF_DB_PREFIX_NAME_ARRAY(enumType, enumName, dbName) enumName,
+    #define DEF_DB_PREFIX_NAME_MAP(enumType, enumName, dbName) { enumName, enumType },
+    #define DEF_DB_PREFIX_DBNAME(enumType, enumName, dbName) DBNameType::dbName,
 
     enum PrefixType {
-        DBK_PREFIX_LIST(EACH_ENUM_DEFINE_TYPE)
+        DBK_PREFIX_LIST(DEF_DB_PREFIX_ENUM)
     };
 
-    static const std::string gPrefixNames[PREFIX_COUNT + 1] = {
-        DBK_PREFIX_LIST(EACH_ENUM_DEFINE_NAME)
+    static const std::string kPrefixNames[PREFIX_COUNT + 1] = {
+        DBK_PREFIX_LIST(DEF_DB_PREFIX_NAME_ARRAY)
     };
 
     static const std::map<std::string, PrefixType> gPrefixNameMap = {
-        DBK_PREFIX_LIST(EACH_ENUM_DEFINE_NAME_MAP)
+        DBK_PREFIX_LIST(DEF_DB_PREFIX_NAME_MAP)
+    };
+
+    static const DBNameType kDbPrefix2DbName[PREFIX_COUNT + 1] = {
+        DBK_PREFIX_LIST(DEF_DB_PREFIX_DBNAME)
     };
 
     inline const std::string& GetKeyPrefix(PrefixType prefixType) {
         assert(prefixType >= 0 && prefixType <= PREFIX_COUNT);
-        return gPrefixNames[prefixType];
+        return kPrefixNames[prefixType];
+    };
+
+    inline DBNameType GetDbNameEnumByPrefix(PrefixType prefixType) {
+        assert(prefixType > 0 && prefixType <= PREFIX_COUNT);
+        return kDbPrefix2DbName[prefixType];
     };
 
     inline PrefixType ParseKeyPrefixType(const std::string &keyPrefix) {
@@ -115,11 +161,10 @@ namespace dbk {
     }
 }
 
-static const string DB_NAME_ACCOUNT  = "account";
-static const string DB_NAME_CONTRACT = "contract";
-static const string DB_NAME_DELEGATE = "delegate";
-static const string DB_NAME_CDP      = "cdp";
-static const string DB_NAME_DEX      = "dex";
+// static const string DB_NAME_ACCOUNT  = "account";
+// static const string DB_NAME_CONTRACT = "contract";
+// static const string DB_NAME_DELEGATE = "delegate";
+// static const string DB_NAME_CDP = "cdp";
 
 class SliceIterator {
 public:

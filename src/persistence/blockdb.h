@@ -23,6 +23,7 @@ private:
 
 public:
     CBlockTreeDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
+    CBlockTreeDB(const std::string &name, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
 
     bool WriteBlockIndex(const CDiskBlockIndex &blockindex);
     bool EraseBlockIndex(const uint256 &blockHash);
