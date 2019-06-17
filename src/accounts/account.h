@@ -223,7 +223,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << keyID << regID << nickID << pubKey << minerPubKey << VARINT(bcoins) << VARINT(scoins)
-               << VARINT(fcoins) << VARINT(fronzenDEXBCoins) << VARINT(fronzenDEXSCoins) << VARINT(fronzenDEXFCoins)
+               << VARINT(fcoins) << VARINT(frozenDEXBcoins) << VARINT(frozenDEXScoins) << VARINT(frozenDEXFcoins)
                << VARINT(stakedFcoins) << VARINT(receivedVotes) << VARINT(lastVoteHeight)
                << candidateVotes << hasOpenCdp;
 

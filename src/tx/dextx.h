@@ -131,7 +131,7 @@ private:
 typedef CRegID TxCord;
 
 struct DEXDealItem  {
-    TxCord buyOrderTxCord
+    TxCord buyOrderTxCord;
     TxCord sellOrderTxCord;
     uint64_t dealPrice;
     uint64_t dealAmount;
