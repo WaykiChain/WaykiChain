@@ -145,8 +145,14 @@ public:
     CService(const struct in6_addr& ipv6Addr, unsigned short port);
     CService(const struct sockaddr_in6& addr);
 
-    IMPLEMENT_SERIALIZE(CService* pthis      = const_cast<CService*>(this); READWRITE(FLATDATA(ip));
-                        unsigned short portN = htons(port); READWRITE(portN); if (fRead) pthis->port = ntohs(portN);)
+    IMPLEMENT_SERIALIZE(
+        CService* pService = const_cast<CService*>(this);
+        READWRITE(FLATDATA(ip));
+        unsigned short portNumber = htons(port);
+        READWRITE(portNumber);
+        if (fRead)
+            pService->port = ntohs(portNumber);
+    )
 };
 
 typedef std::pair<CService, int> proxyType;

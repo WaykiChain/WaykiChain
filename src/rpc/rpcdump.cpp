@@ -89,7 +89,7 @@ Value dropminerkeys(const Array& params, bool fHelp)
 		throw runtime_error("there is no cool miner key or miner key which has registered");
 	}
 
-	pWalletMain->ClearAllCkeyForCoolMiner();
+	pWalletMain->ClearAllMainKeysForCoolMiner();
 	Object ret;
 	ret.push_back( Pair("info", "wallet is ready for cool mining.") );
 	return ret;

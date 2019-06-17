@@ -26,6 +26,9 @@
 #include <miniupnpc/upnperrors.h>
 #endif
 
+#include <string>
+#include <sstream>
+
 #include <boost/filesystem.hpp>
 
 // Dump addresses to peers.dat every 15 minutes (900s)
@@ -64,8 +67,7 @@ CCriticalSection cs_vNodes;
 map<CInv, CDataStream> mapRelay;
 deque<pair<int64_t, CInv> > vRelayExpiration;
 CCriticalSection cs_mapRelay;
-limitedmap<CInv, int64_t> mapAlreadyAskedFor(
-    MAX_INV_SZ);  //存放发送请求的 MSG_TX ，int64_t是 the earliest time the request can be sent，收到对应交易执行erase
+limitedmap<CInv, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
 
 static deque<string> vOneShots;
 CCriticalSection cs_vOneShots;
@@ -261,96 +263,73 @@ bool IsReachable(const CNetAddr& addr) {
     return vfReachable[net] && !vfLimited[net];
 }
 
-bool GetMyExternalIP2(const CService& addrConnect, const char* pszGet, const char* pszKeyword, CNetAddr& ipRet) {
-    LogPrint("INFO", "GetMyExternalIP2 addrConnect:%s \n", addrConnect.ToString());
-    SOCKET hSocket;
-    if (!ConnectSocket(addrConnect, hSocket))
-        return ERRORMSG("GetMyExternalIP() : connection to %s failed", addrConnect.ToString());
+bool GetMyExternalIP(CNetAddr& ipRet) {
+    // TODO: acquire system information
+    // TODO: addr:uri
+    string addr = "10.0.0.4:48022";
+    string uri  = "/ip/report";
+    string content =
+        "{\"coreCount\":21, \"fingerPrint\":\"9tj9wr9fjw9ffsfsdfsdv\",\"memeryCapability\":23229, "
+        "\"osType\":\"LINUX\", \"osVersion\":\"21923892892dfisvhd8ivsdi\"}'\"";
 
-    send(hSocket, pszGet, strlen(pszGet), MSG_NOSIGNAL);
-    LogPrint("INFO", "GetMyExternalIP2 SendData:%s\n", pszGet);
-    // set timeout interval
-    u_long nNetTimeout = 5000;
-    if (0 != setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&nNetTimeout, sizeof(u_long))) {
-        closesocket(hSocket);
+    CService addrConnect(addr, 80, true);
+    if (!addrConnect.IsValid()) {
+        LogPrint("ERROR", "GetMyExternalIP() : server[%s] is out of service", addr);
         return false;
     }
 
-    string strLine;
-    while (RecvLine(hSocket, strLine)) {
-        if (strLine.empty())  // HTTP response is separated from headers by blank line
-        {
-            while (true) {
-                if (!RecvLine(hSocket, strLine)) {
-                    closesocket(hSocket);
-                    return false;
-                }
-                if (pszKeyword == nullptr)
-                    break;
-                if (strLine.find(pszKeyword) != string::npos) {
-                    strLine = strLine.substr(strLine.find(pszKeyword) + strlen(pszKeyword));
-                    break;
-                }
-            }
-            closesocket(hSocket);
-            if (strLine.find("<") != string::npos)
-                strLine = strLine.substr(0, strLine.find("<"));
-            strLine = strLine.substr(strspn(strLine.c_str(), " \t\n\r"));
-            while (strLine.size() > 0 && isspace(strLine[strLine.size() - 1]))
-                strLine.resize(strLine.size() - 1);
-            CService addr(strLine, 0, true);
-            LogPrint("INFO", "GetMyExternalIP() received [%s] %s\n", strLine, addr.ToString());
-            if (!addr.IsValid() || !addr.IsRoutable())
-                return false;
-            ipRet.SetIP(addr);
-            return true;
-        }
+    stringstream stream;
+    stream << "POST " << uri;
+    stream << " HTTP/1.1\r\n";
+    stream << "Host: " << addr << "\r\n";
+    stream << "Content-Type: application/json\r\n";
+    stream << "Content-Length: " << content.length() << "\r\n";
+    stream << "Connection: close\r\n\r\n";
+    stream << content.c_str();
+    string request = stream.str();
+
+    SOCKET hSocket;
+    if (!ConnectSocket(addrConnect, hSocket)) {
+        return ERRORMSG("GetMyExternalIP() : failed to connect to server:%s", addrConnect.ToString());
     }
+
+    send(hSocket, request.c_str(), request.length(), MSG_NOSIGNAL);
+
+    char buffer[4 * 1024] = {'\0'};
+    int offset            = 0;
+    int rc                = 0;
+    while (offset <= 3 * 1024 && (rc = recv(hSocket, buffer + offset, 1024, MSG_NOSIGNAL))) {
+        offset += rc;
+    }
+
     closesocket(hSocket);
-    return ERRORMSG("GetMyExternalIP() : connection closed");
-}
 
-bool GetMyExternalIP(CNetAddr& ipRet) {
-    CService addrConnect;
-    string strszGet;
-    const char* pszKeyword;
-    for (int nLookup = 0; nLookup <= 1; nLookup++)
-        for (int nHost = 1; nHost <= 1; nHost++) {
-            // We should be phasing out our use of sites like these. If we need
-            // replacements, we should ask for volunteers to put this simple
-            // php file on their web server that prints the client IP:
-            //  <?php echo $_SERVER["REMOTE_ADDR"]; ?>
+    if (strlen(buffer) == 0) {
+        return ERRORMSG("GetMyExternalIP() : failed to receive data from server:%s", addrConnect.ToString());
+    } else {
+        static const char* const key = "\"ipAddress\":\"";
+        char* from                   = strstr(buffer, key);
+        from += strlen(key);
+        char* to   = strstr(from, "\"");
+        string ip(from, to);
 
-            if (nHost == 1) {
-                addrConnect = CService("91.198.22.70", 80);  // checkip.dyndns.org blocked in CN though
-                strszGet    = string(
-                    "GET / HTTP/1.1\r\n"
-                    "Host: 91.198.22.70\r\n"
-                    "User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)\r\n"
-                    "Connection: close\r\n"
-                    "\r\n");
-                if (nLookup == 1)  // 2nd-time lookup
-                {
-                    CService addrIP("checkip.dyndns.org", 80, true);
-                    if (addrIP.IsValid()) addrConnect = addrIP;
-                    strszGet.replace(strszGet.find("91.198.22.70"), sizeof("91.198.22.70"), "checkip.dyndns.org");
-                }
-                pszKeyword = "Address:";
-            }
-
-            if (GetMyExternalIP2(addrConnect, strszGet.c_str(), pszKeyword, ipRet)) return true;
+        CService ipAddr(ip, 0, true);
+        if (!ipAddr.IsValid() /* || !ipAddr.IsRoutable() */) {
+            return ERRORMSG("GetMyExternalIP() : invalid external ip address:%s", ip);
         }
+        ipRet.SetIP(ipAddr);
 
-    return false;
+        LogPrint("INFO", "GetMyExternalIP() : external ip address:%s\n", ip);
+
+        return true;
+    }
 }
 
 void ThreadGetMyExternalIP() {
     CNetAddr addrLocalHost;
     if (GetMyExternalIP(addrLocalHost)) {
-        LogPrint("INFO", "GetMyExternalIP() returned %s\n", addrLocalHost.ToStringIP());
         AddLocal(addrLocalHost, LOCAL_HTTP);
     }
-    LogPrint("INFO", "ThreadGetMyExternalIP END\n");
 }
 
 void AddressCurrentlyConnected(const CService& addr) { addrman.Connected(addr); }
