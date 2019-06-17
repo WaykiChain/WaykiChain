@@ -6,8 +6,10 @@
 #ifndef PERSIST_CONTRACTDB_H
 #define PERSIST_CONTRACTDB_H
 
+#include "commons/uint256.h"
 #include "commons/arith_uint256.h"
 #include "dbconf.h"
+#include "accounts/key.h"
 #include "persistence/leveldbwrapper.h"
 #include "persistence/disk.h"
 #include "vm/appaccount.h"
@@ -53,34 +55,20 @@ public:
 */
 
 class CContractCache {
-//protected:
-//    IContractView *pBase;
-
-private:
-    CDBMultiValueCache<string, string>                        scriptCache;            // scriptRegId -> script content
-    CDBMultiValueCache<uint256, vector<CVmOperate>>           txOutputCache;          // txId -> vector<CVmOperate>
-    CDBMultiValueCache<std::tuple<CKeyID, int, int>, uint256> acctTxListCache;        // keyId,height,index -> txid
-    CDBMultiValueCache<uint256, CDiskTxPos>                   txDiskPosCache;         // txId -> DiskTxPos
-    CDBMultiValueCache<uint256, set<CKeyID>>                  contractRelatedKidCache;// contractTxId -> relatedAccounts
-    CDBMultiValueCache<pair<string, string>, string>          contractDataCache;      // pair<scriptId, scriptKey> -> scriptData
-    CDBMultiValueCache<string, CDBCountValue>                 contractItemCountCache; // scriptId -> contractItemCount
-    CDBMultiValueCache<pair<string, string>, CAppUserAccount> contractAccountCache;   // scriptId -> contractItemCount
-
-public:
-    map<string, string > mapContractDb;
-
 public:
     CContractCache() {}
 
     CContractCache(CDBAccess *pDbAccess):
-        scriptCache(pDbAccess, dbk::CONTRACT_DEF),
-        txOutputCache(pDbAccess, dbk::CONTRACT_TX_OUT),
-        acctTxListCache(pDbAccess, dbk::LIST_KEYID_TX),
-        txDiskPosCache(pDbAccess, dbk::TXID_DISKINDEX),
-        contractRelatedKidCache(pDbAccess, dbk::CONTRACT_RELATED_KID),
-        contractDataCache(pDbAccess, dbk::CONTRACT_DATA),
-        contractItemCountCache(pDbAccess, dbk::CONTRACT_ITEM_NUM),
-        contractAccountCache(pDbAccess, dbk::CONTRACT_ACCOUNT) {};
+        scriptCache(pDbAccess),
+        txOutputCache(pDbAccess),
+        acctTxListCache(pDbAccess),
+        txDiskPosCache(pDbAccess),
+        contractRelatedKidCache(pDbAccess),
+        contractDataCache(pDbAccess),
+        contractItemCountCache(pDbAccess),
+        contractAccountCache(pDbAccess) {
+        assert(pDbAccess->GetDbNameType() == DBNameType::CONTRACT);
+    };
 
     CContractCache(CContractCache *pBaseIn):
         scriptCache(pBaseIn->scriptCache),
@@ -260,6 +248,27 @@ private:
      */
     bool SetContractData(const string &contractRegId, const string &contractKey,
                          const string &vScriptData, CDbOpLog &operLog);
+private:
+/*       type               prefixType               key                     value                 variable               */
+/*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
+    /////////// ContractDB
+    // scriptRegId -> script content
+    CDBMultiValueCache< dbk::CONTRACT_DEF,         string,                   string >               scriptCache;
+    // txId -> vector<CVmOperate>    
+    CDBMultiValueCache< dbk::CONTRACT_TX_OUT,      uint256,                  vector<CVmOperate> >   txOutputCache;          
+    // keyId,height,index -> txid
+    //CDBMultiValueCache< dbk::LIST_KEYID_TX,        tuple<CKeyID, int, int>,  uint256>               acctTxListCache;
+    CDBMultiValueCache< dbk::LIST_KEYID_TX,        tuple<CKeyID, int, int>,  uint256>               acctTxListCache;
+    // txId -> DiskTxPos        
+    CDBMultiValueCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;         
+    // contractTxId -> relatedAccounts
+    CDBMultiValueCache< dbk::CONTRACT_RELATED_KID, uint256,                  set<CKeyID> >          contractRelatedKidCache;
+    // pair<scriptId, scriptKey> -> scriptData
+    CDBMultiValueCache< dbk::CONTRACT_DATA,        pair<string, string>,     string >               contractDataCache;
+    // scriptId -> contractItemCount
+    CDBMultiValueCache< dbk::CONTRACT_ITEM_NUM,    string,                   CDBCountValue >        contractItemCountCache; 
+    // scriptId -> contractItemCount
+    CDBMultiValueCache< dbk::CONTRACT_ACCOUNT,     pair<string, string>,     CAppUserAccount >      contractAccountCache; 
 };
 
 /*

@@ -1013,11 +1013,11 @@ Value encryptwallet(const Array& params, bool fHelp)
     //unencrypted private keys. So:
     StartShutdown();
 
-//    string defaultFilename = SysCfg().GetArg("-wallet", "wallet.dat");
-//    string strFileCopy = defaultFilename + ".rewrite";
+//    string defaultFileName = SysCfg().GetArg("-wallet", "wallet.dat");
+//    string strFileCopy = defaultFileName + ".rewrite";
 //
-//    boost::filesystem::remove(GetDataDir() / defaultFilename);
-//    boost::filesystem::rename(GetDataDir() / strFileCopy, GetDataDir() / defaultFilename);
+//    boost::filesystem::remove(GetDataDir() / defaultFileName);
+//    boost::filesystem::rename(GetDataDir() / strFileCopy, GetDataDir() / defaultFileName);
 
     Object retObj;
     retObj.push_back( Pair("wallet_encrypted", true) );

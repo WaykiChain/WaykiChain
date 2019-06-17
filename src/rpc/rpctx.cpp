@@ -1008,13 +1008,13 @@ Value listaddr(const Array& params, bool fHelp) {
             + HelpExampleRpc("listaddr", ""));
     }
 
-    Array retArry;
+    Array retArray;
     assert(pWalletMain != NULL);
     {
         set<CKeyID> setKeyId;
         pWalletMain->GetKeys(setKeyId);
         if (setKeyId.size() == 0) {
-            return retArry;
+            return retArray;
         }
         CAccountCache accView(*pCdMan->pAccountCache);
 
@@ -1030,11 +1030,11 @@ Value listaddr(const Array& params, bool fHelp) {
             obj.push_back(Pair("balance", (double)acctInfo.GetFreeBCoins()/ (double) COIN));
             obj.push_back(Pair("hasminerkey", keyCombi.HaveMinerKey()));
             obj.push_back(Pair("regid",acctInfo.regID.ToString()));
-            retArry.push_back(obj);
+            retArray.push_back(obj);
         }
     }
 
-    return retArry;
+    return retArray;
 }
 
 
@@ -2958,13 +2958,13 @@ Value listcontractassets(const Array& params, bool fHelp) {
 
     CRegID script(params[0].get_str());
 
-    Array retArry;
+    Array retArray;
     assert(pWalletMain != NULL);
     {
         set<CKeyID> setKeyId;
         pWalletMain->GetKeys(setKeyId);
         if (setKeyId.size() == 0)
-            return retArry;
+            return retArray;
 
         CContractCache contractScriptTemp(*pCdMan->pContractCache);
 
@@ -2981,11 +2981,11 @@ Value listcontractassets(const Array& params, bool fHelp) {
             Object obj;
             obj.push_back(Pair("addr", key));
             obj.push_back(Pair("asset", (double) tem.get()->GetBcoins() / (double) COIN));
-            retArry.push_back(obj);
+            retArray.push_back(obj);
         }
     }
 
-    return retArry;
+    return retArray;
 }
 
 
@@ -3036,7 +3036,7 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
     if (!pCdMan->pContractCache->HaveScript(contractRegId))
         throw runtime_error("in getcontractkeyvalue: contract regid not exist!\n");
 
-    Array retArry;
+    Array retArray;
     CContractCache contractScriptTemp(*pCdMan->pContractCache);
 
     for (size_t i = 0; i < array.size(); i++) {
@@ -3075,10 +3075,10 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
 
         obj.push_back(Pair("confirmedheight", (int) height));
         obj.push_back(Pair("confirmedtime", (int) time));
-        retArry.push_back(obj);
+        retArray.push_back(obj);
     }
 
-    return retArry;
+    return retArray;
 }
 
 Value validateaddr(const Array& params, bool fHelp) {

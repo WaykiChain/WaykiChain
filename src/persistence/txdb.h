@@ -91,12 +91,8 @@ public:
 /* Top 11 delegates */
 class CDelegateCache {
 public:
-    // vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1
-    CDBMultiValueCache<std::pair<string, CRegID>, uint8_t> voteRegIdCache;
-
-public:
     CDelegateCache(){};
-    CDelegateCache(CDBAccess *pDbAccess) : voteRegIdCache(pDbAccess, dbk::VOTE){};
+    CDelegateCache(CDBAccess *pDbAccess) : voteRegIdCache(pDbAccess){};
     CDelegateCache(CDelegateCache *pBaseIn) : voteRegIdCache(pBaseIn->voteRegIdCache){};
 
     bool LoadTopDelegates();
@@ -114,6 +110,11 @@ public:
     void Flush() {}
 
 private:
+/*  CDBScalarValueCache  prefixType         key                      value         variable           */
+/*  -------------------- ----------- ---------------------------  ------------- --------------------- */
+    // vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1
+    CDBMultiValueCache< dbk::VOTE,   std::pair<string, CRegID>,      uint8_t >   voteRegIdCache;
+
     set<CRegID> delegateRegIds;
 };
 

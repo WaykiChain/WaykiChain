@@ -10,9 +10,9 @@
 #include "coin-config.h"
 #endif
 
-#include "compat/compat.h"
 #include "commons/serialize.h"
 #include "commons/tinyformat.h"
+#include "compat/compat.h"
 
 #include <stdarg.h>
 #include <stdint.h>
@@ -38,36 +38,36 @@ class uint256;
 static const int64_t COIN = 100000000;
 static const int64_t CENT = 1000000;
 
-#define BEGIN(a)            ((char*)&(a))
-#define END(a)              ((char*)&((&(a))[1]))
-#define UBEGIN(a)           ((unsigned char*)&(a))
-#define UEND(a)             ((unsigned char*)&((&(a))[1]))
-#define ARRAYLEN(array)     (sizeof(array)/sizeof((array)[0]))
+#define BEGIN(a) ((char*)&(a))
+#define END(a) ((char*)&((&(a))[1]))
+#define UBEGIN(a) ((unsigned char*)&(a))
+#define UEND(a) ((unsigned char*)&((&(a))[1]))
+#define ARRAYLEN(array) (sizeof(array) / sizeof((array)[0]))
 
 // This is needed because the foreach macro can't get over the comma in pair<t1, t2>
-#define PAIRTYPE(t1, t2)    pair<t1, t2>
+#define PAIRTYPE(t1, t2) pair<t1, t2>
 
 // Align by increasing pointer, must have extra space at end of buffer
-template<size_t nBytes, typename T>
+template <size_t nBytes, typename T>
 T* alignup(T* p) {
-	union {
-		T* ptr;
-		size_t n;
-	} u;
-	u.ptr = p;
-	u.n = (u.n + (nBytes - 1)) & ~(nBytes - 1);
-	return u.ptr;
+    union {
+        T* ptr;
+        size_t n;
+    } u;
+    u.ptr = p;
+    u.n   = (u.n + (nBytes - 1)) & ~(nBytes - 1);
+    return u.ptr;
 }
 
 #ifdef WIN32
-#define MSG_DONTWAIT        0
+#define MSG_DONTWAIT 0
 
 #ifndef S_IRUSR
-#define S_IRUSR             0400
-#define S_IWUSR             0200
+#define S_IRUSR 0400
+#define S_IWUSR 0200
 #endif
 #else
-#define MAX_PATH            1024
+#define MAX_PATH 1024
 #endif
 // As Solaris does not have the MSG_NOSIGNAL flag for send(2) syscall, it is defined as 0
 #if !defined(HAVE_MSG_NOSIGNAL) && !defined(MSG_NOSIGNAL)
@@ -79,11 +79,11 @@ inline void MilliSleep(int64_t n) {
 // until fixed in 1.52. Use the deprecated sleep method for the broken case.
 // See: https://svn.boost.org/trac/boost/ticket/7238
 #if defined(HAVE_WORKING_BOOST_SLEEP_FOR)
-	boost::this_thread::sleep_for(boost::chrono::milliseconds(n));
+    boost::this_thread::sleep_for(boost::chrono::milliseconds(n));
 #elif defined(HAVE_WORKING_BOOST_SLEEP)
-	boost::this_thread::sleep(boost::posix_time::milliseconds(n));
+    boost::this_thread::sleep(boost::posix_time::milliseconds(n));
 #else
-//should never get here
+// should never get here
 #error missing boost sleep implementation
 #endif
 }
@@ -115,68 +115,62 @@ void RandAddSeed();
 void RandAddSeedPerfmon();
 void SetupEnvironment();
 
-//bool GetBoolArg(const string& strArg, bool fDefault);
+// bool GetBoolArg(const string& strArg, bool fDefault);
 
 // Get the LogFile iterator by category
-bool FindLogFile(const char* category, DebugLogFileIt &logFileIt);
+bool FindLogFile(const char* category, DebugLogFileIt& logFileIt);
 /* Return true if log accepts specified category */
 bool LogAcceptCategory(const char* category);
 /* Send a string to the log output */
-int LogPrintStr(const string &str);
+int LogPrintStr(const string& str);
 extern string GetLogHead(int line, const char* file, const char* category);
-int LogPrintStr(const char* category, const string &str);
+int LogPrintStr(const char* category, const string& str);
 
-int LogPrintStr(const std::string &logName, DebugLogFile &logFile, const string& str);
+int LogPrintStr(const std::string& logName, DebugLogFile& logFile, const string& str);
 
 #define strprintf tfm::format
 
-#define ERRORMSG(...)  error2(__LINE__, __FILE__, __VA_ARGS__)
+#define ERRORMSG(...) error2(__LINE__, __FILE__, __VA_ARGS__)
 
-#define LogPrint(tag, ...)                                                             \
-    {                                                                                  \
-        DebugLogFileIt __logFileIt;                                                    \
-        if (FindLogFile(tag, __logFileIt)) {                                           \
-            LogTrace(tag, __logFileIt->first, __logFileIt->second, __LINE__, __FILE__, \
-                     __VA_ARGS__);                                                     \
-        }                                                                              \
+#define LogPrint(tag, ...)                                                                           \
+    {                                                                                                \
+        DebugLogFileIt __logFileIt;                                                                  \
+        if (FindLogFile(tag, __logFileIt)) {                                                         \
+            LogTrace(tag, __logFileIt->first, __logFileIt->second, __LINE__, __FILE__, __VA_ARGS__); \
+        }                                                                                            \
     }
 
-#define MAKE_ERROR_AND_TRACE_FUNC(n)                                                         \
-    /*   Print to debug.log if -debug=category switch is given OR category is NULL. */       \
-    template <TINYFORMAT_ARGTYPES(n)>                                                        \
-    static inline int LogTrace(const char* category, const std::string& logName,             \
-                               DebugLogFile& logFile, int line, const char* file,            \
-                               const char* format, TINYFORMAT_VARARGS(n)) {                  \
-        return LogPrintStr(                                                                  \
-            logName, logFile,                                                                \
-            GetLogHead(line, file, category) + tfm::format(format, TINYFORMAT_PASSARGS(n))); \
-    }                                                                                        \
-    /*   Log error and return false */                                                       \
-    template <TINYFORMAT_ARGTYPES(n)>                                                        \
-    static inline bool error2(int line, const char* file, const char* format1,               \
-                              TINYFORMAT_VARARGS(n)) {                                       \
-        LogPrintStr("ERROR", GetLogHead(line, file, "ERROR") +                               \
-                                 tfm::format(format1, TINYFORMAT_PASSARGS(n)) + "\n");       \
-        return false;                                                                        \
+#define MAKE_ERROR_AND_TRACE_FUNC(n)                                                                                 \
+    /*   Print to debug.log if -debug=category switch is given OR category is NULL. */                               \
+    template <TINYFORMAT_ARGTYPES(n)>                                                                                \
+    static inline int LogTrace(const char* category, const std::string& logName, DebugLogFile& logFile, int line,    \
+                               const char* file, const char* format, TINYFORMAT_VARARGS(n)) {                        \
+        return LogPrintStr(logName, logFile,                                                                         \
+                           GetLogHead(line, file, category) + tfm::format(format, TINYFORMAT_PASSARGS(n)));          \
+    }                                                                                                                \
+    /*   Log error and return false */                                                                               \
+    template <TINYFORMAT_ARGTYPES(n)>                                                                                \
+    static inline bool error2(int line, const char* file, const char* format1, TINYFORMAT_VARARGS(n)) {              \
+        LogPrintStr("ERROR", GetLogHead(line, file, "ERROR") + tfm::format(format1, TINYFORMAT_PASSARGS(n)) + "\n"); \
+        return false;                                                                                                \
     }
 
 TINYFORMAT_FOREACH_ARGNUM(MAKE_ERROR_AND_TRACE_FUNC)
 
-
-static inline bool error2(int line, const char* file,const char* format) {
-//	LogPrintStr(tfm::format("[%s:%d]: ", file, line)+string("ERROR: ") + format + "\n");
-	LogPrintStr("ERROR",  GetLogHead(line,file,"ERROR") + format + "\n");
-	return false;
+static inline bool error2(int line, const char* file, const char* format) {
+    //	LogPrintStr(tfm::format("[%s:%d]: ", file, line)+string("ERROR: ") + format + "\n");
+    LogPrintStr("ERROR", GetLogHead(line, file, "ERROR") + format + "\n");
+    return false;
 }
 
 extern string GetLogHead(int line, const char* file, const char* category);
 
-static inline int LogTrace(const char* category, const std::string &logName, DebugLogFile &logFile, int line,
+static inline int LogTrace(const char* category, const std::string& logName, DebugLogFile& logFile, int line,
                            const char* file, const char* format) {
     return LogPrintStr(logName, logFile, GetLogHead(line, file, category) + format);
 }
 
-//static inline bool errorTrace(const char* format) {
+// static inline bool errorTrace(const char* format) {
 //	LogPrintStr(string("ERROR: ") + format + "\n");
 //	return false;
 //}
@@ -200,19 +194,19 @@ string EncodeBase32(const unsigned char* pch, size_t len);
 string EncodeBase32(const string& str);
 bool WildcardMatch(const char* psz, const char* mask);
 bool WildcardMatch(const string& str, const string& mask);
-void FileCommit(FILE *fileout);
-bool TruncateFile(FILE *file, unsigned int length);
+void FileCommit(FILE* fileout);
+bool TruncateFile(FILE* file, unsigned int length);
 int RaiseFileDescriptorLimit(int nMinFD);
-void AllocateFileRange(FILE *file, unsigned int offset, unsigned int length);
+void AllocateFileRange(FILE* file, unsigned int offset, unsigned int length);
 bool RenameOver(boost::filesystem::path src, boost::filesystem::path dest);
 bool TryCreateDirectory(const boost::filesystem::path& p);
 boost::filesystem::path GetDefaultDataDir();
-const boost::filesystem::path &GetDataDir(bool fNetSpecific = true);
+const boost::filesystem::path& GetDataDir(bool fNetSpecific = true);
 boost::filesystem::path GetConfigFile();
-boost::filesystem::path GetAbsolutePath(const string &path);
+boost::filesystem::path GetAbsolutePath(const string& path);
 boost::filesystem::path GetPidFile();
 #ifndef WIN32
-void CreatePidFile(const boost::filesystem::path &path, pid_t pid);
+void CreatePidFile(const boost::filesystem::path& path, pid_t pid);
 #endif
 void ReadConfigFile(map<string, string>& mapSettingsRet, map<string, vector<string> >& mapMultiSettingsRet);
 #ifdef WIN32
@@ -229,94 +223,82 @@ int64_t GetAdjustedTime();
 int64_t GetTimeOffset();
 string FormatFullVersion();
 string FormatSubVersion(const string& name, int nClientVersion, const vector<string>& comments);
-void StringReplace(string &strBase, string strSrc, string strDes);
+void StringReplace(string& strBase, string strSrc, string strDes);
 void AddTimeData(const CNetAddr& ip, int64_t nTime);
 void runCommand(string strCommand);
 
-inline string i64tostr(int64_t n) {
-	return strprintf("%d", n);
-}
+inline string i64tostr(int64_t n) { return strprintf("%d", n); }
 
-inline string itostr(int n) {
-	return strprintf("%d", n);
-}
+inline string itostr(int n) { return strprintf("%d", n); }
 
 inline int64_t atoi64(const char* psz) {
 #ifdef _MSC_VER
-	return _atoi64(psz);
+    return _atoi64(psz);
 #else
-	return strtoll(psz, NULL, 10);
+    return strtoll(psz, NULL, 10);
 #endif
 }
 
 inline int64_t atoi64(const string& str) {
 #ifdef _MSC_VER
-	return _atoi64(str.c_str());
+    return _atoi64(str.c_str());
 #else
-	return strtoll(str.c_str(), NULL, 10);
+    return strtoll(str.c_str(), NULL, 10);
 #endif
 }
 
-inline int atoi(const string& str) {
-	return atoi(str.c_str());
-}
+inline int atoi(const string& str) { return atoi(str.c_str()); }
 
-inline int roundint(double d) {
-	return (int) (d > 0 ? d + 0.5 : d - 0.5);
-}
+inline int roundint(double d) { return (int)(d > 0 ? d + 0.5 : d - 0.5); }
 
-inline int64_t roundint64(double d) {
-	return (int64_t) (d > 0 ? d + 0.5 : d - 0.5);
-}
+inline int64_t roundint64(double d) { return (int64_t)(d > 0 ? d + 0.5 : d - 0.5); }
 
-inline int64_t abs64(int64_t n) {
-	return (n >= 0 ? n : -n);
-}
+inline int64_t abs64(int64_t n) { return (n >= 0 ? n : -n); }
 
-template<typename T>
+template <typename T>
 string HexStr(const T itbegin, const T itend, bool fSpaces = false) {
-	string rv;
-	static const char hexmap[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-	rv.reserve((itend - itbegin) * 3);
-	for (T it = itbegin; it < itend; ++it) {
-		unsigned char val = (unsigned char) (*it);
-		if (fSpaces && it != itbegin)
-			rv.push_back(' ');
-		rv.push_back(hexmap[val >> 4]);
-		rv.push_back(hexmap[val & 15]);
-	}
+    string rv;
+    static const char hexmap[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+    rv.reserve((itend - itbegin) * 3);
+    for (T it = itbegin; it < itend; ++it) {
+        unsigned char val = (unsigned char)(*it);
+        if (fSpaces && it != itbegin) rv.push_back(' ');
+        rv.push_back(hexmap[val >> 4]);
+        rv.push_back(hexmap[val & 15]);
+    }
 
-	return rv;
+    return rv;
 }
 
-template<typename T>
+template <typename T>
 inline string HexStr(const T& vch, bool fSpaces = false) {
-	return HexStr(vch.begin(), vch.end(), fSpaces);
+    return HexStr(vch.begin(), vch.end(), fSpaces);
 }
 
 inline int64_t GetTimeMillis() {
-	return (boost::posix_time::ptime(boost::posix_time::microsec_clock::universal_time())
-			- boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1))).total_milliseconds();
+    return (boost::posix_time::ptime(boost::posix_time::microsec_clock::universal_time()) -
+            boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1)))
+        .total_milliseconds();
 }
 
 inline int64_t GetTimeMicros() {
-	return (boost::posix_time::ptime(boost::posix_time::microsec_clock::universal_time())
-			- boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1))).total_microseconds();
+    return (boost::posix_time::ptime(boost::posix_time::microsec_clock::universal_time()) -
+            boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1)))
+        .total_microseconds();
 }
 
 string DateTimeStrFormat(const char* pszFormat, int64_t nTime);
 
-template<typename T>
+template <typename T>
 void skipspaces(T& it) {
-	while (isspace(*it))
-		++it;
+    while (isspace(*it)) ++it;
 }
 
 inline bool IsSwitchChar(char c) {
 #ifdef WIN32
-	return c == '-' || c == '/';
+    return c == '-' || c == '/';
 #else
-	return c == '-';
+    return c == '-';
 #endif
 }
 
@@ -325,89 +307,81 @@ inline bool IsSwitchChar(char c) {
  * Takes time proportional to length
  * of first argument.
  */
-template<typename T>
+template <typename T>
 bool TimingResistantEqual(const T& a, const T& b) {
-	if (b.size() == 0)
-		return a.size() == 0;
+    if (b.size() == 0) return a.size() == 0;
 
-	size_t accumulator = a.size() ^ b.size();
-	for (size_t i = 0; i < a.size(); i++)
-		accumulator |= a[i] ^ b[i % b.size()];
+    size_t accumulator = a.size() ^ b.size();
+    for (size_t i = 0; i < a.size(); i++) accumulator |= a[i] ^ b[i % b.size()];
 
-	return accumulator == 0;
+    return accumulator == 0;
 }
 
 /** Median filter over a stream of values.
  * Returns the median of the last N numbers
  */
-template<typename T> class CMedianFilter {
+template <typename T>
+class CMedianFilter {
 private:
-	vector<T> vValues;
-	vector<T> vSorted;
-	unsigned int nSize;
+    vector<T> vValues;
+    vector<T> vSorted;
+    unsigned int nSize;
+
 public:
-	CMedianFilter(unsigned int size, T initial_value) :
-			nSize(size) {
-		vValues.reserve(size);
-		vValues.push_back(initial_value);
-		vSorted = vValues;
-	}
+    CMedianFilter(unsigned int size, T initial_value) : nSize(size) {
+        vValues.reserve(size);
+        vValues.push_back(initial_value);
+        vSorted = vValues;
+    }
 
-	void input(T value) {
-		if (vValues.size() == nSize) {
-			vValues.erase(vValues.begin());
-		}
-		vValues.push_back(value);
+    void input(T value) {
+        if (vValues.size() == nSize) {
+            vValues.erase(vValues.begin());
+        }
+        vValues.push_back(value);
 
-		vSorted.resize(vValues.size());
-		copy(vValues.begin(), vValues.end(), vSorted.begin());
-		sort(vSorted.begin(), vSorted.end());
-	}
+        vSorted.resize(vValues.size());
+        copy(vValues.begin(), vValues.end(), vSorted.begin());
+        sort(vSorted.begin(), vSorted.end());
+    }
 
-	T median() const {
-		int size = vSorted.size();
-		assert(size > 0);
-		if (size & 1) // Odd number of elements
-		{
-			return vSorted[size / 2];
-		} else // Even number of elements
-		{
-			return (vSorted[size / 2 - 1] + vSorted[size / 2]) / 2;
-		}
-	}
+    T median() const {
+        int size = vSorted.size();
+        assert(size > 0);
+        if (size & 1)  // Odd number of elements
+        {
+            return vSorted[size / 2];
+        } else  // Even number of elements
+        {
+            return (vSorted[size / 2 - 1] + vSorted[size / 2]) / 2;
+        }
+    }
 
-	int size() const {
-		return vValues.size();
-	}
+    int size() const { return vValues.size(); }
 
-	vector<T> sorted() const {
-		return vSorted;
-	}
+    vector<T> sorted() const { return vSorted; }
 };
 
 #ifdef WIN32
-inline void SetThreadPriority(int nPriority) {
-	SetThreadPriority(GetCurrentThread(), nPriority);
-}
+inline void SetThreadPriority(int nPriority) { SetThreadPriority(GetCurrentThread(), nPriority); }
 #else
 
 // PRIO_MAX is not defined on Solaris
 #ifndef PRIO_MAX
 #define PRIO_MAX 20
 #endif
-#define THREAD_PRIORITY_LOWEST          PRIO_MAX
-#define THREAD_PRIORITY_BELOW_NORMAL    2
-#define THREAD_PRIORITY_NORMAL          0
-#define THREAD_PRIORITY_ABOVE_NORMAL    (-2)
+#define THREAD_PRIORITY_LOWEST PRIO_MAX
+#define THREAD_PRIORITY_BELOW_NORMAL 2
+#define THREAD_PRIORITY_NORMAL 0
+#define THREAD_PRIORITY_ABOVE_NORMAL (-2)
 
-inline void SetThreadPriority(int nPriority)
-{
-	// It's unclear if it's even possible to change thread priorities on Linux,
-	// but we really and truly need it for the generation threads.
+inline void SetThreadPriority(int nPriority) {
+    // It's unclear if it's even possible to change thread priorities on Linux,
+    // but we really and truly need it for the generation threads.
 #ifdef PRIO_THREAD
-	setpriority(PRIO_THREAD, 0, nPriority);
+    setpriority(PRIO_THREAD, 0, nPriority);
 #else
-	setpriority(PRIO_PROCESS, 0, nPriority);
+    setpriority(PRIO_PROCESS, 0, nPriority);
 #endif
 }
 #endif
@@ -415,8 +389,8 @@ inline void SetThreadPriority(int nPriority)
 void RenameThread(const char* name);
 
 inline uint32_t ByteReverse(uint32_t value) {
-	value = ((value & 0xFF00FF00) >> 8) | ((value & 0x00FF00FF) << 8);
-	return (value << 16) | (value >> 16);
+    value = ((value & 0xFF00FF00) >> 8) | ((value & 0x00FF00FF) << 8);
+    return (value << 16) | (value >> 16);
 }
 
 // Standard wrapper for do-something-forever thread functions.
@@ -426,57 +400,47 @@ inline uint32_t ByteReverse(uint32_t value) {
 // or maybe:
 //    boost::function<void()> f = boost::bind(&FunctionWithArg, argument);
 //    threadGroup.create_thread(boost::bind(&LoopForever<boost::function<void()> >, "nothing", f, milliseconds));
-template<typename Callable> void LoopForever(const char* name, Callable func, int64_t msecs) {
-	string s = strprintf("coin-%s", name);
-	RenameThread(s.c_str());
-	LogPrint("INFO","%s thread start\n", name);
-	try
-	{
-		while (1)
-		{
-			MilliSleep(msecs);
-			func();
-		}
-	}
-	catch (boost::thread_interrupted)
-	{
-		LogPrint("INFO","%s thread stop\n", name);
-		throw;
-	}
-	catch (std::exception& e) {
-		PrintExceptionContinue(&e, name);
-		throw;
-	}
-	catch (...) {
-		PrintExceptionContinue(NULL, name);
-		throw;
-	}
+template <typename Callable>
+void LoopForever(const char* name, Callable func, int64_t msecs) {
+    string s = strprintf("coin-%s", name);
+    RenameThread(s.c_str());
+    LogPrint("INFO", "%s thread start\n", name);
+    try {
+        while (1) {
+            MilliSleep(msecs);
+            func();
+        }
+    } catch (boost::thread_interrupted) {
+        LogPrint("INFO", "%s thread stop\n", name);
+        throw;
+    } catch (std::exception& e) {
+        PrintExceptionContinue(&e, name);
+        throw;
+    } catch (...) {
+        PrintExceptionContinue(NULL, name);
+        throw;
+    }
 }
 // .. and a wrapper that just calls func once
-template<typename Callable> void TraceThread(const char* name, Callable func) {
-	string s = strprintf("coin-%s", name);
-	RenameThread(s.c_str());
-	try
-	{
-		LogPrint("INFO","%s thread start\n", name);
-		func();
-		LogPrint("INFO","%s thread exit\n", name);
-	}
-	catch (boost::thread_interrupted)
-	{
-		LogPrint("INFO","%s thread interrupt\n", name);
-		throw;
-	}
-	catch (std::exception& e) {
-		PrintExceptionContinue(&e, name);
-		throw;
-	}
-	catch (...) {
-		PrintExceptionContinue(NULL, name);
-		throw;
-	}
+template <typename Callable>
+void TraceThread(const char* name, Callable func) {
+    string s = strprintf("coin-%s", name);
+    RenameThread(s.c_str());
+    try {
+        LogPrint("INFO", "%s thread start\n", name);
+        func();
+        LogPrint("INFO", "%s thread exit\n", name);
+    } catch (boost::thread_interrupted) {
+        LogPrint("INFO", "%s thread interrupt\n", name);
+        throw;
+    } catch (std::exception& e) {
+        PrintExceptionContinue(&e, name);
+        throw;
+    } catch (...) {
+        PrintExceptionContinue(NULL, name);
+        throw;
+    }
 }
-
 
 /**
  * Tests if the given character is a whitespace character. The whitespace characters
@@ -498,7 +462,7 @@ constexpr inline bool IsSpace(char c) noexcept {
  * @returns true if the entire string could be parsed as valid integer,
  *   false if not the entire string could be parsed or when overflow or underflow occurred.
  */
-bool ParseInt32(const std::string& str, int32_t *out);
+bool ParseInt32(const std::string& str, int32_t* out);
 
 inline string _(const char* str) { return string(str); }
 

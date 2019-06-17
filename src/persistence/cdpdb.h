@@ -59,7 +59,7 @@ class CCdpCacheManager {
 
 public:
     CCdpCacheManager() {}
-    CCdpCacheManager(CDBAccess *pDbAccess): cdpCache(pDbAccess, dbk::CDP) {}
+    CCdpCacheManager(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
 
     bool StakeBcoinsToCdp(CUserID txUid, uint64_t bcoinsToStake, uint64_t collateralRatio,
                     uint64_t mintedScoins, int blockHeight, CDbOpLog &cdpDbOpLog);
@@ -86,12 +86,20 @@ public:
     }
 
 private:
-    CDBScalarValueCache<uint64_t> collateralRatio;
-    CDBScalarValueCache<uint64_t> interestParamA;
-    CDBScalarValueCache<uint64_t> interestParamB;
 
-    CDBMultiValueCache<string, CUserCdp> cdpCache;      // CdpOwnerRegId -> CUserCdp
+/*   CDBScalarValueCache   prefixType                 value                 variable               */
+/*  -------------------- --------------------------  ------------------   ------------------------ */
+    // collateralRatio
+    CDBScalarValueCache< dbk::CDP_COLLATERAL_RATIO,  uint64_t>           collateralRatio;
+    // interestParamA
+    CDBScalarValueCache< dbk::CDP_IR_PARAM_A,        uint64_t>           interestParamA;
+    // interestParamB
+    CDBScalarValueCache< dbk::CDP_IR_PARAM_B,        uint64_t>           interestParamB;
 
+/*  CDBMultiValueCache     prefixType     key                 value            variable            */
+/*  ----------------   ----------------- -------------     ---------------   --------------------- */
+    // <KeyID -> Account>
+    CDBMultiValueCache< dbk::CDP,          string,             CUserCdp >      cdpCache;
 };
 
 #endif //PERSIST_CDP_CACHE_H

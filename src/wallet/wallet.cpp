@@ -28,7 +28,7 @@ using namespace boost::assign;
 using namespace std;
 using namespace boost;
 
-string CWallet::defaultFilename("");
+string CWallet::defaultFileName("");
 
 bool CWallet::Unlock(const SecureString &strWalletPassphrase) {
     CCrypter crypter;
@@ -189,7 +189,7 @@ void CWallet::EraseTransaction(const uint256 &hash) {
 void CWallet::ResendWalletTransactions() {
     vector<uint256> erase;
     for (auto &te : unconfirmedTx) {
-        // Do not sumit the tx if in mempool already.
+        // Do not submit the tx if in mempool already.
         if (mempool.Exists(te.first)) {
             continue;
         }
@@ -222,12 +222,12 @@ std::tuple<bool, string> CWallet::CommitTx(CBaseTx *pTx) {
         }
     }
 
-    uint256 txhash      = pTx->GetHash();
-    unconfirmedTx[txhash] = pTx->GetNewInstance();
-    bool flag           = CWalletDB(strWalletFile).WriteUnconfirmedTx(txhash, unconfirmedTx[txhash]);
-    ::RelayTransaction(pTx, txhash);
+    uint256 txHash        = pTx->GetHash();
+    unconfirmedTx[txHash] = pTx->GetNewInstance();
+    bool flag             = CWalletDB(strWalletFile).WriteUnconfirmedTx(txHash, unconfirmedTx[txHash]);
+    ::RelayTransaction(pTx, txHash);
 
-    return std::make_tuple(flag, txhash.ToString());
+    return std::make_tuple(flag, txHash.ToString());
 }
 
 DBErrors CWallet::LoadWallet(bool fFirstRunRet) {
@@ -294,20 +294,20 @@ bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
         LOCK(cs_wallet);
         mapMasterKeys[++nMasterKeyMaxID] = kMasterKey;
         if (fFileBacked) {
-            assert(!pwalletdbEncryption);
-            pwalletdbEncryption = new CWalletDB(strWalletFile);
-            if (!pwalletdbEncryption->TxnBegin()) {
-                delete pwalletdbEncryption;
-                pwalletdbEncryption = NULL;
+            assert(!pWalletDbEncryption);
+            pWalletDbEncryption = new CWalletDB(strWalletFile);
+            if (!pWalletDbEncryption->TxnBegin()) {
+                delete pWalletDbEncryption;
+                pWalletDbEncryption = NULL;
                 return false;
             }
-            pwalletdbEncryption->WriteMasterKey(nMasterKeyMaxID, kMasterKey);
+            pWalletDbEncryption->WriteMasterKey(nMasterKeyMaxID, kMasterKey);
         }
 
         if (!EncryptKeys(vMasterKey)) {
             if (fFileBacked) {
-                pwalletdbEncryption->TxnAbort();
-                delete pwalletdbEncryption;
+                pWalletDbEncryption->TxnAbort();
+                delete pWalletDbEncryption;
             }
             // We now probably have half of our keys encrypted in memory, and half not...
             // die and let the user reload their unencrypted wallet.
@@ -315,18 +315,18 @@ bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
         }
 
         // Encryption was introduced in version 0.4.0
-        SetMinVersion(FEATURE_WALLETCRYPT, pwalletdbEncryption);
+        SetMinVersion(FEATURE_WALLETCRYPT, pWalletDbEncryption);
 
         if (fFileBacked) {
-            if (!pwalletdbEncryption->TxnCommit()) {
-                delete pwalletdbEncryption;
+            if (!pWalletDbEncryption->TxnCommit()) {
+                delete pWalletDbEncryption;
                 // We now have keys encrypted in memory, but not on disk...
                 // die to avoid confusion and let the user reload their unencrypted wallet.
                 assert(false);
             }
 
-            delete pwalletdbEncryption;
-            pwalletdbEncryption = NULL;
+            delete pWalletDbEncryption;
+            pWalletDbEncryption = NULL;
         }
 
         Lock();
@@ -348,9 +348,9 @@ bool CWallet::SetMinVersion(enum WalletFeature nVersion, CWalletDB *pWalletDbIn)
 
     nWalletVersion = nVersion;
     if (fFileBacked) {
-        CWalletDB *pwalletdb = pWalletDbIn ? pWalletDbIn : new CWalletDB(strWalletFile);
-        pwalletdb->WriteMinVersion(nWalletVersion);
-        if (!pWalletDbIn) delete pwalletdb;
+        CWalletDB *pWalletDb = pWalletDbIn ? pWalletDbIn : new CWalletDB(strWalletFile);
+        pWalletDb->WriteMinVersion(nWalletVersion);
+        if (!pWalletDbIn) delete pWalletDb;
     }
 
     return true;
@@ -367,17 +367,17 @@ bool CWallet::StartUp(string &strWalletFile) {
         return true;
     };
 
-    defaultFilename   = SysCfg().GetArg("-wallet", "wallet.dat");
+    defaultFileName   = SysCfg().GetArg("-wallet", "wallet.dat");
     string strDataDir = GetDataDir().string();
 
     // Wallet file must be a plain filename without a directory
-    if (defaultFilename != boost::filesystem::basename(defaultFilename) +
-                               boost::filesystem::extension(defaultFilename))
-        return InitError(strprintf(("Wallet %s resides outside data directory %s"), defaultFilename,
+    if (defaultFileName != boost::filesystem::basename(defaultFileName) +
+                               boost::filesystem::extension(defaultFileName))
+        return InitError(strprintf(("Wallet %s resides outside data directory %s"), defaultFileName,
                                    strDataDir));
 
     if (strWalletFile == "") {
-        strWalletFile = defaultFilename;
+        strWalletFile = defaultFileName;
     }
     LogPrint("INFO", "Using wallet %s\n", strWalletFile);
 
@@ -519,8 +519,8 @@ bool CWallet::AddCryptedKey(const CPubKey &vchPubKey,
 
     {
         LOCK(cs_wallet);
-        if (pwalletdbEncryption)
-            return pwalletdbEncryption->WriteCryptedKey(vchPubKey, vchCryptedSecret);
+        if (pWalletDbEncryption)
+            return pWalletDbEncryption->WriteCryptedKey(vchPubKey, vchCryptedSecret);
         else
             return CWalletDB(strWalletFile).WriteCryptedKey(vchPubKey, vchCryptedSecret);
     }
@@ -580,7 +580,7 @@ bool CWallet::IsReadyForCoolMiner(const CAccountCache &view) const {
     return false;
 }
 
-bool CWallet::ClearAllCkeyForCoolMiner() {
+bool CWallet::ClearAllMainKeysForCoolMiner() {
     for (auto &item : mapKeys) {
         if (item.second.CleanMainKey()) {
             CWalletDB(strWalletFile).WriteKeyStoreValue(item.first, item.second, nWalletVersion);
@@ -599,7 +599,7 @@ void CWallet::SetNull() {
     nWalletVersion      = 0;
     fFileBacked         = false;
     nMasterKeyMaxID     = 0;
-    pwalletdbEncryption = NULL;
+    pWalletDbEncryption = NULL;
 }
 
 bool CWallet::LoadMinVersion(int nVersion) {

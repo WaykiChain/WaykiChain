@@ -26,7 +26,7 @@
 #include "sigcache.h"
 #include "persistence/accountdb.h"
 #include "persistence/block.h"
-#include "persistence/dex.h"
+#include "persistence/dexdb.h"
 #include "tx/txmempool.h"
 #include "tx/accountregtx.h"
 #include "tx/bcointx.h"
@@ -331,16 +331,16 @@ public:
 
         pBlockTreeDb = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
 
-        pAccountDb      = new CDBAccess(DB_NAME_ACCOUNT, nAccountDBCache, false, fReIndex);
+        pAccountDb      = new CDBAccess(DBNameType::ACCOUNT, nAccountDBCache, false, fReIndex);
         pAccountCache   = new CAccountCache(pAccountDb);
 
-        pContractDb     = new CDBAccess(DB_NAME_CONTRACT, nContractDBCache, false, fReIndex);
+        pContractDb     = new CDBAccess(DBNameType::CONTRACT, nContractDBCache, false, fReIndex);
         pContractCache  = new CContractCache(pContractDb);
 
-        pDelegateDb     = new CDBAccess(DB_NAME_DELEGATE, nDelegateDBCache, false, fReIndex);
+        pDelegateDb     = new CDBAccess(DBNameType::DELEGATE, nDelegateDBCache, false, fReIndex);
         pDelegateCache  = new CDelegateCache(pDelegateDb);
 
-        pCdpDb          = new CDBAccess(DB_NAME_CDP, nAccountDBCache, false, fReIndex); //TODO fix cache size
+        pCdpDb          = new CDBAccess(DBNameType::CDP, nAccountDBCache, false, fReIndex); //TODO fix cache size
         pCdpCache       = new CCdpCacheManager(pCdpDb);
 
         pDexCache       = new CDexCache();

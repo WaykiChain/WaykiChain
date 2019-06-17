@@ -51,7 +51,7 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface{
 private:
     CWallet();
 
-    CWalletDB *pwalletdbEncryption;
+    CWalletDB *pWalletDbEncryption;
 
     static bool StartUp(string &strWalletFile);
 
@@ -73,7 +73,7 @@ public:
     MasterKeyMap mapMasterKeys;
     unsigned int nMasterKeyMaxID;
 
-    static string defaultFilename;    //默认钱包文件名  wallet.dat
+    static string defaultFileName;    //默认钱包文件名  wallet.dat
 public:
 
     IMPLEMENT_SERIALIZE
@@ -115,7 +115,7 @@ public:
 
     bool CleanAll(); //just for unit test
     bool IsReadyForCoolMiner(const CAccountCache& view)const;
-    bool ClearAllCkeyForCoolMiner();
+    bool ClearAllMainKeysForCoolMiner();
 
     CWallet(string strWalletFileIn);
     void SetNull() ;
