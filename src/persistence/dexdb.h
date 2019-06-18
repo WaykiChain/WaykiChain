@@ -39,27 +39,21 @@ struct CDEXMarketPriceOrder {
     CUserID orderUid;
     uint64_t orderAmount;
 
-     bool operator()(const CDEXMarketPriceOrder &a, const CDEXMarketPriceOrder &b) {
-        return a.orderPrice < b.orderPrice;
-    }
 };
 
-//System-generated Market Order
-// wicc -> wusd
-// micc -> wusd
-// wusd -> micc
-struct CDEXSysMarketPriceOrder {
+// System-generated Market Order
+// wicc -> wusd (cdp forced liquidation)
+// micc -> wusd (inflate micc to get wusd)
+// wusd -> micc (pay interest to get micc to burn)
+struct CDEXSysForceSellBcoinsOrder {
     CUserID cdpOwnerUid;
     uint64_t bcoinsAmount;
     uint64_t scoinsAmount;
-    double collateralRatioByAmount; //fixed: 100*  bcoinsAmount / scoinsAmount
-    double collateralRatioByValue; // collateralRatioAmount * wiccMedianPrice
+    double collateralRatioByAmount; // fixed: 100*  bcoinsAmount / scoinsAmount
+    double collateralRatioByValue;  // collateralRatioAmount * wiccMedianPrice
 
     uint64_t orderDiscount; // *1000 E.g. 97% * 1000 = 970
 
-    bool operator()(const CDexForcedCdpOrder &a, const CDexForcedCdpOrder &b) {
-        return a.collateralRatioByAmount < b.collateralRatioByAmount;
-    }
 };
 
 class CDexCache {
