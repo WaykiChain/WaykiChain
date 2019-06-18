@@ -84,6 +84,7 @@ namespace dbk {
         DEFINE( CONTRACT_ACCOUNT,     "cacc",  CONTRACT )      /* cacc{$ContractRegId}{$AccUserId} --> appUserAccount */ \
         /**** delegate db                                                                     */ \
         DEFINE( VOTE,                 "vote",  DELEGATE )      /* "vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1 */ \
+        DEFILE( REGID_VOTE,           "ridv",  DELEGATE )      /* "ridv --> $votes" */
         /**** cdp db                                                                     */ \
         DEFINE( STAKE_FCOIN,          "fcoin", CDP )           /* fcoin{(uint64t)MAX - stakedFcoins}_{RegId} --> 1 */ \
         DEFINE( CDP,                  "cdp",   CDP )           /* cdp{$RegID} --> blockHeight,mintedScoins */ \
@@ -163,7 +164,7 @@ namespace dbk {
 
     template<typename KeyElement>
     bool ParseDbKey(const std::string& key, PrefixType keyPrefixType, KeyElement &keyElement) {
-        ParseDbKey(Slice(key), keyPrefixType, keyElement);
+        return ParseDbKey(Slice(key), keyPrefixType, keyElement);
     }
 }
 
