@@ -8,6 +8,7 @@
 #define ACCOUNTS_H
 
 #include <boost/variant.hpp>
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -30,7 +31,11 @@ enum CoinType: uint8_t {
     WUSD = 3,
 };
 
-static const unordered_set<CoinType> COINT_TYPE_SET = { WICC, MICC, WUSD};
+struct CoinTypeHash {
+    size_t operator()(const CoinType& type) const noexcept { return std::hash<int>{}(type); }
+};
+
+static const unordered_set<CoinType, CoinTypeHash> COINT_TYPE_SET = { WICC, MICC, WUSD};
 
 enum PriceType: uint8_t {
     USD     = 1,
@@ -50,8 +55,8 @@ enum BalanceOpType : uint8_t {
 
 class CAccount {
 public:
-    CKeyID keyID;         //!< keyID of the account (interchangeable to address)
-    CRegID regID;         //!< regID of the account
+    CKeyID keyID;         //!< KeyID of the account (interchangeable to address)
+    CRegID regID;         //!< RegID of the account
     CNickID nickID;       //!< Nickname ID of the account (maxlen=32)
     CPubKey pubKey;       //!< account public key
     CPubKey minerPubKey;  //!< miner saving account public key
@@ -60,9 +65,9 @@ public:
     uint64_t scoins;        //!< StableCoin balance
     uint64_t fcoins;        //!< FundCoin balance
 
-    uint64_t frozenDEXBcoins;  //frozen bcoins in DEX
-    uint64_t frozenDEXScoins;  //frozen scoins in DEX
-    uint64_t frozenDEXFcoins;  //frozen fcoins in DEX
+    uint64_t frozenDEXBcoins;  //!< frozen bcoins in DEX
+    uint64_t frozenDEXScoins;  //!< frozen scoins in DEX
+    uint64_t frozenDEXFcoins;  //!< frozen fcoins in DEX
 
     uint64_t stakedBcoins;  //!< Staked/Collateralized BaseCoins (accumulated)
     uint64_t stakedFcoins;  //!< Staked FundCoins for pricefeed right (accumulated)
@@ -304,7 +309,7 @@ public:
         receivedVotes(0),
         lastVoteHeight(0),
         candidateVotes(),
-        hasOpenCdp(false) 
+        hasOpenCdp(false)
         {}
 
     CAccountLog(): CAccountLog(CKeyID()) {}

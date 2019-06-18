@@ -18,13 +18,6 @@
 
 using namespace json_spirit;
 
-enum DbOpLogType {
-    DB_OP_CONTRACT,
-    DB_OP_CDP,
-    DB_OP_DELEGATE
-};
-
-
 class CDbOpLog {
 private:
     mutable dbk::PrefixType prefixType;
@@ -104,18 +97,6 @@ public:
     }
 };
 
-inline std::string GetDbOpLogTypeName(DbOpLogType type){
-    switch (type) {
-    case DB_OP_CONTRACT:
-        return "DB_OP_CONTRACT";
-    case DB_OP_CDP:
-        return "DB_OP_CDP";
-    case DB_OP_DELEGATE:
-        return "DB_OP_DELEGATE";
-    }
-    return "UNKNOWN";
-}
-
 typedef vector<CDbOpLog> CDbOpLogs;
 
 class CDBOpLogsMap {
@@ -124,7 +105,7 @@ public:
         assert(prefixType != dbk::EMPTY);
         const string& prefix = dbk::GetKeyPrefix(prefixType);
         auto it = mapDbOpLogs.find(prefix);
-        return it->second;        
+        return it->second;
     }
 
     CDbOpLogs& GetDbOpLogs(dbk::PrefixType prefixType) {
