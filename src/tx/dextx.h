@@ -20,12 +20,10 @@ public:
 
     CDEXBuyOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                 const CoinType buyCoinTypeIn, const uint64_t buyAmountIn, const uint64_t bidPriceIn):
-        CBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn) {
-
-        buyCoinType = buyCoinTypeIn;
-        buyAmount = buyAmountIn;
-        bidPrice = bidPriceIn;
-    }
+        CBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
+        buyCoinType(buyCoinTypeIn),
+        buyAmount(buyAmountIn),
+        bidPrice(bidPriceIn) {}
 
     ~CDEXBuyOrderTx() {}
 

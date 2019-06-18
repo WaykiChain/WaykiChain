@@ -30,6 +30,8 @@ enum CoinType: uint8_t {
     WUSD = 3,
 };
 
+static const unordered_set<CoinType> COINT_TYPE_SET = { WICC, MICC, WUSD};
+
 enum PriceType: uint8_t {
     USD     = 1,
     CNY     = 2,
@@ -84,6 +86,7 @@ public:
     bool OperateBalance(const CoinType coinType, const BalanceOpType opType, const uint64_t value);
     bool PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest);
     bool UndoOperateAccount(const CAccountLog& accountLog);
+    bool OperateDexOrder(CoinType coinType, uint64_t amount);
     bool ProcessDelegateVote(vector<CCandidateVote>& candidateVotesIn, const uint64_t curHeight);
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool StakeFcoins(const int64_t fcoinsToStake); //price feeder must stake fcoins
@@ -94,7 +97,7 @@ public:
     bool LiquidateCdp(const int64_t bcoinsToStake);
 
 public:
-    CAccount(CKeyID& keyId, CNickID& nickId, CPubKey& pubKey)
+    CAccount(const CKeyID& keyId, const CNickID& nickId, const CPubKey& pubKey)
         : keyID(keyId),
           nickID(nickId),
           pubKey(pubKey),
@@ -114,43 +117,10 @@ public:
         regID.Clean();
     }
 
-    CAccount()
-        : keyID(uint160()),
-          bcoins(0),
-          scoins(0),
-          fcoins(0),
-          frozenDEXBcoins(0),
-          frozenDEXScoins(0),
-          frozenDEXFcoins(0),
-          stakedBcoins(0),
-          stakedFcoins(0),
-          receivedVotes(0),
-          lastVoteHeight(0),
-          hasOpenCdp(false) {
-        pubKey      = CPubKey();
-        minerPubKey = CPubKey();
-        candidateVotes.clear();
-        regID.Clean();
-    }
+    CAccount() : CAccount(CKeyID(), CNickID(), CPubKey()) {}
 
     CAccount(const CAccount& other) {
-        this->keyID          = other.keyID;
-        this->regID          = other.regID;
-        this->nickID         = other.nickID;
-        this->pubKey         = other.pubKey;
-        this->minerPubKey    = other.minerPubKey;
-        this->bcoins         = other.bcoins;
-        this->scoins         = other.scoins;
-        this->fcoins         = other.fcoins;
-        this->frozenDEXBcoins = other.frozenDEXBcoins;
-        this->frozenDEXScoins = other.frozenDEXScoins;
-        this->frozenDEXFcoins = other.frozenDEXFcoins;
-        this->stakedBcoins   = other.stakedBcoins;
-        this->stakedFcoins   = other.stakedFcoins;
-        this->receivedVotes  = other.receivedVotes;
-        this->lastVoteHeight = other.lastVoteHeight;
-        this->candidateVotes = other.candidateVotes;
-        this->hasOpenCdp     = other.hasOpenCdp;
+        *this = other;
     }
 
     CAccount& operator=(const CAccount& other) {
@@ -279,6 +249,11 @@ public:
     uint64_t bcoins;                        //!< baseCoin balance
     uint64_t scoins;                        //!< stableCoin balance
     uint64_t fcoins;                        //!< fundCoin balance
+
+    uint64_t frozenDEXBcoins;               //!< frozen bcoins in DEX
+    uint64_t frozenDEXScoins;               //!< frozen scoins in DEX
+    uint64_t frozenDEXFcoins;               //!< frozen fcoins in DEX
+
     uint64_t stakedBcoins;                  //!< Staked/Collateralized BaseCoins
     uint64_t stakedFcoins;                  //!< Staked FundCoins for pricefeed right
 
@@ -297,6 +272,9 @@ public:
         READWRITE(VARINT(bcoins));
         READWRITE(VARINT(scoins));
         READWRITE(VARINT(fcoins));
+        READWRITE(VARINT(frozenDEXBcoins));
+        READWRITE(VARINT(frozenDEXScoins));
+        READWRITE(VARINT(frozenDEXFcoins));
         READWRITE(VARINT(stakedBcoins));
         READWRITE(VARINT(stakedFcoins));
         READWRITE(VARINT(receivedVotes));
@@ -306,67 +284,49 @@ public:
 
 public:
     CAccountLog(const CAccount& acct) {
-        keyID          = acct.keyID;
-        regID          = acct.regID;
-        nickID         = acct.nickID;
-        pubKey         = acct.pubKey;
-        minerPubKey    = acct.minerPubKey;
-        bcoins         = acct.bcoins;
-        scoins         = acct.scoins;
-        fcoins         = acct.fcoins;
-        stakedBcoins   = acct.stakedBcoins;
-        stakedFcoins   = acct.stakedFcoins;
-        receivedVotes  = acct.receivedVotes;
-        lastVoteHeight = acct.lastVoteHeight;
-        candidateVotes = acct.candidateVotes;
-        hasOpenCdp     = acct.hasOpenCdp;
+        SetValue(acct);
     }
 
-    CAccountLog(CKeyID& keyId) {
-        keyID = keyId;
-        regID.Clean();
-        nickID.Clean();
-        bcoins         = 0;
-        scoins         = 0;
-        fcoins         = 0;
-        stakedBcoins   = 0;
-        stakedFcoins   = 0;
-        receivedVotes  = 0;
-        lastVoteHeight = 0;
-        candidateVotes.clear();
-        hasOpenCdp = false;
-    }
+    CAccountLog(const CKeyID& keyIdIn):
+        keyID(keyIdIn),
+        regID(),
+        nickID(),
+        bcoins(0),
+        scoins(0),
+        fcoins(0),
 
-    CAccountLog() {
-        keyID = uint160();
-        regID.Clean();
-        nickID.Clean();
-        bcoins         = 0;
-        scoins         = 0;
-        fcoins         = 0;
-        stakedBcoins   = 0;
-        stakedFcoins   = 0;
-        receivedVotes  = 0;
-        lastVoteHeight = 0;
-        candidateVotes.clear();
-        hasOpenCdp = false;
-    }
+        frozenDEXBcoins(0),
+        frozenDEXScoins(0),
+        frozenDEXFcoins(0),
+
+        stakedBcoins(0),
+        stakedFcoins(0),
+        receivedVotes(0),
+        lastVoteHeight(0),
+        candidateVotes(),
+        hasOpenCdp(false) 
+        {}
+
+    CAccountLog(): CAccountLog(CKeyID()) {}
 
     void SetValue(const CAccount& acct) {
-        keyID          = acct.keyID;
-        regID          = acct.regID;
-        nickID         = acct.nickID;
-        pubKey         = acct.pubKey;
-        minerPubKey    = acct.minerPubKey;
-        bcoins         = acct.bcoins;
-        scoins         = acct.scoins;
-        fcoins         = acct.fcoins;
-        stakedBcoins   = acct.stakedBcoins;
-        stakedFcoins   = acct.stakedFcoins;
-        receivedVotes  = acct.receivedVotes;
-        lastVoteHeight = acct.lastVoteHeight;
-        candidateVotes = acct.candidateVotes;
-        hasOpenCdp     = acct.hasOpenCdp;
+        keyID           = acct.keyID;
+        regID           = acct.regID;
+        nickID          = acct.nickID;
+        pubKey          = acct.pubKey;
+        minerPubKey     = acct.minerPubKey;
+        bcoins          = acct.bcoins;
+        scoins          = acct.scoins;
+        fcoins          = acct.fcoins;
+        frozenDEXBcoins = acct.frozenDEXBcoins;
+        frozenDEXScoins = acct.frozenDEXScoins;
+        frozenDEXFcoins = acct.frozenDEXFcoins;
+        stakedBcoins    = acct.stakedBcoins;
+        stakedFcoins    = acct.stakedFcoins;
+        receivedVotes   = acct.receivedVotes;
+        lastVoteHeight  = acct.lastVoteHeight;
+        candidateVotes  = acct.candidateVotes;
+        hasOpenCdp      = acct.hasOpenCdp;
     }
 
     string ToString() const;

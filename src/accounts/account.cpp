@@ -30,6 +30,10 @@ bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
     bcoins         = accountLog.bcoins;
     scoins         = accountLog.scoins;
     fcoins         = accountLog.fcoins;
+
+    frozenDEXBcoins = accountLog.frozenDEXBcoins;
+    frozenDEXScoins = accountLog.frozenDEXScoins;
+    frozenDEXFcoins = accountLog.frozenDEXFcoins;
     stakedBcoins   = accountLog.stakedBcoins;
     stakedFcoins   = accountLog.stakedFcoins;
     receivedVotes  = accountLog.receivedVotes;
@@ -39,6 +43,32 @@ bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
 
     LogPrint("undo_account", "before operate:%s\n", ToString().c_str());
     return true;
+}
+
+bool CAccount::OperateDexOrder(CoinType coinType, uint64_t amount) {
+
+    switch (coinType) {
+        case WICC:
+            if (amount > bcoins) return ERRORMSG("CAccount::OperateDexOrder, amount larger than bcoins");
+            bcoins -= amount;
+            frozenDEXBcoins += amount; 
+            assert(!IsMoneyOverflow(bcoins) && !IsMoneyOverflow(frozenDEXBcoins)); 
+            break;
+        case MICC:
+            if (amount > scoins) return ERRORMSG("CAccount::OperateDexOrder, amount larger than scoins");
+            scoins -= amount;
+            frozenDEXScoins += amount; 
+            assert(!IsMoneyOverflow(scoins) && !IsMoneyOverflow(frozenDEXScoins)); 
+            break;
+        case WUSD:
+            if (amount > fcoins) return ERRORMSG("CAccount::OperateDexOrder, amount larger than fcoins");
+            fcoins -= amount;
+            frozenDEXFcoins += amount; 
+            assert(!IsMoneyOverflow(fcoins) && !IsMoneyOverflow(frozenDEXFcoins)); 
+            break;
+        default: return ERRORMSG("CAccount::OperateDexOrder, coin type error");
+    }
+    return true; 
 }
 
 uint64_t CAccount::GetAccountProfit(const uint64_t curHeight) {

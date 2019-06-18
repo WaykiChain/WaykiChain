@@ -593,7 +593,7 @@ bool CContractCache::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nI
 
 bool CContractCache::UndoTxHashByAddress(CDBOpLogsMap &dbOpLogsMap) {
     auto &dbOpLogs = dbOpLogsMap.GetDbOpLogs(acctTxListCache.GetPrefixType());
-    UndoDatas(acctTxListCache.GetPrefixType(), dbOpLogs);
+    return UndoDatas(acctTxListCache.GetPrefixType(), dbOpLogs);
 }
 
 
