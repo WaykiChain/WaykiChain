@@ -1045,7 +1045,7 @@ static int ExQueryAccountBalanceFunc(lua_State *L) {
     }
     else
     {
-        uint64_t nbalance = aAccount.GetFreeBCoins();
+        uint64_t nbalance = aAccount.GetFreeBcoins();
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << nbalance;
         vector<unsigned char> TMP(tep.begin(),tep.end());

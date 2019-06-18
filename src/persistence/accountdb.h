@@ -97,7 +97,7 @@ public:
     bool EraseAccountByKeyId(const CUserID &userId);
     bool EraseKeyId(const CUserID &userId);
     bool HaveAccount(const CUserID &userId) const;
-    int64_t GetFreeBCoins(const CUserID &userId) const;
+    int64_t GetFreeBcoins(const CUserID &userId) const;
     bool Flush();
     unsigned int GetCacheSize() const;
     Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY);
@@ -111,7 +111,7 @@ private:
 /*  CDBScalarValueCache     prefixType             value           variable           */
 /*  -------------------- --------------------   -------------   --------------------- */
     // best blockHash
-    CDBScalarValueCache< dbk::BEST_BLOCKHASH,     uint256>        blockHashCache; 
+    CDBScalarValueCache< dbk::BEST_BLOCKHASH,     uint256>        blockHashCache;
 
 /*  CDBScalarValueCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
@@ -119,7 +119,7 @@ private:
     CDBMultiValueCache< dbk::KEYID_ACCOUNT,        CKeyID,       CAccount >       keyId2AccountCache;
     // <RegID str -> KeyID>
     CDBMultiValueCache< dbk::REGID_KEYID,          string,       CKeyID >         regId2KeyIdCache;
-    // <NickID -> KeyID> 
+    // <NickID -> KeyID>
     CDBMultiValueCache< dbk::NICKID_KEYID,         CNickID,      CKeyID>          nickId2KeyIdCache;
 };
 

@@ -62,8 +62,8 @@ private:
 public:
     CPubKey vchDefaultKey ;
 
-    bool fFileBacked;         //初始化钱包文件名，为true
-    string strWalletFile;     //钱包文件名
+    bool fFileBacked;
+    string strWalletFile;
 
     map<uint256, CAccountTx> mapInBlockTx;
     map<uint256, std::shared_ptr<CBaseTx> > unconfirmedTx;
@@ -72,9 +72,7 @@ public:
     typedef std::map<unsigned int, CMasterKey> MasterKeyMap;
     MasterKeyMap mapMasterKeys;
     unsigned int nMasterKeyMaxID;
-
-    static string defaultFileName;    //默认钱包文件名  wallet.dat
-public:
+    static string defaultFileName;  // default to wallet.dat
 
     IMPLEMENT_SERIALIZE
     (
@@ -98,7 +96,7 @@ public:
             }
     )
     virtual ~CWallet(){};
-    int64_t GetFreeBCoins(bool IsConfirmed=true)const;
+    int64_t GetFreeBcoins(bool IsConfirmed = true) const;
 
     bool Sign(const CKeyID &keyID,const uint256 &hash,vector<unsigned char> &signature,bool IsMiner=false) const;
     //! Adds an encrypted key to the store, and saves it to disk.
@@ -106,7 +104,7 @@ public:
     bool LoadCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret);
 
     //! Adds a key to the store, without saving it to disk (used by LoadWallet)
-    bool LoadKeyCombi(const CKeyID & keyId, const CKeyCombi& keycombi) { return CBasicKeyStore::AddKeyCombi(keyId, keycombi);}
+    bool LoadKeyCombi(const CKeyID & keyId, const CKeyCombi& keyCombi) { return CBasicKeyStore::AddKeyCombi(keyId, keyCombi);}
     // Adds a key to the store, and saves it to disk.
     bool AddKey(const CKey &secret, const CKey &minerKey);
     bool AddKey(const CKeyID &keyId, const CKeyCombi &store);
@@ -142,7 +140,6 @@ public:
     int GetVersion() ;
 
     bool SetMinVersion(enum WalletFeature nVersion, CWalletDB* pWalletDbIn);
-
 
     static CWallet* GetInstance();
 
@@ -294,8 +291,8 @@ public:
     int blockHeight;
     map<uint256, std::shared_ptr<CBaseTx> > mapAccountTx;
 public:
-    CAccountTx(CWallet* pwallet = NULL, uint256 hash = uint256(), int height = 0) {
-        pWallet = pwallet;
+    CAccountTx(CWallet* pWalletIn = NULL, uint256 hash = uint256(), int height = 0) {
+        pWallet = pWalletIn;
         blockHash = hash;
         mapAccountTx.clear();
         blockHeight = height;
@@ -303,10 +300,10 @@ public:
 
     ~CAccountTx() { }
 
-    void BindWallet(CWallet* pwallet) {
+    void BindWallet(CWallet* pWalletIn) {
         if (pWallet == NULL) {
-            assert(pwallet != NULL);
-            pWallet = pwallet;
+            assert(pWalletIn != NULL);
+            pWallet = pWalletIn;
         }
     }
 
@@ -366,7 +363,6 @@ public:
         READWRITE(blockHeight);
         READWRITE(mapAccountTx);
     )
-
 };
 
 #endif

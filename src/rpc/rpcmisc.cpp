@@ -53,12 +53,12 @@ Value getbalance(const Array& params, bool fHelp)
     }
     Object obj;
     if (size == 0) {
-        obj.push_back(Pair("balance", ValueFromAmount(pWalletMain->GetFreeBCoins())));
+        obj.push_back(Pair("balance", ValueFromAmount(pWalletMain->GetFreeBcoins())));
         return obj;
     } else if (size == 1) {
         string addr = params[0].get_str();
         if (addr == "*") {
-            obj.push_back(Pair("balance", ValueFromAmount(pWalletMain->GetFreeBCoins())));
+            obj.push_back(Pair("balance", ValueFromAmount(pWalletMain->GetFreeBcoins())));
             return obj;
         } else {
             CKeyID keyid;
@@ -68,7 +68,7 @@ Value getbalance(const Array& params, bool fHelp)
             if (pWalletMain->HaveKey(keyid)) {
                 CAccount account;
                 if (pCdMan->pAccountCache->GetAccount(CUserID(keyid), account)) {
-                    obj.push_back(Pair("balance", ValueFromAmount(account.GetFreeBCoins())));
+                    obj.push_back(Pair("balance", ValueFromAmount(account.GetFreeBcoins())));
                     return obj;
                 }
             } else {
@@ -105,10 +105,10 @@ Value getbalance(const Array& params, bool fHelp)
                     pBlockIndex = pBlockIndex->pprev;
                     --nConf;
                 }
-                obj.push_back(Pair("balance", ValueFromAmount(pWalletMain->GetFreeBCoins() - nValue)));
+                obj.push_back(Pair("balance", ValueFromAmount(pWalletMain->GetFreeBcoins() - nValue)));
                 return obj;
             } else {
-                obj.push_back(Pair("balance", ValueFromAmount(pWalletMain->GetFreeBCoins(false))));
+                obj.push_back(Pair("balance", ValueFromAmount(pWalletMain->GetFreeBcoins(false))));
                 return obj;
             }
         } else {
@@ -138,10 +138,10 @@ Value getbalance(const Array& params, bool fHelp)
                         pBlockIndex = pBlockIndex->pprev;
                         --nConf;
                     }
-                    obj.push_back(Pair("balance", ValueFromAmount(pCdMan->pAccountCache->GetFreeBCoins(keyid) - nValue)));
+                    obj.push_back(Pair("balance", ValueFromAmount(pCdMan->pAccountCache->GetFreeBcoins(keyid) - nValue)));
                     return obj;
                 } else {
-                    obj.push_back(Pair("balance", ValueFromAmount(mempool.memPoolAccountCache.get()->GetFreeBCoins(keyid))));
+                    obj.push_back(Pair("balance", ValueFromAmount(mempool.memPoolAccountCache.get()->GetFreeBcoins(keyid))));
                     return obj;
                 }
             } else {
@@ -204,7 +204,7 @@ Value getinfo(const Array& params, bool fHelp)
 
     if (pWalletMain) {
         obj.push_back(Pair("walletversion", pWalletMain->GetVersion()));
-        obj.push_back(Pair("balance",       ValueFromAmount(pWalletMain->GetFreeBCoins())));
+        obj.push_back(Pair("balance",       ValueFromAmount(pWalletMain->GetFreeBcoins())));
     }
 
     obj.push_back(Pair("timeoffset",        GetTimeOffset()));

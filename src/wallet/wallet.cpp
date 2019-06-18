@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The WaykiChain developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -96,7 +96,8 @@ bool CWallet::ChangeWalletPassphrase(const SecureString &strOldWalletPassphrase,
                     return false;
                 if (!crypter.Encrypt(vMasterKey, pMasterKey.second.vchCryptedKey)) return false;
                 CWalletDB(strWalletFile).WriteMasterKey(pMasterKey.first, pMasterKey.second);
-                if (fWasLocked) Lock();
+                if (fWasLocked)
+                    Lock();
                 return true;
             }
         }
@@ -111,28 +112,28 @@ void CWallet::SetBestChain(const CBlockLocator &loc) {
 }
 
 void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *pBlock) {
-    assert(pTx != NULL || pBlock != NULL);
+    assert(pTx != nullptr || pBlock != nullptr);
 
-    if (hash.IsNull() && pTx == NULL) {  // this is block Sync
+    if (hash.IsNull() && pTx == nullptr) {  // this is block Sync
         uint256 blockhash         = pBlock->GetHash();
         auto GenesisBlockProgress = [&]() {};
 
         auto ConnectBlockProgress = [&]() {
-            CAccountTx newtx(this, blockhash, pBlock->GetHeight());
+            CAccountTx netTx(this, blockhash, pBlock->GetHeight());
             for (const auto &sptx : pBlock->vptx) {
-                uint256 hashtx = sptx->GetHash();
+                uint256 txid = sptx->GetHash();
                 // confirm the tx is mine
                 if (IsMine(sptx.get())) {
-                    newtx.AddTx(hashtx, sptx.get());
+                    netTx.AddTx(txid, sptx.get());
                 }
-                if (unconfirmedTx.count(hashtx) > 0) {
-                    CWalletDB(strWalletFile).EraseUnconfirmedTx(hashtx);
-                    unconfirmedTx.erase(hashtx);
+                if (unconfirmedTx.count(txid) > 0) {
+                    CWalletDB(strWalletFile).EraseUnconfirmedTx(txid);
+                    unconfirmedTx.erase(txid);
                 }
             }
-            if (newtx.GetTxSize() > 0) {          // write to disk
-                mapInBlockTx[blockhash] = newtx;  // add to map
-                newtx.WriteToDisk();
+            if (netTx.GetTxSize() > 0) {          // write to disk
+                mapInBlockTx[blockhash] = netTx;  // add to map
+                netTx.WriteToDisk();
             }
         };
 
@@ -154,7 +155,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
             }
         };
 
-        auto IsConnect = [&]() {  // test is connect or disconct
+        auto IsConnect = [&]() {  // Connect or disconnect
             return mapBlockIndex.count(blockhash) && chainActive.Contains(mapBlockIndex[blockhash]);
         };
 
@@ -235,7 +236,7 @@ DBErrors CWallet::LoadWallet(bool fFirstRunRet) {
     return CWalletDB(strWalletFile, "cr+").LoadWallet(this);
 }
 
-int64_t CWallet::GetFreeBCoins(bool IsConfirmed) const {
+int64_t CWallet::GetFreeBcoins(bool IsConfirmed) const {
     int64_t ret = 0;
     {
         LOCK2(cs_main, cs_wallet);
@@ -243,9 +244,9 @@ int64_t CWallet::GetFreeBCoins(bool IsConfirmed) const {
         GetKeys(setKeyId);
         for (auto &keyId : setKeyId) {
             if (!IsConfirmed)
-                ret += mempool.memPoolAccountCache.get()->GetFreeBCoins(keyId);
+                ret += mempool.memPoolAccountCache.get()->GetFreeBcoins(keyId);
             else
-                ret += pCdMan->pAccountCache->GetFreeBCoins(keyId);
+                ret += pCdMan->pAccountCache->GetFreeBcoins(keyId);
         }
     }
     return ret;
@@ -298,7 +299,7 @@ bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
             pWalletDbEncryption = new CWalletDB(strWalletFile);
             if (!pWalletDbEncryption->TxnBegin()) {
                 delete pWalletDbEncryption;
-                pWalletDbEncryption = NULL;
+                pWalletDbEncryption = nullptr;
                 return false;
             }
             pWalletDbEncryption->WriteMasterKey(nMasterKeyMaxID, kMasterKey);
@@ -326,7 +327,7 @@ bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
             }
 
             delete pWalletDbEncryption;
-            pWalletDbEncryption = NULL;
+            pWalletDbEncryption = nullptr;
         }
 
         Lock();
@@ -426,12 +427,16 @@ bool CWallet::StartUp(string &strWalletFile) {
     return true;
 }
 
+string CWallet::GenerateFingerprint() const {
+
+}
+
 CWallet *CWallet::GetInstance() {
     string strWalletFile("");
     if (StartUp(strWalletFile)) {
         return new CWallet(strWalletFile);
     }
-    return NULL;
+    return nullptr;
 }
 
 Object CAccountTx::ToJsonObj(CKeyID const &key) const {
@@ -599,7 +604,7 @@ void CWallet::SetNull() {
     nWalletVersion      = 0;
     fFileBacked         = false;
     nMasterKeyMaxID     = 0;
-    pWalletDbEncryption = NULL;
+    pWalletDbEncryption = nullptr;
 }
 
 bool CWallet::LoadMinVersion(int nVersion) {

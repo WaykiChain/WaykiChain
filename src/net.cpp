@@ -26,8 +26,14 @@
 #include <miniupnpc/upnperrors.h>
 #endif
 
-#include <string>
+#include <sys/statvfs.h>
+#include <sys/sysinfo.h>
+#include <sys/utsname.h>
+
+#include <fstream>
 #include <sstream>
+#include <string>
+#include <thread>
 
 #include <boost/filesystem.hpp>
 
@@ -263,34 +269,66 @@ bool IsReachable(const CNetAddr& addr) {
     return vfReachable[net] && !vfLimited[net];
 }
 
-bool GetMyExternalIP(CNetAddr& ipRet) {
-    // TODO: acquire system information
-    // TODO: addr:uri
-    string addr = "10.0.0.4:48022";
-    string uri  = "/ip/report";
-    string content =
-        "{\"coreCount\":21, \"fingerPrint\":\"9tj9wr9fjw9ffsfsdfsdv\",\"memeryCapability\":23229, "
-        "\"osType\":\"LINUX\", \"osVersion\":\"21923892892dfisvhd8ivsdi\"}'\"";
+static string GetSystemInfo() {
+    struct sysinfo info;
+    sysinfo(&info);
 
-    CService addrConnect(addr, 80, true);
+    struct statvfs fsinfo;
+    statvfs("/", &fsinfo);
+
+    struct utsname utsName;
+    uname(&utsName);
+
+    string cpu           = std::to_string(std::thread::hardware_concurrency());
+    string memory        = std::to_string(info.totalram * info.mem_unit / 1024 / 1024);      // Unit: MB
+    string totalHDD      = std::to_string(fsinfo.f_frsize * fsinfo.f_blocks / 1024 / 1024);  // Unit: MB
+    string freeHDD       = std::to_string(fsinfo.f_bsize * fsinfo.f_bfree / 1024 / 1024);    // Unit: MB
+    string systemName    = string(utsName.sysname);
+    string systemRelease = string(utsName.release);
+
+    string json;
+    json += "{";
+    json += "\"coreCount\":" + cpu + ",";
+    // TODO: generate fingerpints.
+    json += "\"fingerprint\": \"xxx\",";
+    json += "\"memoryCapability\":" + memory + ",";
+    json += "\"totalHDD\":" + totalHDD + ",";
+    json += "\"freeHDD\":" + freeHDD + ",";
+    json += "\"osType\":\"" + systemName + "\",";
+    json += "\"osVersion\":\"" + systemRelease + "\"";
+    json += "}";
+
+    return json;
+}
+
+bool GetMyExternalIP(CNetAddr& ipRet) {
+    // TODO: replace the default server.
+    string reportIp = SysCfg().GetArg("-reportip", "10.0.0.4:48022/ip/report");
+    auto pos        = reportIp.find("/");
+    assert(pos != std::string::npos);
+    string host     = reportIp.substr(0, pos);
+    string uri      = reportIp.substr(pos);
+    string content  = GetSystemInfo();
+
+    CService addrConnect(host, 80, true);
     if (!addrConnect.IsValid()) {
-        LogPrint("ERROR", "GetMyExternalIP() : server[%s] is out of service", addr);
+        LogPrint("ERROR", "GetMyExternalIP() : service is unavalable: %s", host);
         return false;
     }
 
     stringstream stream;
     stream << "POST " << uri;
     stream << " HTTP/1.1\r\n";
-    stream << "Host: " << addr << "\r\n";
+    stream << "Host: " << host << "\r\n";
     stream << "Content-Type: application/json\r\n";
     stream << "Content-Length: " << content.length() << "\r\n";
     stream << "Connection: close\r\n\r\n";
-    stream << content.c_str();
+    stream << content;
     string request = stream.str();
 
     SOCKET hSocket;
     if (!ConnectSocket(addrConnect, hSocket)) {
-        return ERRORMSG("GetMyExternalIP() : failed to connect to server:%s", addrConnect.ToString());
+        return ERRORMSG("GetMyExternalIP() : failed to connect to server: %s", addrConnect.ToString());
     }
 
     send(hSocket, request.c_str(), request.length(), MSG_NOSIGNAL);
@@ -305,7 +343,7 @@ bool GetMyExternalIP(CNetAddr& ipRet) {
     closesocket(hSocket);
 
     if (strlen(buffer) == 0) {
-        return ERRORMSG("GetMyExternalIP() : failed to receive data from server:%s", addrConnect.ToString());
+        return ERRORMSG("GetMyExternalIP() : failed to receive data from server: %s", addrConnect.ToString());
     } else {
         static const char* const key = "\"ipAddress\":\"";
         char* from                   = strstr(buffer, key);
@@ -315,11 +353,11 @@ bool GetMyExternalIP(CNetAddr& ipRet) {
 
         CService ipAddr(ip, 0, true);
         if (!ipAddr.IsValid() /* || !ipAddr.IsRoutable() */) {
-            return ERRORMSG("GetMyExternalIP() : invalid external ip address:%s", ip);
+            return ERRORMSG("GetMyExternalIP() : invalid external ip address: %s", ip);
         }
         ipRet.SetIP(ipAddr);
 
-        LogPrint("INFO", "GetMyExternalIP() : external ip address:%s\n", ip);
+        LogPrint("INFO", "GetMyExternalIP() : external ip address: %s\n", ip);
 
         return true;
     }

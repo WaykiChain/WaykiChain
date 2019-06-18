@@ -234,6 +234,7 @@ string HelpMessage() {
     strUsage += "  -onlynet=<net>         " + _("Only connect to nodes in network <net> (IPv4, IPv6 or Tor)") + "\n";
     strUsage += "  -port=<port>           " + _("Listen for connections on <port> (default: 8333 or testnet: 18333)") + "\n";
     strUsage += "  -proxy=<ip:port>       " + _("Connect through SOCKS proxy") + "\n";
+    strUsage += "  -reportip=<ip:port/uri>" + _("Report ip") + "\n";
     strUsage += "  -seednode=<ip>         " + _("Connect to a node to retrieve peer addresses, and disconnect") + "\n";
     strUsage += "  -socks=<n>             " + _("Select SOCKS version for -proxy (4 or 5, default: 5)") + "\n";
     strUsage += "  -timeout=<n>           " + _("Specify connection timeout in milliseconds (default: 5000)") + "\n";
@@ -248,6 +249,8 @@ string HelpMessage() {
 #ifdef ENABLE_WALLET
     strUsage += "\n" + _("Wallet options:") + "\n";
     strUsage += "  -disablewallet         " + _("Do not load the wallet and disable wallet RPC calls") + "\n";
+    strUsage += "  -genblock              " + _("Generate blocks (default: 0)") + "\n";
+    strUsage += "  -genblocklimit=<n>     " + _("Set the processor limit for when generation is on (-1 = unlimited, default: -1)") + "\n";
     strUsage += "  -keypool=<n>           " + _("Set key pool size to <n> (default: 100)") + "\n";
     strUsage += "  -paytxfee=<amt>        " + _("Fee per kB to add to transactions you send") + "\n";
     strUsage += "  -rescan                " + _("Rescan the block chain for missing wallet transactions") + " " + _("on startup") + "\n";
@@ -273,10 +276,6 @@ string HelpMessage() {
     strUsage += "                         " + _("If <category> is not supplied, output all debugging information.") + "\n";
     strUsage += "                         " + _("<category> can be:");
     strUsage += " addrman, alert, coindb, db, lock, rand, rpc, selectcoins, mempool, net";
-#ifdef ENABLE_WALLET
-    strUsage += "  -genblock              " + _("Generate blocks (default: 0)") + "\n";
-    strUsage += "  -genblocklimit=<n>     " + _("Set the processor limit for when generation is on (-1 = unlimited, default: -1)") + "\n";
-#endif
     strUsage += "  -help-debug            " + _("Show all debugging options (usage: --help -help-debug)") + "\n";
     strUsage += "  -logtimestamps         " + _("Prepend debug output with timestamp (default: 1)") + "\n";
     if (SysCfg().GetBoolArg("-help-debug", false)) {
@@ -728,7 +727,7 @@ bool AppInit(boost::thread_group &threadGroup) {
         RegisterWallet(pWalletMain);
         pWalletMain->LoadWallet(false);
     } catch (std::exception &e) {
-        cout << "load wallet failed:" << e.what() << endl;
+        cout << "load wallet failed: " << e.what() << endl;
     }
 
     int64_t nStart = GetTimeMillis();

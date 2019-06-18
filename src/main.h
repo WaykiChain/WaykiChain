@@ -52,6 +52,7 @@ class CBlockTreeDB;
 extern CCriticalSection cs_main;
 /** The currently-connected chain of blocks. */
 extern CChain chainActive;
+extern CSignatureCache signatureCache;
 
 /** the total blocks of burn fee need */
 static const unsigned int DEFAULT_BURN_BLOCK_SIZE = 50;
@@ -95,7 +96,6 @@ static const int64_t nDefaultDbCache = 100;
 static const int64_t nMaxDbCache = sizeof(void *) > 4 ? 4096 : 1024;
 // min. -dbcache in (MiB)
 static const int64_t nMinDbCache = 4;
-
 
 #ifdef USE_UPNP
 static const int fHaveUPnP = true;
@@ -240,7 +240,6 @@ bool IsFinalTx(CBaseTx *pBaseTx, int nBlockHeight = 0, int64_t nBlockTime = 0);
 
 //get tx operate account log
 bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &accountLogs);
-
 
 /** An in-memory indexed chain of blocks. */
 class CChain {
@@ -665,9 +664,6 @@ protected:
     friend void ::UnregisterAllWallets();
 };
 
-extern CSignatureCache signatureCache;
-
-
 /** Functions for validating blocks and updating the block tree */
 
 /** Undo the effects of this block (with given index) on the UTXO set represented by coins.
@@ -730,13 +726,11 @@ bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos);
 bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block);
 bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block);
 
-
-
+// global overloadding fun
 inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
     return pa->GetSerializeSize(nType, nVersion) + 1;
 }
 
-//global overloadding fun
 template <typename Stream>
 void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
     unsigned char nTxType = pa->nTxType;
@@ -763,7 +757,6 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
     }
 }
 
-//global overloadding fun
 template <typename Stream>
 void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
     unsigned char nTxType;

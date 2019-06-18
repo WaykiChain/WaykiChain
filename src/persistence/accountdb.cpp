@@ -262,10 +262,10 @@ bool CAccountCache::Flush() {
     return true;
 }
 
-int64_t CAccountCache::GetFreeBCoins(const CUserID &userId) const {
+int64_t CAccountCache::GetFreeBcoins(const CUserID &userId) const {
     CAccount account;
     if (GetAccount(userId, account)) {
-        return account.GetFreeBCoins();
+        return account.GetFreeBcoins();
     }
     return 0;
 }

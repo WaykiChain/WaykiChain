@@ -369,7 +369,7 @@ Value sendtoaddress(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
 
         nAmount = AmountToRawValue(params[2]);
-        if (pCdMan->pAccountCache->GetFreeBCoins(sendKeyId) < nAmount + nDefaultFee)
+        if (pCdMan->pAccountCache->GetFreeBcoins(sendKeyId) < nAmount + nDefaultFee)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
     } else {
         if (!GetKeyId(params[0].get_str(), recvKeyId))
@@ -386,7 +386,7 @@ Value sendtoaddress(const Array& params, bool fHelp) {
         bool sufficientFee = false;
         for (auto& keyId : sKeyIds) {
             if (keyId != recvKeyId &&
-                (pCdMan->pAccountCache->GetFreeBCoins(keyId) >= nAmount + nDefaultFee)) {
+                (pCdMan->pAccountCache->GetFreeBcoins(keyId) >= nAmount + nDefaultFee)) {
                 sendKeyId     = keyId;
                 sufficientFee = true;
                 break;
@@ -453,7 +453,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
                                strprintf("Given fee(%ld) < Default fee (%ld)", nFee, nDefaultFee));
         }
 
-        if (pCdMan->pAccountCache->GetFreeBCoins(sendKeyId) < nAmount + nActualFee) {
+        if (pCdMan->pAccountCache->GetFreeBcoins(sendKeyId) < nAmount + nActualFee) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
         }
     } else {  // sender address omitted
@@ -477,7 +477,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
         bool sufficientFee = false;
         for (auto& keyId : sKeyIds) {
             if (keyId != recvKeyId &&
-                (pCdMan->pAccountCache->GetFreeBCoins(keyId) >= nAmount + nDefaultFee)) {
+                (pCdMan->pAccountCache->GetFreeBcoins(keyId) >= nAmount + nDefaultFee)) {
                 sendKeyId     = keyId;
                 sufficientFee = true;
                 break;
@@ -814,7 +814,7 @@ Value getassets(const Array& params, bool fHelp)
 //             rev = recvKeyId;
 //         }
 
-//         if(pCdMan->pAccountCache->GetFreeBCoins(sendreg) < nAmount + SysCfg().GetTxFee()) {
+//         if(pCdMan->pAccountCache->GetFreeBcoins(sendreg) < nAmount + SysCfg().GetTxFee()) {
 //             break;
 //         }
 
@@ -1105,7 +1105,7 @@ Value getwalletinfo(const Array& params, bool fHelp)
 
     Object obj;
     obj.push_back(Pair("wallet_version",    pWalletMain->GetVersion()));
-    obj.push_back(Pair("wallet_balance",    ValueFromAmount(pWalletMain->GetFreeBCoins())));
+    obj.push_back(Pair("wallet_balance",    ValueFromAmount(pWalletMain->GetFreeBcoins())));
     obj.push_back(Pair("wallet_encrypted",  pWalletMain->IsEncrypted()));
     obj.push_back(Pair("wallet_locked",     pWalletMain->IsLocked()));
     obj.push_back(Pair("unlocked_until",    nWalletUnlockTime));

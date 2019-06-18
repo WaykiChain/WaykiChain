@@ -122,11 +122,11 @@ BOOST_FIXTURE_TEST_CASE(tx_add_free,CTxTest) {
 //	accOperate.CompactAccount(CHAIN_HEIGHT);
 
 	for (int i = 0; i < TEST_SIZE; i++) {
-	//	uint64_t nOld = accOperate.GetRewardAmount(CHAIN_HEIGHT)+accOperate.GetFreeBCoins(CHAIN_HEIGHT);
+	//	uint64_t nOld = accOperate.GetRewardAmount(CHAIN_HEIGHT)+accOperate.GetFreeBcoins(CHAIN_HEIGHT);
 		uint64_t randValue = random(10);
 	//	CFund fundReward(randValue, CHAIN_HEIGHT - 1);
 		BOOST_CHECK(accOperate.OperateBalance(ADD_BCOIN, randValue, nHeight));
-		//BOOST_CHECK(accOperate.GetRewardAmount(CHAIN_HEIGHT)+accOperate.GetFreeBCoins(CHAIN_HEIGHT) == nOld + randValue);
+		//BOOST_CHECK(accOperate.GetRewardAmount(CHAIN_HEIGHT)+accOperate.GetFreeBcoins(CHAIN_HEIGHT) == nOld + randValue);
 
 	}
 

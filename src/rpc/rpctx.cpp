@@ -480,7 +480,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         if (account.IsRegistered())
             throw JSONRPCError(RPC_WALLET_ERROR, "Account was already registered");
 
-        uint64_t balance = account.GetFreeBCoins();
+        uint64_t balance = account.GetFreeBcoins();
         if (balance < fee) {
             LogPrint("ERROR", "balance=%d, vs fee=%d", balance, fee);
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
@@ -713,7 +713,7 @@ Value registercontracttx(const Array& params, bool fHelp)
         uint64_t balance = 0;
         CUserID userId   = keyId;
         if (pCdMan->pAccountCache->GetAccount(userId, account)) {
-            balance = account.GetFreeBCoins();
+            balance = account.GetFreeBcoins();
         }
 
         if (!account.IsRegistered()) {
@@ -818,7 +818,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
         }
 
-        uint64_t balance = account.GetFreeBCoins();
+        uint64_t balance = account.GetFreeBcoins();
         if (balance < fee) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
@@ -943,7 +943,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
         }
 
-        uint64_t balance = account.GetFreeBCoins();
+        uint64_t balance = account.GetFreeBcoins();
         if (balance < fee) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
@@ -1027,7 +1027,7 @@ Value listaddr(const Array& params, bool fHelp) {
 
             Object obj;
             obj.push_back(Pair("addr", keyId.ToAddress()));
-            obj.push_back(Pair("balance", (double)acctInfo.GetFreeBCoins()/ (double) COIN));
+            obj.push_back(Pair("balance", (double)acctInfo.GetFreeBcoins()/ (double) COIN));
             obj.push_back(Pair("hasminerkey", keyCombi.HaveMinerKey()));
             obj.push_back(Pair("regid",acctInfo.regID.ToString()));
             retArray.push_back(obj);
@@ -1831,7 +1831,7 @@ Value getaddrbalance(const Array& params, bool fHelp) {
         CAccount secureAcc;
         CUserID userId = keyId;
         if (pCdMan->pAccountCache->GetAccount(userId, secureAcc)) {
-            dbalance = (double) secureAcc.GetFreeBCoins() / (double) COIN;
+            dbalance = (double) secureAcc.GetFreeBcoins() / (double) COIN;
         }
     }
     return dbalance;

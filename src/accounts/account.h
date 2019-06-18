@@ -197,7 +197,7 @@ public:
         return !regID.IsEmpty();
     };
 
-    uint64_t GetFreeBCoins() const { return bcoins; }
+    uint64_t GetFreeBcoins() const { return bcoins; }
     uint64_t GetFreeScoins() const { return scoins; }
     uint64_t GetFreeFcoins() const { return fcoins; }
 

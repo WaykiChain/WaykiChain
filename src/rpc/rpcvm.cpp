@@ -150,7 +150,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     uint64_t balance = 0;
     if (spCW->accountCache.GetAccount(srcUserId, account)) {
-        balance = account.GetFreeBCoins();
+        balance = account.GetFreeBcoins();
     }
 
     if (!account.IsRegistered()) {
