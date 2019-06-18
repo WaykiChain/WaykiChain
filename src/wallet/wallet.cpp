@@ -427,10 +427,6 @@ bool CWallet::StartUp(string &strWalletFile) {
     return true;
 }
 
-string CWallet::GenerateFingerprint() const {
-
-}
-
 CWallet *CWallet::GetInstance() {
     string strWalletFile("");
     if (StartUp(strWalletFile)) {

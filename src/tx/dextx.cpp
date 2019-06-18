@@ -11,15 +11,15 @@
 // class CDEXBuyOrderTx
 
 string CDEXBuyOrderTx::ToString(CAccountCache &view) {
-
+    return ""; //TODO: ...
 }
 
 Object CDEXBuyOrderTx::ToJson(const CAccountCache &view) const {
-
+    return Object(); // TODO: ...
 }
 
 bool CDEXBuyOrderTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-
+    return false; // TODO: ...
 }
 bool CDEXBuyOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
@@ -107,16 +107,17 @@ bool CDEXBuyOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
 // class CDEXSellOrderTx
 
 string CDEXSellOrderTx::ToString(CAccountCache &view) {
-
+    return ""; //TODO: ...
 }
 
 Object CDEXSellOrderTx::ToJson(const CAccountCache &view) const {
-
+    return Object(); // TODO: ...
 }
 
 bool CDEXSellOrderTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-
+    return false; // TODO: ...
 }
+
 bool CDEXSellOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
