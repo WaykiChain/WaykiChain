@@ -98,10 +98,8 @@ public:
     bool LoadTopDelegates();
     bool ExistDelegate(const CRegID &regId);
 
-    bool SetDelegateData(const CAccount &delegateAcct, CDbOpLog &operLog);
-    bool EraseDelegateData(const CAccountLog &delegateAcct, CDbOpLog &operLog);
-    bool SetDelegateData(const CDbOpLog &operLog);
-    bool EraseDelegateData(const CDbOpLog &operLog);
+    bool SetDelegateVotes(const CRegID &regId, const uint64_t votes);
+    bool EraseDelegateVotes(const CRegID &regId, const uint64_t votes);
 
     void SetBaseView(CDelegateCache *pBaseIn) {
         voteRegIdCache = pBaseIn->voteRegIdCache;
