@@ -160,7 +160,9 @@ public:
         pCursor->Seek(dbk::GetKeyPrefix(prefixType));
 
         for (; (count < maxNum) && pCursor->Valid(); pCursor->Next()) {
-            dbk::ParseDbKey(slKey, prefixType, key);
+            if (!dbk::ParseDbKey(slKey, prefixType, key)) {
+                break;
+            }
 
             if (expiredKeys.count(key)) {
                 continue;
@@ -186,7 +188,9 @@ public:
         pCursor->Seek(dbk::GetKeyPrefix(prefixType));
 
         for (; pCursor->Valid(); pCursor->Next()) {
-            dbk::ParseDbKey(slKey, prefixType, key);
+            if (!dbk::ParseDbKey(slKey, prefixType, key)) {
+                break;
+            }
 
             if (expiredKeys.count(key)) {
                 continue;

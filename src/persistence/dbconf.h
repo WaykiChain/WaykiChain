@@ -40,7 +40,7 @@ static const std::string kDbNames[DBNameType::DB_NAME_COUNT + 1] {
     DB_NAME_LIST(DEF_DB_NAME_ARRAY)
 };
 
-inline const std::string& GetDbName(DBNameType dbNameType) { 
+inline const std::string& GetDbName(DBNameType dbNameType) {
     assert(dbNameType >= 0 && dbNameType < DBNameType::DB_NAME_COUNT);
     return kDbNames[dbNameType];
 }
@@ -147,16 +147,22 @@ namespace dbk {
     }
 
     template<typename KeyElement>
-    void ParseDbKey(const Slice& slice, PrefixType keyPrefixType, KeyElement &keyElement) {
+    bool ParseDbKey(const Slice& slice, PrefixType keyPrefixType, KeyElement &keyElement) {
         assert(slice.size() > 0);
-        CDataStream ssKeyTemp(slice.data(), slice.data() + slice.size(), SER_DISK, CLIENT_VERSION);
         const string &prefix = GetKeyPrefix(keyPrefixType);
+        if (!prefix.empty() && !slice.starts_with(Slice(prefix))) {
+            return false;
+        }
+
+        CDataStream ssKeyTemp(slice.data(), slice.data() + slice.size(), SER_DISK, CLIENT_VERSION);
         ssKeyTemp.ignore(prefix.size());
         ssKeyTemp >> keyElement;
+
+        return true;
     }
 
     template<typename KeyElement>
-    void ParseDbKey(const std::string& key, PrefixType keyPrefixType, KeyElement &keyElement) {
+    bool ParseDbKey(const std::string& key, PrefixType keyPrefixType, KeyElement &keyElement) {
         ParseDbKey(Slice(key), keyPrefixType, keyElement);
     }
 }
