@@ -117,7 +117,7 @@ private:
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */
     // vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1
     CDBMultiValueCache<dbk::VOTE,       std::pair<string, CRegID>,  uint8_t>                voteRegIdCache;
-    CDBMultiValueCache<dbk::REGID_VOTE, CRegID,                     vector<CCandidateVote>> regId2VoteCache;
+    CDBMultiValueCache<dbk::REGID_VOTE, string/* CRegID */,         vector<CCandidateVote>> regId2VoteCache;
 
     set<CRegID> delegateRegIds;
 };

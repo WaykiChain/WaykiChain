@@ -103,4 +103,4 @@ private:
     CDBMultiValueCache< dbk::CDP,          string,             CUserCdp >      cdpCache;
 };
 
-#endif //PERSIST_CDP_CACHE_H
+#endif  // PERSIST_CDP_CACHE_H

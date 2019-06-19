@@ -24,7 +24,7 @@ bool CAccountCache::GetAccount(const CRegID &regId, CAccount &account) const {
         return false;
 
     CKeyID keyId;
-    if (regId2KeyIdCache.GetData(regId.GetRegIdRawStr(), keyId)) {
+    if (regId2KeyIdCache.GetData(regId.ToRawString(), keyId)) {
         return keyId2AccountCache.GetData(keyId, account);
     }
 
@@ -58,7 +58,7 @@ bool CAccountCache::SetAccount(const CKeyID &keyId, const CAccount &account) {
 }
 bool CAccountCache::SetAccount(const CRegID &regId, const CAccount &account) {
     CKeyID keyId;
-    if (regId2KeyIdCache.GetData(regId.GetRegIdRawStr(), keyId)) {
+    if (regId2KeyIdCache.GetData(regId.ToRawString(), keyId)) {
         return keyId2AccountCache.SetData(keyId, account);
     }
     return false;
@@ -120,11 +120,11 @@ bool CAccountCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
 }
 
 bool CAccountCache::SetKeyId(const CRegID &regId, const CKeyID &keyId) {
-    return regId2KeyIdCache.SetData(regId.GetRegIdRawStr(), keyId);
+    return regId2KeyIdCache.SetData(regId.ToRawString(), keyId);
 }
 
 bool CAccountCache::GetKeyId(const CRegID &regId, CKeyID &keyId) const {
-    return regId2KeyIdCache.GetData(regId.GetRegIdRawStr(), keyId);
+    return regId2KeyIdCache.GetData(regId.ToRawString(), keyId);
 }
 
 bool CAccountCache::GetKeyId(const CUserID &userId, CKeyID &keyId) const {
@@ -147,11 +147,11 @@ bool CAccountCache::GetKeyId(const CUserID &userId, CKeyID &keyId) const {
 }
 
 bool CAccountCache::EraseKeyIdByRegId(const CRegID &regId) {
-    return regId2KeyIdCache.EraseData(regId.GetRegIdRawStr());
+    return regId2KeyIdCache.EraseData(regId.ToRawString());
 }
 
 bool CAccountCache::SaveAccount(const CAccount &account) {
-    regId2KeyIdCache.SetData(account.regID.GetRegIdRawStr(), account.keyID);
+    regId2KeyIdCache.SetData(account.regID.ToRawString(), account.keyID);
     keyId2AccountCache.SetData(account.keyID, account);
     nickId2KeyIdCache.SetData(account.nickID, account.keyID);
 /*
@@ -329,7 +329,7 @@ bool CAccountDB::SetAccount(const CKeyID &keyId, const CAccount &account) {
 
 bool CAccountDB::SetAccount(const CRegID &regId, const CAccount &account) {
     CKeyID keyId;
-    string keyIdKey = GenDbKey(dbk::REGID_KEYID, regId.GetRegIdRawStr());
+    string keyIdKey = GenDbKey(dbk::REGID_KEYID, regId.ToRawString());
     if (db.Read(keyIdKey, keyId)) {
         string accountKey = GenDbKey(dbk::KEYID_ACCOUNT, keyId);
         return db.Write(accountKey, account);
@@ -370,9 +370,9 @@ bool CAccountDB::BatchWrite(const map<CKeyID, CAccount> &mapAccounts,
     auto iterKey = mapKeyIds.begin();
     for (; iterKey != mapKeyIds.end(); ++iterKey) {
         if (iterKey->second.IsNull()) {
-            batch.Erase(dbk::GenDbKey(dbk::REGID_KEYID, iterKey->first.GetRegIdRawStr()));
+            batch.Erase(dbk::GenDbKey(dbk::REGID_KEYID, iterKey->first.ToRawString()));
         } else {
-            batch.Write(dbk::GenDbKey(dbk::REGID_KEYID, iterKey->first.GetRegIdRawStr()), iterKey->second);
+            batch.Write(dbk::GenDbKey(dbk::REGID_KEYID, iterKey->first.ToRawString()), iterKey->second);
         }
     }
     if (!hashBlock.IsNull())
@@ -397,20 +397,20 @@ bool CAccountDB::EraseAccountByKeyId(const CKeyID &keyId) {
 }
 
 bool CAccountDB::SetKeyId(const CRegID &regId, const CKeyID &keyId) {
-    return db.Write(dbk::GenDbKey(dbk::REGID_KEYID, regId.GetRegIdRawStr()), keyId);
+    return db.Write(dbk::GenDbKey(dbk::REGID_KEYID, regId.ToRawString()), keyId);
 }
 
 bool CAccountDB::GetKeyId(const CRegID &regId, CKeyID &keyId) {
-    return db.Read(dbk::GenDbKey(dbk::REGID_KEYID, regId.GetRegIdRawStr()), keyId);
+    return db.Read(dbk::GenDbKey(dbk::REGID_KEYID, regId.ToRawString()), keyId);
 }
 
 bool CAccountDB::EraseKeyIdByRegId(const CRegID &regId) {
-    return db.Erase(dbk::GenDbKey(dbk::REGID_KEYID, regId.GetRegIdRawStr()));
+    return db.Erase(dbk::GenDbKey(dbk::REGID_KEYID, regId.ToRawString()));
 }
 
 bool CAccountDB::GetAccount(const CRegID &regId, CAccount &account) {
     CKeyID keyId;
-    if (db.Read(dbk::GenDbKey(dbk::REGID_KEYID, regId.GetRegIdRawStr()), keyId)) {
+    if (db.Read(dbk::GenDbKey(dbk::REGID_KEYID, regId.ToRawString()), keyId)) {
         return db.Read(dbk::GenDbKey(dbk::KEYID_ACCOUNT, keyId), account);
     }
     return false;
