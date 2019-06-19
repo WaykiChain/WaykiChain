@@ -104,26 +104,30 @@ static const int fHaveUPnP = false;
 #endif
 
 /** "reject" message codes **/
-static const unsigned char REJECT_MALFORMED       = 0x01;
-static const unsigned char REJECT_INVALID         = 0x10;
-static const unsigned char REJECT_OBSOLETE        = 0x11;
-static const unsigned char REJECT_DUPLICATE       = 0x12;
-static const unsigned char REJECT_NONSTANDARD     = 0x40;
-static const unsigned char REJECT_DUST            = 0x41;
-static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
+static const uint8_t REJECT_MALFORMED = 0x01;
 
-static const unsigned char READ_ACCOUNT_FAIL    = 0X51;
-static const unsigned char WRITE_ACCOUNT_FAIL   = 0X52;
-static const unsigned char UPDATE_ACCOUNT_FAIL  = 0X53;
+static const uint8_t REJECT_INVALID   = 0x10;
+static const uint8_t REJECT_OBSOLETE  = 0x11;
+static const uint8_t REJECT_DUPLICATE = 0x12;
 
-static const unsigned char PRICE_FEED_FAIL      = 0X54;
-static const unsigned char FCOIN_STAKE_FAIL     = 0X55;
+static const uint8_t REJECT_NONSTANDARD     = 0x20;
+static const uint8_t REJECT_DUST            = 0x21;
+static const uint8_t REJECT_INSUFFICIENTFEE = 0x22;
 
-static const unsigned char READ_SCRIPT_FAIL     = 0X61;
-static const unsigned char WRITE_SCRIPT_FAIL    = 0X62;
+static const uint8_t READ_ACCOUNT_FAIL   = 0X30;
+static const uint8_t WRITE_ACCOUNT_FAIL  = 0X31;
+static const uint8_t UPDATE_ACCOUNT_FAIL = 0X32;
 
-static const unsigned char STAKE_CDP_FAIL       = 0X71;
-static const unsigned char REDEEM_CDP_FAIL      = 0X71;
+static const uint8_t PRICE_FEED_FAIL  = 0X40;
+static const uint8_t FCOIN_STAKE_FAIL = 0X41;
+
+static const uint8_t READ_SCRIPT_FAIL  = 0X50;
+static const uint8_t WRITE_SCRIPT_FAIL = 0X51;
+
+static const uint8_t STAKE_CDP_FAIL  = 0X60;
+static const uint8_t REDEEM_CDP_FAIL = 0X61;
+
+static const uint8_t WRITE_CANDIDATE_VOTES_FAIL = 0X70;
 
 static const uint64_t kTotalBaseCoinCount               = 210000000; // 210 million
 static const uint64_t kInitialRiskProvisionScoinCount   = 2100000;   // 2 million 100 thousand
@@ -559,17 +563,16 @@ private:
         MODE_ERROR,    // run-time error
     } mode;
     int nDoS;
-    string strRejectReason;
-    unsigned char chRejectCode;
+    string rejectReason;
+    uint8_t rejectCode;
     bool corruptionPossible;
 
 public:
     CValidationState() : mode(MODE_VALID), nDoS(0), corruptionPossible(false) {}
-    bool DoS(int level, bool ret = false,
-             unsigned char chRejectCodeIn = 0, string strRejectReasonIn = "",
+    bool DoS(int level, bool ret = false, uint8_t rejectCodeIn = 0, string rejectReasonIn = "",
              bool corruptionIn = false) {
-        chRejectCode       = chRejectCodeIn;
-        strRejectReason    = strRejectReasonIn;
+        rejectCode         = rejectCodeIn;
+        rejectReason       = rejectReasonIn;
         corruptionPossible = corruptionIn;
         if (mode == MODE_ERROR)
             return ret;
@@ -577,13 +580,12 @@ public:
         mode = MODE_INVALID;
         return ret;
     }
-    bool Invalid(bool ret                    = false,
-                 unsigned char _chRejectCode = 0, string _strRejectReason = "") {
-        return DoS(0, ret, _chRejectCode, _strRejectReason);
+    bool Invalid(bool ret = false, uint8_t rejectCodeIn = 0, string rejectReasonIn = "") {
+        return DoS(0, ret, rejectCodeIn, rejectReasonIn);
     }
-    bool Error(string strRejectReasonIn = "") {
+    bool Error(string rejectReasonIn = "") {
         if (mode == MODE_VALID)
-            strRejectReason = strRejectReasonIn;
+            rejectReason = rejectReasonIn;
         mode = MODE_ERROR;
         return false;
     }
@@ -591,15 +593,9 @@ public:
         AbortNode(msg);
         return Error(msg);
     }
-    bool IsValid() const {
-        return mode == MODE_VALID;
-    }
-    bool IsInvalid() const {
-        return mode == MODE_INVALID;
-    }
-    bool IsError() const {
-        return mode == MODE_ERROR;
-    }
+    bool IsValid() const { return mode == MODE_VALID; }
+    bool IsInvalid() const { return mode == MODE_INVALID; }
+    bool IsError() const { return mode == MODE_ERROR; }
     bool IsInvalid(int &nDoSOut) const {
         if (IsInvalid()) {
             nDoSOut = nDoS;
@@ -607,11 +603,9 @@ public:
         }
         return false;
     }
-    bool CorruptionPossible() const {
-        return corruptionPossible;
-    }
-    unsigned char GetRejectCode() const { return chRejectCode; }
-    string GetRejectReason() const { return strRejectReason; }
+    bool CorruptionPossible() const { return corruptionPossible; }
+    uint8_t GetRejectCode() const { return rejectCode; }
+    string GetRejectReason() const { return rejectReason; }
 };
 
 /** The currently best known chain of headers (some of which may be invalid). */

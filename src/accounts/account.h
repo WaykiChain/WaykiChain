@@ -72,8 +72,6 @@ public:
     uint64_t stakedBcoins;  //!< Staked/Collateralized BaseCoins (accumulated)
     uint64_t stakedFcoins;  //!< Staked FundCoins for pricefeed right (accumulated)
 
-    vector<CCandidateVote> candidateVotes;  //!< account delegates votes sorted by vote amount
-
     uint64_t receivedVotes;    //!< received votes
     uint64_t lastVoteHeight;   //!< account's last vote block height used for computing interest
 
@@ -92,7 +90,8 @@ public:
     bool PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest);
     bool UndoOperateAccount(const CAccountLog& accountLog);
     bool OperateDexOrder(CoinType coinType, uint64_t amount);
-    bool ProcessDelegateVote(vector<CCandidateVote>& candidateVotesIn, const uint64_t curHeight);
+    bool ProcessDelegateVote(const vector<CCandidateVote>& candidateVotesIn,
+                             vector<CCandidateVote>& candidateVotesInOut, const uint64_t curHeight);
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool StakeFcoins(const int64_t fcoinsToStake); //price feeder must stake fcoins
     bool OperateFcoinStaking(const int64_t fcoinsToStake) { return false; } // TODO: ...
@@ -118,7 +117,6 @@ public:
           lastVoteHeight(0),
           hasOpenCdp(false) {
         minerPubKey = CPubKey();
-        candidateVotes.clear();
         regID.Clean();
     }
 
@@ -146,7 +144,6 @@ public:
         this->stakedFcoins   = other.stakedFcoins;
         this->receivedVotes  = other.receivedVotes;
         this->lastVoteHeight = other.lastVoteHeight;
-        this->candidateVotes = other.candidateVotes;
         this->hasOpenCdp     = other.hasOpenCdp;
 
         return *this;
@@ -182,11 +179,11 @@ public:
 
     uint64_t GetReceiveVotes() const { return receivedVotes; }
 
-    uint64_t GetTotalBcoins(const uint64_t curHeight);
-    uint64_t GetVotedBCoins(const uint64_t curHeight);
+    uint64_t GetTotalBcoins(const vector<CCandidateVote>& candidateVotes, const uint64_t curHeight);
+    uint64_t GetVotedBCoins(const vector<CCandidateVote>& candidateVotes, const uint64_t curHeight);
 
     // Get profits for voting.
-    uint64_t GetAccountProfit(const uint64_t curHeight);
+    uint64_t GetAccountProfit(const vector<CCandidateVote> &candidateVotes, const uint64_t curHeight);
     // Calculate profits for voted.
     uint64_t CalculateAccountProfit(const uint64_t curHeight) const;
 
@@ -200,7 +197,7 @@ public:
             ss << keyID << regID << nickID << pubKey << minerPubKey << VARINT(bcoins) << VARINT(scoins)
                << VARINT(fcoins) << VARINT(frozenDEXBcoins) << VARINT(frozenDEXScoins) << VARINT(frozenDEXFcoins)
                << VARINT(stakedFcoins) << VARINT(receivedVotes) << VARINT(lastVoteHeight)
-               << candidateVotes << hasOpenCdp;
+               << hasOpenCdp;
 
             sigHash = ss.GetHash();
         }
@@ -235,14 +232,13 @@ public:
         READWRITE(VARINT(stakedFcoins));
         READWRITE(VARINT(receivedVotes));
         READWRITE(VARINT(lastVoteHeight));
-        READWRITE(candidateVotes);
         READWRITE(hasOpenCdp);)
 
 private:
     bool IsMoneyOverflow(uint64_t nAddMoney);
 };
 
-//TODO: add fronzeDEXBCons etc below
+//TODO: add frozenDEXBCons etc below
 class CAccountLog {
 public:
     CKeyID keyID;         //!< keyID of the account (interchangeable to address)
@@ -251,21 +247,20 @@ public:
     CPubKey pubKey;       //!< account public key
     CPubKey minerPubKey;  //!< miner saving account public key
 
-    uint64_t bcoins;                        //!< baseCoin balance
-    uint64_t scoins;                        //!< stableCoin balance
-    uint64_t fcoins;                        //!< fundCoin balance
+    uint64_t bcoins;  //!< baseCoin balance
+    uint64_t scoins;  //!< stableCoin balance
+    uint64_t fcoins;  //!< fundCoin balance
 
-    uint64_t frozenDEXBcoins;               //!< frozen bcoins in DEX
-    uint64_t frozenDEXScoins;               //!< frozen scoins in DEX
-    uint64_t frozenDEXFcoins;               //!< frozen fcoins in DEX
+    uint64_t frozenDEXBcoins;  //!< frozen bcoins in DEX
+    uint64_t frozenDEXScoins;  //!< frozen scoins in DEX
+    uint64_t frozenDEXFcoins;  //!< frozen fcoins in DEX
 
-    uint64_t stakedBcoins;                  //!< Staked/Collateralized BaseCoins
-    uint64_t stakedFcoins;                  //!< Staked FundCoins for pricefeed right
+    uint64_t stakedBcoins;  //!< Staked/Collateralized BaseCoins
+    uint64_t stakedFcoins;  //!< Staked FundCoins for pricefeed right
 
-    uint64_t receivedVotes;                 //!< votes received
-    uint64_t lastVoteHeight;                //!< account's last vote block height used for computing interest
+    uint64_t receivedVotes;   //!< votes received
+    uint64_t lastVoteHeight;  //!< account's last vote block height used for computing interest
 
-    vector<CCandidateVote> candidateVotes;  //!< casted delegate votes
     bool hasOpenCdp;
 
     IMPLEMENT_SERIALIZE(
@@ -284,7 +279,6 @@ public:
         READWRITE(VARINT(stakedFcoins));
         READWRITE(VARINT(receivedVotes));
         READWRITE(VARINT(lastVoteHeight));
-        READWRITE(candidateVotes);
         READWRITE(hasOpenCdp);)
 
 public:
@@ -308,9 +302,7 @@ public:
         stakedFcoins(0),
         receivedVotes(0),
         lastVoteHeight(0),
-        candidateVotes(),
-        hasOpenCdp(false)
-        {}
+        hasOpenCdp(false) {}
 
     CAccountLog(): CAccountLog(CKeyID()) {}
 
@@ -330,7 +322,6 @@ public:
         stakedFcoins    = acct.stakedFcoins;
         receivedVotes   = acct.receivedVotes;
         lastVoteHeight  = acct.lastVoteHeight;
-        candidateVotes  = acct.candidateVotes;
         hasOpenCdp      = acct.hasOpenCdp;
     }
 
@@ -340,8 +331,8 @@ public:
 
 enum ACCOUNT_TYPE {
     // account type
-    regid      = 0x01,  //!< Registration accountId
-    base58addr = 0x02,  //!< pulickey
+    regid      = 0x01,  //!< Registration account id
+    base58addr = 0x02,  //!< Public key
 };
 /**
  * account operate produced in contract
@@ -349,11 +340,11 @@ enum ACCOUNT_TYPE {
  */
 class CVmOperate{
 public:
-	unsigned char accountType;      //regid or base58addr
+	unsigned char accountType;      //!< regid or base58addr
 	unsigned char accountId[34];	//!< accountId: address
-	unsigned char opType;		    //!OperType
+	unsigned char opType;		    //!< OperType
 	unsigned int  timeoutHeight;    //!< the transacion Timeout height
-	unsigned char money[8];			//!<The transfer amount
+	unsigned char money[8];			//!< The transfer amount
 
 	IMPLEMENT_SERIALIZE
 	(
@@ -375,7 +366,6 @@ public:
 	}
 
 	Object ToJson();
-
 };
 
 

@@ -101,6 +101,11 @@ public:
     bool SetDelegateVotes(const CRegID &regId, const uint64_t votes);
     bool EraseDelegateVotes(const CRegID &regId, const uint64_t votes);
 
+    bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes);
+    bool GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes);
+
+    bool UndoData(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs);
+
     void SetBaseView(CDelegateCache *pBaseIn) {
         voteRegIdCache = pBaseIn->voteRegIdCache;
     }
@@ -108,10 +113,11 @@ public:
     void Flush() {}
 
 private:
-/*  CDBScalarValueCache  prefixType         key                      value         variable           */
-/*  -------------------- ----------- ---------------------------  ------------- --------------------- */
+/*  CDBScalarValueCache  prefixType     key                         value                   variable       */
+/*  -------------------- -------------- --------------------------  ----------------------- -------------- */
     // vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1
-    CDBMultiValueCache< dbk::VOTE,   std::pair<string, CRegID>,      uint8_t >   voteRegIdCache;
+    CDBMultiValueCache<dbk::VOTE,       std::pair<string, CRegID>,  uint8_t>                voteRegIdCache;
+    CDBMultiValueCache<dbk::REGID_VOTE, CRegID,                     vector<CCandidateVote>> regId2VoteCache;
 
     set<CRegID> delegateRegIds;
 };
