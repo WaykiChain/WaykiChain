@@ -61,7 +61,7 @@ public:
     CDexCache() {}
 
 public:
-    bool MatchFcoinManualSellOrder(uint64_t scoins);
+
 
 private:
     CDBMultiValueCache<CDexFixedPriceOrder> bcoinBuyOrderCache;  // buy wicc with wusd (wusd_wicc)
