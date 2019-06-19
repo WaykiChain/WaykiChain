@@ -69,6 +69,7 @@ coin_CORE_H = \
   persistence/blockdb.h \
   persistence/cdpdb.h \
   persistence/contractdb.h \
+  persistence/delegatedb.h \
   persistence/disk.h \
   persistence/pricefeeddb.h \
   persistence/txdb.h \
@@ -281,6 +282,7 @@ libcoin_common_a_SOURCES = \
   persistence/accountdb.cpp \
   persistence/blockdb.cpp \
   persistence/contractdb.cpp \
+  persistence/delegatedb.cpp \
   persistence/txdb.cpp \
   persistence/leveldbwrapper.cpp \
   persistence/dexdb.cpp \

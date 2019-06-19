@@ -22,7 +22,6 @@ public:
     CCdpCacheManager cdpCache;
     CDexCache dexCache;
     CTxUndo txUndo;
-
 };
 
 #endif //PERSIST_CACHEWRAPPER_H

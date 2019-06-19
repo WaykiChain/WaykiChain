@@ -3229,7 +3229,7 @@ Value listdelegates(const Array& params, bool fHelp) {
     if (delegateNum < 1 || delegateNum > 11) {
         throw JSONRPCError(
             RPC_INVALID_PARAMETER,
-            strprintf("Delegate number not between 1 and %ld", IniCfg().GetTotalDelegateNum()));
+            strprintf("Delegate number not between 1 and %u", IniCfg().GetTotalDelegateNum()));
     }
 
     vector<CAccount> delegates;

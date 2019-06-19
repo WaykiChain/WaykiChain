@@ -188,16 +188,16 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
 }
 
 void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
-    int TotalDelegateNum = IniCfg().GetTotalDelegateNum();
-    string seedSource = strprintf("%lld", nCurHeight / TotalDelegateNum + (nCurHeight % TotalDelegateNum > 0 ? 1 : 0));
+    uint32_t TotalDelegateNum = IniCfg().GetTotalDelegateNum();
+    string seedSource = strprintf("%u", nCurHeight / TotalDelegateNum + (nCurHeight % TotalDelegateNum > 0 ? 1 : 0));
     CHashWriter ss(SER_GETHASH, 0);
     ss << seedSource;
-    uint256 currendSeed = ss.GetHash();
-    uint64_t currendTemp(0);
-    for (int i = 0, delCount = TotalDelegateNum; i < delCount; i++) {
-        for (int x = 0; x < 4 && i < delCount; i++, x++) {
+    uint256 currendSeed  = ss.GetHash();
+    uint64_t currendTemp = 0;
+    for (uint32_t i = 0, delCount = TotalDelegateNum; i < delCount; i++) {
+        for (uint32_t x = 0; x < 4 && i < delCount; i++, x++) {
             memcpy(&currendTemp, currendSeed.begin() + (x * 8), 8);
-            int newIndex             = currendTemp % delCount;
+            uint32_t newIndex        = currendTemp % delCount;
             CAccount accountTemp     = vDelegatesList[newIndex];
             vDelegatesList[newIndex] = vDelegatesList[i];
             vDelegatesList[i]        = accountTemp;
