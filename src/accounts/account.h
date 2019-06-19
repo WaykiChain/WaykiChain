@@ -89,7 +89,12 @@ public:
     bool OperateBalance(const CoinType coinType, const BalanceOpType opType, const uint64_t value);
     bool PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest);
     bool UndoOperateAccount(const CAccountLog& accountLog);
-    bool OperateDexOrder(CoinType coinType, uint64_t amount);
+    bool FreezeDexCoin(CoinType coinType, uint64_t amount);
+    bool FreezeDexAsset(CoinType assetType, uint64_t amount) {
+        // asset always is coin, so can do the freeze as coin
+        return FreezeDexCoin(assetType, amount);
+    }
+    bool OperateDEXSettle(CoinType coinType, uint64_t amount);
     bool ProcessDelegateVote(const vector<CCandidateVote>& candidateVotesIn,
                              vector<CCandidateVote>& candidateVotesInOut, const uint64_t curHeight);
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
