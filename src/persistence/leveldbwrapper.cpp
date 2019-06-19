@@ -14,7 +14,7 @@
 #include <memenv.h>
 #include "json/json_spirit_value.h"
 
-void HandleError(const leveldb::Status &status) {
+void ThrowError(const leveldb::Status &status) {
     if (status.ok())
         return;
     LogPrint("INFO","%s\n", status.ToString());
@@ -25,6 +25,19 @@ void HandleError(const leveldb::Status &status) {
     if (status.IsNotFound())
         throw leveldb_error("Database entry missing");
     throw leveldb_error("Unknown database error");
+}
+
+std::string CDBOpLogsMap::ToString() const {
+    std::string str = "";
+    for (auto itemOpLogs : mapDbOpLogs) {
+        str += strprintf("type:%s {", itemOpLogs.first);
+        for (auto iterDbLog : itemOpLogs.second) {
+            str += iterDbLog.ToString();
+            str += ";";
+        }
+        str += "}";
+    }
+    return str;
 }
 
 static leveldb::Options GetOptions(size_t nCacheSize) {
@@ -57,7 +70,7 @@ CLevelDBWrapper::CLevelDBWrapper(const boost::filesystem::path &path, size_t nCa
         LogPrint("INFO","Opening LevelDB in %s\n", path.string());
     }
     leveldb::Status status = leveldb::DB::Open(options, path.string(), &pdb);
-    HandleError(status);
+    ThrowError(status);
     LogPrint("INFO","Opened LevelDB successfully\n");
 }
 
@@ -74,7 +87,7 @@ CLevelDBWrapper::~CLevelDBWrapper() {
 
 bool CLevelDBWrapper::WriteBatch(CLevelDBBatch &batch, bool fSync) {
     leveldb::Status status = pdb->Write(fSync ? syncoptions : writeoptions, &batch.batch);
-    HandleError(status);
+    ThrowError(status);
     return true;
 }
 

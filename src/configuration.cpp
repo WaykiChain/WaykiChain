@@ -8,7 +8,6 @@
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
 #include "main.h"
-#include "persistence/syncdatadb.h"
 #include "util.h"
 
 #include <stdint.h>
@@ -20,192 +19,46 @@
 
 using namespace std;
 
-namespace Checkpoints {
-typedef map<int, /*height*/ uint256 /*blockhash*/> MapCheckpoints;
-CCriticalSection cs_checkPoint;
-
-// How many times we expect transactions after the last checkpoint to
-// be slower. This number is a compromise, as it can't be accurate for
-// every system. When reindexing from a fast disk with a slow CPU, it
-// can be up to 20, while when downloading from a slow network with a
-// fast multicore CPU, it won't be much higher than 1.
-static const double SIGCHECK_VERIFICATION_FACTOR = 5.0;
-
-struct CCheckpointData {
-    MapCheckpoints* mapCheckpoints;
-    int64_t nTimeLastCheckpoint;
-    int64_t nTransactionsLastCheckpoint;
-    double fTransactionsPerDay;
-};
-
-bool fEnabled = true;
-
-// What makes a good checkpoint block?
-// + Is surrounded by blocks with reasonable timestamps
-//   (no blocks before with a timestamp after, none after with
-//    timestamp before)
-// + Contains no strange transactions
-static MapCheckpoints mapCheckpoints =
-    boost::assign::map_list_of(0, uint256S("1f0d05a703a917511558f046529c48ad53b55c5b16c5d432fab8773a4b5ed4f1"));
-
-static const CCheckpointData data = {
-    &mapCheckpoints,
-    0,  // * UNIX timestamp of last checkpoint block
-    0,  // * total number of transactions between genesis and last checkpoint
-        //   (the tx=... number in the SetBestChain debug.log lines)
-    0  // * estimated number of transactions per day after checkpoint
-};
-
-static MapCheckpoints mapCheckpointsTestnet =
-    boost::assign::map_list_of(0, uint256S("c28af610f0fb593e6194cef9195f154327577fc20b50018ccc822a7940d2b92d"));
-
-static const CCheckpointData dataTestnet = {&mapCheckpointsTestnet, 0, 0, 0};
-
-static MapCheckpoints mapCheckpointsRegtest =
-    boost::assign::map_list_of(0, uint256S("708d5c14424395963cd11bb3f2ff791f584efbeb59fe5922f2131bfc879cd1f7"));
-
-static const CCheckpointData dataRegtest = {&mapCheckpointsRegtest, 0, 0, 0};
-
-const CCheckpointData& Checkpoints() {
-    if (SysCfg().NetworkID() == TEST_NET)
-        return dataTestnet;
-    else if (SysCfg().NetworkID() == MAIN_NET)
-        return data;
-    else
-        return dataRegtest;
-}
-
-bool CheckBlock(int nHeight, const uint256& hash) {
-    if (!fEnabled) return true;
-
-    const MapCheckpoints& checkpoints = *Checkpoints().mapCheckpoints;
-
-    MapCheckpoints::const_iterator i = checkpoints.find(nHeight);
-    if (i == checkpoints.end()) return true;  // nHeight not exists in checkpoints
-
-    return (hash == i->second);
-}
-
-// Guess how far we are in the verification process at the given block index
-double GuessVerificationProgress(CBlockIndex* pIndex, bool fSigchecks) {
-    if (pIndex == NULL) return 0.0;
-
-    int64_t nNow = time(NULL);
-
-    double fSigcheckVerificationFactor = fSigchecks ? SIGCHECK_VERIFICATION_FACTOR : 1.0;
-    double fWorkBefore                 = 0.0;  // Amount of work done before pIndex
-    double fWorkAfter                  = 0.0;  // Amount of work left after pIndex (estimated)
-    // Work is defined as: 1.0 per transaction before the last checkpoint, and
-    // fSigcheckVerificationFactor per transaction after.
-
-    const CCheckpointData& data = Checkpoints();
-
-    if (pIndex->nChainTx <= data.nTransactionsLastCheckpoint) {
-        double nCheapBefore    = pIndex->nChainTx;
-        double nCheapAfter     = data.nTransactionsLastCheckpoint - pIndex->nChainTx;
-        double nExpensiveAfter = (nNow - data.nTimeLastCheckpoint) / 86400.0 * data.fTransactionsPerDay;
-        fWorkBefore            = nCheapBefore;
-        fWorkAfter             = nCheapAfter + nExpensiveAfter * fSigcheckVerificationFactor;
-    } else {
-        double nCheapBefore     = data.nTransactionsLastCheckpoint;
-        double nExpensiveBefore = pIndex->nChainTx - data.nTransactionsLastCheckpoint;
-        double nExpensiveAfter  = (nNow - pIndex->nTime) / 86400.0 * data.fTransactionsPerDay;
-        fWorkBefore             = nCheapBefore + nExpensiveBefore * fSigcheckVerificationFactor;
-        fWorkAfter              = nExpensiveAfter * fSigcheckVerificationFactor;
-    }
-
-    return fWorkBefore / (fWorkBefore + fWorkAfter);
-}
-
-int GetTotalBlocksEstimate() {
-    if (!fEnabled) return 0;
-
-    const MapCheckpoints& checkpoints = *Checkpoints().mapCheckpoints;
-    return checkpoints.rbegin()->first;
-}
-
-CBlockIndex* GetLastCheckpoint(const map<uint256, CBlockIndex*>& mapBlockIndex) {
-    if (!fEnabled) return NULL;
-
-    const MapCheckpoints& checkpoints = *Checkpoints().mapCheckpoints;
-
-    BOOST_REVERSE_FOREACH(const MapCheckpoints::value_type& i, checkpoints) {
-        const uint256& hash                          = i.second;
-        map<uint256, CBlockIndex*>::const_iterator t = mapBlockIndex.find(hash);
-        if (t != mapBlockIndex.end()) return t->second;
-    }
-    return NULL;
-}
-
-bool LoadCheckpoint() {
-    LOCK(cs_checkPoint);
-    SyncData::CSyncDataDb db;
-    return db.LoadCheckPoint(*Checkpoints().mapCheckpoints);
-}
-
-bool GetCheckpointByHeight(const int nHeight, std::vector<int>& vCheckpoints) {
-    LOCK(cs_checkPoint);
-    MapCheckpoints& checkpoints              = *Checkpoints().mapCheckpoints;
-    std::map<int, uint256>::iterator iterMap = checkpoints.upper_bound(nHeight);
-    while (iterMap != checkpoints.end()) {
-        vCheckpoints.push_back(iterMap->first);
-        ++iterMap;
-    }
-    return !vCheckpoints.empty();
-}
-
-bool AddCheckpoint(int nHeight, uint256 hash) {
-    LOCK(cs_checkPoint);
-    MapCheckpoints& checkpoints = *Checkpoints().mapCheckpoints;
-    checkpoints.insert(checkpoints.end(), make_pair(nHeight, hash));
-    return true;
-}
-
-void GetCheckpointMap(std::map<int, uint256>& mapCheckpoints) {
-    LOCK(cs_checkPoint);
-    const MapCheckpoints& checkpoints = *Checkpoints().mapCheckpoints;
-    mapCheckpoints                    = checkpoints;
-}
-
-}  // namespace Checkpoints
-
 const G_CONFIG_TABLE& IniCfg() {
-    static G_CONFIG_TABLE* psCfg = NULL;
-    if (psCfg == NULL) {
+    static G_CONFIG_TABLE* psCfg = nullptr;
+    if (psCfg == nullptr) {
         psCfg = new G_CONFIG_TABLE();
     }
-    assert(psCfg != NULL);
+    assert(psCfg != nullptr);
+
     return *psCfg;
 }
 
-const uint256 G_CONFIG_TABLE::GetIntHash(NET_TYPE type) const {
+const uint256 G_CONFIG_TABLE::GetGenesisBlockHash(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: {
-            return (uint256S((hashGenesisBlock_mainNet)));
+            return (uint256S((genesisBlockHash_mainNet)));
         }
         case TEST_NET: {
-            return (uint256S((hashGenesisBlock_testNet)));
+            return (uint256S((genesisBlockHash_testNet)));
         }
         case REGTEST_NET: {
-            return (uint256S((hashGenesisBlock_regTest)));
+            return (uint256S((genesisBlockHash_regTest)));
         }
         default:
             assert(0);
     }
+
     return uint256S("");
 }
 
-const string G_CONFIG_TABLE::GetCheckPointPkey(NET_TYPE type) const {
+const string G_CONFIG_TABLE::GetAlertPkey(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: {
-            return CheckPointPK_MainNet;
+            return AlertPK_MainNet;
         }
         case TEST_NET: {
-            return CheckPointPK_TestNet;
+            return AlertPK_TestNet;
         }
         default:
             assert(0);
     }
+
     return "";
 }
 
@@ -223,6 +76,7 @@ const vector<string> G_CONFIG_TABLE::GetInitPubKey(NET_TYPE type) const {
         default:
             assert(0);
     }
+
     return vector<string>();
 }
 
@@ -240,7 +94,64 @@ const vector<string> G_CONFIG_TABLE::GetDelegatePubKey(NET_TYPE type) const {
         default:
             assert(0);
     }
+
     return vector<string>();
+}
+
+const uint256 G_CONFIG_TABLE::GetMerkleRootHash() const { return (uint256S((MerkleRootHash))); }
+
+string G_CONFIG_TABLE::GetDelegateSignature(NET_TYPE type) const {
+    switch (type) {
+        case MAIN_NET: {
+            return delegateSignature_mainNet;
+        }
+        case TEST_NET: {
+            return delegateSignature_testNet;
+        }
+        case REGTEST_NET: {
+            return delegateSignature_regNet;
+        }
+        default:
+            assert(0);
+    }
+
+    return "";
+}
+
+const string G_CONFIG_TABLE::GetFundCoinInitPubKey(NET_TYPE type) const {
+    switch (type) {
+        case MAIN_NET: {
+            return initPubKeyFundCoin_mainNet;
+        }
+        case TEST_NET: {
+            return initPubKeyFundCoin_testNet;
+        }
+        case REGTEST_NET: {
+            return initPubkeyFundCoin_regTest;
+        }
+        default:
+            assert(0);
+    }
+
+    return "";
+}
+
+string G_CONFIG_TABLE::GetAccountRegisterSignature(NET_TYPE type) const {
+    switch (type) {
+        case MAIN_NET: {
+            return accountRegisterSignature_mainNet;
+        }
+        case TEST_NET: {
+            return accountRegisterSignature_testNet;
+        }
+        case REGTEST_NET: {
+            return accountRegisterSignature_regNet;
+        }
+        default:
+            assert(0);
+    }
+
+    return "";
 }
 
 uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(NET_TYPE type) const {
@@ -260,8 +171,6 @@ uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(NET_TYPE type) const {
 
     return 0;
 }
-
-const uint256 G_CONFIG_TABLE::GetMerkleRootHash() const { return (uint256S((MerkleRootHash))); }
 
 vector<unsigned int> G_CONFIG_TABLE::GetSeedNodeIP() const { return pnSeed; }
 
@@ -416,23 +325,6 @@ uint64_t G_CONFIG_TABLE::GetTotalDelegateNum() const { return TotalDelegateNum; 
 
 uint64_t G_CONFIG_TABLE::GetMaxVoteCandidateNum() const { return MaxVoteCandidateNum; }
 
-string G_CONFIG_TABLE::GetDelegateSignature(NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: {
-            return delegateSignature_mainNet;
-        }
-        case TEST_NET: {
-            return delegateSignature_testNet;
-        }
-        case REGTEST_NET: {
-            return delegateSignature_regNet;
-        }
-        default:
-            assert(0);
-    }
-    return 0;
-}
-
 // BaseCoin name
 string G_CONFIG_TABLE::COIN_NAME = "WaykiChain";
 
@@ -495,16 +387,28 @@ string G_CONFIG_TABLE::delegateSignature_testNet = "02fc0033e19b9999997331c98652
 string G_CONFIG_TABLE::delegateSignature_regNet  = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
 
 // Pubkey
-string G_CONFIG_TABLE::CheckPointPK_MainNet = "029e85b9822bb140d6934fe7e8cd82fb7fde49da8c96141d69884c7e53a57628cb";
-string G_CONFIG_TABLE::CheckPointPK_TestNet = "0264afea20ebe6fe4c753f9c99bdce8293cf739efbc7543784873eb12f39469d46";
+string G_CONFIG_TABLE::AlertPK_MainNet = "029e85b9822bb140d6934fe7e8cd82fb7fde49da8c96141d69884c7e53a57628cb";
+string G_CONFIG_TABLE::AlertPK_TestNet = "0264afea20ebe6fe4c753f9c99bdce8293cf739efbc7543784873eb12f39469d46";
 
 // Gensis Block Hash
-string G_CONFIG_TABLE::hashGenesisBlock_mainNet = "0xa00d5d179450975237482f20f5cd688cac689eb83bc2151d561bfe720185dc13";
-string G_CONFIG_TABLE::hashGenesisBlock_testNet = "0xf8aea423c73890eb982c77793cf2fff1dcc1c4d141f42a4c6841b1ffe87ac594";
-string G_CONFIG_TABLE::hashGenesisBlock_regTest = "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d";
+string G_CONFIG_TABLE::genesisBlockHash_mainNet = "0xa00d5d179450975237482f20f5cd688cac689eb83bc2151d561bfe720185dc13";
+string G_CONFIG_TABLE::genesisBlockHash_testNet = "0xf8aea423c73890eb982c77793cf2fff1dcc1c4d141f42a4c6841b1ffe87ac594";
+string G_CONFIG_TABLE::genesisBlockHash_regTest = "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d";
 
-// Merkle Hash Root
+// Merkle Root Hash
 string G_CONFIG_TABLE::MerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
+
+// TODO: replace public key.
+// Public Key for mainnet
+string G_CONFIG_TABLE::initPubKeyFundCoin_mainNet = "037671de4799dbf919effa034bbcaadd78c8a942adeebe7d71155304979a02802a";
+string G_CONFIG_TABLE::initPubKeyFundCoin_testNet = "037de11ea5def6393f45c2461c6f55e6e5cda831545324c63fc5c04409d459a5b3";
+string G_CONFIG_TABLE::initPubkeyFundCoin_regTest = "03b2299425981d6c2ec382cda999e604eb06b2b0f387f4b8500519c44d143cd2a8";
+
+// TODO: relpace signature
+// Signature in genesis block
+string G_CONFIG_TABLE::accountRegisterSignature_mainNet = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
+string G_CONFIG_TABLE::accountRegisterSignature_testNet = "02fc0033e19b9999997331c98652607299b0aaf20ed2dd6f0975d03cff3aecdeec";
+string G_CONFIG_TABLE::accountRegisterSignature_regNet  = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
 
 // IP Address
 vector<unsigned int> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0xDC36FB0D, 0x91A11C77, 0xFFFFE60D,
@@ -540,12 +444,12 @@ unsigned int G_CONFIG_TABLE::StartTime_testNet = 1505401100;
 unsigned int G_CONFIG_TABLE::StartTime_regTest = 1504305600;
 
 // Subsidy Halving Interval
-unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = 3153600;  // one year = 365 * 24 * 60 * 60 / 10
-unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_testNet = 3153600;  // ditto
+unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = kYearBlockCount;
+unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_testNet = kYearBlockCount;
 unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_regNet  = 500;
 
 // Initial Coin
-uint64_t G_CONFIG_TABLE::InitialCoin = 210000000;  // 210 million
+uint64_t G_CONFIG_TABLE::InitialCoin = kTotalBaseCoinCount;  // 210 million
 
 // Default Miner Fee
 uint64_t G_CONFIG_TABLE::DefaultFee = 15;

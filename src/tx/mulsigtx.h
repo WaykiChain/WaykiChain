@@ -55,9 +55,9 @@ public:
     }
 
     CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
-                uint64_t feeIn, const uint64_t valueIn, const int validHeightIn,
+                uint64_t feesIn, const uint64_t valueIn, const int validHeightIn,
                 const uint8_t requiredIn, const vector_unsigned_char &memoIn)
-        : CBaseTx(COMMON_MTX, CNullID(), validHeightIn, feeIn) {
+        : CBaseTx(COMMON_MTX, CNullID(), validHeightIn, feesIn) {
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!desUserIdIn.get<CRegID>().IsEmpty());
 
@@ -69,9 +69,9 @@ public:
     }
 
     CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
-                uint64_t feeIn, const uint64_t valueIn, const int validHeightIn,
+                uint64_t feesIn, const uint64_t valueIn, const int validHeightIn,
                 const uint8_t requiredIn)
-        : CBaseTx(COMMON_MTX, CNullID(), validHeightIn, feeIn) {
+        : CBaseTx(COMMON_MTX, CNullID(), validHeightIn, feesIn) {
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!desUserIdIn.get<CRegID>().IsEmpty());
 
@@ -118,7 +118,7 @@ public:
     virtual Object ToJson(const CAccountCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 };

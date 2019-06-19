@@ -63,16 +63,18 @@ coin_CORE_H = \
   mruset.h \
   netbase.h \
   net.h \
-  noui.h \
   persistence/leveldbwrapper.h \
   persistence/accountdb.h \
   persistence/block.h \
   persistence/blockdb.h \
+  persistence/cdpdb.h \
   persistence/contractdb.h \
-  persistence/stakedb.h \
+  persistence/disk.h \
   persistence/pricefeeddb.h \
   persistence/txdb.h \
+  persistence/dbaccess.h \
   persistence/dbconf.h \
+  persistence/dexdb.h \
   protocol.h \
   random.h   \
   rpc/httpserver.h \
@@ -85,9 +87,11 @@ coin_CORE_H = \
   tx/merkletx.h \
   tx/accountregtx.h \
   tx/blockrewardtx.h \
+  tx/blockpricemediantx.h \
   tx/bcointx.h \
   tx/contracttx.h \
   tx/delegatetx.h \
+  tx/dextx.h \
   tx/fcointx.h \
   tx/fcoinstaketx.h \
   tx/mulsigtx.h \
@@ -98,7 +102,6 @@ coin_CORE_H = \
   sync.h \
   threadsafety.h \
   tinyformat.h \
-  ui_interface.h \
   uint256.h \
   util.h \
   version.h \
@@ -216,12 +219,10 @@ libcoin_server_a_SOURCES = \
   alert.cpp \
   configuration.cpp \
   crypto/sha256.cpp \
-  cuiserver.cpp	\
   init.cpp \
   main.cpp \
   miner/miner.cpp \
   net.cpp \
-  noui.cpp \
   rpc/httpserver.cpp \
   rpc/rpcblockchain.cpp \
   rpc/rpcmining.cpp \
@@ -233,9 +234,11 @@ libcoin_server_a_SOURCES = \
   sigcache.cpp \
   tx/accountregtx.cpp \
   tx/blockrewardtx.cpp \
+  tx/blockpricemediantx.cpp \
   tx/bcointx.cpp \
   tx/contracttx.cpp \
   tx/delegatetx.cpp \
+  tx/dextx.cpp \
   tx/fcointx.cpp \
   tx/fcoinstaketx.cpp \
   tx/mulsigtx.cpp \
@@ -274,14 +277,13 @@ libcoin_common_a_SOURCES = \
   netbase.cpp \
   protocol.cpp \
   persistence/block.cpp \
-  persistence/syncdata.cpp \
-  persistence/syncdatadb.cpp \
+  persistence/cdpdb.cpp \
   persistence/accountdb.cpp \
   persistence/blockdb.cpp \
   persistence/contractdb.cpp \
-  persistence/stakedb.cpp \
   persistence/txdb.cpp \
   persistence/leveldbwrapper.cpp \
+  persistence/dexdb.cpp \
   rpc/rpcprotocol.cpp \
   support/cleanse.cpp \
   support/events.cpp \

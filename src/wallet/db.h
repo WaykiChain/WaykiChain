@@ -1,14 +1,13 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The WaykiChain Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2017-2019 The WaykiChain Developers
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef WICC_DB_H
-#define WICC_DB_H
+#ifndef COIN_DB_H
+#define COIN_DB_H
 
 #include "clientversion.h"
 #include "commons/serialize.h"
-//#include "streams.h"
 #include "sync.h"
 #include "version.h"
 
@@ -308,4 +307,4 @@ public:
     bool static Rewrite(const std::string& strFile, const char* pszSkip = NULL);
 };
 
-#endif // BITCOIN_DB_H
+#endif // COIN_DB_H

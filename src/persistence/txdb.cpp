@@ -15,12 +15,11 @@
 #include <algorithm>
 
 bool CTransactionCache::IsContainBlock(const CBlock &block) {
-    return mapBlockTxHashSet.count(block.GetHash());
+    return mapBlockTxHashSet.count(block.GetHash()) || (pBase ? pBase->IsContainBlock(block) : false);
 }
 
 bool CTransactionCache::AddBlockToCache(const CBlock &block) {
     UnorderedHashSet vTxHash;
-    vTxHash.clear();
     for (auto &ptx : block.vptx) {
         vTxHash.insert(ptx->GetHash());
     }
@@ -31,10 +30,14 @@ bool CTransactionCache::AddBlockToCache(const CBlock &block) {
 
 bool CTransactionCache::DeleteBlockFromCache(const CBlock &block) {
     if (IsContainBlock(block)) {
-        mapBlockTxHashSet.erase(block.GetHash());
+        UnorderedHashSet txHash;
+		mapBlockTxHashSet[block.GetHash()] = txHash;
+
+        return true;
     }
 
-    return true;
+    LogPrint("ERROR", "failed to delete transactions in block: %s", block.GetHash().GetHex());
+    return false;
 }
 
 bool CTransactionCache::HaveTx(const uint256 &txHash) {
@@ -44,11 +47,30 @@ bool CTransactionCache::HaveTx(const uint256 &txHash) {
         }
     }
 
-    return false;
+    return pBase ? pBase->HaveTx(txHash) : false;
 }
 
-void CTransactionCache::AddTxHashCache(const uint256 &blockHash, const UnorderedHashSet &vTxHash) {
-    mapBlockTxHashSet[blockHash] = vTxHash;
+void CTransactionCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn) {
+    // If the value is empty, delete it from cache.
+    for (auto &item : mapBlockTxHashSetIn) {
+        if (item.second.empty()) {
+            mapBlockTxHashSet.erase(item.first);
+        } else {
+            mapBlockTxHashSet[item.first] = item.second;
+        }
+    }
+}
+
+void CTransactionCache::Flush() {
+    assert(pBase);
+
+    pBase->BatchWrite(mapBlockTxHashSet);
+    mapBlockTxHashSet.clear();
+}
+
+void CTransactionCache::Flush(CTransactionCache *pBaseIn) {
+    pBaseIn->BatchWrite(mapBlockTxHashSet);
+    mapBlockTxHashSet.clear();
 }
 
 void CTransactionCache::Clear() { mapBlockTxHashSet.clear(); }
@@ -139,4 +161,96 @@ uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, CCoinP
     CConsecutiveBlockPrice cbp = mapCoinPricePointCache[ coinPriceType.ToString() ];
     uint64_t medianPrice = cbp.ComputeBlockMedianPrice(blockHeight);
     return medianPrice;
+}
+
+bool CDelegateCache::LoadTopDelegates() {
+    delegateRegIds.clear();
+    // TODO:
+    return true;
+}
+
+bool CDelegateCache::ExistDelegate(const CRegID &delegateRegId) {
+    if (delegateRegIds.empty()) {
+        LoadTopDelegates();
+    }
+
+    return delegateRegIds.count(delegateRegId);
+}
+
+bool CDelegateCache::SetDelegateVotes(const CRegID &regId, const uint64_t votes) {
+    if (votes == 0) {
+        return true;
+    }
+
+    static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
+    string strVotes           = strprintf("%016x", maxNumber - votes);
+    auto key                  = std::make_pair(strVotes, regId);
+    static uint8_t value      = 1;
+
+    return voteRegIdCache.SetData(key, value);
+}
+
+bool CDelegateCache::EraseDelegateVotes(const CRegID &regId, const uint64_t votes) {
+    if (votes == 0) {
+        return true;
+    }
+
+    static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
+    string strVotes           = strprintf("%016x", maxNumber - votes);
+    auto oldKey               = std::make_pair(strVotes, regId);
+
+    return voteRegIdCache.EraseData(oldKey);
+}
+
+bool CDelegateCache::SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes) {
+    return regId2VoteCache.SetData(regId, candidateVotes);
+}
+
+bool CDelegateCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes) {
+    return regId2VoteCache.GetData(regId, candidateVotes);
+}
+
+bool CDelegateCache::UndoData(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs) {
+    for (auto it = dbOpLogs.rbegin(); it != dbOpLogs.rend(); ++it) {
+        auto &dbOpLog = *it;
+        switch (dbOpLog.GetPrefixType()) {
+            case dbk::REGID_VOTE:
+                return regId2VoteCache.UndoData(dbOpLog);
+            default:
+                LogPrint("ERROR", "CDelegateCache::UndoData can not handle the dbOpLog=", dbOpLog.ToString());
+                return false;
+        }
+    }
+
+    return true;
+}
+
+string CTxUndo::ToString() const {
+    string str;
+    string strTxHash("txid:");
+    strTxHash += txHash.GetHex();
+
+    str += strTxHash + "\n";
+
+    string strAccountLog("list account log:");
+    for (auto iterLog : accountLogs) {
+        strAccountLog += iterLog.ToString();
+        strAccountLog += ";";
+    }
+
+    str += strAccountLog + "\n";
+
+    string strDBOperLog("list LDB Oplog:");
+    str += "list LDB Oplog:" + dbOpLogsMap.ToString();
+    return str;
+}
+
+bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {
+    for (auto iterLog : accountLogs) {
+        if (iterLog.keyID == keyId) {
+            accountLog = iterLog;
+            return true;
+        }
+    }
+    return false;
 }

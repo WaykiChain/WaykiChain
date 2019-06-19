@@ -46,12 +46,18 @@ public:
         assert(vRegID.size() == 6);
         return vRegID;
     }
+
+    string GetRegIdRawStr() const {
+        return string(vRegID.begin(), vRegID.end()); // TODO: change the vRegID to string
+    }
+
     void SetRegID(const vector<unsigned char> &vIn);
     CKeyID GetKeyId(const CAccountCache &view) const;
     uint32_t GetHeight() const { return nHeight; }
     uint16_t GetIndex() const { return nIndex; }
-    bool operator==(const CRegID &co) const { return (this->nHeight == co.nHeight && this->nIndex == co.nIndex); }
-    bool operator!=(const CRegID &co) const { return (this->nHeight != co.nHeight || this->nIndex != co.nIndex); }
+    bool operator==(const CRegID &other) const { return (this->nHeight == other.nHeight && this->nIndex == other.nIndex); }
+    bool operator!=(const CRegID &other) const { return (this->nHeight != other.nHeight || this->nIndex != other.nIndex); }
+    bool operator<(const CRegID &other) const { return (this->nHeight < other.nHeight || this->nIndex < other.nIndex); }
     static bool IsSimpleRegIdStr(const string &str);
     static bool IsRegIdStr(const string &str);
     static bool GetKeyId(const string &str, CKeyID &keyId);
@@ -71,28 +77,29 @@ public:
 
 class CNickID {
 private:
-    vector_unsigned_char nickId;
+    string nickId;
 
 public:
     CNickID() {}
-    CNickID(vector_unsigned_char nickIdIn) {
+    CNickID(string nickIdIn) {
         if (nickIdIn.size() > 32)
             throw ios_base::failure("Nickname ID length > 32 not allowed!");
 
         nickId = nickIdIn;
     }
 
-    vector_unsigned_char GetNickIdRaw() const { return nickId; }
+    const string& GetNickIdRaw() const { return nickId; }
     bool IsEmpty() const { return (nickId.size() == 0); }
     void Clean() { nickId.clear(); }
-    string ToString() const { return std::string(nickId.begin(), nickId.end()); }
+    string ToString() const { return nickId; }
 
-    IMPLEMENT_SERIALIZE(READWRITE(nickId);)
+    IMPLEMENT_SERIALIZE(
+        READWRITE(nickId);)
 
     // Comparator implementation.
-    friend bool operator==(const CNickID &a, const CNickID &b) { return a == b; }
+    friend bool operator==(const CNickID &a, const CNickID &b) { return a.nickId == b.nickId; }
     friend bool operator!=(const CNickID &a, const CNickID &b) { return !(a == b); }
-    friend bool operator<(const CNickID &a, const CNickID &b) { return a < b; }
+    friend bool operator<(const CNickID &a, const CNickID &b) { return a.nickId < b.nickId; }
 };
 
 class CUserID {

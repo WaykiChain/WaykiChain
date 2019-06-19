@@ -48,7 +48,6 @@ coin_test_SOURCES = \
   test/bloom_tests.cpp \
   test/canonical_tests.cpp \
   test/checkblock_tests.cpp \
-  test/Checkpoints_tests.cpp \
   test/DoS_tests.cpp \
   test/key_tests.cpp \
   test/main_tests.cpp \

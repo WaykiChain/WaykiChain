@@ -4,8 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
-#ifndef APPUSERACCOUT_H_
-#define APPUSERACCOUT_H_
+#ifndef VM_APP_ACCOUT_H
+#define VM_APP_ACCOUT_H
 
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
@@ -145,56 +145,55 @@ public:
 
 class CAppUserAccount {
 public:
-	CAppUserAccount();
-	CAppUserAccount(const vector<unsigned char> &userId);
-	bool Operate(const vector<CAppFundOperate> &Op);
-	bool GetAppCFund(CAppCFund &outFound,const vector<unsigned char> &vtag,int nheight);
+    CAppUserAccount();
+    CAppUserAccount(const string &userId);
+    bool Operate(const vector<CAppFundOperate> &Op);
+    bool GetAppCFund(CAppCFund &outFound, const vector<unsigned char> &vTag, int nHeight);
 
-	bool AutoMergeFreezeToFree(int hight);
+    bool AutoMergeFreezeToFree(int hight);
 
-	virtual ~CAppUserAccount();
+    virtual ~CAppUserAccount();
 
-	json_spirit::Object ToJson()const;
+    json_spirit::Object ToJson() const;
 
-	string ToString()const;
+    string ToString() const;
 
-	uint64_t Getbcoins() const { return bcoins; }
-	void Setbcoins(uint64_t bcoins) { this->bcoins = bcoins; }
+    uint64_t GetBcoins() const { return bcoins; }
+    void SetBcoins(uint64_t bcoins) { this->bcoins = bcoins; }
 
-	const vector<unsigned char>& GetAccUserId() const { return mAccUserID; }
+    const string& GetAccUserId() const { return mAccUserID; }
 
-	// void SetAccUserId(const vector<unsigned char>& accUserId) {
-	// 	mAccUserID = accUserId;
-	// }
+    // void SetAccUserId(const vector<unsigned char>& accUserId) {
+    // 	mAccUserID = accUserId;
+    // }
 
-	vector<CAppCFund>& GetFrozenFunds() { return vFrozenFunds; }
+    vector<CAppCFund> &GetFrozenFunds() { return vFrozenFunds; }
 
-	// void SetFrozenFund(const vector<CAppCFund>& vtmp)
-	// {
-	// 	vFrozenFunds.clear();
-	// 	for (int i = 0; i < (int)vtmp.size(); i++)
-	// 		vFrozenFunds.push_back(vtmp[i]);
-	// }
+    // void SetFrozenFund(const vector<CAppCFund>& vtmp)
+    // {
+    // 	vFrozenFunds.clear();
+    // 	for (int i = 0; i < (int)vtmp.size(); i++)
+    // 		vFrozenFunds.push_back(vtmp[i]);
+    // }
 
-	uint64_t GetAllFreezedValues();
+    uint64_t GetAllFreezedValues();
 
-	IMPLEMENT_SERIALIZE
-	(
-		READWRITE(VARINT(bcoins));
-		READWRITE(mAccUserID);
-		READWRITE(vFrozenFunds);
-	)
+    IMPLEMENT_SERIALIZE(READWRITE(VARINT(bcoins)); READWRITE(mAccUserID); READWRITE(vFrozenFunds);)
 
-	bool MinusAppCFund(const vector<unsigned char> &vtag,uint64_t val,int nhight);
-	bool AddAppCFund(const vector<unsigned char>& vtag, uint64_t val, int nhight);
-	bool MinusAppCFund(const CAppCFund &inFound);
-	bool AddAppCFund(const CAppCFund &inFound);
-	bool ChangeAppCFund(const CAppCFund &inFound);
-	bool Operate(const CAppFundOperate &Op);
+    bool MinusAppCFund(const vector<unsigned char> &vtag, uint64_t val, int nhight);
+    bool AddAppCFund(const vector<unsigned char> &vtag, uint64_t val, int nhight);
+    bool MinusAppCFund(const CAppCFund &inFound);
+    bool AddAppCFund(const CAppCFund &inFound);
+    bool ChangeAppCFund(const CAppCFund &inFound);
+    bool Operate(const CAppFundOperate &Op);
+
+	bool IsEmpty() const { return mAccUserID.empty(); }
+
+	void SetEmpty() { mAccUserID.clear(); }
 
 private:
 	uint64_t bcoins;       //自由金额
-	vector<unsigned char>  mAccUserID;
+	string  mAccUserID;
 	vector<CAppCFund> vFrozenFunds;
 };
 
@@ -233,4 +232,4 @@ public:
 	unsigned char vFundTag[ CAppCFund::MAX_TAG_SIZE ];				//!< accountId
 };
 
-#endif /* APPUSERACCOUT_H_ */
+#endif /* VM_APP_ACCOUT_H */

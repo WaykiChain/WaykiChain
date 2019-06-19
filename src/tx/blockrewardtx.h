@@ -4,8 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#ifndef BLOCK_REWARD_H
-#define BLOCK_REWARD_H
+#ifndef TX_BLOCK_REWARD_H
+#define TX_BLOCK_REWARD_H
 
 #include "tx.h"
 
@@ -56,11 +56,11 @@ public:
     uint64_t GetFee() const { return 0; }
     double GetPriority() const { return 0.0f; }
 
-    virtual string ToString(CAccountCache &view);
-    virtual Object ToJson(const CAccountCache &AccountView) const;
+    virtual string ToString(CAccountCache &accountCache);
+    virtual Object ToJson(const CAccountCache &accountCache) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(CCacheWrapper &cw, CValidationState &state) {return true; };
+    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 };

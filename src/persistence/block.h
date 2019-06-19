@@ -6,13 +6,14 @@
 #ifndef PERSIST_BLOCK_H
 #define PERSIST_BLOCK_H
 
-#include "../configuration.h"
 #include "accounts/key.h"
+#include "commons/base58.h"
 #include "commons/serialize.h"
 #include "commons/uint256.h"
-#include "commons/base58.h"
+#include "configuration.h"
 #include "sync.h"
 #include "tx/tx.h"
+#include "disk.h"
 
 #include <stdint.h>
 #include <memory>
@@ -41,37 +42,6 @@ enum BlockStatus {
 };
 
 
-struct CDiskBlockPos {
-    int nFile;
-    unsigned int nPos;
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(nFile));
-        READWRITE(VARINT(nPos));)
-
-    CDiskBlockPos() {
-        SetNull();
-    }
-
-    CDiskBlockPos(int nFileIn, unsigned int nPosIn) {
-        nFile = nFileIn;
-        nPos  = nPosIn;
-    }
-
-    friend bool operator==(const CDiskBlockPos &a, const CDiskBlockPos &b) {
-        return (a.nFile == b.nFile && a.nPos == b.nPos);
-    }
-
-    friend bool operator!=(const CDiskBlockPos &a, const CDiskBlockPos &b) {
-        return !(a == b);
-    }
-
-    void SetNull() {
-        nFile = -1;
-        nPos  = 0;
-    }
-    bool IsNull() const { return (nFile == -1); }
-};
 
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,
@@ -81,8 +51,7 @@ struct CDiskBlockPos {
  * in the block is a special one that creates a new coin owned by the creator
  * of the block.
  */
-class CBlockHeader
-{
+class CBlockHeader {
 public:
     // header
     static const int CURRENT_VERSION = g_BlockVersion;
@@ -98,10 +67,7 @@ protected:
     vector<unsigned char> vSignature;
 
 public:
-    CBlockHeader()
-    {
-        SetNull();
-    }
+    CBlockHeader() { SetNull(); }
 
     IMPLEMENT_SERIALIZE
     (
@@ -117,90 +83,43 @@ public:
         READWRITE(vSignature);
     )
 
-    void SetNull()
-    {
-        nVersion = CBlockHeader::CURRENT_VERSION;
-        prevBlockHash = uint256();
+    void SetNull() {
+        nVersion       = CBlockHeader::CURRENT_VERSION;
+        prevBlockHash  = uint256();
         merkleRootHash = uint256();
-        nTime = 0;
-        nNonce = 0;
-        nHeight = 0;
-        nFuel = 0;
-        nFuelRate = 100;
+        nTime          = 0;
+        nNonce         = 0;
+        nHeight        = 0;
+        nFuel          = 0;
+        nFuelRate      = 100;
         vSignature.clear();
     }
 
     uint256 GetHash() const;
-
     uint256 ComputeSignatureHash() const;
-
-    int64_t GetBlockTime() const
-    {
-        return (int64_t)nTime;
-    }
-
-    int GetVersion() const  {
-    	return  nVersion;
-    }
-    void SetVersion(int nVersion) {
-    	this->nVersion = nVersion;
-    }
-    uint256 GetPrevBlockHash() const  {
-    	return prevBlockHash;
-    }
-    void SetPrevBlockHash(uint256 prevBlockHash) {
-    	this->prevBlockHash = prevBlockHash;
-    }
-    uint256 GetMerkleRootHash() const{
-    	return merkleRootHash;
-    }
-    void SetMerkleRootHash(uint256 merkleRootHash) {
-    	this->merkleRootHash = merkleRootHash;
-    }
-
-    unsigned int GetTime() const{
-    	return nTime;
-    }
-    void SetTime(unsigned int time) {
-    	this->nTime = time;
-    }
-
-    unsigned int GetNonce() const{
-    	return nNonce;
-    }
-    void SetNonce(unsigned int nonce) {
-    	this->nNonce = nonce;
-    }
-    unsigned int GetHeight() const{
-    	return nHeight;
-    }
+    int64_t GetBlockTime() const { return (int64_t)nTime; }
+    int GetVersion() const { return nVersion; }
+    void SetVersion(int nVersion) { this->nVersion = nVersion; }
+    uint256 GetPrevBlockHash() const { return prevBlockHash; }
+    void SetPrevBlockHash(uint256 prevBlockHash) { this->prevBlockHash = prevBlockHash; }
+    uint256 GetMerkleRootHash() const { return merkleRootHash; }
+    void SetMerkleRootHash(uint256 merkleRootHash) { this->merkleRootHash = merkleRootHash; }
+    unsigned int GetTime() const { return nTime; }
+    void SetTime(unsigned int time) { this->nTime = time; }
+    unsigned int GetNonce() const { return nNonce; }
+    void SetNonce(unsigned int nonce) { this->nNonce = nonce; }
+    unsigned int GetHeight() const { return nHeight; }
     void SetHeight(unsigned int height);
-
-    unsigned int GetFuel() const{
-    	return nFuel;
-    }
-    void SetFuel(int64_t fuel) {
-    	this->nFuel = fuel;
-    }
-    int GetFuelRate() const{
-    	return nFuelRate;
-    }
-    void SetFuelRate(int fuelRalte) {
-    	this->nFuelRate = fuelRalte;
-    }
-    const vector<unsigned char> &GetSignature() const{
-    	return vSignature;
-    }
-    void SetSignature(const vector<unsigned char> &signature) {
-    	this->vSignature = signature;
-    }
-    void ClearSignature() {
-    	this->vSignature.clear();
-    }
+    unsigned int GetFuel() const { return nFuel; }
+    void SetFuel(int64_t fuel) { this->nFuel = fuel; }
+    int GetFuelRate() const { return nFuelRate; }
+    void SetFuelRate(int fuelRate) { this->nFuelRate = fuelRate; }
+    const vector<unsigned char> &GetSignature() const { return vSignature; }
+    void SetSignature(const vector<unsigned char> &signature) { this->vSignature = signature; }
+    void ClearSignature() { this->vSignature.clear(); }
 };
 
-class CBlock : public CBlockHeader
-{
+class CBlock : public CBlockHeader {
 public:
     // network and disk
     vector<std::shared_ptr<CBaseTx> > vptx;
@@ -208,32 +127,24 @@ public:
     // memory only
     mutable vector<uint256> vMerkleTree;
 
-    CBlock()
-    {
+    CBlock() { SetNull(); }
+
+    CBlock(const CBlockHeader &header) {
         SetNull();
+        *((CBlockHeader *)this) = header;
     }
 
-    CBlock(const CBlockHeader &header)
-    {
-        SetNull();
-        *((CBlockHeader*)this) = header;
-    }
+    IMPLEMENT_SERIALIZE(
+        READWRITE(*(CBlockHeader *)this);
+        READWRITE(vptx);)
 
-    IMPLEMENT_SERIALIZE
-    (
-        READWRITE(*(CBlockHeader*)this);
-        READWRITE(vptx);
-    )
-
-    void SetNull()
-    {
+    void SetNull() {
         CBlockHeader::SetNull();
         vptx.clear();
         vMerkleTree.clear();
     }
 
-    CBlockHeader GetBlockHeader() const
-    {
+    CBlockHeader GetBlockHeader() const {
         CBlockHeader block;
         block.SetVersion(nVersion);
         block.SetPrevBlockHash(prevBlockHash);
@@ -244,21 +155,22 @@ public:
         block.SetFuel(nFuel);
         block.SetFuelRate(nFuelRate);
         block.SetSignature(vSignature);
+
         return block;
     }
 
     uint256 BuildMerkleTree() const;
 
-    std::tuple<bool, int> GetTxIndex(const uint256& txHash) const;
+    std::tuple<bool, int> GetTxIndex(const uint256 &txHash) const;
 
     const uint256 &GetTxHash(unsigned int nIndex) const {
-        assert(vMerkleTree.size() > 0); // BuildMerkleTree must have been called first
+        assert(vMerkleTree.size() > 0);  // BuildMerkleTree must have been called first
         assert(nIndex < vptx.size());
         return vMerkleTree[nIndex];
     }
 
     vector<uint256> GetMerkleBranch(int nIndex) const;
-    static uint256 CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBranch, int nIndex);
+    static uint256 CheckMerkleBranch(uint256 hash, const vector<uint256> &vMerkleBranch, int nIndex);
 
     int64_t GetFee() const;
 
@@ -397,6 +309,7 @@ public:
             ret.nFile = nFile;
             ret.nPos  = nUndoPos;
         }
+
         return ret;
     }
 
@@ -413,21 +326,10 @@ public:
         return block;
     }
 
-    int64_t GetBlockFee() const {
-        return nBlockFee;
-    }
-
-    uint256 GetBlockHash() const {
-        return *pBlockHash;
-    }
-
-    int64_t GetBlockTime() const {
-        return (int64_t)nTime;
-    }
-
-    bool CheckIndex() const {
-        return true;
-    }
+    int64_t GetBlockFee() const { return nBlockFee; }
+    uint256 GetBlockHash() const { return *pBlockHash; }
+    int64_t GetBlockTime() const { return (int64_t)nTime; }
+    bool CheckIndex() const { return true; }
 
     enum { nMedianTimeSpan = 11 };
 
@@ -459,9 +361,7 @@ public:
                         nBlockFee, nChainWork.ToString().c_str(), dFeePerKb);
     }
 
-    void Print() const {
-        LogPrint("INFO", "%s\n", ToString().c_str());
-    }
+    void Print() const { LogPrint("INFO", "%s\n", ToString().c_str()); }
 
     // Build the skiplist pointer for this entry.
     void BuildSkip();
@@ -471,59 +371,6 @@ public:
     const CBlockIndex *GetAncestor(int height) const;
 };
 
-
-/** Describes a place in the block chain to another node such that if the
- * other node doesn't have the same branch, it can find a recent common trunk.
- * The further back it is, the further before the fork it may be.
- */
-struct CBlockLocator
-{
-    vector<uint256> vHave;
-
-    CBlockLocator() {}
-
-    CBlockLocator(const vector<uint256>& vHaveIn)
-    {
-        vHave = vHaveIn;
-    }
-
-    IMPLEMENT_SERIALIZE
-    (
-        if (!(nType & SER_GETHASH))
-            READWRITE(nVersion);
-        READWRITE(vHave);
-    )
-
-    void SetNull()
-    {
-        vHave.clear();
-    }
-
-    bool IsNull()
-    {
-        return vHave.empty();
-    }
-};
-
-struct CDiskTxPos : public CDiskBlockPos {
-    unsigned int nTxOffset;  // after header
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(*(CDiskBlockPos *)this);
-        READWRITE(VARINT(nTxOffset));)
-
-    CDiskTxPos(const CDiskBlockPos &blockIn, unsigned int nTxOffsetIn) : CDiskBlockPos(blockIn.nFile, blockIn.nPos), nTxOffset(nTxOffsetIn) {
-    }
-
-    CDiskTxPos() {
-        SetNull();
-    }
-
-    void SetNull() {
-        CDiskBlockPos::SetNull();
-        nTxOffset = 0;
-    }
-};
 
 /** Used to marshal pointers into hashes for db storage. */
 class CDiskBlockIndex : public CBlockIndex {
@@ -592,55 +439,24 @@ public:
     }
 };
 
-class CBlockFileInfo {
-public:
-    unsigned int nBlocks;       // number of blocks stored in file
-    unsigned int nSize;         // number of used bytes of block file
-    unsigned int nUndoSize;     // number of used bytes in the undo file
-    unsigned int nHeightFirst;  // lowest height of block in file
-    unsigned int nHeightLast;   // highest height of block in file
-    uint64_t nTimeFirst;        // earliest time of block in file
-    uint64_t nTimeLast;         // latest time of block in file
+/** Describes a place in the block chain to another node such that if the
+ * other node doesn't have the same branch, it can find a recent common trunk.
+ * The further back it is, the further before the fork it may be.
+ */
+struct CBlockLocator {
+    vector<uint256> vHave;
+
+    CBlockLocator() {}
+    CBlockLocator(const vector<uint256> &vHaveIn) { vHave = vHaveIn; }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(nBlocks));
-        READWRITE(VARINT(nSize));
-        READWRITE(VARINT(nUndoSize));
-        READWRITE(VARINT(nHeightFirst));
-        READWRITE(VARINT(nHeightLast));
-        READWRITE(VARINT(nTimeFirst));
-        READWRITE(VARINT(nTimeLast));)
+        if (!(nType & SER_GETHASH))
+            READWRITE(nVersion);
+        READWRITE(vHave);
+    )
 
-    void SetNull() {
-        nBlocks      = 0;
-        nSize        = 0;
-        nUndoSize    = 0;
-        nHeightFirst = 0;
-        nHeightLast  = 0;
-        nTimeFirst   = 0;
-        nTimeLast    = 0;
-    }
-
-    CBlockFileInfo() {
-        SetNull();
-    }
-
-    string ToString() const {
-        return strprintf("CBlockFileInfo(blocks=%u, size=%u, heights=%u...%u, time=%s...%s)", nBlocks, nSize, nHeightFirst, nHeightLast, DateTimeStrFormat("%Y-%m-%d", nTimeFirst).c_str(), DateTimeStrFormat("%Y-%m-%d", nTimeLast).c_str());
-    }
-
-    // update statistics (does not update nSize)
-    void AddBlock(unsigned int nHeightIn, uint64_t nTimeIn) {
-        if (nBlocks == 0 || nHeightFirst > nHeightIn)
-            nHeightFirst = nHeightIn;
-        if (nBlocks == 0 || nTimeFirst > nTimeIn)
-            nTimeFirst = nTimeIn;
-        nBlocks++;
-        if (nHeightIn > nHeightLast)
-            nHeightLast = nHeightIn;
-        if (nTimeIn > nTimeLast)
-            nTimeLast = nTimeIn;
-    }
+    void SetNull() { vHave.clear(); }
+    bool IsNull() { return vHave.empty(); }
 };
 
 #endif  // PERSIST_BLOCK_H

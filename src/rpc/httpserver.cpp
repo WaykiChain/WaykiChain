@@ -12,7 +12,6 @@
 #include <rpc/rpcprotocol.h> // For HTTP status codes
 #include <init.h>
 #include <sync.h>
-#include <ui_interface.h>
 
 #include <memory>
 #include <stdio.h>
@@ -187,12 +186,11 @@ static bool InitHTTPAllowList() {
         CSubNet subnet;
         LookupSubNet(strAllow.c_str(), subnet);
         if (!subnet.IsValid()) {
-            uiInterface.ThreadSafeMessageBox(
-                strprintf("Invalid -rpcallowip subnet specification: %s. Valid are a single IP "
-                          "(e.g. 1.2.3.4), a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a "
-                          "network/CIDR (e.g. 1.2.3.4/24).",
-                          strAllow),
-                "", CClientUIInterface::MSG_ERROR);
+            LogPrint("ERROR",
+                     "Invalid -rpcallowip subnet specification: %s. Valid are a single IP "
+                     "(e.g. 1.2.3.4), a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a "
+                     "network/CIDR (e.g. 1.2.3.4/24).",
+                     strAllow);
             return false;
         }
         rpc_allow_subnets.push_back(subnet);
@@ -200,7 +198,7 @@ static bool InitHTTPAllowList() {
     std::string strAllowed;
     for (const CSubNet& subnet : rpc_allow_subnets) {
         strAllowed += subnet.ToString() + " ";
-    } 
+    }
     LogPrint("RPC", "Allowing HTTP connections from: %s\n", strAllowed);
     return true;
 }
@@ -510,7 +508,7 @@ HTTPEvent::HTTPEvent(struct event_base* base, bool _deleteWhenTriggered,
 }
 
 HTTPEvent::~HTTPEvent() {
-     event_free(ev); 
+     event_free(ev);
 }
 
 void HTTPEvent::trigger(struct timeval* tv) {

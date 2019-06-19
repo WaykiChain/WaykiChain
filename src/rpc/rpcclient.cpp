@@ -1,13 +1,14 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2013 The WaykiChain developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #include "configuration.h"
 #include "rpcclient.h"
 
 #include "rpcprotocol.h"
 #include "util.h"
-#include "ui_interface.h"
 #include "chainparams.h" // for Params().RPCPort()
 #include "tx/tx.h"
 
@@ -130,8 +131,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "getaddednodeinfo"       && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "setgenerate"            && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "setgenerate"            && n > 1) ConvertTo<int64_t>(params[1]);
-    if (strMethod == "getnetworkhashps"       && n > 0) ConvertTo<int64_t>(params[0]);
-    if (strMethod == "getnetworkhashps"       && n > 1) ConvertTo<int64_t>(params[1]);
 
     if (strMethod == "sendtoaddress"          && n == 2) ConvertTo<double>(params[1]);
     if (strMethod == "sendtoaddress"          && n == 3) ConvertTo<double>(params[2]);

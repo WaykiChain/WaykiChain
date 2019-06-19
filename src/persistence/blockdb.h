@@ -23,10 +23,12 @@ private:
 
 public:
     CBlockTreeDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
+    CBlockTreeDB(const std::string &name, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
 
     bool WriteBlockIndex(const CDiskBlockIndex &blockindex);
     bool EraseBlockIndex(const uint256 &blockHash);
-    bool WriteBestInvalidWork(const uint256 &bnBestInvalidWork);
+    // TODO: need to delete WriteBestInvalidWork
+//    bool WriteBestInvalidWork(const uint256 &bnBestInvalidWork);
     bool ReadBlockFileInfo(int nFile, CBlockFileInfo &fileinfo);
     bool WriteBlockFileInfo(int nFile, const CBlockFileInfo &fileinfo);
     bool ReadLastBlockFile(int &nFile);
@@ -34,7 +36,7 @@ public:
     bool WriteReindexing(bool fReindex);
     bool ReadReindexing(bool &fReindex);
     //  bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    //  bool WriteTxIndex(const vector<pair<uint256, CDiskTxPos> > &list);
+    //  bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list);
     bool WriteFlag(const string &name, bool fValue);
     bool ReadFlag(const string &name, bool &fValue);
     bool LoadBlockIndexGuts();

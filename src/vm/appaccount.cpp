@@ -72,7 +72,7 @@ CAppUserAccount::CAppUserAccount() {
     vFrozenFunds.clear();
 }
 
-CAppUserAccount::CAppUserAccount(const vector<unsigned char> &userId)
+CAppUserAccount::CAppUserAccount(const string &userId)
 {
     mAccUserID.clear();
     mAccUserID = userId;

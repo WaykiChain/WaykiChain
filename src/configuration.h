@@ -26,39 +26,20 @@ class G_CONFIG_TABLE;
 
 const G_CONFIG_TABLE& IniCfg();
 
-/** Block-chain checkpoints are compiled-in sanity checks.
- * They are updated every release or three.
- */
-namespace Checkpoints {
-// Returns true if block passes checkpoint checks
-bool CheckBlock(int nHeight, const uint256& hash);
-
-// Return conservative estimate of total number of blocks, 0 if unknown
-int GetTotalBlocksEstimate();
-
-// Returns last CBlockIndex* in mapBlockIndex that is a checkpoint
-CBlockIndex* GetLastCheckpoint(const std::map<uint256, CBlockIndex*>& mapBlockIndex);
-
-double GuessVerificationProgress(CBlockIndex* pIndex, bool fSigchecks = true);
-
-bool AddCheckpoint(int nHeight, uint256 hash);
-
-bool GetCheckpointByHeight(const int nHeight, std::vector<int>& vCheckpoints);
-
-bool LoadCheckpoint();
-
-void GetCheckpointMap(std::map<int, uint256>& checkpoints);
-
-extern bool fEnabled;
-}  // namespace Checkpoints
-
 class G_CONFIG_TABLE {
 public:
     string GetCoinName() const { return COIN_NAME; }
+    const string GetAlertPkey(NET_TYPE type) const;
+
     const vector<string> GetInitPubKey(NET_TYPE type) const;
-    const uint256 GetIntHash(NET_TYPE type) const;
-    const string GetCheckPointPkey(NET_TYPE type) const;
+    const uint256 GetGenesisBlockHash(NET_TYPE type) const;
+    string GetDelegateSignature(NET_TYPE type) const;
+    const vector<string> GetDelegatePubKey(NET_TYPE type) const;
     const uint256 GetMerkleRootHash() const;
+
+    string GetAccountRegisterSignature(NET_TYPE type) const;
+    const string GetFundCoinInitPubKey(NET_TYPE type) const;
+
     vector<unsigned int> GetSeedNodeIP() const;
     unsigned char* GetMagicNumber(NET_TYPE type) const;
     vector<unsigned char> GetAddressPrefix(NET_TYPE type, Base58Type BaseType) const;
@@ -71,8 +52,6 @@ public:
     int GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const;
     uint64_t GetTotalDelegateNum() const;
     uint64_t GetMaxVoteCandidateNum() const;
-    string GetDelegateSignature(NET_TYPE type) const;
-    const vector<string> GetDelegatePubKey(NET_TYPE type) const;
     uint64_t GetCoinInitValue() const { return InitialCoin; };
 	uint32_t GetFeatureForkHeight(NET_TYPE) const;
 
@@ -95,16 +74,26 @@ private:
     static string delegateSignature_regNet;
 
     /* gensis block hash */
-    static string hashGenesisBlock_mainNet;
-    static string hashGenesisBlock_testNet;
-    static string hashGenesisBlock_regTest;
+    static string genesisBlockHash_mainNet;
+    static string genesisBlockHash_testNet;
+    static string genesisBlockHash_regTest;
 
-    /* checkpoint public key */
-    static string CheckPointPK_MainNet;
-    static string CheckPointPK_TestNet;
+    /* alert public key */
+    static string AlertPK_MainNet;
+    static string AlertPK_TestNet;
 
     /* merkle root hash */
     static string MerkleRootHash;
+
+    /* fund coin initial public key */
+    static string initPubKeyFundCoin_mainNet;
+    static string initPubKeyFundCoin_testNet;
+    static string initPubkeyFundCoin_regTest;
+
+    /* register account signature */
+    static string accountRegisterSignature_mainNet;
+    static string accountRegisterSignature_testNet;
+    static string accountRegisterSignature_regNet;
 
     /* Peer IP seeds */
     static vector<unsigned int> pnSeed;

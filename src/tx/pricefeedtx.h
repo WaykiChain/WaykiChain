@@ -3,8 +3,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PRICE_FEED_H
-#define PRICE_FEED_H
+#ifndef TX_PRICE_FEED_H
+#define TX_PRICE_FEED_H
 
 #include "tx.h"
 
@@ -18,14 +18,14 @@ public:
         assert(PRICE_FEED_TX == pBaseTx->nTxType);
         *this = *(CPriceFeedTx *)pBaseTx;
     }
-    CPriceFeedTx(const CUserID &txUidIn, int validHeightIn, uint64_t feeIn,
+    CPriceFeedTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                 const CPricePoint &pricePointIn):
-        CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feeIn) {
+        CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feesIn) {
         pricePoints.push_back(pricePointIn);
     }
-    CPriceFeedTx(const CUserID &txUidIn, int validHeightIn, uint64_t feeIn,
+    CPriceFeedTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                 const vector<CPricePoint> &pricePointsIn):
-        CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feeIn) {
+        CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feesIn) {
         if (pricePoints.size() > 3 || pricePoints.size() == 0)
             return; // limit max # of price points to be three in one shot
 
@@ -61,7 +61,7 @@ public:
     virtual Object ToJson(const CAccountCache &view) const; //json-rpc usage
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
@@ -69,62 +69,4 @@ public:
 
 };
 
-class CBlockPriceMedianTx: public CBaseTx  {
-private:
-    // map<tuple<CoinType, PriceType>, uint64_t> mapMediaPricePoints;
-    map<CCoinPriceType, uint64_t> mapMediaPricePoints;
-
-public:
-    CBlockPriceMedianTx(): CBaseTx(BLOCK_PRICE_MEDIAN_TX) {}
-
-    CBlockPriceMedianTx(const CBaseTx *pBaseTx): CBaseTx(BLOCK_PRICE_MEDIAN_TX) {
-        assert(BLOCK_PRICE_MEDIAN_TX == pBaseTx->nTxType);
-        *this = *(CBlockPriceMedianTx *)pBaseTx;
-    }
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(this->nVersion));
-        nVersion = this->nVersion;
-        READWRITE(VARINT(nValidHeight));
-        READWRITE(txUid);
-
-        for (auto it = mapMediaPricePoints.begin(); it != mapMediaPricePoints.end(); ++it) {
-            // CoinType coinType  = std::get<0>(it->first);
-            // PriceType priceType = std::get<1>(it->first);
-            CCoinPriceType CCoinPriceType = it->first;
-            uint64_t price = it->second;
-
-            READWRITE(CPricePoint(CCoinPriceType, price));
-        };
-    )
-
-    uint256 ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
-                << mapMediaPricePoints;
-
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
-    }
-
-    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual uint64_t GetFee() const { return llFees; }
-    virtual uint64_t GetValue() const { return 0; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CBlockPriceMedianTx>(this); }
-    virtual double GetPriority() const { return 1000.0f; }
-
-    virtual string ToString(CAccountCache &view);
-    virtual Object ToJson(const CAccountCache &view) const;
-    bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
-
-    bool CheckTx(CCacheWrapper &cw, CValidationState &state);
-    bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-    bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-
-    inline uint64_t GetMedianPriceByType(const CoinType coinType, const PriceType priceType);
-};
-
-#endif
+#endif //TX_PRICE_FEED_H

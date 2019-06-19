@@ -13,17 +13,16 @@ private:
     int64_t fcoinsToStake; // when negative, it means staking revocation
 
 public:
-    CFcoinStakeTx(): CBaseTx(FCOIN_STAKE_TX) { fcoinsToStake = 0;}
+    CFcoinStakeTx(): CBaseTx(FCOIN_STAKE_TX), fcoinsToStake(0) {}
 
     CFcoinStakeTx(const CBaseTx *pBaseTx): CBaseTx(FCOIN_STAKE_TX) {
         assert(FCOIN_STAKE_TX == pBaseTx->nTxType);
         *this = *(CFcoinStakeTx *) pBaseTx;
     }
 
-    CFcoinStakeTx(const CUserID &txUidIn, int validHeightIn, uint64_t feeIn, uint64_t fcoinsToStakeIn):
-        CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feeIn) {
-        fcoinsToStake = fcoinsToStakeIn;
-    }
+    CFcoinStakeTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn, uint64_t fcoinsToStakeIn):
+        CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feesIn),
+        fcoinsToStake(fcoinsToStakeIn) {}
 
     ~CFcoinStakeTx() {}
 
@@ -33,6 +32,7 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
+        READWRITE(VARINT(llFees));
         READWRITE(VARINT(fcoinsToStake));
 
         READWRITE(signature);
@@ -42,7 +42,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
-               << VARINT(fcoinsToStake);
+               << VARINT(llFees) << VARINT(fcoinsToStake);
 
             sigHash = ss.GetHash();
         }
@@ -53,14 +53,13 @@ public:
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CFcoinStakeTx>(this); }
     virtual double GetPriority() const { return 10000.0f; } // Top priority
 
-    virtual string ToString(CAccountCache &view);
-    virtual Object ToJson(const CAccountCache &AccountView) const;
+    virtual string ToString(CAccountCache &accountCache);
+    virtual Object ToJson(const CAccountCache &accountCache) const;
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    bool CheckTx(CCacheWrapper &cw, CValidationState &state);
+    bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-
 };
 
 #endif

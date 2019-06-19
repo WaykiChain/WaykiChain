@@ -28,9 +28,8 @@
 | getchainstate | ```<num>``` | Returns chain state by retrieving the recent num of blocks | N |
 | getdifficulty | | Returns the proof-of-work difficulty as a multiple of the minimum difficulty | N |
 | getinfo | | Returns an object containing various state info | N |
-| getmininginfo | | Returns an object containing mining-related information: <br> <ul>blocks</ul><ul>currentblocksize</ul><ul>currentblocktx</ul><ul>difficulty</ul><ul>errors</ul><ul>generate</ul><ul>genblocklimit</ul><ul>hashespersec</ul><ul>pooledtx</ul><ul>testnet</ul> | N |
+| getmininginfo | | Returns an object containing mining-related information: <br> <ul>blocks</ul><ul>currentblocksize</ul><ul>currentblocktx</ul><ul>difficulty</ul><ul>errors</ul><ul>generate</ul><ul>pooledtx</ul><ul>testnet</ul> | N |
 | getnewaddr | ```[isminer]``` | Returns a new  address for receiving payments. If [isminer] is ture will create a miner key,otherwise will only return a new address. | Y |
-| getnetworkhashps | ```[blocks][height]``` | Returns the estimated network hashes per second based on the last n blocks.<br><li>.    blocks</li> (numeric, optional, default=120) The number of blocks, or -1 for blocks since last difficulty change</li><li>2.    height (numeric, optional, default=-1) To estimate at the time of the given height.</li>| N |
 | getnetworkinfo | | Returns an object containing various state info regarding P2P network | N |
 | getpeerinfo | | Returns data about each connected node | N |
 | getrawmempool | ```[verbose]``` | Returns all transaction ids in memory pool.If verbose is true,return  a json object, false return array of transaction ids. | N |
@@ -45,7 +44,6 @@
 | invalidateblock | ```<hash>``` | Mark a block as invalid. | N |
 | listaddr | | return Array containing address,balance,haveminerkey,regid information | N |
 | listcontracts | ```<showDetail>``` | get all registered contracts: <br>1. showDetail: 0 | 1  (boolean, required) 1 to show scriptContent, otherwise not show it. | N |
-| listcheckpoint | | Returns the list of checkpoints | N |
 | listtx | | get all confirm transactions and all unconfirm transactions from wallet | N |
 | listtxcache | | get all transactions in cache | N |
 | listunconfirmedtx | | get the list of unconfirmedtx | N |

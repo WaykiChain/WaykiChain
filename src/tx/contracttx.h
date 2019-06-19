@@ -3,14 +3,14 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef CONTRACT_H
-#define CONTRACT_H
+#ifndef TX_CONTRACT_H
+#define TX_CONTRACT_H
 
 #include "tx.h"
 
 class CContractDeployTx : public CBaseTx {
 public:
-    vector_unsigned_char contractScript;  // contract script content
+    string contractScript;  // contract script content
 
 public:
     CContractDeployTx(const CBaseTx *pBaseTx): CBaseTx(CONTRACT_DEPLOY_TX) {
@@ -50,7 +50,7 @@ public:
     virtual Object ToJson(const CAccountCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 };
@@ -69,9 +69,9 @@ public:
         *this = *(CContractInvokeTx *)pBaseTx;
     }
 
-    CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feeIn,
+    CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn,
                 uint64_t bcoinsIn, int validHeightIn, vector_unsigned_char &argumentsIn):
-                CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feeIn) {
+                CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty()); //FIXME: shouldnot be using assert here, throw an error instead.
 
@@ -83,8 +83,8 @@ public:
         arguments = argumentsIn;
     }
 
-    CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feeIn, uint64_t bcoinsIn, int validHeightIn):
-                CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feeIn) {
+    CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn, uint64_t bcoinsIn, int validHeightIn):
+                CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
         else if (txUidIn.type() == typeid(CPubKey))
@@ -130,9 +130,9 @@ public:
     virtual Object ToJson(const CAccountCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 };
 
-#endif
+#endif //TX_CONTRACT_H

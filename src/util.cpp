@@ -7,7 +7,6 @@
 #include "configuration.h"
 #include "netbase.h"
 #include "sync.h"
-#include "ui_interface.h"
 #include "commons/uint256.h"
 #include "version.h"
 
@@ -88,9 +87,6 @@ bool fDaemon = false;
 string strMiscWarning;
 bool fNoListen                = false;
 volatile bool fReopenDebugLog = false;
-
-CClientUIInterface uiInterface;
-CClientUIInterface* pUIInterface = &uiInterface;
 
 // Init OpenSSL library multithreading support
 static CCriticalSection** ppmutexOpenSSL;
@@ -1247,7 +1243,8 @@ boost::filesystem::path GetTempPath() {
 
 void runCommand(string strCommand) {
     int nErr = ::system(strCommand.c_str());
-    if (nErr) LogPrint("INFO", "runCommand error: system(%s) returned %d\n", strCommand, nErr);
+    if (nErr)
+        LogPrint("INFO", "runCommand error: system(%s) returned %d\n", strCommand, nErr);
 }
 
 void RenameThread(const char* name) {

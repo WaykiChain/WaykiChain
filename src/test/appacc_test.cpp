@@ -153,7 +153,7 @@ BOOST_AUTO_TEST_CASE(key_test1)
     CAppUserAccount AccCount(AppuserId);
     BOOST_CHECK(AccCount.GetAccUserId() == AppuserId);      //初始化的ID 必须是
     BOOST_CHECK(AccCount.Operate(OpArry));               //执行所有的操作符合
-    BOOST_CHECK(AccCount.Getbcoins() == 0);            //因为操作符全是加冻结的钱所以自由金额必须是0
+    BOOST_CHECK(AccCount.GetBcoins() == 0);            //因为操作符全是加冻结的钱所以自由金额必须是0
 
     {
         CAppCFund tep;
@@ -198,7 +198,7 @@ BOOST_AUTO_TEST_CASE(key_test1)
         CAppCFund tep;
         AccCount.AutoMergeFreezeToFree(timeout);                                //自动合并 第0个
         BOOST_CHECK(AccCount.GetAppCFund(tep, fundtag, timeout) == false);      //必须找不到数据
-        BOOST_CHECK(AccCount.Getbcoins() == OpArry[0].GetUint64Value());;                         //合并后自由金额必须没有问题
+        BOOST_CHECK(AccCount.GetBcoins() == OpArry[0].GetUint64Value());;                         //合并后自由金额必须没有问题
     }
 
     {                       //减去全部
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(key_test1)
         vector<CAppFundOperate> OpArry2;
         OpArry2.insert(OpArry2.end(), subfreeop);
         BOOST_CHECK(AccCount.Operate(OpArry2));                             //执行所有的操作符合
-        BOOST_CHECK(AccCount.Getbcoins() == 0);;                           //钱必须可以核对
+        BOOST_CHECK(AccCount.GetBcoins() == 0);;                           //钱必须可以核对
     }
 
     {
@@ -215,12 +215,12 @@ BOOST_AUTO_TEST_CASE(key_test1)
         OpArry2.clear();
         OpArry2.insert(OpArry2.end(), addfreeop);
         BOOST_CHECK(AccCount.Operate(OpArry2));                             //执行所有的操作符合
-        BOOST_CHECK(AccCount.Getbcoins() == OpArry[0].GetUint64Value());                //加上后 就回来了
+        BOOST_CHECK(AccCount.GetBcoins() == OpArry[0].GetUint64Value());                //加上后 就回来了
     }
 
     AccCount.AutoMergeFreezeToFree(maxtimeout);                     //全部合并
-    printf("%lu, %lu\n", AccCount.Getbcoins(), allmony);
-    BOOST_CHECK(AccCount.Getbcoins() == allmony);                //余额平账
+    printf("%lu, %lu\n", AccCount.GetBcoins(), allmony);
+    BOOST_CHECK(AccCount.GetBcoins() == allmony);                //余额平账
 
 }
 

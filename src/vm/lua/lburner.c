@@ -59,7 +59,7 @@ static OpFuelInfo g_opFuelList[OP_TOTAL_COUNT] = {
     {"OP_LEN",      FUEL_OP_LEN},       /* OP_LEN,      A B     R(A) := length of R(B)               */
     {"OP_CONCAT",   FUEL_OP_CONCAT},    /* OP_CONCAT,   A B C   R(A) := R(B).. ... ..R(C)            */
 
-    {"OP_JMP",      0},                 /* OP_JMP,      A sBx   pc+=sBx; 
+    {"OP_JMP",      0},                 /* OP_JMP,      A sBx   pc+=sBx;
                                                                 if (A) then
                                                                     close all upvalues >= R(A - 1)   */
     {"OP_EQ",       FUEL_OP_EQ},        /* OP_EQ,       A B C   if ((RK(B) == RK(C)) ~= A) then pc++ */
@@ -67,35 +67,35 @@ static OpFuelInfo g_opFuelList[OP_TOTAL_COUNT] = {
     {"OP_LE",       FUEL_OP_LE},        /* OP_LE,       A B C   if ((RK(B) <= RK(C)) ~= A) then pc++ */
 
     {"OP_TEST",     FUEL_OP_TEST},      /* OP_TEST,     A C     if not (R(A) <=> C) then pc++        */
-    {"OP_TESTSET",  FUEL_OP_TESTSET},   /* OP_TESTSET,  A B C   if (R(B) <=> C) then 
+    {"OP_TESTSET",  FUEL_OP_TESTSET},   /* OP_TESTSET,  A B C   if (R(B) <=> C) then
                                                                     R(A) := R(B) else pc++           */
 
     {"OP_CALL",     0},                 /* OP_CALL,     A B C   R(A), ... ,
-                                                                R(A+C-2) := R(A)(R(A+1), 
+                                                                R(A+C-2) := R(A)(R(A+1),
                                                                 ... ,R(A+B-1))                       */
     {"OP_TAILCALL", 0},                 /* OP_TAILCALL, A B C   return R(A)(R(A+1), ... ,R(A+B-1))   */
-    {"OP_RETURN",   0},                 /* OP_RETURN,   A B     return R(A), ... ,R(A+B-2) 
+    {"OP_RETURN",   0},                 /* OP_RETURN,   A B     return R(A), ... ,R(A+B-2)
                                                                 (see note)                           */
 
     {"OP_FORLOOP",  0},                 /* OP_FORLOOP,  A sBx   R(A)+=R(A+2);
-                                                                if R(A) <?= R(A+1) 
+                                                                if R(A) <?= R(A+1)
                                                                     then { pc+=sBx; R(A+3)=R(A) }    */
     {"OP_FORPREP",  0},                 /* OP_FORPREP,  A sBx   R(A)-=R(A+2); pc+=sBx                */
 
     {"OP_TFORCALL", 0},                 /* OP_TFORCALL, A C     R(A+3), ... ,
                                                                 R(A+2+C) := R(A)(R(A+1), R(A+2));    */
-    {"OP_TFORLOOP", 0},                 /* OP_TFORLOOP, A sBx   if R(A+1) ~= nil then 
+    {"OP_TFORLOOP", 0},                 /* OP_TFORLOOP, A sBx   if R(A+1) ~= nil then
                                                                     { R(A)=R(A+1); pc += sBx }       */
 
-    {"OP_SETLIST",  0},                 /* OP_SETLIST,  A B C   R(A)[(C-1)*FPF+i] := R(A+i), 
+    {"OP_SETLIST",  0},                 /* OP_SETLIST,  A B C   R(A)[(C-1)*FPF+i] := R(A+i),
                                                                 1 <= i <= B                         */
 
     {"OP_CLOSURE",  0},                 /* OP_CLOSURE,  A Bx    R(A) := closure(KPROTO[Bx])         */
 
-    {"OP_VARARG",   0},                 /* OP_VARARG,   A B     R(A), R(A+1), ..., 
+    {"OP_VARARG",   0},                 /* OP_VARARG,   A B     R(A), R(A+1), ...,
                                                                 R(A+B-2) = vararg                   */
 
-    {"OP_EXTRAARG", 0}                  /* OP_EXTRAARG  Ax      extra (larger) argument for 
+    {"OP_EXTRAARG", 0}                  /* OP_EXTRAARG  Ax      extra (larger) argument for
                                                                     previous opcode                 */
 };
 
@@ -133,7 +133,7 @@ static int CheckBurnedOk(lua_State *L, const char *errMsg, ...) {
         return 0;
     }
     return 1;
-} 
+}
 
 
 LUA_API int lua_StartBurner(lua_State *L, unsigned long long fuelLimit, int version) {
@@ -143,7 +143,7 @@ LUA_API int lua_StartBurner(lua_State *L, unsigned long long fuelLimit, int vers
     L->burnerState.error            = 0;
     L->burnerState.fuelLimit        = fuelLimit;
     L->burnerState.version          = version;
-    L->burnerState.fuel             = 0;    
+    L->burnerState.fuel             = 0;
     L->burnerState.fuelRefund       = 0;
     L->burnerState.fuelStep         = 0;
     L->burnerState.allocMemSize     = 0;
@@ -167,7 +167,7 @@ LUA_API int lua_BurnMemory(lua_State *L, void *block, size_t osize, size_t nsize
     if (IsBurnerRuning(L) && version <= L->burnerState.version) {
         if (nsize > 0) {  // alloc memory
             L->burnerState.allocMemSize += nsize;
-            TraceBurning(L, "lua_BurnMemory", "alloc memory, version=%d, size=%llu\n", 
+            TraceBurning(L, "lua_BurnMemory", "alloc memory, version=%d, size=%llu\n",
                 version, nsize);
             return CheckBurnedOk(L, "Burned-out lua_BurnMemory");
         }
@@ -191,11 +191,11 @@ LUA_API int lua_BurnOperator(lua_State *L, int op, int version) {
             unsigned long long fuel = g_opFuelList[op].fuel;
             L->burnerState.fuel += fuel;
             L->burnerState.fuelOperator += fuel;
-            TraceBurning(L, "lua_BurnOperator", "version=%d, op=%s, fuel=%llu\n", 
+            TraceBurning(L, "lua_BurnOperator", "version=%d, op=%s, fuel=%llu\n",
                 version, g_opFuelList[op].name, fuel);
             return CheckBurnedOk(L, "Burned-out lua_BurnOperator");
         } else {
-            TraceBurning(L, "lua_BurnOperator", "unknown op, version=%d, op=%d\n", 
+            TraceBurning(L, "lua_BurnOperator", "unknown op, version=%d, op=%d\n",
                 version, op);
         }
     }
@@ -207,10 +207,10 @@ LUA_API int lua_BurnStoreSet(lua_State *L, size_t keySize, size_t oldDataSize, s
         unsigned long long fuel = 0;
         unsigned long long refund = 0;
         const char *action = "unchanged";
-        if (newDataSize == oldDataSize) { 
+        if (newDataSize == oldDataSize) {
             action = "reset";
             fuel = newDataSize * FUEL_STORE_RESET;
-        } else if (newDataSize > oldDataSize) { 
+        } else if (newDataSize > oldDataSize) {
             if (oldDataSize == 0) {
                 action = "new";
                 fuel = (keySize + newDataSize) * FUEL_STORE_ADDED;
@@ -229,21 +229,21 @@ LUA_API int lua_BurnStoreSet(lua_State *L, size_t keySize, size_t oldDataSize, s
         L->burnerState.fuel += fuel;
         L->burnerState.fuelStore += fuel;
         L->burnerState.fuelRefund += refund;
-        TraceBurning(L, "lua_BurnStoreSet", "%s, version=%d, keySize=%u, oldDataSize=%u, newDataSize=%u, fuel=%llu, refund=%llu\n", 
+        TraceBurning(L, "lua_BurnStoreSet", "%s, version=%d, keySize=%u, oldDataSize=%u, newDataSize=%u, fuel=%llu, refund=%llu\n",
             action, version, keySize, oldDataSize, newDataSize, refund);
         return CheckBurnedOk(L, "Burned-out lua_BurnStoreSet");
     }
     return 1;
 }
 
-LUA_API int lua_BurnStoreUnchange(lua_State *L, size_t keySize, size_t dataSize, int version) {
+LUA_API int lua_BurnStoreUnchanged(lua_State *L, size_t keySize, size_t dataSize, int version) {
     if (IsBurnerRuning(L) && version <= L->burnerState.version) {
         unsigned long long fuel = (keySize + dataSize) * FUEL_STORE_UNCHANGED;
         L->burnerState.fuel += FUEL_STORE_UNCHANGED;
         L->burnerState.fuelStore += fuel;
-        TraceBurning(L, "lua_BurnStoreUnchange", "version=%d, keySize=%u, dataSize=%u, fuel=%llu\n", 
+        TraceBurning(L, "lua_BurnStoreUnchanged", "version=%d, keySize=%u, dataSize=%u, fuel=%llu\n",
             version, fuel);
-        return CheckBurnedOk(L, "Burned-out lua_BurnStoreUnchange");
+        return CheckBurnedOk(L, "Burned-out lua_BurnStoreUnchanged");
     }
     return 1;
 }
@@ -253,7 +253,7 @@ LUA_API int lua_BurnStoreGet(lua_State *L, size_t keySize, size_t dataSize, int 
         unsigned long long fuel = (keySize + dataSize) * FUEL_STORE_GET;
         L->burnerState.fuel += fuel;
         L->burnerState.fuelStore += fuel;
-        TraceBurning(L, "lua_BurnStoreGet", "version=%d, keySize=%u, dataSize=%u, fuel=%llu\n", 
+        TraceBurning(L, "lua_BurnStoreGet", "version=%d, keySize=%u, dataSize=%u, fuel=%llu\n",
             version, keySize, dataSize, fuel);
         return CheckBurnedOk(L, "Burned-out lua_BurnStoreGet");
     }
@@ -265,7 +265,7 @@ LUA_API int lua_BurnAccountOperate(lua_State *L, const char *funcName, size_t co
         unsigned long long fuel = count * FUEL_ACCOUNT_OPERATE;
         L->burnerState.fuel += fuel;
         L->burnerState.fuelAccount += fuel;
-        TraceBurning(L, "lua_BurnAccountOperate", "%s, version=%d, count=%u, fuel=%llu\n", 
+        TraceBurning(L, "lua_BurnAccountOperate", "%s, version=%d, count=%u, fuel=%llu\n",
             funcName, version, count, fuel);
         return CheckBurnedOk(L, "Burned-out lua_BurnAccountOperate %s()", funcName);
     }
@@ -276,7 +276,7 @@ LUA_API int lua_BurnAccountGet(lua_State *L, const char *funcName, unsigned long
         if (IsBurnerRuning(L) && version <= L->burnerState.version) {
         L->burnerState.fuel += fuel;
         L->burnerState.fuelAccount += fuel;
-        TraceBurning(L, "lua_BurnAccountGet", "%s, version=%d, fuel=%llu\n", 
+        TraceBurning(L, "lua_BurnAccountGet", "%s, version=%d, fuel=%llu\n",
             funcName, version, fuel);
         return CheckBurnedOk(L, "Burned-out lua_BurnAccountGet %s()", funcName);
     }
@@ -295,7 +295,7 @@ LUA_API int lua_BurnFuncCall(lua_State *L, const char *funcName, unsigned long l
     return 1;
 }
 
-LUA_API int lua_BurnFuncData(lua_State *L, const char *funcName, unsigned long long callFuel, 
+LUA_API int lua_BurnFuncData(lua_State *L, const char *funcName, unsigned long long callFuel,
     size_t dataSize, size_t unitSize, unsigned long long fuelPerUnit, int version) {
 
     if (IsBurnerRuning(L) && version <= L->burnerState.version) {

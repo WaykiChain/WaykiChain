@@ -34,8 +34,8 @@ string GetTxType(const unsigned char txType) {
         return "";
 }
 
-bool CBaseTx::IsValidHeight(int nCurrHeight, int nTxCacheHeight) const {
-    if(BLOCK_REWARD_TX == nTxType)
+bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
+    if (BLOCK_REWARD_TX == nTxType || BLOCK_PRICE_MEDIAN_TX == nTxType)
         return true;
 
     if (nValidHeight > nCurrHeight + nTxCacheHeight / 2)
@@ -47,8 +47,8 @@ bool CBaseTx::IsValidHeight(int nCurrHeight, int nTxCacheHeight) const {
     return true;
 }
 
-uint64_t CBaseTx::GetFuel(int nfuelRate) {
-    uint64_t llFuel = ceil(nRunStep/100.0f) * nfuelRate;
+uint64_t CBaseTx::GetFuel(int32_t nFuelRate) {
+    uint64_t llFuel = ceil(nRunStep/100.0f) * nFuelRate;
     if (CONTRACT_DEPLOY_TX == nTxType) {
         if (llFuel < 1 * COIN) {
             llFuel = 1 * COIN;
@@ -57,7 +57,7 @@ uint64_t CBaseTx::GetFuel(int nfuelRate) {
     return llFuel;
 }
 
-int CBaseTx::GetFuelRate(CContractCache &scriptDB) {
+int32_t CBaseTx::GetFuelRate(CContractCache &scriptDB) {
     if (nFuelRate > 0)
         return nFuelRate;
 
@@ -78,15 +78,14 @@ int CBaseTx::GetFuelRate(CContractCache &scriptDB) {
     return nFuelRate;
 }
 
-// check the fees must be more than nMinTxFee
-bool CBaseTx::CheckMinTxFee(const uint64_t llFees) const {
-    if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2 )
+bool CBaseTx::CheckMinTxFee(const uint64_t llFees, const int32_t nHeight) const {
+    if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2 )
         return llFees >= nMinTxFee;
 
     return true;
 }
 
-// transactions should check the signature size before verifying signature
+// Transactions should check the signature size before verifying signature
 bool CBaseTx::CheckSignatureSize(const vector<unsigned char> &signature) const {
     return signature.size() > 0 && signature.size() < MAX_BLOCK_SIGNATURE_SIZE;
 }
@@ -100,42 +99,24 @@ string CBaseTx::ToString(CAccountCache &view) {
     return str;
 }
 
-string CTxUndo::ToString() const {
-    string str;
-    string strTxHash("txHash:");
-    strTxHash += txHash.GetHex();
-    strTxHash += "\n";
+bool CBaseTx::SaveTxAddresses(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw,
+                              const vector<CUserID> &userIds) {
+    if (SysCfg().GetAddressToTxFlag()) {
+        CDbOpLogs &opLogs = cw.txUndo.dbOpLogsMap.GetDbOpLogs(dbk::LIST_KEYID_TX);
+        CDbOpLog operAddressToTxLog;
+        for (auto userId : userIds) {
+            if (userId.type() != typeid(CNullID)) {
+                CKeyID keyId;
+                if (!cw.accountCache.GetKeyId(userId, keyId))
+                    return ERRORMSG("SaveTxAddresses, get keyid by uid error!");
 
-    str += strTxHash;
+                if (!cw.contractCache.SetTxHashByAddress(keyId, nHeight, nIndex + 1,
+                                                         cw.txUndo.txHash, operAddressToTxLog))
+                    return ERRORMSG("SaveTxAddresses, SetTxHashByAddress to db cache failed!");
 
-    string strAccountLog("list account Log:\n");
-    vector<CAccountLog>::const_iterator iterLog = vAccountLog.begin();
-    for (; iterLog != vAccountLog.end(); ++iterLog) {
-        strAccountLog += iterLog->ToString();
-    }
-    strAccountLog += "\n";
-
-    str += strAccountLog;
-
-    string strDBOperLog("list script db Log:\n");
-    vector<CContractDBOperLog>::const_iterator iterDbLog = vContractOperLog.begin();
-    for (; iterDbLog != vContractOperLog.end(); ++iterDbLog) {
-        strDBOperLog += iterDbLog->ToString();
-    }
-    strDBOperLog += "\n";
-
-    str += strDBOperLog;
-
-    return str;
-}
-
-bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {
-    vector<CAccountLog>::iterator iterLog = vAccountLog.begin();
-    for (; iterLog != vAccountLog.end(); ++iterLog) {
-        if (iterLog->keyID == keyId) {
-            accountLog = *iterLog;
-            return true;
+                opLogs.push_back(operAddressToTxLog);
+            }
         }
     }
-    return false;
+    return true;
 }

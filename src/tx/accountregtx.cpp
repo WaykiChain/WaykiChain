@@ -16,7 +16,7 @@
 #include "miner/miner.h"
 #include "version.h"
 
-bool CAccountRegisterTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CAccountRegisterTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
 
     if (txUid.type() != typeid(CPubKey))
@@ -40,7 +40,7 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
     CAccount account;
     CRegID regId(nHeight, nIndex);
     CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
-    if (!cw.pAccountCache->GetAccount(txUid, account))
+    if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s account info error",
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
@@ -55,8 +55,8 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
 
     account.pubKey = txUid.get<CPubKey>();
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, not sufficient funds in account, keyid=%s",
-                        keyId.ToString()), UPDATE_ACCOUNT_FAIL, "not-sufficiect-funds");
+        return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, insufficient funds in account, keyid=%s",
+                        keyId.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
     if (typeid(CPubKey) == minerUid.type()) {
@@ -67,14 +67,14 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
         }
     }
 
-    if (!cw.pAccountCache->SaveAccount(account))
+    if (!cw.accountCache.SaveAccount(account))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, write source addr %s account info error",
             regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    cw.pTxUndo->vAccountLog.push_back(acctLog);
-    cw.pTxUndo->txHash = GetHash();
+    cw.txUndo.accountLogs.push_back(acctLog);
+    cw.txUndo.txHash = GetHash();
 
-    IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
+   if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid})) return false;
 
     return true;
 }
@@ -83,19 +83,19 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
     // drop account
     CRegID accountRegId(nHeight, nIndex);
     CAccount oldAccount;
-    if (!cw.pAccountCache->GetAccount(accountRegId, oldAccount)) {
+    if (!cw.accountCache.GetAccount(accountRegId, oldAccount)) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read secure account=%s info error",
                         accountRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     CKeyID keyId;
-    cw.pAccountCache->GetKeyId(accountRegId, keyId);
+    cw.accountCache.GetKeyId(accountRegId, keyId);
 
     if (llFees > 0) {
         CAccountLog accountLog;
-        if (!cw.pTxUndo->GetAccountOperLog(keyId, accountLog))
+        if (!cw.txUndo.GetAccountOperLog(keyId, accountLog))
             return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read keyId=%s tx undo info error",
-                            keyId.GetHex()), UPDATE_ACCOUNT_FAIL, "bad-read-txundoinfo");
+                            keyId.GetHex()), UPDATE_ACCOUNT_FAIL, "bad-read-undoinfo");
         oldAccount.UndoOperateAccount(accountLog);
     }
 
@@ -105,11 +105,11 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
         oldAccount.minerPubKey = empPubKey;
         oldAccount.regID.Clean();
         CUserID userId(keyId);
-        cw.pAccountCache->SetAccount(userId, oldAccount);
+        cw.accountCache.SetAccount(userId, oldAccount);
     } else {
-        cw.pAccountCache->EraseAccountByKeyId(txUid);
+        cw.accountCache.EraseAccountByKeyId(txUid);
     }
-    cw.pAccountCache->EraseKeyId(accountRegId);
+    cw.accountCache.EraseKeyId(accountRegId);
     return true;
 }
 

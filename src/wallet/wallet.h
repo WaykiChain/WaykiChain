@@ -1,8 +1,8 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2013 The WaykiChain developers
-// Copyright (c) 2009-2013 The Coin developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #ifndef COIN_WALLET_H
 #define COIN_WALLET_H
 
@@ -16,10 +16,9 @@
 #include <vector>
 #include <memory>
 
-#include "../crypter.h"
+#include "crypter.h"
 #include "accounts/key.h"
 #include "accounts/keystore.h"
-#include "ui_interface.h"
 #include "util.h"
 #include "walletdb.h"
 #include "main.h"
@@ -52,7 +51,7 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface{
 private:
     CWallet();
 
-    CWalletDB *pwalletdbEncryption;
+    CWalletDB *pWalletDbEncryption;
 
     static bool StartUp(string &strWalletFile);
 
@@ -63,8 +62,8 @@ private:
 public:
     CPubKey vchDefaultKey ;
 
-    bool fFileBacked;         //初始化钱包文件名，为true
-    string strWalletFile;     //钱包文件名
+    bool fFileBacked;
+    string strWalletFile;
 
     map<uint256, CAccountTx> mapInBlockTx;
     map<uint256, std::shared_ptr<CBaseTx> > unconfirmedTx;
@@ -73,9 +72,7 @@ public:
     typedef std::map<unsigned int, CMasterKey> MasterKeyMap;
     MasterKeyMap mapMasterKeys;
     unsigned int nMasterKeyMaxID;
-
-    static string defaultFilename;    //默认钱包文件名  wallet.dat
-public:
+    static string defaultFileName;  // default to wallet.dat
 
     IMPLEMENT_SERIALIZE
     (
@@ -99,7 +96,7 @@ public:
             }
     )
     virtual ~CWallet(){};
-    int64_t GetFreeBCoins(bool IsConfirmed=true)const;
+    int64_t GetFreeBcoins(bool IsConfirmed = true) const;
 
     bool Sign(const CKeyID &keyID,const uint256 &hash,vector<unsigned char> &signature,bool IsMiner=false) const;
     //! Adds an encrypted key to the store, and saves it to disk.
@@ -107,7 +104,7 @@ public:
     bool LoadCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret);
 
     //! Adds a key to the store, without saving it to disk (used by LoadWallet)
-    bool LoadKeyCombi(const CKeyID & keyId, const CKeyCombi& keycombi) { return CBasicKeyStore::AddKeyCombi(keyId, keycombi);}
+    bool LoadKeyCombi(const CKeyID & keyId, const CKeyCombi& keyCombi) { return CBasicKeyStore::AddKeyCombi(keyId, keyCombi);}
     // Adds a key to the store, and saves it to disk.
     bool AddKey(const CKey &secret, const CKey &minerKey);
     bool AddKey(const CKeyID &keyId, const CKeyCombi &store);
@@ -116,7 +113,7 @@ public:
 
     bool CleanAll(); //just for unit test
     bool IsReadyForCoolMiner(const CAccountCache& view)const;
-    bool ClearAllCkeyForCoolMiner();
+    bool ClearAllMainKeysForCoolMiner();
 
     CWallet(string strWalletFileIn);
     void SetNull() ;
@@ -133,8 +130,6 @@ public:
 
     DBErrors LoadWallet(bool fFirstRunRet);
 
-    void UpdatedTransaction(const uint256 &hashTx);
-
     bool EncryptWallet(const SecureString& strWalletPassphrase);
 
     bool Unlock(const SecureString& strWalletPassphrase);
@@ -144,20 +139,11 @@ public:
     // get the current wallet format (the oldest client version guaranteed to understand this wallet)
     int GetVersion() ;
 
-    bool SetMinVersion(enum WalletFeature nVersion, CWalletDB* pwalletdbIn);
+    bool SetMinVersion(enum WalletFeature nVersion, CWalletDB* pWalletDbIn);
 
-
-    static CWallet* getinstance();
+    static CWallet* GetInstance();
 
     std::tuple<bool,string>  CommitTx(CBaseTx *pTx);
-
-    /** Wallet transaction added, removed or updated.
-     * @note called with lock cs_wallet held.
-     */
-    boost::signals2::signal<void(CWallet *wallet, const uint256 &hashTx, ChangeType status)> NotifyTransactionChanged;
-
-    /** Show progress e.g. for rescan */
-    boost::signals2::signal<void(const string &title, int nProgress)> ShowProgress;
 };
 
 
@@ -305,8 +291,8 @@ public:
     int blockHeight;
     map<uint256, std::shared_ptr<CBaseTx> > mapAccountTx;
 public:
-    CAccountTx(CWallet* pwallet = NULL, uint256 hash = uint256(), int height = 0) {
-        pWallet = pwallet;
+    CAccountTx(CWallet* pWalletIn = NULL, uint256 hash = uint256(), int height = 0) {
+        pWallet = pWalletIn;
         blockHash = hash;
         mapAccountTx.clear();
         blockHeight = height;
@@ -314,10 +300,10 @@ public:
 
     ~CAccountTx() { }
 
-    void BindWallet(CWallet* pwallet) {
+    void BindWallet(CWallet* pWalletIn) {
         if (pWallet == NULL) {
-            assert(pwallet != NULL);
-            pWallet = pwallet;
+            assert(pWalletIn != NULL);
+            pWallet = pWalletIn;
         }
     }
 
@@ -377,7 +363,6 @@ public:
         READWRITE(blockHeight);
         READWRITE(mapAccountTx);
     )
-
 };
 
 #endif

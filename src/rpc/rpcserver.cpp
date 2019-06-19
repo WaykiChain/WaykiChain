@@ -1,5 +1,5 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The WaykiChain developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -9,7 +9,6 @@
 #include "commons/base58.h"
 #include "init.h"
 #include "main.h"
-#include "ui_interface.h"
 #include "util.h"
 
 #include <boost/algorithm/string.hpp>
@@ -219,8 +218,6 @@ static const CRPCCommand vRPCCommands[] =
     { "getinfo",                &getinfo,                true,      false,      false }, /* uses wallet if enabled */
     { "help",                   &help,                   true,      true,       false },
     { "stop",                   &stop,                   true,      true,       false },
-    { "gencheckpoint",          &gencheckpoint,          true,      true,       false },
-    { "setcheckpoint",          &setcheckpoint,          true,      true,       false },
     { "validateaddr",           &validateaddr,           true,      true,       false },
     { "validateaddress",        &validateaddr,           true,      true,       false }, //deprecated
     { "createmulsig",           &createmulsig,           true,      true ,      false },
@@ -244,7 +241,6 @@ static const CRPCCommand vRPCCommands[] =
     { "getblockhash",           &getblockhash,           false,     false,      false },
     { "getdifficulty",          &getdifficulty,          true,      false,      false },
     { "getrawmempool",          &getrawmempool,          true,      false,      false },
-    { "listcheckpoint",         &listcheckpoint,         true,      false,      false },
     { "verifychain",            &verifychain,            true,      false,      false },
 
     { "gettotalcoins",          &gettotalcoins,          false,     false,      false },
@@ -254,7 +250,6 @@ static const CRPCCommand vRPCCommands[] =
 
     /* Mining */
     { "getmininginfo",          &getmininginfo,          true,      false,      false },
-    { "getnetworkhashps",       &getnetworkhashps,       true,      false,      false },
     { "submitblock",            &submitblock,            true,      false,      false },
     { "getminedblocks",         &getminedblocks,         true,      true,       false },
 
@@ -334,7 +329,6 @@ static const CRPCCommand vRPCCommands[] =
     { "disconnectblock",        &disconnectblock,        true,      false,      true },
     { "resetclient",            &resetclient,            true,      false,      false},
     { "reloadtxcache",          &reloadtxcache,          true,      false,      true },
-    { "listsetblockindexvalid", &listsetblockindexvalid, true,      false,      false},
     { "getcontractregid",       &getcontractregid,       true,      false,      false},
     { "getcontractitemcount",   &getcontractitemcount,   true,      false,      false},
     { "printblockdbinfo",       &printblockdbinfo,       true,      false,      false},
@@ -406,9 +400,7 @@ static bool InitRPCAuthentication() {
         else if (SysCfg().IsArgCount("-daemon"))
             strWhatAmI = strprintf(_("To use the %s option"), "\"-daemon\"");
 
-        uiInterface.ThreadSafeMessageBox(
-            strprintf(
-                _("%s, you must set a rpcpassword in the configuration file:\n"
+        LogPrint("ERROR", "%s, you must set a rpcpassword in the configuration file:\n"
                   "%s\n"
                   "It is recommended you use the following random password:\n"
                   "rpcuser=wiccrpc\n"
@@ -418,10 +410,9 @@ static bool InitRPCAuthentication() {
                   "If the file does not exist, create it with owner-readable-only file "
                   "permissions.\n"
                   "It is also recommended to set alertnotify so you are notified of problems;\n"
-                  "for example: alertnotify=echo %%s | mail -s \"Coin Alert\" admin@foo.com\n"),
+                  "for example: alertnotify=echo %%s | mail -s \"Coin Alert\" admin@foo.com\n",
                 strWhatAmI, GetConfigFile().string(),
-                EncodeBase58(&rand_pwd[0], &rand_pwd[0] + 32)),
-            "", CClientUIInterface::MSG_ERROR);
+                EncodeBase58(&rand_pwd[0], &rand_pwd[0] + 32));
         StartShutdown();
         return false;
     }

@@ -51,7 +51,7 @@ Object CDelegateVoteTx::ToJson(const CAccountCache &accountView) const {
 // FIXME: not useful
 bool CDelegateVoteTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     // CKeyID keyId;
-    // if (!cw.pAccountCache->GetKeyId(userId, keyId))
+    // if (!cw.accountCache.GetKeyId(userId, keyId))
     //     return false;
 
     // vAddr.insert(keyId);
@@ -62,7 +62,7 @@ bool CDelegateVoteTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) 
 }
 
 
-bool CDelegateVoteTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CDelegateVoteTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
@@ -76,22 +76,22 @@ bool CDelegateVoteTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
     }
 
     CKeyID sendTxKeyID;
-    if (!cw.pAccountCache->GetKeyId(txUid, sendTxKeyID)) {
+    if (!cw.accountCache.GetKeyId(txUid, sendTxKeyID)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get keyId error by CUserID =%s",
                         txUid.ToString()), REJECT_INVALID, "");
     }
 
     CAccount sendAcct;
-    if (!cw.pAccountCache->GetAccount(txUid, sendAcct)) {
+    if (!cw.accountCache.GetAccount(txUid, sendAcct)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, userid=%s",
                         txUid.ToString()), REJECT_INVALID, "bad-read-accountdb");
     }
     if (!sendAcct.IsRegistered()) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, pubkey not registered"),
-                        REJECT_INVALID, "bad-no-pubkey");
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account unregistered"),
+                        REJECT_INVALID, "bad-account-unregistered");
     }
 
-    if ( GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2 ) {
+    if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2) {
         IMPLEMENT_CHECK_TX_SIGNATURE(sendAcct.pubKey);
     }
 
@@ -102,13 +102,13 @@ bool CDelegateVoteTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
             return ERRORMSG("CDelegateVoteTx::CheckTx, votes: %lld not within (0 .. MaxVote)", vote.GetVotedBcoins());
 
         voteKeyIds.insert(vote.GetCandidateUid().ToString());
-        CAccount acctInfo;
-        if (!cw.pAccountCache->GetAccount(vote.GetCandidateUid(), acctInfo))
+        CAccount account;
+        if (!cw.accountCache.GetAccount(vote.GetCandidateUid(), account))
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, address=%s",
                              vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
 
-        if (GetFeatureForkVersion(chainActive.Tip()->nHeight) == MAJOR_VER_R2) {
-            if (!acctInfo.IsRegistered()) {
+        if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2) {
+            if (!account.IsRegistered()) {
                 return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account is unregistered, address=%s",
                                  vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
             }
@@ -124,112 +124,116 @@ bool CDelegateVoteTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
 }
 
 bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    CAccount acctInfo;
-    if (!cw.pAccountCache->GetAccount(txUid, acctInfo)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read regist addr %s account info error", txUid.ToString()),
-            UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+    CAccount account;
+    if (!cw.accountCache.GetAccount(txUid, account)) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read regist addr %s account info error",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CAccountLog acctInfoLog(acctInfo); //save account state before modification
-    if (!acctInfo.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate account failed ,regId=%s",
+    CAccountLog acctLog(account);  // Keep account state before modification.
+    if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate account failed, regId=%s",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
     }
-    if (!acctInfo.ProcessDelegateVote(candidateVotes, nHeight)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate vote failed ,regId=%s", txUid.ToString()),
-            UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
+
+    vector<CCandidateVote> candidateVotesInOut;
+    CRegID regId = txUid.get<CRegID>();
+    cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
+    CDbOpLog dbOpLog(dbk::REGID_VOTE, regId, candidateVotesInOut);  // Keep candidate votes state before modification.
+
+    if (!account.ProcessDelegateVote(candidateVotes, candidateVotesInOut, nHeight)) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate vote failed, regId=%s",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }
-    if (!cw.pAccountCache->SaveAccount(acctInfo)) {
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error", acctInfo.regID.ToString()),
-                UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+    if (!cw.delegateCache.SetCandidateVotes(regId, candidateVotesInOut)) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, write candidate votes failed, regId=%s", txUid.ToString()),
+                        WRITE_CANDIDATE_VOTES_FAIL, "write-candidate-votes-failed");
     }
 
-    cw.pTxUndo->vAccountLog.push_back(acctInfoLog); //keep the old state after the above operation completed properly.
-    cw.pTxUndo->txHash = GetHash();
+    if (!cw.accountCache.SaveAccount(account)) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error",
+                        account.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+    }
+
+    // Keep the old state after the above operation completed properly.
+    cw.txUndo.accountLogs.push_back(acctLog);
+    cw.txUndo.dbOpLogsMap.AddDbOpLog(dbk::REGID_VOTE, dbOpLog);
+    cw.txUndo.txHash = GetHash();
 
     for (const auto &vote : candidateVotes) {
         CAccount delegate;
         const CUserID &delegateUId = vote.GetCandidateUid();
-        if (!cw.pAccountCache->GetAccount(delegateUId, delegate)) {
+        if (!cw.accountCache.GetAccount(delegateUId, delegate)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read KeyId(%s) account info error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         CAccountLog delegateAcctLog(delegate);
-        if (!delegate.OperateVote(VoteType(vote.GetCandidateVoteType()), vote.GetVotedBcoins())) {
+        if (!delegate.StakeVoteBcoins(VoteType(vote.GetCandidateVoteType()), vote.GetVotedBcoins())) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate address %s vote fund error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-vote-error");
         }
-        cw.pTxUndo->vAccountLog.push_back(delegateAcctLog); // keep delegate state before modification
+        cw.txUndo.accountLogs.push_back(delegateAcctLog); // Keep delegate state before modification.
 
-        // set the new value and erase the old value
-        CContractDBOperLog operDbLog;
-        if (!cw.pContractCache->SetDelegateData(delegate, operDbLog)) {
+        // Votes: set the new value and erase the old value
+        if (!cw.delegateCache.SetDelegateVotes(delegate.regID, delegate.receivedVotes)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s vote info error",
                             delegate.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
-        cw.pTxUndo->vContractOperLog.push_back(operDbLog);
 
-        CContractDBOperLog eraseDbLog;
-        if (delegateAcctLog.receivedVotes > 0) {
-            if(!cw.pContractCache->EraseDelegateData(delegateAcctLog, eraseDbLog)) {
-                return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, erase account id %s vote info error",
-                                delegateAcctLog.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
-            }
+        if (!cw.delegateCache.EraseDelegateVotes(delegateAcctLog.regID, delegateAcctLog.receivedVotes)) {
+            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, erase account id %s vote info error",
+                            delegateAcctLog.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
 
-        if (!cw.pAccountCache->SaveAccount(delegate)) {
+        if (!cw.accountCache.SaveAccount(delegate)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error",
-                            acctInfo.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+                            account.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
         }
-
-        cw.pTxUndo->vContractOperLog.push_back(eraseDbLog);
     }
 
-    IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
+    if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid}))
+        return false;
 
     return true;
 }
 
 bool CDelegateVoteTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.pTxUndo->vAccountLog.rbegin();
-    for (; rIterAccountLog != cw.pTxUndo->vAccountLog.rend(); ++rIterAccountLog) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+    for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
-        CUserID userId = rIterAccountLog->keyID;
-        if (!cw.pAccountCache->GetAccount(userId, account)) {
+        if (!cw.accountCache.GetAccount(CUserID(rIterAccountLog->keyID), account)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
 
+        // Votes: recover the old value and erase the new value.
+        if (account.receivedVotes != rIterAccountLog->receivedVotes) {
+            if (!cw.delegateCache.EraseDelegateVotes(account.regID, account.receivedVotes)) {
+                return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, save account id %s vote info error",
+                                account.regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+            }
+
+            if (!cw.delegateCache.SetDelegateVotes(rIterAccountLog->regID, rIterAccountLog->receivedVotes)) {
+                return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, erase account id %s vote info error",
+                                rIterAccountLog->regID.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+            }
+        }
+
         if (!account.UndoOperateAccount(*rIterAccountLog)) {
-            return state.DoS(100,
-                             ERRORMSG("CDelegateVoteTx::UndoExecuteTx, undo operate account failed"),
+            return state.DoS(100,ERRORMSG("CDelegateVoteTx::UndoExecuteTx, undo operate account failed"),
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }
 
-        if (!cw.pAccountCache->SetAccount(userId, account)) {
+        if (!cw.accountCache.SetAccount(CUserID(rIterAccountLog->keyID), account)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, write account info error"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
     }
 
-    vector<CContractDBOperLog>::reverse_iterator rIterScriptDBLog = cw.pTxUndo->vContractOperLog.rbegin();
-    if (SysCfg().GetAddressToTxFlag() && cw.pTxUndo->vContractOperLog.size() > 0) {
-        if (!cw.pContractCache->UndoScriptData(rIterScriptDBLog->vKey, rIterScriptDBLog->vValue))
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, undo scriptdb data error"),
-                             UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
-        ++rIterScriptDBLog;
-    }
-
-    for (; rIterScriptDBLog != cw.pTxUndo->vContractOperLog.rend(); ++rIterScriptDBLog) {
-        // Recover the old value and erase the new value.
-        if (!cw.pContractCache->SetDelegateData(rIterScriptDBLog->vKey))
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, set delegate data error"),
-                             UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
-
-        ++rIterScriptDBLog;
-        if (!cw.pContractCache->EraseDelegateData(rIterScriptDBLog->vKey))
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, erase delegate data error"),
-                             UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+    const CDbOpLogs& dbOpLogs = cw.txUndo.dbOpLogsMap.GetDbOpLogs(dbk::REGID_VOTE);
+    if (!cw.delegateCache.UndoData(dbk::CONTRACT_DATA, dbOpLogs)) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, undo contract data error"),
+                         UPDATE_ACCOUNT_FAIL, "undo-contract-data-failed");
     }
 
     return true;

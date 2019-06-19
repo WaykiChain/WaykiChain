@@ -26,4 +26,4 @@ using namespace boost::assign;
 using namespace json_spirit;
 
 
-extern void SyncTransaction(const uint256 &hash, const CBaseTx *pTx, const CBlock *pblock);
+extern void SyncTransaction(const uint256 &hash, const CBaseTx *pTx, const CBlock *pBlock);

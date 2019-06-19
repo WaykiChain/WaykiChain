@@ -12,6 +12,7 @@
 #include "util.h"
 #include "accounts/key.h"
 #include "tx/blockrewardtx.h"
+#include "tx/accountregtx.h"
 #include "main.h"
 
 #include <boost/assign/list_of.hpp>
@@ -31,7 +32,7 @@ public:
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(MAIN_NET), sizeof(pchMessageStart));
-        vAlertPubKey            = ParseHex(IniCfg().GetCheckPointPkey(MAIN_NET));
+        vAlertPubKey            = ParseHex(IniCfg().GetAlertPkey(MAIN_NET));
         nDefaultPort            = IniCfg().GetnDefaultPort(MAIN_NET);
         nRPCPort                = IniCfg().GetnRPCPort(MAIN_NET);
         nUIPort                 = IniCfg().GetnUIPort(MAIN_NET);
@@ -50,9 +51,8 @@ public:
         genesis.SetFuelRate(INIT_FUEL_RATES);
         genesis.SetHeight(0);
         genesis.ClearSignature();
-        hashGenesisBlock = genesis.GetHash();
-        CheckPointPKey   = IniCfg().GetCheckPointPkey(MAIN_NET);
-        assert(hashGenesisBlock == IniCfg().GetIntHash(MAIN_NET));
+        genesisBlockHash = genesis.GetHash();
+        assert(genesisBlockHash == IniCfg().GetGenesisBlockHash(MAIN_NET));
         assert(genesis.GetMerkleRootHash() == IniCfg().GetMerkleRootHash());
 
         vSeeds.push_back(CDNSSeedData("seed1.waykichain.net", "n1.waykichain.net"));
@@ -79,26 +79,12 @@ public:
         }
     }
 
-    virtual const CBlock& GenesisBlock() const
-    {
-        return genesis;
-    }
-    virtual NET_TYPE NetworkID() const
-    {
-        return MAIN_NET;
-    }
-    virtual bool InitialConfig()
-    {
-        return CBaseParams::InitialConfig();
-    }
-    virtual int GetBlockMaxNonce() const
-    {
-        return 1000;
-    }
-    virtual const vector<CAddress>& FixedSeeds() const {
-        return vFixedSeeds;
-    }
-    virtual bool IsInFixedSeeds(CAddress &addr) {
+    virtual const CBlock& GenesisBlock() const { return genesis; }
+    virtual NET_TYPE NetworkID() const { return MAIN_NET; }
+    virtual bool InitialConfig() { return CBaseParams::InitialConfig(); }
+    virtual int GetBlockMaxNonce() const { return 1000; }
+    virtual const vector<CAddress>& FixedSeeds() const { return vFixedSeeds; }
+    virtual bool IsInFixedSeeds(CAddress& addr) {
         vector<CAddress>::iterator iterAddr = find(vFixedSeeds.begin(), vFixedSeeds.end(), addr);
         return iterAddr != vFixedSeeds.end();
     }
@@ -117,12 +103,11 @@ public:
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(TEST_NET), sizeof(pchMessageStart));
         nSubsidyHalvingInterval = IniCfg().GetHalvingInterval(TEST_NET);
         nFeatureForkHeight      = IniCfg().GetFeatureForkHeight(TEST_NET);
-        vAlertPubKey            = ParseHex(IniCfg().GetCheckPointPkey(TEST_NET));
+        vAlertPubKey            = ParseHex(IniCfg().GetAlertPkey(TEST_NET));
         nDefaultPort            = IniCfg().GetnDefaultPort(TEST_NET);
         nRPCPort                = IniCfg().GetnRPCPort(TEST_NET);
         nUIPort                 = IniCfg().GetnUIPort(TEST_NET);
         strDataDir              = "testnet";
-        CheckPointPKey          = IniCfg().GetCheckPointPkey(TEST_NET);
         // Modify the testnet genesis block so the timestamp is valid for a later start.
         genesis.SetTime(IniCfg().GetStartTimeInit(TEST_NET));
         genesis.SetNonce(99);
@@ -130,11 +115,11 @@ public:
         assert(CreateGenesisBlockRewardTx(genesis.vptx, TEST_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, TEST_NET));
         genesis.SetMerkleRootHash(genesis.BuildMerkleTree());
-        hashGenesisBlock = genesis.GetHash();
-        for(auto & item : vFixedSeeds)
+        genesisBlockHash = genesis.GetHash();
+        for (auto& item : vFixedSeeds)
             item.SetPort(GetDefaultPort());
 
-        assert(hashGenesisBlock == IniCfg().GetIntHash(TEST_NET));
+        assert(genesisBlockHash == IniCfg().GetGenesisBlockHash(TEST_NET));
         vSeeds.push_back(CDNSSeedData("seed1.waykitest.net", "n1.waykitest.net"));
         vSeeds.push_back(CDNSSeedData("seed2.waykitest.net", "n2.waykitest.net"));
 
@@ -145,22 +130,15 @@ public:
         base58Prefixes[EXT_SECRET_KEY]  = IniCfg().GetAddressPrefix(TEST_NET,EXT_SECRET_KEY);
     }
 
-    virtual NET_TYPE NetworkID() const
-    {
-        return TEST_NET;
-    }
+    virtual NET_TYPE NetworkID() const { return TEST_NET; }
 
-    virtual bool InitialConfig()
-    {
+    virtual bool InitialConfig() {
         CMainParams::InitialConfig();
         fServer = true;
         return true;
     }
 
-    virtual int GetBlockMaxNonce() const
-    {
-        return 1000;
-    }
+    virtual int GetBlockMaxNonce() const { return 1000; }
 };
 
 //
@@ -179,10 +157,10 @@ public:
         assert(CreateGenesisBlockRewardTx(genesis.vptx, REGTEST_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, REGTEST_NET));
         genesis.SetMerkleRootHash(genesis.BuildMerkleTree());
-        hashGenesisBlock = genesis.GetHash();
+        genesisBlockHash = genesis.GetHash();
         nDefaultPort = IniCfg().GetnDefaultPort(REGTEST_NET) ;
         strDataDir = "regtest";
-        assert(hashGenesisBlock == IniCfg().GetIntHash(REGTEST_NET));
+        assert(genesisBlockHash == IniCfg().GetGenesisBlockHash(REGTEST_NET));
 
         vFixedSeeds.clear();
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
@@ -208,15 +186,9 @@ public:
     }
 };
 
-const vector<string> &CBaseParams::GetMultiArgs(const string& strArg) {
-    return m_mapMultiArgs[strArg];
-}
-int CBaseParams::GetArgsSize() {
-    return m_mapArgs.size();
-}
-int CBaseParams::GetMultiArgsSize() {
-    return m_mapMultiArgs.size();
-}
+const vector<string>& CBaseParams::GetMultiArgs(const string& strArg) { return m_mapMultiArgs[strArg]; }
+int CBaseParams::GetArgsSize() { return m_mapArgs.size(); }
+int CBaseParams::GetMultiArgsSize() { return m_mapMultiArgs.size(); }
 
 string CBaseParams::GetArg(const string& strArg, const string& strDefault) {
     if (m_mapArgs.count(strArg))
@@ -366,26 +338,23 @@ void CBaseParams::ParseParameters(int argc, const char* const argv[]) {
     }
 }
 
-bool CBaseParams::CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> > &vRewardTx, NET_TYPE type) {
+bool CBaseParams::CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
     vector<string> vInitPubKey = IniCfg().GetInitPubKey(type);
     for (size_t i = 0; i < vInitPubKey.size(); ++i) {
-        int64_t money(0);
+        uint64_t rewardValue = 0;
         if (i > 0) {
-            money = IniCfg().GetCoinInitValue() * COIN;
+            rewardValue = IniCfg().GetCoinInitValue() * COIN;
         }
-        shared_ptr<CBlockRewardTx> pRewardTx = std::make_shared<CBlockRewardTx>(ParseHex(vInitPubKey[i].c_str()),
-                money, 0);
-        pRewardTx->nVersion = nTxVersion1;
-        if (pRewardTx.get())
-            vRewardTx.push_back(pRewardTx);
-        else
-            return false;
-    }
-    return true;
 
+        auto pRewardTx      = std::make_shared<CBlockRewardTx>(ParseHex(vInitPubKey[i]), rewardValue, 0);
+        pRewardTx->nVersion = nTxVersion1;
+        vptx.push_back(pRewardTx);
+    }
+
+    return true;
 };
 
-bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDelegateTx, NET_TYPE type) {
+bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vptx, NET_TYPE type) {
     vector<string> vDelegatePubKey = IniCfg().GetDelegatePubKey(type);
     vector<string> vInitPubKey = IniCfg().GetInitPubKey(type);
     vector<CCandidateVote> votes;
@@ -396,12 +365,37 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vDe
         CCandidateVote vote(ADD_BCOIN, voteId, bcoinsToVote);
         votes.push_back(vote);
     }
+
     CRegID accountId(0, 1);
-    shared_ptr<CDelegateVoteTx> pDelegateTx =
-        std::make_shared<CDelegateVoteTx>(accountId.GetRegIdRaw(), votes, 10000, 0);
+    auto pDelegateTx       = std::make_shared<CDelegateVoteTx>(accountId.GetRegIdRaw(), votes, 10000, 0);
     pDelegateTx->signature = ParseHex(IniCfg().GetDelegateSignature(type));
     pDelegateTx->nVersion = nTxVersion1;
-    vDelegateTx.push_back(pDelegateTx);
+
+    vptx.push_back(pDelegateTx);
+
+    return true;
+}
+
+bool CBaseParams::CreateFundCoinAccountRegisterTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
+    CPubKey pubKey = CPubKey(ParseHex(IniCfg().GetFundCoinInitPubKey(type)));
+    CPubKey minerPubKey;
+
+    auto pRegisterAccountTx       = std::make_shared<CAccountRegisterTx>(pubKey, minerPubKey, 0, kFcoinGenesisTxHeight);
+    pRegisterAccountTx->signature = ParseHex(IniCfg().GetAccountRegisterSignature(type));
+    pRegisterAccountTx->nVersion  = nTxVersion1;
+
+    vptx.push_back(pRegisterAccountTx);
+
+    return true;
+};
+
+bool CBaseParams::CreateFundCoinGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
+    auto pRewardTx      = std::make_shared<CBlockRewardTx>(ParseHex(IniCfg().GetFundCoinInitPubKey(type)),
+                                                      kTotalFundCoinAmount, kFcoinGenesisTxHeight);
+    pRewardTx->nVersion = nTxVersion1;
+
+    vptx.push_back(pRewardTx);
+
     return true;
 }
 
@@ -420,37 +414,35 @@ bool CBaseParams::InitializeParams(int argc, const char* const argv[]) {
     return true;
 }
 
-int64_t CBaseParams::GetTxFee() const{
-    return paytxfee;
-}
-int64_t CBaseParams::SetDefaultTxFee(int64_t fee) const{
-    paytxfee = fee;
+int64_t CBaseParams::GetTxFee() const { return payTxFee; }
+int64_t CBaseParams::SetDefaultTxFee(int64_t fee) const {
+    payTxFee = fee;
     return fee;
 }
 
 CBaseParams::CBaseParams() {
-    fImporting = false;
-    fReindex = false;
-    fBenchmark = false;
-    fTxIndex = false;
-    nLogMaxSize = 100 * 1024 * 1024;//100M
-    nTxCacheHeight = 500;
-    nTimeBestReceived = 0;
-    nScriptCheckThreads = 0;
-    nViewCacheSize = 2000000;
-    nBlockInterval = 10;
+    fImporting              = false;
+    fReindex                = false;
+    fBenchmark              = false;
+    fTxIndex                = false;
+    nLogMaxSize             = 100 * 1024 * 1024;  // 100M
+    nTxCacheHeight          = 500;
+    nTimeBestReceived       = 0;
+    nScriptCheckThreads     = 0;
+    nViewCacheSize          = 2000000;
+    nBlockInterval          = 10;
     nSubsidyHalvingInterval = 0;
-    paytxfee = 10000;
-    nDefaultPort = 0;
-    fPrintLogToConsole= 0;
-    fPrintLogToFile = 0;
-    fLogTimestamps = 0;
-    fLogPrintFileLine = 0;
-    fDebug = 0;
-    fDebugAll= 0 ;
-    fServer = 0 ;
-    fServer = 0;
-    nRPCPort = 0;
-    bContractLog = false;
-    nUIPort = 0;
+    payTxFee                = 10000;
+    nDefaultPort            = 0;
+    fPrintLogToConsole      = 0;
+    fPrintLogToFile         = 0;
+    fLogTimestamps          = 0;
+    fLogPrintFileLine       = 0;
+    fDebug                  = 0;
+    fDebugAll               = 0;
+    fServer                 = 0;
+    fServer                 = 0;
+    nRPCPort                = 0;
+    bContractLog            = false;
+    nUIPort                 = 0;
 }

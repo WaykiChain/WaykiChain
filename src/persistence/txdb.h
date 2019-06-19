@@ -6,8 +6,11 @@
 #ifndef PERSIST_TXDB_H
 #define PERSIST_TXDB_H
 
-#include "vm/appaccount.h"
+#include "accounts/account.h"
+#include "Accounts/id.h"
 #include "commons/serialize.h"
+#include "dbaccess.h"
+#include "dbconf.h"
 #include "json/json_spirit_value.h"
 
 #include <map>
@@ -21,24 +24,37 @@ class CPricePoint;
 class CCoinPriceType;
 class CUserID;
 
+// TODO: initialize pBase by constructor instead of SetBaseView.
 class CTransactionCache {
 private:
-    map<uint256, UnorderedHashSet> mapBlockTxHashSet;  // map: BlockHash ->TxhashSet
+    map<uint256, UnorderedHashSet> mapBlockTxHashSet;  // map: BlockHash ->TxHashSet
+    CTransactionCache *pBase;
+
+public:
+    CTransactionCache() : pBase(nullptr) {}
+    CTransactionCache(CTransactionCache *pBaseIn) : pBase(pBaseIn) {}
 
 public:
     bool HaveTx(const uint256 &txHash);
     bool IsContainBlock(const CBlock &block);
+
     bool AddBlockToCache(const CBlock &block);
     bool DeleteBlockFromCache(const CBlock &block);
-    void AddTxHashCache(const uint256 &blockHash, const UnorderedHashSet &vTxHash);
+
     void Clear();
+    void SetBaseView(CTransactionCache *pBaseIn) { pBase = pBaseIn; }
+    void BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn);
+    void Flush(CTransactionCache *pBaseIn);
+    void Flush();
+
     Object ToJsonObj() const;
     int GetSize();
+
     const map<uint256, UnorderedHashSet> &GetTxHashCache();
     void SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache);
 };
 
-// Price Points in two consecutive blocks
+// Price Points in 11 consecutive blocks
 class CConsecutiveBlockPrice {
 private:
     map<int, map<string, uint64_t>>mapBlockUserPrices;    // height -> { strUid -> price }
@@ -59,10 +75,75 @@ public:
 
 class CPricePointCache {
 private:
+    uint64_t bcoinMedianPrice; //against scoin
+    uint64_t fcoinMedianPrice; //against scoin
+
     map<string, CConsecutiveBlockPrice> mapCoinPricePointCache; // coinPriceType -> consecutiveBlockPrice
 
 public:
     bool AddBlockPricePointInBatch(const int blockHeight, const CUserID &txUid, const vector<CPricePoint> &pps);
     uint64_t ComputeBlockMedianPrice(const int blockHeight, CCoinPriceType coinPriceType);
+
+    uint64_t GetBcoinMedianPrice() { return bcoinMedianPrice; }
+    uint64_t GetFcoinMedianPrice() { return fcoinMedianPrice; }
 };
+
+/* Top 11 delegates */
+class CDelegateCache {
+public:
+    CDelegateCache(){};
+    CDelegateCache(CDBAccess *pDbAccess) : voteRegIdCache(pDbAccess){};
+    CDelegateCache(CDelegateCache *pBaseIn) : voteRegIdCache(pBaseIn->voteRegIdCache){};
+
+    bool LoadTopDelegates();
+    bool ExistDelegate(const CRegID &regId);
+
+    bool SetDelegateVotes(const CRegID &regId, const uint64_t votes);
+    bool EraseDelegateVotes(const CRegID &regId, const uint64_t votes);
+
+    bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes);
+    bool GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes);
+
+    bool UndoData(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs);
+
+    void SetBaseView(CDelegateCache *pBaseIn) {
+        voteRegIdCache = pBaseIn->voteRegIdCache;
+    }
+    // TODO:
+    void Flush() {}
+
+private:
+/*  CDBScalarValueCache  prefixType     key                         value                   variable       */
+/*  -------------------- -------------- --------------------------  ----------------------- -------------- */
+    // vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1
+    CDBMultiValueCache<dbk::VOTE,       std::pair<string, CRegID>,  uint8_t>                voteRegIdCache;
+    CDBMultiValueCache<dbk::REGID_VOTE, CRegID,                     vector<CCandidateVote>> regId2VoteCache;
+
+    set<CRegID> delegateRegIds;
+};
+
+class CTxUndo {
+public:
+    uint256 txHash;
+    vector<CAccountLog> accountLogs;
+    CDBOpLogsMap dbOpLogsMap; // dbName -> dbOpLogs
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(txHash);
+        READWRITE(accountLogs);
+        READWRITE(dbOpLogsMap);
+	)
+
+public:
+    bool GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog);
+
+    void Clear() {
+        txHash = uint256();
+        accountLogs.clear();
+        dbOpLogsMap.Clear();
+    }
+
+    string ToString() const;
+};
+
 #endif // PERSIST_TXDB_H

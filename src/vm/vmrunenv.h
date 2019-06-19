@@ -10,6 +10,7 @@
 #include "appaccount.h"
 #include "commons/serialize.h"
 #include "script.h"
+#include "accounts/account.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_writer_template.h"
@@ -61,7 +62,7 @@ private:
     bool  isCheckAccount;  //校验账户平衡开关
 
     map<vector<unsigned char>, vector<CAppFundOperate>> mapAppFundOperate;  // vector<unsigned char > 存的是accountId
-    std::shared_ptr<vector<CContractDBOperLog>> pScriptDBOperLog;
+    std::shared_ptr<vector<CDbOpLog>> pScriptDBOperLog;
 
 private:
     /**
@@ -84,7 +85,7 @@ private:
      * @param view:
      * @return true operate account success
      */
-    bool OpeatorAccount(const vector<CVmOperate>& listoperate, CAccountCache& view,
+    bool OperateAccount(const vector<CVmOperate>& listoperate, CAccountCache& view,
                         const int nCurHeight);
     /**
      * @brief find the vOldAccount from newAccount if find success remove it from newAccount
@@ -105,7 +106,7 @@ private:
      */
     vector_unsigned_char GetAccountID(CVmOperate value);
     //	bool IsSignatureAccount(CRegID account);
-    bool OpeatorAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
+    bool OperateAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
                            CContractCache& view);
 
     std::shared_ptr<CAppUserAccount> GetAppAccount(std::shared_ptr<CAppUserAccount>& AppAccount);
@@ -157,51 +158,12 @@ public:
     uint256 GetCurTxHash();
     bool InsertOutputData(const vector<CVmOperate>& source);
     void InsertOutAPPOperte(const vector<unsigned char>& userId, const CAppFundOperate& source);
-    std::shared_ptr<vector<CContractDBOperLog>> GetDbLog();
+    std::shared_ptr<vector<CDbOpLog>> GetDbLog();
 
     bool GetAppUserAccount(const vector<unsigned char>& id, std::shared_ptr<CAppUserAccount>& sptrAcc);
     bool CheckAppAcctOperate(CContractInvokeTx* tx);
     void SetCheckAccount(bool bCheckAccount);
     virtual ~CVmRunEnv();
-};
-
-enum ACCOUNT_TYPE {
-    // account type
-    regid      = 0x01,  //!< Registration accountId
-    base58addr = 0x02,  //!< pulickey
-};
-/**
- * @brief after run the script,the script output the code
- */
-class CVmOperate{
-public:
-	unsigned char accountType;      //regid or base58addr
-	unsigned char accountId[34];	//!< accountId: address
-	unsigned char opType;		    //!OperType
-	unsigned int  timeoutHeight;    //!< the transacion Timeout height
-	unsigned char money[8];			//!<The transfer amount
-
-	IMPLEMENT_SERIALIZE
-	(
-		READWRITE(accountType);
-		for (int i = 0;i < 34;i++)
-			READWRITE(accountId[i]);
-		READWRITE(opType);
-		READWRITE(timeoutHeight);
-		for (int i = 0;i < 8;i++)
-			READWRITE(money[i]);
-	)
-
-	CVmOperate() {
-		accountType = regid;
-		memset(accountId, 0, 34);
-		opType = NULL_OP;
-		timeoutHeight = 0;
-		memset(money, 0, 8);
-	}
-
-	Object ToJson();
-
 };
 
 #endif /* VMRUNENV_H_ */

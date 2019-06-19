@@ -14,7 +14,7 @@
 #include "miner/miner.h"
 #include "version.h"
 
-bool CPriceFeedTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
+bool CPriceFeedTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
 
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -23,14 +23,22 @@ bool CPriceFeedTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx price points number not within 1..3"),
             REJECT_INVALID, "bad-tx-pricepoint-size-error");
     }
+
     CAccount account;
-    if (!cw.pAccountCache->GetAccount(txUid, account))
+    if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
-    if (account.stakedFcoins < kDefaultPriceFeedStakedFcoinsMin) // check if account has sufficient staked fcoins to be a price feeder
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Not stake ready for txUid %s account error",
-                        txUid.ToString()), PRICE_FEED_FAIL, "account-stake-not-ready");
+    CRegID sendRegId;
+    account.GetRegId(sendRegId);
+    if (!pCdMan->pDelegateCache->ExistDelegate(sendRegId.ToString())) { // must be a miner
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, txUid %s account is not a delegate error",
+                        txUid.ToString()), PRICE_FEED_FAIL, "account-isnot-delegate");
+    }
+
+    if (account.stakedFcoins < kDefaultPriceFeedStakedFcoinsMin) // must stake enough fcoins
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Fcoins insufficient by txUid %s account error",
+                        txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-not-sufficient");
 
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
     return true;
@@ -38,7 +46,7 @@ bool CPriceFeedTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
 
 bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
-    if (!cw.pAccountCache->GetAccount(txUid, account))
+    if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
@@ -48,31 +56,31 @@ bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
 
-    if (!cw.pAccountCache->SaveAccount(account)) {
+    if (!cw.accountCache.SaveAccount(account)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, update account %s failed",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     }
 
     // update the price feed cache accordingly
-    if (!pCdMan->pPpCache->AddBlockPricePointInBatch(nHeight, txUid, pricePoints)) {
+    if (!cw.pricePointCache.AddBlockPricePointInBatch(nHeight, txUid, pricePoints)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, txUid %s account duplicated price feed exits",
                         txUid.ToString()), PRICE_FEED_FAIL, "duplicated-pricefeed");
     }
 
-    cw.pTxUndo->vAccountLog.push_back(acctLog);
-    cw.pTxUndo->txHash = GetHash();
+    cw.txUndo.accountLogs.push_back(acctLog);
+    cw.txUndo.txHash = GetHash();
 
-    IMPLEMENT_PERSIST_TX_KEYID(txUid, CUserID());
+    if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid})) return false;
 
     return true;
 }
 
 bool CPriceFeedTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.pTxUndo->vAccountLog.rbegin();
-    for (; rIterAccountLog != cw.pTxUndo->vAccountLog.rend(); ++rIterAccountLog) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+    for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyID;
-        if (!cw.pAccountCache->GetAccount(userId, account)) {
+        if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CPriceFeedTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
@@ -81,7 +89,7 @@ bool CPriceFeedTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVa
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }
 
-        if (!cw.pAccountCache->SetAccount(userId, account)) {
+        if (!cw.accountCache.SetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CPriceFeedTx::UndoExecuteTx, write account info error"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
@@ -109,39 +117,4 @@ bool CPriceFeedTx::GetTopPriceFeederList(CCacheWrapper &cw, vector<CAccount> &pr
     LOCK(cs_main);
 
     return true;
-}
-
-//############################################################################################################
-
-bool CBlockPriceMedianTx::CheckTx(CCacheWrapper &cw, CValidationState &state) {
-    return true;
-}
-
-bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    return true;
-}
-
-bool CBlockPriceMedianTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    return true;
-}
-
-string CBlockPriceMedianTx::ToString(CAccountCache &view) {
-    //TODO
-    return "";
-}
-
-Object CBlockPriceMedianTx::ToJson(const CAccountCache &AccountView) const {
-    //TODO
-    return Object();
-}
-
-bool CBlockPriceMedianTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    //TODO
-    return true;
-}
-
-inline uint64_t GetMedianPriceByType(const CoinType coinType, const PriceType priceType) {
-    // return mapMediaPricePoints[make_tuple<CoinType, PriceType>(coinType, priceType)];
-
-    return 0;
 }

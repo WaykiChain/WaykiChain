@@ -19,7 +19,6 @@
 
 class CBlock;
 class CBlockIndex;
-struct CBlockTemplate;
 class CWallet;
 class CBaseTx;
 class CAccountCache;
@@ -31,16 +30,18 @@ typedef boost::tuple<double, double, std::shared_ptr<CBaseTx> > TxPriority;
 class TxPriorityCompare {
     bool byFee;
 
-   public:
-    TxPriorityCompare(bool _byFee) : byFee(_byFee) {}
+public:
+    TxPriorityCompare(bool byFeeIn) : byFee(byFeeIn) {}
     bool operator()(const TxPriority &a, const TxPriority &b) {
         if (byFee) {
             if (a.get<1>() == b.get<1>())
                 return a.get<0>() < b.get<0>();
+
             return a.get<1>() < b.get<1>();
         } else {
             if (a.get<0>() == b.get<0>())
                 return a.get<1>() < b.get<1>();
+
             return a.get<0>() < b.get<0>();
         }
     }
@@ -66,16 +67,18 @@ public:
 };
 
 // get the info of mined blocks. thread safe.
-std::vector<MinedBlockInfo> GetMinedBlocks(unsigned int count);
+vector<MinedBlockInfo> GetMinedBlocks(unsigned int count);
 
 /** Run the miner threads */
 void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int nThreads);
 /** Generate a new block */
-unique_ptr<CBlockTemplate> CreateNewBlock(CCacheWrapper &cwIn);
+std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn);
+/** Generate fund coin's genesis block */
+std::unique_ptr<CBlock> CreateFundCoinGenesisBlock();
 /** Modify the extranonce in a block */
-void IncrementExtraNonce(CBlock *pblock, CBlockIndex *pIndexPrev, unsigned int &nExtraNonce);
+void IncrementExtraNonce(CBlock *pBlock, CBlockIndex *pIndexPrev, unsigned int &nExtraNonce);
 /** Do mining precalculation */
-void FormatHashBuffers(CBlock *pblock, char *pmidstate, char *pdata, char *phash1);
+void FormatHashBuffers(CBlock *pBlock, char *pmidstate, char *pdata, char *phash1);
 
 bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountCache &view, CBlock *pBlock);
 
@@ -88,7 +91,7 @@ bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDele
 
 bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx = false);
 /** Check mined block */
-bool CheckWork(CBlock *pblock, CWallet &wallet);
+bool CheckWork(CBlock *pBlock, CWallet &wallet);
 /** Base sha256 mining transform */
 void SHA256Transform(void *pstate, void *pinput, const void *pinit);
 /** Get burn element */

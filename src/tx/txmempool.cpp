@@ -106,30 +106,31 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
 
     // is it already confirmed in block
     if (pCdMan->pTxCache->HaveTx(hash))
-        return state.Invalid(ERRORMSG("CheckTxInMemPool() : tx hash %s has been confirmed",
+        return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid=%s has been confirmed",
                             hash.GetHex()), REJECT_INVALID, "tx-duplicate-confirmed");
 
     // is it within valid height
     static int validHeight = SysCfg().GetTxCacheHeight();
     if (!memPoolEntry.GetTx()->IsValidHeight(chainActive.Tip()->nHeight, validHeight)) {
-        return state.Invalid(ERRORMSG("CheckTxInMemPool() : txhash=%s beyond the scope of valid height",
+        return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid=%s beyond the scope of valid height",
                             hash.GetHex()), REJECT_INVALID, "tx-invalid-height");
     }
 
-    CAccountCache pAccountCache(*memPoolAccountCache.get());
-    CTransactionCache pTxCache(*pCdMan->pTxCache);
-    CContractCache pContractCache(*memPoolContractCache.get());
-    CTxUndo txundo;
-    CCacheWrapper cw(&pAccountCache, &pTxCache, &pContractCache, &txundo);
+    auto spCW = std::make_shared<CCacheWrapper>();
+    spCW->accountCache.SetBaseView(memPoolAccountCache.get());
+    spCW->txCache.SetBaseView(pCdMan->pTxCache);
+    spCW->contractCache.SetBaseView(memPoolContractCache.get());
+
     if (bExecute) {
-        if (!memPoolEntry.GetTx()->ExecuteTx(chainActive.Tip()->nHeight + 1, 0, cw, state))
+        if (!memPoolEntry.GetTx()->ExecuteTx(chainActive.Tip()->nHeight + 1, 0, *spCW, state))
             return false;
     }
 
-    pAccountCache.SetBaseView(memPoolAccountCache.get());
-    assert(pAccountCache.Flush());
-    pContractCache.SetBaseView(memPoolContractCache.get());
-    assert(pContractCache.Flush());
+    // Need to re-sync all to cache layer except for transaction cache, as it's depend on
+    // the global transaction cache to verify whether a transaction(txid) has been confirmed
+    // already in block.
+    spCW->accountCache.Flush();
+    spCW->contractCache.Flush();
 
     return true;
 }

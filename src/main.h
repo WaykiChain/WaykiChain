@@ -1,6 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2014-2015 The WaykiChain developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -27,17 +26,21 @@
 #include "sigcache.h"
 #include "persistence/accountdb.h"
 #include "persistence/block.h"
+#include "persistence/dexdb.h"
 #include "tx/txmempool.h"
 #include "tx/accountregtx.h"
 #include "tx/bcointx.h"
 #include "tx/contracttx.h"
 #include "tx/delegatetx.h"
 #include "tx/blockrewardtx.h"
+#include "tx/blockpricemediantx.h"
+#include "tx/fcointx.h"
 #include "tx/mulsigtx.h"
 #include "tx/tx.h"
 #include "persistence/accountdb.h"
 #include "persistence/blockdb.h"
 #include "persistence/txdb.h"
+#include "persistence/cachewrapper.h"
 
 class CBlockIndex;
 class CBloomFilter;
@@ -49,6 +52,7 @@ class CBlockTreeDB;
 extern CCriticalSection cs_main;
 /** The currently-connected chain of blocks. */
 extern CChain chainActive;
+extern CSignatureCache signatureCache;
 
 /** the total blocks of burn fee need */
 static const unsigned int DEFAULT_BURN_BLOCK_SIZE = 50;
@@ -93,7 +97,6 @@ static const int64_t nMaxDbCache = sizeof(void *) > 4 ? 4096 : 1024;
 // min. -dbcache in (MiB)
 static const int64_t nMinDbCache = 4;
 
-
 #ifdef USE_UPNP
 static const int fHaveUPnP = true;
 #else
@@ -101,37 +104,55 @@ static const int fHaveUPnP = false;
 #endif
 
 /** "reject" message codes **/
-static const unsigned char REJECT_MALFORMED       = 0x01;
-static const unsigned char REJECT_INVALID         = 0x10;
-static const unsigned char REJECT_OBSOLETE        = 0x11;
-static const unsigned char REJECT_DUPLICATE       = 0x12;
-static const unsigned char REJECT_NONSTANDARD     = 0x40;
-static const unsigned char REJECT_DUST            = 0x41;
-static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
-static const unsigned char REJECT_CHECKPOINT      = 0x43;
+static const uint8_t REJECT_MALFORMED = 0x01;
 
-static const unsigned char READ_ACCOUNT_FAIL    = 0X51;
-static const unsigned char WRITE_ACCOUNT_FAIL   = 0X52;
-static const unsigned char UPDATE_ACCOUNT_FAIL  = 0X53;
+static const uint8_t REJECT_INVALID   = 0x10;
+static const uint8_t REJECT_OBSOLETE  = 0x11;
+static const uint8_t REJECT_DUPLICATE = 0x12;
 
-static const unsigned char PRICE_FEED_FAIL      = 0X54;
-static const unsigned char FCOIN_STAKE_FAIL     = 0X55;
+static const uint8_t REJECT_NONSTANDARD     = 0x20;
+static const uint8_t REJECT_DUST            = 0x21;
+static const uint8_t REJECT_INSUFFICIENTFEE = 0x22;
 
-static const unsigned char READ_SCRIPT_FAIL     = 0X61;
-static const unsigned char WRITE_SCRIPT_FAIL    = 0X62;
+static const uint8_t READ_ACCOUNT_FAIL   = 0X30;
+static const uint8_t WRITE_ACCOUNT_FAIL  = 0X31;
+static const uint8_t UPDATE_ACCOUNT_FAIL = 0X32;
 
-static const uint64_t kMinDiskSpace              = 52428800;  // Minimum disk space required
-static const int kContractScriptMaxSize          = 65536;     // 64 KB max for contract script size
-static const int kContractArgumentMaxSize        = 4096;      // 4 KB max for contract argument size
-static const int kCommonTxMemoMaxSize            = 100;       // 100 bytes max for memo size
-static const int kContractMemoMaxSize            = 100;       // 100 bytes max for memo size
-static const int kMostRecentBlockNumberThreshold = 1000;      // most recent block number threshold
+static const uint8_t PRICE_FEED_FAIL  = 0X40;
+static const uint8_t FCOIN_STAKE_FAIL = 0X41;
 
-static const int kMultisigNumberThreshold        = 15;        // m-n multisig, refer to n
-static const int KMultisigScriptMaxSize          = 1000;      // multisig script max size
-static const string kContractScriptPathPrefix    = "/tmp/lua/";
-static const int kRegIdMaturePeriodByBlock       = 100;  // RegId's mature period measured by blocks
+static const uint8_t READ_SCRIPT_FAIL  = 0X50;
+static const uint8_t WRITE_SCRIPT_FAIL = 0X51;
 
+static const uint8_t STAKE_CDP_FAIL  = 0X60;
+static const uint8_t REDEEM_CDP_FAIL = 0X61;
+
+static const uint8_t WRITE_CANDIDATE_VOTES_FAIL = 0X70;
+
+static const uint64_t kTotalBaseCoinCount               = 210000000; // 210 million
+static const uint64_t kInitialRiskProvisionScoinCount   = 2100000;   // 2 million 100 thousand
+static const uint64_t kYearBlockCount                   = 3153600;   // one year = 365 * 24 * 60 * 60 / 10
+static const uint64_t kMinDiskSpace                     = 52428800;  // Minimum disk space required
+static const int kContractScriptMaxSize                 = 65536;     // 64 KB max for contract script size
+static const int kContractArgumentMaxSize               = 4096;      // 4 KB max for contract argument size
+static const int kCommonTxMemoMaxSize                   = 100;       // 100 bytes max for memo size
+static const int kContractMemoMaxSize                   = 100;       // 100 bytes max for memo size
+static const int kMostRecentBlockNumberThreshold        = 1000;      // most recent block number threshold
+
+static const int kMultisigNumberThreshold               = 15;        // m-n multisig, refer to n
+static const int KMultisigScriptMaxSize                 = 1000;      // multisig script max size
+static const int kRegIdMaturePeriodByBlock              = 100;       // RegId's mature period measured by blocks
+
+static const uint64_t kFcoinGenesisTxHeight             = 5880000;
+static const uint64_t kFcoinGenesisRegisterTxIndex      = 1;
+static const uint64_t kFcoinGenesisIssueTxIndex         = 2;
+
+static const int kScoinInterestIncreaseRate             = 3;        // increase by 3%
+static const int kBcoinDexSellOrderDiscount             = 97;       // 97%
+
+const uint16_t kMaxMinedBlocks                          = 100;      // maximun cache size for mined blocks
+
+static const string kContractScriptPathPrefix           = "/tmp/lua/";
 
 extern CTxMemPool mempool;
 extern map<uint256, CBlockIndex *> mapBlockIndex;
@@ -145,16 +166,15 @@ class CWalletInterface;
 class CTransactionCache;
 
 struct CNodeStateStats;
-struct CBlockTemplate;
 
 /** Register a wallet to receive updates from core */
-void RegisterWallet(CWalletInterface *pwalletIn);
+void RegisterWallet(CWalletInterface *pWalletIn);
 /** Unregister a wallet from core */
-void UnregisterWallet(CWalletInterface *pwalletIn);
+void UnregisterWallet(CWalletInterface *pWalletIn);
 /** Unregister all wallets from core */
 void UnregisterAllWallets();
 /** Push an updated transaction to all registered wallets */
-void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock = NULL);
+void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pBlock = nullptr);
 /** Erase Tx from wallets **/
 void EraseTransaction(const uint256 &hash);
 /** Register with a network node to receive its signals */
@@ -168,9 +188,9 @@ bool CheckDiskSpace(uint64_t nAdditionalBytes = 0);
 bool VerifyDB(int nCheckLevel, int nCheckDepth);
 
 /** Process protocol messages received from a given node */
-bool ProcessMessages(CNode *pfrom);
+bool ProcessMessages(CNode *pFrom);
 /** Send queued protocol messages to be sent to a give node */
-bool SendMessages(CNode *pto, bool fSendTrickle);
+bool SendMessages(CNode *pTo, bool fSendTrickle);
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
 
@@ -183,15 +203,6 @@ string GetWarnings(string strFor);
 bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CContractCache &scriptDBCache, bool bSearchMempool = true);
 /** Retrieve a transaction height comfirmed in block*/
 int GetTxConfirmHeight(const uint256 &hash, CContractCache &scriptDBCache);
-
-
-/*calutate difficulty */
-double CaculateDifficulty(unsigned int nBits);
-
-/** receive checkpoint check make active chain accord to the checkpoint **/
-bool CheckActiveChain(int nHeight, uint256 hash);
-
-
 
 /** Abort with a message */
 bool AbortNode(const string &msg);
@@ -222,7 +233,7 @@ inline bool AllowFree(double dPriority) {
 }
 
 // Context-independent validity checks
-bool CheckTx(CBaseTx *ptx, CCacheWrapper &cacheWrapper, CValidationState &state);
+bool CheckTx(int nHeight, CBaseTx *ptx, CCacheWrapper &cacheWrapper, CValidationState &state);
 
 /** Check for standard transaction types
     @return True if all outputs (scriptPubKeys) use only standard transaction forms
@@ -232,8 +243,7 @@ bool IsStandardTx(CBaseTx *pBaseTx, string &reason);
 bool IsFinalTx(CBaseTx *pBaseTx, int nBlockHeight = 0, int64_t nBlockTime = 0);
 
 //get tx operate account log
-bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &vAccountLog);
-
+bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &accountLogs);
 
 /** An in-memory indexed chain of blocks. */
 class CChain {
@@ -241,20 +251,20 @@ private:
     vector<CBlockIndex *> vChain;
 
 public:
-    /** Returns the index entry for the genesis block of this chain, or NULL if none. */
+    /** Returns the index entry for the genesis block of this chain, or nullptr if none. */
     CBlockIndex *Genesis() const {
-        return vChain.size() > 0 ? vChain[0] : NULL;
+        return vChain.size() > 0 ? vChain[0] : nullptr;
     }
 
-    /** Returns the index entry for the tip of this chain, or NULL if none. */
+    /** Returns the index entry for the tip of this chain, or nullptr if none. */
     CBlockIndex *Tip() const {
-        return vChain.size() > 0 ? vChain[vChain.size() - 1] : NULL;
+        return vChain.size() > 0 ? vChain[vChain.size() - 1] : nullptr;
     }
 
-    /** Returns the index entry at a particular height in this chain, or NULL if no such height exists. */
+    /** Returns the index entry at a particular height in this chain, or nullptr if no such height exists. */
     CBlockIndex *operator[](int nHeight) const {
         if (nHeight < 0 || nHeight >= (int)vChain.size())
-            return NULL;
+            return nullptr;
         return vChain[nHeight];
     }
 
@@ -269,12 +279,12 @@ public:
         return (*this)[pIndex->nHeight] == pIndex;
     }
 
-    /** Find the successor of a block in this chain, or NULL if the given index is not found or is the tip. */
+    /** Find the successor of a block in this chain, or nullptr if the given index is not found or is the tip. */
     CBlockIndex *Next(const CBlockIndex *pIndex) const {
         if (Contains(pIndex))
             return (*this)[pIndex->nHeight + 1];
         else
-            return NULL;
+            return nullptr;
     }
 
     /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->nHeight : -1. */
@@ -286,56 +296,91 @@ public:
     CBlockIndex *SetTip(CBlockIndex *pIndex);
 
     /** Return a CBlockLocator that refers to a block in this chain (by default the tip). */
-    CBlockLocator GetLocator(const CBlockIndex *pIndex = NULL) const;
+    CBlockLocator GetLocator(const CBlockIndex *pIndex = nullptr) const;
 
     /** Find the last common block between this chain and a locator. */
     CBlockIndex *FindFork(const CBlockLocator &locator) const;
 }; //end of CChain
 
+
+
 class CCacheDBManager {
 public:
-    CAccountDB          *pAccountDb;
+    CDBAccess            *pAccountDb;
     CAccountCache       *pAccountCache;
 
-    CContractDB         *pContractDb;
+    CDBAccess           *pContractDb;
     CContractCache      *pContractCache;
+
+    CDBAccess           *pDelegateDb;
+    CDelegateCache      *pDelegateCache;
+
+    CDBAccess           *pCdpDb;
+    CCdpCacheManager    *pCdpCache;
+
+    CDexCache           *pDexCache;
+
+    CBlockTreeDB        *pBlockTreeDb;
 
     CTransactionCache   *pTxCache;
     CPricePointCache    *pPpCache;
 
-    CBlockTreeDB        *pBlockTreeDb;
+    uint64_t            collateralRatioMin = 200; //minimum collateral ratio
 
 public:
-    CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache,
-                    size_t nScriptCacheSize, size_t nBlockTreeDBCache) {
-        pAccountDb      = new CAccountDB(nAccountDBCache, false, fReIndex);
-        pAccountCache   = new CAccountCache(*pAccountDb);
-        pContractDb     = new CContractDB(nScriptCacheSize, false, fReIndex);
-        pContractCache  = new CContractCache(*pContractDb);
+    CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache, size_t nContractDBCache,
+                    size_t nDelegateDBCache, size_t nBlockTreeDBCache) {
+        //TODO fix cache size
+
+        pBlockTreeDb = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
+
+        pAccountDb      = new CDBAccess(DBNameType::ACCOUNT, nAccountDBCache, false, fReIndex);
+        pAccountCache   = new CAccountCache(pAccountDb);
+
+        pContractDb     = new CDBAccess(DBNameType::CONTRACT, nContractDBCache, false, fReIndex);
+        pContractCache  = new CContractCache(pContractDb);
+
+        pDelegateDb     = new CDBAccess(DBNameType::DELEGATE, nDelegateDBCache, false, fReIndex);
+        pDelegateCache  = new CDelegateCache(pDelegateDb);
+
+        pCdpDb          = new CDBAccess(DBNameType::CDP, nAccountDBCache, false, fReIndex); //TODO fix cache size
+        pCdpCache       = new CCdpCacheManager(pCdpDb);
+
+        pDexCache       = new CDexCache();
+
         pTxCache        = new CTransactionCache();
         pPpCache        = new CPricePointCache();
-        pBlockTreeDb    = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
+
     }
 
     ~CCacheDBManager() {
-        delete pAccountDb;      pAccountDb = nullptr;
+
         delete pAccountCache;   pAccountCache = nullptr;
-        delete pContractDb;     pContractDb = nullptr;
         delete pContractCache;  pContractCache = nullptr;
+        delete pDelegateCache;  pDelegateCache = nullptr;
         delete pTxCache;        pTxCache = nullptr;
         delete pPpCache;        pPpCache = nullptr;
+
+        delete pAccountDb;      pAccountDb = nullptr;
+        delete pContractDb;     pContractDb = nullptr;
+        delete pDelegateDb;     pDelegateDb = nullptr;
         delete pBlockTreeDb;    pBlockTreeDb = nullptr;
+
+        delete pCdpCache;       pCdpCache = nullptr;
+        delete pCdpDb;          pCdpDb = nullptr;
+
+        delete pDexCache;       pDexCache = nullptr;
     }
 
     bool Flush() {
-        if (pBlockTreeDb)
-            pBlockTreeDb->Flush();
-
         if (pAccountCache)
             pAccountCache->Flush();
 
         if (pContractCache)
             pContractCache->Flush();
+
+        if (pBlockTreeDb)
+            pBlockTreeDb->Flush();
 
         return true;
     }
@@ -518,17 +563,16 @@ private:
         MODE_ERROR,    // run-time error
     } mode;
     int nDoS;
-    string strRejectReason;
-    unsigned char chRejectCode;
+    string rejectReason;
+    uint8_t rejectCode;
     bool corruptionPossible;
 
 public:
     CValidationState() : mode(MODE_VALID), nDoS(0), corruptionPossible(false) {}
-    bool DoS(int level, bool ret = false,
-             unsigned char chRejectCodeIn = 0, string strRejectReasonIn = "",
+    bool DoS(int level, bool ret = false, uint8_t rejectCodeIn = 0, string rejectReasonIn = "",
              bool corruptionIn = false) {
-        chRejectCode       = chRejectCodeIn;
-        strRejectReason    = strRejectReasonIn;
+        rejectCode         = rejectCodeIn;
+        rejectReason       = rejectReasonIn;
         corruptionPossible = corruptionIn;
         if (mode == MODE_ERROR)
             return ret;
@@ -536,13 +580,12 @@ public:
         mode = MODE_INVALID;
         return ret;
     }
-    bool Invalid(bool ret                    = false,
-                 unsigned char _chRejectCode = 0, string _strRejectReason = "") {
-        return DoS(0, ret, _chRejectCode, _strRejectReason);
+    bool Invalid(bool ret = false, uint8_t rejectCodeIn = 0, string rejectReasonIn = "") {
+        return DoS(0, ret, rejectCodeIn, rejectReasonIn);
     }
-    bool Error(string strRejectReasonIn = "") {
+    bool Error(string rejectReasonIn = "") {
         if (mode == MODE_VALID)
-            strRejectReason = strRejectReasonIn;
+            rejectReason = rejectReasonIn;
         mode = MODE_ERROR;
         return false;
     }
@@ -550,15 +593,9 @@ public:
         AbortNode(msg);
         return Error(msg);
     }
-    bool IsValid() const {
-        return mode == MODE_VALID;
-    }
-    bool IsInvalid() const {
-        return mode == MODE_INVALID;
-    }
-    bool IsError() const {
-        return mode == MODE_ERROR;
-    }
+    bool IsValid() const { return mode == MODE_VALID; }
+    bool IsInvalid() const { return mode == MODE_INVALID; }
+    bool IsError() const { return mode == MODE_ERROR; }
     bool IsInvalid(int &nDoSOut) const {
         if (IsInvalid()) {
             nDoSOut = nDoS;
@@ -566,11 +603,9 @@ public:
         }
         return false;
     }
-    bool CorruptionPossible() const {
-        return corruptionPossible;
-    }
-    unsigned char GetRejectCode() const { return chRejectCode; }
-    string GetRejectReason() const { return strRejectReason; }
+    bool CorruptionPossible() const { return corruptionPossible; }
+    uint8_t GetRejectCode() const { return rejectCode; }
+    string GetRejectReason() const { return rejectReason; }
 };
 
 /** The currently best known chain of headers (some of which may be invalid). */
@@ -583,12 +618,6 @@ extern int nSyncTipHeight;
 
 extern std::tuple<bool, boost::thread *> RunCoin(int argc, char *argv[]);
 extern bool WriteBlockLog(bool falg, string suffix);
-
-struct CBlockTemplate {
-    CBlock block;
-    vector<int64_t> vTxFees;
-    vector<int64_t> vTxSigOps;
-};
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex);
 
@@ -620,19 +649,14 @@ public:
 
 class CWalletInterface {
 protected:
-    virtual void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pblock) = 0;
+    virtual void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pBlock) = 0;
     virtual void EraseTransaction(const uint256 &hash)                                        = 0;
     virtual void SetBestChain(const CBlockLocator &locator)                                   = 0;
-    virtual void UpdatedTransaction(const uint256 &hash)                                      = 0;
-    // virtual void Inventory(const uint256 &hash)                                               = 0;
     virtual void ResendWalletTransactions()                                                   = 0;
     friend void ::RegisterWallet(CWalletInterface *);
     friend void ::UnregisterWallet(CWalletInterface *);
     friend void ::UnregisterAllWallets();
 };
-
-extern CSignatureCache signatureCache;
-
 
 /** Functions for validating blocks and updating the block tree */
 
@@ -640,7 +664,7 @@ extern CSignatureCache signatureCache;
  *  In case pfClean is provided, operation will try to be tolerant about errors, and *pfClean
  *  will be true if no problems were found. Otherwise, the return value will be false in case
  *  of problems. Note that in any case, coins may be modified. */
-bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool *pfClean = NULL);
+bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool *pfClean = nullptr);
 // Apply the effects of this block (with given index) on the UTXO set represented by coins
 bool ConnectBlock   (CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool fJustCheck = false);
 
@@ -655,7 +679,7 @@ bool ProcessForkedChain(const CBlock &block, CValidationState &state);
 
 // Store block on disk
 // if dbp is provided, the file is known to already reside on disk
-bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp = NULL);
+bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp = nullptr);
 
 //disconnect block for test
 bool DisconnectBlockFromTip(CValidationState &state);
@@ -668,7 +692,7 @@ int64_t GetBlockValue(int nHeight, int64_t nFees);
 FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 
 /** Import blocks from an external file */
-bool LoadExternalBlockFile(FILE *fileIn, CDiskBlockPos *dbp = NULL);
+bool LoadExternalBlockFile(FILE *fileIn, CDiskBlockPos *dbp = nullptr);
 /** Initialize a new block tree database + block data on disk */
 bool InitBlockIndex();
 /** Load the block tree and coins database from disk */
@@ -680,15 +704,11 @@ void PushGetBlocks(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd);
 /** Push getblocks request with different filtering strategies */
 void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd);
 /** Process an incoming block */
-bool ProcessBlock(CValidationState &state, CNode *pfrom, CBlock *pblock, CDiskBlockPos *dbp = NULL);
+bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBlockPos *dbp = nullptr);
 /** Print the loaded block tree */
 void PrintBlockTree();
 
 void UpdateTime(CBlockHeader &block, const CBlockIndex *pIndexPrev);
-
-//get setBlockIndexValid
-Value ListSetBlockIndexValid();
-
 
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState &state);
@@ -700,13 +720,11 @@ bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos);
 bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block);
 bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block);
 
-
-
+// global overloadding fun
 inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
     return pa->GetSerializeSize(nType, nVersion) + 1;
 }
 
-//global overloadding fun
 template <typename Stream>
 void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
     unsigned char nTxType = pa->nTxType;
@@ -725,13 +743,14 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
         Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
     } else if (pa->nTxType == COMMON_MTX) {
         Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion);
+    } else if (pa->nTxType == BLOCK_PRICE_MEDIAN_TX) {
+        Serialize(os, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion);
     } else {
         string sTxType(1, nTxType);
         throw ios_base::failure("Serialize: nTxType (" + sTxType + ") value error.");
     }
 }
 
-//global overloadding fun
 template <typename Stream>
 void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
     unsigned char nTxType;
@@ -757,6 +776,9 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
     } else if (nTxType == COMMON_MTX) {
         pa = std::make_shared<CMulsigTx>();
         Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
+    } else if (nTxType == BLOCK_PRICE_MEDIAN_TX) {
+        pa = std::make_shared<CBlockPriceMedianTx>();
+        Unserialize(is, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion);
     } else {
         string sTxType(1, nTxType);
         throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error.");

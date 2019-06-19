@@ -1,11 +1,10 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The WaykiChain developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef _COINRPC_SERVER_H_
-#define _COINRPC_SERVER_H_ 1
+#define _COINRPC_SERVER_H_
 
 #include "rpcprotocol.h"
 #include "commons/uint256.h"
@@ -96,9 +95,6 @@ extern uint256 ParseHashO(const json_spirit::Object& o, string strKey);
 extern vector<unsigned char> ParseHexV(const json_spirit::Value& v, string strName);
 extern vector<unsigned char> ParseHexO(const json_spirit::Object& o, string strKey);
 
-extern void InitRPCMining();
-extern void ShutdownRPCMining();
-
 extern int64_t nWalletUnlockTime;
 extern int64_t AmountToRawValue(const json_spirit::Value& value);
 extern json_spirit::Value ValueFromAmount(int64_t amount);
@@ -126,7 +122,6 @@ extern json_spirit::Value dropminerkeys(const json_spirit::Array& params, bool f
 
 //extern json_spirit::Value getgenerate(const json_spirit::Array& params, bool fHelp); // in rpcmining.cpp
 extern json_spirit::Value setgenerate(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getnetworkhashps(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value gethashespersec(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getmininginfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getwork(const json_spirit::Array& params, bool fHelp);
@@ -181,9 +176,7 @@ extern json_spirit::Value getblockhash(const json_spirit::Array& params, bool fH
 extern json_spirit::Value getblock(const json_spirit::Array& params, bool fHelp);
 // extern json_spirit::Value gettxoutsetinfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value verifychain(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value listsetblockindexvalid(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getcontractregid(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value listcheckpoint(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value invalidateblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value reconsiderblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value startcommontpstest(const json_spirit::Array& params, bool fHelp);

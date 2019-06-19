@@ -1,7 +1,8 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2013 The WaykiChain developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #include <stdint.h>
 #include <boost/assign/list_of.hpp>
@@ -22,30 +23,25 @@ using namespace std;
 
 class CBaseCoinTransferTx;
 
-double GetDifficulty(const CBlockIndex* blockindex)
-{
+double GetDifficulty(const CBlockIndex* pBlockIndex) {
     // Floating point number that is a multiple of the minimum difficulty,
     // minimum difficulty = 1.0.
-    if (blockindex == NULL)
-    {
+    if (pBlockIndex == NULL) {
         if (chainActive.Tip() == NULL)
             return 1.0;
         else
-            blockindex = chainActive.Tip();
+            pBlockIndex = chainActive.Tip();
     }
 
-    int nShift = (blockindex->nBits >> 24) & 0xff;
+    int nShift = (pBlockIndex->nBits >> 24) & 0xff;
 
-    double dDiff =
-        (double)0x0000ffff / (double)(blockindex->nBits & 0x00ffffff);
+    double dDiff = (double)0x0000ffff / (double)(pBlockIndex->nBits & 0x00ffffff);
 
-    while (nShift < 29)
-    {
+    while (nShift < 29) {
         dDiff *= 256.0;
         nShift++;
     }
-    while (nShift > 29)
-    {
+    while (nShift > 29) {
         dDiff /= 256.0;
         nShift--;
     }
@@ -53,31 +49,34 @@ double GetDifficulty(const CBlockIndex* blockindex)
     return dDiff;
 }
 
-Object BlockToJSON(const CBlock& block, const CBlockIndex* blockindex)
-{
+Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     Object result;
     result.push_back(Pair("hash", block.GetHash().GetHex()));
     CMerkleTx txGen(block.vptx[0]);
     txGen.SetMerkleBranch(&block);
     result.push_back(Pair("confirmations", (int)txGen.GetDepthInMainChain()));
     result.push_back(Pair("size", (int)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION)));
-    result.push_back(Pair("height", blockindex->nHeight));
+    result.push_back(Pair("height", (int)block.GetHeight()));
     result.push_back(Pair("version", block.GetVersion()));
     result.push_back(Pair("merkle_root", block.GetMerkleRootHash().GetHex()));
     result.push_back(Pair("tx_count", (int)block.vptx.size()));
     Array txs;
-    for (const auto& ptx : block.vptx)
-        txs.push_back(ptx->GetHash().GetHex());
+    for (const auto& ptx : block.vptx) txs.push_back(ptx->GetHash().GetHex());
     result.push_back(Pair("tx", txs));
     result.push_back(Pair("time", block.GetBlockTime()));
     result.push_back(Pair("nonce", (uint64_t)block.GetNonce()));
-    result.push_back(Pair("fuel", blockindex->nFuel));
-    result.push_back(Pair("fuel_rate", blockindex->nFuelRate));
-    if (blockindex->pprev)
-        result.push_back(Pair("previous_block_hash", blockindex->pprev->GetBlockHash().GetHex()));
-    CBlockIndex *pnext = chainActive.Next(blockindex);
-    if (pnext)
-        result.push_back(Pair("next_block_hash", pnext->GetBlockHash().GetHex()));
+    CBlockRewardTx* pBlockRewardTx = (CBlockRewardTx*)block.vptx[0].get();
+    uint64_t rewardValue           = pBlockRewardTx->rewardValue;
+    int64_t fees                   = block.GetFee();
+    int64_t fuel                   = block.GetFuel();
+    uint64_t profits               = rewardValue - (fees - fuel);
+    result.push_back(Pair("fuel", (int)block.GetFuel()));
+    result.push_back(Pair("fuel_rate", block.GetFuelRate()));
+    result.push_back(Pair("profits", profits));
+    result.push_back(Pair("fees", fees));
+    if (pBlockIndex->pprev) result.push_back(Pair("previous_block_hash", pBlockIndex->pprev->GetBlockHash().GetHex()));
+    CBlockIndex* pNext = chainActive.Next(pBlockIndex);
+    if (pNext) result.push_back(Pair("next_block_hash", pNext->GetBlockHash().GetHex()));
     return result;
 }
 
@@ -216,9 +215,9 @@ Value getblockhash(const Array& params, bool fHelp)
     if (nHeight < 0 || nHeight > chainActive.Height())
         throw runtime_error("Block number out of range");
 
-    CBlockIndex* pblockindex = chainActive[nHeight];
+    CBlockIndex* pBlockIndex = chainActive[nHeight];
     Object result;
-    result.push_back(Pair("hash", pblockindex->GetBlockHash().GetHex()));
+    result.push_back(Pair("hash", pBlockIndex->GetBlockHash().GetHex()));
     return result;
 }
 
@@ -265,8 +264,8 @@ Value getblock(const Array& params, bool fHelp)
         if (nHeight < 0 || nHeight > chainActive.Height())
             throw runtime_error("Block number out of range.");
 
-        CBlockIndex* pblockindex = chainActive[nHeight];
-        strHash                  = pblockindex->GetBlockHash().GetHex();
+        CBlockIndex* pBlockIndex = chainActive[nHeight];
+        strHash                  = pBlockIndex->GetBlockHash().GetHex();
     } else {
         strHash = params[0].get_str();
     }
@@ -280,8 +279,8 @@ Value getblock(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
 
     CBlock block;
-    CBlockIndex* pblockindex = mapBlockIndex[hash];
-    if (!ReadBlockFromDisk(pblockindex, block)) {
+    CBlockIndex* pBlockIndex = mapBlockIndex[hash];
+    if (!ReadBlockFromDisk(pBlockIndex, block)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
     }
 
@@ -292,7 +291,7 @@ Value getblock(const Array& params, bool fHelp)
         return strHex;
     }
 
-    return BlockToJSON(block, pblockindex);
+    return BlockToJSON(block, pBlockIndex);
 }
 
 Value verifychain(const Array& params, bool fHelp)
@@ -347,23 +346,7 @@ Value getblockchaininfo(const Array& params, bool fHelp)
     obj.push_back(Pair("chain",         chain));
     obj.push_back(Pair("blocks",        (int)chainActive.Height()));
     obj.push_back(Pair("bestblockhash", chainActive.Tip()->GetBlockHash().GetHex()));
-    obj.push_back(Pair("verificationprogress", Checkpoints::GuessVerificationProgress(chainActive.Tip())));
     return obj;
-}
-
-Value listsetblockindexvalid(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 0) {
-        throw runtime_error("listsetblockindexvalid \n"
-            "\ncall ListSetBlockIndexValid function\n"
-            "\nArguments:\n"
-            "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("listsetblockindexvalid", "")
-            + HelpExampleRpc("listsetblockindexvalid", ""));
-    }
-
-    return ListSetBlockIndexValid();
 }
 
 Value getcontractregid(const Array& params, bool fHelp)
@@ -406,28 +389,6 @@ Value getcontractregid(const Array& params, bool fHelp)
     return result;
 }
 
-Value listcheckpoint(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 0) {
-        throw runtime_error(
-            "listcheckpoint index\n"
-            "\nget the list of checkpoint.\n"
-            "\nResult:\n"
-            "\nAn object containing checkpoint\n"
-            "\nExamples:\n"
-            + HelpExampleCli("listcheckpoint", "")
-            + HelpExampleRpc("listcheckpoint", ""));
-    }
-
-    Object result;
-    std::map<int, uint256> checkpointMap;
-    Checkpoints::GetCheckpointMap(checkpointMap);
-    for(std::map<int, uint256>::iterator iterCheck = checkpointMap.begin(); iterCheck != checkpointMap.end(); ++iterCheck){
-        result.push_back(Pair(tfm::format("%d", iterCheck->first).c_str(), iterCheck->second.GetHex()));
-    }
-    return result;
-}
-
 Value invalidateblock(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(
@@ -449,8 +410,8 @@ Value invalidateblock(const Array& params, bool fHelp) {
         if (mapBlockIndex.count(hash) == 0)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
 
-        CBlockIndex* pblockindex = mapBlockIndex[hash];
-        InvalidateBlock(state, pblockindex);
+        CBlockIndex* pBlockIndex = mapBlockIndex[hash];
+        InvalidateBlock(state, pBlockIndex);
     }
 
     if (state.IsValid()) {
@@ -488,8 +449,8 @@ Value reconsiderblock(const Array& params, bool fHelp) {
         if (mapBlockIndex.count(hash) == 0)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
 
-        CBlockIndex* pblockindex = mapBlockIndex[hash];
-        ReconsiderBlock(state, pblockindex);
+        CBlockIndex* pBlockIndex = mapBlockIndex[hash];
+        ReconsiderBlock(state, pBlockIndex);
     }
 
     if (state.IsValid()) {

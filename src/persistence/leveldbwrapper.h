@@ -9,29 +9,158 @@
 #include "commons/serialize.h"
 #include "util.h"
 #include "version.h"
+#include "dbconf.h"
 
+#include "json/json_spirit_value.h"
 #include <boost/filesystem/path.hpp>
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
-#include "json/json_spirit_value.h"
+
 using namespace json_spirit;
+
+class CDbOpLog {
+private:
+    mutable dbk::PrefixType prefixType;
+    string prefix;
+    string keyElement;
+    string value;
+public:
+    CDbOpLog() {}
+
+    template<typename K, typename V>
+    CDbOpLog(dbk::PrefixType prefixTypeIn, const K& keyElementIn, const V& valueIn){
+        Set(prefixTypeIn, keyElementIn, valueIn);
+    }
+
+    // for key-value
+    template<typename K, typename V>
+    void Set(dbk::PrefixType prefixTypeIn, const K& keyElementIn, const V& valueIn){
+        prefixType = prefixTypeIn;
+        prefix = dbk::GetKeyPrefix(prefixType);
+        keyElement = dbk::GenDbKey(dbk::EMPTY, keyElementIn);
+        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+        ssValue << valueIn;
+        value = ssValue.str();
+    }
+
+    // for single value
+    template<typename V>
+    void Set(dbk::PrefixType prefixTypeIn, const V& valueIn){
+        prefixType = prefixTypeIn;
+        prefix = dbk::GetKeyPrefix(prefixType);
+        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+        ssValue << valueIn;
+        value = ssValue.str();
+    }
+
+    // for key-value
+    template<typename K, typename V>
+    void Get(K& keyElementOut, V& valueOut) const {
+        dbk::ParseDbKey(keyElement, dbk::EMPTY, keyElementOut);
+        CDataStream ssValue(value, SER_DISK, CLIENT_VERSION);
+        ssValue >> valueOut;
+    }
+
+    // for single value
+    template<typename V>
+    void Get(V& valueOut) const {
+        CDataStream ssValue(value, SER_DISK, CLIENT_VERSION);
+        ssValue >> valueOut;
+    }
+
+    inline dbk::PrefixType GetPrefixType() const {
+        return prefixType;
+    }
+
+    inline Slice GetValue() { return value; }
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(prefix);
+        if (fRead) {
+            prefixType = dbk::ParseKeyPrefixType(prefix);
+            if (prefixType == dbk::EMPTY) {
+                throw std::out_of_range("CDbOpLog unserialize failed! invalid prefix=" + prefix);
+            }
+        }
+        READWRITE(keyElement);
+        READWRITE(value);
+    )
+
+    string ToString() const {
+        string str;
+        str += strprintf("prefix: %s, key: %s, value: %s", prefix, HexStr(keyElement), HexStr(value));
+        return str;
+    }
+
+    friend bool operator<(const CDbOpLog &log1, const CDbOpLog &log2) {
+        return log1.prefixType < log2.prefixType || log1.keyElement < log2.keyElement;
+    }
+};
+
+typedef vector<CDbOpLog> CDbOpLogs;
+
+class CDBOpLogsMap {
+public:
+    const CDbOpLogs& GetDbOpLogs(dbk::PrefixType prefixType) const {
+        assert(prefixType != dbk::EMPTY);
+        const string& prefix = dbk::GetKeyPrefix(prefixType);
+        auto it = mapDbOpLogs.find(prefix);
+        return it->second;
+    }
+
+    CDbOpLogs& GetDbOpLogs(dbk::PrefixType prefixType) {
+        assert(prefixType != dbk::EMPTY);
+        const string& prefix = dbk::GetKeyPrefix(prefixType);
+        return mapDbOpLogs[prefix];
+    }
+
+    void AddDbOpLogs(dbk::PrefixType prefixType, const CDbOpLogs& dbOpLogsIn) {
+        CDbOpLogs& dbOpLogs = GetDbOpLogs(prefixType);
+        dbOpLogs.insert(dbOpLogs.end(), dbOpLogsIn.begin(), dbOpLogsIn.end());
+    }
+
+    void AddDbOpLog(dbk::PrefixType prefixType, const CDbOpLog& dbOpLogIn) {
+        CDbOpLogs& dbOpLogs = GetDbOpLogs(prefixType);
+        dbOpLogs.push_back(dbOpLogIn);
+    }
+
+    void Clear() { mapDbOpLogs.clear(); }
+
+    std::string ToString() const;
+public:
+    IMPLEMENT_SERIALIZE(
+        READWRITE(mapDbOpLogs);
+	)
+private:
+    mutable map<string, CDbOpLogs> mapDbOpLogs; // dbName -> dbOpLogs
+};
+
 class leveldb_error : public runtime_error
 {
 public:
     leveldb_error(const string &msg) : runtime_error(msg) {}
 };
 
-void HandleError(const leveldb::Status &status);
+void ThrowError(const leveldb::Status &status);
 
 // Batch of changes queued to be written to a CLevelDBWrapper
-class CLevelDBBatch
-{
+class CLevelDBBatch {
     friend class CLevelDBWrapper;
 
 private:
     leveldb::WriteBatch batch;
 
 public:
+    template<typename V>
+    void Write(const std::string &key, const V& value) {
+    	leveldb::Slice slKey(key);
+        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+        ssValue.reserve(ssValue.GetSerializeSize(value));
+        ssValue << value;
+        leveldb::Slice slValue(&ssValue[0], ssValue.size());
+        batch.Put(slKey, slValue);
+    }
+
     template<typename K, typename V> void Write(const K& key, const V& value) {
     	leveldb::Slice slKey;
     	CDataStream ssKey(SER_DISK, CLIENT_VERSION);
@@ -55,6 +184,10 @@ public:
         batch.Put(slKey, slValue);
     }
 
+    void Erase(const std::string &key) {
+        batch.Delete(key);
+    }
+
     template<typename K> void Erase(const K& key) {
     	leveldb::Slice slKey;
     	CDataStream ssKey(SER_DISK, CLIENT_VERSION);
@@ -76,8 +209,7 @@ public:
     }
 };
 
-class CLevelDBWrapper
-{
+class CLevelDBWrapper {
 private:
     // custom environment this database is using (may be NULL in case of default environment)
     leveldb::Env *penv;
@@ -104,6 +236,27 @@ public:
     CLevelDBWrapper(const boost::filesystem::path &path, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
     ~CLevelDBWrapper();
 
+    template<typename V>
+    bool Read(std::string key, V &value) {
+    	leveldb::Slice slKey(key);
+
+        string strValue;
+        leveldb::Status status = pdb->Get(readoptions, slKey, &strValue);
+        if (!status.ok()) {
+            if (status.IsNotFound())
+                return false;
+            LogPrint("INFO","LevelDB read failure: %s\n", status.ToString().c_str());
+            ThrowError(status);
+        }
+        try {
+            CDataStream ssValue(strValue.data(), strValue.data() + strValue.size(), SER_DISK, CLIENT_VERSION);
+            ssValue >> value;
+        } catch(std::exception &e) {
+            return false;
+        }
+        return true;
+    }
+
     template<typename K, typename V> bool Read(const K& key, V& value) {
     	leveldb::Slice slKey;
     	CDataStream ssKey(SER_DISK, CLIENT_VERSION);
@@ -127,7 +280,7 @@ public:
             if (status.IsNotFound())
                 return false;
             LogPrint("INFO","LevelDB read failure: %s\n", status.ToString().c_str());
-            HandleError(status);
+            ThrowError(status);
         }
         try {
             CDataStream ssValue(strValue.data(), strValue.data() + strValue.size(), SER_DISK, CLIENT_VERSION);
@@ -138,10 +291,32 @@ public:
         return true;
     }
 
+
+    template<typename V>
+    bool Write(const std::string &key, const V &value, bool fSync = false) {
+        CLevelDBBatch batch;
+        batch.Write(key, value);
+        return WriteBatch(batch, fSync);
+    }
+
     template<typename K, typename V> bool Write(const K& key, const V& value, bool fSync = false) {
         CLevelDBBatch batch;
         batch.Write(key, value);
         return WriteBatch(batch, fSync);
+    }
+
+
+    bool Exists(const std::string &key) {
+    	leveldb::Slice slKey(key);
+        string strValue;
+        leveldb::Status status = pdb->Get(readoptions, slKey, &strValue);
+        if (!status.ok()) {
+            if (status.IsNotFound())
+                return false;
+            LogPrint("INFO","LevelDB read failure: %s\n", status.ToString().c_str());
+            ThrowError(status);
+        }
+        return true;
     }
 
     template<typename K> bool Exists(const K& key) {
@@ -167,7 +342,7 @@ public:
             if (status.IsNotFound())
                 return false;
             LogPrint("INFO","LevelDB read failure: %s\n", status.ToString().c_str());
-            HandleError(status);
+            ThrowError(status);
         }
         return true;
     }

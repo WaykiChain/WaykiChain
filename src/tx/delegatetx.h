@@ -20,9 +20,9 @@ public:
     CDelegateVoteTx(
             const vector_unsigned_char &accountIn,
             const vector<CCandidateVote> &candidateVotesIn,
-            const uint64_t feeIn,
+            const uint64_t feesIn,
             const int validHeightIn)
-        : CBaseTx(DELEGATE_VOTE_TX, CNullID(), validHeightIn, feeIn) {
+        : CBaseTx(DELEGATE_VOTE_TX, CNullID(), validHeightIn, feesIn) {
         if (accountIn.size() > 6) {
             txUid = CPubKey(accountIn);
         } else {
@@ -32,10 +32,10 @@ public:
     }
     CDelegateVoteTx(
             const CUserID &txUidIn,
-            const uint64_t feeIn,
+            const uint64_t feesIn,
             const vector<CCandidateVote> &candidateVotesIn,
             const int validHeightIn)
-        : CBaseTx(DELEGATE_VOTE_TX, txUidIn, validHeightIn, feeIn) {
+        : CBaseTx(DELEGATE_VOTE_TX, txUidIn, validHeightIn, feesIn) {
 
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
@@ -77,7 +77,7 @@ public:
     virtual Object ToJson(const CAccountCache &accountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 };
