@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2019- The WaykiChain Core Developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef ID_H
 #define ID_H
@@ -47,7 +47,7 @@ public:
         return vRegID;
     }
 
-    string GetRegIdRawStr() const {
+    string ToRawString() const {
         return string(vRegID.begin(), vRegID.end()); // TODO: change the vRegID to string
     }
 

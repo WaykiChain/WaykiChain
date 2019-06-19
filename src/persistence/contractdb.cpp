@@ -669,7 +669,7 @@ bool CContractCache::GetScript(const string &scriptId, string &content) {
 }
 
 bool CContractCache::GetScript(const CRegID &scriptId, string &vValue) {
-    return GetScript(scriptId.GetRegIdRawStr(), vValue);
+    return GetScript(scriptId.ToRawString(), vValue);
 }
 
 bool CContractCache::GetContractData(const int nCurBlockHeight, const string &scriptId,
@@ -1007,7 +1007,7 @@ bool CContractCache::GetScript(const int nIndex, CRegID &scriptId, string &vValu
 }
 
 bool CContractCache::SetScript(const CRegID &scriptId, const string &vValue) {
-    return SetScript(scriptId.GetRegIdRawStr(), vValue);
+    return SetScript(scriptId.ToRawString(), vValue);
 }
 
 bool CContractCache::HaveScript(const CRegID &scriptId) {
@@ -1094,7 +1094,7 @@ string CContractCache::ToString() {
 
 bool CContractCache::GetScriptAcc(const CRegID &scriptId, const string &accKey,
                                       CAppUserAccount &appAccOut) {
-    return contractAccountCache.GetData(make_pair(scriptId.GetRegIdRawStr(), accKey), appAccOut);
+    return contractAccountCache.GetData(make_pair(scriptId.ToRawString(), accKey), appAccOut);
 }
 
 bool CContractCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn,
@@ -1102,7 +1102,7 @@ bool CContractCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAccount 
     if (appAccIn.IsEmpty()) {
         return false;
     }
-    auto key = make_pair(scriptId.GetRegIdRawStr(), appAccIn.GetAccUserId());
+    auto key = make_pair(scriptId.ToRawString(), appAccIn.GetAccUserId());
     CAppUserAccount oldData;
     contractAccountCache.GetData(key, oldData);
     operlog.Set(contractAccountCache.GetPrefixType(), key, oldData);
