@@ -8,6 +8,11 @@
 
 #include "tx.h"
 
+enum OrderType: uint8_t {
+    ORDER_LIMIT_PRICE   = 0, //!< limit price order type
+    ORDER_MARKET_PRICE  = 1  //!< market price order type
+};
+
 class CDEXBuyOrderTx : public CBaseTx {
 
 public:
@@ -19,11 +24,14 @@ public:
     }
 
     CDEXBuyOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
-                const CoinType buyCoinTypeIn, const uint64_t buyAmountIn, const uint64_t bidPriceIn):
-        CBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
-        buyCoinType(buyCoinTypeIn),
-        buyAmount(buyAmountIn),
-        bidPrice(bidPriceIn) {}
+                   OrderType orderTypeIn, CoinType coinTypeIn, CoinType assetTypeIn,
+                   uint64_t buyAmountIn, uint64_t bidPriceIn)
+        : CBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
+          orderType(orderTypeIn),
+          coinType(coinTypeIn),
+          assetType(assetTypeIn),
+          buyAmount(buyAmountIn),
+          bidPrice(bidPriceIn) {}
 
     ~CDEXBuyOrderTx() {}
 
@@ -33,7 +41,9 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        READWRITE(buyCoinType);
+        READWRITE(orderType);
+        READWRITE(coinType);
+        READWRITE(assetType);
         READWRITE(VARINT(buyAmount));
         READWRITE(VARINT(bidPrice));)
 
@@ -41,7 +51,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
-                << buyCoinType << buyAmount << bidPrice;
+                << orderType << coinType << assetType << buyAmount << bidPrice;
             sigHash = ss.GetHash();
         }
 
@@ -59,10 +69,11 @@ public:
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
 private:
-
-    CoinType buyCoinType;   // target coin type (wicc or micc) to buy with wusd
-    uint64_t buyAmount;     // amount of target coins to buy
-    uint64_t bidPrice;      // bidding price willing to buy
+    OrderType orderType;    //!< order type
+    CoinType coinType;      //!< coin type (wusd) to buy asset
+    CoinType assetType;     //!< asset type
+    uint64_t buyAmount;     //!< amount of target asset to buy
+    uint64_t bidPrice;      //!< bidding price in coinType willing to buy
 
 };
 
@@ -76,13 +87,14 @@ public:
         *this = *(CDEXSellOrderTx *)pBaseTx;
     }
 
-    CDEXSellOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
-                const CoinType sellCoinTypeIn, const uint64_t sellAmountIn, const uint64_t askPriceIn):
-        CBaseTx(DEX_SELL_ORDER_TX, txUidIn, validHeightIn, feesIn) {
-
-        sellCoinType = sellCoinTypeIn;
+    CDEXSellOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn, 
+                    OrderType orderType, CoinType coinTypeIn, CoinType assetTypeIn, 
+                    uint64_t sellAmountIn, uint64_t askPriceIn)
+        : CBaseTx(DEX_SELL_ORDER_TX, txUidIn, validHeightIn, feesIn) {
+        coinType   = coinTypeIn;
+        assetType  = assetTypeIn;
         sellAmount = sellAmountIn;
-        askPrice = askPriceIn;
+        askPrice   = askPriceIn;
     }
 
     ~CDEXSellOrderTx() {}
@@ -93,7 +105,9 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        READWRITE(sellCoinType);
+        READWRITE(orderType);
+        READWRITE(coinType);
+        READWRITE(assetType);
         READWRITE(VARINT(sellAmount));
         READWRITE(VARINT(askPrice));)
 
@@ -101,7 +115,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
-                << sellCoinType << sellAmount << askPrice;
+                << orderType << coinType << assetType << sellAmount << askPrice;
             sigHash = ss.GetHash();
         }
 
@@ -120,9 +134,11 @@ public:
 
 private:
 
-    CoinType sellCoinType;   // holing coin type (wicc or micc) to sell for wusd
-    uint64_t sellAmount;     // amount of holding coins to sell
-    uint64_t askPrice;       // asking price willing to sell
+    OrderType orderType;    //!< order type
+    CoinType coinType;      //!< coin type (wusd) to sell asset
+    CoinType assetType;     //!< holing asset type (wicc or micc) to sell in coinType
+    uint64_t sellAmount;    //!< amount of holding asset to sell
+    uint64_t askPrice;      //!< asking price in coinType willing to sell
 
 };
 
@@ -151,8 +167,7 @@ public:
         *this = *(CDEXSettleTx *)pBaseTx;
     }
 
-    CDEXSettleTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
-                const CoinType sellCoinTypeIn, const uint64_t sellAmountIn, const uint64_t askPriceIn):
+    CDEXSettleTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn):
         CBaseTx(DEX_SETTLE_TX, txUidIn, validHeightIn, feesIn) {
 
     }
@@ -176,6 +191,12 @@ public:
 
         return sigHash;
     }
+
+    void AddDealItem(const DEXDealItem& item) {
+        dealItems.push_back(item);
+    }
+
+    vector<DEXDealItem>& GetDealItems() { return dealItems; }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSettleTx>(this); }
     virtual double GetPriority() const { return 10000.0f; } // Top priority

@@ -91,6 +91,7 @@ namespace dbk {
         DEFINE( CDP_IR_PARAM_A,       "ira",   CDP )           /* [prefix] --> param_a */ \
         DEFINE( CDP_IR_PARAM_B,       "irb",   CDP )           /* [prefix] --> param_b */ \
         DEFINE( CDP_COLLATERAL_RATIO, "ccr",   CDP )           /* [prefix] --> collateralRatio */ \
+        /**** dex db                                                                    */ \
         DEFINE( DEX_BUY_ORDER,        "dexb",  DEX )           /* [prefix]{micc|wusd|wicc} --> buy order */ \
         DEFINE( DEX_SELL_ORDER,       "dexs",  DEX )           /* [prefix]{micc|wusd|wicc} --> sell order */ \
         /*                                                                             */ \
@@ -168,11 +169,6 @@ namespace dbk {
     }
 }
 
-// static const string DB_NAME_ACCOUNT  = "account";
-// static const string DB_NAME_CONTRACT = "contract";
-// static const string DB_NAME_DELEGATE = "delegate";
-// static const string DB_NAME_CDP = "cdp";
-
 class SliceIterator {
 public:
     SliceIterator(Slice &sliceIn): slice(sliceIn) {}
@@ -182,4 +178,4 @@ private:
     Slice &slice;
 };
 
-#endif //PERSIST_DBCONF_H
+#endif  // PERSIST_DBCONF_H

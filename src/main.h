@@ -143,9 +143,10 @@ static const int kMultisigNumberThreshold               = 15;        // m-n mult
 static const int KMultisigScriptMaxSize                 = 1000;      // multisig script max size
 static const int kRegIdMaturePeriodByBlock              = 100;       // RegId's mature period measured by blocks
 
-static const uint64_t kFcoinGenesisTxHeight             = 5880000;
-static const uint64_t kFcoinGenesisRegisterTxIndex      = 1;
-static const uint64_t kFcoinGenesisIssueTxIndex         = 2;
+static const uint32_t kFcoinGenesisTxHeight             = 5880000;
+static const uint16_t kFcoinGenesisIssueTxIndex         = 1;
+static const uint16_t kFcoinGenesisRegisterTxIndex      = 2;
+static const uint16_t kSettleServiceRegisterTxIndex     = 3;
 
 static const int kScoinInterestIncreaseRate             = 3;        // increase by 3%
 static const int kBcoinDexSellOrderDiscount             = 97;       // 97%

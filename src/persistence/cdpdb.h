@@ -46,7 +46,8 @@ struct CUserCdp {
     )
 
     string ToString() {
-        return strprintf("%d%d%d%d", blockHeight, mintedScoins, totalStakedBcoins, totalOwedScoins);
+        return strprintf("blockHeight=%d, mintedScoins=%d, totalStakedBcoins=%d, tatalOwedScoins=%d", blockHeight,
+                         mintedScoins, totalStakedBcoins, totalOwedScoins);
     }
 
     bool IsEmpty() const {

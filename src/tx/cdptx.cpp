@@ -29,7 +29,7 @@ bool CCdpStakeTx::PayInterest(int nHeight, CCacheWrapper &cw, CValidationState &
         return true;
 
     CAccount fcoinGensisAccount;
-    CRegID fcoinGenesisRegId(kFcoinGenesisTxHeight, kFcoinGenesisRegisterTxIndex);
+    CRegID fcoinGenesisRegId(kFcoinGenesisTxHeight, kFcoinGenesisIssueTxIndex);
     CUserID fcoinGenesisUid(fcoinGenesisRegId);
     if (!cw.accountCache.GetAccount(fcoinGenesisUid, fcoinGensisAccount)) {
         return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, read fcoinGenesisUid %s account info error",
@@ -125,7 +125,8 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
     }
 
     //2. pay interest fees in wusd or micc into the micc pool
-    if (!PayInterest(nHeight, cw, state)) return false;
+    if (!PayInterest(nHeight, cw, state))
+        return false;
 
     //3. mint scoins
     int mintedScoins = (bcoinsToStake + cdp.totalStakedBcoins) / collateralRatio / 100 - cdp.totalOwedScoins;

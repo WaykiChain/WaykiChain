@@ -40,31 +40,28 @@ bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
     return true;
 }
 
-bool CAccount::OperateDexOrder(CoinType coinType, uint64_t amount) {
+bool CAccount::FreezeDexCoin(CoinType coinType, uint64_t amount) {
 
     switch (coinType) {
         case WICC:
-            if (amount > bcoins)
-                return ERRORMSG("CAccount::OperateDexOrder, amount larger than bcoins");
+            if (amount > bcoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than bcoins");
             bcoins -= amount;
             frozenDEXBcoins += amount;
             assert(!IsMoneyOverflow(bcoins) && !IsMoneyOverflow(frozenDEXBcoins));
             break;
         case MICC:
-            if (amount > scoins)
-                return ERRORMSG("CAccount::OperateDexOrder, amount larger than scoins");
+            if (amount > scoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than scoins");
             scoins -= amount;
             frozenDEXScoins += amount;
             assert(!IsMoneyOverflow(scoins) && !IsMoneyOverflow(frozenDEXScoins));
             break;
         case WUSD:
-            if (amount > fcoins)
-                return ERRORMSG("CAccount::OperateDexOrder, amount larger than fcoins");
+            if (amount > fcoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than fcoins");
             fcoins -= amount;
             frozenDEXFcoins += amount;
             assert(!IsMoneyOverflow(fcoins) && !IsMoneyOverflow(frozenDEXFcoins));
             break;
-        default: return ERRORMSG("CAccount::OperateDexOrder, coin type error");
+        default: return ERRORMSG("CAccount::FreezeDexCoin, coin type error");
     }
     return true;
 }
