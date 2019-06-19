@@ -36,7 +36,7 @@ public:
     bool WriteReindexing(bool fReindex);
     bool ReadReindexing(bool &fReindex);
     //  bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    //  bool WriteTxIndexs(const vector<pair<uint256, CDiskTxPos> > &list);
+    //  bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list);
     bool WriteFlag(const string &name, bool fValue);
     bool ReadFlag(const string &name, bool &fValue);
     bool LoadBlockIndexGuts();

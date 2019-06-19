@@ -325,8 +325,7 @@ bool CContractCache::UndoScriptData(const string &vKey, const string &vValue) {
 }
 */
 
-bool CContractCache::UndoDatas(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs)
-{
+bool CContractCache::UndoData(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs) {
     for (auto it = dbOpLogs.rbegin(); it != dbOpLogs.rend(); ++it) {
         auto &dbOpLog = *it;
         switch (dbOpLog.GetPrefixType()) {
@@ -345,10 +344,11 @@ bool CContractCache::UndoDatas(dbk::PrefixType prefixType, const CDbOpLogs &dbOp
             case dbk::CONTRACT_ACCOUNT:
                 return contractAccountCache.UndoData(dbOpLog);
             default:
-                LogPrint("ERROR", "CContractCache::UndoDatas can not handle the dbOpLog=", dbOpLog.ToString());
+                LogPrint("ERROR", "CContractCache::UndoData can not handle the dbOpLog=", dbOpLog.ToString());
                 return false;
         }
     }
+
     return true;
     /* TODO: need to handle UndoContractData()
 
@@ -390,7 +390,7 @@ bool CContractCache::UndoDatas(dbk::PrefixType prefixType, const CDbOpLogs &dbOp
         }
         mapContractDb[vKey] = vValue;
         return true;
-    */    
+    */
     //TODO: ...
     //return UndoScriptData(string(key.begin(), key.end()), string(value.begin(), value.end()));
 }
@@ -593,7 +593,7 @@ bool CContractCache::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nI
 
 bool CContractCache::UndoTxHashByAddress(CDBOpLogsMap &dbOpLogsMap) {
     auto &dbOpLogs = dbOpLogsMap.GetDbOpLogs(acctTxListCache.GetPrefixType());
-    return UndoDatas(acctTxListCache.GetPrefixType(), dbOpLogs);
+    return UndoData(acctTxListCache.GetPrefixType(), dbOpLogs);
 }
 
 
@@ -647,7 +647,8 @@ bool CContractCache::ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutp
 bool CContractCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
     return txDiskPosCache.GetData(txid, pos);
 }
-bool CContractCache::WriteTxIndexs(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogsMap &dbOpLogsMap) {
+
+bool CContractCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogsMap &dbOpLogsMap) {
     for (auto it : list) {
         LogPrint("txindex", "txhash:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
             it.first.GetHex(), it.second.nFile, it.second.nPos, it.second.nTxOffset);

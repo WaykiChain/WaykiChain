@@ -1266,7 +1266,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             assert(cw.accountCache.GetAccount(pDelegateTx->txUid, voterAcct));
             CUserID uid(pDelegateTx->txUid);
             uint64_t maxVotes = 0;
-            CDbOpLog operDbLog;
+            vector<CCandidateVote> candidateVotes;
             int j = i;
             for (const auto &vote : pDelegateTx->candidateVotes) {
                 assert(vote.GetCandidateVoteType() == ADD_BCOIN);  // it has to be ADD in GensisBlock
@@ -1278,7 +1278,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
 
                 if (uid == votedUid) {  // vote for self
                     voterAcct.receivedVotes = vote.GetVotedBcoins();
-                    assert(cw.delegateCache.SetDelegateData(voterAcct, operDbLog));
+                    assert(cw.delegateCache.SetDelegateVotes(voterAcct.regID, voterAcct.receivedVotes));
                 } else {  // vote for others
                     CAccount votedAcct;
                     assert(!cw.accountCache.GetAccount(votedUid, votedAcct));
@@ -1293,11 +1293,11 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
                     }
 
                     assert(cw.accountCache.SaveAccount(votedAcct));
-                    assert(cw.delegateCache.SetDelegateData(votedAcct, operDbLog));
+                    assert(cw.delegateCache.SetDelegateVotes(votedAcct.regID, votedAcct.receivedVotes));
                 }
 
-                voterAcct.candidateVotes.push_back(vote);
-                sort(voterAcct.candidateVotes.begin(), voterAcct.candidateVotes.end(),
+                candidateVotes.push_back(vote);
+                sort(candidateVotes.begin(), candidateVotes.end(),
                      [](CCandidateVote vote1, CCandidateVote vote2) {
                          return vote1.GetVotedBcoins() > vote2.GetVotedBcoins();
                      });
@@ -1305,6 +1305,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             assert(voterAcct.bcoins >= maxVotes);
             voterAcct.bcoins -= maxVotes;
             assert(cw.accountCache.SaveAccount(voterAcct));
+            assert(cw.delegateCache.SetCandidateVotes(pDelegateTx->txUid.get<CRegID>(), candidateVotes));
         }
     }
 
@@ -1511,7 +1512,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         vector<CDbOpLog> vTxIndexOperDB;
         auto itTxUndo = blockundo.vtxundo.rbegin();
         // TODO: should move to blockTxCache?
-        if (!cw.contractCache.WriteTxIndexs(vPos, itTxUndo->dbOpLogsMap))
+        if (!cw.contractCache.WriteTxIndexes(vPos, itTxUndo->dbOpLogsMap))
             return state.Abort(_("Failed to write transaction index"));
         // TODO: must undo these oplogs in DisconnectBlock()
     }

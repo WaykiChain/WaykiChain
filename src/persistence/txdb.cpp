@@ -177,59 +177,49 @@ bool CDelegateCache::ExistDelegate(const CRegID &delegateRegId) {
     return delegateRegIds.count(delegateRegId);
 }
 
-bool CDelegateCache::SetDelegateData(const CAccount &delegateAcct, CDbOpLog &operLog) {
+bool CDelegateCache::SetDelegateVotes(const CRegID &regId, const uint64_t votes) {
+    if (votes == 0) {
+        return true;
+    }
+
     static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
-    string strVotes           = strprintf("%016x", maxNumber - delegateAcct.receivedVotes);
-    const CRegID &regId       = delegateAcct.regID;
-
-    auto key             = std::make_pair(strVotes, regId);
-    static uint8_t value = 1;
-
-    operLog = CDbOpLog(voteRegIdCache.GetPrefixType(), key, value);
+    string strVotes           = strprintf("%016x", maxNumber - votes);
+    auto key                  = std::make_pair(strVotes, regId);
+    static uint8_t value      = 1;
 
     return voteRegIdCache.SetData(key, value);
 }
 
-bool CDelegateCache::EraseDelegateData(const CAccountLog &delegateAcct, CDbOpLog &operLog) {
-    static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
-    string strVotes           = strprintf("%016x", maxNumber - delegateAcct.receivedVotes);
-    const CRegID &regId       = delegateAcct.regID;
-
-    auto oldKey             = std::make_pair(strVotes, regId);
-    static uint8_t oldValue = 1;
-
-    operLog = CDbOpLog(voteRegIdCache.GetPrefixType(), oldKey, oldValue);
-
-    if (!voteRegIdCache.EraseData(oldKey)) {
-        return false;
-    }
-
-    return true;
-}
-
-bool CDelegateCache::SetDelegateData(const CDbOpLog &operLog) {
-    std::pair<string, CRegID> key;
-    uint8_t value;
-    operLog.Get(key, value);
-
-    if (db_util::IsEmpty(key)) {
+bool CDelegateCache::EraseDelegateVotes(const CRegID &regId, const uint64_t votes) {
+    if (votes == 0) {
         return true;
     }
 
-    if (!voteRegIdCache.SetData(key, value)) {
-        return false;
-    }
+    static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
+    string strVotes           = strprintf("%016x", maxNumber - votes);
+    auto oldKey               = std::make_pair(strVotes, regId);
 
-    return true;
+    return voteRegIdCache.EraseData(oldKey);
 }
 
-bool CDelegateCache::EraseDelegateData(const CDbOpLog &operLog) {
-    std::pair<string, CRegID> key;
-    uint8_t value;
-    operLog.Get(key, value);
+bool CDelegateCache::SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes) {
+    return regId2VoteCache.SetData(regId, candidateVotes);
+}
 
-    if (!voteRegIdCache.EraseData(key)) {
-        return false;
+bool CDelegateCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes) {
+    return regId2VoteCache.GetData(regId, candidateVotes);
+}
+
+bool CDelegateCache::UndoData(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs) {
+    for (auto it = dbOpLogs.rbegin(); it != dbOpLogs.rend(); ++it) {
+        auto &dbOpLog = *it;
+        switch (dbOpLog.GetPrefixType()) {
+            case dbk::REGID_VOTE:
+                return regId2VoteCache.UndoData(dbOpLog);
+            default:
+                LogPrint("ERROR", "CDelegateCache::UndoData can not handle the dbOpLog=", dbOpLog.ToString());
+                return false;
+        }
     }
 
     return true;

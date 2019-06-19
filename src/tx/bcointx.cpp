@@ -105,7 +105,8 @@ bool CBaseCoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     cw.txUndo.accountLogs.push_back(desAcctLog);
     cw.txUndo.txHash = GetHash();
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid, toUid})) return false;
+    if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid, toUid}))
+        return false;
 
     return true;
 }
@@ -134,16 +135,14 @@ bool CBaseCoinTransferTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
             account.minerPubKey = empPubKey;
             account.regID.Clean();
             if (!cw.accountCache.SetAccount(userId, account)) {
-                return state.DoS(100,
-                                 ERRORMSG("CBaseCoinTransferTx::UndoExecuteTx, write account info error"),
+                return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::UndoExecuteTx, write account info error"),
                                  UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
             }
 
             cw.accountCache.EraseKeyId(CRegID(nHeight, nIndex));
         } else {
             if (!cw.accountCache.SetAccount(userId, account)) {
-                return state.DoS(100,
-                                 ERRORMSG("CBaseCoinTransferTx::UndoExecuteTx, write account info error"),
+                return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::UndoExecuteTx, write account info error"),
                                  UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
             }
         }

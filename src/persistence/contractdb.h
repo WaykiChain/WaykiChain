@@ -43,7 +43,7 @@ public:
     virtual Object ToJsonObj(string prefix) { return Object(); } //FIXME: useless prefix
 
     // virtual bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) = 0;
-    // virtual bool WriteTxIndexs(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB) = 0;
+    // virtual bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB) = 0;
     // virtual bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CDbOpLog &operLog) = 0;
     // virtual bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput) = 0;
     virtual bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash) = 0;
@@ -98,7 +98,7 @@ public:
     bool SetContractData(const CRegID &scriptId, const string &contractKey,
                          const string &vScriptData, CDbOpLog &operLog);
 
-    bool UndoDatas(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs);
+    bool UndoData(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs);
 
     /**
      * @brief Get all number of scripts in scriptdb
@@ -119,7 +119,7 @@ public:
     Object ToJsonObj() const;
 //	IContractView * GetBaseScriptDB() { return pBase; }
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    bool WriteTxIndexs(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogsMap &dbOpLogsMap);
+    bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogsMap &dbOpLogsMap);
 
     void SetBaseView(CContractCache *pBaseIn) {
         scriptCache.SetBase(&pBaseIn->scriptCache);
@@ -255,21 +255,21 @@ private:
     /////////// ContractDB
     // scriptRegId -> script content
     CDBMultiValueCache< dbk::CONTRACT_DEF,         string,                   string >               scriptCache;
-    // txId -> vector<CVmOperate>    
-    CDBMultiValueCache< dbk::CONTRACT_TX_OUT,      uint256,                  vector<CVmOperate> >   txOutputCache;          
+    // txId -> vector<CVmOperate>
+    CDBMultiValueCache< dbk::CONTRACT_TX_OUT,      uint256,                  vector<CVmOperate> >   txOutputCache;
     // keyId,height,index -> txid
     //CDBMultiValueCache< dbk::LIST_KEYID_TX,        tuple<CKeyID, int, int>,  uint256>               acctTxListCache;
     CDBMultiValueCache< dbk::LIST_KEYID_TX,        tuple<CKeyID, int, int>,  uint256>               acctTxListCache;
-    // txId -> DiskTxPos        
-    CDBMultiValueCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;         
+    // txId -> DiskTxPos
+    CDBMultiValueCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;
     // contractTxId -> relatedAccounts
     CDBMultiValueCache< dbk::CONTRACT_RELATED_KID, uint256,                  set<CKeyID> >          contractRelatedKidCache;
     // pair<scriptId, scriptKey> -> scriptData
     CDBMultiValueCache< dbk::CONTRACT_DATA,        pair<string, string>,     string >               contractDataCache;
     // scriptId -> contractItemCount
-    CDBMultiValueCache< dbk::CONTRACT_ITEM_NUM,    string,                   CDBCountValue >        contractItemCountCache; 
+    CDBMultiValueCache< dbk::CONTRACT_ITEM_NUM,    string,                   CDBCountValue >        contractItemCountCache;
     // scriptId -> contractItemCount
-    CDBMultiValueCache< dbk::CONTRACT_ACCOUNT,     pair<string, string>,     CAppUserAccount >      contractAccountCache; 
+    CDBMultiValueCache< dbk::CONTRACT_ACCOUNT,     pair<string, string>,     CAppUserAccount >      contractAccountCache;
 };
 
 /*

@@ -84,7 +84,7 @@ bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, read regist addr %s account info error",
-                                        account.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+                         account.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     CRegID contractRegId(nHeight, nIndex);
@@ -96,43 +96,33 @@ bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
     // delete account
     if (!cw.accountCache.EraseKeyId(contractRegId)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase script account %s error",
-                         contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "erase-appkeyid-failed");
+                        contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "erase-appkeyid-failed");
     }
     CKeyID keyId = Hash160(contractRegId.GetRegIdRaw());
     if (!cw.accountCache.EraseAccountByKeyId(keyId)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase script account %s error",
-                         contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "erase-appaccount-failed");
+                        contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "erase-appaccount-failed");
     }
     // LogPrint("INFO", "Delete regid %s app account\n", contractRegId.ToString());
 
     for (auto &itemLog : cw.txUndo.accountLogs) {
         if (!account.UndoOperateAccount(itemLog))
             return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, undo operate account error, keyId=%s",
-                             account.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
+                            account.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
     }
 
     if (!cw.accountCache.SetAccount(CUserID(account.keyID), account))
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, save account error"),
-                                        UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
 
     if (!cw.contractCache.UndoTxHashByAddress(cw.txUndo.dbOpLogsMap)) {
-        return state.DoS(
-            100, ERRORMSG("%s::UndoExecuteTx, undo contractCache data error", __FUNCTION__),
-            UPDATE_ACCOUNT_FAIL, "undo-contractCache-failed");
+        return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, undo contractCache data error"),
+                         UPDATE_ACCOUNT_FAIL, "undo-contractCache-failed");
     }
-/*
-    auto rIterScriptDBLog = opLogs.rbegin();
-    for (; rIterScriptDBLog != opLogs.rend(); ++rIterScriptDBLog) {
-        if (!cw.contractCache.UndoScriptData(rIterScriptDBLog->key, rIterScriptDBLog->value))
-            return state.DoS(
-                100, ERRORMSG("%s::UndoExecuteTx, undo scriptdb data error", __FUNCTION__),
-                UPDATE_ACCOUNT_FAIL, "undo-scriptdb-failed");
-    }
-*/
+
     if (!cw.contractCache.EraseTxRelAccout(GetHash()))
-        return state.DoS(100,
-                         ERRORMSG("%s::UndoExecuteTx, erase tx rel account error", __FUNCTION__),
+        return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase tx rel account error"),
                          UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     return true;
 }
@@ -478,9 +468,9 @@ bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
         }
     }
     const CDbOpLogs& dbOpLogs = cw.txUndo.dbOpLogsMap.GetDbOpLogs(dbk::CONTRACT_DATA);
-    if (!cw.contractCache.UndoDatas(dbk::CONTRACT_DATA, dbOpLogs)) {
-        return state.DoS(100, ERRORMSG("%s::UndoExecuteTx, undo contractdb datas error", __FUNCTION__),
-                         UPDATE_ACCOUNT_FAIL, "undo-contractdb-failed");
+    if (!cw.contractCache.UndoData(dbk::CONTRACT_DATA, dbOpLogs)) {
+        return state.DoS(100, ERRORMSG("%s::UndoExecuteTx, undo contract data error", __FUNCTION__),
+                         UPDATE_ACCOUNT_FAIL, "undo-contract-data-failed");
     }
 
     if (!cw.contractCache.EraseTxRelAccout(GetHash()))
