@@ -25,12 +25,11 @@ bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
 
 bool CCDPStakeTx::PayInterest(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     CUserCdp cdp;
-    if (cw.cdpCache.GetCdp(txUid.ToString(), cdp)) // first-time staking, no interest will be charged
+    if (cw.cdpCache.GetCdp(txUid.get<CRegID>(), cdp)) // first-time staking, no interest will be charged
         return true;
 
     CAccount fcoinGensisAccount;
-    CRegID fcoinGenesisRegId(kFcoinGenesisTxHeight, kFcoinGenesisIssueTxIndex);
-    CUserID fcoinGenesisUid(fcoinGenesisRegId);
+    CUserID fcoinGenesisUid(CRegID(kFcoinGenesisTxHeight, kFcoinGenesisIssueTxIndex));
     if (!cw.accountCache.GetAccount(fcoinGenesisUid, fcoinGensisAccount)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read fcoinGenesisUid %s account info error",
                         fcoinGenesisUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
@@ -152,7 +151,7 @@ bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
     cw.txUndo.accountLogs.push_back(acctLog);
 
     CDbOpLog cdpDbOpLog;
-    cw.cdpCache.StakeBcoinsToCdp(txUid, bcoinsToStake, collateralRatio, (uint64_t) mintedScoins, nHeight, cdpDbOpLog); //update cache & persist into ldb
+    cw.cdpCache.StakeBcoinsToCdp(txUid.get<CRegID>(), bcoinsToStake, collateralRatio, (uint64_t) mintedScoins, nHeight, cdpDbOpLog); //update cache & persist into ldb
     cw.txUndo.dbOpLogsMap.AddDbOpLog(dbk::CDP, cdpDbOpLog);
 
     bool ret = SaveTxAddresses(nHeight, nIndex, cw, {txUid});
