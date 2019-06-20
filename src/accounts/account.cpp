@@ -88,29 +88,6 @@ bool CAccount::MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins) {
     return true;
 }
 
-bool CAccount::SettleDEXBuyOrder(CoinType coinType,  uint64_t minusCoins, CoinType assetType, uint64_t addedAssets) {
-    // subtract coins from frozen coins for dex
-    switch (coinType) {
-        case WICC:
-            if (minusCoins > frozenDEXBcoins) return ERRORMSG("CAccount::SettleDEXBuyOrder, minus bcoins exceed frozen bcoins");
-            frozenDEXBcoins -= minusCoins;
-            assert(!IsMoneyOverflow(frozenDEXBcoins));
-            break;
-        case MICC:
-            if (minusCoins > frozenDEXScoins) return ERRORMSG("CAccount::SettleDEXBuyOrder, minus scoins exceed frozen scoins");
-            frozenDEXScoins -= minusCoins;
-            assert(!IsMoneyOverflow(frozenDEXScoins));
-            break;
-        case WUSD:
-            if (minusCoins > frozenDEXFcoins) return ERRORMSG("CAccount::SettleDEXBuyOrder, minus fcoins exceed frozen fcoins");
-            frozenDEXFcoins -= minusCoins;
-            assert(!IsMoneyOverflow(frozenDEXFcoins));
-            break;
-        default: return ERRORMSG("CAccount::SettleDEXBuyOrder, coin type error");
-    }
-    return OperateBalance(assetType, ADD_VALUE, addedAssets); // add assets for buyer
-}
-
 uint64_t CAccount::GetAccountProfit(const vector<CCandidateVote> &candidateVotes, const uint64_t curHeight) {
     if (GetFeatureForkVersion(curHeight) == MAJOR_VER_R2) {
         // The rule is one bcoin one vote, hence no profits at all and return 0.
