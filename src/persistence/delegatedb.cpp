@@ -33,6 +33,16 @@ bool CDelegateCache::ExistDelegate(const CRegID &delegateRegId) {
     return std::find(delegateRegIds.begin(), delegateRegIds.end(), delegateRegId) != delegateRegIds.end();
 }
 
+bool CDelegateCache::GetTopDelegates(vector<CRegID> &delegatesList) {
+    if (delegateRegIds.size() != IniCfg().GetTotalDelegateNum()) {
+        return false;
+    }
+
+    delegatesList = delegateRegIds;
+
+    return true;
+}
+
 bool CDelegateCache::SetDelegateVotes(const CRegID &regId, const uint64_t votes) {
     if (votes == 0) {
         return true;

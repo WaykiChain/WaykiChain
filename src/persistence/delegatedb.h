@@ -26,7 +26,7 @@ public:
 
     bool LoadTopDelegates();
     bool ExistDelegate(const CRegID &regId);
-    vector<CRegID> &GetTopDelegates() { return delegateRegIds; }
+    bool GetTopDelegates(vector<CRegID> &delegatesList);
 
     bool SetDelegateVotes(const CRegID &regId, const uint64_t votes);
     bool EraseDelegateVotes(const CRegID &regId, const uint64_t votes);

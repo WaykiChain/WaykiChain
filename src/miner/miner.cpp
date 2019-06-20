@@ -164,8 +164,9 @@ void ShuffleDelegates(const int nCurHeight, vector<CRegID> &delegatesList) {
 
 bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     uint64_t maxNonce = SysCfg().GetBlockMaxNonce();
-    vector<CRegID> &delegatesList = cwIn.delegateCache.GetTopDelegates();
-    if (!delegatesList.size() != IniCfg().GetTotalDelegateNum())
+
+    vector<CRegID> delegatesList;
+    if (!cwIn.delegateCache.GetTopDelegates(delegatesList))
         return false;
 
     ShuffleDelegates(pBlock->GetHeight(), delegatesList);
@@ -456,8 +457,8 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
 
         GetNextTimeAndSleep();
 
-        vector<CRegID> &delegatesList = cw.delegateCache.GetTopDelegates();
-        if (!delegatesList.size() != IniCfg().GetTotalDelegateNum())
+        vector<CRegID> delegatesList;
+        if (!cw.delegateCache.GetTopDelegates(delegatesList))
             return false;
 
         uint16_t nIndex = 0;
