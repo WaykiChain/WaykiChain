@@ -68,7 +68,7 @@ public:
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
-private:
+public:
     OrderType orderType;    //!< order type
     CoinType coinType;      //!< coin type (wusd) to buy asset
     CoinType assetType;     //!< asset type
@@ -132,7 +132,7 @@ public:
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
-private:
+public:
 
     OrderType orderType;    //!< order type
     CoinType coinType;      //!< coin type (wusd) to sell asset
@@ -142,11 +142,9 @@ private:
 
 };
 
-typedef CRegID TxCord;
-
 struct DEXDealItem  {
-    TxCord buyOrderTxCord;
-    TxCord sellOrderTxCord;
+    CTxCord buyOrderTxCord;
+    CTxCord sellOrderTxCord;
     uint64_t dealPrice;
     uint64_t dealAmount;
 

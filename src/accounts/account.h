@@ -94,7 +94,8 @@ public:
         // asset always is coin, so can do the freeze as coin
         return FreezeDexCoin(assetType, amount);
     }
-    bool OperateDEXSettle(CoinType coinType, uint64_t amount);
+    bool MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins);
+
     bool ProcessDelegateVote(const vector<CCandidateVote>& candidateVotesIn,
                              vector<CCandidateVote>& candidateVotesInOut, const uint64_t curHeight);
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);

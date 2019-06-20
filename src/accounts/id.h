@@ -75,6 +75,11 @@ public:
         })
 };
 
+/**
+ * tx cord, locate a tx with height and index
+ */
+typedef CRegID CTxCord;
+
 class CNickID {
 private:
     string nickId;
