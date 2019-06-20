@@ -118,8 +118,10 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
 
     CUserCdp cdp;
     //2. pay interest fees in wusd or micc into the micc pool
-    if (cw.cdpCache.GetCdp(txUid.get<CRegID>(), TxCord(nHeight, nIndex), cdp) && !PayInterest(nHeight, cw, state))
-        return false;
+    if (cw.cdpCache.GetCdp(txUid.get<CRegID>(), TxCord(nHeight, nIndex), cdp)) {
+        if (!PayInterest(nHeight, cw, state))
+            return false;
+    }
 
     //3. mint scoins
     int mintedScoins = (bcoinsToStake + cdp.totalStakedBcoins) / collateralRatio / 100 - cdp.totalOwedScoins;
@@ -209,7 +211,8 @@ string CCdpRedeem::ToString(CAccountCache &view) {
     }
 
     //2. pay interest fees in wusd or micc into the micc pool
-    if (!PayInterest(nHeight, cw, state)) return false;
+    if (!PayInterest(nHeight, cw, state))
+        return false;
 
     //3. redeem in scoins and update cdp
 
