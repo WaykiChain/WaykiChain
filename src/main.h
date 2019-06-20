@@ -39,6 +39,7 @@
 #include "tx/tx.h"
 #include "persistence/accountdb.h"
 #include "persistence/blockdb.h"
+#include "persistence/delegatedb.h"
 #include "persistence/txdb.h"
 #include "persistence/cachewrapper.h"
 

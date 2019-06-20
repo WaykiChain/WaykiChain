@@ -50,8 +50,8 @@ public:
     unsigned int GetHalvingInterval(NET_TYPE type) const;
     uint64_t GetBlockSubsidyCfg(int nHeight) const;
     int GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const;
-    uint64_t GetTotalDelegateNum() const;
-    uint64_t GetMaxVoteCandidateNum() const;
+    uint32_t GetTotalDelegateNum() const;
+    uint32_t GetMaxVoteCandidateNum() const;
     uint64_t GetCoinInitValue() const { return InitialCoin; };
 	uint32_t GetFeatureForkHeight(NET_TYPE) const;
 
@@ -137,10 +137,10 @@ private:
     static uint64_t DefaultFee;
 
     /* Total Delegate Number */
-    static unsigned int TotalDelegateNum;
+    static uint32_t TotalDelegateNum;
 
     /* Max Number of Delegate Candidate to Vote for by a single account */
-    static unsigned int MaxVoteCandidateNum;
+    static uint32_t MaxVoteCandidateNum;
 
     /* Initial subsidy rate upon vote casting */
     static uint64_t nInitialSubsidy;

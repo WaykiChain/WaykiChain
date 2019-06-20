@@ -75,7 +75,7 @@ void CTransactionCache::Flush(CTransactionCache *pBaseIn) {
 
 void CTransactionCache::Clear() { mapBlockTxHashSet.clear(); }
 
-int CTransactionCache::GetSize() { return mapBlockTxHashSet.size(); }
+uint64_t CTransactionCache::GetSize() { return mapBlockTxHashSet.size(); }
 
 Object CTransactionCache::ToJsonObj() const {
     Array txArray;
@@ -161,68 +161,6 @@ uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, CCoinP
     CConsecutiveBlockPrice cbp = mapCoinPricePointCache[ coinPriceType.ToString() ];
     uint64_t medianPrice = cbp.ComputeBlockMedianPrice(blockHeight);
     return medianPrice;
-}
-
-bool CDelegateCache::LoadTopDelegates() {
-    delegateRegIds.clear();
-    // TODO:
-    return true;
-}
-
-bool CDelegateCache::ExistDelegate(const CRegID &delegateRegId) {
-    if (delegateRegIds.empty()) {
-        LoadTopDelegates();
-    }
-
-    return delegateRegIds.count(delegateRegId);
-}
-
-bool CDelegateCache::SetDelegateVotes(const CRegID &regId, const uint64_t votes) {
-    if (votes == 0) {
-        return true;
-    }
-
-    static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
-    string strVotes           = strprintf("%016x", maxNumber - votes);
-    auto key                  = std::make_pair(strVotes, regId);
-    static uint8_t value      = 1;
-
-    return voteRegIdCache.SetData(key, value);
-}
-
-bool CDelegateCache::EraseDelegateVotes(const CRegID &regId, const uint64_t votes) {
-    if (votes == 0) {
-        return true;
-    }
-
-    static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
-    string strVotes           = strprintf("%016x", maxNumber - votes);
-    auto oldKey               = std::make_pair(strVotes, regId);
-
-    return voteRegIdCache.EraseData(oldKey);
-}
-
-bool CDelegateCache::SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes) {
-    return regId2VoteCache.SetData(regId.ToRawString(), candidateVotes);
-}
-
-bool CDelegateCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes) {
-    return regId2VoteCache.GetData(regId.ToRawString(), candidateVotes);
-}
-
-bool CDelegateCache::UndoData(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs) {
-    for (auto it = dbOpLogs.rbegin(); it != dbOpLogs.rend(); ++it) {
-        auto &dbOpLog = *it;
-        switch (dbOpLog.GetPrefixType()) {
-            case dbk::REGID_VOTE:
-                return regId2VoteCache.UndoData(dbOpLog);
-            default:
-                LogPrint("ERROR", "CDelegateCache::UndoData can not handle the dbOpLog=", dbOpLog.ToString());
-                return false;
-        }
-    }
-
-    return true;
 }
 
 string CTxUndo::ToString() const {

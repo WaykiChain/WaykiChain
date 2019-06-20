@@ -7,7 +7,7 @@
 #define PERSIST_TXDB_H
 
 #include "accounts/account.h"
-#include "Accounts/id.h"
+#include "accounts/id.h"
 #include "commons/serialize.h"
 #include "dbaccess.h"
 #include "dbconf.h"
@@ -48,7 +48,7 @@ public:
     void Flush();
 
     Object ToJsonObj() const;
-    int GetSize();
+    uint64_t GetSize();
 
     const map<uint256, UnorderedHashSet> &GetTxHashCache();
     void SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache);
@@ -86,40 +86,6 @@ public:
 
     uint64_t GetBcoinMedianPrice() { return bcoinMedianPrice; }
     uint64_t GetFcoinMedianPrice() { return fcoinMedianPrice; }
-};
-
-/* Top 11 delegates */
-class CDelegateCache {
-public:
-    CDelegateCache(){};
-    CDelegateCache(CDBAccess *pDbAccess) : voteRegIdCache(pDbAccess){};
-    CDelegateCache(CDelegateCache *pBaseIn) : voteRegIdCache(pBaseIn->voteRegIdCache){};
-
-    bool LoadTopDelegates();
-    bool ExistDelegate(const CRegID &regId);
-
-    bool SetDelegateVotes(const CRegID &regId, const uint64_t votes);
-    bool EraseDelegateVotes(const CRegID &regId, const uint64_t votes);
-
-    bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes);
-    bool GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes);
-
-    bool UndoData(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs);
-
-    void SetBaseView(CDelegateCache *pBaseIn) {
-        voteRegIdCache = pBaseIn->voteRegIdCache;
-    }
-    // TODO:
-    void Flush() {}
-
-private:
-/*  CDBScalarValueCache  prefixType     key                         value                   variable       */
-/*  -------------------- -------------- --------------------------  ----------------------- -------------- */
-    // vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1
-    CDBMultiValueCache<dbk::VOTE,       std::pair<string, CRegID>,  uint8_t>                voteRegIdCache;
-    CDBMultiValueCache<dbk::REGID_VOTE, string/* CRegID */,         vector<CCandidateVote>> regId2VoteCache;
-
-    set<CRegID> delegateRegIds;
 };
 
 class CTxUndo {

@@ -7,16 +7,12 @@
 #include "dbconf.h"
 #include "main.h"
 
-bool CCdpCacheManager::StakeBcoinsToCdp(
-    CUserID txUid,
-    uint64_t bcoinsToStake,
-    uint64_t collateralRatio,
-    uint64_t mintedScoins,
-    int blockHeight,
-    CDbOpLog &cdpDbOpLog) {
-
+bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake,
+                                        const uint64_t collateralRatio, const uint64_t mintedScoins,
+                                        const int blockHeight, CDbOpLog &cdpDbOpLog) {
     CUserCdp lastCdp;
-    if (!cdpCache.GetData(txUid.ToString(), lastCdp)) {
+    string cdpKey = regId.ToRawString();
+    if (!cdpCache.GetData(cdpKey, lastCdp)) {
         return ERRORMSG("CCdpCache::StakeBcoins : GetData failed.");
     }
 
@@ -29,7 +25,6 @@ bool CCdpCacheManager::StakeBcoinsToCdp(
     cdp.mintedScoins    = mintedScoins;
     cdp.totalOwedScoins += cdp.mintedScoins;
 
-    string cdpKey = txUid.ToString();
     if (!cdpCache.SetData(cdpKey, cdp)) {
         return ERRORMSG("CCdpCache::StakeBcoins : SetData failed.");
     }

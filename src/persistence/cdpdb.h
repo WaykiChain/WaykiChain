@@ -62,13 +62,13 @@ public:
     CCdpCacheManager() {}
     CCdpCacheManager(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
 
-    bool StakeBcoinsToCdp(CUserID txUid, uint64_t bcoinsToStake, uint64_t collateralRatio,
-                    uint64_t mintedScoins, int blockHeight, CDbOpLog &cdpDbOpLog);
+    bool StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t collateralRatio,
+                          const uint64_t mintedScoins, const int blockHeight, CDbOpLog &cdpDbOpLog);
 
     bool GetUnderLiquidityCdps(vector<CUserCdp> & userCdps);
 
-    bool GetCdp(string userRegId, CUserCdp &cdp) { return cdpCache.GetData(userRegId, cdp); }
-    bool SaveCdp(string userRegId, CUserCdp &cdp) { return cdpCache.SetData(userRegId, cdp); }
+    bool GetCdp(const CRegID &regId, CUserCdp &cdp) { return cdpCache.GetData(regId.ToRawString(), cdp); }
+    bool SaveCdp(const CRegID &regId, CUserCdp &cdp) { return cdpCache.SetData(regId.ToRawString(), cdp); }
     bool UndoCdp(CDbOpLog &opLog) { return cdpCache.UndoData(opLog); }
 
     uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);
