@@ -10,8 +10,7 @@
 bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake,
                                         const uint64_t collateralRatio, const uint64_t mintedScoins,
                                         const int blockHeight, CUserCdp &cdp, CDbOpLog &cdpDbOpLog) {
-    string cdpKey = regId.ToRawString();
-    cdpDbOpLog = CDbOpLog(cdpCache.GetPrefixType(), cdpKey, cdp);
+    cdpDbOpLog = CDbOpLog(cdpCache.GetPrefixType(), regId.ToRawString(), cdp);
 
     cdp.lastBlockHeight = blockHeight;
     cdp.collateralRatio = collateralRatio;
@@ -19,8 +18,8 @@ bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoi
     cdp.lastOwedScoins += cdp.totalOwedScoins;
     cdp.totalOwedScoins += cdp.mintedScoins;
 
-    if (!cdpCache.SetData(cdpKey, cdp)) {
-        return ERRORMSG("CCdpCache::StakeBcoins : SetData failed.");
+    if (!cdpCache.SaveCdp(regId, cdp)) {
+        return ERRORMSG("CCdpCacheManager::StakeBcoinsToCdp : SetData failed.");
     }
 
     return true;
