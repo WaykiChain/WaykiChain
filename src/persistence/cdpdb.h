@@ -51,7 +51,11 @@ struct CUserCdp {
     }
 
     void SetEmpty() {
-        // TODO:
+        cdpTxCord.Clean();
+        lastBlockHeight   = 0;
+        mintedScoins      = 0;
+        totalStakedBcoins = 0;
+        totalOwedScoins   = 0;
     }
 };
 

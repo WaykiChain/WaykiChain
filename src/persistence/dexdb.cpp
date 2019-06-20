@@ -4,12 +4,3 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "dexdb.h"
-
-bool CDexCache::MatchFcoinManualSellOrder(uint64_t scoins) {
-    // for (auto order : fcoinManualSellOrderCache) {
-    //     if (order.orderAmount >= scoins) {
-
-    //     }
-    // }
-    return true;
-}
