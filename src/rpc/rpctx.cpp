@@ -3232,20 +3232,24 @@ Value listdelegates(const Array& params, bool fHelp) {
             strprintf("Delegate number not between 1 and %u", IniCfg().GetTotalDelegateNum()));
     }
 
-    vector<CAccount> delegates;
-    if (!GetDelegatesAcctList(delegates) || delegates.size() != IniCfg().GetTotalDelegateNum()) {
+    vector<CRegID>& delegates = pCdMan->pDelegateCache->GetTopDelegates();
+    if (delegates.size() != IniCfg().GetTotalDelegateNum()) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to get delegates list");
     }
 
     Object obj;
     Array delegateArray;
+
     delegateNum = min(delegateNum, (int)delegates.size());
+    CAccount account;
     for (const auto& delegate : delegates) {
-        delegateArray.push_back(delegate.ToJsonObj());
+        pCdMan->pAccountCache->GetAccount(delegate, account);
+        delegateArray.push_back(account.ToJsonObj());
         if (--delegateNum == 0) {
             break;
         }
     }
     obj.push_back(Pair("delegates", delegateArray));
+
     return obj;
 }

@@ -82,10 +82,7 @@ void FormatHashBuffers(CBlock *pBlock, char *pmidstate, char *pdata, char *phash
 
 bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountCache &view, CBlock *pBlock);
 
-bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList);
-bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList, CAccountCache &accViewIn, CContractCache &scriptCacheIn);
-
-void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList);
+void ShuffleDelegates(const int nCurHeight, vector<CRegID> &delegatesList);
 
 bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct);
 
