@@ -66,6 +66,28 @@ bool CAccount::FreezeDexCoin(CoinType coinType, uint64_t amount) {
     return true;
 }
 
+bool CAccount::MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins) {
+    switch (coinType) {
+        case WICC:
+            if (coins > frozenDEXBcoins) return ERRORMSG("CAccount::SettleDEXBuyOrder, minus bcoins exceed frozen bcoins");
+            frozenDEXBcoins -= coins;
+            assert(!IsMoneyOverflow(frozenDEXBcoins));
+            break;
+        case MICC:
+            if (coins > frozenDEXScoins) return ERRORMSG("CAccount::SettleDEXBuyOrder, minus scoins exceed frozen scoins");
+            frozenDEXScoins -= coins;
+            assert(!IsMoneyOverflow(frozenDEXScoins));
+            break;
+        case WUSD:
+            if (coins > frozenDEXFcoins) return ERRORMSG("CAccount::SettleDEXBuyOrder, minus fcoins exceed frozen fcoins");
+            frozenDEXFcoins -= coins;
+            assert(!IsMoneyOverflow(frozenDEXFcoins));
+            break;
+        default: return ERRORMSG("CAccount::SettleDEXBuyOrder, coin type error");
+    }
+    return true;
+}
+
 uint64_t CAccount::GetAccountProfit(const vector<CCandidateVote> &candidateVotes, const uint64_t curHeight) {
     if (GetFeatureForkVersion(curHeight) == MAJOR_VER_R2) {
         // The rule is one bcoin one vote, hence no profits at all and return 0.

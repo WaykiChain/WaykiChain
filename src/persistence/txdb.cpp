@@ -192,3 +192,8 @@ bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {
     }
     return false;
 }
+
+bool ReadTxFromDisk(const CTxCord txCord, std::shared_ptr<CBaseTx> ptrBaseTx) {
+    // TODO: read tx from disk
+    return false;
+}
