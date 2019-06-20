@@ -44,8 +44,8 @@ bool CCDPStakeTx::PayInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &c
     double restFcoins = totalFcoinsInterestToRepay - fcoinsInterest;
     double restScoins = (restFcoins/fcoinMedianPrice) * (100 + kScoinInterestIncreaseRate)/100;
     if (scoinsInterest < restScoins) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, nHeight: %d < cdp.lastBlockHeight: %d",
-                    nHeight, cdp.lastBlockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-smaller-error");
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoinsInterest: %d < restScoins: %d", 
+                        scoinsInterest, restScoins), INTEREST_INSUFFICIENT, "interest-insufficient-error");
     }
 
     if (fcoinsInterest > 0) {
@@ -54,8 +54,7 @@ bool CCDPStakeTx::PayInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &c
     }
     if (scoinsInterest) {
         account.scoins -= scoinsInterest;
-        //place a market buy order in DEX: wusd_micc
-        cw.dexCache.CreateBuyOrder(scoinsInterest, CoinType::MICC);
+        cw.dexCache.CreateBuyOrder(scoinsInterest, CoinType::MICC); // DEX: wusd_micc
     }
 
     if (!cw.accountCache.SaveAccount(fcoinGensisAccount)) {

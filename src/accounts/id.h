@@ -78,7 +78,7 @@ public:
 };
 
 /**
- * tx cord, locate a tx with height and index
+ * tx cord, locate a tx with its block height and index
  */
 typedef CRegID CTxCord;
 
