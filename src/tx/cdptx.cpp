@@ -23,10 +23,11 @@ bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     return true;
 }
 
-bool CCDPStakeTx::PayInterest(int nHeight, CCacheWrapper &cw, CValidationState &state) {
-    CUserCdp cdp;
-    if (cw.cdpCache.GetCdp(txUid.get<CRegID>(), cdp)) // first-time staking, no interest will be charged
-        return true;
+bool CCDPStakeTx::PayInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &cw, CValidationState &state) {
+    if (nHeight < cdp.lastBlockHeight) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, nHeight: %d < cdp.lastBlockHeight: %d",
+                    nHeight, cdp.lastBlockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-smaller-error");
+    }
 
     CAccount fcoinGensisAccount;
     CUserID fcoinGenesisUid(CRegID(kFcoinGenesisTxHeight, kFcoinGenesisIssueTxIndex));
@@ -36,18 +37,13 @@ bool CCDPStakeTx::PayInterest(int nHeight, CCacheWrapper &cw, CValidationState &
     }
     CAccountLog genesisAcctLog(account);
 
-    if (nHeight < cdp.lastBlockHeight) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, nHeight: %d < cdp.lastBlockHeight: %d",
-                    nHeight, cdp.lastBlockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-smaller-error");
-    }
-
     uint64_t totalScoinsInterestToRepay = cw.cdpCache.ComputeInterest(nHeight, cdp);
     uint64_t fcoinMedianPrice = cw.pricePointCache.GetFcoinMedianPrice();
     uint64_t totalFcoinsInterestToRepay = totalScoinsInterestToRepay / fcoinMedianPrice;
 
     double restFcoins = totalFcoinsInterestToRepay - fcoinsInterest;
     double restScoins = (restFcoins/fcoinMedianPrice) * (100 + kScoinInterestIncreaseRate)/100;
-    if (scoinsInterest <restScoins) {
+    if (scoinsInterest < restScoins) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, nHeight: %d < cdp.lastBlockHeight: %d",
                     nHeight, cdp.lastBlockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-smaller-error");
     }
@@ -69,8 +65,6 @@ bool CCDPStakeTx::PayInterest(int nHeight, CCacheWrapper &cw, CValidationState &
             return false;
         }
     }
-
-
 
     if (!cw.accountCache.SaveAccount(fcoinGensisAccount)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, update fcoinGensisAccount %s failed",
@@ -130,8 +124,9 @@ bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
 
+    CUserCdp cdp;
     //2. pay interest fees in wusd or micc into the micc pool
-    if (!PayInterest(nHeight, cw, state))
+    if (cw.cdpCache.GetCdp(txUid.get<CRegID>(), cdp) && !PayInterest(nHeight, cw, state))
         return false;
 
     //3. mint scoins
@@ -151,7 +146,8 @@ bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
     cw.txUndo.accountLogs.push_back(acctLog);
 
     CDbOpLog cdpDbOpLog;
-    cw.cdpCache.StakeBcoinsToCdp(txUid.get<CRegID>(), bcoinsToStake, collateralRatio, (uint64_t) mintedScoins, nHeight, cdpDbOpLog); //update cache & persist into ldb
+    cw.cdpCache.StakeBcoinsToCdp(txUid.get<CRegID>(), bcoinsToStake, collateralRatio, (uint64_t)mintedScoins, nHeight,
+                                 cdp, cdpDbOpLog);  // update cache & persist into ldb
     cw.txUndo.dbOpLogsMap.AddDbOpLog(dbk::CDP, cdpDbOpLog);
 
     bool ret = SaveTxAddresses(nHeight, nIndex, cw, {txUid});

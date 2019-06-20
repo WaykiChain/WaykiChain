@@ -9,27 +9,20 @@
 
 bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake,
                                         const uint64_t collateralRatio, const uint64_t mintedScoins,
-                                        const int blockHeight, CDbOpLog &cdpDbOpLog) {
-    CUserCdp lastCdp;
+                                        const int blockHeight, CUserCdp &cdp, CDbOpLog &cdpDbOpLog) {
     string cdpKey = regId.ToRawString();
-    if (!cdpCache.GetData(cdpKey, lastCdp)) {
-        return ERRORMSG("CCdpCache::StakeBcoins : GetData failed.");
-    }
+    cdpDbOpLog = CDbOpLog(cdpCache.GetPrefixType(), cdpKey, cdp);
 
-    CUserCdp cdp        = lastCdp;
-
-    cdp.lastBlockHeight = cdp.blockHeight;
-    cdp.lastOwedScoins  += cdp.totalOwedScoins;
-    cdp.blockHeight     = blockHeight;
+    cdp.lastBlockHeight = blockHeight;
     cdp.collateralRatio = collateralRatio;
     cdp.mintedScoins    = mintedScoins;
+    cdp.lastOwedScoins += cdp.totalOwedScoins;
     cdp.totalOwedScoins += cdp.mintedScoins;
 
     if (!cdpCache.SetData(cdpKey, cdp)) {
         return ERRORMSG("CCdpCache::StakeBcoins : SetData failed.");
     }
 
-    cdpDbOpLog = CDbOpLog(cdpCache.GetPrefixType(), cdpKey, lastCdp);
     return true;
 }
 

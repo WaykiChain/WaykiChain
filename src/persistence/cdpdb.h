@@ -26,19 +26,18 @@ using namespace std;
 struct CUserCdp {
     CRegID ownerRegId;              // CDP Owner RegId
 
-    uint64_t lastBlockHeight;       // Hj, mem-only
     uint64_t lastOwedScoins;        // TNj, mem-only
     uint64_t collateralRatio;       // ratio = bcoins / mintedScoins, must be >= 200%
 
-    uint64_t blockHeight;           // persisted: Hj+1
+    uint64_t lastBlockHeight;       // persisted: Hj (Hj+1 refer to current height)
     uint64_t mintedScoins;          // persisted: mintedScoins = bcoins/rate
     uint64_t totalStakedBcoins;     // persisted: total staked bcoins
     uint64_t totalOwedScoins;       // persisted: TNj = last + minted = total minted - total redempted
 
-    CUserCdp(): lastOwedScoins(0), collateralRatio(200), mintedScoins(0), totalStakedBcoins(0), totalOwedScoins(0) {}
+    CUserCdp() : lastOwedScoins(0), collateralRatio(200), lastBlockHeight(0), mintedScoins(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(blockHeight);
+        READWRITE(lastBlockHeight);
         READWRITE(collateralRatio);
         READWRITE(mintedScoins);
         READWRITE(totalStakedBcoins);
@@ -46,7 +45,7 @@ struct CUserCdp {
     )
 
     string ToString() {
-        return strprintf("blockHeight=%d, mintedScoins=%d, totalStakedBcoins=%d, tatalOwedScoins=%d", blockHeight,
+        return strprintf("lastBlockHeight=%d, mintedScoins=%d, totalStakedBcoins=%d, tatalOwedScoins=%d", lastBlockHeight,
                          mintedScoins, totalStakedBcoins, totalOwedScoins);
     }
 

@@ -127,6 +127,7 @@ static const uint8_t WRITE_SCRIPT_FAIL = 0X51;
 
 static const uint8_t STAKE_CDP_FAIL  = 0X60;
 static const uint8_t REDEEM_CDP_FAIL = 0X61;
+static const uint8_t WRITE_CDP_FAIL  = 0X62;
 
 static const uint8_t WRITE_CANDIDATE_VOTES_FAIL = 0X70;
 
