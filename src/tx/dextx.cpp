@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "dextx.h"
+
 #include "configuration.h"
 #include "main.h"
 
@@ -32,7 +33,7 @@ bool CDEXBuyOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &s
     if (COINT_TYPE_SET.count(assetType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXBuyOrderTx::CheckTx, invalid assetType"), REJECT_INVALID,
                          "bad-assetType");
-    } 
+    }
 
     if (coinType == assetType) {
         return state.DoS(100, ERRORMSG("CDEXBuyOrderTx::CheckTx, coinType can not equal to assetType"), REJECT_INVALID,
@@ -148,7 +149,7 @@ bool CDEXSellOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &
     if (COINT_TYPE_SET.count(assetType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXSellOrderTx::CheckTx, invalid assetType"), REJECT_INVALID,
                          "bad-assetType");
-    } 
+    }
 
     if (coinType == assetType) {
         return state.DoS(100, ERRORMSG("CDEXSellOrderTx::CheckTx, coinType can not equal to assetType"), REJECT_INVALID,
@@ -303,14 +304,14 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
             return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, read sell order tx by tx cord failed"),
                             REJECT_INVALID, "bad-read-tx");
         }
-        
+
         CAccount buyOrderAccount;
         if (!cw.accountCache.GetAccount(pBuyOrderTx->txUid, buyOrderAccount)) {
             return state.DoS(100, ERRORMSG("CDEXSellOrderTx::UndoExecuteTx, read buy order account info error"),
                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         cw.txUndo.accountLogs.push_back(CAccountLog(buyOrderAccount));
-        
+
         CAccount sellOrderAccount;
         if (!cw.accountCache.GetAccount(pSellOrderTx->txUid, sellOrderAccount)) {
             return state.DoS(100, ERRORMSG("CDEXSellOrderTx::UndoExecuteTx, read sell order account info error"),

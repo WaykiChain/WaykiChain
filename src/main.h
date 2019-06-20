@@ -309,7 +309,7 @@ public:
 
 class CCacheDBManager {
 public:
-    CDBAccess            *pAccountDb;
+    CDBAccess           *pAccountDb;
     CAccountCache       *pAccountCache;
 
     CDBAccess           *pContractDb;

@@ -95,57 +95,12 @@ void IncrementExtraNonce(CBlock *pBlock, CBlockIndex *pIndexPrev, unsigned int &
     pBlock->SetMerkleRootHash(pBlock->BuildMerkleTree());
 }
 
-bool GetDelegatesAcctList(vector<CAccount> &vDelegatesAcctList) {
-    LOCK(cs_main);
-
-    // TODO:
-    // int TotalDelegateNum = IniCfg().GetTotalDelegateNum();
-    // int nIndex       = 0;
-    // vector<unsigned char> vScriptData;
-    // vector<unsigned char> vScriptKey      = {'d', 'e', 'l', 'e', 'g', 'a', 't', 'e', '_'};
-    // vector<unsigned char> vDelegatePrefix = vScriptKey;
-    // const int SCRIPT_KEY_PREFIX_LENGTH    = 9;
-    // const int VOTES_STRING_SIZE           = 16;
-    // while (--TotalDelegateNum >= 0) {
-    //     CRegID regId(0, 0);
-    //     if (pCdMan->pContractCache->GetContractData(0, regId, nIndex, vScriptKey, vScriptData)) {
-    //         nIndex                                    = 1;
-    //         vector<unsigned char>::iterator iterVotes = find_first_of(vScriptKey.begin(), vScriptKey.end(), vDelegatePrefix.begin(), vDelegatePrefix.end());
-    //         string strVoltes(iterVotes + SCRIPT_KEY_PREFIX_LENGTH, iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE);
-    //         uint64_t receivedVotes = 0;
-    //         char *stopstring;
-    //         receivedVotes = strtoull(strVoltes.c_str(), &stopstring, VOTES_STRING_SIZE);
-    //         vector<unsigned char> vAcctRegId(iterVotes + SCRIPT_KEY_PREFIX_LENGTH + VOTES_STRING_SIZE + 1, vScriptKey.end());
-    //         CRegID acctRegId(vAcctRegId);
-    //         CAccount account;
-    //         if (!pCdMan->pAccountCache->GetAccount(acctRegId, account)) {
-    //             LogPrint("ERROR", "GetAccount Error, acctRegId:%s\n", acctRegId.ToString());
-    //             // StartShutdown();
-    //             return false;
-    //         }
-    //         uint64_t maxNum = 0xFFFFFFFFFFFFFFFF;
-    //         if ((maxNum - receivedVotes) != account.receivedVotes) {
-    //             LogPrint("ERROR", "acctRegId:%s, scriptkey:%s, scriptvalue:%s => receivedVotes:%lld, account:%s\n",
-    //                      acctRegId.ToString(), HexStr(vScriptKey.begin(), vScriptKey.end()),
-    //                      HexStr(vScriptData.begin(), vScriptData.end()), maxNum - receivedVotes, account.ToString());
-    //             // StartShutdown();
-    //             return false;
-    //         }
-    //         vDelegatesAcctList.push_back(account);
-    //     } else {
-    //         StartShutdown();
-    //         return false;
-    //     }
-    // }
-    return true;
-}
-
-bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct) {
+bool GetCurrentDelegate(const int64_t currentTime, const vector<CRegID> &delegatesList, CRegID &delegate) {
     int64_t slot = currentTime / SysCfg().GetBlockInterval();
     int miner    = slot % IniCfg().GetTotalDelegateNum();
-    delegateAcct = vDelegatesAcctList[miner];
-    LogPrint("DEBUG", "currentTime=%lld, slot=%d, miner=%d, minderAddr=%s\n",
-        currentTime, slot, miner, delegateAcct.keyID.ToAddress());
+    delegate     = delegatesList[miner];
+    LogPrint("DEBUG", "currentTime=%lld, slot=%d, miner=%d, regId=%s\n", currentTime, slot, miner,
+             delegate.ToString());
     return true;
 }
 
@@ -187,7 +142,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
     }
 }
 
-void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
+void ShuffleDelegates(const int nCurHeight, vector<CRegID> &delegatesList) {
     uint32_t TotalDelegateNum = IniCfg().GetTotalDelegateNum();
     string seedSource = strprintf("%u", nCurHeight / TotalDelegateNum + (nCurHeight % TotalDelegateNum > 0 ? 1 : 0));
     CHashWriter ss(SER_GETHASH, 0);
@@ -197,10 +152,10 @@ void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
     for (uint32_t i = 0, delCount = TotalDelegateNum; i < delCount; i++) {
         for (uint32_t x = 0; x < 4 && i < delCount; i++, x++) {
             memcpy(&currendTemp, currendSeed.begin() + (x * 8), 8);
-            uint32_t newIndex        = currendTemp % delCount;
-            CAccount accountTemp     = vDelegatesList[newIndex];
-            vDelegatesList[newIndex] = vDelegatesList[i];
-            vDelegatesList[i]        = accountTemp;
+            uint32_t newIndex       = currendTemp % delCount;
+            CRegID regId            = delegatesList[newIndex];
+            delegatesList[newIndex] = delegatesList[i];
+            delegatesList[i]        = regId;
         }
         ss << currendSeed;
         currendSeed = ss.GetHash();
@@ -209,22 +164,24 @@ void ShuffleDelegates(const int nCurHeight, vector<CAccount> &vDelegatesList) {
 
 bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     uint64_t maxNonce = SysCfg().GetBlockMaxNonce();
-    vector<CAccount> vDelegatesAcctList;
-
-    if (!GetDelegatesAcctList(vDelegatesAcctList))
+    vector<CRegID> &delegatesList = cwIn.delegateCache.GetTopDelegates();
+    if (!delegatesList.size() != IniCfg().GetTotalDelegateNum())
         return false;
 
-    ShuffleDelegates(pBlock->GetHeight(), vDelegatesAcctList);
+    ShuffleDelegates(pBlock->GetHeight(), delegatesList);
 
+    CRegID regId;
+    if (!GetCurrentDelegate(pBlock->GetTime(), delegatesList, regId))
+        return ERRORMSG("Failed to get current delegate");
     CAccount curDelegate;
-    if (!GetCurrentDelegate(pBlock->GetTime(), vDelegatesAcctList, curDelegate))
-        return false;
+    if (!cwIn.accountCache.GetAccount(regId, curDelegate))
+        return ERRORMSG("Failed to get current delegate's account");
 
     if (pBlock->GetNonce() > maxNonce)
         return ERRORMSG("Nonce is larger than maxNonce");
 
     if (pBlock->GetMerkleRootHash() != pBlock->BuildMerkleTree())
-        return ERRORMSG("wrong merkleRootHash");
+        return ERRORMSG("Wrong merkleRootHash");
 
     CBlock preBlock;
 
@@ -499,24 +456,27 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
 
         GetNextTimeAndSleep();
 
-        vector<CAccount> vDelegatesAcctList;
-        if (!GetDelegatesAcctList(vDelegatesAcctList))
+        vector<CRegID> &delegatesList = cw.delegateCache.GetTopDelegates();
+        if (!delegatesList.size() != IniCfg().GetTotalDelegateNum())
             return false;
 
         uint16_t nIndex = 0;
-        for (auto &delegate : vDelegatesAcctList)
-            LogPrint("shuffle", "before shuffle: index=%d, address=%s\n", nIndex++, delegate.keyID.ToAddress());
+        for (auto &delegate : delegatesList)
+            LogPrint("shuffle", "before shuffle: index=%d, regId=%s\n", nIndex++, delegate.ToString());
 
-        ShuffleDelegates(pBlock->GetHeight(), vDelegatesAcctList);
+        ShuffleDelegates(pBlock->GetHeight(), delegatesList);
 
         nIndex = 0;
-        for (auto &delegate : vDelegatesAcctList)
-            LogPrint("shuffle", "after shuffle: index=%d, address=%s\n", nIndex++, delegate.keyID.ToAddress());
+        for (auto &delegate : delegatesList)
+            LogPrint("shuffle", "after shuffle: index=%d, regId=%s\n", nIndex++, delegate.ToString());
 
         int64_t currentTime = GetTime();
-        CAccount minerAcct;
-        if (!GetCurrentDelegate(currentTime, vDelegatesAcctList, minerAcct))
+        CRegID regId;
+        if (!GetCurrentDelegate(currentTime, delegatesList, regId))
             return false; // not on duty hence returns
+        CAccount minerAcct;
+        if (!cw.accountCache.GetAccount(regId, minerAcct))
+            return false;
 
         bool success = false;
         int64_t nLastTime;

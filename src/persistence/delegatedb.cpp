@@ -17,7 +17,7 @@ bool CDelegateCache::LoadTopDelegates() {
 
     for (const auto &regId : regIds) {
         // std::pair<string, CRegID>
-        delegateRegIds.insert(std::get<1>(regId));
+        delegateRegIds.push_back(std::get<1>(regId));
     }
 
     assert(delegateRegIds.size() == IniCfg().GetTotalDelegateNum());
@@ -30,7 +30,7 @@ bool CDelegateCache::ExistDelegate(const CRegID &delegateRegId) {
         LoadTopDelegates();
     }
 
-    return delegateRegIds.count(delegateRegId);
+    return std::find(delegateRegIds.begin(), delegateRegIds.end(), delegateRegId) != delegateRegIds.end();
 }
 
 bool CDelegateCache::SetDelegateVotes(const CRegID &regId, const uint64_t votes) {

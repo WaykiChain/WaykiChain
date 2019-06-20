@@ -70,7 +70,7 @@ bool CCdpStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &stat
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     // bcoinsToStake can be zero since we allow downgrading collateral ratio to mint new scoins
-    // but it must be grater than the fund committe defined minimum ratio value
+    // but it must be grater than the fund committee defined minimum ratio value
     if (collateralRatio < pCdMan->collateralRatioMin ) {
         return state.DoS(100, ERRORMSG("CCdpStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal (%d)",
                         collateralRatio, pCdMan->collateralRatioMin), REJECT_INVALID, "bad-tx-collateral-ratio-toosmall");
@@ -118,7 +118,7 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
 
     CUserCdp cdp;
     //2. pay interest fees in wusd or micc into the micc pool
-    if (cw.cdpCache.GetCdp(txUid.get<CRegID>(), cdp) && !PayInterest(nHeight, cw, state))
+    if (cw.cdpCache.GetCdp(txUid.get<CRegID>(), TxCord(nHeight, nIndex), cdp) && !PayInterest(nHeight, cw, state))
         return false;
 
     //3. mint scoins
@@ -139,7 +139,7 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
 
     CDbOpLog cdpDbOpLog;
     cw.cdpCache.StakeBcoinsToCdp(txUid.get<CRegID>(), bcoinsToStake, collateralRatio, (uint64_t)mintedScoins, nHeight,
-                                 cdp, cdpDbOpLog);  // update cache & persist into ldb
+                                 nIndex, cdp, cdpDbOpLog);  // update cache & persist into ldb
     cw.txUndo.dbOpLogsMap.AddDbOpLog(dbk::CDP, cdpDbOpLog);
 
     bool ret = SaveTxAddresses(nHeight, nIndex, cw, {txUid});

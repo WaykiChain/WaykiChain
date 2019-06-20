@@ -20,11 +20,10 @@ using namespace std;
  * Ij =  TNj * (Hj+1 - Hj)/Y * 0.1a/Log10(1+b*TNj)
  *
  * Persisted in LDB as:
- *      cdp$RegId --> { blockHeight, mintedScoins, totalOwedScoins }
+ *      cdp{$RegID}{$TxCord} --> { lastBlockHeight, mintedScoins, totalStakedBcoins, totalOwedScoins }
  *
  */
 struct CUserCdp {
-    TxCord cdpTxCord;               // persisted: transaction coordinate
     uint64_t lastBlockHeight;       // persisted: Hj (Hj+1 refer to current height)
     uint64_t mintedScoins;          // persisted: mintedScoins = bcoins/rate
     uint64_t totalStakedBcoins;     // persisted: total staked bcoins
@@ -33,7 +32,6 @@ struct CUserCdp {
     CUserCdp() : lastBlockHeight(0), mintedScoins(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(cdpTxCord);
         READWRITE(lastBlockHeight);
         READWRITE(mintedScoins);
         READWRITE(totalStakedBcoins);
@@ -41,17 +39,15 @@ struct CUserCdp {
     )
 
     string ToString() {
-        return strprintf("cdpTxCord=%s,lastBlockHeight=%d, mintedScoins=%d, totalStakedBcoins=%d, tatalOwedScoins=%d",
-                         cdpTxCord.ToString(), lastBlockHeight, mintedScoins, totalStakedBcoins, totalOwedScoins);
+        return strprintf("lastBlockHeight=%d, mintedScoins=%d, totalStakedBcoins=%d, tatalOwedScoins=%d",
+                         lastBlockHeight, mintedScoins, totalStakedBcoins, totalOwedScoins);
     }
 
     bool IsEmpty() const {
-        return cdpTxCord.IsEmpty() && lastBlockHeight == 0 && mintedScoins == 0 && totalStakedBcoins == 0 &&
-               totalOwedScoins == 0;
+        return lastBlockHeight == 0 && mintedScoins == 0 && totalStakedBcoins == 0 && totalOwedScoins == 0;
     }
 
     void SetEmpty() {
-        cdpTxCord.Clean();
         lastBlockHeight   = 0;
         mintedScoins      = 0;
         totalStakedBcoins = 0;
@@ -66,12 +62,16 @@ public:
     CCdpCacheManager(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
 
     bool StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
-                          const int blockHeight, CUserCdp &cdp, CDbOpLog &cdpDbOpLog);
+                          const int blockHeight, const int txIndex, CUserCdp &cdp, CDbOpLog &cdpDbOpLog);
 
     bool GetUnderLiquidityCdps(vector<CUserCdp> & userCdps);
 
-    bool GetCdp(const CRegID &regId, CUserCdp &cdp) { return cdpCache.GetData(regId.ToRawString(), cdp); }
-    bool SaveCdp(const CRegID &regId, CUserCdp &cdp) { return cdpCache.SetData(regId.ToRawString(), cdp); }
+    bool GetCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp) {
+        return cdpCache.GetData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()), cdp);
+    }
+    bool SaveCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp) {
+        return cdpCache.SetData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()), cdp);
+    }
     bool UndoCdp(CDbOpLog &opLog) { return cdpCache.UndoData(opLog); }
 
     uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);
@@ -100,10 +100,10 @@ private:
     // interestParamB
     CDBScalarValueCache< dbk::CDP_IR_PARAM_B,        uint64_t>           interestParamB;
 
-/*  CDBMultiValueCache     prefixType     key                 value            variable            */
-/*  ----------------   ----------------- -------------     ---------------   --------------------- */
-    // <KeyID -> Account>
-    CDBMultiValueCache< dbk::CDP,          string,             CUserCdp >      cdpCache;
+/*  CDBMultiValueCache     prefixType     key                               value        variable  */
+/*  ----------------   --------------   ---------------------------   ---------------   --------- */
+    // <CRegID, TxCord> -> CUserCdp
+    CDBMultiValueCache< dbk::CDP,         std::pair<string, string>,   CUserCdp >       cdpCache;
 };
 
 #endif  // PERSIST_CDPDB_H

@@ -26,6 +26,7 @@ public:
 
     bool LoadTopDelegates();
     bool ExistDelegate(const CRegID &regId);
+    vector<CRegID> &GetTopDelegates() { return delegateRegIds; }
 
     bool SetDelegateVotes(const CRegID &regId, const uint64_t votes);
     bool EraseDelegateVotes(const CRegID &regId, const uint64_t votes);
@@ -35,9 +36,7 @@ public:
 
     bool UndoData(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs);
 
-    void SetBaseView(CDelegateCache *pBaseIn) {
-        voteRegIdCache = pBaseIn->voteRegIdCache;
-    }
+    void SetBaseView(CDelegateCache *pBaseIn) { voteRegIdCache = pBaseIn->voteRegIdCache; }
     // TODO:
     void Flush() {}
 
@@ -48,7 +47,7 @@ private:
     CDBMultiValueCache<dbk::VOTE,       std::pair<string, CRegID>,  uint8_t>                voteRegIdCache;
     CDBMultiValueCache<dbk::REGID_VOTE, string/* CRegID */,         vector<CCandidateVote>> regId2VoteCache;
 
-    set<CRegID> delegateRegIds;
+    vector<CRegID> delegateRegIds;
 };
 
 #endif // PERSIST_DELEGATEDB_H
