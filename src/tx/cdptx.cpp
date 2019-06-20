@@ -49,14 +49,13 @@ bool CCDPStakeTx::PayInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &c
     }
 
     if (fcoinsInterest > 0) {
-        account.fcoins -= fcoinsInterest; // burn away fcoins, total thus reduced
-        fcoinGensisAccount.fcoins += fcoinsInterest; //keep total balance
+        account.fcoins -= fcoinsInterest; // burn away fcoins
+        fcoinGensisAccount.fcoins += fcoinsInterest; // but keep total in balance
     }
     if (scoinsInterest) {
         account.scoins -= scoinsInterest;
-        //place a buy order for micc in DEX
-
-
+        //place a market buy order in DEX: wusd_micc
+        cw.dexCache.CreateBuyOrder(scoinsInterest, CoinType::MICC);
     }
 
     if (!cw.accountCache.SaveAccount(fcoinGensisAccount)) {

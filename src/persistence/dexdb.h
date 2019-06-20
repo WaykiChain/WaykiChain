@@ -55,6 +55,9 @@ public:
     bool GetSellOrder(const CTxCord& txCord, CDEXSellOrderInfo& sellOrderInfo) { return false; }; // TODO: ...
     bool HaveSellOrder(const CTxCord& txCord) { return false; }; // TODO: ...
 
+    bool CreateBuyOrder(uint64_t buyAmount, CoinType targetCoinType); //TODO: ... SystemBuyOrder
+    bool CreateSellOrder(uint64_t sellAmount, CoinType targetCoinType); //TODO: ... SystemSellOrder
+
 private:
     // CDBMultiValueCache<CDexFixedPriceOrder> bcoinBuyOrderCache;  // buy wicc with wusd (wusd_wicc)
     // CDBMultiValueCache<CDexFixedPriceOrder> fcoinBuyOrderCache;  // buy micc with wusd (wusd_micc)
