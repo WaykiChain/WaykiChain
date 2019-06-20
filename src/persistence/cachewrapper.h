@@ -17,7 +17,7 @@ public:
     CAccountCache accountCache;
     CContractCache contractCache;
     CDelegateCache delegateCache;
-    CTransactionCache txCache;
+    CTxMemCache txCache;
     CPricePointCache pricePointCache;
     CCdpCacheManager cdpCache;
     CDexCache dexCache;

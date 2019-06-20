@@ -24,12 +24,33 @@ using namespace std;
  *
  */
 struct CUserCdp {
+    CRegID ownerRegId;              // CDP Owner RegId, mem-only
+    TxCord cdpTxCord;               // Transaction coordinate, mem-only
+    double collateralRatio;         // ratio = bcoins / mintedScoins, must be >= 200%, mem-only
+
     uint64_t lastBlockHeight;       // persisted: Hj (Hj+1 refer to current height)
     uint64_t mintedScoins;          // persisted: mintedScoins = bcoins/rate
     uint64_t totalStakedBcoins;     // persisted: total staked bcoins
     uint64_t totalOwedScoins;       // persisted: TNj = last + minted = total minted - total redempted
 
     CUserCdp() : lastBlockHeight(0), mintedScoins(0), totalStakedBcoins(0), totalOwedScoins(0) {}
+
+    bool operator()(const CUserCdp &a, const CUserCdp &b) {
+        if (a.collateralRatio == b.collateralRatio) {
+            if (a.ownerRegId == b.ownerRegId)
+                return a.cdpTxCord < b.cdpTxCord;
+            else
+                return a.ownerRegId < b.ownerRegId;
+        } else {
+            return a.collateralRatio < b.collateralRatio;
+        }
+    }
+
+    void UpdateUserCdp(const CRegID &ownerRegIdIn, const TxCord &cdpTxCordIn) {
+        ownerRegId      = ownerRegIdIn;
+        cdpTxCord       = cdpTxCordIn;
+        collateralRatio = double(totalStakedBcoins) / totalOwedScoins;
+    }
 
     IMPLEMENT_SERIALIZE(
         READWRITE(lastBlockHeight);
@@ -55,6 +76,15 @@ struct CUserCdp {
     }
 };
 
+class CCdpMemCache {
+private:
+    map<CUserCdp, uint8_t> cdps;  // map: CUserCdp -> flag(0: valid; 1: invalid)
+    CCdpMemCache *pBase;
+
+public:
+    CCdpMemCache() : pBase(nullptr) {}
+    CCdpMemCache(CCdpMemCache *pBaseIn) : pBase(pBaseIn) {}
+};
 
 class CCdpCacheManager {
 public:
@@ -66,12 +96,8 @@ public:
 
     bool GetUnderLiquidityCdps(vector<CUserCdp> & userCdps);
 
-    bool GetCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp) {
-        return cdpCache.GetData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()), cdp);
-    }
-    bool SaveCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp) {
-        return cdpCache.SetData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()), cdp);
-    }
+    bool GetCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp);
+    bool SaveCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp);
     bool UndoCdp(CDbOpLog &opLog) { return cdpCache.UndoData(opLog); }
 
     uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);

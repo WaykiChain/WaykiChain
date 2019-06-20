@@ -28,6 +28,24 @@ bool CCdpCacheManager::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
     return true;
 }
 
+bool CCdpCacheManager::GetCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp) {
+    if (!cdpCache.GetData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()), cdp))
+        return false;
+
+    cdp.UpdateUserCdp(regId, cdpTxCord);
+
+    return true;
+}
+
+bool CCdpCacheManager::SaveCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp) {
+    if (!cdpCache.SetData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()), cdp))
+        return false;
+
+    cdp.UpdateUserCdp(regId, cdpTxCord);
+
+    return true;
+}
+
 /**
  *  Interest Ratio Formula: ( a / Log10(b + N) )
  *  a = 1, b = 1

@@ -14,11 +14,11 @@
 
 #include <algorithm>
 
-bool CTransactionCache::IsContainBlock(const CBlock &block) {
+bool CTxMemCache::IsContainBlock(const CBlock &block) {
     return mapBlockTxHashSet.count(block.GetHash()) || (pBase ? pBase->IsContainBlock(block) : false);
 }
 
-bool CTransactionCache::AddBlockToCache(const CBlock &block) {
+bool CTxMemCache::AddBlockToCache(const CBlock &block) {
     UnorderedHashSet vTxHash;
     for (auto &ptx : block.vptx) {
         vTxHash.insert(ptx->GetHash());
@@ -28,7 +28,7 @@ bool CTransactionCache::AddBlockToCache(const CBlock &block) {
     return true;
 }
 
-bool CTransactionCache::DeleteBlockFromCache(const CBlock &block) {
+bool CTxMemCache::DeleteBlockFromCache(const CBlock &block) {
     if (IsContainBlock(block)) {
         UnorderedHashSet txHash;
 		mapBlockTxHashSet[block.GetHash()] = txHash;
@@ -40,7 +40,7 @@ bool CTransactionCache::DeleteBlockFromCache(const CBlock &block) {
     return false;
 }
 
-bool CTransactionCache::HaveTx(const uint256 &txHash) {
+bool CTxMemCache::HaveTx(const uint256 &txHash) {
     for (auto &item : mapBlockTxHashSet) {
         if (item.second.count(txHash)) {
             return true;
@@ -50,7 +50,7 @@ bool CTransactionCache::HaveTx(const uint256 &txHash) {
     return pBase ? pBase->HaveTx(txHash) : false;
 }
 
-void CTransactionCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn) {
+void CTxMemCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn) {
     // If the value is empty, delete it from cache.
     for (auto &item : mapBlockTxHashSetIn) {
         if (item.second.empty()) {
@@ -61,23 +61,23 @@ void CTransactionCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBloc
     }
 }
 
-void CTransactionCache::Flush() {
+void CTxMemCache::Flush() {
     assert(pBase);
 
     pBase->BatchWrite(mapBlockTxHashSet);
     mapBlockTxHashSet.clear();
 }
 
-void CTransactionCache::Flush(CTransactionCache *pBaseIn) {
+void CTxMemCache::Flush(CTxMemCache *pBaseIn) {
     pBaseIn->BatchWrite(mapBlockTxHashSet);
     mapBlockTxHashSet.clear();
 }
 
-void CTransactionCache::Clear() { mapBlockTxHashSet.clear(); }
+void CTxMemCache::Clear() { mapBlockTxHashSet.clear(); }
 
-uint64_t CTransactionCache::GetSize() { return mapBlockTxHashSet.size(); }
+uint64_t CTxMemCache::GetSize() { return mapBlockTxHashSet.size(); }
 
-Object CTransactionCache::ToJsonObj() const {
+Object CTxMemCache::ToJsonObj() const {
     Array txArray;
     for (auto &item : mapBlockTxHashSet) {
         Object obj;
@@ -98,9 +98,9 @@ Object CTransactionCache::ToJsonObj() const {
     return txCacheObj;
 }
 
-const map<uint256, UnorderedHashSet> &CTransactionCache::GetTxHashCache() { return mapBlockTxHashSet; }
+const map<uint256, UnorderedHashSet> &CTxMemCache::GetTxHashCache() { return mapBlockTxHashSet; }
 
-void CTransactionCache::SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache) {
+void CTxMemCache::SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache) {
     mapBlockTxHashSet = mapCache;
 }
 

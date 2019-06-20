@@ -166,7 +166,7 @@ extern const string strMessageMagic;
 class CTxUndo;
 class CValidationState;
 class CWalletInterface;
-class CTransactionCache;
+class CTxMemCache;
 
 struct CNodeStateStats;
 
@@ -325,7 +325,7 @@ public:
 
     CBlockTreeDB        *pBlockTreeDb;
 
-    CTransactionCache   *pTxCache;
+    CTxMemCache         *pTxCache;
     CPricePointCache    *pPpCache;
 
     uint64_t            collateralRatioMin = 200; //minimum collateral ratio
@@ -351,7 +351,7 @@ public:
 
         pDexCache       = new CDexCache();
 
-        pTxCache        = new CTransactionCache();
+        pTxCache        = new CTxMemCache();
         pPpCache        = new CPricePointCache();
 
     }

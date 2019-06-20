@@ -22,7 +22,7 @@ class CBlockIndex;
 class CWallet;
 class CBaseTx;
 class CAccountCache;
-class CTransactionCache;
+class CTxMemCache;
 class CContractCache;
 class CAccount;
 
