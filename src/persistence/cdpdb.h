@@ -3,14 +3,14 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PERSIST_CDP_CACHE_H
-#define PERSIST_CDP_CACHE_H
+#ifndef PERSIST_CDPDB_H
+#define PERSIST_CDPDB_H
+
+#include "accounts/id.h"
+#include "dbaccess.h"
 
 #include <map>
 #include <string>
-#include "leveldbwrapper.h"
-#include "accounts/id.h"
-#include "dbaccess.h"
 
 using namespace std;
 
@@ -24,45 +24,45 @@ using namespace std;
  *
  */
 struct CUserCdp {
-    CRegID ownerRegId;              // CDP Owner RegId
-
-    uint64_t lastOwedScoins;        // TNj, mem-only
-    uint64_t collateralRatio;       // ratio = bcoins / mintedScoins, must be >= 200%
-
+    TxCord cdpTxCord;               // persisted: transaction coordinate
     uint64_t lastBlockHeight;       // persisted: Hj (Hj+1 refer to current height)
     uint64_t mintedScoins;          // persisted: mintedScoins = bcoins/rate
     uint64_t totalStakedBcoins;     // persisted: total staked bcoins
     uint64_t totalOwedScoins;       // persisted: TNj = last + minted = total minted - total redempted
 
-    CUserCdp() : lastOwedScoins(0), collateralRatio(200), lastBlockHeight(0), mintedScoins(0), totalStakedBcoins(0), totalOwedScoins(0) {}
+    CUserCdp() : lastBlockHeight(0), mintedScoins(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
     IMPLEMENT_SERIALIZE(
+        READWRITE(cdpTxCord);
         READWRITE(lastBlockHeight);
-        READWRITE(collateralRatio);
         READWRITE(mintedScoins);
         READWRITE(totalStakedBcoins);
         READWRITE(totalOwedScoins);
     )
 
     string ToString() {
-        return strprintf("lastBlockHeight=%d, mintedScoins=%d, totalStakedBcoins=%d, tatalOwedScoins=%d", lastBlockHeight,
-                         mintedScoins, totalStakedBcoins, totalOwedScoins);
+        return strprintf("cdpTxCord=%s,lastBlockHeight=%d, mintedScoins=%d, totalStakedBcoins=%d, tatalOwedScoins=%d",
+                         cdpTxCord.ToString(), lastBlockHeight, mintedScoins, totalStakedBcoins, totalOwedScoins);
     }
 
     bool IsEmpty() const {
-        return ownerRegId.IsEmpty(); // TODO: need to check empty for other fields?
+        return cdpTxCord.IsEmpty() && lastBlockHeight == 0 && mintedScoins == 0 && totalStakedBcoins == 0 &&
+               totalOwedScoins == 0;
+    }
+
+    void SetEmpty() {
+        // TODO:
     }
 };
 
 
 class CCdpCacheManager {
-
 public:
     CCdpCacheManager() {}
     CCdpCacheManager(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
 
-    bool StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t collateralRatio,
-                          const uint64_t mintedScoins, const int blockHeight, CDbOpLog &cdpDbOpLog);
+    bool StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
+                          const int blockHeight, CUserCdp &cdp, CDbOpLog &cdpDbOpLog);
 
     bool GetUnderLiquidityCdps(vector<CUserCdp> & userCdps);
 
@@ -102,4 +102,4 @@ private:
     CDBMultiValueCache< dbk::CDP,          string,             CUserCdp >      cdpCache;
 };
 
-#endif  // PERSIST_CDP_CACHE_H
+#endif  // PERSIST_CDPDB_H

@@ -87,8 +87,8 @@ public:
         *this = *(CDEXSellOrderTx *)pBaseTx;
     }
 
-    CDEXSellOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn, 
-                    OrderType orderType, CoinType coinTypeIn, CoinType assetTypeIn, 
+    CDEXSellOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
+                    OrderType orderType, CoinType coinTypeIn, CoinType assetTypeIn,
                     uint64_t sellAmountIn, uint64_t askPriceIn)
         : CBaseTx(DEX_SELL_ORDER_TX, txUidIn, validHeightIn, feesIn) {
         coinType   = coinTypeIn;
@@ -141,8 +141,6 @@ private:
     uint64_t askPrice;      //!< asking price in coinType willing to sell
 
 };
-
-typedef CRegID TxCord;
 
 struct DEXDealItem  {
     TxCord buyOrderTxCord;

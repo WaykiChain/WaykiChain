@@ -27,8 +27,6 @@ class CCacheWrapper;
 class CValidationState;
 class CContractCache;
 
-typedef vector<unsigned char> vector_unsigned_char;
-
 static const int32_t nTxVersion1 = 1;
 static const int32_t nTxVersion2 = 2;
 
@@ -39,12 +37,12 @@ static const uint16_t kDefaultForcedLiquidateRatio  = 10000;    // 100% * 10000
 static const uint16_t kDefaultCdpLoanInterest       = 350;      // 3.5% * 10000
 static const uint16_t kDefaultCdpPenaltyFeeRatio    = 1300;     // 13% * 10000
 
-static const uint32_t kTotalFundCoinAmount = 21000000;              //21 million MICC
+static const uint32_t kTotalFundCoinAmount = 21000000;              // 21 million MICC
 static const uint32_t kDefaultPriceFeedStakedFcoinsMin = 210000;    // 1%: min 210K fcoins deposited to be a price feeder
 static const uint16_t kDefaultPriceFeedDeviateAcceptLimit = 3000;   // 30% * 10000, above than that will be penalized
-static const uint16_t kDefaultPriceFeedDeviatePenalty= 1000;        // 1000 bcoins deduction as penalty
+static const uint16_t kDefaultPriceFeedDeviatePenalty = 1000;       // 1000 bcoins deduction as penalty
 static const uint16_t kDefaultPriceFeedContinuousDeviateTimesLimit = 10;  // after 10 times continuous deviate limit penetration all deposit be deducted
-static const uint16_t kDefaultPriceFeedTxFee        = 10000;        // 10000 sawi
+static const uint16_t kDefaultPriceFeedTxFee = 10000;   // 10000 sawi
 
 
 #define SCRIPT_ID_SIZE (6)

@@ -4,21 +4,19 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "cdpdb.h"
-#include "dbconf.h"
+
 #include "main.h"
 
-bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake,
-                                        const uint64_t collateralRatio, const uint64_t mintedScoins,
+bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                                         const int blockHeight, CUserCdp &cdp, CDbOpLog &cdpDbOpLog) {
     cdpDbOpLog = CDbOpLog(cdpCache.GetPrefixType(), regId.ToRawString(), cdp);
 
     cdp.lastBlockHeight = blockHeight;
-    cdp.collateralRatio = collateralRatio;
     cdp.mintedScoins    = mintedScoins;
-    cdp.lastOwedScoins += cdp.totalOwedScoins;
+    cdp.totalStakedBcoins += bcoinsToStake;
     cdp.totalOwedScoins += cdp.mintedScoins;
 
-    if (!cdpCache.SaveCdp(regId, cdp)) {
+    if (!SaveCdp(regId, cdp)) {
         return ERRORMSG("CCdpCacheManager::StakeBcoinsToCdp : SetData failed.");
     }
 
