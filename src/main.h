@@ -127,6 +127,7 @@ static const uint8_t WRITE_SCRIPT_FAIL = 0X51;
 
 static const uint8_t STAKE_CDP_FAIL  = 0X60;
 static const uint8_t REDEEM_CDP_FAIL = 0X61;
+static const uint8_t WRITE_CDP_FAIL  = 0X62;
 
 static const uint8_t WRITE_CANDIDATE_VOTES_FAIL = 0X70;
 
@@ -721,6 +722,12 @@ bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex);
 bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos);
 bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block);
 bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block);
+
+template<typename TxType>
+bool ReadTxFromDisk(const CTxCord txCord, std::shared_ptr<TxType> &pTx) {
+    // TODO: ReadTxFromDisk
+    return false;
+}
 
 // global overloadding fun
 inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {

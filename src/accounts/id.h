@@ -18,8 +18,10 @@
 
 class CAccountCache;
 class CUserID;
+class CUserID;
 
 typedef vector<unsigned char> vector_unsigned_char;
+typedef CRegID TxCord;
 
 class CNullID {
 public:
@@ -74,6 +76,11 @@ public:
             vRegID.insert(vRegID.end(), BEGIN(nIndex), END(nIndex));
         })
 };
+
+/**
+ * tx cord, locate a tx with height and index
+ */
+typedef CRegID CTxCord;
 
 class CNickID {
 private:

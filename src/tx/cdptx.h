@@ -32,9 +32,9 @@ public:
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
-        bcoinsToStake = bcoinsToStakeIn;
+        bcoinsToStake   = bcoinsToStakeIn;
         collateralRatio = collateralRatioIn;
-        fcoinsInterest = fcoinsInterestIn;
+        fcoinsInterest  = fcoinsInterestIn;
     }
 
     ~CCDPStakeTx() {}

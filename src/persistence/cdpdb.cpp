@@ -4,32 +4,22 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "cdpdb.h"
-#include "dbconf.h"
+
 #include "main.h"
 
-bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake,
-                                        const uint64_t collateralRatio, const uint64_t mintedScoins,
-                                        const int blockHeight, CDbOpLog &cdpDbOpLog) {
-    CUserCdp lastCdp;
-    string cdpKey = regId.ToRawString();
-    if (!cdpCache.GetData(cdpKey, lastCdp)) {
-        return ERRORMSG("CCdpCache::StakeBcoins : GetData failed.");
-    }
+bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
+                                        const int blockHeight, CUserCdp &cdp, CDbOpLog &cdpDbOpLog) {
+    cdpDbOpLog = CDbOpLog(cdpCache.GetPrefixType(), regId.ToRawString(), cdp);
 
-    CUserCdp cdp        = lastCdp;
-
-    cdp.lastBlockHeight = cdp.blockHeight;
-    cdp.lastOwedScoins  += cdp.totalOwedScoins;
-    cdp.blockHeight     = blockHeight;
-    cdp.collateralRatio = collateralRatio;
+    cdp.lastBlockHeight = blockHeight;
     cdp.mintedScoins    = mintedScoins;
+    cdp.totalStakedBcoins += bcoinsToStake;
     cdp.totalOwedScoins += cdp.mintedScoins;
 
-    if (!cdpCache.SetData(cdpKey, cdp)) {
-        return ERRORMSG("CCdpCache::StakeBcoins : SetData failed.");
+    if (!SaveCdp(regId, cdp)) {
+        return ERRORMSG("CCdpCacheManager::StakeBcoinsToCdp : SetData failed.");
     }
 
-    cdpDbOpLog = CDbOpLog(cdpCache.GetPrefixType(), cdpKey, lastCdp);
     return true;
 }
 

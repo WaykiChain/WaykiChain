@@ -16,6 +16,7 @@ bool CDelegateCache::LoadTopDelegates() {
     assert(regIds.size() == IniCfg().GetTotalDelegateNum());
 
     for (const auto &regId : regIds) {
+        // std::pair<string, CRegID>
         delegateRegIds.insert(std::get<1>(regId));
     }
 
