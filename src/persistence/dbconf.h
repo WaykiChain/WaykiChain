@@ -87,7 +87,7 @@ namespace dbk {
         DEFINE( REGID_VOTE,           "ridv",  DELEGATE )      /* "ridv --> $votes" */ \
         /**** cdp db                                                                     */ \
         DEFINE( STAKE_FCOIN,          "fcoin", CDP )           /* fcoin{(uint64t)MAX - stakedFcoins}_{RegId} --> 1 */ \
-        DEFINE( CDP,                  "cdp",   CDP )           /* cdp{$RegID} --> blockHeight,mintedScoins */ \
+        DEFINE( CDP,                  "cdp",   CDP )           /* cdp{$RegID}{$TxCord} --> { lastBlockHeight, mintedScoins, totalStakedBcoins, totalOwedScoins } */ \
         DEFINE( CDP_IR_PARAM_A,       "ira",   CDP )           /* [prefix] --> param_a */ \
         DEFINE( CDP_IR_PARAM_B,       "irb",   CDP )           /* [prefix] --> param_b */ \
         DEFINE( CDP_COLLATERAL_RATIO, "ccr",   CDP )           /* [prefix] --> collateralRatio */ \
