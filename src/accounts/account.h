@@ -109,8 +109,10 @@ public:
 public:
     CAccount(const CKeyID& keyId, const CNickID& nickId, const CPubKey& pubKey)
         : keyID(keyId),
+          regID(),
           nickID(nickId),
           pubKey(pubKey),
+          minerPubKey(),
           bcoins(0),
           scoins(0),
           fcoins(0),
@@ -120,10 +122,7 @@ public:
           stakedBcoins(0),
           stakedFcoins(0),
           receivedVotes(0),
-          lastVoteHeight(0),
-        minerPubKey = CPubKey();
-        regID.Clean();
-    }
+          lastVoteHeight(0) {}
 
     CAccount() : CAccount(CKeyID(), CNickID(), CPubKey()) {}
 
