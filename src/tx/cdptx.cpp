@@ -269,6 +269,7 @@ bool CCdpRedeem::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state
         if (!PayInterest(nHeight, cdp, cw, state))
             return false;
     }
+    cw.cdpCache.AddCdpOpLog(txUid.get<CRegID>(), cdpTxCord, cdp, cw.txUndo.dbOpLogsMap);
 
     //3. redeem in scoins and update cdp
     cdp.totalOwedScoins -= scoinsToRedeem;
