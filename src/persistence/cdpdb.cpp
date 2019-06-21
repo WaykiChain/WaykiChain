@@ -18,7 +18,7 @@ bool CCdpMemCache::LoadCdps() {
     }
 
     CRegID regId;
-    TxCord txCord;
+    CTxCord txCord;
     CUserCdp userCdp;
     uint8_t valid = 1;
     for (const auto & cdp: rawCdps) {
@@ -54,18 +54,17 @@ bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoi
     cdpDbOpLog = CDbOpLog(cdpCache.GetPrefixType(), regId.ToRawString(), cdp);
 
     cdp.lastBlockHeight = blockHeight;
-    cdp.mintedScoins    = mintedScoins;
     cdp.totalStakedBcoins += bcoinsToStake;
-    cdp.totalOwedScoins += cdp.mintedScoins;
+    cdp.totalOwedScoins += mintedScoins;
 
-    if (!SaveCdp(regId, TxCord(blockHeight, txIndex), cdp)) {
+    if (!SaveCdp(regId, CTxCord(blockHeight, txIndex), cdp)) {
         return ERRORMSG("CCdpCacheManager::StakeBcoinsToCdp : SetData failed.");
     }
 
     return true;
 }
 
-bool CCdpCacheManager::GetCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp) {
+bool CCdpCacheManager::GetCdp(const CRegID &regId, const CTxCord &cdpTxCord, CUserCdp &cdp) {
     if (!cdpCache.GetData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()), cdp))
         return false;
 
@@ -74,7 +73,7 @@ bool CCdpCacheManager::GetCdp(const CRegID &regId, const TxCord &cdpTxCord, CUse
     return true;
 }
 
-bool CCdpCacheManager::SaveCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp) {
+bool CCdpCacheManager::SaveCdp(const CRegID &regId, const CTxCord &cdpTxCord, CUserCdp &cdp) {
     if (!cdpCache.SetData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()), cdp))
         return false;
 
@@ -83,7 +82,7 @@ bool CCdpCacheManager::SaveCdp(const CRegID &regId, const TxCord &cdpTxCord, CUs
     return true;
 }
 
-bool CCdpCacheManager::EraseCdp(const CRegID &regId, const TxCord &cdpTxCord) {
+bool CCdpCacheManager::EraseCdp(const CRegID &regId, const CTxCord &cdpTxCord) {
     return cdpCache.EraseData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()));
 }
 

@@ -21,7 +21,7 @@ class CUserID;
 class CUserID;
 
 typedef vector<unsigned char> vector_unsigned_char;
-typedef CRegID TxCord;
+typedef CRegID CTxCord;
 
 class CNullID {
 public:

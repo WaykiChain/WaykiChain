@@ -66,6 +66,34 @@ bool CAccount::FreezeDexCoin(CoinType coinType, uint64_t amount) {
     return true;
 }
 
+bool CAccount::UnFreezeDexCoin(CoinType coinType, uint64_t amount) {
+    switch (coinType) {
+        case WICC:
+            if (amount > frozenDEXBcoins)
+                return ERRORMSG("CAccount::UnFreezeDexCoin, amount larger than frozenDEXBcoins");
+            bcoins += amount;
+            frozenDEXBcoins -= amount;
+            assert(!IsMoneyOverflow(bcoins) && !IsMoneyOverflow(frozenDEXBcoins));
+            break;
+        case MICC:
+            if (amount > frozenDEXScoins)
+                return ERRORMSG("CAccount::UnFreezeDexCoin, amount larger than frozenDEXScoins");
+            scoins += amount;
+            frozenDEXScoins -= amount;
+            assert(!IsMoneyOverflow(scoins) && !IsMoneyOverflow(frozenDEXScoins));
+            break;
+        case WUSD:
+            if (amount > frozenDEXFcoins)
+                return ERRORMSG("CAccount::UnFreezeDexCoin, amount larger than frozenDEXFcoins");
+            fcoins += amount;
+            frozenDEXFcoins -= amount;
+            assert(!IsMoneyOverflow(fcoins) && !IsMoneyOverflow(frozenDEXFcoins));
+            break;
+        default: return ERRORMSG("CAccount::UnFreezeDexCoin, coin type error");
+    }
+    return true;
+}
+
 bool CAccount::MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins) {
     switch (coinType) {
         case WICC:

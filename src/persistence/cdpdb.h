@@ -21,20 +21,19 @@ using namespace std;
  * Ij =  TNj * (Hj+1 - Hj)/Y * 0.1a/Log10(1+b*TNj)
  *
  * Persisted in LDB as:
- *      cdp{$RegID}{$TxCord} --> { lastBlockHeight, mintedScoins, totalStakedBcoins, totalOwedScoins }
+ *      cdp{$RegID}{$CTxCord} --> { lastBlockHeight, mintedScoins, totalStakedBcoins, totalOwedScoins }
  *
  */
 struct CUserCdp {
     CRegID ownerRegId;              // CDP Owner RegId, mem-only
-    TxCord cdpTxCord;               // Transaction coordinate, mem-only
+    CTxCord cdpTxCord;              // Transaction coordinate, mem-only
     double collateralRatio;         // ratio = bcoins / mintedScoins, must be >= 200%, mem-only
 
     uint64_t lastBlockHeight;       // persisted: Hj (Hj+1 refer to current height)
-    uint64_t mintedScoins;          // persisted: mintedScoins = bcoins/rate
     uint64_t totalStakedBcoins;     // persisted: total staked bcoins
     uint64_t totalOwedScoins;       // persisted: TNj = last + minted = total minted - total redempted
 
-    CUserCdp() : lastBlockHeight(0), mintedScoins(0), totalStakedBcoins(0), totalOwedScoins(0) {}
+    CUserCdp() : lastBlockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
     bool operator<(const CUserCdp &cdp) const {
         if (this->collateralRatio == cdp.collateralRatio) {
@@ -47,7 +46,7 @@ struct CUserCdp {
         }
     }
 
-    void UpdateUserCdp(const CRegID &ownerRegIdIn, const TxCord &cdpTxCordIn) {
+    void UpdateUserCdp(const CRegID &ownerRegIdIn, const CTxCord &cdpTxCordIn) {
         ownerRegId      = ownerRegIdIn;
         cdpTxCord       = cdpTxCordIn;
         collateralRatio = double(totalStakedBcoins) / totalOwedScoins;
@@ -55,23 +54,21 @@ struct CUserCdp {
 
     IMPLEMENT_SERIALIZE(
         READWRITE(lastBlockHeight);
-        READWRITE(mintedScoins);
         READWRITE(totalStakedBcoins);
         READWRITE(totalOwedScoins);
     )
 
     string ToString() {
-        return strprintf("lastBlockHeight=%d, mintedScoins=%d, totalStakedBcoins=%d, tatalOwedScoins=%d",
-                         lastBlockHeight, mintedScoins, totalStakedBcoins, totalOwedScoins);
+        return strprintf("lastBlockHeight=%d, totalStakedBcoins=%d, tatalOwedScoins=%d",
+                         lastBlockHeight, totalStakedBcoins, totalOwedScoins);
     }
 
     bool IsEmpty() const {
-        return lastBlockHeight == 0 && mintedScoins == 0 && totalStakedBcoins == 0 && totalOwedScoins == 0;
+        return lastBlockHeight == 0 && totalStakedBcoins == 0 && totalOwedScoins == 0;
     }
 
     void SetEmpty() {
         lastBlockHeight   = 0;
-        mintedScoins      = 0;
         totalStakedBcoins = 0;
         totalOwedScoins   = 0;
     }
@@ -108,9 +105,9 @@ public:
     bool StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                           const int blockHeight, const int txIndex, CUserCdp &cdp, CDbOpLog &cdpDbOpLog);
 
-    bool GetCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp);
-    bool SaveCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp);
-    bool EraseCdp(const CRegID &regId, const TxCord &cdpTxCord);
+    bool GetCdp(const CRegID &regId, const CTxCord &cdpTxCord, CUserCdp &cdp);
+    bool SaveCdp(const CRegID &regId, const CTxCord &cdpTxCord, CUserCdp &cdp);
+    bool EraseCdp(const CRegID &regId, const CTxCord &cdpTxCord);
     bool UndoCdp(CDbOpLog &opLog) { return cdpCache.UndoData(opLog); }
 
     uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);
@@ -136,6 +133,9 @@ public:
         return interestParamB.GetData(paramB) ? paramB : 1;
     }
 
+public:
+    CCdpMemCache cdpMemCache;
+
 private:
 
 /*   CDBScalarValueCache   prefixType                 value                 variable               */
@@ -153,7 +153,7 @@ private:
 
 /*  CDBMultiValueCache     prefixType     key                               value        variable  */
 /*  ----------------   --------------   ---------------------------   ---------------    --------- */
-    // <CRegID, TxCord> -> CUserCdp
+    // <CRegID, CTxCord> -> CUserCdp
     CDBMultiValueCache< dbk::CDP,         std::pair<string, string>,   CUserCdp >       cdpCache;
 };
 
