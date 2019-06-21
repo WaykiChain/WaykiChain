@@ -150,6 +150,7 @@ private:
     bool PayInterest(int nHeight, CCacheWrapper &cw, CValidationState &state);
 
 private:
+    CTxCord cdpTxCord;          // CDP TxCord
     uint64_t scoinsToRedeem;    // stableCoins amount to redeem or burn
     uint64_t collateralRatio;   // must be >= 150 (%)
     uint64_t fcoinsInterest;    // Interest will be deducted from scoinsToRedeem when 0

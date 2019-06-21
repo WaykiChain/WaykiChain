@@ -226,7 +226,8 @@ string CCdpRedeem::ToString(CAccountCache &view) {
     }
     cw.txUndo.accountLogs.push_back(fcoinGensisAccount);
 }
- bool CCdpRedeem::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+
+bool CCdpRedeem::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
@@ -264,7 +265,7 @@ string CCdpRedeem::ToString(CAccountCache &view) {
 
     //2. pay interest fees in wusd or micc into the micc pool
     CUserCdp cdp;
-    if (cw.cdpCache.GetCdp(txUid.get<CRegID>(), CTxCord(nHeight, nIndex), cdp)) {
+    if (cw.cdpCache.GetCdp(txUid.get<CRegID>(), cdpTxCord, cdp)) {
         if (!PayInterest(nHeight, cdp, cw, state))
             return false;
     }
@@ -291,7 +292,7 @@ string CCdpRedeem::ToString(CAccountCache &view) {
     }
 
     cdp.totalStakedBcoins = (uint64_t) targetStakedBcoins;
-    if (!cw.cdpCache.SaveCdp(cdp.ownerRegId, cdp.cdpTxCord, cdp)) {
+    if (!cw.cdpCache.SaveCdp(txUid.GetRegID(), cdpTxCord, cdp)) {
         return state.DoS(100, ERRORMSG("CCdpRedeem::ExecuteTx, update CDP %s failed",
                         cdp.ownerRegId.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
     }
