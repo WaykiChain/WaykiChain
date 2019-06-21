@@ -204,7 +204,7 @@ string CCdpRedeem::ToString(CAccountCache &view) {
 
     double restFcoins = totalFcoinsInterestToRepay - fcoinsInterest;
     double restScoins = (restFcoins/fcoinMedianPrice) * (100 + kScoinInterestIncreaseRate)/100;
-    if (scoinsToRedeem < restScoins) { //remainng interest must be paid from redeem scoins
+    if (scoinsToRedeem < restScoins) { //remaining interest must be paid from redeem scoins
         return state.DoS(100, ERRORMSG("CCdpRedeem::ExecuteTx, scoinsInterest: %d < restScoins: %d",
                         scoinsInterest, restScoins), INTEREST_INSUFFICIENT, "interest-insufficient-error");
     }
@@ -217,7 +217,7 @@ string CCdpRedeem::ToString(CAccountCache &view) {
         account.scoins -= restScoins;
         cw.dexCache.CreateBuyOrder(restScoins, CoinType::MICC); // DEX: wusd_micc
 
-        scoinsToRedeem -= restScoins; // after interest dudction, the remaing scoins will be redeemed
+        scoinsToRedeem -= restScoins; // after interest deduction, the remaining scoins will be redeemed
     }
 
     if (!cw.accountCache.SaveAccount(fcoinGensisAccount)) {

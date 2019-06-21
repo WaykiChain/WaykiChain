@@ -75,7 +75,6 @@ public:
     uint64_t receivedVotes;    //!< received votes
     uint64_t lastVoteHeight;   //!< account's last vote block height used for computing interest
 
-    bool hasOpenCdp;
     mutable uint256 sigHash;  //!< in-memory only
 
 public:
@@ -122,7 +121,6 @@ public:
           stakedFcoins(0),
           receivedVotes(0),
           lastVoteHeight(0),
-          hasOpenCdp(false) {
         minerPubKey = CPubKey();
         regID.Clean();
     }
@@ -151,7 +149,6 @@ public:
         this->stakedFcoins   = other.stakedFcoins;
         this->receivedVotes  = other.receivedVotes;
         this->lastVoteHeight = other.lastVoteHeight;
-        this->hasOpenCdp     = other.hasOpenCdp;
 
         return *this;
     }
@@ -203,9 +200,7 @@ public:
             CHashWriter ss(SER_GETHASH, 0);
             ss << keyID << regID << nickID << pubKey << minerPubKey << VARINT(bcoins) << VARINT(scoins)
                << VARINT(fcoins) << VARINT(frozenDEXBcoins) << VARINT(frozenDEXScoins) << VARINT(frozenDEXFcoins)
-               << VARINT(stakedFcoins) << VARINT(receivedVotes) << VARINT(lastVoteHeight)
-               << hasOpenCdp;
-
+               << VARINT(stakedFcoins) << VARINT(receivedVotes) << VARINT(lastVoteHeight);
             sigHash = ss.GetHash();
         }
 
@@ -238,9 +233,7 @@ public:
         READWRITE(VARINT(stakedBcoins));
         READWRITE(VARINT(stakedFcoins));
         READWRITE(VARINT(receivedVotes));
-        READWRITE(VARINT(lastVoteHeight));
-        READWRITE(hasOpenCdp);)
-
+        READWRITE(VARINT(lastVoteHeight));)
 private:
     bool IsMoneyOverflow(uint64_t nAddMoney);
 };
@@ -268,8 +261,6 @@ public:
     uint64_t receivedVotes;   //!< votes received
     uint64_t lastVoteHeight;  //!< account's last vote block height used for computing interest
 
-    bool hasOpenCdp;
-
     IMPLEMENT_SERIALIZE(
         READWRITE(keyID);
         READWRITE(regID);
@@ -285,8 +276,7 @@ public:
         READWRITE(VARINT(stakedBcoins));
         READWRITE(VARINT(stakedFcoins));
         READWRITE(VARINT(receivedVotes));
-        READWRITE(VARINT(lastVoteHeight));
-        READWRITE(hasOpenCdp);)
+        READWRITE(VARINT(lastVoteHeight));)
 
 public:
     CAccountLog(const CAccount& acct) {
@@ -308,8 +298,7 @@ public:
         stakedBcoins(0),
         stakedFcoins(0),
         receivedVotes(0),
-        lastVoteHeight(0),
-        hasOpenCdp(false) {}
+        lastVoteHeight(0) {}
 
     CAccountLog(): CAccountLog(CKeyID()) {}
 
@@ -329,7 +318,6 @@ public:
         stakedFcoins    = acct.stakedFcoins;
         receivedVotes   = acct.receivedVotes;
         lastVoteHeight  = acct.lastVoteHeight;
-        hasOpenCdp      = acct.hasOpenCdp;
     }
 
     string ToString() const;

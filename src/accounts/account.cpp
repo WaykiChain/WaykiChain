@@ -12,10 +12,10 @@
 string CAccountLog::ToString() const {
     string str;
     str += strprintf(
-        "Account log: keyId=%d regId=%s nickId=%s pubKey=%s minerPubKey=%s hasOpenCdp=%d "
+        "Account log: keyId=%d regId=%s nickId=%s pubKey=%s minerPubKey=%s "
         "bcoins=%lld receivedVotes=%lld \n",
         keyID.GetHex(), regID.ToString(), nickID.ToString(), pubKey.ToString(),
-        minerPubKey.ToString(), hasOpenCdp, bcoins, receivedVotes);
+        minerPubKey.ToString(), bcoins, receivedVotes);
 
     return str;
 }
@@ -34,7 +34,6 @@ bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
     stakedFcoins   = accountLog.stakedFcoins;
     receivedVotes  = accountLog.receivedVotes;
     lastVoteHeight = accountLog.lastVoteHeight;
-    hasOpenCdp     = accountLog.hasOpenCdp;
 
     LogPrint("undo_account", "before operate:%s\n", ToString().c_str());
     return true;

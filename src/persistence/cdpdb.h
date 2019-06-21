@@ -36,13 +36,13 @@ struct CUserCdp {
     CUserCdp() : lastBlockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
     bool operator<(const CUserCdp &cdp) const {
-        if (this->collateralRatio == cdp.collateralRatio) {
-            if (this->ownerRegId == cdp.ownerRegId)
-                return this->cdpTxCord < cdp.cdpTxCord;
+        if (collateralRatio == cdp.collateralRatio) {
+            if (ownerRegId == cdp.ownerRegId)
+                return cdpTxCord < cdp.cdpTxCord;
             else
-                return this->ownerRegId < cdp.ownerRegId;
+                return ownerRegId < cdp.ownerRegId;
         } else {
-            return this->collateralRatio < cdp.collateralRatio;
+            return collateralRatio < cdp.collateralRatio;
         }
     }
 
