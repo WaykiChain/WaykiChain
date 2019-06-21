@@ -4,12 +4,15 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "dexdb.h"
+#include "accounts/account.h"
+#include "main.h"
 
-bool CDexCache::MatchFcoinManualSellOrder(uint64_t scoins) {
-    // for (auto order : fcoinManualSellOrderCache) {
-    //     if (order.orderAmount >= scoins) {
-
-    //     }
-    // }
+bool CDexCache::CreateBuyOrder(uint64_t buyAmount, CoinType targetCoinType) {
+    //TODO
+    CUserID fcoinGenesisUid(CRegID(kFcoinGenesisTxHeight, kFcoinGenesisIssueTxIndex));
+    return true;
+}
+bool CDexCache::CreateSellOrder(uint64_t sellAmount, CoinType targetCoinType) {
+    //TODO
     return true;
 }

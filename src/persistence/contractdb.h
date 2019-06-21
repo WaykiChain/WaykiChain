@@ -6,15 +6,13 @@
 #ifndef PERSIST_CONTRACTDB_H
 #define PERSIST_CONTRACTDB_H
 
-#include "commons/uint256.h"
-#include "commons/arith_uint256.h"
-#include "dbconf.h"
+#include "accounts/account.h"
 #include "accounts/key.h"
-#include "persistence/leveldbwrapper.h"
+#include "commons/arith_uint256.h"
+#include "commons/uint256.h"
+#include "dbaccess.h"
 #include "persistence/disk.h"
 #include "vm/appaccount.h"
-#include "dbaccess.h"
-#include "accounts/account.h"
 
 #include <map>
 #include <string>
@@ -47,7 +45,6 @@ public:
     // virtual bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CDbOpLog &operLog) = 0;
     // virtual bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput) = 0;
     virtual bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash) = 0;
-    // virtual bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const string &strTxHash, CDbOpLog &operLog) = 0;
     virtual bool GetAllContractAcc(const CRegID &scriptId, map<string, string > &mapAcc) = 0;
 
     virtual ~IContractView(){};
@@ -135,8 +132,8 @@ public:
     string ToString();
     bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CDbOpLog &operLog);
     bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput);
-    bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash);
-    bool SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex, const uint256 &txid, CDbOpLog &operLog);
+    bool GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string > &mapTxHash);
+    bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid, CDbOpLog &operLog);
     bool UndoTxHashByAddress(CDBOpLogsMap &dbOpLogsMap);
     bool GetAllContractAcc(const CRegID &scriptId, map<string, string > &mapAcc);
 
@@ -258,8 +255,7 @@ private:
     // txId -> vector<CVmOperate>
     CDBMultiValueCache< dbk::CONTRACT_TX_OUT,      uint256,                  vector<CVmOperate> >   txOutputCache;
     // keyId,height,index -> txid
-    //CDBMultiValueCache< dbk::LIST_KEYID_TX,        tuple<CKeyID, int, int>,  uint256>               acctTxListCache;
-    CDBMultiValueCache< dbk::LIST_KEYID_TX,        tuple<CKeyID, int, int>,  uint256>               acctTxListCache;
+    CDBMultiValueCache< dbk::LIST_KEYID_TX,        tuple<CKeyID, uint32_t, uint32_t>,  uint256 >    acctTxListCache;
     // txId -> DiskTxPos
     CDBMultiValueCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;
     // contractTxId -> relatedAccounts

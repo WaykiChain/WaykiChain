@@ -2679,8 +2679,8 @@ bool static LoadBlockIndexDB() {
     bool fReindexing = false;
     pCdMan->pBlockTreeDb->ReadReindexing(fReindexing);
 
-    bool fcurReinx = SysCfg().IsReindex();
-    SysCfg().SetReIndex(fcurReinx |= fReindexing);
+    bool fCurReindex = SysCfg().IsReindex();
+    SysCfg().SetReIndex(fCurReindex |= fReindexing);
 
     // Check whether we have a transaction index
     bool bTxIndex = SysCfg().IsTxIndex();

@@ -40,9 +40,9 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        for(auto const& pricePoint: pricePoints) {
+        for (auto const& pricePoint: pricePoints) {
             READWRITE(pricePoint);
-        };)
+        })
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {

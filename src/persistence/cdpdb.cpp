@@ -4,43 +4,86 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "cdpdb.h"
-#include "dbconf.h"
+
+#include "accounts/id.h"
 #include "main.h"
 
-bool CCdpCacheManager::StakeBcoinsToCdp(
-    CUserID txUid,
-    uint64_t bcoinsToStake,
-    uint64_t collateralRatio,
-    uint64_t mintedScoins,
-    int blockHeight,
-    CDbOpLog &cdpDbOpLog) {
+bool CCdpMemCache::LoadCdps() {
+    assert(pAccess != nullptr);
+    map<std::pair<string, string>, CUserCdp> rawCdps;
 
-    CUserCdp lastCdp;
-    if (!cdpCache.GetData(txUid.ToString(), lastCdp)) {
-        return ERRORMSG("CCdpCache::StakeBcoins : GetData failed.");
+    if (!pAccess->GetAllElements(dbk::CDP, rawCdps)) {
+        // TODO: log
+        return false;
     }
 
-    CUserCdp cdp        = lastCdp;
+    CRegID regId;
+    CTxCord txCord;
+    CUserCdp userCdp;
+    uint8_t valid = 1;
+    for (const auto & cdp: rawCdps) {
+        regId   = std::get<0>(cdp.first);
+        txCord  = std::get<1>(cdp.first);
+        userCdp = cdp.second;
 
-    cdp.lastBlockHeight = cdp.blockHeight;
-    cdp.lastOwedScoins  += cdp.totalOwedScoins;
-    cdp.blockHeight     = blockHeight;
-    cdp.collateralRatio = collateralRatio;
-    cdp.mintedScoins    = mintedScoins;
-    cdp.totalOwedScoins += cdp.mintedScoins;
+        userCdp.UpdateUserCdp(regId, txCord);
 
-    string cdpKey = txUid.ToString();
-    if (!cdpCache.SetData(cdpKey, cdp)) {
-        return ERRORMSG("CCdpCache::StakeBcoins : SetData failed.");
+        cdps.emplace(userCdp, valid);
     }
 
-    cdpDbOpLog = CDbOpLog(cdpCache.GetPrefixType(), cdpKey, lastCdp);
     return true;
 }
 
-bool CCdpCacheManager::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
-    //TODO
+bool CCdpMemCache::GetUnderLiquidityCdps(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
+                                         vector<CUserCdp> &userCdps) {
+    return GetCdps(openLiquidateRatio * bcoinMedianPrice, userCdps);
+}
+
+bool CCdpMemCache::GetForceSettleCdps(const uint16_t forceLiquidateRatio, const uint64_t bcoinMedianPrice,
+                                      vector<CUserCdp> &userCdps) {
+    return GetCdps(forceLiquidateRatio * bcoinMedianPrice, userCdps);
+}
+
+bool CCdpMemCache::GetCdps(const double ratio, vector<CUserCdp> &userCdps) {
+    // TODO:
     return true;
+}
+
+bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
+                                        const int blockHeight, const int txIndex, CUserCdp &cdp, CDbOpLog &cdpDbOpLog) {
+    cdpDbOpLog = CDbOpLog(cdpCache.GetPrefixType(), regId.ToRawString(), cdp);
+
+    cdp.lastBlockHeight = blockHeight;
+    cdp.totalStakedBcoins += bcoinsToStake;
+    cdp.totalOwedScoins += mintedScoins;
+
+    if (!SaveCdp(regId, CTxCord(blockHeight, txIndex), cdp)) {
+        return ERRORMSG("CCdpCacheManager::StakeBcoinsToCdp : SetData failed.");
+    }
+
+    return true;
+}
+
+bool CCdpCacheManager::GetCdp(const CRegID &regId, const CTxCord &cdpTxCord, CUserCdp &cdp) {
+    if (!cdpCache.GetData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()), cdp))
+        return false;
+
+    cdp.UpdateUserCdp(regId, cdpTxCord);
+
+    return true;
+}
+
+bool CCdpCacheManager::SaveCdp(const CRegID &regId, const CTxCord &cdpTxCord, CUserCdp &cdp) {
+    if (!cdpCache.SetData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()), cdp))
+        return false;
+
+    cdp.UpdateUserCdp(regId, cdpTxCord);
+
+    return true;
+}
+
+bool CCdpCacheManager::EraseCdp(const CRegID &regId, const CTxCord &cdpTxCord) {
+    return cdpCache.EraseData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()));
 }
 
 /**

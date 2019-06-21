@@ -580,10 +580,9 @@ bool CContractCache::WriteTxOutPut(const uint256 &txid, const vector<CVmOperate>
     return txOutputCache.SetData(txid, vOutput);
 }
 
-bool CContractCache::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex,
-                                            const uint256 &txid, CDbOpLog &operLog) {
-
-    auto key = make_tuple(keyId, nHeight, nIndex);
+bool CContractCache::SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid,
+                                        CDbOpLog &operLog) {
+    auto key = make_tuple(keyId, height, index);
 
     uint256 oldValue;
     acctTxListCache.GetData(key, oldValue);
@@ -596,35 +595,32 @@ bool CContractCache::UndoTxHashByAddress(CDBOpLogsMap &dbOpLogsMap) {
     return UndoData(acctTxListCache.GetPrefixType(), dbOpLogs);
 }
 
-
-bool CContractCache::GetTxHashByAddress(
-    const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash) {
-
+bool CContractCache::GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string> &mapTxHash) {
     return false;
-/* TODO: implements get list in cache
-    pBase->GetTxHashByAddress(keyId, nHeight, mapTxHash);
+    /* TODO: implements get list in cache
+        pBase->GetTxHashByAddress(keyId, nHeight, mapTxHash);
 
-    string vPreKey = {'A', 'D', 'D', 'R'};
-    CDataStream ds1(SER_DISK, CLIENT_VERSION);
-    ds1 << keyId;
-    ds1 << nHeight;
-    vPreKey.insert(vPreKey.end(), ds1.begin(), ds1.end());
+        string vPreKey = {'A', 'D', 'D', 'R'};
+        CDataStream ds1(SER_DISK, CLIENT_VERSION);
+        ds1 << keyId;
+        ds1 << nHeight;
+        vPreKey.insert(vPreKey.end(), ds1.begin(), ds1.end());
 
-    map<string, string >::iterator iterFindKey =
-        mapContractDb.upper_bound(vPreKey);
-    while (iterFindKey != mapContractDb.end()) {
-        if (0 == memcmp((char *)&iterFindKey->first[0], (char *)&vPreKey[0], 28)) {
-            if (iterFindKey->second.empty())
-                mapTxHash.erase(iterFindKey->first);
-            else {
-                mapTxHash.insert(make_pair(iterFindKey->first, iterFindKey->second));
+        map<string, string >::iterator iterFindKey =
+            mapContractDb.upper_bound(vPreKey);
+        while (iterFindKey != mapContractDb.end()) {
+            if (0 == memcmp((char *)&iterFindKey->first[0], (char *)&vPreKey[0], 28)) {
+                if (iterFindKey->second.empty())
+                    mapTxHash.erase(iterFindKey->first);
+                else {
+                    mapTxHash.insert(make_pair(iterFindKey->first, iterFindKey->second));
+                }
+            } else {
+                break;
             }
-        } else {
-            break;
         }
-    }
-    return true;
-*/
+        return true;
+    */
 }
 
 bool CContractCache::GetAllContractAcc(
@@ -669,7 +665,7 @@ bool CContractCache::GetScript(const string &scriptId, string &content) {
 }
 
 bool CContractCache::GetScript(const CRegID &scriptId, string &vValue) {
-    return GetScript(scriptId.GetRegIdRawStr(), vValue);
+    return GetScript(scriptId.ToRawString(), vValue);
 }
 
 bool CContractCache::GetContractData(const int nCurBlockHeight, const string &scriptId,
@@ -1007,7 +1003,7 @@ bool CContractCache::GetScript(const int nIndex, CRegID &scriptId, string &vValu
 }
 
 bool CContractCache::SetScript(const CRegID &scriptId, const string &vValue) {
-    return SetScript(scriptId.GetRegIdRawStr(), vValue);
+    return SetScript(scriptId.ToRawString(), vValue);
 }
 
 bool CContractCache::HaveScript(const CRegID &scriptId) {
@@ -1094,7 +1090,7 @@ string CContractCache::ToString() {
 
 bool CContractCache::GetScriptAcc(const CRegID &scriptId, const string &accKey,
                                       CAppUserAccount &appAccOut) {
-    return contractAccountCache.GetData(make_pair(scriptId.GetRegIdRawStr(), accKey), appAccOut);
+    return contractAccountCache.GetData(make_pair(scriptId.ToRawString(), accKey), appAccOut);
 }
 
 bool CContractCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn,
@@ -1102,7 +1098,7 @@ bool CContractCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAccount 
     if (appAccIn.IsEmpty()) {
         return false;
     }
-    auto key = make_pair(scriptId.GetRegIdRawStr(), appAccIn.GetAccUserId());
+    auto key = make_pair(scriptId.ToRawString(), appAccIn.GetAccUserId());
     CAppUserAccount oldData;
     contractAccountCache.GetData(key, oldData);
     operlog.Set(contractAccountCache.GetPrefixType(), key, oldData);

@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2019- The WaykiChain Core Developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "id.h"
 #include "persistence/accountdb.h"
@@ -26,8 +26,7 @@ CRegID::CRegID(const vector<unsigned char>& vIn) {
     ds >> nIndex;
 }
 
-bool CRegID::IsSimpleRegIdStr(const string & str)
-{
+bool CRegID::IsSimpleRegIdStr(const string & str) {
     int len = str.length();
     if (len >= 3) {
         int pos = str.find('-');
@@ -69,29 +68,27 @@ bool CRegID::IsRegIdStr(const string & str) {
     return ( IsSimpleRegIdStr(str) || (str.length() == 12) );
 }
 
-void CRegID::SetRegID(string strRegID)
-{
+void CRegID::SetRegID(string strRegID) {
     nHeight = 0;
-    nIndex = 0;
+    nIndex  = 0;
     vRegID.clear();
 
     if (IsSimpleRegIdStr(strRegID)) {
         int pos = strRegID.find('-');
         nHeight = atoi(strRegID.substr(0, pos).c_str());
-        nIndex = atoi(strRegID.substr(pos+1).c_str());
+        nIndex  = atoi(strRegID.substr(pos + 1).c_str());
         vRegID.insert(vRegID.end(), BEGIN(nHeight), END(nHeight));
         vRegID.insert(vRegID.end(), BEGIN(nIndex), END(nIndex));
-//      memcpy(&vRegID.at(0),&nHeight,sizeof(nHeight));
-//      memcpy(&vRegID[sizeof(nHeight)],&nIndex,sizeof(nIndex));
+        // memcpy(&vRegID.at(0), &nHeight, sizeof(nHeight));
+        // memcpy(&vRegID[sizeof(nHeight)], &nIndex, sizeof(nIndex));
     } else if (strRegID.length() == 12) {
         vRegID = ::ParseHex(strRegID);
-        memcpy(&nHeight,&vRegID[0],sizeof(nHeight));
-        memcpy(&nIndex,&vRegID[sizeof(nHeight)],sizeof(nIndex));
+        memcpy(&nHeight, &vRegID[0], sizeof(nHeight));
+        memcpy(&nIndex, &vRegID[sizeof(nHeight)], sizeof(nIndex));
     }
 }
 
-void CRegID::SetRegID(const vector<unsigned char>& vIn)
-{
+void CRegID::SetRegID(const vector<unsigned char> &vIn) {
     assert(vIn.size() == 6);
     vRegID = vIn;
     CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);
@@ -99,37 +96,29 @@ void CRegID::SetRegID(const vector<unsigned char>& vIn)
     ds >> nIndex;
 }
 
-CRegID::CRegID(string strRegID)
-{
-    SetRegID(strRegID);
-}
+CRegID::CRegID(string strRegID) { SetRegID(strRegID); }
 
-CRegID::CRegID(uint32_t nHeightIn, uint16_t nIndexIn)
-{
+CRegID::CRegID(uint32_t nHeightIn, uint16_t nIndexIn) {
     nHeight = nHeightIn;
-    nIndex = nIndexIn;
+    nIndex  = nIndexIn;
     vRegID.clear();
     vRegID.insert(vRegID.end(), BEGIN(nHeightIn), END(nHeightIn));
     vRegID.insert(vRegID.end(), BEGIN(nIndexIn), END(nIndexIn));
 }
 
-string CRegID::ToString() const
-{
-    if (IsEmpty())
-        return string("");
+string CRegID::ToString() const {
+    if (IsEmpty()) return string("");
 
-    return  strprintf("%d-%d", nHeight, nIndex);
+    return strprintf("%d-%d", nHeight, nIndex);
 }
 
-CKeyID CRegID::GetKeyId(const CAccountCache &view)const
-{
+CKeyID CRegID::GetKeyId(const CAccountCache &view) const {
     CKeyID retKeyId;
     CAccountCache(view).GetKeyId(*this, retKeyId);
     return retKeyId;
 }
 
-void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn)
-{
+void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn) {
     if (vIn.size() > 0) {
         CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);
         ds >> *this;

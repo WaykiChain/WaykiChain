@@ -3227,25 +3227,30 @@ Value listdelegates(const Array& params, bool fHelp) {
 
     int delegateNum = (params.size() == 1) ? params[0].get_int() : IniCfg().GetTotalDelegateNum();
     if (delegateNum < 1 || delegateNum > 11) {
-        throw JSONRPCError(
-            RPC_INVALID_PARAMETER,
-            strprintf("Delegate number not between 1 and %ld", IniCfg().GetTotalDelegateNum()));
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           strprintf("Delegate number not between 1 and %u", IniCfg().GetTotalDelegateNum()));
     }
 
-    vector<CAccount> delegates;
-    if (!GetDelegatesAcctList(delegates) || delegates.size() != IniCfg().GetTotalDelegateNum()) {
+    vector<CRegID> delegatesList;
+    if (!pCdMan->pDelegateCache->GetTopDelegates(delegatesList)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to get delegates list");
     }
 
     Object obj;
     Array delegateArray;
-    delegateNum = min(delegateNum, (int)delegates.size());
-    for (const auto& delegate : delegates) {
-        delegateArray.push_back(delegate.ToJsonObj());
+
+    delegateNum = min(delegateNum, (int)delegatesList.size());
+    CAccount account;
+    for (const auto& delegate : delegatesList) {
+        if (!pCdMan->pAccountCache->GetAccount(delegate, account)) {
+            throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to get account info");
+        }
+        delegateArray.push_back(account.ToJsonObj());
         if (--delegateNum == 0) {
             break;
         }
     }
     obj.push_back(Pair("delegates", delegateArray));
+
     return obj;
 }

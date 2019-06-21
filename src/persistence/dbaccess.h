@@ -6,22 +6,30 @@
 #ifndef PERSIST_DB_ACCESS_H
 #define PERSIST_DB_ACCESS_H
 
-#include <tuple>
-
 #include "dbconf.h"
 #include "leveldbwrapper.h"
+
+#include <tuple>
 
 /**
  * Empty functions
  */
 namespace db_util {
-    // TODO:
-    inline bool IsEmpty(const int val) { return true; }
-    inline bool IsEmpty(const uint64_t val) { return true; }
-
     // uint8_t
     inline bool IsEmpty(const uint8_t val) { return val != 0; }
     inline void SetEmpty(uint8_t &val) { val = 0; }
+
+    // uint16_t
+    inline bool IsEmpty(const uint16_t val) { return val != 0; }
+    inline void SetEmpty(uint16_t &val) { val = 0; }
+
+    // uint32_t
+    inline bool IsEmpty(const uint32_t val) { return val != 0; }
+    inline void SetEmpty(uint32_t &val) { val = 0; }
+
+    // uint64_t
+    inline bool IsEmpty(const uint64_t val) { return val != 0; }
+    inline void SetEmpty(uint64_t &val) { val = 0; }
 
     // string
     template<typename C> bool IsEmpty(const basic_string<C> &val);
@@ -151,7 +159,7 @@ public:
     }
 
     template <typename KeyType>
-    bool GetTopNElements(const int32_t maxNum, const dbk::PrefixType prefixType, set<KeyType> &expiredKeys,
+    bool GetTopNElements(const uint32_t maxNum, const dbk::PrefixType prefixType, set<KeyType> &expiredKeys,
                          set<KeyType> &keys) {
         KeyType key;
         uint32_t count             = 0;
@@ -179,7 +187,31 @@ public:
     }
 
     template <typename KeyType, typename ValueType>
-    bool GetAllElements(const int32_t maxNum, const dbk::PrefixType prefixType, set<KeyType> &expiredKeys,
+    bool GetAllElements(const dbk::PrefixType prefixType, map<KeyType, ValueType> &elements) {
+        KeyType key;
+        ValueType value;
+        leveldb::Iterator *pCursor = db.NewIterator();
+        leveldb::Slice slKey       = pCursor->key();
+        pCursor->Seek(dbk::GetKeyPrefix(prefixType));
+
+        for (; pCursor->Valid(); pCursor->Next()) {
+            if (!dbk::ParseDbKey(slKey, prefixType, key)) {
+                break;
+            }
+
+            // Got an valid element.
+            leveldb::Slice slValue = pCursor->value();
+            CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+            ds >> value;
+            auto ret = elements.emplace(key, value);
+            assert(ret.second);  // TODO: throw error
+        }
+
+        return true;
+    }
+
+    template <typename KeyType, typename ValueType>
+    bool GetAllElements(const dbk::PrefixType prefixType, set<KeyType> &expiredKeys,
                         map<KeyType, ValueType> &elements) {
         KeyType key;
         ValueType value;
@@ -276,7 +308,7 @@ public:
         pBase = pBaseIn;
     };
 
-    bool GetTopNElements(const int32_t maxNum, set<KeyType> &keys) {
+    bool GetTopNElements(const uint32_t maxNum, set<KeyType> &keys) {
         // 1. Get all candidate elements.
         set<KeyType> expiredKeys;
         set<KeyType> candidateKeys;
@@ -289,7 +321,7 @@ public:
         uint32_t count = 0;
         auto iter      = candidateKeys.begin();
         for (; (count < maxNum) && iter != candidateKeys.end(); ++iter) {
-            keys.insert(iter.first);
+            keys.insert(*iter);
         }
 
         return keys.size() == maxNum;
@@ -382,7 +414,7 @@ private:
         } else if (pBase != nullptr){
             auto it = pBase->GetDataIt(key);
             if (it != mapData.end()) {
-                auto newIt = mapData.emplace(make_pair(key, it->second));
+                auto newIt = mapData.emplace(std::make_pair(key, it->second));
                 assert(newIt.second); // TODO: throw error
                 return newIt.first;
             }
@@ -390,7 +422,7 @@ private:
             auto ptrValue = std::make_shared<ValueType>();
 
             if (pDbAccess->GetData(PREFIX_TYPE, key, *ptrValue)) {
-                auto newIt = mapData.emplace(make_pair(key, *ptrValue));
+                auto newIt = mapData.emplace(std::make_pair(key, *ptrValue));
                 assert(newIt.second); // TODO: throw error
                 return newIt.first;
             }
@@ -399,20 +431,20 @@ private:
         return mapData.end();
     };
 
-    bool GetTopNElements(const int32_t maxNum, set<KeyType> &expiredKeys, set<KeyType> &keys) {
+    bool GetTopNElements(const uint32_t maxNum, set<KeyType> &expiredKeys, set<KeyType> &keys) {
         if (!mapData.empty()) {
             uint32_t count = 0;
             auto iter      = mapData.begin();
 
             for (; (count < maxNum) && iter != mapData.end(); ++iter) {
-                if (db_util::IsEmpty(iter.second)) {
-                    expiredKeys.insert(iter.first);
-                } else if (expiredKeys.count(iter.first) || keys.count(iter.first)) {
+                if (db_util::IsEmpty(iter->second)) {
+                    expiredKeys.insert(iter->first);
+                } else if (expiredKeys.count(iter->first) || keys.count(iter->first)) {
                     // TODO: log
                     continue;
                 } else {
                     // Got a valid element.
-                    keys.insert(iter.first);
+                    keys.insert(iter->first);
 
                     ++count;
                 }
@@ -430,7 +462,7 @@ private:
 
     bool GetAllElements(set<KeyType> &expiredKeys, map<KeyType, ValueType> &elements) {
         if (!mapData.empty()) {
-            for (const auto &iter : mapData) {
+            for (auto iter : mapData) {
                 if (db_util::IsEmpty(iter.second)) {
                     expiredKeys.insert(iter.first);
                 } else if (expiredKeys.count(iter.first) || elements.count(iter.first)) {
@@ -438,7 +470,7 @@ private:
                     continue;
                 } else {
                     // Got a valid element.
-                    elements.insert(iter.first);
+                    elements.insert(iter);
                 }
             }
         }

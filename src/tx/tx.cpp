@@ -99,7 +99,7 @@ string CBaseTx::ToString(CAccountCache &view) {
     return str;
 }
 
-bool CBaseTx::SaveTxAddresses(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw,
+bool CBaseTx::SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw,
                               const vector<CUserID> &userIds) {
     if (SysCfg().GetAddressToTxFlag()) {
         CDbOpLogs &opLogs = cw.txUndo.dbOpLogsMap.GetDbOpLogs(dbk::LIST_KEYID_TX);
@@ -110,7 +110,7 @@ bool CBaseTx::SaveTxAddresses(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw
                 if (!cw.accountCache.GetKeyId(userId, keyId))
                     return ERRORMSG("SaveTxAddresses, get keyid by uid error!");
 
-                if (!cw.contractCache.SetTxHashByAddress(keyId, nHeight, nIndex + 1,
+                if (!cw.contractCache.SetTxHashByAddress(keyId, height, index + 1,
                                                          cw.txUndo.txHash, operAddressToTxLog))
                     return ERRORMSG("SaveTxAddresses, SetTxHashByAddress to db cache failed!");
 

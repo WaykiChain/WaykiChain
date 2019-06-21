@@ -14,11 +14,11 @@
 
 #include <algorithm>
 
-bool CTransactionCache::IsContainBlock(const CBlock &block) {
+bool CTxMemCache::IsContainBlock(const CBlock &block) {
     return mapBlockTxHashSet.count(block.GetHash()) || (pBase ? pBase->IsContainBlock(block) : false);
 }
 
-bool CTransactionCache::AddBlockToCache(const CBlock &block) {
+bool CTxMemCache::AddBlockToCache(const CBlock &block) {
     UnorderedHashSet vTxHash;
     for (auto &ptx : block.vptx) {
         vTxHash.insert(ptx->GetHash());
@@ -28,7 +28,7 @@ bool CTransactionCache::AddBlockToCache(const CBlock &block) {
     return true;
 }
 
-bool CTransactionCache::DeleteBlockFromCache(const CBlock &block) {
+bool CTxMemCache::DeleteBlockFromCache(const CBlock &block) {
     if (IsContainBlock(block)) {
         UnorderedHashSet txHash;
 		mapBlockTxHashSet[block.GetHash()] = txHash;
@@ -40,7 +40,7 @@ bool CTransactionCache::DeleteBlockFromCache(const CBlock &block) {
     return false;
 }
 
-bool CTransactionCache::HaveTx(const uint256 &txHash) {
+bool CTxMemCache::HaveTx(const uint256 &txHash) {
     for (auto &item : mapBlockTxHashSet) {
         if (item.second.count(txHash)) {
             return true;
@@ -50,7 +50,7 @@ bool CTransactionCache::HaveTx(const uint256 &txHash) {
     return pBase ? pBase->HaveTx(txHash) : false;
 }
 
-void CTransactionCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn) {
+void CTxMemCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn) {
     // If the value is empty, delete it from cache.
     for (auto &item : mapBlockTxHashSetIn) {
         if (item.second.empty()) {
@@ -61,23 +61,23 @@ void CTransactionCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBloc
     }
 }
 
-void CTransactionCache::Flush() {
+void CTxMemCache::Flush() {
     assert(pBase);
 
     pBase->BatchWrite(mapBlockTxHashSet);
     mapBlockTxHashSet.clear();
 }
 
-void CTransactionCache::Flush(CTransactionCache *pBaseIn) {
+void CTxMemCache::Flush(CTxMemCache *pBaseIn) {
     pBaseIn->BatchWrite(mapBlockTxHashSet);
     mapBlockTxHashSet.clear();
 }
 
-void CTransactionCache::Clear() { mapBlockTxHashSet.clear(); }
+void CTxMemCache::Clear() { mapBlockTxHashSet.clear(); }
 
-int CTransactionCache::GetSize() { return mapBlockTxHashSet.size(); }
+uint64_t CTxMemCache::GetSize() { return mapBlockTxHashSet.size(); }
 
-Object CTransactionCache::ToJsonObj() const {
+Object CTxMemCache::ToJsonObj() const {
     Array txArray;
     for (auto &item : mapBlockTxHashSet) {
         Object obj;
@@ -98,9 +98,9 @@ Object CTransactionCache::ToJsonObj() const {
     return txCacheObj;
 }
 
-const map<uint256, UnorderedHashSet> &CTransactionCache::GetTxHashCache() { return mapBlockTxHashSet; }
+const map<uint256, UnorderedHashSet> &CTxMemCache::GetTxHashCache() { return mapBlockTxHashSet; }
 
-void CTransactionCache::SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache) {
+void CTxMemCache::SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache) {
     mapBlockTxHashSet = mapCache;
 }
 
@@ -163,68 +163,6 @@ uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, CCoinP
     return medianPrice;
 }
 
-bool CDelegateCache::LoadTopDelegates() {
-    delegateRegIds.clear();
-    // TODO:
-    return true;
-}
-
-bool CDelegateCache::ExistDelegate(const CRegID &delegateRegId) {
-    if (delegateRegIds.empty()) {
-        LoadTopDelegates();
-    }
-
-    return delegateRegIds.count(delegateRegId);
-}
-
-bool CDelegateCache::SetDelegateVotes(const CRegID &regId, const uint64_t votes) {
-    if (votes == 0) {
-        return true;
-    }
-
-    static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
-    string strVotes           = strprintf("%016x", maxNumber - votes);
-    auto key                  = std::make_pair(strVotes, regId);
-    static uint8_t value      = 1;
-
-    return voteRegIdCache.SetData(key, value);
-}
-
-bool CDelegateCache::EraseDelegateVotes(const CRegID &regId, const uint64_t votes) {
-    if (votes == 0) {
-        return true;
-    }
-
-    static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
-    string strVotes           = strprintf("%016x", maxNumber - votes);
-    auto oldKey               = std::make_pair(strVotes, regId);
-
-    return voteRegIdCache.EraseData(oldKey);
-}
-
-bool CDelegateCache::SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes) {
-    return regId2VoteCache.SetData(regId, candidateVotes);
-}
-
-bool CDelegateCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes) {
-    return regId2VoteCache.GetData(regId, candidateVotes);
-}
-
-bool CDelegateCache::UndoData(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs) {
-    for (auto it = dbOpLogs.rbegin(); it != dbOpLogs.rend(); ++it) {
-        auto &dbOpLog = *it;
-        switch (dbOpLog.GetPrefixType()) {
-            case dbk::REGID_VOTE:
-                return regId2VoteCache.UndoData(dbOpLog);
-            default:
-                LogPrint("ERROR", "CDelegateCache::UndoData can not handle the dbOpLog=", dbOpLog.ToString());
-                return false;
-        }
-    }
-
-    return true;
-}
-
 string CTxUndo::ToString() const {
     string str;
     string strTxHash("txid:");
@@ -245,12 +183,17 @@ string CTxUndo::ToString() const {
     return str;
 }
 
-bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {
+bool CTxUndo::GetAccountLog(const CKeyID &keyId, CAccountLog &accountLog) {
     for (auto iterLog : accountLogs) {
         if (iterLog.keyID == keyId) {
             accountLog = iterLog;
             return true;
         }
     }
+    return false;
+}
+
+bool ReadTxFromDisk(const CTxCord txCord, std::shared_ptr<CBaseTx> ptrBaseTx) {
+    // TODO: read tx from disk
     return false;
 }

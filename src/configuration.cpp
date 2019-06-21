@@ -321,9 +321,9 @@ int G_CONFIG_TABLE::GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const {
     return mSubsidyHeight[nSubsidyValue];
 }
 
-uint64_t G_CONFIG_TABLE::GetTotalDelegateNum() const { return TotalDelegateNum; }
+uint32_t G_CONFIG_TABLE::GetTotalDelegateNum() const { return TotalDelegateNum; }
 
-uint64_t G_CONFIG_TABLE::GetMaxVoteCandidateNum() const { return MaxVoteCandidateNum; }
+uint32_t G_CONFIG_TABLE::GetMaxVoteCandidateNum() const { return MaxVoteCandidateNum; }
 
 // BaseCoin name
 string G_CONFIG_TABLE::COIN_NAME = "WaykiChain";
@@ -455,9 +455,9 @@ uint64_t G_CONFIG_TABLE::InitialCoin = kTotalBaseCoinCount;  // 210 million
 uint64_t G_CONFIG_TABLE::DefaultFee = 15;
 
 // Total Delegate Number
-unsigned int G_CONFIG_TABLE::TotalDelegateNum = 11;
+uint32_t G_CONFIG_TABLE::TotalDelegateNum = 11;
 // Max Number of Delegate Candidate to Vote for by a single account
-unsigned int G_CONFIG_TABLE::MaxVoteCandidateNum = 22;
+uint32_t G_CONFIG_TABLE::MaxVoteCandidateNum = 22;
 
 // Initial subsidy rate upon vote casting
 uint64_t G_CONFIG_TABLE::nInitialSubsidy = 5;

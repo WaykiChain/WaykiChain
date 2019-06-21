@@ -62,18 +62,17 @@ bool CBlockTreeDB::ReadLastBlockFile(int &nFile) {
     return Read(dbk::GetKeyPrefix(dbk::LAST_BLOCKFILE), nFile);
 }
 
-//bool CBlockTreeDB::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
-//	return Read(make_pair('t', txid), pos);
-//}
-//
-//bool CBlockTreeDB::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> >&vect) {
-//	CLevelDBBatch batch;
-//	for (vector<pair<uint256, CDiskTxPos> >::const_iterator it = vect.begin(); it != vect.end(); it++){
-//		LogPrint("txindex", "txhash:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n", it->first.GetHex(), it->second.nFile, it->second.nPos, it->second.nTxOffset);
-//		batch.Write(make_pair('t', it->first), it->second);
-//	}
-//	return WriteBatch(batch);
-//}
+// bool CBlockTreeDB::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) { return Read(make_pair('t', txid), pos); }
+
+// bool CBlockTreeDB::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &vect) {
+//     CLevelDBBatch batch;
+//     for (vector<pair<uint256, CDiskTxPos> >::const_iterator it = vect.begin(); it != vect.end(); it++) {
+//         LogPrint("txindex", "txhash:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n", it->first.GetHex(), it->second.nFile,
+//                  it->second.nPos, it->second.nTxOffset);
+//         batch.Write(make_pair('t', it->first), it->second);
+//     }
+//     return WriteBatch(batch);
+// }
 
 bool CBlockTreeDB::WriteFlag(const string &name, bool fValue) {
     return Write(dbk::GenDbKey(dbk::FLAG, name), fValue ? '1' : '0');
@@ -88,18 +87,18 @@ bool CBlockTreeDB::ReadFlag(const string &name, bool &fValue) {
 }
 
 bool CBlockTreeDB::LoadBlockIndexGuts() {
-    leveldb::Iterator *pcursor = NewIterator();
+    leveldb::Iterator *pCursor = NewIterator();
     const std::string &prefix = dbk::GetKeyPrefix(dbk::BLOCK_INDEX);
 
-    pcursor->Seek(prefix);
+    pCursor->Seek(prefix);
 
     // Load mapBlockIndex
-    while (pcursor->Valid()) {
+    while (pCursor->Valid()) {
         boost::this_thread::interruption_point();
         try {
-            leveldb::Slice slKey = pcursor->key();
+            leveldb::Slice slKey = pCursor->key();
             if (slKey.starts_with(prefix)) {
-                leveldb::Slice slValue = pcursor->value();
+                leveldb::Slice slValue = pCursor->value();
                 CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 CDiskBlockIndex diskindex;
                 ssValue >> diskindex;
@@ -127,7 +126,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts() {
                 if (!pIndexNew->CheckIndex())
                     return ERRORMSG("LoadBlockIndex() : CheckIndex failed: %s", pIndexNew->ToString());
 
-                pcursor->Next();
+                pCursor->Next();
             } else {
                 break;  // if shutdown requested or finished loading block index
             }
@@ -135,26 +134,25 @@ bool CBlockTreeDB::LoadBlockIndexGuts() {
             return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
         }
     }
-    delete pcursor;
+    delete pCursor;
 
     return true;
 }
 
-CBlockIndex * InsertBlockIndex(uint256 hash)
-{
+CBlockIndex *InsertBlockIndex(uint256 hash) {
     if (hash.IsNull())
-        return NULL;
+        return nullptr;
 
     // Return existing
-    map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
+    map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(hash);
     if (mi != mapBlockIndex.end())
         return (*mi).second;
 
     // Create new
-    CBlockIndex* pIndexNew = new CBlockIndex();
+    CBlockIndex *pIndexNew = new CBlockIndex();
     if (!pIndexNew)
         throw runtime_error("LoadBlockIndex() : new CBlockIndex failed");
-    mi = mapBlockIndex.insert(make_pair(hash, pIndexNew)).first;
+    mi                    = mapBlockIndex.insert(make_pair(hash, pIndexNew)).first;
     pIndexNew->pBlockHash = &((*mi).first);
 
     return pIndexNew;

@@ -39,6 +39,7 @@
 #include "tx/tx.h"
 #include "persistence/accountdb.h"
 #include "persistence/blockdb.h"
+#include "persistence/delegatedb.h"
 #include "persistence/txdb.h"
 #include "persistence/cachewrapper.h"
 
@@ -126,6 +127,9 @@ static const uint8_t WRITE_SCRIPT_FAIL = 0X51;
 
 static const uint8_t STAKE_CDP_FAIL  = 0X60;
 static const uint8_t REDEEM_CDP_FAIL = 0X61;
+static const uint8_t WRITE_CDP_FAIL  = 0X62;
+static const uint8_t INTEREST_INSUFFICIENT = 0x63;
+static const uint8_t UPDATE_CDP_FAIL = 0X64;
 
 static const uint8_t WRITE_CANDIDATE_VOTES_FAIL = 0X70;
 
@@ -143,12 +147,10 @@ static const int kMultisigNumberThreshold               = 15;        // m-n mult
 static const int KMultisigScriptMaxSize                 = 1000;      // multisig script max size
 static const int kRegIdMaturePeriodByBlock              = 100;       // RegId's mature period measured by blocks
 
-static const uint64_t kFcoinGenesisTxHeight             = 5880000;
-static const uint64_t kFcoinGenesisRegisterTxIndex      = 1;
-static const uint64_t kFcoinGenesisIssueTxIndex         = 2;
-
-static const int kScoinInterestIncreaseRate             = 3;        // increase by 3%
-static const int kBcoinDexSellOrderDiscount             = 97;       // 97%
+static const uint32_t kFcoinGenesisTxHeight             = 5880000;
+static const uint16_t kFcoinGenesisIssueTxIndex         = 1;
+static const uint16_t kFcoinGenesisRegisterTxIndex      = 2;
+static const uint16_t kSettleServiceRegisterTxIndex     = 3;
 
 const uint16_t kMaxMinedBlocks                          = 100;      // maximun cache size for mined blocks
 
@@ -163,7 +165,7 @@ extern const string strMessageMagic;
 class CTxUndo;
 class CValidationState;
 class CWalletInterface;
-class CTransactionCache;
+class CTxMemCache;
 
 struct CNodeStateStats;
 
@@ -306,7 +308,7 @@ public:
 
 class CCacheDBManager {
 public:
-    CDBAccess            *pAccountDb;
+    CDBAccess           *pAccountDb;
     CAccountCache       *pAccountCache;
 
     CDBAccess           *pContractDb;
@@ -322,7 +324,7 @@ public:
 
     CBlockTreeDB        *pBlockTreeDb;
 
-    CTransactionCache   *pTxCache;
+    CTxMemCache         *pTxCache;
     CPricePointCache    *pPpCache;
 
     uint64_t            collateralRatioMin = 200; //minimum collateral ratio
@@ -348,7 +350,7 @@ public:
 
         pDexCache       = new CDexCache();
 
-        pTxCache        = new CTransactionCache();
+        pTxCache        = new CTxMemCache();
         pPpCache        = new CPricePointCache();
 
     }
@@ -719,6 +721,12 @@ bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex);
 bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos);
 bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block);
 bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block);
+
+template<typename TxType>
+bool ReadTxFromDisk(const CTxCord txCord, std::shared_ptr<TxType> &pTx) {
+    // TODO: ReadTxFromDisk
+    return false;
+}
 
 // global overloadding fun
 inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {

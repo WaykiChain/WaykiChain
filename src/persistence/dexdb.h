@@ -10,35 +10,21 @@
 #include <vector>
 
 #include "accounts/id.h"
+#include "accounts/account.h"
 
-// using namespace std;
-
-// enum OrderType {
-//     BUY = 1,
-//     SELL = 2,
-//     NULL_TYPE = 0
-// };
-
-// enum CoinType {
-//     WICC = 1,
-//     WUSD = 2,
-//     MICC = 3,
-// };
-
-struct CDEXLimitPriceOrder {
-    CUserID orderUid;
-    uint64_t orderAmount;
-    uint64_t orderPrice;
-
-     bool operator()(const CDEXLimitPriceOrder &a, const CDEXLimitPriceOrder &b) {
-        return a.orderPrice < b.orderPrice;
-    }
+enum OrderDirection {
+    ORDER_BUY  = 0,
+    ORDER_SELL = 1,
 };
 
-struct CDEXMarketPriceOrder {
-    CUserID orderUid;
-    uint64_t orderAmount;
+class CDEXSellOrderInfo {
+public:
+    uint64_t sellRemains; //!< 剩余可卖的资产数量
+};
 
+class CDEXBuyOrderInfo {
+public:
+    uint64_t buyRemains; //!< 剩余可买的资产数量
 };
 
 // System-generated Market Order
@@ -61,7 +47,17 @@ public:
     CDexCache() {}
 
 public:
-    bool MatchFcoinManualSellOrder(uint64_t scoins);
+
+
+    bool GetBuyOrder(const CTxCord& txCord, CDEXBuyOrderInfo& buyOrderInfo) { return false; }; // TODO: ...
+
+    bool HaveBuyOrder(const CTxCord& txCord) { return false; }; // TODO: ...
+
+    bool GetSellOrder(const CTxCord& txCord, CDEXSellOrderInfo& sellOrderInfo) { return false; }; // TODO: ...
+    bool HaveSellOrder(const CTxCord& txCord) { return false; }; // TODO: ...
+
+    bool CreateBuyOrder(uint64_t buyAmount, CoinType targetCoinType); //TODO: ... SystemBuyOrder
+    bool CreateSellOrder(uint64_t sellAmount, CoinType targetCoinType); //TODO: ... SystemSellOrder
 
 private:
     // CDBMultiValueCache<CDexFixedPriceOrder> bcoinBuyOrderCache;  // buy wicc with wusd (wusd_wicc)

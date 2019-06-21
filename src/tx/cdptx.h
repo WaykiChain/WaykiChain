@@ -12,11 +12,6 @@
  * Stake or ReStake bcoins into a CDP
  */
 class CCDPStakeTx: public CBaseTx {
-public:
-    uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
-    uint64_t collateralRatio;       // must be >= 200 (%)
-    uint64_t fcoinsInterest;        // preferred, will be burned immediately
-    uint64_t scoinsInterest;        // 3% increase compared to fcoins value, to place buy order of MICCs to burn
 
 public:
     CCDPStakeTx() : CBaseTx(CDP_STAKE_TX) {}
@@ -32,9 +27,9 @@ public:
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
-        bcoinsToStake = bcoinsToStakeIn;
+        bcoinsToStake   = bcoinsToStakeIn;
         collateralRatio = collateralRatioIn;
-        fcoinsInterest = fcoinsInterestIn;
+        fcoinsInterest  = fcoinsInterestIn;
     }
 
     ~CCDPStakeTx() {}
@@ -79,6 +74,13 @@ public:
 
 private:
     bool PayInterest(int nHeight, CCacheWrapper &cw, CValidationState &state);
+
+private:
+    uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
+    uint64_t collateralRatio;       // initial value must be >= 200 (%)
+    uint64_t fcoinsInterest;        // preferred, will be burned immediately
+    uint64_t scoinsInterest;        // 3% increase compared to fcoins value, to place buy order of MICCs to burn
+
 };
 
 /**
@@ -86,11 +88,6 @@ private:
  * Need to pay interest or stability fees
  */
 class CCDPRedeemTx: public CBaseTx {
-public:
-    uint64_t scoinsToRedeem;    // stableCoins amount to redeem or burn
-    uint64_t fcoinsInterest;    // Interest will be deducted from scoinsToRedeem when 0
-                                // For the first-time staking, no interest shall be paid though
-
 public:
     CCDPRedeemTx() : CBaseTx(CDP_REDEEMP_TX) {}
 
@@ -119,6 +116,7 @@ public:
 
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(scoinsToRedeem));
+        READWRITE(VARINT(collateralRatio));
         READWRITE(VARINT(fcoinsInterest));
 
         READWRITE(signature);
@@ -128,7 +126,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
-               << VARINT(llFees) << VARINT(scoinsToRedeem) << VARINT(fcoinsInterest);
+               << VARINT(llFees) << VARINT(scoinsToRedeem) << VARINT(collateralRatio) <<  VARINT(fcoinsInterest);
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -147,16 +145,23 @@ public:
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+
+private:
+    bool PayInterest(int nHeight, CCacheWrapper &cw, CValidationState &state);
+
+private:
+    CTxCord cdpTxCord;          // CDP TxCord
+    uint64_t scoinsToRedeem;    // stableCoins amount to redeem or burn
+    uint64_t collateralRatio;   // must be >= 150 (%)
+    uint64_t fcoinsInterest;    // Interest will be deducted from scoinsToRedeem when 0
+                                // For the first-time staking, no interest shall be paid though
 };
 
 /**
  * Liquidate a CDP
  */
 class CCDPLiquidateTx: public CBaseTx {
-public:
-    uint64_t scoinsToRedeem;    // stable coins to redeem base coins
-    uint64_t fcoinsInterest;    // Interest will be deducted from scoinsToRedeem when 0
-                                // For the first-time staking, no interest shall be paid though
+
 public:
     CCDPLiquidateTx() : CBaseTx(CDP_LIQUIDATE_TX) {}
 
@@ -213,6 +218,11 @@ public:
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+
+private:
+    uint64_t scoinsToRedeem;    // stable coins to redeem base coins
+    uint64_t fcoinsInterest;    // Interest will be deducted from scoinsToRedeem when 0
+                                // For the first-time staking, no interest shall be paid though
 };
 
 #endif //TX_CDP_H

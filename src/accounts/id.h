@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2019- The WaykiChain Core Developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef ID_H
 #define ID_H
@@ -18,8 +18,10 @@
 
 class CAccountCache;
 class CUserID;
+class CUserID;
 
 typedef vector<unsigned char> vector_unsigned_char;
+typedef CRegID CTxCord;
 
 class CNullID {
 public:
@@ -47,7 +49,7 @@ public:
         return vRegID;
     }
 
-    string GetRegIdRawStr() const {
+    string ToRawString() const {
         return string(vRegID.begin(), vRegID.end()); // TODO: change the vRegID to string
     }
 
@@ -74,6 +76,11 @@ public:
             vRegID.insert(vRegID.end(), BEGIN(nIndex), END(nIndex));
         })
 };
+
+/**
+ * tx cord, locate a tx with its block height and index
+ */
+typedef CRegID CTxCord;
 
 class CNickID {
 private:
