@@ -300,7 +300,6 @@ bool CCdpRedeem::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state
 
     cw.txUndo.accountLogs.push_back(acctLog);
     cw.txUndo.accountLogs.push_back(cdpAcctLog);
-    //TODO: add cdp undlog...
 
     return true;
  }
