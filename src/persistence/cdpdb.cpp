@@ -7,6 +7,11 @@
 
 #include "main.h"
 
+bool CCdpMemCache::GetCdps(const uint16_t ratio, vector<CUserCdp> &cdps) {
+    // TODO
+    return true;
+}
+
 bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                                         const int blockHeight, const int txIndex, CUserCdp &cdp, CDbOpLog &cdpDbOpLog) {
     cdpDbOpLog = CDbOpLog(cdpCache.GetPrefixType(), regId.ToRawString(), cdp);
@@ -23,8 +28,13 @@ bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoi
     return true;
 }
 
-bool CCdpCacheManager::GetUnderLiquidityCdps(vector<CUserCdp> & userCdps) {
-    //TODO
+bool CCdpCacheManager::GetUnderLiquidityCdps(vector<CUserCdp> &userCdps) {
+    // TODO
+    return true;
+}
+
+bool CCdpCacheManager::GetForceSettleCdps(vector<CUserCdp> &userCdps) {
+    // TODO
     return true;
 }
 

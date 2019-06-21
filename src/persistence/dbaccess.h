@@ -6,22 +6,30 @@
 #ifndef PERSIST_DB_ACCESS_H
 #define PERSIST_DB_ACCESS_H
 
-#include <tuple>
-
 #include "dbconf.h"
 #include "leveldbwrapper.h"
+
+#include <tuple>
 
 /**
  * Empty functions
  */
 namespace db_util {
-    // TODO:
-    inline bool IsEmpty(const int val) { return true; }
-    inline bool IsEmpty(const uint64_t val) { return true; }
-
     // uint8_t
     inline bool IsEmpty(const uint8_t val) { return val != 0; }
     inline void SetEmpty(uint8_t &val) { val = 0; }
+
+    // uint16_t
+    inline bool IsEmpty(const uint16_t val) { return val != 0; }
+    inline void SetEmpty(uint16_t &val) { val = 0; }
+
+    // uint32_t
+    inline bool IsEmpty(const uint32_t val) { return val != 0; }
+    inline void SetEmpty(uint32_t &val) { val = 0; }
+
+    // uint64_t
+    inline bool IsEmpty(const uint64_t val) { return val != 0; }
+    inline void SetEmpty(uint64_t &val) { val = 0; }
 
     // string
     template<typename C> bool IsEmpty(const basic_string<C> &val);

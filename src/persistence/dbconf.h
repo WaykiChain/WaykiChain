@@ -91,6 +91,8 @@ namespace dbk {
         DEFINE( CDP_IR_PARAM_A,       "ira",   CDP )           /* [prefix] --> param_a */ \
         DEFINE( CDP_IR_PARAM_B,       "irb",   CDP )           /* [prefix] --> param_b */ \
         DEFINE( CDP_COLLATERAL_RATIO, "ccr",   CDP )           /* [prefix] --> collateralRatio */ \
+        DEFINE( CDP_OPEN_LIQUIDATE_RATIO, "colr", CDP )        /* [prefix] --> openLiquidateRatio */ \
+        DEFINE( CDP_FORCE_LIQUIDATE_RATIO, "cflr", CDP )       /* [prefix] --> forceLiquidateRatio */ \
         /**** dex db                                                                    */ \
         DEFINE( DEX_BUY_ORDER,        "dexb",  DEX )           /* [prefix]{micc|wusd|wicc} --> buy order */ \
         DEFINE( DEX_SELL_ORDER,       "dexs",  DEX )           /* [prefix]{micc|wusd|wicc} --> sell order */ \

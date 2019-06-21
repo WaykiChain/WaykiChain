@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "accounts/id.h"
+#include "accounts/account.h"
 
 enum OrderDirection {
     ORDER_BUY  = 0,

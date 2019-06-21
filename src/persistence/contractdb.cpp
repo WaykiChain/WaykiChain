@@ -580,10 +580,9 @@ bool CContractCache::WriteTxOutPut(const uint256 &txid, const vector<CVmOperate>
     return txOutputCache.SetData(txid, vOutput);
 }
 
-bool CContractCache::SetTxHashByAddress(const CKeyID &keyId, int nHeight, int nIndex,
-                                            const uint256 &txid, CDbOpLog &operLog) {
-
-    auto key = make_tuple(keyId, nHeight, nIndex);
+bool CContractCache::SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid,
+                                        CDbOpLog &operLog) {
+    auto key = make_tuple(keyId, height, index);
 
     uint256 oldValue;
     acctTxListCache.GetData(key, oldValue);
@@ -596,35 +595,32 @@ bool CContractCache::UndoTxHashByAddress(CDBOpLogsMap &dbOpLogsMap) {
     return UndoData(acctTxListCache.GetPrefixType(), dbOpLogs);
 }
 
-
-bool CContractCache::GetTxHashByAddress(
-    const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash) {
-
+bool CContractCache::GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string> &mapTxHash) {
     return false;
-/* TODO: implements get list in cache
-    pBase->GetTxHashByAddress(keyId, nHeight, mapTxHash);
+    /* TODO: implements get list in cache
+        pBase->GetTxHashByAddress(keyId, nHeight, mapTxHash);
 
-    string vPreKey = {'A', 'D', 'D', 'R'};
-    CDataStream ds1(SER_DISK, CLIENT_VERSION);
-    ds1 << keyId;
-    ds1 << nHeight;
-    vPreKey.insert(vPreKey.end(), ds1.begin(), ds1.end());
+        string vPreKey = {'A', 'D', 'D', 'R'};
+        CDataStream ds1(SER_DISK, CLIENT_VERSION);
+        ds1 << keyId;
+        ds1 << nHeight;
+        vPreKey.insert(vPreKey.end(), ds1.begin(), ds1.end());
 
-    map<string, string >::iterator iterFindKey =
-        mapContractDb.upper_bound(vPreKey);
-    while (iterFindKey != mapContractDb.end()) {
-        if (0 == memcmp((char *)&iterFindKey->first[0], (char *)&vPreKey[0], 28)) {
-            if (iterFindKey->second.empty())
-                mapTxHash.erase(iterFindKey->first);
-            else {
-                mapTxHash.insert(make_pair(iterFindKey->first, iterFindKey->second));
+        map<string, string >::iterator iterFindKey =
+            mapContractDb.upper_bound(vPreKey);
+        while (iterFindKey != mapContractDb.end()) {
+            if (0 == memcmp((char *)&iterFindKey->first[0], (char *)&vPreKey[0], 28)) {
+                if (iterFindKey->second.empty())
+                    mapTxHash.erase(iterFindKey->first);
+                else {
+                    mapTxHash.insert(make_pair(iterFindKey->first, iterFindKey->second));
+                }
+            } else {
+                break;
             }
-        } else {
-            break;
         }
-    }
-    return true;
-*/
+        return true;
+    */
 }
 
 bool CContractCache::GetAllContractAcc(

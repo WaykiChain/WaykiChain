@@ -8,6 +8,7 @@
 
 #include "accounts/id.h"
 #include "dbaccess.h"
+#include "tx/tx.h"  // TODO: constant definitions
 
 #include <map>
 #include <string>
@@ -84,6 +85,8 @@ private:
 public:
     CCdpMemCache() : pBase(nullptr) {}
     CCdpMemCache(CCdpMemCache *pBaseIn) : pBase(pBaseIn) {}
+
+    bool GetCdps(const uint16_t ratio, vector<CUserCdp> &cdps);
 };
 
 class CCdpCacheManager {
@@ -94,24 +97,33 @@ public:
     bool StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                           const int blockHeight, const int txIndex, CUserCdp &cdp, CDbOpLog &cdpDbOpLog);
 
-    bool GetUnderLiquidityCdps(vector<CUserCdp> & userCdps);
-
     bool GetCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp);
     bool SaveCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp);
     bool UndoCdp(CDbOpLog &opLog) { return cdpCache.UndoData(opLog); }
 
     uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);
 
-    uint64_t GetCollateralRatio() {
-        uint64_t ratio = 0;
-        return collateralRatio.GetData(ratio) ? ratio : 200;
+    bool GetUnderLiquidityCdps(vector<CUserCdp> &userCdps);
+    bool GetForceSettleCdps(vector<CUserCdp> &userCdps);
+
+    uint16_t GetCollateralRatio() {
+        uint16_t ratio = 0;
+        return collateralRatio.GetData(ratio) ? ratio : kDefaultCollateralRatio;
     }
-    uint64_t GetInterestParamA() {
-        uint64_t paramA = 0;
+    uint16_t GetOpenLiquidateRatio() {
+        uint16_t ratio = 0;
+        return openLiquidateRatio.GetData(ratio) ? ratio : kDefaultOpenLiquidateRatio;
+    }
+    uint16_t GetForceLiquidateRatio() {
+        uint16_t ratio = 0;
+        return forceLiquidateRatio.GetData(ratio) ? ratio : kDefaultForcedLiquidateRatio;
+    }
+    uint16_t GetInterestParamA() {
+        uint16_t paramA = 0;
         return interestParamA.GetData(paramA) ? paramA : 1;
     }
-    uint64_t GetInterestParamB() {
-        uint64_t paramB = 0;
+    uint16_t GetInterestParamB() {
+        uint16_t paramB = 0;
         return interestParamB.GetData(paramB) ? paramB : 1;
     }
 
@@ -120,11 +132,15 @@ private:
 /*   CDBScalarValueCache   prefixType                 value                 variable               */
 /*  -------------------- --------------------------  ------------------   ------------------------ */
     // collateralRatio
-    CDBScalarValueCache< dbk::CDP_COLLATERAL_RATIO,  uint64_t>           collateralRatio;
+    CDBScalarValueCache< dbk::CDP_COLLATERAL_RATIO,  uint16_t>           collateralRatio;
+    // openLiquidateRatio
+    CDBScalarValueCache< dbk::CDP_OPEN_LIQUIDATE_RATIO, uint16_t>        openLiquidateRatio;
+    // forceLiquidateRatio
+    CDBScalarValueCache< dbk::CDP_FORCE_LIQUIDATE_RATIO, uint16_t>       forceLiquidateRatio;
     // interestParamA
-    CDBScalarValueCache< dbk::CDP_IR_PARAM_A,        uint64_t>           interestParamA;
+    CDBScalarValueCache< dbk::CDP_IR_PARAM_A,        uint16_t>           interestParamA;
     // interestParamB
-    CDBScalarValueCache< dbk::CDP_IR_PARAM_B,        uint64_t>           interestParamB;
+    CDBScalarValueCache< dbk::CDP_IR_PARAM_B,        uint16_t>           interestParamB;
 
 /*  CDBMultiValueCache     prefixType     key                               value        variable  */
 /*  ----------------   --------------   ---------------------------   ---------------   --------- */

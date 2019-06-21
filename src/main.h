@@ -151,9 +151,6 @@ static const uint16_t kFcoinGenesisIssueTxIndex         = 1;
 static const uint16_t kFcoinGenesisRegisterTxIndex      = 2;
 static const uint16_t kSettleServiceRegisterTxIndex     = 3;
 
-static const int kScoinInterestIncreaseRate             = 3;        // increase by 3%
-static const int kBcoinDexSellOrderDiscount             = 97;       // 97%
-
 const uint16_t kMaxMinedBlocks                          = 100;      // maximun cache size for mined blocks
 
 static const string kContractScriptPathPrefix           = "/tmp/lua/";
