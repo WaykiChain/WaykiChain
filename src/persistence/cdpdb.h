@@ -86,10 +86,13 @@ public:
     CCdpMemCache() : pBase(nullptr) {}
     CCdpMemCache(CCdpMemCache *pBaseIn) : pBase(pBaseIn) {}
 
-    bool GetCdps(const uint16_t ratio, vector<CUserCdp> &cdps);
+    bool GetCdps(const double ratio, vector<CUserCdp> &cdps);
 };
 
 class CCdpCacheManager {
+public:
+    CCdpMemCache cdpMemCache;
+
 public:
     CCdpCacheManager() {}
     CCdpCacheManager(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
@@ -103,8 +106,8 @@ public:
 
     uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);
 
-    bool GetUnderLiquidityCdps(vector<CUserCdp> &userCdps);
-    bool GetForceSettleCdps(vector<CUserCdp> &userCdps);
+    bool GetUnderLiquidityCdps(const uint64_t bcoinMedianPrice, vector<CUserCdp> &userCdps);
+    bool GetForceSettleCdps(const uint64_t bcoinMedianPrice, vector<CUserCdp> &userCdps);
 
     uint16_t GetCollateralRatio() {
         uint16_t ratio = 0;

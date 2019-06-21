@@ -183,7 +183,7 @@ string CTxUndo::ToString() const {
     return str;
 }
 
-bool CTxUndo::GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog) {
+bool CTxUndo::GetAccountLog(const CKeyID &keyId, CAccountLog &accountLog) {
     for (auto iterLog : accountLogs) {
         if (iterLog.keyID == keyId) {
             accountLog = iterLog;

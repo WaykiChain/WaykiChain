@@ -57,7 +57,7 @@ public:
 // Price Points in 11 consecutive blocks
 class CConsecutiveBlockPrice {
 private:
-    map<int, map<string, uint64_t>>mapBlockUserPrices;    // height -> { strUid -> price }
+    map<int, map<string, uint64_t>> mapBlockUserPrices;  // height -> { strUid -> price }
     int lastBlockHeight;
     int currBlockHeight;
     uint64_t lastBlockMediaPrice;
@@ -101,7 +101,7 @@ public:
 	)
 
 public:
-    bool GetAccountOperLog(const CKeyID &keyId, CAccountLog &accountLog);
+    bool GetAccountLog(const CKeyID &keyId, CAccountLog &accountLog);
 
     void Clear() {
         txHash = uint256();

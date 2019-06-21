@@ -7,7 +7,7 @@
 
 #include "main.h"
 
-bool CCdpMemCache::GetCdps(const uint16_t ratio, vector<CUserCdp> &cdps) {
+bool CCdpMemCache::GetCdps(const double ratio, vector<CUserCdp> &cdps) {
     // TODO
     return true;
 }
@@ -28,14 +28,12 @@ bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoi
     return true;
 }
 
-bool CCdpCacheManager::GetUnderLiquidityCdps(vector<CUserCdp> &userCdps) {
-    // TODO
-    return true;
+bool CCdpCacheManager::GetUnderLiquidityCdps(const uint64_t bcoinMedianPrice, vector<CUserCdp> &userCdps) {
+    return cdpMemCache.GetCdps(GetOpenLiquidateRatio() * bcoinMedianPrice, userCdps);
 }
 
-bool CCdpCacheManager::GetForceSettleCdps(vector<CUserCdp> &userCdps) {
-    // TODO
-    return true;
+bool CCdpCacheManager::GetForceSettleCdps(const uint64_t bcoinMedianPrice, vector<CUserCdp> &userCdps) {
+    return cdpMemCache.GetCdps(GetForceLiquidateRatio() * bcoinMedianPrice, userCdps);
 }
 
 bool CCdpCacheManager::GetCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp) {
