@@ -26,15 +26,14 @@ using namespace std;
  */
 struct CUserCdp {
     CRegID ownerRegId;              // CDP Owner RegId, mem-only
-    TxCord cdpTxCord;               // Transaction coordinate, mem-only
+    CTxCord cdpTxCord;              // Transaction coordinate, mem-only
     double collateralRatio;         // ratio = bcoins / mintedScoins, must be >= 200%, mem-only
 
     uint64_t lastBlockHeight;       // persisted: Hj (Hj+1 refer to current height)
-    uint64_t mintedScoins;          // persisted: mintedScoins = bcoins/rate
     uint64_t totalStakedBcoins;     // persisted: total staked bcoins
     uint64_t totalOwedScoins;       // persisted: TNj = last + minted = total minted - total redempted
 
-    CUserCdp() : lastBlockHeight(0), mintedScoins(0), totalStakedBcoins(0), totalOwedScoins(0) {}
+    CUserCdp() : lastBlockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
     bool operator()(const CUserCdp &a, const CUserCdp &b) {
         if (a.collateralRatio == b.collateralRatio) {
@@ -47,7 +46,7 @@ struct CUserCdp {
         }
     }
 
-    void UpdateUserCdp(const CRegID &ownerRegIdIn, const TxCord &cdpTxCordIn) {
+    void UpdateUserCdp(const CRegID &ownerRegIdIn, const CTxCord &cdpTxCordIn) {
         ownerRegId      = ownerRegIdIn;
         cdpTxCord       = cdpTxCordIn;
         collateralRatio = double(totalStakedBcoins) / totalOwedScoins;
@@ -55,7 +54,6 @@ struct CUserCdp {
 
     IMPLEMENT_SERIALIZE(
         READWRITE(lastBlockHeight);
-        READWRITE(mintedScoins);
         READWRITE(totalStakedBcoins);
         READWRITE(totalOwedScoins);
     )
@@ -66,33 +64,29 @@ struct CUserCdp {
     }
 
     bool IsEmpty() const {
-        return lastBlockHeight == 0 && mintedScoins == 0 && totalStakedBcoins == 0 && totalOwedScoins == 0;
+        return lastBlockHeight == 0 && totalStakedBcoins == 0 && totalOwedScoins == 0;
     }
 
     void SetEmpty() {
         lastBlockHeight   = 0;
-        mintedScoins      = 0;
         totalStakedBcoins = 0;
         totalOwedScoins   = 0;
     }
 };
 
 class CCdpMemCache {
-private:
-    map<CUserCdp, uint8_t> cdps;  // map: CUserCdp -> flag(0: valid; 1: invalid)
-    CCdpMemCache *pBase;
-
 public:
     CCdpMemCache() : pBase(nullptr) {}
     CCdpMemCache(CCdpMemCache *pBaseIn) : pBase(pBaseIn) {}
 
     bool GetCdps(const double ratio, vector<CUserCdp> &cdps);
+
+private:
+    map<CUserCdp, uint8_t> cdps;  // map: CUserCdp -> flag(0: valid; 1: invalid)
+    CCdpMemCache *pBase;
 };
 
 class CCdpCacheManager {
-public:
-    CCdpMemCache cdpMemCache;
-
 public:
     CCdpCacheManager() {}
     CCdpCacheManager(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
@@ -129,6 +123,9 @@ public:
         uint16_t paramB = 0;
         return interestParamB.GetData(paramB) ? paramB : 1;
     }
+
+public:
+    CCdpMemCache cdpMemCache;
 
 private:
 

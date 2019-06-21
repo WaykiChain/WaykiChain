@@ -45,7 +45,7 @@ bool CCdpCacheManager::GetCdp(const CRegID &regId, const TxCord &cdpTxCord, CUse
     return true;
 }
 
-bool CCdpCacheManager::SaveCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp) {
+bool CCdpCacheManager::SaveCdp(const CRegID &regId, const CTxCord &cdpTxCord, CUserCdp &cdp) {
     if (!cdpCache.SetData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()), cdp))
         return false;
 
