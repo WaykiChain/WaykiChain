@@ -43,8 +43,8 @@ public:
 private:
 /*  CDBScalarValueCache  prefixType     key                         value                   variable       */
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */
-    // vote{(uint64t)MAX - $votedBcoins}_{$RegId} --> 1
-    CDBMultiValueCache<dbk::VOTE,       std::pair<string, CRegID>,  uint8_t>                voteRegIdCache;
+    // vote{(uint64t)MAX - $votedBcoins}{$RegId} -> 1
+    CDBMultiValueCache<dbk::VOTE,       std::pair<string, string>,  uint8_t>                voteRegIdCache;
     CDBMultiValueCache<dbk::REGID_VOTE, string/* CRegID */,         vector<CCandidateVote>> regId2VoteCache;
 
     vector<CRegID> delegateRegIds;

@@ -10,14 +10,14 @@
 bool CDelegateCache::LoadTopDelegates() {
     delegateRegIds.clear();
 
-    set<std::pair<string, CRegID> > regIds;
+    // vote{(uint64t)MAX - $votedBcoins}{$RegId} --> 1
+    set<std::pair<string, string> > regIds;
     voteRegIdCache.GetTopNElements(IniCfg().GetTotalDelegateNum(), regIds);
 
     assert(regIds.size() == IniCfg().GetTotalDelegateNum());
 
     for (const auto &regId : regIds) {
-        // std::pair<string, CRegID>
-        delegateRegIds.push_back(std::get<1>(regId));
+        delegateRegIds.push_back(CRegID(std::get<1>(regId)));
     }
 
     assert(delegateRegIds.size() == IniCfg().GetTotalDelegateNum());
@@ -50,7 +50,7 @@ bool CDelegateCache::SetDelegateVotes(const CRegID &regId, const uint64_t votes)
 
     static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
     string strVotes           = strprintf("%016x", maxNumber - votes);
-    auto key                  = std::make_pair(strVotes, regId);
+    auto key                  = std::make_pair(strVotes, regId.ToRawString());
     static uint8_t value      = 1;
 
     return voteRegIdCache.SetData(key, value);
@@ -63,7 +63,7 @@ bool CDelegateCache::EraseDelegateVotes(const CRegID &regId, const uint64_t vote
 
     static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
     string strVotes           = strprintf("%016x", maxNumber - votes);
-    auto oldKey               = std::make_pair(strVotes, regId);
+    auto oldKey               = std::make_pair(strVotes, regId.ToRawString());
 
     return voteRegIdCache.EraseData(oldKey);
 }

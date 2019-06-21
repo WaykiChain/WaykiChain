@@ -5,10 +5,47 @@
 
 #include "cdpdb.h"
 
+#include "accounts/id.h"
 #include "main.h"
 
-bool CCdpMemCache::GetCdps(const double ratio, vector<CUserCdp> &cdps) {
-    // TODO
+bool CCdpMemCache::LoadCdps() {
+    assert(pAccess != nullptr);
+    map<std::pair<string, string>, CUserCdp> rawCdps;
+
+    if (!pAccess->GetAllElements(dbk::CDP, rawCdps)) {
+        // TODO: log
+        return false;
+    }
+
+    CRegID regId;
+    TxCord txCord;
+    CUserCdp userCdp;
+    uint8_t valid = 1;
+    for (const auto & cdp: rawCdps) {
+        regId   = std::get<0>(cdp.first);
+        txCord  = std::get<1>(cdp.first);
+        userCdp = cdp.second;
+
+        userCdp.UpdateUserCdp(regId, txCord);
+
+        cdps.emplace(userCdp, valid);
+    }
+
+    return true;
+}
+
+bool CCdpMemCache::GetUnderLiquidityCdps(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
+                                         vector<CUserCdp> &userCdps) {
+    return GetCdps(openLiquidateRatio * bcoinMedianPrice, userCdps);
+}
+
+bool CCdpMemCache::GetForceSettleCdps(const uint16_t forceLiquidateRatio, const uint64_t bcoinMedianPrice,
+                                      vector<CUserCdp> &userCdps) {
+    return GetCdps(forceLiquidateRatio * bcoinMedianPrice, userCdps);
+}
+
+bool CCdpMemCache::GetCdps(const double ratio, vector<CUserCdp> &userCdps) {
+    // TODO:
     return true;
 }
 
@@ -28,14 +65,6 @@ bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoi
     return true;
 }
 
-bool CCdpCacheManager::GetUnderLiquidityCdps(const uint64_t bcoinMedianPrice, vector<CUserCdp> &userCdps) {
-    return cdpMemCache.GetCdps(GetOpenLiquidateRatio() * bcoinMedianPrice, userCdps);
-}
-
-bool CCdpCacheManager::GetForceSettleCdps(const uint64_t bcoinMedianPrice, vector<CUserCdp> &userCdps) {
-    return cdpMemCache.GetCdps(GetForceLiquidateRatio() * bcoinMedianPrice, userCdps);
-}
-
 bool CCdpCacheManager::GetCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp) {
     if (!cdpCache.GetData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()), cdp))
         return false;
@@ -52,6 +81,10 @@ bool CCdpCacheManager::SaveCdp(const CRegID &regId, const TxCord &cdpTxCord, CUs
     cdp.UpdateUserCdp(regId, cdpTxCord);
 
     return true;
+}
+
+bool CCdpCacheManager::EraseCdp(const CRegID &regId, const TxCord &cdpTxCord) {
+    return cdpCache.EraseData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()));
 }
 
 /**

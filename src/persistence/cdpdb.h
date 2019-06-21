@@ -36,14 +36,14 @@ struct CUserCdp {
 
     CUserCdp() : lastBlockHeight(0), mintedScoins(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
-    bool operator()(const CUserCdp &a, const CUserCdp &b) {
-        if (a.collateralRatio == b.collateralRatio) {
-            if (a.ownerRegId == b.ownerRegId)
-                return a.cdpTxCord < b.cdpTxCord;
+    bool operator<(const CUserCdp &cdp) const {
+        if (this->collateralRatio == cdp.collateralRatio) {
+            if (this->ownerRegId == cdp.ownerRegId)
+                return this->cdpTxCord < cdp.cdpTxCord;
             else
-                return a.ownerRegId < b.ownerRegId;
+                return this->ownerRegId < cdp.ownerRegId;
         } else {
-            return a.collateralRatio < b.collateralRatio;
+            return this->collateralRatio < cdp.collateralRatio;
         }
     }
 
@@ -78,21 +78,29 @@ struct CUserCdp {
 };
 
 class CCdpMemCache {
+public:
+    CCdpMemCache() : pBase(nullptr), pAccess(nullptr) {}
+    // Only used to construct the global mem-cache.
+    CCdpMemCache(CDBAccess *pAccessIn) : pBase(nullptr), pAccess(pAccessIn) {}
+    CCdpMemCache(CCdpMemCache *pBaseIn) : pBase(pBaseIn), pAccess(nullptr) {}
+
+    bool LoadCdps();
+
+    bool GetUnderLiquidityCdps(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
+                               vector<CUserCdp> &userCdps);
+    bool GetForceSettleCdps(const uint16_t forceLiquidateRatio, const uint64_t bcoinMedianPrice,
+                            vector<CUserCdp> &userCdps);
+
+private:
+    bool GetCdps(const double ratio, vector<CUserCdp> &userCdps);
+
 private:
     map<CUserCdp, uint8_t> cdps;  // map: CUserCdp -> flag(0: valid; 1: invalid)
     CCdpMemCache *pBase;
-
-public:
-    CCdpMemCache() : pBase(nullptr) {}
-    CCdpMemCache(CCdpMemCache *pBaseIn) : pBase(pBaseIn) {}
-
-    bool GetCdps(const double ratio, vector<CUserCdp> &cdps);
+    CDBAccess *pAccess;
 };
 
 class CCdpCacheManager {
-public:
-    CCdpMemCache cdpMemCache;
-
 public:
     CCdpCacheManager() {}
     CCdpCacheManager(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
@@ -102,12 +110,10 @@ public:
 
     bool GetCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp);
     bool SaveCdp(const CRegID &regId, const TxCord &cdpTxCord, CUserCdp &cdp);
+    bool EraseCdp(const CRegID &regId, const TxCord &cdpTxCord);
     bool UndoCdp(CDbOpLog &opLog) { return cdpCache.UndoData(opLog); }
 
     uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);
-
-    bool GetUnderLiquidityCdps(const uint64_t bcoinMedianPrice, vector<CUserCdp> &userCdps);
-    bool GetForceSettleCdps(const uint64_t bcoinMedianPrice, vector<CUserCdp> &userCdps);
 
     uint16_t GetCollateralRatio() {
         uint16_t ratio = 0;
@@ -146,7 +152,7 @@ private:
     CDBScalarValueCache< dbk::CDP_IR_PARAM_B,        uint16_t>           interestParamB;
 
 /*  CDBMultiValueCache     prefixType     key                               value        variable  */
-/*  ----------------   --------------   ---------------------------   ---------------   --------- */
+/*  ----------------   --------------   ---------------------------   ---------------    --------- */
     // <CRegID, TxCord> -> CUserCdp
     CDBMultiValueCache< dbk::CDP,         std::pair<string, string>,   CUserCdp >       cdpCache;
 };

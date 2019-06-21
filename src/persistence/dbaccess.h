@@ -187,6 +187,30 @@ public:
     }
 
     template <typename KeyType, typename ValueType>
+    bool GetAllElements(const dbk::PrefixType prefixType, map<KeyType, ValueType> &elements) {
+        KeyType key;
+        ValueType value;
+        leveldb::Iterator *pCursor = db.NewIterator();
+        leveldb::Slice slKey       = pCursor->key();
+        pCursor->Seek(dbk::GetKeyPrefix(prefixType));
+
+        for (; pCursor->Valid(); pCursor->Next()) {
+            if (!dbk::ParseDbKey(slKey, prefixType, key)) {
+                break;
+            }
+
+            // Got an valid element.
+            leveldb::Slice slValue = pCursor->value();
+            CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+            ds >> value;
+            auto ret = elements.emplace(key, value);
+            assert(ret.second);  // TODO: throw error
+        }
+
+        return true;
+    }
+
+    template <typename KeyType, typename ValueType>
     bool GetAllElements(const dbk::PrefixType prefixType, set<KeyType> &expiredKeys,
                         map<KeyType, ValueType> &elements) {
         KeyType key;
