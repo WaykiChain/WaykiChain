@@ -8,6 +8,8 @@
 #include "accounts/id.h"
 #include "main.h"
 
+#include <cstdint>
+
 bool CCdpMemCache::LoadCdps() {
     assert(pAccess != nullptr);
     map<std::pair<string, string>, CUserCdp> rawCdps;
@@ -34,19 +36,70 @@ bool CCdpMemCache::LoadCdps() {
     return true;
 }
 
+void CCdpMemCache::Flush() {
+    assert(pBase != nullptr);
+
+    pBase->BatchWrite(cdps);
+    cdps.clear();
+}
+
 bool CCdpMemCache::GetUnderLiquidityCdps(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
-                                         vector<CUserCdp> &userCdps) {
+                                         set<CUserCdp> &userCdps) {
     return GetCdps(openLiquidateRatio * bcoinMedianPrice, userCdps);
 }
 
 bool CCdpMemCache::GetForceSettleCdps(const uint16_t forceLiquidateRatio, const uint64_t bcoinMedianPrice,
-                                      vector<CUserCdp> &userCdps) {
+                                      set<CUserCdp> &userCdps) {
     return GetCdps(forceLiquidateRatio * bcoinMedianPrice, userCdps);
 }
 
-bool CCdpMemCache::GetCdps(const double ratio, vector<CUserCdp> &userCdps) {
-    // TODO:
+bool CCdpMemCache::GetCdps(const double ratio, set<CUserCdp> &expiredCdps, set<CUserCdp> &userCdps) {
+    static CUserCdp cdp;
+    static CRegID regId(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint16_t>::max());
+    cdp.collateralRatio = ratio;
+    cdp.ownerRegId      = regId;
+
+    auto boundary = cdps.upper_bound(cdp);
+    if (boundary != cdps.end()) {
+        for (auto iter = cdps.begin(); iter != boundary; ++ iter) {
+            if (db_util::IsEmpty(iter->second)) {
+                expiredCdps.insert(iter->first);
+            } else if (expiredCdps.count(iter->first) || userCdps.count(iter->first)) {
+                // TODO: log
+                continue;
+            } else {
+                // Got a valid cdp
+                userCdps.insert(iter->first);
+            }
+        }
+    }
+
+    if (pBase != nullptr) {
+        return pBase->GetCdps(ratio, expiredCdps, userCdps);
+    }
+
     return true;
+}
+
+bool CCdpMemCache::GetCdps(const double ratio, set<CUserCdp> &userCdps) {
+    set<CUserCdp> expiredCdps;
+    if (!GetCdps(ratio, expiredCdps, userCdps)) {
+        // TODO: log
+        return false;
+    }
+
+    return true;
+}
+
+void CCdpMemCache::BatchWrite(const map<CUserCdp, uint8_t> &cdpsIn) {
+    // If the value is empty, delete it from cache.
+    for (const auto &item : cdpsIn) {
+        if (db_util::IsEmpty(item.second)) {
+            cdps.erase(item.first);
+        } else {
+            cdps[item.first] = item.second;
+        }
+    }
 }
 
 bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,

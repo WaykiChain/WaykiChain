@@ -120,7 +120,7 @@ public:
           stakedBcoins(0),
           stakedFcoins(0),
           receivedVotes(0),
-          lastVoteHeight(0),
+          lastVoteHeight(0) {
         minerPubKey = CPubKey();
         regID.Clean();
     }

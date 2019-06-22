@@ -82,14 +82,18 @@ public:
     CCdpMemCache(CCdpMemCache *pBaseIn) : pBase(pBaseIn), pAccess(nullptr) {}
 
     bool LoadCdps();
+    void Flush();
 
     bool GetUnderLiquidityCdps(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
-                               vector<CUserCdp> &userCdps);
+                               set<CUserCdp> &userCdps);
     bool GetForceSettleCdps(const uint16_t forceLiquidateRatio, const uint64_t bcoinMedianPrice,
-                            vector<CUserCdp> &userCdps);
+                            set<CUserCdp> &userCdps);
 
 private:
-    bool GetCdps(const double ratio, vector<CUserCdp> &userCdps);
+    bool GetCdps(const double ratio, set<CUserCdp> &invalidCdps, set<CUserCdp> &userCdps);
+    bool GetCdps(const double ratio, set<CUserCdp> &userCdps);
+
+    void BatchWrite(const map<CUserCdp, uint8_t> &cdpsIn);
 
 private:
     map<CUserCdp, uint8_t> cdps;  // map: CUserCdp -> flag(0: valid; 1: invalid)

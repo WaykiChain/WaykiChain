@@ -52,7 +52,7 @@ bool CTxMemCache::HaveTx(const uint256 &txHash) {
 
 void CTxMemCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn) {
     // If the value is empty, delete it from cache.
-    for (auto &item : mapBlockTxHashSetIn) {
+    for (const auto &item : mapBlockTxHashSetIn) {
         if (item.second.empty()) {
             mapBlockTxHashSet.erase(item.first);
         } else {

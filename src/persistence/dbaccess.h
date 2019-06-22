@@ -452,9 +452,9 @@ private:
         }
 
         if (pBase != nullptr) {
-            pBase->GetTopNElements(maxNum, expiredKeys, keys);
+            return pBase->GetTopNElements(maxNum, expiredKeys, keys);
         } else if (pDbAccess != nullptr) {
-            pDbAccess->GetTopNElements(maxNum, PREFIX_TYPE, expiredKeys, keys);
+            return pDbAccess->GetTopNElements(maxNum, PREFIX_TYPE, expiredKeys, keys);
         }
 
         return true;
@@ -476,9 +476,9 @@ private:
         }
 
         if (pBase != nullptr) {
-            pBase->GetAllElements(expiredKeys, elements);
+            return pBase->GetAllElements(expiredKeys, elements);
         } else if (pDbAccess != nullptr) {
-            pDbAccess->GetAllElements(PREFIX_TYPE, expiredKeys, elements);
+            return pDbAccess->GetAllElements(PREFIX_TYPE, expiredKeys, elements);
         }
 
         return true;
