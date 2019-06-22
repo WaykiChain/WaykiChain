@@ -132,8 +132,8 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
     cw.txUndo.accountLogs.push_back(acctLog);
 
     CDbOpLog cdpDbOpLog;
-    cw.cdpCache.StakeBcoinsToCdp(txUid.get<CRegID>(), bcoinsToStake, collateralRatio, (uint64_t)mintedScoins, nHeight,
-                                 cdp, cdpDbOpLog);  // update cache & persist into ldb
+    cw.cdpCache.StakeBcoinsToCdp(txUid.get<CRegID>(), bcoinsToStake, (uint64_t)mintedScoins, nHeight, cdp,
+                                 cdpDbOpLog);  // update cache & persist into ldb
     cw.txUndo.dbOpLogsMap.AddDbOpLog(dbk::CDP, cdpDbOpLog);
 
     bool ret = SaveTxAddresses(nHeight, nIndex, cw, {txUid});
