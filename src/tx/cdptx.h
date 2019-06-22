@@ -21,12 +21,14 @@ public:
     }
 
     CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
-                uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn, uint64_t fcoinsInterestIn, uint64_t scoinsInterestIn):
+                CTxCord cdpTxCordIn, uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn,
+                uint64_t fcoinsInterestIn, uint64_t scoinsInterestIn):
                 CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
+        cdpTxCord       = cdpTxCordIn;
         bcoinsToStake   = bcoinsToStakeIn;
         collateralRatio = collateralRatioIn;
         fcoinsInterest  = fcoinsInterestIn;
@@ -42,6 +44,7 @@ public:
         READWRITE(txUid);
 
         READWRITE(VARINT(llFees));
+        READWRITE(cdpTxCord);
         READWRITE(VARINT(bcoinsToStake));
         READWRITE(VARINT(collateralRatio));
         READWRITE(VARINT(fcoinsInterest));
@@ -54,7 +57,8 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << VARINT(bcoinsToStake) << VARINT(collateralRatio) << VARINT(fcoinsInterest) << VARINT(scoinsInterest);
+                << cdpTxCord << VARINT(bcoinsToStake) << VARINT(collateralRatio)
+                << VARINT(fcoinsInterest) << VARINT(scoinsInterest);
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -78,6 +82,7 @@ private:
     bool PayInterest(int nHeight, CCacheWrapper &cw, CValidationState &state);
 
 private:
+    CTxCord cdpTxCord;              // .IsEmpty() will be true if the target CDP does not exist
     uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
     uint64_t collateralRatio;       // initial value must be >= 200 (%)
     uint64_t fcoinsInterest;        // preferred, will be burned immediately
@@ -98,12 +103,12 @@ public:
     }
 
     CCDPRedeemTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
-                uint64_t scoinsToRedeemIn, uint64_t fcoinsInterestIn):
+                CTxCord cdpTxCordIn, uint64_t scoinsToRedeemIn, uint64_t fcoinsInterestIn):
                 CBaseTx(CDP_REDEEMP_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
-
+        cdpTxCord = cdpTxCordIn;
         scoinsToRedeem = scoinsToRedeemIn;
         fcoinsInterest = fcoinsInterestIn;
     }
@@ -117,6 +122,7 @@ public:
         READWRITE(txUid);
 
         READWRITE(VARINT(llFees));
+        READWRITE(cdpTxCord);
         READWRITE(VARINT(scoinsToRedeem));
         READWRITE(VARINT(collateralRatio));
         READWRITE(VARINT(fcoinsInterest));
@@ -128,7 +134,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << VARINT(scoinsToRedeem) << VARINT(collateralRatio) << VARINT(fcoinsInterest);
+                << cdpTxCord << VARINT(scoinsToRedeem) << VARINT(collateralRatio) << VARINT(fcoinsInterest);
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -171,14 +177,16 @@ public:
     }
 
     CCDPLiquidateTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
-                uint64_t scoinsToRedeemIn, uint64_t fcoinsInterestIn):
+                CTxCord cdpTxCordIn, uint64_t scoinsToLiquidateIn, uint64_t fcoinsInterestIn):
                 CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
-        scoinsToRedeem = scoinsToRedeemIn;
-        fcoinsInterest = fcoinsInterestIn;
+        cdpTxCord = cdpTxCordIn;
+        scoinsToLiquidate = scoinsToLiquidateIn;
+        fcoinsPenalty = fcoinsPenaltyIn;
+        scoinsPenalty = scoinsPenaltyIn;
     }
 
     ~CCDPLiquidateTx() {}
@@ -190,8 +198,10 @@ public:
         READWRITE(txUid);
 
         READWRITE(VARINT(llFees));
-        READWRITE(VARINT(bcoinsToStake));
-        READWRITE(VARINT(fcoinsInterest));
+        READWRITE(cdpTxCord);
+        READWRITE(scoinsToLiquidate);
+        READWRITE(VARINT(fcoinsPenalty));
+        READWRITE(VARINT(scoinsPenalty)));
 
         READWRITE(signature);
     )
@@ -200,7 +210,8 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << VARINT(cdpTxCord) << VARINT(fcoinsPenalty) << VARINT(scoinsPenalty);
+                << VARINT(cdpTxCord) << VARINT(scoinsToLiquidate)
+                << VARINT(fcoinsPenalty) << VARINT(scoinsPenalty);
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -222,6 +233,7 @@ public:
 
 private:
     CTxCord cdpTxCord;          // target CDP to liquidate
+    uint64_t scoinsToLiquidate; // partial liqudiation is allowed
     uint64_t fcoinsPenalty;
     uint64_t scoinsPenalty;
 };

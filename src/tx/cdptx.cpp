@@ -171,29 +171,29 @@ bool CCdpStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
     return true;
 }
 
-/************************************<< CCdpRedeemTx >>***********************************************/
-string CCdpRedeem::ToString(CAccountCache &view) {
+/************************************<< CCDPRedeemTx >>***********************************************/
+string CCDPRedeemTx::ToString(CAccountCache &view) {
      //TODO
      return "";
  }
- Object CCdpRedeem::ToJson(const CAccountCache &AccountView) const {
+ Object CCDPRedeemTx::ToJson(const CAccountCache &AccountView) const {
      //TODO
      return Object();
  }
- bool CCdpRedeem::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+ bool CCDPRedeemTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
      //TODO
      return true;
  }
- bool CCdpRedeem::PayInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &cw, CValidationState &state) {
+ bool CCDPRedeemTx::PayInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &cw, CValidationState &state) {
     if (nHeight < cdp.lastBlockHeight) {
-        return state.DoS(100, ERRORMSG("CCdpRedeem::ExecuteTx, nHeight: %d < cdp.lastBlockHeight: %d",
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, nHeight: %d < cdp.lastBlockHeight: %d",
                     nHeight, cdp.lastBlockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
     }
 
     CAccount fcoinGensisAccount;
     CUserID fcoinGenesisUid(CRegID(kFcoinGenesisTxHeight, kFcoinGenesisIssueTxIndex));
     if (!cw.accountCache.GetAccount(fcoinGenesisUid, fcoinGensisAccount)) {
-        return state.DoS(100, ERRORMSG("CCdpRedeem::ExecuteTx, read fcoinGenesisUid %s account info error",
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read fcoinGenesisUid %s account info error",
                         fcoinGenesisUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
     }
     CAccountLog genesisAcctLog(account);
@@ -205,7 +205,7 @@ string CCdpRedeem::ToString(CAccountCache &view) {
     double restFcoins = totalFcoinsInterestToRepay - fcoinsInterest;
     double restScoins = (restFcoins/fcoinMedianPrice) * (100 + kScoinInterestIncreaseRate)/100;
     if (scoinsToRedeem < restScoins) { //remaining interest must be paid from redeem scoins
-        return state.DoS(100, ERRORMSG("CCdpRedeem::ExecuteTx, scoinsInterest: %d < restScoins: %d",
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, scoinsInterest: %d < restScoins: %d",
                         scoinsInterest, restScoins), INTEREST_INSUFFICIENT, "interest-insufficient-error");
     }
 
@@ -227,39 +227,39 @@ string CCdpRedeem::ToString(CAccountCache &view) {
     cw.txUndo.accountLogs.push_back(fcoinGensisAccount);
 }
 
-bool CCdpRedeem::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CCdpRedeem::CheckTx, read txUid %s account info error",
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, read txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     if (scoinsToRedeem == 0) {
-        return state.DoS(100, ERRORMSG("CCdpRedeem::CheckTx, scoinsToRedeem is 0"),
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, scoinsToRedeem is 0"),
                         REJECT_DUST, "REJECT_DUST");
     }
     if (account.fcoins < fcoinsInterest) {
-        return state.DoS(100, ERRORMSG("CCdpRedeem::CheckTx, account fcoins %d insufficent for interest %d",
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, account fcoins %d insufficent for interest %d",
                         account.fcoins, fcoinsInterest), READ_ACCOUNT_FAIL, "account-fcoins-insufficient");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
     return true;
  }
- bool CCdpRedeem::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+ bool CCDPRedeemTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     cw.txUndo.txHash = GetHash();
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CCdpRedeem::ExecuteTx, read txUid %s account info error",
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
     CAccountLog acctLog(account); //save account state before modification
     //1. pay miner fees (WICC)
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
-        return state.DoS(100, ERRORMSG("CCdpRedeem::ExecuteTx, deduct fees from regId=%s failed,",
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, deduct fees from regId=%s failed,",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
 
@@ -275,26 +275,26 @@ bool CCdpRedeem::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state
     cdp.totalOwedScoins -= scoinsToRedeem;
     double targetStakedBcoins = collateralRatio * cdp.totalOwedScoins / cw.pricePointCache.GetScoinMedianPrice();
     if (cdp.totalStakedBcoins < targetStakedBcoins) {
-        return state.DoS(100, ERRORMSG("CCdpRedeem::ExecuteTx, total staked bcoins %d is smaller than target %d",
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, total staked bcoins %d is smaller than target %d",
                         cdp.totalStakedBcoins, targetStakedBcoins), UPDATE_ACCOUNT_FAIL, "targetStakedBcoins-error");
     }
     uint64_t releasedScoins = cdp.totalStakedBcoins - targetStakedBcoins;
     CAccount cdpAccount;
     if (!cw.accountCache.GetAccount(CUserID(cdp.ownerRegId), cdpAccount)) {
-        return state.DoS(100, ERRORMSG("CCdpRedeem::ExecuteTx, read CDP Owner %s account info error",
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read CDP Owner %s account info error",
                         cdp.ownerRegId.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
     CAccountLog cdpAcctLog(account);
 
     cdpAccount.UnFreezeDexCoin(CoinType:WICC, releasedScoins);
     if (!cw.accountCache.SaveAccount(cdpAccount)) {
-        return state.DoS(100, ERRORMSG("CCdpRedeem::ExecuteTx, update cdpAccount %s failed",
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update cdpAccount %s failed",
                         fcoinGenesisUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     }
 
     cdp.totalStakedBcoins = (uint64_t) targetStakedBcoins;
     if (!cw.cdpCache.SaveCdp(cdp)) {
-        return state.DoS(100, ERRORMSG("CCdpRedeem::ExecuteTx, update CDP %s failed",
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update CDP %s failed",
                         cdp.ownerRegId.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
     }
 
@@ -303,7 +303,7 @@ bool CCdpRedeem::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state
 
     return true;
  }
- bool CCdpRedeem::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+ bool CCDPRedeemTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
      //TODO
      return true;
  }
