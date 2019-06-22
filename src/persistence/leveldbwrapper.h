@@ -20,8 +20,8 @@ using namespace json_spirit;
 
 class CDbOpLog {
 private:
-    mutable dbk::PrefixType prefixType;
-    string prefix;
+    mutable dbk::PrefixType prefixType; // TODO: delete
+    string prefix; // TODO: delete
     string keyElement;
     string value;
 public:
@@ -32,7 +32,7 @@ public:
         Set(prefixTypeIn, keyElementIn, valueIn);
     }
 
-    // for key-value
+    // for key-value // TODO: delete
     template<typename K, typename V>
     void Set(dbk::PrefixType prefixTypeIn, const K& keyElementIn, const V& valueIn){
         prefixType = prefixTypeIn;
@@ -43,11 +43,27 @@ public:
         value = ssValue.str();
     }
 
-    // for single value
+    // for single value // TODO: delete
     template<typename V>
     void Set(dbk::PrefixType prefixTypeIn, const V& valueIn){
         prefixType = prefixTypeIn;
         prefix = dbk::GetKeyPrefix(prefixType);
+        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+        ssValue << valueIn;
+        value = ssValue.str();
+    }
+
+    // for key-value
+    template<typename K, typename V>
+    void Set(const K& keyElementIn, const V& valueIn){
+        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+        ssValue << valueIn;
+        value = ssValue.str();
+    }
+
+    // for single value
+    template<typename V>
+    void Set(const V& valueIn){
         CDataStream ssValue(SER_DISK, CLIENT_VERSION);
         ssValue << valueIn;
         value = ssValue.str();
@@ -75,8 +91,8 @@ public:
     inline Slice GetValue() { return value; }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(prefix);
-        if (fRead) {
+        READWRITE(prefix); /* TODO: delete */
+        if (fRead) { /* TODO: delete */
             prefixType = dbk::ParseKeyPrefixType(prefix);
             if (prefixType == dbk::EMPTY) {
                 throw std::out_of_range("CDbOpLog unserialize failed! invalid prefix=" + prefix);
