@@ -19,18 +19,10 @@ bool CCdpMemCache::LoadCdps() {
         return false;
     }
 
-    CRegID regId;
-    CTxCord txCord;
-    CUserCdp userCdp;
-    uint8_t valid = 1;
-    for (const auto & cdp: rawCdps) {
-        regId   = std::get<0>(cdp.first);
-        txCord  = std::get<1>(cdp.first);
-        userCdp = cdp.second;
+    for (const auto & item: rawCdps) {
+        static uint8_t valid = 1; // 0: invalid; 1: valid
 
-        userCdp.UpdateUserCdp(regId, txCord);
-
-        cdps.emplace(userCdp, valid);
+        cdps.emplace(item.second, valid);
     }
 
     return true;
@@ -41,6 +33,20 @@ void CCdpMemCache::Flush() {
 
     pBase->BatchWrite(cdps);
     cdps.clear();
+}
+
+bool CCdpMemCache::SaveCdp(const CUserCdp &userCdp) {
+    static uint8_t valid = 1; // 0: invalid; 1: valid
+    cdps.emplace(userCdp, valid);
+
+    return true;
+}
+
+bool CCdpMemCache::EraseCdp(const CUserCdp &userCdp) {
+    static uint8_t invalid = 0; // 0: invalid; 1: valid
+    cdps[userCdp] = invalid;
+
+    return true;
 }
 
 bool CCdpMemCache::GetUnderLiquidityCdps(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
@@ -54,8 +60,9 @@ bool CCdpMemCache::GetForceSettleCdps(const uint16_t forceLiquidateRatio, const 
 }
 
 bool CCdpMemCache::GetCdps(const double ratio, set<CUserCdp> &expiredCdps, set<CUserCdp> &userCdps) {
-    static CUserCdp cdp;
     static CRegID regId(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint16_t>::max());
+    static CTxCord txCord(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint16_t>::max());
+    static CUserCdp cdp(regId, txCord);
     cdp.collateralRatio = ratio;
     cdp.ownerRegId      = regId;
 
@@ -103,45 +110,38 @@ void CCdpMemCache::BatchWrite(const map<CUserCdp, uint8_t> &cdpsIn) {
 }
 
 bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
-                                        const int blockHeight, const int txIndex, CUserCdp &cdp, CDbOpLog &cdpDbOpLog) {
+                                        const int blockHeight, CUserCdp &cdp, CDbOpLog &cdpDbOpLog) {
     cdpDbOpLog = CDbOpLog(cdpCache.GetPrefixType(), regId.ToRawString(), cdp);
 
     cdp.lastBlockHeight = blockHeight;
     cdp.totalStakedBcoins += bcoinsToStake;
     cdp.totalOwedScoins += mintedScoins;
+    cdp.collateralRatio = double(cdp.totalStakedBcoins) / cdp.totalOwedScoins;
 
-    if (!SaveCdp(regId, CTxCord(blockHeight, txIndex), cdp)) {
+    if (!SaveCdp(cdp)) {
         return ERRORMSG("CCdpCacheManager::StakeBcoinsToCdp : SetData failed.");
     }
 
     return true;
 }
 
-bool CCdpCacheManager::GetCdp(const CRegID &regId, const CTxCord &cdpTxCord, CUserCdp &cdp) {
-    if (!cdpCache.GetData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()), cdp))
+bool CCdpCacheManager::GetCdp(CUserCdp &cdp) {
+    if (!cdpCache.GetData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxCord.ToRawString()), cdp))
         return false;
-
-    cdp.UpdateUserCdp(regId, cdpTxCord);
 
     return true;
 }
 
-bool CCdpCacheManager::SaveCdp(const CRegID &regId, const CTxCord &cdpTxCord, CUserCdp &cdp) {
-    if (!cdpCache.SetData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()), cdp))
-        return false;
-
-    cdp.UpdateUserCdp(regId, cdpTxCord);
-
-    return true;
+bool CCdpCacheManager::SaveCdp(CUserCdp &cdp) {
+    return cdpCache.SetData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxCord.ToRawString()), cdp);
 }
 
-bool CCdpCacheManager::EraseCdp(const CRegID &regId, const CTxCord &cdpTxCord) {
-    return cdpCache.EraseData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()));
+bool CCdpCacheManager::EraseCdp(const CUserCdp &cdp) {
+    return cdpCache.EraseData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxCord.ToRawString()));
 }
 
-bool CCdpCacheManager::AddCdpOpLog(const CRegID &regId, const CTxCord &cdpTxCord,
-                                   const CUserCdp &cdp, CDBOpLogsMap &dbOpLogsMap) {
-    return false; // TODO:...                                       
+bool CCdpCacheManager::AddCdpOpLog(const CUserCdp &cdp, CDBOpLogsMap &dbOpLogsMap) {
+    return false; // TODO:...
 }
 /**
  *  Interest Ratio Formula: ( a / Log10(b + N) )

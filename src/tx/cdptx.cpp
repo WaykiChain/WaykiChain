@@ -108,9 +108,9 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
 
-    CUserCdp cdp;
+    CUserCdp cdp(txUid.get<CRegID>(), CTxCord(nHeight, nIndex));
     //2. pay interest fees in wusd or micc into the micc pool
-    if (cw.cdpCache.GetCdp(txUid.get<CRegID>(), CTxCord(nHeight, nIndex), cdp)) {
+    if (cw.cdpCache.GetCdp(cdp)) {
         if (!PayInterest(nHeight, cdp, cw, state))
             return false;
     }
@@ -133,7 +133,7 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
 
     CDbOpLog cdpDbOpLog;
     cw.cdpCache.StakeBcoinsToCdp(txUid.get<CRegID>(), bcoinsToStake, collateralRatio, (uint64_t)mintedScoins, nHeight,
-                                 nIndex, cdp, cdpDbOpLog);  // update cache & persist into ldb
+                                 cdp, cdpDbOpLog);  // update cache & persist into ldb
     cw.txUndo.dbOpLogsMap.AddDbOpLog(dbk::CDP, cdpDbOpLog);
 
     bool ret = SaveTxAddresses(nHeight, nIndex, cw, {txUid});
@@ -264,12 +264,12 @@ bool CCdpRedeem::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state
     }
 
     //2. pay interest fees in wusd or micc into the micc pool
-    CUserCdp cdp;
-    if (cw.cdpCache.GetCdp(txUid.get<CRegID>(), cdpTxCord, cdp)) {
+    CUserCdp cdp(txUid.get<CRegID>(), CTxCord(nHeight, nIndex));
+    if (cw.cdpCache.GetCdp(cdp)) {
         if (!PayInterest(nHeight, cdp, cw, state))
             return false;
     }
-    cw.cdpCache.AddCdpOpLog(txUid.get<CRegID>(), cdpTxCord, cdp, cw.txUndo.dbOpLogsMap);
+    cw.cdpCache.AddCdpOpLog(cdp, cw.txUndo.dbOpLogsMap);
 
     //3. redeem in scoins and update cdp
     cdp.totalOwedScoins -= scoinsToRedeem;
@@ -293,7 +293,7 @@ bool CCdpRedeem::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state
     }
 
     cdp.totalStakedBcoins = (uint64_t) targetStakedBcoins;
-    if (!cw.cdpCache.SaveCdp(txUid.GetRegID(), cdpTxCord, cdp)) {
+    if (!cw.cdpCache.SaveCdp(cdp)) {
         return state.DoS(100, ERRORMSG("CCdpRedeem::ExecuteTx, update CDP %s failed",
                         cdp.ownerRegId.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
     }

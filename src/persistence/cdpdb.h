@@ -21,19 +21,22 @@ using namespace std;
  * Ij =  TNj * (Hj+1 - Hj)/Y * 0.1a/Log10(1+b*TNj)
  *
  * Persisted in LDB as:
- *      cdp{$RegID}{$CTxCord} --> { lastBlockHeight, mintedScoins, totalStakedBcoins, totalOwedScoins }
+ *      cdp{$RegID}{$CTxCord} --> { lastBlockHeight, totalStakedBcoins, totalOwedScoins }
  *
  */
 struct CUserCdp {
-    CRegID ownerRegId;              // CDP Owner RegId, mem-only
-    CTxCord cdpTxCord;              // Transaction coordinate, mem-only
-    double collateralRatio;         // ratio = bcoins / mintedScoins, must be >= 200%, mem-only
+    mutable double collateralRatio; // ratio = totalStakedBcoins / totalOwedScoins, must be >= 200%, mem-only
 
+    CRegID ownerRegId;              // CDP Owner RegId
+    CTxCord cdpTxCord;              // Transaction coordinate
     uint64_t lastBlockHeight;       // persisted: Hj (Hj+1 refer to current height)
     uint64_t totalStakedBcoins;     // persisted: total staked bcoins
     uint64_t totalOwedScoins;       // persisted: TNj = last + minted = total minted - total redempted
 
     CUserCdp() : lastBlockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
+
+    CUserCdp(const CRegID &regId, const CTxCord &txCord)
+        : ownerRegId(regId), cdpTxCord(txCord), lastBlockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
     bool operator<(const CUserCdp &cdp) const {
         if (collateralRatio == cdp.collateralRatio) {
@@ -46,28 +49,32 @@ struct CUserCdp {
         }
     }
 
-    void UpdateUserCdp(const CRegID &ownerRegIdIn, const CTxCord &cdpTxCordIn) {
-        ownerRegId      = ownerRegIdIn;
-        cdpTxCord       = cdpTxCordIn;
-        collateralRatio = double(totalStakedBcoins) / totalOwedScoins;
-    }
-
     IMPLEMENT_SERIALIZE(
+        READWRITE(ownerRegId);
+        READWRITE(cdpTxCord);
         READWRITE(lastBlockHeight);
         READWRITE(totalStakedBcoins);
         READWRITE(totalOwedScoins);
+        if (fRead) {
+            collateralRatio = double(totalStakedBcoins) / totalOwedScoins;
+        }
     )
 
     string ToString() {
-        return strprintf("lastBlockHeight=%d, totalStakedBcoins=%d, tatalOwedScoins=%d",
-                         lastBlockHeight, totalStakedBcoins, totalOwedScoins);
+        return strprintf(
+            "ownerRegId=%s, cdpTxCord=%s, lastBlockHeight=%d, totalStakedBcoins=%d, tatalOwedScoins=%d, "
+            "collateralRatio=%f",
+            ownerRegId.ToString(), cdpTxCord.ToString(), lastBlockHeight, totalStakedBcoins, totalOwedScoins,
+            collateralRatio);
     }
 
     bool IsEmpty() const {
+        // FIXME: ownerRegID/cdpTxCord set empty?
         return lastBlockHeight == 0 && totalStakedBcoins == 0 && totalOwedScoins == 0;
     }
 
     void SetEmpty() {
+        // FIXME: ownerRegID/cdpTxCord set empty?
         lastBlockHeight   = 0;
         totalStakedBcoins = 0;
         totalOwedScoins   = 0;
@@ -83,6 +90,10 @@ public:
 
     bool LoadCdps();
     void Flush();
+
+    // Usage: before modification, erase the old cdp; after modification, save the new cdp.
+    bool SaveCdp(const CUserCdp &userCdp);
+    bool EraseCdp(const CUserCdp &userCdp);
 
     bool GetUnderLiquidityCdps(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
                                set<CUserCdp> &userCdps);
@@ -107,13 +118,13 @@ public:
     CCdpCacheManager(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
 
     bool StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
-                          const int blockHeight, const int txIndex, CUserCdp &cdp, CDbOpLog &cdpDbOpLog);
+                          const int blockHeight, CUserCdp &cdp, CDbOpLog &cdpDbOpLog);
 
-    bool GetCdp(const CRegID &regId, const CTxCord &cdpTxCord, CUserCdp &cdp);
-    bool SaveCdp(const CRegID &regId, const CTxCord &cdpTxCord, CUserCdp &cdp);
-    bool EraseCdp(const CRegID &regId, const CTxCord &cdpTxCord);
-    bool AddCdpOpLog(const CRegID &regId, const CTxCord &cdpTxCord, const CUserCdp &cdp, CDBOpLogsMap &dbOpLogsMap);
-    bool UndoCdp(CDBOpLogsMap &dbOpLogsMap) { /*return cdpCache.UndoData(opLog);*/ return false;  } // TODO: 
+    bool GetCdp(CUserCdp &cdp);
+    bool SaveCdp(CUserCdp &cdp);
+    bool EraseCdp(const CUserCdp &cdp);
+    bool AddCdpOpLog(const CUserCdp &cdp, CDBOpLogsMap &dbOpLogsMap);
+    bool UndoCdp(CDBOpLogsMap &dbOpLogsMap) { /*return cdpCache.UndoData(opLog);*/ return false;  } // TODO:
 
     uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);
 
