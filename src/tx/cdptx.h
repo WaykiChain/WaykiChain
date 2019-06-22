@@ -21,7 +21,7 @@ public:
     }
 
     CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
-                uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn, uint64_t fcoinsInterestIn):
+                uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn, uint64_t fcoinsInterestIn, uint64_t scoinsInterestIn):
                 CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
@@ -30,6 +30,7 @@ public:
         bcoinsToStake   = bcoinsToStakeIn;
         collateralRatio = collateralRatioIn;
         fcoinsInterest  = fcoinsInterestIn;
+        scoinsInterest  = scoinsInterestIn;
     }
 
     ~CCDPStakeTx() {}
@@ -44,6 +45,7 @@ public:
         READWRITE(VARINT(bcoinsToStake));
         READWRITE(VARINT(collateralRatio));
         READWRITE(VARINT(fcoinsInterest));
+        READWRITE(VARINT(scoinsInterest));
 
         READWRITE(signature);
     )
@@ -51,8 +53,8 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
-               << VARINT(llFees) << VARINT(bcoinsToStake) << VARINT(collateralRatio) << VARINT(fcoinsInterest);
+            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
+                << VARINT(bcoinsToStake) << VARINT(collateralRatio) << VARINT(fcoinsInterest) << VARINT(scoinsInterest);
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -125,8 +127,8 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
-               << VARINT(llFees) << VARINT(scoinsToRedeem) << VARINT(collateralRatio) <<  VARINT(fcoinsInterest);
+            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
+                << VARINT(scoinsToRedeem) << VARINT(collateralRatio) << VARINT(fcoinsInterest);
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -154,7 +156,6 @@ private:
     uint64_t scoinsToRedeem;    // stableCoins amount to redeem or burn
     uint64_t collateralRatio;   // must be >= 150 (%)
     uint64_t fcoinsInterest;    // Interest will be deducted from scoinsToRedeem when 0
-                                // For the first-time staking, no interest shall be paid though
 };
 
 /**
@@ -198,8 +199,8 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << appUid
-               << VARINT(llFees) << VARINT(bcoinsToStake);
+            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
+                << VARINT(cdpTxCord) << VARINT(fcoinsPenalty) << VARINT(scoinsPenalty);
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -220,9 +221,9 @@ public:
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    uint64_t scoinsToRedeem;    // stable coins to redeem base coins
-    uint64_t fcoinsInterest;    // Interest will be deducted from scoinsToRedeem when 0
-                                // For the first-time staking, no interest shall be paid though
+    CTxCord cdpTxCord;          // target CDP to liquidate
+    uint64_t fcoinsPenalty;
+    uint64_t scoinsPenalty;
 };
 
 #endif //TX_CDP_H

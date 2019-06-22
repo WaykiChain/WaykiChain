@@ -309,19 +309,19 @@ bool CCdpRedeem::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state
  }
 
 /************************************<< CdpLiquidateTx >>***********************************************/
-string CCdpLiquidateTx::ToString(CAccountCache &view) {
+string CCDPLiquidateTx::ToString(CAccountCache &view) {
     //TODO
     return "";
 }
-Object CCdpLiquidateTx::ToJson(const CAccountCache &AccountView) const {
+Object CCDPLiquidateTx::ToJson(const CAccountCache &AccountView) const {
     //TODO
     return Object();
 }
-bool CCdpLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     //TODO
     return true;
 }
-bool CCdpLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CCDPLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
@@ -339,11 +339,11 @@ bool CCdpLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
     return true;
 }
-bool CCdpLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     //TODO
     //1. pay miner fees (WICC)
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
-        return state.DoS(100, ERRORMSG("CCdpLiquidateTx::ExecuteTx, deduct fees from regId=%s failed,",
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, deduct fees from regId=%s failed,",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
     //2. pay fines
