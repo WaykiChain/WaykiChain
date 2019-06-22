@@ -139,6 +139,10 @@ bool CCdpCacheManager::EraseCdp(const CRegID &regId, const CTxCord &cdpTxCord) {
     return cdpCache.EraseData(std::make_pair(regId.ToRawString(), cdpTxCord.ToRawString()));
 }
 
+bool CCdpCacheManager::AddCdpOpLog(const CRegID &regId, const CTxCord &cdpTxCord,
+                                   const CUserCdp &cdp, CDBOpLogsMap &dbOpLogsMap) {
+    return false; // TODO:...                                       
+}
 /**
  *  Interest Ratio Formula: ( a / Log10(b + N) )
  *  a = 1, b = 1

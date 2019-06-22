@@ -112,7 +112,8 @@ public:
     bool GetCdp(const CRegID &regId, const CTxCord &cdpTxCord, CUserCdp &cdp);
     bool SaveCdp(const CRegID &regId, const CTxCord &cdpTxCord, CUserCdp &cdp);
     bool EraseCdp(const CRegID &regId, const CTxCord &cdpTxCord);
-    bool UndoCdp(CDbOpLog &opLog) { return cdpCache.UndoData(opLog); }
+    bool AddCdpOpLog(const CRegID &regId, const CTxCord &cdpTxCord, const CUserCdp &cdp, CDBOpLogsMap &dbOpLogsMap);
+    bool UndoCdp(CDBOpLogsMap &dbOpLogsMap) { /*return cdpCache.UndoData(opLog);*/ return false;  } // TODO: 
 
     uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);
 
