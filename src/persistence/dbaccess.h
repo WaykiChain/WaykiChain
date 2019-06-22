@@ -339,7 +339,7 @@ public:
 
     bool GetData(const KeyType &key, ValueType &value) const {
         auto it = GetDataIt(key);
-        if (it != mapData.end()) {
+        if (it != mapData.end() && !db_util::IsEmpty(it->second)) {
             value = it->second;
             return true;
         }
@@ -357,12 +357,12 @@ public:
 
     bool HaveData(const KeyType &key) const {
         auto it = GetDataIt(key);
-        return it != mapData.end();
+        return it != mapData.end() && !db_util::IsEmpty(it->second);
     }
 
     bool EraseData(const KeyType &key) {
         Iterator it = GetDataIt(key);
-        if (it != mapData.end()) {
+        if (it != mapData.end() && !db_util::IsEmpty(it->second)) {
             db_util::SetEmpty(it->second);
         }
         return true;
@@ -408,9 +408,7 @@ private:
 
         Iterator it = mapData.find(key);
         if (it != mapData.end()) {
-            if (!db_util::IsEmpty(it->second)) {
-                return it;
-            }
+            return it;
         } else if (pBase != nullptr){
             auto it = pBase->GetDataIt(key);
             if (it != mapData.end()) {
@@ -519,7 +517,7 @@ public:
 
     bool GetData(ValueType &value) const {
         auto ptr = GetDataPtr();
-        if (ptr) {
+        if (ptr && !db_util::IsEmpty(*ptr)) {
             value = *ptr;
             return true;
         }
@@ -538,12 +536,12 @@ public:
 
     bool HaveData() const {
         auto ptr = GetDataPtr();
-        return ptr;
+        return ptr && !db_util::IsEmpty(*ptr);
     }
 
     bool EraseData() {
         auto ptr = GetDataPtr();
-        if (ptr) {
+        if (ptr && !db_util::IsEmpty(*ptr)) {
             db_util::SetEmpty(*ptr);
         }
         return true;
@@ -576,9 +574,7 @@ private:
     std::shared_ptr<ValueType> GetDataPtr() const {
 
         if (ptrData) {
-            if (!db_util::IsEmpty(*ptrData)) {
-                return ptrData;
-            }
+            return ptrData;
         } else if (pBase != nullptr){
             auto ptr = pBase->GetDataPtr();
             if (ptr) {
