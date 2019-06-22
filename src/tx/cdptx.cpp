@@ -140,7 +140,7 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
 
     cw.txUndo.dbOpLogsMap.AddDbOpLog(dbk::CDP, cdpDbOpLog);
 
-    bool ret = SaveTxAddresses(nHeight, nIndex, cw, {txUid});
+    bool ret = SaveTxAddresses(nHeight, nIndex, cw, state, {txUid});
     return ret;
 }
 

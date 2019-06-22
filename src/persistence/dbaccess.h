@@ -374,6 +374,14 @@ public:
         return true;
     };
 
+    bool SetData(const KeyType &key, const ValueType &value, CDBOpLogsMap &dbOpLogsMap) {
+        CDbOpLog dbOpLog;
+        if (SetData(key, value, dbOpLog)) {
+            dbOpLogsMap.AddOpLog(PREFIX_TYPE, dbOpLog);
+            return true;
+        }
+        return false;
+    }
 
     bool HaveData(const KeyType &key) const {
         if (db_util::IsEmpty(key)) {
@@ -411,6 +419,15 @@ public:
         return true;
     }
 
+    bool EraseData(const KeyType &key, CDBOpLogsMap &dbOpLogsMap) {
+        CDbOpLog dbOpLog;
+        if (EraseData(key, dbOpLog)) {
+            dbOpLogsMap.AddOpLog(PREFIX_TYPE, dbOpLog);
+            return true;
+        }
+        return false;
+    }
+
     void Flush() {
         assert(pBase != nullptr || pDbAccess != nullptr);
         if (pBase != nullptr) {
@@ -427,11 +444,18 @@ public:
     }
 
     bool UndoData(const CDbOpLog &dbOpLog) {
-        assert(dbOpLog.GetPrefixType() == PREFIX_TYPE);
         KeyType key;
         ValueType value;
         dbOpLog.Get(key, value);
         mapData[key] = value;
+        return true;
+    }
+
+    bool UndoData(CDBOpLogsMap &dbOpLogMap) {
+        CDbOpLogs &dbOpLogs = dbOpLogMap.GetDbOpLogs(PREFIX_TYPE);
+        for (auto &dbOpLog : dbOpLogs) {
+            if (!UndoData(dbOpLog)) return false;
+        }
         return true;
     }
 
@@ -589,6 +613,16 @@ public:
         return true;
     };
 
+
+    bool SetData(const ValueType &value, CDBOpLogsMap &dbOpLogsMap) {
+        CDbOpLog dbOpLog;
+        if (SetData(value, dbOpLog)) {
+            dbOpLogsMap.AddOpLog(PREFIX_TYPE, dbOpLog);
+            return true;
+        }
+        return false;
+    }
+
     bool HaveData() const {
         auto ptr = GetDataPtr();
         return ptr && !db_util::IsEmpty(*ptr);
@@ -614,6 +648,15 @@ public:
             db_util::SetEmpty(*ptr);
         }
         return true;
+    }
+
+    bool EraseData(CDBOpLogsMap &dbOpLogsMap) {
+        CDbOpLog dbOpLog;
+        if (EraseData(dbOpLog)) {
+            dbOpLogsMap.AddOpLog(PREFIX_TYPE, dbOpLog);
+            return true;
+        }
+        return false;
     }
 
     void Flush() {

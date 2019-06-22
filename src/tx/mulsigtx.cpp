@@ -177,7 +177,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
     }
     uids.push_back(desUserId);
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, uids)) return false;
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, uids)) return false;
 
     return true;
 }

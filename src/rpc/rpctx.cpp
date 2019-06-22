@@ -91,7 +91,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
 
                     if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
                         vector<CVmOperate> vOutput;
-                        pCdMan->pContractCache->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
+                        pCdMan->pContractCache->GetTxOutput(pBaseTx->GetHash(), vOutput);
                         Array outputArray;
                         for (auto& item : vOutput) {
                             outputArray.push_back(item.ToJson());
@@ -221,7 +221,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             arrayDetail.push_back(objRec);
 
             vector<CVmOperate> vOutput;
-            pCdMan->pContractCache->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
+            pCdMan->pContractCache->GetTxOutput(pBaseTx->GetHash(), vOutput);
             Array outputArray;
             for (auto& item : vOutput) {
                 Object objOutPut;

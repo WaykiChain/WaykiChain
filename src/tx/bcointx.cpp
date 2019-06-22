@@ -105,7 +105,7 @@ bool CBaseCoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     cw.txUndo.accountLogs.push_back(desAcctLog);
     cw.txUndo.txHash = GetHash();
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid, toUid}))
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid, toUid}))
         return false;
 
     return true;

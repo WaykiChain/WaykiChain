@@ -35,7 +35,7 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
     cw.txUndo.txHash = GetHash();
 
     // Block reward transaction will execute twice, but need to save once when index equals to zero.
-    if (nIndex == 0 && !SaveTxAddresses(nHeight, nIndex, cw, {txUid}))
+    if (nIndex == 0 && !SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
         return false;
 
     return true;

@@ -11,6 +11,7 @@
 #include "commons/serialize.h"
 #include "script.h"
 #include "accounts/account.h"
+#include "persistence/leveldbwrapper.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_writer_template.h"
@@ -62,7 +63,7 @@ private:
     bool  isCheckAccount;  //校验账户平衡开关
 
     map<vector<unsigned char>, vector<CAppFundOperate>> mapAppFundOperate;  // vector<unsigned char > 存的是accountId
-    std::shared_ptr<vector<CDbOpLog>> pScriptDBOperLog;
+    CDBOpLogsMap *pDBOpLogsMap;
 
 private:
     /**
@@ -141,6 +142,7 @@ public:
      */
     std::tuple<bool, uint64_t, string> ExecuteContract(std::shared_ptr<CBaseTx>& Tx, int nheight, CCacheWrapper &cw,
                                                   uint64_t nBurnFactor, uint64_t& uRunStep);
+
     /**
      * @brief just for test
      * @return:
@@ -158,12 +160,17 @@ public:
     uint256 GetCurTxHash();
     bool InsertOutputData(const vector<CVmOperate>& source);
     void InsertOutAPPOperte(const vector<unsigned char>& userId, const CAppFundOperate& source);
-    std::shared_ptr<vector<CDbOpLog>> GetDbLog();
+    CDBOpLogsMap* GetDbLog();
 
     bool GetAppUserAccount(const vector<unsigned char>& id, std::shared_ptr<CAppUserAccount>& sptrAcc);
     bool CheckAppAcctOperate(CContractInvokeTx* tx);
     void SetCheckAccount(bool bCheckAccount);
     virtual ~CVmRunEnv();
+public:
+    /**
+     * undo datas product by contract
+     */
+    static bool UndoDatas(CCacheWrapper &cw);
 };
 
 #endif /* VMRUNENV_H_ */

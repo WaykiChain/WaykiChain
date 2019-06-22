@@ -27,6 +27,7 @@ private:
 public:
     CDbOpLog() {}
 
+    // TODO: delete
     template<typename K, typename V>
     CDbOpLog(dbk::PrefixType prefixTypeIn, const K& keyElementIn, const V& valueIn){
         Set(prefixTypeIn, keyElementIn, valueIn);
@@ -130,12 +131,12 @@ public:
         return mapDbOpLogs[prefix];
     }
 
-    void AddDbOpLogs(dbk::PrefixType prefixType, const CDbOpLogs& dbOpLogsIn) {
+    void AddOpLogs(dbk::PrefixType prefixType, const CDbOpLogs& dbOpLogsIn) {
         CDbOpLogs& dbOpLogs = GetDbOpLogs(prefixType);
         dbOpLogs.insert(dbOpLogs.end(), dbOpLogsIn.begin(), dbOpLogsIn.end());
     }
 
-    void AddDbOpLog(dbk::PrefixType prefixType, const CDbOpLog& dbOpLogIn) {
+    void AddOpLog(dbk::PrefixType prefixType, const CDbOpLog& dbOpLogIn) {
         CDbOpLogs& dbOpLogs = GetDbOpLogs(prefixType);
         dbOpLogs.push_back(dbOpLogIn);
     }

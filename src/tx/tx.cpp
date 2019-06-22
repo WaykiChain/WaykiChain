@@ -100,23 +100,28 @@ string CBaseTx::ToString(CAccountCache &view) {
 }
 
 bool CBaseTx::SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw,
-                              const vector<CUserID> &userIds) {
+                              CValidationState &state, const vector<CUserID> &userIds) {
     if (SysCfg().GetAddressToTxFlag()) {
-        CDbOpLogs &opLogs = cw.txUndo.dbOpLogsMap.GetDbOpLogs(dbk::LIST_KEYID_TX);
-        CDbOpLog operAddressToTxLog;
         for (auto userId : userIds) {
             if (userId.type() != typeid(CNullID)) {
                 CKeyID keyId;
                 if (!cw.accountCache.GetKeyId(userId, keyId))
-                    return ERRORMSG("SaveTxAddresses, get keyid by uid error!");
+                    return state.DoS(100, ERRORMSG("CBaseTx::SaveTxAddresses, get keyid by uid error"),
+                                    READ_ACCOUNT_FAIL, "bad-get-keyid-uid");
 
                 if (!cw.contractCache.SetTxHashByAddress(keyId, height, index + 1,
-                                                         cw.txUndo.txHash, operAddressToTxLog))
-                    return ERRORMSG("SaveTxAddresses, SetTxHashByAddress to db cache failed!");
-
-                opLogs.push_back(operAddressToTxLog);
+                                                         cw.txUndo.txHash, cw.txUndo.dbOpLogsMap))
+                    return state.DoS(100, ERRORMSG("CBaseTx::SaveTxAddresses, SetTxHashByAddress to db cache failed!"),
+                                    READ_ACCOUNT_FAIL, "bad-set-txHashByAddress");
             }
         }
     }
     return true;
+}
+
+bool CBaseTx::UndoTxAddresses(CCacheWrapper &cw, CValidationState &state) {
+    
+    if (!cw.contractCache.UndoTxHashByAddress(cw.txUndo.dbOpLogsMap))
+        return state.DoS(100, ERRORMSG("CBaseTx::UndoTxAddresses failed!"),
+                            READ_ACCOUNT_FAIL, "undo-data-failed");
 }

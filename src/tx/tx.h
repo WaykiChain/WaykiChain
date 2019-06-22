@@ -189,7 +189,9 @@ public:
 protected:
     bool CheckMinTxFee(const uint64_t llFees, const int32_t nHeight) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
-    static bool SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw, const vector<CUserID> &userIds);
+    static bool SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw, 
+                                CValidationState &state, const vector<CUserID> &userIds);
+    static bool UndoTxAddresses(CCacheWrapper &cw, CValidationState &state);
 };
 
 class CCoinPriceType {

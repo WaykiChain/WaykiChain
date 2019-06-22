@@ -75,12 +75,15 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
     nRunStep = contractScript.size();
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid})) return false;
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
     return true;
 }
 
 bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+
+    if (!UndoTxAddresses(cw, state)) return false;
+
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, read regist addr %s account info error",
@@ -407,7 +410,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
         cw.txUndo.accountLogs.push_back(oldAcctLog);
     }
-    cw.txUndo.dbOpLogsMap.AddDbOpLogs(dbk::CONTRACT_DATA, *vmRunEnv.GetDbLog());
+    //cw.txUndo.dbOpLogsMap.AddOpLogs(dbk::CONTRACT_DATA, *vmRunEnv.GetDbLog());
 
     vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEnv.GetRawAppUserAccount();
     for (auto & itemUserAccount : vAppUserAccount) {
@@ -423,12 +426,15 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
     cw.txUndo.txHash = GetHash();
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid, appUid})) return false;
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid, appUid})) return false;
 
     return true;
 }
 
 bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+
+    if (!UndoTxAddresses(cw, state)) return false;
+
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
@@ -467,14 +473,14 @@ bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
             }
         }
     }
-    const CDbOpLogs& dbOpLogs = cw.txUndo.dbOpLogsMap.GetDbOpLogs(dbk::CONTRACT_DATA);
-    if (!cw.contractCache.UndoData(dbk::CONTRACT_DATA, dbOpLogs)) {
-        return state.DoS(100, ERRORMSG("%s::UndoExecuteTx, undo contract data error", __FUNCTION__),
-                         UPDATE_ACCOUNT_FAIL, "undo-contract-data-failed");
+
+    if (!CVmRunEnv::UndoDatas(cw)) {
+        return state.DoS(100, ERRORMSG("CContractInvokeTx::UndoExecuteTx, undo datas produced by contract error"),
+                         UPDATE_ACCOUNT_FAIL, "undo-contract-datas-failed");
     }
 
     if (!cw.contractCache.EraseTxRelAccout(GetHash()))
-        return state.DoS(100, ERRORMSG("%s::UndoExecuteTx, erase tx rel account error", __FUNCTION__),
+        return state.DoS(100, ERRORMSG("CContractInvokeTx::UndoExecuteTx, erase tx rel account error"),
                          UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
 
     return true;

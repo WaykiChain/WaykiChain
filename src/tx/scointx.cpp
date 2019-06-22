@@ -65,7 +65,7 @@ bool CScoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper 
     cw.txUndo.accountLogs.push_back(desAccountLog);
     cw.txUndo.txHash = GetHash();
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid, toUid}))
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid, toUid}))
         return false;
 
     return true;

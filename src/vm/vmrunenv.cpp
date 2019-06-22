@@ -21,9 +21,9 @@ CVmRunEnv::CVmRunEnv() {
     rawAppUserAccount.clear();
     newAppUserAccount.clear();
     runTimeHeight      = 0;
-    pContractCache = NULL;
-    pAccountCache  = NULL;
-    pScriptDBOperLog   = std::make_shared<std::vector<CDbOpLog>>();
+    pContractCache = nullptr;
+    pAccountCache  = nullptr;
+    pDBOpLogsMap   = nullptr;
     isCheckAccount     = false;
 }
 
@@ -95,6 +95,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
         return std::make_tuple(false, 0, string("VmScript nBurnFactor == 0"));
 
     pContractCache = &cw.contractCache;
+    pDBOpLogsMap = &cw.txUndo.dbOpLogsMap;
 
     CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(Tx.get());
     if (tx->llFees < CBaseTx::nMinTxFee)
@@ -147,11 +148,9 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
     }
 
     if (SysCfg().IsContractLogOn() && vmOperateOutput.size() > 0) {
-        CDbOpLog operlog;
         uint256 txhash = GetCurTxHash();
-        if (!pContractCache->WriteTxOutPut(txhash, vmOperateOutput, operlog))
+        if (!pContractCache->WriteTxOutput(txhash, vmOperateOutput, *pDBOpLogsMap))
             return std::make_tuple(false, 0, string("write tx out put Failed"));
-        pScriptDBOperLog->push_back(operlog);
     }
     /*
         uint64_t spend = uRunStep * nBurnFactor;
@@ -164,6 +163,20 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
         return std::make_tuple(false, 0, string("mul error"));
     }
     return std::make_tuple(true, spend, string("VmScript Success"));
+}
+
+bool CVmRunEnv::UndoDatas(CCacheWrapper &cw) {
+
+    if (!cw.contractCache.UndoTxOutput(cw.txUndo.dbOpLogsMap)) {
+        return ERRORMSG("CVmRunEnv::UndoDatas UndoTxOutput failed");
+    }
+    if (!cw.contractCache.UndoScriptAcc(cw.txUndo.dbOpLogsMap)) {
+        return ERRORMSG("CVmRunEnv::UndoDatas UndoScriptAcc failed");
+    }
+    if (!cw.contractCache.UndoContractData(cw.txUndo.dbOpLogsMap)) {
+        return ERRORMSG("CVmRunEnv::UndoDatas UndoContractData failed");
+    }
+    return true;
 }
 
 shared_ptr<CAccount> CVmRunEnv::GetNewAccount(shared_ptr<CAccount>& vOldAccount) {
@@ -491,7 +504,7 @@ bool CVmRunEnv::InsertOutputData(const vector<CVmOperate>& source) {
     return false;
 }
 
-shared_ptr<vector<CDbOpLog>> CVmRunEnv::GetDbLog() { return pScriptDBOperLog; }
+CDBOpLogsMap* CVmRunEnv::GetDbLog() { return pDBOpLogsMap; }
 
 /**
  * 从脚本数据库中，取指定账户的 应用账户信息,同时解冻冻结金额到自由金额
@@ -554,10 +567,7 @@ bool CVmRunEnv::OperateAppAccount(const map<vector<unsigned char>, vector<CAppFu
             }
             newAppUserAccount.push_back(sptrAcc);
             LogPrint("vm", "after user: %s\n", sptrAcc.get()->ToString());
-            CDbOpLog log;
-            view.SetScriptAcc(GetScriptRegID(), *sptrAcc.get(), log);
-            shared_ptr<vector<CDbOpLog>> pScriptDBOperLog = GetDbLog();
-            pScriptDBOperLog.get()->push_back(log);
+            view.SetScriptAcc(GetScriptRegID(), *sptrAcc.get(), *pDBOpLogsMap);
         }
     }
     return true;
