@@ -49,6 +49,8 @@ public:
 
 class CAccountCache {
 public:
+    bool GetFcoinGenesisAccount(CAccount &fcoinGenesisAccount) const;
+
     bool GetAccount(const CKeyID &keyId, CAccount &account) const;
     bool GetAccount(const CRegID &regId, CAccount &account) const;
     bool GetAccount(const CUserID &userId, CAccount &account) const;

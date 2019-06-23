@@ -62,7 +62,7 @@ bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
     }
 
     // update the price feed cache accordingly
-    if (!cw.pricePointCache.AddBlockPricePointInBatch(nHeight, txUid, pricePoints)) {
+    if (!cw.ppCache.AddBlockPricePointInBatch(nHeight, txUid, pricePoints)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, txUid %s account duplicated price feed exits",
                         txUid.ToString()), PRICE_FEED_FAIL, "duplicated-pricefeed");
     }

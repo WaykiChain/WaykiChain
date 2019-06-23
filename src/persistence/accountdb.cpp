@@ -15,6 +15,11 @@ using namespace std;
 
 extern CChain chainActive;
 
+bool CAccountCache::GetFcoinGenesisAccount(CAccount &fcoinGensisAccount) const {
+    CUserID fcoinGenesisUid(CRegID(kFcoinGenesisTxHeight, kFcoinGenesisIssueTxIndex));
+    return GetAccount(fcoinGenesisUid, fcoinGensisAccount);
+}
+
 bool CAccountCache::GetAccount(const CKeyID &keyId, CAccount &account) const {
     return keyId2AccountCache.GetData(keyId, account);
 }
