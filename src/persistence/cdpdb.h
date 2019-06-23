@@ -128,23 +128,23 @@ public:
 
     uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);
 
-    uint16_t GetCollateralRatio() {
+    uint16_t GetDefaultCollateralRatio() {
         uint16_t ratio = 0;
         return collateralRatio.GetData(ratio) ? ratio : kDefaultCollateralRatio;
     }
-    uint16_t GetOpenLiquidateRatio() {
+    uint16_t GetDefaultOpenLiquidateRatio() {
         uint16_t ratio = 0;
         return openLiquidateRatio.GetData(ratio) ? ratio : kDefaultOpenLiquidateRatio;
     }
-    uint16_t GetForceLiquidateRatio() {
+    uint16_t GetDefaultForceLiquidateRatio() {
         uint16_t ratio = 0;
         return forceLiquidateRatio.GetData(ratio) ? ratio : kDefaultForcedLiquidateRatio;
     }
-    uint16_t GetInterestParamA() {
+    uint16_t GetDefaultInterestParamA() {
         uint16_t paramA = 0;
         return interestParamA.GetData(paramA) ? paramA : 1;
     }
-    uint16_t GetInterestParamB() {
+    uint16_t GetDefaultInterestParamB() {
         uint16_t paramB = 0;
         return interestParamB.GetData(paramB) ? paramB : 1;
     }

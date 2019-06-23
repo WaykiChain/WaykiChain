@@ -137,6 +137,7 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
     CDbOpLog cdpDbOpLog;
     cw.cdpCache.StakeBcoinsToCdp(txUid.get<CRegID>(), bcoinsToStake, (uint64_t)mintedScoins, nHeight, cdp,
                                  cdpDbOpLog);  // update cache & persist into ldb
+
     cw.txUndo.dbOpLogsMap.AddDbOpLog(dbk::CDP, cdpDbOpLog);
 
     bool ret = SaveTxAddresses(nHeight, nIndex, cw, {txUid});
@@ -329,11 +330,10 @@ bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) 
     //TODO
     return true;
 }
-
 bool CCDPLiquidateTx::PayPenaltyFee(int nHeight, const CUserCdp &cdp, CCacheWrapper &cw, CValidationState &state) {
     double scoins = (double) cdp.scoins;
-    double scoinPenaltyFees = scoins * kDefaultCdpPenaltyFeeRatio / 10000;
-    double fcoinPenaltyFees = scoinPenaltyFees / cw.ppCache.GetFcoinMedianPrice();
+    double liquidateRate = scoinsToLiquidate / totalOwedScoins;
+    double scoinPenaltyFees = scoins * liquidateRate * kDefaultCdpPenaltyFeeRatio / PERCENT_BOOST;
 
     int totalSubmittedPenaltyFees = scoinsPenalty + fcoinsPenalty * cw.ppCache.GetFcoinMedianPrice();
     if ((int) scoinPenaltyFees > totalSubmittedPenaltyFees) {
@@ -348,14 +348,16 @@ bool CCDPLiquidateTx::PayPenaltyFee(int nHeight, const CUserCdp &cdp, CCacheWrap
     CAccountLog genesisAcctLog(fcoinGenesisAccount);
     txUndo.push_back(genesisAcctLog);
 
-    fcoinGenesisAccount.fcoins += fcoinsPenalty;     // burn MICC coins
-    fcoinGenesisAccount.scoins += scoinsPenalty/2;   // save into risk reserve fund
+    uint64_t restScoins = scoinsPenalty / 2;
 
-    uint64_t restScoins = scoinsPenalty/2;
-    cw.dexCache.CreateBuyOrder(restScoins, CoinType::MICC); // DEX: wusd_micc
-    scoinsToRedeem -= restScoins; // after interest deduction, the remaining scoins will be redeemed
+    fcoinGenesisAccount.fcoins += fcoinsPenalty;    // burn MICC coins
+    fcoinGenesisAccount.scoins += restScoins;       // save into risk reserve fund
 
-    return false;
+    if (!cw.dexCache.CreateBuyOrder(restScoins, CoinType::MICC)) {
+        return false; // DEX: wusd_micc
+    }
+
+    return true;
 }
 
 bool CCDPLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
@@ -375,11 +377,38 @@ bool CCDPLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, read txUid %s account info error",
-                        txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
+                        txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+
+    if (account.scoins < scoinsToLiquidate + scoinsPenalty) {
+        return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, account scoins %d < scoinsToLiquidate: %d",
+                        account.scoins, scoinsToLiquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
+    }
+    if (fcoinsPenalty > 0 && account.fcoins < fcoinsPenalty) {
+        return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, account fcoins %d < fcoinsPenalty: %d",
+                        account.fcoins, fcoinsPenalty), CDP_LIQUIDATE_FAIL, "account-fcoins-insufficient");
+    }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
     return true;
 }
+
+/**
+  * TotalStakedBcoinsInScoins : TotalOwedScoins = M : N
+  *
+  * Liquidator paid         (0 < l ≤ 100%)
+  *   Liquidate Amount:     l * N       = lN
+  *   Penalty Fees:         l * N * 13% = 0.13lN
+  *
+  * Liquidator received
+  *   Bcoins:               lM
+  *   Net Profit:           lM - lN - 0.13lN = l(M - 1.13N)  ≥ 0, or 0.03lM (whichever smaller)
+  *
+  * CDP Owner returned
+  *   Bcoins:               lM - 1.13 lN - 0.03lN = l(M - 1.16N)
+  *
+  *  when M is 1.16 N and below, there'll be no return to the CDP owner
+  *  when M is 1.13 N and below, there'll be no profit for the liquidator, hence requiring force settlement
+  */
 bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     cw.txUndo.txHash = GetHash();
     CAccount account;
@@ -395,32 +424,62 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
 
-    //2. pay penalty fees
+    //2. pay penalty fees: 0.13lN --> 50% burn, 50% to Risk Reserve
     CUserCdp cdp(txUid.get<CRegID>(), CTxCord(nHeight, nIndex));
     if (cw.cdpCache.GetCdp(cdp)) {
         if (!PayPenaltyFee(nHeight, cdp, cw, state))
             return false;
     }
-    if (scoinsToLiquidate < cdp.totalOwedScoins) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, scoinsToLiquidate %d < totalOwedScons: %d",
-                        scoinsToLiquidate, cdp.totalOwedScoins), CDP_LIQUIDATE_FAIL, "cdp-liquidate-scoins-insufficient");
-    }
 
+    //TODO: add CDP log
+
+    double liquidateRatio = scoinsToLiquidate * PERCENT_BOOST / cdp.totalOwedScoins;
+    uint64_t bcoinsToLiquidate = cdp.totalStakedBcoins * liquidateRatio;
+
+    uint64_t fullProfitBcoins = cdp.totalStakedBcoins * kDefaultCdpLiquidateProfitRate / PERCENT_BOOST;
+    uint64_t profitBcoins = fullProfitBcoins * liquidateRatio;
+    uint64_t profitScoins = profitBcoins / cw.ppCache.GetBcoinMedianPrice();
+
+    double collteralRatio = (cdp.totalStakedBcoins / cw.ppCache.GetBcoinMedianPrice) *
+                                PERCENT_BOOST / cdp.totalOwedScoins;
+
+    // 3. update liquidator's account
+    account.fcoins -= fcoinsPenalty;
+    account.scoins -= scoinsPenalty;
+    account.scoins -= scoinsToLiquidate;
+    account.bcoins += bcoinsToLiquidate; //liquidator income: lM
+
+    // 4. update CDP owner's account: l(M - 1.16N)
     CAccount cdpAccount;
     if (!cw.accountCache.GetAccount(CUserID(cdp.ownerRegId), cdpAccount)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read CDP Owner %s account info error",
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP Owner %s account info error",
                         cdp.ownerRegId.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
     CAccountLog cdpAcctLog(account);
 
-    //3. collect due-amount bcoins
+    //TODO: change below to add a method in cdpdb.h for cache fetching
+    if (collateralRatio > kDefaultCdpLiquidateNonReturnRatio) {
+        double deductedScoins = cdp.totalOwedScoins * kDefaultCdpLiquidateNonReturnRatio / PERCENT_BOOST;
+        double deductedBcoins = deductedScoins / cw.ppCache.GetBcoinMedianPrice();
+        double returnBcoins = (cdp.totalStakedBcoins - deductedBcoins ) * liquidateRatio / PERCENT_BOOST;
+        cdpAccount.bcoins += returnBcoins;
+        // cdpAccount.UnFreezeDexCoin(CoinType::WICC, returnBcoins); TODO: check if necessary
+    }
 
-    //4. return remaining bcoins if any to the cdp owner
+    // 5. update CDP itself
+    if (cdp.totalOwedScoins <= scoinsToLiquidate) {
+        cw.cdpCache.EraseCdp(cdp);
+    } else {
+        uint64_t fcoinsPenaltyInScoins = fcoinsPenalty / cw.ppCache.GetFcoinMedianPrice();
+        uint64_t totalDeductedScoins = fcoinsPenaltyInScoins + scoinsPenalty + profitScoins + scoinsToLiquidate;
+        uint64_t totalDeductedBcoins = totalDeductedScoins / cw.ppCache.GetBcoinMedianPrice();
 
-    //5. close CDP
-    cw.cdpCache.EraseCdp(cdp);
+        cdp.totalOwedScoins     -= scoinsToLiquidate;
+        cdp.totalStakedBcoins   -= totalDeductedBcoins;
+        cw.cdpCache.SaveCdp(cdp);
+    }
 
-    //6. TxUndo Log
+    // cw.txUndo.dbOpLogsMap.push_back(cdpLog);
 
     return true;
 }

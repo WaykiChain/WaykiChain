@@ -48,18 +48,21 @@ bool CAccount::FreezeDexCoin(CoinType coinType, uint64_t amount) {
             frozenDEXBcoins += amount;
             assert(!IsMoneyOverflow(bcoins) && !IsMoneyOverflow(frozenDEXBcoins));
             break;
-        case MICC:
+
+        case WUSD:
             if (amount > scoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than scoins");
             scoins -= amount;
             frozenDEXScoins += amount;
             assert(!IsMoneyOverflow(scoins) && !IsMoneyOverflow(frozenDEXScoins));
             break;
-        case WUSD:
+
+        case MICC:
             if (amount > fcoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than fcoins");
             fcoins -= amount;
             frozenDEXFcoins += amount;
             assert(!IsMoneyOverflow(fcoins) && !IsMoneyOverflow(frozenDEXFcoins));
             break;
+
         default: return ERRORMSG("CAccount::FreezeDexCoin, coin type error");
     }
     return true;
@@ -70,24 +73,30 @@ bool CAccount::UnFreezeDexCoin(CoinType coinType, uint64_t amount) {
         case WICC:
             if (amount > frozenDEXBcoins)
                 return ERRORMSG("CAccount::UnFreezeDexCoin, amount larger than frozenDEXBcoins");
+
             bcoins += amount;
             frozenDEXBcoins -= amount;
             assert(!IsMoneyOverflow(bcoins) && !IsMoneyOverflow(frozenDEXBcoins));
             break;
-        case MICC:
+
+        case WUSD:
             if (amount > frozenDEXScoins)
                 return ERRORMSG("CAccount::UnFreezeDexCoin, amount larger than frozenDEXScoins");
+
             scoins += amount;
             frozenDEXScoins -= amount;
             assert(!IsMoneyOverflow(scoins) && !IsMoneyOverflow(frozenDEXScoins));
             break;
-        case WUSD:
+
+        case MICC:
             if (amount > frozenDEXFcoins)
                 return ERRORMSG("CAccount::UnFreezeDexCoin, amount larger than frozenDEXFcoins");
+
             fcoins += amount;
             frozenDEXFcoins -= amount;
             assert(!IsMoneyOverflow(fcoins) && !IsMoneyOverflow(frozenDEXFcoins));
             break;
+
         default: return ERRORMSG("CAccount::UnFreezeDexCoin, coin type error");
     }
     return true;
