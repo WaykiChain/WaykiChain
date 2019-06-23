@@ -29,13 +29,12 @@ bool CCDPStakeTx::PayInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &c
                     nHeight, cdp.lastBlockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
     }
 
-    CAccount fcoinGensisAccount;
-    CUserID fcoinGenesisUid(CRegID(kFcoinGenesisTxHeight, kFcoinGenesisIssueTxIndex));
-    if (!cw.accountCache.GetAccount(fcoinGenesisUid, fcoinGensisAccount)) {
-        return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, read fcoinGenesisUid %s account info error",
-                        fcoinGenesisUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
+    CAccount fcoinGenesisAccount;
+    if (!cw.accountCache.GetGenesisAccount(fcoinGenesisAccount)) {
+        return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, read fcoinGenesisUid account info error"),
+                        READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccountLog genesisAcctLog(fcoinGensisAccount);
+    CAccountLog genesisAcctLog(fcoinGenesisAccount);
 
     uint64_t totalScoinsInterestToRepay = cw.cdpCache.ComputeInterest(nHeight, cdp);
     uint64_t fcoinMedianPrice = cw.ppCache.GetFcoinMedianPrice();
@@ -194,12 +193,12 @@ string CCDPRedeemTx::ToString(CAccountCache &view) {
                     nHeight, cdp.lastBlockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
     }
 
-    CAccount fcoinGensisAccount;
-    if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGensisAccount)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read fcoinGenesisUid %s account info error",
-                        fcoinGenesisUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
+    CAccount fcoinGenesisAccount;
+    if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
+                        READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccountLog genesisAcctLog(fcoinGensisAccount);
+    CAccountLog genesisAcctLog(fcoinGenesisAccount);
 
     uint64_t totalScoinsInterestToRepay = cw.cdpCache.ComputeInterest(nHeight, cdp);
     uint64_t fcoinMedianPrice = cw.ppCache.GetFcoinMedianPrice();
@@ -341,16 +340,16 @@ bool CCDPLiquidateTx::PayPenaltyFee(int nHeight, const CUserCdp &cdp, CCacheWrap
         return false; // not enough penalty fees submitted
     }
 
-    CAccount fcoinGensisAccount;
-    if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGensisAccount)) {
+    CAccount fcoinGenesisAccount;
+    if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
         return state.DoS(100, ERRORMSG("CCdpStakeTx::ExecuteTx, read fcoinGenesisUid %s account info error",
-                        fcoinGenesisUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
+                        READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccountLog genesisAcctLog(fcoinGensisAccount);
+    CAccountLog genesisAcctLog(fcoinGenesisAccount);
     txUndo.push_back(genesisAcctLog);
 
-    fcoinGensisAccount.fcoins += fcoinsPenalty;     // burn MICC coins
-    fcoinGensisAccount.scoins += scoinsPenalty/2;   // save into risk reserve fund
+    fcoinGenesisAccount.fcoins += fcoinsPenalty;     // burn MICC coins
+    fcoinGenesisAccount.scoins += scoinsPenalty/2;   // save into risk reserve fund
 
     uint64_t restScoins = scoinsPenalty/2;
     cw.dexCache.CreateBuyOrder(restScoins, CoinType::MICC); // DEX: wusd_micc
