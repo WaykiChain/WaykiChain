@@ -1306,7 +1306,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             voterAcct.bcoins -= maxVotes;
             assert(cw.accountCache.SaveAccount(voterAcct));
             assert(cw.delegateCache.SetCandidateVotes(pDelegateTx->txUid.get<CRegID>(),
-                                                      candidateVotes, cw.txUndo.dbOpLogsMap));
+                                                      candidateVotes, cw.txUndo.dbOpLogMap));
         }
     }
 
@@ -1513,7 +1513,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         vector<CDbOpLog> vTxIndexOperDB;
         auto itTxUndo = blockundo.vtxundo.rbegin();
         // TODO: should move to blockTxCache?
-        if (!cw.contractCache.WriteTxIndexes(vPos, itTxUndo->dbOpLogsMap))
+        if (!cw.contractCache.WriteTxIndexes(vPos, itTxUndo->dbOpLogMap))
             return state.Abort(_("Failed to write transaction index"));
         // TODO: must undo these oplogs in DisconnectBlock()
     }

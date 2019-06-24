@@ -81,9 +81,9 @@ public:
     bool GetScript(const int nIndex, CRegID &scriptId, string &value);
 
     bool GetScriptAcc(const CRegID &scriptId, const string &key, CAppUserAccount &appAccOut);
-    bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CDBOpLogsMap &dbOpLogsMap);
+    bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CDBOpLogMap &dbOpLogMap);
     bool EraseScriptAcc(const CRegID &scriptId, const string &key);
-    bool UndoScriptAcc(CDBOpLogsMap &dbOpLogsMap);
+    bool UndoScriptAcc(CDBOpLogMap &dbOpLogMap);
 
     bool SetScript(const CRegID &scriptId, const string &value);
     bool HaveScript(const CRegID &scriptId);
@@ -95,9 +95,9 @@ public:
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
                          string &contractKey, string &vScriptData);
     bool SetContractData(const CRegID &scriptId, const string &contractKey,
-                         const string &vScriptData, CDBOpLogsMap &dbOpLogsMap);
-    bool EraseContractData(const CRegID &scriptId, const string &contractKey, CDBOpLogsMap &dbOpLogsMap);    
-    bool UndoContractData(CDBOpLogsMap &dbOpLogsMap);
+                         const string &vScriptData, CDBOpLogMap &dbOpLogMap);
+    bool EraseContractData(const CRegID &scriptId, const string &contractKey, CDBOpLogMap &dbOpLogMap);    
+    bool UndoContractData(CDBOpLogMap &dbOpLogMap);
 
     /**
      * @brief Get all number of scripts in scriptdb
@@ -118,7 +118,7 @@ public:
     Object ToJsonObj() const;
 //	IContractView * GetBaseScriptDB() { return pBase; }
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogsMap &dbOpLogsMap);
+    bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap);
 
     void SetBaseView(CContractCache *pBaseIn) {
         scriptCache.SetBase(&pBaseIn->scriptCache);
@@ -133,13 +133,13 @@ public:
 
     string ToString();
 
-    bool WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLogsMap &dbOpLogsMap);
+    bool WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLogMap &dbOpLogMap);
     bool GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOutput);
-    bool UndoTxOutput(CDBOpLogsMap &dbOpLogsMap);
+    bool UndoTxOutput(CDBOpLogMap &dbOpLogMap);
 
     bool GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string > &mapTxHash);
-    bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid, CDBOpLogsMap &dbOpLogsMap);
-    bool UndoTxHashByAddress(CDBOpLogsMap &dbOpLogsMap);
+    bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid, CDBOpLogMap &dbOpLogMap);
+    bool UndoTxHashByAddress(CDBOpLogMap &dbOpLogMap);
     bool GetAllContractAcc(const CRegID &scriptId, map<string, string > &mapAcc);
 
 private:
@@ -210,7 +210,7 @@ private:
      * @param vScriptKey must be 8 bytes
      * @return true if delete succeed, otherwise false
      */
-    bool EraseContractData(const string &contractRegId, const string &contractKey, CDBOpLogsMap &dbOpLogsMap);
+    bool EraseContractData(const string &contractRegId, const string &contractKey, CDBOpLogMap &dbOpLogMap);
 
     bool EraseContractData(const string &key);
     /**
@@ -250,7 +250,7 @@ private:
      * @return true if save succeed, otherwise false
      */
     bool SetContractData(const string &contractRegId, const string &contractKey,
-                         const string &vScriptData, CDBOpLogsMap &dbOpLogsMap);
+                         const string &vScriptData, CDBOpLogMap &dbOpLogMap);
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */

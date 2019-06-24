@@ -76,7 +76,7 @@ public:
 
 typedef vector<CDbOpLog> CDbOpLogs;
 
-class CDBOpLogsMap {
+class CDBOpLogMap {
 public:
     const CDbOpLogs& GetDbOpLogs(dbk::PrefixType prefixType) const {
         assert(prefixType != dbk::EMPTY);

@@ -502,18 +502,18 @@ unsigned int CContractCache::GetCacheSize() {
     */
 }
 
-bool CContractCache::WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLogsMap &dbOpLogsMap) {
-    return txOutputCache.SetData(txid, vOutput, dbOpLogsMap);
+bool CContractCache::WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLogMap &dbOpLogMap) {
+    return txOutputCache.SetData(txid, vOutput, dbOpLogMap);
 }
 
 bool CContractCache::SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid,
-                                        CDBOpLogsMap &dbOpLogsMap) {
+                                        CDBOpLogMap &dbOpLogMap) {
     auto key = make_tuple(keyId, height, index);
-    return acctTxListCache.SetData(key, txid, dbOpLogsMap);
+    return acctTxListCache.SetData(key, txid, dbOpLogMap);
 }
 
-bool CContractCache::UndoTxHashByAddress(CDBOpLogsMap &dbOpLogsMap) {
-    return acctTxListCache.UndoData(dbOpLogsMap);
+bool CContractCache::UndoTxHashByAddress(CDBOpLogMap &dbOpLogMap) {
+    return acctTxListCache.UndoData(dbOpLogMap);
 }
 
 bool CContractCache::GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string> &mapTxHash) {
@@ -561,20 +561,20 @@ bool CContractCache::GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOutpu
     return true;
 }
 
-bool CContractCache::UndoTxOutput(CDBOpLogsMap &dbOpLogsMap) {
-    return txOutputCache.UndoData(dbOpLogsMap);
+bool CContractCache::UndoTxOutput(CDBOpLogMap &dbOpLogMap) {
+    return txOutputCache.UndoData(dbOpLogMap);
 }
 
 bool CContractCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
     return txDiskPosCache.GetData(txid, pos);
 }
 
-bool CContractCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogsMap &dbOpLogsMap) {
+bool CContractCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap) {
     for (auto it : list) {
         LogPrint("txindex", "txhash:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
             it.first.GetHex(), it.second.nFile, it.second.nPos, it.second.nTxOffset);
 
-        if (!txDiskPosCache.SetData(it.first, it.second, dbOpLogsMap)) {
+        if (!txDiskPosCache.SetData(it.first, it.second, dbOpLogMap)) {
             return false;
         }
     }
@@ -748,7 +748,7 @@ bool CContractCache::GetContractData(const int nCurBlockHeight, const string &vS
 */
 }
 bool CContractCache::SetContractData(const string &scriptId, const string &scriptKey,
-                                     const string &scriptData, CDBOpLogsMap &dbOpLogsMap) {
+                                     const string &scriptData, CDBOpLogMap &dbOpLogMap) {
     auto key = make_pair(scriptId, scriptKey);
     string oldData;
     if (!contractDataCache.GetData(key, oldData)) {
@@ -757,7 +757,7 @@ bool CContractCache::SetContractData(const string &scriptId, const string &scrip
         }
     }
 
-    return contractDataCache.SetData(key, scriptData, dbOpLogsMap);
+    return contractDataCache.SetData(key, scriptData, dbOpLogMap);
 }
 
 bool CContractCache::HaveScript(const string &scriptId) {
@@ -867,19 +867,19 @@ bool CContractCache::SetContractItemCount(const string &vScriptId, int nCount) {
 }
 
 bool CContractCache::EraseContractData(const string &scriptId,
-                                      const string &scriptKey, CDBOpLogsMap &dbOpLogsMap) {
+                                      const string &scriptKey, CDBOpLogMap &dbOpLogMap) {
 
     auto key = make_pair(scriptId, scriptKey);
     string oldData;
     if (contractDataCache.GetData(key, oldData)) {
         IncContractItemCount(scriptId, 1);
-        if (!contractDataCache.EraseData(key, dbOpLogsMap))
+        if (!contractDataCache.EraseData(key, dbOpLogMap))
             return false;
     }
     return true;
 }
 
-bool CContractCache::UndoContractData(CDBOpLogsMap &dbOpLogsMap) {
+bool CContractCache::UndoContractData(CDBOpLogMap &dbOpLogMap) {
     /* TODO: need to handle UndoContractData()
 
         string vPrefix(vKey.begin(), vKey.begin() + 4);
@@ -921,7 +921,7 @@ bool CContractCache::UndoContractData(CDBOpLogsMap &dbOpLogsMap) {
         mapContractDb[vKey] = vValue;
         return true;
     */    
-    return contractDataCache.UndoData(dbOpLogsMap);
+    return contractDataCache.UndoData(dbOpLogMap);
 }
 
 /*TODO: TODO: delete?
@@ -982,8 +982,8 @@ bool CContractCache::GetContractItemCount(const CRegID &scriptId, int &nCount) {
     return GetContractItemCount(scriptId.GetRegIdRaw(), nCount);
 }
 
-bool CContractCache::EraseContractData(const CRegID &scriptId, const string &vScriptKey, CDBOpLogsMap &dbOpLogsMap) {
-    return EraseContractData(scriptId.GetRegIdRaw(), vScriptKey, dbOpLogsMap);
+bool CContractCache::EraseContractData(const CRegID &scriptId, const string &vScriptKey, CDBOpLogMap &dbOpLogMap) {
+    return EraseContractData(scriptId.GetRegIdRaw(), vScriptKey, dbOpLogMap);
 }
 
 bool CContractCache::HaveScriptData(const CRegID &scriptId, const string &vScriptKey) {
@@ -1001,8 +1001,8 @@ bool CContractCache::GetContractData(const int nCurBlockHeight, const CRegID &sc
 }
 
 bool CContractCache::SetContractData(const CRegID &scriptId, const string &vScriptKey,
-                                         const string &vScriptData, CDBOpLogsMap &dbOpLogsMap) {
-    return SetContractData(scriptId.GetRegIdRaw(), vScriptKey, vScriptData, dbOpLogsMap);
+                                         const string &vScriptData, CDBOpLogMap &dbOpLogMap) {
+    return SetContractData(scriptId.GetRegIdRaw(), vScriptKey, vScriptData, dbOpLogMap);
 }
 
 bool CContractCache::SetTxRelAccout(const uint256 &txHash, const set<CKeyID> &relAccount) {
@@ -1058,12 +1058,12 @@ bool CContractCache::GetScriptAcc(const CRegID &scriptId, const string &accKey,
 }
 
 bool CContractCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn,
-                                      CDBOpLogsMap &dbOpLogsMap) {
+                                      CDBOpLogMap &dbOpLogMap) {
     if (appAccIn.IsEmpty()) {
         return false;
     }
     auto key = make_pair(scriptId.ToRawString(), appAccIn.GetAccUserId());
-    return contractAccountCache.SetData(key, appAccIn, dbOpLogsMap);
+    return contractAccountCache.SetData(key, appAccIn, dbOpLogMap);
 }
 
 /* TODO: unused, delete ??
@@ -1086,6 +1086,6 @@ bool CContractCache::EraseScriptAcc(const CRegID &scriptId, const string &vKey) 
 }
 */
 
-bool CContractCache::UndoScriptAcc(CDBOpLogsMap &dbOpLogsMap) {
-    return contractAccountCache.UndoData(dbOpLogsMap);
+bool CContractCache::UndoScriptAcc(CDBOpLogMap &dbOpLogMap) {
+    return contractAccountCache.UndoData(dbOpLogMap);
 }

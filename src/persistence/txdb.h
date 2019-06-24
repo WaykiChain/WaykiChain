@@ -92,12 +92,12 @@ class CTxUndo {
 public:
     uint256 txHash;
     vector<CAccountLog> accountLogs;
-    CDBOpLogsMap dbOpLogsMap; // dbName -> dbOpLogs
+    CDBOpLogMap dbOpLogMap; // dbName -> dbOpLogs
 
     IMPLEMENT_SERIALIZE(
         READWRITE(txHash);
         READWRITE(accountLogs);
-        READWRITE(dbOpLogsMap);
+        READWRITE(dbOpLogMap);
 	)
 
 public:
@@ -106,7 +106,7 @@ public:
     void Clear() {
         txHash = uint256();
         accountLogs.clear();
-        dbOpLogsMap.Clear();
+        dbOpLogMap.Clear();
     }
 
     string ToString() const;

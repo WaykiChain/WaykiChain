@@ -374,10 +374,10 @@ public:
         return true;
     };
 
-    bool SetData(const KeyType &key, const ValueType &value, CDBOpLogsMap &dbOpLogsMap) {
+    bool SetData(const KeyType &key, const ValueType &value, CDBOpLogMap &dbOpLogMap) {
         CDbOpLog dbOpLog;
         if (SetData(key, value, dbOpLog)) {
-            dbOpLogsMap.AddOpLog(PREFIX_TYPE, dbOpLog);
+            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
             return true;
         }
         return false;
@@ -419,10 +419,10 @@ public:
         return true;
     }
 
-    bool EraseData(const KeyType &key, CDBOpLogsMap &dbOpLogsMap) {
+    bool EraseData(const KeyType &key, CDBOpLogMap &dbOpLogMap) {
         CDbOpLog dbOpLog;
         if (EraseData(key, dbOpLog)) {
-            dbOpLogsMap.AddOpLog(PREFIX_TYPE, dbOpLog);
+            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
             return true;
         }
         return false;
@@ -451,7 +451,7 @@ public:
         return true;
     }
 
-    bool UndoData(CDBOpLogsMap &dbOpLogMap) {
+    bool UndoData(CDBOpLogMap &dbOpLogMap) {
         CDbOpLogs &dbOpLogs = dbOpLogMap.GetDbOpLogs(PREFIX_TYPE);
         for (auto &dbOpLog : dbOpLogs) {
             if (!UndoData(dbOpLog)) return false;
@@ -613,10 +613,10 @@ public:
     };
 
 
-    bool SetData(const ValueType &value, CDBOpLogsMap &dbOpLogsMap) {
+    bool SetData(const ValueType &value, CDBOpLogMap &dbOpLogMap) {
         CDbOpLog dbOpLog;
         if (SetData(value, dbOpLog)) {
-            dbOpLogsMap.AddOpLog(PREFIX_TYPE, dbOpLog);
+            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
             return true;
         }
         return false;
@@ -649,10 +649,10 @@ public:
         return true;
     }
 
-    bool EraseData(CDBOpLogsMap &dbOpLogsMap) {
+    bool EraseData(CDBOpLogMap &dbOpLogMap) {
         CDbOpLog dbOpLog;
         if (EraseData(dbOpLog)) {
-            dbOpLogsMap.AddOpLog(PREFIX_TYPE, dbOpLog);
+            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
             return true;
         }
         return false;
