@@ -159,6 +159,8 @@ const uint16_t kMaxMinedBlocks                          = 100;      // maximun c
 
 static const string kContractScriptPathPrefix           = "/tmp/lua/";
 
+static const CRegID FcoinGenesisRegId(kFcoinGenesisTxHeight, kFcoinGenesisIssueTxIndex);
+
 extern CTxMemPool mempool;
 extern map<uint256, CBlockIndex *> mapBlockIndex;
 extern uint64_t nLastBlockTx;
