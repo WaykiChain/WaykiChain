@@ -84,9 +84,9 @@ struct CUserCdp {
 class CCdpMemCache {
 public:
     CCdpMemCache() : pBase(nullptr), pAccess(nullptr) {}
-    // Only used to construct the global mem-cache.
-    CCdpMemCache(CDBAccess *pAccessIn) : pBase(nullptr), pAccess(pAccessIn) {}
     CCdpMemCache(CCdpMemCache *pBaseIn) : pBase(pBaseIn), pAccess(nullptr) {}
+    // Only apply to construct the global mem-cache.
+    CCdpMemCache(CDBAccess *pAccessIn) : pBase(nullptr), pAccess(pAccessIn) {}
 
     bool LoadCdps();
     void Flush();
