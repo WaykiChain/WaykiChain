@@ -1,8 +1,10 @@
-// Copyright (c) 2012 The Bitcoin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef BITCOIN_VERSION_H
-#define BITCOIN_VERSION_H
+
+#ifndef COIN_VERSION_H
+#define COIN_VERSION_H
 
 #include "clientversion.h"
 
@@ -53,4 +55,4 @@ enum FeatureForkVersionEnum {
     MAJOR_VER_R2 = 10002, // Release 2.0: StableCoin Release (2019-06-30)
 };
 
-#endif
+#endif // COIN_VERSION_H
