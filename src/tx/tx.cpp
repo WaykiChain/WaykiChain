@@ -124,4 +124,5 @@ bool CBaseTx::UndoTxAddresses(CCacheWrapper &cw, CValidationState &state) {
     if (!cw.contractCache.UndoTxHashByAddress(cw.txUndo.dbOpLogsMap))
         return state.DoS(100, ERRORMSG("CBaseTx::UndoTxAddresses failed!"),
                             READ_ACCOUNT_FAIL, "undo-data-failed");
+    return true;
 }

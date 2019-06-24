@@ -31,10 +31,11 @@ public:
     bool SetDelegateVotes(const CRegID &regId, const uint64_t votes);
     bool EraseDelegateVotes(const CRegID &regId, const uint64_t votes);
 
-    bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes);
+    bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes,
+                           CDBOpLogsMap &dbOpLogsMap);
     bool GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes);
 
-    bool UndoData(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs);
+    bool UndoCandidateVotes(CDBOpLogsMap &dbOpLogsMap);
 
     void SetBaseView(CDelegateCache *pBaseIn) { voteRegIdCache = pBaseIn->voteRegIdCache; }
     // TODO:

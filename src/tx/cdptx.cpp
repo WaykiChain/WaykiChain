@@ -278,7 +278,6 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
         if (!PayInterest(nHeight, cdp, cw, state))
             return false;
     }
-    cw.cdpCache.AddCdpOpLog(cdp, cw.txUndo.dbOpLogsMap);
 
     //3. redeem in scoins and update cdp
     cdp.totalOwedScoins -= scoinsToRedeem;
@@ -302,7 +301,7 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     }
 
     cdp.totalStakedBcoins = (uint64_t) targetStakedBcoins;
-    if (!cw.cdpCache.SaveCdp(cdp)) {
+    if (!cw.cdpCache.SaveCdp(cdp, cw.txUndo.dbOpLogsMap)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update CDP %s failed",
                         cdp.ownerRegId.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
     }
@@ -476,10 +475,8 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
 
         cdp.totalOwedScoins     -= scoinsToLiquidate;
         cdp.totalStakedBcoins   -= totalDeductedBcoins;
-        cw.cdpCache.SaveCdp(cdp);
+        cw.cdpCache.SaveCdp(cdp, cw.txUndo.dbOpLogsMap);
     }
-
-    // cw.txUndo.dbOpLogsMap.push_back(cdpLog);
 
     return true;
 }

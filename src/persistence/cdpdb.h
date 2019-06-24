@@ -118,12 +118,11 @@ public:
     CCdpCacheManager(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
 
     bool StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
-                          const int blockHeight, CUserCdp &cdp, CDbOpLog &cdpDbOpLog);
+                          const int blockHeight, CUserCdp &cdp, CDBOpLogsMap &dbOpLogsMap);
 
     bool GetCdp(CUserCdp &cdp);
-    bool SaveCdp(CUserCdp &cdp);
+    bool SaveCdp(CUserCdp &cdp, CDBOpLogsMap &dbOpLogsMap);
     bool EraseCdp(const CUserCdp &cdp);
-    bool AddCdpOpLog(const CUserCdp &cdp, CDBOpLogsMap &dbOpLogsMap);
     bool UndoCdp(CDBOpLogsMap &dbOpLogsMap) { /*return cdpCache.UndoData(opLog);*/ return false;  } // TODO:
 
     uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);

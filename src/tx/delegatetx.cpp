@@ -139,13 +139,12 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
     vector<CCandidateVote> candidateVotesInOut;
     CRegID regId = txUid.get<CRegID>();
     cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
-    CDbOpLog dbOpLog(dbk::REGID_VOTE, regId, candidateVotesInOut);  // Keep candidate votes state before modification.
 
     if (!account.ProcessDelegateVote(candidateVotes, candidateVotesInOut, nHeight)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate vote failed, regId=%s",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }
-    if (!cw.delegateCache.SetCandidateVotes(regId, candidateVotesInOut)) {
+    if (!cw.delegateCache.SetCandidateVotes(regId, candidateVotesInOut, cw.txUndo.dbOpLogsMap)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, write candidate votes failed, regId=%s", txUid.ToString()),
                         WRITE_CANDIDATE_VOTES_FAIL, "write-candidate-votes-failed");
     }
@@ -157,7 +156,6 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
 
     // Keep the old state after the above operation completed properly.
     cw.txUndo.accountLogs.push_back(acctLog);
-    cw.txUndo.dbOpLogsMap.AddOpLog(dbk::REGID_VOTE, dbOpLog);
     cw.txUndo.txHash = GetHash();
 
     for (const auto &vote : candidateVotes) {
@@ -198,6 +196,9 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
 }
 
 bool CDelegateVoteTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+
+    if (!UndoTxAddresses(cw, state)) return false;
+
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
@@ -230,10 +231,9 @@ bool CDelegateVoteTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         }
     }
 
-    const CDbOpLogs& dbOpLogs = cw.txUndo.dbOpLogsMap.GetDbOpLogs(dbk::REGID_VOTE);
-    if (!cw.delegateCache.UndoData(dbk::CONTRACT_DATA, dbOpLogs)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, undo contract data error"),
-                         UPDATE_ACCOUNT_FAIL, "undo-contract-data-failed");
+    if (!cw.delegateCache.UndoCandidateVotes(cw.txUndo.dbOpLogsMap)) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, UndoCandidateVotes error"),
+                         UPDATE_ACCOUNT_FAIL, "undo-candidate-votes-failed");
     }
 
     return true;

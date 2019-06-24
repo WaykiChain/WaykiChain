@@ -645,11 +645,7 @@ bool CContractCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &li
         LogPrint("txindex", "txhash:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
             it.first.GetHex(), it.second.nFile, it.second.nPos, it.second.nTxOffset);
 
-        CDiskTxPos oldValue;
-        txDiskPosCache.GetData(it.first, oldValue);
-        CDbOpLog opLog(txDiskPosCache.GetPrefixType(), it.first, oldValue);
-        dbOpLogsMap.AddOpLog(txDiskPosCache.GetPrefixType(), opLog);
-        if (!txDiskPosCache.SetData(it.first, it.second)) {
+        if (!txDiskPosCache.SetData(it.first, it.second, dbOpLogsMap)) {
             return false;
         }
     }

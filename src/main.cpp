@@ -1305,7 +1305,8 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             assert(voterAcct.bcoins >= maxVotes);
             voterAcct.bcoins -= maxVotes;
             assert(cw.accountCache.SaveAccount(voterAcct));
-            assert(cw.delegateCache.SetCandidateVotes(pDelegateTx->txUid.get<CRegID>(), candidateVotes));
+            assert(cw.delegateCache.SetCandidateVotes(pDelegateTx->txUid.get<CRegID>(),
+                                                      candidateVotes, cw.txUndo.dbOpLogsMap));
         }
     }
 

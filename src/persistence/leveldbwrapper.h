@@ -20,43 +20,14 @@ using namespace json_spirit;
 
 class CDbOpLog {
 private:
-    mutable dbk::PrefixType prefixType; // TODO: delete
-    string prefix; // TODO: delete
-    string keyElement;
+    string key;
     string value;
 public:
     CDbOpLog() {}
 
-    // TODO: delete
-    template<typename K, typename V>
-    CDbOpLog(dbk::PrefixType prefixTypeIn, const K& keyElementIn, const V& valueIn){
-        Set(prefixTypeIn, keyElementIn, valueIn);
-    }
-
-    // for key-value // TODO: delete
-    template<typename K, typename V>
-    void Set(dbk::PrefixType prefixTypeIn, const K& keyElementIn, const V& valueIn){
-        prefixType = prefixTypeIn;
-        prefix = dbk::GetKeyPrefix(prefixType);
-        keyElement = dbk::GenDbKey(dbk::EMPTY, keyElementIn);
-        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
-        ssValue << valueIn;
-        value = ssValue.str();
-    }
-
-    // for single value // TODO: delete
-    template<typename V>
-    void Set(dbk::PrefixType prefixTypeIn, const V& valueIn){
-        prefixType = prefixTypeIn;
-        prefix = dbk::GetKeyPrefix(prefixType);
-        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
-        ssValue << valueIn;
-        value = ssValue.str();
-    }
-
     // for key-value
     template<typename K, typename V>
-    void Set(const K& keyElementIn, const V& valueIn){
+    void Set(const K& keyIn, const V& valueIn){
         CDataStream ssValue(SER_DISK, CLIENT_VERSION);
         ssValue << valueIn;
         value = ssValue.str();
@@ -72,8 +43,8 @@ public:
 
     // for key-value
     template<typename K, typename V>
-    void Get(K& keyElementOut, V& valueOut) const {
-        dbk::ParseDbKey(keyElement, dbk::EMPTY, keyElementOut);
+    void Get(K& keyOut, V& valueOut) const {
+        dbk::ParseDbKey(key, dbk::EMPTY, keyOut);
         CDataStream ssValue(value, SER_DISK, CLIENT_VERSION);
         ssValue >> valueOut;
     }
@@ -85,32 +56,21 @@ public:
         ssValue >> valueOut;
     }
 
-    inline dbk::PrefixType GetPrefixType() const {
-        return prefixType;
-    }
-
     inline Slice GetValue() { return value; }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(prefix); /* TODO: delete */
-        if (fRead) { /* TODO: delete */
-            prefixType = dbk::ParseKeyPrefixType(prefix);
-            if (prefixType == dbk::EMPTY) {
-                throw std::out_of_range("CDbOpLog unserialize failed! invalid prefix=" + prefix);
-            }
-        }
-        READWRITE(keyElement);
+        READWRITE(key);
         READWRITE(value);
     )
 
     string ToString() const {
         string str;
-        str += strprintf("prefix: %s, key: %s, value: %s", prefix, HexStr(keyElement), HexStr(value));
+        str += strprintf("key: %s, value: %s", HexStr(key), HexStr(value));
         return str;
     }
 
     friend bool operator<(const CDbOpLog &log1, const CDbOpLog &log2) {
-        return log1.prefixType < log2.prefixType || log1.keyElement < log2.keyElement;
+        return log1.key < log2.key;
     }
 };
 

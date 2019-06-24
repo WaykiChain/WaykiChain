@@ -460,7 +460,6 @@ public:
     }
 
     void ParseUndoData(const CDbOpLog &dbOpLog, KeyType &key, ValueType &value) {
-        assert(dbOpLog.GetPrefixType() == PREFIX_TYPE);
         dbOpLog.Get(key, value);
     }
 
@@ -673,7 +672,6 @@ public:
     }
 
     void UndoData(const CDbOpLog &dbOpLog) {
-        assert(dbOpLog.GetPrefixType() == PREFIX_TYPE);
         if (!ptrData) {
             ptrData = make_shared<ValueType>();
         }
