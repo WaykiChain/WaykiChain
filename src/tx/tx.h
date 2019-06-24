@@ -139,7 +139,7 @@ public:
     vector_unsigned_char signature;
 
     uint64_t nRunStep;        //!< only in memory
-    int32_t nFuelRate;            //!< only in memory
+    int32_t nFuelRate;        //!< only in memory
     mutable uint256 sigHash;  //!< only in memory
 
 public:

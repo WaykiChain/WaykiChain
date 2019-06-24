@@ -33,12 +33,12 @@ bool CPriceFeedTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     account.GetRegId(sendRegId);
     if (!pCdMan->pDelegateCache->ExistDelegate(sendRegId.ToString())) { // must be a miner
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, txUid %s account is not a delegate error",
-                        txUid.ToString()), PRICE_FEED_FAIL, "account-isnot-delegate");
+                        txUid.ToString()), PRICE_FEED_FAIL, "account-isn't-delegate");
     }
 
     if (account.stakedFcoins < kDefaultPriceFeedStakedFcoinsMin) // must stake enough fcoins
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Fcoins insufficient by txUid %s account error",
-                        txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-not-sufficient");
+                        txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-insufficient");
 
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
     return true;

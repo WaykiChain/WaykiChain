@@ -153,8 +153,8 @@ uint64_t CCdpCacheManager::ComputeInterest(int blockHeight, const CUserCdp &cdp)
     assert(uint64_t(blockHeight) > cdp.lastBlockHeight);
 
     int interval = blockHeight - cdp.lastBlockHeight;
-    double interest = ((double) GetInterestParamA() * cdp.totalOwedScoins / kYearBlockCount)
-                    * log10(GetInterestParamB() + cdp.totalOwedScoins) * interval;
+    double interest = ((double) GetDefaultInterestParamA() * cdp.totalOwedScoins / kYearBlockCount)
+                    * log10(GetDefaultInterestParamB() + cdp.totalOwedScoins) * interval;
 
     return (uint64_t) interest;
 }

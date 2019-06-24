@@ -75,8 +75,8 @@ public:
 
 class CPricePointCache {
 private:
-    uint64_t bcoinMedianPrice; //against scoin
-    uint64_t fcoinMedianPrice; //against scoin
+    uint64_t bcoinMedianPrice;  // against scoin
+    uint64_t fcoinMedianPrice;  // against scoin
 
     map<string, CConsecutiveBlockPrice> mapCoinPricePointCache; // coinPriceType -> consecutiveBlockPrice
 
