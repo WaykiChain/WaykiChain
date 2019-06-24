@@ -95,7 +95,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
         return std::make_tuple(false, 0, string("VmScript nBurnFactor == 0"));
 
     pContractCache = &cw.contractCache;
-    pDBOpLogsMap = &cw.txUndo.dbOpLogsMap;
+    pDBOpLogsMap = &cw.txUndo.dbOpLogMap;
 
     CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(Tx.get());
     if (tx->llFees < CBaseTx::nMinTxFee)
@@ -167,13 +167,13 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
 
 bool CVmRunEnv::UndoDatas(CCacheWrapper &cw) {
 
-    if (!cw.contractCache.UndoTxOutput(cw.txUndo.dbOpLogsMap)) {
+    if (!cw.contractCache.UndoTxOutput(cw.txUndo.dbOpLogMap)) {
         return ERRORMSG("CVmRunEnv::UndoDatas UndoTxOutput failed");
     }
-    if (!cw.contractCache.UndoScriptAcc(cw.txUndo.dbOpLogsMap)) {
+    if (!cw.contractCache.UndoScriptAcc(cw.txUndo.dbOpLogMap)) {
         return ERRORMSG("CVmRunEnv::UndoDatas UndoScriptAcc failed");
     }
-    if (!cw.contractCache.UndoContractData(cw.txUndo.dbOpLogsMap)) {
+    if (!cw.contractCache.UndoContractData(cw.txUndo.dbOpLogMap)) {
         return ERRORMSG("CVmRunEnv::UndoDatas UndoContractData failed");
     }
     return true;
@@ -504,7 +504,7 @@ bool CVmRunEnv::InsertOutputData(const vector<CVmOperate>& source) {
     return false;
 }
 
-CDBOpLogsMap* CVmRunEnv::GetDbLog() { return pDBOpLogsMap; }
+CDBOpLogMap* CVmRunEnv::GetDbLog() { return pDBOpLogsMap; }
 
 /**
  * 从脚本数据库中，取指定账户的 应用账户信息,同时解冻冻结金额到自由金额

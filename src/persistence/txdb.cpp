@@ -177,7 +177,7 @@ string CTxUndo::ToString() const {
     str += strAccountLog + "\n";
 
     string strDBOperLog("list LDB Oplog:");
-    str += "list LDB Oplog:" + dbOpLogsMap.ToString();
+    str += "list LDB Oplog:" + dbOpLogMap.ToString();
     return str;
 }
 

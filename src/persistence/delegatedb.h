@@ -32,10 +32,10 @@ public:
     bool EraseDelegateVotes(const CRegID &regId, const uint64_t votes);
 
     bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes,
-                           CDBOpLogsMap &dbOpLogsMap);
+                           CDBOpLogMap &dbOpLogMap);
     bool GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes);
 
-    bool UndoCandidateVotes(CDBOpLogsMap &dbOpLogsMap);
+    bool UndoCandidateVotes(CDBOpLogMap &dbOpLogMap);
 
     void SetBaseView(CDelegateCache *pBaseIn) { voteRegIdCache = pBaseIn->voteRegIdCache; }
     // TODO:

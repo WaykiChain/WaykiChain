@@ -119,7 +119,7 @@ bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
                          UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
 
-    if (!cw.contractCache.UndoTxHashByAddress(cw.txUndo.dbOpLogsMap)) {
+    if (!cw.contractCache.UndoTxHashByAddress(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, undo contractCache data error"),
                          UPDATE_ACCOUNT_FAIL, "undo-contractCache-failed");
     }
@@ -410,7 +410,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
         cw.txUndo.accountLogs.push_back(oldAcctLog);
     }
-    //cw.txUndo.dbOpLogsMap.AddOpLogs(dbk::CONTRACT_DATA, *vmRunEnv.GetDbLog());
+    //cw.txUndo.dbOpLogMap.AddOpLogs(dbk::CONTRACT_DATA, *vmRunEnv.GetDbLog());
 
     vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEnv.GetRawAppUserAccount();
     for (auto & itemUserAccount : vAppUserAccount) {

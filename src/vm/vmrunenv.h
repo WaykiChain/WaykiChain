@@ -63,7 +63,7 @@ private:
     bool  isCheckAccount;  //校验账户平衡开关
 
     map<vector<unsigned char>, vector<CAppFundOperate>> mapAppFundOperate;  // vector<unsigned char > 存的是accountId
-    CDBOpLogsMap *pDBOpLogsMap;
+    CDBOpLogMap *pDBOpLogsMap;
 
 private:
     /**
@@ -160,7 +160,7 @@ public:
     uint256 GetCurTxHash();
     bool InsertOutputData(const vector<CVmOperate>& source);
     void InsertOutAPPOperte(const vector<unsigned char>& userId, const CAppFundOperate& source);
-    CDBOpLogsMap* GetDbLog();
+    CDBOpLogMap* GetDbLog();
 
     bool GetAppUserAccount(const vector<unsigned char>& id, std::shared_ptr<CAppUserAccount>& sptrAcc);
     bool CheckAppAcctOperate(CContractInvokeTx* tx);

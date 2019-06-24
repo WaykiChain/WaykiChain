@@ -138,7 +138,7 @@ bool CCdpStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
     cw.cdpCache.StakeBcoinsToCdp(txUid.get<CRegID>(), bcoinsToStake, (uint64_t)mintedScoins, nHeight, cdp,
                                  cdpDbOpLog);  // update cache & persist into ldb
 
-    cw.txUndo.dbOpLogsMap.AddDbOpLog(dbk::CDP, cdpDbOpLog);
+    cw.txUndo.dbOpLogMap.AddDbOpLog(dbk::CDP, cdpDbOpLog);
 
     bool ret = SaveTxAddresses(nHeight, nIndex, cw, state, {txUid});
     return ret;
@@ -301,7 +301,7 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     }
 
     cdp.totalStakedBcoins = (uint64_t) targetStakedBcoins;
-    if (!cw.cdpCache.SaveCdp(cdp, cw.txUndo.dbOpLogsMap)) {
+    if (!cw.cdpCache.SaveCdp(cdp, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update CDP %s failed",
                         cdp.ownerRegId.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
     }
@@ -475,7 +475,7 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
 
         cdp.totalOwedScoins     -= scoinsToLiquidate;
         cdp.totalStakedBcoins   -= totalDeductedBcoins;
-        cw.cdpCache.SaveCdp(cdp, cw.txUndo.dbOpLogsMap);
+        cw.cdpCache.SaveCdp(cdp, cw.txUndo.dbOpLogMap);
     }
 
     return true;

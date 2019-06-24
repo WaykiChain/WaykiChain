@@ -144,7 +144,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate vote failed, regId=%s",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }
-    if (!cw.delegateCache.SetCandidateVotes(regId, candidateVotesInOut, cw.txUndo.dbOpLogsMap)) {
+    if (!cw.delegateCache.SetCandidateVotes(regId, candidateVotesInOut, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, write candidate votes failed, regId=%s", txUid.ToString()),
                         WRITE_CANDIDATE_VOTES_FAIL, "write-candidate-votes-failed");
     }
@@ -231,7 +231,7 @@ bool CDelegateVoteTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         }
     }
 
-    if (!cw.delegateCache.UndoCandidateVotes(cw.txUndo.dbOpLogsMap)) {
+    if (!cw.delegateCache.UndoCandidateVotes(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::UndoExecuteTx, UndoCandidateVotes error"),
                          UPDATE_ACCOUNT_FAIL, "undo-candidate-votes-failed");
     }
