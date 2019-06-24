@@ -31,7 +31,7 @@ bool CPriceFeedTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
 
     CRegID sendRegId;
     account.GetRegId(sendRegId);
-    if (!pCdMan->pDelegateCache->ExistDelegate(sendRegId.ToString())) { // must be a miner
+    if (!cw.delegateCache.ExistDelegate(sendRegId.ToString())) { // must be a miner
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, txUid %s account is not a delegate error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-isn't-delegate");
     }
