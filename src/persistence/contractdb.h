@@ -99,8 +99,6 @@ public:
     bool EraseContractData(const CRegID &scriptId, const string &contractKey, CDBOpLogsMap &dbOpLogsMap);    
     bool UndoContractData(CDBOpLogsMap &dbOpLogsMap);
 
-    bool UndoData(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs);
-
     /**
      * @brief Get all number of scripts in scriptdb
      * @param nCount
