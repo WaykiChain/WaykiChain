@@ -269,6 +269,76 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     return true;
 }
 
+
+/* execute process for settle tx
+1. get and check active order
+    a. get and check active buy order
+    b. get and check active sell order
+2. get order detail:
+    a. user_gen_order, get order tx
+        then get order detail from tx obj
+    b. sys_gen_order,  get sys order from dexdb cache
+        then get order detail from sys order obj
+3. get account of order
+    a. get buyOrderAccount
+    b. get sellOrderAccount
+4. check order exchange type
+    not support: market type <-> market type
+5. check coin type match
+    buyOrder.coinType == sellOrder.coinType
+6. check asset type match
+    buyOrder.assetType == sellOrder.assetType
+7. check price is right in valid height block
+8. check price match
+    a. limit type <-> limit type
+        I.   dealPrice <= buyOrder.bidPrice
+        II.  dealPrice >= sellOrder.askPrice
+    b. limit type <-> market type
+        I.   dealPrice == buyOrder.bidPrice
+    C. market type <-> limit type
+        I.   dealPrice == sellOrder.askPrice    
+9. get buy/sell coin/asset amount
+    a. limit type
+        I. buy order
+            residualAmount is assetAmount
+            check: dealAmount <= residualAmount
+            buyCoinAmount = dealAmount*dealPrice // buyer pay coin amount to seller
+            buyAssetAmount = dealAmount
+            residualAmount = residualAmount - buyAssetAmount
+            
+
+        II. sell order
+            residualAmount is assetAmount
+            check: dealAmount <= residualAmount
+            sellCoinAmount = dealAmount*dealPrice // seller get coin amount from buyer
+            sellAssetAmount = dealAmount
+            residualAmount = residualAmount - buyAssetAmount
+    b. market type
+        I. buy order
+            residualAmount is coinAmount
+            dealAmount * dealPrice <= residualAmount
+            buyCoinAmount = dealAmount*dealPrice // buyer pay coin amount to seller
+            buyAssetAmount = dealAmount
+            residualAmount = residualAmount - buyCoinAmount
+            if residualAmount < dealPrice { // special handle
+                buyCoinAmount = residualAmount
+                residualAmount = 0
+            }
+        II. sell order
+            residualAmount is assetAmount
+            dealAmount <= residualAmount
+            sellCoinAmount = dealAmount*dealPrice // seller get coin amount from buyer
+            sellAssetAmount = dealAmount
+            residualAmount = residualAmount - buyAssetAmount
+
+10. operate account
+    a. minus buyer's buyCoinAmount
+    b. add buyer's buyAssetAmount
+    c. add seller's sellCoinAmount
+    d. minus seller's sellCoinAmount
+
+11. save residual amount
+*/
 bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
    if (!cw.accountCache.GetAccount(txUid, srcAcct)) {
@@ -283,13 +353,13 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
     cw.txUndo.accountLogs.push_back(CAccountLog(srcAcct));
 
     for (auto dealItem : dealItems) {
-        CDEXBuyOrderInfo buyOrderInfo;
-        if (!cw.dexCache.GetBuyOrder(dealItem.buyOrderTxCord, buyOrderInfo)) {
+        CDEXActiveBuyOrderInfo buyOrderInfo;
+        if (!cw.dexCache.GetActiveBuyOrder(dealItem.buyOrderTxCord, buyOrderInfo)) {
             return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, get buy order by tx cord failed"),
                             REJECT_INVALID, "bad-get-buy-order");
         }
-        CDEXSellOrderInfo sellOrderInfo;
-        if (!cw.dexCache.GetSellOrder(dealItem.sellOrderTxCord, sellOrderInfo)) {
+        CDEXActiveSellOrderInfo sellOrderInfo;
+        if (!cw.dexCache.GetActiveSellOrder(dealItem.sellOrderTxCord, sellOrderInfo)) {
             return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, get sell order by tx cord failed"),
                             REJECT_INVALID, "bad-get-sell-order");
         }
@@ -346,7 +416,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         }
 
         // check deal amount is enough
-        if (dealItem.dealAmount > buyOrderInfo.buyRemains || dealItem.dealAmount > sellOrderInfo.sellRemains) {
+        if (dealItem.dealAmount > buyOrderInfo.residualAmount || dealItem.dealAmount > sellOrderInfo.residualAmount) {
             return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal amount exceed the remaining amount of buy/sell order"),
                             REJECT_INVALID, "bad-price-match");
         }
