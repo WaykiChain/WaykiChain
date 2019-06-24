@@ -120,9 +120,8 @@ bool CBaseTx::SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw
 }
 
 bool CBaseTx::UndoTxAddresses(CCacheWrapper &cw, CValidationState &state) {
-    
     if (!cw.contractCache.UndoTxHashByAddress(cw.txUndo.dbOpLogsMap))
-        return state.DoS(100, ERRORMSG("CBaseTx::UndoTxAddresses failed!"),
-                            READ_ACCOUNT_FAIL, "undo-data-failed");
+        return state.DoS(100, ERRORMSG("CBaseTx::UndoTxAddresses failed!"), READ_ACCOUNT_FAIL, "undo-data-failed");
+
     return true;
 }

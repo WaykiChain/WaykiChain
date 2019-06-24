@@ -22,7 +22,7 @@ using namespace json_spirit;
 class CBlock;
 class CPricePoint;
 class CCoinPriceType;
-class CUserID;
+class CRegID;
 
 // TODO: initialize pBase by constructor instead of SetBaseView.
 class CTxMemCache {
@@ -57,15 +57,15 @@ public:
 // Price Points in 11 consecutive blocks
 class CConsecutiveBlockPrice {
 private:
-    map<int, map<string, uint64_t>> mapBlockUserPrices;  // height -> { strUid -> price }
+    map<int, map<string, uint64_t>> mapBlockUserPrices;  // height -> { regId -> price }
     int lastBlockHeight;
     int currBlockHeight;
     uint64_t lastBlockMediaPrice;
     uint64_t currBlockMediaPrice;
 
 public:
-    void AddUserPrice(const int height, const CUserID &txUid, const uint64_t price);
-    bool ExistBlockUserPrice(const int height, const CUserID &txUid);
+    void AddUserPrice(const int height, const CRegID &regId, const uint64_t price);
+    bool ExistBlockUserPrice(const int height, const CRegID &regId);
     uint64_t ComputeBlockMedianPrice(const int blockHeight);
     uint64_t GetLastBlockMedianPrice();
 
@@ -81,7 +81,7 @@ private:
     map<string, CConsecutiveBlockPrice> mapCoinPricePointCache; // coinPriceType -> consecutiveBlockPrice
 
 public:
-    bool AddBlockPricePointInBatch(const int blockHeight, const CUserID &txUid, const vector<CPricePoint> &pps);
+    bool AddBlockPricePointInBatch(const int blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
     uint64_t ComputeBlockMedianPrice(const int blockHeight, CCoinPriceType coinPriceType);
 
     uint64_t GetBcoinMedianPrice() { return bcoinMedianPrice; }
