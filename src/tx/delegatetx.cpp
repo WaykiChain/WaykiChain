@@ -15,10 +15,11 @@
 #include "miner/miner.h"
 #include "version.h"
 
-string CDelegateVoteTx::ToString(CAccountCache &view) {
+string CDelegateVoteTx::ToString(CAccountCache &accountCache) {
     string str;
+
     CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
+    accountCache.GetKeyId(txUid, keyId);
     str += strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", GetTxType(nTxType),
                      GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString());
     str += "vote:\n";
@@ -28,23 +29,26 @@ string CDelegateVoteTx::ToString(CAccountCache &view) {
     return str;
 }
 
-Object CDelegateVoteTx::ToJson(const CAccountCache &accountView) const {
+Object CDelegateVoteTx::ToJson(const CAccountCache &accountCache) const {
     Object result;
-    CAccountCache view(accountView);
-    CKeyID keyId;
-    pCdMan->pAccountCache->GetKeyId(txUid, keyId);
 
-    result.push_back(Pair("tx_hash", GetHash().GetHex()));
-    result.push_back(Pair("tx_type", GetTxType(nTxType)));
-    result.push_back(Pair("ver", nVersion));
-    result.push_back(Pair("regid", txUid.ToString()));
-    result.push_back(Pair("addr", keyId.ToAddress()));
-    result.push_back(Pair("fees", llFees));
+    CKeyID keyId;
+    accountCache.GetKeyId(txUid, keyId);
+
     Array candidateVoteArray;
     for (const auto &vote : candidateVotes) {
         candidateVoteArray.push_back(vote.ToJson());
     }
-    result.push_back(Pair("candidate_votes", candidateVoteArray));
+
+    result.push_back(Pair("tx_hash",            GetHash().GetHex()));
+    result.push_back(Pair("tx_type",            GetTxType(nTxType)));
+    result.push_back(Pair("ver",                nVersion));
+    result.push_back(Pair("tx_uid",             txUid.ToString()));
+    result.push_back(Pair("tx_addr",            keyId.ToAddress()));
+    result.push_back(Pair("fees",               llFees));
+    result.push_back(Pair("candidate_votes",    candidateVoteArray));
+    result.push_back(Pair("valid_height",       nValidHeight));
+
     return result;
 }
 

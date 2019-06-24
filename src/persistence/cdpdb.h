@@ -52,9 +52,9 @@ struct CUserCdp {
     IMPLEMENT_SERIALIZE(
         READWRITE(ownerRegId);
         READWRITE(cdpTxCord);
-        READWRITE(lastBlockHeight);
-        READWRITE(totalStakedBcoins);
-        READWRITE(totalOwedScoins);
+        READWRITE(VARINT(lastBlockHeight));
+        READWRITE(VARINT(totalStakedBcoins));
+        READWRITE(VARINT(totalOwedScoins));
         if (fRead) {
             collateralRatio = double(totalStakedBcoins) / totalOwedScoins;
         }

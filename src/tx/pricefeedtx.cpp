@@ -100,22 +100,44 @@ bool CPriceFeedTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVa
 }
 
 string CPriceFeedTx::ToString(CAccountCache &accountCache) {
-  //TODO
-  return "";
+    string str;
+    for (auto pp : pricePoints) {
+        str += pp.ToString() + ", ";
+    }
+
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, pricePoints=%s, nValidHeight=%d\n",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, str, nValidHeight);
 }
 
 Object CPriceFeedTx::ToJson(const CAccountCache &accountCache) const {
-  //TODO
-  return Object();
+    Object result;
+
+    CKeyID keyId;
+    accountCache.GetKeyId(txUid, keyId);
+
+    Array pricePointArray;
+    for (const auto &pp : pricePoints) {
+        pricePointArray.push_back(pp.ToJson());
+    }
+
+    result.push_back(Pair("tx_hash",        GetHash().GetHex()));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("tx_uid",         txUid.ToString()));
+    result.push_back(Pair("tx_addr",        keyId.ToAddress()));
+    result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("price_points",   pricePointArray));
+    result.push_back(Pair("valid_height",   nValidHeight));
+
+    return result;
 }
 
 bool CPriceFeedTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    //TODO
+    // TODO:
     return true;
 }
 
 bool CPriceFeedTx::GetTopPriceFeederList(CCacheWrapper &cw, vector<CAccount> &priceFeederAccts) {
-    LOCK(cs_main);
-
+    // TODO:
     return true;
 }

@@ -189,7 +189,7 @@ public:
 protected:
     bool CheckMinTxFee(const uint64_t llFees, const int32_t nHeight) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
-    static bool SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw, 
+    static bool SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw,
                                 CValidationState &state, const vector<CUserID> &userIds);
     static bool UndoTxAddresses(CCacheWrapper &cw, CValidationState &state);
 };
@@ -227,6 +227,16 @@ public:
     string ToString() {
         return strprintf("coinType:%u, priceType:%u, price:%lld",
                         coinPriceType.coinType, coinPriceType.priceType, price);
+    }
+
+    json_spirit::Object ToJson() const {
+        json_spirit::Object obj;
+
+        obj.push_back(json_spirit::Pair("coin_type",    coinPriceType.coinType));
+        obj.push_back(json_spirit::Pair("price_type",   coinPriceType.priceType));
+        obj.push_back(json_spirit::Pair("price",        price));
+
+        return obj;
     }
 
     IMPLEMENT_SERIALIZE(
