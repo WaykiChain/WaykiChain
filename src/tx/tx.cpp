@@ -92,7 +92,7 @@ bool CBaseTx::CheckSignatureSize(const vector<unsigned char> &signature) const {
 
 string CBaseTx::ToString(CAccountCache &view) {
     string str = strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
-                            GetTxType(nTxType), GetHash().ToString().c_str(), nVersion,
+                            GetTxType(nTxType), GetHash().ToString(), nVersion,
                             txUid.get<CPubKey>().ToString(),
                             llFees, txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight);
 

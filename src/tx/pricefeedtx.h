@@ -56,9 +56,9 @@ public:
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CPriceFeedTx>(this); }
-    virtual double GetPriority() const { return 10000.0f; } // Top priority
-    virtual string ToString(CAccountCache &view); //logging usage
-    virtual Object ToJson(const CAccountCache &view) const; //json-rpc usage
+    virtual double GetPriority() const { return 10000.0f; }  // Top priority
+    virtual string ToString(CAccountCache &view);            // logging usage
+    virtual Object ToJson(const CAccountCache &view) const;  // json-rpc usage
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);

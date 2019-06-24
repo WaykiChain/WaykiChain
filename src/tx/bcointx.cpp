@@ -152,27 +152,11 @@ bool CBaseCoinTransferTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
 }
 
 string CBaseCoinTransferTx::ToString(CAccountCache &view) {
-    string srcId;
-    if (txUid.type() == typeid(CPubKey)) {
-        srcId = txUid.get<CPubKey>().ToString();
-    } else if (txUid.type() == typeid(CRegID)) {
-        srcId = txUid.get<CRegID>().ToString();
-    }
-
-    string desId;
-    if (toUid.type() == typeid(CKeyID)) {
-        desId = toUid.get<CKeyID>().ToString();
-    } else if (toUid.type() == typeid(CRegID)) {
-        desId = toUid.get<CRegID>().ToString();
-    }
-
-    string str = strprintf(
-        "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, bcoins=%ld, llFees=%ld, memo=%s, "
+    return strprintf(
+        "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, bcoins=%ld, llFees=%ld, memo=%s, "
         "nValidHeight=%d\n",
-        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, srcId.c_str(), desId.c_str(),
-        bcoins, llFees, HexStr(memo).c_str(), nValidHeight);
-
-    return str;
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), bcoins, llFees,
+        HexStr(memo), nValidHeight);
 }
 
 Object CBaseCoinTransferTx::ToJson(const CAccountCache &AccountView) const {

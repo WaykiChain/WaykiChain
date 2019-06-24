@@ -124,8 +124,8 @@ bool CAccountRegisterTx::GetInvolvedKeyIds(CCacheWrapper & cw, set<CKeyID> &keyI
 
 string CAccountRegisterTx::ToString(CAccountCache &view) {
     return strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
-                    GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, txUid.get<CPubKey>().ToString(),
-                    llFees, txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight);
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.get<CPubKey>().ToString(), llFees,
+                     txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight);
 }
 
 Object CAccountRegisterTx::ToJson(const CAccountCache &AccountView) const {

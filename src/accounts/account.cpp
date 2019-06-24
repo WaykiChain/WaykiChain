@@ -35,7 +35,7 @@ bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
     receivedVotes  = accountLog.receivedVotes;
     lastVoteHeight = accountLog.lastVoteHeight;
 
-    LogPrint("undo_account", "before operate:%s\n", ToString().c_str());
+    LogPrint("undo_account", "before operate:%s\n", ToString());
     return true;
 }
 
@@ -241,8 +241,8 @@ string CAccount::ToString(bool isAddress) const {
     str += strprintf(
         "regID=%s, keyID=%s, nickID=%s, pubKey=%s, minerPubKey=%s, bcoins=%ld, scoins=%ld, fcoins=%ld, "
         "receivedVotes=%lld\n",
-        regID.ToString(), keyID.GetHex().c_str(), nickID.ToString(), pubKey.ToString().c_str(),
-        minerPubKey.ToString().c_str(), bcoins, scoins, fcoins, receivedVotes);
+        regID.ToString(), keyID.GetHex(), nickID.ToString(), pubKey.ToString(), minerPubKey.ToString(),
+        bcoins, scoins, fcoins, receivedVotes);
     str += "candidate vote list: \n";
 
     vector<CCandidateVote> candidateVotes;

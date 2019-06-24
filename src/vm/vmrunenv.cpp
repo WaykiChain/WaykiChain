@@ -430,7 +430,7 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountCa
             vmAccount = tem;
         }
         LogPrint("vm", "account id:%s\nbefore account: %s\n", HexStr(accountId).c_str(),
-                 vmAccount.get()->ToString().c_str());
+                 vmAccount.get()->ToString());
 
         bool ret = false;
         //      vector<CDbOpLog> vAuthorLog;
@@ -443,7 +443,7 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountCa
         //          *pContractCache, vAuthorLog,  height, &GetScriptRegID().GetRegIdRaw(), true);
         //      }
 
-        //      LogPrint("vm", "after account:%s\n", vmAccount.get()->ToString().c_str());
+        //      LogPrint("vm", "after account:%s\n", vmAccount.get()->ToString());
         if (!ret) return false;
 
         newAccount.push_back(vmAccount);

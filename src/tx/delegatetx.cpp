@@ -20,7 +20,7 @@ string CDelegateVoteTx::ToString(CAccountCache &view) {
     CKeyID keyId;
     view.GetKeyId(txUid, keyId);
     str += strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", GetTxType(nTxType),
-                     GetHash().ToString().c_str(), nVersion, keyId.ToAddress(), keyId.ToString());
+                     GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString());
     str += "vote:\n";
     for (const auto &vote : candidateVotes) {
         str += strprintf("%s", vote.ToString());

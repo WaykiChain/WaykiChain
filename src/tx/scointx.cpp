@@ -97,7 +97,7 @@ bool CScoinTransferTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrap
 string CScoinTransferTx::ToString(CAccountCache &accountCache) {
     string str = strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, scoins=%ld, llFees=%ld, feesCoinType=%d,nValidHeight=%d\n",
-        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, txUid.ToString(), toUid.ToString(), scoins, llFees,
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), scoins, llFees,
         feesCoinType, nValidHeight);
 
     return str;

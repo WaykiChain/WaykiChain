@@ -142,10 +142,10 @@ bool CContractDeployTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds
 string CContractDeployTx::ToString(CAccountCache &view) {
     CKeyID keyId;
     view.GetKeyId(txUid, keyId);
-    string str = strprintf("txType=%s, hash=%s, ver=%d, accountId=%s, keyid=%s, llFees=%ld, nValidHeight=%d\n",
-                            GetTxType(nTxType), GetHash().ToString().c_str(), nVersion,
-                            txUid.ToString(), keyId.GetHex(), llFees, nValidHeight);
-    return str;
+
+    return strprintf("txType=%s, hash=%s, ver=%d, accountId=%s, keyid=%s, llFees=%ld, nValidHeight=%d\n",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), llFees,
+                     nValidHeight);
 }
 
 Object CContractDeployTx::ToJson(const CAccountCache &accountCache) const{
@@ -266,21 +266,11 @@ bool CContractInvokeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds
 }
 
 string CContractInvokeTx::ToString(CAccountCache &view) {
-    string desId;
-    if (txUid.type() == typeid(CKeyID)) {
-        desId = appUid.get<CKeyID>().ToString();
-    } else if (appUid.type() == typeid(CRegID)) {
-        desId = appUid.get<CRegID>().ToString();
-    }
-
-    string str = strprintf(
-        "txType=%s, hash=%s, ver=%d, srcId=%s, desId=%s, bcoins=%ld, llFees=%ld, arguments=%s, "
+    return strprintf(
+        "txType=%s, hash=%s, ver=%d, txUid=%s, appUid=%s, bcoins=%ld, llFees=%ld, arguments=%s, "
         "nValidHeight=%d\n",
-        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion,
-        txUid.get<CRegID>().ToString(), desId.c_str(), bcoins, llFees,
-        HexStr(arguments).c_str(), nValidHeight);
-
-    return str;
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), appUid.ToString(), bcoins, llFees,
+        HexStr(arguments), nValidHeight);
 }
 
 Object CContractInvokeTx::ToJson(const CAccountCache &accountView) const {
