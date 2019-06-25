@@ -73,18 +73,21 @@ int64_t CBlock::GetFee() const {
     return nFees;
 }
 
-void CBlock::Print(CAccountCache& view) const {
-    LogPrint("INFO", "CBlock(hash=%s, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, nFuelRate=%d)\n",
-             GetHash().ToString(),
-             nVersion,
-             prevBlockHash.ToString(),
-             merkleRootHash.ToString(),
-             nTime,
-             nNonce,
+uint64_t CBlock::GetBlockMedianPrice(const CoinType coinType, const PriceType priceType) const {
+    return (vptx.size() == 1 || vptx[1]->nTxType != BLOCK_PRICE_MEDIAN_TX)
+               ? 0
+               : dynamic_pointer_cast<CBlockPriceMedianTx>(vptx[1])->GetMedianPriceByType(coinType, priceType);
+}
+
+void CBlock::Print(CAccountCache& accountCache) const {
+    LogPrint("INFO",
+             "CBlock(hash=%s, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, "
+             "nFuelRate=%d)\n",
+             GetHash().ToString(), nVersion, prevBlockHash.ToString(), merkleRootHash.ToString(), nTime, nNonce,
              vptx.size(), nFuel, nFuelRate);
     // LogPrint("INFO", "list transactions:\n");
     // for (unsigned int i = 0; i < vptx.size(); i++) {
-    //     LogPrint("INFO", "%s ", vptx[i]->ToString(view));
+    //     LogPrint("INFO", "%s ", vptx[i]->ToString(accountCache));
     // }
     // LogPrint("INFO", "  vMerkleTree: ");
     // for (unsigned int i = 0; i < vMerkleTree.size(); i++) {

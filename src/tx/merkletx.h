@@ -11,7 +11,7 @@
 /** A transaction with a merkle branch linking it to the block chain. */
 class CMerkleTx {
 private:
-    int GetDepthInMainChainINTERNAL(CBlockIndex *&pindexRet) const;
+    int GetDepthInMainChainINTERNAL(CBlockIndex *&pIndexRet) const;
 
 public:
     uint256 blockHash;
@@ -47,14 +47,14 @@ public:
     // -1  : not in blockchain, and not in memory pool (conflicted transaction)
     //  0  : in memory pool, waiting to be included in a block
     // >=1 : this many blocks deep in the main chain
-    int GetDepthInMainChain(CBlockIndex *&pindexRet) const;
+    int GetDepthInMainChain(CBlockIndex *&pIndexRet) const;
     int GetDepthInMainChain() const {
-        CBlockIndex *pindexRet;
-        return GetDepthInMainChain(pindexRet);
+        CBlockIndex *pIndexRet;
+        return GetDepthInMainChain(pIndexRet);
     }
     bool IsInMainChain() const {
-        CBlockIndex *pindexRet;
-        return GetDepthInMainChainINTERNAL(pindexRet) > 0;
+        CBlockIndex *pIndexRet;
+        return GetDepthInMainChainINTERNAL(pIndexRet) > 0;
     }
     int GetBlocksToMaturity() const;
 

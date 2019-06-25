@@ -54,8 +54,8 @@ bool CBlockPriceMedianTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyI
     return true;
 }
 
-inline uint64_t GetMedianPriceByType(const CoinType coinType, const PriceType priceType) {
-    // return mapMedianPricePoints[make_tuple<CoinType, PriceType>(coinType, priceType)];
-
-    return 0;
+uint64_t CBlockPriceMedianTx::GetMedianPriceByType(const CoinType coinType, const PriceType priceType) {
+    return mapMedianPricePoints.count(CCoinPriceType(coinType, priceType))
+               ? mapMedianPricePoints[CCoinPriceType(coinType, priceType)]
+               : 0;
 }

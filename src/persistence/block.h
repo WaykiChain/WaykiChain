@@ -174,7 +174,9 @@ public:
 
     int64_t GetFee() const;
 
-    void Print(CAccountCache &view) const;
+    uint64_t GetBlockMedianPrice(const CoinType coinType, const PriceType priceType) const;
+
+    void Print(CAccountCache &accountCache) const;
 };
 
 /** The block chain is a tree shaped structure starting with the
@@ -218,8 +220,12 @@ public:
     // Verification status of this block. See enum BlockStatus
     unsigned int nStatus;
 
-    //the block's fee
+    // the block's fee
     uint64_t nBlockFee;
+
+    // (memory only) Block price median
+    uint64_t bcoinMedianPrice;  // against scoin
+    uint64_t fcoinMedianPrice;  // against scoin
 
     // block header
     int nVersion;
@@ -237,20 +243,22 @@ public:
     uint32_t nSequenceId;
 
     CBlockIndex() {
-        pBlockHash  = NULL;
-        pprev       = NULL;
-        pskip       = NULL;
-        nHeight     = 0;
-        nFile       = 0;
-        nDataPos    = 0;
-        nUndoPos    = 0;
-        nChainWork  = 0;
-        nTx         = 0;
-        nChainTx    = 0;
-        nStatus     = 0;
-        nSequenceId = 0;
-        dFeePerKb   = 0.0;
-        nBlockFee   = 0;  //add the block's fee
+        pBlockHash       = nullptr;
+        pprev            = nullptr;
+        pskip            = nullptr;
+        nHeight          = 0;
+        nFile            = 0;
+        nDataPos         = 0;
+        nUndoPos         = 0;
+        nChainWork       = 0;
+        nTx              = 0;
+        nChainTx         = 0;
+        nStatus          = 0;
+        nSequenceId      = 0;
+        dFeePerKb        = 0.0;
+        nBlockFee        = 0;
+        bcoinMedianPrice = 0;
+        fcoinMedianPrice = 0;
 
         nVersion       = 0;
         merkleRootHash = uint256();
@@ -264,26 +272,29 @@ public:
     }
 
     CBlockIndex(CBlock &block) {
-        pBlockHash  = NULL;
-        pprev       = NULL;
-        pskip       = NULL;
-        nHeight     = 0;
-        nFile       = 0;
-        nDataPos    = 0;
-        nUndoPos    = 0;
-        nChainWork  = 0;
-        nTx         = 0;
-        nChainTx    = 0;
-        nStatus     = 0;
-        nSequenceId = 0;
-        nBlockFee   = block.GetFee();  //add the block's fee
+        pBlockHash       = nullptr;
+        pprev            = nullptr;
+        pskip            = nullptr;
+        nHeight          = 0;
+        nFile            = 0;
+        nDataPos         = 0;
+        nUndoPos         = 0;
+        nChainWork       = 0;
+        nTx              = 0;
+        nChainTx         = 0;
+        nStatus          = 0;
+        nSequenceId      = 0;
+
+        nBlockFee        = block.GetFee();
+        bcoinMedianPrice = block.GetBlockMedianPrice(CoinType::WICC, PriceType::USD);
+        fcoinMedianPrice = block.GetBlockMedianPrice(CoinType::MICC, PriceType::USD);
 
         int64_t nTxSize(0);
         for (auto &pTx : block.vptx) {
             nTxSize += pTx->GetSerializeSize(SER_DISK, PROTOCOL_VERSION);
         }
 
-        dFeePerKb = double((nBlockFee - block.GetFuel())) / (double(nTxSize / 1000.0));
+        dFeePerKb      = double((nBlockFee - block.GetFuel())) / (double(nTxSize / 1000.0));
 
         nVersion       = block.GetVersion();
         merkleRootHash = block.GetMerkleRootHash();

@@ -127,7 +127,7 @@ bool CDEXBuyLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
     if (!cw.accountCache.SetAccount(userId, account)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::UndoExecuteTx, write account info error"),
                          UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-    }  
+    }
 
     return true;
 }
@@ -560,8 +560,8 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
         II.  dealPrice >= sellOrder.askPrice
     b. limit type <-> market type
         I.   dealPrice == buyOrder.bidPrice
-    C. market type <-> limit type
-        I.   dealPrice == sellOrder.askPrice    
+    c. market type <-> limit type
+        I.   dealPrice == sellOrder.askPrice
 9. get buy/sell coin/asset amount
     a. limit type
         I. buy order
@@ -570,7 +570,7 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
             buyCoinAmount = dealAmount*dealPrice // buyer pay coin amount to seller
             buyAssetAmount = dealAmount
             residualAmount = residualAmount - buyAssetAmount
-            
+
 
         II. sell order
             residualAmount is assetAmount
@@ -610,7 +610,7 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
         erase active order from dex db
     else
         save residual amount to active order in dex db
-            
+
 */
 bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
