@@ -9,22 +9,57 @@
 #include <set>
 #include <vector>
 
+#include "persistence/leveldbwrapper.h"
 #include "accounts/id.h"
 #include "accounts/account.h"
+
+
 
 enum OrderDirection {
     ORDER_BUY  = 0,
     ORDER_SELL = 1,
 };
 
-class CDEXSellOrderInfo {
-public:
-    uint64_t sellRemains; //!< 剩余可卖的资产数量
+enum OrderExchangeType {
+    // ORDER_LIMIT_PRICE   = 0, //!< limit price order type
+    // ORDER_MARKET_PRICE  = 1  //!< market price order type
 };
 
-class CDEXBuyOrderInfo {
+enum OrderGenerateType {
+    USER_GEN_ORDER = 0,
+    SYSTEM_GEN_ORDER,
+};
+
+/**
+ * 
+ */
+class CDEXBuyOrder {
 public:
-    uint64_t buyRemains; //!< 剩余可买的资产数量
+    OrderExchangeType exchangeType;    //!< order exchange type
+    CoinType coinType;      //!< coin type (wusd) to buy asset
+    CoinType assetType;     //!< asset type
+    uint64_t buyAmount;     //!< amount of target asset to buy
+    uint64_t bidPrice;      //!< bidding price in coinType willing to buy
+};
+
+class CDEXSellOrder {
+public:
+    OrderExchangeType exchangeType;    //!< order exchange type
+    CoinType coinType;      //!< coin type (wusd) to sell asset
+    CoinType assetType;     //!< holing asset type (wicc or micc) to sell in coinType
+    uint64_t sellAmount;    //!< amount of holding asset to sell
+    uint64_t askPrice;      //!< asking price in coinType willing to sell     
+};
+
+
+struct CDEXActiveBuyOrderInfo {
+    OrderGenerateType generateType;
+    uint64_t residualAmount; //!< residual coin/asset amount for buying
+};
+
+struct CDEXActiveSellOrderInfo {
+    OrderGenerateType generateType;
+    uint64_t residualAmount; //!< residual coin/asset amount for selling
 };
 
 // System-generated Market Order
@@ -49,12 +84,23 @@ public:
 public:
 
 
-    bool GetBuyOrder(const CTxCord& txCord, CDEXBuyOrderInfo& buyOrderInfo) { return false; }; // TODO: ...
+    bool GetActiveBuyOrder(const CTxCord& txCord, CDEXActiveBuyOrderInfo& buyOrder) { return false; }; // TODO: ...
+    bool SetActiveBuyOrder(const CTxCord& txCord, const CDEXActiveBuyOrderInfo& buyOrder, CDBOpLogMap &dbOpLogMap) {
+        return false;  // TODO: ...
+    };
+    bool UndoActiveBuyOrder(CDBOpLogMap &dbOpLogMap) {
+        return false;  // TODO: ...
+    };
 
     bool HaveBuyOrder(const CTxCord& txCord) { return false; }; // TODO: ...
 
-    bool GetSellOrder(const CTxCord& txCord, CDEXSellOrderInfo& sellOrderInfo) { return false; }; // TODO: ...
-    bool HaveSellOrder(const CTxCord& txCord) { return false; }; // TODO: ...
+    bool GetActiveSellOrder(const CTxCord& txCord, CDEXActiveSellOrderInfo& sellOrder) { return false; }; // TODO: ...
+    bool SetActiveSellOrder(const CTxCord& txCord, const CDEXActiveSellOrderInfo& sellOrder, CDBOpLogMap &dbOpLogMap) {
+        return false;  // TODO: ...
+    };
+    bool UndoActiveSellOrder(CDBOpLogMap &dbOpLogMap) {
+        return false;  // TODO: ...
+    };
 
     bool CreateBuyOrder(uint64_t buyAmount, CoinType targetCoinType); //TODO: ... SystemBuyOrder
     bool CreateSellOrder(uint64_t sellAmount, CoinType targetCoinType); //TODO: ... SystemSellOrder
