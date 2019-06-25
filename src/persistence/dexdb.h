@@ -48,18 +48,20 @@ public:
     CoinType coinType;      //!< coin type (wusd) to sell asset
     CoinType assetType;     //!< holing asset type (wicc or micc) to sell in coinType
     uint64_t sellAmount;    //!< amount of holding asset to sell
-    uint64_t askPrice;      //!< asking price in coinType willing to sell     
+    uint64_t askPrice;      //!< asking price in coinType willing to sell   
 };
 
 
 struct CDEXActiveBuyOrderInfo {
     OrderGenerateType generateType;
     uint64_t residualAmount; //!< residual coin/asset amount for buying
+    CTxCord  txCord;
 };
 
 struct CDEXActiveSellOrderInfo {
     OrderGenerateType generateType;
     uint64_t residualAmount; //!< residual coin/asset amount for selling
+    CTxCord  txCord;
 };
 
 // System-generated Market Order
@@ -84,18 +86,15 @@ public:
 public:
 
 
-    bool GetActiveBuyOrder(const CTxCord& txCord, CDEXActiveBuyOrderInfo& buyOrder) { return false; }; // TODO: ...
-    bool SetActiveBuyOrder(const CTxCord& txCord, const CDEXActiveBuyOrderInfo& buyOrder, CDBOpLogMap &dbOpLogMap) {
+    bool GetActiveBuyOrder(const uint256& orderId, CDEXActiveBuyOrderInfo& buyOrder) { return false; }; // TODO: ...
+    bool SetActiveBuyOrder(const uint256& orderId, const CDEXActiveBuyOrderInfo& buyOrder, CDBOpLogMap &dbOpLogMap) {
         return false;  // TODO: ...
     };
     bool UndoActiveBuyOrder(CDBOpLogMap &dbOpLogMap) {
         return false;  // TODO: ...
     };
-
-    bool HaveBuyOrder(const CTxCord& txCord) { return false; }; // TODO: ...
-
-    bool GetActiveSellOrder(const CTxCord& txCord, CDEXActiveSellOrderInfo& sellOrder) { return false; }; // TODO: ...
-    bool SetActiveSellOrder(const CTxCord& txCord, const CDEXActiveSellOrderInfo& sellOrder, CDBOpLogMap &dbOpLogMap) {
+    bool GetActiveSellOrder(const uint256& orderId, CDEXActiveSellOrderInfo& sellOrder) { return false; }; // TODO: ...
+    bool SetActiveSellOrder(const uint256& orderId, const CDEXActiveSellOrderInfo& sellOrder, CDBOpLogMap &dbOpLogMap) {
         return false;  // TODO: ...
     };
     bool UndoActiveSellOrder(CDBOpLogMap &dbOpLogMap) {
