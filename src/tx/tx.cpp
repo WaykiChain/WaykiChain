@@ -29,7 +29,7 @@ using namespace json_spirit;
 string GetTxType(const unsigned char txType) {
     auto it = kTxTypeMap.find(txType);
     if (it != kTxTypeMap.end())
-        return it->second;
+        return std::get<0>(it->second);
     else
         return "";
 }
@@ -78,11 +78,17 @@ int32_t CBaseTx::GetFuelRate(CContractCache &scriptDB) {
     return nFuelRate;
 }
 
-bool CBaseTx::CheckMinTxFee(const uint64_t llFees, const int32_t nHeight) const {
-    if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2 )
-        return llFees >= nMinTxFee;
+bool CBaseTx::CheckTxFeeSufficient(const uint64_t llFees, const int32_t nHeight) const {
+    switch (GetFeatureForkVersion(nHeight) ) {
+        case MAJOR_VER_R1: // Prior-stablecoin Release
+            return (llFees >= std::get<1>kTxTypeMap[nTxType]);
 
-    return true;
+        case MAJOR_VER_R2:  //StableCoin Release
+            return (llFees >= std::get<2>kTxTypeMap[nTxType]);
+
+        default:
+            return true;
+    }
 }
 
 // Transactions should check the signature size before verifying signature

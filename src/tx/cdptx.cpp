@@ -5,6 +5,7 @@
 
 #include "cdptx.h"
 #include "main.h"
+#incldue "config/fees.h"
 
 #include <math.h>
 

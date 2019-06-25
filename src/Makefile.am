@@ -50,6 +50,7 @@ coin_CORE_H = \
   commons/bloom.h \
   commons/openssl.hpp \
   commons/serialize.h \
+  config/scoin.h \
   chainparams.h \
   clientversion.h \
   compat\compat.h \

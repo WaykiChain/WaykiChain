@@ -13,6 +13,7 @@
 #include "accounts/account.h"
 #include "accounts/id.h"
 #include "persistence/contractdb.h"
+#include "config/scoin.h"
 
 #include <boost/variant.hpp>
 #include <memory>
@@ -30,29 +31,6 @@ class CContractCache;
 static const int32_t nTxVersion1 = 1;
 static const int32_t nTxVersion2 = 2;
 
-static const bool kGlobalStableCoinLockIsOn = false;  // when true, CDP cannot be added but can be closed. scoins cannot be sold in DEX
-
-static const uint16_t kScoinInterestIncreaseRate = 3;   // increase by 3%
-static const uint16_t kBcoinDexSellOrderDiscount = 97;  // 97%
-
-static const uint16_t kDefaultCollateralRatio       = 20000;    // 200% * 10000
-static const uint16_t kDefaultOpenLiquidateRatio    = 15000;    // 150% * 10000
-static const uint16_t kDefaultForcedLiquidateRatio  = 10300;    // 103% * 10000
-static const uint16_t kDefaultCdpLoanInterest       = 350;      // 3.5% * 10000
-static const uint16_t kDefaultCdpPenaltyFeeRatio    = 1300;     // 13% * 10000
-static const uint16_t kDefaultCdpLiquidateProfitRatio = 300;     // 3% * 10000
-static const uint16_t kDefaultCdpLiquidateNonReturnRatio = 11600;   // 1.16 * 10000: Non-return to CDP owner
-static const uint16_t kDefaultCdpLiquidateNonProfitRatio = 11300;   // 1.13 * 10000: Non-profit for Liquidation
-
-static const uint16_t PERCENT_BOOST = 10000;
-
-static const uint32_t kTotalFundCoinAmount             = 21000000; // 21 million MICC
-static const uint32_t kDefaultPriceFeedStakedFcoinsMin = 210000;   // 1%: min 210K fcoins deposited to be a price feeder
-static const uint16_t kDefaultPriceFeedDeviateAcceptLimit = 3000;  // 30% * 10000, above than that will be penalized
-static const uint16_t kDefaultPriceFeedDeviatePenalty     = 1000;  // 1000 bcoins deduction as penalty
-static const uint16_t kDefaultPriceFeedContinuousDeviateTimesLimit = 10;  // after 10 times continuous deviate limit penetration all deposit be deducted
-static const uint16_t kDefaultPriceFeedTxFee = 10000;  // 10000 sawi
-
 #define SCRIPT_ID_SIZE (6)
 
 enum TxType : unsigned char {
@@ -65,7 +43,7 @@ enum TxType : unsigned char {
     COMMON_MTX          = 7,  //!< Multisig Tx
 
     BLOCK_PRICE_MEDIAN_TX = 8, // Block Median Price Tx
-    /******** Begin of Stable Coin TX Type Enums ********/
+
     CDP_OPEN_TX         = 11,   //!< CDP Open Tx
     CDP_REFUEL_TX       = 12,   //!< CDP refuel Tx
     CDP_REDEEMP_TX       = 13,   //!< CDP Redemption Tx (partial or full)
@@ -86,40 +64,38 @@ enum TxType : unsigned char {
     DEX_SELL_ORDER_TX       = 52,
     DEX_SETTLE_TX           = 53,
 
-    DEX_WICC_FOR_MICC_TX = 61,  //!< DEX: owner sells WICC for MICC Tx
-    DEX_MICC_FOR_WICC_TX = 62,  //!< DEX: owner sells MICC for WICC Tx
-    DEX_WICC_FOR_WUSD_TX = 63,  //!< DEX: owner sells WICC for WUSD Tx
-    DEX_WUSD_FOR_WICC_TX = 64,  //!< DEX: owner sells WUSD for WICC Tx
-    DEX_MICC_FOR_WUSD_TX = 65,  //!< DEX: owner sells MICC for WUSD Tx
-    DEX_WUSD_FOR_MICC_TX = 66,  //!< DEX: owner sells WUSD for MICC Tx
-    /******** End of Stable Coin Enums ********/
-
     NULL_TX = 0  //!< NULL_TX
 };
 
-static const unordered_map<unsigned char, string> kTxTypeMap = {
-    { BLOCK_REWARD_TX,      "BLOCK_REWARD_TX" },
-    { ACCOUNT_REGISTER_TX,  "ACCOUNT_REGISTER_TX" },
-    { BCOIN_TRANSFER_TX,    "BCOIN_TRANSFER_TX" },
-    { CONTRACT_INVOKE_TX,   "CONTRACT_INVOKE_TX" },
-    { CONTRACT_DEPLOY_TX,   "CONTRACT_DEPLOY_TX" },
-    { DELEGATE_VOTE_TX,     "DELEGATE_VOTE_TX" },
-    { COMMON_MTX,           "COMMON_MTX"},
-    { CDP_OPEN_TX,          "CDP_OPEN_TX" },
-    { CDP_REFUEL_TX,        "CDP_REFUEL_TX" },
-    { CDP_REDEEMP_TX,       "CDP_REDEEMP_TX" },
-    { CDP_LIQUIDATE_TX,     "CDP_LIQUIDATE_TX" },
-    { PRICE_FEED_TX,        "PRICE_FEED_TX" },
-    { SFC_PARAM_MTX,        "SFC_PARAM_MTX" },
-    { SFC_GLOBAL_HALT_MTX,  "SFC_GLOBAL_HALT_MTX" },
-    { SFC_GLOBAL_SETTLE_MTX,"SFC_GLOBAL_SETTLE_MTX" },
-    { DEX_WICC_FOR_MICC_TX, "DEX_WICC_FOR_MICC_TX" },
-    { DEX_MICC_FOR_WICC_TX, "DEX_MICC_FOR_WICC_TX" },
-    { DEX_WICC_FOR_WUSD_TX, "DEX_WICC_FOR_WUSD_TX" },
-    { DEX_WUSD_FOR_WICC_TX, "DEX_WUSD_FOR_WICC_TX" },
-    { DEX_MICC_FOR_WUSD_TX, "DEX_MICC_FOR_WUSD_TX" },
-    { DEX_WUSD_FOR_MICC_TX, "DEX_WUSD_FOR_MICC_TX" },
-    { NULL_TX,              "NULL_TX" },
+/**
+ * TxTypeKey -> {TxTypeName, InterimPeriodTxFees, EffectivePeriodTxFees}
+ * Fees are boosted by 10^8
+ * all fees are spent in WICC coins except WUSD coins transfer requires WUSD
+ */
+static const unordered_map<TxType, std::tuple<string, int, int> > kTxTypeMap = {
+    { BLOCK_REWARD_TX,      {"BLOCK_REWARD_TX",         0,          0       } },
+    { BLOCK_PRICE_MEDIAN_TX,{"BLOCK_PRICE_MEDIAN_TX",   0,          0       } },
+    { ACCOUNT_REGISTER_TX,  {"ACCOUNT_REGISTER_TX",     10000,      10000   } }, // optional
+    { BCOIN_TRANSFER_TX,    {"BCOIN_TRANSFER_TX",       10000,      10000   } },
+    { CONTRACT_INVOKE_TX,   {"CONTRACT_INVOKE_TX",      10000,      10000   } },
+    { CONTRACT_DEPLOY_TX,   {"CONTRACT_DEPLOY_TX",      100,        100     } },
+    { DELEGATE_VOTE_TX,     {"DELEGATE_VOTE_TX",        1000,       1000    } },
+    { COMMON_MTX,           {"COMMON_MTX",              1000,       1000    } },
+    { CDP_OPEN_TX,          {"CDP_OPEN_TX"              1000000,    1000000 } },
+    { CDP_REFUEL_TX,        {"CDP_REFUEL_TX"            10000,      10000   } },
+    { CDP_REDEEMP_TX,       {"CDP_REDEEMP_TX"           10000,      10000   } },
+    { CDP_LIQUIDATE_TX,     {"CDP_LIQUIDATE_TX"         10000,      10000   } },
+    { PRICE_FEED_TX,        {"PRICE_FEED_TX"            10000,      10000   } },
+    { SFC_PARAM_MTX,        {"SFC_PARAM_MTX"            10000,      10000   } },
+    { SFC_GLOBAL_HALT_MTX,  {"SFC_GLOBAL_HALT_MTX"      10000,      10000   } },
+    { SFC_GLOBAL_SETTLE_MTX,{"SFC_GLOBAL_SETTLE_MTX"    10000,      10000   } },
+    { SCOIN_TRANSFER_TX,    {"SCOIN_TRANSFER_TX",       10000,      10000   } }, // charged in WUSD
+    { FCOIN_TRANSFER_TX,    {"FCOIN_TRANSFER_TX",       10000,      10000   } },
+    { FCOIN_STAKE_TX,       {"FCOIN_STAKE_TX",          10000,      10000   } },
+    { DEX_BUY_ORDER_TX,     {"DEX_BUY_ORDER_TX",        10000,      10000   } },
+    { DEX_SELL_ORDER_TX,    {"DEX_SELL_ORDER_TX",       10000,      10000   } },
+    { DEX_SETTLE_TX,        {"DEX_SETTLE_TX",           10000,      10000   } },
+    { NULL_TX,              {"NULL_TX",                 0,          0       } }
 };
 
 string GetTxType(unsigned char txType);
@@ -132,7 +108,7 @@ public:
     static const int32_t CURRENT_VERSION = nTxVersion1;
 
     int32_t nVersion;
-    unsigned char nTxType;
+    TxType nTxType;
     mutable CUserID txUid;
     int32_t nValidHeight;
     uint64_t llFees;
@@ -187,7 +163,7 @@ public:
     bool IsCoinBase() { return (nTxType == BLOCK_REWARD_TX); }
 
 protected:
-    bool CheckMinTxFee(const uint64_t llFees, const int32_t nHeight) const;
+    bool CheckTxFeeSufficient(const uint64_t llFees, const int32_t nHeight) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
     static bool SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw,
                                 CValidationState &state, const vector<CUserID> &userIds);
@@ -259,7 +235,7 @@ public:
         return state.DoS(100, ERRORMSG("%s::CheckTx, tx fee out of range", __FUNCTION__), REJECT_INVALID,          \
                          "bad-tx-fee-toolarge");                                                                   \
                                                                                                                    \
-    if (!CheckMinTxFee(llFees, nHeight)) {                                                                         \
+    if (!CheckTxFeeSufficient(llFees, nHeight)) {                                                                         \
         return state.DoS(100, ERRORMSG("%s::CheckTx, tx fee smaller than MinTxFee", __FUNCTION__), REJECT_INVALID, \
                          "bad-tx-fee-toosmall");                                                                   \
     }
