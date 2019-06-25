@@ -6,42 +6,60 @@
 #ifndef PERSIST_PRICEFEED_H
 #define PERSIST_PRICEFEED_H
 
-#include "commons/uint256.h"
-#include "tx/scointx.h"
+#include "accounts/account.h"
+#include "accounts/id.h"
+#include "commons/serialize.h"
+#include "tx/tx.h"
 
-#include <set>
+#include <map>
 #include <string>
+#include <vector>
 
 using namespace std;
 
-// typedef vector<unsigned char> unsigned_vector;
-
-struct PriceFeed {
-    uint64_t blockHeight;
-    uint256 txid;
-    unsigned char coinType;
-    unsigned char priceType;
-    uint64_t price;
-};
-
-class CPriceFeedCache {
-private:
-    set<uint64_t>> baseCoinPriceFeeds;      // memory only
-    set<uint64_t>> stableCoinPriceFeeds;    // memory only
-    set<uint64_t>> fundCoinPriceFeeds;      // memory only
+// Price Points in 11 consecutive blocks
+class CConsecutiveBlockPrice {
+public:
+    void AddUserPrice(const int blockHeight, const CRegID &regId, const uint64_t price);
+    // delete user price by specific block height.
+    void DeleteUserPrice(const int blockHeight);
+    bool ExistBlockUserPrice(const int blockHeight, const CRegID &regId);
+    uint64_t ComputeBlockMedianPrice(const int blockHeight);
+    uint64_t GetLastBlockMedianPrice();
 
 public:
-    uint64_6 ComputeMedianPrice(CoinType cointype, PriceType priceType);
+    static uint64_t ComputeMedianNumber(vector<uint64_t> &numbers);
 
-    /**
-     * Usage: Flush median coin price into DB: {coinType}_{priceType} -> {medianPrice}
-     */
-    bool Flush();
-
+private:
+    map<int, map<string, uint64_t>> mapBlockUserPrices;  // height -> { regId -> price }
 };
 
-class CPriceFeedDB {
+class CPricePointCache {
+public:
+    CPricePointCache() : pBase(nullptr) {}
+    CPricePointCache(CPricePointCache *pBaseIn) : pBase(pBaseIn) {}
 
+public:
+    bool AddBlockPricePointInBatch(const int blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
+    // delete block price point by specific block height.
+    bool DeleteBlockPricePoint(const int blockHeight);
+
+    void ComputeBlockMedianPrice(const int blockHeight);
+    uint64_t GetBcoinMedianPrice() { return bcoinMedianPrice; }
+    uint64_t GetFcoinMedianPrice() { return fcoinMedianPrice; }
+
+    void Flush();
+
+private:
+    uint64_t ComputeBlockMedianPrice(const int blockHeight, CCoinPriceType coinPriceType);
+    void BatchWrite(const map<string, CConsecutiveBlockPrice> &mapCoinPricePointCacheIn);
+
+private:
+    uint64_t bcoinMedianPrice;  // against scoin
+    uint64_t fcoinMedianPrice;  // against scoin
+
+    map<string, CConsecutiveBlockPrice> mapCoinPricePointCache;  // coinPriceType -> consecutiveBlockPrice
+    CPricePointCache *pBase;
 };
 
 #endif  // PERSIST_PRICEFEED_H

@@ -382,15 +382,13 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 					llRegAcctFee += ptx->GetFee();
 				}
 				if (BCOIN_TRANSFER_TX == ptx->nTxType) {
-					std::shared_ptr<CBaseCoinTransferTx> pTransaction(
-						dynamic_pointer_cast<CBaseCoinTransferTx>(ptx));
+					CBaseCoinTransferTx *pTransaction = (CBaseCoinTransferTx *)ptx.get();
 					if (typeid(pTransaction->desUserId) == typeid(CKeyID)) {
 						llSendValue += pTransaction->bcoins;
 					}
 				}
 				if (CONTRACT_INVOKE_TX == ptx->nTxType) {
-					std::shared_ptr<CContractInvokeTx> pTransaction(
-						dynamic_pointer_cast<CContractInvokeTx>(ptx));
+					CContractInvokeTx *pTransaction = (CContractInvokeTx *)ptx.get();
 					if (typeid(pTransaction->desUserId) == typeid(CKeyID)) {
 						llSendValue += pTransaction->bcoins;
 					}

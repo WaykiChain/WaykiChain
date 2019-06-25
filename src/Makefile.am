@@ -284,6 +284,7 @@ libcoin_common_a_SOURCES = \
   persistence/blockdb.cpp \
   persistence/contractdb.cpp \
   persistence/delegatedb.cpp \
+  persistence/pricefeeddb.cpp \
   persistence/txdb.cpp \
   persistence/leveldbwrapper.cpp \
   persistence/dexdb.cpp \
