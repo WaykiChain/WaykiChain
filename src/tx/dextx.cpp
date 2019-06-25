@@ -539,18 +539,20 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
 }
 
 
-/* execute process for settle tx
+/* process flow for settle tx
 1. get and check active order
-    a. get and check active buy order
-    b. get and check active sell order
-2. get order details:
-    a. user_order, get order tx
-        then get order detail from tx obj
-    b. sys_order,  get sys order from dexdb cache
-        then get order detail from sys order obj
-3. get account of order
-    a. get buyOrderAccount
-    b. get sellOrderAccount
+    a. get and check activeBuyOrder
+    b. get and check activeSellOrder
+2. get order data:
+    a. if order is USER_ORDER: 
+        step 1. get and check order tx object from block store
+        step 2. get order data from tx object
+    b. if order is SYS_ORDER:  
+        step 1. get sys order object from dex db
+        then get order detail from sys order object
+3. get account of order's owner
+    a. get buyerAccount from account db
+    b. get sellerAccount from account db
 5. check coin type match
     buyOrder.coinType == sellOrder.coinType
 6. check asset type match
@@ -564,55 +566,62 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
         I.   dealPrice == buyOrder.bidPrice
     c. market type <-> limit type
         I.   dealPrice == sellOrder.askPrice
-9. get buy/sell coin/asset amount
-    a. limit type
-        I. buy order
-            check: dealAmount <= residualAmount
-            minusCoinAmount = dealAmount*dealPrice // buyer pay coin amount to seller
-            addedAssetAmount = dealAmount
-            residualAmountType = ASSET_RESIDUAL_AMOUNT
-            residualAmount = residualAmount - buyAssetAmount
-
-
-        II. sell order
-            check: dealAmount <= residualAmount
-            coinAmount = dealAmount*dealPrice // seller get coin amount from buyer
-            assetAmount = dealAmount
-            residualAmountType = ASSET_RESIDUAL_AMOUNT
-            residualAmount = residualAmount - buyAssetAmount
-    b. market type
-        I. buy order
-            residualAmountType = COIN_RESIDUAL_AMOUNT
-            dealAmount * dealPrice <= residualAmount
-            coinAmount = dealAmount * dealPrice // buyer pay coin amount to seller
-            assetAmount = dealAmount
-            residualAmount = residualAmount - buyCoinAmount
-            if residualAmount < dealPrice { // special handle
-                buyCoinAmount = residualAmount
+9. get and check the deal detail
+    a. buy order
+        dealCoinAmount = dealAmount * dealPrice
+        dealAssetAmount = dealAmount
+        activeBuyOrder.totalDealCoinAmount  += dealCoinAmount
+        activeBuyOrder.totalDealAssetAmount += dealAssetAmount
+        if market price order {
+            limitCoinAmount = buyOrder.limitAmount
+            check: limitCoinAmount >= activeBuyOrder.totalDealCoinAmount
+            residualAmount = limitCoinAmount - dealCoinAmount
+            if residualAmount < dealPrice { 
+                // the residual coin amount is not enough to buy an asset. 
+                dealCoinAmount += residualAmount
+                activeBuyOrder.totalDealCoinAmount += residualAmount
+                assert(residualAmount == totalDealCoinAmount)
                 residualAmount = 0
             }
-        II. sell order
-            residualAmount is assetAmount
-            dealAmount <= residualAmount
-            sellCoinAmount = dealAmount*dealPrice // seller get coin amount from buyer
-            sellAssetAmount = dealAmount
-            residualAmount = residualAmount - buyAssetAmount
+        } else { //limit price order
+            limitAssetAmount = buyOrder.limitAmount
+            check: limitAssetAmount >= activeBuyOrder.totalDealAssetAmount
+            residualAmount = limitAssetAmount - dealCoinAmount
+        }
+        fulfilled = (residualAmount == 0)
+    b. sell order
+        dealAssetAmount = dealAmount
+        activeSellOrder.totalDealAssetAmount += dealAssetAmount
+        limitAssetAmount = sellOrder.limitAmount
+        check: limitAssetAmount >= activeBuyOrder.totalDealAssetAmount
+        residualAmount = limitAssetAmount - dealCoinAmount
+        fulfilled = (residualAmount == 0)
 
 10. operate account
-    a. buyerCoins   -= dealCoinAmount
-    b. buyerAssets  += dealAssetAmount
-    c. sellerCoins  += dealCoinAmount
-    d. sellerAssets -= dealCoinAmount
+    a. buyerFrozenCoins     -= dealCoinAmount
+    b. buyerAssets          += dealAssetAmount
+    c. sellerCoins          += dealCoinAmount
+    d. sellerFrozenAssets   -= dealAssetAmount
 
-11. finish order or save residual amount
-    if order is fulfilled
-        if buy limit order
-            calc the residualCoinAmount
-            unfreeze residualCoinAmount
-        erase active order from dex db
-    else
-        save residual amount to active order in dex db
-
+11. check order fulfiled or save residual amount
+    a. buy order
+        if buy order is fulfilled {
+            if buy limit order {
+                residualCoinAmount = buyOrder.coinAmount - activeBuyOrder.totalDealCoinAmount
+                if residualCoinAmount > 0 {
+                    buyerUnfreeze(residualCoinAmount)
+                }
+            }
+            erase active order from dex db
+        } else {
+            update active order to dex db
+        }
+    a. sell order    
+        if sell order is fulfilled {
+            erase active order from dex db
+        } else {
+            update active order to dex db
+        }
 */
 bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
