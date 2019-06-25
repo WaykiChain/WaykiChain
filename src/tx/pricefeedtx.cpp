@@ -3,15 +3,15 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-
 #include "pricefeedtx.h"
+
 #include "commons/serialize.h"
-#include "tx.h"
 #include "crypto/hash.h"
-#include "util.h"
 #include "main.h"
-#include "vm/vmrunenv.h"
 #include "miner/miner.h"
+#include "persistence/pricefeeddb.h"
+#include "tx.h"
+#include "util.h"
 #include "version.h"
 
 bool CPriceFeedTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {

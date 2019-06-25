@@ -76,7 +76,7 @@ int64_t CBlock::GetFee() const {
 uint64_t CBlock::GetBlockMedianPrice(const CoinType coinType, const PriceType priceType) const {
     return (vptx.size() == 1 || vptx[1]->nTxType != BLOCK_PRICE_MEDIAN_TX)
                ? 0
-               : dynamic_pointer_cast<CBlockPriceMedianTx>(vptx[1])->GetMedianPriceByType(coinType, priceType);
+               : ((CBlockPriceMedianTx*)vptx[1].get())->GetMedianPriceByType(coinType, priceType);
 }
 
 void CBlock::Print(CAccountCache& accountCache) const {

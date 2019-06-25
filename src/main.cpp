@@ -1246,7 +1246,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
     for (unsigned int i = 1; i < block.vptx.size(); i++) {
         if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
             assert(i <= 1);
-            std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[i]);
+            CBlockRewardTx *pRewardTx = (CBlockRewardTx *)block.vptx[i].get();
             CAccount account;
             CRegID regId(pIndex->nHeight, i);
             CPubKey pubKey       = pRewardTx->txUid.get<CPubKey>();
@@ -1259,7 +1259,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
 
             assert(cw.accountCache.SaveAccount(account));
         } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
-            std::shared_ptr<CDelegateVoteTx> pDelegateTx = dynamic_pointer_cast<CDelegateVoteTx>(block.vptx[i]);
+            CDelegateVoteTx *pDelegateTx = (CDelegateVoteTx *)block.vptx[i].get();
             assert(pDelegateTx->txUid.type() == typeid(CRegID));  // Vote Tx must use RegId
 
             CAccount voterAcct;
@@ -1324,8 +1324,7 @@ static bool ProcessFundCoinGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlock
 
     for (unsigned int i = 1; i < block.vptx.size(); i++) {
         if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
-            std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[i]);
-
+            CBlockRewardTx *pRewardTx = (CBlockRewardTx *)(block.vptx[i].get());
             assert(pRewardTx->txUid.type() == typeid(CPubKey));
             CPubKey pubKey = pRewardTx->txUid.get<CPubKey>();
             assert(pubKey == fundCoinGenesisPubKey);
@@ -1350,8 +1349,7 @@ static bool ProcessFundCoinGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlock
 
             assert(cw.accountCache.SaveAccount(globalFundAccount));
         } else if (block.vptx[i]->nTxType == ACCOUNT_REGISTER_TX) {
-            std::shared_ptr<CAccountRegisterTx> pAccountRegisterTx =
-                dynamic_pointer_cast<CAccountRegisterTx>(block.vptx[i]);
+            CAccountRegisterTx *pAccountRegisterTx = (CAccountRegisterTx *)block.vptx[i].get();
             assert(pAccountRegisterTx->txUid.type() == typeid(CPubKey));
             CPubKey pubKey = pAccountRegisterTx->txUid.get<CPubKey>();
             assert(pubKey == fundCoinGenesisPubKey);
