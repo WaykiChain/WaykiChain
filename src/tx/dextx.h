@@ -8,12 +8,27 @@
 
 #include "tx.h"
 
-class CDEXBuyLimitOrderTx : public CBaseTx {
+
+class CDEXOrderBaseTx : public CBaseTx {
+public:
+    using CBaseTx::CBaseTx;
+
+    virtual void GetOrderData(CDEXOrderData &orderData) { };// TODO: ...
+
+    // virtual OrderType GetOrderType() = 0;      //!< coin type (wusd) to buy asset
+    // virtual CoinType GetCoinType() = 0;      //!< coin type (wusd) to buy asset
+    // virtual CoinType GetAssetType() = 0;     //!< asset type
+    // virtual uint64_t GetCoinAmount() = 0;    //!< amount of coin to buy/sell asset
+    // virtual uint64_t GetAssetAmount() = 0;   //!< amount of target asset to buy/sell
+    // virtual uint64_t GetPrice() = 0;         //!< price in coinType want to buy/sell asset
+};
+
+class CDEXBuyLimitOrderTx : public CDEXOrderBaseTx {
 
 public:
-    CDEXBuyLimitOrderTx() : CBaseTx(DEX_BUY_ORDER_TX) {}
+    CDEXBuyLimitOrderTx() : CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {}
 
-    CDEXBuyLimitOrderTx(const CBaseTx *pBaseTx): CBaseTx(DEX_BUY_ORDER_TX) {
+    CDEXBuyLimitOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {
         assert(DEX_BUY_ORDER_TX == pBaseTx->nTxType);
         *this = *(CDEXBuyLimitOrderTx *)pBaseTx;
     }
@@ -21,7 +36,7 @@ public:
     CDEXBuyLimitOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                    CoinType coinTypeIn, CoinType assetTypeIn,
                    uint64_t assetAmountIn, uint64_t bidPriceIn)
-        : CBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
+        : CDEXOrderBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
           coinType(coinTypeIn),
           assetType(assetTypeIn),
           assetAmount(assetAmountIn),
@@ -69,12 +84,12 @@ public:
 
 };
 
-class CDEXSellLimitOrderTx : public CBaseTx {
+class CDEXSellLimitOrderTx : public CDEXOrderBaseTx {
 
 public:
-    CDEXSellLimitOrderTx() : CBaseTx(DEX_SELL_ORDER_TX) {}
+    CDEXSellLimitOrderTx() : CDEXOrderBaseTx(DEX_SELL_ORDER_TX) {}
 
-    CDEXSellLimitOrderTx(const CBaseTx *pBaseTx): CBaseTx(DEX_SELL_ORDER_TX) {
+    CDEXSellLimitOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_SELL_ORDER_TX) {
         assert(DEX_SELL_ORDER_TX == pBaseTx->nTxType);
         *this = *(CDEXSellLimitOrderTx *)pBaseTx;
     }
@@ -82,7 +97,7 @@ public:
     CDEXSellLimitOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                     CoinType coinTypeIn, CoinType assetTypeIn,
                     uint64_t assetAmountIn, uint64_t askPriceIn)
-        : CBaseTx(DEX_SELL_ORDER_TX, txUidIn, validHeightIn, feesIn) {
+        : CDEXOrderBaseTx(DEX_SELL_ORDER_TX, txUidIn, validHeightIn, feesIn) {
         coinType   = coinTypeIn;
         assetType  = assetTypeIn;
         assetAmount = assetAmountIn;
@@ -131,11 +146,11 @@ public:
 
 };
 
-class CDEXBuyMarketOrderTx : public CBaseTx {
+class CDEXBuyMarketOrderTx : public CDEXOrderBaseTx {
 public:
-    CDEXBuyMarketOrderTx() : CBaseTx(DEX_BUY_ORDER_TX) {}
+    CDEXBuyMarketOrderTx() : CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {}
 
-    CDEXBuyMarketOrderTx(const CBaseTx *pBaseTx): CBaseTx(DEX_BUY_ORDER_TX) {
+    CDEXBuyMarketOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {
         assert(DEX_BUY_ORDER_TX == pBaseTx->nTxType);
         *this = *(CDEXBuyMarketOrderTx *)pBaseTx;
     }
@@ -188,19 +203,19 @@ public:
 };
 
 
-class CDEXSellMarketOrderTx : public CBaseTx {
+class CDEXSellMarketOrderTx : public CDEXOrderBaseTx {
 
 public:
-    CDEXSellMarketOrderTx() : CBaseTx(DEX_BUY_ORDER_TX) {}
+    CDEXSellMarketOrderTx() : CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {}
 
-    CDEXSellMarketOrderTx(const CBaseTx *pBaseTx): CBaseTx(DEX_BUY_ORDER_TX) {
+    CDEXSellMarketOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {
         assert(DEX_BUY_ORDER_TX == pBaseTx->nTxType);
         *this = *(CDEXSellMarketOrderTx *)pBaseTx;
     }
 
     CDEXSellMarketOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                          CoinType coinTypeIn, CoinType assetTypeIn, uint64_t assetAmountIn)
-        : CBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
+        : CDEXOrderBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
           coinType(coinTypeIn),
           assetType(assetTypeIn),
           assetAmount(assetAmountIn) {}
