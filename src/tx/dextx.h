@@ -246,14 +246,14 @@ public:
 };
 
 struct DEXDealItem  {
-    CTxCord buyOrderTxCord;
-    CTxCord sellOrderTxCord;
+    uint256 buyOrderId;
+    uint256 sellOrderId;
     uint64_t dealPrice;
     uint64_t dealAmount;
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(buyOrderTxCord);
-        READWRITE(sellOrderTxCord);
+        READWRITE(buyOrderId);
+        READWRITE(sellOrderId);
         READWRITE(VARINT(dealPrice));
         READWRITE(VARINT(dealAmount));
     )
