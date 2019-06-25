@@ -32,7 +32,7 @@ enum CoinType: uint8_t {
 };
 
 struct CoinTypeHash {
-    size_t operator()(const CoinType& type) const noexcept { return std::hash<int>{}(type); }
+    size_t operator()(const CoinType& type) const noexcept { return std::hash<uint8_t>{}(type); }
 };
 
 static const unordered_set<CoinType, CoinTypeHash> COINT_TYPE_SET = { WICC, MICC, WUSD};

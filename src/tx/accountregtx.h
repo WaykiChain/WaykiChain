@@ -45,7 +45,7 @@ public:
                    (minerUid.type() == typeid(CPubKey) || minerUid.type() == typeid(CNullID)));
 
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << minerUid << VARINT(llFees);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << minerUid << VARINT(llFees);
 
             sigHash = ss.GetHash();
         }

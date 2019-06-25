@@ -56,7 +56,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
                 << cdpTxCord << VARINT(bcoinsToStake) << VARINT(collateralRatio)
                 << VARINT(fcoinsInterest) << VARINT(scoinsInterest);
             sigHash = ss.GetHash();
@@ -133,7 +133,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
                 << cdpTxCord << VARINT(scoinsToRedeem) << VARINT(collateralRatio) << VARINT(fcoinsInterest);
             sigHash = ss.GetHash();
         }
@@ -209,7 +209,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
                 << VARINT(cdpTxCord) << VARINT(scoinsToLiquidate)
                 << VARINT(fcoinsPenalty) << VARINT(scoinsPenalty);
             sigHash = ss.GetHash();

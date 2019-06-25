@@ -43,7 +43,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
                 << (uint8_t)coinType << (uint8_t)assetType << assetAmount << bidPrice;
             sigHash = ss.GetHash();
         }
@@ -60,7 +60,7 @@ public:
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-    
+
 public:
     CoinType coinType;      //!< coin type (wusd) to buy asset
     CoinType assetType;     //!< asset type
@@ -105,7 +105,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
                 << (uint8_t)coinType << (uint8_t)assetType << assetAmount << askPrice;
             sigHash = ss.GetHash();
         }
@@ -163,7 +163,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
                 << (uint8_t)coinType << (uint8_t)assetType << coinAmount;
             sigHash = ss.GetHash();
         }
@@ -180,7 +180,7 @@ public:
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-    
+
 public:
     CoinType coinType;      //!< coin type (wusd) to buy asset
     CoinType assetType;     //!< asset type
@@ -221,7 +221,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
                 << (uint8_t)coinType << (uint8_t)assetType << assetAmount;
             sigHash = ss.GetHash();
         }
@@ -238,7 +238,7 @@ public:
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-    
+
 public:
     CoinType coinType;      //!< coin type (wusd) to buy asset
     CoinType assetType;     //!< asset type
@@ -286,7 +286,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
                 << dealItems;
             sigHash = ss.GetHash();
         }

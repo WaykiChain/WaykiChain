@@ -796,7 +796,7 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
         string sTxType(1, nTxType);
         throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error.");
     }
-    pa->nTxType = nTxType;
+    pa->nTxType = TxType(nTxType);
 }
 
 #endif

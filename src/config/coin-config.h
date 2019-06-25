@@ -1,9 +1,9 @@
-/* src/coin-config.h.  Generated from coin-config.h.in by configure.  */
+/* src/config/coin-config.h.  Generated from coin-config.h.in by configure.  */
 /* src/coin-config.h.in.  Generated from configure.ac by autoheader.  */
 
-#ifndef CONFIG_COIN_H
+#ifndef COIN_CONFIG_H
 
-#define CONFIG_COIN_H
+#define COIN_CONFIG_H
 
 /* Define if building universal (internal helper macro) */
 /* #undef AC_APPLE_UNIVERSAL_BUILD */

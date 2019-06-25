@@ -26,7 +26,7 @@
 
 using namespace json_spirit;
 
-string GetTxType(const unsigned char txType) {
+string GetTxType(const TxType txType) {
     auto it = kTxTypeMap.find(txType);
     if (it != kTxTypeMap.end())
         return std::get<0>(it->second);
@@ -79,12 +79,15 @@ int32_t CBaseTx::GetFuelRate(CContractCache &scriptDB) {
 }
 
 bool CBaseTx::CheckTxFeeSufficient(const uint64_t llFees, const int32_t nHeight) const {
-    switch (GetFeatureForkVersion(nHeight) ) {
-        case MAJOR_VER_R1: // Prior-stablecoin Release
-            return (llFees >= std::get<1>kTxTypeMap[nTxType]);
+    const auto &iter = kTxTypeMap.find(nTxType);
 
-        case MAJOR_VER_R2:  //StableCoin Release
-            return (llFees >= std::get<2>kTxTypeMap[nTxType]);
+    switch (GetFeatureForkVersion(nHeight) ) {
+
+        case MAJOR_VER_R1: // Prior-stablecoin Release
+            return iter != kTxTypeMap.end() ? (llFees >= std::get<1>(iter->second)) : true;
+
+        case MAJOR_VER_R2:  // StableCoin Release
+            return iter != kTxTypeMap.end() ? (llFees >= std::get<2>(iter->second)) : true;
 
         default:
             return true;

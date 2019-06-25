@@ -67,38 +67,42 @@ enum TxType : unsigned char {
     NULL_TX = 0  //!< NULL_TX
 };
 
+struct TxTypeHash {
+    size_t operator()(const TxType &type) const noexcept { return std::hash<uint8_t>{}(type); }
+};
+
 /**
  * TxTypeKey -> {TxTypeName, InterimPeriodTxFees, EffectivePeriodTxFees}
  * Fees are boosted by 10^8
  * all fees are spent in WICC coins except WUSD coins transfer requires WUSD
  */
-static const unordered_map<TxType, std::tuple<string, int, int> > kTxTypeMap = {
-    { BLOCK_REWARD_TX,      {"BLOCK_REWARD_TX",         0,          0       } },
-    { BLOCK_PRICE_MEDIAN_TX,{"BLOCK_PRICE_MEDIAN_TX",   0,          0       } },
-    { ACCOUNT_REGISTER_TX,  {"ACCOUNT_REGISTER_TX",     10000,      10000   } }, // optional
-    { BCOIN_TRANSFER_TX,    {"BCOIN_TRANSFER_TX",       10000,      10000   } },
-    { CONTRACT_INVOKE_TX,   {"CONTRACT_INVOKE_TX",      10000,      10000   } },
-    { CONTRACT_DEPLOY_TX,   {"CONTRACT_DEPLOY_TX",      100,        100     } },
-    { DELEGATE_VOTE_TX,     {"DELEGATE_VOTE_TX",        1000,       1000    } },
-    { COMMON_MTX,           {"COMMON_MTX",              1000,       1000    } },
-    { CDP_OPEN_TX,          {"CDP_OPEN_TX"              1000000,    1000000 } },
-    { CDP_REFUEL_TX,        {"CDP_REFUEL_TX"            10000,      10000   } },
-    { CDP_REDEEMP_TX,       {"CDP_REDEEMP_TX"           10000,      10000   } },
-    { CDP_LIQUIDATE_TX,     {"CDP_LIQUIDATE_TX"         10000,      10000   } },
-    { PRICE_FEED_TX,        {"PRICE_FEED_TX"            10000,      10000   } },
-    { SFC_PARAM_MTX,        {"SFC_PARAM_MTX"            10000,      10000   } },
-    { SFC_GLOBAL_HALT_MTX,  {"SFC_GLOBAL_HALT_MTX"      10000,      10000   } },
-    { SFC_GLOBAL_SETTLE_MTX,{"SFC_GLOBAL_SETTLE_MTX"    10000,      10000   } },
-    { SCOIN_TRANSFER_TX,    {"SCOIN_TRANSFER_TX",       10000,      10000   } }, // charged in WUSD
-    { FCOIN_TRANSFER_TX,    {"FCOIN_TRANSFER_TX",       10000,      10000   } },
-    { FCOIN_STAKE_TX,       {"FCOIN_STAKE_TX",          10000,      10000   } },
-    { DEX_BUY_ORDER_TX,     {"DEX_BUY_ORDER_TX",        10000,      10000   } },
-    { DEX_SELL_ORDER_TX,    {"DEX_SELL_ORDER_TX",       10000,      10000   } },
-    { DEX_SETTLE_TX,        {"DEX_SETTLE_TX",           10000,      10000   } },
-    { NULL_TX,              {"NULL_TX",                 0,          0       } }
+static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t>, TxTypeHash> kTxTypeMap = {
+    { BLOCK_REWARD_TX,      std::make_tuple("BLOCK_REWARD_TX",         0,          0       ) },
+    { BLOCK_PRICE_MEDIAN_TX,std::make_tuple("BLOCK_PRICE_MEDIAN_TX",   0,          0       ) },
+    { ACCOUNT_REGISTER_TX,  std::make_tuple("ACCOUNT_REGISTER_TX",     10000,      10000   ) }, // optional
+    { BCOIN_TRANSFER_TX,    std::make_tuple("BCOIN_TRANSFER_TX",       10000,      10000   ) },
+    { CONTRACT_INVOKE_TX,   std::make_tuple("CONTRACT_INVOKE_TX",      10000,      10000   ) },
+    { CONTRACT_DEPLOY_TX,   std::make_tuple("CONTRACT_DEPLOY_TX",      100,        100     ) },
+    { DELEGATE_VOTE_TX,     std::make_tuple("DELEGATE_VOTE_TX",        1000,       1000    ) },
+    { COMMON_MTX,           std::make_tuple("COMMON_MTX",              1000,       1000    ) },
+    { CDP_OPEN_TX,          std::make_tuple("CDP_OPEN_TX",             1000000,    1000000 ) },
+    { CDP_REFUEL_TX,        std::make_tuple("CDP_REFUEL_TX",           10000,      10000   ) },
+    { CDP_REDEEMP_TX,       std::make_tuple("CDP_REDEEMP_TX",          10000,      10000   ) },
+    { CDP_LIQUIDATE_TX,     std::make_tuple("CDP_LIQUIDATE_TX",        10000,      10000   ) },
+    { PRICE_FEED_TX,        std::make_tuple("PRICE_FEED_TX",           10000,      10000   ) },
+    { SFC_PARAM_MTX,        std::make_tuple("SFC_PARAM_MTX",           10000,      10000   ) },
+    { SFC_GLOBAL_HALT_MTX,  std::make_tuple("SFC_GLOBAL_HALT_MTX",     10000,      10000   ) },
+    { SFC_GLOBAL_SETTLE_MTX,std::make_tuple("SFC_GLOBAL_SETTLE_MTX",   10000,      10000   ) },
+    { SCOIN_TRANSFER_TX,    std::make_tuple("SCOIN_TRANSFER_TX",       10000,      10000   ) }, // charged in WUSD
+    { FCOIN_TRANSFER_TX,    std::make_tuple("FCOIN_TRANSFER_TX",       10000,      10000   ) },
+    { FCOIN_STAKE_TX,       std::make_tuple("FCOIN_STAKE_TX",          10000,      10000   ) },
+    { DEX_BUY_ORDER_TX,     std::make_tuple("DEX_BUY_ORDER_TX",        10000,      10000   ) },
+    { DEX_SELL_ORDER_TX,    std::make_tuple("DEX_SELL_ORDER_TX",       10000,      10000   ) },
+    { DEX_SETTLE_TX,        std::make_tuple("DEX_SETTLE_TX",           10000,      10000   ) },
+    { NULL_TX,              std::make_tuple("NULL_TX",                 0,          0       ) }
 };
 
-string GetTxType(unsigned char txType);
+string GetTxType(const TxType txType);
 
 class CBaseTx {
 public:
