@@ -9,6 +9,7 @@
 #include <set>
 #include <vector>
 
+#include "persistence/leveldbwrapper.h"
 #include "accounts/id.h"
 #include "accounts/account.h"
 
@@ -83,12 +84,23 @@ public:
 public:
 
 
-    bool GetActiveBuyOrder(const CTxCord& txCord, CDEXActiveBuyOrderInfo& buyOrderInfo) { return false; }; // TODO: ...
+    bool GetActiveBuyOrder(const CTxCord& txCord, CDEXActiveBuyOrderInfo& buyOrder) { return false; }; // TODO: ...
+    bool SetActiveBuyOrder(const CTxCord& txCord, const CDEXActiveBuyOrderInfo& buyOrder, CDBOpLogMap &dbOpLogMap) {
+        return false;  // TODO: ...
+    };
+    bool UndoActiveBuyOrder(CDBOpLogMap &dbOpLogMap) {
+        return false;  // TODO: ...
+    };
 
     bool HaveBuyOrder(const CTxCord& txCord) { return false; }; // TODO: ...
 
-    bool GetActiveSellOrder(const CTxCord& txCord, CDEXActiveSellOrderInfo& sellOrderInfo) { return false; }; // TODO: ...
-    bool HaveSellOrder(const CTxCord& txCord) { return false; }; // TODO: ...
+    bool GetActiveSellOrder(const CTxCord& txCord, CDEXActiveSellOrderInfo& sellOrder) { return false; }; // TODO: ...
+    bool SetActiveSellOrder(const CTxCord& txCord, const CDEXActiveSellOrderInfo& sellOrder, CDBOpLogMap &dbOpLogMap) {
+        return false;  // TODO: ...
+    };
+    bool UndoActiveSellOrder(CDBOpLogMap &dbOpLogMap) {
+        return false;  // TODO: ...
+    };
 
     bool CreateBuyOrder(uint64_t buyAmount, CoinType targetCoinType); //TODO: ... SystemBuyOrder
     bool CreateSellOrder(uint64_t sellAmount, CoinType targetCoinType); //TODO: ... SystemSellOrder
