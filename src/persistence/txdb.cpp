@@ -104,48 +104,49 @@ void CTxMemCache::SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache)
     mapBlockTxHashSet = mapCache;
 }
 
-void CConsecutiveBlockPrice::AddUserPrice(const int height, const CRegID &regId, const uint64_t price) {
-    mapBlockUserPrices[height][regId.ToRawString()] = price;
+void CConsecutiveBlockPrice::AddUserPrice(const int blockHeight, const CRegID &regId, const uint64_t price) {
+    mapBlockUserPrices[blockHeight][regId.ToRawString()] = price;
+}
+
+void CConsecutiveBlockPrice::DeleteUserPrice(const int blockHeight) {
+    mapBlockUserPrices.erase(blockHeight);
 }
 
 uint64_t CConsecutiveBlockPrice::ComputeBlockMedianPrice(const int blockHeight) {
-    if (mapBlockUserPrices.count(blockHeight) == 0 ||
-        mapBlockUserPrices[blockHeight].size() == 0) {
-        currBlockMediaPrice = lastBlockMediaPrice;
-        return currBlockMediaPrice;
+    // TODO: parameterize 11.
+    assert(blockHeight >= 11);
+    vector<uint64_t> prices;
+    for (int height = blockHeight; height > blockHeight - 11; -- height) {
+        if (mapBlockUserPrices.count(height) != 0) {
+            for (auto userPrice : mapBlockUserPrices[height]) {
+                prices.push_back(userPrice.second);
+            }
+        }
     }
 
-    vector<uint64_t> prices;
-    if (mapBlockUserPrices.count(blockHeight - 1) != 0) {
-        for (auto userPrice : mapBlockUserPrices[blockHeight - 1]) {
-            prices.push_back(userPrice.second);
-        }
-    }
-    if (mapBlockUserPrices.count(blockHeight) != 0) {
-        for (auto userPrice : mapBlockUserPrices[blockHeight]) {
-            prices.push_back(userPrice.second);
-        }
-    }
     return ComputeMedianNumber(prices);
 }
 
-bool CConsecutiveBlockPrice::ExistBlockUserPrice(const int height, const CRegID &regId) {
-    if (mapBlockUserPrices.count(height) == 0)
+bool CConsecutiveBlockPrice::ExistBlockUserPrice(const int blockHeight, const CRegID &regId) {
+    if (mapBlockUserPrices.count(blockHeight) == 0)
         return false;
 
-    return mapBlockUserPrices[height].count(regId.ToRawString());
+    return mapBlockUserPrices[blockHeight].count(regId.ToRawString());
 }
 
 uint64_t CConsecutiveBlockPrice::ComputeMedianNumber(vector<uint64_t> &numbers) {
     unsigned int size = numbers.size();
+    if (size < 2) {
+        return size == 0 ? 0 : numbers[0];
+    }
     sort(numbers.begin(), numbers.end());
-    return (size % 2 == 0) ? (numbers[size/2 - 1] + numbers[size/2]) / 2 : numbers[size/2];
+    return (size % 2 == 0) ? (numbers[size / 2 - 1] + numbers[size / 2]) / 2 : numbers[size / 2];
 }
 
 bool CPricePointCache::AddBlockPricePointInBatch(const int blockHeight, const CRegID &regId,
                                                  const vector<CPricePoint> &pps) {
     for (CPricePoint pp : pps) {
-        CConsecutiveBlockPrice cbp = mapCoinPricePointCache[pp.GetCoinPriceType().ToString()];
+        CConsecutiveBlockPrice &cbp = mapCoinPricePointCache[pp.GetCoinPriceType().ToString()];
         if (cbp.ExistBlockUserPrice(blockHeight, regId))
             return false;
 
@@ -155,18 +156,31 @@ bool CPricePointCache::AddBlockPricePointInBatch(const int blockHeight, const CR
     return true;
 }
 
+bool CPricePointCache::DeleteBlockPricePoint(const int blockHeight) {
+    for (auto &item : mapCoinPricePointCache) {
+        item.second.DeleteUserPrice(blockHeight);
+    }
+
+    return true;
+}
+
+void CPricePointCache::ComputeBlockMedianPrice(const int blockHeight) {
+    bcoinMedianPrice = ComputeBlockMedianPrice(blockHeight, CCoinPriceType(CoinType::WICC, PriceType::USD));
+    fcoinMedianPrice = ComputeBlockMedianPrice(blockHeight, CCoinPriceType(CoinType::MICC, PriceType::USD));
+}
+
 uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, CCoinPriceType coinPriceType) {
-    CConsecutiveBlockPrice cbp = mapCoinPricePointCache[coinPriceType.ToString()];
-    uint64_t medianPrice       = cbp.ComputeBlockMedianPrice(blockHeight);
-    return medianPrice;
+    return mapCoinPricePointCache.count(coinPriceType.ToString())
+               ? mapCoinPricePointCache[coinPriceType.ToString()].ComputeBlockMedianPrice(blockHeight)
+               : 0;
 }
 
 string CTxUndo::ToString() const {
     string str;
-    string strTxHash("txid:");
-    strTxHash += txHash.GetHex();
+    string strTxid("txid:");
+    strTxid += txHash.GetHex();
 
-    str += strTxHash + "\n";
+    str += strTxid + "\n";
 
     string strAccountLog("list account log:");
     for (auto iterLog : accountLogs) {
@@ -176,8 +190,8 @@ string CTxUndo::ToString() const {
 
     str += strAccountLog + "\n";
 
-    string strDBOperLog("list LDB Oplog:");
-    str += "list LDB Oplog:" + dbOpLogMap.ToString();
+    str += "list db log:" + dbOpLogMap.ToString();
+
     return str;
 }
 

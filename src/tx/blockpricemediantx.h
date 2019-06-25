@@ -10,7 +10,6 @@
 
 class CBlockPriceMedianTx: public CBaseTx  {
 private:
-    // map<tuple<CoinType, PriceType>, uint64_t> mapMedianPricePoints;
     map<CCoinPriceType, uint64_t> mapMedianPricePoints;
 
 public:
@@ -59,7 +58,7 @@ public:
     bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
-    inline uint64_t GetMedianPriceByType(const CoinType coinType, const PriceType priceType);
+    uint64_t GetMedianPriceByType(const CoinType coinType, const PriceType priceType);
 };
 
 #endif //TX_PRICE_MEDIAN_H

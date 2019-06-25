@@ -78,8 +78,6 @@ bool CDelegateCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateVot
     return regId2VoteCache.GetData(regId.ToRawString(), candidateVotes);
 }
 
-
-    bool UndoCandidateVotes(CDBOpLogMap &dbOpLogMap);
 bool CDelegateCache::UndoCandidateVotes(CDBOpLogMap &dbOpLogMap) {
     return regId2VoteCache.UndoData(dbOpLogMap);
 }

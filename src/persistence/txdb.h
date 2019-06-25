@@ -58,14 +58,12 @@ public:
 class CConsecutiveBlockPrice {
 private:
     map<int, map<string, uint64_t>> mapBlockUserPrices;  // height -> { regId -> price }
-    int lastBlockHeight;
-    int currBlockHeight;
-    uint64_t lastBlockMediaPrice;
-    uint64_t currBlockMediaPrice;
 
 public:
-    void AddUserPrice(const int height, const CRegID &regId, const uint64_t price);
-    bool ExistBlockUserPrice(const int height, const CRegID &regId);
+    void AddUserPrice(const int blockHeight, const CRegID &regId, const uint64_t price);
+    // delete user price by specific block height.
+    void DeleteUserPrice(const int blockHeight);
+    bool ExistBlockUserPrice(const int blockHeight, const CRegID &regId);
     uint64_t ComputeBlockMedianPrice(const int blockHeight);
     uint64_t GetLastBlockMedianPrice();
 
@@ -82,10 +80,15 @@ private:
 
 public:
     bool AddBlockPricePointInBatch(const int blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
-    uint64_t ComputeBlockMedianPrice(const int blockHeight, CCoinPriceType coinPriceType);
+    // delete block price point by specific block height.
+    bool DeleteBlockPricePoint(const int blockHeight);
 
+    void ComputeBlockMedianPrice(const int blockHeight);
     uint64_t GetBcoinMedianPrice() { return bcoinMedianPrice; }
     uint64_t GetFcoinMedianPrice() { return fcoinMedianPrice; }
+
+private:
+    uint64_t ComputeBlockMedianPrice(const int blockHeight, CCoinPriceType coinPriceType);
 };
 
 class CTxUndo {

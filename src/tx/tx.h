@@ -178,6 +178,14 @@ public:
     CCoinPriceType(CoinType coinTypeIn, PriceType priceTypeIn) :
         coinType(coinTypeIn), priceType(priceTypeIn) {}
 
+     bool operator<(const CCoinPriceType &coinPriceType) const {
+        if (coinType == coinPriceType.coinType) {
+            return priceType < coinPriceType.priceType;
+        } else {
+            return coinType < coinPriceType.coinType;
+        }
+    }
+
     string ToString() { return strprintf("%u%u", coinType, priceType); }
 
     IMPLEMENT_SERIALIZE(
