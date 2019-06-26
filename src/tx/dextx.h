@@ -7,6 +7,7 @@
 #define TX_DEX_H
 
 #include "tx.h"
+#include "persistence/dexdb.h"
 
 
 class CDEXOrderBaseTx : public CBaseTx {
@@ -157,7 +158,7 @@ public:
 
     CDEXBuyMarketOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                          CoinType coinTypeIn, CoinType assetTypeIn, uint64_t coinAmountIn)
-        : CBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
+        : CDEXOrderBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
           coinType(coinTypeIn),
           assetType(assetTypeIn),
           coinAmount(coinAmountIn) {}

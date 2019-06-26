@@ -38,6 +38,7 @@ enum OrderGenerateType {
 
 class CDEXOrderData {
 public:
+    CUserID   uid;
     OrderType orderType;     //!< order type
     CoinType  coinType;      //!< coin type
     CoinType  assetType;     //!< asset type
@@ -45,42 +46,24 @@ public:
     uint64_t  assetAmount;   //!< amount of asset to buy/sell
     uint64_t  price;         //!< price in coinType want to buy/sell asset
 };
-
-/**
- * 
- */
-class CDEXBuyOrder {
-public:
-    OrderType orderType;     //!< order type
-    CoinType  coinType;      //!< coin type
-    CoinType  assetType;     //!< asset type
-    uint64_t  coinAmount;    //!< amount of coin to buy/sell asset
-    uint64_t  assetAmount;   //!< amount of asset to buy/sell
-    uint64_t  price;         //!< price in coinType want to buy/sell asset
-};
-
-
-class CDEXSellOrder {
-public:
-    OrderType orderType;     //!< order type
-    CoinType  coinType;      //!< coin type
-    CoinType  assetType;     //!< asset type
-    uint64_t  coinAmount;    //!< amount of coin to buy/sell asset
-    uint64_t  assetAmount;   //!< amount of asset to buy/sell
-    uint64_t  price;         //!< price in coinType want to buy/sell asset
-};
-
 
 struct CDEXActiveBuyOrder {
-    OrderGenerateType generateType;
-    uint64_t residualAmount; //!< residual coin/asset amount for buying
     CTxCord  txCord;
+    OrderGenerateType generateType;
+    uint64_t totalDealCoinAmount;   //!< total deal coin amount
+    uint64_t totalDealAssetAmount;  //!< total deal asset amount
+
+    // IsEmpty()
+    // SetEmpty()
 };
 
 struct CDEXActiveSellOrder {
-    OrderGenerateType generateType;
-    uint64_t residualAmount; //!< residual coin/asset amount for selling
     CTxCord  txCord;
+    OrderGenerateType generateType;
+    uint64_t totalDealAssetAmount;   //!< total deal coin amount
+
+    // IsEmpty()
+    // SetEmpty()
 };
 
 // System-generated Market Order
@@ -103,10 +86,11 @@ public:
     CDexCache() {}
 
 public:
-
-
     bool GetActiveBuyOrder(const uint256& orderId, CDEXActiveBuyOrder& buyOrder) { return false; }; // TODO: ...
     bool SetActiveBuyOrder(const uint256& orderId, const CDEXActiveBuyOrder& buyOrder, CDBOpLogMap &dbOpLogMap) {
+        return false;  // TODO: ...
+    };
+    bool EraseActiveBuyOrder(const uint256& orderId, CDBOpLogMap &dbOpLogMap) {
         return false;  // TODO: ...
     };
     bool UndoActiveBuyOrder(CDBOpLogMap &dbOpLogMap) {
@@ -114,6 +98,9 @@ public:
     };
     bool GetActiveSellOrder(const uint256& orderId, CDEXActiveSellOrder& sellOrder) { return false; }; // TODO: ...
     bool SetActiveSellOrder(const uint256& orderId, const CDEXActiveSellOrder& sellOrder, CDBOpLogMap &dbOpLogMap) {
+        return false;  // TODO: ...
+    };
+    bool EraseActiveSellOrder(const uint256& orderId, CDBOpLogMap &dbOpLogMap) {
         return false;  // TODO: ...
     };
     bool UndoActiveSellOrder(CDBOpLogMap &dbOpLogMap) {
