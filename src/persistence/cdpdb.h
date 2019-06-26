@@ -101,7 +101,7 @@ public:
                             set<CUserCdp> &userCdps);
 
 private:
-    bool GetCdps(const double ratio, set<CUserCdp> &invalidCdps, set<CUserCdp> &userCdps);
+    bool GetCdps(const double ratio, set<CUserCdp> &expiredCdps, set<CUserCdp> &userCdps);
     bool GetCdps(const double ratio, set<CUserCdp> &userCdps);
 
     void BatchWrite(const map<CUserCdp, uint8_t> &cdpsIn);
