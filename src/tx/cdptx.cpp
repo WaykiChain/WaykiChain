@@ -64,6 +64,7 @@ bool CCDPStakeTx::PayInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &c
     cw.txUndo.accountLogs.push_back(fcoinGensisAccount);
 }
 
+// CDP owner can redeem his or her CDP that are in liquidation list
 bool CCDPStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -115,6 +116,12 @@ bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
 
     //2. pay interest fees in wusd or micc into the micc pool
     if (cw.cdpCache.GetCdp(cdp)) {
+        // check if cdp owner is the same user who's staking!
+        if (txUid.Get<CRegID>() != cdp.ownerRegId) {
+                return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, txUid(%s) not CDP owner",
+                        txUid.ToString()), READ_ACCOUNT_FAIL, "account-not-CDP-owner");
+        }
+
         if (!PayInterest(nHeight, cdp, cw, state))
             return false;
     }
@@ -276,6 +283,12 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     //2. pay interest fees in wusd or micc into the micc pool
     CUserCdp cdp(txUid.get<CRegID>(), CTxCord(nHeight, nIndex));
     if (cw.cdpCache.GetCdp(cdp)) {
+        // check if cdp owner is the same user who's redeeming!
+        if (txUid.Get<CRegID>() != cdp.ownerRegId) {
+                return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, txUid(%s) not CDP owner",
+                        txUid.ToString()), READ_ACCOUNT_FAIL, "account-not-CDP-owner");
+        }
+
         if (!PayInterest(nHeight, cdp, cw, state))
             return false;
     }
