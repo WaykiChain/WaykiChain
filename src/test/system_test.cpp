@@ -207,8 +207,8 @@ public:
 			return false;
 		}
 
-		CRegID regID(nConfirmHeight, nIndex);
-		return IsScriptAccCreated(HexStr(regID.GetRegIdRaw()));
+		CRegID regId(nConfirmHeight, nIndex);
+		return IsScriptAccCreated(HexStr(regId.GetRegIdRaw()));
 	}
 
 protected:
@@ -249,20 +249,20 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 		//3:确认脚本账号已经生成
 		int nIndex = 0;
 		BOOST_CHECK(GetTxIndexInBlock(uint256(uint256S(strTxHash)), nIndex));
-		CRegID regID(nNewBlockHeight, nIndex);
-		BOOST_CHECK(IsScriptAccCreated(HexStr(regID.GetRegIdRaw())));
+		CRegID regId(nNewBlockHeight, nIndex);
+		BOOST_CHECK(IsScriptAccCreated(HexStr(regId.GetRegIdRaw())));
 
 		//4:检查钱包里的已确认交易里是否有此笔交易
 		BOOST_CHECK(IsTxConfirmdInWallet(nNewBlockHeight, uint256(uint256S(strTxHash))));
 
 		//5:通过listregscript 获取相关信息，一一核对，看是否和输入的一致
 		string strPath = SysCfg().GetDefaultTestDataPath() + strFileName;
-		BOOST_CHECK(CheckRegScript(HexStr(regID.GetRegIdRaw()), strPath));
+		BOOST_CHECK(CheckRegScript(HexStr(regId.GetRegIdRaw()), strPath));
 
 		//6:Gettxoperationlog 获取交易log，查看是否正确
 		BOOST_CHECK(GetTxOperateLog(uint256(uint256S(strTxHash)), vLog));
 //		BOOST_CHECK(1 == vLog.size() && 1 == vLog[0].vOperFund.size() && 1 == vLog[0].vOperFund[0].vFund.size());
-		BOOST_CHECK(strAddr1 == vLog[0].keyID.ToAddress());
+		BOOST_CHECK(strAddr1 == vLog[0].keyId.ToAddress());
 //		BOOST_CHECK(vLog[0].vOperFund[0].operType == MINUS_BCOIN && vLog[0].vOperFund[0].vFund[0].value == nFee);
 
 		map<int,string> mapData;
@@ -293,8 +293,8 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 		BOOST_CHECK(nNewMoney-nFee == nOldMoney);
 
 		//9.2:检测脚本账户是否删除
-		CRegID regID(nOldBlockHeight, mapData.begin()->first);
-		BOOST_CHECK(!IsScriptAccCreated(HexStr(regID.GetRegIdRaw())));
+		CRegID regId(nOldBlockHeight, mapData.begin()->first);
+		BOOST_CHECK(!IsScriptAccCreated(HexStr(regId.GetRegIdRaw())));
 
 		//9.3:交易是否已经已经放到钱包的未确认交易里
 		BOOST_CHECK(IsTxUnConfirmdInWallet(txHash));

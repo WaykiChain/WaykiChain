@@ -78,7 +78,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyID), srcAcct))
+    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyId), srcAcct))
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
@@ -115,7 +115,7 @@ bool CDEXBuyLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
     }
     const CAccountLog &accountLog = cw.txUndo.accountLogs.at(0);
     CAccount account;
-    CUserID userId = accountLog.keyID;
+    CUserID userId = accountLog.keyId;
     if (!cw.accountCache.GetAccount(userId, account)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::UndoExecuteTx, read account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -205,7 +205,7 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyID), srcAcct))
+    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyId), srcAcct))
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
@@ -240,7 +240,7 @@ bool CDEXSellLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper 
     }
     const CAccountLog &accountLog = cw.txUndo.accountLogs.at(0);
     CAccount account;
-    CUserID userId = accountLog.keyID;
+    CUserID userId = accountLog.keyId;
     if (!cw.accountCache.GetAccount(userId, account)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, read account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -329,7 +329,7 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyID), srcAcct))
+    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyId), srcAcct))
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
@@ -365,7 +365,7 @@ bool CDEXBuyMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper 
     }
     const CAccountLog &accountLog = cw.txUndo.accountLogs.at(0);
     CAccount account;
-    CUserID userId = accountLog.keyID;
+    CUserID userId = accountLog.keyId;
     if (!cw.accountCache.GetAccount(userId, account)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::UndoExecuteTx, read account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -453,10 +453,10 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyID), srcAcct))
+    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyId), srcAcct))
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-    
+
     const uint256 &txHash = GetHash();
     CDEXActiveSellOrder activeSellOrder;
     activeSellOrder.generateType = USER_GEN_ORDER;
@@ -488,7 +488,7 @@ bool CDEXSellMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper
     }
     const CAccountLog &accountLog = cw.txUndo.accountLogs.at(0);
     CAccount account;
-    CUserID userId = accountLog.keyID;
+    CUserID userId = accountLog.keyId;
     if (!cw.accountCache.GetAccount(userId, account)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::UndoExecuteTx, read account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -546,10 +546,10 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     a. get and check activeBuyOrder
     b. get and check activeSellOrder
 2. get order data:
-    a. if order is USER_ORDER: 
+    a. if order is USER_ORDER:
         step 1. get and check order tx object from block store
         step 2. get order data from tx object
-    b. if order is SYS_ORDER:  
+    b. if order is SYS_ORDER:
         step 1. get sys order object from dex db
         then get order detail from sys order object
 3. get account of order's owner
@@ -581,8 +581,8 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
             limitCoinAmount = buyOrder.coinAmount
             check: limitCoinAmount >= activeBuyOrder.totalDealCoinAmount
             residualAmount = limitCoinAmount - dealCoinAmount
-            if residualAmount < dealPrice { 
-                // the residual coin amount is not enough to buy an asset. 
+            if residualAmount < dealPrice {
+                // the residual coin amount is not enough to buy an asset.
                 dealCoinAmount += residualAmount
                 activeBuyOrder.totalDealCoinAmount += residualAmount
                 assert(residualAmount == totalDealCoinAmount)
@@ -599,7 +599,7 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
         limitAssetAmount = sellOrder.limitAmount
         check: limitAssetAmount >= activeBuyOrder.totalDealAssetAmount
         residualAmount = limitAssetAmount - dealCoinAmount
-    
+
     fulfilled = (residualAmount == 0)
 
 9. operate account
@@ -621,7 +621,7 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
         } else {
             update active order to dex db
         }
-    a. sell order    
+    a. sell order
         if sell order is fulfilled {
             erase active order from dex db
         } else {
@@ -709,7 +709,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
 
         // 7. check price match
         if (buyOrderData.orderType == ORDER_LIMIT_PRICE && sellOrderData.orderType == ORDER_LIMIT_PRICE) {
-            if ( buyOrderData.price < dealItem.dealPrice 
+            if ( buyOrderData.price < dealItem.dealPrice
                 || sellOrderData.price > dealItem.dealPrice ) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the expected price not match"),
                                 REJECT_INVALID, "bad-price-match");
@@ -745,7 +745,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
                                 REJECT_INVALID, "exceeded-deal-amount");
             }
             buyResidualAmount = limitCoinAmount - activeBuyOrder.totalDealCoinAmount;
-            // TODO: handle: small residual coin amount is not enough to buy one asset. 
+            // TODO: handle: small residual coin amount is not enough to buy one asset.
         } else {
             uint64_t limitAssetAmount = buyOrderData.assetAmount;
             if (limitAssetAmount < activeBuyOrder.totalDealAssetAmount) {
@@ -753,7 +753,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
                                 REJECT_INVALID, "exceeded-deal-amount");
             }
             buyResidualAmount = limitAssetAmount - activeBuyOrder.totalDealAssetAmount;
-            // TODO: handle: small residual asset amount is not enough to sell for one coin. 
+            // TODO: handle: small residual asset amount is not enough to sell for one coin.
         }
 
         { // get and check sell order residualAmount
@@ -764,7 +764,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
                                 REJECT_INVALID, "exceeded-deal-amount");
             }
             sellResidualAmount = limitAssetAmount - activeBuyOrder.totalDealAssetAmount;
-            // TODO: handle: small residual asset amount is not enough to sell for one coin. 
+            // TODO: handle: small residual asset amount is not enough to sell for one coin.
         }
 
         // settle sell/buy order's coin
@@ -794,7 +794,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
             if (!cw.dexCache.SetActiveBuyOrder(dealItem.buyOrderId, activeBuyOrder, cw.txUndo.dbOpLogMap)) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, erase active buy order failed"),
                                     REJECT_INVALID, "write-dexdb-failed");
-            }            
+            }
         }
 
         if (sellResidualAmount == 0) { // sell order fulfilled
@@ -807,7 +807,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
             if (!cw.dexCache.SetActiveSellOrder(dealItem.sellOrderId, activeSellOrder, cw.txUndo.dbOpLogMap)) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, erase active sell order failed"),
                                     REJECT_INVALID, "write-dexdb-failed");
-            }            
+            }
         }
 
         if (!cw.accountCache.SetAccount(buyOrderData.uid, buyOrderAccount)
@@ -818,7 +818,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
 
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyID), srcAcct))
+    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyId), srcAcct))
         return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
@@ -835,7 +835,7 @@ bool CDEXSettleTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVa
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         const CAccountLog &accountLog = *rIterAccountLog;
         CAccount account;
-        CUserID userId = accountLog.keyID;
+        CUserID userId = accountLog.keyId;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CDEXSettleTx::UndoExecuteTx, read account info error"),
                             READ_ACCOUNT_FAIL, "bad-read-accountdb");

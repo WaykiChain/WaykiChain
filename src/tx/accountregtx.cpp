@@ -44,8 +44,8 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s account info error",
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    account.regID = regId;
-    account.keyID = keyId;
+    account.regId = regId;
+    account.keyId = keyId;
 
     CAccountLog acctLog(account);
 
@@ -103,7 +103,7 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
         CPubKey empPubKey;
         oldAccount.pubKey = empPubKey;
         oldAccount.minerPubKey = empPubKey;
-        oldAccount.regID.Clean();
+        oldAccount.regId.Clean();
         CUserID userId(keyId);
         cw.accountCache.SetAccount(userId, oldAccount);
     } else {

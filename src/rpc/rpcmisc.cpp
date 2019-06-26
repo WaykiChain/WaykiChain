@@ -258,8 +258,8 @@ Value verifymessage(const Array& params, bool fHelp)
     string strSign     = params[1].get_str();
     string strMessage  = params[2].get_str();
 
-    CKeyID keyID;
-    if (!GetKeyId(strAddress,keyID))
+    CKeyID keyId;
+    if (!GetKeyId(strAddress,keyId))
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
 
     bool fInvalid = false;
@@ -276,5 +276,5 @@ Value verifymessage(const Array& params, bool fHelp)
     if (!pubkey.RecoverCompact(ss.GetHash(), vchSig))
         return false;
 
-    return (pubkey.GetKeyId() == keyID);
+    return (pubkey.GetKeyId() == keyId);
 }

@@ -685,11 +685,11 @@ bool SysTestBase::IsTxUnConfirmdInWallet(const uint256 &txHash) {
     return false;
 }
 
-bool SysTestBase::GetRegID(string &strAddr, string &regID) {
+bool SysTestBase::GetRegID(string &strAddr, string &regId) {
     Value value = GetAccountInfo(strAddr);
 
-    regID = "RegID";
-    return GetStrFromObj(value, regID);
+    regId = "RegID";
+    return GetStrFromObj(value, regId);
 }
 
 bool SysTestBase::IsTxInTipBlock(const uint256 &txHash) {
@@ -706,7 +706,7 @@ bool SysTestBase::IsTxInTipBlock(const uint256 &txHash) {
     return true;
 }
 
-bool SysTestBase::GetRegID(string &strAddr, CRegID &regID) {
+bool SysTestBase::GetRegID(string &strAddr, CRegID &regId) {
     CAccount account;
     CKeyID keyid;
     if (!GetKeyId(strAddr, keyid)) {
@@ -720,11 +720,11 @@ bool SysTestBase::GetRegID(string &strAddr, CRegID &regID) {
     if (!accView.GetAccount(userId, account)) {
         return false;
     }
-    if ((!account.IsRegistered()) || account.regID.IsEmpty()) {
+    if ((!account.IsRegistered()) || account.regId.IsEmpty()) {
         return false;
     }
 
-    regID = account.regID;
+    regId = account.regId;
     return true;
 }
 

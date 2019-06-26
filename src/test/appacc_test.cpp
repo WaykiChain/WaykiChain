@@ -38,7 +38,7 @@ bool CheckAppAcct(int64_t opValue[]) {
     CRegID desUser2RegId(100,4);
     CAccount contractAcct;
     contractAcct.bcoins = 100 * COIN;  //这里将TX中100 COIN先充值到合约账户中，扮演系统操作账户角色
-    contractAcct.regID = desRegId;
+    contractAcct.regId = desRegId;
 
     CUserID srcUserId = srcRegId;
     CUserID desUserId = desRegId;

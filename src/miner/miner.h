@@ -96,6 +96,6 @@ int GetElementForBurn(CBlockIndex *pIndex);
 
 void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate);
 
-extern uint256 CreateBlockWithAppointedAddr(CKeyID const &keyID);
+extern uint256 CreateBlockWithAppointedAddr(CKeyID const &keyId);
 
 #endif  // COIN_MINER_H

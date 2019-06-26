@@ -40,11 +40,11 @@ BOOST_FIXTURE_TEST_CASE(transfer_test, CSysAccountTest)
 
 	//使用一个没有注册过的keyID地址测试，看是能够注册，用getaccountinfo 检查regid是否存在
 	string strTxHash;
-	CRegID regID;
+	CRegID regId;
 	BOOST_CHECK(RegisterAccount(strRegAddr,10000,strTxHash));
 	BOOST_CHECK(GenerateOneBlock());
-	BOOST_CHECK(GetRegID(strRegAddr,regID));
-	BOOST_CHECK(false == regID.IsEmpty());
+	BOOST_CHECK(GetRegID(strRegAddr,regId));
+	BOOST_CHECK(false == regId.IsEmpty());
 
 	//使用一个注册过的keyID地址测试，看是否能够注册成功
 	string strResigterd("tQCmxQDFQdHmAZw1j3dteB4CTro2Ph5TYP");
@@ -56,7 +56,7 @@ BOOST_FIXTURE_TEST_CASE(transfer_test, CSysAccountTest)
 
 	//用一个注册的地址和一个未注册的地址来发一个交易，看是否能够发送成功
 	string strUnRegister("tNGvponTbhkomLUkMVHXQFtZ4Sho8wUonE");
-	vector<unsigned char> vRegID = regID.GetRegIdRaw();
+	vector<unsigned char> vRegID = regId.GetRegIdRaw();
 	nMoney = nMoney/10;
 	BOOST_CHECK(SendMoney(HexStr(vRegID),strUnRegister,nMoney, 10000));
 	BOOST_CHECK(GenerateOneBlock());
@@ -71,7 +71,7 @@ BOOST_FIXTURE_TEST_CASE(register_test,CSysAccountTest)
 	ResetEnv();
 	BOOST_CHECK(0==chainActive.Height());
 	string strTxHash;
-	CRegID regID;
+	CRegID regId;
 	string strRegAddr1("tNGvponTbhkomLUkMVHXQFtZ4Sho8wUonE");
 	string strRegAddr2 = "";
 	BOOST_CHECK(GetNewAddr(strRegAddr2,false));
@@ -156,7 +156,7 @@ BOOST_FIXTURE_TEST_CASE(register_test,CSysAccountTest)
 
 	//检查日志记录是否正确
 //	BOOST_CHECK(1 == vLog.size() && 1 == vLog[0].vOperFund.size() && 1 == vLog[0].vOperFund[0].vFund.size());
-	BOOST_CHECK(strRegAddr1 == vLog[0].keyID.ToAddress());
+	BOOST_CHECK(strRegAddr1 == vLog[0].keyId.ToAddress());
 //	BOOST_CHECK(vLog[0].vOperFund[0].operType == MINUS_BCOIN && vLog[0].vOperFund[0].vFund[0].value == nFee);
 }
 

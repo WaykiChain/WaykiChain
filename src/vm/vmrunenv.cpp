@@ -184,7 +184,7 @@ shared_ptr<CAccount> CVmRunEnv::GetNewAccount(shared_ptr<CAccount>& vOldAccount)
     vector<shared_ptr<CAccount>>::iterator Iter;
     for (Iter = newAccount.begin(); Iter != newAccount.end(); Iter++) {
         shared_ptr<CAccount> temp = *Iter;
-        if (temp.get()->keyID == vOldAccount.get()->keyID) {
+        if (temp.get()->keyId == vOldAccount.get()->keyId) {
             newAccount.erase(Iter);
             return temp;
         }
@@ -196,7 +196,7 @@ shared_ptr<CAccount> CVmRunEnv::GetAccount(shared_ptr<CAccount>& Account) {
     vector<shared_ptr<CAccount>>::iterator Iter;
     for (Iter = rawAccount.begin(); Iter != rawAccount.end(); Iter++) {
         shared_ptr<CAccount> temp = *Iter;
-        if (Account.get()->keyID == temp.get()->keyID) {
+        if (Account.get()->keyId == temp.get()->keyId) {
             return temp;
         }
     }
@@ -418,7 +418,7 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountCa
             string popaddr(accountId.begin(), accountId.end());
             userkeyid = CKeyID(popaddr);
             if (!view.GetAccount(CUserID(userkeyid), *tem.get())) {
-                tem->keyID = userkeyid;
+                tem->keyId = userkeyid;
                 // return false;
                 // 未产生过交易记录的账户
             }
@@ -435,7 +435,7 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountCa
         bool ret = false;
         //      vector<CDbOpLog> vAuthorLog;
         // todolist
-        //      if(IsSignatureAccount(vmAccount.get()->regID) || vmAccount.get()->regID ==
+        //      if(IsSignatureAccount(vmAccount.get()->regId) || vmAccount.get()->regId ==
         //      tx->appRegId.get<CRegID>())
         { ret = vmAccount.get()->OperateBalance(CoinType::WICC, (BalanceOpType)it.opType, value); }
         //      else{

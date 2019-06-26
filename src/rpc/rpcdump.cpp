@@ -227,15 +227,15 @@ Value dumpprivkey(const Array& params, bool fHelp)
     CCoinAddress address;
     if (!address.SetString(strAddress))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Coin address");
-    CKeyID keyID;
-    if (!address.GetKeyId(keyID))
+    CKeyID keyId;
+    if (!address.GetKeyId(keyId))
         throw JSONRPCError(RPC_TYPE_ERROR, "The address is not associated with any private key");
     CKey vchSecret;
-    if (!pWalletMain->GetKey(keyID, vchSecret))
+    if (!pWalletMain->GetKey(keyId, vchSecret))
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " + strAddress + " is not known");
 
     CKey minerkey;
-	pWalletMain->GetKey(keyID, minerkey, true);
+	pWalletMain->GetKey(keyId, minerkey, true);
     Object reply;
     	reply.push_back(Pair("privkey", CCoinSecret(vchSecret).ToString()));
 

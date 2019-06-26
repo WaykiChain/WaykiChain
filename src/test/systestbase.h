@@ -235,9 +235,9 @@ public:
 
 	bool IsTxInTipBlock(const uint256& txHash);
 
-	bool GetRegID(string& strAddr,CRegID& regID);
+	bool GetRegID(string& strAddr,CRegID& regId);
 
-	bool GetRegID(string& strAddr,string& regID);
+	bool GetRegID(string& strAddr,string& regId);
 
 	bool GetTxOperateLog(const uint256& txHash, vector<CAccountLog>& vLog) ;
 

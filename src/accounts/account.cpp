@@ -14,7 +14,7 @@ string CAccountLog::ToString() const {
     str += strprintf(
         "Account log: keyId=%d regId=%s nickId=%s pubKey=%s minerPubKey=%s "
         "bcoins=%lld receivedVotes=%lld \n",
-        keyID.GetHex(), regID.ToString(), nickID.ToString(), pubKey.ToString(),
+        keyId.GetHex(), regId.ToString(), nickId.ToString(), pubKey.ToString(),
         minerPubKey.ToString(), bcoins, receivedVotes);
 
     return str;
@@ -204,13 +204,13 @@ uint64_t CAccount::GetTotalBcoins(const vector<CCandidateVote> &candidateVotes, 
 }
 
 bool CAccount::RegIDIsMature() const {
-    return (!regID.IsEmpty()) &&
-           ((regID.GetHeight() == 0) || (chainActive.Height() - (int)regID.GetHeight() > kRegIdMaturePeriodByBlock));
+    return (!regId.IsEmpty()) &&
+           ((regId.GetHeight() == 0) || (chainActive.Height() - (int)regId.GetHeight() > kRegIdMaturePeriodByBlock));
 }
 
 Object CAccount::ToJsonObj(bool isAddress) const {
     vector<CCandidateVote> candidateVotes;
-    pCdMan->pDelegateCache->GetCandidateVotes(regID, candidateVotes);
+    pCdMan->pDelegateCache->GetCandidateVotes(regId, candidateVotes);
 
     Array candidateVoteArray;
     for (auto &vote : candidateVotes) {
@@ -218,10 +218,10 @@ Object CAccount::ToJsonObj(bool isAddress) const {
     }
 
     Object obj;
-    obj.push_back(Pair("address",           keyID.ToAddress()));
-    obj.push_back(Pair("keyid",             keyID.ToString()));
-    obj.push_back(Pair("nickid",            nickID.ToString()));
-    obj.push_back(Pair("regid",             regID.ToString()));
+    obj.push_back(Pair("address",           keyId.ToAddress()));
+    obj.push_back(Pair("keyid",             keyId.ToString()));
+    obj.push_back(Pair("nickid",            nickId.ToString()));
+    obj.push_back(Pair("regid",             regId.ToString()));
     obj.push_back(Pair("regid_mature",      RegIDIsMature()));
     obj.push_back(Pair("pubkey",            pubKey.ToString()));
     obj.push_back(Pair("miner_pubkey",      minerPubKey.ToString()));
@@ -239,14 +239,14 @@ Object CAccount::ToJsonObj(bool isAddress) const {
 string CAccount::ToString(bool isAddress) const {
     string str;
     str += strprintf(
-        "regID=%s, keyID=%s, nickID=%s, pubKey=%s, minerPubKey=%s, bcoins=%ld, scoins=%ld, fcoins=%ld, "
+        "regId=%s, keyId=%s, nickId=%s, pubKey=%s, minerPubKey=%s, bcoins=%ld, scoins=%ld, fcoins=%ld, "
         "receivedVotes=%lld\n",
-        regID.ToString(), keyID.GetHex(), nickID.ToString(), pubKey.ToString(), minerPubKey.ToString(),
+        regId.ToString(), keyId.GetHex(), nickId.ToString(), pubKey.ToString(), minerPubKey.ToString(),
         bcoins, scoins, fcoins, receivedVotes);
     str += "candidate vote list: \n";
 
     vector<CCandidateVote> candidateVotes;
-    pCdMan->pDelegateCache->GetCandidateVotes(regID, candidateVotes);
+    pCdMan->pDelegateCache->GetCandidateVotes(regId, candidateVotes);
     for (auto & vote : candidateVotes) {
         str += vote.ToString();
     }
@@ -267,7 +267,7 @@ bool CAccount::OperateBalance(const CoinType coinType, const BalanceOpType opTyp
     if (!IsMoneyOverflow(value))
         return false;
 
-    if (keyID == uint160()) {
+    if (keyId == uint160()) {
         return ERRORMSG("operate account's keyId is 0 error");
     }
 

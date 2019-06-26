@@ -1251,10 +1251,10 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             CRegID regId(pIndex->nHeight, i);
             CPubKey pubKey       = pRewardTx->txUid.get<CPubKey>();
             CKeyID keyId         = pubKey.GetKeyId();
-            account.nickID = CNickID();
-            account.keyID  = keyId;
+            account.nickId = CNickID();
+            account.keyId  = keyId;
             account.pubKey = pubKey;
-            account.regID  = regId;
+            account.regId  = regId;
             account.bcoins = pRewardTx->rewardValue;
 
             assert(cw.accountCache.SaveAccount(account));
@@ -1278,7 +1278,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
 
                 if (uid == votedUid) {  // vote for self
                     voterAcct.receivedVotes = vote.GetVotedBcoins();
-                    assert(cw.delegateCache.SetDelegateVotes(voterAcct.regID, voterAcct.receivedVotes));
+                    assert(cw.delegateCache.SetDelegateVotes(voterAcct.regId, voterAcct.receivedVotes));
                 } else {  // vote for others
                     CAccount votedAcct;
                     assert(!cw.accountCache.GetAccount(votedUid, votedAcct));
@@ -1289,11 +1289,11 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
 
                     if (votedUid.type() == typeid(CPubKey)) {
                         votedAcct.pubKey = votedUid.get<CPubKey>();
-                        votedAcct.keyID  = votedAcct.pubKey.GetKeyId();
+                        votedAcct.keyId  = votedAcct.pubKey.GetKeyId();
                     }
 
                     assert(cw.accountCache.SaveAccount(votedAcct));
-                    assert(cw.delegateCache.SetDelegateVotes(votedAcct.regID, votedAcct.receivedVotes));
+                    assert(cw.delegateCache.SetDelegateVotes(votedAcct.regId, votedAcct.receivedVotes));
                 }
 
                 candidateVotes.push_back(vote);
@@ -1330,10 +1330,10 @@ static bool ProcessFundCoinGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlock
             assert(pubKey == fundCoinGenesisPubKey);
 
             CAccount genesisAccount;
-            genesisAccount.nickID = CNickID();
-            genesisAccount.keyID  = pubKey.GetKeyId();
+            genesisAccount.nickId = CNickID();
+            genesisAccount.keyId  = pubKey.GetKeyId();
             genesisAccount.pubKey = CPubKey();
-            genesisAccount.regID  = CRegID();
+            genesisAccount.regId  = CRegID();
             genesisAccount.fcoins = kTotalFundCoinAmount;
 
             assert(cw.accountCache.SaveAccount(genesisAccount));
@@ -1341,10 +1341,10 @@ static bool ProcessFundCoinGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlock
             CAccount globalFundAccount;
             CRegID regId(pIndex->nHeight, i);
             CKeyID keyId             = Hash160(regId.GetRegIdRaw());
-            globalFundAccount.nickID = CNickID();
-            globalFundAccount.keyID  = keyId;
+            globalFundAccount.nickId = CNickID();
+            globalFundAccount.keyId  = keyId;
             globalFundAccount.pubKey = CPubKey();
-            globalFundAccount.regID  = regId;
+            globalFundAccount.regId  = regId;
             globalFundAccount.scoins = kInitialRiskProvisionScoinCount;
 
             assert(cw.accountCache.SaveAccount(globalFundAccount));
@@ -1357,7 +1357,7 @@ static bool ProcessFundCoinGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlock
             CAccount genesisAccount;
             assert(cw.accountCache.GetAccount(pAccountRegisterTx->txUid, genesisAccount));
             genesisAccount.pubKey = pubKey;
-            genesisAccount.regID  = CRegID(pIndex->nHeight, i);
+            genesisAccount.regId  = CRegID(pIndex->nHeight, i);
 
             assert(cw.accountCache.SaveAccount(genesisAccount));
         }

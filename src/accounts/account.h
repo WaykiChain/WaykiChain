@@ -55,9 +55,9 @@ enum BalanceOpType : uint8_t {
 
 class CAccount {
 public:
-    CKeyID keyID;         //!< KeyID of the account (interchangeable to address)
-    CRegID regID;         //!< RegID of the account
-    CNickID nickID;       //!< Nickname ID of the account (maxlen=32)
+    CKeyID keyId;         //!< KeyID of the account (interchangeable to address)
+    CRegID regId;         //!< RegID of the account
+    CNickID nickId;       //!< Nickname ID of the account (maxlen=32)
     CPubKey pubKey;       //!< account public key
     CPubKey minerPubKey;  //!< miner saving account public key
 
@@ -108,9 +108,9 @@ public:
 
 public:
     CAccount(const CKeyID& keyId, const CNickID& nickId, const CPubKey& pubKey)
-        : keyID(keyId),
-          regID(),
-          nickID(nickId),
+        : keyId(keyId),
+          regId(),
+          nickId(nickId),
           pubKey(pubKey),
           minerPubKey(),
           bcoins(0),
@@ -124,7 +124,7 @@ public:
           receivedVotes(0),
           lastVoteHeight(0) {
         minerPubKey = CPubKey();
-        regID.Clean();
+        regId.Clean();
     }
 
     CAccount() : CAccount(CKeyID(), CNickID(), CPubKey()) {}
@@ -136,9 +136,9 @@ public:
     CAccount& operator=(const CAccount& other) {
         if (this == &other) return *this;
 
-        this->keyID          = other.keyID;
-        this->regID          = other.regID;
-        this->nickID         = other.nickID;
+        this->keyId          = other.keyId;
+        this->regId          = other.regId;
+        this->nickId         = other.nickId;
         this->pubKey         = other.pubKey;
         this->minerPubKey    = other.minerPubKey;
         this->bcoins         = other.bcoins;
@@ -160,19 +160,19 @@ public:
     }
 
     bool IsRegistered() const {
-        return (pubKey.IsFullyValid() && pubKey.GetKeyId() == keyID);
+        return (pubKey.IsFullyValid() && pubKey.GetKeyId() == keyId);
     }
 
     bool RegIDIsMature() const;
 
-    bool SetRegId(const CRegID& regID) {
-        this->regID = regID;
+    bool SetRegId(const CRegID& regId) {
+        this->regId = regId;
         return true;
     };
 
-    bool GetRegId(CRegID& regID) const {
-        regID = this->regID;
-        return !regID.IsEmpty();
+    bool GetRegId(CRegID& regId) const {
+        regId = this->regId;
+        return !regId.IsEmpty();
     };
 
     uint64_t GetFreeBcoins() const { return bcoins; }
@@ -200,7 +200,7 @@ public:
     uint256 GetHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << keyID << regID << nickID << pubKey << minerPubKey << VARINT(bcoins) << VARINT(scoins)
+            ss << keyId << regId << nickId << pubKey << minerPubKey << VARINT(bcoins) << VARINT(scoins)
                << VARINT(fcoins) << VARINT(frozenDEXBcoins) << VARINT(frozenDEXScoins) << VARINT(frozenDEXFcoins)
                << VARINT(stakedFcoins) << VARINT(receivedVotes) << VARINT(lastVoteHeight);
             sigHash = ss.GetHash();
@@ -212,18 +212,18 @@ public:
     bool UpDateAccountPos(int nCurHeight);
 
     bool IsEmpty() const {
-        return keyID.IsEmpty();
+        return keyId.IsEmpty();
     }
 
     void SetEmpty() {
-        keyID.SetEmpty();
+        keyId.SetEmpty();
         // TODO: need set other fields to empty()??
     }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(keyID);
-        READWRITE(regID);
-        READWRITE(nickID);
+        READWRITE(keyId);
+        READWRITE(regId);
+        READWRITE(nickId);
         READWRITE(pubKey);
         READWRITE(minerPubKey);
         READWRITE(VARINT(bcoins));
@@ -243,9 +243,9 @@ private:
 //TODO: add frozenDEXBCons etc below
 class CAccountLog {
 public:
-    CKeyID keyID;         //!< keyID of the account (interchangeable to address)
-    CRegID regID;         //!< regID of the account
-    CNickID nickID;       //!< Nickname ID of the account (maxlen=32)
+    CKeyID keyId;         //!< keyId of the account (interchangeable to address)
+    CRegID regId;         //!< regId of the account
+    CNickID nickId;       //!< Nickname ID of the account (maxlen=32)
     CPubKey pubKey;       //!< account public key
     CPubKey minerPubKey;  //!< miner saving account public key
 
@@ -264,9 +264,9 @@ public:
     uint64_t lastVoteHeight;  //!< account's last vote block height used for computing interest
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(keyID);
-        READWRITE(regID);
-        READWRITE(nickID);
+        READWRITE(keyId);
+        READWRITE(regId);
+        READWRITE(nickId);
         READWRITE(pubKey);
         READWRITE(minerPubKey);
         READWRITE(VARINT(bcoins));
@@ -286,9 +286,9 @@ public:
     }
 
     CAccountLog(const CKeyID& keyIdIn):
-        keyID(keyIdIn),
-        regID(),
-        nickID(),
+        keyId(keyIdIn),
+        regId(),
+        nickId(),
         bcoins(0),
         scoins(0),
         fcoins(0),
@@ -305,9 +305,9 @@ public:
     CAccountLog(): CAccountLog(CKeyID()) {}
 
     void SetValue(const CAccount& acct) {
-        keyID           = acct.keyID;
-        regID           = acct.regID;
-        nickID          = acct.nickID;
+        keyId           = acct.keyId;
+        regId           = acct.regId;
+        nickId          = acct.nickId;
         pubKey          = acct.pubKey;
         minerPubKey     = acct.minerPubKey;
         bcoins          = acct.bcoins;
