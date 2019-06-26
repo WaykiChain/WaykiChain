@@ -38,29 +38,21 @@ enum OrderGenerateType {
 
 class CDEXOrderData {
 public:
-    CUserID   uid;
-    OrderType orderType;     //!< order type
-    CoinType  coinType;      //!< coin type
-    CoinType  assetType;     //!< asset type
-    uint64_t  coinAmount;    //!< amount of coin to buy/sell asset
-    uint64_t  assetAmount;   //!< amount of asset to buy/sell
-    uint64_t  price;         //!< price in coinType want to buy/sell asset
+    CRegID          userRegId;
+    OrderType       orderType;     //!< order type
+    OrderDirection  direction;
+    CoinType        coinType;      //!< coin type
+    CoinType        assetType;     //!< asset type
+    uint64_t        coinAmount;    //!< amount of coin to buy/sell asset
+    uint64_t        assetAmount;   //!< amount of asset to buy/sell
+    uint64_t        price;         //!< price in coinType want to buy/sell asset
 };
 
-struct CDEXActiveBuyOrder {
+struct CDEXActiveOrder {
     CTxCord  txCord;
     OrderGenerateType generateType;
     uint64_t totalDealCoinAmount;   //!< total deal coin amount
     uint64_t totalDealAssetAmount;  //!< total deal asset amount
-
-    // IsEmpty()
-    // SetEmpty()
-};
-
-struct CDEXActiveSellOrder {
-    CTxCord  txCord;
-    OrderGenerateType generateType;
-    uint64_t totalDealAssetAmount;   //!< total deal coin amount
 
     // IsEmpty()
     // SetEmpty()
@@ -86,18 +78,18 @@ public:
     CDexCache() {}
 
 public:
-    bool GetActiveBuyOrder(const uint256& orderId, CDEXActiveBuyOrder& buyOrder) { return false; }; // TODO: ...
-    bool SetActiveBuyOrder(const uint256& orderId, const CDEXActiveBuyOrder& buyOrder, CDBOpLogMap &dbOpLogMap) {
+    bool GetActiveOrder(const uint256& orderId, CDEXActiveOrder& buyOrder) { return false; }; // TODO: ...
+    bool SetActiveOrder(const uint256& orderId, const CDEXActiveOrder& buyOrder, CDBOpLogMap &dbOpLogMap) {
         return false;  // TODO: ...
     };
-    bool EraseActiveBuyOrder(const uint256& orderId, CDBOpLogMap &dbOpLogMap) {
+    bool EraseActiveOrder(const uint256& orderId, CDBOpLogMap &dbOpLogMap) {
         return false;  // TODO: ...
     };
-    bool UndoActiveBuyOrder(CDBOpLogMap &dbOpLogMap) {
+    bool UndoActiveOrder(CDBOpLogMap &dbOpLogMap) {
         return false;  // TODO: ...
     };
-    bool GetActiveSellOrder(const uint256& orderId, CDEXActiveSellOrder& sellOrder) { return false; }; // TODO: ...
-    bool SetActiveSellOrder(const uint256& orderId, const CDEXActiveSellOrder& sellOrder, CDBOpLogMap &dbOpLogMap) {
+    bool GetActiveSellOrder(const uint256& orderId, CDEXActiveOrder& sellOrder) { return false; }; // TODO: ...
+    bool SetActiveSellOrder(const uint256& orderId, const CDEXActiveOrder& sellOrder, CDBOpLogMap &dbOpLogMap) {
         return false;  // TODO: ...
     };
     bool EraseActiveSellOrder(const uint256& orderId, CDBOpLogMap &dbOpLogMap) {

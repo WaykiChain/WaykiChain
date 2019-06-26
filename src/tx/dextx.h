@@ -27,17 +27,17 @@ public:
 class CDEXBuyLimitOrderTx : public CDEXOrderBaseTx {
 
 public:
-    CDEXBuyLimitOrderTx() : CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {}
+    CDEXBuyLimitOrderTx() : CDEXOrderBaseTx(DEX_BUY_LIMIT_ORDER_TX) {}
 
-    CDEXBuyLimitOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {
-        assert(DEX_BUY_ORDER_TX == pBaseTx->nTxType);
+    CDEXBuyLimitOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_BUY_LIMIT_ORDER_TX) {
+        assert(DEX_BUY_LIMIT_ORDER_TX == pBaseTx->nTxType);
         *this = *(CDEXBuyLimitOrderTx *)pBaseTx;
     }
 
     CDEXBuyLimitOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                    CoinType coinTypeIn, CoinType assetTypeIn,
                    uint64_t assetAmountIn, uint64_t bidPriceIn)
-        : CDEXOrderBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
+        : CDEXOrderBaseTx(DEX_BUY_LIMIT_ORDER_TX, txUidIn, validHeightIn, feesIn),
           coinType(coinTypeIn),
           assetType(assetTypeIn),
           assetAmount(assetAmountIn),
@@ -88,17 +88,17 @@ public:
 class CDEXSellLimitOrderTx : public CDEXOrderBaseTx {
 
 public:
-    CDEXSellLimitOrderTx() : CDEXOrderBaseTx(DEX_SELL_ORDER_TX) {}
+    CDEXSellLimitOrderTx() : CDEXOrderBaseTx(DEX_SELL_LIMIT_ORDER_TX) {}
 
-    CDEXSellLimitOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_SELL_ORDER_TX) {
-        assert(DEX_SELL_ORDER_TX == pBaseTx->nTxType);
+    CDEXSellLimitOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_SELL_LIMIT_ORDER_TX) {
+        assert(DEX_SELL_LIMIT_ORDER_TX == pBaseTx->nTxType);
         *this = *(CDEXSellLimitOrderTx *)pBaseTx;
     }
 
     CDEXSellLimitOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                     CoinType coinTypeIn, CoinType assetTypeIn,
                     uint64_t assetAmountIn, uint64_t askPriceIn)
-        : CDEXOrderBaseTx(DEX_SELL_ORDER_TX, txUidIn, validHeightIn, feesIn) {
+        : CDEXOrderBaseTx(DEX_SELL_LIMIT_ORDER_TX, txUidIn, validHeightIn, feesIn) {
         coinType   = coinTypeIn;
         assetType  = assetTypeIn;
         assetAmount = assetAmountIn;
@@ -149,16 +149,16 @@ public:
 
 class CDEXBuyMarketOrderTx : public CDEXOrderBaseTx {
 public:
-    CDEXBuyMarketOrderTx() : CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {}
+    CDEXBuyMarketOrderTx() : CDEXOrderBaseTx(DEX_BUY_MARKET_ORDER_TX) {}
 
-    CDEXBuyMarketOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {
-        assert(DEX_BUY_ORDER_TX == pBaseTx->nTxType);
+    CDEXBuyMarketOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_BUY_MARKET_ORDER_TX) {
+        assert(DEX_BUY_MARKET_ORDER_TX == pBaseTx->nTxType);
         *this = *(CDEXBuyMarketOrderTx *)pBaseTx;
     }
 
     CDEXBuyMarketOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                          CoinType coinTypeIn, CoinType assetTypeIn, uint64_t coinAmountIn)
-        : CDEXOrderBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
+        : CDEXOrderBaseTx(DEX_BUY_MARKET_ORDER_TX, txUidIn, validHeightIn, feesIn),
           coinType(coinTypeIn),
           assetType(assetTypeIn),
           coinAmount(coinAmountIn) {}
@@ -187,7 +187,7 @@ public:
         return sigHash;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyLimitOrderTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyMarketOrderTx>(this); }
     virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountCache &view); //logging usage
     virtual Object ToJson(const CAccountCache &view) const; //json-rpc usage
@@ -203,20 +203,18 @@ public:
     uint64_t coinAmount;   //!< amount of target coin to spend for buying asset
 };
 
-
 class CDEXSellMarketOrderTx : public CDEXOrderBaseTx {
-
 public:
-    CDEXSellMarketOrderTx() : CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {}
+    CDEXSellMarketOrderTx() : CDEXOrderBaseTx(DEX_SELL_MARKET_ORDER_TX) {}
 
-    CDEXSellMarketOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {
-        assert(DEX_BUY_ORDER_TX == pBaseTx->nTxType);
+    CDEXSellMarketOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_SELL_MARKET_ORDER_TX) {
+        assert(DEX_SELL_MARKET_ORDER_TX == pBaseTx->nTxType);
         *this = *(CDEXSellMarketOrderTx *)pBaseTx;
     }
 
     CDEXSellMarketOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                          CoinType coinTypeIn, CoinType assetTypeIn, uint64_t assetAmountIn)
-        : CDEXOrderBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
+        : CDEXOrderBaseTx(DEX_SELL_MARKET_ORDER_TX, txUidIn, validHeightIn, feesIn),
           coinType(coinTypeIn),
           assetType(assetTypeIn),
           assetAmount(assetAmountIn) {}
@@ -245,7 +243,7 @@ public:
         return sigHash;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyLimitOrderTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSellMarketOrderTx>(this); }
     virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountCache &view); //logging usage
     virtual Object ToJson(const CAccountCache &view) const; //json-rpc usage
@@ -259,6 +257,55 @@ public:
     CoinType coinType;      //!< coin type (wusd) to buy asset
     CoinType assetType;     //!< asset type
     uint64_t assetAmount;   //!< amount of target asset to buy
+};
+
+class CDEXCancelOrderTx : public CBaseTx {
+public:
+    CDEXCancelOrderTx() : CBaseTx(DEX_CANCEL_ORDER_TX) {}
+
+    CDEXCancelOrderTx(const CBaseTx *pBaseTx): CBaseTx(DEX_CANCEL_ORDER_TX) {
+        assert(DEX_CANCEL_ORDER_TX == pBaseTx->nTxType);
+        *this = *(CDEXCancelOrderTx *)pBaseTx;
+    }
+
+    CDEXCancelOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
+                         uint256 orderIdIn)
+        : CBaseTx(DEX_CANCEL_ORDER_TX, txUidIn, validHeightIn, feesIn),
+          orderId(orderIdIn){}
+
+    ~CDEXCancelOrderTx() {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(this->nVersion));
+        nVersion = this->nVersion;
+        READWRITE(VARINT(nValidHeight));
+        READWRITE(txUid);
+
+        READWRITE(orderId);
+    )
+
+    uint256 ComputeSignatureHash(bool recalculate = false) const {
+        if (recalculate || sigHash.IsNull()) {
+            CHashWriter ss(SER_GETHASH, 0);
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
+                << orderId;
+            sigHash = ss.GetHash();
+        }
+
+        return sigHash;
+    }
+
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXCancelOrderTx>(this); }
+    virtual double GetPriority() const { return 10000.0f; } // Top priority
+    virtual string ToString(CAccountCache &view); //logging usage
+    virtual Object ToJson(const CAccountCache &view) const; //json-rpc usage
+    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
+
+    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+public:
+    uint256  orderId;       //!< id of oder need to be canceled.
 };
 
 struct DEXDealItem  {
