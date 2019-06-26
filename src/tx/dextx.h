@@ -15,13 +15,6 @@ public:
     using CBaseTx::CBaseTx;
 
     virtual void GetOrderData(CDEXOrderData &orderData) { };// TODO: ...
-
-    // virtual OrderType GetOrderType() = 0;      //!< coin type (wusd) to buy asset
-    // virtual CoinType GetCoinType() = 0;      //!< coin type (wusd) to buy asset
-    // virtual CoinType GetAssetType() = 0;     //!< asset type
-    // virtual uint64_t GetCoinAmount() = 0;    //!< amount of coin to buy/sell asset
-    // virtual uint64_t GetAssetAmount() = 0;   //!< amount of target asset to buy/sell
-    // virtual uint64_t GetPrice() = 0;         //!< price in coinType want to buy/sell asset
 };
 
 class CDEXBuyLimitOrderTx : public CDEXOrderBaseTx {

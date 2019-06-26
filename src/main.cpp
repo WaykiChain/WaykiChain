@@ -801,6 +801,22 @@ bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block) {
     return true;
 }
 
+bool ReadBaseTxFromDisk(const CTxCord txCord, std::shared_ptr<CBaseTx> &pTx) {
+    auto pBlock = std::make_shared<CBlock>();
+    const CBlockIndex* pBlockIndex = chainActive[txCord.GetHeight()];
+    if (pBlockIndex == nullptr) {
+        return ERRORMSG("ReadBaseTxFromDisk error, the height(%d) is exceed current best block height", txCord.GetHeight());
+    }
+    if (!ReadBlockFromDisk(pBlockIndex, *pBlock)) {
+        return ERRORMSG("ReadBaseTxFromDisk error, read the block at height(%d) failed!", txCord.GetHeight());
+    }
+    if (txCord.GetIndex() >= pBlock->vptx.size()) {
+        return ERRORMSG("ReadBaseTxFromDisk error, the tx(%s) index exceed the tx count of block", txCord.ToString());
+    }
+    pTx = pBlock->vptx.at(txCord.GetIndex())->GetNewInstance(); 
+    return true;
+}
+
 uint256 static GetOrphanRoot(const uint256 &hash) {
     map<uint256, COrphanBlock *>::iterator it = mapOrphanBlocks.find(hash);
     if (it == mapOrphanBlocks.end())

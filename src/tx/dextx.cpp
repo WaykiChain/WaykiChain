@@ -796,6 +796,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, read buy order tx by tx cord failed"),
                                 REJECT_INVALID, "bad-read-tx");
             }
+            assert(dealItem.buyOrderId == pBuyOrderTx->GetHash());
             pBuyOrderTx->GetOrderData(buyOrderData);
         } else {
             assert(activeBuyOrder.generateType == SYSTEM_GEN_ORDER);
@@ -808,6 +809,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, read sell order tx by tx cord failed"),
                                 REJECT_INVALID, "bad-read-tx");
             }
+            assert(dealItem.buyOrderId == pSellOrderTx->GetHash());
             pSellOrderTx->GetOrderData(sellOrderData);
         } else {
             assert(activeBuyOrder.generateType == SYSTEM_GEN_ORDER);
