@@ -9,7 +9,10 @@ void CConsecutiveBlockPrice::AddUserPrice(const int blockHeight, const CRegID &r
     mapBlockUserPrices[blockHeight][regId] = price;
 }
 
-void CConsecutiveBlockPrice::DeleteUserPrice(const int blockHeight) { mapBlockUserPrices.erase(blockHeight); }
+void CConsecutiveBlockPrice::DeleteUserPrice(const int blockHeight) {
+    // Marked the value empty, the base cache will delete it when Flush() is called.
+    mapBlockUserPrices[blockHeight].clear();
+}
 
 bool CConsecutiveBlockPrice::ExistBlockUserPrice(const int blockHeight, const CRegID &regId) {
     if (mapBlockUserPrices.count(blockHeight) == 0)
