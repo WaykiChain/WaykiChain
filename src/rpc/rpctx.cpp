@@ -833,7 +833,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
         } else {
             delegateVoteTx.nValidHeight = chainActive.Tip()->nHeight;
         }
-        delegateVoteTx.txUid = account.regID;
+        delegateVoteTx.txUid = account.regId;
 
         for (auto objVote : arrVotes) {
 
@@ -855,7 +855,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             }
 
             VoteType voteType = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN : VoteType::MINUS_BCOIN;
-            CUserID candidateUid = CUserID(delegateAcct.keyID);
+            CUserID candidateUid = CUserID(delegateAcct.keyId);
             uint64_t bcoins = (uint64_t)abs(delegateVotes.get_int64());
             CCandidateVote candidateVote(voteType, candidateUid, bcoins);
 
@@ -954,7 +954,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
 
         delegateVoteTx.llFees       = fee;
         delegateVoteTx.nValidHeight = nHeight;
-        delegateVoteTx.txUid        = account.regID;
+        delegateVoteTx.txUid        = account.regId;
 
         for (auto objVote : arrVotes) {
 
@@ -975,7 +975,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             }
 
             VoteType voteType = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN: VoteType::MINUS_BCOIN;
-            CUserID candidateUid = CUserID(delegateAcct.keyID);
+            CUserID candidateUid = CUserID(delegateAcct.keyId);
             uint64_t bcoins = (uint64_t)abs(delegateVotes.get_int64());
             CCandidateVote candidateVote(voteType, candidateUid, bcoins);
 
@@ -1029,7 +1029,7 @@ Value listaddr(const Array& params, bool fHelp) {
             obj.push_back(Pair("addr", keyId.ToAddress()));
             obj.push_back(Pair("balance", (double)acctInfo.GetFreeBcoins()/ (double) COIN));
             obj.push_back(Pair("hasminerkey", keyCombi.HaveMinerKey()));
-            obj.push_back(Pair("regid",acctInfo.regID.ToString()));
+            obj.push_back(Pair("regid",acctInfo.regId.ToString()));
             retArray.push_back(obj);
         }
     }
@@ -1520,7 +1520,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 if (pWalletMain->GetPubKey(keyId, pk)) {
                     pWalletMain->GetPubKey(keyId, minerpk, true);
                     account.pubKey = pk;
-                    account.keyID  = pk.GetKeyId();
+                    account.keyId  = pk.GetKeyId();
                     if (pk != minerpk && !account.minerPubKey.IsValid()) {
                         account.minerPubKey = minerpk;
                     }
@@ -1534,7 +1534,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             if (pWalletMain->GetPubKey(keyId, pk)) {
                 pWalletMain->GetPubKey(keyId, minerpk, true);
                 account.pubKey = pk;
-                account.keyID  = pk.GetKeyId();
+                account.keyId  = pk.GetKeyId();
                 if (minerpk != pk) {
                     account.minerPubKey = minerpk;
                 }
@@ -1572,7 +1572,7 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
 
 static Value AccountLogToJson(const CAccountLog &accoutLog) {
     Object obj;
-    obj.push_back(Pair("keyId", accoutLog.keyID.ToString()));
+    obj.push_back(Pair("keyId", accoutLog.keyId.ToString()));
     obj.push_back(Pair("bcoins", accoutLog.bcoins));
     // Array array;
     // for (auto const& te : accoutLog.vRewardFund) {
@@ -1612,7 +1612,7 @@ Value gettxoperationlog(const Array& params, bool fHelp) {
         Array arrayvLog;
         for (auto const &te : vLog) {
             Object obj;
-            obj.push_back(Pair("addr", te.keyID.ToAddress()));
+            obj.push_back(Pair("addr", te.keyId.ToAddress()));
             Array array;
             array.push_back(AccountLogToJson(te));
             arrayvLog.push_back(obj);

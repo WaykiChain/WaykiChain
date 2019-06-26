@@ -20,9 +20,9 @@ enum OrderDirection {
     ORDER_SELL = 1,
 };
 
-enum OrderExchangeType {
-    // ORDER_LIMIT_PRICE   = 0, //!< limit price order type
-    // ORDER_MARKET_PRICE  = 1  //!< market price order type
+enum OrderType {
+    ORDER_LIMIT_PRICE   = 0, //!< limit price order type
+    ORDER_MARKET_PRICE  = 1  //!< market price order type
 };
 
 enum OrderGenerateType {
@@ -30,38 +30,32 @@ enum OrderGenerateType {
     SYSTEM_GEN_ORDER,
 };
 
-/**
- * 
- */
-class CDEXBuyOrder {
+// target amount type of order to buy/sell
+// enum OrderTargetAmountType {
+//     COIN_TARGET_AMOUNT,
+//     ASSET_TARGET_AMOUNT
+// };
+
+class CDEXOrderData {
 public:
-    OrderExchangeType exchangeType;    //!< order exchange type
-    CoinType coinType;      //!< coin type (wusd) to buy asset
-    CoinType assetType;     //!< asset type
-    uint64_t buyAmount;     //!< amount of target asset to buy
-    uint64_t bidPrice;      //!< bidding price in coinType willing to buy
+    CRegID          userRegId;
+    OrderType       orderType;     //!< order type
+    OrderDirection  direction;
+    CoinType        coinType;      //!< coin type
+    CoinType        assetType;     //!< asset type
+    uint64_t        coinAmount;    //!< amount of coin to buy/sell asset
+    uint64_t        assetAmount;   //!< amount of asset to buy/sell
+    uint64_t        price;         //!< price in coinType want to buy/sell asset
 };
 
-class CDEXSellOrder {
-public:
-    OrderExchangeType exchangeType;    //!< order exchange type
-    CoinType coinType;      //!< coin type (wusd) to sell asset
-    CoinType assetType;     //!< holing asset type (wicc or micc) to sell in coinType
-    uint64_t sellAmount;    //!< amount of holding asset to sell
-    uint64_t askPrice;      //!< asking price in coinType willing to sell   
-};
-
-
-struct CDEXActiveBuyOrderInfo {
-    OrderGenerateType generateType;
-    uint64_t residualAmount; //!< residual coin/asset amount for buying
+struct CDEXActiveOrder {
     CTxCord  txCord;
-};
-
-struct CDEXActiveSellOrderInfo {
     OrderGenerateType generateType;
-    uint64_t residualAmount; //!< residual coin/asset amount for selling
-    CTxCord  txCord;
+    uint64_t totalDealCoinAmount;   //!< total deal coin amount
+    uint64_t totalDealAssetAmount;  //!< total deal asset amount
+
+    // IsEmpty()
+    // SetEmpty()
 };
 
 // System-generated Market Order
@@ -84,17 +78,21 @@ public:
     CDexCache() {}
 
 public:
-
-
-    bool GetActiveBuyOrder(const uint256& orderId, CDEXActiveBuyOrderInfo& buyOrder) { return false; }; // TODO: ...
-    bool SetActiveBuyOrder(const uint256& orderId, const CDEXActiveBuyOrderInfo& buyOrder, CDBOpLogMap &dbOpLogMap) {
+    bool GetActiveOrder(const uint256& orderId, CDEXActiveOrder& buyOrder) { return false; }; // TODO: ...
+    bool SetActiveOrder(const uint256& orderId, const CDEXActiveOrder& buyOrder, CDBOpLogMap &dbOpLogMap) {
         return false;  // TODO: ...
     };
-    bool UndoActiveBuyOrder(CDBOpLogMap &dbOpLogMap) {
+    bool EraseActiveOrder(const uint256& orderId, CDBOpLogMap &dbOpLogMap) {
         return false;  // TODO: ...
     };
-    bool GetActiveSellOrder(const uint256& orderId, CDEXActiveSellOrderInfo& sellOrder) { return false; }; // TODO: ...
-    bool SetActiveSellOrder(const uint256& orderId, const CDEXActiveSellOrderInfo& sellOrder, CDBOpLogMap &dbOpLogMap) {
+    bool UndoActiveOrder(CDBOpLogMap &dbOpLogMap) {
+        return false;  // TODO: ...
+    };
+    bool GetActiveSellOrder(const uint256& orderId, CDEXActiveOrder& sellOrder) { return false; }; // TODO: ...
+    bool SetActiveSellOrder(const uint256& orderId, const CDEXActiveOrder& sellOrder, CDBOpLogMap &dbOpLogMap) {
+        return false;  // TODO: ...
+    };
+    bool EraseActiveSellOrder(const uint256& orderId, CDBOpLogMap &dbOpLogMap) {
         return false;  // TODO: ...
     };
     bool UndoActiveSellOrder(CDBOpLogMap &dbOpLogMap) {

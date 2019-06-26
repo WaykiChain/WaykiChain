@@ -22,7 +22,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     CAccountLog acctInfoLog(acctInfo);
     // TODO: want to check something
 
-    CUserID userId = acctInfo.keyID;
+    CUserID userId = acctInfo.keyId;
     if (!cw.accountCache.SetAccount(userId, acctInfo))
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");

@@ -727,10 +727,21 @@ bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos);
 bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block);
 bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block);
 
+
+bool ReadBaseTxFromDisk(const CTxCord txCord, std::shared_ptr<CBaseTx> &pTx);
+
 template<typename TxType>
 bool ReadTxFromDisk(const CTxCord txCord, std::shared_ptr<TxType> &pTx) {
-    // TODO: ReadTxFromDisk
-    return false;
+    std::shared_ptr<CBaseTx> pBaseTx;
+    if (!ReadBaseTxFromDisk(txCord, pBaseTx)) {
+        return ERRORMSG("ReadTxFromDisk failed! txcord(%s)", txCord.ToString());
+    }
+    if (typeid(*pBaseTx) != typeid(TxType)) {
+        return ERRORMSG("The expected tx(%s) type is %s, but read tx type is %s", 
+            txCord.ToString(), typeid(TxType).name(), typeid(*pBaseTx).name());
+    }
+    pTx = dynamic_pointer_cast<TxType>(pBaseTx);
+    return true;
 }
 
 // global overloadding fun

@@ -85,7 +85,7 @@ bool CAccountCache::SetBestBlock(const uint256 &blockHashIn) {
 bool CAccountCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<CRegID,
                                 CKeyID> &mapKeyIds, const uint256 &blockHashIn) {
     for (auto it = mapAccounts.begin(); it != mapAccounts.end(); ++it) {
-        if (uint160() == it->second.keyID) {
+        if (uint160() == it->second.keyId) {
             pBase->EraseAccountByKeyId(it->first);
             mapKeyId2Account.erase(it->first);
         } else {
@@ -101,10 +101,10 @@ bool CAccountCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const m
 bool CAccountCache::BatchWrite(const vector<CAccount> &vAccounts) {
     for (auto it = vAccounts.begin(); it != vAccounts.end(); ++it) {
         if (it->IsEmptyValue() && !it->IsRegistered()) {
-            mapKeyId2Account[it->keyID]       = *it;
-            mapKeyId2Account[it->keyID].keyID = uint160();
+            mapKeyId2Account[it->keyId]       = *it;
+            mapKeyId2Account[it->keyId].keyId = uint160();
         } else {
-            mapKeyId2Account[it->keyID] = *it;
+            mapKeyId2Account[it->keyId] = *it;
         }
     }
     return true;
@@ -155,14 +155,14 @@ bool CAccountCache::EraseKeyIdByRegId(const CRegID &regId) {
 }
 
 bool CAccountCache::SaveAccount(const CAccount &account) {
-    regId2KeyIdCache.SetData(account.regID.ToRawString(), account.keyID);
-    keyId2AccountCache.SetData(account.keyID, account);
-    nickId2KeyIdCache.SetData(account.nickID, account.keyID);
+    regId2KeyIdCache.SetData(account.regId.ToRawString(), account.keyId);
+    keyId2AccountCache.SetData(account.keyId, account);
+    nickId2KeyIdCache.SetData(account.nickId, account.keyId);
 /*
-    mapRegId2KeyId[ account.regID ] = account.keyID;
-    mapKeyId2Account[ account.keyID ] = account;
-    if (!account.nickID.IsEmpty()) {
-        mapNickId2KeyId[ account.nickID ] = account.keyID;
+    mapRegId2KeyId[ account.regId ] = account.keyId;
+    mapKeyId2Account[ account.keyId ] = account;
+    if (!account.nickId.IsEmpty()) {
+        mapNickId2KeyId[ account.nickId ] = account.keyId;
     }
 */
     return true;
@@ -188,7 +188,7 @@ bool CAccountCache::GetUserId(const string &addr, CUserID &userId) const {
 bool CAccountCache::GetRegId(const CKeyID &keyId, CRegID &regId) const {
     CAccount acct;
     if (keyId2AccountCache.GetData(keyId, acct)) {
-        regId = acct.regID;
+        regId = acct.regId;
         return true;
     }
     return false;
@@ -201,7 +201,7 @@ bool CAccountCache::GetRegId(const CUserID &userId, CRegID &regId) const {
     } else if (userId.type() == typeid(CRegID)) {
         CAccount account;
         if (GetAccount(userId.get<CKeyID>(), account)) {
-            regId = account.regID;
+            regId = account.regId;
             return !regId.IsEmpty();
         }
     }
@@ -325,8 +325,8 @@ bool CAccountDB::SetAccount(const CKeyID &keyId, const CAccount &account) {
     string key = GenDbKey(dbk::KEYID_ACCOUNT, keyId);
     bool ret = db.Write(key, account);
 
-    // assert(!account.keyID.IsEmpty());
-    // assert(!account.regID.IsEmpty());
+    // assert(!account.keyId.IsEmpty());
+    // assert(!account.regId.IsEmpty());
     // assert(account.pubKey.IsValid());
     return ret;
 }
@@ -364,7 +364,7 @@ bool CAccountDB::BatchWrite(const map<CKeyID, CAccount> &mapAccounts,
     CLevelDBBatch batch;
     auto iterAccount = mapAccounts.begin();
     for (; iterAccount != mapAccounts.end(); ++iterAccount) {
-        if (iterAccount->second.keyID.IsNull()) {
+        if (iterAccount->second.keyId.IsNull()) {
             batch.Erase(dbk::GenDbKey(dbk::KEYID_ACCOUNT, iterAccount->first));
         } else {
             batch.Write(dbk::GenDbKey(dbk::KEYID_ACCOUNT, iterAccount->first), iterAccount->second);
@@ -389,7 +389,7 @@ bool CAccountDB::BatchWrite(const vector<CAccount> &vAccounts) {
     CLevelDBBatch batch;
     auto iterAccount = vAccounts.begin();
     for (; iterAccount != vAccounts.end(); ++iterAccount) {
-        batch.Write(dbk::GenDbKey(dbk::KEYID_ACCOUNT, iterAccount->keyID), *iterAccount);
+        batch.Write(dbk::GenDbKey(dbk::KEYID_ACCOUNT, iterAccount->keyId), *iterAccount);
 
     }
     return db.WriteBatch(batch, false);
@@ -423,9 +423,9 @@ bool CAccountDB::GetAccount(const CRegID &regId, CAccount &account) {
 bool CAccountDB::SaveAccount(const CAccount &account) {
     CLevelDBBatch batch;
     // TODO: should check the regid and nickid is empty?
-    batch.Write(dbk::GenDbKey(dbk::REGID_KEYID, account.regID), account.keyID);
-    batch.Write(dbk::GenDbKey(dbk::NICKID_KEYID, account.nickID), account.keyID);
-    batch.Write(dbk::GenDbKey(dbk::KEYID_ACCOUNT, account.keyID), account);
+    batch.Write(dbk::GenDbKey(dbk::REGID_KEYID, account.regId), account.keyId);
+    batch.Write(dbk::GenDbKey(dbk::NICKID_KEYID, account.nickId), account.keyId);
+    batch.Write(dbk::GenDbKey(dbk::KEYID_ACCOUNT, account.keyId), account);
 
     return db.WriteBatch(batch, false);
 }

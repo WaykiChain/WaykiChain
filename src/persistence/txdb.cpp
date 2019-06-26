@@ -126,7 +126,7 @@ string CTxUndo::ToString() const {
 
 bool CTxUndo::GetAccountLog(const CKeyID &keyId, CAccountLog &accountLog) {
     for (auto iterLog : accountLogs) {
-        if (iterLog.keyID == keyId) {
+        if (iterLog.keyId == keyId) {
             accountLog = iterLog;
             return true;
         }

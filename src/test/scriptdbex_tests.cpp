@@ -52,9 +52,9 @@ void CContractDBTest::Init() {
 				0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01 };
 
 	for (int i = 0; i < TEST_SIZE; ++i) {
-		CRegID regID(i,1);
+		CRegID regId(i,1);
 		vector<unsigned char> vScriptData(vScriptBase.begin(),vScriptBase.end());
-		vector<unsigned char> vRegV6 = regID.GetRegIdRaw();
+		vector<unsigned char> vRegV6 = regId.GetRegIdRaw();
 		vScriptData.insert(vScriptData.end(),vRegV6.begin(),vRegV6.end());
 		mapScript.insert(std::make_pair(vRegV6,vScriptData));
 	}
@@ -64,9 +64,9 @@ void CContractDBTest::CheckReadData(CContractCache* pViewCache) {
 	BOOST_CHECK(pViewCache);
 	vector<unsigned char> vScriptContent;
 	for (const auto& item : mapScript) {
-		CRegID regID(item.first);
-		BOOST_CHECK(pViewCache->HaveScript(regID));
-		BOOST_CHECK(pViewCache->GetScript(regID, vScriptContent));
+		CRegID regId(item.first);
+		BOOST_CHECK(pViewCache->HaveScript(regId));
+		BOOST_CHECK(pViewCache->GetScript(regId, vScriptContent));
 		BOOST_CHECK(vScriptContent == item.second);
 	}
 }
@@ -74,8 +74,8 @@ void CContractDBTest::CheckReadData(CContractCache* pViewCache) {
 void CContractDBTest::InsertData(CContractCache* pViewCache) {
 	BOOST_CHECK(pViewCache);
 	for (const auto& item : mapScript) {
-		CRegID regID(item.first);
-		BOOST_CHECK(pViewCache->SetScript(regID, item.second));
+		CRegID regId(item.first);
+		BOOST_CHECK(pViewCache->SetScript(regId, item.second));
 	}
 }
 
@@ -106,8 +106,8 @@ void CContractDBTest::Flush(CContractCache* pViewCache) {
 void CContractDBTest::EraseData(CContractCache* pViewCache) {
 	BOOST_CHECK(pViewCache);
 	for (const auto& item:mapScript) {
-		CRegID regID(item.first);
-		BOOST_CHECK(pViewCache->EraseScript(regID));
+		CRegID regId(item.first);
+		BOOST_CHECK(pViewCache->EraseScript(regId));
 	}
 }
 

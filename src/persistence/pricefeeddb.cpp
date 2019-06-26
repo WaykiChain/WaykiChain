@@ -6,48 +6,25 @@
 #include "pricefeeddb.h"
 
 void CConsecutiveBlockPrice::AddUserPrice(const int blockHeight, const CRegID &regId, const uint64_t price) {
-    mapBlockUserPrices[blockHeight][regId.ToRawString()] = price;
+    mapBlockUserPrices[blockHeight][regId] = price;
 }
 
 void CConsecutiveBlockPrice::DeleteUserPrice(const int blockHeight) {
-    mapBlockUserPrices.erase(blockHeight);
-}
-
-uint64_t CConsecutiveBlockPrice::ComputeBlockMedianPrice(const int blockHeight) {
-    // TODO: parameterize 11.
-    assert(blockHeight >= 11);
-    vector<uint64_t> prices;
-    for (int height = blockHeight; height > blockHeight - 11; -- height) {
-        if (mapBlockUserPrices.count(height) != 0) {
-            for (auto userPrice : mapBlockUserPrices[height]) {
-                prices.push_back(userPrice.second);
-            }
-        }
-    }
-
-    return ComputeMedianNumber(prices);
+    // Marked the value empty, the base cache will delete it when Flush() is called.
+    mapBlockUserPrices[blockHeight].clear();
 }
 
 bool CConsecutiveBlockPrice::ExistBlockUserPrice(const int blockHeight, const CRegID &regId) {
     if (mapBlockUserPrices.count(blockHeight) == 0)
         return false;
 
-    return mapBlockUserPrices[blockHeight].count(regId.ToRawString());
-}
-
-uint64_t CConsecutiveBlockPrice::ComputeMedianNumber(vector<uint64_t> &numbers) {
-    unsigned int size = numbers.size();
-    if (size < 2) {
-        return size == 0 ? 0 : numbers[0];
-    }
-    sort(numbers.begin(), numbers.end());
-    return (size % 2 == 0) ? (numbers[size / 2 - 1] + numbers[size / 2]) / 2 : numbers[size / 2];
+    return mapBlockUserPrices[blockHeight].count(regId);
 }
 
 bool CPricePointCache::AddBlockPricePointInBatch(const int blockHeight, const CRegID &regId,
                                                  const vector<CPricePoint> &pps) {
     for (CPricePoint pp : pps) {
-        CConsecutiveBlockPrice &cbp = mapCoinPricePointCache[pp.GetCoinPriceType().ToString()];
+        CConsecutiveBlockPrice &cbp = mapCoinPricePointCache[pp.GetCoinPriceType()];
         if (cbp.ExistBlockUserPrice(blockHeight, regId))
             return false;
 
@@ -65,6 +42,21 @@ bool CPricePointCache::DeleteBlockPricePoint(const int blockHeight) {
     return true;
 }
 
+void CPricePointCache::BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn) {
+    for (const auto &item : mapCoinPricePointCacheIn) {
+        const auto &mapBlockUserPrices = item.second.mapBlockUserPrices;
+        for (const auto &userPrice : mapBlockUserPrices) {
+            if (userPrice.second.empty()) {
+                mapCoinPricePointCache[item.first /* CCoinPriceType */].mapBlockUserPrices.erase(
+                    userPrice.first /* height */);
+            } else {
+                mapCoinPricePointCache[item.first /* CCoinPriceType */].mapBlockUserPrices[userPrice.first /* height */] =
+                    userPrice.second;
+            }
+        }
+    }
+}
+
 void CPricePointCache::Flush() {
     assert(pBase);
 
@@ -72,17 +64,73 @@ void CPricePointCache::Flush() {
     mapCoinPricePointCache.clear();
 }
 
-void CPricePointCache::ComputeBlockMedianPrice(const int blockHeight) {
-    bcoinMedianPrice = ComputeBlockMedianPrice(blockHeight, CCoinPriceType(CoinType::WICC, PriceType::USD));
-    fcoinMedianPrice = ComputeBlockMedianPrice(blockHeight, CCoinPriceType(CoinType::MICC, PriceType::USD));
+bool CPricePointCache::GetBlockUserPrices(CCoinPriceType coinPriceType, set<int> &expired,
+                                          BlockUserPriceMap &blockUserPrices) {
+    const auto &iter = mapCoinPricePointCache.find(coinPriceType);
+    if (iter != mapCoinPricePointCache.end()) {
+        const auto &mapBlockUserPrices = iter->second.mapBlockUserPrices;
+        for (const auto &item : mapBlockUserPrices) {
+            if (item.second.empty()) {
+                expired.insert(item.first);
+            } else if (expired.count(item.first) || blockUserPrices.count(item.first)) {
+                // TODO: log
+                continue;
+            } else {
+                // Got a valid item.
+                blockUserPrices[item.first] = item.second;
+            }
+        }
+    }
+
+    if (pBase != nullptr) {
+        return pBase->GetBlockUserPrices(coinPriceType, expired, blockUserPrices);
+    }
+
+    return true;
 }
 
-uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, CCoinPriceType coinPriceType) {
-    return mapCoinPricePointCache.count(coinPriceType.ToString())
-               ? mapCoinPricePointCache[coinPriceType.ToString()].ComputeBlockMedianPrice(blockHeight)
-               : 0;
+bool CPricePointCache::GetBlockUserPrices(CCoinPriceType coinPriceType, BlockUserPriceMap &blockUserPrices) {
+    set<int /* block height */> expired;
+    if (!GetBlockUserPrices(coinPriceType, expired, blockUserPrices)) {
+        // TODO: log
+        return false;
+    }
+
+    return true;
 }
 
-void CPricePointCache::BatchWrite(const map<string, CConsecutiveBlockPrice> &mapCoinPricePointCacheIn) {
-    // TODO:
+uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, const CCoinPriceType &coinPriceType) {
+    // 1. merge block user prices with base cache.
+    BlockUserPriceMap blockUserPrices;
+    if (!GetBlockUserPrices(coinPriceType, blockUserPrices) || blockUserPrices.empty()) {
+        return 0;
+    }
+
+    // 2. compute block median price.
+    return ComputeBlockMedianPrice(blockHeight, blockUserPrices);
+}
+
+uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, const BlockUserPriceMap &blockUserPrices) {
+    // TODO: parameterize 11.
+    assert(blockHeight >= 11);
+    vector<uint64_t> prices;
+    for (int height = blockHeight; height > blockHeight - 11; --height) {
+        const auto &iter = blockUserPrices.find(height);
+        if (iter != blockUserPrices.end()) {
+            for (const auto &userPrice : iter->second) {
+                prices.push_back(userPrice.second);
+            }
+        }
+    }
+
+    return ComputeMedianNumber(prices);
+}
+
+uint64_t CPricePointCache::ComputeMedianNumber(vector<uint64_t> &numbers) {
+    unsigned int size = numbers.size();
+    if (size < 2) {
+        return size == 0 ? 0 : numbers[0];
+    }
+    sort(numbers.begin(), numbers.end());
+    return (size % 2 == 0) ? (numbers[size / 2 - 1] + numbers[size / 2]) / 2 : numbers[size / 2];
 }

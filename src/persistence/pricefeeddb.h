@@ -17,6 +17,11 @@
 
 using namespace std;
 
+class CConsecutiveBlockPrice;
+
+typedef map<int /* block height */, map<CRegID, uint64_t /* price */>> BlockUserPriceMap;
+typedef map<CCoinPriceType, CConsecutiveBlockPrice> CoinPricePointMap;
+
 // Price Points in 11 consecutive blocks
 class CConsecutiveBlockPrice {
 public:
@@ -24,14 +29,9 @@ public:
     // delete user price by specific block height.
     void DeleteUserPrice(const int blockHeight);
     bool ExistBlockUserPrice(const int blockHeight, const CRegID &regId);
-    uint64_t ComputeBlockMedianPrice(const int blockHeight);
-    uint64_t GetLastBlockMedianPrice();
 
 public:
-    static uint64_t ComputeMedianNumber(vector<uint64_t> &numbers);
-
-private:
-    map<int, map<string, uint64_t>> mapBlockUserPrices;  // height -> { regId -> price }
+    BlockUserPriceMap mapBlockUserPrices;
 };
 
 class CPricePointCache {
@@ -44,21 +44,23 @@ public:
     // delete block price point by specific block height.
     bool DeleteBlockPricePoint(const int blockHeight);
 
-    void ComputeBlockMedianPrice(const int blockHeight);
-    uint64_t GetBcoinMedianPrice() { return bcoinMedianPrice; }
-    uint64_t GetFcoinMedianPrice() { return fcoinMedianPrice; }
+    uint64_t GetBcoinMedianPrice();
+    uint64_t GetFcoinMedianPrice();
 
     void Flush();
 
 private:
-    uint64_t ComputeBlockMedianPrice(const int blockHeight, CCoinPriceType coinPriceType);
-    void BatchWrite(const map<string, CConsecutiveBlockPrice> &mapCoinPricePointCacheIn);
+    void BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn);
+
+    bool GetBlockUserPrices(CCoinPriceType coinPriceType, set<int> &expired, BlockUserPriceMap &blockUserPrices);
+    bool GetBlockUserPrices(CCoinPriceType coinPriceType, BlockUserPriceMap &blockUserPrices);
+
+    uint64_t ComputeBlockMedianPrice(const int blockHeight, const CCoinPriceType &coinPriceType);
+    uint64_t ComputeBlockMedianPrice(const int blockHeight, const BlockUserPriceMap &blockUserPrices);
+    static uint64_t ComputeMedianNumber(vector<uint64_t> &numbers);
 
 private:
-    uint64_t bcoinMedianPrice;  // against scoin
-    uint64_t fcoinMedianPrice;  // against scoin
-
-    map<string, CConsecutiveBlockPrice> mapCoinPricePointCache;  // coinPriceType -> consecutiveBlockPrice
+    CoinPricePointMap mapCoinPricePointCache;  // coinPriceType -> consecutiveBlockPrice
     CPricePointCache *pBase;
 };
 
