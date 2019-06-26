@@ -27,17 +27,17 @@ public:
 class CDEXBuyLimitOrderTx : public CDEXOrderBaseTx {
 
 public:
-    CDEXBuyLimitOrderTx() : CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {}
+    CDEXBuyLimitOrderTx() : CDEXOrderBaseTx(DEX_BUY_LIMIT_ORDER_TX) {}
 
-    CDEXBuyLimitOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {
-        assert(DEX_BUY_ORDER_TX == pBaseTx->nTxType);
+    CDEXBuyLimitOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_BUY_LIMIT_ORDER_TX) {
+        assert(DEX_BUY_LIMIT_ORDER_TX == pBaseTx->nTxType);
         *this = *(CDEXBuyLimitOrderTx *)pBaseTx;
     }
 
     CDEXBuyLimitOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                    CoinType coinTypeIn, CoinType assetTypeIn,
                    uint64_t assetAmountIn, uint64_t bidPriceIn)
-        : CDEXOrderBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
+        : CDEXOrderBaseTx(DEX_BUY_LIMIT_ORDER_TX, txUidIn, validHeightIn, feesIn),
           coinType(coinTypeIn),
           assetType(assetTypeIn),
           assetAmount(assetAmountIn),
@@ -88,17 +88,17 @@ public:
 class CDEXSellLimitOrderTx : public CDEXOrderBaseTx {
 
 public:
-    CDEXSellLimitOrderTx() : CDEXOrderBaseTx(DEX_SELL_ORDER_TX) {}
+    CDEXSellLimitOrderTx() : CDEXOrderBaseTx(DEX_SELL_LIMIT_ORDER_TX) {}
 
-    CDEXSellLimitOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_SELL_ORDER_TX) {
-        assert(DEX_SELL_ORDER_TX == pBaseTx->nTxType);
+    CDEXSellLimitOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_SELL_LIMIT_ORDER_TX) {
+        assert(DEX_SELL_LIMIT_ORDER_TX == pBaseTx->nTxType);
         *this = *(CDEXSellLimitOrderTx *)pBaseTx;
     }
 
     CDEXSellLimitOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                     CoinType coinTypeIn, CoinType assetTypeIn,
                     uint64_t assetAmountIn, uint64_t askPriceIn)
-        : CDEXOrderBaseTx(DEX_SELL_ORDER_TX, txUidIn, validHeightIn, feesIn) {
+        : CDEXOrderBaseTx(DEX_SELL_LIMIT_ORDER_TX, txUidIn, validHeightIn, feesIn) {
         coinType   = coinTypeIn;
         assetType  = assetTypeIn;
         assetAmount = assetAmountIn;
@@ -149,16 +149,16 @@ public:
 
 class CDEXBuyMarketOrderTx : public CDEXOrderBaseTx {
 public:
-    CDEXBuyMarketOrderTx() : CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {}
+    CDEXBuyMarketOrderTx() : CDEXOrderBaseTx(DEX_BUY_MARKET_ORDER_TX) {}
 
-    CDEXBuyMarketOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {
-        assert(DEX_BUY_ORDER_TX == pBaseTx->nTxType);
+    CDEXBuyMarketOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_BUY_MARKET_ORDER_TX) {
+        assert(DEX_BUY_MARKET_ORDER_TX == pBaseTx->nTxType);
         *this = *(CDEXBuyMarketOrderTx *)pBaseTx;
     }
 
     CDEXBuyMarketOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                          CoinType coinTypeIn, CoinType assetTypeIn, uint64_t coinAmountIn)
-        : CDEXOrderBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
+        : CDEXOrderBaseTx(DEX_BUY_MARKET_ORDER_TX, txUidIn, validHeightIn, feesIn),
           coinType(coinTypeIn),
           assetType(assetTypeIn),
           coinAmount(coinAmountIn) {}
@@ -205,16 +205,16 @@ public:
 
 class CDEXSellMarketOrderTx : public CDEXOrderBaseTx {
 public:
-    CDEXSellMarketOrderTx() : CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {}
+    CDEXSellMarketOrderTx() : CDEXOrderBaseTx(DEX_SELL_MARKET_ORDER_TX) {}
 
-    CDEXSellMarketOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_BUY_ORDER_TX) {
-        assert(DEX_BUY_ORDER_TX == pBaseTx->nTxType);
+    CDEXSellMarketOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_SELL_MARKET_ORDER_TX) {
+        assert(DEX_SELL_MARKET_ORDER_TX == pBaseTx->nTxType);
         *this = *(CDEXSellMarketOrderTx *)pBaseTx;
     }
 
     CDEXSellMarketOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                          CoinType coinTypeIn, CoinType assetTypeIn, uint64_t assetAmountIn)
-        : CDEXOrderBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
+        : CDEXOrderBaseTx(DEX_SELL_MARKET_ORDER_TX, txUidIn, validHeightIn, feesIn),
           coinType(coinTypeIn),
           assetType(assetTypeIn),
           assetAmount(assetAmountIn) {}
@@ -261,16 +261,16 @@ public:
 
 class CDEXCancelOrderTx : public CBaseTx {
 public:
-    CDEXCancelOrderTx() : CBaseTx(DEX_BUY_ORDER_TX) {}
+    CDEXCancelOrderTx() : CBaseTx(DEX_CANCEL_ORDER_TX) {}
 
-    CDEXCancelOrderTx(const CBaseTx *pBaseTx): CBaseTx(DEX_BUY_ORDER_TX) {
-        assert(DEX_BUY_ORDER_TX == pBaseTx->nTxType);
+    CDEXCancelOrderTx(const CBaseTx *pBaseTx): CBaseTx(DEX_CANCEL_ORDER_TX) {
+        assert(DEX_CANCEL_ORDER_TX == pBaseTx->nTxType);
         *this = *(CDEXCancelOrderTx *)pBaseTx;
     }
 
     CDEXCancelOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                          uint256 orderIdIn)
-        : CBaseTx(DEX_BUY_ORDER_TX, txUidIn, validHeightIn, feesIn),
+        : CBaseTx(DEX_CANCEL_ORDER_TX, txUidIn, validHeightIn, feesIn),
           orderId(orderIdIn){}
 
     ~CDEXCancelOrderTx() {}

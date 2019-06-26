@@ -595,7 +595,7 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
                          UPDATE_ACCOUNT_FAIL, "unfreeze-account-coin");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyID), srcAccount))
+    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyId), srcAccount))
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
@@ -623,7 +623,7 @@ bool CDEXCancelOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
 
     for (auto accountLog : cw.txUndo.accountLogs) {
         CAccount account;
-        CUserID userId = accountLog.keyID;
+        CUserID userId = accountLog.keyId;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::UndoExecuteTx, read account info error"),
                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
