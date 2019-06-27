@@ -69,6 +69,11 @@ bool CCDPStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &stat
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
+    if (cw.cdpCache.GetGlobalCDPLock()) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, CDP Global Lock is on!!"),
+                        REJECT_INVALID, "gloalcdplock_is_on");
+    }
+
     // bcoinsToStake can be zero since we allow downgrading collateral ratio to mint new scoins
     // but it must be grater than the fund committee defined minimum ratio value
     if (collateralRatio < pCdMan->initialCollateralRatioMin ) {
@@ -232,7 +237,7 @@ string CCDPRedeemTx::ToString(CAccountCache &view) {
     }
 
     if (!cw.accountCache.SaveAccount(fcoinGensisAccount)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, update fcoinGensisAccount %s failed",
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update fcoinGensisAccount %s failed",
                         fcoinGenesisUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     }
     cw.txUndo.accountLogs.push_back(fcoinGensisAccount);
@@ -241,6 +246,11 @@ string CCDPRedeemTx::ToString(CAccountCache &view) {
 bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
+
+    if (cw.cdpCache.GetGlobalCDPLock()) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, CDP Global Lock is on!!"),
+                        REJECT_INVALID, "gloalcdplock_is_on");
+    }
 
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
@@ -376,6 +386,11 @@ bool CCDPLiquidateTx::PayPenaltyFee(int nHeight, const CUserCdp &cdp, CCacheWrap
 bool CCDPLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
+
+    if (cw.cdpCache.GetGlobalCDPLock()) {
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, CDP Global Lock is on!!"),
+                        REJECT_INVALID, "gloalcdplock_is_on");
+    }
 
     if (cdpTxCord.IsEmpty()) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, cdpTxCord is empty"),
