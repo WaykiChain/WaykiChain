@@ -50,8 +50,8 @@ public:
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CBlockPriceMedianTx>(this); }
     virtual double GetPriority() const { return 1000.0f; }
 
-    virtual string ToString(CAccountCache &view);
-    virtual Object ToJson(const CAccountCache &view) const;
+    virtual string ToString(CAccountDBCache &view);
+    virtual Object ToJson(const CAccountDBCache &view) const;
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);

@@ -16,7 +16,7 @@
 #include "version.h"
 #include "vm/vmrunenv.h"
 
-static bool GetKeyId(const CAccountCache &view, const string &userIdStr, CKeyID &KeyId) {
+static bool GetKeyId(const CAccountDBCache &view, const string &userIdStr, CKeyID &KeyId) {
     if (userIdStr.size() == 6) {
         CRegID regId(userIdStr);
         KeyId = regId.GetKeyId(view);
@@ -139,7 +139,7 @@ bool CContractDeployTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds
     return true;
 }
 
-string CContractDeployTx::ToString(CAccountCache &view) {
+string CContractDeployTx::ToString(CAccountDBCache &view) {
     CKeyID keyId;
     view.GetKeyId(txUid, keyId);
 
@@ -148,9 +148,9 @@ string CContractDeployTx::ToString(CAccountCache &view) {
                      nValidHeight);
 }
 
-Object CContractDeployTx::ToJson(const CAccountCache &accountCache) const{
+Object CContractDeployTx::ToJson(const CAccountDBCache &accountCache) const{
     Object result;
-    CAccountCache view(accountCache);
+    CAccountDBCache view(accountCache);
 
     CKeyID keyid;
     view.GetKeyId(txUid, keyid);
@@ -265,7 +265,7 @@ bool CContractInvokeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds
     return true;
 }
 
-string CContractInvokeTx::ToString(CAccountCache &view) {
+string CContractInvokeTx::ToString(CAccountDBCache &view) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, appUid=%s, bcoins=%ld, llFees=%ld, arguments=%s, "
         "nValidHeight=%d\n",
@@ -273,9 +273,9 @@ string CContractInvokeTx::ToString(CAccountCache &view) {
         HexStr(arguments), nValidHeight);
 }
 
-Object CContractInvokeTx::ToJson(const CAccountCache &accountView) const {
+Object CContractInvokeTx::ToJson(const CAccountDBCache &accountView) const {
     Object result;
-    CAccountCache view(accountView);
+    CAccountDBCache view(accountView);
 
     // auto GetRegIdString = [&](CUserID const &userId) {
     //     if (userId.type() == typeid(CRegID))

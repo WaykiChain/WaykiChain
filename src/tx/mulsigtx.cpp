@@ -28,7 +28,7 @@ Object CSignaturePair::ToJson() const {
     return obj;
 }
 
-string CMulsigTx::ToString(CAccountCache &view) {
+string CMulsigTx::ToString(CAccountDBCache &view) {
     string desId;
     if (desUserId.type() == typeid(CKeyID)) {
         desId = desUserId.get<CKeyID>().ToString();
@@ -50,9 +50,9 @@ string CMulsigTx::ToString(CAccountCache &view) {
     return str;
 }
 
-Object CMulsigTx::ToJson(const CAccountCache &accountView) const {
+Object CMulsigTx::ToJson(const CAccountDBCache &accountView) const {
     Object result;
-    CAccountCache view(accountView);
+    CAccountDBCache view(accountView);
 
     auto GetRegIdString = [&](CUserID const &userId) {
         if (userId.type() == typeid(CRegID)) {

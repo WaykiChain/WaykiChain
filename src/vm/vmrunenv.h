@@ -56,8 +56,8 @@ private:
 	 */
 	vector<std::shared_ptr<CAppUserAccount>> newAppUserAccount;
 
-	CContractCache *pContractCache;
-	CAccountCache *pAccountCache;
+	CContractDBCache *pContractCache;
+	CAccountDBCache *pAccountCache;
 
 	vector<CVmOperate> vmOperateOutput;   //保存操作结果
     bool  isCheckAccount;  //校验账户平衡开关
@@ -73,7 +73,7 @@ private:
      *  @param nheight: run the Environment the block's height
      * @return : check the the tx and account is Legal true is legal false is unlegal
      */
-    bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountCache& view, int nHeight);
+    bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int nHeight);
     /**
      *@brief check aciton
      * @param listoperate: run the script return the code,check the code
@@ -86,7 +86,7 @@ private:
      * @param view:
      * @return true operate account success
      */
-    bool OperateAccount(const vector<CVmOperate>& listoperate, CAccountCache& view,
+    bool OperateAccount(const vector<CVmOperate>& listoperate, CAccountDBCache& view,
                         const int nCurHeight);
     /**
      * @brief find the vOldAccount from newAccount if find success remove it from newAccount
@@ -108,7 +108,7 @@ private:
     vector_unsigned_char GetAccountID(CVmOperate value);
     //	bool IsSignatureAccount(CRegID account);
     bool OperateAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
-                           CContractCache& view);
+                           CContractDBCache& view);
 
     std::shared_ptr<CAppUserAccount> GetAppAccount(std::shared_ptr<CAppUserAccount>& AppAccount);
 
@@ -152,8 +152,8 @@ public:
     const CRegID& GetTxAccount();
     uint64_t GetValue() const;
     const vector<unsigned char>& GetTxContract();
-    CContractCache* GetScriptDB();
-    CAccountCache* GetCatchView();
+    CContractDBCache* GetScriptDB();
+    CAccountDBCache* GetCatchView();
     int GetConfirmHeight();
     // Get burn version for fuel burning
     int GetBurnVersion();

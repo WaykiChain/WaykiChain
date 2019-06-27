@@ -50,8 +50,8 @@ BOOST_AUTO_TEST_CASE(May15)
     // http://sourceforge.net/projects/bitcoin/files/Bitcoin/blockchain/Mar12Fork.dat/download
     unsigned int tMay15 = 1368576000;
     SetMockTime(tMay15); // Test as if it was right at May 15
-    CAccountCache view(*pAccountViewTip, true);
-    CContractCache scriptDBCache(*pScriptDBTip, true);
+    CAccountDBCache view(*pAccountViewTip, true);
+    CContractDBCache scriptDBCache(*pScriptDBTip, true);
     CBlock forkingBlock;
     if (read_block("Mar12Fork.dat", forkingBlock))
     {

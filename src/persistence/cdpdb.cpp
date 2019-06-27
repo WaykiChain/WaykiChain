@@ -121,7 +121,7 @@ void CCdpMemCache::BatchWrite(const map<CUserCdp, uint8_t> &cdpsIn) {
     }
 }
 
-bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
+bool CCdpDBCache::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                                         const int blockHeight, CUserCdp &cdp, CDBOpLogMap &dbOpLogMap) {
 
     cdp.lastBlockHeight = blockHeight;
@@ -130,25 +130,25 @@ bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoi
     cdp.collateralRatioBase = double(cdp.totalStakedBcoins) / cdp.totalOwedScoins;
 
     if (!SaveCdp(cdp, dbOpLogMap)) {
-        return ERRORMSG("CCdpCacheManager::StakeBcoinsToCdp : SetData failed.");
+        return ERRORMSG("CCdpDBCache::StakeBcoinsToCdp : SetData failed.");
     }
 
     return true;
 }
 
-bool CCdpCacheManager::GetCdp(CUserCdp &cdp) {
+bool CCdpDBCache::GetCdp(CUserCdp &cdp) {
     if (!cdpCache.GetData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxCord.ToRawString()), cdp))
         return false;
 
     return true;
 }
 
-bool CCdpCacheManager::SaveCdp(CUserCdp &cdp, CDBOpLogMap &dbOpLogMap) {
+bool CCdpDBCache::SaveCdp(CUserCdp &cdp, CDBOpLogMap &dbOpLogMap) {
     return cdpCache.SetData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxCord.ToRawString()),
                             cdp, dbOpLogMap);
 }
 
-bool CCdpCacheManager::EraseCdp(const CUserCdp &cdp) {
+bool CCdpDBCache::EraseCdp(const CUserCdp &cdp) {
     return cdpCache.EraseData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxCord.ToRawString()));
 }
 
@@ -158,7 +158,7 @@ bool CCdpCacheManager::EraseCdp(const CUserCdp &cdp) {
  *
  *  ==> ratio = 1/Log10(1+N)
  */
-uint64_t CCdpCacheManager::ComputeInterest(int blockHeight, const CUserCdp &cdp) {
+uint64_t CCdpDBCache::ComputeInterest(int blockHeight, const CUserCdp &cdp) {
     assert(uint64_t(blockHeight) > cdp.lastBlockHeight);
 
     int interval = blockHeight - cdp.lastBlockHeight;

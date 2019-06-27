@@ -104,7 +104,7 @@ bool GetCurrentDelegate(const int64_t currentTime, const vector<CRegID> &delegat
     return true;
 }
 
-bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountCache &view, CBlock *pBlock) {
+bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountDBCache &view, CBlock *pBlock) {
     CBlock preBlock;
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {

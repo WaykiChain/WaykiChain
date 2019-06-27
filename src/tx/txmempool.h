@@ -16,8 +16,8 @@
 
 using namespace std;
 
-class CAccountCache;
-class CContractCache;
+class CAccountDBCache;
+class CContractDBCache;
 class CValidationState;
 class CBaseTx;
 class uint256;
@@ -67,8 +67,8 @@ private:
 public:
     mutable CCriticalSection cs;
     map<uint256, CTxMemPoolEntry > memPoolTxs;
-    std::shared_ptr<CAccountCache> memPoolAccountCache;
-    std::shared_ptr<CContractCache> memPoolContractCache;
+    std::shared_ptr<CAccountDBCache> memPoolAccountCache;
+    std::shared_ptr<CContractDBCache> memPoolContractCache;
 
     CTxMemPool();
 
@@ -80,10 +80,10 @@ public:
     unsigned int GetUpdatedTransactionNum() const;
     void AddUpdatedTransactionNum(unsigned int n);
     std::shared_ptr<CBaseTx> Lookup(uint256 hash) const;
-    void SetAccountCache(CAccountCache *pAccountCacheIn);
-    void SetContractCache(CContractCache *pContractCacheIn);
+    void SetAccountCache(CAccountDBCache *pAccountCacheIn);
+    void SetContractCache(CContractDBCache *pContractCacheIn);
     bool CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &entry, CValidationState &state, bool bExecute = true);
-    void ReScanMemPoolTx(CAccountCache *pAccountCacheIn, CContractCache *pContractCacheIn);
+    void ReScanMemPoolTx(CAccountDBCache *pAccountCacheIn, CContractDBCache *pContractCacheIn);
 
     unsigned long Size() {
         LOCK(cs);

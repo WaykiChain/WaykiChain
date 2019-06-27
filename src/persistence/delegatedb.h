@@ -18,11 +18,11 @@
 
 using namespace std;
 
-class CDelegateCache {
+class CDelegateDBCache {
 public:
-    CDelegateCache(){};
-    CDelegateCache(CDBAccess *pDbAccess) : voteRegIdCache(pDbAccess){};
-    CDelegateCache(CDelegateCache *pBaseIn) : voteRegIdCache(pBaseIn->voteRegIdCache){};
+    CDelegateDBCache(){};
+    CDelegateDBCache(CDBAccess *pDbAccess) : voteRegIdCache(pDbAccess){};
+    CDelegateDBCache(CDelegateDBCache *pBaseIn) : voteRegIdCache(pBaseIn->voteRegIdCache){};
 
     bool LoadTopDelegates();
     bool ExistDelegate(const CRegID &regId);
@@ -37,7 +37,7 @@ public:
 
     bool UndoCandidateVotes(CDBOpLogMap &dbOpLogMap);
 
-    void SetBaseView(CDelegateCache *pBaseIn) { voteRegIdCache = pBaseIn->voteRegIdCache; }
+    void SetBaseView(CDelegateDBCache *pBaseIn) { voteRegIdCache = pBaseIn->voteRegIdCache; }
     // TODO:
     void Flush() {}
 

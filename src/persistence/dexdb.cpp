@@ -7,12 +7,12 @@
 #include "accounts/account.h"
 #include "main.h"
 
-bool CDexCache::CreateBuyOrder(uint64_t buyAmount, CoinType targetCoinType) {
+bool CDexDBCache::CreateBuyOrder(uint64_t buyAmount, CoinType targetCoinType) {
     //TODO
     CUserID fcoinGenesisUid(CRegID(kFcoinGenesisTxHeight, kFcoinGenesisIssueTxIndex));
     return true;
 }
-bool CDexCache::CreateSellOrder(uint64_t sellAmount, CoinType targetCoinType) {
+bool CDexDBCache::CreateSellOrder(uint64_t sellAmount, CoinType targetCoinType) {
     //TODO
     return true;
 }

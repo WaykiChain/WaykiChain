@@ -64,7 +64,7 @@ bool CBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
     return true;
 }
 
-string CBlockRewardTx::ToString(CAccountCache &accountCache) {
+string CBlockRewardTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
@@ -74,7 +74,7 @@ string CBlockRewardTx::ToString(CAccountCache &accountCache) {
     return str;
 }
 
-Object CBlockRewardTx::ToJson(const CAccountCache &accountCache) const{
+Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const{
     Object result;
     CKeyID keyId;
     accountCache.GetKeyId(txUid,            keyId);

@@ -108,7 +108,7 @@ static CVmRunEnv* GetVmRunEnv(lua_State *L)
     return pVmRunEnv;
 }
 
-static bool GetKeyId(const CAccountCache &view, vector<unsigned char> &ret,
+static bool GetKeyId(const CAccountDBCache &view, vector<unsigned char> &ret,
         CKeyID &KeyId) {
     if (ret.size() == 6) {
         CRegID reg(ret);
@@ -1240,7 +1240,7 @@ static int ExWriteDataDBFunc(lua_State *L)
 
     const CRegID contractRegId = pVmRunEnv->GetScriptRegID();
     bool flag = true;
-    CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
+    CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
     string oldValue;
     // TODO: get old data when set data ??
     scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(), contractRegId, key, oldValue);
@@ -1276,7 +1276,7 @@ static int ExDeleteDataDBFunc(lua_State *L) {
     }
     CRegID contractRegId = pVmRunEnv->GetScriptRegID();
 
-    CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
+    CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
 
     bool flag = true;
     string oldValue;
@@ -1316,7 +1316,7 @@ static int ExReadDataDBFunc(lua_State *L) {
     CRegID scriptRegId = pVmRunEnv->GetScriptRegID();
 
     string value;
-    CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
+    CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
     int len = 0;
     if (!scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(), scriptRegId, key, value)) {
         len = 0;
@@ -1333,7 +1333,7 @@ static int ExGetDBSizeFunc(lua_State *L) {
 //  CVmRunEnv *pVmRunEnv = (CVmRunEnv *)pVmEvn;
     CRegID contractRegId = pVmRunEnv->GetScriptRegID();
     int count = 0;
-    CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
+    CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
     if (!scriptDB->GetContractItemCount(contractRegId,count)) {
         return RetFalse("ExGetDBSizeFunc can't use");
     } else {
@@ -1382,7 +1382,7 @@ static int ExGetDBValueFunc(lua_State *L) {
         vScriptKey.assign(retdata.at(1).get()->begin(),retdata.at(1).get()->end());
     }
 
-    CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
+    CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
     flag = scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(),contractRegId,index,vScriptKey,vValue);
     int len = 0;
     if(flag){
@@ -1429,7 +1429,7 @@ static int ExModifyDataDBFunc(lua_State *L)
     }
 
     CRegID contractRegId = pVmRunEnv->GetScriptRegID();
-    CContractCache* scriptDB = pVmRunEnv->GetScriptDB();
+    CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
     string oldValue;
     bool flag = false;
     if (scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(), contractRegId, key, oldValue)) {
@@ -1600,7 +1600,7 @@ static int ExGetContractDataFunc(lua_State *L) {
     CVmRunEnv *pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv) return RetFalse("pVmRunEnv is NULL");
 
-    CContractCache *scriptDB = pVmRunEnv->GetScriptDB();
+    CContractDBCache *scriptDB = pVmRunEnv->GetScriptDB();
     CRegID contractRegId(*retdata.at(0));
     string key((*retdata.at(1)).begin(), (*retdata.at(1)).end());
     string value;
@@ -2010,7 +2010,7 @@ static int ExTransferContractAsset(lua_State *L)
     }
 
     std::shared_ptr<CAppUserAccount> temp = std::make_shared<CAppUserAccount>();
-    CContractCache* pContractScript = pVmRunEnv->GetScriptDB();
+    CContractDBCache* pContractScript = pVmRunEnv->GetScriptDB();
 
     if (!pContractScript->GetScriptAcc(script, string(sendKey.begin(), sendKey.end()), *temp.get())) {
         LUA_BurnAccountGet(L, FUEL_ACCTOUNT_UNCHANGED, BURN_VER_R2);

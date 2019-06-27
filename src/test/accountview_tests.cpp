@@ -12,8 +12,8 @@ class CAccountViewTest {
 public:
 	CAccountViewTest() {
 //		pAccountViewDB = new CAccountViewDB("test",500, false, false);
-		pViewTip1 = new CAccountCache(*pAccountViewTip,true);
-		pViewTip2 = new CAccountCache(*pViewTip1,true);
+		pViewTip1 = new CAccountDBCache(*pAccountViewTip,true);
+		pViewTip2 = new CAccountDBCache(*pViewTip1,true);
 		Init();
 	}
 	~CAccountViewTest() {
@@ -42,8 +42,8 @@ public:
 	vector<CKeyID> vRandomKeyID;
 	vector<CRegID> vRandomRegID;
 	vector<CAccount> vAccount;
-	CAccountCache* pViewTip1;
-	CAccountCache* pViewTip2;
+	CAccountDBCache* pViewTip1;
+	CAccountDBCache* pViewTip2;
 };
 
 bool CAccountViewTest::EraseKeyID() {

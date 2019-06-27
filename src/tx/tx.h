@@ -26,7 +26,7 @@ using namespace std;
 
 class CCacheWrapper;
 class CValidationState;
-class CContractCache;
+class CContractDBCache;
 
 static const int32_t nTxVersion1 = 1;
 static const int32_t nTxVersion2 = 2;
@@ -160,15 +160,15 @@ public:
     virtual uint256 ComputeSignatureHash(bool recalculate = false) const = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance()                    = 0;
 
-    virtual string ToString(CAccountCache &view)                           = 0;
-    virtual Object ToJson(const CAccountCache &view) const                 = 0;
+    virtual string ToString(CAccountDBCache &view)                           = 0;
+    virtual Object ToJson(const CAccountDBCache &view) const                 = 0;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) = 0;
 
     virtual bool CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state)                       = 0;
     virtual bool ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state)     = 0;
     virtual bool UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) = 0;
 
-    int32_t GetFuelRate(CContractCache &scriptDB);
+    int32_t GetFuelRate(CContractDBCache &scriptDB);
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
     bool IsCoinBase() { return (nTxType == BLOCK_REWARD_TX); }
 

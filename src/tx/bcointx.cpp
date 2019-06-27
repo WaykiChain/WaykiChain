@@ -150,7 +150,7 @@ bool CBaseCoinTransferTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
     return true;
 }
 
-string CBaseCoinTransferTx::ToString(CAccountCache &accountCache) {
+string CBaseCoinTransferTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, bcoins=%ld, llFees=%ld, memo=%s, "
         "nValidHeight=%d\n",
@@ -158,7 +158,7 @@ string CBaseCoinTransferTx::ToString(CAccountCache &accountCache) {
         HexStr(memo), nValidHeight);
 }
 
-Object CBaseCoinTransferTx::ToJson(const CAccountCache &accountCache) const {
+Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
     CKeyID srcKeyId, desKeyId;

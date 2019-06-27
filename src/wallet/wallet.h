@@ -112,7 +112,7 @@ public:
     bool RemoveKey(const CKey &key);
 
     bool CleanAll(); //just for unit test
-    bool IsReadyForCoolMiner(const CAccountCache& view)const;
+    bool IsReadyForCoolMiner(const CAccountDBCache& view)const;
     bool ClearAllMainKeysForCoolMiner();
 
     CWallet(string strWalletFileIn);

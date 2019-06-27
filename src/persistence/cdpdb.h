@@ -116,10 +116,10 @@ private:
     CDBAccess *pAccess         = nullptr;
 };
 
-class CCdpCacheManager {
+class CCdpDBCache {
 public:
-    CCdpCacheManager() {}
-    CCdpCacheManager(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
+    CCdpDBCache() {}
+    CCdpDBCache(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
 
     bool StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                           const int blockHeight, CUserCdp &cdp, CDBOpLogMap &dbOpLogMap);

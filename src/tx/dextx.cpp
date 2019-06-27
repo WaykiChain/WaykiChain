@@ -11,11 +11,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXBuyLimitOrderTx
 
-string CDEXBuyLimitOrderTx::ToString(CAccountCache &view) {
+string CDEXBuyLimitOrderTx::ToString(CAccountDBCache &view) {
     return ""; //TODO: ...
 }
 
-Object CDEXBuyLimitOrderTx::ToJson(const CAccountCache &view) const {
+Object CDEXBuyLimitOrderTx::ToJson(const CAccountDBCache &view) const {
     return Object(); // TODO: ...
 }
 
@@ -149,11 +149,11 @@ void CDEXBuyLimitOrderTx::GetOrderData(CDEXOrderData &orderData) {
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSellLimitOrderTx
 
-string CDEXSellLimitOrderTx::ToString(CAccountCache &view) {
+string CDEXSellLimitOrderTx::ToString(CAccountDBCache &view) {
     return ""; //TODO: ...
 }
 
-Object CDEXSellLimitOrderTx::ToJson(const CAccountCache &view) const {
+Object CDEXSellLimitOrderTx::ToJson(const CAccountDBCache &view) const {
     return Object(); // TODO: ...
 }
 
@@ -286,11 +286,11 @@ void CDEXSellLimitOrderTx::GetOrderData(CDEXOrderData &orderData) {
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXBuyMarketOrderTx
 
-string CDEXBuyMarketOrderTx::ToString(CAccountCache &view) {
+string CDEXBuyMarketOrderTx::ToString(CAccountDBCache &view) {
     return ""; //TODO: ...
 }
 
-Object CDEXBuyMarketOrderTx::ToJson(const CAccountCache &view) const {
+Object CDEXBuyMarketOrderTx::ToJson(const CAccountDBCache &view) const {
     return Object(); // TODO: ...
 }
 
@@ -423,11 +423,11 @@ void CDEXBuyMarketOrderTx::GetOrderData(CDEXOrderData &orderData) {
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSellMarketOrderTx
 
-string CDEXSellMarketOrderTx::ToString(CAccountCache &view) {
+string CDEXSellMarketOrderTx::ToString(CAccountDBCache &view) {
     return ""; //TODO: ...
 }
 
-Object CDEXSellMarketOrderTx::ToJson(const CAccountCache &view) const {
+Object CDEXSellMarketOrderTx::ToJson(const CAccountDBCache &view) const {
     return Object(); // TODO: ...
 }
 
@@ -557,11 +557,11 @@ void CDEXSellMarketOrderTx::GetOrderData(CDEXOrderData &orderData) {
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXCancelOrderTx
 
-string CDEXCancelOrderTx::ToString(CAccountCache &view) {
+string CDEXCancelOrderTx::ToString(CAccountDBCache &view) {
     return ""; //TODO: ...
 }
 
-Object CDEXCancelOrderTx::ToJson(const CAccountCache &view) const {
+Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &view) const {
     return Object(); // TODO: ...
 }
 
@@ -600,7 +600,7 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
-    
+
     CDEXActiveOrder activeOrder;
     if (!cw.dexCache.GetActiveOrder(orderId, activeOrder)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, the order is inactive or not existed"),
@@ -608,7 +608,7 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     }
     if (activeOrder.generateType != USER_GEN_ORDER) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, the order is not generate by tx of user"),
-                        REJECT_INVALID, "order-inactive");        
+                        REJECT_INVALID, "order-inactive");
     }
 
     CDEXOrderData orderData;
@@ -691,11 +691,11 @@ bool CDEXCancelOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSettleTx
-string CDEXSettleTx::ToString(CAccountCache &view) {
+string CDEXSettleTx::ToString(CAccountDBCache &view) {
     return ""; //TODO: ...
 }
 
-Object CDEXSettleTx::ToJson(const CAccountCache &view) const {
+Object CDEXSettleTx::ToJson(const CAccountDBCache &view) const {
     return Object(); // TODO: ...
 }
 

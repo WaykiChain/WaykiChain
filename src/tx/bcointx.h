@@ -82,8 +82,8 @@ public:
     virtual uint64_t GetValue() const { return bcoins; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CBaseCoinTransferTx>(this); }
-    virtual string ToString(CAccountCache &accountCache);
-    virtual Object ToJson(const CAccountCache &accountCache) const;
+    virtual string ToString(CAccountDBCache &accountCache);
+    virtual Object ToJson(const CAccountDBCache &accountCache) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
