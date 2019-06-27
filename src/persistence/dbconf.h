@@ -88,6 +88,7 @@ namespace dbk {
         /**** cdp db                                                                     */ \
         DEFINE( STAKE_FCOIN,          "fcoin", CDP )           /* fcoin{(uint64t)MAX - stakedFcoins}_{RegId} --> 1 */ \
         DEFINE( CDP,                  "cdp",   CDP )           /* cdp{$RegID}{$CTxCord} --> { lastBlockHeight, totalStakedBcoins, totalOwedScoins } */ \
+        DEFINE( CDP_GLOBAL_HALT,      "cdph",  CDP )           /* cdph -> 0 | 1 */ \
         DEFINE( CDP_IR_PARAM_A,       "ira",   CDP )           /* [prefix] --> param_a */ \
         DEFINE( CDP_IR_PARAM_B,       "irb",   CDP )           /* [prefix] --> param_b */ \
         DEFINE( CDP_COLLATERAL_RATIO, "ccr",   CDP )           /* [prefix] --> collateralRatio */ \

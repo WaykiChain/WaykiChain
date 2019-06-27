@@ -127,6 +127,12 @@ public:
 
     uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);
 
+    // when true, CDP cannot be further operated
+    bool GetGlobalCDPHaltState() {
+        uint16_t locked = 0;
+        return collateralRatio.GetData(locked) ? locked: false;
+    }
+
     uint16_t GetDefaultCollateralRatio() {
         uint16_t ratio = 0;
         return collateralRatio.GetData(ratio) ? ratio : kDefaultCollateralRatio;
@@ -155,6 +161,8 @@ private:
 
 /*   CDBScalarValueCache   prefixType                 value                 variable               */
 /*  -------------------- --------------------------  ------------------   ------------------------ */
+    // globalCDPHaltState
+    CDBScalarValueCache< dbk::CDP_GLOBAL_HALT,  uint16_t>           cdpGlobalHalt;
     // collateralRatio
     CDBScalarValueCache< dbk::CDP_COLLATERAL_RATIO,  uint16_t>           collateralRatio;
     // openLiquidateRatio
