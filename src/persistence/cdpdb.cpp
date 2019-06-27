@@ -30,8 +30,12 @@ bool CCdpMemCache::LoadCdps() {
     return true;
 }
 
-double CCdpMemCache::GlobalCollateralRatio(const uint64_t price) const {
-    return double(totalStakedBcoins) * price / totalOwedScoins;
+uint16_t CCdpMemCache::GetGlobalCollateralRatio(const uint64_t price) const {
+    return totalStakedBcoins * price / totalOwedScoins;
+}
+
+uint64_t CCdpMemCache::GetGlobalDebt() const {
+    return totalStakedBcoins;
 }
 
 void CCdpMemCache::Flush() {
@@ -166,4 +170,17 @@ uint64_t CCdpDBCache::ComputeInterest(int blockHeight, const CUserCdp &cdp) {
                     * log10(GetDefaultInterestParamB() + cdp.totalOwedScoins) * interval;
 
     return (uint64_t) interest;
+}
+
+bool CCdpDBCache::GetGlobalCDPLock(const uint64_t price) {
+    if (cdpMemCache.GetGlobalCollateralRatio(price) < kGlobalCollateralRatioLimit) {
+        cdpGlobalHalt.SetData(true);
+    }
+
+    bool locked = false;
+    return cdpGlobalHalt.GetData(locked) ? locked : false;
+}
+
+bool CCdpDBCache::ExceedGlobalDebtCeiling() const {
+    return cdpMemCache.GetGlobalDebt() > kGlobalDebtCeiling;
 }

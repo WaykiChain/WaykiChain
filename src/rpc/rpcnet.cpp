@@ -413,7 +413,7 @@ Value getchainstate(const Array& params, bool fHelp) {
     RPCTypeCheck(params, list_of(int_type));
 
     int nHeight = params[0].get_int();
-    if (nHeight < 1 || nHeight > chainActive.Height() || nHeight > kMostRecentBlockNumberThreshold)
+    if (nHeight < 1 || nHeight > chainActive.Height() || nHeight > kMostRecentBlockNumberLimit)
         throw runtime_error("Block number out of range.");
 
     CBlockIndex* pBlockIndex = chainActive.Tip();

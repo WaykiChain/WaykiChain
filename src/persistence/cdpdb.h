@@ -88,7 +88,8 @@ public:
     // Only apply to construct the global mem-cache.
     CCdpMemCache(CDBAccess *pAccessIn) : pAccess(pAccessIn) {}
 
-    double GetGlobalCollateralRatio(const uint64_t price) const;
+    uint16_t GetGlobalCollateralRatio(const uint64_t price) const;
+    uint64_t GetGlobalDebt() const;
 
     bool LoadCdps();
     void Flush();
@@ -131,15 +132,10 @@ public:
 
     uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);
 
-    // when true, CDP cannot be further operated
-    bool GetGlobalCDPLock(const uint64_t price) {
-        if (cdpMemCache.GetGlobalCollateralRatio(price) < kGlobalCollateralRatioLimit) {
-            cdpGlobalHalt.SetData(true);
-        }
-
-        bool locked = false;
-        return cdpGlobalHalt.GetData(locked) ? locked: false;
-    }
+    // When true, CDP cannot be further operated
+    bool GetGlobalCDPLock(const uint64_t price) ;
+    // When true, WUSD cannot be owed.
+    bool ExceedGlobalDebtCeiling() const;
 
     uint16_t GetDefaultCollateralRatio() {
         uint16_t ratio = 0;
