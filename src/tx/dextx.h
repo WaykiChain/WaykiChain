@@ -9,16 +9,13 @@
 #include "tx.h"
 #include "persistence/dexdb.h"
 
-
 class CDEXOrderBaseTx : public CBaseTx {
 public:
     using CBaseTx::CBaseTx;
 
     virtual void GetOrderData(CDEXOrderData &orderData) = 0;
 public:
-    inline static uint64_t CalcCoinAmount(uint64_t assetAmount, uint64_t price) {
-        return assetAmount * price / COIN; // TODO: big int, should avoid overflow ??
-    }
+    static bool CalcCoinAmount(uint64_t assetAmount, uint64_t price, uint64_t &coinAmountOut);
 };
 
 class CDEXBuyLimitOrderTx : public CDEXOrderBaseTx {

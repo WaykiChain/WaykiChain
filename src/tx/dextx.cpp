@@ -8,6 +8,18 @@
 #include "configuration.h"
 #include "main.h"
 
+using uint128_t = unsigned __int128;
+
+///////////////////////////////////////////////////////////////////////////////
+// class CDEXBuyLimitOrderTx
+
+bool CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, uint64_t price, uint64_t &coinAmountOut) {
+    uint128_t coinAmount = assetAmount * (uint128_t)price / COIN;
+    if (coinAmount > ULLONG_MAX) return false;
+    coinAmountOut = coinAmount;
+    return true;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXBuyLimitOrderTx
 
@@ -42,6 +54,12 @@ bool CDEXBuyLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSta
     // TODO: check asset amount range? min asset amount limit?
     // TODO: check bidPrice range?
 
+    uint64_t coinAmount = 0;
+    if (!CalcCoinAmount(assetAmount, bidPrice, coinAmount)) {
+        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, calculated coin amount out of range"), REJECT_INVALID,
+                         "coins-out-range");
+    }
+
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, read account failed"), REJECT_INVALID,
@@ -72,7 +90,8 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
     // should freeze user's coin for buying the asset
-    uint64_t coinAmount = CalcCoinAmount(assetAmount, bidPrice);
+    uint64_t coinAmount = 0;
+    CalcCoinAmount(assetAmount, bidPrice, coinAmount);
     if (!srcAcct.FreezeDexCoin(coinType, coinAmount)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
@@ -905,7 +924,11 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         }
 
         // 8. check and operate deal amount
-        uint64_t calcCoinAmount = CDEXOrderBaseTx::CalcCoinAmount(dealItem.dealAssetAmount, dealItem.dealPrice);
+        uint64_t calcCoinAmount = 0;
+        if (!CDEXOrderBaseTx::CalcCoinAmount(dealItem.dealAssetAmount, dealItem.dealPrice, calcCoinAmount)) {
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the calculated coin amount out of range"),
+                            REJECT_INVALID, "coins-out-range");
+        }
         if ((calcCoinAmount / PERCENT_BOOST) != (dealItem.dealCoinAmount / PERCENT_BOOST)) {
             return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the dealCoinAmount not match"),
                             REJECT_INVALID, "deal-coin-amount-unmatch");
