@@ -30,8 +30,8 @@ bool CCdpMemCache::LoadCdps() {
     return true;
 }
 
-double CCdpMemCache::GetGlobalCollateralRatioBase() const {
-    return double(totalStakedBcoins) / totalOwedScoins;
+double CCdpMemCache::GlobalCollateralRatio(const uint64_t price) const {
+    return double(totalStakedBcoins) * price / totalOwedScoins;
 }
 
 void CCdpMemCache::Flush() {
