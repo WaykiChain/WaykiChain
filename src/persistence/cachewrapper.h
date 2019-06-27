@@ -7,11 +7,12 @@
 #define PERSIST_CACHEWRAPPER_H
 
 #include "accountdb.h"
-#include "contractdb.h"
-#include "txdb.h"
 #include "cdpdb.h"
+#include "contractdb.h"
+#include "delegatedb.h"
 #include "dexdb.h"
 #include "pricefeeddb.h"
+#include "txdb.h"
 
 class CCacheWrapper {
 public:
@@ -19,7 +20,7 @@ public:
     CContractCache contractCache;
     CDelegateCache delegateCache;
     CTxMemCache txCache;
-    CPricePointCache ppCache;
+    CPricePointMemCache ppCache;
     CCdpCacheManager cdpCache;
     CDexCache dexCache;
     CTxUndo txUndo;

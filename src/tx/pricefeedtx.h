@@ -9,7 +9,7 @@
 #include "tx.h"
 
 class CPriceFeedTx : public CBaseTx {
-private:
+public:
     vector<CPricePoint> pricePoints;
 
 public:

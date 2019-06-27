@@ -19,11 +19,11 @@ bool CTxMemCache::IsContainBlock(const CBlock &block) {
 }
 
 bool CTxMemCache::AddBlockToCache(const CBlock &block) {
-    UnorderedHashSet vTxHash;
+    UnorderedHashSet txids;
     for (auto &ptx : block.vptx) {
-        vTxHash.insert(ptx->GetHash());
+        txids.insert(ptx->GetHash());
     }
-    mapBlockTxHashSet[block.GetHash()] = vTxHash;
+    mapBlockTxHashSet[block.GetHash()] = txids;
 
     return true;
 }

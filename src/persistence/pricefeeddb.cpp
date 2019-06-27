@@ -5,6 +5,9 @@
 
 #include "pricefeeddb.h"
 
+#include "main.h"
+#include "tx/pricefeedtx.h"
+
 void CConsecutiveBlockPrice::AddUserPrice(const int blockHeight, const CRegID &regId, const uint64_t price) {
     mapBlockUserPrices[blockHeight][regId] = price;
 }
@@ -21,7 +24,7 @@ bool CConsecutiveBlockPrice::ExistBlockUserPrice(const int blockHeight, const CR
     return mapBlockUserPrices[blockHeight].count(regId);
 }
 
-bool CPricePointCache::AddBlockPricePointInBatch(const int blockHeight, const CRegID &regId,
+bool CPricePointMemCache::AddBlockPricePointInBatch(const int blockHeight, const CRegID &regId,
                                                  const vector<CPricePoint> &pps) {
     for (CPricePoint pp : pps) {
         CConsecutiveBlockPrice &cbp = mapCoinPricePointCache[pp.GetCoinPriceType()];
@@ -34,7 +37,29 @@ bool CPricePointCache::AddBlockPricePointInBatch(const int blockHeight, const CR
     return true;
 }
 
-bool CPricePointCache::DeleteBlockPricePoint(const int blockHeight) {
+bool CPricePointMemCache::AddBlockToCache(const CBlock &block) {
+    // index[0]: block reward transaction
+    // index[1]: block median price transaction
+    // index[2 - n]: price feed transactions if existed.
+
+    if (block.vptx.size() < 3) {
+        return true;
+    }
+
+    // More than 3 transactions in the block.
+    for (auto &pTx : block.vptx) {
+        if (pTx->nTxType != PRICE_FEED_TX) {
+            break;
+        }
+
+        CPriceFeedTx *priceFeedTx = (CPriceFeedTx *)pTx.get();
+        AddBlockPricePointInBatch(block.GetHeight(), priceFeedTx->txUid.get<CRegID>(), priceFeedTx->pricePoints);
+    }
+
+    return true;
+}
+
+bool CPricePointMemCache::DeleteBlockPricePoint(const int blockHeight) {
     for (auto &item : mapCoinPricePointCache) {
         item.second.DeleteUserPrice(blockHeight);
     }
@@ -42,7 +67,7 @@ bool CPricePointCache::DeleteBlockPricePoint(const int blockHeight) {
     return true;
 }
 
-void CPricePointCache::BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn) {
+void CPricePointMemCache::BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn) {
     for (const auto &item : mapCoinPricePointCacheIn) {
         const auto &mapBlockUserPrices = item.second.mapBlockUserPrices;
         for (const auto &userPrice : mapBlockUserPrices) {
@@ -57,14 +82,14 @@ void CPricePointCache::BatchWrite(const CoinPricePointMap &mapCoinPricePointCach
     }
 }
 
-void CPricePointCache::Flush() {
+void CPricePointMemCache::Flush() {
     assert(pBase);
 
     pBase->BatchWrite(mapCoinPricePointCache);
     mapCoinPricePointCache.clear();
 }
 
-bool CPricePointCache::GetBlockUserPrices(CCoinPriceType coinPriceType, set<int> &expired,
+bool CPricePointMemCache::GetBlockUserPrices(CCoinPriceType coinPriceType, set<int> &expired,
                                           BlockUserPriceMap &blockUserPrices) {
     const auto &iter = mapCoinPricePointCache.find(coinPriceType);
     if (iter != mapCoinPricePointCache.end()) {
@@ -89,7 +114,7 @@ bool CPricePointCache::GetBlockUserPrices(CCoinPriceType coinPriceType, set<int>
     return true;
 }
 
-bool CPricePointCache::GetBlockUserPrices(CCoinPriceType coinPriceType, BlockUserPriceMap &blockUserPrices) {
+bool CPricePointMemCache::GetBlockUserPrices(CCoinPriceType coinPriceType, BlockUserPriceMap &blockUserPrices) {
     set<int /* block height */> expired;
     if (!GetBlockUserPrices(coinPriceType, expired, blockUserPrices)) {
         // TODO: log
@@ -99,7 +124,7 @@ bool CPricePointCache::GetBlockUserPrices(CCoinPriceType coinPriceType, BlockUse
     return true;
 }
 
-uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, const CCoinPriceType &coinPriceType) {
+uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int blockHeight, const CCoinPriceType &coinPriceType) {
     // 1. merge block user prices with base cache.
     BlockUserPriceMap blockUserPrices;
     if (!GetBlockUserPrices(coinPriceType, blockUserPrices) || blockUserPrices.empty()) {
@@ -110,7 +135,7 @@ uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, const 
     return ComputeBlockMedianPrice(blockHeight, blockUserPrices);
 }
 
-uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, const BlockUserPriceMap &blockUserPrices) {
+uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int blockHeight, const BlockUserPriceMap &blockUserPrices) {
     // TODO: parameterize 11.
     assert(blockHeight >= 11);
     vector<uint64_t> prices;
@@ -126,7 +151,7 @@ uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, const 
     return ComputeMedianNumber(prices);
 }
 
-uint64_t CPricePointCache::ComputeMedianNumber(vector<uint64_t> &numbers) {
+uint64_t CPricePointMemCache::ComputeMedianNumber(vector<uint64_t> &numbers) {
     unsigned int size = numbers.size();
     if (size < 2) {
         return size == 0 ? 0 : numbers[0];
