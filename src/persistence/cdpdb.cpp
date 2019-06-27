@@ -55,8 +55,8 @@ bool CCdpMemCache::EraseCdp(const CUserCdp &userCdp) {
     static uint8_t invalid = 0;  // 0: invalid; 1: valid
 
     cdps[userCdp] = invalid;
-    totalStakedBcoins += userCdp.totalStakedBcoins;
-    totalOwedScoins += userCdp.totalOwedScoins;
+    totalStakedBcoins -= userCdp.totalStakedBcoins;
+    totalOwedScoins -= userCdp.totalOwedScoins;
 
     return true;
 }
