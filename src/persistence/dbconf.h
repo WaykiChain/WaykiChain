@@ -95,8 +95,7 @@ namespace dbk {
         DEFINE( CDP_OPEN_LIQUIDATE_RATIO, "colr", CDP )        /* [prefix] --> openLiquidateRatio */ \
         DEFINE( CDP_FORCE_LIQUIDATE_RATIO, "cflr", CDP )       /* [prefix] --> forceLiquidateRatio */ \
         /**** dex db                                                                    */ \
-        DEFINE( DEX_BUY_ORDER,        "dexb",  DEX )           /* [prefix]{micc|wusd|wicc} --> buy order */ \
-        DEFINE( DEX_SELL_ORDER,       "dexs",  DEX )           /* [prefix]{micc|wusd|wicc} --> sell order */ \
+        DEFINE( DEX_ACTIVE_ORDER,     "dxao",  DEX )           /* [prefix]{txid} --> active order */ \
         /*                                                                             */ \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one              */ \
         DEFINE( PREFIX_COUNT,         "",      DB_NAME_NONE)   /* enum count, must be the last one */
