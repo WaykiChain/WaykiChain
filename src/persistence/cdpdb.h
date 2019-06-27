@@ -88,7 +88,8 @@ public:
     // Only apply to construct the global mem-cache.
     CCdpMemCache(CDBAccess *pAccessIn) : pAccess(pAccessIn) {}
 
-    double GetGlobalCollateralRatioBase() const;
+    uint16_t GetGlobalCollateralRatio(const uint64_t price) const;
+    uint64_t GetGlobalDebt() const;
 
     bool LoadCdps();
     void Flush();
@@ -131,11 +132,10 @@ public:
 
     uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);
 
-    // when true, CDP cannot be further operated
-    bool GetGlobalCDPLock() {
-        uint16_t locked = 0;
-        return cdpGlobalHalt.GetData(locked) ? locked: false;
-    }
+    // When true, CDP cannot be further operated
+    bool GetGlobalCDPLock(const uint64_t price) ;
+    // When true, WICC/WUSD cannot be loaned/minted further.
+    bool CheckGlobalDebtCeilingExceeded(const uint64_t newBcoinsToStake) const;
 
     uint16_t GetDefaultCollateralRatio() {
         uint16_t ratio = 0;
@@ -166,7 +166,7 @@ private:
 /*   CDBScalarValueCache   prefixType                 value                 variable               */
 /*  -------------------- --------------------------  ------------------   ------------------------ */
     // globalCDPHaltState
-    CDBScalarValueCache< dbk::CDP_GLOBAL_HALT,  uint16_t>               cdpGlobalHalt;
+    CDBScalarValueCache< dbk::CDP_GLOBAL_HALT,  bool>                    cdpGlobalHalt;
     // collateralRatio
     CDBScalarValueCache< dbk::CDP_COLLATERAL_RATIO,  uint16_t>           collateralRatio;
     // openLiquidateRatio

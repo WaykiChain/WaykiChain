@@ -9,11 +9,10 @@
 #include <set>
 #include <vector>
 
-#include "persistence/leveldbwrapper.h"
+#include "commons/serialize.h"
+#include "persistence/dbaccess.h"
 #include "accounts/id.h"
 #include "accounts/account.h"
-
-
 
 enum OrderDirection {
     ORDER_BUY  = 0,
@@ -26,15 +25,10 @@ enum OrderType {
 };
 
 enum OrderGenerateType {
-    USER_GEN_ORDER = 0,
-    SYSTEM_GEN_ORDER,
+    EMPTY_ORDER         = 0,
+    USER_GEN_ORDER      = 1,
+    SYSTEM_GEN_ORDER    = 2
 };
-
-// target amount type of order to buy/sell
-// enum OrderTargetAmountType {
-//     COIN_TARGET_AMOUNT,
-//     ASSET_TARGET_AMOUNT
-// };
 
 class CDEXOrderData {
 public:
@@ -48,15 +42,33 @@ public:
     uint64_t        price;         //!< price in coinType want to buy/sell asset
 };
 
-struct CDEXActiveOrder {
-    CTxCord  txCord;
-    OrderGenerateType generateType;
-    uint64_t totalDealCoinAmount;   //!< total deal coin amount
-    uint64_t totalDealAssetAmount;  //!< total deal asset amount
 
-    // IsEmpty()
-    // SetEmpty()
+// for all active order db: orderId -> CDEXActiveOrder
+struct CDEXActiveOrder {
+    OrderGenerateType generateType  = EMPTY_ORDER;  //!< generate type
+    uint64_t totalDealCoinAmount    = 0;            //!< total deal coin amount
+    uint64_t totalDealAssetAmount   = 0;            //!< total deal asset amount
+    CTxCord  txCord                 = CTxCord();    //!< related tx cord
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE((uint8_t&)generateType);
+        READWRITE(VARINT(totalDealCoinAmount));
+        READWRITE(VARINT(totalDealAssetAmount));
+        READWRITE(txCord);
+    )
+
+    bool IsEmpty() const {
+        return generateType == EMPTY_ORDER;
+    }
+    void SetEmpty() {
+        generateType  = EMPTY_ORDER;
+        totalDealCoinAmount    = 0;
+        totalDealAssetAmount   = 0;
+        txCord.SetEmpty();
+    }
 };
+
+// for SYSTEM_GEN_ORDER db: txid -> sys order data
 
 // System-generated Market Order
 // wicc -> wusd (cdp forced liquidation)
@@ -78,35 +90,28 @@ public:
     CDexDBCache() {}
 
 public:
-    bool GetActiveOrder(const uint256& orderId, CDEXActiveOrder& buyOrder) { return false; }; // TODO: ...
-    bool SetActiveOrder(const uint256& orderId, const CDEXActiveOrder& buyOrder, CDBOpLogMap &dbOpLogMap) {
-        return false;  // TODO: ...
+    bool GetActiveOrder(const uint256& orderTxId, CDEXActiveOrder& activeOrder) {
+        return activeOrderCache.GetData(orderTxId, activeOrder);
     };
-    bool EraseActiveOrder(const uint256& orderId, CDBOpLogMap &dbOpLogMap) {
-        return false;  // TODO: ...
+    bool SetActiveOrder(const uint256& orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap) {
+        return activeOrderCache.SetData(orderTxId, activeOrder, dbOpLogMap);
+    };
+    bool EraseActiveOrder(const uint256& orderTxId, CDBOpLogMap &dbOpLogMap) {
+        return activeOrderCache.SetData(orderTxId, CDEXActiveOrder(), dbOpLogMap);
     };
     bool UndoActiveOrder(CDBOpLogMap &dbOpLogMap) {
-        return false;  // TODO: ...
-    };
-    bool GetActiveSellOrder(const uint256& orderId, CDEXActiveOrder& sellOrder) { return false; }; // TODO: ...
-    bool SetActiveSellOrder(const uint256& orderId, const CDEXActiveOrder& sellOrder, CDBOpLogMap &dbOpLogMap) {
-        return false;  // TODO: ...
-    };
-    bool EraseActiveSellOrder(const uint256& orderId, CDBOpLogMap &dbOpLogMap) {
-        return false;  // TODO: ...
-    };
-    bool UndoActiveSellOrder(CDBOpLogMap &dbOpLogMap) {
-        return false;  // TODO: ...
+        return activeOrderCache.UndoData(dbOpLogMap);
     };
 
     bool CreateBuyOrder(uint64_t buyAmount, CoinType targetCoinType); //TODO: ... SystemBuyOrder
     bool CreateSellOrder(uint64_t sellAmount, CoinType targetCoinType); //TODO: ... SystemSellOrder
 
 private:
-    // CDBMultiValueCache<CDexFixedPriceOrder> bcoinBuyOrderCache;  // buy wicc with wusd (wusd_wicc)
-    // CDBMultiValueCache<CDexFixedPriceOrder> fcoinBuyOrderCache;  // buy micc with wusd (wusd_micc)
-    // CDBMultiValueCache<CDexFixedPriceOrder> bcoinSellOrderCache; // sell wicc for wusd (wicc_wusd)
-    // CDBMultiValueCache<CDexFixedPriceOrder> fcoinSellOrderCache; // sell micc for wusd (micc_wusd)
+/*       type               prefixType               key                     value                 variable               */
+/*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
+    /////////// DexDB
+    // order tx id -> active order
+    CDBMultiValueCache< dbk::DEX_ACTIVE_ORDER,         uint256,                   CDEXActiveOrder >     activeOrderCache;
 };
 
 #endif //PERSIST_DEX_H

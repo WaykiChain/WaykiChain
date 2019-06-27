@@ -8,7 +8,7 @@
 
 #include <cstdint>
 
-static const uint16_t PERCENT_BOOST = 10000;
+static const uint16_t kPencentBoost                         = 10000;
 static const uint16_t kScoinInterestIncreaseRate            = 300;      // increase by 3%
 static const uint16_t kBcoinDexSellOrderDiscount            = 9700;     // 97% * 10000
 static const uint16_t kDefaultCollateralRatio               = 20000;    // 200% * 10000
@@ -24,5 +24,7 @@ static const uint32_t kDefaultPriceFeedStakedFcoinsMin      = 210000;   // 1%: m
 static const uint16_t kDefaultPriceFeedDeviateAcceptLimit   = 3000;     // 30% * 10000, above than that will be penalized
 static const uint16_t kDefaultPriceFeedDeviatePenalty       = 1000;     // 1000 bcoins deduction as penalty
 static const uint16_t kDefaultPriceFeedContinuousDeviateTimesLimit = 10;// after 10 times continuous deviate limit penetration all deposit be deducted
+static const uint16_t kGlobalCollateralRatioLimit           = 8000;     // 80% * 10000
+static const uint64_t kGlobalDebtCeiling                    = 21000000; // 10% * 210000000
 
 #endif

@@ -138,9 +138,9 @@ Value addmulsigaddr(const Array& params, bool fHelp) {
                       keys.size(), nRequired));
     }
 
-    if ((int64_t)keys.size() > kMultisigNumberThreshold) {
+    if ((int64_t)keys.size() > kMultisigNumberLimit) {
         throw runtime_error(
-            strprintf("too many keys supplied, no more than %d keys", kMultisigNumberThreshold));
+            strprintf("too many keys supplied, no more than %d keys", kMultisigNumberLimit));
     }
 
     CKeyID keyId;
@@ -212,9 +212,9 @@ Value createmulsig(const Array& params, bool fHelp) {
                       keys.size(), nRequired));
     }
 
-    if ((int64_t)keys.size() > kMultisigNumberThreshold) {
+    if ((int64_t)keys.size() > kMultisigNumberLimit) {
         throw runtime_error(
-            strprintf("too many keys supplied, no more than %d keys", kMultisigNumberThreshold));
+            strprintf("too many keys supplied, no more than %d keys", kMultisigNumberLimit));
     }
 
     CKeyID keyId;

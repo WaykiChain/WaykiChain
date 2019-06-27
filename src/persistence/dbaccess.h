@@ -15,6 +15,10 @@
  * Empty functions
  */
 namespace db_util {
+    // bool
+    inline bool IsEmpty(const bool val) { return val != false; }
+    inline void SetEmpty(bool &val) { val = false; }
+
     // uint8_t
     inline bool IsEmpty(const uint8_t val) { return val != 0; }
     inline void SetEmpty(uint8_t &val) { val = 0; }
@@ -368,7 +372,7 @@ public:
             auto newRet = mapData.emplace(std::make_pair(key, newEmptyValue)); // create new empty value
             assert(newRet.second); // TODO: if false then throw error
             it = newRet.first;
-        }        
+        }
         dbOpLog.Set(key, value);
         it->second = value;
         return true;
@@ -394,7 +398,7 @@ public:
     bool EraseData(const KeyType &key) {
         if (db_util::IsEmpty(key)) {
             return false;
-        }        
+        }
         Iterator it = GetDataIt(key);
         if (it != mapData.end() && !db_util::IsEmpty(it->second)) {
             db_util::SetEmpty(it->second);
@@ -405,7 +409,7 @@ public:
     bool EraseData(const KeyType &key, CDbOpLog &dbOpLog) {
         if (db_util::IsEmpty(key)) {
             return false;
-        }        
+        }
         Iterator it = GetDataIt(key);
         if (it != mapData.end()) {
             dbOpLog.Set(key, it->second);

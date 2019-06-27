@@ -143,9 +143,9 @@ static const int kContractScriptMaxSize                 = 65536;     // 64 KB ma
 static const int kContractArgumentMaxSize               = 4096;      // 4 KB max for contract argument size
 static const int kCommonTxMemoMaxSize                   = 100;       // 100 bytes max for memo size
 static const int kContractMemoMaxSize                   = 100;       // 100 bytes max for memo size
-static const int kMostRecentBlockNumberThreshold        = 1000;      // most recent block number threshold
+static const int kMostRecentBlockNumberLimit            = 1000;      // most recent block number limit
 
-static const int kMultisigNumberThreshold               = 15;        // m-n multisig, refer to n
+static const int kMultisigNumberLimit                   = 15;        // m-n multisig, refer to n
 static const int KMultisigScriptMaxSize                 = 1000;      // multisig script max size
 static const int kRegIdMaturePeriodByBlock              = 100;       // RegId's mature period measured by blocks
 
