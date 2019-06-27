@@ -34,7 +34,7 @@ bool CFcoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper 
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
     }
 
-    if (!srcAccount.OperateBalance(CoinType::MICC, MINUS_VALUE, fcoins)) {
+    if (!srcAccount.OperateBalance(CoinType::WGRT, MINUS_VALUE, fcoins)) {
         return state.DoS(100, ERRORMSG("CFcoinTransferTx::ExecuteTx, insufficient fcoins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fcoins");
     }
@@ -49,7 +49,7 @@ bool CFcoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper 
                         FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
     CAccountLog desAccountLog(desAccount);
-    if (!srcAccount.OperateBalance(CoinType::MICC, ADD_VALUE, fcoins)) {
+    if (!srcAccount.OperateBalance(CoinType::WGRT, ADD_VALUE, fcoins)) {
         return state.DoS(100, ERRORMSG("CFcoinTransferTx::ExecuteTx, failed to add fcoins in toUid %s account", toUid.ToString()),
                         UPDATE_ACCOUNT_FAIL, "failed-add-fcoins");
     }

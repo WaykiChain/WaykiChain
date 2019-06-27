@@ -50,7 +50,7 @@ enum TxType : unsigned char {
     CDP_LIQUIDATE_TX    = 14,   //!< CDP Liquidation Tx (partial or full)
     CDP_STAKE_TX        = 15,   //!< CDP Staking/Restaking Tx
 
-    PRICE_FEED_TX = 22,  //!< Price Feed Tx: WICC/USD | MICC/WUSD | WUSD/USD
+    PRICE_FEED_TX = 22,  //!< Price Feed Tx: WICC/USD | WGRT/WUSD | WUSD/USD
 
     SFC_PARAM_MTX         = 31,  //!< StableCoin Fund Committee invokes Param Set/Update MulSigTx
     SFC_GLOBAL_HALT_MTX   = 32,  //!< StableCoin Fund Committee invokes Global Halt CDP Operations MulSigTx
@@ -61,7 +61,7 @@ enum TxType : unsigned char {
     FCOIN_STAKE_TX    = 43,  //!< Stake Fund Coin in order to become a price feeder
 
     DEX_SETTLE_TX               = 51, //!< dex settle tx
-    DEX_CANCEL_ORDER_TX         = 52, //!< dex cancel order tx    
+    DEX_CANCEL_ORDER_TX         = 52, //!< dex cancel order tx
     DEX_BUY_LIMIT_ORDER_TX      = 53, //!< dex buy limit price order tx
     DEX_SELL_LIMIT_ORDER_TX     = 54, //!< dex sell limit price order tx
     DEX_BUY_MARKET_ORDER_TX     = 55, //!< dex buy market price order tx

@@ -287,7 +287,7 @@ public:
 
         nBlockFee        = block.GetFee();
         bcoinMedianPrice = block.GetBlockMedianPrice(CoinType::WICC, PriceType::USD);
-        fcoinMedianPrice = block.GetBlockMedianPrice(CoinType::MICC, PriceType::USD);
+        fcoinMedianPrice = block.GetBlockMedianPrice(CoinType::WGRT, PriceType::USD);
 
         int64_t nTxSize(0);
         for (auto &pTx : block.vptx) {

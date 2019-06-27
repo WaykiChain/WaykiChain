@@ -86,7 +86,7 @@ private:
     uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
     uint64_t collateralRatio;       // initial value must be >= 200 (%)
     uint64_t fcoinsInterest;        // preferred, will be burned immediately
-    uint64_t scoinsInterest;        // 3% increase compared to fcoins value, to place buy order of MICCs to burn
+    uint64_t scoinsInterest;        // 3% increase compared to fcoins value, to place buy order of WGRTs to burn
 
 };
 

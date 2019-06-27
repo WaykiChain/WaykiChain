@@ -54,7 +54,7 @@ bool CCDPStakeTx::PayInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &c
     }
     if (scoinsInterest) {
         account.scoins -= scoinsInterest;
-        cw.dexCache.CreateBuyOrder(scoinsInterest, CoinType::MICC); // DEX: wusd_micc
+        cw.dexCache.CreateBuyOrder(scoinsInterest, CoinType::WGRT); // DEX: wusd_micc
     }
 
     if (!cw.accountCache.SaveAccount(fcoinGensisAccount)) {
@@ -226,7 +226,7 @@ string CCDPRedeemTx::ToString(CAccountCache &view) {
     }
     if (restScoins > 0) {
         account.scoins -= restScoins;
-        cw.dexCache.CreateBuyOrder(restScoins, CoinType::MICC); // DEX: wusd_micc
+        cw.dexCache.CreateBuyOrder(restScoins, CoinType::WGRT); // DEX: wusd_micc
 
         scoinsToRedeem -= restScoins; // after interest deduction, the remaining scoins will be redeemed
     }
@@ -363,10 +363,10 @@ bool CCDPLiquidateTx::PayPenaltyFee(int nHeight, const CUserCdp &cdp, CCacheWrap
 
     uint64_t restScoins = scoinsPenalty / 2;
 
-    fcoinGenesisAccount.fcoins += fcoinsPenalty;    // burn MICC coins
+    fcoinGenesisAccount.fcoins += fcoinsPenalty;    // burn WGRT coins
     fcoinGenesisAccount.scoins += restScoins;       // save into risk reserve fund
 
-    if (!cw.dexCache.CreateBuyOrder(restScoins, CoinType::MICC)) {
+    if (!cw.dexCache.CreateBuyOrder(restScoins, CoinType::WGRT)) {
         return false; // DEX: wusd_micc
     }
 

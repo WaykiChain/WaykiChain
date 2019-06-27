@@ -27,7 +27,7 @@ class CAccountLog;
 
 enum CoinType: uint8_t {
     WICC = 1,
-    MICC = 2,
+    WGRT = 2,
     WUSD = 3,
 };
 
@@ -35,7 +35,7 @@ struct CoinTypeHash {
     size_t operator()(const CoinType& type) const noexcept { return std::hash<uint8_t>{}(type); }
 };
 
-static const unordered_set<CoinType, CoinTypeHash> COINT_TYPE_SET = { WICC, MICC, WUSD};
+static const unordered_set<CoinType, CoinTypeHash> COINT_TYPE_SET = { WICC, WGRT, WUSD};
 
 enum PriceType: uint8_t {
     USD     = 1,

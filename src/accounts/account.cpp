@@ -56,7 +56,7 @@ bool CAccount::FreezeDexCoin(CoinType coinType, uint64_t amount) {
             assert(!IsMoneyOverflow(scoins) && !IsMoneyOverflow(frozenDEXScoins));
             break;
 
-        case MICC:
+        case WGRT:
             if (amount > fcoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than fcoins");
             fcoins -= amount;
             frozenDEXFcoins += amount;
@@ -88,7 +88,7 @@ bool CAccount::UnFreezeDexCoin(CoinType coinType, uint64_t amount) {
             assert(!IsMoneyOverflow(scoins) && !IsMoneyOverflow(frozenDEXScoins));
             break;
 
-        case MICC:
+        case WGRT:
             if (amount > frozenDEXFcoins)
                 return ERRORMSG("CAccount::UnFreezeDexCoin, amount larger than frozenDEXFcoins");
 
@@ -109,7 +109,7 @@ bool CAccount::MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins) {
             frozenDEXBcoins -= coins;
             assert(!IsMoneyOverflow(frozenDEXBcoins));
             break;
-        case MICC:
+        case WGRT:
             if (coins > frozenDEXScoins) return ERRORMSG("CAccount::SettleDEXBuyOrder, minus scoins exceed frozen scoins");
             frozenDEXScoins -= coins;
             assert(!IsMoneyOverflow(frozenDEXScoins));
@@ -279,7 +279,7 @@ bool CAccount::OperateBalance(const CoinType coinType, const BalanceOpType opTyp
     if (opType == BalanceOpType::MINUS_VALUE) {
         switch (coinType) {
             case WICC:  if (bcoins < value) return false; break;
-            case MICC:  if (fcoins < value) return false; break;
+            case WGRT:  if (fcoins < value) return false; break;
             case WUSD:  if (scoins < value) return false; break;
             default: return ERRORMSG("coin type error");
         }
@@ -288,7 +288,7 @@ bool CAccount::OperateBalance(const CoinType coinType, const BalanceOpType opTyp
     int64_t opValue = (opType == BalanceOpType::MINUS_VALUE) ? (-value) : (value);
     switch (coinType) {
         case WICC:  bcoins += opValue; if (!IsMoneyOverflow(bcoins)) return false; break;
-        case MICC:  fcoins += opValue; if (!IsMoneyOverflow(fcoins)) return false; break;
+        case WGRT:  fcoins += opValue; if (!IsMoneyOverflow(fcoins)) return false; break;
         case WUSD:  scoins += opValue; if (!IsMoneyOverflow(scoins)) return false; break;
         default: return ERRORMSG("coin type error");
     }
