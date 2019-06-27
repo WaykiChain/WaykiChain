@@ -134,8 +134,8 @@ public:
 
     // When true, CDP cannot be further operated
     bool GetGlobalCDPLock(const uint64_t price) ;
-    // When true, WUSD cannot be owed.
-    bool ExceedGlobalDebtCeiling() const;
+    // When true, WICC/WUSD cannot be loaned/minted further.
+    bool CheckGlobalDebtCeilingExceeded(const uint64_t newBcoinsToStake) const;
 
     uint16_t GetDefaultCollateralRatio() {
         uint16_t ratio = 0;
