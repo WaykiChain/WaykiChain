@@ -332,7 +332,7 @@ public:
     CTxMemCache         *pTxCache;
     CPricePointCache    *pPpCache;
 
-    uint64_t            collateralRatioMin = 200; //minimum collateral ratio
+    uint64_t            initialCollateralRatioMin = 200; //minimum collateral ratio
 
 public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache, size_t nContractDBCache,
@@ -737,7 +737,7 @@ bool ReadTxFromDisk(const CTxCord txCord, std::shared_ptr<TxType> &pTx) {
         return ERRORMSG("ReadTxFromDisk failed! txcord(%s)", txCord.ToString());
     }
     if (typeid(*pBaseTx) != typeid(TxType)) {
-        return ERRORMSG("The expected tx(%s) type is %s, but read tx type is %s", 
+        return ERRORMSG("The expected tx(%s) type is %s, but read tx type is %s",
             txCord.ToString(), typeid(TxType).name(), typeid(*pBaseTx).name());
     }
     pTx = dynamic_pointer_cast<TxType>(pBaseTx);

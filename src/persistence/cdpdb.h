@@ -25,7 +25,7 @@ using namespace std;
  *
  */
 struct CUserCdp {
-    mutable double collateralRatio; // ratio = totalStakedBcoins / totalOwedScoins, must be >= 200%, mem-only
+    mutable double collateralRatio; // ratio = totalStakedBcoins * price / totalOwedScoins, must be >= 200%, mem-only
 
     CRegID ownerRegId;              // CDP Owner RegId
     CTxCord cdpTxCord;              // Transaction coordinate

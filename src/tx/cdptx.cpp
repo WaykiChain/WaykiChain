@@ -71,9 +71,9 @@ bool CCDPStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &stat
 
     // bcoinsToStake can be zero since we allow downgrading collateral ratio to mint new scoins
     // but it must be grater than the fund committee defined minimum ratio value
-    if (collateralRatio < pCdMan->collateralRatioMin ) {
+    if (collateralRatio < pCdMan->initialCollateralRatioMin ) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal (%d)",
-                        collateralRatio, pCdMan->collateralRatioMin), REJECT_INVALID, "bad-tx-collateral-ratio-toosmall");
+                        collateralRatio, pCdMan->initialCollateralRatioMin), REJECT_INVALID, "bad-tx-collateral-ratio-toosmall");
     }
 
     CAccount account;
@@ -440,6 +440,13 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
     //2. pay penalty fees: 0.13lN --> 50% burn, 50% to Risk Reserve
     CUserCdp cdp(txUid.get<CRegID>(), CTxCord(nHeight, nIndex));
     if (cw.cdpCache.GetCdp(cdp)) {
+        //check if CDP is open for liquidation
+        uint16_t liquidateRatio = cw.cdpCache.GetDefaultOpenLiquidateRatio();
+        uint16_t cdpLiquidateRatio = cw.ppCache.GetBcoinMedianPrice() * cdp.collateralRatio;
+        if (cdpLiquidateRatio > liquidateRatio) {
+            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, CDP collateralRatio (%d) > liquidateRatio (%d)",
+                        cdpLiquidateRatio, liquidateRatio), CDP_LIQUIDATE_FAIL, "CDP-liquidate-not-open");
+        }
         if (!PayPenaltyFee(nHeight, cdp, cw, state))
             return false;
     }
