@@ -8,6 +8,18 @@
 #include "configuration.h"
 #include "main.h"
 
+using uint128_t = unsigned __int128;
+
+///////////////////////////////////////////////////////////////////////////////
+// class CDEXBuyLimitOrderTx
+
+bool CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, uint64_t price, uint64_t &coinAmountOut) {
+    uint128_t coinAmount = assetAmount * (uint128_t)price / COIN;
+    if (coinAmount > ULLONG_MAX) return false;
+    coinAmountOut = coinAmount;
+    return true;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXBuyLimitOrderTx
 
@@ -42,6 +54,12 @@ bool CDEXBuyLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSta
     // TODO: check asset amount range? min asset amount limit?
     // TODO: check bidPrice range?
 
+    uint64_t coinAmount = 0;
+    if (!CalcCoinAmount(assetAmount, bidPrice, coinAmount)) {
+        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, calculated coin amount out of range"), REJECT_INVALID,
+                         "coins-out-range");
+    }
+
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, read account failed"), REJECT_INVALID,
@@ -72,7 +90,8 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
     // should freeze user's coin for buying the asset
-    uint64_t coinAmount = assetAmount * bidPrice;
+    uint64_t coinAmount = 0;
+    CalcCoinAmount(assetAmount, bidPrice, coinAmount);
     if (!srcAcct.FreezeDexCoin(coinType, coinAmount)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
@@ -224,7 +243,7 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
     CDEXActiveOrder activeSellOrder;
     activeSellOrder.generateType = USER_GEN_ORDER;
     activeSellOrder.totalDealAssetAmount = 0;
-    if (!cw.dexCache.SetActiveSellOrder(txHash, activeSellOrder, cw.txUndo.dbOpLogMap)) {
+    if (!cw.dexCache.SetActiveOrder(txHash, activeSellOrder, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, set active sell order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
@@ -240,7 +259,7 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
 bool CDEXSellLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                                    CValidationState &state) {
 
-    if (!cw.dexCache.UndoActiveSellOrder(cw.txUndo.dbOpLogMap)) {
+    if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, undo active sell order failed"),
                          UPDATE_ACCOUNT_FAIL, "bad-undo-data");
     }
@@ -496,8 +515,8 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
     CDEXActiveOrder activeSellOrder;
     activeSellOrder.generateType = USER_GEN_ORDER;
     activeSellOrder.totalDealAssetAmount = 0;
-    if (!cw.dexCache.SetActiveSellOrder(txHash, activeSellOrder, cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, set active sell order failed"),
+    if (!cw.dexCache.SetActiveOrder(txHash, activeSellOrder, cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, set active sell order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
@@ -512,8 +531,8 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
 bool CDEXSellMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                                    CValidationState &state) {
 
-    if (!cw.dexCache.UndoActiveSellOrder(cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, undo active sell order failed"),
+    if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::UndoExecuteTx, undo active sell order failed"),
                          UPDATE_ACCOUNT_FAIL, "bad-undo-data");
     }
 
@@ -655,8 +674,8 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 bool CDEXCancelOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                                    CValidationState &state) {
 
-    if (!cw.dexCache.UndoActiveSellOrder(cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, undo active sell order failed"),
+    if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::UndoExecuteTx, undo active sell order failed"),
                          UPDATE_ACCOUNT_FAIL, "bad-undo-data");
     }
 
@@ -751,37 +770,29 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
         I.   dealPrice == sellOrder.price
     d. market type <-> market type
         no limit
-8. get and check the deal amount details
-
-    dealCoinAmount = dealAmount * dealPrice
-    dealAssetAmount = dealAmount
-    a. buy order
+8. check and operate deal amount
+    a. check: dealCoinAmount == CalcCoinAmount(dealAssetAmount, price)
+    b. else check: (dealCoinAmount / 10000) == (CalcCoinAmount(dealAssetAmount, price) / 10000)
+    c. operate total deal:
         activeBuyOrder.totalDealCoinAmount  += dealCoinAmount
         activeBuyOrder.totalDealAssetAmount += dealAssetAmount
+        activeSellOrder.totalDealCoinAmount  += dealCoinAmount
+        activeSellOrder.totalDealAssetAmount += dealAssetAmount
+9. check the order limit amount and get residual amount
+    a. buy order
         if market price order {
             limitCoinAmount = buyOrder.coinAmount
             check: limitCoinAmount >= activeBuyOrder.totalDealCoinAmount
-            residualAmount = limitCoinAmount - dealCoinAmount
-            if residualAmount < dealPrice {
-                // the residual coin amount is not enough to buy an asset.
-                dealCoinAmount += residualAmount
-                activeBuyOrder.totalDealCoinAmount += residualAmount
-                assert(residualAmount == totalDealCoinAmount)
-                residualAmount = 0
-            }
+            residualAmount = limitCoinAmount - activeBuyOrder.totalDealCoinAmount
         } else { //limit price order
-            limitAssetAmount = buyOrder.limitAmount
+            limitAssetAmount = buyOrder.assetAmount
             check: limitAssetAmount >= activeBuyOrder.totalDealAssetAmount
-            residualAmount = limitAssetAmount - dealCoinAmount
+            residualAmount = limitAssetAmount - activeBuyOrder.totalDealAssetAmount
         }
     b. sell order
-        dealAssetAmount = dealAmount
-        activeSellOrder.totalDealAssetAmount += dealAssetAmount
         limitAssetAmount = sellOrder.limitAmount
-        check: limitAssetAmount >= activeBuyOrder.totalDealAssetAmount
+        check: limitAssetAmount >= activeSellOrder.totalDealAssetAmount
         residualAmount = limitAssetAmount - dealCoinAmount
-
-    fulfilled = (residualAmount == 0)
 
 9. operate account
     a. buyerFrozenCoins     -= dealCoinAmount
@@ -895,32 +906,42 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
             if ( buyOrderData.price < dealItem.dealPrice
                 || sellOrderData.price > dealItem.dealPrice ) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the expected price not match"),
-                                REJECT_INVALID, "bad-price-match");
+                                REJECT_INVALID, "deal-price-unmatch");
             }
         } else if (buyOrderData.orderType == ORDER_LIMIT_PRICE && sellOrderData.orderType == ORDER_MARKET_PRICE) {
             if (dealItem.dealPrice != buyOrderData.price) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the expected price not match"),
-                                REJECT_INVALID, "bad-price-match");
+                                REJECT_INVALID, "deal-price-unmatch");
             }
         } else if (buyOrderData.orderType == ORDER_MARKET_PRICE && sellOrderData.orderType == ORDER_LIMIT_PRICE) {
             if (dealItem.dealPrice != sellOrderData.price) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the expected price not match"),
-                                REJECT_INVALID, "bad-price-match");
+                                REJECT_INVALID, "deal-price-unmatch");
             }
         } else {
             assert(buyOrderData.orderType == ORDER_LIMIT_PRICE && sellOrderData.orderType == ORDER_LIMIT_PRICE);
             // no limit
         }
 
-        // 8. get and check the deal amount details
-        // check deal amount is enough
-        uint64_t dealCoinAmount = dealItem.dealAmount * dealItem.dealPrice;
-        uint64_t dealAssetAmount = dealItem.dealAmount;
+        // 8. check and operate deal amount
+        uint64_t calcCoinAmount = 0;
+        if (!CDEXOrderBaseTx::CalcCoinAmount(dealItem.dealAssetAmount, dealItem.dealPrice, calcCoinAmount)) {
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the calculated coin amount out of range"),
+                            REJECT_INVALID, "coins-out-range");
+        }
+        if ((calcCoinAmount / PERCENT_BOOST) != (dealItem.dealCoinAmount / PERCENT_BOOST)) {
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the dealCoinAmount not match"),
+                            REJECT_INVALID, "deal-coin-amount-unmatch");
+        }
+        activeBuyOrder.totalDealCoinAmount += dealItem.dealCoinAmount;
+        activeBuyOrder.totalDealAssetAmount += dealItem.dealAssetAmount;
+        activeSellOrder.totalDealCoinAmount += dealItem.dealCoinAmount;
+        activeSellOrder.totalDealAssetAmount += dealItem.dealAssetAmount;
+        
+        //9. check the order limit amount and get residual amount
         uint64_t buyResidualAmount = 0;
         uint64_t sellResidualAmount = 0;
 
-        activeBuyOrder.totalDealCoinAmount += dealCoinAmount;
-        activeBuyOrder.totalDealAssetAmount += dealAssetAmount;
         if (buyOrderData.orderType == ORDER_MARKET_PRICE) {
             uint64_t limitCoinAmount = buyOrderData.coinAmount;
             if (limitCoinAmount < activeBuyOrder.totalDealCoinAmount) {
@@ -928,7 +949,6 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
                                 REJECT_INVALID, "exceeded-deal-amount");
             }
             buyResidualAmount = limitCoinAmount - activeBuyOrder.totalDealCoinAmount;
-            // TODO: handle: small residual coin amount is not enough to buy one asset.
         } else {
             uint64_t limitAssetAmount = buyOrderData.assetAmount;
             if (limitAssetAmount < activeBuyOrder.totalDealAssetAmount) {
@@ -936,25 +956,23 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
                                 REJECT_INVALID, "exceeded-deal-amount");
             }
             buyResidualAmount = limitAssetAmount - activeBuyOrder.totalDealAssetAmount;
-            // TODO: handle: small residual asset amount is not enough to sell for one coin.
         }
 
         { // get and check sell order residualAmount
-            activeSellOrder.totalDealAssetAmount += dealAssetAmount;
             uint64_t limitAssetAmount = sellOrderData.assetAmount;
             if (limitAssetAmount < activeSellOrder.totalDealAssetAmount) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the deal asset amount exceed the limit asset amount of buy order"),
                                 REJECT_INVALID, "exceeded-deal-amount");
             }
-            sellResidualAmount = limitAssetAmount - activeBuyOrder.totalDealAssetAmount;
+            sellResidualAmount = limitAssetAmount - activeSellOrder.totalDealAssetAmount;
             // TODO: handle: small residual asset amount is not enough to sell for one coin.
         }
 
         // settle sell/buy order's coin
-        if (   !buyOrderAccount.MinusDEXFrozenCoin(buyOrderData.coinType, dealCoinAmount)           // - minus buyer's coins
-            || !buyOrderAccount.OperateBalance(buyOrderData.assetType, ADD_VALUE, dealAssetAmount)  // + add buyer's assets
-            || !sellOrderAccount.OperateBalance(sellOrderData.coinType, ADD_VALUE, dealCoinAmount)  // + add seller's coin
-            || !sellOrderAccount.MinusDEXFrozenCoin(sellOrderData.assetType, dealAssetAmount)) {    // - minus seller's assets
+        if (   !buyOrderAccount.MinusDEXFrozenCoin(buyOrderData.coinType, dealItem.dealCoinAmount)           // - minus buyer's coins
+            || !buyOrderAccount.OperateBalance(buyOrderData.assetType, ADD_VALUE, dealItem.dealAssetAmount)  // + add buyer's assets
+            || !sellOrderAccount.OperateBalance(sellOrderData.coinType, ADD_VALUE, dealItem.dealCoinAmount)  // + add seller's coin
+            || !sellOrderAccount.MinusDEXFrozenCoin(sellOrderData.assetType, dealItem.dealAssetAmount)) {    // - minus seller's assets
             return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, operate coins or assets failed"),
                             REJECT_INVALID, "operate-acount-failed");
         }
@@ -1013,7 +1031,12 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
 }
 
 bool CDEXSettleTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    // TODO: undo order id -> order info
+    
+    if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CDEXSettleTx::UndoExecuteTx, undo active orders for all deal item failed"),
+                         UPDATE_ACCOUNT_FAIL, "bad-undo-data");
+    }
+
     auto rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         const CAccountLog &accountLog = *rIterAccountLog;
