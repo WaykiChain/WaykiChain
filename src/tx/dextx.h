@@ -15,6 +15,10 @@ public:
     using CBaseTx::CBaseTx;
 
     virtual void GetOrderData(CDEXOrderData &orderData) = 0;
+public:
+    inline static uint64_t CalcCoinAmount(uint64_t assetAmount, uint64_t price) {
+        return assetAmount * price / COIN; // TODO: big int, should avoid overflow ??
+    }
 };
 
 class CDEXBuyLimitOrderTx : public CDEXOrderBaseTx {
@@ -44,8 +48,8 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        READWRITE((uint8_t)coinType);
-        READWRITE((uint8_t)assetType);
+        READWRITE((uint8_t&)coinType);
+        READWRITE((uint8_t&)assetType);
         READWRITE(VARINT(assetAmount));
         READWRITE(VARINT(bidPrice));)
 
@@ -107,8 +111,8 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        READWRITE((uint8_t)coinType);
-        READWRITE((uint8_t)assetType);
+        READWRITE((uint8_t&)coinType);
+        READWRITE((uint8_t&)assetType);
         READWRITE(VARINT(assetAmount));
         READWRITE(VARINT(askPrice));)
 
@@ -166,8 +170,8 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        READWRITE((uint8_t)coinType);
-        READWRITE((uint8_t)assetType);
+        READWRITE((uint8_t&)coinType);
+        READWRITE((uint8_t&)assetType);
         READWRITE(VARINT(coinAmount));
     )
 
@@ -224,8 +228,8 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        READWRITE((uint8_t)coinType);
-        READWRITE((uint8_t)assetType);
+        READWRITE((uint8_t&)coinType);
+        READWRITE((uint8_t&)assetType);
         READWRITE(VARINT(assetAmount));
     )
 
@@ -311,13 +315,15 @@ struct DEXDealItem  {
     uint256 buyOrderId;
     uint256 sellOrderId;
     uint64_t dealPrice;
-    uint64_t dealAmount;
+    uint64_t dealCoinAmount;
+    uint64_t dealAssetAmount;
 
     IMPLEMENT_SERIALIZE(
         READWRITE(buyOrderId);
         READWRITE(sellOrderId);
         READWRITE(VARINT(dealPrice));
-        READWRITE(VARINT(dealAmount));
+        READWRITE(VARINT(dealCoinAmount));
+        READWRITE(VARINT(dealAssetAmount));
     )
 };
 
@@ -333,7 +339,6 @@ public:
 
     CDEXSettleTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn):
         CBaseTx(DEX_SETTLE_TX, txUidIn, validHeightIn, feesIn) {
-
     }
 
     ~CDEXSettleTx() {}
@@ -343,7 +348,9 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
-        READWRITE(dealItems);)
+
+        READWRITE(dealItems);
+    )
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
