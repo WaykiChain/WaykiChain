@@ -23,9 +23,15 @@ bool CCdpMemCache::LoadCdps() {
         static uint8_t valid = 1; // 0: invalid; 1: valid
 
         cdps.emplace(item.second, valid);
+        totalStakedBcoins += item.second.totalStakedBcoins;
+        totalOwedScoins += item.second.totalOwedScoins;
     }
 
     return true;
+}
+
+double CCdpMemCache::GetGlobalCollateralRatioBase() const {
+    return double(totalStakedBcoins) / totalOwedScoins;
 }
 
 void CCdpMemCache::Flush() {
@@ -36,15 +42,21 @@ void CCdpMemCache::Flush() {
 }
 
 bool CCdpMemCache::SaveCdp(const CUserCdp &userCdp) {
-    static uint8_t valid = 1; // 0: invalid; 1: valid
+    static uint8_t valid = 1;  // 0: invalid; 1: valid
     cdps.emplace(userCdp, valid);
+
+    totalStakedBcoins += userCdp.totalStakedBcoins;
+    totalOwedScoins += userCdp.totalOwedScoins;
 
     return true;
 }
 
 bool CCdpMemCache::EraseCdp(const CUserCdp &userCdp) {
-    static uint8_t invalid = 0; // 0: invalid; 1: valid
+    static uint8_t invalid = 0;  // 0: invalid; 1: valid
+
     cdps[userCdp] = invalid;
+    totalStakedBcoins += userCdp.totalStakedBcoins;
+    totalOwedScoins += userCdp.totalOwedScoins;
 
     return true;
 }
@@ -63,8 +75,8 @@ bool CCdpMemCache::GetCdps(const double ratio, set<CUserCdp> &expiredCdps, set<C
     static CRegID regId(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint16_t>::max());
     static CTxCord txCord(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint16_t>::max());
     static CUserCdp cdp(regId, txCord);
-    cdp.collateralRatio = ratio;
-    cdp.ownerRegId      = regId;
+    cdp.collateralRatioBase = ratio;
+    cdp.ownerRegId          = regId;
 
     auto boundary = cdps.upper_bound(cdp);
     if (boundary != cdps.end()) {
@@ -115,7 +127,7 @@ bool CCdpCacheManager::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoi
     cdp.lastBlockHeight = blockHeight;
     cdp.totalStakedBcoins += bcoinsToStake;
     cdp.totalOwedScoins += mintedScoins;
-    cdp.collateralRatio = double(cdp.totalStakedBcoins) / cdp.totalOwedScoins;
+    cdp.collateralRatioBase = double(cdp.totalStakedBcoins) / cdp.totalOwedScoins;
 
     if (!SaveCdp(cdp, dbOpLogMap)) {
         return ERRORMSG("CCdpCacheManager::StakeBcoinsToCdp : SetData failed.");
@@ -132,7 +144,7 @@ bool CCdpCacheManager::GetCdp(CUserCdp &cdp) {
 }
 
 bool CCdpCacheManager::SaveCdp(CUserCdp &cdp, CDBOpLogMap &dbOpLogMap) {
-    return cdpCache.SetData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxCord.ToRawString()), 
+    return cdpCache.SetData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxCord.ToRawString()),
                             cdp, dbOpLogMap);
 }
 

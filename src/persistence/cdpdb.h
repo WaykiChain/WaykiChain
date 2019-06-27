@@ -25,7 +25,7 @@ using namespace std;
  *
  */
 struct CUserCdp {
-    mutable double collateralRatio; // ratio = totalStakedBcoins * price / totalOwedScoins, must be >= 200%, mem-only
+    mutable double collateralRatioBase;  // ratio = totalStakedBcoins * price / totalOwedScoins, must be >= 200%, mem-only
 
     CRegID ownerRegId;              // CDP Owner RegId
     CTxCord cdpTxCord;              // Transaction coordinate
@@ -39,13 +39,13 @@ struct CUserCdp {
         : ownerRegId(regId), cdpTxCord(txCord), lastBlockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
     bool operator<(const CUserCdp &cdp) const {
-        if (collateralRatio == cdp.collateralRatio) {
+        if (collateralRatioBase == cdp.collateralRatioBase) {
             if (ownerRegId == cdp.ownerRegId)
                 return cdpTxCord < cdp.cdpTxCord;
             else
                 return ownerRegId < cdp.ownerRegId;
         } else {
-            return collateralRatio < cdp.collateralRatio;
+            return collateralRatioBase < cdp.collateralRatioBase;
         }
     }
 
@@ -56,16 +56,16 @@ struct CUserCdp {
         READWRITE(VARINT(totalStakedBcoins));
         READWRITE(VARINT(totalOwedScoins));
         if (fRead) {
-            collateralRatio = double(totalStakedBcoins) / totalOwedScoins;
+            collateralRatioBase = double(totalStakedBcoins) / totalOwedScoins;
         }
     )
 
     string ToString() {
         return strprintf(
             "ownerRegId=%s, cdpTxCord=%s, lastBlockHeight=%d, totalStakedBcoins=%d, tatalOwedScoins=%d, "
-            "collateralRatio=%f",
+            "collateralRatioBase=%f",
             ownerRegId.ToString(), cdpTxCord.ToString(), lastBlockHeight, totalStakedBcoins, totalOwedScoins,
-            collateralRatio);
+            collateralRatioBase);
     }
 
     bool IsEmpty() const {
@@ -83,10 +83,12 @@ struct CUserCdp {
 
 class CCdpMemCache {
 public:
-    CCdpMemCache() : pBase(nullptr), pAccess(nullptr) {}
-    CCdpMemCache(CCdpMemCache *pBaseIn) : pBase(pBaseIn), pAccess(nullptr) {}
+    CCdpMemCache() {}
+    CCdpMemCache(CCdpMemCache *pBaseIn) : pBase(pBaseIn) {}
     // Only apply to construct the global mem-cache.
-    CCdpMemCache(CDBAccess *pAccessIn) : pBase(nullptr), pAccess(pAccessIn) {}
+    CCdpMemCache(CDBAccess *pAccessIn) : pAccess(pAccessIn) {}
+
+    double GetGlobalCollateralRatioBase() const;
 
     bool LoadCdps();
     void Flush();
@@ -108,8 +110,10 @@ private:
 
 private:
     map<CUserCdp, uint8_t> cdps;  // map: CUserCdp -> flag(0: valid; 1: invalid)
-    CCdpMemCache *pBase;
-    CDBAccess *pAccess;
+    uint64_t totalStakedBcoins = 0;
+    uint64_t totalOwedScoins   = 0;
+    CCdpMemCache *pBase        = nullptr;
+    CDBAccess *pAccess         = nullptr;
 };
 
 class CCdpCacheManager {

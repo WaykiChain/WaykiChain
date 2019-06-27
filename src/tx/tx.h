@@ -50,7 +50,7 @@ enum TxType : unsigned char {
     CDP_LIQUIDATE_TX    = 14,   //!< CDP Liquidation Tx (partial or full)
     CDP_STAKE_TX        = 15,   //!< CDP Staking/Restaking Tx
 
-    PRICE_FEED_TX = 22,  //!< Price Feed Tx: WICC/USD | WGRT/WUSD | WUSD/USD
+    PRICE_FEED_TX = 22,  //!< Price Feed Tx: WICC/USD | WGRT/USD | WUSD/USD
 
     SFC_PARAM_MTX         = 31,  //!< StableCoin Fund Committee invokes Param Set/Update MulSigTx
     SFC_GLOBAL_HALT_MTX   = 32,  //!< StableCoin Fund Committee invokes Global Halt CDP Operations MulSigTx
