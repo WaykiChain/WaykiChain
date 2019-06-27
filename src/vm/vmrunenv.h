@@ -11,6 +11,7 @@
 #include "commons/serialize.h"
 #include "script.h"
 #include "accounts/account.h"
+#include "persistence/leveldbwrapper.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_writer_template.h"
@@ -55,14 +56,14 @@ private:
 	 */
 	vector<std::shared_ptr<CAppUserAccount>> newAppUserAccount;
 
-	CContractCache *pContractCache;
-	CAccountCache *pAccountCache;
+	CContractDBCache *pContractCache;
+	CAccountDBCache *pAccountCache;
 
 	vector<CVmOperate> vmOperateOutput;   //保存操作结果
     bool  isCheckAccount;  //校验账户平衡开关
 
     map<vector<unsigned char>, vector<CAppFundOperate>> mapAppFundOperate;  // vector<unsigned char > 存的是accountId
-    std::shared_ptr<vector<CDbOpLog>> pScriptDBOperLog;
+    CDBOpLogMap *pDBOpLogsMap;
 
 private:
     /**
@@ -72,7 +73,7 @@ private:
      *  @param nheight: run the Environment the block's height
      * @return : check the the tx and account is Legal true is legal false is unlegal
      */
-    bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountCache& view, int nHeight);
+    bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int nHeight);
     /**
      *@brief check aciton
      * @param listoperate: run the script return the code,check the code
@@ -85,7 +86,7 @@ private:
      * @param view:
      * @return true operate account success
      */
-    bool OperateAccount(const vector<CVmOperate>& listoperate, CAccountCache& view,
+    bool OperateAccount(const vector<CVmOperate>& listoperate, CAccountDBCache& view,
                         const int nCurHeight);
     /**
      * @brief find the vOldAccount from newAccount if find success remove it from newAccount
@@ -107,7 +108,7 @@ private:
     vector_unsigned_char GetAccountID(CVmOperate value);
     //	bool IsSignatureAccount(CRegID account);
     bool OperateAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
-                           CContractCache& view);
+                           CContractDBCache& view);
 
     std::shared_ptr<CAppUserAccount> GetAppAccount(std::shared_ptr<CAppUserAccount>& AppAccount);
 
@@ -141,6 +142,7 @@ public:
      */
     std::tuple<bool, uint64_t, string> ExecuteContract(std::shared_ptr<CBaseTx>& Tx, int nheight, CCacheWrapper &cw,
                                                   uint64_t nBurnFactor, uint64_t& uRunStep);
+
     /**
      * @brief just for test
      * @return:
@@ -150,20 +152,25 @@ public:
     const CRegID& GetTxAccount();
     uint64_t GetValue() const;
     const vector<unsigned char>& GetTxContract();
-    CContractCache* GetScriptDB();
-    CAccountCache* GetCatchView();
+    CContractDBCache* GetScriptDB();
+    CAccountDBCache* GetCatchView();
     int GetConfirmHeight();
     // Get burn version for fuel burning
     int GetBurnVersion();
     uint256 GetCurTxHash();
     bool InsertOutputData(const vector<CVmOperate>& source);
     void InsertOutAPPOperte(const vector<unsigned char>& userId, const CAppFundOperate& source);
-    std::shared_ptr<vector<CDbOpLog>> GetDbLog();
+    CDBOpLogMap* GetDbLog();
 
     bool GetAppUserAccount(const vector<unsigned char>& id, std::shared_ptr<CAppUserAccount>& sptrAcc);
     bool CheckAppAcctOperate(CContractInvokeTx* tx);
     void SetCheckAccount(bool bCheckAccount);
     virtual ~CVmRunEnv();
+public:
+    /**
+     * undo datas product by contract
+     */
+    static bool UndoDatas(CCacheWrapper &cw);
 };
 
 #endif /* VMRUNENV_H_ */

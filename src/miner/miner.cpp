@@ -104,7 +104,7 @@ bool GetCurrentDelegate(const int64_t currentTime, const vector<CRegID> &delegat
     return true;
 }
 
-bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountCache &view, CBlock *pBlock) {
+bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountDBCache &view, CBlock *pBlock) {
     CBlock preBlock;
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
@@ -118,13 +118,13 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
         }
 
         if (currentTime - preBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
-            if (preDelegate.regID == delegate.regID)
+            if (preDelegate.regId == delegate.regId)
                 return ERRORMSG("one delegate can't produce more than one block at the same slot");
         }
     }
 
     CBlockRewardTx *pBlockRewardTx  = (CBlockRewardTx *)pBlock->vptx[0].get();
-    pBlockRewardTx->txUid           = delegate.regID;
+    pBlockRewardTx->txUid           = delegate.regId;
     pBlockRewardTx->nHeight         = pBlock->GetHeight();
     // Assign profits to the delegate account.
     pBlockRewardTx->rewardValue     += delegate.CalculateAccountProfit(pBlock->GetHeight());
@@ -134,7 +134,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
     pBlock->SetTime(currentTime);
 
     vector<unsigned char> signature;
-    if (pWalletMain->Sign(delegate.keyID, pBlock->ComputeSignatureHash(), signature, delegate.minerPubKey.IsValid())) {
+    if (pWalletMain->Sign(delegate.keyId, pBlock->ComputeSignatureHash(), signature, delegate.minerPubKey.IsValid())) {
         pBlock->SetSignature(signature);
         return true;
     } else {
@@ -202,7 +202,7 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
             return ERRORMSG("get preblock delegate account info error");
 
         if (pBlock->GetBlockTime() - preBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
-            if (preDelegate.regID == curDelegate.regID)
+            if (preDelegate.regId == curDelegate.regId)
                 return ERRORMSG("one delegate can't produce more than one block at the same slot");
         }
     }
@@ -210,9 +210,9 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     CAccount account;
     CBlockRewardTx *pRewardTx = (CBlockRewardTx *)pBlock->vptx[0].get();
     if (spCW->accountCache.GetAccount(pRewardTx->txUid, account)) {
-        if (curDelegate.regID != account.regID) {
+        if (curDelegate.regId != account.regId) {
             return ERRORMSG("Verify delegate account error, delegate regid=%s vs reward regid=%s!",
-                curDelegate.regID.ToString(), account.regID.ToString());
+                curDelegate.regId.ToString(), account.regId.ToString());
         }
 
         const uint256 &blockHash = pBlock->ComputeSignatureHash();
@@ -487,12 +487,12 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
                 return false;
 
             CKey acctKey;
-            if (pWalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey, true) ||
-                pWalletMain->GetKey(minerAcct.keyID.ToAddress(), acctKey)) {
+            if (pWalletMain->GetKey(minerAcct.keyId.ToAddress(), acctKey, true) ||
+                pWalletMain->GetKey(minerAcct.keyId.ToAddress(), acctKey)) {
                 nLastTime = GetTimeMillis();
                 success   = CreateBlockRewardTx(currentTime, minerAcct, cw.accountCache, pBlock);
                 LogPrint("MINER", "CreateBlockRewardTx %s, used time:%d ms, miner address=%s\n",
-                    success ? "success" : "failure", GetTimeMillis() - nLastTime, minerAcct.keyID.ToAddress());
+                    success ? "success" : "failure", GetTimeMillis() - nLastTime, minerAcct.keyId.ToAddress());
             }
         }
 

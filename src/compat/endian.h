@@ -6,7 +6,7 @@
 #define _COIN_COMPAT_ENDIAN_H
 
 #if defined(HAVE_CONFIG_H)
-#include "coin-config.h"
+#include "config/coin-config.h"
 #endif
 
 #include <stdint.h>
@@ -14,7 +14,7 @@
 #include "compat/byteswap.h"
 
 #if defined(HAVE_CONFIG_H)
-#include "coin-config.h"
+#include "config/coin-config.h"
 #endif
 
 #if defined(WORDS_BIGENDIAN)

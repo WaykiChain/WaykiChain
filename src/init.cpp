@@ -5,7 +5,7 @@
 
 
 #if defined(HAVE_CONFIG_H)
-#include "coin-config.h"
+#include "config/coin-config.h"
 #endif
 
 #include "init.h"
@@ -848,12 +848,28 @@ bool AppInit(boost::thread_group &threadGroup) {
             return InitError("Failed to read block from disk");
 
         if (!pCdMan->pTxCache->AddBlockToCache(block))
-            return InitError("Failed to add block to txcache");
+            return InitError("Failed to add block to transaction memory cache");
 
         blockIndex = blockIndex->pprev;
         ++nCount;
     }
-    LogPrint("INFO", "Added the latest %d blocks to txcache (%dms)\n", nCount, GetTimeMillis() - nStart);
+    LogPrint("INFO", "Added the latest %d blocks to transaction memory cache (%dms)\n", nCount, GetTimeMillis() - nStart);
+
+    nStart       = GetTimeMillis();
+    blockIndex   = chainActive.Tip();
+    nCacheHeight = 11;  // TODO: parameterize 11.
+    nCount       = 0;
+    while (blockIndex && nCacheHeight-- > 0) {
+        if (!ReadBlockFromDisk(blockIndex, block))
+            return InitError("Failed to read block from disk");
+
+        if (!pCdMan->pPpCache->AddBlockToCache(block))
+            return InitError("Failed to add block to price point memory cache");
+
+        blockIndex = blockIndex->pprev;
+        ++nCount;
+    }
+    LogPrint("INFO", "Added the latest %d blocks to price point memory cache (%dms)\n", nCount, GetTimeMillis() - nStart);
 
     vector<boost::filesystem::path> vImportFiles;
     if (SysCfg().IsArgCount("-loadblock")) {

@@ -440,7 +440,7 @@ Object CAccountTx::ToJsonObj(CKeyID const &key) const {
     obj.push_back(Pair("blockHash", blockHash.ToString()));
     obj.push_back(Pair("blockHeight", blockHeight));
     Array Tx;
-    CAccountCache view(*pCdMan->pAccountCache);
+    CAccountDBCache view(*pCdMan->pAccountCache);
     for (auto const &re : mapAccountTx) {
         Tx.push_back(re.second.get()->ToString(view));
     }
@@ -571,7 +571,7 @@ bool CWallet::RemoveKey(const CKey &key) {
     return true;
 }
 
-bool CWallet::IsReadyForCoolMiner(const CAccountCache &view) const {
+bool CWallet::IsReadyForCoolMiner(const CAccountDBCache &view) const {
     CRegID regId;
     for (auto const &item : mapKeys) {
         if (item.second.HaveMinerKey() && view.GetRegId(item.first, regId)) {

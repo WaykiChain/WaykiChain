@@ -7,7 +7,7 @@
 #define COIN_MAIN_H
 
 #if defined(HAVE_CONFIG_H)
-#include "coin-config.h"
+#include "config/coin-config.h"
 #endif
 
 #include <stdint.h>
@@ -19,35 +19,35 @@
 #include <utility>
 #include <vector>
 
+#include "chainparams.h"
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
-#include "chainparams.h"
 #include "net.h"
-#include "sigcache.h"
 #include "persistence/accountdb.h"
 #include "persistence/block.h"
+#include "persistence/blockdb.h"
+#include "persistence/cachewrapper.h"
+#include "persistence/delegatedb.h"
 #include "persistence/dexdb.h"
-#include "tx/txmempool.h"
+#include "persistence/pricefeeddb.h"
+#include "persistence/txdb.h"
+#include "sigcache.h"
 #include "tx/accountregtx.h"
 #include "tx/bcointx.h"
+#include "tx/blockpricemediantx.h"
+#include "tx/blockrewardtx.h"
 #include "tx/contracttx.h"
 #include "tx/delegatetx.h"
-#include "tx/blockrewardtx.h"
-#include "tx/blockpricemediantx.h"
 #include "tx/fcointx.h"
 #include "tx/mulsigtx.h"
 #include "tx/tx.h"
-#include "persistence/accountdb.h"
-#include "persistence/blockdb.h"
-#include "persistence/delegatedb.h"
-#include "persistence/txdb.h"
-#include "persistence/cachewrapper.h"
+#include "tx/txmempool.h"
 
 class CBlockIndex;
 class CBloomFilter;
 class CChain;
 class CInv;
-class CAccountCache;
+class CAccountDBCache;
 class CBlockTreeDB;
 
 extern CCriticalSection cs_main;
@@ -114,6 +114,7 @@ static const uint8_t REJECT_DUPLICATE = 0x12;
 static const uint8_t REJECT_NONSTANDARD     = 0x20;
 static const uint8_t REJECT_DUST            = 0x21;
 static const uint8_t REJECT_INSUFFICIENTFEE = 0x22;
+static const uint8_t REJECT_EMPTY_CDPTXCORD = 0x23;
 
 static const uint8_t READ_ACCOUNT_FAIL   = 0X30;
 static const uint8_t WRITE_ACCOUNT_FAIL  = 0X31;
@@ -121,6 +122,8 @@ static const uint8_t UPDATE_ACCOUNT_FAIL = 0X32;
 
 static const uint8_t PRICE_FEED_FAIL  = 0X40;
 static const uint8_t FCOIN_STAKE_FAIL = 0X41;
+static const uint8_t CDP_LIQUIDATE_FAIL = 0X41;
+
 
 static const uint8_t READ_SCRIPT_FAIL  = 0X50;
 static const uint8_t WRITE_SCRIPT_FAIL = 0X51;
@@ -141,9 +144,9 @@ static const int kContractScriptMaxSize                 = 65536;     // 64 KB ma
 static const int kContractArgumentMaxSize               = 4096;      // 4 KB max for contract argument size
 static const int kCommonTxMemoMaxSize                   = 100;       // 100 bytes max for memo size
 static const int kContractMemoMaxSize                   = 100;       // 100 bytes max for memo size
-static const int kMostRecentBlockNumberThreshold        = 1000;      // most recent block number threshold
+static const int kMostRecentBlockNumberLimit            = 1000;      // most recent block number limit
 
-static const int kMultisigNumberThreshold               = 15;        // m-n multisig, refer to n
+static const int kMultisigNumberLimit                   = 15;        // m-n multisig, refer to n
 static const int KMultisigScriptMaxSize                 = 1000;      // multisig script max size
 static const int kRegIdMaturePeriodByBlock              = 100;       // RegId's mature period measured by blocks
 
@@ -155,6 +158,8 @@ static const uint16_t kSettleServiceRegisterTxIndex     = 3;
 const uint16_t kMaxMinedBlocks                          = 100;      // maximun cache size for mined blocks
 
 static const string kContractScriptPathPrefix           = "/tmp/lua/";
+
+static const CRegID FcoinGenesisRegId(kFcoinGenesisTxHeight, kFcoinGenesisIssueTxIndex);
 
 extern CTxMemPool mempool;
 extern map<uint256, CBlockIndex *> mapBlockIndex;
@@ -202,9 +207,9 @@ unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
 /** Format a string that describes several potential problems detected by the core */
 string GetWarnings(string strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
-bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CContractCache &scriptDBCache, bool bSearchMempool = true);
+bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CContractDBCache &scriptDBCache, bool bSearchMempool = true);
 /** Retrieve a transaction height comfirmed in block*/
-int GetTxConfirmHeight(const uint256 &hash, CContractCache &scriptDBCache);
+int GetTxConfirmHeight(const uint256 &hash, CContractDBCache &scriptDBCache);
 
 /** Abort with a message */
 bool AbortNode(const string &msg);
@@ -309,25 +314,25 @@ public:
 class CCacheDBManager {
 public:
     CDBAccess           *pAccountDb;
-    CAccountCache       *pAccountCache;
+    CAccountDBCache     *pAccountCache;
 
     CDBAccess           *pContractDb;
-    CContractCache      *pContractCache;
+    CContractDBCache    *pContractCache;
 
     CDBAccess           *pDelegateDb;
-    CDelegateCache      *pDelegateCache;
+    CDelegateDBCache    *pDelegateCache;
 
     CDBAccess           *pCdpDb;
-    CCdpCacheManager    *pCdpCache;
+    CCdpDBCache         *pCdpCache;
 
-    CDexCache           *pDexCache;
+    CDexDBCache         *pDexCache;
 
     CBlockTreeDB        *pBlockTreeDb;
 
     CTxMemCache         *pTxCache;
-    CPricePointCache    *pPpCache;
+    CPricePointMemCache *pPpCache;
 
-    uint64_t            collateralRatioMin = 200; //minimum collateral ratio
+    uint64_t            initialCollateralRatioMin = 200; //minimum collateral ratio
 
 public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache, size_t nContractDBCache,
@@ -337,21 +342,21 @@ public:
         pBlockTreeDb = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
 
         pAccountDb      = new CDBAccess(DBNameType::ACCOUNT, nAccountDBCache, false, fReIndex);
-        pAccountCache   = new CAccountCache(pAccountDb);
+        pAccountCache   = new CAccountDBCache(pAccountDb);
 
         pContractDb     = new CDBAccess(DBNameType::CONTRACT, nContractDBCache, false, fReIndex);
-        pContractCache  = new CContractCache(pContractDb);
+        pContractCache  = new CContractDBCache(pContractDb);
 
         pDelegateDb     = new CDBAccess(DBNameType::DELEGATE, nDelegateDBCache, false, fReIndex);
-        pDelegateCache  = new CDelegateCache(pDelegateDb);
+        pDelegateCache  = new CDelegateDBCache(pDelegateDb);
 
         pCdpDb          = new CDBAccess(DBNameType::CDP, nAccountDBCache, false, fReIndex); //TODO fix cache size
-        pCdpCache       = new CCdpCacheManager(pCdpDb);
+        pCdpCache       = new CCdpDBCache(pCdpDb);
 
-        pDexCache       = new CDexCache();
+        pDexCache       = new CDexDBCache();
 
         pTxCache        = new CTxMemCache();
-        pPpCache        = new CPricePointCache();
+        pPpCache        = new CPricePointMemCache();
 
     }
 
@@ -722,10 +727,21 @@ bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos);
 bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block);
 bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block);
 
+
+bool ReadBaseTxFromDisk(const CTxCord txCord, std::shared_ptr<CBaseTx> &pTx);
+
 template<typename TxType>
 bool ReadTxFromDisk(const CTxCord txCord, std::shared_ptr<TxType> &pTx) {
-    // TODO: ReadTxFromDisk
-    return false;
+    std::shared_ptr<CBaseTx> pBaseTx;
+    if (!ReadBaseTxFromDisk(txCord, pBaseTx)) {
+        return ERRORMSG("ReadTxFromDisk failed! txcord(%s)", txCord.ToString());
+    }
+    if (typeid(*pBaseTx) != typeid(TxType)) {
+        return ERRORMSG("The expected tx(%s) type is %s, but read tx type is %s",
+            txCord.ToString(), typeid(TxType).name(), typeid(*pBaseTx).name());
+    }
+    pTx = dynamic_pointer_cast<TxType>(pBaseTx);
+    return true;
 }
 
 // global overloadding fun
@@ -791,7 +807,7 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
         string sTxType(1, nTxType);
         throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error.");
     }
-    pa->nTxType = nTxType;
+    pa->nTxType = TxType(nTxType);
 }
 
 #endif

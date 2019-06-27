@@ -120,7 +120,7 @@ AC_ARG_ENABLE([glibc-back-compat],
 
 
 AC_CONFIG_SRCDIR([src])
-AC_CONFIG_HEADERS([src/coin-config.h])
+AC_CONFIG_HEADERS([src/config/coin-config.h])
 
 dnl Checks for programs.
 AC_PROG_CXX
@@ -585,7 +585,7 @@ else
     AC_CHECK_LIB([event_pthreads],[main],EVENT_PTHREADS_LIBS=-levent_pthreads,AC_MSG_ERROR(libevent_pthreads missing))
   fi
 
-  
+
 fi
 
 AC_MSG_CHECKING([whether to build bitcoind])

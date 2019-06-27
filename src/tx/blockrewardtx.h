@@ -44,7 +44,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << txUid << VARINT(rewardValue) << VARINT(nHeight);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << txUid << VARINT(rewardValue) << VARINT(nHeight);
             sigHash = ss.GetHash();
         }
 
@@ -56,8 +56,8 @@ public:
     uint64_t GetFee() const { return 0; }
     double GetPriority() const { return 0.0f; }
 
-    virtual string ToString(CAccountCache &accountCache);
-    virtual Object ToJson(const CAccountCache &accountCache) const;
+    virtual string ToString(CAccountDBCache &accountCache);
+    virtual Object ToJson(const CAccountDBCache &accountCache) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);

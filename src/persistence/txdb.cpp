@@ -19,11 +19,11 @@ bool CTxMemCache::IsContainBlock(const CBlock &block) {
 }
 
 bool CTxMemCache::AddBlockToCache(const CBlock &block) {
-    UnorderedHashSet vTxHash;
+    UnorderedHashSet txids;
     for (auto &ptx : block.vptx) {
-        vTxHash.insert(ptx->GetHash());
+        txids.insert(ptx->GetHash());
     }
-    mapBlockTxHashSet[block.GetHash()] = vTxHash;
+    mapBlockTxHashSet[block.GetHash()] = txids;
 
     return true;
 }
@@ -52,7 +52,7 @@ bool CTxMemCache::HaveTx(const uint256 &txHash) {
 
 void CTxMemCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn) {
     // If the value is empty, delete it from cache.
-    for (auto &item : mapBlockTxHashSetIn) {
+    for (const auto &item : mapBlockTxHashSetIn) {
         if (item.second.empty()) {
             mapBlockTxHashSet.erase(item.first);
         } else {
@@ -104,71 +104,12 @@ void CTxMemCache::SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache)
     mapBlockTxHashSet = mapCache;
 }
 
-/****************************************************************************************************/
-void CConsecutiveBlockPrice::AddUserPrice(const int height, const CUserID &txUid, const uint64_t price) {
-    mapBlockUserPrices[ height ][ txUid.ToString() ] = price;
-}
-
-uint64_t CConsecutiveBlockPrice::ComputeBlockMedianPrice(const int blockHeight) {
-    if (mapBlockUserPrices.count(blockHeight) == 0 ||
-        mapBlockUserPrices[ blockHeight ].size() == 0) {
-        currBlockMediaPrice = lastBlockMediaPrice;
-        return currBlockMediaPrice;
-    }
-
-    vector<uint64_t> prices;
-    if (mapBlockUserPrices.count(blockHeight - 1) != 0) {
-        for (auto userPrice : mapBlockUserPrices[ blockHeight - 1 ]) {
-            prices.push_back(userPrice.second);
-        }
-    }
-    if (mapBlockUserPrices.count(blockHeight) != 0) {
-        for (auto userPrice : mapBlockUserPrices[ blockHeight ]) {
-                prices.push_back(userPrice.second);
-        }
-    }
-    return ComputeMedianNumber(prices);
-}
-
-bool CConsecutiveBlockPrice::ExistBlockUserPrice(const int height, const CUserID &txUid) {
-    if (mapBlockUserPrices.count(height) == 0)
-        return false;
-
-    return mapBlockUserPrices[ height ].count( txUid.ToString() );
-}
-
-uint64_t CConsecutiveBlockPrice::ComputeMedianNumber(vector<uint64_t> &numbers) {
-    unsigned int size = numbers.size();
-    sort(numbers.begin(), numbers.end());
-    return (size % 2 == 0) ? (numbers[size/2 - 1] + numbers[size/2]) / 2 : numbers[size/2];
-}
-
-/****************************************************************************************************/
-bool CPricePointCache::AddBlockPricePointInBatch(const int blockHeight,
-        const CUserID &txUid, const vector<CPricePoint> &pps) {
-    for (CPricePoint pp : pps ) {
-        CConsecutiveBlockPrice cbp = mapCoinPricePointCache[ pp.GetCoinPriceType().ToString() ];
-        if (cbp.ExistBlockUserPrice(blockHeight, txUid))
-            return false;
-
-        cbp.AddUserPrice(blockHeight, txUid, pp.GetPrice());
-    }
-
-    return true;
-}
-
-uint64_t CPricePointCache::ComputeBlockMedianPrice(const int blockHeight, CCoinPriceType coinPriceType) {
-    CConsecutiveBlockPrice cbp = mapCoinPricePointCache[ coinPriceType.ToString() ];
-    uint64_t medianPrice = cbp.ComputeBlockMedianPrice(blockHeight);
-    return medianPrice;
-}
-
 string CTxUndo::ToString() const {
     string str;
-    string strTxHash("txid:");
-    strTxHash += txHash.GetHex();
+    string strTxid("txid:");
+    strTxid += txHash.GetHex();
 
-    str += strTxHash + "\n";
+    str += strTxid + "\n";
 
     string strAccountLog("list account log:");
     for (auto iterLog : accountLogs) {
@@ -178,14 +119,14 @@ string CTxUndo::ToString() const {
 
     str += strAccountLog + "\n";
 
-    string strDBOperLog("list LDB Oplog:");
-    str += "list LDB Oplog:" + dbOpLogsMap.ToString();
+    str += "list db log:" + dbOpLogMap.ToString();
+
     return str;
 }
 
 bool CTxUndo::GetAccountLog(const CKeyID &keyId, CAccountLog &accountLog) {
     for (auto iterLog : accountLogs) {
-        if (iterLog.keyID == keyId) {
+        if (iterLog.keyId == keyId) {
             accountLog = iterLog;
             return true;
         }

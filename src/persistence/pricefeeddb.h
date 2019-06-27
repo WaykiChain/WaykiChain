@@ -6,42 +6,65 @@
 #ifndef PERSIST_PRICEFEED_H
 #define PERSIST_PRICEFEED_H
 
-#include "commons/uint256.h"
-#include "tx/scointx.h"
+#include "accounts/account.h"
+#include "accounts/id.h"
+#include "block.h"
+#include "commons/serialize.h"
+#include "tx/tx.h"
 
-#include <set>
+#include <map>
 #include <string>
+#include <vector>
 
 using namespace std;
 
-// typedef vector<unsigned char> unsigned_vector;
+class CConsecutiveBlockPrice;
 
-struct PriceFeed {
-    uint64_t blockHeight;
-    uint256 txid;
-    unsigned char coinType;
-    unsigned char priceType;
-    uint64_t price;
-};
+typedef map<int /* block height */, map<CRegID, uint64_t /* price */>> BlockUserPriceMap;
+typedef map<CCoinPriceType, CConsecutiveBlockPrice> CoinPricePointMap;
 
-class CPriceFeedCache {
-private:
-    set<uint64_t>> baseCoinPriceFeeds;      // memory only
-    set<uint64_t>> stableCoinPriceFeeds;    // memory only
-    set<uint64_t>> fundCoinPriceFeeds;      // memory only
+// Price Points in 11 consecutive blocks
+class CConsecutiveBlockPrice {
+public:
+    void AddUserPrice(const int blockHeight, const CRegID &regId, const uint64_t price);
+    // delete user price by specific block height.
+    void DeleteUserPrice(const int blockHeight);
+    bool ExistBlockUserPrice(const int blockHeight, const CRegID &regId);
 
 public:
-    uint64_6 ComputeMedianPrice(CoinType cointype, PriceType priceType);
-
-    /**
-     * Usage: Flush median coin price into DB: {coinType}_{priceType} -> {medianPrice}
-     */
-    bool Flush();
-
+    BlockUserPriceMap mapBlockUserPrices;
 };
 
-class CPriceFeedDB {
+class CPricePointMemCache {
+public:
+    CPricePointMemCache() : pBase(nullptr) {}
+    CPricePointMemCache(CPricePointMemCache *pBaseIn) : pBase(pBaseIn) {}
 
+public:
+    bool AddBlockPricePointInBatch(const int blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
+    bool AddBlockToCache(const CBlock &block);
+    // delete block price point by specific block height.
+    bool DeleteBlockPricePoint(const int blockHeight);
+    bool DeleteBlockFromCache(const CBlock &block);
+
+    uint64_t GetBcoinMedianPrice();
+    uint64_t GetFcoinMedianPrice();
+
+    void Flush();
+
+private:
+    void BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn);
+
+    bool GetBlockUserPrices(CCoinPriceType coinPriceType, set<int> &expired, BlockUserPriceMap &blockUserPrices);
+    bool GetBlockUserPrices(CCoinPriceType coinPriceType, BlockUserPriceMap &blockUserPrices);
+
+    uint64_t ComputeBlockMedianPrice(const int blockHeight, const CCoinPriceType &coinPriceType);
+    uint64_t ComputeBlockMedianPrice(const int blockHeight, const BlockUserPriceMap &blockUserPrices);
+    static uint64_t ComputeMedianNumber(vector<uint64_t> &numbers);
+
+private:
+    CoinPricePointMap mapCoinPricePointCache;  // coinPriceType -> consecutiveBlockPrice
+    CPricePointMemCache *pBase;
 };
 
 #endif  // PERSIST_PRICEFEED_H

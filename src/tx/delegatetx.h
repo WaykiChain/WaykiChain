@@ -59,7 +59,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
                 << candidateVotes << VARINT(llFees);
 
             sigHash = ss.GetHash();
@@ -73,8 +73,8 @@ public:
     virtual uint64_t GetValue() const { return 0; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDelegateVoteTx>(this); }
-    virtual string ToString(CAccountCache &view);
-    virtual Object ToJson(const CAccountCache &accountView) const;
+    virtual string ToString(CAccountDBCache &accountCache);
+    virtual Object ToJson(const CAccountDBCache &accountCache) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);

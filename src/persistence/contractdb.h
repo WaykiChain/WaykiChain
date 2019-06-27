@@ -42,8 +42,8 @@ public:
 
     // virtual bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) = 0;
     // virtual bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB) = 0;
-    // virtual bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CDbOpLog &operLog) = 0;
-    // virtual bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput) = 0;
+    // virtual bool WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDbOpLog &operLog) = 0;
+    // virtual bool GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOutput) = 0;
     virtual bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash) = 0;
     virtual bool GetAllContractAcc(const CRegID &scriptId, map<string, string > &mapAcc) = 0;
 
@@ -51,11 +51,11 @@ public:
 };
 */
 
-class CContractCache {
+class CContractDBCache {
 public:
-    CContractCache() {}
+    CContractDBCache() {}
 
-    CContractCache(CDBAccess *pDbAccess):
+    CContractDBCache(CDBAccess *pDbAccess):
         scriptCache(pDbAccess),
         txOutputCache(pDbAccess),
         acctTxListCache(pDbAccess),
@@ -67,7 +67,7 @@ public:
         assert(pDbAccess->GetDbNameType() == DBNameType::CONTRACT);
     };
 
-    CContractCache(CContractCache *pBaseIn):
+    CContractDBCache(CContractDBCache *pBaseIn):
         scriptCache(pBaseIn->scriptCache),
         txOutputCache(pBaseIn->txOutputCache),
         acctTxListCache(pBaseIn->acctTxListCache),
@@ -79,23 +79,25 @@ public:
 
     bool GetScript(const CRegID &scriptId, string &value);
     bool GetScript(const int nIndex, CRegID &scriptId, string &value);
+
     bool GetScriptAcc(const CRegID &scriptId, const string &key, CAppUserAccount &appAccOut);
-    bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CDbOpLog &operlog);
+    bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CDBOpLogMap &dbOpLogMap);
     bool EraseScriptAcc(const CRegID &scriptId, const string &key);
+    bool UndoScriptAcc(CDBOpLogMap &dbOpLogMap);
+
     bool SetScript(const CRegID &scriptId, const string &value);
     bool HaveScript(const CRegID &scriptId);
     bool EraseScript(const CRegID &scriptId);
     bool GetContractItemCount(const CRegID &scriptId, int &nCount);
-    bool EraseAppData(const CRegID &scriptId, const string &contractKey, CDbOpLog &operLog);
     bool HaveScriptData(const CRegID &scriptId, const string &contractKey);
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const string &contractKey,
                          string &vScriptData);
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
                          string &contractKey, string &vScriptData);
     bool SetContractData(const CRegID &scriptId, const string &contractKey,
-                         const string &vScriptData, CDbOpLog &operLog);
-
-    bool UndoData(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs);
+                         const string &vScriptData, CDBOpLogMap &dbOpLogMap);
+    bool EraseContractData(const CRegID &scriptId, const string &contractKey, CDBOpLogMap &dbOpLogMap);
+    bool UndoContractData(CDBOpLogMap &dbOpLogMap);
 
     /**
      * @brief Get all number of scripts in scriptdb
@@ -116,9 +118,9 @@ public:
     Object ToJsonObj() const;
 //	IContractView * GetBaseScriptDB() { return pBase; }
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogsMap &dbOpLogsMap);
+    bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap);
 
-    void SetBaseView(CContractCache *pBaseIn) {
+    void SetBaseView(CContractDBCache *pBaseIn) {
         scriptCache.SetBase(&pBaseIn->scriptCache);
         txOutputCache.SetBase(&pBaseIn->txOutputCache);
         acctTxListCache.SetBase(&pBaseIn->acctTxListCache);
@@ -130,11 +132,14 @@ public:
      }
 
     string ToString();
-    bool WriteTxOutPut(const uint256 &txid, const vector<CVmOperate> &vOutput, CDbOpLog &operLog);
-    bool ReadTxOutPut(const uint256 &txid, vector<CVmOperate> &vOutput);
+
+    bool WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLogMap &dbOpLogMap);
+    bool GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOutput);
+    bool UndoTxOutput(CDBOpLogMap &dbOpLogMap);
+
     bool GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string > &mapTxHash);
-    bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid, CDbOpLog &operLog);
-    bool UndoTxHashByAddress(CDBOpLogsMap &dbOpLogsMap);
+    bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid, CDBOpLogMap &dbOpLogMap);
+    bool UndoTxHashByAddress(CDBOpLogMap &dbOpLogMap);
     bool GetAllContractAcc(const CRegID &scriptId, map<string, string > &mapAcc);
 
 private:
@@ -205,9 +210,9 @@ private:
      * @param vScriptKey must be 8 bytes
      * @return true if delete succeed, otherwise false
      */
-    bool EraseAppData(const string &contractRegId, const string &contractKey, CDbOpLog &operLog);
+    bool EraseContractData(const string &contractRegId, const string &contractKey, CDBOpLogMap &dbOpLogMap);
 
-    bool EraseAppData(const string &key);
+    bool EraseContractData(const string &key);
     /**
      * @brief Detect if scriptdb contains the item of script's data by scriptid and scriptkey
      * @param vScriptId
@@ -245,7 +250,7 @@ private:
      * @return true if save succeed, otherwise false
      */
     bool SetContractData(const string &contractRegId, const string &contractKey,
-                         const string &vScriptData, CDbOpLog &operLog);
+                         const string &vScriptData, CDBOpLogMap &dbOpLogMap);
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */

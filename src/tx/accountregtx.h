@@ -45,7 +45,7 @@ public:
                    (minerUid.type() == typeid(CPubKey) || minerUid.type() == typeid(CNullID)));
 
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid << minerUid << VARINT(llFees);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << minerUid << VARINT(llFees);
 
             sigHash = ss.GetHash();
         }
@@ -54,8 +54,8 @@ public:
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CAccountRegisterTx>(this); }
-    virtual string ToString(CAccountCache &view);
-    virtual Object ToJson(const CAccountCache &AccountView) const;
+    virtual string ToString(CAccountDBCache &view);
+    virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper& cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int nHeight, CCacheWrapper& cw, CValidationState &state);

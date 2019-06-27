@@ -223,7 +223,7 @@ static void ReportBurnState(lua_State *L, CVmRunEnv *pVmRunEnv) {
              " fuelStore=%llu,"
              " fuelAccount=%llu"
              " fuelFunction=%llu\n",
-             pVmRunEnv->GetCurTxHash().ToString().c_str(),
+             pVmRunEnv->GetCurTxHash().ToString(),
              burnerState->version,
              burnerState->fuelLimit,
              lua_GetBurnedFuel(L),

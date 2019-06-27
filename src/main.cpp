@@ -688,7 +688,7 @@ int CMerkleTx::GetBlocksToMaturity() const {
     return max(0, (COINBASE_MATURITY + 1) - GetDepthInMainChain());
 }
 
-int GetTxConfirmHeight(const uint256 &hash, CContractCache &scriptDBCache) {
+int GetTxConfirmHeight(const uint256 &hash, CContractDBCache &scriptDBCache) {
     if (SysCfg().IsTxIndex()) {
         CDiskTxPos postx;
         if (scriptDBCache.ReadTxIndex(hash, postx)) {
@@ -708,7 +708,7 @@ int GetTxConfirmHeight(const uint256 &hash, CContractCache &scriptDBCache) {
 }
 
 // Return transaction in tx, and if it was found inside a block, its hash is placed in blockHash
-bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CContractCache &scriptDBCache,
+bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CContractDBCache &scriptDBCache,
                     bool bSearchMemPool) {
     {
         LOCK(cs_main);
@@ -798,6 +798,22 @@ bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block) {
     if (block.GetHash() != pIndex->GetBlockHash())
         return ERRORMSG("ReadBlockFromDisk(CBlock&, CBlockIndex*) : GetHash() doesn't match index");
 
+    return true;
+}
+
+bool ReadBaseTxFromDisk(const CTxCord txCord, std::shared_ptr<CBaseTx> &pTx) {
+    auto pBlock = std::make_shared<CBlock>();
+    const CBlockIndex* pBlockIndex = chainActive[txCord.GetHeight()];
+    if (pBlockIndex == nullptr) {
+        return ERRORMSG("ReadBaseTxFromDisk error, the height(%d) is exceed current best block height", txCord.GetHeight());
+    }
+    if (!ReadBlockFromDisk(pBlockIndex, *pBlock)) {
+        return ERRORMSG("ReadBaseTxFromDisk error, read the block at height(%d) failed!", txCord.GetHeight());
+    }
+    if (txCord.GetIndex() >= pBlock->vptx.size()) {
+        return ERRORMSG("ReadBaseTxFromDisk error, the tx(%s) index exceed the tx count of block", txCord.ToString());
+    }
+    pTx = pBlock->vptx.at(txCord.GetIndex())->GetNewInstance();
     return true;
 }
 
@@ -1155,22 +1171,51 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
     // Set previous block as the best block
     cw.accountCache.SetBestBlock(pIndex->pprev->GetBlockHash());
 
-    if (!cw.txCache.DeleteBlockFromCache(block))
-        return state.Abort(_("DisconnectBlock() : failed to delete block from cache"));
+    // Delete the disconnected block's transactions from transaction memory cache.
+    if (!cw.txCache.DeleteBlockFromCache(block)) {
+        return state.Abort(_("DisconnectBlock() : failed to delete block from transaction memory cache"));
+    }
 
-    // Load txs into cache
+    // Load transactions into transaction memory cache.
     if (pIndex->nHeight > SysCfg().GetTxCacheHeight()) {
         CBlockIndex *pReLoadBlockIndex = pIndex;
         int nCacheHeight               = SysCfg().GetTxCacheHeight();
         while (pReLoadBlockIndex && nCacheHeight-- > 0) {
             pReLoadBlockIndex = pReLoadBlockIndex->pprev;
         }
-        CBlock reLoadblock;
-        if (!ReadBlockFromDisk(pReLoadBlockIndex, reLoadblock))
-            return state.Abort(_("DisconnectBlock() : Failed to read block"));
 
-        if (!cw.txCache.AddBlockToCache(reLoadblock))
-            return state.Abort(_("DisconnectBlock() : failed to reload all txs into cache"));
+        CBlock reLoadblock;
+        if (!ReadBlockFromDisk(pReLoadBlockIndex, reLoadblock)) {
+            return state.Abort(_("DisconnectBlock() : failed to read block"));
+        }
+
+        if (!cw.txCache.AddBlockToCache(reLoadblock)) {
+            return state.Abort(_("DisconnectBlock() : failed to add block into transaction memory cache"));
+        }
+    }
+
+    // Delete the disconnected block's pricefeed items from price point memory cache.
+    if (!cw.ppCache.DeleteBlockFromCache(block)) {
+        return state.Abort(_("DisconnectBlock() : failed to delete block from price point memory cache"));
+    }
+
+    // Load price points into price point memory cache.
+    // TODO: parameterize 11.
+    if (pIndex->nHeight > 11) {
+        CBlockIndex *pReLoadBlockIndex = pIndex;
+        int nCacheHeight               = 11;
+        while (pReLoadBlockIndex && nCacheHeight-- > 0) {
+            pReLoadBlockIndex = pReLoadBlockIndex->pprev;
+        }
+
+        CBlock reLoadblock;
+        if (!ReadBlockFromDisk(pReLoadBlockIndex, reLoadblock)) {
+            return state.Abort(_("DisconnectBlock() : failed to read block"));
+        }
+
+        if (!cw.ppCache.AddBlockToCache(reLoadblock)) {
+            return state.Abort(_("DisconnectBlock() : failed to add block into price point memory cache"));
+        }
     }
 
     if (pfClean) {
@@ -1246,20 +1291,20 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
     for (unsigned int i = 1; i < block.vptx.size(); i++) {
         if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
             assert(i <= 1);
-            std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[i]);
+            CBlockRewardTx *pRewardTx = (CBlockRewardTx *)block.vptx[i].get();
             CAccount account;
             CRegID regId(pIndex->nHeight, i);
             CPubKey pubKey       = pRewardTx->txUid.get<CPubKey>();
             CKeyID keyId         = pubKey.GetKeyId();
-            account.nickID = CNickID();
-            account.keyID  = keyId;
+            account.nickId = CNickID();
+            account.keyId  = keyId;
             account.pubKey = pubKey;
-            account.regID  = regId;
+            account.regId  = regId;
             account.bcoins = pRewardTx->rewardValue;
 
             assert(cw.accountCache.SaveAccount(account));
         } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
-            std::shared_ptr<CDelegateVoteTx> pDelegateTx = dynamic_pointer_cast<CDelegateVoteTx>(block.vptx[i]);
+            CDelegateVoteTx *pDelegateTx = (CDelegateVoteTx *)block.vptx[i].get();
             assert(pDelegateTx->txUid.type() == typeid(CRegID));  // Vote Tx must use RegId
 
             CAccount voterAcct;
@@ -1278,7 +1323,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
 
                 if (uid == votedUid) {  // vote for self
                     voterAcct.receivedVotes = vote.GetVotedBcoins();
-                    assert(cw.delegateCache.SetDelegateVotes(voterAcct.regID, voterAcct.receivedVotes));
+                    assert(cw.delegateCache.SetDelegateVotes(voterAcct.regId, voterAcct.receivedVotes));
                 } else {  // vote for others
                     CAccount votedAcct;
                     assert(!cw.accountCache.GetAccount(votedUid, votedAcct));
@@ -1289,11 +1334,11 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
 
                     if (votedUid.type() == typeid(CPubKey)) {
                         votedAcct.pubKey = votedUid.get<CPubKey>();
-                        votedAcct.keyID  = votedAcct.pubKey.GetKeyId();
+                        votedAcct.keyId  = votedAcct.pubKey.GetKeyId();
                     }
 
                     assert(cw.accountCache.SaveAccount(votedAcct));
-                    assert(cw.delegateCache.SetDelegateVotes(votedAcct.regID, votedAcct.receivedVotes));
+                    assert(cw.delegateCache.SetDelegateVotes(votedAcct.regId, votedAcct.receivedVotes));
                 }
 
                 candidateVotes.push_back(vote);
@@ -1305,7 +1350,8 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             assert(voterAcct.bcoins >= maxVotes);
             voterAcct.bcoins -= maxVotes;
             assert(cw.accountCache.SaveAccount(voterAcct));
-            assert(cw.delegateCache.SetCandidateVotes(pDelegateTx->txUid.get<CRegID>(), candidateVotes));
+            assert(cw.delegateCache.SetCandidateVotes(pDelegateTx->txUid.get<CRegID>(),
+                                                      candidateVotes, cw.txUndo.dbOpLogMap));
         }
     }
 
@@ -1323,17 +1369,16 @@ static bool ProcessFundCoinGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlock
 
     for (unsigned int i = 1; i < block.vptx.size(); i++) {
         if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
-            std::shared_ptr<CBlockRewardTx> pRewardTx = dynamic_pointer_cast<CBlockRewardTx>(block.vptx[i]);
-
+            CBlockRewardTx *pRewardTx = (CBlockRewardTx *)(block.vptx[i].get());
             assert(pRewardTx->txUid.type() == typeid(CPubKey));
             CPubKey pubKey = pRewardTx->txUid.get<CPubKey>();
             assert(pubKey == fundCoinGenesisPubKey);
 
             CAccount genesisAccount;
-            genesisAccount.nickID = CNickID();
-            genesisAccount.keyID  = pubKey.GetKeyId();
+            genesisAccount.nickId = CNickID();
+            genesisAccount.keyId  = pubKey.GetKeyId();
             genesisAccount.pubKey = CPubKey();
-            genesisAccount.regID  = CRegID();
+            genesisAccount.regId  = CRegID();
             genesisAccount.fcoins = kTotalFundCoinAmount;
 
             assert(cw.accountCache.SaveAccount(genesisAccount));
@@ -1341,16 +1386,15 @@ static bool ProcessFundCoinGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlock
             CAccount globalFundAccount;
             CRegID regId(pIndex->nHeight, i);
             CKeyID keyId             = Hash160(regId.GetRegIdRaw());
-            globalFundAccount.nickID = CNickID();
-            globalFundAccount.keyID  = keyId;
+            globalFundAccount.nickId = CNickID();
+            globalFundAccount.keyId  = keyId;
             globalFundAccount.pubKey = CPubKey();
-            globalFundAccount.regID  = regId;
+            globalFundAccount.regId  = regId;
             globalFundAccount.scoins = kInitialRiskProvisionScoinCount;
 
             assert(cw.accountCache.SaveAccount(globalFundAccount));
         } else if (block.vptx[i]->nTxType == ACCOUNT_REGISTER_TX) {
-            std::shared_ptr<CAccountRegisterTx> pAccountRegisterTx =
-                dynamic_pointer_cast<CAccountRegisterTx>(block.vptx[i]);
+            CAccountRegisterTx *pAccountRegisterTx = (CAccountRegisterTx *)block.vptx[i].get();
             assert(pAccountRegisterTx->txUid.type() == typeid(CPubKey));
             CPubKey pubKey = pAccountRegisterTx->txUid.get<CPubKey>();
             assert(pubKey == fundCoinGenesisPubKey);
@@ -1358,7 +1402,7 @@ static bool ProcessFundCoinGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlock
             CAccount genesisAccount;
             assert(cw.accountCache.GetAccount(pAccountRegisterTx->txUid, genesisAccount));
             genesisAccount.pubKey = pubKey;
-            genesisAccount.regID  = CRegID(pIndex->nHeight, i);
+            genesisAccount.regId  = CRegID(pIndex->nHeight, i);
 
             assert(cw.accountCache.SaveAccount(genesisAccount));
         }
@@ -1512,7 +1556,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         vector<CDbOpLog> vTxIndexOperDB;
         auto itTxUndo = blockundo.vtxundo.rbegin();
         // TODO: should move to blockTxCache?
-        if (!cw.contractCache.WriteTxIndexes(vPos, itTxUndo->dbOpLogsMap))
+        if (!cw.contractCache.WriteTxIndexes(vPos, itTxUndo->dbOpLogMap))
             return state.Abort(_("Failed to write transaction index"));
         // TODO: must undo these oplogs in DisconnectBlock()
     }
@@ -1522,9 +1566,10 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         if (pIndex->GetUndoPos().IsNull()) {
             CDiskBlockPos pos;
             if (!FindUndoPos(state, pIndex->nFile, pos, ::GetSerializeSize(blockundo, SER_DISK, CLIENT_VERSION) + 40))
-                return ERRORMSG("ConnectBlock() : FindUndoPos failed");
+                return ERRORMSG("ConnectBlock() : failed to find undo data's position");
+
             if (!blockundo.WriteToDisk(pos, pIndex->pprev->GetBlockHash()))
-                return state.Abort(_("Failed to write undo data"));
+                return state.Abort(_("ConnectBlock() : failed to write undo data"));
 
             // Update nUndoPos in block index
             pIndex->nUndoPos = pos.nPos;
@@ -1535,26 +1580,52 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
         CDiskBlockIndex blockindex(pIndex);
         if (!pCdMan->pBlockTreeDb->WriteBlockIndex(blockindex))
-            return state.Abort(_("Failed to write block index"));
+            return state.Abort(_("ConnectBlock() : failed to write block index"));
     }
 
-    if (!cw.txCache.AddBlockToCache(block))
-        return state.Abort(_("Connect tip block failed add block tx to txcache"));
+    if (!cw.txCache.AddBlockToCache(block)) {
+        return state.Abort(_("ConnectBlock() : failed add block into transaction momory cache"));
+    }
 
-    if (pIndex->nHeight - SysCfg().GetTxCacheHeight() > 0) {
+    if (pIndex->nHeight > SysCfg().GetTxCacheHeight()) {
         CBlockIndex *pDeleteBlockIndex = pIndex;
         int nCacheHeight               = SysCfg().GetTxCacheHeight();
         while (pDeleteBlockIndex && nCacheHeight-- > 0) {
             pDeleteBlockIndex = pDeleteBlockIndex->pprev;
         }
+
         CBlock deleteBlock;
-        if (!ReadBlockFromDisk(pDeleteBlockIndex, deleteBlock))
-            return state.Abort(_("Failed to read block"));
-        if (!cw.txCache.DeleteBlockFromCache(deleteBlock))
-            return state.Abort(_("Connect tip block failed delete block tx to txcache"));
+        if (!ReadBlockFromDisk(pDeleteBlockIndex, deleteBlock)) {
+            return state.Abort(_("ConnectBlock() : failed to read block"));
+        }
+
+        if (!cw.txCache.DeleteBlockFromCache(deleteBlock)) {
+            return state.Abort(_("ConnectBlock() : failed delete block from transaction memory cache"));
+        }
     }
 
-    // Add this block to the view's block chain
+    // Attention: should NOT to call AddBlockToCache() for price point memory cache, as everything
+    // is ready when executing transactions.
+
+    // TODO: parameterize 11.
+    if (pIndex->nHeight > 11) {
+        CBlockIndex *pDeleteBlockIndex = pIndex;
+        int nCacheHeight               = 11;
+        while (pDeleteBlockIndex && nCacheHeight-- > 0) {
+            pDeleteBlockIndex = pDeleteBlockIndex->pprev;
+        }
+
+        CBlock deleteBlock;
+        if (!ReadBlockFromDisk(pDeleteBlockIndex, deleteBlock)) {
+            return state.Abort(_("ConnectBlock() : failed to read block"));
+        }
+
+        if (!cw.ppCache.DeleteBlockFromCache(deleteBlock)) {
+            return state.Abort(_("ConnectBlock() : failed delete block from price point memory cache"));
+        }
+    }
+
+    // Set best block to current account cache.
     assert(cw.accountCache.SetBestBlock(pIndex->GetBlockHash()));
     return true;
 }
@@ -1580,7 +1651,7 @@ bool static WriteChainState(CValidationState &state) {
             return state.Abort(_("Failed to write to account database"));
 
         if (!pCdMan->pContractCache->Flush())
-            return state.Abort(_("Failed to write to script db database"));
+            return state.Abort(_("Failed to write to contract database"));
 
         mapForkCache.clear();
         nLastWrite = GetTimeMicros();

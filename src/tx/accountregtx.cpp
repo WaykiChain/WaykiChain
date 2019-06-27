@@ -44,8 +44,8 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s account info error",
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    account.regID = regId;
-    account.keyID = keyId;
+    account.regId = regId;
+    account.keyId = keyId;
 
     CAccountLog acctLog(account);
 
@@ -74,7 +74,7 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
     cw.txUndo.accountLogs.push_back(acctLog);
     cw.txUndo.txHash = GetHash();
 
-   if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid})) return false;
+   if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
     return true;
 }
@@ -103,7 +103,7 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
         CPubKey empPubKey;
         oldAccount.pubKey = empPubKey;
         oldAccount.minerPubKey = empPubKey;
-        oldAccount.regID.Clean();
+        oldAccount.regId.Clean();
         CUserID userId(keyId);
         cw.accountCache.SetAccount(userId, oldAccount);
     } else {
@@ -122,13 +122,13 @@ bool CAccountRegisterTx::GetInvolvedKeyIds(CCacheWrapper & cw, set<CKeyID> &keyI
     return true;
 }
 
-string CAccountRegisterTx::ToString(CAccountCache &view) {
+string CAccountRegisterTx::ToString(CAccountDBCache &view) {
     return strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
-                    GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, txUid.get<CPubKey>().ToString(),
-                    llFees, txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight);
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.get<CPubKey>().ToString(), llFees,
+                     txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight);
 }
 
-Object CAccountRegisterTx::ToJson(const CAccountCache &AccountView) const {
+Object CAccountRegisterTx::ToJson(const CAccountDBCache &AccountView) const {
     assert(txUid.type() == typeid(CPubKey));
     string address = txUid.get<CPubKey>().GetKeyId().ToAddress();
     string userPubKey = txUid.ToString();

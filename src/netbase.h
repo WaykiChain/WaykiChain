@@ -7,7 +7,7 @@
 #define COIN_NETBASE_H
 
 #if defined(HAVE_CONFIG_H)
-#include "coin-config.h"
+#include "config/coin-config.h"
 #endif
 
 #include "commons/serialize.h"

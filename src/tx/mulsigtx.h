@@ -98,7 +98,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight);
             // Do NOT add item.signature.
             for (const auto &item : signaturePairs) {
                 ss << item.regId;
@@ -114,8 +114,8 @@ public:
     virtual uint64_t GetFee() const { return llFees; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CMulsigTx>(this); }
-    virtual string ToString(CAccountCache &view);
-    virtual Object ToJson(const CAccountCache &AccountView) const;
+    virtual string ToString(CAccountDBCache &view);
+    virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);

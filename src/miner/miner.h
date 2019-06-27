@@ -21,9 +21,9 @@ class CBlock;
 class CBlockIndex;
 class CWallet;
 class CBaseTx;
-class CAccountCache;
+class CAccountDBCache;
 class CTxMemCache;
-class CContractCache;
+class CContractDBCache;
 class CAccount;
 
 typedef boost::tuple<double, double, std::shared_ptr<CBaseTx> > TxPriority;
@@ -80,7 +80,7 @@ void IncrementExtraNonce(CBlock *pBlock, CBlockIndex *pIndexPrev, unsigned int &
 /** Do mining precalculation */
 void FormatHashBuffers(CBlock *pBlock, char *pmidstate, char *pdata, char *phash1);
 
-bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountCache &view, CBlock *pBlock);
+bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountDBCache &view, CBlock *pBlock);
 
 void ShuffleDelegates(const int nCurHeight, vector<CRegID> &delegatesList);
 
@@ -96,6 +96,6 @@ int GetElementForBurn(CBlockIndex *pIndex);
 
 void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate);
 
-extern uint256 CreateBlockWithAppointedAddr(CKeyID const &keyID);
+extern uint256 CreateBlockWithAppointedAddr(CKeyID const &keyId);
 
 #endif  // COIN_MINER_H

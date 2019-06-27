@@ -9,7 +9,7 @@
 #include "tx.h"
 
 class CPriceFeedTx : public CBaseTx {
-private:
+public:
     vector<CPricePoint> pricePoints;
 
 public:
@@ -47,7 +47,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
                 << pricePoints;
             sigHash = ss.GetHash();
         }
@@ -56,9 +56,9 @@ public:
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CPriceFeedTx>(this); }
-    virtual double GetPriority() const { return 10000.0f; } // Top priority
-    virtual string ToString(CAccountCache &view); //logging usage
-    virtual Object ToJson(const CAccountCache &view) const; //json-rpc usage
+    virtual double GetPriority() const { return 10000.0f; }  // Top priority
+    virtual string ToString(CAccountDBCache &view);            // logging usage
+    virtual Object ToJson(const CAccountDBCache &view) const;  // json-rpc usage
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);

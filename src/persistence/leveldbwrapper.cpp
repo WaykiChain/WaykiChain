@@ -27,7 +27,7 @@ void ThrowError(const leveldb::Status &status) {
     throw leveldb_error("Unknown database error");
 }
 
-std::string CDBOpLogsMap::ToString() const {
+std::string CDBOpLogMap::ToString() const {
     std::string str = "";
     for (auto itemOpLogs : mapDbOpLogs) {
         str += strprintf("type:%s {", itemOpLogs.first);

@@ -16,7 +16,7 @@
 #include "key.h"
 #include "crypto/hash.h"
 
-class CAccountCache;
+class CAccountDBCache;
 class CUserID;
 class CUserID;
 
@@ -54,7 +54,7 @@ public:
     }
 
     void SetRegID(const vector<unsigned char> &vIn);
-    CKeyID GetKeyId(const CAccountCache &view) const;
+    CKeyID GetKeyId(const CAccountDBCache &view) const;
     uint32_t GetHeight() const { return nHeight; }
     uint16_t GetIndex() const { return nIndex; }
     bool operator==(const CRegID &other) const { return (this->nHeight == other.nHeight && this->nIndex == other.nIndex); }
@@ -64,6 +64,7 @@ public:
     static bool IsRegIdStr(const string &str);
     static bool GetKeyId(const string &str, CKeyID &keyId);
     bool IsEmpty() const { return (nHeight == 0 && nIndex == 0); };
+    void SetEmpty() { Clean(); }
     bool Clean();
     string ToString() const;
 

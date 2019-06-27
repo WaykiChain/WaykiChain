@@ -91,7 +91,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
 
                     if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
                         vector<CVmOperate> vOutput;
-                        pCdMan->pContractCache->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
+                        pCdMan->pContractCache->GetTxOutput(pBaseTx->GetHash(), vOutput);
                         Array outputArray;
                         for (auto& item : vOutput) {
                             outputArray.push_back(item.ToJson());
@@ -221,7 +221,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             arrayDetail.push_back(objRec);
 
             vector<CVmOperate> vOutput;
-            pCdMan->pContractCache->ReadTxOutPut(pBaseTx->GetHash(), vOutput);
+            pCdMan->pContractCache->GetTxOutput(pBaseTx->GetHash(), vOutput);
             Array outputArray;
             for (auto& item : vOutput) {
                 Object objOutPut;
@@ -470,7 +470,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
     {
         EnsureWalletIsUnlocked();
 
-        CAccountCache view(*pCdMan->pAccountCache);
+        CAccountDBCache view(*pCdMan->pAccountCache);
         CAccount account;
         CUserID userId = keyId;
         if (!pCdMan->pAccountCache->GetAccount(userId, account))
@@ -707,7 +707,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     CContractDeployTx tx;
     {
         EnsureWalletIsUnlocked();
-        CAccountCache view(*pCdMan->pAccountCache);
+        CAccountDBCache view(*pCdMan->pAccountCache);
         CAccount account;
 
         uint64_t balance = 0;
@@ -806,7 +806,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     assert(pWalletMain != NULL);
     {
         EnsureWalletIsUnlocked();
-        CAccountCache view(*pCdMan->pAccountCache);
+        CAccountDBCache view(*pCdMan->pAccountCache);
         CAccount account;
 
         CUserID userId = keyId;
@@ -833,7 +833,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
         } else {
             delegateVoteTx.nValidHeight = chainActive.Tip()->nHeight;
         }
-        delegateVoteTx.txUid = account.regID;
+        delegateVoteTx.txUid = account.regId;
 
         for (auto objVote : arrVotes) {
 
@@ -855,7 +855,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             }
 
             VoteType voteType = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN : VoteType::MINUS_BCOIN;
-            CUserID candidateUid = CUserID(delegateAcct.keyID);
+            CUserID candidateUid = CUserID(delegateAcct.keyId);
             uint64_t bcoins = (uint64_t)abs(delegateVotes.get_int64());
             CCandidateVote candidateVote(voteType, candidateUid, bcoins);
 
@@ -931,7 +931,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
     assert(pWalletMain != NULL);
     {
         EnsureWalletIsUnlocked();
-        CAccountCache view(*pCdMan->pAccountCache);
+        CAccountDBCache view(*pCdMan->pAccountCache);
         CAccount account;
 
         CUserID userId = keyId;
@@ -954,7 +954,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
 
         delegateVoteTx.llFees       = fee;
         delegateVoteTx.nValidHeight = nHeight;
-        delegateVoteTx.txUid        = account.regID;
+        delegateVoteTx.txUid        = account.regId;
 
         for (auto objVote : arrVotes) {
 
@@ -975,7 +975,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             }
 
             VoteType voteType = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN: VoteType::MINUS_BCOIN;
-            CUserID candidateUid = CUserID(delegateAcct.keyID);
+            CUserID candidateUid = CUserID(delegateAcct.keyId);
             uint64_t bcoins = (uint64_t)abs(delegateVotes.get_int64());
             CCandidateVote candidateVote(voteType, candidateUid, bcoins);
 
@@ -1016,7 +1016,7 @@ Value listaddr(const Array& params, bool fHelp) {
         if (setKeyId.size() == 0) {
             return retArray;
         }
-        CAccountCache accView(*pCdMan->pAccountCache);
+        CAccountDBCache accView(*pCdMan->pAccountCache);
 
         for (const auto &keyId : setKeyId) {
             CUserID userId(keyId);
@@ -1029,7 +1029,7 @@ Value listaddr(const Array& params, bool fHelp) {
             obj.push_back(Pair("addr", keyId.ToAddress()));
             obj.push_back(Pair("balance", (double)acctInfo.GetFreeBcoins()/ (double) COIN));
             obj.push_back(Pair("hasminerkey", keyCombi.HaveMinerKey()));
-            obj.push_back(Pair("regid",acctInfo.regID.ToString()));
+            obj.push_back(Pair("regid",acctInfo.regId.ToString()));
             retArray.push_back(obj);
         }
     }
@@ -1287,7 +1287,7 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
 
     int txnCount(0);
     int nIndex(0);
-    CAccountCache accView(*pCdMan->pAccountCache);
+    CAccountDBCache accView(*pCdMan->pAccountCache);
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         for (auto const & item : wtx.second.mapAccountTx) {
             Object obj;
@@ -1402,7 +1402,7 @@ Value listcontracttx(const Array& params, bool fHelp)
                 CKeyID keyId;
                 Object obj;
 
-                CAccountCache accView(*pCdMan->pAccountCache);
+                CAccountDBCache accView(*pCdMan->pAccountCache);
                 obj.push_back(Pair("hash", ptx->GetHash().GetHex()));
                 obj.push_back(Pair("regid",  getregidstring(ptx->txUid)));
                 pCdMan->pAccountCache->GetKeyId(ptx->txUid, keyId);
@@ -1478,7 +1478,7 @@ if (fHelp || params.size() > 2) {
         }
     }
     retObj.push_back(Pair("ConfirmTx", ConfirmTxArry));
-    //CAccountCache view(*pCdMan->pAccountCache);
+    //CAccountDBCache view(*pCdMan->pAccountCache);
     Array UnConfirmTxArry;
     for (auto const &wtx : pWalletMain->unconfirmedTx) {
         UnConfirmTxArry.push_back(wtx.first.GetHex());
@@ -1520,7 +1520,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 if (pWalletMain->GetPubKey(keyId, pk)) {
                     pWalletMain->GetPubKey(keyId, minerpk, true);
                     account.pubKey = pk;
-                    account.keyID  = pk.GetKeyId();
+                    account.keyId  = pk.GetKeyId();
                     if (pk != minerpk && !account.minerPubKey.IsValid()) {
                         account.minerPubKey = minerpk;
                     }
@@ -1534,7 +1534,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             if (pWalletMain->GetPubKey(keyId, pk)) {
                 pWalletMain->GetPubKey(keyId, minerpk, true);
                 account.pubKey = pk;
-                account.keyID  = pk.GetKeyId();
+                account.keyId  = pk.GetKeyId();
                 if (minerpk != pk) {
                     account.minerPubKey = minerpk;
                 }
@@ -1561,7 +1561,7 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
     }
 
     Object retObj;
-    CAccountCache view(*pCdMan->pAccountCache);
+    CAccountDBCache view(*pCdMan->pAccountCache);
     Array UnConfirmTxArry;
     for (auto const &wtx : pWalletMain->unconfirmedTx) {
         UnConfirmTxArry.push_back(wtx.second.get()->ToString(view));
@@ -1572,7 +1572,7 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
 
 static Value AccountLogToJson(const CAccountLog &accoutLog) {
     Object obj;
-    obj.push_back(Pair("keyId", accoutLog.keyID.ToString()));
+    obj.push_back(Pair("keyId", accoutLog.keyId.ToString()));
     obj.push_back(Pair("bcoins", accoutLog.bcoins));
     // Array array;
     // for (auto const& te : accoutLog.vRewardFund) {
@@ -1612,7 +1612,7 @@ Value gettxoperationlog(const Array& params, bool fHelp) {
         Array arrayvLog;
         for (auto const &te : vLog) {
             Object obj;
-            obj.push_back(Pair("addr", te.keyID.ToAddress()));
+            obj.push_back(Pair("addr", te.keyId.ToAddress()));
             Array array;
             array.push_back(AccountLogToJson(te));
             arrayvLog.push_back(obj);
@@ -1827,7 +1827,7 @@ Value getaddrbalance(const Array& params, bool fHelp) {
     double dbalance = 0.0;
     {
         LOCK(cs_main);
-        CAccountCache accView(*pCdMan->pAccountCache);
+        CAccountDBCache accView(*pCdMan->pAccountCache);
         CAccount secureAcc;
         CUserID userId = keyId;
         if (pCdMan->pAccountCache->GetAccount(userId, secureAcc)) {
@@ -1922,7 +1922,7 @@ Value reloadtxcache(const Array& params, bool fHelp) {
     return obj;
 }
 
-static int GetDataFromAppDb(CContractCache &cache, const CRegID &regId, int pagesize, int index,
+static int GetDataFromAppDb(CContractDBCache &cache, const CRegID &regId, int pagesize, int index,
         vector<std::tuple<string, string > > &ret) {
     int dbsize = 0;
     int height = chainActive.Height();
@@ -1977,7 +1977,7 @@ Value getcontractdataraw(const Array& params, bool fHelp) {
 
     Object script;
     int height = chainActive.Height();
-    CContractCache contractScriptTemp(*pCdMan->pContractCache);
+    CContractDBCache contractScriptTemp(*pCdMan->pContractCache);
     if (params.size() == 2) {
         vector<unsigned char> hex = ParseHex(params[1].get_str());
         string key(hex.begin(), hex.end());
@@ -2100,11 +2100,11 @@ Value getcontractconfirmdata(const Array& params, bool fHelp) {
             + HelpExampleCli("getcontractconfirmdata", "\"1304166-1\" \"1\"  \"1\"")
             + HelpExampleRpc("getcontractconfirmdata", "\"1304166-1\" \"1\"  \"1\""));
     }
-    std::shared_ptr<CContractCache> pAccountCache;
+    std::shared_ptr<CContractDBCache> pAccountCache;
     if (4 == params.size() && 0 == params[3].get_int()) {
-        pAccountCache.reset(new CContractCache(*mempool.memPoolContractCache.get()));
+        pAccountCache.reset(new CContractDBCache(*mempool.memPoolContractCache.get()));
     } else {
-        pAccountCache.reset(new CContractCache(*pCdMan->pContractCache));
+        pAccountCache.reset(new CContractDBCache(*pCdMan->pContractCache));
     }
     int height = chainActive.Height();
     RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
@@ -2476,7 +2476,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Recv address invalid");
     }
 
-    CAccountCache view(*pCdMan->pAccountCache);
+    CAccountDBCache view(*pCdMan->pAccountCache);
     CAccount account;
 
     CUserID userId = keyId;
@@ -2765,7 +2765,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
         return obj;
     }
 
-    CAccountCache view(*pCdMan->pAccountCache);
+    CAccountDBCache view(*pCdMan->pAccountCache);
     switch (pBaseTx.get()->nTxType) {
         case BCOIN_TRANSFER_TX: {
             std::shared_ptr<CBaseCoinTransferTx> tx = std::make_shared<CBaseCoinTransferTx>(pBaseTx.get());
@@ -2851,7 +2851,7 @@ Value getalltxinfo(const Array& params, bool fHelp) {
         retObj.push_back(Pair("confirmed", confirmedTx));
 
         Array unconfirmedTx;
-        CAccountCache view(*pCdMan->pAccountCache);
+        CAccountDBCache view(*pCdMan->pAccountCache);
         for (auto const &wtx : pWalletMain->unconfirmedTx) {
             Object objtx = GetTxDetailJSON(wtx.first);
             unconfirmedTx.push_back(objtx);
@@ -2966,7 +2966,7 @@ Value listcontractassets(const Array& params, bool fHelp) {
         if (setKeyId.size() == 0)
             return retArray;
 
-        CContractCache contractScriptTemp(*pCdMan->pContractCache);
+        CContractDBCache contractScriptTemp(*pCdMan->pContractCache);
 
         for (const auto &keyId : setKeyId) {
 
@@ -3037,7 +3037,7 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
         throw runtime_error("in getcontractkeyvalue: contract regid not exist!\n");
 
     Array retArray;
-    CContractCache contractScriptTemp(*pCdMan->pContractCache);
+    CContractDBCache contractScriptTemp(*pCdMan->pContractCache);
 
     for (size_t i = 0; i < array.size(); i++) {
         uint256 txhash(uint256S(array[i].get_str()));
@@ -3121,7 +3121,7 @@ Value gettotalcoins(const Array& params, bool fHelp) {
     {
         uint64_t totalCoins(0);
         uint64_t totalRegIds(0);
-        // CAccountCache *view = pCdMan->pAccountCache;
+        // CAccountDBCache *view = pCdMan->pAccountCache;
         std::tie(totalCoins, totalRegIds) = pCdMan->pAccountCache->TraverseAccount();
         // auto [totalCoins, totalRegIds] = pCdMan->pAccountCache->TraverseAccount(); //C++17
         obj.push_back( Pair("total_coins", ValueFromAmount(totalCoins)) );

@@ -413,7 +413,7 @@ Value getchainstate(const Array& params, bool fHelp) {
     RPCTypeCheck(params, list_of(int_type));
 
     int nHeight = params[0].get_int();
-    if (nHeight < 1 || nHeight > chainActive.Height() || nHeight > kMostRecentBlockNumberThreshold)
+    if (nHeight < 1 || nHeight > chainActive.Height() || nHeight > kMostRecentBlockNumberLimit)
         throw runtime_error("Block number out of range.");
 
     CBlockIndex* pBlockIndex = chainActive.Tip();
@@ -429,9 +429,7 @@ Value getchainstate(const Array& params, bool fHelp) {
         fuel.push_back(pBlockIndex->nFuel);
         block.SetNull();
         if (ReadBlockFromDisk(pBlockIndex, block)) {
-            blockminer.push_back(
-                dynamic_pointer_cast<CBlockRewardTx>(block.vptx[0])->txUid.get<CRegID>()
-                    .ToString());
+            blockminer.push_back(((CBlockRewardTx *)block.vptx[0].get())->txUid.ToString());
         }
         pBlockIndex = pBlockIndex->pprev;
     }

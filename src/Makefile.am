@@ -50,6 +50,7 @@ coin_CORE_H = \
   commons/bloom.h \
   commons/openssl.hpp \
   commons/serialize.h \
+  config/scoin.h \
   chainparams.h \
   clientversion.h \
   compat\compat.h \
@@ -283,6 +284,7 @@ libcoin_common_a_SOURCES = \
   persistence/blockdb.cpp \
   persistence/contractdb.cpp \
   persistence/delegatedb.cpp \
+  persistence/pricefeeddb.cpp \
   persistence/txdb.cpp \
   persistence/leveldbwrapper.cpp \
   persistence/dexdb.cpp \

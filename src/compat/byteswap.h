@@ -6,7 +6,7 @@
 #define _COIN_COMPAT_BYTESWAP_H
 
 #if defined(HAVE_CONFIG_H)
-#include "coin-config.h"
+#include "config/coin-config.h"
 #endif
 
 #include <stdint.h>

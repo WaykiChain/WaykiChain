@@ -12,8 +12,8 @@ class CAccountViewTest {
 public:
 	CAccountViewTest() {
 //		pAccountViewDB = new CAccountViewDB("test",500, false, false);
-		pViewTip1 = new CAccountCache(*pAccountViewTip,true);
-		pViewTip2 = new CAccountCache(*pViewTip1,true);
+		pViewTip1 = new CAccountDBCache(*pAccountViewTip,true);
+		pViewTip2 = new CAccountDBCache(*pViewTip1,true);
 		Init();
 	}
 	~CAccountViewTest() {
@@ -42,8 +42,8 @@ public:
 	vector<CKeyID> vRandomKeyID;
 	vector<CRegID> vRandomRegID;
 	vector<CAccount> vAccount;
-	CAccountCache* pViewTip1;
-	CAccountCache* pViewTip2;
+	CAccountDBCache* pViewTip1;
+	CAccountDBCache* pViewTip2;
 };
 
 bool CAccountViewTest::EraseKeyID() {
@@ -66,7 +66,7 @@ bool CAccountViewTest::EraseAccount() {
 bool CAccountViewTest::TestGetAccount(bool bCheckExist) {
 	CAccount account;
 
-	//get account by keyID
+	//get account by keyId
 	for (int i = 0; i < VECTOR_SIZE; i++) {
 		CUserID userId = vRandomKeyID.at(i);
 		if (bCheckExist) {
@@ -114,8 +114,8 @@ void CAccountViewTest::Init() {
 		CKey key;
 		key.MakeNewKey();
 		CPubKey pubkey = key.GetPubKey();
-		CKeyID keyID = pubkey.GetKeyId();
-		vRandomKeyID.push_back(keyID);
+		CKeyID keyId = pubkey.GetKeyId();
+		vRandomKeyID.push_back(keyId);
 	}
 
 	for (int j = 0; j < VECTOR_SIZE; j++) {
@@ -126,20 +126,20 @@ void CAccountViewTest::Init() {
 	for (int k = 0; k < VECTOR_SIZE; k++) {
 		CAccount account;
 		account.bcoins = k + 1;
-		account.keyID = vRandomKeyID.at(k);
+		account.keyId = vRandomKeyID.at(k);
 		vAccount.push_back(account);
 	}
 }
 
 bool CAccountViewTest::CheckKeyMap(bool bCheckExist) {
-	CKeyID keyID;
+	CKeyID keyId;
 	for (int i = 0; i < VECTOR_SIZE; i++) {
 		if (bCheckExist) {
-			if (!pViewTip2->GetKeyId(vRandomRegID.at(i), keyID)) {
+			if (!pViewTip2->GetKeyId(vRandomRegID.at(i), keyId)) {
 				return false;
 			}
 		} else {
-			if (pViewTip2->GetKeyId(vRandomRegID.at(i), keyID)) {
+			if (pViewTip2->GetKeyId(vRandomRegID.at(i), keyId)) {
 				return false;
 			}
 		}

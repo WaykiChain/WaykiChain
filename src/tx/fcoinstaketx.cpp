@@ -46,7 +46,7 @@ bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
     cw.txUndo.accountLogs.push_back(acctLog);
     cw.txUndo.txHash = GetHash();
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid})) return false;
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
     return true;
 }
@@ -55,14 +55,14 @@ bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
-        CUserID userId = rIterAccountLog->keyID;
+        CUserID userId = rIterAccountLog->keyId;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, read account info error, userId=%s",
                 userId.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         if (!account.UndoOperateAccount(*rIterAccountLog)) {
             return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, undo operate account error, keyId=%s",
-                            account.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
+                            account.keyId.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
         }
 
         if (!cw.accountCache.SetAccount(userId, account)) {
@@ -74,7 +74,7 @@ bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     return true;
 }
 
-string CFcoinStakeTx::ToString(CAccountCache &accountCache) {
+string CFcoinStakeTx::ToString(CAccountDBCache &accountCache) {
     string str = strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, fcoinsToStake=%ld, llFees=%ld, nValidHeight=%d\n",
                            GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), fcoinsToStake, llFees,
                            nValidHeight);
@@ -82,7 +82,7 @@ string CFcoinStakeTx::ToString(CAccountCache &accountCache) {
     return str;
 }
 
-Object CFcoinStakeTx::ToJson(const CAccountCache &accountCache) const {
+Object CFcoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
     CKeyID keyId;

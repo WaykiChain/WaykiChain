@@ -34,7 +34,7 @@ bool CFcoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper 
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
     }
 
-    if (!srcAccount.OperateBalance(CoinType::MICC, MINUS_VALUE, fcoins)) {
+    if (!srcAccount.OperateBalance(CoinType::WGRT, MINUS_VALUE, fcoins)) {
         return state.DoS(100, ERRORMSG("CFcoinTransferTx::ExecuteTx, insufficient fcoins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fcoins");
     }
@@ -49,7 +49,7 @@ bool CFcoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper 
                         FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
     CAccountLog desAccountLog(desAccount);
-    if (!srcAccount.OperateBalance(CoinType::MICC, ADD_VALUE, fcoins)) {
+    if (!srcAccount.OperateBalance(CoinType::WGRT, ADD_VALUE, fcoins)) {
         return state.DoS(100, ERRORMSG("CFcoinTransferTx::ExecuteTx, failed to add fcoins in toUid %s account", toUid.ToString()),
                         UPDATE_ACCOUNT_FAIL, "failed-add-fcoins");
     }
@@ -62,7 +62,7 @@ bool CFcoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper 
     cw.txUndo.accountLogs.push_back(desAccountLog);
     cw.txUndo.txHash = GetHash();
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid, toUid}))
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid, toUid}))
         return false;
 
     return true;
@@ -72,14 +72,14 @@ bool CFcoinTransferTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrap
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
-        CUserID userId = rIterAccountLog->keyID;
+        CUserID userId = rIterAccountLog->keyId;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CFcoinTransferTx::UndoExecuteTx, read account info error, userId=%s",
                 userId.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         if (!account.UndoOperateAccount(*rIterAccountLog)) {
             return state.DoS(100, ERRORMSG("CFcoinTransferTx::UndoExecuteTx, undo operate account error, keyId=%s",
-                            account.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
+                            account.keyId.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
         }
 
         if (!cw.accountCache.SetAccount(userId, account)) {
@@ -91,15 +91,13 @@ bool CFcoinTransferTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrap
     return true;
 }
 
-string CFcoinTransferTx::ToString(CAccountCache &accountCache) {
-    string str = strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, fcoins=%ld, llFees=%ld, nValidHeight=%d\n",
-                           GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, txUid.ToString(),
-                           toUid.ToString(), fcoins, llFees, nValidHeight);
-
-    return str;
+string CFcoinTransferTx::ToString(CAccountDBCache &accountCache) {
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, fcoins=%ld, llFees=%ld, nValidHeight=%d\n",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), fcoins,
+                     llFees, nValidHeight);
 }
 
-Object CFcoinTransferTx::ToJson(const CAccountCache &accountCache) const {
+Object CFcoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
     CKeyID srcKeyId;

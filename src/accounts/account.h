@@ -27,15 +27,15 @@ class CAccountLog;
 
 enum CoinType: uint8_t {
     WICC = 1,
-    MICC = 2,
+    WGRT = 2,
     WUSD = 3,
 };
 
 struct CoinTypeHash {
-    size_t operator()(const CoinType& type) const noexcept { return std::hash<int>{}(type); }
+    size_t operator()(const CoinType& type) const noexcept { return std::hash<uint8_t>{}(type); }
 };
 
-static const unordered_set<CoinType, CoinTypeHash> COINT_TYPE_SET = { WICC, MICC, WUSD};
+static const unordered_set<CoinType, CoinTypeHash> COINT_TYPE_SET = { WICC, WGRT, WUSD};
 
 enum PriceType: uint8_t {
     USD     = 1,
@@ -55,9 +55,9 @@ enum BalanceOpType : uint8_t {
 
 class CAccount {
 public:
-    CKeyID keyID;         //!< KeyID of the account (interchangeable to address)
-    CRegID regID;         //!< RegID of the account
-    CNickID nickID;       //!< Nickname ID of the account (maxlen=32)
+    CKeyID keyId;         //!< KeyID of the account (interchangeable to address)
+    CRegID regId;         //!< RegID of the account
+    CNickID nickId;       //!< Nickname ID of the account (maxlen=32)
     CPubKey pubKey;       //!< account public key
     CPubKey minerPubKey;  //!< miner saving account public key
 
@@ -75,7 +75,6 @@ public:
     uint64_t receivedVotes;    //!< received votes
     uint64_t lastVoteHeight;   //!< account's last vote block height used for computing interest
 
-    bool hasOpenCdp;
     mutable uint256 sigHash;  //!< in-memory only
 
 public:
@@ -109,9 +108,11 @@ public:
 
 public:
     CAccount(const CKeyID& keyId, const CNickID& nickId, const CPubKey& pubKey)
-        : keyID(keyId),
-          nickID(nickId),
+        : keyId(keyId),
+          regId(),
+          nickId(nickId),
           pubKey(pubKey),
+          minerPubKey(),
           bcoins(0),
           scoins(0),
           fcoins(0),
@@ -121,10 +122,9 @@ public:
           stakedBcoins(0),
           stakedFcoins(0),
           receivedVotes(0),
-          lastVoteHeight(0),
-          hasOpenCdp(false) {
+          lastVoteHeight(0) {
         minerPubKey = CPubKey();
-        regID.Clean();
+        regId.Clean();
     }
 
     CAccount() : CAccount(CKeyID(), CNickID(), CPubKey()) {}
@@ -136,9 +136,9 @@ public:
     CAccount& operator=(const CAccount& other) {
         if (this == &other) return *this;
 
-        this->keyID          = other.keyID;
-        this->regID          = other.regID;
-        this->nickID         = other.nickID;
+        this->keyId          = other.keyId;
+        this->regId          = other.regId;
+        this->nickId         = other.nickId;
         this->pubKey         = other.pubKey;
         this->minerPubKey    = other.minerPubKey;
         this->bcoins         = other.bcoins;
@@ -151,7 +151,6 @@ public:
         this->stakedFcoins   = other.stakedFcoins;
         this->receivedVotes  = other.receivedVotes;
         this->lastVoteHeight = other.lastVoteHeight;
-        this->hasOpenCdp     = other.hasOpenCdp;
 
         return *this;
     }
@@ -161,19 +160,19 @@ public:
     }
 
     bool IsRegistered() const {
-        return (pubKey.IsFullyValid() && pubKey.GetKeyId() == keyID);
+        return (pubKey.IsFullyValid() && pubKey.GetKeyId() == keyId);
     }
 
     bool RegIDIsMature() const;
 
-    bool SetRegId(const CRegID& regID) {
-        this->regID = regID;
+    bool SetRegId(const CRegID& regId) {
+        this->regId = regId;
         return true;
     };
 
-    bool GetRegId(CRegID& regID) const {
-        regID = this->regID;
-        return !regID.IsEmpty();
+    bool GetRegId(CRegID& regId) const {
+        regId = this->regId;
+        return !regId.IsEmpty();
     };
 
     uint64_t GetFreeBcoins() const { return bcoins; }
@@ -201,11 +200,9 @@ public:
     uint256 GetHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << keyID << regID << nickID << pubKey << minerPubKey << VARINT(bcoins) << VARINT(scoins)
+            ss << keyId << regId << nickId << pubKey << minerPubKey << VARINT(bcoins) << VARINT(scoins)
                << VARINT(fcoins) << VARINT(frozenDEXBcoins) << VARINT(frozenDEXScoins) << VARINT(frozenDEXFcoins)
-               << VARINT(stakedFcoins) << VARINT(receivedVotes) << VARINT(lastVoteHeight)
-               << hasOpenCdp;
-
+               << VARINT(stakedFcoins) << VARINT(receivedVotes) << VARINT(lastVoteHeight);
             sigHash = ss.GetHash();
         }
 
@@ -215,18 +212,18 @@ public:
     bool UpDateAccountPos(int nCurHeight);
 
     bool IsEmpty() const {
-        return keyID.IsEmpty();
+        return keyId.IsEmpty();
     }
 
     void SetEmpty() {
-        keyID.SetEmpty();
+        keyId.SetEmpty();
         // TODO: need set other fields to empty()??
     }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(keyID);
-        READWRITE(regID);
-        READWRITE(nickID);
+        READWRITE(keyId);
+        READWRITE(regId);
+        READWRITE(nickId);
         READWRITE(pubKey);
         READWRITE(minerPubKey);
         READWRITE(VARINT(bcoins));
@@ -238,9 +235,7 @@ public:
         READWRITE(VARINT(stakedBcoins));
         READWRITE(VARINT(stakedFcoins));
         READWRITE(VARINT(receivedVotes));
-        READWRITE(VARINT(lastVoteHeight));
-        READWRITE(hasOpenCdp);)
-
+        READWRITE(VARINT(lastVoteHeight));)
 private:
     bool IsMoneyOverflow(uint64_t nAddMoney);
 };
@@ -248,9 +243,9 @@ private:
 //TODO: add frozenDEXBCons etc below
 class CAccountLog {
 public:
-    CKeyID keyID;         //!< keyID of the account (interchangeable to address)
-    CRegID regID;         //!< regID of the account
-    CNickID nickID;       //!< Nickname ID of the account (maxlen=32)
+    CKeyID keyId;         //!< keyId of the account (interchangeable to address)
+    CRegID regId;         //!< regId of the account
+    CNickID nickId;       //!< Nickname ID of the account (maxlen=32)
     CPubKey pubKey;       //!< account public key
     CPubKey minerPubKey;  //!< miner saving account public key
 
@@ -268,12 +263,10 @@ public:
     uint64_t receivedVotes;   //!< votes received
     uint64_t lastVoteHeight;  //!< account's last vote block height used for computing interest
 
-    bool hasOpenCdp;
-
     IMPLEMENT_SERIALIZE(
-        READWRITE(keyID);
-        READWRITE(regID);
-        READWRITE(nickID);
+        READWRITE(keyId);
+        READWRITE(regId);
+        READWRITE(nickId);
         READWRITE(pubKey);
         READWRITE(minerPubKey);
         READWRITE(VARINT(bcoins));
@@ -285,8 +278,7 @@ public:
         READWRITE(VARINT(stakedBcoins));
         READWRITE(VARINT(stakedFcoins));
         READWRITE(VARINT(receivedVotes));
-        READWRITE(VARINT(lastVoteHeight));
-        READWRITE(hasOpenCdp);)
+        READWRITE(VARINT(lastVoteHeight));)
 
 public:
     CAccountLog(const CAccount& acct) {
@@ -294,9 +286,9 @@ public:
     }
 
     CAccountLog(const CKeyID& keyIdIn):
-        keyID(keyIdIn),
-        regID(),
-        nickID(),
+        keyId(keyIdIn),
+        regId(),
+        nickId(),
         bcoins(0),
         scoins(0),
         fcoins(0),
@@ -308,15 +300,14 @@ public:
         stakedBcoins(0),
         stakedFcoins(0),
         receivedVotes(0),
-        lastVoteHeight(0),
-        hasOpenCdp(false) {}
+        lastVoteHeight(0) {}
 
     CAccountLog(): CAccountLog(CKeyID()) {}
 
     void SetValue(const CAccount& acct) {
-        keyID           = acct.keyID;
-        regID           = acct.regID;
-        nickID          = acct.nickID;
+        keyId           = acct.keyId;
+        regId           = acct.regId;
+        nickId          = acct.nickId;
         pubKey          = acct.pubKey;
         minerPubKey     = acct.minerPubKey;
         bcoins          = acct.bcoins;
@@ -329,7 +320,6 @@ public:
         stakedFcoins    = acct.stakedFcoins;
         receivedVotes   = acct.receivedVotes;
         lastVoteHeight  = acct.lastVoteHeight;
-        hasOpenCdp      = acct.hasOpenCdp;
     }
 
     string ToString() const;

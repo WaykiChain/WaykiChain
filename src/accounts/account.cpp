@@ -12,10 +12,10 @@
 string CAccountLog::ToString() const {
     string str;
     str += strprintf(
-        "Account log: keyId=%d regId=%s nickId=%s pubKey=%s minerPubKey=%s hasOpenCdp=%d "
+        "Account log: keyId=%d regId=%s nickId=%s pubKey=%s minerPubKey=%s "
         "bcoins=%lld receivedVotes=%lld \n",
-        keyID.GetHex(), regID.ToString(), nickID.ToString(), pubKey.ToString(),
-        minerPubKey.ToString(), hasOpenCdp, bcoins, receivedVotes);
+        keyId.GetHex(), regId.ToString(), nickId.ToString(), pubKey.ToString(),
+        minerPubKey.ToString(), bcoins, receivedVotes);
 
     return str;
 }
@@ -34,9 +34,8 @@ bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
     stakedFcoins   = accountLog.stakedFcoins;
     receivedVotes  = accountLog.receivedVotes;
     lastVoteHeight = accountLog.lastVoteHeight;
-    hasOpenCdp     = accountLog.hasOpenCdp;
 
-    LogPrint("undo_account", "before operate:%s\n", ToString().c_str());
+    LogPrint("undo_account", "before operate:%s\n", ToString());
     return true;
 }
 
@@ -49,18 +48,21 @@ bool CAccount::FreezeDexCoin(CoinType coinType, uint64_t amount) {
             frozenDEXBcoins += amount;
             assert(!IsMoneyOverflow(bcoins) && !IsMoneyOverflow(frozenDEXBcoins));
             break;
-        case MICC:
+
+        case WUSD:
             if (amount > scoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than scoins");
             scoins -= amount;
             frozenDEXScoins += amount;
             assert(!IsMoneyOverflow(scoins) && !IsMoneyOverflow(frozenDEXScoins));
             break;
-        case WUSD:
+
+        case WGRT:
             if (amount > fcoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than fcoins");
             fcoins -= amount;
             frozenDEXFcoins += amount;
             assert(!IsMoneyOverflow(fcoins) && !IsMoneyOverflow(frozenDEXFcoins));
             break;
+
         default: return ERRORMSG("CAccount::FreezeDexCoin, coin type error");
     }
     return true;
@@ -71,24 +73,30 @@ bool CAccount::UnFreezeDexCoin(CoinType coinType, uint64_t amount) {
         case WICC:
             if (amount > frozenDEXBcoins)
                 return ERRORMSG("CAccount::UnFreezeDexCoin, amount larger than frozenDEXBcoins");
+
             bcoins += amount;
             frozenDEXBcoins -= amount;
             assert(!IsMoneyOverflow(bcoins) && !IsMoneyOverflow(frozenDEXBcoins));
             break;
-        case MICC:
+
+        case WUSD:
             if (amount > frozenDEXScoins)
                 return ERRORMSG("CAccount::UnFreezeDexCoin, amount larger than frozenDEXScoins");
+
             scoins += amount;
             frozenDEXScoins -= amount;
             assert(!IsMoneyOverflow(scoins) && !IsMoneyOverflow(frozenDEXScoins));
             break;
-        case WUSD:
+
+        case WGRT:
             if (amount > frozenDEXFcoins)
                 return ERRORMSG("CAccount::UnFreezeDexCoin, amount larger than frozenDEXFcoins");
+
             fcoins += amount;
             frozenDEXFcoins -= amount;
             assert(!IsMoneyOverflow(fcoins) && !IsMoneyOverflow(frozenDEXFcoins));
             break;
+
         default: return ERRORMSG("CAccount::UnFreezeDexCoin, coin type error");
     }
     return true;
@@ -101,7 +109,7 @@ bool CAccount::MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins) {
             frozenDEXBcoins -= coins;
             assert(!IsMoneyOverflow(frozenDEXBcoins));
             break;
-        case MICC:
+        case WGRT:
             if (coins > frozenDEXScoins) return ERRORMSG("CAccount::SettleDEXBuyOrder, minus scoins exceed frozen scoins");
             frozenDEXScoins -= coins;
             assert(!IsMoneyOverflow(frozenDEXScoins));
@@ -196,13 +204,13 @@ uint64_t CAccount::GetTotalBcoins(const vector<CCandidateVote> &candidateVotes, 
 }
 
 bool CAccount::RegIDIsMature() const {
-    return (!regID.IsEmpty()) &&
-           ((regID.GetHeight() == 0) || (chainActive.Height() - (int)regID.GetHeight() > kRegIdMaturePeriodByBlock));
+    return (!regId.IsEmpty()) &&
+           ((regId.GetHeight() == 0) || (chainActive.Height() - (int)regId.GetHeight() > kRegIdMaturePeriodByBlock));
 }
 
 Object CAccount::ToJsonObj(bool isAddress) const {
     vector<CCandidateVote> candidateVotes;
-    pCdMan->pDelegateCache->GetCandidateVotes(regID, candidateVotes);
+    pCdMan->pDelegateCache->GetCandidateVotes(regId, candidateVotes);
 
     Array candidateVoteArray;
     for (auto &vote : candidateVotes) {
@@ -210,10 +218,10 @@ Object CAccount::ToJsonObj(bool isAddress) const {
     }
 
     Object obj;
-    obj.push_back(Pair("address",           keyID.ToAddress()));
-    obj.push_back(Pair("keyid",             keyID.ToString()));
-    obj.push_back(Pair("nickid",            nickID.ToString()));
-    obj.push_back(Pair("regid",             regID.ToString()));
+    obj.push_back(Pair("address",           keyId.ToAddress()));
+    obj.push_back(Pair("keyid",             keyId.ToString()));
+    obj.push_back(Pair("nickid",            nickId.ToString()));
+    obj.push_back(Pair("regid",             regId.ToString()));
     obj.push_back(Pair("regid_mature",      RegIDIsMature()));
     obj.push_back(Pair("pubkey",            pubKey.ToString()));
     obj.push_back(Pair("miner_pubkey",      minerPubKey.ToString()));
@@ -231,14 +239,14 @@ Object CAccount::ToJsonObj(bool isAddress) const {
 string CAccount::ToString(bool isAddress) const {
     string str;
     str += strprintf(
-        "regID=%s, keyID=%s, nickID=%s, pubKey=%s, minerPubKey=%s, bcoins=%ld, scoins=%ld, fcoins=%ld, "
+        "regId=%s, keyId=%s, nickId=%s, pubKey=%s, minerPubKey=%s, bcoins=%ld, scoins=%ld, fcoins=%ld, "
         "receivedVotes=%lld\n",
-        regID.ToString(), keyID.GetHex().c_str(), nickID.ToString(), pubKey.ToString().c_str(),
-        minerPubKey.ToString().c_str(), bcoins, scoins, fcoins, receivedVotes);
+        regId.ToString(), keyId.GetHex(), nickId.ToString(), pubKey.ToString(), minerPubKey.ToString(),
+        bcoins, scoins, fcoins, receivedVotes);
     str += "candidate vote list: \n";
 
     vector<CCandidateVote> candidateVotes;
-    pCdMan->pDelegateCache->GetCandidateVotes(regID, candidateVotes);
+    pCdMan->pDelegateCache->GetCandidateVotes(regId, candidateVotes);
     for (auto & vote : candidateVotes) {
         str += vote.ToString();
     }
@@ -259,7 +267,7 @@ bool CAccount::OperateBalance(const CoinType coinType, const BalanceOpType opTyp
     if (!IsMoneyOverflow(value))
         return false;
 
-    if (keyID == uint160()) {
+    if (keyId == uint160()) {
         return ERRORMSG("operate account's keyId is 0 error");
     }
 
@@ -271,7 +279,7 @@ bool CAccount::OperateBalance(const CoinType coinType, const BalanceOpType opTyp
     if (opType == BalanceOpType::MINUS_VALUE) {
         switch (coinType) {
             case WICC:  if (bcoins < value) return false; break;
-            case MICC:  if (fcoins < value) return false; break;
+            case WGRT:  if (fcoins < value) return false; break;
             case WUSD:  if (scoins < value) return false; break;
             default: return ERRORMSG("coin type error");
         }
@@ -280,7 +288,7 @@ bool CAccount::OperateBalance(const CoinType coinType, const BalanceOpType opTyp
     int64_t opValue = (opType == BalanceOpType::MINUS_VALUE) ? (-value) : (value);
     switch (coinType) {
         case WICC:  bcoins += opValue; if (!IsMoneyOverflow(bcoins)) return false; break;
-        case MICC:  fcoins += opValue; if (!IsMoneyOverflow(fcoins)) return false; break;
+        case WGRT:  fcoins += opValue; if (!IsMoneyOverflow(fcoins)) return false; break;
         case WUSD:  scoins += opValue; if (!IsMoneyOverflow(scoins)) return false; break;
         default: return ERRORMSG("coin type error");
     }

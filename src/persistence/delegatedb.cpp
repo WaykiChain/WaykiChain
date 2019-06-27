@@ -7,7 +7,7 @@
 
 #include "configuration.h"
 
-bool CDelegateCache::LoadTopDelegates() {
+bool CDelegateDBCache::LoadTopDelegates() {
     delegateRegIds.clear();
 
     // vote{(uint64t)MAX - $votedBcoins}{$RegId} --> 1
@@ -25,7 +25,7 @@ bool CDelegateCache::LoadTopDelegates() {
     return true;
 }
 
-bool CDelegateCache::ExistDelegate(const CRegID &delegateRegId) {
+bool CDelegateDBCache::ExistDelegate(const CRegID &delegateRegId) {
     if (delegateRegIds.empty()) {
         LoadTopDelegates();
     }
@@ -33,7 +33,7 @@ bool CDelegateCache::ExistDelegate(const CRegID &delegateRegId) {
     return std::find(delegateRegIds.begin(), delegateRegIds.end(), delegateRegId) != delegateRegIds.end();
 }
 
-bool CDelegateCache::GetTopDelegates(vector<CRegID> &delegatesList) {
+bool CDelegateDBCache::GetTopDelegates(vector<CRegID> &delegatesList) {
     if (delegateRegIds.size() != IniCfg().GetTotalDelegateNum()) {
         return false;
     }
@@ -43,7 +43,7 @@ bool CDelegateCache::GetTopDelegates(vector<CRegID> &delegatesList) {
     return true;
 }
 
-bool CDelegateCache::SetDelegateVotes(const CRegID &regId, const uint64_t votes) {
+bool CDelegateDBCache::SetDelegateVotes(const CRegID &regId, const uint64_t votes) {
     if (votes == 0) {
         return true;
     }
@@ -56,7 +56,7 @@ bool CDelegateCache::SetDelegateVotes(const CRegID &regId, const uint64_t votes)
     return voteRegIdCache.SetData(key, value);
 }
 
-bool CDelegateCache::EraseDelegateVotes(const CRegID &regId, const uint64_t votes) {
+bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t votes) {
     if (votes == 0) {
         return true;
     }
@@ -68,25 +68,16 @@ bool CDelegateCache::EraseDelegateVotes(const CRegID &regId, const uint64_t vote
     return voteRegIdCache.EraseData(oldKey);
 }
 
-bool CDelegateCache::SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes) {
-    return regId2VoteCache.SetData(regId.ToRawString(), candidateVotes);
+bool CDelegateDBCache::SetCandidateVotes(const CRegID &regId,
+                                       const vector<CCandidateVote> &candidateVotes,
+                                       CDBOpLogMap &dbOpLogMap) {
+    return regId2VoteCache.SetData(regId.ToRawString(), candidateVotes, dbOpLogMap);
 }
 
-bool CDelegateCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes) {
+bool CDelegateDBCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes) {
     return regId2VoteCache.GetData(regId.ToRawString(), candidateVotes);
 }
 
-bool CDelegateCache::UndoData(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs) {
-    for (auto it = dbOpLogs.rbegin(); it != dbOpLogs.rend(); ++it) {
-        auto &dbOpLog = *it;
-        switch (dbOpLog.GetPrefixType()) {
-            case dbk::REGID_VOTE:
-                return regId2VoteCache.UndoData(dbOpLog);
-            default:
-                LogPrint("ERROR", "CDelegateCache::UndoData can not handle the dbOpLog=", dbOpLog.ToString());
-                return false;
-        }
-    }
-
-    return true;
+bool CDelegateDBCache::UndoCandidateVotes(CDBOpLogMap &dbOpLogMap) {
+    return regId2VoteCache.UndoData(dbOpLogMap);
 }

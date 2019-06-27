@@ -98,7 +98,7 @@ public:
     virtual ~CWallet(){};
     int64_t GetFreeBcoins(bool IsConfirmed = true) const;
 
-    bool Sign(const CKeyID &keyID,const uint256 &hash,vector<unsigned char> &signature,bool IsMiner=false) const;
+    bool Sign(const CKeyID &keyId,const uint256 &hash,vector<unsigned char> &signature,bool IsMiner=false) const;
     //! Adds an encrypted key to the store, and saves it to disk.
     bool AddCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret);
     bool LoadCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret);
@@ -112,7 +112,7 @@ public:
     bool RemoveKey(const CKey &key);
 
     bool CleanAll(); //just for unit test
-    bool IsReadyForCoolMiner(const CAccountCache& view)const;
+    bool IsReadyForCoolMiner(const CAccountDBCache& view)const;
     bool ClearAllMainKeysForCoolMiner();
 
     CWallet(string strWalletFileIn);

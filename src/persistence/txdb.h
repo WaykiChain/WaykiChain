@@ -22,14 +22,10 @@ using namespace json_spirit;
 class CBlock;
 class CPricePoint;
 class CCoinPriceType;
-class CUserID;
+class CRegID;
 
 // TODO: initialize pBase by constructor instead of SetBaseView.
 class CTxMemCache {
-private:
-    map<uint256, UnorderedHashSet> mapBlockTxHashSet;  // map: BlockHash -> TxHashSet
-    CTxMemCache *pBase;
-
 public:
     CTxMemCache() : pBase(nullptr) {}
     CTxMemCache(CTxMemCache *pBaseIn) : pBase(pBaseIn) {}
@@ -43,7 +39,6 @@ public:
 
     void Clear();
     void SetBaseView(CTxMemCache *pBaseIn) { pBase = pBaseIn; }
-    void BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn);
     void Flush(CTxMemCache *pBaseIn);
     void Flush();
 
@@ -52,52 +47,25 @@ public:
 
     const map<uint256, UnorderedHashSet> &GetTxHashCache();
     void SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache);
-};
 
-// Price Points in 11 consecutive blocks
-class CConsecutiveBlockPrice {
 private:
-    map<int, map<string, uint64_t>> mapBlockUserPrices;  // height -> { strUid -> price }
-    int lastBlockHeight;
-    int currBlockHeight;
-    uint64_t lastBlockMediaPrice;
-    uint64_t currBlockMediaPrice;
+    void BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn);
 
-public:
-    void AddUserPrice(const int height, const CUserID &txUid, const uint64_t price);
-    bool ExistBlockUserPrice(const int height, const CUserID &txUid);
-    uint64_t ComputeBlockMedianPrice(const int blockHeight);
-    uint64_t GetLastBlockMedianPrice();
-
-public:
-    static uint64_t ComputeMedianNumber(vector<uint64_t> &numbers);
-};
-
-class CPricePointCache {
 private:
-    uint64_t bcoinMedianPrice; //against scoin
-    uint64_t fcoinMedianPrice; //against scoin
-
-    map<string, CConsecutiveBlockPrice> mapCoinPricePointCache; // coinPriceType -> consecutiveBlockPrice
-
-public:
-    bool AddBlockPricePointInBatch(const int blockHeight, const CUserID &txUid, const vector<CPricePoint> &pps);
-    uint64_t ComputeBlockMedianPrice(const int blockHeight, CCoinPriceType coinPriceType);
-
-    uint64_t GetBcoinMedianPrice() { return bcoinMedianPrice; }
-    uint64_t GetFcoinMedianPrice() { return fcoinMedianPrice; }
+    map<uint256, UnorderedHashSet> mapBlockTxHashSet;  // map: BlockHash -> TxHashSet
+    CTxMemCache *pBase;
 };
 
 class CTxUndo {
 public:
     uint256 txHash;
     vector<CAccountLog> accountLogs;
-    CDBOpLogsMap dbOpLogsMap; // dbName -> dbOpLogs
+    CDBOpLogMap dbOpLogMap; // dbName -> dbOpLogs
 
     IMPLEMENT_SERIALIZE(
         READWRITE(txHash);
         READWRITE(accountLogs);
-        READWRITE(dbOpLogsMap);
+        READWRITE(dbOpLogMap);
 	)
 
 public:
@@ -106,7 +74,7 @@ public:
     void Clear() {
         txHash = uint256();
         accountLogs.clear();
-        dbOpLogsMap.Clear();
+        dbOpLogMap.Clear();
     }
 
     string ToString() const;

@@ -65,7 +65,7 @@ bool CScoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper 
     cw.txUndo.accountLogs.push_back(desAccountLog);
     cw.txUndo.txHash = GetHash();
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid, toUid}))
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid, toUid}))
         return false;
 
     return true;
@@ -75,14 +75,14 @@ bool CScoinTransferTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrap
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
-        CUserID userId = rIterAccountLog->keyID;
+        CUserID userId = rIterAccountLog->keyId;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CScoinTransferTx::UndoExecuteTx, read account info error, userId=%s",
                 userId.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         if (!account.UndoOperateAccount(*rIterAccountLog)) {
             return state.DoS(100, ERRORMSG("CScoinTransferTx::UndoExecuteTx, undo operate account error, keyId=%s",
-                            account.keyID.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
+                            account.keyId.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
         }
 
         if (!cw.accountCache.SetAccount(userId, account)) {
@@ -94,16 +94,16 @@ bool CScoinTransferTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrap
     return true;
 }
 
-string CScoinTransferTx::ToString(CAccountCache &accountCache) {
+string CScoinTransferTx::ToString(CAccountDBCache &accountCache) {
     string str = strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, scoins=%ld, llFees=%ld, feesCoinType=%d,nValidHeight=%d\n",
-        GetTxType(nTxType), GetHash().ToString().c_str(), nVersion, txUid.ToString(), toUid.ToString(), scoins, llFees,
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), scoins, llFees,
         feesCoinType, nValidHeight);
 
     return str;
 }
 
-Object CScoinTransferTx::ToJson(const CAccountCache &accountCache) const {
+Object CScoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
     CKeyID srcKeyId;

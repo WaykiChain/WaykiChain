@@ -26,10 +26,10 @@
 
 using namespace json_spirit;
 
-string GetTxType(const unsigned char txType) {
+string GetTxType(const TxType txType) {
     auto it = kTxTypeMap.find(txType);
     if (it != kTxTypeMap.end())
-        return it->second;
+        return std::get<0>(it->second);
     else
         return "";
 }
@@ -57,7 +57,7 @@ uint64_t CBaseTx::GetFuel(int32_t nFuelRate) {
     return llFuel;
 }
 
-int32_t CBaseTx::GetFuelRate(CContractCache &scriptDB) {
+int32_t CBaseTx::GetFuelRate(CContractDBCache &scriptDB) {
     if (nFuelRate > 0)
         return nFuelRate;
 
@@ -78,11 +78,20 @@ int32_t CBaseTx::GetFuelRate(CContractCache &scriptDB) {
     return nFuelRate;
 }
 
-bool CBaseTx::CheckMinTxFee(const uint64_t llFees, const int32_t nHeight) const {
-    if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2 )
-        return llFees >= nMinTxFee;
+bool CBaseTx::CheckTxFeeSufficient(const uint64_t llFees, const int32_t nHeight) const {
+    const auto &iter = kTxTypeMap.find(nTxType);
 
-    return true;
+    switch (GetFeatureForkVersion(nHeight) ) {
+
+        case MAJOR_VER_R1: // Prior-stablecoin Release
+            return iter != kTxTypeMap.end() ? (llFees >= std::get<1>(iter->second)) : true;
+
+        case MAJOR_VER_R2:  // StableCoin Release
+            return iter != kTxTypeMap.end() ? (llFees >= std::get<2>(iter->second)) : true;
+
+        default:
+            return true;
+    }
 }
 
 // Transactions should check the signature size before verifying signature
@@ -90,9 +99,9 @@ bool CBaseTx::CheckSignatureSize(const vector<unsigned char> &signature) const {
     return signature.size() > 0 && signature.size() < MAX_BLOCK_SIGNATURE_SIZE;
 }
 
-string CBaseTx::ToString(CAccountCache &view) {
+string CBaseTx::ToString(CAccountDBCache &view) {
     string str = strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
-                            GetTxType(nTxType), GetHash().ToString().c_str(), nVersion,
+                            GetTxType(nTxType), GetHash().ToString(), nVersion,
                             txUid.get<CPubKey>().ToString(),
                             llFees, txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight);
 
@@ -100,23 +109,28 @@ string CBaseTx::ToString(CAccountCache &view) {
 }
 
 bool CBaseTx::SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw,
-                              const vector<CUserID> &userIds) {
+                              CValidationState &state, const vector<CUserID> &userIds) {
     if (SysCfg().GetAddressToTxFlag()) {
-        CDbOpLogs &opLogs = cw.txUndo.dbOpLogsMap.GetDbOpLogs(dbk::LIST_KEYID_TX);
-        CDbOpLog operAddressToTxLog;
         for (auto userId : userIds) {
             if (userId.type() != typeid(CNullID)) {
                 CKeyID keyId;
                 if (!cw.accountCache.GetKeyId(userId, keyId))
-                    return ERRORMSG("SaveTxAddresses, get keyid by uid error!");
+                    return state.DoS(100, ERRORMSG("CBaseTx::SaveTxAddresses, get keyid by uid error"),
+                                    READ_ACCOUNT_FAIL, "bad-get-keyid-uid");
 
                 if (!cw.contractCache.SetTxHashByAddress(keyId, height, index + 1,
-                                                         cw.txUndo.txHash, operAddressToTxLog))
-                    return ERRORMSG("SaveTxAddresses, SetTxHashByAddress to db cache failed!");
-
-                opLogs.push_back(operAddressToTxLog);
+                                                         cw.txUndo.txHash, cw.txUndo.dbOpLogMap))
+                    return state.DoS(100, ERRORMSG("CBaseTx::SaveTxAddresses, SetTxHashByAddress to db cache failed!"),
+                                    READ_ACCOUNT_FAIL, "bad-set-txHashByAddress");
             }
         }
     }
+    return true;
+}
+
+bool CBaseTx::UndoTxAddresses(CCacheWrapper &cw, CValidationState &state) {
+    if (!cw.contractCache.UndoTxHashByAddress(cw.txUndo.dbOpLogMap))
+        return state.DoS(100, ERRORMSG("CBaseTx::UndoTxAddresses failed!"), READ_ACCOUNT_FAIL, "undo-data-failed");
+
     return true;
 }

@@ -777,7 +777,7 @@ unsigned char TempArray[] = {
 //			READWRITE(money[i]);
 //	)
 //};
-//void Init(CAccountCache &view, CVmScript &vscript, vector<std::shared_ptr<CBaseTx> >& Tx,int64_t &iresult, int64_t &bresult,int64_t &betmoey) {
+//void Init(CAccountDBCache &view, CVmScript &vscript, vector<std::shared_ptr<CBaseTx> >& Tx,int64_t &iresult, int64_t &bresult,int64_t &betmoey) {
 //
 //	//std::vector<unsigned char> pScript = GetScriptBin("D:\\C51\\Debug\\Exe\\CPLUS.bin");
 //	vscript.GetRom().insert(vscript.GetRom().begin(), TempArray, TempArray+sizeof(TempArray));
@@ -800,7 +800,7 @@ unsigned char TempArray[] = {
 //		nvector.assign(Array1[i - 1], Array1[i - 1] + 20);
 //		uint160 hash(nvector);
 //		CKeyID keyId1 = (CKeyID) hash;
-//		sourceAccount.keyID = keyId1;
+//		sourceAccount.keyId = keyId1;
 //		sourceAccount.bcoins = 7800000000;
 //		account.push_back(accountId.vRegID);
 //		assert(view.SaveAccount(sourceAccount));
@@ -858,7 +858,7 @@ unsigned char TempArray[] = {
 //	std::shared_ptr<CSecureTransaction> tx;
 //	std::shared_ptr<CAppealTransaction> A2;
 //	std::shared_ptr<CAppealTransaction> B2;
-//	CAccountCache view;
+//	CAccountDBCache view;
 //	CAccountInfo A;
 //	CAccountInfo B;
 //	int64_t result;
@@ -889,7 +889,7 @@ unsigned char TempArray[] = {
 //	bool flag = mScript.run(Tx, betroll->view);
 //	vector<std::shared_ptr<CAccountInfo> > pac = mScript.GetNewAccount();
 //	for (auto& item : pac) {
-//		betroll->view.SetAccount(item.get()->keyID, *item.get());
+//		betroll->view.SetAccount(item.get()->keyId, *item.get());
 //	}
 //
 //	if (betroll->betm > betroll->A.bcoins || betroll->betm > betroll->B.bcoins) {
@@ -926,7 +926,7 @@ unsigned char TempArray[] = {
 //	bool flag = mScript.run(Tx, betroll->view);
 //	vector<std::shared_ptr<CAccountInfo> > pac = mScript.GetNewAccount();
 //	for (auto& item : pac) {
-//		betroll->view.SetAccount(item.get()->keyID, *item.get());
+//		betroll->view.SetAccount(item.get()->keyId, *item.get());
 //	}
 //	BOOST_CHECK(flag);
 //	std::shared_ptr<vector<CVmOperate>> retData = mScript.GetOperate();
@@ -961,7 +961,7 @@ unsigned char TempArray[] = {
 //	bool flag = mScript.run(Tx, betroll->view);
 //	vector<std::shared_ptr<CAccountInfo> > pac = mScript.GetNewAccount();
 //	for (auto& item : pac) {
-//		betroll->view.SetAccount(item.get()->keyID, *item.get());
+//		betroll->view.SetAccount(item.get()->keyId, *item.get());
 //	}
 //	BOOST_CHECK(flag);
 //	std::shared_ptr<vector<CVmOperate>> retData = mScript.GetOperate();
@@ -1043,8 +1043,8 @@ unsigned char TempArray[] = {
 //
 //}
 //void SaveAccount(CTxBetRollScript * betroll) {
-//	betroll->view.SetAccount(betroll->A.keyID, betroll->A);
-//	betroll->view.SetAccount(betroll->B.keyID, betroll->B);
+//	betroll->view.SetAccount(betroll->A.keyId, betroll->A);
+//	betroll->view.SetAccount(betroll->B.keyId, betroll->B);
 //}
 //BOOST_FIXTURE_TEST_SUITE(betRoll,CTxBetRollScript)
 //

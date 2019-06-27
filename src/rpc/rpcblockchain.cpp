@@ -382,10 +382,10 @@ Value getcontractregid(const Array& params, bool fHelp)
     }
 
     nIndex = std::get<1>(ret);
-    CRegID regID(nBlockHeight, nIndex);
+    CRegID regId(nBlockHeight, nIndex);
     Object result;
-    result.push_back(Pair("regid", regID.ToString()));
-    result.push_back(Pair("regid_hex", HexStr(regID.GetRegIdRaw())));
+    result.push_back(Pair("regid", regId.ToString()));
+    result.push_back(Pair("regid_hex", HexStr(regId.GetRegIdRaw())));
     return result;
 }
 

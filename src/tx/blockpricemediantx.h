@@ -10,7 +10,6 @@
 
 class CBlockPriceMedianTx: public CBaseTx  {
 private:
-    // map<tuple<CoinType, PriceType>, uint64_t> mapMedianPricePoints;
     map<CCoinPriceType, uint64_t> mapMedianPricePoints;
 
 public:
@@ -36,7 +35,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
                 << mapMedianPricePoints;
 
             sigHash = ss.GetHash();
@@ -51,15 +50,15 @@ public:
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CBlockPriceMedianTx>(this); }
     virtual double GetPriority() const { return 1000.0f; }
 
-    virtual string ToString(CAccountCache &view);
-    virtual Object ToJson(const CAccountCache &view) const;
+    virtual string ToString(CAccountDBCache &view);
+    virtual Object ToJson(const CAccountDBCache &view) const;
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
-    inline uint64_t GetMedianPriceByType(const CoinType coinType, const PriceType priceType);
+    uint64_t GetMedianPriceByType(const CoinType coinType, const PriceType priceType);
 };
 
 #endif //TX_PRICE_MEDIAN_H

@@ -5,8 +5,8 @@
 #include  "boost/filesystem/operations.hpp"
 #include  "boost/filesystem/path.hpp"
 using namespace std;
-CContractCache *pscriptDBView = NULL;
-CContractCache *pTestView = NULL;
+CContractDBCache *pscriptDBView = NULL;
+CContractDBCache *pTestView = NULL;
 CContractDB *pTestDB = NULL;
 vector< vector<unsigned char> > arrKey;
 vector<unsigned char> vKey1 = {0x01, 0x02, 0x01};
@@ -20,9 +20,9 @@ vector<unsigned char> vKeyValue = {0x06, 0x07, 0x08};
 int nCount = 0;
 void init() {
 	 pTestDB = new CContractDB("testdb",size_t(4<<20), false , true);
-	 pTestView =  new CContractCache(*pTestDB, false);
+	 pTestView =  new CContractDBCache(*pTestDB, false);
 	 //穷举数据分别位于scriptDBView pTestView, pTestDB 三级分布数据测试数据库中
-	 pscriptDBView = new CContractCache(*pTestView, true);
+	 pscriptDBView = new CContractDBCache(*pTestView, true);
 
 	 arrKey.push_back(vKey1);
 	 arrKey.push_back(vKey2);
@@ -110,18 +110,18 @@ void cleandb(int nType, vector<unsigned char> vKey) {
 	CRegID regScriptId(vScriptId);
 	CDbOpLog operlog;
 	if(0==nType) {
-		BOOST_CHECK(pscriptDBView->EraseAppData(regScriptId, vKey, operlog));
+		BOOST_CHECK(pscriptDBView->EraseContractData(regScriptId, vKey, operlog));
 		BOOST_CHECK(pscriptDBView->Flush());
 		BOOST_CHECK(pTestView->Flush());
 	}else if(1==nType) {
-		BOOST_CHECK(pscriptDBView->EraseAppData(regScriptId, vKey, operlog));
+		BOOST_CHECK(pscriptDBView->EraseContractData(regScriptId, vKey, operlog));
 		BOOST_CHECK(pscriptDBView->Flush());
 	}else {
-		BOOST_CHECK(pscriptDBView->EraseAppData(regScriptId, vKey, operlog));
+		BOOST_CHECK(pscriptDBView->EraseContractData(regScriptId, vKey, operlog));
 	}
 }
 
-void traversaldb(CContractCache *pScriptDB, bool needEqual) {
+void traversaldb(CContractDBCache *pScriptDB, bool needEqual) {
 	assert(pScriptDB!=NULL);
 	vector< vector<unsigned char> > traversalKey;
 //	int height(0);
@@ -194,15 +194,15 @@ void testscriptdatadb() {
 	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey, vScriptData,  operlog));
 	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey2, vScriptData,  operlog));
 	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey4, vScriptData,  operlog));
-	BOOST_CHECK(pTestView->EraseAppData(regScriptId, vScriptKey3, operlog));
-	BOOST_CHECK(pTestView->EraseAppData(regScriptId, vScriptKey2, operlog));
+	BOOST_CHECK(pTestView->EraseContractData(regScriptId, vScriptKey3, operlog));
+	BOOST_CHECK(pTestView->EraseContractData(regScriptId, vScriptKey2, operlog));
 
 	traversaldb(pTestView, false);
 
-	BOOST_CHECK(pTestView->EraseAppData(regScriptId, vScriptKey, operlog));
-	BOOST_CHECK(pTestView->EraseAppData(regScriptId, vScriptKey1, operlog));
-	BOOST_CHECK(pTestView->EraseAppData(regScriptId, vScriptKey4, operlog));
-	BOOST_CHECK(pTestView->EraseAppData(regScriptId, vScriptKey5, operlog));
+	BOOST_CHECK(pTestView->EraseContractData(regScriptId, vScriptKey, operlog));
+	BOOST_CHECK(pTestView->EraseContractData(regScriptId, vScriptKey1, operlog));
+	BOOST_CHECK(pTestView->EraseContractData(regScriptId, vScriptKey4, operlog));
+	BOOST_CHECK(pTestView->EraseContractData(regScriptId, vScriptKey5, operlog));
 	BOOST_CHECK(pTestView->Flush());
 
 //	for(int a1=0; a1<3; ++a1) {
@@ -310,7 +310,7 @@ void testscriptdatadb() {
 	BOOST_CHECK(vKey == vScriptKey1);
 	BOOST_CHECK(vScript == vScriptData1);
 	//delete script from db
-	BOOST_CHECK(pTestView->EraseAppData(regScriptId, vScriptKey, operlog));
+	BOOST_CHECK(pTestView->EraseContractData(regScriptId, vScriptKey, operlog));
 	vKey.clear();
 	vScript.clear();
 	BOOST_CHECK(pTestView->GetContractData(curheight,regScriptId, 0, vKey, vScript));

@@ -21,9 +21,9 @@ CVmRunEnv::CVmRunEnv() {
     rawAppUserAccount.clear();
     newAppUserAccount.clear();
     runTimeHeight      = 0;
-    pContractCache = NULL;
-    pAccountCache  = NULL;
-    pScriptDBOperLog   = std::make_shared<std::vector<CDbOpLog>>();
+    pContractCache = nullptr;
+    pAccountCache  = nullptr;
+    pDBOpLogsMap   = nullptr;
     isCheckAccount     = false;
 }
 
@@ -35,7 +35,7 @@ vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetNewAppUserAccount() { return 
 
 vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetRawAppUserAccount() { return rawAppUserAccount; }
 
-bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountCache& view, int nHeight) {
+bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int nHeight) {
     vmOperateOutput.clear();
     pBaseTx       = tx;
     runTimeHeight = nHeight;
@@ -95,6 +95,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
         return std::make_tuple(false, 0, string("VmScript nBurnFactor == 0"));
 
     pContractCache = &cw.contractCache;
+    pDBOpLogsMap = &cw.txUndo.dbOpLogMap;
 
     CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(Tx.get());
     if (tx->llFees < CBaseTx::nMinTxFee)
@@ -147,11 +148,9 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
     }
 
     if (SysCfg().IsContractLogOn() && vmOperateOutput.size() > 0) {
-        CDbOpLog operlog;
         uint256 txhash = GetCurTxHash();
-        if (!pContractCache->WriteTxOutPut(txhash, vmOperateOutput, operlog))
+        if (!pContractCache->WriteTxOutput(txhash, vmOperateOutput, *pDBOpLogsMap))
             return std::make_tuple(false, 0, string("write tx out put Failed"));
-        pScriptDBOperLog->push_back(operlog);
     }
     /*
         uint64_t spend = uRunStep * nBurnFactor;
@@ -166,12 +165,26 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
     return std::make_tuple(true, spend, string("VmScript Success"));
 }
 
+bool CVmRunEnv::UndoDatas(CCacheWrapper &cw) {
+
+    if (!cw.contractCache.UndoTxOutput(cw.txUndo.dbOpLogMap)) {
+        return ERRORMSG("CVmRunEnv::UndoDatas UndoTxOutput failed");
+    }
+    if (!cw.contractCache.UndoScriptAcc(cw.txUndo.dbOpLogMap)) {
+        return ERRORMSG("CVmRunEnv::UndoDatas UndoScriptAcc failed");
+    }
+    if (!cw.contractCache.UndoContractData(cw.txUndo.dbOpLogMap)) {
+        return ERRORMSG("CVmRunEnv::UndoDatas UndoContractData failed");
+    }
+    return true;
+}
+
 shared_ptr<CAccount> CVmRunEnv::GetNewAccount(shared_ptr<CAccount>& vOldAccount) {
     if (newAccount.size() == 0) return NULL;
     vector<shared_ptr<CAccount>>::iterator Iter;
     for (Iter = newAccount.begin(); Iter != newAccount.end(); Iter++) {
         shared_ptr<CAccount> temp = *Iter;
-        if (temp.get()->keyID == vOldAccount.get()->keyID) {
+        if (temp.get()->keyId == vOldAccount.get()->keyId) {
             newAccount.erase(Iter);
             return temp;
         }
@@ -183,7 +196,7 @@ shared_ptr<CAccount> CVmRunEnv::GetAccount(shared_ptr<CAccount>& Account) {
     vector<shared_ptr<CAccount>>::iterator Iter;
     for (Iter = rawAccount.begin(); Iter != rawAccount.end(); Iter++) {
         shared_ptr<CAccount> temp = *Iter;
-        if (Account.get()->keyID == temp.get()->keyID) {
+        if (Account.get()->keyId == temp.get()->keyId) {
             return temp;
         }
     }
@@ -375,7 +388,7 @@ bool CVmRunEnv::CheckAppAcctOperate(CContractInvokeTx* tx) {
 //  return tem;
 //}
 
-bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountCache& view,
+bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDBCache& view,
                                const int nCurHeight) {
     newAccount.clear();
     for (auto& it : listoperate) {
@@ -405,7 +418,7 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountCa
             string popaddr(accountId.begin(), accountId.end());
             userkeyid = CKeyID(popaddr);
             if (!view.GetAccount(CUserID(userkeyid), *tem.get())) {
-                tem->keyID = userkeyid;
+                tem->keyId = userkeyid;
                 // return false;
                 // 未产生过交易记录的账户
             }
@@ -417,12 +430,12 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountCa
             vmAccount = tem;
         }
         LogPrint("vm", "account id:%s\nbefore account: %s\n", HexStr(accountId).c_str(),
-                 vmAccount.get()->ToString().c_str());
+                 vmAccount.get()->ToString());
 
         bool ret = false;
         //      vector<CDbOpLog> vAuthorLog;
         // todolist
-        //      if(IsSignatureAccount(vmAccount.get()->regID) || vmAccount.get()->regID ==
+        //      if(IsSignatureAccount(vmAccount.get()->regId) || vmAccount.get()->regId ==
         //      tx->appRegId.get<CRegID>())
         { ret = vmAccount.get()->OperateBalance(CoinType::WICC, (BalanceOpType)it.opType, value); }
         //      else{
@@ -430,7 +443,7 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountCa
         //          *pContractCache, vAuthorLog,  height, &GetScriptRegID().GetRegIdRaw(), true);
         //      }
 
-        //      LogPrint("vm", "after account:%s\n", vmAccount.get()->ToString().c_str());
+        //      LogPrint("vm", "after account:%s\n", vmAccount.get()->ToString());
         if (!ret) return false;
 
         newAccount.push_back(vmAccount);
@@ -470,9 +483,9 @@ int CVmRunEnv::GetBurnVersion() {
 
 uint256 CVmRunEnv::GetCurTxHash() { return pBaseTx.get()->GetHash(); }
 
-CContractCache* CVmRunEnv::GetScriptDB() { return pContractCache; }
+CContractDBCache* CVmRunEnv::GetScriptDB() { return pContractCache; }
 
-CAccountCache* CVmRunEnv::GetCatchView() { return pAccountCache; }
+CAccountDBCache* CVmRunEnv::GetCatchView() { return pAccountCache; }
 
 void CVmRunEnv::InsertOutAPPOperte(const vector<unsigned char>& userId,
                                    const CAppFundOperate& source) {
@@ -491,7 +504,7 @@ bool CVmRunEnv::InsertOutputData(const vector<CVmOperate>& source) {
     return false;
 }
 
-shared_ptr<vector<CDbOpLog>> CVmRunEnv::GetDbLog() { return pScriptDBOperLog; }
+CDBOpLogMap* CVmRunEnv::GetDbLog() { return pDBOpLogsMap; }
 
 /**
  * 从脚本数据库中，取指定账户的 应用账户信息,同时解冻冻结金额到自由金额
@@ -517,7 +530,7 @@ bool CVmRunEnv::GetAppUserAccount(const vector<unsigned char>& vAppUserId,
 }
 
 bool CVmRunEnv::OperateAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
-                                  CContractCache& view) {
+                                  CContractDBCache& view) {
     newAppUserAccount.clear();
     if ((mapAppFundOperate.size() > 0)) {
         for (auto const tem : opMap) {
@@ -554,10 +567,7 @@ bool CVmRunEnv::OperateAppAccount(const map<vector<unsigned char>, vector<CAppFu
             }
             newAppUserAccount.push_back(sptrAcc);
             LogPrint("vm", "after user: %s\n", sptrAcc.get()->ToString());
-            CDbOpLog log;
-            view.SetScriptAcc(GetScriptRegID(), *sptrAcc.get(), log);
-            shared_ptr<vector<CDbOpLog>> pScriptDBOperLog = GetDbLog();
-            pScriptDBOperLog.get()->push_back(log);
+            view.SetScriptAcc(GetScriptRegID(), *sptrAcc.get(), *pDBOpLogsMap);
         }
     }
     return true;

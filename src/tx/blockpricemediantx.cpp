@@ -22,7 +22,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     CAccountLog acctInfoLog(acctInfo);
     // TODO: want to check something
 
-    CUserID userId = acctInfo.keyID;
+    CUserID userId = acctInfo.keyId;
     if (!cw.accountCache.SetAccount(userId, acctInfo))
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
@@ -30,7 +30,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     cw.txUndo.accountLogs.push_back(acctInfoLog);
     cw.txUndo.txHash = GetHash();
 
-   if (!SaveTxAddresses(nHeight, nIndex, cw, {txUid})) return false;
+   if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
     return true;
 }
@@ -39,12 +39,12 @@ bool CBlockPriceMedianTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
     return true;
 }
 
-string CBlockPriceMedianTx::ToString(CAccountCache &view) {
+string CBlockPriceMedianTx::ToString(CAccountDBCache &view) {
     //TODO
     return "";
 }
 
-Object CBlockPriceMedianTx::ToJson(const CAccountCache &AccountView) const {
+Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &AccountView) const {
     //TODO
     return Object();
 }
@@ -54,8 +54,8 @@ bool CBlockPriceMedianTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyI
     return true;
 }
 
-inline uint64_t GetMedianPriceByType(const CoinType coinType, const PriceType priceType) {
-    // return mapMedianPricePoints[make_tuple<CoinType, PriceType>(coinType, priceType)];
-
-    return 0;
+uint64_t CBlockPriceMedianTx::GetMedianPriceByType(const CoinType coinType, const PriceType priceType) {
+    return mapMedianPricePoints.count(CCoinPriceType(coinType, priceType))
+               ? mapMedianPricePoints[CCoinPriceType(coinType, priceType)]
+               : 0;
 }

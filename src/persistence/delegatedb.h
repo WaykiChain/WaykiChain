@@ -18,11 +18,11 @@
 
 using namespace std;
 
-class CDelegateCache {
+class CDelegateDBCache {
 public:
-    CDelegateCache(){};
-    CDelegateCache(CDBAccess *pDbAccess) : voteRegIdCache(pDbAccess){};
-    CDelegateCache(CDelegateCache *pBaseIn) : voteRegIdCache(pBaseIn->voteRegIdCache){};
+    CDelegateDBCache(){};
+    CDelegateDBCache(CDBAccess *pDbAccess) : voteRegIdCache(pDbAccess){};
+    CDelegateDBCache(CDelegateDBCache *pBaseIn) : voteRegIdCache(pBaseIn->voteRegIdCache){};
 
     bool LoadTopDelegates();
     bool ExistDelegate(const CRegID &regId);
@@ -31,12 +31,13 @@ public:
     bool SetDelegateVotes(const CRegID &regId, const uint64_t votes);
     bool EraseDelegateVotes(const CRegID &regId, const uint64_t votes);
 
-    bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes);
+    bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes,
+                           CDBOpLogMap &dbOpLogMap);
     bool GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes);
 
-    bool UndoData(dbk::PrefixType prefixType, const CDbOpLogs &dbOpLogs);
+    bool UndoCandidateVotes(CDBOpLogMap &dbOpLogMap);
 
-    void SetBaseView(CDelegateCache *pBaseIn) { voteRegIdCache = pBaseIn->voteRegIdCache; }
+    void SetBaseView(CDelegateDBCache *pBaseIn) { voteRegIdCache = pBaseIn->voteRegIdCache; }
     // TODO:
     void Flush() {}
 

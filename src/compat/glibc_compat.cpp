@@ -1,4 +1,4 @@
-#include "popcoin-config.h"
+#include "config/coin-config.h"
 #include <cstddef>
 #include <sys/select.h>
 

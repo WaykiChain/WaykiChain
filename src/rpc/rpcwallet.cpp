@@ -138,9 +138,9 @@ Value addmulsigaddr(const Array& params, bool fHelp) {
                       keys.size(), nRequired));
     }
 
-    if ((int64_t)keys.size() > kMultisigNumberThreshold) {
+    if ((int64_t)keys.size() > kMultisigNumberLimit) {
         throw runtime_error(
-            strprintf("too many keys supplied, no more than %d keys", kMultisigNumberThreshold));
+            strprintf("too many keys supplied, no more than %d keys", kMultisigNumberLimit));
     }
 
     CKeyID keyId;
@@ -212,9 +212,9 @@ Value createmulsig(const Array& params, bool fHelp) {
                       keys.size(), nRequired));
     }
 
-    if ((int64_t)keys.size() > kMultisigNumberThreshold) {
+    if ((int64_t)keys.size() > kMultisigNumberLimit) {
         throw runtime_error(
-            strprintf("too many keys supplied, no more than %d keys", kMultisigNumberThreshold));
+            strprintf("too many keys supplied, no more than %d keys", kMultisigNumberLimit));
     }
 
     CKeyID keyId;
@@ -270,12 +270,12 @@ Value signmessage(const Array& params, bool fHelp)
     string strAddress = params[0].get_str();
     string strMessage = params[1].get_str();
 
-    CKeyID keyID(strAddress);
-    if (keyID.IsEmpty())
+    CKeyID keyId(strAddress);
+    if (keyId.IsEmpty())
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
 
     CKey key;
-    if (!pWalletMain->GetKey(keyID, key))
+    if (!pWalletMain->GetKey(keyId, key))
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
 
     CHashWriter ss(SER_GETHASH, 0);

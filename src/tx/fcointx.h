@@ -55,7 +55,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << nTxType << VARINT(nValidHeight) << txUid
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
                << toUid << VARINT(llFees) << VARINT(fcoins);
 
             sigHash = ss.GetHash();
@@ -66,8 +66,8 @@ public:
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CFcoinTransferTx>(this); }
 
-    virtual string ToString(CAccountCache &accountCache);
-    virtual Object ToJson(const CAccountCache &accountCache) const;
+    virtual string ToString(CAccountDBCache &accountCache);
+    virtual Object ToJson(const CAccountDBCache &accountCache) const;
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     bool CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state);
