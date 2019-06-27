@@ -929,7 +929,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
             return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the calculated coin amount out of range"),
                             REJECT_INVALID, "coins-out-range");
         }
-        if ((calcCoinAmount / PERCENT_BOOST) != (dealItem.dealCoinAmount / PERCENT_BOOST)) {
+        if ((calcCoinAmount / kPencentBoost) != (dealItem.dealCoinAmount / kPencentBoost)) {
             return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the dealCoinAmount not match"),
                             REJECT_INVALID, "deal-coin-amount-unmatch");
         }
@@ -937,7 +937,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         activeBuyOrder.totalDealAssetAmount += dealItem.dealAssetAmount;
         activeSellOrder.totalDealCoinAmount += dealItem.dealCoinAmount;
         activeSellOrder.totalDealAssetAmount += dealItem.dealAssetAmount;
-        
+
         //9. check the order limit amount and get residual amount
         uint64_t buyResidualAmount = 0;
         uint64_t sellResidualAmount = 0;
@@ -1031,7 +1031,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
 }
 
 bool CDEXSettleTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    
+
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXSettleTx::UndoExecuteTx, undo active orders for all deal item failed"),
                          UPDATE_ACCOUNT_FAIL, "bad-undo-data");
