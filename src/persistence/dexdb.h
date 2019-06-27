@@ -73,9 +73,9 @@ struct CDEXSysForceSellBcoinsOrder {
 
 };
 
-class CDexCache {
+class CDexDBCache {
 public:
-    CDexCache() {}
+    CDexDBCache() {}
 
 public:
     bool GetActiveOrder(const uint256& orderId, CDEXActiveOrder& buyOrder) { return false; }; // TODO: ...

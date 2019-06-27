@@ -39,12 +39,12 @@ bool CBlockPriceMedianTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
     return true;
 }
 
-string CBlockPriceMedianTx::ToString(CAccountCache &view) {
+string CBlockPriceMedianTx::ToString(CAccountDBCache &view) {
     //TODO
     return "";
 }
 
-Object CBlockPriceMedianTx::ToJson(const CAccountCache &AccountView) const {
+Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &AccountView) const {
     //TODO
     return Object();
 }

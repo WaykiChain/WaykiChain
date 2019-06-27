@@ -91,13 +91,13 @@ bool CFcoinTransferTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrap
     return true;
 }
 
-string CFcoinTransferTx::ToString(CAccountCache &accountCache) {
+string CFcoinTransferTx::ToString(CAccountDBCache &accountCache) {
     return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, fcoins=%ld, llFees=%ld, nValidHeight=%d\n",
                      GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), fcoins,
                      llFees, nValidHeight);
 }
 
-Object CFcoinTransferTx::ToJson(const CAccountCache &accountCache) const {
+Object CFcoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
     CKeyID srcKeyId;

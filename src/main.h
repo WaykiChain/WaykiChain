@@ -47,7 +47,7 @@ class CBlockIndex;
 class CBloomFilter;
 class CChain;
 class CInv;
-class CAccountCache;
+class CAccountDBCache;
 class CBlockTreeDB;
 
 extern CCriticalSection cs_main;
@@ -206,9 +206,9 @@ unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
 /** Format a string that describes several potential problems detected by the core */
 string GetWarnings(string strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
-bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CContractCache &scriptDBCache, bool bSearchMempool = true);
+bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CContractDBCache &scriptDBCache, bool bSearchMempool = true);
 /** Retrieve a transaction height comfirmed in block*/
-int GetTxConfirmHeight(const uint256 &hash, CContractCache &scriptDBCache);
+int GetTxConfirmHeight(const uint256 &hash, CContractDBCache &scriptDBCache);
 
 /** Abort with a message */
 bool AbortNode(const string &msg);
@@ -313,18 +313,18 @@ public:
 class CCacheDBManager {
 public:
     CDBAccess           *pAccountDb;
-    CAccountCache       *pAccountCache;
+    CAccountDBCache     *pAccountCache;
 
     CDBAccess           *pContractDb;
-    CContractCache      *pContractCache;
+    CContractDBCache    *pContractCache;
 
     CDBAccess           *pDelegateDb;
-    CDelegateCache      *pDelegateCache;
+    CDelegateDBCache    *pDelegateCache;
 
     CDBAccess           *pCdpDb;
-    CCdpCacheManager    *pCdpCache;
+    CCdpDBCache         *pCdpCache;
 
-    CDexCache           *pDexCache;
+    CDexDBCache         *pDexCache;
 
     CBlockTreeDB        *pBlockTreeDb;
 
@@ -341,18 +341,18 @@ public:
         pBlockTreeDb = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
 
         pAccountDb      = new CDBAccess(DBNameType::ACCOUNT, nAccountDBCache, false, fReIndex);
-        pAccountCache   = new CAccountCache(pAccountDb);
+        pAccountCache   = new CAccountDBCache(pAccountDb);
 
         pContractDb     = new CDBAccess(DBNameType::CONTRACT, nContractDBCache, false, fReIndex);
-        pContractCache  = new CContractCache(pContractDb);
+        pContractCache  = new CContractDBCache(pContractDb);
 
         pDelegateDb     = new CDBAccess(DBNameType::DELEGATE, nDelegateDBCache, false, fReIndex);
-        pDelegateCache  = new CDelegateCache(pDelegateDb);
+        pDelegateCache  = new CDelegateDBCache(pDelegateDb);
 
         pCdpDb          = new CDBAccess(DBNameType::CDP, nAccountDBCache, false, fReIndex); //TODO fix cache size
-        pCdpCache       = new CCdpCacheManager(pCdpDb);
+        pCdpCache       = new CCdpDBCache(pCdpDb);
 
-        pDexCache       = new CDexCache();
+        pDexCache       = new CDexDBCache();
 
         pTxCache        = new CTxMemCache();
         pPpCache        = new CPricePointMemCache();

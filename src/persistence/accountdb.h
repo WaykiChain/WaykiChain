@@ -47,7 +47,7 @@ public:
 };
 */
 
-class CAccountCache {
+class CAccountDBCache {
 public:
     bool GetFcoinGenesisAccount(CAccount &fcoinGenesisAccount) const;
 
@@ -73,9 +73,9 @@ public:
     std::tuple<uint64_t, uint64_t> TraverseAccount();
 
 public:
-    CAccountCache() {}
+    CAccountDBCache() {}
 
-    CAccountCache(CDBAccess *pDbAccess):
+    CAccountDBCache(CDBAccess *pDbAccess):
         blockHashCache(pDbAccess),
         keyId2AccountCache(pDbAccess),
         regId2KeyIdCache(pDbAccess),
@@ -83,13 +83,13 @@ public:
         assert(pDbAccess->GetDbNameType() == DBNameType::ACCOUNT);
     }
 
-    CAccountCache(CAccountCache *pBase):
+    CAccountDBCache(CAccountDBCache *pBase):
         blockHashCache(pBase->blockHashCache),
         keyId2AccountCache(pBase->keyId2AccountCache),
         regId2KeyIdCache(pBase->regId2KeyIdCache),
         nickId2KeyIdCache(pBase->nickId2KeyIdCache) {}
 
-    ~CAccountCache() {}
+    ~CAccountDBCache() {}
 
     bool GetUserId(const string &addr, CUserID &userId) const;
     bool GetRegId(const CKeyID &keyId, CRegID &regId) const;
@@ -103,7 +103,7 @@ public:
     bool Flush();
     unsigned int GetCacheSize() const;
     Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY);
-    void SetBaseView(CAccountCache *pBaseIn) {
+    void SetBaseView(CAccountDBCache *pBaseIn) {
         blockHashCache.SetBase(&pBaseIn->blockHashCache);
         keyId2AccountCache.SetBase(&pBaseIn->keyId2AccountCache);
         regId2KeyIdCache.SetBase(&pBaseIn->regId2KeyIdCache);

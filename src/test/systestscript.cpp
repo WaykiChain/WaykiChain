@@ -288,7 +288,7 @@ public:
 			return false;
 		}
 
-		CContractCache contractScriptTemp(*pScriptDBTip, true);
+		CContractDBCache contractScriptTemp(*pScriptDBTip, true);
 		if (!contractScriptTemp.HaveScript(regid)) {
 			return false;
 		}
@@ -349,7 +349,7 @@ public:
 			if (regid.IsEmpty() == true) {
 				return false;
 			}
-			CContractCache contractScriptTemp(*pScriptDBTip, true);
+			CContractDBCache contractScriptTemp(*pScriptDBTip, true);
 			if (!contractScriptTemp.HaveScript(regid)) {
 				return false;
 			}
@@ -615,7 +615,7 @@ BOOST_FIXTURE_TEST_CASE(appacc,CSysScriptTest){
 
 
 
-	CContractCache contractScriptTemp(*pScriptDBTip, true);
+	CContractDBCache contractScriptTemp(*pScriptDBTip, true);
 	CRegID script(sriptid);
 	CRegID strreg;
 	string address = "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz";

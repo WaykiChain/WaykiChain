@@ -99,7 +99,7 @@ bool CPriceFeedTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVa
     return true;
 }
 
-string CPriceFeedTx::ToString(CAccountCache &accountCache) {
+string CPriceFeedTx::ToString(CAccountDBCache &accountCache) {
     string str;
     for (auto pp : pricePoints) {
         str += pp.ToString() + ", ";
@@ -109,7 +109,7 @@ string CPriceFeedTx::ToString(CAccountCache &accountCache) {
                      GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, str, nValidHeight);
 }
 
-Object CPriceFeedTx::ToJson(const CAccountCache &accountCache) const {
+Object CPriceFeedTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
     CKeyID keyId;

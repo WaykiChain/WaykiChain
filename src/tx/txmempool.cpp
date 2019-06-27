@@ -51,17 +51,17 @@ CTxMemPool::CTxMemPool() {
     nTransactionsUpdated = 0;
 }
 
-void CTxMemPool::SetAccountCache(CAccountCache *pAccountCacheIn) {
-    memPoolAccountCache = std::make_shared<CAccountCache>(*pAccountCacheIn);
+void CTxMemPool::SetAccountCache(CAccountDBCache *pAccountCacheIn) {
+    memPoolAccountCache = std::make_shared<CAccountDBCache>(*pAccountCacheIn);
 }
 
-void CTxMemPool::SetContractCache(CContractCache *pContractCacheIn) {
-    memPoolContractCache = std::make_shared<CContractCache>(*pContractCacheIn);
+void CTxMemPool::SetContractCache(CContractDBCache *pContractCacheIn) {
+    memPoolContractCache = std::make_shared<CContractDBCache>(*pContractCacheIn);
 }
 
-void CTxMemPool::ReScanMemPoolTx(CAccountCache *pAccountCacheIn, CContractCache *pContractCacheIn) {
-    memPoolAccountCache.reset(new CAccountCache(*pAccountCacheIn));
-    memPoolContractCache.reset(new CContractCache(*pContractCacheIn));
+void CTxMemPool::ReScanMemPoolTx(CAccountDBCache *pAccountCacheIn, CContractDBCache *pContractCacheIn) {
+    memPoolAccountCache.reset(new CAccountDBCache(*pAccountCacheIn));
+    memPoolContractCache.reset(new CContractDBCache(*pContractCacheIn));
 
     {
         LOCK(cs);
@@ -155,8 +155,8 @@ void CTxMemPool::Clear() {
     LOCK(cs);
 
     memPoolTxs.clear();
-    memPoolAccountCache.reset(new CAccountCache(*pCdMan->pAccountCache));
-    memPoolContractCache.reset(new CContractCache(*pCdMan->pContractCache));
+    memPoolAccountCache.reset(new CAccountDBCache(*pCdMan->pAccountCache));
+    memPoolContractCache.reset(new CContractDBCache(*pCdMan->pContractCache));
 
     ++nTransactionsUpdated;
 }

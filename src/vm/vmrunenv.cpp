@@ -35,7 +35,7 @@ vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetNewAppUserAccount() { return 
 
 vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetRawAppUserAccount() { return rawAppUserAccount; }
 
-bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountCache& view, int nHeight) {
+bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int nHeight) {
     vmOperateOutput.clear();
     pBaseTx       = tx;
     runTimeHeight = nHeight;
@@ -388,7 +388,7 @@ bool CVmRunEnv::CheckAppAcctOperate(CContractInvokeTx* tx) {
 //  return tem;
 //}
 
-bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountCache& view,
+bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDBCache& view,
                                const int nCurHeight) {
     newAccount.clear();
     for (auto& it : listoperate) {
@@ -483,9 +483,9 @@ int CVmRunEnv::GetBurnVersion() {
 
 uint256 CVmRunEnv::GetCurTxHash() { return pBaseTx.get()->GetHash(); }
 
-CContractCache* CVmRunEnv::GetScriptDB() { return pContractCache; }
+CContractDBCache* CVmRunEnv::GetScriptDB() { return pContractCache; }
 
-CAccountCache* CVmRunEnv::GetCatchView() { return pAccountCache; }
+CAccountDBCache* CVmRunEnv::GetCatchView() { return pAccountCache; }
 
 void CVmRunEnv::InsertOutAPPOperte(const vector<unsigned char>& userId,
                                    const CAppFundOperate& source) {
@@ -530,7 +530,7 @@ bool CVmRunEnv::GetAppUserAccount(const vector<unsigned char>& vAppUserId,
 }
 
 bool CVmRunEnv::OperateAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
-                                  CContractCache& view) {
+                                  CContractDBCache& view) {
     newAppUserAccount.clear();
     if ((mapAppFundOperate.size() > 0)) {
         for (auto const tem : opMap) {

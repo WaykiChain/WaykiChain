@@ -5,8 +5,8 @@
 #include  "boost/filesystem/operations.hpp"
 #include  "boost/filesystem/path.hpp"
 using namespace std;
-CContractCache *pscriptDBView = NULL;
-CContractCache *pTestView = NULL;
+CContractDBCache *pscriptDBView = NULL;
+CContractDBCache *pTestView = NULL;
 CContractDB *pTestDB = NULL;
 vector< vector<unsigned char> > arrKey;
 vector<unsigned char> vKey1 = {0x01, 0x02, 0x01};
@@ -20,9 +20,9 @@ vector<unsigned char> vKeyValue = {0x06, 0x07, 0x08};
 int nCount = 0;
 void init() {
 	 pTestDB = new CContractDB("testdb",size_t(4<<20), false , true);
-	 pTestView =  new CContractCache(*pTestDB, false);
+	 pTestView =  new CContractDBCache(*pTestDB, false);
 	 //穷举数据分别位于scriptDBView pTestView, pTestDB 三级分布数据测试数据库中
-	 pscriptDBView = new CContractCache(*pTestView, true);
+	 pscriptDBView = new CContractDBCache(*pTestView, true);
 
 	 arrKey.push_back(vKey1);
 	 arrKey.push_back(vKey2);
@@ -121,7 +121,7 @@ void cleandb(int nType, vector<unsigned char> vKey) {
 	}
 }
 
-void traversaldb(CContractCache *pScriptDB, bool needEqual) {
+void traversaldb(CContractDBCache *pScriptDB, bool needEqual) {
 	assert(pScriptDB!=NULL);
 	vector< vector<unsigned char> > traversalKey;
 //	int height(0);

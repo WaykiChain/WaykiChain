@@ -15,7 +15,7 @@
 #include "miner/miner.h"
 #include "version.h"
 
-string CDelegateVoteTx::ToString(CAccountCache &accountCache) {
+string CDelegateVoteTx::ToString(CAccountDBCache &accountCache) {
     string str;
 
     CKeyID keyId;
@@ -29,7 +29,7 @@ string CDelegateVoteTx::ToString(CAccountCache &accountCache) {
     return str;
 }
 
-Object CDelegateVoteTx::ToJson(const CAccountCache &accountCache) const {
+Object CDelegateVoteTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
     CKeyID keyId;

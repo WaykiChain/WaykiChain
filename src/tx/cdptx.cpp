@@ -9,12 +9,12 @@
 
 #include <math.h>
 
-string CCDPStakeTx::ToString(CAccountCache &view) {
+string CCDPStakeTx::ToString(CAccountDBCache &view) {
     //TODO
     return "";
 }
 
-Object CCDPStakeTx::ToJson(const CAccountCache &AccountView) const {
+Object CCDPStakeTx::ToJson(const CAccountDBCache &AccountView) const {
     //TODO
     return Object();
 }
@@ -189,11 +189,11 @@ bool CCDPStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
 }
 
 /************************************<< CCDPRedeemTx >>***********************************************/
-string CCDPRedeemTx::ToString(CAccountCache &view) {
+string CCDPRedeemTx::ToString(CAccountDBCache &view) {
      //TODO
      return "";
  }
- Object CCDPRedeemTx::ToJson(const CAccountCache &AccountView) const {
+ Object CCDPRedeemTx::ToJson(const CAccountDBCache &AccountView) const {
      //TODO
      return Object();
  }
@@ -341,11 +341,11 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
  }
 
 /************************************<< CdpLiquidateTx >>***********************************************/
-string CCDPLiquidateTx::ToString(CAccountCache &view) {
+string CCDPLiquidateTx::ToString(CAccountDBCache &view) {
     //TODO
     return "";
 }
-Object CCDPLiquidateTx::ToJson(const CAccountCache &AccountView) const {
+Object CCDPLiquidateTx::ToJson(const CAccountDBCache &AccountView) const {
     //TODO
     return Object();
 }
@@ -456,7 +456,7 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
     if (cw.cdpCache.GetCdp(cdp)) {
         //check if CDP is open for liquidation
         uint16_t liquidateRatio = cw.cdpCache.GetDefaultOpenLiquidateRatio();
-        uint16_t cdpLiquidateRatio = cw.ppCache.GetBcoinMedianPrice() * cdp.collateralRatio;
+        uint16_t cdpLiquidateRatio = cw.ppCache.GetBcoinMedianPrice() * cdp.collateralRatioBase;
         if (cdpLiquidateRatio > liquidateRatio) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, CDP collateralRatio (%d) > liquidateRatio (%d)",
                         cdpLiquidateRatio, liquidateRatio), CDP_LIQUIDATE_FAIL, "CDP-liquidate-not-open");

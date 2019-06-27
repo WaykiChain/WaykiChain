@@ -59,8 +59,8 @@ public:
     virtual uint64_t GetValue() const { return 0; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCdpOpenTx>(this); }
-    virtual string ToString(CAccountCache &view);
-    virtual Object ToJson(const CAccountCache &AccountView) const;
+    virtual string ToString(CAccountDBCache &view);
+    virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state);
@@ -130,8 +130,8 @@ public:
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CScoinTransferTx>(this); }
 
-    virtual string ToString(CAccountCache &accountCache);
-    virtual Object ToJson(const CAccountCache &accountCache) const;
+    virtual string ToString(CAccountDBCache &accountCache);
+    virtual Object ToJson(const CAccountDBCache &accountCache) const;
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     bool CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state);

@@ -21,7 +21,7 @@
 
 class CDiskBlockPos;
 class CNode;
-class CAccountCache;
+class CAccountDBCache;
 
 enum BlockStatus {
     BLOCK_VALID_UNKNOWN      = 0,
@@ -176,7 +176,7 @@ public:
 
     uint64_t GetBlockMedianPrice(const CoinType coinType, const PriceType priceType) const;
 
-    void Print(CAccountCache &accountCache) const;
+    void Print(CAccountDBCache &accountCache) const;
 };
 
 /** The block chain is a tree shaped structure starting with the

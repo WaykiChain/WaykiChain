@@ -16,13 +16,13 @@
 
 class CCacheWrapper {
 public:
-    CAccountCache accountCache;
-    CContractCache contractCache;
-    CDelegateCache delegateCache;
+    CAccountDBCache accountCache;
+    CContractDBCache contractCache;
+    CDelegateDBCache delegateCache;
     CTxMemCache txCache;
     CPricePointMemCache ppCache;
-    CCdpCacheManager cdpCache;
-    CDexCache dexCache;
+    CCdpDBCache cdpCache;
+    CDexDBCache dexCache;
     CTxUndo txUndo;
 };
 

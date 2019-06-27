@@ -688,7 +688,7 @@ int CMerkleTx::GetBlocksToMaturity() const {
     return max(0, (COINBASE_MATURITY + 1) - GetDepthInMainChain());
 }
 
-int GetTxConfirmHeight(const uint256 &hash, CContractCache &scriptDBCache) {
+int GetTxConfirmHeight(const uint256 &hash, CContractDBCache &scriptDBCache) {
     if (SysCfg().IsTxIndex()) {
         CDiskTxPos postx;
         if (scriptDBCache.ReadTxIndex(hash, postx)) {
@@ -708,7 +708,7 @@ int GetTxConfirmHeight(const uint256 &hash, CContractCache &scriptDBCache) {
 }
 
 // Return transaction in tx, and if it was found inside a block, its hash is placed in blockHash
-bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CContractCache &scriptDBCache,
+bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CContractDBCache &scriptDBCache,
                     bool bSearchMemPool) {
     {
         LOCK(cs_main);

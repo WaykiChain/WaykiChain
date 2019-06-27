@@ -275,13 +275,13 @@ Object CContractDB::ToJsonObj(string Prefix) {
 */
 
 /* TODO:...
-bool CContractCache::SetData(const string &vKey, const string &vValue) {
+bool CContractDBCache::SetData(const string &vKey, const string &vValue) {
     mapContractDb[vKey] = vValue;
     return true;
 }
 */
 /* TODO:...
-bool CContractCache::UndoScriptData(const string &vKey, const string &vValue) {
+bool CContractDBCache::UndoScriptData(const string &vKey, const string &vValue) {
 
     string vPrefix(vKey.begin(), vKey.begin() + 4);
     string vScriptDataPrefix = {'d', 'a', 't', 'a'};
@@ -326,7 +326,7 @@ bool CContractCache::UndoScriptData(const string &vKey, const string &vValue) {
 */
 
 /*TODO:
-bool CContractCache::BatchWrite(const map<string, string > &mapData) {
+bool CContractDBCache::BatchWrite(const map<string, string > &mapData) {
     for (auto &items : mapData) {
         mapContractDb[items.first] = items.second;
     }
@@ -335,7 +335,7 @@ bool CContractCache::BatchWrite(const map<string, string > &mapData) {
 */
 
 /*TODO:
-bool CContractCache::EraseKey(const string &vKey) {
+bool CContractDBCache::EraseKey(const string &vKey) {
     if (mapContractDb.count(vKey) > 0) {
         mapContractDb[vKey].clear();
     } else {
@@ -350,7 +350,7 @@ bool CContractCache::EraseKey(const string &vKey) {
     return true;
 }
 
-bool CContractCache::HaveData(const string &vKey) {
+bool CContractDBCache::HaveData(const string &vKey) {
     if (mapContractDb.count(vKey) > 0) {
         if (!mapContractDb[vKey].empty())
             return true;
@@ -361,7 +361,7 @@ bool CContractCache::HaveData(const string &vKey) {
 }
 */
 
-bool CContractCache::GetScript(const int nIndex, string &scriptId, string &value) {
+bool CContractDBCache::GetScript(const int nIndex, string &scriptId, string &value) {
     return false;
 /* TODO: ....
     if (0 == nIndex) {
@@ -472,7 +472,7 @@ bool CContractCache::GetScript(const int nIndex, string &scriptId, string &value
 */
 }
 
-bool CContractCache::SetScript(const string &scriptId, const string &content) {
+bool CContractDBCache::SetScript(const string &scriptId, const string &content) {
 
 /*TODO:....
     if (!scriptCache.HaveData(scriptId)) {
@@ -486,7 +486,7 @@ bool CContractCache::SetScript(const string &scriptId, const string &content) {
     return scriptCache.SetData(scriptId, content);
 }
 
-bool CContractCache::Flush() {
+bool CContractDBCache::Flush() {
     return false;
     scriptCache.Flush();
     txOutputCache.Flush();
@@ -495,28 +495,28 @@ bool CContractCache::Flush() {
     contractRelatedKidCache.Flush();
 }
 
-unsigned int CContractCache::GetCacheSize() {
+unsigned int CContractDBCache::GetCacheSize() {
     return false;
     /* TODO:
     return ::GetSerializeSize(mapContractDb, SER_DISK, CLIENT_VERSION);
     */
 }
 
-bool CContractCache::WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLogMap &dbOpLogMap) {
+bool CContractDBCache::WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLogMap &dbOpLogMap) {
     return txOutputCache.SetData(txid, vOutput, dbOpLogMap);
 }
 
-bool CContractCache::SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid,
+bool CContractDBCache::SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid,
                                         CDBOpLogMap &dbOpLogMap) {
     auto key = make_tuple(keyId, height, index);
     return acctTxListCache.SetData(key, txid, dbOpLogMap);
 }
 
-bool CContractCache::UndoTxHashByAddress(CDBOpLogMap &dbOpLogMap) {
+bool CContractDBCache::UndoTxHashByAddress(CDBOpLogMap &dbOpLogMap) {
     return acctTxListCache.UndoData(dbOpLogMap);
 }
 
-bool CContractCache::GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string> &mapTxHash) {
+bool CContractDBCache::GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string> &mapTxHash) {
     return false;
     /* TODO: implements get list in cache
         pBase->GetTxHashByAddress(keyId, nHeight, mapTxHash);
@@ -544,7 +544,7 @@ bool CContractCache::GetTxHashByAddress(const CKeyID &keyId, uint32_t height, ma
     */
 }
 
-bool CContractCache::GetAllContractAcc(
+bool CContractDBCache::GetAllContractAcc(
     const CRegID &scriptId, map<string, string > &mapAcc) {
 
     return false;
@@ -553,7 +553,7 @@ bool CContractCache::GetAllContractAcc(
     */
 }
 
-bool CContractCache::GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOutput) {
+bool CContractDBCache::GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOutput) {
 
     vector<CVmOperate> value;
     if (!txOutputCache.GetData(txid, value))
@@ -561,15 +561,15 @@ bool CContractCache::GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOutpu
     return true;
 }
 
-bool CContractCache::UndoTxOutput(CDBOpLogMap &dbOpLogMap) {
+bool CContractDBCache::UndoTxOutput(CDBOpLogMap &dbOpLogMap) {
     return txOutputCache.UndoData(dbOpLogMap);
 }
 
-bool CContractCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
+bool CContractDBCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
     return txDiskPosCache.GetData(txid, pos);
 }
 
-bool CContractCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap) {
+bool CContractDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap) {
     for (auto it : list) {
         LogPrint("txindex", "txhash:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
             it.first.GetHex(), it.second.nFile, it.second.nPos, it.second.nTxOffset);
@@ -581,21 +581,21 @@ bool CContractCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &li
     return true;
 }
 
-bool CContractCache::GetScript(const string &scriptId, string &content) {
+bool CContractDBCache::GetScript(const string &scriptId, string &content) {
     return scriptCache.GetData(scriptId, content);
 }
 
-bool CContractCache::GetScript(const CRegID &scriptId, string &vValue) {
+bool CContractDBCache::GetScript(const CRegID &scriptId, string &vValue) {
     return GetScript(scriptId.ToRawString(), vValue);
 }
 
-bool CContractCache::GetContractData(const int nCurBlockHeight, const string &scriptId,
+bool CContractDBCache::GetContractData(const int nCurBlockHeight, const string &scriptId,
                                          const string &scriptKey, string &scriptData) {
     // TODO: delete the arg nCurBlockHeight??
     return contractDataCache.GetData(make_pair(scriptId, scriptKey), scriptData);
 }
 
-bool CContractCache::GetContractData(const int nCurBlockHeight, const string &vScriptId,
+bool CContractDBCache::GetContractData(const int nCurBlockHeight, const string &vScriptId,
                                          const int &nIndex, string &vScriptKey,
                                          string &vScriptData) {
     return false;
@@ -747,7 +747,7 @@ bool CContractCache::GetContractData(const int nCurBlockHeight, const string &vS
     return true;
 */
 }
-bool CContractCache::SetContractData(const string &scriptId, const string &scriptKey,
+bool CContractDBCache::SetContractData(const string &scriptId, const string &scriptKey,
                                      const string &scriptData, CDBOpLogMap &dbOpLogMap) {
     auto key = make_pair(scriptId, scriptKey);
     string oldData;
@@ -760,12 +760,12 @@ bool CContractCache::SetContractData(const string &scriptId, const string &scrip
     return contractDataCache.SetData(key, scriptData, dbOpLogMap);
 }
 
-bool CContractCache::HaveScript(const string &scriptId) {
+bool CContractDBCache::HaveScript(const string &scriptId) {
     return scriptCache.HaveData(scriptId);
 }
 
 
-bool CContractCache::GetScriptCount(int &nCount) {
+bool CContractDBCache::GetScriptCount(int &nCount) {
 
     return false;
     /* TODO: get count by leveldb
@@ -783,7 +783,7 @@ bool CContractCache::GetScriptCount(int &nCount) {
 
 
 /* TODO:...
-bool CContractCache::SetScriptCount(const int nCount) {
+bool CContractDBCache::SetScriptCount(const int nCount) {
     return false;
     string scriptKey = {'s', 'n', 'u', 'm'};
     string vValue;
@@ -805,7 +805,7 @@ bool CContractCache::SetScriptCount(const int nCount) {
 }
 */
 
-bool CContractCache::EraseScript(const string &scriptId) {
+bool CContractDBCache::EraseScript(const string &scriptId) {
 
 /* TODO: delete
     if (HaveScript(vScriptId)) {
@@ -821,7 +821,7 @@ bool CContractCache::EraseScript(const string &scriptId) {
 }
 
 // TODO: change count from int to int64_t
-bool CContractCache::GetContractItemCount(const string &scriptId, int &count) {
+bool CContractDBCache::GetContractItemCount(const string &scriptId, int &count) {
     CDBCountValue countValue;
     if (contractItemCountCache.GetData(scriptId, countValue)) {
         count = countValue.value;
@@ -831,7 +831,7 @@ bool CContractCache::GetContractItemCount(const string &scriptId, int &count) {
 }
 
 
-bool CContractCache::IncContractItemCount(const string &contractRegId, int count) {
+bool CContractDBCache::IncContractItemCount(const string &contractRegId, int count) {
 
     CDBCountValue countValue;
     contractItemCountCache.GetData(contractRegId, countValue);
@@ -843,7 +843,7 @@ bool CContractCache::IncContractItemCount(const string &contractRegId, int count
     return contractItemCountCache.SetData(contractRegId, countValue);
 }
 
-bool CContractCache::SetContractItemCount(const string &vScriptId, int nCount) {
+bool CContractDBCache::SetContractItemCount(const string &vScriptId, int nCount) {
     return false;
     /* TODO:
     if (nCount < 0)
@@ -866,7 +866,7 @@ bool CContractCache::SetContractItemCount(const string &vScriptId, int nCount) {
     */
 }
 
-bool CContractCache::EraseContractData(const string &scriptId,
+bool CContractDBCache::EraseContractData(const string &scriptId,
                                       const string &scriptKey, CDBOpLogMap &dbOpLogMap) {
 
     auto key = make_pair(scriptId, scriptKey);
@@ -879,7 +879,7 @@ bool CContractCache::EraseContractData(const string &scriptId,
     return true;
 }
 
-bool CContractCache::UndoContractData(CDBOpLogMap &dbOpLogMap) {
+bool CContractDBCache::UndoContractData(CDBOpLogMap &dbOpLogMap) {
     /* TODO: need to handle UndoContractData()
 
         string vPrefix(vKey.begin(), vKey.begin() + 4);
@@ -920,12 +920,12 @@ bool CContractCache::UndoContractData(CDBOpLogMap &dbOpLogMap) {
         }
         mapContractDb[vKey] = vValue;
         return true;
-    */    
+    */
     return contractDataCache.UndoData(dbOpLogMap);
 }
 
 /*TODO: TODO: delete?
-bool CContractCache::EraseContractData(const string &vKey) {
+bool CContractDBCache::EraseContractData(const string &vKey) {
 
     if (vKey.size() < 12) {
         return ERRORMSG("EraseContractData delete script data key value error!");
@@ -939,7 +939,7 @@ bool CContractCache::EraseContractData(const string &vKey) {
 */
 
 /*TODO: delete?
-bool CContractCache::HaveScriptData(const string &vScriptId, const string &vScriptKey) {
+bool CContractDBCache::HaveScriptData(const string &vScriptId, const string &vScriptKey) {
 
     string scriptKey = {'d', 'a', 't', 'a'};
     scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
@@ -950,7 +950,7 @@ bool CContractCache::HaveScriptData(const string &vScriptId, const string &vScri
 }
 */
 
-bool CContractCache::GetScript(const int nIndex, CRegID &scriptId, string &vValue) {
+bool CContractDBCache::GetScript(const int nIndex, CRegID &scriptId, string &vValue) {
     return false;
     /*
     string tem;
@@ -966,57 +966,57 @@ bool CContractCache::GetScript(const int nIndex, CRegID &scriptId, string &vValu
     */
 }
 
-bool CContractCache::SetScript(const CRegID &scriptId, const string &vValue) {
+bool CContractDBCache::SetScript(const CRegID &scriptId, const string &vValue) {
     return SetScript(scriptId.ToRawString(), vValue);
 }
 
-bool CContractCache::HaveScript(const CRegID &scriptId) {
+bool CContractDBCache::HaveScript(const CRegID &scriptId) {
     return HaveScript(scriptId.GetRegIdRaw());
 }
 
-bool CContractCache::EraseScript(const CRegID &scriptId) {
+bool CContractDBCache::EraseScript(const CRegID &scriptId) {
     return EraseScript(scriptId.GetRegIdRaw());
 }
 
-bool CContractCache::GetContractItemCount(const CRegID &scriptId, int &nCount) {
+bool CContractDBCache::GetContractItemCount(const CRegID &scriptId, int &nCount) {
     return GetContractItemCount(scriptId.GetRegIdRaw(), nCount);
 }
 
-bool CContractCache::EraseContractData(const CRegID &scriptId, const string &vScriptKey, CDBOpLogMap &dbOpLogMap) {
+bool CContractDBCache::EraseContractData(const CRegID &scriptId, const string &vScriptKey, CDBOpLogMap &dbOpLogMap) {
     return EraseContractData(scriptId.GetRegIdRaw(), vScriptKey, dbOpLogMap);
 }
 
-bool CContractCache::HaveScriptData(const CRegID &scriptId, const string &vScriptKey) {
+bool CContractDBCache::HaveScriptData(const CRegID &scriptId, const string &vScriptKey) {
     return HaveScriptData(scriptId.GetRegIdRaw(), vScriptKey);
 }
 
-bool CContractCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const string &vScriptKey,
+bool CContractDBCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const string &vScriptKey,
                                          string &vScriptData) {
     return GetContractData(nCurBlockHeight, scriptId.GetRegIdRaw(), vScriptKey, vScriptData);
 }
 
-bool CContractCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
+bool CContractDBCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
                                          string &vScriptKey, string &vScriptData) {
     return GetContractData(nCurBlockHeight, scriptId.GetRegIdRaw(), nIndex, vScriptKey, vScriptData);
 }
 
-bool CContractCache::SetContractData(const CRegID &scriptId, const string &vScriptKey,
+bool CContractDBCache::SetContractData(const CRegID &scriptId, const string &vScriptKey,
                                          const string &vScriptData, CDBOpLogMap &dbOpLogMap) {
     return SetContractData(scriptId.GetRegIdRaw(), vScriptKey, vScriptData, dbOpLogMap);
 }
 
-bool CContractCache::SetTxRelAccout(const uint256 &txHash, const set<CKeyID> &relAccount) {
+bool CContractDBCache::SetTxRelAccout(const uint256 &txHash, const set<CKeyID> &relAccount) {
     return contractRelatedKidCache.SetData(txHash, relAccount);
 }
-bool CContractCache::GetTxRelAccount(const uint256 &txHash, set<CKeyID> &relAccount) {
+bool CContractDBCache::GetTxRelAccount(const uint256 &txHash, set<CKeyID> &relAccount) {
     return contractRelatedKidCache.GetData(txHash, relAccount);
 }
 
-bool CContractCache::EraseTxRelAccout(const uint256 &txHash) {
+bool CContractDBCache::EraseTxRelAccout(const uint256 &txHash) {
     return contractRelatedKidCache.EraseData(txHash);
 }
 
-Object CContractCache::ToJsonObj() const {
+Object CContractDBCache::ToJsonObj() const {
     return Object();
     /* TODO:
     Object obj;
@@ -1037,7 +1037,7 @@ Object CContractCache::ToJsonObj() const {
     */
 }
 
-string CContractCache::ToString() {
+string CContractDBCache::ToString() {
     return "";
     /* TODO:
     string str("");
@@ -1052,12 +1052,12 @@ string CContractCache::ToString() {
     */
 }
 
-bool CContractCache::GetScriptAcc(const CRegID &scriptId, const string &accKey,
+bool CContractDBCache::GetScriptAcc(const CRegID &scriptId, const string &accKey,
                                       CAppUserAccount &appAccOut) {
     return contractAccountCache.GetData(make_pair(scriptId.ToRawString(), accKey), appAccOut);
 }
 
-bool CContractCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn,
+bool CContractDBCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn,
                                       CDBOpLogMap &dbOpLogMap) {
     if (appAccIn.IsEmpty()) {
         return false;
@@ -1067,7 +1067,7 @@ bool CContractCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAccount 
 }
 
 /* TODO: unused, delete ??
-bool CContractCache::EraseScriptAcc(const CRegID &scriptId, const string &vKey) {
+bool CContractDBCache::EraseScriptAcc(const CRegID &scriptId, const string &vKey) {
     return false;
     string scriptKey = {'a', 'c', 'c', 't'};
     string vRegId    = scriptId.GetRegIdRaw();
@@ -1086,6 +1086,6 @@ bool CContractCache::EraseScriptAcc(const CRegID &scriptId, const string &vKey) 
 }
 */
 
-bool CContractCache::UndoScriptAcc(CDBOpLogMap &dbOpLogMap) {
+bool CContractDBCache::UndoScriptAcc(CDBOpLogMap &dbOpLogMap) {
     return contractAccountCache.UndoData(dbOpLogMap);
 }

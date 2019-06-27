@@ -79,7 +79,7 @@ uint64_t CBlock::GetBlockMedianPrice(const CoinType coinType, const PriceType pr
                : ((CBlockPriceMedianTx*)vptx[1].get())->GetMedianPriceByType(coinType, priceType);
 }
 
-void CBlock::Print(CAccountCache& accountCache) const {
+void CBlock::Print(CAccountDBCache& accountCache) const {
     LogPrint("INFO",
              "CBlock(hash=%s, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, "
              "nFuelRate=%d)\n",

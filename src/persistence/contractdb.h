@@ -51,11 +51,11 @@ public:
 };
 */
 
-class CContractCache {
+class CContractDBCache {
 public:
-    CContractCache() {}
+    CContractDBCache() {}
 
-    CContractCache(CDBAccess *pDbAccess):
+    CContractDBCache(CDBAccess *pDbAccess):
         scriptCache(pDbAccess),
         txOutputCache(pDbAccess),
         acctTxListCache(pDbAccess),
@@ -67,7 +67,7 @@ public:
         assert(pDbAccess->GetDbNameType() == DBNameType::CONTRACT);
     };
 
-    CContractCache(CContractCache *pBaseIn):
+    CContractDBCache(CContractDBCache *pBaseIn):
         scriptCache(pBaseIn->scriptCache),
         txOutputCache(pBaseIn->txOutputCache),
         acctTxListCache(pBaseIn->acctTxListCache),
@@ -96,7 +96,7 @@ public:
                          string &contractKey, string &vScriptData);
     bool SetContractData(const CRegID &scriptId, const string &contractKey,
                          const string &vScriptData, CDBOpLogMap &dbOpLogMap);
-    bool EraseContractData(const CRegID &scriptId, const string &contractKey, CDBOpLogMap &dbOpLogMap);    
+    bool EraseContractData(const CRegID &scriptId, const string &contractKey, CDBOpLogMap &dbOpLogMap);
     bool UndoContractData(CDBOpLogMap &dbOpLogMap);
 
     /**
@@ -120,7 +120,7 @@ public:
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
     bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap);
 
-    void SetBaseView(CContractCache *pBaseIn) {
+    void SetBaseView(CContractDBCache *pBaseIn) {
         scriptCache.SetBase(&pBaseIn->scriptCache);
         txOutputCache.SetBase(&pBaseIn->txOutputCache);
         acctTxListCache.SetBase(&pBaseIn->acctTxListCache);

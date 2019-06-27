@@ -57,7 +57,7 @@ uint64_t CBaseTx::GetFuel(int32_t nFuelRate) {
     return llFuel;
 }
 
-int32_t CBaseTx::GetFuelRate(CContractCache &scriptDB) {
+int32_t CBaseTx::GetFuelRate(CContractDBCache &scriptDB) {
     if (nFuelRate > 0)
         return nFuelRate;
 
@@ -99,7 +99,7 @@ bool CBaseTx::CheckSignatureSize(const vector<unsigned char> &signature) const {
     return signature.size() > 0 && signature.size() < MAX_BLOCK_SIGNATURE_SIZE;
 }
 
-string CBaseTx::ToString(CAccountCache &view) {
+string CBaseTx::ToString(CAccountDBCache &view) {
     string str = strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
                             GetTxType(nTxType), GetHash().ToString(), nVersion,
                             txUid.get<CPubKey>().ToString(),
