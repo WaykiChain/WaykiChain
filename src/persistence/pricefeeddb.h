@@ -8,6 +8,7 @@
 
 #include "accounts/account.h"
 #include "accounts/id.h"
+#include "block.h"
 #include "commons/serialize.h"
 #include "tx/tx.h"
 
@@ -34,15 +35,17 @@ public:
     BlockUserPriceMap mapBlockUserPrices;
 };
 
-class CPricePointCache {
+class CPricePointMemCache {
 public:
-    CPricePointCache() : pBase(nullptr) {}
-    CPricePointCache(CPricePointCache *pBaseIn) : pBase(pBaseIn) {}
+    CPricePointMemCache() : pBase(nullptr) {}
+    CPricePointMemCache(CPricePointMemCache *pBaseIn) : pBase(pBaseIn) {}
 
 public:
     bool AddBlockPricePointInBatch(const int blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
+    bool AddBlockToCache(const CBlock &block);
     // delete block price point by specific block height.
     bool DeleteBlockPricePoint(const int blockHeight);
+    bool DeleteBlockFromCache(const CBlock &block);
 
     uint64_t GetBcoinMedianPrice();
     uint64_t GetFcoinMedianPrice();
@@ -61,7 +64,7 @@ private:
 
 private:
     CoinPricePointMap mapCoinPricePointCache;  // coinPriceType -> consecutiveBlockPrice
-    CPricePointCache *pBase;
+    CPricePointMemCache *pBase;
 };
 
 #endif  // PERSIST_PRICEFEED_H

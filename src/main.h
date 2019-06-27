@@ -19,29 +19,29 @@
 #include <utility>
 #include <vector>
 
+#include "chainparams.h"
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
-#include "chainparams.h"
 #include "net.h"
-#include "sigcache.h"
 #include "persistence/accountdb.h"
 #include "persistence/block.h"
+#include "persistence/blockdb.h"
+#include "persistence/cachewrapper.h"
+#include "persistence/delegatedb.h"
 #include "persistence/dexdb.h"
-#include "tx/txmempool.h"
+#include "persistence/pricefeeddb.h"
+#include "persistence/txdb.h"
+#include "sigcache.h"
 #include "tx/accountregtx.h"
 #include "tx/bcointx.h"
+#include "tx/blockpricemediantx.h"
+#include "tx/blockrewardtx.h"
 #include "tx/contracttx.h"
 #include "tx/delegatetx.h"
-#include "tx/blockrewardtx.h"
-#include "tx/blockpricemediantx.h"
 #include "tx/fcointx.h"
 #include "tx/mulsigtx.h"
 #include "tx/tx.h"
-#include "persistence/accountdb.h"
-#include "persistence/blockdb.h"
-#include "persistence/delegatedb.h"
-#include "persistence/txdb.h"
-#include "persistence/cachewrapper.h"
+#include "tx/txmempool.h"
 
 class CBlockIndex;
 class CBloomFilter;
@@ -330,7 +330,7 @@ public:
     CBlockTreeDB        *pBlockTreeDb;
 
     CTxMemCache         *pTxCache;
-    CPricePointCache    *pPpCache;
+    CPricePointMemCache *pPpCache;
 
     uint64_t            initialCollateralRatioMin = 200; //minimum collateral ratio
 
@@ -356,7 +356,7 @@ public:
         pDexCache       = new CDexCache();
 
         pTxCache        = new CTxMemCache();
-        pPpCache        = new CPricePointCache();
+        pPpCache        = new CPricePointMemCache();
 
     }
 
