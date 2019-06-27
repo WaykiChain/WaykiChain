@@ -134,6 +134,17 @@ bool CDEXBuyLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
     return true;
 }
 
+void CDEXBuyLimitOrderTx::GetOrderData(CDEXOrderData &orderData) {
+    assert(txUid.type() == typeid(CRegID));
+    orderData.userRegId = txUid.get<CRegID>();
+    orderData.orderType = ORDER_LIMIT_PRICE;     //!< order type
+    orderData.direction = ORDER_BUY;
+    orderData.coinType = coinType;      //!< coin type
+    orderData.assetType = assetType;     //!< asset type
+    orderData.coinAmount = bidPrice * assetAmount;    //!< amount of coin to buy asset
+    orderData.assetAmount = assetAmount;   //!< amount of asset to buy/sell
+    orderData.price = bidPrice;         //!< price in coinType want to buy asset
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSellLimitOrderTx
@@ -258,6 +269,18 @@ bool CDEXSellLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper 
     }
 
     return true;
+}
+
+void CDEXSellLimitOrderTx::GetOrderData(CDEXOrderData &orderData) {
+    assert(txUid.type() == typeid(CRegID));
+    orderData.userRegId = txUid.get<CRegID>();
+    orderData.orderType = ORDER_LIMIT_PRICE;     //!< order type
+    orderData.direction = ORDER_SELL;
+    orderData.coinType = coinType;      //!< coin type
+    orderData.assetType = assetType;     //!< asset type
+    orderData.coinAmount = askPrice * assetAmount;    //!< amount of coin to buy asset
+    orderData.assetAmount = assetAmount;   //!< amount of asset to buy/sell
+    orderData.price = askPrice;         //!< price in coinType want to buy asset
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -385,6 +408,18 @@ bool CDEXBuyMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper 
     return true;
 }
 
+void CDEXBuyMarketOrderTx::GetOrderData(CDEXOrderData &orderData) {
+    assert(txUid.type() == typeid(CRegID));
+    orderData.userRegId = txUid.get<CRegID>();
+    orderData.orderType = ORDER_MARKET_PRICE;     //!< order type
+    orderData.direction = ORDER_BUY;
+    orderData.coinType = coinType;      //!< coin type
+    orderData.assetType = assetType;     //!< asset type
+    orderData.coinAmount = coinAmount;    //!< amount of coin to buy asset
+    orderData.assetAmount = 0;          //!< unknown assetAmount in order
+    orderData.price = 0;                //!< unknown price in order
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSellMarketOrderTx
 
@@ -507,6 +542,17 @@ bool CDEXSellMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper
     return true;
 }
 
+void CDEXSellMarketOrderTx::GetOrderData(CDEXOrderData &orderData) {
+    assert(txUid.type() == typeid(CRegID));
+    orderData.userRegId = txUid.get<CRegID>();
+    orderData.orderType = ORDER_MARKET_PRICE;     //!< order type
+    orderData.direction = ORDER_SELL;
+    orderData.coinType = coinType;          //!< coin type
+    orderData.assetType = assetType;        //!< asset type
+    orderData.coinAmount = 0;               //!< unknown coinAmount in order
+    orderData.assetAmount = assetAmount;    //!< asset amount want to sell
+    orderData.price = 0;                    //!< unknown price in order
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXCancelOrderTx

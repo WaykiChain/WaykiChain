@@ -14,7 +14,7 @@ class CDEXOrderBaseTx : public CBaseTx {
 public:
     using CBaseTx::CBaseTx;
 
-    virtual void GetOrderData(CDEXOrderData &orderData) { };// TODO: ...
+    virtual void GetOrderData(CDEXOrderData &orderData) = 0;
 };
 
 class CDEXBuyLimitOrderTx : public CDEXOrderBaseTx {
@@ -69,8 +69,9 @@ public:
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-
-public:
+public: // devive from CDEXOrderBaseTx
+    virtual void GetOrderData(CDEXOrderData &orderData);
+private:
     CoinType coinType;      //!< coin type (wusd) to buy asset
     CoinType assetType;     //!< asset type
     uint64_t assetAmount;     //!< amount of target asset to buy
@@ -131,8 +132,9 @@ public:
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-
-public:
+public: // devive from CDEXOrderBaseTx
+    virtual void GetOrderData(CDEXOrderData &orderData);
+private:
     CoinType coinType;      //!< coin type (wusd) to sell asset
     CoinType assetType;     //!< holing asset type (wicc or micc) to sell in coinType
     uint64_t assetAmount;    //!< amount of holding asset to sell
@@ -190,7 +192,9 @@ public:
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
-public:
+public: // devive from CDEXOrderBaseTx
+    virtual void GetOrderData(CDEXOrderData &orderData);
+private:
     CoinType coinType;      //!< coin type (wusd) to buy asset
     CoinType assetType;     //!< asset type
     uint64_t coinAmount;   //!< amount of target coin to spend for buying asset
@@ -246,7 +250,9 @@ public:
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
-public:
+public: // devive from CDEXOrderBaseTx
+    virtual void GetOrderData(CDEXOrderData &orderData);
+private:
     CoinType coinType;      //!< coin type (wusd) to buy asset
     CoinType assetType;     //!< asset type
     uint64_t assetAmount;   //!< amount of target asset to buy
