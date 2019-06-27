@@ -181,6 +181,6 @@ bool CCdpDBCache::GetGlobalCDPLock(const uint64_t price) {
     return cdpGlobalHalt.GetData(locked) ? locked : false;
 }
 
-bool CheckGlobalDebtCeilingExceeded(const uint64_t newBcoinsToStake) const {
+bool CCdpDBCache::CheckGlobalDebtCeilingExceeded(const uint64_t newBcoinsToStake) const {
     return (newBcoinsToStake + cdpMemCache.GetGlobalDebt()) > kGlobalDebtCeiling;
 }
