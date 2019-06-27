@@ -67,6 +67,10 @@ bool CPricePointMemCache::DeleteBlockPricePoint(const int blockHeight) {
     return true;
 }
 
+bool CPricePointMemCache::DeleteBlockFromCache(const CBlock &block) {
+    return DeleteBlockPricePoint(block.GetHeight());
+}
+
 void CPricePointMemCache::BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn) {
     for (const auto &item : mapCoinPricePointCacheIn) {
         const auto &mapBlockUserPrices = item.second.mapBlockUserPrices;

@@ -45,6 +45,7 @@ public:
     bool AddBlockToCache(const CBlock &block);
     // delete block price point by specific block height.
     bool DeleteBlockPricePoint(const int blockHeight);
+    bool DeleteBlockFromCache(const CBlock &block);
 
     uint64_t GetBcoinMedianPrice();
     uint64_t GetFcoinMedianPrice();

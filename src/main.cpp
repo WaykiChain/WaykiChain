@@ -813,7 +813,7 @@ bool ReadBaseTxFromDisk(const CTxCord txCord, std::shared_ptr<CBaseTx> &pTx) {
     if (txCord.GetIndex() >= pBlock->vptx.size()) {
         return ERRORMSG("ReadBaseTxFromDisk error, the tx(%s) index exceed the tx count of block", txCord.ToString());
     }
-    pTx = pBlock->vptx.at(txCord.GetIndex())->GetNewInstance(); 
+    pTx = pBlock->vptx.at(txCord.GetIndex())->GetNewInstance();
     return true;
 }
 
@@ -1171,22 +1171,51 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
     // Set previous block as the best block
     cw.accountCache.SetBestBlock(pIndex->pprev->GetBlockHash());
 
-    if (!cw.txCache.DeleteBlockFromCache(block))
-        return state.Abort(_("DisconnectBlock() : failed to delete block from cache"));
+    // Delete the disconnected block's transactions from transaction memory cache.
+    if (!cw.txCache.DeleteBlockFromCache(block)) {
+        return state.Abort(_("DisconnectBlock() : failed to delete block from transaction memory cache"));
+    }
 
-    // Load txs into cache
+    // Load transactions into transaction memory cache.
     if (pIndex->nHeight > SysCfg().GetTxCacheHeight()) {
         CBlockIndex *pReLoadBlockIndex = pIndex;
         int nCacheHeight               = SysCfg().GetTxCacheHeight();
         while (pReLoadBlockIndex && nCacheHeight-- > 0) {
             pReLoadBlockIndex = pReLoadBlockIndex->pprev;
         }
-        CBlock reLoadblock;
-        if (!ReadBlockFromDisk(pReLoadBlockIndex, reLoadblock))
-            return state.Abort(_("DisconnectBlock() : Failed to read block"));
 
-        if (!cw.txCache.AddBlockToCache(reLoadblock))
-            return state.Abort(_("DisconnectBlock() : failed to reload all txs into cache"));
+        CBlock reLoadblock;
+        if (!ReadBlockFromDisk(pReLoadBlockIndex, reLoadblock)) {
+            return state.Abort(_("DisconnectBlock() : failed to read block"));
+        }
+
+        if (!cw.txCache.AddBlockToCache(reLoadblock)) {
+            return state.Abort(_("DisconnectBlock() : failed to add block into transaction memory cache"));
+        }
+    }
+
+    // Delete the disconnected block's pricefeed items from price point memory cache.
+    if (!cw.ppCache.DeleteBlockFromCache(block)) {
+        return state.Abort(_("DisconnectBlock() : failed to delete block from price point memory cache"));
+    }
+
+    // Load price points into price point memory cache.
+    // TODO: parameterize 11.
+    if (pIndex->nHeight > 11) {
+        CBlockIndex *pReLoadBlockIndex = pIndex;
+        int nCacheHeight               = 11;
+        while (pReLoadBlockIndex && nCacheHeight-- > 0) {
+            pReLoadBlockIndex = pReLoadBlockIndex->pprev;
+        }
+
+        CBlock reLoadblock;
+        if (!ReadBlockFromDisk(pReLoadBlockIndex, reLoadblock)) {
+            return state.Abort(_("DisconnectBlock() : failed to read block"));
+        }
+
+        if (!cw.ppCache.AddBlockToCache(reLoadblock)) {
+            return state.Abort(_("DisconnectBlock() : failed to add block into price point memory cache"));
+        }
     }
 
     if (pfClean) {
@@ -1537,9 +1566,10 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         if (pIndex->GetUndoPos().IsNull()) {
             CDiskBlockPos pos;
             if (!FindUndoPos(state, pIndex->nFile, pos, ::GetSerializeSize(blockundo, SER_DISK, CLIENT_VERSION) + 40))
-                return ERRORMSG("ConnectBlock() : FindUndoPos failed");
+                return ERRORMSG("ConnectBlock() : failed to find undo data's position");
+
             if (!blockundo.WriteToDisk(pos, pIndex->pprev->GetBlockHash()))
-                return state.Abort(_("Failed to write undo data"));
+                return state.Abort(_("ConnectBlock() : failed to write undo data"));
 
             // Update nUndoPos in block index
             pIndex->nUndoPos = pos.nPos;
@@ -1550,26 +1580,52 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
         CDiskBlockIndex blockindex(pIndex);
         if (!pCdMan->pBlockTreeDb->WriteBlockIndex(blockindex))
-            return state.Abort(_("Failed to write block index"));
+            return state.Abort(_("ConnectBlock() : failed to write block index"));
     }
 
-    if (!cw.txCache.AddBlockToCache(block))
-        return state.Abort(_("Connect tip block failed add block tx to txcache"));
+    if (!cw.txCache.AddBlockToCache(block)) {
+        return state.Abort(_("ConnectBlock() : failed add block into transaction momory cache"));
+    }
 
-    if (pIndex->nHeight - SysCfg().GetTxCacheHeight() > 0) {
+    if (pIndex->nHeight > SysCfg().GetTxCacheHeight()) {
         CBlockIndex *pDeleteBlockIndex = pIndex;
         int nCacheHeight               = SysCfg().GetTxCacheHeight();
         while (pDeleteBlockIndex && nCacheHeight-- > 0) {
             pDeleteBlockIndex = pDeleteBlockIndex->pprev;
         }
+
         CBlock deleteBlock;
-        if (!ReadBlockFromDisk(pDeleteBlockIndex, deleteBlock))
-            return state.Abort(_("Failed to read block"));
-        if (!cw.txCache.DeleteBlockFromCache(deleteBlock))
-            return state.Abort(_("Connect tip block failed delete block tx to txcache"));
+        if (!ReadBlockFromDisk(pDeleteBlockIndex, deleteBlock)) {
+            return state.Abort(_("ConnectBlock() : failed to read block"));
+        }
+
+        if (!cw.txCache.DeleteBlockFromCache(deleteBlock)) {
+            return state.Abort(_("ConnectBlock() : failed delete block from transaction memory cache"));
+        }
     }
 
-    // Add this block to the view's block chain
+    // Attention: should NOT to call AddBlockToCache() for price point memory cache, as everything
+    // is ready when executing transactions.
+
+    // TODO: parameterize 11.
+    if (pIndex->nHeight > 11) {
+        CBlockIndex *pDeleteBlockIndex = pIndex;
+        int nCacheHeight               = 11;
+        while (pDeleteBlockIndex && nCacheHeight-- > 0) {
+            pDeleteBlockIndex = pDeleteBlockIndex->pprev;
+        }
+
+        CBlock deleteBlock;
+        if (!ReadBlockFromDisk(pDeleteBlockIndex, deleteBlock)) {
+            return state.Abort(_("ConnectBlock() : failed to read block"));
+        }
+
+        if (!cw.ppCache.DeleteBlockFromCache(deleteBlock)) {
+            return state.Abort(_("ConnectBlock() : failed delete block from price point memory cache"));
+        }
+    }
+
+    // Set best block to current account cache.
     assert(cw.accountCache.SetBestBlock(pIndex->GetBlockHash()));
     return true;
 }
@@ -1595,7 +1651,7 @@ bool static WriteChainState(CValidationState &state) {
             return state.Abort(_("Failed to write to account database"));
 
         if (!pCdMan->pContractCache->Flush())
-            return state.Abort(_("Failed to write to script db database"));
+            return state.Abort(_("Failed to write to contract database"));
 
         mapForkCache.clear();
         nLastWrite = GetTimeMicros();
