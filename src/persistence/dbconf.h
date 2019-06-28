@@ -26,6 +26,7 @@ typedef leveldb::Slice Slice;
     DEFINE( DELEGATE,            "delegate")     /* delegate */ \
     DEFINE( CDP,                 "dcp")          /* dcp */ \
     DEFINE( DEX,                 "dex")          /* dex */ \
+    DEFINE( LOG,                 "log")          /* log */ \
     /*                                                                */  \
     /* Add new Enum elements above, DB_NAME_COUNT Must be the last one */ \
     DEFINE( DB_NAME_COUNT,        "")       /* enum count, must be the last one */
@@ -98,6 +99,8 @@ namespace dbk {
         DEFINE( DEX_ACTIVE_ORDER,     "dato",  DEX )           /* [prefix]{txid} --> active order */ \
         DEFINE( DEX_SYS_BUY_ORDER,    "dsbo",  DEX )           /* [prefix]{txid} --> system buy order */ \
         DEFINE( DEX_SYS_SELL_ORDER,   "dsso",  DEX )           /* [prefix]{txid} --> system sell order */ \
+        /**** log db                                                                   */ \
+        DEFINE( TX_EXECUTE_FAIL,      "txef",  LOG )           /* [prefix]{height}{txid} --> error code/message */ \
         /*                                                                             */ \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one              */ \
         DEFINE( PREFIX_COUNT,         "",      DB_NAME_NONE)   /* enum count, must be the last one */

@@ -179,16 +179,15 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
 
     CRegID regId;
     if (!GetCurrentDelegate(pBlock->GetTime(), delegatesList, regId))
-        return ERRORMSG("Failed to get current delegate");
+        return ERRORMSG("VerifyPosTx() : failed to get current delegate");
     CAccount curDelegate;
     if (!cwIn.accountCache.GetAccount(regId, curDelegate))
-        return ERRORMSG("Failed to get current delegate's account");
-
+        return ERRORMSG("VerifyPosTx() : failed to get current delegate's account, regId=%s", regId.ToString());
     if (pBlock->GetNonce() > maxNonce)
-        return ERRORMSG("Nonce is larger than maxNonce");
+        return ERRORMSG("VerifyPosTx() : invalid nonce: %u", pBlock->GetNonce());
 
     if (pBlock->GetMerkleRootHash() != pBlock->BuildMerkleTree())
-        return ERRORMSG("Wrong merkleRootHash");
+        return ERRORMSG("VerifyPosTx() : wrong merkle root hash");
 
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(&cwIn.accountCache);
@@ -199,68 +198,70 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
         CBlock previousBlock;
         if (!ReadBlockFromDisk(pBlockIndex, previousBlock))
-            return ERRORMSG("read block info failed from disk");
+            return ERRORMSG("VerifyPosTx() : read block info failed from disk");
 
         CAccount previousDelegate;
         if (!spCW->accountCache.GetAccount(previousBlock.vptx[0]->txUid, previousDelegate))
-            return ERRORMSG("get preblock delegate account info error");
+            return ERRORMSG("VerifyPosTx() : failed to get previous delegate's account, regId=%s",
+                previousBlock.vptx[0]->txUid.ToString());
 
         if (pBlock->GetBlockTime() - previousBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
             if (previousDelegate.regId == curDelegate.regId)
-                return ERRORMSG("one delegate can't produce more than one block at the same slot");
+                return ERRORMSG("VerifyPosTx() : one delegate can't produce more than one block at the same slot");
         }
     }
 
     CAccount account;
     if (spCW->accountCache.GetAccount(pBlock->vptx[0]->txUid, account)) {
         if (curDelegate.regId != account.regId) {
-            return ERRORMSG("Verify delegate account error, delegate regid=%s vs reward regid=%s!",
-                curDelegate.regId.ToString(), account.regId.ToString());
+            return ERRORMSG("VerifyPosTx() : delegate should be(%s) vs what we got(%s)", curDelegate.regId.ToString(),
+                            account.regId.ToString());
         }
 
-        const uint256 &blockHash = pBlock->ComputeSignatureHash();
+        const uint256 &blockHash                    = pBlock->ComputeSignatureHash();
         const vector<unsigned char> &blockSignature = pBlock->GetSignature();
 
         if (blockSignature.size() == 0 || blockSignature.size() > MAX_BLOCK_SIGNATURE_SIZE) {
-            return ERRORMSG("Signature size of block invalid, hash=%s", blockHash.ToString());
+            return ERRORMSG("VerifyPosTx() : invalid block signature size, hash=%s", blockHash.ToString());
         }
 
         if (!VerifySignature(blockHash, blockSignature, account.pubKey))
             if (!VerifySignature(blockHash, blockSignature, account.minerPubKey))
-                return ERRORMSG("Verify miner publickey signature error");
+                return ERRORMSG("VerifyPosTx() : verify signature error");
     } else {
-        return ERRORMSG("AccountView has no accountId");
+        return ERRORMSG("VerifyPosTx() : failed to get account info, regId=%s", pBlock->vptx[0]->txUid.ToString());
     }
 
     if (pBlock->vptx[0]->nVersion != nTxVersion1)
-        return ERRORMSG("Verify tx version error, tx version %d: vs current %d", pBlock->vptx[0]->nVersion,
-                        nTxVersion1);
+        return ERRORMSG("VerifyPosTx() : transaction version %d vs current %d", pBlock->vptx[0]->nVersion, nTxVersion1);
 
     if (bNeedRunTx) {
-        int64_t nTotalFuel(0);
+        uint64_t nTotalFuel(0);
         uint64_t nTotalRunStep(0);
         for (unsigned int i = 1; i < pBlock->vptx.size(); i++) {
             shared_ptr<CBaseTx> pBaseTx = pBlock->vptx[i];
             if (spCW->txCache.HaveTx(pBaseTx->GetHash()))
-                return ERRORMSG("VerifyPosTx duplicate tx hash:%s", pBaseTx->GetHash().GetHex());
+                return ERRORMSG("VerifyPosTx() : duplicate transaction, txid=%s", pBaseTx->GetHash().GetHex());
 
-            spCW->txUndo.Clear(); // Clear first.
+            spCW->txUndo.Clear();  // Clear first.
             CValidationState state;
             if (!pBaseTx->ExecuteTx(pBlock->GetHeight(), i, *spCW, state))
-                return ERRORMSG("transaction UpdateAccount account error");
+                return ERRORMSG("VerifyPosTx() : failed to execute transaction, txid=%s", pBaseTx->GetHash().GetHex());
 
             nTotalRunStep += pBaseTx->nRunStep;
             if (nTotalRunStep > MAX_BLOCK_RUN_STEP)
-                return ERRORMSG("block total run steps exceed max run step");
+                return ERRORMSG("VerifyPosTx() : block total run steps(%lu) exceed max run step(%lu)", nTotalRunStep,
+                                MAX_BLOCK_RUN_STEP);
 
             nTotalFuel += pBaseTx->GetFuel(pBlock->GetFuelRate());
-            LogPrint("fuel", "VerifyPosTx total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n",
-                    nTotalFuel, pBaseTx->GetFuel(pBlock->GetFuelRate()),
-                    pBaseTx->nRunStep, pBlock->GetFuelRate(), pBaseTx->GetHash().GetHex());
+            LogPrint("fuel", "VerifyPosTx() : total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n", nTotalFuel,
+                     pBaseTx->GetFuel(pBlock->GetFuelRate()), pBaseTx->nRunStep, pBlock->GetFuelRate(),
+                     pBaseTx->GetHash().GetHex());
         }
 
         if (nTotalFuel != pBlock->GetFuel())
-            return ERRORMSG("fuel value at block header calculate error");
+            return ERRORMSG("VerifyPosTx() : total fuel(%lu) mismatch what(%u) in block header", nTotalFuel,
+                            pBlock->GetFuel());
     }
 
     return true;
@@ -421,12 +422,12 @@ bool CheckWork(CBlock *pBlock, CWallet &wallet) {
     {
         LOCK(cs_main);
         if (pBlock->GetPrevBlockHash() != chainActive.Tip()->GetBlockHash())
-            return ERRORMSG("CoinMiner : generated block is stale");
+            return ERRORMSG("CheckWork() : generated block is stale");
 
         // Process this block the same as if we had received it from another node
         CValidationState state;
         if (!ProcessBlock(state, NULL, pBlock))
-            return ERRORMSG("CoinMiner : ProcessBlock, block not accepted");
+            return ERRORMSG("CheckWork() : failed to process block");
     }
 
     return true;
