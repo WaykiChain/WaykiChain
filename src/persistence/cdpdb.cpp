@@ -126,7 +126,7 @@ void CCdpMemCache::BatchWrite(const map<CUserCdp, uint8_t> &cdpsIn) {
 }
 
 bool CCdpDBCache::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
-                                        const int blockHeight, CUserCdp &cdp, CDBOpLogMap &dbOpLogMap) {
+                                        const int32_t blockHeight, CUserCdp &cdp, CDBOpLogMap &dbOpLogMap) {
 
     cdp.lastBlockHeight = blockHeight;
     cdp.totalStakedBcoins += bcoinsToStake;
@@ -162,10 +162,10 @@ bool CCdpDBCache::EraseCdp(const CUserCdp &cdp) {
  *
  *  ==> ratio = 1/Log10(1+N)
  */
-uint64_t CCdpDBCache::ComputeInterest(int blockHeight, const CUserCdp &cdp) {
+uint64_t CCdpDBCache::ComputeInterest(int32_t blockHeight, const CUserCdp &cdp) {
     assert(uint64_t(blockHeight) > cdp.lastBlockHeight);
 
-    int interval = blockHeight - cdp.lastBlockHeight;
+    int32_t interval = blockHeight - cdp.lastBlockHeight;
     double interest = ((double) GetDefaultInterestParamA() * cdp.totalOwedScoins / kYearBlockCount)
                     * log10(GetDefaultInterestParamB() + cdp.totalOwedScoins) * interval;
 
