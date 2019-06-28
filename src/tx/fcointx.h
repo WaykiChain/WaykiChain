@@ -12,7 +12,7 @@ class CFcoinTransferTx: public CBaseTx {
 private:
     mutable CUserID toUid;
     uint64_t fcoins;
-    vector_unsigned_char memo;
+    UnsignedCharArray memo;
 
 public:
     CFcoinTransferTx(): CBaseTx(FCOIN_TRANSFER_TX), fcoins(0) {}
@@ -23,7 +23,7 @@ public:
     }
 
     CFcoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t feesIn,
-                     uint64_t fcoinsIn, vector_unsigned_char &memoIn)
+                     uint64_t fcoinsIn, UnsignedCharArray &memoIn)
         : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feesIn) {
         toUid  = toUidIn;
         fcoins = fcoinsIn;

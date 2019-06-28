@@ -26,6 +26,6 @@ static const uint16_t kDefaultPriceFeedDeviateAcceptLimit   = 3000;     // 30% *
 static const uint16_t kDefaultPriceFeedDeviatePenalty       = 1000;     // 1000 bcoins deduction as penalty
 static const uint16_t kDefaultPriceFeedContinuousDeviateTimesLimit = 10;// after 10 times continuous deviate limit penetration all deposit be deducted
 static const uint16_t kGlobalCollateralRatioLimit           = 8000;     // 80% * 10000
-static const uint64_t kGlobalDebtCeiling                    = 21000000; // 10% * 210000000
+static const uint64_t kGlobalCollateralCeiling              = 21000000;  // 10% * 210000000
 
 #endif

@@ -15,12 +15,12 @@ public:
     int nHeight;
 
 public:
-    CBlockRewardTx(): CBaseTx(BLOCK_REWARD_TX) { rewardValue = 0; }
-    CBlockRewardTx(const CBaseTx *pBaseTx): CBaseTx(BLOCK_REWARD_TX) {
+    CBlockRewardTx(): CBaseTx(BLOCK_REWARD_TX), rewardValue(0), nHeight(0) {}
+    CBlockRewardTx(const CBaseTx *pBaseTx) : CBaseTx(BLOCK_REWARD_TX), rewardValue(0), nHeight(0) {
         assert(BLOCK_REWARD_TX == pBaseTx->nTxType);
         *this = *(CBlockRewardTx *)pBaseTx;
     }
-    CBlockRewardTx(const vector_unsigned_char &accountIn, const uint64_t rewardValueIn, const int nHeightIn):
+    CBlockRewardTx(const UnsignedCharArray &accountIn, const uint64_t rewardValueIn, const int nHeightIn):
         CBaseTx(BLOCK_REWARD_TX) {
         if (accountIn.size() > 6) {
             txUid = CPubKey(accountIn);
@@ -65,4 +65,4 @@ public:
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 };
 
-#endif
+#endif // TX_BLOCK_REWARD_H

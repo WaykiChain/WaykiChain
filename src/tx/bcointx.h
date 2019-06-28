@@ -13,7 +13,7 @@ class CBaseCoinTransferTx : public CBaseTx {
 public:
     mutable CUserID toUid;  // Recipient Regid or Keyid
     uint64_t bcoins;        // transfer amount
-    vector_unsigned_char memo;
+    UnsignedCharArray memo;
 
 public:
     CBaseCoinTransferTx(): CBaseTx(BCOIN_TRANSFER_TX) { }
@@ -24,7 +24,7 @@ public:
     }
 
     CBaseCoinTransferTx(const CUserID &txUidIn, CUserID toUidIn, uint64_t feesIn, uint64_t valueIn,
-              int validHeightIn, vector_unsigned_char &memoIn) :
+              int validHeightIn, UnsignedCharArray &memoIn) :
               CBaseTx(BCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());

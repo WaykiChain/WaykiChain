@@ -54,7 +54,7 @@ struct CTxTest :public SysTestBase{
 	CAccount accOperate;
 	CAccount accBeforOperate;
 	vector<unsigned char> authorScript;
-	vector_unsigned_char v[11]; //0~9 is valid,10 is used to for invalid scriptID
+	UnsignedCharArray v[11]; //0~9 is valid,10 is used to for invalid scriptID
 
 	CTxTest() {
 		ResetEnv();

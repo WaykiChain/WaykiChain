@@ -89,7 +89,7 @@ public:
     CCdpMemCache(CDBAccess *pAccessIn) : pAccess(pAccessIn) {}
 
     uint16_t GetGlobalCollateralRatio(const uint64_t price) const;
-    uint64_t GetGlobalDebt() const;
+    uint64_t GetGlobalCollateral() const;
 
     bool LoadCdps();
     void Flush();
@@ -135,7 +135,7 @@ public:
     // When true, CDP cannot be further operated
     bool GetGlobalCDPLock(const uint64_t price) ;
     // When true, WICC/WUSD cannot be loaned/minted further.
-    bool CheckGlobalDebtCeilingExceeded(const uint64_t newBcoinsToStake) const;
+    bool CheckGlobalCollateralCeilingExceeded(const uint64_t newBcoinsToStake) const;
 
     uint16_t GetDefaultCollateralRatio() {
         uint16_t ratio = 0;

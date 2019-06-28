@@ -34,7 +34,7 @@ uint16_t CCdpMemCache::GetGlobalCollateralRatio(const uint64_t price) const {
     return totalStakedBcoins * price / totalOwedScoins;
 }
 
-uint64_t CCdpMemCache::GetGlobalDebt() const {
+uint64_t CCdpMemCache::GetGlobalCollateral() const {
     return totalStakedBcoins;
 }
 
@@ -181,6 +181,6 @@ bool CCdpDBCache::GetGlobalCDPLock(const uint64_t price) {
     return cdpGlobalHalt.GetData(locked) ? locked : false;
 }
 
-bool CCdpDBCache::CheckGlobalDebtCeilingExceeded(const uint64_t newBcoinsToStake) const {
-    return (newBcoinsToStake + cdpMemCache.GetGlobalDebt()) > kGlobalDebtCeiling;
+bool CCdpDBCache::CheckGlobalCollateralCeilingExceeded(const uint64_t newBcoinsToStake) const {
+    return (newBcoinsToStake + cdpMemCache.GetGlobalCollateral()) > kGlobalCollateralCeiling;
 }

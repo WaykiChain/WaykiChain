@@ -42,13 +42,14 @@ enum TxType : unsigned char {
     DELEGATE_VOTE_TX    = 6,  //!< Vote Delegate Tx
     COMMON_MTX          = 7,  //!< Multisig Tx
 
-    BLOCK_PRICE_MEDIAN_TX = 8, // Block Median Price Tx
+    BLOCK_PRICE_MEDIAN_TX      = 8,  //!< Block Median Price Tx
+    MULTI_COIN_BLOCK_REWARD_TX = 9,  //!< Multi Coin Miner Block Reward Tx
 
-    CDP_OPEN_TX         = 11,   //!< CDP Open Tx
-    CDP_REFUEL_TX       = 12,   //!< CDP refuel Tx
-    CDP_REDEEMP_TX       = 13,   //!< CDP Redemption Tx (partial or full)
-    CDP_LIQUIDATE_TX    = 14,   //!< CDP Liquidation Tx (partial or full)
-    CDP_STAKE_TX        = 15,   //!< CDP Staking/Restaking Tx
+    CDP_OPEN_TX      = 11,  //!< CDP Open Tx
+    CDP_REFUEL_TX    = 12,  //!< CDP refuel Tx
+    CDP_REDEEMP_TX   = 13,  //!< CDP Redemption Tx (partial or full)
+    CDP_LIQUIDATE_TX = 14,  //!< CDP Liquidation Tx (partial or full)
+    CDP_STAKE_TX     = 15,  //!< CDP Staking/Restaking Tx
 
     PRICE_FEED_TX = 22,  //!< Price Feed Tx: WICC/USD | WGRT/USD | WUSD/USD
 
@@ -58,14 +59,14 @@ enum TxType : unsigned char {
 
     SCOIN_TRANSFER_TX = 41,  //!< StableCoin Transfer Tx
     FCOIN_TRANSFER_TX = 42,  //!< FundCoin Transfer Tx
-    FCOIN_STAKE_TX    = 43,  //!< Stake Fund Coin in order to become a price feeder
+    FCOIN_STAKE_TX    = 43,  //!< Stake Fund Coin Tx in order to become a price feeder
 
-    DEX_SETTLE_TX               = 51, //!< dex settle tx
-    DEX_CANCEL_ORDER_TX         = 52, //!< dex cancel order tx
-    DEX_BUY_LIMIT_ORDER_TX      = 53, //!< dex buy limit price order tx
-    DEX_SELL_LIMIT_ORDER_TX     = 54, //!< dex sell limit price order tx
-    DEX_BUY_MARKET_ORDER_TX     = 55, //!< dex buy market price order tx
-    DEX_SELL_MARKET_ORDER_TX    = 56, //!< dex sell market price order tx
+    DEX_SETTLE_TX            = 51,  //!< dex settle Tx
+    DEX_CANCEL_ORDER_TX      = 52,  //!< dex cancel order Tx
+    DEX_BUY_LIMIT_ORDER_TX   = 53,  //!< dex buy limit price order Tx
+    DEX_SELL_LIMIT_ORDER_TX  = 54,  //!< dex sell limit price order Tx
+    DEX_BUY_MARKET_ORDER_TX  = 55,  //!< dex buy market price order Tx
+    DEX_SELL_MARKET_ORDER_TX = 56,  //!< dex sell market price order Tx
 
     NULL_TX = 0  //!< NULL_TX
 };
@@ -122,7 +123,7 @@ public:
     mutable CUserID txUid;
     int32_t nValidHeight;
     uint64_t llFees;
-    vector_unsigned_char signature;
+    UnsignedCharArray signature;
 
     uint64_t nRunStep;        //!< only in memory
     int32_t nFuelRate;        //!< only in memory

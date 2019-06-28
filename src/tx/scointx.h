@@ -73,7 +73,7 @@ private:
     mutable CUserID toUid;
     uint64_t scoins;
     uint8_t feesCoinType;  // default: WICC
-    vector_unsigned_char memo;
+    UnsignedCharArray memo;
 
 public:
     CScoinTransferTx(): CBaseTx(SCOIN_TRANSFER_TX), scoins(0), feesCoinType(CoinType::WICC) {}
@@ -84,7 +84,7 @@ public:
     }
 
     CScoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t feesIn,
-                     CoinType feesCoinTypeIn, uint64_t scoinIn, vector_unsigned_char &memoIn)
+                     CoinType feesCoinTypeIn, uint64_t scoinIn, UnsignedCharArray &memoIn)
         : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feesIn) {
         toUid        = toUidIn;
         feesCoinType = feesCoinTypeIn;

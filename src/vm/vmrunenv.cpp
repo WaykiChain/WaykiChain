@@ -203,8 +203,8 @@ shared_ptr<CAccount> CVmRunEnv::GetAccount(shared_ptr<CAccount>& Account) {
     return NULL;
 }
 
-vector_unsigned_char CVmRunEnv::GetAccountID(CVmOperate value) {
-    vector_unsigned_char accountId;
+UnsignedCharArray CVmRunEnv::GetAccountID(CVmOperate value) {
+    UnsignedCharArray accountId;
     if (value.accountType == regid) {
         accountId.assign(value.accountId, value.accountId + 6);
     } else if (value.accountType == base58addr) {
@@ -255,7 +255,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
             addmoey = temp;
         } else if (it.opType == MINUS_BCOIN) {
             // vector<unsigned char > accountId(it.accountId,it.accountId+sizeof(it.accountId));
-            vector_unsigned_char accountId = GetAccountID(it);
+            UnsignedCharArray accountId = GetAccountID(it);
             if (accountId.size() != 6) return false;
             CRegID regId(accountId);
             CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
@@ -281,7 +281,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
         }
 
         // vector<unsigned char> accountId(it.accountId, it.accountId + sizeof(it.accountId));
-        vector_unsigned_char accountId = GetAccountID(it);
+        UnsignedCharArray accountId = GetAccountID(it);
         if (accountId.size() == 6) {
             CRegID regId(accountId);
             if (regId.IsEmpty() || regId.GetKeyId(*pAccountCache) == uint160()) return false;
@@ -337,7 +337,7 @@ bool CVmRunEnv::CheckAppAcctOperate(CContractInvokeTx* tx) {
 
     uint64_t sysContractAcct(0);
     for (auto item : vmOperateOutput) {
-        vector_unsigned_char vAccountId = GetAccountID(item);
+        UnsignedCharArray vAccountId = GetAccountID(item);
         if (vAccountId == tx->appUid.get<CRegID>().GetRegIdRaw() &&
             item.opType == MINUS_BCOIN) {
             uint64_t value;
@@ -400,12 +400,12 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDB
         memcpy(&value, it.money, sizeof(it.money));
 
         auto tem = std::make_shared<CAccount>();
-        //      vector_unsigned_char accountId = GetAccountID(it);
+        //      UnsignedCharArray accountId = GetAccountID(it);
         //      if (accountId.size() == 0) {
         //          return false;
         //      }
-        //      vector_unsigned_char accountId(it.accountId,it.accountId+sizeof(it.accountId));
-        vector_unsigned_char accountId = GetAccountID(it);
+        //      UnsignedCharArray accountId(it.accountId,it.accountId+sizeof(it.accountId));
+        UnsignedCharArray accountId = GetAccountID(it);
         CRegID userregId;
         CKeyID userkeyid;
 

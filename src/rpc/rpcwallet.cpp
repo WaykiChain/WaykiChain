@@ -657,7 +657,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     CRegID regId;
     for (const auto& pubKey : pubKeys) {
         if (pCdMan->pAccountCache->GetRegId(CUserID(pubKey), regId) && pCdMan->pAccountCache->RegIDIsMature(regId)) {
-            signaturePairs.push_back(CSignaturePair(regId, vector_unsigned_char()));
+            signaturePairs.push_back(CSignaturePair(regId, UnsignedCharArray()));
         } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Inmature regid or invalid key");
         }

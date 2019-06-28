@@ -18,7 +18,7 @@ public:
         *this = *(CDelegateVoteTx *)pBaseTx;
     }
     CDelegateVoteTx(
-            const vector_unsigned_char &accountIn,
+            const UnsignedCharArray &accountIn,
             const vector<CCandidateVote> &candidateVotesIn,
             const uint64_t feesIn,
             const int validHeightIn)
