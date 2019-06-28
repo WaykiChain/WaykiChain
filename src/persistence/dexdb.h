@@ -84,12 +84,9 @@ public:
         READWRITE((uint8_t&)assetType);
         READWRITE(VARINT(coinAmount));
     )
-    bool IsEmpty() const {
-        return coinAmount == 0;
-    }
-    void SetEmpty() {
-        coinAmount = 0;
-    }
+    bool IsEmpty() const;
+    void SetEmpty();
+    void GetOrderData(CDEXOrderData &orderData);
 };
 
 // txid -> sys order data
@@ -105,12 +102,9 @@ public:
         READWRITE(VARINT(assetAmount));
     )
 
-    bool IsEmpty() const {
-        return assetAmount == 0;
-    }
-    void SetEmpty() {
-        assetAmount = 0;
-    }
+    bool IsEmpty() const;
+    void SetEmpty();
+    void GetOrderData(CDEXOrderData &orderData) const;
 };
 
 // System-generated Market Order
@@ -133,15 +127,18 @@ public:
     CDexDBCache() {}
 
 public:
-    bool GetActiveOrder(const uint256& orderTxId, CDEXActiveOrder& activeOrder);
-    bool CreateActiveOrder(const uint256& orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);
-    bool ModifyActiveOrder(const uint256& orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);    
-    bool EraseActiveOrder(const uint256& orderTxId, CDBOpLogMap &dbOpLogMap);
+    bool GetActiveOrder(const uint256 &orderTxId, CDEXActiveOrder& activeOrder);
+    bool CreateActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);
+    bool ModifyActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);    
+    bool EraseActiveOrder(const uint256 &orderTxId, CDBOpLogMap &dbOpLogMap);
     bool UndoActiveOrder(CDBOpLogMap &dbOpLogMap);
 
-    bool CreateSysBuyOrder(uint256 orderTxId, CDEXSysBuyOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
+    bool GetSysBuyOrder(const uint256 &orderTxId, CDEXSysBuyOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
+    bool CreateSysBuyOrder(const uint256 &orderTxId, const CDEXSysBuyOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
     bool UndoSysBuyOrder(CDBOpLogMap &dbOpLogMap);
-    bool CreateSysSellOrder(uint256 orderTxId, CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap); 
+
+    bool GetSysSellOrder(const uint256 &orderTxId, CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap);
+    bool CreateSysSellOrder(const uint256 &orderTxId, const CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap); 
     bool UndoSysSellOrder(CDBOpLogMap &dbOpLogMap); 
 
 
