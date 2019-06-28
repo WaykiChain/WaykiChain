@@ -135,6 +135,9 @@ static const uint8_t UPDATE_CDP_FAIL = 0X64;
 
 static const uint8_t WRITE_CANDIDATE_VOTES_FAIL = 0X70;
 
+static const uint8_t CREATE_SYS_ORDER_FAILED = 0x80;
+static const uint8_t UNDO_SYS_ORDER_FAILED =   0x81;
+
 static const uint64_t kTotalBaseCoinCount               = 210000000; // 210 million
 static const uint64_t kInitialRiskProvisionScoinCount   = 2100000;   // 2 million 100 thousand
 static const uint64_t kYearBlockCount                   = 3153600;   // one year = 365 * 24 * 60 * 60 / 10

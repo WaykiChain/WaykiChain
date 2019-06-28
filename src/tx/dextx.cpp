@@ -103,7 +103,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     activeBuyOrder.generateType = USER_GEN_ORDER;
     activeBuyOrder.totalDealCoinAmount = 0;
     activeBuyOrder.totalDealAssetAmount = 0;
-    if (!cw.dexCache.SetActiveOrder(txHash, activeBuyOrder, cw.txUndo.dbOpLogMap)) {
+    if (!cw.dexCache.CreateActiveOrder(txHash, activeBuyOrder, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, set active buy order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
@@ -118,7 +118,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
 
 bool CDEXBuyLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                                    CValidationState &state) {
-
+    if (!UndoTxAddresses(cw, state)) return false;
 
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::UndoExecuteTx, undo active buy order failed"),
@@ -236,8 +236,8 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
     CDEXActiveOrder activeSellOrder;
     activeSellOrder.generateType = USER_GEN_ORDER;
     activeSellOrder.totalDealAssetAmount = 0;
-    if (!cw.dexCache.SetActiveOrder(txHash, activeSellOrder, cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, set active sell order failed"),
+    if (!cw.dexCache.CreateActiveOrder(txHash, activeSellOrder, cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, create active sell order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
@@ -251,6 +251,8 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
 
 bool CDEXSellLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                                    CValidationState &state) {
+
+    if (!UndoTxAddresses(cw, state)) return false;
 
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, undo active sell order failed"),
@@ -370,8 +372,8 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
     activeBuyOrder.generateType = USER_GEN_ORDER;
     activeBuyOrder.totalDealCoinAmount = 0;
     activeBuyOrder.totalDealAssetAmount = 0;
-    if (!cw.dexCache.SetActiveOrder(txHash, activeBuyOrder, cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, set active buy order failed"),
+    if (!cw.dexCache.CreateActiveOrder(txHash, activeBuyOrder, cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, create active buy order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
@@ -385,6 +387,8 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
 
 bool CDEXBuyMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                                    CValidationState &state) {
+
+    if (!UndoTxAddresses(cw, state)) return false;
 
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::UndoExecuteTx, undo active buy order failed"),
@@ -502,8 +506,8 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
     CDEXActiveOrder activeSellOrder;
     activeSellOrder.generateType = USER_GEN_ORDER;
     activeSellOrder.totalDealAssetAmount = 0;
-    if (!cw.dexCache.SetActiveOrder(txHash, activeSellOrder, cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, set active sell order failed"),
+    if (!cw.dexCache.CreateActiveOrder(txHash, activeSellOrder, cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, create active sell order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
@@ -517,6 +521,8 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
 
 bool CDEXSellMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                                    CValidationState &state) {
+
+    if (!UndoTxAddresses(cw, state)) return false;
 
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::UndoExecuteTx, undo active sell order failed"),
@@ -984,7 +990,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
                                     REJECT_INVALID, "write-dexdb-failed");
             }
         } else {
-            if (!cw.dexCache.SetActiveOrder(dealItem.buyOrderId, activeBuyOrder, cw.txUndo.dbOpLogMap)) {
+            if (!cw.dexCache.ModifyActiveOrder(dealItem.buyOrderId, activeBuyOrder, cw.txUndo.dbOpLogMap)) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, erase active buy order failed"),
                                     REJECT_INVALID, "write-dexdb-failed");
             }
@@ -997,7 +1003,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
                                     REJECT_INVALID, "write-dexdb-failed");
             }
         } else {
-            if (!cw.dexCache.SetActiveOrder(dealItem.sellOrderId, activeSellOrder, cw.txUndo.dbOpLogMap)) {
+            if (!cw.dexCache.ModifyActiveOrder(dealItem.sellOrderId, activeSellOrder, cw.txUndo.dbOpLogMap)) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, erase active sell order failed"),
                                     REJECT_INVALID, "write-dexdb-failed");
             }

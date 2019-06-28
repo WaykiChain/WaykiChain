@@ -68,7 +68,50 @@ struct CDEXActiveOrder {
     }
 };
 
-// for SYSTEM_GEN_ORDER db: txid -> sys order data
+// order txid -> sys order data
+// order txid: 
+//   (1) CCDPStakeTx, create sys buy order for WGRT by WUSD when alter CDP and the interest is WUSD
+//   (2) CCDPRedeemTx, create sys buy order for WGRT by WUSD when the interest is WUSD
+//   (3) CCDPLiquidateTx, create sys buy order for WGRT by WUSD when the penalty is WUSD
+class CDEXSysBuyOrder {
+public:
+    CoinType        coinType;      //!< coin type
+    CoinType        assetType;     //!< asset type
+    uint64_t        coinAmount;    //!< amount of coin to buy asset
+public:
+    IMPLEMENT_SERIALIZE(
+        READWRITE((uint8_t&)coinType);
+        READWRITE((uint8_t&)assetType);
+        READWRITE(VARINT(coinAmount));
+    )
+    bool IsEmpty() const {
+        return coinAmount == 0;
+    }
+    void SetEmpty() {
+        coinAmount = 0;
+    }
+};
+
+// txid -> sys order data
+class CDEXSysSellOrder {
+public:
+    CoinType        coinType;      //!< coin type
+    CoinType        assetType;     //!< asset type
+    uint64_t        assetAmount;    //!< amount of coin to buy asset
+public:
+    IMPLEMENT_SERIALIZE(
+        READWRITE((uint8_t&)coinType);
+        READWRITE((uint8_t&)assetType);
+        READWRITE(VARINT(assetAmount));
+    )
+
+    bool IsEmpty() const {
+        return assetAmount == 0;
+    }
+    void SetEmpty() {
+        assetAmount = 0;
+    }
+};
 
 // System-generated Market Order
 // wicc -> wusd (cdp forced liquidation)
@@ -90,18 +133,17 @@ public:
     CDexDBCache() {}
 
 public:
-    bool GetActiveOrder(const uint256& orderTxId, CDEXActiveOrder& activeOrder) {
-        return activeOrderCache.GetData(orderTxId, activeOrder);
-    };
-    bool SetActiveOrder(const uint256& orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap) {
-        return activeOrderCache.SetData(orderTxId, activeOrder, dbOpLogMap);
-    };
-    bool EraseActiveOrder(const uint256& orderTxId, CDBOpLogMap &dbOpLogMap) {
-        return activeOrderCache.SetData(orderTxId, CDEXActiveOrder(), dbOpLogMap);
-    };
-    bool UndoActiveOrder(CDBOpLogMap &dbOpLogMap) {
-        return activeOrderCache.UndoData(dbOpLogMap);
-    };
+    bool GetActiveOrder(const uint256& orderTxId, CDEXActiveOrder& activeOrder);
+    bool CreateActiveOrder(const uint256& orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);
+    bool ModifyActiveOrder(const uint256& orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);    
+    bool EraseActiveOrder(const uint256& orderTxId, CDBOpLogMap &dbOpLogMap);
+    bool UndoActiveOrder(CDBOpLogMap &dbOpLogMap);
+
+    bool CreateSysBuyOrder(uint256 orderTxId, CDEXSysBuyOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
+    bool UndoSysBuyOrder(CDBOpLogMap &dbOpLogMap);
+    bool CreateSysSellOrder(uint256 orderTxId, CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap); 
+    bool UndoSysSellOrder(CDBOpLogMap &dbOpLogMap); 
+
 
     bool CreateBuyOrder(uint64_t buyAmount, CoinType targetCoinType); //TODO: ... SystemBuyOrder
     bool CreateSellOrder(uint64_t sellAmount, CoinType targetCoinType); //TODO: ... SystemSellOrder
@@ -112,6 +154,8 @@ private:
     /////////// DexDB
     // order tx id -> active order
     CDBMultiValueCache< dbk::DEX_ACTIVE_ORDER,         uint256,                   CDEXActiveOrder >     activeOrderCache;
+    CDBMultiValueCache< dbk::DEX_SYS_BUY_ORDER,        uint256,                   CDEXSysBuyOrder >     sysBuyOrderCache;
+    CDBMultiValueCache< dbk::DEX_SYS_SELL_ORDER,       uint256,                   CDEXSysSellOrder >     sysSellOrderCache;
 };
 
 #endif //PERSIST_DEX_H
