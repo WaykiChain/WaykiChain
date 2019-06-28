@@ -64,8 +64,8 @@ public:
         return sigHash;
     }
 
+    map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WGRT, fcoins}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CFcoinTransferTx>(this); }
-
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);

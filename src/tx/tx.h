@@ -156,7 +156,7 @@ public:
 
     virtual uint64_t GetFuel(int32_t nFuelRate);
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    virtual uint64_t GetValue() const { return 0; }
+    virtual map<CoinType, uint64_t> GetValues() const = 0;
 
     virtual uint256 ComputeSignatureHash(bool recalculate = false) const = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance()                    = 0;
