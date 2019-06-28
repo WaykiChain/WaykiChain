@@ -108,6 +108,21 @@ string CBaseTx::ToString(CAccountDBCache &view) {
     return str;
 }
 
+bool CBaseTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+    return AddInvolvedKeyIds({txUid}, cw, keyIds);
+}
+
+bool CBaseTx::AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds) {
+    for (auto uid : uids) {
+        CKeyID keyId;
+        if (!cw.accountCache.GetKeyId(uid, keyId))
+            return false;
+
+        keyIds.insert(keyId);
+    }
+    return true;
+}
+
 bool CBaseTx::SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw,
                               CValidationState &state, const vector<CUserID> &userIds) {
     if (SysCfg().GetAddressToTxFlag()) {

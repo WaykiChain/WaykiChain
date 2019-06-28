@@ -31,9 +31,6 @@ Object CDEXBuyLimitOrderTx::ToJson(const CAccountDBCache &view) const {
     return Object(); // TODO: ...
 }
 
-bool CDEXBuyLimitOrderTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    return false; // TODO: ...
-}
 bool CDEXBuyLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -176,10 +173,6 @@ Object CDEXSellLimitOrderTx::ToJson(const CAccountDBCache &view) const {
     return Object(); // TODO: ...
 }
 
-bool CDEXSellLimitOrderTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    return false; // TODO: ...
-}
-
 bool CDEXSellLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -313,9 +306,6 @@ Object CDEXBuyMarketOrderTx::ToJson(const CAccountDBCache &view) const {
     return Object(); // TODO: ...
 }
 
-bool CDEXBuyMarketOrderTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    return false; // TODO: ...
-}
 bool CDEXBuyMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -450,9 +440,6 @@ Object CDEXSellMarketOrderTx::ToJson(const CAccountDBCache &view) const {
     return Object(); // TODO: ...
 }
 
-bool CDEXSellMarketOrderTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    return false; // TODO: ...
-}
 bool CDEXSellMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -584,9 +571,6 @@ Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &view) const {
     return Object(); // TODO: ...
 }
 
-bool CDEXCancelOrderTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    return false; // TODO: ...
-}
 bool CDEXCancelOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
