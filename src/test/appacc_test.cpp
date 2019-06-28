@@ -42,13 +42,13 @@ bool CheckAppAcct(int64_t opValue[]) {
 
     CUserID srcUserId = srcRegId;
     CUserID desUserId = desRegId;
-    vector_unsigned_char arguments;
+    UnsignedCharArray arguments;
     CContractInvokeTx tx(srcUserId, desRegId, 10000, opValue[0], 1, arguments); //100 * COIN
 
     CVmRunEnv vmRunEnv;
     vector<CVmOperate> vAcctOper;
 
-    vector_unsigned_char vDesUser1RegId = desUser1RegId.GetRegIdRaw();
+    UnsignedCharArray vDesUser1RegId = desUser1RegId.GetRegIdRaw();
     int64_t temp                        = opValue[1];  // 10 * COIN
     CVmOperate acctAddOper;
     acctAddOper.accountType = regid;
@@ -57,7 +57,7 @@ bool CheckAppAcct(int64_t opValue[]) {
     memcpy(acctAddOper.money, &temp, sizeof(temp));
     vAcctOper.push_back(acctAddOper);
 
-    vector_unsigned_char vDesUser2RegId = desUser2RegId.GetRegIdRaw();
+    UnsignedCharArray vDesUser2RegId = desUser2RegId.GetRegIdRaw();
     temp = opValue[2];   //20 * COIN
     acctAddOper.accountType = regid;
     acctAddOper.opType = ADD_BCOIN;
@@ -65,7 +65,7 @@ bool CheckAppAcct(int64_t opValue[]) {
     memcpy(acctAddOper.money, &temp, sizeof(temp));
     vAcctOper.push_back(acctAddOper);
 
-    vector_unsigned_char vDesRegId = desRegId.GetRegIdRaw();
+    UnsignedCharArray vDesRegId = desRegId.GetRegIdRaw();
     temp = opValue[3];  //30 * COIN
     acctAddOper.accountType = regid;
     acctAddOper.opType = MINUS_BCOIN;

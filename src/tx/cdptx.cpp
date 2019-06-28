@@ -5,7 +5,6 @@
 
 #include "cdptx.h"
 #include "main.h"
-#incldue "config/fees.h"
 
 #include <math.h>
 
@@ -260,7 +259,7 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
 
     if (cdpTxCord.IsEmpty()) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, cdpTxCord is empty"),
-                        REJECT_EMPTY_CDPTXCORD, "REJECT_EMPTY_CDPTXCORD");
+                        REJECT_INVALID, "EMPTY_CDPTXCORD");
     }
 
     if (scoinsToRedeem == 0) {
@@ -394,7 +393,7 @@ bool CCDPLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &
 
     if (cdpTxCord.IsEmpty()) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, cdpTxCord is empty"),
-                        REJECT_EMPTY_CDPTXCORD, "REJECT_EMPTY_CDPTXCORD");
+                        REJECT_INVALID, "EMPTY_CDPTXCORD");
     }
 
     if (fcoinsPenalty == 0 && scoinsPenalty == 0) {
@@ -423,16 +422,15 @@ bool CCDPLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &
 /**
   * TotalStakedBcoinsInScoins : TotalOwedScoins = M : N
   *
-  * Liquidator paid         (0 < l ≤ 100%)
+  * Liquidator paid         1.13lN          (0 < l ≤ 100%)
   *   Liquidate Amount:     l * N       = lN
   *   Penalty Fees:         l * N * 13% = 0.13lN
-  *
-  * Liquidator received
-  *   Bcoins:               lM
-  *   Net Profit:           lM - lN - 0.13lN = l(M - 1.13N)  ≥ 0, or 0.03lM (whichever smaller)
+  * Liquidator received:    Bcoins only
+  *   Bcoins:               1.13lN ~ 1.16lN (WICC)
+  *   Net Profit:           0 ~ 0.03lN (WICC)
   *
   * CDP Owner returned
-  *   Bcoins:               lM - 1.13 lN - 0.03lN = l(M - 1.16N)
+  *   Bcoins:               lM - 1.16lN = l(M - 1.16N)
   *
   *  when M is 1.16 N and below, there'll be no return to the CDP owner
   *  when M is 1.13 N and below, there'll be no profit for the liquidator, hence requiring force settlement

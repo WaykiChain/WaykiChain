@@ -787,12 +787,12 @@ unsigned char TempArray[] = {
 //	vscript.rule.vNextOutHeight = 90;
 //	vscript.rule.vpreOutHeihgt = 100;
 //
-//	vector_unsigned_char vpscript;
+//	UnsignedCharArray vpscript;
 //	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
 //	scriptData << vscript;
 //	vpscript.assign(scriptData.begin(),scriptData.end());
 //
-//	vector<vector_unsigned_char> account;
+//	vector<UnsignedCharArray> account;
 //	for (int i = 1; i < 3; i++) {
 //		CAccountInfo sourceAccount;
 //		CRegID accountId(i + 2, i);

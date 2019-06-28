@@ -61,6 +61,7 @@ public:
         return sigHash;
     }
 
+    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyLimitOrderTx>(this); }
     virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
@@ -70,7 +71,7 @@ public:
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-public: // devive from CDEXOrderBaseTx
+public: // derive from CDEXOrderBaseTx
     virtual void GetOrderData(CDEXOrderData &orderData);
 private:
     CoinType coinType;      //!< coin type (wusd) to buy asset
@@ -124,6 +125,7 @@ public:
         return sigHash;
     }
 
+    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSellLimitOrderTx>(this); }
     virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
@@ -183,6 +185,7 @@ public:
         return sigHash;
     }
 
+    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyMarketOrderTx>(this); }
     virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
@@ -241,6 +244,7 @@ public:
         return sigHash;
     }
 
+    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSellMarketOrderTx>(this); }
     virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
@@ -295,6 +299,7 @@ public:
         return sigHash;
     }
 
+    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXCancelOrderTx>(this); }
     virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
@@ -366,6 +371,7 @@ public:
 
     vector<DEXDealItem>& GetDealItems() { return dealItems; }
 
+    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSettleTx>(this); }
     virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage

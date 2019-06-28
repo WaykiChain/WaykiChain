@@ -136,7 +136,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
             obj.push_back(Pair("category", "receive"));
-            double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+            double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
             obj.push_back(Pair("amount", dAmount));
             obj.push_back(Pair("tx_type", "BLOCK_REWARD_TX"));
             arrayDetail.push_back(obj);
@@ -149,7 +149,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
             obj.push_back(Pair("category", "send"));
-            double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+            double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
             obj.push_back(Pair("amount", -dAmount));
             obj.push_back(Pair("tx_type", "ACCOUNT_REGISTER_TX"));
             arrayDetail.push_back(obj);
@@ -177,7 +177,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("memo", HexStr(ptx->memo)));
             obj.push_back(Pair("address", sendKeyID.ToAddress()));
             obj.push_back(Pair("category", "send"));
-            double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+            double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
             obj.push_back(Pair("amount", -dAmount));
             arrayDetail.push_back(obj);
             Object objRec;
@@ -209,7 +209,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
             obj.push_back(Pair("address", sendKeyID.ToAddress()));
             obj.push_back(Pair("category", "send"));
-            double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+            double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
             obj.push_back(Pair("amount", -dAmount));
             arrayDetail.push_back(obj);
             Object objRec;
@@ -263,7 +263,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             if (!pBaseTx->GetInvolvedKeyIds(*spCW, vKeyIdSet))
                 return arrayDetail;
 
-            double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+            double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
 
             obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
             obj.push_back(Pair("category", "send"));
@@ -306,7 +306,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("memo", HexStr(ptx->memo)));
             obj.push_back(Pair("address", sendKeyId.ToAddress()));
             obj.push_back(Pair("category", "send"));
-            double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+            double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
             obj.push_back(Pair("amount", -dAmount));
             arrayDetail.push_back(obj);
             Object objRec;
@@ -347,12 +347,12 @@ Value gettransaction(const Array& params, bool fHelp) {
     Object obj;
     LOCK(cs_main);
     CBlock genesisblock;
-    CBlockIndex* pgenesisblockindex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
-    ReadBlockFromDisk(pgenesisblockindex, genesisblock);
+    CBlockIndex* pGenesisBlockIndex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
+    ReadBlockFromDisk(pGenesisBlockIndex, genesisblock);
     assert(genesisblock.GetMerkleRootHash() == genesisblock.BuildMerkleTree());
     for (unsigned int i = 0; i < genesisblock.vptx.size(); ++i) {
         if (txhash == genesisblock.GetTxHash(i)) {
-            double dAmount = static_cast<double>(genesisblock.vptx.at(i)->GetValue()) / COIN;
+            double dAmount = static_cast<double>(genesisblock.vptx.at(i)->GetValues()[CoinType::WICC]) / COIN;
             obj.push_back(Pair("amount", dAmount));
             obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight));
             obj.push_back(Pair("block_hash", genesisblock.GetHash().GetHex()));
@@ -377,7 +377,8 @@ Value gettransaction(const Array& params, bool fHelp) {
                 file >> header;
                 fseek(file, postx.nTxOffset, SEEK_CUR);
                 file >> pBaseTx;
-                double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+                // TODO:
+                double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
                 obj.push_back(Pair("amount", dAmount));
                 obj.push_back(
                     Pair("confirmations", chainActive.Tip()->nHeight - (int)header.GetHeight()));
@@ -401,7 +402,8 @@ Value gettransaction(const Array& params, bool fHelp) {
         if (pBaseTx == nullptr) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid txhash");
         }
-        double dAmount = static_cast<double>(pBaseTx->GetValue()) / COIN;
+        // TODO:
+        double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
         obj.push_back(Pair("amount", dAmount));
         obj.push_back(Pair("confirmations", 0));
         obj.push_back(Pair("txid", pBaseTx->GetHash().GetHex()));
@@ -1130,7 +1132,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         Object obj;
                         obj.push_back(Pair("address", recvKeyId.ToAddress()));
                         obj.push_back(Pair("category", "send"));
-                        double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
+                        double dAmount = static_cast<double>(item.second->GetValues()[CoinType::WICC]) / COIN;
                         obj.push_back(Pair("amount", -dAmount));
                         obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockHeight));
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
@@ -1150,7 +1152,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("srcaddr", sendKeyID.ToAddress()));
                         obj.push_back(Pair("address", recvKeyId.ToAddress()));
                         obj.push_back(Pair("category", "receive"));
-                        double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
+                        double dAmount = static_cast<double>(item.second->GetValues()[CoinType::WICC]) / COIN;
                         obj.push_back(Pair("amount", dAmount));
                         obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockHeight));
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
@@ -1206,7 +1208,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         Object obj;
                         obj.push_back(Pair("address", recvKeyId.ToAddress()));
                         obj.push_back(Pair("category", "send"));
-                        double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
+                        double dAmount = static_cast<double>(item.second->GetValues()[CoinType::WICC]) / COIN;
                         obj.push_back(Pair("amount", -dAmount));
                         obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockHeight));
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
@@ -1227,7 +1229,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("srcaddr", sendKeyID.ToAddress()));
                         obj.push_back(Pair("address", recvKeyId.ToAddress()));
                         obj.push_back(Pair("category", "receive"));
-                        double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
+                        double dAmount = static_cast<double>(item.second->GetValues()[CoinType::WICC]) / COIN;
                         obj.push_back(Pair("amount", dAmount));
                         obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockHeight));
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
@@ -1314,7 +1316,7 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
                 }
                 obj.push_back(Pair("srcaddr", srcAddr));
                 obj.push_back(Pair("desaddr", desAddr));
-                double dAmount = static_cast<double>(item.second->GetValue()) / COIN;
+                double dAmount = static_cast<double>(item.second->GetValues()[CoinType::WICC]) / COIN;
                 obj.push_back(Pair("amount", dAmount));
                 obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - wtx.second.blockHeight));
                 obj.push_back(Pair("blockhash", (chainActive[wtx.second.blockHeight]->GetBlockHash().GetHex())));

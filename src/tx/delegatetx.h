@@ -18,7 +18,7 @@ public:
         *this = *(CDelegateVoteTx *)pBaseTx;
     }
     CDelegateVoteTx(
-            const vector_unsigned_char &accountIn,
+            const UnsignedCharArray &accountIn,
             const vector<CCandidateVote> &candidateVotesIn,
             const uint64_t feesIn,
             const int validHeightIn)
@@ -70,7 +70,7 @@ public:
 
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint64_t GetFee() const { return llFees; }
-    virtual uint64_t GetValue() const { return 0; }
+    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDelegateVoteTx>(this); }
     virtual string ToString(CAccountDBCache &accountCache);

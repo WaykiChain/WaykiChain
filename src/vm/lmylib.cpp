@@ -1375,7 +1375,7 @@ static int ExGetDBValueFunc(lua_State *L) {
     }
     CRegID contractRegId = pVmRunEnv->GetScriptRegID();
 
-    vector_unsigned_char vValue;
+    UnsignedCharArray vValue;
     vector<unsigned char> vScriptKey;
     if(index == 1)
     {
@@ -1633,7 +1633,7 @@ static int ExGetContractRegIdFunc(lua_State *L)
     LUA_BurnFuncCall(L, FUEL_CALL_GetContractRegId, BURN_VER_R2);
    //1.从lua取参数
    //2.调用C++库函数 执行运算
-    vector_unsigned_char contractRegId = pVmRunEnv->GetScriptRegID().GetRegIdRaw();
+    UnsignedCharArray contractRegId = pVmRunEnv->GetScriptRegID().GetRegIdRaw();
    //3.往函数私有栈里存运算后的结果
     int len = RetRstToLua(L,contractRegId);
    /*
@@ -1649,7 +1649,7 @@ static int ExGetCurTxAccountFunc(lua_State *L)
     LUA_BurnFuncCall(L, FUEL_CALL_GetCurTxAccount, BURN_VER_R2);
    //1.从lua取参数
    //2.调用C++库函数 执行运算
-    vector_unsigned_char vUserId =pVmRunEnv->GetTxAccount().GetRegIdRaw();
+    UnsignedCharArray vUserId =pVmRunEnv->GetTxAccount().GetRegIdRaw();
 
    //3.往函数私有栈里存运算后的结果
     int len = RetRstToLua(L,vUserId);

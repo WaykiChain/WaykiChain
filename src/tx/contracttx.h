@@ -44,7 +44,7 @@ public:
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CContractDeployTx>(this); }
     virtual uint64_t GetFee() const { return llFees; }
-    virtual uint64_t GetValue() const { return 0; }
+    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
     virtual string ToString(CAccountDBCache &view);
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
@@ -59,7 +59,7 @@ class CContractInvokeTx : public CBaseTx {
 public:
     mutable CUserID appUid;  // app regid or address
     uint64_t bcoins;         // transfer amount
-    vector_unsigned_char arguments; // arguments to invoke a contract method
+    UnsignedCharArray arguments; // arguments to invoke a contract method
 
 public:
     CContractInvokeTx() : CBaseTx(CONTRACT_INVOKE_TX) {}
@@ -70,7 +70,7 @@ public:
     }
 
     CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn,
-                uint64_t bcoinsIn, int validHeightIn, vector_unsigned_char &argumentsIn):
+                uint64_t bcoinsIn, int validHeightIn, UnsignedCharArray &argumentsIn):
                 CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty()); //FIXME: shouldnot be using assert here, throw an error instead.
@@ -121,7 +121,7 @@ public:
         return sigHash;
     }
 
-    virtual uint64_t GetValue() const { return bcoins; }
+    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, bcoins}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint64_t GetFee() const { return llFees; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }

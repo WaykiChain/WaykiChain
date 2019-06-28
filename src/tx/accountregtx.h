@@ -37,7 +37,7 @@ public:
         READWRITE(signature);)
 
     uint64_t GetFee() const { return llFees; }
-    uint64_t GetValue() const { return 0; }
+    map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {

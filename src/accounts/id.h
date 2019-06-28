@@ -20,7 +20,7 @@ class CAccountDBCache;
 class CUserID;
 class CUserID;
 
-typedef vector<unsigned char> vector_unsigned_char;
+typedef vector<unsigned char> UnsignedCharArray;
 typedef CRegID CTxCord;
 
 class CNullID {
@@ -273,7 +273,7 @@ public:
                 s >> regId;
                 uid = regId;
             } else if (len == FlagKeyID) {
-                vector_unsigned_char vchData;
+                UnsignedCharArray vchData;
                 vchData.resize(len);
                 assert(len > 0);
                 s.read((char *)&vchData[0], len * sizeof(vchData[0]));
@@ -281,7 +281,7 @@ public:
                 CKeyID keyId(data);
                 uid = keyId;
             } else if (len == FlagPubKey) {
-                vector_unsigned_char vchData;
+                UnsignedCharArray vchData;
                 vchData.resize(len);
                 assert(len > 0);
                 s.read((char *)&vchData[0], len * sizeof(vchData[0]));

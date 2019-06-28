@@ -64,7 +64,7 @@ public:
         return sigHash;
     }
 
-    virtual uint64_t GetValue() const { return bcoinsToStake; }
+    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, bcoinsToStake}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint64_t GetFee() const { return llFees; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
@@ -108,7 +108,7 @@ public:
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
-        cdpTxCord = cdpTxCordIn;
+        cdpTxCord      = cdpTxCordIn;
         scoinsToRedeem = scoinsToRedeemIn;
         fcoinsInterest = fcoinsInterestIn;
     }
@@ -140,7 +140,7 @@ public:
         return sigHash;
     }
 
-    virtual uint64_t GetValue() const { return scoinsToRedeem; }
+    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WUSD, scoinsToRedeem}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint64_t GetFee() const { return llFees; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
@@ -217,7 +217,9 @@ public:
         return sigHash;
     }
 
-    virtual uint64_t GetValue() const { return bcoinsToStake; }
+    virtual map<CoinType, uint64_t> GetValues() const {
+        return map<CoinType, uint64_t>{{CoinType::WUSD, scoinsToLiquidate}};
+    }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint64_t GetFee() const { return llFees; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }

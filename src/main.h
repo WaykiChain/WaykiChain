@@ -114,7 +114,6 @@ static const uint8_t REJECT_DUPLICATE = 0x12;
 static const uint8_t REJECT_NONSTANDARD     = 0x20;
 static const uint8_t REJECT_DUST            = 0x21;
 static const uint8_t REJECT_INSUFFICIENTFEE = 0x22;
-static const uint8_t REJECT_EMPTY_CDPTXCORD = 0x23;
 
 static const uint8_t READ_ACCOUNT_FAIL   = 0X30;
 static const uint8_t WRITE_ACCOUNT_FAIL  = 0X31;

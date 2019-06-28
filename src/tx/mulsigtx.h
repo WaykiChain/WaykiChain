@@ -13,7 +13,7 @@
 class CSignaturePair {
 public:
     CRegID regId;  //!< regid only
-    vector_unsigned_char signature;
+    UnsignedCharArray signature;
 
     IMPLEMENT_SERIALIZE(
         READWRITE(regId);
@@ -25,7 +25,7 @@ public:
         signature = signaturePair.signature;
     }
 
-    CSignaturePair(const CRegID &regIdIn, const vector_unsigned_char &signatureIn) {
+    CSignaturePair(const CRegID &regIdIn, const UnsignedCharArray &signatureIn) {
         regId     = regIdIn;
         signature = signatureIn;
     }
@@ -41,7 +41,7 @@ public:
     mutable CUserID desUserId;              //!< keyid or regid
     uint64_t bcoins;                        //!< transfer amount
     uint8_t required;                       //!< required keys
-    vector_unsigned_char memo;              //!< memo
+    UnsignedCharArray memo;              //!< memo
     vector<CSignaturePair> signaturePairs;  //!< signature pair
 
     CKeyID keyId;  //!< only in memory
@@ -56,7 +56,7 @@ public:
 
     CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
                 uint64_t feesIn, const uint64_t valueIn, const int validHeightIn,
-                const uint8_t requiredIn, const vector_unsigned_char &memoIn)
+                const uint8_t requiredIn, const UnsignedCharArray &memoIn)
         : CBaseTx(COMMON_MTX, CNullID(), validHeightIn, feesIn) {
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!desUserIdIn.get<CRegID>().IsEmpty());
@@ -109,7 +109,7 @@ public:
         return sigHash;
     }
 
-    virtual uint64_t GetValue() const { return bcoins; }
+    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, bcoins}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint64_t GetFee() const { return llFees; }
     virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }

@@ -105,7 +105,7 @@ private:
      * @param value: argument
      * @return:Return account id
      */
-    vector_unsigned_char GetAccountID(CVmOperate value);
+    UnsignedCharArray GetAccountID(CVmOperate value);
     //	bool IsSignatureAccount(CRegID account);
     bool OperateAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
                            CContractDBCache& view);

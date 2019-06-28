@@ -40,9 +40,8 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        for (auto const& pricePoint: pricePoints) {
-            READWRITE(pricePoint);
-        })
+        READWRITE(pricePoints);
+    )
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
@@ -55,6 +54,7 @@ public:
         return sigHash;
     }
 
+    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CPriceFeedTx>(this); }
     virtual double GetPriority() const { return 10000.0f; }  // Top priority
     virtual string ToString(CAccountDBCache &view);            // logging usage
@@ -66,7 +66,6 @@ public:
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
     bool GetTopPriceFeederList(CCacheWrapper &cw, vector<CAccount> &priceFeederAccts);
-
 };
 
 #endif //TX_PRICE_FEED_H

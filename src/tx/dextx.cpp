@@ -793,14 +793,15 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
         limitAssetAmount = sellOrder.limitAmount
         check: limitAssetAmount >= activeSellOrder.totalDealAssetAmount
         residualAmount = limitAssetAmount - dealCoinAmount
-
-9. operate account
+10. calc deal fees
+    dealCoinFee = dealCoinAmount * 0.04%
+    dealAssetFee = dealAssetAmount * 0.04%
+11. operate account
     a. buyerFrozenCoins     -= dealCoinAmount
-    b. buyerAssets          += dealAssetAmount
-    c. sellerCoins          += dealCoinAmount
+    b. buyerAssets          += dealAssetAmount - dealAssetFee
+    c. sellerCoins          += dealCoinAmount - dealCoinFee
     d. sellerFrozenAssets   -= dealAssetAmount
-
-10. check order fulfiled or save residual amount
+12. check order fulfiled or save residual amount
     a. buy order
         if buy order is fulfilled {
             if buy limit order {
@@ -965,18 +966,25 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
                                 REJECT_INVALID, "exceeded-deal-amount");
             }
             sellResidualAmount = limitAssetAmount - activeSellOrder.totalDealAssetAmount;
-            // TODO: handle: small residual asset amount is not enough to sell for one coin.
         }
 
-        // settle sell/buy order's coin
-        if (   !buyOrderAccount.MinusDEXFrozenCoin(buyOrderData.coinType, dealItem.dealCoinAmount)           // - minus buyer's coins
-            || !buyOrderAccount.OperateBalance(buyOrderData.assetType, ADD_VALUE, dealItem.dealAssetAmount)  // + add buyer's assets
-            || !sellOrderAccount.OperateBalance(sellOrderData.coinType, ADD_VALUE, dealItem.dealCoinAmount)  // + add seller's coin
-            || !sellOrderAccount.MinusDEXFrozenCoin(sellOrderData.assetType, dealItem.dealAssetAmount)) {    // - minus seller's assets
+        // 10. calc deal fees
+        uint64_t dealCoinFee = dealItem.dealCoinAmount * kDefaultDexDealFeeRatio / kPencentBoost;
+        uint64_t dealAssetFee = dealItem.dealAssetAmount * kDefaultDexDealFeeRatio / kPencentBoost;
+        // TODO: add dealCoinFee and dealAssetFee to current tx feeMap
+        uint64_t buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
+        uint64_t sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
+
+        // 11. operate account
+        if (   !buyOrderAccount.MinusDEXFrozenCoin(buyOrderData.coinType, dealItem.dealCoinAmount)          // - minus buyer's coins
+            || !buyOrderAccount.OperateBalance(buyOrderData.assetType, ADD_VALUE, buyerReceivedAssets)      // + add buyer's assets
+            || !sellOrderAccount.OperateBalance(sellOrderData.coinType, ADD_VALUE, sellerReceivedCoins)     // + add seller's coin
+            || !sellOrderAccount.MinusDEXFrozenCoin(sellOrderData.assetType, dealItem.dealAssetAmount)) {   // - minus seller's assets
             return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, operate coins or assets failed"),
                             REJECT_INVALID, "operate-acount-failed");
         }
 
+        // 12. check order fulfiled or save residual amount
         if (buyResidualAmount == 0) { // buy order fulfilled
             if (buyOrderData.orderType == ORDER_LIMIT_PRICE) {
                 if (buyOrderData.coinAmount > activeBuyOrder.totalDealCoinAmount) {
