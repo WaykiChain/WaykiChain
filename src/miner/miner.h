@@ -80,7 +80,8 @@ void IncrementExtraNonce(CBlock *pBlock, CBlockIndex *pIndexPrev, unsigned int &
 /** Do mining precalculation */
 void FormatHashBuffers(CBlock *pBlock, char *pmidstate, char *pdata, char *phash1);
 
-bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountDBCache &view, CBlock *pBlock);
+bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountDBCache &accountCache,
+                         CBlock *pBlock);
 
 void ShuffleDelegates(const int nCurHeight, vector<CRegID> &delegatesList);
 

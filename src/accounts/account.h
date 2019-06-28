@@ -72,8 +72,8 @@ public:
     uint64_t stakedBcoins;  //!< Staked/Collateralized BaseCoins (accumulated)
     uint64_t stakedFcoins;  //!< Staked FundCoins for pricefeed right (accumulated)
 
-    uint64_t receivedVotes;    //!< received votes
-    uint64_t lastVoteHeight;   //!< account's last vote block height used for computing interest
+    uint64_t receivedVotes;   //!< received votes
+    uint64_t lastVoteHeight;  //!< account's last vote block height used for computing interest
 
     mutable uint256 sigHash;  //!< in-memory only
 

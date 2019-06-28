@@ -12,6 +12,7 @@
 #include "tx/tx.h"
 #include "tx/blockrewardtx.h"
 #include "tx/blockpricemediantx.h"
+#include "tx/multicoinblockrewardtx.h"
 #include "persistence/txdb.h"
 #include "persistence/contractdb.h"
 #include "persistence/cachewrapper.h"
@@ -104,30 +105,35 @@ bool GetCurrentDelegate(const int64_t currentTime, const vector<CRegID> &delegat
     return true;
 }
 
-bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountDBCache &view, CBlock *pBlock) {
-    CBlock preBlock;
+bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountDBCache &accountCache,
+                         CBlock *pBlock) {
+    CBlock previousBlock;
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
-        if (!ReadBlockFromDisk(pBlockIndex, preBlock))
+        if (!ReadBlockFromDisk(pBlockIndex, previousBlock))
             return ERRORMSG("read block info fail from disk");
 
-        CAccount preDelegate;
-        CBlockRewardTx *preBlockRewardTx = (CBlockRewardTx *)preBlock.vptx[0].get();
-        if (!view.GetAccount(preBlockRewardTx->txUid, preDelegate)) {
+        CAccount previousDelegate;
+        if (!accountCache.GetAccount(previousBlock.vptx[0]->txUid, previousDelegate)) {
             return ERRORMSG("get preblock delegate account info error");
         }
 
-        if (currentTime - preBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
-            if (preDelegate.regId == delegate.regId)
+        if (currentTime - previousBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
+            if (previousDelegate.regId == delegate.regId)
                 return ERRORMSG("one delegate can't produce more than one block at the same slot");
         }
     }
 
-    CBlockRewardTx *pBlockRewardTx  = (CBlockRewardTx *)pBlock->vptx[0].get();
-    pBlockRewardTx->txUid           = delegate.regId;
-    pBlockRewardTx->nHeight         = pBlock->GetHeight();
-    // Assign profits to the delegate account.
-    pBlockRewardTx->rewardValue     += delegate.CalculateAccountProfit(pBlock->GetHeight());
+    if (pBlock->vptx[0]->nTxType == BLOCK_REWARD_TX) {
+        auto pRewardTx    = (CBlockRewardTx *)pBlock->vptx[0].get();
+        pRewardTx->txUid   = delegate.regId;
+        pRewardTx->nHeight = pBlock->GetHeight();
+    } else if (pBlock->vptx[0]->nTxType == MULTI_COIN_BLOCK_REWARD_TX) {
+        auto pRewardTx     = (CMultiCoinBlockRewardTx *)pBlock->vptx[0].get();
+        pRewardTx->txUid   = delegate.regId;
+        pRewardTx->nHeight = pBlock->GetHeight();
+        pRewardTx->profits = delegate.CalculateAccountProfit(pBlock->GetHeight());
+    }
 
     pBlock->SetNonce(GetRand(SysCfg().GetBlockMaxNonce()));
     pBlock->SetMerkleRootHash(pBlock->BuildMerkleTree());
@@ -184,8 +190,6 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     if (pBlock->GetMerkleRootHash() != pBlock->BuildMerkleTree())
         return ERRORMSG("Wrong merkleRootHash");
 
-    CBlock preBlock;
-
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(&cwIn.accountCache);
     spCW->txCache = cwIn.txCache;
@@ -193,23 +197,22 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
 
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
-        if (!ReadBlockFromDisk(pBlockIndex, preBlock))
+        CBlock previousBlock;
+        if (!ReadBlockFromDisk(pBlockIndex, previousBlock))
             return ERRORMSG("read block info failed from disk");
 
-        CAccount preDelegate;
-        CBlockRewardTx *preBlockRewardTx = (CBlockRewardTx *)preBlock.vptx[0].get();
-        if (!spCW->accountCache.GetAccount(preBlockRewardTx->txUid, preDelegate))
+        CAccount previousDelegate;
+        if (!spCW->accountCache.GetAccount(previousBlock.vptx[0]->txUid, previousDelegate))
             return ERRORMSG("get preblock delegate account info error");
 
-        if (pBlock->GetBlockTime() - preBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
-            if (preDelegate.regId == curDelegate.regId)
+        if (pBlock->GetBlockTime() - previousBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
+            if (previousDelegate.regId == curDelegate.regId)
                 return ERRORMSG("one delegate can't produce more than one block at the same slot");
         }
     }
 
     CAccount account;
-    CBlockRewardTx *pRewardTx = (CBlockRewardTx *)pBlock->vptx[0].get();
-    if (spCW->accountCache.GetAccount(pRewardTx->txUid, account)) {
+    if (spCW->accountCache.GetAccount(pBlock->vptx[0]->txUid, account)) {
         if (curDelegate.regId != account.regId) {
             return ERRORMSG("Verify delegate account error, delegate regid=%s vs reward regid=%s!",
                 curDelegate.regId.ToString(), account.regId.ToString());
@@ -229,9 +232,9 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
         return ERRORMSG("AccountView has no accountId");
     }
 
-    if (pRewardTx->nVersion != nTxVersion1)
-        return ERRORMSG("Verify tx version error, tx version %d: vs current %d",
-            pRewardTx->nVersion, nTxVersion1);
+    if (pBlock->vptx[0]->nVersion != nTxVersion1)
+        return ERRORMSG("Verify tx version error, tx version %d: vs current %d", pBlock->vptx[0]->nVersion,
+                        nTxVersion1);
 
     if (bNeedRunTx) {
         int64_t nTotalFuel(0);

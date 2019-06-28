@@ -23,7 +23,7 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
     if (0 == nIndex) {
         // When the reward transaction is immature, should NOT update account's balances.
     } else if (-1 == nIndex) {
-        // When the reward transaction is mature, update account's balances, i.e, send the reward value to
+        // When the reward transaction is mature, update account's balances, i.e, assign the reward value to
         // the miner's account.
         account.bcoins += rewardValue;
     } else {
