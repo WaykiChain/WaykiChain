@@ -1601,7 +1601,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     }
 
     if (!cw.txCache.AddBlockToCache(block)) {
-        return state.Abort(_("ConnectBlock() : failed add block into transaction momory cache"));
+        return state.Abort(_("ConnectBlock() : failed add block into transaction memory cache"));
     }
 
     if (pIndex->nHeight > SysCfg().GetTxCacheHeight()) {

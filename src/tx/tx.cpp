@@ -61,9 +61,9 @@ int32_t CBaseTx::GetFuelRate(CContractDBCache &scriptDB) {
     if (nFuelRate > 0)
         return nFuelRate;
 
-    CDiskTxPos postx;
-    if (scriptDB.ReadTxIndex(GetHash(), postx)) {
-        CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
+    CDiskTxPos txPos;
+    if (scriptDB.ReadTxIndex(GetHash(), txPos)) {
+        CAutoFile file(OpenBlockFile(txPos, true), SER_DISK, CLIENT_VERSION);
         CBlockHeader header;
         try {
             file >> header;

@@ -125,7 +125,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
     }
 
     if (pBlock->vptx[0]->nTxType == BLOCK_REWARD_TX) {
-        auto pRewardTx    = (CBlockRewardTx *)pBlock->vptx[0].get();
+        auto pRewardTx     = (CBlockRewardTx *)pBlock->vptx[0].get();
         pRewardTx->txUid   = delegate.regId;
         pRewardTx->nHeight = pBlock->GetHeight();
     } else if (pBlock->vptx[0]->nTxType == MULTI_COIN_BLOCK_REWARD_TX) {
@@ -244,13 +244,8 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
             if (spCW->txCache.HaveTx(pBaseTx->GetHash()))
                 return ERRORMSG("VerifyPosTx duplicate tx hash:%s", pBaseTx->GetHash().GetHex());
 
-            CValidationState state;
-            if (CONTRACT_INVOKE_TX == pBaseTx->nTxType)
-                LogPrint("vm", "tx hash=%s VerifyPosTx run contract\n", pBaseTx->GetHash().GetHex());
-
-            pBaseTx->nFuelRate = pBlock->GetFuelRate();
-
             spCW->txUndo.Clear(); // Clear first.
+            CValidationState state;
             if (!pBaseTx->ExecuteTx(pBlock->GetHeight(), i, *spCW, state))
                 return ERRORMSG("transaction UpdateAccount account error");
 
