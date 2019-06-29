@@ -15,6 +15,7 @@
  * Empty functions
  */
 namespace db_util {
+
     // bool
     inline bool IsEmpty(const bool val) { return val != false; }
     inline void SetEmpty(bool &val) { val = false; }
@@ -122,6 +123,13 @@ namespace db_util {
     template<typename T>
     void SetEmpty(T& val) {
         val.SetEmpty();
+    }
+
+    template <typename ValueType>
+    std::shared_ptr<ValueType> MakeEmptyValue() {
+        auto value = std::make_shared<ValueType>();
+        SetEmpty(*value);
+        return value;
     }
 };
 
@@ -368,8 +376,8 @@ public:
         }
         auto it = GetDataIt(key);
         if (it != mapData.end()) {
-            ValueType newEmptyValue; db_util::SetEmpty(newEmptyValue);
-            auto newRet = mapData.emplace(std::make_pair(key, newEmptyValue)); // create new empty value
+            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
+            auto newRet = mapData.emplace(key, *emptyValue); // create new empty value
             assert(newRet.second); // TODO: if false then throw error
             it = newRet.first;
         }
@@ -414,8 +422,8 @@ public:
         if (it != mapData.end()) {
             dbOpLog.Set(key, it->second);
         } else {
-            ValueType emptyValue; db_util::SetEmpty(emptyValue);
-            dbOpLog.Set(key, emptyValue);
+            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
+            dbOpLog.Set(key, *emptyValue);
         }
         if (it != mapData.end() && !db_util::IsEmpty(it->second)) {
             db_util::SetEmpty(it->second);
@@ -471,27 +479,23 @@ public:
 
 private:
     Iterator GetDataIt(const KeyType &key) const {
-        // key should not be empty
-        if (db_util::IsEmpty(key)) {
-            return mapData.end();
-        }
-
         Iterator it = mapData.find(key);
         if (it != mapData.end()) {
             return it;
         } else if (pBase != nullptr){
-            auto it = pBase->GetDataIt(key);
-            if (it != mapData.end()) {
-                auto newRet = mapData.emplace(std::make_pair(key, it->second));
+            // find key-value at base cache
+            auto baseIt = pBase->GetDataIt(key);
+            if (baseIt != pBase->mapData.end()) {
+                // the found key-value add to current mapData
+                auto newRet = mapData.emplace(key, baseIt->second);
                 assert(newRet.second); // TODO: throw error
                 return newRet.first;
             }
         } else if (pDbAccess != NULL) {
             // TODO: need to save the empty value to mapData for search performance?
-            auto ptrValue = std::make_shared<ValueType>();
-
-            if (pDbAccess->GetData(PREFIX_TYPE, key, *ptrValue)) {
-                auto newRet = mapData.emplace(std::make_pair(key, *ptrValue));
+            auto pDbValue = db_util::MakeEmptyValue<ValueType>();
+            if (pDbAccess->GetData(PREFIX_TYPE, key, *pDbValue)) {
+                auto newRet = mapData.emplace(key, *pDbValue);
                 assert(newRet.second); // TODO: throw error
                 return newRet.first;
             }
@@ -609,8 +613,8 @@ public:
             dbOpLog.Set(*ptrData);
             *ptrData = value;
         } else {
-            ValueType emptyValue; db_util::SetEmpty(emptyValue);
-            dbOpLog.Set(emptyValue);
+            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
+            dbOpLog.Set(*emptyValue);
             ptrData = std::make_shared<ValueType>(value);
         }
         return true;
@@ -644,8 +648,8 @@ public:
         if (ptr) {
             dbOpLog.Set(*ptrData);
         } else {
-            ValueType emptyValue; db_util::SetEmpty(emptyValue);
-            dbOpLog.Set(emptyValue);
+            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
+            dbOpLog.Set(*emptyValue);
         }
         if (ptr && !db_util::IsEmpty(*ptr)) {
             db_util::SetEmpty(*ptr);
@@ -664,15 +668,17 @@ public:
 
     void Flush() {
         assert(pBase != nullptr || pDbAccess != nullptr);
-        if (pBase != nullptr) {
-            assert(pDbAccess == nullptr);
-            pBase->ptrData = ptrData;
-        } else if (pDbAccess != nullptr) {
-            assert(pBase == nullptr);
-            pDbAccess->BatchWrite(PREFIX_TYPE, *ptrData);
-        }
+        if (ptrData) {
+            if (pBase != nullptr) {
+                assert(pDbAccess == nullptr);
+                pBase->ptrData = ptrData;
+            } else if (pDbAccess != nullptr) {
+                assert(pBase == nullptr);
+                pDbAccess->BatchWrite(PREFIX_TYPE, *ptrData);
+            }
 
-        ptrData = nullptr;
+            ptrData = nullptr;
+        }
     }
 
     void UndoData(const CDbOpLog &dbOpLog) {
