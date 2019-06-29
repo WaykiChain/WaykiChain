@@ -69,7 +69,7 @@ struct CDEXActiveOrder {
 };
 
 // order txid -> sys order data
-// order txid: 
+// order txid:
 //   (1) CCDPStakeTx, create sys buy order for WGRT by WUSD when alter CDP and the interest is WUSD
 //   (2) CCDPRedeemTx, create sys buy order for WGRT by WUSD when the interest is WUSD
 //   (3) CCDPLiquidateTx, create sys buy order for WGRT by WUSD when the penalty is WUSD
@@ -115,8 +115,8 @@ public:
 
 // System-generated Market Order
 // wicc -> wusd (cdp forced liquidation)
-// micc -> wusd (inflate micc to get wusd)
-// wusd -> micc (pay interest to get micc to burn)
+// wgrt -> wusd (inflate wgrt to get wusd)
+// wusd -> wgrt (pay interest to get wgrt to burn)
 struct CDEXSysForceSellBcoinsOrder {
     CUserID cdpOwnerUid;
     uint64_t bcoinsAmount;
@@ -135,14 +135,14 @@ public:
 public:
     bool GetActiveOrder(const uint256& orderTxId, CDEXActiveOrder& activeOrder);
     bool CreateActiveOrder(const uint256& orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);
-    bool ModifyActiveOrder(const uint256& orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);    
+    bool ModifyActiveOrder(const uint256& orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);
     bool EraseActiveOrder(const uint256& orderTxId, CDBOpLogMap &dbOpLogMap);
     bool UndoActiveOrder(CDBOpLogMap &dbOpLogMap);
 
     bool CreateSysBuyOrder(uint256 orderTxId, CDEXSysBuyOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
     bool UndoSysBuyOrder(CDBOpLogMap &dbOpLogMap);
-    bool CreateSysSellOrder(uint256 orderTxId, CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap); 
-    bool UndoSysSellOrder(CDBOpLogMap &dbOpLogMap); 
+    bool CreateSysSellOrder(uint256 orderTxId, CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap);
+    bool UndoSysSellOrder(CDBOpLogMap &dbOpLogMap);
 
 
     bool CreateBuyOrder(uint64_t buyAmount, CoinType targetCoinType); //TODO: ... SystemBuyOrder

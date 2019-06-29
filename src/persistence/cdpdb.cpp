@@ -128,7 +128,7 @@ void CCdpMemCache::BatchWrite(const map<CUserCdp, uint8_t> &cdpsIn) {
 bool CCdpDBCache::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                                         const int blockHeight, CUserCdp &cdp, CDBOpLogMap &dbOpLogMap) {
 
-    cdp.lastBlockHeight = blockHeight;
+    cdp.blockHeight = blockHeight;
     cdp.totalStakedBcoins += bcoinsToStake;
     cdp.totalOwedScoins += mintedScoins;
     cdp.collateralRatioBase = double(cdp.totalStakedBcoins) / cdp.totalOwedScoins;
@@ -141,19 +141,18 @@ bool CCdpDBCache::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToS
 }
 
 bool CCdpDBCache::GetCdp(CUserCdp &cdp) {
-    if (!cdpCache.GetData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxCord.ToRawString()), cdp))
+    if (!cdpCache.GetData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxId), cdp))
         return false;
 
     return true;
 }
 
 bool CCdpDBCache::SaveCdp(CUserCdp &cdp, CDBOpLogMap &dbOpLogMap) {
-    return cdpCache.SetData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxCord.ToRawString()),
-                            cdp, dbOpLogMap);
+    return cdpCache.SetData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxId), cdp, dbOpLogMap);
 }
 
 bool CCdpDBCache::EraseCdp(const CUserCdp &cdp) {
-    return cdpCache.EraseData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxCord.ToRawString()));
+    return cdpCache.EraseData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxId));
 }
 
 /**
