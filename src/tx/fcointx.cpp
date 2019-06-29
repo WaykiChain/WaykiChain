@@ -92,9 +92,11 @@ bool CFcoinTransferTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrap
 }
 
 string CFcoinTransferTx::ToString(CAccountDBCache &accountCache) {
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, fcoins=%ld, llFees=%ld, nValidHeight=%d\n",
-                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), fcoins,
-                     llFees, nValidHeight);
+    string str = strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, fcoins=%ld, llFees=%ld, nValidHeight=%d\n",
+                           GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(),
+                           toUid.ToString(), fcoins, llFees, nValidHeight);
+
+    return str;
 }
 
 Object CFcoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -106,17 +108,18 @@ Object CFcoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     CKeyID desKeyId;
     accountCache.GetKeyId(toUid, desKeyId);
 
-    result.push_back(Pair("hash",               GetHash().GetHex()));
+    result.push_back(Pair("tx_hash",            GetHash().GetHex()));
     result.push_back(Pair("tx_type",            GetTxType(nTxType)));
     result.push_back(Pair("ver",                nVersion));
-    result.push_back(Pair("uid",                txUid.ToString()));
-    result.push_back(Pair("addr",               srcKeyId.ToAddress()));
+    result.push_back(Pair("tx_uid",             txUid.ToString()));
+    result.push_back(Pair("tx_addr",            srcKeyId.ToAddress()));
+    result.push_back(Pair("valid_height",       nValidHeight));
+    result.push_back(Pair("fees",               llFees));
+
     result.push_back(Pair("dest_uid",           toUid.ToString()));
     result.push_back(Pair("dest_addr",          desKeyId.ToAddress()));
-    result.push_back(Pair("fcoins",             fcoins));
-    result.push_back(Pair("fees",               llFees));
+    result.push_back(Pair("fcoin_amount",       fcoins));
     result.push_back(Pair("memo",               HexStr(memo)));
-    result.push_back(Pair("valid_height",       nValidHeight));
 
     return result;
 }

@@ -75,11 +75,10 @@ bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 }
 
 string CFcoinStakeTx::ToString(CAccountDBCache &accountCache) {
-    string str = strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, fcoinsToStake=%ld, llFees=%ld, nValidHeight=%d\n",
-                           GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), fcoinsToStake, llFees,
-                           nValidHeight);
-
-    return str;
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, nValidHeight=%d"
+                     "fcoinsToStake=%ld\n",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, nValidHeight,
+                     fcoinsToStake);
 }
 
 Object CFcoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -88,17 +87,17 @@ Object CFcoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    result.push_back(Pair("hash",               GetHash().GetHex()));
+    result.push_back(Pair("tx_hash",            GetHash().GetHex()));
     result.push_back(Pair("tx_type",            GetTxType(nTxType)));
     result.push_back(Pair("ver",                nVersion));
-    result.push_back(Pair("regid",              txUid.ToString()));
-    result.push_back(Pair("addr",               keyId.ToAddress()));
-    result.push_back(Pair("coins_to_stake",     fcoinsToStake));
-    result.push_back(Pair("fees",               llFees));
+    result.push_back(Pair("tx_uid",             txUid.ToString()));
+    result.push_back(Pair("tx_addr",            keyId.ToAddress()));
     result.push_back(Pair("valid_height",       nValidHeight));
+    result.push_back(Pair("fees",               llFees));
+
+    result.push_back(Pair("coins_to_stake",     fcoinsToStake));
 
     return result;
-  return Object();
 }
 
 bool CFcoinStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
