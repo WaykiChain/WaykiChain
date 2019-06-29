@@ -24,9 +24,9 @@ bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
 }
 
 bool CCDPStakeTx::CheckInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &cw, CValidationState &state) {
-    if (nHeight < cdp.lastBlockHeight) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckInterest, nHeight: %d < cdp.lastBlockHeight: %d",
-                    nHeight, cdp.lastBlockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
+    if (nHeight < cdp.blockHeight) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckInterest, nHeight: %d < cdp.blockHeight: %d",
+                    nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
     }
 
     uint64_t scoinsInterestToRepay = cw.cdpCache.ComputeInterest(nHeight, cdp);
@@ -191,9 +191,9 @@ string CCDPRedeemTx::ToString(CAccountDBCache &view) {
      return true;
  }
  bool CCDPRedeemTx::CheckInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &cw, CValidationState &state) {
-    if (nHeight < cdp.lastBlockHeight) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckInterest, nHeight: %d < cdp.lastBlockHeight: %d",
-                    nHeight, cdp.lastBlockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
+    if (nHeight < cdp.blockHeight) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckInterest, nHeight: %d < cdp.blockHeight: %d",
+                    nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
     }
 
     uint64_t scoinsInterestToRepay = cw.cdpCache.ComputeInterest(nHeight, cdp);

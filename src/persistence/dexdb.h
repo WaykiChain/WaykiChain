@@ -79,6 +79,10 @@ public:
     CoinType        assetType;     //!< asset type
     uint64_t        coinAmount;    //!< amount of coin to buy asset
 public:
+
+    CDEXSysBuyOrder(CoinType coinTypeIn, CoinType assetTypeIn, uint64_t coinAmountIn): 
+                coinType(coinTypeIn), assetType(assetTypeIn), coinAmount(coinAmountIn) {};
+
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t&)coinType);
         READWRITE((uint8_t&)assetType);
@@ -95,7 +99,11 @@ public:
     CoinType        coinType;      //!< coin type
     CoinType        assetType;     //!< asset type
     uint64_t        assetAmount;    //!< amount of coin to buy asset
+
 public:
+     CDEXSysSellOrder(CoinType coinTypeIn, CoinType assetTypeIn, uint64_t assetAmountIn): 
+                coinType(coinTypeIn), assetType(assetTypeIn), assetAmount(assetAmountIn) {};
+
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t&)coinType);
         READWRITE((uint8_t&)assetType);
