@@ -682,13 +682,6 @@ Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &view) const {
     return result;
 }
 
-<<<<<<< HEAD
-bool CDEXCancelOrderTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    return false; // TODO: ...
-}
-
-=======
->>>>>>> 25fad042f8d6174bc5e98670110f5081cdf4a709
 bool CDEXCancelOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
