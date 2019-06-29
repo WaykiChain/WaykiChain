@@ -10,15 +10,10 @@
 
 // unit tests for basic units of coind
 struct UnitTestingSetup {
-    UnitTestingSetup() {
-
-    }
+    UnitTestingSetup() { }
     ~UnitTestingSetup() { }
 
 
 };
 
 BOOST_GLOBAL_FIXTURE(UnitTestingSetup);
-
-
-

@@ -7,8 +7,6 @@ bin_PROGRAMS += unit_test
 JSON_UNIT_TEST_FILES = 
 
 
-
-
 # test_dspay binary #
 unit_test_CPPFLAGS = $(AM_CPPFLAGS) $(TESTDEFS) $(LIBSECP256K1_CPPFLAGS)
 unit_test_LDADD = \
@@ -30,6 +28,7 @@ unit_test_LDADD = \
 unit_test_LDADD += $(BDB_LIBS)
 
 unit_test_SOURCES = \
-  unit_tests/unit_test.cpp \
-  $(JSON_TEST_FILES)
-
+  unit_tests/dbaccess_tests.cpp \
+  unit_tests/unit_tests.cpp \
+  $(JSON_UNIT_TEST_FILES)
+  
