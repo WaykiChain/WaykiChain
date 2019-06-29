@@ -42,35 +42,4 @@ public:
     )
 };
 
-class CCdpView {
-
-};
-
-class CCdpViewCache: CCdpView {
-protected:
-    CCdpView *pBase;
-
-public:
-    bool Flush();
-};
-
-class CCdpViewDB: CCdpView {
-private:
-    CLevelDBWrapper db;
-
-public:
-    CCdpViewDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) :
-        db(GetDataDir() / "blocks" / "txcache", nCacheSize, fMemory, fWipe) {};
-    ~CCdpViewDB() {};
-
-private:
-    CCdpViewDB(const CCdpViewDB &);
-    void operator=(const CCdpViewDB &);
-
-public:
-    virtual bool IsContainBlock(const CBlock &block);
-    virtual bool BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSet);
-    int64_t GetDbCount() { return db.GetDbCount(); }
-};
-
 #endif //CDP_H
