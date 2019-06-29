@@ -380,7 +380,7 @@ bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) 
 bool CCDPLiquidateTx::PayPenaltyFee(int nHeight, const CUserCdp &cdp, CCacheWrapper &cw, CValidationState &state) {
     double scoins = (double) cdp.scoins;
     double liquidateRate = scoinsToLiquidate / totalOwedScoins;
-    double scoinPenaltyFees = scoins * liquidateRate * kDefaultCdpPenaltyFeeRatio / kPencentBoost;
+    double scoinPenaltyFees = scoins * liquidateRate * kDefaultCdpPenaltyFeeRatio / kPercentBoost;
 
     int totalSubmittedPenaltyFees = scoinsPenalty + fcoinsPenalty * cw.ppCache.GetFcoinMedianPrice();
     if ((int) scoinPenaltyFees > totalSubmittedPenaltyFees) {
@@ -500,15 +500,15 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
 
     //TODO: add CDP log
 
-    double liquidateRatio = scoinsToLiquidate * kPencentBoost / cdp.totalOwedScoins;
+    double liquidateRatio = scoinsToLiquidate * kPercentBoost / cdp.totalOwedScoins;
     uint64_t bcoinsToLiquidate = cdp.totalStakedBcoins * liquidateRatio;
 
-    uint64_t fullProfitBcoins = cdp.totalStakedBcoins * kDefaultCdpLiquidateProfitRate / kPencentBoost;
+    uint64_t fullProfitBcoins = cdp.totalStakedBcoins * kDefaultCdpLiquidateProfitRate / kPercentBoost;
     uint64_t profitBcoins = fullProfitBcoins * liquidateRatio;
     uint64_t profitScoins = profitBcoins / cw.ppCache.GetBcoinMedianPrice();
 
     double collteralRatio = (cdp.totalStakedBcoins / cw.ppCache.GetBcoinMedianPrice) *
-                                kPencentBoost / cdp.totalOwedScoins;
+                                kPercentBoost / cdp.totalOwedScoins;
 
     // 3. update liquidator's account
     account.fcoins -= fcoinsPenalty;
@@ -526,9 +526,9 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
 
     //TODO: change below to add a method in cdpdb.h for cache fetching
     if (collateralRatio > kDefaultCdpLiquidateNonReturnRatio) {
-        double deductedScoins = cdp.totalOwedScoins * kDefaultCdpLiquidateNonReturnRatio / kPencentBoost;
+        double deductedScoins = cdp.totalOwedScoins * kDefaultCdpLiquidateNonReturnRatio / kPercentBoost;
         double deductedBcoins = deductedScoins / cw.ppCache.GetBcoinMedianPrice();
-        double returnBcoins = (cdp.totalStakedBcoins - deductedBcoins ) * liquidateRatio / kPencentBoost;
+        double returnBcoins = (cdp.totalStakedBcoins - deductedBcoins ) * liquidateRatio / kPercentBoost;
         cdpAccount.bcoins += returnBcoins;
         // cdpAccount.UnFreezeDexCoin(CoinType::WICC, returnBcoins); TODO: check if necessary
     }

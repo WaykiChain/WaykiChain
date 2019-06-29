@@ -222,6 +222,35 @@ public:
         return true;
     }
 
+    template <typename ValueType>
+    bool GetAllElements(const dbk::PrefixType prefixType, const string &prefix, set<string> &expiredKeys,
+                        map<string, ValueType> &elements) {
+        string key;
+        ValueType value;
+        leveldb::Iterator *pCursor = db.NewIterator();
+        leveldb::Slice slKey       = pCursor->key();
+        pCursor->Seek(dbk::GetKeyPrefix(prefixType));
+
+        for (; pCursor->Valid(); pCursor->Next()) {
+            if (!dbk::ParseDbKey(slKey, prefixType, key) || key.find(prefix, 0) != 0) {
+                break;
+            }
+
+            if (expiredKeys.count(key)) {
+                continue;
+            } else {
+                // Got an valid element.
+                leveldb::Slice slValue = pCursor->value();
+                CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+                ds >> value;
+                auto ret = elements.emplace(key, value);
+                assert(ret.second);  // TODO: throw error
+            }
+        }
+
+        return true;
+    }
+
     template <typename KeyType, typename ValueType>
     bool GetAllElements(const dbk::PrefixType prefixType, set<KeyType> &expiredKeys,
                         map<KeyType, ValueType> &elements) {
@@ -337,6 +366,17 @@ public:
         }
 
         return keys.size() == maxNum;
+    }
+
+    // map<string, ValueType>
+    bool GetAllElements(const string &prefix, map<string, ValueType> &elements) {
+        set<string> expiredKeys;
+        if (!GetAllElements(prefix, expiredKeys, elements)) {
+            // TODO: log
+            return false;
+        }
+
+        return true;
     }
 
     bool GetAllElements(map<KeyType, ValueType> &elements) {
@@ -528,6 +568,35 @@ private:
             return pBase->GetTopNElements(maxNum, expiredKeys, keys);
         } else if (pDbAccess != nullptr) {
             return pDbAccess->GetTopNElements(maxNum, PREFIX_TYPE, expiredKeys, keys);
+        }
+
+        return true;
+    }
+
+    // map<string, ValueType>
+    bool GetAllElements(const string &prefix, set<string> &expiredKeys, map<string, ValueType> &elements) {
+        if (!mapData.empty()) {
+            auto boundary = mapData.upper_bound(prefix);
+
+            if (boundary != mapData.end()) {
+                for (auto iter = boundary; iter != mapData.end(); ++ iter) {
+                    if (db_util::IsEmpty(iter->second)) {
+                        expiredKeys.insert(iter->first);
+                    } else if (expiredKeys.count(iter->first) || elements.count(iter->first)) {
+                        // TODO: log
+                        continue;
+                    } else {
+                        // Got a valid element.
+                        elements.emplace(iter->first, iter->second);
+                    }
+                }
+            }
+        }
+
+        if (pBase != nullptr) {
+            return pBase->GetAllElements(prefix, expiredKeys, elements);
+        } else if (pDbAccess != nullptr) {
+            return pDbAccess->GetAllElements(PREFIX_TYPE, prefix, expiredKeys, elements);
         }
 
         return true;
