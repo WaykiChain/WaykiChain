@@ -23,7 +23,7 @@ bool CMultiCoinBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &
     if (0 == nIndex) {
         // When the reward transaction is immature, should NOT update account's balances.
     } else if (-1 == nIndex) {
-        // When the reward transaction is mature, update account's balances, i.e, send the reward values to
+        // When the reward transaction is mature, update account's balances, i.e, assgin the reward values to
         // the miner's account.
         for (const auto &item : rewardValues) {
             switch (item.first/* CoinType */) {
@@ -33,6 +33,9 @@ bool CMultiCoinBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &
                 default: return ERRORMSG("CMultiCoinBlockRewardTx::ExecuteTx, invalid coin type");
             }
         }
+
+        // Assign profits to the delegate's account.
+        account.bcoins += profits;
     } else {
         return ERRORMSG("CMultiCoinBlockRewardTx::ExecuteTx, invalid index");
     }
@@ -42,7 +45,7 @@ bool CMultiCoinBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     cw.txUndo.accountLogs.push_back(accountLog);
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
 
     // Block reward transaction will execute twice, but need to save once when index equals to zero.
     if (nIndex == 0 && !SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))

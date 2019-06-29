@@ -109,7 +109,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     }
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.txHash = txHash;
+    cw.txUndo.txid = txHash;
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
@@ -122,7 +122,7 @@ bool CDEXBuyLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
 
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::UndoExecuteTx, undo active buy order failed"),
-                         UPDATE_ACCOUNT_FAIL, "bad-undo-data");
+                         REJECT_INVALID, "bad-undo-data");
     }
 
     if (cw.txUndo.accountLogs.size() != 1) {
@@ -242,7 +242,7 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
     }
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.txHash = txHash;
+    cw.txUndo.txid = txHash;
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
@@ -256,7 +256,7 @@ bool CDEXSellLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper 
 
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, undo active sell order failed"),
-                         UPDATE_ACCOUNT_FAIL, "bad-undo-data");
+                         REJECT_INVALID, "bad-undo-data");
     }
 
     if (cw.txUndo.accountLogs.size() != 1) {
@@ -378,7 +378,7 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
     }
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.txHash = txHash;
+    cw.txUndo.txid = txHash;
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
@@ -392,7 +392,7 @@ bool CDEXBuyMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper 
 
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::UndoExecuteTx, undo active buy order failed"),
-                         UPDATE_ACCOUNT_FAIL, "bad-undo-data");
+                         REJECT_INVALID, "bad-undo-data");
     }
 
     if (cw.txUndo.accountLogs.size() != 1) {
@@ -512,7 +512,7 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
     }
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.txHash = txHash;
+    cw.txUndo.txid = txHash;
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
@@ -526,7 +526,7 @@ bool CDEXSellMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper
 
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::UndoExecuteTx, undo active sell order failed"),
-                         UPDATE_ACCOUNT_FAIL, "bad-undo-data");
+                         REJECT_INVALID, "bad-undo-data");
     }
 
     if (cw.txUndo.accountLogs.size() != 1) {
@@ -655,7 +655,7 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
     return true;
@@ -664,9 +664,11 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 bool CDEXCancelOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                                    CValidationState &state) {
 
+    if (!UndoTxAddresses(cw, state)) return false;
+
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::UndoExecuteTx, undo active sell order failed"),
-                         UPDATE_ACCOUNT_FAIL, "bad-undo-data");
+                         REJECT_INVALID, "bad-undo-data");
     }
 
     static const int ACCOUNT_LOG_SIZE = 2;
@@ -736,10 +738,10 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     a. get and check activeBuyOrder
     b. get and check activeSellOrder
 2. get order data:
-    a. if order is USER_ORDER:
+    a. if order is USER_GEN_ORDER:
         step 1. get and check order tx object from block store
         step 2. get order data from tx object
-    b. if order is SYS_ORDER:
+    b. if order is SYS_GEN_ORDER:
         step 1. get sys order object from dex db
         then get order detail from sys order object
 3. get account of order's owner
@@ -784,8 +786,16 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
         check: limitAssetAmount >= activeSellOrder.totalDealAssetAmount
         residualAmount = limitAssetAmount - dealCoinAmount
 10. calc deal fees
-    dealCoinFee = dealCoinAmount * 0.04%
-    dealAssetFee = dealAssetAmount * 0.04%
+    buyerReceivedAssets = dealAssetAmount
+    if buy order is USER_GEN_ORDER
+        dealAssetFee = dealAssetAmount * 0.04%
+        buyerReceivedAssets -= dealAssetFee
+        add dealAssetFee to totalFee of tx
+    sellerReceivedAssets = dealCoinAmount
+    if buy order is SYS_GEN_ORDER
+        dealCoinFee = dealCoinAmount * 0.04%
+        sellerReceivedCoins -= dealCoinFee
+        add dealCoinFee to totalFee of tx
 11. operate account
     a. buyerFrozenCoins     -= dealCoinAmount
     b. buyerAssets          += dealAssetAmount - dealAssetFee
@@ -828,40 +838,58 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         // 1. get and check active order
         CDEXActiveOrder activeBuyOrder;
         if (!cw.dexCache.GetActiveOrder(dealItem.buyOrderId, activeBuyOrder)) {
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, get buy order by tx cord failed"),
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, get buy order by tx cord failed"),
                             REJECT_INVALID, "bad-get-buy-order");
         }
         CDEXActiveOrder activeSellOrder;
         if (!cw.dexCache.GetActiveOrder(dealItem.sellOrderId, activeSellOrder)) {
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, get sell order by tx cord failed"),
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, get sell order by tx cord failed"),
                             REJECT_INVALID, "bad-get-sell-order");
         }
-        // 2. get order detail data:
+        // 2. get order detail:
         CDEXOrderData buyOrderData;
         if (activeBuyOrder.generateType == USER_GEN_ORDER) {
             shared_ptr<CDEXOrderBaseTx> pBuyOrderTx;
             if(!ReadTxFromDisk(activeBuyOrder.txCord, pBuyOrderTx)) {
-                return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, read buy order tx by tx cord failed"),
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, read buy order tx by tx cord failed"),
                                 REJECT_INVALID, "bad-read-tx");
             }
             assert(dealItem.buyOrderId == pBuyOrderTx->GetHash());
             pBuyOrderTx->GetOrderData(buyOrderData);
+            if (buyOrderData.direction != ORDER_BUY) {
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the buy order tx is not buy direction"),
+                                REJECT_INVALID, "bad-read-tx");
+            }
         } else {
             assert(activeBuyOrder.generateType == SYSTEM_GEN_ORDER);
-            // TODO: get order data from system gen order
+            CDEXSysBuyOrder sysBuyOrder;
+            if (!cw.dexCache.GetSysBuyOrder(dealItem.buyOrderId, sysBuyOrder, cw.txUndo.dbOpLogMap)) {
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, get sys buy order from db failed"),
+                                REJECT_INVALID, "bad-read-tx");
+            }
+            sysBuyOrder.GetOrderData(buyOrderData);
         }
         CDEXOrderData sellOrderData;
-        if (activeBuyOrder.generateType == USER_GEN_ORDER) {
+        if (activeSellOrder.generateType == USER_GEN_ORDER) {
             shared_ptr<CDEXSellLimitOrderTx> pSellOrderTx;
             if(!ReadTxFromDisk(activeSellOrder.txCord, pSellOrderTx)) {
-                return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, read sell order tx by tx cord failed"),
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, read sell order tx by tx cord failed"),
                                 REJECT_INVALID, "bad-read-tx");
             }
             assert(dealItem.buyOrderId == pSellOrderTx->GetHash());
             pSellOrderTx->GetOrderData(sellOrderData);
+            if (sellOrderData.direction != ORDER_SELL) {
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the sell order tx is not sell direction"),
+                                REJECT_INVALID, "bad-read-tx");
+            }
         } else {
-            assert(activeBuyOrder.generateType == SYSTEM_GEN_ORDER);
-            // TODO: get order data from system gen order
+            assert(activeSellOrder.generateType == SYSTEM_GEN_ORDER);
+            CDEXSysSellOrder sysSellOrder;
+            if (!cw.dexCache.GetSysSellOrder(dealItem.sellOrderId, sysSellOrder, cw.txUndo.dbOpLogMap)) {
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, get sys sell order from db failed"),
+                                REJECT_INVALID, "bad-read-tx");
+            }
+            sysSellOrder.GetOrderData(sellOrderData);
         }
 
         // 3. get account of order
@@ -880,12 +908,12 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
 
         // 4. check coin type match
         if (buyOrderData.coinType != sellOrderData.coinType) {
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, coin type not match"),
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, coin type not match"),
                             REJECT_INVALID, "bad-order-match");
         }
         // 5. check asset type match
         if (buyOrderData.assetType != sellOrderData.assetType) {
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, asset type not match"),
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, asset type not match"),
                             REJECT_INVALID, "bad-order-match");
         }
 
@@ -896,17 +924,17 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         if (buyOrderData.orderType == ORDER_LIMIT_PRICE && sellOrderData.orderType == ORDER_LIMIT_PRICE) {
             if ( buyOrderData.price < dealItem.dealPrice
                 || sellOrderData.price > dealItem.dealPrice ) {
-                return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the expected price not match"),
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the expected price not match"),
                                 REJECT_INVALID, "deal-price-unmatch");
             }
         } else if (buyOrderData.orderType == ORDER_LIMIT_PRICE && sellOrderData.orderType == ORDER_MARKET_PRICE) {
             if (dealItem.dealPrice != buyOrderData.price) {
-                return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the expected price not match"),
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the expected price not match"),
                                 REJECT_INVALID, "deal-price-unmatch");
             }
         } else if (buyOrderData.orderType == ORDER_MARKET_PRICE && sellOrderData.orderType == ORDER_LIMIT_PRICE) {
             if (dealItem.dealPrice != sellOrderData.price) {
-                return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the expected price not match"),
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the expected price not match"),
                                 REJECT_INVALID, "deal-price-unmatch");
             }
         } else {
@@ -917,11 +945,11 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         // 8. check and operate deal amount
         uint64_t calcCoinAmount = 0;
         if (!CDEXOrderBaseTx::CalcCoinAmount(dealItem.dealAssetAmount, dealItem.dealPrice, calcCoinAmount)) {
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the calculated coin amount out of range"),
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the calculated coin amount out of range"),
                             REJECT_INVALID, "coins-out-range");
         }
-        if ((calcCoinAmount / kPencentBoost) != (dealItem.dealCoinAmount / kPencentBoost)) {
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the dealCoinAmount not match"),
+        if ((calcCoinAmount / kPercentBoost) != (dealItem.dealCoinAmount / kPercentBoost)) {
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the dealCoinAmount not match"),
                             REJECT_INVALID, "deal-coin-amount-unmatch");
         }
         activeBuyOrder.totalDealCoinAmount += dealItem.dealCoinAmount;
@@ -936,14 +964,14 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         if (buyOrderData.orderType == ORDER_MARKET_PRICE) {
             uint64_t limitCoinAmount = buyOrderData.coinAmount;
             if (limitCoinAmount < activeBuyOrder.totalDealCoinAmount) {
-                return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the deal coin amount exceed the limit coin amount of buy order"),
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the deal coin amount exceed the limit coin amount of buy order"),
                                 REJECT_INVALID, "exceeded-deal-amount");
             }
             buyResidualAmount = limitCoinAmount - activeBuyOrder.totalDealCoinAmount;
         } else {
             uint64_t limitAssetAmount = buyOrderData.assetAmount;
             if (limitAssetAmount < activeBuyOrder.totalDealAssetAmount) {
-                return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the deal asset amount exceed the limit asset amount of buy order"),
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the deal asset amount exceed the limit asset amount of buy order"),
                                 REJECT_INVALID, "exceeded-deal-amount");
             }
             buyResidualAmount = limitAssetAmount - activeBuyOrder.totalDealAssetAmount;
@@ -952,25 +980,33 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         { // get and check sell order residualAmount
             uint64_t limitAssetAmount = sellOrderData.assetAmount;
             if (limitAssetAmount < activeSellOrder.totalDealAssetAmount) {
-                return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, the deal asset amount exceed the limit asset amount of buy order"),
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the deal asset amount exceed the limit asset amount of buy order"),
                                 REJECT_INVALID, "exceeded-deal-amount");
             }
             sellResidualAmount = limitAssetAmount - activeSellOrder.totalDealAssetAmount;
         }
 
         // 10. calc deal fees
-        uint64_t dealCoinFee = dealItem.dealCoinAmount * kDefaultDexDealFeeRatio / kPencentBoost;
-        uint64_t dealAssetFee = dealItem.dealAssetAmount * kDefaultDexDealFeeRatio / kPencentBoost;
-        // TODO: add dealCoinFee and dealAssetFee to current tx feeMap
-        uint64_t buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
-        uint64_t sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
+        uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
+        uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
+        if (activeBuyOrder.generateType == USER_GEN_ORDER) {
+            uint64_t dealAssetFee = dealItem.dealAssetAmount * kDefaultDexDealFeeRatio / kPercentBoost;
+            buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
+            // TODO: add dealAssetFee and dealAssetFee to current tx feeMap
+        }
+        if (activeSellOrder.generateType == USER_GEN_ORDER) {
+            uint64_t dealCoinFee = dealItem.dealCoinAmount * kDefaultDexDealFeeRatio / kPercentBoost;
+            sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
+            // TODO: add dealCoinFee and dealAssetFee to current tx feeMap
+        }
 
         // 11. operate account
-        if (   !buyOrderAccount.MinusDEXFrozenCoin(buyOrderData.coinType, dealItem.dealCoinAmount)          // - minus buyer's coins
+
+        if (!buyOrderAccount.MinusDEXFrozenCoin(buyOrderData.coinType, dealItem.dealCoinAmount)             // - minus buyer's coins
             || !buyOrderAccount.OperateBalance(buyOrderData.assetType, ADD_VALUE, buyerReceivedAssets)      // + add buyer's assets
             || !sellOrderAccount.OperateBalance(sellOrderData.coinType, ADD_VALUE, sellerReceivedCoins)     // + add seller's coin
             || !sellOrderAccount.MinusDEXFrozenCoin(sellOrderData.assetType, dealItem.dealAssetAmount)) {   // - minus seller's assets
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, operate coins or assets failed"),
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, operate coins or assets failed"),
                             REJECT_INVALID, "operate-acount-failed");
         }
 
@@ -986,12 +1022,12 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
             }
             // erase active order
             if (!cw.dexCache.EraseActiveOrder(dealItem.buyOrderId, cw.txUndo.dbOpLogMap)) {
-                return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, erase active buy order failed"),
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, erase active buy order failed"),
                                     REJECT_INVALID, "write-dexdb-failed");
             }
         } else {
             if (!cw.dexCache.ModifyActiveOrder(dealItem.buyOrderId, activeBuyOrder, cw.txUndo.dbOpLogMap)) {
-                return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, erase active buy order failed"),
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, erase active buy order failed"),
                                     REJECT_INVALID, "write-dexdb-failed");
             }
         }
@@ -999,19 +1035,19 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         if (sellResidualAmount == 0) { // sell order fulfilled
             // erase active order
             if (!cw.dexCache.EraseActiveOrder(dealItem.sellOrderId, cw.txUndo.dbOpLogMap)) {
-                return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, erase active sell order failed"),
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, erase active sell order failed"),
                                     REJECT_INVALID, "write-dexdb-failed");
             }
         } else {
             if (!cw.dexCache.ModifyActiveOrder(dealItem.sellOrderId, activeSellOrder, cw.txUndo.dbOpLogMap)) {
-                return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, erase active sell order failed"),
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, erase active sell order failed"),
                                     REJECT_INVALID, "write-dexdb-failed");
             }
         }
 
         if (!cw.accountCache.SetAccount(buyOrderData.userRegId, buyOrderAccount)
             || !cw.accountCache.SetAccount(buyOrderData.userRegId, sellOrderAccount)) {
-            return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, write account info error"),
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, write account info error"),
                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
 
@@ -1021,7 +1057,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
@@ -1030,9 +1066,11 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
 
 bool CDEXSettleTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
 
+    if (!UndoTxAddresses(cw, state)) return false;
+
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXSettleTx::UndoExecuteTx, undo active orders for all deal item failed"),
-                         UPDATE_ACCOUNT_FAIL, "bad-undo-data");
+                         REJECT_INVALID, "bad-undo-data");
     }
 
     auto rIterAccountLog = cw.txUndo.accountLogs.rbegin();

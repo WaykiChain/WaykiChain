@@ -9,6 +9,10 @@
 #include <cstdint>
 
 static const uint16_t kPercentBoost                         = 10000;
+<<<<<<< HEAD
+=======
+static const uint16_t kScoinInterestIncreaseRate            = 300;      // increase by 3%
+>>>>>>> cd609b6f4e875a265a7d92977a430c28a6d2c1a1
 static const uint16_t kBcoinDexSellOrderDiscount            = 9700;     // 97% * 10000
 static const uint16_t kDefaultDexDealFeeRatio               = 4;        // 0.04% * 10000
 static const uint16_t kDefaultCollateralRatio               = 20000;    // 200% * 10000

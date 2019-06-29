@@ -61,9 +61,9 @@ int32_t CBaseTx::GetFuelRate(CContractDBCache &scriptDB) {
     if (nFuelRate > 0)
         return nFuelRate;
 
-    CDiskTxPos postx;
-    if (scriptDB.ReadTxIndex(GetHash(), postx)) {
-        CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
+    CDiskTxPos txPos;
+    if (scriptDB.ReadTxIndex(GetHash(), txPos)) {
+        CAutoFile file(OpenBlockFile(txPos, true), SER_DISK, CLIENT_VERSION);
         CBlockHeader header;
         try {
             file >> header;
@@ -134,7 +134,7 @@ bool CBaseTx::SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw
                                     READ_ACCOUNT_FAIL, "bad-get-keyid-uid");
 
                 if (!cw.contractCache.SetTxHashByAddress(keyId, height, index + 1,
-                                                         cw.txUndo.txHash, cw.txUndo.dbOpLogMap))
+                                                         cw.txUndo.txid, cw.txUndo.dbOpLogMap))
                     return state.DoS(100, ERRORMSG("CBaseTx::SaveTxAddresses, SetTxHashByAddress to db cache failed!"),
                                     READ_ACCOUNT_FAIL, "bad-set-txHashByAddress");
             }

@@ -96,15 +96,17 @@ public:
             }
     )
     virtual ~CWallet(){};
-    int64_t GetFreeBcoins(bool IsConfirmed = true) const;
+    int64_t GetFreeBcoins(bool isConfirmed = true) const;
 
-    bool Sign(const CKeyID &keyId,const uint256 &hash,vector<unsigned char> &signature,bool IsMiner=false) const;
+    bool Sign(const CKeyID &keyId, const uint256 &hash, vector<unsigned char> &signature, bool isMiner = false) const;
     //! Adds an encrypted key to the store, and saves it to disk.
     bool AddCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret);
     bool LoadCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret);
 
     //! Adds a key to the store, without saving it to disk (used by LoadWallet)
-    bool LoadKeyCombi(const CKeyID & keyId, const CKeyCombi& keyCombi) { return CBasicKeyStore::AddKeyCombi(keyId, keyCombi);}
+    bool LoadKeyCombi(const CKeyID &keyId, const CKeyCombi &keyCombi) {
+        return CBasicKeyStore::AddKeyCombi(keyId, keyCombi);
+    }
     // Adds a key to the store, and saves it to disk.
     bool AddKey(const CKey &secret, const CKey &minerKey);
     bool AddKey(const CKeyID &keyId, const CKeyCombi &store);

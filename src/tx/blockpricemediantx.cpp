@@ -28,7 +28,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     cw.txUndo.accountLogs.push_back(acctInfoLog);
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
 
    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 

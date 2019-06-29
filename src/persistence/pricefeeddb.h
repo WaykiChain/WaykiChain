@@ -20,16 +20,16 @@ using namespace std;
 
 class CConsecutiveBlockPrice;
 
-typedef map<int /* block height */, map<CRegID, uint64_t /* price */>> BlockUserPriceMap;
+typedef map<int32_t /* block height */, map<CRegID, uint64_t /* price */>> BlockUserPriceMap;
 typedef map<CCoinPriceType, CConsecutiveBlockPrice> CoinPricePointMap;
 
 // Price Points in 11 consecutive blocks
 class CConsecutiveBlockPrice {
 public:
-    void AddUserPrice(const int blockHeight, const CRegID &regId, const uint64_t price);
+    void AddUserPrice(const int32_t blockHeight, const CRegID &regId, const uint64_t price);
     // delete user price by specific block height.
-    void DeleteUserPrice(const int blockHeight);
-    bool ExistBlockUserPrice(const int blockHeight, const CRegID &regId);
+    void DeleteUserPrice(const int32_t blockHeight);
+    bool ExistBlockUserPrice(const int32_t blockHeight, const CRegID &regId);
 
 public:
     BlockUserPriceMap mapBlockUserPrices;
@@ -41,10 +41,10 @@ public:
     CPricePointMemCache(CPricePointMemCache *pBaseIn) : pBase(pBaseIn) {}
 
 public:
-    bool AddBlockPricePointInBatch(const int blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
+    bool AddBlockPricePointInBatch(const int32_t blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
     bool AddBlockToCache(const CBlock &block);
     // delete block price point by specific block height.
-    bool DeleteBlockPricePoint(const int blockHeight);
+    bool DeleteBlockPricePoint(const int32_t blockHeight);
     bool DeleteBlockFromCache(const CBlock &block);
 
     uint64_t GetBcoinMedianPrice();
@@ -55,11 +55,11 @@ public:
 private:
     void BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn);
 
-    bool GetBlockUserPrices(CCoinPriceType coinPriceType, set<int> &expired, BlockUserPriceMap &blockUserPrices);
+    bool GetBlockUserPrices(CCoinPriceType coinPriceType, set<int32_t> &expired, BlockUserPriceMap &blockUserPrices);
     bool GetBlockUserPrices(CCoinPriceType coinPriceType, BlockUserPriceMap &blockUserPrices);
 
-    uint64_t ComputeBlockMedianPrice(const int blockHeight, const CCoinPriceType &coinPriceType);
-    uint64_t ComputeBlockMedianPrice(const int blockHeight, const BlockUserPriceMap &blockUserPrices);
+    uint64_t ComputeBlockMedianPrice(const int32_t blockHeight, const CCoinPriceType &coinPriceType);
+    uint64_t ComputeBlockMedianPrice(const int32_t blockHeight, const BlockUserPriceMap &blockUserPrices);
     static uint64_t ComputeMedianNumber(vector<uint64_t> &numbers);
 
 private:

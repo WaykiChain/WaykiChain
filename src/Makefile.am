@@ -77,6 +77,7 @@ coin_CORE_H = \
   persistence/dbaccess.h \
   persistence/dbconf.h \
   persistence/dexdb.h \
+  persistence/logdb.h \
   protocol.h \
   random.h   \
   rpc/httpserver.h \
@@ -290,6 +291,7 @@ libcoin_common_a_SOURCES = \
   persistence/txdb.cpp \
   persistence/leveldbwrapper.cpp \
   persistence/dexdb.cpp \
+  persistence/logdb.cpp \
   rpc/rpcprotocol.cpp \
   support/cleanse.cpp \
   support/events.cpp \
@@ -343,7 +345,7 @@ coinlua_SOURCES = vm/lua/coinlua.c
 coinlua_CFLAGS = $(AM_CFLAGS) -fPIC -DLUA_USE_POSIX -Wl,-E -ldl
 
 if BUILD_TESTS
-include Makefile_test.am
+include Makefile_tests.am
 endif
 
 # NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race

@@ -18,6 +18,7 @@ using namespace std;
 class CMultiCoinBlockRewardTx : public CBaseTx {
 public:
     map<uint8_t /* CoinType */, uint64_t /* reward value */> rewardValues;
+    uint64_t profits;  // Profits as delegate according to received votes.
     int nHeight;
 
 public:
@@ -49,12 +50,13 @@ public:
         READWRITE(txUid);
 
         READWRITE(rewardValues);
+        READWRITE(VARINT(profits));
     )
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nHeight) << txUid << rewardValues;
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nHeight) << txUid << rewardValues << VARINT(profits);
             sigHash = ss.GetHash();
         }
 
@@ -62,6 +64,7 @@ public:
     }
 
     map<CoinType, uint64_t> GetValues() const;
+    uint64_t GetProfits() const { return profits; }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CMultiCoinBlockRewardTx>(this); }
     uint64_t GetFee() const { return 0; }
     double GetPriority() const { return 0.0f; }

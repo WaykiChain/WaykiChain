@@ -123,14 +123,14 @@ public:
     CCdpDBCache(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
 
     bool StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
-                          const int blockHeight, CUserCdp &cdp, CDBOpLogMap &dbOpLogMap);
+                          const int32_t blockHeight, CUserCdp &cdp, CDBOpLogMap &dbOpLogMap);
 
     bool GetCdp(CUserCdp &cdp);
     bool SaveCdp(CUserCdp &cdp, CDBOpLogMap &dbOpLogMap);
     bool EraseCdp(const CUserCdp &cdp);
     bool UndoCdp(CDBOpLogMap &dbOpLogMap) { /*return cdpCache.UndoData(opLog);*/ return false;  } // TODO:
 
-    uint64_t ComputeInterest(int blockHeight, const CUserCdp &cdp);
+    uint64_t ComputeInterest(int32_t blockHeight, const CUserCdp &cdp);
 
     // When true, CDP cannot be further operated
     bool GetGlobalCDPLock(const uint64_t price) ;
