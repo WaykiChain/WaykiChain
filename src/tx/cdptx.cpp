@@ -95,6 +95,12 @@ bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
     int mintedScoins = 0;
     CUserCdp cdp(txUid.get<CRegID>(), cdpTxId);
     if (!cw.cdpCache.GetCdp(cdp)) { // first-time CDP creation
+        if (bcoinsToStake < kInitialStakeBcoinsMin) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, initial bcoins to stake %d is too small,",
+                        bcoinsToStake), UPDATE_ACCOUNT_FAIL, "initial-stake-failed");
+        }
+
+        cdp.cdpTxId = GetHash();
         mintedScoins = bcoinsToStake * kPercentBoost / collateralRatio;
 
     } else { // further staking on one's existing CDP
@@ -128,9 +134,7 @@ bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
     cw.txUndo.accountLogs.push_back(acctLog);
 
     CDbOpLog cdpDbOpLog;
-    cw.cdpCache.StakeBcoinsToCdp(txUid.get<CRegID>(), bcoinsToStake, (uint64_t)mintedScoins, nHeight, cdp,
-                                 cdpDbOpLog);  // update cache & persist into ldb
-
+    cw.cdpCache.StakeBcoinsToCdp(txUid.get<CRegID>(), bcoinsToStake, (uint64_t)mintedScoins, nHeight, cdp, cdpDbOpLog);
     cw.txUndo.dbOpLogMap.AddDbOpLog(dbk::CDP, cdpDbOpLog);
 
     bool ret = SaveTxAddresses(nHeight, nIndex, cw, state, {txUid});
@@ -186,32 +190,25 @@ string CCDPRedeemTx::ToString(CAccountDBCache &view) {
      //TODO
      return true;
  }
- bool CCDPRedeemTx::PayInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &cw, CValidationState &state) {
+ bool CCDPRedeemTx::CheckInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &cw, CValidationState &state) {
     if (nHeight < cdp.lastBlockHeight) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, nHeight: %d < cdp.lastBlockHeight: %d",
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckInterest, nHeight: %d < cdp.lastBlockHeight: %d",
                     nHeight, cdp.lastBlockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
     }
 
-    uint64_t totalScoinsInterestToRepay = cw.cdpCache.ComputeInterest(nHeight, cdp);
-
-    double restScoins = (restFcoins/fcoinMedianPrice) * (100 + kScoinInterestIncreaseRate)/100;
-    if (scoinsToRedeem < restScoins) { //remaining interest must be paid from redeem scoins
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, scoinsInterest: %d < restScoins: %d",
-                        scoinsInterest, restScoins), INTEREST_INSUFFICIENT, "interest-insufficient-error");
+    uint64_t scoinsInterestToRepay = cw.cdpCache.ComputeInterest(nHeight, cdp);
+    if (scoinsInterest < scoinsInterestToRepay) {
+         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckInterest, scoinsInterest: %d < scoinsInterestToRepay: %d",
+                    scoinsInterest, scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL, "scoins-interest-insufficient-error");
     }
 
-    if (restScoins > 0) {
-        account.scoins -= restScoins;
-
-        CDEXSysBuyOrder buyOrder;
-        buyOrder.coinType = CoinType::WUSD;      //!< coin type
-        buyOrder.assetType = CoinType::WGRT;     //!< asset type
-        buyOrder.coinAmount = restScoins;
-        if (!cw.dexCache.CreateSysBuyOrder(GetHash(), buyOrder, cw.txUndo.dbOpLogMap)) {
-            return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, create system buy order failed"),
-                            CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
-        }
-        scoinsToRedeem -= restScoins; // after interest deduction, the remaining scoins will be redeemed
+    CDEXSysBuyOrder buyOrder;
+    buyOrder.coinType = CoinType::WUSD;      //!< coin type
+    buyOrder.assetType = CoinType::WGRT;     //!< asset type
+    buyOrder.coinAmount = scoinsInterest;
+    if (!cw.dexCache.CreateSysBuyOrder(GetHash(), buyOrder, cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckInterest, create system buy order failed"),
+                        CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
 }
 
@@ -230,18 +227,19 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (cdpTxCord.IsEmpty()) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, cdpTxCord is empty"),
-                        REJECT_INVALID, "EMPTY_CDPTXCORD");
+    if (cdpTxId.IsEmpty()) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, cdpTxId is empty"),
+                        REJECT_INVALID, "EMPTY_CDP_TXID");
     }
 
     if (scoinsToRedeem == 0) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, scoinsToRedeem is 0"),
                         REJECT_DUST, "REJECT_DUST");
     }
-    if (account.fcoins < fcoinsInterest) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, account fcoins %d insufficent for interest %d",
-                        account.fcoins, fcoinsInterest), READ_ACCOUNT_FAIL, "account-fcoins-insufficient");
+
+    if (account.scoins < scoinsInterest) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, account scoins %d insufficent for interest %d",
+                        account.fcoins, scoinsInterest), READ_ACCOUNT_FAIL, "account-scoins-insufficient");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());

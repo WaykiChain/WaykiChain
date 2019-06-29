@@ -125,8 +125,8 @@ void CCdpMemCache::BatchWrite(const map<CUserCdp, uint8_t> &cdpsIn) {
     }
 }
 
-bool CCdpDBCache::StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
-                                        const int32_t blockHeight, CUserCdp &cdp, CDBOpLogMap &dbOpLogMap) {
+bool CCdpDBCache::StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
+                                    CUserCdp &cdp, CDBOpLogMap &dbOpLogMap) {
 
     cdp.blockHeight = blockHeight;
     cdp.totalStakedBcoins += bcoinsToStake;
