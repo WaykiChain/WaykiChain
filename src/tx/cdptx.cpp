@@ -41,11 +41,6 @@ Object CCDPStakeTx::ToJson(const CAccountDBCache &AccountView) const {
     return result;
 }
 
-bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    //TODO
-    return true;
-}
-
 bool CCDPStakeTx::PayInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &cw, CValidationState &state) {
     if (nHeight < cdp.lastBlockHeight) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, nHeight: %d < cdp.lastBlockHeight: %d",
@@ -253,11 +248,6 @@ string CCDPRedeemTx::ToString(CAccountDBCache &view) {
     return result;
  }
 
- bool CCDPRedeemTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-     //TODO
-     return true;
- }
-
  bool CCDPRedeemTx::PayInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &cw, CValidationState &state) {
     if (nHeight < cdp.lastBlockHeight) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, nHeight: %d < cdp.lastBlockHeight: %d",
@@ -442,10 +432,6 @@ Object CCDPLiquidateTx::ToJson(const CAccountDBCache &AccountView) const {
     return result;
 }
 
-bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    //TODO
-    return true;
-}
 
 bool CCDPLiquidateTx::PayPenaltyFee(int nHeight, const CUserCdp &cdp, CCacheWrapper &cw, CValidationState &state) {
     double scoins = (double) cdp.scoins;
