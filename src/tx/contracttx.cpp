@@ -53,7 +53,7 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     cw.txUndo.accountLogs.push_back(accountLog);
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
 
     // create script account
     CAccount contractAccount;
@@ -414,7 +414,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     if (!cw.contractCache.SetTxRelAccout(GetHash(), vAddress))
         return ERRORMSG("CContractInvokeTx::ExecuteTx, save tx relate account info to script db error");
 
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid, appUid})) return false;
 

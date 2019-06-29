@@ -76,7 +76,14 @@ bool CCDPStakeTx::PayInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &c
     }
     if (scoinsInterest) {
         account.scoins -= scoinsInterest;
-        cw.dexCache.CreateBuyOrder(scoinsInterest, CoinType::WGRT); // DEX: wusd_micc
+        CDEXSysBuyOrder buyOrder;
+        buyOrder.coinType = CoinType::WUSD;      //!< coin type
+        buyOrder.assetType = CoinType::WGRT;     //!< asset type
+        buyOrder.coinAmount = scoinsInterest;
+        if (!cw.dexCache.CreateSysBuyOrder(GetHash(), buyOrder, cw.txUndo.dbOpLogMap)) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, create system buy order failed"),
+                            CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
+        }
     }
 
     if (!cw.accountCache.SaveAccount(fcoinGensisAccount)) {
@@ -123,7 +130,7 @@ bool CCDPStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &stat
 }
 
 bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read txUid %s account info error",
@@ -197,6 +204,11 @@ bool CCDPStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
             return state.DoS(100, ERRORMSG("CCDPStakeTx::UndoExecuteTx, write account info error"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
+    }
+
+    if (!cw.dexCache.UndoSysBuyOrder(cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::UndoExecuteTx, undo system buy order failed"),
+                        UNDO_SYS_ORDER_FAILED, "undo-data-failed");
     }
 
     auto cdpLogs = cw.txUndo.mapDbOpLogs[DbOpLogType::DB_OP_CDP];
@@ -276,8 +288,15 @@ string CCDPRedeemTx::ToString(CAccountDBCache &view) {
     }
     if (restScoins > 0) {
         account.scoins -= restScoins;
-        cw.dexCache.CreateBuyOrder(restScoins, CoinType::WGRT); // DEX: wusd_micc
 
+        CDEXSysBuyOrder buyOrder;
+        buyOrder.coinType = CoinType::WUSD;      //!< coin type
+        buyOrder.assetType = CoinType::WGRT;     //!< asset type
+        buyOrder.coinAmount = restScoins;
+        if (!cw.dexCache.CreateSysBuyOrder(GetHash(), buyOrder, cw.txUndo.dbOpLogMap)) {
+            return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, create system buy order failed"),
+                            CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
+        }
         scoinsToRedeem -= restScoins; // after interest deduction, the remaining scoins will be redeemed
     }
 
@@ -322,7 +341,7 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
  }
 
  bool CCDPRedeemTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read txUid %s account info error",
@@ -383,6 +402,12 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
  
  bool CCDPRedeemTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
      //TODO
+
+    if (!cw.dexCache.UndoSysBuyOrder(cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::UndoExecuteTx, undo system buy order failed"),
+                        UNDO_SYS_ORDER_FAILED, "undo-data-failed");
+    }
+
      return true;
  }
 
@@ -449,6 +474,15 @@ bool CCDPLiquidateTx::PayPenaltyFee(int nHeight, const CUserCdp &cdp, CCacheWrap
         return false; // DEX: wusd_micc
     }
 
+    CDEXSysBuyOrder buyOrder;
+    buyOrder.coinType = CoinType::WUSD;      //!< coin type
+    buyOrder.assetType = CoinType::WGRT;     //!< asset type
+    buyOrder.coinAmount = restScoins;
+    if (!cw.dexCache.CreateSysBuyOrder(GetHash(), buyOrder, cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CdpLiquidateTx::ExecuteTx, create system buy order failed"),
+                        CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
+    }
+
     return true;
 }
 
@@ -506,7 +540,7 @@ bool CCDPLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &
   *  when M is 1.13 N and below, there'll be no profit for the liquidator, hence requiring force settlement
   */
 bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read txUid %s account info error",
@@ -586,5 +620,11 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
 }
 bool CdpLiquidateTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     //TODO
+
+    if (!cw.dexCache.UndoSysBuyOrder(cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CdpLiquidateTx::UndoExecuteTx, undo system buy order failed"),
+                        UNDO_SYS_ORDER_FAILED, "undo-data-failed");
+    }
+
     return true;
 }

@@ -68,7 +68,7 @@ bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
     }
 
     cw.txUndo.accountLogs.push_back(acctLog);
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
         return false;

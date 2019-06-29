@@ -31,7 +31,7 @@ public:
     CTxMemCache(CTxMemCache *pBaseIn) : pBase(pBaseIn) {}
 
 public:
-    bool HaveTx(const uint256 &txHash);
+    bool HaveTx(const uint256 &txid);
     bool IsContainBlock(const CBlock &block);
 
     bool AddBlockToCache(const CBlock &block);
@@ -58,12 +58,12 @@ private:
 
 class CTxUndo {
 public:
-    uint256 txHash;
+    uint256 txid;
     vector<CAccountLog> accountLogs;
     CDBOpLogMap dbOpLogMap; // dbName -> dbOpLogs
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(txHash);
+        READWRITE(txid);
         READWRITE(accountLogs);
         READWRITE(dbOpLogMap);
 	)
@@ -72,7 +72,7 @@ public:
     bool GetAccountLog(const CKeyID &keyId, CAccountLog &accountLog);
 
     void Clear() {
-        txHash = uint256();
+        txid = uint256();
         accountLogs.clear();
         dbOpLogMap.Clear();
     }

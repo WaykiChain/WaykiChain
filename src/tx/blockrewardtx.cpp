@@ -5,11 +5,12 @@
 
 
 #include "blockrewardtx.h"
+
 #include "main.h"
 
 bool CBlockRewardTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     return true;
-};
+}
 
 bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
@@ -20,10 +21,12 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
 
     CAccountLog accountLog(account);
     if (0 == nIndex) {
-        // nothing to do here
-    } else if (-1 == nIndex) {  // maturity reward tx, only update values
+        // When the reward transaction is immature, should NOT update account's balances.
+    } else if (-1 == nIndex) {
+        // When the reward transaction is mature, update account's balances, i.e, assign the reward value to
+        // the miner's account.
         account.bcoins += rewardValue;
-    } else {  // never go into this step
+    } else {
         return ERRORMSG("CBlockRewardTx::ExecuteTx, invalid index");
     }
 
@@ -32,7 +35,7 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     cw.txUndo.accountLogs.push_back(accountLog);
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
 
     // Block reward transaction will execute twice, but need to save once when index equals to zero.
     if (nIndex == 0 && !SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
@@ -83,7 +86,7 @@ Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const{
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("uid",            txUid.ToString()));
     result.push_back(Pair("addr",           keyId.ToAddress()));
-    result.push_back(Pair("money",          rewardValue));
+    result.push_back(Pair("reward_value",   rewardValue));
     result.push_back(Pair("valid_height",   nHeight));
 
     return result;

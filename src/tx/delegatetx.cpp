@@ -160,7 +160,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
 
     // Keep the old state after the above operation completed properly.
     cw.txUndo.accountLogs.push_back(acctLog);
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
 
     for (const auto &vote : candidateVotes) {
         CAccount delegate;

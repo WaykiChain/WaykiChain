@@ -30,8 +30,8 @@ bool CTxMemCache::AddBlockToCache(const CBlock &block) {
 
 bool CTxMemCache::DeleteBlockFromCache(const CBlock &block) {
     if (IsContainBlock(block)) {
-        UnorderedHashSet txHash;
-		mapBlockTxHashSet[block.GetHash()] = txHash;
+        UnorderedHashSet txids;
+		mapBlockTxHashSet[block.GetHash()] = txids;
 
         return true;
     }
@@ -40,14 +40,14 @@ bool CTxMemCache::DeleteBlockFromCache(const CBlock &block) {
     return false;
 }
 
-bool CTxMemCache::HaveTx(const uint256 &txHash) {
+bool CTxMemCache::HaveTx(const uint256 &txid) {
     for (auto &item : mapBlockTxHashSet) {
-        if (item.second.count(txHash)) {
+        if (item.second.count(txid)) {
             return true;
         }
     }
 
-    return pBase ? pBase->HaveTx(txHash) : false;
+    return pBase ? pBase->HaveTx(txid) : false;
 }
 
 void CTxMemCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn) {
@@ -107,7 +107,7 @@ void CTxMemCache::SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache)
 string CTxUndo::ToString() const {
     string str;
     string strTxid("txid:");
-    strTxid += txHash.GetHex();
+    strTxid += txid.GetHex();
 
     str += strTxid + "\n";
 
@@ -131,10 +131,6 @@ bool CTxUndo::GetAccountLog(const CKeyID &keyId, CAccountLog &accountLog) {
             return true;
         }
     }
-    return false;
-}
 
-bool ReadTxFromDisk(const CTxCord txCord, std::shared_ptr<CBaseTx> ptrBaseTx) {
-    // TODO: read tx from disk
     return false;
 }

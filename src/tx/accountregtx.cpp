@@ -72,7 +72,7 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
             regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     cw.txUndo.accountLogs.push_back(acctLog);
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
 
    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 

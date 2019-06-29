@@ -163,7 +163,7 @@ public:
 
     virtual string ToString(CAccountDBCache &view)                           = 0;
     virtual Object ToJson(const CAccountDBCache &view) const                 = 0;
-    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) = 0;
+    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state)                       = 0;
     virtual bool ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state)     = 0;
@@ -176,6 +176,7 @@ public:
 protected:
     bool CheckTxFeeSufficient(const uint64_t llFees, const int32_t nHeight) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
+    static bool AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds);
     static bool SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw,
                                 CValidationState &state, const vector<CUserID> &userIds);
     static bool UndoTxAddresses(CCacheWrapper &cw, CValidationState &state);
@@ -254,7 +255,7 @@ public:
         return state.DoS(100, ERRORMSG("%s::CheckTx, tx fee out of range", __FUNCTION__), REJECT_INVALID,          \
                          "bad-tx-fee-toolarge");                                                                   \
                                                                                                                    \
-    if (!CheckTxFeeSufficient(llFees, nHeight)) {                                                                         \
+    if (!CheckTxFeeSufficient(llFees, nHeight)) {                                                                  \
         return state.DoS(100, ERRORMSG("%s::CheckTx, tx fee smaller than MinTxFee", __FUNCTION__), REJECT_INVALID, \
                          "bad-tx-fee-toosmall");                                                                   \
     }

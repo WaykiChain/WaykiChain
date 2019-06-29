@@ -169,7 +169,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
     cw.txUndo.accountLogs.push_back(desAcctLog);
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
 
     vector<CUserID> uids;
     for (const auto &item : signaturePairs) {

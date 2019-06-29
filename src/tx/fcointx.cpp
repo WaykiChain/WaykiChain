@@ -60,7 +60,7 @@ bool CFcoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper 
 
     cw.txUndo.accountLogs.push_back(srcAccountLog);
     cw.txUndo.accountLogs.push_back(desAccountLog);
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid, toUid}))
         return false;

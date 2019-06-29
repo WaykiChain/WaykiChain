@@ -66,7 +66,6 @@ public:
     virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
     virtual Object ToJson(const CAccountDBCache &view) const; //json-rpc usage
-    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
@@ -130,7 +129,6 @@ public:
     virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
     virtual Object ToJson(const CAccountDBCache &view) const; //json-rpc usage
-    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
@@ -190,7 +188,6 @@ public:
     virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
     virtual Object ToJson(const CAccountDBCache &view) const; //json-rpc usage
-    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
@@ -249,7 +246,6 @@ public:
     virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
     virtual Object ToJson(const CAccountDBCache &view) const; //json-rpc usage
-    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
@@ -304,7 +300,6 @@ public:
     virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
     virtual Object ToJson(const CAccountDBCache &view) const; //json-rpc usage
-    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);

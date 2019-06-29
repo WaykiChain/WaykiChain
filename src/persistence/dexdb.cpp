@@ -7,12 +7,116 @@
 #include "accounts/account.h"
 #include "main.h"
 
-bool CDexDBCache::CreateBuyOrder(uint64_t buyAmount, CoinType targetCoinType) {
-    //TODO
-    CUserID fcoinGenesisUid(CRegID(kFcoinGenesisTxHeight, kFcoinGenesisIssueTxIndex));
-    return true;
+///////////////////////////////////////////////////////////////////////////////
+// class CDEXSysBuyOrder
+
+bool CDEXSysBuyOrder::IsEmpty() const {
+    return coinAmount == 0;
 }
-bool CDexDBCache::CreateSellOrder(uint64_t sellAmount, CoinType targetCoinType) {
-    //TODO
+void CDEXSysBuyOrder::SetEmpty() {
+    coinAmount = 0;
+}
+
+void CDEXSysBuyOrder::GetOrderData(CDEXOrderData &orderData) {
+    orderData.userRegId = FcoinGenesisRegId;
+    orderData.orderType = ORDER_MARKET_PRICE;     //!< order type
+    orderData.direction = ORDER_BUY;
+    orderData.coinType = coinType;      //!< coin type
+    orderData.assetType = assetType;     //!< asset type
+    orderData.coinAmount = coinAmount;    //!< amount of coin to buy asset
+    orderData.assetAmount = 0;          //!< unknown assetAmount in order
+    orderData.price = 0;                //!< unknown price in order
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// class CDEXSysSellOrder
+bool CDEXSysSellOrder::IsEmpty() const {
+    return assetAmount == 0;
+}
+void CDEXSysSellOrder::SetEmpty() {
+    assetAmount = 0;
+}
+
+void CDEXSysSellOrder::GetOrderData(CDEXOrderData &orderData) const {
+    orderData.userRegId = FcoinGenesisRegId;
+    orderData.orderType = ORDER_MARKET_PRICE;     //!< order type
+    orderData.direction = ORDER_BUY;
+    orderData.coinType = coinType;          //!< coin type
+    orderData.assetType = assetType;        //!< asset type
+    orderData.coinAmount = 0;               //!< amount of coin to buy asset
+    orderData.assetAmount = assetAmount;    //!< unknown assetAmount in order
+    orderData.price = 0;                    //!< unknown price in order
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// class CDexDBCache
+
+bool CDexDBCache::GetActiveOrder(const uint256 &orderTxId, CDEXActiveOrder &activeOrder) {
+    return activeOrderCache.GetData(orderTxId, activeOrder);
+};
+
+bool CDexDBCache::CreateActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder &activeOrder,
+                                    CDBOpLogMap& dbOpLogMap) {
+    assert(!activeOrderCache.HaveData(orderTxId));
+    return activeOrderCache.SetData(orderTxId, activeOrder, dbOpLogMap);
+}
+
+bool CDexDBCache::ModifyActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder &activeOrder,
+                                    CDBOpLogMap &dbOpLogMap) {
+    return activeOrderCache.SetData(orderTxId, activeOrder, dbOpLogMap);
+};
+
+bool CDexDBCache::EraseActiveOrder(const uint256 &orderTxId, CDBOpLogMap &dbOpLogMap) {
+    return activeOrderCache.EraseData(orderTxId, dbOpLogMap);
+};
+
+bool CDexDBCache::UndoActiveOrder(CDBOpLogMap &dbOpLogMap) {
+    return activeOrderCache.UndoData(dbOpLogMap);
+};
+
+bool CDexDBCache::GetSysBuyOrder(const uint256 &orderTxId, CDEXSysBuyOrder &buyOrder,
+                                 CDBOpLogMap &dbOpLogMap) {
+    return sysBuyOrderCache.GetData(orderTxId, buyOrder);
+}
+
+bool CDexDBCache::CreateSysBuyOrder(const uint256 &orderTxId, const CDEXSysBuyOrder &buyOrder,
+                                    CDBOpLogMap &dbOpLogMap) {
+    if (sysBuyOrderCache.HaveData(orderTxId)) {
+        return ERRORMSG("CDexDBCache::CreateSysBuyOrder failed. the order exists. txid=%s",
+                        orderTxId.ToString());
+    }
+    if (!sysBuyOrderCache.SetData(orderTxId, buyOrder, dbOpLogMap)) return false;
+    CDEXActiveOrder activeOrder;
+    activeOrder.generateType = SYSTEM_GEN_ORDER;  //!< generate type
+    if (!CreateActiveOrder(orderTxId, activeOrder, dbOpLogMap)) return false;
+    return true;
+};
+
+bool CDexDBCache::UndoSysBuyOrder(CDBOpLogMap &dbOpLogMap) {
+    if (!UndoActiveOrder(dbOpLogMap)) return false;
+    return sysBuyOrderCache.UndoData(dbOpLogMap);
+}
+
+bool CDexDBCache::GetSysSellOrder(const uint256 &orderTxId, CDEXSysSellOrder &sellOrder,
+                                  CDBOpLogMap &dbOpLogMap) {
+    return sysSellOrderCache.GetData(orderTxId, sellOrder);
+}
+
+bool CDexDBCache::CreateSysSellOrder(const uint256 &orderTxId, const CDEXSysSellOrder &sellOrder,
+                                     CDBOpLogMap &dbOpLogMap) {
+    if (sysSellOrderCache.HaveData(orderTxId)) {
+        return ERRORMSG("CDexDBCache::CreateSysBuyOrder failed. the order exists. txid=%s",
+                        orderTxId.ToString());
+    }
+    if (!sysSellOrderCache.SetData(orderTxId, sellOrder, dbOpLogMap)) return false;
+    CDEXActiveOrder activeOrder;
+    activeOrder.generateType = SYSTEM_GEN_ORDER;  //!< generate type
+    if (!CreateActiveOrder(orderTxId, activeOrder, dbOpLogMap)) return false;
+    return true;
+};
+
+bool CDexDBCache::UndoSysSellOrder(CDBOpLogMap &dbOpLogMap) {
+    if (!UndoActiveOrder(dbOpLogMap)) return false;
+    return sysSellOrderCache.UndoData(dbOpLogMap);
     return true;
 }

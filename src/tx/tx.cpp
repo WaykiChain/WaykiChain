@@ -61,9 +61,9 @@ int32_t CBaseTx::GetFuelRate(CContractDBCache &scriptDB) {
     if (nFuelRate > 0)
         return nFuelRate;
 
-    CDiskTxPos postx;
-    if (scriptDB.ReadTxIndex(GetHash(), postx)) {
-        CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
+    CDiskTxPos txPos;
+    if (scriptDB.ReadTxIndex(GetHash(), txPos)) {
+        CAutoFile file(OpenBlockFile(txPos, true), SER_DISK, CLIENT_VERSION);
         CBlockHeader header;
         try {
             file >> header;
@@ -108,6 +108,21 @@ string CBaseTx::ToString(CAccountDBCache &view) {
     return str;
 }
 
+bool CBaseTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+    return AddInvolvedKeyIds({txUid}, cw, keyIds);
+}
+
+bool CBaseTx::AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds) {
+    for (auto uid : uids) {
+        CKeyID keyId;
+        if (!cw.accountCache.GetKeyId(uid, keyId))
+            return false;
+
+        keyIds.insert(keyId);
+    }
+    return true;
+}
+
 bool CBaseTx::SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw,
                               CValidationState &state, const vector<CUserID> &userIds) {
     if (SysCfg().GetAddressToTxFlag()) {
@@ -119,7 +134,7 @@ bool CBaseTx::SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw
                                     READ_ACCOUNT_FAIL, "bad-get-keyid-uid");
 
                 if (!cw.contractCache.SetTxHashByAddress(keyId, height, index + 1,
-                                                         cw.txUndo.txHash, cw.txUndo.dbOpLogMap))
+                                                         cw.txUndo.txid, cw.txUndo.dbOpLogMap))
                     return state.DoS(100, ERRORMSG("CBaseTx::SaveTxAddresses, SetTxHashByAddress to db cache failed!"),
                                     READ_ACCOUNT_FAIL, "bad-set-txHashByAddress");
             }
