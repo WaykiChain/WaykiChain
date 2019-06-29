@@ -1,0 +1,76 @@
+# include by Makefile.am
+
+#AM_CPPFLAGS += -I$(top_srcdir)/src
+
+bin_PROGRAMS += coin_test
+
+JSON_TEST_FILES = \
+  tests/data/script_valid.json.h \
+  tests/data/base58_keys_valid.json.h \
+  tests/data/sig_canonical.json.h \
+  tests/data/sig_noncanonical.json.h \
+  tests/data/base58_encode_decode.json.h \
+  tests/data/base58_keys_invalid.json.h \
+  tests/data/script_invalid.json.h \
+  tests/data/tx_invalid.json.h \
+  tests/data/tx_valid.json.h \
+  tests/data/sighash.json.h	\
+  tests/systestbase.h \
+RAW_TEST_FILES = tests/data/alertTests.raw.h
+
+#BUILT_SOURCES = $(JSON_TEST_FILES:.json=.json.h) $(RAW_TEST_FILES:.raw=.raw.h)
+
+# test_dspay binary #
+coin_test_CPPFLAGS = $(AM_CPPFLAGS) $(TESTDEFS) $(LIBSECP256K1_CPPFLAGS)
+coin_test_LDADD = \
+  $(LIBBITCOIN_SERVER) \
+  $(LIBBITCOIN_WALLET) \
+  $(LIBBITCOIN_CLI) \
+  $(LIBBITCOIN_COMMON) \
+  $(LIBLUA53) \
+  $(LIBLEVELDB) \
+  $(LIBMEMENV) \
+  $(BOOST_LIBS) \
+  $(BOOST_UNIT_TEST_FRAMEWORK_LIB) \
+  $(EVENT_PTHREADS_LIBS) \
+  $(EVENT_LIBS) \
+  $(LIBSECP256K1)
+#if ENABLE_WALLET
+#coin_test_LDADD += $(LIBBITCOIN_WALLET)
+#endif
+coin_test_LDADD += $(BDB_LIBS)
+
+coin_test_SOURCES = \
+  tests/allocator_tests.cpp \
+  tests/base32_tests.cpp \
+  tests/base58_tests.cpp \
+  tests/base64_tests.cpp \
+  tests/bloom_tests.cpp \
+  tests/canonical_tests.cpp \
+  tests/checkblock_tests.cpp \
+  tests/DoS_tests.cpp \
+  tests/key_tests.cpp \
+  tests/main_tests.cpp \
+  tests/mruset_tests.cpp \
+  tests/multisig_tests.cpp \
+  tests/netbase_tests.cpp \
+  tests/serialize_tests.cpp \
+  tests/sigopcount_tests.cpp \
+  tests/test_coin.cpp \
+  tests/uint256_tests.cpp \
+  tests/util_tests.cpp \
+  tests/sighash_tests.cpp \
+  tests/chainparams_tests.cpp \
+  tests/accountview_tests.cpp \
+  tests/scriptdb_tests.cpp \
+  tests/betroll_test.cpp \
+  tests/system_test.cpp	\
+  tests/systestbase.cpp	\
+  tests/systestscript.cpp \
+  tests/systemacct_test.cpp \
+  tests/pressure_tests.cpp \
+  tests/scriptdbex_tests.cpp	\
+  tests/account_tests.cpp \
+  tests/appacc_test.cpp \
+  $(JSON_TEST_FILES) $(RAW_TEST_FILES)
+

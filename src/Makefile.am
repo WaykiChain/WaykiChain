@@ -343,7 +343,7 @@ coinlua_SOURCES = vm/lua/coinlua.c
 coinlua_CFLAGS = $(AM_CFLAGS) -fPIC -DLUA_USE_POSIX -Wl,-E -ldl
 
 if BUILD_TESTS
-include Makefile_test.am
+include Makefile_tests.am
 endif
 
 # NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
