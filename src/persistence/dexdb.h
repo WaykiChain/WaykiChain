@@ -127,31 +127,19 @@ public:
     CDexDBCache() {}
 
 public:
-<<<<<<< HEAD
-    bool GetActiveOrder(const uint256& orderTxId, CDEXActiveOrder& activeOrder);
-    bool CreateActiveOrder(const uint256& orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);
-    bool ModifyActiveOrder(const uint256& orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);
-    bool EraseActiveOrder(const uint256& orderTxId, CDBOpLogMap &dbOpLogMap);
-=======
     bool GetActiveOrder(const uint256 &orderTxId, CDEXActiveOrder& activeOrder);
     bool CreateActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);
     bool ModifyActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);    
     bool EraseActiveOrder(const uint256 &orderTxId, CDBOpLogMap &dbOpLogMap);
->>>>>>> cd609b6f4e875a265a7d92977a430c28a6d2c1a1
     bool UndoActiveOrder(CDBOpLogMap &dbOpLogMap);
 
     bool GetSysBuyOrder(const uint256 &orderTxId, CDEXSysBuyOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
     bool CreateSysBuyOrder(const uint256 &orderTxId, const CDEXSysBuyOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
     bool UndoSysBuyOrder(CDBOpLogMap &dbOpLogMap);
-<<<<<<< HEAD
-    bool CreateSysSellOrder(uint256 orderTxId, CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap);
-    bool UndoSysSellOrder(CDBOpLogMap &dbOpLogMap);
-=======
 
     bool GetSysSellOrder(const uint256 &orderTxId, CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap);
     bool CreateSysSellOrder(const uint256 &orderTxId, const CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap); 
     bool UndoSysSellOrder(CDBOpLogMap &dbOpLogMap); 
->>>>>>> cd609b6f4e875a265a7d92977a430c28a6d2c1a1
 
 
     bool CreateBuyOrder(uint64_t buyAmount, CoinType targetCoinType); //TODO: ... SystemBuyOrder

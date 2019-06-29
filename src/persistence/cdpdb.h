@@ -21,7 +21,7 @@ using namespace std;
  * Ij =  TNj * (Hj+1 - Hj)/Y * 0.1a/Log10(1+b*TNj)
  *
  * Persisted in LDB as:
- *      cdp{$RegID}{$CTxCord} --> { lastBlockHeight, totalStakedBcoins, totalOwedScoins }
+ *      cdp{$RegID}{$CTxCord} --> { blockHeight, totalStakedBcoins, totalOwedScoins }
  *
  */
 struct CUserCdp {
@@ -33,15 +33,15 @@ struct CUserCdp {
     uint64_t totalStakedBcoins;     // persisted: total staked bcoins
     uint64_t totalOwedScoins;       // persisted: TNj = last + minted = total minted - total redempted
 
-    CUserCdp() : lastBlockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
+    CUserCdp() : blockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
     CUserCdp(const CRegID &regId, const uint256 &cdpTxIdIn)
-        : ownerRegId(regId), cdpTxId(cdpTxIdIn)), blockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
+        : ownerRegId(regId), cdpTxId(cdpTxIdIn), blockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
     bool operator<(const CUserCdp &cdp) const {
         if (collateralRatioBase == cdp.collateralRatioBase) {
             if (ownerRegId == cdp.ownerRegId)
-                return cdpTxCord < cdp.cdpTxCord;
+                return cdpTxId < cdp.cdpTxId;
             else
                 return ownerRegId < cdp.ownerRegId;
         } else {
@@ -62,20 +62,20 @@ struct CUserCdp {
 
     string ToString() {
         return strprintf(
-            "ownerRegId=%s, cdpTxCord=%s, blockHeight=%d, totalStakedBcoins=%d, tatalOwedScoins=%d, "
+            "ownerRegId=%s, cdpTxId=%s, blockHeight=%d, totalStakedBcoins=%d, tatalOwedScoins=%d, "
             "collateralRatioBase=%f",
-            ownerRegId.ToString(), cdpTxCord.ToString(), blockHeight, totalStakedBcoins, totalOwedScoins,
+            ownerRegId.ToString(), cdpTxId.ToString(), blockHeight, totalStakedBcoins, totalOwedScoins,
             collateralRatioBase);
     }
 
     bool IsEmpty() const {
-        // FIXME: ownerRegID/cdpTxCord set empty?
+        // FIXME: ownerRegID/cdpTxId set empty?
         return blockHeight == 0 && totalStakedBcoins == 0 && totalOwedScoins == 0;
     }
 
     void SetEmpty() {
-        // FIXME: ownerRegID/cdpTxCord set empty?
-        blockHeight   = 0;
+        // FIXME: ownerRegID/cdpTxId set empty?
+        blockHeight       = 0;
         totalStakedBcoins = 0;
         totalOwedScoins   = 0;
     }
@@ -181,7 +181,7 @@ private:
 /*  CDBMultiValueCache     prefixType     key                               value        variable  */
 /*  ----------------   --------------   ---------------------------   ---------------    --------- */
     // <CRegID, CTxCord> -> CUserCdp
-    CDBMultiValueCache< dbk::CDP,         std::pair<string, string>,   CUserCdp >       cdpCache;
+    CDBMultiValueCache< dbk::CDP,         std::pair<string, uint256>,   CUserCdp >       cdpCache;
 };
 
 #endif  // PERSIST_CDPDB_H

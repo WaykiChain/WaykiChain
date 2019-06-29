@@ -77,8 +77,8 @@ bool CCdpMemCache::GetForceSettleCdps(const uint16_t forceLiquidateRatio, const 
 
 bool CCdpMemCache::GetCdps(const double ratio, set<CUserCdp> &expiredCdps, set<CUserCdp> &userCdps) {
     static CRegID regId(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint16_t>::max());
-    static CTxCord txCord(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint16_t>::max());
-    static CUserCdp cdp(regId, txCord);
+    static uint256 txid;
+    static CUserCdp cdp(regId, txid);
     cdp.collateralRatioBase = ratio;
     cdp.ownerRegId          = regId;
 
@@ -162,9 +162,9 @@ bool CCdpDBCache::EraseCdp(const CUserCdp &cdp) {
  *  ==> ratio = 1/Log10(1+N)
  */
 uint64_t CCdpDBCache::ComputeInterest(int32_t blockHeight, const CUserCdp &cdp) {
-    assert(uint64_t(blockHeight) > cdp.lastBlockHeight);
+    assert(uint64_t(blockHeight) > cdp.blockHeight);
 
-    int32_t interval = blockHeight - cdp.lastBlockHeight;
+    int32_t interval = blockHeight - cdp.blockHeight;
     double interest = ((double) GetDefaultInterestParamA() * cdp.totalOwedScoins / kYearBlockCount)
                     * log10(GetDefaultInterestParamB() + cdp.totalOwedScoins) * interval;
 
