@@ -134,7 +134,7 @@ bool CBaseTx::SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw
                                     READ_ACCOUNT_FAIL, "bad-get-keyid-uid");
 
                 if (!cw.contractCache.SetTxHashByAddress(keyId, height, index + 1,
-                                                         cw.txUndo.txHash, cw.txUndo.dbOpLogMap))
+                                                         cw.txUndo.txid, cw.txUndo.dbOpLogMap))
                     return state.DoS(100, ERRORMSG("CBaseTx::SaveTxAddresses, SetTxHashByAddress to db cache failed!"),
                                     READ_ACCOUNT_FAIL, "bad-set-txHashByAddress");
             }

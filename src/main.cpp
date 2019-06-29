@@ -4255,7 +4255,7 @@ bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &accountLogs) {
                     return ERRORMSG("DisconnectBlock() : failure reading undo data");
 
                 for (auto &txUndo : blockUndo.vtxundo) {
-                    if (txUndo.txHash == txHash) {
+                    if (txUndo.txid == txHash) {
                         accountLogs = txUndo.accountLogs;
                         return true;
                     }

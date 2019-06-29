@@ -45,7 +45,7 @@ bool CMultiCoinBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     cw.txUndo.accountLogs.push_back(accountLog);
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
 
     // Block reward transaction will execute twice, but need to save once when index equals to zero.
     if (nIndex == 0 && !SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))

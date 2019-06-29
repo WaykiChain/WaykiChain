@@ -107,7 +107,7 @@ bool CCDPStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &stat
 }
 
 bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read txUid %s account info error",
@@ -295,7 +295,7 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
  }
 
  bool CCDPRedeemTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read txUid %s account info error",
@@ -470,7 +470,7 @@ bool CCDPLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &
   *  when M is 1.13 N and below, there'll be no profit for the liquidator, hence requiring force settlement
   */
 bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read txUid %s account info error",

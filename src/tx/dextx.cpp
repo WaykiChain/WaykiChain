@@ -109,7 +109,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     }
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.txHash = txHash;
+    cw.txUndo.txid = txHash;
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
@@ -242,7 +242,7 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
     }
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.txHash = txHash;
+    cw.txUndo.txid = txHash;
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
@@ -378,7 +378,7 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
     }
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.txHash = txHash;
+    cw.txUndo.txid = txHash;
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
@@ -512,7 +512,7 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
     }
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.txHash = txHash;
+    cw.txUndo.txid = txHash;
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
@@ -655,7 +655,7 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
     return true;
@@ -787,12 +787,12 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
         residualAmount = limitAssetAmount - dealCoinAmount
 10. calc deal fees
     buyerReceivedAssets = dealAssetAmount
-    if buy order is USER_GEN_ORDER 
+    if buy order is USER_GEN_ORDER
         dealAssetFee = dealAssetAmount * 0.04%
         buyerReceivedAssets -= dealAssetFee
         add dealAssetFee to totalFee of tx
     sellerReceivedAssets = dealCoinAmount
-    if buy order is SYS_GEN_ORDER 
+    if buy order is SYS_GEN_ORDER
         dealCoinFee = dealCoinAmount * 0.04%
         sellerReceivedCoins -= dealCoinFee
         add dealCoinFee to totalFee of tx
@@ -1001,7 +1001,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         }
 
         // 11. operate account
-        
+
         if (!buyOrderAccount.MinusDEXFrozenCoin(buyOrderData.coinType, dealItem.dealCoinAmount)             // - minus buyer's coins
             || !buyOrderAccount.OperateBalance(buyOrderData.assetType, ADD_VALUE, buyerReceivedAssets)      // + add buyer's assets
             || !sellOrderAccount.OperateBalance(sellOrderData.coinType, ADD_VALUE, sellerReceivedCoins)     // + add seller's coin
@@ -1057,7 +1057,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    cw.txUndo.txHash = GetHash();
+    cw.txUndo.txid = GetHash();
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
