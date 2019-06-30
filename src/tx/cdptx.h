@@ -198,8 +198,7 @@ public:
         READWRITE(VARINT(llFees));
         READWRITE(cdpTxId);
         READWRITE(scoinsToLiquidate);
-        READWRITE(VARINT(fcoinsPenalty));
-        READWRITE(VARINT(scoinsPenalty)));
+        READWRITE(VARINT(scoinsPenalty));
 
         READWRITE(signature);
     )
@@ -208,8 +207,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << cdpTxId << VARINT(scoinsToLiquidate)
-                << VARINT(fcoinsPenalty) << VARINT(scoinsPenalty);
+                << cdpTxId << VARINT(scoinsToLiquidate) << VARINT(scoinsPenalty);
             sigHash = ss.GetHash();
         }
         return sigHash;
