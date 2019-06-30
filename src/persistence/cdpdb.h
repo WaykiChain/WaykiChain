@@ -24,8 +24,8 @@ using namespace std;
  *      cdp{$RegID}{$CTxCord} --> { blockHeight, totalStakedBcoins, totalOwedScoins }
  *
  */
-struct CUserCdp {
-    mutable double collateralRatioBase;  // ratio = totalStakedBcoins * price / totalOwedScoins, must be >= 200%, mem-only
+struct CUserCDP {
+    mutable double collateralRatioBase;  // ratioBase = totalStakedBcoins / totalOwedScoins, mem-only
 
     CRegID ownerRegId;              // CDP Owner RegId
     uint256 cdpTxId;                // CDP TxID
@@ -33,12 +33,12 @@ struct CUserCdp {
     uint64_t totalStakedBcoins;     // persisted: total staked bcoins
     uint64_t totalOwedScoins;       // persisted: TNj = last + minted = total minted - total redempted
 
-    CUserCdp() : blockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
+    CUserCDP() : blockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
-    CUserCdp(const CRegID &regId, const uint256 &cdpTxIdIn)
+    CUserCDP(const CRegID &regId, const uint256 &cdpTxIdIn)
         : ownerRegId(regId), cdpTxId(cdpTxIdIn), blockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
-    bool operator<(const CUserCdp &cdp) const {
+    bool operator<(const CUserCDP &cdp) const {
         if (collateralRatioBase == cdp.collateralRatioBase) {
             if (ownerRegId == cdp.ownerRegId)
                 return cdpTxId < cdp.cdpTxId;
@@ -69,15 +69,14 @@ struct CUserCdp {
     }
 
     bool IsEmpty() const {
-        // FIXME: ownerRegID/cdpTxId set empty?
-        return blockHeight == 0 && totalStakedBcoins == 0 && totalOwedScoins == 0;
+        return cdpTxId.IsEmpty();
     }
 
     void SetEmpty() {
-        // FIXME: ownerRegID/cdpTxId set empty?
-        blockHeight       = 0;
-        totalStakedBcoins = 0;
-        totalOwedScoins   = 0;
+        cdpTxId             = uint256();
+        blockHeight         = 0;
+        totalStakedBcoins   = 0;
+        totalOwedScoins     = 0;
     }
 };
 
@@ -95,22 +94,22 @@ public:
     void Flush();
 
     // Usage: before modification, erase the old cdp; after modification, save the new cdp.
-    bool SaveCdp(const CUserCdp &userCdp);
-    bool EraseCdp(const CUserCdp &userCdp);
+    bool SaveCdp(const CUserCDP &userCdp);
+    bool EraseCdp(const CUserCDP &userCdp);
 
     bool GetUnderLiquidityCdps(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
-                               set<CUserCdp> &userCdps);
+                               set<CUserCDP> &userCdps);
     bool GetForceSettleCdps(const uint16_t forceLiquidateRatio, const uint64_t bcoinMedianPrice,
-                            set<CUserCdp> &userCdps);
+                            set<CUserCDP> &userCdps);
 
 private:
-    bool GetCdps(const double ratio, set<CUserCdp> &expiredCdps, set<CUserCdp> &userCdps);
-    bool GetCdps(const double ratio, set<CUserCdp> &userCdps);
+    bool GetCdps(const double ratio, set<CUserCDP> &expiredCdps, set<CUserCDP> &userCdps);
+    bool GetCdps(const double ratio, set<CUserCDP> &userCdps);
 
-    void BatchWrite(const map<CUserCdp, uint8_t> &cdpsIn);
+    void BatchWrite(const map<CUserCDP, uint8_t> &cdpsIn);
 
 private:
-    map<CUserCdp, uint8_t> cdps;  // map: CUserCdp -> flag(0: valid; 1: invalid)
+    map<CUserCDP, uint8_t> cdps;  // map: CUserCDP -> flag(0: valid; 1: invalid)
     uint64_t totalStakedBcoins = 0;
     uint64_t totalOwedScoins   = 0;
     CCdpMemCache *pBase        = nullptr;
@@ -123,14 +122,14 @@ public:
     CCdpDBCache(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
 
     bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
-                          CUserCdp &cdp, CDBOpLogMap &dbOpLogMap);
+                          CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
 
-    bool GetCdp(CUserCdp &cdp);
-    bool SaveCdp(CUserCdp &cdp, CDBOpLogMap &dbOpLogMap);
-    bool EraseCdp(const CUserCdp &cdp);
+    bool GetCdp(CUserCDP &cdp);
+    bool SaveCdp(CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
+    bool EraseCdp(const CUserCDP &cdp);
     bool UndoCdp(CDBOpLogMap &dbOpLogMap) { /*return cdpCache.UndoData(opLog);*/ return false;  } // TODO:
 
-    uint64_t ComputeInterest(int32_t blockHeight, const CUserCdp &cdp);
+    uint64_t ComputeInterest(int32_t blockHeight, const CUserCDP &cdp);
 
     // When true, CDP cannot be further operated
     bool CheckGlobalCDPLockOn(const uint64_t price) ;
@@ -180,8 +179,8 @@ private:
 
 /*  CDBMultiValueCache     prefixType     key                               value        variable  */
 /*  ----------------   --------------   ---------------------------   ---------------    --------- */
-    // <CRegID, CTxCord> -> CUserCdp
-    CDBMultiValueCache< dbk::CDP,         std::pair<string, uint256>,   CUserCdp >       cdpCache;
+    // <CRegID, CTxCord> -> CUserCDP
+    CDBMultiValueCache< dbk::CDP,         std::pair<string, uint256>,   CUserCDP >       cdpCache;
 };
 
 #endif  // PERSIST_CDPDB_H

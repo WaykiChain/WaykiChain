@@ -12,7 +12,7 @@
 
 bool CCdpMemCache::LoadCdps() {
     assert(pAccess != nullptr);
-    map<std::pair<string, string>, CUserCdp> rawCdps;
+    map<std::pair<string, string>, CUserCDP> rawCdps;
 
     if (!pAccess->GetAllElements(dbk::CDP, rawCdps)) {
         // TODO: log
@@ -45,7 +45,7 @@ void CCdpMemCache::Flush() {
     cdps.clear();
 }
 
-bool CCdpMemCache::SaveCdp(const CUserCdp &userCdp) {
+bool CCdpMemCache::SaveCdp(const CUserCDP &userCdp) {
     static uint8_t valid = 1;  // 0: invalid; 1: valid
     cdps.emplace(userCdp, valid);
 
@@ -55,7 +55,7 @@ bool CCdpMemCache::SaveCdp(const CUserCdp &userCdp) {
     return true;
 }
 
-bool CCdpMemCache::EraseCdp(const CUserCdp &userCdp) {
+bool CCdpMemCache::EraseCdp(const CUserCDP &userCdp) {
     static uint8_t invalid = 0;  // 0: invalid; 1: valid
 
     cdps[userCdp] = invalid;
@@ -66,19 +66,19 @@ bool CCdpMemCache::EraseCdp(const CUserCdp &userCdp) {
 }
 
 bool CCdpMemCache::GetUnderLiquidityCdps(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
-                                         set<CUserCdp> &userCdps) {
+                                         set<CUserCDP> &userCdps) {
     return GetCdps(openLiquidateRatio * bcoinMedianPrice, userCdps);
 }
 
 bool CCdpMemCache::GetForceSettleCdps(const uint16_t forceLiquidateRatio, const uint64_t bcoinMedianPrice,
-                                      set<CUserCdp> &userCdps) {
+                                      set<CUserCDP> &userCdps) {
     return GetCdps(forceLiquidateRatio * bcoinMedianPrice, userCdps);
 }
 
-bool CCdpMemCache::GetCdps(const double ratio, set<CUserCdp> &expiredCdps, set<CUserCdp> &userCdps) {
+bool CCdpMemCache::GetCdps(const double ratio, set<CUserCDP> &expiredCdps, set<CUserCDP> &userCdps) {
     static CRegID regId(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint16_t>::max());
     static uint256 txid;
-    static CUserCdp cdp(regId, txid);
+    static CUserCDP cdp(regId, txid);
     cdp.collateralRatioBase = ratio;
     cdp.ownerRegId          = regId;
 
@@ -104,8 +104,8 @@ bool CCdpMemCache::GetCdps(const double ratio, set<CUserCdp> &expiredCdps, set<C
     return true;
 }
 
-bool CCdpMemCache::GetCdps(const double ratio, set<CUserCdp> &userCdps) {
-    set<CUserCdp> expiredCdps;
+bool CCdpMemCache::GetCdps(const double ratio, set<CUserCDP> &userCdps) {
+    set<CUserCDP> expiredCdps;
     if (!GetCdps(ratio, expiredCdps, userCdps)) {
         // TODO: log
         return false;
@@ -114,7 +114,7 @@ bool CCdpMemCache::GetCdps(const double ratio, set<CUserCdp> &userCdps) {
     return true;
 }
 
-void CCdpMemCache::BatchWrite(const map<CUserCdp, uint8_t> &cdpsIn) {
+void CCdpMemCache::BatchWrite(const map<CUserCDP, uint8_t> &cdpsIn) {
     // If the value is empty, delete it from cache.
     for (const auto &item : cdpsIn) {
         if (db_util::IsEmpty(item.second)) {
@@ -126,7 +126,7 @@ void CCdpMemCache::BatchWrite(const map<CUserCdp, uint8_t> &cdpsIn) {
 }
 
 bool CCdpDBCache::StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
-                                    CUserCdp &cdp, CDBOpLogMap &dbOpLogMap) {
+                                    CUserCDP &cdp, CDBOpLogMap &dbOpLogMap) {
 
     cdp.blockHeight = blockHeight;
     cdp.totalStakedBcoins += bcoinsToStake;
@@ -140,18 +140,18 @@ bool CCdpDBCache::StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bco
     return true;
 }
 
-bool CCdpDBCache::GetCdp(CUserCdp &cdp) {
+bool CCdpDBCache::GetCdp(CUserCDP &cdp) {
     if (!cdpCache.GetData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxId), cdp))
         return false;
 
     return true;
 }
 
-bool CCdpDBCache::SaveCdp(CUserCdp &cdp, CDBOpLogMap &dbOpLogMap) {
+bool CCdpDBCache::SaveCdp(CUserCDP &cdp, CDBOpLogMap &dbOpLogMap) {
     return cdpCache.SetData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxId), cdp, dbOpLogMap);
 }
 
-bool CCdpDBCache::EraseCdp(const CUserCdp &cdp) {
+bool CCdpDBCache::EraseCdp(const CUserCDP &cdp) {
     return cdpCache.EraseData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxId));
 }
 
@@ -161,7 +161,7 @@ bool CCdpDBCache::EraseCdp(const CUserCdp &cdp) {
  *
  *  ==> ratio = 1/Log10(1+N)
  */
-uint64_t CCdpDBCache::ComputeInterest(int32_t blockHeight, const CUserCdp &cdp) {
+uint64_t CCdpDBCache::ComputeInterest(int32_t blockHeight, const CUserCDP &cdp) {
     assert(uint64_t(blockHeight) > cdp.blockHeight);
 
     int32_t interval = blockHeight - cdp.blockHeight;

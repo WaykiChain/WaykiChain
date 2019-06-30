@@ -8,6 +8,8 @@
 
 #include "tx.h"
 
+class CUserCDP;
+
 /**
  * Stake or ReStake bcoins into a CDP
  */
@@ -76,7 +78,7 @@ public:
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    bool PayInterest(int nHeight, CCacheWrapper &cw, CValidationState &state);
+    bool SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:
     uint256 cdpTxId;
@@ -151,7 +153,7 @@ public:
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    bool PayInterest(int nHeight, CCacheWrapper &cw, CValidationState &state);
+    bool SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:
     uint256 cdpTxId;          // CDP cdpTxId
@@ -228,6 +230,9 @@ public:
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+
+private:
+    bool SellPenaltyForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:
     uint256 cdpTxId;            // target CDP to liquidate
