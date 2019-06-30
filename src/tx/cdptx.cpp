@@ -43,13 +43,13 @@ bool CCDPStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &stat
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (cw.cdpCache.CheckGlobalCDPLockOn(cw.ppCache.GetBcoinMedianPrice())) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, CDP Global Lock is on!!"),
+    if (cw.cdpCache.CheckGlobalCollateralFloorReached(cw.ppCache.GetBcoinMedianPrice())) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, GlobalCollateralFloorReached!!"),
                         REJECT_INVALID, "gloalcdplock_is_on");
     }
-    if (cw.cdpCache.CheckGlobalCollateralCeilingExceeded(bcoinsToStake)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, CDP Global Collateral Ceiling reached!"),
-                        REJECT_INVALID, "gloalcdpcollateralceiling_reached");
+    if (cw.cdpCache.CheckGlobalCollateralCeilingReached(bcoinsToStake)) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, GlobalCollateralCeilingReached!"),
+                        REJECT_INVALID, "gloalcdplock_is_on");
     }
 
     // bcoinsToStake can be zero since we allow downgrading collateral ratio to mint new scoins
@@ -91,7 +91,7 @@ bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
     int mintedScoins = 0;
     CUserCDP cdp(txUid.get<CRegID>(), cdpTxId);
     if (!cw.cdpCache.GetCdp(cdp)) { // first-time CDP creation
-        if (bcoinsToStake < kInitialStakeBcoinsMin) {
+        if (bcoinsToStake < kBcoinsToStakeAmountMin) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, initial bcoins to stake %d is too small,",
                         bcoinsToStake), UPDATE_ACCOUNT_FAIL, "initial-stake-failed");
         }
@@ -101,7 +101,7 @@ bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
 
     } else { // further staking on one's existing CDP
         // check if cdp owner is the same user who's staking!
-        if (txUid.Get<CRegID>() != cdp.ownerRegId) {
+        if (txUid.get<CRegID>() != cdp.ownerRegId) {
                 return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, txUid(%s) not CDP owner",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "account-not-CDP-owner");
         }
@@ -133,9 +133,7 @@ bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
     }
     cw.txUndo.accountLogs.push_back(acctLog);
 
-    CDbOpLog cdpDbOpLog;
-    cw.cdpCache.StakeBcoinsToCdp(txUid.get<CRegID>(), bcoinsToStake, (uint64_t)mintedScoins, nHeight, cdp, cdpDbOpLog);
-    cw.txUndo.dbOpLogMap.AddDbOpLog(dbk::CDP, cdpDbOpLog);
+    cw.cdpCache.StakeBcoinsToCdp(nHeight, bcoinsToStake, (uint64_t)mintedScoins, cdp, cw.txUndo.dbOpLogMap);
 
     bool ret = SaveTxAddresses(nHeight, nIndex, cw, state, {txUid});
     return ret;
@@ -154,24 +152,15 @@ bool CCDPStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
             return state.DoS(100, ERRORMSG("CCDPStakeTx::UndoExecuteTx, undo operate account failed"),
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }
-
         if (!cw.accountCache.SetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::UndoExecuteTx, write account info error"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
     }
 
-    if (!cw.dexCache.UndoSysBuyOrder(cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::UndoExecuteTx, undo system buy order failed"),
-                        UNDO_SYS_ORDER_FAILED, "undo-data-failed");
-    }
-
-    auto cdpLogs = cw.txUndo.mapDbOpLogs[DbOpLogType::DB_OP_CDP];
-    for (auto cdpLog : cdpLogs) {
-        if (!cw.cdpCache.UndoCdp(cdpLog)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::UndoExecuteTx, restore cdp error"),
-                             UPDATE_ACCOUNT_FAIL, "bad-restore-cdp");
-        }
+    if (!cw.cdpCache.UndoCdp(cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::UndoExecuteTx, undo active buy order failed"),
+                         REJECT_INVALID, "bad-undo-data");
     }
 
     return true;
@@ -208,8 +197,8 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (cw.cdpCache.CheckGlobalCDPLockOn(cw.ppCache.GetBcoinMedianPrice())) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, CDP Global Lock is on!!"),
+    if (cw.cdpCache.CheckGlobalCollateralFloorReached(cw.ppCache.GetBcoinMedianPrice())) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, GlobalCollateralFloorReached!!"),
                         REJECT_INVALID, "gloalcdplock_is_on");
     }
 
@@ -256,7 +245,7 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     CUserCDP cdp(txUid.get<CRegID>(), cdpTxId);
     if (cw.cdpCache.GetCdp(cdp)) {
         // check if cdp owner is the same user who's redeeming!
-        if (txUid.Get<CRegID>() != cdp.ownerRegId) {
+        if (txUid.get<CRegID>() != cdp.ownerRegId) {
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, txUid(%s) not CDP owner",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "account-not-CDP-owner");
         }
@@ -359,14 +348,14 @@ bool CCDPLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (cw.cdpCache.CheckGlobalCDPLockOn(cw.ppCache.GetBcoinMedianPrice())) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, CDP Global Lock is on!!"),
+    if (cw.cdpCache.CheckGlobalCollateralFloorReached(cw.ppCache.GetBcoinMedianPrice())) {
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, GlobalCollateralFloorReached!!"),
                         REJECT_INVALID, "gloalcdplock_is_on");
     }
 
     if (cdpTxId.IsEmpty()) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, cdpTxCord is empty"),
-                        REJECT_INVALID, "EMPTY_CDPTXCORD");
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, cdpTxId is empty"),
+                        REJECT_INVALID, "EMPTY_CDPTXID");
     }
 
     if (scoinsPenalty == 0) {
@@ -420,16 +409,16 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
     }
 
     //2. pay penalty fees: 0.13lN --> 50% burn, 50% to Risk Reserve
-    CUserCDP cdp(txUid.get<CRegID>(), CTxCord(nHeight, nIndex));
+    CUserCDP cdp(txUid.get<CRegID>(), cdpTxId);
     if (cw.cdpCache.GetCdp(cdp)) {
         //check if CDP is open for liquidation
-        uint16_t liquidateRatio = cw.cdpCache.GetDefaultOpenLiquidateRatio();
+        uint16_t liquidateRatio = cw.cdpCache.GetStartingLiquidateRatio();
         uint16_t cdpLiquidateRatio = cw.ppCache.GetBcoinMedianPrice() * cdp.collateralRatioBase;
         if (cdpLiquidateRatio > liquidateRatio) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, CDP collateralRatio (%d) > liquidateRatio (%d)",
                         cdpLiquidateRatio, liquidateRatio), CDP_LIQUIDATE_FAIL, "CDP-liquidate-not-open");
         }
-        if (!PayPenaltyFee(nHeight, cdp, cw, state))
+        if (!SellPenaltyForFcoins(nHeight, cdp, cw, state))
             return false;
     }
 

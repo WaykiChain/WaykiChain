@@ -87,7 +87,7 @@ public:
     // Only apply to construct the global mem-cache.
     CCdpMemCache(CDBAccess *pAccessIn) : pAccess(pAccessIn) {}
 
-    uint16_t GetGlobalCollateralRatio(const uint64_t price) const;
+    uint16_t GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const;
     uint64_t GetGlobalCollateral() const;
 
     bool LoadCdps();
@@ -127,26 +127,24 @@ public:
     bool GetCdp(CUserCDP &cdp);
     bool SaveCdp(CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
     bool EraseCdp(const CUserCDP &cdp);
-    bool UndoCdp(CDBOpLogMap &dbOpLogMap) { /*return cdpCache.UndoData(opLog);*/ return false;  } // TODO:
+    bool UndoCdp(CDBOpLogMap &dbOpLogMap) { return cdpCache.UndoData(dbOpLogMap);  }
 
     uint64_t ComputeInterest(int32_t blockHeight, const CUserCDP &cdp);
 
-    // When true, CDP cannot be further operated
-    bool CheckGlobalCDPLockOn(const uint64_t price) ;
-    // When true, WICC/WUSD cannot be loaned/minted further.
-    bool CheckGlobalCollateralCeilingExceeded(const uint64_t newBcoinsToStake) const;
+    bool CheckGlobalCollateralFloorReached(const uint64_t bcoinMedianPrice);
+    bool CheckGlobalCollateralCeilingReached(const uint64_t newBcoinsToStake);
 
-    uint16_t GetDefaultCollateralRatio() {
+    uint16_t GetStartingCollateralRatio() {
         uint16_t ratio = 0;
-        return collateralRatio.GetData(ratio) ? ratio : kDefaultCollateralRatio;
+        return collateralRatio.GetData(ratio) ? ratio : kStartingCdpCollateralRatio;
     }
-    uint16_t GetDefaultOpenLiquidateRatio() {
+    uint16_t GetStartingLiquidateRatio() {
         uint16_t ratio = 0;
-        return openLiquidateRatio.GetData(ratio) ? ratio : kDefaultOpenLiquidateRatio;
+        return openLiquidateRatio.GetData(ratio) ? ratio : kStartingCdpLiquidateRatio;
     }
     uint16_t GetDefaultForceLiquidateRatio() {
         uint16_t ratio = 0;
-        return forceLiquidateRatio.GetData(ratio) ? ratio : kDefaultForcedLiquidateRatio;
+        return forceLiquidateRatio.GetData(ratio) ? ratio : kForcedCdpLiquidateRatio;
     }
     uint16_t GetDefaultInterestParamA() {
         uint16_t paramA = 0;
@@ -164,8 +162,6 @@ private:
 
 /*   CDBScalarValueCache   prefixType                 value                 variable               */
 /*  -------------------- --------------------------  ------------------   ------------------------ */
-    // globalCDPHaltState
-    CDBScalarValueCache< dbk::CDP_GLOBAL_HALT,  bool>                    cdpGlobalHalt;
     // collateralRatio
     CDBScalarValueCache< dbk::CDP_COLLATERAL_RATIO,  uint16_t>           collateralRatio;
     // openLiquidateRatio
