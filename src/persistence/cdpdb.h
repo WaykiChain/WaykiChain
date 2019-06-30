@@ -133,7 +133,7 @@ public:
     uint64_t ComputeInterest(int32_t blockHeight, const CUserCdp &cdp);
 
     // When true, CDP cannot be further operated
-    bool GetGlobalCDPLock(const uint64_t price) ;
+    bool CheckGlobalCDPLockOn(const uint64_t price) ;
     // When true, WICC/WUSD cannot be loaned/minted further.
     bool CheckGlobalCollateralCeilingExceeded(const uint64_t newBcoinsToStake) const;
 

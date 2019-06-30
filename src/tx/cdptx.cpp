@@ -24,22 +24,14 @@ bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
 }
 
 bool CCDPStakeTx::CheckInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &cw, CValidationState &state) {
-    if (nHeight < cdp.blockHeight) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckInterest, nHeight: %d < cdp.blockHeight: %d",
-                    nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
-    }
-
     uint64_t scoinsInterestToRepay = cw.cdpCache.ComputeInterest(nHeight, cdp);
     if (scoinsInterest < scoinsInterestToRepay) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckInterest, scoinsInterest: %d < scoinsInterestToRepay: %d",
                         scoinsInterest, scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
     }
 
-    CDEXSysBuyOrder buyOrder;
-    buyOrder.coinType = CoinType::WUSD;      //!< coin type
-    buyOrder.assetType = CoinType::WGRT;     //!< asset type
-    buyOrder.coinAmount = scoinsInterest;
-    if (!cw.dexCache.CreateSysBuyOrder(GetHash(), buyOrder, cw.txUndo.dbOpLogMap)) {
+    CDEXSysBuyOrder sysBuyOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterest);
+    if (!cw.dexCache.CreateSysBuyOrder(GetHash(), sysBuyOrder, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckInterest, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
@@ -50,7 +42,7 @@ bool CCDPStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &stat
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (cw.cdpCache.GetGlobalCDPLock()) {
+    if (cw.cdpCache.CheckGlobalCDPLockOn()) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, CDP Global Lock is on!!"),
                         REJECT_INVALID, "gloalcdplock_is_on");
     }
@@ -110,6 +102,10 @@ bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
                         txUid.ToString()), READ_ACCOUNT_FAIL, "account-not-CDP-owner");
         }
 
+        if (nHeight < cdp.blockHeight) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, nHeight: %d < cdp.blockHeight: %d",
+                    nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
+        }
         //pay interest fees in wusd
         if (CheckInterest(nHeight, cdp, cw, state)) {
             account.scoins -= scoinsInterest;
@@ -191,22 +187,14 @@ string CCDPRedeemTx::ToString(CAccountDBCache &view) {
      return true;
  }
  bool CCDPRedeemTx::CheckInterest(int nHeight, const CUserCdp &cdp, CCacheWrapper &cw, CValidationState &state) {
-    if (nHeight < cdp.blockHeight) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckInterest, nHeight: %d < cdp.blockHeight: %d",
-                    nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
-    }
-
     uint64_t scoinsInterestToRepay = cw.cdpCache.ComputeInterest(nHeight, cdp);
     if (scoinsInterest < scoinsInterestToRepay) {
          return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckInterest, scoinsInterest: %d < scoinsInterestToRepay: %d",
                     scoinsInterest, scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL, "scoins-interest-insufficient-error");
     }
 
-    CDEXSysBuyOrder buyOrder;
-    buyOrder.coinType = CoinType::WUSD;      //!< coin type
-    buyOrder.assetType = CoinType::WGRT;     //!< asset type
-    buyOrder.coinAmount = scoinsInterest;
-    if (!cw.dexCache.CreateSysBuyOrder(GetHash(), buyOrder, cw.txUndo.dbOpLogMap)) {
+    CDEXSysBuyOrder sysBuyOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterest);
+    if (!cw.dexCache.CreateSysBuyOrder(GetHash(), sysBuyOrder, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckInterest, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
@@ -216,7 +204,7 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (cw.cdpCache.GetGlobalCDPLock()) {
+    if (cw.cdpCache.CheckGlobalCDPLockOn()) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, CDP Global Lock is on!!"),
                         REJECT_INVALID, "gloalcdplock_is_on");
     }
@@ -261,38 +249,34 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     }
 
     //2. pay interest fees in wusd or wgrt into the wgrt pool
-    CUserCdp cdp(txUid.get<CRegID>(), CTxCord(nHeight, nIndex));
+    CUserCdp cdp(txUid.get<CRegID>(), cdpTxId);
     if (cw.cdpCache.GetCdp(cdp)) {
         // check if cdp owner is the same user who's redeeming!
         if (txUid.Get<CRegID>() != cdp.ownerRegId) {
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, txUid(%s) not CDP owner",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "account-not-CDP-owner");
         }
-
-        if (!PayInterest(nHeight, cdp, cw, state))
+        if (nHeight < cdp.blockHeight) {
+            return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckInterest, nHeight: %d < cdp.blockHeight: %d",
+                    nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
+        }
+        if (!CheckInterest(nHeight, cdp, cw, state))
             return false;
+
+        account.scoins -= scoinsInterest;
     }
+
 
     //3. redeem in scoins and update cdp
     cdp.totalOwedScoins -= scoinsToRedeem;
-    double targetStakedBcoins = collateralRatio * cdp.totalOwedScoins / cw.ppCache.GetScoinMedianPrice();
+    double targetStakedBcoins = ((double) collateralRatio / kPercentBoost) * cdp.totalOwedScoins / cw.ppCache.GetBcoinMedianPrice();
     if (cdp.totalStakedBcoins < targetStakedBcoins) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, total staked bcoins %d is smaller than target %d",
                         cdp.totalStakedBcoins, targetStakedBcoins), UPDATE_ACCOUNT_FAIL, "targetStakedBcoins-error");
     }
-    uint64_t releasedScoins = cdp.totalStakedBcoins - targetStakedBcoins;
-    CAccount cdpAccount;
-    if (!cw.accountCache.GetAccount(CUserID(cdp.ownerRegId), cdpAccount)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read CDP Owner %s account info error",
-                        cdp.ownerRegId.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-    CAccountLog cdpAcctLog(account);
-
-    cdpAccount.UnFreezeDexCoin(CoinType:WICC, releasedScoins);
-    if (!cw.accountCache.SaveAccount(cdpAccount)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update cdpAccount %s failed",
-                        fcoinGenesisUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
-    }
+    uint64_t releasedBcoins = cdp.totalStakedBcoins - targetStakedBcoins;
+    account.scoins -= scoinsToRedeem;
+    account.bcoins += releasedBcoins;
 
     cdp.totalStakedBcoins = (uint64_t) targetStakedBcoins;
     if (!cw.cdpCache.SaveCdp(cdp, cw.txUndo.dbOpLogMap)) {
@@ -301,7 +285,6 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     }
 
     cw.txUndo.accountLogs.push_back(acctLog);
-    cw.txUndo.accountLogs.push_back(cdpAcctLog);
 
     return true;
  }
@@ -356,11 +339,8 @@ bool CCDPLiquidateTx::PayPenaltyFee(int nHeight, const CUserCdp &cdp, CCacheWrap
         return false; // DEX: wusd_wgrt
     }
 
-    CDEXSysBuyOrder buyOrder;
-    buyOrder.coinType = CoinType::WUSD;      //!< coin type
-    buyOrder.assetType = CoinType::WGRT;     //!< asset type
-    buyOrder.coinAmount = restScoins;
-    if (!cw.dexCache.CreateSysBuyOrder(GetHash(), buyOrder, cw.txUndo.dbOpLogMap)) {
+    CDEXSysBuyOrder sysBuyOrder(CoinType::WUSD, CoinType::WGRT, restScoins);
+    if (!cw.dexCache.CreateSysBuyOrder(GetHash(), sysBuyOrder, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::ExecuteTx, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
@@ -372,17 +352,17 @@ bool CCDPLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (cw.cdpCache.GetGlobalCDPLock()) {
+    if (cw.cdpCache.CheckGlobalCDPLockOn()) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, CDP Global Lock is on!!"),
                         REJECT_INVALID, "gloalcdplock_is_on");
     }
 
-    if (cdpTxCord.IsEmpty()) {
+    if (cdpTxId.IsEmpty()) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, cdpTxCord is empty"),
                         REJECT_INVALID, "EMPTY_CDPTXCORD");
     }
 
-    if (fcoinsPenalty == 0 && scoinsPenalty == 0) {
+    if (scoinsPenalty == 0) {
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, penalty amount is zero"),
                         REJECT_INVALID, "bad-tx-zero-penalty-error");
     }
@@ -395,10 +375,6 @@ bool CCDPLiquidateTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &
     if (account.scoins < scoinsToLiquidate + scoinsPenalty) {
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, account scoins %d < scoinsToLiquidate: %d",
                         account.scoins, scoinsToLiquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
-    }
-    if (fcoinsPenalty > 0 && account.fcoins < fcoinsPenalty) {
-        return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, account fcoins %d < fcoinsPenalty: %d",
-                        account.fcoins, fcoinsPenalty), CDP_LIQUIDATE_FAIL, "account-fcoins-insufficient");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
@@ -463,7 +439,6 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
                                 kPercentBoost / cdp.totalOwedScoins;
 
     // 3. update liquidator's account
-    account.fcoins -= fcoinsPenalty;
     account.scoins -= scoinsPenalty;
     account.scoins -= scoinsToLiquidate;
     account.bcoins += bcoinsToLiquidate; //liquidator income: lM

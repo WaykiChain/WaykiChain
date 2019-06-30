@@ -171,7 +171,7 @@ uint64_t CCdpDBCache::ComputeInterest(int32_t blockHeight, const CUserCdp &cdp) 
     return (uint64_t) interest;
 }
 
-bool CCdpDBCache::GetGlobalCDPLock(const uint64_t price) {
+bool CCdpDBCache::CheckGlobalCDPLockOn(const uint64_t price) {
     if (cdpMemCache.GetGlobalCollateralRatio(price) < kGlobalCollateralRatioLimit) {
         cdpGlobalHalt.SetData(true);
     }
