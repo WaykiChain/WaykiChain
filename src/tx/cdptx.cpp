@@ -467,10 +467,19 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         totalBcoinsToCDPOwner = cdp.totalStakedBcoins - totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice();
 
     } else {                                                    // 0 ~ 1.03
-        //TODO although not likely to happen. but if it does. figure below properly
+        //Although not likely to happen. but if it does, execute it accordingly.
+        totalScoinsToLiquidate = cdp.totalOwedScoins; //N
         totalScoinsToReturnLiquidator = (double) cdp.totalStakedBcoins / cw.ppCache.GetBcoinMedianPrice(); //M
-        totalScoinsToLiquidate = totalScoinsToReturnLiquidator * kCdpLiquidateDiscountRate / kPercentBoost; //M * 97%
-        totalScoinsToReturnSysFund = totalScoinsToLiquidate - cdp.totalOwedScoins; // M - N
+        if (scoinsToLiquidate >= cdp.totalOwedScoins) {
+
+        } else {
+            totalScoinsToReturnLiquidator = scoinsToLiquidate * kPercentBoost / kCdpLiquidateDiscountRate;
+            uint64_t totalCdpStakeInScoins = cdp.totalStakedBcoins * cw.ppCache.GetBcoinMedianPrice()
+            if (totalCdpStakeInScoins < totalScoinsToReturnLiquidator) {
+                totalScoinsToReturnLiquidator = totalCdpStakeInScoins;
+            }
+        }
+        totalScoinsToReturnSysFund = 0;
         totalBcoinsToCDPOwner = cdp.totalStakedBcoins - totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice();
     }
 
@@ -485,7 +494,7 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
             return false;
 
         //close CDP
-        cw.cdpCache.EraseCdp(cdp);
+        cw.cdpCache.EraseCdp(cdp, cw.txUndo.dbOpLogMap);
 
     } else { //partial liquidation
         liquidateRate = (double) scoinsToLiquidate / totalScoinsToLiquidate;
