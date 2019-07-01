@@ -174,7 +174,7 @@ struct CMainSignals {
 } g_signals;
 }  // namespace
 
-bool WriteBlockLog(bool falg, string suffix) {
+bool WriteBlockLog(bool flag, string suffix) {
     if (nullptr == chainActive.Tip()) {
         return false;
     }
@@ -186,7 +186,7 @@ bool WriteBlockLog(bool falg, string suffix) {
 #endif
 
     boost::filesystem::path LogDirpath = GetDataDir() / "BlockLog";
-    if (!falg) {
+    if (!flag) {
         LogDirpath = GetDataDir() / "BlockLog1";
     }
     if (!boost::filesystem::exists(LogDirpath)) {
