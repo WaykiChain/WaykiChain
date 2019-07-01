@@ -181,6 +181,7 @@ extern json_spirit::Value invalidateblock(const json_spirit::Array& params, bool
 extern json_spirit::Value reconsiderblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value startcommontpstest(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value startcontracttpstest(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getlogfailures(const json_spirit::Array& params, bool fHelp);
 
 json_spirit::Object JSONRPCExecOne(const json_spirit::Value& req);
 

@@ -25,7 +25,8 @@ public:
     CLogDBCache(CDBAccess *pDbAccess) : executeFailCache(pDbAccess){};
 
 public:
-    bool SetExecuteFail(const int32_t blockHeight, const uint256 txid, uint8_t errorCode, string &errorMessage);
+    bool SetExecuteFail(const int32_t blockHeight, const uint256 txid, const uint8_t errorCode,
+                        const string &errorMessage);
     bool GetExecuteFail(const int32_t blockHeight, vector<std::tuple<uint256, uint8_t, string> > &result);
 
     void Flush();

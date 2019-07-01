@@ -5,9 +5,10 @@
 
 #include "logdb.h"
 
-bool CLogDBCache::SetExecuteFail(const int32_t blockHeight, const uint256 txid, uint8_t errorCode, string &errorMessage) {
+bool CLogDBCache::SetExecuteFail(const int32_t blockHeight, const uint256 txid, const uint8_t errorCode,
+                                 const string &errorMessage) {
     return executeFailCache.SetData(std::to_string(blockHeight) + "_" + txid.GetHex(),
-                                   std::make_pair(errorCode, errorMessage));
+                                    std::make_pair(errorCode, errorMessage));
 }
 
 bool CLogDBCache::GetExecuteFail(const int32_t blockHeight, vector<std::tuple<uint256, uint8_t, string> > &result) {

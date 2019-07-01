@@ -124,7 +124,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
     if (bExecute) {
         if (!memPoolEntry.GetTx()->ExecuteTx(chainActive.Tip()->nHeight + 1, 0, *spCW, state)) {
             if (SysCfg().IsLogFailures()) {
-                pCdMan->pLogCache->SetExecuteFail(chainActive.Tip()->nHeight, memPoolEntry->GetTx()->GetHash(),
+                pCdMan->pLogCache->SetExecuteFail(chainActive.Tip()->nHeight, memPoolEntry.GetTx()->GetHash(),
                                                   state.GetRejectCode(), state.GetRejectReason());
             }
             return false;
