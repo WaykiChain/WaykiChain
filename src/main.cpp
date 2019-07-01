@@ -3891,7 +3891,8 @@ bool ProcessMessages(CNode *pFrom) {
         ProcessGetData(pFrom);
 
     // this maintains the order of responses
-    if (!pFrom->vRecvGetData.empty()) return fOk;
+    if (!pFrom->vRecvGetData.empty())
+        return fOk;
 
     deque<CNetMessage>::iterator it = pFrom->vRecvMsg.begin();
     while (!pFrom->fDisconnect && it != pFrom->vRecvMsg.end()) {

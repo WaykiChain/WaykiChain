@@ -2512,6 +2512,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
 
     Object obj;
     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+
     return obj;
 }
 
