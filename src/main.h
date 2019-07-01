@@ -630,7 +630,7 @@ extern CCacheDBManager *pCdMan;
 extern int nSyncTipHeight;
 
 extern std::tuple<bool, boost::thread *> RunCoin(int argc, char *argv[]);
-extern bool WriteBlockLog(bool falg, string suffix);
+extern bool WriteBlockLog(bool flag, string suffix);
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex);
 
