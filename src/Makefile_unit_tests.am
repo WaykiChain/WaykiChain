@@ -1,0 +1,34 @@
+# include by Makefile.am
+
+#AM_CPPFLAGS += -I$(top_srcdir)/src
+
+bin_PROGRAMS += unit_test
+
+JSON_UNIT_TEST_FILES = 
+
+
+# test_dspay binary #
+unit_test_CPPFLAGS = $(AM_CPPFLAGS) $(TESTDEFS) $(LIBSECP256K1_CPPFLAGS)
+unit_test_LDADD = \
+  libcoin_server.a \
+  libcoin_wallet.a \
+  libcoin_cli.a \
+  libcoin_common.a \
+  liblua53.a \
+  $(LIBLEVELDB) \
+  $(LIBMEMENV) \
+  $(BOOST_LIBS) \
+  $(BOOST_UNIT_TEST_FRAMEWORK_LIB) \
+  $(EVENT_PTHREADS_LIBS) \
+  $(EVENT_LIBS) \
+  $(LIBSECP256K1)
+#if ENABLE_WALLET
+#unit_test_LDADD += $(LIBBITCOIN_WALLET)
+#endif
+unit_test_LDADD += $(BDB_LIBS)
+
+unit_test_SOURCES = \
+  unit_tests/dbaccess_tests.cpp \
+  unit_tests/unit_tests.cpp \
+  $(JSON_UNIT_TEST_FILES)
+  
