@@ -9,9 +9,17 @@
 
 #include <math.h>
 
-string CCDPStakeTx::ToString(CAccountDBCache &view) {
-    //TODO
-    return "";
+string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
+    CKeyID keyId;
+    accountCache.GetKeyId(txUid, keyId);
+
+    string str = strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", GetTxType(nTxType),
+                     GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString());
+
+    str += strprintf("cdpTxId=%s, bcoinsToStake=%d, collateralRatio=%d, scoinsInterest=%d",
+                    cdpTxId, bcoinsToStake, collateralRatio, scoinsInterest);
+
+    return str;
 }
 
 Object CCDPStakeTx::ToJson(const CAccountDBCache &AccountView) const {
@@ -183,8 +191,16 @@ bool CCDPStakeTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
 
 /************************************<< CCDPRedeemTx >>***********************************************/
 string CCDPRedeemTx::ToString(CAccountDBCache &view) {
-     //TODO
-     return "";
+    CKeyID keyId;
+    accountCache.GetKeyId(txUid, keyId);
+
+    string str = strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", GetTxType(nTxType),
+                     GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString());
+
+    str += strprintf("cdpTxId=%s, scoinsToRedeem=%d, collateralRatio=%d, scoinsInterest=%d",
+                    cdpTxId, scoinsToRedeem, collateralRatio, scoinsInterest);
+
+    return str;
  }
  Object CCDPRedeemTx::ToJson(const CAccountDBCache &AccountView) const {
      //TODO
@@ -331,8 +347,16 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
 
 /************************************<< CdpLiquidateTx >>***********************************************/
 string CCDPLiquidateTx::ToString(CAccountDBCache &view) {
-    //TODO
-    return "";
+    CKeyID keyId;
+    accountCache.GetKeyId(txUid, keyId);
+
+    string str = strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", GetTxType(nTxType),
+                    GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString());
+
+    str += strprintf("cdpTxId=%s, scoinsToLiquidate=%d, scoinsPenalty=%d",
+                    cdpTxId, scoinsToRedeem, collateralRatio, scoinsPenalty);
+
+    return str;
 }
 Object CCDPLiquidateTx::ToJson(const CAccountDBCache &AccountView) const {
     //TODO
