@@ -33,20 +33,20 @@ private:
     size_t nTxSize; // ... and avoid recomputing tx size
     int64_t nTime; // Local time when entering the mempool
     double dPriority; // Priority when entering the mempool
-    unsigned int nHeight; // Chain height when entering the mempool
+    uint32_t nHeight; // Chain height when entering the mempool
 
 public:
-    CTxMemPoolEntry(CBaseTx *ptx, int64_t _nFee,
-                    int64_t _nTime, double _dPriority, unsigned int _nHeight);
+    CTxMemPoolEntry(CBaseTx *ptx, int64_t fee,
+                    int64_t time, double priority, uint32_t height);
     CTxMemPoolEntry();
     CTxMemPoolEntry(const CTxMemPoolEntry& other);
 
     std::shared_ptr<CBaseTx> GetTx() const { return pTx;}
-    double GetPriority(unsigned int currentHeight) const;
+    double GetPriority(uint32_t currentHeight) const;
     int64_t GetFee() const { return nFee; }
     size_t GetTxSize() const { return nTxSize; }
     int64_t GetTime() const { return nTime; }
-    unsigned int GetHeight() const { return nHeight; }
+    uint32_t GetHeight() const { return nHeight; }
 };
 
 /*
@@ -63,7 +63,7 @@ class CTxMemPool
 {
 private:
     bool fSanityCheck; // Normally false, true if -checkmempool or -regtest
-    unsigned int nTransactionsUpdated;  //TODO meaning
+    uint32_t nTransactionsUpdated;  //TODO meaning
 public:
     mutable CCriticalSection cs;
     map<uint256, CTxMemPoolEntry > memPoolTxs;
@@ -77,8 +77,8 @@ public:
     void Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> > &removed, bool fRecursive = false);
     void Clear();
     void QueryHash(vector<uint256> &vtxid);
-    unsigned int GetUpdatedTransactionNum() const;
-    void AddUpdatedTransactionNum(unsigned int n);
+    uint32_t GetUpdatedTransactionNum() const;
+    void AddUpdatedTransactionNum(uint32_t n);
     std::shared_ptr<CBaseTx> Lookup(uint256 hash) const;
     void SetAccountCache(CAccountDBCache *pAccountCacheIn);
     void SetContractCache(CContractDBCache *pContractCacheIn);
