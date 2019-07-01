@@ -203,7 +203,7 @@ public:
     json_spirit::Object ToJson() const {
         json_spirit::Object obj;
         string id = ToString();
-        obj.push_back(json_spirit::Pair("idType", GetIDName()));
+        obj.push_back(json_spirit::Pair("id_type", GetIDName()));
         obj.push_back(json_spirit::Pair("id", id));
         return obj;
     }
@@ -293,8 +293,8 @@ public:
         }
 
         if (invalidId) {
-            LogPrint("ERROR", "Invalid Unserialize CUserId\n");
-            throw ios_base::failure("Unserialize CUserId error");
+            LogPrint("ERROR", "Invalid Unserialize CUserID\n");
+            throw ios_base::failure("Unserialize CUserID error");
         }
     }
 };
