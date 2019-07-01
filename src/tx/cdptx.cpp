@@ -36,6 +36,8 @@ bool CCDPStakeTx::SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, 
         return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
+
+    return true;
 }
 
 // CDP owner can redeem his or her CDP that are in liquidation list
@@ -107,12 +109,12 @@ bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
                         txUid.ToString()), READ_ACCOUNT_FAIL, "account-not-CDP-owner");
         }
 
-        if (nHeight < cdp.blockHeight) {
+        if (nHeight < (uint64_t) cdp.blockHeight) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, nHeight: %d < cdp.blockHeight: %d",
                     nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
         }
 
-        int currentCollateralRatio = cdp.totalStakedBcoins * cw.ppCache.GetBcoinMedianPrice() * kPercentBoost / cdp.totalOwedScoins;
+        uint64_t currentCollateralRatio = cdp.totalStakedBcoins * cw.ppCache.GetBcoinMedianPrice() * kPercentBoost / cdp.totalOwedScoins;
         if ( collateralRatio < currentCollateralRatio  && collateralRatio < kStartingCdpCollateralRatio) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, currentCollateralRatio: %d vs new CollateralRatio: %d not allowed",
                             currentCollateralRatio, collateralRatio), REJECT_INVALID, "collateral-ratio-error");
@@ -262,7 +264,7 @@ bool CCDPRedeemTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, txUid(%s) not CDP owner",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "account-not-CDP-owner");
         }
-        if (nHeight < cdp.blockHeight) {
+        if (nHeight < (uint64_t) cdp.blockHeight) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, nHeight: %d < cdp.blockHeight: %d",
                     nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
         }
@@ -338,7 +340,7 @@ bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) 
     //TODO
     return true;
 }
-bool CCDPLiquidateTx::SellPenaltyForFcoins(int scoinPenaltyToSysFund, const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
+bool CCDPLiquidateTx::SellPenaltyForFcoins(uint64_t scoinPenaltyToSysFund, const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
 
     if (scoinsPenalty < scoinPenaltyToSysFund) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoinsPenalty %d < SellPenaltyForFcoins %d",
@@ -422,6 +424,7 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
     CAccountLog acctLog(account); //save account state before modification
+    cw.txUndo.accountLogs.push_back(acctLog);
 
     //1. pay miner fees (WICC)
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
@@ -440,7 +443,8 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP Owner txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccountLog acctLog(cdpOwnerAccount); //save account state before modification
+    CAccountLog cdpAcctLog(cdpOwnerAccount); //save account state before modification
+    cw.txUndo.accountLogs.push_back(cdpAcctLog);
 
     int collateralRatio = (double) cdp.totalStakedBcoins * cw.ppCache.GetBcoinMedianPrice() * kPercentBoost
                             / cdp.totalOwedScoins;
@@ -470,11 +474,9 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         //Although not likely to happen. but if it does, execute it accordingly.
         totalScoinsToLiquidate = cdp.totalOwedScoins; //N
         totalScoinsToReturnLiquidator = (double) cdp.totalStakedBcoins / cw.ppCache.GetBcoinMedianPrice(); //M
-        if (scoinsToLiquidate >= cdp.totalOwedScoins) {
-
-        } else {
+        if (scoinsToLiquidate < cdp.totalOwedScoins) {
             totalScoinsToReturnLiquidator = scoinsToLiquidate * kPercentBoost / kCdpLiquidateDiscountRate;
-            uint64_t totalCdpStakeInScoins = cdp.totalStakedBcoins * cw.ppCache.GetBcoinMedianPrice()
+            uint64_t totalCdpStakeInScoins = cdp.totalStakedBcoins * cw.ppCache.GetBcoinMedianPrice();
             if (totalCdpStakeInScoins < totalScoinsToReturnLiquidator) {
                 totalScoinsToReturnLiquidator = totalCdpStakeInScoins;
             }
@@ -490,7 +492,7 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
 
         cdpOwnerAccount.bcoins += totalBcoinsToCDPOwner;
 
-        if (!SellPenaltyForFcoins(totalScoinsToReturnSysFund, nHeight, cdp, cw, state))
+        if (!SellPenaltyForFcoins((uint64_t) totalScoinsToReturnSysFund, nHeight, cdp, cw, state))
             return false;
 
         //close CDP
@@ -509,7 +511,7 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         cdp.totalOwedScoins -= scoinsToLiquidate;
         cdp.totalStakedBcoins -= bcoinsToCDPOwner;
 
-        int scoinsToReturnSysFund = totalScoinsToReturnSysFund * liquidateRate;
+        uint64_t scoinsToReturnSysFund = totalScoinsToReturnSysFund * liquidateRate;
         if (!SellPenaltyForFcoins(scoinsToReturnSysFund, nHeight, cdp, cw, state))
             return false;
 

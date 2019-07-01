@@ -122,13 +122,14 @@ public:
     CCdpDBCache(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
 
     bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins, CUserCDP &cdp);
-    bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins, CUserCDP &cdp, 
+    bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins, CUserCDP &cdp,
                         CDBOpLogMap &dbOpLogMap);
 
     bool GetCdp(CUserCDP &cdp);
     bool SaveCdp(CUserCDP &cdp); //first-time cdp creation
     bool SaveCdp(CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
     bool EraseCdp(const CUserCDP &cdp);
+    bool EraseCdp(const CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
     bool UndoCdp(CDBOpLogMap &dbOpLogMap) { return cdpCache.UndoData(dbOpLogMap);  }
 
     uint64_t ComputeInterest(int32_t blockHeight, const CUserCDP &cdp);
