@@ -10,36 +10,13 @@
 #include <math.h>
 
 string CCDPStakeTx::ToString(CAccountDBCache &view) {
-    string str = strprintf(
-            "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
-            "txCord=%s, coinsToStake=%lld, collateralRatio=%lld, fcoinsInterest=%lld, scoinsInterest=%lld\n",
-            GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
-            cdpTxCord.ToString(), bcoinsToStake, collateralRatio, fcoinsInterest, scoinsInterest);
-
-    return str;
+    //TODO
+    return "";
 }
 
 Object CCDPStakeTx::ToJson(const CAccountDBCache &AccountView) const {
-    Object result;
-
-    CKeyID keyid;
-    view.GetKeyId(txUid, keyid);
-    
-    result.push_back(Pair("tx_hash",            GetHash().GetHex()));
-    result.push_back(Pair("tx_type",            GetTxType(nTxType)));
-    result.push_back(Pair("ver",                nVersion));
-    result.push_back(Pair("tx_uid",             txUid.ToString()));
-    result.push_back(Pair("tx_addr",            keyid.ToAddress()));
-    result.push_back(Pair("valid_height",       nValidHeight));
-    result.push_back(Pair("fees",               llFees));
-
-    result.push_back(Pair("tx_crod",            cdpTxCord.ToString()));
-    result.push_back(Pair("base_coin_amount",   bcoinsToStake));
-    result.push_back(Pair("ratio",              collateralRatio));
-    result.push_back(Pair("fcoins_interest",    fcoinsInterest));
-    result.push_back(Pair("scoins_interest",    scoinsInterest));
-
-    return result;
+    //TODO
+    return Object();
 }
 
 bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
@@ -206,32 +183,12 @@ bool CCDPStakeTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
 
 /************************************<< CCDPRedeemTx >>***********************************************/
 string CCDPRedeemTx::ToString(CAccountDBCache &view) {
-    return strprintf(
-            "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
-            "txCord=%s, redeemAmount=%lld, collateralRatio=%lld, fcoinsInterest=%lld\n",
-            GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
-            cdpTxCord.ToString(), scoinsToRedeem, collateralRatio, fcoinsInterest);
+     //TODO
+     return "";
  }
  Object CCDPRedeemTx::ToJson(const CAccountDBCache &AccountView) const {
-    Object result;
-
-    CKeyID keyid;
-    view.GetKeyId(txUid, keyid);
-    
-    result.push_back(Pair("tx_hash",            GetHash().GetHex()));
-    result.push_back(Pair("tx_type",            GetTxType(nTxType)));
-    result.push_back(Pair("ver",                nVersion));
-    result.push_back(Pair("tx_uid",             txUid.ToString()));
-    result.push_back(Pair("tx_addr",            keyid.ToAddress()));
-    result.push_back(Pair("valid_height",       nValidHeight));
-    result.push_back(Pair("fees",               llFees));
-
-    result.push_back(Pair("tx_crod",            cdpTxCord.ToString()));
-    result.push_back(Pair("redeem_amount",      scoinsToRedeem));
-    result.push_back(Pair("ratio",              collateralRatio));
-    result.push_back(Pair("fcoins_interest",    fcoinsInterest));
-
-    return result;
+     //TODO
+     return Object();
  }
  bool CCDPRedeemTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
      //TODO
@@ -374,32 +331,12 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
 
 /************************************<< CdpLiquidateTx >>***********************************************/
 string CCDPLiquidateTx::ToString(CAccountDBCache &view) {
-    return strprintf(
-        "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
-        "txCord=%s, liquidateAmount=%lld, fcoinsPenalty=%lld, scoinsPenalty=%lld\n",
-        GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
-        cdpTxCord.ToString(), scoinsToLiquidate, fcoinsPenalty, scoinsPenalty);
+    //TODO
+    return "";
 }
 Object CCDPLiquidateTx::ToJson(const CAccountDBCache &AccountView) const {
-    Object result;
-
-    CKeyID keyid;
-    view.GetKeyId(txUid, keyid);
-    
-    result.push_back(Pair("tx_hash",            GetHash().GetHex()));
-    result.push_back(Pair("tx_type",            GetTxType(nTxType)));
-    result.push_back(Pair("ver",                nVersion));
-    result.push_back(Pair("tx_uid",             txUid.ToString()));
-    result.push_back(Pair("tx_addr",            keyid.ToAddress()));
-    result.push_back(Pair("valid_height",       nValidHeight));
-    result.push_back(Pair("fees",               llFees));
-
-    result.push_back(Pair("tx_crod",            cdpTxCord.ToString()));
-    result.push_back(Pair("liquidate_amount",   scoinsToLiquidate));
-    result.push_back(Pair("fcoins_penalty",     fcoinsPenalty));
-    result.push_back(Pair("scoins_penalty",     scoinsPenalty));
-
-    return result;
+    //TODO
+    return Object();
 }
 bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     //TODO
