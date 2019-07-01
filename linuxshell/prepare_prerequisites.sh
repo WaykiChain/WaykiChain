@@ -35,6 +35,9 @@ case "$ARCH" in
           exit 1
         fi
 
+        printf "Install software-properties-common ...\\n"
+        apt-get install software-properties-common -y
+
         printf "Add bitcoin PPA ...\\n"
         sudo add-apt-repository ppa:bitcoin/bitcoin -y
 
@@ -45,7 +48,7 @@ case "$ARCH" in
         sudo apt-get install -y build-essential libtool autotools-dev automake pkg-config libssl-dev \
         libevent-dev bsdmainutils python3 libboost-system-dev libboost-filesystem-dev \
         libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev \
-        software-properties-common libdb4.8-dev libdb4.8++-dev git
+        libdb4.8-dev libdb4.8++-dev git
       ;;
       "CentOS Linux")
         if [ "${OS_MAJ}" -lt 7 ]; then
