@@ -29,6 +29,7 @@
 #include "persistence/cachewrapper.h"
 #include "persistence/delegatedb.h"
 #include "persistence/dexdb.h"
+#include "persistence/logdb.h"
 #include "persistence/pricefeeddb.h"
 #include "persistence/txdb.h"
 #include "sigcache.h"

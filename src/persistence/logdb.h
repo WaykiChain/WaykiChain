@@ -20,9 +20,9 @@
 using namespace std;
 
 // TODO: should erase history log?
-class CDBLog {
+class CLogDBCache {
 public:
-    CDBLog(CDBAccess *pDbAccess) : executeFailCache(pDbAccess){};
+    CLogDBCache(CDBAccess *pDbAccess) : executeFailCache(pDbAccess){};
 
 public:
     bool SetExecuteFail(const int32_t blockHeight, const uint256 txid, uint8_t errorCode, string &errorMessage);

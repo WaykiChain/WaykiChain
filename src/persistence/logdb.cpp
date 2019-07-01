@@ -5,12 +5,12 @@
 
 #include "logdb.h"
 
-bool CDBLog::SetExecuteFail(const int32_t blockHeight, const uint256 txid, uint8_t errorCode, string &errorMessage) {
+bool CLogDBCache::SetExecuteFail(const int32_t blockHeight, const uint256 txid, uint8_t errorCode, string &errorMessage) {
     return executeFailCache.SetData(std::to_string(blockHeight) + "_" + txid.GetHex(),
                                    std::make_pair(errorCode, errorMessage));
 }
 
-bool CDBLog::GetExecuteFail(const int32_t blockHeight, vector<std::tuple<uint256, uint8_t, string> > &result) {
+bool CLogDBCache::GetExecuteFail(const int32_t blockHeight, vector<std::tuple<uint256, uint8_t, string> > &result) {
     map<string, std::pair<uint8_t, string> > elements;
     if (!executeFailCache.GetAllElements(std::to_string(blockHeight) + "_", elements)) {
         return false;
@@ -26,6 +26,6 @@ bool CDBLog::GetExecuteFail(const int32_t blockHeight, vector<std::tuple<uint256
     return true;
 }
 
-void CDBLog::Flush() {
+void CLogDBCache::Flush() {
     executeFailCache.Flush();
 }

@@ -1444,7 +1444,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         return state.DoS(100, ERRORMSG("ConnectBlock() : the block Hash=%s check pos tx error",
                         block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
 
-    CBlockUndo blockundo;
+    CBlockUndo blockUndo;
     int64_t nStart = GetTimeMicros();
     CDiskTxPos pos(pIndex->GetBlockPos(), GetSizeOfCompactSize(block.vptx.size()));
     std::vector<pair<uint256, CDiskTxPos> > vPos;
@@ -1493,7 +1493,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                      nTotalFuel, llFuel, pBaseTx->nRunStep, block.GetFuelRate(), pBaseTx->GetHash().GetHex());
             vPos.push_back(make_pair(block.GetTxHash(i), pos));
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
-            blockundo.vtxundo.push_back(cw.txUndo);
+            blockUndo.vtxundo.push_back(cw.txUndo);
         }
 
         if (nTotalFuel != block.GetFuel())
@@ -1538,7 +1538,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (!block.vptx[0]->ExecuteTx(pIndex->nHeight, 0, cw, state))
         return ERRORMSG("ConnectBlock() : execute reward tx error!");
 
-    blockundo.vtxundo.push_back(cw.txUndo);
+    blockUndo.vtxundo.push_back(cw.txUndo);
 
     if (pIndex->nHeight - COINBASE_MATURITY > 0) {
         // Deal mature block reward transaction
@@ -1558,7 +1558,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             if (!matureBlock.vptx[0]->ExecuteTx(pIndex->nHeight, -1, cw, state))
                 return ERRORMSG("ConnectBlock() : execute mature block reward tx error!");
         }
-        blockundo.vtxundo.push_back(cw.txUndo);
+        blockUndo.vtxundo.push_back(cw.txUndo);
     }
     int64_t nTime = GetTimeMicros() - nStart;
     if (SysCfg().IsBenchmark())
@@ -1571,7 +1571,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (SysCfg().IsTxIndex()) {
         LogPrint("DEBUG", "add tx index, block hash:%s\n", pIndex->GetBlockHash().GetHex());
         vector<CDbOpLog> vTxIndexOperDB;
-        auto itTxUndo = blockundo.vtxundo.rbegin();
+        auto itTxUndo = blockUndo.vtxundo.rbegin();
         // TODO: should move to blockTxCache?
         if (!cw.contractCache.WriteTxIndexes(vPos, itTxUndo->dbOpLogMap))
             return state.Abort(_("Failed to write transaction index"));
@@ -1582,10 +1582,10 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (pIndex->GetUndoPos().IsNull() || (pIndex->nStatus & BLOCK_VALID_MASK) < BLOCK_VALID_SCRIPTS) {
         if (pIndex->GetUndoPos().IsNull()) {
             CDiskBlockPos pos;
-            if (!FindUndoPos(state, pIndex->nFile, pos, ::GetSerializeSize(blockundo, SER_DISK, CLIENT_VERSION) + 40))
+            if (!FindUndoPos(state, pIndex->nFile, pos, ::GetSerializeSize(blockUndo, SER_DISK, CLIENT_VERSION) + 40))
                 return ERRORMSG("ConnectBlock() : failed to find undo data's position");
 
-            if (!blockundo.WriteToDisk(pos, pIndex->pprev->GetBlockHash()))
+            if (!blockUndo.WriteToDisk(pos, pIndex->pprev->GetBlockHash()))
                 return state.Abort(_("ConnectBlock() : failed to write undo data"));
 
             // Update nUndoPos in block index
