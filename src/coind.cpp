@@ -131,7 +131,8 @@ std::tuple<bool, boost::thread*> RunCoin(int argc, char* argv[]) {
     detectShutdownThread = new boost::thread(boost::bind(&DetectShutdownThread, &threadGroup));
 
     if (!fRet) {
-        if (detectShutdownThread) detectShutdownThread->interrupt();
+        if (detectShutdownThread)
+            detectShutdownThread->interrupt();
         Interrupt();
         threadGroup.interrupt_all();
 
