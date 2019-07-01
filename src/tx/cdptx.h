@@ -83,7 +83,7 @@ private:
 private:
     uint256 cdpTxId;
     uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
-    uint64_t collateralRatio;       // initial value must be >= 200 (%)
+    uint64_t collateralRatio;       // initial value must be >= 200 (%), boosted by 10000
     uint64_t scoinsInterest;
 
 };

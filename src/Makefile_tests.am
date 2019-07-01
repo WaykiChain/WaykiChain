@@ -23,11 +23,11 @@ RAW_TEST_FILES = tests/data/alertTests.raw.h
 # test_dspay binary #
 coin_test_CPPFLAGS = $(AM_CPPFLAGS) $(TESTDEFS) $(LIBSECP256K1_CPPFLAGS)
 coin_test_LDADD = \
-  $(LIBBITCOIN_SERVER) \
-  $(LIBBITCOIN_WALLET) \
-  $(LIBBITCOIN_CLI) \
-  $(LIBBITCOIN_COMMON) \
-  $(LIBLUA53) \
+  libcoin_server.a \
+  libcoin_wallet.a \
+  libcoin_cli.a \
+  libcoin_common.a \
+  liblua53.a \
   $(LIBLEVELDB) \
   $(LIBMEMENV) \
   $(BOOST_LIBS) \

@@ -55,8 +55,8 @@ enum BalanceOpType : uint8_t {
 
 class CAccount {
 public:
-    CKeyID keyId;         //!< KeyID of the account (interchangeable to address)
-    CRegID regId;         //!< RegID of the account
+    CKeyID keyId;         //!< KeyID of the account (interchangeable to address) : 20 Bytes
+    CRegID regId;         //!< RegID of the account: 6 Bytes
     CNickID nickId;       //!< Nickname ID of the account (maxlen=32)
     CPubKey pubKey;       //!< account public key
     CPubKey minerPubKey;  //!< miner saving account public key

@@ -28,6 +28,11 @@ public:
     // for key-value
     template<typename K, typename V>
     void Set(const K& keyIn, const V& valueIn){
+        
+        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        ssKey << keyIn;
+        key = ssKey.str();
+        
         CDataStream ssValue(SER_DISK, CLIENT_VERSION);
         ssValue << valueIn;
         value = ssValue.str();
@@ -44,7 +49,9 @@ public:
     // for key-value
     template<typename K, typename V>
     void Get(K& keyOut, V& valueOut) const {
-        dbk::ParseDbKey(key, dbk::EMPTY, keyOut);
+        CDataStream ssKey(key, SER_DISK, CLIENT_VERSION);
+        ssKey >> keyOut;
+
         CDataStream ssValue(value, SER_DISK, CLIENT_VERSION);
         ssValue >> valueOut;
     }

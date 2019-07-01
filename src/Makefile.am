@@ -350,6 +350,10 @@ if BUILD_TESTS
 include Makefile_tests.am
 endif
 
+if BUILD_UNIT_TESTS
+include Makefile_unit_tests.am
+endif
+
 # NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
 $(LIBLEVELDB): $(LIBMEMENV)
 

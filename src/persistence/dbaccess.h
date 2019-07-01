@@ -9,6 +9,8 @@
 #include "dbconf.h"
 #include "leveldbwrapper.h"
 
+#include <string>
+#include <vector>
 #include <tuple>
 
 /**
@@ -415,13 +417,13 @@ public:
             return false;
         }
         auto it = GetDataIt(key);
-        if (it != mapData.end()) {
+        if (it == mapData.end()) {
             auto emptyValue = db_util::MakeEmptyValue<ValueType>();
             auto newRet = mapData.emplace(key, *emptyValue); // create new empty value
             assert(newRet.second); // TODO: if false then throw error
             it = newRet.first;
         }
-        dbOpLog.Set(key, value);
+        dbOpLog.Set(key, it->second);
         it->second = value;
         return true;
     };

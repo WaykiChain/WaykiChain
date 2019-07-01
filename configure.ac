@@ -73,6 +73,11 @@ AC_ARG_ENABLE(tests,
     [use_tests=$enableval],
     [use_tests=no])
 
+AC_ARG_ENABLE(unit-tests,
+    AS_HELP_STRING([--enable-unit-tests],[compile tests (default is no)]),
+    [use_unit_tests=$enableval],
+    [use_unit_tests=no])
+
 AC_ARG_ENABLE(ptests,
     AS_HELP_STRING([--enable-ptests],[compile ptests (default is no)]),
     [use_ptests=$enableval],
@@ -438,7 +443,7 @@ AX_BOOST_PROGRAM_OPTIONS
 AX_BOOST_THREAD
 AX_BOOST_CHRONO
 
-if test x$use_tests = xyes || test x$use_ptests = xyes; then
+if test x$use_tests = xyes || test x$use_ptests = xyes || test x$use_unit_tests = xyes; then
 
   if test x$HEXDUMP = x; then
     AC_MSG_ERROR(hexdump is required for tests)
@@ -705,6 +710,13 @@ else
   AC_MSG_RESULT([no])
 fi
 
+AC_MSG_CHECKING([whether to build unit_tests])
+if test x$use_unit_tests = xyes; then
+  AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+fi
+
 AC_MSG_CHECKING([whether to build p_test])
 if test x$use_ptests = xyes; then
   AC_MSG_RESULT([yes])
@@ -727,6 +739,7 @@ AM_CONDITIONAL([USE_COMPARISON_TOOL],[test x$use_comparison_tool != xno])
 AM_CONDITIONAL([USE_COMPARISON_TOOL_REORG_TESTS],[test x$use_comparison_tool_reorg_test != xno])
 AM_CONDITIONAL([GLIBC_BACK_COMPAT],[test x$use_glibc_compat = xyes])
 AM_CONDITIONAL([BUILD_TESTS], [test x$use_tests = xyes])
+AM_CONDITIONAL([BUILD_UNIT_TESTS], [test x$use_unit_tests = xyes])
 
 AC_DEFINE(CLIENT_VERSION_MAJOR, _CLIENT_VERSION_MAJOR, [Major version])
 AC_DEFINE(CLIENT_VERSION_MINOR, _CLIENT_VERSION_MINOR, [Minor version])
