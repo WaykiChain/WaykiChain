@@ -90,11 +90,11 @@ bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
     CUserCDP cdp(txUid.get<CRegID>(), cdpTxId);
     if (!cw.cdpCache.GetCdp(cdp)) { // first-time CDP creation
         if (collateralRatio < kStartingCdpCollateralRatio) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal", collateralRatio), 
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal", collateralRatio),
                             REJECT_INVALID, "bad-tx-collateral-ratio-toosmall");
         }
 
-        cdp.cdpTxId = GetHash();
+        cdp.cdpTxId  = GetHash();
         mintedScoins = bcoinsToStake * kPercentBoost / collateralRatio;
 
         //settle cdp state & persist for the 1st-time
@@ -339,7 +339,7 @@ bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) 
     return true;
 }
 bool CCDPLiquidateTx::SellPenaltyForFcoins(int scoinPenaltyToSysFund, const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
-   
+
     if (scoinsPenalty < scoinPenaltyToSysFund) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoinsPenalty %d < SellPenaltyForFcoins %d",
                        scoinsPenalty, scoinPenaltyToSysFund), REJECT_INVALID, "bad-read-accountdb");
@@ -442,7 +442,7 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
     }
     CAccountLog acctLog(cdpOwnerAccount); //save account state before modification
 
-    int collateralRatio = (double) cdp.totalStakedBcoins * cw.ppCache.GetBcoinMedianPrice() * kPercentBoost 
+    int collateralRatio = (double) cdp.totalStakedBcoins * cw.ppCache.GetBcoinMedianPrice() * kPercentBoost
                             / cdp.totalOwedScoins;
 
     double liquidateRate; //unboosted
@@ -453,10 +453,10 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
                         collateralRatio), REJECT_INVALID, "cdp-not-liquidate-ready");
 
     } else if (collateralRatio > kNonReturnCdpLiquidateRatio) { // 1.13 ~ 1.5
-        totalScoinsToLiquidate = ((double) cdp.totalOwedScoins * kNonReturnCdpLiquidateRatio / kPercentBoost ) 
+        totalScoinsToLiquidate = ((double) cdp.totalOwedScoins * kNonReturnCdpLiquidateRatio / kPercentBoost )
                                 * kCdpLiquidateDiscountRate / kPercentBoost; //1.096N
         totalScoinsToReturnLiquidator = (double) cdp.totalOwedScoins * kNonReturnCdpLiquidateRatio / kPercentBoost; //1.13N
-        totalScoinsToReturnSysFund = ((double) cdp.totalOwedScoins * kNonReturnCdpLiquidateRatio / kPercentBoost ) 
+        totalScoinsToReturnSysFund = ((double) cdp.totalOwedScoins * kNonReturnCdpLiquidateRatio / kPercentBoost )
                                 * kCdpLiquidateDiscountRate / kPercentBoost - cdp.totalOwedScoins;
         totalBcoinsToCDPOwner = cdp.totalStakedBcoins - totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice();
 
@@ -465,7 +465,7 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         totalScoinsToLiquidate = totalScoinsToReturnLiquidator * kCdpLiquidateDiscountRate / kPercentBoost; //M * 97%
         totalScoinsToReturnSysFund = totalScoinsToLiquidate - cdp.totalOwedScoins; // M - N
         totalBcoinsToCDPOwner = cdp.totalStakedBcoins - totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice();
-       
+
     } else {                                                    // 0 ~ 1.03
         //TODO although not likely to happen. but if it does. figure below properly
         totalScoinsToReturnLiquidator = (double) cdp.totalStakedBcoins / cw.ppCache.GetBcoinMedianPrice(); //M
@@ -493,7 +493,7 @@ bool CCDPLiquidateTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         account.scoins -= scoinsToLiquidate;
         account.scoins -= scoinsPenalty;
         account.bcoins += totalScoinsToReturnLiquidator * liquidateRate / cw.ppCache.GetBcoinMedianPrice();
-        
+
         int bcoinsToCDPOwner = totalBcoinsToCDPOwner * liquidateRate;
         cdpOwnerAccount.bcoins += bcoinsToCDPOwner;
 
