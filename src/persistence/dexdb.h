@@ -79,8 +79,8 @@ public:
     CoinType        assetType;     //!< asset type
     uint64_t        coinAmount;    //!< amount of coin to buy asset
 public:
-
-    CDEXSysBuyOrder(CoinType coinTypeIn, CoinType assetTypeIn, uint64_t coinAmountIn): 
+    CDEXSysBuyOrder() {};
+    CDEXSysBuyOrder(CoinType coinTypeIn, CoinType assetTypeIn, uint64_t coinAmountIn):
                 coinType(coinTypeIn), assetType(assetTypeIn), coinAmount(coinAmountIn) {};
 
     IMPLEMENT_SERIALIZE(
@@ -101,7 +101,8 @@ public:
     uint64_t        assetAmount;    //!< amount of coin to buy asset
 
 public:
-     CDEXSysSellOrder(CoinType coinTypeIn, CoinType assetTypeIn, uint64_t assetAmountIn): 
+    CDEXSysSellOrder() {};
+    CDEXSysSellOrder(CoinType coinTypeIn, CoinType assetTypeIn, uint64_t assetAmountIn):
                 coinType(coinTypeIn), assetType(assetTypeIn), assetAmount(assetAmountIn) {};
 
     IMPLEMENT_SERIALIZE(
@@ -137,7 +138,7 @@ public:
 public:
     bool GetActiveOrder(const uint256 &orderTxId, CDEXActiveOrder& activeOrder);
     bool CreateActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);
-    bool ModifyActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);    
+    bool ModifyActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);
     bool EraseActiveOrder(const uint256 &orderTxId, CDBOpLogMap &dbOpLogMap);
     bool UndoActiveOrder(CDBOpLogMap &dbOpLogMap);
 
@@ -146,8 +147,8 @@ public:
     bool UndoSysBuyOrder(CDBOpLogMap &dbOpLogMap);
 
     bool GetSysSellOrder(const uint256 &orderTxId, CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap);
-    bool CreateSysSellOrder(const uint256 &orderTxId, const CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap); 
-    bool UndoSysSellOrder(CDBOpLogMap &dbOpLogMap); 
+    bool CreateSysSellOrder(const uint256 &orderTxId, const CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap);
+    bool UndoSysSellOrder(CDBOpLogMap &dbOpLogMap);
 
 
     bool CreateBuyOrder(uint64_t buyAmount, CoinType targetCoinType); //TODO: ... SystemBuyOrder
