@@ -245,8 +245,13 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
 
             spCW->txUndo.Clear();  // Clear first.
             CValidationState state;
-            if (!pBaseTx->ExecuteTx(pBlock->GetHeight(), i, *spCW, state))
+            if (!pBaseTx->ExecuteTx(pBlock->GetHeight(), i, *spCW, state)) {
+                if (SysCfg().IsLogFailures()) {
+                    pCdMan->pLogCache->SetExecuteFail(pBlock->GetHeight(), pBaseTx->GetHash(), state.GetRejectCode(),
+                                                      state.GetRejectReason());
+                }
                 return ERRORMSG("VerifyPosTx() : failed to execute transaction, txid=%s", pBaseTx->GetHash().GetHex());
+            }
 
             nTotalRunStep += pBaseTx->nRunStep;
             if (nTotalRunStep > MAX_BLOCK_RUN_STEP)
@@ -337,8 +342,13 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
 
             CValidationState state;
             pBaseTx->nFuelRate = nFuelRate;
-            if (!pBaseTx->ExecuteTx(nHeight, nBlockTx + 1, *spCW, state))
+            if (!pBaseTx->ExecuteTx(nHeight, nBlockTx + 1, *spCW, state)) {
+                if (SysCfg().IsLogFailures()) {
+                    pCdMan->pLogCache->SetExecuteFail(nHeight, pBaseTx->GetHash(), state.GetRejectCode(),
+                                                      state.GetRejectReason());
+                }
                 continue;
+            }
 
             // Run step limits
             if (nTotalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP)

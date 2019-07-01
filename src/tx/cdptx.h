@@ -156,10 +156,10 @@ private:
     bool SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    uint256 cdpTxId;          // CDP cdpTxId
-    uint64_t scoinsToRedeem;    // stableCoins amount to redeem or burn
-    uint64_t collateralRatio;   // must be >= 150 (%)
-    uint64_t scoinsInterest;    // stablecoin interest
+    uint256 cdpTxId;           // CDP cdpTxId
+    uint64_t scoinsToRedeem;   // stableCoins amount to redeem or burn
+    uint64_t collateralRatio;  // must be >= 150 (%)
+    uint64_t scoinsInterest;   // stablecoin interest
 };
 
 /**
@@ -234,7 +234,7 @@ private:
 
 private:
     uint256 cdpTxId;            // target CDP to liquidate
-    uint64_t scoinsToLiquidate; // partial liqudiation is allowed
+    uint64_t scoinsToLiquidate; // partial liquidation is allowed
     uint64_t scoinsPenalty;
 };
 

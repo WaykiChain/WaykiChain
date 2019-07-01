@@ -94,7 +94,7 @@ bool CCDPStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidat
                             REJECT_INVALID, "bad-tx-collateral-ratio-toosmall");
         }
 
-        cdp.cdpTxId = GetHash();
+        cdp.cdpTxId  = GetHash();
         mintedScoins = bcoinsToStake * kPercentBoost / collateralRatio;
 
         //settle cdp state & persist for the 1st-time
