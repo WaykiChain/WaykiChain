@@ -17,7 +17,7 @@ string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
                      GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString());
 
     str += strprintf("cdpTxId=%s, bcoinsToStake=%d, collateralRatio=%d, scoinsInterest=%d",
-                    cdpTxId, bcoinsToStake, collateralRatio, scoinsInterest);
+                    cdpTxId.ToString(), bcoinsToStake, collateralRatio, scoinsInterest);
 
     return str;
 }
@@ -190,7 +190,7 @@ bool CCDPStakeTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
 }
 
 /************************************<< CCDPRedeemTx >>***********************************************/
-string CCDPRedeemTx::ToString(CAccountDBCache &view) {
+string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
@@ -198,7 +198,7 @@ string CCDPRedeemTx::ToString(CAccountDBCache &view) {
                      GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString());
 
     str += strprintf("cdpTxId=%s, scoinsToRedeem=%d, collateralRatio=%d, scoinsInterest=%d",
-                    cdpTxId, scoinsToRedeem, collateralRatio, scoinsInterest);
+                    cdpTxId.ToString(), scoinsToRedeem, collateralRatio, scoinsInterest);
 
     return str;
  }
@@ -346,7 +346,7 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
  }
 
 /************************************<< CdpLiquidateTx >>***********************************************/
-string CCDPLiquidateTx::ToString(CAccountDBCache &view) {
+string CCDPLiquidateTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
@@ -354,7 +354,7 @@ string CCDPLiquidateTx::ToString(CAccountDBCache &view) {
                     GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString());
 
     str += strprintf("cdpTxId=%s, scoinsToLiquidate=%d, scoinsPenalty=%d",
-                    cdpTxId, scoinsToRedeem, collateralRatio, scoinsPenalty);
+                    cdpTxId.ToString(), scoinsToLiquidate, scoinsPenalty);
 
     return str;
 }
