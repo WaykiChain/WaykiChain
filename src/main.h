@@ -29,6 +29,7 @@
 #include "persistence/cachewrapper.h"
 #include "persistence/delegatedb.h"
 #include "persistence/dexdb.h"
+#include "persistence/logdb.h"
 #include "persistence/pricefeeddb.h"
 #include "persistence/txdb.h"
 #include "sigcache.h"
@@ -334,7 +335,8 @@ public:
     CTxMemCache         *pTxCache;
     CPricePointMemCache *pPpCache;
 
-    uint64_t            initialCollateralRatioMin = 200; //minimum collateral ratio
+    CDBAccess           *pLogDb;
+    CLogDBCache         *pLogCache;
 
 public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache, size_t nContractDBCache,
@@ -360,6 +362,8 @@ public:
         pTxCache        = new CTxMemCache();
         pPpCache        = new CPricePointMemCache();
 
+        pLogDb          = new CDBAccess(DBNameType::LOG, nAccountDBCache, false, fReIndex); //TODO fix cache size
+        pLogCache       = new CLogDBCache(pLogDb);
     }
 
     ~CCacheDBManager() {
@@ -369,16 +373,16 @@ public:
         delete pDelegateCache;  pDelegateCache = nullptr;
         delete pTxCache;        pTxCache = nullptr;
         delete pPpCache;        pPpCache = nullptr;
+        delete pCdpCache;       pCdpCache = nullptr;
+        delete pDexCache;       pDexCache = nullptr;
+        delete pLogCache;       pLogCache = nullptr;
 
         delete pAccountDb;      pAccountDb = nullptr;
         delete pContractDb;     pContractDb = nullptr;
         delete pDelegateDb;     pDelegateDb = nullptr;
         delete pBlockTreeDb;    pBlockTreeDb = nullptr;
-
-        delete pCdpCache;       pCdpCache = nullptr;
         delete pCdpDb;          pCdpDb = nullptr;
-
-        delete pDexCache;       pDexCache = nullptr;
+        delete pLogDb;          pLogDb = nullptr;
     }
 
     bool Flush() {
@@ -626,7 +630,7 @@ extern CCacheDBManager *pCdMan;
 extern int nSyncTipHeight;
 
 extern std::tuple<bool, boost::thread *> RunCoin(int argc, char *argv[]);
-extern bool WriteBlockLog(bool falg, string suffix);
+extern bool WriteBlockLog(bool flag, string suffix);
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex);
 

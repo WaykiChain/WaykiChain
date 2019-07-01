@@ -1,5 +1,5 @@
 /* src/config/coin-config.h.  Generated from coin-config.h.in by configure.  */
-/* src/coin-config.h.in.  Generated from configure.ac by autoheader.  */
+/* src/config/coin-config.h.in.  Generated from configure.ac by autoheader.  */
 
 #ifndef COIN_CONFIG_H
 

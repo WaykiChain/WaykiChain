@@ -77,6 +77,7 @@ coin_CORE_H = \
   persistence/dbaccess.h \
   persistence/dbconf.h \
   persistence/dexdb.h \
+  persistence/logdb.h \
   protocol.h \
   random.h   \
   rpc/httpserver.h \
@@ -86,16 +87,17 @@ coin_CORE_H = \
   rpc/rpcvm.h \
   support/cleanse.h \
   sigcache.h \
-  tx/merkletx.h \
   tx/accountregtx.h \
   tx/blockrewardtx.h \
   tx/blockpricemediantx.h \
   tx/bcointx.h \
+  tx/cdptx.h \
   tx/contracttx.h \
   tx/delegatetx.h \
   tx/dextx.h \
   tx/fcointx.h \
   tx/fcoinstaketx.h \
+  tx/merkletx.h \
   tx/mulsigtx.h \
   tx/multicoinblockrewardtx.h \
   tx/pricefeedtx.h \
@@ -239,6 +241,7 @@ libcoin_server_a_SOURCES = \
   tx/blockrewardtx.cpp \
   tx/blockpricemediantx.cpp \
   tx/bcointx.cpp \
+  tx/cdptx.cpp \
   tx/contracttx.cpp \
   tx/delegatetx.cpp \
   tx/dextx.cpp \
@@ -290,6 +293,7 @@ libcoin_common_a_SOURCES = \
   persistence/txdb.cpp \
   persistence/leveldbwrapper.cpp \
   persistence/dexdb.cpp \
+  persistence/logdb.cpp \
   rpc/rpcprotocol.cpp \
   support/cleanse.cpp \
   support/events.cpp \
@@ -343,7 +347,7 @@ coinlua_SOURCES = vm/lua/coinlua.c
 coinlua_CFLAGS = $(AM_CFLAGS) -fPIC -DLUA_USE_POSIX -Wl,-E -ldl
 
 if BUILD_TESTS
-include Makefile_test.am
+include Makefile_tests.am
 endif
 
 # NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race

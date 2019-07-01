@@ -21,27 +21,27 @@ using namespace std;
  * Ij =  TNj * (Hj+1 - Hj)/Y * 0.1a/Log10(1+b*TNj)
  *
  * Persisted in LDB as:
- *      cdp{$RegID}{$CTxCord} --> { lastBlockHeight, totalStakedBcoins, totalOwedScoins }
+ *      cdp{$RegID}{$CTxCord} --> { blockHeight, totalStakedBcoins, totalOwedScoins }
  *
  */
-struct CUserCdp {
-    mutable double collateralRatioBase;  // ratio = totalStakedBcoins * price / totalOwedScoins, must be >= 200%, mem-only
+struct CUserCDP {
+    mutable double collateralRatioBase;  // ratioBase = totalStakedBcoins / totalOwedScoins, mem-only
 
     CRegID ownerRegId;              // CDP Owner RegId
-    CTxCord cdpTxCord;              // Transaction coordinate
-    uint64_t lastBlockHeight;       // persisted: Hj (Hj+1 refer to current height)
+    uint256 cdpTxId;                // CDP TxID
+    int32_t blockHeight;           // persisted: Hj (Hj+1 refer to current height) - last op block height
     uint64_t totalStakedBcoins;     // persisted: total staked bcoins
     uint64_t totalOwedScoins;       // persisted: TNj = last + minted = total minted - total redempted
 
-    CUserCdp() : lastBlockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
+    CUserCDP() : blockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
-    CUserCdp(const CRegID &regId, const CTxCord &txCord)
-        : ownerRegId(regId), cdpTxCord(txCord), lastBlockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
+    CUserCDP(const CRegID &regId, const uint256 &cdpTxIdIn)
+        : ownerRegId(regId), cdpTxId(cdpTxIdIn), blockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
-    bool operator<(const CUserCdp &cdp) const {
+    bool operator<(const CUserCDP &cdp) const {
         if (collateralRatioBase == cdp.collateralRatioBase) {
             if (ownerRegId == cdp.ownerRegId)
-                return cdpTxCord < cdp.cdpTxCord;
+                return cdpTxId < cdp.cdpTxId;
             else
                 return ownerRegId < cdp.ownerRegId;
         } else {
@@ -51,8 +51,8 @@ struct CUserCdp {
 
     IMPLEMENT_SERIALIZE(
         READWRITE(ownerRegId);
-        READWRITE(cdpTxCord);
-        READWRITE(VARINT(lastBlockHeight));
+        READWRITE(cdpTxId);
+        READWRITE(VARINT(blockHeight));
         READWRITE(VARINT(totalStakedBcoins));
         READWRITE(VARINT(totalOwedScoins));
         if (fRead) {
@@ -62,22 +62,21 @@ struct CUserCdp {
 
     string ToString() {
         return strprintf(
-            "ownerRegId=%s, cdpTxCord=%s, lastBlockHeight=%d, totalStakedBcoins=%d, tatalOwedScoins=%d, "
+            "ownerRegId=%s, cdpTxId=%s, blockHeight=%d, totalStakedBcoins=%d, tatalOwedScoins=%d, "
             "collateralRatioBase=%f",
-            ownerRegId.ToString(), cdpTxCord.ToString(), lastBlockHeight, totalStakedBcoins, totalOwedScoins,
+            ownerRegId.ToString(), cdpTxId.ToString(), blockHeight, totalStakedBcoins, totalOwedScoins,
             collateralRatioBase);
     }
 
     bool IsEmpty() const {
-        // FIXME: ownerRegID/cdpTxCord set empty?
-        return lastBlockHeight == 0 && totalStakedBcoins == 0 && totalOwedScoins == 0;
+        return cdpTxId.IsEmpty();
     }
 
     void SetEmpty() {
-        // FIXME: ownerRegID/cdpTxCord set empty?
-        lastBlockHeight   = 0;
-        totalStakedBcoins = 0;
-        totalOwedScoins   = 0;
+        cdpTxId             = uint256();
+        blockHeight         = 0;
+        totalStakedBcoins   = 0;
+        totalOwedScoins     = 0;
     }
 };
 
@@ -88,29 +87,29 @@ public:
     // Only apply to construct the global mem-cache.
     CCdpMemCache(CDBAccess *pAccessIn) : pAccess(pAccessIn) {}
 
-    uint16_t GetGlobalCollateralRatio(const uint64_t price) const;
+    uint16_t GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const;
     uint64_t GetGlobalCollateral() const;
 
     bool LoadCdps();
     void Flush();
 
     // Usage: before modification, erase the old cdp; after modification, save the new cdp.
-    bool SaveCdp(const CUserCdp &userCdp);
-    bool EraseCdp(const CUserCdp &userCdp);
+    bool SaveCdp(const CUserCDP &userCdp);
+    bool EraseCdp(const CUserCDP &userCdp);
 
     bool GetUnderLiquidityCdps(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
-                               set<CUserCdp> &userCdps);
+                               set<CUserCDP> &userCdps);
     bool GetForceSettleCdps(const uint16_t forceLiquidateRatio, const uint64_t bcoinMedianPrice,
-                            set<CUserCdp> &userCdps);
+                            set<CUserCDP> &userCdps);
 
 private:
-    bool GetCdps(const double ratio, set<CUserCdp> &expiredCdps, set<CUserCdp> &userCdps);
-    bool GetCdps(const double ratio, set<CUserCdp> &userCdps);
+    bool GetCdps(const double ratio, set<CUserCDP> &expiredCdps, set<CUserCDP> &userCdps);
+    bool GetCdps(const double ratio, set<CUserCDP> &userCdps);
 
-    void BatchWrite(const map<CUserCdp, uint8_t> &cdpsIn);
+    void BatchWrite(const map<CUserCDP, uint8_t> &cdpsIn);
 
 private:
-    map<CUserCdp, uint8_t> cdps;  // map: CUserCdp -> flag(0: valid; 1: invalid)
+    map<CUserCDP, uint8_t> cdps;  // map: CUserCDP -> flag(0: valid; 1: invalid)
     uint64_t totalStakedBcoins = 0;
     uint64_t totalOwedScoins   = 0;
     CCdpMemCache *pBase        = nullptr;
@@ -122,32 +121,33 @@ public:
     CCdpDBCache() {}
     CCdpDBCache(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
 
-    bool StakeBcoinsToCdp(const CRegID &regId, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
-                          const int32_t blockHeight, CUserCdp &cdp, CDBOpLogMap &dbOpLogMap);
+    bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins, CUserCDP &cdp);
+    bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins, CUserCDP &cdp,
+                        CDBOpLogMap &dbOpLogMap);
 
-    bool GetCdp(CUserCdp &cdp);
-    bool SaveCdp(CUserCdp &cdp, CDBOpLogMap &dbOpLogMap);
-    bool EraseCdp(const CUserCdp &cdp);
-    bool UndoCdp(CDBOpLogMap &dbOpLogMap) { /*return cdpCache.UndoData(opLog);*/ return false;  } // TODO:
+    bool GetCdp(CUserCDP &cdp);
+    bool SaveCdp(CUserCDP &cdp); //first-time cdp creation
+    bool SaveCdp(CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
+    bool EraseCdp(const CUserCDP &cdp);
+    bool EraseCdp(const CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
+    bool UndoCdp(CDBOpLogMap &dbOpLogMap) { return cdpCache.UndoData(dbOpLogMap);  }
 
-    uint64_t ComputeInterest(int32_t blockHeight, const CUserCdp &cdp);
+    uint64_t ComputeInterest(int32_t blockHeight, const CUserCDP &cdp);
 
-    // When true, CDP cannot be further operated
-    bool GetGlobalCDPLock(const uint64_t price) ;
-    // When true, WICC/WUSD cannot be loaned/minted further.
-    bool CheckGlobalCollateralCeilingExceeded(const uint64_t newBcoinsToStake) const;
+    bool CheckGlobalCollateralFloorReached(const uint64_t bcoinMedianPrice);
+    bool CheckGlobalCollateralCeilingReached(const uint64_t newBcoinsToStake);
 
-    uint16_t GetDefaultCollateralRatio() {
+    uint16_t GetStartingCollateralRatio() {
         uint16_t ratio = 0;
-        return collateralRatio.GetData(ratio) ? ratio : kDefaultCollateralRatio;
+        return collateralRatio.GetData(ratio) ? ratio : kStartingCdpCollateralRatio;
     }
-    uint16_t GetDefaultOpenLiquidateRatio() {
+    uint16_t GetStartingLiquidateRatio() {
         uint16_t ratio = 0;
-        return openLiquidateRatio.GetData(ratio) ? ratio : kDefaultOpenLiquidateRatio;
+        return openLiquidateRatio.GetData(ratio) ? ratio : kStartingCdpLiquidateRatio;
     }
     uint16_t GetDefaultForceLiquidateRatio() {
         uint16_t ratio = 0;
-        return forceLiquidateRatio.GetData(ratio) ? ratio : kDefaultForcedLiquidateRatio;
+        return forceLiquidateRatio.GetData(ratio) ? ratio : kForcedCdpLiquidateRatio;
     }
     uint16_t GetDefaultInterestParamA() {
         uint16_t paramA = 0;
@@ -165,8 +165,6 @@ private:
 
 /*   CDBScalarValueCache   prefixType                 value                 variable               */
 /*  -------------------- --------------------------  ------------------   ------------------------ */
-    // globalCDPHaltState
-    CDBScalarValueCache< dbk::CDP_GLOBAL_HALT,  bool>                    cdpGlobalHalt;
     // collateralRatio
     CDBScalarValueCache< dbk::CDP_COLLATERAL_RATIO,  uint16_t>           collateralRatio;
     // openLiquidateRatio
@@ -180,8 +178,8 @@ private:
 
 /*  CDBMultiValueCache     prefixType     key                               value        variable  */
 /*  ----------------   --------------   ---------------------------   ---------------    --------- */
-    // <CRegID, CTxCord> -> CUserCdp
-    CDBMultiValueCache< dbk::CDP,         std::pair<string, string>,   CUserCdp >       cdpCache;
+    // <CRegID, CTxCord> -> CUserCDP
+    CDBMultiValueCache< dbk::CDP,         std::pair<string, uint256>,   CUserCDP >       cdpCache;
 };
 
 #endif  // PERSIST_CDPDB_H

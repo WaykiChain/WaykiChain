@@ -1089,7 +1089,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
             return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the calculated coin amount out of range"),
                             REJECT_INVALID, "coins-out-range");
         }
-        if ((calcCoinAmount / kPencentBoost) != (dealItem.dealCoinAmount / kPencentBoost)) {
+        if ((calcCoinAmount / kPercentBoost) != (dealItem.dealCoinAmount / kPercentBoost)) {
             return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the dealCoinAmount not match"),
                             REJECT_INVALID, "deal-coin-amount-unmatch");
         }
@@ -1131,12 +1131,12 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
         uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
         if (activeBuyOrder.generateType == USER_GEN_ORDER) {
-            uint64_t dealAssetFee = dealItem.dealAssetAmount * kDefaultDexDealFeeRatio / kPencentBoost;
+            uint64_t dealAssetFee = dealItem.dealAssetAmount * kDefaultDexDealFeeRatio / kPercentBoost;
             buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
             // TODO: add dealAssetFee and dealAssetFee to current tx feeMap
         }
         if (activeSellOrder.generateType == USER_GEN_ORDER) {
-            uint64_t dealCoinFee = dealItem.dealCoinAmount * kDefaultDexDealFeeRatio / kPencentBoost;
+            uint64_t dealCoinFee = dealItem.dealCoinAmount * kDefaultDexDealFeeRatio / kPercentBoost;
             sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
             // TODO: add dealCoinFee and dealAssetFee to current tx feeMap
         }

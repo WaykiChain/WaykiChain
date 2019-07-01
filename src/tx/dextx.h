@@ -137,7 +137,7 @@ public: // devive from CDEXOrderBaseTx
     virtual void GetOrderData(CDEXOrderData &orderData);
 private:
     CoinType coinType;      //!< coin type (wusd) to sell asset
-    CoinType assetType;     //!< holing asset type (wicc or micc) to sell in coinType
+    CoinType assetType;     //!< holing asset type (wicc or wgrt) to sell in coinType
     uint64_t assetAmount;    //!< amount of holding asset to sell
     uint64_t askPrice;      //!< asking price in coinType willing to sell
 

@@ -8,6 +8,7 @@
 #include <boost/assign/list_of.hpp>
 
 #include "commons/messagequeue.h"
+#include "commons/uint256.h"
 #include "configuration.h"
 #include "init.h"
 #include "json/json_spirit_value.h"
@@ -262,7 +263,7 @@ Value getblock(const Array& params, bool fHelp)
     if (int_type == params[0].type()) {
         int nHeight = params[0].get_int();
         if (nHeight < 0 || nHeight > chainActive.Height())
-            throw runtime_error("Block number out of range.");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range.");
 
         CBlockIndex* pBlockIndex = chainActive[nHeight];
         strHash                  = pBlockIndex->GetBlockHash().GetHex();
@@ -749,5 +750,45 @@ Value startcontracttpstest(const Array& params, bool fHelp) {
     StartContractGeneration(regid, period, batchSize);
 
     obj.push_back(Pair("msg", "success"));
+    return obj;
+}
+
+Value getlogfailures(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 3) {
+        throw runtime_error(
+            "getlogfailures \"block height\"\n"
+            "\nGet log failures by block height.\n"
+            "\nArguments:\n"
+            "1.\"block height\" (numberic, required)\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("getlogfailures", "100") + "\nAs json rpc call\n" +
+            HelpExampleRpc("getlogfailures", "100"));
+    }
+
+    int height = params[0].get_int();
+    if (height < 0 || height > chainActive.Height())
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range.");
+
+    vector<std::tuple<uint256, uint8_t, string>> results;
+    if (!pCdMan->pLogCache->GetExecuteFail(height, results)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to get log failures.");
+    }
+
+    Object obj;
+    Array failures;
+    Object failure;
+
+    for (const auto &item : results) {
+        failure.push_back(Pair("txid",          std::get<0>(item).GetHex()));
+        failure.push_back(Pair("error_code",    std::get<1>(item)));
+        failure.push_back(Pair("error_message", std::get<2>(item)));
+
+        failures.push_back(failure);
+    }
+
+    obj.push_back(Pair("block_height",  height));
+    obj.push_back(Pair("failures",      failures));
+
     return obj;
 }

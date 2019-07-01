@@ -337,6 +337,7 @@ static const CRPCCommand vRPCCommands[] =
     { "gethash",                &gethash,                true,      false,      true },
     { "startcommontpstest",     &startcommontpstest,     true,      true,       false},
     { "startcontracttpstest",   &startcontracttpstest,   true,      true,       false},
+    { "getlogfailures",         &getlogfailures,         false,     false,      false},
 
     /* vm functions work in vm simulator */
     { "vmexecutescript",        &vmexecutescript,        true,      true,       true},

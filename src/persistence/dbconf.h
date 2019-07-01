@@ -100,7 +100,7 @@ namespace dbk {
         DEFINE( DEX_SYS_BUY_ORDER,    "dsbo",  DEX )           /* [prefix]{txid} --> system buy order */ \
         DEFINE( DEX_SYS_SELL_ORDER,   "dsso",  DEX )           /* [prefix]{txid} --> system sell order */ \
         /**** log db                                                                   */ \
-        DEFINE( TX_EXECUTE_FAIL,      "txef",  LOG )           /* [prefix]{height}{txid} --> error code/message */ \
+        DEFINE( TX_EXECUTE_FAIL,      "txef",  LOG )           /* [prefix]{height}{txid} --> {error code, error message} */ \
         /*                                                                             */ \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one              */ \
         DEFINE( PREFIX_COUNT,         "",      DB_NAME_NONE)   /* enum count, must be the last one */

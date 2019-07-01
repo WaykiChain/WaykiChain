@@ -174,7 +174,7 @@ struct CMainSignals {
 } g_signals;
 }  // namespace
 
-bool WriteBlockLog(bool falg, string suffix) {
+bool WriteBlockLog(bool flag, string suffix) {
     if (nullptr == chainActive.Tip()) {
         return false;
     }
@@ -186,7 +186,7 @@ bool WriteBlockLog(bool falg, string suffix) {
 #endif
 
     boost::filesystem::path LogDirpath = GetDataDir() / "BlockLog";
-    if (!falg) {
+    if (!flag) {
         LogDirpath = GetDataDir() / "BlockLog1";
     }
     if (!boost::filesystem::exists(LogDirpath)) {
@@ -691,9 +691,9 @@ int CMerkleTx::GetBlocksToMaturity() const {
 
 int GetTxConfirmHeight(const uint256 &hash, CContractDBCache &scriptDBCache) {
     if (SysCfg().IsTxIndex()) {
-        CDiskTxPos postx;
-        if (scriptDBCache.ReadTxIndex(hash, postx)) {
-            CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
+        CDiskTxPos diskTxPos;
+        if (scriptDBCache.ReadTxIndex(hash, diskTxPos)) {
+            CAutoFile file(OpenBlockFile(diskTxPos, true), SER_DISK, CLIENT_VERSION);
             CBlockHeader header;
             try {
                 file >> header;
@@ -722,13 +722,13 @@ bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CCon
         }
 
         if (SysCfg().IsTxIndex()) {
-            CDiskTxPos postx;
-            if (scriptDBCache.ReadTxIndex(hash, postx)) {
-                CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
+            CDiskTxPos diskTxPos;
+            if (scriptDBCache.ReadTxIndex(hash, diskTxPos)) {
+                CAutoFile file(OpenBlockFile(diskTxPos, true), SER_DISK, CLIENT_VERSION);
                 CBlockHeader header;
                 try {
                     file >> header;
-                    fseek(file, postx.nTxOffset, SEEK_CUR);
+                    fseek(file, diskTxPos.nTxOffset, SEEK_CUR);
                     file >> pBaseTx;
                 } catch (std::exception &e) {
                     return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
@@ -861,14 +861,14 @@ bool static PruneOrphanBlocks(int nHeight) {
 
 int64_t GetBlockValue(int nHeight, int64_t nFees) {
     int64_t nSubsidy = 50 * COIN;
-    int halvings     = nHeight / SysCfg().GetSubsidyHalvingInterval();
+    int halves       = nHeight / SysCfg().GetSubsidyHalvingInterval();
 
     // Force block reward to zero when right shift is undefined.
-    if (halvings >= 64) {
+    if (halves >= 64) {
         return nFees;
     }
     // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
-    nSubsidy >>= halvings;
+    nSubsidy >>= halves;
 
     return nSubsidy + nFees;
 }
@@ -1444,7 +1444,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         return state.DoS(100, ERRORMSG("ConnectBlock() : the block Hash=%s check pos tx error",
                         block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
 
-    CBlockUndo blockundo;
+    CBlockUndo blockUndo;
     int64_t nStart = GetTimeMicros();
     CDiskTxPos pos(pIndex->GetBlockPos(), GetSizeOfCompactSize(block.vptx.size()));
     std::vector<pair<uint256, CDiskTxPos> > vPos;
@@ -1473,8 +1473,14 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             pBaseTx->nFuelRate = block.GetFuelRate();
 
             cw.txUndo.Clear();  // Clear first.
-            if (!pBaseTx->ExecuteTx(pIndex->nHeight, i, cw, state))
+            if (!pBaseTx->ExecuteTx(pIndex->nHeight, i, cw, state)) {
+                if (SysCfg().IsLogFailures()) {
+                    pCdMan->pLogCache->SetExecuteFail(pIndex->nHeight, pBaseTx->GetHash(), state.GetRejectCode(),
+                                                      state.GetRejectReason());
+                }
+
                 return false;
+            }
 
             nTotalRunStep += pBaseTx->nRunStep;
             if (nTotalRunStep > MAX_BLOCK_RUN_STEP)
@@ -1493,7 +1499,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                      nTotalFuel, llFuel, pBaseTx->nRunStep, block.GetFuelRate(), pBaseTx->GetHash().GetHex());
             vPos.push_back(make_pair(block.GetTxHash(i), pos));
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
-            blockundo.vtxundo.push_back(cw.txUndo);
+            blockUndo.vtxundo.push_back(cw.txUndo);
         }
 
         if (nTotalFuel != block.GetFuel())
@@ -1535,10 +1541,15 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     // Execute block reward transaction
     LogPrint("op_account", "tx index:%d tx hash:%s\n", 0, block.vptx[0]->GetHash().GetHex());
     cw.txUndo.Clear();  // Clear first
-    if (!block.vptx[0]->ExecuteTx(pIndex->nHeight, 0, cw, state))
-        return ERRORMSG("ConnectBlock() : execute reward tx error!");
+    if (!block.vptx[0]->ExecuteTx(pIndex->nHeight, 0, cw, state)) {
+        if (SysCfg().IsLogFailures()) {
+            pCdMan->pLogCache->SetExecuteFail(pIndex->nHeight, block.vptx[0]->GetHash(), state.GetRejectCode(),
+                                              state.GetRejectReason());
+        }
+        return ERRORMSG("ConnectBlock() : failed to execute reward transaction");
+    }
 
-    blockundo.vtxundo.push_back(cw.txUndo);
+    blockUndo.vtxundo.push_back(cw.txUndo);
 
     if (pIndex->nHeight - COINBASE_MATURITY > 0) {
         // Deal mature block reward transaction
@@ -1555,10 +1566,15 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             }
 
             cw.txUndo.Clear();  // Clear first
-            if (!matureBlock.vptx[0]->ExecuteTx(pIndex->nHeight, -1, cw, state))
+            if (!matureBlock.vptx[0]->ExecuteTx(pIndex->nHeight, -1, cw, state)) {
+                if (SysCfg().IsLogFailures()) {
+                    pCdMan->pLogCache->SetExecuteFail(pIndex->nHeight, matureBlock.vptx[0]->GetHash(),
+                                                      state.GetRejectCode(), state.GetRejectReason());
+                }
                 return ERRORMSG("ConnectBlock() : execute mature block reward tx error!");
+            }
         }
-        blockundo.vtxundo.push_back(cw.txUndo);
+        blockUndo.vtxundo.push_back(cw.txUndo);
     }
     int64_t nTime = GetTimeMicros() - nStart;
     if (SysCfg().IsBenchmark())
@@ -1571,7 +1587,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (SysCfg().IsTxIndex()) {
         LogPrint("DEBUG", "add tx index, block hash:%s\n", pIndex->GetBlockHash().GetHex());
         vector<CDbOpLog> vTxIndexOperDB;
-        auto itTxUndo = blockundo.vtxundo.rbegin();
+        auto itTxUndo = blockUndo.vtxundo.rbegin();
         // TODO: should move to blockTxCache?
         if (!cw.contractCache.WriteTxIndexes(vPos, itTxUndo->dbOpLogMap))
             return state.Abort(_("Failed to write transaction index"));
@@ -1582,10 +1598,10 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (pIndex->GetUndoPos().IsNull() || (pIndex->nStatus & BLOCK_VALID_MASK) < BLOCK_VALID_SCRIPTS) {
         if (pIndex->GetUndoPos().IsNull()) {
             CDiskBlockPos pos;
-            if (!FindUndoPos(state, pIndex->nFile, pos, ::GetSerializeSize(blockundo, SER_DISK, CLIENT_VERSION) + 40))
+            if (!FindUndoPos(state, pIndex->nFile, pos, ::GetSerializeSize(blockUndo, SER_DISK, CLIENT_VERSION) + 40))
                 return ERRORMSG("ConnectBlock() : failed to find undo data's position");
 
-            if (!blockundo.WriteToDisk(pos, pIndex->pprev->GetBlockHash()))
+            if (!blockUndo.WriteToDisk(pos, pIndex->pprev->GetBlockHash()))
                 return state.Abort(_("ConnectBlock() : failed to write undo data"));
 
             // Update nUndoPos in block index
@@ -4235,9 +4251,9 @@ bool DisconnectBlockFromTip(CValidationState &state) {
 
 bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &accountLogs) {
     if (SysCfg().IsTxIndex()) {
-        CDiskTxPos postx;
-        if (pCdMan->pContractCache->ReadTxIndex(txHash, postx)) {
-            CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
+        CDiskTxPos diskTxPos;
+        if (pCdMan->pContractCache->ReadTxIndex(txHash, diskTxPos)) {
+            CAutoFile file(OpenBlockFile(diskTxPos, true), SER_DISK, CLIENT_VERSION);
             CBlockHeader header;
             try {
                 file >> header;
