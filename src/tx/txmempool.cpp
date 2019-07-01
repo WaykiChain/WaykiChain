@@ -122,8 +122,13 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
     spCW->contractCache.SetBaseView(memPoolContractCache.get());
 
     if (bExecute) {
-        if (!memPoolEntry.GetTx()->ExecuteTx(chainActive.Tip()->nHeight + 1, 0, *spCW, state))
+        if (!memPoolEntry.GetTx()->ExecuteTx(chainActive.Tip()->nHeight + 1, 0, *spCW, state)) {
+            if (SysCfg().IsLogFailures()) {
+                pCdMan->pLogCache->SetExecuteFail(chainActive.Tip()->nHeight, memPoolEntry->GetTx()->GetHash(),
+                                                  state.GetRejectCode(), state.GetRejectReason());
+            }
             return false;
+        }
     }
 
     // Need to re-sync all to cache layer except for transaction cache, as it's depend on

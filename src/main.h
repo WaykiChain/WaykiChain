@@ -335,6 +335,9 @@ public:
     CTxMemCache         *pTxCache;
     CPricePointMemCache *pPpCache;
 
+    CDBAccess           *pLogDb;
+    CLogDBCache         *pLogCache;
+
 public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache, size_t nContractDBCache,
                     size_t nDelegateDBCache, size_t nBlockTreeDBCache) {
@@ -359,6 +362,8 @@ public:
         pTxCache        = new CTxMemCache();
         pPpCache        = new CPricePointMemCache();
 
+        pLogDb          = new CDBAccess(DBNameType::LOG, nAccountDBCache, false, fReIndex); //TODO fix cache size
+        pLogCache       = new CLogDBCache(pLogDb);
     }
 
     ~CCacheDBManager() {
@@ -368,16 +373,16 @@ public:
         delete pDelegateCache;  pDelegateCache = nullptr;
         delete pTxCache;        pTxCache = nullptr;
         delete pPpCache;        pPpCache = nullptr;
+        delete pCdpCache;       pCdpCache = nullptr;
+        delete pDexCache;       pDexCache = nullptr;
+        delete pLogCache;       pLogCache = nullptr;
 
         delete pAccountDb;      pAccountDb = nullptr;
         delete pContractDb;     pContractDb = nullptr;
         delete pDelegateDb;     pDelegateDb = nullptr;
         delete pBlockTreeDb;    pBlockTreeDb = nullptr;
-
-        delete pCdpCache;       pCdpCache = nullptr;
         delete pCdpDb;          pCdpDb = nullptr;
-
-        delete pDexCache;       pDexCache = nullptr;
+        delete pLogDb;          pLogDb = nullptr;
     }
 
     bool Flush() {

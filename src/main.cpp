@@ -691,9 +691,9 @@ int CMerkleTx::GetBlocksToMaturity() const {
 
 int GetTxConfirmHeight(const uint256 &hash, CContractDBCache &scriptDBCache) {
     if (SysCfg().IsTxIndex()) {
-        CDiskTxPos postx;
-        if (scriptDBCache.ReadTxIndex(hash, postx)) {
-            CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
+        CDiskTxPos diskTxPos;
+        if (scriptDBCache.ReadTxIndex(hash, diskTxPos)) {
+            CAutoFile file(OpenBlockFile(diskTxPos, true), SER_DISK, CLIENT_VERSION);
             CBlockHeader header;
             try {
                 file >> header;
@@ -722,13 +722,13 @@ bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CCon
         }
 
         if (SysCfg().IsTxIndex()) {
-            CDiskTxPos postx;
-            if (scriptDBCache.ReadTxIndex(hash, postx)) {
-                CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
+            CDiskTxPos diskTxPos;
+            if (scriptDBCache.ReadTxIndex(hash, diskTxPos)) {
+                CAutoFile file(OpenBlockFile(diskTxPos, true), SER_DISK, CLIENT_VERSION);
                 CBlockHeader header;
                 try {
                     file >> header;
-                    fseek(file, postx.nTxOffset, SEEK_CUR);
+                    fseek(file, diskTxPos.nTxOffset, SEEK_CUR);
                     file >> pBaseTx;
                 } catch (std::exception &e) {
                     return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
@@ -861,14 +861,14 @@ bool static PruneOrphanBlocks(int nHeight) {
 
 int64_t GetBlockValue(int nHeight, int64_t nFees) {
     int64_t nSubsidy = 50 * COIN;
-    int halvings     = nHeight / SysCfg().GetSubsidyHalvingInterval();
+    int halves       = nHeight / SysCfg().GetSubsidyHalvingInterval();
 
     // Force block reward to zero when right shift is undefined.
-    if (halvings >= 64) {
+    if (halves >= 64) {
         return nFees;
     }
     // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
-    nSubsidy >>= halvings;
+    nSubsidy >>= halves;
 
     return nSubsidy + nFees;
 }
@@ -1473,8 +1473,14 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             pBaseTx->nFuelRate = block.GetFuelRate();
 
             cw.txUndo.Clear();  // Clear first.
-            if (!pBaseTx->ExecuteTx(pIndex->nHeight, i, cw, state))
+            if (!pBaseTx->ExecuteTx(pIndex->nHeight, i, cw, state)) {
+                if (SysCfg().IsLogFailures()) {
+                    pCdMan->pLogCache->SetExecuteFail(pIndex->nHeight, pBaseTx->GetHash(), state.GetRejectCode(),
+                                                      state.GetRejectReason());
+                }
+
                 return false;
+            }
 
             nTotalRunStep += pBaseTx->nRunStep;
             if (nTotalRunStep > MAX_BLOCK_RUN_STEP)
@@ -1535,8 +1541,13 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     // Execute block reward transaction
     LogPrint("op_account", "tx index:%d tx hash:%s\n", 0, block.vptx[0]->GetHash().GetHex());
     cw.txUndo.Clear();  // Clear first
-    if (!block.vptx[0]->ExecuteTx(pIndex->nHeight, 0, cw, state))
-        return ERRORMSG("ConnectBlock() : execute reward tx error!");
+    if (!block.vptx[0]->ExecuteTx(pIndex->nHeight, 0, cw, state)) {
+        if (SysCfg().IsLogFailures()) {
+            pCdMan->pLogCache->SetExecuteFail(pIndex->nHeight, block.vptx[0]->GetHash(), state.GetRejectCode(),
+                                              state.GetRejectReason());
+        }
+        return ERRORMSG("ConnectBlock() : failed to execute reward transaction");
+    }
 
     blockUndo.vtxundo.push_back(cw.txUndo);
 
@@ -1555,8 +1566,13 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             }
 
             cw.txUndo.Clear();  // Clear first
-            if (!matureBlock.vptx[0]->ExecuteTx(pIndex->nHeight, -1, cw, state))
+            if (!matureBlock.vptx[0]->ExecuteTx(pIndex->nHeight, -1, cw, state)) {
+                if (SysCfg().IsLogFailures()) {
+                    pCdMan->pLogCache->SetExecuteFail(pIndex->nHeight, matureBlock.vptx[0]->GetHash(),
+                                                      state.GetRejectCode(), state.GetRejectReason());
+                }
                 return ERRORMSG("ConnectBlock() : execute mature block reward tx error!");
+            }
         }
         blockUndo.vtxundo.push_back(cw.txUndo);
     }
@@ -4235,9 +4251,9 @@ bool DisconnectBlockFromTip(CValidationState &state) {
 
 bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &accountLogs) {
     if (SysCfg().IsTxIndex()) {
-        CDiskTxPos postx;
-        if (pCdMan->pContractCache->ReadTxIndex(txHash, postx)) {
-            CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
+        CDiskTxPos diskTxPos;
+        if (pCdMan->pContractCache->ReadTxIndex(txHash, diskTxPos)) {
+            CAutoFile file(OpenBlockFile(diskTxPos, true), SER_DISK, CLIENT_VERSION);
             CBlockHeader header;
             try {
                 file >> header;

@@ -66,6 +66,7 @@ protected:
     mutable bool fReindex;
     mutable bool fBenchmark;
     mutable bool fTxIndex;
+    mutable bool fLogFailures;
     mutable int64_t nTimeBestReceived;
     mutable int64_t payTxFee;
     uint16_t nMaxForkHeight = 24 * 60 * 6; //8640, i.e. forked distance by a day block height
@@ -131,6 +132,7 @@ public:
         te += strprintf("fReindex:%d\n",            fReindex);
         te += strprintf("fBenchmark:%d\n",          fBenchmark);
         te += strprintf("fTxIndex:%d\n",            fTxIndex);
+        te += strprintf("fLogFailures:%d\n",        fLogFailures);
         te += strprintf("nTimeBestReceived:%d\n",   nTimeBestReceived);
         te += strprintf("paytxfee:%d\n",            payTxFee);
         te += strprintf("nBlockInterval:%d\n",      nBlockInterval);
@@ -192,6 +194,7 @@ public:
     bool IsReindex() const { return fReindex; }
     bool IsBenchmark() const { return fBenchmark; }
     bool IsTxIndex() const { return fTxIndex; }
+    bool IsLogFailures() const { return fLogFailures; };
     int64_t GetBlockInterval() const { return nBlockInterval; }
     int64_t GetBestRecvTime() const { return nTimeBestReceived; }
     int64_t GetScriptCheckThreads() const { return nScriptCheckThreads; }
@@ -202,6 +205,7 @@ public:
     void SetReIndex(bool flag) const { fReindex = flag; }
     void SetBenchMark(bool flag) const { fBenchmark = flag; }
     void SetTxIndex(bool flag) const { fTxIndex = flag; }
+    void SetLogFailures(bool flag) const { fLogFailures = flag; }
     void SetBestRecvTime(int64_t nTime) const { nTimeBestReceived = nTime; }
     void SetScriptCheckThreads(int64_t nNum) const { nScriptCheckThreads = nNum; }
     void SetViewCacheSize(unsigned int nSize) const { nViewCacheSize = nSize; }
