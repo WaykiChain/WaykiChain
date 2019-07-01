@@ -98,7 +98,6 @@ Object CFcoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("valid_height",       nValidHeight));
 
     return result;
-  return Object();
 }
 
 bool CFcoinStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {

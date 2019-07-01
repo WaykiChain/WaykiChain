@@ -22,9 +22,24 @@ string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
     return str;
 }
 
-Object CCDPStakeTx::ToJson(const CAccountDBCache &AccountView) const {
-    //TODO
-    return Object();
+Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
+    Object result;
+
+    CKeyID keyId;
+    accountCache.GetKeyId(txUid, keyId);
+
+    result.push_back(Pair("hash",               GetHash().GetHex()));
+    result.push_back(Pair("tx_type",            GetTxType(nTxType)));
+    result.push_back(Pair("ver",                nVersion));
+    result.push_back(Pair("regid",              txUid.ToString()));
+    result.push_back(Pair("addr",               keyId.ToAddress()));
+
+    result.push_back(Pair("cdp_txid",            cdpTxId.ToString()));
+    result.push_back(Pair("bcoins_to_stake",     bcoinsToStake));
+    result.push_back(Pair("collateral_ratio",    collateralRatio / kPercentBoost));
+    result.push_back(Pair("scoins_interest",     scoinsInterest));
+
+    return result;
 }
 
 bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
@@ -202,9 +217,24 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
 
     return str;
  }
- Object CCDPRedeemTx::ToJson(const CAccountDBCache &AccountView) const {
-     //TODO
-     return Object();
+ Object CCDPRedeemTx::ToJson(const CAccountDBCache &accountCache) const {
+    Object result;
+
+    CKeyID keyId;
+    accountCache.GetKeyId(txUid, keyId);
+
+    result.push_back(Pair("hash",               GetHash().GetHex()));
+    result.push_back(Pair("tx_type",            GetTxType(nTxType)));
+    result.push_back(Pair("ver",                nVersion));
+    result.push_back(Pair("regid",              txUid.ToString()));
+    result.push_back(Pair("addr",               keyId.ToAddress()));
+
+    result.push_back(Pair("cdp_txid",            cdpTxId.ToString()));
+    result.push_back(Pair("scoins_to_redeem",    scoinsToRedeem));
+    result.push_back(Pair("collateral_ratio",    collateralRatio / kPercentBoost));
+    result.push_back(Pair("scoins_interest",     scoinsInterest));
+
+    return result;
  }
  bool CCDPRedeemTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
      //TODO
@@ -358,9 +388,23 @@ string CCDPLiquidateTx::ToString(CAccountDBCache &accountCache) {
 
     return str;
 }
-Object CCDPLiquidateTx::ToJson(const CAccountDBCache &AccountView) const {
-    //TODO
-    return Object();
+Object CCDPLiquidateTx::ToJson(const CAccountDBCache &accountCache) const {
+  Object result;
+
+    CKeyID keyId;
+    accountCache.GetKeyId(txUid, keyId);
+
+    result.push_back(Pair("hash",               GetHash().GetHex()));
+    result.push_back(Pair("tx_type",            GetTxType(nTxType)));
+    result.push_back(Pair("ver",                nVersion));
+    result.push_back(Pair("regid",              txUid.ToString()));
+    result.push_back(Pair("addr",               keyId.ToAddress()));
+
+    result.push_back(Pair("cdp_txid",            cdpTxId.ToString()));
+    result.push_back(Pair("scoins_to_liquidate", scoinsToLiquidate));
+    result.push_back(Pair("scoinsPenalty",       scoinsPenalty / kPercentBoost));
+
+    return result;
 }
 bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     //TODO
