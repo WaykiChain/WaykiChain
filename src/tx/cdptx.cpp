@@ -12,9 +12,9 @@
 string CCDPStakeTx::ToString(CAccountDBCache &view) {
     string str = strprintf(
             "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
-            "txCord=%s, coinsToStake=%lld, collateralRatio=%lld, fcoinsInterest=%lld, scoinsInterest=%lld\n",
+            "txCord=%s, coinsToStake=%lld, collateralRatio=%lld, scoinsInterest=%lld\n",
             GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
-            cdpTxCord.ToString(), bcoinsToStake, collateralRatio, fcoinsInterest, scoinsInterest);
+            cdpTxId.GetHex(), bcoinsToStake, collateralRatio, scoinsInterest);
 
     return str;
 }
@@ -22,21 +22,20 @@ string CCDPStakeTx::ToString(CAccountDBCache &view) {
 Object CCDPStakeTx::ToJson(const CAccountDBCache &AccountView) const {
     Object result;
 
-    CKeyID keyid;
-    view.GetKeyId(txUid, keyid);
+    CKeyID keyId;
+    AccountView.GetKeyId(txUid, keyId);
     
     result.push_back(Pair("tx_hash",            GetHash().GetHex()));
     result.push_back(Pair("tx_type",            GetTxType(nTxType)));
     result.push_back(Pair("ver",                nVersion));
     result.push_back(Pair("tx_uid",             txUid.ToString()));
-    result.push_back(Pair("tx_addr",            keyid.ToAddress()));
+    result.push_back(Pair("tx_addr",            keyId.ToAddress()));
     result.push_back(Pair("valid_height",       nValidHeight));
     result.push_back(Pair("fees",               llFees));
 
-    result.push_back(Pair("tx_crod",            cdpTxCord.ToString()));
+    result.push_back(Pair("tx_crod",            cdpTxId.GetHex()));
     result.push_back(Pair("base_coin_amount",   bcoinsToStake));
     result.push_back(Pair("ratio",              collateralRatio));
-    result.push_back(Pair("fcoins_interest",    fcoinsInterest));
     result.push_back(Pair("scoins_interest",    scoinsInterest));
 
     return result;
@@ -208,29 +207,29 @@ bool CCDPStakeTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
 string CCDPRedeemTx::ToString(CAccountDBCache &view) {
     return strprintf(
             "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
-            "txCord=%s, redeemAmount=%lld, collateralRatio=%lld, fcoinsInterest=%lld\n",
+            "txCord=%s, redeemAmount=%lld, collateralRatio=%lld, scoinsInterest=%lld\n",
             GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
-            cdpTxCord.ToString(), scoinsToRedeem, collateralRatio, fcoinsInterest);
+            cdpTxId.GetHex(), scoinsToRedeem, collateralRatio, scoinsInterest);
  }
 
  Object CCDPRedeemTx::ToJson(const CAccountDBCache &AccountView) const {
     Object result;
 
-    CKeyID keyid;
-    view.GetKeyId(txUid, keyid);
+    CKeyID keyId;
+    AccountView.GetKeyId(txUid, keyId);
     
     result.push_back(Pair("tx_hash",            GetHash().GetHex()));
     result.push_back(Pair("tx_type",            GetTxType(nTxType)));
     result.push_back(Pair("ver",                nVersion));
     result.push_back(Pair("tx_uid",             txUid.ToString()));
-    result.push_back(Pair("tx_addr",            keyid.ToAddress()));
+    result.push_back(Pair("tx_addr",            keyId.ToAddress()));
     result.push_back(Pair("valid_height",       nValidHeight));
     result.push_back(Pair("fees",               llFees));
 
-    result.push_back(Pair("tx_crod",            cdpTxCord.ToString()));
+    result.push_back(Pair("tx_crod",            cdpTxId.GetHex()));
     result.push_back(Pair("redeem_amount",      scoinsToRedeem));
     result.push_back(Pair("ratio",              collateralRatio));
-    result.push_back(Pair("fcoins_interest",    fcoinsInterest));
+    result.push_back(Pair("scoins_interest",    scoinsInterest));
 
     return result;
  }
@@ -379,28 +378,27 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
 string CCDPLiquidateTx::ToString(CAccountDBCache &view) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
-        "txCord=%s, liquidateAmount=%lld, fcoinsPenalty=%lld, scoinsPenalty=%lld\n",
+        "txCord=%s, liquidateAmount=%lld, scoinsPenalty=%lld\n",
         GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
-        cdpTxCord.ToString(), scoinsToLiquidate, fcoinsPenalty, scoinsPenalty);
+        cdpTxId.GetHex(), scoinsToLiquidate, scoinsPenalty);
 }
 
 Object CCDPLiquidateTx::ToJson(const CAccountDBCache &AccountView) const {
     Object result;
 
-    CKeyID keyid;
-    view.GetKeyId(txUid, keyid);
+    CKeyID keyId;
+    AccountView.GetKeyId(txUid, keyId);
     
     result.push_back(Pair("tx_hash",            GetHash().GetHex()));
     result.push_back(Pair("tx_type",            GetTxType(nTxType)));
     result.push_back(Pair("ver",                nVersion));
     result.push_back(Pair("tx_uid",             txUid.ToString()));
-    result.push_back(Pair("tx_addr",            keyid.ToAddress()));
+    result.push_back(Pair("tx_addr",            keyId.ToAddress()));
     result.push_back(Pair("valid_height",       nValidHeight));
     result.push_back(Pair("fees",               llFees));
 
-    result.push_back(Pair("tx_crod",            cdpTxCord.ToString()));
+    result.push_back(Pair("tx_crod",            cdpTxId.GetHex()));
     result.push_back(Pair("liquidate_amount",   scoinsToLiquidate));
-    result.push_back(Pair("fcoins_penalty",     fcoinsPenalty));
     result.push_back(Pair("scoins_penalty",     scoinsPenalty));
 
     return result;
