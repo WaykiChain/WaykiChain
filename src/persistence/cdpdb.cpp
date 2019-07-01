@@ -126,7 +126,25 @@ void CCdpMemCache::BatchWrite(const map<CUserCDP, uint8_t> &cdpsIn) {
 }
 
 bool CCdpDBCache::StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
+                                    CUserCDP &cdp) {
+
+    cdp.blockHeight = blockHeight;
+    cdp.totalStakedBcoins += bcoinsToStake;
+    cdp.totalOwedScoins += mintedScoins;
+    cdp.collateralRatioBase = double(cdp.totalStakedBcoins) / cdp.totalOwedScoins;
+
+    if (!SaveCdp(cdp)) {
+        return ERRORMSG("CCdpDBCache::StakeBcoinsToCdp : SetData failed.");
+    }
+
+    return true;
+}
+
+bool CCdpDBCache::StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                                     CUserCDP &cdp, CDBOpLogMap &dbOpLogMap) {
+
+    //TODO keep cdp into dbOpLogMap
+    dbOpLogMap.AddOpLog(dbk::CDP, CDbOpLog());
 
     cdp.blockHeight = blockHeight;
     cdp.totalStakedBcoins += bcoinsToStake;
@@ -145,6 +163,10 @@ bool CCdpDBCache::GetCdp(CUserCDP &cdp) {
         return false;
 
     return true;
+}
+
+bool CCdpDBCache::SaveCdp(CUserCDP &cdp) {
+    return cdpCache.SetData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxId), cdp);
 }
 
 bool CCdpDBCache::SaveCdp(CUserCDP &cdp, CDBOpLogMap &dbOpLogMap) {

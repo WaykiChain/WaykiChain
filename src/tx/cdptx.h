@@ -230,7 +230,7 @@ public:
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    bool SellPenaltyForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
+    bool SellPenaltyForFcoins(int scoinPenaltyFees, const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:
     uint256 cdpTxId;            // target CDP to liquidate

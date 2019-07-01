@@ -334,8 +334,6 @@ public:
     CTxMemCache         *pTxCache;
     CPricePointMemCache *pPpCache;
 
-    uint64_t            initialCollateralRatioMin = 200; //minimum collateral ratio
-
 public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache, size_t nContractDBCache,
                     size_t nDelegateDBCache, size_t nBlockTreeDBCache) {
