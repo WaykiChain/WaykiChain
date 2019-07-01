@@ -29,7 +29,7 @@ struct CUserCDP {
 
     CRegID ownerRegId;              // CDP Owner RegId
     uint256 cdpTxId;                // CDP TxID
-    uint64_t blockHeight;           // persisted: Hj (Hj+1 refer to current height) - last op block height
+    int32_t blockHeight;           // persisted: Hj (Hj+1 refer to current height) - last op block height
     uint64_t totalStakedBcoins;     // persisted: total staked bcoins
     uint64_t totalOwedScoins;       // persisted: TNj = last + minted = total minted - total redempted
 
