@@ -5,14 +5,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "commons/base58.h"
+#include "commons/uint256.h"
 #include "init.h"
 #include "accounts/keystore.h"
 #include "main.h"
 #include "net.h"
 #include "rpcserver.h"
-#include "commons/uint256.h"
-#include "../wallet/wallet.h"
-
+#include "wallet/wallet.h"
 
 #include <stdint.h>
 
