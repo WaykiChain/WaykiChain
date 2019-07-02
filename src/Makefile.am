@@ -233,7 +233,6 @@ libcoin_server_a_SOURCES = \
   rpc/rpcmining.cpp \
   rpc/rpcmisc.cpp \
   rpc/rpcnet.cpp \
-  rpc/rpcrawtransaction.cpp \
   rpc/rpcserver.cpp \
   rpc/rpcvm.cpp \
   sigcache.cpp \

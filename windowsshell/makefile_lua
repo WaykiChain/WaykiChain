@@ -86,7 +86,6 @@ OBJS = 	vm/lmylib.o \
 		rpc/rpcmining.o \
 		rpc/rpcmisc.o \
 		rpc/rpcnet.o \
-		rpc/rpcrawtransaction.o \
 		crypter.o \
 		keystore.o \
 		random.o \
