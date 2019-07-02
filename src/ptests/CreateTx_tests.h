@@ -9,7 +9,7 @@
 #define CREATETX_TESTS_H_
 #include "CycleTestBase.h"
 #include "../test/systestbase.h"
-#include "../rpc/rpcclient.h"
+#include "../rpc/core/rpcclient.h"
 #include "tx/tx.h"
 #include <vector>
 using namespace std;

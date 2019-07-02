@@ -6,8 +6,8 @@
 
 #include "util.h"
 #include "init.h"
-#include "rpc/rpcclient.h"
-#include "rpcprotocol.h"
+#include "rpc/core/rpcclient.h"
+#include "rpc/core/rpcprotocol.h"
 #include "chainparams.h"
 
 #include <boost/filesystem/operations.hpp>

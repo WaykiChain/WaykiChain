@@ -11,7 +11,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "json/json_spirit_writer_template.h"
-#include "./rpc/rpcclient.h"
+#include "./rpc/core/rpcclient.h"
 using namespace std;
 using namespace boost;
 using namespace json_spirit;

@@ -293,6 +293,7 @@ int CommandLineRPC(int argc, char *argv[])
         // Method
         if (argc < 2)
             throw runtime_error("too few parameters");
+
         string strMethod = argv[1];
 
         // Parameters default to strings

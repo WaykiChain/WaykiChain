@@ -8,8 +8,8 @@
 #include <boost/filesystem.hpp>
 #include "init.h"
 #include "main.h"
-#include "rpc/rpcclient.h"
-#include "rpc/rpcserver.h"
+#include "rpc/core/rpcclient.h"
+#include "rpc/core/rpcserver.h"
 #include "util.h"
 
 /* Introduction text for doxygen: */

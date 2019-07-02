@@ -15,7 +15,7 @@
 #include "main.h"
 #include "miner/miner.h"
 //#include "net.h"
-#include "rpcprotocol.h"
+#include "rpc/core/rpcprotocol.h"
 #include "rpcserver.h"
 #include "commons/serialize.h"
 #include "sync.h"

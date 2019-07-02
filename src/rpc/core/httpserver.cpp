@@ -2,14 +2,14 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
-#include <rpc/httpserver.h>
+#include "httpserver.h"
+#include "rpc/core/rpcprotocol.h" // For HTTP status codes
 
 #include <chainparams.h>
 #include <compat/compat.h>
 #include <util.h>
 //#include <util/strencodings.h>
 #include <netbase.h>
-#include <rpc/rpcprotocol.h> // For HTTP status codes
 #include <init.h>
 #include <sync.h>
 

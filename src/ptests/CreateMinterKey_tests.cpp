@@ -12,7 +12,7 @@
 #include "commons/uint256.h"
 #include "util.h"
 #include <boost/test/unit_test.hpp>
-#include "../rpc/rpcclient.h"
+#include "../rpc/core/rpcclient.h"
 #include "tx/tx.h"
 #include "wallet/wallet.h"
 #include <boost/filesystem.hpp>

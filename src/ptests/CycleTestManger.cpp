@@ -17,7 +17,7 @@
 
 #include "json/json_spirit_writer_template.h"
 #include "CBlackHalo_tests.h"
-#include "./rpc/rpcclient.h"
+#include "./rpc/core/rpcclient.h"
 
 #include "CycleP2PBet_tests.h"
 

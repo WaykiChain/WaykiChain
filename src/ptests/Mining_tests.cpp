@@ -1,5 +1,5 @@
 #include "./rpc/rpcserver.h"
-#include "./rpc/rpcclient.h"
+#include "./rpc/core/rpcclient.h"
 #include "util.h"
 #include "chainparams.h"
 #include <boost/test/unit_test.hpp>

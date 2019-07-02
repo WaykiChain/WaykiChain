@@ -14,8 +14,6 @@
 using namespace std;
 using namespace json_spirit;
 
-class CBaseTx;
-
 extern Value submitpricefeedtx(const Array& params, bool fHelp);
 extern Value submitstakefcointx(const Array& params, bool fHelp);
 

@@ -80,11 +80,19 @@ coin_CORE_H = \
   persistence/logdb.h \
   protocol.h \
   random.h   \
-  rpc/httpserver.h \
-  rpc/rpcclient.h \
-  rpc/rpcprotocol.h \
-  rpc/rpcserver.h \
+  rpc/core/httpserver.h \
+  rpc/core/rpcclient.h \
+  rpc/core/rpcprotocol.h \
+  rpc/core/rpcserver.h \
+  rpc/rpcblockchain.h \
+  rpc/rpcdump.h \
+  rpc/rpcmining.h \
+  rpc/rpcmisc.h \
+  rpc/rpcnet.h \
+  rpc/rpcscoin.h \
+  rpc/rpctx.h \
   rpc/rpcvm.h \
+  rpc/rpcwallet.h \
   support/cleanse.h \
   sigcache.h \
   tx/accountregtx.h \
@@ -228,13 +236,19 @@ libcoin_server_a_SOURCES = \
   main.cpp \
   miner/miner.cpp \
   net.cpp \
-  rpc/httpserver.cpp \
+  rpc/core/httpserver.cpp \
+  rpc/core/rpcclient.cpp \
+  rpc/core/rpcprotocol.cpp \
+  rpc/core/rpcserver.cpp \
   rpc/rpcblockchain.cpp \
+  rpc/rpcdump.cpp \
   rpc/rpcmining.cpp \
   rpc/rpcmisc.cpp \
   rpc/rpcnet.cpp \
-  rpc/rpcserver.cpp \
+  rpc/rpcscoin.cpp \
+  rpc/rpctx.cpp \
   rpc/rpcvm.cpp \
+  rpc/rpcwall.cpp \
   sigcache.cpp \
   tx/accountregtx.cpp \
   tx/blockrewardtx.cpp \
@@ -293,7 +307,6 @@ libcoin_common_a_SOURCES = \
   persistence/leveldbwrapper.cpp \
   persistence/dexdb.cpp \
   persistence/logdb.cpp \
-  rpc/rpcprotocol.cpp \
   support/cleanse.cpp \
   support/events.cpp \
   sync.cpp \
@@ -310,7 +323,7 @@ libcoin_common_a_SOURCES += compat/glibcxx_compat.cpp
 endif
 
 libcoin_cli_a_SOURCES = \
-  rpc/rpcclient.cpp \
+  rpc/core/rpcclient.cpp \
   $(COIN_CORE_H)
 
 nodist_libcoin_common_a_SOURCES = $(top_srcdir)/src/obj/build.h
