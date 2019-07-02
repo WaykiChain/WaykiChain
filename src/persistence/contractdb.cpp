@@ -487,12 +487,12 @@ bool CContractDBCache::SetScript(const string &scriptId, const string &content) 
 }
 
 bool CContractDBCache::Flush() {
-    return false;
     scriptCache.Flush();
     txOutputCache.Flush();
     acctTxListCache.Flush();
     txDiskPosCache.Flush();
     contractRelatedKidCache.Flush();
+    return true;
 }
 
 unsigned int CContractDBCache::GetCacheSize() {
