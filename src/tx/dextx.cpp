@@ -718,14 +718,19 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
+    if (txUid.get<CRegID>() != kDEXSettleRegId) {
+        return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, account regId is not authorized dex settle regId"),
+                         REJECT_INVALID, "unauthorized-settle-account");
+    }
+
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.IsRegistered())
+    if (!srcAccount.IsRegistered())
         return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
-    // TODO: check Settler's uid must be the authorized user
+
 
     IMPLEMENT_CHECK_TX_SIGNATURE(srcAccount.pubKey);
 
@@ -938,7 +943,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
                                 REJECT_INVALID, "deal-price-unmatch");
             }
         } else {
-            assert(buyOrderData.orderType == ORDER_LIMIT_PRICE && sellOrderData.orderType == ORDER_LIMIT_PRICE);
+            assert(buyOrderData.orderType == ORDER_MARKET_PRICE && sellOrderData.orderType == ORDER_MARKET_PRICE);
             // no limit
         }
 
