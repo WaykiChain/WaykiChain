@@ -24,11 +24,33 @@ bool CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, uint64_t price, uint6
 // class CDEXBuyLimitOrderTx
 
 string CDEXBuyLimitOrderTx::ToString(CAccountDBCache &view) {
-    return ""; //TODO: ...
+    return strprintf(
+        "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
+        "coin_type=%u, asset_type=%u, amount=%lld, price=%lld\n",
+        GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
+        coinType, assetType, assetAmount, bidPrice);
 }
 
 Object CDEXBuyLimitOrderTx::ToJson(const CAccountDBCache &view) const {
-    return Object(); // TODO: ...
+    Object result;
+
+    CKeyID keyId;
+    view.GetKeyId(txUid, keyId);
+
+    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("tx_uid",         txUid.ToString()));
+    result.push_back(Pair("addr",           keyId.ToAddress()));
+    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("fees",           llFees));
+
+    result.push_back(Pair("coin_type",      coinType));
+    result.push_back(Pair("asset_type",     assetType));
+    result.push_back(Pair("amount",         assetAmount));
+    result.push_back(Pair("price",          bidPrice));
+    
+    return result;
 }
 
 bool CDEXBuyLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
@@ -166,11 +188,33 @@ void CDEXBuyLimitOrderTx::GetOrderData(CDEXOrderData &orderData) {
 // class CDEXSellLimitOrderTx
 
 string CDEXSellLimitOrderTx::ToString(CAccountDBCache &view) {
-    return ""; //TODO: ...
+    return strprintf(
+        "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
+        "coin_type=%u, asset_type=%u, amount=%lld, price=%lld\n",
+        GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
+        coinType, assetType, assetAmount, askPrice);
 }
 
 Object CDEXSellLimitOrderTx::ToJson(const CAccountDBCache &view) const {
-    return Object(); // TODO: ...
+    Object result;
+
+    CKeyID keyId;
+    view.GetKeyId(txUid, keyId);
+
+    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("tx_uid",         txUid.ToString()));
+    result.push_back(Pair("addr",           keyId.ToAddress()));
+    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("fees",           llFees));
+
+    result.push_back(Pair("coin_type",      coinType));
+    result.push_back(Pair("asset_type",     assetType));
+    result.push_back(Pair("amount",         assetAmount));
+    result.push_back(Pair("price",          askPrice));
+    
+    return result;
 }
 
 bool CDEXSellLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
@@ -301,11 +345,32 @@ void CDEXSellLimitOrderTx::GetOrderData(CDEXOrderData &orderData) {
 // class CDEXBuyMarketOrderTx
 
 string CDEXBuyMarketOrderTx::ToString(CAccountDBCache &view) {
-    return ""; //TODO: ...
+    return strprintf(
+        "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
+        "coin_type=%u, asset_type=%u, amount=%lld\n",
+        GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
+        coinType, assetType, coinAmount);
 }
 
 Object CDEXBuyMarketOrderTx::ToJson(const CAccountDBCache &view) const {
-    return Object(); // TODO: ...
+    Object result;
+
+    CKeyID keyId;
+    view.GetKeyId(txUid, keyId);
+
+    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("tx_uid",         txUid.ToString()));
+    result.push_back(Pair("addr",           keyId.ToAddress()));
+    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("fees",           llFees));
+
+    result.push_back(Pair("coin_type",      coinType));
+    result.push_back(Pair("asset_type",     assetType));
+    result.push_back(Pair("amount",         coinAmount));
+    
+    return result;
 }
 
 bool CDEXBuyMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
@@ -437,11 +502,32 @@ void CDEXBuyMarketOrderTx::GetOrderData(CDEXOrderData &orderData) {
 // class CDEXSellMarketOrderTx
 
 string CDEXSellMarketOrderTx::ToString(CAccountDBCache &view) {
-    return ""; //TODO: ...
+    return strprintf(
+        "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
+        "coin_type=%u, asset_type=%u, amount=%lld\n",
+        GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
+        coinType, assetType, assetAmount);
 }
 
 Object CDEXSellMarketOrderTx::ToJson(const CAccountDBCache &view) const {
-    return Object(); // TODO: ...
+    Object result;
+
+    CKeyID keyId;
+    view.GetKeyId(txUid, keyId);
+
+    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("tx_uid",         txUid.ToString()));
+    result.push_back(Pair("addr",           keyId.ToAddress()));
+    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("fees",           llFees));
+
+    result.push_back(Pair("coin_type",      coinType));
+    result.push_back(Pair("asset_type",     assetType));
+    result.push_back(Pair("amount",         assetAmount));
+    
+    return result;
 }
 
 bool CDEXSellMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
@@ -570,11 +656,30 @@ void CDEXSellMarketOrderTx::GetOrderData(CDEXOrderData &orderData) {
 // class CDEXCancelOrderTx
 
 string CDEXCancelOrderTx::ToString(CAccountDBCache &view) {
-    return ""; //TODO: ...
+    return strprintf(
+        "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
+        "orderId=%s\n",
+        GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
+        orderId.GetHex());
 }
 
 Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &view) const {
-    return Object(); // TODO: ...
+    Object result;
+
+    CKeyID keyId;
+    view.GetKeyId(txUid, keyId);
+
+    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("tx_uid",         txUid.ToString()));
+    result.push_back(Pair("addr",           keyId.ToAddress()));
+    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("fees",           llFees));
+
+    result.push_back(Pair("order_id",       orderId.GetHex()));
+    
+    return result;
 }
 
 bool CDEXCancelOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
@@ -703,11 +808,47 @@ bool CDEXCancelOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSettleTx
 string CDEXSettleTx::ToString(CAccountDBCache &view) {
-    return ""; //TODO: ...
+    string dealInfo;
+    for (const auto &item : dealItems) {
+        dealInfo += strprintf("{buy_order_id:%s, sell_order_id:%s, coin_amount:%lld, asset_amount:%lld, price:%lld}",
+                        item.buyOrderId.GetHex(),item.sellOrderId.GetHex(),item.dealCoinAmount,item.dealAssetAmount,item.dealPrice);
+    }
+
+    return strprintf(
+        "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
+        "deal_items=%s\n",
+        GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
+        dealInfo);
 }
 
 Object CDEXSettleTx::ToJson(const CAccountDBCache &view) const {
-    return Object(); // TODO: ...
+    Object result;
+
+    CKeyID keyId;
+    view.GetKeyId(txUid, keyId);
+
+    Array arrayItems;
+    for (const auto &item : dealItems) {
+        Object subItem;
+        subItem.push_back(Pair("buy_order_id",      item.buyOrderId.GetHex()));
+        subItem.push_back(Pair("sell_order_id",     item.sellOrderId.GetHex()));
+        subItem.push_back(Pair("coin_amount",       item.dealCoinAmount));
+        subItem.push_back(Pair("asset_amount",      item.dealAssetAmount));
+        subItem.push_back(Pair("price",             item.dealPrice));
+        arrayItems.push_back(subItem);
+    }
+
+    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("tx_uid",         txUid.ToString()));
+    result.push_back(Pair("addr",           keyId.ToAddress()));
+    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("fees",           llFees));
+
+    result.push_back(Pair("deal_items",     arrayItems));
+    
+    return result;
 }
 
 bool CDEXSettleTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {

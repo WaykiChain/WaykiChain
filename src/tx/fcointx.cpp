@@ -109,14 +109,15 @@ Object CFcoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("hash",               GetHash().GetHex()));
     result.push_back(Pair("tx_type",            GetTxType(nTxType)));
     result.push_back(Pair("ver",                nVersion));
-    result.push_back(Pair("uid",                txUid.ToString()));
+    result.push_back(Pair("tx_uid",             txUid.ToString()));
     result.push_back(Pair("addr",               srcKeyId.ToAddress()));
-    result.push_back(Pair("dest_uid",           toUid.ToString()));
-    result.push_back(Pair("dest_addr",          desKeyId.ToAddress()));
-    result.push_back(Pair("fcoins",             fcoins));
-    result.push_back(Pair("fees",               llFees));
-    result.push_back(Pair("memo",               HexStr(memo)));
     result.push_back(Pair("valid_height",       nValidHeight));
+    result.push_back(Pair("fees",               llFees));
+
+    result.push_back(Pair("to_uid",             toUid.ToString()));
+    result.push_back(Pair("to_addr",            desKeyId.ToAddress()));
+    result.push_back(Pair("fcoins_amount",      fcoins));
+    result.push_back(Pair("memo",               HexStr(memo)));
 
     return result;
 }
