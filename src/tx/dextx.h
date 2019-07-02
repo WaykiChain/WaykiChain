@@ -13,7 +13,7 @@ class CDEXOrderBaseTx : public CBaseTx {
 public:
     using CBaseTx::CBaseTx;
 
-    virtual void GetOrderData(CDEXOrderData &orderData) = 0;
+    virtual void GetOrderDetail(CDEXOrderDetail &orderDetail) = 0;
 public:
     static bool CalcCoinAmount(uint64_t assetAmount, uint64_t price, uint64_t &coinAmountOut);
 };
@@ -71,7 +71,7 @@ public:
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 public: // derive from CDEXOrderBaseTx
-    virtual void GetOrderData(CDEXOrderData &orderData);
+    virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
     CoinType coinType;      //!< coin type (wusd) to buy asset
     CoinType assetType;     //!< asset type
@@ -134,7 +134,7 @@ public:
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 public: // devive from CDEXOrderBaseTx
-    virtual void GetOrderData(CDEXOrderData &orderData);
+    virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
     CoinType coinType;      //!< coin type (wusd) to sell asset
     CoinType assetType;     //!< holing asset type (wicc or wgrt) to sell in coinType
@@ -194,7 +194,7 @@ public:
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
 public: // devive from CDEXOrderBaseTx
-    virtual void GetOrderData(CDEXOrderData &orderData);
+    virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
     CoinType coinType;      //!< coin type (wusd) to buy asset
     CoinType assetType;     //!< asset type
@@ -252,7 +252,7 @@ public:
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
 public: // devive from CDEXOrderBaseTx
-    virtual void GetOrderData(CDEXOrderData &orderData);
+    virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
     CoinType coinType;      //!< coin type (wusd) to buy asset
     CoinType assetType;     //!< asset type
@@ -376,9 +376,10 @@ public:
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+private:
 
 private:
     vector<DEXDealItem> dealItems;
-
 };
+
 #endif //TX_DEX_H

@@ -17,15 +17,15 @@ void CDEXSysBuyOrder::SetEmpty() {
     coinAmount = 0;
 }
 
-void CDEXSysBuyOrder::GetOrderData(CDEXOrderData &orderData) {
-    orderData.userRegId = FcoinGenesisRegId;
-    orderData.orderType = ORDER_MARKET_PRICE;     //!< order type
-    orderData.direction = ORDER_BUY;
-    orderData.coinType = coinType;      //!< coin type
-    orderData.assetType = assetType;     //!< asset type
-    orderData.coinAmount = coinAmount;    //!< amount of coin to buy asset
-    orderData.assetAmount = 0;          //!< unknown assetAmount in order
-    orderData.price = 0;                //!< unknown price in order
+void CDEXSysBuyOrder::GetOrderDetail(CDEXOrderDetail &orderDetail) {
+    orderDetail.userRegId = FcoinGenesisRegId;
+    orderDetail.orderType = ORDER_MARKET_PRICE;     //!< order type
+    orderDetail.direction = ORDER_BUY;
+    orderDetail.coinType = coinType;      //!< coin type
+    orderDetail.assetType = assetType;     //!< asset type
+    orderDetail.coinAmount = coinAmount;    //!< amount of coin to buy asset
+    orderDetail.assetAmount = 0;          //!< unknown assetAmount in order
+    orderDetail.price = 0;                //!< unknown price in order
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,15 +37,15 @@ void CDEXSysSellOrder::SetEmpty() {
     assetAmount = 0;
 }
 
-void CDEXSysSellOrder::GetOrderData(CDEXOrderData &orderData) const {
-    orderData.userRegId = FcoinGenesisRegId;
-    orderData.orderType = ORDER_MARKET_PRICE;     //!< order type
-    orderData.direction = ORDER_BUY;
-    orderData.coinType = coinType;          //!< coin type
-    orderData.assetType = assetType;        //!< asset type
-    orderData.coinAmount = 0;               //!< amount of coin to buy asset
-    orderData.assetAmount = assetAmount;    //!< unknown assetAmount in order
-    orderData.price = 0;                    //!< unknown price in order
+void CDEXSysSellOrder::GetOrderDetail(CDEXOrderDetail &orderDetail) const {
+    orderDetail.userRegId = FcoinGenesisRegId;
+    orderDetail.orderType = ORDER_MARKET_PRICE;     //!< order type
+    orderDetail.direction = ORDER_BUY;
+    orderDetail.coinType = coinType;          //!< coin type
+    orderDetail.assetType = assetType;        //!< asset type
+    orderDetail.coinAmount = 0;               //!< amount of coin to buy asset
+    orderDetail.assetAmount = assetAmount;    //!< unknown assetAmount in order
+    orderDetail.price = 0;                    //!< unknown price in order
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -74,8 +74,7 @@ bool CDexDBCache::UndoActiveOrder(CDBOpLogMap &dbOpLogMap) {
     return activeOrderCache.UndoData(dbOpLogMap);
 };
 
-bool CDexDBCache::GetSysBuyOrder(const uint256 &orderTxId, CDEXSysBuyOrder &buyOrder,
-                                 CDBOpLogMap &dbOpLogMap) {
+bool CDexDBCache::GetSysBuyOrder(const uint256 &orderTxId, CDEXSysBuyOrder &buyOrder) {
     return sysBuyOrderCache.GetData(orderTxId, buyOrder);
 }
 
@@ -97,8 +96,7 @@ bool CDexDBCache::UndoSysBuyOrder(CDBOpLogMap &dbOpLogMap) {
     return sysBuyOrderCache.UndoData(dbOpLogMap);
 }
 
-bool CDexDBCache::GetSysSellOrder(const uint256 &orderTxId, CDEXSysSellOrder &sellOrder,
-                                  CDBOpLogMap &dbOpLogMap) {
+bool CDexDBCache::GetSysSellOrder(const uint256 &orderTxId, CDEXSysSellOrder &sellOrder) {
     return sysSellOrderCache.GetData(orderTxId, sellOrder);
 }
 

@@ -30,8 +30,7 @@ enum OrderGenerateType {
     SYSTEM_GEN_ORDER    = 2
 };
 
-class CDEXOrderData {
-public:
+struct CDEXOrderDetail {
     CRegID          userRegId;
     OrderType       orderType;     //!< order type
     OrderDirection  direction;
@@ -90,7 +89,7 @@ public:
     )
     bool IsEmpty() const;
     void SetEmpty();
-    void GetOrderData(CDEXOrderData &orderData);
+    void GetOrderDetail(CDEXOrderDetail &orderDetail);
 };
 
 // txid -> sys order data
@@ -113,7 +112,7 @@ public:
 
     bool IsEmpty() const;
     void SetEmpty();
-    void GetOrderData(CDEXOrderData &orderData) const;
+    void GetOrderDetail(CDEXOrderDetail &orderDetail) const;
 };
 
 // System-generated Market Order
@@ -142,11 +141,11 @@ public:
     bool EraseActiveOrder(const uint256 &orderTxId, CDBOpLogMap &dbOpLogMap);
     bool UndoActiveOrder(CDBOpLogMap &dbOpLogMap);
 
-    bool GetSysBuyOrder(const uint256 &orderTxId, CDEXSysBuyOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
+    bool GetSysBuyOrder(const uint256 &orderTxId, CDEXSysBuyOrder &buyOrder);
     bool CreateSysBuyOrder(const uint256 &orderTxId, const CDEXSysBuyOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
     bool UndoSysBuyOrder(CDBOpLogMap &dbOpLogMap);
 
-    bool GetSysSellOrder(const uint256 &orderTxId, CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap);
+    bool GetSysSellOrder(const uint256 &orderTxId, CDEXSysSellOrder &sellOrder);
     bool CreateSysSellOrder(const uint256 &orderTxId, const CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap);
     bool UndoSysSellOrder(CDBOpLogMap &dbOpLogMap);
 
