@@ -164,6 +164,8 @@ static const string kContractScriptPathPrefix           = "/tmp/lua/";
 
 static const CRegID FcoinGenesisRegId(kFcoinGenesisTxHeight, kFcoinGenesisIssueTxIndex);
 
+static const CRegID kDEXSettleRegId(kFcoinGenesisTxHeight, kSettleServiceRegisterTxIndex);
+
 extern CTxMemPool mempool;
 extern map<uint256, CBlockIndex *> mapBlockIndex;
 extern uint64_t nLastBlockTx;
