@@ -14,32 +14,16 @@ bool CBlockPriceMedianTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSta
 }
 
 bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    CAccount acctInfo;
-    if (!cw.accountCache.GetAccount(txUid, acctInfo)) {
-        return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, read source addr %s account info error",
-            txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-    CAccountLog acctInfoLog(acctInfo);
-    // TODO: want to check something
-
-    CUserID userId = acctInfo.keyId;
-    if (!cw.accountCache.SetAccount(userId, acctInfo))
-        return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
-            UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
-
-    cw.txUndo.accountLogs.push_back(acctInfoLog);
-    cw.txUndo.txid = GetHash();
-
-   if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
-
+    // Nothing to do here.
     return true;
 }
 
 bool CBlockPriceMedianTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+    // Nothing to do here.
     return true;
 }
 
-string CBlockPriceMedianTx::ToString(CAccountDBCache &view) {
+string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {
     string pricePoints;
     for (auto it = mapMedianPricePoints.begin(); it != mapMedianPricePoints.end(); ++it) {
         pricePoints += strprintf("{coin_type:%u, price_type:%u, price:%lld}",
@@ -55,11 +39,11 @@ string CBlockPriceMedianTx::ToString(CAccountDBCache &view) {
     return str;
 }
 
-Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &AccountView) const {
+Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
     CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
+    accountCache.GetKeyId(txUid, keyId);
 
     Array pricePointArray;
     for (auto it = mapMedianPricePoints.begin(); it != mapMedianPricePoints.end(); ++it) {

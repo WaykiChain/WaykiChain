@@ -37,7 +37,7 @@ struct CoinTypeHash {
 
 static const unordered_set<CoinType, CoinTypeHash> COINT_TYPE_SET = { WICC, WGRT, WUSD};
 
-static const unordered_map<CoinType, string> kCoinTypeMapName = {
+static const unordered_map<CoinType, string, CoinTypeHash> kCoinTypeMapName = {
     {WICC, "WICC"},
     {WGRT, "WGRT"},
     {WUSD, "WUSD"}
