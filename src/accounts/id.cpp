@@ -96,6 +96,15 @@ void CRegID::SetRegID(const vector<unsigned char> &vIn) {
     ds >> nIndex;
 }
 
+const vector<unsigned char> &CRegID::GetRegIdRaw() const {
+    assert(vRegID.size() == 6);
+    return vRegID;
+}
+
+string CRegID::ToRawString() const {
+    return string(vRegID.begin(), vRegID.end());  // TODO: change the vRegID to string
+}
+
 CRegID::CRegID(string strRegID) { SetRegID(strRegID); }
 
 CRegID::CRegID(uint32_t nHeightIn, uint16_t nIndexIn) {
@@ -107,7 +116,8 @@ CRegID::CRegID(uint32_t nHeightIn, uint16_t nIndexIn) {
 }
 
 string CRegID::ToString() const {
-    if (IsEmpty()) return string("");
+    if (IsEmpty())
+        return string("");
 
     return strprintf("%d-%d", nHeight, nIndex);
 }

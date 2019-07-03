@@ -8,45 +8,92 @@
 #include "main.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-// class CDEXSysBuyOrder
+// class CDEXSysOrder
 
-bool CDEXSysBuyOrder::IsEmpty() const {
-    return coinAmount == 0;
+shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyLimitOrder(CoinType coinTypeIn,
+                                                           CoinType assetTypeIn,
+                                                           uint64_t assetAmountIn,
+                                                           uint64_t priceIn) {
+    auto pSysOrder       = make_shared<CDEXSysOrder>();
+    pSysOrder->direction = ORDER_BUY;
+    pSysOrder->orderType = ORDER_LIMIT_PRICE;
+    pSysOrder->coinType  = coinTypeIn;
+    pSysOrder->assetType = assetTypeIn;
+
+    pSysOrder->assetAmount = assetAmountIn;
+    pSysOrder->price       = priceIn;
+    assert(pSysOrder->coinAmount == 0);
+    return pSysOrder;
 }
-void CDEXSysBuyOrder::SetEmpty() {
+
+shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellLimitOrder(CoinType coinTypeIn,
+                                                            CoinType assetTypeIn,
+                                                            uint64_t assetAmountIn,
+                                                            uint64_t priceIn) {
+    auto pSysOrder       = make_shared<CDEXSysOrder>();
+    pSysOrder->direction = ORDER_SELL;
+    pSysOrder->orderType = ORDER_LIMIT_PRICE;
+    pSysOrder->coinType  = coinTypeIn;
+    pSysOrder->assetType = assetTypeIn;
+
+    pSysOrder->assetAmount = assetAmountIn;
+    pSysOrder->price       = priceIn;
+    assert(pSysOrder->coinAmount == 0);
+    return pSysOrder;
+}
+
+shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyMarketOrder(CoinType coinTypeIn,
+                                                            CoinType assetTypeIn,
+                                                            uint64_t coinAmountIn) {
+    auto pSysOrder       = make_shared<CDEXSysOrder>();
+    pSysOrder->direction = ORDER_BUY;
+    pSysOrder->orderType = ORDER_MARKET_PRICE;
+    pSysOrder->coinType  = coinTypeIn;
+    pSysOrder->assetType = assetTypeIn;
+
+    pSysOrder->coinAmount = coinAmountIn;
+    assert(pSysOrder->assetAmount == 0);
+    assert(pSysOrder->price == 0);
+    return pSysOrder;
+}
+
+shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellMarketOrder(CoinType coinTypeIn,
+                                                             CoinType assetTypeIn,
+                                                             uint64_t assetAmountIn) {
+    auto pSysOrder       = make_shared<CDEXSysOrder>();
+    pSysOrder->direction = ORDER_BUY;
+    pSysOrder->orderType = ORDER_MARKET_PRICE;
+    pSysOrder->coinType  = coinTypeIn;
+    pSysOrder->assetType = assetTypeIn;
+
+    pSysOrder->assetAmount = assetAmountIn;
+    assert(pSysOrder->coinAmount == 0);
+    assert(pSysOrder->price == 0);
+    return pSysOrder;
+}
+
+bool CDEXSysOrder::IsEmpty() const {
+    return  coinAmount == 0
+         && assetAmount == 0
+         && price == 0;
+}
+void CDEXSysOrder::SetEmpty() {
     coinAmount = 0;
-}
-
-void CDEXSysBuyOrder::GetOrderData(CDEXOrderData &orderData) {
-    orderData.userRegId = FcoinGenesisRegId;
-    orderData.orderType = ORDER_MARKET_PRICE;     //!< order type
-    orderData.direction = ORDER_BUY;
-    orderData.coinType = coinType;      //!< coin type
-    orderData.assetType = assetType;     //!< asset type
-    orderData.coinAmount = coinAmount;    //!< amount of coin to buy asset
-    orderData.assetAmount = 0;          //!< unknown assetAmount in order
-    orderData.price = 0;                //!< unknown price in order
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// class CDEXSysSellOrder
-bool CDEXSysSellOrder::IsEmpty() const {
-    return assetAmount == 0;
-}
-void CDEXSysSellOrder::SetEmpty() {
     assetAmount = 0;
+    price = 0;
 }
 
-void CDEXSysSellOrder::GetOrderData(CDEXOrderData &orderData) const {
-    orderData.userRegId = FcoinGenesisRegId;
-    orderData.orderType = ORDER_MARKET_PRICE;     //!< order type
-    orderData.direction = ORDER_BUY;
-    orderData.coinType = coinType;          //!< coin type
-    orderData.assetType = assetType;        //!< asset type
-    orderData.coinAmount = 0;               //!< amount of coin to buy asset
-    orderData.assetAmount = assetAmount;    //!< unknown assetAmount in order
-    orderData.price = 0;                    //!< unknown price in order
+void CDEXSysOrder::GetOrderDetail(CDEXOrderDetail &orderDetail) const {
+    orderDetail.userRegId = FcoinGenesisRegId;
+    orderDetail.orderType = orderType;
+    orderDetail.direction = direction;
+    orderDetail.coinType = coinType;
+    orderDetail.assetType = assetType;
+    orderDetail.coinAmount = coinAmount;
+    orderDetail.assetAmount = assetAmount;
+    orderDetail.price = price;
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CDexDBCache
@@ -74,49 +121,24 @@ bool CDexDBCache::UndoActiveOrder(CDBOpLogMap &dbOpLogMap) {
     return activeOrderCache.UndoData(dbOpLogMap);
 };
 
-bool CDexDBCache::GetSysBuyOrder(const uint256 &orderTxId, CDEXSysBuyOrder &buyOrder,
-                                 CDBOpLogMap &dbOpLogMap) {
-    return sysBuyOrderCache.GetData(orderTxId, buyOrder);
+bool CDexDBCache::GetSysOrder(const uint256 &orderTxId, CDEXSysOrder &sysOrder) {
+    return sysOrderCache.GetData(orderTxId, sysOrder);
 }
 
-bool CDexDBCache::CreateSysBuyOrder(const uint256 &orderTxId, const CDEXSysBuyOrder &buyOrder,
+bool CDexDBCache::CreateSysOrder(const uint256 &orderTxId, const CDEXSysOrder &buyOrder,
                                     CDBOpLogMap &dbOpLogMap) {
-    if (sysBuyOrderCache.HaveData(orderTxId)) {
-        return ERRORMSG("CDexDBCache::CreateSysBuyOrder failed. the order exists. txid=%s",
+    if (sysOrderCache.HaveData(orderTxId)) {
+        return ERRORMSG("CDexDBCache::CreateOrder failed. the order exists. txid=%s",
                         orderTxId.ToString());
     }
-    if (!sysBuyOrderCache.SetData(orderTxId, buyOrder, dbOpLogMap)) return false;
+    if (!sysOrderCache.SetData(orderTxId, buyOrder, dbOpLogMap)) return false;
     CDEXActiveOrder activeOrder;
     activeOrder.generateType = SYSTEM_GEN_ORDER;  //!< generate type
     if (!CreateActiveOrder(orderTxId, activeOrder, dbOpLogMap)) return false;
     return true;
 };
 
-bool CDexDBCache::UndoSysBuyOrder(CDBOpLogMap &dbOpLogMap) {
+bool CDexDBCache::UndoSysOrder(CDBOpLogMap &dbOpLogMap) {
     if (!UndoActiveOrder(dbOpLogMap)) return false;
-    return sysBuyOrderCache.UndoData(dbOpLogMap);
-}
-
-bool CDexDBCache::GetSysSellOrder(const uint256 &orderTxId, CDEXSysSellOrder &sellOrder,
-                                  CDBOpLogMap &dbOpLogMap) {
-    return sysSellOrderCache.GetData(orderTxId, sellOrder);
-}
-
-bool CDexDBCache::CreateSysSellOrder(const uint256 &orderTxId, const CDEXSysSellOrder &sellOrder,
-                                     CDBOpLogMap &dbOpLogMap) {
-    if (sysSellOrderCache.HaveData(orderTxId)) {
-        return ERRORMSG("CDexDBCache::CreateSysBuyOrder failed. the order exists. txid=%s",
-                        orderTxId.ToString());
-    }
-    if (!sysSellOrderCache.SetData(orderTxId, sellOrder, dbOpLogMap)) return false;
-    CDEXActiveOrder activeOrder;
-    activeOrder.generateType = SYSTEM_GEN_ORDER;  //!< generate type
-    if (!CreateActiveOrder(orderTxId, activeOrder, dbOpLogMap)) return false;
-    return true;
-};
-
-bool CDexDBCache::UndoSysSellOrder(CDBOpLogMap &dbOpLogMap) {
-    if (!UndoActiveOrder(dbOpLogMap)) return false;
-    return sysSellOrderCache.UndoData(dbOpLogMap);
-    return true;
+    return sysOrderCache.UndoData(dbOpLogMap);
 }

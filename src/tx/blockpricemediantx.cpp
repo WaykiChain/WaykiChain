@@ -40,13 +40,47 @@ bool CBlockPriceMedianTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
 }
 
 string CBlockPriceMedianTx::ToString(CAccountDBCache &view) {
-    //TODO
-    return "";
+    string pricePoints;
+    for (auto it = mapMedianPricePoints.begin(); it != mapMedianPricePoints.end(); ++it) {
+        pricePoints += strprintf("{coin_type:%u, price_type:%u, price:%lld}",
+                        it->first.coinType, it->first.priceType, it->second);
+    };
+
+    string str = strprintf(
+        "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
+        "median_price_points=%s\n",
+        GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
+        pricePoints);
+
+    return str;
 }
 
 Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &AccountView) const {
-    //TODO
-    return Object();
+    Object result;
+
+    CKeyID keyId;
+    view.GetKeyId(txUid, keyId);
+
+    Array pricePointArray;
+    for (auto it = mapMedianPricePoints.begin(); it != mapMedianPricePoints.end(); ++it) {
+        Object subItem;
+        subItem.push_back(Pair("coin_type",     it->first.coinType));
+        subItem.push_back(Pair("price_type",    it->first.priceType));
+        subItem.push_back(Pair("price",         it->second));
+        pricePointArray.push_back(subItem);
+    };
+
+    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("tx_uid",         txUid.ToString()));
+    result.push_back(Pair("addr",           keyId.ToAddress()));
+    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("fees",           llFees));
+
+    result.push_back(Pair("median_price_points",   pricePointArray));
+
+    return result;
 }
 
 bool CBlockPriceMedianTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {

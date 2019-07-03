@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "rpcserver.h"
-#include "rpctx.h"
+#include "rpc/rpctx.h"
 
 #include "commons/base58.h"
 #include "init.h"
@@ -15,7 +15,7 @@
 #include <memory>
 #include "wallet/wallet.h"
 #include "json/json_spirit_writer_template.h"
-#include "rpc/httpserver.h"
+#include "httpserver.h"
 #include "rpc/rpcvm.h"
 
 using namespace std;

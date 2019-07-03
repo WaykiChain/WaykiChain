@@ -30,8 +30,7 @@ enum OrderGenerateType {
     SYSTEM_GEN_ORDER    = 2
 };
 
-class CDEXOrderData {
-public:
+struct CDEXOrderDetail {
     CRegID          userRegId;
     OrderType       orderType;     //!< order type
     OrderDirection  direction;
@@ -70,50 +69,60 @@ struct CDEXActiveOrder {
 
 // order txid -> sys order data
 // order txid:
-//   (1) CCDPStakeTx, create sys buy order for WGRT by WUSD when alter CDP and the interest is WUSD
-//   (2) CCDPRedeemTx, create sys buy order for WGRT by WUSD when the interest is WUSD
-//   (3) CCDPLiquidateTx, create sys buy order for WGRT by WUSD when the penalty is WUSD
-class CDEXSysBuyOrder {
-public:
-    CoinType        coinType;      //!< coin type
-    CoinType        assetType;     //!< asset type
-    uint64_t        coinAmount;    //!< amount of coin to buy asset
-public:
-    CDEXSysBuyOrder() {};
-    CDEXSysBuyOrder(CoinType coinTypeIn, CoinType assetTypeIn, uint64_t coinAmountIn):
-                coinType(coinTypeIn), assetType(assetTypeIn), coinAmount(coinAmountIn) {};
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE((uint8_t&)coinType);
-        READWRITE((uint8_t&)assetType);
-        READWRITE(VARINT(coinAmount));
-    )
-    bool IsEmpty() const;
-    void SetEmpty();
-    void GetOrderData(CDEXOrderData &orderData);
-};
+//   (1) CCDPStakeTx, create sys buy market order for WGRT by WUSD when alter CDP and the interest is WUSD
+//   (2) CCDPRedeemTx, create sys buy market order for WGRT by WUSD when the interest is WUSD
+//   (3) CCDPLiquidateTx, create sys buy market order for WGRT by WUSD when the penalty is WUSD
 
 // txid -> sys order data
-class CDEXSysSellOrder {
-public:
+class CDEXSysOrder {
+private:
+    OrderDirection  direction;     //!< order direction 
+    OrderType       orderType;     //!< order type
     CoinType        coinType;      //!< coin type
     CoinType        assetType;     //!< asset type
-    uint64_t        assetAmount;    //!< amount of coin to buy asset
+
+    uint64_t        coinAmount;    //!< amount of coin to buy/sell asset
+    uint64_t        assetAmount;   //!< amount of coin to buy asset
+    uint64_t        price;         //!< price in coinType want to buy/sell asset
+public:// create functions
+    static shared_ptr<CDEXSysOrder> CreateBuyLimitOrder(CoinType coinTypeIn, CoinType assetTypeIn,
+                                                        uint64_t assetAmountIn, uint64_t priceIn);
+
+    static shared_ptr<CDEXSysOrder> CreateSellLimitOrder(CoinType coinTypeIn, CoinType assetTypeIn,
+                                                         uint64_t assetAmountIn, uint64_t priceIn);
+
+    static shared_ptr<CDEXSysOrder> CreateBuyMarketOrder(CoinType coinTypeIn, CoinType assetTypeIn,
+                                                         uint64_t coinAmountIn);
+
+    static shared_ptr<CDEXSysOrder> CreateSellMarketOrder(CoinType coinTypeIn, CoinType assetTypeIn,
+                                                          uint64_t assetAmountIn);
 
 public:
-    CDEXSysSellOrder() {};
-    CDEXSysSellOrder(CoinType coinTypeIn, CoinType assetTypeIn, uint64_t assetAmountIn):
-                coinType(coinTypeIn), assetType(assetTypeIn), assetAmount(assetAmountIn) {};
+    // default constructor
+    CDEXSysOrder():         
+        direction(ORDER_BUY),
+        orderType(ORDER_LIMIT_PRICE),
+        coinType(WUSD),
+        assetType(WICC),
+        coinAmount(0),
+        assetAmount(0),
+        price(0) 
+        {} 
 
     IMPLEMENT_SERIALIZE(
+        READWRITE((uint8_t&)direction);
+        READWRITE((uint8_t&)orderType);
         READWRITE((uint8_t&)coinType);
         READWRITE((uint8_t&)assetType);
+
+        READWRITE(VARINT(coinAmount));
         READWRITE(VARINT(assetAmount));
+        READWRITE(VARINT(price));
     )
 
     bool IsEmpty() const;
     void SetEmpty();
-    void GetOrderData(CDEXOrderData &orderData) const;
+    void GetOrderDetail(CDEXOrderDetail &orderDetail) const;
 };
 
 // System-generated Market Order
@@ -142,26 +151,16 @@ public:
     bool EraseActiveOrder(const uint256 &orderTxId, CDBOpLogMap &dbOpLogMap);
     bool UndoActiveOrder(CDBOpLogMap &dbOpLogMap);
 
-    bool GetSysBuyOrder(const uint256 &orderTxId, CDEXSysBuyOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
-    bool CreateSysBuyOrder(const uint256 &orderTxId, const CDEXSysBuyOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
-    bool UndoSysBuyOrder(CDBOpLogMap &dbOpLogMap);
-
-    bool GetSysSellOrder(const uint256 &orderTxId, CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap);
-    bool CreateSysSellOrder(const uint256 &orderTxId, const CDEXSysSellOrder &sellOrder, CDBOpLogMap &dbOpLogMap);
-    bool UndoSysSellOrder(CDBOpLogMap &dbOpLogMap);
-
-
-    bool CreateBuyOrder(uint64_t buyAmount, CoinType targetCoinType); //TODO: ... SystemBuyOrder
-    bool CreateSellOrder(uint64_t sellAmount, CoinType targetCoinType); //TODO: ... SystemSellOrder
-
+    bool GetSysOrder(const uint256 &orderTxId, CDEXSysOrder &buyOrder);
+    bool CreateSysOrder(const uint256 &orderTxId, const CDEXSysOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
+    bool UndoSysOrder(CDBOpLogMap &dbOpLogMap);
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// DexDB
     // order tx id -> active order
-    CDBMultiValueCache< dbk::DEX_ACTIVE_ORDER,         uint256,                   CDEXActiveOrder >     activeOrderCache;
-    CDBMultiValueCache< dbk::DEX_SYS_BUY_ORDER,        uint256,                   CDEXSysBuyOrder >     sysBuyOrderCache;
-    CDBMultiValueCache< dbk::DEX_SYS_SELL_ORDER,       uint256,                   CDEXSysSellOrder >     sysSellOrderCache;
+    CDBMultiValueCache< dbk::DEX_ACTIVE_ORDER,       uint256,             CDEXActiveOrder >     activeOrderCache;
+    CDBMultiValueCache< dbk::DEX_SYS_ORDER,          uint256,             CDEXSysOrder >        sysOrderCache;
 };
 
 #endif //PERSIST_DEX_H

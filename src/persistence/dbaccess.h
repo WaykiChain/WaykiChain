@@ -19,23 +19,23 @@
 namespace db_util {
 
     // bool
-    inline bool IsEmpty(const bool val) { return val != false; }
+    inline bool IsEmpty(const bool val) { return val == false; }
     inline void SetEmpty(bool &val) { val = false; }
 
     // uint8_t
-    inline bool IsEmpty(const uint8_t val) { return val != 0; }
+    inline bool IsEmpty(const uint8_t val) { return val == 0; }
     inline void SetEmpty(uint8_t &val) { val = 0; }
 
     // uint16_t
-    inline bool IsEmpty(const uint16_t val) { return val != 0; }
+    inline bool IsEmpty(const uint16_t val) { return val == 0; }
     inline void SetEmpty(uint16_t &val) { val = 0; }
 
     // uint32_t
-    inline bool IsEmpty(const uint32_t val) { return val != 0; }
+    inline bool IsEmpty(const uint32_t val) { return val == 0; }
     inline void SetEmpty(uint32_t &val) { val = 0; }
 
     // uint64_t
-    inline bool IsEmpty(const uint64_t val) { return val != 0; }
+    inline bool IsEmpty(const uint64_t val) { return val == 0; }
     inline void SetEmpty(uint64_t &val) { val = 0; }
 
     // string
@@ -160,6 +160,7 @@ public:
               dbNameType(dbNameTypeIn),
               db( GetDataDir() / "blocks" / ::GetDbName(dbNameTypeIn), nCacheSize, fMemory, fWipe ) {}
 
+    int64_t GetDbCount() const { return db.GetDbCount(); }
     template<typename KeyType, typename ValueType>
     bool GetData(const dbk::PrefixType prefixType, const KeyType &key, ValueType &value) const {
         string keyStr = dbk::GenDbKey(prefixType, key);
@@ -178,10 +179,14 @@ public:
         KeyType key;
         uint32_t count             = 0;
         leveldb::Iterator *pCursor = db.NewIterator();
-        leveldb::Slice slKey       = pCursor->key();
-        pCursor->Seek(dbk::GetKeyPrefix(prefixType));
+
+        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        const string &prefix = dbk::GetKeyPrefix(prefixType);
+        ssKey.write(prefix.c_str(), prefix.size());
+        pCursor->Seek(ssKey.str());
 
         for (; (count < maxNum) && pCursor->Valid(); pCursor->Next()) {
+            leveldb::Slice slKey = pCursor->key();
             if (!dbk::ParseDbKey(slKey, prefixType, key)) {
                 break;
             }
@@ -197,6 +202,8 @@ public:
             }
         }
 
+        delete pCursor;
+
         return true;
     }
 
@@ -205,10 +212,14 @@ public:
         KeyType key;
         ValueType value;
         leveldb::Iterator *pCursor = db.NewIterator();
-        leveldb::Slice slKey       = pCursor->key();
-        pCursor->Seek(dbk::GetKeyPrefix(prefixType));
+
+        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        const string &prefix = dbk::GetKeyPrefix(prefixType);
+        ssKey.write(prefix.c_str(), prefix.size());
+        pCursor->Seek(ssKey.str());
 
         for (; pCursor->Valid(); pCursor->Next()) {
+            leveldb::Slice slKey = pCursor->key();
             if (!dbk::ParseDbKey(slKey, prefixType, key)) {
                 break;
             }
@@ -221,6 +232,8 @@ public:
             assert(ret.second);  // TODO: throw error
         }
 
+        delete pCursor;
+
         return true;
     }
 
@@ -230,10 +243,15 @@ public:
         string key;
         ValueType value;
         leveldb::Iterator *pCursor = db.NewIterator();
-        leveldb::Slice slKey       = pCursor->key();
-        pCursor->Seek(dbk::GetKeyPrefix(prefixType));
+
+        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        const string &keyPrefix = dbk::GetKeyPrefix(prefixType);
+        ssKey.write(keyPrefix.c_str(), keyPrefix.size());
+        ssKey.write(prefix.c_str(), prefix.size());
+        pCursor->Seek(ssKey.str());
 
         for (; pCursor->Valid(); pCursor->Next()) {
+            leveldb::Slice slKey = pCursor->key();
             if (!dbk::ParseDbKey(slKey, prefixType, key) || key.find(prefix, 0) != 0) {
                 break;
             }
@@ -250,6 +268,8 @@ public:
             }
         }
 
+        delete pCursor;
+
         return true;
     }
 
@@ -259,10 +279,13 @@ public:
         KeyType key;
         ValueType value;
         leveldb::Iterator *pCursor = db.NewIterator();
-        leveldb::Slice slKey       = pCursor->key();
-        pCursor->Seek(dbk::GetKeyPrefix(prefixType));
+        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        const string &prefix = dbk::GetKeyPrefix(prefixType);
+        ssKey.write(prefix.c_str(), prefix.size());
+        pCursor->Seek(ssKey.str());
 
         for (; pCursor->Valid(); pCursor->Next()) {
+            leveldb::Slice slKey = pCursor->key();
             if (!dbk::ParseDbKey(slKey, prefixType, key)) {
                 break;
             }
@@ -279,6 +302,8 @@ public:
             }
         }
 
+        delete pCursor;
+
         return true;
     }
 
@@ -289,8 +314,7 @@ public:
     }
 
     template<typename KeyType, typename ValueType>
-    void BatchWrite(const dbk::PrefixType prefixType, const map<KeyType, ValueType> &mapData) {
-        CLevelDBBatch batch;
+    void BatchWrite(const dbk::PrefixType prefixType, const map<KeyType, ValueType> &mapData) {        CLevelDBBatch batch;
         for (auto item : mapData) {
             string key = dbk::GenDbKey(prefixType, item.first);
             if (db_util::IsEmpty(item.second)) {

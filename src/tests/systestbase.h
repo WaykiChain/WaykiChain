@@ -22,7 +22,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include "vm/script.h"
-#include "rpc/rpcserver.h"
+#include "rpc/core/rpcserver.h"
 #include <boost/algorithm/string/predicate.hpp>
 
 using namespace std;

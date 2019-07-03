@@ -12,7 +12,7 @@
 #include "configuration.h"
 #include "addrman.h"
 
-#include "rpc/rpcserver.h"
+#include "rpc/core/rpcserver.h"
 #include "vm/lua/lua.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"

@@ -24,7 +24,7 @@ typedef leveldb::Slice Slice;
     DEFINE( BLOCK,               "block")        /* account */ \
     DEFINE( CONTRACT,            "contract")     /* contract */ \
     DEFINE( DELEGATE,            "delegate")     /* delegate */ \
-    DEFINE( CDP,                 "dcp")          /* dcp */ \
+    DEFINE( CDP,                 "cdp")          /* cdp */ \
     DEFINE( DEX,                 "dex")          /* dex */ \
     DEFINE( LOG,                 "log")          /* log */ \
     /*                                                                */  \
@@ -97,8 +97,7 @@ namespace dbk {
         DEFINE( CDP_FORCE_LIQUIDATE_RATIO, "cflr", CDP )       /* [prefix] --> forceLiquidateRatio */ \
         /**** dex db                                                                    */ \
         DEFINE( DEX_ACTIVE_ORDER,     "dato",  DEX )           /* [prefix]{txid} --> active order */ \
-        DEFINE( DEX_SYS_BUY_ORDER,    "dsbo",  DEX )           /* [prefix]{txid} --> system buy order */ \
-        DEFINE( DEX_SYS_SELL_ORDER,   "dsso",  DEX )           /* [prefix]{txid} --> system sell order */ \
+        DEFINE( DEX_SYS_ORDER,        "dsso",  DEX )           /* [prefix]{txid} --> system order */ \
         /**** log db                                                                   */ \
         DEFINE( TX_EXECUTE_FAIL,      "txef",  LOG )           /* [prefix]{height}{txid} --> {error code, error message} */ \
         /*                                                                             */ \
@@ -146,7 +145,6 @@ namespace dbk {
 
     template<typename KeyElement>
     std::string GenDbKey(PrefixType keyPrefixType, const KeyElement &keyElement) {
-
         CDataStream ssKeyTemp(SER_DISK, CLIENT_VERSION);
         assert(keyPrefixType != EMPTY);
         const string &prefix = GetKeyPrefix(keyPrefixType);

@@ -13,7 +13,7 @@
 #include "init.h"
 #include "json/json_spirit_value.h"
 #include "main.h"
-#include "rpcserver.h"
+#include "rpc/core/rpcserver.h"
 #include "sync.h"
 #include "tx/merkletx.h"
 #include "tx/tx.h"

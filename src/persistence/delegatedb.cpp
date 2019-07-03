@@ -14,13 +14,14 @@ bool CDelegateDBCache::LoadTopDelegates() {
     set<std::pair<string, string> > regIds;
     voteRegIdCache.GetTopNElements(IniCfg().GetTotalDelegateNum(), regIds);
 
-    assert(regIds.size() == IniCfg().GetTotalDelegateNum());
+    // assert(regIds.size() == IniCfg().GetTotalDelegateNum());
 
     for (const auto &regId : regIds) {
-        delegateRegIds.push_back(CRegID(std::get<1>(regId)));
+        string strRegId = std::get<1>(regId);
+        delegateRegIds.push_back(CRegID(vector<unsigned char>(strRegId.begin(), strRegId.end())));
     }
 
-    assert(delegateRegIds.size() == IniCfg().GetTotalDelegateNum());
+    // assert(delegateRegIds.size() == IniCfg().GetTotalDelegateNum());
 
     return true;
 }
@@ -34,6 +35,10 @@ bool CDelegateDBCache::ExistDelegate(const CRegID &delegateRegId) {
 }
 
 bool CDelegateDBCache::GetTopDelegates(vector<CRegID> &delegatesList) {
+    if (delegateRegIds.empty()) {
+        LoadTopDelegates();
+    }
+
     if (delegateRegIds.size() != IniCfg().GetTotalDelegateNum()) {
         return false;
     }
@@ -48,6 +53,8 @@ bool CDelegateDBCache::SetDelegateVotes(const CRegID &regId, const uint64_t vote
         return true;
     }
 
+    delegateRegIds.clear();
+
     static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
     string strVotes           = strprintf("%016x", maxNumber - votes);
     auto key                  = std::make_pair(strVotes, regId.ToRawString());
@@ -60,6 +67,8 @@ bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t vo
     if (votes == 0) {
         return true;
     }
+
+    delegateRegIds.clear();
 
     static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
     string strVotes           = strprintf("%016x", maxNumber - votes);
@@ -80,4 +89,11 @@ bool CDelegateDBCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateV
 
 bool CDelegateDBCache::UndoCandidateVotes(CDBOpLogMap &dbOpLogMap) {
     return regId2VoteCache.UndoData(dbOpLogMap);
+}
+
+bool CDelegateDBCache::Flush() {
+    voteRegIdCache.Flush();
+    regId2VoteCache.Flush();
+
+    return true;
 }

@@ -248,7 +248,7 @@ libcoin_server_a_SOURCES = \
   rpc/rpcscoin.cpp \
   rpc/rpctx.cpp \
   rpc/rpcvm.cpp \
-  rpc/rpcwall.cpp \
+  rpc/rpcwallet.cpp \
   sigcache.cpp \
   tx/accountregtx.cpp \
   tx/blockrewardtx.cpp \

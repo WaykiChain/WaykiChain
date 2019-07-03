@@ -6,7 +6,7 @@
 #include "rpcscoin.h"
 
 #include "commons/base58.h"
-#include "rpcserver.h"
+#include "rpc/core/rpcserver.h"
 #include "init.h"
 #include "net.h"
 #include "miner/miner.h"
@@ -38,6 +38,9 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitpricefeedtx","\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"[{\"coin\", WICC, \"currency\": USD, \"price\": 0.28}]\"\n"));
     }
+
+    // TODO:
+    return Object();
 }
 
 Value submitstakefcointx(const Array& params, bool fHelp) {
