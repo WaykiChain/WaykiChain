@@ -92,18 +92,11 @@ string CMultiCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
 
     string rewardValue;
     for (const auto &item : rewardValues) {
-        switch (item.first /* CoinType */) {
-            case CoinType::WICC: rewardValue += strprintf("WICC: %lu, ", item.second); break;
-            case CoinType::WUSD: rewardValue += strprintf("WUSD: %lu, ", item.second); break;
-            case CoinType::WGRT: rewardValue += strprintf("WGRT: %lu, ", item.second); break;
-            default: break;
-        }
+        rewardValue += strprintf("%s: %lu, ", GetCoinTypeName((CoinType)item.first), item.second);
     }
 
-    string str = strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyId=%s, %s\n", GetTxType(nTxType),
-                           GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), rewardValue);
-
-    return str;
+    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyId=%s, %s\n", GetTxType(nTxType),
+                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), rewardValue);
 }
 
 Object CMultiCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const{

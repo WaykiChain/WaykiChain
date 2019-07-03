@@ -27,13 +27,9 @@ public:
         assert(BLOCK_REWARD_TX == pBaseTx->nTxType);
         *this = *(CMultiCoinBlockRewardTx *)pBaseTx;
     }
-    CMultiCoinBlockRewardTx(const UnsignedCharArray &accountIn, const map<CoinType, uint64_t> rewardValuesIn, const int nHeightIn):
-        CBaseTx(BLOCK_REWARD_TX) {
-        if (accountIn.size() > 6) {
-            txUid = CPubKey(accountIn);
-        } else {
-            txUid = CRegID(accountIn);
-        }
+    CMultiCoinBlockRewardTx(const CUserID &txUidIn, const map<CoinType, uint64_t> rewardValuesIn, const int nHeightIn)
+        : CBaseTx(BLOCK_REWARD_TX) {
+        txUid = txUidIn;
 
         for (const auto &item : rewardValuesIn) {
             rewardValues.emplace(uint8_t(item.first), item.second);
