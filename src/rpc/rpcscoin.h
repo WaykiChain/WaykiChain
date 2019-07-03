@@ -17,8 +17,10 @@ using namespace json_spirit;
 extern Value submitpricefeedtx(const Array& params, bool fHelp);
 extern Value submitstakefcointx(const Array& params, bool fHelp);
 
-extern Value submitdexbuyordertx(const Array& params, bool fHelp);
-extern Value submitdexsellordertx(const Array& params, bool fHelp);
+extern Value submitdexbuylimitordertx(const Array& params, bool fHelp);
+extern Value submitdexselllimitordertx(const Array& params, bool fHelp);
+extern Value submitdexbuymarketordertx(const Array& params, bool fHelp);
+extern Value submitdexsellmarketordertx(const Array& params, bool fHelp);
 extern Value submitdexcancelordertx(const Array& params, bool fHelp);
 extern Value submitdexsettletx(const Array& params, bool fHelp);
 

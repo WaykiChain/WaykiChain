@@ -38,10 +38,39 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
 }
 
 Value submitstakefcointx(const Array& params, bool fHelp);
-Value submitdexbuyordertx(const Array& params, bool fHelp);
-Value submitdexsellordertx(const Array& params, bool fHelp);
+
+
+Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 2 || params.size() > 4) {
+        throw runtime_error(
+            "submitpricefeedtx \"{addr}\" \"script_path\"\n"
+            "\nsubmit a price feed tx.\n"
+            "\nthe execution include registercontracttx and callcontracttx.\n"
+            "\nArguments:\n"
+            "1.\"addr\": (string required) buyer address from this wallet\n"
+            "2.\"coin_type\": (string required) coin type to pay\n"
+            "3.\"asset_type\": (string required), asset type to buy\n"
+            "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
+            "5.\"price\": (numeric, required) bidding price willing to buy\n"
+            "6.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
+            "\nResult detail\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n"));
+    }
+    // TODO: ...
+
+}
+
+Value submitdexselllimitordertx(const Array& params, bool fHelp);
+Value submitdexbuymarketordertx(const Array& params, bool fHelp);
+Value submitdexsellmarketordertx(const Array& params, bool fHelp);
+
 Value submitdexcancelordertx(const Array& params, bool fHelp);
 Value submitdexsettletx(const Array& params, bool fHelp);
+
 Value submitstakecdptx(const Array& params, bool fHelp);
 Value submitredeemcdptx(const Array& params, bool fHelp);
 Value submitliquidatecdptx(const Array& params, bool fHelp);
