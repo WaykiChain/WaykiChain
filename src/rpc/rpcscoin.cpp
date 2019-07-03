@@ -6,7 +6,7 @@
 #include "rpcscoin.h"
 
 #include "commons/base58.h"
-#include "rpcserver.h"
+#include "rpc/core/rpcserver.h"
 #include "init.h"
 #include "net.h"
 #include "miner/miner.h"

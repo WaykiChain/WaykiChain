@@ -1,4 +1,4 @@
-#include "./rpc/rpcserver.h"
+#include "./rpc/core/rpcserver.h"
 #include "./rpc/core/rpcclient.h"
 #include "util.h"
 #include "chainparams.h"

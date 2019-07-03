@@ -8,7 +8,7 @@
 #include "main.h"
 #include "net.h"
 #include "netbase.h"
-#include "rpcserver.h"
+#include "rpc/core/rpcserver.h"
 #include "util.h"
 
 #include "../wallet/wallet.h"
