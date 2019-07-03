@@ -91,11 +91,12 @@ Object CFcoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("hash",               GetHash().GetHex()));
     result.push_back(Pair("tx_type",            GetTxType(nTxType)));
     result.push_back(Pair("ver",                nVersion));
-    result.push_back(Pair("regid",              txUid.ToString()));
+    result.push_back(Pair("tx_uid",             txUid.ToString()));
     result.push_back(Pair("addr",               keyId.ToAddress()));
-    result.push_back(Pair("coins_to_stake",     fcoinsToStake));
-    result.push_back(Pair("fees",               llFees));
     result.push_back(Pair("valid_height",       nValidHeight));
+    result.push_back(Pair("fees",               llFees));
+
+    result.push_back(Pair("coins_to_stake",     fcoinsToStake));
 
     return result;
 }
