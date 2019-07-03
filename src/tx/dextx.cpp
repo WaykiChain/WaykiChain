@@ -721,24 +721,16 @@ static bool GetDealOrder(const uint256 &txid, const OrderDirection direction, CC
         }
         assert(txid == pBuyOrderTx->GetHash());
         pBuyOrderTx->GetOrderDetail(dealOrder.orderDetail);
-        if (dealOrder.orderDetail.direction != direction) {
-            return ERRORMSG("GetDealOrder, unexpected direction of order tx! direction=%s", typeid(direction).name());
-        }
     } else {
         assert(dealOrder.activeOrder.generateType == SYSTEM_GEN_ORDER);
-        if (ORDER_BUY == direction) {
-            CDEXSysBuyOrder sysBuyOrder;
-            if (!cw.dexCache.GetSysBuyOrder(txid, sysBuyOrder)) {
-                return ERRORMSG("GetDealOrder, get sys buy order from db failed! txid=%s", txid.ToString());
-            }
-            sysBuyOrder.GetOrderDetail(dealOrder.orderDetail);
-        } else {
-            CDEXSysSellOrder sysSellOrder;
-            if (!cw.dexCache.GetSysSellOrder(txid, sysSellOrder)) {
-                return ERRORMSG("GetDealOrder, get sys sell order from db failed! txid=%s", txid.ToString());
-            }
-            sysSellOrder.GetOrderDetail(dealOrder.orderDetail);
+        CDEXSysOrder sysBuyOrder;
+        if (!cw.dexCache.GetSysOrder(txid, sysBuyOrder)) {
+            return ERRORMSG("GetDealOrder, get sys order from db failed! txid=%s", txid.ToString());
         }
+        sysBuyOrder.GetOrderDetail(dealOrder.orderDetail);
+    }
+    if (dealOrder.orderDetail.direction != direction) {
+        return ERRORMSG("GetDealOrder, unexpected direction of order tx! direction=%s", typeid(direction).name());
     }
     return true;
 }

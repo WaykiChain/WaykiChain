@@ -97,8 +97,7 @@ namespace dbk {
         DEFINE( CDP_FORCE_LIQUIDATE_RATIO, "cflr", CDP )       /* [prefix] --> forceLiquidateRatio */ \
         /**** dex db                                                                    */ \
         DEFINE( DEX_ACTIVE_ORDER,     "dato",  DEX )           /* [prefix]{txid} --> active order */ \
-        DEFINE( DEX_SYS_BUY_ORDER,    "dsbo",  DEX )           /* [prefix]{txid} --> system buy order */ \
-        DEFINE( DEX_SYS_SELL_ORDER,   "dsso",  DEX )           /* [prefix]{txid} --> system sell order */ \
+        DEFINE( DEX_SYS_ORDER,        "dsso",  DEX )           /* [prefix]{txid} --> system order */ \
         /**** log db                                                                   */ \
         DEFINE( TX_EXECUTE_FAIL,      "txef",  LOG )           /* [prefix]{height}{txid} --> {error code, error message} */ \
         /*                                                                             */ \

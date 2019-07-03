@@ -54,8 +54,8 @@ bool CCDPStakeTx::SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, 
                         scoinsInterest, scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
     }
 
-    CDEXSysBuyOrder sysBuyOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterest);
-    if (!cw.dexCache.CreateSysBuyOrder(GetHash(), sysBuyOrder, cw.txUndo.dbOpLogMap)) {
+    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterest);
+    if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
@@ -196,7 +196,7 @@ bool CCDPStakeTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
                          REJECT_INVALID, "bad-undo-data");
     }
 
-    if (!cw.dexCache.UndoSysBuyOrder(cw.txUndo.dbOpLogMap)) {
+    if (!cw.dexCache.UndoSysOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::UndoExecuteTx, undo system buy order failed"),
                         UNDO_SYS_ORDER_FAILED, "undo-data-failed");
     }
@@ -247,8 +247,8 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
                     scoinsInterest, scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL, "scoins-interest-insufficient-error");
     }
 
-    CDEXSysBuyOrder sysBuyOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterest);
-    if (!cw.dexCache.CreateSysBuyOrder(GetHash(), sysBuyOrder, cw.txUndo.dbOpLogMap)) {
+    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterest);
+    if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
@@ -367,7 +367,7 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
                          REJECT_INVALID, "bad-undo-data");
     }
 
-    if (!cw.dexCache.UndoSysBuyOrder(cw.txUndo.dbOpLogMap)) {
+    if (!cw.dexCache.UndoSysOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::UndoExecuteTx, undo system buy order failed"),
                         UNDO_SYS_ORDER_FAILED, "undo-data-failed");
     }
@@ -428,8 +428,9 @@ bool CCDPLiquidateTx::SellPenaltyForFcoins(uint64_t scoinPenaltyToSysFund, const
     // uint64_t halfFcoinsPenalty = halfScoinsPenalty / cw.ppCache.GetFcoinMedianPrice();
 
     fcoinGenesisAccount.scoins += halfScoinsPenalty;    // save into risk reserve fund
-    CDEXSysBuyOrder sysBuyOrder(CoinType::WUSD, CoinType::WGRT, halfScoinsPenalty);
-    if (!cw.dexCache.CreateSysBuyOrder(GetHash(), sysBuyOrder, cw.txUndo.dbOpLogMap)) {
+
+    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, halfScoinsPenalty);
+    if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::ExecuteTx, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
@@ -614,7 +615,7 @@ bool CCDPLiquidateTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &
                          REJECT_INVALID, "bad-undo-data");
     }
 
-    if (!cw.dexCache.UndoSysBuyOrder(cw.txUndo.dbOpLogMap)) {
+    if (!cw.dexCache.UndoSysOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::UndoExecuteTx, undo system buy order failed"),
                         UNDO_SYS_ORDER_FAILED, "undo-data-failed");
     }
