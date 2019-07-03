@@ -37,6 +37,16 @@ struct CoinTypeHash {
 
 static const unordered_set<CoinType, CoinTypeHash> COINT_TYPE_SET = { WICC, WGRT, WUSD};
 
+static const unordered_map<CoinType, string> kCoinTypeMapName = {
+    {WICC, "WICC"},
+    {WGRT, "WGRT"},
+    {WUSD, "WUSD"}
+};
+
+inline const string& GetCoinTypeName(CoinType coinType) {
+    return kCoinTypeMapName.at(coinType);
+}
+
 enum PriceType: uint8_t {
     USD     = 1,
     CNY     = 2,

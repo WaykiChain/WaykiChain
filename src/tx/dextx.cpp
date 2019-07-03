@@ -34,22 +34,21 @@ string CDEXBuyLimitOrderTx::ToString(CAccountDBCache &view) {
 Object CDEXBuyLimitOrderTx::ToJson(const CAccountDBCache &view) const {
     Object result;
 
-    CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
+    CKeyID srcKeyId;
+    if(!view.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
 
     result.push_back(Pair("hash",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           keyId.ToAddress()));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
     result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("valid_height",   nValidHeight));
 
-    result.push_back(Pair("coin_type",      coinType));
-    result.push_back(Pair("asset_type",     assetType));
-    result.push_back(Pair("amount",         assetAmount));
+    result.push_back(Pair("coin_type",      GetCoinTypeName(coinType)));
+    result.push_back(Pair("asset_type",      GetCoinTypeName(assetType)));
+    result.push_back(Pair("asset_amount",   assetAmount));
     result.push_back(Pair("price",          bidPrice));
-    
     return result;
 }
 
@@ -198,22 +197,21 @@ string CDEXSellLimitOrderTx::ToString(CAccountDBCache &view) {
 Object CDEXSellLimitOrderTx::ToJson(const CAccountDBCache &view) const {
     Object result;
 
-    CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
+    CKeyID srcKeyId;
+    if(!view.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
 
     result.push_back(Pair("hash",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           keyId.ToAddress()));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
     result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("valid_height",   nValidHeight));
 
-    result.push_back(Pair("coin_type",      coinType));
-    result.push_back(Pair("asset_type",     assetType));
-    result.push_back(Pair("amount",         assetAmount));
+    result.push_back(Pair("coin_type",      GetCoinTypeName(coinType)));
+    result.push_back(Pair("asset_type",      GetCoinTypeName(assetType)));
+    result.push_back(Pair("asset_amount",   assetAmount));
     result.push_back(Pair("price",          askPrice));
-    
     return result;
 }
 
@@ -355,21 +353,20 @@ string CDEXBuyMarketOrderTx::ToString(CAccountDBCache &view) {
 Object CDEXBuyMarketOrderTx::ToJson(const CAccountDBCache &view) const {
     Object result;
 
-    CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
+    CKeyID srcKeyId;
+    if(!view.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
 
     result.push_back(Pair("hash",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           keyId.ToAddress()));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
     result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("valid_height",   nValidHeight));
 
-    result.push_back(Pair("coin_type",      coinType));
-    result.push_back(Pair("asset_type",     assetType));
-    result.push_back(Pair("amount",         coinAmount));
-    
+    result.push_back(Pair("coin_type",      GetCoinTypeName(coinType)));
+    result.push_back(Pair("asset_type",     GetCoinTypeName(assetType)));
+    result.push_back(Pair("coin_amount",   coinAmount));
     return result;
 }
 
@@ -512,21 +509,20 @@ string CDEXSellMarketOrderTx::ToString(CAccountDBCache &view) {
 Object CDEXSellMarketOrderTx::ToJson(const CAccountDBCache &view) const {
     Object result;
 
-    CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
+    CKeyID srcKeyId;
+    if(!view.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
 
     result.push_back(Pair("hash",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           keyId.ToAddress()));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
     result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("valid_height",   nValidHeight));
 
-    result.push_back(Pair("coin_type",      coinType));
-    result.push_back(Pair("asset_type",     assetType));
-    result.push_back(Pair("amount",         assetAmount));
-    
+    result.push_back(Pair("coin_type",      GetCoinTypeName(coinType)));
+    result.push_back(Pair("asset_type",     GetCoinTypeName(assetType)));
+    result.push_back(Pair("asset_amount",   assetAmount));
     return result;
 }
 
