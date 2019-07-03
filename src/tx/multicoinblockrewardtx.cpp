@@ -106,12 +106,7 @@ Object CMultiCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) cons
 
     Object rewardValue;
     for (const auto &item : rewardValues) {
-        switch (item.first /* CoinType */) {
-            case CoinType::WICC: rewardValue.push_back(Pair("WICC", item.second)); break;
-            case CoinType::WUSD: rewardValue.push_back(Pair("WUSD", item.second)); break;
-            case CoinType::WGRT: rewardValue.push_back(Pair("WGRT", item.second)); break;
-            default: break;
-        }
+        rewardValue.push_back(Pair(GetCoinTypeName((CoinType)item.first), item.second));
     }
 
     result.push_back(Pair("hash",           GetHash().GetHex()));
