@@ -1686,6 +1686,9 @@ bool static WriteChainState(CValidationState &state) {
         if (!pCdMan->pContractCache->Flush())
             return state.Abort(_("Failed to write to contract database"));
 
+        if (!pCdMan->pDelegateCache->Flush())
+            return state.Abort(_("Failed to write to delegate database"));
+
         mapForkCache.clear();
         nLastWrite = GetTimeMicros();
     }
@@ -1744,6 +1747,7 @@ bool static DisconnectTip(CValidationState &state) {
         spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
         spCW->txCache = *(pCdMan->pTxCache);
         spCW->contractCache.SetBaseView(pCdMan->pContractCache);
+        spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
 
         if (!DisconnectBlock(block, *spCW, pIndexDelete, state))
             return ERRORMSG("DisconnectTip() : DisconnectBlock %s failed",
@@ -1753,6 +1757,7 @@ bool static DisconnectTip(CValidationState &state) {
         spCW->accountCache.Flush();
         spCW->txCache.Flush(pCdMan->pTxCache);
         spCW->contractCache.Flush();
+        spCW->delegateCache.Flush();
 
     }
     if (SysCfg().IsBenchmark())
@@ -1781,7 +1786,10 @@ bool static DisconnectTip(CValidationState &state) {
                 return state.Abort(_("Failed to write to account database"));
 
             if (!pCdMan->pContractCache->Flush())
-                return state.Abort(_("Failed to write to script db database"));
+                return state.Abort(_("Failed to write to contract db database"));
+
+            if (!pCdMan->pDelegateCache->Flush())
+                return state.Abort(_("Failed to write to delegate db database"));
 
             WriteBlockLog(true, "DisConnectTip");
         }
@@ -1806,6 +1814,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
         spCW->txCache.SetBaseView(pCdMan->pTxCache);
         spCW->contractCache.SetBaseView(pCdMan->pContractCache);
+        spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
 
         if (!ConnectBlock(block, *spCW, pIndexNew, state)) {
             if (state.IsInvalid()) {
@@ -1819,6 +1828,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         spCW->accountCache.Flush();
         spCW->txCache.Flush(pCdMan->pTxCache);
         spCW->contractCache.Flush();
+        spCW->delegateCache.Flush();
 
         uint256 uBestblockHash = pCdMan->pAccountCache->GetBestBlock();
         LogPrint("INFO", "uBestBlockHash[%d]: %s\n", nSyncTipHeight, uBestblockHash.GetHex());
@@ -1841,7 +1851,10 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
                 return state.Abort(_("Failed to write to account database"));
 
             if (!pCdMan->pContractCache->Flush())
-                return state.Abort(_("Failed to write to script db database"));
+                return state.Abort(_("Failed to write to contract db database"));
+
+             if (!pCdMan->pDelegateCache->Flush())
+                return state.Abort(_("Failed to write to delegate db database"));
 
             WriteBlockLog(true, "ConnectTip");
         }

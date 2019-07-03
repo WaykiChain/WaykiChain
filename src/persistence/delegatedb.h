@@ -21,8 +21,9 @@ using namespace std;
 class CDelegateDBCache {
 public:
     CDelegateDBCache(){};
-    CDelegateDBCache(CDBAccess *pDbAccess) : voteRegIdCache(pDbAccess){};
-    CDelegateDBCache(CDelegateDBCache *pBaseIn) : voteRegIdCache(pBaseIn->voteRegIdCache){};
+    CDelegateDBCache(CDBAccess *pDbAccess) : voteRegIdCache(pDbAccess), regId2VoteCache(pDbAccess){};
+    CDelegateDBCache(CDelegateDBCache *pBaseIn)
+        : voteRegIdCache(pBaseIn->voteRegIdCache), regId2VoteCache(pBaseIn->regId2VoteCache){};
 
     bool LoadTopDelegates();
     bool ExistDelegate(const CRegID &regId);
@@ -34,12 +35,13 @@ public:
     bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes,
                            CDBOpLogMap &dbOpLogMap);
     bool GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes);
-
     bool UndoCandidateVotes(CDBOpLogMap &dbOpLogMap);
 
-    void SetBaseView(CDelegateDBCache *pBaseIn) { voteRegIdCache = pBaseIn->voteRegIdCache; }
-    // TODO:
-    void Flush() {}
+    void SetBaseView(CDelegateDBCache *pBaseIn) {
+        voteRegIdCache.SetBase(&pBaseIn->voteRegIdCache);
+        regId2VoteCache.SetBase(&pBaseIn->regId2VoteCache);
+    }
+    bool Flush();
 
 private:
 /*  CDBScalarValueCache  prefixType     key                         value                   variable       */

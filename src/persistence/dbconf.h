@@ -24,7 +24,7 @@ typedef leveldb::Slice Slice;
     DEFINE( BLOCK,               "block")        /* account */ \
     DEFINE( CONTRACT,            "contract")     /* contract */ \
     DEFINE( DELEGATE,            "delegate")     /* delegate */ \
-    DEFINE( CDP,                 "dcp")          /* dcp */ \
+    DEFINE( CDP,                 "cdp")          /* cdp */ \
     DEFINE( DEX,                 "dex")          /* dex */ \
     DEFINE( LOG,                 "log")          /* log */ \
     /*                                                                */  \
@@ -145,7 +145,6 @@ namespace dbk {
 
     template<typename KeyElement>
     std::string GenDbKey(PrefixType keyPrefixType, const KeyElement &keyElement) {
-
         CDataStream ssKeyTemp(SER_DISK, CLIENT_VERSION);
         assert(keyPrefixType != EMPTY);
         const string &prefix = GetKeyPrefix(keyPrefixType);

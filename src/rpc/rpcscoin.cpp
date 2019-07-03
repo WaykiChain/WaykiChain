@@ -32,6 +32,9 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             + "\nAs json rpc call\n"
             + HelpExampleRpc("vmexecutescript", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/script.lua\"\n"));
     }
+
+    // TODO:
+    return Object();
 }
 
 Value submitstakefcointx(const Array& params, bool fHelp);

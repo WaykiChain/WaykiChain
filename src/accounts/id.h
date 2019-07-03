@@ -44,15 +44,8 @@ public:
     CRegID(const vector<unsigned char> &vIn);
     CRegID(uint32_t nHeight = 0, uint16_t nIndex = 0);
 
-    const vector<unsigned char> &GetRegIdRaw() const {
-        assert(vRegID.size() == 6);
-        return vRegID;
-    }
-
-    string ToRawString() const {
-        return string(vRegID.begin(), vRegID.end()); // TODO: change the vRegID to string
-    }
-
+    const vector<unsigned char> &GetRegIdRaw() const;
+    string ToRawString() const;
     void SetRegID(const vector<unsigned char> &vIn);
     CKeyID GetKeyId(const CAccountDBCache &view) const;
     uint32_t GetHeight() const { return nHeight; }

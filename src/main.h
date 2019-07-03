@@ -394,6 +394,9 @@ public:
         if (pContractCache)
             pContractCache->Flush();
 
+        if (pDelegateDb)
+            pDelegateCache->Flush();
+
         if (pBlockTreeDb)
             pBlockTreeDb->Flush();
 

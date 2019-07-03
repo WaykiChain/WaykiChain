@@ -467,8 +467,14 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
         GetNextTimeAndSleep();
 
         vector<CRegID> delegatesList;
-        if (!cw.delegateCache.GetTopDelegates(delegatesList))
+        if (!cw.delegateCache.GetTopDelegates(delegatesList)) {
+            LogPrint("MINER", "MineBlock() : failed to get top delegates\n");
             return false;
+        }
+
+        for (const auto & item: delegatesList) {
+            LogPrint("MINER", "miner: %s\n", item.ToString());
+        }
 
         uint16_t nIndex = 0;
         for (auto &delegate : delegatesList)
@@ -482,11 +488,12 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
 
         int64_t currentTime = GetTime();
         CRegID regId;
-        if (!GetCurrentDelegate(currentTime, delegatesList, regId))
-            return false; // not on duty hence returns
+        GetCurrentDelegate(currentTime, delegatesList, regId);
         CAccount minerAcct;
-        if (!cw.accountCache.GetAccount(regId, minerAcct))
+        if (!cw.accountCache.GetAccount(regId, minerAcct)) {
+            LogPrint("MINER", "failed to get miner's account: %s\n", regId.ToString());
             return false;
+        }
 
         bool success = false;
         int64_t nLastTime;
@@ -500,7 +507,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
                 pWalletMain->GetKey(minerAcct.keyId.ToAddress(), acctKey)) {
                 nLastTime = GetTimeMillis();
                 success   = CreateBlockRewardTx(currentTime, minerAcct, cw.accountCache, pBlock);
-                LogPrint("MINER", "CreateBlockRewardTx %s, used time:%d ms, miner address=%s\n",
+                LogPrint("MINER", "MineBlock() : CreateBlockRewardTx %s, used time:%d ms, miner address=%s\n",
                     success ? "success" : "failure", GetTimeMillis() - nLastTime, minerAcct.keyId.ToAddress());
             }
         }
@@ -510,7 +517,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
 
             nLastTime = GetTimeMillis();
             CheckWork(pBlock, *pWallet);
-            LogPrint("MINER", "CheckWork used time:%d ms\n", GetTimeMillis() - nLastTime);
+            LogPrint("MINER", "MineBlock() : CheckWork used time:%d ms\n", GetTimeMillis() - nLastTime);
 
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
@@ -589,6 +596,7 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
             spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
             spCW->txCache.SetBaseView(pCdMan->pTxCache);
             spCW->contractCache.SetBaseView(pCdMan->pContractCache);
+            spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
 
             miningBlockInfo.SetNull();
             int64_t nLastTime = GetTimeMillis();
