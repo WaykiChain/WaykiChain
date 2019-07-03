@@ -31,11 +31,10 @@ enum CoinType: uint8_t {
     WUSD = 3,
 };
 
+// make compatibility with low GCC version(≤ 4.9.2)
 struct CoinTypeHash {
     size_t operator()(const CoinType& type) const noexcept { return std::hash<uint8_t>{}(type); }
 };
-
-static const unordered_set<CoinType, CoinTypeHash> COINT_TYPE_SET = { WICC, WGRT, WUSD};
 
 static const unordered_map<CoinType, string, CoinTypeHash> kCoinTypeMapName = {
     {WICC, "WICC"},
