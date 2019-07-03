@@ -43,11 +43,10 @@ Value submitstakefcointx(const Array& params, bool fHelp);
 Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 4) {
         throw runtime_error(
-            "submitpricefeedtx \"{addr}\" \"script_path\"\n"
-            "\nsubmit a price feed tx.\n"
-            "\nthe execution include registercontracttx and callcontracttx.\n"
+            "submitdexbuylimitordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
+            "\nsubmit a dex buy limit price order tx.\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) buyer address from this wallet\n"
+            "1.\"addr\": (string required) order owner address\n"
             "2.\"coin_type\": (string required) coin type to pay\n"
             "3.\"asset_type\": (string required), asset type to buy\n"
             "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
@@ -58,9 +57,11 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
             "\nExamples:\n"
             + HelpExampleCli("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n"));
+            + HelpExampleRpc("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+        );
     }
     // TODO: ...
+    return Object();
 
 }
 
@@ -68,8 +69,68 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp);
 Value submitdexbuymarketordertx(const Array& params, bool fHelp);
 Value submitdexsellmarketordertx(const Array& params, bool fHelp);
 
-Value submitdexcancelordertx(const Array& params, bool fHelp);
-Value submitdexsettletx(const Array& params, bool fHelp);
+Value submitdexcancelordertx(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 2 || params.size() > 4) {
+        throw runtime_error(
+            "submitdexcancelordertx \"addr\" \"txid\"\n"
+            "\nsubmit a dex cancel order tx.\n"
+            "\nArguments:\n"
+            "1.\"addr\": (string required) order owner address\n"
+            "2.\"txid\": (string required) txid of order tx want to cancel\n"
+            "3.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
+            "\nResult detail\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("submitdexcancelordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "
+                             "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\" ")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("submitdexcancelordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "\
+                             "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\"")
+        );
+    }
+    // TODO: ... 
+    return Object();
+}
+Value submitdexsettletx(const Array& params, bool fHelp) {
+     if (fHelp || params.size() < 2 || params.size() > 4) {
+        throw runtime_error(
+            "submitdexsettletx \"addr\" \"deal_items\"\n"
+            "\nsubmit a dex settle tx.\n"
+            "\nArguments:\n"
+            "1.\"addr\": (string required) settle owner address\n"
+            "2.\"deal_items\": (string required) deal items in json format\n"
+            " [\n"
+            "   {\n"
+            "      \"buy_order_txid\":\"txid\", (string, required) order txid of buyer\n"
+            "      \"sell_order_txid\":\"txid\", (string, required) order txid of seller\n"
+            "      \"deal_price\":n (numeric, required) deal price "
+            "      \"deal_coin_amount\":n (numeric, required) deal amount of coin\n"
+            "      \"deal_asset_amount\":n (numeric, required) deal amount of asset\n"
+            "   }\n"
+            "       ,...\n"
+            " ]\n"
+            "3.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
+            "\nResult detail\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("submitdexsettletx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "
+                           "\"[{\\\"buy_order_txid\\\":\\\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\\\", "
+                           "\\\"sell_order_txid\\\":\\\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8a1\\\", "
+                           "\\\"deal_price\\\":100000000,"
+                           "\\\"deal_coin_amount\\\":100000000,"
+                           "\\\"deal_asset_amount\\\":100000000}]\" ")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("submitdexsettletx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "\
+                           "[{\"buy_order_txid\":\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\", "
+                           "\"sell_order_txid\":\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8a1\", "
+                           "\"deal_price\":100000000,"
+                           "\"deal_coin_amount\":100000000,"
+                           "\"deal_asset_amount\":100000000}]")
+        );
+    }
+    // TODO: ...
+    return Object();   
+}
 
 Value submitstakecdptx(const Array& params, bool fHelp);
 Value submitredeemcdptx(const Array& params, bool fHelp);
