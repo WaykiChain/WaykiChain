@@ -110,6 +110,14 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t>, TxTyp
 
 string GetTxType(const TxType txType);
 
+uint64_t GetTxLimitMinFee(const TxType txType) {
+    auto it = kTxTypeMap.find(txType);
+    if (it != kTxTypeMap.end()) {
+        return std::get<2>(it->second);
+    }
+    return 10000; // defalt min fee limit
+}
+
 class CBaseTx {
 public:
     static uint64_t nMinTxFee;

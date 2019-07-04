@@ -3,20 +3,23 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 #include "rpccommons.h"
+#include "main.h"
+#include "wallet/wallet.h"
+#include "wallet/walletdb.h"
+#include "init.h"
+#include "rpcserver.h"
 
-const int MAX_RPC_SIG_STR_LEN = 65 * 1024; // 65K
-
-Object SubmitTx(CKeyID &userKeyId, CBaseTx &tx, ) {
+Object SubmitTx(CKeyID &userKeyId, CBaseTx &tx) {
     if (!pWalletMain->HaveKey(userKeyId)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sender address not found in wallet");
     }
 
-    uint64_t minFee = kTxTypeMap[tx.nTxType].get<2>();
-    if (tx.fee == 0) {
-        tx.fee = minFee;
-    } else if (tx.fee < minFee) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Tx fee given is too small: %d < %d",
-                            txFee, minFee);
+    uint64_t minFee = GetTxLimitMinFee(tx.nTxType);
+    if (tx.llFees == 0) {
+        tx.llFees = minFee;
+    } else if (tx.llFees < minFee) {
+        throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Tx fee given is too small: %d < %d",
+                            tx.llFees, minFee));
     }
 
     CRegID regId;
@@ -27,7 +30,7 @@ Object SubmitTx(CKeyID &userKeyId, CBaseTx &tx, ) {
     CUserID userId   = userKeyId;
     if (pCdMan->pAccountCache->GetAccount(userId, account) && account.IsRegistered()) {
         balance = account.GetFreeBcoins();
-        if (balance < tx.fee) {
+        if (balance < tx.llFees) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
     } else {

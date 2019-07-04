@@ -14,6 +14,7 @@
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #include "tx/dextx.h"
+#include "tx/pricefeedtx.h"
 
 Value submitpricefeedtx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
@@ -36,12 +37,13 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             "\nResult pricefeed tx result\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitpricefeedtx", 'WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH' '[{\"coin\", WICC, \"currency\": \"USD\", \"price\": 0.28}]'\n")
+            + HelpExampleCli("submitpricefeedtx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "
+                            "\"[{\\\"coin\\\", WICC, \\\"currency\\\": \\\"USD\\\", \\\"price\\\": 0.28}]\"\n")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitpricefeedtx","\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"[{\"coin\", WICC, \"currency\": \"USD\", \"price\": 0.28}]\"\n"));
     }
 
-    RPCTypeCheck(params, list_of(str_type)(array_type)(int_type);
+    RPCTypeCheck(params, boost::assign::list_of(str_type)(array_type)(int_type));
     EnsureWalletIsUnlocked();
 
     auto feedUid = CUserID::ParseUserId(params[0].get_str());
@@ -55,7 +57,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         fee = params[2].get_uint64();  // real type, 0 if empty and thence minFee
     }
 
-    Vector<CPricePoint> pricePoints;
+    vector<CPricePoint> pricePoints;
     for (auto objPp : arrPricePoints) {
         const Value& coinValue = find_value(objPp.get_obj(), "coin");
         const Value& currencyValue = find_value(objPp.get_obj(), "currency");
@@ -72,10 +74,10 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             coinType = CoinType::WICC;
         } else if (coinStr == "WUSD") {
             coinType = CoinType::WUSD;
-        } else if (coinStr = "WGRT") {
+        } else if (coinStr == "WGRT") {
             coinType = CoinType::WGRT;
         } else {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid coin type: %s", coinStr);
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid coin type: %s", coinStr));
         }
 
         string currencyStr = currencyValue.get_str();
@@ -85,7 +87,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         } else if (currencyStr == "CNY") {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "CNY stablecoin not supported yet");
         } else {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid currency type: %s", currencyStr);
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid currency type: %s", currencyStr));
         }
 
         uint64_t price = priceValue.get_int64();
@@ -94,7 +96,8 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         pricePoints.push_back(pp);
     }
 
-    CPriceFeedTx tx(feedUid, validHeight, fee, pricepoints);
+    int validHeight = chainActive.Tip()->nHeight;
+    CPriceFeedTx tx(feedUid, validHeight, fee, pricePoints);
     return SubmitTx(feedKeyId, tx);
 }
 
@@ -126,6 +129,7 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
+    int validHeight = chainActive.Tip()->nHeight;
     CCDPStakeTx tx(txUidIn, uint64_t feesIn, int validHeightIn,
                 uint256 cdpTxIdIn, uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn,
                 uint64_t scoinsInterestIn);
