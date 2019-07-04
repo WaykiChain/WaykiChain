@@ -18,8 +18,8 @@
 Value submitpricefeedtx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
-            "submitpricefeedtx \"$pricefeeds\" \n"
-            "\nsubmit a price feed tx.\n"
+            "submitpricefeedtx {price_feeds_json} [fee]\n"
+            "\nsubmit a Price Feed Tx.\n"
             "\nthe execution include registercontracttx and callcontracttx.\n"
             "\nArguments:\n"
             "1. \"address\" : Price Feeder's address\n"
@@ -138,8 +138,8 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
 Value submitstakecdptx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 5) {
         throw runtime_error(
-            "submitstakecdptx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
-            "\nsubmit a dex buy limit price order tx.\n"
+            "submitstakecdptx \"addr\" stake_amount collateral_ratio [\"cdp_id\"] [interest] [fee]\n"
+            "\nsubmit a CDP Staking Tx.\n"
             "\nArguments:\n"
             "1. \"address\" : CDP staker's address\n"
             "2. \"stake_amount\": (numeric required) WICC coins to stake into the CDP, boosted by 10^8\n"
@@ -155,7 +155,6 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
             + HelpExampleRpc("submitstakecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 2000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
         );
     }
-
     EnsureWalletIsUnlocked();
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
@@ -168,7 +167,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     int validHeight = chainActive.Tip()->nHeight;
     uint64_t interest   = 0;
     uint64_t fee        = 0;
-    string cdpTxId      = 0;
+    uint256 cdpTxId      = 0;
     if (params.size() == 6) {
         cdpTxId = uint256S(params[3].get_str());
         interest =  params[4].get_uint64()
@@ -179,10 +178,96 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     return SubmitTx(userKeyId, tx);
 }
 Value submitredeemcdptx(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 2 || params.size() > 5) {
+        throw runtime_error(
+            "submitredeemcdptx \"addr\" redeem_amount collateral_ratio [\"cdp_id\"] [interest] [fee]\n"
+            "\nsubmit a CDP Redemption Tx\n"
+            "\nArguments:\n"
+            "1. \"address\" : CDP redemptor's address\n"
+            "2. \"redeem_amount\": (numeric required) WICC coins to stake into the CDP, boosted by 10^8\n"
+            "3. \"collateral_ratio\": (numberic required), collateral ratio, boosted by 10^4 times\n"
+            "4. \"cdp_id\": (string optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
+            "5. \"interest\": (numeric optional) CDP interest (WUSD) to repay\n"
+            "6. \"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
+            "\nResult description:\n"
+            "\nResult: {tx_hash}\n"
+            "\nExamples:\n"
+            + HelpExampleCli("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 2000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
+        );
+    }
+    EnsureWalletIsUnlocked();
 
+    auto cdpUid = CUserID::ParseUserId(params[0].get_str());
+    if (!cdpUid) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+    }
+    uint64_t redeemAmount = params[1].get_uint64();
+    uint64_t collateralRatio = params[2].get_uint64();
+
+    int validHeight = chainActive.Tip()->nHeight;
+    uint64_t interest   = 0;
+    uint64_t fee        = 0;
+    uint256 cdpTxId      = 0;
+    if (params.size() >=4 ) {
+        cdpTxId = uint256S(params[3].get_str());
+    }
+    if (params.size() >=5 ) {
+        interest =  params[4].get_uint64()
+    }
+    if (params.size() ==6 ) {
+        fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
+    }
+
+    CCDPRedeemTx tx(cdpUid, fee, validHeight, cdpTxId, redeemAmount, collateralRatio, interest);
+    return SubmitTx(userKeyId, tx);
 }
 Value submitliquidatecdptx(const Array& params, bool fHelp) {
+if (fHelp || params.size() < 2 || params.size() > 5) {
+        throw runtime_error(
+            "submitliquidatecdptx \"addr\" liquidate_amount collateral_ratio [\"cdp_id\"] [interest] [fee]\n"
+            "\nsubmit a CDP Liquidation Tx\n"
+            "\nArguments:\n"
+            "1. \"address\" : CDP liquidator's address\n"
+            "2. \"liquidate_amount\": (numeric required) WICC coins to stake into the CDP, boosted by 10^8\n"
+            "3. \"collateral_ratio\": (numberic required), collateral ratio, boosted by 10^4 times\n"
+            "4. \"cdp_id\": (string optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
+            "5. \"interest\": (numeric optional) CDP interest (WUSD) to repay\n"
+            "6. \"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
+            "\nResult description:\n"
+            "\nResult: {tx_hash}\n"
+            "\nExamples:\n"
+            + HelpExampleCli("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 2000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
+        );
+    }
+    EnsureWalletIsUnlocked();
 
+    auto cdpUid = CUserID::ParseUserId(params[0].get_str());
+    if (!cdpUid) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+    }
+    uint64_t liquidateAmount = params[1].get_uint64();
+    uint64_t collateralRatio = params[2].get_uint64();
+
+    int validHeight = chainActive.Tip()->nHeight;
+    uint64_t interest   = 0;
+    uint64_t fee        = 0;
+    uint256 cdpTxId      = 0;
+    if (params.size() >=4 ) {
+        cdpTxId = uint256S(params[3].get_str());
+    }
+    if (params.size() >=5 ) {
+        interest =  params[4].get_uint64()
+    }
+    if (params.size() ==6 ) {
+        fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
+    }
+
+    CCDPRedeemTx tx(cdpUid, fee, validHeight, cdpTxId, liquidateAmount, collateralRatio, interest);
+    return SubmitTx(userKeyId, tx);
 }
 
 Value getmedianprice(const Array& params, bool fHelp);
