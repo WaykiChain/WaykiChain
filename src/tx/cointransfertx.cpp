@@ -21,8 +21,6 @@ bool CCoinTranferTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationStat
                          "invalid-coin-type");
     }
 
-    // TODO: stamp tax when transfer WUSD
-
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
@@ -38,6 +36,8 @@ bool CCoinTranferTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationStat
 }
 
 bool CCoinTranferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
+    // TODO: stamp tax when transfer WUSD
+
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CCoinTranferTx::ExecuteTx, read txUid %s account info error",

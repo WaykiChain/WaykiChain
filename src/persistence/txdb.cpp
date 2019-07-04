@@ -32,8 +32,6 @@ bool CTxMemCache::DeleteBlockFromCache(const CBlock &block) {
     if (IsContainBlock(block)) {
         UnorderedHashSet txids;
 		mapBlockTxHashSet[block.GetHash()] = txids;
-
-        return true;
     }
 
     // On starting node, the memory cache is empty, thus, can not find the
