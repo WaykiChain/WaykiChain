@@ -16,31 +16,144 @@
 #include "tx/dextx.h"
 
 Value submitpricefeedtx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 2 || params.size() > 4) {
+    if (fHelp || params.size() != 3) {
         throw runtime_error(
-            "submitpricefeedtx \"{addr}\" \"script_path\"\n"
+            "submitpricefeedtx \"$pricefeeds\" \n"
             "\nsubmit a price feed tx.\n"
             "\nthe execution include registercontracttx and callcontracttx.\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) contract owner address from this wallet\n"
-            "2.\"script_path\": (string required), the file path of the app script\n"
-            "3.\"arguments\": (string, optional) contract method invoke content (Hex encode required)\n"
-            "4.\"fee\": (numeric, optional) fee pay for miner, default is 110010000\n"
-            "\nResult vm execute detail\n"
+            "1. \"address\" : Price Feeder's address\n"
+            "2. \"pricefeeds\"    (string, required) A json array of pricefeeds\n"
+            " [\n"
+            "   {\n"
+            "      \"coin\": \"WICC|WGRT\", (string, required) The coin type\n"
+            "      \"currency\": \"USD|RMB\" (string, required) The currency type\n"
+            "      \"price\": (number, required) The price (boosted by 10^) \n"
+            "   }\n"
+            "       ,...\n"
+            " ]\n"
+            "3.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
+            "\nResult pricefeed tx result\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("vmexecutescript","\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/script.lua\"\n")
+            + HelpExampleCli("submitpricefeedtx", 'WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH' '[{\"coin\", WICC, \"currency\": \"USD\", \"price\": 0.28}]'\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("vmexecutescript", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/script.lua\"\n"));
+            + HelpExampleRpc("submitpricefeedtx","\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"[{\"coin\", WICC, \"currency\": \"USD\", \"price\": 0.28}]\"\n"));
     }
 
-    // TODO:
-    return Object();
+    RPCTypeCheck(params, list_of(str_type)(array_type)(int_type);
+    EnsureWalletIsUnlocked();
+
+    CPriceFeedTx()
+
+    CKeyID feedKid;
+    if (!GetKeyId(params[0].get_str(), feedKeyId))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid PriceFeeder address");
+    }
+    CPubKey feedPubKey;
+    if (!pWalletMain->GetPubKey(feedKeyId, feedPubKey)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Key not found in the local wallet.");
+    }
+    CUserID feedUid;
+    CRegID feedRegId;
+    feedUid = ( pCdMan->pAccountCache->GetRegId(CUserID(feedKeyId), feedRegId) &&
+                pCdMan->pAccountCache->RegIDIsMature(feedRegId))
+                    ? CUserID(feedRegId)
+                    : CUserID(feedPubKey);
+
+    Array arrPricePoints   = params[1].get_array();
+    uint64_t fee        = params[2].get_uint64();  // real type
+
+    int validHeight = chainActive.Tip()->nHeight;
+    Vector<CPricePoint> pricePoints;
+    for (auto objPp : arrPricePoints) {
+        const Value& coinValue = find_value(objPp.get_obj(), "coin");
+        const Value& currencyValue = find_value(objPp.get_obj(), "currency");
+        const Value& priceValue = find_value(objPp.get_obj(), "price");
+        if (    coinValue.type() == null_type
+            ||  currencyValue.type() == null_type
+            ||  priceValue.type() == null_type ) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "null tpye not allowed!");
+        }
+
+        string coinStr = coinValue.get_str();
+        CoinType coinType;
+        if (coinStr == "WICC") {
+            coinType = CoinType::WICC;
+        } else if (coinStr == "WUSD") {
+            coinType = CoinType::WUSD;
+        } else if (coinStr = "WGRT") {
+            coinType = CoinType::WGRT;
+        } else {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid coin type: %s", coinStr);
+        }
+
+        string currencyStr = currencyValue.get_str();
+        PriceType currencyType;
+        if (currencyStr == "USD") {
+            currencyType = PriceType::USD;
+        } else if (currencyStr == "CNY") {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "CNY stablecoin not supported yet");
+        } else {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid currency type: %s", currencyStr);
+        }
+
+        uint64_t price = priceValue.get_int64();
+        CCoinPriceType cpt(coinType, currencyType);
+        CPricePoint pp(cpt, price);
+        pricePoints.push_back(pp);
+    }
+
+    CPriceFeedTx tx(feedUid, validHeight, fee, pricepoints);
+    return SubmitTx(feedKeyId, tx);
 }
 
-Value submitstakefcointx(const Array& params, bool fHelp);
+Value submitstakefcointx(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 5 || params.size() > 7) {
+        throw runtime_error(
+            "submitstakefcointx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
+            "\nsubmit a dex buy limit price order tx.\n"
+            "\nArguments:\n"
+            "1.\"addr\": (string required) order owner address\n"
+            "2.\"coin_type\": (string required) coin type to pay\n"
+            "3.\"asset_type\": (string required), asset type to buy\n"
+            "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
+            "5.\"price\": (numeric, required) bidding price willing to buy\n"
+            "6.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
+            "\nResult detail\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+        );
+    }
 
+    EnsureWalletIsUnlocked();
 
+    auto pUserId = CUserID::ParseUserId(params[0].get_str());
+    if (!pUserId) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+    }
+
+    CCDPStakeTx tx(txUidIn, uint64_t feesIn, int validHeightIn,
+                uint256 cdpTxIdIn, uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn,
+                uint64_t scoinsInterestIn);
+
+    return SubmitTx(userKeyId, tx);
+
+}
+
+/*************************************************<< CDP >>**************************************************/
+Value submitstakecdptx(const Array& params, bool fHelp);
+Value submitredeemcdptx(const Array& params, bool fHelp);
+Value submitliquidatecdptx(const Array& params, bool fHelp);
+
+Value getmedianprice(const Array& params, bool fHelp);
+Value listcdps(const Array& params, bool fHelp);
+Value listcdpstoliquidate(const Array& params, bool fHelp);
+
+/*************************************************<< DEX >>**************************************************/
 Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 7) {
         throw runtime_error(
@@ -64,7 +177,6 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    // 1. addr
     auto pUserId = CUserID::ParseUserId(params[0].get_str());
     if (!pUserId) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
@@ -213,10 +325,3 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
     // TODO: ...
     return Object();
 }
-
-Value submitstakecdptx(const Array& params, bool fHelp);
-Value submitredeemcdptx(const Array& params, bool fHelp);
-Value submitliquidatecdptx(const Array& params, bool fHelp);
-Value getmedianprice(const Array& params, bool fHelp);
-Value listcdps(const Array& params, bool fHelp);
-Value listcdpstoliquidate(const Array& params, bool fHelp);
