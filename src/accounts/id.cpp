@@ -149,7 +149,9 @@ shared_ptr<CUserID> CUserID::ParseUserId(const string &idStr) {
     if (!keyId.IsEmpty()) 
         return make_shared<CUserID>(keyId);
 
-    CPubKey pubKey(idStr);    
+    // ParsePubKey
+    auto pubKeyBin = ParseHex(idStr);
+    CPubKey pubKey(pubKeyBin);    
     if (pubKey.IsFullyValid()) 
         return make_shared<CUserID>(pubKey);
 

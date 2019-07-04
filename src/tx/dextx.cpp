@@ -54,7 +54,7 @@ Object CDEXBuyLimitOrderTx::ToJson(const CAccountDBCache &view) const {
 
 bool CDEXBuyLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
-    IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     if (kCoinTypeMapName.count(coinType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, invalid coinType"), REJECT_INVALID,
                          "bad-coinType");
@@ -87,7 +87,7 @@ bool CDEXBuyLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSta
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey);
+    CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey );
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -217,7 +217,7 @@ Object CDEXSellLimitOrderTx::ToJson(const CAccountDBCache &view) const {
 
 bool CDEXSellLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
-    IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
     if (kCoinTypeMapName.count(coinType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, invalid coinType"), REJECT_INVALID,
@@ -245,7 +245,8 @@ bool CDEXSellLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSt
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(srcAccount.pubKey);
+    CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey );
+    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
 }
@@ -372,7 +373,7 @@ Object CDEXBuyMarketOrderTx::ToJson(const CAccountDBCache &view) const {
 
 bool CDEXBuyMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
-    IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     if (kCoinTypeMapName.count(coinType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, invalid coinType"), REJECT_INVALID,
                          "bad-coinType");
@@ -394,7 +395,7 @@ bool CDEXBuyMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSt
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
-
+    
     if ((txUid.type() == typeid(CRegID)) && !srcAccount.IsRegistered())
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
@@ -528,7 +529,7 @@ Object CDEXSellMarketOrderTx::ToJson(const CAccountDBCache &view) const {
 
 bool CDEXSellMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
-    IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     if (kCoinTypeMapName.count(coinType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, invalid coinType"), REJECT_INVALID,
                          "bad-coinType");
@@ -680,7 +681,7 @@ Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &view) const {
 
 bool CDEXCancelOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
-    IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
@@ -906,7 +907,7 @@ bool CDEXSettleTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
 
 bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
-    IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
     if (txUid.get<CRegID>() != kDEXSettleRegId) {
         return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, account regId is not authorized dex settle regId"),
@@ -917,12 +918,12 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
-    if (!srcAccount.IsRegistered())
+    if (txUid.type() == typeid(CRegID) && !srcAccount.IsRegistered())
         return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
 
-
-    IMPLEMENT_CHECK_TX_SIGNATURE(srcAccount.pubKey);
+    CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey );
+    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
 }

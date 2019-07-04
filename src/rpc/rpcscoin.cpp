@@ -304,22 +304,22 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     }
 
     CoinType coinType;
-    if (ParseCoinType(params[0].get_str(), coinType)) {
+    if (!ParseCoinType(params[1].get_str(), coinType)) {
         throw JSONRPCError(RPC_DEX_COIN_TYPE_INVALID, "Invalid coin_type");
     }
 
     CoinType assetType;
-    if (ParseCoinType(params[1].get_str(), assetType)) {
+    if (!ParseCoinType(params[2].get_str(), assetType)) {
         throw JSONRPCError(RPC_DEX_ASSET_TYPE_INVALID, "Invalid asset_type");
     }
 
-    uint64_t assetAmount = AmountToRawValue(params[2]);
-    uint64_t price = AmountToRawValue(params[3]);
+    uint64_t assetAmount = AmountToRawValue(params[3]);
+    uint64_t price = AmountToRawValue(params[4]);
 
     int64_t defaultFee = SysCfg().GetTxFee(); // default fee
     int64_t fee;
-    if (params.size() > 4) {
-        fee = AmountToRawValue(params[4]);
+    if (params.size() > 5) {
+        fee = AmountToRawValue(params[5]);
         if (fee < defaultFee) {
             throw JSONRPCError(RPC_INSUFFICIENT_FEE,
                                strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
