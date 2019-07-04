@@ -183,12 +183,19 @@ extern json_spirit::Value startcommontpstest(const json_spirit::Array& params, b
 extern json_spirit::Value startcontracttpstest(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getlogfailures(const json_spirit::Array& params, bool fHelp);
 
+extern json_spirit::Value submitpricefeedtx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value submitstakefcointx(const json_spirit::Array& params, bool fHelp);
+
 extern json_spirit::Value submitdexbuylimitordertx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitdexselllimitordertx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitdexbuymarketordertx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitdexsellmarketordertx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitdexcancelordertx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitdexsettletx(const json_spirit::Array& params, bool fHelp);
+
+extern json_spirit::Value submitstakecdptx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value submitredeemcdptx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value submitliquidatecdptx(const json_spirit::Array& params, bool fHelp);
 
 json_spirit::Object JSONRPCExecOne(const json_spirit::Value& req);
 
