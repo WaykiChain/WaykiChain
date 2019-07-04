@@ -45,7 +45,7 @@ enum TxType : unsigned char {
     BLOCK_PRICE_MEDIAN_TX      = 8,  //!< Block Median Price Tx
     MULTI_COIN_BLOCK_REWARD_TX = 9,  //!< Multi Coin Miner Block Reward Tx
 
-    CDP_OPEN_TX      = 11,  //!< CDP Open Tx
+    // CDP_OPEN_TX      = 11,  //!< CDP Open Tx
     CDP_REFUEL_TX    = 12,  //!< CDP refuel Tx
     CDP_REDEEMP_TX   = 13,  //!< CDP Redemption Tx (partial or full)
     CDP_LIQUIDATE_TX = 14,  //!< CDP Liquidation Tx (partial or full)
@@ -89,7 +89,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t>, TxTyp
     { CONTRACT_DEPLOY_TX,       std::make_tuple("CONTRACT_DEPLOY_TX",      100000000,  100000000    ) },
     { DELEGATE_VOTE_TX,         std::make_tuple("DELEGATE_VOTE_TX",        10000,      10000        ) },
     { COMMON_MTX,               std::make_tuple("COMMON_MTX",              10000,      10000        ) },
-    { CDP_OPEN_TX,              std::make_tuple("CDP_OPEN_TX",             1000000,    1000000      ) },
+    // { CDP_OPEN_TX,              std::make_tuple("CDP_OPEN_TX",             1000000,    1000000      ) },
     { CDP_REFUEL_TX,            std::make_tuple("CDP_REFUEL_TX",           10000,      10000        ) },
     { CDP_REDEEMP_TX,           std::make_tuple("CDP_REDEEMP_TX",          10000,      10000        ) },
     { CDP_LIQUIDATE_TX,         std::make_tuple("CDP_LIQUIDATE_TX",        10000,      10000        ) },

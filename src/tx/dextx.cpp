@@ -34,34 +34,33 @@ string CDEXBuyLimitOrderTx::ToString(CAccountDBCache &view) {
 Object CDEXBuyLimitOrderTx::ToJson(const CAccountDBCache &view) const {
     Object result;
 
-    CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
+    CKeyID srcKeyId;
+    if(!view.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
 
     result.push_back(Pair("hash",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           keyId.ToAddress()));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
     result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("valid_height",   nValidHeight));
 
-    result.push_back(Pair("coin_type",      coinType));
-    result.push_back(Pair("asset_type",     assetType));
-    result.push_back(Pair("amount",         assetAmount));
+    result.push_back(Pair("coin_type",      GetCoinTypeName(coinType)));
+    result.push_back(Pair("asset_type",     GetCoinTypeName(assetType)));
+    result.push_back(Pair("asset_amount",   assetAmount));
     result.push_back(Pair("price",          bidPrice));
-    
     return result;
 }
 
 bool CDEXBuyLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
-    if (COINT_TYPE_SET.count(coinType) == 0) {
+    if (kCoinTypeMapName.count(coinType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, invalid coinType"), REJECT_INVALID,
                          "bad-coinType");
     }
 
-    if (COINT_TYPE_SET.count(assetType) == 0) {
+    if (kCoinTypeMapName.count(assetType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, invalid assetType"), REJECT_INVALID,
                          "bad-assetType");
     }
@@ -198,22 +197,21 @@ string CDEXSellLimitOrderTx::ToString(CAccountDBCache &view) {
 Object CDEXSellLimitOrderTx::ToJson(const CAccountDBCache &view) const {
     Object result;
 
-    CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
+    CKeyID srcKeyId;
+    if(!view.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
 
     result.push_back(Pair("hash",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           keyId.ToAddress()));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
     result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("valid_height",   nValidHeight));
 
-    result.push_back(Pair("coin_type",      coinType));
-    result.push_back(Pair("asset_type",     assetType));
-    result.push_back(Pair("amount",         assetAmount));
+    result.push_back(Pair("coin_type",      GetCoinTypeName(coinType)));
+    result.push_back(Pair("asset_type",     GetCoinTypeName(assetType)));
+    result.push_back(Pair("asset_amount",   assetAmount));
     result.push_back(Pair("price",          askPrice));
-    
     return result;
 }
 
@@ -221,12 +219,12 @@ bool CDEXSellLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSt
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (COINT_TYPE_SET.count(coinType) == 0) {
+    if (kCoinTypeMapName.count(coinType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, invalid coinType"), REJECT_INVALID,
                          "bad-coinType");
     }
 
-    if (COINT_TYPE_SET.count(assetType) == 0) {
+    if (kCoinTypeMapName.count(assetType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, invalid assetType"), REJECT_INVALID,
                          "bad-assetType");
     }
@@ -355,33 +353,32 @@ string CDEXBuyMarketOrderTx::ToString(CAccountDBCache &view) {
 Object CDEXBuyMarketOrderTx::ToJson(const CAccountDBCache &view) const {
     Object result;
 
-    CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
+    CKeyID srcKeyId;
+    if(!view.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
 
     result.push_back(Pair("hash",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           keyId.ToAddress()));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
     result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("valid_height",   nValidHeight));
 
-    result.push_back(Pair("coin_type",      coinType));
-    result.push_back(Pair("asset_type",     assetType));
-    result.push_back(Pair("amount",         coinAmount));
-    
+    result.push_back(Pair("coin_type",      GetCoinTypeName(coinType)));
+    result.push_back(Pair("asset_type",     GetCoinTypeName(assetType)));
+    result.push_back(Pair("coin_amount",    coinAmount));
     return result;
 }
 
 bool CDEXBuyMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
-    if (COINT_TYPE_SET.count(coinType) == 0) {
+    if (kCoinTypeMapName.count(coinType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, invalid coinType"), REJECT_INVALID,
                          "bad-coinType");
     }
 
-    if (COINT_TYPE_SET.count(assetType) == 0) {
+    if (kCoinTypeMapName.count(assetType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, invalid assetType"), REJECT_INVALID,
                          "bad-assetType");
     }
@@ -512,33 +509,32 @@ string CDEXSellMarketOrderTx::ToString(CAccountDBCache &view) {
 Object CDEXSellMarketOrderTx::ToJson(const CAccountDBCache &view) const {
     Object result;
 
-    CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
+    CKeyID srcKeyId;
+    if(!view.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
 
     result.push_back(Pair("hash",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           keyId.ToAddress()));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
     result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("valid_height",   nValidHeight));
 
-    result.push_back(Pair("coin_type",      coinType));
-    result.push_back(Pair("asset_type",     assetType));
-    result.push_back(Pair("amount",         assetAmount));
-    
+    result.push_back(Pair("coin_type",      GetCoinTypeName(coinType)));
+    result.push_back(Pair("asset_type",     GetCoinTypeName(assetType)));
+    result.push_back(Pair("asset_amount",   assetAmount));
     return result;
 }
 
 bool CDEXSellMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
-    if (COINT_TYPE_SET.count(coinType) == 0) {
+    if (kCoinTypeMapName.count(coinType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, invalid coinType"), REJECT_INVALID,
                          "bad-coinType");
     }
 
-    if (COINT_TYPE_SET.count(assetType) == 0) {
+    if (kCoinTypeMapName.count(assetType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, invalid assetType"), REJECT_INVALID,
                          "bad-assetType");
     }
@@ -678,7 +674,7 @@ Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &view) const {
     result.push_back(Pair("fees",           llFees));
 
     result.push_back(Pair("order_id",       orderId.GetHex()));
-    
+
     return result;
 }
 
@@ -883,7 +879,7 @@ Object CDEXSettleTx::ToJson(const CAccountDBCache &view) const {
     result.push_back(Pair("fees",           llFees));
 
     result.push_back(Pair("deal_items",     arrayItems));
-    
+
     return result;
 }
 
@@ -904,7 +900,7 @@ bool CDEXSettleTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
         }
         if (!AddInvolvedKeyIds({sellDealOrder.orderDetail.userRegId}, cw, keyIds)) return false;
     }
-    
+
     return true;
 }
 
@@ -1037,12 +1033,12 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         //1. get and check buyDealOrder and sellDealOrder
         CDEXDealOrder buyDealOrder;
         if (!GetDealOrder(dealItem.buyOrderId, ORDER_BUY, cw, buyDealOrder)) {
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, get buy deal order failed! txid=%s", 
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, get buy deal order failed! txid=%s",
                             dealItem.buyOrderId.ToString()), REJECT_INVALID, "get-deal-order-failed");
         }
         CDEXDealOrder sellDealOrder;
         if (!GetDealOrder(dealItem.sellOrderId, ORDER_SELL, cw, sellDealOrder)) {
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, get sell deal order failed! txid=%s", 
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, get sell deal order failed! txid=%s",
                             dealItem.buyOrderId.ToString()), REJECT_INVALID, "get-deal-order-failed");
         }
 

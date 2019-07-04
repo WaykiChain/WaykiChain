@@ -9,65 +9,6 @@
 
 #include "tx.h"
 
-class CCdpOpenTx : public CBaseTx {
-public:
-    uint64_t bcoins;            // CDP collateral base coins amount
-    uint64_t scoins;            // minted stable coins
-
-public:
-    CCdpOpenTx(): CBaseTx(CDP_OPEN_TX) {}
-
-    CCdpOpenTx(const CBaseTx *pBaseTx): CBaseTx(CDP_OPEN_TX) {
-        assert(CDP_OPEN_TX == pBaseTx->nTxType);
-        *this = *(CCdpOpenTx *) pBaseTx;
-    }
-
-    CCdpOpenTx(const CUserID &txUidIn, int32_t validHeightIn, uint64_t feesIn, uint64_t bcoinsIn):
-        CBaseTx(CDP_OPEN_TX, txUidIn, validHeightIn, feesIn) {
-        txUid = txUidIn;
-        bcoins = bcoinsIn;
-    }
-
-    ~CCdpOpenTx() {}
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(this->nVersion));
-        nVersion = this->nVersion;
-        READWRITE(VARINT(nValidHeight));
-        READWRITE(txUid);
-
-        READWRITE(VARINT(llFees));
-        READWRITE(VARINT(bcoins));
-        READWRITE(VARINT(scoins));
-        READWRITE(signature);
-    )
-
-    uint256 ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
-               << VARINT(llFees) << VARINT(bcoins) << VARINT(scoins);
-
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
-    }
-
-    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual uint64_t GetFee() const { return llFees; }
-    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
-    virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCdpOpenTx>(this); }
-    virtual string ToString(CAccountDBCache &view);
-    virtual Object ToJson(const CAccountDBCache &AccountView) const;
-    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
-
-    virtual bool CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state);
-    virtual bool UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state);
-};
-
 class CScoinTransferTx: public CBaseTx {
 private:
     mutable CUserID toUid;

@@ -24,7 +24,7 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
         // When the reward transaction is immature, should NOT update account's balances.
     } else if (-1 == nIndex) {
         // When the reward transaction is mature, update account's balances, i.e, assign the reward value to
-        // the miner's account.
+        // the target account.
         account.bcoins += rewardValue;
     } else {
         return ERRORMSG("CBlockRewardTx::ExecuteTx, invalid index");
@@ -71,16 +71,15 @@ string CBlockRewardTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    string str = strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyId=%s, rewardValue=%ld\n", GetTxType(nTxType),
-                           GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), rewardValue);
-
-    return str;
+    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyId=%s, rewardValue=%ld\n", GetTxType(nTxType),
+                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), rewardValue);
 }
 
 Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const{
     Object result;
     CKeyID keyId;
-    accountCache.GetKeyId(txUid,            keyId);
+    accountCache.GetKeyId(txUid, keyId);
+
     result.push_back(Pair("hash",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));

@@ -24,7 +24,7 @@ bool CMultiCoinBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &
         // When the reward transaction is immature, should NOT update account's balances.
     } else if (-1 == nIndex) {
         // When the reward transaction is mature, update account's balances, i.e, assgin the reward values to
-        // the miner's account.
+        // the target account.
         for (const auto &item : rewardValues) {
             switch (item.first/* CoinType */) {
                 case CoinType::WICC: account.bcoins += item.second; break;
@@ -92,33 +92,21 @@ string CMultiCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
 
     string rewardValue;
     for (const auto &item : rewardValues) {
-        switch (item.first /* CoinType */) {
-            case CoinType::WICC: rewardValue += strprintf("WICC: %lu, ", item.second); break;
-            case CoinType::WUSD: rewardValue += strprintf("WUSD: %lu, ", item.second); break;
-            case CoinType::WGRT: rewardValue += strprintf("WGRT: %lu, ", item.second); break;
-            default: break;
-        }
+        rewardValue += strprintf("%s: %lu, ", GetCoinTypeName((CoinType)item.first), item.second);
     }
 
-    string str = strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyId=%s, %s\n", GetTxType(nTxType),
-                           GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), rewardValue);
-
-    return str;
+    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyId=%s, %s\n", GetTxType(nTxType),
+                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), rewardValue);
 }
 
 Object CMultiCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const{
     Object result;
     CKeyID keyId;
-    accountCache.GetKeyId(txUid,            keyId);
+    accountCache.GetKeyId(txUid, keyId);
 
     Object rewardValue;
     for (const auto &item : rewardValues) {
-        switch (item.first /* CoinType */) {
-            case CoinType::WICC: rewardValue.push_back(Pair("WICC", item.second)); break;
-            case CoinType::WUSD: rewardValue.push_back(Pair("WUSD", item.second)); break;
-            case CoinType::WGRT: rewardValue.push_back(Pair("WGRT", item.second)); break;
-            default: break;
-        }
+        rewardValue.push_back(Pair(GetCoinTypeName((CoinType)item.first), item.second));
     }
 
     result.push_back(Pair("hash",           GetHash().GetHex()));
@@ -134,18 +122,10 @@ Object CMultiCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) cons
 
 bool CMultiCoinBlockRewardTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     CKeyID keyId;
-    if (txUid.type() == typeid(CRegID)) {
-        if (!cw.accountCache.GetKeyId(txUid, keyId))
-            return false;
+    if (!cw.accountCache.GetKeyId(txUid, keyId))
+        return false;
 
-        keyIds.insert(keyId);
-    } else if (txUid.type() == typeid(CPubKey)) {
-        CPubKey pubKey = txUid.get<CPubKey>();
-        if (!pubKey.IsFullyValid())
-            return false;
-
-        keyIds.insert(pubKey.GetKeyId());
-    }
+    keyIds.insert(keyId);
 
     return true;
 }
