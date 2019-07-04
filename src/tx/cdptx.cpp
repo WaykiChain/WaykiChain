@@ -126,12 +126,6 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
         cw.cdpCache.StakeBcoinsToCdp(nHeight, bcoinsToStake, (uint64_t) mintedScoins, cdp);
 
     } else { // further staking on one's existing CDP
-        // check if cdp owner is the same user who's staking!
-        if (txUid.get<CRegID>() != cdp.ownerRegId) {
-                return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, txUid(%s) not CDP owner",
-                        txUid.ToString()), READ_ACCOUNT_FAIL, "account-not-CDP-owner");
-        }
-
         if (nHeight < cdp.blockHeight) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, nHeight: %d < cdp.blockHeight: %d",
                     nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
@@ -307,19 +301,17 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
     //2. pay interest fees in wusd
     CUserCDP cdp(txUid.get<CRegID>(), cdpTxId);
     if (cw.cdpCache.GetCdp(cdp)) {
-        // check if cdp owner is the same user who's redeeming!
-        if (txUid.get<CRegID>() != cdp.ownerRegId) {
-                return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, txUid(%s) not CDP owner",
-                        txUid.ToString()), READ_ACCOUNT_FAIL, "account-not-CDP-owner");
-        }
         if (nHeight < cdp.blockHeight) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, nHeight: %d < cdp.blockHeight: %d",
-                    nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
+                            nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
         }
         if (!SellInterestForFcoins(nHeight, cdp, cw, state))
             return false;
 
         account.scoins -= scoinsInterest;
+    } else {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, txUid(%s) not CDP owner",
+                    txUid.ToString()), REJECT_INVALID, "target-cdp-not-exist");
     }
 
     //3. redeem in scoins and update cdp
