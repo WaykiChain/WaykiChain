@@ -82,6 +82,7 @@ coin_CORE_H = \
   random.h   \
   rpc/core/httpserver.h \
   rpc/core/rpcclient.h \
+  rpc/core/rpccommons.h \
   rpc/core/rpcprotocol.h \
   rpc/core/rpcserver.h \
   rpc/rpcblockchain.h \
@@ -238,6 +239,7 @@ libcoin_server_a_SOURCES = \
   net.cpp \
   rpc/core/httpserver.cpp \
   rpc/core/rpcclient.cpp \
+  rpc/core/rpccommons.cpp \
   rpc/core/rpcprotocol.cpp \
   rpc/core/rpcserver.cpp \
   rpc/rpcblockchain.cpp \
