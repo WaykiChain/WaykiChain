@@ -11,6 +11,14 @@ Object SubmitTx(CKeyID &userKeyId, CBaseTx &tx, ) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sender address not found in wallet");
     }
 
+    uint64_t minFee = kTxTypeMap[tx.nTxType].get<2>();
+    if (tx.fee == 0) {
+        tx.fee = minFee;
+    } else if (tx.fee < minFee) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Tx fee given is too small: %d < %d",
+                            txFee, minFee);
+    }
+
     CRegID regId;
     CAccountDBCache view(*pCdMan->pAccountCache);
     CAccount account;
@@ -21,12 +29,6 @@ Object SubmitTx(CKeyID &userKeyId, CBaseTx &tx, ) {
         balance = account.GetFreeBcoins();
         if (balance < tx.fee) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
-        }
-
-        uint64_t minFee = kTxTypeMap[tx.nTxType].get<2>();
-        if (tx.fee < minFee) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Tx fee given is too small: %d < %d",
-                                txFee, minFee);
         }
     } else {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
