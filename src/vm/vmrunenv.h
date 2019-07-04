@@ -1,10 +1,10 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2019- The WaykiChain Core Developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef VMRUNENV_H_
-#define VMRUNENV_H_
+#ifndef VMRUNENV_H
+#define VMRUNENV_H
 
 #include "vmlua.h"
 #include "appaccount.h"
@@ -70,12 +70,12 @@ private:
      * @brief The initialization function
      * @param Tx: run the tx's contact
      * @param view: Cache holds account
-     *  @param nheight: run the Environment the block's height
+     * @param nheight: run the Environment the block's height
      * @return : check the the tx and account is Legal true is legal false is unlegal
      */
     bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int nHeight);
     /**
-     *@brief check aciton
+     * @brief check aciton
      * @param listoperate: run the script return the code,check the code
      * @return : true check success
      */
@@ -118,12 +118,12 @@ public:
      */
     CVmRunEnv();
     /**
-     *@brief get be operate the account
+     * @brief get be operate the account
      * @return the variable rawAccount
      */
     vector<std::shared_ptr<CAccount>>& GetRawAccont();
     /**
-     *@brief get after operate the account
+     * @brief get after operate the account
      * @return :the variable newAccount
      */
     vector<std::shared_ptr<CAccount>>& GetNewAccount();
@@ -168,9 +168,9 @@ public:
     virtual ~CVmRunEnv();
 public:
     /**
-     * undo datas product by contract
+     * undo data product by contract
      */
     static bool UndoDatas(CCacheWrapper &cw);
 };
 
-#endif /* VMRUNENV_H_ */
+#endif  // VMRUNENV_H
