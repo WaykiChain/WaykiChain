@@ -92,7 +92,7 @@ string CMultiCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
 
     string rewardValue;
     for (const auto &item : rewardValues) {
-        rewardValue += strprintf("%s: %lu, ", GetCoinTypeName((CoinType)item.first), item.second);
+        rewardValue += strprintf("%s: %lu, ", GetCoinTypeName(CoinType(item.first)), item.second);
     }
 
     return strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyId=%s, %s\n", GetTxType(nTxType),
@@ -106,7 +106,7 @@ Object CMultiCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) cons
 
     Object rewardValue;
     for (const auto &item : rewardValues) {
-        rewardValue.push_back(Pair(GetCoinTypeName((CoinType)item.first), item.second));
+        rewardValue.push_back(Pair(GetCoinTypeName(CoinType(item.first)), item.second));
     }
 
     result.push_back(Pair("hash",           GetHash().GetHex()));

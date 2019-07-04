@@ -99,18 +99,17 @@ coin_CORE_H = \
   tx/blockrewardtx.h \
   tx/blockpricemediantx.h \
   tx/bcointx.h \
-  tx/coinrewardtx.h \
   tx/cdptx.h \
+  tx/coinrewardtx.h \
   tx/contracttx.h \
+  tx/cointransfertx.h \
   tx/delegatetx.h \
   tx/dextx.h \
-  tx/fcointx.h \
   tx/fcoinstaketx.h \
   tx/merkletx.h \
   tx/mulsigtx.h \
   tx/multicoinblockrewardtx.h \
   tx/pricefeedtx.h \
-  tx/scointx.h \
   tx/tx.h \
   tx/txmempool.h \
   sync.h \
@@ -255,17 +254,16 @@ libcoin_server_a_SOURCES = \
   tx/blockrewardtx.cpp \
   tx/blockpricemediantx.cpp \
   tx/bcointx.cpp \
-  tx/coinrewardtx.cpp \
   tx/cdptx.cpp \
+  tx/coinrewardtx.cpp \
   tx/contracttx.cpp \
+  tx/cointransfertx.cpp \
   tx/delegatetx.cpp \
   tx/dextx.cpp \
-  tx/fcointx.cpp \
   tx/fcoinstaketx.cpp \
   tx/mulsigtx.cpp \
   tx/multicoinblockrewardtx.cpp \
   tx/pricefeedtx.cpp \
-  tx/scointx.cpp \
   tx/tx.cpp \
   tx/txmempool.cpp \
   $(VMLUA_H) \
