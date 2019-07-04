@@ -50,9 +50,11 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
     }
 
     Array arrPricePoints    = params[1].get_array();
-    uint64_t fee            = params[2].get_uint64();  // real type
+    uint64_t fee    = 0;
+    if (params.size() == 3) {
+        fee = params[2].get_uint64();  // real type, 0 if empty and thence minFee
+    }
 
-    int validHeight = chainActive.Tip()->nHeight;
     Vector<CPricePoint> pricePoints;
     for (auto objPp : arrPricePoints) {
         const Value& coinValue = find_value(objPp.get_obj(), "coin");
@@ -134,7 +136,7 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
 
 /*************************************************<< CDP >>**************************************************/
 Value submitstakecdptx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 2 || params.size() > 4) {
+    if (fHelp || params.size() < 2 || params.size() > 5) {
         throw runtime_error(
             "submitstakecdptx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
             "\nsubmit a dex buy limit price order tx.\n"
@@ -143,7 +145,8 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
             "2. \"stake_amount\": (numeric required) WICC coins to stake into the CDP, boosted by 10^8\n"
             "3. \"collateral_ratio\": (numberic required), collateral ratio, boosted by 10^4 times\n"
             "4. \"cdp_id\": (string optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
-            "5. \"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
+            "5. \"interest\": (numeric optional) CDP interest (WUSD) to repay\n"
+            "6. \"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
             "\nResult description:\n"
             "\nResult: {tx_hash}\n"
             "\nExamples:\n"
@@ -159,11 +162,20 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     if (!cdpUid) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
+    uint64_t stakeAmount = params[1].get_uint64();
+    uint64_t collateralRatio = params[2].get_uint64();
 
-    CCDPStakeTx tx(cdpUid, feesIn, int validHeightIn,
-                uint256 cdpTxIdIn, uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn,
-                uint64_t scoinsInterestIn);
+    int validHeight = chainActive.Tip()->nHeight;
+    uint64_t interest   = 0;
+    uint64_t fee        = 0;
+    string cdpTxId      = 0;
+    if (params.size() == 6) {
+        cdpTxId = uint256S(params[3].get_str());
+        interest =  params[4].get_uint64()
+        fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
+    }
 
+    CCDPStakeTx tx(cdpUid, fee, validHeight, cdpTxId, stakeAmount, collateralRatio, interest);
     return SubmitTx(userKeyId, tx);
 }
 Value submitredeemcdptx(const Array& params, bool fHelp) {
