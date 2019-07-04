@@ -116,7 +116,8 @@ public:
         FlagPubKey   = 33,
         FlagNickID   = 100
     };
-
+public:
+    static shared_ptr<CUserID> ParseUserId(const string &idStr);
 public:
     CUserID(): uid(CNullID()) {}
 

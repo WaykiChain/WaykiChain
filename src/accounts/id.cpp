@@ -136,3 +136,25 @@ void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn) {
         Clean();
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// class CUserID
+
+shared_ptr<CUserID> CUserID::ParseUserId(const string &idStr) {
+    CRegID regId(idStr);
+    if (!regId.IsEmpty())
+        return make_shared<CUserID>(regId);
+
+    CKeyID keyId(idStr);    
+    if (!keyId.IsEmpty()) 
+        return make_shared<CUserID>(keyId);
+
+    CPubKey pubKey(idStr);    
+    if (pubKey.IsFullyValid()) 
+        return make_shared<CUserID>(pubKey);
+
+    // TODO: how to support nick name?
+
+    return nullptr;
+}
+

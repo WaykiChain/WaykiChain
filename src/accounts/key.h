@@ -83,6 +83,7 @@ public:
 
     // Construct a public key from a byte vector.
     CPubKey(const vector<unsigned char> &vch) { Set(vch.begin(), vch.end()); }
+    CPubKey(const string &str) { Set(str.begin(), str.end()); }
 
     // Simple read-only vector-like interface to the pubkey data.
     unsigned int size() const {

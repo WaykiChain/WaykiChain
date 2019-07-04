@@ -44,6 +44,7 @@ enum TxType : unsigned char {
 
     BLOCK_PRICE_MEDIAN_TX      = 8,  //!< Block Median Price Tx
     MULTI_COIN_BLOCK_REWARD_TX = 9,  //!< Multi Coin Miner Block Reward Tx
+    COIN_TRANSFER_TX           = 10, //!< Coin Transfer Tx
 
     // CDP_OPEN_TX      = 11,  //!< CDP Open Tx
     CDP_REFUEL_TX    = 12,  //!< CDP refuel Tx

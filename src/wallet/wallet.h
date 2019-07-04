@@ -25,8 +25,6 @@
 #include "commons/serialize.h"
 #include "tx/bcointx.h"
 #include "tx/blockrewardtx.h"
-#include "tx/scointx.h"
-#include "tx/fcointx.h"
 #include "tx/contracttx.h"
 #include "tx/delegatetx.h"
 #include "tx/accountregtx.h"

@@ -42,8 +42,25 @@ static const unordered_map<CoinType, string, CoinTypeHash> kCoinTypeMapName = {
     {WUSD, "WUSD"}
 };
 
+static const unordered_map<string, CoinType> kCoinNameMapType = {
+    {"WICC", WICC},
+    {"WGRT", WGRT},
+    {"WUSD", WUSD}
+};
+
 inline const string& GetCoinTypeName(CoinType coinType) {
     return kCoinTypeMapName.at(coinType);
+}
+
+inline bool ParseCoinType(const string& coinName, CoinType &coinType) {
+    if (coinName != "") {
+        auto it = kCoinNameMapType.find(coinName);
+        if (it != kCoinNameMapType.end()) {
+            coinType = it->second;
+            return true;
+        }
+    }
+    return false;
 }
 
 enum PriceType: uint8_t {
@@ -169,7 +186,7 @@ public:
     }
 
     bool IsRegistered() const {
-        return (pubKey.IsFullyValid() && pubKey.GetKeyId() == keyId);
+        return pubKey.IsFullyValid();
     }
 
     bool RegIDIsMature() const;

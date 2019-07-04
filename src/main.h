@@ -39,7 +39,6 @@
 #include "tx/blockrewardtx.h"
 #include "tx/contracttx.h"
 #include "tx/delegatetx.h"
-#include "tx/fcointx.h"
 #include "tx/mulsigtx.h"
 #include "tx/tx.h"
 #include "tx/txmempool.h"
