@@ -13,6 +13,7 @@
 #include "util.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
+#include "tx/dextx.h"
 
 Value submitpricefeedtx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 4) {
@@ -41,7 +42,7 @@ Value submitstakefcointx(const Array& params, bool fHelp);
 
 
 Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 2 || params.size() > 4) {
+    if (fHelp || params.size() < 5 || params.size() > 7) {
         throw runtime_error(
             "submitdexbuylimitordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
             "\nsubmit a dex buy limit price order tx.\n"
@@ -60,14 +61,95 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
             + HelpExampleRpc("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
         );
     }
-    // TODO: ...
-    return Object();
 
+    EnsureWalletIsUnlocked();
+
+    // 1. addr
+    auto pUserId = CUserID::ParseUserId(params[0].get_str());
+    if (!pUserId) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+    }
+    
+    CoinType coinType;
+    if (ParseCoinType(params[0].get_str(), coinType)) {
+        throw JSONRPCError(RPC_DEX_COIN_TYPE_INVALID, "Invalid coin_type");
+    }
+
+    CoinType assetType;
+    if (ParseCoinType(params[1].get_str(), assetType)) {
+        throw JSONRPCError(RPC_DEX_ASSET_TYPE_INVALID, "Invalid asset_type");
+    }
+
+    uint64_t assetAmount = AmountToRawValue(params[2]);
+    uint64_t price = AmountToRawValue(params[3]);
+
+    int64_t defaultFee = SysCfg().GetTxFee(); // default fee
+    int64_t fee;
+    if (params.size() > 4) {
+        fee = AmountToRawValue(params[4]);
+        if (fee < defaultFee) {
+            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
+                               strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
+        }   
+    } else {
+        fee = defaultFee;
+    }
+
+    CAccount txAccount;
+    if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                            strprintf("The account not exists! userId=%s", pUserId->ToString()));        
+    }
+    assert(!txAccount.keyId.IsEmpty());
+
+    // TODO: need to support fee coin type
+    uint64_t amount = assetAmount;
+    if (txAccount.GetFreeBcoins() < amount + fee) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Account does not have enough coins");
+    }
+
+    CUserID txUid;
+    if (txAccount.RegIDIsMature()) {
+        txUid = txAccount.regId;
+    } else if(txAccount.pubKey.IsValid()) {
+        txUid = txAccount.pubKey;
+    } else{
+        CPubKey txPubKey;
+        if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, 
+                strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
+        }
+        txUid = txPubKey;
+    }
+
+    int validHeight = chainActive.Height();
+    CDEXBuyLimitOrderTx tx(txUid, validHeight, fee, coinType, assetType, assetAmount, price);
+
+    if (!pWalletMain->Sign(txAccount.keyId, tx.ComputeSignatureHash(), tx.signature))
+            throw JSONRPCError(RPC_WALLET_ERROR, "sign tx failed");
+
+    std::tuple<bool, string> ret = pWalletMain->CommitTx(&tx);
+
+    if (!std::get<0>(ret)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
+    }
+
+    Object obj;
+    obj.push_back(Pair("hash", std::get<1>(ret)));
+    return obj;
 }
 
-Value submitdexselllimitordertx(const Array& params, bool fHelp);
-Value submitdexbuymarketordertx(const Array& params, bool fHelp);
-Value submitdexsellmarketordertx(const Array& params, bool fHelp);
+Value submitdexselllimitordertx(const Array& params, bool fHelp) {
+    return Object(); // TODO:...
+}
+
+Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
+    return Object(); // TODO:...
+}
+
+Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
+    return Object(); // TODO:...
+}
 
 Value submitdexcancelordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 4) {

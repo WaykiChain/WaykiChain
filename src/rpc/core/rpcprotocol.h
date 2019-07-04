@@ -84,6 +84,11 @@ enum RPCErrorCode
 
     RPC_SCRIPT_FILEPATH_INVALID     = -18, // Register contract script file not inside /tmp/lua dir
     RPC_SCRIPT_FILEPATH_NOT_EXIST   = -19, // Register contract script file not exist
+
+
+    // dex errors
+    RPC_DEX_COIN_TYPE_INVALID       = -100, // coin type invalid
+    RPC_DEX_ASSET_TYPE_INVALID      = -101, // asset type invalid
 };
 
 //
