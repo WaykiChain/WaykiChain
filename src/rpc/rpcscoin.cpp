@@ -16,7 +16,7 @@
 #include "tx/dextx.h"
 
 Value submitpricefeedtx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 3) {
+    if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
             "submitpricefeedtx \"$pricefeeds\" \n"
             "\nsubmit a price feed tx.\n"
@@ -44,25 +44,13 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
     RPCTypeCheck(params, list_of(str_type)(array_type)(int_type);
     EnsureWalletIsUnlocked();
 
-    CPriceFeedTx()
-
-    CKeyID feedKid;
-    if (!GetKeyId(params[0].get_str(), feedKeyId))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid PriceFeeder address");
+    auto feedUid = CUserID::ParseUserId(params[0].get_str());
+    if (!feedUid) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
-    CPubKey feedPubKey;
-    if (!pWalletMain->GetPubKey(feedKeyId, feedPubKey)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Key not found in the local wallet.");
-    }
-    CUserID feedUid;
-    CRegID feedRegId;
-    feedUid = ( pCdMan->pAccountCache->GetRegId(CUserID(feedKeyId), feedRegId) &&
-                pCdMan->pAccountCache->RegIDIsMature(feedRegId))
-                    ? CUserID(feedRegId)
-                    : CUserID(feedPubKey);
 
-    Array arrPricePoints   = params[1].get_array();
-    uint64_t fee        = params[2].get_uint64();  // real type
+    Array arrPricePoints    = params[1].get_array();
+    uint64_t fee            = params[2].get_uint64();  // real type
 
     int validHeight = chainActive.Tip()->nHeight;
     Vector<CPricePoint> pricePoints;
@@ -120,8 +108,8 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
             "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
             "5.\"price\": (numeric, required) bidding price willing to buy\n"
             "6.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
-            "\nResult detail\n"
-            "\nResult:\n"
+            "\nResult description:\n"
+            "\nResult: {tx_hash}\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
             + "\nAs json rpc call\n"
@@ -145,9 +133,45 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
 }
 
 /*************************************************<< CDP >>**************************************************/
-Value submitstakecdptx(const Array& params, bool fHelp);
-Value submitredeemcdptx(const Array& params, bool fHelp);
-Value submitliquidatecdptx(const Array& params, bool fHelp);
+Value submitstakecdptx(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 2 || params.size() > 4) {
+        throw runtime_error(
+            "submitstakecdptx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
+            "\nsubmit a dex buy limit price order tx.\n"
+            "\nArguments:\n"
+            "1. \"address\" : CDP staker's address\n"
+            "2. \"stake_amount\": (numeric required) WICC coins to stake into the CDP, boosted by 10^8\n"
+            "3. \"collateral_ratio\": (numberic required), collateral ratio, boosted by 10^4 times\n"
+            "4. \"cdp_id\": (string optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
+            "5. \"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
+            "\nResult description:\n"
+            "\nResult: {tx_hash}\n"
+            "\nExamples:\n"
+            + HelpExampleCli("submitstakecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("submitstakecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 2000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
+        );
+    }
+
+    EnsureWalletIsUnlocked();
+
+    auto cdpUid = CUserID::ParseUserId(params[0].get_str());
+    if (!cdpUid) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+    }
+
+    CCDPStakeTx tx(cdpUid, feesIn, int validHeightIn,
+                uint256 cdpTxIdIn, uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn,
+                uint64_t scoinsInterestIn);
+
+    return SubmitTx(userKeyId, tx);
+}
+Value submitredeemcdptx(const Array& params, bool fHelp) {
+
+}
+Value submitliquidatecdptx(const Array& params, bool fHelp) {
+
+}
 
 Value getmedianprice(const Array& params, bool fHelp);
 Value listcdps(const Array& params, bool fHelp);

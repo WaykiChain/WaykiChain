@@ -80,33 +80,31 @@ struct TxTypeHash {
  * TxTypeKey -> {TxTypeName, InterimPeriodTxFees, EffectivePeriodTxFees}
  * Fees are boosted by 10^8
  * all fees are spent in WICC coins except WUSD coins transfer requires WUSD
+ *
+ * if fees are paid in WUSD, converted by ex rate from WICC fees in the colums below
  */
 static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t>, TxTypeHash> kTxTypeMap = {
     { BLOCK_REWARD_TX,          std::make_tuple("BLOCK_REWARD_TX",         0,          0            ) },
     { BLOCK_PRICE_MEDIAN_TX,    std::make_tuple("BLOCK_PRICE_MEDIAN_TX",   0,          0            ) },
-    { ACCOUNT_REGISTER_TX,      std::make_tuple("ACCOUNT_REGISTER_TX",     10000,      10000        ) }, // optional
-    { BCOIN_TRANSFER_TX,        std::make_tuple("BCOIN_TRANSFER_TX",       10000,      10000        ) },
-    { CONTRACT_INVOKE_TX,       std::make_tuple("CONTRACT_INVOKE_TX",      10000,      10000        ) },
-    { CONTRACT_DEPLOY_TX,       std::make_tuple("CONTRACT_DEPLOY_TX",      100000000,  100000000    ) },
-    { DELEGATE_VOTE_TX,         std::make_tuple("DELEGATE_VOTE_TX",        10000,      10000        ) },
-    { COMMON_MTX,               std::make_tuple("COMMON_MTX",              10000,      10000        ) },
-    // { CDP_OPEN_TX,              std::make_tuple("CDP_OPEN_TX",             1000000,    1000000      ) },
-    { CDP_REFUEL_TX,            std::make_tuple("CDP_REFUEL_TX",           10000,      10000        ) },
-    { CDP_REDEEMP_TX,           std::make_tuple("CDP_REDEEMP_TX",          10000,      10000        ) },
-    { CDP_LIQUIDATE_TX,         std::make_tuple("CDP_LIQUIDATE_TX",        10000,      10000        ) },
-    { PRICE_FEED_TX,            std::make_tuple("PRICE_FEED_TX",           10000,      10000        ) },
-    { SFC_PARAM_MTX,            std::make_tuple("SFC_PARAM_MTX",           10000,      10000        ) },
-    { SFC_GLOBAL_HALT_MTX,      std::make_tuple("SFC_GLOBAL_HALT_MTX",     10000,      10000        ) },
-    { SFC_GLOBAL_SETTLE_MTX,    std::make_tuple("SFC_GLOBAL_SETTLE_MTX",   10000,      10000        ) },
-    { SCOIN_TRANSFER_TX,        std::make_tuple("SCOIN_TRANSFER_TX",       10000,      10000        ) }, // charged in WUSD
-    { FCOIN_TRANSFER_TX,        std::make_tuple("FCOIN_TRANSFER_TX",       10000,      10000        ) },
-    { FCOIN_STAKE_TX,           std::make_tuple("FCOIN_STAKE_TX",          10000,      10000        ) },
-    { DEX_SETTLE_TX,            std::make_tuple("DEX_SETTLE_TX",           10000,      10000        ) },
-    { DEX_CANCEL_ORDER_TX,      std::make_tuple("DEX_CANCEL_ORDER_TX",     10000,      10000        ) },
-    { DEX_BUY_LIMIT_ORDER_TX,   std::make_tuple("DEX_BUY_LIMIT_ORDER_TX",  10000,      10000        ) },
-    { DEX_SELL_LIMIT_ORDER_TX,  std::make_tuple("DEX_SELL_LIMIT_ORDER_TX", 10000,      10000        ) },
-    { DEX_BUY_MARKET_ORDER_TX,  std::make_tuple("DEX_BUY_MARKET_ORDER_TX", 10000,      10000        ) },
-    { DEX_SELL_MARKET_ORDER_TX, std::make_tuple("DEX_SELL_MARKET_ORDER_TX",10000,      10000        ) },
+    { ACCOUNT_REGISTER_TX,      std::make_tuple("ACCOUNT_REGISTER_TX",     10000,      10000        ) }, //0.0001 WICC, optional
+    { BCOIN_TRANSFER_TX,        std::make_tuple("BCOIN_TRANSFER_TX",       10000,      10000        ) }, //0.0001 WICC
+    { COIN_TRANSFER_TX,         std::make_tuple("COIN_TRANSFER_TX",        10000,      10000        ) }, //0.0001 WICC
+    { CONTRACT_DEPLOY_TX,       std::make_tuple("CONTRACT_DEPLOY_TX",      100000000,  100000000    ) }, //0.01 WICC
+    { CONTRACT_INVOKE_TX,       std::make_tuple("CONTRACT_INVOKE_TX",      1000,       1000         ) }, //0.001 WICC, min fees
+    { DELEGATE_VOTE_TX,         std::make_tuple("DELEGATE_VOTE_TX",        10000,      10000        ) }, //0.0001 WICC
+    { COMMON_MTX,               std::make_tuple("COMMON_MTX",              10000,      10000        ) }, //0.0001 WICC
+    { CDP_STAKE_TX,             std::make_tuple("CDP_STAKE_TX",            100000,     100000       ) }, //0.001 WICC
+    { CDP_REDEEMP_TX,           std::make_tuple("CDP_REDEEMP_TX",          100000,     100000       ) }, //0.001 WICC
+    { CDP_LIQUIDATE_TX,         std::make_tuple("CDP_LIQUIDATE_TX",        100000,     100000       ) }, //0.001 WICC
+    { PRICE_FEED_TX,            std::make_tuple("PRICE_FEED_TX",           10000,      10000        ) }, //0.0001 WICC
+    { SFC_PARAM_MTX,            std::make_tuple("SFC_PARAM_MTX",           10000,      10000        ) }, //0.0001 WICC
+    { FCOIN_STAKE_TX,           std::make_tuple("FCOIN_STAKE_TX",          10000,      10000        ) }, //0.0001 WICC
+    { DEX_SETTLE_TX,            std::make_tuple("DEX_SETTLE_TX",           10000,      10000        ) }, //0.0001 WICC
+    { DEX_CANCEL_ORDER_TX,      std::make_tuple("DEX_CANCEL_ORDER_TX",     10000,      10000        ) }, //0.0001 WICC
+    { DEX_BUY_LIMIT_ORDER_TX,   std::make_tuple("DEX_BUY_LIMIT_ORDER_TX",  10000,      10000        ) }, //0.0001 WICC
+    { DEX_SELL_LIMIT_ORDER_TX,  std::make_tuple("DEX_SELL_LIMIT_ORDER_TX", 10000,      10000        ) }, //0.0001 WICC
+    { DEX_BUY_MARKET_ORDER_TX,  std::make_tuple("DEX_BUY_MARKET_ORDER_TX", 10000,      10000        ) }, //0.0001 WICC
+    { DEX_SELL_MARKET_ORDER_TX, std::make_tuple("DEX_SELL_MARKET_ORDER_TX",10000,      10000        ) }, //0.0001 WICC
     { NULL_TX,                  std::make_tuple("NULL_TX",                 0,          0            ) }
 };
 

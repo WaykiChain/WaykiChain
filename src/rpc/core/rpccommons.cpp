@@ -22,6 +22,12 @@ Object SubmitTx(CKeyID &userKeyId, CBaseTx &tx, ) {
         if (balance < tx.fee) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
+
+        uint64_t minFee = kTxTypeMap[tx.nTxType].get<2>();
+        if (tx.fee < minFee) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Tx fee given is too small: %d < %d",
+                                txFee, minFee);
+        }
     } else {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
     }
