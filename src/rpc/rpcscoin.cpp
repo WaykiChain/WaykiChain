@@ -16,7 +16,7 @@
 #include "tx/dextx.h"
 
 Value submitpricefeedtx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 2 || params.size() > 4) {
+    if (fHelp || params.size() != 3) {
         throw runtime_error(
             "submitpricefeedtx \"$pricefeeds\" \n"
             "\nsubmit a price feed tx.\n"
@@ -41,11 +41,10 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             + HelpExampleRpc("submitpricefeedtx","\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"[{\"coin\", WICC, \"currency\": \"USD\", \"price\": 0.28}]\"\n"));
     }
 
-    RPCTypeCheck(params, list_of(array_type)(int_type);
+    RPCTypeCheck(params, list_of(str_type)(array_type)(int_type);
     EnsureWalletIsUnlocked();
 
     CPriceFeedTx()
-
 
     CKeyID feedKid;
     if (!GetKeyId(params[0].get_str(), feedKeyId))
@@ -106,23 +105,55 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
     }
 
     CPriceFeedTx tx(feedUid, validHeight, fee, pricepoints);
-    if (!pWalletMain->Sign(feedKeyId, tx.ComputeSignatureHash(), tx.signature)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
-    }
-
-    std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx*)&tx);
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-    }
-
-    Object obj;
-    obj.push_back(Pair("tx_hash", std::get<1>(ret)));
-    return obj;
+    return SubmitTx(feedKeyId, tx);
 }
 
-Value submitstakefcointx(const Array& params, bool fHelp);
+Value submitstakefcointx(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 5 || params.size() > 7) {
+        throw runtime_error(
+            "submitstakefcointx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
+            "\nsubmit a dex buy limit price order tx.\n"
+            "\nArguments:\n"
+            "1.\"addr\": (string required) order owner address\n"
+            "2.\"coin_type\": (string required) coin type to pay\n"
+            "3.\"asset_type\": (string required), asset type to buy\n"
+            "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
+            "5.\"price\": (numeric, required) bidding price willing to buy\n"
+            "6.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
+            "\nResult detail\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+        );
+    }
 
+    EnsureWalletIsUnlocked();
 
+    auto pUserId = CUserID::ParseUserId(params[0].get_str());
+    if (!pUserId) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+    }
+
+    CCDPStakeTx tx(txUidIn, uint64_t feesIn, int validHeightIn,
+                uint256 cdpTxIdIn, uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn,
+                uint64_t scoinsInterestIn);
+
+    return SubmitTx(userKeyId, tx);
+
+}
+
+/*************************************************<< CDP >>**************************************************/
+Value submitstakecdptx(const Array& params, bool fHelp);
+Value submitredeemcdptx(const Array& params, bool fHelp);
+Value submitliquidatecdptx(const Array& params, bool fHelp);
+
+Value getmedianprice(const Array& params, bool fHelp);
+Value listcdps(const Array& params, bool fHelp);
+Value listcdpstoliquidate(const Array& params, bool fHelp);
+
+/*************************************************<< DEX >>**************************************************/
 Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 7) {
         throw runtime_error(
@@ -146,12 +177,11 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    // 1. addr
     auto pUserId = CUserID::ParseUserId(params[0].get_str());
     if (!pUserId) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
-    
+
     CoinType coinType;
     if (ParseCoinType(params[0].get_str(), coinType)) {
         throw JSONRPCError(RPC_DEX_COIN_TYPE_INVALID, "Invalid coin_type");
@@ -172,7 +202,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
         if (fee < defaultFee) {
             throw JSONRPCError(RPC_INSUFFICIENT_FEE,
                                strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
-        }   
+        }
     } else {
         fee = defaultFee;
     }
@@ -180,7 +210,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     CAccount txAccount;
     if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("The account not exists! userId=%s", pUserId->ToString()));        
+                            strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
     assert(!txAccount.keyId.IsEmpty());
 
@@ -198,7 +228,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     } else{
         CPubKey txPubKey;
         if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, 
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                 strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
         }
         txUid = txPubKey;
@@ -295,10 +325,3 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
     // TODO: ...
     return Object();
 }
-
-Value submitstakecdptx(const Array& params, bool fHelp);
-Value submitredeemcdptx(const Array& params, bool fHelp);
-Value submitliquidatecdptx(const Array& params, bool fHelp);
-Value getmedianprice(const Array& params, bool fHelp);
-Value listcdps(const Array& params, bool fHelp);
-Value listcdpstoliquidate(const Array& params, bool fHelp);

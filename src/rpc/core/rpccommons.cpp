@@ -6,6 +6,44 @@
 
 const int MAX_RPC_SIG_STR_LEN = 65 * 1024; // 65K
 
+Object SubmitTx(CKeyID &userKeyId, CBaseTx &tx, ) {
+    if (!pWalletMain->HaveKey(userKeyId)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Sender address not found in wallet");
+    }
+
+    CRegID regId;
+    CAccountDBCache view(*pCdMan->pAccountCache);
+    CAccount account;
+
+    uint64_t balance = 0;
+    CUserID userId   = userKeyId;
+    if (pCdMan->pAccountCache->GetAccount(userId, account) && account.IsRegistered()) {
+        balance = account.GetFreeBcoins();
+        if (balance < tx.fee) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
+        }
+    } else {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
+    }
+
+    pCdMan->pAccountCache->GetRegId(userKeyId, regId);
+    tx.txUid = regId;
+
+    EnsureWalletIsUnlocked();
+    if (!pWalletMain->Sign(userKeyId, tx.ComputeSignatureHash(), tx.signature)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
+    }
+
+    std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx*) &tx);
+    if (!std::get<0>(ret)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
+    }
+
+    Object obj;
+    obj.push_back(Pair("tx_hash", std::get<1>(ret)));
+    return obj;
+}
+
 string RegIDToAddress(CUserID &userId) {
     CKeyID keyId;
     if (pCdMan->pAccountCache->GetKeyId(userId, keyId))
@@ -22,7 +60,6 @@ static bool GetKeyId(string const &addr, CKeyID &KeyId) {
     }
     return true;
 }
-
 
 Object GetTxDetailJSON(const uint256& txhash) {
     Object obj;

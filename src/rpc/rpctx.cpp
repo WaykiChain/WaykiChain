@@ -302,18 +302,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
     tx.arguments    = arguments;
     tx.nValidHeight = height;
 
-    if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
-    }
-
-    std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx*)&tx);
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-    }
-
-    Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
-    return obj;
+    return SubmitTx(sendKeyId, tx);
 }
 
 // register a contract app tx
@@ -410,59 +399,18 @@ Value registercontracttx(const Array& params, bool fHelp)
     if (fee > 0 && fee < CBaseTx::nMinTxFee) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee is smaller than nMinTxFee");
     }
-    CKeyID keyId;
-    if (!GetKeyId(params[0].get_str(), keyId)) {
+    CKeyID sendKeyId;
+    if (!GetKeyId(params[0].get_str(), sendKeyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid send address");
     }
 
-    assert(pWalletMain != NULL);
     CContractDeployTx tx;
-    {
-        EnsureWalletIsUnlocked();
-        CAccountDBCache view(*pCdMan->pAccountCache);
-        CAccount account;
+    tx.contractScript   = contractScript;
+    tx.llFees           = fee;
+    tx.nRunStep         = contractScript.size();
+    tx.nValidHeight     = chainActive.Tip()->nHeight;
 
-        uint64_t balance = 0;
-        CUserID userId   = keyId;
-        if (pCdMan->pAccountCache->GetAccount(userId, account)) {
-            balance = account.GetFreeBcoins();
-        }
-
-        if (!account.IsRegistered()) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
-        }
-        if (!pWalletMain->HaveKey(keyId)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Send address is not in wallet");
-        }
-        if (balance < fee) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
-        }
-
-        CRegID regId;
-        pCdMan->pAccountCache->GetRegId(keyId, regId);
-
-        tx.txUid          = regId;
-        tx.contractScript = contractScript;
-        tx.llFees         = fee;
-        tx.nRunStep       = contractScript.size();
-        if (0 == height) {
-            height = chainActive.Tip()->nHeight;
-        }
-        tx.nValidHeight = height;
-
-        if (!pWalletMain->Sign(keyId, tx.ComputeSignatureHash(), tx.signature)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
-        }
-    }
-
-    std::tuple<bool, string> ret;
-    ret = pWalletMain->CommitTx((CBaseTx *) &tx);
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-    }
-    Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
-    return obj;
+    return SubmitTx(sendKeyId, tx);
 }
 
 //vote a delegate transaction
