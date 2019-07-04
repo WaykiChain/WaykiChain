@@ -53,7 +53,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid
                 << (uint8_t)coinType << (uint8_t)assetType << assetAmount << bidPrice;
             sigHash = ss.GetHash();
         }
@@ -116,7 +116,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid
                 << (uint8_t)coinType << (uint8_t)assetType << assetAmount << askPrice;
             sigHash = ss.GetHash();
         }
@@ -175,7 +175,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid
                 << (uint8_t)coinType << (uint8_t)assetType << coinAmount;
             sigHash = ss.GetHash();
         }
@@ -233,7 +233,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid
                 << (uint8_t)coinType << (uint8_t)assetType << assetAmount;
             sigHash = ss.GetHash();
         }
@@ -287,7 +287,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid
                 << orderId;
             sigHash = ss.GetHash();
         }
@@ -352,7 +352,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid
                 << dealItems;
             sigHash = ss.GetHash();
         }

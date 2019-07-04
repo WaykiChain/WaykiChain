@@ -42,6 +42,7 @@
 #include "tx/mulsigtx.h"
 #include "tx/tx.h"
 #include "tx/txmempool.h"
+#include "tx/dextx.h"
 
 class CBlockIndex;
 class CBloomFilter;
@@ -762,59 +763,127 @@ template <typename Stream>
 void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
     unsigned char nTxType = pa->nTxType;
     Serialize(os, nTxType, nType, nVersion);
-    if (pa->nTxType == ACCOUNT_REGISTER_TX) {
-        Serialize(os, *((CAccountRegisterTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == BCOIN_TRANSFER_TX) {
-        Serialize(os, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == CONTRACT_INVOKE_TX) {
-        Serialize(os, *((CContractInvokeTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == BLOCK_REWARD_TX) {
-        Serialize(os, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == CONTRACT_DEPLOY_TX) {
-        Serialize(os, *((CContractDeployTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == DELEGATE_VOTE_TX) {
-        Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == COMMON_MTX) {
-        Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion);
-    } else if (pa->nTxType == BLOCK_PRICE_MEDIAN_TX) {
-        Serialize(os, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion);
-    } else {
-        string sTxType(1, nTxType);
-        throw ios_base::failure("Serialize: nTxType (" + sTxType + ") value error.");
+    switch (pa->nTxType) {
+        case ACCOUNT_REGISTER_TX:
+            Serialize(os, *((CAccountRegisterTx *)(pa.get())), nType, nVersion); break;
+        case BCOIN_TRANSFER_TX:
+            Serialize(os, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion); break;
+        case CONTRACT_INVOKE_TX:
+            Serialize(os, *((CContractInvokeTx *)(pa.get())), nType, nVersion); break;
+        case BLOCK_REWARD_TX:
+            Serialize(os, *((CBlockRewardTx *)(pa.get())), nType, nVersion); break;
+        case CONTRACT_DEPLOY_TX:
+            Serialize(os, *((CContractDeployTx *)(pa.get())), nType, nVersion); break;
+        case DELEGATE_VOTE_TX:
+            Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion); break;
+        case COMMON_MTX:
+            Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion); break;
+        case BLOCK_PRICE_MEDIAN_TX:
+            Serialize(os, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion); break;
+
+        /* dex */
+        case DEX_SETTLE_TX:
+            Serialize(os, *((CDEXSettleTx *)(pa.get())), nType, nVersion); break;
+        case DEX_CANCEL_ORDER_TX:
+            Serialize(os, *((CDEXCancelOrderTx *)(pa.get())), nType, nVersion); break;
+        case DEX_BUY_LIMIT_ORDER_TX:
+            Serialize(os, *((CDEXBuyLimitOrderTx *)(pa.get())), nType, nVersion); break;
+        case DEX_SELL_LIMIT_ORDER_TX:
+            Serialize(os, *((CDEXSellLimitOrderTx *)(pa.get())), nType, nVersion); break;
+        case DEX_BUY_MARKET_ORDER_TX:
+            Serialize(os, *((CDEXBuyMarketOrderTx *)(pa.get())), nType, nVersion); break;
+        case DEX_SELL_MARKET_ORDER_TX:
+            Serialize(os, *((CDEXSellMarketOrderTx *)(pa.get())), nType, nVersion); break;
+
+        default:
+            throw ios_base::failure(strprintf("Serialize: nTxType(%d:%s) error.", 
+                pa->nTxType, GetTxType(pa->nTxType)));
+            break;
     }
+    
 }
+
 
 template <typename Stream>
 void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
     unsigned char nTxType;
     is.read((char *)&(nTxType), sizeof(nTxType));
-    if (nTxType == ACCOUNT_REGISTER_TX) {
-        pa = std::make_shared<CAccountRegisterTx>();
-        Unserialize(is, *((CAccountRegisterTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == BCOIN_TRANSFER_TX) {
-        pa = std::make_shared<CBaseCoinTransferTx>();
-        Unserialize(is, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == CONTRACT_INVOKE_TX) {
-        pa = std::make_shared<CContractInvokeTx>();
-        Unserialize(is, *((CContractInvokeTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == BLOCK_REWARD_TX) {
-        pa = std::make_shared<CBlockRewardTx>();
-        Unserialize(is, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == CONTRACT_DEPLOY_TX) {
-        pa = std::make_shared<CContractDeployTx>();
-        Unserialize(is, *((CContractDeployTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == DELEGATE_VOTE_TX) {
-        pa = std::make_shared<CDelegateVoteTx>();
-        Unserialize(is, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == COMMON_MTX) {
-        pa = std::make_shared<CMulsigTx>();
-        Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
-    } else if (nTxType == BLOCK_PRICE_MEDIAN_TX) {
-        pa = std::make_shared<CBlockPriceMedianTx>();
-        Unserialize(is, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion);
-    } else {
-        string sTxType(1, nTxType);
-        throw ios_base::failure("Unserialize: nTxType (" + sTxType + ") value error.");
+    switch((TxType)nTxType) {
+        case ACCOUNT_REGISTER_TX: {
+            pa = std::make_shared<CAccountRegisterTx>();
+            Unserialize(is, *((CAccountRegisterTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case BCOIN_TRANSFER_TX: {
+            pa = std::make_shared<CBaseCoinTransferTx>();
+            Unserialize(is, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case CONTRACT_INVOKE_TX: {
+            pa = std::make_shared<CContractInvokeTx>();
+            Unserialize(is, *((CContractInvokeTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case BLOCK_REWARD_TX: {
+            pa = std::make_shared<CBlockRewardTx>();
+            Unserialize(is, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case CONTRACT_DEPLOY_TX: {
+            pa = std::make_shared<CContractDeployTx>();
+            Unserialize(is, *((CContractDeployTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case DELEGATE_VOTE_TX: {
+            pa = std::make_shared<CDelegateVoteTx>();
+            Unserialize(is, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case COMMON_MTX: {
+            pa = std::make_shared<CMulsigTx>();
+            Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case BLOCK_PRICE_MEDIAN_TX: {
+            pa = std::make_shared<CBlockPriceMedianTx>();
+            Unserialize(is, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+
+        /* dex */
+        case DEX_SETTLE_TX: {
+            pa = std::make_shared<CDEXSettleTx>();
+            Unserialize(is, *((CDEXSettleTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case DEX_CANCEL_ORDER_TX: {
+            pa = std::make_shared<CDEXCancelOrderTx>();
+            Unserialize(is, *((CDEXCancelOrderTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case DEX_BUY_LIMIT_ORDER_TX: {
+            pa = std::make_shared<CDEXBuyLimitOrderTx>();
+            Unserialize(is, *((CDEXBuyLimitOrderTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case DEX_SELL_LIMIT_ORDER_TX: {
+            pa = std::make_shared<CDEXSellLimitOrderTx>();
+            Unserialize(is, *((CDEXSellLimitOrderTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case DEX_BUY_MARKET_ORDER_TX: {
+            pa = std::make_shared<CDEXBuyMarketOrderTx>();
+            Unserialize(is, *((CDEXBuyMarketOrderTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case DEX_SELL_MARKET_ORDER_TX: {
+            pa = std::make_shared<CDEXSellMarketOrderTx>();
+            Unserialize(is, *((CDEXSellMarketOrderTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        default:
+            throw ios_base::failure(strprintf("Unserialize: nTxType(%d:%s) error.", 
+                nTxType, GetTxType((TxType)nTxType)));
     }
     pa->nTxType = TxType(nTxType);
 }

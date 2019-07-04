@@ -263,7 +263,7 @@ public:
         READWRITE(VARINT(receivedVotes));
         READWRITE(VARINT(lastVoteHeight));)
 private:
-    bool IsMoneyOverflow(uint64_t nAddMoney);
+    bool IsMoneyValid(uint64_t nAddMoney);
 };
 
 //TODO: add frozenDEXBCons etc below

@@ -46,21 +46,21 @@ bool CAccount::FreezeDexCoin(CoinType coinType, uint64_t amount) {
             if (amount > bcoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than bcoins");
             bcoins -= amount;
             frozenDEXBcoins += amount;
-            assert(!IsMoneyOverflow(bcoins) && !IsMoneyOverflow(frozenDEXBcoins));
+            assert(IsMoneyValid(bcoins) && IsMoneyValid(frozenDEXBcoins));
             break;
 
         case WUSD:
             if (amount > scoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than scoins");
             scoins -= amount;
             frozenDEXScoins += amount;
-            assert(!IsMoneyOverflow(scoins) && !IsMoneyOverflow(frozenDEXScoins));
+            assert(IsMoneyValid(scoins) && IsMoneyValid(frozenDEXScoins));
             break;
 
         case WGRT:
             if (amount > fcoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than fcoins");
             fcoins -= amount;
             frozenDEXFcoins += amount;
-            assert(!IsMoneyOverflow(fcoins) && !IsMoneyOverflow(frozenDEXFcoins));
+            assert(IsMoneyValid(fcoins) && IsMoneyValid(frozenDEXFcoins));
             break;
 
         default: return ERRORMSG("CAccount::FreezeDexCoin, coin type error");
@@ -76,7 +76,7 @@ bool CAccount::UnFreezeDexCoin(CoinType coinType, uint64_t amount) {
 
             bcoins += amount;
             frozenDEXBcoins -= amount;
-            assert(!IsMoneyOverflow(bcoins) && !IsMoneyOverflow(frozenDEXBcoins));
+            assert(IsMoneyValid(bcoins) && IsMoneyValid(frozenDEXBcoins));
             break;
 
         case WUSD:
@@ -85,7 +85,7 @@ bool CAccount::UnFreezeDexCoin(CoinType coinType, uint64_t amount) {
 
             scoins += amount;
             frozenDEXScoins -= amount;
-            assert(!IsMoneyOverflow(scoins) && !IsMoneyOverflow(frozenDEXScoins));
+            assert(IsMoneyValid(scoins) && IsMoneyValid(frozenDEXScoins));
             break;
 
         case WGRT:
@@ -94,7 +94,7 @@ bool CAccount::UnFreezeDexCoin(CoinType coinType, uint64_t amount) {
 
             fcoins += amount;
             frozenDEXFcoins -= amount;
-            assert(!IsMoneyOverflow(fcoins) && !IsMoneyOverflow(frozenDEXFcoins));
+            assert(IsMoneyValid(fcoins) && IsMoneyValid(frozenDEXFcoins));
             break;
 
         default: return ERRORMSG("CAccount::UnFreezeDexCoin, coin type error");
@@ -107,17 +107,17 @@ bool CAccount::MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins) {
         case WICC:
             if (coins > frozenDEXBcoins) return ERRORMSG("CAccount::SettleDEXBuyOrder, minus bcoins exceed frozen bcoins");
             frozenDEXBcoins -= coins;
-            assert(!IsMoneyOverflow(frozenDEXBcoins));
+            assert(IsMoneyValid(frozenDEXBcoins));
             break;
         case WGRT:
             if (coins > frozenDEXScoins) return ERRORMSG("CAccount::SettleDEXBuyOrder, minus scoins exceed frozen scoins");
             frozenDEXScoins -= coins;
-            assert(!IsMoneyOverflow(frozenDEXScoins));
+            assert(IsMoneyValid(frozenDEXScoins));
             break;
         case WUSD:
             if (coins > frozenDEXFcoins) return ERRORMSG("CAccount::SettleDEXBuyOrder, minus fcoins exceed frozen fcoins");
             frozenDEXFcoins -= coins;
-            assert(!IsMoneyOverflow(frozenDEXFcoins));
+            assert(IsMoneyValid(frozenDEXFcoins));
             break;
         default: return ERRORMSG("CAccount::SettleDEXBuyOrder, coin type error");
     }
@@ -254,7 +254,7 @@ string CAccount::ToString(bool isAddress) const {
     return str;
 }
 
-bool CAccount::IsMoneyOverflow(uint64_t nAddMoney) {
+bool CAccount::IsMoneyValid(uint64_t nAddMoney) {
     if (!CheckBaseCoinRange(nAddMoney))
         return ERRORMSG("money:%lld larger than MaxMoney", nAddMoney);
 
@@ -264,11 +264,11 @@ bool CAccount::IsMoneyOverflow(uint64_t nAddMoney) {
 bool CAccount::OperateBalance(const CoinType coinType, const BalanceOpType opType, const uint64_t value) {
     assert(opType == BalanceOpType::ADD_VALUE || opType == BalanceOpType::MINUS_VALUE);
 
-    if (!IsMoneyOverflow(value))
+    if (!IsMoneyValid(value))
         return false;
 
-    if (keyId == uint160()) {
-        return ERRORMSG("operate account's keyId is 0 error");
+    if (keyId.IsEmpty()) {
+        return ERRORMSG("operate account's keyId is empty error");
     }
 
     if (!value)  // value is 0
@@ -287,9 +287,9 @@ bool CAccount::OperateBalance(const CoinType coinType, const BalanceOpType opTyp
 
     int64_t opValue = (opType == BalanceOpType::MINUS_VALUE) ? (-value) : (value);
     switch (coinType) {
-        case WICC:  bcoins += opValue; if (!IsMoneyOverflow(bcoins)) return false; break;
-        case WGRT:  fcoins += opValue; if (!IsMoneyOverflow(fcoins)) return false; break;
-        case WUSD:  scoins += opValue; if (!IsMoneyOverflow(scoins)) return false; break;
+        case WICC:  bcoins += opValue; if (!IsMoneyValid(bcoins)) return false; break;
+        case WGRT:  fcoins += opValue; if (!IsMoneyValid(fcoins)) return false; break;
+        case WUSD:  scoins += opValue; if (!IsMoneyValid(scoins)) return false; break;
         default: return ERRORMSG("coin type error");
     }
 
@@ -358,7 +358,7 @@ bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesI
     }
 
     uint64_t llProfit = GetAccountProfit(candidateVotesInOut, curHeight);
-    if (!IsMoneyOverflow(llProfit))
+    if (!IsMoneyValid(llProfit))
         return false;
 
     lastVoteHeight = curHeight;
@@ -376,12 +376,12 @@ bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesI
             if (itVote != candidateVotesInOut.end()) { //existing vote
                 uint64_t currVotes = itVote->GetVotedBcoins();
 
-                if (!IsMoneyOverflow(vote.GetVotedBcoins()))
+                if (!IsMoneyValid(vote.GetVotedBcoins()))
                      return ERRORMSG("ProcessDelegateVote() : oper fund value exceeds maximum ");
 
                 itVote->SetVotedBcoins( currVotes + vote.GetVotedBcoins() );
 
-                if (!IsMoneyOverflow(itVote->GetVotedBcoins()))
+                if (!IsMoneyValid(itVote->GetVotedBcoins()))
                      return ERRORMSG("ProcessDelegateVote() : fund value exceeds maximum");
 
             } else { //new vote
@@ -395,7 +395,7 @@ bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesI
             if  (itVote != candidateVotesInOut.end()) { //existing vote
                 uint64_t currVotes = itVote->GetVotedBcoins();
 
-                if (!IsMoneyOverflow(vote.GetVotedBcoins()))
+                if (!IsMoneyValid(vote.GetVotedBcoins()))
                     return ERRORMSG("ProcessDelegateVote() : oper fund value exceeds maximum ");
 
                 if (itVote->GetVotedBcoins() < vote.GetVotedBcoins())
@@ -435,7 +435,7 @@ bool CAccount::StakeVoteBcoins(VoteType type, const uint64_t votes) {
     switch (type) {
         case ADD_BCOIN: {
             receivedVotes += votes;
-            if (!IsMoneyOverflow(receivedVotes)) {
+            if (!IsMoneyValid(receivedVotes)) {
                 return ERRORMSG("StakeVoteBcoins() : delegates total votes exceed maximum ");
             }
 
