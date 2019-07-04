@@ -75,11 +75,37 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             ||  priceValue.type() == null_type ) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "null tpye not allowed!");
         }
+
+        string coinStr = coinValue.get_str();
+        CoinType coinType;
+        if (coinStr == "WICC") {
+            coinType = CoinType::WICC;
+        } else if (coinStr == "WUSD") {
+            coinType = CoinType::WUSD;
+        } else if (coinStr = "WGRT") {
+            coinType = CoinType::WGRT;
+        } else {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid coin type: %s", coinStr);
+        }
+
+        string currencyStr = currencyValue.get_str();
+        PriceType currencyType;
+        if (currencyStr == "USD") {
+            currencyType = PriceType::USD;
+        } else if (currencyStr == "CNY") {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "CNY stablecoin not supported yet");
+        } else {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid currency type: %s", currencyStr);
+        }
+
+        uint64_t price = priceValue.get_int64();
+        CCoinPriceType cpt(coinType, currencyType);
+        CPricePoint pp(cpt, price);
+        pricePoints.push_back(pp);
     }
 
-    CPriceFeedTx tx(feedUid, validHeight, fee)
-
-     if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
+    CPriceFeedTx tx(feedUid, validHeight, fee, pricepoints);
+    if (!pWalletMain->Sign(feedKeyId, tx.ComputeSignatureHash(), tx.signature)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
     }
 
