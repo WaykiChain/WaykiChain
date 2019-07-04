@@ -5,6 +5,7 @@
 
 #include "commons/base58.h"
 #include "rpc/core/rpcserver.h"
+#include "rpc/core/rpccommons.h"
 #include "init.h"
 #include "net.h"
 #include "netbase.h"
@@ -18,6 +19,7 @@
 #include "main.h"
 #include "vm/script.h"
 #include "vm/vmrunenv.h"
+
 #include <stdint.h>
 
 #include <boost/assign/list_of.hpp>
