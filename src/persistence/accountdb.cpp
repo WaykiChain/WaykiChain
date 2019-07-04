@@ -16,7 +16,7 @@ using namespace std;
 extern CChain chainActive;
 
 bool CAccountDBCache::GetFcoinGenesisAccount(CAccount &fcoinGensisAccount) const {
-    return GetAccount(CUserID(FcoinGenesisRegId), fcoinGensisAccount);
+    return GetAccount(CUserID(kFcoinGenesisRegId), fcoinGensisAccount);
 }
 
 bool CAccountDBCache::GetAccount(const CKeyID &keyId, CAccount &account) const {

@@ -32,13 +32,13 @@ const G_CONFIG_TABLE& IniCfg() {
 const uint256 G_CONFIG_TABLE::GetGenesisBlockHash(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: {
-            return (uint256S((genesisBlockHash_mainNet)));
+            return uint256S(genesisBlockHash_mainNet);
         }
         case TEST_NET: {
-            return (uint256S((genesisBlockHash_testNet)));
+            return uint256S(genesisBlockHash_testNet);
         }
         case REGTEST_NET: {
-            return (uint256S((genesisBlockHash_regTest)));
+            return uint256S(genesisBlockHash_regTest);
         }
         default:
             assert(0);
