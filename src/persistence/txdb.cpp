@@ -36,8 +36,9 @@ bool CTxMemCache::DeleteBlockFromCache(const CBlock &block) {
         return true;
     }
 
-    LogPrint("ERROR", "failed to delete transactions in block: %s", block.GetHash().GetHex());
-    return false;
+    // On starting node, the memory cache is empty, thus, can not find the
+    // specific block as expected.
+    return true;
 }
 
 bool CTxMemCache::HaveTx(const uint256 &txid) {

@@ -69,7 +69,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     if (!pUserId) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
-    
+
     CoinType coinType;
     if (ParseCoinType(params[0].get_str(), coinType)) {
         throw JSONRPCError(RPC_DEX_COIN_TYPE_INVALID, "Invalid coin_type");
@@ -90,7 +90,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
         if (fee < defaultFee) {
             throw JSONRPCError(RPC_INSUFFICIENT_FEE,
                                strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
-        }   
+        }
     } else {
         fee = defaultFee;
     }
@@ -98,7 +98,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     CAccount txAccount;
     if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("The account not exists! userId=%s", pUserId->ToString()));        
+                            strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
     assert(!txAccount.keyId.IsEmpty());
 
@@ -116,7 +116,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     } else{
         CPubKey txPubKey;
         if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, 
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                 strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
         }
         txUid = txPubKey;
@@ -170,7 +170,7 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
                              "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\"")
         );
     }
-    // TODO: ... 
+    // TODO: ...
     return Object();
 }
 Value submitdexsettletx(const Array& params, bool fHelp) {
@@ -211,7 +211,7 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
         );
     }
     // TODO: ...
-    return Object();   
+    return Object();
 }
 
 Value submitstakecdptx(const Array& params, bool fHelp);
