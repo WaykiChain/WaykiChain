@@ -284,6 +284,8 @@ if (fHelp || params.size() < 2 || params.size() > 5) {
     if (params.size() ==6 ) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
     }
+    if (fee == 0)
+        fee = GetTxMinFee(TxType::CDP_LIQUIDATE_TX, validHeight);
 
     CCDPRedeemTx tx(*cdpUid, fee, validHeight, cdpTxId, liquidateAmount, collateralRatio, interest);
     return SubmitTx(cdpUid->get<CKeyID>(), tx);
