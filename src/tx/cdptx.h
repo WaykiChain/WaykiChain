@@ -175,13 +175,14 @@ public:
     }
 
     CCDPLiquidateTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
-                uint256 cdpTxIdIn, uint64_t scoinsToLiquidateIn, uint64_t scoinsPenaltyIn):
+                CRegID &cdpOwnerRegIdIn, uint256 cdpTxIdIn, uint64_t scoinsToLiquidateIn, uint64_t scoinsPenaltyIn):
                 CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, feesIn) {
 
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
+        cdpOwnerRegId = cdpOwnerRegIdIn;
         cdpTxId = cdpTxIdIn;
         scoinsToLiquidate = scoinsToLiquidateIn;
         scoinsPenalty = scoinsPenaltyIn;
@@ -194,8 +195,9 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
-
         READWRITE(VARINT(llFees));
+
+        READWRITE(cdpOwnerRegId);
         READWRITE(cdpTxId);
         READWRITE(scoinsToLiquidate);
         READWRITE(VARINT(scoinsPenalty));
@@ -207,7 +209,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << cdpTxId << VARINT(scoinsToLiquidate) << VARINT(scoinsPenalty);
+                << cdpOwnerRegId << cdpTxId << VARINT(scoinsToLiquidate) << VARINT(scoinsPenalty);
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -233,9 +235,10 @@ private:
     bool SellPenaltyForFcoins(uint64_t scoinPenaltyFees, const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    uint256 cdpTxId;            // target CDP to liquidate
-    uint64_t scoinsToLiquidate; // partial liquidation is allowed
-    uint64_t scoinsPenalty;
+    CRegID      cdpOwnerRegId;      // CDP Owner RegID
+    uint256     cdpTxId;            // target CDP to liquidate
+    uint64_t    scoinsToLiquidate;  // partial liquidation is allowed
+    uint64_t    scoinsPenalty;      // penalty fees in stablecoin (WUSD)
 };
 
 #endif //TX_CDP_H

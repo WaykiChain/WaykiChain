@@ -496,7 +496,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
     }
 
     //2. pay penalty fees: 0.13lN --> 50% burn, 50% to Risk Reserve
-    CUserCDP cdp(txUid.get<CRegID>(), cdpTxId);
+    CUserCDP cdp(cdpOwnerRegId, cdpTxId);
     if (!cw.cdpCache.GetCdp(cdp)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp (%s) not exist!",
                         txUid.ToString()), REJECT_INVALID, "cdp-not-exist");
