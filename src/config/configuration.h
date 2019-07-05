@@ -54,6 +54,7 @@ public:
     uint32_t GetMaxVoteCandidateNum() const;
     uint64_t GetCoinInitValue() const { return InitialCoin; };
 	uint32_t GetFeatureForkHeight(NET_TYPE) const;
+    uint32_t GetStableCoinGenesisHeight(NET_TYPE) const;
 
 private:
     static string COIN_NAME; /* basecoin name */
@@ -151,10 +152,15 @@ private:
 	static uint32_t nFeatureForkHeight_mainNet;
     static uint32_t nFeatureForkHeight_testNet;
     static uint32_t nFeatureForkHeight_regNet;
+
+    /* Block height for stable coin genesis */
+    static const uint32_t nStableScoinGenesisHeight_mainNet;
+    static const uint32_t nStableScoinGenesisHeight_testNet;
+    static const uint32_t nStableScoinGenesisHeight_regNet;
 };
 
-inline FeatureForkVersionEnum GetFeatureForkVersion(int blockHeight) {
-	if (blockHeight >= (int)SysCfg().GetFeatureForkHeight())
+inline FeatureForkVersionEnum GetFeatureForkVersion(int32_t blockHeight) {
+	if (blockHeight >= (int32_t)SysCfg().GetFeatureForkHeight())
 		return MAJOR_VER_R2;
 	else
 		return MAJOR_VER_R1;

@@ -105,7 +105,7 @@ void ConvertTo(Value& value, bool fAllowNull=false)
         Value value2;
         string strJSON = value.get_str();
         if (!read_string(strJSON, value2))
-            throw runtime_error(string("Error parsing JSON:")+strJSON);
+            throw runtime_error(string("Error parsing JSON:") + strJSON);
         ConvertTo<T>(value2, fAllowNull);
         value = value2;
     }

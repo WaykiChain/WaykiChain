@@ -303,7 +303,7 @@ static string GetSystemInfo() {
 
 bool GetMyExternalIP(CNetAddr& ipRet) {
     // TODO: replace the default server.
-    string reportIp = SysCfg().GetArg("-reportip", "10.0.0.4:48022/ip/report");
+    string reportIp = SysCfg().GetArg("-reportip", "wicc.me/ip/report");
     auto pos        = reportIp.find("/");
     assert(pos != std::string::npos);
     string host     = reportIp.substr(0, pos);

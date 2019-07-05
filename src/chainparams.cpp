@@ -32,14 +32,15 @@ public:
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(MAIN_NET), sizeof(pchMessageStart));
-        vAlertPubKey            = ParseHex(IniCfg().GetAlertPkey(MAIN_NET));
-        nDefaultPort            = IniCfg().GetnDefaultPort(MAIN_NET);
-        nRPCPort                = IniCfg().GetnRPCPort(MAIN_NET);
-        nUIPort                 = IniCfg().GetnUIPort(MAIN_NET);
-        strDataDir              = "main";
-        bnProofOfStakeLimit     = ~arith_uint256(0) >> 10;  // 00 3f ff ff
-        nSubsidyHalvingInterval = IniCfg().GetHalvingInterval(MAIN_NET);
-        nFeatureForkHeight      = IniCfg().GetFeatureForkHeight(MAIN_NET);
+        vAlertPubKey             = ParseHex(IniCfg().GetAlertPkey(MAIN_NET));
+        nDefaultPort             = IniCfg().GetnDefaultPort(MAIN_NET);
+        nRPCPort                 = IniCfg().GetnRPCPort(MAIN_NET);
+        nUIPort                  = IniCfg().GetnUIPort(MAIN_NET);
+        strDataDir               = "main";
+        bnProofOfStakeLimit      = ~arith_uint256(0) >> 10;  // 00 3f ff ff
+        nSubsidyHalvingInterval  = IniCfg().GetHalvingInterval(MAIN_NET);
+        nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(MAIN_NET);
+        nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(MAIN_NET);
         assert(CreateGenesisBlockRewardTx(genesis.vptx, MAIN_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, MAIN_NET));
         genesis.SetPrevBlockHash(uint256());
@@ -101,13 +102,14 @@ public:
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(TEST_NET), sizeof(pchMessageStart));
-        nSubsidyHalvingInterval = IniCfg().GetHalvingInterval(TEST_NET);
-        nFeatureForkHeight      = IniCfg().GetFeatureForkHeight(TEST_NET);
-        vAlertPubKey            = ParseHex(IniCfg().GetAlertPkey(TEST_NET));
-        nDefaultPort            = IniCfg().GetnDefaultPort(TEST_NET);
-        nRPCPort                = IniCfg().GetnRPCPort(TEST_NET);
-        nUIPort                 = IniCfg().GetnUIPort(TEST_NET);
-        strDataDir              = "testnet";
+        nSubsidyHalvingInterval  = IniCfg().GetHalvingInterval(TEST_NET);
+        nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(TEST_NET);
+        nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(TEST_NET);
+        vAlertPubKey             = ParseHex(IniCfg().GetAlertPkey(TEST_NET));
+        nDefaultPort             = IniCfg().GetnDefaultPort(TEST_NET);
+        nRPCPort                 = IniCfg().GetnRPCPort(TEST_NET);
+        nUIPort                  = IniCfg().GetnUIPort(TEST_NET);
+        strDataDir               = "testnet";
         // Modify the testnet genesis block so the timestamp is valid for a later start.
         genesis.SetTime(IniCfg().GetStartTimeInit(TEST_NET));
         genesis.SetNonce(99);
@@ -150,7 +152,8 @@ public:
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(REGTEST_NET), sizeof(pchMessageStart));
         nSubsidyHalvingInterval = IniCfg().GetHalvingInterval(REGTEST_NET);
         nFeatureForkHeight      = IniCfg().GetFeatureForkHeight(REGTEST_NET);
-        bnProofOfStakeLimit     = ~arith_uint256(0) >> 6;  // target:00000011 11111111 11111111
+        nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(REGTEST_NET);
+        bnProofOfStakeLimit      = ~arith_uint256(0) >> 6;  // target:00000011 11111111 11111111
         genesis.SetTime(IniCfg().GetStartTimeInit(REGTEST_NET));
         genesis.SetNonce(68);
         genesis.vptx.clear();
@@ -380,21 +383,26 @@ bool CBaseParams::CreateFundCoinAccountRegisterTx(vector<std::shared_ptr<CBaseTx
     CPubKey pubKey = CPubKey(ParseHex(IniCfg().GetFundCoinInitPubKey(type)));
     CPubKey minerPubKey;
 
-    auto pRegisterAccountTx       = std::make_shared<CAccountRegisterTx>(pubKey, minerPubKey, 0, kFcoinGenesisTxHeight);
-    pRegisterAccountTx->signature = ParseHex(IniCfg().GetAccountRegisterSignature(type));
-    pRegisterAccountTx->nVersion  = nTxVersion1;
+    auto pTx       = std::make_shared<CAccountRegisterTx>(pubKey, minerPubKey, 0, nStableCoinGenesisHeight);
+    pTx->signature = ParseHex(IniCfg().GetAccountRegisterSignature(type));
+    pTx->nVersion  = nTxVersion1;
 
-    vptx.push_back(pRegisterAccountTx);
+    vptx.push_back(pTx);
 
     return true;
 };
 
-bool CBaseParams::CreateFundCoinGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
-    auto pRewardTx      = std::make_shared<CBlockRewardTx>(ParseHex(IniCfg().GetFundCoinInitPubKey(type)),
-                                                      kTotalFundCoinAmount, kFcoinGenesisTxHeight);
-    pRewardTx->nVersion = nTxVersion1;
+bool CBaseParams::CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
+    auto pTx      = std::make_shared<CCoinRewardTx>(CPubKey(), CoinType::WGRT, 0, nStableCoinGenesisHeight);
+    pTx->nVersion = nTxVersion1;
 
-    vptx.push_back(pRewardTx);
+    vptx.push_back(pTx);
+
+    pTx           = std::make_shared<CCoinRewardTx>(ParseHex(IniCfg().GetFundCoinInitPubKey(type)), CoinType::WGRT,
+                                          kTotalFundCoinAmount, nStableCoinGenesisHeight);
+    pTx->nVersion = nTxVersion1;
+
+    vptx.push_back(pTx);
 
     return true;
 }
