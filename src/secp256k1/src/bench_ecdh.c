@@ -8,7 +8,7 @@
 
 #include "include/secp256k1.h"
 #include "include/secp256k1_ecdh.h"
-#include "commons/util.h"
+#include "util.h"
 #include "bench.h"
 
 typedef struct {

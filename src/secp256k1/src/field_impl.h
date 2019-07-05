@@ -11,7 +11,7 @@
 #include "libsecp256k1-config.h"
 #endif
 
-#include "commons/util.h"
+#include "util.h"
 
 #if defined(USE_FIELD_10X26)
 #include "field_10x26_impl.h"
