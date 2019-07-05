@@ -238,7 +238,6 @@ Value callcontracttx(const Array& params, bool fHelp) {
             "3.\"arguments\": (string, required)    contract arguments (Hex encode required)\n"
             "4.\"amount\":(numeric, required)       amount of WICC to be sent to the contract account\n"
             "5.\"fee\": (numeric, required)         pay to miner\n"
-            "6.\"height\": (numeric, optional)      create height,If not provide use the tip block height in chainActive\n"
             "\nResult:\n"
             "\"txhash\": (string)\n"
             "\nExamples:\n" +
@@ -270,8 +269,8 @@ Value callcontracttx(const Array& params, bool fHelp) {
     int64_t fee = AmountToRawValue(params[4]);
 
     int height = chainActive.Tip()->nHeight;
-    if (params.size() > 5)
-        height = params[5].get_int();
+    if (fee == 0)
+        fee = GetTxMinFee(TxType::CONTRACT_INVOKE_TX, height);
 
     CPubKey sendPubKey;
     if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey)) {

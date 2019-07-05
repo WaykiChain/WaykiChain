@@ -112,12 +112,18 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t>, TxTyp
 
 string GetTxType(const TxType txType);
 
-uint64_t GetTxLimitMinFee(const TxType txType) {
-    auto it = kTxTypeMap.find(txType);
-    if (it != kTxTypeMap.end()) {
-        return std::get<2>(it->second);
+uint64_t GetTxMinFee(const TxType nTxType, int nHeight) {
+    const auto &iter = kTxTypeMap.find(nTxType);
+    switch (GetFeatureForkVersion(nHeight)) {
+        case MAJOR_VER_R1: // Prior-stablecoin Release
+            return iter != kTxTypeMap.end() ? std::get<1>(iter->second)) : 0;
+
+        case MAJOR_VER_R2:  // StableCoin Release
+            return iter != kTxTypeMap.end() ? std::get<2>(iter->second)) : 0;
+
+        default:
+            return 10000; //10^-8 WICC
     }
-    return 10000; // defalt min fee limit
 }
 
 class CBaseTx {

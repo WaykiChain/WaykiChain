@@ -98,6 +98,9 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
     int validHeight = chainActive.Tip()->nHeight;
+    if (fee == 0)
+        fee = GetTxMinFee(TxType::PRICE_FEED_TX, validHeight);
+
     CPriceFeedTx tx(*feedUid, validHeight, fee, pricePoints);
     CKeyID userKeyId = feedUid->get<CKeyID>();
     return SubmitTx(userKeyId, tx);
@@ -170,7 +173,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
 
     int validHeight = chainActive.Tip()->nHeight;
     uint64_t interest = 0;
-    uint64_t fee = kTxTypeMap[CDP_STAKE_TX].get<1>();
+    uint64_t fee = 0;
     uint256 cdpTxId;
     if (params.size() >=4 ) {
         cdpTxId = uint256S(params[3].get_str());
@@ -181,6 +184,8 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     if (params.size() ==6 ) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
     }
+    if (fee == 0)
+        fee = GetTxMinFee(TxType::CDP_STAKE_TX, validHeight);
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
     if (!cdpUid) {
@@ -227,6 +232,8 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
     if (params.size() ==6 ) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
     }
+    if (fee == 0)
+        fee = GetTxMinFee(TxType::CDP_REDEEMP_TX, validHeight);
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
     if (!cdpUid) {
