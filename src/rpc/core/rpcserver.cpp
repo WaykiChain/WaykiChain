@@ -325,21 +325,22 @@ static const CRPCCommand vRPCCommands[] =
     { "decodemulsigscript",     &decodemulsigscript,     false,     false,      false },
 
     /* for CDP */
-    { "submitpricefeedtx",      &submitpricefeedtx,   false,     false,      false },
-    { "submitstakefcointx",     &submitstakefcointx,   false,     false,      false },
-    { "submitstakecdptx",       &submitstakecdptx,   false,     false,      false },
-    { "submitredeemcdptx",      &submitredeemcdptx,   false,     false,      false },
-    { "submitliquidatecdptx",   &submitliquidatecdptx,   false,     false,      false },
+    { "submitpricefeedtx",      &submitpricefeedtx,      true,      false,      true },
+    { "submitstakefcointx",     &submitstakefcointx,     true,      false,      true },
+    { "submitstakecdptx",       &submitstakecdptx,       true,      false,      true },
+    { "submitredeemcdptx",      &submitredeemcdptx,      true,      false,      true },
+    { "submitliquidatecdptx",   &submitliquidatecdptx,   true,      false,      true },
 
+    { "getmedianprice",         &getmedianprice,         false,     false,      false },
 
 
     /* for dex */
-    { "submitdexbuylimitordertx",   &submitdexbuylimitordertx,   false,     false,      false },
-    { "submitdexselllimitordertx",  &submitdexselllimitordertx,  false,     false,      false },
-    { "submitdexbuymarketordertx",  &submitdexbuymarketordertx,  false,     false,      false },
-    { "submitdexsellmarketordertx", &submitdexsellmarketordertx, false,     false,      false },
-    { "submitdexsettletx",          &submitdexsettletx,          false,     false,      false },
-    { "submitdexcancelordertx",     &submitdexcancelordertx,     false,     false,      false },
+    { "submitdexbuylimitordertx",   &submitdexbuylimitordertx,   true,     false,      false },
+    { "submitdexselllimitordertx",  &submitdexselllimitordertx,  true,     false,      false },
+    { "submitdexbuymarketordertx",  &submitdexbuymarketordertx,  true,     false,      false },
+    { "submitdexsellmarketordertx", &submitdexsellmarketordertx, true,     false,      false },
+    { "submitdexsettletx",          &submitdexsettletx,          true,     false,      false },
+    { "submitdexcancelordertx",     &submitdexcancelordertx,     true,     false,      false },
 
     /* for test code */
     { "gettxoperationlog",      &gettxoperationlog,      false,     false,      false},
