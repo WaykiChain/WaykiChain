@@ -1435,13 +1435,20 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     // Special case for the genesis block, skipping connection of its transactions.
     if (isGensisBlock) {
         return ProcessGenesisBlock(block, cw, pIndex);
-    // Specail case for the fund coin genesis block, skipping connections of its transactions.
-    } else if (block.GetHeight() == kFcoinGenesisTxHeight) {
-        return ProcessFundCoinGenesisBlock(block, cw, pIndex);
+    }
+
+    // Specail case for stable coin genesis block
+    if (block.GetHeight() == SysCfg().GetStableCoinGenesisHeight()) {
+        assert(block.vptx.size() == 4);
+        assert(block.vptx[1]->nTxType == COIN_REWARD_TX);
+        assert(block.vptx[2]->nTxType == COIN_REWARD_TX);
+        assert(block.vptx[3]->nTxType == ACCOUNT_REGISTER_TX);
+        // TODO:
+        // 2nd, 3rd, 4th txid
     }
 
     if (!VerifyPosTx(&block, cw, false))
-        return state.DoS(100, ERRORMSG("ConnectBlock() : the block Hash=%s check pos tx error",
+        return state.DoS(100, ERRORMSG("ConnectBlock() : the block hash=%s check pos tx error",
                         block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
 
     CBlockUndo blockUndo;
@@ -1485,7 +1492,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             nTotalRunStep += pBaseTx->nRunStep;
             if (nTotalRunStep > MAX_BLOCK_RUN_STEP)
                 return state.DoS(100, ERRORMSG("block hash=%s total run steps exceed max run step",
-                                block.GetHash().GetHex()), REJECT_INVALID, "exeed-max_step");
+                                block.GetHash().GetHex()), REJECT_INVALID, "exceed-max-run-step");
 
             uint64_t llFuel = ceil(pBaseTx->nRunStep / 100.f) * block.GetFuelRate();
             if (CONTRACT_DEPLOY_TX == pBaseTx->nTxType) {
@@ -1495,7 +1502,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             }
 
             nTotalFuel += llFuel;
-            LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txhash:%s \n",
+            LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n",
                      nTotalFuel, llFuel, pBaseTx->nRunStep, block.GetFuelRate(), pBaseTx->GetHash().GetHex());
             vPos.push_back(make_pair(block.GetTxHash(i), pos));
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);

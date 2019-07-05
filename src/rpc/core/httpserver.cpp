@@ -8,6 +8,7 @@
 
 #include <chainparams.h>
 #include <compat/compat.h>
+#include <commons/util.h>
 #include <netbase.h>
 #include <init.h>
 #include <sync.h>

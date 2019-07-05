@@ -45,6 +45,7 @@ enum TxType : unsigned char {
     BLOCK_PRICE_MEDIAN_TX      = 8,  //!< Block Median Price Tx
     MULTI_COIN_BLOCK_REWARD_TX = 9,  //!< Multi Coin Miner Block Reward Tx
     COIN_TRANSFER_TX           = 10, //!< Coin Transfer Tx
+    COIN_REWARD_TX             = 11, //!< Coin Reward Tx
 
     // CDP_OPEN_TX      = 11,  //!< CDP Open Tx
     CDP_REFUEL_TX    = 12,  //!< CDP refuel Tx
@@ -85,6 +86,7 @@ struct TxTypeHash {
  */
 static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t>, TxTypeHash> kTxTypeMap = {
     { BLOCK_REWARD_TX,          std::make_tuple("BLOCK_REWARD_TX",         0,          0            ) },
+    { COIN_REWARD_TX,           std::make_tuple("COIN_REWARD_TX",          0,          0            ) },
     { BLOCK_PRICE_MEDIAN_TX,    std::make_tuple("BLOCK_PRICE_MEDIAN_TX",   0,          0            ) },
     { ACCOUNT_REGISTER_TX,      std::make_tuple("ACCOUNT_REGISTER_TX",     10000,      10000        ) }, //0.0001 WICC, optional
     { BCOIN_TRANSFER_TX,        std::make_tuple("BCOIN_TRANSFER_TX",       10000,      10000        ) }, //0.0001 WICC
@@ -178,7 +180,7 @@ public:
 
     int32_t GetFuelRate(CContractDBCache &scriptDB);
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
-    bool IsCoinBase() { return (nTxType == BLOCK_REWARD_TX); }
+    bool IsCoinBase() { return nTxType == BLOCK_REWARD_TX || nTxType == COIN_REWARD_TX; }
 
 protected:
     bool CheckTxFeeSufficient(const uint64_t llFees, const int32_t nHeight) const;
