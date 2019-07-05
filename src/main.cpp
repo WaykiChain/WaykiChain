@@ -1359,59 +1359,6 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
     return true;
 }
 
-static bool ProcessFundCoinGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex) {
-    cw.accountCache.SetBestBlock(pIndex->GetBlockHash());
-
-    assert(block.vptx.size() == 3);
-    assert(block.vptx[1]->nTxType == BLOCK_REWARD_TX);
-    assert(block.vptx[2]->nTxType == ACCOUNT_REGISTER_TX);
-
-    CPubKey fundCoinGenesisPubKey = CPubKey(ParseHex(IniCfg().GetFundCoinInitPubKey(SysCfg().NetworkID())));
-
-    for (unsigned int i = 1; i < block.vptx.size(); i++) {
-        if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
-            CBlockRewardTx *pRewardTx = (CBlockRewardTx *)(block.vptx[i].get());
-            assert(pRewardTx->txUid.type() == typeid(CPubKey));
-            CPubKey pubKey = pRewardTx->txUid.get<CPubKey>();
-            assert(pubKey == fundCoinGenesisPubKey);
-
-            CAccount genesisAccount;
-            genesisAccount.nickId = CNickID();
-            genesisAccount.keyId  = pubKey.GetKeyId();
-            genesisAccount.pubKey = CPubKey();
-            genesisAccount.regId  = CRegID();
-            genesisAccount.fcoins = kTotalFundCoinAmount;
-
-            assert(cw.accountCache.SaveAccount(genesisAccount));
-
-            CAccount globalFundAccount;
-            CRegID regId(pIndex->nHeight, i);
-            CKeyID keyId             = Hash160(regId.GetRegIdRaw());
-            globalFundAccount.nickId = CNickID();
-            globalFundAccount.keyId  = keyId;
-            globalFundAccount.pubKey = CPubKey();
-            globalFundAccount.regId  = regId;
-            globalFundAccount.scoins = kInitialRiskProvisionScoinCount;
-
-            assert(cw.accountCache.SaveAccount(globalFundAccount));
-        } else if (block.vptx[i]->nTxType == ACCOUNT_REGISTER_TX) {
-            CAccountRegisterTx *pAccountRegisterTx = (CAccountRegisterTx *)block.vptx[i].get();
-            assert(pAccountRegisterTx->txUid.type() == typeid(CPubKey));
-            CPubKey pubKey = pAccountRegisterTx->txUid.get<CPubKey>();
-            assert(pubKey == fundCoinGenesisPubKey);
-
-            CAccount genesisAccount;
-            assert(cw.accountCache.GetAccount(pAccountRegisterTx->txUid, genesisAccount));
-            genesisAccount.pubKey = pubKey;
-            genesisAccount.regId  = CRegID(pIndex->nHeight, i);
-
-            assert(cw.accountCache.SaveAccount(genesisAccount));
-        }
-    }
-
-    return true;
-}
-
 bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool fJustCheck) {
     AssertLockHeld(cs_main);
 
