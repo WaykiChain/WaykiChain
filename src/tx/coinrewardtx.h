@@ -12,21 +12,22 @@ class CCoinRewardTx : public CBaseTx {
 public:
     uint8_t coinType;
     uint64_t coins;  // default: WICC
-    int height;
+    int32_t height;
 
 public:
-    CCoinRewardTx() : CBaseTx(BLOCK_REWARD_TX), coinType(CoinType::WICC), coins(0), height(0) {}
+    CCoinRewardTx() : CBaseTx(COIN_REWARD_TX), coinType(CoinType::WICC), coins(0), height(0) {}
 
-    CCoinRewardTx(const CBaseTx *pBaseTx) : CBaseTx(BLOCK_REWARD_TX), coinType(CoinType::WICC), coins(0), height(0) {
-        assert(BLOCK_REWARD_TX == pBaseTx->nTxType);
+    CCoinRewardTx(const CBaseTx *pBaseTx) : CBaseTx(COIN_REWARD_TX), coinType(CoinType::WICC), coins(0), height(0) {
+        assert(COIN_REWARD_TX == pBaseTx->nTxType);
         *this = *(CCoinRewardTx *)pBaseTx;
     }
 
-    CCoinRewardTx(const CUserID &txUidIn, const CoinType coinTypeIn, const uint64_t coinsIn, const int nHeightIn)
-        : CBaseTx(BLOCK_REWARD_TX) {
-        txUid  = txUidIn;
-        coins  = coinsIn;
-        height = nHeightIn;
+    CCoinRewardTx(const CUserID &txUidIn, const CoinType coinTypeIn, const uint64_t coinsIn, const int32_t nHeightIn)
+        : CBaseTx(COIN_REWARD_TX) {
+        txUid    = txUidIn;
+        coinType = coinTypeIn;
+        coins    = coinsIn;
+        height   = nHeightIn;
     }
 
     ~CCoinRewardTx() {}
@@ -38,7 +39,7 @@ public:
         READWRITE(txUid);
         READWRITE(VARINT(coins));
         READWRITE(coinType);
-        READWRITE(signature);
+        // READWRITE(signature);
     )
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
@@ -60,9 +61,9 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
-    virtual bool UndoExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool UndoExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 };
 
 #endif  // TX_COIN_REWARD_H

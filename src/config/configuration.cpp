@@ -172,6 +172,17 @@ uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(NET_TYPE type) const {
     return 0;
 }
 
+uint32_t G_CONFIG_TABLE::GetStableCoinGenesisHeight(NET_TYPE type) const {
+   switch (type) {
+        case MAIN_NET: return nStableScoinGenesisHeight_mainNet;
+        case TEST_NET: return nStableScoinGenesisHeight_testNet;
+        case REGTEST_NET: return nStableScoinGenesisHeight_regNet;
+        default: assert(0);
+    }
+
+    return 0;
+}
+
 vector<unsigned int> G_CONFIG_TABLE::GetSeedNodeIP() const { return pnSeed; }
 
 unsigned char* G_CONFIG_TABLE::GetMagicNumber(NET_TYPE type) const {
@@ -468,3 +479,8 @@ uint64_t G_CONFIG_TABLE::nFixedSubsidy = 1;
 uint32_t G_CONFIG_TABLE::nFeatureForkHeight_mainNet = 6000000;
 uint32_t G_CONFIG_TABLE::nFeatureForkHeight_testNet = 1000000;
 uint32_t G_CONFIG_TABLE::nFeatureForkHeight_regNet  = 100;
+
+// Block height for stable coin genesis
+static const uint32_t nStableScoinGenesisHeight_mainNet = 5880000;
+static const uint32_t nStableScoinGenesisHeight_testNet = 588000;
+static const uint32_t nStableScoinGenesisHeight_regNet  = 8;

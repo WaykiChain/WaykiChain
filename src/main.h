@@ -153,7 +153,6 @@ static const int kMultisigNumberLimit                   = 15;        // m-n mult
 static const int KMultisigScriptMaxSize                 = 1000;      // multisig script max size
 static const int kRegIdMaturePeriodByBlock              = 100;       // RegId's mature period measured by blocks
 
-static const uint32_t kFcoinGenesisTxHeight             = 5880000;
 static const uint16_t kFcoinGenesisIssueTxIndex         = 1;
 static const uint16_t kFcoinGenesisRegisterTxIndex      = 2;
 static const uint16_t kSettleServiceRegisterTxIndex     = 3;
@@ -162,8 +161,8 @@ const uint16_t kMaxMinedBlocks                          = 100;      // maximun c
 
 static const string kContractScriptPathPrefix           = "/tmp/lua/";
 
-static const CRegID kFcoinGenesisRegId(kFcoinGenesisTxHeight, kFcoinGenesisIssueTxIndex);
-static const CRegID kDEXSettleRegId(kFcoinGenesisTxHeight, kSettleServiceRegisterTxIndex);
+static const CRegID kFcoinGenesisRegId(SysCfg().GetStableCoinGenesisHeight(), kFcoinGenesisIssueTxIndex);
+static const CRegID kDEXSettleRegId(SysCfg().GetStableCoinGenesisHeight(), kSettleServiceRegisterTxIndex);
 
 extern CTxMemPool mempool;
 extern map<uint256, CBlockIndex *> mapBlockIndex;

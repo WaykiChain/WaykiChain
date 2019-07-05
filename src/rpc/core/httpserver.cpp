@@ -7,7 +7,7 @@
 
 #include <chainparams.h>
 #include <compat/compat.h>
-#include <util.h>
+#include <commons/util.h>
 //#include <util/strencodings.h>
 #include <netbase.h>
 #include <init.h>
