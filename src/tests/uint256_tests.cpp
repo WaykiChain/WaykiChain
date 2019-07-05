@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
-#include "version.h"
+#include "config/version.h"
 
 #include <boost/test/unit_test.hpp>
 #include <stdint.h>

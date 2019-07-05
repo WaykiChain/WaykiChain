@@ -27,8 +27,7 @@ Object SubmitTx(CKeyID &userKeyId, CBaseTx &tx) {
     CAccount account;
 
     uint64_t balance = 0;
-    CUserID userId   = userKeyId;
-    if (pCdMan->pAccountCache->GetAccount(userId, account) && account.IsRegistered()) {
+    if (pCdMan->pAccountCache->GetAccount(userKeyId, account) && account.IsRegistered()) {
         balance = account.GetFreeBcoins();
         if (balance < tx.llFees) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
@@ -63,7 +62,7 @@ string RegIDToAddress(CUserID &userId) {
     return "cannot get address from given RegId";
 }
 
-static bool GetKeyId(string const &addr, CKeyID &KeyId) {
+bool GetKeyId(const string &addr, CKeyID &KeyId) {
     if (!CRegID::GetKeyId(addr, KeyId)) {
         KeyId = CKeyID(addr);
         if (KeyId.IsEmpty())

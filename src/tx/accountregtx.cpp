@@ -14,7 +14,7 @@
 #include "persistence/contractdb.h"
 #include "vm/vmrunenv.h"
 #include "miner/miner.h"
-#include "version.h"
+#include "config/version.h"
 
 bool CAccountRegisterTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;

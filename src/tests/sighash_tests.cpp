@@ -8,7 +8,7 @@
 #include "main.h"
 #include "commons/util.h"
 #include "commons/serialize.h"
-#include "version.h"
+#include "config/version.h"
 #include "data/sighash.json.h"
 
 #include "json/json_spirit_reader_template.h"

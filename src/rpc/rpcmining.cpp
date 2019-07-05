@@ -22,7 +22,7 @@
 #include "tx/txmempool.h"
 #include "commons/uint256.h"
 #include "commons/util.h"
-#include "version.h"
+#include "config/version.h"
 
 #include "../wallet/wallet.h"
 

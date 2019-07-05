@@ -53,8 +53,9 @@ coin_CORE_H = \
   commons/util.h \
   config/configuration.h \
   config/scoin.h \
+  config/clientversion.h \
+  config/version.h \
   chainparams.h \
-  clientversion.h \
   compat\compat.h \
   wallet/crypter.h \
   crypto/sha256.h \
@@ -119,7 +120,6 @@ coin_CORE_H = \
   threadsafety.h \
   tinyformat.h \
   uint256.h \
-  version.h \
   wallet/wallet.h \
   wallet/db.h
 
@@ -276,10 +276,10 @@ libcoin_server_a_SOURCES = \
 
 libcoin_wallet_a_SOURCES = \
   accounts/keystore.cpp \
-  crypter.cpp \
   rpc/rpcdump.cpp \
   rpc/rpcwallet.cpp \
   rpc/rpctx.cpp \
+  wallet/crypter.cpp \
   wallet/db.cpp  \
   wallet/wallet.cpp \
   wallet/walletdb.cpp \

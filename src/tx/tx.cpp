@@ -22,7 +22,7 @@
 #include "main.h"
 #include "vm/vmrunenv.h"
 #include "miner/miner.h"
-#include "version.h"
+#include "config/version.h"
 
 using namespace json_spirit;
 

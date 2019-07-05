@@ -3,7 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 #include "events.h"
-#include <util.h>
+#include "commons/util.h"
+
 #include <event2/event.h>
 #include <event2/thread.h>
 #include <event2/buffer.h>

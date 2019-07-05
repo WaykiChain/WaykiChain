@@ -7,12 +7,14 @@
 
 #include "commons/base58.h"
 #include "rpc/core/rpcserver.h"
+#include "rpc/core/rpccommons.h"
 #include "init.h"
 #include "net.h"
 #include "miner/miner.h"
 #include "commons/util.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
+#include "tx/cdptx.h"
 #include "tx/dextx.h"
 #include "tx/pricefeedtx.h"
 
@@ -45,11 +47,6 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
 
     RPCTypeCheck(params, boost::assign::list_of(str_type)(array_type)(int_type));
     EnsureWalletIsUnlocked();
-
-    auto feedUid = CUserID::ParseUserId(params[0].get_str());
-    if (!feedUid) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
-    }
 
     Array arrPricePoints    = params[1].get_array();
     uint64_t fee    = 0;
@@ -96,9 +93,14 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         pricePoints.push_back(pp);
     }
 
+    auto feedUid = CUserID::ParseUserId(params[0].get_str());
+    if (!feedUid) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+    }
     int validHeight = chainActive.Tip()->nHeight;
-    CPriceFeedTx tx(feedUid, validHeight, fee, pricePoints);
-    return SubmitTx(feedKeyId, tx);
+    CPriceFeedTx tx(*feedUid, validHeight, fee, pricePoints);
+    CKeyID userKeyId = feedUid->get<CKeyID>();
+    return SubmitTx(userKeyId, tx);
 }
 
 Value submitstakefcointx(const Array& params, bool fHelp) {
@@ -129,12 +131,14 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
-    int validHeight = chainActive.Tip()->nHeight;
-    CCDPStakeTx tx(txUidIn, uint64_t feesIn, int validHeightIn,
-                uint256 cdpTxIdIn, uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn,
-                uint64_t scoinsInterestIn);
+    //TODO below
+    // int validHeight = chainActive.Tip()->nHeight;
+    // CCDPStakeTx tx(pUserId, feesIn, validHeightIn,
+    //             uint256 cdpTxIdIn, uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn,
+    //             uint64_t scoinsInterestIn);
 
-    return SubmitTx(userKeyId, tx);
+    // return SubmitTx(pUserId, tx);
+    return true;
 
 }
 
@@ -161,25 +165,29 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     }
     EnsureWalletIsUnlocked();
 
-    auto cdpUid = CUserID::ParseUserId(params[0].get_str());
-    if (!cdpUid) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
-    }
     uint64_t stakeAmount = params[1].get_uint64();
     uint64_t collateralRatio = params[2].get_uint64();
 
     int validHeight = chainActive.Tip()->nHeight;
-    uint64_t interest   = 0;
-    uint64_t fee        = 0;
-    uint256 cdpTxId      = 0;
-    if (params.size() == 6) {
+    uint64_t interest = 0;
+    uint64_t fee = kTxTypeMap[CDP_STAKE_TX].get<1>();
+    uint256 cdpTxId;
+    if (params.size() >=4 ) {
         cdpTxId = uint256S(params[3].get_str());
-        interest =  params[4].get_uint64()
+    }
+    if (params.size() >=5 ) {
+        interest = params[4].get_uint64();
+    }
+    if (params.size() ==6 ) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
     }
 
-    CCDPStakeTx tx(cdpUid, fee, validHeight, cdpTxId, stakeAmount, collateralRatio, interest);
-    return SubmitTx(userKeyId, tx);
+    auto cdpUid = CUserID::ParseUserId(params[0].get_str());
+    if (!cdpUid) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+    }
+    CCDPStakeTx tx(*cdpUid, fee, validHeight, cdpTxId, stakeAmount, collateralRatio, interest);
+    return SubmitTx(cdpUid->get<CKeyID>(), tx);
 }
 Value submitredeemcdptx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 5) {
@@ -203,29 +211,29 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
     }
     EnsureWalletIsUnlocked();
 
-    auto cdpUid = CUserID::ParseUserId(params[0].get_str());
-    if (!cdpUid) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
-    }
     uint64_t redeemAmount = params[1].get_uint64();
     uint64_t collateralRatio = params[2].get_uint64();
 
     int validHeight = chainActive.Tip()->nHeight;
     uint64_t interest   = 0;
     uint64_t fee        = 0;
-    uint256 cdpTxId      = 0;
+    uint256 cdpTxId;
     if (params.size() >=4 ) {
         cdpTxId = uint256S(params[3].get_str());
     }
     if (params.size() >=5 ) {
-        interest =  params[4].get_uint64()
+        interest =  params[4].get_uint64();
     }
     if (params.size() ==6 ) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
     }
 
-    CCDPRedeemTx tx(cdpUid, fee, validHeight, cdpTxId, redeemAmount, collateralRatio, interest);
-    return SubmitTx(userKeyId, tx);
+    auto cdpUid = CUserID::ParseUserId(params[0].get_str());
+    if (!cdpUid) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+    }
+    CCDPRedeemTx tx(*cdpUid, fee, validHeight, cdpTxId, redeemAmount, collateralRatio, interest);
+    return SubmitTx(cdpUid->get<CKeyID>(), tx);
 }
 Value submitliquidatecdptx(const Array& params, bool fHelp) {
 if (fHelp || params.size() < 2 || params.size() > 5) {
@@ -259,19 +267,19 @@ if (fHelp || params.size() < 2 || params.size() > 5) {
     int validHeight = chainActive.Tip()->nHeight;
     uint64_t interest   = 0;
     uint64_t fee        = 0;
-    uint256 cdpTxId      = 0;
+    uint256 cdpTxId;
     if (params.size() >=4 ) {
         cdpTxId = uint256S(params[3].get_str());
     }
     if (params.size() >=5 ) {
-        interest =  params[4].get_uint64()
+        interest =  params[4].get_uint64();
     }
     if (params.size() ==6 ) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
     }
 
-    CCDPRedeemTx tx(cdpUid, fee, validHeight, cdpTxId, liquidateAmount, collateralRatio, interest);
-    return SubmitTx(userKeyId, tx);
+    CCDPRedeemTx tx(*cdpUid, fee, validHeight, cdpTxId, liquidateAmount, collateralRatio, interest);
+    return SubmitTx(cdpUid->get<CKeyID>(), tx);
 }
 
 Value getmedianprice(const Array& params, bool fHelp);

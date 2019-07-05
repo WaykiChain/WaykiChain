@@ -113,13 +113,14 @@ public:
     }
 
     CCDPRedeemTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
-                uint256 cdpTxIdIn, uint64_t scoinsToRedeemIn, uint64_t scoinsInterestIn):
+                uint256 cdpTxIdIn, uint64_t scoinsToRedeemIn, uint64_t collateralRatioIn, uint64_t scoinsInterestIn):
                 CBaseTx(CDP_REDEEMP_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
         cdpTxId         = cdpTxIdIn;
         scoinsToRedeem  = scoinsToRedeemIn;
+        collateralRatio = collateralRatioIn;
         scoinsInterest  = scoinsInterestIn;
     }
 

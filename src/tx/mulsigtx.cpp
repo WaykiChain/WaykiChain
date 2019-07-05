@@ -12,7 +12,7 @@
 #include "commons/util.h"
 #include "main.h"
 #include "miner/miner.h"
-#include "version.h"
+#include "config/version.h"
 
 string CSignaturePair::ToString() const {
     string str = strprintf("regId=%s, signature=%s", regId.ToString(),

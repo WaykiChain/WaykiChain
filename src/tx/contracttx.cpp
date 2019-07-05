@@ -13,7 +13,7 @@
 #include "persistence/contractdb.h"
 #include "persistence/txdb.h"
 #include "commons/util.h"
-#include "version.h"
+#include "config/version.h"
 #include "vm/vmrunenv.h"
 
 static bool GetKeyId(const CAccountDBCache &view, const string &userIdStr, CKeyID &KeyId) {

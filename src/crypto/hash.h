@@ -9,7 +9,7 @@
 
 #include "commons/serialize.h"
 #include "commons/uint256.h"
-#include "version.h"
+#include "config/version.h"
 #include "commons/util.h"
 
 #include <vector>

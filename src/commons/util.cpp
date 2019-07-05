@@ -8,7 +8,7 @@
 #include "netbase.h"
 #include "sync.h"
 #include "commons/uint256.h"
-#include "version.h"
+#include "config/version.h"
 
 #include <stdarg.h>
 

@@ -10,7 +10,7 @@
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
 #include "commons/util.h"
-#include "version.h"
+#include "config/version.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>

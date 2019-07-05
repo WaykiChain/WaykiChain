@@ -9,7 +9,7 @@
 #include <leveldb/slice.h>
 #include <string>
 
-#include "version.h"
+#include "config/version.h"
 #include "commons/serialize.h"
 
 typedef leveldb::Slice Slice;

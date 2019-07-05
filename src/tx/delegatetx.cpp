@@ -13,7 +13,7 @@
 #include "main.h"
 #include "vm/vmrunenv.h"
 #include "miner/miner.h"
-#include "version.h"
+#include "config/version.h"
 
 string CDelegateVoteTx::ToString(CAccountDBCache &accountCache) {
     string str;

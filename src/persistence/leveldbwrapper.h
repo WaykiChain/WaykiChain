@@ -8,7 +8,7 @@
 
 #include "commons/serialize.h"
 #include "commons/util.h"
-#include "version.h"
+#include "config/version.h"
 #include "dbconf.h"
 
 #include "json/json_spirit_value.h"

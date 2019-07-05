@@ -77,7 +77,7 @@ bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &
                         REJECT_INVALID, "gloalcdplock_is_on");
     }
 
-    if (cdpTxId.Empty() && collateralRatio < kStartingCdpCollateralRatio) { ) { // first-time CDP creation
+    if (cdpTxId.IsNull() && collateralRatio < kStartingCdpCollateralRatio) { // first-time CDP creation
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
                             collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
     }
@@ -117,7 +117,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
 
     //2. mint scoins
     int mintedScoins = 0;
-    if (cdpTxId.Empty()) { // first-time CDP creation
+    if (cdpTxId.IsNull()) { // first-time CDP creation
         CUserCDP cdp(txUid.get<CRegID>(), GetHash());
         mintedScoins = bcoinsToStake * kPercentBoost / collateralRatio;
         //settle cdp state & persist for the 1st-time
@@ -126,7 +126,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
     } else { // further staking on one's existing CDP
         CUserCDP cdp(txUid.get<CRegID>(), cdpTxId);
         if (!cw.cdpCache.GetCdp(cdp)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, invalid cdpTxId %llu", cdpTxId),
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, invalid cdpTxId %s", cdpTxId.ToString()),
                             REJECT_INVALID, "invalid-stake-cdp-txid");
         }
         if (nHeight < cdp.blockHeight) {

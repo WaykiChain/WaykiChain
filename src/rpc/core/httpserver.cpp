@@ -4,11 +4,10 @@
 
 #include "httpserver.h"
 #include "rpc/core/rpcprotocol.h" // For HTTP status codes
+#include "commons/util.h"
 
 #include <chainparams.h>
 #include <compat/compat.h>
-#include <util.h>
-//#include <util/strencodings.h>
 #include <netbase.h>
 #include <init.h>
 #include <sync.h>

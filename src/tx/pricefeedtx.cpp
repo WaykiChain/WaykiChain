@@ -12,7 +12,7 @@
 #include "persistence/pricefeeddb.h"
 #include "tx.h"
 #include "commons/util.h"
-#include "version.h"
+#include "config/version.h"
 
 bool CPriceFeedTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
 

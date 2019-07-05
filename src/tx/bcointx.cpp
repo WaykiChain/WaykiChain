@@ -12,7 +12,7 @@
 #include "commons/util.h"
 #include "main.h"
 #include "miner/miner.h"
-#include "version.h"
+#include "config/version.h"
 
 bool CBaseCoinTransferTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
