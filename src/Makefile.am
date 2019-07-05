@@ -50,6 +50,7 @@ coin_CORE_H = \
   commons/bloom.h \
   commons/openssl.hpp \
   commons/serialize.h \
+  config/configuration.h \
   config/scoin.h \
   chainparams.h \
   clientversion.h \
@@ -120,8 +121,7 @@ coin_CORE_H = \
   util.h \
   version.h \
   wallet/wallet.h \
-  wallet/db.h \
-  config/configuration.h
+  wallet/db.h
 
 JSON_H = \
   json/json_spirit.h \
@@ -295,7 +295,7 @@ libcoin_common_a_SOURCES = \
   commons/bloom.cpp \
   crypto/hash.cpp \
   chainparams.cpp \
-  configuration.cpp\
+  config/configuration.cpp \
   netbase.cpp \
   protocol.cpp \
   persistence/block.cpp \
