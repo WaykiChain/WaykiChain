@@ -55,7 +55,7 @@ coin_CORE_H = \
   chainparams.h \
   clientversion.h \
   compat\compat.h \
-  crypter.h \
+  wallet/crypter.h \
   crypto/sha256.h \
   crypto/hash.h \
   init.h \
