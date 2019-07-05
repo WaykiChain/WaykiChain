@@ -8,11 +8,11 @@
 #include "chainparams.h"
 
 #include "assert.h"
-#include "protocol.h"
 #include "commons/util.h"
 #include "accounts/key.h"
-#include "tx/blockrewardtx.h"
 #include "tx/accountregtx.h"
+#include "tx/blockrewardtx.h"
+#include "tx/coinrewardtx.h"
 #include "main.h"
 
 #include <boost/assign/list_of.hpp>
@@ -362,7 +362,7 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vpt
     uint64_t bcoinsToVote = IniCfg().GetCoinInitValue() * COIN  / 100;
 
     for (size_t i = 0; i < vDelegatePubKey.size(); ++i) {
-        CUserID voteId(CPubKey(ParseHex(vDelegatePubKey[i].c_str())));
+        CUserID voteId(CPubKey(ParseHex(vDelegatePubKey[i])));
         CCandidateVote vote(ADD_BCOIN, voteId, bcoinsToVote);
         votes.push_back(vote);
     }
@@ -391,16 +391,16 @@ bool CBaseParams::CreateSettleAccountRegisterTx(vector<std::shared_ptr<CBaseTx> 
 };
 
 bool CBaseParams::CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
-    auto pTx      = std::make_shared<CCoinRewardTx>(CNullID, CoinType::WGRT, 0, nStableCoinGenesisHeight);
-    pTx->nVersion = nTxVersion1;
+    // auto pTx      = std::make_shared<CCoinRewardTx>(CUserID(), CoinType::WGRT, 0, nStableCoinGenesisHeight);
+    // pTx->nVersion = nTxVersion1;
 
-    vptx.push_back(pTx);
+    // vptx.push_back(pTx);
 
-    pTx           = std::make_shared<CCoinRewardTx>(ParseHex(IniCfg().GetFundCoinInitPubKey(type)), CoinType::WGRT,
-                                          kTotalFundCoinAmount, nStableCoinGenesisHeight);
-    pTx->nVersion = nTxVersion1;
+    // pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetFundCoinInitPubKey(type))), CoinType::WGRT,
+    //                                       kTotalFundCoinAmount, nStableCoinGenesisHeight);
+    // pTx->nVersion = nTxVersion1;
 
-    vptx.push_back(pTx);
+    // vptx.push_back(pTx);
 
     return true;
 }

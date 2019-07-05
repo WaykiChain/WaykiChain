@@ -13,6 +13,7 @@
 #include "accounts/account.h"
 #include "accounts/id.h"
 #include "persistence/contractdb.h"
+#include "config/configuration.h"
 #include "config/scoin.h"
 
 #include <boost/variant.hpp>
@@ -43,14 +44,13 @@ enum TxType : unsigned char {
     COMMON_MTX          = 7,  //!< Multisig Tx
 
     MCOIN_BLOCK_REWARD_TX    = 11,  //!< Multi Coin Miner Block Reward Tx
-    MCOIN_CONTRACT_INVOKE_TX = 12;  //!< Multi Coin Contract Invocation Tx
+    MCOIN_CONTRACT_INVOKE_TX = 12,  //!< Multi Coin Contract Invocation Tx
     MCOIN_TRANSFER_TX        = 13,  //!< Coin Transfer Tx
     MCOIN_REWARD_TX          = 14,  //!< Coin Reward Tx
 
-    CDP_REFUEL_TX    = 21,  //!< CDP refuel Tx
-    CDP_REDEEMP_TX   = 22,  //!< CDP Redemption Tx (partial or full)
-    CDP_LIQUIDATE_TX = 23,  //!< CDP Liquidation Tx (partial or full)
-    CDP_STAKE_TX     = 24,  //!< CDP Staking/Restaking Tx
+    CDP_STAKE_TX            = 21,  //!< CDP Staking/Restaking Tx
+    CDP_REDEEMP_TX          = 22,  //!< CDP Redemption Tx (partial or full)
+    CDP_LIQUIDATE_TX        = 23,  //!< CDP Liquidation Tx (partial or full)
 
     PRICE_FEED_TX         = 31,  //!< Price Feed Tx: WICC/USD | WGRT/USD | WUSD/USD
     BLOCK_PRICE_MEDIAN_TX = 32,  //!< Block Median Price Tx
@@ -111,20 +111,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t>, TxTyp
 };
 
 string GetTxType(const TxType txType);
-
-uint64_t GetTxMinFee(const TxType nTxType, int nHeight) {
-    const auto &iter = kTxTypeMap.find(nTxType);
-    switch (GetFeatureForkVersion(nHeight)) {
-        case MAJOR_VER_R1: // Prior-stablecoin Release
-            return iter != kTxTypeMap.end() ? std::get<1>(iter->second)) : 0;
-
-        case MAJOR_VER_R2:  // StableCoin Release
-            return iter != kTxTypeMap.end() ? std::get<2>(iter->second)) : 0;
-
-        default:
-            return 10000; //10^-8 WICC
-    }
-}
+uint64_t GetTxMinFee(const TxType nTxType, int nHeight);
 
 class CBaseTx {
 public:

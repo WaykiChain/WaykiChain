@@ -187,7 +187,7 @@ unsigned int G_CONFIG_TABLE::GetRPCPort(NET_TYPE type) const {
 unsigned int G_CONFIG_TABLE::GetStartTimeInit(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return StartTime_mainNet;
-        case TEST_NET: StartTime_testNet;
+        case TEST_NET: return StartTime_testNet;
         case REGTEST_NET: return StartTime_regTest;
         default: assert(0);
     }
@@ -387,6 +387,6 @@ uint32_t G_CONFIG_TABLE::nFeatureForkHeight_testNet = 1000000;
 uint32_t G_CONFIG_TABLE::nFeatureForkHeight_regNet  = 100;
 
 // Block height for stable coin genesis
-static const uint32_t nStableScoinGenesisHeight_mainNet = 5880000;
-static const uint32_t nStableScoinGenesisHeight_testNet = 588000;
-static const uint32_t nStableScoinGenesisHeight_regNet  = 8;
+uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight_mainNet = 5880000;
+uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight_testNet = 588000;
+uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight_regNet  = 8;

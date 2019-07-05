@@ -34,6 +34,20 @@ string GetTxType(const TxType txType) {
         return "";
 }
 
+uint64_t GetTxMinFee(const TxType nTxType, int nHeight) {
+    const auto &iter = kTxTypeMap.find(nTxType);
+    switch (GetFeatureForkVersion(nHeight)) {
+        case MAJOR_VER_R1: // Prior-stablecoin Release
+            return iter != kTxTypeMap.end() ? std::get<1>(iter->second) : 0;
+
+        case MAJOR_VER_R2:  // StableCoin Release
+            return iter != kTxTypeMap.end() ? std::get<2>(iter->second) : 0;
+
+        default:
+            return 10000; //10^-8 WICC
+    }
+}
+
 bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
     if (BLOCK_REWARD_TX == nTxType || BLOCK_PRICE_MEDIAN_TX == nTxType)
         return true;

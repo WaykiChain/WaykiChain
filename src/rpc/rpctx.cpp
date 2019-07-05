@@ -391,9 +391,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     contractScript.assign(ds.begin(), ds.end());
 
     uint64_t fee = params[2].get_uint64();
-    int height(0);
-    if (params.size() > 3)
-        height = params[3].get_int();
+    int height   = params.size() > 3 ? params[3].get_int() : chainActive.Height();
 
     if (fee > 0 && fee < CBaseTx::nMinTxFee) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee is smaller than nMinTxFee");
@@ -406,7 +404,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     CContractDeployTx tx;
     tx.contractScript   = contractScript;
     tx.llFees           = fee;
-    tx.nRunStep         = contractScript.size();
+    tx.nRunStep         = height;
     tx.nValidHeight     = chainActive.Tip()->nHeight;
 
     return SubmitTx(sendKeyId, tx);

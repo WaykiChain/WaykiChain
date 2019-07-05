@@ -313,7 +313,7 @@ libcoin_common_a_SOURCES = \
   support/cleanse.cpp \
   support/events.cpp \
   sync.cpp \
-  version.cpp \
+  config/version.cpp \
   json/json_spirit_reader.cpp \
   json/json_spirit_value.cpp \
   json/json_spirit_writer.cpp \

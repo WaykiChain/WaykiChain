@@ -5,6 +5,7 @@
 
 #include "commons/base58.h"
 #include "rpc/core/rpcserver.h"
+#include "rpc/core/rpccommons.h"
 #include "init.h"
 #include "net.h"
 #include "netbase.h"
@@ -42,13 +43,13 @@ void EnsureWalletIsUnlocked() {
             "Error: Please enter the wallet passphrase with walletpassphrase first.");
 }
 
-bool GetKeyId(string const& addr, CKeyID& keyId) {
-    if (!CRegID::GetKeyId(addr, keyId)) {
-        keyId = CKeyID(addr);
-        return (!keyId.IsEmpty());
-    }
-    return true;
-}
+// bool GetKeyId(string const& addr, CKeyID& keyId) {
+//     if (!CRegID::GetKeyId(addr, keyId)) {
+//         keyId = CKeyID(addr);
+//         return (!keyId.IsEmpty());
+//     }
+//     return true;
+// }
 
 Value getnewaddr(const Array& params, bool fHelp) {
     if (fHelp || params.size() > 1)

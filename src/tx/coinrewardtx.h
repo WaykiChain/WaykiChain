@@ -22,12 +22,12 @@ public:
         *this = *(CCoinRewardTx *)pBaseTx;
     }
 
-    CCoinRewardTx(const CUserID &txUidIn, const CoinType coinTypeIn, const uint64_t coinsIn, const int32_t nHeightIn)
+    CCoinRewardTx(const CUserID &txUidIn, const CoinType coinTypeIn, const uint64_t coinsIn, const int32_t heightIn)
         : CBaseTx(MCOIN_REWARD_TX) {
         txUid    = txUidIn;
         coinType = coinTypeIn;
         coins    = coinsIn;
-        height   = nHeightIn;
+        height   = heightIn;
     }
 
     ~CCoinRewardTx() {}

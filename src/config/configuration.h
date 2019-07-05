@@ -159,9 +159,9 @@ private:
     static uint32_t nFeatureForkHeight_regNet;
 
     /* Block height for stable coin genesis */
-    static const uint32_t nStableScoinGenesisHeight_mainNet;
-    static const uint32_t nStableScoinGenesisHeight_testNet;
-    static const uint32_t nStableScoinGenesisHeight_regNet;
+    static uint32_t nStableScoinGenesisHeight_mainNet;
+    static uint32_t nStableScoinGenesisHeight_testNet;
+    static uint32_t nStableScoinGenesisHeight_regNet;
 };
 
 inline FeatureForkVersionEnum GetFeatureForkVersion(int32_t blockHeight) {

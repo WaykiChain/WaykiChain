@@ -18,8 +18,8 @@ bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
 
     CAccount account;
     CRegID regId(height, index);
-    CPubKey pubKey = txUid.type() == CNullID ? CPubKey() : txUid.get<CPubKey>();
-    CKeyID keyId = txUid.type() == CNullID ? Hash160(regId.GetRegIdRaw()) : txUid.get<CPubKey>().GetKeyId();
+    CPubKey pubKey = txUid.type() == typeid(CNullID) ? CPubKey() : txUid.get<CPubKey>();
+    CKeyID keyId = txUid.type() == typeid(CNullID) ? Hash160(regId.GetRegIdRaw()) : txUid.get<CPubKey>().GetKeyId();
     // Contstuct an empty account log which will delete account automatically if the blockchain rollbacked.
     CAccountLog accountLog(keyId);
 

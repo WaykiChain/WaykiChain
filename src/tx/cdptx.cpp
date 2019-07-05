@@ -121,7 +121,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
         CUserCDP cdp(txUid.get<CRegID>(), GetHash());
         mintedScoins = bcoinsToStake * kPercentBoost / collateralRatio;
         //settle cdp state & persist for the 1st-time
-        cw.cdpCache.StakeBcoinsToCdp(nHeight, bcoinsToStake, (uint64_t) mintedScoins, cdp);
+        cw.cdpCache.StakeBcoinsToCdp(nHeight, bcoinsToStake, (uint64_t) mintedScoins, cdp, cw.txUndo.dbOpLogMap);
 
     } else { // further staking on one's existing CDP
         CUserCDP cdp(txUid.get<CRegID>(), cdpTxId);

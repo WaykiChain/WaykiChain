@@ -14,7 +14,7 @@ Object SubmitTx(CKeyID &userKeyId, CBaseTx &tx) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sender address not found in wallet");
     }
 
-    uint64_t minFee = GetTxMinFee(tx.nTxType);
+    uint64_t minFee = GetTxMinFee(tx.nTxType, chainActive.Height());
     if (tx.llFees == 0) {
         tx.llFees = minFee;
     } else if (tx.llFees < minFee) {
