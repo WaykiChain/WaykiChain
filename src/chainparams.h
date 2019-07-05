@@ -227,7 +227,7 @@ public:
     bool CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
     bool CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
 
-    bool CreateFundCoinAccountRegisterTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
+    bool CreateSettleAccountRegisterTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
     bool CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
 
     virtual bool RequireRPCPassword() const { return true; }
@@ -238,7 +238,6 @@ public:
     virtual const vector<CAddress>& FixedSeeds() const = 0;
     virtual bool IsInFixedSeeds(CAddress& addr)        = 0;
     int RPCPort() const { return nRPCPort; }
-    int GetUIPort() const { return nUIPort; }
     static bool InitializeParams(int argc, const char* const argv[]);
     static int64_t GetArg(const string& strArg, int64_t nDefault);
     static string GetArg(const string& strArg, const string& strDefault);
@@ -270,7 +269,6 @@ protected:
     vector<unsigned char> vAlertPubKey;
     int nDefaultPort;
     int nRPCPort;
-    int nUIPort;
     string alartPKey;
     arith_uint256 bnProofOfStakeLimit;
     int nSubsidyHalvingInterval;
@@ -281,10 +279,8 @@ protected:
 
 extern CBaseParams &SysCfg();
 
-inline bool TestNet() {
-    // Note: it's deliberate that this returns "false" for regression test mode.
-    return SysCfg().NetworkID() == TEST_NET;
-}
+// Note: it's deliberate that this returns "false" for regression test mode.
+inline bool TestNet() { return SysCfg().NetworkID() == TEST_NET; }
 
 inline bool RegTest() { return SysCfg().NetworkID() == REGTEST_NET; }
 

@@ -103,7 +103,8 @@ void RPCTypeCheck(const Object& o, const map<string, Value_type>& typesExpected,
 int64_t AmountToRawValue(const Value& value) {
     double dAmount  = value.get_real();
     int64_t nAmount = roundint64(dAmount);
-    if (!CheckBaseCoinRange(nAmount)) throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
+    if (!CheckBaseCoinRange(nAmount))
+        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
     return nAmount;
 }
 

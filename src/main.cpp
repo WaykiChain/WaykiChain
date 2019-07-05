@@ -1684,7 +1684,6 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
 }
 
 // Disconnect chainActive's tip.
-// TODO: disconnect fund coin genesis block.
 bool static DisconnectTip(CValidationState &state) {
     CBlockIndex *pIndexDelete = chainActive.Tip();
     assert(pIndexDelete);
@@ -2365,6 +2364,7 @@ bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex *pstart, uns
             ++nFound;
         pstart = pstart->pprev;
     }
+
     return (nFound >= nRequired);
 }
 
@@ -2374,8 +2374,10 @@ int64_t CBlockIndex::GetMedianTime() const {
     for (int i = 0; i < nMedianTimeSpan / 2; i++) {
         if (!chainActive.Next(pIndex))
             return GetBlockTime();
+
         pIndex = chainActive.Next(pIndex);
     }
+
     return pIndex->GetMedianTimePast();
 }
 

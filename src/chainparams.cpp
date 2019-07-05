@@ -33,9 +33,8 @@ public:
         // a large 4-byte int at any alignment.
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(MAIN_NET), sizeof(pchMessageStart));
         vAlertPubKey             = ParseHex(IniCfg().GetAlertPkey(MAIN_NET));
-        nDefaultPort             = IniCfg().GetnDefaultPort(MAIN_NET);
-        nRPCPort                 = IniCfg().GetnRPCPort(MAIN_NET);
-        nUIPort                  = IniCfg().GetnUIPort(MAIN_NET);
+        nDefaultPort             = IniCfg().GetDefaultPort(MAIN_NET);
+        nRPCPort                 = IniCfg().GetRPCPort(MAIN_NET);
         strDataDir               = "main";
         bnProofOfStakeLimit      = ~arith_uint256(0) >> 10;  // 00 3f ff ff
         nSubsidyHalvingInterval  = IniCfg().GetHalvingInterval(MAIN_NET);
@@ -106,9 +105,8 @@ public:
         nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(TEST_NET);
         nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(TEST_NET);
         vAlertPubKey             = ParseHex(IniCfg().GetAlertPkey(TEST_NET));
-        nDefaultPort             = IniCfg().GetnDefaultPort(TEST_NET);
-        nRPCPort                 = IniCfg().GetnRPCPort(TEST_NET);
-        nUIPort                  = IniCfg().GetnUIPort(TEST_NET);
+        nDefaultPort             = IniCfg().GetDefaultPort(TEST_NET);
+        nRPCPort                 = IniCfg().GetRPCPort(TEST_NET);
         strDataDir               = "testnet";
         // Modify the testnet genesis block so the timestamp is valid for a later start.
         genesis.SetTime(IniCfg().GetStartTimeInit(TEST_NET));
@@ -161,7 +159,7 @@ public:
         assert(CreateGenesisDelegateTx(genesis.vptx, REGTEST_NET));
         genesis.SetMerkleRootHash(genesis.BuildMerkleTree());
         genesisBlockHash = genesis.GetHash();
-        nDefaultPort = IniCfg().GetnDefaultPort(REGTEST_NET) ;
+        nDefaultPort = IniCfg().GetDefaultPort(REGTEST_NET) ;
         strDataDir = "regtest";
         assert(genesisBlockHash == IniCfg().GetGenesisBlockHash(REGTEST_NET));
 
@@ -379,8 +377,8 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vpt
     return true;
 }
 
-bool CBaseParams::CreateFundCoinAccountRegisterTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
-    CPubKey pubKey = CPubKey(ParseHex(IniCfg().GetFundCoinInitPubKey(type)));
+bool CBaseParams::CreateSettleAccountRegisterTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
+    CPubKey pubKey = CPubKey(ParseHex(IniCfg().GetAccountRegisterPubKey(type)));
     CPubKey minerPubKey;
 
     auto pTx       = std::make_shared<CAccountRegisterTx>(pubKey, minerPubKey, 0, nStableCoinGenesisHeight);
@@ -393,7 +391,7 @@ bool CBaseParams::CreateFundCoinAccountRegisterTx(vector<std::shared_ptr<CBaseTx
 };
 
 bool CBaseParams::CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
-    auto pTx      = std::make_shared<CCoinRewardTx>(CPubKey(), CoinType::WGRT, 0, nStableCoinGenesisHeight);
+    auto pTx      = std::make_shared<CCoinRewardTx>(CNullID, CoinType::WGRT, 0, nStableCoinGenesisHeight);
     pTx->nVersion = nTxVersion1;
 
     vptx.push_back(pTx);
@@ -453,5 +451,4 @@ CBaseParams::CBaseParams() {
     fServer                 = 0;
     nRPCPort                = 0;
     bContractLog            = false;
-    nUIPort                 = 0;
 }

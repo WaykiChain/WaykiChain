@@ -410,7 +410,7 @@ std::unique_ptr<CBlock> CreateStableCoinGenesisBlock() {
 
         pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
         SysCfg().CreateFundCoinRewardTx(pBlock->vptx, SysCfg().NetworkID());
-        SysCfg().CreateFundCoinAccountRegisterTx(pBlock->vptx, SysCfg().NetworkID());
+        SysCfg().CreateSettleAccountRegisterTx(pBlock->vptx, SysCfg().NetworkID());
 
         // Fill in header.
         CBlockIndex *pIndexPrev = chainActive.Tip();
@@ -474,10 +474,6 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
         if (!cw.delegateCache.GetTopDelegates(delegatesList)) {
             LogPrint("MINER", "MineBlock() : failed to get top delegates\n");
             return false;
-        }
-
-        for (const auto & item: delegatesList) {
-            LogPrint("MINER", "miner: %s\n", item.ToString());
         }
 
         uint16_t nIndex = 0;

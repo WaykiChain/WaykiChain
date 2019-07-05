@@ -38,14 +38,14 @@ public:
     const uint256 GetMerkleRootHash() const;
 
     string GetAccountRegisterSignature(NET_TYPE type) const;
+    const string GetAccountRegisterPubKey(NET_TYPE type) const;
     const string GetFundCoinInitPubKey(NET_TYPE type) const;
 
     vector<unsigned int> GetSeedNodeIP() const;
     unsigned char* GetMagicNumber(NET_TYPE type) const;
     vector<unsigned char> GetAddressPrefix(NET_TYPE type, Base58Type BaseType) const;
-    unsigned int GetnDefaultPort(NET_TYPE type) const;
-    unsigned int GetnRPCPort(NET_TYPE type) const;
-    unsigned int GetnUIPort(NET_TYPE type) const;
+    unsigned int GetDefaultPort(NET_TYPE type) const;
+    unsigned int GetRPCPort(NET_TYPE type) const;
     unsigned int GetStartTimeInit(NET_TYPE type) const;
     unsigned int GetHalvingInterval(NET_TYPE type) const;
     uint64_t GetBlockSubsidyCfg(int nHeight) const;
@@ -91,10 +91,15 @@ private:
     static string initPubKeyFundCoin_testNet;
     static string initPubkeyFundCoin_regTest;
 
-    /* register account signature */
-    static string accountRegisterSignature_mainNet;
-    static string accountRegisterSignature_testNet;
-    static string accountRegisterSignature_regNet;
+    /* settle service's public key */
+    static string settlePubKey_mainNet;
+    static string settlePubKey_testNet;
+    static string settlePubKey_regTest;
+
+    /* settle service's signature */
+    static string settleSignature_mainNet;
+    static string settleSignature_testNet;
+    static string settleSignature_regNet;
 
     /* Peer IP seeds */
     static vector<unsigned int> pnSeed;

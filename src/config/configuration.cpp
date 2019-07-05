@@ -31,17 +31,10 @@ const G_CONFIG_TABLE& IniCfg() {
 
 const uint256 G_CONFIG_TABLE::GetGenesisBlockHash(NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: {
-            return uint256S(genesisBlockHash_mainNet);
-        }
-        case TEST_NET: {
-            return uint256S(genesisBlockHash_testNet);
-        }
-        case REGTEST_NET: {
-            return uint256S(genesisBlockHash_regTest);
-        }
-        default:
-            assert(0);
+        case MAIN_NET: return uint256S(genesisBlockHash_mainNet);
+        case TEST_NET: return uint256S(genesisBlockHash_testNet);
+        case REGTEST_NET: return uint256S(genesisBlockHash_regTest);
+        default: assert(0);
     }
 
     return uint256S("");
@@ -49,14 +42,9 @@ const uint256 G_CONFIG_TABLE::GetGenesisBlockHash(NET_TYPE type) const {
 
 const string G_CONFIG_TABLE::GetAlertPkey(NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: {
-            return AlertPK_MainNet;
-        }
-        case TEST_NET: {
-            return AlertPK_TestNet;
-        }
-        default:
-            assert(0);
+        case MAIN_NET: return AlertPK_MainNet;
+        case TEST_NET: return AlertPK_TestNet;
+        default: assert(0);
     }
 
     return "";
@@ -64,17 +52,10 @@ const string G_CONFIG_TABLE::GetAlertPkey(NET_TYPE type) const {
 
 const vector<string> G_CONFIG_TABLE::GetInitPubKey(NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: {
-            return initPubKey_mainNet;
-        }
-        case TEST_NET: {
-            return initPubKey_testNet;
-        }
-        case REGTEST_NET: {
-            return initPubkey_regTest;
-        }
-        default:
-            assert(0);
+        case MAIN_NET: return initPubKey_mainNet;
+        case TEST_NET: return initPubKey_testNet;
+        case REGTEST_NET: return initPubkey_regTest;
+        default: assert(0);
     }
 
     return vector<string>();
@@ -82,17 +63,10 @@ const vector<string> G_CONFIG_TABLE::GetInitPubKey(NET_TYPE type) const {
 
 const vector<string> G_CONFIG_TABLE::GetDelegatePubKey(NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: {
-            return delegatePubKey_mainNet;
-        }
-        case TEST_NET: {
-            return delegatePubKey_testNet;
-        }
-        case REGTEST_NET: {
-            return delegatePubKey_regTest;
-        }
-        default:
-            assert(0);
+        case MAIN_NET: return delegatePubKey_mainNet;
+        case TEST_NET: return delegatePubKey_testNet;
+        case REGTEST_NET: return delegatePubKey_regTest;
+        default: assert(0);
     }
 
     return vector<string>();
@@ -102,17 +76,10 @@ const uint256 G_CONFIG_TABLE::GetMerkleRootHash() const { return (uint256S((Merk
 
 string G_CONFIG_TABLE::GetDelegateSignature(NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: {
-            return delegateSignature_mainNet;
-        }
-        case TEST_NET: {
-            return delegateSignature_testNet;
-        }
-        case REGTEST_NET: {
-            return delegateSignature_regNet;
-        }
-        default:
-            assert(0);
+        case MAIN_NET: return delegateSignature_mainNet;
+        case TEST_NET: return delegateSignature_testNet;
+        case REGTEST_NET: return delegateSignature_regNet;
+        default: assert(0);
     }
 
     return "";
@@ -120,17 +87,21 @@ string G_CONFIG_TABLE::GetDelegateSignature(NET_TYPE type) const {
 
 const string G_CONFIG_TABLE::GetFundCoinInitPubKey(NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: {
-            return initPubKeyFundCoin_mainNet;
-        }
-        case TEST_NET: {
-            return initPubKeyFundCoin_testNet;
-        }
-        case REGTEST_NET: {
-            return initPubkeyFundCoin_regTest;
-        }
-        default:
-            assert(0);
+        case MAIN_NET: return initPubKeyFundCoin_mainNet;
+        case TEST_NET: return initPubKeyFundCoin_testNet;
+        case REGTEST_NET: return initPubkeyFundCoin_regTest;
+        default: assert(0);
+    }
+
+    return "";
+}
+
+const string G_CONFIG_TABLE::GetAccountRegisterPubKey(NET_TYPE type) const {
+    switch (type) {
+        case MAIN_NET: return settlePubKey_mainNet;
+        case TEST_NET: return settlePubKey_testNet;
+        case REGTEST_NET: return settlePubKey_regTest;
+        default: assert(0);
     }
 
     return "";
@@ -138,17 +109,10 @@ const string G_CONFIG_TABLE::GetFundCoinInitPubKey(NET_TYPE type) const {
 
 string G_CONFIG_TABLE::GetAccountRegisterSignature(NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: {
-            return accountRegisterSignature_mainNet;
-        }
-        case TEST_NET: {
-            return accountRegisterSignature_testNet;
-        }
-        case REGTEST_NET: {
-            return accountRegisterSignature_regNet;
-        }
-        default:
-            assert(0);
+        case MAIN_NET: return settleSignature_mainNet;
+        case TEST_NET: return settleSignature_testNet;
+        case REGTEST_NET: return settleSignature_regNet;
+        default: assert(0);
     }
 
     return "";
@@ -156,17 +120,10 @@ string G_CONFIG_TABLE::GetAccountRegisterSignature(NET_TYPE type) const {
 
 uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: {
-            return nFeatureForkHeight_mainNet;
-        }
-        case TEST_NET: {
-            return nFeatureForkHeight_testNet;
-        }
-        case REGTEST_NET: {
-            return nFeatureForkHeight_regNet;
-        }
-        default:
-            assert(0);
+        case MAIN_NET: return nFeatureForkHeight_mainNet;
+        case TEST_NET: return nFeatureForkHeight_testNet;
+        case REGTEST_NET: return nFeatureForkHeight_regNet;
+        default: assert(0);
     }
 
     return 0;
@@ -187,120 +144,65 @@ vector<unsigned int> G_CONFIG_TABLE::GetSeedNodeIP() const { return pnSeed; }
 
 unsigned char* G_CONFIG_TABLE::GetMagicNumber(NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: {
-            return Message_mainNet;
-        }
-        case TEST_NET: {
-            return Message_testNet;
-        }
-        case REGTEST_NET: {
-            return Message_regTest;
-        }
-        default:
-            assert(0);
+        case MAIN_NET: return Message_mainNet;
+        case TEST_NET: return Message_testNet;
+        case REGTEST_NET: return Message_regTest;
+        default: assert(0);
     }
     return NULL;
 }
 
 vector<unsigned char> G_CONFIG_TABLE::GetAddressPrefix(NET_TYPE type, Base58Type BaseType) const {
     switch (type) {
-        case MAIN_NET: {
-            return AddrPrefix_mainNet[BaseType];
-        }
-        case TEST_NET: {
-            return AddrPrefix_testNet[BaseType];
-        }
-        // case REGTEST_NET: {
-        //     return Message_regTest;
-        // }
-        default:
-            assert(0);
+        case MAIN_NET: return AddrPrefix_mainNet[BaseType];
+        case TEST_NET: return AddrPrefix_testNet[BaseType];
+        // case REGTEST_NET: return Message_regTest;
+        default: assert(0);
     }
     return vector<unsigned char>();
 }
 
-unsigned int G_CONFIG_TABLE::GetnDefaultPort(NET_TYPE type) const {
+unsigned int G_CONFIG_TABLE::GetDefaultPort(NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: {
-            return nDefaultPort_mainNet;
-        }
-        case TEST_NET: {
-            return nDefaultPort_testNet;
-        }
-        case REGTEST_NET: {
-            return nDefaultPort_regTest;
-        }
-        default:
-            assert(0);
+        case MAIN_NET: return nDefaultPort_mainNet;
+        case TEST_NET: return nDefaultPort_testNet;
+        case REGTEST_NET: return nDefaultPort_regTest;
+        default: assert(0);
     }
+
     return 0;
 }
 
-unsigned int G_CONFIG_TABLE::GetnRPCPort(NET_TYPE type) const {
+unsigned int G_CONFIG_TABLE::GetRPCPort(NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: {
-            return nRPCPort_mainNet;
-        }
-        case TEST_NET: {
-            return nRPCPort_testNet;
-        }
-        // case REGTEST_NET: {
-        //     return Message_regTest;
-        // }
-        default:
-            assert(0);
+        case MAIN_NET: return nRPCPort_mainNet;
+        case TEST_NET: return nRPCPort_testNet;
+        // case REGTEST_NET: return Message_regTest;
+        default: assert(0);
     }
-    return 0;
-}
 
-unsigned int G_CONFIG_TABLE::GetnUIPort(NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: {
-            return nUIPort_mainNet;
-        }
-        case TEST_NET: {
-            return nUIPort_testNet;
-        }
-        case REGTEST_NET: {
-            return nUIPort_testNet;
-        }
-        default:
-            assert(0);
-    }
     return 0;
 }
 
 unsigned int G_CONFIG_TABLE::GetStartTimeInit(NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: {
-            return StartTime_mainNet;
-        }
-        case TEST_NET: {
-            return StartTime_testNet;
-        }
-        case REGTEST_NET: {
-            return StartTime_regTest;
-        }
-        default:
-            assert(0);
+        case MAIN_NET: return StartTime_mainNet;
+        case TEST_NET: StartTime_testNet;
+        case REGTEST_NET: return StartTime_regTest;
+        default: assert(0);
     }
+
     return 0;
 }
 
 unsigned int G_CONFIG_TABLE::GetHalvingInterval(NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: {
-            return nSubsidyHalvingInterval_mainNet;
-        }
-        case TEST_NET: {
-            return nSubsidyHalvingInterval_testNet;
-        }
-        case REGTEST_NET: {
-            return nSubsidyHalvingInterval_regNet;
-        }
-        default:
-            assert(0);
+        case MAIN_NET: return nSubsidyHalvingInterval_mainNet;
+        case TEST_NET: return nSubsidyHalvingInterval_testNet;
+        case REGTEST_NET: return nSubsidyHalvingInterval_regNet;
+        default: assert(0);
     }
+
     return 0;
 }
 
@@ -410,16 +312,20 @@ string G_CONFIG_TABLE::genesisBlockHash_regTest = "0xab8d8b1d11784098108df399b24
 string G_CONFIG_TABLE::MerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
 
 // TODO: replace public key.
-// Public Key for mainnet
+// Public key for initial fund coin
 string G_CONFIG_TABLE::initPubKeyFundCoin_mainNet = "037671de4799dbf919effa034bbcaadd78c8a942adeebe7d71155304979a02802a";
 string G_CONFIG_TABLE::initPubKeyFundCoin_testNet = "037de11ea5def6393f45c2461c6f55e6e5cda831545324c63fc5c04409d459a5b3";
 string G_CONFIG_TABLE::initPubkeyFundCoin_regTest = "03b2299425981d6c2ec382cda999e604eb06b2b0f387f4b8500519c44d143cd2a8";
 
-// TODO: relpace signature
-// Signature in genesis block
-string G_CONFIG_TABLE::accountRegisterSignature_mainNet = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
-string G_CONFIG_TABLE::accountRegisterSignature_testNet = "02fc0033e19b9999997331c98652607299b0aaf20ed2dd6f0975d03cff3aecdeec";
-string G_CONFIG_TABLE::accountRegisterSignature_regNet  = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
+// Public Key for settle service
+string G_CONFIG_TABLE::settlePubKey_mainNet = "037671de4799dbf919effa034bbcaadd78c8a942adeebe7d71155304979a02802a";
+string G_CONFIG_TABLE::settlePubKey_testNet = "037de11ea5def6393f45c2461c6f55e6e5cda831545324c63fc5c04409d459a5b3";
+string G_CONFIG_TABLE::settlePubKey_regTest = "03b2299425981d6c2ec382cda999e604eb06b2b0f387f4b8500519c44d143cd2a8";
+
+// Signature for settle service
+string G_CONFIG_TABLE::settleSignature_mainNet = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
+string G_CONFIG_TABLE::settleSignature_testNet = "02fc0033e19b9999997331c98652607299b0aaf20ed2dd6f0975d03cff3aecdeec";
+string G_CONFIG_TABLE::settleSignature_regNet  = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
 
 // IP Address
 vector<unsigned int> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0xDC36FB0D, 0x91A11C77, 0xFFFFE60D,
