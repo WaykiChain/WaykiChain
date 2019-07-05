@@ -163,3 +163,11 @@ uint64_t CPricePointMemCache::ComputeMedianNumber(vector<uint64_t> &numbers) {
     sort(numbers.begin(), numbers.end());
     return (size % 2 == 0) ? (numbers[size / 2 - 1] + numbers[size / 2]) / 2 : numbers[size / 2];
 }
+
+uint64_t CPricePointMemCache::GetBcoinMedianPrice() {
+    return ComputeBlockMedianPrice(chainActive.Height(), CCoinPriceType(CoinType::WICC, PriceType::USD));
+}
+
+uint64_t CPricePointMemCache::GetFcoinMedianPrice() {
+    return ComputeBlockMedianPrice(chainActive.Height(), CCoinPriceType(CoinType::WGRT, PriceType::USD));
+}
