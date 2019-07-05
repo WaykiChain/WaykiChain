@@ -6,7 +6,7 @@
 
 #include "protocol.h"
 
-#include "util.h"
+#include "commons/util.h"
 
 #ifndef WIN32
 # include <arpa/inet.h>
@@ -149,4 +149,3 @@ void CInv::Print() const
 {
     LogPrint("INFO","CInv(%s)\n", ToString());
 }
-

@@ -9,7 +9,7 @@
 #include "commons/serialize.h"
 #include "main.h"
 #include "persistence/block.h"
-#include "util.h"
+#include "commons/util.h"
 #include "vm/vmrunenv.h"
 
 #include <algorithm>

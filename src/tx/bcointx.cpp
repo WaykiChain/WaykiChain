@@ -9,7 +9,7 @@
 #include "commons/serialize.h"
 #include "crypto/hash.h"
 #include "persistence/contractdb.h"
-#include "util.h"
+#include "commons/util.h"
 #include "main.h"
 #include "miner/miner.h"
 #include "version.h"

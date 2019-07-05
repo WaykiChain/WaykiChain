@@ -10,7 +10,7 @@
 #include "init.h"
 #include "net.h"
 #include "miner/miner.h"
-#include "util.h"
+#include "commons/util.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #include "tx/dextx.h"
@@ -404,7 +404,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     if (!pUserId) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
-    
+
     CoinType coinType;
     if (!ParseCoinType(params[1].get_str(), coinType)) {
         throw JSONRPCError(RPC_DEX_COIN_TYPE_INVALID, "Invalid coin_type");
@@ -425,7 +425,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
         if (fee < defaultFee) {
             throw JSONRPCError(RPC_INSUFFICIENT_FEE,
                                strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
-        }   
+        }
     } else {
         fee = defaultFee;
     }
@@ -433,7 +433,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     CAccount txAccount;
     if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("The account not exists! userId=%s", pUserId->ToString()));        
+                            strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
     assert(!txAccount.keyId.IsEmpty());
 
@@ -451,7 +451,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     } else{
         CPubKey txPubKey;
         if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, 
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                 strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
         }
         txUid = txPubKey;

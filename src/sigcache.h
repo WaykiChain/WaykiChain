@@ -15,7 +15,7 @@
 #include "accounts/key.h"
 #include "commons/random.h"
 #include "commons/uint256.h"
-#include "util.h"
+#include "commons/util.h"
 
 /**
  * Valid signature cache, to avoid doing expensive ECDSA signature checking

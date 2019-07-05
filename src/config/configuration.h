@@ -9,7 +9,7 @@
 #include "chainparams.h"
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
-#include "util.h"
+#include "commons/util.h"
 #include "version.h"
 
 #include <boost/filesystem.hpp>

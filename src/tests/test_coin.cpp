@@ -8,7 +8,7 @@
 
 
 #include "main.h"
-#include "util.h"
+#include "commons/util.h"
 
 
 #include "wallet/wallet.h"
@@ -72,4 +72,3 @@ BOOST_GLOBAL_FIXTURE(TestingSetup);
 //{
 //  return false;
 //}
-

@@ -9,7 +9,7 @@
 #include <boost/foreach.hpp>
 #include "commons/SafeInt3.hpp"
 #include "tx/tx.h"
-#include "util.h"
+#include "commons/util.h"
 
 // CVmRunEnv *pVmRunEnv = NULL;
 

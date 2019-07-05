@@ -10,7 +10,7 @@
 #include "main.h"
 #include "rpc/core/rpcclient.h"
 #include "rpc/core/rpcserver.h"
-#include "util.h"
+#include "commons/util.h"
 
 /* Introduction text for doxygen: */
 

@@ -6,7 +6,7 @@
  */
 #ifdef TODO
 #include "chainparams.h"
-#include "util.h"
+#include "commons/util.h"
 
 #include <string>
 #include <vector>

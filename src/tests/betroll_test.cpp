@@ -5,10 +5,10 @@
 #include "vm/vmrunenv.h"
 //#include "vm/vm8051.h"
 #include <memory>
-#include "util.h"
+#include "commons/util.h"
 #include "main.h"
 #include "tx/tx.h"
-#include "util.h"
+#include "commons/util.h"
 #include <stdio.h>
 using namespace std;
 #define random(x) (rand()%x)

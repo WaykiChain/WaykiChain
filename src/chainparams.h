@@ -13,7 +13,7 @@
 
 #include "commons/uint256.h"
 #include "commons/arith_uint256.h"
-#include "util.h"
+#include "commons/util.h"
 
 using namespace std;
 

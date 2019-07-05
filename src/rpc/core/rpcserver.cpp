@@ -9,7 +9,7 @@
 #include "commons/base58.h"
 #include "init.h"
 #include "main.h"
-#include "util.h"
+#include "commons/util.h"
 
 #include <boost/algorithm/string.hpp>
 #include <memory>

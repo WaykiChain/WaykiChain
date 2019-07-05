@@ -7,7 +7,7 @@
 #define PERSIST_LEVELDBWRAPPER_H
 
 #include "commons/serialize.h"
-#include "util.h"
+#include "commons/util.h"
 #include "version.h"
 #include "dbconf.h"
 
@@ -28,11 +28,11 @@ public:
     // for key-value
     template<typename K, typename V>
     void Set(const K& keyIn, const V& valueIn){
-        
+
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         ssKey << keyIn;
         key = ssKey.str();
-        
+
         CDataStream ssValue(SER_DISK, CLIENT_VERSION);
         ssValue << valueIn;
         value = ssValue.str();

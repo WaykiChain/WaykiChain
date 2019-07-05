@@ -9,7 +9,7 @@
 
 #include "assert.h"
 #include "protocol.h"
-#include "util.h"
+#include "commons/util.h"
 #include "accounts/key.h"
 #include "tx/blockrewardtx.h"
 #include "tx/accountregtx.h"

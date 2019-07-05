@@ -11,7 +11,7 @@
 #include "miner/miner.h"
 #include "persistence/pricefeeddb.h"
 #include "tx.h"
-#include "util.h"
+#include "commons/util.h"
 #include "version.h"
 
 bool CPriceFeedTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
@@ -129,7 +129,7 @@ Object CPriceFeedTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("fees",           llFees));
 
     result.push_back(Pair("price_points",   pricePointArray));
-    
+
     return result;
 }
 

@@ -6,7 +6,7 @@
 
 #include "include/secp256k1.h"
 
-#include "util.h"
+#include "commons/util.h"
 #include "num_impl.h"
 #include "field_impl.h"
 #include "scalar_impl.h"

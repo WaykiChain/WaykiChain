@@ -21,7 +21,7 @@
 #include "sync.h"
 #include "tx/txmempool.h"
 #include "commons/uint256.h"
-#include "util.h"
+#include "commons/util.h"
 #include "version.h"
 
 #include "../wallet/wallet.h"

@@ -16,7 +16,7 @@
 #include "netbase.h"
 #include "protocol.h"
 #include "sync.h"
-#include "util.h"
+#include "commons/util.h"
 
 #include <stdint.h>
 #include <deque>

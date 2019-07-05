@@ -5,7 +5,7 @@
 
 #include "rpcprotocol.h"
 
-#include "util.h"
+#include "commons/util.h"
 
 #include <stdint.h>
 

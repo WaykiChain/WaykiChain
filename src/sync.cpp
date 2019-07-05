@@ -5,7 +5,7 @@
 
 #include "sync.h"
 
-#include "util.h"
+#include "commons/util.h"
 
 
 #ifdef DEBUG_LOCKCONTENTION

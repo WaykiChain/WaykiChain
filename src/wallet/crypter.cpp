@@ -5,7 +5,7 @@
 
 #include "crypter.h"
 
-#include "util.h"
+#include "commons/util.h"
 #include <string>
 #include <vector>
 #include <boost/foreach.hpp>

@@ -5,7 +5,7 @@
 
 #include "leveldbwrapper.h"
 
-#include "util.h"
+#include "commons/util.h"
 
 #include <leveldb/cache.h>
 #include <leveldb/env.h>

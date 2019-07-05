@@ -9,7 +9,7 @@
 
 #include "commons/serialize.h"
 #include "crypto/hash.h"
-#include "util.h"
+#include "commons/util.h"
 #include "main.h"
 #include "vm/vmrunenv.h"
 #include "miner/miner.h"

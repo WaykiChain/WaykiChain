@@ -7,7 +7,7 @@
 #ifndef SECP256K1_FIELD_REPR_IMPL_H
 #define SECP256K1_FIELD_REPR_IMPL_H
 
-#include "util.h"
+#include "commons/util.h"
 #include "num.h"
 #include "field.h"
 

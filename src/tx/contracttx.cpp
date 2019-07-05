@@ -12,7 +12,7 @@
 #include "miner/miner.h"
 #include "persistence/contractdb.h"
 #include "persistence/txdb.h"
-#include "util.h"
+#include "commons/util.h"
 #include "version.h"
 #include "vm/vmrunenv.h"
 

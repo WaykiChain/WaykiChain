@@ -8,7 +8,7 @@
 
 #include "accounts/key.h"
 #include "net.h"
-#include "util.h"
+#include "commons/util.h"
 
 #include <stdint.h>
 #include <algorithm>

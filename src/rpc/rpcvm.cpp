@@ -7,7 +7,7 @@
 #include "init.h"
 #include "net.h"
 #include "miner/miner.h"
-#include "util.h"
+#include "commons/util.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #include "persistence/txdb.h"

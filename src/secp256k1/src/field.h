@@ -30,7 +30,7 @@
 #error "Please select field implementation"
 #endif
 
-#include "util.h"
+#include "commons/util.h"
 
 /** Normalize a field element. */
 static void secp256k1_fe_normalize(secp256k1_fe *r);

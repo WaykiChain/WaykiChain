@@ -1,7 +1,7 @@
 
 #include "./rpc/core/rpcserver.h"
 #include "./rpc/core/rpcclient.h"
-#include "util.h"
+#include "commons/util.h"
 #include <boost/test/unit_test.hpp>
 
 using namespace std;

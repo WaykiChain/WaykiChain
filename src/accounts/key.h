@@ -14,7 +14,7 @@
 #include "commons/allocators.h"
 #include "chainparams.h"
 #include "crypto/hash.h"
-#include "util.h"
+#include "commons/util.h"
 
 #include <secp256k1.h>
 #include <secp256k1_recovery.h>

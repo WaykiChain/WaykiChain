@@ -10,7 +10,7 @@
 #include "compat/compat.h" // for Windows API
 #endif
 #include "commons/serialize.h"        // for begin_ptr(vec)
-#include "util.h"             // for LogPrint()
+#include "commons/util.h"             // for LogPrint()
 //#include "utilstrencodings.h" // for GetTime()
 
 #include <limits>

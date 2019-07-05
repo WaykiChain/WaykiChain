@@ -9,7 +9,7 @@
 #include "netbase.h"
 #include "protocol.h"
 #include "sync.h"
-#include "util.h"
+#include "commons/util.h"
 #include "tx/blockrewardtx.h"
 
 #include "json/json_spirit_value.h"

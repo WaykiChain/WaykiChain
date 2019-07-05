@@ -21,7 +21,7 @@
 #include "tx/merkletx.h"
 #include "tx/multicoinblockrewardtx.h"
 #include "tx/txmempool.h"
-#include "util.h"
+#include "commons/util.h"
 #include "vm/vmrunenv.h"
 
 #include "json/json_spirit_utils.h"
