@@ -42,33 +42,33 @@ enum TxType : unsigned char {
     DELEGATE_VOTE_TX    = 6,  //!< Vote Delegate Tx
     COMMON_MTX          = 7,  //!< Multisig Tx
 
-    BLOCK_PRICE_MEDIAN_TX      = 8,  //!< Block Median Price Tx
-    MULTI_COIN_BLOCK_REWARD_TX = 9,  //!< Multi Coin Miner Block Reward Tx
-    COIN_TRANSFER_TX           = 10, //!< Coin Transfer Tx
-    COIN_REWARD_TX             = 11, //!< Coin Reward Tx
+    MCOIN_BLOCK_REWARD_TX    = 11,  //!< Multi Coin Miner Block Reward Tx
+    MCOIN_CONTRACT_INVOKE_TX = 12;  //!< Multi Coin Contract Invocation Tx
+    MCOIN_TRANSFER_TX        = 13,  //!< Coin Transfer Tx
+    MCOIN_REWARD_TX          = 14,  //!< Coin Reward Tx
 
-    // CDP_OPEN_TX      = 11,  //!< CDP Open Tx
-    CDP_REFUEL_TX    = 12,  //!< CDP refuel Tx
-    CDP_REDEEMP_TX   = 13,  //!< CDP Redemption Tx (partial or full)
-    CDP_LIQUIDATE_TX = 14,  //!< CDP Liquidation Tx (partial or full)
-    CDP_STAKE_TX     = 15,  //!< CDP Staking/Restaking Tx
+    CDP_REFUEL_TX    = 21,  //!< CDP refuel Tx
+    CDP_REDEEMP_TX   = 22,  //!< CDP Redemption Tx (partial or full)
+    CDP_LIQUIDATE_TX = 23,  //!< CDP Liquidation Tx (partial or full)
+    CDP_STAKE_TX     = 24,  //!< CDP Staking/Restaking Tx
 
-    PRICE_FEED_TX = 22,  //!< Price Feed Tx: WICC/USD | WGRT/USD | WUSD/USD
+    PRICE_FEED_TX         = 31,  //!< Price Feed Tx: WICC/USD | WGRT/USD | WUSD/USD
+    BLOCK_PRICE_MEDIAN_TX = 32,  //!< Block Median Price Tx
 
-    SFC_PARAM_MTX         = 31,  //!< StableCoin Fund Committee invokes Param Set/Update MulSigTx
-    SFC_GLOBAL_HALT_MTX   = 32,  //!< StableCoin Fund Committee invokes Global Halt CDP Operations MulSigTx
-    SFC_GLOBAL_SETTLE_MTX = 33,  //!< StableCoin Fund Committee invokes Global Settle Operation MulSigTx
+    SFC_PARAM_MTX         = 41,  //!< StableCoin Fund Committee invokes Param Set/Update MulSigTx
+    SFC_GLOBAL_HALT_MTX   = 42,  //!< StableCoin Fund Committee invokes Global Halt CDP Operations MulSigTx
+    SFC_GLOBAL_SETTLE_MTX = 43,  //!< StableCoin Fund Committee invokes Global Settle Operation MulSigTx
 
-    SCOIN_TRANSFER_TX = 41,  //!< StableCoin Transfer Tx
-    FCOIN_TRANSFER_TX = 42,  //!< FundCoin Transfer Tx
-    FCOIN_STAKE_TX    = 43,  //!< Stake Fund Coin Tx in order to become a price feeder
+    SCOIN_TRANSFER_TX = 51,  //!< StableCoin Transfer Tx
+    FCOIN_TRANSFER_TX = 52,  //!< FundCoin Transfer Tx
+    FCOIN_STAKE_TX    = 53,  //!< Stake Fund Coin Tx in order to become a price feeder
 
-    DEX_SETTLE_TX            = 51,  //!< dex settle Tx
-    DEX_CANCEL_ORDER_TX      = 52,  //!< dex cancel order Tx
-    DEX_BUY_LIMIT_ORDER_TX   = 53,  //!< dex buy limit price order Tx
-    DEX_SELL_LIMIT_ORDER_TX  = 54,  //!< dex sell limit price order Tx
-    DEX_BUY_MARKET_ORDER_TX  = 55,  //!< dex buy market price order Tx
-    DEX_SELL_MARKET_ORDER_TX = 56,  //!< dex sell market price order Tx
+    DEX_SETTLE_TX            = 61,  //!< dex settle Tx
+    DEX_CANCEL_ORDER_TX      = 62,  //!< dex cancel order Tx
+    DEX_BUY_LIMIT_ORDER_TX   = 63,  //!< dex buy limit price order Tx
+    DEX_SELL_LIMIT_ORDER_TX  = 64,  //!< dex sell limit price order Tx
+    DEX_BUY_MARKET_ORDER_TX  = 65,  //!< dex buy market price order Tx
+    DEX_SELL_MARKET_ORDER_TX = 66,  //!< dex sell market price order Tx
 
     NULL_TX = 0  //!< NULL_TX
 };
@@ -86,11 +86,11 @@ struct TxTypeHash {
  */
 static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t>, TxTypeHash> kTxTypeMap = {
     { BLOCK_REWARD_TX,          std::make_tuple("BLOCK_REWARD_TX",         0,          0            ) },
-    { COIN_REWARD_TX,           std::make_tuple("COIN_REWARD_TX",          0,          0            ) },
+    { MCOIN_REWARD_TX,           std::make_tuple("MCOIN_REWARD_TX",        0,          0            ) },
     { BLOCK_PRICE_MEDIAN_TX,    std::make_tuple("BLOCK_PRICE_MEDIAN_TX",   0,          0            ) },
     { ACCOUNT_REGISTER_TX,      std::make_tuple("ACCOUNT_REGISTER_TX",     10000,      10000        ) }, //0.0001 WICC, optional
     { BCOIN_TRANSFER_TX,        std::make_tuple("BCOIN_TRANSFER_TX",       10000,      10000        ) }, //0.0001 WICC
-    { COIN_TRANSFER_TX,         std::make_tuple("COIN_TRANSFER_TX",        10000,      10000        ) }, //0.0001 WICC
+    { MCOIN_TRANSFER_TX,         std::make_tuple("MCOIN_TRANSFER_TX",      10000,      10000        ) }, //0.0001 WICC
     { CONTRACT_DEPLOY_TX,       std::make_tuple("CONTRACT_DEPLOY_TX",      100000000,  100000000    ) }, //0.01 WICC
     { CONTRACT_INVOKE_TX,       std::make_tuple("CONTRACT_INVOKE_TX",      1000,       1000         ) }, //0.001 WICC, min fees
     { DELEGATE_VOTE_TX,         std::make_tuple("DELEGATE_VOTE_TX",        10000,      10000        ) }, //0.0001 WICC
@@ -186,7 +186,7 @@ public:
 
     int32_t GetFuelRate(CContractDBCache &scriptDB);
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
-    bool IsCoinBase() { return nTxType == BLOCK_REWARD_TX || nTxType == COIN_REWARD_TX; }
+    bool IsCoinBase() { return nTxType == BLOCK_REWARD_TX || nTxType == MCOIN_REWARD_TX; }
 
 protected:
     bool CheckTxFeeSufficient(const uint64_t llFees, const int32_t nHeight) const;
