@@ -22,8 +22,6 @@ class CBlockIndex;
 class CWallet;
 class CBaseTx;
 class CAccountDBCache;
-class CTxMemCache;
-class CContractDBCache;
 class CAccount;
 
 typedef boost::tuple<double, double, std::shared_ptr<CBaseTx> > TxPriority;
