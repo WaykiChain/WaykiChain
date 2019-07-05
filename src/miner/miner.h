@@ -72,7 +72,7 @@ void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int nThreads);
 /** Generate a new block */
 std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn);
 /** Generate fund coin's genesis block */
-std::unique_ptr<CBlock> CreateFundCoinGenesisBlock();
+std::unique_ptr<CBlock> CreateStableCoinGenesisBlock();
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(CBlock *pBlock, CBlockIndex *pIndexPrev, unsigned int &nExtraNonce);
 /** Do mining precalculation */

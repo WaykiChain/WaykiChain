@@ -72,6 +72,7 @@ protected:
     uint16_t nMaxForkHeight = 24 * 60 * 6; //8640, i.e. forked distance by a day block height
     int64_t nBlockInterval;   //to limit block creation time
     uint32_t nFeatureForkHeight;
+    uint32_t nStableCoinGenesisHeight;
     mutable unsigned int nScriptCheckThreads;
     mutable int64_t nViewCacheSize;
     mutable int nTxCacheHeight;
@@ -218,6 +219,7 @@ public:
     const arith_uint256 ProofOfWorkLimit() { return bnProofOfStakeLimit; }
     int GetSubsidyHalvingInterval() const { return nSubsidyHalvingInterval; }
     uint32_t GetFeatureForkHeight() const { return nFeatureForkHeight; }
+    uint32_t GetStableCoinGenesisHeight() const { return nStableCoinGenesisHeight; }
     virtual uint64_t GetMaxFee() const { return 1000 * COIN; }
 
     virtual const CBlock& GenesisBlock() const = 0;
@@ -226,7 +228,7 @@ public:
     bool CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
 
     bool CreateFundCoinAccountRegisterTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
-    bool CreateFundCoinGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
+    bool CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
 
     virtual bool RequireRPCPassword() const { return true; }
     const string& DataDir() const { return strDataDir; }

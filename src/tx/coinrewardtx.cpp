@@ -8,20 +8,25 @@
 
 #include "main.h"
 
-bool CCoinRewardTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
-    // Nothing to do here.
-    return true;
+bool CCoinRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+    // Only used in stable coin genesis.
+    return height == (int32_t)SysCfg().GetStableCoinGenesisHeight() ? true : false;
 }
 
-bool CCoinRewardTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
-    // Contstuct an empty account log which will delete account automatically if the blockchain rollbacked.
-    CAccountLog accountLog(txUid.get<CPubKey>().GetKeyId());
+bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+    assert(txUid.type() == typeid(CNullID) || txUid.type() == typeid(CPubKey));
 
     CAccount account;
+    CRegID regId(height, index);
+    CPubKey pubKey = txUid.type() == CNullID ? CPubKey() : txUid.get<CPubKey>();
+    CKeyID keyId = txUid.type() == CNullID ? Hash160(regId.GetRegIdRaw()) : txUid.get<CPubKey>().GetKeyId();
+    // Contstuct an empty account log which will delete account automatically if the blockchain rollbacked.
+    CAccountLog accountLog(keyId);
+
     account.nickId = CNickID();
-    account.keyId  = txUid.get<CPubKey>().GetKeyId();
-    account.pubKey = txUid.get<CPubKey>();
-    account.regId  = CRegID(height, index);
+    account.pubKey = pubKey;
+    account.regId  = regId;
+    account.keyId  = keyId;
 
     switch (coinType) {
         case CoinType::WICC: account.bcoins += coins; break;
@@ -43,7 +48,7 @@ bool CCoinRewardTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidat
     return true;
 }
 
-bool CCoinRewardTx::UndoExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
+bool CCoinRewardTx::UndoExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         if (!cw.accountCache.EraseAccountByKeyId(CUserID(rIterAccountLog->keyId)) ||

@@ -278,9 +278,13 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
     if (!pBlock.get())
         return nullptr;
 
-    pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
-    // TODO: add softfork to enable price median transaction.
-    // pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>());
+    if (chainActive.Height() + 1 < (int32_t)SysCfg().GetStableCoinGenesisHeight()) {
+        pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
+    } else {
+        pBlock->vptx.push_back(std::make_shared<CMultiCoinBlockRewardTx>());
+        // TODO: enable
+        // pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>());
+    }
 
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
@@ -395,7 +399,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
     return pBlock;
 }
 
-std::unique_ptr<CBlock> CreateFundCoinGenesisBlock() {
+std::unique_ptr<CBlock> CreateStableCoinGenesisBlock() {
     // Create new block
     std::unique_ptr<CBlock> pBlock(new CBlock());
     if (!pBlock.get())
@@ -405,8 +409,8 @@ std::unique_ptr<CBlock> CreateFundCoinGenesisBlock() {
         LOCK(cs_main);
 
         pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
+        SysCfg().CreateFundCoinRewardTx(pBlock->vptx, SysCfg().NetworkID());
         SysCfg().CreateFundCoinAccountRegisterTx(pBlock->vptx, SysCfg().NetworkID());
-        SysCfg().CreateFundCoinGenesisBlockRewardTx(pBlock->vptx, SysCfg().NetworkID());
 
         // Fill in header.
         CBlockIndex *pIndexPrev = chainActive.Tip();
@@ -601,8 +605,9 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
             miningBlockInfo.SetNull();
             int64_t nLastTime = GetTimeMillis();
 
-            auto pBlock = (pIndexPrev->nHeight + 1 == kFcoinGenesisTxHeight) ? CreateFundCoinGenesisBlock()
-                                                                             : CreateNewBlock(*spCW);
+            auto pBlock = (pIndexPrev->nHeight + 1 == (int32_t)SysCfg().GetStableCoinGenesisHeight())
+                              ? CreateStableCoinGenesisBlock()
+                              : CreateNewBlock(*spCW);
             if (!pBlock.get())
                 throw runtime_error("Create new block failed");
 
