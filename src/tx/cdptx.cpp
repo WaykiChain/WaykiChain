@@ -77,6 +77,11 @@ bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &
                         REJECT_INVALID, "gloalcdplock_is_on");
     }
 
+    if (cdpTxId.Empty() && collateralRatio < kStartingCdpCollateralRatio) { ) { // first-time CDP creation
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
+                            collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
+    }
+
     if (bcoinsToStake < kBcoinsToStakeAmountMin) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, bcoins to stake %d is too small,",
                     bcoinsToStake), REJECT_INVALID, "bcoins-too-small-to-stake");
@@ -112,26 +117,26 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
 
     //2. mint scoins
     int mintedScoins = 0;
-    CUserCDP cdp(txUid.get<CRegID>(), cdpTxId);
-    if (!cw.cdpCache.GetCdp(cdp)) { // first-time CDP creation
-        if (collateralRatio < kStartingCdpCollateralRatio) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal", collateralRatio),
-                            REJECT_INVALID, "bad-tx-collateral-ratio-toosmall");
-        }
-
-        cdp.cdpTxId  = GetHash();
+    if (cdpTxId.Empty()) { // first-time CDP creation
+        CUserCDP cdp(txUid.get<CRegID>(),  GetHash());
         mintedScoins = bcoinsToStake * kPercentBoost / collateralRatio;
-
         //settle cdp state & persist for the 1st-time
         cw.cdpCache.StakeBcoinsToCdp(nHeight, bcoinsToStake, (uint64_t) mintedScoins, cdp);
 
     } else { // further staking on one's existing CDP
+        CUserCDP cdp(txUid.get<CRegID>(), cdpTxId);
+        if (!cw.cdpCache.GetCdp(cdp)) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, invalid cdpTxId %llu", cdpTxId),
+                            REJECT_INVALID, "invalid-stake-cdp-txid");
+        }
         if (nHeight < cdp.blockHeight) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, nHeight: %d < cdp.blockHeight: %d",
                     nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
         }
 
-        uint64_t currentCollateralRatio = cdp.totalStakedBcoins * cw.ppCache.GetBcoinMedianPrice() * kPercentBoost / cdp.totalOwedScoins;
+        uint64_t currentCollateralRatio = cdp.totalStakedBcoins * cw.ppCache.GetBcoinMedianPrice()
+                                        * kPercentBoost / cdp.totalOwedScoins;
+
         if ( collateralRatio < currentCollateralRatio  && collateralRatio < kStartingCdpCollateralRatio) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, currentCollateralRatio: %d vs new CollateralRatio: %d not allowed",
                             currentCollateralRatio, collateralRatio), REJECT_INVALID, "collateral-ratio-error");
