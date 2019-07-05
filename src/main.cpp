@@ -1442,10 +1442,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                                 block.GetHash().GetHex()), REJECT_INVALID, "exceed-max-run-step");
 
             uint64_t llFuel = ceil(pBaseTx->nRunStep / 100.f) * block.GetFuelRate();
-            if (CONTRACT_DEPLOY_TX == pBaseTx->nTxType) {
-                if (llFuel < 1 * COIN) {
-                    llFuel = 1 * COIN;
-                }
+            if (CONTRACT_DEPLOY_TX == pBaseTx->nTxType && llFuel < 1 * COIN) {
+                llFuel = 1 * COIN;
             }
 
             nTotalFuel += llFuel;
