@@ -14,7 +14,7 @@
 #include "wallet/walletdb.h"
 #include "persistence/blockdb.h"
 #include "persistence/txdb.h"
-#include "configuration.h"
+#include "config/configuration.h"
 #include "miner/miner.h"
 #include "main.h"
 #include "vm/script.h"

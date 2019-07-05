@@ -9,7 +9,7 @@
 #endif
 
 #include "init.h"
-#include "configuration.h"
+#include "config/configuration.h"
 #include "addrman.h"
 
 #include "rpc/core/rpcserver.h"

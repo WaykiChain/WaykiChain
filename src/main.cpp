@@ -9,7 +9,7 @@
 #include "addrman.h"
 #include "alert.h"
 #include "chainparams.h"
-#include "configuration.h"
+#include "config/configuration.h"
 #include "init.h"
 #include "miner/miner.h"
 #include "net.h"

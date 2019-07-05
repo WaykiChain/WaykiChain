@@ -5,7 +5,7 @@
 
 
 #include "account.h"
-#include "configuration.h"
+#include "config/configuration.h"
 
 #include "main.h"
 

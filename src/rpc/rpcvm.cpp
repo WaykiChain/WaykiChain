@@ -13,7 +13,7 @@
 #include "persistence/txdb.h"
 #include "persistence/contractdb.h"
 
-#include "configuration.h"
+#include "config/configuration.h"
 #include "main.h"
 #include "vm/script.h"
 #include "vm/vmrunenv.h"

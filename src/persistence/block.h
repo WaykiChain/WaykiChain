@@ -10,7 +10,7 @@
 #include "commons/base58.h"
 #include "commons/serialize.h"
 #include "commons/uint256.h"
-#include "configuration.h"
+#include "config/configuration.h"
 #include "sync.h"
 #include "tx/tx.h"
 #include "disk.h"

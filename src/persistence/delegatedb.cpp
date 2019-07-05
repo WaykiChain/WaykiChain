@@ -5,7 +5,7 @@
 
 #include "delegatedb.h"
 
-#include "configuration.h"
+#include "config/configuration.h"
 
 bool CDelegateDBCache::LoadTopDelegates() {
     delegateRegIds.clear();

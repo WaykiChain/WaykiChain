@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#include "configuration.h"
+#include "config/configuration.h"
 #include "rpcclient.h"
 
 #include "rpcprotocol.h"

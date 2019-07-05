@@ -121,7 +121,7 @@ coin_CORE_H = \
   version.h \
   wallet/wallet.h \
   wallet/db.h \
-  configuration.h
+  config/configuration.h
 
 JSON_H = \
   json/json_spirit.h \
@@ -231,7 +231,7 @@ libcoin_server_a_SOURCES = \
   accounts/cdp.cpp \
   addrman.cpp \
   alert.cpp \
-  configuration.cpp \
+  config/configuration.cpp \
   crypto/sha256.cpp \
   init.cpp \
   main.cpp \

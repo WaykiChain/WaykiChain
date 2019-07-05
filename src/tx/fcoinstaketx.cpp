@@ -6,7 +6,7 @@
 
 #include "fcoinstaketx.h"
 
-#include "configuration.h"
+#include "config/configuration.h"
 #include "main.h"
 
 bool CFcoinStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {

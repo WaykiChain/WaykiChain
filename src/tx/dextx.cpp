@@ -5,7 +5,7 @@
 
 #include "dextx.h"
 
-#include "configuration.h"
+#include "config/configuration.h"
 #include "main.h"
 
 using uint128_t = unsigned __int128;
@@ -395,7 +395,7 @@ bool CDEXBuyMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSt
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
-    
+
     if ((txUid.type() == typeid(CRegID)) && !srcAccount.IsRegistered())
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");

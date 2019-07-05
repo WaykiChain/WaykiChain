@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #include "util.h"
 #include "chainparams.h"
-#include "configuration.h"
+#include "config/configuration.h"
 #include "netbase.h"
 #include "sync.h"
 #include "commons/uint256.h"

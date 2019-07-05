@@ -16,7 +16,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
 #include "commons/random.h"
-#include "configuration.h"
+#include "config/configuration.h"
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_writer_template.h"
 #include "net.h"

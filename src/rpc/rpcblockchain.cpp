@@ -9,7 +9,7 @@
 
 #include "commons/messagequeue.h"
 #include "commons/uint256.h"
-#include "configuration.h"
+#include "config/configuration.h"
 #include "init.h"
 #include "json/json_spirit_value.h"
 #include "main.h"
