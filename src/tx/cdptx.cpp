@@ -118,7 +118,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
     //2. mint scoins
     int mintedScoins = 0;
     if (cdpTxId.Empty()) { // first-time CDP creation
-        CUserCDP cdp(txUid.get<CRegID>(),  GetHash());
+        CUserCDP cdp(txUid.get<CRegID>(), GetHash());
         mintedScoins = bcoinsToStake * kPercentBoost / collateralRatio;
         //settle cdp state & persist for the 1st-time
         cw.cdpCache.StakeBcoinsToCdp(nHeight, bcoinsToStake, (uint64_t) mintedScoins, cdp);
