@@ -101,7 +101,7 @@ inline const string& GetPriceTypeName(PriceType priceType) {
     return kPriceTypeMapName.at(priceType);
 }
 
-inline bool ParsePriceType(const string& priceName, CoinType &priceType) {
+inline bool ParsePriceType(const string& priceName, PriceType &priceType) {
     if (priceName != "") {
         auto it = kPriceNameMapType.find(priceName);
         if (it != kPriceNameMapType.end()) {
