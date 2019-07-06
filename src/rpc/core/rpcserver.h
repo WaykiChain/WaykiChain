@@ -196,6 +196,7 @@ extern json_spirit::Value submitdexsettletx(const json_spirit::Array& params, bo
 extern json_spirit::Value submitstakecdptx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitredeemcdptx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitliquidatecdptx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getmedianprice(const json_spirit::Array& params, bool fHelp);
 
 json_spirit::Object JSONRPCExecOne(const json_spirit::Value& req);
 

@@ -147,7 +147,7 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
 
 /*************************************************<< CDP >>**************************************************/
 Value submitstakecdptx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 2 || params.size() > 5) {
+    if (fHelp || params.size() < 3 || params.size() > 6) {
         throw runtime_error(
             "submitstakecdptx \"addr\" stake_amount collateral_ratio [\"cdp_id\"] [interest] [fee]\n"
             "\nsubmit a CDP Staking Tx.\n"
@@ -195,7 +195,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     return SubmitTx(cdpUid->get<CKeyID>(), tx);
 }
 Value submitredeemcdptx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 2 || params.size() > 5) {
+    if (fHelp || params.size() < 3 || params.size() > 6) {
         throw runtime_error(
             "submitredeemcdptx \"addr\" redeem_amount collateral_ratio [\"cdp_id\"] [interest] [fee]\n"
             "\nsubmit a CDP Redemption Tx\n"
@@ -243,7 +243,7 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
     return SubmitTx(cdpUid->get<CKeyID>(), tx);
 }
 Value submitliquidatecdptx(const Array& params, bool fHelp) {
-if (fHelp || params.size() < 2 || params.size() > 5) {
+if (fHelp || params.size() < 3 || params.size() > 6) {
         throw runtime_error(
             "submitliquidatecdptx \"addr\" liquidate_amount collateral_ratio [\"cdp_id\"] [interest] [fee]\n"
             "\nsubmit a CDP Liquidation Tx\n"
@@ -291,13 +291,64 @@ if (fHelp || params.size() < 2 || params.size() > 5) {
     return SubmitTx(cdpUid->get<CKeyID>(), tx);
 }
 
-Value getmedianprice(const Array& params, bool fHelp);
+Value getmedianprice(const Array& params, bool fHelp){
+    if (fHelp || params.size() < 2 || params.size() > 3) {
+        throw runtime_error(
+            "getmedianprice \"coin_type\" \"asset_type\" [height]\n"
+            "\nget current median price or query at specified height.\n"
+            "\nArguments:\n"
+            "1.\"coin_type\": (string required) coin type to pay\n"
+            "2.\"asset_type\": (string required), asset type to buy\n"
+            "3.\"height\": (numeric, optional), specified height. If not provide use the tip block height in chainActive\n\n"
+            "\nResult detail\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getmedianprice", "\"WUSD\" \"WICC\"\n")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getmedianprice", "\"WUSD\" \"WICC\"\n")
+        );
+    }
+
+    CoinType coinType;
+    if (ParseCoinType(params[0].get_str(), coinType)) {
+        throw JSONRPCError(RPC_DEX_COIN_TYPE_INVALID, "Invalid coin type, must be one of WICC,WGRT,WUSD");
+    }
+
+    CoinType assetType;
+    if (ParseCoinType(params[1].get_str(), assetType)) {
+        throw JSONRPCError(RPC_DEX_ASSET_TYPE_INVALID, "Invalid asset type, must be one of WICC,WGRT,WUSD");
+    }
+
+    if (params[1].get_str()==params[0].get_str()){
+        throw JSONRPCError(RPC_DEX_COIN_TYPE_INVALID, "Coin type cannot be the same as asset type");
+    }
+
+    int height = chainActive.Tip()->nHeight;
+    if (params.size() > 2){
+        height = params[2].get_int();
+        if (height < 0 || height > chainActive.Height())
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range.");
+    }
+
+    CBlock block;
+    CBlockIndex* pBlockIndex = chainActive[height];
+    if (!ReadBlockFromDisk(pBlockIndex, block)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
+    }
+
+    int64_t price=block.GetBlockMedianPrice(coinType,assetType);
+
+    Object obj;
+    obj.push_back(Pair("price", price));
+    return obj;
+}
+
 Value listcdps(const Array& params, bool fHelp);
 Value listcdpstoliquidate(const Array& params, bool fHelp);
 
 /*************************************************<< DEX >>**************************************************/
 Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 5 || params.size() > 7) {
+    if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
             "submitdexbuylimitordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
             "\nsubmit a dex buy limit price order tx.\n"
@@ -394,7 +445,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 }
 
 Value submitdexselllimitordertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 5 || params.size() > 7) {
+    if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
             "submitdexselllimitordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
             "\nsubmit a dex buy limit price order tx.\n"
@@ -500,7 +551,7 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
 }
 
 Value submitdexcancelordertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 2 || params.size() > 4) {
+    if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
             "submitdexcancelordertx \"addr\" \"txid\"\n"
             "\nsubmit a dex cancel order tx.\n"
@@ -522,7 +573,7 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
     return Object();
 }
 Value submitdexsettletx(const Array& params, bool fHelp) {
-     if (fHelp || params.size() < 2 || params.size() > 4) {
+     if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
             "submitdexsettletx \"addr\" \"deal_items\"\n"
             "\nsubmit a dex settle tx.\n"
