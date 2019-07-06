@@ -87,8 +87,9 @@ enum RPCErrorCode
 
 
     // dex errors
-    RPC_DEX_COIN_TYPE_INVALID       = -100, // coin type invalid
-    RPC_DEX_ASSET_TYPE_INVALID      = -101, // asset type invalid
+    RPC_COIN_TYPE_INVALID       = -100, // coin type invalid
+    RPC_ASSET_TYPE_INVALID      = -101, // asset type invalid
+    RPC_PRICE_TYPE_INVALID      = -102, // price type invalid
 };
 
 //

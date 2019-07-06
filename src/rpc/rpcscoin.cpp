@@ -297,8 +297,8 @@ Value getmedianprice(const Array& params, bool fHelp){
             "getmedianprice \"coin_type\" \"asset_type\" [height]\n"
             "\nget current median price or query at specified height.\n"
             "\nArguments:\n"
-            "1.\"coin_type\": (string required) coin type to pay\n"
-            "2.\"asset_type\": (string required), asset type to buy\n"
+            "1.\"coin_type\": (string required) coin type\n"
+            "2.\"price_type\": (string required), price type\n"
             "3.\"height\": (numeric, optional), specified height. If not provide use the tip block height in chainActive\n\n"
             "\nResult detail\n"
             "\nResult:\n"
@@ -311,36 +311,31 @@ Value getmedianprice(const Array& params, bool fHelp){
 
     CoinType coinType;
     if (ParseCoinType(params[0].get_str(), coinType)) {
-        throw JSONRPCError(RPC_DEX_COIN_TYPE_INVALID, "Invalid coin type, must be one of WICC,WGRT,WUSD");
+        throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin type, must be one of WICC,WGRT,WUSD");
     }
 
-    // TODO:
-    // CoinType assetType;
-    // if (ParseCoinType(params[1].get_str(), assetType)) {
-    //     throw JSONRPCError(RPC_DEX_ASSET_TYPE_INVALID, "Invalid asset type, must be one of WICC,WGRT,WUSD");
-    // }
+    PriceType priceType;
+    if (ParsePriceType(params[1].get_str(), priceType)) {
+        throw JSONRPCError(RPC_PRICE_TYPE_INVALID, "Invalid price type, must be one of USD,CNY,EUR,BTC,USDT,GOLD,KWH");
+    }
 
-    // if (params[1].get_str()==params[0].get_str()){
-    //     throw JSONRPCError(RPC_DEX_COIN_TYPE_INVALID, "Coin type cannot be the same as asset type");
-    // }
+    int height = chainActive.Tip()->nHeight;
+    if (params.size() > 2){
+        height = params[2].get_int();
+        if (height < 0 || height > chainActive.Height())
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range.");
+    }
 
-    // int height = chainActive.Tip()->nHeight;
-    // if (params.size() > 2){
-    //     height = params[2].get_int();
-    //     if (height < 0 || height > chainActive.Height())
-    //         throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range.");
-    // }
+    CBlock block;
+    CBlockIndex* pBlockIndex = chainActive[height];
+    if (!ReadBlockFromDisk(pBlockIndex, block)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
+    }
 
-    // CBlock block;
-    // CBlockIndex* pBlockIndex = chainActive[height];
-    // if (!ReadBlockFromDisk(pBlockIndex, block)) {
-    //     throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
-    // }
-
-    // int64_t price = block.GetBlockMedianPrice(coinType, assetType);
+    int64_t price=block.GetBlockMedianPrice(coinType,priceType);
 
     Object obj;
-    // obj.push_back(Pair("price", price));
+    obj.push_back(Pair("price", price));
     return obj;
 }
 
@@ -378,12 +373,12 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 
     CoinType coinType;
     if (!ParseCoinType(params[1].get_str(), coinType)) {
-        throw JSONRPCError(RPC_DEX_COIN_TYPE_INVALID, "Invalid coin_type");
+        throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin_type");
     }
 
     CoinType assetType;
     if (!ParseCoinType(params[2].get_str(), assetType)) {
-        throw JSONRPCError(RPC_DEX_ASSET_TYPE_INVALID, "Invalid asset_type");
+        throw JSONRPCError(RPC_ASSET_TYPE_INVALID, "Invalid asset_type");
     }
 
     uint64_t assetAmount = AmountToRawValue(params[3]);
@@ -476,12 +471,12 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
 
     CoinType coinType;
     if (!ParseCoinType(params[1].get_str(), coinType)) {
-        throw JSONRPCError(RPC_DEX_COIN_TYPE_INVALID, "Invalid coin_type");
+        throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin_type");
     }
 
     CoinType assetType;
     if (!ParseCoinType(params[2].get_str(), assetType)) {
-        throw JSONRPCError(RPC_DEX_ASSET_TYPE_INVALID, "Invalid asset_type");
+        throw JSONRPCError(RPC_ASSET_TYPE_INVALID, "Invalid asset_type");
     }
 
     uint64_t assetAmount = AmountToRawValue(params[3]);
