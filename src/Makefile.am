@@ -35,7 +35,7 @@ $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(w
 
 
 config/build.h: FORCE
-	@$(top_srcdir)/share/genbuild.sh build.h $(abs_top_srcdir)/src/config
+	@$(top_srcdir)/share/genbuild.sh $(abs_top_builddir)/src/config/build.h $(abs_top_srcdir)
 
 .PHONY: FORCE
 # waykichain core #
@@ -327,7 +327,7 @@ libcoin_cli_a_SOURCES = \
   rpc/core/rpcclient.cpp \
   $(COIN_CORE_H)
 
-nodist_libcoin_common_a_SOURCES = $(top_srcdir)/src/obj/build.h
+nodist_libcoin_common_a_SOURCES = $(top_srcdir)/src/config/build.h
 #
 
 # coin binary #
