@@ -303,20 +303,20 @@ Value getmedianprice(const Array& params, bool fHelp){
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("getmedianprice", "\"WUSD\" \"WICC\"\n")
+            + HelpExampleCli("getmedianprice", "\"WUSD\" \"USD\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getmedianprice", "\"WUSD\" \"WICC\"\n")
+            + HelpExampleRpc("getmedianprice", "\"WUSD\" \"USD\"\n")
         );
     }
 
-    CoinType coinType;
+    CoinType coinType = CoinType::WICC;
     if (ParseCoinType(params[0].get_str(), coinType)) {
-        throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin type, must be one of WICC,WGRT,WUSD");
+        throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin type, must be one of WICC, WGRT, WUSD");
     }
 
-    PriceType priceType;
+    PriceType priceType = PriceType::USD;
     if (ParsePriceType(params[1].get_str(), priceType)) {
-        throw JSONRPCError(RPC_PRICE_TYPE_INVALID, "Invalid price type, must be one of USD,CNY,EUR,BTC,USDT,GOLD,KWH");
+        throw JSONRPCError(RPC_PRICE_TYPE_INVALID, "Invalid price type, must be one of USD, CNY, EUR, BTC, USDT, GOLD, KWH");
     }
 
     int height = chainActive.Tip()->nHeight;
@@ -332,7 +332,7 @@ Value getmedianprice(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
     }
 
-    int64_t price=block.GetBlockMedianPrice(coinType,priceType);
+    int64_t price = block.GetBlockMedianPrice(coinType, priceType);
 
     Object obj;
     obj.push_back(Pair("price", price));
