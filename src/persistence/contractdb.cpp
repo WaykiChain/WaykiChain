@@ -10,7 +10,7 @@
 #include "accounts/key.h"
 #include "commons/uint256.h"
 #include "commons/util.h"
-#include "vm/vmrunenv.h"
+#include "vm/luavm/vmrunenv.h"
 
 #include <stdint.h>
 

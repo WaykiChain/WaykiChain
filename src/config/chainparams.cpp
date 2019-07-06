@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#include "config/configuration.h"
+#include "configuration.h"
 #include "config/chainparams.h"
 
 #include "assert.h"
@@ -411,12 +411,14 @@ bool CBaseParams::InitializeParams(int argc, const char* const argv[]) {
         fprintf(stderr, "Error: Specified data directory \"%s\" does not exist.\n", CBaseParams::m_mapArgs["-datadir"].c_str());
         return false;
     }
+
     try {
         ReadConfigFile(CBaseParams::m_mapArgs, CBaseParams::m_mapMultiArgs);
     } catch (exception &e) {
         fprintf(stderr, "Error reading configuration file: %s\n", e.what());
         return false;
     }
+
     return true;
 }
 

@@ -11,7 +11,7 @@
 #include "crypto/hash.h"
 #include "commons/util.h"
 #include "main.h"
-#include "vm/vmrunenv.h"
+#include "vm/luavm/vmrunenv.h"
 #include "miner/miner.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"

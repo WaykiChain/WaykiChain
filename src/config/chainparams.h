@@ -11,9 +11,11 @@
 #include <boost/filesystem/fstream.hpp>
 #include <vector>
 
+#include "accounts/id.h"
 #include "commons/uint256.h"
 #include "commons/arith_uint256.h"
 #include "commons/util.h"
+#include "config/scoin.h"
 
 using namespace std;
 
@@ -220,6 +222,8 @@ public:
     int GetSubsidyHalvingInterval() const { return nSubsidyHalvingInterval; }
     uint32_t GetFeatureForkHeight() const { return nFeatureForkHeight; }
     uint32_t GetStableCoinGenesisHeight() const { return nStableCoinGenesisHeight; }
+    CRegID GetFcoinGenesisRegId() const { return CRegID(nStableCoinGenesisHeight, kFcoinGenesisIssueTxIndex); }
+    CRegID GetDEXSettleRegId() const { return CRegID(nStableCoinGenesisHeight, kSettleServiceRegisterTxIndex); }
     virtual uint64_t GetMaxFee() const { return 1000 * COIN; }
 
     virtual const CBlock& GenesisBlock() const = 0;

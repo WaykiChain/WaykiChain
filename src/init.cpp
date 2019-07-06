@@ -13,7 +13,7 @@
 #include "addrman.h"
 
 #include "rpc/core/rpcserver.h"
-#include "vm/lua/lua.h"
+#include "vm/luavm/lua/lua.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #include "main.h"

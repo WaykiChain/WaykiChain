@@ -909,7 +909,7 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
-    if (txUid.get<CRegID>() != kDEXSettleRegId) {
+    if (txUid.get<CRegID>() != SysCfg().GetDEXSettleRegId()) {
         return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, account regId is not authorized dex settle regId"),
                          REJECT_INVALID, "unauthorized-settle-account");
     }

@@ -84,7 +84,7 @@ void CDEXSysOrder::SetEmpty() {
 }
 
 void CDEXSysOrder::GetOrderDetail(CDEXOrderDetail &orderDetail) const {
-    orderDetail.userRegId = kFcoinGenesisRegId;
+    orderDetail.userRegId = SysCfg().GetFcoinGenesisRegId();
     orderDetail.orderType = orderType;
     orderDetail.direction = direction;
     orderDetail.coinType = coinType;
