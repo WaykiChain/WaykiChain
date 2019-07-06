@@ -8,7 +8,7 @@
 
 #include "addrman.h"
 #include "alert.h"
-#include "chainparams.h"
+#include "config/chainparams.h"
 #include "config/configuration.h"
 #include "init.h"
 #include "miner/miner.h"

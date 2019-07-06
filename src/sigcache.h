@@ -10,7 +10,7 @@
 #include <mutex>
 #include <vector>
 
-#include "chainparams.h"
+#include "config/chainparams.h"
 #include "crypto/sha256.h"
 #include "accounts/key.h"
 #include "commons/random.h"

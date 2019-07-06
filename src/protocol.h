@@ -11,7 +11,7 @@
 #ifndef __INCLUDED_PROTOCOL_H__
 #define __INCLUDED_PROTOCOL_H__
 
-#include "chainparams.h"
+#include "config/chainparams.h"
 #include "netbase.h"
 #include "commons/serialize.h"
 #include "commons/uint256.h"

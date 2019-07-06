@@ -10,7 +10,7 @@
 #include "net.h"
 
 #include "addrman.h"
-#include "chainparams.h"
+#include "config/chainparams.h"
 #include "tx/tx.h"
 
 #ifdef WIN32

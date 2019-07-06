@@ -20,7 +20,7 @@
 #include "main.h"
 
 // #include "key.h"
-// #include "chainparams.h"
+// #include "config/chainparams.h"
 // #include "crypto/hash.h"
 // #include "vote.h"
 

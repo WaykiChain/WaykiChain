@@ -7,7 +7,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/test/unit_test.hpp>
 #include <string>
-#include "chainparams.h"
+#include "config/chainparams.h"
 #include "main.h"
 #include "commons/util.h"
 #include "wallet/wallet.h"

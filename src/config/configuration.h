@@ -6,7 +6,7 @@
 #ifndef CONFIGURATION_H_
 #define CONFIGURATION_H_
 
-#include "chainparams.h"
+#include "config/chainparams.h"
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
 #include "commons/util.h"

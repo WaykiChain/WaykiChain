@@ -5,7 +5,7 @@
 
 #include "txdb.h"
 
-#include "chainparams.h"
+#include "config/chainparams.h"
 #include "commons/serialize.h"
 #include "main.h"
 #include "persistence/block.h"

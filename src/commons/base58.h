@@ -15,7 +15,7 @@
 #ifndef COIN_BASE58_H
 #define COIN_BASE58_H
 
-#include "chainparams.h"
+#include "config/chainparams.h"
 #include "accounts/key.h"
 
 #include <string>

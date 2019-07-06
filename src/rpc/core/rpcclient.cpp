@@ -9,7 +9,7 @@
 
 #include "rpcprotocol.h"
 #include "commons/util.h"
-#include "chainparams.h" // for Params().RPCPort()
+#include "config/chainparams.h" // for Params().RPCPort()
 #include "tx/tx.h"
 
 #include <stdint.h>

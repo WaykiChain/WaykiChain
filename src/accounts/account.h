@@ -14,7 +14,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "chainparams.h"
+#include "config/chainparams.h"
 #include "crypto/hash.h"
 #include "id.h"
 #include "vote.h"

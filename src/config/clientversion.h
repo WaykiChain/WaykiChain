@@ -2,7 +2,7 @@
 #define CLIENTVERSION_H
 
 #if defined(HAVE_CONFIG_H)
-    #include "config/coin-config.h"
+    #include "coin-config.h"
 #else
     //
     // client versioning and copyright year
@@ -20,7 +20,7 @@
 
     // Copyright year (2009-this)
     // Todo: update this when changing our copyright comments in the source
-    #define COPYRIGHT_YEAR 2016
+    #define COPYRIGHT_YEAR 2019
 
     #endif //HAVE_CONFIG_H
 

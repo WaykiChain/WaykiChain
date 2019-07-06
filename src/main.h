@@ -19,7 +19,7 @@
 #include <utility>
 #include <vector>
 
-#include "chainparams.h"
+#include "config/chainparams.h"
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
 #include "net.h"
@@ -795,11 +795,11 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
             Serialize(os, *((CDEXSellMarketOrderTx *)(pa.get())), nType, nVersion); break;
 
         default:
-            throw ios_base::failure(strprintf("Serialize: nTxType(%d:%s) error.", 
+            throw ios_base::failure(strprintf("Serialize: nTxType(%d:%s) error.",
                 pa->nTxType, GetTxType(pa->nTxType)));
             break;
     }
-    
+
 }
 
 
@@ -881,7 +881,7 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
             break;
         }
         default:
-            throw ios_base::failure(strprintf("Unserialize: nTxType(%d:%s) error.", 
+            throw ios_base::failure(strprintf("Unserialize: nTxType(%d:%s) error.",
                 nTxType, GetTxType((TxType)nTxType)));
     }
     pa->nTxType = TxType(nTxType);

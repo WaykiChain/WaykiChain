@@ -55,7 +55,7 @@ coin_CORE_H = \
   config/scoin.h \
   config/clientversion.h \
   config/version.h \
-  chainparams.h \
+  config/chainparams.h \
   compat\compat.h \
   wallet/crypter.h \
   crypto/sha256.h \
@@ -295,7 +295,7 @@ libcoin_common_a_SOURCES = \
   commons/bloom.cpp \
   commons/util.cpp \
   crypto/hash.cpp \
-  chainparams.cpp \
+  config/chainparams.cpp \
   config/configuration.cpp \
   netbase.cpp \
   protocol.cpp \

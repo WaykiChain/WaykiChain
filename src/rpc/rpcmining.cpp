@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "chainparams.h"
+#include "config/chainparams.h"
 #include "init.h"
 #include "main.h"
 #include "miner/miner.h"

@@ -5,7 +5,7 @@
 
 
 #include "config/configuration.h"
-#include "chainparams.h"
+#include "config/chainparams.h"
 
 #include "assert.h"
 #include "commons/util.h"

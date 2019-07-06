@@ -3,7 +3,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #include "commons/util.h"
-#include "chainparams.h"
+#include "config/chainparams.h"
 #include "config/configuration.h"
 #include "netbase.h"
 #include "sync.h"
