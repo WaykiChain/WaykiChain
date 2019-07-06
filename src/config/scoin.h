@@ -23,7 +23,7 @@ static const uint16_t kDefaultPriceFeedDeviatePenalty       = 1000;     // 1000 
 static const uint64_t kGlobalCollateralCeiling              = 21000000; // 10% * 210000000
 static const uint16_t kGlobalCollateralRatioLimit           = 8000;     // 80% * 10000
 
-static const uint16_t kStartingCdpCollateralRatio           = 20000;    // 200% * 10000: starting collateral ratio
+static const uint16_t kStartingCdpCollateralRatio           = 19000;    // 190% * 10000: starting collateral ratio
 static const uint16_t kStartingCdpLiquidateRatio            = 15000;    // 1.13 ~ 1.5  : common liquidation
 static const uint16_t kNonReturnCdpLiquidateRatio           = 11300;    // 1.03 ~ 1.13 : Non-return to CDP owner
 static const uint16_t kForcedCdpLiquidateRatio              = 10300;    // 0 ~ 1.03    : forced liquidation only
