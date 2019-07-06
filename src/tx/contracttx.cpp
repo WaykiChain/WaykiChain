@@ -14,7 +14,7 @@
 #include "persistence/txdb.h"
 #include "commons/util.h"
 #include "config/version.h"
-#include "vm/vmrunenv.h"
+#include "vm/luavm/vmrunenv.h"
 
 static bool GetKeyId(const CAccountDBCache &view, const string &userIdStr, CKeyID &KeyId) {
     if (userIdStr.size() == 6) {

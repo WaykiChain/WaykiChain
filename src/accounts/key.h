@@ -12,7 +12,6 @@
 #include "commons/serialize.h"
 #include "commons/uint256.h"
 #include "commons/allocators.h"
-#include "config/chainparams.h"
 #include "crypto/hash.h"
 #include "commons/util.h"
 

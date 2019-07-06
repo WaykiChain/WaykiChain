@@ -16,7 +16,7 @@
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "persistence/contractdb.h"
-#include "vm/appaccount.h"
+#include "vm/luavm/appaccount.h"
 
 #include <stdint.h>
 #include <boost/assign/list_of.hpp>

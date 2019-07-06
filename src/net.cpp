@@ -347,6 +347,9 @@ bool GetMyExternalIP(CNetAddr& ipRet) {
     } else {
         static const char* const key = "\"ipAddress\":\"";
         char* from                   = strstr(buffer, key);
+        if (from == nullptr) {
+            return ERRORMSG("GetMyExternalIP() : invalid message: %s", buffer);
+        }
         from += strlen(key);
         char* to   = strstr(from, "\"");
         string ip(from, to);

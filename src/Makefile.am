@@ -53,6 +53,7 @@ coin_CORE_H = \
   commons/util.h \
   config/configuration.h \
   config/scoin.h \
+  config/txbase.h \
   config/clientversion.h \
   config/version.h \
   config/chainparams.h \
@@ -136,84 +137,84 @@ JSON_H = \
 
 # VmScript #
 VMLUA_H = \
-  vm/lua/fuel.h \
-  vm/lua/lapi.h \
-  vm/lua/lauxlib.h \
-  vm/lua/lburner.h \
-  vm/lua/lcode.h \
-  vm/lua/lctype.h \
-  vm/lua/ldebug.h \
-  vm/lua/ldo.h \
-  vm/lua/lfunc.h \
-  vm/lua/lgc.h \
-  vm/lua/llex.h \
-  vm/lua/llimits.h \
-  vm/lua/lmem.h \
-  vm/lua/lobject.h \
-  vm/lua/lopcodes.h \
-  vm/lua/lparser.h \
-  vm/lua/lprefix.h \
-  vm/lua/lstate.h \
-  vm/lua/lstring.h \
-  vm/lua/ltable.h \
-  vm/lua/ltm.h \
-  vm/lua/lua.h \
-  vm/lua/lua.hpp \
-  vm/lua/luaconf.h \
-  vm/lua/lualib.h \
-  vm/lua/lundump.h \
-  vm/lua/lvm.h \
-  vm/lua/lzio.h
+  vm/luavm/lua/fuel.h \
+  vm/luavm/lua/lapi.h \
+  vm/luavm/lua/lauxlib.h \
+  vm/luavm/lua/lburner.h \
+  vm/luavm/lua/lcode.h \
+  vm/luavm/lua/lctype.h \
+  vm/luavm/lua/ldebug.h \
+  vm/luavm/lua/ldo.h \
+  vm/luavm/lua/lfunc.h \
+  vm/luavm/lua/lgc.h \
+  vm/luavm/lua/llex.h \
+  vm/luavm/lua/llimits.h \
+  vm/luavm/lua/lmem.h \
+  vm/luavm/lua/lobject.h \
+  vm/luavm/lua/lopcodes.h \
+  vm/luavm/lua/lparser.h \
+  vm/luavm/lua/lprefix.h \
+  vm/luavm/lua/lstate.h \
+  vm/luavm/lua/lstring.h \
+  vm/luavm/lua/ltable.h \
+  vm/luavm/lua/ltm.h \
+  vm/luavm/lua/lua.h \
+  vm/luavm/lua/lua.hpp \
+  vm/luavm/lua/luaconf.h \
+  vm/luavm/lua/lualib.h \
+  vm/luavm/lua/lundump.h \
+  vm/luavm/lua/lvm.h \
+  vm/luavm/lua/lzio.h
 
 VMLUA_C = \
-  vm/lua/lapi.c \
-  vm/lua/lburner.c \
-  vm/lua/lauxlib.c \
-  vm/lua/lbaselib.c \
-  vm/lua/lbitlib.c \
-  vm/lua/lcode.c \
-  vm/lua/lcorolib.c \
-  vm/lua/lctype.c \
-  vm/lua/ldblib.c \
-  vm/lua/ldebug.c \
-  vm/lua/ldo.c \
-  vm/lua/ldump.c \
-  vm/lua/lfunc.c \
-  vm/lua/lgc.c \
-  vm/lua/linit.c \
-  vm/lua/liolib.c \
-  vm/lua/llex.c \
-  vm/lua/lmathlib.c \
-  vm/lua/lmem.c \
-  vm/lua/loadlib.c \
-  vm/lua/lobject.c \
-  vm/lua/lopcodes.c \
-  vm/lua/loslib.c \
-  vm/lua/lparser.c \
-  vm/lua/lstate.c \
-  vm/lua/lstring.c \
-  vm/lua/lstrlib.c \
-  vm/lua/ltable.c \
-  vm/lua/ltablib.c \
-  vm/lua/ltm.c \
-  vm/lua/lundump.c \
-  vm/lua/lutf8lib.c \
-  vm/lua/lvm.c \
-  vm/lua/lzio.c
+  vm/luavm/lua/lapi.c \
+  vm/luavm/lua/lburner.c \
+  vm/luavm/lua/lauxlib.c \
+  vm/luavm/lua/lbaselib.c \
+  vm/luavm/lua/lbitlib.c \
+  vm/luavm/lua/lcode.c \
+  vm/luavm/lua/lcorolib.c \
+  vm/luavm/lua/lctype.c \
+  vm/luavm/lua/ldblib.c \
+  vm/luavm/lua/ldebug.c \
+  vm/luavm/lua/ldo.c \
+  vm/luavm/lua/ldump.c \
+  vm/luavm/lua/lfunc.c \
+  vm/luavm/lua/lgc.c \
+  vm/luavm/lua/linit.c \
+  vm/luavm/lua/liolib.c \
+  vm/luavm/lua/llex.c \
+  vm/luavm/lua/lmathlib.c \
+  vm/luavm/lua/lmem.c \
+  vm/luavm/lua/loadlib.c \
+  vm/luavm/lua/lobject.c \
+  vm/luavm/lua/lopcodes.c \
+  vm/luavm/lua/loslib.c \
+  vm/luavm/lua/lparser.c \
+  vm/luavm/lua/lstate.c \
+  vm/luavm/lua/lstring.c \
+  vm/luavm/lua/lstrlib.c \
+  vm/luavm/lua/ltable.c \
+  vm/luavm/lua/ltablib.c \
+  vm/luavm/lua/ltm.c \
+  vm/luavm/lua/lundump.c \
+  vm/luavm/lua/lutf8lib.c \
+  vm/luavm/lua/lvm.c \
+  vm/luavm/lua/lzio.c
 
 VM_H = \
-  vm/vmrunenv.h \
-  vm/script.h \
-  vm/appaccount.h \
-  vm/vmlua.h
+  vm/luavm/vmrunenv.h \
+  vm/luavm/script.h \
+  vm/luavm/appaccount.h \
+  vm/luavm/vmlua.h
 
 
 VM_CPP = \
-  vm/vmrunenv.cpp \
-  vm/script.cpp \
-  vm/appaccount.cpp \
-  vm/lmylib.cpp \
-  vm/vmlua.cpp
+  vm/luavm/vmrunenv.cpp \
+  vm/luavm/script.cpp \
+  vm/luavm/appaccount.cpp \
+  vm/luavm/lmylib.cpp \
+  vm/luavm/vmlua.cpp
 
 obj/build.h: FORCE
 	@$(MKDIR_P) $(abs_top_builddir)/src/obj
@@ -297,6 +298,7 @@ libcoin_common_a_SOURCES = \
   crypto/hash.cpp \
   config/chainparams.cpp \
   config/configuration.cpp \
+  config/version.cpp \
   netbase.cpp \
   protocol.cpp \
   persistence/block.cpp \
@@ -313,7 +315,6 @@ libcoin_common_a_SOURCES = \
   support/cleanse.cpp \
   support/events.cpp \
   sync.cpp \
-  config/version.cpp \
   json/json_spirit_reader.cpp \
   json/json_spirit_value.cpp \
   json/json_spirit_writer.cpp \
@@ -357,7 +358,7 @@ coind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
 
 # coinlua binary
 coinlua_LDADD = liblua53.a -lm
-coinlua_SOURCES = vm/lua/coinlua.c
+coinlua_SOURCES = vm/luavm/luavm/lua/coinlua.c
 coinlua_CFLAGS = $(AM_CFLAGS) -fPIC -DLUA_USE_POSIX -Wl,-E -ldl
 
 if BUILD_TESTS

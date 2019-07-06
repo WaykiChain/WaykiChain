@@ -335,7 +335,7 @@ Value getmedianprice(const Array& params, bool fHelp){
     int64_t price=block.GetBlockMedianPrice(coinType,priceType);
 
     Object obj;
-    obj.push_back(Pair("price", price));
+    // obj.push_back(Pair("price", price));
     return obj;
 }
 

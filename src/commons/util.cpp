@@ -912,7 +912,8 @@ void ClearDatadirCache() {
 boost::filesystem::path GetConfigFile() {
     boost::filesystem::path pathConfigFile(
         CBaseParams::GetArg("-conf", IniCfg().GetCoinName() + ".conf"));
-    if (!pathConfigFile.is_complete()) pathConfigFile = GetDataDir(false) / pathConfigFile;
+    if (!pathConfigFile.is_complete())
+        pathConfigFile = GetDataDir(false) / pathConfigFile;
 
     return pathConfigFile;
 }
@@ -925,7 +926,8 @@ boost::filesystem::path GetAbsolutePath(const string& path) {
 void ReadConfigFile(map<string, string>& mapSettingsRet,
                     map<string, vector<string>>& mapMultiSettingsRet) {
     boost::filesystem::ifstream streamConfig(GetConfigFile());
-    if (!streamConfig.good()) return;  // No WaykiChain.conf file is OK
+    if (!streamConfig.good())
+        return;  // No WaykiChain.conf file is OK
 
     set<string> setOptions;
     setOptions.insert("*");
