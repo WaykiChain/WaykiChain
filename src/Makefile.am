@@ -33,6 +33,10 @@ AM_CPPFLAGS += -I$(srcdir)/secp256k1/include -I$(srcdir)/secp256k1/contrib
 $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(wildcard secp256k1/include/*)
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
 
+
+config/build.h: FORCE
+	@$(top_srcdir)/share/genbuild.sh build.h $(abs_top_srcdir)/src/config
+
 .PHONY: FORCE
 # waykichain core #
 coin_CORE_H = \
@@ -216,12 +220,6 @@ VM_CPP = \
   vm/luavm/lmylib.cpp \
   vm/luavm/vmlua.cpp
 
-obj/build.h: FORCE
-	@$(MKDIR_P) $(abs_top_builddir)/src/obj
-	@$(top_srcdir)/share/genbuild.sh $(abs_top_builddir)/src/obj/build.h \
-	  $(abs_top_srcdir)
-version.o: obj/build.h
-
 liblua53_a_SOURCES = \
   $(VMLUA_C)
 
@@ -358,7 +356,7 @@ coind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
 
 # coinlua binary
 coinlua_LDADD = liblua53.a -lm
-coinlua_SOURCES = vm/luavm/luavm/lua/coinlua.c
+coinlua_SOURCES = vm/luavm/lua/coinlua.c
 coinlua_CFLAGS = $(AM_CFLAGS) -fPIC -DLUA_USE_POSIX -Wl,-E -ldl
 
 if BUILD_TESTS
