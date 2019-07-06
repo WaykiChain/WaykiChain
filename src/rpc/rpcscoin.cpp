@@ -314,32 +314,33 @@ Value getmedianprice(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_DEX_COIN_TYPE_INVALID, "Invalid coin type, must be one of WICC,WGRT,WUSD");
     }
 
-    CoinType assetType;
-    if (ParseCoinType(params[1].get_str(), assetType)) {
-        throw JSONRPCError(RPC_DEX_ASSET_TYPE_INVALID, "Invalid asset type, must be one of WICC,WGRT,WUSD");
-    }
+    // TODO:
+    // CoinType assetType;
+    // if (ParseCoinType(params[1].get_str(), assetType)) {
+    //     throw JSONRPCError(RPC_DEX_ASSET_TYPE_INVALID, "Invalid asset type, must be one of WICC,WGRT,WUSD");
+    // }
 
-    if (params[1].get_str()==params[0].get_str()){
-        throw JSONRPCError(RPC_DEX_COIN_TYPE_INVALID, "Coin type cannot be the same as asset type");
-    }
+    // if (params[1].get_str()==params[0].get_str()){
+    //     throw JSONRPCError(RPC_DEX_COIN_TYPE_INVALID, "Coin type cannot be the same as asset type");
+    // }
 
-    int height = chainActive.Tip()->nHeight;
-    if (params.size() > 2){
-        height = params[2].get_int();
-        if (height < 0 || height > chainActive.Height())
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range.");
-    }
+    // int height = chainActive.Tip()->nHeight;
+    // if (params.size() > 2){
+    //     height = params[2].get_int();
+    //     if (height < 0 || height > chainActive.Height())
+    //         throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range.");
+    // }
 
-    CBlock block;
-    CBlockIndex* pBlockIndex = chainActive[height];
-    if (!ReadBlockFromDisk(pBlockIndex, block)) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
-    }
+    // CBlock block;
+    // CBlockIndex* pBlockIndex = chainActive[height];
+    // if (!ReadBlockFromDisk(pBlockIndex, block)) {
+    //     throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
+    // }
 
-    int64_t price=block.GetBlockMedianPrice(coinType,assetType);
+    // int64_t price = block.GetBlockMedianPrice(coinType, assetType);
 
     Object obj;
-    obj.push_back(Pair("price", price));
+    // obj.push_back(Pair("price", price));
     return obj;
 }
 
