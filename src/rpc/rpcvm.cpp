@@ -15,8 +15,8 @@
 
 #include "config/configuration.h"
 #include "main.h"
-#include "vm/script.h"
-#include "vm/vmrunenv.h"
+#include "vm/luavm/script.h"
+#include "vm/luavm/vmrunenv.h"
 #include <algorithm>
 
 #include "json/json_spirit_utils.h"

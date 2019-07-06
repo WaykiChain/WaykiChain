@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#include "config/configuration.h"
+#include "configuration.h"
 #include "config/chainparams.h"
 
 #include "assert.h"

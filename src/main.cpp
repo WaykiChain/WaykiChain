@@ -22,7 +22,7 @@
 #include "tx/multicoinblockrewardtx.h"
 #include "tx/txmempool.h"
 #include "commons/util.h"
-#include "vm/vmrunenv.h"
+#include "vm/luavm/vmrunenv.h"
 
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
