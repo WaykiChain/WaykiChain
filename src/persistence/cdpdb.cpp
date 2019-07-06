@@ -164,9 +164,8 @@ bool CCdpDBCache::EraseCdp(const CUserCDP &cdp, CDBOpLogMap &dbOpLogMap) {
 
 /**
  *  Interest Ratio Formula: ( a / Log10(b + N) )
- *  a = 1, b = 1
  *
- *  ==> ratio = 1/Log10(1+N)
+ *  ==> ratio = a / Log10(b+N)
  */
 uint64_t CCdpDBCache::ComputeInterest(int32_t blockHeight, const CUserCDP &cdp) {
     assert(blockHeight > cdp.blockHeight);
