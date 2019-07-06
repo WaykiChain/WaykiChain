@@ -12,7 +12,7 @@
 #include "commons/uint256.h"
 #include "dbaccess.h"
 #include "persistence/disk.h"
-#include "vm/appaccount.h"
+#include "vm/luavm/appaccount.h"
 
 #include <map>
 #include <string>

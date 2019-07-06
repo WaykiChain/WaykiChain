@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <vector>
 #include <map>
-#include "vm/vmrunenv.h"
-//#include "vm/vm8051.h"
+#include "vm/luavm/vmrunenv.h"
+//#include "vm/luavm/vm8051.h"
 #include <memory>
 #include "commons/util.h"
 #include "main.h"
