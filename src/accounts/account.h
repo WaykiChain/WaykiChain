@@ -73,6 +73,45 @@ enum PriceType: uint8_t {
     KWH     = 100, // kilowatt hour
 };
 
+struct PriceTypeHash {
+    size_t operator()(const PriceType& type) const noexcept { return std::hash<uint8_t>{}(type); }
+};
+
+static const unordered_map<PriceType, string, PriceTypeHash> kPriceTypeMapName = {
+    { USD, "USD" },
+    { CNY, "CNY" },
+    { EUR, "EUR" },
+    { BTC, "BTC" },
+    {USDT, "USDT"},
+    {GOLD, "GOLD"},
+    { KWH, "KWH" }
+};
+
+static const unordered_map<string, PriceType> kPriceNameMapType = {
+    { "USD", USD },
+    { "CNY", CNY },
+    { "EUR", EUR },
+    { "BTC", BTC },
+    {"USDT", USDT},
+    {"GOLD", GOLD},
+    { "KWH", KWH }
+};
+
+inline const string& GetPriceTypeName(PriceType priceType) {
+    return kPriceTypeMapName.at(priceType);
+}
+
+inline bool ParsePriceType(const string& priceName, CoinType &priceType) {
+    if (priceName != "") {
+        auto it = kPriceNameMapType.find(priceName);
+        if (it != kPriceNameMapType.end()) {
+            priceType = it->second;
+            return true;
+        }
+    }
+    return false;
+}
+
 enum BalanceOpType : uint8_t {
     NULL_OP     = 0,  //!< invalid op
     ADD_VALUE   = 1,  //!< add operate
