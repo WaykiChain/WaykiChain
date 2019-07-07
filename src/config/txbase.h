@@ -68,9 +68,6 @@ struct TxTypeHash {
  *              }
  * 
  * Fees are boosted by 10^8
- * all fees are spent in WICC coins except WUSD coins transfer requires WUSD
- *
- * if fees are paid in WUSD, converted by ex rate from WICC fees in the colums below
  */
 static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64_t, uint64_t>, TxTypeHash> kTxTypeMap = {
     { BLOCK_REWARD_TX,          std::make_tuple("BLOCK_REWARD_TX",         0,          0,         0,          0            ) },
