@@ -334,8 +334,9 @@ public:
         *this = *(CDEXSettleTx *)pBaseTx;
     }
 
-    CDEXSettleTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn):
-        CBaseTx(DEX_SETTLE_TX, txUidIn, validHeightIn, feesIn) {
+    CDEXSettleTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
+        const vector<DEXDealItem> &dealItemsIn):
+        CBaseTx(DEX_SETTLE_TX, txUidIn, validHeightIn, feesIn), dealItems(dealItemsIn) {
     }
 
     ~CDEXSettleTx() {}

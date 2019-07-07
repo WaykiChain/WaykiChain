@@ -318,8 +318,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "submitdexcancelordertx" && n > 2) ConvertTo<double>(params[2]);
 
-    // if (strMethod == "submitdexsettletx" && n > 1) ConvertTo<Array>(params[1]);
-    // if (strMethod == "submitdexsettletx" && n > 2) ConvertTo<uint64_t>(params[2]);
+    if (strMethod == "submitdexsettletx" && n > 1) ConvertTo<Array>(params[1]);
+    if (strMethod == "submitdexsettletx" && n > 2) ConvertTo<uint64_t>(params[2]);
 
     /* vm functions work in vm simulator */
     if (strMethod == "vmexecutescript"        && n > 3) ConvertTo<uint64_t>(params[3]);
