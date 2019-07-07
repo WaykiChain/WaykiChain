@@ -171,8 +171,9 @@ uint64_t CCdpDBCache::ComputeInterest(int32_t blockHeight, const CUserCDP &cdp) 
     assert(blockHeight > cdp.blockHeight);
 
     int32_t interval = blockHeight - cdp.blockHeight;
+    int interestDuration = ceil( (double) interval / kDayBlockTotalCount );
     double interest = ((double) GetDefaultInterestParamA() * cdp.totalOwedScoins / kYearBlockCount)
-                    * log10(GetDefaultInterestParamB() + cdp.totalOwedScoins) * interval;
+                    * log10(GetDefaultInterestParamB() + cdp.totalOwedScoins) * interestDuration;
 
     return (uint64_t) interest;
 }
