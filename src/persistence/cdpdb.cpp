@@ -175,7 +175,7 @@ uint64_t CCdpDBCache::ComputeInterest(int32_t blockHeight, const CUserCDP &cdp) 
     uint16_t A = GetDefaultInterestParamA();
     uint16_t B = GetDefaultInterestParamB();
     uint64_t N = cdp.totalOwedScoins;
-    double annualInterestRate = (double) A / log10( 1 + B * N);
+    double annualInterestRate = 0.1 * (double) A / log10( 1 + B * N);
     double interest = ((double) N / 365) * loanedDays * annualInterestRate;
 
     return (uint64_t) interest;
