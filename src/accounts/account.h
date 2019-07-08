@@ -168,8 +168,6 @@ public:
     bool OperateFcoinStaking(const int64_t fcoinsToStake) { return false; } // TODO: ...
 
     bool StakeBcoinsToCdp(CoinType coinType, const int64_t bcoinsToStake, const int64_t mintedScoins);
-    bool RedeemScoinsToCdp(const int64_t bcoinsToStake);
-    bool LiquidateCdp(const int64_t bcoinsToStake);
 
 public:
     CAccount(const CKeyID& keyId, const CNickID& nickId, const CPubKey& pubKey)

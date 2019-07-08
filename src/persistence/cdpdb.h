@@ -121,7 +121,6 @@ public:
     CCdpDBCache() {}
     CCdpDBCache(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
 
-    bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins, CUserCDP &cdp);
     bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins, CUserCDP &cdp,
                         CDBOpLogMap &dbOpLogMap);
 
