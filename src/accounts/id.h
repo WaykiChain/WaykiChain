@@ -8,13 +8,13 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
+#include "crypto/hash.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "key.h"
-#include "crypto/hash.h"
 
 class CAccountDBCache;
 class CUserID;
@@ -40,6 +40,7 @@ private:
     void SetRegIDByCompact(const vector<unsigned char> &vIn);
 
     friend CUserID;
+
 public:
     CRegID(string strRegID);
     CRegID(const vector<unsigned char> &vIn);
@@ -51,8 +52,12 @@ public:
     CKeyID GetKeyId(const CAccountDBCache &view) const;
     uint32_t GetHeight() const { return nHeight; }
     uint16_t GetIndex() const { return nIndex; }
-    bool operator==(const CRegID &other) const { return (this->nHeight == other.nHeight && this->nIndex == other.nIndex); }
-    bool operator!=(const CRegID &other) const { return (this->nHeight != other.nHeight || this->nIndex != other.nIndex); }
+    bool operator==(const CRegID &other) const {
+        return (this->nHeight == other.nHeight && this->nIndex == other.nIndex);
+    }
+    bool operator!=(const CRegID &other) const {
+        return (this->nHeight != other.nHeight || this->nIndex != other.nIndex);
+    }
     bool operator<(const CRegID &other) const { return (this->nHeight < other.nHeight || this->nIndex < other.nIndex); }
     static bool IsSimpleRegIdStr(const string &str);
     static bool IsRegIdStr(const string &str);
@@ -62,14 +67,11 @@ public:
     bool Clean();
     string ToString() const;
 
-    IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(nHeight));
-        READWRITE(VARINT(nIndex));
-        if (fRead) {
-            vRegID.clear();
-            vRegID.insert(vRegID.end(), BEGIN(nHeight), END(nHeight));
-            vRegID.insert(vRegID.end(), BEGIN(nIndex), END(nIndex));
-        })
+    IMPLEMENT_SERIALIZE(READWRITE(VARINT(nHeight)); READWRITE(VARINT(nIndex)); if (fRead) {
+        vRegID.clear();
+        vRegID.insert(vRegID.end(), BEGIN(nHeight), END(nHeight));
+        vRegID.insert(vRegID.end(), BEGIN(nIndex), END(nIndex));
+    })
 };
 
 /**
@@ -84,19 +86,17 @@ private:
 public:
     CNickID() {}
     CNickID(string nickIdIn) {
-        if (nickIdIn.size() > 32)
-            throw ios_base::failure("Nickname ID length > 32 not allowed!");
+        if (nickIdIn.size() > 32) throw ios_base::failure("Nickname ID length > 32 not allowed!");
 
         nickId = nickIdIn;
     }
 
-    const string& GetNickIdRaw() const { return nickId; }
+    const string &GetNickIdRaw() const { return nickId; }
     bool IsEmpty() const { return (nickId.size() == 0); }
     void Clean() { nickId.clear(); }
     string ToString() const { return nickId; }
 
-    IMPLEMENT_SERIALIZE(
-        READWRITE(nickId);)
+    IMPLEMENT_SERIALIZE(READWRITE(nickId);)
 
     // Comparator implementation.
     friend bool operator==(const CNickID &a, const CNickID &b) { return a.nickId == b.nickId; }
@@ -106,44 +106,45 @@ public:
 
 class CUserID {
 private:
-    boost::variant<CNullID, CRegID, CKeyID, CPubKey, CNickID>  uid;
+    boost::variant<CNullID, CRegID, CKeyID, CPubKey, CNickID> uid;
 
 public:
     enum SerializeFlag {
-        FlagNullType = 0,
-        FlagRegIDMin = 2,
-        FlagRegIDMax = 10,
-        FlagKeyID    = 20,
-        FlagPubKey   = 33,
-        FlagNickID   = 100
+        FlagEmptyPubKey = 0,  // public key
+        FlagRegIDMin    = 2,
+        FlagRegIDMax    = 10,
+        FlagKeyID       = 20,
+        FlagPubKey      = 33,  // public key
+        FlagNullType    = 100,
+        FlagNickID      = 101,
     };
+
 public:
     static shared_ptr<CUserID> ParseUserId(const string &idStr);
+
 public:
-    CUserID(): uid(CNullID()) {}
+    CUserID() : uid(CNullID()) {}
 
     template <typename ID>
-    CUserID(const ID &id): uid(id) {}
+    CUserID(const ID &id) : uid(id) {}
 
     template <typename ID>
-    CUserID& operator=(const ID& id) {
+    CUserID &operator=(const ID &id) {
         uid = id;
         return *this;
     }
 
     template <typename ID>
-    ID& get() {
+    ID &get() {
         return boost::get<ID>(uid);
     }
 
     template <typename ID>
-    const ID& get() const {
+    const ID &get() const {
         return boost::get<ID>(uid);
     }
 
-    const std::type_info& type() const {
-        return uid.type();
-    }
+    const std::type_info &type() const { return uid.type(); }
 
 public:
     std::string GetIDName() const {
@@ -205,19 +206,20 @@ public:
 
     inline unsigned int GetSerializeSize(int nType, int nVersion) const {
         if (uid.type() == typeid(CRegID)) {
-            CRegID regId = boost::get<CRegID>(uid);
+            CRegID regId    = boost::get<CRegID>(uid);
             unsigned int sz = regId.GetSerializeSize(nType, nVersion);
             assert(FlagRegIDMin <= sz && sz <= FlagRegIDMax);
             return sizeof(unsigned char) + sz;
         } else if (uid.type() == typeid(CKeyID)) {
-            CKeyID keyId = boost::get<CKeyID>(uid);
+            CKeyID keyId    = boost::get<CKeyID>(uid);
             unsigned int sz = keyId.GetSerializeSize(nType, nVersion);
             assert(sz == FlagKeyID);
             return sizeof(unsigned char) + sz;
         } else if (uid.type() == typeid(CPubKey)) {
-            CPubKey pubKey = boost::get<CPubKey>(uid);
+            CPubKey pubKey  = boost::get<CPubKey>(uid);
             unsigned int sz = pubKey.GetSerializeSize(nType, nVersion);
-            assert(sz == sizeof(unsigned char) + FlagPubKey);
+            // If the public key is empty, length of serialized data is 1, otherwise, 34.
+            assert(sz == sizeof(unsigned char) || sizeof(unsigned char) + FlagPubKey);
             return sz;
         } else if (uid.type() == typeid(CNickID)) {
             CNickID nickId = boost::get<CNickID>(uid);
@@ -230,7 +232,7 @@ public:
     template <typename Stream>
     void Serialize(Stream &s, int nType, int nVersion) const {
         if (uid.type() == typeid(CRegID)) {
-            CRegID regId = boost::get<CRegID>(uid);
+            CRegID regId    = boost::get<CRegID>(uid);
             unsigned int sz = regId.GetSerializeSize(nType, nVersion);
             assert(FlagRegIDMin <= sz && sz <= FlagRegIDMax);
             s << (unsigned char)sz << regId;
@@ -240,13 +242,15 @@ public:
             s << (unsigned char)FlagKeyID << keyId;
         } else if (uid.type() == typeid(CPubKey)) {
             CPubKey pubKey = boost::get<CPubKey>(uid);
-            assert(pubKey.GetSerializeSize(nType, nVersion) == sizeof(unsigned char) + FlagPubKey);
+            // If the public key is empty, length of serialized data is 1, otherwise, 34.
+            assert(pubKey.GetSerializeSize(nType, nVersion) == sizeof(unsigned char) ||
+                   pubKey.GetSerializeSize(nType, nVersion) == sizeof(unsigned char) + FlagPubKey);
             s << pubKey;
         } else if (uid.type() == typeid(CNickID)) {
             CNickID nickId = boost::get<CNickID>(uid);
             s << (unsigned char)FlagNickID << nickId;
         } else {  // CNullID
-            s << (unsigned char)0;
+            s << (unsigned char)100;
         }
     }
 
@@ -257,6 +261,8 @@ public:
 
         if (typeFlag == FlagNullType) {
             uid = CNullID();
+        } else if (typeFlag == FlagEmptyPubKey) {  // public key
+            uid = CPubKey();
         } else if (typeFlag == FlagNickID) {  // idType >= 100
             CNickID nickId;
             s >> nickId;
@@ -275,7 +281,7 @@ public:
                 uint160 data = uint160(vchData);
                 CKeyID keyId(data);
                 uid = keyId;
-            } else if (len == FlagPubKey) {
+            } else if (len == FlagPubKey) {  // public key
                 UnsignedCharArray vchData;
                 vchData.resize(len);
                 assert(len > 0);
