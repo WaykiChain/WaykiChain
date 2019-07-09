@@ -1389,7 +1389,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         assert(block.vptx.size() == 4);
         assert(block.vptx[1]->nTxType == MCOIN_REWARD_TX);
         assert(block.vptx[2]->nTxType == MCOIN_REWARD_TX);
-        assert(block.vptx[3]->nTxType == ACCOUNT_REGISTER_TX);
+        assert(block.vptx[3]->nTxType == MCOIN_REWARD_TX);
         // TODO:
         // 2nd, 3rd, 4th txid
     }

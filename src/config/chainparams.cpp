@@ -367,40 +367,31 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vpt
         votes.push_back(vote);
     }
 
-    CRegID accountId(0, 1);
-    auto pDelegateTx       = std::make_shared<CDelegateVoteTx>(accountId.GetRegIdRaw(), votes, 10000, 0);
+    CRegID regId(0, 1);
+    auto pDelegateTx       = std::make_shared<CDelegateVoteTx>(regId.GetRegIdRaw(), votes, 10000, 0);
     pDelegateTx->signature = ParseHex(IniCfg().GetDelegateSignature(type));
-    pDelegateTx->nVersion = nTxVersion1;
+    pDelegateTx->nVersion  = nTxVersion1;
 
     vptx.push_back(pDelegateTx);
 
     return true;
 }
 
-bool CBaseParams::CreateSettleAccountRegisterTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
-    CPubKey pubKey = CPubKey(ParseHex(IniCfg().GetAccountRegisterPubKey(type)));
-    CPubKey minerPubKey;
-
-    auto pTx       = std::make_shared<CAccountRegisterTx>(pubKey, minerPubKey, 0, nStableCoinGenesisHeight);
-    pTx->signature = ParseHex(IniCfg().GetAccountRegisterSignature(type));
-    pTx->nVersion  = nTxVersion1;
-
-    vptx.push_back(pTx);
-
-    return true;
-};
-
 bool CBaseParams::CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
+    // global account
     auto pTx      = std::make_shared<CCoinRewardTx>(CPubKey(), CoinType::WGRT, 0, nStableCoinGenesisHeight);
     pTx->nVersion = nTxVersion1;
-
     vptx.push_back(pTx);
 
-    // pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetFundCoinInitPubKey(type))), CoinType::WGRT,
-    //                                       kTotalFundCoinAmount, nStableCoinGenesisHeight);
-    // pTx->nVersion = nTxVersion1;
+    // individual account
+    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetFundCoinInitPubKey(type))), CoinType::WGRT,
+                                          kTotalFundCoinGenesisReleaseAmount * COIN, nStableCoinGenesisHeight);
+    vptx.push_back(pTx);
 
-    // vptx.push_back(pTx);
+    // settle service's account
+    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetSettleServicePubKey(type))), CoinType::WGRT, 0,
+                                          nStableCoinGenesisHeight);
+    vptx.push_back(pTx);
 
     return true;
 }
