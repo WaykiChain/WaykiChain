@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <string>
 #include <cstdint>
+#include <tuple>
 
 using namespace std;
 
@@ -62,11 +63,11 @@ struct TxTypeHash {
 };
 
 /**
- * TxTypeKey -> {   TxTypeName, 
- *                  InterimPeriodTxFees(WICC), EffectivePeriodTxFees(WICC), 
+ * TxTypeKey -> {   TxTypeName,
+ *                  InterimPeriodTxFees(WICC), EffectivePeriodTxFees(WICC),
  *                  InterimPeriodTxFees(WUSD), EffectivePeriodTxFees(WUSD)
  *              }
- * 
+ *
  * Fees are boosted by 10^8
  */
 static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64_t, uint64_t>, TxTypeHash> kTxTypeMap = {
@@ -76,7 +77,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
     { ACCOUNT_REGISTER_TX,      std::make_tuple("ACCOUNT_REGISTER_TX",     10000,      10000,     10000,      10000        ) }, //0.0001 WICC, optional
     { BCOIN_TRANSFER_TX,        std::make_tuple("BCOIN_TRANSFER_TX",       10000,      10000,     10000,      10000        ) }, //0.0001 WICC
     { MCOIN_TRANSFER_TX,        std::make_tuple("MCOIN_TRANSFER_TX",       10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-    { CONTRACT_DEPLOY_TX,       std::make_tuple("CONTRACT_DEPLOY_TX",      100000000,  100000000, 100000000,  100000000    ) }, //0.01 WICC
+    { CONTRACT_DEPLOY_TX,       std::make_tuple("CONTRACT_DEPLOY_TX",      100000000,  100000000, 100000000,  100000000    ) }, //0.01 WICC (unit fuel rate)
     { CONTRACT_INVOKE_TX,       std::make_tuple("CONTRACT_INVOKE_TX",      1000,       1000,      1000,       1000         ) }, //0.001 WICC, min fees
     { DELEGATE_VOTE_TX,         std::make_tuple("DELEGATE_VOTE_TX",        10000,      10000,     10000,      10000        ) }, //0.0001 WICC
     { COMMON_MTX,               std::make_tuple("COMMON_MTX",              10000,      10000,     10000,      10000        ) }, //0.0001 WICC
