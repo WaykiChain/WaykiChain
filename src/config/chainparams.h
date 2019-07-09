@@ -231,7 +231,6 @@ public:
     bool CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
     bool CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
 
-    bool CreateSettleAccountRegisterTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
     bool CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
 
     virtual bool RequireRPCPassword() const { return true; }

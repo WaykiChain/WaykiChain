@@ -340,15 +340,10 @@ bool CAccount::StakeBcoinsToCdp(CoinType coinType, const int64_t bcoinsToStake, 
     return true;
 }
 
-bool CAccount::RedeemScoinsToCdp(const int64_t bcoinsToStake) {
+// bool CAccount::RedeemScoinsToCdp(const int64_t bcoinsToStake) {
 
-    return true;
-}
-
-bool CAccount::LiquidateCdp(const int64_t bcoinsToStake) {
-
-    return true;
-}
+//     return true;
+// }
 
 bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesIn,
                                    vector<CCandidateVote> &candidateVotesInOut, const uint64_t curHeight) {
@@ -392,6 +387,10 @@ bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesI
                candidateVotesInOut.push_back(vote);
             }
         } else if (MINUS_BCOIN == voteType) {
+            // if (curHeight - lastVoteHeight < 100) {
+            //     return ERRORMSG("ProcessDelegateVote() : last vote not cooled down yet: lastVoteHeigh=%d",
+            //                     lastVoteHeight);
+            // }
             if  (itVote != candidateVotesInOut.end()) { //existing vote
                 uint64_t currVotes = itVote->GetVotedBcoins();
 

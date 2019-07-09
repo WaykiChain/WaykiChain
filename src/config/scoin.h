@@ -8,13 +8,15 @@
 
 #include <cstdint>
 
-static const uint16_t kPriceFeedContinuousDeviateTimesLimit = 10;// after 10 times continuous deviate limit penetration all deposit be deducted
+static const uint16_t kDayBlockTotalCount                   = 8640;     // = 24*3600/10
+static const uint16_t kPriceFeedContinuousDeviateTimesLimit = 10;       // after 10 times continuous deviate limit penetration all deposit be deducted
 
 static const uint16_t kPercentBoost                         = 10000;
 
 static const uint16_t kDefaultDexDealFeeRatio               = 4;        // 0.04% * 10000
 
 static const uint32_t kTotalFundCoinAmount                  = 21000000; // 21 million WGRT
+static const uint32_t kTotalFundCoinGenesisReleaseAmount    = 10500000; // 21/2 million WGRT
 static const uint32_t kDefaultPriceFeedStakedFcoinsMin      = 210000;   // 1%: min 210K fcoins deposited to be a price feeder
 
 static const uint16_t kDefaultPriceFeedDeviateAcceptLimit   = 3000;     // 30% * 10000, above than that will be penalized

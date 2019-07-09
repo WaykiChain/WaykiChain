@@ -33,7 +33,7 @@ const uint256 G_CONFIG_TABLE::GetGenesisBlockHash(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return uint256S(genesisBlockHash_mainNet);
         case TEST_NET: return uint256S(genesisBlockHash_testNet);
-        case REGTEST_NET: return uint256S(genesisBlockHash_regTest);
+        case REGTEST_NET: return uint256S(genesisBlockHash_regNet);
         default: assert(0);
     }
 
@@ -89,29 +89,18 @@ const string G_CONFIG_TABLE::GetFundCoinInitPubKey(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return initPubKeyFundCoin_mainNet;
         case TEST_NET: return initPubKeyFundCoin_testNet;
-        case REGTEST_NET: return initPubkeyFundCoin_regTest;
+        case REGTEST_NET: return initPubkeyFundCoin_regNet;
         default: assert(0);
     }
 
     return "";
 }
 
-const string G_CONFIG_TABLE::GetAccountRegisterPubKey(NET_TYPE type) const {
+const string G_CONFIG_TABLE::GetSettleServicePubKey(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return settlePubKey_mainNet;
         case TEST_NET: return settlePubKey_testNet;
         case REGTEST_NET: return settlePubKey_regTest;
-        default: assert(0);
-    }
-
-    return "";
-}
-
-string G_CONFIG_TABLE::GetAccountRegisterSignature(NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: return settleSignature_mainNet;
-        case TEST_NET: return settleSignature_testNet;
-        case REGTEST_NET: return settleSignature_regNet;
         default: assert(0);
     }
 
@@ -306,26 +295,36 @@ string G_CONFIG_TABLE::AlertPK_TestNet = "0264afea20ebe6fe4c753f9c99bdce8293cf73
 // Gensis Block Hash
 string G_CONFIG_TABLE::genesisBlockHash_mainNet = "0xa00d5d179450975237482f20f5cd688cac689eb83bc2151d561bfe720185dc13";
 string G_CONFIG_TABLE::genesisBlockHash_testNet = "0xf8aea423c73890eb982c77793cf2fff1dcc1c4d141f42a4c6841b1ffe87ac594";
-string G_CONFIG_TABLE::genesisBlockHash_regTest = "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d";
+string G_CONFIG_TABLE::genesisBlockHash_regNet  = "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d";
 
 // Merkle Root Hash
 string G_CONFIG_TABLE::MerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
 
 // TODO: replace public key.
 // Public key for initial fund coin
-string G_CONFIG_TABLE::initPubKeyFundCoin_mainNet = "037671de4799dbf919effa034bbcaadd78c8a942adeebe7d71155304979a02802a";
-string G_CONFIG_TABLE::initPubKeyFundCoin_testNet = "037de11ea5def6393f45c2461c6f55e6e5cda831545324c63fc5c04409d459a5b3";
-string G_CONFIG_TABLE::initPubkeyFundCoin_regTest = "03b2299425981d6c2ec382cda999e604eb06b2b0f387f4b8500519c44d143cd2a8";
+string G_CONFIG_TABLE::initPubKeyFundCoin_mainNet = "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5";
+string G_CONFIG_TABLE::initPubKeyFundCoin_testNet = "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5";
+string G_CONFIG_TABLE::initPubkeyFundCoin_regNet  = "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5";
 
 // Public Key for settle service
-string G_CONFIG_TABLE::settlePubKey_mainNet = "037671de4799dbf919effa034bbcaadd78c8a942adeebe7d71155304979a02802a";
-string G_CONFIG_TABLE::settlePubKey_testNet = "037de11ea5def6393f45c2461c6f55e6e5cda831545324c63fc5c04409d459a5b3";
-string G_CONFIG_TABLE::settlePubKey_regTest = "03b2299425981d6c2ec382cda999e604eb06b2b0f387f4b8500519c44d143cd2a8";
+string G_CONFIG_TABLE::settlePubKey_mainNet = "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569";
+string G_CONFIG_TABLE::settlePubKey_testNet = "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569";
+string G_CONFIG_TABLE::settlePubKey_regTest = "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569";
 
-// Signature for settle service
-string G_CONFIG_TABLE::settleSignature_mainNet = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
-string G_CONFIG_TABLE::settleSignature_testNet = "02fc0033e19b9999997331c98652607299b0aaf20ed2dd6f0975d03cff3aecdeec";
-string G_CONFIG_TABLE::settleSignature_regNet  = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
+vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid_mainNet = {
+    "432935635e733b194cdc83a99797d185ee8a9651b3e556aa6cd474daed6882ab",
+    "aab0d9bf3262dc874cabd105197703416351333c1371d7bbc78d4fc0edf470f2",
+    "51b1dbc45a8985b99842cac76ad0d35e6d881aef153d7c67aa5240fad18555b4"};
+
+vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid_testNet = {
+    "432935635e733b194cdc83a99797d185ee8a9651b3e556aa6cd474daed6882ab",
+    "aab0d9bf3262dc874cabd105197703416351333c1371d7bbc78d4fc0edf470f2",
+    "51b1dbc45a8985b99842cac76ad0d35e6d881aef153d7c67aa5240fad18555b4"};
+
+vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid_regNet = {
+    "432935635e733b194cdc83a99797d185ee8a9651b3e556aa6cd474daed6882ab",
+    "aab0d9bf3262dc874cabd105197703416351333c1371d7bbc78d4fc0edf470f2",
+    "51b1dbc45a8985b99842cac76ad0d35e6d881aef153d7c67aa5240fad18555b4"};
 
 // IP Address
 vector<unsigned int> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0xDC36FB0D, 0x91A11C77, 0xFFFFE60D,

@@ -125,14 +125,14 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
     }
 
     if (pBlock->vptx[0]->nTxType == BLOCK_REWARD_TX) {
-        auto pRewardTx     = (CBlockRewardTx *)pBlock->vptx[0].get();
-        pRewardTx->txUid   = delegate.regId;
-        pRewardTx->nHeight = pBlock->GetHeight();
+        auto pRewardTx          = (CBlockRewardTx *)pBlock->vptx[0].get();
+        pRewardTx->txUid        = delegate.regId;
+        pRewardTx->nValidHeight = pBlock->GetHeight();
     } else if (pBlock->vptx[0]->nTxType == MCOIN_BLOCK_REWARD_TX) {
-        auto pRewardTx     = (CMultiCoinBlockRewardTx *)pBlock->vptx[0].get();
-        pRewardTx->txUid   = delegate.regId;
-        pRewardTx->nHeight = pBlock->GetHeight();
-        pRewardTx->profits = delegate.CalculateAccountProfit(pBlock->GetHeight());
+        auto pRewardTx          = (CMultiCoinBlockRewardTx *)pBlock->vptx[0].get();
+        pRewardTx->txUid        = delegate.regId;
+        pRewardTx->nValidHeight = pBlock->GetHeight();
+        pRewardTx->profits      = delegate.CalculateAccountProfit(pBlock->GetHeight());
     }
 
     pBlock->SetNonce(GetRand(SysCfg().GetBlockMaxNonce()));
@@ -278,13 +278,14 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
     if (!pBlock.get())
         return nullptr;
 
-    if (chainActive.Height() + 1 < (int32_t)SysCfg().GetStableCoinGenesisHeight()) {
-        pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
-    } else {
-        pBlock->vptx.push_back(std::make_shared<CMultiCoinBlockRewardTx>());
-        // TODO: enable
-        // pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>());
-    }
+    pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
+    // if (chainActive.Height() + 1 < (int32_t)SysCfg().GetStableCoinGenesisHeight()) {
+    //     pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
+    // } else {
+    //     pBlock->vptx.push_back(std::make_shared<CMultiCoinBlockRewardTx>());
+    //     // TODO: enable
+    //     // pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>());
+    // }
 
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
@@ -382,6 +383,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         miningBlockInfo.nTotalFees = nTotalFees;
 
         assert(nTotalFees >= nTotalFuel);
+        // TODO: CMultiCoinBlockRewardTx
         ((CBlockRewardTx *)pBlock->vptx[0].get())->rewardValue = nTotalFees - nTotalFuel;
 
         // Fill in header
@@ -410,9 +412,8 @@ std::unique_ptr<CBlock> CreateStableCoinGenesisBlock() {
 
         pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
         SysCfg().CreateFundCoinRewardTx(pBlock->vptx, SysCfg().NetworkID());
-        SysCfg().CreateSettleAccountRegisterTx(pBlock->vptx, SysCfg().NetworkID());
 
-        // Fill in header.
+        // Fill in header
         CBlockIndex *pIndexPrev = chainActive.Tip();
         uint32_t nHeight        = pIndexPrev->nHeight + 1;
         int32_t nFuelRate       = GetElementForBurn(pIndexPrev);
@@ -499,7 +500,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
         int64_t nLastTime;
         {
             LOCK2(cs_main, pWalletMain->cs_wallet);
-            if ((unsigned int)(chainActive.Tip()->nHeight + 1) != pBlock->GetHeight())
+            if (uint32_t(chainActive.Tip()->nHeight + 1) != pBlock->GetHeight())
                 return false;
 
             CKey acctKey;

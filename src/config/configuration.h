@@ -37,8 +37,7 @@ public:
     const vector<string> GetDelegatePubKey(NET_TYPE type) const;
     const uint256 GetMerkleRootHash() const;
 
-    string GetAccountRegisterSignature(NET_TYPE type) const;
-    const string GetAccountRegisterPubKey(NET_TYPE type) const;
+    const string GetSettleServicePubKey(NET_TYPE type) const;
     const string GetFundCoinInitPubKey(NET_TYPE type) const;
 
     vector<unsigned int> GetSeedNodeIP() const;
@@ -77,7 +76,7 @@ private:
     /* gensis block hash */
     static string genesisBlockHash_mainNet;
     static string genesisBlockHash_testNet;
-    static string genesisBlockHash_regTest;
+    static string genesisBlockHash_regNet;
 
     /* alert public key */
     static string AlertPK_MainNet;
@@ -89,17 +88,17 @@ private:
     /* fund coin initial public key */
     static string initPubKeyFundCoin_mainNet;
     static string initPubKeyFundCoin_testNet;
-    static string initPubkeyFundCoin_regTest;
+    static string initPubkeyFundCoin_regNet;
 
     /* settle service's public key */
     static string settlePubKey_mainNet;
     static string settlePubKey_testNet;
     static string settlePubKey_regTest;
 
-    /* settle service's signature */
-    static string settleSignature_mainNet;
-    static string settleSignature_testNet;
-    static string settleSignature_regNet;
+    /* txids in stable coin genesis */
+    static vector<string> stableCoinGenesisTxid_mainNet;
+    static vector<string> stableCoinGenesisTxid_testNet;
+    static vector<string> stableCoinGenesisTxid_regNet;
 
     /* Peer IP seeds */
     static vector<unsigned int> pnSeed;

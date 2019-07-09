@@ -121,9 +121,9 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
             "\nResult description:\n"
             "\nResult: {tx_hash}\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + HelpExampleCli("submitstakefcointx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + HelpExampleRpc("submitstakefcointx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
         );
     }
 
@@ -303,20 +303,20 @@ Value getmedianprice(const Array& params, bool fHelp){
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("getmedianprice", "\"WUSD\" \"WICC\"\n")
+            + HelpExampleCli("getmedianprice", "\"WUSD\" \"USD\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getmedianprice", "\"WUSD\" \"WICC\"\n")
+            + HelpExampleRpc("getmedianprice", "\"WUSD\" \"USD\"\n")
         );
     }
 
-    CoinType coinType;
+    CoinType coinType = CoinType::WICC;
     if (ParseCoinType(params[0].get_str(), coinType)) {
-        throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin type, must be one of WICC,WGRT,WUSD");
+        throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin type, must be one of WICC, WGRT, WUSD");
     }
 
-    PriceType priceType;
+    PriceType priceType = PriceType::USD;
     if (ParsePriceType(params[1].get_str(), priceType)) {
-        throw JSONRPCError(RPC_PRICE_TYPE_INVALID, "Invalid price type, must be one of USD,CNY,EUR,BTC,USDT,GOLD,KWH");
+        throw JSONRPCError(RPC_PRICE_TYPE_INVALID, "Invalid price type, must be one of USD, CNY, EUR, BTC, USDT, GOLD, KWH");
     }
 
     int height = chainActive.Tip()->nHeight;
@@ -332,7 +332,7 @@ Value getmedianprice(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
     }
 
-    int64_t price=block.GetBlockMedianPrice(coinType,priceType);
+    int64_t price = block.GetBlockMedianPrice(coinType, priceType);
 
     Object obj;
     obj.push_back(Pair("price", price));
@@ -568,6 +568,16 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
     // TODO: ...
     return Object();
 }
+
+static const Value& JsonFindValue(Value jsonObj, const string &name) {
+
+    const Value& jsonValue = find_value(jsonObj.get_obj(), name);
+    if (jsonValue.type() == null_type || jsonValue == null_type) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("field %s not found in json object", name));
+    }
+    return jsonValue;
+}
+
 Value submitdexsettletx(const Array& params, bool fHelp) {
      if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
@@ -605,6 +615,81 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
                            "\"deal_asset_amount\":100000000}]")
         );
     }
-    // TODO: ...
-    return Object();
+    
+    EnsureWalletIsUnlocked();
+
+    // 1. addr
+    auto pUserId = CUserID::ParseUserId(params[0].get_str());
+    if (!pUserId) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+    }
+
+    vector<DEXDealItem> dealItems;
+
+    Array dealItemArray = params[1].get_array();
+
+    for (auto dealItemObj : dealItemArray) {
+        DEXDealItem dealItem;
+        const Value& buy_order_txid = JsonFindValue(dealItemObj, "buy_order_txid");
+        dealItem.buyOrderId.SetHex(buy_order_txid.get_str());
+        const Value& sell_order_txid = find_value(dealItemObj.get_obj(), "sell_order_txid");
+        dealItem.sellOrderId.SetHex(sell_order_txid.get_str());
+        const Value& deal_price = JsonFindValue(dealItemObj, "deal_price");
+        dealItem.dealPrice = AmountToRawValue(deal_price);
+        const Value& deal_coin_amount = JsonFindValue(dealItemObj, "deal_coin_amount");
+        dealItem.dealCoinAmount = AmountToRawValue(deal_coin_amount);
+        const Value& deal_asset_amount = JsonFindValue(dealItemObj, "deal_asset_amount");
+        dealItem.dealAssetAmount = AmountToRawValue(deal_asset_amount);
+        dealItems.push_back(dealItem);
+    }
+
+    int64_t defaultFee = SysCfg().GetTxFee(); // default fee
+    int64_t fee;
+    if (params.size() > 2) {
+        fee = AmountToRawValue(params[2]);
+        if (fee < defaultFee) {
+            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
+                               strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
+        }
+    } else {
+        fee = defaultFee;
+    }
+
+    CAccount txAccount;
+    if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                            strprintf("The account not exists! userId=%s", pUserId->ToString()));
+    }
+    assert(!txAccount.keyId.IsEmpty());
+
+    CUserID txUid;
+    if (txAccount.RegIDIsMature()) {
+        txUid = txAccount.regId;
+    } else if(txAccount.pubKey.IsValid()) {
+        txUid = txAccount.pubKey;
+    } else{
+        CPubKey txPubKey;
+        if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
+        }
+        txUid = txPubKey;
+    }
+
+    int validHeight = chainActive.Height();
+    CDEXSettleTx tx(txUid, validHeight, fee, dealItems);
+
+
+    if (!pWalletMain->Sign(txAccount.keyId, tx.ComputeSignatureHash(), tx.signature))
+            throw JSONRPCError(RPC_WALLET_ERROR, "sign tx failed");
+
+    std::tuple<bool, string> ret = pWalletMain->CommitTx(&tx);
+
+    if (!std::get<0>(ret)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
+    }
+
+    Object obj;
+    obj.push_back(Pair("hash", std::get<1>(ret)));
+    return obj;
 }

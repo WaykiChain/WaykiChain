@@ -33,6 +33,10 @@ AM_CPPFLAGS += -I$(srcdir)/secp256k1/include -I$(srcdir)/secp256k1/contrib
 $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(wildcard secp256k1/include/*)
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
 
+
+config/build.h: FORCE
+	@$(top_srcdir)/share/genbuild.sh $(abs_top_builddir)/src/config/build.h $(abs_top_srcdir)
+
 .PHONY: FORCE
 # waykichain core #
 coin_CORE_H = \
@@ -216,12 +220,6 @@ VM_CPP = \
   vm/luavm/lmylib.cpp \
   vm/luavm/vmlua.cpp
 
-obj/build.h: FORCE
-	@$(MKDIR_P) $(abs_top_builddir)/src/obj
-	@$(top_srcdir)/share/genbuild.sh $(abs_top_builddir)/src/obj/build.h \
-	  $(abs_top_srcdir)
-version.o: obj/build.h
-
 liblua53_a_SOURCES = \
   $(VMLUA_C)
 
@@ -315,6 +313,7 @@ libcoin_common_a_SOURCES = \
   support/cleanse.cpp \
   support/events.cpp \
   sync.cpp \
+  tx/coinrewardtx.cpp \
   json/json_spirit_reader.cpp \
   json/json_spirit_value.cpp \
   json/json_spirit_writer.cpp \
@@ -329,8 +328,7 @@ libcoin_cli_a_SOURCES = \
   rpc/core/rpcclient.cpp \
   $(COIN_CORE_H)
 
-nodist_libcoin_common_a_SOURCES = $(top_srcdir)/src/obj/build.h
-#
+nodist_libcoin_common_a_SOURCES = $(top_srcdir)/src/config/build.h
 
 # coin binary #
 coind_LDADD = \
@@ -358,7 +356,7 @@ coind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
 
 # coinlua binary
 coinlua_LDADD = liblua53.a -lm
-coinlua_SOURCES = vm/luavm/luavm/lua/coinlua.c
+coinlua_SOURCES = vm/luavm/lua/coinlua.c
 coinlua_CFLAGS = $(AM_CFLAGS) -fPIC -DLUA_USE_POSIX -Wl,-E -ldl
 
 if BUILD_TESTS
@@ -383,7 +381,7 @@ qt/bitcoinstrings.cpp: $(libcoin_server_a_SOURCES) $(libcoin_common_a_SOURCES) $
 
 CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
 
-DISTCLEANFILES = obj/build.h
+DISTCLEANFILES = config/build.h
 
 EXTRA_DIST = leveldb Makefile.include
 

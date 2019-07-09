@@ -164,16 +164,19 @@ bool CCdpDBCache::EraseCdp(const CUserCDP &cdp, CDBOpLogMap &dbOpLogMap) {
 
 /**
  *  Interest Ratio Formula: ( a / Log10(b + N) )
- *  a = 1, b = 1
  *
- *  ==> ratio = 1/Log10(1+N)
+ *  ==> ratio = a / Log10(b+N)
  */
 uint64_t CCdpDBCache::ComputeInterest(int32_t blockHeight, const CUserCDP &cdp) {
     assert(blockHeight > cdp.blockHeight);
 
-    int32_t interval = blockHeight - cdp.blockHeight;
-    double interest = ((double) GetDefaultInterestParamA() * cdp.totalOwedScoins / kYearBlockCount)
-                    * log10(GetDefaultInterestParamB() + cdp.totalOwedScoins) * interval;
+    int32_t blockInterval = blockHeight - cdp.blockHeight;
+    int32_t loanedDays = ceil( (double) blockInterval / kDayBlockTotalCount );
+    uint16_t A = GetDefaultInterestParamA();
+    uint16_t B = GetDefaultInterestParamB();
+    uint64_t N = cdp.totalOwedScoins;
+    double annualInterestRate = 0.1 * (double) A / log10( 1 + B * N);
+    double interest = ((double) N / 365) * loanedDays * annualInterestRate;
 
     return (uint64_t) interest;
 }

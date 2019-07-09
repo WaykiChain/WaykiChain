@@ -38,6 +38,7 @@
 #include "tx/blockpricemediantx.h"
 #include "tx/blockrewardtx.h"
 #include "tx/contracttx.h"
+#include "tx/coinrewardtx.h"
 #include "tx/delegatetx.h"
 #include "tx/mulsigtx.h"
 #include "tx/tx.h"
@@ -227,13 +228,6 @@ struct CNodeStateStats {
 };
 
 int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree);
-
-inline bool AllowFree(double dPriority) {
-    // Large (in bytes) low-priority (new, small-coin) transactions
-    // need a fee.
-    // return dPriority > COIN * 144 / 250;
-    return true;
-}
 
 // Context-independent validity checks
 bool CheckTx(int nHeight, CBaseTx *ptx, CCacheWrapper &cacheWrapper, CValidationState &state);
@@ -772,6 +766,8 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
             Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion); break;
         case BLOCK_PRICE_MEDIAN_TX:
             Serialize(os, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion); break;
+        case MCOIN_REWARD_TX:
+            Serialize(os, *((CCoinRewardTx *)(pa.get())), nType, nVersion); break;
 
         /* dex */
         case DEX_SETTLE_TX:
@@ -839,6 +835,11 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
         case BLOCK_PRICE_MEDIAN_TX: {
             pa = std::make_shared<CBlockPriceMedianTx>();
             Unserialize(is, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case MCOIN_REWARD_TX: {
+            pa = std::make_shared<CCoinRewardTx>();
+            Unserialize(is, *((CCoinRewardTx *)(pa.get())), nType, nVersion);
             break;
         }
 

@@ -14,7 +14,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "config/chainparams.h"
 #include "crypto/hash.h"
 #include "id.h"
 #include "vote.h"
@@ -101,7 +100,7 @@ inline const string& GetPriceTypeName(PriceType priceType) {
     return kPriceTypeMapName.at(priceType);
 }
 
-inline bool ParsePriceType(const string& priceName, CoinType &priceType) {
+inline bool ParsePriceType(const string& priceName, PriceType &priceType) {
     if (priceName != "") {
         auto it = kPriceNameMapType.find(priceName);
         if (it != kPriceNameMapType.end()) {
@@ -168,8 +167,6 @@ public:
     bool OperateFcoinStaking(const int64_t fcoinsToStake) { return false; } // TODO: ...
 
     bool StakeBcoinsToCdp(CoinType coinType, const int64_t bcoinsToStake, const int64_t mintedScoins);
-    bool RedeemScoinsToCdp(const int64_t bcoinsToStake);
-    bool LiquidateCdp(const int64_t bcoinsToStake);
 
 public:
     CAccount(const CKeyID& keyId, const CNickID& nickId, const CPubKey& pubKey)
