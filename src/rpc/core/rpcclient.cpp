@@ -313,8 +313,11 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitdexselllimitordertx" && n > 4) ConvertTo<double>(params[4]);
     if (strMethod == "submitdexselllimitordertx" && n > 5) ConvertTo<double>(params[5]);
 
-    //submitdexbuymarketordertx TODO
-    //submitdexsellmarketordertx TODO
+    if (strMethod == "submitdexbuymarketordertx" && n > 3) ConvertTo<double>(params[3]);
+    if (strMethod == "submitdexbuymarketordertx" && n > 4) ConvertTo<double>(params[4]);
+
+    if (strMethod == "submitdexsellmarketordertx" && n > 3) ConvertTo<double>(params[3]);
+    if (strMethod == "submitdexsellmarketordertx" && n > 4) ConvertTo<double>(params[4]);
 
     if (strMethod == "submitdexcancelordertx" && n > 2) ConvertTo<double>(params[2]);
 
@@ -423,45 +426,3 @@ string HelpMessageCli(bool mainProgram)
 
     return strUsage;
 }
-
-// //test method
-// template<typename...Types>
-// void ConvertArray(Array& params, bool checkSize=false, Types...args)
-// {
-//     if(checkSize && params.size()!=args.size())
-//         throw runtime_error(string("Error types map lenght")); 
-
-//     for (int i = 0; i < params.size();i++)
-//     {
-//         if (params[i].type() == str_type)
-//         {
-//             // reinterpret string as unquoted json value
-//             Value value;
-//             string strJSON = params[i].get_str();
-//             if (!read_string(strJSON, value))
-//                 throw runtime_error(string("Error parsing JSON:")+strJSON);
-//             params[i] = value.get_value<args[i]>();
-//         }
-//         else
-//         {
-//             params[i] = params[i].get_value<args[i]>();
-//         }
-//     }
-// }
-
-// //test method
-// Array RPCConvertParams(const string &strMethod, const vector<string> &strParams)
-// {
-//     Array params;
-//     for (const auto &param : strParams)
-//         params.push_back(param);
-
-//     int n = params.size();
-
-//     if (false) { }
-//     else if (strMethod == "testmethod"  && n == 3)  { ConvertArray<string,int,int64_t>(params); }
-//     else if (strMethod == "testmethod"  && n == 4)  { ConvertArray<string,int,int64_t,double>(params); }
-//     else if (strMethod == "testmethod")  { ConvertArray<string,int,int64_t,double>(params,false); }
-//
-//     return params;
-// }

@@ -68,6 +68,17 @@ struct CUserCDP {
             collateralRatioBase);
     }
 
+    Object ToJson() {
+        Object result;
+        result.push_back(Pair("regid",          ownerRegId.ToString()));
+        result.push_back(Pair("cdp_id",         cdpTxId.GetHex()));
+        result.push_back(Pair("height",         blockHeight));
+        result.push_back(Pair("total_bcoin",    totalStakedBcoins));
+        result.push_back(Pair("total_scoin",    totalOwedScoins));
+        result.push_back(Pair("ratio",          collateralRatioBase));
+        return result;
+    }
+
     bool IsEmpty() const {
         return cdpTxId.IsEmpty();
     }

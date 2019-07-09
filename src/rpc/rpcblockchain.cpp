@@ -78,6 +78,7 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     if (pBlockIndex->pprev) result.push_back(Pair("previous_block_hash", pBlockIndex->pprev->GetBlockHash().GetHex()));
     CBlockIndex* pNext = chainActive.Next(pBlockIndex);
     if (pNext) result.push_back(Pair("next_block_hash", pNext->GetBlockHash().GetHex()));
+    //TODO: add median price info
     return result;
 }
 
@@ -249,6 +250,7 @@ Value getblock(const Array& params, bool fHelp)
             "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
             "  \"previousblockhash\" : \"hash\",  (string) The hash of the previous block\n"
             "  \"nextblockhash\" : \"hash\"       (string) The hash of the next block\n"
+            "  \"median_price\" :  \"array\"      (array)  The median price info\n"
             "}\n"
             "\nResult (for verbose=false):\n"
             "\"data\"             (string) A string that is serialized, hex-encoded data for block 'hash'.\n"
