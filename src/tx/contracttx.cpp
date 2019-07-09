@@ -150,19 +150,18 @@ string CContractDeployTx::ToString(CAccountDBCache &view) {
 
 Object CContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
-    CAccountDBCache view(accountCache);
 
     CKeyID keyid;
-    view.GetKeyId(txUid, keyid);
+    accountCache.GetKeyId(txUid, keyid);
 
-    result.push_back(Pair("hash", GetHash().GetHex()));
-    result.push_back(Pair("tx_type", GetTxType(nTxType)));
-    result.push_back(Pair("ver", nVersion));
-    result.push_back(Pair("regid", txUid.get<CRegID>().ToString()));
-    result.push_back(Pair("addr", keyid.ToAddress()));
-    result.push_back(Pair("script", "script_content"));
-    result.push_back(Pair("fees", llFees));
-    result.push_back(Pair("valid_height", nValidHeight));
+    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("regid",          txUid.get<CRegID>().ToString()));
+    result.push_back(Pair("addr",           keyid.ToAddress()));
+    result.push_back(Pair("script",         "script_content"));
+    result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("valid_height",   nValidHeight));
     return result;
 }
 
