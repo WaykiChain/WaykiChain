@@ -136,8 +136,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "sendtoaddress"          && n == 3) ConvertTo<double>(params[2]);
     if (strMethod == "sendtoaddresswithfee"   && n == 3) { ConvertTo<double>(params[1]); ConvertTo<double>(params[2]); }
     if (strMethod == "sendtoaddresswithfee"   && n == 4) { ConvertTo<double>(params[2]); ConvertTo<double>(params[3]); }
- 
-    // if (strMethod == "dispersebalance"        && n > 1) ConvertTo<double>(params[1]);   
+
+    // if (strMethod == "dispersebalance"        && n > 1) ConvertTo<double>(params[1]);
     if (strMethod == "settxfee"               && n > 0) ConvertTo<double>(params[0]); // deprecated
     if (strMethod == "setmintxfee"            && n > 0) ConvertTo<double>(params[0]);
     // if (strMethod == "getreceivedbyaddress"   && n > 1) ConvertTo<int64_t>(params[1]);
@@ -274,16 +274,16 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitdexselllimitordertx" && n > 4) ConvertTo<uint64_t>(params[4]);
     if (strMethod == "submitdexselllimitordertx" && n > 5) ConvertTo<int64_t>(params[5]);
 
-    if (strMethod == "startcommontpstest"       && n > 0)    ConvertTo<int64_t>(params[0]); 
-    if (strMethod == "startcommontpstest"       && n > 1)    ConvertTo<int64_t>(params[1]); 
-    if (strMethod == "startcontracttpstest"     && n > 1)    ConvertTo<int64_t>(params[1]); 
-    if (strMethod == "startcontracttpstest"     && n > 2)    ConvertTo<int64_t>(params[2]); 
-    if (strMethod == "getlogfailures"           && n > 0)    ConvertTo<int>(params[0]); 
+    if (strMethod == "startcommontpstest"       && n > 0)    ConvertTo<int64_t>(params[0]);
+    if (strMethod == "startcommontpstest"       && n > 1)    ConvertTo<int64_t>(params[1]);
+    if (strMethod == "startcontracttpstest"     && n > 1)    ConvertTo<int64_t>(params[1]);
+    if (strMethod == "startcontracttpstest"     && n > 2)    ConvertTo<int64_t>(params[2]);
+    if (strMethod == "getblockfailures"         && n > 0)    ConvertTo<int>(params[0]);
 
     /* for cdp */
-    if (strMethod == "submitpricefeedtx"        && n > 1) ConvertTo<Array>(params[1]); 
+    if (strMethod == "submitpricefeedtx"        && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "submitpricefeedtx"        && n > 2) ConvertTo<double>(params[2]);
-    
+
     if (strMethod == "submitstakefcointx" && n > 3) ConvertTo<uint64_t>(params[3]);
     if (strMethod == "submitstakefcointx" && n > 4) ConvertTo<uint64_t>(params[4]);
     if (strMethod == "submitstakefcointx" && n > 5) ConvertTo<uint64_t>(params[5]);
@@ -313,8 +313,11 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitdexselllimitordertx" && n > 4) ConvertTo<double>(params[4]);
     if (strMethod == "submitdexselllimitordertx" && n > 5) ConvertTo<double>(params[5]);
 
-    //submitdexbuymarketordertx TODO
-    //submitdexsellmarketordertx TODO
+    if (strMethod == "submitdexbuymarketordertx" && n > 3) ConvertTo<double>(params[3]);
+    if (strMethod == "submitdexbuymarketordertx" && n > 4) ConvertTo<double>(params[4]);
+
+    if (strMethod == "submitdexsellmarketordertx" && n > 3) ConvertTo<double>(params[3]);
+    if (strMethod == "submitdexsellmarketordertx" && n > 4) ConvertTo<double>(params[4]);
 
     if (strMethod == "submitdexcancelordertx" && n > 2) ConvertTo<double>(params[2]);
 
@@ -422,14 +425,14 @@ string HelpMessageCli(bool mainProgram)
     }
 
     return strUsage;
-}
+
 
 // //test method
 // template<typename...Types>
 // void ConvertArray(Array& params, bool checkSize=false, Types...args)
 // {
 //     if(checkSize && params.size()!=args.size())
-//         throw runtime_error(string("Error types map lenght")); 
+//         throw runtime_error(string("Error types map lenght"));
 
 //     for (int i = 0; i < params.size();i++)
 //     {
@@ -465,3 +468,4 @@ string HelpMessageCli(bool mainProgram)
 //
 //     return params;
 // }
+

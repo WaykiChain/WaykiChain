@@ -78,6 +78,7 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     if (pBlockIndex->pprev) result.push_back(Pair("previous_block_hash", pBlockIndex->pprev->GetBlockHash().GetHex()));
     CBlockIndex* pNext = chainActive.Next(pBlockIndex);
     if (pNext) result.push_back(Pair("next_block_hash", pNext->GetBlockHash().GetHex()));
+    //TODO: add median price info
     return result;
 }
 
@@ -249,6 +250,7 @@ Value getblock(const Array& params, bool fHelp)
             "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
             "  \"previousblockhash\" : \"hash\",  (string) The hash of the previous block\n"
             "  \"nextblockhash\" : \"hash\"       (string) The hash of the next block\n"
+            "  \"median_price\" :  \"array\"      (array)  The median price info\n"
             "}\n"
             "\nResult (for verbose=false):\n"
             "\"data\"             (string) A string that is serialized, hex-encoded data for block 'hash'.\n"
@@ -753,17 +755,18 @@ Value startcontracttpstest(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value getlogfailures(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 3) {
+Value getblockfailures(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 1) {
         throw runtime_error(
-            "getlogfailures \"block height\"\n"
+            "getblockfailures \"block height\"\n"
             "\nGet log failures by block height.\n"
             "\nArguments:\n"
             "1.\"block height\" (numberic, required)\n"
             "\nResult:\n"
             "\nExamples:\n" +
-            HelpExampleCli("getlogfailures", "100") + "\nAs json rpc call\n" +
-            HelpExampleRpc("getlogfailures", "100"));
+            HelpExampleCli("getblockfailures", "100") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("getblockfailures", "100"));
     }
 
     int height = params[0].get_int();

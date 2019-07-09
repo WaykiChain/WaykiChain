@@ -385,6 +385,9 @@ public:
         if (pBlockTreeDb)
             pBlockTreeDb->Flush();
 
+        if (pLogCache)
+            pLogCache->Flush();
+
         return true;
     }
 }; //end of CCacheDBManager

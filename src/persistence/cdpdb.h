@@ -68,6 +68,17 @@ struct CUserCDP {
             collateralRatioBase);
     }
 
+    Object ToJson() {
+        Object result;
+        result.push_back(Pair("regid",          ownerRegId.ToString()));
+        result.push_back(Pair("cdp_id",         cdpTxId.GetHex()));
+        result.push_back(Pair("height",         blockHeight));
+        result.push_back(Pair("total_bcoin",    totalStakedBcoins));
+        result.push_back(Pair("total_scoin",    totalOwedScoins));
+        result.push_back(Pair("ratio",          collateralRatioBase));
+        return result;
+    }
+
     bool IsEmpty() const {
         return cdpTxId.IsEmpty();
     }
@@ -123,6 +134,9 @@ public:
 
     bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins, CUserCDP &cdp,
                         CDBOpLogMap &dbOpLogMap);
+
+    // Usage: acquire user's cdp list by CRegID.
+    bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdps) const;
 
     bool GetCdp(CUserCDP &cdp);
     bool SaveCdp(CUserCDP &cdp); //first-time cdp creation
