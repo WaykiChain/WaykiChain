@@ -615,7 +615,7 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
                            "\"deal_asset_amount\":100000000}]")
         );
     }
-    
+
     EnsureWalletIsUnlocked();
 
     // 1. addr
@@ -678,7 +678,6 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
 
     int validHeight = chainActive.Height();
     CDEXSettleTx tx(txUid, validHeight, fee, dealItems);
-
 
     if (!pWalletMain->Sign(txAccount.keyId, tx.ComputeSignatureHash(), tx.signature))
             throw JSONRPCError(RPC_WALLET_ERROR, "sign tx failed");

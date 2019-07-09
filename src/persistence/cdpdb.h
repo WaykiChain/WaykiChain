@@ -124,6 +124,9 @@ public:
     bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins, CUserCDP &cdp,
                         CDBOpLogMap &dbOpLogMap);
 
+    // Usage: acquire user's cdp list by CRegID (and CTxCord).
+    bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdps) const;
+
     bool GetCdp(CUserCDP &cdp);
     bool SaveCdp(CUserCDP &cdp); //first-time cdp creation
     bool SaveCdp(CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
