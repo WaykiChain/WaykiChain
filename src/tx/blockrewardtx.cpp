@@ -75,7 +75,7 @@ string CBlockRewardTx::ToString(CAccountDBCache &accountCache) {
                      GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), rewardValue);
 }
 
-Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const{
+Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
@@ -86,7 +86,7 @@ Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const{
     result.push_back(Pair("uid",            txUid.ToString()));
     result.push_back(Pair("addr",           keyId.ToAddress()));
     result.push_back(Pair("reward_value",   rewardValue));
-    result.push_back(Pair("valid_height",   nHeight));
+    result.push_back(Pair("valid_height",   nValidHeight));
 
     return result;
 }

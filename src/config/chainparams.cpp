@@ -4,21 +4,21 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#include "configuration.h"
-#include "config/chainparams.h"
+#include "chainparams.h"
 
 #include "assert.h"
-#include "commons/util.h"
 #include "accounts/key.h"
-#include "tx/accountregtx.h"
-#include "tx/blockrewardtx.h"
-#include "tx/coinrewardtx.h"
+#include "commons/util.h"
+#include "configuration.h"
 #include "main.h"
 
 #include <boost/assign/list_of.hpp>
 #include <boost/algorithm/string/case_conv.hpp> // for to_lower()
 #include <boost/algorithm/string/predicate.hpp> // for startswith() and endswith()
 #include <boost/filesystem.hpp>
+
+#include <memory>
+
 using namespace boost::assign;
 using namespace std;
 
@@ -58,11 +58,11 @@ public:
         vSeeds.push_back(CDNSSeedData("seed1.waykichain.net", "n1.waykichain.net"));
         vSeeds.push_back(CDNSSeedData("seed2.waykichain.net", "n2.waykichain.net"));
 
-        base58Prefixes[PUBKEY_ADDRESS]  = IniCfg().GetAddressPrefix(MAIN_NET,PUBKEY_ADDRESS);
-        base58Prefixes[SCRIPT_ADDRESS]  = IniCfg().GetAddressPrefix(MAIN_NET,SCRIPT_ADDRESS);
-        base58Prefixes[SECRET_KEY]      = IniCfg().GetAddressPrefix(MAIN_NET,SECRET_KEY);
-        base58Prefixes[EXT_PUBLIC_KEY]  = IniCfg().GetAddressPrefix(MAIN_NET,EXT_PUBLIC_KEY);
-        base58Prefixes[EXT_SECRET_KEY]  = IniCfg().GetAddressPrefix(MAIN_NET,EXT_SECRET_KEY);
+        base58Prefixes[PUBKEY_ADDRESS] = IniCfg().GetAddressPrefix(MAIN_NET, PUBKEY_ADDRESS);
+        base58Prefixes[SCRIPT_ADDRESS] = IniCfg().GetAddressPrefix(MAIN_NET, SCRIPT_ADDRESS);
+        base58Prefixes[SECRET_KEY]     = IniCfg().GetAddressPrefix(MAIN_NET, SECRET_KEY);
+        base58Prefixes[EXT_PUBLIC_KEY] = IniCfg().GetAddressPrefix(MAIN_NET, EXT_PUBLIC_KEY);
+        base58Prefixes[EXT_SECRET_KEY] = IniCfg().GetAddressPrefix(MAIN_NET, EXT_SECRET_KEY);
 
         // Convert the pnSeeds array into usable address objects.
         for (unsigned int i = 0; i < IniCfg().GetSeedNodeIP().size(); i++) {
@@ -123,11 +123,11 @@ public:
         vSeeds.push_back(CDNSSeedData("seed1.waykitest.net", "n1.waykitest.net"));
         vSeeds.push_back(CDNSSeedData("seed2.waykitest.net", "n2.waykitest.net"));
 
-        base58Prefixes[PUBKEY_ADDRESS]  = IniCfg().GetAddressPrefix(TEST_NET,PUBKEY_ADDRESS);
-        base58Prefixes[SCRIPT_ADDRESS]  = IniCfg().GetAddressPrefix(TEST_NET,SCRIPT_ADDRESS);
-        base58Prefixes[SECRET_KEY]      = IniCfg().GetAddressPrefix(TEST_NET,SECRET_KEY);
-        base58Prefixes[EXT_PUBLIC_KEY]  = IniCfg().GetAddressPrefix(TEST_NET,EXT_PUBLIC_KEY);
-        base58Prefixes[EXT_SECRET_KEY]  = IniCfg().GetAddressPrefix(TEST_NET,EXT_SECRET_KEY);
+        base58Prefixes[PUBKEY_ADDRESS] = IniCfg().GetAddressPrefix(TEST_NET, PUBKEY_ADDRESS);
+        base58Prefixes[SCRIPT_ADDRESS] = IniCfg().GetAddressPrefix(TEST_NET, SCRIPT_ADDRESS);
+        base58Prefixes[SECRET_KEY]     = IniCfg().GetAddressPrefix(TEST_NET, SECRET_KEY);
+        base58Prefixes[EXT_PUBLIC_KEY] = IniCfg().GetAddressPrefix(TEST_NET, EXT_PUBLIC_KEY);
+        base58Prefixes[EXT_SECRET_KEY] = IniCfg().GetAddressPrefix(TEST_NET, EXT_SECRET_KEY);
     }
 
     virtual NET_TYPE NetworkID() const { return TEST_NET; }
@@ -391,10 +391,10 @@ bool CBaseParams::CreateSettleAccountRegisterTx(vector<std::shared_ptr<CBaseTx> 
 };
 
 bool CBaseParams::CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
-    // auto pTx      = std::make_shared<CCoinRewardTx>(CUserID(), CoinType::WGRT, 0, nStableCoinGenesisHeight);
-    // pTx->nVersion = nTxVersion1;
+    auto pTx      = std::make_shared<CCoinRewardTx>(CPubKey(), CoinType::WGRT, 0, nStableCoinGenesisHeight);
+    pTx->nVersion = nTxVersion1;
 
-    // vptx.push_back(pTx);
+    vptx.push_back(pTx);
 
     // pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetFundCoinInitPubKey(type))), CoinType::WGRT,
     //                                       kTotalFundCoinAmount, nStableCoinGenesisHeight);

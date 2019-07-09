@@ -38,6 +38,7 @@
 #include "tx/blockpricemediantx.h"
 #include "tx/blockrewardtx.h"
 #include "tx/contracttx.h"
+#include "tx/coinrewardtx.h"
 #include "tx/delegatetx.h"
 #include "tx/mulsigtx.h"
 #include "tx/tx.h"
@@ -227,13 +228,6 @@ struct CNodeStateStats {
 };
 
 int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree);
-
-inline bool AllowFree(double dPriority) {
-    // Large (in bytes) low-priority (new, small-coin) transactions
-    // need a fee.
-    // return dPriority > COIN * 144 / 250;
-    return true;
-}
 
 // Context-independent validity checks
 bool CheckTx(int nHeight, CBaseTx *ptx, CCacheWrapper &cacheWrapper, CValidationState &state);

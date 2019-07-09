@@ -148,7 +148,7 @@ string CContractDeployTx::ToString(CAccountDBCache &view) {
                      nValidHeight);
 }
 
-Object CContractDeployTx::ToJson(const CAccountDBCache &accountCache) const{
+Object CContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
     CAccountDBCache view(accountCache);
 

@@ -99,7 +99,7 @@ string CMultiCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
                      GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), rewardValue);
 }
 
-Object CMultiCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const{
+Object CMultiCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);

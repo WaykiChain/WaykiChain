@@ -12,23 +12,22 @@
 class CBlockRewardTx : public CBaseTx {
 public:
     uint64_t rewardValue;
-    int nHeight;
 
 public:
-    CBlockRewardTx(): CBaseTx(BLOCK_REWARD_TX), rewardValue(0), nHeight(0) {}
-    CBlockRewardTx(const CBaseTx *pBaseTx) : CBaseTx(BLOCK_REWARD_TX), rewardValue(0), nHeight(0) {
+    CBlockRewardTx(): CBaseTx(BLOCK_REWARD_TX), rewardValue(0) {}
+    CBlockRewardTx(const CBaseTx *pBaseTx) : CBaseTx(BLOCK_REWARD_TX), rewardValue(0) {
         assert(BLOCK_REWARD_TX == pBaseTx->nTxType);
         *this = *(CBlockRewardTx *)pBaseTx;
     }
-    CBlockRewardTx(const UnsignedCharArray &accountIn, const uint64_t rewardValueIn, const int nHeightIn):
+    CBlockRewardTx(const UnsignedCharArray &accountIn, const uint64_t rewardValueIn, const int nValidHeightIn):
         CBaseTx(BLOCK_REWARD_TX) {
         if (accountIn.size() > 6) {
             txUid = CPubKey(accountIn);
         } else {
             txUid = CRegID(accountIn);
         }
-        rewardValue = rewardValueIn;
-        nHeight     = nHeightIn;
+        rewardValue  = rewardValueIn;
+        nValidHeight = nValidHeightIn;
     }
     ~CBlockRewardTx() {}
 
@@ -39,12 +38,12 @@ public:
 
         // Do NOT change the order.
         READWRITE(VARINT(rewardValue));
-        READWRITE(VARINT(nHeight));)
+        READWRITE(VARINT(nValidHeight));)
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << txUid << VARINT(rewardValue) << VARINT(nHeight);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << txUid << VARINT(rewardValue) << VARINT(nValidHeight);
             sigHash = ss.GetHash();
         }
 

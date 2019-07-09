@@ -313,6 +313,7 @@ libcoin_common_a_SOURCES = \
   support/cleanse.cpp \
   support/events.cpp \
   sync.cpp \
+  tx/coinrewardtx.cpp \
   json/json_spirit_reader.cpp \
   json/json_spirit_value.cpp \
   json/json_spirit_writer.cpp \
@@ -328,7 +329,6 @@ libcoin_cli_a_SOURCES = \
   $(COIN_CORE_H)
 
 nodist_libcoin_common_a_SOURCES = $(top_srcdir)/src/config/build.h
-#
 
 # coin binary #
 coind_LDADD = \
@@ -381,7 +381,7 @@ qt/bitcoinstrings.cpp: $(libcoin_server_a_SOURCES) $(libcoin_common_a_SOURCES) $
 
 CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
 
-DISTCLEANFILES = obj/build.h
+DISTCLEANFILES = config/build.h
 
 EXTRA_DIST = leveldb Makefile.include
 

@@ -14,12 +14,12 @@ bool CCoinRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState 
 }
 
 bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
-    assert(txUid.type() == typeid(CNullID) || txUid.type() == typeid(CPubKey));
+    assert(txUid.type() == typeid(CPubKey));
 
     CAccount account;
     CRegID regId(height, index);
-    CPubKey pubKey = txUid.type() == typeid(CNullID) ? CPubKey() : txUid.get<CPubKey>();
-    CKeyID keyId = txUid.type() == typeid(CNullID) ? Hash160(regId.GetRegIdRaw()) : txUid.get<CPubKey>().GetKeyId();
+    CPubKey pubKey = txUid.get<CPubKey>();
+    CKeyID keyId = pubKey.IsValid() ? Hash160(regId.GetRegIdRaw()) : txUid.get<CPubKey>().GetKeyId();
     // Contstuct an empty account log which will delete account automatically if the blockchain rollbacked.
     CAccountLog accountLog(keyId);
 
@@ -67,7 +67,7 @@ string CCoinRewardTx::ToString(CAccountDBCache &accountCache) {
                      coinType, coins);
 }
 
-Object CCoinRewardTx::ToJson(const CAccountDBCache &accountCache) const{
+Object CCoinRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
     result.push_back(Pair("hash",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
@@ -76,7 +76,7 @@ Object CCoinRewardTx::ToJson(const CAccountDBCache &accountCache) const{
     result.push_back(Pair("addr",           txUid.get<CPubKey>().GetKeyId().GetHex()));
     result.push_back(Pair("coin_type",      GetCoinTypeName(CoinType(coinType))));
     result.push_back(Pair("coins",          coins));
-    result.push_back(Pair("valid_height",   height));
+    result.push_back(Pair("valid_height",   nValidHeight));
 
     return result;
 }

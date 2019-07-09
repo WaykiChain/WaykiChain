@@ -125,14 +125,14 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
     }
 
     if (pBlock->vptx[0]->nTxType == BLOCK_REWARD_TX) {
-        auto pRewardTx     = (CBlockRewardTx *)pBlock->vptx[0].get();
-        pRewardTx->txUid   = delegate.regId;
-        pRewardTx->nHeight = pBlock->GetHeight();
+        auto pRewardTx          = (CBlockRewardTx *)pBlock->vptx[0].get();
+        pRewardTx->txUid        = delegate.regId;
+        pRewardTx->nValidHeight = pBlock->GetHeight();
     } else if (pBlock->vptx[0]->nTxType == MCOIN_BLOCK_REWARD_TX) {
-        auto pRewardTx     = (CMultiCoinBlockRewardTx *)pBlock->vptx[0].get();
-        pRewardTx->txUid   = delegate.regId;
-        pRewardTx->nHeight = pBlock->GetHeight();
-        pRewardTx->profits = delegate.CalculateAccountProfit(pBlock->GetHeight());
+        auto pRewardTx          = (CMultiCoinBlockRewardTx *)pBlock->vptx[0].get();
+        pRewardTx->txUid        = delegate.regId;
+        pRewardTx->nValidHeight = pBlock->GetHeight();
+        pRewardTx->profits      = delegate.CalculateAccountProfit(pBlock->GetHeight());
     }
 
     pBlock->SetNonce(GetRand(SysCfg().GetBlockMaxNonce()));

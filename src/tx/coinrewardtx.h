@@ -12,22 +12,21 @@ class CCoinRewardTx : public CBaseTx {
 public:
     uint8_t coinType;
     uint64_t coins;  // default: WICC
-    int32_t height;
 
 public:
-    CCoinRewardTx() : CBaseTx(MCOIN_REWARD_TX), coinType(CoinType::WICC), coins(0), height(0) {}
+    CCoinRewardTx() : CBaseTx(MCOIN_REWARD_TX), coinType(CoinType::WICC), coins(0) {}
 
-    CCoinRewardTx(const CBaseTx *pBaseTx) : CBaseTx(MCOIN_REWARD_TX), coinType(CoinType::WICC), coins(0), height(0) {
+    CCoinRewardTx(const CBaseTx *pBaseTx) : CBaseTx(MCOIN_REWARD_TX), coinType(CoinType::WICC), coins(0) {
         assert(MCOIN_REWARD_TX == pBaseTx->nTxType);
         *this = *(CCoinRewardTx *)pBaseTx;
     }
 
-    CCoinRewardTx(const CUserID &txUidIn, const CoinType coinTypeIn, const uint64_t coinsIn, const int32_t heightIn)
+    CCoinRewardTx(const CUserID &txUidIn, const CoinType coinTypeIn, const uint64_t coinsIn, const int32_t nValidHeightIn)
         : CBaseTx(MCOIN_REWARD_TX) {
-        txUid    = txUidIn;
-        coinType = coinTypeIn;
-        coins    = coinsIn;
-        height   = heightIn;
+        txUid        = txUidIn;
+        coinType     = coinTypeIn;
+        coins        = coinsIn;
+        nValidHeight = nValidHeightIn;
     }
 
     ~CCoinRewardTx() {}
@@ -35,7 +34,7 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
-        READWRITE(VARINT(height));
+        READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
         READWRITE(VARINT(coins));
         READWRITE(coinType);
@@ -45,7 +44,7 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(height) << txUid << VARINT(coins) << coinType;
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(coins) << coinType;
             sigHash = ss.GetHash();
         }
 
