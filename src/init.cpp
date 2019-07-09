@@ -119,10 +119,11 @@ bool ShutdownRequested() { return fRequestShutdown; }
 void Interrupt() { InterruptRPCServer(); }
 
 void Shutdown() {
-    LogPrint("INFO", "Shutdown : In progress...\n");
+    LogPrint("INFO", "Shutdown() : In progress...\n");
     static CCriticalSection cs_Shutdown;
     TRY_LOCK(cs_Shutdown, lockShutdown);
-    if (!lockShutdown) return;
+    if (!lockShutdown)
+        return;
 
     RenameThread("Coin-shutoff");
     mempool.AddUpdatedTransactionNum(1);
@@ -158,7 +159,7 @@ void Shutdown() {
     globalVerifyHandle.reset();
     ECC_Stop();
 
-    LogPrint("INFO", "Shutdown : done\n");
+    LogPrint("INFO", "Shutdown() : done\n");
     printf("Shutdown : done\n");
 }
 

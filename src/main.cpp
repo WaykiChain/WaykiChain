@@ -1384,14 +1384,16 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         return ProcessGenesisBlock(block, cw, pIndex);
     }
 
-    // Specail case for stable coin genesis block
+    // In stable coin genesis, need to verify txid for every transaction in block.
     if (block.GetHeight() == SysCfg().GetStableCoinGenesisHeight()) {
         assert(block.vptx.size() == 4);
-        assert(block.vptx[1]->nTxType == MCOIN_REWARD_TX);
-        assert(block.vptx[2]->nTxType == MCOIN_REWARD_TX);
-        assert(block.vptx[3]->nTxType == MCOIN_REWARD_TX);
-        // TODO:
-        // 2nd, 3rd, 4th txid
+
+        vector<string> txids = IniCfg().GetStableCoinGenesisTxid(SysCfg().NetworkID());
+        assert(txids.size() == 3);
+        for (uint8_t index = 0; index < 3; ++ index) {
+            assert(block.vptx[index + 1]->nTxType == MCOIN_REWARD_TX);
+            assert(block.vptx[index + 1]->GetHash() == uint256S(txids[index]));
+        }
     }
 
     if (!VerifyPosTx(&block, cw, false))
