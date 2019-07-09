@@ -69,11 +69,11 @@ string CCoinRewardTx::ToString(CAccountDBCache &accountCache) {
 
 Object CCoinRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
-    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("hash", GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("uid",            txUid.ToString()));
-    result.push_back(Pair("addr",           txUid.get<CPubKey>().GetKeyId().ToAddress()));
+    result.push_back(Pair("addr",           txUid.get<CPubKey>().IsFullyValid() ? txUid.get<CPubKey>().GetKeyId().ToAddress() : ""));
     result.push_back(Pair("coin_type",      GetCoinTypeName(CoinType(coinType))));
     result.push_back(Pair("coins",          coins));
     result.push_back(Pair("valid_height",   nValidHeight));
