@@ -42,8 +42,6 @@ enum TxType: unsigned char {
     SFC_GLOBAL_HALT_MTX   = 42,  //!< StableCoin Fund Committee invokes Global Halt CDP Operations MulSigTx
     SFC_GLOBAL_SETTLE_MTX = 43,  //!< StableCoin Fund Committee invokes Global Settle Operation MulSigTx
 
-    // SCOIN_TRANSFER_TX = 51,  //!< StableCoin Transfer Tx
-    // FCOIN_TRANSFER_TX = 52,  //!< FundCoin Transfer Tx
     FCOIN_STAKE_TX    = 53,  //!< Stake Fund Coin Tx in order to become a price feeder
 
     DEX_SETTLE_TX            = 61,  //!< dex settle Tx
