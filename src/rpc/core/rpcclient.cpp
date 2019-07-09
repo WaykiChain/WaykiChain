@@ -313,8 +313,11 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitdexselllimitordertx" && n > 4) ConvertTo<double>(params[4]);
     if (strMethod == "submitdexselllimitordertx" && n > 5) ConvertTo<double>(params[5]);
 
-    //submitdexbuymarketordertx TODO
-    //submitdexsellmarketordertx TODO
+    if (strMethod == "submitdexbuymarketordertx" && n > 3) ConvertTo<double>(params[3]);
+    if (strMethod == "submitdexbuymarketordertx" && n > 4) ConvertTo<double>(params[4]);
+
+    if (strMethod == "submitdexsellmarketordertx" && n > 3) ConvertTo<double>(params[3]);
+    if (strMethod == "submitdexsellmarketordertx" && n > 4) ConvertTo<double>(params[4]);
 
     if (strMethod == "submitdexcancelordertx" && n > 2) ConvertTo<double>(params[2]);
 
@@ -422,7 +425,7 @@ string HelpMessageCli(bool mainProgram)
     }
 
     return strUsage;
-}
+
 
 // //test method
 // template<typename...Types>
@@ -465,3 +468,4 @@ string HelpMessageCli(bool mainProgram)
 //
 //     return params;
 // }
+
