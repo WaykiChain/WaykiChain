@@ -38,13 +38,15 @@ struct CoinTypeHash {
 static const unordered_map<CoinType, string, CoinTypeHash> kCoinTypeMapName = {
     {WICC, "WICC"},
     {WGRT, "WGRT"},
-    {WUSD, "WUSD"}
+    {WUSD, "WUSD"},
+    {WCNY, "WCNY"}
 };
 
 static const unordered_map<string, CoinType> kCoinNameMapType = {
     {"WICC", WICC},
     {"WGRT", WGRT},
-    {"WUSD", WUSD}
+    {"WUSD", WUSD},
+    {"WCNY", WCNY}
 };
 
 inline const string& GetCoinTypeName(CoinType coinType) {
