@@ -37,6 +37,8 @@ $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(w
 config/build.h: FORCE
 	@$(top_srcdir)/share/genbuild.sh $(abs_top_builddir)/src/config/build.h $(abs_top_srcdir)
 
+config/version.o: config/build.h
+
 .PHONY: FORCE
 # waykichain core #
 coin_CORE_H = \
