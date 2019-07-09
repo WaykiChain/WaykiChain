@@ -425,7 +425,7 @@ string HelpMessageCli(bool mainProgram)
     }
 
     return strUsage;
-
+}
 
 // //test method
 // template<typename...Types>
@@ -468,4 +468,3 @@ string HelpMessageCli(bool mainProgram)
 //
 //     return params;
 // }
-
