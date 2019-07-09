@@ -107,6 +107,17 @@ const string G_CONFIG_TABLE::GetSettleServicePubKey(NET_TYPE type) const {
     return "";
 }
 
+const vector<string> G_CONFIG_TABLE::GetStableCoinGenesisTxid(NET_TYPE type) const {
+    switch (type) {
+        case MAIN_NET: return stableCoinGenesisTxid_mainNet;
+        case TEST_NET: return stableCoinGenesisTxid_testNet;
+        case REGTEST_NET: return stableCoinGenesisTxid_regNet;
+        default: assert(0);
+    }
+
+    return vector<string>();
+}
+
 uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return nFeatureForkHeight_mainNet;

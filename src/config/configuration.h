@@ -54,6 +54,7 @@ public:
     uint64_t GetCoinInitValue() const { return InitialCoin; };
 	uint32_t GetFeatureForkHeight(NET_TYPE) const;
     uint32_t GetStableCoinGenesisHeight(NET_TYPE) const;
+    const vector<string> GetStableCoinGenesisTxid(NET_TYPE type) const;
 
 private:
     static string COIN_NAME; /* basecoin name */
