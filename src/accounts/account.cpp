@@ -340,10 +340,10 @@ bool CAccount::StakeBcoinsToCdp(CoinType coinType, const int64_t bcoinsToStake, 
     return true;
 }
 
-bool CAccount::RedeemScoinsToCdp(const int64_t bcoinsToStake) {
+// bool CAccount::RedeemScoinsToCdp(const int64_t bcoinsToStake) {
 
-    return true;
-}
+//     return true;
+// }
 
 bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesIn,
                                    vector<CCandidateVote> &candidateVotesInOut, const uint64_t curHeight) {
