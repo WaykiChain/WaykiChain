@@ -28,6 +28,7 @@ enum CoinType: uint8_t {
     WICC = 1,
     WGRT = 2,
     WUSD = 3,
+    WCNY = 4
 };
 
 // make compatibility with low GCC version(≤ 4.9.2)
