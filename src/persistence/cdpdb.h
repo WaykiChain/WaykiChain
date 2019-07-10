@@ -146,7 +146,7 @@ public:
     bool UndoCdp(CDBOpLogMap &dbOpLogMap) { return cdpCache.UndoData(dbOpLogMap);  }
 
     uint64_t ComputeInterest(int32_t blockHeight, const CUserCDP &cdp);
-
+    bool ProcessForceSettle(int32_t blockHeight);
     bool CheckGlobalCollateralFloorReached(const uint64_t bcoinMedianPrice);
     bool CheckGlobalCollateralCeilingReached(const uint64_t newBcoinsToStake);
 

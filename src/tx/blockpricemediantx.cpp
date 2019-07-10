@@ -14,8 +14,8 @@ bool CBlockPriceMedianTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSta
 }
 
 bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    // Nothing to do here.
-    return true;
+    // TODO: force settle/liquidate any under-collateralized CDP (collateral ratio < 100%)
+    return cw.cdpCache.ProcessForceSettle(nHeight);
 }
 
 bool CBlockPriceMedianTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
