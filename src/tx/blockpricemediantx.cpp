@@ -53,8 +53,9 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         // b) sell WICC for WUSD to return to risk reserve pool
         auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(CoinType::WUSD, AssetType::WICC, cdp.totalStakedBcoins);
         if (!cw.dexCache.CreateSysOrder(GetHash(), *pBcoinSellMarketOrder, cw.txUndo.dbOpLogMap)) {
-            return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx: SellBcoinForScoin, create system buy order failed"),
-                            CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
+            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, CreateSysOrder SellBcoinForScoin (%s) failed!!",
+                    pBcoinSellMarketOrder.ToString());
+            break;
         }
 
         // c) inflate WGRT coins and sell them for WUSD to return to risk reserve pool
@@ -63,8 +64,9 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         uint64_t fcoinsToInflate = fcoinsValueToInflate / cw.ppCache.GetFcoinMedianPrice();
         auto pFcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(CoinType::WUSD, AssetType::WGRT, fcoinsToInflate);
         if (!cw.dexCache.CreateSysOrder(GetHash(), *pFcoinSellMarketOrder, cw.txUndo.dbOpLogMap)) {
-            return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx: SellFcoinForScoin, create system buy order failed"),
-                            CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
+            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, CreateSysOrder SellFcoinForScoin (%s) failed!!",
+                    pFcoinSellMarketOrder.ToString());
+            break;
         }
 
         // d) Close the CDP
