@@ -140,9 +140,17 @@ bool CCdpDBCache::StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bco
     return true;
 }
 
-bool CCdpDBCache::GetCdpList(const CRegID &regId,  vector<CUserCDP> &cdps) const {
-    // TODO:
-    return false;
+bool CCdpDBCache::GetCdpList(const CRegID &regId, vector<CUserCDP> &cdps) {
+    map<std::pair<string, uint256>, CUserCDP> elements;
+    if (!cdpCache.GetAllElements(regId.ToRawString(), elements)) {
+        return false;
+    }
+
+    for (const auto &item : elements) {
+        cdps.push_back(item.second);
+    }
+
+    return true;
 }
 
 bool CCdpDBCache::GetCdp(CUserCDP &cdp) {

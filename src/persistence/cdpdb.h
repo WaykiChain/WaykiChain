@@ -136,7 +136,7 @@ public:
                         CDBOpLogMap &dbOpLogMap);
 
     // Usage: acquire user's cdp list by CRegID.
-    bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdps) const;
+    bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdps);
 
     bool GetCdp(CUserCDP &cdp);
     bool SaveCdp(CUserCDP &cdp); //first-time cdp creation
