@@ -23,8 +23,8 @@ case "$ARCH" in
 
     OS_NAME=$( cat /etc/os-release | grep ^NAME | cut -d'=' -f2 | sed 's/\"//gI' )
     OS_VER=$( grep -i version_id /etc/os-release | cut -d'=' -f2 | sed 's/[^0-9\.]//gi' )
-    OS_MAJ=$(echo "${OS_VER}" | cut -d'.' -f1)
-    OS_MIN=$(echo "${OS_VER}" | cut -d'.' -f2)
+    OS_MAJ=$( echo "${OS_VER}" | cut -d'.' -f1 )
+    OS_MIN=$( echo "${OS_VER}" | cut -d'.' -f2 )
 
     printf "Environment Info, OS_NAME: ${OS_NAME}, OS_VER: ${OS_VER}, OS_MAJ: ${OS_MAJ}, OS_MIN: ${OS_MIN}\\n"
 
