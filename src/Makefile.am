@@ -43,7 +43,6 @@ config/version.o: config/build.h
 # waykichain core #
 coin_CORE_H = \
   accounts/account.h \
-  accounts/cdp.h \
   accounts/id.h \
   accounts/key.h \
   accounts/keystore.h \
@@ -229,7 +228,6 @@ libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLA
 libcoin_server_a_SOURCES = \
   accounts/account.cpp \
   accounts/id.cpp \
-  accounts/cdp.cpp \
   addrman.cpp \
   alert.cpp \
   config/configuration.cpp \
