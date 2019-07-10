@@ -373,8 +373,6 @@ Value getaccountcdp(const Array& params, bool fHelp){
 
     Array cdps;
 
-    //TODO: list all cdps for the account
-
     if(params.size() > 1) {
         uint256 cdpTxId(uint256S(params[1].get_str()));
         CUserCDP cdp(txAccount.regId, cdpTxId);
@@ -383,6 +381,13 @@ Value getaccountcdp(const Array& params, bool fHelp){
         } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                             strprintf("The cdp not exists! cdpId=%s", params[1].get_str()));
+        }
+    }
+    else {
+        vector<CUserCDP> userCdps;
+        pCdMan->pCdpCache->GetCdpList(txAccount.regId, userCdps);
+        for(auto const &cdp : userCdps){
+            cdps.push_back(cdp.ToJson());
         }
     }
     
@@ -455,7 +460,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     // TODO: need to support fee coin type
     uint64_t amount = assetAmount;
     if (txAccount.GetFreeBcoins() < amount + fee) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Account does not have enough coins");
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
     CUserID txUid;
@@ -504,9 +509,9 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexselllimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + HelpExampleCli("submitdexselllimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 1000000 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexselllimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + HelpExampleRpc("submitdexselllimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 1000000 200000000\n")
         );
     }
 
@@ -551,9 +556,12 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     assert(!txAccount.keyId.IsEmpty());
 
     // TODO: need to support fee coin type
-    uint64_t amount = assetAmount;
-    if (txAccount.GetFreeBcoins() < amount + fee) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Account does not have enough coins");
+    if (txAccount.GetFreeBcoins() < fee) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
+    }
+
+    if (txAccount.GetFreeScoins() < assetAmount) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough asset");
     }
 
     CUserID txUid;
@@ -590,20 +598,20 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
 Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
      if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-            "submitdexbuylimitordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
-            "\nsubmit a dex buy limit price order tx.\n"
+            "submitdexbuymarketordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount [fee]\n"
+            "\nsubmit a dex buy market price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
             "2.\"coin_type\": (string required) coin type to pay\n"
             "3.\"asset_type\": (string required), asset type to buy\n"
-            "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
+            "4.\"coin_amount\": (numeric, required) amount of target coin to buy\n"
             "5.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 200000000\n")
+            + HelpExampleCli("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 200000000\n")
+            + HelpExampleRpc("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 200000000\n")
         );
     }
 
@@ -624,7 +632,7 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_ASSET_TYPE_INVALID, "Invalid asset_type");
     }
 
-    uint64_t assetAmount = AmountToRawValue(params[3]);
+    uint64_t coinAmount = AmountToRawValue(params[3]);
  
     int64_t defaultFee = SysCfg().GetTxFee(); // default fee
     int64_t fee;
@@ -646,9 +654,9 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     assert(!txAccount.keyId.IsEmpty());
 
     // TODO: need to support fee coin type
-    uint64_t amount = assetAmount;
+    uint64_t amount = coinAmount;
     if (txAccount.GetFreeBcoins() < amount + fee) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Account does not have enough coins");
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
     CUserID txUid;
@@ -666,7 +674,7 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     }
 
     int validHeight = chainActive.Height();
-    CDEXBuyMarketOrderTx tx(txUid, validHeight, fee, coinType, assetType, assetAmount);
+    CDEXBuyMarketOrderTx tx(txUid, validHeight, fee, coinType, assetType, coinAmount);
 
     if (!pWalletMain->Sign(txAccount.keyId, tx.ComputeSignatureHash(), tx.signature))
             throw JSONRPCError(RPC_WALLET_ERROR, "sign tx failed");
@@ -685,8 +693,8 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
 Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-            "submitdexselllimitordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
-            "\nsubmit a dex buy limit price order tx.\n"
+            "submitdexsellmarketordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount [fee]\n"
+            "\nsubmit a dex buy market price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
             "2.\"coin_type\": (string required) coin type to pay\n"
@@ -742,9 +750,12 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     assert(!txAccount.keyId.IsEmpty());
 
     // TODO: need to support fee coin type
-    uint64_t amount = assetAmount;
-    if (txAccount.GetFreeBcoins() < amount + fee) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Account does not have enough coins");
+    if (txAccount.GetFreeBcoins() < fee) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
+    }
+
+    if (txAccount.GetFreeScoins() < assetAmount) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough asset");
     }
 
     CUserID txUid;
@@ -825,6 +836,10 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
                             strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
     assert(!txAccount.keyId.IsEmpty());
+
+    if (txAccount.GetFreeBcoins() < fee) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
+    }
 
     CUserID txUid;
     if (txAccount.RegIDIsMature()) {
@@ -950,6 +965,10 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
     }
     assert(!txAccount.keyId.IsEmpty());
 
+    if (txAccount.GetFreeBcoins() < fee) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
+    }
+
     CUserID txUid;
     if (txAccount.RegIDIsMature()) {
         txUid = txAccount.regId;
@@ -966,7 +985,6 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
 
     int validHeight = chainActive.Height();
     CDEXSettleTx tx(txUid, validHeight, fee, dealItems);
-
 
     if (!pWalletMain->Sign(txAccount.keyId, tx.ComputeSignatureHash(), tx.signature))
             throw JSONRPCError(RPC_WALLET_ERROR, "sign tx failed");
