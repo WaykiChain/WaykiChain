@@ -8,6 +8,8 @@
 
 #include <cstdint>
 
+static const uint16_t kMedianPriceSlideWindowBlockCount     = 11;
+
 static const uint16_t kDayBlockTotalCount                   = 8640;     // = 24*3600/10
 static const uint16_t kPriceFeedContinuousDeviateTimesLimit = 10;       // after 10 times continuous deviate limit penetration all deposit be deducted
 
