@@ -36,8 +36,10 @@ static const uint16_t kCdpLiquidateDiscountRate             = 9700;     // 97%
 
 static const uint64_t kBcoinsToStakeAmountMin               = 10000000000;  //100 WICC, dust amount (<100) rejected
 
-static const uint16_t kFcoinGenesisIssueTxIndex         = 1;
-static const uint16_t kFcoinGenesisRegisterTxIndex      = 2;
-static const uint16_t kSettleServiceRegisterTxIndex     = 3;
+static const uint16_t kForceSettleCDPMaxCountPerBlock       = 100;
+
+static const uint16_t kFcoinGenesisIssueTxIndex             = 1;
+static const uint16_t kFcoinGenesisRegisterTxIndex          = 2;
+static const uint16_t kSettleServiceRegisterTxIndex         = 3;
 
 #endif

@@ -120,7 +120,9 @@ public:
         READWRITE(VARINT(price));
     )
 
-    string ToString() { return ""; }    // TODO:
+    string ToString() { 
+        
+        return ""; }    // TODO:
     bool IsEmpty() const;
     void SetEmpty();
     void GetOrderDetail(CDEXOrderDetail &orderDetail) const;

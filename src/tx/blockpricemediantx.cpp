@@ -36,7 +36,12 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
                                                         forceLiquidateCdps);
 
     //2. force settle each cdp
+    int cdpIndex = 0;
     for (auto cdp : forceLiquidateCdps) {
+        cdpIndex++;
+        if (cdpIndex > kForceSettleCDPMaxCountPerBlock)
+            break;
+            
         LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, begin to force settle CDP (%s)", cdp.ToString());
         if (currRiskReserveScoins < cdp.totalOwedScoins) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, currRiskReserveScoins(%lu) < cdp.totalOwedScoins(%lu) !!",
