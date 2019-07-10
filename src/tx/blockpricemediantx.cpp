@@ -87,11 +87,13 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     cw.accountCache.SaveAccount(fcoinGenesisAccount)
     cw.txUndo.accountLogs.push_back(fcoinGenesisAcctLog);
 
-    return true;
+    bool ret = SaveTxAddresses(nHeight, nIndex, cw, state, {txUid});
+    return ret;
 }
 
 bool CBlockPriceMedianTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    // Nothing to do here.
+    //TODO: complete CDP related undologs
+
     return true;
 }
 
