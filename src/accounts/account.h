@@ -28,6 +28,7 @@ enum CoinType: uint8_t {
     WICC = 1,
     WGRT = 2,
     WUSD = 3,
+    WCNY = 4
 };
 
 // make compatibility with low GCC version(≤ 4.9.2)
@@ -38,13 +39,15 @@ struct CoinTypeHash {
 static const unordered_map<CoinType, string, CoinTypeHash> kCoinTypeMapName = {
     {WICC, "WICC"},
     {WGRT, "WGRT"},
-    {WUSD, "WUSD"}
+    {WUSD, "WUSD"},
+    {WCNY, "WCNY"}
 };
 
 static const unordered_map<string, CoinType> kCoinNameMapType = {
     {"WICC", WICC},
     {"WGRT", WGRT},
-    {"WUSD", WUSD}
+    {"WUSD", WUSD},
+    {"WCNY", WCNY}
 };
 
 inline const string& GetCoinTypeName(CoinType coinType) {

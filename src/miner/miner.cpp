@@ -452,24 +452,24 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
                         unsigned int nTransactionsUpdated, CCacheWrapper &cw) {
     int64_t nStart = GetTime();
 
-    unsigned int nLastTime = 0xFFFFFFFF;
     while (true) {
-        // Check for stop or if block needs to be rebuilt
         boost::this_thread::interruption_point();
+
+        // Should not mine new blocks if the miner does not connect to other nodes except running
+        // in regtest network.
         if (vNodes.empty() && SysCfg().NetworkID() != REGTEST_NET)
             return false;
 
         if (pIndexPrev != chainActive.Tip())
             return false;
 
-        auto GetNextTimeAndSleep = [&]() {
-            while (GetTime() == nLastTime || (GetTime() - pIndexPrev->GetBlockTime()) < SysCfg().GetBlockInterval()) {
+        // Take a sleep and check.
+        [&]() {
+            int64_t whenCanIStart = pIndexPrev->GetBlockTime() + SysCfg().GetBlockInterval();
+            while (GetTime() < whenCanIStart) {
                 ::MilliSleep(100);
             }
-            return (nLastTime = GetTime());
-        };
-
-        GetNextTimeAndSleep();
+        } ();
 
         vector<CRegID> delegatesList;
         if (!cw.delegateCache.GetTopDelegates(delegatesList)) {

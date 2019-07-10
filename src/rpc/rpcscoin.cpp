@@ -332,7 +332,8 @@ Value getmedianprice(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
     }
 
-    int64_t price = block.GetBlockMedianPrice(coinType, priceType);
+    // TODO:
+    int64_t price = 0; //block.GetBlockMedianPrice(coinType, priceType);
 
     Object obj;
     obj.push_back(Pair("price", price));
@@ -808,7 +809,7 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
                              "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\"")
         );
     }
-    
+
     EnsureWalletIsUnlocked();
 
     auto pUserId = CUserID::ParseUserId(params[0].get_str());
