@@ -602,7 +602,8 @@ private:
     // map<string, ValueType>
     bool GetAllElements(const string &prefix, set<string> &expiredKeys, map<string, ValueType> &elements) {
         if (!mapData.empty()) {
-            auto boundary = mapData.upper_bound(prefix);
+            auto boundary    = mapData.upper_bound(prefix);
+            size_t prefixLen = prefix.size();
 
             if (boundary != mapData.end()) {
                 for (auto iter = boundary; iter != mapData.end(); ++ iter) {
@@ -611,6 +612,9 @@ private:
                     } else if (expiredKeys.count(iter->first) || elements.count(iter->first)) {
                         // TODO: log
                         continue;
+                    } else if (iter->first.substr(0, prefixLen) != prefix) {
+                        // break the loop if prefix does not match.
+                        break;
                     } else {
                         // Got a valid element.
                         elements.emplace(iter->first, iter->second);
@@ -814,4 +818,4 @@ private:
     mutable std::shared_ptr<ValueType> ptrData;
 };
 
-#endif//PERSIST_DB_ACCESS_H
+#endif  // PERSIST_DB_ACCESS_H

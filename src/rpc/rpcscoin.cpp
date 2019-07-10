@@ -918,7 +918,7 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
                            "\"deal_asset_amount\":100000000}]")
         );
     }
-    
+
     EnsureWalletIsUnlocked();
 
     // 1. addr

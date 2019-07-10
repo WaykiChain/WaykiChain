@@ -755,17 +755,18 @@ Value startcontracttpstest(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value getlogfailures(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 3) {
+Value getblockfailures(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 1) {
         throw runtime_error(
-            "getlogfailures \"block height\"\n"
+            "getblockfailures \"block height\"\n"
             "\nGet log failures by block height.\n"
             "\nArguments:\n"
             "1.\"block height\" (numberic, required)\n"
             "\nResult:\n"
             "\nExamples:\n" +
-            HelpExampleCli("getlogfailures", "100") + "\nAs json rpc call\n" +
-            HelpExampleRpc("getlogfailures", "100"));
+            HelpExampleCli("getblockfailures", "100") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("getblockfailures", "100"));
     }
 
     int height = params[0].get_int();
