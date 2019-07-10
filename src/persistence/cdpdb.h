@@ -108,14 +108,12 @@ public:
     bool SaveCdp(const CUserCDP &userCdp);
     bool EraseCdp(const CUserCDP &userCdp);
 
-    bool GetUnderLiquidityCdpList(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
-                                  set<CUserCDP> &userCdps);
-    bool GetForceSettleCdpList(const uint16_t forceLiquidateRatio, const uint64_t bcoinMedianPrice,
+    bool GetCdpListByCollateralRatio(const uint16_t collateralRatio, const uint64_t bcoinMedianPrice,
                                set<CUserCDP> &userCdps);
 
 private:
-    bool GetCdps(const double ratio, set<CUserCDP> &expiredCdps, set<CUserCDP> &userCdps);
-    bool GetCdps(const double ratio, set<CUserCDP> &userCdps);
+    bool GetCdpList(const double ratio, set<CUserCDP> &expiredCdps, set<CUserCDP> &userCdps);
+    bool GetCdpList(const double ratio, set<CUserCDP> &userCdps);
 
     void BatchWrite(const map<CUserCDP, uint8_t> &cdpsIn);
 
@@ -145,8 +143,8 @@ public:
     bool EraseCdp(const CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
     bool UndoCdp(CDBOpLogMap &dbOpLogMap) { return cdpCache.UndoData(dbOpLogMap);  }
 
-    uint64_t ComputeInterest(int32_t blockHeight, const CUserCDP &cdp);
-    bool ProcessForceSettle(int32_t blockHeight);
+    uint64_t ComputeInterest(const int32_t blockHeight, const CUserCDP &cdp);
+    bool ProcessForceSettle(const int32_t blockHeight, const uint64_t bcoinMedianPrice, uint64_t& currRiskReserveScoins);
     bool CheckGlobalCollateralFloorReached(const uint64_t bcoinMedianPrice);
     bool CheckGlobalCollateralCeilingReached(const uint64_t newBcoinsToStake);
 

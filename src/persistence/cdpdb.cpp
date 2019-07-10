@@ -65,17 +65,12 @@ bool CCdpMemCache::EraseCdp(const CUserCDP &userCdp) {
     return true;
 }
 
-bool CCdpMemCache::GetUnderLiquidityCdpList(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
-                                            set<CUserCDP> &userCdps) {
-    return GetCdps(openLiquidateRatio * bcoinMedianPrice, userCdps);
-}
-
-bool CCdpMemCache::GetForceSettleCdpList(const uint16_t forceLiquidateRatio, const uint64_t bcoinMedianPrice,
+bool CCdpMemCache::GetCdpListByCollateralRatio(const uint16_t collateralRatio, const uint64_t bcoinMedianPrice,
                                          set<CUserCDP> &userCdps) {
-    return GetCdps(forceLiquidateRatio * bcoinMedianPrice, userCdps);
+    return GetCdpList(collateralRatio * bcoinMedianPrice, userCdps);
 }
 
-bool CCdpMemCache::GetCdps(const double ratio, set<CUserCDP> &expiredCdps, set<CUserCDP> &userCdps) {
+bool CCdpMemCache::GetCdpList(const double ratio, set<CUserCDP> &expiredCdps, set<CUserCDP> &userCdps) {
     static CRegID regId(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint16_t>::max());
     static uint256 txid;
     static CUserCDP cdp(regId, txid);
@@ -98,15 +93,15 @@ bool CCdpMemCache::GetCdps(const double ratio, set<CUserCDP> &expiredCdps, set<C
     }
 
     if (pBase != nullptr) {
-        return pBase->GetCdps(ratio, expiredCdps, userCdps);
+        return pBase->GetCdpList(ratio, expiredCdps, userCdps);
     }
 
     return true;
 }
 
-bool CCdpMemCache::GetCdps(const double ratio, set<CUserCDP> &userCdps) {
+bool CCdpMemCache::GetCdpList(const double ratio, set<CUserCDP> &userCdps) {
     set<CUserCDP> expiredCdps;
-    if (!GetCdps(ratio, expiredCdps, userCdps)) {
+    if (!GetCdpList(ratio, expiredCdps, userCdps)) {
         // TODO: log
         return false;
     }
@@ -181,7 +176,7 @@ bool CCdpDBCache::EraseCdp(const CUserCDP &cdp, CDBOpLogMap &dbOpLogMap) {
  *
  *  ==> ratio = a / Log10(b+N)
  */
-uint64_t CCdpDBCache::ComputeInterest(int32_t blockHeight, const CUserCDP &cdp) {
+uint64_t CCdpDBCache::ComputeInterest(const int32_t blockHeight, const CUserCDP &cdp) {
     assert(blockHeight > cdp.blockHeight);
 
     int32_t blockInterval = blockHeight - cdp.blockHeight;
@@ -194,12 +189,19 @@ uint64_t CCdpDBCache::ComputeInterest(int32_t blockHeight, const CUserCDP &cdp) 
 
     return (uint64_t) interest;
 }
+bool CCdpDBCache::ProcessForceSettle(const int32_t blockHeight, const uint64_t bcoinMedianPrice,
+                                    uint64_t& currRiskReserveScoins) {
 
+<<<<<<< Updated upstream
 bool CCdpDBCache::ProcessForceSettle(int32_t blockHeight) {
     // TODO:
     return false;
 }
 
+=======
+    return true;
+}
+>>>>>>> Stashed changes
 // global collateral ratio floor check
 bool CCdpDBCache::CheckGlobalCollateralFloorReached(const uint64_t bcoinMedianPrice) {
     bool floorRatioReached = cdpMemCache.GetGlobalCollateralRatio(bcoinMedianPrice) < kGlobalCollateralRatioLimit;

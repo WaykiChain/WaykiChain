@@ -35,7 +35,7 @@ struct CDEXOrderDetail {
     OrderType       orderType;     //!< order type
     OrderDirection  direction;
     CoinType        coinType;      //!< coin type
-    CoinType        assetType;     //!< asset type
+    AssetType       assetType;     //!< asset type
     uint64_t        coinAmount;    //!< amount of coin to buy/sell asset
     uint64_t        assetAmount;   //!< amount of asset to buy/sell
     uint64_t        price;         //!< price in coinType want to buy/sell asset
@@ -76,10 +76,10 @@ struct CDEXActiveOrder {
 // txid -> sys order data
 class CDEXSysOrder {
 private:
-    OrderDirection  direction;     //!< order direction 
+    OrderDirection  direction;     //!< order direction
     OrderType       orderType;     //!< order type
     CoinType        coinType;      //!< coin type
-    CoinType        assetType;     //!< asset type
+    AssetType       assetType;     //!< asset type
 
     uint64_t        coinAmount;    //!< amount of coin to buy/sell asset
     uint64_t        assetAmount;   //!< amount of coin to buy asset
@@ -99,15 +99,15 @@ public:// create functions
 
 public:
     // default constructor
-    CDEXSysOrder():         
+    CDEXSysOrder():
         direction(ORDER_BUY),
         orderType(ORDER_LIMIT_PRICE),
         coinType(WUSD),
         assetType(WICC),
         coinAmount(0),
         assetAmount(0),
-        price(0) 
-        {} 
+        price(0)
+        {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t&)direction);

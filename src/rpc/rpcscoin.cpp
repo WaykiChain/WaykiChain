@@ -426,8 +426,8 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin_type");
     }
 
-    CoinType assetType;
-    if (!ParseCoinType(params[2].get_str(), assetType)) {
+    AssetType assetType;
+    if (!ParseAssetType(params[2].get_str(), assetType)) {
         throw JSONRPCError(RPC_ASSET_TYPE_INVALID, "Invalid asset_type");
     }
 
@@ -524,8 +524,8 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin_type");
     }
 
-    CoinType assetType;
-    if (!ParseCoinType(params[2].get_str(), assetType)) {
+    AssetType assetType;
+    if (!ParseAssetType(params[2].get_str(), assetType)) {
         throw JSONRPCError(RPC_ASSET_TYPE_INVALID, "Invalid asset_type");
     }
 
@@ -620,8 +620,8 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin_type");
     }
 
-    CoinType assetType;
-    if (!ParseCoinType(params[2].get_str(), assetType)) {
+    AssetType assetType;
+    if (!ParseAssetType(params[2].get_str(), assetType)) {
         throw JSONRPCError(RPC_ASSET_TYPE_INVALID, "Invalid asset_type");
     }
 
@@ -716,8 +716,8 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin_type");
     }
 
-    CoinType assetType;
-    if (!ParseCoinType(params[2].get_str(), assetType)) {
+    AssetType assetType;
+    if (!ParseAssetType(params[2].get_str(), assetType)) {
         throw JSONRPCError(RPC_ASSET_TYPE_INVALID, "Invalid asset_type");
     }
 

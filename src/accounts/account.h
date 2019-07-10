@@ -31,6 +31,8 @@ enum CoinType: uint8_t {
     WCNY = 4
 };
 
+typedef CoinType AssetType;
+
 // make compatibility with low GCC version(≤ 4.9.2)
 struct CoinTypeHash {
     size_t operator()(const CoinType& type) const noexcept { return std::hash<uint8_t>{}(type); }
@@ -63,6 +65,10 @@ inline bool ParseCoinType(const string& coinName, CoinType &coinType) {
         }
     }
     return false;
+}
+
+inline bool ParseAssetType(const string& assetName, AssetType &assetType) {
+    return ParseCoinType(assetName, assetType);
 }
 
 enum PriceType: uint8_t {
@@ -156,7 +162,7 @@ public:
     bool PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest);
     bool UndoOperateAccount(const CAccountLog& accountLog);
     bool FreezeDexCoin(CoinType coinType, uint64_t amount);
-    bool FreezeDexAsset(CoinType assetType, uint64_t amount) {
+    bool FreezeDexAsset(AssetType assetType, uint64_t amount) {
         // asset always is coin, so can do the freeze as coin
         return FreezeDexCoin(assetType, amount);
     }

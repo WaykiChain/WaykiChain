@@ -73,10 +73,10 @@ public:
 public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
-    CoinType coinType;      //!< coin type (wusd) to buy asset
-    CoinType assetType;     //!< asset type
-    uint64_t assetAmount;     //!< amount of target asset to buy
-    uint64_t bidPrice;      //!< bidding price in coinType willing to buy
+    CoinType coinType;          //!< coin type (wusd) to buy asset
+    AssetType assetType;        //!< asset type
+    uint64_t assetAmount;       //!< amount of target asset to buy
+    uint64_t bidPrice;          //!< bidding price in coinType willing to buy
 
 };
 
@@ -136,10 +136,10 @@ public:
 public: // devive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
-    CoinType coinType;      //!< coin type (wusd) to sell asset
-    CoinType assetType;     //!< holing asset type (wicc or wgrt) to sell in coinType
+    CoinType coinType;       //!< coin type (wusd) to sell asset
+    AssetType assetType;     //!< holing asset type (wicc or wgrt) to sell in coinType
     uint64_t assetAmount;    //!< amount of holding asset to sell
-    uint64_t askPrice;      //!< asking price in coinType willing to sell
+    uint64_t askPrice;       //!< asking price in coinType willing to sell
 
 };
 
@@ -197,8 +197,8 @@ public: // devive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
     CoinType coinType;      //!< coin type (wusd) to buy asset
-    CoinType assetType;     //!< asset type
-    uint64_t coinAmount;   //!< amount of target coin to spend for buying asset
+    AssetType assetType;    //!< asset type
+    uint64_t coinAmount;    //!< amount of target coin to spend for buying asset
 };
 
 class CDEXSellMarketOrderTx : public CDEXOrderBaseTx {
@@ -255,7 +255,7 @@ public: // devive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
     CoinType coinType;      //!< coin type (wusd) to buy asset
-    CoinType assetType;     //!< asset type
+    AssetType assetType;    //!< asset type
     uint64_t assetAmount;   //!< amount of target asset to buy
 };
 
