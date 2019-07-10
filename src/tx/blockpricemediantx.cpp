@@ -28,10 +28,6 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralFloorReached!!");
         return true;
     }
-    if (cw.cdpCache.CheckGlobalCollateralCeilingReached(bcoinsToStake)) {
-        LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralCeilingReached!!");
-        return true;
-    }
 
     //1. get all CDPs to be force settled
     set<CUserCDP> forceLiquidateCdps;

@@ -189,19 +189,7 @@ uint64_t CCdpDBCache::ComputeInterest(const int32_t blockHeight, const CUserCDP 
 
     return (uint64_t) interest;
 }
-bool CCdpDBCache::ProcessForceSettle(const int32_t blockHeight, const uint64_t bcoinMedianPrice,
-                                    uint64_t& currRiskReserveScoins) {
 
-<<<<<<< Updated upstream
-bool CCdpDBCache::ProcessForceSettle(int32_t blockHeight) {
-    // TODO:
-    return false;
-}
-
-=======
-    return true;
-}
->>>>>>> Stashed changes
 // global collateral ratio floor check
 bool CCdpDBCache::CheckGlobalCollateralFloorReached(const uint64_t bcoinMedianPrice) {
     bool floorRatioReached = cdpMemCache.GetGlobalCollateralRatio(bcoinMedianPrice) < kGlobalCollateralRatioLimit;
