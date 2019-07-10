@@ -30,7 +30,7 @@ extern void SetMinerStatus(bool bStatus);
 uint64_t nLastBlockTx   = 0;
 uint64_t nLastBlockSize = 0;
 
-MinedBlockInfo miningBlockInfo = MinedBlockInfo();
+MinedBlockInfo miningBlockInfo;
 boost::circular_buffer<MinedBlockInfo> minedBlocks(kMaxMinedBlocks);
 CCriticalSection csMinedBlocks;
 
@@ -74,12 +74,12 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate) {
     static double dFeePerKb     = 0;
     static unsigned int nTxSize = 0;
     for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.memPoolTxs.begin(); mi != mempool.memPoolTxs.end(); ++mi) {
-        CBaseTx *pBaseTx = mi->second.GetTx().get();
+        CBaseTx *pBaseTx = mi->second.GetTransaction().get();
         if (!pBaseTx->IsCoinBase() && !pCdMan->pTxCache->HaveTx(pBaseTx->GetHash())) {
             nTxSize   = ::GetSerializeSize(*pBaseTx, SER_NETWORK, PROTOCOL_VERSION);
             dFeePerKb = double(pBaseTx->GetFee() - pBaseTx->GetFuel(nFuelRate)) / (double(nTxSize) / 1000.0);
             dPriority = 1000.0 / double(nTxSize);
-            vecPriority.push_back(TxPriority(dPriority, dFeePerKb, mi->second.GetTx()));
+            vecPriority.push_back(TxPriority(dPriority, dFeePerKb, mi->second.GetTransaction()));
         }
     }
 }
@@ -393,7 +393,6 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         pBlock->SetHeight(nHeight);
         pBlock->SetFuel(nTotalFuel);
         pBlock->SetFuelRate(nFuelRate);
-
 
         LogPrint("INFO", "CreateNewBlock(): total size %u\n", nBlockSize);
     }

@@ -12,33 +12,29 @@
 using namespace std;
 
 CTxMemPoolEntry::CTxMemPoolEntry() {
-    nFee      = 0;
+    nFees     = 0;
     nTxSize   = 0;
-    nTime     = 0;
     dPriority = 0.0;
-    nHeight   = 0;
+
+    nTime   = 0;
+    nHeight = 0;
 }
 
-CTxMemPoolEntry::CTxMemPoolEntry(CBaseTx *pBaseTx, int64_t fee, int64_t time, double priority, uint32_t height)
-    : nFee(fee), nTime(time), dPriority(priority), nHeight(height) {
-    pTx     = pBaseTx->GetNewInstance();
-    nTxSize = ::GetSerializeSize(*pTx, SER_NETWORK, PROTOCOL_VERSION);
+CTxMemPoolEntry::CTxMemPoolEntry(CBaseTx *pBaseTx, int64_t time, uint32_t height) : nTime(time), nHeight(height) {
+    pTx       = pBaseTx->GetNewInstance();
+    nFees     = pTx->GetFee();
+    nTxSize   = ::GetSerializeSize(*pTx, SER_NETWORK, PROTOCOL_VERSION);
+    dPriority = pTx->GetPriority();
 }
 
 CTxMemPoolEntry::CTxMemPoolEntry(const CTxMemPoolEntry &other) {
-    this->dPriority = other.dPriority;
-    this->nFee      = other.nFee;
-    this->nTxSize   = other.nTxSize;
-    this->nTime     = other.nTime;
-    this->dPriority = other.dPriority;
-    this->nHeight   = other.nHeight;
     this->pTx       = other.pTx->GetNewInstance();
-}
+    this->nFees     = other.nFees;
+    this->nTxSize   = other.nTxSize;
+    this->dPriority = other.dPriority;
 
-double CTxMemPoolEntry::GetPriority(uint32_t currentHeight) const {
-    double dResult = 0;
-    dResult        = nFee / nTxSize;
-    return dResult;
+    this->nTime     = other.nTime;
+    this->nHeight   = other.nHeight;
 }
 
 CTxMemPool::CTxMemPool() {
@@ -91,7 +87,7 @@ void CTxMemPool::Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> > &remov
     LOCK(cs);
     uint256 hash = pBaseTx->GetHash();
     if (memPoolTxs.count(hash)) {
-        removed.push_front(std::shared_ptr<CBaseTx>(memPoolTxs[hash].GetTx()));
+        removed.push_front(std::shared_ptr<CBaseTx>(memPoolTxs[hash].GetTransaction()));
         memPoolTxs.erase(hash);
         EraseTransaction(hash);
         nTransactionsUpdated++;
@@ -107,7 +103,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
 
     // is it within valid height
     static int validHeight = SysCfg().GetTxCacheHeight();
-    if (!memPoolEntry.GetTx()->IsValidHeight(chainActive.Tip()->nHeight, validHeight)) {
+    if (!memPoolEntry.GetTransaction()->IsValidHeight(chainActive.Tip()->nHeight, validHeight)) {
         return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid=%s beyond the scope of valid height", hash.GetHex()),
                              REJECT_INVALID, "tx-invalid-height");
     }
@@ -118,9 +114,9 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
     spCW->contractCache.SetBaseView(memPoolContractCache.get());
 
     if (bExecute) {
-        if (!memPoolEntry.GetTx()->ExecuteTx(chainActive.Tip()->nHeight + 1, 0, *spCW, state)) {
+        if (!memPoolEntry.GetTransaction()->ExecuteTx(chainActive.Tip()->nHeight + 1, 0, *spCW, state)) {
             if (SysCfg().IsLogFailures()) {
-                pCdMan->pLogCache->SetExecuteFail(chainActive.Tip()->nHeight, memPoolEntry.GetTx()->GetHash(),
+                pCdMan->pLogCache->SetExecuteFail(chainActive.Tip()->nHeight, memPoolEntry.GetTransaction()->GetHash(),
                                                   state.GetRejectCode(), state.GetRejectReason());
             }
             return false;
@@ -174,5 +170,5 @@ std::shared_ptr<CBaseTx> CTxMemPool::Lookup(uint256 hash) const {
     typename map<uint256, CTxMemPoolEntry>::const_iterator i = memPoolTxs.find(hash);
     if (i == memPoolTxs.end())
         return std::shared_ptr<CBaseTx>();
-    return i->second.GetTx();
+    return i->second.GetTransaction();
 }

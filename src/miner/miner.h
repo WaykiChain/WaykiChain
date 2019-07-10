@@ -57,9 +57,10 @@ public:
     uint64_t        nTxCount;           // transaction count in block, exclude coinbase
     uint64_t        nBlockSize;         // block size(bytes)
     uint256         hash;               // block hash
-    uint256         hashPrevBlock;      // prev block hash
+    uint256         hashPrevBlock;      // prev block has
 
 public:
+    MinedBlockInfo() { SetNull(); }
     void SetNull();
     int64_t GetReward();
 };

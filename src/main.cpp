@@ -596,10 +596,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed");
 
     {
-        double dPriority = pBaseTx->GetPriority();
-        uint64_t nFees   = pBaseTx->GetFee();
-
-        CTxMemPoolEntry entry(pBaseTx, nFees, GetTime(), dPriority, chainActive.Height());
+        CTxMemPoolEntry entry(pBaseTx, GetTime(), chainActive.Height());
+        uint64_t nFees     = entry.GetFee();
         unsigned int nSize = entry.GetTxSize();
 
         if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
@@ -610,9 +608,9 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
                     REJECT_DUST, "dust amount");
         }
 
-        uint64_t txMinFee = GetMinRelayFee(pBaseTx, nSize, true);
-        if (fLimitFree && nFees < txMinFee)
-            return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : not enough fees %s, %d < %d", hash.ToString(), nFees, txMinFee),
+        uint64_t minFees = GetMinRelayFee(pBaseTx, nSize, true);
+        if (fLimitFree && nFees < minFees)
+            return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : not enough fees %s, %d < %d", hash.ToString(), nFees, minFees),
                 REJECT_INSUFFICIENTFEE, "insufficient fee");
 
         // Continuously rate-limit free transactions

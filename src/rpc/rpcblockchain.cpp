@@ -146,15 +146,11 @@ Value getrawmempool(const Array& params, bool fHelp)
             "\nResult: (for verbose = true):\n"
             "{                           (json object)\n"
             "  \"txid\" : {       (json object)\n"
-            "    \"size\" : n,             (numeric) transaction size in bytes\n"
             "    \"fee\" : n,              (numeric) transaction fee in WICC coins\n"
+            "    \"size\" : n,             (numeric) transaction size in bytes\n"
+            "    \"priority\" : n,         (numeric) priority\n"
             "    \"time\" : n,             (numeric) local time transaction entered pool in seconds since 1 Jan 1970 GMT\n"
             "    \"height\" : n,           (numeric) block height when transaction entered pool\n"
-            "    \"startingpriority\" : n, (numeric) priority when transaction entered pool\n"
-            "    \"currentpriority\" : n,  (numeric) transaction priority now\n"
-            "    \"depends\" : [           (array) unconfirmed transactions used as inputs for this transaction\n"
-            "        \"txid\",    (string) parent transaction id\n"
-            "       ... ]\n"
             "  }, ...\n"
             "]\n"
             "\nExamples\n"
@@ -171,18 +167,15 @@ Value getrawmempool(const Array& params, bool fHelp)
         LOCK(mempool.cs);
         Object obj;
         for (const auto& entry : mempool.memPoolTxs) {
-            const uint256& hash = entry.first;
+            const uint256& hash      = entry.first;
             const CTxMemPoolEntry& e = entry.second;
             Object info;
-            info.push_back(Pair("size", (int)e.GetTxSize()));
-            info.push_back(Pair("fee", ValueFromAmount(e.GetFee())));
-            info.push_back(Pair("time", e.GetTime()));
-            info.push_back(Pair("height", (int)e.GetHeight()));
-            info.push_back(Pair("startingpriority", e.GetPriority(e.GetHeight())));
-            info.push_back(Pair("currentpriority", e.GetPriority(chainActive.Height())));
-            set<string> setDepends;
-            Array depends(setDepends.begin(), setDepends.end());
-            info.push_back(Pair("depends", depends));
+            info.push_back(Pair("size",     (int)e.GetTxSize()));
+            info.push_back(Pair("fee",      ValueFromAmount(e.GetFee())));
+            info.push_back(Pair("time",     e.GetTime()));
+            info.push_back(Pair("height",   (int)e.GetHeight()));
+            info.push_back(Pair("priority", e.GetPriority()));
+
             obj.push_back(Pair(hash.ToString(), info));
         }
         return obj;
