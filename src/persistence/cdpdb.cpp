@@ -10,7 +10,7 @@
 
 #include <cstdint>
 
-bool CCdpMemCache::LoadCdps() {
+bool CCdpMemCache::LoadAllCdpFromDB() {
     assert(pAccess != nullptr);
     map<std::pair<string, string>, CUserCDP> rawCdps;
 
@@ -65,13 +65,13 @@ bool CCdpMemCache::EraseCdp(const CUserCDP &userCdp) {
     return true;
 }
 
-bool CCdpMemCache::GetUnderLiquidityCdps(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
-                                         set<CUserCDP> &userCdps) {
+bool CCdpMemCache::GetUnderLiquidityCdpList(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
+                                            set<CUserCDP> &userCdps) {
     return GetCdps(openLiquidateRatio * bcoinMedianPrice, userCdps);
 }
 
-bool CCdpMemCache::GetForceSettleCdps(const uint16_t forceLiquidateRatio, const uint64_t bcoinMedianPrice,
-                                      set<CUserCDP> &userCdps) {
+bool CCdpMemCache::GetForceSettleCdpList(const uint16_t forceLiquidateRatio, const uint64_t bcoinMedianPrice,
+                                         set<CUserCDP> &userCdps) {
     return GetCdps(forceLiquidateRatio * bcoinMedianPrice, userCdps);
 }
 
@@ -140,9 +140,17 @@ bool CCdpDBCache::StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bco
     return true;
 }
 
-bool CCdpDBCache::GetCdpList(const CRegID &regId,  vector<CUserCDP> &cdps) const {
-    // TODO:
-    return false;
+bool CCdpDBCache::GetCdpList(const CRegID &regId, vector<CUserCDP> &cdps) {
+    map<std::pair<string, uint256>, CUserCDP> elements;
+    if (!cdpCache.GetAllElements(regId.ToRawString(), elements)) {
+        return false;
+    }
+
+    for (const auto &item : elements) {
+        cdps.push_back(item.second);
+    }
+
+    return true;
 }
 
 bool CCdpDBCache::GetCdp(CUserCDP &cdp) {
@@ -185,6 +193,11 @@ uint64_t CCdpDBCache::ComputeInterest(int32_t blockHeight, const CUserCDP &cdp) 
     double interest = ((double) N / 365) * loanedDays * annualInterestRate;
 
     return (uint64_t) interest;
+}
+
+bool CCdpDBCache::ProcessForceSettle(int32_t blockHeight) {
+    // TODO:
+    return false;
 }
 
 // global collateral ratio floor check

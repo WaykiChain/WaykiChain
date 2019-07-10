@@ -58,7 +58,7 @@ public:
     bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
-    uint64_t GetMedianPriceByType(const CoinType coinType, const PriceType priceType);
+    map<CCoinPriceType, uint64_t> GetMedianPrice() const;
 };
 
 #endif //TX_PRICE_MEDIAN_H

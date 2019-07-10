@@ -8,7 +8,7 @@
 #define COIN_SERIALIZE_H
 
 #include "allocators.h"
-#include "uint256.h"
+#include "commons/uint256.h"
 
 #include <algorithm>
 #include <assert.h>

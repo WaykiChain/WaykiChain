@@ -7,6 +7,7 @@
 
 #include "main.h"
 #include "tx/pricefeedtx.h"
+#include "config/scoin.h"
 
 void CConsecutiveBlockPrice::AddUserPrice(const int32_t blockHeight, const CRegID &regId, const uint64_t price) {
     mapBlockUserPrices[blockHeight][regId] = price;
@@ -140,10 +141,11 @@ uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight,
 }
 
 uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight, const BlockUserPriceMap &blockUserPrices) {
-    // TODO: parameterize 11.
-    assert(blockHeight >= 11);
+    assert(blockHeight >= kMedianPriceSlideWindowBlockCount);
+
     vector<uint64_t> prices;
-    for (int32_t height = blockHeight; height > blockHeight - 11; --height) {
+    int32_t beginBlockHeight = blockHeight - kMedianPriceSlideWindowBlockCount;
+    for (int32_t height = blockHeight; height > beginBlockHeight; --height) {
         const auto &iter = blockUserPrices.find(height);
         if (iter != blockUserPrices.end()) {
             for (const auto &userPrice : iter->second) {
