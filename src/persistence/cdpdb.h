@@ -101,17 +101,17 @@ public:
     uint16_t GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const;
     uint64_t GetGlobalCollateral() const;
 
-    bool LoadCdps();
+    bool LoadAllCdpFromDB();
     void Flush();
 
     // Usage: before modification, erase the old cdp; after modification, save the new cdp.
     bool SaveCdp(const CUserCDP &userCdp);
     bool EraseCdp(const CUserCDP &userCdp);
 
-    bool GetUnderLiquidityCdps(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
+    bool GetUnderLiquidityCdpList(const uint16_t openLiquidateRatio, const uint64_t bcoinMedianPrice,
+                                  set<CUserCDP> &userCdps);
+    bool GetForceSettleCdpList(const uint16_t forceLiquidateRatio, const uint64_t bcoinMedianPrice,
                                set<CUserCDP> &userCdps);
-    bool GetForceSettleCdps(const uint16_t forceLiquidateRatio, const uint64_t bcoinMedianPrice,
-                            set<CUserCDP> &userCdps);
 
 private:
     bool GetCdps(const double ratio, set<CUserCDP> &expiredCdps, set<CUserCDP> &userCdps);
