@@ -332,7 +332,8 @@ Value getmedianprice(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
     }
 
-    int64_t price = block.GetBlockMedianPrice(coinType, priceType);
+    // TODO:
+    int64_t price = 0; //block.GetBlockMedianPrice(coinType, priceType);
 
     Object obj;
     obj.push_back(Pair("price", price));
@@ -385,7 +386,7 @@ Value getaccountcdp(const Array& params, bool fHelp){
                             strprintf("The cdp not exists! cdpId=%s", params[1].get_str()));
         }
     }
-    
+
     Object obj;
     obj.push_back(Pair("cdp", cdps));
     return obj;
@@ -625,7 +626,7 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     }
 
     uint64_t assetAmount = AmountToRawValue(params[3]);
- 
+
     int64_t defaultFee = SysCfg().GetTxFee(); // default fee
     int64_t fee;
     if (params.size() > 4) {
@@ -797,7 +798,7 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
                              "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\"")
         );
     }
-    
+
     EnsureWalletIsUnlocked();
 
     auto pUserId = CUserID::ParseUserId(params[0].get_str());
