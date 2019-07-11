@@ -72,13 +72,16 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate) {
     vecPriority.reserve(mempool.memPoolTxs.size());
     static double dPriority     = 0;
     static double dFeePerKb     = 0;
-    static unsigned int nTxSize = 0;
+    static uint32_t nTxSize     = 0;
+    static uint64_t nFees       = 0;
+
     for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.memPoolTxs.begin(); mi != mempool.memPoolTxs.end(); ++mi) {
         CBaseTx *pBaseTx = mi->second.GetTransaction().get();
         if (!pBaseTx->IsCoinBase() && !pCdMan->pTxCache->HaveTx(pBaseTx->GetHash())) {
-            nTxSize   = ::GetSerializeSize(*pBaseTx, SER_NETWORK, PROTOCOL_VERSION);
-            dFeePerKb = double(pBaseTx->GetFee() - pBaseTx->GetFuel(nFuelRate)) / (double(nTxSize) / 1000.0);
-            dPriority = 1000.0 / double(nTxSize);
+            nTxSize   = mi->second.GetTxSize();
+            nFees     = mi->second.GetFee();
+            dFeePerKb = double(nFees - pBaseTx->GetFuel(nFuelRate)) / (double(nTxSize) / 1000.0);
+            dPriority = mi->second.GetPriority();
             vecPriority.push_back(TxPriority(dPriority, dFeePerKb, mi->second.GetTransaction()));
         }
     }

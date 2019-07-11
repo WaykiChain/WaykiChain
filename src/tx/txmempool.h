@@ -29,7 +29,7 @@ class CTxMemPoolEntry {
 private:
     std::shared_ptr<CBaseTx> pTx;
     int64_t nFees;     // Cached to avoid expensive parent-transaction lookups
-    size_t nTxSize;    // Cached to avoid recomputing tx size
+    uint32_t nTxSize;  // Cached to avoid recomputing tx size
     double dPriority;  // Cached to avoid recomputing priority
 
     int64_t nTime;     // Local time when entering the mempool
@@ -42,12 +42,12 @@ public:
 
     std::shared_ptr<CBaseTx> GetTransaction() const { return pTx; }
 
-    int64_t GetFee() const { return nFees; }
-    size_t GetTxSize() const { return nTxSize; }
-    double GetPriority() const { return dPriority; }
+    inline int64_t GetFee() const { return nFees; }
+    inline uint32_t GetTxSize() const { return nTxSize; }
+    inline double GetPriority() const { return dPriority; }
 
-    int64_t GetTime() const { return nTime; }
-    uint32_t GetHeight() const { return nHeight; }
+    inline int64_t GetTime() const { return nTime; }
+    inline uint32_t GetHeight() const { return nHeight; }
 };
 
 /*

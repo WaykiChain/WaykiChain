@@ -63,7 +63,6 @@ public:
 
     virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyLimitOrderTx>(this); }
-    virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
     virtual Object ToJson(const CAccountDBCache &view) const; //json-rpc usage
 
@@ -126,7 +125,6 @@ public:
 
     virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSellLimitOrderTx>(this); }
-    virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
     virtual Object ToJson(const CAccountDBCache &view) const; //json-rpc usage
 
@@ -185,7 +183,6 @@ public:
 
     virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyMarketOrderTx>(this); }
-    virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
     virtual Object ToJson(const CAccountDBCache &view) const; //json-rpc usage
 
@@ -243,7 +240,6 @@ public:
 
     virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSellMarketOrderTx>(this); }
-    virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
     virtual Object ToJson(const CAccountDBCache &view) const; //json-rpc usage
 
@@ -297,7 +293,6 @@ public:
 
     virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXCancelOrderTx>(this); }
-    virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
     virtual Object ToJson(const CAccountDBCache &view) const; //json-rpc usage
 
@@ -369,7 +364,6 @@ public:
 
     virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSettleTx>(this); }
-    virtual double GetPriority() const { return 10000.0f; } // Top priority
     virtual string ToString(CAccountDBCache &view); //logging usage
     virtual Object ToJson(const CAccountDBCache &view) const; //json-rpc usage
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);

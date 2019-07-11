@@ -63,7 +63,6 @@ public:
     uint64_t GetProfits() const { return profits; }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CMultiCoinBlockRewardTx>(this); }
     uint64_t GetFee() const { return 0; }
-    double GetPriority() const { return 0.0f; }
 
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
