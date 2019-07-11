@@ -18,16 +18,16 @@ private:
 
 public:
     CCoinTransferTx()
-        : CBaseTx(MCOIN_TRANSFER_TX), coins(0), coinType(CoinType::WICC), feesCoinType(CoinType::WICC) {}
+        : CBaseTx(UCOIN_TRANSFER_TX), coins(0), coinType(CoinType::WICC), feesCoinType(CoinType::WICC) {}
 
-    CCoinTransferTx(const CBaseTx *pBaseTx): CBaseTx(MCOIN_TRANSFER_TX) {
-        assert(MCOIN_TRANSFER_TX == pBaseTx->nTxType);
+    CCoinTransferTx(const CBaseTx *pBaseTx): CBaseTx(UCOIN_TRANSFER_TX) {
+        assert(UCOIN_TRANSFER_TX == pBaseTx->nTxType);
         *this = *(CCoinTransferTx *) pBaseTx;
     }
 
     CCoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t coinsIn,
                    CoinType coinTypeIn, uint64_t feesIn, CoinType feesCoinTypeIn, UnsignedCharArray &memoIn)
-        : CBaseTx(MCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
+        : CBaseTx(UCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
         toUid        = toUidIn;
         coins        = coinsIn;
         coinType     = coinTypeIn;
@@ -37,7 +37,7 @@ public:
 
     CCoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t coinsIn,
                    CoinType coinTypeIn, uint64_t feesIn, CoinType feesCoinTypeIn)
-        : CBaseTx(MCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
+        : CBaseTx(UCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
         toUid        = toUidIn;
         coins        = coinsIn;
         coinType     = coinTypeIn;

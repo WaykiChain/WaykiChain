@@ -26,10 +26,10 @@ enum TxType: unsigned char {
     DELEGATE_VOTE_TX    = 6,  //!< Vote Delegate Tx
     COMMON_MTX          = 7,  //!< Multisig Tx
 
-    MCOIN_BLOCK_REWARD_TX    = 11,  //!< Multi Coin Miner Block Reward Tx
-    MCOIN_CONTRACT_INVOKE_TX = 12,  //!< Multi Coin Contract Invocation Tx
-    MCOIN_TRANSFER_TX        = 13,  //!< Coin Transfer Tx
-    MCOIN_REWARD_TX          = 14,  //!< Coin Reward Tx
+    UCOIN_BLOCK_REWARD_TX    = 11,  //!< Universal Coin Miner Block Reward Tx
+    UCOIN_CONTRACT_INVOKE_TX = 12,  //!< Universal Coin Contract Invocation Tx
+    UCOIN_TRANSFER_TX        = 13,  //!< Universal Coin Transfer Tx
+    UCOIN_REWARD_TX          = 14,  //!< Universal Coin Reward Tx
 
     CDP_STAKE_TX            = 21,  //!< CDP Staking/Restaking Tx
     CDP_REDEEMP_TX          = 22,  //!< CDP Redemption Tx (partial or full)
@@ -70,11 +70,11 @@ struct TxTypeHash {
  */
 static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64_t, uint64_t>, TxTypeHash> kTxTypeMap = {
     { BLOCK_REWARD_TX,          std::make_tuple("BLOCK_REWARD_TX",         0,          0,         0,          0            ) },
-    { MCOIN_REWARD_TX,          std::make_tuple("MCOIN_REWARD_TX",         0,          0,         0,          0            ) },
+    { UCOIN_REWARD_TX,          std::make_tuple("UCOIN_REWARD_TX",         0,          0,         0,          0            ) },
     { BLOCK_PRICE_MEDIAN_TX,    std::make_tuple("BLOCK_PRICE_MEDIAN_TX",   0,          0,         0,          0            ) },
     { ACCOUNT_REGISTER_TX,      std::make_tuple("ACCOUNT_REGISTER_TX",     10000,      10000,     10000,      10000        ) }, //0.0001 WICC, optional
     { BCOIN_TRANSFER_TX,        std::make_tuple("BCOIN_TRANSFER_TX",       10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-    { MCOIN_TRANSFER_TX,        std::make_tuple("MCOIN_TRANSFER_TX",       10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+    { UCOIN_TRANSFER_TX,        std::make_tuple("UCOIN_TRANSFER_TX",       10000,      10000,     10000,      10000        ) }, //0.0001 WICC
     { CONTRACT_DEPLOY_TX,       std::make_tuple("CONTRACT_DEPLOY_TX",      100000000,  100000000, 100000000,  100000000    ) }, //0.01 WICC (unit fuel rate)
     { CONTRACT_INVOKE_TX,       std::make_tuple("CONTRACT_INVOKE_TX",      1000,       1000,      1000,       1000         ) }, //0.001 WICC, min fees
     { DELEGATE_VOTE_TX,         std::make_tuple("DELEGATE_VOTE_TX",        10000,      10000,     10000,      10000        ) }, //0.0001 WICC

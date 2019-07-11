@@ -131,7 +131,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
         auto pRewardTx          = (CBlockRewardTx *)pBlock->vptx[0].get();
         pRewardTx->txUid        = delegate.regId;
         pRewardTx->nValidHeight = pBlock->GetHeight();
-    } else if (pBlock->vptx[0]->nTxType == MCOIN_BLOCK_REWARD_TX) {
+    } else if (pBlock->vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
         auto pRewardTx          = (CMultiCoinBlockRewardTx *)pBlock->vptx[0].get();
         pRewardTx->txUid        = delegate.regId;
         pRewardTx->nValidHeight = pBlock->GetHeight();

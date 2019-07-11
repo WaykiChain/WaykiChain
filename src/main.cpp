@@ -1389,7 +1389,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         vector<string> txids = IniCfg().GetStableCoinGenesisTxid(SysCfg().NetworkID());
         assert(txids.size() == 3);
         for (uint8_t index = 0; index < 3; ++ index) {
-            assert(block.vptx[index + 1]->nTxType == MCOIN_REWARD_TX);
+            assert(block.vptx[index + 1]->nTxType == UCOIN_REWARD_TX);
             assert(block.vptx[index + 1]->GetHash() == uint256S(txids[index]));
         }
     }
@@ -1474,7 +1474,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount(actual=%d vs valid=%d)",
                              pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
         }
-    } else if (block.vptx[0]->nTxType == MCOIN_BLOCK_REWARD_TX) {
+    } else if (block.vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
         auto pRewardTx = (CMultiCoinBlockRewardTx *)block.vptx[0].get();
         // TODO:
         // uint64_t llValidReward = block.GetFee() - block.GetFuel();
@@ -2169,7 +2169,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
             return state.DoS(100, ERRORMSG("ProcessForkedChain() : invalid coinbase reward amount(actual=%d vs valid=%d)",
                              pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
         }
-    } else if (block.vptx[0]->nTxType == MCOIN_BLOCK_REWARD_TX) {
+    } else if (block.vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
         auto pRewardTx = (CMultiCoinBlockRewardTx *)block.vptx[0].get();
         // uint64_t llValidReward = block.GetFee() - block.GetFuel();
         // if (pRewardTx->rewardValue != llValidReward) {

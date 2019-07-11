@@ -14,15 +14,15 @@ public:
     uint64_t coins;  // default: WICC
 
 public:
-    CCoinRewardTx() : CBaseTx(MCOIN_REWARD_TX), coinType(CoinType::WICC), coins(0) {}
+    CCoinRewardTx() : CBaseTx(UCOIN_REWARD_TX), coinType(CoinType::WICC), coins(0) {}
 
-    CCoinRewardTx(const CBaseTx *pBaseTx) : CBaseTx(MCOIN_REWARD_TX), coinType(CoinType::WICC), coins(0) {
-        assert(MCOIN_REWARD_TX == pBaseTx->nTxType);
+    CCoinRewardTx(const CBaseTx *pBaseTx) : CBaseTx(UCOIN_REWARD_TX), coinType(CoinType::WICC), coins(0) {
+        assert(UCOIN_REWARD_TX == pBaseTx->nTxType);
         *this = *(CCoinRewardTx *)pBaseTx;
     }
 
     CCoinRewardTx(const CUserID &txUidIn, const CoinType coinTypeIn, const uint64_t coinsIn, const int32_t nValidHeightIn)
-        : CBaseTx(MCOIN_REWARD_TX) {
+        : CBaseTx(UCOIN_REWARD_TX) {
         txUid        = txUidIn;
         coinType     = coinTypeIn;
         coins        = coinsIn;

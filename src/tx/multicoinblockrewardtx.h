@@ -22,8 +22,8 @@ public:
     int nHeight;
 
 public:
-    CMultiCoinBlockRewardTx(): CBaseTx(MCOIN_BLOCK_REWARD_TX), nHeight(0) {}
-    CMultiCoinBlockRewardTx(const CBaseTx *pBaseTx) : CBaseTx(MCOIN_BLOCK_REWARD_TX), nHeight(0) {
+    CMultiCoinBlockRewardTx(): CBaseTx(UCOIN_BLOCK_REWARD_TX), nHeight(0) {}
+    CMultiCoinBlockRewardTx(const CBaseTx *pBaseTx) : CBaseTx(UCOIN_BLOCK_REWARD_TX), nHeight(0) {
         assert(BLOCK_REWARD_TX == pBaseTx->nTxType);
         *this = *(CMultiCoinBlockRewardTx *)pBaseTx;
     }

@@ -94,7 +94,7 @@ public:
 
     int32_t GetFuelRate(CContractDBCache &scriptDB);
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
-    bool IsCoinBase() { return nTxType == BLOCK_REWARD_TX || nTxType == MCOIN_BLOCK_REWARD_TX; }
+    bool IsCoinBase() { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
 
 protected:
     bool CheckTxFeeSufficient(const uint64_t llFees, const int32_t nHeight) const;
