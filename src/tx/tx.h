@@ -110,9 +110,19 @@ public:
     unsigned char coinType;
     unsigned char priceType;
 
-    CCoinPriceType(CoinType coinTypeIn, PriceType priceTypeIn) :
+public:
+    CCoinPriceType() {}
+
+    CCoinPriceType(const CoinType &coinTypeIn, const PriceType &priceTypeIn) :
         coinType(coinTypeIn), priceType(priceTypeIn) {}
 
+    CCoinPriceType(const CCoinPriceType &other) {
+        *this = other;
+    }
+
+    ~CCoinPriceType() {}
+
+public:
      bool operator<(const CCoinPriceType &coinPriceType) const {
         if (coinType == coinPriceType.coinType) {
             return priceType < coinPriceType.priceType;
@@ -126,20 +136,39 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(coinType);
         READWRITE(priceType);)
+
+    CCoinPriceType& operator=(const CCoinPriceType& other) {
+        if (this == &other)
+            return *this;
+
+        this->coinType  = other.coinType;
+        this->priceType = other.priceType;
+
+        return *this;
+    }
 };
 
 class CPricePoint {
-private:
+public:
     CCoinPriceType coinPriceType;
     uint64_t price;
 
 public:
-    CPricePoint(CCoinPriceType coinPriceTypeIn, uint64_t priceIn)
+    CPricePoint() {}
+
+    CPricePoint(const CCoinPriceType &coinPriceTypeIn, const uint64_t priceIn)
         : coinPriceType(coinPriceTypeIn), price(priceIn) {}
 
-    CPricePoint(CoinType coinTypeIn, PriceType priceTypeIn, uint64_t priceIn)
+    CPricePoint(const CoinType &coinTypeIn, const PriceType &priceTypeIn, const uint64_t priceIn)
         : coinPriceType(coinTypeIn, priceTypeIn), price(priceIn) {}
 
+    CPricePoint(const CPricePoint& other) {
+        *this = other;
+    }
+
+    ~CPricePoint() {}
+
+public:
     uint64_t GetPrice() { return price; }
     CCoinPriceType GetCoinPriceType() { return coinPriceType; }
 
@@ -161,6 +190,16 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(coinPriceType);
         READWRITE(VARINT(price));)
+
+    CPricePoint& operator=(const CPricePoint& other) {
+        if (this == &other)
+            return *this;
+
+        this->coinPriceType = other.coinPriceType;
+        this->price         = other.price;
+
+        return *this;
+    }
 };
 
 #define IMPLEMENT_CHECK_TX_MEMO                                                                             \
