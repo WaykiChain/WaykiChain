@@ -383,7 +383,7 @@ bool CBaseParams::CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx
     pTx->nVersion = nTxVersion1;
     vptx.push_back(pTx);
 
-    // Initial FunCoin Owner's account
+    // Initial FundCoin Owner's account
     pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetInitFcoinOwnerPubKey(type))), CoinType::WGRT,
                                           kTotalFundCoinGenesisReleaseAmount * COIN, nStableCoinGenesisHeight);
     vptx.push_back(pTx);
