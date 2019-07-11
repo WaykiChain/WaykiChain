@@ -170,7 +170,7 @@ public:
     bool MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins);
 
     bool ProcessDelegateVote(const vector<CCandidateVote>& candidateVotesIn,
-                             vector<CCandidateVote>& candidateVotesInOut, const uint64_t curHeight);
+                             vector<CCandidateVote>& candidateVotesInOut, const uint64_t currHeight);
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool StakeFcoins(const int64_t fcoinsToStake); //price feeder must stake fcoins
     bool OperateFcoinStaking(const int64_t fcoinsToStake) { return false; } // TODO: ...
@@ -256,13 +256,13 @@ public:
 
     uint64_t GetReceiveVotes() const { return receivedVotes; }
 
-    uint64_t GetTotalBcoins(const vector<CCandidateVote>& candidateVotes, const uint64_t curHeight);
-    uint64_t GetVotedBCoins(const vector<CCandidateVote>& candidateVotes, const uint64_t curHeight);
+    uint64_t GetTotalBcoins(const vector<CCandidateVote>& candidateVotes, const uint64_t currHeight);
+    uint64_t GetVotedBCoins(const vector<CCandidateVote>& candidateVotes, const uint64_t currHeight);
 
     // Get profits for voting.
-    uint64_t GetAccountProfit(const vector<CCandidateVote> &candidateVotes, const uint64_t curHeight);
+    uint64_t GetAccountProfit(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight);
     // Calculate profits for voted.
-    uint64_t CalculateAccountProfit(const uint64_t curHeight) const;
+    uint64_t CalculateAccountProfit(const uint64_t currHeight) const;
 
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;

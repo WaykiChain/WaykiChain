@@ -124,8 +124,8 @@ bool CAccount::MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins) {
     return true;
 }
 
-uint64_t CAccount::GetAccountProfit(const vector<CCandidateVote> &candidateVotes, const uint64_t curHeight) {
-    if (GetFeatureForkVersion(curHeight) == MAJOR_VER_R2) {
+uint64_t CAccount::GetAccountProfit(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight) {
+    if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R2) {
         // The rule is one bcoin one vote, hence no profits at all and return 0.
         return 0;
     }
@@ -136,9 +136,9 @@ uint64_t CAccount::GetAccountProfit(const vector<CCandidateVote> &candidateVotes
     }
 
     uint64_t nBeginHeight  = lastVoteHeight;
-    uint64_t nEndHeight    = curHeight;
+    uint64_t nEndHeight    = currHeight;
     uint64_t nBeginSubsidy = IniCfg().GetBlockSubsidyCfg(lastVoteHeight);
-    uint64_t nEndSubsidy   = IniCfg().GetBlockSubsidyCfg(curHeight);
+    uint64_t nEndSubsidy   = IniCfg().GetBlockSubsidyCfg(currHeight);
     uint64_t nValue        = candidateVotes.begin()->GetVotedBcoins();
     LogPrint("profits", "nBeginSubsidy:%lld nEndSubsidy:%lld nBeginHeight:%d nEndHeight:%d\n", nBeginSubsidy,
              nEndSubsidy, nBeginHeight, nEndHeight);
@@ -162,18 +162,18 @@ uint64_t CAccount::GetAccountProfit(const vector<CCandidateVote> &candidateVotes
     }
 
     llProfits += calculateProfit(nValue, nSubsidy, nBeginHeight, nEndHeight);
-    LogPrint("profits", "updateHeight:%d curHeight:%d freeze value:%lld\n", lastVoteHeight, curHeight,
+    LogPrint("profits", "updateHeight:%d currHeight:%d freeze value:%lld\n", lastVoteHeight, currHeight,
              candidateVotes.begin()->GetVotedBcoins());
 
     return llProfits;
 }
 
-uint64_t CAccount::CalculateAccountProfit(const uint64_t curHeight) const {
-    if (GetFeatureForkVersion(curHeight) == MAJOR_VER_R1) {
+uint64_t CAccount::CalculateAccountProfit(const uint64_t currHeight) const {
+    if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1) {
         return 0;
     }
 
-    uint64_t subsidy          = IniCfg().GetBlockSubsidyCfg(curHeight);
+    uint64_t subsidy          = IniCfg().GetBlockSubsidyCfg(currHeight);
     static int64_t holdHeight = 1;
     static int64_t yearHeight = SysCfg().GetSubsidyHalvingInterval();
     uint64_t profits =
@@ -184,12 +184,12 @@ uint64_t CAccount::CalculateAccountProfit(const uint64_t curHeight) const {
     return profits;
 }
 
-uint64_t CAccount::GetVotedBCoins(const vector<CCandidateVote> &candidateVotes, const uint64_t curHeight) {
+uint64_t CAccount::GetVotedBCoins(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight) {
     uint64_t votes = 0;
     if (!candidateVotes.empty()) {
-        if (GetFeatureForkVersion(curHeight) == MAJOR_VER_R1) {
+        if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1) {
             votes = candidateVotes[0].GetVotedBcoins(); // one bcoin eleven votes
-        } else if (GetFeatureForkVersion(curHeight) == MAJOR_VER_R2) {
+        } else if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R2) {
             for (const auto &vote : candidateVotes) {
                 votes += vote.GetVotedBcoins();  // one bcoin one vote
             }
@@ -198,8 +198,8 @@ uint64_t CAccount::GetVotedBCoins(const vector<CCandidateVote> &candidateVotes, 
     return votes;
 }
 
-uint64_t CAccount::GetTotalBcoins(const vector<CCandidateVote> &candidateVotes, const uint64_t curHeight) {
-    uint64_t votedBcoins = GetVotedBCoins(candidateVotes, curHeight);
+uint64_t CAccount::GetTotalBcoins(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight) {
+    uint64_t votedBcoins = GetVotedBCoins(candidateVotes, currHeight);
     return (votedBcoins + bcoins);
 }
 
@@ -346,19 +346,19 @@ bool CAccount::StakeBcoinsToCdp(CoinType coinType, const int64_t bcoinsToStake, 
 // }
 
 bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesIn,
-                                   vector<CCandidateVote> &candidateVotesInOut, const uint64_t curHeight) {
-    if (curHeight < lastVoteHeight) {
-        LogPrint("ERROR", "curHeight (%d) < lastVoteHeight (%d)", curHeight, lastVoteHeight);
+                                   vector<CCandidateVote> &candidateVotesInOut, const uint64_t currHeight) {
+    if (currHeight < lastVoteHeight) {
+        LogPrint("ERROR", "currHeight (%d) < lastVoteHeight (%d)", currHeight, lastVoteHeight);
         return false;
     }
 
-    uint64_t llProfit = GetAccountProfit(candidateVotesInOut, curHeight);
+    uint64_t llProfit = GetAccountProfit(candidateVotesInOut, currHeight);
     if (!IsMoneyValid(llProfit))
         return false;
 
-    lastVoteHeight = curHeight;
+    lastVoteHeight = currHeight;
 
-    uint64_t lastTotalVotes = GetVotedBCoins(candidateVotesInOut, curHeight);
+    uint64_t lastTotalVotes = GetVotedBCoins(candidateVotesInOut, currHeight);
 
     for (const auto &vote : candidateVotesIn) {
         const CUserID &voteId = vote.GetCandidateUid();
@@ -387,7 +387,7 @@ bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesI
                candidateVotesInOut.push_back(vote);
             }
         } else if (MINUS_BCOIN == voteType) {
-            // if (curHeight - lastVoteHeight < 100) {
+            // if (currHeight - lastVoteHeight < 100) {
             //     return ERRORMSG("ProcessDelegateVote() : last vote not cooled down yet: lastVoteHeigh=%d",
             //                     lastVoteHeight);
             // }
@@ -418,7 +418,7 @@ bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesI
         return vote1.GetVotedBcoins() > vote2.GetVotedBcoins();
     });
 
-    uint64_t newTotalVotes = GetVotedBCoins(candidateVotesInOut, curHeight);
+    uint64_t newTotalVotes = GetVotedBCoins(candidateVotesInOut, currHeight);
     uint64_t totalBcoins = bcoins + lastTotalVotes;
     if (totalBcoins < newTotalVotes) {
         return  ERRORMSG("ProcessDelegateVote() : delegate votes exceeds account bcoins");
