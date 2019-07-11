@@ -733,7 +733,7 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
     if (txUid.get<CRegID>() != orderDetail.userRegId) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, can not cancel other user's order tx"),
-                        REJECT_INVALID, "user-unmatch");
+                        REJECT_INVALID, "user-unmatched");
     }
 
     CoinType frozenType;
@@ -996,7 +996,7 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     b. buyerAssets          += dealAssetAmount - dealAssetFee
     c. sellerCoins          += dealCoinAmount - dealCoinFee
     d. sellerFrozenAssets   -= dealAssetAmount
-11. check order fulfiled or save residual amount
+11. check order fullfiled or save residual amount
     a. buy order
         if buy order is fulfilled {
             if buy limit order {
@@ -1081,17 +1081,17 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
             if ( buyOrderDetail.price < dealItem.dealPrice
                 || sellOrderDetail.price > dealItem.dealPrice ) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the expected price not match"),
-                                REJECT_INVALID, "deal-price-unmatch");
+                                REJECT_INVALID, "deal-price-unmatched");
             }
         } else if (buyOrderDetail.orderType == ORDER_LIMIT_PRICE && sellOrderDetail.orderType == ORDER_MARKET_PRICE) {
             if (dealItem.dealPrice != buyOrderDetail.price) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the expected price not match"),
-                                REJECT_INVALID, "deal-price-unmatch");
+                                REJECT_INVALID, "deal-price-unmatched");
             }
         } else if (buyOrderDetail.orderType == ORDER_MARKET_PRICE && sellOrderDetail.orderType == ORDER_LIMIT_PRICE) {
             if (dealItem.dealPrice != sellOrderDetail.price) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the expected price not match"),
-                                REJECT_INVALID, "deal-price-unmatch");
+                                REJECT_INVALID, "deal-price-unmatched");
             }
         } else {
             assert(buyOrderDetail.orderType == ORDER_MARKET_PRICE && sellOrderDetail.orderType == ORDER_MARKET_PRICE);
@@ -1170,10 +1170,10 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
             || !sellOrderAccount.OperateBalance(sellOrderDetail.coinType, ADD_VALUE, sellerReceivedCoins)     // + add seller's coin
             || !sellOrderAccount.MinusDEXFrozenCoin(sellOrderDetail.assetType, dealItem.dealAssetAmount)) {   // - minus seller's assets
             return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, operate coins or assets failed"),
-                            REJECT_INVALID, "operate-acount-failed");
+                            REJECT_INVALID, "operate-account-failed");
         }
 
-        // 11. check order fulfiled or save residual amount
+        // 11. check order fullfiled or save residual amount
         if (buyResidualAmount == 0) { // buy order fulfilled
             if (buyOrderDetail.orderType == ORDER_LIMIT_PRICE) {
                 if (buyOrderDetail.coinAmount > buyActiveOrder.totalDealCoinAmount) {
