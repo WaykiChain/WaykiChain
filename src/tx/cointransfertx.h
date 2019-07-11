@@ -8,7 +8,7 @@
 
 #include "tx.h"
 
-class CCoinTranferTx: public CBaseTx {
+class CCoinTransferTx: public CBaseTx {
 private:
     mutable CUserID toUid;
     uint64_t coins;
@@ -17,17 +17,17 @@ private:
     UnsignedCharArray memo;
 
 public:
-    CCoinTranferTx()
-        : CBaseTx(MCOIN_TRANSFER_TX), coins(0), coinType(CoinType::WICC), feesCoinType(CoinType::WICC) {}
+    CCoinTransferTx()
+        : CBaseTx(UCOIN_TRANSFER_TX), coins(0), coinType(CoinType::WICC), feesCoinType(CoinType::WICC) {}
 
-    CCoinTranferTx(const CBaseTx *pBaseTx): CBaseTx(MCOIN_TRANSFER_TX) {
-        assert(MCOIN_TRANSFER_TX == pBaseTx->nTxType);
-        *this = *(CCoinTranferTx *) pBaseTx;
+    CCoinTransferTx(const CBaseTx *pBaseTx): CBaseTx(UCOIN_TRANSFER_TX) {
+        assert(UCOIN_TRANSFER_TX == pBaseTx->nTxType);
+        *this = *(CCoinTransferTx *) pBaseTx;
     }
 
-    CCoinTranferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t coinsIn,
+    CCoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t coinsIn,
                    CoinType coinTypeIn, uint64_t feesIn, CoinType feesCoinTypeIn, UnsignedCharArray &memoIn)
-        : CBaseTx(MCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
+        : CBaseTx(UCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
         toUid        = toUidIn;
         coins        = coinsIn;
         coinType     = coinTypeIn;
@@ -35,16 +35,16 @@ public:
         memo         = memoIn;
     }
 
-    CCoinTranferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t coinsIn,
+    CCoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t coinsIn,
                    CoinType coinTypeIn, uint64_t feesIn, CoinType feesCoinTypeIn)
-        : CBaseTx(MCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
+        : CBaseTx(UCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
         toUid        = toUidIn;
         coins        = coinsIn;
         coinType     = coinTypeIn;
         feesCoinType = feesCoinTypeIn;
     }
 
-    ~CCoinTranferTx() {}
+    ~CCoinTransferTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -73,7 +73,7 @@ public:
     }
 
     map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType(coinType), coins}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCoinTranferTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCoinTransferTx>(this); }
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);

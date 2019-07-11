@@ -588,7 +588,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : nonstandard transaction: %s", reason), REJECT_NONSTANDARD,
                          reason);
 
-    auto spCW           = std::make_shared<CCacheWrapper>();
+    auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(pool.memPoolAccountCache.get());
     spCW->contractCache.SetBaseView(pool.memPoolContractCache.get());
 
@@ -596,11 +596,10 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed");
 
     {
-        double dPriority = pBaseTx->GetPriority();
-        uint64_t nFees   = pBaseTx->GetFee();
-
-        CTxMemPoolEntry entry(pBaseTx, nFees, GetTime(), dPriority, chainActive.Height());
-        unsigned int nSize = entry.GetTxSize();
+        CTxMemPoolEntry entry(pBaseTx, GetTime(), chainActive.Height());
+        // TODO: consider different coin types.
+        auto nFees = std::get<1>(entry.GetFees());
+        auto nSize = entry.GetTxSize();
 
         if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
             CBaseCoinTransferTx *pTx = static_cast<CBaseCoinTransferTx *>(pBaseTx);
@@ -610,9 +609,9 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
                     REJECT_DUST, "dust amount");
         }
 
-        uint64_t txMinFee = GetMinRelayFee(pBaseTx, nSize, true);
-        if (fLimitFree && nFees < txMinFee)
-            return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : not enough fees %s, %d < %d", hash.ToString(), nFees, txMinFee),
+        uint64_t minFees = GetMinRelayFee(pBaseTx, nSize, true);
+        if (fLimitFree && nFees < minFees)
+            return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : not enough fees %s, %d < %d", hash.ToString(), nFees, minFees),
                 REJECT_INSUFFICIENTFEE, "insufficient fee");
 
         // Continuously rate-limit free transactions
@@ -1391,7 +1390,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         vector<string> txids = IniCfg().GetStableCoinGenesisTxid(SysCfg().NetworkID());
         assert(txids.size() == 3);
         for (uint8_t index = 0; index < 3; ++ index) {
-            assert(block.vptx[index + 1]->nTxType == MCOIN_REWARD_TX);
+            assert(block.vptx[index + 1]->nTxType == UCOIN_REWARD_TX);
             assert(block.vptx[index + 1]->GetHash() == uint256S(txids[index]));
         }
     }
@@ -1468,18 +1467,19 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     }
 
     if (block.vptx[0]->nTxType == BLOCK_REWARD_TX) {
-        auto pRewardTx = (CBlockRewardTx *)block.vptx[0].get();
-        uint64_t llValidReward = block.GetFee() - block.GetFuel();
-        if (pRewardTx->rewardValue != llValidReward) {
-            LogPrint("ERROR", "ConnectBlock() : block height:%u, block fee:%lld, block fuel:%u\n",
-                     block.GetHeight(), block.GetFee(), block.GetFuel());
-            return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount(actual=%d vs valid=%d)",
-                             pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
-        }
-    } else if (block.vptx[0]->nTxType == MCOIN_BLOCK_REWARD_TX) {
+        // TODO: Fees
+        // auto pRewardTx = (CBlockRewardTx *)block.vptx[0].get();
+        // uint64_t llValidReward = block.GetFees() - block.GetFuel();
+        // if (pRewardTx->rewardValue != llValidReward) {
+        //     LogPrint("ERROR", "ConnectBlock() : block height:%u, block fee:%lld, block fuel:%u\n",
+        //              block.GetHeight(), block.GetFees(), block.GetFuel());
+        //     return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount(actual=%d vs valid=%d)",
+        //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
+        // }
+    } else if (block.vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
         auto pRewardTx = (CMultiCoinBlockRewardTx *)block.vptx[0].get();
         // TODO:
-        // uint64_t llValidReward = block.GetFee() - block.GetFuel();
+        // uint64_t llValidReward = block.GetFees() - block.GetFuel();
         // if (pRewardTx->rewardValue != llValidReward) {
         //     return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount(actual=%d vs valid=%d)",
         //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
@@ -1663,10 +1663,10 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
     // New best block
     SysCfg().SetBestRecvTime(GetTime());
     mempool.AddUpdatedTransactionNum(1);
-    LogPrint("INFO", "UpdateTip: new best=%s  height=%d  tx=%lu  date=%s txnumber=%d dFeePerKb=%lf nFuelRate=%d\n",
+    LogPrint("INFO", "UpdateTip: new best=%s  height=%d  tx=%lu  date=%s txnumber=%d nFuelRate=%d\n",
              chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), (unsigned long)chainActive.Tip()->nChainTx,
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
-             block.vptx.size(), chainActive.Tip()->dFeePerKb, chainActive.Tip()->nFuelRate);
+             block.vptx.size(), chainActive.Tip()->nFuelRate);
 
     // Check the version of the last 100 blocks to see if we need to upgrade:
     if (!fIsInitialDownload) {
@@ -2163,17 +2163,18 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
     if (block.vptx[0]->nTxType == BLOCK_REWARD_TX) {
-        auto pRewardTx = (CBlockRewardTx *)block.vptx[0].get();
-        uint64_t llValidReward = block.GetFee() - block.GetFuel();
-        if (pRewardTx->rewardValue != llValidReward) {
-            LogPrint("ERROR", "ProcessForkedChain() : block height:%u, block fee:%lld, block fuel:%u\n",
-                     block.GetHeight(), block.GetFee(), block.GetFuel());
-            return state.DoS(100, ERRORMSG("ProcessForkedChain() : invalid coinbase reward amount(actual=%d vs valid=%d)",
-                             pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
-        }
-    } else if (block.vptx[0]->nTxType == MCOIN_BLOCK_REWARD_TX) {
+        // TODO: Fees
+        // auto pRewardTx = (CBlockRewardTx *)block.vptx[0].get();
+        // uint64_t llValidReward = block.GetFees() - block.GetFuel();
+        // if (pRewardTx->rewardValue != llValidReward) {
+        //     LogPrint("ERROR", "ProcessForkedChain() : block height:%u, block fee:%lld, block fuel:%u\n",
+        //              block.GetHeight(), block.GetFees(), block.GetFuel());
+        //     return state.DoS(100, ERRORMSG("ProcessForkedChain() : invalid coinbase reward amount(actual=%d vs valid=%d)",
+        //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
+        // }
+    } else if (block.vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
         auto pRewardTx = (CMultiCoinBlockRewardTx *)block.vptx[0].get();
-        // uint64_t llValidReward = block.GetFee() - block.GetFuel();
+        // uint64_t llValidReward = block.GetFees() - block.GetFuel();
         // if (pRewardTx->rewardValue != llValidReward) {
         //     return state.DoS(100, ERRORMSG("ProcessForkedChain() : invalid coinbase reward amount(actual=%d vs valid=%d)",
         //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");

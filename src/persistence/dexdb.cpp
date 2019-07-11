@@ -11,7 +11,7 @@
 // class CDEXSysOrder
 
 shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyLimitOrder(CoinType coinTypeIn,
-                                                           CoinType assetTypeIn,
+                                                           AssetType assetTypeIn,
                                                            uint64_t assetAmountIn,
                                                            uint64_t priceIn) {
     auto pSysOrder       = make_shared<CDEXSysOrder>();
@@ -27,7 +27,7 @@ shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyLimitOrder(CoinType coinTypeIn,
 }
 
 shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellLimitOrder(CoinType coinTypeIn,
-                                                            CoinType assetTypeIn,
+                                                            AssetType assetTypeIn,
                                                             uint64_t assetAmountIn,
                                                             uint64_t priceIn) {
     auto pSysOrder       = make_shared<CDEXSysOrder>();
@@ -58,7 +58,7 @@ shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyMarketOrder(CoinType coinTypeIn,
 }
 
 shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellMarketOrder(CoinType coinTypeIn,
-                                                             CoinType assetTypeIn,
+                                                             AssetType assetTypeIn,
                                                              uint64_t assetAmountIn) {
     auto pSysOrder       = make_shared<CDEXSysOrder>();
     pSysOrder->direction = ORDER_BUY;

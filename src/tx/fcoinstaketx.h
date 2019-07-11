@@ -54,7 +54,6 @@ public:
         return map<CoinType, uint64_t>{{CoinType::WGRT, fcoinsToStake}};
     }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CFcoinStakeTx>(this); }
-    virtual double GetPriority() const { return 10000.0f; } // Top priority
 
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;

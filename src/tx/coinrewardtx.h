@@ -14,15 +14,15 @@ public:
     uint64_t coins;  // default: WICC
 
 public:
-    CCoinRewardTx() : CBaseTx(MCOIN_REWARD_TX), coinType(CoinType::WICC), coins(0) {}
+    CCoinRewardTx() : CBaseTx(UCOIN_REWARD_TX), coinType(CoinType::WICC), coins(0) {}
 
-    CCoinRewardTx(const CBaseTx *pBaseTx) : CBaseTx(MCOIN_REWARD_TX), coinType(CoinType::WICC), coins(0) {
-        assert(MCOIN_REWARD_TX == pBaseTx->nTxType);
+    CCoinRewardTx(const CBaseTx *pBaseTx) : CBaseTx(UCOIN_REWARD_TX), coinType(CoinType::WICC), coins(0) {
+        assert(UCOIN_REWARD_TX == pBaseTx->nTxType);
         *this = *(CCoinRewardTx *)pBaseTx;
     }
 
     CCoinRewardTx(const CUserID &txUidIn, const CoinType coinTypeIn, const uint64_t coinsIn, const int32_t nValidHeightIn)
-        : CBaseTx(MCOIN_REWARD_TX) {
+        : CBaseTx(UCOIN_REWARD_TX) {
         txUid        = txUidIn;
         coinType     = coinTypeIn;
         coins        = coinsIn;
@@ -53,8 +53,6 @@ public:
 
     virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType(coinType), coins}}; }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCoinRewardTx>(this); }
-    uint64_t GetFee() const { return 0; }
-    double GetPriority() const { return 0.0f; }
 
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;

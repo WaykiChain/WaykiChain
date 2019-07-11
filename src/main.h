@@ -769,7 +769,7 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
             Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion); break;
         case BLOCK_PRICE_MEDIAN_TX:
             Serialize(os, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion); break;
-        case MCOIN_REWARD_TX:
+        case UCOIN_REWARD_TX:
             Serialize(os, *((CCoinRewardTx *)(pa.get())), nType, nVersion); break;
 
         /* dex */
@@ -840,7 +840,7 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
             Unserialize(is, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion);
             break;
         }
-        case MCOIN_REWARD_TX: {
+        case UCOIN_REWARD_TX: {
             pa = std::make_shared<CCoinRewardTx>();
             Unserialize(is, *((CCoinRewardTx *)(pa.get())), nType, nVersion);
             break;

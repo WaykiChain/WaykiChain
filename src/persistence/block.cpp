@@ -67,13 +67,14 @@ uint256 CBlock::CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBr
     return hash;
 }
 
-int64_t CBlock::GetFee() const {
-    int64_t nFees = 0;
-    for (unsigned int i = 1; i < vptx.size(); ++i) {
-        nFees += vptx[i]->GetFee();
-    }
-    return nFees;
-}
+// TODO: Fees
+// int64_t CBlock::GetFees() const {
+//     int64_t nFees = 0;
+//     for (unsigned int i = 1; i < vptx.size(); ++i) {
+//         nFees += vptx[i]->GetFees();
+//     }
+//     return nFees;
+// }
 
 uint64_t CBlock::GetBlockMedianPrice(const CoinType coinType, const PriceType priceType) const {
     if (vptx.size() == 1 || vptx[1]->nTxType != BLOCK_PRICE_MEDIAN_TX) {

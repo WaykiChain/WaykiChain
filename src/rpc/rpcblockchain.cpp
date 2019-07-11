@@ -66,15 +66,16 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     result.push_back(Pair("tx", txs));
     result.push_back(Pair("time", block.GetBlockTime()));
     result.push_back(Pair("nonce", (uint64_t)block.GetNonce()));
-    CBlockRewardTx* pBlockRewardTx = (CBlockRewardTx*)block.vptx[0].get();
-    uint64_t rewardValue           = pBlockRewardTx->rewardValue;
-    int64_t fees                   = block.GetFee();
-    int64_t fuel                   = block.GetFuel();
-    uint64_t profits               = rewardValue - (fees - fuel);
-    result.push_back(Pair("fuel", (int)block.GetFuel()));
-    result.push_back(Pair("fuel_rate", block.GetFuelRate()));
-    result.push_back(Pair("profits", profits));
-    result.push_back(Pair("fees", fees));
+    // TODO: Fees
+    // CBlockRewardTx* pBlockRewardTx = (CBlockRewardTx*)block.vptx[0].get();
+    // uint64_t rewardValue           = pBlockRewardTx->rewardValue;
+    // int64_t fees                   = block.GetFees();
+    // int64_t fuel                   = block.GetFuel();
+    // uint64_t profits               = rewardValue - (fees - fuel);
+    // result.push_back(Pair("fuel", (int)block.GetFuel()));
+    // result.push_back(Pair("fuel_rate", block.GetFuelRate()));
+    // result.push_back(Pair("profits", profits));
+    // result.push_back(Pair("fees", fees));
     if (pBlockIndex->pprev) result.push_back(Pair("previous_block_hash", pBlockIndex->pprev->GetBlockHash().GetHex()));
     CBlockIndex* pNext = chainActive.Next(pBlockIndex);
     if (pNext) result.push_back(Pair("next_block_hash", pNext->GetBlockHash().GetHex()));
@@ -159,15 +160,11 @@ Value getrawmempool(const Array& params, bool fHelp)
             "\nResult: (for verbose = true):\n"
             "{                           (json object)\n"
             "  \"txid\" : {       (json object)\n"
-            "    \"size\" : n,             (numeric) transaction size in bytes\n"
             "    \"fee\" : n,              (numeric) transaction fee in WICC coins\n"
+            "    \"size\" : n,             (numeric) transaction size in bytes\n"
+            "    \"priority\" : n,         (numeric) priority\n"
             "    \"time\" : n,             (numeric) local time transaction entered pool in seconds since 1 Jan 1970 GMT\n"
             "    \"height\" : n,           (numeric) block height when transaction entered pool\n"
-            "    \"startingpriority\" : n, (numeric) priority when transaction entered pool\n"
-            "    \"currentpriority\" : n,  (numeric) transaction priority now\n"
-            "    \"depends\" : [           (array) unconfirmed transactions used as inputs for this transaction\n"
-            "        \"txid\",    (string) parent transaction id\n"
-            "       ... ]\n"
             "  }, ...\n"
             "]\n"
             "\nExamples\n"
@@ -184,18 +181,16 @@ Value getrawmempool(const Array& params, bool fHelp)
         LOCK(mempool.cs);
         Object obj;
         for (const auto& entry : mempool.memPoolTxs) {
-            const uint256& hash = entry.first;
+            const uint256& hash      = entry.first;
             const CTxMemPoolEntry& e = entry.second;
             Object info;
-            info.push_back(Pair("size", (int)e.GetTxSize()));
-            info.push_back(Pair("fee", ValueFromAmount(e.GetFee())));
-            info.push_back(Pair("time", e.GetTime()));
-            info.push_back(Pair("height", (int)e.GetHeight()));
-            info.push_back(Pair("startingpriority", e.GetPriority(e.GetHeight())));
-            info.push_back(Pair("currentpriority", e.GetPriority(chainActive.Height())));
-            set<string> setDepends;
-            Array depends(setDepends.begin(), setDepends.end());
-            info.push_back(Pair("depends", depends));
+            info.push_back(Pair("size",         (int)e.GetTxSize()));
+            info.push_back(Pair("fees_type",    kCoinTypeMapName.at(std::get<0>(e.GetFees()))));
+            info.push_back(Pair("fees",         ValueFromAmount(std::get<1>(e.GetFees()))));
+            info.push_back(Pair("time",         e.GetTime()));
+            info.push_back(Pair("height",       (int)e.GetHeight()));
+            info.push_back(Pair("priority",     e.GetPriority()));
+
             obj.push_back(Pair(hash.ToString(), info));
         }
         return obj;

@@ -6,6 +6,7 @@
 #ifndef PERSIST_DEX_H
 #define PERSIST_DEX_H
 
+#include <string>
 #include <set>
 #include <vector>
 
@@ -14,15 +15,21 @@
 #include "accounts/id.h"
 #include "accounts/account.h"
 
+using namespace std;
+
 enum OrderDirection {
     ORDER_BUY  = 0,
     ORDER_SELL = 1,
 };
 
+const static std::string OrderDirectionTitles[] = {"Buy", "Sell"};
+
 enum OrderType {
     ORDER_LIMIT_PRICE   = 0, //!< limit price order type
     ORDER_MARKET_PRICE  = 1  //!< market price order type
 };
+
+const static std::string OrderTypeTitles[] = {"LimitPrice", "MarketPrice"};
 
 enum OrderGenerateType {
     EMPTY_ORDER         = 0,
@@ -35,7 +42,7 @@ struct CDEXOrderDetail {
     OrderType       orderType;     //!< order type
     OrderDirection  direction;
     CoinType        coinType;      //!< coin type
-    CoinType        assetType;     //!< asset type
+    AssetType       assetType;     //!< asset type
     uint64_t        coinAmount;    //!< amount of coin to buy/sell asset
     uint64_t        assetAmount;   //!< amount of asset to buy/sell
     uint64_t        price;         //!< price in coinType want to buy/sell asset
@@ -76,10 +83,10 @@ struct CDEXActiveOrder {
 // txid -> sys order data
 class CDEXSysOrder {
 private:
-    OrderDirection  direction;     //!< order direction 
+    OrderDirection  direction;     //!< order direction
     OrderType       orderType;     //!< order type
     CoinType        coinType;      //!< coin type
-    CoinType        assetType;     //!< asset type
+    AssetType       assetType;     //!< asset type
 
     uint64_t        coinAmount;    //!< amount of coin to buy/sell asset
     uint64_t        assetAmount;   //!< amount of coin to buy asset
@@ -99,15 +106,15 @@ public:// create functions
 
 public:
     // default constructor
-    CDEXSysOrder():         
+    CDEXSysOrder():
         direction(ORDER_BUY),
         orderType(ORDER_LIMIT_PRICE),
         coinType(WUSD),
         assetType(WICC),
         coinAmount(0),
         assetAmount(0),
-        price(0) 
-        {} 
+        price(0)
+        {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t&)direction);
@@ -119,6 +126,14 @@ public:
         READWRITE(VARINT(assetAmount));
         READWRITE(VARINT(price));
     )
+
+    string ToString() { 
+        return strprintf(
+                "OrderDir=%s, OrderType=%s, CoinType=%d, AssetType=%s, coinAmount=%lu, assetAmount=%lu, price=%lu",
+                OrderDirectionTitles[direction], OrderTypeTitles[orderType], 
+                kCoinTypeMapName.at(coinType), kCoinTypeMapName.at(assetType),
+                coinAmount, assetAmount, price);
+    }
 
     bool IsEmpty() const;
     void SetEmpty();

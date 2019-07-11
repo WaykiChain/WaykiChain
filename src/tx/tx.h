@@ -71,12 +71,14 @@ public:
 
     virtual ~CBaseTx() {}
 
-    virtual uint64_t GetFee() const { return llFees; }
+    virtual std::pair<CoinType, uint64_t> GetFees() const { return std::make_pair(CoinType::WICC, llFees); }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 
     virtual uint64_t GetFuel(int32_t nFuelRate);
-    virtual double GetPriority() const { return llFees / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
+    virtual double GetPriority() const {
+        return kTransactionPriorityCeiling / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
+    }
     virtual map<CoinType, uint64_t> GetValues() const = 0;
 
     virtual uint256 ComputeSignatureHash(bool recalculate = false) const = 0;
@@ -92,7 +94,7 @@ public:
 
     int32_t GetFuelRate(CContractDBCache &scriptDB);
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
-    bool IsCoinBase() { return nTxType == BLOCK_REWARD_TX || nTxType == MCOIN_BLOCK_REWARD_TX; }
+    bool IsCoinBase() { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
 
 protected:
     bool CheckTxFeeSufficient(const uint64_t llFees, const int32_t nHeight) const;

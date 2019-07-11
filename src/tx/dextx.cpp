@@ -909,8 +909,8 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
-    if (txUid.get<CRegID>() != SysCfg().GetDEXSettleRegId()) {
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, account regId is not authorized dex settle regId"),
+    if (txUid.get<CRegID>() != SysCfg().GetDexMatchSvcRegId()) {
+        return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, account regId is not authorized dex match-svc regId"),
                          REJECT_INVALID, "unauthorized-settle-account");
     }
 
@@ -1030,7 +1030,6 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
     cw.txUndo.accountLogs.push_back(CAccountLog(srcAcct));
 
     for (auto dealItem : dealItems) {
-
         //1. get and check buyDealOrder and sellDealOrder
         CDEXDealOrder buyDealOrder;
         if (!GetDealOrder(dealItem.buyOrderId, ORDER_BUY, cw, buyDealOrder)) {
@@ -1144,21 +1143,28 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         }
 
         // 9. calc deal fees
+        // 9.1) buyer spends WUSD to get assets
         uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
-        uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
         if (buyActiveOrder.generateType == USER_GEN_ORDER) {
             uint64_t dealAssetFee = dealItem.dealAssetAmount * kDefaultDexDealFeeRatio / kPercentBoost;
             buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
-            // TODO: add dealAssetFee and dealAssetFee to current tx feeMap
+            assert (dealItem.orderDetail.coinType == WICC || dealItem.orderDetail.coinType == WGRT);
+            switch (dealItem.orderDetail.assetType) {
+                case WICC: srcAcct.bcoins += dealAssetFee; break;
+                case WGRT: srcAcct.fcoins += dealAssetFee; break;
+                default: break; //unlikely
+            }
         }
+        //9.2 seller sells assets to get WUSD
+        uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
         if (sellActiveOrder.generateType == USER_GEN_ORDER) {
             uint64_t dealCoinFee = dealItem.dealCoinAmount * kDefaultDexDealFeeRatio / kPercentBoost;
             sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
-            // TODO: add dealCoinFee and dealAssetFee to current tx feeMap
+            assert (dealItem.orderDetail.coinType == WUSD);
+            srcAcct.scoins += dealCoinFee;
         }
 
         // 10. operate account
-
         if (!buyOrderAccount.MinusDEXFrozenCoin(buyOrderDetail.coinType, dealItem.dealCoinAmount)             // - minus buyer's coins
             || !buyOrderAccount.OperateBalance(buyOrderDetail.assetType, ADD_VALUE, buyerReceivedAssets)      // + add buyer's assets
             || !sellOrderAccount.OperateBalance(sellOrderDetail.coinType, ADD_VALUE, sellerReceivedCoins)     // + add seller's coin

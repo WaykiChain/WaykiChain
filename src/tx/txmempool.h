@@ -25,28 +25,29 @@ class uint256;
 /*
  * CTxMemPool stores these:
  */
-class CTxMemPoolEntry
-{
+class CTxMemPoolEntry {
 private:
-	std::shared_ptr<CBaseTx> pTx;
-    int64_t nFee; // Cached to avoid expensive parent-transaction lookups
-    size_t nTxSize; // ... and avoid recomputing tx size
-    int64_t nTime; // Local time when entering the mempool
-    double dPriority; // Priority when entering the mempool
-    uint32_t nHeight; // Chain height when entering the mempool
+    std::shared_ptr<CBaseTx> pTx;
+    std::pair<CoinType, uint64_t> nFees;  // Cached to avoid expensive parent-transaction lookups
+    uint32_t nTxSize;                     // Cached to avoid recomputing tx size
+    double dPriority;                     // Cached to avoid recomputing priority
+
+    int64_t nTime;     // Local time when entering the mempool
+    uint32_t nHeight;  // Chain height when entering the mempool
 
 public:
-    CTxMemPoolEntry(CBaseTx *ptx, int64_t fee,
-                    int64_t time, double priority, uint32_t height);
+    CTxMemPoolEntry(CBaseTx *ptx, int64_t time, uint32_t height);
     CTxMemPoolEntry();
-    CTxMemPoolEntry(const CTxMemPoolEntry& other);
+    CTxMemPoolEntry(const CTxMemPoolEntry &other);
 
-    std::shared_ptr<CBaseTx> GetTx() const { return pTx;}
-    double GetPriority(uint32_t currentHeight) const;
-    int64_t GetFee() const { return nFee; }
-    size_t GetTxSize() const { return nTxSize; }
-    int64_t GetTime() const { return nTime; }
-    uint32_t GetHeight() const { return nHeight; }
+    std::shared_ptr<CBaseTx> GetTransaction() const { return pTx; }
+
+    inline std::pair<CoinType, uint64_t> GetFees() const { return nFees; }
+    inline uint32_t GetTxSize() const { return nTxSize; }
+    inline double GetPriority() const { return dPriority; }
+
+    inline int64_t GetTime() const { return nTime; }
+    inline uint32_t GetHeight() const { return nHeight; }
 };
 
 /*

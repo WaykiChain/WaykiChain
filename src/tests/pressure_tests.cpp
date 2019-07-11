@@ -107,7 +107,7 @@ public:
 		string txHash = result.get_str();
 		vTransactionHash.push_back(txHash);
 		if (mempool.mapTx.count(uint256(uint256S(txHash))) > 0) {
-			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTx();
+			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTransaction();
 			vTransactions.push_back(tx);
 		}
 		vSendFee.push_back(make_pair(txHash, nfee));
@@ -144,7 +144,7 @@ public:
 
 		vTransactionHash.push_back(txHash);
 		if (mempool.mapTx.count(uint256(uint256S(txHash))) > 0) {
-			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTx();
+			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTransaction();
 			vTransactions.push_back(tx);
 		}
 		vSendFee.push_back(make_pair(txHash, nfee));
@@ -172,7 +172,7 @@ public:
 
 		vTransactionHash.push_back(txHash);
 		if (mempool.mapTx.count(uint256(uint256S(txHash))) > 0) {
-			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTx();
+			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTransaction();
 			vTransactions.push_back(tx);
 		}
 		vSendFee.push_back(make_pair(txHash, nfee));
@@ -191,7 +191,7 @@ public:
 		if(fFlag) {
 			vTransactionHash.push_back(hash);
 			if (mempool.mapTx.count(uint256(uint256S(hash))) > 0) {
-				std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(hash))].GetTx();
+				std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(hash))].GetTransaction();
 				vTransactions.push_back(tx);
 			}
 			vSendFee.push_back(make_pair(hash, nFee));
@@ -379,7 +379,7 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 					continue;
 				}
 				if (ACCOUNT_REGISTER_TX == ptx->nTxType) {
-					llRegAcctFee += ptx->GetFee();
+					llRegAcctFee += ptx->GetFees();
 				}
 				if (BCOIN_TRANSFER_TX == ptx->nTxType) {
 					CBaseCoinTransferTx *pTransaction = (CBaseCoinTransferTx *)ptx.get();
@@ -395,9 +395,9 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 				}
 			}
 			llSendValue -= llRegAcctFee;
-			llSendValue += block.GetFee();
+			llSendValue += block.GetFees();
 			//检测确认交易后总账是否平衡
-			BOOST_CHECK(DetectionAccount(llFuelValue, block.GetFee()));
+			BOOST_CHECK(DetectionAccount(llFuelValue, block.GetFees()));
 		}
 		uint64_t totalFee(0);
 		for(auto &item : vSendFee) {
