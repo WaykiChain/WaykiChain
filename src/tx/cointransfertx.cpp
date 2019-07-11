@@ -62,24 +62,25 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
                         FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
     CAccountLog desAccountLog(desAccount);
-    uint64_t reserveTaxScoins = 0;
 
-
-    //if transferring WUSD, must pay 0.01% to the risk reserve
-    if (CoinType(coinType) == WUSD) {
+    uint64_t actualScoinsToSend = coins
+    if (CoinType(coinType) == WUSD) { //if transferring WUSD, must pay 0.01% to the risk reserve
         CAccount fcoinGenesisAccount;
         if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
+            return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         CAccountLog genesisAcctLog(fcoinGenesisAccount);
+        uint64_t reserveTaxScoins = coins * kDefaultScoinReserveFeeRatio / kPercentBoost;
+        actualScoinsToSend -= reserveTaxScoins;
+
         fcoinGenesisAccount.scoins += reserveTaxScoins;
-        reserveTaxScoins = coins * kDefaultScoinReserveFeeRatio / kPercentBoost;
+        if (!cw.accountCache.SaveAccount(fcoinGenesisAccount))
+            return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, update fcoinGenesisAccount info error"),
+                            UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+
         cw.txUndo.accountLogs.push_back(genesisAcctLog);
     }
-
-    uint64_t actualScoinsToSend = coins - reserveTaxScoins;
-
     if (!desAccount.OperateBalance(CoinType(coinType), ADD_VALUE, actualScoinsToSend)) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, failed to add coins in toUid %s account", toUid.ToString()),
                         UPDATE_ACCOUNT_FAIL, "failed-add-coins");
