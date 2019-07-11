@@ -63,8 +63,8 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
 
     CAccountLog desAccountLog(desAccount);
 
-    uint64_t actualScoinsToSend = coins
-    if (CoinType(coinType) == WUSD) { //if transferring WUSD, must pay 0.01% to the risk reserve
+    uint64_t actualScoinsToSend = coins;
+    if (CoinType(coinType) == CoinType::WICC) { //if transferring WUSD, must pay 0.01% to the risk reserve
         CAccount fcoinGenesisAccount;
         if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
