@@ -297,9 +297,7 @@ Value getmedianprice(const Array& params, bool fHelp){
             "getmedianprice \"coin_type\" \"asset_type\" [height]\n"
             "\nget current median price or query at specified height.\n"
             "\nArguments:\n"
-            "1.\"coin_type\": (string required) coin type\n"
-            "2.\"price_type\": (string required), price type\n"
-            "3.\"height\": (numeric, optional), specified height. If not provide use the tip block height in chainActive\n\n"
+            "1.\"height\": (numeric, optional), specified height. If not provide use the tip block height in chainActive\n\n"
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
@@ -332,11 +330,20 @@ Value getmedianprice(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
     }
 
-    // TODO:
-    int64_t price = 0; //block.GetBlockMedianPrice(coinType, priceType);
+    Array prices;
+    if (block.vptx.size() > 1 && block.vptx[1]->nTxType == BLOCK_PRICE_MEDIAN_TX) {
+        map<CCoinPriceType, uint64_t> mapMedianPricePoints = ((CBlockPriceMedianTx*)vptx[1].get())->GetMedianPrice();
+        for (auto &item : mapMedianPricePoints) {
+            Object price;
+            price.push_back(Pair("coin_type",   item.first.coinType));
+            price.push_back(Pair("price_type",  item.first.priceType));
+            price.push_back(Pair("price",       item.econd));
+            prices.push_back(price);
+        }
+    }
 
     Object obj;
-    obj.push_back(Pair("price", price));
+    obj.push_back(Pair("median_price", prices));
     return obj;
 }
 
@@ -347,10 +354,10 @@ Value getaccountcdp(const Array& params, bool fHelp){
     if (fHelp || params.size() < 1 || params.size() > 2) {
         throw runtime_error(
             "getaccountcdp \"addr\" \"cdp_id\" [height]\n"
-            "\nget current median price or query at specified height.\n"
+            "\nget account's cdp.\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) coin type\n"
-            "2.\"cdb_id\": (string required), price type\n"
+            "1.\"addr\": (string, required) cdp owner addr\n"
+            "2.\"cdb_id\": (string, optional) cdp id\n"
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
@@ -610,9 +617,9 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 200000000\n")
+            + HelpExampleCli("submitdexbuymarketordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 200000000\n")
+            + HelpExampleRpc("submitdexbuymarketordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 200000000\n")
         );
     }
 
@@ -695,7 +702,7 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
             "submitdexsellmarketordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount [fee]\n"
-            "\nsubmit a dex buy market price order tx.\n"
+            "\nsubmit a dex sell market price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
             "2.\"coin_type\": (string required) coin type to pay\n"
@@ -705,9 +712,9 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexselllimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 200000000\n")
+            + HelpExampleCli("submitdexsellmarketordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexselllimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 200000000\n")
+            + HelpExampleRpc("submitdexsellmarketordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 200000000\n")
         );
     }
 
