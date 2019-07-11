@@ -6,6 +6,7 @@
 #ifndef PERSIST_DEX_H
 #define PERSIST_DEX_H
 
+#include <string>
 #include <set>
 #include <vector>
 
@@ -14,15 +15,21 @@
 #include "accounts/id.h"
 #include "accounts/account.h"
 
+using namespace std;
+
 enum OrderDirection {
     ORDER_BUY  = 0,
     ORDER_SELL = 1,
 };
 
+const static std::string OrderDirectionTitles[] = {"Buy", "Sell"};
+
 enum OrderType {
     ORDER_LIMIT_PRICE   = 0, //!< limit price order type
     ORDER_MARKET_PRICE  = 1  //!< market price order type
 };
+
+const static std::string OrderTypeTitles[] = {"LimitPrice", "MarketPrice"};
 
 enum OrderGenerateType {
     EMPTY_ORDER         = 0,
@@ -121,8 +128,13 @@ public:
     )
 
     string ToString() { 
-        
-        return ""; }    // TODO:
+        return strprintf(
+                "OrderDir=%s, OrderType=%s, CoinType=%d, AssetType=%s, coinAmount=%lu, assetAmount=%lu, price=%lu",
+                OrderDirectionTitles[direction], OrderTypeTitles[orderType], 
+                kCoinTypeMapName.at(coinType), kCoinTypeMapName.at(assetType),
+                coinAmount, assetAmount, price);
+    }
+
     bool IsEmpty() const;
     void SetEmpty();
     void GetOrderDetail(CDEXOrderDetail &orderDetail) const;

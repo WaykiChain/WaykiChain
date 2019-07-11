@@ -25,10 +25,10 @@ using namespace json_spirit;
 class CAccountLog;
 
 enum CoinType: uint8_t {
-    WICC = 1,
-    WGRT = 2,
-    WUSD = 3,
-    WCNY = 4
+    WICC = 0,
+    WGRT = 1,
+    WUSD = 2,
+    WCNY = 3
 };
 
 typedef CoinType AssetType;
@@ -72,9 +72,9 @@ inline bool ParseAssetType(const string& assetName, AssetType &assetType) {
 }
 
 enum PriceType: uint8_t {
-    USD     = 1,
-    CNY     = 2,
-    EUR     = 3,
+    USD     = 0,
+    CNY     = 1,
+    EUR     = 2,
     BTC     = 10,
     USDT    = 11,
     GOLD    = 20,
