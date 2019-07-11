@@ -37,8 +37,8 @@ public:
     const vector<string> GetDelegatePubKey(NET_TYPE type) const;
     const uint256 GetMerkleRootHash() const;
 
-    const string GetSettleServicePubKey(NET_TYPE type) const;
-    const string GetFundCoinInitPubKey(NET_TYPE type) const;
+    const string GetDexMatchServicePubKey(NET_TYPE type) const;
+    const string GetInitFcoinOwnerPubKey(NET_TYPE type) const;
 
     vector<unsigned int> GetSeedNodeIP() const;
     unsigned char* GetMagicNumber(NET_TYPE type) const;
@@ -86,15 +86,15 @@ private:
     /* merkle root hash */
     static string MerkleRootHash;
 
-    /* fund coin initial public key */
-    static string initPubKeyFundCoin_mainNet;
-    static string initPubKeyFundCoin_testNet;
-    static string initPubkeyFundCoin_regNet;
+    /* fund coin initial owner public key */
+    static string initFundCoinOwnerPubKey_mainNet;
+    static string initFundCoinOwnerPubKey_testNet;
+    static string initFundCoinOwnerPubkey_regNet;
 
-    /* settle service's public key */
-    static string settlePubKey_mainNet;
-    static string settlePubKey_testNet;
-    static string settlePubKey_regTest;
+    /* DEX order-matching service's public key */
+    static string dexMatchPubKey_mainNet;
+    static string dexMatchPubKey_testNet;
+    static string dexMatchPubKey_regTest;
 
     /* txids in stable coin genesis */
     static vector<string> stableCoinGenesisTxid_mainNet;

@@ -383,13 +383,13 @@ bool CBaseParams::CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx
     pTx->nVersion = nTxVersion1;
     vptx.push_back(pTx);
 
-    // individual account
-    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetFundCoinInitPubKey(type))), CoinType::WGRT,
+    // Initial FunCoin Owner's account
+    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetInitFcoinOwnerPubKey(type))), CoinType::WGRT,
                                           kTotalFundCoinGenesisReleaseAmount * COIN, nStableCoinGenesisHeight);
     vptx.push_back(pTx);
 
-    // settle service's account
-    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetSettleServicePubKey(type))), CoinType::WGRT, 0,
+    // Order Matching Service's account
+    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetDexMatchServicePubKey(type))), CoinType::WGRT, 0,
                                           nStableCoinGenesisHeight);
     vptx.push_back(pTx);
 
