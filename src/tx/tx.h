@@ -76,7 +76,9 @@ public:
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 
     virtual uint64_t GetFuel(int32_t nFuelRate);
-    virtual double GetPriority() const { return 1000.0 / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION); }
+    virtual double GetPriority() const {
+        return kTransactionPriorityCeiling / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
+    }
     virtual map<CoinType, uint64_t> GetValues() const = 0;
 
     virtual uint256 ComputeSignatureHash(bool recalculate = false) const = 0;
