@@ -172,15 +172,15 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
 }
 
 bool CCDPStakeTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
-    for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
+    auto iter = cw.txUndo.accountLogs.rbegin();
+    for (; iter != cw.txUndo.accountLogs.rend(); ++iter) {
         CAccount account;
-        CUserID userId = rIterAccountLog->keyId;
+        CUserID userId = iter->keyId;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        if (!account.UndoOperateAccount(*rIterAccountLog)) {
+        if (!account.UndoOperateAccount(*iter)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::UndoExecuteTx, undo operate account failed"),
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }
@@ -341,15 +341,15 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
     return true;
  }
  bool CCDPRedeemTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
-    for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
+    auto iter = cw.txUndo.accountLogs.rbegin();
+    for (; iter != cw.txUndo.accountLogs.rend(); ++iter) {
         CAccount account;
-        CUserID userId = rIterAccountLog->keyId;
+        CUserID userId = iter->keyId;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        if (!account.UndoOperateAccount(*rIterAccountLog)) {
+        if (!account.UndoOperateAccount(*iter)) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::UndoExecuteTx, undo operate account failed"),
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }
@@ -377,11 +377,10 @@ string CCDPLiquidateTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    string str = strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", GetTxType(nTxType),
-                    GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString());
-
-    str += strprintf("cdpTxId=%s, scoinsToLiquidate=%d, scoinsPenalty=%d",
-                    cdpTxId.ToString(), scoinsToLiquidate, scoinsPenalty);
+    string str = strprintf( "txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n"
+                            "cdpTxId=%s, scoinsToLiquidate=%d, scoinsPenalty=%d",
+                            GetTxType(nTxType), GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString(),
+                            cdpTxId.ToString(), scoinsToLiquidate, scoinsPenalty);
 
     return str;
 }
@@ -589,15 +588,15 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
     return true;
 }
 bool CCDPLiquidateTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
-    for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
+    auto iter = cw.txUndo.accountLogs.rbegin();
+    for (; iter != cw.txUndo.accountLogs.rend(); ++iter) {
         CAccount account;
-        CUserID userId = rIterAccountLog->keyId;
+        CUserID userId = iter->keyId;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        if (!account.UndoOperateAccount(*rIterAccountLog)) {
+        if (!account.UndoOperateAccount(*iter)) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::UndoExecuteTx, undo operate account failed"),
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }

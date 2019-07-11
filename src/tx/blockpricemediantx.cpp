@@ -41,7 +41,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         cdpIndex++;
         if (cdpIndex > kForceSettleCDPMaxCountPerBlock)
             break;
-            
+
         LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, begin to force settle CDP (%s)", cdp.ToString());
         if (currRiskReserveScoins < cdp.totalOwedScoins) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, currRiskReserveScoins(%lu) < cdp.totalOwedScoins(%lu) !!",
@@ -95,8 +95,33 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
 }
 
 bool CBlockPriceMedianTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    //TODO: complete CDP related undologs
+    auto iter = cw.txUndo.accountLogs.rbegin();
+    for (; iter != cw.txUndo.accountLogs.rend(); ++iter) {
+        CAccount account;
+        CUserID userId = iter->keyId;
+        if (!cw.accountCache.GetAccount(userId, account)) {
+            return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::UndoExecuteTx, read account info error"),
+                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
+        }
+        if (!account.UndoOperateAccount(*iter)) {
+            return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::UndoExecuteTx, undo operate account failed"),
+                             UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
+        }
+        if (!cw.accountCache.SetAccount(userId, account)) {
+            return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::UndoExecuteTx, write account info error"),
+                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
+        }
+    }
 
+    if (!cw.cdpCache.UndoCdp(cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::UndoExecuteTx, undo active buy order failed"),
+                         REJECT_INVALID, "bad-undo-data");
+    }
+
+    if (!cw.dexCache.UndoSysOrder(cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::UndoExecuteTx, undo system buy order failed"),
+                        UNDO_SYS_ORDER_FAILED, "undo-data-failed");
+    }
     return true;
 }
 
