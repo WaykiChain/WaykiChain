@@ -87,9 +87,9 @@ string G_CONFIG_TABLE::GetDelegateSignature(NET_TYPE type) const {
 
 const string G_CONFIG_TABLE::GetInitFcoinOwnerPubKey(NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: return initFundCoinOwnerPubKey_mainNet;
-        case TEST_NET: return initFundCoinOwnerPubKey_testNet;
-        case REGTEST_NET: return initFundCoinOwnerPubkey_regNet;
+        case MAIN_NET: return initFcoinOwnerPubKey_mainNet;
+        case TEST_NET: return initFcoinOwnerPubKey_testNet;
+        case REGTEST_NET: return initFcoinOwnerPubkey_regNet;
         default: assert(0);
     }
 
@@ -313,9 +313,9 @@ string G_CONFIG_TABLE::MerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa
 
 // TODO: replace public key.
 // Public key for initial fund coin owner
-string G_CONFIG_TABLE::initFundCoinOwnerPubKey_mainNet = "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5";
-string G_CONFIG_TABLE::initFundCoinOwnerPubKey_testNet = "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5";
-string G_CONFIG_TABLE::initFundCoinOwnerPubkey_regNet  = "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5";
+string G_CONFIG_TABLE::initFcoinOwnerPubKey_mainNet = "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5";
+string G_CONFIG_TABLE::initFcoinOwnerPubKey_testNet = "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5";
+string G_CONFIG_TABLE::initFcoinOwnerPubkey_regNet  = "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5";
 
 // Public Key for DEX order-matching service
 string G_CONFIG_TABLE::dexMatchPubKey_mainNet = "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569";

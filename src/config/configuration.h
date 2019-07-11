@@ -87,9 +87,9 @@ private:
     static string MerkleRootHash;
 
     /* fund coin initial owner public key */
-    static string initFundCoinOwnerPubKey_mainNet;
-    static string initFundCoinOwnerPubKey_testNet;
-    static string initFundCoinOwnerPubkey_regNet;
+    static string initFcoinOwnerPubKey_mainNet;
+    static string initFcoinOwnerPubKey_testNet;
+    static string initFcoinOwnerPubkey_regNet;
 
     /* DEX order-matching service's public key */
     static string dexMatchPubKey_mainNet;
