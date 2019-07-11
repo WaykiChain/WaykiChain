@@ -24,14 +24,14 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     CAccountLog fcoinGenesisAcctLog(fcoinGenesisAccount); //save account state before modification
 
     //0. Check Global Collateral Ratio floor & Collateral Ceiling if reached
-     if (cw.cdpCache.CheckGlobalCollateralFloorReached(cw.ppCache.GetBcoinMedianPrice())) {
+     if (cw.cdpCache.CheckGlobalCollateralFloorReached(cw.ppCache.GetBcoinMedianPrice(nHeight))) {
         LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralFloorReached!!");
         return true;
     }
 
     //1. get all CDPs to be force settled
     set<CUserCDP> forceLiquidateCdps;
-    uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice();
+    uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(nHeight);
     cw.cdpCache.cdpMemCache.GetCdpListByCollateralRatio(cw.cdpCache.GetDefaultForceLiquidateRatio(), bcoinMedianPrice,
                                                         forceLiquidateCdps);
 
@@ -63,7 +63,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         // c) inflate WGRT coins and sell them for WUSD to return to risk reserve pool
         assert(cdp.totalOwedScoins > cdp.totalStakedBcoins * bcoinMedianPrice);
         uint64_t fcoinsValueToInflate = cdp.totalOwedScoins - cdp.totalStakedBcoins * bcoinMedianPrice;
-        uint64_t fcoinsToInflate = fcoinsValueToInflate / cw.ppCache.GetFcoinMedianPrice();
+        uint64_t fcoinsToInflate = fcoinsValueToInflate / cw.ppCache.GetFcoinMedianPrice(nHeight);
         auto pFcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(CoinType::WUSD, AssetType::WGRT, fcoinsToInflate);
         if (!cw.dexCache.CreateSysOrder(GetHash(), *pFcoinSellMarketOrder, cw.txUndo.dbOpLogMap)) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, CreateSysOrder SellFcoinForScoin (%s) failed!!",

@@ -166,10 +166,10 @@ uint64_t CPricePointMemCache::ComputeMedianNumber(vector<uint64_t> &numbers) {
     return (size % 2 == 0) ? (numbers[size / 2 - 1] + numbers[size / 2]) / 2 : numbers[size / 2];
 }
 
-uint64_t CPricePointMemCache::GetBcoinMedianPrice() {
-    return ComputeBlockMedianPrice(chainActive.Height(), CCoinPriceType(CoinType::WICC, PriceType::USD));
+uint64_t CPricePointMemCache::GetBcoinMedianPrice(const int32_t blockHeight) {
+    return ComputeBlockMedianPrice(blockHeight, CCoinPriceType(CoinType::WICC, PriceType::USD));
 }
 
-uint64_t CPricePointMemCache::GetFcoinMedianPrice() {
-    return ComputeBlockMedianPrice(chainActive.Height(), CCoinPriceType(CoinType::WGRT, PriceType::USD));
+uint64_t CPricePointMemCache::GetFcoinMedianPrice(const int32_t blockHeight) {
+    return ComputeBlockMedianPrice(blockHeight, CCoinPriceType(CoinType::WGRT, PriceType::USD));
 }

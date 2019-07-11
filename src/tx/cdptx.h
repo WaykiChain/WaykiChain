@@ -77,7 +77,7 @@ public:
 
     virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, bcoinsToStake}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual uint64_t GetFee() const { return llFees; }
+    // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPStakeTx>(this); }
 
     virtual string ToString(CAccountDBCache &view);
@@ -152,7 +152,7 @@ public:
 
     virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WUSD, scoinsToRedeem}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual uint64_t GetFee() const { return llFees; }
+    // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPRedeemTx>(this); }
 
     virtual string ToString(CAccountDBCache &view);
@@ -230,7 +230,7 @@ public:
         return map<CoinType, uint64_t>{{CoinType::WUSD, scoinsToLiquidate}};
     }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual uint64_t GetFee() const { return llFees; }
+    // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPLiquidateTx>(this); }
 
     virtual string ToString(CAccountDBCache &view);

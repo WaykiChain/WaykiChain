@@ -172,8 +172,8 @@ public:
     vector<uint256> GetMerkleBranch(int nIndex) const;
     static uint256 CheckMerkleBranch(uint256 hash, const vector<uint256> &vMerkleBranch, int nIndex);
 
-    int64_t GetFee() const;
-
+    // TODO: Fees
+    // int64_t GetFees() const;
     uint64_t GetBlockMedianPrice(const CoinType coinType, const PriceType priceType) const;
 
     void Print(CAccountDBCache &accountCache) const;
@@ -238,7 +238,6 @@ public:
     int nFuelRate;
     vector<unsigned char> vSignature;
 
-    double dFeePerKb;
     // (memory only) Sequencial id assigned to distinguish order in which blocks are received.
     uint32_t nSequenceId;
 
@@ -255,7 +254,6 @@ public:
         nChainTx         = 0;
         nStatus          = 0;
         nSequenceId      = 0;
-        dFeePerKb        = 0.0;
         nBlockFee        = 0;
         bcoinMedianPrice = 0;
         fcoinMedianPrice = 0;
@@ -285,16 +283,15 @@ public:
         nStatus          = 0;
         nSequenceId      = 0;
 
-        nBlockFee        = block.GetFee();
+        // TODO: Fees
+        // nBlockFee        = block.GetFees();
         bcoinMedianPrice = block.GetBlockMedianPrice(CoinType::WICC, PriceType::USD);
         fcoinMedianPrice = block.GetBlockMedianPrice(CoinType::WGRT, PriceType::USD);
 
-        int64_t nTxSize(0);
+        int64_t nTxSize = 0;
         for (auto &pTx : block.vptx) {
             nTxSize += pTx->GetSerializeSize(SER_DISK, PROTOCOL_VERSION);
         }
-
-        dFeePerKb      = double((nBlockFee - block.GetFuel())) / (double(nTxSize / 1000.0));
 
         nVersion       = block.GetVersion();
         merkleRootHash = block.GetMerkleRootHash();
@@ -367,12 +364,12 @@ public:
                                 unsigned int nRequired, unsigned int nToCheck);
 
     string ToString() const {
-        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, blockHash=%s, blockFee=%d, chainWork=%s, feePerKb=%lf)",
-                        pprev, nHeight, merkleRootHash.ToString().c_str(), GetBlockHash().ToString().c_str(),
-                        nBlockFee, nChainWork.ToString().c_str(), dFeePerKb);
+        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, blockHash=%s, blockFee=%d, chainWork=%s)",
+                        pprev, nHeight, merkleRootHash.ToString(), GetBlockHash().ToString(),
+                        nBlockFee, nChainWork.ToString());
     }
 
-    void Print() const { LogPrint("INFO", "%s\n", ToString().c_str()); }
+    void Print() const { LogPrint("INFO", "%s\n", ToString()); }
 
     // Build the skiplist pointer for this entry.
     void BuildSkip();
@@ -419,8 +416,9 @@ public:
         READWRITE(nNonce);
         READWRITE(nFuel);
         READWRITE(nFuelRate);
-        READWRITE(vSignature);
-        READWRITE(dFeePerKb);)
+        READWRITE(vSignature);)
+        // TODO: Fees
+        // READWRITE(dFeePerKb);)
 
     uint256 GetBlockHash() const {
         CBlockHeader block;

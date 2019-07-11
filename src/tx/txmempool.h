@@ -28,9 +28,9 @@ class uint256;
 class CTxMemPoolEntry {
 private:
     std::shared_ptr<CBaseTx> pTx;
-    int64_t nFees;     // Cached to avoid expensive parent-transaction lookups
-    uint32_t nTxSize;  // Cached to avoid recomputing tx size
-    double dPriority;  // Cached to avoid recomputing priority
+    std::pair<CoinType, uint64_t> nFees;  // Cached to avoid expensive parent-transaction lookups
+    uint32_t nTxSize;                     // Cached to avoid recomputing tx size
+    double dPriority;                     // Cached to avoid recomputing priority
 
     int64_t nTime;     // Local time when entering the mempool
     uint32_t nHeight;  // Chain height when entering the mempool
@@ -42,7 +42,7 @@ public:
 
     std::shared_ptr<CBaseTx> GetTransaction() const { return pTx; }
 
-    inline int64_t GetFee() const { return nFees; }
+    inline std::pair<CoinType, uint64_t> GetFees() const { return nFees; }
     inline uint32_t GetTxSize() const { return nTxSize; }
     inline double GetPriority() const { return dPriority; }
 
