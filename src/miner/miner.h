@@ -6,13 +6,13 @@
 #ifndef COIN_MINER_H
 #define COIN_MINER_H
 
-#include <stdint.h>
+#include <cstdint>
 #include <map>
-#include <set>
-#include <vector>
 #include <memory>
+#include <set>
+#include <tuple>
+#include <vector>
 
-#include "boost/tuple/tuple.hpp"
 #include "accounts/key.h"
 #include "commons/uint256.h"
 #include "tx/tx.h"
@@ -24,7 +24,8 @@ class CBaseTx;
 class CAccountDBCache;
 class CAccount;
 
-typedef boost::tuple<double, double, std::shared_ptr<CBaseTx> > TxPriority;
+typedef std::tuple<double /* priority */, double /* FeePerKb */, std::shared_ptr<CBaseTx> > TxPriority;
+
 class TxPriorityCompare {
     bool byFee;
 
@@ -32,15 +33,9 @@ public:
     TxPriorityCompare(bool byFeeIn) : byFee(byFeeIn) {}
     bool operator()(const TxPriority &a, const TxPriority &b) {
         if (byFee) {
-            if (a.get<1>() == b.get<1>())
-                return a.get<0>() < b.get<0>();
-
-            return a.get<1>() < b.get<1>();
+            return std::get<1>(a) == std::get<1>(b) ? std::get<0>(a) < std::get<0>(b) : std::get<1>(a) < std::get<1>(b);
         } else {
-            if (a.get<0>() == b.get<0>())
-                return a.get<1>() < b.get<1>();
-
-            return a.get<0>() < b.get<0>();
+            return std::get<0>(a) == std::get<0>(b) ? std::get<1>(a) < std::get<1>(b) : std::get<0>(a) < std::get<0>(b);
         }
     }
 };

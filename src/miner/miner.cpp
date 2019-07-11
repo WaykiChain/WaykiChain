@@ -311,7 +311,6 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         int32_t nFuelRate       = GetElementForBurn(pIndexPrev);
         uint64_t nBlockSize     = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
         uint64_t nBlockTx       = 0;
-        bool fSortedByFee       = true;
         uint64_t nTotalRunStep  = 0;
         int64_t nTotalFees      = 0;
         int64_t nTotalFuel      = 0;
@@ -319,14 +318,14 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         // Calculate && sort transactions from memory pool.
         vector<TxPriority> vTxPriority;
         GetPriorityTx(vTxPriority, nFuelRate);
-        TxPriorityCompare comparer(fSortedByFee);
+        TxPriorityCompare comparer(false); // Priority by size first.
         make_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
 
         // Collect transactions into the block.
         while (!vTxPriority.empty()) {
             // Take highest priority transaction off the priority queue.
-            double dFeePerKb        = vTxPriority.front().get<1>();
-            shared_ptr<CBaseTx> stx = vTxPriority.front().get<2>();
+            double dFeePerKb        = std::get<1>(vTxPriority.front());
+            shared_ptr<CBaseTx> stx = std::get<2>(vTxPriority.front());
             CBaseTx *pBaseTx        = stx.get();
 
             pop_heap(vTxPriority.begin(), vTxPriority.end(), comparer);

@@ -588,7 +588,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : nonstandard transaction: %s", reason), REJECT_NONSTANDARD,
                          reason);
 
-    auto spCW           = std::make_shared<CCacheWrapper>();
+    auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(pool.memPoolAccountCache.get());
     spCW->contractCache.SetBaseView(pool.memPoolContractCache.get());
 
