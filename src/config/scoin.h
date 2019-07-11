@@ -40,7 +40,7 @@ static const uint16_t kForceSettleCDPMaxCountPerBlock       = 1000;
 
 static const uint16_t kFcoinGenesisIssueTxIndex             = 1;
 static const uint16_t kFcoinGenesisRegisterTxIndex          = 2;
-static const uint16_t kSettleServiceRegisterTxIndex         = 3;
+static const uint16_t kDexMatchSvcRegisterTxIndex         = 3;
 
 // Except specific transactions, priority is less than 1000.0
 static const double kTransactionPriorityCeiling             = 1000.0;

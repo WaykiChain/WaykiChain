@@ -223,7 +223,7 @@ public:
     uint32_t GetFeatureForkHeight() const { return nFeatureForkHeight; }
     uint32_t GetStableCoinGenesisHeight() const { return nStableCoinGenesisHeight; }
     CRegID GetFcoinGenesisRegId() const { return CRegID(nStableCoinGenesisHeight, kFcoinGenesisIssueTxIndex); }
-    CRegID GetDEXSettleRegId() const { return CRegID(nStableCoinGenesisHeight, kSettleServiceRegisterTxIndex); }
+    CRegID GetDexMatchSvcRegId() const    { return CRegID(nStableCoinGenesisHeight, kDexMatchSvcRegisterTxIndex); }
     virtual uint64_t GetMaxFee() const { return 1000 * COIN; }
 
     virtual const CBlock& GenesisBlock() const = 0;
