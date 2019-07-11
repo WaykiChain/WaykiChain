@@ -8,7 +8,7 @@
 
 #include "main.h"
 
-bool CCoinTranferTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CCoinTransferTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state) {
     // TODO: fees in WICC/WGRT/WUSD
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
@@ -35,42 +35,42 @@ bool CCoinTranferTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationStat
     return true;
 }
 
-bool CCoinTranferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
     // TODO: stamp tax when transfer WUSD
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CCoinTranferTx::ExecuteTx, read txUid %s account info error",
+        return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
     CAccountLog srcAccountLog(srcAccount);
     if (!srcAccount.OperateBalance(CoinType(feesCoinType), MINUS_VALUE, llFees)) {
-        return state.DoS(100, ERRORMSG("CCoinTranferTx::ExecuteTx, insufficient bcoins in txUid %s account",
+        return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, insufficient bcoins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
     }
 
     if (!srcAccount.OperateBalance(CoinType(coinType), MINUS_VALUE, coins)) {
-        return state.DoS(100, ERRORMSG("CCoinTranferTx::ExecuteTx, insufficient coins in txUid %s account",
+        return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, insufficient coins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-coins");
     }
 
     if (!cw.accountCache.SaveAccount(srcAccount))
-        return state.DoS(100, ERRORMSG("CCoinTranferTx::ExecuteTx, write source addr %s account info error",
+        return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, write source addr %s account info error",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CAccount desAccount;
     if (!cw.accountCache.GetAccount(toUid, desAccount))
-        return state.DoS(100, ERRORMSG("CCoinTranferTx::ExecuteTx, read toUid %s account info error", toUid.ToString()),
+        return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read toUid %s account info error", toUid.ToString()),
                         FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
     CAccountLog desAccountLog(desAccount);
     if (!srcAccount.OperateBalance(CoinType(coinType), ADD_VALUE, coins)) {
-        return state.DoS(100, ERRORMSG("CCoinTranferTx::ExecuteTx, failed to add coins in toUid %s account", toUid.ToString()),
+        return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, failed to add coins in toUid %s account", toUid.ToString()),
                         UPDATE_ACCOUNT_FAIL, "failed-add-coins");
     }
 
     if (!cw.accountCache.SaveAccount(desAccount))
-        return state.DoS(100, ERRORMSG("CCoinTranferTx::ExecuteTx, write dest addr %s account info error", toUid.ToString()),
+        return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, write dest addr %s account info error", toUid.ToString()),
             UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     cw.txUndo.accountLogs.push_back(srcAccountLog);
@@ -83,22 +83,22 @@ bool CCoinTranferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &c
     return true;
 }
 
-bool CCoinTranferTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CCoinTransferTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyId;
         if (!cw.accountCache.GetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CCoinTranferTx::UndoExecuteTx, read account info error, userId=%s",
+            return state.DoS(100, ERRORMSG("CCoinTransferTx::UndoExecuteTx, read account info error, userId=%s",
                 userId.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         if (!account.UndoOperateAccount(*rIterAccountLog)) {
-            return state.DoS(100, ERRORMSG("CCoinTranferTx::UndoExecuteTx, undo operate account error, keyId=%s",
+            return state.DoS(100, ERRORMSG("CCoinTransferTx::UndoExecuteTx, undo operate account error, keyId=%s",
                             account.keyId.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
         }
 
         if (!cw.accountCache.SetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CCoinTranferTx::UndoExecuteTx, save account error"),
+            return state.DoS(100, ERRORMSG("CCoinTransferTx::UndoExecuteTx, save account error"),
                             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
         }
     }
@@ -106,7 +106,7 @@ bool CCoinTranferTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrappe
     return true;
 }
 
-string CCoinTranferTx::ToString(CAccountDBCache &accountCache) {
+string CCoinTransferTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, coins=%ld, coinType=%s, llFees=%ld, feesCoinType=%s, "
         "nValidHeight=%d\n",
@@ -114,7 +114,7 @@ string CCoinTranferTx::ToString(CAccountDBCache &accountCache) {
         GetCoinTypeName(CoinType(coinType)), llFees, GetCoinTypeName(CoinType(feesCoinType)), nValidHeight);
 }
 
-Object CCoinTranferTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
     CKeyID srcKeyId;
@@ -140,7 +140,7 @@ Object CCoinTranferTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CCoinTranferTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+bool CCoinTransferTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     CKeyID keyId;
     if (!cw.accountCache.GetKeyId(txUid, keyId))
         return false;
