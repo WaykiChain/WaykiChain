@@ -8,6 +8,10 @@
 
 #include "tx.h"
 
+/**
+ * Universal Coin Transfer Tx
+ *
+ */
 class CCoinTransferTx: public CBaseTx {
 private:
     mutable CUserID toUid;

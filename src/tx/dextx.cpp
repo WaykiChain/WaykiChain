@@ -1148,8 +1148,8 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         if (buyActiveOrder.generateType == USER_GEN_ORDER) {
             uint64_t dealAssetFee = dealItem.dealAssetAmount * kDefaultDexDealFeeRatio / kPercentBoost;
             buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
-            assert (dealItem.orderDetail.coinType == WICC || dealItem.orderDetail.coinType == WGRT);
-            switch (dealItem.orderDetail.assetType) {
+            assert (buyOrderDetail.assetType == WICC || buyOrderDetail.assetType == WGRT);
+            switch (buyOrderDetail.assetType) {
                 case WICC: srcAcct.bcoins += dealAssetFee; break;
                 case WGRT: srcAcct.fcoins += dealAssetFee; break;
                 default: break; //unlikely
@@ -1160,7 +1160,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         if (sellActiveOrder.generateType == USER_GEN_ORDER) {
             uint64_t dealCoinFee = dealItem.dealCoinAmount * kDefaultDexDealFeeRatio / kPercentBoost;
             sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
-            assert (dealItem.orderDetail.coinType == WUSD);
+            assert (sellOrderDetail.coinType == WUSD);
             srcAcct.scoins += dealCoinFee;
         }
 
