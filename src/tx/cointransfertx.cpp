@@ -75,6 +75,7 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
         CAccountLog genesisAcctLog(fcoinGenesisAccount);
         fcoinGenesisAccount.scoins += reserveTaxScoins;
         reserveTaxScoins = coins * kDefaultScoinReserveFeeRatio / kPercentBoost;
+        cw.txUndo.accountLogs.push_back(genesisAcctLog);
     }
 
     uint64_t actualScoinsToSend = coins - reserveTaxScoins;
@@ -90,7 +91,6 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
 
     cw.txUndo.accountLogs.push_back(srcAccountLog);
     cw.txUndo.accountLogs.push_back(desAccountLog);
-    cw.txUndo.accountLogs.push_back(genesisAcctLog);
     cw.txUndo.txid = GetHash();
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid, toUid}))
