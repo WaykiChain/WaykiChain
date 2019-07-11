@@ -47,8 +47,8 @@ public:
     bool DeleteBlockPricePoint(const int32_t blockHeight);
     bool DeleteBlockFromCache(const CBlock &block);
 
-    uint64_t GetBcoinMedianPrice();
-    uint64_t GetFcoinMedianPrice();
+    uint64_t GetBcoinMedianPrice(const int32_t blockHeight);
+    uint64_t GetFcoinMedianPrice(const int32_t blockHeight);
 
     void Flush();
 

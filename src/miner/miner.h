@@ -89,7 +89,7 @@ void SHA256Transform(void *pstate, void *pinput, const void *pinit);
 /** Get burn element */
 int GetElementForBurn(CBlockIndex *pIndex);
 
-void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate);
+void GetPriorityTx(vector<TxPriority> &vecPriority, int32_t nFuelRate);
 
 extern uint256 CreateBlockWithAppointedAddr(CKeyID const &keyId);
 

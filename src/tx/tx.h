@@ -71,7 +71,7 @@ public:
 
     virtual ~CBaseTx() {}
 
-    virtual uint64_t GetFee() const { return llFees; }
+    virtual std::pair<CoinType, uint64_t> GetFees() const { return std::make_pair(CoinType::WICC, llFees); }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 

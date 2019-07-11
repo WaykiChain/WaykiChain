@@ -12,7 +12,6 @@
 using namespace std;
 
 CTxMemPoolEntry::CTxMemPoolEntry() {
-    nFees     = 0;
     nTxSize   = 0;
     dPriority = 0.0;
 
@@ -22,7 +21,7 @@ CTxMemPoolEntry::CTxMemPoolEntry() {
 
 CTxMemPoolEntry::CTxMemPoolEntry(CBaseTx *pBaseTx, int64_t time, uint32_t height) : nTime(time), nHeight(height) {
     pTx       = pBaseTx->GetNewInstance();
-    nFees     = pTx->GetFee();
+    nFees     = pTx->GetFees();
     nTxSize   = ::GetSerializeSize(*pTx, SER_NETWORK, PROTOCOL_VERSION);
     dPriority = pTx->GetPriority();
 }

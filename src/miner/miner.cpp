@@ -68,19 +68,34 @@ int GetElementForBurn(CBlockIndex *pIndex) {
 }
 
 // Sort transactions by priority and fee to decide priority orders to process transactions.
-void GetPriorityTx(vector<TxPriority> &vecPriority, int nFuelRate) {
+void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
     vecPriority.reserve(mempool.memPoolTxs.size());
-    static double dPriority     = 0;
-    static double dFeePerKb     = 0;
-    static uint32_t nTxSize     = 0;
-    static uint64_t nFees       = 0;
+    static double dPriority  = 0;
+    static double dFeePerKb  = 0;
+    static uint32_t nTxSize  = 0;
+    static CoinType coinType = CoinType::WUSD;
+    static uint64_t nFees    = 0;
+
+    int32_t nHeight           = chainActive.Height();
+    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(nHeight);
+    uint64_t fcoinMedianPrice = pCdMan->pPpCache->GetFcoinMedianPrice(nHeight);
+    auto GetCoinMedianPrice   = [&](const CoinType coinType) -> uint64_t {
+        switch (coinType) {
+            case CoinType::WICC: return bcoinMedianPrice;
+            case CoinType::WGRT: return fcoinMedianPrice;
+            case CoinType::WUSD: return 1;
+            default: return 0;
+        }
+    };
 
     for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.memPoolTxs.begin(); mi != mempool.memPoolTxs.end(); ++mi) {
         CBaseTx *pBaseTx = mi->second.GetTransaction().get();
         if (!pBaseTx->IsCoinBase() && !pCdMan->pTxCache->HaveTx(pBaseTx->GetHash())) {
             nTxSize   = mi->second.GetTxSize();
-            nFees     = mi->second.GetFee();
-            dFeePerKb = double(nFees - pBaseTx->GetFuel(nFuelRate)) / (double(nTxSize) / 1000.0);
+            coinType  = std::get<0>(mi->second.GetFees());
+            nFees     = std::get<1>(mi->second.GetFees());
+            dFeePerKb = 1.0 * GetCoinMedianPrice(coinType) / kPercentBoost *
+                        (nFees - pBaseTx->GetFuel(nFuelRate)) / nTxSize / 1000.0;
             dPriority = mi->second.GetPriority();
             vecPriority.push_back(TxPriority(dPriority, dFeePerKb, mi->second.GetTransaction()));
         }
@@ -367,7 +382,8 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
             spCW->accountCache.Flush();
             spCW->contractCache.Flush();
 
-            nTotalFees += pBaseTx->GetFee();
+            // TODO: Fees
+            // nTotalFees += pBaseTx->GetFees();
             nBlockSize += stx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
             nTotalRunStep += pBaseTx->nRunStep;
             nTotalFuel += pBaseTx->GetFuel(nFuelRate);
