@@ -100,12 +100,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
     
     int validHeight = chainActive.Tip()->nHeight;
     CPriceFeedTx tx(*feedUid, validHeight, fee, pricePoints);
-<<<<<<< HEAD
-
-    return SubmitTx(feedUid->get<CKeyID>(), tx);
-=======
     return SubmitTx(*feedUid, tx);
->>>>>>> d01cf60970e416828c3e33fda0f2569e0c5d3483
 }
 
 Value submitstakefcointx(const Array& params, bool fHelp) {
@@ -255,12 +250,7 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
     }
 
     CCDPRedeemTx tx(*cdpUid, fee, validHeight, cdpTxId, redeemAmount, collateralRatio, interest);
-<<<<<<< HEAD
-
-    return SubmitTx(cdpUid->get<CKeyID>(), tx);
-=======
     return SubmitTx(*cdpUid, tx);
->>>>>>> d01cf60970e416828c3e33fda0f2569e0c5d3483
 }
 
 Value submitliquidatecdptx(const Array& params, bool fHelp) {
