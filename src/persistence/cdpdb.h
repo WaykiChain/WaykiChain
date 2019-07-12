@@ -18,7 +18,7 @@ using namespace std;
 /**
  * CDP Cache Item: stake in BaseCoin to get StableCoins
  *
- * Ij =  TNj * (Hj+1 - Hj)/Y * 0.1a/Log10(1+b*TNj)
+ * Ij =  TNj * (Hj+1 - Hj)/Y * 0.2a/Log10(1+b*TNj)
  *
  * Persisted in LDB as:
  *      cdp{$RegID}{$CTxCord} --> { blockHeight, totalStakedBcoins, totalOwedScoins }
@@ -161,7 +161,7 @@ public:
     }
     uint16_t GetDefaultInterestParamA() {
         uint16_t paramA = 0;
-        return interestParamA.GetData(paramA) ? paramA : 1;
+        return interestParamA.GetData(paramA) ? paramA : 2;
     }
     uint16_t GetDefaultInterestParamB() {
         uint16_t paramB = 0;
