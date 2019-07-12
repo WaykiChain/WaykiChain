@@ -18,7 +18,13 @@ bool CFcoinStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &st
                         REJECT_INVALID, "bad-tx-fcoins-outofrange");
     }
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
+    CAccount account;
+    if (!cw.accountCache.GetAccount(txUid, account)) {
+        return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, read txUid %s account info error",
+                        txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+    }
+
+    IMPLEMENT_CHECK_TX_SIGNATURE(account.pubKey);
     return true;
 }
 

@@ -62,7 +62,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         if (    coinValue.type() == null_type
             ||  currencyValue.type() == null_type
             ||  priceValue.type() == null_type ) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "null tpye not allowed!");
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "null type not allowed!");
         }
 
         string coinStr = coinValue.get_str();
@@ -102,8 +102,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         fee = GetTxMinFee(TxType::PRICE_FEED_TX, validHeight);
 
     CPriceFeedTx tx(*feedUid, validHeight, fee, pricePoints);
-    CKeyID userKeyId = feedUid->get<CKeyID>();
-    return SubmitTx(userKeyId, tx);
+    return SubmitTx(*feedUid, tx);
 }
 
 Value submitstakefcointx(const Array& params, bool fHelp) {
@@ -160,14 +159,15 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
             "6. \"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
             "\nResult description:\n"
             "\nResult: {tx_hash}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("submitstakecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitstakecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 2000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("submitstakecdptx",
+                           "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 30000 "
+                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("submitstakecdptx",
+                           "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 2000000000 30000 "
+                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n"));
     }
-    EnsureWalletIsUnlocked();
-
     uint64_t stakeAmount = params[1].get_uint64();
     uint64_t collateralRatio = params[2].get_uint64();
 
@@ -175,25 +175,28 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     uint64_t interest = 0;
     uint64_t fee = 0;
     uint256 cdpTxId;
-    if (params.size() >=4 ) {
+    if (params.size() >= 4) {
         cdpTxId = uint256S(params[3].get_str());
     }
-    if (params.size() >=5 ) {
+    if (params.size() >= 5) {
         interest = params[4].get_uint64();
     }
-    if (params.size() ==6 ) {
+    if (params.size() == 6) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
     }
-    if (fee == 0)
+    if (fee == 0) {
         fee = GetTxMinFee(TxType::CDP_STAKE_TX, validHeight);
+    }
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
     if (!cdpUid) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
+
     CCDPStakeTx tx(*cdpUid, fee, validHeight, cdpTxId, stakeAmount, collateralRatio, interest);
-    return SubmitTx(cdpUid->get<CKeyID>(), tx);
+    return SubmitTx(*cdpUid, tx);
 }
+
 Value submitredeemcdptx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 6) {
         throw runtime_error(
@@ -240,8 +243,9 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
     CCDPRedeemTx tx(*cdpUid, fee, validHeight, cdpTxId, redeemAmount, collateralRatio, interest);
-    return SubmitTx(cdpUid->get<CKeyID>(), tx);
+    return SubmitTx(*cdpUid, tx);
 }
+
 Value submitliquidatecdptx(const Array& params, bool fHelp) {
 if (fHelp || params.size() < 3 || params.size() > 6) {
         throw runtime_error(
@@ -262,7 +266,6 @@ if (fHelp || params.size() < 3 || params.size() > 6) {
             + HelpExampleRpc("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 2000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
         );
     }
-    EnsureWalletIsUnlocked();
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
     if (!cdpUid) {
@@ -288,7 +291,7 @@ if (fHelp || params.size() < 3 || params.size() > 6) {
         fee = GetTxMinFee(TxType::CDP_LIQUIDATE_TX, validHeight);
 
     CCDPRedeemTx tx(*cdpUid, fee, validHeight, cdpTxId, liquidateAmount, collateralRatio, interest);
-    return SubmitTx(cdpUid->get<CKeyID>(), tx);
+    return SubmitTx(*cdpUid, tx);
 }
 
 Value getmedianprice(const Array& params, bool fHelp){
