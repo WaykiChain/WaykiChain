@@ -31,7 +31,7 @@ Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("hash",               GetHash().GetHex()));
     result.push_back(Pair("tx_type",            GetTxType(nTxType)));
     result.push_back(Pair("ver",                nVersion));
-    result.push_back(Pair("regid",              txUid.ToString()));
+    result.push_back(Pair("tx_uid",             txUid.ToString()));
     result.push_back(Pair("addr",               keyId.ToAddress()));
     result.push_back(Pair("fees",               llFees));
     result.push_back(Pair("valid_height",       nValidHeight));
@@ -228,8 +228,10 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
     result.push_back(Pair("hash",               GetHash().GetHex()));
     result.push_back(Pair("tx_type",            GetTxType(nTxType)));
     result.push_back(Pair("ver",                nVersion));
-    result.push_back(Pair("regid",              txUid.ToString()));
+    result.push_back(Pair("tx_uid",             txUid.ToString()));
     result.push_back(Pair("addr",               keyId.ToAddress()));
+    result.push_back(Pair("fees",               llFees));
+    result.push_back(Pair("valid_height",       nValidHeight));
 
     result.push_back(Pair("cdp_txid",            cdpTxId.ToString()));
     result.push_back(Pair("scoins_to_redeem",    scoinsToRedeem));
@@ -397,8 +399,10 @@ Object CCDPLiquidateTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("hash",               GetHash().GetHex()));
     result.push_back(Pair("tx_type",            GetTxType(nTxType)));
     result.push_back(Pair("ver",                nVersion));
-    result.push_back(Pair("regid",              txUid.ToString()));
+    result.push_back(Pair("tx_uid",             txUid.ToString()));
     result.push_back(Pair("addr",               keyId.ToAddress()));
+    result.push_back(Pair("fees",               llFees));
+    result.push_back(Pair("valid_height",       nValidHeight));
 
     result.push_back(Pair("cdp_txid",            cdpTxId.ToString()));
     result.push_back(Pair("scoins_to_liquidate", scoinsToLiquidate));
