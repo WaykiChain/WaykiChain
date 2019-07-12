@@ -117,10 +117,6 @@ public:
 
 		assert(pScriptDBTip->Flush());
 
-		int nCount(0);
-		if (!pScriptDBTip->GetScriptCount(nCount))
-			return false;
-
 		if (!pScriptDBTip->GetScript(0, regId, vScript))
 			return false;
 

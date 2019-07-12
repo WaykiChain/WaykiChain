@@ -1441,9 +1441,6 @@ Value listcontracts(const Array& params, bool fHelp) {
     Object obj;
     Array arrayScript;
 
-    int nCount = 0;
-    if (!pCdMan->pContractCache->GetScriptCount(nCount))
-        throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to get registered contract number.");
     CRegID regId;
     string contractScript;
     Object script;

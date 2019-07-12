@@ -74,12 +74,6 @@ public:
     bool EraseContractData(const CRegID &scriptId, const string &contractKey, CDBOpLogMap &dbOpLogMap);
     bool UndoContractData(CDBOpLogMap &dbOpLogMap);
 
-    /**
-     * @brief Get all number of scripts in scriptdb
-     * @param nCount
-     * @return true if get succeed, otherwise false
-     */
-    bool GetScriptCount(int &nCount);
     bool SetTxRelAccout(const uint256 &txHash, const set<CKeyID> &relAccount);
     bool GetTxRelAccount(const uint256 &txHash, set<CKeyID> &relAccount);
     bool EraseTxRelAccout(const uint256 &txHash);
@@ -152,12 +146,6 @@ private:
      * @return true if contains script, otherwise false
      */
     bool HaveScript(const string &vScriptId);
-    /**
-     * @brief Save all number of scripts in scriptdb
-     * @param nCount
-     * @return true if save count succeed, otherwise false
-     */
-    bool SetScriptCount(const int nCount);
     /**
      * @brief Delete script from script db by scriptId
      * @param vScriptId

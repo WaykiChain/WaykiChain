@@ -473,16 +473,6 @@ bool CContractDBCache::GetScript(const int nIndex, string &scriptId, string &val
 }
 
 bool CContractDBCache::SetScript(const string &scriptId, const string &content) {
-
-/*TODO:....
-    if (!scriptCache.HaveData(scriptId)) {
-        int nCount(0);
-        GetScriptCount(nCount);
-        ++nCount;
-        if (!SetScriptCount(nCount))
-            return false;
-    }
-*/
     return scriptCache.SetData(scriptId, content);
 }
 
@@ -764,58 +754,7 @@ bool CContractDBCache::HaveScript(const string &scriptId) {
     return scriptCache.HaveData(scriptId);
 }
 
-
-bool CContractDBCache::GetScriptCount(int &nCount) {
-
-    return false;
-    /* TODO: get count by leveldb
-    string scriptKey = {'s', 'n', 'u', 'm'};
-    string vValue;
-    if (!GetData(scriptKey, vValue))
-        return false;
-
-    CDataStream ds(vValue, SER_DISK, CLIENT_VERSION);
-    ds >> nCount;
-    return true;
-    */
-
-}
-
-
-/* TODO:...
-bool CContractDBCache::SetScriptCount(const int nCount) {
-    return false;
-    string scriptKey = {'s', 'n', 'u', 'm'};
-    string vValue;
-    vValue.clear();
-    if (nCount > 0) {
-        CDataStream ds(SER_DISK, CLIENT_VERSION);
-        ds << nCount;
-        vValue.insert(vValue.end(), ds.begin(), ds.end());
-    }  else if (nCount < 0) {
-        return false;
-    }
-    // If nCount = 0, set an empty value to trigger deleting it in level DB.
-
-    if (!SetData(scriptKey, vValue))
-        return false;
-
-    return true;
-
-}
-*/
-
 bool CContractDBCache::EraseScript(const string &scriptId) {
-
-/* TODO: delete
-    if (HaveScript(vScriptId)) {
-        int nCount(0);
-        if (!GetScriptCount(nCount))
-            return false;
-        if (!SetScriptCount(--nCount))
-            return false;
-    }
-*/
     scriptCache.EraseData(scriptId);
     return true;
 }
@@ -832,7 +771,6 @@ bool CContractDBCache::GetContractItemCount(const string &scriptId, int &count) 
 
 
 bool CContractDBCache::IncContractItemCount(const string &contractRegId, int count) {
-
     CDBCountValue countValue;
     contractItemCountCache.GetData(contractRegId, countValue);
     countValue.value += count;
