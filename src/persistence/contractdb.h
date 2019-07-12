@@ -27,30 +27,6 @@ class CAccountLog;
 class CContractDB;
 struct CDiskTxPos;
 
-/*
-class IContractView {
-public:
-    virtual bool GetData(const string &key, string &value) = 0;
-    virtual bool SetData(const string &key, const string &value) = 0;
-    virtual bool BatchWrite(const map<string, string > &mapContractDb) = 0;
-    virtual bool EraseKey(const string &key) = 0;
-    virtual bool HaveData(const string &key) = 0;
-    virtual bool GetScript(const int nIndex, string &contractRegId, string &value) = 0;
-    virtual bool GetContractData(const int nCurBlockHeight, const string &contractRegId, const int &nIndex,
-                                string &contractKey, string &contractData) = 0;
-    virtual Object ToJsonObj(string prefix) { return Object(); } //FIXME: useless prefix
-
-    // virtual bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) = 0;
-    // virtual bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, vector<CDbOpLog> &vTxIndexOperDB) = 0;
-    // virtual bool WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDbOpLog &operLog) = 0;
-    // virtual bool GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOutput) = 0;
-    virtual bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash) = 0;
-    virtual bool GetAllContractAcc(const CRegID &scriptId, map<string, string > &mapAcc) = 0;
-
-    virtual ~IContractView(){};
-};
-*/
-
 class CContractDBCache {
 public:
     CContractDBCache() {}
@@ -273,36 +249,4 @@ private:
     CDBMultiValueCache< dbk::CONTRACT_ACCOUNT,     pair<string, string>,     CAppUserAccount >      contractAccountCache;
 };
 
-/*
-class CContractDB : public IContractView {
-private:
-    CLevelDBWrapper db;
-
-public:
-    CContractDB(const string &name, size_t nCacheSize, bool fMemory = false, bool fWipe = false) :
-        db(GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe) {}
-
-    CContractDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) :
-        db(GetDataDir() / "blocks" / "contract", nCacheSize, fMemory, fWipe) {}
-
-private:
-    CContractDB(const CContractDB &);
-    void operator=(const CContractDB &) {}
-
-public:
-    bool GetData(const string &key, string &value) { return db.Read(key, value); }
-    bool SetData(const string &key, const string &value) { return db.Write(key, value); }
-
-    bool BatchWrite(const map<string, string > &mapContractDb);
-    bool EraseKey(const string &key);
-    bool HaveData(const string &key);
-    bool GetScript(const int nIndex, string &contractRegId, string &value);
-    bool GetContractData(const int curBlockHeight, const string &contractRegId, const int &nIndex,
-                        string &contractKey, string &vScriptData);
-    int64_t GetDbCount() { return db.GetDbCount(); }
-    bool GetTxHashByAddress(const CKeyID &keyId, int nHeight, map<string, string > &mapTxHash);
-    Object ToJsonObj(string Prefix) { return Object(); }
-    bool GetAllContractAcc(const CRegID &contractRegId, map<string, string > &mapAcc);
-};
-*/
 #endif  // PERSIST_CONTRACTDB_H

@@ -1159,8 +1159,7 @@ if (fHelp || params.size() > 2) {
     }
     assert(pWalletMain != nullptr);
 
-    //Object Inblockobj;
-    Array ConfirmTxArry;
+    Array confirmedTxArray;
     int nCount = 0;
     map<int, uint256, std::greater<int> > blockInfoMap;
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
@@ -1178,20 +1177,20 @@ if (fHelp || params.size() > 2) {
                 bUpLimited = true;
                 break;
             }
-            //Inblockobj.push_back(Pair("tx", item.first.GetHex()));
-            ConfirmTxArry.push_back(item.first.GetHex());
+            confirmedTxArray.push_back(item.first.GetHex());
         }
         if (bUpLimited) {
             break;
         }
     }
-    retObj.push_back(Pair("ConfirmTx", ConfirmTxArry));
-    //CAccountDBCache view(*pCdMan->pAccountCache);
-    Array UnConfirmTxArry;
-    for (auto const &wtx : pWalletMain->unconfirmedTx) {
-        UnConfirmTxArry.push_back(wtx.first.GetHex());
+    retObj.push_back(Pair("confirmed_tx", confirmedTxArray));
+
+    Array unconfirmedTxArray;
+    for (auto const &tx : pWalletMain->unconfirmedTx) {
+        unconfirmedTxArray.push_back(tx.first.GetHex());
     }
-    retObj.push_back(Pair("unconfirmedTx", UnConfirmTxArry));
+    retObj.push_back(Pair("unconfirmed_tx", unconfirmedTxArray));
+
     return retObj;
 }
 
@@ -1269,12 +1268,14 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
     }
 
     Object retObj;
-    CAccountDBCache view(*pCdMan->pAccountCache);
-    Array UnConfirmTxArry;
-    for (auto const &wtx : pWalletMain->unconfirmedTx) {
-        UnConfirmTxArry.push_back(wtx.second.get()->ToString(view));
+    Array unconfirmedTxArray;
+
+    for (auto const& tx : pWalletMain->unconfirmedTx) {
+        unconfirmedTxArray.push_back(tx.first.GetHex());
     }
-    retObj.push_back(Pair("unconfirmedTx", UnConfirmTxArry));
+
+    retObj.push_back(Pair("unconfirmed_tx", unconfirmedTxArray));
+
     return retObj;
 }
 
@@ -1532,17 +1533,13 @@ Value getaddrbalance(const Array& params, bool fHelp) {
     if (!GetKeyId(params[0].get_str(), keyId))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
 
-    double dbalance = 0.0;
-    {
-        LOCK(cs_main);
-        CAccountDBCache accView(*pCdMan->pAccountCache);
-        CAccount secureAcc;
-        CUserID userId = keyId;
-        if (pCdMan->pAccountCache->GetAccount(userId, secureAcc)) {
-            dbalance = (double) secureAcc.GetFreeBcoins() / (double) COIN;
-        }
+    double balance = 0.0;
+    CAccount account;
+    if (pCdMan->pAccountCache->GetAccount(keyId, account)) {
+        balance = (double)account.GetFreeBcoins() / (double)COIN;
     }
-    return dbalance;
+
+    return balance;
 }
 
 Value generateblock(const Array& params, bool fHelp) {
