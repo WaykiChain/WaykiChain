@@ -33,11 +33,13 @@ Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("ver",                nVersion));
     result.push_back(Pair("regid",              txUid.ToString()));
     result.push_back(Pair("addr",               keyId.ToAddress()));
+    result.push_back(Pair("fees",               llFees));
+    result.push_back(Pair("valid_height",       nValidHeight));
 
-    result.push_back(Pair("cdp_txid",            cdpTxId.ToString()));
-    result.push_back(Pair("bcoins_to_stake",     bcoinsToStake));
-    result.push_back(Pair("collateral_ratio",    collateralRatio / kPercentBoost));
-    result.push_back(Pair("scoins_interest",     scoinsInterest));
+    result.push_back(Pair("cdp_txid",           cdpTxId.ToString()));
+    result.push_back(Pair("bcoins_to_stake",    bcoinsToStake));
+    result.push_back(Pair("collateral_ratio",   collateralRatio / kPercentBoost));
+    result.push_back(Pair("scoins_interest",    scoinsInterest));
 
     return result;
 }
