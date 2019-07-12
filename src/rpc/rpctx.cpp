@@ -1444,7 +1444,7 @@ Value listcontracts(const Array& params, bool fHelp) {
     CRegID regId;
     string contractScript;
     Object script;
-    if (!pCdMan->pContractCache->GetScript(0, regId, contractScript))
+    if (!pCdMan->pContractCache->GetContractScript(0, regId, contractScript))
         throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to get registered contract.");
     script.push_back(Pair("contract_regid", regId.ToString()));
     CDataStream ds(contractScript, SER_DISK, CLIENT_VERSION);
@@ -1456,7 +1456,7 @@ Value listcontracts(const Array& params, bool fHelp) {
         script.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
 
     arrayScript.push_back(script);
-    while (pCdMan->pContractCache->GetScript(1, regId, contractScript)) {
+    while (pCdMan->pContractCache->GetContractScript(1, regId, contractScript)) {
         Object obj;
         obj.push_back(Pair("contract_regid", regId.ToString()));
         CDataStream ds(contractScript, SER_DISK, CLIENT_VERSION);
@@ -1498,7 +1498,7 @@ Value getcontractinfo(const Array& params, bool fHelp) {
     }
 
     string contractScript;
-    if (!pCdMan->pContractCache->GetScript(regId, contractScript)) {
+    if (!pCdMan->pContractCache->GetContractScript(regId, contractScript)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "get script error: cannot get registered script.");
     }
 

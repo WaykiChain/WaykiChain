@@ -53,8 +53,8 @@ public:
         contractItemCountCache(pBaseIn->contractItemCountCache),
         contractAccountCache(pBaseIn->contractAccountCache) {};
 
-    bool GetScript(const CRegID &scriptId, string &value);
-    bool GetScript(const int nIndex, CRegID &scriptId, string &value);
+    bool GetContractScript(const CRegID &scriptId, string &value);
+    bool GetContractScript(const int nIndex, CRegID &scriptId, string &value);
 
     bool GetScriptAcc(const CRegID &scriptId, const string &key, CAppUserAccount &appAccOut);
     bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CDBOpLogMap &dbOpLogMap);
@@ -67,10 +67,10 @@ public:
     bool HaveScriptData(const CRegID &scriptId, const string &contractKey);
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const string &contractKey,
                          string &vScriptData);
-    bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
-                         string &contractKey, string &vScriptData);
-    bool SetContractData(const CRegID &scriptId, const string &contractKey,
-                         const string &vScriptData, CDBOpLogMap &dbOpLogMap);
+    bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex, string &contractKey,
+                         string &vScriptData);
+    bool SetContractData(const CRegID &scriptId, const string &contractKey, const string &vScriptData,
+                         CDBOpLogMap &dbOpLogMap);
     bool EraseContractData(const CRegID &scriptId, const string &contractKey, CDBOpLogMap &dbOpLogMap);
     bool UndoContractData(CDBOpLogMap &dbOpLogMap);
 
@@ -124,7 +124,7 @@ private:
      * @param vValue
      * @return true if get script succeed,otherwise false
      */
-    bool GetScript(const string &contractRegId, string &value);
+    bool GetContractScript(const string &contractRegId, string &value);
     /**
      * @brief Get Script content from scriptdb by index
      * @param nIndex the value must be non-negative
@@ -132,7 +132,7 @@ private:
      * @param vValue
      * @return true if get script succeed, otherwise false
      */
-    bool GetScript(const int nIndex, string &contractRegId, string &value);
+    bool GetContractScript(const int nIndex, string &contractRegId, string &value);
     /**
      * @brief Save script content to scriptdb
      * @param vScriptId

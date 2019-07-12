@@ -37,7 +37,7 @@ bool CContractDB::HaveData(const string &vKey) {
     return db.Exists(vKey);
 }
 
-bool CContractDB::GetScript(const int nIndex, string &vScriptId, string &vValue) {
+bool CContractDB::GetContractScript(const int nIndex, string &vScriptId, string &vValue) {
     assert(nIndex >= 0 && nIndex <= 1);
     leveldb::Iterator *pcursor = db.NewIterator();
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
@@ -47,7 +47,7 @@ bool CContractDB::GetScript(const int nIndex, string &vScriptId, string &vValue)
     int i(0);
     if (1 == nIndex) {
         if (vScriptId.empty()) {
-            return ERRORMSG("GetScript() : nIndex is 1, and vScriptId is empty");
+            return ERRORMSG("GetContractScript() : nIndex is 1, and vScriptId is empty");
         }
         vector<char> vId(vScriptId.begin(), vScriptId.end());
         ssKeySet.insert(ssKeySet.end(), vId.begin(), vId.end());
@@ -361,7 +361,7 @@ bool CContractDBCache::HaveData(const string &vKey) {
 }
 */
 
-bool CContractDBCache::GetScript(const int nIndex, string &scriptId, string &value) {
+bool CContractDBCache::GetContractScript(const int nIndex, string &scriptId, string &value) {
     return false;
 /* TODO: ....
     if (0 == nIndex) {
@@ -381,7 +381,7 @@ bool CContractDBCache::GetScript(const int nIndex, string &scriptId, string &val
                 break;
             }
         }
-        if (!pBase->GetScript(nIndex, vScriptId, vValue)) {  //上级没有获取符合条件的key值
+        if (!pBase->GetContractScript(nIndex, vScriptId, vValue)) {  //上级没有获取符合条件的key值
             if (vDataKey.empty())
                 return false;
             else {  //返回本级缓存的查询结果
@@ -402,7 +402,7 @@ bool CContractDBCache::GetScript(const int nIndex, string &scriptId, string &val
                     return true;
                 else {
                     mapContractDb[dataKeyTemp].clear();           //在缓存中dataKeyTemp已经被删除过了，重新将此key对应的value清除
-                    return GetScript(nIndex, vScriptId, vValue);  //重新从数据库中获取下一条数据
+                    return GetContractScript(nIndex, vScriptId, vValue);  //重新从数据库中获取下一条数据
                 }
             } else {  //若上级查询的key大于等于本级缓存的key,返回本级的数据
                 vScriptId.clear();
@@ -437,7 +437,7 @@ bool CContractDBCache::GetScript(const int nIndex, string &scriptId, string &val
                 ++iterFindKey;
             }
         }
-        if (!pBase->GetScript(nIndex, vScriptId, vValue)) {  //从BASE获取指定键值之后的下一个值
+        if (!pBase->GetContractScript(nIndex, vScriptId, vValue)) {  //从BASE获取指定键值之后的下一个值
             if (vDataKey.empty())
                 return false;
             else {
@@ -457,7 +457,7 @@ bool CContractDBCache::GetScript(const int nIndex, string &scriptId, string &val
                     return true;
                 else {
                     mapContractDb[dataKeyTemp].clear();           //在缓存中dataKeyTemp已经被删除过了，重新将此key对应的value清除
-                    return GetScript(nIndex, vScriptId, vValue);  //重新从数据库中获取下一条数据
+                    return GetContractScript(nIndex, vScriptId, vValue);  //重新从数据库中获取下一条数据
                 }
             } else {  //若上级查询的key大于等于本级缓存的key,返回本级的数据
                 vScriptId.clear();
@@ -571,23 +571,22 @@ bool CContractDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &
     return true;
 }
 
-bool CContractDBCache::GetScript(const string &scriptId, string &content) {
+bool CContractDBCache::GetContractScript(const string &scriptId, string &content) {
     return scriptCache.GetData(scriptId, content);
 }
 
-bool CContractDBCache::GetScript(const CRegID &scriptId, string &vValue) {
-    return GetScript(scriptId.ToRawString(), vValue);
+bool CContractDBCache::GetContractScript(const CRegID &scriptId, string &vValue) {
+    return GetContractScript(scriptId.ToRawString(), vValue);
 }
 
-bool CContractDBCache::GetContractData(const int nCurBlockHeight, const string &scriptId,
-                                         const string &scriptKey, string &scriptData) {
+bool CContractDBCache::GetContractData(const int nCurBlockHeight, const string &scriptId, const string &scriptKey,
+                                       string &scriptData) {
     // TODO: delete the arg nCurBlockHeight??
     return contractDataCache.GetData(make_pair(scriptId, scriptKey), scriptData);
 }
 
-bool CContractDBCache::GetContractData(const int nCurBlockHeight, const string &vScriptId,
-                                         const int &nIndex, string &vScriptKey,
-                                         string &vScriptData) {
+bool CContractDBCache::GetContractData(const int nCurBlockHeight, const string &vScriptId, const int &nIndex,
+                                       string &vScriptKey, string &vScriptData) {
     return false;
 /* TODO: ...
     if (0 == nIndex) {
@@ -888,14 +887,14 @@ bool CContractDBCache::HaveScriptData(const string &vScriptId, const string &vSc
 }
 */
 
-bool CContractDBCache::GetScript(const int nIndex, CRegID &scriptId, string &vValue) {
+bool CContractDBCache::GetContractScript(const int nIndex, CRegID &scriptId, string &vValue) {
     return false;
     /*
     string tem;
     if (nIndex != 0) {
         tem = scriptId.GetRegIdRaw();
     }
-    if (GetScript(nIndex, tem, vValue)) {
+    if (GetContractScript(nIndex, tem, vValue)) {
         scriptId.SetRegID(tem);
         return true;
     }

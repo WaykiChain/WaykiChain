@@ -359,7 +359,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     cw.txUndo.accountLogs.push_back(desAcctLog);
 
     string contractScript;
-    if (!cw.contractCache.GetScript(appUid.get<CRegID>(), contractScript))
+    if (!cw.contractCache.GetContractScript(appUid.get<CRegID>(), contractScript))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, read script failed, regId=%s",
             appUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
@@ -495,7 +495,7 @@ bool CContractInvokeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState
                         REJECT_INVALID, "bad-account-unregistered");
 
     string contractScript;
-    if (!cw.contractCache.GetScript(appUid.get<CRegID>(), contractScript))
+    if (!cw.contractCache.GetContractScript(appUid.get<CRegID>(), contractScript))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, read script failed, regId=%s",
                         appUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-read-script");
 

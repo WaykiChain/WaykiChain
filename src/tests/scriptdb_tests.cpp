@@ -62,7 +62,7 @@ void testscriptdb() {
 	BOOST_CHECK(pTestView->HaveScript(regScriptId));
 	vector<unsigned char> vScript;
 	//read script content from db by scriptId
-	BOOST_CHECK(pTestView->GetScript(regScriptId, vScript));
+	BOOST_CHECK(pTestView->GetContractScript(regScriptId, vScript));
 	// if the readed script content equals with original
 	BOOST_CHECK(vScriptContent == vScript);
 	int nCount;
@@ -75,10 +75,10 @@ void testscriptdb() {
 	vector<unsigned char> vId;
 
 	CRegID regId;
-	BOOST_CHECK(pTestView->GetScript(0, regId, vScript));
+	BOOST_CHECK(pTestView->GetContractScript(0, regId, vScript));
 	BOOST_CHECK(vScriptId == regId.GetRegIdRaw());
 	BOOST_CHECK(vScriptContent == vScript);
-	BOOST_CHECK(pTestView->GetScript(1, regId, vScript));
+	BOOST_CHECK(pTestView->GetContractScript(1, regId, vScript));
 	BOOST_CHECK(vScriptId1 == regId.GetRegIdRaw());
 	BOOST_CHECK(vScriptContent1 == vScript);
 	//delete script from db
