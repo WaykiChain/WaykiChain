@@ -370,7 +370,7 @@ Value registercontracttx(const Array& params, bool fHelp)
 
     // allocate memory to contain the whole file:
     char *buffer = (char*) malloc(sizeof(char) * lSize);
-    if (buffer == NULL) {
+    if (buffer == nullptr) {
         fclose(file);
         throw runtime_error("allocate memory failed");
     }
@@ -785,7 +785,7 @@ Value listtransactions(const Array& params, bool fHelp) {
     map<int, uint256, std::greater<int> > blockInfoMap;
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         CBlockIndex *pIndex = mapBlockIndex[wtx.first];
-        if (pIndex != NULL)
+        if (pIndex != nullptr)
             blockInfoMap.insert(make_pair(pIndex->nHeight, wtx.first));
     }
 
@@ -1085,7 +1085,7 @@ Value listcontracttx(const Array& params, bool fHelp)
     map<int, uint256, std::greater<int> > blockInfoMap;
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         CBlockIndex *pIndex = mapBlockIndex[wtx.first];
-        if (pIndex != NULL)
+        if (pIndex != nullptr)
             blockInfoMap.insert(make_pair(pIndex->nHeight, wtx.first));
     }
 
@@ -1164,7 +1164,7 @@ if (fHelp || params.size() > 2) {
     map<int, uint256, std::greater<int> > blockInfoMap;
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         CBlockIndex *pIndex = mapBlockIndex[wtx.first];
-        if (pIndex != NULL)
+        if (pIndex != nullptr)
             blockInfoMap.insert(make_pair(pIndex->nHeight, wtx.first));
     }
     bool bUpLimited = false;
@@ -1415,7 +1415,7 @@ Value resetclient(const Array& params, bool fHelp) {
         assert(pCdMan->pTxCache->GetSize() == 0);
 */
         CBlock firs = SysCfg().GenesisBlock();
-        pWalletMain->SyncTransaction(uint256(), NULL, &firs);
+        pWalletMain->SyncTransaction(uint256(), nullptr, &firs);
         mempool.Clear();
     } else {
         throw JSONRPCError(RPC_WALLET_ERROR, "restclient Error: Reset failed.");
@@ -1441,42 +1441,39 @@ Value listcontracts(const Array& params, bool fHelp) {
     Object obj;
     Array arrayScript;
 
-    if (pCdMan->pContractCache != NULL) {
-        int nCount(0);
-        if (!pCdMan->pContractCache->GetScriptCount(nCount))
-            throw JSONRPCError(RPC_DATABASE_ERROR, "get contract error: cannot get registered contract number.");
-        CRegID regId;
-        string contractScript;
-        Object script;
-        if (!pCdMan->pContractCache->GetScript(0, regId, contractScript))
-            throw JSONRPCError(RPC_DATABASE_ERROR, "get contract error: cannot get registered contract.");
-        script.push_back(Pair("contract_regid", regId.ToString()));
+    int nCount = 0;
+    if (!pCdMan->pContractCache->GetScriptCount(nCount))
+        throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to get registered contract number.");
+    CRegID regId;
+    string contractScript;
+    Object script;
+    if (!pCdMan->pContractCache->GetScript(0, regId, contractScript))
+        throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to get registered contract.");
+    script.push_back(Pair("contract_regid", regId.ToString()));
+    CDataStream ds(contractScript, SER_DISK, CLIENT_VERSION);
+    CVmScript vmScript;
+    ds >> vmScript;
+    script.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
+
+    if (showDetail)
+        script.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
+
+    arrayScript.push_back(script);
+    while (pCdMan->pContractCache->GetScript(1, regId, contractScript)) {
+        Object obj;
+        obj.push_back(Pair("contract_regid", regId.ToString()));
         CDataStream ds(contractScript, SER_DISK, CLIENT_VERSION);
         CVmScript vmScript;
         ds >> vmScript;
-        // string strDes(vmScript.GetMemo().begin(), vmScript.GetMemo()->end());
-        script.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
-
+        obj.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
         if (showDetail)
-            script.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
+            obj.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
 
-        arrayScript.push_back(script);
-        while (pCdMan->pContractCache->GetScript(1, regId, contractScript)) {
-            Object obj;
-            obj.push_back(Pair("contract_regid", regId.ToString()));
-            CDataStream ds(contractScript, SER_DISK, CLIENT_VERSION);
-            CVmScript vmScript;
-            ds >> vmScript;
-            // string strDes(vmScript.GetMemo().begin(), vmScript.GetMemo().end());
-            obj.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
-            if (showDetail)
-                obj.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
-
-            arrayScript.push_back(obj);
-        }
+        arrayScript.push_back(obj);
     }
 
     obj.push_back(Pair("contracts", arrayScript));
+
     return obj;
 }
 
@@ -1620,7 +1617,7 @@ Value reloadtxcache(const Array& params, bool fHelp) {
 
         pCdMan->pTxCache->AddBlockToCache(block);
         pIndex = chainActive.Next(pIndex);
-    } while (NULL != pIndex);
+    } while (nullptr != pIndex);
 
     Object obj;
     obj.push_back(Pair("info", "reload tx cache succeed"));
@@ -2146,7 +2143,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
 
     // allocate memory to contain the whole file:
     char *buffer = (char*) malloc(sizeof(char) * lSize);
-    if (buffer == NULL) {
+    if (buffer == nullptr) {
         fclose(file);
         throw runtime_error("allocate memory failed");
     }

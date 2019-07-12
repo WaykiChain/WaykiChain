@@ -62,7 +62,7 @@ void testscriptdb() {
 	BOOST_CHECK(pTestView->HaveScript(regScriptId));
 	vector<unsigned char> vScript;
 	//read script content from db by scriptId
-	BOOST_CHECK(pTestView->GetScript(regScriptId,vScript));
+	BOOST_CHECK(pTestView->GetScript(regScriptId, vScript));
 	// if the readed script content equals with original
 	BOOST_CHECK(vScriptContent == vScript);
 	int nCount;

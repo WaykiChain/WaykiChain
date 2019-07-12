@@ -58,7 +58,6 @@ public:
 
     bool GetScriptAcc(const CRegID &scriptId, const string &key, CAppUserAccount &appAccOut);
     bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CDBOpLogMap &dbOpLogMap);
-    bool EraseScriptAcc(const CRegID &scriptId, const string &key);
     bool UndoScriptAcc(CDBOpLogMap &dbOpLogMap);
 
     bool SetScript(const CRegID &scriptId, const string &value);
@@ -181,7 +180,7 @@ private:
     bool SetContractItemCount(const string &contractRegId, int nCount);
     bool IncContractItemCount(const string &contractRegId, int count);
     /**
-     * @brief Delete the item of the scirpt's data by scriptId and scriptKey
+     * @brief Delete the item of the script's data by scriptId and scriptKey
      * @param vScriptId
      * @param vScriptKey must be 8 bytes
      * @return true if delete succeed, otherwise false
