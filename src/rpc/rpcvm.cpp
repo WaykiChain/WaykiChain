@@ -169,7 +169,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     Object registerContractTxObj;
     EnsureWalletIsUnlocked();
     int newHeight = chainActive.Tip()->nHeight + 1;
-    assert(pWalletMain != NULL);
+    assert(pWalletMain != nullptr);
     {
         CContractDeployTx tx;
         tx.txUid          = srcRegId;

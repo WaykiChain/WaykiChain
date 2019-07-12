@@ -25,10 +25,6 @@ public:
     CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
                 uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn, uint64_t scoinsInterestIn):
                 CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
-        if (txUidIn.type() == typeid(CRegID)) {
-            assert(!txUidIn.get<CRegID>().IsEmpty());
-        }
-
         bcoinsToStake   = bcoinsToStakeIn;
         collateralRatio = collateralRatioIn;
         scoinsInterest  = scoinsInterestIn;

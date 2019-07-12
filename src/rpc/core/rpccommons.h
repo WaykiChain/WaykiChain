@@ -15,10 +15,10 @@ using namespace json_spirit;
 const int MAX_RPC_SIG_STR_LEN = 65 * 1024; // 65K
 
 string RegIDToAddress(CUserID &userId);
-bool GetKeyId(const string &addr, CKeyID &KeyId);
-Object GetTxDetailJSON(const uint256& txhash);
+bool GetKeyId(const string &addr, CKeyID &keyId);
+Object GetTxDetailJSON(const uint256& txid);
 Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx);
 
-Object SubmitTx(CKeyID &userKeyId, CBaseTx &tx);
+Object SubmitTx(CUserID &userId, CBaseTx &tx);
 
-#endif //RPC_CORE_COMMONS_H
+#endif  // RPC_CORE_COMMONS_H

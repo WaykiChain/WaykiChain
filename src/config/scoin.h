@@ -15,6 +15,7 @@ static const uint16_t kPriceFeedContinuousDeviateTimesLimit = 10;       // after
 
 static const uint16_t kPercentBoost                         = 10000;
 
+static const uint16_t kDefaultScoinReserveFeeRatio          = 1;        // 0.01% * 10000
 static const uint16_t kDefaultDexDealFeeRatio               = 4;        // 0.04% * 10000
 
 static const uint32_t kTotalFundCoinAmount                  = 21000000; // 21 million WGRT
@@ -40,7 +41,7 @@ static const uint16_t kForceSettleCDPMaxCountPerBlock       = 1000;
 
 static const uint16_t kFcoinGenesisIssueTxIndex             = 1;
 static const uint16_t kFcoinGenesisRegisterTxIndex          = 2;
-static const uint16_t kDexMatchSvcRegisterTxIndex         = 3;
+static const uint16_t kDexMatchSvcRegisterTxIndex           = 3;
 
 // Except specific transactions, priority is less than 1000.0
 static const double kTransactionPriorityCeiling             = 1000.0;

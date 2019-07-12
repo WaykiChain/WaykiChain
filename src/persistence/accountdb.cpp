@@ -198,7 +198,7 @@ bool CAccountDBCache::GetRegId(const CUserID &userId, CRegID &regId) const {
     if (userId.type() == typeid(CRegID)) {
         regId = userId.get<CRegID>();
         return true;
-    } else if (userId.type() == typeid(CRegID)) {
+    } else if (userId.type() == typeid(CKeyID)) {
         CAccount account;
         if (GetAccount(userId.get<CKeyID>(), account)) {
             regId = account.regId;

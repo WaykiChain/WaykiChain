@@ -209,7 +209,7 @@ void CWallet::ResendWalletTransactions() {
 //// Call after CreateTransaction unless you want to abort
 std::tuple<bool, string> CWallet::CommitTx(CBaseTx *pTx) {
     LOCK2(cs_main, cs_wallet);
-    LogPrint("INFO", "CommitTx() : %s", pTx->ToString(*pCdMan->pAccountCache));
+    LogPrint("INFO", "CommitTx() : %s\n", pTx->ToString(*pCdMan->pAccountCache));
 
     {
         CValidationState state;

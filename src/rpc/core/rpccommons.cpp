@@ -3,17 +3,15 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 #include "rpccommons.h"
+
+#include "accounts/key.h"
 #include "main.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #include "init.h"
 #include "rpcserver.h"
 
-Object SubmitTx(CKeyID &userKeyId, CBaseTx &tx) {
-    if (!pWalletMain->HaveKey(userKeyId)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Sender address not found in wallet");
-    }
-
+Object SubmitTx(CUserID &userId, CBaseTx &tx) {
     uint64_t minFee = GetTxMinFee(tx.nTxType, chainActive.Height());
     if (tx.llFees == 0) {
         tx.llFees = minFee;
@@ -22,13 +20,9 @@ Object SubmitTx(CKeyID &userKeyId, CBaseTx &tx) {
                             tx.llFees, minFee));
     }
 
-    CRegID regId;
-    CAccountDBCache view(*pCdMan->pAccountCache);
     CAccount account;
-
-    uint64_t balance = 0;
-    if (pCdMan->pAccountCache->GetAccount(userKeyId, account) && account.IsRegistered()) {
-        balance = account.GetFreeBcoins();
+    if (pCdMan->pAccountCache->GetAccount(userId, account) && account.IsRegistered()) {
+        uint64_t balance = account.GetFreeBcoins();
         if (balance < tx.llFees) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
@@ -36,22 +30,34 @@ Object SubmitTx(CKeyID &userKeyId, CBaseTx &tx) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
     }
 
-    pCdMan->pAccountCache->GetRegId(userKeyId, regId);
+    CKeyID keyId;
+    if (!pCdMan->pAccountCache->GetKeyId(userId, keyId)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Failed to acquire key id");
+    }
+
+    CRegID regId;
+    pCdMan->pAccountCache->GetRegId(userId, regId);
     tx.txUid = regId;
 
-    EnsureWalletIsUnlocked();
-    if (!pWalletMain->Sign(userKeyId, tx.ComputeSignatureHash(), tx.signature)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
-    }
+    assert(pWalletMain != nullptr);
+    {
+        EnsureWalletIsUnlocked();
+        if (!pWalletMain->HaveKey(keyId)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Sender address not found in wallet");
+        }
+        if (!pWalletMain->Sign(keyId, tx.ComputeSignatureHash(), tx.signature)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
+        }
 
-    std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx*) &tx);
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-    }
+        std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx*)&tx);
+        if (!std::get<0>(ret)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
+        }
 
-    Object obj;
-    obj.push_back(Pair("tx_hash", std::get<1>(ret)));
-    return obj;
+        Object obj;
+        obj.push_back(Pair("txid", std::get<1>(ret)));
+        return obj;
+    }
 }
 
 string RegIDToAddress(CUserID &userId) {
@@ -62,26 +68,27 @@ string RegIDToAddress(CUserID &userId) {
     return "cannot get address from given RegId";
 }
 
-bool GetKeyId(const string &addr, CKeyID &KeyId) {
-    if (!CRegID::GetKeyId(addr, KeyId)) {
-        KeyId = CKeyID(addr);
-        if (KeyId.IsEmpty())
+bool GetKeyId(const string &addr, CKeyID &keyId) {
+    if (!CRegID::GetKeyId(addr, keyId)) {
+        keyId = CKeyID(addr);
+        if (keyId.IsEmpty())
             return false;
     }
+
     return true;
 }
 
-Object GetTxDetailJSON(const uint256& txhash) {
+Object GetTxDetailJSON(const uint256& txid) {
     Object obj;
     std::shared_ptr<CBaseTx> pBaseTx;
     {
         LOCK(cs_main);
         CBlock genesisblock;
-        CBlockIndex* pgenesisblockindex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
-        ReadBlockFromDisk(pgenesisblockindex, genesisblock);
+        CBlockIndex* pGenesisBlockIndex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
+        ReadBlockFromDisk(pGenesisBlockIndex, genesisblock);
         assert(genesisblock.GetMerkleRootHash() == genesisblock.BuildMerkleTree());
         for (unsigned int i = 0; i < genesisblock.vptx.size(); ++i) {
-            if (txhash == genesisblock.GetTxHash(i)) {
+            if (txid == genesisblock.GetTxHash(i)) {
                 obj = genesisblock.vptx[i]->ToJson(*pCdMan->pAccountCache);
                 obj.push_back(Pair("block_hash", SysCfg().GetGenesisBlockHash().GetHex()));
                 obj.push_back(Pair("confirmed_height", (int) 0));
@@ -95,7 +102,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
 
         if (SysCfg().IsTxIndex()) {
             CDiskTxPos postx;
-            if (pCdMan->pContractCache->ReadTxIndex(txhash, postx)) {
+            if (pCdMan->pContractCache->ReadTxIndex(txid, postx)) {
                 CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
                 CBlockHeader header;
                 try {
@@ -126,7 +133,7 @@ Object GetTxDetailJSON(const uint256& txhash) {
             }
         }
         {
-            pBaseTx = mempool.Lookup(txhash);
+            pBaseTx = mempool.Lookup(txid);
             if (pBaseTx.get()) {
                 obj = pBaseTx->ToJson(*pCdMan->pAccountCache);
                 CDataStream ds(SER_DISK, CLIENT_VERSION);

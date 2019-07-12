@@ -13,14 +13,7 @@
 #include "init.h"
 #include "miner/miner.h"
 #include "net.h"
-#include "persistence/accountdb.h"
-#include "persistence/blockdb.h"
-#include "persistence/contractdb.h"
-#include "persistence/txdb.h"
-#include "tx/blockrewardtx.h"
 #include "tx/merkletx.h"
-#include "tx/multicoinblockrewardtx.h"
-#include "tx/txmempool.h"
 #include "commons/util.h"
 #include "vm/luavm/vmrunenv.h"
 
@@ -1390,6 +1383,9 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         vector<string> txids = IniCfg().GetStableCoinGenesisTxid(SysCfg().NetworkID());
         assert(txids.size() == 3);
         for (uint8_t index = 0; index < 3; ++ index) {
+            LogPrint("INFO", "stable coin genesis block, txid actual: %s, should be: %s, in detail: %s\n",
+                     block.vptx[index + 1]->GetHash().GetHex(), txids[index],
+                     block.vptx[index + 1]->ToString(cw.accountCache));
             assert(block.vptx[index + 1]->nTxType == UCOIN_REWARD_TX);
             assert(block.vptx[index + 1]->GetHash() == uint256S(txids[index]));
         }

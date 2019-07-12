@@ -40,7 +40,7 @@ bool CPriceFeedTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Fcoins insufficient by txUid %s account error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-insufficient");
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
+    IMPLEMENT_CHECK_TX_SIGNATURE(account.pubKey);
     return true;
 }
 

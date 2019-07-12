@@ -178,7 +178,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address invalid");
 
     CAccountRegisterTx rtx;
-    assert(pWalletMain != NULL);
+    assert(pWalletMain != nullptr);
     {
         EnsureWalletIsUnlocked();
 
@@ -301,7 +301,18 @@ Value callcontracttx(const Array& params, bool fHelp) {
     tx.arguments    = arguments;
     tx.nValidHeight = height;
 
-    return SubmitTx(sendKeyId, tx);
+    if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
+    }
+
+    std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx*)&tx);
+    if (!std::get<0>(ret)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
+    }
+
+    Object obj;
+    obj.push_back(Pair("hash", std::get<1>(ret)));
+    return obj;
 }
 
 // register a contract app tx
@@ -396,18 +407,59 @@ Value registercontracttx(const Array& params, bool fHelp)
     if (fee > 0 && fee < CBaseTx::nMinTxFee) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee is smaller than nMinTxFee");
     }
-    CKeyID sendKeyId;
-    if (!GetKeyId(params[0].get_str(), sendKeyId)) {
+    CKeyID keyId;
+    if (!GetKeyId(params[0].get_str(), keyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid send address");
     }
 
+    assert(pWalletMain != nullptr);
     CContractDeployTx tx;
-    tx.contractScript   = contractScript;
-    tx.llFees           = fee;
-    tx.nRunStep         = height;
-    tx.nValidHeight     = chainActive.Tip()->nHeight;
+    {
+        EnsureWalletIsUnlocked();
 
-    return SubmitTx(sendKeyId, tx);
+        CAccount account;
+        if (!pCdMan->pAccountCache->GetAccount(keyId, account)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Invalid send address");
+        }
+
+        if (!account.IsRegistered()) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
+        }
+
+        uint64_t balance = account.GetFreeBcoins();
+        if (balance < fee) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
+        }
+
+        if (!pWalletMain->HaveKey(keyId)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Send address is not in wallet");
+        }
+
+        CRegID regId;
+        pCdMan->pAccountCache->GetRegId(keyId, regId);
+
+        tx.txUid          = regId;
+        tx.contractScript = contractScript;
+        tx.llFees         = fee;
+        tx.nRunStep       = contractScript.size();
+        if (0 == height) {
+            height = chainActive.Tip()->nHeight;
+        }
+        tx.nValidHeight = height;
+
+        if (!pWalletMain->Sign(keyId, tx.ComputeSignatureHash(), tx.signature)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
+        }
+
+        std::tuple<bool, string> ret;
+        ret = pWalletMain->CommitTx((CBaseTx*)&tx);
+        if (!std::get<0>(ret)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
+        }
+        Object obj;
+        obj.push_back(Pair("hash", std::get<1>(ret)));
+        return obj;
+    }
 }
 
 //vote a delegate transaction
@@ -460,10 +512,9 @@ Value votedelegatetx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid send address");
     }
     CDelegateVoteTx delegateVoteTx;
-    assert(pWalletMain != NULL);
+    assert(pWalletMain != nullptr);
     {
         EnsureWalletIsUnlocked();
-        CAccountDBCache view(*pCdMan->pAccountCache);
         CAccount account;
 
         CUserID userId = keyId;
@@ -585,7 +636,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid send address");
     }
     CDelegateVoteTx delegateVoteTx;
-    assert(pWalletMain != NULL);
+    assert(pWalletMain != nullptr);
     {
         EnsureWalletIsUnlocked();
         CAccountDBCache view(*pCdMan->pAccountCache);
@@ -666,7 +717,7 @@ Value listaddr(const Array& params, bool fHelp) {
     }
 
     Array retArray;
-    assert(pWalletMain != NULL);
+    assert(pWalletMain != nullptr);
     {
         set<CKeyID> setKeyId;
         pWalletMain->GetKeys(setKeyId);
@@ -711,7 +762,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                    "\nAs a json rpc call\n"
                    + HelpExampleRpc("listtransactions", "\"*\", 20, 100")
               );
-    assert(pWalletMain != NULL);
+    assert(pWalletMain != nullptr);
     string strAddress = "*";
     if (params.size() > 0)
         strAddress = params[0].get_str();
@@ -922,7 +973,7 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
                    + HelpExampleRpc("listtransactionsv2", "\"*\", 20, 100")
               );
 
-    assert(pWalletMain != NULL);
+    assert(pWalletMain != nullptr);
     string strAddress = "*";
     if (params.size() > 0)
         strAddress = params[0].get_str();
@@ -1001,7 +1052,7 @@ Value listcontracttx(const Array& params, bool fHelp)
                    "\nAs a json rpc call\n"
                    + HelpExampleRpc("listcontracttx", "\"*\", 20, 100")
               );
-    assert(pWalletMain != NULL);
+    assert(pWalletMain != nullptr);
 
     string strRegId = params[0].get_str();
     CRegID regId(strRegId);
@@ -1106,7 +1157,7 @@ if (fHelp || params.size() > 2) {
     if(params.size() > 1) {
         nFrom = params[1].get_int();
     }
-    assert(pWalletMain != NULL);
+    assert(pWalletMain != nullptr);
 
     //Object Inblockobj;
     Array ConfirmTxArry;
@@ -1475,7 +1526,7 @@ Value getaddrbalance(const Array& params, bool fHelp) {
         throw runtime_error(msg);
     }
 
-    assert(pWalletMain != NULL);
+    assert(pWalletMain != nullptr);
 
     CKeyID keyId;
     if (!GetKeyId(params[0].get_str(), keyId))
@@ -2497,7 +2548,7 @@ Value getalltxinfo(const Array& params, bool fHelp) {
     int nLimitCount(0);
     if(params.size() == 1)
         nLimitCount = params[0].get_int();
-    assert(pWalletMain != NULL);
+    assert(pWalletMain != nullptr);
     if (nLimitCount <= 0) {
         Array confirmedTx;
         for (auto const &wtx : pWalletMain->mapInBlockTx) {
@@ -2617,7 +2668,7 @@ Value listcontractassets(const Array& params, bool fHelp) {
     CRegID script(params[0].get_str());
 
     Array retArray;
-    assert(pWalletMain != NULL);
+    assert(pWalletMain != nullptr);
     {
         set<CKeyID> setKeyId;
         pWalletMain->GetKeys(setKeyId);

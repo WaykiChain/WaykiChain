@@ -98,9 +98,10 @@ bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &
                         account.fcoins, scoinsInterest), READ_ACCOUNT_FAIL, "account-scoins-insufficient");
     }
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
+    IMPLEMENT_CHECK_TX_SIGNATURE(account.pubKey);
     return true;
 }
+
 bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     cw.txUndo.txid = GetHash();
     CAccount account;
@@ -285,7 +286,7 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
                         account.fcoins, scoinsInterest), REJECT_INVALID, "account-scoins-insufficient");
     }
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
+    IMPLEMENT_CHECK_TX_SIGNATURE(account.pubKey);
     return true;
  }
 
@@ -464,7 +465,7 @@ bool CCDPLiquidateTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationSta
                         account.scoins, scoinsToLiquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
     }
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
+    IMPLEMENT_CHECK_TX_SIGNATURE(account.pubKey);
     return true;
 }
 

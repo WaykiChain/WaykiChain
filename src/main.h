@@ -19,9 +19,9 @@
 #include <utility>
 #include <vector>
 
-#include "config/chainparams.h"
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
+#include "config/chainparams.h"
 #include "net.h"
 #include "persistence/accountdb.h"
 #include "persistence/block.h"
@@ -37,13 +37,18 @@
 #include "tx/bcointx.h"
 #include "tx/blockpricemediantx.h"
 #include "tx/blockrewardtx.h"
-#include "tx/contracttx.h"
+#include "tx/cdptx.h"
 #include "tx/coinrewardtx.h"
+#include "tx/cointransfertx.h"
+#include "tx/contracttx.h"
 #include "tx/delegatetx.h"
+#include "tx/dextx.h"
+#include "tx/fcoinstaketx.h"
 #include "tx/mulsigtx.h"
+#include "tx/multicoinblockrewardtx.h"
+#include "tx/pricefeedtx.h"
 #include "tx/tx.h"
 #include "tx/txmempool.h"
-#include "tx/dextx.h"
 
 class CBlockIndex;
 class CBloomFilter;
@@ -767,10 +772,29 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
             Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion); break;
         case COMMON_MTX:
             Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion); break;
-        case BLOCK_PRICE_MEDIAN_TX:
-            Serialize(os, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion); break;
+
+        case UCOIN_BLOCK_REWARD_TX:
+            Serialize(os, *((CMultiCoinBlockRewardTx *)(pa.get())), nType, nVersion); break;
+        // TODO: UCOIN_CONTRACT_INVOKE_TX
+        case UCOIN_TRANSFER_TX:
+            Serialize(os, *((CCoinTransferTx *)(pa.get())), nType, nVersion); break;
         case UCOIN_REWARD_TX:
             Serialize(os, *((CCoinRewardTx *)(pa.get())), nType, nVersion); break;
+
+        case CDP_STAKE_TX:
+            Serialize(os, *((CCDPStakeTx *)(pa.get())), nType, nVersion); break;
+        case CDP_REDEEMP_TX:
+            Serialize(os, *((CCDPRedeemTx *)(pa.get())), nType, nVersion); break;
+        case CDP_LIQUIDATE_TX:
+            Serialize(os, *((CCDPLiquidateTx *)(pa.get())), nType, nVersion); break;
+
+        case PRICE_FEED_TX:
+            Serialize(os, *((CPriceFeedTx *)(pa.get())), nType, nVersion); break;
+        case BLOCK_PRICE_MEDIAN_TX:
+            Serialize(os, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion); break;
+
+        case FCOIN_STAKE_TX:
+            Serialize(os, *((CFcoinStakeTx *)(pa.get())), nType, nVersion); break;
 
         /* dex */
         case DEX_SETTLE_TX:
@@ -835,14 +859,54 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
             Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
             break;
         }
-        case BLOCK_PRICE_MEDIAN_TX: {
-            pa = std::make_shared<CBlockPriceMedianTx>();
-            Unserialize(is, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion);
+
+        case UCOIN_BLOCK_REWARD_TX: {
+            pa = std::make_shared<CMultiCoinBlockRewardTx>();
+            Unserialize(is, *((CMultiCoinBlockRewardTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        // TODO: UCOIN_CONTRACT_INVOKE_TX
+        case UCOIN_TRANSFER_TX: {
+            pa = std::make_shared<CCoinTransferTx>();
+            Unserialize(is, *((CCoinTransferTx *)(pa.get())), nType, nVersion);
             break;
         }
         case UCOIN_REWARD_TX: {
             pa = std::make_shared<CCoinRewardTx>();
             Unserialize(is, *((CCoinRewardTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+
+        case CDP_STAKE_TX: {
+            pa = std::make_shared<CCDPStakeTx>();
+            Unserialize(is, *((CCDPStakeTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case CDP_REDEEMP_TX: {
+            pa = std::make_shared<CCDPRedeemTx>();
+            Unserialize(is, *((CCDPRedeemTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case CDP_LIQUIDATE_TX: {
+            pa = std::make_shared<CCDPLiquidateTx>();
+            Unserialize(is, *((CCDPLiquidateTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+
+        case PRICE_FEED_TX: {
+            pa = std::make_shared<CPriceFeedTx>();
+            Unserialize(is, *((CPriceFeedTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case BLOCK_PRICE_MEDIAN_TX: {
+            pa = std::make_shared<CBlockPriceMedianTx>();
+            Unserialize(is, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+
+        case FCOIN_STAKE_TX: {
+            pa = std::make_shared<CFcoinStakeTx>();
+            Unserialize(is, *((CFcoinStakeTx *)(pa.get())), nType, nVersion);
             break;
         }
 
