@@ -67,6 +67,7 @@ public:
     bool SetKeyId(const CRegID &regId, const CKeyID &keyId);
     bool SetKeyId(const CUserID &userId, const CKeyID &keyId);
     bool GetKeyId(const CRegID &regId, CKeyID &keyId) const;
+    bool GetKeyId(const CUserID &userId, CKeyID &keyId) const;
     bool EraseKeyIdByRegId(const CRegID &regId);
 
     bool SaveAccount(const CAccount &account);
@@ -95,7 +96,6 @@ public:
     bool GetRegId(const CKeyID &keyId, CRegID &regId) const;
     bool GetRegId(const CUserID &userId, CRegID &regId) const;
     bool RegIDIsMature(const CRegID &regId) const;
-    bool GetKeyId(const CUserID &userId, CKeyID &keyId) const;
     bool EraseAccountByKeyId(const CUserID &userId);
     bool EraseKeyId(const CUserID &userId);
     bool HaveAccount(const CUserID &userId) const;

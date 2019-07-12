@@ -143,17 +143,17 @@ void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn) {
 shared_ptr<CUserID> CUserID::ParseUserId(const string &idStr) {
     CRegID regId(idStr);
     if (!regId.IsEmpty())
-        return make_shared<CUserID>(regId);
+        return std::make_shared<CUserID>(regId);
 
-    CKeyID keyId(idStr);    
-    if (!keyId.IsEmpty()) 
-        return make_shared<CUserID>(keyId);
+    CKeyID keyId(idStr);
+    if (!keyId.IsEmpty())
+        return std::make_shared<CUserID>(keyId);
 
     // ParsePubKey
     auto pubKeyBin = ParseHex(idStr);
-    CPubKey pubKey(pubKeyBin);    
-    if (pubKey.IsFullyValid()) 
-        return make_shared<CUserID>(pubKey);
+    CPubKey pubKey(pubKeyBin);
+    if (pubKey.IsFullyValid())
+        return std::make_shared<CUserID>(pubKey);
 
     // TODO: how to support nick name?
 

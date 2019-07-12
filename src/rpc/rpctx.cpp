@@ -463,7 +463,6 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     assert(pWalletMain != NULL);
     {
         EnsureWalletIsUnlocked();
-        CAccountDBCache view(*pCdMan->pAccountCache);
         CAccount account;
 
         CUserID userId = keyId;
