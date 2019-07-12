@@ -112,22 +112,12 @@ string CPriceFeedTx::ToString(CAccountDBCache &accountCache) {
 Object CPriceFeedTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID keyId;
-    accountCache.GetKeyId(txUid, keyId);
+    IMPLEMENT_PUSH_BASE_TX_JSON(accountCache);
 
     Array pricePointArray;
     for (const auto &pp : pricePoints) {
         pricePointArray.push_back(pp.ToJson());
     }
-
-    result.push_back(Pair("hash",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
-    result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           keyId.ToAddress()));
-    result.push_back(Pair("valid_height",   nValidHeight));
-    result.push_back(Pair("fees",           llFees));
-
     result.push_back(Pair("price_points",   pricePointArray));
 
     return result;

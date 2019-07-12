@@ -49,7 +49,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
     EnsureWalletIsUnlocked();
 
     Array arrPricePoints    = params[1].get_array();
-    uint64_t fee    = 0;
+    uint64_t fee = 0;
     if (params.size() == 3) {
         fee = params[2].get_uint64();  // real type, 0 if empty and thence minFee
     }
@@ -139,15 +139,14 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough fcoins");
     }
 
-    uint64_t fee;
+    uint64_t fee = 0;
     if (params.size() > 2) {
         fee = AmountToRawValue(params[2]);
     }
 
     int validHeight = chainActive.Tip()->nHeight;
-    CCDPStakeTx tx(pUserId, fee, validHeight, stakeAmount);
-
-    return SubmitTx(pUserId->get<CKeyID>(), tx);
+    CFcoinStakeTx tx(*pUserId, fee, validHeight, stakeAmount);
+    return SubmitTx(*pUserId, tx);
 }
 
 /*************************************************<< CDP >>**************************************************/
@@ -189,9 +188,6 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     }
     if (params.size() == 6) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
-    }
-    if (fee == 0) {
-        fee = GetTxMinFee(TxType::CDP_STAKE_TX, validHeight);
     }
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
@@ -241,8 +237,6 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
     if (params.size() ==6 ) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
     }
-    if (fee == 0)
-        fee = GetTxMinFee(TxType::CDP_REDEEMP_TX, validHeight);
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
     if (!cdpUid) {
@@ -294,8 +288,6 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
     if (params.size() ==6 ) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
     }
-    if (fee == 0)
-        fee = GetTxMinFee(TxType::CDP_LIQUIDATE_TX, validHeight);
 
     CCDPRedeemTx tx(*cdpUid, fee, validHeight, cdpTxId, liquidateAmount, collateralRatio, interest);
     return SubmitTx(*cdpUid, tx);
@@ -457,16 +449,9 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     uint64_t assetAmount = AmountToRawValue(params[3]);
     uint64_t price = AmountToRawValue(params[4]);
 
-    uint64_t defaultFee = SysCfg().GetTxFee(); // default fee
-    uint64_t fee;
+    uint64_t fee = 0;
     if (params.size() > 5) {
-        fee = AmountToRawValue(params[5]);
-        if (fee < defaultFee) {
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
-        }
-    } else {
-        fee = defaultFee;
+        fee = params[5].get_uint64();
     }
 
     CAccount txAccount;
@@ -482,24 +467,9 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
-    CUserID txUid;
-    if (txAccount.RegIDIsMature()) {
-        txUid = txAccount.regId;
-    } else if(txAccount.pubKey.IsValid()) {
-        txUid = txAccount.pubKey;
-    } else{
-        CPubKey txPubKey;
-        if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
-        }
-        txUid = txPubKey;
-    }
-
     int validHeight = chainActive.Height();
-    CDEXBuyLimitOrderTx tx(txUid, validHeight, fee, coinType, assetType, assetAmount, price);
-
-    return SubmitTx(pUserId->get<CKeyID>(), tx);
+    CDEXBuyLimitOrderTx tx(*pUserId, validHeight, fee, coinType, assetType, assetAmount, price);
+    return SubmitTx(*pUserId, tx);
 }
 
 Value submitdexselllimitordertx(const Array& params, bool fHelp) {
@@ -544,16 +514,9 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     uint64_t assetAmount = AmountToRawValue(params[3]);
     uint64_t price = AmountToRawValue(params[4]);
 
-    uint64_t defaultFee = SysCfg().GetTxFee(); // default fee
-    uint64_t fee;
+    uint64_t fee = 0;
     if (params.size() > 5) {
-        fee = AmountToRawValue(params[5]);
-        if (fee < defaultFee) {
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
-        }
-    } else {
-        fee = defaultFee;
+        fee = params[5].get_uint64();
     }
 
     CAccount txAccount;
@@ -572,24 +535,9 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough asset");
     }
 
-    CUserID txUid;
-    if (txAccount.RegIDIsMature()) {
-        txUid = txAccount.regId;
-    } else if(txAccount.pubKey.IsValid()) {
-        txUid = txAccount.pubKey;
-    } else{
-        CPubKey txPubKey;
-        if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
-        }
-        txUid = txPubKey;
-    }
-
     int validHeight = chainActive.Height();
-    CDEXSellLimitOrderTx tx(txUid, validHeight, fee, coinType, assetType, assetAmount, price);
-
-    return SubmitTx(pUserId->get<CKeyID>(), tx);
+    CDEXSellLimitOrderTx tx(*pUserId, validHeight, fee, coinType, assetType, assetAmount, price);
+    return SubmitTx(*pUserId, tx);
 }
 
 Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
@@ -630,17 +578,9 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     }
 
     uint64_t coinAmount = AmountToRawValue(params[3]);
- 
-    uint64_t defaultFee = SysCfg().GetTxFee(); // default fee
-    uint64_t fee;
+    uint64_t fee = 0;
     if (params.size() > 4) {
         fee = AmountToRawValue(params[4]);
-        if (fee < defaultFee) {
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
-        }
-    } else {
-        fee = defaultFee;
     }
 
     CAccount txAccount;
@@ -648,7 +588,6 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                             strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
-    assert(!txAccount.keyId.IsEmpty());
 
     // TODO: need to support fee coin type
     uint64_t amount = coinAmount;
@@ -656,24 +595,9 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
-    CUserID txUid;
-    if (txAccount.RegIDIsMature()) {
-        txUid = txAccount.regId;
-    } else if(txAccount.pubKey.IsValid()) {
-        txUid = txAccount.pubKey;
-    } else{
-        CPubKey txPubKey;
-        if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
-        }
-        txUid = txPubKey;
-    }
-
     int validHeight = chainActive.Height();
-    CDEXBuyMarketOrderTx tx(txUid, validHeight, fee, coinType, assetType, coinAmount);
-
-    return SubmitTx(pUserId->get<CKeyID>(), tx);
+    CDEXBuyMarketOrderTx tx(*pUserId, validHeight, fee, coinType, assetType, coinAmount);
+    return SubmitTx(*pUserId, tx);
 }
 
 Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
@@ -715,17 +639,9 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     }
 
     uint64_t assetAmount = AmountToRawValue(params[3]);
-
-    uint64_t defaultFee = SysCfg().GetTxFee(); // default fee
-    uint64_t fee;
+    uint64_t fee = 0;
     if (params.size() > 4) {
-        fee = AmountToRawValue(params[4]);
-        if (fee < defaultFee) {
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
-        }
-    } else {
-        fee = defaultFee;
+        fee = params[4].get_uint64();
     }
 
     CAccount txAccount;
@@ -744,24 +660,9 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough asset");
     }
 
-    CUserID txUid;
-    if (txAccount.RegIDIsMature()) {
-        txUid = txAccount.regId;
-    } else if(txAccount.pubKey.IsValid()) {
-        txUid = txAccount.pubKey;
-    } else{
-        CPubKey txPubKey;
-        if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
-        }
-        txUid = txPubKey;
-    }
-
     int validHeight = chainActive.Height();
-    CDEXSellMarketOrderTx tx(txUid, validHeight, fee, coinType, assetType, assetAmount);
-
-    return SubmitTx(pUserId->get<CKeyID>(), tx);
+    CDEXSellMarketOrderTx tx(*pUserId, validHeight, fee, coinType, assetType, assetAmount);
+    return SubmitTx(*pUserId, tx);
 }
 
 Value submitdexcancelordertx(const Array& params, bool fHelp) {
@@ -793,47 +694,14 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
 
     uint256 txid(uint256S(params[1].get_str()));
 
-    uint64_t defaultFee = SysCfg().GetTxFee(); // default fee
-    uint64_t fee;
+    uint64_t fee = 0;
     if (params.size() > 2) {
-        fee = AmountToRawValue(params[2]);
-        if (fee < defaultFee) {
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
-        }
-    } else {
-        fee = defaultFee;
-    }
-
-    CAccount txAccount;
-    if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("The account not exists! userId=%s", pUserId->ToString()));
-    }
-    assert(!txAccount.keyId.IsEmpty());
-
-    if (txAccount.GetFreeBcoins() < fee) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
-    }
-
-    CUserID txUid;
-    if (txAccount.RegIDIsMature()) {
-        txUid = txAccount.regId;
-    } else if(txAccount.pubKey.IsValid()) {
-        txUid = txAccount.pubKey;
-    } else{
-        CPubKey txPubKey;
-        if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
-        }
-        txUid = txPubKey;
+        fee = params[2].get_uint64();
     }
 
     int validHeight = chainActive.Height();
-    CDEXCancelOrderTx tx(txUid, validHeight, fee, txid);
-
-    return SubmitTx(pUserId->get<CKeyID>(), tx);
+    CDEXCancelOrderTx tx(*pUserId, validHeight, fee, txid);
+    return SubmitTx(*pUserId, tx);
 }
 
 static const Value& JsonFindValue(Value jsonObj, const string &name) {
@@ -910,45 +778,12 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
         dealItems.push_back(dealItem);
     }
 
-    uint64_t defaultFee = SysCfg().GetTxFee(); // default fee
-    uint64_t fee;
+    uint64_t fee = 0;
     if (params.size() > 2) {
-        fee = AmountToRawValue(params[2]);
-        if (fee < defaultFee) {
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
-        }
-    } else {
-        fee = defaultFee;
-    }
-
-    CAccount txAccount;
-    if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("The account not exists! userId=%s", pUserId->ToString()));
-    }
-    assert(!txAccount.keyId.IsEmpty());
-
-    if (txAccount.GetFreeBcoins() < fee) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
-    }
-
-    CUserID txUid;
-    if (txAccount.RegIDIsMature()) {
-        txUid = txAccount.regId;
-    } else if(txAccount.pubKey.IsValid()) {
-        txUid = txAccount.pubKey;
-    } else{
-        CPubKey txPubKey;
-        if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
-        }
-        txUid = txPubKey;
+        fee = params[2].get_uint64();
     }
 
     int validHeight = chainActive.Height();
-    CDEXSettleTx tx(txUid, validHeight, fee, dealItems);
-
-    return SubmitTx(pUserId->get<CKeyID>(), tx);
+    CDEXSettleTx tx(*pUserId, validHeight, fee, dealItems);
+    return SubmitTx(*pUserId, tx);
 }

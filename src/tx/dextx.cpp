@@ -351,23 +351,15 @@ string CDEXBuyMarketOrderTx::ToString(CAccountDBCache &view) {
         coinType, assetType, coinAmount);
 }
 
-Object CDEXBuyMarketOrderTx::ToJson(const CAccountDBCache &view) const {
+Object CDEXBuyMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID srcKeyId;
-    if(!view.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
-
-    result.push_back(Pair("hash",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
-    result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
-    result.push_back(Pair("fees",           llFees));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    IMPLEMENT_PUSH_BASE_TX_JSON(accountCache);
 
     result.push_back(Pair("coin_type",      GetCoinTypeName(coinType)));
     result.push_back(Pair("asset_type",     GetCoinTypeName(assetType)));
     result.push_back(Pair("coin_amount",    coinAmount));
+
     return result;
 }
 
@@ -507,19 +499,10 @@ string CDEXSellMarketOrderTx::ToString(CAccountDBCache &view) {
         coinType, assetType, assetAmount);
 }
 
-Object CDEXSellMarketOrderTx::ToJson(const CAccountDBCache &view) const {
+Object CDEXSellMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID srcKeyId;
-    if(!view.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
-
-    result.push_back(Pair("hash",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
-    result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
-    result.push_back(Pair("fees",           llFees));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    IMPLEMENT_PUSH_BASE_TX_JSON(accountCache);
 
     result.push_back(Pair("coin_type",      GetCoinTypeName(coinType)));
     result.push_back(Pair("asset_type",     GetCoinTypeName(assetType)));
@@ -660,19 +643,10 @@ string CDEXCancelOrderTx::ToString(CAccountDBCache &view) {
         orderId.GetHex());
 }
 
-Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &view) const {
+Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
-
-    result.push_back(Pair("hash",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
-    result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           keyId.ToAddress()));
-    result.push_back(Pair("valid_height",   nValidHeight));
-    result.push_back(Pair("fees",           llFees));
+    IMPLEMENT_PUSH_BASE_TX_JSON(accountCache);
 
     result.push_back(Pair("order_id",       orderId.GetHex()));
 
@@ -854,11 +828,10 @@ string CDEXSettleTx::ToString(CAccountDBCache &view) {
         dealInfo);
 }
 
-Object CDEXSettleTx::ToJson(const CAccountDBCache &view) const {
+Object CDEXSettleTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
+    IMPLEMENT_PUSH_BASE_TX_JSON(accountCache);
 
     Array arrayItems;
     for (const auto &item : dealItems) {
@@ -870,15 +843,6 @@ Object CDEXSettleTx::ToJson(const CAccountDBCache &view) const {
         subItem.push_back(Pair("price",             item.dealPrice));
         arrayItems.push_back(subItem);
     }
-
-    result.push_back(Pair("hash",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
-    result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           keyId.ToAddress()));
-    result.push_back(Pair("valid_height",   nValidHeight));
-    result.push_back(Pair("fees",           llFees));
-
     result.push_back(Pair("deal_items",     arrayItems));
 
     return result;
