@@ -31,7 +31,8 @@ bool CCdpMemCache::LoadAllCdpFromDB() {
 }
 
 uint16_t CCdpMemCache::GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const {
-    return totalStakedBcoins * bcoinMedianPrice * kPercentBoost / totalOwedScoins;
+    // If total owed scoins equal to zero, the global collateral ratio becomes infinite.
+    return (totalOwedScoins == 0) ? UINT64_MAX : totalStakedBcoins * bcoinMedianPrice * kPercentBoost / totalOwedScoins;
 }
 
 uint64_t CCdpMemCache::GetGlobalCollateral() const {
@@ -198,6 +199,6 @@ bool CCdpDBCache::CheckGlobalCollateralFloorReached(const uint64_t bcoinMedianPr
 
 // global collateral amount ceiling check
 bool CCdpDBCache::CheckGlobalCollateralCeilingReached(const uint64_t newBcoinsToStake) {
-    bool ceilingAmountReached = (newBcoinsToStake + cdpMemCache.GetGlobalCollateral()) > kGlobalCollateralCeiling;
+    bool ceilingAmountReached = (newBcoinsToStake + cdpMemCache.GetGlobalCollateral()) > kGlobalCollateralCeiling * COIN;
     return ceilingAmountReached;
 }
