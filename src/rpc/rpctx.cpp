@@ -1436,42 +1436,43 @@ Value listcontracts(const Array& params, bool fHelp) {
                 + "\nAs json rpc call\n"
                 + HelpExampleRpc("listcontracts", "true"));
     }
-    bool showDetail = false;
-    showDetail = params[0].get_bool();
-    Object obj;
-    Array arrayScript;
+    // bool showDetail = false;
+    // showDetail = params[0].get_bool();
+    // Object obj;
+    // Array arrayScript;
 
-    CRegID regId;
-    string contractScript;
-    Object script;
-    if (!pCdMan->pContractCache->GetContractScript(0, regId, contractScript))
-        throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to get registered contract.");
-    script.push_back(Pair("contract_regid", regId.ToString()));
-    CDataStream ds(contractScript, SER_DISK, CLIENT_VERSION);
-    CVmScript vmScript;
-    ds >> vmScript;
-    script.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
+    // CRegID regId;
+    // string contractScript;
+    // Object script;
+    // if (!pCdMan->pContractCache->GetContractScript(0, regId, contractScript))
+    //     throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to get registered contract.");
+    // script.push_back(Pair("contract_regid", regId.ToString()));
+    // CDataStream ds(contractScript, SER_DISK, CLIENT_VERSION);
+    // CVmScript vmScript;
+    // ds >> vmScript;
+    // script.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
 
-    if (showDetail)
-        script.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
+    // if (showDetail)
+    //     script.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
 
-    arrayScript.push_back(script);
-    while (pCdMan->pContractCache->GetContractScript(1, regId, contractScript)) {
-        Object obj;
-        obj.push_back(Pair("contract_regid", regId.ToString()));
-        CDataStream ds(contractScript, SER_DISK, CLIENT_VERSION);
-        CVmScript vmScript;
-        ds >> vmScript;
-        obj.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
-        if (showDetail)
-            obj.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
+    // arrayScript.push_back(script);
+    // while (pCdMan->pContractCache->GetContractScript(1, regId, contractScript)) {
+    //     Object obj;
+    //     obj.push_back(Pair("contract_regid", regId.ToString()));
+    //     CDataStream ds(contractScript, SER_DISK, CLIENT_VERSION);
+    //     CVmScript vmScript;
+    //     ds >> vmScript;
+    //     obj.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
+    //     if (showDetail)
+    //         obj.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
 
-        arrayScript.push_back(obj);
-    }
+    //     arrayScript.push_back(obj);
+    // }
 
-    obj.push_back(Pair("contracts", arrayScript));
+    // obj.push_back(Pair("contracts", arrayScript));
 
-    return obj;
+    // return obj;
+    return Object();
 }
 
 Value getcontractinfo(const Array& params, bool fHelp) {
@@ -1621,225 +1622,55 @@ Value reloadtxcache(const Array& params, bool fHelp) {
     return obj;
 }
 
-static int GetDataFromAppDb(CContractDBCache &cache, const CRegID &regId, int pagesize, int index,
-        vector<std::tuple<string, string > > &ret) {
-    int dbsize = 0;
-    int height = chainActive.Height();
-    cache.GetContractItemCount(regId, dbsize);
-    if (0 == dbsize)
-        throw runtime_error("GetDataFromAppDb : the app has NO data!\n");
-
-    string value;
-    string scriptKey;
-
-    if (!cache.GetContractData(height, regId, 0, scriptKey, value))
-        throw runtime_error("GetContractData : the app data retrieval failed!\n");
-
-    if (index == 1)
-        ret.push_back(std::make_tuple(scriptKey, value));
-
-    int readCount(1);
-    while (--dbsize) {
-        if (cache.GetContractData(height, regId, 1, scriptKey, value)) {
-            ++readCount;
-            if (readCount > pagesize * (index - 1)) {
-                ret.push_back(std::make_tuple(scriptKey, value));
-            }
-        }
-        if (readCount >= pagesize * index) {
-            return ret.size();
-        }
-    }
-    return ret.size();
-}
-
+// TODO: acquire all data related to the contract via wildcard * for key.
 Value getcontractdataraw(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 2 || params.size() > 3) {
-        throw runtime_error("getcontractdataraw \"contract_regid\" \"[pagesize or key]\" (\"index\")\n"
-            "\nget the contract data (hexadecimal format) by a given app RegID\n"
+    if (fHelp || params.size() != 2) {
+        throw runtime_error("getcontractdataraw \"contractregid\" \"key\"\n"
+            "\nget the contract data (hexadecimal format)\n"
             "\nArguments:\n"
-            "1.\"contract_regid\": (string, required) App RegId\n"
-            "2.[pagesize or key]: (pagesize int, required),if only two params,it is key, otherwise it is pagesize\n"
-            "3.\"index\": (int optional)\n"
+            "1.\"contractregid\":   (string, required) contract regid\n"
+            "2.\"key\":             (string, required)\n"
             "\nResult:\n"
             "\nExamples:\n"
             + HelpExampleCli("getcontractdataraw", "\"1304166-1\" \"key\"")
             + HelpExampleRpc("getcontractdataraw", "\"1304166-1\" \"key\""));
     }
 
-    CRegID regId(params[0].get_str());
-    if (regId.IsEmpty())
-        throw runtime_error("getcontractdataraw : app regid not supplied!");
+    // CRegID regId(params[0].get_str());
+    // if (regId.IsEmpty()) {
+    //     throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract regid");
+    // }
 
-    if (!pCdMan->pContractCache->HaveContractScript(regId))
-        throw runtime_error("getcontractdataraw : app regid does NOT exist!");
+    // if (!pCdMan->pContractCache->HaveContractScript(regId)) {
+    //     throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to find the contract");
+    // }
 
-    Object script;
-    int height = chainActive.Height();
-    CContractDBCache contractScriptTemp(*pCdMan->pContractCache);
-    if (params.size() == 2) {
-        vector<unsigned char> hex = ParseHex(params[1].get_str());
-        string key(hex.begin(), hex.end());
-        string value;
-        if (!contractScriptTemp.GetContractData(height, regId, key, value)) {
-            throw runtime_error("the key does NOT exist!");
-        }
-        script.push_back(Pair("regid", params[0].get_str()));
-        script.push_back(Pair("key", HexStr(key)));
-        script.push_back(Pair("value", HexStr(value)));
-        return script;
-
-    } else {
-        int dbsize = 0;
-        contractScriptTemp.GetContractItemCount(regId, dbsize);
-        if (0 == dbsize) {
-            throw runtime_error("the contract has NO data!");
-        }
-        int pagesize = params[1].get_int();
-        int index = params[2].get_int();
-
-        vector<std::tuple<string, string>> ret;
-        GetDataFromAppDb(contractScriptTemp, regId, pagesize, index, ret);
-
-        Array retArray;
-        for (auto te : ret) {
-            string key = std::get<0>(te);
-            string value = std::get<1>(te);
-            Object firt;
-            firt.push_back(Pair("key", HexStr(key)));
-            firt.push_back(Pair("value", HexStr(value)));
-            retArray.push_back(firt);
-        }
-        return retArray;
-    }
-    return script;
+    return Object();
 }
 
 Value getcontractdata(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 2 || params.size() > 3) {
-        throw runtime_error("getcontractdata \"contract_regid\" \"[pagesize or key]\" (\"index\")\n"
-            "\nget the contract data (original input format) by a given contract RegID\n"
+    if (fHelp || params.size() != 2) {
+        throw runtime_error("getcontractdataraw \"contractregid\" \"key\"\n"
+            "\nget the contract data (hexadecimal format)\n"
             "\nArguments:\n"
-            "1.\"contract_regid\": (string, required) Contract RegId\n"
-            "2.[pagesize or key]: (pagesize int, required),if only two params,it is key, otherwise it is pagesize\n"
-            "3.\"index\": (int optional)\n"
+            "1.\"contractregid\":   (string, required) contract regid\n"
+            "2.\"key\":             (string, required)\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("getcontractdata", "\"1304166-1\" \"key\"")
-            + HelpExampleRpc("getcontractdata", "\"1304166-1\" \"key\""));
-    }
-    int height = chainActive.Height();
-    // RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
-    CRegID regId(params[0].get_str());
-    if (regId.IsEmpty()) {
-        throw runtime_error("contract regid NOT supplied!");
+            + HelpExampleCli("getcontractdataraw", "\"1304166-1\" \"key\"")
+            + HelpExampleRpc("getcontractdataraw", "\"1304166-1\" \"key\""));
     }
 
-    if (!pCdMan->pContractCache->HaveContractScript(regId)) {
-        throw runtime_error("contract regid NOT exist!");
-    }
-    Object script;
+    // CRegID regId(params[0].get_str());
+    // if (regId.IsEmpty()) {
+    //     throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract regid");
+    // }
 
-    if (params.size() == 2) {
-        string strKey = params[1].get_str();
-        string key = strprintf("%c", strKey.length());
-        std::copy(strKey.begin(), strKey.end(), key.begin());
+    // if (!pCdMan->pContractCache->HaveContractScript(regId)) {
+    //     throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to find the contract");
+    // }
 
-        string value;
-        if (!pCdMan->pContractCache->GetContractData(height, regId, key, value)) {
-            throw runtime_error("the key does NOT exist!");
-        }
-        script.push_back(Pair("regid", params[0].get_str()));
-        script.push_back(Pair("key", strKey));
-        script.push_back(Pair("value", value));
-
-        return script;
-
-    } else {
-        int dbsize = 0;
-        pCdMan->pContractCache->GetContractItemCount(regId, dbsize);
-        if (0 == dbsize) {
-            throw runtime_error("the contract has NO data!");
-        }
-        int pagesize = params[1].get_int();
-        int index = params[2].get_int();
-
-        vector<std::tuple<string, string>> ret;
-        GetDataFromAppDb(*pCdMan->pContractCache, regId, pagesize, index, ret);
-
-        Array retArray;
-        for (auto te : ret) {
-            string key   = std::get<0>(te);
-            string value = std::get<1>(te);
-
-            Object retObj;
-            retObj.push_back(Pair("key", key));
-            retObj.push_back(Pair("value", value));
-
-            retArray.push_back(retObj);
-        }
-
-        return retArray;
-    }
-
-    return script;
-}
-
-Value getcontractconfirmdata(const Array& params, bool fHelp) {
-    if (fHelp || (params.size() != 3 && params.size() !=4)) {
-        throw runtime_error("getcontractconfirmdata \"regid\" \"pagesize\" \"index\"\n"
-            "\nget script valid data\n"
-            "\nArguments:\n"
-            "1.\"regid\": (string, required) app RegId\n"
-            "2.\"pagesize\": (int, required)\n"
-            "3.\"index\": (int, required )\n"
-            "4.\"minconf\":  (numeric, optional, default=1) Only include contract transactions confirmed \n"
-            "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getcontractconfirmdata", "\"1304166-1\" \"1\"  \"1\"")
-            + HelpExampleRpc("getcontractconfirmdata", "\"1304166-1\" \"1\"  \"1\""));
-    }
-    std::shared_ptr<CContractDBCache> pAccountCache;
-    if (4 == params.size() && 0 == params[3].get_int()) {
-        pAccountCache.reset(new CContractDBCache(*mempool.memPoolContractCache.get()));
-    } else {
-        pAccountCache.reset(new CContractDBCache(*pCdMan->pContractCache));
-    }
-    int height = chainActive.Height();
-    RPCTypeCheck(params, list_of(str_type)(int_type)(int_type));
-    CRegID regId(params[0].get_str());
-    if (regId.IsEmpty() == true)
-        throw runtime_error("getcontractdata :appregid NOT found!");
-
-    if (!pAccountCache->HaveContractScript(regId))
-        throw runtime_error("getcontractdata :appregid does NOT exist!");
-
-    Object obj;
-    int pagesize = params[1].get_int();
-    int nIndex = params[2].get_int();
-
-    int nKey = revert(height);
-    CDataStream ds(SER_NETWORK, PROTOCOL_VERSION);
-    ds << nKey;
-    string scriptKey(ds.begin(), ds.end());
-    string value;
-    Array retArray;
-    int nReadCount = 0;
-
-    while (pAccountCache->GetContractData(height, regId, 1, scriptKey, value)) {
-        Object item;
-        ++nReadCount;
-        if (nReadCount > pagesize * (nIndex - 1)) {
-            item.push_back(Pair("key", HexStr(scriptKey)));
-            item.push_back(Pair("value", HexStr(value)));
-            retArray.push_back(item);
-        }
-        if (nReadCount >= pagesize * nIndex) {
-            break;
-        }
-    }
-
-    return retArray;
+    return Object();
 }
 
 Value saveblocktofile(const Array& params, bool fHelp) {
@@ -1878,34 +1709,6 @@ Value saveblocktofile(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_MISC_ERROR, "save block to file error");
     }
     return "save succeed";
-}
-
-Value getcontractitemcount(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1) {
-        throw runtime_error("getcontractitemcount \"regid\"\n"
-            "\nget the total number of contract db K-V items\n"
-            "\nArguments:\n"
-            "1.\"regid\": (string, required) Contract RegId\n"
-            "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getcontractitemcount", "\"258988-1\"")
-            + HelpExampleRpc("getcontractitemcount","\"258988-1\"")
-        );
-    }
-
-    CRegID regId(params[0].get_str());
-    if (regId.IsEmpty()) {
-        throw runtime_error("contract RegId invalid!");
-    }
-    if (!pCdMan->pContractCache->HaveContractScript(regId)) {
-        throw runtime_error("contract with the given RegId does NOT exist!");
-    }
-
-    int nItemCount = 0;
-    if (!pCdMan->pContractCache->GetContractItemCount(regId, nItemCount)) {
-        throw runtime_error("GetContractItemCount error");
-    }
-    return nItemCount;
 }
 
 Value genregisteraccountraw(const Array& params, bool fHelp) {
@@ -2735,8 +2538,6 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
     CRegID contractRegId(params[0].get_str());
     Array array = params[1].get_array();
 
-    int height = chainActive.Height();
-
     if (contractRegId.IsEmpty())
         throw runtime_error("in getcontractkeyvalue: contract regid size is error!\n");
 
@@ -2744,15 +2545,13 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
         throw runtime_error("in getcontractkeyvalue: contract regid not exist!\n");
 
     Array retArray;
-    CContractDBCache contractScriptTemp(*pCdMan->pContractCache);
-
     for (size_t i = 0; i < array.size(); i++) {
         uint256 txhash(uint256S(array[i].get_str()));
         string key(txhash.begin(), txhash.end());
         string value;
 
         Object obj;
-        if (!contractScriptTemp.GetContractData(height, contractRegId, key, value)) {
+        if (!pCdMan->pContractCache->GetContractData(contractRegId, key, value)) {
             obj.push_back(Pair("key", array[i].get_str()));
             obj.push_back(Pair("value", HexStr(value)));
         } else {

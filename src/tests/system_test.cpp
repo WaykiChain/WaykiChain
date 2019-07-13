@@ -117,19 +117,6 @@ public:
 
 		assert(pScriptDBTip->Flush());
 
-		if (!pScriptDBTip->GetContractScript(0, regId, vScript))
-			return false;
-
-		string strRegID = HexStr(regId.GetRegIdRaw());
-		string strScript = HexStr(vScript.begin(), vScript.end());
-		mapRegScript.insert(make_pair(strRegID, strScript));
-
-		while (pScriptDBTip->GetContractScript(1, regId, vScript)) {
-			strRegID = HexStr(regId.GetRegIdRaw());
-			strScript = HexStr(vScript.begin(), vScript.end());
-			mapRegScript.insert(make_pair(strRegID, strScript));
-		}
-
 		return true;
 	}
 
