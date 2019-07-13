@@ -27,21 +27,21 @@
 using namespace json_spirit;
 
 string GetTxType(const TxType txType) {
-    auto it = kTxTypeMap.find(txType);
-    if (it != kTxTypeMap.end())
+    auto it = kTxFeeTable.find(txType);
+    if (it != kTxFeeTable.end())
         return std::get<0>(it->second);
     else
         return "";
 }
 
 uint64_t GetTxMinFee(const TxType nTxType, int nHeight) {
-    const auto &iter = kTxTypeMap.find(nTxType);
+    const auto &iter = kTxFeeTable.find(nTxType);
     switch (GetFeatureForkVersion(nHeight)) {
         case MAJOR_VER_R1: // Prior-stablecoin Release
-            return iter != kTxTypeMap.end() ? std::get<1>(iter->second) : 0;
+            return iter != kTxFeeTable.end() ? std::get<1>(iter->second) : 0;
 
         case MAJOR_VER_R2:  // StableCoin Release
-            return iter != kTxTypeMap.end() ? std::get<2>(iter->second) : 0;
+            return iter != kTxFeeTable.end() ? std::get<2>(iter->second) : 0;
 
         default:
             return 10000; //10^-8 WICC
@@ -93,15 +93,15 @@ int32_t CBaseTx::GetFuelRate(CContractDBCache &scriptDB) {
 }
 
 bool CBaseTx::CheckTxFeeSufficient(const uint64_t llFees, const int32_t nHeight) const {
-    const auto &iter = kTxTypeMap.find(nTxType);
+    const auto &iter = kTxFeeTable.find(nTxType);
 
     switch (GetFeatureForkVersion(nHeight) ) {
 
         case MAJOR_VER_R1: // Prior-stablecoin Release
-            return iter != kTxTypeMap.end() ? (llFees >= std::get<1>(iter->second)) : true;
+            return iter != kTxFeeTable.end() ? (llFees >= std::get<1>(iter->second)) : true;
 
         case MAJOR_VER_R2:  // StableCoin Release
-            return iter != kTxTypeMap.end() ? (llFees >= std::get<2>(iter->second)) : true;
+            return iter != kTxFeeTable.end() ? (llFees >= std::get<2>(iter->second)) : true;
 
         default:
             return true;
