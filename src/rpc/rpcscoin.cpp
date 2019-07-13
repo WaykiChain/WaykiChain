@@ -342,10 +342,10 @@ Value getmedianprice(const Array& params, bool fHelp){
 Value listcdps(const Array& params, bool fHelp);
 Value listcdpstoliquidate(const Array& params, bool fHelp);
 
-Value getaccountcdp(const Array& params, bool fHelp){
+Value getusercdp(const Array& params, bool fHelp){
     if (fHelp || params.size() < 1 || params.size() > 2) {
         throw runtime_error(
-            "getaccountcdp \"addr\" \"cdp_id\" [height]\n"
+            "getusercdp \"addr\" \"cdp_id\" [height]\n"
             "\nget account's cdp.\n"
             "\nArguments:\n"
             "1.\"addr\": (string, required) cdp owner addr\n"
@@ -353,9 +353,9 @@ Value getaccountcdp(const Array& params, bool fHelp){
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("getaccountcdp", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"\n")
+            + HelpExampleCli("getusercdp", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getaccountcdp", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"\n")
+            + HelpExampleRpc("getusercdp", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"\n")
         );
     }
 
