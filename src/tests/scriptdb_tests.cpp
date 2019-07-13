@@ -54,12 +54,12 @@ void testscriptdb() {
 	CRegID regScriptId(vScriptId);
 	CRegID regScriptId1(vScriptId1);
 	//write script content to db
-	BOOST_CHECK(pTestView->SetScript(regScriptId, vScriptContent));
-	BOOST_CHECK(pTestView->SetScript(regScriptId1, vScriptContent1));
+	BOOST_CHECK(pTestView->SetContractScript(regScriptId, vScriptContent));
+	BOOST_CHECK(pTestView->SetContractScript(regScriptId1, vScriptContent1));
 	//write all data in caches to db
 	BOOST_CHECK(pTestView->Flush());
 	//test if the script id is exist in db
-	BOOST_CHECK(pTestView->HaveScript(regScriptId));
+	BOOST_CHECK(pTestView->HaveContractScript(regScriptId));
 	vector<unsigned char> vScript;
 	//read script content from db by scriptId
 	BOOST_CHECK(pTestView->GetContractScript(regScriptId, vScript));
@@ -82,7 +82,7 @@ void testscriptdb() {
 	BOOST_CHECK(vScriptId1 == regId.GetRegIdRaw());
 	BOOST_CHECK(vScriptContent1 == vScript);
 	//delete script from db
-	BOOST_CHECK(pTestView->EraseScript(regScriptId));
+	BOOST_CHECK(pTestView->EraseContractScript(regScriptId));
 	// BOOST_CHECK(pTestView->GetScriptCount(nCount));
 	BOOST_CHECK_EQUAL(nCount, 1);
 	//write all data in caches to db
@@ -287,7 +287,7 @@ void testscriptdatadb() {
 	BOOST_CHECK(pTestView->Flush());
 	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey1, vScriptData1, operlog));
 	//test if the script id is exist in db
-	BOOST_CHECK(pTestView->HaveScriptData(regScriptId, vScriptKey));
+	BOOST_CHECK(pTestView->HaveContractData(regScriptId, vScriptKey));
 	vScript.clear();
 
 

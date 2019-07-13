@@ -2010,7 +2010,7 @@ static int ExTransferContractAsset(lua_State *L)
     std::shared_ptr<CAppUserAccount> temp = std::make_shared<CAppUserAccount>();
     CContractDBCache* pContractScript = pVmRunEnv->GetScriptDB();
 
-    if (!pContractScript->GetScriptAcc(script, string(sendKey.begin(), sendKey.end()), *temp.get())) {
+    if (!pContractScript->GetContractAccount(script, string(sendKey.begin(), sendKey.end()), *temp.get())) {
         LUA_BurnAccountGet(L, FUEL_ACCTOUNT_UNCHANGED, BURN_VER_R2);
         return RetFalse(string(__FUNCTION__) + "para  err3 !");
     }

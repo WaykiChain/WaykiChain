@@ -288,7 +288,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid app regid");
     }
 
-    if (!pCdMan->pContractCache->HaveScript(recvRegId)) {
+    if (!pCdMan->pContractCache->HaveContractScript(recvRegId)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
     }
 
@@ -1060,7 +1060,7 @@ Value listcontracttx(const Array& params, bool fHelp)
         throw runtime_error("in listcontracttx: contractRegId size error!\n");
     }
 
-    if (!pCdMan->pContractCache->HaveScript(regId)) {
+    if (!pCdMan->pContractCache->HaveContractScript(regId)) {
         throw runtime_error("in listcontracttx: contractRegId does not exist!\n");
     }
 
@@ -1493,7 +1493,7 @@ Value getcontractinfo(const Array& params, bool fHelp) {
         throw runtime_error("in getcontractinfo: contract regid size invalid!\n");
     }
 
-    if (!pCdMan->pContractCache->HaveScript(regId)) {
+    if (!pCdMan->pContractCache->HaveContractScript(regId)) {
         throw runtime_error("in getcontractinfo: contract regid not exist!\n");
     }
 
@@ -1671,7 +1671,7 @@ Value getcontractdataraw(const Array& params, bool fHelp) {
     if (regId.IsEmpty())
         throw runtime_error("getcontractdataraw : app regid not supplied!");
 
-    if (!pCdMan->pContractCache->HaveScript(regId))
+    if (!pCdMan->pContractCache->HaveContractScript(regId))
         throw runtime_error("getcontractdataraw : app regid does NOT exist!");
 
     Object script;
@@ -1735,7 +1735,7 @@ Value getcontractdata(const Array& params, bool fHelp) {
         throw runtime_error("contract regid NOT supplied!");
     }
 
-    if (!pCdMan->pContractCache->HaveScript(regId)) {
+    if (!pCdMan->pContractCache->HaveContractScript(regId)) {
         throw runtime_error("contract regid NOT exist!");
     }
     Object script;
@@ -1811,7 +1811,7 @@ Value getcontractconfirmdata(const Array& params, bool fHelp) {
     if (regId.IsEmpty() == true)
         throw runtime_error("getcontractdata :appregid NOT found!");
 
-    if (!pAccountCache->HaveScript(regId))
+    if (!pAccountCache->HaveContractScript(regId))
         throw runtime_error("getcontractdata :appregid does NOT exist!");
 
     Object obj;
@@ -1897,7 +1897,7 @@ Value getcontractitemcount(const Array& params, bool fHelp) {
     if (regId.IsEmpty()) {
         throw runtime_error("contract RegId invalid!");
     }
-    if (!pCdMan->pContractCache->HaveScript(regId)) {
+    if (!pCdMan->pContractCache->HaveContractScript(regId)) {
         throw runtime_error("contract with the given RegId does NOT exist!");
     }
 
@@ -2071,7 +2071,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid app regid");
     }
 
-    if (!pCdMan->pContractCache->HaveScript(recvRegId)) {
+    if (!pCdMan->pContractCache->HaveContractScript(recvRegId)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
     }
 
@@ -2628,11 +2628,11 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
 
     std::shared_ptr<CAppUserAccount> appUserAccount = std::make_shared<CAppUserAccount>();
     if (params.size() == 3 && params[2].get_int() == 0) {
-        if (!mempool.memPoolContractCache->GetScriptAcc(appRegId, acctKey, *appUserAccount.get())) {
+        if (!mempool.memPoolContractCache->GetContractAccount(appRegId, acctKey, *appUserAccount.get())) {
             appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }
     } else {
-        if (!pCdMan->pContractCache->GetScriptAcc(appRegId, acctKey, *appUserAccount.get())) {
+        if (!pCdMan->pContractCache->GetContractAccount(appRegId, acctKey, *appUserAccount.get())) {
             appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }
     }
@@ -2673,7 +2673,7 @@ Value listcontractassets(const Array& params, bool fHelp) {
             string key = keyId.ToAddress();
 
             std::shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
-            if (!contractScriptTemp.GetScriptAcc(script, key, *tem.get())) {
+            if (!contractScriptTemp.GetContractAccount(script, key, *tem.get())) {
                 tem = std::make_shared<CAppUserAccount>(key);
             }
             tem.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
@@ -2733,7 +2733,7 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
     if (contractRegId.IsEmpty())
         throw runtime_error("in getcontractkeyvalue: contract regid size is error!\n");
 
-    if (!pCdMan->pContractCache->HaveScript(contractRegId))
+    if (!pCdMan->pContractCache->HaveContractScript(contractRegId))
         throw runtime_error("in getcontractkeyvalue: contract regid not exist!\n");
 
     Array retArray;
@@ -2845,7 +2845,7 @@ Value gettotalassets(const Array& params, bool fHelp) {
     if (regId.IsEmpty() == true)
         throw runtime_error("contract regid invalid!\n");
 
-    if (!pCdMan->pContractCache->HaveScript(regId))
+    if (!pCdMan->pContractCache->HaveContractScript(regId))
         throw runtime_error("contract regid not exist!\n");
 
     Object obj;

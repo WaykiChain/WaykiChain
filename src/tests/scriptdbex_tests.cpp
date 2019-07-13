@@ -65,7 +65,7 @@ void CContractDBTest::CheckReadData(CContractDBCache* pViewCache) {
 	vector<unsigned char> vScriptContent;
 	for (const auto& item : mapScript) {
 		CRegID regId(item.first);
-		BOOST_CHECK(pViewCache->HaveScript(regId));
+		BOOST_CHECK(pViewCache->HaveContractScript(regId));
 		BOOST_CHECK(pViewCache->GetContractScript(regId, vScriptContent));
 		BOOST_CHECK(vScriptContent == item.second);
 	}
@@ -75,7 +75,7 @@ void CContractDBTest::InsertData(CContractDBCache* pViewCache) {
 	BOOST_CHECK(pViewCache);
 	for (const auto& item : mapScript) {
 		CRegID regId(item.first);
-		BOOST_CHECK(pViewCache->SetScript(regId, item.second));
+		BOOST_CHECK(pViewCache->SetContractScript(regId, item.second));
 	}
 }
 
@@ -107,7 +107,7 @@ void CContractDBTest::EraseData(CContractDBCache* pViewCache) {
 	BOOST_CHECK(pViewCache);
 	for (const auto& item:mapScript) {
 		CRegID regId(item.first);
-		BOOST_CHECK(pViewCache->EraseScript(regId));
+		BOOST_CHECK(pViewCache->EraseContractScript(regId));
 	}
 }
 

@@ -56,15 +56,15 @@ public:
     bool GetContractScript(const CRegID &scriptId, string &value);
     bool GetContractScript(const int nIndex, CRegID &scriptId, string &value);
 
-    bool GetScriptAcc(const CRegID &scriptId, const string &key, CAppUserAccount &appAccOut);
-    bool SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn, CDBOpLogMap &dbOpLogMap);
-    bool UndoScriptAcc(CDBOpLogMap &dbOpLogMap);
+    bool GetContractAccount(const CRegID &scriptId, const string &key, CAppUserAccount &appAccOut);
+    bool SetContractAccount(const CRegID &scriptId, const CAppUserAccount &appAccIn, CDBOpLogMap &dbOpLogMap);
+    bool UndoContractAccount(CDBOpLogMap &dbOpLogMap);
 
-    bool SetScript(const CRegID &scriptId, const string &value);
-    bool HaveScript(const CRegID &scriptId);
-    bool EraseScript(const CRegID &scriptId);
+    bool SetContractScript(const CRegID &scriptId, const string &value);
+    bool HaveContractScript(const CRegID &scriptId);
+    bool EraseContractScript(const CRegID &scriptId);
     bool GetContractItemCount(const CRegID &scriptId, int &nCount);
-    bool HaveScriptData(const CRegID &scriptId, const string &contractKey);
+    bool HaveContractData(const CRegID &scriptId, const string &contractKey);
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const string &contractKey,
                          string &vScriptData);
     bool GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex, string &contractKey,
@@ -139,19 +139,19 @@ private:
      * @param vValue
      * @return true if save succeed, otherwise false
      */
-    bool SetScript(const string &contractRegId, const string &value);
+    bool SetContractScript(const string &contractRegId, const string &value);
     /**
      * @brief Detect if scriptdb contains the script by scriptid
      * @param vScriptId
      * @return true if contains script, otherwise false
      */
-    bool HaveScript(const string &vScriptId);
+    bool HaveContractScript(const string &vScriptId);
     /**
      * @brief Delete script from script db by scriptId
      * @param vScriptId
      * @return true if delete succeed, otherwise false
      */
-    bool EraseScript(const string &vScriptId);
+    bool EraseContractScript(const string &vScriptId);
     /**
      * @brief Get total number of contract data elements in contract db
      * @param vScriptId
@@ -182,7 +182,7 @@ private:
      * @param vScriptKey must be 8 bytes
      * @return true if contains the item, otherwise false
      */
-    bool HaveScriptData(const string &contractRegId, const string &contractKey);
+    bool HaveContractData(const string &contractRegId, const string &contractKey);
     /**
      * @brief Get smart contract App data and valid height by scriptid and scriptkey
      * @param vScriptId

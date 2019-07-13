@@ -143,7 +143,7 @@ string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {
 Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    IMPLEMENT_PUSH_BASE_TX_JSON(accountCache);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
 
     Array pricePointArray;
     for (auto it = mapMedianPricePoints.begin(); it != mapMedianPricePoints.end(); ++it) {
@@ -152,7 +152,7 @@ Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {
         subItem.push_back(Pair("price_type",    it->first.priceType));
         subItem.push_back(Pair("price",         it->second));
         pricePointArray.push_back(subItem);
-    };
+    }
     result.push_back(Pair("median_price_points",   pricePointArray));
 
     return result;

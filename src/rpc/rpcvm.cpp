@@ -202,7 +202,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     CContractInvokeTx contractInvokeTx;
 
     {
-        if (!spCW->contractCache.HaveScript(appId)) {
+        if (!spCW->contractCache.HaveContractScript(appId)) {
             throw runtime_error(tinyformat::format("AppId %s is not exist\n", appId.ToString()));
         }
         contractInvokeTx.nTxType      = CONTRACT_INVOKE_TX;
