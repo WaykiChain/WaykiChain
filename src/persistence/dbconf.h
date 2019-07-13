@@ -64,10 +64,9 @@ namespace dbk {
     //               ----------    ------------ -------------  -----------------------------------
     #define DBK_PREFIX_LIST(DEFINE) \
         DEFINE( EMPTY,                "",      DB_NAME_NONE )  /* empty prefix  */ \
-
-        /**** single-value sys_conf db (global parameters)                       */ \
+        /*                                                                      */ \
+        /**** single-value sys_conf db (global parameters)                      */ \
         DEFINE( CONF,                 "conf",  SYSCONF )       /* conf{$ParamName} --> $ParamValue */ \
-
         /**** block db                                                                         */ \
         DEFINE( BLOCK_INDEX,          "bidx",  BLOCK )         /* pbfl --> $nFile */ \
         DEFINE( BLOCKFILE_NUM_INFO,   "bfni",  BLOCK )         /* BlockFileNum --> $BlockFileInfo */ \
