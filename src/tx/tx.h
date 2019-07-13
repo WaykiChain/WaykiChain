@@ -257,9 +257,11 @@ public:
                          "bad-tx-signature");                                                                   \
     }
 
-#define IMPLEMENT_PUSH_BASE_TX_JSON(accountCache)                                               \
+#define IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)                                          \
     CKeyID srcKeyId;                                                                            \
-    if(!accountCache.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }       \
+    if (!accountCache.GetKeyId(txUid, srcKeyId)) {                                              \
+        assert(false && "GetKeyId() failed");                                                   \
+    }                                                                                           \
     result.push_back(Pair("hash",           GetHash().GetHex()));                               \
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));                               \
     result.push_back(Pair("ver",            nVersion));                                         \

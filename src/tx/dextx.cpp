@@ -354,7 +354,7 @@ string CDEXBuyMarketOrderTx::ToString(CAccountDBCache &view) {
 Object CDEXBuyMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    IMPLEMENT_PUSH_BASE_TX_JSON(accountCache);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
 
     result.push_back(Pair("coin_type",      GetCoinTypeName(coinType)));
     result.push_back(Pair("asset_type",     GetCoinTypeName(assetType)));
@@ -502,7 +502,7 @@ string CDEXSellMarketOrderTx::ToString(CAccountDBCache &view) {
 Object CDEXSellMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    IMPLEMENT_PUSH_BASE_TX_JSON(accountCache);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
 
     result.push_back(Pair("coin_type",      GetCoinTypeName(coinType)));
     result.push_back(Pair("asset_type",     GetCoinTypeName(assetType)));
@@ -646,7 +646,7 @@ string CDEXCancelOrderTx::ToString(CAccountDBCache &view) {
 Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    IMPLEMENT_PUSH_BASE_TX_JSON(accountCache);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
 
     result.push_back(Pair("order_id",       orderId.GetHex()));
 
@@ -831,7 +831,7 @@ string CDEXSettleTx::ToString(CAccountDBCache &view) {
 Object CDEXSettleTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    IMPLEMENT_PUSH_BASE_TX_JSON(accountCache);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
 
     Array arrayItems;
     for (const auto &item : dealItems) {

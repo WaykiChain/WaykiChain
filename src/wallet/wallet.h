@@ -74,24 +74,24 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
-            LOCK(cs_wallet);
-            {
-                READWRITE(nWalletVersion);
-                READWRITE(bestBlock);
-                READWRITE(mapMasterKeys);
-                READWRITE(mapInBlockTx);
-                READWRITE(unconfirmedTx);
-                uint256 sun;
-                if(fWrite){
-                 sun = GetCheckSum();
-                }
-                READWRITE(sun);
-                if(fRead) {
-                    if(sun != GetCheckSum()) {
-                        throw "wallet file Invalid";
-                    }
+        LOCK(cs_wallet);
+        {
+            READWRITE(nWalletVersion);
+            READWRITE(bestBlock);
+            READWRITE(mapMasterKeys);
+            READWRITE(mapInBlockTx);
+            READWRITE(unconfirmedTx);
+            uint256 sun;
+            if (fWrite){
+                sun = GetCheckSum();
+            }
+            READWRITE(sun);
+            if (fRead) {
+                if (sun != GetCheckSum()) {
+                    throw "wallet file Invalid";
                 }
             }
+        }
     )
     virtual ~CWallet(){};
     int64_t GetFreeBcoins(bool isConfirmed = true) const;
