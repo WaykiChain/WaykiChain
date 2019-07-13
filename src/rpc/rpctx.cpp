@@ -2465,12 +2465,11 @@ Value decodetxraw(const Array& params, bool fHelp) {
         return obj;
     }
 
-    CAccountDBCache view(*pCdMan->pAccountCache);
     switch (pBaseTx.get()->nTxType) {
         case BCOIN_TRANSFER_TX: {
             std::shared_ptr<CBaseCoinTransferTx> tx = std::make_shared<CBaseCoinTransferTx>(pBaseTx.get());
             if (tx.get()) {
-                obj = tx->ToJson(view);
+                obj = tx->ToJson(*pCdMan->pAccountCache);
             }
             break;
         }
@@ -2478,21 +2477,21 @@ Value decodetxraw(const Array& params, bool fHelp) {
             std::shared_ptr<CAccountRegisterTx> tx =
                 std::make_shared<CAccountRegisterTx>(pBaseTx.get());
             if (tx.get()) {
-                obj = tx->ToJson(view);
+                obj = tx->ToJson(*pCdMan->pAccountCache);
             }
             break;
         }
         case CONTRACT_INVOKE_TX: {
             std::shared_ptr<CContractInvokeTx> tx = std::make_shared<CContractInvokeTx>(pBaseTx.get());
             if (tx.get()) {
-                obj = tx->ToJson(view);
+                obj = tx->ToJson(*pCdMan->pAccountCache);
             }
             break;
         }
         case BLOCK_REWARD_TX: {
             std::shared_ptr<CBlockRewardTx> tx = std::make_shared<CBlockRewardTx>(pBaseTx.get());
             if (tx.get()) {
-                obj = tx->ToJson(view);
+                obj = tx->ToJson(*pCdMan->pAccountCache);
             }
             break;
         }
@@ -2500,21 +2499,29 @@ Value decodetxraw(const Array& params, bool fHelp) {
             std::shared_ptr<CContractDeployTx> tx =
                 std::make_shared<CContractDeployTx>(pBaseTx.get());
             if (tx.get()) {
-                obj = tx->ToJson(view);
+                obj = tx->ToJson(*pCdMan->pAccountCache);
             }
             break;
         }
         case DELEGATE_VOTE_TX: {
             std::shared_ptr<CDelegateVoteTx> tx = std::make_shared<CDelegateVoteTx>(pBaseTx.get());
             if (tx.get()) {
-                obj = tx->ToJson(view);
+                obj = tx->ToJson(*pCdMan->pAccountCache);
             }
             break;
         }
         case COMMON_MTX: {
             std::shared_ptr<CMulsigTx> tx = std::make_shared<CMulsigTx>(pBaseTx.get());
             if (tx.get()) {
-                obj = tx->ToJson(view);
+                obj = tx->ToJson(*pCdMan->pAccountCache);
+            }
+            break;
+        }
+
+        case CDP_STAKE_TX: {
+            std::shared_ptr<CCDPStakeTx> tx = std::make_shared<CCDPStakeTx>(pBaseTx.get());
+            if (tx.get()) {
+                obj = tx->ToJson(*pCdMan->pAccountCache);
             }
             break;
         }
