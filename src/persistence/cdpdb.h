@@ -144,47 +144,13 @@ public:
     bool UndoCdp(CDBOpLogMap &dbOpLogMap) { return cdpCache.UndoData(dbOpLogMap);  }
 
     uint64_t ComputeInterest(const int32_t blockHeight, const CUserCDP &cdp);
-    bool CheckGlobalCollateralFloorReached(const uint64_t bcoinMedianPrice);
-    bool CheckGlobalCollateralCeilingReached(const uint64_t newBcoinsToStake);
-
-    uint16_t GetStartingCollateralRatio() {
-        uint16_t ratio = 0;
-        return collateralRatio.GetData(ratio) ? ratio : kStartingCdpCollateralRatio;
-    }
-    uint16_t GetStartingLiquidateRatio() {
-        uint16_t ratio = 0;
-        return openLiquidateRatio.GetData(ratio) ? ratio : kStartingCdpLiquidateRatio;
-    }
-    uint16_t GetDefaultForceLiquidateRatio() {
-        uint16_t ratio = 0;
-        return forceLiquidateRatio.GetData(ratio) ? ratio : kForcedCdpLiquidateRatio;
-    }
-    uint16_t GetDefaultInterestParamA() {
-        uint16_t paramA = 0;
-        return interestParamA.GetData(paramA) ? paramA : 2;
-    }
-    uint16_t GetDefaultInterestParamB() {
-        uint16_t paramB = 0;
-        return interestParamB.GetData(paramB) ? paramB : 1;
-    }
+    bool CheckGlobalCollateralFloorReached(const uint64_t& bcoinMedianPrice, const uint16_t& kGlobalCollateralRatioLimit);
+    bool CheckGlobalCollateralCeilingReached(const uint64_t& newBcoinsToStake, const uint16_t& kGlobalCollateralCeiling);
 
 public:
     CCdpMemCache cdpMemCache;
 
 private:
-
-/*   CDBScalarValueCache   prefixType                 value                 variable               */
-/*  -------------------- --------------------------  ------------------   ------------------------ */
-    // collateralRatio
-    CDBScalarValueCache< dbk::CDP_COLLATERAL_RATIO,  uint16_t>           collateralRatio;
-    // openLiquidateRatio
-    CDBScalarValueCache< dbk::CDP_OPEN_LIQUIDATE_RATIO, uint16_t>        openLiquidateRatio;
-    // forceLiquidateRatio
-    CDBScalarValueCache< dbk::CDP_FORCE_LIQUIDATE_RATIO, uint16_t>       forceLiquidateRatio;
-    // interestParamA
-    CDBScalarValueCache< dbk::CDP_IR_PARAM_A,        uint16_t>           interestParamA;
-    // interestParamB
-    CDBScalarValueCache< dbk::CDP_IR_PARAM_B,        uint16_t>           interestParamB;
 
 /*  CDBMultiValueCache     prefixType     key                               value        variable  */
 /*  ----------------   --------------   ---------------------------   ---------------    --------- */
