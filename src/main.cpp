@@ -697,6 +697,7 @@ int GetTxConfirmHeight(const uint256 &hash, CContractDBCache &scriptDBCache) {
             return header.GetHeight();
         }
     }
+
     return -1;
 }
 

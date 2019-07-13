@@ -190,6 +190,7 @@ bool CContractDeployTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState
                          REJECT_INVALID, "fee-too-litter-to-afford-fuel");
     }
 
+    // If valid height range changed little enough(i.e. 3 blocks), remove it.
     if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2) {
         unsigned int nTxSize = ::GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
         double dFeePerKb     = double(llFees - llFuel) / (double(nTxSize) / 1000.0);
@@ -199,6 +200,7 @@ bool CContractDeployTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState
                              REJECT_INVALID, "fee-too-litter-in-fees/Kb");
         }
     }
+
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, get account failed"),

@@ -79,7 +79,7 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     if (pBlockIndex->pprev) result.push_back(Pair("previous_block_hash", pBlockIndex->pprev->GetBlockHash().GetHex()));
     CBlockIndex* pNext = chainActive.Next(pBlockIndex);
     if (pNext) result.push_back(Pair("next_block_hash", pNext->GetBlockHash().GetHex()));
-    
+
     Array prices;
     if (block.vptx.size() > 1 && block.vptx[1]->nTxType == BLOCK_PRICE_MEDIAN_TX) {
         map<CCoinPriceType, uint64_t> mapMedianPricePoints = ((CBlockPriceMedianTx*)block.vptx[1].get())->GetMedianPrice();
@@ -366,20 +366,20 @@ Value getcontractregid(const Array& params, bool fHelp)
         throw runtime_error("getcontractregid \n"
             "\nreturn an object with regid\n"
             "\nArguments:\n"
-            "1. txhash   (string, required) the contract registration txid.\n"
+            "1. txid   (string, required) the contract registration txid.\n"
             "\nResult:\n"
             "\nExamples:\n"
             + HelpExampleRpc("getcontractregid", "5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG"));
     }
 
-    uint256 txhash(uint256S(params[0].get_str()));
+    uint256 txid(uint256S(params[0].get_str()));
 
     int nIndex = 0;
-    int nBlockHeight = GetTxConfirmHeight(txhash, *pCdMan->pContractCache);
+    int nBlockHeight = GetTxConfirmHeight(txid, *pCdMan->pContractCache);
     if (nBlockHeight > chainActive.Height()) {
         throw runtime_error("height bigger than tip block");
     } else if (-1 == nBlockHeight) {
-        throw runtime_error("tx hash unconfirmed");
+        throw runtime_error("tx unconfirmed");
     }
     CBlockIndex* pIndex = chainActive[nBlockHeight];
     CBlock block;
@@ -387,7 +387,7 @@ Value getcontractregid(const Array& params, bool fHelp)
         return false;
 
     block.BuildMerkleTree();
-    std::tuple<bool,int> ret = block.GetTxIndex(txhash);
+    std::tuple<bool,int> ret = block.GetTxIndex(txid);
     if (!std::get<0>(ret)) {
         throw runtime_error("tx not exit in block");
     }

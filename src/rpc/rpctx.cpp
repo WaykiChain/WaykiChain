@@ -319,7 +319,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
 Value registercontracttx(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 3 || params.size() > 5) {
-        throw runtime_error("registercontracttx \"addr\" \"filepath\"\"fee\" (\"height\") (\"appdesc\")\n"
+        throw runtime_error("registercontracttx \"addr\" \"filepath\" \"fee\" (\"height\") (\"appdesc\")\n"
             "\ncreate a transaction of registering a contract app\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) contract owner address from this wallet\n"
