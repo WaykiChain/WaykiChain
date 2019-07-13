@@ -1383,10 +1383,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         vector<string> txids = IniCfg().GetStableCoinGenesisTxid(SysCfg().NetworkID());
         assert(txids.size() == 3);
         for (uint8_t index = 0; index < 3; ++ index) {
-            LogPrint("INFO", "stable coin genesis block, txid actual: %s, should be: %s, tx type: %d\n",
-                     block.vptx[index + 1]->GetHash().GetHex(), txids[index], block.vptx[index + 1]->nTxType);
-            // assert(block.vptx[index + 1]->nTxType == UCOIN_REWARD_TX);
-            // assert(block.vptx[index + 1]->GetHash() == uint256S(txids[index]));
+            LogPrint("INFO", "stable coin genesis block, txid actual: %s, should be: %s, in detail: %s\n",
+                     block.vptx[index + 1]->GetHash().GetHex(), txids[index],
+                     block.vptx[index + 1]->ToString(cw.accountCache));
+            assert(block.vptx[index + 1]->nTxType == UCOIN_REWARD_TX);
+            assert(block.vptx[index + 1]->GetHash() == uint256S(txids[index]));
         }
     }
 

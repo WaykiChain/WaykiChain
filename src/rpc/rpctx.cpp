@@ -288,7 +288,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid app regid");
     }
 
-    if (!pCdMan->pContractCache->HaveScript(recvRegId)) {
+    if (!pCdMan->pContractCache->HaveContractScript(recvRegId)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
     }
 
@@ -370,7 +370,7 @@ Value registercontracttx(const Array& params, bool fHelp)
 
     // allocate memory to contain the whole file:
     char *buffer = (char*) malloc(sizeof(char) * lSize);
-    if (buffer == NULL) {
+    if (buffer == nullptr) {
         fclose(file);
         throw runtime_error("allocate memory failed");
     }
@@ -785,7 +785,7 @@ Value listtransactions(const Array& params, bool fHelp) {
     map<int, uint256, std::greater<int> > blockInfoMap;
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         CBlockIndex *pIndex = mapBlockIndex[wtx.first];
-        if (pIndex != NULL)
+        if (pIndex != nullptr)
             blockInfoMap.insert(make_pair(pIndex->nHeight, wtx.first));
     }
 
@@ -1060,7 +1060,7 @@ Value listcontracttx(const Array& params, bool fHelp)
         throw runtime_error("in listcontracttx: contractRegId size error!\n");
     }
 
-    if (!pCdMan->pContractCache->HaveScript(regId)) {
+    if (!pCdMan->pContractCache->HaveContractScript(regId)) {
         throw runtime_error("in listcontracttx: contractRegId does not exist!\n");
     }
 
@@ -1085,7 +1085,7 @@ Value listcontracttx(const Array& params, bool fHelp)
     map<int, uint256, std::greater<int> > blockInfoMap;
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         CBlockIndex *pIndex = mapBlockIndex[wtx.first];
-        if (pIndex != NULL)
+        if (pIndex != nullptr)
             blockInfoMap.insert(make_pair(pIndex->nHeight, wtx.first));
     }
 
@@ -1159,13 +1159,12 @@ if (fHelp || params.size() > 2) {
     }
     assert(pWalletMain != nullptr);
 
-    //Object Inblockobj;
-    Array ConfirmTxArry;
+    Array confirmedTxArray;
     int nCount = 0;
     map<int, uint256, std::greater<int> > blockInfoMap;
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         CBlockIndex *pIndex = mapBlockIndex[wtx.first];
-        if (pIndex != NULL)
+        if (pIndex != nullptr)
             blockInfoMap.insert(make_pair(pIndex->nHeight, wtx.first));
     }
     bool bUpLimited = false;
@@ -1178,20 +1177,20 @@ if (fHelp || params.size() > 2) {
                 bUpLimited = true;
                 break;
             }
-            //Inblockobj.push_back(Pair("tx", item.first.GetHex()));
-            ConfirmTxArry.push_back(item.first.GetHex());
+            confirmedTxArray.push_back(item.first.GetHex());
         }
         if (bUpLimited) {
             break;
         }
     }
-    retObj.push_back(Pair("ConfirmTx", ConfirmTxArry));
-    //CAccountDBCache view(*pCdMan->pAccountCache);
-    Array UnConfirmTxArry;
-    for (auto const &wtx : pWalletMain->unconfirmedTx) {
-        UnConfirmTxArry.push_back(wtx.first.GetHex());
+    retObj.push_back(Pair("confirmed_tx", confirmedTxArray));
+
+    Array unconfirmedTxArray;
+    for (auto const &tx : pWalletMain->unconfirmedTx) {
+        unconfirmedTxArray.push_back(tx.first.GetHex());
     }
-    retObj.push_back(Pair("unconfirmedTx", UnConfirmTxArry));
+    retObj.push_back(Pair("unconfirmed_tx", unconfirmedTxArray));
+
     return retObj;
 }
 
@@ -1269,12 +1268,14 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
     }
 
     Object retObj;
-    CAccountDBCache view(*pCdMan->pAccountCache);
-    Array UnConfirmTxArry;
-    for (auto const &wtx : pWalletMain->unconfirmedTx) {
-        UnConfirmTxArry.push_back(wtx.second.get()->ToString(view));
+    Array unconfirmedTxArray;
+
+    for (auto const& tx : pWalletMain->unconfirmedTx) {
+        unconfirmedTxArray.push_back(tx.first.GetHex());
     }
-    retObj.push_back(Pair("unconfirmedTx", UnConfirmTxArry));
+
+    retObj.push_back(Pair("unconfirmed_tx", unconfirmedTxArray));
+
     return retObj;
 }
 
@@ -1414,7 +1415,7 @@ Value resetclient(const Array& params, bool fHelp) {
         assert(pCdMan->pTxCache->GetSize() == 0);
 */
         CBlock firs = SysCfg().GenesisBlock();
-        pWalletMain->SyncTransaction(uint256(), NULL, &firs);
+        pWalletMain->SyncTransaction(uint256(), nullptr, &firs);
         mempool.Clear();
     } else {
         throw JSONRPCError(RPC_WALLET_ERROR, "restclient Error: Reset failed.");
@@ -1440,42 +1441,36 @@ Value listcontracts(const Array& params, bool fHelp) {
     Object obj;
     Array arrayScript;
 
-    if (pCdMan->pContractCache != NULL) {
-        int nCount(0);
-        if (!pCdMan->pContractCache->GetScriptCount(nCount))
-            throw JSONRPCError(RPC_DATABASE_ERROR, "get contract error: cannot get registered contract number.");
-        CRegID regId;
-        string contractScript;
-        Object script;
-        if (!pCdMan->pContractCache->GetScript(0, regId, contractScript))
-            throw JSONRPCError(RPC_DATABASE_ERROR, "get contract error: cannot get registered contract.");
-        script.push_back(Pair("contract_regid", regId.ToString()));
+    CRegID regId;
+    string contractScript;
+    Object script;
+    if (!pCdMan->pContractCache->GetContractScript(0, regId, contractScript))
+        throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to get registered contract.");
+    script.push_back(Pair("contract_regid", regId.ToString()));
+    CDataStream ds(contractScript, SER_DISK, CLIENT_VERSION);
+    CVmScript vmScript;
+    ds >> vmScript;
+    script.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
+
+    if (showDetail)
+        script.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
+
+    arrayScript.push_back(script);
+    while (pCdMan->pContractCache->GetContractScript(1, regId, contractScript)) {
+        Object obj;
+        obj.push_back(Pair("contract_regid", regId.ToString()));
         CDataStream ds(contractScript, SER_DISK, CLIENT_VERSION);
         CVmScript vmScript;
         ds >> vmScript;
-        // string strDes(vmScript.GetMemo().begin(), vmScript.GetMemo()->end());
-        script.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
-
+        obj.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
         if (showDetail)
-            script.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
+            obj.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
 
-        arrayScript.push_back(script);
-        while (pCdMan->pContractCache->GetScript(1, regId, contractScript)) {
-            Object obj;
-            obj.push_back(Pair("contract_regid", regId.ToString()));
-            CDataStream ds(contractScript, SER_DISK, CLIENT_VERSION);
-            CVmScript vmScript;
-            ds >> vmScript;
-            // string strDes(vmScript.GetMemo().begin(), vmScript.GetMemo().end());
-            obj.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
-            if (showDetail)
-                obj.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
-
-            arrayScript.push_back(obj);
-        }
+        arrayScript.push_back(obj);
     }
 
     obj.push_back(Pair("contracts", arrayScript));
+
     return obj;
 }
 
@@ -1498,12 +1493,12 @@ Value getcontractinfo(const Array& params, bool fHelp) {
         throw runtime_error("in getcontractinfo: contract regid size invalid!\n");
     }
 
-    if (!pCdMan->pContractCache->HaveScript(regId)) {
+    if (!pCdMan->pContractCache->HaveContractScript(regId)) {
         throw runtime_error("in getcontractinfo: contract regid not exist!\n");
     }
 
     string contractScript;
-    if (!pCdMan->pContractCache->GetScript(regId, contractScript)) {
+    if (!pCdMan->pContractCache->GetContractScript(regId, contractScript)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "get script error: cannot get registered script.");
     }
 
@@ -1532,17 +1527,13 @@ Value getaddrbalance(const Array& params, bool fHelp) {
     if (!GetKeyId(params[0].get_str(), keyId))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
 
-    double dbalance = 0.0;
-    {
-        LOCK(cs_main);
-        CAccountDBCache accView(*pCdMan->pAccountCache);
-        CAccount secureAcc;
-        CUserID userId = keyId;
-        if (pCdMan->pAccountCache->GetAccount(userId, secureAcc)) {
-            dbalance = (double) secureAcc.GetFreeBcoins() / (double) COIN;
-        }
+    double balance = 0.0;
+    CAccount account;
+    if (pCdMan->pAccountCache->GetAccount(keyId, account)) {
+        balance = (double)account.GetFreeBcoins() / (double)COIN;
     }
-    return dbalance;
+
+    return balance;
 }
 
 Value generateblock(const Array& params, bool fHelp) {
@@ -1623,7 +1614,7 @@ Value reloadtxcache(const Array& params, bool fHelp) {
 
         pCdMan->pTxCache->AddBlockToCache(block);
         pIndex = chainActive.Next(pIndex);
-    } while (NULL != pIndex);
+    } while (nullptr != pIndex);
 
     Object obj;
     obj.push_back(Pair("info", "reload tx cache succeed"));
@@ -1680,7 +1671,7 @@ Value getcontractdataraw(const Array& params, bool fHelp) {
     if (regId.IsEmpty())
         throw runtime_error("getcontractdataraw : app regid not supplied!");
 
-    if (!pCdMan->pContractCache->HaveScript(regId))
+    if (!pCdMan->pContractCache->HaveContractScript(regId))
         throw runtime_error("getcontractdataraw : app regid does NOT exist!");
 
     Object script;
@@ -1744,7 +1735,7 @@ Value getcontractdata(const Array& params, bool fHelp) {
         throw runtime_error("contract regid NOT supplied!");
     }
 
-    if (!pCdMan->pContractCache->HaveScript(regId)) {
+    if (!pCdMan->pContractCache->HaveContractScript(regId)) {
         throw runtime_error("contract regid NOT exist!");
     }
     Object script;
@@ -1820,7 +1811,7 @@ Value getcontractconfirmdata(const Array& params, bool fHelp) {
     if (regId.IsEmpty() == true)
         throw runtime_error("getcontractdata :appregid NOT found!");
 
-    if (!pAccountCache->HaveScript(regId))
+    if (!pAccountCache->HaveContractScript(regId))
         throw runtime_error("getcontractdata :appregid does NOT exist!");
 
     Object obj;
@@ -1906,7 +1897,7 @@ Value getcontractitemcount(const Array& params, bool fHelp) {
     if (regId.IsEmpty()) {
         throw runtime_error("contract RegId invalid!");
     }
-    if (!pCdMan->pContractCache->HaveScript(regId)) {
+    if (!pCdMan->pContractCache->HaveContractScript(regId)) {
         throw runtime_error("contract with the given RegId does NOT exist!");
     }
 
@@ -2080,7 +2071,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid app regid");
     }
 
-    if (!pCdMan->pContractCache->HaveScript(recvRegId)) {
+    if (!pCdMan->pContractCache->HaveContractScript(recvRegId)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
     }
 
@@ -2149,7 +2140,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
 
     // allocate memory to contain the whole file:
     char *buffer = (char*) malloc(sizeof(char) * lSize);
-    if (buffer == NULL) {
+    if (buffer == nullptr) {
         fclose(file);
         throw runtime_error("allocate memory failed");
     }
@@ -2637,11 +2628,11 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
 
     std::shared_ptr<CAppUserAccount> appUserAccount = std::make_shared<CAppUserAccount>();
     if (params.size() == 3 && params[2].get_int() == 0) {
-        if (!mempool.memPoolContractCache->GetScriptAcc(appRegId, acctKey, *appUserAccount.get())) {
+        if (!mempool.memPoolContractCache->GetContractAccount(appRegId, acctKey, *appUserAccount.get())) {
             appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }
     } else {
-        if (!pCdMan->pContractCache->GetScriptAcc(appRegId, acctKey, *appUserAccount.get())) {
+        if (!pCdMan->pContractCache->GetContractAccount(appRegId, acctKey, *appUserAccount.get())) {
             appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }
     }
@@ -2682,7 +2673,7 @@ Value listcontractassets(const Array& params, bool fHelp) {
             string key = keyId.ToAddress();
 
             std::shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
-            if (!contractScriptTemp.GetScriptAcc(script, key, *tem.get())) {
+            if (!contractScriptTemp.GetContractAccount(script, key, *tem.get())) {
                 tem = std::make_shared<CAppUserAccount>(key);
             }
             tem.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
@@ -2742,7 +2733,7 @@ Value getcontractkeyvalue(const Array& params, bool fHelp) {
     if (contractRegId.IsEmpty())
         throw runtime_error("in getcontractkeyvalue: contract regid size is error!\n");
 
-    if (!pCdMan->pContractCache->HaveScript(contractRegId))
+    if (!pCdMan->pContractCache->HaveContractScript(contractRegId))
         throw runtime_error("in getcontractkeyvalue: contract regid not exist!\n");
 
     Array retArray;
@@ -2854,7 +2845,7 @@ Value gettotalassets(const Array& params, bool fHelp) {
     if (regId.IsEmpty() == true)
         throw runtime_error("contract regid invalid!\n");
 
-    if (!pCdMan->pContractCache->HaveScript(regId))
+    if (!pCdMan->pContractCache->HaveContractScript(regId))
         throw runtime_error("contract regid not exist!\n");
 
     Object obj;

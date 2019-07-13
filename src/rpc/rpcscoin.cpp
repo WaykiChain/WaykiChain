@@ -49,7 +49,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
     EnsureWalletIsUnlocked();
 
     Array arrPricePoints    = params[1].get_array();
-    uint64_t fee    = 0;
+    uint64_t fee = 0;
     if (params.size() == 3) {
         fee = params[2].get_uint64();  // real type, 0 if empty and thence minFee
     }
@@ -97,32 +97,27 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
     if (!feedUid) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
+    
     int validHeight = chainActive.Tip()->nHeight;
-    if (fee == 0)
-        fee = GetTxMinFee(TxType::PRICE_FEED_TX, validHeight);
-
     CPriceFeedTx tx(*feedUid, validHeight, fee, pricePoints);
     return SubmitTx(*feedUid, tx);
 }
 
 Value submitstakefcointx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 5 || params.size() > 7) {
+    if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
             "submitstakefcointx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
-            "\nsubmit a dex buy limit price order tx.\n"
+            "\nsubmit a fcoin stake order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
-            "2.\"coin_type\": (string required) coin type to pay\n"
-            "3.\"asset_type\": (string required), asset type to buy\n"
-            "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
-            "5.\"price\": (numeric, required) bidding price willing to buy\n"
-            "6.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
+            "2.\"asset_amount\": (numeric, required) amount of target asset to stake\n"
+            "3.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
             "\nResult description:\n"
             "\nResult: {tx_hash}\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitstakefcointx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + HelpExampleCli("submitstakefcointx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitstakefcointx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + HelpExampleRpc("submitstakefcointx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 200000000\n")
         );
     }
 
@@ -133,15 +128,25 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
-    //TODO below
-    // int validHeight = chainActive.Tip()->nHeight;
-    // CCDPStakeTx tx(pUserId, feesIn, validHeightIn,
-    //             uint256 cdpTxIdIn, uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn,
-    //             uint64_t scoinsInterestIn);
+    CAccount txAccount;
+    if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                            strprintf("The account not exists! userId=%s", pUserId->ToString()));
+    }
 
-    // return SubmitTx(pUserId, tx);
-    return true;
+    uint64_t stakeAmount = params[1].get_uint64();
+    if (txAccount.GetFreeFcoins() < stakeAmount) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough fcoins");
+    }
 
+    uint64_t fee = 0;
+    if (params.size() > 2) {
+        fee = AmountToRawValue(params[2]);
+    }
+
+    int validHeight = chainActive.Tip()->nHeight;
+    CFcoinStakeTx tx(*pUserId, fee, validHeight, stakeAmount);
+    return SubmitTx(*pUserId, tx);
 }
 
 /*************************************************<< CDP >>**************************************************/
@@ -183,9 +188,6 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     }
     if (params.size() == 6) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
-    }
-    if (fee == 0) {
-        fee = GetTxMinFee(TxType::CDP_STAKE_TX, validHeight);
     }
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
@@ -235,19 +237,18 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
     if (params.size() ==6 ) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
     }
-    if (fee == 0)
-        fee = GetTxMinFee(TxType::CDP_REDEEMP_TX, validHeight);
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
     if (!cdpUid) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
+
     CCDPRedeemTx tx(*cdpUid, fee, validHeight, cdpTxId, redeemAmount, collateralRatio, interest);
     return SubmitTx(*cdpUid, tx);
 }
 
 Value submitliquidatecdptx(const Array& params, bool fHelp) {
-if (fHelp || params.size() < 3 || params.size() > 6) {
+    if (fHelp || params.size() < 3 || params.size() > 6) {
         throw runtime_error(
             "submitliquidatecdptx \"addr\" liquidate_amount collateral_ratio [\"cdp_id\"] [interest] [fee]\n"
             "\nsubmit a CDP Liquidation Tx\n"
@@ -287,8 +288,6 @@ if (fHelp || params.size() < 3 || params.size() > 6) {
     if (params.size() ==6 ) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
     }
-    if (fee == 0)
-        fee = GetTxMinFee(TxType::CDP_LIQUIDATE_TX, validHeight);
 
     CCDPRedeemTx tx(*cdpUid, fee, validHeight, cdpTxId, liquidateAmount, collateralRatio, interest);
     return SubmitTx(*cdpUid, tx);
@@ -300,9 +299,7 @@ Value getmedianprice(const Array& params, bool fHelp){
             "getmedianprice \"coin_type\" \"asset_type\" [height]\n"
             "\nget current median price or query at specified height.\n"
             "\nArguments:\n"
-            "1.\"coin_type\": (string required) coin type\n"
-            "2.\"price_type\": (string required), price type\n"
-            "3.\"height\": (numeric, optional), specified height. If not provide use the tip block height in chainActive\n\n"
+            "1.\"height\": (numeric, optional), specified height. If not provide use the tip block height in chainActive\n\n"
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
@@ -335,11 +332,20 @@ Value getmedianprice(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
     }
 
-    // TODO:
-    int64_t price = 0; //block.GetBlockMedianPrice(coinType, priceType);
+    Array prices;
+    if (block.vptx.size() > 1 && block.vptx[1]->nTxType == BLOCK_PRICE_MEDIAN_TX) {
+        map<CCoinPriceType, uint64_t> mapMedianPricePoints = ((CBlockPriceMedianTx*)block.vptx[1].get())->GetMedianPrice();
+        for (auto &item : mapMedianPricePoints) {
+            Object price;
+            price.push_back(Pair("coin_type",   item.first.coinType));
+            price.push_back(Pair("price_type",  item.first.priceType));
+            price.push_back(Pair("price",       item.second));
+            prices.push_back(price);
+        }
+    }
 
     Object obj;
-    obj.push_back(Pair("price", price));
+    obj.push_back(Pair("median_price", prices));
     return obj;
 }
 
@@ -350,10 +356,10 @@ Value getaccountcdp(const Array& params, bool fHelp){
     if (fHelp || params.size() < 1 || params.size() > 2) {
         throw runtime_error(
             "getaccountcdp \"addr\" \"cdp_id\" [height]\n"
-            "\nget current median price or query at specified height.\n"
+            "\nget account's cdp.\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) coin type\n"
-            "2.\"cdb_id\": (string required), price type\n"
+            "1.\"addr\": (string, required) cdp owner addr\n"
+            "2.\"cdb_id\": (string, optional) cdp id\n"
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
@@ -377,19 +383,25 @@ Value getaccountcdp(const Array& params, bool fHelp){
 
     Array cdps;
 
-    //TODO: list all cdps for the account
-
     if(params.size() > 1) {
         uint256 cdpTxId(uint256S(params[1].get_str()));
         CUserCDP cdp(txAccount.regId, cdpTxId);
-        if (!pCdMan->pCdpCache->GetCdp(cdp)) {
+        if (pCdMan->pCdpCache->GetCdp(cdp)) {
             cdps.push_back(cdp.ToJson());
         } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                             strprintf("The cdp not exists! cdpId=%s", params[1].get_str()));
         }
     }
-
+    else {
+        vector<CUserCDP> userCdps;
+        if(pCdMan->pCdpCache->GetCdpList(txAccount.regId, userCdps)){
+            for(auto &cdp : userCdps){
+                cdps.push_back(cdp.ToJson());
+            }
+        }
+    }
+    
     Object obj;
     obj.push_back(Pair("cdp", cdps));
     return obj;
@@ -437,16 +449,9 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     uint64_t assetAmount = AmountToRawValue(params[3]);
     uint64_t price = AmountToRawValue(params[4]);
 
-    int64_t defaultFee = SysCfg().GetTxFee(); // default fee
-    int64_t fee;
+    uint64_t fee = 0;
     if (params.size() > 5) {
-        fee = AmountToRawValue(params[5]);
-        if (fee < defaultFee) {
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
-        }
-    } else {
-        fee = defaultFee;
+        fee = params[5].get_uint64();
     }
 
     CAccount txAccount;
@@ -459,38 +464,12 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     // TODO: need to support fee coin type
     uint64_t amount = assetAmount;
     if (txAccount.GetFreeBcoins() < amount + fee) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Account does not have enough coins");
-    }
-
-    CUserID txUid;
-    if (txAccount.RegIDIsMature()) {
-        txUid = txAccount.regId;
-    } else if(txAccount.pubKey.IsValid()) {
-        txUid = txAccount.pubKey;
-    } else{
-        CPubKey txPubKey;
-        if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
-        }
-        txUid = txPubKey;
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
     int validHeight = chainActive.Height();
-    CDEXBuyLimitOrderTx tx(txUid, validHeight, fee, coinType, assetType, assetAmount, price);
-
-    if (!pWalletMain->Sign(txAccount.keyId, tx.ComputeSignatureHash(), tx.signature))
-            throw JSONRPCError(RPC_WALLET_ERROR, "sign tx failed");
-
-    std::tuple<bool, string> ret = pWalletMain->CommitTx(&tx);
-
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-    }
-
-    Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
-    return obj;
+    CDEXBuyLimitOrderTx tx(*pUserId, validHeight, fee, coinType, assetType, assetAmount, price);
+    return SubmitTx(*pUserId, tx);
 }
 
 Value submitdexselllimitordertx(const Array& params, bool fHelp) {
@@ -508,9 +487,9 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexselllimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + HelpExampleCli("submitdexselllimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 1000000 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexselllimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + HelpExampleRpc("submitdexselllimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 1000000 200000000\n")
         );
     }
 
@@ -535,16 +514,9 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     uint64_t assetAmount = AmountToRawValue(params[3]);
     uint64_t price = AmountToRawValue(params[4]);
 
-    int64_t defaultFee = SysCfg().GetTxFee(); // default fee
-    int64_t fee;
+    uint64_t fee = 0;
     if (params.size() > 5) {
-        fee = AmountToRawValue(params[5]);
-        if (fee < defaultFee) {
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
-        }
-    } else {
-        fee = defaultFee;
+        fee = params[5].get_uint64();
     }
 
     CAccount txAccount;
@@ -555,59 +527,36 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     assert(!txAccount.keyId.IsEmpty());
 
     // TODO: need to support fee coin type
-    uint64_t amount = assetAmount;
-    if (txAccount.GetFreeBcoins() < amount + fee) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Account does not have enough coins");
+    if (txAccount.GetFreeBcoins() < fee) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
-    CUserID txUid;
-    if (txAccount.RegIDIsMature()) {
-        txUid = txAccount.regId;
-    } else if(txAccount.pubKey.IsValid()) {
-        txUid = txAccount.pubKey;
-    } else{
-        CPubKey txPubKey;
-        if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
-        }
-        txUid = txPubKey;
+    if (txAccount.GetFreeScoins() < assetAmount) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough asset");
     }
 
     int validHeight = chainActive.Height();
-    CDEXSellLimitOrderTx tx(txUid, validHeight, fee, coinType, assetType, assetAmount, price);
-
-    if (!pWalletMain->Sign(txAccount.keyId, tx.ComputeSignatureHash(), tx.signature))
-            throw JSONRPCError(RPC_WALLET_ERROR, "sign tx failed");
-
-    std::tuple<bool, string> ret = pWalletMain->CommitTx(&tx);
-
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-    }
-
-    Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
-    return obj;
+    CDEXSellLimitOrderTx tx(*pUserId, validHeight, fee, coinType, assetType, assetAmount, price);
+    return SubmitTx(*pUserId, tx);
 }
 
 Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
      if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-            "submitdexbuylimitordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
-            "\nsubmit a dex buy limit price order tx.\n"
+            "submitdexbuymarketordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount [fee]\n"
+            "\nsubmit a dex buy market price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
             "2.\"coin_type\": (string required) coin type to pay\n"
             "3.\"asset_type\": (string required), asset type to buy\n"
-            "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
+            "4.\"coin_amount\": (numeric, required) amount of target coin to buy\n"
             "5.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 200000000\n")
+            + HelpExampleCli("submitdexbuymarketordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 200000000\n")
+            + HelpExampleRpc("submitdexbuymarketordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 200000000\n")
         );
     }
 
@@ -628,18 +577,10 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_ASSET_TYPE_INVALID, "Invalid asset_type");
     }
 
-    uint64_t assetAmount = AmountToRawValue(params[3]);
-
-    int64_t defaultFee = SysCfg().GetTxFee(); // default fee
-    int64_t fee;
+    uint64_t coinAmount = AmountToRawValue(params[3]);
+    uint64_t fee = 0;
     if (params.size() > 4) {
         fee = AmountToRawValue(params[4]);
-        if (fee < defaultFee) {
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
-        }
-    } else {
-        fee = defaultFee;
     }
 
     CAccount txAccount;
@@ -647,50 +588,23 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                             strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
-    assert(!txAccount.keyId.IsEmpty());
 
     // TODO: need to support fee coin type
-    uint64_t amount = assetAmount;
+    uint64_t amount = coinAmount;
     if (txAccount.GetFreeBcoins() < amount + fee) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Account does not have enough coins");
-    }
-
-    CUserID txUid;
-    if (txAccount.RegIDIsMature()) {
-        txUid = txAccount.regId;
-    } else if(txAccount.pubKey.IsValid()) {
-        txUid = txAccount.pubKey;
-    } else{
-        CPubKey txPubKey;
-        if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
-        }
-        txUid = txPubKey;
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
     int validHeight = chainActive.Height();
-    CDEXBuyMarketOrderTx tx(txUid, validHeight, fee, coinType, assetType, assetAmount);
-
-    if (!pWalletMain->Sign(txAccount.keyId, tx.ComputeSignatureHash(), tx.signature))
-            throw JSONRPCError(RPC_WALLET_ERROR, "sign tx failed");
-
-    std::tuple<bool, string> ret = pWalletMain->CommitTx(&tx);
-
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-    }
-
-    Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
-    return obj;
+    CDEXBuyMarketOrderTx tx(*pUserId, validHeight, fee, coinType, assetType, coinAmount);
+    return SubmitTx(*pUserId, tx);
 }
 
 Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-            "submitdexselllimitordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
-            "\nsubmit a dex buy limit price order tx.\n"
+            "submitdexsellmarketordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount [fee]\n"
+            "\nsubmit a dex sell market price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
             "2.\"coin_type\": (string required) coin type to pay\n"
@@ -700,9 +614,9 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexselllimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 200000000\n")
+            + HelpExampleCli("submitdexsellmarketordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexselllimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 200000000\n")
+            + HelpExampleRpc("submitdexsellmarketordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 200000000\n")
         );
     }
 
@@ -725,17 +639,9 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     }
 
     uint64_t assetAmount = AmountToRawValue(params[3]);
-
-    int64_t defaultFee = SysCfg().GetTxFee(); // default fee
-    int64_t fee;
+    uint64_t fee = 0;
     if (params.size() > 4) {
-        fee = AmountToRawValue(params[4]);
-        if (fee < defaultFee) {
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
-        }
-    } else {
-        fee = defaultFee;
+        fee = params[4].get_uint64();
     }
 
     CAccount txAccount;
@@ -746,40 +652,17 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     assert(!txAccount.keyId.IsEmpty());
 
     // TODO: need to support fee coin type
-    uint64_t amount = assetAmount;
-    if (txAccount.GetFreeBcoins() < amount + fee) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Account does not have enough coins");
+    if (txAccount.GetFreeBcoins() < fee) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
-    CUserID txUid;
-    if (txAccount.RegIDIsMature()) {
-        txUid = txAccount.regId;
-    } else if(txAccount.pubKey.IsValid()) {
-        txUid = txAccount.pubKey;
-    } else{
-        CPubKey txPubKey;
-        if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
-        }
-        txUid = txPubKey;
+    if (txAccount.GetFreeScoins() < assetAmount) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough asset");
     }
 
     int validHeight = chainActive.Height();
-    CDEXSellMarketOrderTx tx(txUid, validHeight, fee, coinType, assetType, assetAmount);
-
-    if (!pWalletMain->Sign(txAccount.keyId, tx.ComputeSignatureHash(), tx.signature))
-            throw JSONRPCError(RPC_WALLET_ERROR, "sign tx failed");
-
-    std::tuple<bool, string> ret = pWalletMain->CommitTx(&tx);
-
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-    }
-
-    Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
-    return obj;
+    CDEXSellMarketOrderTx tx(*pUserId, validHeight, fee, coinType, assetType, assetAmount);
+    return SubmitTx(*pUserId, tx);
 }
 
 Value submitdexcancelordertx(const Array& params, bool fHelp) {
@@ -811,54 +694,14 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
 
     uint256 txid(uint256S(params[1].get_str()));
 
-    int64_t defaultFee = SysCfg().GetTxFee(); // default fee
-    int64_t fee;
+    uint64_t fee = 0;
     if (params.size() > 2) {
-        fee = AmountToRawValue(params[2]);
-        if (fee < defaultFee) {
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
-        }
-    } else {
-        fee = defaultFee;
-    }
-
-    CAccount txAccount;
-    if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("The account not exists! userId=%s", pUserId->ToString()));
-    }
-    assert(!txAccount.keyId.IsEmpty());
-
-    CUserID txUid;
-    if (txAccount.RegIDIsMature()) {
-        txUid = txAccount.regId;
-    } else if(txAccount.pubKey.IsValid()) {
-        txUid = txAccount.pubKey;
-    } else{
-        CPubKey txPubKey;
-        if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
-        }
-        txUid = txPubKey;
+        fee = params[2].get_uint64();
     }
 
     int validHeight = chainActive.Height();
-    CDEXCancelOrderTx tx(txUid, validHeight, fee, txid);
-
-    if (!pWalletMain->Sign(txAccount.keyId, tx.ComputeSignatureHash(), tx.signature))
-            throw JSONRPCError(RPC_WALLET_ERROR, "sign tx failed");
-
-    std::tuple<bool, string> ret = pWalletMain->CommitTx(&tx);
-
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-    }
-
-    Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
-    return obj;
+    CDEXCancelOrderTx tx(*pUserId, validHeight, fee, txid);
+    return SubmitTx(*pUserId, tx);
 }
 
 static const Value& JsonFindValue(Value jsonObj, const string &name) {
@@ -935,52 +778,12 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
         dealItems.push_back(dealItem);
     }
 
-    int64_t defaultFee = SysCfg().GetTxFee(); // default fee
-    int64_t fee;
+    uint64_t fee = 0;
     if (params.size() > 2) {
-        fee = AmountToRawValue(params[2]);
-        if (fee < defaultFee) {
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("Given fee(%ld) < Default fee (%ld)", fee, defaultFee));
-        }
-    } else {
-        fee = defaultFee;
-    }
-
-    CAccount txAccount;
-    if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("The account not exists! userId=%s", pUserId->ToString()));
-    }
-    assert(!txAccount.keyId.IsEmpty());
-
-    CUserID txUid;
-    if (txAccount.RegIDIsMature()) {
-        txUid = txAccount.regId;
-    } else if(txAccount.pubKey.IsValid()) {
-        txUid = txAccount.pubKey;
-    } else{
-        CPubKey txPubKey;
-        if(!pWalletMain->GetPubKey(txAccount.keyId, txPubKey)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                strprintf("Get pubKey from wallet failed! keyId=%s", txAccount.keyId.ToString()));
-        }
-        txUid = txPubKey;
+        fee = params[2].get_uint64();
     }
 
     int validHeight = chainActive.Height();
-    CDEXSettleTx tx(txUid, validHeight, fee, dealItems);
-
-    if (!pWalletMain->Sign(txAccount.keyId, tx.ComputeSignatureHash(), tx.signature))
-            throw JSONRPCError(RPC_WALLET_ERROR, "sign tx failed");
-
-    std::tuple<bool, string> ret = pWalletMain->CommitTx(&tx);
-
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-    }
-
-    Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
-    return obj;
+    CDEXSettleTx tx(*pUserId, validHeight, fee, dealItems);
+    return SubmitTx(*pUserId, tx);
 }

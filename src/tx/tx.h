@@ -257,4 +257,17 @@ public:
                          "bad-tx-signature");                                                                   \
     }
 
+#define IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)                                          \
+    CKeyID srcKeyId;                                                                            \
+    if (!accountCache.GetKeyId(txUid, srcKeyId)) {                                              \
+        assert(false && "GetKeyId() failed");                                                   \
+    }                                                                                           \
+    result.push_back(Pair("hash",           GetHash().GetHex()));                               \
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));                               \
+    result.push_back(Pair("ver",            nVersion));                                         \
+    result.push_back(Pair("tx_uid",         txUid.ToString()));                                 \
+    result.push_back(Pair("addr",           srcKeyId.ToAddress()));                             \
+    result.push_back(Pair("fees",           llFees));                                           \
+    result.push_back(Pair("valid_height",   nValidHeight));                                     \
+
 #endif //COIN_BASETX_H

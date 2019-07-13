@@ -37,7 +37,7 @@ bool CContractDB::HaveData(const string &vKey) {
     return db.Exists(vKey);
 }
 
-bool CContractDB::GetScript(const int nIndex, string &vScriptId, string &vValue) {
+bool CContractDB::GetContractScript(const int nIndex, string &vScriptId, string &vValue) {
     assert(nIndex >= 0 && nIndex <= 1);
     leveldb::Iterator *pcursor = db.NewIterator();
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
@@ -47,7 +47,7 @@ bool CContractDB::GetScript(const int nIndex, string &vScriptId, string &vValue)
     int i(0);
     if (1 == nIndex) {
         if (vScriptId.empty()) {
-            return ERRORMSG("GetScript() : nIndex is 1, and vScriptId is empty");
+            return ERRORMSG("GetContractScript() : nIndex is 1, and vScriptId is empty");
         }
         vector<char> vId(vScriptId.begin(), vScriptId.end());
         ssKeySet.insert(ssKeySet.end(), vId.begin(), vId.end());
@@ -361,7 +361,7 @@ bool CContractDBCache::HaveData(const string &vKey) {
 }
 */
 
-bool CContractDBCache::GetScript(const int nIndex, string &scriptId, string &value) {
+bool CContractDBCache::GetContractScript(const int nIndex, string &scriptId, string &value) {
     return false;
 /* TODO: ....
     if (0 == nIndex) {
@@ -381,7 +381,7 @@ bool CContractDBCache::GetScript(const int nIndex, string &scriptId, string &val
                 break;
             }
         }
-        if (!pBase->GetScript(nIndex, vScriptId, vValue)) {  //上级没有获取符合条件的key值
+        if (!pBase->GetContractScript(nIndex, vScriptId, vValue)) {  //上级没有获取符合条件的key值
             if (vDataKey.empty())
                 return false;
             else {  //返回本级缓存的查询结果
@@ -402,7 +402,7 @@ bool CContractDBCache::GetScript(const int nIndex, string &scriptId, string &val
                     return true;
                 else {
                     mapContractDb[dataKeyTemp].clear();           //在缓存中dataKeyTemp已经被删除过了，重新将此key对应的value清除
-                    return GetScript(nIndex, vScriptId, vValue);  //重新从数据库中获取下一条数据
+                    return GetContractScript(nIndex, vScriptId, vValue);  //重新从数据库中获取下一条数据
                 }
             } else {  //若上级查询的key大于等于本级缓存的key,返回本级的数据
                 vScriptId.clear();
@@ -437,7 +437,7 @@ bool CContractDBCache::GetScript(const int nIndex, string &scriptId, string &val
                 ++iterFindKey;
             }
         }
-        if (!pBase->GetScript(nIndex, vScriptId, vValue)) {  //从BASE获取指定键值之后的下一个值
+        if (!pBase->GetContractScript(nIndex, vScriptId, vValue)) {  //从BASE获取指定键值之后的下一个值
             if (vDataKey.empty())
                 return false;
             else {
@@ -457,7 +457,7 @@ bool CContractDBCache::GetScript(const int nIndex, string &scriptId, string &val
                     return true;
                 else {
                     mapContractDb[dataKeyTemp].clear();           //在缓存中dataKeyTemp已经被删除过了，重新将此key对应的value清除
-                    return GetScript(nIndex, vScriptId, vValue);  //重新从数据库中获取下一条数据
+                    return GetContractScript(nIndex, vScriptId, vValue);  //重新从数据库中获取下一条数据
                 }
             } else {  //若上级查询的key大于等于本级缓存的key,返回本级的数据
                 vScriptId.clear();
@@ -472,17 +472,7 @@ bool CContractDBCache::GetScript(const int nIndex, string &scriptId, string &val
 */
 }
 
-bool CContractDBCache::SetScript(const string &scriptId, const string &content) {
-
-/*TODO:....
-    if (!scriptCache.HaveData(scriptId)) {
-        int nCount(0);
-        GetScriptCount(nCount);
-        ++nCount;
-        if (!SetScriptCount(nCount))
-            return false;
-    }
-*/
+bool CContractDBCache::SetContractScript(const string &scriptId, const string &content) {
     return scriptCache.SetData(scriptId, content);
 }
 
@@ -581,23 +571,22 @@ bool CContractDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &
     return true;
 }
 
-bool CContractDBCache::GetScript(const string &scriptId, string &content) {
+bool CContractDBCache::GetContractScript(const string &scriptId, string &content) {
     return scriptCache.GetData(scriptId, content);
 }
 
-bool CContractDBCache::GetScript(const CRegID &scriptId, string &vValue) {
-    return GetScript(scriptId.ToRawString(), vValue);
+bool CContractDBCache::GetContractScript(const CRegID &scriptId, string &vValue) {
+    return GetContractScript(scriptId.ToRawString(), vValue);
 }
 
-bool CContractDBCache::GetContractData(const int nCurBlockHeight, const string &scriptId,
-                                         const string &scriptKey, string &scriptData) {
+bool CContractDBCache::GetContractData(const int nCurBlockHeight, const string &scriptId, const string &scriptKey,
+                                       string &scriptData) {
     // TODO: delete the arg nCurBlockHeight??
     return contractDataCache.GetData(make_pair(scriptId, scriptKey), scriptData);
 }
 
-bool CContractDBCache::GetContractData(const int nCurBlockHeight, const string &vScriptId,
-                                         const int &nIndex, string &vScriptKey,
-                                         string &vScriptData) {
+bool CContractDBCache::GetContractData(const int nCurBlockHeight, const string &vScriptId, const int &nIndex,
+                                       string &vScriptKey, string &vScriptData) {
     return false;
 /* TODO: ...
     if (0 == nIndex) {
@@ -760,62 +749,11 @@ bool CContractDBCache::SetContractData(const string &scriptId, const string &scr
     return contractDataCache.SetData(key, scriptData, dbOpLogMap);
 }
 
-bool CContractDBCache::HaveScript(const string &scriptId) {
+bool CContractDBCache::HaveContractScript(const string &scriptId) {
     return scriptCache.HaveData(scriptId);
 }
 
-
-bool CContractDBCache::GetScriptCount(int &nCount) {
-
-    return false;
-    /* TODO: get count by leveldb
-    string scriptKey = {'s', 'n', 'u', 'm'};
-    string vValue;
-    if (!GetData(scriptKey, vValue))
-        return false;
-
-    CDataStream ds(vValue, SER_DISK, CLIENT_VERSION);
-    ds >> nCount;
-    return true;
-    */
-
-}
-
-
-/* TODO:...
-bool CContractDBCache::SetScriptCount(const int nCount) {
-    return false;
-    string scriptKey = {'s', 'n', 'u', 'm'};
-    string vValue;
-    vValue.clear();
-    if (nCount > 0) {
-        CDataStream ds(SER_DISK, CLIENT_VERSION);
-        ds << nCount;
-        vValue.insert(vValue.end(), ds.begin(), ds.end());
-    }  else if (nCount < 0) {
-        return false;
-    }
-    // If nCount = 0, set an empty value to trigger deleting it in level DB.
-
-    if (!SetData(scriptKey, vValue))
-        return false;
-
-    return true;
-
-}
-*/
-
-bool CContractDBCache::EraseScript(const string &scriptId) {
-
-/* TODO: delete
-    if (HaveScript(vScriptId)) {
-        int nCount(0);
-        if (!GetScriptCount(nCount))
-            return false;
-        if (!SetScriptCount(--nCount))
-            return false;
-    }
-*/
+bool CContractDBCache::EraseContractScript(const string &scriptId) {
     scriptCache.EraseData(scriptId);
     return true;
 }
@@ -832,7 +770,6 @@ bool CContractDBCache::GetContractItemCount(const string &scriptId, int &count) 
 
 
 bool CContractDBCache::IncContractItemCount(const string &contractRegId, int count) {
-
     CDBCountValue countValue;
     contractItemCountCache.GetData(contractRegId, countValue);
     countValue.value += count;
@@ -939,7 +876,7 @@ bool CContractDBCache::EraseContractData(const string &vKey) {
 */
 
 /*TODO: delete?
-bool CContractDBCache::HaveScriptData(const string &vScriptId, const string &vScriptKey) {
+bool CContractDBCache::HaveContractData(const string &vScriptId, const string &vScriptKey) {
 
     string scriptKey = {'d', 'a', 't', 'a'};
     scriptKey.insert(scriptKey.end(), vScriptId.begin(), vScriptId.end());
@@ -950,14 +887,14 @@ bool CContractDBCache::HaveScriptData(const string &vScriptId, const string &vSc
 }
 */
 
-bool CContractDBCache::GetScript(const int nIndex, CRegID &scriptId, string &vValue) {
+bool CContractDBCache::GetContractScript(const int nIndex, CRegID &scriptId, string &vValue) {
     return false;
     /*
     string tem;
     if (nIndex != 0) {
         tem = scriptId.GetRegIdRaw();
     }
-    if (GetScript(nIndex, tem, vValue)) {
+    if (GetContractScript(nIndex, tem, vValue)) {
         scriptId.SetRegID(tem);
         return true;
     }
@@ -966,17 +903,13 @@ bool CContractDBCache::GetScript(const int nIndex, CRegID &scriptId, string &vVa
     */
 }
 
-bool CContractDBCache::SetScript(const CRegID &scriptId, const string &vValue) {
-    return SetScript(scriptId.ToRawString(), vValue);
+bool CContractDBCache::SetContractScript(const CRegID &scriptId, const string &vValue) {
+    return SetContractScript(scriptId.ToRawString(), vValue);
 }
 
-bool CContractDBCache::HaveScript(const CRegID &scriptId) {
-    return HaveScript(scriptId.GetRegIdRaw());
-}
+bool CContractDBCache::HaveContractScript(const CRegID &scriptId) { return HaveContractScript(scriptId.GetRegIdRaw()); }
 
-bool CContractDBCache::EraseScript(const CRegID &scriptId) {
-    return EraseScript(scriptId.GetRegIdRaw());
-}
+bool CContractDBCache::EraseContractScript(const CRegID &scriptId) { return EraseContractScript(scriptId.GetRegIdRaw()); }
 
 bool CContractDBCache::GetContractItemCount(const CRegID &scriptId, int &nCount) {
     return GetContractItemCount(scriptId.GetRegIdRaw(), nCount);
@@ -986,22 +919,22 @@ bool CContractDBCache::EraseContractData(const CRegID &scriptId, const string &v
     return EraseContractData(scriptId.GetRegIdRaw(), vScriptKey, dbOpLogMap);
 }
 
-bool CContractDBCache::HaveScriptData(const CRegID &scriptId, const string &vScriptKey) {
-    return HaveScriptData(scriptId.GetRegIdRaw(), vScriptKey);
+bool CContractDBCache::HaveContractData(const CRegID &scriptId, const string &vScriptKey) {
+    return HaveContractData(scriptId.GetRegIdRaw(), vScriptKey);
 }
 
 bool CContractDBCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const string &vScriptKey,
-                                         string &vScriptData) {
+                                       string &vScriptData) {
     return GetContractData(nCurBlockHeight, scriptId.GetRegIdRaw(), vScriptKey, vScriptData);
 }
 
 bool CContractDBCache::GetContractData(const int nCurBlockHeight, const CRegID &scriptId, const int &nIndex,
-                                         string &vScriptKey, string &vScriptData) {
+                                       string &vScriptKey, string &vScriptData) {
     return GetContractData(nCurBlockHeight, scriptId.GetRegIdRaw(), nIndex, vScriptKey, vScriptData);
 }
 
-bool CContractDBCache::SetContractData(const CRegID &scriptId, const string &vScriptKey,
-                                         const string &vScriptData, CDBOpLogMap &dbOpLogMap) {
+bool CContractDBCache::SetContractData(const CRegID &scriptId, const string &vScriptKey, const string &vScriptData,
+                                       CDBOpLogMap &dbOpLogMap) {
     return SetContractData(scriptId.GetRegIdRaw(), vScriptKey, vScriptData, dbOpLogMap);
 }
 
@@ -1012,9 +945,7 @@ bool CContractDBCache::GetTxRelAccount(const uint256 &txHash, set<CKeyID> &relAc
     return contractRelatedKidCache.GetData(txHash, relAccount);
 }
 
-bool CContractDBCache::EraseTxRelAccout(const uint256 &txHash) {
-    return contractRelatedKidCache.EraseData(txHash);
-}
+bool CContractDBCache::EraseTxRelAccout(const uint256 &txHash) { return contractRelatedKidCache.EraseData(txHash); }
 
 Object CContractDBCache::ToJsonObj() const {
     return Object();
@@ -1052,13 +983,11 @@ string CContractDBCache::ToString() {
     */
 }
 
-bool CContractDBCache::GetScriptAcc(const CRegID &scriptId, const string &accKey,
-                                      CAppUserAccount &appAccOut) {
+bool CContractDBCache::GetContractAccount(const CRegID &scriptId, const string &accKey, CAppUserAccount &appAccOut) {
     return contractAccountCache.GetData(make_pair(scriptId.ToRawString(), accKey), appAccOut);
 }
 
-bool CContractDBCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAccount &appAccIn,
-                                      CDBOpLogMap &dbOpLogMap) {
+bool CContractDBCache::SetContractAccount(const CRegID &scriptId, const CAppUserAccount &appAccIn, CDBOpLogMap &dbOpLogMap) {
     if (appAccIn.IsEmpty()) {
         return false;
     }
@@ -1066,26 +995,4 @@ bool CContractDBCache::SetScriptAcc(const CRegID &scriptId, const CAppUserAccoun
     return contractAccountCache.SetData(key, appAccIn, dbOpLogMap);
 }
 
-/* TODO: unused, delete ??
-bool CContractDBCache::EraseScriptAcc(const CRegID &scriptId, const string &vKey) {
-    return false;
-    string scriptKey = {'a', 'c', 'c', 't'};
-    string vRegId    = scriptId.GetRegIdRaw();
-    scriptKey.insert(scriptKey.end(), vRegId.begin(), vRegId.end());
-    scriptKey.push_back('_');
-    scriptKey.insert(scriptKey.end(), vKey.begin(), vKey.end());
-    string vValue;
-
-    //LogPrint("vm","%s",HexStr(scriptKey));
-    if (!GetData(scriptKey, vValue)) {
-        return false;
-    }
-
-    return EraseKey(scriptKey);
-
-}
-*/
-
-bool CContractDBCache::UndoScriptAcc(CDBOpLogMap &dbOpLogMap) {
-    return contractAccountCache.UndoData(dbOpLogMap);
-}
+bool CContractDBCache::UndoContractAccount(CDBOpLogMap &dbOpLogMap) { return contractAccountCache.UndoData(dbOpLogMap); }

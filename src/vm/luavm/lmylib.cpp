@@ -1262,21 +1262,19 @@ static int ExWriteDataDBFunc(lua_State *L)
 static int ExDeleteDataDBFunc(lua_State *L) {
     vector<std::shared_ptr < vector<unsigned char> > > retdata;
 
-    if(!GetDataString(L,retdata) ||retdata.size() != 1)
-    {
+    if (!GetDataString(L, retdata) || retdata.size() != 1) {
         LogPrint("vm", "ExDeleteDataDBFunc key err1");
-        return RetFalse(string(__FUNCTION__)+"para  err !");
+        return RetFalse(string(__FUNCTION__) + "para  err !");
     }
     string key = string((*retdata.at(0)).begin(), (*retdata.at(0)).end());
 
     CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if(NULL == pVmRunEnv)
-    {
+    if (NULL == pVmRunEnv) {
         return RetFalse("pVmRunEnv is NULL");
     }
-    CRegID contractRegId = pVmRunEnv->GetScriptRegID();
 
-    CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
+    CRegID contractRegId       = pVmRunEnv->GetScriptRegID();
+    CContractDBCache *scriptDB = pVmRunEnv->GetScriptDB();
 
     bool flag = true;
     string oldValue;
@@ -2012,7 +2010,7 @@ static int ExTransferContractAsset(lua_State *L)
     std::shared_ptr<CAppUserAccount> temp = std::make_shared<CAppUserAccount>();
     CContractDBCache* pContractScript = pVmRunEnv->GetScriptDB();
 
-    if (!pContractScript->GetScriptAcc(script, string(sendKey.begin(), sendKey.end()), *temp.get())) {
+    if (!pContractScript->GetContractAccount(script, string(sendKey.begin(), sendKey.end()), *temp.get())) {
         LUA_BurnAccountGet(L, FUEL_ACCTOUNT_UNCHANGED, BURN_VER_R2);
         return RetFalse(string(__FUNCTION__) + "para  err3 !");
     }

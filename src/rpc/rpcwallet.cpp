@@ -698,7 +698,7 @@ Value getassets(const Array& params, bool fHelp)
         throw runtime_error("in getassets :scriptid size is error!\n");
     }
 
-    if (!pCdMan->pContractCache->HaveScript(regid)) {
+    if (!pCdMan->pContractCache->HaveContractScript(regid)) {
         throw runtime_error("in getassets :scriptid  is not exist!\n");
     }
 
@@ -722,7 +722,7 @@ Value getassets(const Array& params, bool fHelp)
 
         string addr = keyId.ToAddress();
         std::shared_ptr<CAppUserAccount> temp = std::make_shared<CAppUserAccount>();
-        if (!pCdMan->pContractCache->GetScriptAcc(regid, addr, *temp.get())) {
+        if (!pCdMan->pContractCache->GetContractAccount(regid, addr, *temp.get())) {
             continue;
         }
 

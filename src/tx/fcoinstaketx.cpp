@@ -91,16 +91,7 @@ string CFcoinStakeTx::ToString(CAccountDBCache &accountCache) {
 Object CFcoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID keyId;
-    accountCache.GetKeyId(txUid, keyId);
-
-    result.push_back(Pair("hash",               GetHash().GetHex()));
-    result.push_back(Pair("tx_type",            GetTxType(nTxType)));
-    result.push_back(Pair("ver",                nVersion));
-    result.push_back(Pair("tx_uid",             txUid.ToString()));
-    result.push_back(Pair("addr",               keyId.ToAddress()));
-    result.push_back(Pair("valid_height",       nValidHeight));
-    result.push_back(Pair("fees",               llFees));
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
 
     result.push_back(Pair("coins_to_stake",     fcoinsToStake));
 
