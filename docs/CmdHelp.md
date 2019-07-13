@@ -33,20 +33,19 @@
 | getnetworkinfo | | Returns an object containing various state info regarding P2P network | N |
 | getpeerinfo | | Returns data about each connected node | N |
 | getrawmempool | ```[verbose]``` | Returns all transaction ids in memory pool.If verbose is true,return  a json object, false return array of transaction ids. | N |
-| getcontractdata | ```<scriptid><pagsize or key>[index]``` | get contract managed data by given regid in plaintext form. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
-| getcontractdataraw | ```<scriptid><pagsize or key>[index]``` | get contract data by given app regid in hexdigit format. <br> ```< regid ><key>  or < regid >< pagsize >[index]``` | N |
-| getcontractconfirmdata | ```<scriptid><pagsize><index>``` | get contract data confirmed | N |
+| getcontractdata | ```<contractregid><key>``` | get contract data in plaintext format. <br> ```< contractregid ><key>``` | N |
+| getcontractdataraw | ```<contractregid><key>``` | get contract data in hexdigit format. <br> ```<contractregid ><key>``` | N |
 | gettxdetail | ```<txhash>``` | Returns an object about the transaction  detail information by ```<txhash>``` | N |
 | getwalletinfo | | Returns an object containing detaild wallet info | N |
 | help | ```[command]``` | List commands, or get help for a command | N |
 | importprivkey | ```<wiccprivkey> [label] [rescan=true]``` | Adds a private key (as returned by dumpprivkey) to your wallet. This may take a while, as a rescan is done, looking for existing transactions. Note: There's no need to import public key, as in ECDSA (unlike RSA), which can be computed from private key. | Y |
 | importwallet | ```<filename>``` | Import keys from a wallet dump file (see dumpwallet). | Y |
 | invalidateblock | ```<hash>``` | Mark a block as invalid. | N |
-| listaddr | | return Array containing address,balance,haveminerkey,regid information | N |
-| listcontracts | ```<showDetail>``` | get all registered contracts: <br>1. showDetail: 0 | 1  (boolean, required) 1 to show scriptContent, otherwise not show it. | N |
-| listtx | | get all confirm transactions and all unconfirm transactions from wallet | N |
+| listaddr | | return Array containing address, balance, haveminerkey, regid information | N |
+| listcontracts | ```<showdetail>``` | get all registered contracts: <br>1. showdetail: 0 | 1  (boolean, required) 1 to show scriptContent, otherwise not show it. | N |
+| listtx | | get all confirmed transactions and all unconfirmed transactions from wallet | N |
 | listtxcache | | get all transactions in cache | N |
-| listunconfirmedtx | | get the list of unconfirmedtx | N |
+| listunconfirmedtx | | get the list of unconfirmed tx | N |
 | registeraccounttx | ```<address> [fee]``` | register an account from the local wallet node | Y |
 | genregisteraccountraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account raw transaction | N |
 | reconsiderblock | ```<hash>``` | Removes invalidity status of a block and its descendants, reconsider them for activation. | N |

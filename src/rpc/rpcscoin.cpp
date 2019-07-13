@@ -30,8 +30,8 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             " [\n"
             "   {\n"
             "      \"coin\": \"WICC|WGRT\", (string, required) The coin type\n"
-            "      \"currency\": \"USD|RMB\" (string, required) The currency type\n"
-            "      \"price\": (number, required) The price (boosted by 10^) \n"
+            "      \"currency\": \"USD|CNY\" (string, required) The currency type\n"
+            "      \"price\": (number, required) The price (boosted by 10^4) \n"
             "   }\n"
             "       ,...\n"
             " ]\n"
@@ -294,7 +294,7 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
 }
 
 Value getmedianprice(const Array& params, bool fHelp){
-    if (fHelp || params.size() < 2 || params.size() > 3) {
+    if (fHelp) {
         throw runtime_error(
             "getmedianprice \"coin_type\" \"asset_type\" [height]\n"
             "\nget current median price or query at specified height.\n"
@@ -303,25 +303,15 @@ Value getmedianprice(const Array& params, bool fHelp){
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("getmedianprice", "\"WUSD\" \"USD\"\n")
+            + HelpExampleCli("getmedianprice","")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getmedianprice", "\"WUSD\" \"USD\"\n")
+            + HelpExampleRpc("getmedianprice","")
         );
     }
 
-    CoinType coinType = CoinType::WICC;
-    if (ParseCoinType(params[0].get_str(), coinType)) {
-        throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin type, must be one of WICC, WGRT, WUSD");
-    }
-
-    PriceType priceType = PriceType::USD;
-    if (ParsePriceType(params[1].get_str(), priceType)) {
-        throw JSONRPCError(RPC_PRICE_TYPE_INVALID, "Invalid price type, must be one of USD, CNY, EUR, BTC, USDT, GOLD, KWH");
-    }
-
     int height = chainActive.Tip()->nHeight;
-    if (params.size() > 2){
-        height = params[2].get_int();
+    if (params.size() > 0){
+        height = params[0].get_int();
         if (height < 0 || height > chainActive.Height())
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range.");
     }
@@ -352,10 +342,10 @@ Value getmedianprice(const Array& params, bool fHelp){
 Value listcdps(const Array& params, bool fHelp);
 Value listcdpstoliquidate(const Array& params, bool fHelp);
 
-Value getaccountcdp(const Array& params, bool fHelp){
+Value getusercdp(const Array& params, bool fHelp){
     if (fHelp || params.size() < 1 || params.size() > 2) {
         throw runtime_error(
-            "getaccountcdp \"addr\" \"cdp_id\" [height]\n"
+            "getusercdp \"addr\" \"cdp_id\" [height]\n"
             "\nget account's cdp.\n"
             "\nArguments:\n"
             "1.\"addr\": (string, required) cdp owner addr\n"
@@ -363,9 +353,9 @@ Value getaccountcdp(const Array& params, bool fHelp){
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("getaccountcdp", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"\n")
+            + HelpExampleCli("getusercdp", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getaccountcdp", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"\n")
+            + HelpExampleRpc("getusercdp", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"\n")
         );
     }
 

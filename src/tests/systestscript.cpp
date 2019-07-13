@@ -268,15 +268,6 @@ public:
 
 	}
 
-	void GetContractItemCount() {
-		const char *param[] = { "rpctest",
-					"getcontractitemcount",
-					"010000000100"};
-//		CommandLineRPC(3, param);
-		Value dummy;
-		CommandLineRPC_GetValue(3, param,dummy);
-	}
-
 	bool CheckScriptDB(int nheigh,string srcipt,string hash,int flag)
 	{
 		int curtiph = chainActive.Height();
@@ -292,22 +283,10 @@ public:
 		if (!contractScriptTemp.HaveContractScript(regid)) {
 			return false;
 		}
-		int dbsize;
-		contractScriptTemp.GetContractItemCount(regid, dbsize);
-		if(curtiph <nheigh)
-		{
-			BOOST_CHECK(0==dbsize);
-			return true;
-		}
-		BOOST_CHECK(1000==dbsize);
-
 
 		vector<unsigned char> value;
 		vector<unsigned char> vScriptKey;
 
-		if (!contractScriptTemp.GetContractData(curtiph,regid, 0, vScriptKey, value)) {
-			return false;
-		}
 		uint256 hash1(value);
 		string pvalue(value.begin(),value.end());
 		if(flag)
@@ -320,9 +299,6 @@ public:
 
 		int count = dbsize - 1;
 		while (count--) {
-			if (!contractScriptTemp.GetContractData(curtiph, regid, 1, vScriptKey, value)) {
-				return false;
-			}
 			uint256 hash3(value);
 			string pvalue(value.begin(), value.end());
 			if (flag)
@@ -360,20 +336,6 @@ public:
 				return false;
 			}
 			return true;
-	}
-	int GetScriptSize(string srcipt)
-	{
-			CRegID regid(srcipt);
-			if (regid.IsEmpty() == true) {
-				return 0;
-			}
-
-			if (!pScriptDBTip->HaveContractScript(regid)) {
-				return 0;
-			}
-			int dbsize;
-			pScriptDBTip->GetContractItemCount(regid, dbsize);
-			return dbsize;
 	}
 	string CreatWriteTx(string &hash)
 	{
@@ -420,16 +382,6 @@ public:
 				CheckScriptDB((height),scriptid,phash,false);
 				count--;
 		}
-
-		while(true)
-		{
-			DisConnectBlock(1);
-			CheckScriptDB(height,scriptid,phash,false);
-			count = GetScriptSize(scriptid);
-			if(count == 1000)
-				break;
-		}
-
 	}
 
 	void testdeletmodifydb()
@@ -464,20 +416,6 @@ public:
         	CheckScriptDB(height,scriptid,writetxhash,true);
         	count--;
         }
-
-      /// 回滚
-		while(true)
-		{
-			DisConnectBlock(1);
-			count = GetScriptSize(scriptid);
-			if(chainActive.Height() > modHeight){
-			CheckScriptDB(height,scriptid,writetxhash,true);
-			}else{
-				CheckScriptDB(height,scriptid,writetxhash,false);
-			}
-			if(count == 1000)
-				break;
-		}
 	}
 	void TestMinner()
 	{

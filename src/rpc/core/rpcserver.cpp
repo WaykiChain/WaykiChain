@@ -305,7 +305,6 @@ static const CRPCCommand vRPCCommands[] =
     { "listtxcache",            &listtxcache,            true,      false,      true },
     { "getcontractdata",        &getcontractdata,        true,      false,      true },
     { "getcontractdataraw",     &getcontractdataraw,     true,      false,      true },
-    { "getcontractconfirmdata", &getcontractconfirmdata, true,      false,      true },
     { "signmessage",            &signmessage,            false,     false,      true },
     { "verifymessage",          &verifymessage,          false,     false,      false },
     { "sendtoaddress",          &sendtoaddress,          false,     false,      true },
@@ -333,7 +332,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submitliquidatecdptx",   &submitliquidatecdptx,   true,      false,      true },
 
     { "getmedianprice",         &getmedianprice,         false,     false,      false },
-    { "getaccountcdp",          &getaccountcdp,         false,     false,      false },
+    { "getusercdp",             &getusercdp,         false,     false,      false },
 
     /* for dex */
     { "submitdexbuylimitordertx",   &submitdexbuylimitordertx,   true,     false,      false },
@@ -349,7 +348,6 @@ static const CRPCCommand vRPCCommands[] =
     { "resetclient",            &resetclient,            true,      false,      false},
     { "reloadtxcache",          &reloadtxcache,          true,      false,      true },
     { "getcontractregid",       &getcontractregid,       true,      false,      false},
-    { "getcontractitemcount",   &getcontractitemcount,   true,      false,      false},
     { "printblockdbinfo",       &printblockdbinfo,       true,      false,      false},
     { "getalltxinfo",           &getalltxinfo,           true,      false,      true },
     { "saveblocktofile",        &saveblocktofile,        true,      false,      true },

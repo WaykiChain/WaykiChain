@@ -26,7 +26,7 @@ public:
     CPriceFeedTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                 const vector<CPricePoint> &pricePointsIn):
         CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feesIn) {
-        if (pricePoints.size() > 3 || pricePoints.size() == 0)
+        if (pricePointsIn.size() > 3 || pricePointsIn.size() == 0)
             return; // limit max # of price points to be three in one shot
 
         pricePoints = pricePointsIn;
