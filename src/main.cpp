@@ -2108,11 +2108,10 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         }  // Rollback the active chain to the forked point.
 
         mapForkCache[pPreBlockIndex->GetBlockHash()] = spCW;
-        LogPrint("INFO", "ProcessForkedChain() : add [%d]: %s to cache, ", pPreBlockIndex->nHeight,
+        LogPrint("INFO", "ProcessForkedChain() : add [%d]: %s to cache\n", pPreBlockIndex->nHeight,
                  pPreBlockIndex->GetBlockHash().GetHex());
 
-        LogPrint("INFO", "ProcessForkedChain() : disconnect blocks elapse: %lld ms\n",
-                 GetTimeMillis() - beginTime);
+        LogPrint("INFO", "ProcessForkedChain() : disconnect blocks elapse: %lld ms\n", GetTimeMillis() - beginTime);
     }
 
     if (forkChainTipFound) {
