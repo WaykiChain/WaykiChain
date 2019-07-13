@@ -303,9 +303,9 @@ Value getmedianprice(const Array& params, bool fHelp){
             "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("getmedianprice\n")
+            + HelpExampleCli("getmedianprice","")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getmedianprice\n")
+            + HelpExampleRpc("getmedianprice","")
         );
     }
 
