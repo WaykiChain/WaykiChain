@@ -30,8 +30,8 @@ static const uint16_t kGlobalCollateralRatioLimit           = 8000;     // 80% *
 
 static const uint16_t kStartingCdpCollateralRatio           = 19000;    // 190% * 10000: starting collateral ratio
 static const uint16_t kStartingCdpLiquidateRatio            = 15000;    // 1.13 ~ 1.5  : common liquidation
-static const uint16_t kNonReturnCdpLiquidateRatio           = 11300;    // 1.03 ~ 1.13 : Non-return to CDP owner
-static const uint16_t kForcedCdpLiquidateRatio              = 10300;    // 0 ~ 1.03    : forced liquidation only
+static const uint16_t kNonReturnCdpLiquidateRatio           = 11300;    // 1.04 ~ 1.13 : Non-return to CDP owner
+static const uint16_t kForcedCdpLiquidateRatio              = 10400;    // 0 ~ 1.04    : forced liquidation only
 
 static const uint16_t kCdpLiquidateDiscountRate             = 9700;     // 97%
 

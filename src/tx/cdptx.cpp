@@ -539,13 +539,13 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
                                 * kCdpLiquidateDiscountRate / kPercentBoost - cdp.totalOwedScoins;
         totalBcoinsToCDPOwner = cdp.totalStakedBcoins - totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice(nHeight);
 
-    } else if (collateralRatio > kForcedCdpLiquidateRatio) {    // 1.03 ~ 1.13
+    } else if (collateralRatio > kForcedCdpLiquidateRatio) {    // 1.04 ~ 1.13
         totalScoinsToReturnLiquidator = (double) cdp.totalStakedBcoins / cw.ppCache.GetBcoinMedianPrice(nHeight); //M
         totalScoinsToLiquidate = totalScoinsToReturnLiquidator * kCdpLiquidateDiscountRate / kPercentBoost; //M * 97%
         totalScoinsToReturnSysFund = totalScoinsToLiquidate - cdp.totalOwedScoins; // M - N
         totalBcoinsToCDPOwner = cdp.totalStakedBcoins - totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice(nHeight);
 
-    } else {                                                    // 0 ~ 1.03
+    } else {                                                    // 0 ~ 1.04
         //Although not likely to happen. but if it does, execute it accordingly.
         totalScoinsToLiquidate = cdp.totalOwedScoins; //N
         totalScoinsToReturnLiquidator = (double) cdp.totalStakedBcoins / cw.ppCache.GetBcoinMedianPrice(nHeight); //M
