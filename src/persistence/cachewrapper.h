@@ -6,6 +6,7 @@
 #ifndef PERSIST_CACHEWRAPPER_H
 #define PERSIST_CACHEWRAPPER_H
 
+#include "sysparamdb.h"
 #include "accountdb.h"
 #include "cdpdb.h"
 #include "contractdb.h"
@@ -16,6 +17,7 @@
 
 class CCacheWrapper {
 public:
+    CSysParamDBCache sysParamCache;
     CAccountDBCache accountCache;
     CContractDBCache contractCache;
     CDelegateDBCache delegateCache;

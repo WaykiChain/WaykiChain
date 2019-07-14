@@ -211,11 +211,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     // if (strMethod == "testminer"              && n > 0) ConvertTo<int>(params[0]);
     if (strMethod == "disconnectblock"        && n > 0) ConvertTo<int>(params[0]);
 
-    if (strMethod == "getcontractdata"        && n == 3) { ConvertTo<int>(params[1]); ConvertTo<int>(params[2]); }
-    if (strMethod == "getcontractdataraw"     && n == 3) { ConvertTo<int>(params[1]); ConvertTo<int>(params[2]); }
-
-    if (strMethod == "getcontractconfirmdata" && n > 1) ConvertTo<int>(params[1]);
-    if (strMethod == "getcontractconfirmdata" && n > 2) ConvertTo<int>(params[2]);
     if (strMethod == "listcontracts"          && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getblock"               && n > 0) { if (params[0].get_str().size()<32) ConvertTo<int>(params[0]);}
 

@@ -169,7 +169,7 @@ public:
     bool UnFreezeDexCoin(CoinType coinType, uint64_t amount);
     bool MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins);
 
-    bool ProcessDelegateVote(const vector<CCandidateVote>& candidateVotesIn,
+    bool ProcessDelegateVotes(const vector<CCandidateVote>& candidateVotesIn,
                              vector<CCandidateVote>& candidateVotesInOut, const uint64_t currHeight);
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool StakeFcoins(const int64_t fcoinsToStake); //price feeder must stake fcoins
@@ -260,9 +260,9 @@ public:
     uint64_t GetVotedBCoins(const vector<CCandidateVote>& candidateVotes, const uint64_t currHeight);
 
     // Get profits for voting.
-    uint64_t GetAccountProfit(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight);
+    uint64_t ComputeVoteStakingInterest(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight);
     // Calculate profits for voted.
-    uint64_t CalculateAccountProfit(const uint64_t currHeight) const;
+    uint64_t ComputeBlockInflateInterest(const uint64_t currHeight) const;
 
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;

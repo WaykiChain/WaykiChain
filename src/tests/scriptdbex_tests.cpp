@@ -121,17 +121,6 @@ void CContractDBTest::GetContractData(CContractDBCache* pViewCache) {
 	set<CDbOpLog> setOperLog;
 	auto it = mapScript.begin();
 	BOOST_CHECK(it != mapScript.end());
-
-	BOOST_CHECK(pViewCache->GetContractItemCount(CRegID(it->first), nCount));
-	bool ret = pViewCache->GetContractData(nCurHeight, CRegID(it->first), 0, vScriptKey, vScriptData);
-
-	while (ret) {
-		if (++it == mapScript.end()) {
-			break;
-		}
-		ret = pViewCache->GetContractData(nCurHeight, CRegID(it->first), 1, vScriptKey, vScriptData);
-		pViewCache->GetContractItemCount(CRegID(it->first), nCount);
-	}
 }
 
 
@@ -158,17 +147,6 @@ BOOST_AUTO_TEST_CASE(add_erase)
 
 BOOST_AUTO_TEST_CASE(overtime)
 {
-//	CContractDBCache cache2(*pTestView,true);
-//	CContractDBCache cache3(cache2,true);
-//	InsertData(&cache3);
-//
-//	Flush(&cache3,&cache2,pTestView);
-//
-//	GetContractData(&cache3);
-//
-//	Flush(&cache3,&cache2,pTestView);
-//
-//	CheckRecordCount(pTestView,TEST_SIZE/2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

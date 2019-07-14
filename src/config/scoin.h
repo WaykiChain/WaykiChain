@@ -7,44 +7,69 @@
 #define CONFIG_SCOIN_H
 
 #include <cstdint>
+#include <unordered_map>
+#include <string>
+#include <cstdint>
+#include <tuple>
 
-static const uint16_t kMedianPriceSlideWindowBlockCount     = 11;
-
-static const uint16_t kDayBlockTotalCount                   = 8640;     // = 24*3600/10
-static const uint16_t kPriceFeedContinuousDeviateTimesLimit = 10;       // after 10 times continuous deviate limit penetration all deposit be deducted
+using namespace std;
 
 static const uint16_t kPercentBoost                         = 10000;
-
-static const uint16_t kDefaultScoinReserveFeeRatio          = 1;        // 0.01% * 10000
-static const uint16_t kDefaultDexDealFeeRatio               = 4;        // 0.04% * 10000
-
-static const uint32_t kTotalFundCoinAmount                  = 21000000; // 21 million WGRT
+static const uint16_t kDayBlockTotalCount                   = 8640;     // = 24*3600/10
 static const uint32_t kTotalFundCoinGenesisReleaseAmount    = 10500000; // 21/2 million WGRT
-static const uint32_t kDefaultPriceFeedStakedFcoinsMin      = 210000;   // 1%: min 210K fcoins deposited to be a price feeder
-
-static const uint16_t kDefaultPriceFeedDeviateAcceptLimit   = 3000;     // 30% * 10000, above than that will be penalized
-static const uint16_t kDefaultPriceFeedDeviatePenalty       = 1000;     // 1000 bcoins deduction as penalty
-
-static const uint64_t kGlobalCollateralCeiling              = 21000000; // 10% * 210000000
-static const uint16_t kGlobalCollateralRatioLimit           = 8000;     // 80% * 10000
-
-static const uint16_t kStartingCdpCollateralRatio           = 19000;    // 190% * 10000: starting collateral ratio
-static const uint16_t kStartingCdpLiquidateRatio            = 15000;    // 1.13 ~ 1.5  : common liquidation
-static const uint16_t kNonReturnCdpLiquidateRatio           = 11300;    // 1.03 ~ 1.13 : Non-return to CDP owner
-static const uint16_t kForcedCdpLiquidateRatio              = 10300;    // 0 ~ 1.03    : forced liquidation only
-
-static const uint16_t kCdpLiquidateDiscountRate             = 9700;     // 97%
-
-static const uint64_t kBcoinsToStakeAmountMin               = 10000000000;  //100 WICC, dust amount (<100) rejected
-
-static const uint16_t kForceSettleCDPMaxCountPerBlock       = 1000;
 
 static const uint16_t kFcoinGenesisIssueTxIndex             = 1;
 static const uint16_t kFcoinGenesisRegisterTxIndex          = 2;
 static const uint16_t kDexMatchSvcRegisterTxIndex           = 3;
 
+static const uint16_t kForceSettleCDPMaxCountPerBlock       = 1000;     // depends on TPS
+
 // Except specific transactions, priority is less than 1000.0
 static const double kTransactionPriorityCeiling             = 1000.0;
 static const double kPriceFeedTransactionPriority           = 10000.0;
+
+enum SysParamType {
+    MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,
+    PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN,
+    PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,
+    PRICE_FEED_DEVIATE_RATIO_MAX,
+    PRICE_FEED_DEVIATE_PENALTY,
+    SCOIN_RESERVE_FEE_RATIO,
+    DEX_DEAL_FEE_RATIO,
+    GLOBAL_COLLATERAL_CEILING_AMOUNT,
+    GLOBAL_COLLATERAL_RATIO_MIN,
+    CDP_START_COLLATERAL_RATIO,
+    CDP_START_LIQUIDATE_RATIO,
+    CDP_NONRETURN_LIQUIDATE_RATIO,
+    CDP_FORCE_LIQUIDATE_RATIO,
+    CDP_LIQUIDATE_DISCOUNT_RATIO,
+    CDP_BCOINS_TOSTAKE_AMOUNT_MIN
+};
+
+struct SysParamTypeHash {
+    size_t operator()(const TxType &type) const noexcept {
+        return std::hash<uint8_t>{}(type);
+    }
+};
+
+
+static const unordered_map<SysParamType, std::tuple<string, uint32_t>, SysParamTypeHash> SysParamTable = {
+    { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,         std::make_tuple("A",    11)         },
+    { PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN,            std::make_tuple("B",    210000)     },  // 1%: min 210K fcoins deposited to be a price feeder
+    { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,      std::make_tuple("C",    10)         },  // after 10 times continuous deviate limit penetration all deposit be deducted
+    { PRICE_FEED_DEVIATE_RATIO_MAX,                 std::make_tuple("D",    3000)       },  // must be < 30% * 10000, otherwise penalized
+    { PRICE_FEED_DEVIATE_PENALTY,                   std::make_tuple("E",    1000)       },  // deduct 1000 staked bcoins as penalty
+    { DEX_DEAL_FEE_RATIO,                           std::make_tuple("F",    4)          },  // 0.04% * 10000
+    { SCOIN_RESERVE_FEE_RATIO,                      std::make_tuple("G",    0)          },  // WUSD friction fee to risk reserve
+    { GLOBAL_COLLATERAL_CEILING_AMOUNT,             std::make_tuple("H",    21000000)   },  // 10% * 210000000
+    { GLOBAL_COLLATERAL_RATIO_MIN,                  std::make_tuple("I",    8000)       },  // 80% * 10000
+    { CDP_START_COLLATERAL_RATIO,                   std::make_tuple("J",    19000)      },  // 190% * 10000: starting collateral ratio
+    { CDP_START_LIQUIDATE_RATIO,                    std::make_tuple("K",    15000)      },  // 1.13 ~ 1.5  : common liquidation
+    { CDP_NONRETURN_LIQUIDATE_RATIO,                std::make_tuple("L",    11300)      },  // 1.04 ~ 1.13 : Non-return to CDP owner
+    { CDP_FORCE_LIQUIDATE_RATIO,                    std::make_tuple("M",    10400)      },  // 0 ~ 1.04    : forced liquidation only
+    { CDP_LIQUIDATE_DISCOUNT_RATIO,                 std::make_tuple("N",    9700)       }, // discount: 97%
+    { CDP_BCOINS_TOSTAKE_AMOUNT_MIN,                std::make_tuple("O",    10000000000)}, //100 WICC, dust amount (<100) rejected
+
+};
 
 #endif

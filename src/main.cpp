@@ -697,6 +697,7 @@ int GetTxConfirmHeight(const uint256 &hash, CContractDBCache &scriptDBCache) {
             return header.GetHeight();
         }
     }
+
     return -1;
 }
 
@@ -1481,7 +1482,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
         // }
 
-        uint64_t profits = delegateAccount.CalculateAccountProfit(block.GetHeight());
+        uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight());
         if (pRewardTx->profits != profits) {
             return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase profits amount(actual=%d vs valid=%d)",
                              pRewardTx->profits, profits), REJECT_INVALID, "bad-reward-amount");
@@ -2108,11 +2109,10 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         }  // Rollback the active chain to the forked point.
 
         mapForkCache[pPreBlockIndex->GetBlockHash()] = spCW;
-        LogPrint("INFO", "ProcessForkedChain() : add [%d]: %s to cache, ", pPreBlockIndex->nHeight,
+        LogPrint("INFO", "ProcessForkedChain() : add [%d]: %s to cache\n", pPreBlockIndex->nHeight,
                  pPreBlockIndex->GetBlockHash().GetHex());
 
-        LogPrint("INFO", "ProcessForkedChain() : disconnect blocks elapse: %lld ms\n",
-                 GetTimeMillis() - beginTime);
+        LogPrint("INFO", "ProcessForkedChain() : disconnect blocks elapse: %lld ms\n", GetTimeMillis() - beginTime);
     }
 
     if (forkChainTipFound) {
@@ -2176,7 +2176,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
         // }
 
-        uint64_t profits = delegateAccount.CalculateAccountProfit(block.GetHeight());
+        uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight());
         if (pRewardTx->profits != profits) {
             return state.DoS(100, ERRORMSG("ProcessForkedChain() : invalid coinbase profits amount(actual=%d vs valid=%d)",
                              pRewardTx->profits, profits), REJECT_INVALID, "bad-reward-amount");

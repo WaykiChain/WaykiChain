@@ -36,7 +36,12 @@ bool CPriceFeedTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
                         txUid.ToString()), PRICE_FEED_FAIL, "account-isn't-delegate");
     }
 
-    if (account.stakedFcoins < kDefaultPriceFeedStakedFcoinsMin) // must stake enough fcoins
+    uint32_t _PriceFeedStakedFcoinsMin;
+    if (!cw.sysParamCache.GetParam(PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN, _PriceFeedStakedFcoinsMin)) {
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN error",
+                        txUid.ToString()), PRICE_FEED_FAIL, "read-sysparamdb-error");
+    }
+    if (account.stakedFcoins < _PriceFeedStakedFcoinsMin) // must stake enough fcoins
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Fcoins insufficient by txUid %s account error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-insufficient");
 
