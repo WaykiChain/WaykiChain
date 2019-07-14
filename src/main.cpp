@@ -1482,7 +1482,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
         // }
 
-        uint64_t profits = delegateAccount.CalculateAccountProfit(block.GetHeight());
+        uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight());
         if (pRewardTx->profits != profits) {
             return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase profits amount(actual=%d vs valid=%d)",
                              pRewardTx->profits, profits), REJECT_INVALID, "bad-reward-amount");
@@ -2176,7 +2176,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
         // }
 
-        uint64_t profits = delegateAccount.CalculateAccountProfit(block.GetHeight());
+        uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight());
         if (pRewardTx->profits != profits) {
             return state.DoS(100, ERRORMSG("ProcessForkedChain() : invalid coinbase profits amount(actual=%d vs valid=%d)",
                              pRewardTx->profits, profits), REJECT_INVALID, "bad-reward-amount");

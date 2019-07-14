@@ -262,7 +262,7 @@ public:
     // Get profits for voting.
     uint64_t ComputeVoteStakingInterest(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight);
     // Calculate profits for voted.
-    uint64_t CalculateAccountProfit(const uint64_t currHeight) const;
+    uint64_t ComputeBlockInflateInterest(const uint64_t currHeight) const;
 
     string ToString(bool isAddress = false) const;
     Object ToJsonObj(bool isAddress = false) const;

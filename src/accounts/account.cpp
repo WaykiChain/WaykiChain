@@ -126,7 +126,7 @@ bool CAccount::MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins) {
 
 uint64_t CAccount::ComputeVoteStakingInterest(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight) {
     if (candidateVotes.empty()) {
-        LogPrint("DEBUG", "1st-time vote by the account, hence no minting of interest.");
+        LogPrint("DEBUG", "1st-time vote by the account, hence interest inflation.");
         return 0;  // 0 for the very 1st vote
     }
 
@@ -135,14 +135,14 @@ uint64_t CAccount::ComputeVoteStakingInterest(const vector<CCandidateVote> &cand
     uint64_t nBeginSubsidy = IniCfg().GetBlockSubsidyCfg(lastVoteHeight);
     uint64_t nEndSubsidy   = IniCfg().GetBlockSubsidyCfg(currHeight);
     uint64_t nValue        = candidateVotes.begin()->GetVotedBcoins();
-    LogPrint("profits", "nBeginSubsidy:%lld nEndSubsidy:%lld nBeginHeight:%d nEndHeight:%d\n", nBeginSubsidy,
+    LogPrint("DEBUG", "nBeginSubsidy:%lld nEndSubsidy:%lld nBeginHeight:%d nEndHeight:%d\n", nBeginSubsidy,
              nEndSubsidy, nBeginHeight, nEndHeight);
 
-    auto calculateProfit = [](uint64_t nValue, uint64_t nSubsidy, int nBeginHeight, int nEndHeight) -> uint64_t {
+    auto computeInterest = [](uint64_t nValue, uint64_t nSubsidy, int nBeginHeight, int nEndHeight) -> uint64_t {
         int64_t nHoldHeight        = nEndHeight - nBeginHeight;
         static int64_t nYearHeight = SysCfg().GetSubsidyHalvingInterval();
         uint64_t interest         = (uint64_t)(nValue * ((long double)nHoldHeight * nSubsidy / nYearHeight / 100));
-        LogPrint("interest", "nValue:%lld nSubsidy:%lld nBeginHeight:%d nEndHeight:%d interest:%lld\n", nValue,
+        LogPrint("DEBUG", "nValue:%lld nSubsidy:%lld nBeginHeight:%d nEndHeight:%d interest:%lld\n", nValue,
                  nSubsidy, nBeginHeight, nEndHeight, interest);
         return interest;
     };
@@ -151,19 +151,19 @@ uint64_t CAccount::ComputeVoteStakingInterest(const vector<CCandidateVote> &cand
     uint64_t nSubsidy  = nBeginSubsidy;
     while (nSubsidy != nEndSubsidy) {
         int nJumpHeight = IniCfg().GetBlockSubsidyJumpHeight(nSubsidy - 1);
-        interest += calculateProfit(nValue, nSubsidy, nBeginHeight, nJumpHeight);
+        interest += computeInterest(nValue, nSubsidy, nBeginHeight, nJumpHeight);
         nBeginHeight = nJumpHeight;
         nSubsidy -= 1;
     }
 
-    interest += calculateProfit(nValue, nSubsidy, nBeginHeight, nEndHeight);
-    LogPrint("interest", "updateHeight:%d currHeight:%d freeze value:%lld\n", lastVoteHeight, currHeight,
+    interest += computeInterest(nValue, nSubsidy, nBeginHeight, nEndHeight);
+    LogPrint("DEBUG", "updateHeight:%d currHeight:%d freeze value:%lld\n", lastVoteHeight, currHeight,
              candidateVotes.begin()->GetVotedBcoins());
 
     return interest;
 }
 
-uint64_t CAccount::CalculateAccountProfit(const uint64_t currHeight) const {
+uint64_t CAccount::ComputeBlockInflateInterest(const uint64_t currHeight) const {
     if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1) {
         return 0;
     }

@@ -150,7 +150,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
         auto pRewardTx          = (CMultiCoinBlockRewardTx *)pBlock->vptx[0].get();
         pRewardTx->txUid        = delegate.regId;
         pRewardTx->nValidHeight = pBlock->GetHeight();
-        pRewardTx->profits      = delegate.CalculateAccountProfit(pBlock->GetHeight());
+        pRewardTx->profits      = delegate.ComputeBlockInflateInterest(pBlock->GetHeight());
     }
 
     pBlock->SetNonce(GetRand(SysCfg().GetBlockMaxNonce()));
