@@ -340,7 +340,7 @@ bool CAccount::StakeBcoinsToCdp(CoinType coinType, const int64_t bcoinsToStake, 
 //     return true;
 // }
 
-bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesIn,
+bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotesIn,
                                    vector<CCandidateVote> &candidateVotesInOut, const uint64_t currHeight) {
     if (currHeight < lastVoteHeight) {
         LogPrint("ERROR", "currHeight (%d) < lastVoteHeight (%d)", currHeight, lastVoteHeight);
@@ -362,33 +362,33 @@ bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesI
                 uint64_t currVotes = itVote->GetVotedBcoins();
 
                 if (!IsMoneyValid(vote.GetVotedBcoins()))
-                     return ERRORMSG("ProcessDelegateVote() : oper fund value exceeds maximum ");
+                     return ERRORMSG("ProcessDelegateVotes() : oper fund value exceeds maximum ");
 
                 itVote->SetVotedBcoins( currVotes + vote.GetVotedBcoins() );
 
                 if (!IsMoneyValid(itVote->GetVotedBcoins()))
-                     return ERRORMSG("ProcessDelegateVote() : fund value exceeds maximum");
+                     return ERRORMSG("ProcessDelegateVotes() : fund value exceeds maximum");
 
             } else { //new vote
                if (candidateVotesInOut.size() == IniCfg().GetMaxVoteCandidateNum()) {
-                   return ERRORMSG("ProcessDelegateVote() : MaxVoteCandidateNum reached. Must revoke old votes 1st.");
+                   return ERRORMSG("ProcessDelegateVotes() : MaxVoteCandidateNum reached. Must revoke old votes 1st.");
                }
 
                candidateVotesInOut.push_back(vote);
             }
         } else if (MINUS_BCOIN == voteType) {
             // if (currHeight - lastVoteHeight < 100) {
-            //     return ERRORMSG("ProcessDelegateVote() : last vote not cooled down yet: lastVoteHeigh=%d",
+            //     return ERRORMSG("ProcessDelegateVotes() : last vote not cooled down yet: lastVoteHeigh=%d",
             //                     lastVoteHeight);
             // }
             if  (itVote != candidateVotesInOut.end()) { //existing vote
                 uint64_t currVotes = itVote->GetVotedBcoins();
 
                 if (!IsMoneyValid(vote.GetVotedBcoins()))
-                    return ERRORMSG("ProcessDelegateVote() : oper fund value exceeds maximum ");
+                    return ERRORMSG("ProcessDelegateVotes() : oper fund value exceeds maximum ");
 
                 if (itVote->GetVotedBcoins() < vote.GetVotedBcoins())
-                    return ERRORMSG("ProcessDelegateVote() : oper fund value exceeds delegate fund value");
+                    return ERRORMSG("ProcessDelegateVotes() : oper fund value exceeds delegate fund value");
 
                 itVote->SetVotedBcoins(currVotes - vote.GetVotedBcoins());
 
@@ -396,10 +396,10 @@ bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesI
                     candidateVotesInOut.erase(itVote);
 
             } else {
-                return ERRORMSG("ProcessDelegateVote() : revocation votes not exist");
+                return ERRORMSG("ProcessDelegateVotes() : revocation votes not exist");
             }
         } else {
-            return ERRORMSG("ProcessDelegateVote() : operType: %d invalid", voteType);
+            return ERRORMSG("ProcessDelegateVotes() : operType: %d invalid", voteType);
         }
     }
 
@@ -411,7 +411,7 @@ bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesI
     uint64_t newTotalVotes = GetVotedBCoins(candidateVotesInOut, currHeight);
     uint64_t totalBcoins = bcoins + lastTotalVotes;
     if (totalBcoins < newTotalVotes) {
-        return  ERRORMSG("ProcessDelegateVote() : delegate votes exceeds account bcoins");
+        return  ERRORMSG("ProcessDelegateVotes() : delegate votes exceeds account bcoins");
     }
     bcoins = totalBcoins - newTotalVotes;
 

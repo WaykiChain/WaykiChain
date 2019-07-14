@@ -169,7 +169,7 @@ public:
     bool UnFreezeDexCoin(CoinType coinType, uint64_t amount);
     bool MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins);
 
-    bool ProcessDelegateVote(const vector<CCandidateVote>& candidateVotesIn,
+    bool ProcessDelegateVotes(const vector<CCandidateVote>& candidateVotesIn,
                              vector<CCandidateVote>& candidateVotesInOut, const uint64_t currHeight);
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool StakeFcoins(const int64_t fcoinsToStake); //price feeder must stake fcoins
