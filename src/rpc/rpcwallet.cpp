@@ -501,6 +501,126 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
     return obj;
 }
 
+Value sendtransaction(const Array& params, bool fHelp) {
+    if (fHelp || (params.size() !=4 && params.size() !=6))
+        throw runtime_error(
+            "sendtransaction \"from\" \"to\" \"coin_amount\" \"coin_type\" \"fee\" \"fee_type\"\n"
+            "\nSend asset to a given address.\n" +
+            HelpRequiringPassphrase() +
+            "\nArguments:\n"
+            "1.\"from\" (string, optional) The address where coins are sent from.\n"
+            "2.\"to\" (string, required) The address where coins are received.\n"
+            "3.\"coin_amount\" (number, required) The amount to transfer.\n"
+            "4.\"coin_type\" (string, required) The coin type to transfer. If transferring WUSD, must pay 0.01% to the risk reserve\n"
+            "5.\"fee\" (number, optional) The fee pay for miner.\n"
+            "6.\"fee_type\" (string, optional) The coin type of fee.\n"
+            "\nResult:\n"
+            "\"txid\" (string) The transaction id.\n"
+            "\nExamples:\n" +
+            HelpExampleCli("sendtransaction", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" 100000000 \"WICC\" 10000 \"WICC\"\n") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("sendtransaction", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" 100000000 \"WICC\" 10000 \"WICC\"\n")
+        );
+
+    EnsureWalletIsUnlocked();
+
+    CKeyID sendKeyId, recvKeyId;
+    uint64_t coinAmount =   0;
+    CoinType coinType   =   CoinType::WICC;
+    uint64_t fee        =   0;
+    CoinType feeType    =   CoinType::WICC;
+
+    //parse params
+    if (!GetKeyId(params[0].get_str(), sendKeyId))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sendaddress");
+
+    if (!GetKeyId(params[1].get_str(), recvKeyId))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
+
+    CPubKey sendPubKey;
+    if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Sender address not found in wallet");
+
+    int nHeight = chainActive.Height();
+    CUserID sendUserId, recvUserId;
+    CRegID sendRegId, recvRegId;
+    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && pCdMan->pAccountCache->RegIDIsMature(sendRegId))
+                     ? CUserID(sendRegId)
+                     : CUserID(sendPubKey);
+    recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) && pCdMan->pAccountCache->RegIDIsMature(recvRegId))
+                     ? CUserID(recvRegId)
+                     : CUserID(recvKeyId);
+
+    coinAmount = params[2].get_uint64();
+
+    if (!ParseCoinType(params[3].get_str(), coinType)) {
+        throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin_type");
+    }
+
+    if (params.size() == 6) {
+        fee = params[4].get_uint64();
+        if (!ParseCoinType(params[5].get_str(), feeType)) {
+            throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid fee_type");
+        }
+    } else {
+        //TODO : default WUSD fee amount
+        fee = GetTxMinFee(UCOIN_TRANSFER_TX, chainActive.Height());
+        feeType = coinType;
+    }
+
+    //check params
+    CAccount txAccount;
+    if (!pCdMan->pAccountCache->GetAccount(sendUserId, txAccount)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                            strprintf("The account not exists! userId=%s", sendUserId.ToString()));
+    }
+
+    uint64_t totalAmount = coinAmount;
+    if (coinType==feeType) {
+        totalAmount += fee;
+    }
+
+    if (coinType==CoinType::WICC) {
+        if (txAccount.GetFreeBcoins() < totalAmount)
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
+    } else if (coinType==CoinType::WUSD) {
+        if (txAccount.GetFreeScoins() < totalAmount)
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
+    } else if (coinType==CoinType::WGRT) {
+        if (txAccount.GetFreeFcoins() < totalAmount)
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
+    } else {
+        throw JSONRPCError(RPC_PARSE_ERROR, "This currency is not currently supported.");
+    }
+
+    if (feeType==CoinType::WICC) {
+        if (txAccount.GetFreeBcoins() < fee)
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
+    } else if (feeType==CoinType::WUSD) {
+        if (txAccount.GetFreeScoins() < fee)
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
+    } else if (feeType==CoinType::WGRT) {
+        if (txAccount.GetFreeFcoins() < fee)
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
+    } else {
+        throw JSONRPCError(RPC_PARSE_ERROR, "This currency is not currently supported.");
+    }
+
+    CCoinTransferTx tx(sendUserId, recvUserId, nHeight, coinAmount, coinType, fee, feeType);
+
+    if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
+
+    std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx *)&tx);
+    if (!std::get<0>(ret)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
+    }
+
+    Object obj;
+    obj.push_back(Pair("txid", std::get<1>(ret)));
+    return obj;
+}
+
 Value gensendtoaddressraw(const Array& params, bool fHelp) {
     int size = params.size();
     if (fHelp || size < 4 || size > 5) {
