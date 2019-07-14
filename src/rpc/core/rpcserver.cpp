@@ -309,6 +309,7 @@ static const CRPCCommand vRPCCommands[] =
     { "verifymessage",          &verifymessage,          false,     false,      false },
     { "sendtoaddress",          &sendtoaddress,          false,     false,      true },
     { "sendtoaddresswithfee",   &sendtoaddresswithfee,   false,     false,      true },
+    { "sendtransaction",        &sendtransaction,        false,     false,      true },
     { "getbalance",             &getbalance,             false,     false,      true },
     // { "dispersebalance",        &dispersebalance,        false,     false,      true },
     { "getassets",              &getassets,              false,     false,      true },
