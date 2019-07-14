@@ -125,11 +125,6 @@ bool CAccount::MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins) {
 }
 
 uint64_t CAccount::ComputeVoteStakingInterest(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight) {
-    if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R2) {
-        // The rule is one bcoin one vote, hence no profits at all and return 0.
-        return 0;
-    }
-
     if (candidateVotes.empty()) {
         LogPrint("DEBUG", "1st-time vote by the account, hence no minting of interest.");
         return 0;  // 0 for the very 1st vote
@@ -146,26 +141,26 @@ uint64_t CAccount::ComputeVoteStakingInterest(const vector<CCandidateVote> &cand
     auto calculateProfit = [](uint64_t nValue, uint64_t nSubsidy, int nBeginHeight, int nEndHeight) -> uint64_t {
         int64_t nHoldHeight        = nEndHeight - nBeginHeight;
         static int64_t nYearHeight = SysCfg().GetSubsidyHalvingInterval();
-        uint64_t llProfits         = (uint64_t)(nValue * ((long double)nHoldHeight * nSubsidy / nYearHeight / 100));
-        LogPrint("profits", "nValue:%lld nSubsidy:%lld nBeginHeight:%d nEndHeight:%d llProfits:%lld\n", nValue,
-                 nSubsidy, nBeginHeight, nEndHeight, llProfits);
-        return llProfits;
+        uint64_t interest         = (uint64_t)(nValue * ((long double)nHoldHeight * nSubsidy / nYearHeight / 100));
+        LogPrint("interest", "nValue:%lld nSubsidy:%lld nBeginHeight:%d nEndHeight:%d interest:%lld\n", nValue,
+                 nSubsidy, nBeginHeight, nEndHeight, interest);
+        return interest;
     };
 
-    uint64_t llProfits = 0;
+    uint64_t interest = 0;
     uint64_t nSubsidy  = nBeginSubsidy;
     while (nSubsidy != nEndSubsidy) {
         int nJumpHeight = IniCfg().GetBlockSubsidyJumpHeight(nSubsidy - 1);
-        llProfits += calculateProfit(nValue, nSubsidy, nBeginHeight, nJumpHeight);
+        interest += calculateProfit(nValue, nSubsidy, nBeginHeight, nJumpHeight);
         nBeginHeight = nJumpHeight;
         nSubsidy -= 1;
     }
 
-    llProfits += calculateProfit(nValue, nSubsidy, nBeginHeight, nEndHeight);
-    LogPrint("profits", "updateHeight:%d currHeight:%d freeze value:%lld\n", lastVoteHeight, currHeight,
+    interest += calculateProfit(nValue, nSubsidy, nBeginHeight, nEndHeight);
+    LogPrint("interest", "updateHeight:%d currHeight:%d freeze value:%lld\n", lastVoteHeight, currHeight,
              candidateVotes.begin()->GetVotedBcoins());
 
-    return llProfits;
+    return interest;
 }
 
 uint64_t CAccount::CalculateAccountProfit(const uint64_t currHeight) const {
@@ -352,12 +347,7 @@ bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesI
         return false;
     }
 
-    uint64_t llProfit = ComputeVoteStakingInterest(candidateVotesInOut, currHeight);
-    if (!IsMoneyValid(llProfit))
-        return false;
-
     lastVoteHeight = currHeight;
-
     uint64_t lastTotalVotes = GetVotedBCoins(candidateVotesInOut, currHeight);
 
     for (const auto &vote : candidateVotesIn) {
@@ -424,8 +414,26 @@ bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesI
         return  ERRORMSG("ProcessDelegateVote() : delegate votes exceeds account bcoins");
     }
     bcoins = totalBcoins - newTotalVotes;
-    bcoins += llProfit; // In one bcoin one vote, the profit will always be 0.
-    LogPrint("profits", "received profits: %lld\n", llProfit);
+
+    uint64_t interestAmountToInflate = ComputeVoteStakingInterest(candidateVotesInOut, currHeight);
+    if (!IsMoneyValid(interestAmountToInflate))
+        return false;
+
+    switch (GetFeatureForkVersion(currHeight)) {
+        case MAJOR_VER_R1: 
+            bcoins += interestAmountToInflate; // for backward compatibility
+            break;
+
+        case MAJOR_VER_R2:
+            fcoins += interestAmountToInflate; // only fcoins will be inflated for voters
+            break;
+
+        default:
+            return false;
+    }
+
+    LogPrint("INFLATE", "Account(%s) received vote staking interest amount (fcoins): %lld\n", 
+            regId.ToString(), interestAmountToInflate);
 
     return true;
 }
