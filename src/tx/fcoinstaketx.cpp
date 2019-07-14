@@ -91,7 +91,7 @@ string CFcoinStakeTx::ToString(CAccountDBCache &accountCache) {
 Object CFcoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    IMPLEMENT_PUSH_BASE_TX_JSON(accountCache);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
 
     result.push_back(Pair("coins_to_stake",     fcoinsToStake));
 

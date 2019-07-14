@@ -48,7 +48,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int n
     }
 
     CContractInvokeTx* contractTx = static_cast<CContractInvokeTx*>(tx.get());
-    if (!pContractCache->GetScript(contractTx->appUid.get<CRegID>(), contractScript)) {
+    if (!pContractCache->GetContractScript(contractTx->appUid.get<CRegID>(), contractScript)) {
         LogPrint("ERROR", "contract not found: %s\n",
                  contractTx->appUid.get<CRegID>().ToString());
         return false;
@@ -170,8 +170,8 @@ bool CVmRunEnv::UndoDatas(CCacheWrapper &cw) {
     if (!cw.contractCache.UndoTxOutput(cw.txUndo.dbOpLogMap)) {
         return ERRORMSG("CVmRunEnv::UndoDatas UndoTxOutput failed");
     }
-    if (!cw.contractCache.UndoScriptAcc(cw.txUndo.dbOpLogMap)) {
-        return ERRORMSG("CVmRunEnv::UndoDatas UndoScriptAcc failed");
+    if (!cw.contractCache.UndoContractAccount(cw.txUndo.dbOpLogMap)) {
+        return ERRORMSG("CVmRunEnv::UndoDatas UndoContractAccount failed");
     }
     if (!cw.contractCache.UndoContractData(cw.txUndo.dbOpLogMap)) {
         return ERRORMSG("CVmRunEnv::UndoDatas UndoContractData failed");
@@ -260,7 +260,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
             CRegID regId(accountId);
             CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
             /// current tx's script cant't mius other script's regid
-            if (pContractCache->HaveScript(regId) && regId != tx->appUid.get<CRegID>())
+            if (pContractCache->HaveContractScript(regId) && regId != tx->appUid.get<CRegID>())
                 return false;
 
             memcpy(&operValue, it.money, sizeof(it.money));
@@ -287,7 +287,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
             if (regId.IsEmpty() || regId.GetKeyId(*pAccountCache) == uint160()) return false;
 
             //  app only be allowed minus self money
-            if (!pContractCache->HaveScript(regId) && it.opType == MINUS_BCOIN) return false;
+            if (!pContractCache->HaveContractScript(regId) && it.opType == MINUS_BCOIN) return false;
         }
     }
 
@@ -517,7 +517,7 @@ bool CVmRunEnv::GetAppUserAccount(const vector<unsigned char>& vAppUserId,
     assert(pContractCache);
     shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
     string appUserId(vAppUserId.begin(), vAppUserId.end());
-    if (!pContractCache->GetScriptAcc(GetScriptRegID(), appUserId, *tem.get())) {
+    if (!pContractCache->GetContractAccount(GetScriptRegID(), appUserId, *tem.get())) {
         tem     = std::make_shared<CAppUserAccount>(appUserId);
         sptrAcc = tem;
         return true;
@@ -567,7 +567,7 @@ bool CVmRunEnv::OperateAppAccount(const map<vector<unsigned char>, vector<CAppFu
             }
             newAppUserAccount.push_back(sptrAcc);
             LogPrint("vm", "after user: %s\n", sptrAcc.get()->ToString());
-            view.SetScriptAcc(GetScriptRegID(), *sptrAcc.get(), *pDBOpLogsMap);
+            view.SetContractAccount(GetScriptRegID(), *sptrAcc.get(), *pDBOpLogsMap);
         }
     }
     return true;

@@ -289,7 +289,7 @@ public:
 		}
 
 		CContractDBCache contractScriptTemp(*pScriptDBTip, true);
-		if (!contractScriptTemp.HaveScript(regid)) {
+		if (!contractScriptTemp.HaveContractScript(regid)) {
 			return false;
 		}
 		int dbsize;
@@ -350,7 +350,7 @@ public:
 				return false;
 			}
 			CContractDBCache contractScriptTemp(*pScriptDBTip, true);
-			if (!contractScriptTemp.HaveScript(regid)) {
+			if (!contractScriptTemp.HaveContractScript(regid)) {
 				return false;
 			}
 			vector<unsigned char> value;
@@ -368,7 +368,7 @@ public:
 				return 0;
 			}
 
-			if (!pScriptDBTip->HaveScript(regid)) {
+			if (!pScriptDBTip->HaveContractScript(regid)) {
 				return 0;
 			}
 			int dbsize;
@@ -622,7 +622,7 @@ BOOST_FIXTURE_TEST_CASE(appacc,CSysScriptTest){
 
 	BOOST_CHECK(SysTestBase::GetRegID(address,strreg));
 	std::shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
-	contractScriptTemp.GetScriptAcc(script,strreg.GetRegIdRaw(),*tem.get());
+	contractScriptTemp.GetContractAccount(script,strreg.GetRegIdRaw(),*tem.get());
 	BOOST_CHECK(tem.get()->GetBcoins() == nMoney);
 }
 

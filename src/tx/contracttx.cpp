@@ -64,7 +64,7 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     contractAccount.nickId = CNickID();
 
     // save new script content
-    if (!cw.contractCache.SetScript(contractRegId, contractScript)) {
+    if (!cw.contractCache.SetContractScript(contractRegId, contractScript)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, save script id %s script info error",
             contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
@@ -92,7 +92,7 @@ bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
 
     CRegID contractRegId(nHeight, nIndex);
     // delete script content
-    if (!cw.contractCache.EraseScript(contractRegId)) {
+    if (!cw.contractCache.EraseContractScript(contractRegId)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase script id %s error",
                         contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "erase-script-failed");
     }
@@ -359,7 +359,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     cw.txUndo.accountLogs.push_back(desAcctLog);
 
     string contractScript;
-    if (!cw.contractCache.GetScript(appUid.get<CRegID>(), contractScript))
+    if (!cw.contractCache.GetContractScript(appUid.get<CRegID>(), contractScript))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, read script failed, regId=%s",
             appUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
@@ -495,7 +495,7 @@ bool CContractInvokeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState
                         REJECT_INVALID, "bad-account-unregistered");
 
     string contractScript;
-    if (!cw.contractCache.GetScript(appUid.get<CRegID>(), contractScript))
+    if (!cw.contractCache.GetContractScript(appUid.get<CRegID>(), contractScript))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, read script failed, regId=%s",
                         appUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-read-script");
 

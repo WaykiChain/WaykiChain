@@ -54,20 +54,20 @@ void testscriptdb() {
 	CRegID regScriptId(vScriptId);
 	CRegID regScriptId1(vScriptId1);
 	//write script content to db
-	BOOST_CHECK(pTestView->SetScript(regScriptId, vScriptContent));
-	BOOST_CHECK(pTestView->SetScript(regScriptId1, vScriptContent1));
+	BOOST_CHECK(pTestView->SetContractScript(regScriptId, vScriptContent));
+	BOOST_CHECK(pTestView->SetContractScript(regScriptId1, vScriptContent1));
 	//write all data in caches to db
 	BOOST_CHECK(pTestView->Flush());
 	//test if the script id is exist in db
-	BOOST_CHECK(pTestView->HaveScript(regScriptId));
+	BOOST_CHECK(pTestView->HaveContractScript(regScriptId));
 	vector<unsigned char> vScript;
 	//read script content from db by scriptId
-	BOOST_CHECK(pTestView->GetScript(regScriptId,vScript));
+	BOOST_CHECK(pTestView->GetContractScript(regScriptId, vScript));
 	// if the readed script content equals with original
 	BOOST_CHECK(vScriptContent == vScript);
 	int nCount;
 	//get script numbers from db
-	BOOST_CHECK(pTestView->GetScriptCount(nCount));
+	// BOOST_CHECK(pTestView->GetScriptCount(nCount));
 	//if the number is one
 	BOOST_CHECK_EQUAL(nCount, 2);
 	//get index 0 script from db
@@ -75,15 +75,15 @@ void testscriptdb() {
 	vector<unsigned char> vId;
 
 	CRegID regId;
-	BOOST_CHECK(pTestView->GetScript(0, regId, vScript));
+	BOOST_CHECK(pTestView->GetContractScript(0, regId, vScript));
 	BOOST_CHECK(vScriptId == regId.GetRegIdRaw());
 	BOOST_CHECK(vScriptContent == vScript);
-	BOOST_CHECK(pTestView->GetScript(1, regId, vScript));
+	BOOST_CHECK(pTestView->GetContractScript(1, regId, vScript));
 	BOOST_CHECK(vScriptId1 == regId.GetRegIdRaw());
 	BOOST_CHECK(vScriptContent1 == vScript);
 	//delete script from db
-	BOOST_CHECK(pTestView->EraseScript(regScriptId));
-	BOOST_CHECK(pTestView->GetScriptCount(nCount));
+	BOOST_CHECK(pTestView->EraseContractScript(regScriptId));
+	// BOOST_CHECK(pTestView->GetScriptCount(nCount));
 	BOOST_CHECK_EQUAL(nCount, 1);
 	//write all data in caches to db
 	BOOST_CHECK(pTestView->Flush());
@@ -276,7 +276,7 @@ void testscriptdatadb() {
 //	int height = 0;
 //	int curheight = 0;
 	BOOST_CHECK(pTestView->GetContractData(curheight,regScriptId,vScriptKey,vScriptData));
-	pTestView->GetScriptCount(height);
+	// pTestView->GetScriptCount(height);
 
 	BOOST_CHECK(pTestView->GetContractData(curheight,regScriptId, 0, vScriptKey, vScriptData));
 	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey, vScriptData, operlog));
@@ -287,7 +287,7 @@ void testscriptdatadb() {
 	BOOST_CHECK(pTestView->Flush());
 	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey1, vScriptData1, operlog));
 	//test if the script id is exist in db
-	BOOST_CHECK(pTestView->HaveScriptData(regScriptId, vScriptKey));
+	BOOST_CHECK(pTestView->HaveContractData(regScriptId, vScriptKey));
 	vScript.clear();
 
 

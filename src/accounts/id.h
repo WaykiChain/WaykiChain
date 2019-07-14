@@ -67,11 +67,15 @@ public:
     bool Clean();
     string ToString() const;
 
-    IMPLEMENT_SERIALIZE(READWRITE(VARINT(nHeight)); READWRITE(VARINT(nIndex)); if (fRead) {
-        vRegID.clear();
-        vRegID.insert(vRegID.end(), BEGIN(nHeight), END(nHeight));
-        vRegID.insert(vRegID.end(), BEGIN(nIndex), END(nIndex));
-    })
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(nHeight));
+        READWRITE(VARINT(nIndex));
+        if (fRead) {
+            vRegID.clear();
+            vRegID.insert(vRegID.end(), BEGIN(nHeight), END(nHeight));
+            vRegID.insert(vRegID.end(), BEGIN(nIndex), END(nIndex));
+        }
+    )
 };
 
 /**

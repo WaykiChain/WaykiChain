@@ -112,7 +112,7 @@ string CPriceFeedTx::ToString(CAccountDBCache &accountCache) {
 Object CPriceFeedTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    IMPLEMENT_PUSH_BASE_TX_JSON(accountCache);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
 
     Array pricePointArray;
     for (const auto &pp : pricePoints) {
