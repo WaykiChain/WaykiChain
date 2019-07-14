@@ -124,7 +124,7 @@ bool CAccount::MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins) {
     return true;
 }
 
-uint64_t CAccount::GetAccountProfit(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight) {
+uint64_t CAccount::ComputeVoteStakingInterest(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight) {
     if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R2) {
         // The rule is one bcoin one vote, hence no profits at all and return 0.
         return 0;
@@ -352,7 +352,7 @@ bool CAccount::ProcessDelegateVote(const vector<CCandidateVote> &candidateVotesI
         return false;
     }
 
-    uint64_t llProfit = GetAccountProfit(candidateVotesInOut, currHeight);
+    uint64_t llProfit = ComputeVoteStakingInterest(candidateVotesInOut, currHeight);
     if (!IsMoneyValid(llProfit))
         return false;
 

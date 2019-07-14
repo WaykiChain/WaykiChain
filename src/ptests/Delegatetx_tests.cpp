@@ -82,7 +82,7 @@ bool GetAccountBalance(const Value & account, uint64_t &balance) {
     return false;
 }
 
-// bool GetAccountProfits(const Value & account, const int &current_height, uint64_t &profits) {
+// bool ComputeVoteStakingInterests(const Value & account, const int &current_height, uint64_t &profits) {
 //     string max_delegate_addr = "";
 //     uint64_t delegate_vote_value = 0;
 //     if(GetMaxDelegateVote(account, max_delegate_addr, delegate_vote_value)) {
@@ -145,7 +145,7 @@ bool OperAccountDelegateVote(const string &send_addr, const string &receive_vote
 
     //获取投票前,当前区块高度
     BOOST_CHECK(basetest.GetBlockHeight(current_block_height));
-    GetAccountProfits(send_account_info, current_block_height+1, send_profits);
+    ComputeVoteStakingInterests(send_account_info, current_block_height+1, send_profits);
 
     int mempool_tx_size = 0;
     while (1) {

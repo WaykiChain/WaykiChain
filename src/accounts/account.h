@@ -260,7 +260,7 @@ public:
     uint64_t GetVotedBCoins(const vector<CCandidateVote>& candidateVotes, const uint64_t currHeight);
 
     // Get profits for voting.
-    uint64_t GetAccountProfit(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight);
+    uint64_t ComputeVoteStakingInterest(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight);
     // Calculate profits for voted.
     uint64_t CalculateAccountProfit(const uint64_t currHeight) const;
 
