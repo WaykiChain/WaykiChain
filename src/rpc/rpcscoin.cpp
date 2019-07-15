@@ -104,7 +104,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
 }
 
 Value submitstakefcointx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 5 || params.size() > 6) {
+    if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
             "submitstakefcointx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
             "\nsubmit a fcoin stake order tx.\n"
