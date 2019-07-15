@@ -47,7 +47,7 @@ enum SysParamType {
 };
 
 struct SysParamTypeHash {
-    size_t operator()(const TxType &type) const noexcept {
+    size_t operator()(const SysParamType &type) const noexcept {
         return std::hash<uint8_t>{}(type);
     }
 };
