@@ -90,6 +90,10 @@ bool CContractDBCache::Flush() {
     return true;
 }
 
+bool CContractDBCache::GetContractScripts(map<string, string> &contractScript) {
+    return scriptCache.GetAllElements(contractScript);
+}
+
 unsigned int CContractDBCache::GetCacheSize() {
     return false;
     /* TODO:

@@ -254,7 +254,6 @@ static std::string GetLuaError(lua_State *L, int status, std::string prefix) {
 }
 
 tuple<uint64_t, string> CVmlua::Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv) {
-
     if (fuelLimit == 0) {
         return std::make_tuple(-1, string("fuelLimit == 0"));
     }

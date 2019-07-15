@@ -233,13 +233,13 @@ Value callcontracttx(const Array& params, bool fHelp) {
             "callcontracttx \"sender addr\" \"app regid\" \"arguments\" \"amount\" \"fee\" (\"height\")\n"
             "\ncreate contract invocation transaction\n"
             "\nArguments:\n"
-            "1.\"sender addr\": (string, required)  tx sender's base58 addr\n"
-            "2.\"app regid\":(string, required)     contract RegId\n"
-            "3.\"arguments\": (string, required)    contract arguments (Hex encode required)\n"
-            "4.\"amount\":(numeric, required)       amount of WICC to be sent to the contract account\n"
-            "5.\"fee\": (numeric, required)         pay to miner\n"
+            "1.\"sender addr\": (string, required) tx sender's base58 addr\n"
+            "2.\"app regid\":   (string, required) contract RegId\n"
+            "3.\"arguments\":   (string, required) contract arguments (Hex encode required)\n"
+            "4.\"amount\":      (numeric, required) amount of WICC to be sent to the contract account\n"
+            "5.\"fee\":         (numeric, required) pay to miner\n"
             "\nResult:\n"
-            "\"txhash\": (string)\n"
+            "\"txhash\":        (string)\n"
             "\nExamples:\n" +
             HelpExampleCli("callcontracttx",
                            "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 1") +
@@ -457,7 +457,7 @@ Value registercontracttx(const Array& params, bool fHelp)
             throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
         }
         Object obj;
-        obj.push_back(Pair("hash", std::get<1>(ret)));
+        obj.push_back(Pair("txid", std::get<1>(ret)));
         return obj;
     }
 }
@@ -1425,54 +1425,47 @@ Value resetclient(const Array& params, bool fHelp) {
 
 Value listcontracts(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error("listcontracts \"showDetail\"\n"
-                "\nget the list of all registered contracts\n"
-                "\nArguments:\n"
-                "1. showDetail  (boolean, required) true to show scriptContent, otherwise to not show it.\n"
-                "\nReturn an object contain many script data\n"
-                "\nResult:\n"
-                "\nExamples:\n"
-                + HelpExampleCli("listcontracts", "true")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("listcontracts", "true"));
+        throw runtime_error(
+            "listcontracts \"show detail\"\n"
+            "\nget the list of all registered contracts\n"
+            "\nArguments:\n"
+            "1. show detail  (boolean, required) show contract script content if true.\n"
+            "\nReturn an object contains all contract script data\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("listcontracts", "true") + "\nAs json rpc call\n" + HelpExampleRpc("listcontracts", "true"));
     }
-    // bool showDetail = false;
-    // showDetail = params[0].get_bool();
-    // Object obj;
-    // Array arrayScript;
+    bool showDetail = false;
+    showDetail      = params[0].get_bool();
 
-    // CRegID regId;
-    // string contractScript;
-    // Object script;
-    // if (!pCdMan->pContractCache->GetContractScript(0, regId, contractScript))
-    //     throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to get registered contract.");
-    // script.push_back(Pair("contract_regid", regId.ToString()));
-    // CDataStream ds(contractScript, SER_DISK, CLIENT_VERSION);
-    // CVmScript vmScript;
-    // ds >> vmScript;
-    // script.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
+    map<string /* CRegID */, string /* Contract Script */> contractScripts;
+    if (!pCdMan->pContractCache->GetContractScripts(contractScripts)) {
+        throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contract scripts.");
+    }
 
-    // if (showDetail)
-    //     script.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
+    Object obj;
+    Array scriptArray;
+    for (const auto item : contractScripts) {
+        Object scriptObject;
+        scriptObject.push_back(
+            Pair("contract_regid", CRegID(UnsignedCharArray(item.first.begin(), item.first.end())).ToString()));
 
-    // arrayScript.push_back(script);
-    // while (pCdMan->pContractCache->GetContractScript(1, regId, contractScript)) {
-    //     Object obj;
-    //     obj.push_back(Pair("contract_regid", regId.ToString()));
-    //     CDataStream ds(contractScript, SER_DISK, CLIENT_VERSION);
-    //     CVmScript vmScript;
-    //     ds >> vmScript;
-    //     obj.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
-    //     if (showDetail)
-    //         obj.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
+        CDataStream ds(item.second, SER_DISK, CLIENT_VERSION);
+        CVmScript vmScript;
+        ds >> vmScript;
+        scriptObject.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
 
-    //     arrayScript.push_back(obj);
-    // }
+        if (showDetail) {
+            scriptObject.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
+        }
 
-    // obj.push_back(Pair("contracts", arrayScript));
+        scriptArray.push_back(scriptObject);
+    }
 
-    // return obj;
-    return Object();
+    obj.push_back(Pair("count", contractScripts.size()));
+    obj.push_back(Pair("contracts", scriptArray));
+
+    return obj;
 }
 
 Value getcontractinfo(const Array& params, bool fHelp) {

@@ -18,7 +18,7 @@ bool CDelegateDBCache::LoadTopDelegates() {
 
     for (const auto &regId : regIds) {
         string strRegId = std::get<1>(regId);
-        delegateRegIds.push_back(CRegID(vector<unsigned char>(strRegId.begin(), strRegId.end())));
+        delegateRegIds.push_back(CRegID(UnsignedCharArray(strRegId.begin(), strRegId.end())));
     }
 
     // assert(delegateRegIds.size() == IniCfg().GetTotalDelegateNum());

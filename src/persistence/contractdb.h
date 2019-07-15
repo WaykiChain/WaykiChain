@@ -77,20 +77,20 @@ public:
     bool EraseContractData(const CRegID &contractRegId, const string &contractKey, CDBOpLogMap &dbOpLogMap);
     bool UndoContractData(CDBOpLogMap &dbOpLogMap);
 
+    bool GetContractScripts(map<string, string> &contractScript);
+
     bool SetTxRelAccout(const uint256 &txid, const set<CKeyID> &relAccount);
     bool GetTxRelAccount(const uint256 &txid, set<CKeyID> &relAccount);
     bool EraseTxRelAccout(const uint256 &txid);
 
     bool Flush();
-//    bool Flush(IContractView *pView);
+
     unsigned int GetCacheSize();
     Object ToJsonObj() const;
-//	IContractView * GetBaseScriptDB() { return pBase; }
-    bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap);
-
     string ToString();
 
+    bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
+    bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap);
     bool WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLogMap &dbOpLogMap);
     bool GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOutput);
     bool UndoTxOutput(CDBOpLogMap &dbOpLogMap);
