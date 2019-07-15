@@ -172,34 +172,15 @@ bool CCdpDBCache::EraseCdp(const CUserCDP &cdp, CDBOpLogMap &dbOpLogMap) {
     return cdpCache.EraseData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxId), dbOpLogMap);
 }
 
-/**
- *  Interest Ratio Formula: ( a / Log10(b + N) )
- *
- *  ==> ratio = a / Log10(b+N)
- */
-uint64_t CCdpDBCache::ComputeInterest(const int32_t blockHeight, const CUserCDP &cdp) {
-    assert(blockHeight > cdp.blockHeight);
-
-    int32_t blockInterval = blockHeight - cdp.blockHeight;
-    int32_t loanedDays = ceil( (double) blockInterval / kDayBlockTotalCount );
-    uint16_t A = GetDefaultInterestParamA();
-    uint16_t B = GetDefaultInterestParamB();
-    uint64_t N = cdp.totalOwedScoins;
-    double annualInterestRate = 0.1 * (double) A / log10( 1 + B * N);
-    double interest = ((double) N / 365) * loanedDays * annualInterestRate;
-
-    return (uint64_t) interest;
-}
-
 // global collateral ratio floor check
-bool CCdpDBCache::CheckGlobalCollateralFloorReached(const uint64_t& bcoinMedianPrice, 
+bool CCdpDBCache::CheckGlobalCollateralFloorReached(const uint64_t& bcoinMedianPrice,
                                                     const uint16_t& kGlobalCollateralRatioLimit) {
     bool floorRatioReached = cdpMemCache.GetGlobalCollateralRatio(bcoinMedianPrice) < kGlobalCollateralRatioLimit;
     return floorRatioReached;
 }
 
 // global collateral amount ceiling check
-bool CCdpDBCache::CheckGlobalCollateralCeilingReached(  const uint64_t& newBcoinsToStake, 
+bool CCdpDBCache::CheckGlobalCollateralCeilingReached(  const uint64_t& newBcoinsToStake,
                                                         const uint16_t& kGlobalCollateralCeiling) {
     bool ceilingAmountReached = (newBcoinsToStake + cdpMemCache.GetGlobalCollateral()) > kGlobalCollateralCeiling * COIN;
     return ceilingAmountReached;

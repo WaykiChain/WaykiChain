@@ -50,7 +50,16 @@ bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
 }
 
 bool CCDPStakeTx::SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
-    uint64_t scoinsInterestToRepay = cw.cdpCache.ComputeInterest(nHeight, cdp);
+    if (nHeight > cdp.blockHeight) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, nHeight(%d) > cdp.blockHeight (%d)",
+                        nHeight, cdp.blockHeight), REJECT_INVALID, "cdp-block-height-error");
+    }
+
+    uint64_t scoinsInterestToRepay;
+    if (!ComputeCdpInterest(nHeight, cw, cdp.totalOwedScoins, scoinsInterestToRepay)) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, ComputeCdpInterest error!"),
+                REJECT_INVALID, "interest-insufficient-error");
+    }
     if (scoinsInterest < scoinsInterestToRepay) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, scoinsInterest: %d < scoinsInterestToRepay: %d",
                         scoinsInterest, scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
@@ -273,7 +282,17 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
      return true;
  }
  bool CCDPRedeemTx::SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
-    uint64_t scoinsInterestToRepay = cw.cdpCache.ComputeInterest(nHeight, cdp);
+    if (nHeight > cdp.blockHeight) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, nHeight(%d) > cdp.blockHeight (%d)",
+                        nHeight, cdp.blockHeight), REJECT_INVALID, "cdp-block-height-error");
+    }
+
+    uint64_t scoinsInterestToRepay;
+    if (!ComputeCdpInterest(nHeight, cw, cdp.totalOwedScoins, scoinsInterestToRepay)) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, ComputeCdpInterest error!"),
+                        REJECT_INVALID, "interest-insufficient-error");
+    }
+
     if (scoinsInterest < scoinsInterestToRepay) {
          return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, scoinsInterest: %d < scoinsInterestToRepay: %d",
                     scoinsInterest, scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL, "scoins-interest-insufficient-error");
@@ -572,13 +591,13 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_LIQUIDATE_DISCOUNT_RATIO error!",
                         collateralRatio), REJECT_INVALID, "read-sysparamdb-err");
     }
-    
+
     uint32_t _ForcedCdpLiquidateRatio;
     if (!cw.sysParamCache.GetParam(CDP_FORCE_LIQUIDATE_RATIO, _ForcedCdpLiquidateRatio)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_FORCE_LIQUIDATE_RATIO error!",
                         collateralRatio), REJECT_INVALID, "read-sysparamdb-err");
     }
-    
+
     if (collateralRatio > _StartingCdpLiquidateRatio) {        // 1.5++
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp collateralRatio(%d) > 150%!",
                         collateralRatio), REJECT_INVALID, "cdp-not-liquidate-ready");

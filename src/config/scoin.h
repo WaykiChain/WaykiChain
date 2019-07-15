@@ -43,7 +43,9 @@ enum SysParamType {
     CDP_NONRETURN_LIQUIDATE_RATIO,
     CDP_FORCE_LIQUIDATE_RATIO,
     CDP_LIQUIDATE_DISCOUNT_RATIO,
-    CDP_BCOINS_TOSTAKE_AMOUNT_MIN
+    CDP_BCOINS_TOSTAKE_AMOUNT_MIN,
+    CDP_INTEREST_PARAM_A,
+    CDP_INTEREST_PARAM_B,
 };
 
 struct SysParamTypeHash {
@@ -69,6 +71,8 @@ static const unordered_map<SysParamType, std::tuple<string, uint32_t>, SysParamT
     { CDP_FORCE_LIQUIDATE_RATIO,                    std::make_tuple("M",    10400)      },  // 0 ~ 1.04    : forced liquidation only
     { CDP_LIQUIDATE_DISCOUNT_RATIO,                 std::make_tuple("N",    9700)       }, // discount: 97%
     { CDP_BCOINS_TOSTAKE_AMOUNT_MIN,                std::make_tuple("O",    10000000000)}, //100 WICC, dust amount (<100) rejected
+    { CDP_INTEREST_PARAM_A,                         std::make_tuple("P",    2)          }, // a = 2
+    { CDP_INTEREST_PARAM_B,                         std::make_tuple("Q",    1)          }, // b = 1
 
 };
 

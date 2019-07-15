@@ -10,6 +10,7 @@
 #include "alert.h"
 #include "config/chainparams.h"
 #include "config/configuration.h"
+#include "config/scoin.h"
 #include "init.h"
 #include "miner/miner.h"
 #include "net.h"
@@ -4247,6 +4248,26 @@ bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &accountLogs) {
         }
     }
     return false;
+}
+
+bool ComputeCdpInterest(const int32_t currBlockHeight, CCacheWrapper &cw,
+                        const uint64_t &totalOwedScoins, uint64_t &interest) {
+    int32_t blockInterval = currBlockHeight - cdp.blockHeight;
+    int32_t loanedDays = ceil( (double) blockInterval / kDayBlockTotalCount );
+
+    uint16_t A;
+    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_A, A))
+        return false;
+
+    uint16_t B;
+    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_B, B))
+        return false;
+
+    uint64_t N = totalOwedScoins;
+    double annualInterestRate = 0.1 * (double) A / log10( 1 + B * N);
+    interest = (uint64_t) (((double) N / 365) * loanedDays * annualInterestRate);
+
+    return true;
 }
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex) {

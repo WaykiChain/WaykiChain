@@ -173,6 +173,7 @@ class CTxUndo;
 class CValidationState;
 class CWalletInterface;
 class CTxMemCache;
+class CUserCDP;
 
 struct CNodeStateStats;
 
@@ -246,6 +247,15 @@ bool IsFinalTx(CBaseTx *pBaseTx, int nBlockHeight = 0, int64_t nBlockTime = 0);
 
 //get tx operate account log
 bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &accountLogs);
+
+/**
+ *  Interest Ratio Formula: ( a / Log10(b + N) )
+ *
+ *  ==> ratio = a / Log10 (b+N)
+ */
+bool ComputeCdpInterest(const int32_t currBlockHeight, CCacheWrapper &cw,
+                        const uint64_t &totalOwedScoins, uint64_t &interest);
+
 
 /** An in-memory indexed chain of blocks. */
 class CChain {
