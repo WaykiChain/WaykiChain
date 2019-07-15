@@ -19,34 +19,6 @@
 class uint256;
 class CKeyID;
 
-/*
-class IAccountView {
-public:
-    virtual bool GetAccount(const CKeyID &keyId, CAccount &account) = 0;
-    virtual bool GetAccount(const CRegID &regId, CAccount &account) = 0;
-    virtual bool SetAccount(const CKeyID &keyId, const CAccount &account) = 0;
-    virtual bool SetAccount(const CRegID &regId, const CAccount &account) = 0;
-    // virtual bool SetAccount(const CUserID &userId, const CAccount &account) = 0;
-    virtual bool HaveAccount(const CKeyID &keyId) = 0;
-    virtual uint256 GetBestBlock() = 0;
-    virtual bool SetBestBlock(const uint256 &blockHash) = 0;
-    virtual bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<CRegID,
-                            CKeyID> &mapKeyIds, const uint256 &blockHash) = 0;
-    virtual bool BatchWrite(const vector<CAccount> &vAccounts) = 0;
-    virtual bool EraseAccountByKeyId(const CKeyID &keyId) = 0;
-    virtual bool SetKeyId(const CRegID &regId, const CKeyID &keyId) = 0;
-    virtual bool GetKeyId(const CRegID &regId, CKeyID &keyId) = 0;
-    virtual bool EraseKeyIdByRegId(const CRegID &regId) = 0;
-
-    // virtual bool SaveAccount(const CRegID &regId, const CKeyID &keyId,
-    // const CAccount &account) = 0;
-    virtual std::tuple<uint64_t, uint64_t> TraverseAccount() = 0;
-    virtual Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY) = 0;
-
-    virtual ~IAccountView() {};
-};
-*/
-
 class CAccountDBCache {
 public:
     bool GetFcoinGenesisAccount(CAccount &fcoinGenesisAccount) const;
@@ -125,45 +97,4 @@ private:
     CDBMultiValueCache< dbk::NICKID_KEYID,         CNickID,      CKeyID>          nickId2KeyIdCache;
 };
 
-/*
-class CAccountDB : public IAccountView {
-private:
-    CLevelDBWrapper db;
-
-public:
-    CAccountDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false) :
-                db( GetDataDir() / "blocks" / "account", nCacheSize, fMemory, fWipe ) {}
-
-    CAccountDB(const string &name, size_t nCacheSize, bool fMemory, bool fWipe) :
-                db( GetDataDir() / "blocks" / name, nCacheSize, fMemory, fWipe ) {}
-
-private:
-    CAccountDB(const CAccountDB &);
-    void operator=(const CAccountDB &);
-
-public:
-    bool GetAccount(const CKeyID &keyId, CAccount &account);
-    bool GetAccount(const CRegID &regId, CAccount &account);
-    bool GetAccount(const CUserID &userId, CAccount &account);
-
-    virtual bool SetAccount(const CKeyID &keyId, const CAccount &account);
-    // virtual bool SetAccount(const CUserID &userId, const CAccount &account) {};
-    virtual bool SetAccount(const CRegID &regId, const CAccount &account);
-
-    bool HaveAccount(const CKeyID &keyId);
-    uint256 GetBestBlock();
-    bool SetBestBlock(const uint256 &hashBlock);
-    bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<CRegID, CKeyID> &mapKeyIds, const uint256 &hashBlock);
-    bool BatchWrite(const vector<CAccount> &vAccounts);
-    bool EraseAccountByKeyId(const CKeyID &keyId);
-    bool SetKeyId(const CRegID &regId, const CKeyID &keyId);
-    bool GetKeyId(const CRegID &regId, CKeyID &keyId);
-    bool EraseKeyIdByRegId(const CRegID &regId);
-
-    bool SaveAccount(const CAccount &account);
-    std::tuple<uint64_t, uint64_t> TraverseAccount();
-    int64_t GetDbCount() { return db.GetDbCount(); }
-    Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY);
-};
-*/
 #endif  // PERSIST_ACCOUNTDB_H
