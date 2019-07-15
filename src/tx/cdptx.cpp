@@ -606,7 +606,6 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
                          READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
-<<<<<<< HEAD
     uint32_t _ForcedCdpLiquidateRatio;
     if (!cw.sysParamCache.GetParam(CDP_FORCE_LIQUIDATE_RATIO, _ForcedCdpLiquidateRatio)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_FORCE_LIQUIDATE_RATIO error!",
@@ -614,15 +613,6 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
     }
 
     if (collateralRatio > _StartingCdpLiquidateRatio) {        // 1.5++
-=======
-    uint64_t forcedCdpLiquidateRatio;
-    if (!cw.sysParamCache.GetParam(CDP_FORCE_LIQUIDATE_RATIO, forcedCdpLiquidateRatio)) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_FORCE_LIQUIDATE_RATIO error!"),
-                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
-    }
-
-    if (collateralRatio > startingCdpLiquidateRatio) {        // 1.5++
->>>>>>> 00f50578410ea059564939ab541a83bd5cc8bea7
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp collateralRatio(%d) > 150%!",
                         collateralRatio), REJECT_INVALID, "cdp-not-liquidate-ready");
 
