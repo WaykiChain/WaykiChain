@@ -12,8 +12,8 @@ bool CCoinTransferTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationSta
     // TODO: fees in WICC/WGRT/WUSD
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
-    IMPLEMENT_CHECK_TX_REGID(txUid.type());
-    IMPLEMENT_CHECK_TX_REGID(toUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid.type());
 
      // TODO: check range
     if (kCoinTypeMapName.count(CoinType(coinType)) == 0 || kCoinTypeMapName.count(CoinType(feesCoinType)) == 0) {
@@ -42,6 +42,8 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
                         txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
     CAccountLog srcAccountLog(srcAccount);
+    CAccountLog desAccountLog;
+
     if (!srcAccount.OperateBalance(CoinType(feesCoinType), MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, insufficient bcoins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
@@ -57,11 +59,17 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CAccount desAccount;
-    if (!cw.accountCache.GetAccount(toUid, desAccount))
-        return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read toUid %s account info error", toUid.ToString()),
-                        FCOIN_STAKE_FAIL, "bad-read-accountdb");
-
-    CAccountLog desAccountLog(desAccount);
+    if (!cw.accountCache.GetAccount(toUid, desAccount)) {
+        if (toUid.type() == typeid(CKeyID)) {  // Target account does NOT have CRegID
+            desAccount.keyId    = toUid.get<CKeyID>();
+            desAccountLog.keyId = desAccount.keyId;
+        } else {
+            return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, get account info failed"),
+                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
+        }
+    } else {  // Target account has NO CAccount(first involved in transacion)
+        desAccountLog.SetValue(desAccount);
+    }
 
     uint64_t actualCoinsToSend = coins;
     if (CoinType(coinType) == CoinType::WUSD) { //if transferring WUSD, must pay 0.01% to the risk reserve
