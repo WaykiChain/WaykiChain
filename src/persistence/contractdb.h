@@ -98,7 +98,7 @@ public:
     bool GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string > &mapTxHash);
     bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid, CDBOpLogMap &dbOpLogMap);
     bool UndoTxHashByAddress(CDBOpLogMap &dbOpLogMap);
-    bool GetAllContractAcc(const CRegID &contractRegId, map<string, string > &mapAcc);
+    bool GetContractAccounts(const CRegID &contractRegId, map<string, string > &mapAcc);
 
 private:
 /*       type               prefixType               key                     value                 variable               */

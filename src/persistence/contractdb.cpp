@@ -137,10 +137,10 @@ bool CContractDBCache::GetTxHashByAddress(const CKeyID &keyId, uint32_t height, 
     */
 }
 
-bool CContractDBCache::GetAllContractAcc(const CRegID &scriptId, map<string, string> &mapAcc) {
+bool CContractDBCache::GetContractAccounts(const CRegID &scriptId, map<string, string> &mapAcc) {
     return false;
-    /* TODO: GetAllContractAcc
-    return pBase->GetAllContractAcc(scriptId, mapAcc);
+    /* TODO: GetContractAccounts
+    return pBase->GetContractAccounts(scriptId, mapAcc);
     */
 }
 

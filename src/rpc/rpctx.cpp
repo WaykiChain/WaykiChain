@@ -2657,7 +2657,7 @@ Value gettotalassets(const Array& params, bool fHelp) {
     Object obj;
     {
         map<string, string> mapAcc;
-        bool bRet = pCdMan->pContractCache->GetAllContractAcc(regId, mapAcc);
+        bool bRet = pCdMan->pContractCache->GetContractAccounts(regId, mapAcc);
         if (bRet) {
             uint64_t totalassets = 0;
             for (auto & it : mapAcc) {
