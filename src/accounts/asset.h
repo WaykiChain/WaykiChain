@@ -22,10 +22,12 @@
 
 using namespace json_spirit;
 
+typedef string TokenSymbol;
+
 class CAsset {
 public:
     CRegID ownerRegID;  // creator or owner of the asset
-    string symbol;      // asset symbol, E.g WICC | WUSD
+    TokenSymbol symbol;      // asset symbol, E.g WICC | WUSD
     string name;        // asset long name, E.g WaykiChain coin
     bool mintable;      // whether this token can be minted in the future.
 

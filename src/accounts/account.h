@@ -9,11 +9,13 @@
 
 #include <boost/variant.hpp>
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "asset.h"
 #include "crypto/hash.h"
 #include "id.h"
 #include "vote.h"
@@ -131,13 +133,14 @@ public:
     CKeyID keyId;         //!< KeyID of the account (interchangeable to address) : 20 Bytes
     CRegID regId;         //!< RegID of the account: 6 Bytes
     CNickID nickId;       //!< Nickname ID of the account (maxlen=32)
-    CPubKey pubKey;       //!< account public key
-    CPubKey minerPubKey;  //!< miner saving account public key
+    CPubKey pubKey;       //!< general account pubkey
+    CPubKey minerPubKey;  //!< miner's saving account pubkey
 
-    uint64_t bcoins;        //!< BaseCoin balance
-    uint64_t scoins;        //!< StableCoin balance
-    uint64_t fcoins;        //!< FundCoin balance
-
+    uint64_t bcoins;      //!< Main-coin: BaseCoin balance
+    uint64_t scoins;      //!< Main-coin: StableCoin balance
+    uint64_t fcoins;      //!< Main-coin: FundCoin balance
+    std::map<TokenSymbol, CAsset> tokenAssets;  //!< Tokens assets (tokenSymbol -> tokenAsset) -- MemOnly
+    
     uint64_t frozenDEXBcoins;  //!< frozen bcoins in DEX
     uint64_t frozenDEXScoins;  //!< frozen scoins in DEX
     uint64_t frozenDEXFcoins;  //!< frozen fcoins in DEX
@@ -215,6 +218,7 @@ public:
         this->bcoins         = other.bcoins;
         this->scoins         = other.scoins;
         this->fcoins         = other.fcoins;
+        this->tokenAssets    = other.tokenAssets;
         this->frozenDEXBcoins = other.frozenDEXBcoins;
         this->frozenDEXScoins = other.frozenDEXScoins;
         this->frozenDEXFcoins = other.frozenDEXFcoins;
@@ -249,11 +253,11 @@ public:
     uint64_t GetFreeBcoins() const { return bcoins; }
     uint64_t GetFreeScoins() const { return scoins; }
     uint64_t GetFreeFcoins() const { return fcoins; }
+    CAsset GetTokenAsset(TokenSymbol symbol) const { return tokenAssets.at(symbol); }
 
     uint64_t GetFrozenBCoins() const { return frozenDEXBcoins; }
     uint64_t GetFrozenScoins() const { return frozenDEXScoins; }
     uint64_t GetFrozenFcoins() const { return frozenDEXFcoins; }
-
     uint64_t GetReceiveVotes() const { return receivedVotes; }
 
     uint64_t GetTotalBcoins(const vector<CCandidateVote>& candidateVotes, const uint64_t currHeight);
