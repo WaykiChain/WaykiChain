@@ -12,7 +12,7 @@
 #include <vector>
 #include "commons/arith_uint256.h"
 #include "leveldbwrapper.h"
-#include "accounts/account.h"
+#include "accounts/asset.h"
 #include "dbconf.h"
 #include "dbaccess.h"
 
@@ -26,19 +26,9 @@ public:
 public:
     CAssetDBCache() {}
 
-    CAssetDBCache(CDBAccess *pDbAccess):
-        blockHashCache(pDbAccess),
-        keyId2AccountCache(pDbAccess),
-        regId2KeyIdCache(pDbAccess),
-        nickId2KeyIdCache(pDbAccess) {
-        assert(pDbAccess->GetDbNameType() == DBNameType::ACCOUNT);
+    CAssetDBCache(CDBAccess *pDbAccess) : assetCache(pDbAccess) {
+        assert(pDbAccess->GetDbNameType() == DBNameType::ASSET);
     }
-
-    CAssetDBCache(CAccountDBCache *pBase):
-        blockHashCache(pBase->blockHashCache),
-        keyId2AccountCache(pBase->keyId2AccountCache),
-        regId2KeyIdCache(pBase->regId2KeyIdCache),
-        nickId2KeyIdCache(pBase->nickId2KeyIdCache) {}
 
     ~CAssetDBCache() {}
 
@@ -49,15 +39,6 @@ private:
 /*  -------------------- --------------------   -------------   --------------------- */
     // <asset_symbole -> Asset>
     CDBScalarValueCache< dbk::ASSET,     CAsset>        assetCache;
-
-/*  CDBScalarValueCache     prefixType            key              value           variable           */
-/*  -------------------- --------------------   --------------  -------------   --------------------- */
-    // <KeyID -> Account>
-    CDBMultiValueCache< dbk::KEYID_ACCOUNT,        CKeyID,       CAccount >       keyId2AccountCache;
-    // <RegID str -> KeyID>
-    CDBMultiValueCache< dbk::REGID_KEYID,          string,       CKeyID >         regId2KeyIdCache;
-    // <NickID -> KeyID>
-    CDBMultiValueCache< dbk::NICKID_KEYID,         CNickID,      CKeyID>          nickId2KeyIdCache;
 };
 
 #endif  // PERSIST_ACCOUNTDB_H
