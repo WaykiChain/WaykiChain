@@ -3,7 +3,6 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "config/scoin.h"
 #include "commons/serialize.h"
 #include "persistence/dbaccess.h"
 
@@ -17,7 +16,8 @@ using namespace std;
 
 class CSysParamDBCache {
 public:
-    CSysParamDBCache() {}
+    CSysParamDBCache() : pBase(nullptr) {}
+    CSysParamDBCache(CDBAccess *pDbAccess): sysParamCache(pDbAccess) {}
 
 public:
 

@@ -20,14 +20,15 @@ typedef leveldb::Slice Slice;
 //         DBNameType            DBName           description
 //         ----------           --------------     ----------------------------
 #define DB_NAME_LIST(DEFINE) \
-    DEFINE( SYSPARAM,            "sysparam")      /* account */ \
-    DEFINE( ACCOUNT,             "account")      /* account */ \
-    DEFINE( BLOCK,               "block")        /* account */ \
-    DEFINE( CONTRACT,            "contract")     /* contract */ \
-    DEFINE( DELEGATE,            "delegate")     /* delegate */ \
-    DEFINE( CDP,                 "cdp")          /* cdp */ \
-    DEFINE( DEX,                 "dex")          /* dex */ \
-    DEFINE( LOG,                 "log")          /* log */ \
+    DEFINE( SYSPARAM,           "sysparam")     /* system params */ \
+    DEFINE( ACCOUNT,            "account")      /* accounts & account assets */ \
+    DEFINE( ASSET,              "asset")        /* assets */ \
+    DEFINE( BLOCK,              "block")        /* block */ \
+    DEFINE( CONTRACT,           "contract")     /* contract */ \
+    DEFINE( DELEGATE,           "delegate")     /* delegates */ \
+    DEFINE( CDP,                "cdp")          /* cdp */ \
+    DEFINE( DEX,                "dex")          /* dex */ \
+    DEFINE( LOG,                "log")          /* log */ \
     /*                                                                */  \
     /* Add new Enum elements above, DB_NAME_COUNT Must be the last one */ \
     DEFINE( DB_NAME_COUNT,        "")       /* enum count, must be the last one */
@@ -67,6 +68,8 @@ namespace dbk {
         /*                                                                      */ \
         /**** single-value sys_conf db (global parameters)                      */ \
         DEFINE( SYS_PARAM,            "sysp",  SYS_PARAM )       /* conf{$ParamName} --> $ParamValue */ \
+
+        DEFINE( ASSET,                "asst",  ASSET )          /* asst{$AssetName} --> $Asset */ \
         /**** block db                                                                         */ \
         DEFINE( BLOCK_INDEX,          "bidx",  BLOCK )         /* pbfl --> $nFile */ \
         DEFINE( BLOCKFILE_NUM_INFO,   "bfni",  BLOCK )         /* BlockFileNum --> $BlockFileInfo */ \
@@ -96,9 +99,6 @@ namespace dbk {
         DEFINE( CDP_GLOBAL_HALT,      "cdph",  CDP )           /* cdph -> 0 | 1 */ \
         DEFINE( CDP_IR_PARAM_A,       "ira",   CDP )           /* [prefix] --> param_a */ \
         DEFINE( CDP_IR_PARAM_B,       "irb",   CDP )           /* [prefix] --> param_b */ \
-        DEFINE( CDP_COLLATERAL_RATIO, "ccr",   CDP )           /* [prefix] --> collateralRatio */ \
-        DEFINE( CDP_OPEN_LIQUIDATE_RATIO, "colr", CDP )        /* [prefix] --> openLiquidateRatio */ \
-        DEFINE( CDP_FORCE_LIQUIDATE_RATIO, "cflr", CDP )       /* [prefix] --> forceLiquidateRatio */ \
         /**** dex db                                                                    */ \
         DEFINE( DEX_ACTIVE_ORDER,     "dato",  DEX )           /* [prefix]{txid} --> active order */ \
         DEFINE( DEX_SYS_ORDER,        "dsso",  DEX )           /* [prefix]{txid} --> system order */ \
