@@ -24,7 +24,6 @@ class CPricePoint;
 class CCoinPriceType;
 class CRegID;
 
-// TODO: initialize pBase by constructor instead of SetBaseView.
 class CTxMemCache {
 public:
     CTxMemCache() : pBase(nullptr) {}

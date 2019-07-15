@@ -24,7 +24,14 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     CAccountLog fcoinGenesisAcctLog(fcoinGenesisAccount); //save account state before modification
 
     //0. Check Global Collateral Ratio floor & Collateral Ceiling if reached
-     if (cw.cdpCache.CheckGlobalCollateralFloorReached(cw.ppCache.GetBcoinMedianPrice(nHeight))) {
+    uint64_t globalCollateralRatioFloor = 0;
+    if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read global collateral ratio floor error"),
+                         READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
+    }
+
+    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(cw.ppCache.GetBcoinMedianPrice(nHeight),
+                                                      globalCollateralRatioFloor)) {
         LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralFloorReached!!");
         return true;
     }
@@ -32,8 +39,12 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     //1. get all CDPs to be force settled
     set<CUserCDP> forceLiquidateCdps;
     uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(nHeight);
-    cw.cdpCache.cdpMemCache.GetCdpListByCollateralRatio(cw.cdpCache.GetDefaultForceLiquidateRatio(), bcoinMedianPrice,
-                                                        forceLiquidateCdps);
+    uint64_t forceLiquidateRatio = 0;
+    if (!cw.sysParamCache.GetParam(CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
+        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read force liquidate ratio error"),
+                         READ_SYS_PARAM_FAIL, "read-force-liquidate-ratio-error");
+    }
+    cw.cdpCache.cdpMemCache.GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice, forceLiquidateCdps);
 
     //2. force settle each cdp
     int cdpIndex = 0;

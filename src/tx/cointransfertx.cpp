@@ -71,12 +71,12 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         CAccountLog genesisAcctLog(fcoinGenesisAccount);
-        uint32_t _RiskReserveFeeRatio;
-        if (!cw.sysParamCache.GetParam(SCOIN_RESERVE_FEE_RATIO, _RiskReserveFeeRatio)) {
+        uint64_t riskReserveFeeRatio;
+        if (!cw.sysParamCache.GetParam(SCOIN_RESERVE_FEE_RATIO, riskReserveFeeRatio)) {
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read SCOIN_RESERVE_FEE_RATIO error"),
-                            READ_ACCOUNT_FAIL, "bad-read-sysparamdb");
+                             READ_SYS_PARAM_FAIL, "bad-read-sysparamdb");
         }
-        uint64_t reserveFeeScoins = coins * _RiskReserveFeeRatio / kPercentBoost;
+        uint64_t reserveFeeScoins = coins * riskReserveFeeRatio / kPercentBoost;
         actualCoinsToSend -= reserveFeeScoins;
 
         fcoinGenesisAccount.scoins += reserveFeeScoins;

@@ -6,13 +6,13 @@
 #ifndef PERSIST_CACHEWRAPPER_H
 #define PERSIST_CACHEWRAPPER_H
 
-#include "sysparamdb.h"
 #include "accountdb.h"
 #include "cdpdb.h"
 #include "contractdb.h"
 #include "delegatedb.h"
 #include "dexdb.h"
 #include "pricefeeddb.h"
+#include "sysparamdb.h"
 #include "txdb.h"
 
 class CCacheWrapper {

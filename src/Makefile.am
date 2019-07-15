@@ -73,6 +73,7 @@ coin_CORE_H = \
   mruset.h \
   netbase.h \
   net.h \
+  persistence/assetdb.h \
   persistence/leveldbwrapper.h \
   persistence/accountdb.h \
   persistence/block.h \

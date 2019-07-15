@@ -10,6 +10,7 @@
 #include "alert.h"
 #include "config/chainparams.h"
 #include "config/configuration.h"
+#include "config/scoin.h"
 #include "init.h"
 #include "miner/miner.h"
 #include "net.h"
