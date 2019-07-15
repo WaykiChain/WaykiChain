@@ -1108,14 +1108,14 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
 
         // 9. calc deal fees
         // 9.1) buyer spends WUSD to get assets
-        uint32_t _DexDealFeeRatio;
-        if (!cw.sysParamCache.GetParam(DEX_DEAL_FEE_RATIO, _DexDealFeeRatio)) {
+        uint64_t dexDealFeeRatio;
+        if (!cw.sysParamCache.GetParam(DEX_DEAL_FEE_RATIO, dexDealFeeRatio)) {
             return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, read DEX_DEAL_FEE_RATIO error"),
-                                REJECT_INVALID, "read-sysparamdb-error");
+                                READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
         }
         uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
         if (buyActiveOrder.generateType == USER_GEN_ORDER) {
-            uint64_t dealAssetFee = dealItem.dealAssetAmount * _DexDealFeeRatio / kPercentBoost;
+            uint64_t dealAssetFee = dealItem.dealAssetAmount * dexDealFeeRatio / kPercentBoost;
             buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
             assert (buyOrderDetail.assetType == WICC || buyOrderDetail.assetType == WGRT);
             switch (buyOrderDetail.assetType) {
@@ -1127,7 +1127,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         //9.2 seller sells assets to get WUSD
         uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
         if (sellActiveOrder.generateType == USER_GEN_ORDER) {
-            uint64_t dealCoinFee = dealItem.dealCoinAmount * _DexDealFeeRatio / kPercentBoost;
+            uint64_t dealCoinFee = dealItem.dealCoinAmount * dexDealFeeRatio / kPercentBoost;
             sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
             assert (sellOrderDetail.coinType == WUSD);
             srcAcct.scoins += dealCoinFee;

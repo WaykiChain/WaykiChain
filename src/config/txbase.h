@@ -17,7 +17,7 @@ static const int32_t nTxVersion1 = 1;
 static const int32_t nTxVersion2 = 2;
 #define SCRIPT_ID_SIZE (6)
 
-enum TxType: unsigned char {
+enum TxType: uint8_t {
     BLOCK_REWARD_TX     = 1,  //!< Miner Block Reward Tx
     ACCOUNT_REGISTER_TX = 2,  //!< Account Registration Tx
     BCOIN_TRANSFER_TX   = 3,  //!< BaseCoin Transfer Tx
