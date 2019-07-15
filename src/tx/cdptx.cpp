@@ -4,10 +4,31 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "cdptx.h"
+
 #include "main.h"
 #include "persistence/cdpdb.h"
 
-#include <math.h>
+#include <cmath>
+
+bool ComputeCdpInterest(const int32_t currBlockHeight, const int32_t cpdLastBlockHeight, CCacheWrapper &cw,
+                        const uint64_t &totalOwedScoins, uint64_t &interest) {
+    int32_t blockInterval = currBlockHeight - cpdLastBlockHeight;
+    int32_t loanedDays = ceil( (double) blockInterval / kDayBlockTotalCount );
+
+    uint64_t A;
+    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_A, A))
+        return false;
+
+    uint64_t B;
+    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_B, B))
+        return false;
+
+    uint64_t N = totalOwedScoins;
+    double annualInterestRate = 0.1 * (double) A / log10( 1 + B * N);
+    interest = (uint64_t) (((double) N / 365) * loanedDays * annualInterestRate);
+
+    return true;
+}
 
 string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
@@ -56,7 +77,7 @@ bool CCDPStakeTx::SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, 
     }
 
     uint64_t scoinsInterestToRepay;
-    if (!ComputeCdpInterest(nHeight, cw, cdp.totalOwedScoins, scoinsInterestToRepay)) {
+    if (!ComputeCdpInterest(nHeight, cdp.blockHeight, cw, cdp.totalOwedScoins, scoinsInterestToRepay)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, ComputeCdpInterest error!"),
                 REJECT_INVALID, "interest-insufficient-error");
     }
@@ -288,7 +309,7 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
     }
 
     uint64_t scoinsInterestToRepay;
-    if (!ComputeCdpInterest(nHeight, cw, cdp.totalOwedScoins, scoinsInterestToRepay)) {
+    if (!ComputeCdpInterest(nHeight, cdp.blockHeight, cw, cdp.totalOwedScoins, scoinsInterestToRepay)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, ComputeCdpInterest error!"),
                         REJECT_INVALID, "interest-insufficient-error");
     }
@@ -312,7 +333,7 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     uint64_t globalCollateralRatioFloor = 0;
-    if (!cw.sysParamCache.GetParam(SysParamType::GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+    if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, read global collateral ratio floor error"), READ_SYS_PARAM_FAIL,
                          "read-global-collateral-ratio-floor-error");
     }
@@ -501,7 +522,7 @@ bool CCDPLiquidateTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationSta
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     uint64_t globalCollateralRatioFloor = 0;
-    if (!cw.sysParamCache.GetParam(SysParamType::GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+    if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, read global collateral ratio floor error"),
                          READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
     }
@@ -606,13 +627,13 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
                          READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
-    uint32_t _ForcedCdpLiquidateRatio;
-    if (!cw.sysParamCache.GetParam(CDP_FORCE_LIQUIDATE_RATIO, _ForcedCdpLiquidateRatio)) {
+    uint64_t forcedCdpLiquidateRatio;
+    if (!cw.sysParamCache.GetParam(CDP_FORCE_LIQUIDATE_RATIO, forcedCdpLiquidateRatio)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_FORCE_LIQUIDATE_RATIO error!",
-                        collateralRatio), REJECT_INVALID, "read-sysparamdb-err");
+                        collateralRatio), READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
-    if (collateralRatio > _StartingCdpLiquidateRatio) {        // 1.5++
+    if (collateralRatio > startingCdpLiquidateRatio) {        // 1.5++
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp collateralRatio(%d) > 150%!",
                         collateralRatio), REJECT_INVALID, "cdp-not-liquidate-ready");
 

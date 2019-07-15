@@ -16,7 +16,8 @@ using namespace std;
 
 class CSysParamDBCache {
 public:
-    CSysParamDBCache() : pBase(nullptr) {}
+    CSysParamDBCache() {}
+    // CSysParamDBCache() : pBase(nullptr) {}
     CSysParamDBCache(CDBAccess *pDbAccess): sysParamCache(pDbAccess) {}
 
 public:
@@ -39,5 +40,5 @@ private:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// SysParamDB
     // order tx id -> active order
-    CDBMultiValueCache< dbk::SYS_PARAM,          string,             uint64_t >        sysParamCache;
+    CDBMultiValueCache< dbk::SYS_PARAM,             string,                 uint64_t >              sysParamCache;
 };

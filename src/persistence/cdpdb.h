@@ -143,8 +143,10 @@ public:
     bool EraseCdp(const CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
     bool UndoCdp(CDBOpLogMap &dbOpLogMap) { return cdpCache.UndoData(dbOpLogMap);  }
 
-    bool CheckGlobalCollateralFloorReached(const uint64_t& bcoinMedianPrice, const uint16_t& kGlobalCollateralRatioLimit);
-    bool CheckGlobalCollateralCeilingReached(const uint64_t& newBcoinsToStake, const uint16_t& kGlobalCollateralCeiling);
+    bool CheckGlobalCollateralRatioFloorReached(const uint64_t &bcoinMedianPrice,
+                                                const uint64_t &kGlobalCollateralRatioLimit);
+    bool CheckGlobalCollateralCeilingReached(const uint64_t &newBcoinsToStake,
+                                             const uint64_t &kGlobalCollateralCeiling);
 
 public:
     CCdpMemCache cdpMemCache;

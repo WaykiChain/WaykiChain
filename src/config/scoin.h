@@ -28,26 +28,6 @@ static const uint16_t kForceSettleCDPMaxCountPerBlock       = 1000;     // depen
 static const double kTransactionPriorityCeiling             = 1000.0;
 static const double kPriceFeedTransactionPriority           = 10000.0;
 
-<<<<<<< HEAD
-enum SysParamType {
-    MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,
-    PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN,
-    PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,
-    PRICE_FEED_DEVIATE_RATIO_MAX,
-    PRICE_FEED_DEVIATE_PENALTY,
-    SCOIN_RESERVE_FEE_RATIO,
-    DEX_DEAL_FEE_RATIO,
-    GLOBAL_COLLATERAL_CEILING_AMOUNT,
-    GLOBAL_COLLATERAL_RATIO_MIN,
-    CDP_START_COLLATERAL_RATIO,
-    CDP_START_LIQUIDATE_RATIO,
-    CDP_NONRETURN_LIQUIDATE_RATIO,
-    CDP_FORCE_LIQUIDATE_RATIO,
-    CDP_LIQUIDATE_DISCOUNT_RATIO,
-    CDP_BCOINS_TOSTAKE_AMOUNT_MIN,
-    CDP_INTEREST_PARAM_A,
-    CDP_INTEREST_PARAM_B,
-=======
 enum SysParamType : uint8_t {
     MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT    = 1,
     PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN       = 2,
@@ -64,9 +44,10 @@ enum SysParamType : uint8_t {
     CDP_FORCE_LIQUIDATE_RATIO               = 13,
     CDP_LIQUIDATE_DISCOUNT_RATIO            = 14,
     CDP_BCOINS_TOSTAKE_AMOUNT_MIN           = 15,
+    CDP_INTEREST_PARAM_A                    = 16,
+    CDP_INTEREST_PARAM_B                    = 17,
 
     NULL_SYS_PARAM_TYPE = 0,
->>>>>>> 00f50578410ea059564939ab541a83bd5cc8bea7
 };
 
 struct SysParamTypeHash {
