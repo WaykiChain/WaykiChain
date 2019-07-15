@@ -29,7 +29,7 @@ public:
     string name;        // asset long name, E.g WaykiChain coin
     bool mintable;      // whether this token can be minted in the future.
 
-    uint32_t totalSupply;   // boosted by 1e8 for the decimal part, max is 90 billion.
+    uint64_t totalSupply;   // boosted by 1e8 for the decimal part, max is 90 billion.
 };
 
 
