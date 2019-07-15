@@ -98,7 +98,7 @@ public:
     // Only apply to construct the global mem-cache.
     CCdpMemCache(CDBAccess *pAccessIn) : pAccess(pAccessIn) {}
 
-    uint16_t GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const;
+    uint64_t GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const;
     uint64_t GetGlobalCollateral() const;
 
     bool LoadAllCdpFromDB();
@@ -108,7 +108,7 @@ public:
     bool SaveCdp(const CUserCDP &userCdp);
     bool EraseCdp(const CUserCDP &userCdp);
 
-    bool GetCdpListByCollateralRatio(const uint16_t collateralRatio, const uint64_t bcoinMedianPrice,
+    bool GetCdpListByCollateralRatio(const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
                                set<CUserCDP> &userCdps);
 
 private:

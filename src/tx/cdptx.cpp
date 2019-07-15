@@ -79,43 +79,43 @@ bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    uint32_t _GlobalCollateralRatioMin;
-    if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_RATIO_MIN, _GlobalCollateralRatioMin)) {
+    uint64_t globalCollateralRatioMin;
+    if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioMin)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read GLOBAL_COLLATERAL_RATIO_MIN error!!"),
-                        REJECT_INVALID, "read-sysparamdb-err");
+                        READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
-    if (cw.cdpCache.CheckGlobalCollateralFloorReached(cw.ppCache.GetBcoinMedianPrice(nHeight), _GlobalCollateralRatioMin)) {
+    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(cw.ppCache.GetBcoinMedianPrice(nHeight), globalCollateralRatioMin)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, GlobalCollateralFloorReached!!"),
                         REJECT_INVALID, "gloalcdplock_is_on");
     }
 
-    uint32_t _GlobalCollateralCeiling;
-    if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_CEILING_AMOUNT, _GlobalCollateralCeiling)) {
+    uint64_t globalCollateralCeiling;
+    if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_CEILING_AMOUNT, globalCollateralCeiling)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read GLOBAL_COLLATERAL_CEILING_AMOUNT error!!"),
-                        REJECT_INVALID, "read-sysparamdb-err");
+                        READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
-    if (cw.cdpCache.CheckGlobalCollateralCeilingReached(bcoinsToStake, _GlobalCollateralCeiling)) {
+    if (cw.cdpCache.CheckGlobalCollateralCeilingReached(bcoinsToStake, globalCollateralCeiling)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, GlobalCollateralCeilingReached!"),
                         REJECT_INVALID, "gloalcdplock_is_on");
     }
 
-    uint32_t _StartingCdpCollateralRatio;
-    if (!cw.sysParamCache.GetParam(CDP_START_COLLATERAL_RATIO, _StartingCdpCollateralRatio)) {
+    uint64_t startingCdpCollateralRatio;
+    if (!cw.sysParamCache.GetParam(CDP_START_COLLATERAL_RATIO, startingCdpCollateralRatio)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
-                        REJECT_INVALID, "read-sysparamdb-err");
+                        READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    if (cdpTxId.IsNull() && collateralRatio < _StartingCdpCollateralRatio) { // first-time CDP creation
+    if (cdpTxId.IsNull() && collateralRatio < startingCdpCollateralRatio) { // first-time CDP creation
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
                             collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
     }
 
-    uint32_t _BcoinsToStakeAmountMin;
-    (!cw.sysParamCache.GetParam(CDP_BCOINS_TOSTAKE_AMOUNT_MIN, _BcoinsToStakeAmountMin)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_BCOINS_TOSTAKE_AMOUNT_MIN error!!"),
-                        REJECT_INVALID, "read-sysparamdb-err");
+    uint64_t bcoinsToStakeAmountMin;
+    if (!cw.sysParamCache.GetParam(CDP_BCOINS_TOSTAKE_AMOUNT_MIN, bcoinsToStakeAmountMin)) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read min coins to stake error"),
+                        READ_SYS_PARAM_FAIL, "read-min-coins-to-stake-error");
     }
 
-    if (bcoinsToStake < _BcoinsToStakeAmountMin) {
+    if (bcoinsToStake < bcoinsToStakeAmountMin) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, bcoins to stake %d is too small,",
                     bcoinsToStake), REJECT_INVALID, "bcoins-too-small-to-stake");
     }
@@ -172,12 +172,12 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
                                         * kPercentBoost / cdp.totalOwedScoins;
 
 
-        uint32_t _StartingCdpCollateralRatio;
-        if (!cw.sysParamCache.GetParam(CDP_START_COLLATERAL_RATIO, _StartingCdpCollateralRatio)) {
+        uint64_t startingCdpCollateralRatio;
+        if (!cw.sysParamCache.GetParam(CDP_START_COLLATERAL_RATIO, startingCdpCollateralRatio)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                             REJECT_INVALID, "read-sysparamdb-err");
         }
-        if ( collateralRatio < currentCollateralRatio  && collateralRatio < _StartingCdpCollateralRatio) {
+        if ( collateralRatio < currentCollateralRatio  && collateralRatio < startingCdpCollateralRatio) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, currentCollateralRatio: %d vs new CollateralRatio: %d not allowed",
                             currentCollateralRatio, collateralRatio), REJECT_INVALID, "collateral-ratio-error");
         }
@@ -311,9 +311,16 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (cw.cdpCache.CheckGlobalCollateralFloorReached(cw.ppCache.GetBcoinMedianPrice(nHeight))) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, GlobalCollateralFloorReached!!"),
-                        REJECT_INVALID, "gloalcdplock_is_on");
+    uint64_t globalCollateralRatioFloor = 0;
+    if (!cw.sysParamCache.GetParam(SysParamType::GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, read global collateral ratio floor error"), READ_SYS_PARAM_FAIL,
+                         "read-global-collateral-ratio-floor-error");
+    }
+
+    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(cw.ppCache.GetBcoinMedianPrice(nHeight),
+                                                           globalCollateralRatioFloor)) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, GlobalCollateralFloorReached!!"), REJECT_INVALID,
+                         "gloalcdplock_is_on");
     }
 
     CAccount account;
@@ -493,9 +500,16 @@ bool CCDPLiquidateTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationSta
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (cw.cdpCache.CheckGlobalCollateralFloorReached(cw.ppCache.GetBcoinMedianPrice(nHeight))) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, GlobalCollateralFloorReached!!"),
-                        REJECT_INVALID, "gloalcdplock_is_on");
+    uint64_t globalCollateralRatioFloor = 0;
+    if (!cw.sysParamCache.GetParam(SysParamType::GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, read global collateral ratio floor error"),
+                         READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
+    }
+
+    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(cw.ppCache.GetBcoinMedianPrice(nHeight),
+                                                           globalCollateralRatioFloor)) {
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, GlobalCollateralFloorReached!!"), REJECT_INVALID,
+                         "gloalcdplock_is_on");
     }
 
     if (cdpTxId.IsEmpty()) {
@@ -568,30 +582,31 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
     CAccountLog cdpAcctLog(cdpOwnerAccount); //save account state before modification
     cw.txUndo.accountLogs.push_back(cdpAcctLog);
 
-    int collateralRatio = (double) cdp.totalStakedBcoins * cw.ppCache.GetBcoinMedianPrice(nHeight) * kPercentBoost
-                            / cdp.totalOwedScoins;
+    uint64_t collateralRatio =
+        (double)cdp.totalStakedBcoins * cw.ppCache.GetBcoinMedianPrice(nHeight) * kPercentBoost / cdp.totalOwedScoins;
 
     double liquidateRate; //unboosted
     double totalScoinsToReturnLiquidator, totalScoinsToLiquidate, totalScoinsToReturnSysFund, totalBcoinsToCDPOwner;
 
-    uint32_t _StartingCdpLiquidateRatio;
-    if (!cw.sysParamCache.GetParam(CDP_START_LIQUIDATE_RATIO, _StartingCdpLiquidateRatio)) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_START_LIQUIDATE_RATIO error!",
-                        collateralRatio), REJECT_INVALID, "read-sysparamdb-err");
+    uint64_t startingCdpLiquidateRatio;
+    if (!cw.sysParamCache.GetParam(CDP_START_LIQUIDATE_RATIO, startingCdpLiquidateRatio)) {
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_START_LIQUIDATE_RATIO error!"),
+                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
-    uint32_t _NonReturnCdpLiquidateRatio;
-    if (!cw.sysParamCache.GetParam(CDP_NONRETURN_LIQUIDATE_RATIO, _NonReturnCdpLiquidateRatio)) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_START_LIQUIDATE_RATIO error!",
-                        collateralRatio), REJECT_INVALID, "read-sysparamdb-err");
+    uint64_t nonReturnCdpLiquidateRatio;
+    if (!cw.sysParamCache.GetParam(CDP_NONRETURN_LIQUIDATE_RATIO, nonReturnCdpLiquidateRatio)) {
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_START_LIQUIDATE_RATIO error!"),
+                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
-    uint32_t _CdpLiquidateDiscountRate;
-    if (!cw.sysParamCache.GetParam(CDP_LIQUIDATE_DISCOUNT_RATIO, _CdpLiquidateDiscountRate)) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_LIQUIDATE_DISCOUNT_RATIO error!",
-                        collateralRatio), REJECT_INVALID, "read-sysparamdb-err");
+    uint64_t cdpLiquidateDiscountRate;
+    if (!cw.sysParamCache.GetParam(CDP_LIQUIDATE_DISCOUNT_RATIO, cdpLiquidateDiscountRate)) {
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_LIQUIDATE_DISCOUNT_RATIO error!"),
+                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
+<<<<<<< HEAD
     uint32_t _ForcedCdpLiquidateRatio;
     if (!cw.sysParamCache.GetParam(CDP_FORCE_LIQUIDATE_RATIO, _ForcedCdpLiquidateRatio)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_FORCE_LIQUIDATE_RATIO error!",
@@ -599,20 +614,29 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
     }
 
     if (collateralRatio > _StartingCdpLiquidateRatio) {        // 1.5++
+=======
+    uint64_t forcedCdpLiquidateRatio;
+    if (!cw.sysParamCache.GetParam(CDP_FORCE_LIQUIDATE_RATIO, forcedCdpLiquidateRatio)) {
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_FORCE_LIQUIDATE_RATIO error!"),
+                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
+    }
+
+    if (collateralRatio > startingCdpLiquidateRatio) {        // 1.5++
+>>>>>>> 00f50578410ea059564939ab541a83bd5cc8bea7
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp collateralRatio(%d) > 150%!",
                         collateralRatio), REJECT_INVALID, "cdp-not-liquidate-ready");
 
-    } else if (collateralRatio > _NonReturnCdpLiquidateRatio) { // 1.13 ~ 1.5
-        totalScoinsToLiquidate = ((double) cdp.totalOwedScoins * _NonReturnCdpLiquidateRatio / kPercentBoost )
-                                * _CdpLiquidateDiscountRate / kPercentBoost; //1.096N
-        totalScoinsToReturnLiquidator = (double) cdp.totalOwedScoins * _NonReturnCdpLiquidateRatio / kPercentBoost; //1.13N
-        totalScoinsToReturnSysFund = ((double) cdp.totalOwedScoins * _NonReturnCdpLiquidateRatio / kPercentBoost )
-                                * _CdpLiquidateDiscountRate / kPercentBoost - cdp.totalOwedScoins;
+    } else if (collateralRatio > nonReturnCdpLiquidateRatio) { // 1.13 ~ 1.5
+        totalScoinsToLiquidate = ((double) cdp.totalOwedScoins * nonReturnCdpLiquidateRatio / kPercentBoost )
+                                * cdpLiquidateDiscountRate / kPercentBoost; //1.096N
+        totalScoinsToReturnLiquidator = (double) cdp.totalOwedScoins * nonReturnCdpLiquidateRatio / kPercentBoost; //1.13N
+        totalScoinsToReturnSysFund = ((double) cdp.totalOwedScoins * nonReturnCdpLiquidateRatio / kPercentBoost )
+                                * cdpLiquidateDiscountRate / kPercentBoost - cdp.totalOwedScoins;
         totalBcoinsToCDPOwner = cdp.totalStakedBcoins - totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice(nHeight);
 
-    } else if (collateralRatio > _ForcedCdpLiquidateRatio) {    // 1.04 ~ 1.13
+    } else if (collateralRatio > forcedCdpLiquidateRatio) {    // 1.04 ~ 1.13
         totalScoinsToReturnLiquidator = (double) cdp.totalStakedBcoins / cw.ppCache.GetBcoinMedianPrice(nHeight); //M
-        totalScoinsToLiquidate = totalScoinsToReturnLiquidator * _CdpLiquidateDiscountRate / kPercentBoost; //M * 97%
+        totalScoinsToLiquidate = totalScoinsToReturnLiquidator * cdpLiquidateDiscountRate / kPercentBoost; //M * 97%
         totalScoinsToReturnSysFund = totalScoinsToLiquidate - cdp.totalOwedScoins; // M - N
         totalBcoinsToCDPOwner = cdp.totalStakedBcoins - totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice(nHeight);
 
@@ -621,7 +645,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
         totalScoinsToLiquidate = cdp.totalOwedScoins; //N
         totalScoinsToReturnLiquidator = (double) cdp.totalStakedBcoins / cw.ppCache.GetBcoinMedianPrice(nHeight); //M
         if (scoinsToLiquidate < cdp.totalOwedScoins) {
-            totalScoinsToReturnLiquidator = scoinsToLiquidate * kPercentBoost / _CdpLiquidateDiscountRate;
+            totalScoinsToReturnLiquidator = scoinsToLiquidate * kPercentBoost / cdpLiquidateDiscountRate;
             uint64_t totalCdpStakeInScoins = cdp.totalStakedBcoins * cw.ppCache.GetBcoinMedianPrice(nHeight);
             if (totalCdpStakeInScoins < totalScoinsToReturnLiquidator) {
                 totalScoinsToReturnLiquidator = totalCdpStakeInScoins;

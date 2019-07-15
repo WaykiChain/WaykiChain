@@ -28,6 +28,7 @@ static const uint16_t kForceSettleCDPMaxCountPerBlock       = 1000;     // depen
 static const double kTransactionPriorityCeiling             = 1000.0;
 static const double kPriceFeedTransactionPriority           = 10000.0;
 
+<<<<<<< HEAD
 enum SysParamType {
     MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,
     PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN,
@@ -46,6 +47,26 @@ enum SysParamType {
     CDP_BCOINS_TOSTAKE_AMOUNT_MIN,
     CDP_INTEREST_PARAM_A,
     CDP_INTEREST_PARAM_B,
+=======
+enum SysParamType : uint8_t {
+    MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT    = 1,
+    PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN       = 2,
+    PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX = 3,
+    PRICE_FEED_DEVIATE_RATIO_MAX            = 4,
+    PRICE_FEED_DEVIATE_PENALTY              = 5,
+    SCOIN_RESERVE_FEE_RATIO                 = 6,
+    DEX_DEAL_FEE_RATIO                      = 7,
+    GLOBAL_COLLATERAL_CEILING_AMOUNT        = 8,
+    GLOBAL_COLLATERAL_RATIO_MIN             = 9,
+    CDP_START_COLLATERAL_RATIO              = 10,
+    CDP_START_LIQUIDATE_RATIO               = 11,
+    CDP_NONRETURN_LIQUIDATE_RATIO           = 12,
+    CDP_FORCE_LIQUIDATE_RATIO               = 13,
+    CDP_LIQUIDATE_DISCOUNT_RATIO            = 14,
+    CDP_BCOINS_TOSTAKE_AMOUNT_MIN           = 15,
+
+    NULL_SYS_PARAM_TYPE = 0,
+>>>>>>> 00f50578410ea059564939ab541a83bd5cc8bea7
 };
 
 struct SysParamTypeHash {
@@ -55,7 +76,7 @@ struct SysParamTypeHash {
 };
 
 
-static const unordered_map<SysParamType, std::tuple<string, uint32_t>, SysParamTypeHash> SysParamTable = {
+static const unordered_map<SysParamType, std::tuple<string, uint64_t>, SysParamTypeHash> SysParamTable = {
     { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,         std::make_tuple("A",    11)         },
     { PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN,            std::make_tuple("B",    210000)     },  // 1%: min 210K fcoins deposited to be a price feeder
     { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,      std::make_tuple("C",    10)         },  // after 10 times continuous deviate limit penetration all deposit be deducted

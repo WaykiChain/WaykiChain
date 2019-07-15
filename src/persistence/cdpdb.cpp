@@ -30,7 +30,7 @@ bool CCdpMemCache::LoadAllCdpFromDB() {
     return true;
 }
 
-uint16_t CCdpMemCache::GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const {
+uint64_t CCdpMemCache::GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const {
     // If total owed scoins equal to zero, the global collateral ratio becomes infinite.
     return (totalOwedScoins == 0) ? UINT64_MAX : totalStakedBcoins * bcoinMedianPrice * kPercentBoost / totalOwedScoins;
 }
@@ -66,7 +66,7 @@ bool CCdpMemCache::EraseCdp(const CUserCDP &userCdp) {
     return true;
 }
 
-bool CCdpMemCache::GetCdpListByCollateralRatio(const uint16_t collateralRatio, const uint64_t bcoinMedianPrice,
+bool CCdpMemCache::GetCdpListByCollateralRatio(const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
                                          set<CUserCDP> &userCdps) {
     return GetCdpList(collateralRatio * bcoinMedianPrice, userCdps);
 }
