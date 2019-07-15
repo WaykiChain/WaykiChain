@@ -88,28 +88,26 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int n
 
 CVmRunEnv::~CVmRunEnv() {}
 
-tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx,
-                                                         int nHeight, CCacheWrapper &cw,
+tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pBaseTx, int nHeight, CCacheWrapper& cw,
                                                          uint64_t nBurnFactor, uint64_t& uRunStep) {
-    if (nBurnFactor == 0)
-        return std::make_tuple(false, 0, string("VmScript nBurnFactor == 0"));
+    if (nBurnFactor == 0) return std::make_tuple(false, 0, string("VmScript nBurnFactor == 0"));
 
     pContractCache = &cw.contractCache;
-    pDBOpLogsMap = &cw.txUndo.dbOpLogMap;
+    pDBOpLogsMap   = &cw.txUndo.dbOpLogMap;
 
-    CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(Tx.get());
+    CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
     if (tx->llFees < CBaseTx::nMinTxFee)
-        return std::make_tuple(false, 0, string("CVmRunEnv: Contract Tx fee too small"));
+        return std::make_tuple(false, 0, string("CVmRunEnv: Contract pBaseTx fee too small"));
 
     uint64_t fuelLimit = ((tx->llFees - CBaseTx::nMinTxFee) / nBurnFactor) * 100;
     if (fuelLimit > MAX_BLOCK_RUN_STEP) {
         fuelLimit = MAX_BLOCK_RUN_STEP;
     }
 
-    LogPrint("vm", "tx hash:%s fees=%lld fuelrate=%lld fuelLimit:%d\n", Tx->GetHash().GetHex(),
-             tx->llFees, nBurnFactor, fuelLimit);
+    LogPrint("vm", "tx hash:%s fees=%lld fuelrate=%lld fuelLimit:%d\n", pBaseTx->GetHash().GetHex(), tx->llFees,
+             nBurnFactor, fuelLimit);
 
-    if (!Initialize(Tx, cw.accountCache, nHeight)) {
+    if (!Initialize(pBaseTx, cw.accountCache, nHeight)) {
         return std::make_tuple(false, 0, string("VmScript inital Failed"));
     }
 
@@ -148,8 +146,8 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& Tx
     }
 
     if (SysCfg().IsContractLogOn() && vmOperateOutput.size() > 0) {
-        uint256 txhash = GetCurTxHash();
-        if (!pContractCache->WriteTxOutput(txhash, vmOperateOutput, *pDBOpLogsMap))
+        uint256 txid = GetCurTxHash();
+        if (!pContractCache->WriteTxOutput(txid, vmOperateOutput, *pDBOpLogsMap))
             return std::make_tuple(false, 0, string("write tx out put Failed"));
     }
     /*
