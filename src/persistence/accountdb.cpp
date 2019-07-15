@@ -81,35 +81,6 @@ uint256 CAccountDBCache::GetBestBlock() const {
 bool CAccountDBCache::SetBestBlock(const uint256 &blockHashIn) {
     return blockHashCache.SetData(blockHashIn);
 }
-/* TODO: check and delete
-bool CAccountDBCache::BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<CRegID,
-                                CKeyID> &mapKeyIds, const uint256 &blockHashIn) {
-    for (auto it = mapAccounts.begin(); it != mapAccounts.end(); ++it) {
-        if (uint160() == it->second.keyId) {
-            pBase->EraseAccountByKeyId(it->first);
-            mapKeyId2Account.erase(it->first);
-        } else {
-            mapKeyId2Account[it->first] = it->second;
-        }
-    }
-
-    for (auto itKeyId = mapKeyIds.begin(); itKeyId != mapKeyIds.end(); ++itKeyId)
-        mapRegId2KeyId[itKeyId->first] = itKeyId->second;
-    blockHash = blockHashIn;
-    return true;
-}
-bool CAccountDBCache::BatchWrite(const vector<CAccount> &vAccounts) {
-    for (auto it = vAccounts.begin(); it != vAccounts.end(); ++it) {
-        if (it->IsEmptyValue() && !it->IsRegistered()) {
-            mapKeyId2Account[it->keyId]       = *it;
-            mapKeyId2Account[it->keyId].keyId = uint160();
-        } else {
-            mapKeyId2Account[it->keyId] = *it;
-        }
-    }
-    return true;
-}
-*/
 
 bool CAccountDBCache::EraseAccountByKeyId(const CKeyID &keyId) {
 

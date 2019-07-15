@@ -1243,7 +1243,7 @@ static int ExWriteDataDBFunc(lua_State *L)
     CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
     string oldValue;
     // TODO: get old data when set data ??
-    scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(), contractRegId, key, oldValue);
+    scriptDB->GetContractData(contractRegId, key, oldValue);
     if (!scriptDB->SetContractData(contractRegId, key, value, *pVmRunEnv->GetDbLog())) {
         LogPrint("vm", "ExWriteDataDBFunc SetContractData failed, key:%s!\n",HexStr(key));
         lua_BurnStoreUnchanged(L, key.size(), value.size(), BURN_VER_R2);
@@ -1279,7 +1279,7 @@ static int ExDeleteDataDBFunc(lua_State *L) {
     bool flag = true;
     string oldValue;
     // TODO: get old data when set data ??
-    scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(), contractRegId, key, oldValue);
+    scriptDB->GetContractData(contractRegId, key, oldValue);
 
     if (!scriptDB->EraseContractData(contractRegId, key, *pVmRunEnv->GetDbLog())) {
         LogPrint("vm", "ExDeleteDataDBFunc EraseContractData railed, key:%s!\n", HexStr(*retdata.at(0)));
@@ -1316,7 +1316,7 @@ static int ExReadDataDBFunc(lua_State *L) {
     string value;
     CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
     int len = 0;
-    if (!scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(), scriptRegId, key, value)) {
+    if (!scriptDB->GetContractData(scriptRegId, key, value)) {
         len = 0;
         lua_BurnStoreUnchanged(L, key.size(), 0, BURN_VER_R2);
     } else {
@@ -1325,70 +1325,6 @@ static int ExReadDataDBFunc(lua_State *L) {
     }
     return len;
 }
-
-#if 0
-static int ExGetDBSizeFunc(lua_State *L) {
-//  CVmRunEnv *pVmRunEnv = (CVmRunEnv *)pVmEvn;
-    CRegID contractRegId = pVmRunEnv->GetScriptRegID();
-    int count = 0;
-    CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
-    if (!scriptDB->GetContractItemCount(contractRegId,count)) {
-        return RetFalse("ExGetDBSizeFunc can't use");
-    } else {
-//      CDataStream tep(SER_DISK, CLIENT_VERSION);
-//      tep << count;
-//      vector<unsigned char> tep1(tep.begin(),tep.end());
-//        return RetRstToLua(L,tep1);
-        LogPrint("vm", "ExGetDBSizeFunc:%d\n", count);
-        lua_pushnumber(L,(lua_Number)count);
-        return 1 ;
-    }
-}
-
-/**
- *bool GetDBValue(const unsigned long index,void* const key,unsigned char * const keylen,unsigned short maxkeylen,void* const value,unsigned short* const maxbuffer, unsigned long* const ptime)
- * 当传的第一个参数index == 0，则传了一个参数过来
- * 1.第一个是 index值
- * 当传的第一个参数index == 1，则传了两个个参数过来
- * 1.第一个是 index值
- * 2.第二是key值
- */
-static int ExGetDBValueFunc(lua_State *L) {
-
-    if (SysCfg().GetArg("-isdbtraversal", 0) == 0) {
-        return RetFalse("ExGetDBValueFunc can't use");
-    }
-
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
-    if(!GetArray(L,retdata) ||(retdata.size() != 2 && retdata.size() != 1))
-    {
-        return RetFalse("ExGetDBValueFunc index err1");
-    }
-    int index = 0;
-    bool flag = true;
-    memcpy(&index,&retdata.at(0).get()->at(0),sizeof(int));
-    if(!(index == 0 ||(index == 1 && retdata.size() == 2)))
-    {
-        return RetFalse("ExGetDBValueFunc para err2");
-    }
-    CRegID contractRegId = pVmRunEnv->GetScriptRegID();
-
-    UnsignedCharArray vValue;
-    vector<unsigned char> vScriptKey;
-    if(index == 1)
-    {
-        vScriptKey.assign(retdata.at(1).get()->begin(),retdata.at(1).get()->end());
-    }
-
-    CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
-    flag = scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(),contractRegId,index,vScriptKey,vValue);
-    int len = 0;
-    if(flag){
-        len = RetRstToLua(L,vScriptKey) + RetRstToLua(L,vValue);
-    }
-    return len;
-}
-#endif
 
 static int ExGetCurTxHash(lua_State *L) {
 
@@ -1430,7 +1366,7 @@ static int ExModifyDataDBFunc(lua_State *L)
     CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
     string oldValue;
     bool flag = false;
-    if (scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(), contractRegId, key, oldValue)) {
+    if (scriptDB->GetContractData(contractRegId, key, oldValue)) {
         if (scriptDB->SetContractData(contractRegId, key, newValue, *pVmRunEnv->GetDbLog())) {
             lua_BurnStoreSet(L, key.size(),  oldValue.size(), newValue.size(), BURN_VER_R2);
             flag = true;
@@ -1604,7 +1540,7 @@ static int ExGetContractDataFunc(lua_State *L) {
     string value;
 
     int len = 0;
-    if (!scriptDB->GetContractData(pVmRunEnv->GetConfirmHeight(), contractRegId, key, value)) {
+    if (!scriptDB->GetContractData(contractRegId, key, value)) {
         len = 0;
         lua_BurnStoreUnchanged(L, key.size(), 0, BURN_VER_R2);
     } else {

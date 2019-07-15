@@ -12,10 +12,12 @@
 #include "delegatedb.h"
 #include "dexdb.h"
 #include "pricefeeddb.h"
+#include "sysparamdb.h"
 #include "txdb.h"
 
 class CCacheWrapper {
 public:
+    CSysParamDBCache sysParamCache;
     CAccountDBCache accountCache;
     CContractDBCache contractCache;
     CDelegateDBCache delegateCache;

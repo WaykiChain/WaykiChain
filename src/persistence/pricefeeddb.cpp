@@ -141,10 +141,11 @@ uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight,
 }
 
 uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight, const BlockUserPriceMap &blockUserPrices) {
-    assert(blockHeight >= kMedianPriceSlideWindowBlockCount);
+    // TODO:
+    assert(blockHeight >= 11);
 
     vector<uint64_t> prices;
-    int32_t beginBlockHeight = blockHeight - kMedianPriceSlideWindowBlockCount;
+    int32_t beginBlockHeight = blockHeight - 11;
     for (int32_t height = blockHeight; height > beginBlockHeight; --height) {
         const auto &iter = blockUserPrices.find(height);
         if (iter != blockUserPrices.end()) {
