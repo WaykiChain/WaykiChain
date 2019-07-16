@@ -23,15 +23,19 @@
 using namespace json_spirit;
 
 typedef string TokenSymbol;
+typedef string TokenName;
 
 class CAsset {
 public:
-    CRegID ownerRegID;  // creator or owner of the asset
+    CRegID ownerRegId;  // creator or owner of the asset
     TokenSymbol symbol;      // asset symbol, E.g WICC | WUSD
-    string name;        // asset long name, E.g WaykiChain coin
+    TokenName name;        // asset long name, E.g WaykiChain coin
     bool mintable;      // whether this token can be minted in the future.
-
     uint64_t totalSupply;   // boosted by 1e8 for the decimal part, max is 90 billion.
+
+public:
+    CAsset(CRegID ownerRegIdIn, TokenSymbol symbolIn, TokenName nameIn, bool mintableIn, uint64_t totalSupplyIn) :
+        owerRegId(ownerRegIdIn), symbol(symbolIn), name(nameIn), mintable(mintableIn), totalSupply(totalSupplyIn) {};
 };
 
 
