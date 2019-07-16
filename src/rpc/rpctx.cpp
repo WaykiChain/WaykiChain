@@ -1616,43 +1616,17 @@ Value reloadtxcache(const Array& params, bool fHelp) {
     return obj;
 }
 
-// TODO: acquire all data related to the contract via wildcard * for key.
-Value getcontractdataraw(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 2) {
-        throw runtime_error("getcontractdataraw \"contractregid\" \"key\"\n"
-            "\nget the contract data (hexadecimal format)\n"
-            "\nArguments:\n"
-            "1.\"contractregid\":   (string, required) contract regid\n"
-            "2.\"key\":             (string, required)\n"
-            "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getcontractdataraw", "\"1304166-1\" \"key\"")
-            + HelpExampleRpc("getcontractdataraw", "\"1304166-1\" \"key\""));
-    }
-
-    // CRegID regId(params[0].get_str());
-    // if (regId.IsEmpty()) {
-    //     throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract regid");
-    // }
-
-    // if (!pCdMan->pContractCache->HaveContractScript(regId)) {
-    //     throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to find the contract");
-    // }
-
-    return Object();
-}
-
 Value getcontractdata(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
-        throw runtime_error("getcontractdataraw \"contractregid\" \"key\"\n"
+        throw runtime_error("getcontractdata \"contractregid\" \"key\"\n"
             "\nget the contract data (hexadecimal format)\n"
             "\nArguments:\n"
             "1.\"contractregid\":   (string, required) contract regid\n"
             "2.\"key\":             (string, required)\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("getcontractdataraw", "\"1304166-1\" \"key\"")
-            + HelpExampleRpc("getcontractdataraw", "\"1304166-1\" \"key\""));
+            + HelpExampleCli("getcontractdata", "\"1304166-1\" \"key\"")
+            + HelpExampleRpc("getcontractdata", "\"1304166-1\" \"key\""));
     }
 
     // CRegID regId(params[0].get_str());

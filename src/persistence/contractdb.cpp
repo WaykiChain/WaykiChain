@@ -78,6 +78,14 @@ bool CContractDBCache::EraseContractData(const CRegID &contractRegId, const stri
 
 bool CContractDBCache::UndoContractData(CDBOpLogMap &dbOpLogMap) { return contractDataCache.UndoData(dbOpLogMap); }
 
+bool CContractDBCache::GetContractScripts(map<string, string> &contractScript) {
+    return scriptCache.GetAllElements(contractScript);
+}
+
+bool CContractDBCache::GetContractData(const CRegID &contractRegId, vector<string, string> &contractData) {
+    return false;
+}
+
 bool CContractDBCache::Flush() {
     scriptCache.Flush();
     txOutputCache.Flush();
@@ -88,10 +96,6 @@ bool CContractDBCache::Flush() {
     contractAccountCache.Flush();
 
     return true;
-}
-
-bool CContractDBCache::GetContractScripts(map<string, string> &contractScript) {
-    return scriptCache.GetAllElements(contractScript);
 }
 
 unsigned int CContractDBCache::GetCacheSize() {

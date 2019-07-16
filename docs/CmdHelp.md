@@ -34,7 +34,6 @@
 | getpeerinfo | | Returns data about each connected node | N |
 | getrawmempool | ```[verbose]``` | Returns all transaction ids in memory pool.If verbose is true,return  a json object, false return array of transaction ids. | N |
 | getcontractdata | ```<contractregid><key>``` | get contract data in plaintext format. <br> ```< contractregid ><key>``` | N |
-| getcontractdataraw | ```<contractregid><key>``` | get contract data in hexdigit format. <br> ```<contractregid ><key>``` | N |
 | gettxdetail | ```<txhash>``` | Returns an object about the transaction  detail information by ```<txhash>``` | N |
 | getwalletinfo | | Returns an object containing detaild wallet info | N |
 | help | ```[command]``` | List commands, or get help for a command | N |

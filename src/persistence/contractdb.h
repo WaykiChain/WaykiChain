@@ -78,6 +78,7 @@ public:
     bool UndoContractData(CDBOpLogMap &dbOpLogMap);
 
     bool GetContractScripts(map<string, string> &contractScript);
+    bool GetContractData(const CRegID &contractRegId, vector<string, string> &contractData);
 
     bool SetTxRelAccout(const uint256 &txid, const set<CKeyID> &relAccount);
     bool GetTxRelAccount(const uint256 &txid, set<CKeyID> &relAccount);
