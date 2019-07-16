@@ -193,6 +193,9 @@ public:
 
             if (expiredKeys.count(key)) {
                 continue;
+            } else if (keys.count(key)) {
+                // skip it if the element existed in memory cache(upper level cache)
+                continue;
             } else {
                 // Got an valid element.
                 auto ret = keys.emplace(key);
@@ -259,6 +262,9 @@ public:
 
             if (expiredKeys.count(key)) {
                 continue;
+            } else if (elements.count(key)) {
+                // skip it if the element existed in memory cache(upper level cache)
+                continue;
             } else {
                 // Got an valid element.
                 leveldb::Slice slValue = pCursor->value();
@@ -296,6 +302,9 @@ public:
             }
 
             if (expiredKeys.count(key)) {
+                continue;
+            } else if (elements.count(key)) {
+                // skip it if the element existed in memory cache(upper level cache)
                 continue;
             } else {
                 // Got an valid element.
@@ -335,6 +344,9 @@ public:
 
             if (expiredKeys.count(key)) {
                 continue;
+            } else if (elements.count(key)) {
+                // skip it if the element existed in memory cache(upper level cache)
+                continue;
             } else {
                 // Got an valid element.
                 leveldb::Slice slValue = pCursor->value();
@@ -368,6 +380,9 @@ public:
             }
 
             if (expiredKeys.count(key)) {
+                continue;
+            } else if (elements.count(key)) {
+                // skip it if the element existed in memory cache(upper level cache)
                 continue;
             } else {
                 // Got an valid element.
