@@ -624,14 +624,10 @@ public:
 
 /** The currently best known chain of headers (some of which may be invalid). */
 extern CChain chainMostWork;
-
 extern CCacheDBManager *pCdMan;
-
 /** nSyncTipHight  */
 extern int nSyncTipHeight;
-
 extern std::tuple<bool, boost::thread *> RunCoin(int argc, char *argv[]);
-extern bool WriteBlockLog(bool flag, string suffix);
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex);
 

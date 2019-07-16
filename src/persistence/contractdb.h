@@ -86,10 +86,7 @@ public:
     bool EraseTxRelAccout(const uint256 &txid);
 
     bool Flush();
-
     unsigned int GetCacheSize();
-    Object ToJsonObj() const;
-    string ToString();
 
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
     bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap);

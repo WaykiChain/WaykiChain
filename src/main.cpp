@@ -168,67 +168,6 @@ struct CMainSignals {
 } g_signals;
 }  // namespace
 
-bool WriteBlockLog(bool flag, string suffix) {
-    if (nullptr == chainActive.Tip()) {
-        return false;
-    }
-    char splitChar;
-#ifdef WIN32
-    splitChar = '\\';
-#else
-    splitChar = '/';
-#endif
-
-    boost::filesystem::path LogDirpath = GetDataDir() / "BlockLog";
-    if (!flag) {
-        LogDirpath = GetDataDir() / "BlockLog1";
-    }
-    if (!boost::filesystem::exists(LogDirpath)) {
-        boost::filesystem::create_directory(LogDirpath);
-    }
-
-    ofstream file;
-    int high              = chainActive.Height();
-    string strLogFilePath = LogDirpath.string();
-    strLogFilePath += splitChar + strprintf("%d_", high) + chainActive.Tip()->GetBlockHash().ToString();
-
-    string strScriptLog = strLogFilePath + "_scriptDB_" + suffix + ".txt";
-    file.open(strScriptLog);
-    if (!file.is_open())
-        return false;
-    file << write_string(Value(pCdMan->pContractCache->ToJsonObj()), true);
-    file.close();
-
-    string strAccountViewLog = strLogFilePath + "_AccountView_" + suffix + ".txt";
-    file.open(strAccountViewLog);
-    if (!file.is_open())
-        return false;
-    file << write_string(Value(pCdMan->pAccountCache->ToJsonObj()), true);
-    file.close();
-
-    string strCacheLog = strLogFilePath + "_Cache_" + suffix + ".txt";
-    file.open(strCacheLog);
-    if (!file.is_open())
-        return false;
-    file << write_string(Value(pCdMan->pTxCache->ToJsonObj()), true);
-    file.close();
-
-    string strundoLog = strLogFilePath + "_undo.txt";
-    file.open(strundoLog);
-    if (!file.is_open())
-        return false;
-
-    CBlockUndo blockUndo;
-    CDiskBlockPos pos = chainActive.Tip()->GetUndoPos();
-    if (!pos.IsNull()) {
-        if (blockUndo.ReadFromDisk(pos, chainActive.Tip()->pprev->GetBlockHash()))
-            file << blockUndo.ToString();
-    }
-
-    file.close();
-    return true;
-}
-
 void RegisterWallet(CWalletInterface *pWalletIn) {
     g_signals.SyncTransaction.connect(boost::bind(&CWalletInterface::SyncTransaction, pWalletIn, _1, _2, _3));
     g_signals.EraseTransaction.connect(boost::bind(&CWalletInterface::EraseTransaction, pWalletIn, _1));
@@ -1731,20 +1670,6 @@ bool static DisconnectTip(CValidationState &state) {
         }
     }
 
-    if (SysCfg().GetArg("-blocklog", 0) != 0) {
-        if (chainActive.Height() % SysCfg().GetArg("-blocklog", 0) == 0) {
-            if (!pCdMan->pAccountCache->Flush())
-                return state.Abort(_("Failed to write to account database"));
-
-            if (!pCdMan->pContractCache->Flush())
-                return state.Abort(_("Failed to write to contract db database"));
-
-            if (!pCdMan->pDelegateCache->Flush())
-                return state.Abort(_("Failed to write to delegate db database"));
-
-            WriteBlockLog(true, "DisConnectTip");
-        }
-    }
     return true;
 }
 
@@ -1794,22 +1719,6 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
 
     // Update chainActive & related variables.
     UpdateTip(pIndexNew, block);
-
-    // Write new block info to log, if necessary.
-    if (SysCfg().GetArg("-blocklog", 0) != 0) {
-        if (chainActive.Height() % SysCfg().GetArg("-blocklog", 0) == 0) {
-            if (!pCdMan->pAccountCache->Flush())
-                return state.Abort(_("Failed to write to account database"));
-
-            if (!pCdMan->pContractCache->Flush())
-                return state.Abort(_("Failed to write to contract db database"));
-
-             if (!pCdMan->pDelegateCache->Flush())
-                return state.Abort(_("Failed to write to delegate db database"));
-
-            WriteBlockLog(true, "ConnectTip");
-        }
-    }
 
     for (auto &pTxItem : block.vptx) {
         mempool.memPoolTxs.erase(pTxItem->GetHash());

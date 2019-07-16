@@ -192,39 +192,3 @@ bool CContractDBCache::GetTxRelAccount(const uint256 &txHash, set<CKeyID> &relAc
 }
 
 bool CContractDBCache::EraseTxRelAccout(const uint256 &txHash) { return contractRelatedKidCache.EraseData(txHash); }
-
-Object CContractDBCache::ToJsonObj() const {
-    return Object();
-    /* TODO:
-    Object obj;
-    Array arrayObj;
-    for (auto& item : mapContractDb) {
-        Object obj;
-        obj.push_back(Pair("key", HexStr(item.first)));
-        obj.push_back(Pair("value", HexStr(item.second)));
-        arrayObj.push_back(obj);
-    }
-    // obj.push_back(Pair("mapContractDb", arrayObj));
-    arrayObj.push_back(pBase->ToJsonObj("def"));
-    arrayObj.push_back(pBase->ToJsonObj("data"));
-    arrayObj.push_back(pBase->ToJsonObj("author"));
-
-    obj.push_back(Pair("mapContractDb", arrayObj));
-    return obj;
-    */
-}
-
-string CContractDBCache::ToString() {
-    return "";
-    /* TODO:
-    string str("");
-    string vPrefix = {'d', 'a', 't', 'a'};
-    for (auto &item : mapContractDb) {
-        string vTemp(item.first.begin(), item.first.begin() + 4);
-        if (vTemp == vPrefix) {
-            str = strprintf("vKey=%s\n vData=%s\n", HexStr(item.first), HexStr(item.second));
-        }
-    }
-    return str;
-    */
-}

@@ -2372,24 +2372,6 @@ Value getalltxinfo(const Array& params, bool fHelp) {
     return retObj;
 }
 
-Value printblockdbinfo(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 0) {
-        throw runtime_error(
-            "printblockdbinfo \n"
-            "\nprint block log\n"
-            "\nArguments:\n"
-            "\nExamples:\n" + HelpExampleCli("printblockdbinfo", "")
-            + HelpExampleRpc("printblockdbinfo", ""));
-    }
-
-    if (!pCdMan->pAccountCache->Flush())
-        throw runtime_error("Failed to write to account database\n");
-    if (!pCdMan->pContractCache->Flush())
-        throw runtime_error("Failed to write to account database\n");
-    WriteBlockLog(false, "");
-    return Value::null;
-}
-
 Value getcontractaccountinfo(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 2 && params.size() != 3)) {
         throw runtime_error(
@@ -2601,15 +2583,13 @@ Value listtxbyaddr(const Array& params, bool fHelp) {
             "listtxbyaddr \n"
             "\nlist all transactions by their sender/receiver addresss\n"
             "\nArguments:\n"
-            "1.\"address\": (string, required)\n"
-            "2.\"height\": (numeric, required)\n"
+            "1.\"address\":     (string, required)\n"
+            "2.\"height\":      (numeric, required)\n"
             "\nResult: address related tx hash as array\n"
             "\nExamples:\n" +
-            HelpExampleCli("listtxbyaddr",
-                           "\"wcoA7yUW4fc4m6a2HSk36t4VVxzKUnvq4S\" \"10000\"") +
+            HelpExampleCli("listtxbyaddr", "\"wcoA7yUW4fc4m6a2HSk36t4VVxzKUnvq4S\" \"10000\"") +
             "\nAs json rpc call\n" +
-            HelpExampleRpc("listtxbyaddr",
-                           "\"wcoA7yUW4fc4m6a2HSk36t4VVxzKUnvq4S\", \"10000\""));
+            HelpExampleRpc("listtxbyaddr", "\"wcoA7yUW4fc4m6a2HSk36t4VVxzKUnvq4S\", \"10000\""));
     }
 
     string address = params[0].get_str();
