@@ -238,14 +238,15 @@ Value callcontracttx(const Array& params, bool fHelp) {
             "3.\"arguments\":   (string, required) contract arguments (Hex encode required)\n"
             "4.\"amount\":      (numeric, required) amount of WICC to be sent to the contract account\n"
             "5.\"fee\":         (numeric, required) pay to miner\n"
+            "6.\"height\":      (numberic, optional) valid height\n"
             "\nResult:\n"
             "\"txhash\":        (string)\n"
             "\nExamples:\n" +
             HelpExampleCli("callcontracttx",
-                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 1") +
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 100") +
             "\nAs json rpc call\n" +
             HelpExampleRpc("callcontracttx",
-                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 1"));
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 100"));
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(int_type)(int_type)(int_type));
@@ -265,12 +266,12 @@ Value callcontracttx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments's size out of range");
     }
 
-    int64_t amount = AmountToRawValue(params[3]);;
-    int64_t fee = AmountToRawValue(params[4]);
-
-    int height = chainActive.Tip()->nHeight;
-    if (fee == 0)
+    int64_t amount = AmountToRawValue(params[3]);
+    int64_t fee    = AmountToRawValue(params[4]);
+    int height     = (params.size() > 5) ? params[5].get_int() : chainActive.Height();
+    if (fee == 0) {
         fee = GetTxMinFee(TxType::CONTRACT_INVOKE_TX, height);
+    }
 
     CPubKey sendPubKey;
     if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey)) {
