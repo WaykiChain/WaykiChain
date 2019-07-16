@@ -452,7 +452,7 @@ public:
         pBase = pBaseIn;
     };
 
-    uint32_t GetCacheSize() {
+    uint32_t GetCacheSize() const {
         return ::GetSerializeSize(mapData, SER_DISK, CLIENT_VERSION);
     }
 
@@ -859,6 +859,10 @@ public:
         assert(!ptrData);
         pBase = pBaseIn;
     };
+
+    uint32_t GetCacheSize() const {
+        return ::GetSerializeSize(*ptrData, SER_DISK, CLIENT_VERSION);
+    }
 
     bool GetData(ValueType &value) const {
         auto ptr = GetDataPtr();

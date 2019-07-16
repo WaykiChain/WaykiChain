@@ -86,7 +86,7 @@ public:
     bool EraseTxRelAccout(const uint256 &txid);
 
     bool Flush();
-    uint32_t GetCacheSize();
+    uint32_t GetCacheSize() const;
 
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
     bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap);

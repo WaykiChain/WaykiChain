@@ -107,7 +107,7 @@ bool CContractDBCache::Flush() {
     return true;
 }
 
-uint32_t CContractDBCache::GetCacheSize() {
+uint32_t CContractDBCache::GetCacheSize() const {
     return scriptCache.GetCacheSize() +
         txOutputCache.GetCacheSize() +
         acctTxListCache.GetCacheSize() +
