@@ -1471,16 +1471,15 @@ Value listcontracts(const Array& params, bool fHelp) {
 
 Value getcontractinfo(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
-            throw runtime_error(
-                "getcontractinfo ( \"contractRegId\" )\n"
-                "\nget app information.\n"
-                "\nArguments:\n"
-                "1. \"contractRegId\"    (string, required) the script ID. \n"
-                "\nget app information in the systems\n"
-                "\nExamples:\n"
-                + HelpExampleCli("getcontractinfo", "123-1")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("getcontractinfo", "123-1"));
+        throw runtime_error(
+            "getcontractinfo ( \"contract regid\" )\n"
+            "\nget contract information.\n"
+            "\nArguments:\n"
+            "1. \"contract regid\"    (string, required) the script ID. \n"
+            "\nget contract information\n"
+            "\nExamples:\n" +
+            HelpExampleCli("getcontractinfo", "123-1") + "\nAs json rpc call\n" +
+            HelpExampleRpc("getcontractinfo", "123-1"));
 
     string strRegId = params[0].get_str();
     CRegID regId(strRegId);
@@ -1618,40 +1617,56 @@ Value reloadtxcache(const Array& params, bool fHelp) {
 
 Value getcontractdata(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
-        throw runtime_error("getcontractdata \"contractregid\" \"key\"\n"
+        throw runtime_error(
+            "getcontractdata \"contract regid\" \"key\"\n"
             "\nget the contract data (hexadecimal format)\n"
             "\nArguments:\n"
-            "1.\"contractregid\":   (string, required) contract regid\n"
-            "2.\"key\":             (string, required)\n"
+            "1.\"contract regid\":      (string, required) contract regid\n"
+            "2.\"key\":                 (string, required)\n"
+            "3.\"hexadecimal format\",  (boolean, optional) in hexadecimal if true, otherwise in plaintext, default to "
+            "true\n"
             "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getcontractdata", "\"1304166-1\" \"key\"")
-            + HelpExampleRpc("getcontractdata", "\"1304166-1\" \"key\""));
+            "\nExamples:\n" +
+            HelpExampleCli("getcontractdata", "\"1304166-1\" \"key\" true") + "\nAs json rpc call\n" +
+            HelpExampleRpc("getcontractdata", "\"1304166-1\", \"key\", true"));
     }
 
-    // CRegID regId(params[0].get_str());
-    // if (regId.IsEmpty()) {
-    //     throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract regid");
-    // }
+    CRegID regId(params[0].get_str());
+    if (regId.IsEmpty()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract regid");
+    }
 
-    // if (!pCdMan->pContractCache->HaveContractScript(regId)) {
-    //     throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to find the contract");
-    // }
+    bool hexadecimal = params.size() > 1 ? params[1].get_bool() : true;
+
+    string key = params[1].get_str();
+    string value;
+    if (!pCdMan->pContractCache->GetContractData(regId, key, value)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to acquire contract data");
+    }
+
+    Object obj;
+    obj.push_back(Pair("contract_regid",    regId.ToString()));
+    obj.push_back(Pair("key",               hexadecimal ? HexStr(key) : key));
+    obj.push_back(Pair("value",             hexadecimal ? HexStr(value) : value));
 
     return Object();
 }
 
 Value saveblocktofile(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
-        throw runtime_error("saveblocktofile \"blockhash\" \"filepath\"\n"
-                "\n save the given block info to the given file\n"
-                "\nArguments:\n"
-                "1.\"blockhash\": (string, required)\n"
-                "2.\"filepath\": (string, required)\n"
-                "\nResult:\n"
-                "\nExamples:\n"
-                + HelpExampleCli("saveblocktofile", "\"12345678901211111\" \"block.log\"")
-                + HelpExampleRpc("saveblocktofile", "\"12345678901211111\" \"block.log\""));
+        throw runtime_error(
+            "saveblocktofile \"blockhash\" \"filepath\"\n"
+            "\n save the given block info to the given file\n"
+            "\nArguments:\n"
+            "1.\"blockhash\": (string, required)\n"
+            "2.\"filepath\": (string, required)\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("saveblocktofile",
+                           "\"c78d162b40625cc8b088fa88302e0e4f08aba0d1c92612e9dd14e77108cbc11a\" \"block.log\"") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("saveblocktofile",
+                           "\"c78d162b40625cc8b088fa88302e0e4f08aba0d1c92612e9dd14e77108cbc11a\", \"block.log\""));
     }
     string strblockhash = params[0].get_str();
     uint256 blockHash(uint256S(params[0].get_str()));
@@ -1700,8 +1715,8 @@ Value genregisteraccountraw(const Array& params, bool fHelp) {
             "\nAs json rpc call\n" +
             HelpExampleRpc(
                 "genregisteraccountraw",
-                " 10000 3300 "
-                "\"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\" "
+                " 10000, 3300, "
+                "\"038f679e8b63d6f9935e8ca6b7ce1de5257373ac5461874fc794004a8a00a370ae\", "
                 "\"026bc0668c767ab38a937cb33151bcf76eeb4034bcb75e1632fd1249d1d0b32aa9\""));
     }
     CUserID userId  = CNullID();
@@ -1796,10 +1811,10 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
             "\"rawtx\"  (string) The raw transaction\n"
             "\nExamples:\n" +
             HelpExampleCli("gencallcontractraw",
-                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 1") +
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 100") +
             "\nAs json rpc call\n" +
             HelpExampleRpc("gencallcontractraw",
-                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 1"));
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 100"));
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(str_type)(int_type)(int_type));
@@ -2595,7 +2610,6 @@ Value gettotalcoins(const Array& params, bool fHelp) {
     {
         uint64_t totalCoins(0);
         uint64_t totalRegIds(0);
-        // CAccountDBCache *view = pCdMan->pAccountCache;
         std::tie(totalCoins, totalRegIds) = pCdMan->pAccountCache->TraverseAccount();
         // auto [totalCoins, totalRegIds] = pCdMan->pAccountCache->TraverseAccount(); //C++17
         obj.push_back( Pair("total_coins", ValueFromAmount(totalCoins)) );

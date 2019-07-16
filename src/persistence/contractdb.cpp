@@ -82,8 +82,17 @@ bool CContractDBCache::GetContractScripts(map<string, string> &contractScript) {
     return scriptCache.GetAllElements(contractScript);
 }
 
-bool CContractDBCache::GetContractData(const CRegID &contractRegId, vector<string, string> &contractData) {
-    return false;
+bool CContractDBCache::GetContractData(const CRegID &contractRegId, vector<std::pair<string, string>> &contractData) {
+    map<std::pair<string, string>, string> elements;
+    if (!contractDataCache.GetAllElements(contractRegId.ToRawString(), elements)) {
+        return false;
+    }
+
+    for (const auto item : elements) {
+        contractData.emplace_back(std::get<1>(item.first), item.second);
+    }
+
+    return true;
 }
 
 bool CContractDBCache::Flush() {

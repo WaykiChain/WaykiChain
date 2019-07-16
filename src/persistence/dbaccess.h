@@ -312,6 +312,44 @@ public:
         return true;
     }
 
+    // map<std::pair<string, string>, ValueType>
+    template <typename ValueType>
+    bool GetAllElements(const dbk::PrefixType prefixType, const string &prefix,
+                        set<std::pair<string, string>> &expiredKeys,
+                        map<std::pair<string, string>, ValueType> &elements) {
+        std::pair<string, string> key;
+        ValueType value;
+        leveldb::Iterator *pCursor = db.NewIterator();
+
+        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        const string &keyPrefix = dbk::GetKeyPrefix(prefixType);
+        ssKey.write(keyPrefix.c_str(), keyPrefix.size());
+        ssKey << prefix;  // write the prefix
+        pCursor->Seek(ssKey.str());
+
+        for (; pCursor->Valid(); pCursor->Next()) {
+            leveldb::Slice slKey = pCursor->key();
+            if (!dbk::ParseDbKey(slKey, prefixType, key) || std::get<0>(key) != prefix) {
+                break;
+            }
+
+            if (expiredKeys.count(key)) {
+                continue;
+            } else {
+                // Got an valid element.
+                leveldb::Slice slValue = pCursor->value();
+                CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+                ds >> value;
+                auto ret = elements.emplace(key, value);
+                assert(ret.second);  // TODO: throw error
+            }
+        }
+
+        delete pCursor;
+
+        return true;
+    }
+
     template <typename KeyType, typename ValueType>
     bool GetAllElements(const dbk::PrefixType prefixType, set<KeyType> &expiredKeys,
                         map<KeyType, ValueType> &elements) {
@@ -447,6 +485,17 @@ public:
     // map<std::pair<string, uint256>, ValueType>
     bool GetAllElements(const string &prefix, map<std::pair<string, uint256>, ValueType> &elements) {
         set<std::pair<string, uint256>> expiredKeys;
+        if (!GetAllElements(prefix, expiredKeys, elements)) {
+            // TODO: log
+            return false;
+        }
+
+        return true;
+    }
+
+    // map<std::pair<string, string>, ValueType>
+    bool GetAllElements(const string &prefix, map<std::pair<string, string>, ValueType> &elements) {
+        set<std::pair<string, string>> expiredKeys;
         if (!GetAllElements(prefix, expiredKeys, elements)) {
             // TODO: log
             return false;
@@ -688,6 +737,40 @@ private:
         if (!mapData.empty()) {
             // Tips: the final prefix is consist of std::pair<prefix, uint256()>.
             auto boundary = mapData.upper_bound(std::make_pair(prefix, uint256()));
+
+            if (boundary != mapData.end()) {
+                for (auto iter = boundary; iter != mapData.end(); ++ iter) {
+                    if (db_util::IsEmpty(iter->second)) {
+                        expiredKeys.insert(iter->first);
+                    } else if (expiredKeys.count(iter->first) || elements.count(iter->first)) {
+                        // TODO: log
+                        continue;
+                    } else if (std::get<0>(iter->first) != prefix) {
+                        // break the loop if prefix does not match.
+                        break;
+                    } else {
+                        // Got a valid element.
+                        elements.emplace(iter->first, iter->second);
+                    }
+                }
+            }
+        }
+
+        if (pBase != nullptr) {
+            return pBase->GetAllElements(prefix, expiredKeys, elements);
+        } else if (pDbAccess != nullptr) {
+            return pDbAccess->GetAllElements(PREFIX_TYPE, prefix, expiredKeys, elements);
+        }
+
+        return true;
+    }
+
+    // map<std::pair<string, string>, ValueType>
+    bool GetAllElements(const string &prefix, set<std::pair<string, string>> &expiredKeys,
+                        map<std::pair<string, string>, ValueType> &elements) {
+        if (!mapData.empty()) {
+            // Tips: the final prefix is consist of std::pair<prefix, string()>.
+            auto boundary = mapData.upper_bound(std::make_pair(prefix, string("")));
 
             if (boundary != mapData.end()) {
                 for (auto iter = boundary; iter != mapData.end(); ++ iter) {

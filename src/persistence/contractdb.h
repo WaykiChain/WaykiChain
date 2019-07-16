@@ -78,7 +78,8 @@ public:
     bool UndoContractData(CDBOpLogMap &dbOpLogMap);
 
     bool GetContractScripts(map<string, string> &contractScript);
-    bool GetContractData(const CRegID &contractRegId, vector<string, string> &contractData);
+    // Usage: acquire all data related to the specific contract.
+    bool GetContractData(const CRegID &contractRegId, vector<std::pair<string, string>> &contractData);
 
     bool SetTxRelAccout(const uint256 &txid, const set<CKeyID> &relAccount);
     bool GetTxRelAccount(const uint256 &txid, set<CKeyID> &relAccount);
