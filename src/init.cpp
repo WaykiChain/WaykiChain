@@ -748,10 +748,10 @@ bool AppInit(boost::thread_group &threadGroup) {
                 bool fReIndex = SysCfg().IsReindex();
                 pCdMan = new CCacheDBManager(fReIndex, false, nAccountDBCache, nContractDBCache, nDelegateDBCache,
                                              nBlockTreeDBCache);
-                if (fReIndex) pCdMan->pBlockTreeDb->WriteReindexing(true);
+                if (fReIndex)
+                    pCdMan->pBlockTreeDb->WriteReindexing(true);
 
-                mempool.SetAccountCache(pCdMan->pAccountCache);
-                mempool.SetContractCache(pCdMan->pContractCache);
+                mempool.SetMemPoolCache(pCdMan->pAccountCache, pCdMan->pContractCache, pCdMan->pDelegateCache);
 
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");

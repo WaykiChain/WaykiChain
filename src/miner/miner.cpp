@@ -209,8 +209,9 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
 
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(&cwIn.accountCache);
-    spCW->txCache = cwIn.txCache;
+    spCW->txCache.SetBaseView(&cwIn.txCache);
     spCW->contractCache.SetBaseView(&cwIn.contractCache);
+    spCW->delegateCache.SetBaseView(&cwIn.delegateCache);
 
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
@@ -368,6 +369,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
             auto spCW = std::make_shared<CCacheWrapper>();
             spCW->accountCache.SetBaseView(&cwIn.accountCache);
             spCW->contractCache.SetBaseView(&cwIn.contractCache);
+            spCW->delegateCache.SetBaseView(&cwIn.delegateCache);
 
             CValidationState state;
             pBaseTx->nFuelRate = nFuelRate;
@@ -392,6 +394,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
             // already in block.
             spCW->accountCache.Flush();
             spCW->contractCache.Flush();
+            spCW->delegateCache.Flush();
 
             // TODO: Fees
             // nTotalFees += pBaseTx->GetFees();

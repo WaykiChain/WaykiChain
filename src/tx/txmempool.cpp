@@ -44,17 +44,18 @@ CTxMemPool::CTxMemPool() {
     nTransactionsUpdated = 0;
 }
 
-void CTxMemPool::SetAccountCache(CAccountDBCache *pAccountCacheIn) {
-    memPoolAccountCache = std::make_shared<CAccountDBCache>(*pAccountCacheIn);
-}
-
-void CTxMemPool::SetContractCache(CContractDBCache *pContractCacheIn) {
+void CTxMemPool::SetMemPoolCache(CAccountDBCache *pAccountCacheIn, CContractDBCache *pContractCacheIn,
+                                 CDelegateDBCache *pDelegateCacheIn) {
+    memPoolAccountCache  = std::make_shared<CAccountDBCache>(*pAccountCacheIn);
     memPoolContractCache = std::make_shared<CContractDBCache>(*pContractCacheIn);
+    memPoolDelegateCache = std::make_shared<CDelegateDBCache>(*pDelegateCacheIn);
 }
 
-void CTxMemPool::ReScanMemPoolTx(CAccountDBCache *pAccountCacheIn, CContractDBCache *pContractCacheIn) {
+void CTxMemPool::ReScanMemPoolTx(CAccountDBCache *pAccountCacheIn, CContractDBCache *pContractCacheIn,
+                                 CDelegateDBCache *pDelegateCacheIn) {
     memPoolAccountCache.reset(new CAccountDBCache(*pAccountCacheIn));
     memPoolContractCache.reset(new CContractDBCache(*pContractCacheIn));
+    memPoolDelegateCache.reset(new CDelegateDBCache(*pDelegateCacheIn));
 
     {
         LOCK(cs);
@@ -111,6 +112,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
     spCW->accountCache.SetBaseView(memPoolAccountCache.get());
     spCW->txCache.SetBaseView(pCdMan->pTxCache);
     spCW->contractCache.SetBaseView(memPoolContractCache.get());
+    spCW->delegateCache.SetBaseView(memPoolDelegateCache.get());
 
     if (bExecute) {
         if (!memPoolEntry.GetTransaction()->ExecuteTx(chainActive.Tip()->nHeight + 1, 0, *spCW, state)) {
@@ -127,6 +129,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &me
     // already in block.
     spCW->accountCache.Flush();
     spCW->contractCache.Flush();
+    spCW->delegateCache.Flush();
 
     return true;
 }

@@ -524,6 +524,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(pool.memPoolAccountCache.get());
     spCW->contractCache.SetBaseView(pool.memPoolContractCache.get());
+    spCW->delegateCache.SetBaseView(pool.memPoolDelegateCache.get());
 
     if (!CheckTx(chainActive.Height(), pBaseTx, *spCW, state))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed");
@@ -1635,7 +1636,7 @@ bool static DisconnectTip(CValidationState &state) {
     {
         auto spCW = std::make_shared<CCacheWrapper>();
         spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
-        spCW->txCache = *(pCdMan->pTxCache);
+        spCW->txCache.SetBaseView(pCdMan->pTxCache);
         spCW->contractCache.SetBaseView(pCdMan->pContractCache);
         spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
 
@@ -1645,7 +1646,7 @@ bool static DisconnectTip(CValidationState &state) {
 
         // Need to re-sync all to global cache layer.
         spCW->accountCache.Flush();
-        spCW->txCache.Flush(pCdMan->pTxCache);
+        spCW->txCache.Flush();
         spCW->contractCache.Flush();
         spCW->delegateCache.Flush();
 
@@ -1702,7 +1703,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
 
         // Need to re-sync all to global cache layer.
         spCW->accountCache.Flush();
-        spCW->txCache.Flush(pCdMan->pTxCache);
+        spCW->txCache.Flush();
         spCW->contractCache.Flush();
         spCW->delegateCache.Flush();
 
@@ -1797,7 +1798,7 @@ bool ActivateBestChain(CValidationState &state) {
             if (!DisconnectTip(state))
                 return false;
             if (chainActive.Tip() && chainMostWork.Contains(chainActive.Tip())) {
-                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache);
+                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache, pCdMan->pDelegateCache);
             }
         }
 
@@ -1819,7 +1820,7 @@ bool ActivateBestChain(CValidationState &state) {
             }
 
             if (chainActive.Contains(chainMostWork.Tip())) {
-                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache);
+                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache, pCdMan->pDelegateCache);
             }
         }
     }
@@ -1952,6 +1953,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
     spCW->txCache.SetBaseView(pCdMan->pTxCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
+    spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
 
     bool forkChainTipFound = false;
     uint256 forkChainTipBlockHash;
@@ -1994,6 +1996,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         spCW->accountCache  = mapForkCache[blockHash]->accountCache;
         spCW->txCache       = mapForkCache[blockHash]->txCache;
         spCW->contractCache = mapForkCache[blockHash]->contractCache;
+        spCW->delegateCache = mapForkCache[blockHash]->delegateCache;
 
         LogPrint("INFO", "ProcessForkedChain() : found [%d]: %s in cache\n",
             blockHeight, blockHash.GetHex());
@@ -2029,10 +2032,12 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         spForkCW->accountCache  = mapForkCache[forkChainTipBlockHash]->accountCache;
         spForkCW->txCache       = mapForkCache[forkChainTipBlockHash]->txCache;
         spForkCW->contractCache = mapForkCache[forkChainTipBlockHash]->contractCache;
+        spForkCW->delegateCache = mapForkCache[forkChainTipBlockHash]->delegateCache;
     } else {
         spForkCW->accountCache  = spCW->accountCache;
         spForkCW->txCache       = spCW->txCache;
         spForkCW->contractCache = spCW->contractCache;
+        spForkCW->delegateCache = spCW->delegateCache;
     }
 
     uint256 forkChainBestBlockHash = spForkCW->accountCache.GetBestBlock();
@@ -2399,6 +2404,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
+    spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
 
     // Preliminary checks
     if (!CheckBlock(*pBlock, state, *spCW, false)) {
@@ -2716,6 +2722,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
     spCW->txCache.SetBaseView(pCdMan->pTxCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
+    spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
 
     CBlockIndex *pIndexState   = chainActive.Tip();
     CBlockIndex *pIndexFailure = nullptr;

@@ -67,11 +67,6 @@ void CTxMemCache::Flush() {
     mapBlockTxHashSet.clear();
 }
 
-void CTxMemCache::Flush(CTxMemCache *pBaseIn) {
-    pBaseIn->BatchWrite(mapBlockTxHashSet);
-    mapBlockTxHashSet.clear();
-}
-
 void CTxMemCache::Clear() { mapBlockTxHashSet.clear(); }
 
 uint64_t CTxMemCache::GetSize() { return mapBlockTxHashSet.size(); }
