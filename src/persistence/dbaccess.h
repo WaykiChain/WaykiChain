@@ -624,6 +624,10 @@ public:
         return false;
     }
 
+    void Clean() {
+        mapData.clear();
+    }
+
     void Flush() {
         assert(pBase != nullptr || pDbAccess != nullptr);
         if (pBase != nullptr) {
@@ -953,6 +957,10 @@ public:
             return true;
         }
         return false;
+    }
+
+    void Clean() {
+        ptrData = nullptr;
     }
 
     void Flush() {

@@ -364,7 +364,7 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
                 if (!IsMoneyValid(vote.GetVotedBcoins()))
                      return ERRORMSG("ProcessDelegateVotes() : oper fund value exceeds maximum ");
 
-                itVote->SetVotedBcoins( currVotes + vote.GetVotedBcoins() );
+                itVote->SetVotedBcoins(currVotes + vote.GetVotedBcoins());
 
                 if (!IsMoneyValid(itVote->GetVotedBcoins()))
                      return ERRORMSG("ProcessDelegateVotes() : fund value exceeds maximum");
