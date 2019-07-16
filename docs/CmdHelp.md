@@ -16,7 +16,6 @@
 | getaccountinfo | ```<address>``` | Returns the account information  with the given address | N |
 | getaddednodeinfo | ```<dns>``` [node] | Returns information about the given added node, or all added nodes. <br>(note that onetry addnodes are not listed here) If dns is false, only a list of added nodes will be provided, otherwise connected information will also be available. | N |
 | getcontractaccountinfo | ```<regid><address>``` | get contract account info | N |
-| getcontractkeyvalue | ```<regid><array>``` | get contract key value | N |
 | getbalance | ```[account] [minconf=1]``` | If [account] is not specified, returns the server's total available balance. <br>If [account] is specified, returns the balance in the account. <br>If [minconf] is 1; Only include transactions confirmed. Default max value is 30, can configure -maxconf parameter changer the max value.| N |
 | getbestblockhash | | Returns the hash of the best (tip) block in the longest block chain. | N |
 | getblock | ```<hash or index>[verbose]``` |Returns information about the block with the given hash or index.If verbose is true,return a json object, false return the hex encoded data | N |

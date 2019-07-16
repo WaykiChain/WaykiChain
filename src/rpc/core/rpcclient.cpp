@@ -242,7 +242,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "genmulsigtx"            && n > 4) ConvertTo<int>(params[4]);
 
     /********************************************************************************************************************/
-    if (strMethod == "getcontractkeyvalue"    && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "getcontractdata"        && n > 1) ConvertTo<bool>(params[1]);
 
     if (strMethod == "listtx"                 && n > 0) ConvertTo<int>(params[0]);

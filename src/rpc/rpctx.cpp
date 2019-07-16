@@ -2392,16 +2392,18 @@ Value printblockdbinfo(const Array& params, bool fHelp) {
 
 Value getcontractaccountinfo(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 2 && params.size() != 3)) {
-        throw runtime_error("getcontractaccountinfo \"contract_regid\" \"account_address | account_regid\""
+        throw runtime_error(
+            "getcontractaccountinfo \"contract regid\" \"account address or regid\""
             "\nget contract account info\n"
             "\nArguments:\n"
-            "1.\"contract_regid\":(string, required) App RegId\n"
-            "2.\"account_address or regid\": (string, required) contract account address or its regid\n"
-            "3.\"minconf\"  (numeric, optional, default=1) Only include contract transactions confirmed \n"
-            "\nExamples:\n"
-            + HelpExampleCli("getcontractaccountinfo", "\"452974-3\" \"WUZBQZZqyWgJLvEEsHrXL5vg5qaUwgfjco\"")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("getcontractaccountinfo", "\"452974-3\" \"WUZBQZZqyWgJLvEEsHrXL5vg5qaUwgfjco\""));
+            "1.\"contract regid\":              (string, required) contract regid\n"
+            "2.\"account address or regid\":    (string, required) contract account address or its regid\n"
+            "3.\"minconf\"                      (numeric, optional, default=1) Only include contract transactions "
+            "confirmed\n"
+            "\nExamples:\n" +
+            HelpExampleCli("getcontractaccountinfo", "\"452974-3\" \"WUZBQZZqyWgJLvEEsHrXL5vg5qaUwgfjco\"") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("getcontractaccountinfo", "\"452974-3\", \"WUZBQZZqyWgJLvEEsHrXL5vg5qaUwgfjco\""));
     }
 
     string strAppRegId = params[0].get_str();
@@ -2503,71 +2505,6 @@ Value gethash(const Array& params, bool fHelp) {
     obj.push_back(Pair("hash", strhash.ToString()));
     return obj;
 
-}
-
-Value getcontractkeyvalue(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 2) {
-        throw runtime_error("getcontractkeyvalue  \"regid\" \"array\""
-            "\nget contract key value\n"
-            "\nArguments:\n"
-            "1.\"regid\": (string, required) \n"
-            "2.\"array\": (string, required) \n"
-            "\nExamples:\n"
-            + HelpExampleCli("getcontractkeyvalue", "\"1651064-1\" \"Wgim6agki6CmntK4LVs3QnCKbeQ2fsgqWP\"")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("getcontractkeyvalue", "\"1651064-1\" \"Wgim6agki6CmntK4LVs3QnCKbeQ2fsgqWP\""));
-    }
-
-    CRegID contractRegId(params[0].get_str());
-    Array array = params[1].get_array();
-
-    if (contractRegId.IsEmpty())
-        throw runtime_error("in getcontractkeyvalue: contract regid size is error!\n");
-
-    if (!pCdMan->pContractCache->HaveContractScript(contractRegId))
-        throw runtime_error("in getcontractkeyvalue: contract regid not exist!\n");
-
-    Array retArray;
-    for (size_t i = 0; i < array.size(); i++) {
-        uint256 txhash(uint256S(array[i].get_str()));
-        string key(txhash.begin(), txhash.end());
-        string value;
-
-        Object obj;
-        if (!pCdMan->pContractCache->GetContractData(contractRegId, key, value)) {
-            obj.push_back(Pair("key", array[i].get_str()));
-            obj.push_back(Pair("value", HexStr(value)));
-        } else {
-            obj.push_back(Pair("key", array[i].get_str()));
-            obj.push_back(Pair("value", HexStr(value)));
-        }
-
-        std::shared_ptr<CBaseTx> pBaseTx;
-        int time = 0;
-        int height = 0;
-        if (SysCfg().IsTxIndex()) {
-            CDiskTxPos postx;
-            if (pCdMan->pContractCache->ReadTxIndex(txhash, postx)) {
-                CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
-                CBlockHeader header;
-                try {
-                    file >> header;
-                    fseek(file, postx.nTxOffset, SEEK_CUR);
-                    file >> pBaseTx;
-                    height = header.GetHeight();
-                    time = header.GetTime();
-                } catch (std::exception &e) {
-                    throw runtime_error(tfm::format("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
-                }
-            }
-        }
-
-        obj.push_back(Pair("confirmedheight", (int) height));
-        obj.push_back(Pair("confirmedtime", (int) time));
-        retArray.push_back(obj);
-    }
-
-    return retArray;
 }
 
 Value validateaddr(const Array& params, bool fHelp) {
