@@ -107,11 +107,14 @@ bool CContractDBCache::Flush() {
     return true;
 }
 
-unsigned int CContractDBCache::GetCacheSize() {
-    return false;
-    /* TODO:
-    return ::GetSerializeSize(mapContractDb, SER_DISK, CLIENT_VERSION);
-    */
+uint32_t CContractDBCache::GetCacheSize() {
+    return scriptCache.GetCacheSize() +
+        txOutputCache.GetCacheSize() +
+        acctTxListCache.GetCacheSize() +
+        txDiskPosCache.GetCacheSize() +
+        contractRelatedKidCache.GetCacheSize() +
+        contractDataCache.GetCacheSize() +
+        contractAccountCache.GetCacheSize();
 }
 
 bool CContractDBCache::WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLogMap &dbOpLogMap) {

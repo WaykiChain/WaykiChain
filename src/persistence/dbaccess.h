@@ -452,6 +452,10 @@ public:
         pBase = pBaseIn;
     };
 
+    uint32_t GetCacheSize() {
+        return ::GetSerializeSize(mapData, SER_DISK, CLIENT_VERSION);
+    }
+
     bool GetTopNElements(const uint32_t maxNum, set<KeyType> &keys) {
         // 1. Get all candidate elements.
         set<KeyType> expiredKeys;
