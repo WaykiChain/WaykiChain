@@ -354,7 +354,7 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
         const CUserID &voteId = vote.GetCandidateUid();
         vector<CCandidateVote>::iterator itVote =
             find_if(candidateVotesInOut.begin(), candidateVotesInOut.end(),
-                    [voteId](CCandidateVote vote) { return vote.GetCandidateUid() == voteId; });
+                    [&voteId](const CCandidateVote &vote) { return vote.GetCandidateUid() == voteId; });
 
         int voteType = VoteType(vote.GetCandidateVoteType());
         if (ADD_BCOIN == voteType) {
@@ -420,7 +420,7 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
         return false;
 
     switch (GetFeatureForkVersion(currHeight)) {
-        case MAJOR_VER_R1: 
+        case MAJOR_VER_R1:
             bcoins += interestAmountToInflate; // for backward compatibility
             break;
 
@@ -432,7 +432,7 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
             return false;
     }
 
-    LogPrint("INFLATE", "Account(%s) received vote staking interest amount (fcoins): %lld\n", 
+    LogPrint("INFLATE", "Account(%s) received vote staking interest amount (fcoins): %lld\n",
             regId.ToString(), interestAmountToInflate);
 
     return true;
