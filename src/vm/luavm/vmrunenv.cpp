@@ -107,15 +107,18 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pB
     LogPrint("vm", "tx hash:%s fees=%lld fuelrate=%lld fuelLimit:%d\n", pBaseTx->GetHash().GetHex(), tx->llFees,
              nBurnFactor, fuelLimit);
 
+    if (fuelLimit == 0) {
+        return std::make_tuple(false, 0, string("CVmRunEnv::ExecuteContract, fees too low"));
+    }
+
     if (!Initialize(pBaseTx, cw.accountCache, nHeight)) {
         return std::make_tuple(false, 0, string("VmScript inital Failed"));
     }
 
-    int64_t step = 0;
-
     tuple<uint64_t, string> ret = pLua.get()->Run(fuelLimit, this);
     LogPrint("vm", "CVmScriptRun::ExecuteContract() LUA\n");
-    step = std::get<0>(ret);
+
+    int64_t step = std::get<0>(ret);
     if (0 == step) {
         return std::make_tuple(false, 0, string("VmScript run Failed"));
     } else if (-1 == step) {
