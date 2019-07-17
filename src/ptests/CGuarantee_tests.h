@@ -130,21 +130,21 @@ typedef struct {
 
 typedef struct {
 	unsigned char type;            //!<交易类型
-	unsigned char txhash[32];       //!<挂单的交易hash
+	unsigned char txid[32];       //!<挂单的交易hash
 	unsigned int height;          //!<每个交易环节的超时高度
 	IMPLEMENT_SERIALIZE
 	(
 			READWRITE(type);
 			for(int i = 0; i < 32; i++)
 			{
-				READWRITE(txhash[i]);
+				READWRITE(txid[i]);
 			}
 			READWRITE(height);
 	)
 } TX_CONTRACT;
 typedef struct {
 	unsigned char type;            //!<交易类型
-	unsigned char txhash[32];       //!<挂单的交易hash
+	unsigned char txid[32];       //!<挂单的交易hash
 	unsigned int height;          //!<每个交易环节的超时高度
 	char  arbitationID[6];       //!<仲裁者ID（采用6字节的账户ID）
 	IMPLEMENT_SERIALIZE
@@ -152,7 +152,7 @@ typedef struct {
 			READWRITE(type);
 			for(int i = 0; i < 32; i++)
 			{
-				READWRITE(txhash[i]);
+				READWRITE(txid[i]);
 			}
 			READWRITE(height);
 			for(int i = 0; i < 6; i++)

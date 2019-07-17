@@ -106,9 +106,9 @@ BOOST_FIXTURE_TEST_CASE(register_test,CSysAccountTest)
 
 //	//检查失败的交易是否在memorypool中
 //	for (const auto& item : vFailedTxHash) {
-//		uint256 txHash(item);
-//		BOOST_CHECK(!IsTxInMemorypool(txHash));
-//		BOOST_CHECK(!IsTxUnConfirmdInWallet(txHash));
+//		uint256 txid(item);
+//		BOOST_CHECK(!IsTxInMemorypool(txid));
+//		BOOST_CHECK(!IsTxUnConfirmdInWallet(txid));
 //	}
 
 	//给没有余额的账户转账
@@ -123,9 +123,9 @@ BOOST_FIXTURE_TEST_CASE(register_test,CSysAccountTest)
 
 	//再次检查失败的交易是否在memorypool中
 	for (const auto& item : vFailedTxHash) {
-		uint256 txHash(uint256S(item));
-		BOOST_CHECK(!IsTxInMemorypool(txHash));
-		BOOST_CHECK(!IsTxUnConfirmdInWallet(txHash));
+		uint256 txid(uint256S(item));
+		BOOST_CHECK(!IsTxInMemorypool(txid));
+		BOOST_CHECK(!IsTxUnConfirmdInWallet(txid));
 	}
 
 	//给地址为：dkJwhBs2P2SjbQWt5Bz6vzjqUhXTymvsGr 的账户转账

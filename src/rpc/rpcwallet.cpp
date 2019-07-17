@@ -406,7 +406,7 @@ Value sendtoaddress(const Array& params, bool fHelp) {
     }
 
     Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
+    obj.push_back(Pair("txid", std::get<1>(ret)));
     return obj;
 }
 
@@ -497,7 +497,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
     }
 
     Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
+    obj.push_back(Pair("txid", std::get<1>(ret)));
     return obj;
 }
 

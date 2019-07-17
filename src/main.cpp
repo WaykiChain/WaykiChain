@@ -1344,7 +1344,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     vPos.reserve(block.vptx.size());
 
     // Push block reward transaction undo data's position.
-    vPos.push_back(make_pair(block.GetTxHash(0), pos));
+    vPos.push_back(make_pair(block.GetTxid(0), pos));
     pos.nTxOffset += ::GetSerializeSize(block.vptx[0], SER_DISK, CLIENT_VERSION);
 
     LogPrint("op_account", "block height:%d block hash:%s\n", block.GetHeight(), block.GetHash().GetHex());
@@ -1388,7 +1388,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             nTotalFuel += llFuel;
             LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n",
                      nTotalFuel, llFuel, pBaseTx->nRunStep, block.GetFuelRate(), pBaseTx->GetHash().GetHex());
-            vPos.push_back(make_pair(block.GetTxHash(i), pos));
+            vPos.push_back(make_pair(block.GetTxid(i), pos));
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
             blockUndo.vtxundo.push_back(cw.txUndo);
         }
@@ -2153,7 +2153,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     // but catching it earlier avoids a potential DoS attack:
     set<uint256> uniqueTx;
     for (unsigned int i = 0; i < block.vptx.size(); i++) {
-        uniqueTx.insert(block.GetTxHash(i));
+        uniqueTx.insert(block.GetTxid(i));
 
         if (fCheckTx && !CheckTx(block.GetHeight(), block.vptx[i].get(), cw, state))
             return ERRORMSG("CheckBlock() :tx hash:%s CheckTx failed", block.vptx[i]->GetHash().GetHex());
@@ -4133,10 +4133,10 @@ bool DisconnectBlockFromTip(CValidationState &state) {
     return DisconnectTip(state);
 }
 
-bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &accountLogs) {
+bool GetTxOperLog(const uint256 &txid, vector<CAccountLog> &accountLogs) {
     if (SysCfg().IsTxIndex()) {
         CDiskTxPos diskTxPos;
-        if (pCdMan->pContractCache->ReadTxIndex(txHash, diskTxPos)) {
+        if (pCdMan->pContractCache->ReadTxIndex(txid, diskTxPos)) {
             CAutoFile file(OpenBlockFile(diskTxPos, true), SER_DISK, CLIENT_VERSION);
             CBlockHeader header;
             try {
@@ -4155,7 +4155,7 @@ bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &accountLogs) {
                     return ERRORMSG("DisconnectBlock() : failure reading undo data");
 
                 for (auto &txUndo : blockUndo.vtxundo) {
-                    if (txUndo.txid == txHash) {
+                    if (txUndo.txid == txid) {
                         accountLogs = txUndo.accountLogs;
                         return true;
                     }

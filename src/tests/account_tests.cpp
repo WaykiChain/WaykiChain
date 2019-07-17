@@ -14,7 +14,7 @@ using namespace std;
 #define RANDOM_FUND_MONEY (random(MAX_FUND_MONEY)+1)
 #define random(x) (rand()%x)
 
-#define txhash "022596466a"
+#define txid "022596466a"
 #define amount 100*COIN
 #define number 20
 
@@ -26,7 +26,7 @@ bool GetRpcHash(const string &hash, string &retHash)
 	if (!SysTestBase::CommandLineRPC_GetValue(argc, argv, value)) {
 		return false;
 	}
-	const Value& result = find_value(value.get_obj(), "hash");
+	const Value& result = find_value(value.get_obj(), "txid");
 	if(result == null_type) {
 		return false;
 	}
@@ -172,7 +172,7 @@ BOOST_FIXTURE_TEST_CASE(red_packet, CTxTest) {
 	string retHash;
 	vector<int> vRetPacket;
 	int64_t nTotal = 0;
-	string initHash = txhash;
+	string initHash = txid;
 	do{
 		BOOST_CHECK(GetRpcHash(initHash, retHash));
 		initHash = retHash;

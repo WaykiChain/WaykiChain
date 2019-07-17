@@ -262,7 +262,7 @@ public:
     if (!accountCache.GetKeyId(txUid, srcKeyId)) {                                              \
         assert(false && "GetKeyId() failed");                                                   \
     }                                                                                           \
-    result.push_back(Pair("hash",           GetHash().GetHex()));                               \
+    result.push_back(Pair("txid",           GetHash().GetHex()));                               \
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));                               \
     result.push_back(Pair("ver",            nVersion));                                         \
     result.push_back(Pair("tx_uid",         txUid.ToString()));                                 \

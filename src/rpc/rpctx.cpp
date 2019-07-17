@@ -38,13 +38,13 @@ using namespace json_spirit;
 Value gettransaction(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "gettransaction \"txhash\"\n"
+            "gettransaction \"txid\"\n"
             "\nget the transaction detail by given transaction hash.\n"
             "\nArguments:\n"
-            "1.txhash   (string, required) The hast of transaction.\n"
+            "1.txid   (string, required) The hast of transaction.\n"
             "\nResult a object about the transaction detail\n"
             "\nResult:\n"
-            "\n\"txhash\"\n"
+            "\n\"txid\"\n"
             "\nExamples:\n" +
             HelpExampleCli("gettransaction",
                            "c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\n") +
@@ -52,7 +52,7 @@ Value gettransaction(const Array& params, bool fHelp) {
             HelpExampleRpc("gettransaction",
                            "c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\n"));
 
-    uint256 txhash(uint256S(params[0].get_str()));
+    uint256 txid(uint256S(params[0].get_str()));
     std::shared_ptr<CBaseTx> pBaseTx;
     Object obj;
     LOCK(cs_main);
@@ -61,7 +61,7 @@ Value gettransaction(const Array& params, bool fHelp) {
     ReadBlockFromDisk(pGenesisBlockIndex, genesisblock);
     assert(genesisblock.GetMerkleRootHash() == genesisblock.BuildMerkleTree());
     for (unsigned int i = 0; i < genesisblock.vptx.size(); ++i) {
-        if (txhash == genesisblock.GetTxHash(i)) {
+        if (txid == genesisblock.GetTxid(i)) {
             double dAmount = static_cast<double>(genesisblock.vptx.at(i)->GetValues()[CoinType::WICC]) / COIN;
             obj.push_back(Pair("amount", dAmount));
             obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight));
@@ -79,7 +79,7 @@ Value gettransaction(const Array& params, bool fHelp) {
     bool findTx(false);
     if (SysCfg().IsTxIndex()) {
         CDiskTxPos postx;
-        if (pCdMan->pContractCache->ReadTxIndex(txhash, postx)) {
+        if (pCdMan->pContractCache->ReadTxIndex(txid, postx)) {
             findTx = true;
             CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
             CBlockHeader header;
@@ -108,9 +108,9 @@ Value gettransaction(const Array& params, bool fHelp) {
     }
 
     if (!findTx) {
-        pBaseTx = mempool.Lookup(txhash);
+        pBaseTx = mempool.Lookup(txid);
         if (pBaseTx == nullptr) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid txhash");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid txid");
         }
         // TODO:
         double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
@@ -129,20 +129,20 @@ Value gettransaction(const Array& params, bool fHelp) {
 Value gettxdetail(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "gettxdetail \"txhash\"\n"
+            "gettxdetail \"txid\"\n"
             "\nget the transaction detail by given transaction hash.\n"
             "\nArguments:\n"
-            "1.txhash   (string,required) The hash of transaction.\n"
+            "1.txid   (string,required) The hash of transaction.\n"
             "\nResult an object of the transaction detail\n"
             "\nResult:\n"
-            "\n\"txhash\"\n"
+            "\n\"txid\"\n"
             "\nExamples:\n"
             + HelpExampleCli("gettxdetail","c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\n")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("gettxdetail","c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\n"));
 
-    uint256 txhash(uint256S(params[0].get_str()));
-    return GetTxDetailJSON(txhash);
+    uint256 txid(uint256S(params[0].get_str()));
+    return GetTxDetailJSON(txid);
 }
 
 //create a register account tx
@@ -154,7 +154,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
             "1.addr: (string, required)\n"
             "2.fee: (numeric, optional) pay tx fees to miner\n"
             "\nResult:\n"
-            "\"txhash\": (string)\n"
+            "\"txid\": (string)\n"
             "\nExamples:\n"
             + HelpExampleCli("registeraccounttx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 ")
             + "\nAs json rpc call\n"
@@ -223,7 +223,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
 
     Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
+    obj.push_back(Pair("txid", std::get<1>(ret)));
     return obj;
 }
 
@@ -240,7 +240,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
             "5.\"fee\":         (numeric, required) pay to miner\n"
             "6.\"height\":      (numberic, optional) valid height\n"
             "\nResult:\n"
-            "\"txhash\":        (string)\n"
+            "\"txid\":        (string)\n"
             "\nExamples:\n" +
             HelpExampleCli("callcontracttx",
                            "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 100") +
@@ -312,7 +312,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
     }
 
     Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
+    obj.push_back(Pair("txid", std::get<1>(ret)));
     return obj;
 }
 
@@ -329,7 +329,7 @@ Value registercontracttx(const Array& params, bool fHelp)
             "4.\"height\": (numeric optional) valid height, when not specified, the tip block hegiht in chainActive will be used\n"
             "5.\"appdesc\": (string optional) new app description\n"
             "\nResult:\n"
-            "\"txhash\": (string)\n"
+            "\"txid\": (string)\n"
             "\nExamples:\n"
             + HelpExampleCli("registercontracttx",
                 "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"myapp.lua\" 1000000 (10000) (\"appdesc\")") +
@@ -486,7 +486,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             "4.\"height\": (numeric optional) valid height. When not supplied, the tip block "
             "height in chainActive will be used.\n"
             "\nResult:\n"
-            "\"txhash\": (string)\n"
+            "\"txid\": (string)\n"
             "\nExamples:\n" +
             HelpExampleCli("votedelegatetx",
                            "\"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" "
@@ -583,7 +583,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     }
 
     Object objRet;
-    objRet.push_back(Pair("hash", std::get<1>(ret)));
+    objRet.push_back(Pair("txid", std::get<1>(ret)));
     return objRet;
 }
 
@@ -607,7 +607,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             "4.\"height\": (numeric optional) valid height, If not provide, use the tip block hegiht "
             "in chainActive\n"
             "\nResult:\n"
-            "\"txhash\": (string)\n"
+            "\"txid\": (string)\n"
             "\nExamples:\n" +
             HelpExampleCli("genvotedelegateraw",
                            "\"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" "
@@ -1112,7 +1112,7 @@ Value listcontracttx(const Array& params, bool fHelp)
                 Object obj;
 
                 CAccountDBCache accView(*pCdMan->pAccountCache);
-                obj.push_back(Pair("hash", ptx->GetHash().GetHex()));
+                obj.push_back(Pair("txid", ptx->GetHash().GetHex()));
                 obj.push_back(Pair("regid",  getregidstring(ptx->txUid)));
                 pCdMan->pAccountCache->GetKeyId(ptx->txUid, keyId);
                 obj.push_back(Pair("addr",  keyId.ToAddress()));
@@ -1297,10 +1297,10 @@ static Value AccountLogToJson(const CAccountLog &accoutLog) {
 
 Value gettxoperationlog(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error("gettxoperationlog \"txhash\"\n"
+        throw runtime_error("gettxoperationlog \"txid\"\n"
                     "\nget transaction operation log\n"
                     "\nArguments:\n"
-                    "1.\"txhash\": (string required) \n"
+                    "1.\"txid\": (string required) \n"
                     "\nResult:\n"
                     "\"vOperFund\": (string)\n"
                     "\"authorLog\": (string)\n"
@@ -1312,11 +1312,11 @@ Value gettxoperationlog(const Array& params, bool fHelp) {
                             "\"0001a87352387b5b4d6d01299c0dc178ff044f42e016970b0dc7ea9c72c08e2e494a01020304100000\""));
     }
     RPCTypeCheck(params, list_of(str_type));
-    uint256 txHash(uint256S(params[0].get_str()));
+    uint256 txid(uint256S(params[0].get_str()));
     vector<CAccountLog> vLog;
     Object retobj;
-    retobj.push_back(Pair("hash", txHash.GetHex()));
-    if (!GetTxOperLog(txHash, vLog))
+    retobj.push_back(Pair("txid", txid.GetHex()));
+    if (!GetTxOperLog(txid, vLog))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "error hash");
     {
         Array arrayvLog;
@@ -1574,8 +1574,8 @@ Value listtxcache(const Array& params, bool fHelp) {
         Object blockObj;
         Array txHashArray;
         blockObj.push_back(Pair("blockhash", item.first.GetHex()));
-        for (auto &txHash : item.second)
-            txHashArray.push_back(txHash.GetHex());
+        for (auto &txid : item.second)
+            txHashArray.push_back(txid.GetHex());
         blockObj.push_back(Pair("txcache", txHashArray));
         retTxHashArray.push_back(blockObj);
     }
@@ -1705,7 +1705,7 @@ Value genregisteraccountraw(const Array& params, bool fHelp) {
             "3.publickey: (string, required)\n"
             "4.minerpublickey: (string, optional)\n"
             "\nResult:\n"
-            "\"txhash\": (string)\n"
+            "\"txid\": (string)\n"
             "\nExamples:\n" +
             HelpExampleCli(
                 "genregisteraccountraw",
@@ -1790,7 +1790,7 @@ Value sendtxraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_WALLET_ERROR, "sendtxraw error: " + std::get<1>(ret));
 
     Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
+    obj.push_back(Pair("txid", std::get<1>(ret)));
     return obj;
 }
 
@@ -1895,7 +1895,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
             "4.\"height\": (int optional) valid height\n"
             "5.\"script description\":(string optional) new script description\n"
             "\nResult:\n"
-            "\"txhash\": (string)\n"
+            "\"txid\": (string)\n"
             "\nExamples:\n"
             + HelpExampleCli("genregistercontractraw",
                     "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/hello.lua\" \"10000\" ")
@@ -2484,7 +2484,7 @@ Value gethash(const Array& params, bool fHelp) {
     vTemp.assign(str.c_str(), str.c_str() + str.length());
     uint256 strhash = Hash(vTemp.begin(), vTemp.end());
     Object obj;
-    obj.push_back(Pair("hash", strhash.ToString()));
+    obj.push_back(Pair("txid", strhash.ToString()));
     return obj;
 
 }

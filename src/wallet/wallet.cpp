@@ -220,12 +220,12 @@ std::tuple<bool, string> CWallet::CommitTx(CBaseTx *pTx) {
         }
     }
 
-    uint256 txHash        = pTx->GetHash();
-    unconfirmedTx[txHash] = pTx->GetNewInstance();
-    bool flag             = CWalletDB(strWalletFile).WriteUnconfirmedTx(txHash, unconfirmedTx[txHash]);
-    ::RelayTransaction(pTx, txHash);
+    uint256 txid        = pTx->GetHash();
+    unconfirmedTx[txid] = pTx->GetNewInstance();
+    bool flag           = CWalletDB(strWalletFile).WriteUnconfirmedTx(txid, unconfirmedTx[txid]);
+    ::RelayTransaction(pTx, txid);
 
-    return std::make_tuple(flag, txHash.ToString());
+    return std::make_tuple(flag, txid.ToString());
 }
 
 DBErrors CWallet::LoadWallet(bool fFirstRunRet) {

@@ -72,7 +72,7 @@ public:
 
 public:
 
-	bool IsTxConfirmdInWallet(int nBlockHeight,const uint256& txHash)
+	bool IsTxConfirmdInWallet(int nBlockHeight,const uint256& txid)
 	{
 		string hash ="";
 		if (!SysTestBase::GetBlockHash(nBlockHeight, hash)) {
@@ -85,21 +85,21 @@ public:
 			return false;
 
 		for (const auto &item :itAccountTx->second.mapAccountTx) {
-			if (txHash == item.first) {
+			if (txid == item.first) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	bool GetTxIndexInBlock(const uint256& txHash, int& nIndex) {
+	bool GetTxIndexInBlock(const uint256& txid, int& nIndex) {
 		CBlockIndex* pIndex = chainActive.Tip();
 		CBlock block;
 		if (!ReadBlockFromDisk(pIndex, block))
 			return false;
 
 		block.BuildMerkleTree();
-		std::tuple<bool,int> ret = block.GetTxIndex(txHash);
+		std::tuple<bool,int> ret = block.GetTxIndex(txid);
 		if (!std::get<0>(ret)) {
 			return false;
 		}
@@ -184,7 +184,7 @@ public:
 		return true;
 	}
 
-	bool IsScriptAccCreatedEx(const uint256& txHash,int nConfirmHeight) {
+	bool IsScriptAccCreatedEx(const uint256& txid,int nConfirmHeight) {
 		int nIndex = 0;
 		if (!GetTxIndexInBlock(uint256(uint256S(strTxHash)), nIndex)) {
 			return false;
@@ -261,7 +261,7 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 
 //		int nTxIndex = mapData.begin()->first;
 		string strTxHash = mapData.begin()->second;
-		uint256 txHash(uint256S(strTxHash));
+		uint256 txid(uint256S(strTxHash));
 
 		SysTestBase::GetBlockHeight(nOldBlockHeight);
 		nOldMoney = GetBalance(strAddr1);
@@ -280,13 +280,13 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 		BOOST_CHECK(!IsScriptAccCreated(HexStr(regId.GetRegIdRaw())));
 
 		//9.3:交易是否已经已经放到钱包的未确认交易里
-		BOOST_CHECK(IsTxUnConfirmdInWallet(txHash));
+		BOOST_CHECK(IsTxUnConfirmdInWallet(txid));
 
 		//9.4:检查交易是否在mempool里
-		BOOST_CHECK(IsTxInMemorypool(txHash));
+		BOOST_CHECK(IsTxInMemorypool(txid));
 
 		//9.5:检查operationlog 是否可以重新获取
-		BOOST_CHECK(!GetTxOperateLog(txHash, vLog));
+		BOOST_CHECK(!GetTxOperateLog(txid, vLog));
 	}
 
 	//清空环境

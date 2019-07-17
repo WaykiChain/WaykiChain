@@ -119,7 +119,7 @@ public:
 			return false;
 		}
 
-		const Value& result = find_value(valueRes.get_obj(), "hash");
+		const Value& result = find_value(valueRes.get_obj(), "txid");
 		const Value& result1 = find_value(valueRes.get_obj(), "rawtx");
 		const Value& result3 = find_value(valueRes.get_obj(), "script");
 		if (result.type() == null_type && result1.type() == null_type && result3.type() == null_type){
@@ -229,17 +229,17 @@ public:
 
 	bool GetKeyId(string const &addr,CKeyID &KeyId);
 
-	bool IsTxInMemorypool(const uint256& txHash);
+	bool IsTxInMemorypool(const uint256& txid);
 
-	bool IsTxUnConfirmdInWallet(const uint256& txHash) ;
+	bool IsTxUnConfirmdInWallet(const uint256& txid) ;
 
-	bool IsTxInTipBlock(const uint256& txHash);
+	bool IsTxInTipBlock(const uint256& txid);
 
 	bool GetRegID(string& strAddr,CRegID& regId);
 
 	bool GetRegID(string& strAddr,string& regId);
 
-	bool GetTxOperateLog(const uint256& txHash, vector<CAccountLog>& vLog) ;
+	bool GetTxOperateLog(const uint256& txid, vector<CAccountLog>& vLog) ;
 
 	bool PrintLog();
 

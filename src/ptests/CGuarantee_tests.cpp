@@ -481,8 +481,8 @@ bool CGuaranteeTest::SendCancelTrade()
 	TX_CONTRACT senddata;
 	memset(&senddata,0,sizeof(senddata));
 	senddata.type = TX_CANCEL;
-//	memcpy(senddata.txhash, uint256S(HASH_sendhash).begin(), sizeof(senddata.txhash)); //待填交易HASH
-	memcpy(senddata.txhash,HASH_sendhash, sizeof(senddata.txhash)); //待填交易HASH
+//	memcpy(senddata.txid, uint256S(HASH_sendhash).begin(), sizeof(senddata.txid)); //待填交易HASH
+	memcpy(senddata.txid,HASH_sendhash, sizeof(senddata.txid)); //待填交易HASH
 	senddata.height = SEND_height;
 
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
@@ -519,7 +519,7 @@ bool CGuaranteeTest::AcceptTrade()
 	TX_CONTRACT senddata;
 	memset(&senddata,0,sizeof(senddata));
 	senddata.type = TX_ACCEPT;
-	memcpy(senddata.txhash,HASH_sendhash, sizeof(senddata.txhash)); //待填交易HASH
+	memcpy(senddata.txid,HASH_sendhash, sizeof(senddata.txid)); //待填交易HASH
 	senddata.height = SEND_height;
 
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
@@ -556,7 +556,7 @@ bool  CGuaranteeTest::DeliveryTrade(){
 		TX_CONTRACT senddata;
 		memset(&senddata,0,sizeof(senddata));
 		senddata.type = TX_DELIVERY;
-		memcpy(senddata.txhash,HASH_sendhash, sizeof(senddata.txhash)); //待填交易HASH
+		memcpy(senddata.txid,HASH_sendhash, sizeof(senddata.txid)); //待填交易HASH
 		senddata.height = SEND_height;
 
 		CDataStream scriptData(SER_DISK, CLIENT_VERSION);
@@ -593,7 +593,7 @@ bool CGuaranteeTest::BuyerConfirm()
 	TX_CONTRACT senddata;
 	memset(&senddata,0,sizeof(senddata));
 	senddata.type = TX_BUYERCONFIRM;
-	memcpy(senddata.txhash,HASH_sendhash, sizeof(senddata.txhash)); //待填交易HASH
+	memcpy(senddata.txid,HASH_sendhash, sizeof(senddata.txid)); //待填交易HASH
 	senddata.height = SEND_height;
 
 	CDataStream scriptData(SER_DISK, CLIENT_VERSION);
@@ -631,7 +631,7 @@ bool CGuaranteeTest::Arbitration()
    TX_Arbitration senddata;
 	memset(&senddata,0,sizeof(senddata));
 	senddata.type = TX_ARBITRATION;
-	memcpy(senddata.txhash,HASH_sendhash, sizeof(senddata.txhash)); //待填交易HASH
+	memcpy(senddata.txid,HASH_sendhash, sizeof(senddata.txid)); //待填交易HASH
 	senddata.height = SEND_height;
 //	string arbitationID = "47046-1";
 	unsigned int height = 1826;   //待填   仲裁者ID arbiterAddr_C

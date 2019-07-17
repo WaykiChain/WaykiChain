@@ -177,7 +177,7 @@ Value submitblock(const Array& params, bool fHelp)
     } else {
 
         obj.push_back(Pair("status",        "OK"));
-        obj.push_back(Pair("hash",          pBlock.GetHash().ToString()));
+        obj.push_back(Pair("txid",          pBlock.GetHash().ToString()));
     }
     return obj;
 }
@@ -232,7 +232,7 @@ Value getminedblocks(const Array& params, bool fHelp)
         obj.push_back(Pair("reward",        blockInfo.GetReward()));
         obj.push_back(Pair("tx_count",      blockInfo.nTxCount));
         obj.push_back(Pair("block_size",    blockInfo.nBlockSize));
-        obj.push_back(Pair("hash",          blockInfo.hash.ToString()));
+        obj.push_back(Pair("txid",          blockInfo.hash.ToString()));
         obj.push_back(Pair("preblockhash",  blockInfo.hashPrevBlock.ToString()));
         ret.push_back(obj);
     }

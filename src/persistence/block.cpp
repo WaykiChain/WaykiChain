@@ -104,9 +104,9 @@ void CBlock::Print(CAccountDBCache& accountCache) const {
     // LogPrint("INFO","\n");
 }
 
-std::tuple<bool, int> CBlock::GetTxIndex(const uint256& txHash) const {
+std::tuple<bool, int> CBlock::GetTxIndex(const uint256& txid) const {
     for (size_t i = 0; i < vMerkleTree.size(); i++) {
-        if (txHash == vMerkleTree[i]) {
+        if (txid == vMerkleTree[i]) {
             return std::make_tuple(true, i);
         }
     }

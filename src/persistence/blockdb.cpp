@@ -67,7 +67,7 @@ bool CBlockTreeDB::ReadLastBlockFile(int &nFile) {
 // bool CBlockTreeDB::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &vect) {
 //     CLevelDBBatch batch;
 //     for (vector<pair<uint256, CDiskTxPos> >::const_iterator it = vect.begin(); it != vect.end(); it++) {
-//         LogPrint("txindex", "txhash:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n", it->first.GetHex(), it->second.nFile,
+//         LogPrint("txindex", "txid:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n", it->first.GetHex(), it->second.nFile,
 //                  it->second.nPos, it->second.nTxOffset);
 //         batch.Write(make_pair('t', it->first), it->second);
 //     }

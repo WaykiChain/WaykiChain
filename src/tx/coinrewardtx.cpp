@@ -69,7 +69,7 @@ string CCoinRewardTx::ToString(CAccountDBCache &accountCache) {
 
 Object CCoinRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
-    result.push_back(Pair("hash", GetHash().GetHex()));
+    result.push_back(Pair("txid", GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("uid",            txUid.ToString()));

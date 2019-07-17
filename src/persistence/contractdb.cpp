@@ -177,7 +177,7 @@ bool CContractDBCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) { retur
 
 bool CContractDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap) {
     for (auto it : list) {
-        LogPrint("txindex", "txhash:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n", it.first.GetHex(), it.second.nFile,
+        LogPrint("txindex", "txid:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n", it.first.GetHex(), it.second.nFile,
                  it.second.nPos, it.second.nTxOffset);
 
         if (!txDiskPosCache.SetData(it.first, it.second, dbOpLogMap)) {
@@ -187,11 +187,11 @@ bool CContractDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &
     return true;
 }
 
-bool CContractDBCache::SetTxRelAccout(const uint256 &txHash, const set<CKeyID> &relAccount) {
-    return contractRelatedKidCache.SetData(txHash, relAccount);
+bool CContractDBCache::SetTxRelAccout(const uint256 &txid, const set<CKeyID> &relAccount) {
+    return contractRelatedKidCache.SetData(txid, relAccount);
 }
-bool CContractDBCache::GetTxRelAccount(const uint256 &txHash, set<CKeyID> &relAccount) {
-    return contractRelatedKidCache.GetData(txHash, relAccount);
+bool CContractDBCache::GetTxRelAccount(const uint256 &txid, set<CKeyID> &relAccount) {
+    return contractRelatedKidCache.GetData(txid, relAccount);
 }
 
-bool CContractDBCache::EraseTxRelAccout(const uint256 &txHash) { return contractRelatedKidCache.EraseData(txHash); }
+bool CContractDBCache::EraseTxRelAccout(const uint256 &txid) { return contractRelatedKidCache.EraseData(txid); }

@@ -150,7 +150,7 @@ bool CTestBetTx::BAcceptP2PBet(void) {
 		acceptdata.noperateType = GetRanOpType();
 		acceptdata.money = betamount;
 		acceptdata.data=gussnum;
-		memcpy(acceptdata.txhash, uint256S(strAsendHash).begin(), sizeof(acceptdata.txhash));
+		memcpy(acceptdata.txid, uint256S(strAsendHash).begin(), sizeof(acceptdata.txid));
 
 		CDataStream scriptData(SER_DISK, CLIENT_VERSION);
 		scriptData << acceptdata;
@@ -201,7 +201,7 @@ bool CTestBetTx::AOpenP2PBet(void) {
 		OPEN_DATA openA;
 		openA.noperateType = GetRanOpType();
 		openA.type = 3;
-		memcpy(openA.txhash, uint256S(strAsendHash).begin(), sizeof(openA.txhash));
+		memcpy(openA.txid, uint256S(strAsendHash).begin(), sizeof(openA.txid));
 		memcpy(openA.dhash, nSdata, sizeof(nSdata));
 		CDataStream scriptData(SER_DISK, CLIENT_VERSION);
 		scriptData << openA;
