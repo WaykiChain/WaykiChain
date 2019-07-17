@@ -22,8 +22,8 @@
 
 using namespace json_spirit;
 
-typedef string TokenSymbol;
-typedef string TokenName;
+typedef string TokenSymbol;     //8 chars max, E.g. WICC-01D
+typedef string TokenName;       //32 chars max
 
 class CAsset {
 public:

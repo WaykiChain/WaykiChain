@@ -15,9 +15,7 @@
 #include "accounts/asset.h"
 #include "dbconf.h"
 #include "dbaccess.h"
-
-class uint256;
-class CKeyID;
+#include "accounts/asset.h"
 
 class CAssetDBCache {
 public:
@@ -32,13 +30,17 @@ public:
 
     ~CAssetDBCache() {}
 
+public:
+    bool GetAsset(const TokenSymbol &tokenSymbol, CAsset &asset);
+    bool SaveAsset(const CAsset &asset);
+
     bool Flush();
 
 private:
-/*  CDBScalarValueCache     prefixType             value           variable           */
-/*  -------------------- --------------------   -------------   --------------------- */
-    // <asset_symbole -> Asset>
-    CDBScalarValueCache< dbk::ASSET,     CAsset>        assetCache;
+/*  CDBScalarValueCache     prefixType            key              value           variable           */
+/*  -------------------- --------------------   --------------  -------------   --------------------- */
+    // <asset_tokenSymbol -> asset> 
+    CDBMultiValueCache< dbk::ASSET,             TokenSymbol,        CAsset>         assetCache;
 };
 
 #endif  // PERSIST_ACCOUNTDB_H
