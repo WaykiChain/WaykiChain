@@ -284,8 +284,6 @@ public:
         return sigHash;
     }
 
-    bool UpDateAccountPos(int nCurHeight);
-
     bool IsEmpty() const {
         return keyId.IsEmpty();
     }

@@ -27,11 +27,11 @@ typedef string TokenName;
 
 class CAsset {
 public:
-    CRegID ownerRegId;  // creator or owner of the asset
-    TokenSymbol symbol;      // asset symbol, E.g WICC | WUSD
-    TokenName name;        // asset long name, E.g WaykiChain coin
-    bool mintable;      // whether this token can be minted in the future.
-    uint64_t totalSupply;   // boosted by 1e8 for the decimal part, max is 90 billion.
+    CRegID      ownerRegId;     // creator or owner of the asset
+    TokenSymbol symbol;         // asset symbol, E.g WICC | WUSD
+    TokenName   name;           // asset long name, E.g WaykiChain coin
+    bool        mintable;       // whether this token can be minted in the future.
+    uint64_t    totalSupply;    // boosted by 1e8 for the decimal part, max is 90 billion.
 
 public:
     CAsset(CRegID ownerRegIdIn, TokenSymbol symbolIn, TokenName nameIn, bool mintableIn, uint64_t totalSupplyIn) :
