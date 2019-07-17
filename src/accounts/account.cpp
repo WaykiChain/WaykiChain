@@ -341,7 +341,8 @@ bool CAccount::StakeBcoinsToCdp(CoinType coinType, const int64_t bcoinsToStake, 
 // }
 
 bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotesIn,
-                                   vector<CCandidateVote> &candidateVotesInOut, const uint64_t currHeight) {
+                                    vector<CCandidateVote> &candidateVotesInOut, const uint64_t currHeight,
+                                    const CAccountDBCache *pAccountCache) {
     if (currHeight < lastVoteHeight) {
         LogPrint("ERROR", "currHeight (%d) < lastVoteHeight (%d)", currHeight, lastVoteHeight);
         return false;
@@ -354,7 +355,20 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
         const CUserID &voteId = vote.GetCandidateUid();
         vector<CCandidateVote>::iterator itVote =
             find_if(candidateVotesInOut.begin(), candidateVotesInOut.end(),
-                    [&voteId](const CCandidateVote &vote) { return vote.GetCandidateUid() == voteId; });
+                    [&voteId, pAccountCache](const CCandidateVote &vote) {
+                        if (voteId.type() != vote.GetCandidateUid().type()) {
+                            CAccount account;
+                            if (voteId.type() == typeid(CRegID)) {
+                                pAccountCache->GetAccount(voteId, account);
+                                return vote.GetCandidateUid() == account.pubKey;
+                            } else {  // vote.GetCandidateUid().type() == typeid(CRegID)
+                                pAccountCache->GetAccount(vote.GetCandidateUid(), account);
+                                return account.pubKey == voteId;
+                            }
+                        } else {
+                            return vote.GetCandidateUid() == voteId;
+                        }
+                    });
 
         int voteType = VoteType(vote.GetCandidateVoteType());
         if (ADD_BCOIN == voteType) {

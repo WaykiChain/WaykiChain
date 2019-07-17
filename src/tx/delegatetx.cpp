@@ -147,7 +147,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
     CRegID regId = txUid.get<CRegID>();
     cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
 
-    if (!account.ProcessDelegateVotes(candidateVotes, candidateVotesInOut, nHeight)) {
+    if (!account.ProcessDelegateVotes(candidateVotes, candidateVotesInOut, nHeight, &cw.accountCache)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate vote failed, regId=%s",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }

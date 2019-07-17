@@ -1278,7 +1278,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
 
                 candidateVotes.push_back(vote);
                 sort(candidateVotes.begin(), candidateVotes.end(),
-                     [](CCandidateVote vote1, CCandidateVote vote2) {
+                     [](const CCandidateVote &vote1, const CCandidateVote &vote2) {
                          return vote1.GetVotedBcoins() > vote2.GetVotedBcoins();
                      });
             }
