@@ -564,7 +564,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             }
 
             VoteType voteType = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN : VoteType::MINUS_BCOIN;
-            CUserID candidateUid = CUserID(delegateAcct.pubKey);
+            CUserID candidateUid = CUserID(delegateAcct.regId);
             uint64_t bcoins = (uint64_t)abs(delegateVotes.get_int64());
             CCandidateVote candidateVote(voteType, candidateUid, bcoins);
 
