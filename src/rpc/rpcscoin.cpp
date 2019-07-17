@@ -36,8 +36,8 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             "       ,...\n"
             " ]\n"
             "3.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
-            "\nResult pricefeed tx result\n"
             "\nResult:\n"
+            "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitpricefeedtx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "
                             "\"[{\\\"coin\\\", WICC, \\\"currency\\\": \\\"USD\\\", \\\"price\\\": 0.28}]\"\n")
@@ -97,7 +97,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
     if (!feedUid) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
-    
+
     int validHeight = chainActive.Tip()->nHeight;
     CPriceFeedTx tx(*feedUid, validHeight, fee, pricePoints);
     return SubmitTx(*feedUid, tx);
@@ -112,8 +112,8 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
             "1.\"addr\": (string required) order owner address\n"
             "2.\"asset_amount\": (numeric, required) amount of target asset to stake\n"
             "3.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
-            "\nResult description:\n"
-            "\nResult: {tx_hash}\n"
+            "\nResult:\n"
+            "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitstakefcointx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 200000000\n")
             + "\nAs json rpc call\n"
@@ -162,8 +162,8 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
             "4. \"cdp_id\": (string optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
             "5. \"interest\": (numeric optional) CDP interest (WUSD) to repay\n"
             "6. \"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
-            "\nResult description:\n"
-            "\nResult: {tx_hash}\n"
+            "\nResult:\n"
+            "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n" +
             HelpExampleCli("submitstakecdptx",
                            "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 30000 "
@@ -211,8 +211,8 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
             "4. \"cdp_id\": (string optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
             "5. \"interest\": (numeric optional) CDP interest (WUSD) to repay\n"
             "6. \"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
-            "\nResult description:\n"
-            "\nResult: {tx_hash}\n"
+            "\nResult:\n"
+            "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
             + "\nAs json rpc call\n"
@@ -259,8 +259,8 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
             "4. \"cdp_id\": (string optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
             "5. \"interest\": (numeric optional) CDP interest (WUSD) to repay\n"
             "6. \"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
-            "\nResult description:\n"
-            "\nResult: {tx_hash}\n"
+            "\nResult:\n"
+            "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
             + "\nAs json rpc call\n"
@@ -300,7 +300,6 @@ Value getmedianprice(const Array& params, bool fHelp){
             "\nget current median price or query at specified height.\n"
             "\nArguments:\n"
             "1.\"height\": (numeric, optional), specified height. If not provide use the tip block height in chainActive\n\n"
-            "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
             + HelpExampleCli("getmedianprice","")
@@ -350,7 +349,6 @@ Value getusercdp(const Array& params, bool fHelp){
             "\nArguments:\n"
             "1.\"addr\": (string, required) cdp owner addr\n"
             "2.\"cdb_id\": (string, optional) cdp id\n"
-            "\nResult detail\n"
             "\nResult:\n"
             "\nExamples:\n"
             + HelpExampleCli("getusercdp", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"\n")
@@ -391,7 +389,7 @@ Value getusercdp(const Array& params, bool fHelp){
             }
         }
     }
-    
+
     Object obj;
     obj.push_back(Pair("cdp", cdps));
     return obj;
@@ -410,8 +408,8 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
             "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
             "5.\"price\": (numeric, required) bidding price willing to buy\n"
             "6.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
-            "\nResult detail\n"
             "\nResult:\n"
+            "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
             + "\nAs json rpc call\n"
@@ -474,8 +472,8 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
             "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
             "5.\"price\": (numeric, required) bidding price willing to buy\n"
             "6.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
-            "\nResult detail\n"
             "\nResult:\n"
+            "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexselllimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 1000000 200000000\n")
             + "\nAs json rpc call\n"
@@ -541,8 +539,8 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
             "3.\"asset_type\": (string required), asset type to buy\n"
             "4.\"coin_amount\": (numeric, required) amount of target coin to buy\n"
             "5.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
-            "\nResult detail\n"
             "\nResult:\n"
+            "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexbuymarketordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 200000000\n")
             + "\nAs json rpc call\n"
@@ -601,8 +599,8 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
             "3.\"asset_type\": (string required), asset type to buy\n"
             "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
             "5.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
-            "\nResult detail\n"
             "\nResult:\n"
+            "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexsellmarketordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 200000000\n")
             + "\nAs json rpc call\n"
@@ -664,8 +662,8 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
             "1.\"addr\": (string required) order owner address\n"
             "2.\"txid\": (string required) order tx want to cancel\n"
             "3.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
-            "\nResult detail\n"
             "\nResult:\n"
+            "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexcancelordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "
                              "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\" ")
@@ -722,8 +720,8 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
             "       ,...\n"
             " ]\n"
             "3.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
-            "\nResult detail\n"
             "\nResult:\n"
+            "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexsettletx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "
                            "\"[{\\\"buy_order_txid\\\":\\\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\\\", "
