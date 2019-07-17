@@ -195,12 +195,13 @@ Value getrawmempool(const Array& params, bool fHelp)
         }
         return obj;
     } else {
-        vector<uint256> vtxid;
-        mempool.QueryHash(vtxid);
+        vector<uint256> txids;
+        mempool.QueryHash(txids);
 
         Array arr;
-        for (const auto& hash : vtxid)
+        for (const auto& hash : txids) {
             arr.push_back(hash.ToString());
+        }
 
         return arr;
     }

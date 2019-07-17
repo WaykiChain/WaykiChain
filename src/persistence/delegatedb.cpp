@@ -100,7 +100,7 @@ bool CDelegateDBCache::Flush() {
     return true;
 }
 
-void CDelegateDBCache::Clean() {
-    voteRegIdCache.Clean();
-    regId2VoteCache.Clean();
+void CDelegateDBCache::Clear() {
+    voteRegIdCache.Clear();
+    regId2VoteCache.Clear();
 }

@@ -197,7 +197,7 @@ public:
           receivedVotes(0),
           lastVoteHeight(0) {
         minerPubKey = CPubKey();
-        regId.Clean();
+        regId.Clear();
     }
 
     CAccount() : CAccount(CKeyID(), CNickID(), CPubKey()) {}

@@ -103,7 +103,7 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
         CPubKey empPubKey;
         oldAccount.pubKey = empPubKey;
         oldAccount.minerPubKey = empPubKey;
-        oldAccount.regId.Clean();
+        oldAccount.regId.Clear();
         CUserID userId(keyId);
         cw.accountCache.SetAccount(userId, oldAccount);
     } else {

@@ -624,7 +624,7 @@ public:
         return false;
     }
 
-    void Clean() {
+    void Clear() {
         mapData.clear();
     }
 
@@ -959,7 +959,7 @@ public:
         return false;
     }
 
-    void Clean() {
+    void Clear() {
         ptrData = nullptr;
     }
 

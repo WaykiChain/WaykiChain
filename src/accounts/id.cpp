@@ -9,7 +9,7 @@
 
 extern CCacheDBManager *pCdMan;
 
-bool CRegID::Clean() {
+bool CRegID::Clear() {
     nHeight = 0 ;
     nIndex = 0 ;
     vRegID.clear();
@@ -133,7 +133,7 @@ void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn) {
         CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);
         ds >> *this;
     } else {
-        Clean();
+        Clear();
     }
 }
 

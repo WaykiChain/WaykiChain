@@ -7,18 +7,19 @@
 #ifndef COIN_TXMEMPOOL_H
 #define COIN_TXMEMPOOL_H
 
+#include "accounts/account.h"
+#include "sync.h"
+
 #include <list>
 #include <map>
 #include <memory>
-
-#include "persistence/contractdb.h"
-#include "sync.h"
 
 using namespace std;
 
 class CAccountDBCache;
 class CContractDBCache;
 class CDelegateDBCache;
+class CCdpDBCache;
 class CValidationState;
 class CBaseTx;
 class uint256;
@@ -61,44 +62,41 @@ public:
  * an input of a transaction in the pool, it is dropped,
  * as are non-standard transactions.
  */
-class CTxMemPool
-{
-private:
-    bool fSanityCheck; // Normally false, true if -checkmempool or -regtest
-    uint32_t nTransactionsUpdated;  //TODO meaning
+class CTxMemPool {
 public:
     mutable CCriticalSection cs;
     map<uint256, CTxMemPoolEntry > memPoolTxs;
     std::shared_ptr<CAccountDBCache> memPoolAccountCache;
     std::shared_ptr<CContractDBCache> memPoolContractCache;
     std::shared_ptr<CDelegateDBCache> memPoolDelegateCache;
+    std::shared_ptr<CCdpDBCache> memPoolCdpCache;
 
+public:
     CTxMemPool();
 
-    void SetSanityCheck(bool _fSanityCheck) { fSanityCheck = _fSanityCheck; }
-    bool AddUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry, CValidationState &state);
+public:
+    void SetSanityCheck(bool fSanityCheckIn) { fSanityCheck = fSanityCheckIn; }
+    bool AddUnchecked(const uint256 &txid, const CTxMemPoolEntry &entry, CValidationState &state);
     void Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> > &removed, bool fRecursive = false);
-    void Clear();
-    void QueryHash(vector<uint256> &vtxid);
+    void QueryHash(vector<uint256> &txids);
     uint32_t GetUpdatedTransactionNum() const;
     void AddUpdatedTransactionNum(uint32_t n);
-    std::shared_ptr<CBaseTx> Lookup(uint256 hash) const;
-    bool CheckTxInMemPool(const uint256 &hash, const CTxMemPoolEntry &entry, CValidationState &state,
+
+    bool CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &entry, CValidationState &state,
                           bool bExecute = true);
     void SetMemPoolCache(CAccountDBCache *pAccountCacheIn, CContractDBCache *pContractCacheIn,
                          CDelegateDBCache *pDelegateCacheIn);
     void ReScanMemPoolTx(CAccountDBCache *pAccountCacheIn, CContractDBCache *pContractCacheIn,
                          CDelegateDBCache *pDelegateCacheIn);
+    void Clear();
 
-    unsigned long Size() {
-        LOCK(cs);
-        return memPoolTxs.size();
-    }
+    uint64_t Size();
+    bool Exists(uint256 txid);
+    std::shared_ptr<CBaseTx> Lookup(uint256 txid) const;
 
-    bool Exists(uint256 hash) {
-        LOCK(cs);
-        return ((memPoolTxs.count(hash) != 0));
-    }
+private:
+    bool fSanityCheck; // Normally false, true if -checkmempool or -regtest
+    uint32_t nTransactionsUpdated;
 };
 
 

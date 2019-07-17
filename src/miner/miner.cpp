@@ -645,7 +645,7 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
 
             // Attention: need to reset delegate cache to compute the miner account according to received votes ranking
             // list.
-            spCW->delegateCache.Clean();
+            spCW->delegateCache.Clear();
             MineBlock(pBlock.get(), pWallet, pIndexPrev, nTransactionsUpdated, *spCW);
 
             if (SysCfg().NetworkID() != MAIN_NET && targetHeight <= GetCurrHeight())

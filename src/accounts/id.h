@@ -63,8 +63,8 @@ public:
     static bool IsRegIdStr(const string &str);
     static bool GetKeyId(const string &str, CKeyID &keyId);
     bool IsEmpty() const { return (nHeight == 0 && nIndex == 0); };
-    void SetEmpty() { Clean(); }
-    bool Clean();
+    void SetEmpty() { Clear(); }
+    bool Clear();
     string ToString() const;
 
     IMPLEMENT_SERIALIZE(
@@ -97,7 +97,7 @@ public:
 
     const string &GetNickIdRaw() const { return nickId; }
     bool IsEmpty() const { return (nickId.size() == 0); }
-    void Clean() { nickId.clear(); }
+    void Clear() { nickId.clear(); }
     string ToString() const { return nickId; }
 
     IMPLEMENT_SERIALIZE(READWRITE(nickId);)

@@ -42,7 +42,7 @@ public:
         regId2VoteCache.SetBase(&pBaseIn->regId2VoteCache);
     }
     bool Flush();
-    void Clean();
+    void Clear();
 
 private:
 /*  CDBScalarValueCache  prefixType     key                         value                   variable       */
