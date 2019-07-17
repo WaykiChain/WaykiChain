@@ -219,7 +219,7 @@ public:
         this->bcoins         = other.bcoins;
         this->scoins         = other.scoins;
         this->fcoins         = other.fcoins;
-        this->tokenAssets    = other.tokenAssets;
+        this->assetTokens    = other.assetTokens;
         this->frozenDEXBcoins = other.frozenDEXBcoins;
         this->frozenDEXScoins = other.frozenDEXScoins;
         this->frozenDEXFcoins = other.frozenDEXFcoins;
