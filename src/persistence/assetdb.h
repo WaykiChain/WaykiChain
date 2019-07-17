@@ -35,7 +35,7 @@ public:
     bool SaveAsset(const CAsset &asset);
     bool ExistAssetSymbol(const TokenSymbol &tokenSymbol);
 
-    bool Flush();
+    // bool Flush();
 
 private:
 /*  CDBScalarValueCache     prefixType            key              value           variable           */

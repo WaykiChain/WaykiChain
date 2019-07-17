@@ -139,7 +139,8 @@ public:
     uint64_t bcoins;      //!< Main-coin: BaseCoin balance
     uint64_t scoins;      //!< Main-coin: StableCoin balance
     uint64_t fcoins;      //!< Main-coin: FundCoin balance
-    std::map<TokenSymbol, CAsset> tokenAssets;  //!< Tokens assets (tokenSymbol -> tokenAsset) -- MemOnly
+
+    std::map<TokenSymbol, uint64_t> assetTokens;  //!< Asset Tokens (tokenSymbol -> tokenAmount) -- MemOnly
     
     uint64_t frozenDEXBcoins;  //!< frozen bcoins in DEX
     uint64_t frozenDEXScoins;  //!< frozen scoins in DEX
