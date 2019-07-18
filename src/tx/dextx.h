@@ -45,15 +45,19 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        READWRITE((uint8_t&)coinType);
-        READWRITE((uint8_t&)assetType);
+        READWRITE((uint8_t &)coinType);
+        READWRITE((uint8_t &)assetType);
         READWRITE(VARINT(assetAmount));
-        READWRITE(VARINT(bidPrice));)
+        READWRITE(VARINT(bidPrice));
+
+        READWRITE(VARINT(llFees));
+        READWRITE(signature);
+    )
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
                 << (uint8_t)coinType << (uint8_t)assetType << assetAmount << bidPrice;
             sigHash = ss.GetHash();
         }
@@ -110,12 +114,16 @@ public:
         READWRITE((uint8_t&)coinType);
         READWRITE((uint8_t&)assetType);
         READWRITE(VARINT(assetAmount));
-        READWRITE(VARINT(askPrice));)
+        READWRITE(VARINT(askPrice));
+
+        READWRITE(VARINT(llFees));
+        READWRITE(signature);
+    )
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
                 << (uint8_t)coinType << (uint8_t)assetType << assetAmount << askPrice;
             sigHash = ss.GetHash();
         }
@@ -131,7 +139,7 @@ public:
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-public: // devive from CDEXOrderBaseTx
+public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
     CoinType coinType;       //!< coin type (wusd) to sell asset
@@ -168,12 +176,16 @@ public:
         READWRITE((uint8_t&)coinType);
         READWRITE((uint8_t&)assetType);
         READWRITE(VARINT(coinAmount));
+
+
+        READWRITE(VARINT(llFees));
+        READWRITE(signature);
     )
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
                 << (uint8_t)coinType << (uint8_t)assetType << coinAmount;
             sigHash = ss.GetHash();
         }
@@ -190,7 +202,7 @@ public:
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
-public: // devive from CDEXOrderBaseTx
+public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
     CoinType coinType;      //!< coin type (wusd) to buy asset
@@ -225,12 +237,16 @@ public:
         READWRITE((uint8_t&)coinType);
         READWRITE((uint8_t&)assetType);
         READWRITE(VARINT(assetAmount));
+
+
+        READWRITE(VARINT(llFees));
+        READWRITE(signature);
     )
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid
+            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
                 << (uint8_t)coinType << (uint8_t)assetType << assetAmount;
             sigHash = ss.GetHash();
         }
@@ -247,7 +263,7 @@ public:
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
-public: // devive from CDEXOrderBaseTx
+public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
     CoinType coinType;      //!< coin type (wusd) to buy asset
@@ -278,13 +294,15 @@ public:
         READWRITE(txUid);
 
         READWRITE(orderId);
+
+        READWRITE(VARINT(llFees));
+        READWRITE(signature);
     )
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid
-                << orderId;
+            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees) << orderId;
             sigHash = ss.GetHash();
         }
 
@@ -343,13 +361,15 @@ public:
         READWRITE(txUid);
 
         READWRITE(dealItems);
+
+        READWRITE(VARINT(llFees));
+        READWRITE(signature);
     )
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid
-                << dealItems;
+            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees) << dealItems;
             sigHash = ss.GetHash();
         }
 
@@ -377,4 +397,4 @@ private:
     vector<DEXDealItem> dealItems;
 };
 
-#endif //TX_DEX_H
+#endif  // TX_DEX_H

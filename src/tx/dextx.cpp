@@ -15,7 +15,8 @@ using uint128_t = unsigned __int128;
 
 bool CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, uint64_t price, uint64_t &coinAmountOut) {
     uint128_t coinAmount = assetAmount * (uint128_t)price / COIN;
-    if (coinAmount > ULLONG_MAX) return false;
+    if (coinAmount > ULLONG_MAX)
+        return false;
     coinAmountOut = coinAmount;
     return true;
 }
@@ -55,6 +56,7 @@ Object CDEXBuyLimitOrderTx::ToJson(const CAccountDBCache &view) const {
 bool CDEXBuyLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+
     if (kCoinTypeMapName.count(coinType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, invalid coinType"), REJECT_INVALID,
                          "bad-coinType");
@@ -95,7 +97,6 @@ bool CDEXBuyLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSta
 
 bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
-
     if (!cw.accountCache.GetAccount(txUid, srcAcct)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -132,14 +133,16 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
     cw.txUndo.txid = txid;
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+        return false;
 
     return true;
 }
 
 bool CDEXBuyLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                                    CValidationState &state) {
-    if (!UndoTxAddresses(cw, state)) return false;
+    if (!UndoTxAddresses(cw, state))
+        return false;
 
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::UndoExecuteTx, undo active buy order failed"),
@@ -173,14 +176,14 @@ bool CDEXBuyLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
 
 void CDEXBuyLimitOrderTx::GetOrderDetail(CDEXOrderDetail &orderDetail) {
     assert(txUid.type() == typeid(CRegID));
-    orderDetail.userRegId = txUid.get<CRegID>();
-    orderDetail.orderType = ORDER_LIMIT_PRICE;     //!< order type
-    orderDetail.direction = ORDER_BUY;
-    orderDetail.coinType = coinType;      //!< coin type
-    orderDetail.assetType = assetType;     //!< asset type
-    orderDetail.coinAmount = bidPrice * assetAmount;    //!< amount of coin to buy asset
-    orderDetail.assetAmount = assetAmount;   //!< amount of asset to buy/sell
-    orderDetail.price = bidPrice;         //!< price in coinType want to buy asset
+    orderDetail.userRegId   = txUid.get<CRegID>();
+    orderDetail.orderType   = ORDER_LIMIT_PRICE;  //!< order type
+    orderDetail.direction   = ORDER_BUY;
+    orderDetail.coinType    = coinType;                //!< coin type
+    orderDetail.assetType   = assetType;               //!< asset type
+    orderDetail.coinAmount  = bidPrice * assetAmount;  //!< amount of coin to buy asset
+    orderDetail.assetAmount = assetAmount;             //!< amount of asset to buy/sell
+    orderDetail.price       = bidPrice;                //!< price in coinType want to buy asset
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -253,7 +256,6 @@ bool CDEXSellLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSt
 
 bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
-
     if (!cw.accountCache.GetAccount(txUid, srcAcct)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -287,15 +289,16 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
     cw.txUndo.accountLogs.push_back(srcAcctLog);
     cw.txUndo.txid = txid;
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+        return false;
 
     return true;
 }
 
 bool CDEXSellLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                                    CValidationState &state) {
-
-    if (!UndoTxAddresses(cw, state)) return false;
+    if (!UndoTxAddresses(cw, state))
+        return false;
 
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, undo active sell order failed"),
@@ -330,14 +333,14 @@ bool CDEXSellLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper 
 
 void CDEXSellLimitOrderTx::GetOrderDetail(CDEXOrderDetail &orderDetail) {
     assert(txUid.type() == typeid(CRegID));
-    orderDetail.userRegId = txUid.get<CRegID>();
-    orderDetail.orderType = ORDER_LIMIT_PRICE;     //!< order type
-    orderDetail.direction = ORDER_SELL;
-    orderDetail.coinType = coinType;      //!< coin type
-    orderDetail.assetType = assetType;     //!< asset type
-    orderDetail.coinAmount = askPrice * assetAmount;    //!< amount of coin to buy asset
-    orderDetail.assetAmount = assetAmount;   //!< amount of asset to buy/sell
-    orderDetail.price = askPrice;         //!< price in coinType want to buy asset
+    orderDetail.userRegId   = txUid.get<CRegID>();
+    orderDetail.orderType   = ORDER_LIMIT_PRICE;  //!< order type
+    orderDetail.direction   = ORDER_SELL;
+    orderDetail.coinType    = coinType;                //!< coin type
+    orderDetail.assetType   = assetType;               //!< asset type
+    orderDetail.coinAmount  = askPrice * assetAmount;  //!< amount of coin to buy asset
+    orderDetail.assetAmount = assetAmount;             //!< amount of asset to buy/sell
+    orderDetail.price       = askPrice;                //!< price in coinType want to buy asset
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -366,6 +369,7 @@ Object CDEXBuyMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const {
 bool CDEXBuyMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+
     if (kCoinTypeMapName.count(coinType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, invalid coinType"), REJECT_INVALID,
                          "bad-coinType");
@@ -400,7 +404,6 @@ bool CDEXBuyMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSt
 
 bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
-
     if (!cw.accountCache.GetAccount(txUid, srcAcct)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -424,8 +427,8 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
 
     const uint256 &txid = GetHash();
     CDEXActiveOrder buyActiveOrder;
-    buyActiveOrder.generateType = USER_GEN_ORDER;
-    buyActiveOrder.totalDealCoinAmount = 0;
+    buyActiveOrder.generateType         = USER_GEN_ORDER;
+    buyActiveOrder.totalDealCoinAmount  = 0;
     buyActiveOrder.totalDealAssetAmount = 0;
     if (!cw.dexCache.CreateActiveOrder(txid, buyActiveOrder, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, create active buy order failed"),
@@ -435,15 +438,16 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
     cw.txUndo.accountLogs.push_back(srcAcctLog);
     cw.txUndo.txid = txid;
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+        return false;
 
     return true;
 }
 
 bool CDEXBuyMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                                    CValidationState &state) {
-
-    if (!UndoTxAddresses(cw, state)) return false;
+    if (!UndoTxAddresses(cw, state))
+        return false;
 
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::UndoExecuteTx, undo active buy order failed"),
@@ -478,14 +482,14 @@ bool CDEXBuyMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper 
 
 void CDEXBuyMarketOrderTx::GetOrderDetail(CDEXOrderDetail &orderDetail) {
     assert(txUid.type() == typeid(CRegID));
-    orderDetail.userRegId = txUid.get<CRegID>();
-    orderDetail.orderType = ORDER_MARKET_PRICE;     //!< order type
-    orderDetail.direction = ORDER_BUY;
-    orderDetail.coinType = coinType;      //!< coin type
-    orderDetail.assetType = assetType;     //!< asset type
-    orderDetail.coinAmount = coinAmount;    //!< amount of coin to buy asset
-    orderDetail.assetAmount = 0;          //!< unknown assetAmount in order
-    orderDetail.price = 0;                //!< unknown price in order
+    orderDetail.userRegId   = txUid.get<CRegID>();
+    orderDetail.orderType   = ORDER_MARKET_PRICE;  //!< order type
+    orderDetail.direction   = ORDER_BUY;
+    orderDetail.coinType    = coinType;    //!< coin type
+    orderDetail.assetType   = assetType;   //!< asset type
+    orderDetail.coinAmount  = coinAmount;  //!< amount of coin to buy asset
+    orderDetail.assetAmount = 0;           //!< unknown assetAmount in order
+    orderDetail.price       = 0;           //!< unknown price in order
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -513,6 +517,7 @@ Object CDEXSellMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const 
 bool CDEXSellMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+
     if (kCoinTypeMapName.count(coinType) == 0) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, invalid coinType"), REJECT_INVALID,
                          "bad-coinType");
@@ -546,12 +551,12 @@ bool CDEXSellMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationS
 }
 
 bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-
     CAccount srcAcct;
     if (!cw.accountCache.GetAccount(txUid, srcAcct)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
+
     CAccountLog srcAcctLog(srcAcct);
     CAccountLog desAcctLog;
     if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
@@ -580,15 +585,16 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
     cw.txUndo.accountLogs.push_back(srcAcctLog);
     cw.txUndo.txid = txid;
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+        return false;
 
     return true;
 }
 
 bool CDEXSellMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                                    CValidationState &state) {
-
-    if (!UndoTxAddresses(cw, state)) return false;
+    if (!UndoTxAddresses(cw, state))
+        return false;
 
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::UndoExecuteTx, undo active sell order failed"),
@@ -622,14 +628,14 @@ bool CDEXSellMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper
 
 void CDEXSellMarketOrderTx::GetOrderDetail(CDEXOrderDetail &orderDetail) {
     assert(txUid.type() == typeid(CRegID));
-    orderDetail.userRegId = txUid.get<CRegID>();
-    orderDetail.orderType = ORDER_MARKET_PRICE;     //!< order type
-    orderDetail.direction = ORDER_SELL;
-    orderDetail.coinType = coinType;          //!< coin type
-    orderDetail.assetType = assetType;        //!< asset type
-    orderDetail.coinAmount = 0;               //!< unknown coinAmount in order
-    orderDetail.assetAmount = assetAmount;    //!< asset amount want to sell
-    orderDetail.price = 0;                    //!< unknown price in order
+    orderDetail.userRegId   = txUid.get<CRegID>();
+    orderDetail.orderType   = ORDER_MARKET_PRICE;  //!< order type
+    orderDetail.direction   = ORDER_SELL;
+    orderDetail.coinType    = coinType;     //!< coin type
+    orderDetail.assetType   = assetType;    //!< asset type
+    orderDetail.coinAmount  = 0;            //!< unknown coinAmount in order
+    orderDetail.assetAmount = assetAmount;  //!< asset amount want to sell
+    orderDetail.price       = 0;            //!< unknown price in order
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -673,12 +679,12 @@ bool CDEXCancelOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState
 }
 
 bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
+
     CAccountLog srcAcctLog(srcAccount);
     CAccountLog desAcctLog;
     if (!srcAccount.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
@@ -732,15 +738,16 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
     cw.txUndo.txid = GetHash();
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+        return false;
 
     return true;
 }
 
 bool CDEXCancelOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                                    CValidationState &state) {
-
-    if (!UndoTxAddresses(cw, state)) return false;
+    if (!UndoTxAddresses(cw, state))
+        return false;
 
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::UndoExecuteTx, undo active sell order failed"),
@@ -849,21 +856,23 @@ Object CDEXSettleTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CDEXSettleTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-
-    if (!CBaseTx::GetInvolvedKeyIds(cw, keyIds)) return false;
+    if (!CBaseTx::GetInvolvedKeyIds(cw, keyIds))
+        return false;
 
     for (auto dealItem : dealItems) {
         CDEXDealOrder buyDealOrder;
         if (!GetDealOrder(dealItem.buyOrderId, ORDER_BUY, cw, buyDealOrder)) {
             return ERRORMSG("CDEXSettleTx::GetInvolvedKeyIds, get buy deal order failed! txid=%s", dealItem.buyOrderId.ToString());
         }
-        if (!AddInvolvedKeyIds({buyDealOrder.orderDetail.userRegId}, cw, keyIds)) return false;
+        if (!AddInvolvedKeyIds({buyDealOrder.orderDetail.userRegId}, cw, keyIds))
+            return false;
 
         CDEXDealOrder sellDealOrder;
         if (!GetDealOrder(dealItem.sellOrderId, ORDER_SELL, cw, sellDealOrder)) {
             return ERRORMSG("CDEXSettleTx::GetInvolvedKeyIds, get sell deal order detail failed! txid=%s", dealItem.sellOrderId.ToString());
         }
-        if (!AddInvolvedKeyIds({sellDealOrder.orderDetail.userRegId}, cw, keyIds)) return false;
+        if (!AddInvolvedKeyIds({sellDealOrder.orderDetail.userRegId}, cw, keyIds))
+            return false;
     }
 
     return true;
@@ -1191,14 +1200,16 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
 
     cw.txUndo.txid = GetHash();
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+        return false;
 
     return true;
 }
 
 bool CDEXSettleTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
 
-    if (!UndoTxAddresses(cw, state)) return false;
+    if (!UndoTxAddresses(cw, state))
+        return false;
 
     if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXSettleTx::UndoExecuteTx, undo active orders for all deal item failed"),
