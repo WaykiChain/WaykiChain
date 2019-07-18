@@ -16,8 +16,8 @@ class CCoinTransferTx: public CBaseTx {
 private:
     mutable CUserID toUid;
     uint64_t coins;
-    uint8_t coinType;       // default: WICC
-    uint8_t feesCoinType;   // default: WICC
+    CoinType coinType;      // default: WICC
+    CoinType feesCoinType;  // default: WICC
     UnsignedCharArray memo;
 
 public:
@@ -57,9 +57,9 @@ public:
         READWRITE(txUid);
         READWRITE(toUid);
         READWRITE(VARINT(coins));
-        READWRITE(coinType);
+        READWRITE((uint8_t &)coinType);
         READWRITE(VARINT(llFees));
-        READWRITE(feesCoinType);
+        READWRITE((uint8_t &)feesCoinType);
         READWRITE(memo);
         READWRITE(signature);
     )
@@ -68,7 +68,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << toUid << VARINT(coins)
-               << coinType << VARINT(llFees) << feesCoinType << memo;
+               << uint8_t(coinType) << VARINT(llFees) << uint8_t(feesCoinType) << memo;
 
             sigHash = ss.GetHash();
         }

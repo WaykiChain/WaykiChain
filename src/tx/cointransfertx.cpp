@@ -16,7 +16,7 @@ bool CCoinTransferTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationSta
     IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid.type());
 
      // TODO: check range
-    if (kCoinTypeMapName.count(CoinType(coinType)) == 0 || kCoinTypeMapName.count(CoinType(feesCoinType)) == 0) {
+    if (kCoinTypeMapName.count(coinType) == 0 || kCoinTypeMapName.count(feesCoinType) == 0) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, invalid coin type"), REJECT_INVALID,
                          "invalid-coin-type");
     }
@@ -44,12 +44,12 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
     CAccountLog srcAccountLog(srcAccount);
     CAccountLog desAccountLog;
 
-    if (!srcAccount.OperateBalance(CoinType(feesCoinType), MINUS_VALUE, llFees)) {
+    if (!srcAccount.OperateBalance(feesCoinType, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, insufficient bcoins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
     }
 
-    if (!srcAccount.OperateBalance(CoinType(coinType), MINUS_VALUE, coins)) {
+    if (!srcAccount.OperateBalance(coinType, MINUS_VALUE, coins)) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, insufficient coins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-coins");
     }
@@ -72,7 +72,7 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
     }
 
     uint64_t actualCoinsToSend = coins;
-    if (CoinType(coinType) == CoinType::WUSD) { //if transferring WUSD, must pay 0.01% to the risk reserve
+    if (coinType == CoinType::WUSD) { //if transferring WUSD, must pay 0.01% to the risk reserve
         CAccount fcoinGenesisAccount;
         if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
@@ -94,7 +94,7 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
 
         cw.txUndo.accountLogs.push_back(genesisAcctLog);
     }
-    if (!desAccount.OperateBalance(CoinType(coinType), ADD_VALUE, actualCoinsToSend)) {
+    if (!desAccount.OperateBalance(coinType, ADD_VALUE, actualCoinsToSend)) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, failed to add coins in toUid %s account", toUid.ToString()),
                         UPDATE_ACCOUNT_FAIL, "failed-add-coins");
     }
@@ -141,7 +141,7 @@ string CCoinTransferTx::ToString(CAccountDBCache &accountCache) {
         "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, coins=%ld, coinType=%s, llFees=%ld, feesCoinType=%s, "
         "nValidHeight=%d\n",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), coins,
-        GetCoinTypeName(CoinType(coinType)), llFees, GetCoinTypeName(CoinType(feesCoinType)), nValidHeight);
+        GetCoinTypeName(coinType), llFees, GetCoinTypeName(feesCoinType), nValidHeight);
 }
 
 Object CCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -161,9 +161,9 @@ Object CCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("to_uid",             toUid.ToString()));
     result.push_back(Pair("to_addr",            desKeyId.ToAddress()));
     result.push_back(Pair("coins",              coins));
-    result.push_back(Pair("coin_type",          GetCoinTypeName(CoinType(coinType))));
+    result.push_back(Pair("coin_type",          GetCoinTypeName(coinType)));
     result.push_back(Pair("fees",               llFees));
-    result.push_back(Pair("fees_coin_type",     GetCoinTypeName(CoinType(feesCoinType))));
+    result.push_back(Pair("fees_coin_type",     GetCoinTypeName(feesCoinType)));
     result.push_back(Pair("valid_height",       nValidHeight));
     result.push_back(Pair("memo",               HexStr(memo)));
 
