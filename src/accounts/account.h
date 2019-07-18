@@ -142,7 +142,7 @@ public:
     uint64_t fcoins;      //!< Main-coin: FundCoin balance
 
     std::map<TokenSymbol, uint64_t> assetTokens;  //!< Asset Tokens (tokenSymbol -> tokenAmount) -- MemOnly
-    
+
     uint64_t frozenDEXBcoins;  //!< frozen bcoins in DEX
     uint64_t frozenDEXScoins;  //!< frozen scoins in DEX
     uint64_t frozenDEXFcoins;  //!< frozen fcoins in DEX
@@ -213,17 +213,6 @@ public:
     CAccount& operator=(const CAccount& other) {
         if (this == &other) return *this;
 
-<<<<<<< HEAD
-        this->keyId          = other.keyId;
-        this->regId          = other.regId;
-        this->nickId         = other.nickId;
-        this->pubKey         = other.pubKey;
-        this->minerPubKey    = other.minerPubKey;
-        this->bcoins         = other.bcoins;
-        this->scoins         = other.scoins;
-        this->fcoins         = other.fcoins;
-        this->assetTokens    = other.assetTokens;
-=======
         this->keyId           = other.keyId;
         this->regId           = other.regId;
         this->nickId          = other.nickId;
@@ -232,7 +221,7 @@ public:
         this->bcoins          = other.bcoins;
         this->scoins          = other.scoins;
         this->fcoins          = other.fcoins;
->>>>>>> b7750c58f634ac042e3662a3975e2305814a8c8b
+        this->assetTokens     = other.assetTokens;
         this->frozenDEXBcoins = other.frozenDEXBcoins;
         this->frozenDEXScoins = other.frozenDEXScoins;
         this->frozenDEXFcoins = other.frozenDEXFcoins;
@@ -267,7 +256,7 @@ public:
     uint64_t GetFreeBcoins() const { return bcoins; }
     uint64_t GetFreeScoins() const { return scoins; }
     uint64_t GetFreeFcoins() const { return fcoins; }
-    CAsset GetTokenAsset(TokenSymbol symbol) const { return tokenAssets.at(symbol); }
+    uint64_t GetTokenAsset(TokenSymbol symbol) const { return assetTokens.at(symbol); }
 
     uint64_t GetFrozenBCoins() const { return frozenDEXBcoins; }
     uint64_t GetFrozenScoins() const { return frozenDEXScoins; }

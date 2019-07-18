@@ -128,13 +128,13 @@ bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &
 
     if (cdpTxId.IsNull()) {  // first-time CDP creation
         if (collateralRatio < startingCdpCollateralRatio) {
-            return state.DoS(100,ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal", collateralRatio),
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal", collateralRatio),
                             REJECT_INVALID, "CDP-collateral-ratio-toosmall");
         }
 
         vector<CUserCDP> userCdps;
-        if (cw.cdpCache->GetCdpList(txUid.get<CRegID>(), userCdps) && userCdps.size() > 0) {
-            return state.DoS(100,ERRORMSG("CCDPStakeTx::CheckTx, has opened cdp already", REJECT_INVALID, "has-opened-cdp-already");
+        if (cw.cdpCache.GetCdpList(txUid.get<CRegID>(), userCdps) && userCdps.size() > 0) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, has opened cdp already"), REJECT_INVALID, "has-opened-cdp-already");
         }
     }
 
