@@ -35,6 +35,58 @@ static bool GetKeyId(const CAccountDBCache &view, const string &userIdStr, CKeyI
 ///////////////////////////////////////////////////////////////////////////////
 // class CContractDeployTx
 
+bool CContractDeployTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_REGID(txUid.type());
+
+    CDataStream stream(contractScript, SER_DISK, CLIENT_VERSION);
+    CVmScript vmScript;
+    try {
+        stream >> vmScript;
+    } catch (exception &e) {
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, unserialize to vmScript error"),
+                         REJECT_INVALID, "unserialize-error");
+    }
+
+    if (!vmScript.IsValid()) {
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, vmScript is invalid"),
+                         REJECT_INVALID, "vmscript-invalid");
+    }
+
+    uint64_t llFuel = GetFuel(GetFuelRate(cw.contractCache));
+    if (llFees < llFuel) {
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, fee too litter to afford fuel "
+                         "(actual:%lld vs need:%lld)", llFees, llFuel),
+                         REJECT_INVALID, "fee-too-litter-to-afford-fuel");
+    }
+
+    // If valid height range changed little enough(i.e. 3 blocks), remove it.
+    if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2) {
+        unsigned int nTxSize = ::GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
+        double dFeePerKb     = double(llFees - llFuel) / (double(nTxSize) / 1000.0);
+        if (dFeePerKb < CBaseTx::nMinRelayTxFee) {
+            return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, fee too litter in fees/Kb "
+                             "(actual:%.4f vs need:%lld)", dFeePerKb, CBaseTx::nMinRelayTxFee),
+                             REJECT_INVALID, "fee-too-litter-in-fees/Kb");
+        }
+    }
+
+    CAccount account;
+    if (!cw.accountCache.GetAccount(txUid, account)) {
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, get account failed"),
+                         REJECT_INVALID, "bad-getaccount");
+    }
+    if (!account.IsRegistered()) {
+        return state.DoS(
+            100, ERRORMSG("CContractDeployTx::CheckTx, account unregistered"),
+            REJECT_INVALID, "bad-account-unregistered");
+    }
+
+    IMPLEMENT_CHECK_TX_SIGNATURE(account.pubKey);
+
+    return true;
+}
+
 bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
@@ -163,58 +215,6 @@ Object CContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("fees",           llFees));
     result.push_back(Pair("valid_height",   nValidHeight));
     return result;
-}
-
-bool CContractDeployTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
-    IMPLEMENT_CHECK_TX_FEE;
-    IMPLEMENT_CHECK_TX_REGID(txUid.type());
-
-    CDataStream stream(contractScript, SER_DISK, CLIENT_VERSION);
-    CVmScript vmScript;
-    try {
-        stream >> vmScript;
-    } catch (exception &e) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, unserialize to vmScript error"),
-                         REJECT_INVALID, "unserialize-error");
-    }
-
-    if (!vmScript.IsValid()) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, vmScript is invalid"),
-                         REJECT_INVALID, "vmscript-invalid");
-    }
-
-    uint64_t llFuel = GetFuel(GetFuelRate(cw.contractCache));
-    if (llFees < llFuel) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, fee too litter to afford fuel "
-                         "(actual:%lld vs need:%lld)", llFees, llFuel),
-                         REJECT_INVALID, "fee-too-litter-to-afford-fuel");
-    }
-
-    // If valid height range changed little enough(i.e. 3 blocks), remove it.
-    if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2) {
-        unsigned int nTxSize = ::GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
-        double dFeePerKb     = double(llFees - llFuel) / (double(nTxSize) / 1000.0);
-        if (dFeePerKb < CBaseTx::nMinRelayTxFee) {
-            return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, fee too litter in fees/Kb "
-                             "(actual:%.4f vs need:%lld)", dFeePerKb, CBaseTx::nMinRelayTxFee),
-                             REJECT_INVALID, "fee-too-litter-in-fees/Kb");
-        }
-    }
-
-    CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, get account failed"),
-                         REJECT_INVALID, "bad-getaccount");
-    }
-    if (!account.IsRegistered()) {
-        return state.DoS(
-            100, ERRORMSG("CContractDeployTx::CheckTx, account unregistered"),
-            REJECT_INVALID, "bad-account-unregistered");
-    }
-
-    IMPLEMENT_CHECK_TX_SIGNATURE(account.pubKey);
-
-    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
