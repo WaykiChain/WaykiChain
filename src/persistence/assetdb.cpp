@@ -23,3 +23,14 @@ bool CAssetDBCache::SaveAsset(const CAsset &asset) {
 bool CAssetDBCache::ExistAssetSymbol(const TokenSymbol &tokenSymbol) {
     return assetCache.HaveData(tokenSymbol);
 }
+
+bool CAssetDBCache::AddAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
+    return assetCache.SetData(asset.symbol, 1);
+}
+bool CAssetDBCache::EraseAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
+
+}
+
+bool CAssetDBCache::ExistAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
+    return assetCache.HaveData(assetTradingPair.ToString());
+}

@@ -25,6 +25,17 @@ using namespace json_spirit;
 typedef string TokenSymbol;     //8 chars max, E.g. WICC-01D
 typedef string TokenName;       //32 chars max
 
+class CAssetTradingPair {
+public:
+    TokenSymbol coinSymbol;
+    TokenSymbol assetSymbol;
+
+public:
+    string ToString() {
+        return strprintf("%s-%s", coinSymbol, assetSymbol);
+    }
+};
+
 class CAsset {
 public:
     CRegID      ownerRegId;     // creator or owner of the asset
