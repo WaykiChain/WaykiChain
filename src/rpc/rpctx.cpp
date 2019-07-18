@@ -2680,20 +2680,19 @@ Value listdelegates(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to get delegates list");
     }
 
+    delegatesList.resize(std::min(delegateNum, (int)delegatesList.size()));
+
     Object obj;
     Array delegateArray;
 
-    delegateNum = min(delegateNum, (int)delegatesList.size());
     CAccount account;
     for (const auto& delegate : delegatesList) {
         if (!pCdMan->pAccountCache->GetAccount(delegate, account)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to get account info");
         }
         delegateArray.push_back(account.ToJsonObj());
-        if (--delegateNum == 0) {
-            break;
-        }
     }
+
     obj.push_back(Pair("delegates", delegateArray));
 
     return obj;
