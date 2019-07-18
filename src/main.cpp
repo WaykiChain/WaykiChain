@@ -1649,7 +1649,8 @@ bool static DisconnectTip(CValidationState &state) {
         spCW->txCache.Flush();
         spCW->contractCache.Flush();
         spCW->delegateCache.Flush();
-
+         // Attention: need to reload top N delegates.
+        pCdMan->pDelegateCache->LoadTopDelegates();
     }
     if (SysCfg().IsBenchmark())
         LogPrint("INFO", "- Disconnect: %.2fms\n", (GetTimeMicros() - nStart) * 0.001);
@@ -1706,6 +1707,8 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         spCW->txCache.Flush();
         spCW->contractCache.Flush();
         spCW->delegateCache.Flush();
+        // Attention: need to reload top N delegates.
+        pCdMan->pDelegateCache->LoadTopDelegates();
 
         uint256 uBestblockHash = pCdMan->pAccountCache->GetBestBlock();
         LogPrint("INFO", "uBestBlockHash[%d]: %s\n", nSyncTipHeight, uBestblockHash.GetHex());
