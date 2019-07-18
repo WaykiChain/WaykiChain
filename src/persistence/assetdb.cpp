@@ -15,22 +15,19 @@ using namespace std;
 bool CAssetDBCache::GetAsset(const TokenSymbol &tokenSymbol, CAsset &asset) {
     return assetCache.GetData(tokenSymbol, asset);
 }
-
 bool CAssetDBCache::SaveAsset(const CAsset &asset) {
     return assetCache.SetData(asset.symbol, asset);
 }
-
 bool CAssetDBCache::ExistAssetSymbol(const TokenSymbol &tokenSymbol) {
     return assetCache.HaveData(tokenSymbol);
 }
 
 bool CAssetDBCache::AddAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
-    return assetCache.SetData(asset.symbol, 1);
+    return assetTradingPairCache.SetData(assetTradingPair, 1);
 }
 bool CAssetDBCache::EraseAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
-    return assetCache.EraseData(assetTradingPair.ToString());
+    return assetTradingPairCache.EraseData(assetTradingPair);
 }
-
 bool CAssetDBCache::ExistAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
-    return assetCache.HaveData(assetTradingPair.ToString());
+    return assetTradingPairCache.HaveData(assetTradingPair);
 }
