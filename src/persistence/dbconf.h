@@ -29,6 +29,8 @@ typedef leveldb::Slice Slice;
     DEFINE( CDP,                "cdp")          /* cdp */ \
     DEFINE( DEX,                "dex")          /* dex */ \
     DEFINE( LOG,                "log")          /* log */ \
+    DEFINE( RECEIPT,            "txreceipt")    /* txreceipt */ \
+
     /*                                                                */  \
     /* Add new Enum elements above, DB_NAME_COUNT Must be the last one */ \
     DEFINE( DB_NAME_COUNT,        "")       /* enum count, must be the last one */
@@ -104,6 +106,8 @@ namespace dbk {
         DEFINE( DEX_SYS_ORDER,        "dsso",  DEX )           /* [prefix]{txid} --> system order */ \
         /**** log db                                                                   */ \
         DEFINE( TX_EXECUTE_FAIL,      "txef",  LOG )           /* [prefix]{height}{txid} --> {error code, error message} */ \
+        /**** tx receipt db                                                                   */ \
+        DEFINE( TX_RECEIPT,           "txrc",  RECEIPT )       /* [prefix]{txid} --> {receipts} */ \
         /*                                                                             */ \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one              */ \
         DEFINE( PREFIX_COUNT,         "",      DB_NAME_NONE)   /* enum count, must be the last one */

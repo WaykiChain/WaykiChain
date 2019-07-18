@@ -36,12 +36,12 @@ public:
     bool ExistAssetSymbol(const TokenSymbol &tokenSymbol);
     bool ExistAssetTradingPair(const CAssetTradingPair &TradingPair);
 
-    // bool Flush();
+    bool Flush();
 
 private:
 /*  CDBScalarValueCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
-    // <asset_tokenSymbol -> asset> 
+    // <asset_tokenSymbol -> asset>
     CDBMultiValueCache< dbk::ASSET,             TokenSymbol,        CAsset>         assetCache;
 
     CDBMultiValueCache< dbk::ASSET,             CAssetTradigingPair,    uint8_t>         assetCache;

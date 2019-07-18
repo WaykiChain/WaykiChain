@@ -6,8 +6,6 @@
 #ifndef PERSIST_RECEIPTDB_H
 #define PERSIST_RECEIPTDB_H
 
-#include "accounts/account.h"
-#include "accounts/id.h"
 #include "commons/serialize.h"
 #include "dbaccess.h"
 #include "dbconf.h"
@@ -31,10 +29,12 @@ public:
     void Flush();
 
 private:
-/*  CDBScalarValueCache  prefixType             key                 value                        variable      */
-/*  -------------------- --------------------- ------------------  ---------------------------  -------------- */
-    // [prefix]{height}{txid} --> {error code, error message}
-    CDBMultiValueCache<dbk::TX_EXECUTE_FAIL,    string,            std::pair<uint8_t, string> > executeFailCache;
+/*  CDBScalarValueCache     prefixType             value           variable           */
+/*  -------------------- --------------------   -------------   --------------------- */
+    // best blockHash
+    CDBScalarValueCache< dbk::BEST_BLOCKHASH,     CReceipt>        txReceiptCache;
+     // <KeyID -> Account>
+    CDBMultiValueCache< dbk::KEYID_ACCOUNT,        CKeyID,       CReceipt >       keyId2AccountCache;
 };
 
 #endif // PERSIST_RECEIPTDB_H
