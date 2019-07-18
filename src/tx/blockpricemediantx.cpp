@@ -93,7 +93,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
                 prevRiskReserveScoins,
                 currRiskReserveScoins);
 
-        //TODO: double check state consistence between MemCach & DBCache for CDP
+        //TODO: double check state consistence between MemCache & DBCache for CDP
     }
 
     fcoinGenesisAccount.scoins = currRiskReserveScoins;

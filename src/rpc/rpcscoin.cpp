@@ -383,8 +383,8 @@ Value getusercdp(const Array& params, bool fHelp){
     }
     else {
         vector<CUserCDP> userCdps;
-        if(pCdMan->pCdpCache->GetCdpList(txAccount.regId, userCdps)){
-            for(auto &cdp : userCdps){
+        if (pCdMan->pCdpCache->GetCdpList(txAccount.regId, userCdps)) {
+            for (auto& cdp : userCdps) {
                 cdps.push_back(cdp.ToJson());
             }
         }

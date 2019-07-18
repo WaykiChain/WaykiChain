@@ -107,7 +107,7 @@ bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &
     }
     if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(cw.ppCache.GetBcoinMedianPrice(nHeight), globalCollateralRatioMin)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, GlobalCollateralFloorReached!!"),
-                        REJECT_INVALID, "gloalcdplock_is_on");
+                        REJECT_INVALID, "global-cdp-lock-is-on");
     }
 
     uint64_t globalCollateralCeiling;
@@ -117,7 +117,7 @@ bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &
     }
     if (cw.cdpCache.CheckGlobalCollateralCeilingReached(bcoinsToStake, globalCollateralCeiling)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, GlobalCollateralCeilingReached!"),
-                        REJECT_INVALID, "gloalcdplock_is_on");
+                        REJECT_INVALID, "global-cdp-lock-is-on");
     }
 
     uint64_t startingCdpCollateralRatio;
@@ -125,9 +125,17 @@ bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    if (cdpTxId.IsNull() && collateralRatio < startingCdpCollateralRatio) { // first-time CDP creation
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
-                            collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
+
+    if (cdpTxId.IsNull()) {  // first-time CDP creation
+        if (collateralRatio < startingCdpCollateralRatio) {
+            return state.DoS(100,ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal", collateralRatio),
+                            REJECT_INVALID, "CDP-collateral-ratio-toosmall");
+        }
+
+        vector<CUserCDP> userCdps;
+        if (cw.cdpCache->GetCdpList(txUid.get<CRegID>(), userCdps) && userCdps.size() > 0) {
+            return state.DoS(100,ERRORMSG("CCDPStakeTx::CheckTx, has opened cdp already", REJECT_INVALID, "has-opened-cdp-already");
+        }
     }
 
     uint64_t bcoinsToStakeAmountMin;
