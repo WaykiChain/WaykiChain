@@ -1616,7 +1616,7 @@ Value reloadtxcache(const Array& params, bool fHelp) {
 }
 
 Value getcontractdata(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 2) {
+    if (fHelp || (params.size() != 2 && params.size() != 3)) {
         throw runtime_error(
             "getcontractdata \"contract regid\" \"key\"\n"
             "\nget the contract data (hexadecimal format)\n"
