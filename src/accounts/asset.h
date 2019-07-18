@@ -22,8 +22,8 @@
 
 using namespace json_spirit;
 
-typedef string TokenSymbol;     //8 chars max, E.g. WICC-01D
-typedef string TokenName;       //32 chars max
+typedef string TokenSymbol;     //8 chars max, E.g. WICC, WCNY, WICC-01D
+typedef string TokenName;       //32 chars max, E.g. WaykiChain Coins
 
 class CAssetTradingPair {
 public:
