@@ -395,6 +395,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
             spCW->accountCache.Flush();
             spCW->contractCache.Flush();
             spCW->delegateCache.Flush();
+            spCW->cdpCache.Flush();
 
             // TODO: Fees
             // nTotalFees += pBaseTx->GetFees();

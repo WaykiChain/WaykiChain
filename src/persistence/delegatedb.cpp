@@ -21,8 +21,6 @@ bool CDelegateDBCache::LoadTopDelegates() {
         delegateRegIds.push_back(CRegID(UnsignedCharArray(strRegId.begin(), strRegId.end())));
     }
 
-    // assert(delegateRegIds.size() == IniCfg().GetTotalDelegateNum());
-
     return true;
 }
 
@@ -98,6 +96,10 @@ bool CDelegateDBCache::Flush() {
     regId2VoteCache.Flush();
 
     return true;
+}
+
+uint32_t CDelegateDBCache::GetCacheSize() const {
+    return voteRegIdCache.GetCacheSize() + regId2VoteCache.GetCacheSize();
 }
 
 void CDelegateDBCache::Clear() {

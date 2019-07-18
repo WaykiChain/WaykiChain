@@ -25,6 +25,11 @@ public:
     CDelegateDBCache(CDelegateDBCache *pBaseIn)
         : voteRegIdCache(pBaseIn->voteRegIdCache), regId2VoteCache(pBaseIn->regId2VoteCache){};
 
+    void SetBaseView(CDelegateDBCache *pBaseIn) {
+        voteRegIdCache.SetBase(&pBaseIn->voteRegIdCache);
+        regId2VoteCache.SetBase(&pBaseIn->regId2VoteCache);
+    }
+
     bool LoadTopDelegates();
     bool ExistDelegate(const CRegID &regId);
     bool GetTopDelegates(vector<CRegID> &delegatesList);
@@ -37,11 +42,9 @@ public:
     bool GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes);
     bool UndoCandidateVotes(CDBOpLogMap &dbOpLogMap);
 
-    void SetBaseView(CDelegateDBCache *pBaseIn) {
-        voteRegIdCache.SetBase(&pBaseIn->voteRegIdCache);
-        regId2VoteCache.SetBase(&pBaseIn->regId2VoteCache);
-    }
+
     bool Flush();
+    uint32_t GetCacheSize() const;
     void Clear();
 
 private:

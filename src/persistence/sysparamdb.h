@@ -17,10 +17,10 @@ using namespace std;
 class CSysParamDBCache {
 public:
     CSysParamDBCache() {}
-    // CSysParamDBCache() : pBase(nullptr) {}
-    CSysParamDBCache(CDBAccess *pDbAccess): sysParamCache(pDbAccess) {}
+    CSysParamDBCache(CDBAccess *pDbAccess) : sysParamCache(pDbAccess) {}
+    CSysParamDBCache(CSysParamDBCache *pBaseIn) : sysParamCache(pBaseIn->sysParamCache) {}
 
-public:
+    void SetBaseView(CSysParamDBCache *pBaseIn) { sysParamCache.SetBase(&pBaseIn->sysParamCache); }
 
     bool GetParam(const SysParamType &paramType, uint64_t& paramValue) {
         if (SysParamTable.count(paramType) == 0)
@@ -34,6 +34,12 @@ public:
 
         return true;
     }
+
+    bool Flush() {
+        sysParamCache.Flush();
+        return true;
+    }
+    uint32_t GetCacheSize() const { return sysParamCache.GetCacheSize(); }
 
 private:
 /*       type               prefixType               key                     value                 variable               */

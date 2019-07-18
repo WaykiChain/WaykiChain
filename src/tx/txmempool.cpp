@@ -110,6 +110,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
     spCW->txCache.SetBaseView(pCdMan->pTxCache);
     spCW->contractCache.SetBaseView(memPoolContractCache.get());
     spCW->delegateCache.SetBaseView(memPoolDelegateCache.get());
+    spCW->cdpCache.SetBaseView(memPoolCdpCache.get());
 
     if (bExecute) {
         if (!memPoolEntry.GetTransaction()->ExecuteTx(chainActive.Height() + 1, 0, *spCW, state)) {
@@ -127,22 +128,25 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
     spCW->accountCache.Flush();
     spCW->contractCache.Flush();
     spCW->delegateCache.Flush();
+    spCW->cdpCache.Flush();
 
     return true;
 }
 
 void CTxMemPool::SetMemPoolCache(CAccountDBCache *pAccountCacheIn, CContractDBCache *pContractCacheIn,
-                                 CDelegateDBCache *pDelegateCacheIn) {
+                                 CDelegateDBCache *pDelegateCacheIn, CCdpDBCache *pCdpCacheIn) {
     memPoolAccountCache  = std::make_shared<CAccountDBCache>(*pAccountCacheIn);
     memPoolContractCache = std::make_shared<CContractDBCache>(*pContractCacheIn);
     memPoolDelegateCache = std::make_shared<CDelegateDBCache>(*pDelegateCacheIn);
+    memPoolCdpCache      = std::make_shared<CCdpDBCache>(*pCdpCacheIn);
 }
 
 void CTxMemPool::ReScanMemPoolTx(CAccountDBCache *pAccountCacheIn, CContractDBCache *pContractCacheIn,
-                                 CDelegateDBCache *pDelegateCacheIn) {
+                                 CDelegateDBCache *pDelegateCacheIn, CCdpDBCache *pCdpCacheIn) {
     memPoolAccountCache.reset(new CAccountDBCache(*pAccountCacheIn));
     memPoolContractCache.reset(new CContractDBCache(*pContractCacheIn));
     memPoolDelegateCache.reset(new CDelegateDBCache(*pDelegateCacheIn));
+    memPoolCdpCache.reset(new CCdpDBCache(*pCdMan->pCdpCache));
 
     {
         LOCK(cs);
@@ -166,6 +170,7 @@ void CTxMemPool::Clear() {
     memPoolAccountCache.reset(new CAccountDBCache(*pCdMan->pAccountCache));
     memPoolContractCache.reset(new CContractDBCache(*pCdMan->pContractCache));
     memPoolDelegateCache.reset(new CDelegateDBCache(*pCdMan->pDelegateCache));
+    memPoolCdpCache.reset(new CCdpDBCache(*pCdMan->pCdpCache));
 
     ++nTransactionsUpdated;
 }

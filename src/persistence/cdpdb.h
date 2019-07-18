@@ -98,10 +98,8 @@ public:
     // Only apply to construct the global mem-cache.
     CCdpMemCache(CDBAccess *pAccessIn) : pAccess(pAccessIn) {}
 
-    uint64_t GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const;
-    uint64_t GetGlobalCollateral() const;
-
     bool LoadAllCdpFromDB();
+    void SetBase(CCdpMemCache *pBaseIn);
     void Flush();
 
     // Usage: before modification, erase the old cdp; after modification, save the new cdp.
@@ -109,7 +107,10 @@ public:
     bool EraseCdp(const CUserCDP &userCdp);
 
     bool GetCdpListByCollateralRatio(const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
-                               set<CUserCDP> &userCdps);
+                                     set<CUserCDP> &userCdps);
+
+    uint64_t GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const;
+    uint64_t GetGlobalCollateral() const;
 
 private:
     bool GetCdpList(const double ratio, set<CUserCDP> &expiredCdps, set<CUserCDP> &userCdps);
@@ -128,10 +129,16 @@ private:
 class CCdpDBCache {
 public:
     CCdpDBCache() {}
-    CCdpDBCache(CDBAccess *pDbAccess): cdpCache(pDbAccess) {}
+    CCdpDBCache(CDBAccess *pDbAccess) : cdpCache(pDbAccess) {}
+    CCdpDBCache(CCdpDBCache *pBaseIn) : cdpCache(pBaseIn->cdpCache), cdpMemCache(pBaseIn->cdpMemCache) {}
 
-    bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins, CUserCDP &cdp,
-                        CDBOpLogMap &dbOpLogMap);
+    void SetBaseView(CCdpDBCache *pBaseIn) {
+        cdpCache.SetBase(&pBaseIn->cdpCache);
+        cdpMemCache.SetBase(&pBaseIn->cdpMemCache);
+    }
+
+    bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
+                          CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
 
     // Usage: acquire user's cdp list by CRegID.
     bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdps);
@@ -141,22 +148,24 @@ public:
     bool SaveCdp(CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
     bool EraseCdp(const CUserCDP &cdp);
     bool EraseCdp(const CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
-    bool UndoCdp(CDBOpLogMap &dbOpLogMap) { return cdpCache.UndoData(dbOpLogMap);  }
+    bool UndoCdp(CDBOpLogMap &dbOpLogMap) { return cdpCache.UndoData(dbOpLogMap); }
 
     bool CheckGlobalCollateralRatioFloorReached(const uint64_t &bcoinMedianPrice,
                                                 const uint64_t &kGlobalCollateralRatioLimit);
     bool CheckGlobalCollateralCeilingReached(const uint64_t &newBcoinsToStake,
                                              const uint64_t &kGlobalCollateralCeiling);
-
-public:
-    CCdpMemCache cdpMemCache;
+    bool Flush();
+    uint32_t GetCacheSize() const;
 
 private:
-
 /*  CDBMultiValueCache     prefixType     key                               value        variable  */
 /*  ----------------   --------------   ---------------------------   ---------------    --------- */
     // <CRegID, CTxCord> -> CUserCDP
     CDBMultiValueCache< dbk::CDP,         std::pair<string, uint256>,   CUserCDP >       cdpCache;
+
+public:
+    // Memory only cache
+    CCdpMemCache cdpMemCache;
 };
 
 #endif  // PERSIST_CDPDB_H

@@ -208,7 +208,6 @@ Value stop(const Array& params, bool fHelp) {
 //
 // Call Table
 //
-extern Value resetclient(const Array& params, bool fHelp);
 extern Value gettxoperationlog(const Array& params, bool fHelp);
 extern Value dropminerkeys(const Array& params, bool fHelp);
 
@@ -344,7 +343,6 @@ static const CRPCCommand vRPCCommands[] =
     /* for test code */
     { "gettxoperationlog",      &gettxoperationlog,      false,     false,      false},
     { "disconnectblock",        &disconnectblock,        true,      false,      true },
-    { "resetclient",            &resetclient,            true,      false,      false},
     { "reloadtxcache",          &reloadtxcache,          true,      false,      true },
     { "getcontractregid",       &getcontractregid,       true,      false,      false},
     { "getalltxinfo",           &getalltxinfo,           true,      false,      true },

@@ -18,13 +18,16 @@
 class CCacheWrapper {
 public:
     CSysParamDBCache sysParamCache;
+
     CAccountDBCache accountCache;
     CContractDBCache contractCache;
     CDelegateDBCache delegateCache;
-    CTxMemCache txCache;
-    CPricePointMemCache ppCache;
     CCdpDBCache cdpCache;
+    CTxMemCache txCache;
+
+    CPricePointMemCache ppCache;
     CDexDBCache dexCache;
+
     CTxUndo txUndo;
 };
 

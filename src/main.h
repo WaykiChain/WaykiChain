@@ -311,6 +311,9 @@ public:
 
 class CCacheDBManager {
 public:
+    CDBAccess           *pSysParamDb;
+    CSysParamDBCache    *pSysParamCache;
+
     CDBAccess           *pAccountDb;
     CAccountDBCache     *pAccountCache;
 
@@ -336,9 +339,8 @@ public:
 public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache, size_t nContractDBCache,
                     size_t nDelegateDBCache, size_t nBlockTreeDBCache) {
-        //TODO fix cache size
-
-        pBlockTreeDb = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
+        pSysParamDb     = new CDBAccess(DBNameType::SYSPARAM, nAccountDBCache, false, fReIndex);  // TODO fix cache size
+        pSysParamCache  = new CSysParamDBCache(pSysParamDb);
 
         pAccountDb      = new CDBAccess(DBNameType::ACCOUNT, nAccountDBCache, false, fReIndex);
         pAccountCache   = new CAccountDBCache(pAccountDb);
@@ -354,6 +356,8 @@ public:
 
         pDexCache       = new CDexDBCache();
 
+        pBlockTreeDb = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
+
         pTxCache        = new CTxMemCache();
         pPpCache        = new CPricePointMemCache();
 
@@ -362,7 +366,7 @@ public:
     }
 
     ~CCacheDBManager() {
-
+        delete pSysParamCache;  pSysParamCache = nullptr;
         delete pAccountCache;   pAccountCache = nullptr;
         delete pContractCache;  pContractCache = nullptr;
         delete pDelegateCache;  pDelegateCache = nullptr;
@@ -372,6 +376,7 @@ public:
         delete pDexCache;       pDexCache = nullptr;
         delete pLogCache;       pLogCache = nullptr;
 
+        delete pSysParamDb;     pSysParamDb = nullptr;
         delete pAccountDb;      pAccountDb = nullptr;
         delete pContractDb;     pContractDb = nullptr;
         delete pDelegateDb;     pDelegateDb = nullptr;
@@ -381,6 +386,9 @@ public:
     }
 
     bool Flush() {
+        if (pSysParamCache)
+            pSysParamCache->Flush();
+
         if (pAccountCache)
             pAccountCache->Flush();
 
@@ -389,6 +397,9 @@ public:
 
         if (pDelegateDb)
             pDelegateCache->Flush();
+
+        if (pCdpCache)
+            pCdpCache->Flush();
 
         if (pBlockTreeDb)
             pBlockTreeDb->Flush();

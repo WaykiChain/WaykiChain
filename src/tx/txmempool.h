@@ -85,9 +85,9 @@ public:
     bool CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &entry, CValidationState &state,
                           bool bExecute = true);
     void SetMemPoolCache(CAccountDBCache *pAccountCacheIn, CContractDBCache *pContractCacheIn,
-                         CDelegateDBCache *pDelegateCacheIn);
+                         CDelegateDBCache *pDelegateCacheIn, CCdpDBCache *pCdpCacheIn);
     void ReScanMemPoolTx(CAccountDBCache *pAccountCacheIn, CContractDBCache *pContractCacheIn,
-                         CDelegateDBCache *pDelegateCacheIn);
+                         CDelegateDBCache *pDelegateCacheIn, CCdpDBCache *pCdpCacheIn);
     void Clear();
 
     uint64_t Size();

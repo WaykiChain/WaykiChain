@@ -1381,49 +1381,6 @@ Value disconnectblock(const Array& params, bool fHelp) {
     return te;
 }
 
-Value resetclient(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 0) {
-        throw runtime_error("resetclient\n"
-            "\nreset the client such that its blocks and wallet data is purged to none and needs to sync from network again.\n"
-            "\nArguments:\n"
-            "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("resetclient", "")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("resetclient", ""));
-    }
-
-    Value ret = TestDisconnectBlock(chainActive.Tip()->nHeight);
-    if (chainActive.Tip()->nHeight == 0) {
-        pWalletMain->CleanAll();
-        CBlockIndex* te = chainActive.Tip();
-        uint256 hash = te->GetBlockHash();
-        // auto ret        = remove_if(mapBlockIndex.begin(), mapBlockIndex.end(),
-        //                      [&](std::map<uint256, CBlockIndex*>::reference a) { return (a.first == hash); });
-        // mapBlockIndex.erase(ret, mapBlockIndex.end());
-        for (auto it = mapBlockIndex.begin(), ite = mapBlockIndex.end(); it != ite;) {
-            if (it->first != hash)
-                it = mapBlockIndex.erase(it);
-            else
-                ++it;
-        }
-        pCdMan->pAccountCache->Flush();
-        pCdMan->pContractCache->Flush();
-
-/* TODO:...
-        assert(pCdMan->pAccountDb->GetDbCount() == 43);
-        assert(pCdMan->pContractDb->GetDbCount() == 0 || pCdMan->pContractDb->GetDbCount() == 1);
-        assert(pCdMan->pTxCache->GetSize() == 0);
-*/
-        CBlock firs = SysCfg().GenesisBlock();
-        pWalletMain->SyncTransaction(uint256(), nullptr, &firs);
-        mempool.Clear();
-    } else {
-        throw JSONRPCError(RPC_WALLET_ERROR, "restclient Error: Reset failed.");
-    }
-    return ret;
-}
-
 Value listcontracts(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(

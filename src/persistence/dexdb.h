@@ -127,10 +127,10 @@ public:
         READWRITE(VARINT(price));
     )
 
-    string ToString() { 
+    string ToString() {
         return strprintf(
                 "OrderDir=%s, OrderType=%s, CoinType=%d, AssetType=%s, coinAmount=%lu, assetAmount=%lu, price=%lu",
-                OrderDirectionTitles[direction], OrderTypeTitles[orderType], 
+                OrderDirectionTitles[direction], OrderTypeTitles[orderType],
                 kCoinTypeMapName.at(coinType), kCoinTypeMapName.at(assetType),
                 coinAmount, assetAmount, price);
     }
@@ -169,6 +169,7 @@ public:
     bool GetSysOrder(const uint256 &orderTxId, CDEXSysOrder &buyOrder);
     bool CreateSysOrder(const uint256 &orderTxId, const CDEXSysOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
     bool UndoSysOrder(CDBOpLogMap &dbOpLogMap);
+
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */

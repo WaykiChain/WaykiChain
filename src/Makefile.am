@@ -83,6 +83,7 @@ coin_CORE_H = \
   persistence/delegatedb.h \
   persistence/disk.h \
   persistence/pricefeeddb.h \
+  persistence/sysparamdb.h \
   persistence/txdb.h \
   persistence/dbaccess.h \
   persistence/dbconf.h \

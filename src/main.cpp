@@ -1558,10 +1558,12 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 // Update the on-disk chain state.
 bool static WriteChainState(CValidationState &state) {
     static int64_t nLastWrite = 0;
-    unsigned int cachesize    = pCdMan->pAccountCache->GetCacheSize() + pCdMan->pContractCache->GetCacheSize();
+    unsigned int cachesize    = pCdMan->pAccountCache->GetCacheSize() + pCdMan->pContractCache->GetCacheSize() +
+                             pCdMan->pDelegateCache->GetCacheSize() + pCdMan->pCdpCache->GetCacheSize();
+
     if (!IsInitialBlockDownload()
         || cachesize > SysCfg().GetViewCacheSize()
-        || GetTimeMicros() > nLastWrite + 600 * 1000000) {
+        || GetTimeMicros() > nLastWrite + 60 * 1000000) {
         // Typical CCoins structures on disk are around 100 bytes in size.
         // Pushing a new one to the database can cause it to be written
         // twice (once in the log, and once in the tables). This is already
@@ -1580,6 +1582,9 @@ bool static WriteChainState(CValidationState &state) {
 
         if (!pCdMan->pDelegateCache->Flush())
             return state.Abort(_("Failed to write to delegate database"));
+
+        if (!pCdMan->pCdpCache->Flush())
+            return state.Abort(_("Failed to write to cdp database"));
 
         mapForkCache.clear();
         nLastWrite = GetTimeMicros();
@@ -1639,6 +1644,7 @@ bool static DisconnectTip(CValidationState &state) {
         spCW->txCache.SetBaseView(pCdMan->pTxCache);
         spCW->contractCache.SetBaseView(pCdMan->pContractCache);
         spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
+        spCW->cdpCache.SetBaseView(pCdMan->pCdpCache);
 
         if (!DisconnectBlock(block, *spCW, pIndexDelete, state))
             return ERRORMSG("DisconnectTip() : DisconnectBlock %s failed",
@@ -1649,6 +1655,7 @@ bool static DisconnectTip(CValidationState &state) {
         spCW->txCache.Flush();
         spCW->contractCache.Flush();
         spCW->delegateCache.Flush();
+        spCW->cdpCache.Flush();
          // Attention: need to reload top N delegates.
         pCdMan->pDelegateCache->LoadTopDelegates();
     }
@@ -1707,6 +1714,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         spCW->txCache.Flush();
         spCW->contractCache.Flush();
         spCW->delegateCache.Flush();
+        spCW->cdpCache.Flush();
         // Attention: need to reload top N delegates.
         pCdMan->pDelegateCache->LoadTopDelegates();
 
@@ -1801,7 +1809,8 @@ bool ActivateBestChain(CValidationState &state) {
             if (!DisconnectTip(state))
                 return false;
             if (chainActive.Tip() && chainMostWork.Contains(chainActive.Tip())) {
-                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache, pCdMan->pDelegateCache);
+                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache, pCdMan->pDelegateCache,
+                                        pCdMan->pCdpCache);
             }
         }
 
@@ -1823,7 +1832,8 @@ bool ActivateBestChain(CValidationState &state) {
             }
 
             if (chainActive.Contains(chainMostWork.Tip())) {
-                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache, pCdMan->pDelegateCache);
+                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache, pCdMan->pDelegateCache,
+                                        pCdMan->pCdpCache);
             }
         }
     }
@@ -1889,8 +1899,8 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
     if (!pCdMan->pBlockTreeDb->Flush())
         return state.Abort(_("Failed to sync block index"));
 
-    if (chainActive.Tip()->nHeight > nSyncTipHeight)
-        nSyncTipHeight = chainActive.Tip()->nHeight;
+    if (chainActive.Height() > nSyncTipHeight)
+        nSyncTipHeight = chainActive.Height();
 
     return true;
 }

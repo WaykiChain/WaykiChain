@@ -206,7 +206,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                             REJECT_INVALID, "read-sysparamdb-err");
         }
-        if ( collateralRatio < currentCollateralRatio  && collateralRatio < startingCdpCollateralRatio) {
+        if (collateralRatio < currentCollateralRatio && collateralRatio < startingCdpCollateralRatio) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, currentCollateralRatio: %d vs new CollateralRatio: %d not allowed",
                             currentCollateralRatio, collateralRatio), REJECT_INVALID, "collateral-ratio-error");
         }
