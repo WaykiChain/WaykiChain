@@ -27,12 +27,12 @@ typedef string TokenName;       //32 chars max, E.g. WaykiChain Coins
 
 class CAssetTradingPair {
 public:
-    TokenSymbol coinSymbol;
-    TokenSymbol assetSymbol;
+    TokenSymbol base_asset_symbol;
+    TokenSymbol quote_asset_symbol;
 
 public:
     string ToString() {
-        return strprintf("%s-%s", coinSymbol, assetSymbol);
+        return strprintf("%s-%s", base_asset_symbol, quote_asset_symbol);
     }
 };
 

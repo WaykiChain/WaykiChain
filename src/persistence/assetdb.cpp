@@ -28,7 +28,7 @@ bool CAssetDBCache::AddAssetTradingPair(const CAssetTradingPair &assetTradingPai
     return assetCache.SetData(asset.symbol, 1);
 }
 bool CAssetDBCache::EraseAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
-
+    return assetCache.EraseData(assetTradingPair.ToString());
 }
 
 bool CAssetDBCache::ExistAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
