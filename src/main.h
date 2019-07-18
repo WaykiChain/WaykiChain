@@ -772,8 +772,6 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
         case COMMON_MTX:
             Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion); break;
 
-        case UCOIN_BLOCK_REWARD_TX:
-            Serialize(os, *((CMultiCoinBlockRewardTx *)(pa.get())), nType, nVersion); break;
         // TODO: UCOIN_CONTRACT_INVOKE_TX
         case UCOIN_TRANSFER_TX:
             Serialize(os, *((CCoinTransferTx *)(pa.get())), nType, nVersion); break;
@@ -792,10 +790,13 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
         case BLOCK_PRICE_MEDIAN_TX:
             Serialize(os, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion); break;
 
+        // TODO: SFC_PARAM_MTX
+        // TODO: SFC_GLOBAL_HALT_MTX
+        // TODO: SFC_GLOBAL_SETTLE_MTX
+
         case FCOIN_STAKE_TX:
             Serialize(os, *((CFcoinStakeTx *)(pa.get())), nType, nVersion); break;
 
-        /* dex */
         case DEX_SETTLE_TX:
             Serialize(os, *((CDEXSettleTx *)(pa.get())), nType, nVersion); break;
         case DEX_CANCEL_ORDER_TX:
@@ -859,11 +860,6 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
             break;
         }
 
-        case UCOIN_BLOCK_REWARD_TX: {
-            pa = std::make_shared<CMultiCoinBlockRewardTx>();
-            Unserialize(is, *((CMultiCoinBlockRewardTx *)(pa.get())), nType, nVersion);
-            break;
-        }
         // TODO: UCOIN_CONTRACT_INVOKE_TX
         case UCOIN_TRANSFER_TX: {
             pa = std::make_shared<CCoinTransferTx>();
@@ -903,13 +899,16 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
             break;
         }
 
+        // TODO: SFC_PARAM_MTX
+        // TODO: SFC_GLOBAL_HALT_MTX
+        // TODO: SFC_GLOBAL_SETTLE_MTX
+
         case FCOIN_STAKE_TX: {
             pa = std::make_shared<CFcoinStakeTx>();
             Unserialize(is, *((CFcoinStakeTx *)(pa.get())), nType, nVersion);
             break;
         }
 
-        /* dex */
         case DEX_SETTLE_TX: {
             pa = std::make_shared<CDEXSettleTx>();
             Unserialize(is, *((CDEXSettleTx *)(pa.get())), nType, nVersion);
