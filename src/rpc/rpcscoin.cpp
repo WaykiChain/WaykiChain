@@ -347,8 +347,8 @@ Value getusercdp(const Array& params, bool fHelp){
             "getusercdp \"addr\" \"cdp_id\" [height]\n"
             "\nget account's cdp.\n"
             "\nArguments:\n"
-            "1.\"addr\": (string, required) cdp owner addr\n"
-            "2.\"cdb_id\": (string, optional) cdp id\n"
+            "1.\"addr\": (string, required) CDP owner addr\n"
+            "2.\"cdb_id\": (string, optional) CDP TxId\n"
             "\nResult:\n"
             "\nExamples:\n"
             + HelpExampleCli("getusercdp", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"\n")
