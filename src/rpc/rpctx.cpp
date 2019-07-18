@@ -2304,6 +2304,14 @@ Value decodetxraw(const Array& params, bool fHelp) {
             break;
         }
 
+        case UCOIN_TRANSFER_TX: {
+           std::shared_ptr<CCoinTransferTx> tx = std::make_shared<CCoinTransferTx>(pBaseTx.get());
+            if (tx.get()) {
+                obj = tx->ToJson(*pCdMan->pAccountCache);
+            }
+            break;
+        }
+
         case CDP_STAKE_TX: {
             std::shared_ptr<CCDPStakeTx> tx = std::make_shared<CCDPStakeTx>(pBaseTx.get());
             if (tx.get()) {
