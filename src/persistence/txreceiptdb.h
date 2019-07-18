@@ -17,24 +17,25 @@
 
 using namespace std;
 
+typedef uint256 TxID;
+
 class CTxReceiptDBCache {
 public:
     CTxReceiptDBCache(CDBAccess *pDbAccess) : executeFailCache(pDbAccess){};
 
 public:
-    bool SetExecuteFail(const int32_t blockHeight, const uint256 txid, const uint8_t errorCode,
-                        const string &errorMessage);
-    bool GetExecuteFail(const int32_t blockHeight, vector<std::tuple<uint256, uint8_t, string> > &result);
+    bool SetTxReceipts(const TxID &txid, const vector<CReceipt> &receipts);
+
+    bool GetTxReceipts(const TxID &txid, vector<CReceipt> &receipts);
 
     void Flush();
 
 private:
-/*  CDBScalarValueCache     prefixType             value           variable           */
-/*  -------------------- --------------------   -------------   --------------------- */
-    // best blockHash
-    CDBScalarValueCache< dbk::BEST_BLOCKHASH,     CReceipt>        txReceiptCache;
-     // <KeyID -> Account>
-    CDBMultiValueCache< dbk::KEYID_ACCOUNT,        CKeyID,       CReceipt >       keyId2AccountCache;
+/*       type               prefixType               key                     value                 variable               */
+/*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
+    /////////// SysParamDB
+    // txid -> vector<CReceipt>
+    CDBMultiValueCache< dbk::TX_RECEIPT,            TxID,                   vector<CReceipt> >     txReceiptCache;
 };
 
 #endif // PERSIST_RECEIPTDB_H
