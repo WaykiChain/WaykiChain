@@ -31,7 +31,7 @@
 #include "tx/tx.h"
 using namespace std;
 using namespace boost;
-std::string TxHash("");
+std::string txid("");
 const int nNewAddrs = 1420;
 
 class CSysScriptTest:public SysTestBase
@@ -103,9 +103,9 @@ public:
 	{
 		string param ="01";
 		Value resut =CallContractTx("010000000100", "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz", param, 10, 10000000);
-		BOOST_CHECK(GetHashFromCreatedTx(resut,TxHash));
+		BOOST_CHECK(GetHashFromCreatedTx(resut,txid));
 		BOOST_CHECK(GenerateOneBlock());
-		uint256 hash(uint256S(TxHash.c_str()));
+		uint256 hash(uint256S(txid.c_str()));
 		param ="02";
 		param += HexStr(hash);
 		string temp;
@@ -272,7 +272,7 @@ public:
 	{
 		int curtiph = chainActive.Height();
 
-		string  hash2 = "hash";
+		string  hash2 = "txid";
 
 		CRegID regid(srcipt);
 		if (regid.IsEmpty() == true) {

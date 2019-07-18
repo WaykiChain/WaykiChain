@@ -234,6 +234,7 @@ bool CAccountDBCache::Flush() {
     keyId2AccountCache.Flush();
     regId2KeyIdCache.Flush();
     nickId2KeyIdCache.Flush();
+
     return true;
 }
 
@@ -245,12 +246,11 @@ int64_t CAccountDBCache::GetFreeBcoins(const CUserID &userId) const {
     return 0;
 }
 
-unsigned int CAccountDBCache::GetCacheSize() const {
-    /* TODO: CDBMultiValueCache::GetCacheSize()
-    return  ::GetSerializeSize(mapKeyId2Account, SER_DISK, CLIENT_VERSION) +
-            ::GetSerializeSize(mapRegId2KeyId, SER_DISK, CLIENT_VERSION);
-    */
-   return 0;
+uint32_t CAccountDBCache::GetCacheSize() const {
+    return blockHashCache.GetCacheSize() +
+        keyId2AccountCache.GetCacheSize() +
+        regId2KeyIdCache.GetCacheSize() +
+        nickId2KeyIdCache.GetCacheSize();
 }
 
 std::tuple<uint64_t, uint64_t> CAccountDBCache::TraverseAccount() {

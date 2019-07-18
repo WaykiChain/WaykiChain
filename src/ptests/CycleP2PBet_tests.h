@@ -1,7 +1,7 @@
 /*
  * CycleP2PBet_test.h
  *
- *  Created on: 2015Äê1ÔÂ15ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½15ï¿½ï¿½
  *      Author: spark.huang
  */
 
@@ -16,9 +16,9 @@
 
 typedef struct {
 	unsigned char type;  /*TX_SENDBET = 0x01,TX_ACCEPTBET = 0x02,TX_OPENBET = 0x03*/
-	unsigned char noperateType;   //¾º²ÂÀàÐÍÖµ0 -1
+	unsigned char noperateType;   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµ0 -1
 	uint64_t money;
-	unsigned short hight;  //³¬Ê±¸ß¶È 20
+	unsigned short hight;  //ï¿½ï¿½Ê±ï¿½ß¶ï¿½ 20
 	unsigned char dhash[32];   	IMPLEMENT_SERIALIZE
 	(
 			READWRITE(type);
@@ -37,7 +37,7 @@ typedef struct {
 	unsigned char noperateType;
 	uint64_t money;
 	unsigned char data;
-	unsigned char txhash[32];		//·¢Æð¶Ô¶ÄµÄ¹þÏ££¬Ò²ÊÇ¶Ô¶ÄÊý¾ÝµÄ¹Ø¼ü×Ö
+	unsigned char txid[32];		//ï¿½ï¿½ï¿½ï¿½Ô¶ÄµÄ¹ï¿½Ï£ï¿½ï¿½Ò²ï¿½Ç¶Ô¶ï¿½ï¿½ï¿½ï¿½ÝµÄ¹Ø¼ï¿½ï¿½ï¿½
 	IMPLEMENT_SERIALIZE
 	(
 			READWRITE(type);
@@ -46,7 +46,7 @@ typedef struct {
 			READWRITE(data);
 			for(int i = 0; i < 32; i++)
 			{
-				READWRITE(txhash[i]);
+				READWRITE(txid[i]);
 			}
 	)
 } ACCEPT_DATA;
@@ -54,14 +54,14 @@ typedef struct {
 typedef struct {
 	unsigned char type;
 	unsigned char noperateType;
-	unsigned char txhash[32];		//·¢Æð¶Ô¶ÄµÄ¹þÏ££¬Ò²ÊÇ¶Ô¶ÄÊý¾ÝµÄ¹Ø¼ü×Ö
+	unsigned char txid[32];		//ï¿½ï¿½ï¿½ï¿½Ô¶ÄµÄ¹ï¿½Ï£ï¿½ï¿½Ò²ï¿½Ç¶Ô¶ï¿½ï¿½ï¿½ï¿½ÝµÄ¹Ø¼ï¿½ï¿½ï¿½
 	unsigned char dhash[33];IMPLEMENT_SERIALIZE
 	(
 			READWRITE(type);
 			READWRITE(noperateType);
 			for(int i = 0; i < 32; i++)
 			{
-				READWRITE(txhash[i]);
+				READWRITE(txid[i]);
 			}
 			for(int ii = 0; ii < 33; ii++)
 			{
@@ -122,7 +122,7 @@ public:
 		return gussnum;
 	}
 private:
-	unsigned char nSdata[33];  //Ç°32×Ö½ÚµÄËæ»úÊý,ºó1¸ö×Ö½ÚµÄ1-6Ö®¼äµÄÊý
+	unsigned char nSdata[33];  //Ç°32ï¿½Ö½Úµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½1ï¿½ï¿½ï¿½Ö½Úµï¿½1-6Ö®ï¿½ï¿½ï¿½ï¿½ï¿½
 	int mCurStep;
 	string strRegScriptHash;
 	string strAsendHash;

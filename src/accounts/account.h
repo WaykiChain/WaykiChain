@@ -25,6 +25,7 @@
 using namespace json_spirit;
 
 class CAccountLog;
+class CAccountDBCache;
 
 enum CoinType: uint8_t {
     WICC = 0,
@@ -174,7 +175,8 @@ public:
     bool MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins);
 
     bool ProcessDelegateVotes(const vector<CCandidateVote>& candidateVotesIn,
-                             vector<CCandidateVote>& candidateVotesInOut, const uint64_t currHeight);
+                              vector<CCandidateVote>& candidateVotesInOut, const uint64_t currHeight,
+                              const CAccountDBCache* pAccountCache);
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool StakeFcoins(const int64_t fcoinsToStake); //price feeder must stake fcoins
     bool OperateFcoinStaking(const int64_t fcoinsToStake) { return false; } // TODO: ...
@@ -199,7 +201,7 @@ public:
           receivedVotes(0),
           lastVoteHeight(0) {
         minerPubKey = CPubKey();
-        regId.Clean();
+        regId.Clear();
     }
 
     CAccount() : CAccount(CKeyID(), CNickID(), CPubKey()) {}
@@ -211,6 +213,7 @@ public:
     CAccount& operator=(const CAccount& other) {
         if (this == &other) return *this;
 
+<<<<<<< HEAD
         this->keyId          = other.keyId;
         this->regId          = other.regId;
         this->nickId         = other.nickId;
@@ -220,13 +223,23 @@ public:
         this->scoins         = other.scoins;
         this->fcoins         = other.fcoins;
         this->assetTokens    = other.assetTokens;
+=======
+        this->keyId           = other.keyId;
+        this->regId           = other.regId;
+        this->nickId          = other.nickId;
+        this->pubKey          = other.pubKey;
+        this->minerPubKey     = other.minerPubKey;
+        this->bcoins          = other.bcoins;
+        this->scoins          = other.scoins;
+        this->fcoins          = other.fcoins;
+>>>>>>> b7750c58f634ac042e3662a3975e2305814a8c8b
         this->frozenDEXBcoins = other.frozenDEXBcoins;
         this->frozenDEXScoins = other.frozenDEXScoins;
         this->frozenDEXFcoins = other.frozenDEXFcoins;
-        this->stakedBcoins   = other.stakedBcoins;
-        this->stakedFcoins   = other.stakedFcoins;
-        this->receivedVotes  = other.receivedVotes;
-        this->lastVoteHeight = other.lastVoteHeight;
+        this->stakedBcoins    = other.stakedBcoins;
+        this->stakedFcoins    = other.stakedFcoins;
+        this->receivedVotes   = other.receivedVotes;
+        this->lastVoteHeight  = other.lastVoteHeight;
 
         return *this;
     }

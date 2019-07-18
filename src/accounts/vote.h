@@ -40,17 +40,17 @@ private:
 
 public:
     CCandidateVote() {
-        voteType = NULL_VOTE;
+        voteType     = NULL_VOTE;
         candidateUid = CUserID();
         votedBcoins  = 0;
     }
     CCandidateVote(VoteType voteTypeIn, CUserID voteUserIdIn, uint64_t votedBcoinsIn) {
-        voteType = voteTypeIn;
+        voteType     = voteTypeIn;
         candidateUid = voteUserIdIn;
         votedBcoins  = votedBcoinsIn;
     }
     CCandidateVote(const CCandidateVote &voteIn) {
-        voteType = voteIn.voteType;
+        voteType     = voteIn.voteType;
         candidateUid = voteIn.candidateUid;
         votedBcoins  = voteIn.votedBcoins;
     }
@@ -58,7 +58,7 @@ public:
         if (this == &voteIn)
             return *this;
 
-        this->voteType = voteIn.voteType;
+        this->voteType     = voteIn.voteType;
         this->candidateUid = voteIn.candidateUid;
         this->votedBcoins  = voteIn.votedBcoins;
         return *this;
@@ -89,7 +89,8 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(voteType);
         READWRITE(candidateUid);
-        READWRITE(VARINT(votedBcoins)););
+        READWRITE(VARINT(votedBcoins));
+    );
 
     const CUserID &GetCandidateUid() const { return candidateUid; }
     unsigned char GetCandidateVoteType() const { return voteType; }

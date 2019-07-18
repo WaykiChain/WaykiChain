@@ -103,7 +103,7 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
         CPubKey empPubKey;
         oldAccount.pubKey = empPubKey;
         oldAccount.minerPubKey = empPubKey;
-        oldAccount.regId.Clean();
+        oldAccount.regId.Clear();
         CUserID userId(keyId);
         cw.accountCache.SetAccount(userId, oldAccount);
     } else {
@@ -135,7 +135,7 @@ Object CAccountRegisterTx::ToJson(const CAccountDBCache &AccountView) const {
     string userMinerPubKey = minerUid.ToString();
 
     Object result;
-    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("addr",           address));

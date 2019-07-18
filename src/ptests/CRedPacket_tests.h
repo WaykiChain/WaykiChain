@@ -27,7 +27,7 @@ using namespace json_spirit;
 class CRedPacketTest: public CycleTestBase {
 	int nNum;
 	int nStep;
-	string TxHash;
+	string txid;
 	string strAppRegId;
 	string redHash;
 	string appaddr;
@@ -42,7 +42,7 @@ public:
 	bool WithDraw();
 	bool SendRedPacketTx();
 	bool AcceptRedPacketTx();
-	bool WaitTxConfirmedPackage(string TxHash);
+	bool WaitTxConfirmedPackage(string txid);
 	void Initialize();
 	bool SendSpecailRedPacketTx();
 	bool AcceptSpecailRedPacketTx();

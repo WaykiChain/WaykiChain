@@ -242,7 +242,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "genmulsigtx"            && n > 4) ConvertTo<int>(params[4]);
 
     /********************************************************************************************************************/
-    if (strMethod == "getcontractkeyvalue"    && n > 1) ConvertTo<Array>(params[1]);
+    if (strMethod == "getcontractdata"        && n > 1) ConvertTo<bool>(params[1]);
 
     if (strMethod == "listtx"                 && n > 0) ConvertTo<int>(params[0]);
     if (strMethod == "listtx"                 && n > 1) ConvertTo<int>(params[1]);
@@ -279,9 +279,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitpricefeedtx"        && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "submitpricefeedtx"        && n > 2) ConvertTo<uint64_t>(params[2]);
 
-    if (strMethod == "submitstakefcointx" && n > 3) ConvertTo<uint64_t>(params[3]);
-    if (strMethod == "submitstakefcointx" && n > 4) ConvertTo<uint64_t>(params[4]);
-    if (strMethod == "submitstakefcointx" && n > 5) ConvertTo<uint64_t>(params[5]);
+    if (strMethod == "submitstakefcointx" && n > 1) ConvertTo<uint64_t>(params[1]);
+    if (strMethod == "submitstakefcointx" && n > 2) ConvertTo<uint64_t>(params[2]);
 
     if (strMethod == "submitstakecdptx" && n > 1) ConvertTo<uint64_t>(params[1]);
     if (strMethod == "submitstakecdptx" && n > 2) ConvertTo<uint64_t>(params[2]);
@@ -319,8 +318,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitdexsettletx" && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "submitdexsettletx" && n > 2) ConvertTo<uint64_t>(params[2]);
 
-    if (strMethod == "sendtransaction"  && n > 2) ConvertTo<uint64_t>(params[2]);
-    if (strMethod == "sendtransaction"  && n > 4) ConvertTo<uint64_t>(params[4]);
+    if (strMethod == "send"  && n > 2) ConvertTo<uint64_t>(params[2]);
+    if (strMethod == "send"  && n > 4) ConvertTo<uint64_t>(params[4]);
 
     /* vm functions work in vm simulator */
     if (strMethod == "vmexecutescript"        && n > 3) ConvertTo<uint64_t>(params[3]);

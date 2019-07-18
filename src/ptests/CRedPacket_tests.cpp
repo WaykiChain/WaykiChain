@@ -58,7 +58,7 @@ enum TXTYPE{
 //	    	 WithDraw();
 //	    	 break;
 //	     case 3:
-//	    	 WaitTxConfirmedPackage(TxHash);
+//	    	 WaitTxConfirmedPackage(txid);
 //	    	 break;
 //	     case 4:
 //	    	 SendRedPacketTx();
@@ -70,7 +70,7 @@ enum TXTYPE{
 //	    	 AcceptRedPacketTx();
 //	    	 break;
 //	     case 7:
-//	    	 WaitTxConfirmedPackage(TxHash);
+//	    	 WaitTxConfirmedPackage(txid);
 //	    	 break;
 //	     default:
 //	    	 nStep = 6;
@@ -93,7 +93,7 @@ TEST_STATE CRedPacketTest::Run(){
 	    	 WithDraw();
 	    	 break;
 	     case 3:
-	    	 WaitTxConfirmedPackage(TxHash);
+	    	 WaitTxConfirmedPackage(txid);
 	    	 break;
 	     case 4:
 	    	 SendSpecailRedPacketTx();
@@ -105,7 +105,7 @@ TEST_STATE CRedPacketTest::Run(){
 	    	 AcceptSpecailRedPacketTx();
 	    	 break;
 	     case 7:
-	    	 WaitTxConfirmedPackage(TxHash);
+	    	 WaitTxConfirmedPackage(txid);
 	    	 break;
 	     default:
 	    	 nStep = 6;
@@ -118,7 +118,7 @@ TEST_STATE CRedPacketTest::Run(){
 
 CRedPacketTest::CRedPacketTest(){
 	nStep = 0;
-	TxHash = "";
+	txid = "";
 	strAppRegId = "";
 	nNum = 0;
 	appaddr = "";
@@ -139,7 +139,7 @@ bool CRedPacketTest::RegistScript()
 
 	//reg anony app
 	Value regscript = basetest.RegisterContractTx(regAddr, strFileName, nCurHight, nFee+20*COIN);
-	if(basetest.GetHashFromCreatedTx(regscript, TxHash)){
+	if(basetest.GetHashFromCreatedTx(regscript, txid)){
 		nStep++;
 		return true;
 	}
@@ -148,17 +148,17 @@ bool CRedPacketTest::RegistScript()
 bool CRedPacketTest::WaitRegistScript()
 {
 	basetest.GenerateOneBlock();
-	if (basetest.GetTxConfirmedRegID(TxHash, strAppRegId)) {
+	if (basetest.GetTxConfirmedRegID(txid, strAppRegId)) {
 		nStep++;
 		return true;
 	}
 	return true;
 }
-bool CRedPacketTest::WaitTxConfirmedPackage(string TxHash)
+bool CRedPacketTest::WaitTxConfirmedPackage(string txid)
 {
 	basetest.GenerateOneBlock();
 	string regid ="";
-	if (basetest.GetTxConfirmedRegID(TxHash, regid)) {
+	if (basetest.GetTxConfirmedRegID(txid, regid)) {
 		nStep++;
 			return true;
 	}
@@ -181,7 +181,7 @@ bool CRedPacketTest::WithDraw()
 	uint64_t money = 100000000000;
 	Value  darwpack= basetest.CallContractTx(strAppRegId,appaddr,sendcontract,0,100000000,money);
 
-	if(basetest.GetHashFromCreatedTx(darwpack, TxHash)){
+	if(basetest.GetHashFromCreatedTx(darwpack, txid)){
 		nStep++;
 		return true;
 	}
@@ -229,7 +229,7 @@ bool CRedPacketTest::AcceptRedPacketTx(){
 
 	Value  buyerpack= basetest.CallContractTx(strAppRegId,regAddr,sendcontract,0,100000000,0);
 
-	if(basetest.GetHashFromCreatedTx(buyerpack, TxHash)){
+	if(basetest.GetHashFromCreatedTx(buyerpack, txid)){
 		nStep++;
 		return true;
 	}else{
@@ -290,7 +290,7 @@ bool CRedPacketTest::AcceptSpecailRedPacketTx()
 
 		Value  buyerpack= basetest.CallContractTx(strAppRegId,rchangeaddr,sendcontract,0,1000000000,0);
 
-		if(basetest.GetHashFromCreatedTx(buyerpack, TxHash)){
+		if(basetest.GetHashFromCreatedTx(buyerpack, txid)){
 			nStep++;
 			return true;
 		}else{

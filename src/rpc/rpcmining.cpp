@@ -171,13 +171,13 @@ Value submitblock(const Array& params, bool fHelp)
     bool fAccepted = ProcessBlock(state, NULL, &pBlock);
     Object obj;
     if (!fAccepted) {
-        obj.push_back(Pair("status", "rejected"));
-        obj.push_back(Pair("reject code", state.GetRejectCode()));
-        obj.push_back(Pair("info", state.GetRejectReason()));
+        obj.push_back(Pair("status",        "rejected"));
+        obj.push_back(Pair("reject_code",   state.GetRejectCode()));
+        obj.push_back(Pair("info",          state.GetRejectReason()));
     } else {
 
-        obj.push_back(Pair("status", "OK"));
-        obj.push_back(Pair("hash", pBlock.GetHash().ToString()));
+        obj.push_back(Pair("status",        "OK"));
+        obj.push_back(Pair("txid",          pBlock.GetHash().ToString()));
     }
     return obj;
 }
@@ -226,13 +226,13 @@ Value getminedblocks(const Array& params, bool fHelp)
         obj.push_back(Pair("time",          blockInfo.nTime));
         obj.push_back(Pair("nonce",         blockInfo.nNonce));
         obj.push_back(Pair("height",        blockInfo.nHeight));
-        obj.push_back(Pair("totalfuels",    blockInfo.nTotalFuels));
-        obj.push_back(Pair("fuelrate",      blockInfo.nFuelRate));
-        obj.push_back(Pair("totalfees",     blockInfo.nTotalFees));
+        obj.push_back(Pair("total_fuels",   blockInfo.nTotalFuels));
+        obj.push_back(Pair("fuel_rate",     blockInfo.nFuelRate));
+        obj.push_back(Pair("total_fees",    blockInfo.nTotalFees));
         obj.push_back(Pair("reward",        blockInfo.GetReward()));
-        obj.push_back(Pair("txcount",       blockInfo.nTxCount));
-        obj.push_back(Pair("blocksize",     blockInfo.nBlockSize));
-        obj.push_back(Pair("hash",          blockInfo.hash.ToString()));
+        obj.push_back(Pair("tx_count",      blockInfo.nTxCount));
+        obj.push_back(Pair("block_size",    blockInfo.nBlockSize));
+        obj.push_back(Pair("txid",          blockInfo.hash.ToString()));
         obj.push_back(Pair("preblockhash",  blockInfo.hashPrevBlock.ToString()));
         ret.push_back(obj);
     }

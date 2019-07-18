@@ -16,7 +16,6 @@
 | getaccountinfo | ```<address>``` | Returns the account information  with the given address | N |
 | getaddednodeinfo | ```<dns>``` [node] | Returns information about the given added node, or all added nodes. <br>(note that onetry addnodes are not listed here) If dns is false, only a list of added nodes will be provided, otherwise connected information will also be available. | N |
 | getcontractaccountinfo | ```<regid><address>``` | get contract account info | N |
-| getcontractkeyvalue | ```<regid><array>``` | get contract key value | N |
 | getbalance | ```[account] [minconf=1]``` | If [account] is not specified, returns the server's total available balance. <br>If [account] is specified, returns the balance in the account. <br>If [minconf] is 1; Only include transactions confirmed. Default max value is 30, can configure -maxconf parameter changer the max value.| N |
 | getbestblockhash | | Returns the hash of the best (tip) block in the longest block chain. | N |
 | getblock | ```<hash or index>[verbose]``` |Returns information about the block with the given hash or index.If verbose is true,return a json object, false return the hex encoded data | N |
@@ -33,9 +32,8 @@
 | getnetworkinfo | | Returns an object containing various state info regarding P2P network | N |
 | getpeerinfo | | Returns data about each connected node | N |
 | getrawmempool | ```[verbose]``` | Returns all transaction ids in memory pool.If verbose is true,return  a json object, false return array of transaction ids. | N |
-| getcontractdata | ```<contractregid><key>``` | get contract data in plaintext format. <br> ```< contractregid ><key>``` | N |
-| getcontractdataraw | ```<contractregid><key>``` | get contract data in hexdigit format. <br> ```<contractregid ><key>``` | N |
-| gettxdetail | ```<txhash>``` | Returns an object about the transaction  detail information by ```<txhash>``` | N |
+| getcontractdata | ```<contractregid><key><hexadecimal>``` | get contract data. <br> ```<contractregid><key><hexadecimal>``` | N |
+| gettxdetail | ```<txid>``` | Returns an object about the transaction  detail information by ```<txid>``` | N |
 | getwalletinfo | | Returns an object containing detaild wallet info | N |
 | help | ```[command]``` | List commands, or get help for a command | N |
 | importprivkey | ```<wiccprivkey> [label] [rescan=true]``` | Adds a private key (as returned by dumpprivkey) to your wallet. This may take a while, as a rescan is done, looking for existing transactions. Note: There's no need to import public key, as in ECDSA (unlike RSA), which can be computed from private key. | Y |
@@ -51,7 +49,7 @@
 | reconsiderblock | ```<hash>``` | Removes invalidity status of a block and its descendants, reconsider them for activation. | N |
 | registercontracttx | ```<address><filepath><fee>[height][contract_description]``` | register a contract app | Y |
 | genregistercontractraw | ```<height><fee><address><flag><contract or contract RegId><contract description>``` | get Contract Registration Tx Raw: <br>1.    Height(numeric required) :valod height<br> 2.    Fee: (numeric required) pay to miner<br>3.    address: (string required)for send<br>4.    flag: (numeric, required) 0-1<br>5.    app or appregid: (string required), if flag=0 is script's file path, else if flag=1 scriptid<br>6.    script description:(string optional) new script description.<br>| N |
-| sendtoaddress | ```[wiccaddress]<[recvaddress><amount>``` | Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001. Returns the transaction ID <txhash> if successful | Y |
+| sendtoaddress | ```[wiccaddress]<[recvaddress><amount>``` | Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001. Returns the transaction ID <txid> if successful | Y |
 | gensendtoaddressraw | ```<sendaddress><recvaddress><amount><fee><height>``` | generate a signed raw tx with sendaddress, recvaddress, amount, fee, height | N |
 | sendtoaddresswithfee | [sendaddress] <recvaddress> <amount> <fee> | Send an amount to a given address with fee. The amount is a real and is rounded to the nearest 0.00000001 (Sendaddress is optional) | Y |
 | setgenerate | ```<generate>``` [genblocklimit] | <generate> is true or false to turn generation on or off. Generation is limited to [genblocklimit] processors, -1 is unlimited. | N |

@@ -168,67 +168,6 @@ struct CMainSignals {
 } g_signals;
 }  // namespace
 
-bool WriteBlockLog(bool flag, string suffix) {
-    if (nullptr == chainActive.Tip()) {
-        return false;
-    }
-    char splitChar;
-#ifdef WIN32
-    splitChar = '\\';
-#else
-    splitChar = '/';
-#endif
-
-    boost::filesystem::path LogDirpath = GetDataDir() / "BlockLog";
-    if (!flag) {
-        LogDirpath = GetDataDir() / "BlockLog1";
-    }
-    if (!boost::filesystem::exists(LogDirpath)) {
-        boost::filesystem::create_directory(LogDirpath);
-    }
-
-    ofstream file;
-    int high              = chainActive.Height();
-    string strLogFilePath = LogDirpath.string();
-    strLogFilePath += splitChar + strprintf("%d_", high) + chainActive.Tip()->GetBlockHash().ToString();
-
-    string strScriptLog = strLogFilePath + "_scriptDB_" + suffix + ".txt";
-    file.open(strScriptLog);
-    if (!file.is_open())
-        return false;
-    file << write_string(Value(pCdMan->pContractCache->ToJsonObj()), true);
-    file.close();
-
-    string strAccountViewLog = strLogFilePath + "_AccountView_" + suffix + ".txt";
-    file.open(strAccountViewLog);
-    if (!file.is_open())
-        return false;
-    file << write_string(Value(pCdMan->pAccountCache->ToJsonObj()), true);
-    file.close();
-
-    string strCacheLog = strLogFilePath + "_Cache_" + suffix + ".txt";
-    file.open(strCacheLog);
-    if (!file.is_open())
-        return false;
-    file << write_string(Value(pCdMan->pTxCache->ToJsonObj()), true);
-    file.close();
-
-    string strundoLog = strLogFilePath + "_undo.txt";
-    file.open(strundoLog);
-    if (!file.is_open())
-        return false;
-
-    CBlockUndo blockUndo;
-    CDiskBlockPos pos = chainActive.Tip()->GetUndoPos();
-    if (!pos.IsNull()) {
-        if (blockUndo.ReadFromDisk(pos, chainActive.Tip()->pprev->GetBlockHash()))
-            file << blockUndo.ToString();
-    }
-
-    file.close();
-    return true;
-}
-
 void RegisterWallet(CWalletInterface *pWalletIn) {
     g_signals.SyncTransaction.connect(boost::bind(&CWalletInterface::SyncTransaction, pWalletIn, _1, _2, _3));
     g_signals.EraseTransaction.connect(boost::bind(&CWalletInterface::EraseTransaction, pWalletIn, _1));
@@ -585,6 +524,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(pool.memPoolAccountCache.get());
     spCW->contractCache.SetBaseView(pool.memPoolContractCache.get());
+    spCW->delegateCache.SetBaseView(pool.memPoolDelegateCache.get());
 
     if (!CheckTx(chainActive.Height(), pBaseTx, *spCW, state))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed");
@@ -1338,7 +1278,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
 
                 candidateVotes.push_back(vote);
                 sort(candidateVotes.begin(), candidateVotes.end(),
-                     [](CCandidateVote vote1, CCandidateVote vote2) {
+                     [](const CCandidateVote &vote1, const CCandidateVote &vote2) {
                          return vote1.GetVotedBcoins() > vote2.GetVotedBcoins();
                      });
             }
@@ -1385,7 +1325,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         vector<string> txids = IniCfg().GetStableCoinGenesisTxid(SysCfg().NetworkID());
         assert(txids.size() == 3);
         for (uint8_t index = 0; index < 3; ++ index) {
-            LogPrint("INFO", "stable coin genesis block, txid actual: %s, should be: %s, in detail: %s\n",
+            LogPrint("INFO", "stable coin genesis block, txid actual: %s, should be: %s, in detail: %s",
                      block.vptx[index + 1]->GetHash().GetHex(), txids[index],
                      block.vptx[index + 1]->ToString(cw.accountCache));
             assert(block.vptx[index + 1]->nTxType == UCOIN_REWARD_TX);
@@ -1404,7 +1344,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     vPos.reserve(block.vptx.size());
 
     // Push block reward transaction undo data's position.
-    vPos.push_back(make_pair(block.GetTxHash(0), pos));
+    vPos.push_back(make_pair(block.GetTxid(0), pos));
     pos.nTxOffset += ::GetSerializeSize(block.vptx[0], SER_DISK, CLIENT_VERSION);
 
     LogPrint("op_account", "block height:%d block hash:%s\n", block.GetHeight(), block.GetHash().GetHex());
@@ -1448,7 +1388,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             nTotalFuel += llFuel;
             LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n",
                      nTotalFuel, llFuel, pBaseTx->nRunStep, block.GetFuelRate(), pBaseTx->GetHash().GetHex());
-            vPos.push_back(make_pair(block.GetTxHash(i), pos));
+            vPos.push_back(make_pair(block.GetTxid(i), pos));
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
             blockUndo.vtxundo.push_back(cw.txUndo);
         }
@@ -1696,7 +1636,7 @@ bool static DisconnectTip(CValidationState &state) {
     {
         auto spCW = std::make_shared<CCacheWrapper>();
         spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
-        spCW->txCache = *(pCdMan->pTxCache);
+        spCW->txCache.SetBaseView(pCdMan->pTxCache);
         spCW->contractCache.SetBaseView(pCdMan->pContractCache);
         spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
 
@@ -1706,7 +1646,7 @@ bool static DisconnectTip(CValidationState &state) {
 
         // Need to re-sync all to global cache layer.
         spCW->accountCache.Flush();
-        spCW->txCache.Flush(pCdMan->pTxCache);
+        spCW->txCache.Flush();
         spCW->contractCache.Flush();
         spCW->delegateCache.Flush();
 
@@ -1731,20 +1671,6 @@ bool static DisconnectTip(CValidationState &state) {
         }
     }
 
-    if (SysCfg().GetArg("-blocklog", 0) != 0) {
-        if (chainActive.Height() % SysCfg().GetArg("-blocklog", 0) == 0) {
-            if (!pCdMan->pAccountCache->Flush())
-                return state.Abort(_("Failed to write to account database"));
-
-            if (!pCdMan->pContractCache->Flush())
-                return state.Abort(_("Failed to write to contract db database"));
-
-            if (!pCdMan->pDelegateCache->Flush())
-                return state.Abort(_("Failed to write to delegate db database"));
-
-            WriteBlockLog(true, "DisConnectTip");
-        }
-    }
     return true;
 }
 
@@ -1777,7 +1703,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
 
         // Need to re-sync all to global cache layer.
         spCW->accountCache.Flush();
-        spCW->txCache.Flush(pCdMan->pTxCache);
+        spCW->txCache.Flush();
         spCW->contractCache.Flush();
         spCW->delegateCache.Flush();
 
@@ -1794,22 +1720,6 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
 
     // Update chainActive & related variables.
     UpdateTip(pIndexNew, block);
-
-    // Write new block info to log, if necessary.
-    if (SysCfg().GetArg("-blocklog", 0) != 0) {
-        if (chainActive.Height() % SysCfg().GetArg("-blocklog", 0) == 0) {
-            if (!pCdMan->pAccountCache->Flush())
-                return state.Abort(_("Failed to write to account database"));
-
-            if (!pCdMan->pContractCache->Flush())
-                return state.Abort(_("Failed to write to contract db database"));
-
-             if (!pCdMan->pDelegateCache->Flush())
-                return state.Abort(_("Failed to write to delegate db database"));
-
-            WriteBlockLog(true, "ConnectTip");
-        }
-    }
 
     for (auto &pTxItem : block.vptx) {
         mempool.memPoolTxs.erase(pTxItem->GetHash());
@@ -1888,7 +1798,7 @@ bool ActivateBestChain(CValidationState &state) {
             if (!DisconnectTip(state))
                 return false;
             if (chainActive.Tip() && chainMostWork.Contains(chainActive.Tip())) {
-                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache);
+                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache, pCdMan->pDelegateCache);
             }
         }
 
@@ -1910,7 +1820,7 @@ bool ActivateBestChain(CValidationState &state) {
             }
 
             if (chainActive.Contains(chainMostWork.Tip())) {
-                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache);
+                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache, pCdMan->pDelegateCache);
             }
         }
     }
@@ -2043,6 +1953,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
     spCW->txCache.SetBaseView(pCdMan->pTxCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
+    spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
 
     bool forkChainTipFound = false;
     uint256 forkChainTipBlockHash;
@@ -2085,6 +1996,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         spCW->accountCache  = mapForkCache[blockHash]->accountCache;
         spCW->txCache       = mapForkCache[blockHash]->txCache;
         spCW->contractCache = mapForkCache[blockHash]->contractCache;
+        spCW->delegateCache = mapForkCache[blockHash]->delegateCache;
 
         LogPrint("INFO", "ProcessForkedChain() : found [%d]: %s in cache\n",
             blockHeight, blockHash.GetHex());
@@ -2120,10 +2032,12 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         spForkCW->accountCache  = mapForkCache[forkChainTipBlockHash]->accountCache;
         spForkCW->txCache       = mapForkCache[forkChainTipBlockHash]->txCache;
         spForkCW->contractCache = mapForkCache[forkChainTipBlockHash]->contractCache;
+        spForkCW->delegateCache = mapForkCache[forkChainTipBlockHash]->delegateCache;
     } else {
         spForkCW->accountCache  = spCW->accountCache;
         spForkCW->txCache       = spCW->txCache;
         spForkCW->contractCache = spCW->contractCache;
+        spForkCW->delegateCache = spCW->delegateCache;
     }
 
     uint256 forkChainBestBlockHash = spForkCW->accountCache.GetBestBlock();
@@ -2239,7 +2153,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     // but catching it earlier avoids a potential DoS attack:
     set<uint256> uniqueTx;
     for (unsigned int i = 0; i < block.vptx.size(); i++) {
-        uniqueTx.insert(block.GetTxHash(i));
+        uniqueTx.insert(block.GetTxid(i));
 
         if (fCheckTx && !CheckTx(block.GetHeight(), block.vptx[i].get(), cw, state))
             return ERRORMSG("CheckBlock() :tx hash:%s CheckTx failed", block.vptx[i]->GetHash().GetHex());
@@ -2490,6 +2404,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
+    spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
 
     // Preliminary checks
     if (!CheckBlock(*pBlock, state, *spCW, false)) {
@@ -2807,6 +2722,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
     spCW->txCache.SetBaseView(pCdMan->pTxCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
+    spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
 
     CBlockIndex *pIndexState   = chainActive.Tip();
     CBlockIndex *pIndexFailure = nullptr;
@@ -4217,10 +4133,10 @@ bool DisconnectBlockFromTip(CValidationState &state) {
     return DisconnectTip(state);
 }
 
-bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &accountLogs) {
+bool GetTxOperLog(const uint256 &txid, vector<CAccountLog> &accountLogs) {
     if (SysCfg().IsTxIndex()) {
         CDiskTxPos diskTxPos;
-        if (pCdMan->pContractCache->ReadTxIndex(txHash, diskTxPos)) {
+        if (pCdMan->pContractCache->ReadTxIndex(txid, diskTxPos)) {
             CAutoFile file(OpenBlockFile(diskTxPos, true), SER_DISK, CLIENT_VERSION);
             CBlockHeader header;
             try {
@@ -4239,7 +4155,7 @@ bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &accountLogs) {
                     return ERRORMSG("DisconnectBlock() : failure reading undo data");
 
                 for (auto &txUndo : blockUndo.vtxundo) {
-                    if (txUndo.txid == txHash) {
+                    if (txUndo.txid == txid) {
                         accountLogs = txUndo.accountLogs;
                         return true;
                     }

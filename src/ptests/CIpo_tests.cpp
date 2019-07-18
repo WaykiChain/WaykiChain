@@ -224,7 +224,7 @@ bool CIpoTest::SendIpoTx(unsigned char type)
 			mapTxHash[des]= strTxHash;
 			obj.push_back(Pair("addr", des));
 			obj.push_back(Pair("amount", nMoney));
-			obj.push_back(Pair("txhash", strTxHash));
+			obj.push_back(Pair("txid", strTxHash));
 			SucceedArray.push_back(obj);
 			cout<<"after SendIpoTx strTxHash="<<strTxHash<<endl;
 		} else {
@@ -349,13 +349,13 @@ BOOST_FIXTURE_TEST_CASE(get_coin,CIpoTest)
 		string des = strprintf("%s", arrayData[i].pAddress);
 		int64_t nMoney = arrayData[i].nMoney;
 		Value ret = basetest.CreateNormalTx(des, nMoney);
-		string txHash;
+		string txid;
 		Object obj;
-		if(basetest.GetHashFromCreatedTx(ret, txHash)) {
-			mapTxHash[des]= txHash;
+		if(basetest.GetHashFromCreatedTx(ret, txid)) {
+			mapTxHash[des]= txid;
 			obj.push_back(Pair("addr", des));
 			obj.push_back(Pair("amount", nMoney));
-			obj.push_back(Pair("txhash", txHash));
+			obj.push_back(Pair("txid", txid));
 			SucceedArray.push_back(obj);
 		} else {
 			obj.push_back(Pair("addr", des));

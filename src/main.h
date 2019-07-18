@@ -248,7 +248,7 @@ bool IsStandardTx(CBaseTx *pBaseTx, string &reason);
 bool IsFinalTx(CBaseTx *pBaseTx, int nBlockHeight = 0, int64_t nBlockTime = 0);
 
 //get tx operate account log
-bool GetTxOperLog(const uint256 &txHash, vector<CAccountLog> &accountLogs);
+bool GetTxOperLog(const uint256 &txid, vector<CAccountLog> &accountLogs);
 
 /** An in-memory indexed chain of blocks. */
 class CChain {
@@ -624,14 +624,10 @@ public:
 
 /** The currently best known chain of headers (some of which may be invalid). */
 extern CChain chainMostWork;
-
 extern CCacheDBManager *pCdMan;
-
 /** nSyncTipHight  */
 extern int nSyncTipHeight;
-
 extern std::tuple<bool, boost::thread *> RunCoin(int argc, char *argv[]);
-extern bool WriteBlockLog(bool flag, string suffix);
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex);
 

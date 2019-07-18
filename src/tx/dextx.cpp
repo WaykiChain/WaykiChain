@@ -37,7 +37,7 @@ Object CDEXBuyLimitOrderTx::ToJson(const CAccountDBCache &view) const {
     CKeyID srcKeyId;
     if(!view.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
 
-    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("tx_uid",         txUid.ToString()));
@@ -119,18 +119,18 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    const uint256 &txHash = GetHash();
+    const uint256 &txid = GetHash();
     CDEXActiveOrder buyActiveOrder;
     buyActiveOrder.generateType = USER_GEN_ORDER;
     buyActiveOrder.totalDealCoinAmount = 0;
     buyActiveOrder.totalDealAssetAmount = 0;
-    if (!cw.dexCache.CreateActiveOrder(txHash, buyActiveOrder, cw.txUndo.dbOpLogMap)) {
+    if (!cw.dexCache.CreateActiveOrder(txid, buyActiveOrder, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, set active buy order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.txid = txHash;
+    cw.txUndo.txid = txid;
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
@@ -200,7 +200,7 @@ Object CDEXSellLimitOrderTx::ToJson(const CAccountDBCache &view) const {
     CKeyID srcKeyId;
     if(!view.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
 
-    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("tx_uid",         txUid.ToString()));
@@ -275,17 +275,17 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    const uint256 &txHash = GetHash();
+    const uint256 &txid = GetHash();
     CDEXActiveOrder sellActiveOrder;
     sellActiveOrder.generateType = USER_GEN_ORDER;
     sellActiveOrder.totalDealAssetAmount = 0;
-    if (!cw.dexCache.CreateActiveOrder(txHash, sellActiveOrder, cw.txUndo.dbOpLogMap)) {
+    if (!cw.dexCache.CreateActiveOrder(txid, sellActiveOrder, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, create active sell order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.txid = txHash;
+    cw.txUndo.txid = txid;
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
@@ -422,18 +422,18 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    const uint256 &txHash = GetHash();
+    const uint256 &txid = GetHash();
     CDEXActiveOrder buyActiveOrder;
     buyActiveOrder.generateType = USER_GEN_ORDER;
     buyActiveOrder.totalDealCoinAmount = 0;
     buyActiveOrder.totalDealAssetAmount = 0;
-    if (!cw.dexCache.CreateActiveOrder(txHash, buyActiveOrder, cw.txUndo.dbOpLogMap)) {
+    if (!cw.dexCache.CreateActiveOrder(txid, buyActiveOrder, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, create active buy order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.txid = txHash;
+    cw.txUndo.txid = txid;
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
@@ -568,17 +568,17 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    const uint256 &txHash = GetHash();
+    const uint256 &txid = GetHash();
     CDEXActiveOrder sellActiveOrder;
     sellActiveOrder.generateType = USER_GEN_ORDER;
     sellActiveOrder.totalDealAssetAmount = 0;
-    if (!cw.dexCache.CreateActiveOrder(txHash, sellActiveOrder, cw.txUndo.dbOpLogMap)) {
+    if (!cw.dexCache.CreateActiveOrder(txid, sellActiveOrder, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, create active sell order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.txid = txHash;
+    cw.txUndo.txid = txid;
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 

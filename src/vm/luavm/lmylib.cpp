@@ -854,7 +854,7 @@ static int ExLogPrintFunc(lua_State *L) {
 
 
 /**
- *unsigned short GetAccounts(const unsigned char *txhash, void* const paccount, unsigned short maxlen)
+ *unsigned short GetAccounts(const unsigned char *txid, void* const paccount, unsigned short maxlen)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 hash
  */
@@ -1055,7 +1055,7 @@ static int ExQueryAccountBalanceFunc(lua_State *L) {
 }
 
 /**
- *unsigned long GetTxConfirmHeight(const void * const txhash)
+ *unsigned long GetTxConfirmHeight(const void * const txid)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个入参: hash,32个字节
  */

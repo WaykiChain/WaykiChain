@@ -100,17 +100,17 @@ public:
 		if (!CommandLineRPC_GetValue(argc, argv, value)) {
 			return false;
 		}
-		const Value& result = find_value(value.get_obj(), "hash");
+		const Value& result = find_value(value.get_obj(), "txid");
 		if(result == null_type) {
 			return false;
 		}
-		string txHash = result.get_str();
-		vTransactionHash.push_back(txHash);
-		if (mempool.mapTx.count(uint256(uint256S(txHash))) > 0) {
-			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTransaction();
+		string txid = result.get_str();
+		vTransactionHash.push_back(txid);
+		if (mempool.mapTx.count(uint256(uint256S(txid))) > 0) {
+			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txid))].GetTransaction();
 			vTransactions.push_back(tx);
 		}
-		vSendFee.push_back(make_pair(txHash, nfee));
+		vSendFee.push_back(make_pair(txid, nfee));
 		return true;
 	}
 	/**
@@ -139,15 +139,15 @@ public:
 
 		int nfee = GetRandomFee() + 100000000;
 		Value result = RegisterAccountTx(newAddress, nfee);
-		string txHash = "";
-		BOOST_CHECK(GetHashFromCreatedTx(value, txHash));
+		string txid = "";
+		BOOST_CHECK(GetHashFromCreatedTx(value, txid));
 
-		vTransactionHash.push_back(txHash);
-		if (mempool.mapTx.count(uint256(uint256S(txHash))) > 0) {
-			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTransaction();
+		vTransactionHash.push_back(txid);
+		if (mempool.mapTx.count(uint256(uint256S(txid))) > 0) {
+			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txid))].GetTransaction();
 			vTransactions.push_back(tx);
 		}
-		vSendFee.push_back(make_pair(txHash, nfee));
+		vSendFee.push_back(make_pair(txid, nfee));
 		return true;
 	}
 
@@ -167,15 +167,15 @@ public:
 		int nfee = GetRandomFee() + 100000;
 		uint64_t llmoney = GetRandomMoney() * COIN;
 		Value value = SysTestBase::CallContractTx(regScriptId,srcAddr, contact,0,nfee, llmoney);
-		string txHash = "";
-		BOOST_CHECK(GetHashFromCreatedTx(value,txHash));
+		string txid = "";
+		BOOST_CHECK(GetHashFromCreatedTx(value,txid));
 
-		vTransactionHash.push_back(txHash);
-		if (mempool.mapTx.count(uint256(uint256S(txHash))) > 0) {
-			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txHash))].GetTransaction();
+		vTransactionHash.push_back(txid);
+		if (mempool.mapTx.count(uint256(uint256S(txid))) > 0) {
+			std::shared_ptr<CBaseTx> tx = mempool.mapTx[uint256(uint256S(txid))].GetTransaction();
 			vTransactions.push_back(tx);
 		}
-		vSendFee.push_back(make_pair(txHash, nfee));
+		vSendFee.push_back(make_pair(txid, nfee));
 		return true;
 	}
 

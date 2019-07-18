@@ -78,6 +78,23 @@ bool CContractDBCache::EraseContractData(const CRegID &contractRegId, const stri
 
 bool CContractDBCache::UndoContractData(CDBOpLogMap &dbOpLogMap) { return contractDataCache.UndoData(dbOpLogMap); }
 
+bool CContractDBCache::GetContractScripts(map<string, string> &contractScript) {
+    return scriptCache.GetAllElements(contractScript);
+}
+
+bool CContractDBCache::GetContractData(const CRegID &contractRegId, vector<std::pair<string, string>> &contractData) {
+    map<std::pair<string, string>, string> elements;
+    if (!contractDataCache.GetAllElements(contractRegId.ToRawString(), elements)) {
+        return false;
+    }
+
+    for (const auto item : elements) {
+        contractData.emplace_back(std::get<1>(item.first), item.second);
+    }
+
+    return true;
+}
+
 bool CContractDBCache::Flush() {
     scriptCache.Flush();
     txOutputCache.Flush();
@@ -90,11 +107,14 @@ bool CContractDBCache::Flush() {
     return true;
 }
 
-unsigned int CContractDBCache::GetCacheSize() {
-    return false;
-    /* TODO:
-    return ::GetSerializeSize(mapContractDb, SER_DISK, CLIENT_VERSION);
-    */
+uint32_t CContractDBCache::GetCacheSize() const {
+    return scriptCache.GetCacheSize() +
+        txOutputCache.GetCacheSize() +
+        acctTxListCache.GetCacheSize() +
+        txDiskPosCache.GetCacheSize() +
+        contractRelatedKidCache.GetCacheSize() +
+        contractDataCache.GetCacheSize() +
+        contractAccountCache.GetCacheSize();
 }
 
 bool CContractDBCache::WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLogMap &dbOpLogMap) {
@@ -137,10 +157,10 @@ bool CContractDBCache::GetTxHashByAddress(const CKeyID &keyId, uint32_t height, 
     */
 }
 
-bool CContractDBCache::GetAllContractAcc(const CRegID &scriptId, map<string, string> &mapAcc) {
+bool CContractDBCache::GetContractAccounts(const CRegID &scriptId, map<string, string> &mapAcc) {
     return false;
-    /* TODO: GetAllContractAcc
-    return pBase->GetAllContractAcc(scriptId, mapAcc);
+    /* TODO: GetContractAccounts
+    return pBase->GetContractAccounts(scriptId, mapAcc);
     */
 }
 
@@ -157,7 +177,7 @@ bool CContractDBCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) { retur
 
 bool CContractDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap) {
     for (auto it : list) {
-        LogPrint("txindex", "txhash:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n", it.first.GetHex(), it.second.nFile,
+        LogPrint("txindex", "txid:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n", it.first.GetHex(), it.second.nFile,
                  it.second.nPos, it.second.nTxOffset);
 
         if (!txDiskPosCache.SetData(it.first, it.second, dbOpLogMap)) {
@@ -167,47 +187,11 @@ bool CContractDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &
     return true;
 }
 
-bool CContractDBCache::SetTxRelAccout(const uint256 &txHash, const set<CKeyID> &relAccount) {
-    return contractRelatedKidCache.SetData(txHash, relAccount);
+bool CContractDBCache::SetTxRelAccout(const uint256 &txid, const set<CKeyID> &relAccount) {
+    return contractRelatedKidCache.SetData(txid, relAccount);
 }
-bool CContractDBCache::GetTxRelAccount(const uint256 &txHash, set<CKeyID> &relAccount) {
-    return contractRelatedKidCache.GetData(txHash, relAccount);
-}
-
-bool CContractDBCache::EraseTxRelAccout(const uint256 &txHash) { return contractRelatedKidCache.EraseData(txHash); }
-
-Object CContractDBCache::ToJsonObj() const {
-    return Object();
-    /* TODO:
-    Object obj;
-    Array arrayObj;
-    for (auto& item : mapContractDb) {
-        Object obj;
-        obj.push_back(Pair("key", HexStr(item.first)));
-        obj.push_back(Pair("value", HexStr(item.second)));
-        arrayObj.push_back(obj);
-    }
-    // obj.push_back(Pair("mapContractDb", arrayObj));
-    arrayObj.push_back(pBase->ToJsonObj("def"));
-    arrayObj.push_back(pBase->ToJsonObj("data"));
-    arrayObj.push_back(pBase->ToJsonObj("author"));
-
-    obj.push_back(Pair("mapContractDb", arrayObj));
-    return obj;
-    */
+bool CContractDBCache::GetTxRelAccount(const uint256 &txid, set<CKeyID> &relAccount) {
+    return contractRelatedKidCache.GetData(txid, relAccount);
 }
 
-string CContractDBCache::ToString() {
-    return "";
-    /* TODO:
-    string str("");
-    string vPrefix = {'d', 'a', 't', 'a'};
-    for (auto &item : mapContractDb) {
-        string vTemp(item.first.begin(), item.first.begin() + 4);
-        if (vTemp == vPrefix) {
-            str = strprintf("vKey=%s\n vData=%s\n", HexStr(item.first), HexStr(item.second));
-        }
-    }
-    return str;
-    */
-}
+bool CContractDBCache::EraseTxRelAccout(const uint256 &txid) { return contractRelatedKidCache.EraseData(txid); }

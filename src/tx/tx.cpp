@@ -34,9 +34,9 @@ string GetTxType(const TxType txType) {
         return "";
 }
 
-uint64_t GetTxMinFee(const TxType nTxType, int nHeight) {
+uint64_t GetTxMinFee(const TxType nTxType, int height) {
     const auto &iter = kTxFeeTable.find(nTxType);
-    switch (GetFeatureForkVersion(nHeight)) {
+    switch (GetFeatureForkVersion(height)) {
         case MAJOR_VER_R1: // Prior-stablecoin Release
             return iter != kTxFeeTable.end() ? std::get<1>(iter->second) : 0;
 

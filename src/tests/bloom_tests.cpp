@@ -235,7 +235,7 @@ BOOST_AUTO_TEST_CASE(merkle_block_3_and_serialize)
 	CDataStream merkleStream(SER_NETWORK, PROTOCOL_VERSION);
 	merkleStream << merkleBlock;
 	//cout << "MerkleBlock:" << HexStr(merkleStream) << endl;
-	//Hex: BlockHeader + txnum + txhash + bits
+	//Hex: BlockHeader + txnum + txid + bits
 	vector<unsigned char> vch = ParseHex("02000000589c3fcd7bb776b6c0d09d979b54a1f7c4c733e06e12e04ed37c060918da42118a2b699fe6c536df875fd4bed5db6ed731841580c34425c43eff13a811c793303d2791dd4f00714f20ddf498e052887819cecaea2467d8749972ee227f623b00b72ea957ffff3f1f1e000000020000000000000000000000640000004630440220229366169dd9a9f249735286e3a7a968ba679b3215168b821062e1b408fab53702200aed72b7ab004edde2711351a2a7577cc7cb58a742b528de4643e63d032dd15801000000018a2b699fe6c536df875fd4bed5db6ed731841580c34425c43eff13a811c793300101");
 
 	vector<char> expected(vch.size());

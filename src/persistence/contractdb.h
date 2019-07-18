@@ -77,20 +77,19 @@ public:
     bool EraseContractData(const CRegID &contractRegId, const string &contractKey, CDBOpLogMap &dbOpLogMap);
     bool UndoContractData(CDBOpLogMap &dbOpLogMap);
 
+    bool GetContractScripts(map<string, string> &contractScript);
+    // Usage: acquire all data related to the specific contract.
+    bool GetContractData(const CRegID &contractRegId, vector<std::pair<string, string>> &contractData);
+
     bool SetTxRelAccout(const uint256 &txid, const set<CKeyID> &relAccount);
     bool GetTxRelAccount(const uint256 &txid, set<CKeyID> &relAccount);
     bool EraseTxRelAccout(const uint256 &txid);
 
     bool Flush();
-//    bool Flush(IContractView *pView);
-    unsigned int GetCacheSize();
-    Object ToJsonObj() const;
-//	IContractView * GetBaseScriptDB() { return pBase; }
+    uint32_t GetCacheSize() const;
+
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
     bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap);
-
-    string ToString();
-
     bool WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLogMap &dbOpLogMap);
     bool GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOutput);
     bool UndoTxOutput(CDBOpLogMap &dbOpLogMap);
@@ -98,7 +97,7 @@ public:
     bool GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string > &mapTxHash);
     bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid, CDBOpLogMap &dbOpLogMap);
     bool UndoTxHashByAddress(CDBOpLogMap &dbOpLogMap);
-    bool GetAllContractAcc(const CRegID &contractRegId, map<string, string > &mapAcc);
+    bool GetContractAccounts(const CRegID &contractRegId, map<string, string > &mapAcc);
 
 private:
 /*       type               prefixType               key                     value                 variable               */

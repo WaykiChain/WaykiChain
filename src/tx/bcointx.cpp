@@ -132,7 +132,7 @@ bool CBaseCoinTransferTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
             CPubKey empPubKey;
             account.pubKey      = empPubKey;
             account.minerPubKey = empPubKey;
-            account.regId.Clean();
+            account.regId.Clear();
             if (!cw.accountCache.SetAccount(userId, account)) {
                 return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::UndoExecuteTx, write account info error"),
                                  UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
@@ -165,7 +165,7 @@ Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     accountCache.GetKeyId(txUid, srcKeyId);
     accountCache.GetKeyId(toUid, desKeyId);
 
-    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("tx_uid",         txUid.ToString()));

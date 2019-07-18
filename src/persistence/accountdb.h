@@ -73,7 +73,7 @@ public:
     bool HaveAccount(const CUserID &userId) const;
     int64_t GetFreeBcoins(const CUserID &userId) const;
     bool Flush();
-    unsigned int GetCacheSize() const;
+    uint32_t GetCacheSize() const;
     Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY);
     void SetBaseView(CAccountDBCache *pBaseIn) {
         blockHashCache.SetBase(&pBaseIn->blockHashCache);

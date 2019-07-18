@@ -88,7 +88,7 @@ Object GetTxDetailJSON(const uint256& txid) {
         ReadBlockFromDisk(pGenesisBlockIndex, genesisblock);
         assert(genesisblock.GetMerkleRootHash() == genesisblock.BuildMerkleTree());
         for (unsigned int i = 0; i < genesisblock.vptx.size(); ++i) {
-            if (txid == genesisblock.GetTxHash(i)) {
+            if (txid == genesisblock.GetTxid(i)) {
                 obj = genesisblock.vptx[i]->ToJson(*pCdMan->pAccountCache);
                 obj.push_back(Pair("block_hash", SysCfg().GetGenesisBlockHash().GetHex()));
                 obj.push_back(Pair("confirmed_height", (int) 0));

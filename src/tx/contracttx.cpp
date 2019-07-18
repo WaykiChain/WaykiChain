@@ -154,7 +154,7 @@ Object CContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
     CKeyID keyid;
     accountCache.GetKeyId(txUid, keyid);
 
-    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("regid",          txUid.get<CRegID>().ToString()));
@@ -289,7 +289,7 @@ Object CContractInvokeTx::ToJson(const CAccountDBCache &accountView) const {
     view.GetKeyId(txUid, srcKeyId);
     view.GetKeyId(appUid, desKeyId);
 
-    result.push_back(Pair("hash",           GetHash().GetHex()));
+    result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("regid",          txUid.ToString()));
@@ -450,7 +450,7 @@ bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
             CPubKey empPubKey;
             account.pubKey      = empPubKey;
             account.minerPubKey = empPubKey;
-            account.regId.Clean();
+            account.regId.Clear();
 
             if (!cw.accountCache.SetAccount(userId, account)) {
                 return state.DoS(100, ERRORMSG("CContractInvokeTx::UndoExecuteTx, write account info error"),

@@ -406,7 +406,7 @@ Value sendtoaddress(const Array& params, bool fHelp) {
     }
 
     Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
+    obj.push_back(Pair("txid", std::get<1>(ret)));
     return obj;
 }
 
@@ -497,14 +497,14 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
     }
 
     Object obj;
-    obj.push_back(Pair("hash", std::get<1>(ret)));
+    obj.push_back(Pair("txid", std::get<1>(ret)));
     return obj;
 }
 
-Value sendtransaction(const Array& params, bool fHelp) {
+Value send(const Array& params, bool fHelp) {
     if (fHelp || (params.size() !=4 && params.size() !=6))
         throw runtime_error(
-            "sendtransaction \"from\" \"to\" \"coin_amount\" \"coin_type\" \"fee\" \"fee_type\"\n"
+            "send \"from\" \"to\" \"coin_amount\" \"coin_type\" \"fee\" \"fee_type\"\n"
             "\nSend asset to a given address.\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
@@ -517,9 +517,9 @@ Value sendtransaction(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n" +
-            HelpExampleCli("sendtransaction", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" 100000000 \"WICC\" 10000 \"WICC\"\n") +
+            HelpExampleCli("send", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" 100000000 \"WICC\" 10000 \"WICC\"\n") +
             "\nAs json rpc call\n" +
-            HelpExampleRpc("sendtransaction", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" 100000000 \"WICC\" 10000 \"WICC\"\n")
+            HelpExampleRpc("send", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" 100000000 \"WICC\" 10000 \"WICC\"\n")
         );
 
     EnsureWalletIsUnlocked();

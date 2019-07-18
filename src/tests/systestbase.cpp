@@ -521,7 +521,7 @@ bool SysTestBase::GetBlockHash(const int nHeight, std::string &blockhash) {
 
     Value value;
     if (CommandLineRPC_GetValue(argc, argv, value)) {
-        blockhash = find_value(value.get_obj(), "hash").get_str();
+        blockhash = find_value(value.get_obj(), "txid").get_str();
         LogPrint("test_miners", "GetBlockHash:%s\r\n", blockhash.c_str());
         return true;
     }
@@ -668,17 +668,17 @@ bool SysTestBase::GetKeyId(string const &addr, CKeyID &KeyId) {
     return true;
 };
 
-bool SysTestBase::IsTxInMemorypool(const uint256 &txHash) {
+bool SysTestBase::IsTxInMemorypool(const uint256 &txid) {
     for (const auto &entry : mempool.memPoolTxs) {
-        if (entry.first == txHash) return true;
+        if (entry.first == txid) return true;
     }
 
     return false;
 }
 
-bool SysTestBase::IsTxUnConfirmdInWallet(const uint256 &txHash) {
+bool SysTestBase::IsTxUnConfirmdInWallet(const uint256 &txid) {
     for (const auto &item : pWalletMain->unconfirmedTx) {
-        if (txHash == item.first) {
+        if (txid == item.first) {
             return true;
         }
     }
@@ -692,13 +692,13 @@ bool SysTestBase::GetRegID(string &strAddr, string &regId) {
     return GetStrFromObj(value, regId);
 }
 
-bool SysTestBase::IsTxInTipBlock(const uint256 &txHash) {
+bool SysTestBase::IsTxInTipBlock(const uint256 &txid) {
     CBlockIndex *pIndex = chainActive.Tip();
     CBlock block;
     if (!ReadBlockFromDisk(pIndex, block)) return false;
 
     block.BuildMerkleTree();
-    std::tuple<bool, int> ret = block.GetTxIndex(txHash);
+    std::tuple<bool, int> ret = block.GetTxIndex(txid);
     if (!std::get<0>(ret)) {
         return false;
     }
@@ -728,20 +728,10 @@ bool SysTestBase::GetRegID(string &strAddr, CRegID &regId) {
     return true;
 }
 
-bool SysTestBase::GetTxOperateLog(const uint256 &txHash, vector<CAccountLog> &vLog) {
-    if (!GetTxOperLog(txHash, vLog)) return false;
+bool SysTestBase::GetTxOperateLog(const uint256 &txid, vector<CAccountLog> &vLog) {
+    if (!GetTxOperLog(txid, vLog)) return false;
 
     return true;
-}
-
-bool SysTestBase::PrintLog() {
-    const char *argv2[] = {"rpctest", "printblockdbinfo"};
-
-    Value value;
-    if (!CommandLineRPC_GetValue(sizeof(argv2) / sizeof(argv2[0]), argv2, value)) {
-        return true;
-    }
-    return false;
 }
 
 bool SysTestBase::IsMemoryPoolEmpty() {

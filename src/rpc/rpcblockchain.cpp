@@ -52,7 +52,7 @@ double GetDifficulty(const CBlockIndex* pBlockIndex) {
 
 Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     Object result;
-    result.push_back(Pair("hash", block.GetHash().GetHex()));
+    result.push_back(Pair("txid", block.GetHash().GetHex()));
     CMerkleTx txGen(block.vptx[0]);
     txGen.SetMerkleBranch(&block);
     result.push_back(Pair("confirmations", (int)txGen.GetDepthInMainChain()));
@@ -195,12 +195,13 @@ Value getrawmempool(const Array& params, bool fHelp)
         }
         return obj;
     } else {
-        vector<uint256> vtxid;
-        mempool.QueryHash(vtxid);
+        vector<uint256> txids;
+        mempool.QueryHash(txids);
 
         Array arr;
-        for (const auto& hash : vtxid)
+        for (const auto& hash : txids) {
             arr.push_back(hash.ToString());
+        }
 
         return arr;
     }
@@ -227,7 +228,7 @@ Value getblockhash(const Array& params, bool fHelp)
 
     CBlockIndex* pBlockIndex = chainActive[nHeight];
     Object result;
-    result.push_back(Pair("hash", pBlockIndex->GetBlockHash().GetHex()));
+    result.push_back(Pair("txid", pBlockIndex->GetBlockHash().GetHex()));
     return result;
 }
 

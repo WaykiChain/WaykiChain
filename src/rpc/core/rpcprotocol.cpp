@@ -1,5 +1,5 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The WaykiChain developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -30,8 +30,7 @@ using namespace json_spirit;
 // and to be compatible with other JSON-RPC implementations.
 //
 
-string HTTPPost(const string& strMsg, const map<string,string>& mapRequestHeaders)
-{
+string HTTPPost(const string& strMsg, const map<string, string>& mapRequestHeaders) {
     ostringstream s;
     s << "POST / HTTP/1.1\r\n"
       << "User-Agent: Coin-json-rpc/" << FormatFullVersion() << "\r\n"
@@ -39,10 +38,14 @@ string HTTPPost(const string& strMsg, const map<string,string>& mapRequestHeader
       << "Content-Type: application/json\r\n"
       << "Content-Length: " << strMsg.size() << "\r\n"
       << "Connection: close\r\n"
-	  << "Access-Control-Allow-Origin: *" << "\r\n"
-	  << "Access-Control-Allow-Methods: POST, GET, PUT, OPTIONS, DELETE, PATCH" << "\r\n"
-	  << "Access-Control-Max-Age: 3600" << "\r\n"
-	  << "Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept" << "\r\n"
+      << "Access-Control-Allow-Origin: *"
+      << "\r\n"
+      << "Access-Control-Allow-Methods: POST, GET, PUT, OPTIONS, DELETE, PATCH"
+      << "\r\n"
+      << "Access-Control-Max-Age: 3600"
+      << "\r\n"
+      << "Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept"
+      << "\r\n"
       << "Accept: application/json\r\n";
     for (const auto& item : mapRequestHeaders)
         s << item.first << ": " << item.second << "\r\n";
@@ -51,15 +54,12 @@ string HTTPPost(const string& strMsg, const map<string,string>& mapRequestHeader
     return s.str();
 }
 
-static string rfc1123Time()
-{
-    return DateTimeStrFormat("%a, %d %b %Y %H:%M:%S +0000", GetTime());
-}
+static string rfc1123Time() { return DateTimeStrFormat("%a, %d %b %Y %H:%M:%S +0000", GetTime()); }
 
-string HTTPReply(int nStatus, const string& strMsg, bool keepalive)
-{
+string HTTPReply(int nStatus, const string& strMsg, bool keepalive) {
     if (nStatus == HTTP_UNAUTHORIZED)
-        return strprintf("HTTP/1.0 401 Authorization Required\r\n"
+        return strprintf(
+            "HTTP/1.0 401 Authorization Required\r\n"
             "Date: %s\r\n"
             "Server: Coin-json-rpc/%s\r\n"
             "WWW-Authenticate: Basic realm=\"jsonrpc\"\r\n"
@@ -74,39 +74,39 @@ string HTTPReply(int nStatus, const string& strMsg, bool keepalive)
             "<META HTTP-EQUIV='Content-Type' CONTENT='text/html; charset=ISO-8859-1'>\r\n"
             "</HEAD>\r\n"
             "<BODY><H1>401 Unauthorized.</H1></BODY>\r\n"
-            "</HTML>\r\n", rfc1123Time(), FormatFullVersion());
-    const char *cStatus;
-         if (nStatus == HTTP_OK) cStatus = "OK";
-    else if (nStatus == HTTP_BAD_REQUEST) cStatus = "Bad Request";
-    else if (nStatus == HTTP_FORBIDDEN) cStatus = "Forbidden";
-    else if (nStatus == HTTP_NOT_FOUND) cStatus = "Not Found";
-    else if (nStatus == HTTP_INTERNAL_SERVER_ERROR) cStatus = "Internal Server Error";
-    else cStatus = "";
+            "</HTML>\r\n",
+            rfc1123Time(), FormatFullVersion());
+    const char* cStatus;
+    if (nStatus == HTTP_OK)
+        cStatus = "OK";
+    else if (nStatus == HTTP_BAD_REQUEST)
+        cStatus = "Bad Request";
+    else if (nStatus == HTTP_FORBIDDEN)
+        cStatus = "Forbidden";
+    else if (nStatus == HTTP_NOT_FOUND)
+        cStatus = "Not Found";
+    else if (nStatus == HTTP_INTERNAL_SERVER_ERROR)
+        cStatus = "Internal Server Error";
+    else
+        cStatus = "";
     return strprintf(
-            "HTTP/1.1 %d %s\r\n"
-            "Date: %s\r\n"
-            "Connection: %s\r\n"
-            "Content-Length: %u\r\n"
-            "Content-Type: application/json\r\n"
-			"Access-Control-Allow-Origin: *\r\n"
-			"Access-Control-Allow-Methods: POST, GET, PUT, OPTIONS, DELETE, PATCH\r\n"
-			"Access-Control-Max-Age: 3600\r\n"
-			"Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept\r\n"
-            "Server: Coin-json-rpc/%s\r\n"
-            "\r\n"
-            "%s",
-        nStatus,
-        cStatus,
-        rfc1123Time(),
-        keepalive ? "keep-alive" : "close",
-        strMsg.size(),
-        FormatFullVersion(),
+        "HTTP/1.1 %d %s\r\n"
+        "Date: %s\r\n"
+        "Connection: %s\r\n"
+        "Content-Length: %u\r\n"
+        "Content-Type: application/json\r\n"
+        "Access-Control-Allow-Origin: *\r\n"
+        "Access-Control-Allow-Methods: POST, GET, PUT, OPTIONS, DELETE, PATCH\r\n"
+        "Access-Control-Max-Age: 3600\r\n"
+        "Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept\r\n"
+        "Server: Coin-json-rpc/%s\r\n"
+        "\r\n"
+        "%s",
+        nStatus, cStatus, rfc1123Time(), keepalive ? "keep-alive" : "close", strMsg.size(), FormatFullVersion(),
         strMsg);
 }
 
-bool ReadHTTPRequestLine(basic_istream<char>& stream, int &proto,
-                         string& http_method, string& http_uri)
-{
+bool ReadHTTPRequestLine(basic_istream<char>& stream, int& proto, string& http_method, string& http_uri) {
     string str;
     getline(stream, str);
 
@@ -131,45 +131,41 @@ bool ReadHTTPRequestLine(basic_istream<char>& stream, int &proto,
     if (vWords.size() > 2)
         strProto = vWords[2];
 
-    proto = 0;
-    const char *ver = strstr(strProto.c_str(), "HTTP/1.");
+    proto           = 0;
+    const char* ver = strstr(strProto.c_str(), "HTTP/1.");
     if (ver != NULL)
-        proto = atoi(ver+7);
+        proto = atoi(ver + 7);
 
     return true;
 }
 
-int ReadHTTPStatus(basic_istream<char>& stream, int &proto)
-{
+int ReadHTTPStatus(basic_istream<char>& stream, int& proto) {
     string str;
     getline(stream, str);
     vector<string> vWords;
     boost::split(vWords, str, boost::is_any_of(" "));
     if (vWords.size() < 2)
         return HTTP_INTERNAL_SERVER_ERROR;
-    proto = 0;
-    const char *ver = strstr(str.c_str(), "HTTP/1.");
+    proto           = 0;
+    const char* ver = strstr(str.c_str(), "HTTP/1.");
     if (ver != NULL)
-        proto = atoi(ver+7);
+        proto = atoi(ver + 7);
     return atoi(vWords[1].c_str());
 }
 
-int ReadHTTPHeaders(basic_istream<char>& stream, map<string, string>& mapHeadersRet)
-{
+int ReadHTTPHeaders(basic_istream<char>& stream, map<string, string>& mapHeadersRet) {
     int nLen = 0;
-    while (true)
-    {
+    while (true) {
         string str;
         getline(stream, str);
         if (str.empty() || str == "\r")
             break;
         string::size_type nColon = str.find(":");
-        if (nColon != string::npos)
-        {
+        if (nColon != string::npos) {
             string strHeader = str.substr(0, nColon);
             boost::trim(strHeader);
             boost::to_lower(strHeader);
-            string strValue = str.substr(nColon+1);
+            string strValue = str.substr(nColon + 1);
             boost::trim(strValue);
             mapHeadersRet[strHeader] = strValue;
             if (strHeader == "content-length")
@@ -179,11 +175,8 @@ int ReadHTTPHeaders(basic_istream<char>& stream, map<string, string>& mapHeaders
     return nLen;
 }
 
-
-int ReadHTTPMessage(basic_istream<char>& stream, map<string,
-                    string>& mapHeadersRet, string& strMessageRet,
-                    int nProto)
-{
+int ReadHTTPMessage(basic_istream<char>& stream, map<string, string>& mapHeadersRet, string& strMessageRet,
+                    int nProto) {
     mapHeadersRet.clear();
     strMessageRet = "";
 
@@ -193,8 +186,7 @@ int ReadHTTPMessage(basic_istream<char>& stream, map<string,
         return HTTP_INTERNAL_SERVER_ERROR;
 
     // Read message
-    if (nLen > 0)
-    {
+    if (nLen > 0) {
         vector<char> vch(nLen);
         stream.read(&vch[0], nLen);
         strMessageRet = string(vch.begin(), vch.end());
@@ -202,8 +194,7 @@ int ReadHTTPMessage(basic_istream<char>& stream, map<string,
 
     string sConHdr = mapHeadersRet["connection"];
 
-    if ((sConHdr != "close") && (sConHdr != "keep-alive"))
-    {
+    if ((sConHdr != "close") && (sConHdr != "keep-alive")) {
         if (nProto >= 1)
             mapHeadersRet["connection"] = "keep-alive";
         else
@@ -223,8 +214,7 @@ int ReadHTTPMessage(basic_istream<char>& stream, map<string,
 // http://www.codeproject.com/KB/recipes/JSON_Spirit.aspx
 //
 
-string JSONRPCRequest(const string& strMethod, const Array& params, const Value& id)
-{
+string JSONRPCRequest(const string& strMethod, const Array& params, const Value& id) {
     Object request;
     request.push_back(Pair("method", strMethod));
     request.push_back(Pair("params", params));
@@ -232,8 +222,7 @@ string JSONRPCRequest(const string& strMethod, const Array& params, const Value&
     return write_string(Value(request), false) + "\n";
 }
 
-Object JSONRPCReplyObj(const Value& result, const Value& error, const Value& id)
-{
+Object JSONRPCReplyObj(const Value& result, const Value& error, const Value& id) {
     Object reply;
     if (error.type() != null_type)
         reply.push_back(Pair("result", Value::null));
@@ -244,14 +233,12 @@ Object JSONRPCReplyObj(const Value& result, const Value& error, const Value& id)
     return reply;
 }
 
-string JSONRPCReply(const Value& result, const Value& error, const Value& id)
-{
+string JSONRPCReply(const Value& result, const Value& error, const Value& id) {
     Object reply = JSONRPCReplyObj(result, error, id);
     return write_string(Value(reply), false) + "\n";
 }
 
-Object JSONRPCError(int code, const string& message)
-{
+Object JSONRPCError(int code, const string& message) {
     Object error;
     error.push_back(Pair("code", code));
     error.push_back(Pair("message", message));

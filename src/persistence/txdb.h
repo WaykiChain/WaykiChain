@@ -38,7 +38,6 @@ public:
 
     void Clear();
     void SetBaseView(CTxMemCache *pBaseIn) { pBase = pBaseIn; }
-    void Flush(CTxMemCache *pBaseIn);
     void Flush();
 
     Object ToJsonObj() const;
