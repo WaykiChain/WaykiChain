@@ -30,7 +30,6 @@ typedef leveldb::Slice Slice;
     DEFINE( DEX,                "dex")          /* dex */ \
     DEFINE( LOG,                "log")          /* log */ \
     DEFINE( RECEIPT,            "txreceipt")    /* txreceipt */ \
-
     /*                                                                */  \
     /* Add new Enum elements above, DB_NAME_COUNT Must be the last one */ \
     DEFINE( DB_NAME_COUNT,        "")       /* enum count, must be the last one */
