@@ -22,14 +22,50 @@
 
 using namespace json_spirit;
 
+typedef string TokenSymbol;     //8 chars max, E.g. WICC-01D
+typedef string TokenName;       //32 chars max
+
+class CAssetTradingPair {
+public:
+    TokenSymbol coinSymbol;
+    TokenSymbol assetSymbol;
+
+public:
+    string ToString() {
+        return strprintf("%s-%s", coinSymbol, assetSymbol);
+    }
+};
+
 class CAsset {
 public:
-    CRegID ownerRegID;  // creator or owner of the asset
-    string symbol;      // asset symbol, E.g WICC | WUSD
-    string name;        // asset long name, E.g WaykiChain coin
-    bool mintable;      // whether this token can be minted in the future.
+    CRegID      ownerRegId;     // creator or owner of the asset
+    TokenSymbol symbol;         // asset symbol, E.g WICC | WUSD
+    TokenName   name;           // asset long name, E.g WaykiChain coin
+    bool        mintable;       // whether this token can be minted in the future.
+    uint64_t    totalSupply;    // boosted by 1e8 for the decimal part, max is 90 billion.
 
-    uint64_t totalSupply;   // boosted by 1e8 for the decimal part, max is 90 billion.
+    mutable uint256 sigHash;  //!< in-memory only
+
+public:
+    CAsset(CRegID ownerRegIdIn, TokenSymbol symbolIn, TokenName nameIn, bool mintableIn, uint64_t totalSupplyIn) :
+        ownerRegId(ownerRegIdIn), symbol(symbolIn), name(nameIn), mintable(mintableIn), totalSupply(totalSupplyIn) {};
+
+    uint256 GetHash(bool recalculate = false) const {
+        if (recalculate || sigHash.IsNull()) {
+            CHashWriter ss(SER_GETHASH, 0);
+            ss << ownerRegId << symbol << name << mintable << VARINT(totalSupply);
+            sigHash = ss.GetHash();
+        }
+
+        return sigHash;
+    }
+
+     IMPLEMENT_SERIALIZE(
+        READWRITE(ownerRegId);
+        READWRITE(symbol);
+        READWRITE(name);
+        READWRITE(mintable);
+        READWRITE(VARINT(totalSupply));)
 };
 
 

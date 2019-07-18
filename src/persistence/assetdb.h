@@ -6,23 +6,21 @@
 #ifndef PERSIST_ACCOUNTDB_H
 #define PERSIST_ACCOUNTDB_H
 
+#include "accounts/asset.h"
+#include "leveldbwrapper.h"
+#include "accounts/asset.h"
+#include "accounts/asset.h"
+#include "commons/arith_uint256.h"
+#include "dbconf.h"
+#include "dbaccess.h"
+
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
-#include "commons/arith_uint256.h"
-#include "leveldbwrapper.h"
-#include "accounts/asset.h"
-#include "dbconf.h"
-#include "dbaccess.h"
 
-class uint256;
-class CKeyID;
 
 class CAssetDBCache {
-public:
-
-
 public:
     CAssetDBCache() {}
 
@@ -32,13 +30,21 @@ public:
 
     ~CAssetDBCache() {}
 
-    bool Flush();
+public:
+    bool GetAsset(const TokenSymbol &tokenSymbol, CAsset &asset);
+    bool SaveAsset(const CAsset &asset);
+    bool ExistAssetSymbol(const TokenSymbol &tokenSymbol);
+    bool ExistAssetTradingPair(const CAssetTradingPair &TradingPair);
+
+    // bool Flush();
 
 private:
-/*  CDBScalarValueCache     prefixType             value           variable           */
-/*  -------------------- --------------------   -------------   --------------------- */
-    // <asset_symbole -> Asset>
-    CDBScalarValueCache< dbk::ASSET,     CAsset>        assetCache;
+/*  CDBScalarValueCache     prefixType            key              value           variable           */
+/*  -------------------- --------------------   --------------  -------------   --------------------- */
+    // <asset_tokenSymbol -> asset> 
+    CDBMultiValueCache< dbk::ASSET,             TokenSymbol,        CAsset>         assetCache;
+
+    CDBMultiValueCache< dbk::ASSET,             CAssetTradigingPair,    uint8_t>         assetCache;
 };
 
 #endif  // PERSIST_ACCOUNTDB_H
