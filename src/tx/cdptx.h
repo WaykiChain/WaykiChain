@@ -31,15 +31,15 @@ public:
     }
     /** Newly open a CDP */
     CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
-                uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn, uint64_t scoinsInterestIn):
+                uint64_t bcoinsToStakeIn, uint64_t scoinsToMintIn, uint64_t scoinsInterestIn):
                 CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
         bcoinsToStake   = bcoinsToStakeIn;
-        collateralRatio = collateralRatioIn;
+        scoinsToMint    = scoinsToMintIn;
         scoinsInterest  = scoinsInterestIn;
     }
     /** Stake an existing CDP */
     CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
-                uint256 cdpTxIdIn, uint64_t bcoinsToStakeIn, uint64_t collateralRatioIn,
+                uint256 cdpTxIdIn, uint64_t bcoinsToStakeIn, uint64_t scoinsToMintIn,
                 uint64_t scoinsInterestIn):
                 CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
@@ -48,7 +48,7 @@ public:
 
         cdpTxId         = cdpTxIdIn;
         bcoinsToStake   = bcoinsToStakeIn;
-        collateralRatio = collateralRatioIn;
+        scoinsToMint    = scoinsToMintIn;
         scoinsInterest  = scoinsInterestIn;
     }
 
@@ -63,7 +63,7 @@ public:
         READWRITE(VARINT(llFees));
         READWRITE(cdpTxId);
         READWRITE(VARINT(bcoinsToStake));
-        READWRITE(VARINT(collateralRatio));
+        READWRITE(VARINT(scoinsToMint));
         READWRITE(VARINT(scoinsInterest));
 
         READWRITE(signature);
@@ -73,7 +73,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << cdpTxId << VARINT(bcoinsToStake) << VARINT(collateralRatio) << VARINT(scoinsInterest);
+                << cdpTxId << VARINT(bcoinsToStake) << VARINT(scoinsToMint) << VARINT(scoinsInterest);
             sigHash = ss.GetHash();
         }
         return sigHash;
