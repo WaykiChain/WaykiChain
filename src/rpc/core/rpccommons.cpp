@@ -321,6 +321,18 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             arrayDetail.push_back(obj);
             break;
         }
+        //TODO: other Tx types
+        case CDP_STAKE_TX:
+        case CDP_REDEEMP_TX:
+        case CDP_LIQUIDATE_TX:
+        case PRICE_FEED_TX:
+        case FCOIN_STAKE_TX:
+        case DEX_SETTLE_TX:
+        case DEX_CANCEL_ORDER_TX:
+        case DEX_BUY_LIMIT_ORDER_TX:
+        case DEX_SELL_LIMIT_ORDER_TX:
+        case DEX_BUY_MARKET_ORDER_TX:
+        case DEX_SELL_MARKET_ORDER_TX:
         default:
             break;
     }
