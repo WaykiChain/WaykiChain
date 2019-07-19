@@ -179,8 +179,6 @@ public:
                               const CAccountDBCache* pAccountCache);
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool StakeFcoins(const int64_t fcoinsToStake); //price feeder must stake fcoins
-    bool OperateFcoinStaking(const int64_t fcoinsToStake) { return false; } // TODO: ...
-
     bool StakeBcoinsToCdp(CoinType coinType, const int64_t bcoinsToStake, const int64_t mintedScoins);
 
 public:

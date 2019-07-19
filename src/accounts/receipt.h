@@ -13,26 +13,26 @@
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 
-class CReceipt {
+class CReceipt: uint8_t {
 public:
     TxType      txType;
-    uint256     fromAddress;
-    uint256     toAddress;
-    CoinType    transferCoinType;
-    uint64_t    transferCoinAmount;
+    CUserID     fromUid;
+    CUserID     toUid;
+    CoinType    sendCoinType;
+    uint64_t    sendCoinAmount;
 
 public:
-    CReceipt(TxType &txTypeIn, uint256 &fromAddressIn, uint256 &toAddressIn,
-            CoinType transferCoinTypeIn, uint64_t &transferCoinAmountIn) :
-            txType(txTypeIn), fromAddress(fromAddressIn), toAddress(toAddressIn),
-            transferCoinType(transferCoinTypeIn), transferCoinAmount(transferCoinAmountIn) {};
+    CReceipt(TxType &txTypeIn, CUserID &receipientUidIn, CoinOpType opTypeIn,
+            CoinType &coinTypeIn, uint64_t &coinAmountIn) :
+            txType(txTypeIn), receipientUid(receipientUidIn), opType(opTypeIn),
+            coinType(coinTypeIn), coinAmount(coinAmountIn) {};
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(txType);
-        READWRITE(fromAddress);
-        READWRITE(toAddress);
-        READWRITE(transferCoinType);
-        READWRITE(VARINT(transferCoinAmount));)
+        READWRITE((uint8_t &) txType);
+        READWRITE(receipientUid);
+        READWRITE((uint8_t &) opType);
+        READWRITE((uint8_t &) coinType);
+        READWRITE(VARINT(coinAmount));)
 };
 
 #endif //ACCOUNTS_ASSET_H

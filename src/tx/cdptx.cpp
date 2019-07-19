@@ -166,6 +166,8 @@ bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &
 
 bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     cw.txUndo.txid = GetHash();
+    vector<CReceipt> receipts;
+
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read txUid %s account info error",
@@ -235,6 +237,10 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     }
     cw.txUndo.accountLogs.push_back(acctLog);
+
+    CReceipt receipt(nTxType, uint256(), txUid.get<CPubKey>(), WUSD, mintedScoins);
+    receipts.add(receipt);
+    cw.txReceiptCache.SetTxReceipts(receipts);
 
     bool ret = SaveTxAddresses(nHeight, nIndex, cw, state, {txUid});
     return ret;
@@ -418,6 +424,11 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
     uint64_t releasedBcoins = cdp.totalStakedBcoins - targetStakedBcoins;
     account.scoins -= scoinsToRedeem;
     account.bcoins += releasedBcoins;
+
+    CReceipt receipt1(nTxType, uint256(), txUid.get<CPubKey>(), WUSD, mintedScoins);
+    receipts.add(receipt1);
+    CReceipt receipt2(nTxType, uint256(), txUid.get<CPubKey>(), WUSD, mintedScoins);
+    cw.txReceiptCache.SetTxReceipts(receipts);
 
     cdp.totalStakedBcoins = (uint64_t) targetStakedBcoins;
     if (!cw.cdpCache.SaveCdp(cdp, cw.txUndo.dbOpLogMap)) {

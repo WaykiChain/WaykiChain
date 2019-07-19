@@ -17,15 +17,15 @@
 
 class CCacheWrapper {
 public:
-    CSysParamDBCache sysParamCache;
+    CSysParamDBCache    sysParamCache;
+    CAccountDBCache     accountCache;
+    CContractDBCache    contractCache;
+    CDelegateDBCache    delegateCache;
+    CCdpDBCache         cdpCache;
+    CDexDBCache         dexCache;
+    CTxReceiptDBCache   txReceiptCache;
 
-    CAccountDBCache accountCache;
-    CContractDBCache contractCache;
-    CDelegateDBCache delegateCache;
-    CCdpDBCache cdpCache;
-    CDexDBCache dexCache;
-
-    CTxMemCache txCache;
+    CTxMemCache         txCache;
     CPricePointMemCache ppCache;
 
     CTxUndo txUndo;
