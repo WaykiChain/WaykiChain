@@ -72,7 +72,7 @@ bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
 }
 
 bool CCDPStakeTx::SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
-    if (nHeight > cdp.blockHeight) {
+    if (nHeight < cdp.blockHeight) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, nHeight(%d) > cdp.blockHeight (%d)",
                         nHeight, cdp.blockHeight), REJECT_INVALID, "cdp-block-height-error");
     }
