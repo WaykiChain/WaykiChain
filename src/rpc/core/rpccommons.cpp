@@ -110,9 +110,9 @@ Object GetTxDetailJSON(const uint256& txid) {
                     fseek(file, postx.nTxOffset, SEEK_CUR);
                     file >> pBaseTx;
                     obj = pBaseTx->ToJson(*pCdMan->pAccountCache);
-                    obj.push_back(Pair("confirmedheight", (int) header.GetHeight()));
-                    obj.push_back(Pair("confirmedtime", (int) header.GetTime()));
-                    obj.push_back(Pair("blockhash", header.GetHash().GetHex()));
+                    obj.push_back(Pair("confirmed_height", (int) header.GetHeight()));
+                    obj.push_back(Pair("confirmed_time", (int) header.GetTime()));
+                    obj.push_back(Pair("block_hash", header.GetHash().GetHex()));
 
                     if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
                         vector<CVmOperate> vOutput;
@@ -156,6 +156,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
     spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
     spCW->cdpCache.SetBaseView(pCdMan->pCdpCache);
 
+    double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
     switch (pBaseTx->nTxType) {
         case BLOCK_REWARD_TX: {
             if (!pBaseTx->GetInvolvedKeyIds(*spCW, vKeyIdSet))
@@ -163,7 +164,6 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
             obj.push_back(Pair("category", "receive"));
-            double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
             obj.push_back(Pair("amount", dAmount));
             obj.push_back(Pair("tx_type", "BLOCK_REWARD_TX"));
             arrayDetail.push_back(obj);
@@ -176,8 +176,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
             obj.push_back(Pair("category", "send"));
-            double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
-            obj.push_back(Pair("amount", -dAmount));
+            obj.push_back(Pair("amount", dAmount));
             obj.push_back(Pair("tx_type", "ACCOUNT_REGISTER_TX"));
             arrayDetail.push_back(obj);
 
@@ -201,19 +200,11 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             }
 
             obj.push_back(Pair("tx_type", "BCOIN_TRANSFER_TX"));
+            obj.push_back(Pair("from_address", sendKeyID.ToAddress()));
+            obj.push_back(Pair("to_address", recvKeyId.ToAddress()));
+            obj.push_back(Pair("transfer_amount", dAmount));
             obj.push_back(Pair("memo", HexStr(ptx->memo)));
-            obj.push_back(Pair("address", sendKeyID.ToAddress()));
-            obj.push_back(Pair("category", "send"));
-            double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
-            obj.push_back(Pair("amount", -dAmount));
             arrayDetail.push_back(obj);
-            Object objRec;
-            objRec.push_back(Pair("tx_type", "BCOIN_TRANSFER_TX"));
-            objRec.push_back(Pair("memo", HexStr(ptx->memo)));
-            objRec.push_back(Pair("address", recvKeyId.ToAddress()));
-            objRec.push_back(Pair("category", "receive"));
-            objRec.push_back(Pair("amount", dAmount));
-            arrayDetail.push_back(objRec);
 
             break;
         }
@@ -233,19 +224,11 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             }
 
             obj.push_back(Pair("tx_type", "CONTRACT_INVOKE_TX"));
+            obj.push_back(Pair("from_address", sendKeyID.ToAddress()));
+            obj.push_back(Pair("to_address", recvKeyId.ToAddress()));
             obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
-            obj.push_back(Pair("address", sendKeyID.ToAddress()));
-            obj.push_back(Pair("category", "send"));
-            double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
-            obj.push_back(Pair("amount", -dAmount));
+            obj.push_back(Pair("transfer_amount", dAmount));
             arrayDetail.push_back(obj);
-            Object objRec;
-            objRec.push_back(Pair("tx_type", "CONTRACT_INVOKE_TX"));
-            objRec.push_back(Pair("arguments", HexStr(ptx->arguments)));
-            objRec.push_back(Pair("address", recvKeyId.ToAddress()));
-            objRec.push_back(Pair("category", "receive"));
-            objRec.push_back(Pair("amount", dAmount));
-            arrayDetail.push_back(objRec);
 
             vector<CVmOperate> vOutput;
             pCdMan->pContractCache->GetTxOutput(pBaseTx->GetHash(), vOutput);
@@ -277,7 +260,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 }
 
                 if (item.timeoutHeight > 0)
-                    objOutPut.push_back(Pair("freezeheight", (int)item.timeoutHeight));
+                    objOutPut.push_back(Pair("freeze_height", (int)item.timeoutHeight));
 
                 arrayDetail.push_back(objOutPut);
             }
@@ -292,9 +275,9 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
 
-            obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
+            obj.push_back(Pair("from_address", vKeyIdSet.begin()->ToAddress()));
             obj.push_back(Pair("category", "send"));
-            obj.push_back(Pair("amount", -dAmount));
+            obj.push_back(Pair("transfer_amount", dAmount));
 
             if (pBaseTx->nTxType == CONTRACT_DEPLOY_TX)
                 obj.push_back(Pair("tx_type", "CONTRACT_DEPLOY_TX"));
@@ -330,20 +313,12 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             }
 
             obj.push_back(Pair("tx_type", "COMMON_MTX"));
+            obj.push_back(Pair("from_address", sendKeyId.ToAddress()));
+            obj.push_back(Pair("to_address", recvKeyId.ToAddress()));
+            obj.push_back(Pair("transfer_amount", dAmount));
             obj.push_back(Pair("memo", HexStr(ptx->memo)));
-            obj.push_back(Pair("address", sendKeyId.ToAddress()));
-            obj.push_back(Pair("category", "send"));
-            double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
-            obj.push_back(Pair("amount", -dAmount));
-            arrayDetail.push_back(obj);
-            Object objRec;
-            objRec.push_back(Pair("tx_type", "COMMON_MTX"));
-            objRec.push_back(Pair("memo", HexStr(ptx->memo)));
-            objRec.push_back(Pair("address", recvKeyId.ToAddress()));
-            objRec.push_back(Pair("category", "receive"));
-            objRec.push_back(Pair("amount", dAmount));
-            arrayDetail.push_back(objRec);
 
+            arrayDetail.push_back(obj);
             break;
         }
         default:
