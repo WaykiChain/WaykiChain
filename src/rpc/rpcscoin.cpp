@@ -145,7 +145,7 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
     }
 
     int validHeight = chainActive.Tip()->nHeight;
-    CFcoinStakeTx tx(*pUserId, fee, validHeight, stakeAmount);
+    CFcoinStakeTx tx(*pUserId, validHeight, fee, stakeAmount);
     return SubmitTx(*pUserId, tx);
 }
 
