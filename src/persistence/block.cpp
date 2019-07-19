@@ -5,7 +5,7 @@
 
 #include "block.h"
 
-#include "accounts/account.h"
+#include "entities/account.h"
 #include "main.h"
 #include "net.h"
 

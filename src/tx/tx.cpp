@@ -12,7 +12,7 @@
 #include "persistence/accountdb.h"
 #include "persistence/contractdb.h"
 #include "persistence/txdb.h"
-#include "accounts/account.h"
+#include "entities/account.h"
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_writer_template.h"
 #include "json/json_spirit_utils.h"

@@ -7,12 +7,12 @@
 #define PERSIST_RECEIPTDB_H
 
 #include "commons/serialize.h"
+#include "entities/receipt.h"
 #include "dbaccess.h"
 #include "dbconf.h"
 
 #include <map>
 #include <set>
-
 #include <vector>
 
 using namespace std;
@@ -21,6 +21,7 @@ typedef uint256 TxID;
 
 class CTxReceiptDBCache {
 public:
+    CTxReceiptDBCache() {}
     CTxReceiptDBCache(CDBAccess *pDbAccess) : txReceiptCache(pDbAccess){};
 
 public:

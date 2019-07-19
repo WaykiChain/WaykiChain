@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "dexdb.h"
-#include "accounts/account.h"
+#include "entities/account.h"
 #include "main.h"
 
 ///////////////////////////////////////////////////////////////////////////////

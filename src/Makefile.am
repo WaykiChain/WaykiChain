@@ -42,11 +42,13 @@ config/version.o: config/build.h
 .PHONY: FORCE
 # waykichain core #
 coin_CORE_H = \
-  accounts/account.h \
-  accounts/id.h \
-  accounts/key.h \
-  accounts/keystore.h \
-  accounts/vote.h \
+  entities/account.h \
+  entities/assett.h \
+  entities/id.h \
+  entities/key.h \
+  entities/keystore.h \
+  entities/receipt.h \
+  entities/vote.h \
   addrman.h \
   alert.h \
   allocators.h \
@@ -228,8 +230,10 @@ liblua53_a_SOURCES = \
 
 libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libcoin_server_a_SOURCES = \
-  accounts/account.cpp \
-  accounts/id.cpp \
+  entities/account.cpp \
+  entities/id.cpp \
+  entities/key.cpp \
+  entities/keystore.cpp \
   addrman.cpp \
   alert.cpp \
   config/configuration.cpp \
@@ -276,7 +280,7 @@ libcoin_server_a_SOURCES = \
   $(COIN_CORE_H)
 
 libcoin_wallet_a_SOURCES = \
-  accounts/keystore.cpp \
+  entities/keystore.cpp \
   rpc/rpcdump.cpp \
   rpc/rpcwallet.cpp \
   rpc/rpctx.cpp \
@@ -287,7 +291,7 @@ libcoin_wallet_a_SOURCES = \
   $(COIN_CORE_H)
 
 libcoin_common_a_SOURCES = \
-  accounts/key.cpp \
+  entities/key.cpp \
   commons/base58.cpp \
   commons/allocators.cpp \
   commons/arith_uint256.cpp \

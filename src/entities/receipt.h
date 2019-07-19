@@ -4,8 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#ifndef ACCOUNTS_ASSET_H
-#define ACCOUNTS_ASSET_H
+#ifndef ENTITIES_RECEIPT_H
+#define ENTITIES_RECEIPT_H
 
 #include "crypto/hash.h"
 #include "account.h"
@@ -13,7 +13,7 @@
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 
-class CReceipt: uint8_t {
+class CReceipt {
 public:
     TxType      txType;
     CUserID     fromUid;
@@ -22,17 +22,17 @@ public:
     uint64_t    sendAmount;
 
 public:
-    CReceipt(TxType &txTypeIn, CUserID &fromUidIn, CUserID &toUidIn,
-            CoinType &coinTypeIn, uint64_t &sendAmountIn) :
+    CReceipt(TxType txTypeIn, CUserID &fromUidIn, CUserID &toUidIn,
+            CoinType coinTypeIn, uint64_t sendAmountIn) :
             txType(txTypeIn), fromUid(fromUidIn), toUid(toUidIn),
             coinType(coinTypeIn), sendAmount(sendAmountIn) {};
 
     IMPLEMENT_SERIALIZE(
-        READWRITE((uint8_t &) txType);
+        READWRITE((uint8_t) txType);
         READWRITE(fromUid);
         READWRITE(toUid);
-        READWRITE((uint8_t &) coinType);
+        READWRITE((uint8_t) coinType);
         READWRITE(VARINT(sendAmount));)
 };
 
-#endif //ACCOUNTS_ASSET_H
+#endif //ENTITIES_RECEIPT_H

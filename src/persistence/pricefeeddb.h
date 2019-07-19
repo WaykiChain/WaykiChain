@@ -6,8 +6,8 @@
 #ifndef PERSIST_PRICEFEED_H
 #define PERSIST_PRICEFEED_H
 
-#include "accounts/account.h"
-#include "accounts/id.h"
+#include "entities/account.h"
+#include "entities/id.h"
 #include "block.h"
 #include "commons/serialize.h"
 #include "tx/tx.h"

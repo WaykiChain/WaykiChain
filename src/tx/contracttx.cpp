@@ -5,7 +5,7 @@
 
 #include "contracttx.h"
 
-#include "accounts/vote.h"
+#include "entities/vote.h"
 #include "commons/serialize.h"
 #include "crypto/hash.h"
 #include "main.h"

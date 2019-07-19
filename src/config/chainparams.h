@@ -11,7 +11,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <vector>
 
-#include "accounts/id.h"
+#include "entities/id.h"
 #include "commons/uint256.h"
 #include "commons/arith_uint256.h"
 #include "commons/util.h"

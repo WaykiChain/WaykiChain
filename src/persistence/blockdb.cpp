@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "blockdb.h"
-#include "accounts/key.h"
+#include "entities/key.h"
 #include "commons/uint256.h"
 #include "commons/util.h"
 #include "main.h"

@@ -13,7 +13,7 @@
 #include <tuple>
 #include <vector>
 
-#include "accounts/key.h"
+#include "entities/key.h"
 #include "commons/uint256.h"
 #include "tx/tx.h"
 

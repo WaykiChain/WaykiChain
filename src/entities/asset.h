@@ -4,8 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#ifndef ACCOUNTS_ASSET_H
-#define ACCOUNTS_ASSET_H
+#ifndef ENTITIES_ASSET_H
+#define ENTITIES_ASSET_H
 
 #include <boost/variant.hpp>
 #include <functional>
@@ -69,4 +69,4 @@ public:
 };
 
 
-#endif //ACCOUNTS_ASSET_H
+#endif //ENTITIES_ASSET_H

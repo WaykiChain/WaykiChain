@@ -6,7 +6,7 @@
 #define RPC_CORE_COMMONS_H
 
 #include <string>
-#include "accounts/id.h"
+#include "entities/id.h"
 #include "json/json_spirit.h"
 
 using namespace std;

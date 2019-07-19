@@ -12,7 +12,7 @@
 
 #include "config/chainparams.h"
 #include "crypto/sha256.h"
-#include "accounts/key.h"
+#include "entities/key.h"
 #include "commons/random.h"
 #include "commons/uint256.h"
 #include "commons/util.h"

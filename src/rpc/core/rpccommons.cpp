@@ -4,7 +4,7 @@
 
 #include "rpccommons.h"
 
-#include "accounts/key.h"
+#include "entities/key.h"
 #include "main.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"

@@ -6,10 +6,10 @@
 // Unit tests for denial-of-service detection/prevention code
 //
 #ifdef TODO
-#include "accounts/keystore.h"
+#include "entities/keystore.h"
 #include "main.h"
 #include "net.h"
-#include "accounts/key.h"
+#include "entities/key.h"
 #include "commons/serialize.h"
 
 #include <stdint.h>

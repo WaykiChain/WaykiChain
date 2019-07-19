@@ -14,9 +14,9 @@
 #include "pricefeeddb.h"
 #include "sysparamdb.h"
 #include "txdb.h"
+#include "txreceiptdb.h"
 
-class CCacheWrapper {
-public:
+struct CCacheWrapper {
     CSysParamDBCache    sysParamCache;
     CAccountDBCache     accountCache;
     CContractDBCache    contractCache;
@@ -28,7 +28,7 @@ public:
     CTxMemCache         txCache;
     CPricePointMemCache ppCache;
 
-    CTxUndo txUndo;
+    CTxUndo             txUndo;
 };
 
 #endif //PERSIST_CACHEWRAPPER_H

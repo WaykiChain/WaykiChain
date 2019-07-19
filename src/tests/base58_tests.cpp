@@ -8,7 +8,7 @@
 #include "data/base58_keys_invalid.json.h"
 #include "data/base58_keys_valid.json.h"
 
-#include "accounts/key.h"
+#include "entities/key.h"
 #include "commons/uint256.h"
 #include "commons/util.h"
 

@@ -6,7 +6,7 @@
 #ifndef PERSIST_CDPDB_H
 #define PERSIST_CDPDB_H
 
-#include "accounts/id.h"
+#include "entities/id.h"
 #include "dbaccess.h"
 #include "tx/tx.h"  // TODO: constant definitions
 

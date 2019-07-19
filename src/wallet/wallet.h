@@ -17,8 +17,8 @@
 #include <memory>
 
 #include "crypter.h"
-#include "accounts/key.h"
-#include "accounts/keystore.h"
+#include "entities/key.h"
+#include "entities/keystore.h"
 #include "commons/util.h"
 #include "walletdb.h"
 #include "main.h"
