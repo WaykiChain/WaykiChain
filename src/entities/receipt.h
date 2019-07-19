@@ -13,7 +13,7 @@
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 
-class CReceipt: uint8_t {
+class CReceipt {
 public:
     TxType      txType;
     CUserID     fromUid;
