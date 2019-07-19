@@ -95,7 +95,7 @@ public:
         READWRITE(memo);
     )
 
-    uint256 ComputeSignatureHash(bool recalculate = false) const {
+    TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight);

@@ -69,7 +69,7 @@ public:
         READWRITE(signature);
     )
 
-    uint256 ComputeSignatureHash(bool recalculate = false) const {
+    TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
@@ -80,7 +80,7 @@ public:
     }
 
     virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, bcoinsToStake}}; }
-    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
+    virtual TxID GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPStakeTx>(this); }
 
@@ -96,9 +96,9 @@ private:
     bool SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    uint256 cdpTxId;
+    TXID     cdpTxId;
     uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
-    uint64_t collateralRatio;       // initial value must be >= 200 (%), boosted by 10000
+    uint64_t scoinsToMint;          // initial collateral ratio must be >= 190 (%), boosted by 10000
     uint64_t scoinsInterest;
 
 };
@@ -144,7 +144,7 @@ public:
         READWRITE(signature);
     )
 
-    uint256 ComputeSignatureHash(bool recalculate = false) const {
+    TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
@@ -220,7 +220,7 @@ public:
         READWRITE(signature);
     )
 
-    uint256 ComputeSignatureHash(bool recalculate = false) const {
+    TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)

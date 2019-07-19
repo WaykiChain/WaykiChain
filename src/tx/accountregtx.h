@@ -38,7 +38,7 @@ public:
 
     map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
 
-    uint256 ComputeSignatureHash(bool recalculate = false) const {
+    TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             assert(txUid.type() == typeid(CPubKey) &&
                    (minerUid.type() == typeid(CPubKey) || minerUid.type() == typeid(CNullID)));

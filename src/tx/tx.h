@@ -29,6 +29,8 @@ class CCacheWrapper;
 class CValidationState;
 class CContractDBCache;
 
+typedef uint256 TxID;
+
 string GetTxType(const TxType txType);
 uint64_t GetTxMinFee(const TxType nTxType, int nHeight);
 
@@ -48,7 +50,7 @@ public:
 
     uint64_t nRunStep;        //!< only in memory
     int32_t nFuelRate;        //!< only in memory
-    mutable uint256 sigHash;  //!< only in memory
+    mutable TxID sigHash;  //!< only in memory
 
 public:
     CBaseTx(const CBaseTx &other) { *this = other; }
@@ -72,7 +74,7 @@ public:
     virtual ~CBaseTx() {}
 
     virtual std::pair<CoinType, uint64_t> GetFees() const { return std::make_pair(CoinType::WICC, llFees); }
-    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
+    virtual TxID GetHash() const { return ComputeSignatureHash(); }
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 
     virtual uint64_t GetFuel(int32_t nFuelRate);
@@ -81,7 +83,7 @@ public:
     }
     virtual map<CoinType, uint64_t> GetValues() const = 0;
 
-    virtual uint256 ComputeSignatureHash(bool recalculate = false) const = 0;
+    virtual TxID ComputeSignatureHash(bool recalculate = false) const = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance()                    = 0;
 
     virtual string ToString(CAccountDBCache &view)                           = 0;

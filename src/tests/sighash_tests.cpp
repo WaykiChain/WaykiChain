@@ -18,7 +18,7 @@
 using namespace json_spirit;
 extern Array read_json(const std::string& jsondata);
 
-//extern uint256 ComputeSignatureHash(const CScript &scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType);
+//extern TxID ComputeSignatureHash(const CScript &scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType);
 
 // Old script.cpp ComputeSignatureHash function
 //uint256 static ComputeSignatureHashOld(CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)

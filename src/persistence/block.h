@@ -96,7 +96,7 @@ public:
     }
 
     uint256 GetHash() const;
-    uint256 ComputeSignatureHash() const;
+    TxID ComputeSignatureHash() const;
     int64_t GetBlockTime() const { return (int64_t)nTime; }
     int GetVersion() const { return nVersion; }
     void SetVersion(int nVersion) { this->nVersion = nVersion; }

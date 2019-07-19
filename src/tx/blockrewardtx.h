@@ -40,7 +40,7 @@ public:
         READWRITE(VARINT(rewardValue));
         READWRITE(VARINT(nValidHeight));)
 
-    uint256 ComputeSignatureHash(bool recalculate = false) const {
+    TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << txUid << VARINT(rewardValue) << VARINT(nValidHeight);
