@@ -12,7 +12,7 @@
 #include <vector>
 #include "commons/arith_uint256.h"
 #include "leveldbwrapper.h"
-#include "accounts/account.h"
+#include "entities/account.h"
 #include "dbconf.h"
 #include "dbaccess.h"
 

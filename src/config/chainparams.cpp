@@ -7,7 +7,7 @@
 #include "chainparams.h"
 
 #include "assert.h"
-#include "accounts/key.h"
+#include "entities/key.h"
 #include "commons/util.h"
 #include "configuration.h"
 #include "main.h"

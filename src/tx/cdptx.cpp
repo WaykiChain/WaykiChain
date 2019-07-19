@@ -6,7 +6,7 @@
 #include "cdptx.h"
 
 #include "main.h"
-#include "accounts/receipt.h"
+#include "entities/receipt.h"
 #include "persistence/cdpdb.h"
 
 #include <cmath>

@@ -12,7 +12,7 @@
 #include <openssl/des.h>
 #include <vector>
 #include "crypto/hash.h"
-#include "accounts/key.h"
+#include "entities/key.h"
 #include "main.h"
 #include "tx/tx.h"
 #include "vmrunenv.h"

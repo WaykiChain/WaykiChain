@@ -6,8 +6,8 @@
 #ifndef PERSIST_LOGDB_H
 #define PERSIST_LOGDB_H
 
-#include "accounts/account.h"
-#include "accounts/id.h"
+#include "entities/account.h"
+#include "entities/id.h"
 #include "commons/serialize.h"
 #include "dbaccess.h"
 #include "dbconf.h"

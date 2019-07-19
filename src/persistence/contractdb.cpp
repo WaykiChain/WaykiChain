@@ -5,9 +5,9 @@
 
 #include "contractdb.h"
 
-#include "accounts/account.h"
-#include "accounts/id.h"
-#include "accounts/key.h"
+#include "entities/account.h"
+#include "entities/id.h"
+#include "entities/key.h"
 #include "commons/uint256.h"
 #include "commons/util.h"
 #include "vm/luavm/vmrunenv.h"

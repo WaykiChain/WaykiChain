@@ -7,7 +7,7 @@
 #ifndef COIN_TXMEMPOOL_H
 #define COIN_TXMEMPOOL_H
 
-#include "accounts/account.h"
+#include "entities/account.h"
 #include "sync.h"
 
 #include <list>

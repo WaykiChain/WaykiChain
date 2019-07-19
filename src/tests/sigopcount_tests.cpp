@@ -2,7 +2,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "accounts/key.h"
+#include "entities/key.h"
 #include "commons/uint256.h"
 
 #include <vector>

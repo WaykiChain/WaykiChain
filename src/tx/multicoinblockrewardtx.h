@@ -9,7 +9,7 @@
 
 #include "tx.h"
 
-#include "accounts/account.h"
+#include "entities/account.h"
 
 #include <map>
 

@@ -6,10 +6,10 @@
 #ifndef PERSIST_ACCOUNTDB_H
 #define PERSIST_ACCOUNTDB_H
 
-#include "accounts/asset.h"
+#include "entities/asset.h"
 #include "leveldbwrapper.h"
-#include "accounts/asset.h"
-#include "accounts/asset.h"
+#include "entities/asset.h"
+#include "entities/asset.h"
 #include "commons/arith_uint256.h"
 #include "dbconf.h"
 #include "dbaccess.h"

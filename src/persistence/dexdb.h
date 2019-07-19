@@ -12,8 +12,8 @@
 
 #include "commons/serialize.h"
 #include "persistence/dbaccess.h"
-#include "accounts/id.h"
-#include "accounts/account.h"
+#include "entities/id.h"
+#include "entities/account.h"
 
 using namespace std;
 

@@ -10,7 +10,7 @@
 #include "appaccount.h"
 #include "commons/serialize.h"
 #include "script.h"
-#include "accounts/account.h"
+#include "entities/account.h"
 #include "persistence/leveldbwrapper.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"

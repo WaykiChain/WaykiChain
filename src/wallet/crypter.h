@@ -8,7 +8,7 @@
 
 #include "commons/allocators.h"
 #include "commons/serialize.h"
-#include "accounts/keystore.h"
+#include "entities/keystore.h"
 
 class uint256;
 

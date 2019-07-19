@@ -6,8 +6,8 @@
 #ifndef PERSIST_CONTRACTDB_H
 #define PERSIST_CONTRACTDB_H
 
-#include "accounts/account.h"
-#include "accounts/key.h"
+#include "entities/account.h"
+#include "entities/key.h"
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
 #include "dbaccess.h"
