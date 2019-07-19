@@ -14,6 +14,7 @@
 #include "pricefeeddb.h"
 #include "sysparamdb.h"
 #include "txdb.h"
+#include "txreceiptdb.h"
 
 class CCacheWrapper {
 public:
