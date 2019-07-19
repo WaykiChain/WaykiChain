@@ -72,11 +72,6 @@ bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
 }
 
 bool CCDPStakeTx::SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
-    if (nHeight < cdp.blockHeight) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, nHeight(%d) > cdp.blockHeight (%d)",
-                        nHeight, cdp.blockHeight), REJECT_INVALID, "cdp-block-height-error");
-    }
-
     uint64_t scoinsInterestToRepay;
     if (!ComputeCdpInterest(nHeight, cdp.blockHeight, cw, cdp.totalOwedScoins, scoinsInterestToRepay)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, ComputeCdpInterest error!"),
@@ -127,11 +122,12 @@ bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    uint64_t collateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice(nHeight) * kPercentBoost / scoinsToMint;
-    if (collateralRatio < startingCdpCollateralRatio) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
-                        collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
-    }
+    // TODO:
+    // uint64_t collateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice(nHeight) * kPercentBoost / scoinsToMint;
+    // if (collateralRatio < startingCdpCollateralRatio) {
+    //     return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
+    //                     collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
+    // }
 
     if (cdpTxId.IsNull()) {  // first-time CDP creation
         vector<CUserCDP> userCdps;
@@ -187,18 +183,18 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    uint64_t collateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice(nHeight) * kPercentBoost / scoinsToMint;
-    if (collateralRatio < startingCdpCollateralRatio) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
-                        collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
-    }
+    // TODO: un-comment
+    // uint64_t collateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice(nHeight) * kPercentBoost / scoinsToMint;
+    // if (collateralRatio < startingCdpCollateralRatio) {
+    //     return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
+    //                     collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
+    // }
 
     //2. mint scoins
     if (cdpTxId.IsNull()) { // first-time CDP creation
         CUserCDP cdp(txUid.get<CRegID>(), GetHash());
-        //settle cdp state & persist for the 1st-time
+        // settle cdp state & persist for the 1st-time
         cw.cdpCache.StakeBcoinsToCdp(nHeight, bcoinsToStake, scoinsToMint, cdp, cw.txUndo.dbOpLogMap);
-
     } else { // further staking on one's existing CDP
         CUserCDP cdp(txUid.get<CRegID>(), cdpTxId);
         if (!cw.cdpCache.GetCdp(cdp)) {
@@ -210,14 +206,12 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
                     nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
         }
 
-        // uint64_t currentCollateralRatio = cdp.totalStakedBcoins * cw.ppCache.GetBcoinMedianPrice(nHeight)
-        //                                 * kPercentBoost / cdp.totalOwedScoins;
         if (!SellInterestForFcoins(nHeight, cdp, cw, state))
             return false;
 
         account.scoins -= scoinsInterest;
 
-        //settle cdp state & persist
+        // settle cdp state & persist
         cw.cdpCache.StakeBcoinsToCdp(nHeight, bcoinsToStake, scoinsToMint, cdp, cw.txUndo.dbOpLogMap);
     }
 
@@ -233,8 +227,8 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
 
     vector<CReceipt> receipts;
     CUserID nullUid;
-    CReceipt receipt1(nTxType, nullUid, txUid, WUSD, scoinsToMint);
-    receipts.push_back(receipt1);
+    CReceipt receipt(nTxType, nullUid, txUid, WUSD, scoinsToMint);
+    receipts.push_back(receipt);
     cw.txReceiptCache.SetTxReceipts(cw.txUndo.txid, receipts);
 
     bool ret = SaveTxAddresses(nHeight, nIndex, cw, state, {txUid});
@@ -312,11 +306,6 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
      return true;
  }
  bool CCDPRedeemTx::SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
-    if (nHeight > cdp.blockHeight) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, nHeight(%d) > cdp.blockHeight (%d)",
-                        nHeight, cdp.blockHeight), REJECT_INVALID, "cdp-block-height-error");
-    }
-
     uint64_t scoinsInterestToRepay;
     if (!ComputeCdpInterest(nHeight, cdp.blockHeight, cw, cdp.totalOwedScoins, scoinsInterestToRepay)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, ComputeCdpInterest error!"),

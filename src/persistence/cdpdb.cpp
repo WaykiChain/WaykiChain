@@ -129,15 +129,20 @@ void CCdpMemCache::BatchWrite(const map<CUserCDP, uint8_t> &cdpsIn) {
 
 bool CCdpDBCache::StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                                     CUserCDP &cdp, CDBOpLogMap &dbOpLogMap) {
-    // update cdp's properties before saving
+    // 1. erase the old cdp in memory cache
+    cdpMemCache.EraseCdp(cdp);
+
+    // 2. update cdp's properties before saving
     cdp.blockHeight = blockHeight;
     cdp.totalStakedBcoins += bcoinsToStake;
     cdp.totalOwedScoins += mintedScoins;
     cdp.collateralRatioBase = double(cdp.totalStakedBcoins) / cdp.totalOwedScoins;
-
     if (!SaveCdp(cdp, dbOpLogMap)) {
         return ERRORMSG("CCdpDBCache::StakeBcoinsToCdp : SetData failed.");
     }
+
+    // 3. save the new cdp in memory cache
+    cdpMemCache.SaveCdp(cdp);
 
     return true;
 }
