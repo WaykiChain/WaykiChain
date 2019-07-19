@@ -474,18 +474,13 @@ public:
     bool GetTopNElements(const uint32_t maxNum, set<KeyType> &keys) {
         // 1. Get all candidate elements.
         set<KeyType> expiredKeys;
-        set<KeyType> candidateKeys;
-        if (!GetTopNElements(maxNum, expiredKeys, candidateKeys)) {
+        if (!GetTopNElements(maxNum, expiredKeys, keys)) {
             // TODO: log
             return false;
         }
 
         // 2. Get the top N elements.
-        uint32_t count = 0;
-        auto iter      = candidateKeys.begin();
-        for (; (count < maxNum) && iter != candidateKeys.end(); ++iter) {
-            keys.insert(*iter);
-        }
+        keys.resize(std::min(keys.size(), maxNum));
 
         return keys.size() == maxNum;
     }
