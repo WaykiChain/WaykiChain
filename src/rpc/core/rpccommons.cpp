@@ -153,6 +153,8 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
     auto spCW = std::make_shared<CCacheWrapper>();
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
+    spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
+    spCW->cdpCache.SetBaseView(pCdMan->pCdpCache);
 
     switch (pBaseTx->nTxType) {
         case BLOCK_REWARD_TX: {

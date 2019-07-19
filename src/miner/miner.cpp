@@ -212,6 +212,7 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     spCW->txCache.SetBaseView(&cwIn.txCache);
     spCW->contractCache.SetBaseView(&cwIn.contractCache);
     spCW->delegateCache.SetBaseView(&cwIn.delegateCache);
+    spCW->cdpCache.SetBaseView(&cwIn.cdpCache);
 
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
@@ -370,6 +371,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
             spCW->accountCache.SetBaseView(&cwIn.accountCache);
             spCW->contractCache.SetBaseView(&cwIn.contractCache);
             spCW->delegateCache.SetBaseView(&cwIn.delegateCache);
+            spCW->cdpCache.SetBaseView(&cwIn.cdpCache);
 
             CValidationState state;
             pBaseTx->nFuelRate = nFuelRate;
@@ -630,6 +632,7 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
             spCW->txCache.SetBaseView(pCdMan->pTxCache);
             spCW->contractCache.SetBaseView(pCdMan->pContractCache);
             spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
+            spCW->cdpCache.SetBaseView(pCdMan->pCdpCache);
 
             miningBlockInfo.SetNull();
             int64_t nLastTime = GetTimeMillis();
