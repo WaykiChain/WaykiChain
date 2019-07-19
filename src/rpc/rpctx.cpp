@@ -2430,6 +2430,20 @@ Value getalltxinfo(const Array& params, bool fHelp) {
     return retObj;
 }
 
+Value gettxreceipt(const Array& params, bool fHelp) {
+    if (fHelp || (params.size() != 0 && params.size() != 1)) {
+        throw runtime_error("gettxreceipt \n"
+            "\nget tx receipts by txid\n"
+            "\nArguments:\n"
+            "1.\"txid\": (string) txid \n"
+            "\nResult:\n"
+            "\nExamples:\n" + HelpExampleCli("gettxreceipt", "") + "\nAs json rpc call\n"
+            + HelpExampleRpc("gettxreceipt", ""));
+    }
+    string strTxId = params[0].get_str();
+    pCdMan->
+}
+
 Value getcontractaccountinfo(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 2 && params.size() != 3)) {
         throw runtime_error(

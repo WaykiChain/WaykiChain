@@ -158,6 +158,7 @@ struct CDEXSysForceSellBcoinsOrder {
 class CDexDBCache {
 public:
     CDexDBCache() {}
+    CLogDBCache(CDBAccess *pDbAccess) : activeOrderCache(pDbAccess), sysOrderCache(pDbAccess) {};
 
 public:
     bool GetActiveOrder(const uint256 &orderTxId, CDEXActiveOrder& activeOrder);
