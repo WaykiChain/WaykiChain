@@ -160,7 +160,7 @@ public:
 private:
 /*  CDBMultiValueCache     prefixType     key                               value        variable  */
 /*  ----------------   --------------   ---------------------------   ---------------    --------- */
-    // <CRegID, CTxCord> -> CUserCDP
+    // cdp$CRegID$CTxID -> CUserCDP
     CDBMultiValueCache< dbk::CDP,         std::pair<string, uint256>,   CUserCDP >       cdpCache;
 
 public:

@@ -23,10 +23,10 @@ public:
     CContractDBCache contractCache;
     CDelegateDBCache delegateCache;
     CCdpDBCache cdpCache;
-    CTxMemCache txCache;
-
-    CPricePointMemCache ppCache;
     CDexDBCache dexCache;
+
+    CTxMemCache txCache;
+    CPricePointMemCache ppCache;
 
     CTxUndo txUndo;
 };
