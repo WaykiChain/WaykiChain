@@ -18,21 +18,21 @@ public:
     TxType      txType;
     CUserID     fromUid;
     CUserID     toUid;
-    CoinType    sendCoinType;
-    uint64_t    sendCoinAmount;
+    CoinType    coinType;
+    uint64_t    sendAmount;
 
 public:
-    CReceipt(TxType &txTypeIn, CUserID &receipientUidIn, CoinOpType opTypeIn,
-            CoinType &coinTypeIn, uint64_t &coinAmountIn) :
-            txType(txTypeIn), receipientUid(receipientUidIn), opType(opTypeIn),
-            coinType(coinTypeIn), coinAmount(coinAmountIn) {};
+    CReceipt(TxType &txTypeIn, CUserID &fromUidIn, CUserID &toUidIn,
+            CoinType &coinTypeIn, uint64_t &sendAmountIn) :
+            txType(txTypeIn), fromUid(fromUidIn), toUid(toUidIn),
+            coinType(coinTypeIn), sendAmount(sendAmountIn) {};
 
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t &) txType);
-        READWRITE(receipientUid);
-        READWRITE((uint8_t &) opType);
+        READWRITE(fromUid);
+        READWRITE(toUid);
         READWRITE((uint8_t &) coinType);
-        READWRITE(VARINT(coinAmount));)
+        READWRITE(VARINT(sendAmount));)
 };
 
 #endif //ACCOUNTS_ASSET_H

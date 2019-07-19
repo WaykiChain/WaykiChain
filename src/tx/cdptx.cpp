@@ -6,6 +6,7 @@
 #include "cdptx.h"
 
 #include "main.h"
+#include "accounts/receipt.h"
 #include "persistence/cdpdb.h"
 
 #include <cmath>
@@ -238,7 +239,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
     }
     cw.txUndo.accountLogs.push_back(acctLog);
 
-    CReceipt receipt(nTxType, uint256(), txUid.get<CPubKey>(), WUSD, mintedScoins);
+    CReceipt receipt(nTxType, uint256(), txUid, WUSD, mintedScoins);
     receipts.add(receipt);
     cw.txReceiptCache.SetTxReceipts(receipts);
 
@@ -425,16 +426,17 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
     account.scoins -= scoinsToRedeem;
     account.bcoins += releasedBcoins;
 
-    CReceipt receipt1(nTxType, uint256(), txUid.get<CPubKey>(), WUSD, mintedScoins);
-    receipts.add(receipt1);
-    CReceipt receipt2(nTxType, uint256(), txUid.get<CPubKey>(), WUSD, mintedScoins);
-    cw.txReceiptCache.SetTxReceipts(receipts);
-
     cdp.totalStakedBcoins = (uint64_t) targetStakedBcoins;
     if (!cw.cdpCache.SaveCdp(cdp, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update CDP %s failed",
                         cdp.ownerRegId.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
     }
+    vector<CReceipt> receipts;
+    CReceipt receipt1(nTxType, txUid, uint256(), WUSD, scoinsToRedeem);
+    receipts.add(receipt1);
+    CReceipt receipt2(nTxType, uint256(), txUid, WICC, releasedBcoins);
+    receipts.add(receipt2);
+    cw.txReceiptCache.SetTxReceipts(cw.txUndo.txid, receipts);
 
     cw.txUndo.accountLogs.push_back(acctLog);
 
@@ -685,10 +687,14 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
         totalBcoinsToCDPOwner = cdp.totalStakedBcoins - totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice(nHeight);
     }
 
+    vector<CReceipt> receipts;
     if (scoinsToLiquidate >= totalScoinsToLiquidate) {
+        uint64_t totalBcoinsToReturnLiquidator =
+            totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice(nHeight);
+
         account.scoins -= totalScoinsToLiquidate;
         account.scoins -= scoinsPenalty;
-        account.bcoins += totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice(nHeight);
+        account.bcoins += totalBcoinsToReturnLiquidator;
 
         cdpOwnerAccount.bcoins += totalBcoinsToCDPOwner;
 
@@ -696,14 +702,26 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
             return false;
 
         //close CDP
-        cw.cdpCache.EraseCdp(cdp, cw.txUndo.dbOpLogMap);
+        if (!cw.cdpCache.EraseCdp(cdp, cw.txUndo.dbOpLogMap))
+            return false;
+
+        CReceipt receipt1(nTxType, txUid, uint256(), WUSD, (totalScoinsToLiquidate + scoinsPenalty));
+        receipts.add(receipt1);
+
+        CReceipt receipt2(nTxType, uint256(), txUid, WICC, totalBcoinsToReturnLiquidator);
+        receipts.add(receipt2);
+
+        CReceipt receipt3(nTxType, uint256(), CUserID(cdp.ownerRegId), WICC, totalBcoinsToCDPOwner);
+        receipts.add(receipt3);
 
     } else { //partial liquidation
         liquidateRate = (double) scoinsToLiquidate / totalScoinsToLiquidate;
+        uint64_t totalBcoinsToReturnLiquidator =
+            totalScoinsToReturnLiquidator * liquidateRate / cw.ppCache.GetBcoinMedianPrice(nHeight);
 
         account.scoins -= scoinsToLiquidate;
         account.scoins -= scoinsPenalty;
-        account.bcoins += totalScoinsToReturnLiquidator * liquidateRate / cw.ppCache.GetBcoinMedianPrice(nHeight);
+        account.bcoins += totalBcoinsToReturnLiquidator;
 
         int bcoinsToCDPOwner = totalBcoinsToCDPOwner * liquidateRate;
         cdpOwnerAccount.bcoins += bcoinsToCDPOwner;
@@ -716,7 +734,17 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
             return false;
 
         cw.cdpCache.SaveCdp(cdp, cw.txUndo.dbOpLogMap);
+
+        CReceipt receipt1(nTxType, txUid, uint256(), WUSD, (scoinsToLiquidate + scoinsPenalty));
+        receipts.add(receipt1);
+
+        CReceipt receipt2(nTxType, uint256(), txUid, WICC, totalBcoinsToReturnLiquidator);
+        receipts.add(receipt2);
+
+        CReceipt receipt3(nTxType, uint256(), CUserID(cdp.ownerRegId), WICC, bcoinsToCDPOwner);
+        receipts.add(receipt3);
     }
+    cw.txReceiptCache.SetTxReceipts(cw.txUndo.txid, receipts);
 
     return true;
 }
