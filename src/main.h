@@ -326,6 +326,7 @@ public:
     CDBAccess           *pCdpDb;
     CCdpDBCache         *pCdpCache;
 
+    CDBAccess           *pDexDb;
     CDexDBCache         *pDexCache;
 
     CBlockTreeDB        *pBlockTreeDb;
@@ -335,6 +336,9 @@ public:
 
     CDBAccess           *pLogDb;
     CLogDBCache         *pLogCache;
+
+    CDBAccess           *pTxReceiptDb;
+    CTxReceiptDBCache   *pTxReceiptCache;
 
 public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache, size_t nContractDBCache,
@@ -354,15 +358,21 @@ public:
         pCdpDb          = new CDBAccess(DBNameType::CDP, nAccountDBCache, false, fReIndex); //TODO fix cache size
         pCdpCache       = new CCdpDBCache(pCdpDb);
 
-        pDexCache       = new CDexDBCache();
+        pDexDb          = new CDBAccess(DBNameType::DEX, nAccountDBCache, false, fReIndex); //TODO fix cache size
+        pDexCache       = new CDexDBCache(pDexDb);
 
-        pBlockTreeDb = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
+        pBlockTreeDb    = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
 
         pTxCache        = new CTxMemCache();
+
         pPpCache        = new CPricePointMemCache();
 
         pLogDb          = new CDBAccess(DBNameType::LOG, nAccountDBCache, false, fReIndex); //TODO fix cache size
         pLogCache       = new CLogDBCache(pLogDb);
+
+        pTxReceiptDb    = new CDBAccess(DBNameType::RECEIPT, nAccountDBCache, false, fReIndex); //TODO fix cache size
+        pTxReceiptCache = new CCdpDBCache(pCdpDb);
+
     }
 
     ~CCacheDBManager() {
@@ -375,6 +385,7 @@ public:
         delete pCdpCache;       pCdpCache = nullptr;
         delete pDexCache;       pDexCache = nullptr;
         delete pLogCache;       pLogCache = nullptr;
+        delete pTxReceiptCache; pTxReceiptCache = nullptr;
 
         delete pSysParamDb;     pSysParamDb = nullptr;
         delete pAccountDb;      pAccountDb = nullptr;
@@ -382,7 +393,9 @@ public:
         delete pDelegateDb;     pDelegateDb = nullptr;
         delete pBlockTreeDb;    pBlockTreeDb = nullptr;
         delete pCdpDb;          pCdpDb = nullptr;
+        delete pDexDb;          pDexDb = nullptr;
         delete pLogDb;          pLogDb = nullptr;
+        delete pTxReceiptDb;    pTxReceiptDb = nullptr;
     }
 
     bool Flush() {

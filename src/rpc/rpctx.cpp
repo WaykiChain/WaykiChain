@@ -2430,6 +2430,34 @@ Value getalltxinfo(const Array& params, bool fHelp) {
     return retObj;
 }
 
+Value gettxreceipt(const Array& params, bool fHelp) {
+    if (fHelp || (params.size() != 0 && params.size() != 1)) {
+        throw runtime_error("gettxreceipt \n"
+            "\nget tx receipts by txid\n"
+            "\nArguments:\n"
+            "1.\"txid\": (string) txid \n"
+            "\nResult:\n"
+            "\nExamples:\n" + HelpExampleCli("gettxreceipt", "") + "\nAs json rpc call\n"
+            + HelpExampleRpc("gettxreceipt", ""));
+    }
+    string strTxId = params[0].get_str();
+    vector<CReceipt> receipts;
+    pCdMan->txReceiptCache.GetTxReceipts(strTxId, receipts);
+
+    Array retArr;
+    for (const auto &receipt : receipts) {
+        Object obj;
+
+        obj.push_back(Pair("tx_type", kTxFeeTable.at(receipt.txType).get<0>());
+        obj.push_back(Pair("from_addr", receipt.fromUid.ToString());
+        obj.push_back(Pair("to_addr", receipt.fromUid.ToString());
+        obj.push_back(Pair("coin_type", receipt.coinType));
+        obj.push_back(Pair("transfer_amount", receipt.sendAmount));
+        retArray.push_back(obj);
+    }
+    return retArr;
+}
+
 Value getcontractaccountinfo(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 2 && params.size() != 3)) {
         throw runtime_error(
