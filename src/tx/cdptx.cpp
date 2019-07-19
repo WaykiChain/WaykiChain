@@ -38,8 +38,8 @@ string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
     string str = strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", GetTxType(nTxType),
                      GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString());
 
-    str += strprintf("cdpTxId=%s, bcoinsToStake=%d, collateralRatio=%d, scoinsInterest=%d",
-                    cdpTxId.ToString(), bcoinsToStake, collateralRatio, scoinsInterest);
+    str += strprintf("cdpTxId=%s, bcoinsToStake=%d, scoinsToMint=%d, scoinsInterest=%d",
+                    cdpTxId.ToString(), bcoinsToStake, scoinsToMint, scoinsInterest);
 
     return str;
 }
@@ -60,7 +60,7 @@ Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
 
     result.push_back(Pair("cdp_txid",           cdpTxId.ToString()));
     result.push_back(Pair("bcoins_to_stake",    bcoinsToStake));
-    result.push_back(Pair("collateral_ratio",   collateralRatio / kPercentBoost));
+    result.push_back(Pair("scoins_to_mint",     scoinsToMint));
     result.push_back(Pair("scoins_interest",    scoinsInterest));
 
     return result;
@@ -127,7 +127,7 @@ bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    uint64_t collateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice() * kPercentBoost / scoinsToMint;
+    uint64_t collateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice(nHeight) * kPercentBoost / scoinsToMint;
     if (collateralRatio < startingCdpCollateralRatio) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
                         collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
@@ -187,7 +187,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    uint64_t collateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice() * kPercentBoost / scoinsToMint;
+    uint64_t collateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice(nHeight) * kPercentBoost / scoinsToMint;
     if (collateralRatio < startingCdpCollateralRatio) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
                         collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
@@ -221,7 +221,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
         cw.cdpCache.StakeBcoinsToCdp(nHeight, bcoinsToStake, scoinsToMint, cdp, cw.txUndo.dbOpLogMap);
     }
 
-    if (!account.StakeBcoinsToCdp(CoinType::WICC, bcoinsToStake, scoinsToMint) {
+    if (!account.StakeBcoinsToCdp(CoinType::WICC, bcoinsToStake, scoinsToMint)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, stake bcoins from regId=%s failed",
                         txUid.ToString()), STAKE_CDP_FAIL, "cdp-stake-bcoins-failed");
     }

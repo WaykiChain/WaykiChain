@@ -22,16 +22,18 @@ public:
     uint64_t    sendAmount;
 
 public:
+    CReceipt() {};
+
     CReceipt(TxType txTypeIn, CUserID &fromUidIn, CUserID &toUidIn,
             CoinType coinTypeIn, uint64_t sendAmountIn) :
             txType(txTypeIn), fromUid(fromUidIn), toUid(toUidIn),
             coinType(coinTypeIn), sendAmount(sendAmountIn) {};
 
     IMPLEMENT_SERIALIZE(
-        READWRITE((uint8_t) txType);
+        READWRITE((uint8_t &) txType);
         READWRITE(fromUid);
         READWRITE(toUid);
-        READWRITE((uint8_t) coinType);
+        READWRITE((uint8_t &) coinType);
         READWRITE(VARINT(sendAmount));)
 };
 

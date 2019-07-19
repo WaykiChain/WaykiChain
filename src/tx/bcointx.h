@@ -7,7 +7,7 @@
 #ifndef BASECOIN_H
 #define BASECOIN_H
 
-#include "tx/tx.h"
+#include "tx.h"
 
 class CBaseCoinTransferTx : public CBaseTx {
 public:
