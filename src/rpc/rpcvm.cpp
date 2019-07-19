@@ -139,6 +139,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
     spCW->txCache.SetBaseView(pCdMan->pTxCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
+    spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
+    spCW->cdpCache.SetBaseView(pCdMan->pCdpCache);
 
     CKeyID srcKeyId;
     if (!FindKeyId(&spCW->accountCache, params[0].get_str(), srcKeyId)) {

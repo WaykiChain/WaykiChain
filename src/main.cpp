@@ -525,6 +525,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     spCW->accountCache.SetBaseView(pool.memPoolAccountCache.get());
     spCW->contractCache.SetBaseView(pool.memPoolContractCache.get());
     spCW->delegateCache.SetBaseView(pool.memPoolDelegateCache.get());
+    spCW->cdpCache.SetBaseView(pool.memPoolCdpCache.get());
 
     if (!CheckTx(chainActive.Height(), pBaseTx, *spCW, state))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed");
@@ -1968,6 +1969,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     spCW->txCache.SetBaseView(pCdMan->pTxCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
     spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
+    spCW->cdpCache.SetBaseView(pCdMan->pCdpCache);
 
     bool forkChainTipFound = false;
     uint256 forkChainTipBlockHash;
@@ -2011,6 +2013,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         spCW->txCache       = mapForkCache[blockHash]->txCache;
         spCW->contractCache = mapForkCache[blockHash]->contractCache;
         spCW->delegateCache = mapForkCache[blockHash]->delegateCache;
+        spCW->cdpCache      = mapForkCache[blockHash]->cdpCache;
 
         LogPrint("INFO", "ProcessForkedChain() : found [%d]: %s in cache\n",
             blockHeight, blockHash.GetHex());
@@ -2047,11 +2050,13 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         spForkCW->txCache       = mapForkCache[forkChainTipBlockHash]->txCache;
         spForkCW->contractCache = mapForkCache[forkChainTipBlockHash]->contractCache;
         spForkCW->delegateCache = mapForkCache[forkChainTipBlockHash]->delegateCache;
+        spForkCW->cdpCache      = mapForkCache[forkChainTipBlockHash]->cdpCache;
     } else {
         spForkCW->accountCache  = spCW->accountCache;
         spForkCW->txCache       = spCW->txCache;
         spForkCW->contractCache = spCW->contractCache;
         spForkCW->delegateCache = spCW->delegateCache;
+        spForkCW->cdpCache      = spCW->cdpCache;
     }
 
     uint256 forkChainBestBlockHash = spForkCW->accountCache.GetBestBlock();
@@ -2418,6 +2423,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
     spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
+    spCW->cdpCache.SetBaseView(pCdMan->pCdpCache);
 
     // Preliminary checks
     if (!CheckBlock(*pBlock, state, *spCW, false)) {
@@ -2736,6 +2742,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
     spCW->txCache.SetBaseView(pCdMan->pTxCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
     spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
+    spCW->cdpCache.SetBaseView(pCdMan->pCdpCache);
 
     CBlockIndex *pIndexState   = chainActive.Tip();
     CBlockIndex *pIndexFailure = nullptr;

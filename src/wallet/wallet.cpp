@@ -451,6 +451,8 @@ bool CWallet::IsMine(CBaseTx *pTx) const {
     // TODO:
     spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
     spCW->contractCache.SetBaseView(pCdMan->pContractCache);
+    spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
+    spCW->cdpCache.SetBaseView(pCdMan->pCdpCache);
 
     set<CKeyID> keyIds;
     if (!pTx->GetInvolvedKeyIds(*spCW, keyIds)) {
