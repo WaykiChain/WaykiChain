@@ -4,8 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#ifndef ACCOUNTS_H
-#define ACCOUNTS_H
+#ifndef ENTITIES_ACCOUNT_H
+#define ENTITIES_ACCOUNT_H
 
 #include <boost/variant.hpp>
 #include <functional>
@@ -440,4 +440,4 @@ public:
 };
 
 
-#endif
+#endif //ENTITIES_ACCOUNT_H

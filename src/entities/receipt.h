@@ -4,8 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#ifndef ACCOUNTS_ASSET_H
-#define ACCOUNTS_ASSET_H
+#ifndef ENTITIES_RECEIPT_H
+#define ENTITIES_RECEIPT_H
 
 #include "crypto/hash.h"
 #include "account.h"
@@ -35,4 +35,4 @@ public:
         READWRITE(VARINT(sendAmount));)
 };
 
-#endif //ACCOUNTS_ASSET_H
+#endif //ENTITIES_RECEIPT_H

@@ -3,8 +3,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef COIN_KEY_H
-#define COIN_KEY_H
+#ifndef ENTITIES_KEY_H
+#define ENTITIES_KEY_H
 
 #include <boost/variant.hpp>
 #include <stdexcept>
@@ -435,4 +435,4 @@ void ECC_Stop();
 /** Check that required EC support is available at runtime. */
 bool ECC_InitSanityCheck();
 
-#endif
+#endif //ENTITIES_KEY_H

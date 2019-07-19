@@ -3,8 +3,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef COIN_KEYSTORE_H
-#define COIN_KEYSTORE_H
+#ifndef ENTITIES_KEYSTORE_H
+#define ENTITIES_KEYSTORE_H
 
 #include <boost/signals2/signal.hpp>
 #include <set>
@@ -151,4 +151,4 @@ public:
 typedef vector<unsigned char, secure_allocator<unsigned char> > CKeyingMaterial;
 typedef map<CKeyID, pair<CPubKey, vector<unsigned char> > > CryptedKeyMap;
 
-#endif
+#endif //ENTITIES_KEYSTORE_H

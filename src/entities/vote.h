@@ -3,8 +3,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef VOTE_H
-#define VOTE_H
+#ifndef ENTITIES_VOTE_H
+#define ENTITIES_VOTE_H
 
 #include <boost/variant.hpp>
 #include <memory>
@@ -124,4 +124,4 @@ private:
     }
 };
 
-#endif
+#endif //ENTITIES_VOTE_H
