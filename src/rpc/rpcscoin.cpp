@@ -158,7 +158,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
             "\nArguments:\n"
             "1. \"address\" : CDP staker's address\n"
             "2. \"stake_amount\": (numeric required) WICC coins to stake into the CDP, boosted by 10^8\n"
-            "3. \"collateral_ratio\": (numberic required), collateral ratio, boosted by 10^4 times\n"
+            "3. \"mint_amount\": (numberic required), WUSD amount to mint\n"
             "4. \"cdp_id\": (string optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
             "5. \"interest\": (numeric optional) CDP interest (WUSD) to repay\n"
             "6. \"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
@@ -174,7 +174,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
                            "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n"));
     }
     uint64_t stakeAmount = params[1].get_uint64();
-    uint64_t collateralRatio = params[2].get_uint64();
+    uint64_t mintAmount = params[2].get_uint64();
 
     int validHeight = chainActive.Tip()->nHeight;
     uint64_t interest = 0;
@@ -195,7 +195,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
-    CCDPStakeTx tx(*cdpUid, fee, validHeight, cdpTxId, stakeAmount, collateralRatio, interest);
+    CCDPStakeTx tx(*cdpUid, fee, validHeight, cdpTxId, stakeAmount, mintAmount, interest);
     return SubmitTx(*cdpUid, tx);
 }
 

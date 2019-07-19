@@ -96,7 +96,7 @@ private:
     bool SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    TXID     cdpTxId;
+    TxID     cdpTxId;
     uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
     uint64_t scoinsToMint;          // initial collateral ratio must be >= 190 (%), boosted by 10000
     uint64_t scoinsInterest;
