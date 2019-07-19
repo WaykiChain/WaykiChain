@@ -129,7 +129,7 @@ private:
 class CCdpDBCache {
 public:
     CCdpDBCache() {}
-    CCdpDBCache(CDBAccess *pDbAccess) : cdpCache(pDbAccess) {}
+    CCdpDBCache(CDBAccess *pDbAccess) : cdpCache(pDbAccess), cdpMemCache(pDbAccess) {}
     CCdpDBCache(CCdpDBCache *pBaseIn) : cdpCache(pBaseIn->cdpCache), cdpMemCache(pBaseIn->cdpMemCache) {}
 
     void SetBaseView(CCdpDBCache *pBaseIn) {

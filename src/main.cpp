@@ -1700,6 +1700,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         spCW->txCache.SetBaseView(pCdMan->pTxCache);
         spCW->contractCache.SetBaseView(pCdMan->pContractCache);
         spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
+        spCW->cdpCache.SetBaseView(pCdMan->pCdpCache);
 
         if (!ConnectBlock(block, *spCW, pIndexNew, state)) {
             if (state.IsInvalid()) {

@@ -36,10 +36,10 @@ void CCdpMemCache::SetBase(CCdpMemCache *pBaseIn) {
 }
 
 void CCdpMemCache::Flush() {
-    assert(pBase != nullptr);
-
-    pBase->BatchWrite(cdps);
-    cdps.clear();
+    if (pBase != nullptr) {
+        pBase->BatchWrite(cdps);
+        cdps.clear();
+    }
 }
 
 bool CCdpMemCache::SaveCdp(const CUserCDP &userCdp) {
