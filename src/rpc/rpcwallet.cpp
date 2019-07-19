@@ -780,7 +780,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
         if (pCdMan->pAccountCache->GetRegId(CUserID(pubKey), regId) && pCdMan->pAccountCache->RegIDIsMature(regId)) {
             signaturePairs.push_back(CSignaturePair(regId, UnsignedCharArray()));
         } else {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Inmature regid or invalid key");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Immature regid or invalid key");
         }
     }
 
@@ -800,8 +800,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value getassets(const Array& params, bool fHelp)
-{
+Value getassets(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 1) {
         throw runtime_error("getassets \"contract_regid\"\n"
             "\nThe collection of all assets\n"
@@ -815,25 +814,25 @@ Value getassets(const Array& params, bool fHelp)
 
     CRegID regid(params[0].get_str());
     if (regid.IsEmpty() == true) {
-        throw runtime_error("in getassets :scriptid size is error!\n");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract regid");
     }
 
     if (!pCdMan->pContractCache->HaveContractScript(regid)) {
-        throw runtime_error("in getassets :scriptid  is not exist!\n");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to find contract");
     }
 
     Object retObj;
 
-    set<CKeyID> sKeyid;
-    pWalletMain->GetKeys(sKeyid);
-    if (sKeyid.empty()) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No Key In wallet \n");
+    set<CKeyID> keyIds;
+    pWalletMain->GetKeys(keyIds);
+    if (keyIds.empty()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No keys in wallet");
     }
 
     uint64_t totalassets = 0;
     Array arrayAssetIds;
     set<CKeyID>::iterator it;
-    for (it = sKeyid.begin(); it != sKeyid.end(); it++) {
+    for (it = keyIds.begin(); it != keyIds.end(); it++) {
         CKeyID keyId = *it;
 
         if (keyId.IsNull()) {
@@ -853,15 +852,15 @@ Value getassets(const Array& params, bool fHelp)
         totalassets += freezeValues;
 
         Object result;
-        result.push_back(Pair("Address", addr));
-        result.push_back(Pair("FreeValues", freeValues));
-        result.push_back(Pair("FreezedFund", freezeValues));
+        result.push_back(Pair("address", addr));
+        result.push_back(Pair("free_value", freeValues));
+        result.push_back(Pair("freezed_value", freezeValues));
 
         arrayAssetIds.push_back(result);
     }
 
-    retObj.push_back(Pair("TotalAssets", totalassets));
-    retObj.push_back(Pair("Lists", arrayAssetIds));
+    retObj.push_back(Pair("total_assets", totalassets));
+    retObj.push_back(Pair("lists", arrayAssetIds));
 
     return retObj;
 }
@@ -906,9 +905,9 @@ Value getassets(const Array& params, bool fHelp)
 //         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "nAmount <= 0  ");
 //     }
 
-//     set<CKeyID> sKeyid;
-//     pWalletMain->GetKeys(sKeyid); //get addrs
-//     if (sKeyid.empty()) {
+//     set<CKeyID> keyIds;
+//     pWalletMain->GetKeys(keyIds); //get addrs
+//     if (keyIds.empty()) {
 //         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No Key In wallet \n");
 //     }
 
@@ -917,7 +916,7 @@ Value getassets(const Array& params, bool fHelp)
 //     set<CKeyID>::iterator it;
 //     CKeyID recvKeyId;
 
-//     for (it = sKeyid.begin(); it!=sKeyid.end(); it++) {
+//     for (it = keyIds.begin(); it!=keyIds.end(); it++) {
 //         recvKeyId = *it;
 //         if (recvKeyId.IsNull()) {
 //             continue;
