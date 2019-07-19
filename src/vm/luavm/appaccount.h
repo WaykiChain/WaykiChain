@@ -64,7 +64,7 @@ public:
 	CAppFundOperate();
 
 	unsigned char opType;			//!OperType
-	unsigned int timeoutHeight;	//!< the transacion Timeout height
+	unsigned int timeoutHeight;		//!< the transacion Timeout height
 	int64_t mMoney;			        //!<The transfer amount
 	unsigned char appuserIDlen;
 	unsigned char vAppuser[CAppCFund::MAX_TAG_SIZE];				//!< accountId
