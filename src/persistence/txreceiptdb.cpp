@@ -5,28 +5,12 @@
 
 #include "txreceiptdb.h"
 
-bool CTxReceiptDBCache::SetExecuteFail(const int32_t blockHeight, const uint256 txid, const uint8_t errorCode,
-                                 const string &errorMessage) {
-    return executeFailCache.SetData(std::to_string(blockHeight) + "_" + txid.GetHex(),
-                                    std::make_pair(errorCode, errorMessage));
+bool CTxReceiptDBCache::SetTxReceipts(const TxID &txid, const vector<CReceipt> &receipts) {
+    return txReceiptCache.SetData(txid, receipts);
 }
-
-bool CTxReceiptDBCache::GetExecuteFail(const int32_t blockHeight, vector<std::tuple<uint256, uint8_t, string> > &result) {
-    map<string, std::pair<uint8_t, string> > elements;
-    if (!executeFailCache.GetAllElements(std::to_string(blockHeight) + "_", elements)) {
-        return false;
-    }
-
-    size_t prefixLen = string(std::to_string(blockHeight) + "_").size();
-    for (const auto &item : elements) {
-        result.push_back(std::make_tuple(uint256S(item.first.substr(prefixLen)) /* txid */,
-                                         std::get<0>(item.second) /* error code */,
-                                         std::get<1>(item.second) /* error message */));
-    }
-
-    return true;
+bool CTxReceiptDBCache::GetTxReceipts(const TxID &txid, vector<CReceipt> &receipts) {
+    return txReceiptCache.GetData(txid, receipts);
 }
-
 void CTxReceiptDBCache::Flush() {
-    executeFailCache.Flush();
+    txReceiptCache.Flush();
 }

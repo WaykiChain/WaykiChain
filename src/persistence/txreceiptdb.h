@@ -21,7 +21,7 @@ typedef uint256 TxID;
 
 class CTxReceiptDBCache {
 public:
-    CTxReceiptDBCache(CDBAccess *pDbAccess) : executeFailCache(pDbAccess){};
+    CTxReceiptDBCache(CDBAccess *pDbAccess) : txReceiptCache(pDbAccess){};
 
 public:
     bool SetTxReceipts(const TxID &txid, const vector<CReceipt> &receipts);
