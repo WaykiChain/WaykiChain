@@ -99,6 +99,16 @@ public:
     bool UndoTxHashByAddress(CDBOpLogMap &dbOpLogMap);
     bool GetContractAccounts(const CRegID &contractRegId, map<string, string > &mapAcc);
 
+    void SetBaseViewPtr(CContractDBCache *pBaseIn) {
+        scriptCache.SetBase(&pBaseIn->scriptCache);
+        txOutputCache.SetBase(&pBaseIn->txOutputCache);
+        acctTxListCache.SetBase(&pBaseIn->acctTxListCache);
+        txDiskPosCache.SetBase(&pBaseIn->txDiskPosCache);
+        contractRelatedKidCache.SetBase(&pBaseIn->contractRelatedKidCache);
+        contractDataCache.SetBase(&pBaseIn->contractDataCache);
+        contractAccountCache.SetBase(&pBaseIn->contractAccountCache);
+    };
+
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */

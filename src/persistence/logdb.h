@@ -31,6 +31,10 @@ public:
 
     void Flush();
 
+    void SetBaseViewPtr(CLogDBCache *pBaseIn) {
+        executeFailCache.SetBase(&pBaseIn->executeFailCache);
+    };
+
 private:
 /*  CDBScalarValueCache  prefixType             key                 value                        variable      */
 /*  -------------------- --------------------- ------------------  ---------------------------  -------------- */

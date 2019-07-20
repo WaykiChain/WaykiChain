@@ -41,6 +41,10 @@ public:
     }
     uint32_t GetCacheSize() const { return sysParamCache.GetCacheSize(); }
 
+    void SetBaseViewPtr(CSysParamDBCache *pBaseIn) {
+        sysParamCache.SetBase(&pBaseIn->sysParamCache);
+    };
+
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */

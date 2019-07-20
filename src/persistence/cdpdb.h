@@ -157,6 +157,9 @@ public:
     bool Flush();
     uint32_t GetCacheSize() const;
 
+    void SetBaseViewPtr(CCdpDBCache *pBaseIn) {
+        cdpCache.SetBase(&pBaseIn->cdpCache);
+    };
 private:
 /*  CDBMultiValueCache     prefixType     key                               value        variable  */
 /*  ----------------   --------------   ---------------------------   ---------------    --------- */

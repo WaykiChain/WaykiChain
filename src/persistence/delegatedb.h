@@ -47,6 +47,11 @@ public:
     uint32_t GetCacheSize() const;
     void Clear();
 
+    void SetBaseViewPtr(CDelegateDBCache *pBaseIn) {
+        voteRegIdCache.SetBase(&pBaseIn->voteRegIdCache);
+        regId2VoteCache.SetBase(&pBaseIn->regId2VoteCache);
+    };
+
 private:
 /*  CDBScalarValueCache  prefixType     key                         value                   variable       */
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */
