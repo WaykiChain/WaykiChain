@@ -413,7 +413,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         // TODO: CMultiCoinBlockRewardTx
         ((CBlockRewardTx *)pBlock->vptx[0].get())->rewardValue = nTotalFees - nTotalFuel;
 
-        CBlockPriceMedianTx* pPriceMedianTx = ((CBlockRewardTx *)pBlock->vptx[1].get();
+        CBlockPriceMedianTx* pPriceMedianTx = ((CBlockPriceMedianTx *)pBlock->vptx[1].get();
         map<CCoinPriceType, uint64_t> mapMedianPricePointsIn;
         cw.ppCache.GetBlockMedianPricePoints(nHeight, mapMedianPricePoints);
         pPriceMedianTx->SetMedianPricePoints(mapMedianPricePointsIn)

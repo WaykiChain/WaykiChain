@@ -132,11 +132,6 @@ public:
     CCdpDBCache(CDBAccess *pDbAccess) : cdpCache(pDbAccess), cdpMemCache(pDbAccess) {}
     CCdpDBCache(CCdpDBCache *pBaseIn) : cdpCache(pBaseIn->cdpCache), cdpMemCache(pBaseIn->cdpMemCache) {}
 
-    void SetBaseViewPtr(CCdpDBCache *pBaseIn) {
-        cdpCache.SetBase(&pBaseIn->cdpCache);
-        cdpMemCache.SetBase(&pBaseIn->cdpMemCache);
-    }
-
     bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                           CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
 
@@ -157,6 +152,10 @@ public:
     bool Flush();
     uint32_t GetCacheSize() const;
 
+    void SetBaseViewPtr(CCdpDBCache *pBaseIn) {
+        cdpCache.SetBase(&pBaseIn->cdpCache);
+        cdpMemCache.SetBase(&pBaseIn->cdpMemCache);
+    }
 private:
 /*  CDBMultiValueCache     prefixType     key                               value        variable  */
 /*  ----------------   --------------   ---------------------------   ---------------    --------- */

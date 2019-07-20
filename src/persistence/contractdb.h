@@ -51,16 +51,6 @@ public:
         contractDataCache(pBaseIn->contractDataCache),
         contractAccountCache(pBaseIn->contractAccountCache) {};
 
-    void SetBaseViewPtr(CContractDBCache *pBaseIn) {
-        scriptCache.SetBase(&pBaseIn->scriptCache);
-        txOutputCache.SetBase(&pBaseIn->txOutputCache);
-        acctTxListCache.SetBase(&pBaseIn->acctTxListCache);
-        txDiskPosCache.SetBase(&pBaseIn->txDiskPosCache);
-        contractRelatedKidCache.SetBase(&pBaseIn->contractRelatedKidCache);
-        contractDataCache.SetBase(&pBaseIn->contractDataCache);
-        contractAccountCache.SetBase(&pBaseIn->contractAccountCache);
-    }
-
     bool GetContractAccount(const CRegID &contractRegId, const string &accountKey, CAppUserAccount &appAccOut);
     bool SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn, CDBOpLogMap &dbOpLogMap);
     bool UndoContractAccount(CDBOpLogMap &dbOpLogMap);
@@ -98,6 +88,16 @@ public:
     bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid, CDBOpLogMap &dbOpLogMap);
     bool UndoTxHashByAddress(CDBOpLogMap &dbOpLogMap);
     bool GetContractAccounts(const CRegID &contractRegId, map<string, string > &mapAcc);
+
+    void SetBaseViewPtr(CContractDBCache *pBaseIn) {
+        scriptCache.SetBase(&pBaseIn->scriptCache);
+        txOutputCache.SetBase(&pBaseIn->txOutputCache);
+        acctTxListCache.SetBase(&pBaseIn->acctTxListCache);
+        txDiskPosCache.SetBase(&pBaseIn->txDiskPosCache);
+        contractRelatedKidCache.SetBase(&pBaseIn->contractRelatedKidCache);
+        contractDataCache.SetBase(&pBaseIn->contractDataCache);
+        contractAccountCache.SetBase(&pBaseIn->contractAccountCache);
+    };
 
 private:
 /*       type               prefixType               key                     value                 variable               */

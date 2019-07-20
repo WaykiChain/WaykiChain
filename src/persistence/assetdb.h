@@ -41,6 +41,11 @@ public:
 
     bool Flush();
 
+    void SetBaseViewPtr(CAssetDBCache *pBaseIn) {
+        assetCache.SetBase(&pBaseIn->assetCache);
+        assetTradingPairCache.SetBase(&pBaseIn->assetTradingPairCache);
+    };
+
 private:
 /*  CDBMultiValueCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */

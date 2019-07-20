@@ -171,6 +171,11 @@ public:
     bool CreateSysOrder(const uint256 &orderTxId, const CDEXSysOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
     bool UndoSysOrder(CDBOpLogMap &dbOpLogMap);
 
+    void SetBaseViewPtr(CDexDBCache *pBaseIn) {
+        activeOrderCache.SetBase(&pBaseIn->activeOrderCache);
+        sysOrderCache.SetBase(&pBaseIn->sysOrderCache);
+    };
+
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */

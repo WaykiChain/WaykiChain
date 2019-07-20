@@ -25,11 +25,6 @@ public:
     CDelegateDBCache(CDelegateDBCache *pBaseIn)
         : voteRegIdCache(pBaseIn->voteRegIdCache), regId2VoteCache(pBaseIn->regId2VoteCache){};
 
-    void SetBaseViewPtr(CDelegateDBCache *pBaseIn) {
-        voteRegIdCache.SetBase(&pBaseIn->voteRegIdCache);
-        regId2VoteCache.SetBase(&pBaseIn->regId2VoteCache);
-    }
-
     bool LoadTopDelegates();
     bool ExistDelegate(const CRegID &regId);
     bool GetTopDelegates(vector<CRegID> &delegatesList);
@@ -46,6 +41,11 @@ public:
     bool Flush();
     uint32_t GetCacheSize() const;
     void Clear();
+
+    void SetBaseViewPtr(CDelegateDBCache *pBaseIn) {
+        voteRegIdCache.SetBase(&pBaseIn->voteRegIdCache);
+        regId2VoteCache.SetBase(&pBaseIn->regId2VoteCache);
+    };
 
 private:
 /*  CDBScalarValueCache  prefixType     key                         value                   variable       */

@@ -31,6 +31,10 @@ public:
 
     void Flush();
 
+    void SetBaseViewPtr(CTxReceiptDBCache *pBaseIn) {
+        txReceiptCache.SetBase(&pBaseIn->txReceiptCache);
+    };
+
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */

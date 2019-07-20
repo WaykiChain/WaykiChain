@@ -20,8 +20,6 @@ public:
     CSysParamDBCache(CDBAccess *pDbAccess) : sysParamCache(pDbAccess) {}
     CSysParamDBCache(CSysParamDBCache *pBaseIn) : sysParamCache(pBaseIn->sysParamCache) {}
 
-    void SetBaseViewPtr(CSysParamDBCache *pBaseIn) { sysParamCache.SetBase(&pBaseIn->sysParamCache); }
-
     bool GetParam(const SysParamType &paramType, uint64_t& paramValue) {
         if (SysParamTable.count(paramType) == 0)
             return false;
@@ -40,6 +38,10 @@ public:
         return true;
     }
     uint32_t GetCacheSize() const { return sysParamCache.GetCacheSize(); }
+
+    void SetBaseViewPtr(CSysParamDBCache *pBaseIn) {
+        sysParamCache.SetBase(&pBaseIn->sysParamCache);
+    };
 
 private:
 /*       type               prefixType               key                     value                 variable               */
