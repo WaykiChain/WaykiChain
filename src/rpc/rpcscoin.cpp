@@ -106,14 +106,14 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
 Value submitstakefcointx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
-            "submitstakefcointx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
-            "\nsubmit a fcoin stake order tx.\n"
+            "submitstakefcointx \"addr\" \"fcoin amount\" [fee]\n"
+            "\nstake fcoins\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) order owner address\n"
-            "2.\"asset_amount\": (numeric, required) amount of target asset to stake\n"
-            "3.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
+            "1.\"addr\":            (string, required)\n"
+            "2.\"fcoin amount\":    (numeric, required) amount of fcoins to stake\n"
+            "3.\"fee\":             (numeric, optional) fee pay for miner, default is 10000\n"
             "\nResult:\n"
-            "\"txid\" (string) The transaction id.\n"
+            "\"txid\"               (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitstakefcointx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 200000000\n")
             + "\nAs json rpc call\n"
@@ -128,23 +128,10 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
-    CAccount txAccount;
-    if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("The account not exists! userId=%s", pUserId->ToString()));
-    }
+    int64_t stakeAmount = params[1].get_int64();
+    uint64_t fee        = params.size() > 2 ? AmountToRawValue(params[2]) : 0;
+    int32_t validHeight = chainActive.Tip()->nHeight;
 
-    uint64_t stakeAmount = params[1].get_uint64();
-    if (txAccount.GetFreeFcoins() < stakeAmount) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough fcoins");
-    }
-
-    uint64_t fee = 0;
-    if (params.size() > 2) {
-        fee = AmountToRawValue(params[2]);
-    }
-
-    int validHeight = chainActive.Tip()->nHeight;
     CFcoinStakeTx tx(*pUserId, validHeight, fee, stakeAmount);
     return SubmitTx(*pUserId, tx);
 }
