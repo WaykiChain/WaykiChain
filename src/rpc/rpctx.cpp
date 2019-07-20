@@ -1593,9 +1593,8 @@ Value getcontractdata(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract regid");
     }
 
-    bool hexadecimal = params.size() > 1 ? params[1].get_bool() : true;
-
-    string key = params[1].get_str();
+    string key       = params[1].get_str();
+    bool hexadecimal = params.size() > 2 ? params[2].get_bool() : true;
     string value;
     if (!pCdMan->pContractCache->GetContractData(regId, key, value)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to acquire contract data");
@@ -1606,7 +1605,7 @@ Value getcontractdata(const Array& params, bool fHelp) {
     obj.push_back(Pair("key",               hexadecimal ? HexStr(key) : key));
     obj.push_back(Pair("value",             hexadecimal ? HexStr(value) : value));
 
-    return Object();
+    return obj;
 }
 
 Value saveblocktofile(const Array& params, bool fHelp) {
