@@ -15,7 +15,8 @@
 #include "sysparamdb.h"
 #include "txdb.h"
 #include "txreceiptdb.h"
-#include "main.h"
+
+class CCacheDBManager;
 
 class CCacheWrapper {
 public:
@@ -33,54 +34,19 @@ public:
     CTxUndo             txUndo;
 
 public:
-    CCacheWrapper() {}
+    CCacheWrapper();
 
-    CCacheWrapper(  CSysParamDBCache*   pSysParamCacheIn,
-                    CAccountDBCache*    pAccountCacheIn,
-                    CContractDBCache*   pContractCacheIn,
-                    CDelegateDBCache*   pDelegateCacheIn,
-                    CCdpDBCache*        pCdpCacheIn,
-                    CDexDBCache*        pDexCacheIn,
-                    CTxReceiptDBCache*  pTxReceiptCacheIn) {
+    CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
+                  CAccountDBCache* pAccountCacheIn,
+                  CContractDBCache* pContractCacheIn,
+                  CDelegateDBCache* pDelegateCacheIn,
+                  CCdpDBCache* pCdpCacheIn,
+                  CDexDBCache* pDexCacheIn,
+                  CTxReceiptDBCache* pTxReceiptCacheIn);
+    CCacheWrapper(CCacheWrapper& cwIn);
+    CCacheWrapper(CCacheDBManager* pCdMan);
 
-        sysParamCache.SetBaseViewPtr(pSysParamCacheIn);
-        accountCache.SetBaseViewPtr(pAccountCacheIn);
-        contractCache.SetBaseViewPtr(pContractCacheIn);
-        delegateCache.SetBaseViewPtr(pDelegateCacheIn);
-        cdpCache.SetBaseViewPtr(pCdpCacheIn);
-        dexCache.SetBaseViewPtr(pDexCacheIn);
-        txReceiptCache.SetBaseViewPtr(pTxReceiptCacheIn);
-    }
-
-    CCacheWrapper(CCacheWrapper &cwIn) {
-        sysParamCache.SetBaseViewPtr(&cwIn.sysParamCache);
-        accountCache.SetBaseViewPtr (&cwIn.accountCache);
-        contractCache.SetBaseViewPtr(&cwIn.contractCache);
-        delegateCache.SetBaseViewPtr(&cwIn.delegateCache);
-        cdpCache.SetBaseViewPtr     (&cwIn.cdpCache);
-        dexCache.SetBaseViewPtr     (&cwIn.dexCache);
-        txReceiptCache.SetBaseViewPtr(&cwIn.txReceiptCache);
-    }
-
-    CCacheWrapper(CCacheDBManager *pCdMan) {
-        sysParamCache.SetBaseViewPtr(pCdMan->pSysParamCacheIn);
-        accountCache.SetBaseViewPtr(pCdMan->pAccountCacheIn);
-        contractCache.SetBaseViewPtr(pCdMan->pContractCacheIn);
-        delegateCache.SetBaseViewPtr(pCdMan->pDelegateCacheIn);
-        cdpCache.SetBaseViewPtr(pCdMan->pCdpCacheIn);
-        dexCache.SetBaseViewPtr(pCdMan->pDexCacheIn);
-        txReceiptCache.SetBaseViewPtr(pCdMan->pTxReceiptCacheIn);
-    }
-
-    void Flush() {
-        accountCache.Flush();
-        contractCache.Flush();
-        delegateCache.Flush();
-        cdpCache.Flush();
-        dexCache.Flush();
-        sysParamCache.Flush();
-        txReceiptCache.Flush();
-    };
+    void Flush();
 };
 
 #endif //PERSIST_CACHEWRAPPER_H

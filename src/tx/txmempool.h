@@ -8,6 +8,7 @@
 #define COIN_TXMEMPOOL_H
 
 #include "entities/account.h"
+#include "persistence/cachewrapper.h"
 #include "sync.h"
 
 #include <list>
@@ -16,10 +17,6 @@
 
 using namespace std;
 
-class CAccountDBCache;
-class CContractDBCache;
-class CDelegateDBCache;
-class CCdpDBCache;
 class CValidationState;
 class CBaseTx;
 class uint256;

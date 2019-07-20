@@ -241,7 +241,7 @@ int64_t CWallet::GetFreeBcoins(bool isConfirmed) const {
         GetKeys(setKeyId);
         for (auto &keyId : setKeyId) {
             if (!isConfirmed)
-                ret += mempool.memPoolAccountCache.get()->GetFreeBcoins(keyId);
+                ret += mempool.cw->accountCache.GetFreeBcoins(keyId);
             else
                 ret += pCdMan->pAccountCache->GetFreeBcoins(keyId);
         }

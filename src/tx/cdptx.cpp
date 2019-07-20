@@ -11,6 +11,26 @@
 
 #include <cmath>
 
+bool ComputeCdpInterest(const int32_t currBlockHeight, const int32_t cpdLastBlockHeight, CCacheWrapper &cw,
+                        const uint64_t &totalOwedScoins, uint64_t &interest) {
+    int32_t blockInterval = currBlockHeight - cpdLastBlockHeight;
+    int32_t loanedDays = ceil( (double) blockInterval / kDayBlockTotalCount );
+
+    uint64_t A;
+    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_A, A))
+        return false;
+
+    uint64_t B;
+    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_B, B))
+        return false;
+
+    uint64_t N = totalOwedScoins;
+    double annualInterestRate = 0.1 * (double) A / log10( 1 + B * N);
+    interest = (uint64_t) (((double) N / 365) * loanedDays * annualInterestRate);
+
+    return true;
+}
+
 // CDP owner can redeem his or her CDP that are in liquidation list
 bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
@@ -190,27 +210,6 @@ bool CCDPStakeTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
         return state.DoS(100, ERRORMSG("CCDPStakeTx::UndoExecuteTx, undo system buy order failed"),
                         UNDO_SYS_ORDER_FAILED, "undo-data-failed");
     }
-
-    return true;
-}
-
-
-bool ComputeCdpInterest(const int32_t currBlockHeight, const int32_t cpdLastBlockHeight, CCacheWrapper &cw,
-                        const uint64_t &totalOwedScoins, uint64_t &interest) {
-    int32_t blockInterval = currBlockHeight - cpdLastBlockHeight;
-    int32_t loanedDays = ceil( (double) blockInterval / kDayBlockTotalCount );
-
-    uint64_t A;
-    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_A, A))
-        return false;
-
-    uint64_t B;
-    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_B, B))
-        return false;
-
-    uint64_t N = totalOwedScoins;
-    double annualInterestRate = 0.1 * (double) A / log10( 1 + B * N);
-    interest = (uint64_t) (((double) N / 365) * loanedDays * annualInterestRate);
 
     return true;
 }

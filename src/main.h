@@ -56,6 +56,7 @@ class CChain;
 class CInv;
 class CAccountDBCache;
 class CBlockTreeDB;
+class CSysParamDBCache;
 
 extern CCriticalSection cs_main;
 /** The currently-connected chain of blocks. */

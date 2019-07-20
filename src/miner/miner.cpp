@@ -296,9 +296,8 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         return nullptr;
 
     pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
-    if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1) { // pre-stablecoin release
+    if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R1) { // pre-stablecoin release
         pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
-
     } else {  //stablecoin release
         pBlock->vptx.push_back(std::make_shared<CMultiCoinBlockRewardTx>());
         pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>());
@@ -413,10 +412,10 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         // TODO: CMultiCoinBlockRewardTx
         ((CBlockRewardTx *)pBlock->vptx[0].get())->rewardValue = nTotalFees - nTotalFuel;
 
-        CBlockPriceMedianTx* pPriceMedianTx = ((CBlockPriceMedianTx *)pBlock->vptx[1].get();
-        map<CCoinPriceType, uint64_t> mapMedianPricePointsIn;
-        cw.ppCache.GetBlockMedianPricePoints(nHeight, mapMedianPricePoints);
-        pPriceMedianTx->SetMedianPricePoints(mapMedianPricePointsIn)
+        CBlockPriceMedianTx* pPriceMedianTx = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
+        map<CCoinPriceType, uint64_t> mapMedianPricePoints;
+        cwIn.ppCache.GetBlockMedianPricePoints(nHeight, mapMedianPricePoints);
+        pPriceMedianTx->SetMedianPricePoints(mapMedianPricePoints);
 
         // Fill in header
         pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());

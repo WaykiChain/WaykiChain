@@ -2491,7 +2491,7 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
 
     std::shared_ptr<CAppUserAccount> appUserAccount = std::make_shared<CAppUserAccount>();
     if (params.size() == 3 && params[2].get_int() == 0) {
-        if (!mempool.memPoolContractCache->GetContractAccount(appRegId, acctKey, *appUserAccount.get())) {
+        if (!mempool.cw->contractCache.GetContractAccount(appRegId, acctKey, *appUserAccount.get())) {
             appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }
     } else {

@@ -105,7 +105,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
                              REJECT_INVALID, "tx-invalid-height");
     }
 
-    auto spCW = std::make_shared<CCacheWrapper>(cw);
+    auto spCW = std::make_shared<CCacheWrapper>(*cw);
 
     if (bExecute) {
         if (!memPoolEntry.GetTransaction()->ExecuteTx(chainActive.Height() + 1, 0, *spCW, state)) {
@@ -129,11 +129,11 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
 }
 
 void CTxMemPool::SetMemPoolCache(CCacheDBManager *pCdManIn) {
-    cw.reset(std::make_shared<CCacheWrapper>(pCdManIn);
+    cw.reset(new CCacheWrapper(pCdManIn));
 }
 
 void CTxMemPool::ReScanMemPoolTx(CCacheDBManager *pCdManIn) {
-    cw.reset(std::make_shared<CCacheWrapper>(pCdManIn));
+    cw.reset(new CCacheWrapper(pCdManIn));
 
     LOCK(cs);
     CValidationState state;
@@ -152,10 +152,7 @@ void CTxMemPool::Clear() {
     LOCK(cs);
 
     memPoolTxs.clear();
-    memPoolAccountCache.reset(new CAccountDBCache(*pCdMan->pAccountCache));
-    memPoolContractCache.reset(new CContractDBCache(*pCdMan->pContractCache));
-    memPoolDelegateCache.reset(new CDelegateDBCache(*pCdMan->pDelegateCache));
-    memPoolCdpCache.reset(new CCdpDBCache(*pCdMan->pCdpCache));
+    cw.reset(new CCacheWrapper(pCdMan));
 
     ++nTransactionsUpdated;
 }

@@ -521,8 +521,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : nonstandard transaction: %s", reason), REJECT_NONSTANDARD,
                          reason);
 
-    CCacheWrapper &cwIn = pool.cw;
-    auto spCW = std::make_shared<CCacheWrapper>(cwIn);
+    auto spCW = std::make_shared<CCacheWrapper>(*mempool.cw);
 
     if (!CheckTx(chainActive.Height(), pBaseTx, *spCW, state))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed");
