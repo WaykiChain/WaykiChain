@@ -319,7 +319,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
         }
         //TODO: other Tx types
         case CDP_STAKE_TX:
-        case CDP_REDEEMP_TX:
+        case CDP_REDEEM_TX:
         case CDP_LIQUIDATE_TX:
         case PRICE_FEED_TX:
         case FCOIN_STAKE_TX:

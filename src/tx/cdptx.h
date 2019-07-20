@@ -103,15 +103,15 @@ private:
  */
 class CCDPRedeemTx: public CBaseTx {
 public:
-    CCDPRedeemTx() : CBaseTx(CDP_REDEEMP_TX) {}
+    CCDPRedeemTx() : CBaseTx(CDP_REDEEM_TX) {}
 
-    CCDPRedeemTx(const CBaseTx *pBaseTx): CBaseTx(CDP_REDEEMP_TX) {
+    CCDPRedeemTx(const CBaseTx *pBaseTx): CBaseTx(CDP_REDEEM_TX) {
         *this = *(CCDPRedeemTx *)pBaseTx;
     }
 
     CCDPRedeemTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
                 uint256 cdpTxIdIn, uint64_t scoinsToRedeemIn, uint64_t collateralRatioIn, uint64_t scoinsInterestIn):
-                CBaseTx(CDP_REDEEMP_TX, txUidIn, validHeightIn, feesIn) {
+                CBaseTx(CDP_REDEEM_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }

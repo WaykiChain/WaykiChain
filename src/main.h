@@ -804,7 +804,7 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
 
         case CDP_STAKE_TX:
             Serialize(os, *((CCDPStakeTx *)(pa.get())), nType, nVersion); break;
-        case CDP_REDEEMP_TX:
+        case CDP_REDEEM_TX:
             Serialize(os, *((CCDPRedeemTx *)(pa.get())), nType, nVersion); break;
         case CDP_LIQUIDATE_TX:
             Serialize(os, *((CCDPLiquidateTx *)(pa.get())), nType, nVersion); break;
@@ -899,7 +899,7 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
             Unserialize(is, *((CCDPStakeTx *)(pa.get())), nType, nVersion);
             break;
         }
-        case CDP_REDEEMP_TX: {
+        case CDP_REDEEM_TX: {
             pa = std::make_shared<CCDPRedeemTx>();
             Unserialize(is, *((CCDPRedeemTx *)(pa.get())), nType, nVersion);
             break;

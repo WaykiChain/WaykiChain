@@ -32,7 +32,7 @@ enum TxType: uint8_t {
     UCOIN_REWARD_TX          = 14,  //!< Universal Coin Reward Tx
 
     CDP_STAKE_TX            = 21,  //!< CDP Staking/Restaking Tx
-    CDP_REDEEMP_TX          = 22,  //!< CDP Redemption Tx (partial or full)
+    CDP_REDEEM_TX           = 22,  //!< CDP Redemption Tx (partial or full)
     CDP_LIQUIDATE_TX        = 23,  //!< CDP Liquidation Tx (partial or full)
 
     PRICE_FEED_TX         = 31,  //!< Price Feed Tx: WICC/USD | WGRT/USD | WUSD/USD
@@ -80,7 +80,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
     { DELEGATE_VOTE_TX,         std::make_tuple("DELEGATE_VOTE_TX",        10000,      10000,     10000,      10000        ) }, //0.0001 WICC
     { COMMON_MTX,               std::make_tuple("COMMON_MTX",              10000,      10000,     10000,      10000        ) }, //0.0001 WICC
     { CDP_STAKE_TX,             std::make_tuple("CDP_STAKE_TX",            100000,     100000,    100000,     100000       ) }, //0.001 WICC
-    { CDP_REDEEMP_TX,           std::make_tuple("CDP_REDEEMP_TX",          100000,     100000,    100000,     100000       ) }, //0.001 WICC
+    { CDP_REDEEM_TX,            std::make_tuple("CDP_REDEEM_TX",          100000,     100000,    100000,     100000       ) }, //0.001 WICC
     { CDP_LIQUIDATE_TX,         std::make_tuple("CDP_LIQUIDATE_TX",        100000,     100000,    100000,     100000       ) }, //0.001 WICC
     { PRICE_FEED_TX,            std::make_tuple("PRICE_FEED_TX",           10000,      10000,     10000,      10000        ) }, //0.0001 WICC
     { SFC_PARAM_MTX,            std::make_tuple("SFC_PARAM_MTX",           10000,      10000,     10000,      10000        ) }, //0.0001 WICC

@@ -2284,7 +2284,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             }
             break;
         }
-        case CDP_REDEEMP_TX: {
+        case CDP_REDEEM_TX: {
             std::shared_ptr<CCDPRedeemTx> tx = std::make_shared<CCDPRedeemTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(*pCdMan->pAccountCache);
