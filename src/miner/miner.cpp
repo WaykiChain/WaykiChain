@@ -415,9 +415,8 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
 
         CBlockPriceMedianTx* pPriceMedianTx = ((CBlockRewardTx *)pBlock->vptx[1].get();
         map<CCoinPriceType, uint64_t> mapMedianPricePointsIn;
-        //TODO: collect median price points
+        cw.ppCache.GetBlockMedianPricePoints(nHeight, mapMedianPricePoints);
         pPriceMedianTx->SetMedianPricePoints(mapMedianPricePointsIn)
-
 
         // Fill in header
         pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());

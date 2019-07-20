@@ -49,6 +49,7 @@ public:
 
     uint64_t GetBcoinMedianPrice(const int32_t blockHeight);
     uint64_t GetFcoinMedianPrice(const int32_t blockHeight);
+    bool GetBlockMedianPricePoints(const int32_t blockHeight, map<CCoinPriceType, uint64_t> *&mapMedianPricePointsIn);
 
     void Flush();
 

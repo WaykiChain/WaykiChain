@@ -174,3 +174,16 @@ uint64_t CPricePointMemCache::GetBcoinMedianPrice(const int32_t blockHeight) {
 uint64_t CPricePointMemCache::GetFcoinMedianPrice(const int32_t blockHeight) {
     return ComputeBlockMedianPrice(blockHeight, CCoinPriceType(CoinType::WGRT, PriceType::USD));
 }
+
+bool CPricePointMemCache::GetBlockMedianPricePoints(const int32_t blockHeight,
+                                                    map<CCoinPriceType, uint64_t> *&mapMedianPricePointsIn) {
+    CCoinPriceType bcoinPriceType(CoinType::WICC, PriceType::USD);
+    uint64_t bcoinMedianPrice = GetBcoinMedianPrice(blockHeight);
+    mapMedianPricePointsIn.push_back(bcoinPriceType, bcoinMedianPrice);
+
+    CCoinPriceType fcoinPriceType(CoinType::WGRT, PriceType::USD);
+    uint64_t scoinMedianPrice = GetScoinMedianPrice(blockHeight);
+    mapMedianPricePointsIn.push_back(scoinPriceType, scoinMedianPrice);
+
+    return true;
+}
