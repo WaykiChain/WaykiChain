@@ -215,11 +215,10 @@ static const CRPCCommand vRPCCommands[] =
 { //  name                      actor (function)         okSafeMode threadSafe reqWallet
   //  ------------------------  -----------------------  ---------- ---------- ---------
     /* Overall control/query calls */
-    { "getinfo",                &getinfo,                true,      false,      false }, /* uses wallet if enabled */
     { "help",                   &help,                   true,      true,       false },
+    { "getinfo",                &getinfo,                true,      false,      false }, /* uses wallet if enabled */
     { "stop",                   &stop,                   true,      true,       false },
     { "validateaddr",           &validateaddr,           true,      true,       false },
-    { "validateaddress",        &validateaddr,           true,      true,       false }, //deprecated
     { "createmulsig",           &createmulsig,           true,      true ,      false },
     { "listtxbyaddr",           &listtxbyaddr,           true,      true,       false },
 
@@ -254,9 +253,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getminedblocks",         &getminedblocks,         true,      true,       false },
 
     /* Raw transactions */
-    { "sendtoaddressraw",       &gensendtoaddressraw,    false,     false,     false },  /* deprecated */
     { "gensendtoaddressraw",    &gensendtoaddressraw,    false,     false,     false },
-    { "registeraccountraw",     &genregisteraccountraw,  false,     false,     false },  /* deprecated */
     { "genregisteraccountraw",  &genregisteraccountraw,  false,     false,     false },
     { "genregistercontractraw", &genregistercontractraw, false,     false,     false },
     { "gencallcontractraw",     &gencallcontractraw,     false,     false,     false },
@@ -270,7 +267,6 @@ static const CRPCCommand vRPCCommands[] =
     { "dumpwallet",             &dumpwallet,             true,      false,      true },
     { "encryptwallet",          &encryptwallet,          false,     false,      true },
     { "getaccountinfo",         &getaccountinfo,         true,      false,      true },
-    { "getnewaddress",          &getnewaddr,             true,      false,      true },   /* deprecated */
     { "getnewaddr",             &getnewaddr,             true,      false,      true },
     { "gettxdetail",            &gettxdetail,            true,      false,      true },
     { "listunconfirmedtx",      &listunconfirmedtx,      true,      false,      true },
@@ -286,10 +282,8 @@ static const CRPCCommand vRPCCommands[] =
     { "listcontracttx",         &listcontracttx,         true,      false,      true },
     { "gettransaction",         &gettransaction,         true,      false,      true },
 
-    { "registaccounttx",        &registeraccounttx,      true,      false,      true }, /** deprecated */
     { "registeraccounttx",      &registeraccounttx,      true,      false,      true },
     { "registercontracttx",     &registercontracttx,     true,      false,      true },
-    { "createcontracttx",       &callcontracttx,         true,      false,      true }, /** deprecated */
     { "callcontracttx",         &callcontracttx,         true,      false,      true },
     { "votedelegatetx",         &votedelegatetx,         true,      false,      true },
 
@@ -309,10 +303,8 @@ static const CRPCCommand vRPCCommands[] =
     { "sendtoaddresswithfee",   &sendtoaddresswithfee,   false,     false,      true },
     { "send",                   &send,                   false,     false,      true },
     { "getbalance",             &getbalance,             false,     false,      true },
-    // { "dispersebalance",        &dispersebalance,        false,     false,      true },
     { "getassets",              &getassets,              false,     false,      true },
     { "listcontractassets",     &listcontractassets,     false,     false,      true },
-    { "submittx",               &sendtxraw,              true,      false,      false}, //deprecated
     { "sendtxraw",              &sendtxraw,              true,      false,      false},
 
     { "signtxraw",              &signtxraw,              true,      false,      true },
@@ -351,7 +343,7 @@ static const CRPCCommand vRPCCommands[] =
     { "gethash",                &gethash,                true,      false,      true },
     { "startcommontpstest",     &startcommontpstest,     true,      true,       false},
     { "startcontracttpstest",   &startcontracttpstest,   true,      true,       false},
-    { "getblockfailures",       &getblockfailures,         false,     false,      false},
+    { "getblockfailures",       &getblockfailures,       false,     false,      false},
 
     /* vm functions work in vm simulator */
     { "vmexecutescript",        &vmexecutescript,        true,      true,       true},
@@ -428,6 +420,7 @@ static bool InitRPCAuthentication() {
                   "for example: alertnotify=echo %%s | mail -s \"Coin Alert\" admin@foo.com\n",
                 strWhatAmI, GetConfigFile().string(),
                 EncodeBase58(&rand_pwd[0], &rand_pwd[0] + 32));
+
         StartShutdown();
         return false;
     }
