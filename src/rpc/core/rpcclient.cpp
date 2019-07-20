@@ -242,7 +242,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "genmulsigtx"            && n > 4) ConvertTo<int>(params[4]);
 
     /********************************************************************************************************************/
-    if (strMethod == "getcontractdata"        && n > 2) ConvertTo<bool>(params[1]);
+    if (strMethod == "getcontractdata"        && n > 2) ConvertTo<bool>(params[2]);
 
     if (strMethod == "listtx"                 && n > 0) ConvertTo<int>(params[0]);
     if (strMethod == "listtx"                 && n > 1) ConvertTo<int>(params[1]);
@@ -285,7 +285,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitstakecdptx" && n > 1) ConvertTo<uint64_t>(params[1]);
     if (strMethod == "submitstakecdptx" && n > 2) ConvertTo<uint64_t>(params[2]);
     if (strMethod == "submitstakecdptx" && n > 4) ConvertTo<uint64_t>(params[4]);
-    if (strMethod == "submitstakecdptx" && n > 5) ConvertTo<uint64_t>(params[5]);
 
     if (strMethod == "submitredeemcdptx" && n > 1) ConvertTo<uint64_t>(params[1]);
     if (strMethod == "submitredeemcdptx" && n > 2) ConvertTo<uint64_t>(params[2]);
