@@ -66,10 +66,12 @@ class CTxMemPool {
 public:
     mutable CCriticalSection cs;
     map<uint256, CTxMemPoolEntry > memPoolTxs;
-    std::shared_ptr<CAccountDBCache> memPoolAccountCache;
-    std::shared_ptr<CContractDBCache> memPoolContractCache;
-    std::shared_ptr<CDelegateDBCache> memPoolDelegateCache;
-    std::shared_ptr<CCdpDBCache> memPoolCdpCache;
+    std::shared_ptr<CCacheWrapper> cw;
+
+    // std::shared_ptr<CAccountDBCache> memPoolAccountCache;
+    // std::shared_ptr<CContractDBCache> memPoolContractCache;
+    // std::shared_ptr<CDelegateDBCache> memPoolDelegateCache;
+    // std::shared_ptr<CCdpDBCache> memPoolCdpCache;
 
 public:
     CTxMemPool();
@@ -84,10 +86,8 @@ public:
 
     bool CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &entry, CValidationState &state,
                           bool bExecute = true);
-    void SetMemPoolCache(CAccountDBCache *pAccountCacheIn, CContractDBCache *pContractCacheIn,
-                         CDelegateDBCache *pDelegateCacheIn, CCdpDBCache *pCdpCacheIn);
-    void ReScanMemPoolTx(CAccountDBCache *pAccountCacheIn, CContractDBCache *pContractCacheIn,
-                         CDelegateDBCache *pDelegateCacheIn, CCdpDBCache *pCdpCacheIn);
+    void SetMemPoolCache(CCacheDBManager *pCdManIn);
+    void ReScanMemPoolTx(CCacheDBManager *pCdManIn);
     void Clear();
 
     uint64_t Size();

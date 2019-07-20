@@ -56,7 +56,14 @@ public:
     bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
+public:
+    bool SetMedianPricePoints(map<CCoinPriceType, uint64_t> &mapMedianPricePointsIn) {
+        mapMedianPricePoints = mapMedianPricePointsIn;
+        return true;
+    }
+
     map<CCoinPriceType, uint64_t> GetMedianPrice() const;
+
 };
 
 #endif //TX_PRICE_MEDIAN_H

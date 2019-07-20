@@ -420,16 +420,22 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
 
         // TODO: Fees
         // assert(nTotalFees >= nTotalFuel);
-        // TODO: CMultiCoinBlockRewardTx
+        // TODO: CUCoinBlockRewardTx
         ((CBlockRewardTx *)pBlock->vptx[0].get())->rewardValue = nTotalFees - nTotalFuel;
+
+        CBlockPriceMedianTx* pPriceMedianTx = ((CBlockRewardTx *)pBlock->vptx[1].get();
+        map<CCoinPriceType, uint64_t> mapMedianPricePointsIn;
+        //TODO: collect median price points
+        pPriceMedianTx->SetMedianPricePoints(mapMedianPricePointsIn)
+
 
         // Fill in header
         pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());
-        UpdateTime(*pBlock, pIndexPrev);
         pBlock->SetNonce(0);
         pBlock->SetHeight(nHeight);
         pBlock->SetFuel(nTotalFuel);
         pBlock->SetFuelRate(nFuelRate);
+        UpdateTime(*pBlock, pIndexPrev);
 
         LogPrint("INFO", "CreateNewBlock(): total size %u\n", nBlockSize);
     }

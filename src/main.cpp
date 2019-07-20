@@ -521,11 +521,20 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : nonstandard transaction: %s", reason), REJECT_NONSTANDARD,
                          reason);
 
-    auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache.SetBaseViewPtr(pool.memPoolAccountCache.get());
-    spCW->contractCache.SetBaseViewPtr(pool.memPoolContractCache.get());
-    spCW->delegateCache.SetBaseViewPtr(pool.memPoolDelegateCache.get());
-    spCW->cdpCache.SetBaseViewPtr(pool.memPoolCdpCache.get());
+    CCacheWrapper &cwIn = pool;
+    auto spCW = std::make_shared<CCacheWrapper>(
+                            &cwIn.sysParamCache
+                            &cwIn.memPoolAccountCache.get(),
+                            &cwIn.memPoolContractCache.get(),
+                            &cwIn.memPoolDelegateCache.get(),
+                            pool.memPoolCdpCache.get(),
+                            &cwIn.dexCache,
+                            &cwIn.txReceiptCache);
+
+    spCW->accountCache.SetBaseViewPtr();
+    spCW->contractCache.SetBaseViewPtr();
+    spCW->delegateCache.SetBaseViewPtr();
+    spCW->cdpCache.SetBaseViewPtr();
 
     if (!CheckTx(chainActive.Height(), pBaseTx, *spCW, state))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed");
@@ -1810,10 +1819,9 @@ bool ActivateBestChain(CValidationState &state) {
         while (chainActive.Tip() && !chainMostWork.Contains(chainActive.Tip())) {
             if (!DisconnectTip(state))
                 return false;
-            if (chainActive.Tip() && chainMostWork.Contains(chainActive.Tip())) {
-                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache, pCdMan->pDelegateCache,
-                                        pCdMan->pCdpCache);
-            }
+
+            if (chainActive.Tip() && chainMostWork.Contains(chainActive.Tip()))
+                mempool.ReScanMemPoolTx(pCdMan);
         }
 
         // Connect new blocks.
@@ -1834,8 +1842,7 @@ bool ActivateBestChain(CValidationState &state) {
             }
 
             if (chainActive.Contains(chainMostWork.Tip())) {
-                mempool.ReScanMemPoolTx(pCdMan->pAccountCache, pCdMan->pContractCache, pCdMan->pDelegateCache,
-                                        pCdMan->pCdpCache);
+                mempool.ReScanMemPoolTx(pCdMan);
             }
         }
     }

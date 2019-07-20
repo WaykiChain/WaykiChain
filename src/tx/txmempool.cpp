@@ -133,33 +133,37 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
     return true;
 }
 
-void CTxMemPool::SetMemPoolCache(CAccountDBCache *pAccountCacheIn, CContractDBCache *pContractCacheIn,
-                                 CDelegateDBCache *pDelegateCacheIn, CCdpDBCache *pCdpCacheIn) {
-    memPoolAccountCache  = std::make_shared<CAccountDBCache>(*pAccountCacheIn);
-    memPoolContractCache = std::make_shared<CContractDBCache>(*pContractCacheIn);
-    memPoolDelegateCache = std::make_shared<CDelegateDBCache>(*pDelegateCacheIn);
-    memPoolCdpCache      = std::make_shared<CCdpDBCache>(*pCdpCacheIn);
+void CTxMemPool::SetMemPoolCache(CCacheDBManager *pCdManIn) {
+    cw.reset(std::make_shared<CCacheWrapper>(
+        pCdManIn->pSysParamCache,
+        pCdManIn->pAccountCache,
+        pCdManIn->pContractCache,
+        pCdManIn->pDelegateCache,
+        pCdManIn->pCdpCache,
+        pCdManIn->pDexCache,
+        pCdManIn->pTxReceiptCache));
 }
 
-void CTxMemPool::ReScanMemPoolTx(CAccountDBCache *pAccountCacheIn, CContractDBCache *pContractCacheIn,
-                                 CDelegateDBCache *pDelegateCacheIn, CCdpDBCache *pCdpCacheIn) {
-    memPoolAccountCache.reset(new CAccountDBCache(*pAccountCacheIn));
-    memPoolContractCache.reset(new CContractDBCache(*pContractCacheIn));
-    memPoolDelegateCache.reset(new CDelegateDBCache(*pDelegateCacheIn));
-    memPoolCdpCache.reset(new CCdpDBCache(*pCdMan->pCdpCache));
+void CTxMemPool::ReScanMemPoolTx(CCacheDBManager *pCdManIn) {
+    cw.reset(std::make_shared<CCacheWrapper>(
+        pCdManIn->pSysParamCache,
+        pCdManIn->pAccountCache,
+        pCdManIn->pContractCache,
+        pCdManIn->pDelegateCache,
+        pCdManIn->pCdpCache,
+        pCdManIn->pDexCache,
+        pCdManIn->pTxReceiptCache));
 
-    {
-        LOCK(cs);
-        CValidationState state;
-        for (map<uint256, CTxMemPoolEntry>::iterator iterTx = memPoolTxs.begin(); iterTx != memPoolTxs.end();) {
-            if (!CheckTxInMemPool(iterTx->first, iterTx->second, state, true)) {
-                uint256 txid = iterTx->first;
-                iterTx       = memPoolTxs.erase(iterTx++);
-                EraseTransaction(txid);
-                continue;
-            }
-            ++iterTx;
+    LOCK(cs);
+    CValidationState state;
+    for (map<uint256, CTxMemPoolEntry>::iterator iterTx = memPoolTxs.begin(); iterTx != memPoolTxs.end();) {
+        if (!CheckTxInMemPool(iterTx->first, iterTx->second, state, true)) {
+            uint256 txid = iterTx->first;
+            iterTx       = memPoolTxs.erase(iterTx++);
+            EraseTransaction(txid);
+            continue;
         }
+        ++iterTx;
     }
 }
 
