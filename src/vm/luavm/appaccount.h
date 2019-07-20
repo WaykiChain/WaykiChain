@@ -178,7 +178,10 @@ public:
 
     uint64_t GetAllFreezedValues();
 
-    IMPLEMENT_SERIALIZE(READWRITE(VARINT(bcoins)); READWRITE(mAccUserID); READWRITE(vFrozenFunds);)
+    IMPLEMENT_SERIALIZE(
+		READWRITE(VARINT(bcoins));
+		READWRITE(mAccUserID);
+		READWRITE(vFrozenFunds);)
 
     bool MinusAppCFund(const vector<unsigned char> &vtag, uint64_t val, int nhight);
     bool AddAppCFund(const vector<unsigned char> &vtag, uint64_t val, int nhight);

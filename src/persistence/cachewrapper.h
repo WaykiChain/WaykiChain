@@ -15,8 +15,10 @@
 #include "sysparamdb.h"
 #include "txdb.h"
 #include "txreceiptdb.h"
+#include "main.h"
 
-struct CCacheWrapper {
+class CCacheWrapper {
+public:
     CSysParamDBCache    sysParamCache;
     CAccountDBCache     accountCache;
     CContractDBCache    contractCache;
@@ -30,6 +32,7 @@ struct CCacheWrapper {
 
     CTxUndo             txUndo;
 
+public:
     CCacheWrapper() {}
 
     CCacheWrapper(  CSysParamDBCache*   pSysParamCacheIn,
@@ -50,13 +53,13 @@ struct CCacheWrapper {
     }
 
     CCacheWrapper(CCacheWrapper &cwIn) {
-        sysParamCache.SetBaseViewPtr(&cwIn.sysParamCacheIn);
-        accountCache.SetBaseViewPtr (&cwIn.accountCacheIn);
-        contractCache.SetBaseViewPtr(&cwIn.contractCacheIn);
-        delegateCache.SetBaseViewPtr(&cwIn.delegateCacheIn);
-        cdpCache.SetBaseViewPtr     (&cwIn.cdpCacheIn);
-        dexCache.SetBaseViewPtr     (&cwIn.dexCacheIn);
-        txReceiptCache.SetBaseViewPtr(&cwIn.txReceiptCacheIn);
+        sysParamCache.SetBaseViewPtr(&cwIn.sysParamCache);
+        accountCache.SetBaseViewPtr (&cwIn.accountCache);
+        contractCache.SetBaseViewPtr(&cwIn.contractCache);
+        delegateCache.SetBaseViewPtr(&cwIn.delegateCache);
+        cdpCache.SetBaseViewPtr     (&cwIn.cdpCache);
+        dexCache.SetBaseViewPtr     (&cwIn.dexCache);
+        txReceiptCache.SetBaseViewPtr(&cwIn.txReceiptCache);
     }
 
     CCacheWrapper(CCacheDBManager *pCdMan) {
@@ -77,7 +80,7 @@ struct CCacheWrapper {
         dexCache.Flush();
         sysParamCache.Flush();
         txReceiptCache.Flush();
-    }
+    };
 };
 
 #endif //PERSIST_CACHEWRAPPER_H
