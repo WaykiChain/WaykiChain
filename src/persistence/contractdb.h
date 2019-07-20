@@ -51,16 +51,6 @@ public:
         contractDataCache(pBaseIn->contractDataCache),
         contractAccountCache(pBaseIn->contractAccountCache) {};
 
-    void SetBaseViewPtr(CContractDBCache *pBaseIn) {
-        scriptCache.SetBase(&pBaseIn->scriptCache);
-        txOutputCache.SetBase(&pBaseIn->txOutputCache);
-        acctTxListCache.SetBase(&pBaseIn->acctTxListCache);
-        txDiskPosCache.SetBase(&pBaseIn->txDiskPosCache);
-        contractRelatedKidCache.SetBase(&pBaseIn->contractRelatedKidCache);
-        contractDataCache.SetBase(&pBaseIn->contractDataCache);
-        contractAccountCache.SetBase(&pBaseIn->contractAccountCache);
-    }
-
     bool GetContractAccount(const CRegID &contractRegId, const string &accountKey, CAppUserAccount &appAccOut);
     bool SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn, CDBOpLogMap &dbOpLogMap);
     bool UndoContractAccount(CDBOpLogMap &dbOpLogMap);
