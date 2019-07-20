@@ -150,11 +150,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
     Array arrayDetail;
     Object obj;
     std::set<CKeyID> vKeyIdSet;
-    auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache.SetBaseViewPtr(pCdMan->pAccountCache);
-    spCW->contractCache.SetBaseViewPtr(pCdMan->pContractCache);
-    spCW->delegateCache.SetBaseViewPtr(pCdMan->pDelegateCache);
-    spCW->cdpCache.SetBaseViewPtr(pCdMan->pCdpCache);
+    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
 
     double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
     switch (pBaseTx->nTxType) {

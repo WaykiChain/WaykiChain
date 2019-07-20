@@ -105,12 +105,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
                              REJECT_INVALID, "tx-invalid-height");
     }
 
-    auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache.SetBaseViewPtr(memPoolAccountCache.get());
-    spCW->txCache.SetBaseViewPtr(pCdMan->pTxCache);
-    spCW->contractCache.SetBaseViewPtr(memPoolContractCache.get());
-    spCW->delegateCache.SetBaseViewPtr(memPoolDelegateCache.get());
-    spCW->cdpCache.SetBaseViewPtr(memPoolCdpCache.get());
+    auto spCW = std::make_shared<CCacheWrapper>(cw);
 
     if (bExecute) {
         if (!memPoolEntry.GetTransaction()->ExecuteTx(chainActive.Height() + 1, 0, *spCW, state)) {
@@ -134,25 +129,11 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
 }
 
 void CTxMemPool::SetMemPoolCache(CCacheDBManager *pCdManIn) {
-    cw.reset(std::make_shared<CCacheWrapper>(
-        pCdManIn->pSysParamCache,
-        pCdManIn->pAccountCache,
-        pCdManIn->pContractCache,
-        pCdManIn->pDelegateCache,
-        pCdManIn->pCdpCache,
-        pCdManIn->pDexCache,
-        pCdManIn->pTxReceiptCache));
+    cw.reset(std::make_shared<CCacheWrapper>(pCdManIn);
 }
 
 void CTxMemPool::ReScanMemPoolTx(CCacheDBManager *pCdManIn) {
-    cw.reset(std::make_shared<CCacheWrapper>(
-        pCdManIn->pSysParamCache,
-        pCdManIn->pAccountCache,
-        pCdManIn->pContractCache,
-        pCdManIn->pDelegateCache,
-        pCdManIn->pCdpCache,
-        pCdManIn->pDexCache,
-        pCdManIn->pTxReceiptCache));
+    cw.reset(std::make_shared<CCacheWrapper>(pCdManIn));
 
     LOCK(cs);
     CValidationState state;

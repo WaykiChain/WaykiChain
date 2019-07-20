@@ -120,6 +120,7 @@ bool GetCurrentDelegate(const int64_t currentTime, const vector<CRegID> &delegat
     delegate     = delegatesList[miner];
     LogPrint("DEBUG", "currentTime=%lld, slot=%d, miner=%d, regId=%s\n", currentTime, slot, miner,
              delegate.ToString());
+
     return true;
 }
 
@@ -146,6 +147,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
         auto pRewardTx          = (CBlockRewardTx *)pBlock->vptx[0].get();
         pRewardTx->txUid        = delegate.regId;
         pRewardTx->nValidHeight = pBlock->GetHeight();
+
     } else if (pBlock->vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
         auto pRewardTx          = (CMultiCoinBlockRewardTx *)pBlock->vptx[0].get();
         pRewardTx->txUid        = delegate.regId;
@@ -207,12 +209,7 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     if (pBlock->GetMerkleRootHash() != pBlock->BuildMerkleTree())
         return ERRORMSG("VerifyPosTx() : wrong merkle root hash");
 
-    auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache.SetBaseViewPtr(&cwIn.accountCache);
-    spCW->txCache.SetBaseViewPtr(&cwIn.txCache);
-    spCW->contractCache.SetBaseViewPtr(&cwIn.contractCache);
-    spCW->delegateCache.SetBaseViewPtr(&cwIn.delegateCache);
-    spCW->cdpCache.SetBaseViewPtr(&cwIn.cdpCache);
+    auto spCW = std::make_shared<CCacheWrapper>(cwIn);
 
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
@@ -365,14 +362,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
             //     continue;
             // }
 
-            auto spCW = std::make_shared<CCacheWrapper>(
-                            &cwIn.sysParamCache
-                            &cwIn.accountCache,
-                            &cwIn.contractCache,
-                            &cwIn.delegateCache,
-                            &cwIn.cdpCache,
-                            &cwIn.dexCache,
-                            &cwIn.txReceiptCache);
+            auto spCW = std::make_shared<CCacheWrapper>(cwIn);
 
             CValidationState state;
             pBaseTx->nFuelRate = nFuelRate;
@@ -420,7 +410,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
 
         // TODO: Fees
         // assert(nTotalFees >= nTotalFuel);
-        // TODO: CUCoinBlockRewardTx
+        // TODO: CMultiCoinBlockRewardTx
         ((CBlockRewardTx *)pBlock->vptx[0].get())->rewardValue = nTotalFees - nTotalFuel;
 
         CBlockPriceMedianTx* pPriceMedianTx = ((CBlockRewardTx *)pBlock->vptx[1].get();
@@ -481,7 +471,7 @@ bool CheckWork(CBlock *pBlock, CWallet &wallet) {
         if (pBlock->GetPrevBlockHash() != chainActive.Tip()->GetBlockHash())
             return ERRORMSG("CheckWork() : generated block is stale");
 
-        // Process this block the same as if we had received it from another node
+        // Process this block the same as if we received it from another node
         CValidationState state;
         if (!ProcessBlock(state, NULL, pBlock))
             return ERRORMSG("CheckWork() : failed to process block");
@@ -634,12 +624,7 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
             unsigned int nTransactionsUpdated = mempool.GetUpdatedTransactionNum();
             CBlockIndex *pIndexPrev           = chainActive.Tip();
 
-            auto spCW = std::make_shared<CCacheWrapper>();
-            spCW->accountCache.SetBaseViewPtr(pCdMan->pAccountCache);
-            spCW->txCache.SetBaseViewPtr(pCdMan->pTxCache);
-            spCW->contractCache.SetBaseViewPtr(pCdMan->pContractCache);
-            spCW->delegateCache.SetBaseViewPtr(pCdMan->pDelegateCache);
-            spCW->cdpCache.SetBaseViewPtr(pCdMan->pCdpCache);
+            auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
 
             miningBlockInfo.SetNull();
             int64_t nLastTime = GetTimeMillis();

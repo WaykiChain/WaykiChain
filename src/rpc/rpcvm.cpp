@@ -135,12 +135,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
                            strprintf("input fee could not smaller than: %ld sawi", minFee));
     }
 
-    auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache.SetBaseViewPtr(pCdMan->pAccountCache);
-    spCW->txCache.SetBaseViewPtr(pCdMan->pTxCache);
-    spCW->contractCache.SetBaseViewPtr(pCdMan->pContractCache);
-    spCW->delegateCache.SetBaseViewPtr(pCdMan->pDelegateCache);
-    spCW->cdpCache.SetBaseViewPtr(pCdMan->pCdpCache);
+    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
 
     CKeyID srcKeyId;
     if (!FindKeyId(&spCW->accountCache, params[0].get_str(), srcKeyId)) {

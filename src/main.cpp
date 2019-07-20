@@ -521,20 +521,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : nonstandard transaction: %s", reason), REJECT_NONSTANDARD,
                          reason);
 
-    CCacheWrapper &cwIn = pool;
-    auto spCW = std::make_shared<CCacheWrapper>(
-                            &cwIn.sysParamCache
-                            &cwIn.memPoolAccountCache.get(),
-                            &cwIn.memPoolContractCache.get(),
-                            &cwIn.memPoolDelegateCache.get(),
-                            pool.memPoolCdpCache.get(),
-                            &cwIn.dexCache,
-                            &cwIn.txReceiptCache);
-
-    spCW->accountCache.SetBaseViewPtr();
-    spCW->contractCache.SetBaseViewPtr();
-    spCW->delegateCache.SetBaseViewPtr();
-    spCW->cdpCache.SetBaseViewPtr();
+    CCacheWrapper &cwIn = pool.cw;
+    auto spCW = std::make_shared<CCacheWrapper>(cwIn);
 
     if (!CheckTx(chainActive.Height(), pBaseTx, *spCW, state))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed");
@@ -1649,24 +1637,15 @@ bool static DisconnectTip(CValidationState &state) {
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
-        auto spCW = std::make_shared<CCacheWrapper>();
-        spCW->accountCache.SetBaseViewPtr(pCdMan->pAccountCache);
-        spCW->txCache.SetBaseViewPtr(pCdMan->pTxCache);
-        spCW->contractCache.SetBaseViewPtr(pCdMan->pContractCache);
-        spCW->delegateCache.SetBaseViewPtr(pCdMan->pDelegateCache);
-        spCW->cdpCache.SetBaseViewPtr(pCdMan->pCdpCache);
+        auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
 
         if (!DisconnectBlock(block, *spCW, pIndexDelete, state))
             return ERRORMSG("DisconnectTip() : DisconnectBlock %s failed",
                             pIndexDelete->GetBlockHash().ToString());
 
         // Need to re-sync all to global cache layer.
-        spCW->accountCache.Flush();
-        spCW->txCache.Flush();
-        spCW->contractCache.Flush();
-        spCW->delegateCache.Flush();
-        spCW->cdpCache.Flush();
-         // Attention: need to reload top N delegates.
+        spCW->Flush();
+        // Attention: need to reload top N delegates.
         pCdMan->pDelegateCache->LoadTopDelegates();
     }
     if (SysCfg().IsBenchmark())
@@ -1705,12 +1684,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
     {
         CInv inv(MSG_BLOCK, pIndexNew->GetBlockHash());
 
-        auto spCW = std::make_shared<CCacheWrapper>();
-        spCW->accountCache.SetBaseViewPtr(pCdMan->pAccountCache);
-        spCW->txCache.SetBaseViewPtr(pCdMan->pTxCache);
-        spCW->contractCache.SetBaseViewPtr(pCdMan->pContractCache);
-        spCW->delegateCache.SetBaseViewPtr(pCdMan->pDelegateCache);
-        spCW->cdpCache.SetBaseViewPtr(pCdMan->pCdpCache);
+        auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
 
         if (!ConnectBlock(block, *spCW, pIndexNew, state)) {
             if (state.IsInvalid()) {
@@ -1721,11 +1695,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         mapBlockSource.erase(inv.hash);
 
         // Need to re-sync all to global cache layer.
-        spCW->accountCache.Flush();
-        spCW->txCache.Flush();
-        spCW->contractCache.Flush();
-        spCW->delegateCache.Flush();
-        spCW->cdpCache.Flush();
+        spCW->Flush();
         // Attention: need to reload top N delegates.
         pCdMan->pDelegateCache->LoadTopDelegates();
 
@@ -1971,13 +1941,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         return true;  // No fork, return immediately.
 
     auto spForkCW       = std::make_shared<CCacheWrapper>();
-    auto spCW           = std::make_shared<CCacheWrapper>();
-    spCW->accountCache.SetBaseViewPtr(pCdMan->pAccountCache);
-    spCW->txCache.SetBaseViewPtr(pCdMan->pTxCache);
-    spCW->contractCache.SetBaseViewPtr(pCdMan->pContractCache);
-    spCW->delegateCache.SetBaseViewPtr(pCdMan->pDelegateCache);
-    spCW->cdpCache.SetBaseViewPtr(pCdMan->pCdpCache);
-
+    auto spCW           = std::make_shared<CCacheWrapper>(pCdMan);
     bool forkChainTipFound = false;
     uint256 forkChainTipBlockHash;
     vector<CBlock> vPreBlocks;
@@ -2058,6 +2022,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         spForkCW->contractCache = mapForkCache[forkChainTipBlockHash]->contractCache;
         spForkCW->delegateCache = mapForkCache[forkChainTipBlockHash]->delegateCache;
         spForkCW->cdpCache      = mapForkCache[forkChainTipBlockHash]->cdpCache;
+
     } else {
         spForkCW->accountCache  = spCW->accountCache;
         spForkCW->txCache       = spCW->txCache;
@@ -2426,11 +2391,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
         return state.Invalid(ERRORMSG("ProcessBlock() : block (orphan) exists %s", blockHash.ToString()), 0, "duplicate");
 
     int64_t llBeginCheckBlockTime = GetTimeMillis();
-    auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache.SetBaseViewPtr(pCdMan->pAccountCache);
-    spCW->contractCache.SetBaseViewPtr(pCdMan->pContractCache);
-    spCW->delegateCache.SetBaseViewPtr(pCdMan->pDelegateCache);
-    spCW->cdpCache.SetBaseViewPtr(pCdMan->pCdpCache);
+    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
 
     // Preliminary checks
     if (!CheckBlock(*pBlock, state, *spCW, false)) {
@@ -2744,12 +2705,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
     nCheckLevel = max(0, min(4, nCheckLevel));
     LogPrint("INFO", "Verifying last %i blocks at level %i\n", nCheckDepth, nCheckLevel);
 
-    auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache.SetBaseViewPtr(pCdMan->pAccountCache);
-    spCW->txCache.SetBaseViewPtr(pCdMan->pTxCache);
-    spCW->contractCache.SetBaseViewPtr(pCdMan->pContractCache);
-    spCW->delegateCache.SetBaseViewPtr(pCdMan->pDelegateCache);
-    spCW->cdpCache.SetBaseViewPtr(pCdMan->pCdpCache);
+    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
 
     CBlockIndex *pIndexState   = chainActive.Tip();
     CBlockIndex *pIndexFailure = nullptr;

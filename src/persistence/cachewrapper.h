@@ -30,6 +30,8 @@ struct CCacheWrapper {
 
     CTxUndo             txUndo;
 
+    CCacheWrapper() {}
+
     CCacheWrapper(  CSysParamDBCache*   pSysParamCacheIn,
                     CAccountDBCache*    pAccountCacheIn,
                     CContractDBCache*   pContractCacheIn,
@@ -45,6 +47,26 @@ struct CCacheWrapper {
         cdpCache.SetBaseViewPtr(pCdpCacheIn);
         dexCache.SetBaseViewPtr(pDexCacheIn);
         txReceiptCache.SetBaseViewPtr(pTxReceiptCacheIn);
+    }
+
+    CCacheWrapper(CCacheWrapper &cwIn) {
+        sysParamCache.SetBaseViewPtr(&cwIn.sysParamCacheIn);
+        accountCache.SetBaseViewPtr (&cwIn.accountCacheIn);
+        contractCache.SetBaseViewPtr(&cwIn.contractCacheIn);
+        delegateCache.SetBaseViewPtr(&cwIn.delegateCacheIn);
+        cdpCache.SetBaseViewPtr     (&cwIn.cdpCacheIn);
+        dexCache.SetBaseViewPtr     (&cwIn.dexCacheIn);
+        txReceiptCache.SetBaseViewPtr(&cwIn.txReceiptCacheIn);
+    }
+
+    CCacheWrapper(CCacheDBManager *pCdMan) {
+        sysParamCache.SetBaseViewPtr(pCdMan->pSysParamCacheIn);
+        accountCache.SetBaseViewPtr(pCdMan->pAccountCacheIn);
+        contractCache.SetBaseViewPtr(pCdMan->pContractCacheIn);
+        delegateCache.SetBaseViewPtr(pCdMan->pDelegateCacheIn);
+        cdpCache.SetBaseViewPtr(pCdMan->pCdpCacheIn);
+        dexCache.SetBaseViewPtr(pCdMan->pDexCacheIn);
+        txReceiptCache.SetBaseViewPtr(pCdMan->pTxReceiptCacheIn);
     }
 
     void Flush() {
