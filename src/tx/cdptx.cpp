@@ -121,8 +121,8 @@ bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &
     if (cdpTxId.IsNull()) {  // first-time CDP creation
         vector<CUserCDP> userCdps;
         if (cw.cdpCache.GetCdpList(txUid.get<CRegID>(), userCdps) && userCdps.size() > 0) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, has opened cdp already"),
-                            REJECT_INVALID, "has-opened-cdp-already");
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, has open cdp"),
+                            REJECT_INVALID, "has-open-cdp");
         }
     }
 
