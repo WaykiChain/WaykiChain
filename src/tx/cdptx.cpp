@@ -38,8 +38,7 @@ string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
     string str = strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", GetTxType(nTxType),
                      GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString());
 
-    str += strprintf("cdpTxId=%s, bcoinsToStake=%d, scoinsToMint=%d, scoinsInterest=%d",
-                    cdpTxId.ToString(), bcoinsToStake, scoinsToMint, scoinsInterest);
+    str += strprintf("cdpTxId=%s, bcoinsToStake=%d, scoinsToMint=%d", cdpTxId.ToString(), bcoinsToStake, scoinsToMint);
 
     return str;
 }
@@ -61,7 +60,6 @@ Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("cdp_txid",           cdpTxId.ToString()));
     result.push_back(Pair("bcoins_to_stake",    bcoinsToStake));
     result.push_back(Pair("scoins_to_mint",     scoinsToMint));
-    result.push_back(Pair("scoins_interest",    scoinsInterest));
 
     return result;
 }
@@ -71,18 +69,9 @@ bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     return true;
 }
 
-bool CCDPStakeTx::SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
-    uint64_t scoinsInterestToRepay;
-    if (!ComputeCdpInterest(nHeight, cdp.blockHeight, cw, cdp.totalOwedScoins, scoinsInterestToRepay)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, ComputeCdpInterest error!"),
-                REJECT_INVALID, "interest-insufficient-error");
-    }
-    if (scoinsInterest < scoinsInterestToRepay) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, scoinsInterest: %d < scoinsInterestToRepay: %d",
-                        scoinsInterest, scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
-    }
-
-    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterest);
+bool CCDPStakeTx::SellInterestForFcoins(const uint64_t scoinsInterestToRepay, CCacheWrapper &cw,
+                                        CValidationState &state) {
+    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterestToRepay);
     if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder, cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
@@ -154,11 +143,6 @@ bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (account.scoins < scoinsInterest) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, account scoins %d insufficent for interest %d",
-                        account.fcoins, scoinsInterest), READ_ACCOUNT_FAIL, "account-scoins-insufficient");
-    }
-
     IMPLEMENT_CHECK_TX_SIGNATURE(account.pubKey);
     return true;
 }
@@ -199,17 +183,29 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
         CUserCDP cdp(txUid.get<CRegID>(), cdpTxId);
         if (!cw.cdpCache.GetCdp(cdp)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, invalid cdpTxId %s", cdpTxId.ToString()),
-                            REJECT_INVALID, "invalid-stake-cdp-txid");
+                             REJECT_INVALID, "invalid-stake-cdp-txid");
         }
         if (nHeight < cdp.blockHeight) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, nHeight: %d < cdp.blockHeight: %d",
                     nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
         }
 
-        if (!SellInterestForFcoins(nHeight, cdp, cw, state))
-            return false;
+        uint64_t scoinsInterestToRepay;
+        if (!ComputeCdpInterest(nHeight, cdp.blockHeight, cw, cdp.totalOwedScoins, scoinsInterestToRepay)) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, ComputeCdpInterest error!"),
+                             REJECT_INVALID, "compute-interest-error");
+        }
 
-        account.scoins -= scoinsInterest;
+        if (account.scoins < scoinsInterestToRepay) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance: %d < scoinsInterestToRepay: %d",
+                            account.scoins, scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
+        }
+
+        if (!SellInterestForFcoins(scoinsInterestToRepay, cw, state)) {
+            return false;
+        }
+
+        account.scoins -= scoinsInterestToRepay;
 
         // settle cdp state & persist
         cw.cdpCache.StakeBcoinsToCdp(nHeight, bcoinsToStake, scoinsToMint, cdp, cw.txUndo.dbOpLogMap);

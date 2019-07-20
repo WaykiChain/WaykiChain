@@ -31,25 +31,22 @@ public:
     }
     /** Newly open a CDP */
     CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
-                uint64_t bcoinsToStakeIn, uint64_t scoinsToMintIn, uint64_t scoinsInterestIn):
+                uint64_t bcoinsToStakeIn, uint64_t scoinsToMintIn):
                 CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
         bcoinsToStake   = bcoinsToStakeIn;
         scoinsToMint    = scoinsToMintIn;
-        scoinsInterest  = scoinsInterestIn;
     }
     /** Stake an existing CDP */
-    CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
-                uint256 cdpTxIdIn, uint64_t bcoinsToStakeIn, uint64_t scoinsToMintIn,
-                uint64_t scoinsInterestIn):
-                CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
+    CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn, uint256 cdpTxIdIn,
+                uint64_t bcoinsToStakeIn, uint64_t scoinsToMintIn)
+        : CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
-        cdpTxId         = cdpTxIdIn;
-        bcoinsToStake   = bcoinsToStakeIn;
-        scoinsToMint    = scoinsToMintIn;
-        scoinsInterest  = scoinsInterestIn;
+        cdpTxId       = cdpTxIdIn;
+        bcoinsToStake = bcoinsToStakeIn;
+        scoinsToMint  = scoinsToMintIn;
     }
 
     ~CCDPStakeTx() {}
@@ -64,7 +61,6 @@ public:
         READWRITE(cdpTxId);
         READWRITE(VARINT(bcoinsToStake));
         READWRITE(VARINT(scoinsToMint));
-        READWRITE(VARINT(scoinsInterest));
 
         READWRITE(signature);
     )
@@ -73,7 +69,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << cdpTxId << VARINT(bcoinsToStake) << VARINT(scoinsToMint) << VARINT(scoinsInterest);
+                << cdpTxId << VARINT(bcoinsToStake) << VARINT(scoinsToMint);
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -93,14 +89,12 @@ public:
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    bool SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
+    bool SellInterestForFcoins(const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state);
 
 private:
     TxID     cdpTxId;
     uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
     uint64_t scoinsToMint;          // initial collateral ratio must be >= 190 (%), boosted by 10000
-    uint64_t scoinsInterest;
-
 };
 
 /**
