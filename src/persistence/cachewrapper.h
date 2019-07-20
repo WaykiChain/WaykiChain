@@ -46,6 +46,16 @@ struct CCacheWrapper {
         dexCache.SetBaseViewPtr(pDexCacheIn);
         txReceiptCache.SetBaseViewPtr(pTxReceiptCacheIn);
     }
+
+    void Flush() {
+        accountCache.Flush();
+        contractCache.Flush();
+        delegateCache.Flush();
+        cdpCache.Flush();
+        dexCache.Flush();
+        sysParamCache.Flush();
+        txReceiptCache.Flush();
+    }
 };
 
 #endif //PERSIST_CACHEWRAPPER_H

@@ -366,13 +366,13 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
             // }
 
             auto spCW = std::make_shared<CCacheWrapper>(
-                                &cwIn.accountCache,
-                                &cwIn.contractCache,
-                                &cwIn.delegateCache,
-                                &cwIn.cdpCache,
-                                &cwIn.dexCache,
-                                &cwIn.txReceiptCache,
-                                &cwIn.sysParamCache);
+                            &cwIn.sysParamCache
+                            &cwIn.accountCache,
+                            &cwIn.contractCache,
+                            &cwIn.delegateCache,
+                            &cwIn.cdpCache,
+                            &cwIn.dexCache,
+                            &cwIn.txReceiptCache);
 
             CValidationState state;
             pBaseTx->nFuelRate = nFuelRate;
@@ -398,13 +398,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
             // Need to re-sync all to cache layer except for transaction cache, as it depends on
             // the global transaction cache to verify whether a transaction(txid) has been confirmed
             // already in block.
-            spCW->accountCache.Flush();
-            spCW->contractCache.Flush();
-            spCW->delegateCache.Flush();
-            spCW->cdpCache.Flush();
-            spCW->dexCache.Flush();
-            spCW->sysParamCache.Flush();
-            spCW->txReceiptCache.Flush();
+            spCW->Flush();
 
             // TODO: Fees
             // nTotalFees += pBaseTx->GetFees();
