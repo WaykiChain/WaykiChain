@@ -2716,6 +2716,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
         boost::this_thread::interruption_point();
         if (pIndex->nHeight < chainActive.Height() - nCheckDepth)
             break;
+
         CBlock block;
         // check level 0: read from disk
         if (!ReadBlockFromDisk(pIndex, block))
@@ -2815,10 +2816,13 @@ bool InitBlockIndex() {
             CValidationState state;
             if (!FindBlockPos(state, blockPos, nBlockSize + 8, 0, block.GetTime()))
                 return ERRORMSG("InitBlockIndex() : FindBlockPos failed");
+
             if (!WriteBlockToDisk(block, blockPos))
                 return ERRORMSG("InitBlockIndex() : writing genesis block to disk failed");
+
             if (!AddToBlockIndex(block, state, blockPos))
                 return ERRORMSG("InitBlockIndex() : genesis block not accepted");
+
         } catch (runtime_error &e) {
             return ERRORMSG("InitBlockIndex() : failed to initialize block database: %s", e.what());
         }
