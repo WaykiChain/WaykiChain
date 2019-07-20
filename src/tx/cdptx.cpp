@@ -11,75 +11,6 @@
 
 #include <cmath>
 
-bool ComputeCdpInterest(const int32_t currBlockHeight, const int32_t cpdLastBlockHeight, CCacheWrapper &cw,
-                        const uint64_t &totalOwedScoins, uint64_t &interest) {
-    int32_t blockInterval = currBlockHeight - cpdLastBlockHeight;
-    int32_t loanedDays = ceil( (double) blockInterval / kDayBlockTotalCount );
-
-    uint64_t A;
-    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_A, A))
-        return false;
-
-    uint64_t B;
-    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_B, B))
-        return false;
-
-    uint64_t N = totalOwedScoins;
-    double annualInterestRate = 0.1 * (double) A / log10( 1 + B * N);
-    interest = (uint64_t) (((double) N / 365) * loanedDays * annualInterestRate);
-
-    return true;
-}
-
-string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
-    CKeyID keyId;
-    accountCache.GetKeyId(txUid, keyId);
-
-    string str = strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", GetTxType(nTxType),
-                     GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString());
-
-    str += strprintf("cdpTxId=%s, bcoinsToStake=%d, scoinsToMint=%d", cdpTxId.ToString(), bcoinsToStake, scoinsToMint);
-
-    return str;
-}
-
-Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-
-    CKeyID keyId;
-    accountCache.GetKeyId(txUid, keyId);
-
-    result.push_back(Pair("txid",               GetHash().GetHex()));
-    result.push_back(Pair("tx_type",            GetTxType(nTxType)));
-    result.push_back(Pair("ver",                nVersion));
-    result.push_back(Pair("tx_uid",             txUid.ToString()));
-    result.push_back(Pair("addr",               keyId.ToAddress()));
-    result.push_back(Pair("fees",               llFees));
-    result.push_back(Pair("valid_height",       nValidHeight));
-
-    result.push_back(Pair("cdp_txid",           cdpTxId.ToString()));
-    result.push_back(Pair("bcoins_to_stake",    bcoinsToStake));
-    result.push_back(Pair("scoins_to_mint",     scoinsToMint));
-
-    return result;
-}
-
-bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    //TODO
-    return true;
-}
-
-bool CCDPStakeTx::SellInterestForFcoins(const uint64_t scoinsInterestToRepay, CCacheWrapper &cw,
-                                        CValidationState &state) {
-    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterestToRepay);
-    if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder, cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, create system buy order failed"),
-                        CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
-    }
-
-    return true;
-}
-
 // CDP owner can redeem his or her CDP that are in liquidation list
 bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
@@ -263,20 +194,40 @@ bool CCDPStakeTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
     return true;
 }
 
-/************************************<< CCDPRedeemTx >>***********************************************/
-string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
+
+bool ComputeCdpInterest(const int32_t currBlockHeight, const int32_t cpdLastBlockHeight, CCacheWrapper &cw,
+                        const uint64_t &totalOwedScoins, uint64_t &interest) {
+    int32_t blockInterval = currBlockHeight - cpdLastBlockHeight;
+    int32_t loanedDays = ceil( (double) blockInterval / kDayBlockTotalCount );
+
+    uint64_t A;
+    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_A, A))
+        return false;
+
+    uint64_t B;
+    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_B, B))
+        return false;
+
+    uint64_t N = totalOwedScoins;
+    double annualInterestRate = 0.1 * (double) A / log10( 1 + B * N);
+    interest = (uint64_t) (((double) N / 365) * loanedDays * annualInterestRate);
+
+    return true;
+}
+
+string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    string str = strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", GetTxType(nTxType),
-                     GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString());
+    string str = strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s\n", GetTxType(nTxType),
+                     GetHash().ToString(), nVersion, txUid.ToAddress(), keyId.ToAddress());
 
-    str += strprintf("cdpTxId=%s, scoinsToRedeem=%d, collateralRatio=%d, scoinsInterest=%d",
-                    cdpTxId.ToString(), scoinsToRedeem, collateralRatio, scoinsInterest);
+    str += strprintf("cdpTxId=%s, bcoinsToStake=%d, scoinsToMint=%d", cdpTxId.ToString(), bcoinsToStake, scoinsToMint);
 
     return str;
- }
- Object CCDPRedeemTx::ToJson(const CAccountDBCache &accountCache) const {
+}
+
+Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
     CKeyID keyId;
@@ -290,38 +241,30 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
     result.push_back(Pair("fees",               llFees));
     result.push_back(Pair("valid_height",       nValidHeight));
 
-    result.push_back(Pair("cdp_txid",            cdpTxId.ToString()));
-    result.push_back(Pair("scoins_to_redeem",    scoinsToRedeem));
-    result.push_back(Pair("collateral_ratio",    collateralRatio / kPercentBoost));
-    result.push_back(Pair("scoins_interest",     scoinsInterest));
+    result.push_back(Pair("cdp_txid",           cdpTxId.ToString()));
+    result.push_back(Pair("bcoins_to_stake",    bcoinsToStake));
+    result.push_back(Pair("scoins_to_mint",     scoinsToMint));
 
     return result;
- }
- bool CCDPRedeemTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-     //TODO
-     return true;
- }
- bool CCDPRedeemTx::SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
-    uint64_t scoinsInterestToRepay;
-    if (!ComputeCdpInterest(nHeight, cdp.blockHeight, cw, cdp.totalOwedScoins, scoinsInterestToRepay)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, ComputeCdpInterest error!"),
-                        REJECT_INVALID, "interest-insufficient-error");
-    }
+}
 
-    if (scoinsInterest < scoinsInterestToRepay) {
-         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, scoinsInterest: %d < scoinsInterestToRepay: %d",
-                    scoinsInterest, scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL, "scoins-interest-insufficient-error");
-    }
+bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+    //TODO
+    return true;
+}
 
-    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterest);
+bool CCDPStakeTx::SellInterestForFcoins(const uint64_t scoinsInterestToRepay, CCacheWrapper &cw,
+                                        CValidationState &state) {
+    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterestToRepay);
     if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder, cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, create system buy order failed"),
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
 
     return true;
 }
 
+/************************************<< CCDPRedeemTx >>***********************************************/
 bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -422,6 +365,7 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
 
     return true;
  }
+
  bool CCDPRedeemTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     auto iter = cw.txUndo.accountLogs.rbegin();
     for (; iter != cw.txUndo.accountLogs.rend(); ++iter) {
@@ -454,20 +398,20 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
      return true;
  }
 
-/************************************<< CdpLiquidateTx >>***********************************************/
-string CCDPLiquidateTx::ToString(CAccountDBCache &accountCache) {
+string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    string str = strprintf( "txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n"
-                            "cdpTxId=%s, scoinsToLiquidate=%d, scoinsPenalty=%d",
-                            GetTxType(nTxType), GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString(),
-                            cdpTxId.ToString(), scoinsToLiquidate, scoinsPenalty);
+    string str = strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s\n", GetTxType(nTxType),
+                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress());
+
+    str += strprintf("cdpTxId=%s, scoinsToRedeem=%d, collateralRatio=%d, scoinsInterest=%d",
+                    cdpTxId.ToString(), scoinsToRedeem, collateralRatio, scoinsInterest);
 
     return str;
-}
-Object CCDPLiquidateTx::ToJson(const CAccountDBCache &accountCache) const {
-  Object result;
+ }
+ Object CCDPRedeemTx::ToJson(const CAccountDBCache &accountCache) const {
+    Object result;
 
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
@@ -481,43 +425,40 @@ Object CCDPLiquidateTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("valid_height",       nValidHeight));
 
     result.push_back(Pair("cdp_txid",            cdpTxId.ToString()));
-    result.push_back(Pair("scoins_to_liquidate", scoinsToLiquidate));
-    result.push_back(Pair("scoinsPenalty",       scoinsPenalty / kPercentBoost));
+    result.push_back(Pair("scoins_to_redeem",    scoinsToRedeem));
+    result.push_back(Pair("collateral_ratio",    collateralRatio / kPercentBoost));
+    result.push_back(Pair("scoins_interest",     scoinsInterest));
 
     return result;
-}
-bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    //TODO
-    return true;
-}
-bool CCDPLiquidateTx::SellPenaltyForFcoins(uint64_t scoinPenaltyToSysFund, const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
+ }
 
-    if (scoinsPenalty < scoinPenaltyToSysFund) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoinsPenalty %d < SellPenaltyForFcoins %d",
-                       scoinsPenalty, scoinPenaltyToSysFund), REJECT_INVALID, "bad-read-accountdb");
+ bool CCDPRedeemTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+     //TODO
+     return true;
+ }
+ 
+ bool CCDPRedeemTx::SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
+    uint64_t scoinsInterestToRepay;
+    if (!ComputeCdpInterest(nHeight, cdp.blockHeight, cw, cdp.totalOwedScoins, scoinsInterestToRepay)) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, ComputeCdpInterest error!"),
+                        REJECT_INVALID, "interest-insufficient-error");
     }
-    CAccount fcoinGenesisAccount;
-    if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
-                        READ_ACCOUNT_FAIL, "bad-read-accountdb");
+
+    if (scoinsInterest < scoinsInterestToRepay) {
+         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, scoinsInterest: %d < scoinsInterestToRepay: %d",
+                    scoinsInterest, scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL, "scoins-interest-insufficient-error");
     }
-    CAccountLog genesisAcctLog(fcoinGenesisAccount);
-    cw.txUndo.accountLogs.push_back(genesisAcctLog);
 
-    uint64_t halfScoinsPenalty = scoinsPenalty / 2;
-    // uint64_t halfFcoinsPenalty = halfScoinsPenalty / cw.ppCache.GetFcoinMedianPrice();
-
-    fcoinGenesisAccount.scoins += halfScoinsPenalty;    // save into risk reserve fund
-
-    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, halfScoinsPenalty);
+    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterest);
     if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder, cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CdpLiquidateTx::ExecuteTx, create system buy order failed"),
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
 
     return true;
 }
 
+/************************************<< CdpLiquidateTx >>***********************************************/
 bool CCDPLiquidateTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -732,6 +673,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
 
     return true;
 }
+
 bool CCDPLiquidateTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     auto iter = cw.txUndo.accountLogs.rbegin();
     for (; iter != cw.txUndo.accountLogs.rend(); ++iter) {
@@ -759,6 +701,73 @@ bool CCDPLiquidateTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &
     if (!cw.dexCache.UndoSysOrder(cw.txUndo.dbOpLogMap)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::UndoExecuteTx, undo system buy order failed"),
                         UNDO_SYS_ORDER_FAILED, "undo-data-failed");
+    }
+
+    return true;
+}
+
+string CCDPLiquidateTx::ToString(CAccountDBCache &accountCache) {
+    CKeyID keyId;
+    accountCache.GetKeyId(txUid, keyId);
+
+    string str = strprintf(
+        "txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s\n"
+        "cdpTxId=%s, scoinsToLiquidate=%d, scoinsPenalty=%d",
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), cdpTxId.ToString(),
+        scoinsToLiquidate, scoinsPenalty);
+
+    return str;
+}
+
+Object CCDPLiquidateTx::ToJson(const CAccountDBCache &accountCache) const {
+    Object result;
+
+    CKeyID keyId;
+    accountCache.GetKeyId(txUid, keyId);
+
+    result.push_back(Pair("txid",               GetHash().GetHex()));
+    result.push_back(Pair("tx_type",            GetTxType(nTxType)));
+    result.push_back(Pair("ver",                nVersion));
+    result.push_back(Pair("tx_uid",             txUid.ToString()));
+    result.push_back(Pair("addr",               keyId.ToAddress()));
+    result.push_back(Pair("fees",               llFees));
+    result.push_back(Pair("valid_height",       nValidHeight));
+
+    result.push_back(Pair("cdp_txid",            cdpTxId.ToString()));
+    result.push_back(Pair("scoins_to_liquidate", scoinsToLiquidate));
+    result.push_back(Pair("scoinsPenalty",       scoinsPenalty / kPercentBoost));
+
+    return result;
+}
+
+bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+    //TODO
+    return true;
+}
+
+bool CCDPLiquidateTx::SellPenaltyForFcoins(uint64_t scoinPenaltyToSysFund, const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
+
+    if (scoinsPenalty < scoinPenaltyToSysFund) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoinsPenalty %d < SellPenaltyForFcoins %d",
+                       scoinsPenalty, scoinPenaltyToSysFund), REJECT_INVALID, "bad-read-accountdb");
+    }
+    CAccount fcoinGenesisAccount;
+    if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
+                        READ_ACCOUNT_FAIL, "bad-read-accountdb");
+    }
+    CAccountLog genesisAcctLog(fcoinGenesisAccount);
+    cw.txUndo.accountLogs.push_back(genesisAcctLog);
+
+    uint64_t halfScoinsPenalty = scoinsPenalty / 2;
+    // uint64_t halfFcoinsPenalty = halfScoinsPenalty / cw.ppCache.GetFcoinMedianPrice();
+
+    fcoinGenesisAccount.scoins += halfScoinsPenalty;    // save into risk reserve fund
+
+    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, halfScoinsPenalty);
+    if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder, cw.txUndo.dbOpLogMap)) {
+        return state.DoS(100, ERRORMSG("CdpLiquidateTx::ExecuteTx, create system buy order failed"),
+                        CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
 
     return true;
