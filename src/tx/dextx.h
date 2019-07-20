@@ -45,12 +45,12 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
+        READWRITE(VARINT(llFees));
         READWRITE((uint8_t &)coinType);
         READWRITE((uint8_t &)assetType);
         READWRITE(VARINT(assetAmount));
         READWRITE(VARINT(bidPrice));
 
-        READWRITE(VARINT(llFees));
         READWRITE(signature);
     )
 
@@ -111,12 +111,12 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
+        READWRITE(VARINT(llFees));
         READWRITE((uint8_t&)coinType);
         READWRITE((uint8_t&)assetType);
         READWRITE(VARINT(assetAmount));
         READWRITE(VARINT(askPrice));
 
-        READWRITE(VARINT(llFees));
         READWRITE(signature);
     )
 
@@ -173,12 +173,11 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
+        READWRITE(VARINT(llFees));
         READWRITE((uint8_t&)coinType);
         READWRITE((uint8_t&)assetType);
         READWRITE(VARINT(coinAmount));
 
-
-        READWRITE(VARINT(llFees));
         READWRITE(signature);
     )
 
@@ -234,12 +233,11 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
+        READWRITE(VARINT(llFees));
         READWRITE((uint8_t&)coinType);
         READWRITE((uint8_t&)assetType);
         READWRITE(VARINT(assetAmount));
 
-
-        READWRITE(VARINT(llFees));
         READWRITE(signature);
     )
 
@@ -293,9 +291,9 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
+        READWRITE(VARINT(llFees));
         READWRITE(orderId);
 
-        READWRITE(VARINT(llFees));
         READWRITE(signature);
     )
 
@@ -360,9 +358,9 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
+        READWRITE(VARINT(llFees));
         READWRITE(dealItems);
 
-        READWRITE(VARINT(llFees));
         READWRITE(signature);
     )
 
