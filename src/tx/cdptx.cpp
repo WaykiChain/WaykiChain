@@ -220,7 +220,7 @@ string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
     accountCache.GetKeyId(txUid, keyId);
 
     string str = strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s\n", GetTxType(nTxType),
-                     GetHash().ToString(), nVersion, txUid.ToAddress(), keyId.ToAddress());
+                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress());
 
     str += strprintf("cdpTxId=%s, bcoinsToStake=%d, scoinsToMint=%d", cdpTxId.ToString(), bcoinsToStake, scoinsToMint);
 
@@ -436,7 +436,7 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
      //TODO
      return true;
  }
- 
+
  bool CCDPRedeemTx::SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
     uint64_t scoinsInterestToRepay;
     if (!ComputeCdpInterest(nHeight, cdp.blockHeight, cw, cdp.totalOwedScoins, scoinsInterestToRepay)) {
