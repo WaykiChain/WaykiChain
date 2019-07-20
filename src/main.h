@@ -371,7 +371,7 @@ public:
         pLogCache       = new CLogDBCache(pLogDb);
 
         pTxReceiptDb    = new CDBAccess(DBNameType::RECEIPT, nAccountDBCache, false, fReIndex); //TODO fix cache size
-        pTxReceiptCache = new CCdpDBCache(pCdpDb);
+        pTxReceiptCache = new CTxReceiptDBCache(pTxReceiptDb);
 
     }
 

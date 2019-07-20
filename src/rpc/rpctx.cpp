@@ -2440,22 +2440,22 @@ Value gettxreceipt(const Array& params, bool fHelp) {
             "\nExamples:\n" + HelpExampleCli("gettxreceipt", "") + "\nAs json rpc call\n"
             + HelpExampleRpc("gettxreceipt", ""));
     }
-    string strTxId = params[0].get_str();
+    uint256 txid = uint256S(params[0].get_str());
     vector<CReceipt> receipts;
-    pCdMan->txReceiptCache.GetTxReceipts(strTxId, receipts);
+    pCdMan->pTxReceiptCache->GetTxReceipts(txid, receipts);
 
-    Array retArr;
+    Array retArray;
     for (const auto &receipt : receipts) {
         Object obj;
 
-        obj.push_back(Pair("tx_type", kTxFeeTable.at(receipt.txType).get<0>());
-        obj.push_back(Pair("from_addr", receipt.fromUid.ToString());
-        obj.push_back(Pair("to_addr", receipt.fromUid.ToString());
-        obj.push_back(Pair("coin_type", receipt.coinType));
-        obj.push_back(Pair("transfer_amount", receipt.sendAmount));
+        obj.push_back(Pair("tx_type",           std::get<0>(kTxFeeTable.at(receipt.txType))));
+        obj.push_back(Pair("from_addr",         receipt.fromUid.ToString()));
+        obj.push_back(Pair("to_addr",           receipt.fromUid.ToString()));
+        obj.push_back(Pair("coin_type",         receipt.coinType));
+        obj.push_back(Pair("transfer_amount",   receipt.sendAmount));
         retArray.push_back(obj);
     }
-    return retArr;
+    return retArray;
 }
 
 Value getcontractaccountinfo(const Array& params, bool fHelp) {
