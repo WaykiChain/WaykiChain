@@ -25,7 +25,7 @@ public:
     CDelegateDBCache(CDelegateDBCache *pBaseIn)
         : voteRegIdCache(pBaseIn->voteRegIdCache), regId2VoteCache(pBaseIn->regId2VoteCache){};
 
-    void SetBaseView(CDelegateDBCache *pBaseIn) {
+    void SetBaseViewPtr(CDelegateDBCache *pBaseIn) {
         voteRegIdCache.SetBase(&pBaseIn->voteRegIdCache);
         regId2VoteCache.SetBase(&pBaseIn->regId2VoteCache);
     }

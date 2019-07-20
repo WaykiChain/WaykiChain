@@ -29,6 +29,23 @@ struct CCacheWrapper {
     CPricePointMemCache ppCache;
 
     CTxUndo             txUndo;
+
+    CCacheWrapper(  CSysParamDBCache*   pSysParamCacheIn,
+                    CAccountDBCache*    pAccountCacheIn,
+                    CContractDBCache*   pContractCacheIn,
+                    CDelegateDBCache*   pDelegateCacheIn,
+                    CCdpDBCache*        pCdpCacheIn,
+                    CDexDBCache*        pDexCacheIn,
+                    CTxReceiptDBCache*  pTxReceiptCacheIn) {
+
+        sysParamCache.SetBaseViewPtr(pSysParamCacheIn);
+        accountCache.SetBaseViewPtr(pAccountCacheIn);
+        contractCache.SetBaseViewPtr(pContractCacheIn);
+        delegateCache.SetBaseViewPtr(pDelegateCacheIn);
+        cdpCache.SetBaseViewPtr(pCdpCacheIn);
+        dexCache.SetBaseViewPtr(pDexCacheIn);
+        txReceiptCache.SetBaseViewPtr(pTxReceiptCacheIn);
+    }
 };
 
 #endif //PERSIST_CACHEWRAPPER_H

@@ -106,11 +106,11 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
     }
 
     auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache.SetBaseView(memPoolAccountCache.get());
-    spCW->txCache.SetBaseView(pCdMan->pTxCache);
-    spCW->contractCache.SetBaseView(memPoolContractCache.get());
-    spCW->delegateCache.SetBaseView(memPoolDelegateCache.get());
-    spCW->cdpCache.SetBaseView(memPoolCdpCache.get());
+    spCW->accountCache.SetBaseViewPtr(memPoolAccountCache.get());
+    spCW->txCache.SetBaseViewPtr(pCdMan->pTxCache);
+    spCW->contractCache.SetBaseViewPtr(memPoolContractCache.get());
+    spCW->delegateCache.SetBaseViewPtr(memPoolDelegateCache.get());
+    spCW->cdpCache.SetBaseViewPtr(memPoolCdpCache.get());
 
     if (bExecute) {
         if (!memPoolEntry.GetTransaction()->ExecuteTx(chainActive.Height() + 1, 0, *spCW, state)) {

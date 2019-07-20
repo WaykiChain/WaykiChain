@@ -136,11 +136,11 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     }
 
     auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
-    spCW->txCache.SetBaseView(pCdMan->pTxCache);
-    spCW->contractCache.SetBaseView(pCdMan->pContractCache);
-    spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
-    spCW->cdpCache.SetBaseView(pCdMan->pCdpCache);
+    spCW->accountCache.SetBaseViewPtr(pCdMan->pAccountCache);
+    spCW->txCache.SetBaseViewPtr(pCdMan->pTxCache);
+    spCW->contractCache.SetBaseViewPtr(pCdMan->pContractCache);
+    spCW->delegateCache.SetBaseViewPtr(pCdMan->pDelegateCache);
+    spCW->cdpCache.SetBaseViewPtr(pCdMan->pCdpCache);
 
     CKeyID srcKeyId;
     if (!FindKeyId(&spCW->accountCache, params[0].get_str(), srcKeyId)) {

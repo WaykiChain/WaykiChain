@@ -51,7 +51,7 @@ public:
         contractDataCache(pBaseIn->contractDataCache),
         contractAccountCache(pBaseIn->contractAccountCache) {};
 
-    void SetBaseView(CContractDBCache *pBaseIn) {
+    void SetBaseViewPtr(CContractDBCache *pBaseIn) {
         scriptCache.SetBase(&pBaseIn->scriptCache);
         txOutputCache.SetBase(&pBaseIn->txOutputCache);
         acctTxListCache.SetBase(&pBaseIn->acctTxListCache);

@@ -815,8 +815,6 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
             Serialize(os, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion); break;
 
         // TODO: SFC_PARAM_MTX
-        // TODO: SFC_GLOBAL_HALT_MTX
-        // TODO: SFC_GLOBAL_SETTLE_MTX
 
         case FCOIN_STAKE_TX:
             Serialize(os, *((CFcoinStakeTx *)(pa.get())), nType, nVersion); break;

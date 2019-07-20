@@ -75,7 +75,7 @@ public:
     bool Flush();
     uint32_t GetCacheSize() const;
     Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY);
-    void SetBaseView(CAccountDBCache *pBaseIn) {
+    void SetBaseViewPtr(CAccountDBCache *pBaseIn) {
         blockHashCache.SetBase(&pBaseIn->blockHashCache);
         keyId2AccountCache.SetBase(&pBaseIn->keyId2AccountCache);
         regId2KeyIdCache.SetBase(&pBaseIn->regId2KeyIdCache);

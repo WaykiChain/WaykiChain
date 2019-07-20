@@ -208,11 +208,11 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
         return ERRORMSG("VerifyPosTx() : wrong merkle root hash");
 
     auto spCW = std::make_shared<CCacheWrapper>();
-    spCW->accountCache.SetBaseView(&cwIn.accountCache);
-    spCW->txCache.SetBaseView(&cwIn.txCache);
-    spCW->contractCache.SetBaseView(&cwIn.contractCache);
-    spCW->delegateCache.SetBaseView(&cwIn.delegateCache);
-    spCW->cdpCache.SetBaseView(&cwIn.cdpCache);
+    spCW->accountCache.SetBaseViewPtr(&cwIn.accountCache);
+    spCW->txCache.SetBaseViewPtr(&cwIn.txCache);
+    spCW->contractCache.SetBaseViewPtr(&cwIn.contractCache);
+    spCW->delegateCache.SetBaseViewPtr(&cwIn.delegateCache);
+    spCW->cdpCache.SetBaseViewPtr(&cwIn.cdpCache);
 
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
@@ -299,13 +299,13 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         return nullptr;
 
     pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
-    // if (chainActive.Height() + 1 < (int32_t)SysCfg().GetStableCoinGenesisHeight()) {
-    //     pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
-    // } else {
-    //     pBlock->vptx.push_back(std::make_shared<CMultiCoinBlockRewardTx>());
-    //     // TODO: enable
-    //     // pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>());
-    // }
+    if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1) { // pre-stablecoin release
+        pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
+
+    } else {  //stablecoin release
+        pBlock->vptx.push_back(std::make_shared<CMultiCoinBlockRewardTx>());
+        pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>());
+    }
 
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
@@ -336,22 +336,19 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         int64_t nTotalFuel      = 0;
 
         // Calculate && sort transactions from memory pool.
-        vector<TxPriority> vTxPriority;
-        GetPriorityTx(vTxPriority, nFuelRate);
+        vector<TxPriority> txPriorities;
+        GetPriorityTx(txPriorities, nFuelRate);
         TxPriorityCompare comparer(false); // Priority by size first.
-        make_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
-        LogPrint("MINER", "CreateNewBlock() : got %lu transaction(s) sorted by priority rules\n", vTxPriority.size());
+        make_heap(txPriorities.begin(), txPriorities.end(), comparer);
+        LogPrint("MINER", "CreateNewBlock() : got %lu transaction(s) sorted by priority rules\n", txPriorities.size());
 
         // Collect transactions into the block.
-        while (!vTxPriority.empty()) {
+        for (auto item : txPriorities) {
             // Take highest priority transaction off the priority queue.
             // TODO: Fees
-            // double dFeePerKb        = std::get<1>(vTxPriority.front());
-            shared_ptr<CBaseTx> stx = std::get<2>(vTxPriority.front());
+            // double dFeePerKb        = std::get<1>(txPriorities.front());
+            shared_ptr<CBaseTx> stx = std::get<2>(item);
             CBaseTx *pBaseTx        = stx.get();
-
-            pop_heap(vTxPriority.begin(), vTxPriority.end(), comparer);
-            vTxPriority.pop_back();
 
             // Size limits
             unsigned int nTxSize = ::GetSerializeSize(*pBaseTx, SER_NETWORK, PROTOCOL_VERSION);
@@ -360,27 +357,33 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
                 continue;
             }
 
-            // Skip free transactions if we're past the minimum block size:
+            // Skip trx with MinRelayTxFee fee for this block
+            // once the accumulated tx size surpasses the minimum block size:
             // TODO: Fees
             // if ((dFeePerKb < CBaseTx::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize)) {
             //     LogPrint("MINER", "CreateNewBlock() : skip free transaction, txid: %s\n", pBaseTx->GetHash().GetHex());
             //     continue;
             // }
 
-            auto spCW = std::make_shared<CCacheWrapper>();
-            spCW->accountCache.SetBaseView(&cwIn.accountCache);
-            spCW->contractCache.SetBaseView(&cwIn.contractCache);
-            spCW->delegateCache.SetBaseView(&cwIn.delegateCache);
-            spCW->cdpCache.SetBaseView(&cwIn.cdpCache);
+            auto spCW = std::make_shared<CCacheWrapper>(
+                                &cwIn.accountCache,
+                                &cwIn.contractCache,
+                                &cwIn.delegateCache,
+                                &cwIn.cdpCache,
+                                &cwIn.dexCache,
+                                &cwIn.txReceiptCache,
+                                &cwIn.sysParamCache);
 
             CValidationState state;
             pBaseTx->nFuelRate = nFuelRate;
             if (!pBaseTx->ExecuteTx(nHeight, nBlockTx + 1, *spCW, state)) {
-                LogPrint("MINER", "CreateNewBlock() : failed to execute transaction, txid: %s\n", pBaseTx->GetHash().GetHex());
-                if (SysCfg().IsLogFailures()) {
+                LogPrint("MINER", "CreateNewBlock() : failed to execute transaction, txid: %s\n",
+                        pBaseTx->GetHash().GetHex());
+
+                if (SysCfg().IsLogFailures())
                     pCdMan->pLogCache->SetExecuteFail(nHeight, pBaseTx->GetHash(), state.GetRejectCode(),
                                                       state.GetRejectReason());
-                }
+
                 continue;
             }
 
@@ -388,16 +391,20 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
             if (nTotalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP) {
                 LogPrint("MINER", "CreateNewBlock() : exceed max block run steps, txid: %s\n",
                          pBaseTx->GetHash().GetHex());
+
                 continue;
             }
 
-            // Need to re-sync all to cache layer except for transaction cache, as it's depend on
+            // Need to re-sync all to cache layer except for transaction cache, as it depends on
             // the global transaction cache to verify whether a transaction(txid) has been confirmed
             // already in block.
             spCW->accountCache.Flush();
             spCW->contractCache.Flush();
             spCW->delegateCache.Flush();
             spCW->cdpCache.Flush();
+            spCW->dexCache.Flush();
+            spCW->sysParamCache.Flush();
+            spCW->txReceiptCache.Flush();
 
             // TODO: Fees
             // nTotalFees += pBaseTx->GetFees();
@@ -628,11 +635,11 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
             CBlockIndex *pIndexPrev           = chainActive.Tip();
 
             auto spCW = std::make_shared<CCacheWrapper>();
-            spCW->accountCache.SetBaseView(pCdMan->pAccountCache);
-            spCW->txCache.SetBaseView(pCdMan->pTxCache);
-            spCW->contractCache.SetBaseView(pCdMan->pContractCache);
-            spCW->delegateCache.SetBaseView(pCdMan->pDelegateCache);
-            spCW->cdpCache.SetBaseView(pCdMan->pCdpCache);
+            spCW->accountCache.SetBaseViewPtr(pCdMan->pAccountCache);
+            spCW->txCache.SetBaseViewPtr(pCdMan->pTxCache);
+            spCW->contractCache.SetBaseViewPtr(pCdMan->pContractCache);
+            spCW->delegateCache.SetBaseViewPtr(pCdMan->pDelegateCache);
+            spCW->cdpCache.SetBaseViewPtr(pCdMan->pCdpCache);
 
             miningBlockInfo.SetNull();
             int64_t nLastTime = GetTimeMillis();

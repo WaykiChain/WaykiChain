@@ -132,7 +132,7 @@ public:
     CCdpDBCache(CDBAccess *pDbAccess) : cdpCache(pDbAccess), cdpMemCache(pDbAccess) {}
     CCdpDBCache(CCdpDBCache *pBaseIn) : cdpCache(pBaseIn->cdpCache), cdpMemCache(pBaseIn->cdpMemCache) {}
 
-    void SetBaseView(CCdpDBCache *pBaseIn) {
+    void SetBaseViewPtr(CCdpDBCache *pBaseIn) {
         cdpCache.SetBase(&pBaseIn->cdpCache);
         cdpMemCache.SetBase(&pBaseIn->cdpMemCache);
     }

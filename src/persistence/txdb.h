@@ -37,7 +37,7 @@ public:
     bool DeleteBlockFromCache(const CBlock &block);
 
     void Clear();
-    void SetBaseView(CTxMemCache *pBaseIn) { pBase = pBaseIn; }
+    void SetBaseViewPtr(CTxMemCache *pBaseIn) { pBase = pBaseIn; }
     void Flush();
 
     Object ToJsonObj() const;
