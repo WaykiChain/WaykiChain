@@ -45,11 +45,11 @@ CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
 }
 
 void CCacheWrapper::Flush() {
+    sysParamCache.Flush();
     accountCache.Flush();
     contractCache.Flush();
     delegateCache.Flush();
     cdpCache.Flush();
     dexCache.Flush();
-    sysParamCache.Flush();
     txReceiptCache.Flush();
-};
+}
