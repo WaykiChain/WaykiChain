@@ -13,10 +13,12 @@ string CAccountLog::ToString() const {
     string str;
     str += strprintf(
         "Account log: keyid=%d regid=%s nickid=%s owner_pubKey=%s miner_pubKey=%s "
-        "free_bcoins=%lld free_scoins=%lld free_fcoins=%lld"
-        "staked_bcoins=%lld staked_fcoins=%lld received_votes=%lld last_vote_height=%lld\n",
+        "free_bcoins=%lld free_fcoins=%lld staked_bcoins=%lld staked_fcoins=%lld "
+        "extended_tokens: {%s}"
+        " received_votes=%lld last_vote_height=%lld\n",
         keyid.GetHex(), regid.ToString(), nickid.ToString(), owner_pubkey.ToString(), miner_pubkey.ToString(),
-        free_bcoins, free_scoins, free_fcoins, staked_bcoins, staked_fcoins, received_votes, last_vote_height);
+        free_bcoins, free_fcoins, staked_bcoins, staked_fcoins, extended_tokens.ToString(),
+        received_votes, last_vote_height);
 
     return str;
 }
@@ -25,15 +27,15 @@ bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
     LogPrint("undo_account", "after operate:%s\n", ToString());
 
     free_bcoins     = accountLog.free_bcoins;
-    free_scoins     = accountLog.free_scoins;
     free_fcoins     = accountLog.free_fcoins;
     frozen_bcoins   = accountLog.frozen_bcoins;
-    frozen_scoins   = accountLog.frozen_scoins;
     frozen_fcoins   = accountLog.frozen_fcoins;
     staked_bcoins   = accountLog.staked_bcoins;
     staked_fcoins   = accountLog.staked_fcoins;
     received_votes  = accountLog.received_votes;
     last_vote_height= accountLog.last_vote_height;
+
+    extended_tokens = accountLog.extended_tokens;
 
     LogPrint("undo_account", "before operate:%s\n", ToString());
     return true;

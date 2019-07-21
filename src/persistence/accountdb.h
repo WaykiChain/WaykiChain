@@ -26,9 +26,11 @@ public:
     bool GetAccount(const CKeyID &keyId, CAccount &account) const;
     bool GetAccount(const CRegID &regId, CAccount &account) const;
     bool GetAccount(const CUserID &userId, CAccount &account) const;
+
     bool SetAccount(const CKeyID &keyId, const CAccount &account);
     bool SetAccount(const CRegID &regId, const CAccount &account);
     bool SetAccount(const CUserID &userId, const CAccount &account);
+
     bool HaveAccount(const CKeyID &keyId) const;
 
     uint256 GetBestBlock() const;
