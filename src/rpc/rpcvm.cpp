@@ -147,10 +147,10 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     uint64_t balance = 0;
     if (spCW->accountCache.GetAccount(srcUserId, account)) {
-        balance = account.GetFreeBcoins();
+        balance = account.free_bcoins;
     }
 
-    if (!account.IsRegistered()) {
+    if (!account.HaveOwnerPubKey()) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
     }
     if (!pWalletMain->HaveKey(srcKeyId)) {

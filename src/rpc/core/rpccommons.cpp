@@ -21,8 +21,8 @@ Object SubmitTx(CUserID &userId, CBaseTx &tx) {
     }
 
     CAccount account;
-    if (pCdMan->pAccountCache->GetAccount(userId, account) && account.IsRegistered()) {
-        uint64_t balance = account.GetFreeBcoins();
+    if (pCdMan->pAccountCache->GetAccount(userId, account) && account.HaveOwnerPubKey()) {
+        uint64_t balance = account.free_bcoins;
         if (balance < tx.llFees) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
@@ -232,12 +232,13 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             for (auto& item : vOutput) {
                 Object objOutPut;
                 string address;
-                if (item.accountType == ACCOUNT_TYPE::regid) {
+                if (item.accountType == ACCOUNT_TYPE::REGID) {
                     vector<unsigned char> vRegId(item.accountId, item.accountId + 6);
                     CRegID regId(vRegId);
                     CUserID userId(regId);
                     address = RegIDToAddress(userId);
-                } else if (item.accountType == base58addr) {
+
+                } else if (item.accountType == ACCOUNT_TYPE::BASE58ADDR) {
                     address.assign(item.accountId[0], sizeof(item.accountId));
                 }
 
@@ -290,10 +291,10 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             CAccount account;
             set<CPubKey> pubKeys;
             for (const auto& item : ptx->signaturePairs) {
-                if (!pCdMan->pAccountCache->GetAccount(item.regId, account))
+                if (!pCdMan->pAccountCache->GetAccount(item.regid, account))
                     return arrayDetail;
 
-                pubKeys.insert(account.pubKey);
+                pubKeys.insert(account.owner_pubkey);
             }
 
             CMulsigScript script;

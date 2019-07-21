@@ -20,7 +20,7 @@ bool CAccountDBCache::GetFcoinGenesisAccount(CAccount &fcoinGensisAccount) const
 }
 
 bool CAccountDBCache::GetAccount(const CKeyID &keyId, CAccount &account) const {
-    return keyId2AccountCache.GetData(keyId, account);
+    return accountCache.GetData(keyId, account);
 }
 
 bool CAccountDBCache::GetAccount(const CRegID &regId, CAccount &account) const {
@@ -29,7 +29,7 @@ bool CAccountDBCache::GetAccount(const CRegID &regId, CAccount &account) const {
 
     CKeyID keyId;
     if (regId2KeyIdCache.GetData(regId.ToRawString(), keyId)) {
-        return keyId2AccountCache.GetData(keyId, account);
+        return accountCache.GetData(keyId, account);
     }
 
     return false;
@@ -57,19 +57,19 @@ bool CAccountDBCache::GetAccount(const CUserID &userId, CAccount &account) const
 }
 
 bool CAccountDBCache::SetAccount(const CKeyID &keyId, const CAccount &account) {
-    keyId2AccountCache.SetData(keyId, account);
+    accountCache.SetData(keyId, account);
     return true;
 }
 bool CAccountDBCache::SetAccount(const CRegID &regId, const CAccount &account) {
     CKeyID keyId;
     if (regId2KeyIdCache.GetData(regId.ToRawString(), keyId)) {
-        return keyId2AccountCache.SetData(keyId, account);
+        return accountCache.SetData(keyId, account);
     }
     return false;
 }
 
 bool CAccountDBCache::HaveAccount(const CKeyID &keyId) const {
-    return keyId2AccountCache.HaveData(keyId);
+    return accountCache.HaveData(keyId);
 }
 
 uint256 CAccountDBCache::GetBestBlock() const {
@@ -84,7 +84,7 @@ bool CAccountDBCache::SetBestBlock(const uint256 &blockHashIn) {
 
 bool CAccountDBCache::EraseAccountByKeyId(const CKeyID &keyId) {
 
-    return keyId2AccountCache.EraseData(keyId);
+    return accountCache.EraseData(keyId);
 }
 
 bool CAccountDBCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
@@ -126,14 +126,14 @@ bool CAccountDBCache::EraseKeyIdByRegId(const CRegID &regId) {
 }
 
 bool CAccountDBCache::SaveAccount(const CAccount &account) {
-    regId2KeyIdCache.SetData(account.regId.ToRawString(), account.keyId);
-    keyId2AccountCache.SetData(account.keyId, account);
-    nickId2KeyIdCache.SetData(account.nickId, account.keyId);
+    regId2KeyIdCache.SetData(account.regid.ToRawString(), account.keyid);
+    accountCache.SetData(account.keyid, account);
+    nickId2KeyIdCache.SetData(account.nickid, account.keyid);
 /*
-    mapRegId2KeyId[ account.regId ] = account.keyId;
-    mapKeyId2Account[ account.keyId ] = account;
-    if (!account.nickId.IsEmpty()) {
-        mapNickId2KeyId[ account.nickId ] = account.keyId;
+    mapRegId2KeyId[ account.regid ] = account.keyid;
+    mapKeyId2Account[ account.keyid ] = account;
+    if (!account.nickid.IsEmpty()) {
+        mapNickId2KeyId[ account.nickid ] = account.keyid;
     }
 */
     return true;
@@ -158,8 +158,8 @@ bool CAccountDBCache::GetUserId(const string &addr, CUserID &userId) const {
 
 bool CAccountDBCache::GetRegId(const CKeyID &keyId, CRegID &regId) const {
     CAccount acct;
-    if (keyId2AccountCache.GetData(keyId, acct)) {
-        regId = acct.regId;
+    if (accountCache.GetData(keyId, acct)) {
+        regId = acct.regid;
         return true;
     }
     return false;
@@ -172,7 +172,7 @@ bool CAccountDBCache::GetRegId(const CUserID &userId, CRegID &regId) const {
     } else if (userId.type() == typeid(CKeyID)) {
         CAccount account;
         if (GetAccount(userId.get<CKeyID>(), account)) {
-            regId = account.regId;
+            regId = account.regid;
             return !regId.IsEmpty();
         }
     }
@@ -231,7 +231,7 @@ bool CAccountDBCache::EraseKeyId(const CUserID &userId) {
 
 bool CAccountDBCache::Flush() {
     blockHashCache.Flush();
-    keyId2AccountCache.Flush();
+    accountCache.Flush();
     regId2KeyIdCache.Flush();
     nickId2KeyIdCache.Flush();
 
@@ -241,14 +241,14 @@ bool CAccountDBCache::Flush() {
 int64_t CAccountDBCache::GetFreeBcoins(const CUserID &userId) const {
     CAccount account;
     if (GetAccount(userId, account)) {
-        return account.GetFreeBcoins();
+        return account.free_bcoins;
     }
     return 0;
 }
 
 uint32_t CAccountDBCache::GetCacheSize() const {
     return blockHashCache.GetCacheSize() +
-        keyId2AccountCache.GetCacheSize() +
+        accountCache.GetCacheSize() +
         regId2KeyIdCache.GetCacheSize() +
         nickId2KeyIdCache.GetCacheSize();
 }
@@ -296,9 +296,9 @@ bool CAccountDB::SetAccount(const CKeyID &keyId, const CAccount &account) {
     string key = GenDbKey(dbk::KEYID_ACCOUNT, keyId);
     bool ret = db.Write(key, account);
 
-    // assert(!account.keyId.IsEmpty());
-    // assert(!account.regId.IsEmpty());
-    // assert(account.pubKey.IsValid());
+    // assert(!account.keyid.IsEmpty());
+    // assert(!account.regid.IsEmpty());
+    // assert(account.owner_pubkey.IsValid());
     return ret;
 }
 
@@ -335,7 +335,7 @@ bool CAccountDB::BatchWrite(const map<CKeyID, CAccount> &mapAccounts,
     CLevelDBBatch batch;
     auto iterAccount = mapAccounts.begin();
     for (; iterAccount != mapAccounts.end(); ++iterAccount) {
-        if (iterAccount->second.keyId.IsNull()) {
+        if (iterAccount->second.keyid.IsNull()) {
             batch.Erase(dbk::GenDbKey(dbk::KEYID_ACCOUNT, iterAccount->first));
         } else {
             batch.Write(dbk::GenDbKey(dbk::KEYID_ACCOUNT, iterAccount->first), iterAccount->second);
@@ -360,7 +360,7 @@ bool CAccountDB::BatchWrite(const vector<CAccount> &vAccounts) {
     CLevelDBBatch batch;
     auto iterAccount = vAccounts.begin();
     for (; iterAccount != vAccounts.end(); ++iterAccount) {
-        batch.Write(dbk::GenDbKey(dbk::KEYID_ACCOUNT, iterAccount->keyId), *iterAccount);
+        batch.Write(dbk::GenDbKey(dbk::KEYID_ACCOUNT, iterAccount->keyid), *iterAccount);
 
     }
     return db.WriteBatch(batch, false);
@@ -394,9 +394,9 @@ bool CAccountDB::GetAccount(const CRegID &regId, CAccount &account) {
 bool CAccountDB::SaveAccount(const CAccount &account) {
     CLevelDBBatch batch;
     // TODO: should check the regid and nickid is empty?
-    batch.Write(dbk::GenDbKey(dbk::REGID_KEYID, account.regId), account.keyId);
-    batch.Write(dbk::GenDbKey(dbk::NICKID_KEYID, account.nickId), account.keyId);
-    batch.Write(dbk::GenDbKey(dbk::KEYID_ACCOUNT, account.keyId), account);
+    batch.Write(dbk::GenDbKey(dbk::REGID_KEYID, account.regid), account.keyid);
+    batch.Write(dbk::GenDbKey(dbk::NICKID_KEYID, account.nickid), account.keyid);
+    batch.Write(dbk::GenDbKey(dbk::KEYID_ACCOUNT, account.keyid), account);
 
     return db.WriteBatch(batch, false);
 }
@@ -420,7 +420,7 @@ std::tuple<uint64_t, uint64_t> CAccountDB::TraverseAccount() {
                 CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 CAccount account;
                 ssValue >> account;
-                totalCoins += account.bcoins;
+                totalCoins += account.free_bcoins;
 
                 CRegID regId;
                 if (account.GetRegId(regId)) {

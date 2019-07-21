@@ -23,15 +23,15 @@ bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
     // Contstuct an empty account log which will delete account automatically if the blockchain rollbacked.
     CAccountLog accountLog(keyId);
 
-    account.nickId = CNickID();
-    account.pubKey = pubKey;
-    account.regId  = regId;
-    account.keyId  = keyId;
+    account.nickid = CNickID();
+    account.owner_pubkey = pubKey;
+    account.regid  = regId;
+    account.keyid  = keyId;
 
     switch (coinType) {
-        case CoinType::WICC: account.bcoins += coins; break;
-        case CoinType::WUSD: account.scoins += coins; break;
-        case CoinType::WGRT: account.fcoins += coins; break;
+        case CoinType::WICC: account.free_bcoins += coins; break;
+        case CoinType::WUSD: account.free_scoins += coins; break;
+        case CoinType::WGRT: account.free_fcoins += coins; break;
         default: return ERRORMSG("CCoinRewardTx::ExecuteTx, invalid coin type");
     }
 
@@ -51,7 +51,7 @@ bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
 bool CCoinRewardTx::UndoExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
-        if (!cw.accountCache.EraseAccountByKeyId(CUserID(rIterAccountLog->keyId)) ||
+        if (!cw.accountCache.EraseAccountByKeyId(CUserID(rIterAccountLog->keyid)) ||
             !cw.accountCache.EraseKeyId(CRegID(height, index))) {
             return state.DoS(100, ERRORMSG("CCoinRewardTx::UndoExecuteTx, write account info error"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");

@@ -25,12 +25,12 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
     } else if (-1 == nIndex) {
         // When the reward transaction is mature, update account's balances, i.e, assign the reward value to
         // the target account.
-        account.bcoins += rewardValue;
+        account.free_bcoins += rewardValue;
     } else {
         return ERRORMSG("CBlockRewardTx::ExecuteTx, invalid index");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(account.keyId), account))
+    if (!cw.accountCache.SetAccount(CUserID(account.keyid), account))
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
@@ -48,7 +48,7 @@ bool CBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
-        if (!cw.accountCache.GetAccount(CUserID(rIterAccountLog->keyId), account)) {
+        if (!cw.accountCache.GetAccount(CUserID(rIterAccountLog->keyid), account)) {
             return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
@@ -58,7 +58,7 @@ bool CBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }
 
-        if (!cw.accountCache.SetAccount(CUserID(rIterAccountLog->keyId), account)) {
+        if (!cw.accountCache.SetAccount(CUserID(rIterAccountLog->keyid), account)) {
             return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, write account info error"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }

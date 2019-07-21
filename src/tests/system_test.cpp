@@ -245,7 +245,7 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 		//6:Gettxoperationlog 获取交易log，查看是否正确
 		BOOST_CHECK(GetTxOperateLog(uint256(uint256S(strTxHash)), vLog));
 //		BOOST_CHECK(1 == vLog.size() && 1 == vLog[0].vOperFund.size() && 1 == vLog[0].vOperFund[0].vFund.size());
-		BOOST_CHECK(strAddr1 == vLog[0].keyId.ToAddress());
+		BOOST_CHECK(strAddr1 == vLog[0].keyid.ToAddress());
 //		BOOST_CHECK(vLog[0].vOperFund[0].operType == MINUS_BCOIN && vLog[0].vOperFund[0].vFund[0].value == nFee);
 
 		map<int,string> mapData;

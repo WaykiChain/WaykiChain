@@ -30,7 +30,7 @@ bool CCoinTransferTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationSta
         return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(srcAccount.pubKey);
+    IMPLEMENT_CHECK_TX_SIGNATURE(srcAccount.owner_pubkey);
 
     return true;
 }
@@ -59,15 +59,15 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CAccount desAccount;
-    if (!cw.accountCache.GetAccount(toUid, desAccount)) {
+    if (!cw.accountCache.GetAccount(toUid, desAccount)) { // Target account has NO CAccount(first involved in transacion)
         if (toUid.type() == typeid(CKeyID)) {  // Target account does NOT have CRegID
-            desAccount.keyId    = toUid.get<CKeyID>();
-            desAccountLog.keyId = desAccount.keyId;
+            desAccount.keyid    = toUid.get<CKeyID>();
+            desAccountLog.keyid = desAccount.keyid;
         } else {
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, get account info failed"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-    } else {  // Target account has NO CAccount(first involved in transacion)
+    } else {
         desAccountLog.SetValue(desAccount);
     }
 
@@ -87,7 +87,7 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
         uint64_t reserveFeeScoins = coins * riskReserveFeeRatio / kPercentBoost;
         actualCoinsToSend -= reserveFeeScoins;
 
-        fcoinGenesisAccount.scoins += reserveFeeScoins;
+        fcoinGenesisAccount.free_scoins += reserveFeeScoins;
         if (!cw.accountCache.SaveAccount(fcoinGenesisAccount))
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, update fcoinGenesisAccount info error"),
                             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
@@ -117,14 +117,14 @@ bool CCoinTransferTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapp
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
-        CUserID userId = rIterAccountLog->keyId;
+        CUserID userId = rIterAccountLog->keyid;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CCoinTransferTx::UndoExecuteTx, read account info error, userId=%s",
                 userId.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         if (!account.UndoOperateAccount(*rIterAccountLog)) {
             return state.DoS(100, ERRORMSG("CCoinTransferTx::UndoExecuteTx, undo operate account error, keyId=%s",
-                            account.keyId.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
+                            account.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
         }
 
         if (!cw.accountCache.SetAccount(userId, account)) {

@@ -349,13 +349,13 @@ Value getusercdp(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                             strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
-    assert(!txAccount.regId.IsEmpty());
+    assert(!txAccount.regid.IsEmpty());
 
     Array cdps;
 
     if(params.size() > 1) {
         uint256 cdpTxId(uint256S(params[1].get_str()));
-        CUserCDP cdp(txAccount.regId, cdpTxId);
+        CUserCDP cdp(txAccount.regid, cdpTxId);
         if (pCdMan->pCdpCache->GetCdp(cdp)) {
             cdps.push_back(cdp.ToJson());
         } else {
@@ -365,7 +365,7 @@ Value getusercdp(const Array& params, bool fHelp){
     }
     else {
         vector<CUserCDP> userCdps;
-        if (pCdMan->pCdpCache->GetCdpList(txAccount.regId, userCdps)) {
+        if (pCdMan->pCdpCache->GetCdpList(txAccount.regid, userCdps)) {
             for (auto& cdp : userCdps) {
                 cdps.push_back(cdp.ToJson());
             }
@@ -429,11 +429,11 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                             strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
-    assert(!txAccount.keyId.IsEmpty());
+    assert(!txAccount.keyid.IsEmpty());
 
     // TODO: need to support fee coin type
     uint64_t amount = assetAmount;
-    if (txAccount.GetFreeBcoins() < amount + fee) {
+    if (txAccount.free_bcoins < amount + fee) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
@@ -494,14 +494,14 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                             strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
-    assert(!txAccount.keyId.IsEmpty());
+    assert(!txAccount.keyid.IsEmpty());
 
     // TODO: need to support fee coin type
-    if (txAccount.GetFreeBcoins() < fee) {
+    if (txAccount.free_bcoins < fee) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
-    if (txAccount.GetFreeScoins() < assetAmount) {
+    if (txAccount.free_scoins < assetAmount) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough asset");
     }
 
@@ -561,7 +561,7 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
 
     // TODO: need to support fee coin type
     uint64_t amount = coinAmount;
-    if (txAccount.GetFreeBcoins() < amount + fee) {
+    if (txAccount.free_bcoins < amount + fee) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
@@ -619,14 +619,14 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                             strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
-    assert(!txAccount.keyId.IsEmpty());
+    assert(!txAccount.keyid.IsEmpty());
 
     // TODO: need to support fee coin type
-    if (txAccount.GetFreeBcoins() < fee) {
+    if (txAccount.free_bcoins < fee) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
-    if (txAccount.GetFreeScoins() < assetAmount) {
+    if (txAccount.free_scoins < assetAmount) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough asset");
     }
 

@@ -36,16 +36,16 @@ bool CPriceFeedTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
                         txUid.ToString()), PRICE_FEED_FAIL, "account-isn't-delegate");
     }
 
-    uint64_t priceFeedStakedFcoinsMin;
-    if (!cw.sysParamCache.GetParam(PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN, priceFeedStakedFcoinsMin)) {
+    uint64_t priceFeedstaked_fcoinsMin;
+    if (!cw.sysParamCache.GetParam(PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN, priceFeedstaked_fcoinsMin)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN error",
                         txUid.ToString()), READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    if (account.stakedFcoins < priceFeedStakedFcoinsMin) // must stake enough fcoins
+    if (account.staked_fcoins < priceFeedstaked_fcoinsMin) // must stake enough fcoins
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Fcoins insufficient by txUid %s account error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-insufficient");
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(account.pubKey);
+    IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
     return true;
 }
 
@@ -85,7 +85,7 @@ bool CPriceFeedTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVa
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
-        CUserID userId = rIterAccountLog->keyId;
+        CUserID userId = rIterAccountLog->keyid;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CPriceFeedTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");

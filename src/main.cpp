@@ -1228,11 +1228,11 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             CRegID regId(pIndex->nHeight, i);
             CPubKey pubKey       = pRewardTx->txUid.get<CPubKey>();
             CKeyID keyId         = pubKey.GetKeyId();
-            account.nickId = CNickID();
-            account.keyId  = keyId;
-            account.pubKey = pubKey;
-            account.regId  = regId;
-            account.bcoins = pRewardTx->rewardValue;
+            account.nickid = CNickID();
+            account.keyid  = keyId;
+            account.owner_pubkey = pubKey;
+            account.regid  = regId;
+            account.free_bcoins = pRewardTx->rewardValue;
 
             assert(cw.accountCache.SaveAccount(account));
         } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
@@ -1254,23 +1254,23 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
                 CUserID votedUid = vote.GetCandidateUid();
 
                 if (uid == votedUid) {  // vote for self
-                    voterAcct.receivedVotes = vote.GetVotedBcoins();
-                    assert(cw.delegateCache.SetDelegateVotes(voterAcct.regId, voterAcct.receivedVotes));
+                    voterAcct.received_votes = vote.GetVotedBcoins();
+                    assert(cw.delegateCache.SetDelegateVotes(voterAcct.regid, voterAcct.received_votes));
                 } else {  // vote for others
                     CAccount votedAcct;
                     assert(!cw.accountCache.GetAccount(votedUid, votedAcct));
 
                     CRegID votedRegId(pIndex->nHeight, j++);  // generate RegId in genesis block
                     votedAcct.SetRegId(votedRegId);
-                    votedAcct.receivedVotes = vote.GetVotedBcoins();
+                    votedAcct.received_votes = vote.GetVotedBcoins();
 
                     if (votedUid.type() == typeid(CPubKey)) {
-                        votedAcct.pubKey = votedUid.get<CPubKey>();
-                        votedAcct.keyId  = votedAcct.pubKey.GetKeyId();
+                        votedAcct.owner_pubkey = votedUid.get<CPubKey>();
+                        votedAcct.keyid  = votedAcct.owner_pubkey.GetKeyId();
                     }
 
                     assert(cw.accountCache.SaveAccount(votedAcct));
-                    assert(cw.delegateCache.SetDelegateVotes(votedAcct.regId, votedAcct.receivedVotes));
+                    assert(cw.delegateCache.SetDelegateVotes(votedAcct.regid, votedAcct.received_votes));
                 }
 
                 candidateVotes.push_back(vote);
@@ -1279,8 +1279,8 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
                          return vote1.GetVotedBcoins() > vote2.GetVotedBcoins();
                      });
             }
-            assert(voterAcct.bcoins >= maxVotes);
-            voterAcct.bcoins -= maxVotes;
+            assert(voterAcct.free_bcoins >= maxVotes);
+            voterAcct.free_bcoins -= maxVotes;
             assert(cw.accountCache.SaveAccount(voterAcct));
             assert(cw.delegateCache.SetCandidateVotes(pDelegateTx->txUid.get<CRegID>(),
                                                       candidateVotes, cw.txUndo.dbOpLogMap));

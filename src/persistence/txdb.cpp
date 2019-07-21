@@ -120,7 +120,7 @@ string CTxUndo::ToString() const {
 
 bool CTxUndo::GetAccountLog(const CKeyID &keyId, CAccountLog &accountLog) {
     for (auto iterLog : accountLogs) {
-        if (iterLog.keyId == keyId) {
+        if (iterLog.keyid == keyId) {
             accountLog = iterLog;
             return true;
         }

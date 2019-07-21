@@ -996,15 +996,15 @@ static int ExGetAccountPublickeyFunc(lua_State *L) {
             return RetFalse("ExGetAccountPublickeyFunc para err2");
      }
     CUserID userid(addrKeyId);
-    CAccount aAccount;
-    if (!pVmRunEnv->GetCatchView()->GetAccount(userid, aAccount)) {
+    CAccount account;
+    if (!pVmRunEnv->GetCatchView()->GetAccount(userid, account)) {
         return RetFalse("ExGetAccountPublickeyFunc para err3");
     }
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     vector<char> te;
-    tep << aAccount.pubKey;
-//    assert(aAccount.pubKey.IsFullyValid());
-    if(false == aAccount.pubKey.IsFullyValid()){
+    tep << account.owner_pubkey;
+//    assert(aaccount.owner_pubkey.IsFullyValid());
+    if(false == account.owner_pubkey.IsFullyValid()){
         return RetFalse("ExGetAccountPublickeyFunc pubKey invalid");
     }
     tep >>te;
@@ -1038,14 +1038,14 @@ static int ExQueryAccountBalanceFunc(lua_State *L) {
      }
 
      CUserID userid(addrKeyId);
-     CAccount aAccount;
+     CAccount account;
      int len = 0;
-    if (!pVmRunEnv->GetCatchView()->GetAccount(userid, aAccount)) {
+    if (!pVmRunEnv->GetCatchView()->GetAccount(userid, account)) {
         len = 0;
     }
     else
     {
-        uint64_t nbalance = aAccount.GetFreeBcoins();
+        uint64_t nbalance = account.free_bcoins;
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << nbalance;
         vector<unsigned char> TMP(tep.begin(),tep.end());

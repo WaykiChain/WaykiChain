@@ -720,11 +720,11 @@ bool SysTestBase::GetRegID(string &strAddr, CRegID &regId) {
     if (!accountDbCache.GetAccount(userId, account)) {
         return false;
     }
-    if ((!account.IsRegistered()) || account.regId.IsEmpty()) {
+    if ((!account.HaveOwnerPubKey()) || account.regid.IsEmpty()) {
         return false;
     }
 
-    regId = account.regId;
+    regId = account.regid;
     return true;
 }
 

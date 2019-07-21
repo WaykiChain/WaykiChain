@@ -85,11 +85,11 @@ bool CDEXBuyLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSta
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.IsRegistered())
+    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
 
-    CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey );
+    CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey );
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -116,7 +116,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyId), srcAcct))
+    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyid), srcAcct))
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
@@ -155,7 +155,7 @@ bool CDEXBuyLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
     }
     const CAccountLog &accountLog = cw.txUndo.accountLogs.at(0);
     CAccount account;
-    CUserID userId = accountLog.keyId;
+    CUserID userId = accountLog.keyid;
     if (!cw.accountCache.GetAccount(userId, account)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::UndoExecuteTx, read account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -244,11 +244,11 @@ bool CDEXSellLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSt
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.IsRegistered())
+    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
 
-    CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey );
+    CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey );
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -273,7 +273,7 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyId), srcAcct))
+    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyid), srcAcct))
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
@@ -311,7 +311,7 @@ bool CDEXSellLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper 
     }
     const CAccountLog &accountLog = cw.txUndo.accountLogs.at(0);
     CAccount account;
-    CUserID userId = accountLog.keyId;
+    CUserID userId = accountLog.keyid;
     if (!cw.accountCache.GetAccount(userId, account)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, read account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -392,11 +392,11 @@ bool CDEXBuyMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSt
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.IsRegistered())
+    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey);
+    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -421,7 +421,7 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyId), srcAcct))
+    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyid), srcAcct))
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
@@ -460,7 +460,7 @@ bool CDEXBuyMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper 
     }
     const CAccountLog &accountLog = cw.txUndo.accountLogs.at(0);
     CAccount account;
-    CUserID userId = accountLog.keyId;
+    CUserID userId = accountLog.keyid;
     if (!cw.accountCache.GetAccount(userId, account)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::UndoExecuteTx, read account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -540,11 +540,11 @@ bool CDEXSellMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationS
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.IsRegistered())
+    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey);
+    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -569,7 +569,7 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyId), srcAcct))
+    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyid), srcAcct))
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
@@ -607,7 +607,7 @@ bool CDEXSellMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper
     }
     const CAccountLog &accountLog = cw.txUndo.accountLogs.at(0);
     CAccount account;
-    CUserID userId = accountLog.keyId;
+    CUserID userId = accountLog.keyid;
     if (!cw.accountCache.GetAccount(userId, account)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::UndoExecuteTx, read account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -668,11 +668,11 @@ bool CDEXCancelOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.IsRegistered())
+    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey);
+    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -732,7 +732,7 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
                          UPDATE_ACCOUNT_FAIL, "unfreeze-account-coin");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyId), srcAccount))
+    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
@@ -763,7 +763,7 @@ bool CDEXCancelOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
 
     for (auto accountLog : cw.txUndo.accountLogs) {
         CAccount account;
-        CUserID userId = accountLog.keyId;
+        CUserID userId = accountLog.keyid;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::UndoExecuteTx, read account info error"),
                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -891,11 +891,11 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
-    if (txUid.type() == typeid(CRegID) && !srcAccount.IsRegistered())
+    if (txUid.type() == typeid(CRegID) && !srcAccount.HaveOwnerPubKey())
         return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
 
-    CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.pubKey );
+    CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey );
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -1128,8 +1128,8 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
             buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
             assert (buyOrderDetail.assetType == WICC || buyOrderDetail.assetType == WGRT);
             switch (buyOrderDetail.assetType) {
-                case WICC: srcAcct.bcoins += dealAssetFee; break;
-                case WGRT: srcAcct.fcoins += dealAssetFee; break;
+                case WICC: srcAcct.free_bcoins += dealAssetFee; break;
+                case WGRT: srcAcct.free_fcoins += dealAssetFee; break;
                 default: break; //unlikely
             }
         }
@@ -1139,7 +1139,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
             uint64_t dealCoinFee = dealItem.dealCoinAmount * dexDealFeeRatio / kPercentBoost;
             sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
             assert (sellOrderDetail.coinType == WUSD);
-            srcAcct.scoins += dealCoinFee;
+            srcAcct.free_scoins += dealCoinFee;
         }
 
         // 10. operate account
@@ -1194,7 +1194,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
 
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyId), srcAcct))
+    if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyid), srcAcct))
         return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
@@ -1220,7 +1220,7 @@ bool CDEXSettleTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVa
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         const CAccountLog &accountLog = *rIterAccountLog;
         CAccount account;
-        CUserID userId = accountLog.keyId;
+        CUserID userId = accountLog.keyid;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CDEXSettleTx::UndoExecuteTx, read account info error"),
                             READ_ACCOUNT_FAIL, "bad-read-accountdb");

@@ -15,14 +15,14 @@
 #include "config/version.h"
 
 string CSignaturePair::ToString() const {
-    string str = strprintf("regId=%s, signature=%s", regId.ToString(),
+    string str = strprintf("regId=%s, signature=%s", regid.ToString(),
                            HexStr(signature.begin(), signature.end()));
     return str;
 }
 
 Object CSignaturePair::ToJson() const {
     Object obj;
-    obj.push_back(Pair("regid", regId.ToString()));
+    obj.push_back(Pair("regid", regid.ToString()));
     obj.push_back(Pair("signature", HexStr(signature.begin(), signature.end())));
 
     return obj;
@@ -73,12 +73,12 @@ Object CMulsigTx::ToJson(const CAccountDBCache &accountView) const {
     std::set<CPubKey> pubKeys;
     for (const auto &item : signaturePairs) {
         signatureArray.push_back(item.ToJson());
-        if (!view.GetAccount(item.regId, account)) {
+        if (!view.GetAccount(item.regid, account)) {
             LogPrint("ERROR", "CMulsigTx::ToJson, failed to get account info: %s\n",
-                     item.regId.ToString());
+                     item.regid.ToString());
             continue;
         }
-        pubKeys.insert(account.pubKey);
+        pubKeys.insert(account.owner_pubkey);
     }
     CMulsigScript script;
     script.SetMultisig(required, pubKeys);
@@ -99,7 +99,7 @@ Object CMulsigTx::ToJson(const CAccountDBCache &accountView) const {
 bool CMulsigTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     CKeyID keyId;
     for (const auto &item : signaturePairs) {
-        if (!cw.accountCache.GetKeyId(CUserID(item.regId), keyId)) return false;
+        if (!cw.accountCache.GetKeyId(CUserID(item.regid), keyId)) return false;
         keyIds.insert(keyId);
     }
 
@@ -122,7 +122,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
         CRegID regId;
         // If the source account does NOT have CRegID, need to generate a new CRegID.
         if (!cw.accountCache.GetRegId(CUserID(keyId), regId)) {
-            srcAcct.regId = CRegID(nHeight, nIndex);
+            srcAcct.regid = CRegID(nHeight, nIndex);
             generateRegID = true;
         }
     }
@@ -140,7 +140,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
             return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, save account info error"),
                              WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     } else {
-        if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyId), srcAcct))
+        if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyid), srcAcct))
             return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, save account info error"),
                              WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
@@ -148,8 +148,8 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
     uint64_t addValue = bcoins;
     if (!cw.accountCache.GetAccount(desUserId, desAcct)) {
         if (desUserId.type() == typeid(CKeyID)) {  // target account does NOT have CRegID
-            desAcct.keyId    = desUserId.get<CKeyID>();
-            desAcctLog.keyId = desAcct.keyId;
+            desAcct.keyid    = desUserId.get<CKeyID>();
+            desAcctLog.keyid = desAcct.keyid;
         } else {
             return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, get account info failed"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -165,7 +165,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
 
     if (!cw.accountCache.SetAccount(desUserId, desAcct))
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, save account error, kyeId=%s",
-                         desAcct.keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
+                         desAcct.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
     cw.txUndo.accountLogs.push_back(srcAcctLog);
     cw.txUndo.accountLogs.push_back(desAcctLog);
@@ -173,7 +173,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
 
     vector<CUserID> uids;
     for (const auto &item : signaturePairs) {
-        uids.push_back(CUserID(item.regId));
+        uids.push_back(CUserID(item.regid));
     }
     uids.push_back(desUserId);
 
@@ -186,7 +186,7 @@ bool CMulsigTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
-        CUserID userId = rIterAccountLog->keyId;
+        CUserID userId = rIterAccountLog->keyid;
 
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CMulsigTx::UndoExecuteTx, read account info error"),
@@ -198,14 +198,14 @@ bool CMulsigTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }
 
-        if (account.IsEmptyValue() && account.regId.IsEmpty()) {
+        if (account.IsEmptyValue() && account.regid.IsEmpty()) {
             cw.accountCache.EraseAccountByKeyId(userId);
-        } else if (account.regId == CRegID(nHeight, nIndex)) {
+        } else if (account.regid == CRegID(nHeight, nIndex)) {
             // If the CRegID was generated by this MULSIG_TX, need to remove CRegID.
             CPubKey empPubKey;
-            account.pubKey      = empPubKey;
-            account.minerPubKey = empPubKey;
-            account.regId.Clear();
+            account.owner_pubkey      = empPubKey;
+            account.miner_pubkey = empPubKey;
+            account.regid.Clear();
 
             if (!cw.accountCache.SetAccount(userId, account)) {
                 return state.DoS(100, ERRORMSG("CBaseTx::UndoExecuteTx, write account info error"),
@@ -248,27 +248,27 @@ bool CMulsigTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state)
     uint256 sighash = ComputeSignatureHash();
     uint8_t valid   = 0;
     for (const auto &item : signaturePairs) {
-        if (!cw.accountCache.GetAccount(item.regId, account))
+        if (!cw.accountCache.GetAccount(item.regid, account))
             return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, account: %s, read account failed",
-                            item.regId.ToString()), REJECT_INVALID, "bad-getaccount");
+                            item.regid.ToString()), REJECT_INVALID, "bad-getaccount");
 
         if (!item.signature.empty()) {
             if (!CheckSignatureSize(item.signature)) {
                 return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, account: %s, signature size invalid",
-                                item.regId.ToString()), REJECT_INVALID, "bad-tx-sig-size");
+                                item.regid.ToString()), REJECT_INVALID, "bad-tx-sig-size");
             }
 
-            if (!VerifySignature(sighash, item.signature, account.pubKey)) {
+            if (!VerifySignature(sighash, item.signature, account.owner_pubkey)) {
                 return state.DoS(100,
                                  ERRORMSG("CMulsigTx::CheckTx, account: %s, VerifySignature failed",
-                                          item.regId.ToString()),
+                                          item.regid.ToString()),
                                  REJECT_INVALID, "bad-signscript-check");
             } else {
                 ++valid;
             }
         }
 
-        pubKeys.insert(account.pubKey);
+        pubKeys.insert(account.owner_pubkey);
     }
 
     if (pubKeys.size() != signaturePairs.size()) {

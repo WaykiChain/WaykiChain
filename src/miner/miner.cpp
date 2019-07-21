@@ -132,25 +132,25 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
         if (!ReadBlockFromDisk(pBlockIndex, previousBlock))
             return ERRORMSG("read block info fail from disk");
 
-        CAccount previousDelegate;
-        if (!accountCache.GetAccount(previousBlock.vptx[0]->txUid, previousDelegate)) {
+        CAccount prevDelegateAcct;
+        if (!accountCache.GetAccount(previousBlock.vptx[0]->txUid, prevDelegateAcct)) {
             return ERRORMSG("get preblock delegate account info error");
         }
 
         if (currentTime - previousBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
-            if (previousDelegate.regId == delegate.regId)
+            if (prevDelegateAcct.regid == delegate.regid)
                 return ERRORMSG("one delegate can't produce more than one block at the same slot");
         }
     }
 
     if (pBlock->vptx[0]->nTxType == BLOCK_REWARD_TX) {
         auto pRewardTx          = (CBlockRewardTx *)pBlock->vptx[0].get();
-        pRewardTx->txUid        = delegate.regId;
+        pRewardTx->txUid        = delegate.regid;
         pRewardTx->nValidHeight = pBlock->GetHeight();
 
     } else if (pBlock->vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
         auto pRewardTx          = (CMultiCoinBlockRewardTx *)pBlock->vptx[0].get();
-        pRewardTx->txUid        = delegate.regId;
+        pRewardTx->txUid        = delegate.regid;
         pRewardTx->nValidHeight = pBlock->GetHeight();
         pRewardTx->profits      = delegate.ComputeBlockInflateInterest(pBlock->GetHeight());
     }
@@ -160,7 +160,8 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
     pBlock->SetTime(currentTime);
 
     vector<unsigned char> signature;
-    if (pWalletMain->Sign(delegate.keyId, pBlock->ComputeSignatureHash(), signature, delegate.minerPubKey.IsValid())) {
+    if (pWalletMain->Sign(delegate.keyid, pBlock->ComputeSignatureHash(),
+                        signature, delegate.miner_pubkey.IsValid())) {
         pBlock->SetSignature(signature);
         return true;
     } else {
@@ -217,22 +218,22 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
         if (!ReadBlockFromDisk(pBlockIndex, previousBlock))
             return ERRORMSG("VerifyPosTx() : read block info failed from disk");
 
-        CAccount previousDelegate;
-        if (!spCW->accountCache.GetAccount(previousBlock.vptx[0]->txUid, previousDelegate))
+        CAccount prevDelegateAcct;
+        if (!spCW->accountCache.GetAccount(previousBlock.vptx[0]->txUid, prevDelegateAcct))
             return ERRORMSG("VerifyPosTx() : failed to get previous delegate's account, regId=%s",
                 previousBlock.vptx[0]->txUid.ToString());
 
         if (pBlock->GetBlockTime() - previousBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
-            if (previousDelegate.regId == curDelegate.regId)
+            if (prevDelegateAcct.regid == curDelegate.regid)
                 return ERRORMSG("VerifyPosTx() : one delegate can't produce more than one block at the same slot");
         }
     }
 
     CAccount account;
     if (spCW->accountCache.GetAccount(pBlock->vptx[0]->txUid, account)) {
-        if (curDelegate.regId != account.regId) {
-            return ERRORMSG("VerifyPosTx() : delegate should be(%s) vs what we got(%s)", curDelegate.regId.ToString(),
-                            account.regId.ToString());
+        if (curDelegate.regid != account.regid) {
+            return ERRORMSG("VerifyPosTx() : delegate should be(%s) vs what we got(%s)", curDelegate.regid.ToString(),
+                            account.regid.ToString());
         }
 
         const uint256 &blockHash                    = pBlock->ComputeSignatureHash();
@@ -242,8 +243,8 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
             return ERRORMSG("VerifyPosTx() : invalid block signature size, hash=%s", blockHash.ToString());
         }
 
-        if (!VerifySignature(blockHash, blockSignature, account.pubKey))
-            if (!VerifySignature(blockHash, blockSignature, account.minerPubKey))
+        if (!VerifySignature(blockHash, blockSignature, account.owner_pubkey))
+            if (!VerifySignature(blockHash, blockSignature, account.miner_pubkey))
                 return ERRORMSG("VerifyPosTx() : verify signature error");
     } else {
         return ERRORMSG("VerifyPosTx() : failed to get account info, regId=%s", pBlock->vptx[0]->txUid.ToString());
@@ -536,12 +537,13 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
                 return false;
 
             CKey acctKey;
-            if (pWalletMain->GetKey(minerAcct.keyId.ToAddress(), acctKey, true) ||
-                pWalletMain->GetKey(minerAcct.keyId.ToAddress(), acctKey)) {
+            if (pWalletMain->GetKey(minerAcct.keyid.ToAddress(), acctKey, true) ||
+                pWalletMain->GetKey(minerAcct.keyid.ToAddress(), acctKey)) {
                 nLastTime = GetTimeMillis();
                 success   = CreateBlockRewardTx(currentTime, minerAcct, cw.accountCache, pBlock);
                 LogPrint("MINER", "MineBlock() : %s to create block reward transaction, used %d ms, miner address %s\n",
-                         success ? "succeed" : "failed", GetTimeMillis() - nLastTime, minerAcct.keyId.ToAddress());
+                         success ? "succeed" : "failed", GetTimeMillis() - nLastTime,
+                         minerAcct.keyid.ToAddress());
             }
         }
 

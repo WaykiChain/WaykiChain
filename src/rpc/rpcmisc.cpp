@@ -69,11 +69,11 @@ Value getbalance(const Array& params, bool fHelp)
             if (pWalletMain->HaveKey(keyid)) {
                 CAccount account;
                 if (pCdMan->pAccountCache->GetAccount(CUserID(keyid), account)) {
-                    obj.push_back(Pair("balance", ValueFromAmount(account.GetFreeBcoins())));
+                    obj.push_back( Pair("balance", ValueFromAmount(account.free_bcoins)) );
                     return obj;
                 }
             } else {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "address not inwallet");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "address not in wallet");
             }
         }
     } else if (size == 2) {
@@ -81,7 +81,7 @@ Value getbalance(const Array& params, bool fHelp)
         int nConf = params[1].get_int();
         int nMaxConf = SysCfg().GetArg("-maxconf", 30);
         if(nConf > nMaxConf) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "parameter minconf exceed maxconfed");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "parameter minconf exceed maxconf");
         }
         if (addr == "*") {
             if (0 != nConf) {

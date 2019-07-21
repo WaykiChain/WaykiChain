@@ -71,10 +71,10 @@ static const unordered_map<SysParamType, std::tuple<string, uint64_t>, SysParamT
     { CDP_START_LIQUIDATE_RATIO,                    std::make_tuple("K",    15000)      },  // 1.13 ~ 1.5  : common liquidation
     { CDP_NONRETURN_LIQUIDATE_RATIO,                std::make_tuple("L",    11300)      },  // 1.04 ~ 1.13 : Non-return to CDP owner
     { CDP_FORCE_LIQUIDATE_RATIO,                    std::make_tuple("M",    10400)      },  // 0 ~ 1.04    : forced liquidation only
-    { CDP_LIQUIDATE_DISCOUNT_RATIO,                 std::make_tuple("N",    9700)       }, // discount: 97%
-    { CDP_BCOINS_TOSTAKE_AMOUNT_MIN,                std::make_tuple("O",    10000000000)}, //100 WICC, dust amount (<100) rejected
-    { CDP_INTEREST_PARAM_A,                         std::make_tuple("P",    2)          }, // a = 2
-    { CDP_INTEREST_PARAM_B,                         std::make_tuple("Q",    1)          }, // b = 1
+    { CDP_LIQUIDATE_DISCOUNT_RATIO,                 std::make_tuple("N",    9700)       },  // discount: 97%
+    { CDP_BCOINS_TOSTAKE_AMOUNT_MIN,                std::make_tuple("O",    10000000000)},  //100 WICC, dust amount (<100) rejected
+    { CDP_INTEREST_PARAM_A,                         std::make_tuple("P",    2)          },  // a = 2
+    { CDP_INTEREST_PARAM_B,                         std::make_tuple("Q",    1)          },  // b = 1
 
 };
 

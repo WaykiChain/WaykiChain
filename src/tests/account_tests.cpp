@@ -60,7 +60,7 @@ struct CTxTest :public SysTestBase{
 		ResetEnv();
 
 
-		accOperate.keyId.SetNull();
+		accOperate.keyid.SetNull();
 		accBeforOperate = accOperate;
 		Init();
 	}
@@ -91,7 +91,7 @@ struct CTxTest :public SysTestBase{
 
 		CKeyID keyId;
 		keyId.SetHex(strKeyID);
-		accOperate.keyId = keyId;
+		accOperate.keyid = keyId;
 
 
 		accOperate.bcoins = TEST_SIZE*5;

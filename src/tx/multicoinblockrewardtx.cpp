@@ -27,20 +27,20 @@ bool CMultiCoinBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &
         // the target account.
         for (const auto &item : rewardValues) {
             switch (item.first/* CoinType */) {
-                case CoinType::WICC: account.bcoins += item.second; break;
-                case CoinType::WUSD: account.scoins += item.second; break;
-                case CoinType::WGRT: account.fcoins += item.second; break;
+                case CoinType::WICC: account.free_bcoins += item.second; break;
+                case CoinType::WUSD: account.free_scoins += item.second; break;
+                case CoinType::WGRT: account.free_fcoins += item.second; break;
                 default: return ERRORMSG("CMultiCoinBlockRewardTx::ExecuteTx, invalid coin type");
             }
         }
 
         // Assign profits to the delegate's account.
-        account.bcoins += profits;
+        account.free_bcoins += profits;
     } else {
         return ERRORMSG("CMultiCoinBlockRewardTx::ExecuteTx, invalid index");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(account.keyId), account))
+    if (!cw.accountCache.SetAccount(CUserID(account.keyid), account))
         return state.DoS(100, ERRORMSG("CMultiCoinBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
@@ -58,7 +58,7 @@ bool CMultiCoinBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapp
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
-        if (!cw.accountCache.GetAccount(CUserID(rIterAccountLog->keyId), account)) {
+        if (!cw.accountCache.GetAccount(CUserID(rIterAccountLog->keyid), account)) {
             return state.DoS(100, ERRORMSG("CMultiCoinBlockRewardTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
@@ -68,7 +68,7 @@ bool CMultiCoinBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapp
                              UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
         }
 
-        if (!cw.accountCache.SetAccount(CUserID(rIterAccountLog->keyId), account)) {
+        if (!cw.accountCache.SetAccount(CUserID(rIterAccountLog->keyid), account)) {
             return state.DoS(100, ERRORMSG("CMultiCoinBlockRewardTx::UndoExecuteTx, write account info error"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }

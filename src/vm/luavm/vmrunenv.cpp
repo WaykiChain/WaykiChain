@@ -185,7 +185,7 @@ shared_ptr<CAccount> CVmRunEnv::GetNewAccount(shared_ptr<CAccount>& vOldAccount)
     vector<shared_ptr<CAccount>>::iterator Iter;
     for (Iter = newAccount.begin(); Iter != newAccount.end(); Iter++) {
         shared_ptr<CAccount> temp = *Iter;
-        if (temp.get()->keyId == vOldAccount.get()->keyId) {
+        if (temp.get()->keyid == vOldAccount.get()->keyid) {
             newAccount.erase(Iter);
             return temp;
         }
@@ -197,7 +197,7 @@ shared_ptr<CAccount> CVmRunEnv::GetAccount(shared_ptr<CAccount>& Account) {
     vector<shared_ptr<CAccount>>::iterator Iter;
     for (Iter = rawAccount.begin(); Iter != rawAccount.end(); Iter++) {
         shared_ptr<CAccount> temp = *Iter;
-        if (Account.get()->keyId == temp.get()->keyId) {
+        if (Account.get()->keyid == temp.get()->keyid) {
             return temp;
         }
     }
@@ -206,9 +206,9 @@ shared_ptr<CAccount> CVmRunEnv::GetAccount(shared_ptr<CAccount>& Account) {
 
 UnsignedCharArray CVmRunEnv::GetAccountID(CVmOperate value) {
     UnsignedCharArray accountId;
-    if (value.accountType == regid) {
+    if (value.accountType == REGID) {
         accountId.assign(value.accountId, value.accountId + 6);
-    } else if (value.accountType == base58addr) {
+    } else if (value.accountType == ACCOUNT_TYPE::BASE58ADDR) {
         string addr(value.accountId, value.accountId + sizeof(value.accountId));
         CKeyID KeyId = CKeyID(addr);
         CRegID regid;
@@ -238,7 +238,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
     if (listoperate.size() > MAX_OUTPUT_COUNT) return false;
 
     for (auto& it : listoperate) {
-        if (it.accountType != regid && it.accountType != base58addr) return false;
+        if (it.accountType != REGID && it.accountType != ACCOUNT_TYPE::BASE58ADDR) return false;
 
         if (it.opType == ADD_BCOIN) {
             memcpy(&operValue, it.money, sizeof(it.money));
@@ -419,7 +419,7 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDB
             string popaddr(accountId.begin(), accountId.end());
             userkeyid = CKeyID(popaddr);
             if (!view.GetAccount(CUserID(userkeyid), *tem.get())) {
-                tem->keyId = userkeyid;
+                tem->keyid = userkeyid;
                 // return false;
                 // 未产生过交易记录的账户
             }
@@ -436,7 +436,7 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDB
         bool ret = false;
         //      vector<CDbOpLog> vAuthorLog;
         // todolist
-        //      if(IsSignatureAccount(vmAccount.get()->regId) || vmAccount.get()->regId ==
+        //      if(IsSignatureAccount(vmAccount.get()->regid) || vmAccount.get()->regid ==
         //      tx->appRegId.get<CRegID>())
         { ret = vmAccount.get()->OperateBalance(CoinType::WICC, (BalanceOpType)it.opType, value); }
         //      else{

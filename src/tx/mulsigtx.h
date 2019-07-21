@@ -12,21 +12,21 @@
 
 class CSignaturePair {
 public:
-    CRegID regId;  //!< regid only
+    CRegID regid;  //!< regid only
     UnsignedCharArray signature;
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(regId);
+        READWRITE(regid);
         READWRITE(signature);)
 
 public:
     CSignaturePair(const CSignaturePair &signaturePair) {
-        regId     = signaturePair.regId;
+        regid     = signaturePair.regid;
         signature = signaturePair.signature;
     }
 
     CSignaturePair(const CRegID &regIdIn, const UnsignedCharArray &signatureIn) {
-        regId     = regIdIn;
+        regid     = regIdIn;
         signature = signatureIn;
     }
 
@@ -101,7 +101,7 @@ public:
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight);
             // Do NOT add item.signature.
             for (const auto &item : signaturePairs) {
-                ss << item.regId;
+                ss << item.regid;
             }
             ss << desUserId << VARINT(llFees) << VARINT(bcoins) << VARINT(required) << memo;
             sigHash = ss.GetHash();

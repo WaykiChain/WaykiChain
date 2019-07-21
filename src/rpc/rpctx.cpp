@@ -189,10 +189,10 @@ Value registeraccounttx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist");
 
 
-        if (account.IsRegistered())
+        if (account.HaveOwnerPubKey())
             throw JSONRPCError(RPC_WALLET_ERROR, "Account was already registered");
 
-        uint64_t balance = account.GetFreeBcoins();
+        uint64_t balance = account.free_bcoins;
         if (balance < fee) {
             LogPrint("ERROR", "balance=%d, vs fee=%d", balance, fee);
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
@@ -423,11 +423,11 @@ Value registercontracttx(const Array& params, bool fHelp)
             throw JSONRPCError(RPC_WALLET_ERROR, "Invalid send address");
         }
 
-        if (!account.IsRegistered()) {
+        if (!account.HaveOwnerPubKey()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
         }
 
-        uint64_t balance = account.GetFreeBcoins();
+        uint64_t balance = account.free_bcoins;
         if (balance < fee) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
@@ -523,11 +523,11 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist");
         }
 
-        if (!account.IsRegistered()) {
+        if (!account.HaveOwnerPubKey()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
         }
 
-        uint64_t balance = account.GetFreeBcoins();
+        uint64_t balance = account.free_bcoins;
         if (balance < fee) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
@@ -542,7 +542,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
         } else {
             delegateVoteTx.nValidHeight = chainActive.Tip()->nHeight;
         }
-        delegateVoteTx.txUid = account.regId;
+        delegateVoteTx.txUid = account.regid;
 
         for (auto objVote : arrVotes) {
 
@@ -559,12 +559,12 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             if (!pCdMan->pAccountCache->GetAccount(CUserID(delegateKeyId), delegateAcct)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address is not exist");
             }
-            if (!delegateAcct.IsRegistered()) {
+            if (!delegateAcct.HaveOwnerPubKey()) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "Delegate address is unregistered");
             }
 
             VoteType voteType = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN : VoteType::MINUS_BCOIN;
-            CUserID candidateUid = CUserID(delegateAcct.regId);
+            CUserID candidateUid = CUserID(delegateAcct.regid);
             uint64_t bcoins = (uint64_t)abs(delegateVotes.get_int64());
             CCandidateVote candidateVote(voteType, candidateUid, bcoins);
 
@@ -648,11 +648,11 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist");
         }
 
-        if (!account.IsRegistered()) {
+        if (!account.HaveOwnerPubKey()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
         }
 
-        uint64_t balance = account.GetFreeBcoins();
+        uint64_t balance = account.free_bcoins;
         if (balance < fee) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
@@ -663,7 +663,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
 
         delegateVoteTx.llFees       = fee;
         delegateVoteTx.nValidHeight = nHeight;
-        delegateVoteTx.txUid        = account.regId;
+        delegateVoteTx.txUid        = account.regid;
 
         for (auto objVote : arrVotes) {
 
@@ -684,7 +684,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             }
 
             VoteType voteType = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN: VoteType::MINUS_BCOIN;
-            CUserID candidateUid = CUserID(delegateAcct.keyId);
+            CUserID candidateUid = CUserID(delegateAcct.keyid);
             uint64_t bcoins = (uint64_t)abs(delegateVotes.get_int64());
             CCandidateVote candidateVote(voteType, candidateUid, bcoins);
 
@@ -736,9 +736,9 @@ Value listaddr(const Array& params, bool fHelp) {
 
             Object obj;
             obj.push_back(Pair("addr", keyId.ToAddress()));
-            obj.push_back(Pair("balance", (double)acctInfo.GetFreeBcoins()/ (double) COIN));
+            obj.push_back(Pair("balance", (double)acctInfo.free_bcoins/ (double) COIN));
             obj.push_back(Pair("hasminerkey", keyCombi.HaveMinerKey()));
-            obj.push_back(Pair("regid",acctInfo.regId.ToString()));
+            obj.push_back(Pair("regid",acctInfo.regid.ToString()));
             retArray.push_back(obj);
         }
     }
@@ -1222,15 +1222,15 @@ Value getaccountinfo(const Array& params, bool fHelp) {
     {
         CAccount account;
         if (pCdMan->pAccountCache->GetAccount(userId, account)) {
-            if (!account.pubKey.IsValid()) {
+            if (!account.owner_pubkey.IsValid()) {
                 CPubKey pk;
                 CPubKey minerpk;
                 if (pWalletMain->GetPubKey(keyId, pk)) {
                     pWalletMain->GetPubKey(keyId, minerpk, true);
-                    account.pubKey = pk;
-                    account.keyId  = pk.GetKeyId();
-                    if (pk != minerpk && !account.minerPubKey.IsValid()) {
-                        account.minerPubKey = minerpk;
+                    account.owner_pubkey = pk;
+                    account.keyid  = pk.GetKeyId();
+                    if (pk != minerpk && !account.miner_pubkey.IsValid()) {
+                        account.miner_pubkey = minerpk;
                     }
                 }
             }
@@ -1241,10 +1241,10 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             CPubKey minerpk;
             if (pWalletMain->GetPubKey(keyId, pk)) {
                 pWalletMain->GetPubKey(keyId, minerpk, true);
-                account.pubKey = pk;
-                account.keyId  = pk.GetKeyId();
+                account.owner_pubkey = pk;
+                account.keyid  = pk.GetKeyId();
                 if (minerpk != pk) {
-                    account.minerPubKey = minerpk;
+                    account.miner_pubkey = minerpk;
                 }
                 obj = account.ToJsonObj(true);
                 obj.push_back(Pair("position", "inwallet"));
@@ -1282,8 +1282,8 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
 
 static Value AccountLogToJson(const CAccountLog &accoutLog) {
     Object obj;
-    obj.push_back(Pair("keyId", accoutLog.keyId.ToString()));
-    obj.push_back(Pair("bcoins", accoutLog.bcoins));
+    obj.push_back(Pair("keyid", accoutLog.keyid.ToString()));
+    obj.push_back(Pair("free_bcoins", accoutLog.free_bcoins));
     // Array array;
     // for (auto const& te : accoutLog.vRewardFund) {
     //     Object obj2;
@@ -1322,7 +1322,7 @@ Value gettxoperationlog(const Array& params, bool fHelp) {
         Array arrayvLog;
         for (auto const &te : vLog) {
             Object obj;
-            obj.push_back(Pair("addr", te.keyId.ToAddress()));
+            obj.push_back(Pair("addr", te.keyid.ToAddress()));
             Array array;
             array.push_back(AccountLogToJson(te));
             arrayvLog.push_back(obj);
@@ -1481,7 +1481,7 @@ Value getaddrbalance(const Array& params, bool fHelp) {
     double balance = 0.0;
     CAccount account;
     if (pCdMan->pAccountCache->GetAccount(keyId, account)) {
-        balance = (double)account.GetFreeBcoins() / (double)COIN;
+        balance = (double)account.free_bcoins / (double)COIN;
     }
 
     return balance;
@@ -1925,7 +1925,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
     if (!pCdMan->pAccountCache->GetAccount(userId, account)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist");
     }
-    if (!account.IsRegistered()) {
+    if (!account.HaveOwnerPubKey()) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
     }
 
@@ -2097,7 +2097,7 @@ Value signtxraw(const Array& params, bool fHelp) {
 
                 bool valid = false;
                 for (auto& signatureItem : signaturePairs) {
-                    if (regId == signatureItem.regId) {
+                    if (regId == signatureItem.regid) {
                         if (!pWalletMain->Sign(keyIdItem, tx.get()->ComputeSignatureHash(),
                                                signatureItem.signature)) {
                             throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");

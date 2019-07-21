@@ -20,7 +20,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
 
     CAccount fcoinGenesisAccount;
     cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
-    uint64_t currRiskReserveScoins = fcoinGenesisAccount.scoins;
+    uint64_t currRiskReserveScoins = fcoinGenesisAccount.free_scoins;
     CAccountLog fcoinGenesisAcctLog(fcoinGenesisAccount); //save account state before modification
 
     //0. Check Global Collateral Ratio floor & Collateral Ceiling if reached
@@ -96,7 +96,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         //TODO: double check state consistence between MemCache & DBCache for CDP
     }
 
-    fcoinGenesisAccount.scoins = currRiskReserveScoins;
+    fcoinGenesisAccount.free_scoins = currRiskReserveScoins;
     cw.accountCache.SaveAccount(fcoinGenesisAccount);
     cw.txUndo.accountLogs.push_back(fcoinGenesisAcctLog);
 
@@ -108,7 +108,7 @@ bool CBlockPriceMedianTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
     auto iter = cw.txUndo.accountLogs.rbegin();
     for (; iter != cw.txUndo.accountLogs.rend(); ++iter) {
         CAccount account;
-        CUserID userId = iter->keyId;
+        CUserID userId = iter->keyid;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");

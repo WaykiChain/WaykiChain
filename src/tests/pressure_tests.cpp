@@ -259,7 +259,7 @@ public:
 				if (!accView.GetAccount(userId, account)) {
 					return false;
 				}
-				freeValue += account.GetFreeBcoins();
+				freeValue += account.free_bcoins;
 			}
 
 		}
@@ -274,7 +274,7 @@ public:
 				if (!accView.GetAccount(userId, account)) {
 					return false;
 				}
-				scriptaccValue += account.GetFreeBcoins();
+				scriptaccValue += account.free_bcoins;
 			}
 
 		}

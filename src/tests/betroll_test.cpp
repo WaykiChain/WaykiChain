@@ -800,8 +800,8 @@ unsigned char TempArray[] = {
 //		nvector.assign(Array1[i - 1], Array1[i - 1] + 20);
 //		uint160 hash(nvector);
 //		CKeyID keyId1 = (CKeyID) hash;
-//		sourceAccount.keyId = keyId1;
-//		sourceAccount.bcoins = 7800000000;
+//		sourceAccount.keyid = keyId1;
+//		sourceaccount.free_bcoins = 7800000000;
 //		account.push_back(accountId.vRegID);
 //		assert(view.SaveAccount(sourceAccount));
 //	}
@@ -889,7 +889,7 @@ unsigned char TempArray[] = {
 //	bool flag = mScript.run(Tx, betroll->view);
 //	vector<std::shared_ptr<CAccountInfo> > pac = mScript.GetNewAccount();
 //	for (auto& item : pac) {
-//		betroll->view.SetAccount(item.get()->keyId, *item.get());
+//		betroll->view.SetAccount(item.get()->keyid, *item.get());
 //	}
 //
 //	if (betroll->betm > betroll->A.bcoins || betroll->betm > betroll->B.bcoins) {
@@ -926,7 +926,7 @@ unsigned char TempArray[] = {
 //	bool flag = mScript.run(Tx, betroll->view);
 //	vector<std::shared_ptr<CAccountInfo> > pac = mScript.GetNewAccount();
 //	for (auto& item : pac) {
-//		betroll->view.SetAccount(item.get()->keyId, *item.get());
+//		betroll->view.SetAccount(item.get()->keyid, *item.get());
 //	}
 //	BOOST_CHECK(flag);
 //	std::shared_ptr<vector<CVmOperate>> retData = mScript.GetOperate();
@@ -961,7 +961,7 @@ unsigned char TempArray[] = {
 //	bool flag = mScript.run(Tx, betroll->view);
 //	vector<std::shared_ptr<CAccountInfo> > pac = mScript.GetNewAccount();
 //	for (auto& item : pac) {
-//		betroll->view.SetAccount(item.get()->keyId, *item.get());
+//		betroll->view.SetAccount(item.get()->keyid, *item.get());
 //	}
 //	BOOST_CHECK(flag);
 //	std::shared_ptr<vector<CVmOperate>> retData = mScript.GetOperate();
@@ -1043,8 +1043,8 @@ unsigned char TempArray[] = {
 //
 //}
 //void SaveAccount(CTxBetRollScript * betroll) {
-//	betroll->view.SetAccount(betroll->A.keyId, betroll->A);
-//	betroll->view.SetAccount(betroll->B.keyId, betroll->B);
+//	betroll->view.SetAccount(betroll->A.keyid, betroll->A);
+//	betroll->view.SetAccount(betroll->B.keyid, betroll->B);
 //}
 //BOOST_FIXTURE_TEST_SUITE(betRoll,CTxBetRollScript)
 //

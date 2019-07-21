@@ -82,6 +82,7 @@ namespace dbk {
         DEFINE( REGID_KEYID,          "rkey",  ACCOUNT )       /* rkey{$RegID} --> $KeyId */ \
         DEFINE( NICKID_KEYID,         "nkey",  ACCOUNT )       /* nkey{$NickID} --> $KeyId */ \
         DEFINE( KEYID_ACCOUNT,        "idac",  ACCOUNT )       /* idac{$KeyID} --> $CAccount */ \
+        DEFINE( KEYID_ACCOUNT_TOKEN,  "idat",  ACCOUNT )       /* idat{$KeyID}{tokenSymbol} --> $free_tokens, $frozen_tokens */ \
         DEFINE( BEST_BLOCKHASH,       "bbkh",  ACCOUNT )       /* [prefix] --> $BestBlockHash */ \
         /**** contract db                                                                     */ \
         DEFINE( LIST_KEYID_TX,        "lktx",  CONTRACT )      /* lktx{$KeyId}{$Height}{$Index} --> $txid */ \
@@ -96,8 +97,8 @@ namespace dbk {
         DEFINE( VOTE,                 "vote",  DELEGATE )      /* "vote{(uint64t)MAX - $votedBcoins}{$RegId} --> 1 */ \
         DEFINE( REGID_VOTE,           "ridv",  DELEGATE )      /* "ridv --> $votes" */ \
         /**** cdp db                                                                     */ \
-        DEFINE( STAKE_FCOIN,          "fcoin", CDP )           /* fcoin{(uint64t)MAX - stakedFcoins}_{RegId} --> 1 */ \
-        DEFINE( CDP,                  "cdp",   CDP )           /* cdp{$RegID}{$CTxCord} --> { lastBlockHeight, totalStakedBcoins, totalOwedScoins } */ \
+        DEFINE( STAKE_FCOIN,          "fcoin", CDP )           /* fcoin{(uint64t)MAX - staked_fcoins}_{RegId} --> 1 */ \
+        DEFINE( CDP,                  "cdp",   CDP )           /* cdp{$RegID}{$CTxCord} --> { lastBlockHeight, totalstaked_bcoins, totalOwedScoins } */ \
         DEFINE( CDP_GLOBAL_HALT,      "cdph",  CDP )           /* cdph -> 0 | 1 */ \
         DEFINE( CDP_IR_PARAM_A,       "ira",   CDP )           /* [prefix] --> param_a */ \
         DEFINE( CDP_IR_PARAM_B,       "irb",   CDP )           /* [prefix] --> param_b */ \

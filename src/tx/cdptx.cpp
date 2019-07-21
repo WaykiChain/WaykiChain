@@ -94,7 +94,7 @@ bool CCDPStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(account.pubKey);
+    IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
     return true;
 }
 
@@ -147,16 +147,16 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
                              REJECT_INVALID, "compute-interest-error");
         }
 
-        if (account.scoins < scoinsInterestToRepay) {
+        if (account.free_scoins < scoinsInterestToRepay) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance: %d < scoinsInterestToRepay: %d",
-                            account.scoins, scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
+                            account.free_scoins, scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
         }
 
         if (!SellInterestForFcoins(scoinsInterestToRepay, cw, state)) {
             return false;
         }
 
-        account.scoins -= scoinsInterestToRepay;
+        account.free_scoins -= scoinsInterestToRepay;
 
         // settle cdp state & persist
         cw.cdpCache.StakeBcoinsToCdp(nHeight, bcoinsToStake, scoinsToMint, cdp, cw.txUndo.dbOpLogMap);
@@ -186,7 +186,7 @@ bool CCDPStakeTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
     auto iter = cw.txUndo.accountLogs.rbegin();
     for (; iter != cw.txUndo.accountLogs.rend(); ++iter) {
         CAccount account;
-        CUserID userId = iter->keyId;
+        CUserID userId = iter->keyid;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -296,12 +296,12 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
                         REJECT_DUST, "REJECT_DUST");
     }
 
-    if (account.scoins < scoinsInterest) {
+    if (account.free_scoins < scoinsInterest) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, account scoins %d insufficent for interest %d",
-                        account.fcoins, scoinsInterest), REJECT_INVALID, "account-scoins-insufficient");
+                        account.free_fcoins, scoinsInterest), REJECT_INVALID, "account-scoins-insufficient");
     }
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(account.pubKey);
+    IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
     return true;
  }
 
@@ -329,7 +329,7 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
         if (!SellInterestForFcoins(nHeight, cdp, cw, state))
             return false;
 
-        account.scoins -= scoinsInterest;
+        account.free_scoins -= scoinsInterest;
     } else {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, txUid(%s) not CDP owner",
                     txUid.ToString()), REJECT_INVALID, "target-cdp-not-exist");
@@ -344,8 +344,8 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
                         cdp.totalStakedBcoins, targetStakedBcoins), UPDATE_ACCOUNT_FAIL, "targetStakedBcoins-error");
     }
     uint64_t releasedBcoins = cdp.totalStakedBcoins - targetStakedBcoins;
-    account.scoins -= scoinsToRedeem;
-    account.bcoins += releasedBcoins;
+    account.free_scoins -= scoinsToRedeem;
+    account.free_bcoins += releasedBcoins;
 
     cdp.totalStakedBcoins = (uint64_t) targetStakedBcoins;
     if (!cw.cdpCache.SaveCdp(cdp, cw.txUndo.dbOpLogMap)) {
@@ -369,7 +369,7 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
     auto iter = cw.txUndo.accountLogs.rbegin();
     for (; iter != cw.txUndo.accountLogs.rend(); ++iter) {
         CAccount account;
-        CUserID userId = iter->keyId;
+        CUserID userId = iter->keyid;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -489,12 +489,12 @@ bool CCDPLiquidateTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationSta
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, read txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    if (account.scoins < scoinsToLiquidate + scoinsPenalty) {
+    if (account.free_scoins < scoinsToLiquidate + scoinsPenalty) {
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, account scoins %d < scoinsToLiquidate: %d",
-                        account.scoins, scoinsToLiquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
+                        account.free_scoins, scoinsToLiquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
     }
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(account.pubKey);
+    IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
     return true;
 }
 
@@ -612,11 +612,11 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
         uint64_t totalBcoinsToReturnLiquidator =
             totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice(nHeight);
 
-        account.scoins -= totalScoinsToLiquidate;
-        account.scoins -= scoinsPenalty;
-        account.bcoins += totalBcoinsToReturnLiquidator;
+        account.free_scoins -= totalScoinsToLiquidate;
+        account.free_scoins -= scoinsPenalty;
+        account.free_bcoins += totalBcoinsToReturnLiquidator;
 
-        cdpOwnerAccount.bcoins += totalBcoinsToCDPOwner;
+        cdpOwnerAccount.free_bcoins += totalBcoinsToCDPOwner;
 
         if (!SellPenaltyForFcoins((uint64_t) totalScoinsToReturnSysFund, nHeight, cdp, cw, state))
             return false;
@@ -641,12 +641,12 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
         uint64_t totalBcoinsToReturnLiquidator =
             totalScoinsToReturnLiquidator * liquidateRate / cw.ppCache.GetBcoinMedianPrice(nHeight);
 
-        account.scoins -= scoinsToLiquidate;
-        account.scoins -= scoinsPenalty;
-        account.bcoins += totalBcoinsToReturnLiquidator;
+        account.free_scoins -= scoinsToLiquidate;
+        account.free_scoins -= scoinsPenalty;
+        account.free_bcoins += totalBcoinsToReturnLiquidator;
 
         int bcoinsToCDPOwner = totalBcoinsToCDPOwner * liquidateRate;
-        cdpOwnerAccount.bcoins += bcoinsToCDPOwner;
+        cdpOwnerAccount.free_bcoins += bcoinsToCDPOwner;
 
         cdp.totalOwedScoins -= scoinsToLiquidate;
         cdp.totalStakedBcoins -= bcoinsToCDPOwner;
@@ -677,7 +677,7 @@ bool CCDPLiquidateTx::UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &
     auto iter = cw.txUndo.accountLogs.rbegin();
     for (; iter != cw.txUndo.accountLogs.rend(); ++iter) {
         CAccount account;
-        CUserID userId = iter->keyId;
+        CUserID userId = iter->keyid;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::UndoExecuteTx, read account info error"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -761,7 +761,7 @@ bool CCDPLiquidateTx::SellPenaltyForFcoins(uint64_t scoinPenaltyToSysFund, const
     uint64_t halfScoinsPenalty = scoinsPenalty / 2;
     // uint64_t halfFcoinsPenalty = halfScoinsPenalty / cw.ppCache.GetFcoinMedianPrice();
 
-    fcoinGenesisAccount.scoins += halfScoinsPenalty;    // save into risk reserve fund
+    fcoinGenesisAccount.free_scoins += halfScoinsPenalty;    // save into risk reserve fund
 
     auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, halfScoinsPenalty);
     if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder, cw.txUndo.dbOpLogMap)) {

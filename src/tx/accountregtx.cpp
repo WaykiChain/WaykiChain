@@ -44,26 +44,26 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s account info error",
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    account.regId = regId;
-    account.keyId = keyId;
+    account.regid = regId;
+    account.keyid = keyId;
 
     CAccountLog acctLog(account);
 
-    if (account.pubKey.IsFullyValid() && account.pubKey.GetKeyId() == keyId)
+    if (account.owner_pubkey.IsFullyValid() && account.owner_pubkey.GetKeyId() == keyId)
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s duplicate register",
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
 
-    account.pubKey = txUid.get<CPubKey>();
+    account.owner_pubkey = txUid.get<CPubKey>();
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, insufficient funds in account, keyid=%s",
                         keyId.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
     if (typeid(CPubKey) == minerUid.type()) {
-        account.minerPubKey = minerUid.get<CPubKey>();
-        if (account.minerPubKey.IsValid() && !account.minerPubKey.IsFullyValid()) {
+        account.miner_pubkey = minerUid.get<CPubKey>();
+        if (account.miner_pubkey.IsValid() && !account.miner_pubkey.IsFullyValid()) {
             return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, minerPubKey:%s Is Invalid",
-                account.minerPubKey.ToString()), UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
+                account.miner_pubkey.ToString()), UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
         }
     }
 
@@ -101,9 +101,9 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
 
     if (!oldAccount.IsEmptyValue()) {
         CPubKey empPubKey;
-        oldAccount.pubKey = empPubKey;
-        oldAccount.minerPubKey = empPubKey;
-        oldAccount.regId.Clear();
+        oldAccount.owner_pubkey = empPubKey;
+        oldAccount.miner_pubkey = empPubKey;
+        oldAccount.regid.Clear();
         CUserID userId(keyId);
         cw.accountCache.SetAccount(userId, oldAccount);
     } else {

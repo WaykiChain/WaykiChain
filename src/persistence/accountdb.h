@@ -30,7 +30,9 @@ public:
     bool SetAccount(const CRegID &regId, const CAccount &account);
     bool SetAccount(const CUserID &userId, const CAccount &account);
     bool HaveAccount(const CKeyID &keyId) const;
+
     uint256 GetBestBlock() const;
+
     bool SetBestBlock(const uint256 &blockHash);
     bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<CRegID,
                             CKeyID> &mapKeyIds, const uint256 &blockHash);
@@ -50,7 +52,7 @@ public:
 
     CAccountDBCache(CDBAccess *pDbAccess):
         blockHashCache(pDbAccess),
-        keyId2AccountCache(pDbAccess),
+        accountCache(pDbAccess),
         regId2KeyIdCache(pDbAccess),
         nickId2KeyIdCache(pDbAccess) {
         assert(pDbAccess->GetDbNameType() == DBNameType::ACCOUNT);
@@ -58,7 +60,7 @@ public:
 
     CAccountDBCache(CAccountDBCache *pBase):
         blockHashCache(pBase->blockHashCache),
-        keyId2AccountCache(pBase->keyId2AccountCache),
+        accountCache(pBase->accountCache),
         regId2KeyIdCache(pBase->regId2KeyIdCache),
         nickId2KeyIdCache(pBase->nickId2KeyIdCache) {}
 
@@ -75,25 +77,29 @@ public:
     bool Flush();
     uint32_t GetCacheSize() const;
     Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY);
+
     void SetBaseViewPtr(CAccountDBCache *pBaseIn) {
         blockHashCache.SetBase(&pBaseIn->blockHashCache);
-        keyId2AccountCache.SetBase(&pBaseIn->keyId2AccountCache);
+        accountCache.SetBase(&pBaseIn->accountCache);
         regId2KeyIdCache.SetBase(&pBaseIn->regId2KeyIdCache);
         nickId2KeyIdCache.SetBase(&pBaseIn->nickId2KeyIdCache);
-     };
+    };
+
 private:
 /*  CDBScalarValueCache     prefixType             value           variable           */
 /*  -------------------- --------------------   -------------   --------------------- */
     // best blockHash
-    CDBScalarValueCache< dbk::BEST_BLOCKHASH,     uint256>        blockHashCache;
+    CDBScalarValueCache< dbk::BEST_BLOCKHASH,      uint256>        blockHashCache;
 
 /*  CDBScalarValueCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
-    // <KeyID -> Account>
-    CDBMultiValueCache< dbk::KEYID_ACCOUNT,        CKeyID,       CAccount >       keyId2AccountCache;
+    // <prefix$KeyID -> Account>
+    CDBMultiValueCache< dbk::KEYID_ACCOUNT,        CKeyID,       CAccount>       accountCache;
+    // <prefix$KeyID -> tokens>
+    CDBMultiValueCache< dbk::KEYID_ACCOUNT_TOKEN,  CKeyID,       std::map<TokenSymbol, CAccountToken>> accountTokenCache;
     // <RegID str -> KeyID>
-    CDBMultiValueCache< dbk::REGID_KEYID,          string,       CKeyID >         regId2KeyIdCache;
-    // <NickID -> KeyID>
+    CDBMultiValueCache< dbk::REGID_KEYID,          CRegID,       CKeyID >         regId2KeyIdCache;
+    // <prefix$NickID -> KeyID>
     CDBMultiValueCache< dbk::NICKID_KEYID,         CNickID,      CKeyID>          nickId2KeyIdCache;
 };
 

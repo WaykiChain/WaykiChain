@@ -24,7 +24,7 @@ bool CFcoinStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &st
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(account.pubKey);
+    IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
     return true;
 }
 
@@ -61,14 +61,14 @@ bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
-        CUserID userId = rIterAccountLog->keyId;
+        CUserID userId = rIterAccountLog->keyid;
         if (!cw.accountCache.GetAccount(userId, account)) {
             return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, read account info error, userId=%s",
                 userId.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         if (!account.UndoOperateAccount(*rIterAccountLog)) {
             return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, undo operate account error, keyId=%s",
-                            account.keyId.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
+                            account.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
         }
 
         if (!cw.accountCache.SetAccount(userId, account)) {
