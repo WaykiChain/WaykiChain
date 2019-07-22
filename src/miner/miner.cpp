@@ -296,7 +296,6 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
     if (!pBlock.get())
         return nullptr;
 
-    pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
     if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R1) { // pre-stablecoin release
         pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
     } else {  //stablecoin release
