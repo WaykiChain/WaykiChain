@@ -121,18 +121,19 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
         );
     }
 
-    EnsureWalletIsUnlocked();
-
     auto pUserId = CUserID::ParseUserId(params[0].get_str());
     if (!pUserId) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
     int64_t stakeAmount = params[1].get_int64();
-    uint64_t fee        = params.size() > 2 ? AmountToRawValue(params[2]) : 0;
+    int64_t fees        = params.size() > 2 ? params[2].get_int64() : 0;
+    if (fees < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid fees");
+    }
     int32_t validHeight = chainActive.Tip()->nHeight;
 
-    CFcoinStakeTx tx(*pUserId, validHeight, fee, stakeAmount);
+    CFcoinStakeTx tx(*pUserId, validHeight, fees, stakeAmount);
     return SubmitTx(*pUserId, tx);
 }
 

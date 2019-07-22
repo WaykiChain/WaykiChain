@@ -20,7 +20,7 @@ public:
         *this = *(CFcoinStakeTx *) pBaseTx;
     }
 
-    CFcoinStakeTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn, uint64_t fcoinsToStakeIn):
+    CFcoinStakeTx(const CUserID &txUidIn, int32_t validHeightIn, uint64_t feesIn, uint64_t fcoinsToStakeIn):
         CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feesIn),
         fcoinsToStake(fcoinsToStakeIn) {}
 
@@ -59,9 +59,9 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
-    bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-    bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    bool CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state);
+    bool ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state);
+    bool UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state);
 };
 
 #endif

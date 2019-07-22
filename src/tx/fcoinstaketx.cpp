@@ -9,7 +9,7 @@
 #include "config/configuration.h"
 #include "main.h"
 
-bool CFcoinStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CFcoinStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
@@ -28,7 +28,7 @@ bool CFcoinStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &st
     return true;
 }
 
-bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CFcoinStakeTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, read txUid %s account info error",
@@ -57,7 +57,7 @@ bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
     return true;
 }
 
-bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CFcoinStakeTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
