@@ -141,7 +141,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CAccountLog acctLog(account);  // Keep account state before modification.
+    CAccountInfo acctLog(account);  // Keep account state before modification.
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate account failed, regId=%s",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
@@ -176,7 +176,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read KeyId(%s) account info error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        CAccountLog delegateAcctLog(delegate);
+        CAccountInfo delegateAcctLog(delegate);
         if (!delegate.StakeVoteBcoins(VoteType(vote.GetCandidateVoteType()), vote.GetVotedBcoins())) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate address %s vote fund error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-vote-error");
@@ -211,7 +211,7 @@ bool CDelegateVoteTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     if (!UndoTxAddresses(cw, state))
         return false;
 
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+    vector<CAccountInfo>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         if (!cw.accountCache.GetAccount(CUserID(rIterAccountLog->keyid), account)) {

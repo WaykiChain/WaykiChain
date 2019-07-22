@@ -106,7 +106,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
     }
-    CAccountLog acctLog(account); //save account state before modification
+    CAccountInfo acctLog(account); //save account state before modification
     //1. pay miner fees (WICC)
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, deduct fees from regId=%s failed,",
@@ -312,7 +312,7 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccountLog acctLog(account); //save account state before modification
+    CAccountInfo acctLog(account); //save account state before modification
     //1. pay miner fees (WICC)
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, deduct fees from regId=%s failed,",
@@ -521,7 +521,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccountLog acctLog(account); //save account state before modification
+    CAccountInfo acctLog(account); //save account state before modification
     cw.txUndo.accountLogs.push_back(acctLog);
 
     //1. pay miner fees (WICC)
@@ -541,7 +541,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP Owner txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccountLog cdpAcctLog(cdpOwnerAccount); //save account state before modification
+    CAccountInfo cdpAcctLog(cdpOwnerAccount); //save account state before modification
     cw.txUndo.accountLogs.push_back(cdpAcctLog);
 
     uint64_t collateralRatio =
@@ -755,7 +755,7 @@ bool CCDPLiquidateTx::SellPenaltyForFcoins(uint64_t scoinPenaltyToSysFund, const
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccountLog genesisAcctLog(fcoinGenesisAccount);
+    CAccountInfo genesisAcctLog(fcoinGenesisAccount);
     cw.txUndo.accountLogs.push_back(genesisAcctLog);
 
     uint64_t halfScoinsPenalty = scoinsPenalty / 2;

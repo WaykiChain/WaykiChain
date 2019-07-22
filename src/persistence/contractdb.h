@@ -23,7 +23,7 @@ class CVmOperate;
 class CKeyID;
 class CRegID;
 class CAccount;
-class CAccountLog;
+class CAccountInfo;
 class CContractDB;
 struct CDiskTxPos;
 

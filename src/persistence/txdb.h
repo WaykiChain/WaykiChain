@@ -57,7 +57,7 @@ private:
 class CTxUndo {
 public:
     uint256 txid;
-    vector<CAccountLog> accountLogs;
+    vector<CAccountInfo> accountLogs;
     CDBOpLogMap dbOpLogMap; // dbName -> dbOpLogs
 
     IMPLEMENT_SERIALIZE(
@@ -67,7 +67,7 @@ public:
 	)
 
 public:
-    bool GetAccountLog(const CKeyID &keyId, CAccountLog &accountLog);
+    bool GetAccountLog(const CKeyID &keyId, CAccountInfo &accountLog);
 
     void Clear() {
         txid = uint256();

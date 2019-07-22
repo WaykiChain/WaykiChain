@@ -21,7 +21,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     CAccount fcoinGenesisAccount;
     cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
     uint64_t currRiskReserveScoins = fcoinGenesisAccount.free_scoins;
-    CAccountLog fcoinGenesisAcctLog(fcoinGenesisAccount); //save account state before modification
+    CAccountInfo fcoinGenesisAcctLog(fcoinGenesisAccount); //save account state before modification
 
     //0. Check Global Collateral Ratio floor & Collateral Ceiling if reached
     uint64_t globalCollateralRatioFloor = 0;

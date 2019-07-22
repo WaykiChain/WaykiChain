@@ -127,8 +127,8 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
         }
     }
 
-    CAccountLog srcAcctLog(srcAcct);
-    CAccountLog desAcctLog;
+    CAccountInfo srcAcctInfo(srcAcct);
+    CAccountInfo desAcctInfo;
     uint64_t minusValue = llFees + bcoins;
     if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, minusValue)) {
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, account has insufficient funds"),
@@ -149,13 +149,13 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
     if (!cw.accountCache.GetAccount(desUserId, desAcct)) {
         if (desUserId.type() == typeid(CKeyID)) {  // target account does NOT have CRegID
             desAcct.keyid    = desUserId.get<CKeyID>();
-            desAcctLog.keyid = desAcct.keyid;
+            desAcctInfo.keyid = desAcct.keyid;
         } else {
             return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, get account info failed"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
     } else {  // target account has NO CAccount(first involved in transacion)
-        desAcctLog.SetValue(desAcct);
+        desAcctInfo.SetValue(desAcct);
     }
 
     if (!desAcct.OperateBalance(CoinType::WICC, ADD_VALUE, addValue)) {
@@ -167,8 +167,8 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, save account error, kyeId=%s",
                          desAcct.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
-    cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.accountLogs.push_back(desAcctLog);
+    cw.txUndo.accountLogs.push_back(srcAcctInfo);
+    cw.txUndo.accountLogs.push_back(desAcctInfo);
     cw.txUndo.txid = GetHash();
 
     vector<CUserID> uids;
@@ -183,7 +183,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
 }
 
 bool CMulsigTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+    vector<CAccountInfo>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyid;

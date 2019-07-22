@@ -9,33 +9,18 @@
 
 #include "main.h"
 
-string CAccountLog::ToString() const {
-    string str;
-    str += strprintf(
-        "Account log: keyid=%d regid=%s nickid=%s owner_pubKey=%s miner_pubKey=%s "
-        "free_bcoins=%lld free_fcoins=%lld staked_bcoins=%lld staked_fcoins=%lld "
-        "extended_tokens: {%s}"
-        " received_votes=%lld last_vote_height=%lld\n",
-        keyid.GetHex(), regid.ToString(), nickid.ToString(), owner_pubkey.ToString(), miner_pubkey.ToString(),
-        free_bcoins, free_fcoins, staked_bcoins, staked_fcoins, extended_tokens.ToString(),
-        received_votes, last_vote_height);
-
-    return str;
-}
-
-bool CAccount::UndoOperateAccount(const CAccountLog &accountLog) {
+bool CAccount::UndoOperateAccount(const CAccountInfo &accountInfo) {
     LogPrint("undo_account", "after operate:%s\n", ToString());
 
-    free_bcoins     = accountLog.free_bcoins;
-    free_fcoins     = accountLog.free_fcoins;
-    frozen_bcoins   = accountLog.frozen_bcoins;
-    frozen_fcoins   = accountLog.frozen_fcoins;
-    staked_bcoins   = accountLog.staked_bcoins;
-    staked_fcoins   = accountLog.staked_fcoins;
-    received_votes  = accountLog.received_votes;
-    last_vote_height= accountLog.last_vote_height;
-
-    extended_tokens = accountLog.extended_tokens;
+    free_bcoins     = accountInfo.free_bcoins;
+    free_fcoins     = accountInfo.free_fcoins;
+    frozen_bcoins   = accountInfo.frozen_bcoins;
+    frozen_fcoins   = accountInfo.frozen_fcoins;
+    staked_bcoins   = accountInfo.staked_bcoins;
+    staked_fcoins   = accountInfo.staked_fcoins;
+    received_votes  = accountInfo.received_votes;
+    last_vote_height= accountInfo.last_vote_height;
+    extended_tokens = accountInfo.extended_tokens;
 
     LogPrint("undo_account", "before operate:%s\n", ToString());
     return true;
@@ -50,18 +35,18 @@ bool CAccount::FreezeDexCoin(CoinType coinType, uint64_t amount) {
             assert(IsBcoinWithinRange(free_bcoins) && IsBcoinWithinRange(frozen_bcoins));
             break;
 
-        case WUSD:
-            if (amount > free_scoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than scoins");
-            free_scoins -= amount;
-            frozen_scoins += amount;
-            break;
-
         case WGRT:
             if (amount > free_fcoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than fcoins");
             free_fcoins -= amount;
             frozen_fcoins += amount;
             assert(IsFcoinWithinRange(free_fcoins) && IsFcoinWithinRange(frozen_fcoins));
             break;
+
+        // case WUSD:
+        //     if (amount > free_scoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than scoins");
+        //     free_scoins -= amount;
+        //     frozen_scoins += amount;
+        //     break;
 
         default: return ERRORMSG("CAccount::FreezeDexCoin, coin type error");
     }

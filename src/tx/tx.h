@@ -84,7 +84,7 @@ public:
     virtual map<CoinType, uint64_t> GetValues() const = 0;
 
     virtual TxID ComputeSignatureHash(bool recalculate = false) const = 0;
-    virtual std::shared_ptr<CBaseTx> GetNewInstance()                    = 0;
+    virtual std::shared_ptr<CBaseTx> GetNewInstance()                 = 0;
 
     virtual string ToString(CAccountDBCache &view)                           = 0;
     virtual Object ToJson(const CAccountDBCache &view) const                 = 0;

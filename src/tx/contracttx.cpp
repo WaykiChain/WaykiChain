@@ -325,8 +325,8 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
         }
     }
 
-    CAccountLog srcAcctLog(srcAcct);
-    CAccountLog desAcctLog;
+    CAccountInfo srcAcctInfo(srcAcct);
+    CAccountInfo desAcctInfo;
     uint64_t minusValue = llFees + bcoins;
     if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, minusValue))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, accounts hash insufficient funds"),
@@ -346,7 +346,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, get account info failed by regid:%s",
             appUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     } else {
-        desAcctLog.SetValue(desAcct);
+        desAcctInfo.SetValue(desAcct);
     }
 
     if (!desAcct.OperateBalance(CoinType::WICC, ADD_VALUE, bcoins)) {
@@ -358,8 +358,8 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, save account error, kyeId=%s",
             desAcct.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
-    cw.txUndo.accountLogs.push_back(srcAcctLog);
-    cw.txUndo.accountLogs.push_back(desAcctLog);
+    cw.txUndo.accountLogs.push_back(srcAcctInfo);
+    cw.txUndo.accountLogs.push_back(desAcctInfo);
 
     string contractScript;
     if (!cw.contractCache.GetContractScript(appUid.get<CRegID>(), contractScript))
@@ -395,7 +395,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
                                  UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
             }
         }
-        CAccountLog oldAcctLog(oldAcct);
+        CAccountInfo oldAcctLog(oldAcct);
         if (!cw.accountCache.SetAccount(userId, *itemAccount))
             return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, write account info error"),
                 UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
@@ -427,7 +427,7 @@ bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
 
     if (!UndoTxAddresses(cw, state)) return false;
 
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+    vector<CAccountInfo>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyid;

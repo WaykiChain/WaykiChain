@@ -214,7 +214,7 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 {
 	ResetEnv();
 	vector<map<int,string> >vDataInfo;
-	vector<CAccountLog> vLog;
+	vector<CAccountInfo> vLog;
 	for (int i = 0; i < nTimeOutHeight; i++) {
 		//0:产生注册脚本交易
 		Value valueRes = RegisterContractTx(strAddr1,strFileName , nTimeOutHeight, nFee);

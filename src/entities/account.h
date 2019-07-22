@@ -24,7 +24,7 @@
 
 using namespace json_spirit;
 
-class CAccountLog;
+class CAccountInfo;
 class CAccountDBCache;
 
 enum CoinType: uint8_t {
@@ -177,6 +177,7 @@ public:
     map<TokenSymbol, CAccountToken> extended_tokens;
                                     //!< all other coins like miner-issued stablecoins WUSD|WCNY
                                     //!< as well as user-issued onchain tokens (WRC20 compilant)
+                                    //!< persisted separately, in-memory only
 
     IMPLEMENT_SERIALIZE(
         READWRITE(keyid);
@@ -191,8 +192,7 @@ public:
         READWRITE(VARINT(staked_bcoins));
         READWRITE(VARINT(staked_fcoins));
         READWRITE(VARINT(received_votes));
-        READWRITE(VARINT(last_vote_height));
-        READWRITE(extended_tokens);)
+        READWRITE(VARINT(last_vote_height));)
 
 public:
     CAccountInfo(const CAccountInfo& acct) { SetValue(acct); }
@@ -257,7 +257,7 @@ public:
                 << VARINT(free_bcoins) << VARINT(free_fcoins)
                 << VARINT(frozen_bcoins) << VARINT(frozen_fcoins)
                 << VARINT(staked_bcoins) << VARINT(staked_fcoins)
-                << VARINT(received_votes) << VARINT(last_vote_height) << extended_tokens;
+                << VARINT(received_votes) << VARINT(last_vote_height);
 
             sigHash = ss.GetHash();
         }
@@ -265,7 +265,19 @@ public:
         return sigHash;
     }
 
-    string ToString() const;
+    string ToString() const {
+        string str;
+        str += strprintf(
+            "AccountInfo: keyid=%d regid=%s nickid=%s owner_pubKey=%s miner_pubKey=%s "
+            "free_bcoins=%lld free_fcoins=%lld staked_bcoins=%lld staked_fcoins=%lld "
+            "extended_tokens: {%s}"
+            " received_votes=%lld last_vote_height=%lld\n",
+            keyid.GetHex(), regid.ToString(), nickid.ToString(), owner_pubkey.ToString(), miner_pubkey.ToString(),
+            free_bcoins, free_fcoins, staked_bcoins, staked_fcoins, extended_tokens.ToString(),
+            received_votes, last_vote_height);
+
+        return str;
+    }
 
 private:
     mutable uint256 sigHash;    //!< in-memory only
@@ -276,7 +288,7 @@ class CAccount: public CAccountInfo {
 public:
     bool OperateBalance(const CoinType coinType, const BalanceOpType opType, const uint64_t value);
     bool PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest);
-    bool UndoOperateAccount(const CAccountLog& accountLog);
+    bool UndoOperateAccount(const CAccountInfo& accountInfo);
     bool FreezeDexCoin(CoinType coinType, uint64_t amount);
     bool FreezeDexAsset(AssetType assetType, uint64_t amount) {
         // asset always is coin, so can do the freeze as coin

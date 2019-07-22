@@ -1280,7 +1280,7 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
     return retObj;
 }
 
-static Value AccountLogToJson(const CAccountLog &accoutLog) {
+static Value AccountLogToJson(const CAccountInfo &accoutLog) {
     Object obj;
     obj.push_back(Pair("keyid", accoutLog.keyid.ToString()));
     obj.push_back(Pair("free_bcoins", accoutLog.free_bcoins));
@@ -1313,7 +1313,7 @@ Value gettxoperationlog(const Array& params, bool fHelp) {
     }
     RPCTypeCheck(params, list_of(str_type));
     uint256 txid(uint256S(params[0].get_str()));
-    vector<CAccountLog> vLog;
+    vector<CAccountInfo> vLog;
     Object retobj;
     retobj.push_back(Pair("txid", txid.GetHex()));
     if (!GetTxOperLog(txid, vLog))

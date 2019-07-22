@@ -47,7 +47,7 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
     account.regid = regId;
     account.keyid = keyId;
 
-    CAccountLog acctLog(account);
+    CAccountInfo acctLog(account);
 
     if (account.owner_pubkey.IsFullyValid() && account.owner_pubkey.GetKeyId() == keyId)
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s duplicate register",
@@ -92,7 +92,7 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
     cw.accountCache.GetKeyId(accountRegId, keyId);
 
     if (llFees > 0) {
-        CAccountLog accountLog;
+        CAccountInfo accountLog;
         if (!cw.txUndo.GetAccountLog(keyId, accountLog))
             return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read keyId=%s tx undo info error",
                             keyId.GetHex()), UPDATE_ACCOUNT_FAIL, "bad-read-undoinfo");

@@ -239,7 +239,7 @@ public:
 
 	bool GetRegID(string& strAddr,string& regId);
 
-	bool GetTxOperateLog(const uint256& txid, vector<CAccountLog>& vLog) ;
+	bool GetTxOperateLog(const uint256& txid, vector<CAccountInfo>& vLog) ;
 
 	bool PrintLog();
 

@@ -34,7 +34,7 @@ bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
-    CAccountLog acctLog(account);
+    CAccountInfo acctLog(account);
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient bcoins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
@@ -58,7 +58,7 @@ bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
 }
 
 bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+    vector<CAccountInfo>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyid;
