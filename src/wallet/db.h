@@ -6,7 +6,7 @@
 #ifndef COIN_DB_H
 #define COIN_DB_H
 
-#include "clientversion.h"
+#include "config/clientversion.h"
 #include "commons/serialize.h"
 #include "sync.h"
 #include "config/version.h"
