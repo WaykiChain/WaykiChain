@@ -14,7 +14,8 @@ CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
                              CDelegateDBCache* pDelegateCacheIn,
                              CCdpDBCache* pCdpCacheIn,
                              CDexDBCache* pDexCacheIn,
-                             CTxReceiptDBCache* pTxReceiptCacheIn) {
+                             CTxReceiptDBCache* pTxReceiptCacheIn,
+                             CTxMemCache* pTxCacheIn) {
     sysParamCache.SetBaseViewPtr(pSysParamCacheIn);
     accountCache.SetBaseViewPtr(pAccountCacheIn);
     contractCache.SetBaseViewPtr(pContractCacheIn);
@@ -22,6 +23,7 @@ CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
     cdpCache.SetBaseViewPtr(pCdpCacheIn);
     dexCache.SetBaseViewPtr(pDexCacheIn);
     txReceiptCache.SetBaseViewPtr(pTxReceiptCacheIn);
+    txCache.SetBaseViewPtr(pTxCacheIn);
 }
 
 CCacheWrapper::CCacheWrapper(CCacheWrapper& cwIn) {
@@ -32,6 +34,7 @@ CCacheWrapper::CCacheWrapper(CCacheWrapper& cwIn) {
     cdpCache.SetBaseViewPtr(&cwIn.cdpCache);
     dexCache.SetBaseViewPtr(&cwIn.dexCache);
     txReceiptCache.SetBaseViewPtr(&cwIn.txReceiptCache);
+    txCache.SetBaseViewPtr(&cwIn.txCache);
 }
 
 CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
@@ -42,6 +45,7 @@ CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
     cdpCache.SetBaseViewPtr(pCdMan->pCdpCache);
     dexCache.SetBaseViewPtr(pCdMan->pDexCache);
     txReceiptCache.SetBaseViewPtr(pCdMan->pTxReceiptCache);
+    txCache.SetBaseViewPtr(pCdMan->pTxCache);
 }
 
 void CCacheWrapper::Flush() {
@@ -52,4 +56,5 @@ void CCacheWrapper::Flush() {
     cdpCache.Flush();
     dexCache.Flush();
     txReceiptCache.Flush();
+    txCache.Flush();
 }

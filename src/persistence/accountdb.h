@@ -89,7 +89,7 @@ private:
 /*  CDBScalarValueCache     prefixType             value           variable           */
 /*  -------------------- --------------------   -------------   --------------------- */
     // best blockHash
-    CDBScalarValueCache< dbk::BEST_BLOCKHASH,      uint256>        blockHashCache;
+    CDBScalarValueCache< dbk::BEST_BLOCKHASH,      uint256>     blockHashCache;
 
 /*  CDBScalarValueCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
@@ -98,7 +98,7 @@ private:
     // <prefix$KeyID -> tokens>
     CDBMultiValueCache< dbk::KEYID_ACCOUNT_TOKEN,  CKeyID,       std::map<TokenSymbol, CAccountToken>> accountTokenCache;
     // <RegID str -> KeyID>
-    CDBMultiValueCache< dbk::REGID_KEYID,          CRegID,       CKeyID >         regId2KeyIdCache;
+    CDBMultiValueCache< dbk::REGID_KEYID,          string,       CKeyID >         regId2KeyIdCache;
     // <prefix$NickID -> KeyID>
     CDBMultiValueCache< dbk::NICKID_KEYID,         CNickID,      CKeyID>          nickId2KeyIdCache;
 };

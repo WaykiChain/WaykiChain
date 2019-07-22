@@ -93,8 +93,8 @@ static const unordered_map<PriceType, string, PriceTypeHash> kPriceTypeMapName =
     { CNY, "CNY" },
     { EUR, "EUR" },
     { BTC, "BTC" },
-    { USDT, "USDT"},
-    { GOLD, "GOLD"},
+    { USDT, "USDT" },
+    { GOLD, "GOLD" },
     { KWH, "KWH" }
 };
 
@@ -103,8 +103,8 @@ static const unordered_map<string, PriceType> kPriceNameMapType = {
     { "CNY", CNY },
     { "EUR", EUR },
     { "BTC", BTC },
-    { "USDT", USDT},
-    { "GOLD", GOLD},
+    { "USDT", USDT },
+    { "GOLD", GOLD },
     { "KWH", KWH }
 };
 

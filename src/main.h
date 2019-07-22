@@ -332,14 +332,14 @@ public:
 
     CBlockTreeDB        *pBlockTreeDb;
 
-    CTxMemCache         *pTxCache;
-    CPricePointMemCache *pPpCache;
-
     CDBAccess           *pLogDb;
     CLogDBCache         *pLogCache;
 
     CDBAccess           *pTxReceiptDb;
     CTxReceiptDBCache   *pTxReceiptCache;
+
+    CTxMemCache         *pTxCache;
+    CPricePointMemCache *pPpCache;
 
 public:
     CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache, size_t nContractDBCache,
@@ -420,6 +420,10 @@ public:
 
         if (pLogCache)
             pLogCache->Flush();
+
+        // Memory only cache, not bother to flush.
+        // if (pTxCache)
+        //     pTxCache->Flush();
 
         return true;
     }
