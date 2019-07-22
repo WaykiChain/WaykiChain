@@ -1575,13 +1575,13 @@ Value reloadtxcache(const Array& params, bool fHelp) {
 Value getcontractdata(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 2 && params.size() != 3)) {
         throw runtime_error(
-            "getcontractdata \"contract regid\" \"key\"\n"
-            "\nget the contract data (hexadecimal format)\n"
+            "getcontractdata \"contract regid\" \"key\" [hexadecimal]\n"
+            "\nget contract data with key\n"
             "\nArguments:\n"
             "1.\"contract regid\":      (string, required) contract regid\n"
             "2.\"key\":                 (string, required)\n"
-            "3.\"hexadecimal format\",  (boolean, optional) in hexadecimal if true, otherwise in plaintext, default to "
-            "true\n"
+            "3.\"hexadecimal format\":  (boolean, optional) in hexadecimal if true, otherwise in plaintext, default to "
+            "false\n"
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("getcontractdata", "\"1304166-1\" \"key\" true") + "\nAs json rpc call\n" +
@@ -1593,8 +1593,14 @@ Value getcontractdata(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract regid");
     }
 
-    string key       = params[1].get_str();
-    bool hexadecimal = params.size() > 2 ? params[2].get_bool() : true;
+    bool hexadecimal = params.size() > 2 ? params[2].get_bool() : false;
+    string key;
+    if (hexadecimal) {
+        vector<unsigned char> hexKey = ParseHex(params[1].get_str());
+        key                          = string(hexKey.begin(), hexKey.end());
+    } else {
+        key = params[1].get_str();
+    }
     string value;
     if (!pCdMan->pContractCache->GetContractData(regId, key, value)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to acquire contract data");
