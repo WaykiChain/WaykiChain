@@ -631,7 +631,7 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
     if (fHelp || size < 4 || size > 5) {
         throw runtime_error(
             "gensendtoaddressraw \"sendaddress\" \"recvaddress\" \"amount\" \"fee\" \"height\"\n"
-            "\n create common transaction by sendaddress, recvaddress, amount, fee, height\n" +
+            "\ncreate common transaction by sendaddress, recvaddress, amount, fee, height\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
             "1.\"sendaddress\"  (string, required) The Coin address to send to.\n"

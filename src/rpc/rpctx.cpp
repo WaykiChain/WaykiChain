@@ -587,43 +587,42 @@ Value votedelegatetx(const Array& params, bool fHelp) {
     return objRet;
 }
 
-//create a vote delegate raw transaction
+// create a vote delegate raw transaction
 Value genvotedelegateraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() <  3  || params.size() > 4) {
         throw runtime_error(
-            "genvotedelegateraw \"addr\" \"opervotes\" \"fee\" \"height\"\n"
-            "\nget a vote delegate transaction raw transaction\n"
+            "genvotedelegateraw \"addr\" \"candidate votes\" \"fees\" [height]\n"
+            "\ncreate a vote delegate raw transaction\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) from address that votes delegate(s)\n"
-            "2. \"opervotes\"    (string, required) A json array of json oper vote to delegates\n"
+            "1.\"addr\":                    (string required) from address that votes delegate(s)\n"
+            "2. \"candidate votes\"         (string, required) A json array of json oper vote to delegates\n"
             " [\n"
             " {\n"
-            "    \"delegate\":\"address\", (string, required) The transaction id\n"
-            "    \"votes\":n  (numeric, required) votes\n"
+            "    \"delegate\":\"address\",  (string, required) The transaction id\n"
+            "    \"votes\":n                (numeric, required) votes\n"
             " }\n"
             "       ,...\n"
             " ]\n"
-            "3.\"fee\": (numeric required) pay to miner\n"
-            "4.\"height\": (numeric optional) valid height, If not provide, use the tip block hegiht "
-            "in chainActive\n"
+            "3.\"fees\":                    (numeric required) pay to miner\n"
+            "4.\"height\":                  (numeric optional) valid height, If not provide, use the active chain's block height"
             "\nResult:\n"
-            "\"txid\": (string)\n"
+            "\"rawtx\":                     (string) raw transaction string\n"
             "\nExamples:\n" +
             HelpExampleCli("genvotedelegateraw",
                            "\"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" "
                            "\"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", "
-                           "\\\"votes\\\":100000000}]\" 1000") +
+                           "\\\"votes\\\":100000000}]\" 10000") +
             "\nAs json rpc call\n" +
             HelpExampleRpc("genvotedelegateraw",
                            " \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\", "
                            "[{\"delegate\":\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", "
-                           "\"votes\":100000000}], 1000"));
+                           "\"votes\":100000000}], 10000"));
     }
     RPCTypeCheck(params, list_of(str_type)(array_type)(int_type)(int_type));
 
     string sendAddr = params[0].get_str();
-    uint64_t fee    = params[2].get_uint64();  // real type
-    int nHeight     = chainActive.Tip()->nHeight;
+    uint64_t fees   = params[2].get_uint64();
+    int32_t nHeight = chainActive.Tip()->nHeight;
     if (params.size() > 3) {
         nHeight = params[3].get_int();
         if (nHeight <= 0) {
@@ -653,7 +652,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
         }
 
         uint64_t balance = account.free_bcoins;
-        if (balance < fee) {
+        if (balance < fees) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
 
@@ -661,7 +660,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Send address is not in wallet");
         }
 
-        delegateVoteTx.llFees       = fee;
+        delegateVoteTx.llFees       = fees;
         delegateVoteTx.nValidHeight = nHeight;
         delegateVoteTx.txUid        = account.regid;
 
@@ -683,9 +682,9 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Voted delegator's address is unregistered");
             }
 
-            VoteType voteType = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN: VoteType::MINUS_BCOIN;
-            CUserID candidateUid = CUserID(delegateAcct.keyid);
-            uint64_t bcoins = (uint64_t)abs(delegateVotes.get_int64());
+            VoteType voteType    = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN : VoteType::MINUS_BCOIN;
+            CUserID candidateUid = CUserID(delegateAcct.owner_pubkey);
+            uint64_t bcoins      = (uint64_t)abs(delegateVotes.get_int64());
             CCandidateVote candidateVote(voteType, candidateUid, bcoins);
 
             delegateVoteTx.candidateVotes.push_back(candidateVote);
@@ -745,7 +744,6 @@ Value listaddr(const Array& params, bool fHelp) {
 
     return retArray;
 }
-
 
 Value listtransactions(const Array& params, bool fHelp) {
     if (fHelp || params.size() > 3)
