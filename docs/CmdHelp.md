@@ -31,7 +31,7 @@
 | getnewaddr | ```[isminer]``` | Returns a new  address for receiving payments. If [isminer] is ture will create a miner key,otherwise will only return a new address. | Y |
 | getnetworkinfo | | Returns an object containing various state info regarding P2P network | N |
 | getpeerinfo | | Returns data about each connected node | N |
-| getrawmempool | ```[verbose]``` | Returns all transaction ids in memory pool.If verbose is true,return  a json object, false return array of transaction ids. | N |
+| getrawmempool | ```[verbose]``` | Returns all transaction ids in memory pool. If verbose is true, return a json object, false return array of transaction ids. | N |
 | getcontractdata | ```<contractregid><key><hexadecimal>``` | get contract data. <br> ```<contractregid><key><hexadecimal>``` | N |
 | gettxdetail | ```<txid>``` | Returns an object about the transaction  detail information by ```<txid>``` | N |
 | getwalletinfo | | Returns an object containing detaild wallet info | N |
