@@ -67,14 +67,16 @@ public:
 
     virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyLimitOrderTx>(this); }
-    virtual string ToString(CAccountDBCache &view); //logging usage
-    virtual Object ToJson(const CAccountDBCache &view) const; //json-rpc usage
+    virtual string ToString(); //logging usage
+    virtual Object ToJson(const CKeyID &txUserKeyId) const; //json-rpc usage
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+
 public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
+
 private:
     CoinType coinType;          //!< coin type (wusd) to buy asset
     AssetType assetType;        //!< asset type
@@ -139,11 +141,13 @@ public:
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
     virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+
 public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
+
 private:
     CoinType coinType;       //!< coin type (wusd) to sell asset
-    AssetType assetType;     //!< holing asset type (wicc or wgrt) to sell in coinType
+    AssetType assetType;     //!< holding asset type (wicc or wgrt) to sell in coinType
     uint64_t assetAmount;    //!< amount of holding asset to sell
     uint64_t askPrice;       //!< asking price in coinType willing to sell
 

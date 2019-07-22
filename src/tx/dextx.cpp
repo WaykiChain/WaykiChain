@@ -24,7 +24,7 @@ bool CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, uint64_t price, uint6
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXBuyLimitOrderTx
 
-string CDEXBuyLimitOrderTx::ToString(CAccountDBCache &view) {
+string CDEXBuyLimitOrderTx::ToString() {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
         "coin_type=%u, asset_type=%u, amount=%lld, price=%lld\n",
@@ -32,17 +32,14 @@ string CDEXBuyLimitOrderTx::ToString(CAccountDBCache &view) {
         coinType, assetType, assetAmount, bidPrice);
 }
 
-Object CDEXBuyLimitOrderTx::ToJson(const CAccountDBCache &view) const {
+Object CDEXBuyLimitOrderTx::ToJson(const CKeyID txUserKeyId) const {
     Object result;
-
-    CKeyID srcKeyId;
-    if(!view.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
 
     result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
+    result.push_back(Pair("addr",           txUserKeyId.ToAddress()));
     result.push_back(Pair("fees",           llFees));
     result.push_back(Pair("valid_height",   nValidHeight));
 
