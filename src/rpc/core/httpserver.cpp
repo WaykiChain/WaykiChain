@@ -6,7 +6,7 @@
 #include "rpc/core/rpcprotocol.h" // For HTTP status codes
 #include "commons/util.h"
 
-#include <chainparams.h>
+#include "config/chainparams.h"
 #include <compat/compat.h>
 #include <commons/util.h>
 #include <netbase.h>

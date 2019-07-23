@@ -48,6 +48,7 @@ coin_CORE_H = \
   entities/key.h \
   entities/keystore.h \
   entities/receipt.h \
+  entities/stake.h \
   entities/vote.h \
   addrman.h \
   alert.h \

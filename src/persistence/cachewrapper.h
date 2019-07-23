@@ -42,7 +42,8 @@ public:
                   CDelegateDBCache* pDelegateCacheIn,
                   CCdpDBCache* pCdpCacheIn,
                   CDexDBCache* pDexCacheIn,
-                  CTxReceiptDBCache* pTxReceiptCacheIn);
+                  CTxReceiptDBCache* pTxReceiptCacheIn,
+                  CTxMemCache *pTxCacheIn);
     CCacheWrapper(CCacheWrapper& cwIn);
     CCacheWrapper(CCacheDBManager* pCdMan);
 

@@ -94,7 +94,7 @@ void CTxMemPool::QueryHash(vector<uint256> &txids) {
 bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &memPoolEntry, CValidationState &state,
                                   bool bExecute) {
     // is it already confirmed in block
-    if (pCdMan->pTxCache->HaveTx(txid))
+    if (cw->txCache.HaveTx(txid))
         return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid=%s has been confirmed", txid.GetHex()), REJECT_INVALID,
                              "tx-duplicate-confirmed");
 
@@ -120,10 +120,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
     // Need to re-sync all to cache layer except for transaction cache, as it's depend on
     // the global transaction cache to verify whether a transaction(txid) has been confirmed
     // already in block.
-    spCW->accountCache.Flush();
-    spCW->contractCache.Flush();
-    spCW->delegateCache.Flush();
-    spCW->cdpCache.Flush();
+    spCW->Flush();
 
     return true;
 }

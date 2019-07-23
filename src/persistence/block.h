@@ -62,7 +62,7 @@ protected:
     unsigned int nTime;
     unsigned int nNonce;
     unsigned int nHeight;
-    int64_t    nFuel;
+    int64_t nFuel;
     int nFuelRate;
     vector<unsigned char> vSignature;
 

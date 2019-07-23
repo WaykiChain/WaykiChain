@@ -18,6 +18,7 @@
 #include "asset.h"
 #include "crypto/hash.h"
 #include "id.h"
+#include "stake.h"
 #include "vote.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
@@ -93,9 +94,9 @@ static const unordered_map<PriceType, string, PriceTypeHash> kPriceTypeMapName =
     { CNY, "CNY" },
     { EUR, "EUR" },
     { BTC, "BTC" },
-    { USDT, "USDT"},
-    { GOLD, "GOLD"},
-    { KWH,  "KWH" }
+    { USDT, "USDT" },
+    { GOLD, "GOLD" },
+    { KWH, "KWH" }
 };
 
 static const unordered_map<string, PriceType> kPriceNameMapType = {
@@ -103,12 +104,12 @@ static const unordered_map<string, PriceType> kPriceNameMapType = {
     { "CNY", CNY },
     { "EUR", EUR },
     { "BTC", BTC },
-    { "USDT", USDT},
-    { "GOLD", GOLD},
+    { "USDT", USDT },
+    { "GOLD", GOLD },
     { "KWH", KWH }
 };
 
-inline const string& GetPriceTypeName(PriceType priceType) {
+inline const string& GetPriceTypeName(const PriceType priceType) {
     return kPriceTypeMapName.at(priceType);
 }
 
@@ -149,8 +150,13 @@ public:
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(free_tokens));
+<<<<<<< HEAD
         READWRITE(VARINT(frozen_tokens));)
 
+=======
+        READWRITE(VARINT(fronzen_tokens));
+    )
+>>>>>>> b63eeb0a33b0c12d4cafa488b479edc076b43e5d
 };
 
 class CAccountInfo {
@@ -302,7 +308,7 @@ public:
                               const uint64_t currHeight,
                               const CAccountDBCache* pAccountCache);
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
-    bool StakeFcoins(const int64_t fcoinsToStake); //price feeder must stake fcoins
+    bool StakeFcoins(const StakeType stakeType, const uint64_t fcoinsToStake);  // price feeder must stake fcoins
     bool StakeBcoinsToCdp(CoinType coinType, const int64_t bcoinsToStake, const int64_t mintedScoins);
 
 public:

@@ -9,9 +9,13 @@
 #include "config/configuration.h"
 #include "main.h"
 
-bool CFcoinStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CFcoinStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
+
+    if (stakeType == StakeType::NULL_STAKE) {
+        return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, invalid stakeType"), REJECT_INVALID, "bad-stake-type");
+    }
 
     if (fcoinsToStake == 0 || !CheckFundCoinRange(abs(fcoinsToStake))) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, fcoinsToStake out of range"),
@@ -28,7 +32,7 @@ bool CFcoinStakeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &st
     return true;
 }
 
-bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CFcoinStakeTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, read txUid %s account info error",
@@ -40,7 +44,7 @@ bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
     }
 
-    if (!account.StakeFcoins(fcoinsToStake)) {
+    if (!account.StakeFcoins(stakeType, fcoinsToStake)) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient fcoins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fcoins");
     }
@@ -52,13 +56,14 @@ bool CFcoinStakeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValid
     cw.txUndo.accountLogs.push_back(acctLog);
     cw.txUndo.txid = GetHash();
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+        return false;
 
     return true;
 }
 
-bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountInfo>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+bool CFcoinStakeTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
+    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyid;
@@ -81,11 +86,10 @@ bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 }
 
 string CFcoinStakeTx::ToString(CAccountDBCache &accountCache) {
-    string str = strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, fcoinsToStake=%ld, llFees=%ld, nValidHeight=%d\n",
-                           GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), fcoinsToStake, llFees,
-                           nValidHeight);
-
-    return str;
+    return strprintf(
+        "txType=%s, hash=%s, ver=%d, txUid=%s, stakeType=%s, fcoinsToStake=%lu, llFees=%ld, nValidHeight=%d\n",
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), GetStakeTypeName(stakeType),
+        fcoinsToStake, llFees, nValidHeight);
 }
 
 Object CFcoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -93,6 +97,7 @@ Object CFcoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {
 
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
 
+    result.push_back(Pair("stake_type",     GetStakeTypeName(stakeType)));
     result.push_back(Pair("coins_to_stake", fcoinsToStake));
 
     return result;

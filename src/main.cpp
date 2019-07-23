@@ -728,7 +728,7 @@ bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block) {
         return false;
 
     if (block.GetHash() != pIndex->GetBlockHash())
-        return ERRORMSG("ReadBlockFromDisk(CBlock&, CBlockIndex*) : GetHash() doesn't match index");
+        return ERRORMSG("ReadBlockFromDisk(CBlock&, CBlockIndex*) : GetHash() doesn't match");
 
     return true;
 }
@@ -1228,11 +1228,11 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             CRegID regId(pIndex->nHeight, i);
             CPubKey pubKey       = pRewardTx->txUid.get<CPubKey>();
             CKeyID keyId         = pubKey.GetKeyId();
-            account.nickid = CNickID();
-            account.keyid  = keyId;
+            account.nickid       = CNickID();
+            account.keyid        = keyId;
             account.owner_pubkey = pubKey;
-            account.regid  = regId;
-            account.free_bcoins = pRewardTx->rewardValue;
+            account.regid        = regId;
+            account.free_bcoins  = pRewardTx->rewardValue;
 
             assert(cw.accountCache.SaveAccount(account));
         } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
@@ -1571,17 +1571,7 @@ bool static WriteChainState(CValidationState &state) {
 
         FlushBlockFile();
         pCdMan->pBlockTreeDb->Sync();
-        if (!pCdMan->pAccountCache->Flush())
-            return state.Abort(_("Failed to write to account database"));
-
-        if (!pCdMan->pContractCache->Flush())
-            return state.Abort(_("Failed to write to contract database"));
-
-        if (!pCdMan->pDelegateCache->Flush())
-            return state.Abort(_("Failed to write to delegate database"));
-
-        if (!pCdMan->pCdpCache->Flush())
-            return state.Abort(_("Failed to write to cdp database"));
+        pCdMan->Flush();
 
         mapForkCache.clear();
         nLastWrite = GetTimeMicros();
@@ -1684,7 +1674,6 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         CInv inv(MSG_BLOCK, pIndexNew->GetBlockHash());
 
         auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
-
         if (!ConnectBlock(block, *spCW, pIndexNew, state)) {
             if (state.IsInvalid()) {
                 InvalidBlockFound(pIndexNew, state);
@@ -1795,8 +1784,8 @@ bool ActivateBestChain(CValidationState &state) {
 
         // Connect new blocks.
         while (!chainActive.Contains(chainMostWork.Tip())) {
-            CBlockIndex *pindexConnect = chainMostWork[chainActive.Height() + 1];
-            if (!ConnectTip(state, pindexConnect)) {
+            CBlockIndex *pIndexConnect = chainMostWork[chainActive.Height() + 1];
+            if (!ConnectTip(state, pIndexConnect)) {
                 if (state.IsInvalid()) {
                     // The block violates a consensus rule.
                     if (!state.CorruptionPossible())
@@ -3469,10 +3458,10 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
     else if (strCommand == "tx") {
         std::shared_ptr<CBaseTx> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
 
-        if (BLOCK_REWARD_TX == pBaseTx->nTxType || BLOCK_PRICE_MEDIAN_TX == pBaseTx->nTxType) {
-            return ERRORMSG(
-                "None of BLOCK_REWARD_TX, BLOCK_PRICE_MEDIAN_TX from network should be accepted, "
-                "Hex:%s", HexStr(vRecv.begin(), vRecv.end()));
+        if (BLOCK_REWARD_TX == pBaseTx->nTxType || UCOIN_BLOCK_REWARD_TX == pBaseTx->nTxType ||
+            BLOCK_PRICE_MEDIAN_TX == pBaseTx->nTxType) {
+            return ERRORMSG("None of BLOCK_REWARD_TX, UCOIN_BLOCK_REWARD_TX, BLOCK_PRICE_MEDIAN_TX from network "
+                "should be accepted, raw string: %s", HexStr(vRecv.begin(), vRecv.end()));
         }
 
         vRecv >> pBaseTx;

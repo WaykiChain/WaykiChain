@@ -65,11 +65,6 @@ public:
     map<uint256, CTxMemPoolEntry > memPoolTxs;
     std::shared_ptr<CCacheWrapper> cw;
 
-    // std::shared_ptr<CAccountDBCache> memPoolAccountCache;
-    // std::shared_ptr<CContractDBCache> memPoolContractCache;
-    // std::shared_ptr<CDelegateDBCache> memPoolDelegateCache;
-    // std::shared_ptr<CCdpDBCache> memPoolCdpCache;
-
 public:
     CTxMemPool();
 

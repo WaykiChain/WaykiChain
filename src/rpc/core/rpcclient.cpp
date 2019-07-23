@@ -183,10 +183,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "getrawmempool"          && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getalltxinfo"           && n > 0) ConvertTo<int>(params[0]);
 
-    if (strMethod == "getnewaddress"          && n > 0) ConvertTo<bool>(params[0]);  //for backward compatibility
     if (strMethod == "getnewaddr"             && n > 0) ConvertTo<bool>(params[0]);
 
-    if (strMethod == "registaccounttx"        && n > 1) ConvertTo<int64_t>(params[1]); //for backward compatibility
     if (strMethod == "registeraccounttx"      && n > 1) ConvertTo<int64_t>(params[1]);
 
     if(strMethod == "votedelegatetx"          && n > 1) ConvertTo<Array>(params[1]);
@@ -195,10 +193,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "registercontracttx"     && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "registercontracttx"     && n > 3) ConvertTo<int>(params[3]);
-
-    // if (strMethod == "createcontracttx"       && n > 2) ConvertTo<int64_t>(params[2]); //for backward compatibility
-    // if (strMethod == "createcontracttx"       && n > 4) ConvertTo<int64_t>(params[4]); //for backward compatibility
-    // if (strMethod == "createcontracttx"       && n > 5) ConvertTo<int>(params[5]);     //for backward compatibility
 
     if (strMethod == "callcontracttx"         && n > 3) ConvertTo<int64_t>(params[3]);
     if (strMethod == "callcontracttx"         && n > 4) ConvertTo<int64_t>(params[4]);
@@ -280,7 +274,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitpricefeedtx"        && n > 2) ConvertTo<uint64_t>(params[2]);
 
     if (strMethod == "submitstakefcointx" && n > 1) ConvertTo<int64_t>(params[1]);
-    if (strMethod == "submitstakefcointx" && n > 2) ConvertTo<uint64_t>(params[2]);
+    if (strMethod == "submitstakefcointx" && n > 2) ConvertTo<int64_t>(params[2]);
 
     if (strMethod == "submitstakecdptx" && n > 1) ConvertTo<uint64_t>(params[1]);
     if (strMethod == "submitstakecdptx" && n > 2) ConvertTo<uint64_t>(params[2]);
