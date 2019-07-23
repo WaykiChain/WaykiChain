@@ -18,13 +18,13 @@
 #include "crypto/hash.h"
 #include "entities/id.h"
 
-enum VoteType : unsigned char {
-    NULL_VOTE   = 0,  //!< invalid vote op
+enum VoteType : uint8_t {
+    NULL_VOTE   = 0,  //!< invalid vote operate
     ADD_BCOIN   = 1,  //!< add operate
     MINUS_BCOIN = 2,  //!< minus operate
 };
 
-static const unordered_map<unsigned char, string> kVoteTypeMap = {
+static const unordered_map<uint8_t, string> kVoteTypeMap = {
     { NULL_VOTE,    "NULL_VOTE"     },
     { ADD_BCOIN,    "ADD_BCOIN"     },
     { MINUS_BCOIN,  "MINUS_BCOIN"   },
@@ -32,7 +32,7 @@ static const unordered_map<unsigned char, string> kVoteTypeMap = {
 
 class CCandidateVote {
 private:
-    unsigned char voteType;  //!< 1:ADD_BCOIN 2:MINUS_BCOIN
+    uint8_t voteType;        //!< 1:ADD_BCOIN 2:MINUS_BCOIN
     CUserID candidateUid;    //!< candidate RegId or PubKey
     uint64_t votedBcoins;    //!< count of votes to the candidate
 

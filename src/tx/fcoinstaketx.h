@@ -8,21 +8,26 @@
 
 #include "tx.h"
 
+#include "entities/stake.h"
+
 class CFcoinStakeTx: public CBaseTx {
 private:
-    int64_t fcoinsToStake; // when negative, it means staking revocation
+    StakeType stakeType;
+    uint64_t fcoinsToStake;  // when negative, it means staking revocation
 
 public:
-    CFcoinStakeTx(): CBaseTx(FCOIN_STAKE_TX), fcoinsToStake(0) {}
+    CFcoinStakeTx(): CBaseTx(FCOIN_STAKE_TX), stakeType(StakeType::NULL_STAKE), fcoinsToStake(0) {}
 
     CFcoinStakeTx(const CBaseTx *pBaseTx): CBaseTx(FCOIN_STAKE_TX) {
         assert(FCOIN_STAKE_TX == pBaseTx->nTxType);
         *this = *(CFcoinStakeTx *) pBaseTx;
     }
 
-    CFcoinStakeTx(const CUserID &txUidIn, int32_t validHeightIn, uint64_t feesIn, uint64_t fcoinsToStakeIn):
-        CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feesIn),
-        fcoinsToStake(fcoinsToStakeIn) {}
+    CFcoinStakeTx(const CUserID &txUidIn, int32_t validHeightIn, uint64_t feesIn, StakeType stakeTypeIn,
+                  uint64_t fcoinsToStakeIn)
+        : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feesIn),
+          stakeType(stakeTypeIn),
+          fcoinsToStake(fcoinsToStakeIn) {}
 
     ~CFcoinStakeTx() {}
 
@@ -33,6 +38,7 @@ public:
         READWRITE(txUid);
 
         READWRITE(VARINT(llFees));
+        READWRITE((uint8_t &)stakeType);
         READWRITE(VARINT(fcoinsToStake));
 
         READWRITE(signature);
@@ -42,7 +48,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
-               << VARINT(llFees) << VARINT(fcoinsToStake);
+               << VARINT(llFees) << (uint8_t)stakeType << VARINT(fcoinsToStake);
 
             sigHash = ss.GetHash();
         }

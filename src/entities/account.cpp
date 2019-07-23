@@ -311,19 +311,24 @@ bool CAccount::PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest) {
     return true;
 }
 
-bool CAccount::StakeFcoins(const int64_t fcoinsToStake) {
-    if (fcoinsToStake < 0) {
-        if (this->staked_fcoins < (uint64_t)(-1 * fcoinsToStake)) {
+bool CAccount::StakeFcoins(const StakeType stakeType, const uint64_t fcoinsToStake) {
+    if (stakeType == StakeType::MINUS_COIN) {
+        if (staked_fcoins < fcoinsToStake) {
             return ERRORMSG("No sufficient staked fcoins(%d) to revoke", staked_fcoins);
         }
-    } else {  // > 0
-        if (this->free_fcoins < (uint64_t)fcoinsToStake) {
+
+        free_fcoins += fcoinsToStake;
+        staked_fcoins -= fcoinsToStake;
+    } else if (stakeType == StakeType::ADD_COIN) {
+        if (free_fcoins < fcoinsToStake) {
             return ERRORMSG("No sufficient free_fcoins(%d) in account to stake", free_fcoins);
         }
-    }
 
-    free_fcoins     -= fcoinsToStake;
-    staked_fcoins   += fcoinsToStake;
+        free_fcoins -= fcoinsToStake;
+        staked_fcoins += fcoinsToStake;
+    } else {
+        return ERRORMSG("Invalid stake type");
+    }
 
     return true;
 }

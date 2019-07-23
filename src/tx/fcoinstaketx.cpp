@@ -13,6 +13,10 @@ bool CFcoinStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
+    if (stakeType == StakeType::NULL_STAKE) {
+        return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, invalid stakeType"), REJECT_INVALID, "bad-stake-type");
+    }
+
     if (fcoinsToStake == 0 || !CheckFundCoinRange(abs(fcoinsToStake))) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, fcoinsToStake out of range"),
                         REJECT_INVALID, "bad-tx-fcoins-outofrange");
@@ -40,7 +44,7 @@ bool CFcoinStakeTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
     }
 
-    if (!account.StakeFcoins(fcoinsToStake)) {
+    if (!account.StakeFcoins(stakeType, fcoinsToStake)) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient fcoins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fcoins");
     }

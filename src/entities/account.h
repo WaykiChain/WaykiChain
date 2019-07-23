@@ -18,6 +18,7 @@
 #include "asset.h"
 #include "crypto/hash.h"
 #include "id.h"
+#include "stake.h"
 #include "vote.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
@@ -108,7 +109,7 @@ static const unordered_map<string, PriceType> kPriceNameMapType = {
     { "KWH", KWH }
 };
 
-inline const string& GetPriceTypeName(PriceType priceType) {
+inline const string& GetPriceTypeName(const PriceType priceType) {
     return kPriceTypeMapName.at(priceType);
 }
 
@@ -138,8 +139,8 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(token_symbol);
         READWRITE(VARINT(free_tokens));
-        READWRITE(VARINT(fronzen_tokens));)
-
+        READWRITE(VARINT(fronzen_tokens));
+    )
 };
 
 class CAccount {
@@ -190,7 +191,7 @@ public:
                               vector<CCandidateVote>& candidateVotesInOut, const uint64_t currHeight,
                               const CAccountDBCache* pAccountCache);
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
-    bool StakeFcoins(const int64_t fcoinsToStake); //price feeder must stake fcoins
+    bool StakeFcoins(const StakeType stakeType, const uint64_t fcoinsToStake);  // price feeder must stake fcoins
     bool StakeBcoinsToCdp(CoinType coinType, const int64_t bcoinsToStake, const int64_t mintedScoins);
 
 public:
