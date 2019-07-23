@@ -86,11 +86,10 @@ bool CFcoinStakeTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper
 }
 
 string CFcoinStakeTx::ToString(CAccountDBCache &accountCache) {
-    string str = strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, fcoinsToStake=%ld, llFees=%ld, nValidHeight=%d\n",
-                           GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), fcoinsToStake, llFees,
-                           nValidHeight);
-
-    return str;
+    return strprintf(
+        "txType=%s, hash=%s, ver=%d, txUid=%s, stakeType=%s, fcoinsToStake=%lu, llFees=%ld, nValidHeight=%d\n",
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), GetStakeTypeName(stakeType),
+        fcoinsToStake, llFees, nValidHeight);
 }
 
 Object CFcoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -98,6 +97,7 @@ Object CFcoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {
 
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
 
+    result.push_back(Pair("stake_type",     GetStakeTypeName(stakeType)));
     result.push_back(Pair("coins_to_stake", fcoinsToStake));
 
     return result;
