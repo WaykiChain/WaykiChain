@@ -581,15 +581,15 @@ Value send(const Array& params, bool fHelp) {
     }
 
     if (coinType==CoinType::WICC) {
-        if (txAccount.free_bcoins < totalAmount)
+        if (txAccount.GetToken("WICC").free_amount< totalAmount)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough bcoins");
 
     } else if (coinType==CoinType::WUSD) {
-        if (txAccount.free_scoins < totalAmount)
+        if (txAccount.GetToken("WUSD").free_amount < totalAmount)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
 
     } else if (coinType==CoinType::WGRT) {
-        if (txAccount.free_fcoins < totalAmount)
+        if (txAccount.GetToken("WGRT").free_amount < totalAmount)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
 
     } else {
@@ -597,15 +597,15 @@ Value send(const Array& params, bool fHelp) {
     }
 
     if (feeType==CoinType::WICC) {
-        if (txAccount.free_bcoins < fee)
+        if (txAccount.GetToken("WICC").free_amount< fee)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough bcoins");
 
     } else if (feeType==CoinType::WUSD) {
-        if (txAccount.free_scoins < fee)
+        if (txAccount.GetToken("WUSD").free_amount < fee)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough scoins");
 
     } else if (feeType==CoinType::WGRT) {
-        if (txAccount.free_fcoins < fee)
+        if (txAccount.GetToken("WGRT").free_amount < fee)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough fcoins");
     } else {
         throw JSONRPCError(RPC_PARSE_ERROR, "This currency is not currently supported.");

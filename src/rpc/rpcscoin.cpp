@@ -435,7 +435,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 
     // TODO: need to support fee coin type
     uint64_t amount = assetAmount;
-    if (txAccount.free_bcoins < amount + fee) {
+    if (txAccount.GetToken("WICC").free_amount< amount + fee) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
@@ -499,12 +499,12 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     assert(!txAccount.keyid.IsEmpty());
 
     // TODO: need to support fee coin type
-    if (txAccount.free_bcoins < fee) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
+    if (txAccount.GetToken("WICC").free_amount < fee) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WICC");
     }
 
-    if (txAccount.free_scoins < assetAmount) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough asset");
+    if (txAccount.GetToken("WUSD").free_amount < assetAmount) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WUSD");
     }
 
     int validHeight = chainActive.Height();
@@ -563,7 +563,7 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
 
     // TODO: need to support fee coin type
     uint64_t amount = coinAmount;
-    if (txAccount.free_bcoins < amount + fee) {
+    if (txAccount.GetToken("WICC").free_amount< amount + fee) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
@@ -624,12 +624,12 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     assert(!txAccount.keyid.IsEmpty());
 
     // TODO: need to support fee coin type
-    if (txAccount.free_bcoins < fee) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
+    if (txAccount.GetToken("WICC").free_amount < fee) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WICC");
     }
 
-    if (txAccount.free_scoins < assetAmount) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough asset");
+    if (txAccount.GetToken("WUSD").free_amount < assetAmount) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WUSD");
     }
 
     int validHeight = chainActive.Height();

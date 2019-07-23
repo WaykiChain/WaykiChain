@@ -113,20 +113,22 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
 
+    //2. check collateral ratio: parital or total >= 200%
     uint64_t startingCdpCollateralRatio;
     if (!cw.sysParamCache.GetParam(CDP_START_COLLATERAL_RATIO, startingCdpCollateralRatio)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    // TODO: un-comment
-    // uint64_t collateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice(nHeight) * kPercentBoost / scoinsToMint;
-    // if (collateralRatio < startingCdpCollateralRatio) {
-    //     return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
-    //                     collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
-    // }
+    uint64_t paritialCollateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice(nHeight)
+                                        * kPercentBoost / scoinsToMint;
 
     //2. mint scoins
     if (cdpTxId.IsNull()) { // first-time CDP creation
+        if (paritialCollateralRatio < startingCdpCollateralRatio) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
+                        collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
+        }
+
         CUserCDP cdp(txUid.get<CRegID>(), GetHash());
         // settle cdp state & persist for the 1st-time
         cw.cdpCache.StakeBcoinsToCdp(nHeight, bcoinsToStake, scoinsToMint, cdp, cw.txUndo.dbOpLogMap);
@@ -141,27 +143,44 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
                     nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
         }
 
+        uint64_t totalBoinsToStake = cpd.totalStakedBcoins + bcoinsToStake;
+        uint64_t totalScoinsToOwe = cdp.totalOwedScoins + scoinsToMint;
+        uint64_t totalCollateralRatio = totalBoinsToStake * cw.ppCache.GetBcoinMedianPrice(nHeight)
+                                        * kPercentBoost / totalScoinsToOwe;
+
+        if (paritialCollateralRatio < startingCdpCollateralRatio &&
+            totalCollateralRatio < startingCdpCollateralRatio) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
+                        collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
+        }
+
         uint64_t scoinsInterestToRepay;
         if (!ComputeCdpInterest(nHeight, cdp.blockHeight, cw, cdp.totalOwedScoins, scoinsInterestToRepay)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, ComputeCdpInterest error!"),
                              REJECT_INVALID, "compute-interest-error");
         }
 
-        if (account.free_scoins < scoinsInterestToRepay) {
+        uint64_t free_scoins = account.GetToken("WUSD").free_amount;
+        if (free_amount < scoinsInterestToRepay) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance: %d < scoinsInterestToRepay: %d",
-                            account.free_scoins, scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
+                            free_scoins, scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
         }
 
         if (!SellInterestForFcoins(scoinsInterestToRepay, cw, state)) {
+            //TODO add to error Log
             return false;
         }
 
-        account.free_scoins -= scoinsInterestToRepay;
+        if (!account.OperateBalance("WUSD", BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance: < scoinsInterestToRepay: %d",
+                            scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
+        }
 
         // settle cdp state & persist
         cw.cdpCache.StakeBcoinsToCdp(nHeight, bcoinsToStake, scoinsToMint, cdp, cw.txUndo.dbOpLogMap);
     }
 
+    // update account accordingly
     if (!account.OperateBalance("WICC", BalanceOpType::SUB_FREE, bcoinsToStake)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, wicc coins insufficient"),
                         INTEREST_INSUFFICIENT, "wicc-insufficient-error");
@@ -298,9 +317,10 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
                         REJECT_DUST, "REJECT_DUST");
     }
 
-    if (account.free_scoins < scoinsInterest) {
+    uint64_t free_scoins = account.GetToken("WUSD").free_amount;
+    if (free_scoins < scoinsInterest) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, account scoins %d insufficent for interest %d",
-                        account.free_fcoins, scoinsInterest), REJECT_INVALID, "account-scoins-insufficient");
+                        free_fcoins, scoinsInterest), REJECT_INVALID, "account-scoins-insufficient");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
@@ -331,7 +351,7 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
         if (!SellInterestForFcoins(nHeight, cdp, cw, state))
             return false;
 
-        account.free_scoins -= scoinsInterest;
+        account.OperateBalance("WUSD", BalanceOpType::SUB_FREE, scoinsInterest);
     } else {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, txUid(%s) not CDP owner",
                     txUid.ToString()), REJECT_INVALID, "target-cdp-not-exist");
@@ -346,8 +366,8 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
                         cdp.totalStakedBcoins, targetStakedBcoins), UPDATE_ACCOUNT_FAIL, "targetStakedBcoins-error");
     }
     uint64_t releasedBcoins = cdp.totalStakedBcoins - targetStakedBcoins;
-    account.free_scoins -= scoinsToRedeem;
-    account.free_bcoins += releasedBcoins;
+    account.OperateBalance("WUSD", BalanceOpType::SUB_FREE, scoinsToRedeem);
+    account.OperateBalance("WICC", BalanceOpType::ADD_FREE, releasedBcoins);
 
     cdp.totalStakedBcoins = (uint64_t) targetStakedBcoins;
     if (!cw.cdpCache.SaveCdp(cdp, cw.txUndo.dbOpLogMap)) {
@@ -763,7 +783,7 @@ bool CCDPLiquidateTx::SellPenaltyForFcoins(uint64_t scoinPenaltyToSysFund, const
     uint64_t halfScoinsPenalty = scoinsPenalty / 2;
     // uint64_t halfFcoinsPenalty = halfScoinsPenalty / cw.ppCache.GetFcoinMedianPrice();
 
-    fcoinGenesisAccount.free_scoins += halfScoinsPenalty;    // save into risk reserve fund
+    fcoinGenesisAccount.OperateBalance("WUSD", BalanceOpType:ADD_FREE, halfScoinsPenalty); // save to risk reserve
 
     auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, halfScoinsPenalty);
     if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder, cw.txUndo.dbOpLogMap)) {

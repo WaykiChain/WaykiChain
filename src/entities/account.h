@@ -76,28 +76,30 @@ inline string GetBalanceOpTypeName(const BalanceOpType opType) {
 
 class CAccountToken {
 public:
-    uint64_t free_tokens;
-    uint64_t frozen_tokens; //held by open DEX orders
-    uint64_t staked_tokens; //for staking purposes
+    uint64_t free_amount;
+    uint64_t frozen_amount; //held within open DEX orders
+    uint64_t staked_amount; //for staking purposes
 
 public:
+    CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0) { }
+
     CAccountToken(uint64_t &freeTokens, uint64_t &frozenTokens) :
-                    free_tokens(freeTokens), frozen_tokens(frozenTokens), staked_tokens(stakedTokens) { }
+                    free_amount(freeTokens), frozen_amount(frozenTokens), staked_amount(stakedTokens) { }
 
     CAccountToken& operator=(const CAccountToken& other) {
         if (this == &other) return *this;
 
-        this->free_tokens       = other.free_tokens;
-        this->frozen_tokens     = other.frozen_tokens;
-        this->staked_tokens     = other.staked_tokens;
+        this->free_amount       = other.free_amount;
+        this->frozen_amount     = other.frozen_amount;
+        this->staked_amount     = other.staked_amount;
 
         return *this;
     }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(free_tokens));
-        READWRITE(VARINT(frozen_tokens));
-        READWRITE(VARINT(staked_tokens));)
+        READWRITE(VARINT(free_amount));
+        READWRITE(VARINT(frozen_amount));
+        READWRITE(VARINT(staked_amount));)
 };
 
 /**

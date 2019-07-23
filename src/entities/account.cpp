@@ -14,9 +14,9 @@ bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType bala
     if (iter != tokens.end()) {
         auto accountToken = iter.second;
         switch (balanceType) {
-            case FREE_VALUE:    value = accountToken.free_tokens;   return true;
-            case STAKED_VALUE:  value = accountToken.staked_tokens; return true;
-            case FROZEN_VALUE:  value = accountToken.frozen_tokens; return true;
+            case FREE_VALUE:    value = accountToken.free_amount;   return true;
+            case STAKED_VALUE:  value = accountToken.staked_amount; return true;
+            case FROZEN_VALUE:  value = accountToken.frozen_amount; return true;
             default: return false;
         }
     }
@@ -30,46 +30,46 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
         auto &accountToken = iter.second;
         switch (balanceType) {
             case ADD_FREE: {
-                accountToken.free_tokens += value;
+                accountToken.free_amount += value;
                 return true;
             }
             case SUB_FREE: {
-                if (accountToken.free_tokens < value)
-                    return ERRORMSG("CAccount::OperateBalance, free_tokens insufficient");
+                if (accountToken.free_amount < value)
+                    return ERRORMSG("CAccount::OperateBalance, free_amount insufficient");
 
-                accountToken.free_tokens -= value;
+                accountToken.free_amount -= value;
                 return true;
             }
             case STAKE: {
-                if (accountToken.free_tokens < value)
-                    return ERRORMSG("CAccount::OperateBalance, free_tokens insufficient");
+                if (accountToken.free_amount < value)
+                    return ERRORMSG("CAccount::OperateBalance, free_amount insufficient");
 
-                accountToken.free_tokens -= value;
-                accountToken.staked_tokens += value;
+                accountToken.free_amount -= value;
+                accountToken.staked_amount += value;
                 return true;
             }
             case UNSTAKE: {
-                if (accountToken.staked_tokens < value)
-                    return ERRORMSG("CAccount::OperateBalance, staked_tokens insufficient");
+                if (accountToken.staked_amount < value)
+                    return ERRORMSG("CAccount::OperateBalance, staked_amount insufficient");
 
-                accountToken.free_tokens += value;
-                accountToken.staked_tokens -= value;
+                accountToken.free_amount += value;
+                accountToken.staked_amount -= value;
                 return true;
             }
             case FREEZE: {
-                if (accountToken.free_tokens < value)
-                    return ERRORMSG("CAccount::OperateBalance, free_tokens insufficient");
+                if (accountToken.free_amount < value)
+                    return ERRORMSG("CAccount::OperateBalance, free_amount insufficient");
 
-                accountToken.free_tokens -= value;
-                accountToken.frozen_tokens += value;
+                accountToken.free_amount -= value;
+                accountToken.frozen_amount += value;
                 return true;
             }
             case UNFREEZE: {
-                if (accountToken.frozen_tokens < value)
-                    return ERRORMSG("CAccount::OperateBalance, frozen_tokens insufficient");
+                if (accountToken.frozen_amount < value)
+                    return ERRORMSG("CAccount::OperateBalance, frozen_amount insufficient");
 
-                accountToken.free_tokens += value;
-                accountToken.frozen_tokens -= value;
+                accountToken.free_amount += value;
+                accountToken.frozen_amount -= value;
                 return true;
             }
             default: return false;
@@ -150,6 +150,7 @@ uint64_t CAccount::GetVotedBCoins(const vector<CCandidateVote> &candidateVotes, 
     if (!candidateVotes.empty()) {
         if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1) {
             votes = candidateVotes[0].GetVotedBcoins(); // one bcoin eleven votes
+
         } else if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R2) {
             for (const auto &vote : candidateVotes) {
                 votes += vote.GetVotedBcoins();         // one bcoin one vote
@@ -162,7 +163,7 @@ uint64_t CAccount::GetVotedBCoins(const vector<CCandidateVote> &candidateVotes, 
 uint64_t CAccount::GetTotalBcoins(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight) {
     uint64_t votedBcoins = GetVotedBCoins(candidateVotes, currHeight);
     auto wicc_token = GetToken("WICC");
-    return (votedBcoins + wicc_token.free_tokens);
+    return (votedBcoins + wicc_token.free_amount);
 }
 
 bool CAccount::RegIDIsMature() const {
@@ -176,7 +177,7 @@ CAccountToken CAccount::GetToken(const TokenSymbol &tokenSymbol) {
     if (iter != tokens.end())
         return iter->second;
 
-    return 0;
+    return CAccountToken();
 }
 
 void CAccount::SetToken(const TokenSymbol &tokenSymbol, const CAccountToken &accountToken) {
@@ -271,6 +272,7 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
                             if (voteId.type() == typeid(CRegID)) {
                                 pAccountCache->GetAccount(voteId, account);
                                 return vote.GetCandidateUid() == account.owner_pubkey;
+
                             } else {  // vote.GetCandidateUid().type() == typeid(CRegID)
                                 pAccountCache->GetAccount(vote.GetCandidateUid(), account);
                                 return account.owner_pubkey == voteId;
@@ -333,23 +335,30 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
     });
 
     uint64_t newTotalVotes = GetVotedBCoins(candidateVotesInOut, currHeight);
-    uint64_t totalBcoins = free_bcoins + lastTotalVotes;
+    uint64_t totalBcoins = GetToken("WICC").free_amount + lastTotalVotes;
     if (totalBcoins < newTotalVotes) {
         return  ERRORMSG("ProcessDelegateVotes() : delegate votes exceeds account bcoins");
     }
+
     free_bcoins = totalBcoins - newTotalVotes;
+    uint64_t currBcoinAmt = GetToken("WICC").free_amount;
+    if (currBcoinAmt < free_bcoins) {
+        OperateBalance("WICC", BalanceOpType::ADD_FREE, free_bcoins - currBcoinAmt);
+    } else {
+        OperateBalance("WICC", BalanceOpType::SUB_FREE, currBcoinAmt - free_bcoins);
+    }
 
     uint64_t interestAmountToInflate = ComputeVoteStakingInterest(candidateVotesInOut, currHeight);
     if (!IsBcoinWithinRange(interestAmountToInflate))
         return false;
 
     switch (GetFeatureForkVersion(currHeight)) {
-        case MAJOR_VER_R1:
-            free_bcoins += interestAmountToInflate; // for backward compatibility
+        case MAJOR_VER_R1: // for backward compatibility
+            OperateBalance("WICC", BalanceOpType::ADD_FREE, interestAmountToInflate)
             break;
 
-        case MAJOR_VER_R2:
-            free_fcoins += interestAmountToInflate; // only fcoins will be inflated for voters
+        case MAJOR_VER_R2: // only fcoins will be inflated for voters
+            OperateBalance("WGRT", BalanceOpType::ADD_FREE, interestAmountToInflate);
             break;
 
         default:

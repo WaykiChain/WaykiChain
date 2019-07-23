@@ -82,7 +82,7 @@ namespace dbk {
         DEFINE( REGID_KEYID,          "rkey",  ACCOUNT )       /* rkey{$RegID} --> $KeyId */ \
         DEFINE( NICKID_KEYID,         "nkey",  ACCOUNT )       /* nkey{$NickID} --> $KeyId */ \
         DEFINE( KEYID_ACCOUNT,        "idac",  ACCOUNT )       /* idac{$KeyID} --> $CAccount */ \
-        DEFINE( KEYID_ACCOUNT_TOKEN,  "idat",  ACCOUNT )       /* idat{$KeyID}{tokenSymbol} --> $free_tokens, $frozen_tokens */ \
+        DEFINE( KEYID_ACCOUNT_TOKEN,  "idat",  ACCOUNT )       /* idat{$KeyID}{tokenSymbol} --> $free_amount, $frozen_amount */ \
         DEFINE( BEST_BLOCKHASH,       "bbkh",  ACCOUNT )       /* [prefix] --> $BestBlockHash */ \
         /**** contract db                                                                     */ \
         DEFINE( LIST_KEYID_TX,        "lktx",  CONTRACT )      /* lktx{$KeyId}{$Height}{$Index} --> $txid */ \

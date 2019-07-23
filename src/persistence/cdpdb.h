@@ -25,13 +25,13 @@ using namespace std;
  *
  */
 struct CUserCDP {
-    mutable double collateralRatioBase;  // ratioBase = totalStakedBcoins / totalOwedScoins, mem-only
-
     CRegID ownerRegId;              // CDP Owner RegId
     uint256 cdpTxId;                // CDP TxID
     int32_t blockHeight;            // persisted: Hj (Hj+1 refer to current height) - last op block height
     uint64_t totalStakedBcoins;     // persisted: total staked bcoins
     uint64_t totalOwedScoins;       // persisted: TNj = last + minted = total minted - total redempted
+
+    mutable double collateralRatioBase;  // ratioBase = totalStakedBcoins / totalOwedScoins, mem-only
 
     CUserCDP() : blockHeight(0), totalStakedBcoins(0), totalOwedScoins(0) {}
 
