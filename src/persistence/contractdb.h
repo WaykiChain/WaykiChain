@@ -23,7 +23,7 @@ class CVmOperate;
 class CKeyID;
 class CRegID;
 class CAccount;
-class CAccountInfo;
+class CAccount;
 class CContractDB;
 struct CDiskTxPos;
 
@@ -104,19 +104,19 @@ private:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// ContractDB
     // contractRegId -> script content
-    CDBMultiValueCache< dbk::CONTRACT_DEF,         string,                   string >               scriptCache;
+    CCompositKVCache< dbk::CONTRACT_DEF,         string,                   string >               scriptCache;
     // txId -> vector<CVmOperate>
-    CDBMultiValueCache< dbk::CONTRACT_TX_OUT,      uint256,                  vector<CVmOperate> >   txOutputCache;
+    CCompositKVCache< dbk::CONTRACT_TX_OUT,      uint256,                  vector<CVmOperate> >   txOutputCache;
     // keyId, height, index -> txid
-    CDBMultiValueCache< dbk::LIST_KEYID_TX,        tuple<CKeyID, uint32_t, uint32_t>,  uint256 >    acctTxListCache;
+    CCompositKVCache< dbk::LIST_KEYID_TX,        tuple<CKeyID, uint32_t, uint32_t>,  uint256 >    acctTxListCache;
     // txId -> DiskTxPos
-    CDBMultiValueCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;
+    CCompositKVCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;
     // contractTxId -> relatedAccounts
-    CDBMultiValueCache< dbk::CONTRACT_RELATED_KID, uint256,                  set<CKeyID> >          contractRelatedKidCache;
+    CCompositKVCache< dbk::CONTRACT_RELATED_KID, uint256,                  set<CKeyID> >          contractRelatedKidCache;
     // pair<contractRegId, contractKey> -> scriptData
-    CDBMultiValueCache< dbk::CONTRACT_DATA,        pair<string, string>,     string >               contractDataCache;
+    CCompositKVCache< dbk::CONTRACT_DATA,        pair<string, string>,     string >               contractDataCache;
     // pair<contractRegId, accountKey> -> appUserAccount
-    CDBMultiValueCache< dbk::CONTRACT_ACCOUNT,     pair<string, string>,     CAppUserAccount >      contractAccountCache;
+    CCompositKVCache< dbk::CONTRACT_ACCOUNT,     pair<string, string>,     CAppUserAccount >      contractAccountCache;
 };
 
 #endif  // PERSIST_CONTRACTDB_H

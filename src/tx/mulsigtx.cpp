@@ -127,8 +127,8 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
         }
     }
 
-    CAccountInfo srcAcctInfo(srcAcct);
-    CAccountInfo desAcctInfo;
+    CAccount srcAcctInfo(srcAcct);
+    CAccount desAcctInfo;
     uint64_t minusValue = llFees + bcoins;
     if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, minusValue)) {
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, account has insufficient funds"),
@@ -183,7 +183,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
 }
 
 bool CMulsigTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountInfo>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+    vector<CAccount>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyid;

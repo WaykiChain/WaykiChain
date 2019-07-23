@@ -21,35 +21,6 @@ class CKeyID;
 
 class CAccountDBCache {
 public:
-    bool GetFcoinGenesisAccount(CAccount &fcoinGenesisAccount) const;
-
-    bool GetAccount(const CKeyID &keyId, CAccount &account) const;
-    bool GetAccount(const CRegID &regId, CAccount &account) const;
-    bool GetAccount(const CUserID &userId, CAccount &account) const;
-
-    bool SetAccount(const CKeyID &keyId, const CAccount &account);
-    bool SetAccount(const CRegID &regId, const CAccount &account);
-    bool SetAccount(const CUserID &userId, const CAccount &account);
-
-    bool HaveAccount(const CKeyID &keyId) const;
-
-    uint256 GetBestBlock() const;
-
-    bool SetBestBlock(const uint256 &blockHash);
-    bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts, const map<CRegID,
-                            CKeyID> &mapKeyIds, const uint256 &blockHash);
-    bool BatchWrite(const vector<CAccount> &vAccounts);
-    bool EraseAccountByKeyId(const CKeyID &keyId);
-    bool SetKeyId(const CRegID &regId, const CKeyID &keyId);
-    bool SetKeyId(const CUserID &userId, const CKeyID &keyId);
-    bool GetKeyId(const CRegID &regId, CKeyID &keyId) const;
-    bool GetKeyId(const CUserID &userId, CKeyID &keyId) const;
-    bool EraseKeyIdByRegId(const CRegID &regId);
-
-    bool SaveAccount(const CAccount &account);
-    std::tuple<uint64_t, uint64_t> TraverseAccount();
-
-public:
     CAccountDBCache() {}
 
     CAccountDBCache(CDBAccess *pDbAccess):
@@ -68,15 +39,48 @@ public:
 
     ~CAccountDBCache() {}
 
+public:
+    bool GetFcoinGenesisAccount(CAccount &fcoinGenesisAccount) const;
+
+    bool GetAccount(const CKeyID &keyId,    CAccount &account) const;
+    bool GetAccount(const CRegID &regId,    CAccount &account) const;
+    bool GetAccount(const CUserID &uid,     CAccount &account) const;
+
+    bool SetAccount(const CKeyID &keyId,    const CAccount &account);
+    bool SetAccount(const CRegID &regId,    const CAccount &account);
+    bool SetAccount(const CUserID &uid,     const CAccount &account);
+    bool SaveAccount(const CAccount &account);
+
+    bool HaveAccount(const CKeyID &keyId) const;
+    bool HaveAccount(const CUserID &userId) const;
+
+    bool EraseAccount(const CKeyID &keyId);
+    bool EraseAccount(const CUserID &userId);
+
+    uint256 GetBestBlock() const;
+    bool SetBestBlock(const uint256 &blockHash);
+
+    bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts,
+                    const map<CRegID, CKeyID> &mapKeyIds,
+                    const uint256 &blockHash);
+
+    bool BatchWrite(const vector<CAccount> &accounts);
+
+    bool SetKeyId(const CRegID &regId,  const CKeyID &keyId);
+    bool SetKeyId(const CUserID &uid,   const CKeyID &keyId);
+    bool GetKeyId(const CRegID &regId,  CKeyID &keyId) const;
+    bool GetKeyId(const CUserID &uid,   CKeyID &keyId) const;
+
+    bool EraseKeyId(const CRegID &regId);
+    bool EraseKeyId(const CUserID &userId);
+
+    std::tuple<uint64_t, uint64_t> TraverseAccount();
+
     bool GetUserId(const string &addr, CUserID &userId) const;
     bool GetRegId(const CKeyID &keyId, CRegID &regId) const;
     bool GetRegId(const CUserID &userId, CRegID &regId) const;
     bool RegIDIsMature(const CRegID &regId) const;
-    bool EraseAccountByKeyId(const CUserID &userId);
-    bool EraseKeyId(const CUserID &userId);
-    bool HaveAccount(const CUserID &userId) const;
-    int64_t GetFreeBcoins(const CUserID &userId) const;
-    bool Flush();
+
     uint32_t GetCacheSize() const;
     Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY);
 
@@ -87,22 +91,27 @@ public:
         nickId2KeyIdCache.SetBase(&pBaseIn->nickId2KeyIdCache);
     };
 
+    bool Flush();
+
 private:
-/*  CDBScalarValueCache     prefixType             value           variable           */
+/*  CCompositKVCache     prefixType            key              value           variable           */
+/*  -------------------- --------------------   --------------  -------------   --------------------- */
+    // <prefix$RegID -> KeyID>
+    CCompositKVCache< dbk::REGID_KEYID,          CRegID,       CKeyID >         regId2KeyIdCache;
+    // <prefix$NickID -> KeyID>
+    CCompositKVCache< dbk::NICKID_KEYID,         CNickID,      CKeyID>          nickId2KeyIdCache;
+    // <prefix$KeyID -> Account>
+    CCompositKVCache< dbk::KEYID_ACCOUNT,        CKeyID,       CAccount>        accountCache;
+
+
+
+
+
+    //TODO: move it to other dbcache file
+/*  CSimpleKVCache     prefixType             value           variable           */
 /*  -------------------- --------------------   -------------   --------------------- */
     // best blockHash
-    CDBScalarValueCache< dbk::BEST_BLOCKHASH,      uint256>     blockHashCache;
-
-/*  CDBScalarValueCache     prefixType            key              value           variable           */
-/*  -------------------- --------------------   --------------  -------------   --------------------- */
-    // <prefix$KeyID -> Account>
-    CDBMultiValueCache< dbk::KEYID_ACCOUNT,        CKeyID,       CAccount>       accountCache;
-    // <prefix$KeyID -> tokens>
-    CDBMultiValueCache< dbk::KEYID_ACCOUNT_TOKEN,  CKeyID,       std::map<TokenSymbol, CAccountToken>> accountTokenCache;
-    // <RegID str -> KeyID>
-    CDBMultiValueCache< dbk::REGID_KEYID,          string,       CKeyID >         regId2KeyIdCache;
-    // <prefix$NickID -> KeyID>
-    CDBMultiValueCache< dbk::NICKID_KEYID,         CNickID,      CKeyID>          nickId2KeyIdCache;
+    CSimpleKVCache< dbk::BEST_BLOCKHASH,      uint256>        blockHashCache;
 };
 
 #endif  // PERSIST_ACCOUNTDB_H

@@ -36,10 +36,10 @@ public:
     };
 
 private:
-/*  CDBScalarValueCache  prefixType             key                 value                        variable      */
+/*  CSimpleKVCache  prefixType             key                 value                        variable      */
 /*  -------------------- --------------------- ------------------  ---------------------------  -------------- */
     // [prefix]{height}{txid} --> {error code, error message}
-    CDBMultiValueCache<dbk::TX_EXECUTE_FAIL,    string,            std::pair<uint8_t, string> > executeFailCache;
+    CCompositKVCache<dbk::TX_EXECUTE_FAIL,    string,            std::pair<uint8_t, string> > executeFailCache;
 };
 
 #endif // PERSIST_LOGDB_H

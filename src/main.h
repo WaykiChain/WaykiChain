@@ -249,7 +249,7 @@ bool IsStandardTx(CBaseTx *pBaseTx, string &reason);
 bool IsFinalTx(CBaseTx *pBaseTx, int nBlockHeight = 0, int64_t nBlockTime = 0);
 
 //get tx operate account log
-bool GetTxOperLog(const uint256 &txid, vector<CAccountInfo> &accountLogs);
+bool GetTxOperLog(const uint256 &txid, vector<CAccount> &accountLogs);
 
 /** An in-memory indexed chain of blocks. */
 class CChain {

@@ -25,6 +25,101 @@ using namespace json_spirit;
 typedef string TokenSymbol;     //8 chars max, E.g. WICC, WCNY, WICC-01D
 typedef string TokenName;       //32 chars max, E.g. WaykiChain Coins
 
+enum CoinType: uint8_t {
+    WICC = 0,
+    WGRT = 1,
+    WUSD = 2,
+    WCNY = 3
+};
+
+enum PriceType: uint8_t {
+    USD     = 0,
+    CNY     = 1,
+    EUR     = 2,
+    BTC     = 10,
+    USDT    = 11,
+    GOLD    = 20,
+    KWH     = 100, // kilowatt hour
+};
+
+
+// make compatibility with low GCC version(≤ 4.9.2)
+struct CoinTypeHash {
+    size_t operator()(const CoinType& type) const noexcept { return std::hash<uint8_t>{}(type); }
+};
+
+static const unordered_map<CoinType, string, CoinTypeHash> kCoinTypeMapName = {
+    {WICC, "WICC"},
+    {WGRT, "WGRT"},
+    {WUSD, "WUSD"},
+    {WCNY, "WCNY"}
+};
+
+static const unordered_map<string, CoinType> kCoinNameMapType = {
+    {"WICC", WICC},
+    {"WGRT", WGRT},
+    {"WUSD", WUSD},
+    {"WCNY", WCNY}
+};
+
+static const unordered_map<PriceType, string, PriceTypeHash> kPriceTypeMapName = {
+    { USD,  "USD" },
+    { CNY,  "CNY" },
+    { EUR,  "EUR" },
+    { BTC,  "BTC" },
+    { USDT, "USDT"},
+    { GOLD, "GOLD"},
+    { KWH,  "KWH" }
+};
+
+static const unordered_map<string, PriceType> kPriceNameMapType = {
+    { "USD", USD },
+    { "CNY", CNY },
+    { "EUR", EUR },
+    { "BTC", BTC },
+    { "USDT", USDT},
+    { "GOLD", GOLD},
+    { "KWH", KWH }
+};
+
+inline const string& GetCoinTypeName(CoinType coinType) {
+    return kCoinTypeMapName.at(coinType);
+}
+
+inline bool ParseCoinType(const string& coinName, CoinType &coinType) {
+    if (coinName != "") {
+        auto it = kCoinNameMapType.find(coinName);
+        if (it != kCoinNameMapType.end()) {
+            coinType = it->second;
+            return true;
+        }
+    }
+    return false;
+}
+
+struct PriceTypeHash {
+    size_t operator()(const PriceType& type) const noexcept { return std::hash<uint8_t>{}(type); }
+};
+
+inline bool ParseAssetType(const string& assetName, AssetType &assetType) {
+    return ParseCoinType(assetName, assetType);
+}
+
+inline const string& GetPriceTypeName(PriceType priceType) {
+    return kPriceTypeMapName.at(priceType);
+}
+
+inline bool ParsePriceType(const string& priceName, PriceType &priceType) {
+    if (priceName != "") {
+        auto it = kPriceNameMapType.find(priceName);
+        if (it != kPriceNameMapType.end()) {
+            priceType = it->second;
+            return true;
+        }
+    }
+    return false;
+}
+
 class CAssetTradingPair {
 public:
     TokenSymbol base_asset_symbol;

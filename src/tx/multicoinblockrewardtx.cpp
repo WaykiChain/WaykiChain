@@ -19,7 +19,7 @@ bool CMultiCoinBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CAccountInfo accountLog(account);
+    CAccount accountLog(account);
     if (0 == nIndex) {
         // When the reward transaction is immature, should NOT update account's balances.
     } else if (-1 == nIndex) {
@@ -55,7 +55,7 @@ bool CMultiCoinBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &
 }
 
 bool CMultiCoinBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountInfo>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+    vector<CAccount>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         if (!cw.accountCache.GetAccount(CUserID(rIterAccountLog->keyid), account)) {

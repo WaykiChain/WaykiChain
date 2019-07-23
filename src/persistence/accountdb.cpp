@@ -72,16 +72,6 @@ bool CAccountDBCache::HaveAccount(const CKeyID &keyId) const {
     return accountCache.HaveData(keyId);
 }
 
-uint256 CAccountDBCache::GetBestBlock() const {
-    uint256 blockHash;
-    blockHashCache.GetData(blockHash);
-    return blockHash;
-}
-
-bool CAccountDBCache::SetBestBlock(const uint256 &blockHashIn) {
-    return blockHashCache.SetData(blockHashIn);
-}
-
 bool CAccountDBCache::EraseAccountByKeyId(const CKeyID &keyId) {
 
     return accountCache.EraseData(keyId);
@@ -238,14 +228,6 @@ bool CAccountDBCache::Flush() {
     return true;
 }
 
-int64_t CAccountDBCache::GetFreeBcoins(const CUserID &userId) const {
-    CAccount account;
-    if (GetAccount(userId, account)) {
-        return account.free_bcoins;
-    }
-    return 0;
-}
-
 uint32_t CAccountDBCache::GetCacheSize() const {
     return blockHashCache.GetCacheSize() +
         accountCache.GetCacheSize() +
@@ -259,9 +241,19 @@ std::tuple<uint64_t, uint64_t> CAccountDBCache::TraverseAccount() {
     return make_tuple<uint64_t, uint64_t>(0, 0);
 }
 
+uint256 CAccountDBCache::GetBestBlock() const {
+    uint256 blockHash;
+    blockHashCache.GetData(blockHash);
+    return blockHash;
+}
+
+bool CAccountDBCache::SetBestBlock(const uint256 &blockHashIn) {
+    return blockHashCache.SetData(blockHashIn);
+}
+
 Object CAccountDBCache::ToJsonObj(dbk::PrefixType prefix) {
     return Object();
-/* TODO: CDBMultiValueCache::ToJsonObj()
+/* TODO: CCompositKVCache::ToJsonObj()
     Object obj;
     obj.push_back(Pair("blockHash", blockHash.ToString()));
 

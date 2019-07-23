@@ -21,7 +21,7 @@ bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
     CPubKey pubKey = txUid.get<CPubKey>();
     CKeyID keyId   = pubKey.IsFullyValid() ? txUid.get<CPubKey>().GetKeyId() : Hash160(regId.GetRegIdRaw());
     // Contstuct an empty account log which will delete account automatically if the blockchain rollbacked.
-    CAccountInfo accountLog(keyId);
+    CAccount accountLog(keyId);
 
     account.nickid = CNickID();
     account.owner_pubkey = pubKey;
@@ -49,7 +49,7 @@ bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
 }
 
 bool CCoinRewardTx::UndoExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountInfo>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+    vector<CAccount>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         if (!cw.accountCache.EraseAccountByKeyId(CUserID(rIterAccountLog->keyid)) ||
             !cw.accountCache.EraseKeyId(CRegID(height, index))) {

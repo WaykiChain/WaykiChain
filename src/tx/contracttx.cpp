@@ -325,8 +325,8 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
         }
     }
 
-    CAccountInfo srcAcctInfo(srcAcct);
-    CAccountInfo desAcctInfo;
+    CAccount srcAcctInfo(srcAcct);
+    CAccount desAcctInfo;
     uint64_t minusValue = llFees + bcoins;
     if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, minusValue))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, accounts hash insufficient funds"),
@@ -395,7 +395,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
                                  UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
             }
         }
-        CAccountInfo oldAcctLog(oldAcct);
+        CAccount oldAcctLog(oldAcct);
         if (!cw.accountCache.SetAccount(userId, *itemAccount))
             return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, write account info error"),
                 UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
@@ -427,7 +427,7 @@ bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
 
     if (!UndoTxAddresses(cw, state)) return false;
 
-    vector<CAccountInfo>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+    vector<CAccount>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyid;

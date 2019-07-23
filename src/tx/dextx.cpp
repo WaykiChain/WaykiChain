@@ -99,8 +99,8 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CAccountInfo srcAcctInfo(srcAcct);
-    CAccountInfo desAcctInfo;
+    CAccount srcAcctInfo(srcAcct);
+    CAccount desAcctInfo;
     if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -150,7 +150,7 @@ bool CDEXBuyLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::UndoExecuteTx, accountLogs size != 1"),
                          READ_ACCOUNT_FAIL, "bad-accountLogs-size");
     }
-    const CAccountInfo &accountLog = cw.txUndo.accountLogs.at(0);
+    const CAccount &accountLog = cw.txUndo.accountLogs.at(0);
     CAccount account;
     CUserID userId = accountLog.keyid;
     if (!cw.accountCache.GetAccount(userId, account)) {
@@ -258,8 +258,8 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CAccountInfo srcAcctInfo(srcAcct);
-    CAccountInfo desAcctInfo;
+    CAccount srcAcctInfo(srcAcct);
+    CAccount desAcctInfo;
     if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -306,7 +306,7 @@ bool CDEXSellLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper 
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, accountLogs size != 1"),
                          READ_ACCOUNT_FAIL, "bad-accountLogs-size");
     }
-    const CAccountInfo &accountLog = cw.txUndo.accountLogs.at(0);
+    const CAccount &accountLog = cw.txUndo.accountLogs.at(0);
     CAccount account;
     CUserID userId = accountLog.keyid;
     if (!cw.accountCache.GetAccount(userId, account)) {
@@ -406,8 +406,8 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CAccountInfo srcAcctInfo(srcAcct);
-    CAccountInfo desAcctInfo;
+    CAccount srcAcctInfo(srcAcct);
+    CAccount desAcctInfo;
     if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -455,7 +455,7 @@ bool CDEXBuyMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper 
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::UndoExecuteTx, accountLogs size != 1"),
                          READ_ACCOUNT_FAIL, "bad-accountLogs-size");
     }
-    const CAccountInfo &accountLog = cw.txUndo.accountLogs.at(0);
+    const CAccount &accountLog = cw.txUndo.accountLogs.at(0);
     CAccount account;
     CUserID userId = accountLog.keyid;
     if (!cw.accountCache.GetAccount(userId, account)) {
@@ -554,8 +554,8 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CAccountInfo srcAcctInfo(srcAcct);
-    CAccountInfo desAcctInfo;
+    CAccount srcAcctInfo(srcAcct);
+    CAccount desAcctInfo;
     if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -602,7 +602,7 @@ bool CDEXSellMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::UndoExecuteTx, accountLogs size != 1"),
                          READ_ACCOUNT_FAIL, "bad-accountLogs-size");
     }
-    const CAccountInfo &accountLog = cw.txUndo.accountLogs.at(0);
+    const CAccount &accountLog = cw.txUndo.accountLogs.at(0);
     CAccount account;
     CUserID userId = accountLog.keyid;
     if (!cw.accountCache.GetAccount(userId, account)) {
@@ -682,8 +682,8 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CAccountInfo srcAcctInfo(srcAccount);
-    CAccountInfo desAcctInfo;
+    CAccount srcAcctInfo(srcAccount);
+    CAccount desAcctInfo;
     if (!srcAccount.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -997,7 +997,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
-    cw.txUndo.accountLogs.push_back(CAccountInfo(srcAcct));
+    cw.txUndo.accountLogs.push_back(CAccount(srcAcct));
 
     for (auto dealItem : dealItems) {
         //1. get and check buyDealOrder and sellDealOrder
@@ -1024,13 +1024,13 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
             return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, read buy order account info error"),
                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        cw.txUndo.accountLogs.push_back(CAccountInfo(buyOrderAccount));
+        cw.txUndo.accountLogs.push_back(CAccount(buyOrderAccount));
         CAccount sellOrderAccount;
         if (!cw.accountCache.GetAccount(sellOrderDetail.userRegId, sellOrderAccount)) {
             return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, read sell order account info error"),
                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        cw.txUndo.accountLogs.push_back(CAccountInfo(sellOrderAccount));
+        cw.txUndo.accountLogs.push_back(CAccount(sellOrderAccount));
 
         // 3. check coin type match
         if (buyOrderDetail.coinType != sellOrderDetail.coinType) {
@@ -1215,7 +1215,7 @@ bool CDEXSettleTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVa
 
     auto rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
-        const CAccountInfo &accountLog = *rIterAccountLog;
+        const CAccount &accountLog = *rIterAccountLog;
         CAccount account;
         CUserID userId = accountLog.keyid;
         if (!cw.accountCache.GetAccount(userId, account)) {

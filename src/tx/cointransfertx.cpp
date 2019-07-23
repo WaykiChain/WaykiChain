@@ -41,8 +41,8 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
-    CAccountInfo srCAccountInfo(srcAccount);
-    CAccountInfo desAccountLog;
+    CAccount srCAccount(srcAccount);
+    CAccount desAccountLog;
 
     if (!srcAccount.OperateBalance(feesCoinType, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, insufficient bcoins in txUid %s account",
@@ -78,7 +78,7 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        CAccountInfo genesisAcctLog(fcoinGenesisAccount);
+        CAccount genesisAcctLog(fcoinGenesisAccount);
         uint64_t riskReserveFeeRatio;
         if (!cw.sysParamCache.GetParam(SCOIN_RESERVE_FEE_RATIO, riskReserveFeeRatio)) {
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read SCOIN_RESERVE_FEE_RATIO error"),
@@ -103,7 +103,7 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, write dest addr %s account info error", toUid.ToString()),
             UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    cw.txUndo.accountLogs.push_back(srCAccountInfo);
+    cw.txUndo.accountLogs.push_back(srCAccount);
     cw.txUndo.accountLogs.push_back(desAccountLog);
     cw.txUndo.txid = GetHash();
 
@@ -114,7 +114,7 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
 }
 
 bool CCoinTransferTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountInfo>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+    vector<CAccount>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyid;

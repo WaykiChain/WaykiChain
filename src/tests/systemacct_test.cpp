@@ -151,7 +151,7 @@ BOOST_FIXTURE_TEST_CASE(register_test,CSysAccountTest)
 	//确认注册成功的交易在tip中
 	BOOST_CHECK(IsTxInTipBlock(uint256(uint256S(strSpecial))));
 
-	vector<CAccountInfo> vLog;
+	vector<CAccount> vLog;
 	BOOST_CHECK(GetTxOperateLog(uint256(uint256S(strSpecial)),vLog));
 
 	//检查日志记录是否正确

@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(dbaccess_test)
     string value3;
     BOOST_CHECK(pDBAccess->GetData(prefix, string("regid-3"), value3));
     BOOST_CHECK( value3 == "keyid-3" );
-    
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -46,8 +46,8 @@ BOOST_AUTO_TEST_CASE(dbcache_multi_value_Level1_test)
     const dbk::PrefixType prefix = dbk::REGID_KEYID;
     shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
         DBNameType::ACCOUNT, 100000, false, isWipe);
-    
-    auto pDBCache = make_shared< CDBMultiValueCache<prefix, string, string> >(pDBAccess.get());
+
+    auto pDBCache = make_shared< CCompositKVCache<prefix, string, string> >(pDBAccess.get());
     pDBCache->SetData("regid-1", "keyid-1");
     pDBCache->SetData("regid-2", "keyid-2");
     pDBCache->SetData("regid-3", "keyid-3");
@@ -68,10 +68,10 @@ BOOST_AUTO_TEST_CASE(dbcache_multi_value_Level3_test)
     const dbk::PrefixType prefix = dbk::REGID_KEYID;
     shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
         DBNameType::ACCOUNT, 100000, false, isWipe);
-    
-    auto pDBCache1 = make_shared< CDBMultiValueCache<prefix, string, string> >(pDBAccess.get());
-    auto pDBCache2 = make_shared< CDBMultiValueCache<prefix, string, string> >(pDBCache1.get());
-    auto pDBCache3 = make_shared< CDBMultiValueCache<prefix, string, string> >(pDBCache2.get());
+
+    auto pDBCache1 = make_shared< CCompositKVCache<prefix, string, string> >(pDBAccess.get());
+    auto pDBCache2 = make_shared< CCompositKVCache<prefix, string, string> >(pDBCache1.get());
+    auto pDBCache3 = make_shared< CCompositKVCache<prefix, string, string> >(pDBCache2.get());
     auto pDbOpLogMap = make_shared<CDBOpLogMap>();
     pDBCache3->SetData("regid-1", "keyid-1", *pDbOpLogMap);
     pDBCache3->SetData("regid-2", "keyid-2", *pDbOpLogMap);
@@ -103,10 +103,10 @@ BOOST_AUTO_TEST_CASE(dbcache_scalar_value_Level3_test)
     const dbk::PrefixType prefix = dbk::REGID_KEYID;
     shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
         DBNameType::ACCOUNT, 100000, false, isWipe);
-    
-    auto pDBCache1 = make_shared< CDBScalarValueCache<prefix, string> >(pDBAccess.get());
-    auto pDBCache2 = make_shared< CDBScalarValueCache<prefix, string> >(pDBCache1.get());
-    auto pDBCache3 = make_shared< CDBScalarValueCache<prefix, string> >(pDBCache2.get());
+
+    auto pDBCache1 = make_shared< CSimpleKVCache<prefix, string> >(pDBAccess.get());
+    auto pDBCache2 = make_shared< CSimpleKVCache<prefix, string> >(pDBCache1.get());
+    auto pDBCache3 = make_shared< CSimpleKVCache<prefix, string> >(pDBCache2.get());
     pDBCache3->SetData("keyid-1");
     pDBCache3->Flush();
     pDBCache2->Flush();

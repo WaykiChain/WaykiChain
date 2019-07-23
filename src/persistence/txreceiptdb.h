@@ -40,7 +40,7 @@ private:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// SysParamDB
     // txid -> vector<CReceipt>
-    CDBMultiValueCache< dbk::TX_RECEIPT,            TxID,                   vector<CReceipt> >     txReceiptCache;
+    CCompositKVCache< dbk::TX_RECEIPT,            TxID,                   vector<CReceipt> >     txReceiptCache;
 };
 
 #endif // PERSIST_RECEIPTDB_H

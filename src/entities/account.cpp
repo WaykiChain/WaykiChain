@@ -9,107 +9,85 @@
 
 #include "main.h"
 
-bool CAccount::UndoOperateAccount(const CAccountInfo &accountInfo) {
+bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType, uint64_t &value) {
+    auto iter = tokens.find(tokenSymbol);
+    if (iter != tokens.end()) {
+        auto accountToken = iter.second;
+        switch (balanceType) {
+            case FREE_VALUE:    value = accountToken.free_tokens;   return true;
+            case STAKED_VALUE:  value = accountToken.staked_tokens; return true;
+            case FROZEN_VALUE:  value = accountToken.frozen_tokens; return true;
+            default: return false;
+        }
+    }
+
+    return false;
+}
+
+bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value) {
+    auto iter = tokens.find(tokenSymbol);
+    if (iter != tokens.end()) {
+        auto &accountToken = iter.second;
+        switch (balanceType) {
+            case ADD_FREE: {
+                accountToken.free_tokens += value;
+                return true;
+            }
+            case SUB_FREE: {
+                if (accountToken.free_tokens < value)
+                    return ERRORMSG("CAccount::OperateBalance, free_tokens insufficient");
+
+                accountToken.free_tokens -= value;
+                return true;
+            }
+            case STAKE: {
+                if (accountToken.free_tokens < value)
+                    return ERRORMSG("CAccount::OperateBalance, free_tokens insufficient");
+
+                accountToken.free_tokens -= value;
+                accountToken.staked_tokens += value;
+                return true;
+            }
+            case UNSTAKE: {
+                if (accountToken.staked_tokens < value)
+                    return ERRORMSG("CAccount::OperateBalance, staked_tokens insufficient");
+
+                accountToken.free_tokens += value;
+                accountToken.staked_tokens -= value;
+                return true;
+            }
+            case FREEZE: {
+                if (accountToken.free_tokens < value)
+                    return ERRORMSG("CAccount::OperateBalance, free_tokens insufficient");
+
+                accountToken.free_tokens -= value;
+                accountToken.frozen_tokens += value;
+                return true;
+            }
+            case UNFREEZE: {
+                if (accountToken.frozen_tokens < value)
+                    return ERRORMSG("CAccount::OperateBalance, frozen_tokens insufficient");
+
+                accountToken.free_tokens += value;
+                accountToken.frozen_tokens -= value;
+                return true;
+            }
+            default: return false;
+        }
+    }
+    return false;
+}
+
+bool CAccount::UndoOperateAccount(const CAccount &acnt) {
     LogPrint("undo_account", "after operate:%s\n", ToString());
 
-    free_bcoins     = accountInfo.free_bcoins;
-    free_fcoins     = accountInfo.free_fcoins;
-    frozen_bcoins   = accountInfo.frozen_bcoins;
-    frozen_fcoins   = accountInfo.frozen_fcoins;
-    staked_bcoins   = accountInfo.staked_bcoins;
-    staked_fcoins   = accountInfo.staked_fcoins;
-    received_votes  = accountInfo.received_votes;
-    last_vote_height= accountInfo.last_vote_height;
-    extended_tokens = accountInfo.extended_tokens;
+    staked_bcoins       = acnt.staked_bcoins;
+    staked_fcoins       = acnt.staked_fcoins;
+    received_votes      = acnt.received_votes;
+    last_vote_height    = acnt.last_vote_height;
+    extended_tokens     = acnt.extended_tokens;
 
     LogPrint("undo_account", "before operate:%s\n", ToString());
-    return true;
-}
-
-bool CAccount::FreezeDexCoin(CoinType coinType, uint64_t amount) {
-    switch (coinType) {
-        case WICC:
-            if (amount > free_bcoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than bcoins");
-            free_bcoins -= amount;
-            frozen_bcoins += amount;
-            assert(IsBcoinWithinRange(free_bcoins) && IsBcoinWithinRange(frozen_bcoins));
-            break;
-
-        case WGRT:
-            if (amount > free_fcoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than fcoins");
-            free_fcoins -= amount;
-            frozen_fcoins += amount;
-            assert(IsFcoinWithinRange(free_fcoins) && IsFcoinWithinRange(frozen_fcoins));
-            break;
-
-        // case WUSD:
-        //     if (amount > free_scoins) return ERRORMSG("CAccount::FreezeDexCoin, amount larger than scoins");
-        //     free_scoins -= amount;
-        //     frozen_scoins += amount;
-        //     break;
-
-        default: return ERRORMSG("CAccount::FreezeDexCoin, coin type error");
-    }
-    return true;
-}
-
-bool CAccount::UnFreezeDexCoin(CoinType coinType, uint64_t amount) {
-    switch (coinType) {
-        case WICC:
-            if (amount > frozen_bcoins)
-                return ERRORMSG("CAccount::UnFreezeDexCoin, amount larger than frozen_bcoins");
-
-            free_bcoins += amount;
-            frozen_bcoins -= amount;
-            assert(IsBcoinWithinRange(free_bcoins) && IsBcoinWithinRange(frozen_bcoins));
-            break;
-
-        case WUSD:
-            if (amount > frozen_scoins)
-                return ERRORMSG("CAccount::UnFreezeDexCoin, amount larger than frozen_scoins");
-
-            free_scoins += amount;
-            frozen_scoins -= amount;
-            break;
-
-        case WGRT:
-            if (amount > frozen_fcoins)
-                return ERRORMSG("CAccount::UnFreezeDexCoin, amount larger than frozen_fcoins");
-
-            free_fcoins += amount;
-            frozen_fcoins -= amount;
-            assert(IsFcoinWithinRange(free_fcoins) && IsFcoinWithinRange(frozen_fcoins));
-            break;
-
-        default: return ERRORMSG("CAccount::UnFreezeDexCoin, coin type error");
-    }
-    return true;
-}
-
-bool CAccount::MinusDEXFrozenCoin(CoinType coinType,  uint64_t coins) {
-    switch (coinType) {
-        case WICC:
-            if (coins > frozen_bcoins)
-                return ERRORMSG("CAccount::SettleDEXBuyOrder, minus bcoins exceed frozen bcoins");
-
-            frozen_bcoins -= coins;
-            assert(IsBcoinWithinRange(frozen_bcoins));
-            break;
-        case WGRT:
-            if (coins > frozen_scoins)
-                return ERRORMSG("CAccount::SettleDEXBuyOrder, minus scoins exceed frozen scoins");
-
-            frozen_scoins -= coins;
-            assert(IsFcoinWithinRange(frozen_scoins));
-            break;
-        case WUSD:
-            if (coins > frozen_fcoins)
-                return ERRORMSG("CAccount::SettleDEXBuyOrder, minus fcoins exceed frozen fcoins");
-
-            frozen_fcoins -= coins;
-            break;
-        default: return ERRORMSG("CAccount::SettleDEXBuyOrder, coin type error");
-    }
     return true;
 }
 
@@ -183,7 +161,8 @@ uint64_t CAccount::GetVotedBCoins(const vector<CCandidateVote> &candidateVotes, 
 
 uint64_t CAccount::GetTotalBcoins(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight) {
     uint64_t votedBcoins = GetVotedBCoins(candidateVotes, currHeight);
-    return (votedBcoins + free_bcoins);
+    auto wicc_token = GetToken("WICC");
+    return (votedBcoins + wicc_token.free_tokens);
 }
 
 bool CAccount::RegIDIsMature() const {
@@ -192,7 +171,19 @@ bool CAccount::RegIDIsMature() const {
             (chainActive.Height() - (int)regid.GetHeight() > kRegIdMaturePeriodByBlock));
 }
 
-Object CAccount::ToJsonObj(bool isAddress) const {
+CAccountToken CAccount::GetToken(const TokenSymbol &tokenSymbol) {
+    auto iter = tokens.find(tokenSymbol);
+    if (iter != tokens.end())
+        return iter->second;
+
+    return 0;
+}
+
+void CAccount::SetToken(const TokenSymbol &tokenSymbol, const CAccountToken &accountToken) {
+    tokens[tokenSymbol] = accountToken;
+}
+
+Object CAccount::ToJsonObj() const {
     vector<CCandidateVote> candidateVotes;
     pCdMan->pDelegateCache->GetCandidateVotes(regid, candidateVotes);
 
@@ -209,24 +200,31 @@ Object CAccount::ToJsonObj(bool isAddress) const {
     obj.push_back(Pair("regid_mature",      RegIDIsMature()));
     obj.push_back(Pair("owner_pubkey",      owner_pubkey.ToString()));
     obj.push_back(Pair("miner_pubkey",      miner_pubkey.ToString()));
-    obj.push_back(Pair("free_bcoins",       free_bcoins));
-    obj.push_back(Pair("free_scoins",       free_scoins));
-    obj.push_back(Pair("free_fcoins",       free_fcoins));
-    obj.push_back(Pair("staked_bcoins",     staked_bcoins));
-    obj.push_back(Pair("staked_fcoins",     staked_fcoins));
+    obj.push_back(Pair("tokens",            GetAccountTokenStr(tokens));
     obj.push_back(Pair("received_votes",    received_votes));
     obj.push_back(Pair("vote_list",         candidateVoteArray));
 
     return obj;
 }
 
-string CAccount::ToString(bool isAddress) const {
+ string ToString() const {
+        string str;
+        str += strprintf(
+            "AccountInfo: keyid=%d regid=%s nickid=%s owner_pubKey=%s miner_pubKey=%s "
+            "received_votes=%lld last_vote_height=%lld asset_tokens: {%s}\n",
+            keyid.GetHex(), regid.ToString(), nickid.ToString(), owner_pubkey.ToString(), miner_pubkey.ToString(),
+            received_votes, last_vote_height, GetAccountTokenStr(asset_tokens));
+
+        return str;
+    }
+
+string CAccount::ToString() const {
     string str;
     str += strprintf(
-        "regid=%s, keyid=%s, nickId=%s, owner_pubkey=%s, miner_pubkey=%s, free_bcoins=%ld, free_scoins=%ld, free_fcoins=%ld, "
-        "received_votes=%lld last_vote_height=%\n",
+        "regid=%s, keyid=%s, nickId=%s, owner_pubkey=%s, miner_pubkey=%s, "
+        "tokens=%s, received_votes=%lld, last_vote_height=%\n",
         regid.ToString(), keyid.GetHex(), nickid.ToString(), owner_pubkey.ToString(), miner_pubkey.ToString(),
-        free_bcoins, free_scoins, free_fcoins, received_votes);
+        GetAccountTokenStr(tokens), received_votes, last_vote_height);
     str += "candidate vote list: \n";
 
     vector<CCandidateVote> candidateVotes;
@@ -248,90 +246,6 @@ bool CAccount::IsBcoinWithinRange(uint64_t nAddMoney) {
 bool CAccount::IsFcoinWithinRange(uint64_t nAddMoney) {
     if (!CheckFundCoinRange(nAddMoney))
         return ERRORMSG("money:%lld larger than MaxMoney", nAddMoney);
-
-    return true;
-}
-
-bool CAccount::OperateBalance(const CoinType coinType, const BalanceOpType opType, const uint64_t value) {
-    assert(opType == BalanceOpType::ADD_VALUE || opType == BalanceOpType::MINUS_VALUE);
-
-    if (!IsBcoinWithinRange(value))
-        return false;
-
-    if (keyid.IsEmpty()) {
-        return ERRORMSG("operate account's keyId is empty error");
-    }
-
-    if (!value)  // value is 0
-        return true;
-
-    LogPrint("balance_op", "before op: %s\n", ToString());
-
-    if (opType == BalanceOpType::MINUS_VALUE) {
-        switch (coinType) {
-            case WICC:  if (free_bcoins < value) return false; break;
-            case WGRT:  if (free_fcoins < value) return false; break;
-            case WUSD:  if (free_scoins < value) return false; break;
-            default: return ERRORMSG("coin type error");
-        }
-    }
-
-    int64_t opValue = (opType == BalanceOpType::MINUS_VALUE) ? (-value) : (value);
-    switch (coinType) {
-        case WICC:  free_bcoins += opValue; if (!IsBcoinWithinRange(free_bcoins)) return false; break;
-        case WGRT:  free_fcoins += opValue; if (!IsFcoinWithinRange(free_fcoins)) return false; break;
-        case WUSD:  free_scoins += opValue; break;
-        default: return ERRORMSG("coin type error");
-    }
-
-    LogPrint("balance_op", "after op: %s\n", ToString());
-
-    return true;
-}
-
-bool CAccount::PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest) {
-    if (free_scoins < scoinInterest || free_fcoins < fcoinsInterest)
-        return false;
-
-    free_scoins -= scoinInterest;
-    free_fcoins -= fcoinsInterest;
-    return true;
-}
-
-bool CAccount::StakeFcoins(const StakeType stakeType, const uint64_t fcoinsToStake) {
-    if (stakeType == StakeType::MINUS_COIN) {
-        if (staked_fcoins < fcoinsToStake) {
-            return ERRORMSG("No sufficient staked fcoins(%d) to revoke", staked_fcoins);
-        }
-
-        free_fcoins += fcoinsToStake;
-        staked_fcoins -= fcoinsToStake;
-    } else if (stakeType == StakeType::ADD_COIN) {
-        if (free_fcoins < fcoinsToStake) {
-            return ERRORMSG("No sufficient free_fcoins(%d) in account to stake", free_fcoins);
-        }
-
-        free_fcoins -= fcoinsToStake;
-        staked_fcoins += fcoinsToStake;
-    } else {
-        return ERRORMSG("Invalid stake type");
-    }
-
-    return true;
-}
-
-bool CAccount::StakeBcoinsToCdp(CoinType coinType, const int64_t bcoinsToStake, const int64_t mintedScoins) {
-     if (bcoinsToStake < 0) {
-        return ERRORMSG("bcoinsToStake(%d) cannot be negative", bcoinsToStake);
-    } else { // > 0
-        if (this->free_bcoins < (uint64_t) bcoinsToStake) {
-            return ERRORMSG("No sufficient free_bcoins(%d) in account to stake", free_bcoins);
-        }
-    }
-
-    free_bcoins     -= bcoinsToStake;
-    staked_bcoins   += bcoinsToStake;
-    free_scoins     += mintedScoins;
 
     return true;
 }

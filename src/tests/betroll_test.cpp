@@ -794,7 +794,7 @@ unsigned char TempArray[] = {
 //
 //	vector<UnsignedCharArray> account;
 //	for (int i = 1; i < 3; i++) {
-//		CAccountInfo sourceAccount;
+//		CAccount sourceAccount;
 //		CRegID accountId(i + 2, i);
 //		std::vector<unsigned char> nvector;
 //		nvector.assign(Array1[i - 1], Array1[i - 1] + 20);
@@ -859,8 +859,8 @@ unsigned char TempArray[] = {
 //	std::shared_ptr<CAppealTransaction> A2;
 //	std::shared_ptr<CAppealTransaction> B2;
 //	CAccountDBCache view;
-//	CAccountInfo A;
-//	CAccountInfo B;
+//	CAccount A;
+//	CAccount B;
 //	int64_t result;
 //	int64_t bresult;
 //	int64_t betm;
@@ -887,7 +887,7 @@ unsigned char TempArray[] = {
 //	Tx.push_back(betroll->tx);
 //	CVmScriptRun mScript(betroll->view, Tx, betroll->vscript);
 //	bool flag = mScript.run(Tx, betroll->view);
-//	vector<std::shared_ptr<CAccountInfo> > pac = mScript.GetNewAccount();
+//	vector<std::shared_ptr<CAccount> > pac = mScript.GetNewAccount();
 //	for (auto& item : pac) {
 //		betroll->view.SetAccount(item.get()->keyid, *item.get());
 //	}
@@ -924,7 +924,7 @@ unsigned char TempArray[] = {
 //	Tx.push_back(betroll->A2);
 //	CVmScriptRun mScript(betroll->view, Tx, betroll->vscript);
 //	bool flag = mScript.run(Tx, betroll->view);
-//	vector<std::shared_ptr<CAccountInfo> > pac = mScript.GetNewAccount();
+//	vector<std::shared_ptr<CAccount> > pac = mScript.GetNewAccount();
 //	for (auto& item : pac) {
 //		betroll->view.SetAccount(item.get()->keyid, *item.get());
 //	}
@@ -959,7 +959,7 @@ unsigned char TempArray[] = {
 //	Tx.push_back(betroll->B2);
 //	CVmScriptRun mScript(betroll->view, Tx, betroll->vscript);
 //	bool flag = mScript.run(Tx, betroll->view);
-//	vector<std::shared_ptr<CAccountInfo> > pac = mScript.GetNewAccount();
+//	vector<std::shared_ptr<CAccount> > pac = mScript.GetNewAccount();
 //	for (auto& item : pac) {
 //		betroll->view.SetAccount(item.get()->keyid, *item.get());
 //	}
@@ -1016,7 +1016,7 @@ unsigned char TempArray[] = {
 //	Tx.push_back(betroll->A2);
 //	CVmScriptRun mScript(betroll->view, Tx, betroll->vscript);
 //	bool flag = mScript.run(Tx, betroll->view);
-//	vector<std::shared_ptr<CAccountInfo> > pac = mScript.GetNewAccount();
+//	vector<std::shared_ptr<CAccount> > pac = mScript.GetNewAccount();
 //	if (bcheck) {
 //		BOOST_CHECK(!flag);
 //		std::shared_ptr<vector<CVmOperate>> retData = mScript.GetOperate();

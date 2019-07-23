@@ -16,7 +16,7 @@
 #include "stdio.h"
 #include "db.h"
 
-class CAccountInfo;
+class CAccount;
 class CAccountingEntry;
 struct CBlockLocator;
 class CKeyPool;

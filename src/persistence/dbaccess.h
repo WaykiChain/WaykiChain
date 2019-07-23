@@ -438,7 +438,7 @@ private:
 };
 
 template<int PREFIX_TYPE_VALUE, typename KeyType, typename ValueType>
-class CDBMultiValueCache {
+class CCompositKVCache {
 public:
     static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
 public:
@@ -448,20 +448,20 @@ public:
     /**
      * Default constructor, must use set base to initialize before using.
      */
-    CDBMultiValueCache(): pBase(nullptr), pDbAccess(nullptr) {};
+    CCompositKVCache(): pBase(nullptr), pDbAccess(nullptr) {};
 
-    CDBMultiValueCache(CDBMultiValueCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn): pBase(pBaseIn),
+    CCompositKVCache(CCompositKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn): pBase(pBaseIn),
         pDbAccess(nullptr) {
         assert(pBaseIn != nullptr);
     };
 
-    CDBMultiValueCache(CDBAccess *pDbAccessIn): pBase(nullptr),
+    CCompositKVCache(CDBAccess *pDbAccessIn): pBase(nullptr),
         pDbAccess(pDbAccessIn) {
         assert(pDbAccessIn != nullptr);
         assert(pDbAccess->GetDbNameType() == GetDbNameEnumByPrefix(PREFIX_TYPE));
     };
 
-    void SetBase(CDBMultiValueCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn) {
+    void SetBase(CCompositKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn) {
         assert(pDbAccess == nullptr);
         assert(mapData.empty());
         pBase = pBaseIn;
@@ -849,33 +849,33 @@ private:
     }
 
 private:
-    mutable CDBMultiValueCache<PREFIX_TYPE, KeyType, ValueType> *pBase;
+    mutable CCompositKVCache<PREFIX_TYPE, KeyType, ValueType> *pBase;
     CDBAccess *pDbAccess;
     mutable map<KeyType, ValueType> mapData;
 };
 
 
 template<int PREFIX_TYPE_VALUE, typename ValueType>
-class CDBScalarValueCache {
+class CSimpleKVCache {
 public:
     static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
 public:
     /**
      * Default constructor, must use set base to initialize before using.
      */
-    CDBScalarValueCache(): pBase(nullptr), pDbAccess(nullptr) {};
+    CSimpleKVCache(): pBase(nullptr), pDbAccess(nullptr) {};
 
-    CDBScalarValueCache(CDBScalarValueCache<PREFIX_TYPE, ValueType> *pBaseIn): pBase(pBaseIn),
+    CSimpleKVCache(CSimpleKVCache<PREFIX_TYPE, ValueType> *pBaseIn): pBase(pBaseIn),
         pDbAccess(nullptr) {
         assert(pBaseIn != nullptr);
     };
 
-    CDBScalarValueCache(CDBAccess *pDbAccessIn): pBase(nullptr),
+    CSimpleKVCache(CDBAccess *pDbAccessIn): pBase(nullptr),
         pDbAccess(pDbAccessIn) {
         assert(pDbAccessIn != nullptr);
     };
 
-    void SetBase(CDBScalarValueCache<PREFIX_TYPE, ValueType> *pBaseIn) {
+    void SetBase(CSimpleKVCache<PREFIX_TYPE, ValueType> *pBaseIn) {
         assert(pDbAccess == nullptr);
         assert(!ptrData);
         pBase = pBaseIn;
@@ -1013,7 +1013,7 @@ private:
         return nullptr;
     };
 private:
-    mutable CDBScalarValueCache<PREFIX_TYPE, ValueType> *pBase;
+    mutable CSimpleKVCache<PREFIX_TYPE, ValueType> *pBase;
     CDBAccess *pDbAccess;
     mutable std::shared_ptr<ValueType> ptrData;
 };

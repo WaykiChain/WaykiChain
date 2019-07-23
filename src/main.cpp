@@ -4108,7 +4108,7 @@ bool DisconnectBlockFromTip(CValidationState &state) {
     return DisconnectTip(state);
 }
 
-bool GetTxOperLog(const uint256 &txid, vector<CAccountInfo> &accountLogs) {
+bool GetTxOperLog(const uint256 &txid, vector<CAccount> &accountLogs) {
     if (SysCfg().IsTxIndex()) {
         CDiskTxPos diskTxPos;
         if (pCdMan->pContractCache->ReadTxIndex(txid, diskTxPos)) {

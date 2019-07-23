@@ -106,7 +106,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
     }
-    CAccountInfo acctLog(account); //save account state before modification
+    CAccount acctLog(account); //save account state before modification
     //1. pay miner fees (WICC)
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, deduct fees from regId=%s failed,",
@@ -162,15 +162,17 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
         cw.cdpCache.StakeBcoinsToCdp(nHeight, bcoinsToStake, scoinsToMint, cdp, cw.txUndo.dbOpLogMap);
     }
 
-    if (!account.StakeBcoinsToCdp(CoinType::WICC, bcoinsToStake, scoinsToMint)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, stake bcoins from regId=%s failed",
-                        txUid.ToString()), STAKE_CDP_FAIL, "cdp-stake-bcoins-failed");
+    if (!account.OperateBalance("WICC", BalanceOpType::SUB_FREE, bcoinsToStake)) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, wicc coins insufficient"),
+                        INTEREST_INSUFFICIENT, "wicc-insufficient-error");
     }
+    account.OperateBalance("WUSD", BalanceOpType::ADD_FREE, mintedScoins);
+
     if (!cw.accountCache.SaveAccount(account)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, update account %s failed",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     }
-    cw.txUndo.accountLogs.push_back(acctLog);
+    // cw.txUndo.accountLogs.push_back(acctLog);
 
     vector<CReceipt> receipts;
     CUserID nullUid;
@@ -312,7 +314,7 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccountInfo acctLog(account); //save account state before modification
+    CAccount acctLog(account); //save account state before modification
     //1. pay miner fees (WICC)
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, deduct fees from regId=%s failed,",
@@ -521,7 +523,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccountInfo acctLog(account); //save account state before modification
+    CAccount acctLog(account); //save account state before modification
     cw.txUndo.accountLogs.push_back(acctLog);
 
     //1. pay miner fees (WICC)
@@ -541,7 +543,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP Owner txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccountInfo cdpAcctLog(cdpOwnerAccount); //save account state before modification
+    CAccount cdpAcctLog(cdpOwnerAccount); //save account state before modification
     cw.txUndo.accountLogs.push_back(cdpAcctLog);
 
     uint64_t collateralRatio =
@@ -755,7 +757,7 @@ bool CCDPLiquidateTx::SellPenaltyForFcoins(uint64_t scoinPenaltyToSysFund, const
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
-    CAccountInfo genesisAcctLog(fcoinGenesisAccount);
+    CAccount genesisAcctLog(fcoinGenesisAccount);
     cw.txUndo.accountLogs.push_back(genesisAcctLog);
 
     uint64_t halfScoinsPenalty = scoinsPenalty / 2;

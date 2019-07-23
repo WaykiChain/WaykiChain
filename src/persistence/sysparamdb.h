@@ -48,5 +48,5 @@ private:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// SysParamDB
     // order tx id -> active order
-    CDBMultiValueCache< dbk::SYS_PARAM,             string,                 uint64_t >              sysParamCache;
+    CCompositKVCache< dbk::SYS_PARAM,             string,                 uint64_t >              sysParamCache;
 };

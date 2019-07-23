@@ -728,7 +728,7 @@ bool SysTestBase::GetRegID(string &strAddr, CRegID &regId) {
     return true;
 }
 
-bool SysTestBase::GetTxOperateLog(const uint256 &txid, vector<CAccountInfo> &vLog) {
+bool SysTestBase::GetTxOperateLog(const uint256 &txid, vector<CAccount> &vLog) {
     if (!GetTxOperLog(txid, vLog)) return false;
 
     return true;

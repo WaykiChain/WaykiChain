@@ -157,10 +157,10 @@ public:
         cdpMemCache.SetBase(&pBaseIn->cdpMemCache);
     }
 private:
-/*  CDBMultiValueCache     prefixType     key                               value        variable  */
+/*  CCompositKVCache     prefixType     key                               value        variable  */
 /*  ----------------   --------------   ---------------------------   ---------------    --------- */
     // cdp$CRegID$CTxID -> CUserCDP
-    CDBMultiValueCache< dbk::CDP,         std::pair<string, uint256>,   CUserCDP >       cdpCache;
+    CCompositKVCache< dbk::CDP,         std::pair<string, uint256>,   CUserCDP >       cdpCache;
 
 public:
     // Memory only cache

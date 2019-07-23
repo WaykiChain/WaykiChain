@@ -38,15 +38,23 @@ bool CFcoinStakeTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
-    CAccountInfo acctLog(account);
-    if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    CAccount acctLog(account);
+    if (!account.OperateBalance("WICC", BalanceOpType::SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient bcoins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
     }
 
-    if (!account.StakeFcoins(stakeType, fcoinsToStake)) {
-        return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient fcoins in txUid %s account",
+    if (fcoinsToStake > 0) { //stakef fcoins
+        if (!account.OperateBalance("WGRT", BalanceOpType::STAKE, fcoinsToStake)) {
+            return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient fcoins to stake in txUid(%s)",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fcoins");
+        }
+    } else {                // <= 0, unstake fcoins
+        fcoinsToStake *= -1;
+        if (!account.OperateBalance("WGRT", BalanceOpType::UNSTAKE, fcoinsToStake)) {
+            return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient staked fcoins in txUid(%s)",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fcoins");
+        }
     }
 
     if (!cw.accountCache.SaveAccount(account))
@@ -62,8 +70,13 @@ bool CFcoinStakeTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw
     return true;
 }
 
+<<<<<<< Updated upstream
 bool CFcoinStakeTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
     vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+=======
+bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+    vector<CAccount>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
+>>>>>>> Stashed changes
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyid;
