@@ -184,7 +184,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
 }
 
 Value submitredeemcdptx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 3 || params.size() > 6) {
+    if (fHelp || params.size() < 4 || params.size() > 6) {
         throw runtime_error(
             "submitredeemcdptx \"addr\" redeem_amount collateral_ratio [\"cdp_id\"] [interest] [fee]\n"
             "\nsubmit a CDP Redemption Tx\n"
@@ -192,7 +192,7 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
             "1. \"address\" : CDP redemptor's address\n"
             "2. \"redeem_amount\": (numeric required) WICC coins to stake into the CDP, boosted by 10^8\n"
             "3. \"collateral_ratio\": (numberic required), collateral ratio, boosted by 10^4 times\n"
-            "4. \"cdp_id\": (string optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
+            "4. \"cdp_id\": (string) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
             "5. \"interest\": (numeric optional) CDP interest (WUSD) to repay\n"
             "6. \"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
             "\nResult:\n"
@@ -209,16 +209,14 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
     uint64_t collateralRatio = params[2].get_uint64();
 
     int validHeight = chainActive.Tip()->nHeight;
+    uint256 cdpTxId     = uint256S(params[3].get_str());
+
     uint64_t interest   = 0;
     uint64_t fee        = 0;
-    uint256 cdpTxId;
-    if (params.size() >=4 ) {
-        cdpTxId = uint256S(params[3].get_str());
-    }
-    if (params.size() >=5 ) {
+    if (params.size() >= 5) {
         interest =  params[4].get_uint64();
     }
-    if (params.size() ==6 ) {
+    if (params.size() == 6) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
     }
 

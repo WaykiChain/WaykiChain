@@ -189,28 +189,28 @@ public:
     )
 };
 
-/** Account information.
- * Stored in wallet with key "acc"+string account name.
- */
-class CAccount {
-public:
-    CPubKey vchPubKey;
+// /** Account information.
+//  * Stored in wallet with key "acc"+string account name.
+//  */
+// class CAccountInfo {
+// public:
+//     CPubKey vchPubKey;
 
-    CAccount() {
-        SetNull();
-    }
+//     CAccountInfo() {
+//         SetNull();
+//     }
 
-    void SetNull() {
-        vchPubKey = CPubKey();
-    }
+//     void SetNull() {
+//         vchPubKey = CPubKey();
+//     }
 
-    IMPLEMENT_SERIALIZE
-    (
-        if (!(nType & SER_GETHASH))
-            READWRITE(nVersion);
-            READWRITE(vchPubKey);
-    )
-};
+//     IMPLEMENT_SERIALIZE
+//     (
+//         if (!(nType & SER_GETHASH))
+//             READWRITE(nVersion);
+//             READWRITE(vchPubKey);
+//     )
+// };
 
 /** Internal transfers.
  * Database key is acentry<account><counter>.

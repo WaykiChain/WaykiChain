@@ -14,6 +14,7 @@ public:
     using CBaseTx::CBaseTx;
 
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail) = 0;
+
 public:
     static bool CalcCoinAmount(uint64_t assetAmount, uint64_t price, uint64_t &coinAmountOut);
 };

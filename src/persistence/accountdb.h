@@ -25,17 +25,17 @@ public:
 
     CAccountDBCache(CDBAccess *pDbAccess):
         blockHashCache(pDbAccess),
-        accountCache(pDbAccess),
         regId2KeyIdCache(pDbAccess),
-        nickId2KeyIdCache(pDbAccess) {
+        nickId2KeyIdCache(pDbAccess),
+        accountCache(pDbAccess) {
         assert(pDbAccess->GetDbNameType() == DBNameType::ACCOUNT);
     }
 
     CAccountDBCache(CAccountDBCache *pBase):
         blockHashCache(pBase->blockHashCache),
-        accountCache(pBase->accountCache),
         regId2KeyIdCache(pBase->regId2KeyIdCache),
-        nickId2KeyIdCache(pBase->nickId2KeyIdCache) {}
+        nickId2KeyIdCache(pBase->nickId2KeyIdCache),
+        accountCache(pBase->accountCache) {}
 
     ~CAccountDBCache() {}
 
@@ -94,6 +94,14 @@ public:
     bool Flush();
 
 private:
+    //TODO: move it to other dbcache file
+/*  CSimpleKVCache     prefixType             value           variable           */
+/*  -------------------- --------------------   -------------   --------------------- */
+    // best blockHash
+    CSimpleKVCache< dbk::BEST_BLOCKHASH,      uint256>        blockHashCache;
+
+
+
 /*  CCompositKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <prefix$RegID -> KeyID>
@@ -103,15 +111,6 @@ private:
     // <prefix$KeyID -> Account>
     CCompositKVCache< dbk::KEYID_ACCOUNT,        CKeyID,       CAccount>        accountCache;
 
-
-
-
-
-    //TODO: move it to other dbcache file
-/*  CSimpleKVCache     prefixType             value           variable           */
-/*  -------------------- --------------------   -------------   --------------------- */
-    // best blockHash
-    CSimpleKVCache< dbk::BEST_BLOCKHASH,      uint256>        blockHashCache;
 };
 
 #endif  // PERSIST_ACCOUNTDB_H

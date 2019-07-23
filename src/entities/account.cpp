@@ -12,7 +12,7 @@
 bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType, uint64_t &value) {
     auto iter = tokens.find(tokenSymbol);
     if (iter != tokens.end()) {
-        auto accountToken = iter.second;
+        auto accountToken = iter->second;
         switch (balanceType) {
             case FREE_VALUE:    value = accountToken.free_amount;   return true;
             case STAKED_VALUE:  value = accountToken.staked_amount; return true;
@@ -27,8 +27,8 @@ bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType bala
 bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value) {
     auto iter = tokens.find(tokenSymbol);
     if (iter != tokens.end()) {
-        auto &accountToken = iter.second;
-        switch (balanceType) {
+        auto &accountToken = iter->second;
+        switch (opType) {
             case ADD_FREE: {
                 accountToken.free_amount += value;
                 return true;
@@ -79,15 +79,15 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 }
 
 bool CAccount::UndoOperateAccount(const CAccount &acnt) {
-    LogPrint("undo_account", "after operate:%s\n", ToString());
+    // LogPrint("undo_account", "after operate:%s\n", ToString());
 
-    staked_bcoins       = acnt.staked_bcoins;
-    staked_fcoins       = acnt.staked_fcoins;
-    received_votes      = acnt.received_votes;
-    last_vote_height    = acnt.last_vote_height;
-    extended_tokens     = acnt.extended_tokens;
+    // staked_bcoins       = acnt.staked_bcoins;
+    // staked_fcoins       = acnt.staked_fcoins;
+    // received_votes      = acnt.received_votes;
+    // last_vote_height    = acnt.last_vote_height;
+    // extended_tokens     = acnt.extended_tokens;
 
-    LogPrint("undo_account", "before operate:%s\n", ToString());
+    // LogPrint("undo_account", "before operate:%s\n", ToString());
     return true;
 }
 
@@ -180,8 +180,9 @@ CAccountToken CAccount::GetToken(const TokenSymbol &tokenSymbol) {
     return CAccountToken();
 }
 
-void CAccount::SetToken(const TokenSymbol &tokenSymbol, const CAccountToken &accountToken) {
+bool CAccount::SetToken(const TokenSymbol &tokenSymbol, const CAccountToken &accountToken) {
     tokens[tokenSymbol] = accountToken;
+    return true;
 }
 
 Object CAccount::ToJsonObj() const {
@@ -194,6 +195,8 @@ Object CAccount::ToJsonObj() const {
     }
 
     Object obj;
+    string strTokens = GetAccountTokenStr();
+
     obj.push_back(Pair("address",           keyid.ToAddress()));
     obj.push_back(Pair("keyid",             keyid.ToString()));
     obj.push_back(Pair("nickid",            nickid.ToString()));
@@ -201,31 +204,21 @@ Object CAccount::ToJsonObj() const {
     obj.push_back(Pair("regid_mature",      RegIDIsMature()));
     obj.push_back(Pair("owner_pubkey",      owner_pubkey.ToString()));
     obj.push_back(Pair("miner_pubkey",      miner_pubkey.ToString()));
-    obj.push_back(Pair("tokens",            GetAccountTokenStr(tokens));
+    obj.push_back(Pair("tokens",            strTokens));
     obj.push_back(Pair("received_votes",    received_votes));
     obj.push_back(Pair("vote_list",         candidateVoteArray));
 
     return obj;
 }
 
- string ToString() const {
-        string str;
-        str += strprintf(
-            "AccountInfo: keyid=%d regid=%s nickid=%s owner_pubKey=%s miner_pubKey=%s "
-            "received_votes=%lld last_vote_height=%lld asset_tokens: {%s}\n",
-            keyid.GetHex(), regid.ToString(), nickid.ToString(), owner_pubkey.ToString(), miner_pubkey.ToString(),
-            received_votes, last_vote_height, GetAccountTokenStr(asset_tokens));
-
-        return str;
-    }
-
 string CAccount::ToString() const {
     string str;
+    string  strTokens = GetAccountTokenStr();
     str += strprintf(
         "regid=%s, keyid=%s, nickId=%s, owner_pubkey=%s, miner_pubkey=%s, "
         "tokens=%s, received_votes=%lld, last_vote_height=%\n",
         regid.ToString(), keyid.GetHex(), nickid.ToString(), owner_pubkey.ToString(), miner_pubkey.ToString(),
-        GetAccountTokenStr(tokens), received_votes, last_vote_height);
+        strTokens, received_votes, last_vote_height);
     str += "candidate vote list: \n";
 
     vector<CCandidateVote> candidateVotes;
@@ -339,8 +332,8 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
     if (totalBcoins < newTotalVotes) {
         return  ERRORMSG("ProcessDelegateVotes() : delegate votes exceeds account bcoins");
     }
+    uint64_t free_bcoins = totalBcoins - newTotalVotes;
 
-    free_bcoins = totalBcoins - newTotalVotes;
     uint64_t currBcoinAmt = GetToken("WICC").free_amount;
     if (currBcoinAmt < free_bcoins) {
         OperateBalance("WICC", BalanceOpType::ADD_FREE, free_bcoins - currBcoinAmt);
@@ -354,7 +347,7 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
 
     switch (GetFeatureForkVersion(currHeight)) {
         case MAJOR_VER_R1: // for backward compatibility
-            OperateBalance("WICC", BalanceOpType::ADD_FREE, interestAmountToInflate)
+            OperateBalance("WICC", BalanceOpType::ADD_FREE, interestAmountToInflate);
             break;
 
         case MAJOR_VER_R2: // only fcoins will be inflated for voters

@@ -96,7 +96,7 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
         if (!cw.txUndo.GetAccountLog(keyId, accountLog))
             return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read keyId=%s tx undo info error",
                             keyId.GetHex()), UPDATE_ACCOUNT_FAIL, "bad-read-undoinfo");
-        oldAccount.UndoOperateAccount(accountLog);
+        // oldAccount.UndoOperateAccount(accountLog);
     }
 
     if (!oldAccount.IsEmptyValue()) {
