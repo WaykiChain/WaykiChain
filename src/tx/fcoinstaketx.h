@@ -8,22 +8,20 @@
 
 #include "tx.h"
 
-#include "entities/stake.h"
-
 class CFcoinStakeTx: public CBaseTx {
 private:
-    StakeType stakeType;
+    BalanceOpType stakeType;
     uint64_t fcoinsToStake;  // when negative, it means staking revocation
 
 public:
-    CFcoinStakeTx(): CBaseTx(FCOIN_STAKE_TX), stakeType(StakeType::NULL_STAKE), fcoinsToStake(0) {}
+    CFcoinStakeTx(): CBaseTx(FCOIN_STAKE_TX), stakeType(BalanceOpType::NULL_OP), fcoinsToStake(0) {}
 
     CFcoinStakeTx(const CBaseTx *pBaseTx): CBaseTx(FCOIN_STAKE_TX) {
         assert(FCOIN_STAKE_TX == pBaseTx->nTxType);
         *this = *(CFcoinStakeTx *) pBaseTx;
     }
 
-    CFcoinStakeTx(const CUserID &txUidIn, int32_t validHeightIn, uint64_t feesIn, StakeType stakeTypeIn,
+    CFcoinStakeTx(const CUserID &txUidIn, int32_t validHeightIn, uint64_t feesIn, BalanceOpType stakeTypeIn,
                   uint64_t fcoinsToStakeIn)
         : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feesIn),
           stakeType(stakeTypeIn),

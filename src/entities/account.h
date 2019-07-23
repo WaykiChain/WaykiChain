@@ -60,6 +60,20 @@ enum BalanceOpType : uint8_t {
     UNFREEZE            //!< frozen -> free
 };
 
+static const unordered_map<BalanceOpType, string> kBalanceOpTypeTable = {
+    { NULL_OP,  "NULL_OP"   },
+    { ADD_FREE, "ADD_FREE"  },
+    { SUB_FREE, "SUB_FREE"  },
+    { STAKE,    "STAKE"     },
+    { UNSTAKE,  "UNSTAKE"   },
+    { FREEZE,   "FREEZE"    },
+    { UNFREEZE, "UNFREEZE"  }
+};
+
+inline string GetBalanceOpTypeName(const BalanceOpType opType) {
+    return kBalanceOpTypeTable.at(opType);
+}
+
 class CAccountToken {
 public:
     uint64_t free_tokens;

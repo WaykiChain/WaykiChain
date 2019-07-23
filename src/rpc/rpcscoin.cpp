@@ -6,7 +6,6 @@
 #include "rpcscoin.h"
 
 #include "commons/base58.h"
-#include "entities/stake.h"
 #include "rpc/core/rpcserver.h"
 #include "rpc/core/rpccommons.h"
 #include "init.h"
@@ -134,8 +133,8 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
     }
     int32_t validHeight = chainActive.Tip()->nHeight;
 
-    CFcoinStakeTx tx(*pUserId, validHeight, fees, stakeAmount > 0 ? StakeType::ADD_COIN : StakeType::MINUS_COIN,
-                     std::abs(stakeAmount));
+    BalanceOpType stakeType = stakeAmount >= 0 ? BalanceOpType::STAKE : BalanceOpType::UNSTAKE;
+    CFcoinStakeTx tx(*pUserId, validHeight, fees, stakeType, std::abs(stakeAmount));
     return SubmitTx(*pUserId, tx);
 }
 

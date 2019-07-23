@@ -13,8 +13,9 @@ bool CFcoinStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (stakeType == StakeType::NULL_STAKE) {
-        return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, invalid stakeType"), REJECT_INVALID, "bad-stake-type");
+    if (stakeType != BalanceOpType::STAKE && stakeType != BalanceOpType::UNSTAKE) {
+        return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, invalid stakeType"),
+                        REJECT_INVALID, "bad-stake-type");
     }
 
     if (fcoinsToStake == 0 || !CheckFundCoinRange(abs(fcoinsToStake))) {
@@ -44,13 +45,12 @@ bool CFcoinStakeTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
     }
 
-    if (fcoinsToStake > 0) { //stakef fcoins
+    if (stakeType == BalanceOpType::STAKE) { //stake fcoins
         if (!account.OperateBalance("WGRT", BalanceOpType::STAKE, fcoinsToStake)) {
             return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient fcoins to stake in txUid(%s)",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fcoins");
         }
     } else {                // <= 0, unstake fcoins
-        fcoinsToStake *= -1;
         if (!account.OperateBalance("WGRT", BalanceOpType::UNSTAKE, fcoinsToStake)) {
             return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient staked fcoins in txUid(%s)",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fcoins");
@@ -70,13 +70,8 @@ bool CFcoinStakeTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw
     return true;
 }
 
-<<<<<<< Updated upstream
-bool CFcoinStakeTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccountLog>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
-=======
 bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
     vector<CAccount>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
->>>>>>> Stashed changes
     for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
         CAccount account;
         CUserID userId = rIterAccountLog->keyid;
@@ -101,7 +96,7 @@ bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 string CFcoinStakeTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, stakeType=%s, fcoinsToStake=%lu, llFees=%ld, nValidHeight=%d\n",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), GetStakeTypeName(stakeType),
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), GetBalanceOpTypeName(stakeType),
         fcoinsToStake, llFees, nValidHeight);
 }
 
@@ -110,8 +105,8 @@ Object CFcoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {
 
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
 
-    result.push_back(Pair("stake_type",     GetStakeTypeName(stakeType)));
-    result.push_back(Pair("coins_to_stake", fcoinsToStake));
+    result.push_back(Pair("stake_type",     GetBalanceOpTypeName(stakeType)));
+    result.push_back(Pair("fcoins_to_stake", fcoinsToStake));
 
     return result;
 }
