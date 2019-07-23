@@ -261,7 +261,6 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
             if (spCW->txCache.HaveTx(pBaseTx->GetHash()))
                 return ERRORMSG("VerifyPosTx() : duplicate transaction, txid=%s", pBaseTx->GetHash().GetHex());
 
-            spCW->txUndo.Clear();  // Clear first.
             CValidationState state;
             if (!pBaseTx->ExecuteTx(pBlock->GetHeight(), i, *spCW, state)) {
                 if (SysCfg().IsLogFailures()) {

@@ -80,6 +80,14 @@ public:
         cdpCache.SetBase(&pBaseIn->cdpCache);
         cdpMemCache.SetBase(&pBaseIn->cdpMemCache);
     }
+
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        cdpCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+    
+    bool UndoDatas() {
+        return cdpCache.UndoDatas();
+    }
 private:
 /*  CCompositKVCache     prefixType     key                               value        variable  */
 /*  ----------------   --------------   ---------------------------   ---------------    --------- */

@@ -17,6 +17,7 @@
 #include "txreceiptdb.h"
 
 class CCacheDBManager;
+class CBlockUndo;
 
 class CCacheWrapper {
 public:
@@ -47,7 +48,17 @@ public:
     CCacheWrapper(CCacheWrapper& cwIn);
     CCacheWrapper(CCacheDBManager* pCdMan);
 
+    void EnableTxUndoLog(const uint256 &txid);
+    void DisableTxUndoLog();
+    const CTxUndo& GetTxUndo() const {
+        return txUndo;
+    }
+
+    bool UndoDatas(CBlockUndo &blockUndo);
+
     void Flush();
+private:
+    void SetDbOpMapLog(CDBOpLogMap *pDbOpLogMap);
 };
 
 #endif //PERSIST_CACHEWRAPPER_H

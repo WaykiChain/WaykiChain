@@ -47,6 +47,15 @@ public:
         regId2VoteCache.SetBase(&pBaseIn->regId2VoteCache);
     };
 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        voteRegIdCache.SetDbOpLogMap(pDbOpLogMapIn);
+        regId2VoteCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    bool UndoDatas() {
+        return voteRegIdCache.UndoDatas() &&
+               regId2VoteCache.UndoDatas();
+    }
 private:
 /*  CSimpleKVCache  prefixType     key                         value                   variable       */
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */

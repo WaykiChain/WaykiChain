@@ -43,6 +43,13 @@ public:
         sysParamCache.SetBase(&pBaseIn->sysParamCache);
     };
 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        sysParamCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    bool UndoDatas() {
+        return sysParamCache.UndoDatas();
+    }
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */

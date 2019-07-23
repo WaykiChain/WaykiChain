@@ -95,6 +95,19 @@ public:
 
     bool Flush();
 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        blockHashCache.SetDbOpLogMap(pDbOpLogMapIn);
+        accountCache.SetDbOpLogMap(pDbOpLogMapIn);
+        regId2KeyIdCache.SetDbOpLogMap(pDbOpLogMapIn);
+        nickId2KeyIdCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    bool UndoDatas() {
+        return blockHashCache.UndoDatas() &&
+               accountCache.UndoDatas() &&
+               regId2KeyIdCache.UndoDatas() &&
+               nickId2KeyIdCache.UndoDatas();
+    }
 private:
     //TODO: move it to other dbcache file
 /*  CSimpleKVCache     prefixType             value           variable           */

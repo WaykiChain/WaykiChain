@@ -85,27 +85,20 @@ typedef vector<CDbOpLog> CDbOpLogs;
 
 class CDBOpLogMap {
 public:
-    const CDbOpLogs& GetDbOpLogs(dbk::PrefixType prefixType) const {
+    const CDbOpLogs* GetDbOpLogsPtr(dbk::PrefixType prefixType) const {
         assert(prefixType != dbk::EMPTY);
         const string& prefix = dbk::GetKeyPrefix(prefixType);
         auto it = mapDbOpLogs.find(prefix);
-        return it->second;
-    }
-
-    CDbOpLogs& GetDbOpLogs(dbk::PrefixType prefixType) {
-        assert(prefixType != dbk::EMPTY);
-        const string& prefix = dbk::GetKeyPrefix(prefixType);
-        return mapDbOpLogs[prefix];
-    }
-
-    void AddOpLogs(dbk::PrefixType prefixType, const CDbOpLogs& dbOpLogsIn) {
-        CDbOpLogs& dbOpLogs = GetDbOpLogs(prefixType);
-        dbOpLogs.insert(dbOpLogs.end(), dbOpLogsIn.begin(), dbOpLogsIn.end());
+        if (it != mapDbOpLogs.end()) {
+            return &it->second;
+        }
+        return nullptr;
     }
 
     void AddOpLog(dbk::PrefixType prefixType, const CDbOpLog& dbOpLogIn) {
-        CDbOpLogs& dbOpLogs = GetDbOpLogs(prefixType);
-        dbOpLogs.push_back(dbOpLogIn);
+        assert(prefixType != dbk::EMPTY);
+        const string& prefix = dbk::GetKeyPrefix(prefixType);
+        mapDbOpLogs[prefix].push_back(dbOpLogIn);
     }
 
     void Clear() { mapDbOpLogs.clear(); }

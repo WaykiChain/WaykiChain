@@ -181,6 +181,15 @@ public:
         sysOrderCache.SetBase(&pBaseIn->sysOrderCache);
     };
 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        activeOrderCache.SetDbOpLogMap(pDbOpLogMapIn);
+        sysOrderCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    bool UndoDatas() {
+        return activeOrderCache.UndoDatas() &&
+               sysOrderCache.UndoDatas();
+    }
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */

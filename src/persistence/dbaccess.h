@@ -135,25 +135,6 @@ namespace db_util {
     }
 };
 
-class CDBCountValue {
-public:
-    int64_t value;
-public:
-    CDBCountValue(): value(0) {}
-
-    bool IsEmpty() const {
-        return value == 0;
-    }
-
-    void SetEmpty() {
-        value = 0;
-    }
-
-    inline bool IsValid() { return value >= 0; };
-
-    IMPLEMENT_SERIALIZE( READWRITE(value); )
-};
-
 class CDBAccess {
 public:
     CDBAccess(DBNameType dbNameTypeIn, size_t nCacheSize, bool fMemory, bool fWipe) :
@@ -467,6 +448,10 @@ public:
         pBase = pBaseIn;
     };
 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        pDbOpLogMap = pDbOpLogMapIn;        
+    }
+
     uint32_t GetCacheSize() const {
         return ::GetSerializeSize(mapData, SER_DISK, CLIENT_VERSION);
     }
@@ -551,7 +536,15 @@ public:
         if (db_util::IsEmpty(key)) {
             return false;
         }
-        mapData[key] = value;
+        auto it = GetDataIt(key);
+        if (it == mapData.end()) {
+            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
+            auto newRet = mapData.emplace(key, *emptyValue); // create new empty value
+            assert(newRet.second); // TODO: if false then throw error
+            it = newRet.first;
+        }
+        AddOpLog(key, it->second);
+        it->second = value;
         return true;
     };
 
@@ -595,6 +588,7 @@ public:
         }
         Iterator it = GetDataIt(key);
         if (it != mapData.end() && !db_util::IsEmpty(it->second)) {
+            AddOpLog(key, it->second);            
             db_util::SetEmpty(it->second);
         }
         return true;
@@ -653,9 +647,22 @@ public:
         return true;
     }
 
+    bool UndoDatas() {
+        if (pDbOpLogMap != nullptr){
+            const CDbOpLogs *dbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
+            if (dbOpLogs != nullptr) {
+                for (auto &dbOpLog : *dbOpLogs) {
+                    if (!UndoData(dbOpLog)) return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
     bool UndoData(CDBOpLogMap &dbOpLogMap) {
-        CDbOpLogs &dbOpLogs = dbOpLogMap.GetDbOpLogs(PREFIX_TYPE);
-        for (auto &dbOpLog : dbOpLogs) {
+        const CDbOpLogs *dbOpLogs = dbOpLogMap.GetDbOpLogsPtr(PREFIX_TYPE);
+        for (auto &dbOpLog : *dbOpLogs) {
             if (!UndoData(dbOpLog)) return false;
         }
         return true;
@@ -848,10 +855,19 @@ private:
         return true;
     }
 
+    inline void AddOpLog(const KeyType &key, const ValueType &oldValue) {
+        if (pDbOpLogMap != nullptr) {
+            CDbOpLog dbOpLog;
+            dbOpLog.Set(key, oldValue);
+            pDbOpLogMap->AddOpLog(PREFIX_TYPE, dbOpLog);
+        }
+
+    }
 private:
     mutable CCompositKVCache<PREFIX_TYPE, KeyType, ValueType> *pBase;
     CDBAccess *pDbAccess;
     mutable map<KeyType, ValueType> mapData;
+    CDBOpLogMap *pDbOpLogMap = nullptr;
 };
 
 
@@ -881,6 +897,10 @@ public:
         pBase = pBaseIn;
     };
 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        pDbOpLogMap = pDbOpLogMapIn;
+    }
+
     uint32_t GetCacheSize() const {
         return ::GetSerializeSize(*ptrData, SER_DISK, CLIENT_VERSION);
     }
@@ -896,8 +916,10 @@ public:
 
     bool SetData(const ValueType &value) {
         if (ptrData) {
+            AddOpLog(*ptrData);
             *ptrData = value;
         } else {
+            AddOpLog(*(db_util::MakeEmptyValue<ValueType>()));
             ptrData = std::make_shared<ValueType>(value);
         }
         return true;
@@ -933,6 +955,7 @@ public:
     bool EraseData() {
         auto ptr = GetDataPtr();
         if (ptr && !db_util::IsEmpty(*ptr)) {
+            AddOpLog(*ptr);
             db_util::SetEmpty(*ptr);
         }
         return true;
@@ -987,6 +1010,20 @@ public:
         dbOpLog.Get(*ptrData);
     }
 
+    bool UndoDatas() {
+        if (pDbOpLogMap != nullptr){
+            const CDbOpLogs *dbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
+            if (dbOpLogs != nullptr) {
+                // TODO: rbegin()
+                for (auto &dbOpLog : *dbOpLogs) {
+                    UndoData(dbOpLog);
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
     dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
 
 private:
@@ -1012,10 +1049,20 @@ private:
         }
         return nullptr;
     };
+
+    inline void AddOpLog(const ValueType &oldValue) {
+        if (pDbOpLogMap != nullptr) {
+            CDbOpLog dbOpLog;
+            dbOpLog.Set(oldValue);
+            pDbOpLogMap->AddOpLog(PREFIX_TYPE, dbOpLog);
+        }
+
+    }
 private:
     mutable CSimpleKVCache<PREFIX_TYPE, ValueType> *pBase;
     CDBAccess *pDbAccess;
     mutable std::shared_ptr<ValueType> ptrData;
+    CDBOpLogMap *pDbOpLogMap = nullptr;
 };
 
 #endif  // PERSIST_DB_ACCESS_H

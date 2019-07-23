@@ -35,6 +35,13 @@ public:
         txReceiptCache.SetBase(&pBaseIn->txReceiptCache);
     };
 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        txReceiptCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    bool UndoDatas() {
+        return txReceiptCache.UndoDatas();
+    }
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */

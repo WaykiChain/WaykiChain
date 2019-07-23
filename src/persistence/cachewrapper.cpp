@@ -48,6 +48,34 @@ CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
     txCache.SetBaseViewPtr(pCdMan->pTxCache);
 }
 
+void CCacheWrapper::EnableTxUndoLog(const uint256 &txid) {
+    txUndo.Clear();
+    SetDbOpMapLog(&txUndo.dbOpLogMap);
+}
+
+void CCacheWrapper::DisableTxUndoLog() {
+    SetDbOpMapLog(nullptr);
+}
+
+bool CCacheWrapper::UndoDatas(CBlockUndo &blockUndo) {
+    for (auto it = blockUndo.vtxundo.rbegin(); it != blockUndo.vtxundo.rend(); it++) {
+        // TODO: should use foreach(it->dbOpLogMap) to dispatch the DbOpLog to the cache (switch case)
+        SetDbOpMapLog(&it->dbOpLogMap);
+        bool ret = sysParamCache.UndoDatas() &&
+            accountCache.UndoDatas() &&
+            contractCache.UndoDatas() &&
+            delegateCache.UndoDatas() &&
+            cdpCache.UndoDatas() &&
+            dexCache.UndoDatas() &&
+            txReceiptCache.UndoDatas();
+        if (!ret) {
+            return ERRORMSG("CCacheWrapper::UndoDatas() : undo datas of tx failed! txUndo=%s", txUndo.ToString());
+        }
+    }
+    return true;
+}
+
+
 void CCacheWrapper::Flush() {
     sysParamCache.Flush();
     accountCache.Flush();
@@ -57,4 +85,14 @@ void CCacheWrapper::Flush() {
     dexCache.Flush();
     txReceiptCache.Flush();
     txCache.Flush();
+}
+
+void CCacheWrapper::SetDbOpMapLog(CDBOpLogMap *pDbOpLogMap) {
+    sysParamCache.SetDbOpLogMap(pDbOpLogMap);
+    accountCache.SetDbOpLogMap(pDbOpLogMap);
+    contractCache.SetDbOpLogMap(pDbOpLogMap);
+    delegateCache.SetDbOpLogMap(pDbOpLogMap);
+    cdpCache.SetDbOpLogMap(pDbOpLogMap);
+    dexCache.SetDbOpLogMap(pDbOpLogMap);
+    txReceiptCache.SetDbOpLogMap(pDbOpLogMap);
 }

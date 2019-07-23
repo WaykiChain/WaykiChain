@@ -1064,7 +1064,11 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
 
     if ((blockUndo.vtxundo.size() != block.vptx.size()) && (blockUndo.vtxundo.size() != (block.vptx.size() + 1)))
         return ERRORMSG("DisconnectBlock() : block and undo data inconsistent");
+    if(!cw.UndoDatas(blockUndo)) {
+        return ERRORMSG("DisconnectBlock() : Undo tx datas in block failed");
+    }
 
+    /* TODO: delete
     if (pIndex->nHeight > COINBASE_MATURITY) {
         // Undo mature reward tx
         CTxUndo txUndo = blockUndo.vtxundo.back();
@@ -1100,6 +1104,8 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
             return false;
         }
     }
+    */
+
     // Set previous block as the best block
     cw.accountCache.SetBestBlock(pIndex->pprev->GetBlockHash());
 
@@ -1362,16 +1368,17 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             LogPrint("op_account", "tx index:%d tx hash:%s\n", i, pBaseTx->GetHash().GetHex());
             pBaseTx->nFuelRate = block.GetFuelRate();
-
-            cw.txUndo.Clear();  // Clear first.
+            cw.EnableTxUndoLog(pBaseTx->GetHash());
             if (!pBaseTx->ExecuteTx(pIndex->nHeight, i, cw, state)) {
                 if (SysCfg().IsLogFailures()) {
                     pCdMan->pLogCache->SetExecuteFail(pIndex->nHeight, pBaseTx->GetHash(), state.GetRejectCode(),
                                                       state.GetRejectReason());
                 }
-
+                cw.DisableTxUndoLog();
                 return false;
             }
+            blockUndo.vtxundo.push_back(cw.txUndo);
+            cw.DisableTxUndoLog();
 
             nTotalRunStep += pBaseTx->nRunStep;
             if (nTotalRunStep > MAX_BLOCK_RUN_STEP)
@@ -1388,7 +1395,6 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                      nTotalFuel, llFuel, pBaseTx->nRunStep, block.GetFuelRate(), pBaseTx->GetHash().GetHex());
             vPos.push_back(make_pair(block.GetTxid(i), pos));
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
-            blockUndo.vtxundo.push_back(cw.txUndo);
         }
 
         if (nTotalFuel != block.GetFuel())
@@ -1430,16 +1436,18 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     // Execute block reward transaction
     LogPrint("op_account", "tx index:%d tx hash:%s\n", 0, block.vptx[0]->GetHash().GetHex());
-    cw.txUndo.Clear();  // Clear first
+    cw.EnableTxUndoLog(block.vptx[0]->GetHash());
     if (!block.vptx[0]->ExecuteTx(pIndex->nHeight, 0, cw, state)) {
         if (SysCfg().IsLogFailures()) {
             pCdMan->pLogCache->SetExecuteFail(pIndex->nHeight, block.vptx[0]->GetHash(), state.GetRejectCode(),
                                               state.GetRejectReason());
         }
+        cw.DisableTxUndoLog();
         return ERRORMSG("ConnectBlock() : failed to execute reward transaction");
     }
 
     blockUndo.vtxundo.push_back(cw.txUndo);
+    cw.DisableTxUndoLog();
 
     if (pIndex->nHeight - COINBASE_MATURITY > 0) {
         // Deal mature block reward transaction
@@ -1455,16 +1463,18 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                                 REJECT_INVALID, "bad-read-block");
             }
 
-            cw.txUndo.Clear();  // Clear first
+            cw.EnableTxUndoLog(block.vptx[0]->GetHash());
             if (!matureBlock.vptx[0]->ExecuteTx(pIndex->nHeight, -1, cw, state)) {
                 if (SysCfg().IsLogFailures()) {
                     pCdMan->pLogCache->SetExecuteFail(pIndex->nHeight, matureBlock.vptx[0]->GetHash(),
                                                       state.GetRejectCode(), state.GetRejectReason());
                 }
+                cw.DisableTxUndoLog();
                 return ERRORMSG("ConnectBlock() : execute mature block reward tx error!");
             }
         }
         blockUndo.vtxundo.push_back(cw.txUndo);
+        cw.DisableTxUndoLog();
     }
     int64_t nTime = GetTimeMicros() - nStart;
     if (SysCfg().IsBenchmark())

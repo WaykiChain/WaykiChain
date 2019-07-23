@@ -100,6 +100,25 @@ public:
         contractAccountCache.SetBase(&pBaseIn->contractAccountCache);
     };
 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        scriptCache.SetDbOpLogMap(pDbOpLogMapIn);
+        txOutputCache.SetDbOpLogMap(pDbOpLogMapIn);
+        acctTxListCache.SetDbOpLogMap(pDbOpLogMapIn);
+        txDiskPosCache.SetDbOpLogMap(pDbOpLogMapIn);
+        contractRelatedKidCache.SetDbOpLogMap(pDbOpLogMapIn);
+        contractDataCache.SetDbOpLogMap(pDbOpLogMapIn);
+        contractAccountCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    bool UndoDatas() {
+        return scriptCache.UndoDatas() &&
+               txOutputCache.UndoDatas() &&
+               acctTxListCache.UndoDatas() &&
+               txDiskPosCache.UndoDatas() &&
+               contractRelatedKidCache.UndoDatas() &&
+               contractDataCache.UndoDatas() &&
+               contractAccountCache.UndoDatas();
+    }
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
