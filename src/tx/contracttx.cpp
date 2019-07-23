@@ -104,9 +104,6 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
         return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, save account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
-    cw.txUndo.accountLogs.push_back(accountLog);
-    cw.txUndo.txid = GetHash();
-
     // create script account
     CAccount contractAccount;
     CRegID contractRegId(nHeight, nIndex);
@@ -129,56 +126,6 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
-    return true;
-}
-
-bool CContractDeployTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-
-    if (!UndoTxAddresses(cw, state)) return false;
-
-    CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, read regist addr %s account info error",
-                         account.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-
-    CRegID contractRegId(nHeight, nIndex);
-    // delete script content
-    if (!cw.contractCache.EraseContractScript(contractRegId)) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase script id %s error",
-                        contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "erase-script-failed");
-    }
-    // delete account
-    if (!cw.accountCache.EraseKeyId(contractRegId)) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase script account %s error",
-                        contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "erase-appkeyid-failed");
-    }
-    CKeyID keyId = Hash160(contractRegId.GetRegIdRaw());
-    if (!cw.accountCache.EraseAccountByKeyId(keyId)) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase script account %s error",
-                        contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "erase-appaccount-failed");
-    }
-    // LogPrint("INFO", "Delete regid %s app account\n", contractRegId.ToString());
-
-    for (auto &itemLog : cw.txUndo.accountLogs) {
-        if (!account.UndoOperateAccount(itemLog))
-            return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, undo operate account error, keyId=%s",
-                            account.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
-    }
-
-    if (!cw.accountCache.SetAccount(CUserID(account.keyid), account))
-        return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, save account error"),
-                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
-
-
-    if (!cw.contractCache.UndoTxHashByAddress(cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, undo contractCache data error"),
-                         UPDATE_ACCOUNT_FAIL, "undo-contractCache-failed");
-    }
-
-    if (!cw.contractCache.EraseTxRelAccout(GetHash()))
-        return state.DoS(100, ERRORMSG("CContractDeployTx::UndoExecuteTx, erase tx rel account error"),
-                         UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     return true;
 }
 
@@ -325,8 +272,6 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
         }
     }
 
-    CAccount srcAcctInfo(srcAcct);
-    CAccount desAcctInfo;
     uint64_t minusValue = llFees + bcoins;
     if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, minusValue))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, accounts hash insufficient funds"),
@@ -345,8 +290,6 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     if (!cw.accountCache.GetAccount(appUid, desAcct)) {
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, get account info failed by regid:%s",
             appUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    } else {
-        desAcctInfo.SetValue(desAcct);
     }
 
     if (!desAcct.OperateBalance(CoinType::WICC, ADD_VALUE, bcoins)) {
@@ -357,9 +300,6 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     if (!cw.accountCache.SetAccount(appUid, desAcct))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, save account error, kyeId=%s",
             desAcct.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
-
-    cw.txUndo.accountLogs.push_back(srcAcctInfo);
-    cw.txUndo.accountLogs.push_back(desAcctInfo);
 
     string contractScript;
     if (!cw.contractCache.GetContractScript(appUid.get<CRegID>(), contractScript))
@@ -395,14 +335,10 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
                                  UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
             }
         }
-        CAccount oldAcctLog(oldAcct);
         if (!cw.accountCache.SetAccount(userId, *itemAccount))
             return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, write account info error"),
                 UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-
-        cw.txUndo.accountLogs.push_back(oldAcctLog);
     }
-    //cw.txUndo.dbOpLogMap.AddOpLogs(dbk::CONTRACT_DATA, *vmRunEnv.GetDbLog());
 
     vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEnv.GetRawAppUserAccount();
     for (auto & itemUserAccount : vAppUserAccount) {
@@ -416,64 +352,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     if (!cw.contractCache.SetTxRelAccout(GetHash(), vAddress))
         return ERRORMSG("CContractInvokeTx::ExecuteTx, save tx relate account info to script db error");
 
-    cw.txUndo.txid = GetHash();
-
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid, appUid})) return false;
-
-    return true;
-}
-
-bool CContractInvokeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-
-    if (!UndoTxAddresses(cw, state)) return false;
-
-    vector<CAccount>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
-    for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
-        CAccount account;
-        CUserID userId = rIterAccountLog->keyid;
-        if (!cw.accountCache.GetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CContractInvokeTx::UndoExecuteTx, read account info error"),
-                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-
-        if (!account.UndoOperateAccount(*rIterAccountLog)) {
-            return state.DoS(100, ERRORMSG("CContractInvokeTx::UndoExecuteTx, undo operate account failed"),
-                             UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
-        }
-
-        if (account.IsEmptyValue() && account.regid.IsEmpty() &&
-            (!account.owner_pubkey.IsFullyValid() || account.owner_pubkey.GetKeyId() != account.keyid)) {
-            // Target account has NO CRegID(first involved in transacion)
-            cw.accountCache.EraseAccountByKeyId(userId);
-        } else if (account.regid == CRegID(nHeight, nIndex)) {
-            // If the CRegID was generated by this CONTRACT_INVOKE_TX, need to remove CRegID.
-            CPubKey empPubKey;
-            account.owner_pubkey      = empPubKey;
-            account.miner_pubkey = empPubKey;
-            account.regid.Clear();
-
-            if (!cw.accountCache.SetAccount(userId, account)) {
-                return state.DoS(100, ERRORMSG("CContractInvokeTx::UndoExecuteTx, write account info error"),
-                                 UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-            }
-
-            cw.accountCache.EraseKeyId(CRegID(nHeight, nIndex));
-        } else {
-            if (!cw.accountCache.SetAccount(userId, account)) {
-                return state.DoS(100, ERRORMSG("CContractInvokeTx::UndoExecuteTx, write account info error"),
-                                 UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-            }
-        }
-    }
-
-    if (!CVmRunEnv::UndoDatas(cw)) {
-        return state.DoS(100, ERRORMSG("CContractInvokeTx::UndoExecuteTx, undo datas produced by contract error"),
-                         UPDATE_ACCOUNT_FAIL, "undo-contract-datas-failed");
-    }
-
-    if (!cw.contractCache.EraseTxRelAccout(GetHash()))
-        return state.DoS(100, ERRORMSG("CContractInvokeTx::UndoExecuteTx, erase tx rel account error"),
-                         UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
 
     return true;
 }

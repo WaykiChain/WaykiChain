@@ -57,21 +57,20 @@ private:
 class CTxUndo {
 public:
     uint256 txid;
-    vector<CAccount> accountLogs;
     CDBOpLogMap dbOpLogMap; // dbName -> dbOpLogs
 
     IMPLEMENT_SERIALIZE(
         READWRITE(txid);
-        READWRITE(accountLogs);
         READWRITE(dbOpLogMap);
 	)
 
 public:
-    bool GetAccountLog(const CKeyID &keyId, CAccount &accountLog);
+    CTxUndo() {}
+
+    CTxUndo(const uint256 &txidIn): txid(txidIn) {}
 
     void Clear() {
         txid = uint256();
-        accountLogs.clear();
         dbOpLogMap.Clear();
     }
 

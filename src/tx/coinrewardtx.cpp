@@ -21,7 +21,6 @@ bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
     CPubKey pubKey = txUid.get<CPubKey>();
     CKeyID keyId   = pubKey.IsFullyValid() ? txUid.get<CPubKey>().GetKeyId() : Hash160(regId.GetRegIdRaw());
     // Contstuct an empty account log which will delete account automatically if the blockchain rollbacked.
-    CAccount accountLog(keyId);
 
     account.nickid = CNickID();
     account.owner_pubkey = pubKey;
@@ -39,24 +38,8 @@ bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
         return state.DoS(100, ERRORMSG("CCoinRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
-    cw.txUndo.accountLogs.push_back(accountLog);
-    cw.txUndo.txid = GetHash();
-
     if (!SaveTxAddresses(height, index, cw, state, {txUid}))
         return false;
-
-    return true;
-}
-
-bool CCoinRewardTx::UndoExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccount>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
-    for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
-        if (!cw.accountCache.EraseAccountByKeyId(CUserID(rIterAccountLog->keyid)) ||
-            !cw.accountCache.EraseKeyId(CRegID(height, index))) {
-            return state.DoS(100, ERRORMSG("CCoinRewardTx::UndoExecuteTx, write account info error"),
-                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-        }
-    }
 
     return true;
 }

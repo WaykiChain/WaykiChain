@@ -1290,10 +1290,19 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             voterAcct.OperateBalance("WICC", BalanceOpType::STAKE, maxVotes);
             cw.accountCache.SaveAccount(voterAcct);
             assert(cw.delegateCache.SetCandidateVotes(pDelegateTx->txUid.get<CRegID>(),
-                                                      candidateVotes, cw.txUndo.dbOpLogMap));
+                                                      candidateVotes));
         }
     }
 
+    return true;
+}
+
+bool SaveTxIndex(CBaseTx &baseTx, CCacheWrapper &cw, CValidationState &state, CDiskTxPos &diskTxPos) {
+    if (SysCfg().IsTxIndex()) {
+        // TODO: should move to blockTxCache?
+        if (!cw.contractCache.SetTxIndex(baseTx.GetHash(), diskTxPos))
+            return state.Abort(_("Failed to write transaction index"));
+    }
     return true;
 }
 
@@ -1344,11 +1353,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     CBlockUndo blockUndo;
     int64_t nStart = GetTimeMicros();
     CDiskTxPos pos(pIndex->GetBlockPos(), GetSizeOfCompactSize(block.vptx.size()));
-    std::vector<pair<uint256, CDiskTxPos> > vPos;
-    vPos.reserve(block.vptx.size());
-
-    // Push block reward transaction undo data's position.
-    vPos.push_back(make_pair(block.GetTxid(0), pos));
+    CDiskTxPos rewardPos = pos;
     pos.nTxOffset += ::GetSerializeSize(block.vptx[0], SER_DISK, CLIENT_VERSION);
 
     LogPrint("op_account", "block height:%d block hash:%s\n", block.GetHeight(), block.GetHash().GetHex());
@@ -1377,6 +1382,10 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 cw.DisableTxUndoLog();
                 return false;
             }
+            if (!SaveTxIndex(*block.vptx[0], cw, state, pos)) {
+                cw.DisableTxUndoLog();
+                return false;
+            }
             blockUndo.vtxundo.push_back(cw.txUndo);
             cw.DisableTxUndoLog();
 
@@ -1393,7 +1402,6 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             nTotalFuel += llFuel;
             LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n",
                      nTotalFuel, llFuel, pBaseTx->nRunStep, block.GetFuelRate(), pBaseTx->GetHash().GetHex());
-            vPos.push_back(make_pair(block.GetTxid(i), pos));
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
         }
 
@@ -1446,6 +1454,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         return ERRORMSG("ConnectBlock() : failed to execute reward transaction");
     }
 
+    if (!SaveTxIndex(*block.vptx[0], cw, state, rewardPos)) {
+        cw.DisableTxUndoLog();
+        return false;
+    }
+
     blockUndo.vtxundo.push_back(cw.txUndo);
     cw.DisableTxUndoLog();
 
@@ -1483,16 +1496,6 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     if (fJustCheck)
         return true;
-
-    if (SysCfg().IsTxIndex()) {
-        LogPrint("DEBUG", "add tx index, block hash:%s\n", pIndex->GetBlockHash().GetHex());
-        vector<CDbOpLog> vTxIndexOperDB;
-        auto itTxUndo = blockUndo.vtxundo.rbegin();
-        // TODO: should move to blockTxCache?
-        if (!cw.contractCache.WriteTxIndexes(vPos, itTxUndo->dbOpLogMap))
-            return state.Abort(_("Failed to write transaction index"));
-        // TODO: must undo these oplogs in DisconnectBlock()
-    }
 
     // Write undo information to disk
     if (pIndex->GetUndoPos().IsNull() || (pIndex->nStatus & BLOCK_VALID_MASK) < BLOCK_VALID_SCRIPTS) {
@@ -4142,7 +4145,14 @@ bool GetTxOperLog(const uint256 &txid, vector<CAccount> &accountLogs) {
 
                 for (auto &txUndo : blockUndo.vtxundo) {
                     if (txUndo.txid == txid) {
-                        accountLogs = txUndo.accountLogs;
+                        auto accountLogsPtr = txUndo.dbOpLogMap.GetDbOpLogsPtr(dbk::KEYID_ACCOUNT);
+                        if (accountLogsPtr != nullptr) {
+                            for (auto accountLog : *accountLogsPtr) {
+                                CAccount account;
+                                accountLog.Get(account);
+                                accountLogs.push_back(account);
+                            }
+                        }
                         return true;
                     }
                 }

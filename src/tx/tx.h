@@ -92,7 +92,6 @@ public:
 
     virtual bool CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state)                       = 0;
     virtual bool ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state)     = 0;
-    virtual bool UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) = 0;
 
     int32_t GetFuelRate(CContractDBCache &scriptDB);
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
@@ -102,9 +101,8 @@ protected:
     bool CheckTxFeeSufficient(const uint64_t llFees, const int32_t nHeight) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
     static bool AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds);
-    static bool SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw,
+    bool SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw,
                                 CValidationState &state, const vector<CUserID> &userIds);
-    static bool UndoTxAddresses(CCacheWrapper &cw, CValidationState &state);
 };
 
 class CCoinPriceType {

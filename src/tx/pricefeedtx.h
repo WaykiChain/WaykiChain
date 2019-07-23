@@ -63,7 +63,6 @@ public:
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-    virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
     bool GetTopPriceFeederList(CCacheWrapper &cw, vector<CAccount> &priceFeederAccts);
 };

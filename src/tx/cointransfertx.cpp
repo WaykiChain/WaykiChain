@@ -41,9 +41,6 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
-    CAccount srCAccount(srcAccount);
-    CAccount desAccountLog;
-
     if (!srcAccount.OperateBalance(feesCoinType, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, insufficient bcoins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
@@ -62,13 +59,10 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
     if (!cw.accountCache.GetAccount(toUid, desAccount)) { // Target account has NO CAccount(first involved in transacion)
         if (toUid.type() == typeid(CKeyID)) {  // Target account does NOT have CRegID
             desAccount.keyid    = toUid.get<CKeyID>();
-            desAccountLog.keyid = desAccount.keyid;
         } else {
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, get account info failed"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-    } else {
-        desAccountLog.SetValue(desAccount);
     }
 
     uint64_t actualCoinsToSend = coins;
@@ -78,7 +72,6 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        CAccount genesisAcctLog(fcoinGenesisAccount);
         uint64_t riskReserveFeeRatio;
         if (!cw.sysParamCache.GetParam(SCOIN_RESERVE_FEE_RATIO, riskReserveFeeRatio)) {
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read SCOIN_RESERVE_FEE_RATIO error"),
@@ -91,8 +84,6 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
         if (!cw.accountCache.SaveAccount(fcoinGenesisAccount))
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, update fcoinGenesisAccount info error"),
                             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
-
-        cw.txUndo.accountLogs.push_back(genesisAcctLog);
     }
     if (!desAccount.OperateBalance(coinType, ADD_VALUE, actualCoinsToSend)) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, failed to add coins in toUid %s account", toUid.ToString()),
@@ -103,35 +94,8 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, write dest addr %s account info error", toUid.ToString()),
             UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    cw.txUndo.accountLogs.push_back(srCAccount);
-    cw.txUndo.accountLogs.push_back(desAccountLog);
-    cw.txUndo.txid = GetHash();
-
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid, toUid}))
         return false;
-
-    return true;
-}
-
-bool CCoinTransferTx::UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccount>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
-    for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
-        CAccount account;
-        CUserID userId = rIterAccountLog->keyid;
-        if (!cw.accountCache.GetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CCoinTransferTx::UndoExecuteTx, read account info error, userId=%s",
-                userId.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-        if (!account.UndoOperateAccount(*rIterAccountLog)) {
-            return state.DoS(100, ERRORMSG("CCoinTransferTx::UndoExecuteTx, undo operate account error, keyId=%s",
-                            account.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
-        }
-
-        if (!cw.accountCache.SetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CCoinTransferTx::UndoExecuteTx, save account error"),
-                            UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
-        }
-    }
 
     return true;
 }

@@ -1284,7 +1284,7 @@ static Value AccountLogToJson(const CAccount &accoutLog) {
     obj.push_back(Pair("keyid", accoutLog.keyid.ToString()));
     obj.push_back(Pair("free_bcoins", accoutLog.GetToken("WICC").free_amount));
     // Array array;
-    // for (auto const& te : accoutLog.vRewardFund) {
+    // for (auto const& te : account.vRewardFund) {
     //     Object obj2;
     //     obj2.push_back(Pair("value", te.value));
     //     obj2.push_back(Pair("nHeight", te.nHeight));
@@ -1315,15 +1315,16 @@ Value gettxoperationlog(const Array& params, bool fHelp) {
     vector<CAccount> vLog;
     Object retobj;
     retobj.push_back(Pair("txid", txid.GetHex()));
+    // TODO: improve the tx oper log
     if (!GetTxOperLog(txid, vLog))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "error hash");
     {
         Array arrayvLog;
-        for (auto const &te : vLog) {
+        for (auto const &account : vLog) {
             Object obj;
-            obj.push_back(Pair("addr", te.keyid.ToAddress()));
+            obj.push_back(Pair("addr", account.keyid.ToAddress()));
             Array array;
-            array.push_back(AccountLogToJson(te));
+            array.push_back(AccountToJson(account));
             arrayvLog.push_back(obj);
         }
         retobj.push_back(Pair("AccountOperLog", arrayvLog));

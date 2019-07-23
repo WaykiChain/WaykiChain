@@ -19,7 +19,6 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CAccount accountLog(account);
     if (0 == nIndex) {
         // When the reward transaction is immature, should NOT update account's balances.
     } else if (-1 == nIndex) {
@@ -35,35 +34,9 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
-    cw.txUndo.accountLogs.push_back(accountLog);
-    cw.txUndo.txid = GetHash();
-
     // Block reward transaction will execute twice, but need to save once when index equals to zero.
     if (nIndex == 0 && !SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
         return false;
-
-    return true;
-}
-
-bool CBlockRewardTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccount>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
-    for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
-        CAccount account;
-        if (!cw.accountCache.GetAccount(CUserID(rIterAccountLog->keyid), account)) {
-            return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, read account info error"),
-                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-
-        if (!account.UndoOperateAccount(*rIterAccountLog)) {
-            return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, undo operate account failed"),
-                             UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
-        }
-
-        if (!cw.accountCache.SetAccount(CUserID(rIterAccountLog->keyid), account)) {
-            return state.DoS(100, ERRORMSG("CBlockRewardTx::UndoExecuteTx, write account info error"),
-                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-        }
-    }
 
     return true;
 }

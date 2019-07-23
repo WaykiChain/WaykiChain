@@ -57,17 +57,14 @@ public:
     CCdpDBCache(CCdpDBCache *pBaseIn) : cdpCache(pBaseIn->cdpCache), cdpMemCache(pBaseIn->cdpMemCache) {}
 
     bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
-                          CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
+                          CUserCDP &cdp);
 
     // Usage: acquire user's cdp list by CRegID.
     bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdps);
 
     bool GetCdp(CUserCDP &cdp);
     bool SaveCdp(CUserCDP &cdp); //first-time cdp creation
-    bool SaveCdp(CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
     bool EraseCdp(const CUserCDP &cdp);
-    bool EraseCdp(const CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
-    bool UndoCdp(CDBOpLogMap &dbOpLogMap) { return cdpCache.UndoData(dbOpLogMap); }
 
     bool CheckGlobalCollateralRatioFloorReached(const uint64_t &bcoinMedianPrice,
                                                 const uint64_t &kGlobalCollateralRatioLimit);

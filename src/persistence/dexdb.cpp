@@ -102,43 +102,31 @@ bool CDexDBCache::GetActiveOrder(const uint256 &orderTxId, CDEXActiveOrder &acti
     return activeOrderCache.GetData(orderTxId, activeOrder);
 };
 
-bool CDexDBCache::CreateActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder &activeOrder,
-                                    CDBOpLogMap& dbOpLogMap) {
+bool CDexDBCache::CreateActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder &activeOrder) {
     assert(!activeOrderCache.HaveData(orderTxId));
-    return activeOrderCache.SetData(orderTxId, activeOrder, dbOpLogMap);
+    return activeOrderCache.SetData(orderTxId, activeOrder);
 }
 
-bool CDexDBCache::ModifyActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder &activeOrder,
-                                    CDBOpLogMap &dbOpLogMap) {
-    return activeOrderCache.SetData(orderTxId, activeOrder, dbOpLogMap);
+bool CDexDBCache::ModifyActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder &activeOrder) {
+    return activeOrderCache.SetData(orderTxId, activeOrder);
 };
 
-bool CDexDBCache::EraseActiveOrder(const uint256 &orderTxId, CDBOpLogMap &dbOpLogMap) {
-    return activeOrderCache.EraseData(orderTxId, dbOpLogMap);
-};
-
-bool CDexDBCache::UndoActiveOrder(CDBOpLogMap &dbOpLogMap) {
-    return activeOrderCache.UndoData(dbOpLogMap);
+bool CDexDBCache::EraseActiveOrder(const uint256 &orderTxId) {
+    return activeOrderCache.EraseData(orderTxId);
 };
 
 bool CDexDBCache::GetSysOrder(const uint256 &orderTxId, CDEXSysOrder &sysOrder) {
     return sysOrderCache.GetData(orderTxId, sysOrder);
 }
 
-bool CDexDBCache::CreateSysOrder(const uint256 &orderTxId, const CDEXSysOrder &buyOrder,
-                                    CDBOpLogMap &dbOpLogMap) {
+bool CDexDBCache::CreateSysOrder(const uint256 &orderTxId, const CDEXSysOrder &buyOrder) {
     if (sysOrderCache.HaveData(orderTxId)) {
         return ERRORMSG("CDexDBCache::CreateOrder failed. the order exists. txid=%s",
                         orderTxId.ToString());
     }
-    if (!sysOrderCache.SetData(orderTxId, buyOrder, dbOpLogMap)) return false;
+    if (!sysOrderCache.SetData(orderTxId, buyOrder)) return false;
     CDEXActiveOrder activeOrder;
     activeOrder.generateType = SYSTEM_GEN_ORDER;  //!< generate type
-    if (!CreateActiveOrder(orderTxId, activeOrder, dbOpLogMap)) return false;
+    if (!CreateActiveOrder(orderTxId, activeOrder)) return false;
     return true;
 };
-
-bool CDexDBCache::UndoSysOrder(CDBOpLogMap &dbOpLogMap) {
-    if (!UndoActiveOrder(dbOpLogMap)) return false;
-    return sysOrderCache.UndoData(dbOpLogMap);
-}

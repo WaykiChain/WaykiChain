@@ -84,7 +84,6 @@ public:
 
     bool CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state);
     bool ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state);
-    bool UndoExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state);
 };
 
 #endif // TX_COIN_TRANSFER_H

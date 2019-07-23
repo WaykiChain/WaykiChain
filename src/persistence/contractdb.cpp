@@ -23,17 +23,12 @@ bool CContractDBCache::GetContractAccount(const CRegID &contractRegId, const str
     return contractAccountCache.GetData(key, appAccOut);
 }
 
-bool CContractDBCache::SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn,
-                                          CDBOpLogMap &dbOpLogMap) {
+bool CContractDBCache::SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn) {
     if (appAccIn.IsEmpty()) {
         return false;
     }
     auto key = std::make_pair(contractRegId.ToRawString(), appAccIn.GetAccUserId());
-    return contractAccountCache.SetData(key, appAccIn, dbOpLogMap);
-}
-
-bool CContractDBCache::UndoContractAccount(CDBOpLogMap &dbOpLogMap) {
-    return contractAccountCache.UndoData(dbOpLogMap);
+    return contractAccountCache.SetData(key, appAccIn);
 }
 
 /************************ contract in cache ******************************/
@@ -60,9 +55,9 @@ bool CContractDBCache::GetContractData(const CRegID &contractRegId, const string
 }
 
 bool CContractDBCache::SetContractData(const CRegID &contractRegId, const string &contractKey,
-                                       const string &contractData, CDBOpLogMap &dbOpLogMap) {
+                                       const string &contractData) {
     auto key = std::make_pair(contractRegId.ToRawString(), contractKey);
-    return contractDataCache.SetData(key, contractData, dbOpLogMap);
+    return contractDataCache.SetData(key, contractData);
 }
 
 bool CContractDBCache::HaveContractData(const CRegID &contractRegId, const string &contractKey) {
@@ -70,13 +65,10 @@ bool CContractDBCache::HaveContractData(const CRegID &contractRegId, const strin
     return contractDataCache.HaveData(key);
 }
 
-bool CContractDBCache::EraseContractData(const CRegID &contractRegId, const string &contractKey,
-                                         CDBOpLogMap &dbOpLogMap) {
+bool CContractDBCache::EraseContractData(const CRegID &contractRegId, const string &contractKey) {
     auto key = std::make_pair(contractRegId.ToRawString(), contractKey);
-    return contractDataCache.EraseData(key, dbOpLogMap);
+    return contractDataCache.EraseData(key);
 }
-
-bool CContractDBCache::UndoContractData(CDBOpLogMap &dbOpLogMap) { return contractDataCache.UndoData(dbOpLogMap); }
 
 bool CContractDBCache::GetContractScripts(map<string, string> &contractScript) {
     return scriptCache.GetAllElements(contractScript);
@@ -117,17 +109,14 @@ uint32_t CContractDBCache::GetCacheSize() const {
         contractAccountCache.GetCacheSize();
 }
 
-bool CContractDBCache::WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLogMap &dbOpLogMap) {
-    return txOutputCache.SetData(txid, vOutput, dbOpLogMap);
+bool CContractDBCache::WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput) {
+    return txOutputCache.SetData(txid, vOutput);
 }
 
-bool CContractDBCache::SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid,
-                                          CDBOpLogMap &dbOpLogMap) {
+bool CContractDBCache::SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid) {
     auto key = make_tuple(keyId, height, index);
-    return acctTxListCache.SetData(key, txid, dbOpLogMap);
+    return acctTxListCache.SetData(key, txid);
 }
-
-bool CContractDBCache::UndoTxHashByAddress(CDBOpLogMap &dbOpLogMap) { return acctTxListCache.UndoData(dbOpLogMap); }
 
 bool CContractDBCache::GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string> &mapTxHash) {
     return false;
@@ -171,16 +160,20 @@ bool CContractDBCache::GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOut
     return true;
 }
 
-bool CContractDBCache::UndoTxOutput(CDBOpLogMap &dbOpLogMap) { return txOutputCache.UndoData(dbOpLogMap); }
+bool CContractDBCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) { 
+    return txDiskPosCache.GetData(txid, pos); 
+}
 
-bool CContractDBCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) { return txDiskPosCache.GetData(txid, pos); }
+bool CContractDBCache::SetTxIndex(const uint256 &txid, const CDiskTxPos &pos) {
+    return txDiskPosCache.SetData(txid, pos);
+}
 
-bool CContractDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap) {
+bool CContractDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list) {
     for (auto it : list) {
         LogPrint("txindex", "txid:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n", it.first.GetHex(), it.second.nFile,
                  it.second.nPos, it.second.nTxOffset);
 
-        if (!txDiskPosCache.SetData(it.first, it.second, dbOpLogMap)) {
+        if (!txDiskPosCache.SetData(it.first, it.second)) {
             return false;
         }
     }

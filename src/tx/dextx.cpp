@@ -99,8 +99,6 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CAccount srcAcctInfo(srcAcct);
-    CAccount desAcctInfo;
     if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -122,51 +120,13 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     buyActiveOrder.generateType = USER_GEN_ORDER;
     buyActiveOrder.totalDealCoinAmount = 0;
     buyActiveOrder.totalDealAssetAmount = 0;
-    if (!cw.dexCache.CreateActiveOrder(txid, buyActiveOrder, cw.txUndo.dbOpLogMap)) {
+    if (!cw.dexCache.CreateActiveOrder(txid, buyActiveOrder)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, set active buy order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
-    cw.txUndo.accountLogs.push_back(srcAcctInfo);
-    cw.txUndo.txid = txid;
-
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
         return false;
-
-    return true;
-}
-
-bool CDEXBuyLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
-                                   CValidationState &state) {
-    if (!UndoTxAddresses(cw, state))
-        return false;
-
-    if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::UndoExecuteTx, undo active buy order failed"),
-                         REJECT_INVALID, "bad-undo-data");
-    }
-
-    if (cw.txUndo.accountLogs.size() != 1) {
-        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::UndoExecuteTx, accountLogs size != 1"),
-                         READ_ACCOUNT_FAIL, "bad-accountLogs-size");
-    }
-    const CAccount &accountLog = cw.txUndo.accountLogs.at(0);
-    CAccount account;
-    CUserID userId = accountLog.keyid;
-    if (!cw.accountCache.GetAccount(userId, account)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::UndoExecuteTx, read account info error"),
-                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-    if (!account.UndoOperateAccount(accountLog)) {
-        return state.DoS(100,
-                         ERRORMSG("CDEXBuyLimitOrderTx::UndoExecuteTx, undo operate account failed"),
-                         UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
-    }
-
-    if (!cw.accountCache.SetAccount(userId, account)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::UndoExecuteTx, write account info error"),
-                         UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-    }
 
     return true;
 }
@@ -258,8 +218,6 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CAccount srcAcctInfo(srcAcct);
-    CAccount desAcctInfo;
     if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -278,52 +236,13 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
     CDEXActiveOrder sellActiveOrder;
     sellActiveOrder.generateType = USER_GEN_ORDER;
     sellActiveOrder.totalDealAssetAmount = 0;
-    if (!cw.dexCache.CreateActiveOrder(txid, sellActiveOrder, cw.txUndo.dbOpLogMap)) {
+    if (!cw.dexCache.CreateActiveOrder(txid, sellActiveOrder)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, create active sell order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
-    cw.txUndo.accountLogs.push_back(srcAcctInfo);
-    cw.txUndo.txid = txid;
-
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
         return false;
-
-    return true;
-}
-
-bool CDEXSellLimitOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
-                                   CValidationState &state) {
-    if (!UndoTxAddresses(cw, state))
-        return false;
-
-    if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, undo active sell order failed"),
-                         REJECT_INVALID, "bad-undo-data");
-    }
-
-    if (cw.txUndo.accountLogs.size() != 1) {
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, accountLogs size != 1"),
-                         READ_ACCOUNT_FAIL, "bad-accountLogs-size");
-    }
-    const CAccount &accountLog = cw.txUndo.accountLogs.at(0);
-    CAccount account;
-    CUserID userId = accountLog.keyid;
-    if (!cw.accountCache.GetAccount(userId, account)) {
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, read account info error"),
-                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-
-    if (!account.UndoOperateAccount(accountLog)) {
-        return state.DoS(100,
-                         ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, undo operate account failed"),
-                         UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
-    }
-
-    if (!cw.accountCache.SetAccount(userId, account)) {
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, write account info error"),
-                         UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-    }
 
     return true;
 }
@@ -406,8 +325,6 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CAccount srcAcctInfo(srcAcct);
-    CAccount desAcctInfo;
     if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -427,52 +344,13 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
     buyActiveOrder.generateType         = USER_GEN_ORDER;
     buyActiveOrder.totalDealCoinAmount  = 0;
     buyActiveOrder.totalDealAssetAmount = 0;
-    if (!cw.dexCache.CreateActiveOrder(txid, buyActiveOrder, cw.txUndo.dbOpLogMap)) {
+    if (!cw.dexCache.CreateActiveOrder(txid, buyActiveOrder)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, create active buy order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
-    cw.txUndo.accountLogs.push_back(srcAcctInfo);
-    cw.txUndo.txid = txid;
-
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
         return false;
-
-    return true;
-}
-
-bool CDEXBuyMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
-                                   CValidationState &state) {
-    if (!UndoTxAddresses(cw, state))
-        return false;
-
-    if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::UndoExecuteTx, undo active buy order failed"),
-                         REJECT_INVALID, "bad-undo-data");
-    }
-
-    if (cw.txUndo.accountLogs.size() != 1) {
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::UndoExecuteTx, accountLogs size != 1"),
-                         READ_ACCOUNT_FAIL, "bad-accountLogs-size");
-    }
-    const CAccount &accountLog = cw.txUndo.accountLogs.at(0);
-    CAccount account;
-    CUserID userId = accountLog.keyid;
-    if (!cw.accountCache.GetAccount(userId, account)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::UndoExecuteTx, read account info error"),
-                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-
-    if (!account.UndoOperateAccount(accountLog)) {
-        return state.DoS(100,
-                         ERRORMSG("CDEXBuyMarketOrderTx::UndoExecuteTx, undo operate account failed"),
-                         UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
-    }
-
-    if (!cw.accountCache.SetAccount(userId, account)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::UndoExecuteTx, write account info error"),
-                         UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-    }
 
     return true;
 }
@@ -554,8 +432,6 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CAccount srcAcctInfo(srcAcct);
-    CAccount desAcctInfo;
     if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -574,51 +450,13 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
     CDEXActiveOrder sellActiveOrder;
     sellActiveOrder.generateType = USER_GEN_ORDER;
     sellActiveOrder.totalDealAssetAmount = 0;
-    if (!cw.dexCache.CreateActiveOrder(txid, sellActiveOrder, cw.txUndo.dbOpLogMap)) {
+    if (!cw.dexCache.CreateActiveOrder(txid, sellActiveOrder)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, create active sell order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
-    cw.txUndo.accountLogs.push_back(srcAcctInfo);
-    cw.txUndo.txid = txid;
-
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
         return false;
-
-    return true;
-}
-
-bool CDEXSellMarketOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
-                                   CValidationState &state) {
-    if (!UndoTxAddresses(cw, state))
-        return false;
-
-    if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::UndoExecuteTx, undo active sell order failed"),
-                         REJECT_INVALID, "bad-undo-data");
-    }
-
-    if (cw.txUndo.accountLogs.size() != 1) {
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::UndoExecuteTx, accountLogs size != 1"),
-                         READ_ACCOUNT_FAIL, "bad-accountLogs-size");
-    }
-    const CAccount &accountLog = cw.txUndo.accountLogs.at(0);
-    CAccount account;
-    CUserID userId = accountLog.keyid;
-    if (!cw.accountCache.GetAccount(userId, account)) {
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::UndoExecuteTx, read account info error"),
-                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-    if (!account.UndoOperateAccount(accountLog)) {
-        return state.DoS(100,
-                         ERRORMSG("CDEXSellMarketOrderTx::UndoExecuteTx, undo operate account failed"),
-                         UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
-    }
-
-    if (!cw.accountCache.SetAccount(userId, account)) {
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::UndoExecuteTx, write account info error"),
-                         UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-    }
 
     return true;
 }
@@ -682,8 +520,6 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CAccount srcAcctInfo(srcAccount);
-    CAccount desAcctInfo;
     if (!srcAccount.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -733,49 +569,8 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    cw.txUndo.accountLogs.push_back(srcAcctInfo);
-    cw.txUndo.txid = GetHash();
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
         return false;
-
-    return true;
-}
-
-bool CDEXCancelOrderTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
-                                   CValidationState &state) {
-    if (!UndoTxAddresses(cw, state))
-        return false;
-
-    if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::UndoExecuteTx, undo active sell order failed"),
-                         REJECT_INVALID, "bad-undo-data");
-    }
-
-    static const int ACCOUNT_LOG_SIZE = 2;
-
-    if (cw.txUndo.accountLogs.size() != ACCOUNT_LOG_SIZE) {
-        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::UndoExecuteTx, accountLogs size must be %d", ACCOUNT_LOG_SIZE),
-                         READ_ACCOUNT_FAIL, "bad-accountLogs-size");
-    }
-
-    for (auto accountLog : cw.txUndo.accountLogs) {
-        CAccount account;
-        CUserID userId = accountLog.keyid;
-        if (!cw.accountCache.GetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::UndoExecuteTx, read account info error"),
-                            READ_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-        if (!account.UndoOperateAccount(accountLog)) {
-            return state.DoS(100,
-                            ERRORMSG("CDEXCancelOrderTx::UndoExecuteTx, undo operate account failed"),
-                            UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
-        }
-
-        if (!cw.accountCache.SetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::UndoExecuteTx, write account info error"),
-                            UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-        }
-    }
 
     return true;
 }
@@ -997,7 +792,6 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
-    cw.txUndo.accountLogs.push_back(CAccount(srcAcct));
 
     for (auto dealItem : dealItems) {
         //1. get and check buyDealOrder and sellDealOrder
@@ -1021,16 +815,14 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         // 2. get account of order
         CAccount buyOrderAccount;
         if (!cw.accountCache.GetAccount(buyOrderDetail.userRegId, buyOrderAccount)) {
-            return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, read buy order account info error"),
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, read buy order account info error"),
                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        cw.txUndo.accountLogs.push_back(CAccount(buyOrderAccount));
         CAccount sellOrderAccount;
         if (!cw.accountCache.GetAccount(sellOrderDetail.userRegId, sellOrderAccount)) {
-            return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::UndoExecuteTx, read sell order account info error"),
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, read sell order account info error"),
                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        cw.txUndo.accountLogs.push_back(CAccount(sellOrderAccount));
 
         // 3. check coin type match
         if (buyOrderDetail.coinType != sellOrderDetail.coinType) {
@@ -1159,12 +951,12 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
                 }
             }
             // erase active order
-            if (!cw.dexCache.EraseActiveOrder(dealItem.buyOrderId, cw.txUndo.dbOpLogMap)) {
+            if (!cw.dexCache.EraseActiveOrder(dealItem.buyOrderId)) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, erase active buy order failed"),
                                     REJECT_INVALID, "write-dexdb-failed");
             }
         } else {
-            if (!cw.dexCache.ModifyActiveOrder(dealItem.buyOrderId, buyActiveOrder, cw.txUndo.dbOpLogMap)) {
+            if (!cw.dexCache.ModifyActiveOrder(dealItem.buyOrderId, buyActiveOrder)) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, erase active buy order failed"),
                                     REJECT_INVALID, "write-dexdb-failed");
             }
@@ -1172,12 +964,12 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
 
         if (sellResidualAmount == 0) { // sell order fulfilled
             // erase active order
-            if (!cw.dexCache.EraseActiveOrder(dealItem.sellOrderId, cw.txUndo.dbOpLogMap)) {
+            if (!cw.dexCache.EraseActiveOrder(dealItem.sellOrderId)) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, erase active sell order failed"),
                                     REJECT_INVALID, "write-dexdb-failed");
             }
         } else {
-            if (!cw.dexCache.ModifyActiveOrder(dealItem.sellOrderId, sellActiveOrder, cw.txUndo.dbOpLogMap)) {
+            if (!cw.dexCache.ModifyActiveOrder(dealItem.sellOrderId, sellActiveOrder)) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, erase active sell order failed"),
                                     REJECT_INVALID, "write-dexdb-failed");
             }
@@ -1195,44 +987,9 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    cw.txUndo.txid = GetHash();
-
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
         return false;
 
     return true;
 }
 
-bool CDEXSettleTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-
-    if (!UndoTxAddresses(cw, state))
-        return false;
-
-    if (!cw.dexCache.UndoActiveOrder(cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::UndoExecuteTx, undo active orders for all deal item failed"),
-                         REJECT_INVALID, "bad-undo-data");
-    }
-
-    auto rIterAccountLog = cw.txUndo.accountLogs.rbegin();
-    for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
-        const CAccount &accountLog = *rIterAccountLog;
-        CAccount account;
-        CUserID userId = accountLog.keyid;
-        if (!cw.accountCache.GetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::UndoExecuteTx, read account info error"),
-                            READ_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-        if (!account.UndoOperateAccount(accountLog)) {
-            return state.DoS(100,
-                            ERRORMSG("CDEXSettleTx::UndoExecuteTx, undo operate account failed"),
-                            UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
-        }
-
-        if (!cw.accountCache.SetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::UndoExecuteTx, write account info error"),
-                            UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-        }
-    }
-
-    return true;
-}

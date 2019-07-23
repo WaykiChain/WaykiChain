@@ -162,14 +162,12 @@ public:
 
 public:
     bool GetActiveOrder(const uint256 &orderTxId, CDEXActiveOrder& activeOrder);
-    bool CreateActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);
-    bool ModifyActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);
-    bool EraseActiveOrder(const uint256 &orderTxId, CDBOpLogMap &dbOpLogMap);
-    bool UndoActiveOrder(CDBOpLogMap &dbOpLogMap);
+    bool CreateActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder);
+    bool ModifyActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder);
+    bool EraseActiveOrder(const uint256 &orderTxId);
 
     bool GetSysOrder(const uint256 &orderTxId, CDEXSysOrder &buyOrder);
-    bool CreateSysOrder(const uint256 &orderTxId, const CDEXSysOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
-    bool UndoSysOrder(CDBOpLogMap &dbOpLogMap);
+    bool CreateSysOrder(const uint256 &orderTxId, const CDEXSysOrder &buyOrder);
 
     bool Flush() {
         activeOrderCache.Flush();

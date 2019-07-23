@@ -47,8 +47,6 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
     account.regid = regId;
     account.keyid = keyId;
 
-    CAccount acctLog(account);
-
     if (account.owner_pubkey.IsFullyValid() && account.owner_pubkey.GetKeyId() == keyId)
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s duplicate register",
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
@@ -71,45 +69,7 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, write source addr %s account info error",
             regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    cw.txUndo.accountLogs.push_back(acctLog);
-    cw.txUndo.txid = GetHash();
-
    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
-
-    return true;
-}
-
-bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    // drop account
-    CRegID accountRegId(nHeight, nIndex);
-    CAccount oldAccount;
-    if (!cw.accountCache.GetAccount(accountRegId, oldAccount)) {
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read secure account=%s info error",
-                        accountRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-
-    CKeyID keyId;
-    cw.accountCache.GetKeyId(accountRegId, keyId);
-
-    if (llFees > 0) {
-        CAccount accountLog;
-        if (!cw.txUndo.GetAccountLog(keyId, accountLog))
-            return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read keyId=%s tx undo info error",
-                            keyId.GetHex()), UPDATE_ACCOUNT_FAIL, "bad-read-undoinfo");
-        // oldAccount.UndoOperateAccount(accountLog);
-    }
-
-    if (!oldAccount.IsEmptyValue()) {
-        CPubKey empPubKey;
-        oldAccount.owner_pubkey = empPubKey;
-        oldAccount.miner_pubkey = empPubKey;
-        oldAccount.regid.Clear();
-        CUserID userId(keyId);
-        cw.accountCache.SetAccount(userId, oldAccount);
-    } else {
-        cw.accountCache.EraseAccount(txUid);
-    }
-    cw.accountCache.EraseKeyId(accountRegId);
 
     return true;
 }

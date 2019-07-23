@@ -32,11 +32,8 @@ public:
     bool SetDelegateVotes(const CRegID &regId, const uint64_t votes);
     bool EraseDelegateVotes(const CRegID &regId, const uint64_t votes);
 
-    bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes,
-                           CDBOpLogMap &dbOpLogMap);
+    bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes);
     bool GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes);
-    bool UndoCandidateVotes(CDBOpLogMap &dbOpLogMap);
-
 
     bool Flush();
     uint32_t GetCacheSize() const;

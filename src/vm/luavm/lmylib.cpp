@@ -1244,7 +1244,7 @@ static int ExWriteDataDBFunc(lua_State *L)
     string oldValue;
     // TODO: get old data when set data ??
     scriptDB->GetContractData(contractRegId, key, oldValue);
-    if (!scriptDB->SetContractData(contractRegId, key, value, *pVmRunEnv->GetDbLog())) {
+    if (!scriptDB->SetContractData(contractRegId, key, value)) {
         LogPrint("vm", "ExWriteDataDBFunc SetContractData failed, key:%s!\n",HexStr(key));
         lua_BurnStoreUnchanged(L, key.size(), value.size(), BURN_VER_R2);
         flag = false;
@@ -1281,7 +1281,7 @@ static int ExDeleteDataDBFunc(lua_State *L) {
     // TODO: get old data when set data ??
     scriptDB->GetContractData(contractRegId, key, oldValue);
 
-    if (!scriptDB->EraseContractData(contractRegId, key, *pVmRunEnv->GetDbLog())) {
+    if (!scriptDB->EraseContractData(contractRegId, key)) {
         LogPrint("vm", "ExDeleteDataDBFunc EraseContractData railed, key:%s!\n", HexStr(*retdata.at(0)));
         lua_BurnStoreUnchanged(L, key.size(), oldValue.size(), BURN_VER_R2);
         flag = false;
@@ -1367,7 +1367,7 @@ static int ExModifyDataDBFunc(lua_State *L)
     string oldValue;
     bool flag = false;
     if (scriptDB->GetContractData(contractRegId, key, oldValue)) {
-        if (scriptDB->SetContractData(contractRegId, key, newValue, *pVmRunEnv->GetDbLog())) {
+        if (scriptDB->SetContractData(contractRegId, key, newValue)) {
             lua_BurnStoreSet(L, key.size(),  oldValue.size(), newValue.size(), BURN_VER_R2);
             flag = true;
         } else {

@@ -24,7 +24,6 @@ class CVmOperate;
 class CKeyID;
 class CRegID;
 class CAccount;
-class CAccount;
 class CContractDB;
 struct CDiskTxPos;
 
@@ -53,8 +52,7 @@ public:
         contractAccountCache(pBaseIn->contractAccountCache) {};
 
     bool GetContractAccount(const CRegID &contractRegId, const string &accountKey, CAppUserAccount &appAccOut);
-    bool SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn, CDBOpLogMap &dbOpLogMap);
-    bool UndoContractAccount(CDBOpLogMap &dbOpLogMap);
+    bool SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn);
 
     bool GetContract(const CRegID &contractRegId, CContract &contract);
     bool SaveContract(const CRegID &contractRegId, const CContract &contract);
@@ -62,11 +60,9 @@ public:
     bool EraseContract(const CRegID &contractRegId);
 
     bool GetContractData(const CRegID &contractRegId, const string &contractKey, string &contractData);
-    bool SetContractData(const CRegID &contractRegId, const string &contractKey, const string &contractData,
-                         CDBOpLogMap &dbOpLogMap);
+    bool SetContractData(const CRegID &contractRegId, const string &contractKey, const string &contractData);
     bool HaveContractData(const CRegID &contractRegId, const string &contractKey);
-    bool EraseContractData(const CRegID &contractRegId, const string &contractKey, CDBOpLogMap &dbOpLogMap);
-    bool UndoContractData(CDBOpLogMap &dbOpLogMap);
+    bool EraseContractData(const CRegID &contractRegId, const string &contractKey);
 
     bool GetContractScripts(map<string, string> &contractScript);
     // Usage: acquire all data related to the specific contract.
@@ -80,14 +76,13 @@ public:
     uint32_t GetCacheSize() const;
 
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap);
-    bool WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLogMap &dbOpLogMap);
+    bool SetTxIndex(const uint256 &txid, const CDiskTxPos &pos);
+    bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list);
+    bool WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput);
     bool GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOutput);
-    bool UndoTxOutput(CDBOpLogMap &dbOpLogMap);
 
     bool GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string > &mapTxHash);
-    bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid, CDBOpLogMap &dbOpLogMap);
-    bool UndoTxHashByAddress(CDBOpLogMap &dbOpLogMap);
+    bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid);
     bool GetContractAccounts(const CRegID &contractRegId, map<string, string > &mapAcc);
 
     void SetBaseViewPtr(CContractDBCache *pBaseIn) {
