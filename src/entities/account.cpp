@@ -312,12 +312,12 @@ bool CAccount::PayInterest(uint64_t scoinInterest, uint64_t fcoinsInterest) {
 }
 
 bool CAccount::StakeFcoins(const int64_t fcoinsToStake) {
-     if (fcoinsToStake < 0) {
-        if (this->staked_fcoins < (uint64_t) (-1 * fcoinsToStake)) {
+    if (fcoinsToStake < 0) {
+        if (this->staked_fcoins < (uint64_t)(-1 * fcoinsToStake)) {
             return ERRORMSG("No sufficient staked fcoins(%d) to revoke", staked_fcoins);
         }
-    } else { // > 0
-        if (this->free_fcoins < (uint64_t) fcoinsToStake) {
+    } else {  // > 0
+        if (this->free_fcoins < (uint64_t)fcoinsToStake) {
             return ERRORMSG("No sufficient free_fcoins(%d) in account to stake", free_fcoins);
         }
     }

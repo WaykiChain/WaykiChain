@@ -148,7 +148,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
             "2. \"stake_amount\":   (numeric, required) WICC coins to stake into the CDP, boosted by 10^8\n"
             "3. \"mint_amount\":    (numberic, required), WUSD amount to mint\n"
             "4. \"cdp_id\":         (string, optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
-            "6. \"fee\":            (numeric, optional) fee pay for miner, default is 10000\n"
+            "5. \"fee\":            (numeric, optional) fee pay for miner, default is 10000\n"
             "\nResult:\n"
             "\"txid\"               (string) The transaction id.\n"
             "\nExamples:\n" +
@@ -161,10 +161,10 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
                            "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n"));
     }
     uint64_t stakeAmount = params[1].get_uint64();
-    uint64_t mintAmount = params[2].get_uint64();
+    uint64_t mintAmount  = params[2].get_uint64();
 
     int validHeight = chainActive.Tip()->nHeight;
-    uint64_t fee = 0;
+    uint64_t fee    = 0;
     uint256 cdpTxId;
     if (params.size() >= 4) {
         cdpTxId = uint256S(params[3].get_str());

@@ -52,7 +52,8 @@ bool CFcoinStakeTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw
     cw.txUndo.accountLogs.push_back(acctLog);
     cw.txUndo.txid = GetHash();
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
+    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+        return false;
 
     return true;
 }
