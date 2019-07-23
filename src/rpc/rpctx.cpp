@@ -930,11 +930,11 @@ Value listtransactions(const Array& params, bool fHelp) {
 
                 if (bRecv) {
                     if (pWalletMain->HaveKey(recvKeyId)) {
+                        double dAmount = static_cast<double>(item.second->GetValues()[CoinType::WICC]) / COIN;
                         Object obj;
                         obj.push_back(Pair("srcaddr", sendKeyID.ToAddress()));
                         obj.push_back(Pair("address", recvKeyId.ToAddress()));
                         obj.push_back(Pair("category", "receive"));
-                        double dAmount = static_cast<double>(item.second->GetValues()[CoinType::WICC]) / COIN;
                         obj.push_back(Pair("amount", dAmount));
                         obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockHeight));
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
@@ -976,6 +976,7 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
     string strAddress = "*";
     if (params.size() > 0)
         strAddress = params[0].get_str();
+
     if("" == strAddress) {
         strAddress = "*";
     }

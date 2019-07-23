@@ -83,8 +83,8 @@ public:
 public:
     CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0) { }
 
-    CAccountToken(uint64_t &freeTokens, uint64_t &frozenTokens) :
-                    free_amount(freeTokens), frozen_amount(frozenTokens), staked_amount(stakedTokens) { }
+    CAccountToken(uint64_t &freeAmount, uint64_t &frozenAmount, uint64_t &stakedAmount) :
+                    free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount) { }
 
     CAccountToken& operator=(const CAccountToken& other) {
         if (this == &other) return *this;
