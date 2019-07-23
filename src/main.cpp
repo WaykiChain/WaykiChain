@@ -3458,10 +3458,10 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
     else if (strCommand == "tx") {
         std::shared_ptr<CBaseTx> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
 
-        if (BLOCK_REWARD_TX == pBaseTx->nTxType || BLOCK_PRICE_MEDIAN_TX == pBaseTx->nTxType) {
-            return ERRORMSG(
-                "None of BLOCK_REWARD_TX, BLOCK_PRICE_MEDIAN_TX from network should be accepted, "
-                "Hex:%s", HexStr(vRecv.begin(), vRecv.end()));
+        if (BLOCK_REWARD_TX == pBaseTx->nTxType || UCOIN_BLOCK_REWARD_TX == pBaseTx->nTxType ||
+            BLOCK_PRICE_MEDIAN_TX == pBaseTx->nTxType) {
+            return ERRORMSG("None of BLOCK_REWARD_TX, UCOIN_BLOCK_REWARD_TX, BLOCK_PRICE_MEDIAN_TX from network "
+                "should be accepted, raw string: %s", HexStr(vRecv.begin(), vRecv.end()));
         }
 
         vRecv >> pBaseTx;
