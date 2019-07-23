@@ -79,27 +79,23 @@ const string strMessageMagic = "Coin Signed Message:\n";
 namespace {
 struct CBlockIndexWorkComparator {
     bool operator()(CBlockIndex *pa, CBlockIndex *pb) {
+
         // First sort by most total work, ...
-        if (pa->nChainWork > pb->nChainWork)
-            return false;
-        if (pa->nChainWork < pb->nChainWork)
-            return true;
+        if(pa->nChainWork != pb->nChainWork){
+            return (pa->nChainWork < pb->nChainWork) ;
+        }
+
 
         // ... then by earliest time received, ...
-        if (pa->nSequenceId < pb->nSequenceId)
-            return false;
-        if (pa->nSequenceId > pb->nSequenceId)
-            return true;
+        if(pa->nSequenceId != pb->nSequenceId){
+            return (pa->nSequenceId > pb->nSequenceId) ;
+        }
 
         // Use pointer address as tie breaker (should only happen with blocks
         // loaded from disk, as those all have id 0).
-        if (pa < pb)
-            return false;
-        if (pa > pb)
-            return true;
 
-        // Identical blocks.
-        return false;
+        return pa > pb ;
+
     }
 };
 
