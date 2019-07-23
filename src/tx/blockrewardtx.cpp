@@ -25,7 +25,8 @@ bool CBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVali
     } else if (-1 == nIndex) {
         // When the reward transaction is mature, update account's balances, i.e, assign the reward value to
         // the target account.
-        account.free_bcoins += rewardValue;
+        account.OperateBalance("WICC", ADD_FREE, rewardValue);
+
     } else {
         return ERRORMSG("CBlockRewardTx::ExecuteTx, invalid index");
     }

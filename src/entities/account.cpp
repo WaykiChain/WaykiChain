@@ -172,7 +172,7 @@ bool CAccount::RegIDIsMature() const {
             (chainActive.Height() - (int)regid.GetHeight() > kRegIdMaturePeriodByBlock));
 }
 
-CAccountToken CAccount::GetToken(const TokenSymbol &tokenSymbol) {
+CAccountToken CAccount::GetToken(const TokenSymbol &tokenSymbol) const {
     auto iter = tokens.find(tokenSymbol);
     if (iter != tokens.end())
         return iter->second;

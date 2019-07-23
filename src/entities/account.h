@@ -208,7 +208,7 @@ public:
 
     void SetRegId(CRegID & regIdIn) { regid = regIdIn; }
 
-    CAccountToken GetToken(const TokenSymbol &tokenSymbol);
+    CAccountToken GetToken(const TokenSymbol &tokenSymbol) const;
     bool SetToken(const TokenSymbol &tokenSymbol, const CAccountToken &accountToken);
 
 private:

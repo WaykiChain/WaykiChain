@@ -27,7 +27,7 @@ bool CMultiCoinBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &
         // the target account.
         for (const auto &item : rewardValues) {
             switch (item.first/* CoinType */) {
-                case CoinType::WICC: account.free_bcoins += item.second; break;
+                case CoinType::WICC: account.GetToken("WICC").free_amount += item.second; break;
                 case CoinType::WUSD: account.free_scoins += item.second; break;
                 case CoinType::WGRT: account.free_fcoins += item.second; break;
                 default: return ERRORMSG("CMultiCoinBlockRewardTx::ExecuteTx, invalid coin type");
@@ -35,7 +35,7 @@ bool CMultiCoinBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &
         }
 
         // Assign profits to the delegate's account.
-        account.free_bcoins += profits;
+        account.GetToken("WICC").free_amount += profits;
     } else {
         return ERRORMSG("CMultiCoinBlockRewardTx::ExecuteTx, invalid index");
     }

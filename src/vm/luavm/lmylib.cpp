@@ -1045,7 +1045,7 @@ static int ExQueryAccountBalanceFunc(lua_State *L) {
     }
     else
     {
-        uint64_t nbalance = account.free_bcoins;
+        uint64_t nbalance = account.GetToken("WICC").free_amount;
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << nbalance;
         vector<unsigned char> TMP(tep.begin(),tep.end());

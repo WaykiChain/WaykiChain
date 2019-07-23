@@ -636,9 +636,9 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
 
         account.free_scoins -= totalScoinsToLiquidate;
         account.free_scoins -= scoinsPenalty;
-        account.free_bcoins += totalBcoinsToReturnLiquidator;
+        account.GetToken("WICC").free_amount += totalBcoinsToReturnLiquidator;
 
-        cdpOwnerAccount.free_bcoins += totalBcoinsToCDPOwner;
+        cdpOwneraccount.GetToken("WICC").free_amount += totalBcoinsToCDPOwner;
 
         if (!SellPenaltyForFcoins((uint64_t) totalScoinsToReturnSysFund, nHeight, cdp, cw, state))
             return false;
@@ -665,10 +665,10 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
 
         account.free_scoins -= scoinsToLiquidate;
         account.free_scoins -= scoinsPenalty;
-        account.free_bcoins += totalBcoinsToReturnLiquidator;
+        account.GetToken("WICC").free_amount += totalBcoinsToReturnLiquidator;
 
         int bcoinsToCDPOwner = totalBcoinsToCDPOwner * liquidateRate;
-        cdpOwnerAccount.free_bcoins += bcoinsToCDPOwner;
+        cdpOwneraccount.GetToken("WICC").free_amount += bcoinsToCDPOwner;
 
         cdp.totalOwedScoins -= scoinsToLiquidate;
         cdp.totalStakedBcoins -= bcoinsToCDPOwner;

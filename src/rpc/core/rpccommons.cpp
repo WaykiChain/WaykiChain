@@ -22,7 +22,7 @@ Object SubmitTx(CUserID &userId, CBaseTx &tx) {
 
     CAccount account;
     if (pCdMan->pAccountCache->GetAccount(userId, account) && account.HaveOwnerPubKey()) {
-        uint64_t balance = account.free_bcoins;
+        uint64_t balance = account.GetToken("WICC").free_amount;
         if (balance < tx.llFees) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }

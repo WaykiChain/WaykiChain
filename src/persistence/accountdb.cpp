@@ -219,6 +219,12 @@ bool CAccountDBCache::EraseKeyId(const CUserID &userId) {
     return false;
 }
 
+uint64_t CAccountDBCache::GetAccountFreeAmount(const CKeyID &actnKeyId) {
+    CAccount actn;
+    GetAccount(actnKeyId, actn);
+    return actn.free_amount;
+}
+
 bool CAccountDBCache::Flush() {
     blockHashCache.Flush();
     accountCache.Flush();
@@ -412,7 +418,7 @@ std::tuple<uint64_t, uint64_t> CAccountDB::TraverseAccount() {
                 CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 CAccount account;
                 ssValue >> account;
-                totalCoins += account.free_bcoins;
+                totalCoins += account.GetToken("WICC").free_amount;
 
                 CRegID regId;
                 if (account.GetRegId(regId)) {
