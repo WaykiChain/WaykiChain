@@ -33,9 +33,6 @@ class CAddrMan;
 class CBlockIndex;
 class CNode;
 
-namespace boost {
-class thread_group;
-}
 
 /** The maximum number of entries in an 'inv' protocol message */
 static const unsigned int MAX_INV_SZ = 50000;
