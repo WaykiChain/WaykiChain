@@ -292,12 +292,12 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
                         UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(appUid, desAcct))
+    if (!cw.accountCache.SaveAccount(appUid, desAcct))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, save account error, kyeId=%s",
             desAcct.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
-    string contractScript;
-    if (!cw.contractCache.GetContractScript(appUid.get<CRegID>(), contractScript))
+    CContract contract;
+    if (!cw.contractCache.GetContract(appUid.get<CRegID>(), contract))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, read script failed, regId=%s",
             appUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
@@ -371,8 +371,8 @@ bool CContractInvokeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, account unregistered"),
                         REJECT_INVALID, "bad-account-unregistered");
 
-    string contractScript;
-    if (!cw.contractCache.GetContractScript(appUid.get<CRegID>(), contractScript))
+    CContract contract;
+    if (!cw.contractCache.GetContract(appUid.get<CRegID>(), contract))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::CheckTx, read script failed, regId=%s",
                         appUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-read-script");
 
