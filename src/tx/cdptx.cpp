@@ -363,6 +363,7 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
 
     return str;
  }
+ 
  Object CCDPRedeemTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 

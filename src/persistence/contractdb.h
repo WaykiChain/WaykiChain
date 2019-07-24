@@ -119,7 +119,7 @@ private:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// ContractDB
     // contractRegId -> Contract
-    CCompositeKVCache< dbk::CONTRACT_DEF,         CRegID,                   CContract >             contractCache;
+    CCompositeKVCache< dbk::CONTRACT_DEF,         CRegID,                   CContract >            contractCache;
     // txId -> vector<CVmOperate>
     CCompositeKVCache< dbk::CONTRACT_TX_OUT,      uint256,                  vector<CVmOperate> >   txOutputCache;
     // keyId, height, index -> txid
