@@ -17,12 +17,12 @@
 
 using namespace std;
 
-enum OrderDirection {
+enum OrderSide {
     ORDER_BUY  = 0,
     ORDER_SELL = 1,
 };
 
-const static std::string OrderDirectionTitles[] = {"Buy", "Sell"};
+const static std::string OrderSideTitles[] = {"Buy", "Sell"};
 
 enum OrderType {
     ORDER_LIMIT_PRICE   = 0, //!< limit price order type
@@ -83,56 +83,55 @@ struct CDEXActiveOrder {
 // txid -> sys order data
 class CDEXSysOrder {
 private:
-    OrderDirection  direction;     //!< order direction
-    OrderType       orderType;     //!< order type
-    CoinType        coinType;      //!< coin type
-    AssetType       assetType;     //!< asset type
+    OrderSide       order_side;     //!< order side: buy or sell
+    OrderType       order_type;     //!< order type
+    TokenSymbol     coin_symbol;    //!< coin type
+    TokenSymbol     asset_symbol;   //!< asset type
 
-    uint64_t        coinAmount;    //!< amount of coin to buy/sell asset
-    uint64_t        assetAmount;   //!< amount of coin to buy asset
-    uint64_t        price;         //!< price in coinType want to buy/sell asset
+    uint64_t        coin_amount;    //!< amount of coin to buy/sell asset
+    uint64_t        asset_amount;   //!< amount of coin to buy asset
+    uint64_t        price;          //!< price in coin_symbol want to buy/sell asset
 public:// create functions
-    static shared_ptr<CDEXSysOrder> CreateBuyLimitOrder(CoinType coinTypeIn, CoinType assetTypeIn,
+    static shared_ptr<CDEXSysOrder> CreateBuyLimitOrder(const TokenSymbol &coinSymbol, TokenSymbol &assetSymbol,
                                                         uint64_t assetAmountIn, uint64_t priceIn);
 
-    static shared_ptr<CDEXSysOrder> CreateSellLimitOrder(CoinType coinTypeIn, CoinType assetTypeIn,
+    static shared_ptr<CDEXSysOrder> CreateSellLimitOrder(const TokenSymbol &coinSymbol, TokenSymbol &assetSymbol,
                                                          uint64_t assetAmountIn, uint64_t priceIn);
 
-    static shared_ptr<CDEXSysOrder> CreateBuyMarketOrder(CoinType coinTypeIn, CoinType assetTypeIn,
+    static shared_ptr<CDEXSysOrder> CreateBuyMarketOrder(const TokenSymbol &coinSymbol, TokenSymbol &assetSymbol,
                                                          uint64_t coinAmountIn);
 
-    static shared_ptr<CDEXSysOrder> CreateSellMarketOrder(CoinType coinTypeIn, CoinType assetTypeIn,
+    static shared_ptr<CDEXSysOrder> CreateSellMarketOrder(const TokenSymbol &coinSymbol, TokenSymbol &assetSymbol,
                                                           uint64_t assetAmountIn);
 
 public:
     // default constructor
     CDEXSysOrder():
-        direction(ORDER_BUY),
-        orderType(ORDER_LIMIT_PRICE),
-        coinType(WUSD),
-        assetType(WICC),
-        coinAmount(0),
-        assetAmount(0),
+        order_side(ORDER_BUY),
+        order_type(ORDER_LIMIT_PRICE),
+        coin_symbol(SYMB::WUSD),
+        asset_symbol(SYMB::WICC),
+        coin_amount(0),
+        asset_amount(0),
         price(0)
-        {}
+        { }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE((uint8_t&)direction);
-        READWRITE((uint8_t&)orderType);
-        READWRITE((uint8_t&)coinType);
-        READWRITE((uint8_t&)assetType);
+        READWRITE((uint8_t&)order_side);
+        READWRITE((uint8_t&)order_type);
+        READWRITE(coin_symbol);
+        READWRITE(asset_symbol);
 
-        READWRITE(VARINT(coinAmount));
-        READWRITE(VARINT(assetAmount));
+        READWRITE(VARINT(coin_amount));
+        READWRITE(VARINT(asset_amount));
         READWRITE(VARINT(price));
     )
 
     string ToString() {
         return strprintf(
-                "OrderDir=%s, OrderType=%s, CoinType=%d, AssetType=%s, coinAmount=%lu, assetAmount=%lu, price=%lu",
-                OrderDirectionTitles[direction], OrderTypeTitles[orderType],
-                kCoinTypeMapName.at(coinType), kCoinTypeMapName.at(assetType),
-                coinAmount, assetAmount, price);
+                "OrderDir=%s, order_side=%s, CoinSymbol=%d, AssetSymbol=%s, coinAmount=%lu, assetAmount=%lu, price=%lu",
+                OrderSideTitles[order_side], OrderTypeTitles[order_type],
+                coin_symbol, asset_symbol, coin_amount, asset_amount, price);
     }
 
     bool IsEmpty() const;
@@ -145,13 +144,12 @@ public:
 // wgrt -> wusd (inflate wgrt to get wusd)
 // wusd -> wgrt (pay interest to get wgrt to burn)
 struct CDEXSysForceSellBcoinsOrder {
-    CUserID cdpOwnerUid;
-    uint64_t bcoinsAmount;
-    uint64_t scoinsAmount;
-    double collateralRatioByAmount; // fixed: 100*  bcoinsAmount / scoinsAmount
-    double collateralRatioByValue;  // collateralRatioAmount * wiccMedianPrice
-
-    uint64_t orderDiscount; // *1000 E.g. 97% * 1000 = 970
+    CUserID cdp_owner_uid;
+    uint64_t bcoins_amount;
+    uint64_t scoins_amount;
+    double collateral_ratio_by_amount; // fixed: 100 *  bcoinsAmount / scoinsAmount
+    double collateral_ratio_by_value;  // collateralRatioAmount * wiccMedianPrice
+    uint64_t order_discount; // *1000 E.g. 97% * 1000 = 970
 
 };
 
