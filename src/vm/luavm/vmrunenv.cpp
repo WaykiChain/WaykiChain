@@ -23,7 +23,6 @@ CVmRunEnv::CVmRunEnv() {
     runTimeHeight      = 0;
     pContractCache = nullptr;
     pAccountCache  = nullptr;
-    pDBOpLogsMap   = nullptr;
     isCheckAccount     = false;
 }
 
@@ -93,7 +92,6 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pB
     if (nBurnFactor == 0) return std::make_tuple(false, 0, string("VmScript nBurnFactor == 0"));
 
     pContractCache = &cw.contractCache;
-    pDBOpLogsMap   = &cw.txUndo.dbOpLogMap;
 
     CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
     if (tx->llFees < CBaseTx::nMinTxFee)
@@ -150,7 +148,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pB
 
     if (SysCfg().IsContractLogOn() && vmOperateOutput.size() > 0) {
         uint256 txid = GetCurTxHash();
-        if (!pContractCache->WriteTxOutput(txid, vmOperateOutput, *pDBOpLogsMap))
+        if (!pContractCache->WriteTxOutput(txid, vmOperateOutput))
             return std::make_tuple(false, 0, string("write tx out put Failed"));
     }
     /*
@@ -164,20 +162,6 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pB
         return std::make_tuple(false, 0, string("mul error"));
     }
     return std::make_tuple(true, spend, string("VmScript Success"));
-}
-
-bool CVmRunEnv::UndoDatas(CCacheWrapper &cw) {
-
-    if (!cw.contractCache.UndoTxOutput(cw.txUndo.dbOpLogMap)) {
-        return ERRORMSG("CVmRunEnv::UndoDatas UndoTxOutput failed");
-    }
-    if (!cw.contractCache.UndoContractAccount(cw.txUndo.dbOpLogMap)) {
-        return ERRORMSG("CVmRunEnv::UndoDatas UndoContractAccount failed");
-    }
-    if (!cw.contractCache.UndoContractData(cw.txUndo.dbOpLogMap)) {
-        return ERRORMSG("CVmRunEnv::UndoDatas UndoContractData failed");
-    }
-    return true;
 }
 
 shared_ptr<CAccount> CVmRunEnv::GetNewAccount(shared_ptr<CAccount>& vOldAccount) {
@@ -261,7 +245,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
             CRegID regId(accountId);
             CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
             /// current tx's script cant't mius other script's regid
-            if (pContractCache->HaveContractScript(regId) && regId != tx->appUid.get<CRegID>())
+            if (pContractCache->HaveContract(regId) && regId != tx->appUid.get<CRegID>())
                 return false;
 
             memcpy(&operValue, it.money, sizeof(it.money));
@@ -288,7 +272,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
             if (regId.IsEmpty() || regId.GetKeyId(*pAccountCache) == uint160()) return false;
 
             //  app only be allowed minus self money
-            if (!pContractCache->HaveContractScript(regId) && it.opType == MINUS_BCOIN) return false;
+            if (!pContractCache->HaveContract(regId) && it.opType == MINUS_BCOIN) return false;
         }
     }
 
@@ -505,8 +489,6 @@ bool CVmRunEnv::InsertOutputData(const vector<CVmOperate>& source) {
     return false;
 }
 
-CDBOpLogMap* CVmRunEnv::GetDbLog() { return pDBOpLogsMap; }
-
 /**
  * 从脚本数据库中，取指定账户的 应用账户信息,同时解冻冻结金额到自由金额
  * @param vAppUserId   账户地址或regId
@@ -568,7 +550,7 @@ bool CVmRunEnv::OperateAppAccount(const map<vector<unsigned char>, vector<CAppFu
             }
             newAppUserAccount.push_back(sptrAcc);
             LogPrint("vm", "after user: %s\n", sptrAcc.get()->ToString());
-            view.SetContractAccount(GetScriptRegID(), *sptrAcc.get(), *pDBOpLogsMap);
+            view.SetContractAccount(GetScriptRegID(), *sptrAcc.get());
         }
     }
     return true;

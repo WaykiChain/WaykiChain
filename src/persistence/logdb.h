@@ -39,7 +39,7 @@ private:
 /*  CSimpleKVCache  prefixType             key                 value                        variable      */
 /*  -------------------- --------------------- ------------------  ---------------------------  -------------- */
     // [prefix]{height}{txid} --> {error code, error message}
-    CCompositKVCache<dbk::TX_EXECUTE_FAIL,    string,            std::pair<uint8_t, string> > executeFailCache;
+    CCompositeKVCache<dbk::TX_EXECUTE_FAIL,    string,            std::pair<uint8_t, string> > executeFailCache;
 };
 
 #endif // PERSIST_LOGDB_H

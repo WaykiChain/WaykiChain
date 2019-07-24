@@ -162,14 +162,12 @@ public:
 
 public:
     bool GetActiveOrder(const uint256 &orderTxId, CDEXActiveOrder& activeOrder);
-    bool CreateActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);
-    bool ModifyActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder, CDBOpLogMap &dbOpLogMap);
-    bool EraseActiveOrder(const uint256 &orderTxId, CDBOpLogMap &dbOpLogMap);
-    bool UndoActiveOrder(CDBOpLogMap &dbOpLogMap);
+    bool CreateActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder);
+    bool ModifyActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder);
+    bool EraseActiveOrder(const uint256 &orderTxId);
 
     bool GetSysOrder(const uint256 &orderTxId, CDEXSysOrder &buyOrder);
-    bool CreateSysOrder(const uint256 &orderTxId, const CDEXSysOrder &buyOrder, CDBOpLogMap &dbOpLogMap);
-    bool UndoSysOrder(CDBOpLogMap &dbOpLogMap);
+    bool CreateSysOrder(const uint256 &orderTxId, const CDEXSysOrder &buyOrder);
 
     bool Flush() {
         activeOrderCache.Flush();
@@ -181,13 +179,22 @@ public:
         sysOrderCache.SetBase(&pBaseIn->sysOrderCache);
     };
 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        activeOrderCache.SetDbOpLogMap(pDbOpLogMapIn);
+        sysOrderCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    bool UndoDatas() {
+        return activeOrderCache.UndoDatas() &&
+               sysOrderCache.UndoDatas();
+    }
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// DexDB
     // order tx id -> active order
-    CCompositKVCache< dbk::DEX_ACTIVE_ORDER,       uint256,             CDEXActiveOrder >     activeOrderCache;
-    CCompositKVCache< dbk::DEX_SYS_ORDER,          uint256,             CDEXSysOrder >        sysOrderCache;
+    CCompositeKVCache< dbk::DEX_ACTIVE_ORDER,       uint256,             CDEXActiveOrder >     activeOrderCache;
+    CCompositeKVCache< dbk::DEX_SYS_ORDER,          uint256,             CDEXSysOrder >        sysOrderCache;
 };
 
 #endif //PERSIST_DEX_H

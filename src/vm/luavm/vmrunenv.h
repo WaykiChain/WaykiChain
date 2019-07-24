@@ -63,8 +63,6 @@ private:
     bool  isCheckAccount;  //校验账户平衡开关
 
     map<vector<unsigned char>, vector<CAppFundOperate>> mapAppFundOperate;  // vector<unsigned char > 存的是accountId
-    CDBOpLogMap *pDBOpLogsMap;
-
 private:
     /**
      * @brief The initialization function
@@ -160,17 +158,11 @@ public:
     uint256 GetCurTxHash();
     bool InsertOutputData(const vector<CVmOperate>& source);
     void InsertOutAPPOperte(const vector<unsigned char>& userId, const CAppFundOperate& source);
-    CDBOpLogMap* GetDbLog();
 
     bool GetAppUserAccount(const vector<unsigned char>& id, std::shared_ptr<CAppUserAccount>& sptrAcc);
     bool CheckAppAcctOperate(CContractInvokeTx* tx);
     void SetCheckAccount(bool bCheckAccount);
     virtual ~CVmRunEnv();
-public:
-    /**
-     * undo data product by contract
-     */
-    static bool UndoDatas(CCacheWrapper &cw);
 };
 
 #endif  // VMRUNENV_H

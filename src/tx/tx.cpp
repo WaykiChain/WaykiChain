@@ -147,8 +147,7 @@ bool CBaseTx::SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw
                     return state.DoS(100, ERRORMSG("CBaseTx::SaveTxAddresses, get keyid by uid error"),
                                     READ_ACCOUNT_FAIL, "bad-get-keyid-uid");
 
-                if (!cw.contractCache.SetTxHashByAddress(keyId, height, index + 1,
-                                                         cw.txUndo.txid, cw.txUndo.dbOpLogMap))
+                if (!cw.contractCache.SetTxHashByAddress(keyId, height, index + 1, GetHash()))
                     return state.DoS(100, ERRORMSG("CBaseTx::SaveTxAddresses, SetTxHashByAddress to db cache failed!"),
                                     READ_ACCOUNT_FAIL, "bad-set-txHashByAddress");
             }
@@ -157,9 +156,3 @@ bool CBaseTx::SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw
     return true;
 }
 
-bool CBaseTx::UndoTxAddresses(CCacheWrapper &cw, CValidationState &state) {
-    if (!cw.contractCache.UndoTxHashByAddress(cw.txUndo.dbOpLogMap))
-        return state.DoS(100, ERRORMSG("CBaseTx::UndoTxAddresses failed!"), READ_ACCOUNT_FAIL, "undo-data-failed");
-
-    return true;
-}

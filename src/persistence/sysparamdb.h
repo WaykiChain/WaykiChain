@@ -43,10 +43,17 @@ public:
         sysParamCache.SetBase(&pBaseIn->sysParamCache);
     };
 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        sysParamCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    bool UndoDatas() {
+        return sysParamCache.UndoDatas();
+    }
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// SysParamDB
     // order tx id -> active order
-    CCompositKVCache< dbk::SYS_PARAM,             string,                 uint64_t >              sysParamCache;
+    CCompositeKVCache< dbk::SYS_PARAM,             string,                 uint64_t >              sysParamCache;
 };

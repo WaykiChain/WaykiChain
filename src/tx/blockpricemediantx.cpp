@@ -10,18 +10,17 @@
 
 bool CBlockPriceMedianTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    // TODO: check
     return true;
 }
 /**
  *  force settle/liquidate any under-collateralized CDP (collateral ratio <= 100%)
  */
 bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    cw.txUndo.txid = GetHash();
 
     CAccount fcoinGenesisAccount;
     cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
     uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken("WUSD").free_amount;
-    CAccount fcoinGenesisAcctLog(fcoinGenesisAccount); //save account state before modification
 
     //0. Check Global Collateral Ratio floor & Collateral Ceiling if reached
     uint64_t globalCollateralRatioFloor = 0;
@@ -53,37 +52,37 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
             break;
 
         LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, begin to force settle CDP (%s)", cdp.ToString());
-        if (currRiskReserveScoins < cdp.totalOwedScoins) {
-            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, currRiskReserveScoins(%lu) < cdp.totalOwedScoins(%lu) !!",
-                    currRiskReserveScoins, cdp.totalOwedScoins);
+        if (currRiskReserveScoins < cdp.total_owed_scoins) {
+            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, currRiskReserveScoins(%lu) < cdp.total_owed_scoins(%lu) !!",
+                    currRiskReserveScoins, cdp.total_owed_scoins);
             break;
         }
 
         // a) minus scoins from the risk reserve pool to repay CDP scoins
         uint64_t prevRiskReserveScoins = currRiskReserveScoins;
-        currRiskReserveScoins -= cdp.totalOwedScoins;
+        currRiskReserveScoins -= cdp.total_owed_scoins;
 
         // b) sell WICC for WUSD to return to risk reserve pool
-        auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(CoinType::WUSD, AssetType::WICC, cdp.totalStakedBcoins);
-        if (!cw.dexCache.CreateSysOrder(GetHash(), *pBcoinSellMarketOrder, cw.txUndo.dbOpLogMap)) {
+        auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(CoinType::WUSD, AssetType::WICC, cdp.total_staked_bcoins);
+        if (!cw.dexCache.CreateSysOrder(GetHash(), *pBcoinSellMarketOrder)) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, CreateSysOrder SellBcoinForScoin (%s) failed!!",
                     pBcoinSellMarketOrder->ToString());
             break;
         }
 
         // c) inflate WGRT coins and sell them for WUSD to return to risk reserve pool
-        assert(cdp.totalOwedScoins > cdp.totalStakedBcoins * bcoinMedianPrice);
-        uint64_t fcoinsValueToInflate = cdp.totalOwedScoins - cdp.totalStakedBcoins * bcoinMedianPrice;
+        assert(cdp.total_owed_scoins > cdp.total_staked_bcoins * bcoinMedianPrice);
+        uint64_t fcoinsValueToInflate = cdp.total_owed_scoins - cdp.total_staked_bcoins * bcoinMedianPrice;
         uint64_t fcoinsToInflate = fcoinsValueToInflate / cw.ppCache.GetFcoinMedianPrice(nHeight);
         auto pFcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(CoinType::WUSD, AssetType::WGRT, fcoinsToInflate);
-        if (!cw.dexCache.CreateSysOrder(GetHash(), *pFcoinSellMarketOrder, cw.txUndo.dbOpLogMap)) {
+        if (!cw.dexCache.CreateSysOrder(GetHash(), *pFcoinSellMarketOrder)) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, CreateSysOrder SellFcoinForScoin (%s) failed!!",
                     pFcoinSellMarketOrder->ToString());
             break;
         }
 
         // d) Close the CDP
-        cw.cdpCache.EraseCdp(cdp, cw.txUndo.dbOpLogMap);
+        cw.cdpCache.EraseCdp(cdp);
         LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
                 "Placed BcoinSellMarketOrder:  %s\n"
                 "Placed FcoinSellMarketOrder:  %s\n"
@@ -100,57 +99,21 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     fcoinGenesisAccount.OperateBalance("WUSD", ADD_FREE, currRiskReserveScoins - prevScoins);
 
     cw.accountCache.SaveAccount(fcoinGenesisAccount);
-    cw.txUndo.accountLogs.push_back(fcoinGenesisAcctLog);
 
     bool ret = SaveTxAddresses(nHeight, nIndex, cw, state, {txUid});
     return ret;
 }
 
-bool CBlockPriceMedianTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    auto iter = cw.txUndo.accountLogs.rbegin();
-    for (; iter != cw.txUndo.accountLogs.rend(); ++iter) {
-        CAccount account;
-        CUserID userId = iter->keyid;
-        if (!cw.accountCache.GetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::UndoExecuteTx, read account info error"),
-                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-        if (!account.UndoOperateAccount(*iter)) {
-            return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::UndoExecuteTx, undo operate account failed"),
-                             UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
-        }
-        if (!cw.accountCache.SetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::UndoExecuteTx, write account info error"),
-                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-        }
-    }
-
-    if (!cw.cdpCache.UndoCdp(cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::UndoExecuteTx, undo active buy order failed"),
-                         REJECT_INVALID, "bad-undo-data");
-    }
-
-    if (!cw.dexCache.UndoSysOrder(cw.txUndo.dbOpLogMap)) {
-        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::UndoExecuteTx, undo system buy order failed"),
-                        UNDO_SYS_ORDER_FAILED, "undo-data-failed");
-    }
-    return true;
-}
-
 string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {
     string pricePoints;
     for (auto it = mapMedianPricePoints.begin(); it != mapMedianPricePoints.end(); ++it) {
-        pricePoints += strprintf("{coin_type:%u, price_type:%u, price:%lld}",
-                        it->first.coinType, it->first.priceType, it->second);
+        pricePoints +=
+            strprintf("{coin_type:%u, price_type:%u, price:%lld}", it->first.coinType, it->first.priceType, it->second);
     };
 
-    string str = strprintf(
-        "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
-        "median_price_points=%s\n",
-        GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
-        pricePoints);
-
-    return str;
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, median_price_points=%s, nValidHeight=%d\n",
+                     GetTxType(nTxType), GetHash().GetHex(), nVersion, txUid.ToString(), llFees, pricePoints,
+                     nValidHeight);
 }
 
 Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {

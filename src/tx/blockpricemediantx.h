@@ -26,10 +26,7 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        for (auto it = mapMedianPricePoints.begin(); it != mapMedianPricePoints.end(); ++it) {
-            CPricePoint pricePoint(it->first, it->second);
-            READWRITE(pricePoint);
-        };
+        READWRITE(mapMedianPricePoints);
     )
 
     TxID ComputeSignatureHash(bool recalculate = false) const {
@@ -54,7 +51,6 @@ public:
 
     bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-    bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
 public:
     bool SetMedianPricePoints(map<CCoinPriceType, uint64_t> &mapMedianPricePointsIn) {

@@ -18,7 +18,7 @@ bool CFcoinStakeTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState
                         REJECT_INVALID, "bad-stake-type");
     }
 
-    if (fcoinsToStake == 0 || !CheckFundCoinRange(abs(fcoinsToStake))) {
+    if (fcoinsToStake == 0 || !CheckFundCoinRange(fcoinsToStake)) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, fcoinsToStake out of range"),
                         REJECT_INVALID, "bad-tx-fcoins-outofrange");
     }
@@ -39,7 +39,6 @@ bool CFcoinStakeTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
-    CAccount acctLog(account);
     if (!account.OperateBalance("WICC", BalanceOpType::SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient bcoins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
@@ -61,34 +60,8 @@ bool CFcoinStakeTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, write source addr %s account info error",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    cw.txUndo.accountLogs.push_back(acctLog);
-    cw.txUndo.txid = GetHash();
-
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
         return false;
-
-    return true;
-}
-
-bool CFcoinStakeTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccount>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
-    for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
-        CAccount account;
-        CUserID userId = rIterAccountLog->keyid;
-        if (!cw.accountCache.GetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, read account info error, userId=%s",
-                userId.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-        if (!account.UndoOperateAccount(*rIterAccountLog)) {
-            return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, undo operate account error, keyId=%s",
-                            account.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "undo-account-failed");
-        }
-
-        if (!cw.accountCache.SetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CFcoinStakeTx::UndoExecuteTx, save account error"),
-                            UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
-        }
-    }
 
     return true;
 }

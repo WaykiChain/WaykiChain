@@ -44,10 +44,10 @@ private:
 
 private:
     map<CUserCDP, uint8_t> cdps;  // map: CUserCDP -> flag(0: valid; 1: invalid)
-    uint64_t totalStakedBcoins = 0;
-    uint64_t totalOwedScoins   = 0;
-    CCdpMemCache *pBase        = nullptr;
-    CDBAccess *pAccess         = nullptr;
+    uint64_t total_staked_bcoins = 0;
+    uint64_t total_owed_scoins   = 0;
+    CCdpMemCache *pBase         = nullptr;
+    CDBAccess *pAccess          = nullptr;
 };
 
 class CCdpDBCache {
@@ -57,17 +57,13 @@ public:
     CCdpDBCache(CCdpDBCache *pBaseIn) : cdpCache(pBaseIn->cdpCache), cdpMemCache(pBaseIn->cdpMemCache) {}
 
     bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
-                          CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
+                          CUserCDP &cdp);
 
-    // Usage: acquire user's cdp list by CRegID.
-    bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdps);
+    bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdpList) { return false; }
 
     bool GetCdp(CUserCDP &cdp);
     bool SaveCdp(CUserCDP &cdp); //first-time cdp creation
-    bool SaveCdp(CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
     bool EraseCdp(const CUserCDP &cdp);
-    bool EraseCdp(const CUserCDP &cdp, CDBOpLogMap &dbOpLogMap);
-    bool UndoCdp(CDBOpLogMap &dbOpLogMap) { return cdpCache.UndoData(dbOpLogMap); }
 
     bool CheckGlobalCollateralRatioFloorReached(const uint64_t &bcoinMedianPrice,
                                                 const uint64_t &kGlobalCollateralRatioLimit);
@@ -80,11 +76,19 @@ public:
         cdpCache.SetBase(&pBaseIn->cdpCache);
         cdpMemCache.SetBase(&pBaseIn->cdpMemCache);
     }
+
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        cdpCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    bool UndoDatas() {
+        return cdpCache.UndoDatas();
+    }
 private:
-/*  CCompositKVCache     prefixType     key                               value        variable  */
+/*  CCompositeKVCache     prefixType     key                               value        variable  */
 /*  ----------------   --------------   ---------------------------   ---------------    --------- */
     // cdp$CRegID$CTxID -> CUserCDP
-    CCompositKVCache< dbk::CDP,         std::pair<string, uint256>,   CUserCDP >       cdpCache;
+    CCompositeKVCache< dbk::CDP,         uint256,                       CUserCDP >       cdpCache;
 
 public:
     // Memory only cache

@@ -47,12 +47,12 @@ public:
     };
 
 private:
-/*  CCompositKVCache     prefixType            key              value           variable           */
+/*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset_tokenSymbol -> asset>
-    CCompositKVCache< dbk::ASSET,              TokenSymbol,        CAsset>         assetCache;
+    CCompositeKVCache< dbk::ASSET,              TokenSymbol,        CAsset>         assetCache;
     // <asset_trading_pair -> 1>
-    CCompositKVCache< dbk::ASSET_TRADING_PAIR, CAssetTradingPair,  uint8_t>        assetTradingPairCache;
+    CCompositeKVCache< dbk::ASSET_TRADING_PAIR, CAssetTradingPair,  uint8_t>        assetTradingPairCache;
 };
 
 #endif  // PERSIST_ACCOUNTDB_H

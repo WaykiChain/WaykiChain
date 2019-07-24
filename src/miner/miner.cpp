@@ -12,7 +12,6 @@
 #include "tx/tx.h"
 #include "tx/blockrewardtx.h"
 #include "tx/blockpricemediantx.h"
-#include "tx/multicoinblockrewardtx.h"
 #include "persistence/txdb.h"
 #include "persistence/contractdb.h"
 #include "persistence/cachewrapper.h"
@@ -149,10 +148,15 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
         pRewardTx->nValidHeight = pBlock->GetHeight();
 
     } else if (pBlock->vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
-        auto pRewardTx          = (CMultiCoinBlockRewardTx *)pBlock->vptx[0].get();
+        auto pRewardTx          = (CUCoinBlockRewardTx *)pBlock->vptx[0].get();
         pRewardTx->txUid        = delegate.regid;
         pRewardTx->nValidHeight = pBlock->GetHeight();
         pRewardTx->profits      = delegate.ComputeBlockInflateInterest(pBlock->GetHeight());
+        pRewardTx->rewardValues = map<uint8_t, uint64_t>();
+
+        auto pPriceMedianTx          = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
+        pPriceMedianTx->txUid        = delegate.regid;
+        pPriceMedianTx->nValidHeight = pBlock->GetHeight();
     }
 
     pBlock->SetNonce(GetRand(SysCfg().GetBlockMaxNonce()));
@@ -160,8 +164,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
     pBlock->SetTime(currentTime);
 
     vector<unsigned char> signature;
-    if (pWalletMain->Sign(delegate.keyid, pBlock->ComputeSignatureHash(),
-                        signature, delegate.miner_pubkey.IsValid())) {
+    if (pWalletMain->Sign(delegate.keyid, pBlock->ComputeSignatureHash(), signature, delegate.miner_pubkey.IsValid())) {
         pBlock->SetSignature(signature);
         return true;
     } else {
@@ -261,7 +264,6 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
             if (spCW->txCache.HaveTx(pBaseTx->GetHash()))
                 return ERRORMSG("VerifyPosTx() : duplicate transaction, txid=%s", pBaseTx->GetHash().GetHex());
 
-            spCW->txUndo.Clear();  // Clear first.
             CValidationState state;
             if (!pBaseTx->ExecuteTx(pBlock->GetHeight(), i, *spCW, state)) {
                 if (SysCfg().IsLogFailures()) {
@@ -299,7 +301,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
     if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R1) { // pre-stablecoin release
         pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
     } else {  //stablecoin release
-        pBlock->vptx.push_back(std::make_shared<CMultiCoinBlockRewardTx>());
+        pBlock->vptx.push_back(std::make_shared<CUCoinBlockRewardTx>());
         pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>());
     }
 
@@ -409,7 +411,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
 
         // TODO: Fees
         // assert(nTotalFees >= nTotalFuel);
-        // TODO: CMultiCoinBlockRewardTx
+        // TODO: CUCoinBlockRewardTx
         ((CBlockRewardTx *)pBlock->vptx[0].get())->rewardValue = nTotalFees - nTotalFuel;
 
         if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R2) { // stablecoin release
@@ -550,8 +552,9 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
             nLastTime = GetTimeMillis();
-            CheckWork(pBlock, *pWallet);
-            LogPrint("MINER", "MineBlock() : check work used %s ms\n", GetTimeMillis() - nLastTime);
+            success   = CheckWork(pBlock, *pWallet);
+            LogPrint("MINER", "MineBlock() : %s to check work, used %s ms\n", success ? "succeed" : "failed",
+                     GetTimeMillis() - nLastTime);
 
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
@@ -609,6 +612,8 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
         SetMinerStatus(true);
 
         while (true) {
+            boost::this_thread::interruption_point();
+
             if (SysCfg().NetworkID() != REGTEST_NET) {
                 // Busy-wait for the network to come online so we don't waste time mining
                 // on an obsolete chain. In regtest mode we expect to fly solo.
@@ -635,7 +640,6 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
                               : CreateNewBlock(*spCW);
             if (!pBlock.get()) {
                 throw runtime_error("CoinMiner() : failed to create new block");
-
             } else {
                 LogPrint("MINER", "CoinMiner() : succeed to create new block, contain %s transactions, used %s ms\n",
                          pBlock->vptx.size(), GetTimeMillis() - nLastTime);

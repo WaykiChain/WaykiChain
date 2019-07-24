@@ -100,31 +100,7 @@ void CTxMemCache::SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache)
 
 string CTxUndo::ToString() const {
     string str;
-    string strTxid("txid:");
-    strTxid += txid.GetHex();
-
-    str += strTxid + "\n";
-
-    string strAccountLog("list account log:");
-    for (auto iterLog : accountLogs) {
-        strAccountLog += iterLog.ToString();
-        strAccountLog += ";";
-    }
-
-    str += strAccountLog + "\n";
-
-    str += "list db log:" + dbOpLogMap.ToString();
-
+    str += "txid:" + txid.GetHex() + "\n";
+    str += "db_op_log_map:" + dbOpLogMap.ToString();
     return str;
-}
-
-bool CTxUndo::GetAccountLog(const CKeyID &keyId, CAccount &accountLog) {
-    for (auto iterLog : accountLogs) {
-        if (iterLog.keyid == keyId) {
-            accountLog = iterLog;
-            return true;
-        }
-    }
-
-    return false;
 }

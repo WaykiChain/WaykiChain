@@ -135,25 +135,6 @@ namespace db_util {
     }
 };
 
-class CDBCountValue {
-public:
-    int64_t value;
-public:
-    CDBCountValue(): value(0) {}
-
-    bool IsEmpty() const {
-        return value == 0;
-    }
-
-    void SetEmpty() {
-        value = 0;
-    }
-
-    inline bool IsValid() { return value >= 0; };
-
-    IMPLEMENT_SERIALIZE( READWRITE(value); )
-};
-
 class CDBAccess {
 public:
     CDBAccess(DBNameType dbNameTypeIn, size_t nCacheSize, bool fMemory, bool fWipe) :
@@ -257,47 +238,6 @@ public:
         for (; pCursor->Valid(); pCursor->Next()) {
             leveldb::Slice slKey = pCursor->key();
             if (!dbk::ParseDbKey(slKey, prefixType, key) || key.find(prefix, 0) != 0) {
-                break;
-            }
-
-            if (expiredKeys.count(key)) {
-                continue;
-            } else if (elements.count(key)) {
-                // skip it if the element existed in memory cache(upper level cache)
-                continue;
-            } else {
-                // Got an valid element.
-                leveldb::Slice slValue = pCursor->value();
-                CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-                ds >> value;
-                auto ret = elements.emplace(key, value);
-                assert(ret.second);  // TODO: throw error
-            }
-        }
-
-        delete pCursor;
-
-        return true;
-    }
-
-    // map<std::pair<string, uint256>, ValueType>
-    template <typename ValueType>
-    bool GetAllElements(const dbk::PrefixType prefixType, const string &prefix,
-                        set<std::pair<string, uint256>> &expiredKeys,
-                        map<std::pair<string, uint256>, ValueType> &elements) {
-        std::pair<string, uint256> key;
-        ValueType value;
-        leveldb::Iterator *pCursor = db.NewIterator();
-
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-        const string &keyPrefix = dbk::GetKeyPrefix(prefixType);
-        ssKey.write(keyPrefix.c_str(), keyPrefix.size());
-        ssKey << prefix;  // write the prefix
-        pCursor->Seek(ssKey.str());
-
-        for (; pCursor->Valid(); pCursor->Next()) {
-            leveldb::Slice slKey = pCursor->key();
-            if (!dbk::ParseDbKey(slKey, prefixType, key) || std::get<0>(key) != prefix) {
                 break;
             }
 
@@ -438,7 +378,7 @@ private:
 };
 
 template<int PREFIX_TYPE_VALUE, typename KeyType, typename ValueType>
-class CCompositKVCache {
+class CCompositeKVCache {
 public:
     static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
 public:
@@ -448,24 +388,28 @@ public:
     /**
      * Default constructor, must use set base to initialize before using.
      */
-    CCompositKVCache(): pBase(nullptr), pDbAccess(nullptr) {};
+    CCompositeKVCache(): pBase(nullptr), pDbAccess(nullptr) {};
 
-    CCompositKVCache(CCompositKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn): pBase(pBaseIn),
+    CCompositeKVCache(CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn): pBase(pBaseIn),
         pDbAccess(nullptr) {
         assert(pBaseIn != nullptr);
     };
 
-    CCompositKVCache(CDBAccess *pDbAccessIn): pBase(nullptr),
+    CCompositeKVCache(CDBAccess *pDbAccessIn): pBase(nullptr),
         pDbAccess(pDbAccessIn) {
         assert(pDbAccessIn != nullptr);
         assert(pDbAccess->GetDbNameType() == GetDbNameEnumByPrefix(PREFIX_TYPE));
     };
 
-    void SetBase(CCompositKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn) {
+    void SetBase(CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn) {
         assert(pDbAccess == nullptr);
         assert(mapData.empty());
         pBase = pBaseIn;
     };
+
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        pDbOpLogMap = pDbOpLogMapIn;
+    }
 
     uint32_t GetCacheSize() const {
         return ::GetSerializeSize(mapData, SER_DISK, CLIENT_VERSION);
@@ -495,17 +439,6 @@ public:
     // map<string, ValueType>
     bool GetAllElements(const string &prefix, map<string, ValueType> &elements) {
         set<string> expiredKeys;
-        if (!GetAllElements(prefix, expiredKeys, elements)) {
-            // TODO: log
-            return false;
-        }
-
-        return true;
-    }
-
-    // map<std::pair<string, uint256>, ValueType>
-    bool GetAllElements(const string &prefix, map<std::pair<string, uint256>, ValueType> &elements) {
-        set<std::pair<string, uint256>> expiredKeys;
         if (!GetAllElements(prefix, expiredKeys, elements)) {
             // TODO: log
             return false;
@@ -551,7 +484,15 @@ public:
         if (db_util::IsEmpty(key)) {
             return false;
         }
-        mapData[key] = value;
+        auto it = GetDataIt(key);
+        if (it == mapData.end()) {
+            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
+            auto newRet = mapData.emplace(key, *emptyValue); // create new empty value
+            assert(newRet.second); // TODO: if false then throw error
+            it = newRet.first;
+        }
+        AddOpLog(key, it->second);
+        it->second = value;
         return true;
     };
 
@@ -595,6 +536,7 @@ public:
         }
         Iterator it = GetDataIt(key);
         if (it != mapData.end() && !db_util::IsEmpty(it->second)) {
+            AddOpLog(key, it->second);
             db_util::SetEmpty(it->second);
         }
         return true;
@@ -653,9 +595,22 @@ public:
         return true;
     }
 
+    bool UndoDatas() {
+        if (pDbOpLogMap != nullptr){
+            const CDbOpLogs *dbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
+            if (dbOpLogs != nullptr) {
+                for (auto &dbOpLog : *dbOpLogs) {
+                    if (!UndoData(dbOpLog)) return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
     bool UndoData(CDBOpLogMap &dbOpLogMap) {
-        CDbOpLogs &dbOpLogs = dbOpLogMap.GetDbOpLogs(PREFIX_TYPE);
-        for (auto &dbOpLog : dbOpLogs) {
+        const CDbOpLogs *dbOpLogs = dbOpLogMap.GetDbOpLogsPtr(PREFIX_TYPE);
+        for (auto &dbOpLog : *dbOpLogs) {
             if (!UndoData(dbOpLog)) return false;
         }
         return true;
@@ -756,40 +711,6 @@ private:
         return true;
     }
 
-    // map<std::pair<string, uint256>, ValueType>
-    bool GetAllElements(const string &prefix, set<std::pair<string, uint256>> &expiredKeys,
-                        map<std::pair<string, uint256>, ValueType> &elements) {
-        if (!mapData.empty()) {
-            // Tips: the final prefix is consist of std::pair<prefix, uint256()>.
-            auto boundary = mapData.upper_bound(std::make_pair(prefix, uint256()));
-
-            if (boundary != mapData.end()) {
-                for (auto iter = boundary; iter != mapData.end(); ++ iter) {
-                    if (db_util::IsEmpty(iter->second)) {
-                        expiredKeys.insert(iter->first);
-                    } else if (expiredKeys.count(iter->first) || elements.count(iter->first)) {
-                        // TODO: log
-                        continue;
-                    } else if (std::get<0>(iter->first) != prefix) {
-                        // break the loop if prefix does not match.
-                        break;
-                    } else {
-                        // Got a valid element.
-                        elements.emplace(iter->first, iter->second);
-                    }
-                }
-            }
-        }
-
-        if (pBase != nullptr) {
-            return pBase->GetAllElements(prefix, expiredKeys, elements);
-        } else if (pDbAccess != nullptr) {
-            return pDbAccess->GetAllElements(PREFIX_TYPE, prefix, expiredKeys, elements);
-        }
-
-        return true;
-    }
-
     // map<std::pair<string, string>, ValueType>
     bool GetAllElements(const string &prefix, set<std::pair<string, string>> &expiredKeys,
                         map<std::pair<string, string>, ValueType> &elements) {
@@ -848,10 +769,19 @@ private:
         return true;
     }
 
+    inline void AddOpLog(const KeyType &key, const ValueType &oldValue) {
+        if (pDbOpLogMap != nullptr) {
+            CDbOpLog dbOpLog;
+            dbOpLog.Set(key, oldValue);
+            pDbOpLogMap->AddOpLog(PREFIX_TYPE, dbOpLog);
+        }
+
+    }
 private:
-    mutable CCompositKVCache<PREFIX_TYPE, KeyType, ValueType> *pBase;
+    mutable CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> *pBase;
     CDBAccess *pDbAccess;
     mutable map<KeyType, ValueType> mapData;
+    CDBOpLogMap *pDbOpLogMap = nullptr;
 };
 
 
@@ -881,6 +811,10 @@ public:
         pBase = pBaseIn;
     };
 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        pDbOpLogMap = pDbOpLogMapIn;
+    }
+
     uint32_t GetCacheSize() const {
         return ::GetSerializeSize(*ptrData, SER_DISK, CLIENT_VERSION);
     }
@@ -896,8 +830,10 @@ public:
 
     bool SetData(const ValueType &value) {
         if (ptrData) {
+            AddOpLog(*ptrData);
             *ptrData = value;
         } else {
+            AddOpLog(*(db_util::MakeEmptyValue<ValueType>()));
             ptrData = std::make_shared<ValueType>(value);
         }
         return true;
@@ -933,6 +869,7 @@ public:
     bool EraseData() {
         auto ptr = GetDataPtr();
         if (ptr && !db_util::IsEmpty(*ptr)) {
+            AddOpLog(*ptr);
             db_util::SetEmpty(*ptr);
         }
         return true;
@@ -987,6 +924,20 @@ public:
         dbOpLog.Get(*ptrData);
     }
 
+    bool UndoDatas() {
+        if (pDbOpLogMap != nullptr){
+            const CDbOpLogs *dbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
+            if (dbOpLogs != nullptr) {
+                // TODO: rbegin()
+                for (auto &dbOpLog : *dbOpLogs) {
+                    UndoData(dbOpLog);
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
     dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
 
 private:
@@ -1012,10 +963,20 @@ private:
         }
         return nullptr;
     };
+
+    inline void AddOpLog(const ValueType &oldValue) {
+        if (pDbOpLogMap != nullptr) {
+            CDbOpLog dbOpLog;
+            dbOpLog.Set(oldValue);
+            pDbOpLogMap->AddOpLog(PREFIX_TYPE, dbOpLog);
+        }
+
+    }
 private:
     mutable CSimpleKVCache<PREFIX_TYPE, ValueType> *pBase;
     CDBAccess *pDbAccess;
     mutable std::shared_ptr<ValueType> ptrData;
+    CDBOpLogMap *pDbOpLogMap = nullptr;
 };
 
 #endif  // PERSIST_DB_ACCESS_H

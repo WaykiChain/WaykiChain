@@ -16,7 +16,7 @@ class CUserCDP;
  *  ==> ratio = a / Log10 (b+N)
  */
 bool ComputeCdpInterest(const int32_t currBlockHeight, const uint32_t cpdLastBlockHeight, CCacheWrapper &cw,
-                        const uint64_t &totalOwedScoins, uint64_t &interest);
+                        const uint64_t &total_owed_scoins, uint64_t &interest);
 
 /**
  * Stake or ReStake bcoins into a CDP
@@ -86,8 +86,6 @@ public:
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-    virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-
 private:
     bool SellInterestForFcoins(const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state);
 
@@ -159,8 +157,6 @@ public:
 
     virtual bool CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-    virtual bool UndoExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-
 private:
     bool SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
@@ -183,17 +179,15 @@ public:
     }
 
     CCDPLiquidateTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
-                CRegID &cdpOwnerRegIdIn, uint256 cdpTxIdIn, uint64_t scoinsToLiquidateIn, uint64_t scoinsPenaltyIn):
+                    uint256 cdpTxIdIn, uint64_t scoinsToLiquidateIn):
                 CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, feesIn) {
 
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
-        cdpOwnerRegId = cdpOwnerRegIdIn;
-        cdpTxId = cdpTxIdIn;
-        scoinsToLiquidate = scoinsToLiquidateIn;
-        scoinsPenalty = scoinsPenaltyIn;
+        cdpTxId             = cdpTxIdIn;
+        scoinsToLiquidate   = scoinsToLiquidateIn;
     }
 
     ~CCDPLiquidateTx() {}
@@ -205,10 +199,8 @@ public:
         READWRITE(txUid);
         READWRITE(VARINT(llFees));
 
-        READWRITE(cdpOwnerRegId);
         READWRITE(cdpTxId);
         READWRITE(scoinsToLiquidate);
-        READWRITE(VARINT(scoinsPenalty));
 
         READWRITE(signature);
     )
@@ -217,7 +209,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << cdpOwnerRegId << cdpTxId << VARINT(scoinsToLiquidate) << VARINT(scoinsPenalty);
+                << cdpTxId << VARINT(scoinsToLiquidate);
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -236,16 +228,14 @@ public:
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
-    virtual bool UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    bool SellPenaltyForFcoins(uint64_t scoinPenaltyFees, const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
+    bool SellPenaltyForFcoins(uint64_t scoinPenaltyFees, const int nHeight,
+                            const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    CRegID      cdpOwnerRegId;      // CDP Owner RegID
     uint256     cdpTxId;            // target CDP to liquidate
-    uint64_t    scoinsToLiquidate;  // partial liquidation is allowed
-    uint64_t    scoinsPenalty;      // penalty fees in stablecoin (WUSD)
+    uint64_t    scoinsToLiquidate;  // partial liquidation is allowed, must include penalty fees in
 };
 
 #endif //TX_CDP_H

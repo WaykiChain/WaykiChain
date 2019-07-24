@@ -394,7 +394,7 @@ uint64_t G_CONFIG_TABLE::nFixedSubsidy = 1;
 // Block height to enable feature fork version
 uint32_t G_CONFIG_TABLE::nFeatureForkHeight_mainNet = 6000000;
 uint32_t G_CONFIG_TABLE::nFeatureForkHeight_testNet = 1000000;
-uint32_t G_CONFIG_TABLE::nFeatureForkHeight_regNet  = 100000;
+uint32_t G_CONFIG_TABLE::nFeatureForkHeight_regNet  = 100;
 
 // Block height for stable coin genesis
 uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight_mainNet = 5880000;

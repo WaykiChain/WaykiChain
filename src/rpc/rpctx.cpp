@@ -289,7 +289,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid app regid");
     }
 
-    if (!pCdMan->pContractCache->HaveContractScript(recvRegId)) {
+    if (!pCdMan->pContractCache->HaveContract(recvRegId)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
     }
 
@@ -440,7 +440,7 @@ Value registercontracttx(const Array& params, bool fHelp)
         pCdMan->pAccountCache->GetRegId(keyId, regId);
 
         tx.txUid          = regId;
-        tx.contractScript = contractScript;
+        tx.contract_code  = contractScript;
         tx.llFees         = fee;
         tx.nRunStep       = contractScript.size();
         if (0 == height) {
@@ -1060,7 +1060,7 @@ Value listcontracttx(const Array& params, bool fHelp)
         throw runtime_error("in listcontracttx: contractRegId size error!\n");
     }
 
-    if (!pCdMan->pContractCache->HaveContractScript(regId)) {
+    if (!pCdMan->pContractCache->HaveContract(regId)) {
         throw runtime_error("in listcontracttx: contractRegId does not exist!\n");
     }
 
@@ -1284,7 +1284,7 @@ static Value AccountLogToJson(const CAccount &accoutLog) {
     obj.push_back(Pair("keyid", accoutLog.keyid.ToString()));
     obj.push_back(Pair("free_bcoins", accoutLog.GetToken("WICC").free_amount));
     // Array array;
-    // for (auto const& te : accoutLog.vRewardFund) {
+    // for (auto const& te : account.vRewardFund) {
     //     Object obj2;
     //     obj2.push_back(Pair("value", te.value));
     //     obj2.push_back(Pair("nHeight", te.nHeight));
@@ -1315,15 +1315,16 @@ Value gettxoperationlog(const Array& params, bool fHelp) {
     vector<CAccount> vLog;
     Object retobj;
     retobj.push_back(Pair("txid", txid.GetHex()));
+    // TODO: improve the tx oper log
     if (!GetTxOperLog(txid, vLog))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "error hash");
     {
         Array arrayvLog;
-        for (auto const &te : vLog) {
+        for (auto const &account : vLog) {
             Object obj;
-            obj.push_back(Pair("addr", te.keyid.ToAddress()));
+            obj.push_back(Pair("addr", account.keyid.ToAddress()));
             Array array;
-            array.push_back(AccountLogToJson(te));
+            array.push_back(account.ToJsonObj());
             arrayvLog.push_back(obj);
         }
         retobj.push_back(Pair("AccountOperLog", arrayvLog));
@@ -1395,19 +1396,18 @@ Value listcontracts(const Array& params, bool fHelp) {
     bool showDetail = false;
     showDetail      = params[0].get_bool();
 
-    map<string /* CRegID */, string /* Contract Script */> contractScripts;
-    if (!pCdMan->pContractCache->GetContractScripts(contractScripts)) {
+    map<CRegID, CContract> contracts;
+    if (!pCdMan->pContractCache->GetContracts(contracts)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contract scripts.");
     }
 
     Object obj;
     Array scriptArray;
-    for (const auto item : contractScripts) {
+    for (const auto item : contracts) {
         Object scriptObject;
-        scriptObject.push_back(
-            Pair("contract_regid", CRegID(UnsignedCharArray(item.first.begin(), item.first.end())).ToString()));
+        scriptObject.push_back( Pair("contract_regid", item.first.ToString()) );
 
-        CDataStream ds(item.second, SER_DISK, CLIENT_VERSION);
+        CDataStream ds(item.second.contract_code, SER_DISK, CLIENT_VERSION);
         CVmScript vmScript;
         ds >> vmScript;
         scriptObject.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
@@ -1419,7 +1419,7 @@ Value listcontracts(const Array& params, bool fHelp) {
         scriptArray.push_back(scriptObject);
     }
 
-    obj.push_back(Pair("count", contractScripts.size()));
+    obj.push_back(Pair("count", contracts.size()));
     obj.push_back(Pair("contracts", scriptArray));
 
     return obj;
@@ -1443,18 +1443,19 @@ Value getcontractinfo(const Array& params, bool fHelp) {
         throw runtime_error("in getcontractinfo: contract regid size invalid!\n");
     }
 
-    if (!pCdMan->pContractCache->HaveContractScript(regId)) {
+    if (!pCdMan->pContractCache->HaveContract(regId)) {
         throw runtime_error("in getcontractinfo: contract regid not exist!\n");
     }
 
-    string contractScript;
-    if (!pCdMan->pContractCache->GetContractScript(regId, contractScript)) {
+    CContract contract;
+    map<CRegID, CContract> contracts;
+    if (!pCdMan->pContractCache->GetContracts(contracts)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "get script error: cannot get registered script.");
     }
 
     Object obj;
     obj.push_back(Pair("contract_regid", regId.ToString()));
-    CDataStream ds(contractScript, SER_DISK, CLIENT_VERSION);
+    CDataStream ds(contract.contract_code, SER_DISK, CLIENT_VERSION);
     CVmScript vmScript;
     ds >> vmScript;
     obj.push_back(Pair("contract_memo", HexStr(vmScript.GetMemo())));
@@ -1819,7 +1820,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid app regid");
     }
 
-    if (!pCdMan->pContractCache->HaveContractScript(recvRegId)) {
+    if (!pCdMan->pContractCache->HaveContract(recvRegId)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
     }
 
@@ -1939,7 +1940,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
     pCdMan->pAccountCache->GetRegId(keyId, regId);
 
     tx.get()->txUid          = regId;
-    tx.get()->contractScript = contractScript;
+    tx.get()->contract_code  = contractScript;
     tx.get()->llFees         = fee;
 
     uint32_t height = chainActive.Tip()->nHeight;
@@ -2643,7 +2644,7 @@ Value gettotalassets(const Array& params, bool fHelp) {
     if (regId.IsEmpty() == true)
         throw runtime_error("contract regid invalid!\n");
 
-    if (!pCdMan->pContractCache->HaveContractScript(regId))
+    if (!pCdMan->pContractCache->HaveContract(regId))
         throw runtime_error("contract regid not exist!\n");
 
     Object obj;

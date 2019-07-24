@@ -280,7 +280,7 @@ public:
 		}
 
 		CContractDBCache contractScriptTemp(*pScriptDBTip, true);
-		if (!contractScriptTemp.HaveContractScript(regid)) {
+		if (!contractScriptTemp.HaveContract(regid)) {
 			return false;
 		}
 
@@ -326,7 +326,7 @@ public:
 				return false;
 			}
 			CContractDBCache contractScriptTemp(*pScriptDBTip, true);
-			if (!contractScriptTemp.HaveContractScript(regid)) {
+			if (!contractScriptTemp.HaveContract(regid)) {
 				return false;
 			}
 			vector<unsigned char> value;

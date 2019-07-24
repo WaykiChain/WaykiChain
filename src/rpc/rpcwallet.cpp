@@ -476,7 +476,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Wallet has no key!");
         }
         bool sufficientFee = false;
-        for (auto& keyId : sKeyIds) {
+        for (auto keyId : sKeyIds) {
             if (keyId != recvKeyId &&
                 (pCdMan->pAccountCache->GetAccountFreeAmount(keyId) >= nAmount + nDefaultFee)) {
                 sendKeyId     = keyId;
@@ -822,7 +822,7 @@ Value getassets(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract regid");
     }
 
-    if (!pCdMan->pContractCache->HaveContractScript(regid)) {
+    if (!pCdMan->pContractCache->HaveContract(regid)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to find contract");
     }
 

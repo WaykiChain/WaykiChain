@@ -24,7 +24,6 @@ class CVmOperate;
 class CKeyID;
 class CRegID;
 class CAccount;
-class CAccount;
 class CContractDB;
 struct CDiskTxPos;
 
@@ -53,22 +52,19 @@ public:
         contractAccountCache(pBaseIn->contractAccountCache) {};
 
     bool GetContractAccount(const CRegID &contractRegId, const string &accountKey, CAppUserAccount &appAccOut);
-    bool SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn, CDBOpLogMap &dbOpLogMap);
-    bool UndoContractAccount(CDBOpLogMap &dbOpLogMap);
+    bool SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn);
 
     bool GetContract(const CRegID &contractRegId, CContract &contract);
     bool SaveContract(const CRegID &contractRegId, const CContract &contract);
-    bool HaveContractt(const CRegID &contractRegId);
+    bool HaveContract(const CRegID &contractRegId);
     bool EraseContract(const CRegID &contractRegId);
 
     bool GetContractData(const CRegID &contractRegId, const string &contractKey, string &contractData);
-    bool SetContractData(const CRegID &contractRegId, const string &contractKey, const string &contractData,
-                         CDBOpLogMap &dbOpLogMap);
+    bool SetContractData(const CRegID &contractRegId, const string &contractKey, const string &contractData);
     bool HaveContractData(const CRegID &contractRegId, const string &contractKey);
-    bool EraseContractData(const CRegID &contractRegId, const string &contractKey, CDBOpLogMap &dbOpLogMap);
-    bool UndoContractData(CDBOpLogMap &dbOpLogMap);
+    bool EraseContractData(const CRegID &contractRegId, const string &contractKey);
 
-    bool GetContractScripts(map<string, string> &contractScript);
+    bool GetContracts(map<CRegID, CContract> &contracts);
     // Usage: acquire all data related to the specific contract.
     bool GetContractData(const CRegID &contractRegId, vector<std::pair<string, string>> &contractData);
 
@@ -80,14 +76,13 @@ public:
     uint32_t GetCacheSize() const;
 
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list, CDBOpLogMap &dbOpLogMap);
-    bool WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput, CDBOpLogMap &dbOpLogMap);
+    bool SetTxIndex(const uint256 &txid, const CDiskTxPos &pos);
+    bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list);
+    bool WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput);
     bool GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOutput);
-    bool UndoTxOutput(CDBOpLogMap &dbOpLogMap);
 
     bool GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string > &mapTxHash);
-    bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid, CDBOpLogMap &dbOpLogMap);
-    bool UndoTxHashByAddress(CDBOpLogMap &dbOpLogMap);
+    bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid);
     bool GetContractAccounts(const CRegID &contractRegId, map<string, string > &mapAcc);
 
     void SetBaseViewPtr(CContractDBCache *pBaseIn) {
@@ -100,24 +95,43 @@ public:
         contractAccountCache.SetBase(&pBaseIn->contractAccountCache);
     };
 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        contractCache.SetDbOpLogMap(pDbOpLogMapIn);
+        txOutputCache.SetDbOpLogMap(pDbOpLogMapIn);
+        acctTxListCache.SetDbOpLogMap(pDbOpLogMapIn);
+        txDiskPosCache.SetDbOpLogMap(pDbOpLogMapIn);
+        contractRelatedKidCache.SetDbOpLogMap(pDbOpLogMapIn);
+        contractDataCache.SetDbOpLogMap(pDbOpLogMapIn);
+        contractAccountCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    bool UndoDatas() {
+        return contractCache.UndoDatas() &&
+               txOutputCache.UndoDatas() &&
+               acctTxListCache.UndoDatas() &&
+               txDiskPosCache.UndoDatas() &&
+               contractRelatedKidCache.UndoDatas() &&
+               contractDataCache.UndoDatas() &&
+               contractAccountCache.UndoDatas();
+    }
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// ContractDB
     // contractRegId -> Contract
-    CCompositKVCache< dbk::CONTRACT_DEF,         CRegID,                   CContract >             contractCache;
+    CCompositeKVCache< dbk::CONTRACT_DEF,         CRegID,                   CContract >             contractCache;
     // txId -> vector<CVmOperate>
-    CCompositKVCache< dbk::CONTRACT_TX_OUT,      uint256,                  vector<CVmOperate> >   txOutputCache;
+    CCompositeKVCache< dbk::CONTRACT_TX_OUT,      uint256,                  vector<CVmOperate> >   txOutputCache;
     // keyId, height, index -> txid
-    CCompositKVCache< dbk::LIST_KEYID_TX,        tuple<CKeyID, uint32_t, uint32_t>,  uint256 >    acctTxListCache;
+    CCompositeKVCache< dbk::LIST_KEYID_TX,        tuple<CKeyID, uint32_t, uint32_t>,  uint256 >    acctTxListCache;
     // txId -> DiskTxPos
-    CCompositKVCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;
+    CCompositeKVCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;
     // contractTxId -> relatedAccounts
-    CCompositKVCache< dbk::CONTRACT_RELATED_KID, uint256,                  set<CKeyID> >          contractRelatedKidCache;
+    CCompositeKVCache< dbk::CONTRACT_RELATED_KID, uint256,                  set<CKeyID> >          contractRelatedKidCache;
     // pair<contractRegId, contractKey> -> scriptData
-    CCompositKVCache< dbk::CONTRACT_DATA,        pair<string, string>,     string >               contractDataCache;
+    CCompositeKVCache< dbk::CONTRACT_DATA,        pair<string, string>,     string >               contractDataCache;
     // pair<contractRegId, accountKey> -> appUserAccount
-    CCompositKVCache< dbk::CONTRACT_ACCOUNT,     pair<string, string>,     CAppUserAccount >      contractAccountCache;
+    CCompositeKVCache< dbk::CONTRACT_ACCOUNT,     pair<string, string>,     CAppUserAccount >      contractAccountCache;
 };
 
 #endif  // PERSIST_CONTRACTDB_H

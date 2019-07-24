@@ -32,11 +32,8 @@ public:
     bool SetDelegateVotes(const CRegID &regId, const uint64_t votes);
     bool EraseDelegateVotes(const CRegID &regId, const uint64_t votes);
 
-    bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes,
-                           CDBOpLogMap &dbOpLogMap);
+    bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes);
     bool GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes);
-    bool UndoCandidateVotes(CDBOpLogMap &dbOpLogMap);
-
 
     bool Flush();
     uint32_t GetCacheSize() const;
@@ -47,12 +44,21 @@ public:
         regId2VoteCache.SetBase(&pBaseIn->regId2VoteCache);
     };
 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        voteRegIdCache.SetDbOpLogMap(pDbOpLogMapIn);
+        regId2VoteCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    bool UndoDatas() {
+        return voteRegIdCache.UndoDatas() &&
+               regId2VoteCache.UndoDatas();
+    }
 private:
 /*  CSimpleKVCache  prefixType     key                         value                   variable       */
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */
     // vote{(uint64t)MAX - $votedBcoins}{$RegId} -> 1
-    CCompositKVCache<dbk::VOTE,       std::pair<string, string>,  uint8_t>                voteRegIdCache;
-    CCompositKVCache<dbk::REGID_VOTE, string/* CRegID */,         vector<CCandidateVote>> regId2VoteCache;
+    CCompositeKVCache<dbk::VOTE,       std::pair<string, string>,  uint8_t>                voteRegIdCache;
+    CCompositeKVCache<dbk::REGID_VOTE, string/* CRegID */,         vector<CCandidateVote>> regId2VoteCache;
 
     vector<CRegID> delegateRegIds;
 };

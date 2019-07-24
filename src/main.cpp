@@ -452,11 +452,6 @@ bool IsStandardTx(CBaseTx *pBaseTx, string &reason) {
     return true;
 }
 
-bool IsFinalTx(CBaseTx *ptx, int nBlockHeight, int64_t nBlockTime) {
-    AssertLockHeld(cs_main);
-    return true;
-}
-
 bool VerifySignature(const uint256 &sigHash, const std::vector<unsigned char> &signature, const CPubKey &pubKey) {
     if (signatureCache.Get(sigHash, signature, pubKey))
         return true;
@@ -468,12 +463,12 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<unsigned char> &s
     return true;
 }
 
-bool CheckTx(int nHeight, CBaseTx *ptx, CCacheWrapper &cw, CValidationState &state) {
-    if (BLOCK_REWARD_TX == ptx->nTxType || BLOCK_PRICE_MEDIAN_TX == ptx->nTxType) {
+bool CheckTx(int nHeight, CBaseTx *pTx, CCacheWrapper &cw, CValidationState &state) {
+    if (BLOCK_REWARD_TX == pTx->nTxType || UCOIN_BLOCK_REWARD_TX == pTx->nTxType) {
         return true;
     }
 
-    return (ptx->CheckTx(nHeight, cw, state));
+    return (pTx->CheckTx(nHeight, cw, state));
 }
 
 int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree) {
@@ -1060,7 +1055,11 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
 
     if ((blockUndo.vtxundo.size() != block.vptx.size()) && (blockUndo.vtxundo.size() != (block.vptx.size() + 1)))
         return ERRORMSG("DisconnectBlock() : block and undo data inconsistent");
+    if(!cw.UndoDatas(blockUndo)) {
+        return ERRORMSG("DisconnectBlock() : Undo tx datas in block failed");
+    }
 
+    /* TODO: delete
     if (pIndex->nHeight > COINBASE_MATURITY) {
         // Undo mature reward tx
         CTxUndo txUndo = blockUndo.vtxundo.back();
@@ -1096,6 +1095,8 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
             return false;
         }
     }
+    */
+
     // Set previous block as the best block
     cw.accountCache.SetBestBlock(pIndex->pprev->GetBlockHash());
 
@@ -1280,10 +1281,19 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             voterAcct.OperateBalance("WICC", BalanceOpType::STAKE, maxVotes);
             cw.accountCache.SaveAccount(voterAcct);
             assert(cw.delegateCache.SetCandidateVotes(pDelegateTx->txUid.get<CRegID>(),
-                                                      candidateVotes, cw.txUndo.dbOpLogMap));
+                                                      candidateVotes));
         }
     }
 
+    return true;
+}
+
+bool SaveTxIndex(CBaseTx &baseTx, CCacheWrapper &cw, CValidationState &state, CDiskTxPos &diskTxPos) {
+    if (SysCfg().IsTxIndex()) {
+        // TODO: should move to blockTxCache?
+        if (!cw.contractCache.SetTxIndex(baseTx.GetHash(), diskTxPos))
+            return state.Abort(_("Failed to write transaction index"));
+    }
     return true;
 }
 
@@ -1334,11 +1344,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     CBlockUndo blockUndo;
     int64_t nStart = GetTimeMicros();
     CDiskTxPos pos(pIndex->GetBlockPos(), GetSizeOfCompactSize(block.vptx.size()));
-    std::vector<pair<uint256, CDiskTxPos> > vPos;
-    vPos.reserve(block.vptx.size());
-
-    // Push block reward transaction undo data's position.
-    vPos.push_back(make_pair(block.GetTxid(0), pos));
+    CDiskTxPos rewardPos = pos;
     pos.nTxOffset += ::GetSerializeSize(block.vptx[0], SER_DISK, CLIENT_VERSION);
 
     LogPrint("op_account", "block height:%d block hash:%s\n", block.GetHeight(), block.GetHash().GetHex());
@@ -1358,16 +1364,21 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             LogPrint("op_account", "tx index:%d tx hash:%s\n", i, pBaseTx->GetHash().GetHex());
             pBaseTx->nFuelRate = block.GetFuelRate();
-
-            cw.txUndo.Clear();  // Clear first.
+            cw.EnableTxUndoLog(pBaseTx->GetHash());
             if (!pBaseTx->ExecuteTx(pIndex->nHeight, i, cw, state)) {
                 if (SysCfg().IsLogFailures()) {
                     pCdMan->pLogCache->SetExecuteFail(pIndex->nHeight, pBaseTx->GetHash(), state.GetRejectCode(),
                                                       state.GetRejectReason());
                 }
-
+                cw.DisableTxUndoLog();
                 return false;
             }
+            if (!SaveTxIndex(*block.vptx[0], cw, state, pos)) {
+                cw.DisableTxUndoLog();
+                return false;
+            }
+            blockUndo.vtxundo.push_back(cw.txUndo);
+            cw.DisableTxUndoLog();
 
             nTotalRunStep += pBaseTx->nRunStep;
             if (nTotalRunStep > MAX_BLOCK_RUN_STEP)
@@ -1382,15 +1393,14 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             nTotalFuel += llFuel;
             LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n",
                      nTotalFuel, llFuel, pBaseTx->nRunStep, block.GetFuelRate(), pBaseTx->GetHash().GetHex());
-            vPos.push_back(make_pair(block.GetTxid(i), pos));
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
-            blockUndo.vtxundo.push_back(cw.txUndo);
         }
 
-        if (nTotalFuel != block.GetFuel())
-            return ERRORMSG("fuel value at block header calculate error(actual fuel:%ld vs block fuel:%ld)",
-                            nTotalFuel, block.GetFuel());
     }
+
+    if (nTotalFuel != block.GetFuel())
+        return ERRORMSG("fuel value at block header calculate error(actual fuel:%ld vs block fuel:%ld)",
+                        nTotalFuel, block.GetFuel());
 
     // Verify reward value
     CAccount delegateAccount;
@@ -1409,7 +1419,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
         // }
     } else if (block.vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
-        auto pRewardTx = (CMultiCoinBlockRewardTx *)block.vptx[0].get();
+        auto pRewardTx = (CUCoinBlockRewardTx *)block.vptx[0].get();
         // TODO:
         // uint64_t llValidReward = block.GetFees() - block.GetFuel();
         // if (pRewardTx->rewardValue != llValidReward) {
@@ -1426,16 +1436,23 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     // Execute block reward transaction
     LogPrint("op_account", "tx index:%d tx hash:%s\n", 0, block.vptx[0]->GetHash().GetHex());
-    cw.txUndo.Clear();  // Clear first
+    cw.EnableTxUndoLog(block.vptx[0]->GetHash());
     if (!block.vptx[0]->ExecuteTx(pIndex->nHeight, 0, cw, state)) {
         if (SysCfg().IsLogFailures()) {
             pCdMan->pLogCache->SetExecuteFail(pIndex->nHeight, block.vptx[0]->GetHash(), state.GetRejectCode(),
                                               state.GetRejectReason());
         }
+        cw.DisableTxUndoLog();
         return ERRORMSG("ConnectBlock() : failed to execute reward transaction");
     }
 
+    if (!SaveTxIndex(*block.vptx[0], cw, state, rewardPos)) {
+        cw.DisableTxUndoLog();
+        return false;
+    }
+
     blockUndo.vtxundo.push_back(cw.txUndo);
+    cw.DisableTxUndoLog();
 
     if (pIndex->nHeight - COINBASE_MATURITY > 0) {
         // Deal mature block reward transaction
@@ -1451,16 +1468,18 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                                 REJECT_INVALID, "bad-read-block");
             }
 
-            cw.txUndo.Clear();  // Clear first
+            cw.EnableTxUndoLog(block.vptx[0]->GetHash());
             if (!matureBlock.vptx[0]->ExecuteTx(pIndex->nHeight, -1, cw, state)) {
                 if (SysCfg().IsLogFailures()) {
                     pCdMan->pLogCache->SetExecuteFail(pIndex->nHeight, matureBlock.vptx[0]->GetHash(),
                                                       state.GetRejectCode(), state.GetRejectReason());
                 }
+                cw.DisableTxUndoLog();
                 return ERRORMSG("ConnectBlock() : execute mature block reward tx error!");
             }
         }
         blockUndo.vtxundo.push_back(cw.txUndo);
+        cw.DisableTxUndoLog();
     }
     int64_t nTime = GetTimeMicros() - nStart;
     if (SysCfg().IsBenchmark())
@@ -1469,16 +1488,6 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     if (fJustCheck)
         return true;
-
-    if (SysCfg().IsTxIndex()) {
-        LogPrint("DEBUG", "add tx index, block hash:%s\n", pIndex->GetBlockHash().GetHex());
-        vector<CDbOpLog> vTxIndexOperDB;
-        auto itTxUndo = blockUndo.vtxundo.rbegin();
-        // TODO: should move to blockTxCache?
-        if (!cw.contractCache.WriteTxIndexes(vPos, itTxUndo->dbOpLogMap))
-            return state.Abort(_("Failed to write transaction index"));
-        // TODO: must undo these oplogs in DisconnectBlock()
-    }
 
     // Write undo information to disk
     if (pIndex->GetUndoPos().IsNull() || (pIndex->nStatus & BLOCK_VALID_MASK) < BLOCK_VALID_SCRIPTS) {
@@ -2060,7 +2069,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
         // }
     } else if (block.vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
-        auto pRewardTx = (CMultiCoinBlockRewardTx *)block.vptx[0].get();
+        auto pRewardTx = (CUCoinBlockRewardTx *)block.vptx[0].get();
         // uint64_t llValidReward = block.GetFees() - block.GetFuel();
         // if (pRewardTx->rewardValue != llValidReward) {
         //     return state.DoS(100, ERRORMSG("ProcessForkedChain() : invalid coinbase reward amount(actual=%d vs valid=%d)",
@@ -2104,10 +2113,9 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
         ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return state.DoS(100, ERRORMSG("CheckBlock() : size limits failed"), REJECT_INVALID, "bad-blk-length");
 
-    if ( (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash())
-            && block.GetVersion() != CBlockHeader::CURRENT_VERSION) {
-        return state.Invalid(ERRORMSG("CheckBlock() : block version error"),
-                            REJECT_INVALID, "block-version-error");
+    if ((block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) &&
+        block.GetVersion() != CBlockHeader::CURRENT_VERSION) {
+        return state.Invalid(ERRORMSG("CheckBlock() : block version error"), REJECT_INVALID, "block-version-error");
     }
 
     // Check timestamp 12 seconds limits
@@ -2131,7 +2139,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
         uniqueTx.insert(block.GetTxid(i));
 
         if (fCheckTx && !CheckTx(block.GetHeight(), block.vptx[i].get(), cw, state))
-            return ERRORMSG("CheckBlock() :tx hash:%s CheckTx failed", block.vptx[i]->GetHash().GetHex());
+            return ERRORMSG("CheckBlock() : CheckTx failed, txid: %s", block.vptx[i]->GetHash().GetHex());
 
         if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {
             if (0 != i && block.vptx[i]->IsCoinBase())
@@ -2140,8 +2148,8 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     }
 
     if (uniqueTx.size() != block.vptx.size())
-        return state.DoS(100, ERRORMSG("CheckBlock() : duplicate transaction"),
-                         REJECT_INVALID, "bad-tx-duplicated", true);
+        return state.DoS(100, ERRORMSG("CheckBlock() : duplicate transaction"), REJECT_INVALID, "bad-tx-duplicated",
+                         true);
 
     // Check merkle root
     if (fCheckMerkleRoot && block.GetMerkleRootHash() != block.vMerkleTree.back())
@@ -2176,7 +2184,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
 
     // Get prev block index
     CBlockIndex *pBlockIndexPrev = nullptr;
-    int nHeight = 0;
+    int32_t nHeight = 0;
     if (block.GetHeight() != 0 || blockHash != SysCfg().GetGenesisBlockHash()) {
         map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(block.GetPrevBlockHash());
         if (mi == mapBlockIndex.end())
@@ -2185,9 +2193,9 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
         pBlockIndexPrev = (*mi).second;
         nHeight = pBlockIndexPrev->nHeight + 1;
 
-        if (block.GetHeight() != (unsigned int) nHeight) {
+        if (block.GetHeight() != (uint32_t)nHeight) {
             return state.DoS(100, ERRORMSG("AcceptBlock() : height given in block mismatches with its actual height"),
-                            REJECT_INVALID, "incorrect-height");
+                             REJECT_INVALID, "incorrect-height");
         }
 
         int64_t tempTime = GetTimeMillis();
@@ -4128,7 +4136,14 @@ bool GetTxOperLog(const uint256 &txid, vector<CAccount> &accountLogs) {
 
                 for (auto &txUndo : blockUndo.vtxundo) {
                     if (txUndo.txid == txid) {
-                        accountLogs = txUndo.accountLogs;
+                        auto accountLogsPtr = txUndo.dbOpLogMap.GetDbOpLogsPtr(dbk::KEYID_ACCOUNT);
+                        if (accountLogsPtr != nullptr) {
+                            for (auto accountLog : *accountLogsPtr) {
+                                CAccount account;
+                                accountLog.Get(account);
+                                accountLogs.push_back(account);
+                            }
+                        }
                         return true;
                     }
                 }

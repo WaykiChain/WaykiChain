@@ -55,7 +55,6 @@ bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
-    CAccount acctLog(account);  // save account state before modification
     if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, deduct fee from account failed ,regId=%s",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
@@ -72,34 +71,8 @@ bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
                         txUid.ToString()), PRICE_FEED_FAIL, "duplicated-pricefeed");
     }
 
-    cw.txUndo.accountLogs.push_back(acctLog);
-    cw.txUndo.txid = GetHash();
-
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
         return false;
-
-    return true;
-}
-
-bool CPriceFeedTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
-    vector<CAccount>::reverse_iterator rIterAccountLog = cw.txUndo.accountLogs.rbegin();
-    for (; rIterAccountLog != cw.txUndo.accountLogs.rend(); ++rIterAccountLog) {
-        CAccount account;
-        CUserID userId = rIterAccountLog->keyid;
-        if (!cw.accountCache.GetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CPriceFeedTx::UndoExecuteTx, read account info error"),
-                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-        if (!account.UndoOperateAccount(*rIterAccountLog)) {
-            return state.DoS(100, ERRORMSG("CPriceFeedTx::UndoExecuteTx, undo operate account failed"),
-                             UPDATE_ACCOUNT_FAIL, "undo-operate-account-failed");
-        }
-
-        if (!cw.accountCache.SetAccount(userId, account)) {
-            return state.DoS(100, ERRORMSG("CPriceFeedTx::UndoExecuteTx, write account info error"),
-                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-        }
-    }
 
     return true;
 }

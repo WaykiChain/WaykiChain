@@ -126,7 +126,6 @@ coin_CORE_H = \
   tx/fcoinstaketx.h \
   tx/merkletx.h \
   tx/mulsigtx.h \
-  tx/multicoinblockrewardtx.h \
   tx/pricefeedtx.h \
   tx/tx.h \
   tx/txmempool.h \
@@ -273,7 +272,6 @@ libcoin_server_a_SOURCES = \
   tx/dextx.cpp \
   tx/fcoinstaketx.cpp \
   tx/mulsigtx.cpp \
-  tx/multicoinblockrewardtx.cpp \
   tx/pricefeedtx.cpp \
   tx/tx.cpp \
   tx/txmempool.cpp \
