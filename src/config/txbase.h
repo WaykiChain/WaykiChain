@@ -22,9 +22,10 @@ enum TxType: uint8_t {
     ACCOUNT_REGISTER_TX = 2,  //!< Account Registration Tx
     BCOIN_TRANSFER_TX   = 3,  //!< BaseCoin Transfer Tx
     CONTRACT_INVOKE_TX  = 4,  //!< Contract Invocation Tx
-    CONTRACT_DEPLOY_TX  = 5,  //!< Contract Deployment Tx
+    CONTRACT_DEPLOY_TX  = 5,  //!< LuaVM Contract Deployment Tx
     DELEGATE_VOTE_TX    = 6,  //!< Vote Delegate Tx
     COMMON_MTX          = 7,  //!< Multisig Tx
+    UCONTRACT_DEPLOY_TX = 8,  //!< universal VM contract deployment
 
     UCOIN_BLOCK_REWARD_TX    = 11,  //!< Universal Coin Miner Block Reward Tx
     UCOIN_CONTRACT_INVOKE_TX = 12,  //!< Universal Coin Contract Invocation Tx

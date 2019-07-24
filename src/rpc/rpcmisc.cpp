@@ -69,7 +69,7 @@ Value getbalance(const Array& params, bool fHelp)
             if (pWalletMain->HaveKey(keyid)) {
                 CAccount account;
                 if (pCdMan->pAccountCache->GetAccount(CUserID(keyid), account)) {
-                    obj.push_back( Pair("balance", ValueFromAmount(account.free_bcoins)) );
+                    obj.push_back( Pair("balance", ValueFromAmount(account.GetToken("WICC").free_amount)) );
                     return obj;
                 }
             } else {
@@ -139,10 +139,10 @@ Value getbalance(const Array& params, bool fHelp)
                         pBlockIndex = pBlockIndex->pprev;
                         --nConf;
                     }
-                    obj.push_back(Pair("balance", ValueFromAmount(pCdMan->pAccountCache->GetFreeBcoins(keyid) - nValue)));
+                    obj.push_back(Pair("balance", ValueFromAmount(pCdMan->pAccountCache->GetAccountFreeAmount(keyid) - nValue)));
                     return obj;
                 } else {
-                    obj.push_back(Pair("balance", ValueFromAmount(mempool.cw->accountCache.GetFreeBcoins(keyid))));
+                    obj.push_back(Pair("balance", ValueFromAmount(mempool.cw->accountCache.GetAccountFreeAmount(keyid))));
                     return obj;
                 }
             } else {

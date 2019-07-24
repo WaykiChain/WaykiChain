@@ -14,6 +14,7 @@ public:
     using CBaseTx::CBaseTx;
 
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail) = 0;
+
 public:
     static bool CalcCoinAmount(uint64_t assetAmount, uint64_t price, uint64_t &coinAmountOut);
 };
@@ -68,7 +69,9 @@ public:
     virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyLimitOrderTx>(this); }
     virtual string ToString(); //logging usage
+    string ToString(CAccountDBCache &view);
     virtual Object ToJson(const CKeyID &txUserKeyId) const; //json-rpc usage
+    virtual Object ToJson(const CAccountDBCache &view) const; //json-rpc usage
 
     virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);

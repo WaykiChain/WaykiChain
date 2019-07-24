@@ -31,6 +31,7 @@ enum CoinType: uint8_t {
     WUSD = 2,
     WCNY = 3
 };
+typedef CoinType AssetType;
 
 enum PriceType: uint8_t {
     USD     = 0,
@@ -46,6 +47,9 @@ enum PriceType: uint8_t {
 // make compatibility with low GCC version(≤ 4.9.2)
 struct CoinTypeHash {
     size_t operator()(const CoinType& type) const noexcept { return std::hash<uint8_t>{}(type); }
+};
+struct PriceTypeHash {
+    size_t operator()(const PriceType& type) const noexcept { return std::hash<uint8_t>{}(type); }
 };
 
 static const unordered_map<CoinType, string, CoinTypeHash> kCoinTypeMapName = {
@@ -96,10 +100,6 @@ inline bool ParseCoinType(const string& coinName, CoinType &coinType) {
     }
     return false;
 }
-
-struct PriceTypeHash {
-    size_t operator()(const PriceType& type) const noexcept { return std::hash<uint8_t>{}(type); }
-};
 
 inline bool ParseAssetType(const string& assetName, AssetType &assetType) {
     return ParseCoinType(assetName, assetType);

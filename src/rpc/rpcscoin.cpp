@@ -184,50 +184,42 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
 }
 
 Value submitredeemcdptx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 3 || params.size() > 6) {
+    if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-            "submitredeemcdptx \"addr\" redeem_amount collateral_ratio [\"cdp_id\"] [interest] [fee]\n"
+            "submitredeemcdptx \"addr\" \"cdp_id\" repay_amount redeem_amount [fee]\n"
             "\nsubmit a CDP Redemption Tx\n"
             "\nArguments:\n"
             "1. \"address\" : CDP redemptor's address\n"
-            "2. \"redeem_amount\": (numeric required) WICC coins to stake into the CDP, boosted by 10^8\n"
-            "3. \"collateral_ratio\": (numberic required), collateral ratio, boosted by 10^4 times\n"
-            "4. \"cdp_id\": (string optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
-            "5. \"interest\": (numeric optional) CDP interest (WUSD) to repay\n"
-            "6. \"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
+            "2. \"cdp_id\": (string) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
+            "3. \"repay_amount\": (numeric required) WUSD coins to stake into the CDP, boosted by 10^8\n"
+            "4. \"redeem_amount\": (numeric required) WICC coins to stake into the CDP, boosted by 10^8\n"
+            "5. \"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
+            + HelpExampleCli("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\"  20000000000 30000 1000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 2000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
+            + HelpExampleRpc("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 2000000000 30000 1000000\n")
         );
     }
     EnsureWalletIsUnlocked();
-
-    uint64_t redeemAmount = params[1].get_uint64();
-    uint64_t collateralRatio = params[2].get_uint64();
-
-    int validHeight = chainActive.Tip()->nHeight;
-    uint64_t interest   = 0;
-    uint64_t fee        = 0;
-    uint256 cdpTxId;
-    if (params.size() >=4 ) {
-        cdpTxId = uint256S(params[3].get_str());
-    }
-    if (params.size() >=5 ) {
-        interest =  params[4].get_uint64();
-    }
-    if (params.size() ==6 ) {
-        fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
-    }
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
     if (!cdpUid) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
-    CCDPRedeemTx tx(*cdpUid, fee, validHeight, cdpTxId, redeemAmount, collateralRatio, interest);
+    uint256 cdpTxId     = uint256S(params[1].get_str());
+    uint64_t repayAmount = params[2].get_uint64();
+    uint64_t redeemAmount = params[3].get_uint64();
+    uint64_t fee        = 0;
+    if (params.size() == 5) {
+        fee = params[4].get_uint64();  // real type, 0 if empty and thence minFee
+    }
+
+    int validHeight = chainActive.Tip()->nHeight;
+
+    CCDPRedeemTx tx(*cdpUid, fee, validHeight, cdpTxId, repayAmount, redeemAmount);
     return SubmitTx(*cdpUid, tx);
 }
 
@@ -273,7 +265,7 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
     }
 
-    CCDPRedeemTx tx(*cdpUid, fee, validHeight, cdpTxId, liquidateAmount, collateralRatio, interest);
+    CCDPLiquidateTx tx(*cdpUid, fee, validHeight, cdpTxId, liquidateAmount, collateralRatio);
     return SubmitTx(*cdpUid, tx);
 }
 

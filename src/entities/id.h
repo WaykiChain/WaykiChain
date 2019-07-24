@@ -18,7 +18,6 @@
 
 class CAccountDBCache;
 class CUserID;
-class CUserID;
 class CRegID;
 
 typedef vector<unsigned char> UnsignedCharArray;

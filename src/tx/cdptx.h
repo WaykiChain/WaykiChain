@@ -92,9 +92,11 @@ private:
     bool SellInterestForFcoins(const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    TxID     cdpTxId;
-    uint64_t bcoinsToStake;         // base coins amount to stake or collateralize
-    uint64_t scoinsToMint;          // initial collateral ratio must be >= 190 (%), boosted by 10000
+    TxID        cdpTxId;            //optional: only required for staking existing CDPs
+    TokenSymbol bcoinSymbol;        //optional: only reuiqred for 1st-time CDP staking
+    TokenSymbol scoinSymbol;        //ditto
+    uint64_t    bcoinsToStake;      // base coins amount to stake or collateralize
+    uint64_t    scoinsToMint;       // initial collateral ratio must be >= 190 (%), boosted by 10000
 };
 
 /**
@@ -110,15 +112,14 @@ public:
     }
 
     CCDPRedeemTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
-                uint256 cdpTxIdIn, uint64_t scoinsToRedeemIn, uint64_t collateralRatioIn, uint64_t scoinsInterestIn):
+                uint256 cdpTxIdIn, uint64_t scoinsToRepayIn, uint64_t bcoinsToRedeemIn):
                 CBaseTx(CDP_REDEEM_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
-        cdpTxId         = cdpTxIdIn;
-        scoinsToRedeem  = scoinsToRedeemIn;
-        collateralRatio = collateralRatioIn;
-        scoinsInterest  = scoinsInterestIn;
+        cdpTxId        = cdpTxIdIn;
+        scoinsToRepay  = scoinsToRepayIn;
+        bcoinsToRedeem = bcoinsToRedeemIn;
     }
 
     ~CCDPRedeemTx() {}
@@ -128,12 +129,11 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
-
         READWRITE(VARINT(llFees));
+
         READWRITE(cdpTxId);
-        READWRITE(VARINT(scoinsToRedeem));
-        READWRITE(VARINT(collateralRatio));
-        READWRITE(VARINT(scoinsInterest));
+        READWRITE(VARINT(scoinsToRepay));
+        READWRITE(VARINT(bcoinsToRedeem));
 
         READWRITE(signature);
     )
@@ -142,13 +142,13 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << cdpTxId << VARINT(scoinsToRedeem) << VARINT(collateralRatio) << VARINT(scoinsInterest);
+                << cdpTxId << VARINT(scoinsToRepay) << VARINT(bcoinsToRedeem);
             sigHash = ss.GetHash();
         }
         return sigHash;
     }
 
-    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WUSD, scoinsToRedeem}}; }
+    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WUSD, bcoinsToRedeem}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPRedeemTx>(this); }
@@ -165,10 +165,9 @@ private:
     bool SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    uint256 cdpTxId;           // CDP cdpTxId
-    uint64_t scoinsToRedeem;   // stableCoins amount to redeem or burn
-    uint64_t collateralRatio;  // must be >= 150 (%)
-    uint64_t scoinsInterest;   // stablecoin interest
+    uint256 cdpTxId;          // CDP cdpTxId
+    uint64_t scoinsToRepay;   // stableCoins amount to redeem or burn, including interest
+    uint64_t bcoinsToRedeem;
 };
 
 /**

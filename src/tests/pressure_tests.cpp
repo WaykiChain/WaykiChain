@@ -259,7 +259,7 @@ public:
 				if (!accView.GetAccount(userId, account)) {
 					return false;
 				}
-				freeValue += account.free_bcoins;
+				freeValue += account.GetToken("WICC").free_amount;
 			}
 
 		}
@@ -274,7 +274,7 @@ public:
 				if (!accView.GetAccount(userId, account)) {
 					return false;
 				}
-				scriptaccValue += account.free_bcoins;
+				scriptaccValue += account.GetToken("WICC").free_amount;
 			}
 
 		}

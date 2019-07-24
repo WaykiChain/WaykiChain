@@ -54,7 +54,7 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
 
     account.owner_pubkey = txUid.get<CPubKey>();
-    if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    if (!account.OperateBalance("WICC", BalanceOpType::SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, insufficient funds in account, keyid=%s",
                         keyId.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
@@ -96,7 +96,7 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
         if (!cw.txUndo.GetAccountLog(keyId, accountLog))
             return state.DoS(100, ERRORMSG("CAccountRegisterTx::UndoExecuteTx, read keyId=%s tx undo info error",
                             keyId.GetHex()), UPDATE_ACCOUNT_FAIL, "bad-read-undoinfo");
-        oldAccount.UndoOperateAccount(accountLog);
+        // oldAccount.UndoOperateAccount(accountLog);
     }
 
     if (!oldAccount.IsEmptyValue()) {
@@ -107,7 +107,7 @@ bool CAccountRegisterTx::UndoExecuteTx(int nHeight, int nIndex, CCacheWrapper &c
         CUserID userId(keyId);
         cw.accountCache.SetAccount(userId, oldAccount);
     } else {
-        cw.accountCache.EraseAccountByKeyId(txUid);
+        cw.accountCache.EraseAccount(txUid);
     }
     cw.accountCache.EraseKeyId(accountRegId);
 

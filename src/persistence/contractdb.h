@@ -7,6 +7,7 @@
 #define PERSIST_CONTRACTDB_H
 
 #include "entities/account.h"
+#include "entities/contract.h"
 #include "entities/key.h"
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
@@ -32,7 +33,7 @@ public:
     CContractDBCache() {}
 
     CContractDBCache(CDBAccess *pDbAccess):
-        scriptCache(pDbAccess),
+        contractCache(pDbAccess),
         txOutputCache(pDbAccess),
         acctTxListCache(pDbAccess),
         txDiskPosCache(pDbAccess),
@@ -43,7 +44,7 @@ public:
     };
 
     CContractDBCache(CContractDBCache *pBaseIn):
-        scriptCache(pBaseIn->scriptCache),
+        contractCache(pBaseIn->contractCache),
         txOutputCache(pBaseIn->txOutputCache),
         acctTxListCache(pBaseIn->acctTxListCache),
         txDiskPosCache(pBaseIn->txDiskPosCache),
@@ -55,10 +56,10 @@ public:
     bool SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn, CDBOpLogMap &dbOpLogMap);
     bool UndoContractAccount(CDBOpLogMap &dbOpLogMap);
 
-    bool GetContractScript(const CRegID &contractRegId, string &contractScript);
-    bool SetContractScript(const CRegID &contractRegId, const string &contractScript);
-    bool HaveContractScript(const CRegID &contractRegId);
-    bool EraseContractScript(const CRegID &contractRegId);
+    bool GetContract(const CRegID &contractRegId, CContract &contract);
+    bool SaveContract(const CRegID &contractRegId, const CContract &contract);
+    bool HaveContractt(const CRegID &contractRegId);
+    bool EraseContract(const CRegID &contractRegId);
 
     bool GetContractData(const CRegID &contractRegId, const string &contractKey, string &contractData);
     bool SetContractData(const CRegID &contractRegId, const string &contractKey, const string &contractData,
@@ -90,7 +91,7 @@ public:
     bool GetContractAccounts(const CRegID &contractRegId, map<string, string > &mapAcc);
 
     void SetBaseViewPtr(CContractDBCache *pBaseIn) {
-        scriptCache.SetBase(&pBaseIn->scriptCache);
+        contractCache.SetBase(&pBaseIn->contractCache);
         txOutputCache.SetBase(&pBaseIn->txOutputCache);
         acctTxListCache.SetBase(&pBaseIn->acctTxListCache);
         txDiskPosCache.SetBase(&pBaseIn->txDiskPosCache);
@@ -103,8 +104,8 @@ private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// ContractDB
-    // contractRegId -> script content
-    CCompositKVCache< dbk::CONTRACT_DEF,         string,                   string >               scriptCache;
+    // contractRegId -> Contract
+    CCompositKVCache< dbk::CONTRACT_DEF,         CRegID,                   CContract >             contractCache;
     // txId -> vector<CVmOperate>
     CCompositKVCache< dbk::CONTRACT_TX_OUT,      uint256,                  vector<CVmOperate> >   txOutputCache;
     // keyId, height, index -> txid

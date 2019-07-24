@@ -18,7 +18,6 @@
 #include "asset.h"
 #include "crypto/hash.h"
 #include "id.h"
-#include "stake.h"
 #include "vote.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
@@ -26,23 +25,7 @@
 using namespace json_spirit;
 
 class CAccountDBCache;
-class CAccountToken;
 
-typedef map<TokenSymbol, CAccountToken> AccountTokenMap;
-typedef CoinType AssetType;
-
-string GetAccountTokenStr(AccountTokenMap &tokens) {
-    string str;
-    for (auto iter : tokens) {
-        string symbol = iter.first;
-        uint64_t free_value = iter.second.free_value;
-        uint64_t staked_value = iter.second.staked_value;
-        uint64_t frozen_value = iter.second.frozen_value;
-        str += strprintf ("\n  - %s: {free=%lld, staked=%lld, frozen=%lld}\n",
-                    symbol, free_value, staked_value, frozen_value);
-    }
-    return str;
-}
 enum BalanceType : uint8_t {
     NULL_TYPE   = 0,
     FREE_VALUE,
@@ -60,7 +43,11 @@ enum BalanceOpType : uint8_t {
     UNFREEZE            //!< frozen -> free
 };
 
-static const unordered_map<BalanceOpType, string> kBalanceOpTypeTable = {
+struct BalanceOpTypeHash {
+    size_t operator()(const BalanceOpType& type) const noexcept { return std::hash<uint8_t>{}(type); }
+};
+
+static const unordered_map<BalanceOpType, string, BalanceOpTypeHash> kBalanceOpTypeTable = {
     { NULL_OP,  "NULL_OP"   },
     { ADD_FREE, "ADD_FREE"  },
     { SUB_FREE, "SUB_FREE"  },
@@ -101,6 +88,9 @@ public:
         READWRITE(VARINT(frozen_amount));
         READWRITE(VARINT(staked_amount));)
 };
+
+typedef map<TokenSymbol, CAccountToken> AccountTokenMap;
+
 
 /**
  * Common or Contract Account
@@ -145,7 +135,7 @@ public:
     CAccount(const CKeyID& keyidIn, const CNickID& nickidIn, const CPubKey& ownerPubkeyIn)
         : keyid(keyidIn), nickid(nickidIn), owner_pubkey(ownerPubkeyIn), received_votes(0), last_vote_height(0) {
         miner_pubkey = CPubKey();
-        tokens.Clear();
+        tokens.clear();
         regid.Clear();
     }
 
@@ -175,11 +165,25 @@ public:
         return sigHash;
     }
 
+    string GetAccountTokenStr() const {
+        string str;
+        for (auto iter : tokens) {
+            string symbol = iter.first;
+            uint64_t free_amount = iter.second.free_amount;
+            uint64_t staked_amount = iter.second.staked_amount;
+            uint64_t frozen_amount = iter.second.frozen_amount;
+            str += strprintf ("\n  - %s: {free=%lld, staked=%lld, frozen=%lld}\n",
+                        symbol, free_amount, staked_amount, frozen_amount);
+        }
+        return str;
+    }
+
     bool GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType, uint64_t &value);
     bool OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value);
 
     bool UndoOperateAccount(const CAccount& accountInfo);
 
+    bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool ProcessDelegateVotes(const vector<CCandidateVote>& candidateVotesIn,
                               vector<CCandidateVote>& candidateVotesInOut,
                               const uint64_t currHeight,
@@ -194,13 +198,17 @@ public:
     uint64_t ComputeVoteStakingInterest(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight);
     uint64_t ComputeBlockInflateInterest(const uint64_t currHeight) const;
 
-    bool IsEmptyValue() const { return !(free_bcoins > 0); }
+    bool IsEmptyValue() const { return (tokens.size() == 0); }
+
     bool IsEmpty() const { return keyid.IsEmpty(); }
+
     void SetEmpty() { keyid.SetEmpty(); }  // TODO: need set other fields to empty()??
     string ToString() const;
     Object ToJsonObj() const;
 
-    CAccountToken GetToken(const TokenSymbol &tokenSymbol);
+    void SetRegId(CRegID & regIdIn) { regid = regIdIn; }
+
+    CAccountToken GetToken(const TokenSymbol &tokenSymbol) const;
     bool SetToken(const TokenSymbol &tokenSymbol, const CAccountToken &accountToken);
 
 private:
