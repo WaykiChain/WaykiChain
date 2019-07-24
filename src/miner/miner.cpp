@@ -12,7 +12,6 @@
 #include "tx/tx.h"
 #include "tx/blockrewardtx.h"
 #include "tx/blockpricemediantx.h"
-#include "tx/multicoinblockrewardtx.h"
 #include "persistence/txdb.h"
 #include "persistence/contractdb.h"
 #include "persistence/cachewrapper.h"
@@ -149,7 +148,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
         pRewardTx->nValidHeight = pBlock->GetHeight();
 
     } else if (pBlock->vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
-        auto pRewardTx          = (CMultiCoinBlockRewardTx *)pBlock->vptx[0].get();
+        auto pRewardTx          = (CUCoinBlockRewardTx *)pBlock->vptx[0].get();
         pRewardTx->txUid        = delegate.regid;
         pRewardTx->nValidHeight = pBlock->GetHeight();
         pRewardTx->profits      = delegate.ComputeBlockInflateInterest(pBlock->GetHeight());
@@ -302,7 +301,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
     if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R1) { // pre-stablecoin release
         pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
     } else {  //stablecoin release
-        pBlock->vptx.push_back(std::make_shared<CMultiCoinBlockRewardTx>());
+        pBlock->vptx.push_back(std::make_shared<CUCoinBlockRewardTx>());
         pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>());
     }
 
@@ -412,7 +411,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
 
         // TODO: Fees
         // assert(nTotalFees >= nTotalFuel);
-        // TODO: CMultiCoinBlockRewardTx
+        // TODO: CUCoinBlockRewardTx
         ((CBlockRewardTx *)pBlock->vptx[0].get())->rewardValue = nTotalFees - nTotalFuel;
 
         if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R2) { // stablecoin release
