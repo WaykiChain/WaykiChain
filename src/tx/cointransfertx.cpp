@@ -40,12 +40,12 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
-    if (!srcAccount.OperateBalance(feesCoinType, MINUS_VALUE, llFees)) {
+    if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, insufficient bcoins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
     }
 
-    if (!srcAccount.OperateBalance(coinType, MINUS_VALUE, coins)) {
+    if (!srcAccount.OperateBalance(coin_symbol, SUB_FREE, coin_amount)) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, insufficient coins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-coins");
     }
@@ -64,8 +64,8 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
         }
     }
 
-    uint64_t actualCoinsToSend = coins;
-    if (coinType == CoinType::WUSD) { //if transferring WUSD, must pay 0.01% to the risk reserve
+    uint64_t actualCoinsToSend = coin_amount;
+    if (coin_symbol == SYMB::WUSD) { //if transferring WUSD, must pay 0.01% to the risk reserve
         CAccount fcoinGenesisAccount;
         if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
@@ -76,7 +76,7 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read SCOIN_RESERVE_FEE_RATIO error"),
                              READ_SYS_PARAM_FAIL, "bad-read-sysparamdb");
         }
-        uint64_t reserveFeeScoins = coins * riskReserveFeeRatio / kPercentBoost;
+        uint64_t reserveFeeScoins = coin_amount * riskReserveFeeRatio / kPercentBoost;
         actualCoinsToSend -= reserveFeeScoins;
 
         fcoinGenesisAccount.OperateBalance(SYMB::WUSD, ADD_FREE, reserveFeeScoins);
@@ -84,7 +84,7 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, update fcoinGenesisAccount info error"),
                             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
     }
-    if (!desAccount.OperateBalance(coinType, ADD_FREE, actualCoinsToSend)) {
+    if (!desAccount.OperateBalance(coin_symbol, ADD_FREE, actualCoinsToSend)) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, failed to add coins in toUid %s account", toUid.ToString()),
                         UPDATE_ACCOUNT_FAIL, "failed-add-coins");
     }
@@ -101,10 +101,10 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
 
 string CCoinTransferTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, coins=%ld, coinType=%s, llFees=%ld, feesCoinType=%s, "
+        "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, coin_symbol=%s, coin_amount=%ld, fee_symbol=%s, llFees=%ld, "
         "nValidHeight=%d\n",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), coins,
-        GetCoinTypeName(coinType), llFees, GetCoinTypeName(feesCoinType), nValidHeight);
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), coin_symbol, coin_amount,
+        fee_symbol, llFees, nValidHeight);
 }
 
 Object CCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -116,9 +116,9 @@ Object CCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
     result.push_back(Pair("to_uid",             toUid.ToString()));
     result.push_back(Pair("to_addr",            desKeyId.ToAddress()));
-    result.push_back(Pair("coins",              coins));
-    result.push_back(Pair("coin_type",          GetCoinTypeName(coinType)));
-    result.push_back(Pair("fees_coin_type",     GetCoinTypeName(feesCoinType)));
+    result.push_back(Pair("coin_symbol",          coin_symbol));
+    result.push_back(Pair("coin_amount",        coin_amount));
+    result.push_back(Pair("fee_symbol",     fee_symbol));
     result.push_back(Pair("memo",               HexStr(memo)));
 
     return result;

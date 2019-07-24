@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "config/const.h"
 #include "crypto/hash.h"
 #include "id.h"
 #include "vote.h"
@@ -56,13 +57,6 @@ static const unordered_set<string> kCoinTypeSet = {
     SYMB::WICC, SYMB::WGRT, SYMB::WUSD
 };
 
-static const unordered_map<string, CoinType> kCoinNameMapType = {
-    {"WICC", WICC},
-    {"WGRT", WGRT},
-    {"WUSD", WUSD},
-    {"WCNY", WCNY}
-};
-
 static const unordered_map<PriceType, string, PriceTypeHash> kPriceTypeMapName = {
     { USD,  "USD" },
     { CNY,  "CNY" },
@@ -82,25 +76,6 @@ static const unordered_map<string, PriceType> kPriceNameMapType = {
     { "GOLD", GOLD},
     { "KWH", KWH }
 };
-
-inline const string& GetCoinTypeName(CoinType coinType) {
-    return kCoinTypeMapName.at(coinType);
-}
-
-inline bool ParseCoinType(const string& coinName, CoinType &coinType) {
-    if (coinName != "") {
-        auto it = kCoinNameMapType.find(coinName);
-        if (it != kCoinNameMapType.end()) {
-            coinType = it->second;
-            return true;
-        }
-    }
-    return false;
-}
-
-inline bool ParseAssetType(const string& assetName, AssetType &assetType) {
-    return ParseCoinType(assetName, assetType);
-}
 
 inline const string& GetPriceTypeName(PriceType priceType) {
     return kPriceTypeMapName.at(priceType);
