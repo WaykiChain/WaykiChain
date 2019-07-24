@@ -40,8 +40,6 @@ enum WalletFeature
 // -paytxfee will warn if called with a higher fee than this amount (in satoshis) per KB
 static const int nHighTransactionFeeWarning = 0.01 * COIN;
 
-class CAccountingEntry;
-
 /** A CWallet is an extension of a keystore, which also maintains a set of transactions and balances,
  * and provides the ability to create new transactions.
  */
@@ -187,99 +185,6 @@ public:
             READWRITE(nTimeExpires);
             READWRITE(strComment);
     )
-};
-
-// /** Account information.
-//  * Stored in wallet with key "acc"+string account name.
-//  */
-// class CAccountInfo {
-// public:
-//     CPubKey vchPubKey;
-
-//     CAccountInfo() {
-//         SetNull();
-//     }
-
-//     void SetNull() {
-//         vchPubKey = CPubKey();
-//     }
-
-//     IMPLEMENT_SERIALIZE
-//     (
-//         if (!(nType & SER_GETHASH))
-//             READWRITE(nVersion);
-//             READWRITE(vchPubKey);
-//     )
-// };
-
-/** Internal transfers.
- * Database key is acentry<account><counter>.
- */
-class CAccountingEntry {
-public:
-    string strAccount;
-    int64_t nCreditDebit;
-    int64_t nTime;
-    string strOtherAccount;
-    string strComment;
-    mapValue_t mapValue;
-    int64_t nOrderPos;  // position in ordered transaction list
-    uint64_t nEntryNo;
-
-    CAccountingEntry() {
-        SetNull();
-    }
-
-    void SetNull() {
-        nCreditDebit = 0;
-        nTime = 0;
-        strAccount.clear();
-        strOtherAccount.clear();
-        strComment.clear();
-        nOrderPos = -1;
-    }
-
-    IMPLEMENT_SERIALIZE
-    (
-        CAccountingEntry& me = *const_cast<CAccountingEntry*>(this);
-        if (!(nType & SER_GETHASH))
-            READWRITE(nVersion);
-            // Note: strAccount is serialized as part of the key, not here.
-            READWRITE(nCreditDebit);
-            READWRITE(nTime);
-            READWRITE(strOtherAccount);
-
-        if (!fRead) {
-            WriteOrderPos(nOrderPos, me.mapValue);
-
-            if (!(mapValue.empty() && _ssExtra.empty())) {
-                CDataStream ss(nType, nVersion);
-                ss.insert(ss.begin(), '\0');
-                ss << mapValue;
-                ss.insert(ss.end(), _ssExtra.begin(), _ssExtra.end());
-                me.strComment.append(ss.str());
-            }
-        }
-
-        READWRITE(strComment);
-
-        size_t nSepPos = strComment.find("\0", 0, 1);
-        if (fRead) {
-            me.mapValue.clear();
-            if (string::npos != nSepPos) {
-                CDataStream ss(vector<char>(strComment.begin() + nSepPos + 1, strComment.end()), nType, nVersion);
-                ss >> me.mapValue;
-                me._ssExtra = vector<char>(ss.begin(), ss.end());
-            }
-            ReadOrderPos(me.nOrderPos, me.mapValue);
-        }
-        if (string::npos != nSepPos)
-        me.strComment.erase(nSepPos);
-        me.mapValue.erase("n");
-    )
-
-private:
-    vector<char> _ssExtra;
 };
 
 class CAccountTx {
