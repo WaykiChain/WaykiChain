@@ -933,8 +933,8 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
 
         // 10. operate account
         if (!buyOrderAccount.MinusDEXFrozenCoin(buyOrderDetail.coinType, dealItem.dealCoinAmount)             // - minus buyer's coins
-            || !buyOrderAccount.OperateBalance(buyOrderDetail.assetType, ADD_VALUE, buyerReceivedAssets)      // + add buyer's assets
-            || !sellOrderAccount.OperateBalance(sellOrderDetail.coinType, ADD_VALUE, sellerReceivedCoins)     // + add seller's coin
+            || !buyOrderAccount.OperateBalance(buyOrderDetail.assetType, ADD_FREE, buyerReceivedAssets)      // + add buyer's assets
+            || !sellOrderAccount.OperateBalance(sellOrderDetail.coinType, ADD_FREE, sellerReceivedCoins)     // + add seller's coin
             || !sellOrderAccount.MinusDEXFrozenCoin(sellOrderDetail.assetType, dealItem.dealAssetAmount)) {   // - minus seller's assets
             return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, operate coins or assets failed"),
                             REJECT_INVALID, "operate-account-failed");
@@ -992,4 +992,3 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
 
     return true;
 }
-

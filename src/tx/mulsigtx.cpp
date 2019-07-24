@@ -153,7 +153,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
         }
     }
 
-    if (!desAcct.OperateBalance(CoinType::WICC, ADD_VALUE, addValue)) {
+    if (!desAcct.OperateBalance(CoinType::WICC, ADD_FREE, addValue)) {
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, operate accounts error"),
                          UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }

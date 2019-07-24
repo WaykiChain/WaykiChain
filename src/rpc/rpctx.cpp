@@ -1405,10 +1405,9 @@ Value listcontracts(const Array& params, bool fHelp) {
     Array scriptArray;
     for (const auto item : contracts) {
         Object scriptObject;
-        scriptObject.push_back(
-            Pair("contract_regid", CRegID(UnsignedCharArray(item.first.begin(), item.first.end())).ToString()));
+        scriptObject.push_back( Pair("contract_regid", item.first.ToString()) );
 
-        CDataStream ds(item.second, SER_DISK, CLIENT_VERSION);
+        CDataStream ds(item.second.contract_code, SER_DISK, CLIENT_VERSION);
         CVmScript vmScript;
         ds >> vmScript;
         scriptObject.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
@@ -1420,7 +1419,7 @@ Value listcontracts(const Array& params, bool fHelp) {
         scriptArray.push_back(scriptObject);
     }
 
-    obj.push_back(Pair("count", contractScripts.size()));
+    obj.push_back(Pair("count", contracts.size()));
     obj.push_back(Pair("contracts", scriptArray));
 
     return obj;

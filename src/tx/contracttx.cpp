@@ -292,7 +292,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
             appUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!desAcct.OperateBalance(CoinType::WICC, ADD_VALUE, bcoins)) {
+    if (!desAcct.OperateBalance(CoinType::WICC, ADD_FREE, bcoins)) {
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, operate accounts error"),
                         UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }

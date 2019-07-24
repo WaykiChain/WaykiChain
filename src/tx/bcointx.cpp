@@ -85,7 +85,7 @@ bool CBaseCoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         }
     }
 
-    if (!desAcct.OperateBalance("WICC", BalanceOpType::ADD_VALUE, bcoins)) {
+    if (!desAcct.OperateBalance("WICC", BalanceOpType::ADD_FREE, bcoins)) {
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, operate accounts error"),
                          UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
