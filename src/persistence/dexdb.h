@@ -40,7 +40,7 @@ enum OrderGenerateType {
 struct CDEXOrderDetail {
     CRegID          userRegId;
     OrderType       orderType;     //!< order type
-    OrderDirection  direction;
+    OrderSide       orderSide;
     CoinType        coinType;      //!< coin type
     AssetType       assetType;     //!< asset type
     uint64_t        coinAmount;    //!< amount of coin to buy/sell asset

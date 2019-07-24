@@ -139,7 +139,7 @@ void CDEXBuyLimitOrderTx::GetOrderDetail(CDEXOrderDetail &orderDetail) {
     assert(txUid.type() == typeid(CRegID));
     orderDetail.userRegId   = txUid.get<CRegID>();
     orderDetail.orderType   = ORDER_LIMIT_PRICE;  //!< order type
-    orderDetail.direction   = ORDER_BUY;
+    orderDetail.orderSide   = ORDER_BUY;
     orderDetail.coinType    = coinType;                //!< coin type
     orderDetail.assetType   = assetType;               //!< asset type
     orderDetail.coinAmount  = bidPrice * assetAmount;  //!< amount of coin to buy asset
@@ -255,7 +255,7 @@ void CDEXSellLimitOrderTx::GetOrderDetail(CDEXOrderDetail &orderDetail) {
     assert(txUid.type() == typeid(CRegID));
     orderDetail.userRegId   = txUid.get<CRegID>();
     orderDetail.orderType   = ORDER_LIMIT_PRICE;  //!< order type
-    orderDetail.direction   = ORDER_SELL;
+    orderDetail.orderSide   = ORDER_SELL;
     orderDetail.coinType    = coinType;                //!< coin type
     orderDetail.assetType   = assetType;               //!< asset type
     orderDetail.coinAmount  = askPrice * assetAmount;  //!< amount of coin to buy asset
@@ -363,7 +363,7 @@ void CDEXBuyMarketOrderTx::GetOrderDetail(CDEXOrderDetail &orderDetail) {
     assert(txUid.type() == typeid(CRegID));
     orderDetail.userRegId   = txUid.get<CRegID>();
     orderDetail.orderType   = ORDER_MARKET_PRICE;  //!< order type
-    orderDetail.direction   = ORDER_BUY;
+    orderDetail.orderSide   = ORDER_BUY;
     orderDetail.coinType    = coinType;    //!< coin type
     orderDetail.assetType   = assetType;   //!< asset type
     orderDetail.coinAmount  = coinAmount;  //!< amount of coin to buy asset
@@ -469,7 +469,7 @@ void CDEXSellMarketOrderTx::GetOrderDetail(CDEXOrderDetail &orderDetail) {
     assert(txUid.type() == typeid(CRegID));
     orderDetail.userRegId   = txUid.get<CRegID>();
     orderDetail.orderType   = ORDER_MARKET_PRICE;  //!< order type
-    orderDetail.direction   = ORDER_SELL;
+    orderDetail.orderSide   = ORDER_SELL;
     orderDetail.coinType    = coinType;     //!< coin type
     orderDetail.assetType   = assetType;    //!< asset type
     orderDetail.coinAmount  = 0;            //!< unknown coinAmount in order
@@ -555,11 +555,11 @@ bool CDEXCancelOrderTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CVal
 
     CoinType frozenType;
     uint64_t frozenAmount = 0;
-    if (orderDetail.direction == ORDER_BUY) {
+    if (orderDetail.orderSide == ORDER_BUY) {
         frozenType = orderDetail.coinType;
         frozenAmount = orderDetail.coinAmount - activeOrder.totalDealCoinAmount;
     } else {
-        assert(orderDetail.direction == ORDER_SELL);
+        assert(orderDetail.orderSide == ORDER_SELL);
         frozenType = orderDetail.assetType;
         frozenAmount = orderDetail.assetAmount - activeOrder.totalDealAssetAmount;
     }
@@ -588,7 +588,7 @@ public:
     CDEXOrderDetail orderDetail;
 };
 
-static bool GetDealOrder(const uint256 &txid, const OrderDirection direction, CCacheWrapper &cw,
+static bool GetDealOrder(const uint256 &txid, const OrderSide orderSide, CCacheWrapper &cw,
                           CDEXDealOrder &dealOrder) {
     if (!cw.dexCache.GetActiveOrder(txid, dealOrder.activeOrder)) {
         return ERRORMSG("GetDealOrder, get active failed! txid=%s", txid.ToString());
@@ -609,8 +609,8 @@ static bool GetDealOrder(const uint256 &txid, const OrderDirection direction, CC
         }
         sysBuyOrder.GetOrderDetail(dealOrder.orderDetail);
     }
-    if (dealOrder.orderDetail.direction != direction) {
-        return ERRORMSG("GetDealOrder, unexpected direction of order tx! direction=%s", typeid(direction).name());
+    if (dealOrder.orderDetail.orderSide != orderSide) {
+        return ERRORMSG("GetDealOrder, unexpected orderSide of order tx! orderSide=%s", typeid(orderSide).name());
     }
     return true;
 }
