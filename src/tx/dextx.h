@@ -161,10 +161,10 @@ public:
     }
 
     CDEXBuyMarketOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
-                         CoinType coinTypeIn, CoinType assetTypeIn, uint64_t coinAmountIn)
+                         TokenSymbol coinSymbol, TokenSymbol assetSymbol, uint64_t coinAmountIn)
         : CDEXOrderBaseTx(DEX_BUY_MARKET_ORDER_TX, txUidIn, validHeightIn, feesIn),
-          coinType(coinTypeIn),
-          assetType(assetTypeIn),
+          coin_symbol(coinSymbol),
+          asset_symbol(assetSymbol),
           coinAmount(coinAmountIn) {}
 
     ~CDEXBuyMarketOrderTx() {}
@@ -174,11 +174,11 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
-
         READWRITE(VARINT(llFees));
-        READWRITE((uint8_t&)coinType);
-        READWRITE((uint8_t&)assetType);
-        READWRITE(VARINT(coinAmount));
+
+        READWRITE(coin_symbol;
+        READWRITE(asset_symbol);
+        READWRITE(VARINT(coin_amount));
 
         READWRITE(signature);
     )
@@ -187,7 +187,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << (uint8_t)coinType << (uint8_t)assetType << coinAmount;
+                << coin_symbol << asset_symbol << coin_amount;
             sigHash = ss.GetHash();
         }
 
