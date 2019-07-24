@@ -70,8 +70,8 @@ bool CContractDBCache::EraseContractData(const CRegID &contractRegId, const stri
     return contractDataCache.EraseData(key);
 }
 
-bool CContractDBCache::GetContractScripts(map<string, string> &contractScript) {
-    return scriptCache.GetAllElements(contractScript);
+bool CContractDBCache::GetContracts(map<CRegID, CContract> &contracts) {
+    return contractCache.GetAllElements(contracts);
 }
 
 bool CContractDBCache::GetContractData(const CRegID &contractRegId, vector<std::pair<string, string>> &contractData) {
@@ -160,8 +160,8 @@ bool CContractDBCache::GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOut
     return true;
 }
 
-bool CContractDBCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) { 
-    return txDiskPosCache.GetData(txid, pos); 
+bool CContractDBCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
+    return txDiskPosCache.GetData(txid, pos);
 }
 
 bool CContractDBCache::SetTxIndex(const uint256 &txid, const CDiskTxPos &pos) {

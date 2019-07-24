@@ -29,10 +29,10 @@ public:
 public:
     CContract(): vm_type(NULL_VM) {}
 
-    CContract(VMType vmTypeIn, string codeIn) : 
-        vm_type(vmTypeIn), code(codeIn), abi(""), memo("") { }; //for old-version compability
+    CContract(VMType vmTypeIn, string codeIn) :
+        vm_type(vmTypeIn), code(codeIn), abi(""), memo("") { }; //for backward compatibility
 
-    CContract(VMType vmTypeIn, string codeIn, string abiIn, string memoIn) : 
+    CContract(VMType vmTypeIn, string codeIn, string abiIn, string memoIn) :
         vm_type(vmTypeIn), code(codeIn), abi(abiIn), memo(memoIn) { };
 
     uint256 GetHash(bool recalculate = false) const {

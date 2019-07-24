@@ -185,8 +185,9 @@ bool CCdpDBCache::CheckGlobalCollateralRatioFloorReached(const uint64_t &bcoinMe
 // global collateral amount ceiling check
 bool CCdpDBCache::CheckGlobalCollateralCeilingReached(const uint64_t &newBcoinsToStake,
                                                       const uint64_t &kGlobalCollateralCeiling) {
-    bool ceilingAmountReached =
-        (newBcoinsToStake + cdpMemCache.GetGlobalCollateral()) > kGlobalCollateralCeiling * COIN;
+    bool ceilingAmountReached = (newBcoinsToStake + cdpMemCache.GetGlobalCollateral()) >
+                                    kGlobalCollateralCeiling * COIN;
+
     return ceilingAmountReached;
 }
 

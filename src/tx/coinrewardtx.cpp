@@ -28,9 +28,9 @@ bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
     account.keyid  = keyId;
 
     switch (coinType) {
-        case CoinType::WICC: account.GetToken("WICC").free_amount += coins; break;
-        case CoinType::WUSD: account.free_scoins += coins; break;
-        case CoinType::WGRT: account.free_fcoins += coins; break;
+        case CoinType::WICC: account.OperateBalance("WICC", ADD_FREE, coins); break;
+        case CoinType::WUSD: account.OperateBalance("WUSD", ADD_FREE, coins); break;
+        case CoinType::WGRT: account.OperateBalance("WGRT", ADD_FREE, coins); break;
         default: return ERRORMSG("CCoinRewardTx::ExecuteTx, invalid coin type");
     }
 

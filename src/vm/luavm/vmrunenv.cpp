@@ -245,7 +245,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
             CRegID regId(accountId);
             CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
             /// current tx's script cant't mius other script's regid
-            if (pContractCache->HaveContractScript(regId) && regId != tx->appUid.get<CRegID>())
+            if (pContractCache->HaveContract(regId) && regId != tx->appUid.get<CRegID>())
                 return false;
 
             memcpy(&operValue, it.money, sizeof(it.money));
@@ -272,7 +272,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
             if (regId.IsEmpty() || regId.GetKeyId(*pAccountCache) == uint160()) return false;
 
             //  app only be allowed minus self money
-            if (!pContractCache->HaveContractScript(regId) && it.opType == MINUS_BCOIN) return false;
+            if (!pContractCache->HaveContract(regId) && it.opType == MINUS_BCOIN) return false;
         }
     }
 
