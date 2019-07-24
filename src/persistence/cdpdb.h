@@ -6,11 +6,13 @@
 #ifndef PERSIST_CDPDB_H
 #define PERSIST_CDPDB_H
 
+#include "commons/uint256.h"
 #include "entities/cdp.h"
 #include "dbaccess.h"
 #include "tx/tx.h"  // TODO: constant definitions
 
 #include <map>
+#include <set>
 #include <string>
 
 using namespace std;
@@ -92,7 +94,7 @@ private:
     // cdp$CTxID -> CUserCDP
     CCompositeKVCache< dbk::CDP,         uint256,       CUserCDP >       cdpCache;
     // rcdp${CRegID} -> set<CTxID>
-    CCompositeKVCache< dbk::REGID_KEYID, string,        set<uint256>     regId2CdpCache;
+    CCompositeKVCache< dbk::REGID_KEYID, string,        set<uint256>>    regId2CdpCache;
 
 public:
     // Memory only cache
