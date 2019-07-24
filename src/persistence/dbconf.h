@@ -89,7 +89,7 @@ namespace dbk {
         /**** cdp db                                                                     */ \
         DEFINE( STAKE_FCOIN,          "fcoin", CDP )           /* fcoin{(uint64t)MAX - staked_fcoins}_{RegId} --> 1 */ \
         DEFINE( CDP,                  "cdp",   CDP )           /* cdp{$TxCord} --> { lastBlockHeight, totalstaked_bcoins, total_owed_scoins } */ \
-        DEFINE( REGID_CDP,            "rcdp"   CDP )           /* rcdp{$RegID} --> {set<TxCord>} */
+        DEFINE( REGID_CDP,            "rcdp",   CDP )           /* rcdp{$RegID} --> {set<TxCord>} */ \
         DEFINE( CDP_GLOBAL_HALT,      "cdph",  CDP )           /* cdph -> 0 | 1 */ \
         DEFINE( CDP_IR_PARAM_A,       "ira",   CDP )           /* [prefix] --> param_a */ \
         DEFINE( CDP_IR_PARAM_B,       "irb",   CDP )           /* [prefix] --> param_b */ \
