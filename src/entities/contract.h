@@ -24,15 +24,16 @@ public:
     VMType vm_type;
     string code;
     string abi;
+    string memo;
 
 public:
-    CContract(VM_Type vmTypeIn, string codeIn, string abiIn) : 
+    CContract(VMType vmTypeIn, string codeIn, string abiIn) : 
         vm_type(vmTypeIn), code(codeIn), abi(abiIn) { };
 
     uint256 GetHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << vm_type << code << abi;
+            ss << vm_type << code << abi << memo;
             sigHash = ss.GetHash();
         }
 
@@ -42,8 +43,11 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t &) vm_type);
         READWRITE(code);
-        READWRITE(abi);)
+        READWRITE(abi);
+        READWRITE(memo);)
 
+private:
+    mutable uint256 sigHash;  //!< only in memory
 };
 
 #endif //ENTITIES_CONTRACT_H
